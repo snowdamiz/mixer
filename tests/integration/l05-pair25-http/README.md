@@ -126,12 +126,30 @@ Oban retries the original job, PostgreSQL holds the capacity reservation, and
 the console build, logs, and artifact APIs enforce the original scope. The
 fixture waits for direct reap, process group absence, and an exact loopback bind
 with the stock socket options. It then reopens the same config and SQLite store.
-The existing Oban job must reach the original runner with a fresh guard before
-the fixture sends the one authenticated cancellation.
+The existing Oban job must reach the original runner with a fresh guard. The
+receipt captures the first owner detail HTTP status, projected build fields,
+and runner and worker observations before checking the response.
+
+The default inert recovery keeps the original operation active for one owner
+cancellation. Add `--inert-finish-on-reopen` and use a fresh receipt path to
+exercise natural completion. That option lets the inert adapter finish after
+the worker reopens, then waits for settlement before the first owner read. It
+requires zero cancellation requests. Both controls use the same outage
+assertions and product pin. The focused controls use the stock Python runner
+and worker with inert HTTP responses. Run them with
+`python3 -B tests/integration/l05-pair25-http/test_recovery.py -v`.
 
 For a live follow-up, use a fresh stage and dedicated daemon from the real run
-instructions. The live mode requires an Android Swift frontend in the same
-pinned container before the exit and again after recovery.
+instructions. The live mode requires an Android Swift frontend in the pinned
+container before the worker exit. If an Android Swift frontend is active in
+the same container after recovery, the fixture sends one owner cancellation.
+If compilation finishes during recovery, the fixture verifies native success
+on the same operation, including the exact container's successful exit and
+removal, one capacity release, three authenticated downloads, owner logs, and
+stable final revision. A stock 409 conflict at the sole cancel POST covers the
+race with completion only when that same success proof passes. The receipt
+records the attempted POST and reports cancellation as unexercised in that
+case.
 
 ```sh
 python3 -B tests/integration/l05-pair25-http/run.py --cancel --worker-crash \

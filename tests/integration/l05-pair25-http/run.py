@@ -41,6 +41,11 @@ ATTACHMENTS = {
     "resource_inventory": ("application/json", "resource-inventory.json"),
 }
 SPEC_FIELDS = ("organization_id", "project_id", "application_id", "platform")
+DETAIL_SCOPE = {"organizationId": "organization_id", "projectId": "project_id",
+                "applicationId": "application_id", "buildId": "build_id", "platform": "platform",
+                "sourceSha256": "source_sha256", "toolchainLockSha256": "toolchain_lock_sha256",
+                "buildDefinitionSha256": "build_definition_sha256"}
+COMPLETED_JOBS = [[kind, "completed"] for kind in ("created", "start", "completed")]
 SQL_STATE = """SELECT json_build_object(
   'record', (SELECT json_agg(json_build_array(id, revision)) FROM mixer_builds),
   'jobs', (SELECT json_agg(json_build_array(args->>'kind', state::text) ORDER BY id) FROM oban_jobs),
@@ -267,16 +272,21 @@ def control_runner(root, runner, grant, lock_digest, cancel, seconds):
         running = False
 
         def observe(self, identity):
+            if self.running and (root / "inert.finish-after-reopen").is_file():
+                self.finish()
+                self.running = False
             if self.running:
                 return ContainerObservation(identity, "running", False, False)
             return ContainerObservation(identity, "absent", True, True, completion_pending=self.terminal is not None)
 
         def ensure_started(self, identity, cutoff):
             require(self.terminal is None and cutoff > time.time_ns() // 1_000_000, "invalid inert start")
-            if cancel:
-                write(root / "inert.start", {"identity": asdict(identity), "cutoff": cutoff})
-                self.running = True
-                return
+            write(root / "inert.start", {"identity": asdict(identity), "cutoff": cutoff})
+            self.running = cancel
+            if not cancel:
+                self.finish()
+
+        def finish(self):
             bundle = Path(grant["bundle"])
             bundle.mkdir(mode=0o700)
             apk = b"inert fixture APK bytes\n"
@@ -299,7 +309,6 @@ def control_runner(root, runner, grant, lock_digest, cancel, seconds):
             self.terminal = {"inputs": grant["inputs"], "readback_sha256": sha(index), "exit_code": 0,
                              "start_fenced": True, "container_absent": True,
                              "processes_absent": True, "resources_removed": True}
-            write(root / "inert.start", {"identity": asdict(identity), "cutoff": cutoff})
 
         def stop(self, identity):
             require(cancel and self.running, "inert stop did not observe the original running operation")
@@ -345,7 +354,8 @@ def verify_downloads(auth, scope, sessions, worker_row, driver_log):
                 and headers["content-disposition"] == f'attachment; filename="{filename}"'
                 and {key: download[key] for key in worker} == worker
                 and (len(data), sha(data)) == (worker["sizeBytes"], worker["sha256"]), "artifact or ACL differs")
-        outputs.append(dict(worker, ownerHTTP=status, outsiderHTTP=denied, anonymousHTTP=anonymous))
+        outputs.append(dict(worker, ownerHTTP=status, outsiderHTTP=denied, anonymousHTTP=anonymous,
+                            contentType=media, contentDisposition=headers["content-disposition"]))
 
     status, headers, body = http(auth, LOGS + query, cookie=owner)
     denied = http(auth, LOGS + query, cookie=outsider)[0]
@@ -373,8 +383,13 @@ def journal_rows(path, statement):
         return journal.execute(statement).fetchall()
 
 
+def runner_journal(runner_dir):
+    return journal_rows(runner_dir / "operations.sqlite",
+                        "SELECT id, binding, deadline, guard, phase, completed FROM operation")
+
+
 @contextmanager
-def cancel_container(runner_dir, operator, recipe_path, identity):
+def docker_observer(runner_dir, operator, recipe_path, identity):
     from linux_android_docker_adapter import DockerContainerAdapter, DockerRecipe, socket_identity
     from linux_android_pair25_layout import Pair25Layout
 
@@ -403,10 +418,11 @@ def observed_frontend(adapter, identity):
 
     try:
         attempt = adapter._attempt(identity)
-        require(attempt is not None and attempt.phase == "starting" and attempt.successful_exit == 0,
-                "the pinned Docker attempt left its running phase before cancel")
+        if attempt is None or attempt.phase != "starting" or attempt.successful_exit != 0:
+            return None
         output = adapter._output(identity)
-        require(adapter._output_present(output, attempt), "pinned Docker output is absent before cancel")
+        if not adapter._output_present(output, attempt):
+            return None
         adapter._check_daemon()
         if adapter._container_state(identity, attempt, output)["Status"] != "running":
             return None
@@ -429,10 +445,9 @@ def observed_frontend(adapter, identity):
         return None
 
 
-def cancel_journals(state, runner_dir, binding, identity):
+def cancel_journals(state, runner_dir, binding, identity, *, allow_completed=False):
     rows = journal_rows(state / "operations.sqlite", "SELECT id, value FROM operations")
-    operations = journal_rows(runner_dir / "operations.sqlite",
-                              "SELECT id, binding, deadline, guard, phase, completed FROM operation")
+    operations = runner_journal(runner_dir)
     if not rows or not operations:
         return None
     [(worker_id, raw)] = rows
@@ -440,7 +455,8 @@ def cancel_journals(state, runner_dir, binding, identity):
     row = json.loads(raw)
     original = {key: binding[key] for key in ("ref", "spec", "deadline_ms")}
     require(worker_id == runner_id == identity.operation_id and row["binding"] == original
-            and (fingerprint, deadline, completed) == (identity.binding_sha256, binding["deadline_ms"], 0),
+            and (fingerprint, deadline) == (identity.binding_sha256, binding["deadline_ms"])
+            and (completed == 0 or (allow_completed and completed == 1)),
             "worker or runner journal changed the original operation")
     return row, json.loads(guard), phase
 
@@ -486,6 +502,53 @@ def verify_running(auth, scope, sessions):
             "artifactHTTP": verify_no_downloads(query, auth, owner, outsider)}
 
 
+def read_recovery_detail(auth, scope, sessions, receipt, key):
+    # Store the first owner's response before validation or additional HTTP calls.
+    observation = receipt[key] = {"requestedAtMS": time.time_ns() // 1_000_000}
+    query = "?" + urlencode(scope)
+    status, _, raw = http(auth, BUILD + query, cookie=sessions["owner"])
+    observation.update(ownerHTTP=status, responseAtMS=time.time_ns() // 1_000_000)
+    if status == 200:
+        try:
+            decoded = json.loads(raw)
+        except (ValueError, RecursionError):
+            observation["invalidJSON"] = True
+            return observation
+        detail = decoded.get("build") if isinstance(decoded, dict) else None
+        if isinstance(detail, dict):
+            def scalar(value):
+                return value if value is None or type(value) in (int, bool) or (
+                    isinstance(value, str) and len(value) <= 128 and value.isprintable()
+                ) else "<invalid>"
+
+            fields = (*DETAIL_SCOPE, "revision", "state", "attempt", "workerCompletionPending", "failureCode")
+            observation["detail"] = {field: scalar(detail[field]) if field in detail else "<missing>"
+                                     for field in fields}
+            artifacts = detail.get("artifacts", [])
+            observation["artifactCount"] = len(artifacts) if isinstance(artifacts, list) else None
+            if isinstance(artifacts, list):
+                observation["artifactKinds"] = [scalar(item.get("kind")) if isinstance(item, dict) else None
+                                                for item in artifacts[:len(ATTACHMENTS)]]
+    return observation
+
+
+def verify_recovery_detail(observation, scope):
+    detail = observation.get("detail", {})
+    require(observation["ownerHTTP"] == 200
+            and all(detail.get(field) == scope[key] for field, key in DETAIL_SCOPE.items())
+            and type(detail.get("attempt")) is int and detail["attempt"] == 1
+            and type(detail.get("revision")) is int and detail.get("failureCode") is None,
+            "post-reopen owner detail failed its original scope or attempt check")
+    if (detail["state"], detail["revision"], detail["workerCompletionPending"], observation["artifactCount"]) == (
+            "running", 1, True, 0) and detail["workerCompletionPending"] is True:
+        return "running"
+    if ((detail["state"], detail["revision"], detail["workerCompletionPending"]) == ("native_succeeded", 2, False)
+            and detail["workerCompletionPending"] is False and observation["artifactCount"] == len(ATTACHMENTS)
+            and observation["artifactKinds"] == list(ATTACHMENTS)):
+        return "native_succeeded"
+    raise RuntimeError("unexpected post-reopen owner build state or artifacts")
+
+
 def plain_bind_errno(port_number):
     # Match the stock TCPServer's bind options. SO_REUSEADDR can give a false pass here.
     with socket.socket() as probe:
@@ -498,9 +561,12 @@ def plain_bind_errno(port_number):
     return None
 
 
-def request_cancel(auth, scope):
+def request_cancel(auth, scope, *, allow_completion_conflict=False):
     status, _, raw = http(auth, CANCEL + "?" + urlencode(scope), cookie=auth["cookie"], empty_post=True)
-    require(status == 202, f"ordinary owner cancel returned {status}: {raw!r}")
+    if allow_completion_conflict and status == 409:
+        require(json.loads(raw).get("error", {}).get("code") == "conflict", "unexpected cancel conflict")
+        return status
+    require(status == 202, f"ordinary owner cancel returned {status}")
     response = json.loads(raw)
     detail = response["build"]
     require((response["outcome"], detail["buildId"], detail["state"], detail["revision"],
@@ -582,6 +648,22 @@ def verify_container_stop(adapter, identity, frontend):
     adapter._confirm_removed(attempt)
     return {"container": attempt.container_id, "containerAbsent": True,
             "ownedOutputRemoved": True, "sealed": False}
+
+
+def verify_container_success(adapter, identity, frontend, readback_sha):
+    attempt = adapter._attempt(identity)
+    seal = adapter._seal_record(identity)
+    require(attempt is not None and (attempt.phase, attempt.container_id, attempt.successful_exit) ==
+            ("cleaning", frontend["container"], 1)
+            and seal is not None and seal.readback == readback_sha
+            and not adapter._output_present(adapter._output(identity), attempt),
+            "the original Docker attempt did not exit successfully, seal its readback, and remove its output")
+    require(adapter.db.execute("SELECT operation FROM attempt").fetchall() == [(identity.operation_id,)]
+            and adapter.db.execute("SELECT operation FROM seal").fetchall() == [(identity.operation_id,)],
+            "Docker journals contain an additional attempt or seal")
+    adapter._confirm_removed(attempt)
+    return {"container": attempt.container_id, "exitCode": 0, "containerAbsent": True,
+            "readbackSHA256": readback_sha, "successfulAttempts": 1, "ownedOutputRemoved": True}
 
 
 def verify_cancelled(auth, scope, sessions):
@@ -778,10 +860,10 @@ def drive(root, args, env, result):
                     before = observed_db()
                     running_admission(before, binding)
                     result["runningReservation"] = before["capacity"][0]
-                    observer = cancel_container(runner_dir, operator, recipe_path, runner_identity) if operator else nullcontext()
+                    observer = docker_observer(runner_dir, operator, recipe_path, runner_identity) if operator else nullcontext()
                     with observer as adapter:
                         if adapter:
-                            result["frontendBeforeCancel"] = wait(
+                            frontend = wait(
                                 lambda: observed_frontend(adapter, runner_identity),
                                 until - time.monotonic(), processor, interval=0.2,
                             )
@@ -791,12 +873,13 @@ def drive(root, args, env, result):
                                     and start["cutoff"] <= min(binding["deadline_ms"], guard["expires_at"]),
                                     "inert adapter did not receive the original guarded start")
                             result["inertStart"] = start
+                        outcome = "running"
                         if args.worker_crash:
                             mark("api.refresh")
                             sessions = ready("api.sessions", api)
                             recovery = result["workerRecovery"] = {"port": worker_port, "runnerPID": runner_process.pid}
                             if adapter:
-                                recovery["frontendBeforeExit"] = result["frontendBeforeCancel"]
+                                recovery["frontendBeforeExit"] = frontend
                             recovery["beforeExit"] = verify_running(auth, scope, sessions)
                             runner_socket = Path(runner["socket_path"])
                             paths = (config_path, state / "operations.sqlite", runner_socket, runner_dir / "operations.sqlite")
@@ -866,82 +949,139 @@ def drive(root, args, env, result):
                             worker = worker_service.enter_context(
                                 owned(root, "worker-reopened", worker_command, root, env, receipts, stop_worker)
                             )
-                            require(worker.pid != recovery["signal"]["targetPID"], "reopened worker reused the old PID")
                             wait(lambda: listening(worker_port), until - time.monotonic(), worker)
-                            require_same_files()
+                            recovery["reopenedWorkerPID"] = worker.pid
+                            recovery["samePortListening"] = True
 
                             def resumed():
-                                current = journals()
-                                resumed_guard = original_start(current, runner_identity)
-                                if resumed_guard and resumed_guard["epoch"] > offline_admission[5]:
-                                    job = start_job()
-                                    admission = running_admission(observed_db(), binding)
-                                    require(job[0] == original_job[0] and resumed_guard["owner_id"].startswith(f"oban:{job[0]}:")
-                                            and resumed_guard["epoch"] <= current[0]["guard"]["epoch"] <= admission[5],
-                                            "reopened worker did not observe the original restricted Oban operation")
-                                    return resumed_guard, job
+                                rows = runner_journal(runner_dir)
+                                if len(rows) == 1:
+                                    current = rows[0]
+                                    runner_guard = json.loads(current[3])
+                                    if runner_guard["epoch"] > offline_admission[5]:
+                                        return current, runner_guard
 
-                            guard, job = wait(resumed, until - time.monotonic(), processor)
-                            recovery["reopenedRunnerGuard"] = guard
-                            recovery["startJobAfterReopen"] = job
-                            recovery["afterReopen"] = verify_running(auth, scope, sessions)
+                            if args.inert_finish_on_reopen:
+                                mark("inert.finish-after-reopen")
+                            try:
+                                current, guard = wait(resumed, until - time.monotonic(), processor)
+                                runner_id, fingerprint, deadline, _, phase, completed = current
+                                recovery.update(reopenedRunnerGuard=guard, reopenedRunnerPhase=phase,
+                                                reopenedRunnerCompleted=completed,
+                                                reopenedRunnerOperation={"operationId": runner_id,
+                                                                         "bindingSHA256": fingerprint,
+                                                                         "deadlineMS": deadline})
+                                if args.inert_finish_on_reopen:
+                                    wait(lambda: observed_db()["jobs"] == COMPLETED_JOBS,
+                                         until - time.monotonic(), processor)
+                            finally:
+                                recovery["runnerAliveBeforeFirstRead"] = runner_process.poll() is None
+                                recovery["workerAliveBeforeFirstRead"] = worker.poll() is None
+                                first = read_recovery_detail(auth, scope, sessions, recovery, "afterReopen")
+
+                            require_same_files()
                             recovery["sameConfigSQLiteAndRunner"] = True
-                            require_no_bundle(state, grant)
-                            if adapter:
-                                frontend = wait(lambda: observed_frontend(adapter, runner_identity),
-                                                until - time.monotonic(), processor, interval=0.2)
-                                require(frontend["container"] == recovery["frontendBeforeExit"]["container"],
-                                        "reopened worker observed a different Docker container")
-                                result["frontendBeforeCancel"] = frontend
-                            else:
-                                require(read(root / "inert.start") == start and not (root / "inert.stop").exists(),
-                                        "inert runner did not preserve its one active start")
-
-                        mark("api.cancel-auth.request")
-                        cancel_auth = auth | ready("api.cancel-auth", api)
-                        result["cancelAttempts"] = 1
-                        result["cancelRequestedAtMS"] = time.time_ns() // 1_000_000
-                        result.update(cancelHTTP=request_cancel(cancel_auth, scope), cancellationExercised=True)
-
-                        def cancelled():
-                            current = observed_db()
-                            if current["jobs"] == [[kind, "completed"] for kind in ("created", "start", "cancel", "stopped")]:
-                                return current
-
-                        final = wait(cancelled, max(1, until - time.monotonic()), processor)
-                        result.update(verify_stop(final, sql, journals(), guard, state, binding, grant, config))
-                        if adapter:
-                            result["liveClosure"] = verify_container_stop(
-                                adapter, runner_identity, result["frontendBeforeCancel"],
+                            job = start_job()
+                            recovery["startJobAfterReopen"] = job
+                            current_worker, _, _ = cancel_journals(
+                                state, runner_dir, binding, runner_identity, allow_completed=True,
                             )
-                        else:
-                            stop = read(root / "inert.stop")
-                            require(stop == {"identity": identity}, "inert adapter stopped a different operation")
-                            result["inertStop"] = stop
-                    result["nativeDispatchResolved"] = True
-                else:
+                            [admission] = observed_db()["operations"]
+                            require(recovery["runnerAliveBeforeFirstRead"] and recovery["workerAliveBeforeFirstRead"]
+                                    and (runner_id, fingerprint, deadline, phase) ==
+                                    (operation, identity["binding_sha256"], binding["deadline_ms"], "started")
+                                    and completed in (0, 1) and job[0] == original_job[0]
+                                    and worker.pid != recovery["signal"]["targetPID"]
+                                    and guard["record_id"] == binding["record_id"] and guard["revision"] == 1
+                                    and guard["owner_id"].startswith(f"oban:{job[0]}:")
+                                    and (current_worker["starts"], current_worker["linux_runner"]) == (1, identity)
+                                    and admission[:5] == [operation, binding["record_id"], deadline, "admitted", 1]
+                                    and guard["epoch"] <= current_worker["guard"]["epoch"] <= admission[5],
+                                    "reopened worker did not observe the original restricted Oban operation")
+                            outcome = verify_recovery_detail(first, scope)
+                            query = "?" + urlencode(scope)
+                            first["outsiderHTTP"] = http(auth, BUILD + query, cookie=sessions["outsider"])[0]
+                            first["anonymousHTTP"] = http(auth, BUILD + query)[0]
+                            require((first["outsiderHTTP"], first["anonymousHTTP"]) == (404, 401),
+                                    "post-reopen detail authorization differs")
+
+                            def active_or_completed():
+                                if adapter:
+                                    active = observed_frontend(adapter, runner_identity)
+                                    if active:
+                                        require(active["container"] == recovery["frontendBeforeExit"]["container"],
+                                                "reopened worker observed a different Docker container")
+                                        return "running", active
+                                else:
+                                    require(read(root / "inert.start") == start and not (root / "inert.stop").exists(),
+                                            "inert runner did not preserve its one active start")
+                                    return "running", None
+                                observation = read_recovery_detail(auth, scope, sessions, recovery, "latestRecoveryRead")
+                                if verify_recovery_detail(observation, scope) == "native_succeeded":
+                                    return "native_succeeded", None
+
+                        if outcome == "running":
+                            mark("api.cancel-auth.request")
+                            cancel_auth = auth | ready("api.cancel-auth", api)
+                            if args.worker_crash:
+                                outcome, frontend = wait(active_or_completed, until - time.monotonic(), processor,
+                                                         interval=0.2)
+
+                        if outcome == "running":
+                            if adapter:
+                                result["frontendBeforeCancel"] = frontend
+                            result["cancelAttempts"] = 1
+                            result["cancelRequestedAtMS"] = time.time_ns() // 1_000_000
+                            status = request_cancel(cancel_auth, scope, allow_completion_conflict=args.worker_crash)
+                            result["cancelHTTP"] = status
+                            if status == 409:
+                                observation = read_recovery_detail(auth, scope, sessions, recovery, "afterCancelConflict")
+                                outcome = verify_recovery_detail(observation, scope)
+                                require(outcome == "native_succeeded", "cancel conflict lacks native success evidence")
+                            else:
+                                result["cancellationExercised"] = True
+
+                                def cancelled():
+                                    current = observed_db()
+                                    if current["jobs"] == [[kind, "completed"] for kind in
+                                                          ("created", "start", "cancel", "stopped")]:
+                                        return current
+
+                                final = wait(cancelled, max(1, until - time.monotonic()), processor)
+                                result.update(verify_stop(final, sql, journals(), guard, state, binding, grant, config))
+                                if args.worker_crash:
+                                    settled_job = start_job()
+                                    require(settled_job[0] == original_job[0],
+                                            "cancellation settled a different Oban start job")
+                                    recovery["settledStartJob"] = settled_job
+                                if adapter:
+                                    result["liveClosure"] = verify_container_stop(adapter, runner_identity, frontend)
+                                else:
+                                    stop = read(root / "inert.stop")
+                                    require(stop == {"identity": identity}, "inert adapter stopped a different operation")
+                                    result["inertStop"] = stop
+                                result["nativeDispatchResolved"] = True
+
+                if not result["cancellationExercised"]:
                     def settled():
                         require(worker.poll() is None and runner_process.poll() is None,
                                 "worker or runner exited before settlement")
                         snapshot = observed_db()
-                        if snapshot["jobs"] == [["created", "completed"], ["start", "completed"], ["completed", "completed"]]:
+                        if snapshot["jobs"] == COMPLETED_JOBS:
                             return snapshot
                         return None
 
-                    final = wait(settled, args.seconds, processor)
+                    success_budget = until - time.monotonic() if args.worker_crash else args.seconds
+                    final = wait(settled, success_budget, processor)
                     require(final["record"] == [[binding["record_id"], 2]]
                             and final["capacity"] == [[binding["record_id"], 1, 1, False, "coordinator:1:1:completed"]]
                             and final["leases"] == [[binding["record_id"], None, None]], "settlement or release differs")
-                    with closing(sqlite3.connect(state / "operations.sqlite")) as journal:
-                        [(row_id, raw)] = journal.execute("SELECT id, value FROM operations").fetchall()
+                    [(row_id, raw)] = journal_rows(state / "operations.sqlite", "SELECT id, value FROM operations")
                     row = json.loads(raw)
                     require(row_id == operation and row["linux_runner"] == identity
                             and row["binding"] == {key: binding[key] for key in ("ref", "spec", "deadline_ms")}
                             and (row["starts"], row["status"]) == (1, "native_ready"), "worker journal differs")
-                    with closing(sqlite3.connect(runner_dir / "operations.sqlite")) as journal:
-                        [(row_id, fingerprint, deadline, guard_raw, phase, completed)] = journal.execute(
-                            "SELECT id, binding, deadline, guard, phase, completed FROM operation"
-                        ).fetchall()
+                    [(row_id, fingerprint, deadline, guard_raw, phase, completed)] = runner_journal(runner_dir)
                     guard = json.loads(guard_raw)
                     worker_guard = row["guard"]
                     require((row_id, fingerprint, deadline, phase, completed) ==
@@ -954,11 +1094,37 @@ def drive(root, args, env, result):
                     require(final["operations"] == [[operation, binding["record_id"], deadline, "admitted",
                                                      worker_guard["revision"], worker_guard["epoch"], worker_guard["owner_id"]]],
                             "worker lease guard differs from restricted durable PostgreSQL intent")
-                    result.update(runnerGuard=guard, finalWorkerGuard=worker_guard, workerStarts=1,
-                                  runnerCompleted=True, capacityReleased=True)
+                    result.update(runnerGuard=guard, finalWorkerGuard=worker_guard, workerStarts=1, runnerStarts=1,
+                                  runnerCompleted=True, capacityReleased=True, settledJobs=final["jobs"],
+                                  capacityReleaseEvent=final["capacity"][0][-1])
+                    if args.worker_crash:
+                        settled_job = start_job()
+                        require(settled_job[0] == original_job[0]
+                                and worker_guard["owner_id"].startswith(f"oban:{settled_job[0]}:")
+                                and guard["epoch"] >= recovery["reopenedRunnerGuard"]["epoch"]
+                                and not row.get("tombstone"),
+                                "native success did not retain the original recovered Oban operation")
+                        [[start_event, completed_event]] = json.loads(
+                            sql("SELECT json_agg(journal->'events') FROM mixer_builds")
+                        )
+                        require(start_event["event"] == {"type": "start", "ref": binding["ref"]}
+                                and completed_event["id"] == result["capacityReleaseEvent"]
+                                and completed_event["event"] == {
+                                    "type": "completed", "ref": binding["ref"],
+                                    "result": {"outcome": "native_succeeded", "artifacts": [
+                                        {"kind": entry["kind"], "sha256": entry["sha256"],
+                                         "size_bytes": entry["sizeBytes"]} for entry in row["artifacts"]
+                                    ]},
+                                }, "native success and capacity release do not match the original build journal")
+                        recovery["settledStartJob"] = settled_job
                     readback = (Path(grant["bundle"]) / "readback.json").read_bytes()
                     driver_log = json.loads(readback)["androidDriverLog"]
-                    if operator:
+                    if operator and args.worker_crash:
+                        with docker_observer(runner_dir, operator, recipe_path, runner_identity) as adapter:
+                            result["liveClosure"] = verify_container_success(
+                                adapter, runner_identity, recovery["frontendBeforeExit"], sha(readback),
+                            )
+                    elif operator:
                         from linux_android_docker_adapter import DockerContainerAdapter
                         output = Path(operator["pair25_root"]) / "outputs" / DockerContainerAdapter._name(
                             RunnerIdentity(**identity)
@@ -982,6 +1148,7 @@ def drive(root, args, env, result):
                         require(start["identity"] == identity and start["cutoff"] <= min(deadline, guard["expires_at"]),
                                 "inert adapter did not receive the guarded operation")
                         result["inertStart"] = start
+                        require(not (root / "inert.stop").exists(), "successful inert operation was stopped")
                         request = dict(row["binding"], operation_id=operation, guard=worker_guard)
                         require(wire(config, "query", dict(request, deadline_ms=deadline + 1)) == {"error": "unavailable"}
                                 and wire(config, "query", dict(request, guard=dict(worker_guard, expires_at=1))) ==
@@ -992,12 +1159,18 @@ def drive(root, args, env, result):
             if sessions is None:
                 mark("api.refresh")
                 sessions = ready("api.sessions", api)
-            if args.cancel:
+            if result["cancellationExercised"]:
                 result["cancelledBuild"] = verify_cancelled(auth, scope, sessions)
             else:
                 result["downloads"], result["logs"] = verify_downloads(
                     auth, scope, sessions, row, driver_log,
                 )
+                if args.worker_crash:
+                    final_detail = read_recovery_detail(auth, scope, sessions, recovery, "finalOwnerRead")
+                    require(verify_recovery_detail(final_detail, scope) == "native_succeeded",
+                            "native success changed after artifact and log readback")
+            if args.worker_crash:
+                recovery["outcome"] = "cancelled" if result["cancellationExercised"] else "native_succeeded"
 
     require(not Path(runner["socket_path"]).exists(), "runner socket was retained")
     with ExitStack() as stack:
@@ -1025,11 +1198,16 @@ def main():
     parser.add_argument("--receipt", type=Path, required=True)
     parser.add_argument("--operator", type=Path, help="real Pair25 stage/daemon operator JSON; omitted for inert replay")
     parser.add_argument("--cancel", action="store_true", help="cancel the original operation while it is running")
-    parser.add_argument("--worker-crash", action="store_true", help="SIGKILL and reopen the owned worker before cancel")
+    parser.add_argument("--worker-crash", action="store_true",
+                        help="SIGKILL and reopen the owned worker, then cancel if active or verify native success")
+    parser.add_argument("--inert-finish-on-reopen", action="store_true",
+                        help="with inert worker-crash mode, settle the original operation before the first recovery read")
     parser.add_argument("--seconds", type=int, help="settlement budget, at most 1,150 seconds")
     args = parser.parse_args()
     if args.worker_crash and not args.cancel:
         parser.error("--worker-crash requires --cancel")
+    if args.inert_finish_on_reopen and (not args.worker_crash or args.operator):
+        parser.error("--inert-finish-on-reopen requires --worker-crash without --operator")
     if args.seconds is None:
         args.seconds = 75 if args.worker_crash else 30
     if not 1 <= args.seconds <= 1150:
@@ -1041,7 +1219,9 @@ def main():
               "mode": "real" if args.operator else "inert", "python": sys.version,
               "fixtureSHA256": {name: sha((HERE / name).read_bytes())
                                 for name in ("run.py", "processor.exs", "api-case.exs")},
-              "commands": {}, "cancellationExercised": False, "nativeDispatchPossible": False}
+              "commands": {}, "cancelAttempts": 0, "cancellationExercised": False, "nativeDispatchPossible": False}
+    if args.worker_crash and not args.operator:
+        result["inertRecoveryMode"] = "finish-on-reopen" if args.inert_finish_on_reopen else "stay-active"
     env = {key: os.environ[key] for key in ("PATH", "HOME", "MIX_HOME", "HEX_HOME") if key in os.environ}
     env.update(MIX_ENV="test", HEX_OFFLINE="1", GIT_NO_LAZY_FETCH="1", LC_ALL="C", TMPDIR=str(root),
                PAIR25_RUN=str(root), PYTHONDONTWRITEBYTECODE="1", PYTHONOPTIMIZE=str(sys.flags.optimize))

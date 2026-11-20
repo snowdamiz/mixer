@@ -1,0 +1,553 @@
+{
+  "scope": "Ordinary Phoenix, PostgreSQL, and restricted Oban with the real worker and an inert runner backend.",
+  "candidate": "9b1cc880a6e308facce378c55dc9aa66597e1b15",
+  "productPin": "11b9cb43e3d90de5580efda9b9e2e3a47e387be3",
+  "hostedTree": "63053bd38c27e60d7d929af00706d2b1e526db40",
+  "fixtureSHA256": {
+    "run.py": "8250db4e8b1c8202efb3b8f48b6d9cf3114cdc55b35a4f5e7ed81eafddca15ff",
+    "processor.exs": "130bb44a3bc3fd938da9a229a40390c1b8d94ca9784d7cb99bf35e67eb41d248",
+    "api-case.exs": "68416a08726fda6988ec6a24eaabfae4b29ae835bbdea8ab8e1aafaeba361a68"
+  },
+  "versions": {
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "mix": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:15:15] [ds:15:15:10] [async-threads:1] [jit] [dtrace]\n\nMix 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)"
+  },
+  "dependencyPreflight": {
+    "lockSHA256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+    "lockUnchanged": true,
+    "privateHexAndMixHomes": true,
+    "checks": [
+      "mix deps.get --check-locked",
+      "HEX_OFFLINE=1 mix deps.get --check-locked"
+    ]
+  },
+  "focusedTests": {
+    "invocations": [
+      "python3.14 -B tests/integration/l05-pair25-http/test_recovery.py -v",
+      "python3.14 -BO tests/integration/l05-pair25-http/test_recovery.py -v"
+    ],
+    "passedPerInvocation": 4
+  },
+  "hostedReplay": {
+    "command": "python3.14 -B tests/integration/l05-pair25-http/run.py --cancel --worker-crash --seconds 75 --scratch <private-parent> --receipt <new-path>",
+    "completedExtraFlag": "--inert-finish-on-reopen",
+    "results": [
+      {
+        "control": "active",
+        "outcome": "cancelled",
+        "rawReceiptSHA256": "0836c6f30b07eb60f3b2408b9c4e21b1a0f2f55133fe47ef487c1346e58f241e",
+        "createAttempts": 1,
+        "createHTTP": 201,
+        "cancelAttempts": 1,
+        "capacityReleaseEvent": "coordinator:1:2:stopped",
+        "workerStarts": 1,
+        "runnerStarts": 1,
+        "settledJobs": [
+          [
+            "created",
+            "completed"
+          ],
+          [
+            "start",
+            "completed"
+          ],
+          [
+            "cancel",
+            "completed"
+          ],
+          [
+            "stopped",
+            "completed"
+          ]
+        ],
+        "portsReusable": [
+          52786,
+          52787,
+          52887,
+          52868,
+          52860
+        ],
+        "commands": {
+          "api": {
+            "exit": 0,
+            "groupAbsent": true,
+            "logSHA256": "ab280025c30f8d0c8cf3be50a9e3515d12bf1ac181b739da1c0872f7c2ddbd22",
+            "pid": 54512
+          },
+          "compile": {
+            "exit": 0,
+            "groupAbsent": true,
+            "logSHA256": "42d4edf69044ab08475814eeae447f249630bce71b0fa5d1266285bc1787ed84",
+            "pid": 49624
+          },
+          "deps": {
+            "exit": 0,
+            "groupAbsent": true,
+            "logSHA256": "df1ce1a86a2c726bc22bad57239243548f565bf2dd15f827e74e0e898a0ba35d",
+            "pid": 47925
+          },
+          "initdb": {
+            "exit": 0,
+            "groupAbsent": true,
+            "logSHA256": "e0c0174caac294f0a81fd15169afae716af3a777be92677b530fed2d5d9ceb77",
+            "pid": 54434
+          },
+          "postgres": {
+            "exit": 0,
+            "groupAbsent": true,
+            "logSHA256": "6c6937d4c0cf568094b73f5a84f75016e628e90e18a77414403298b4c44af1be",
+            "pid": 54490
+          },
+          "processor": {
+            "exit": 0,
+            "groupAbsent": true,
+            "logSHA256": "980e45ce45635641195fd9c49c581c5c1e0a705b9b79c977d9aa9ce62d433f28",
+            "pid": 55107
+          },
+          "runner": {
+            "exit": 0,
+            "groupAbsent": true,
+            "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "pid": 55213
+          },
+          "worker": {
+            "exit": -9,
+            "groupAbsent": true,
+            "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "pid": 55214
+          },
+          "worker-reopened": {
+            "exit": 0,
+            "groupAbsent": true,
+            "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "pid": 58463
+          }
+        },
+        "scratchRemoved": true,
+        "firstOwnerRead": {
+          "anonymousHTTP": 401,
+          "artifactCount": 0,
+          "artifactKinds": [],
+          "detail": {
+            "applicationId": "example.source.app",
+            "attempt": 1,
+            "buildDefinitionSha256": "4dfc76b24902f25565dab47d0973fcf09dc4d91108af9e482f22c54e39921d93",
+            "buildId": "build-b3574a562205d7870c9d1bfd2f5d3e9db3aaa1ee29c770c2f0cc3f3b95afc925",
+            "failureCode": null,
+            "organizationId": "org-2ecb1802db47403193d42d533985c259",
+            "platform": "android",
+            "projectId": "project-02ed9325727a4122b7d6d143d29afbbd",
+            "revision": 1,
+            "sourceSha256": "dc0e1baa082468d70a2d9dc91aada7651624ccfba3279723f8813fdd46d15f83",
+            "state": "running",
+            "toolchainLockSha256": "1f5aecce317593b7fe9afacdf6f2308783eccfca793d749ad40c8af3197d2e0c",
+            "workerCompletionPending": true
+          },
+          "outsiderHTTP": 404,
+          "ownerHTTP": 200,
+          "requestedAtMS": 1795167529747,
+          "responseAtMS": 1795167529900
+        },
+        "outageMilliseconds": 30882,
+        "buildDuringOutage": {
+          "artifactHTTP": {
+            "debug_symbols": {
+              "anonymousHTTP": 401,
+              "outsiderHTTP": 404,
+              "ownerHTTP": 404
+            },
+            "resource_inventory": {
+              "anonymousHTTP": 401,
+              "outsiderHTTP": 404,
+              "ownerHTTP": 404
+            },
+            "unsigned_native_binary": {
+              "anonymousHTTP": 401,
+              "outsiderHTTP": 404,
+              "ownerHTTP": 404
+            }
+          },
+          "detail": {
+            "applicationId": "example.source.app",
+            "attempt": 1,
+            "buildId": "build-b3574a562205d7870c9d1bfd2f5d3e9db3aaa1ee29c770c2f0cc3f3b95afc925",
+            "organizationId": "org-2ecb1802db47403193d42d533985c259",
+            "platform": "android",
+            "projectId": "project-02ed9325727a4122b7d6d143d29afbbd",
+            "revision": 1,
+            "state": "running",
+            "workerCompletionPending": true
+          },
+          "detailHTTP": [
+            200,
+            404,
+            401
+          ],
+          "logsHTTP": [
+            404,
+            404,
+            401
+          ]
+        },
+        "capacityDuringOutage": [
+          "36c74c80-16f3-461b-b7cf-56d1c43e46d1",
+          1,
+          1,
+          true,
+          null
+        ],
+        "firstRetryWhileWorkerOffline": [
+          [
+            2,
+            0,
+            "scheduled",
+            1795167499572
+          ],
+          [
+            "21c7759ccbe0dd93ffbf07c5ceefa7752e6d8192ec38e5545cbd9629870fcd0a",
+            "36c74c80-16f3-461b-b7cf-56d1c43e46d1",
+            1795168693441,
+            "admitted",
+            1,
+            5,
+            "oban:2:e5cfd140-f144-4c98-ad8a-5b7dbe29503a"
+          ]
+        ],
+        "originalObanStartJob": [
+          2,
+          0,
+          "scheduled",
+          1795167497570
+        ],
+        "settledObanStartJob": [
+          2,
+          1,
+          "completed",
+          1795167531712
+        ],
+        "reopenedRunnerOperation": {
+          "bindingSHA256": "4bf51463bfa27b6c1af487f76d26ea58cf96ec0246bcc80d4c964efafb7566d6",
+          "deadlineMS": 1795168693441,
+          "operationId": "21c7759ccbe0dd93ffbf07c5ceefa7752e6d8192ec38e5545cbd9629870fcd0a"
+        },
+        "reopenedRunnerGuard": {
+          "epoch": 20,
+          "expires_at": 1795167538701,
+          "owner_id": "oban:2:32b74c60-d1c2-453f-ac6a-fd380d9150b2",
+          "record_id": "36c74c80-16f3-461b-b7cf-56d1c43e46d1",
+          "revision": 1
+        },
+        "reopenedWorkerOnSamePortAndConfig": true,
+        "cancelHTTP": 202,
+        "cancelledBuild": {
+          "artifactHTTP": {
+            "debug_symbols": {
+              "anonymousHTTP": 401,
+              "outsiderHTTP": 404,
+              "ownerHTTP": 404
+            },
+            "resource_inventory": {
+              "anonymousHTTP": 401,
+              "outsiderHTTP": 404,
+              "ownerHTTP": 404
+            },
+            "unsigned_native_binary": {
+              "anonymousHTTP": 401,
+              "outsiderHTTP": 404,
+              "ownerHTTP": 404
+            }
+          },
+          "revision": 3,
+          "state": "cancelled"
+        },
+        "cancellationClosure": {
+          "request": {
+            "action": "stop",
+            "deadline_ms": 1795168693441,
+            "guard": {
+              "epoch": 21,
+              "expires_at": 1795167540746,
+              "owner_id": "oban:3:f1a6cfb4-a955-4c1b-8bee-5dfc46ad5b69",
+              "record_id": "36c74c80-16f3-461b-b7cf-56d1c43e46d1",
+              "revision": 2
+            },
+            "identity": {
+              "binding_sha256": "4bf51463bfa27b6c1af487f76d26ea58cf96ec0246bcc80d4c964efafb7566d6",
+              "operation_id": "21c7759ccbe0dd93ffbf07c5ceefa7752e6d8192ec38e5545cbd9629870fcd0a",
+              "recipe_sha256": "4dfc76b24902f25565dab47d0973fcf09dc4d91108af9e482f22c54e39921d93",
+              "store_id": "fb5856a9ca29509599353b8e52773e1432f429efc136d98eb40831e73bece906"
+            },
+            "version": 1
+          },
+          "status": "stopped",
+          "terminal": {
+            "container_absent": true,
+            "processes_absent": true,
+            "resources_removed": true,
+            "stop_fenced": true
+          }
+        }
+      },
+      {
+        "control": "completed",
+        "outcome": "native_succeeded",
+        "rawReceiptSHA256": "9c0f49fef1c5c35ec2df93b1d292e076a1bf5ba3122e32629518d5ed66c0ddf9",
+        "createAttempts": 1,
+        "createHTTP": 201,
+        "cancelAttempts": 0,
+        "capacityReleaseEvent": "coordinator:1:1:completed",
+        "workerStarts": 1,
+        "runnerStarts": 1,
+        "settledJobs": [
+          [
+            "created",
+            "completed"
+          ],
+          [
+            "start",
+            "completed"
+          ],
+          [
+            "completed",
+            "completed"
+          ]
+        ],
+        "portsReusable": [
+          54171,
+          54172,
+          54246,
+          54228,
+          54220
+        ],
+        "commands": {
+          "api": {
+            "exit": 0,
+            "groupAbsent": true,
+            "logSHA256": "52ab3f48e613dc29f23e359e9ba45a974b1e69ce0fae31c60c4570a2a2f24c5f",
+            "pid": 60964
+          },
+          "compile": {
+            "exit": 0,
+            "groupAbsent": true,
+            "logSHA256": "42d4edf69044ab08475814eeae447f249630bce71b0fa5d1266285bc1787ed84",
+            "pid": 59675
+          },
+          "deps": {
+            "exit": 0,
+            "groupAbsent": true,
+            "logSHA256": "649f6a187bfeeceea3acfc9269a9d5e6ad83437e9ef7fb704af1f34fd2e7c8aa",
+            "pid": 59531
+          },
+          "initdb": {
+            "exit": 0,
+            "groupAbsent": true,
+            "logSHA256": "7c565dcd4304b4af3c4691b82c6fa7fc2afe1071b96502030effe6facb4ec0f2",
+            "pid": 60931
+          },
+          "postgres": {
+            "exit": 0,
+            "groupAbsent": true,
+            "logSHA256": "a3dbd36e0e00016e0e820b09542c4e7cdd16b3e9931cbe4fa33710a8dea442ac",
+            "pid": 60951
+          },
+          "processor": {
+            "exit": 0,
+            "groupAbsent": true,
+            "logSHA256": "ae4cf239bd9d269b174140a859243005895b15f813b5c82727f92d58f0d9f8f7",
+            "pid": 61555
+          },
+          "runner": {
+            "exit": 0,
+            "groupAbsent": true,
+            "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "pid": 61717
+          },
+          "worker": {
+            "exit": -9,
+            "groupAbsent": true,
+            "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "pid": 61774
+          },
+          "worker-reopened": {
+            "exit": 0,
+            "groupAbsent": true,
+            "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "pid": 70055
+          }
+        },
+        "scratchRemoved": true,
+        "firstOwnerRead": {
+          "anonymousHTTP": 401,
+          "artifactCount": 3,
+          "artifactKinds": [
+            "unsigned_native_binary",
+            "debug_symbols",
+            "resource_inventory"
+          ],
+          "detail": {
+            "applicationId": "example.source.app",
+            "attempt": 1,
+            "buildDefinitionSha256": "4dfc76b24902f25565dab47d0973fcf09dc4d91108af9e482f22c54e39921d93",
+            "buildId": "build-c08c23d515a391d44bcc79b240735bcac94ab922c111e7a263654586a9d1d7b1",
+            "failureCode": null,
+            "organizationId": "org-9d76a8db3e224f69873f1984c9e8fa52",
+            "platform": "android",
+            "projectId": "project-35b44a33b3d042b1890bec45702b4d41",
+            "revision": 2,
+            "sourceSha256": "dc0e1baa082468d70a2d9dc91aada7651624ccfba3279723f8813fdd46d15f83",
+            "state": "native_succeeded",
+            "toolchainLockSha256": "1f5aecce317593b7fe9afacdf6f2308783eccfca793d749ad40c8af3197d2e0c",
+            "workerCompletionPending": false
+          },
+          "outsiderHTTP": 404,
+          "ownerHTTP": 200,
+          "requestedAtMS": 1795167622356,
+          "responseAtMS": 1795167622749
+        },
+        "outageMilliseconds": 29867,
+        "buildDuringOutage": {
+          "artifactHTTP": {
+            "debug_symbols": {
+              "anonymousHTTP": 401,
+              "outsiderHTTP": 404,
+              "ownerHTTP": 404
+            },
+            "resource_inventory": {
+              "anonymousHTTP": 401,
+              "outsiderHTTP": 404,
+              "ownerHTTP": 404
+            },
+            "unsigned_native_binary": {
+              "anonymousHTTP": 401,
+              "outsiderHTTP": 404,
+              "ownerHTTP": 404
+            }
+          },
+          "detail": {
+            "applicationId": "example.source.app",
+            "attempt": 1,
+            "buildId": "build-c08c23d515a391d44bcc79b240735bcac94ab922c111e7a263654586a9d1d7b1",
+            "organizationId": "org-9d76a8db3e224f69873f1984c9e8fa52",
+            "platform": "android",
+            "projectId": "project-35b44a33b3d042b1890bec45702b4d41",
+            "revision": 1,
+            "state": "running",
+            "workerCompletionPending": true
+          },
+          "detailHTTP": [
+            200,
+            404,
+            401
+          ],
+          "logsHTTP": [
+            404,
+            404,
+            401
+          ]
+        },
+        "capacityDuringOutage": [
+          "5649ee3d-fa91-49e0-a0e0-51a5f2cfb8af",
+          1,
+          1,
+          true,
+          null
+        ],
+        "firstRetryWhileWorkerOffline": [
+          [
+            2,
+            0,
+            "scheduled",
+            1795167592157
+          ],
+          [
+            "dd17689120ca2f4e7c75b92d8155e91c3486f0c29f86511980a000993af552a8",
+            "5649ee3d-fa91-49e0-a0e0-51a5f2cfb8af",
+            1795168785627,
+            "admitted",
+            1,
+            5,
+            "oban:2:9fd2bf4c-5f30-4dbf-bc8c-0151e4432e79"
+          ]
+        ],
+        "originalObanStartJob": [
+          2,
+          0,
+          "scheduled",
+          1795167590154
+        ],
+        "settledObanStartJob": [
+          2,
+          1,
+          "completed",
+          1795167622287
+        ],
+        "reopenedRunnerOperation": {
+          "bindingSHA256": "334a384e61d9d4a27d325d2c4cdc50ba27b9c7b30d30d4caa68277465aaf7d7f",
+          "deadlineMS": 1795168785627,
+          "operationId": "dd17689120ca2f4e7c75b92d8155e91c3486f0c29f86511980a000993af552a8"
+        },
+        "reopenedRunnerGuard": {
+          "epoch": 20,
+          "expires_at": 1795167631292,
+          "owner_id": "oban:2:afd4447d-e483-49a0-9cc3-ec2a6f09906e",
+          "record_id": "5649ee3d-fa91-49e0-a0e0-51a5f2cfb8af",
+          "revision": 1
+        },
+        "reopenedWorkerOnSamePortAndConfig": true,
+        "downloads": [
+          {
+            "anonymousHTTP": 401,
+            "contentDisposition": "attachment; filename=\"unsigned.apk\"",
+            "contentType": "application/vnd.android.package-archive",
+            "kind": "unsigned_native_binary",
+            "outsiderHTTP": 404,
+            "ownerHTTP": 200,
+            "sha256": "ff9c1c78b1d7249ab6a2c78e199e0dd41a6f1e3b5b4273cb45757ba1238c77e1",
+            "sizeBytes": 24
+          },
+          {
+            "anonymousHTTP": 401,
+            "contentDisposition": "attachment; filename=\"debug-symbols.zip\"",
+            "contentType": "application/zip",
+            "kind": "debug_symbols",
+            "outsiderHTTP": 404,
+            "ownerHTTP": 200,
+            "sha256": "b719ab4bede24ac61d3c62144044c46ad6d6f598c49d92e73e00dbba8ab5b9a9",
+            "sizeBytes": 28
+          },
+          {
+            "anonymousHTTP": 401,
+            "contentDisposition": "attachment; filename=\"resource-inventory.json\"",
+            "contentType": "application/json",
+            "kind": "resource_inventory",
+            "outsiderHTTP": 404,
+            "ownerHTTP": 200,
+            "sha256": "6a3045e589b95365462eb1be9c4fa0f76c0853c6e41de99bf78df0af88739dde",
+            "sizeBytes": 186
+          }
+        ],
+        "logs": {
+          "anonymousHTTP": 401,
+          "events": [
+            {
+              "event": "android_driver_finished",
+              "exitCode": 0,
+              "phases": [],
+              "stderrBytes": 80,
+              "stdoutBytes": 320,
+              "tailTruncated": false
+            },
+            {
+              "event": "build_command_finished",
+              "exitCode": 0
+            }
+          ],
+          "outsiderHTTP": 404,
+          "ownerHTTP": 200
+        }
+      }
+    ]
+  },
+  "remaining": "Repeat on an independently staged native compiler operation with terminal Docker custody. The original live post-reopen state is still unknown."
+}
