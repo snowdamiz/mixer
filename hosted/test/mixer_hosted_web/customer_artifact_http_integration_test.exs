@@ -152,7 +152,7 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
   use ExUnit.Case, async: false
   @moduletag :customer_artifact_http_db
   alias MixerHosted.CustomerArtifacts
-  alias MixerHosted.CustomerArtifacts.Schema
+  alias MixerHosted.CustomerArtifacts.{Schema, UploadRepo}
   alias MixerHosted.CustomerArtifactHTTPFixture, as: F
   alias MixerHosted.CustomerArtifactHTTPFixture.{Admin, Migration, Runtime}
   alias MixerHosted.Identity.{ConfiguredVerifier, KeyOwner, TLSFixture}
@@ -173,6 +173,7 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
   @scopes "mixer.artifact.upload mixer.artifact.read mixer.audit.read"
   @action_version 20_261_120_000_010
   @action_migration MixerHosted.Repo.Migrations.AddLocalReleasePublicationAction
+  @tls_runtime System.get_env("MIXER_TEST_LOCAL_ARTIFACT_UPLOAD_TLS") == "1"
 
   setup_all do
     for app <- [:phoenix, :bandit, :ecto_sql, :postgrex, :jose, :mint, :ssl],
@@ -210,6 +211,18 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
            parameters: [application_name: "mixer-http-artifact-runtime"]
          ]}
     )
+
+    if @tls_runtime do
+      Code.require_file("priv/repo/migrations/20261024000000_add_oban.exs")
+
+      assert :ok =
+               Ecto.Migrator.up(
+                 Migration,
+                 20_261_024_000_000,
+                 MixerHosted.Repo.Migrations.AddOban,
+                 log: false
+               )
+    end
 
     for {version, module, file} <- [
           {20_261_025_000_003, MixerHosted.Repo.Migrations.AddCustomerAuthorization,
@@ -297,8 +310,15 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
       debug_errors: false
     )
 
-    bandit = start_supervised!(MixerHostedWeb.Endpoint)
-    {:ok, {_, port}} = MixerHostedWeb.Endpoint.server_info(:http)
+    {bandit, port} =
+      if @tls_runtime do
+        {nil, nil}
+      else
+        bandit = start_supervised!(MixerHostedWeb.Endpoint)
+        {:ok, {_, port}} = MixerHostedWeb.Endpoint.server_info(:http)
+        {bandit, port}
+      end
+
     tls_setup = TLSFixture.info(fixture)
     assert tls_setup.key_dir_removed
 
@@ -308,7 +328,7 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
           do: TLSFixture.info(fixture),
           else: %{key_dir_removed: tls_setup.key_dir_removed, requests: []}
 
-      for pid <- [bandit, owner, worker_pid, fixture] do
+      for pid <- [bandit, owner, worker_pid, fixture], is_pid(pid) do
         if Process.alive?(pid) do
           try do
             GenServer.stop(pid, :normal, 5_000)
@@ -324,7 +344,7 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
       end
 
       cleanup = %{
-        bandit_stopped: not Process.alive?(bandit),
+        bandit_stopped: bandit == nil or not Process.alive?(bandit),
         key_owner_stopped: not Process.alive?(owner),
         jwks_workers_stopped: not Process.alive?(worker_pid),
         tls_fixture_stopped: not Process.alive?(fixture),
@@ -491,6 +511,284 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
     assert is_binary(message) and byte_size(message) <= 200
     assert header(response, "x-request-id") == [id]
     assert header(response, "retry-after") == if(status == 503, do: ["1"], else: [])
+  end
+
+  @tag :local_artifact_upload_tls
+  @tag skip: not @tls_runtime
+  test "normal runtime configuration joins the authenticated upload to restricted TLS storage",
+       ctx do
+    refute Process.whereis(MixerHostedWeb.Endpoint)
+    Application.delete_env(:mixer_hosted, CustomerArtifacts)
+
+    target = %Target{
+      scope: %Scope{
+        organization_id: "org-a",
+        project_id: "project-a",
+        application_id: "fieldlog",
+        environment_id: "development"
+      },
+      platform: "ios",
+      runtime_sha256: ctx.config.host["runtime"],
+      channel: "dev"
+    }
+
+    provision_release_writer!(target, :delivery)
+    migrate_release_actions!()
+    grant_release_action!()
+
+    for script <- ~w(provision-local-release-reader.sql provision-local-artifact-uploader.sql) do
+      assert {_, 0} =
+               System.cmd(
+                 "psql",
+                 ~w(-X -w -h 127.0.0.1 -U http_artifact_fixture_admin -d mixer_customer_artifact_http -v ON_ERROR_STOP=1) ++
+                   [
+                     "-p",
+                     to_string(ctx.pg_settings[:port]),
+                     "-f",
+                     "../docs/operations/" <> script
+                   ],
+                 env: [{"PGSSLMODE", "disable"}],
+                 stderr_to_stdout: true
+               )
+    end
+
+    passwords =
+      for {key, login} <- [
+            {"MIXER_DATABASE_PASSWORD", "http_release_writer"},
+            {"MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD", "mixer_release_delivery"},
+            {"MIXER_LOCAL_ARTIFACT_UPLOAD_PASSWORD", "mixer_artifact_uploader"}
+          ],
+          into: %{} do
+        password = Base.url_encode64(:crypto.strong_rand_bytes(24), padding: false)
+        [[quoted]] = F.sql("SELECT pg_catalog.quote_literal($1::text)", [password]).rows
+        F.sql("ALTER ROLE #{login} PASSWORD #{quoted}")
+        {key, password}
+      end
+
+    config = %{
+      host: ctx.config.host,
+      channel: target.channel,
+      roots:
+        Enum.map(ctx.config.roots, &Map.update!(&1, "public_key", fn pk -> Base.encode64(pk) end))
+    }
+
+    {:ok, socket} = :gen_tcp.listen(0, ip: {127, 0, 0, 1}, reuseaddr: true)
+    {:ok, port} = :inet.port(socket)
+    :ok = :gen_tcp.close(socket)
+
+    env =
+      Map.merge(passwords, %{
+        "MIXER_HOSTED_ROLE" => "api",
+        "MIXER_DATABASE_HOST" => "127.0.0.1",
+        "MIXER_DATABASE_NAME" => "mixer_customer_artifact_http",
+        "MIXER_DATABASE_USER" => "http_release_writer",
+        "MIXER_DATABASE_POOL_SIZE" => "2",
+        "MIXER_HTTP_PORT" => to_string(port),
+        "MIXER_SECRET_KEY_BASE" => String.duplicate("local-tls-fixture-", 4),
+        "MIXER_LOCAL_RELEASE_CONFIG" => Jason.encode!(config),
+        "MIXER_LOCAL_RELEASE_WRITER_ENABLED" => "true"
+      })
+
+    ctx = %{
+      ctx
+      | port: port,
+        token: token(ctx.key, %{"scope" => @scopes <> " mixer.release.publish"})
+    }
+
+    db_port = ctx.pg_settings[:port]
+
+    with_runtime(Map.put(env, "MIXER_LOCAL_ARTIFACT_UPLOAD_PASSWORD", nil), db_port, fn ->
+      refute Process.whereis(UploadRepo)
+
+      error(
+        request(
+          ctx,
+          "ordinary boot default off",
+          "PUT",
+          path(ctx),
+          ctx.checked.envelope_bytes,
+          upload_headers()
+        ),
+        503,
+        "storage_unavailable"
+      )
+
+      assert F.counts() == [[0, 0, 0, 0]]
+    end)
+
+    with_runtime(
+      Map.put(env, "MIXER_LOCAL_ARTIFACT_UPLOAD_ENABLED", "true"),
+      db_port,
+      fn ->
+        assert {:ok, {%{database_connection_bound: 4}, :disabled}} =
+                 MixerHosted.Application.startup()
+
+        assert [["mixer_artifact_uploader", true]] =
+                 Ecto.Adapters.SQL.query!(
+                   UploadRepo,
+                   """
+                   SELECT session_user::text, ssl FROM pg_catalog.pg_stat_ssl
+                   WHERE pid = pg_catalog.pg_backend_pid()
+                   """,
+                   [],
+                   log: false
+                 ).rows
+
+        assert [[1, true, false, false]] =
+                 F.sql("""
+                 SELECT count(*), bool_and(ssl),
+                   bool_or(has_table_privilege(a.usename, 'public.mixer_release_heads', 'SELECT')),
+                   bool_or(pg_has_role(a.usename, 'mixer_release_delivery', 'MEMBER'))
+                 FROM pg_catalog.pg_stat_activity a
+                 JOIN pg_catalog.pg_stat_ssl s USING (pid)
+                 WHERE a.usename = 'mixer_artifact_uploader'
+                 """).rows
+
+        wrong_tenant = String.replace(path(ctx), "/project-a/", "/other-project/")
+
+        error(
+          request(
+            ctx,
+            "foreign tenant",
+            "PUT",
+            wrong_tenant,
+            ctx.checked.envelope_bytes,
+            upload_headers()
+          ),
+          404,
+          "not_found"
+        )
+
+        tampered =
+          String.replace(
+            ctx.checked.envelope_bytes,
+            Base.encode64(ctx.checked.payload),
+            Base.encode64("changed")
+          )
+
+        error(
+          request(ctx, "changed payload", "PUT", path(ctx), tampered, upload_headers()),
+          422,
+          "artifact_invalid"
+        )
+
+        assert F.counts() == [[0, 0, 0, 0]]
+
+        for label <- ["runtime upload", "runtime replay"] do
+          response =
+            request(ctx, label, "PUT", path(ctx), ctx.checked.envelope_bytes, upload_headers())
+
+          assert response.status == 201
+
+          assert json(response) == %{
+                   "artifact_sha256" => ctx.checked.manifest_sha256,
+                   "immutable" => true
+                 }
+
+          assert F.counts() == [[1, 1, 1, 1]]
+        end
+
+        assert [[envelope, manifest, payload, signature, audit]] =
+                 F.sql("""
+                 SELECT a.envelope_bytes,a.signed_manifest_bytes,a.payload,a.signature,e.display
+                 FROM public.mixer_customer_artifacts a
+                 JOIN public.mixer_customer_audit_events e ON e.organization_id=a.organization_id
+                   AND e.project_id=a.project_id AND e.sequence=a.creating_sequence
+                 """).rows
+
+        assert {envelope, manifest, payload, signature} ==
+                 {ctx.checked.envelope_bytes, ctx.checked.signed_manifest_bytes,
+                  ctx.checked.payload, ctx.checked.signature}
+
+        assert %{
+                 "actor" => ["person" | _],
+                 "outcome" => "created",
+                 "reason" => "HTTP fixture upload",
+                 "source_ip" => ["127.0.0.1"]
+               } = audit
+
+        error(
+          request(ctx, "no legacy artifact read", "GET", path(ctx)),
+          503,
+          "storage_unavailable"
+        )
+
+        validate =
+          request(
+            ctx,
+            "writer sees the committed artifact",
+            "POST",
+            "/v3/orgs/org-a/projects/project-a/releases/validate",
+            Jason.encode!(%{artifact_sha256: ctx.checked.manifest_sha256}),
+            upload_headers()
+          )
+
+        assert validate.status == 200
+        assert %{"protocol_valid" => true} = json(validate)
+      end
+    )
+
+    refute Process.whereis(UploadRepo)
+    refute Process.whereis(MixerHostedWeb.Endpoint)
+    assert {:ok, socket} = :gen_tcp.listen(port, ip: {127, 0, 0, 1}, reuseaddr: true)
+    :ok = :gen_tcp.close(socket)
+  end
+
+  defp with_runtime(env, db_port, check) do
+    previous_env = Map.new(env, fn {key, _} -> {key, System.get_env(key)} end)
+    previous_config = Application.get_all_env(:mixer_hosted)
+    apply_env(env)
+
+    try do
+      config = Config.Reader.read!("config/config.exs", env: :prod)
+      runtime = Config.Reader.read!("config/runtime.exs", env: :prod)
+
+      settings = Config.Reader.merge(config, runtime) |> Keyword.fetch!(:mixer_hosted)
+      Application.put_all_env(mixer_hosted: fixture_db_port(settings, db_port))
+
+      assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
+      check.()
+    after
+      if Process.whereis(MixerHosted.Supervisor), do: :ok = Application.stop(:mixer_hosted)
+
+      for {key, _} <- Application.get_all_env(:mixer_hosted),
+          do: Application.delete_env(:mixer_hosted, key)
+
+      Application.put_all_env(mixer_hosted: previous_config)
+      apply_env(previous_env)
+    end
+  end
+
+  # Use an owned ephemeral PostgreSQL port when the normal port is occupied.
+  # This fixture adjusts only the database port after evaluating runtime.exs.
+  defp fixture_db_port(settings, port) do
+    rebind = fn repo ->
+      assert repo[:port] == 5432
+      Keyword.replace!(repo, :port, port)
+    end
+
+    settings
+    |> Keyword.update!(MixerHosted.Repo, rebind)
+    |> Keyword.update!(WriterRepo, rebind)
+    |> Keyword.update!(:local_release_delivery, &Map.update!(&1, :repo, rebind))
+    |> Keyword.update!(:startup, fn {hosted, :disabled} ->
+      upload =
+        if upload = hosted.artifact_upload do
+          %{
+            upload
+            | repo: rebind.(upload.repo),
+              delivery: Map.update!(upload.delivery, :repo, rebind)
+          }
+        end
+
+      {%{hosted | repo: rebind.(hosted.repo), artifact_upload: upload}, :disabled}
+    end)
+  end
+
+  defp apply_env(env) do
+    for {key, value} <- env do
+      if value, do: System.put_env(key, value), else: System.delete_env(key)
+    end
   end
 
   test "stock local publish over Bandit preserves validation and exact authorized retries", ctx do
@@ -970,7 +1268,8 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
         "assignment" => true
     }
 
-    provision_release_writer!(ctx.pg_settings, target)
+    provision_release_writer!(target)
+    start_release_writer!(ctx.pg_settings)
     Application.put_env(:mixer_hosted, CustomerArtifacts, config)
 
     Application.put_env(:mixer_hosted, :local_release_target, %{
@@ -1004,7 +1303,13 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
     {publisher, draft, private}
   end
 
-  defp provision_release_writer!(settings, target) do
+  defp provision_release_writer!(target, delivery \\ :disabled) do
+    if delivery == :delivery do
+      Code.require_file(
+        "priv/local_release_delivery/20261120000003_add_local_release_delivery.exs"
+      )
+    end
+
     for {version, module, file} <- [
           {20_261_120_000_001, MixerHosted.Repo.Migrations.AddLocalReleaseLedger,
            "add_local_release_ledger"},
@@ -1013,6 +1318,16 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
           {20_261_120_000_004, MixerHosted.Repo.Migrations.AddLocalReleaseCLIRequests,
            "add_local_release_cli_requests"}
         ] do
+      if version == 20_261_120_000_004 and delivery == :delivery do
+        assert :ok =
+                 Ecto.Migrator.up(
+                   Migration,
+                   20_261_120_000_003,
+                   MixerHosted.Repo.Migrations.AddLocalReleaseDelivery,
+                   log: false
+                 )
+      end
+
       unless Code.ensure_loaded?(module),
         do: Code.require_file("priv/repo/migrations/#{version}_#{file}.exs")
 
@@ -1072,7 +1387,9 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
       [target.platform, target.runtime_sha256, target.channel],
       log: false
     )
+  end
 
+  defp start_release_writer!(settings) do
     refute Process.whereis(WriterRepo)
 
     Application.put_env(

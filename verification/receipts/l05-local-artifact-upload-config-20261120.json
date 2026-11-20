@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "base": "6ba8a10248cc8f6db08faf6e218d9c9cc5d346e4",
+  "sourceTreeBeforeReceipt": "6ea93930144082f11611f58271c98cdacc4c1f72",
+  "scope": "L05 default-off artifact upload on the existing local Phoenix API for the enrolled signed release target.",
+  "tools": {
+    "platform": "macOS arm64",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "postgresql": "17.11",
+    "openssl": "4.1.0"
+  },
+  "checks": {
+    "productionCompile": "MIX_ENV=prod mix compile --warnings-as-errors (exit 0)",
+    "focused": {
+      "command": "MIX_ENV=test mix test --warnings-as-errors --seed 0",
+      "files": [
+        "test/mixer_hosted/customer_artifacts/local_upload_test.exs",
+        "test/runtime_config_test.exs",
+        "test/mixer_hosted/browser_auth/runtime_config_test.exs",
+        "test/mixer_hosted/releases/runtime_provisioning_test.exs",
+        "test/mixer_hosted_web/customer_artifact_transport_test.exs"
+      ],
+      "passed": 80
+    },
+    "live": {
+      "command": "MIX_ENV=test MIXER_TEST_LOCAL_ARTIFACT_UPLOAD_TLS=1 mix test --warnings-as-errors --seed 0 --trace test/mixer_hosted_web/customer_artifact_http_integration_test.exs --only local_artifact_upload_tls",
+      "setup": "Evaluated runtime.exs for prod and started MixerHosted.Application under ExUnit. IPv4 port 5432 was occupied. The test fixture rebound only the resolved database ports to owned port 57258. It used the existing fixture KeyOwner over synthetic JWKS TLS. PostgreSQL required TLS with SCRAM for the three normal runtime logins. OTP trusted the ephemeral PostgreSQL CA.",
+      "observations": [
+        "Default off returned HTTP 503 storage_unavailable with no uploader pool and no persisted rows.",
+        "Opt-in used one TLS session as mixer_artifact_uploader with no release-head SELECT or delivery-role membership.",
+        "Wrong-tenant and changed-payload requests returned 404 and 422 with zero writes.",
+        "Upload and same-key retry returned 201 with one artifact, audit event, idempotency row, and sequence 1.",
+        "Committed envelope, signed manifest, payload, and signature matched. The audit event retained the authenticated actor, reason, and loopback source address.",
+        "The normal release writer returned HTTP 200 with protocol_valid=true for the committed digest."
+      ],
+      "passed": 1,
+      "excluded": 10,
+      "closure": {
+        "mix": {
+          "exit": 0,
+          "group_absent": true,
+          "output_sha256": "7c3525ff4504864982c954d76ea217c99181878e3e0fd8b749360444c1d432ca",
+          "pid": 74741
+        },
+        "port": 57258,
+        "postgres": {
+          "exit": 0,
+          "group_absent": true,
+          "pid": 74710,
+          "port_reusable": true
+        }
+      }
+    },
+    "legacy": {
+      "command": "MIX_ENV=test mix test --warnings-as-errors --seed 0 --trace test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+      "observation": "The base and candidate each passed nine of ten legacy cases. The promotion and rollback case returned 503 on the immediate retry after the injected deferred publication failure in both runs. The legacy candidate run preceded the final opt-in-only pool projection checks.",
+      "baseClosure": {
+        "mix": {
+          "exit": 2,
+          "group_absent": true,
+          "output_sha256": "4b3e6e15ae647970fe93cbdb46242baa0bdb7a39f6c8d5ea8a8f51dd5e38583b",
+          "pid": 52667
+        },
+        "port": 53953,
+        "postgres": {
+          "exit": 0,
+          "group_absent": true,
+          "pid": 52640,
+          "port_reusable": true
+        }
+      },
+      "candidateClosure": {
+        "mix": {
+          "exit": 2,
+          "group_absent": true,
+          "output_sha256": "a27c371c1e69d072959b8f1830e10396748bcef760097a30a60112f83987bc3a",
+          "pid": 64131
+        },
+        "port": 56312,
+        "postgres": {
+          "exit": 0,
+          "group_absent": true,
+          "pid": 64105,
+          "port_reusable": true
+        }
+      }
+    }
+  },
+  "boundary": "The live test covered the real authenticated HTTP upload, SQL commit, and writer validation. Packaged identity boot, the stock executable against that boot, and the synthetic issuer DNS lane remain unverified here.",
+  "cleanup": {
+    "ownedPostgresAndMixCampaignsClosed": 6,
+    "postgresPortsReusable": true,
+    "liveHttpPortReusable": true,
+    "fixtureScratchDependenciesAndBuildOutputsRemoved": true
+  }
+}

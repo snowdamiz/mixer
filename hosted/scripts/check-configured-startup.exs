@@ -69,6 +69,15 @@ defmodule MixerHosted.Releases.WriterRepo do
   end
 end
 
+defmodule MixerHosted.CustomerArtifacts.LocalUpload do
+  def connections(nil), do: 0
+
+  def children(%{artifact_upload: nil}, _, _) do
+    :error = Application.fetch_env(:mixer_hosted, MixerHosted.CustomerArtifacts.UploadRepo)
+    []
+  end
+end
+
 inputs = [
   "hosted/lib/mixer_hosted/application.ex",
   "hosted/lib/mixer_hosted/builds/operation_intent_schema.ex",
@@ -491,7 +500,7 @@ IO.puts(
         "RuntimeOwner",
         "Endpoint.config_change",
         "PublicDelivery.children",
-        "WriterRepo.children"
+        "WriterRepo.children", "LocalUpload.children"
       ],
       database_admission_proved: false,
       all_owned_names_absent: true,

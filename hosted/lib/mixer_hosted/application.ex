@@ -3,6 +3,7 @@ defmodule MixerHosted.Application do
   use Application
   @behaviour Supervisor
   alias MixerHosted.BrowserAuth.Installation
+  alias MixerHosted.CustomerArtifacts.{LocalUpload, UploadRepo}
   alias MixerHosted.Identity.StartupConfig
   alias MixerHosted.Releases.{PublicDelivery, WriterRepo}
   alias MixerHosted.RuntimeConfig
@@ -102,10 +103,15 @@ defmodule MixerHosted.Application do
             else: [{MixerHosted.BrowserAuth.Supervisor, installation}]
 
         endpoint = Application.get_env(:mixer_hosted, MixerHostedWeb.Endpoint, [])
+        artifact_children = LocalUpload.children(hosted, installation, endpoint)
         release_children = WriterRepo.children(endpoint) ++ PublicDelivery.children(endpoint)
 
         base ++
-          identity_children ++ browser_children ++ release_children ++ [MixerHostedWeb.Endpoint]
+          identity_children ++
+          browser_children ++
+          artifact_children ++
+          release_children ++
+          [MixerHostedWeb.Endpoint]
 
       _ ->
         raise ArgumentError, "hosted startup unavailable"
@@ -147,6 +153,7 @@ defmodule MixerHosted.Application do
   def config_change(changed, new, removed) do
     restart_keys = [
       WriterRepo,
+      UploadRepo,
       :startup,
       :role,
       :identity_startup,

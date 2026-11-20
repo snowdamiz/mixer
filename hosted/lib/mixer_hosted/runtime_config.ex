@@ -13,7 +13,8 @@ defmodule MixerHosted.RuntimeConfig do
                 processor_profile: nil,
                 build_operation_intent: :disabled,
                 build_cancel: false,
-                native: nil
+                native: nil,
+                artifact_upload: nil
               ]
 
   @queues [

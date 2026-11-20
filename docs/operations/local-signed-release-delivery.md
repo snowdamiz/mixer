@@ -117,9 +117,43 @@ The browser and updater both read the registered target. The browser head
 continues to require a current browser session and tenant authorization
 through its ordinary login.
 
+## Enable signed artifact upload
+
+1. Enroll the release target as described above. Apply the authorization and
+   artifact storage migrations and provision the project's artifact audit head.
+   Use the same host, runtime fingerprint, and public roots for upload and
+   delivery.
+2. Run the uploader grants script from `hosted/` as the local database
+   administrator.
+
+   ```sh
+   psql -X -v ON_ERROR_STOP=1 "$MIXER_LOCAL_ADMIN_DSN" \
+     -f ../docs/operations/provision-local-artifact-uploader.sql
+   psql -X "$MIXER_LOCAL_ADMIN_DSN"
+   ```
+
+   Run `\password mixer_artifact_uploader` in psql. Use a password unique
+   to this login and configure password authentication over TLS. Keep the
+   login free of role memberships and object ownership. The script grants
+   access to the existing authorization checks and artifact transaction.
+3. Set `MIXER_LOCAL_ARTIFACT_UPLOAD_ENABLED=true`. Inject the login's
+   password as `MIXER_LOCAL_ARTIFACT_UPLOAD_PASSWORD` and restart the API.
+   The uploader uses one connection to the API's PostgreSQL host and database
+   on port 5432. It inherits the certificate and hostname verification
+   settings. Use the ordinary IPv4 loopback HTTP listener.
+4. Send the signed artifact to
+   `PUT /v3/orgs/:organization_id/projects/:project_id/artifacts/:manifest_sha256`.
+   Use a current bearer with `mixer.artifact.upload` and authorization for
+   the enrolled target. Supply `Idempotency-Key` and `X-Mixer-Reason`.
+   The stock `mixer update publish` command sends this request before
+   release validation and publication.
+
+The uploader is off by default. To disable it, remove the uploader password,
+omit the flag or set it to `false`, and restart the API.
+
 ## Enable CLI validation and publication
 
-1. Provision delivery for the same target using the steps above. Apply
+1. Provision delivery and artifact upload for the same target. Apply
    migration `20261120000004` from `hosted/priv/repo/migrations` under the
    same non-login relation owner.
 2. Confirm that the registered head's `writer_role` is the restricted login
@@ -148,7 +182,6 @@ through its ordinary login.
 
    Keep the writer free of relation ownership, owner-role memberships, public
    schema creation privileges, and direct customer artifact table access.
-   Stage the signed artifact through the separately authorized upload path.
 3. Set `MIXER_LOCAL_RELEASE_WRITER_ENABLED=true` and restart the API. The writer
    uses one extra connection with the same login, credentials, and verified
    TLS options as the ordinary API. The API must listen on IPv4 loopback HTTP.

@@ -7,10 +7,10 @@ if config_env() != :test do
   # RuntimeConfig validates MIXER_BUILD_OPERATION_INTENT for the builds_v1
   # processor. The selection is part of the startup snapshot.
   settings = MixerHosted.RuntimeConfig.load!(env)
+  release = MixerHosted.Releases.RuntimeProvisioning.load!(env, settings)
+  settings = MixerHosted.CustomerArtifacts.LocalUpload.configure!(env, settings, release)
   installation = MixerHosted.BrowserAuth.Installation.load!(env, settings)
   config :mixer_hosted, :startup, {settings, installation}
-
-  release = MixerHosted.Releases.RuntimeProvisioning.load!(env, settings)
 
   case release do
     :disabled ->

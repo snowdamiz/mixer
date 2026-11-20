@@ -11,12 +11,14 @@ defmodule MixerHosted.CustomerArtifacts do
   `%{repo: repo_module, host: host_policy, roots: public_roots}`. This initial
   composition serves one configured host policy; a tenant trust registry and its
   mutation protocol remain separate work. Missing configuration fails closed.
+  The opt-in local uploader supplies that configuration for uploads from the
+  enrolled release target in the startup snapshot.
   This module does not activate an HTTP route or publish an artifact.
   """
 
   alias MixerHosted.Authorization
   alias MixerHosted.Authorization.{Policy, Scope}
-  alias MixerHosted.CustomerArtifacts.PostgresStorage
+  alias MixerHosted.CustomerArtifacts.{LocalUpload, PostgresStorage}
   alias MixerHosted.Protocol.{ArtifactAdmission, ArtifactV3Policy}
 
   @maximum 9_007_199_254_740_991
@@ -40,7 +42,7 @@ defmodule MixerHosted.CustomerArtifacts do
   defp upload_expected(identity, route_tenant, key, envelope, request_metadata, expected) do
     with {:ok, project} <- project(route_tenant),
          :ok <- expected_digest(expected),
-         {:ok, config} <- configuration(),
+         {:ok, config} <- upload_configuration(),
          target = host_target(config.host),
          {:ok, ^target} <- Policy.request(identity, "artifact.upload", target, now()),
          :ok <- required_scope(identity, "mixer.artifact.upload"),
@@ -102,6 +104,13 @@ defmodule MixerHosted.CustomerArtifacts do
         fn context -> PostgresStorage.audit(context, after_sequence, limit, config) end,
         config.repo
       )
+    end
+  end
+
+  defp upload_configuration do
+    case LocalUpload.configuration() do
+      :disabled -> configuration()
+      configured -> configured
     end
   end
 
