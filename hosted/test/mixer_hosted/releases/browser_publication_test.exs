@@ -103,7 +103,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
   end
 
   test "publishes the verified upload once and reads the exact tenant-scoped browser head" do
-    c = prepare!(:release_operator)
+    c = prepare_release_fixture!("browser-publication")
     provision!()
     assert [[nil]] = DB.q!(Admin, "SELECT to_regclass('public.mixer_release_cli_requests')").rows
 
@@ -307,14 +307,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
   end
 
   test "shares a head between browser and CLI publication and delivers only committed releases" do
-    key = "MIXER_BROWSER_CATALOG_FIXTURE_ROOT"
-    parent = System.fetch_env!(key)
-    root = Path.join(parent, "public-delivery")
-    File.mkdir!(root)
-    System.put_env(key, root)
-    on_exit(fn -> System.put_env(key, parent) end)
-
-    c = prepare!(:release_operator)
+    c = prepare_release_fixture!("public-delivery")
     provision!()
     provision_delivery!()
     provision_cli!()
@@ -533,6 +526,17 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
         Jason.encode!(%{offer: offer, artifact: artifact, excluded: "excluded-installation"})
       )
     end
+  end
+
+  defp prepare_release_fixture!(name) do
+    key = "MIXER_BROWSER_CATALOG_FIXTURE_ROOT"
+    parent = System.fetch_env!(key)
+    root = Path.join(parent, name)
+    File.mkdir!(root)
+    System.put_env(key, root)
+    on_exit(fn -> System.put_env(key, parent) end)
+
+    prepare!(:release_operator)
   end
 
   defp assert_delivery(c, offer_path, artifact_path, signed, envelope, config) do

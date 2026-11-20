@@ -215,7 +215,10 @@ defmodule MixerHosted.Builds.DevelopmentDispatchTest do
                "20261118000001_restrict_legacy_billing_trigger_execute.exs",
                "20261118000002_add_customer_support_requests.exs",
                "20261118000010_add_workspace_organization_deletion.exs",
-               "20261118000011_add_workspace_application_registration.exs"
+               "20261118000011_add_workspace_application_registration.exs",
+               "20261120000001_add_local_release_ledger.exs",
+               "20261120000002_add_local_release_head_read.exs",
+               "20261120000004_add_local_release_cli_requests.exs"
              ]
 
     assert :ok = MixerHosted.Test.Migrations.check_files!(migrations)
