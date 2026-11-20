@@ -7,7 +7,8 @@ defmodule MixerHostedWeb.PublicReleaseController do
   alias MixerHosted.Protocol.ArtifactV3Policy
   alias MixerHosted.Releases.{PublicDelivery, Target}
 
-  @offer_fields ~w(organization project app environment platform runtime channel installation)
+  @target_fields ~w(organization project app environment platform runtime channel)
+  @offer_fields @target_fields ++ ["installation"]
   @tenant_fields ~w(organization project)
 
   @impl true
@@ -35,18 +36,7 @@ defmodule MixerHostedWeb.PublicReleaseController do
   defp dispatch(:offer, conn, config) do
     with {:ok, fields} <- query(conn.query_string, @offer_fields),
          true <- ArtifactV3Policy.id?(fields["installation"]),
-         {:ok, target} <-
-           Target.new(%Target{
-             scope: %Scope{
-               organization_id: fields["organization"],
-               project_id: fields["project"],
-               application_id: fields["app"],
-               environment_id: fields["environment"]
-             },
-             platform: fields["platform"],
-             runtime_sha256: fields["runtime"],
-             channel: fields["channel"]
-           }) do
+         {:ok, target} <- target(fields) do
       PublicDelivery.offer(config, target, fields["installation"])
     else
       _ -> {:error, :invalid_query}
@@ -56,14 +46,38 @@ defmodule MixerHostedWeb.PublicReleaseController do
   defp dispatch(:artifact, conn, config) do
     digest = conn.path_params["digest"]
 
-    with true <- ArtifactV3Policy.digest?(digest),
-         {:ok, %{"organization" => org, "project" => project}} <-
-           query(conn.query_string, @tenant_fields),
-         true <- ArtifactV3Policy.id?(org) and ArtifactV3Policy.id?(project) do
-      PublicDelivery.artifact(config, org, project, digest)
+    with true <- ArtifactV3Policy.digest?(digest) do
+      case query(conn.query_string, @tenant_fields) do
+        {:ok, %{"organization" => org, "project" => project}} ->
+          if ArtifactV3Policy.id?(org) and ArtifactV3Policy.id?(project),
+            do: PublicDelivery.artifact(config, org, project, digest),
+            else: {:error, :invalid_query}
+
+        {:error, :invalid_query} ->
+          with {:ok, fields} <- query(conn.query_string, @target_fields),
+               {:ok, target} <- target(fields) do
+            PublicDelivery.artifact(config, target, digest)
+          else
+            _ -> {:error, :invalid_query}
+          end
+      end
     else
       _ -> {:error, :invalid_query}
     end
+  end
+
+  defp target(fields) do
+    Target.new(%Target{
+      scope: %Scope{
+        organization_id: fields["organization"],
+        project_id: fields["project"],
+        application_id: fields["app"],
+        environment_id: fields["environment"]
+      },
+      platform: fields["platform"],
+      runtime_sha256: fields["runtime"],
+      channel: fields["channel"]
+    })
   end
 
   defp query(raw, names) when byte_size(raw) in 1..4096 do

@@ -18,7 +18,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     VerifiedIdentity
   }
 
-  alias MixerHosted.Protocol.ArtifactAdmission
+  alias MixerHosted.Protocol.{ArtifactAdmission, ArtifactCBOR}
   alias MixerHosted.Releases.{DeliveryRepo, Target, WriterRepo}
   alias MixerHosted.Test.ConfiguredReleaseReplayRepo, as: FixtureRepo
   alias MixerHosted.Test.FieldLogReleasePacket
@@ -26,9 +26,6 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
 
   @mode System.get_env("MIXER_RELEASE_FIXTURE_MODE")
   @fieldlog? @mode in ["fieldlog", "fieldlog-control"]
-  @moduletag skip:
-               @mode not in ["linux", "startup-only", "stock-cli", "stock-cli-startup"] and
-                 not @fieldlog?
   @stock_scopes "mixer.artifact.upload mixer.release.publish"
   @rollback_reason "Restore the signed FieldLog calculation baseline"
   @vector Path.expand("../../../../services/protocol/testdata/signed-release-v3.json", __DIR__)
@@ -41,7 +38,13 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
   @uploader "mixer_artifact_uploader"
   @validate "/v3/orgs/org-a/projects/project-a/releases/validate"
   @publish "/v3/orgs/org-a/projects/project-a/channels/beta/publish"
+  @coordinates ~w(organization_id project_id application_id environment_id platform runtime_sha256 channel)
+  @columns Enum.join(@coordinates, ",")
+  @bindings "$1,$2,$3,$4,$5,$6,$7"
 
+  @tag skip:
+         @mode not in ["linux", "startup-only", "stock-cli", "stock-cli-startup"] and
+           not @fieldlog?
   @tag timeout: if(@mode == "fieldlog", do: 1_700_000, else: 360_000)
   test "one ordinary API boot replays a signed local release through configured identity" do
     linux? = @mode in ["linux", "stock-cli", "fieldlog"]
@@ -256,6 +259,461 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     parent = System.fetch_env!("MIXER_RELEASE_PARENT_PIDNS")
     assert parent =~ ~r/\Apid:\[\d+\]\z/
     refute File.read_link!("/proc/self/ns/pid") == parent
+  end
+
+  @tag skip: @mode != "target-registry"
+  @tag timeout: 60_000
+  test "ordinary Phoenix delivers exact enrolled targets and retained artifacts" do
+    vector = @vector |> File.read!() |> Jason.decode!()
+    assignment = vector["signed_assignment"]["assignment"]
+    default_document = Map.put(Map.take(vector, ~w(host roots)), "channel", assignment["channel"])
+    default_scope = vector["host"]["scope"]
+    android_scope = %{default_scope | "platform" => "android"}
+    other_scope = %{default_scope | "organization" => "org-b"}
+    {android_document, android_key} = signed_scope(vector, android_scope)
+    {other_document, other_key} = signed_scope(vector, other_scope)
+
+    load_runtime!(default_document, assignment, nil, nil, %{
+      "MIXER_LOCAL_RELEASE_TARGET_REGISTRY" => Jason.encode!([android_document, other_document])
+    })
+
+    %{target: default} =
+      default_config = Application.fetch_env!(:mixer_hosted, :local_release_target)
+
+    delivery = Application.fetch_env!(:mixer_hosted, :local_release_delivery)
+
+    android =
+      Enum.find_value(delivery.registry, fn {_, entry} ->
+        entry.host["scope"] == android_scope && entry
+      end)
+
+    other =
+      Enum.find_value(delivery.registry, fn {_, entry} ->
+        entry.host["scope"] == other_scope && entry
+      end)
+
+    provision!(default)
+
+    default_row = %{
+      sequence: 7,
+      digest: assignment["artifact_sha256"],
+      envelope: Jason.encode!(Map.take(vector, ~w(signed_manifest payload))),
+      signed: Jason.encode!(vector["signed_assignment"])
+    }
+
+    [first, current, staged] =
+      for sequence <- [6, 7, 8], do: signed_release(vector, android, android_key, sequence)
+
+    cross = signed_release(vector, other, other_key, 7)
+    owner = fixture_identity()
+    other_owner = fixture_identity("other-subject", "other-credential")
+
+    stage!(default_config, default_row.digest, default_row.envelope)
+    publish_fixture!(default, default_row, owner, @principal)
+
+    with_registry_http!(fn client ->
+      assert %{status: 204} = http(client, offer_path(default), [])
+      assert %{status: 404} = http(client, artifact_path(default, default_row.digest), [])
+
+      Application.put_env(:mixer_hosted, :local_release_delivery, Map.delete(delivery, :registry))
+      assert_offer!(client, default, default_row, artifact_path(default, default_row.digest))
+      Application.put_env(:mixer_hosted, :local_release_delivery, delivery)
+    end)
+
+    provision_registry!(default, android.target, other.target)
+
+    for {config, release, identity, principal, publish?} <- [
+          {android, first, owner, @principal, true},
+          {android, current, owner, @principal, true},
+          {android, staged, owner, @principal, false},
+          {other, cross, other_owner, "other-owner", true}
+        ] do
+      stage!(config, release.digest, release.envelope, identity, "stage-" <> release.digest)
+      if publish?, do: publish_fixture!(config.target, release, identity, principal)
+    end
+
+    with_repo(@writer, fn ->
+      assert {:ok, []} ==
+               Authorization.with_authorized_transaction(
+                 owner,
+                 "release.publish",
+                 default.scope,
+                 fn _ ->
+                   rows =
+                     sql!(
+                       """
+                       SELECT sequence FROM public.mixer_release_heads
+                       WHERE (#{@columns}) = (#{@bindings})
+                       """,
+                       coordinates(other.target)
+                     ).rows
+
+                   {:ok, rows}
+                 end,
+                 FixtureRepo
+               )
+    end)
+
+    with_registry_http!(fn client ->
+      assert_offer!(client, default, default_row, artifact_path(default, default_row.digest))
+
+      assert_offer!(
+        client,
+        android.target,
+        current,
+        exact_artifact(android.target, current.digest)
+      )
+
+      assert %{status: 200, body: historical} =
+               http(client, exact_artifact(android.target, first.digest), [])
+
+      assert historical == first.envelope
+
+      assert %{status: 204, body: ""} = http(client, offer_path(other.target), [])
+      assert %{status: 404} = http(client, exact_artifact(other.target, cross.digest), [])
+      assert %{status: 404} = http(client, exact_artifact(android.target, cross.digest), [])
+      assert %{status: 404} = http(client, exact_artifact(android.target, staged.digest), [])
+
+      assert %{status: 404} =
+               http(
+                 client,
+                 exact_artifact(%{android.target | channel: "other"}, current.digest),
+                 []
+               )
+
+      assert %{status: 404} = http(client, artifact_path(default, current.digest), [])
+
+      assert %{status: 400} =
+               http(client, artifact_path(default, current.digest) <> "&platform=android", [])
+
+      assert %{status: 400} =
+               http(
+                 client,
+                 String.replace(
+                   exact_artifact(android.target, current.digest),
+                   "environment=development",
+                   "plat%66orm=android"
+                 ),
+                 []
+               )
+
+      assert_sql_delivery_denied!(other.target, cross.digest)
+      assert [] = delivery_sql!(:artifact, coordinates(android.target) ++ [staged.digest])
+
+      # Revocation is visible through the restricted SQL login on the next read.
+      with_repo("mixer_replay_admin", fn ->
+        assert %{num_rows: 1} =
+                 sql!(
+                   """
+                   DELETE FROM public.mixer_release_delivery_enrollments
+                   WHERE reader_role = '#{@reader}' AND (#{@columns}) = (#{@bindings})
+                   """,
+                   coordinates(android.target)
+                 )
+      end)
+
+      assert_sql_delivery_denied!(android.target, first.digest)
+      assert %{status: 204} = http(client, offer_path(android.target), [])
+      assert %{status: 404} = http(client, exact_artifact(android.target, first.digest), [])
+      enroll!(android.target)
+
+      revoked =
+        update_in(delivery, [:registry, android.target, :roots], fn roots ->
+          Enum.map(roots, &Map.put(&1, "revoked", true))
+        end)
+
+      Application.put_env(:mixer_hosted, :local_release_delivery, revoked)
+      assert [[%Decimal{}, _, _, _, _, _]] = delivery_sql!(:offer, coordinates(android.target))
+      assert %{status: 204} = http(client, offer_path(android.target), [])
+      assert %{status: 404} = http(client, exact_artifact(android.target, first.digest), [])
+      assert %{status: 200} = http(client, artifact_path(default, default_row.digest), [])
+    end)
+
+    IO.puts(
+      "Verified same-sequence heads, live root and SQL enrollment revocation, queue interlock and Phoenix cleanup."
+    )
+
+    IO.puts("Historical HTTP envelope SHA-256 #{sha256(first.envelope)}")
+  end
+
+  defp with_registry_http!(run) do
+    assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
+
+    try do
+      assert {:ok, {{127, 0, 0, 1}, port}} = MixerHostedWeb.Endpoint.server_info(:http)
+      client = %{http_port: port}
+      assert %{status: 200} = http(client, "/health/live", [])
+
+      assert [[@reader, true]] =
+               Ecto.Adapters.SQL.query!(DeliveryRepo, """
+               SELECT session_user, ssl FROM pg_stat_ssl WHERE pid = pg_backend_pid()
+               """).rows
+
+      run.(client)
+    after
+      :ok = Application.stop(:mixer_hosted)
+    end
+
+    assert {:ok, socket} = :gen_tcp.listen(47301, ip: {127, 0, 0, 1}, reuseaddr: true)
+    :ok = :gen_tcp.close(socket)
+  end
+
+  defp provision_registry!(default, android, other) do
+    with_repo("mixer_replay_admin", fn ->
+      sql!("GRANT CREATE ON DATABASE postgres TO mixer_replay_owner")
+    end)
+
+    with_repo(
+      "mixer_replay_admin",
+      fn ->
+        for file <- [
+              "20261120000012_add_local_release_halt_audit.exs",
+              "20261120000013_add_local_release_head_details.exs"
+            ],
+            do: assert(:ok == migrate(:up, migration("repo/migrations", file)))
+
+        queue = migration("local_release_jobs", "20261120000014_add_local_release_jobs.exs")
+
+        registry =
+          migration(
+            "local_release_target_registry",
+            "20261120000015_add_local_release_target_registry.exs"
+          )
+
+        assert :ok = migrate(:up, queue)
+
+        assert_raise Postgrex.Error, ~r/without sequence-only release jobs/, fn ->
+          migrate(:up, registry)
+        end
+
+        assert [[true, false]] =
+                 sql!("""
+                 SELECT to_regclass('public.mixer_release_one_local_target') IS NOT NULL,
+                        to_regclass('public.mixer_release_delivery_enrollments') IS NOT NULL
+                 """).rows
+
+        assert :ok = migrate(:down, queue)
+        assert :ok = migrate(:up, registry)
+
+        assert_raise Postgrex.Error, ~r/schema "mixer_release_jobs" already exists/, fn ->
+          migrate(:up, queue)
+        end
+
+        assert [[nil, nil]] =
+                 sql!("""
+                 SELECT to_regclass('public.mixer_release_one_local_target'),
+                        to_regclass('mixer_release_jobs.oban_jobs')
+                 """).rows
+      end,
+      after_connect: fn conn -> Postgrex.query!(conn, "SET ROLE mixer_replay_owner", []) end
+    )
+
+    with_repo("mixer_replay_admin", fn ->
+      seed_head!(android)
+      seed_identity!("other-owner", "other-subject", "other-credential", "other-family")
+      seed_scope!(other, "other-owner", "other-membership")
+      seed_head!(other)
+
+      assert [[false, false, false, false]] =
+               sql!("""
+               SELECT has_table_privilege('#{@reader}','public.mixer_release_delivery_enrollments','SELECT'),
+                      has_table_privilege('#{@reader}','public.mixer_release_delivery_enrollments','INSERT'),
+                      has_table_privilege('#{@reader}','public.mixer_release_publications','SELECT'),
+                      has_table_privilege('#{@writer}','public.mixer_release_delivery_enrollments','INSERT')
+               """).rows
+    end)
+
+    enroll!(default)
+    enroll!(android)
+  end
+
+  defp enroll!(target) do
+    with_repo(
+      "mixer_replay_admin",
+      fn ->
+        sql!(
+          """
+          INSERT INTO public.mixer_release_delivery_enrollments (reader_role,#{@columns})
+          VALUES ('#{@reader}',#{@bindings})
+          """,
+          coordinates(target)
+        )
+      end,
+      after_connect: fn conn -> Postgrex.query!(conn, "SET ROLE mixer_replay_owner", []) end
+    )
+  end
+
+  defp publish_fixture!(target, release, identity, principal) do
+    with_repo(@writer, fn ->
+      assert {:ok, :published} =
+               Authorization.with_authorized_transaction(
+                 identity,
+                 "release.publish",
+                 target.scope,
+                 fn _ ->
+                   args = coordinates(target)
+
+                   assert [[previous]] =
+                            sql!(
+                              """
+                              SELECT sequence FROM public.mixer_release_heads
+                              WHERE (#{@columns}) = (#{@bindings}) FOR UPDATE
+                              """,
+                              args
+                            ).rows
+
+                   sequence = Decimal.new(release.sequence)
+
+                   sql!(
+                     """
+                     INSERT INTO public.mixer_release_publications (#{@columns},sequence,
+                       previous_sequence,artifact_sha256,signed_assignment_bytes,
+                       rollout_basis_points,idempotency_key,reason,principal_id)
+                     VALUES (#{@bindings},$8,$9,$10,$11,10000,$12,'Synthetic fixture publication',$13)
+                     """,
+                     args ++
+                       [
+                         sequence,
+                         previous,
+                         release.digest,
+                         release.signed,
+                         "sequence-#{release.sequence}",
+                         principal
+                       ]
+                   )
+
+                   assert %{num_rows: 1} =
+                            sql!(
+                              """
+                              UPDATE public.mixer_release_heads SET sequence=$8
+                              WHERE (#{@columns}) = (#{@bindings})
+                              """,
+                              args ++ [sequence]
+                            )
+
+                   {:ok, :published}
+                 end,
+                 FixtureRepo
+               )
+    end)
+  end
+
+  defp fixture_identity(subject \\ @subject, credential \\ @credential) do
+    now = System.system_time(:second)
+
+    %VerifiedIdentity{
+      profile_id: "startup-fixture",
+      profile_version: 1,
+      issuer: StartupFixture.entry()["profile"]["issuer"],
+      subject: subject,
+      credential_ref: credential,
+      client_id: "reviewed-client",
+      identity_class: :human,
+      issued_at: now - 1,
+      expires_at: now + 120,
+      scopes: String.split(@stock_scopes)
+    }
+  end
+
+  defp signed_scope(vector, scope) do
+    {public, private} = :crypto.generate_key(:eddsa, :ed25519)
+
+    root = %{
+      hd(vector["roots"])
+      | "scope" => scope,
+        "public_key" => Base.encode64(public),
+        "assignment" => true
+    }
+
+    {%{"host" => %{vector["host"] | "scope" => scope}, "channel" => "beta", "roots" => [root]},
+     private}
+  end
+
+  defp signed_release(vector, config, key, sequence) do
+    root = hd(config.roots)
+    now = System.system_time(:second)
+
+    manifest = %{
+      vector["signed_manifest"]["manifest"]
+      | "scope" => root["scope"],
+        "key_id" => root["key_id"],
+        "release_id" => "synthetic-#{sequence}",
+        "created_at_unix" => now
+    }
+
+    {:ok, cbor} = ArtifactCBOR.encode(manifest)
+    digest = sha256(cbor)
+    signed_manifest = sign_fixture("manifest", "artifact", manifest, key)
+
+    offer = %{
+      vector["signed_assignment"]["assignment"]
+      | "scope" => root["scope"],
+        "key_id" => root["key_id"],
+        "sequence" => sequence,
+        "release_id" => manifest["release_id"],
+        "artifact_sha256" => digest,
+        "created_at_unix" => now
+    }
+
+    %{
+      sequence: sequence,
+      digest: digest,
+      envelope:
+        Jason.encode!(%{"signed_manifest" => signed_manifest, "payload" => vector["payload"]}),
+      signed: Jason.encode!(sign_fixture("assignment", "assignment", offer, key))
+    }
+  end
+
+  defp sign_fixture(field, domain, body, key) do
+    {:ok, cbor} = ArtifactCBOR.encode(body)
+    signature = :crypto.sign(:eddsa, :none, "mixer.#{domain}.v3\0" <> cbor, [key, :ed25519])
+    %{field => body, "signature" => Base.encode64(signature)}
+  end
+
+  defp coordinates(target) do
+    filter = Target.filter(target)
+    Enum.map(@coordinates, &Keyword.fetch!(filter, String.to_existing_atom(&1)))
+  end
+
+  defp offer_path(target),
+    do:
+      "/v3/updates?" <>
+        URI.encode_query(Map.put(wire_target(target), "installation", "fixture-installation"))
+
+  defp exact_artifact(target, digest),
+    do: "/v3/artifacts/#{digest}?" <> URI.encode_query(wire_target(target))
+
+  defp wire_target(target),
+    do:
+      Map.merge(Target.signed_scope(target), %{
+        "runtime" => target.runtime_sha256,
+        "channel" => target.channel
+      })
+
+  defp assert_offer!(client, target, release, expected_url) do
+    assert %{status: 200, body: body} = http(client, offer_path(target), [])
+
+    assert body ==
+             ~s({"signed_assignment":) <>
+               release.signed <> ~s(,"artifact_url":) <> Jason.encode!(expected_url) <> "}"
+
+    assert %{status: 200, body: bytes} = http(client, expected_url, [])
+    assert bytes == release.envelope
+  end
+
+  defp assert_sql_delivery_denied!(target, digest) do
+    assert [] = delivery_sql!(:offer, coordinates(target))
+    assert [] = delivery_sql!(:artifact, coordinates(target) ++ [digest])
+  end
+
+  defp delivery_sql!(kind, args) do
+    bindings = if kind == :offer, do: @bindings, else: @bindings <> ",$8"
+
+    Ecto.Adapters.SQL.query!(
+      DeliveryRepo,
+      "SELECT * FROM public.mixer_release_delivery_#{kind}(#{bindings})",
+      args
+    ).rows
   end
 
   defp assert_isolated_network! do
@@ -743,7 +1201,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     compact
   end
 
-  defp load_runtime!(vector, assignment, tls, uploader_password) do
+  defp load_runtime!(vector, assignment, tls, uploader_password, extra_env \\ %{}) do
     pem = File.read!(Path.join(scratch(), "ca.pem"))
 
     jwks_ca =
@@ -781,6 +1239,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
         env
       end
 
+    env = Map.merge(env, extra_env)
     prior = Application.get_all_env(:mixer_hosted)
     System.put_env(env)
 
@@ -829,13 +1288,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
           {"repo/migrations", "20261120000011_add_local_release_halt_health.exs"}
         ]
 
-        for {dir, file} <- migrations do
-          [{module, _}] = Code.require_file(Path.join(["priv", dir, file]))
-          [version, _] = String.split(file, "_", parts: 2)
-
-          assert :ok =
-                   Ecto.Migrator.up(FixtureRepo, String.to_integer(version), module, log: false)
-        end
+        for {dir, file} <- migrations, do: assert(:ok == migrate(:up, migration(dir, file)))
 
         grant!()
       end,
@@ -844,6 +1297,15 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
 
     with_repo("mixer_replay_admin", fn -> seed!(target) end)
   end
+
+  defp migration(dir, file) do
+    [{module, _}] = Code.require_file(Path.join(["priv", dir, file]))
+    [version, _] = String.split(file, "_", parts: 2)
+    {String.to_integer(version), module}
+  end
+
+  defp migrate(direction, {version, module}),
+    do: apply(Ecto.Migrator, direction, [FixtureRepo, version, module, [log: false]])
 
   defp provision_uploader!(password) do
     assert {_, 0} =
@@ -950,9 +1412,6 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
   defp sha256(bytes), do: :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower)
 
   defp seed!(target) do
-    %{organization_id: org, project_id: project, application_id: app, environment_id: env} =
-      target.scope
-
     profile = StartupFixture.entry()["profile"]
 
     sql!(
@@ -960,13 +1419,33 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
       [profile["profile_id"], profile["issuer"], profile["client_id"]]
     )
 
-    for sql <- [
-          "INSERT INTO public.mixer_authz_principals VALUES ('#{@principal}','human',true,0,1)",
-          "INSERT INTO public.mixer_authz_bindings VALUES ('startup-fixture',1,'#{@subject}','human','#{@principal}',true,1)",
-          "INSERT INTO public.mixer_authz_families VALUES ('replay-family','startup-fixture',1,'#{@principal}',true,0,NULL,1)",
-          "INSERT INTO public.mixer_authz_credentials VALUES ('startup-fixture',1,'#{@credential}','#{@principal}','replay-family',true,0,NULL,1)"
-        ],
-        do: sql!(sql)
+    seed_identity!(@principal, @subject, @credential, "replay-family")
+    seed_scope!(target, @principal, "replay-member")
+    seed_head!(target)
+  end
+
+  defp seed_identity!(principal, subject, credential, family) do
+    sql!("INSERT INTO public.mixer_authz_principals VALUES ($1,'human',true,0,1)", [principal])
+
+    sql!(
+      "INSERT INTO public.mixer_authz_bindings VALUES ('startup-fixture',1,$1,'human',$2,true,1)",
+      [subject, principal]
+    )
+
+    sql!(
+      "INSERT INTO public.mixer_authz_families VALUES ($1,'startup-fixture',1,$2,true,0,NULL,1)",
+      [family, principal]
+    )
+
+    sql!(
+      "INSERT INTO public.mixer_authz_credentials VALUES ('startup-fixture',1,$1,$2,$3,true,0,NULL,1)",
+      [credential, principal, family]
+    )
+  end
+
+  defp seed_scope!(target, principal, membership) do
+    %{organization_id: org, project_id: project, application_id: app, environment_id: env} =
+      target.scope
 
     for {table, values, args} <- [
           {"organizations", "$1,true", [org]},
@@ -975,9 +1454,8 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
           {"environments", "$1,$2,$3,$4,true", [org, project, app, env]},
           {"organization_heads", "$1,1", [org]},
           {"project_heads", "$1,$2,1", [org, project]},
-          {"memberships",
-           "'replay-member','#{@principal}',$1,$2,'exact_project','owner',true,0,NULL,1",
-           [org, project]}
+          {"memberships", "$1,$2,$3,$4,'exact_project','owner',true,0,NULL,1",
+           [membership, principal, org, project]}
         ],
         do: sql!("INSERT INTO public.mixer_authz_#{table} VALUES (#{values})", args)
 
@@ -987,14 +1465,16 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
       "INSERT INTO public.mixer_customer_artifact_heads VALUES ($1,$2,0,'',$3)",
       [org, project, genesis]
     )
+  end
 
+  defp seed_head!(target) do
     sql!(
       """
       INSERT INTO public.mixer_release_heads
         (organization_id,project_id,application_id,environment_id,platform,runtime_sha256,channel,writer_role)
       VALUES ($1,$2,$3,$4,$5,$6,$7,'#{@writer}')
       """,
-      [org, project, app, env, target.platform, target.runtime_sha256, target.channel]
+      coordinates(target)
     )
   end
 
@@ -1050,28 +1530,16 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
   end
 
   # Feed the existing storage path through a fixture-only SQL login before boot.
-  defp stage!(%{target: target, host: host, roots: roots}, digest, envelope) do
+  defp stage!(config, digest, envelope, identity \\ fixture_identity(), key \\ "stage") do
+    %{target: target, host: host, roots: roots} = config
     now = System.system_time(:second)
 
     assert {:ok, %{manifest_sha256: ^digest} = artifact} =
              ArtifactAdmission.admit(envelope, host, roots, now)
 
-    identity = %VerifiedIdentity{
-      profile_id: "startup-fixture",
-      profile_version: 1,
-      issuer: StartupFixture.entry()["profile"]["issuer"],
-      subject: @subject,
-      credential_ref: @credential,
-      client_id: "reviewed-client",
-      identity_class: :human,
-      issued_at: now - 1,
-      expires_at: now + 120,
-      scopes: ["mixer.artifact.upload"]
-    }
-
     with_repo(@stage, fn ->
       config = %{repo: FixtureRepo, host: host, roots: roots}
-      command = %{key: "stage", reason: "Stage synthetic signed release", source_ip: nil}
+      command = %{key: key, reason: "Stage synthetic signed release", source_ip: nil}
 
       assert {:ok, %{status: 201}} =
                Authorization.with_authorized_transaction(
@@ -1124,6 +1592,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     {:ok, repo} = FixtureRepo.start_link(settings ++ options)
 
     try do
+      assert [[1]] = sql!("SELECT 1").rows
       operation.()
     after
       Supervisor.stop(repo)

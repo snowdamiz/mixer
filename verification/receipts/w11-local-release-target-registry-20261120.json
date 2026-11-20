@@ -1,0 +1,46 @@
+{
+  "scope": "W11/L05 ordinary local anonymous release delivery",
+  "base": "0f191753df277e210f672eaf7e464bbb88b4ccd9",
+  "hosted_patch_sha256": "4e81335cb59378a96e2d6d4191884bccfa10b573dc09d539d39be5471fb30be1",
+  "patch_digest_command": "git diff --binary HEAD^ HEAD -- hosted | shasum -a 256",
+  "environment": {
+    "host": "macOS arm64",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "postgresql": "17.11",
+    "phoenix": "1.8.16",
+    "bandit": "1.14.1",
+    "database": "Fresh isolated PostgreSQL cluster with verified TLS and fixture roles",
+    "listener": "127.0.0.1:47301"
+  },
+  "runs": [
+    {
+      "command": "hosted/scripts/replay-local-release-target-registry.sh",
+      "result": "1 passed, 1 skipped",
+      "exunit_seed": 561776,
+      "observations": {
+        "pre_migration": "Registry mode returned 204 and 404. The same ordinary API served the committed v3 default offer and byte-identical legacy artifact in single-target mode.",
+        "default_ios": "Sequence 7 served using the unchanged tenant-only artifact URL.",
+        "additional_android": "Sequence 7 served using all seven target fields. Retained sequence 6 returned exact stored envelope bytes.",
+        "historical_envelope_sha256": "7eae23f3afd9b04ef8bf62311c22ac3a10f74137c1ba283e5aad8982644e2228",
+        "cross_tenant": "Scoped writer saw no cross-tenant head. The configured but unenrolled tenant's committed offer and artifact produced no SQL rows and returned HTTP 204 and 404.",
+        "other_denials": "The staged-only, wrong-channel, and wrong-target digests returned 404. Partial and duplicate decoded URL fields returned 400.",
+        "revocation": "Removing the enrolled Android target denied both restricted SQL functions and both HTTP reads. Re-enrolling and revoking its roots preserved a SQL offer row and denied HTTP. The default still served its bytes.",
+        "queue_interlock": "Migration 000015 refused an installed 000014 while retaining the singleton. Migration 000014 also refused installation after 000015, leaving no queue tables.",
+        "cleanup": "Phoenix stopped and its port was rebound after each boot. pg_ctl confirmed shutdown and the runner removed its owned cluster and scratch."
+      }
+    },
+    {
+      "command": "hosted/scripts/replay-configured-release.sh --startup-only",
+      "result": "1 passed, 1 skipped",
+      "exunit_seed": 284751
+    },
+    {
+      "command": "cd hosted && HEX_OFFLINE=1 MIX_ENV=test mix test --warnings-as-errors test/mixer_hosted/releases/runtime_provisioning_test.exs test/mixer_hosted/releases/release_jobs_test.exs test/mixer_hosted/protocol/assignment_v3_test.exs",
+      "result": "19 passed",
+      "exunit_seed": 228442
+    }
+  ],
+  "fixture_diagnostics": "Early attempts reached queue interlock but failed on an unready SQL pool and on a self-signed database leaf. The passing fixture waits for SQL readiness and uses a CA-signed loopback leaf. Each attempt stopped its cluster and removed scratch.",
+  "limits": "Queue-enabled multi-target operation requires a canonical full-publication deduplication migration. The fixture stages and seeds releases with scoped SQL transactions and checks ordinary anonymous HTTP delivery. Promotion, CLI and console writes, native clients, external access, and GA qualification remain outside this slice."
+}

@@ -5,6 +5,7 @@ defmodule MixerHosted.Releases.RuntimeProvisioningTest do
   alias MixerHosted.RuntimeConfig
 
   @config "MIXER_LOCAL_RELEASE_CONFIG"
+  @registry "MIXER_LOCAL_RELEASE_TARGET_REGISTRY"
   @password "MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD"
   @writer_enabled "MIXER_LOCAL_RELEASE_WRITER_ENABLED"
   @fixture Path.expand(
@@ -81,6 +82,49 @@ defmodule MixerHosted.Releases.RuntimeProvisioningTest do
     assert_raise ArgumentError, "invalid or missing hosted setting: " <> @config, fn ->
       RuntimeProvisioning.load!(@base, enabled)
     end
+  end
+
+  test "registers separate host and roots for each additional exact target", ctx do
+    document = android_document(ctx.document)
+    env = Map.put(ctx.env, @registry, Jason.encode!([document]))
+    {default, delivery} = RuntimeProvisioning.load!(env, ctx.hosted)
+    assert {^default, _} = RuntimeProvisioning.load!(ctx.env, ctx.hosted)
+
+    assert [{target, %{target: target, host: host, roots: roots}}] =
+             Map.to_list(delivery.registry)
+
+    assert target.platform == "android"
+    assert host == document["host"]
+    assert Enum.all?(roots, &(&1["scope"] == host["scope"]))
+  end
+
+  test "rejects queue mode, duplicate selections and cross-scope roots", ctx do
+    document = android_document(ctx.document)
+    env = Map.put(ctx.env, @registry, Jason.encode!([document]))
+
+    assert_raise ArgumentError, ~r/MIXER_LOCAL_RELEASE_TARGET_REGISTRY/, fn ->
+      RuntimeProvisioning.load!(env, %{ctx.hosted | local_release_jobs: true})
+    end
+
+    for entries <- [
+          [],
+          [ctx.document],
+          [document, document],
+          [%{document | "roots" => ctx.document["roots"]}]
+        ] do
+      assert_raise ArgumentError, ~r/MIXER_LOCAL_RELEASE_TARGET_REGISTRY/, fn ->
+        RuntimeProvisioning.load!(Map.put(ctx.env, @registry, Jason.encode!(entries)), ctx.hosted)
+      end
+    end
+  end
+
+  defp android_document(document) do
+    document
+    |> put_in(["host", "scope", "platform"], "android")
+    |> update_in(
+      ["roots"],
+      &Enum.map(&1, fn root -> put_in(root, ["scope", "platform"], "android") end)
+    )
   end
 
   test "rejects invalid, ambiguous, or unbounded target metadata and trust roots", ctx do
