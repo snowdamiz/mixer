@@ -291,13 +291,15 @@ The v52 artifact-read fixture now requires a successful metadata row while the t
 
 Hosted v61 binds the composed release writer and transition source and admits 462 files with 24 ordinary migrations and four opt-in migrations. Each hosted sparse checkout restored all 461 v60 files and their modes. All 316 collector tests passed through unittest discovery in the Verify services sparse checkout after the direct runner reached its six-minute alarm. [Hosted v61 verification](verification/receipts/hosted-source-binding-v61-20261120.json)
 
-### Android TaskCompletion parity and source diagnostic
+### TaskCompletion parity and source diagnostic
 
 At Mixer `7b61fe1cd9ae79d3153a29b5aff91c0146b0bd99`, the signed TaskCompletion trial passed on an owned AOSP arm64 API 36 emulator. A single staged Package Manager install matched development APK SHA-256 `f95407b596fe7d883a06a2c132b0ca0705b4f1189124d626c50c9e5a41368787`. The app drew **Open**, **Review required**, **Completed**, and **Open** from the same Swift source as the host differential. The JNI route refused the stale revision-1 input at revision 2. The fourth tap trapped at `TaskCompletion.swift:94:9`, function 8, Wasm offset 1883. The app kept the same PID and published no revision 5. **Close guest** confirmed retirement.
 
 The rebuild used Wasm SHA-256 `59623248e6afe4fd66e4dbb0adf8ae6cd353528ad6f4769b52269a3020e2811b` and verified the same four frames and diagnostic on macOS before the Android run. The first Android attempt reused a debug-only `run-as` check and closed before guest launch. The passing run used direct screenshots and PID-scoped logcat readback. It used Android Emulator 37.2.12, ADB 37.0.1, and system image build 13818094. All 344 recorded groups closed, the private ADB and emulator exited, the disposable AVD was removed, and all three ports were reusable. D3 remains open for iOS and the local target performance comparison. [Installed Android replay](verification/receipts/l03-d3-task-completion-android-7b61fe1c.json)
 
 Five matched native Swift and owned-VM TaskCompletion pairs ran on a fresh API 36 arm64 emulator. Every process reproduced the four frame digests. Both paths refused two invalid events with unchanged frames. The guest trap mapped to TaskCompletion.swift:94:9. Median sums for three prepared-event-to-frame intervals were 3.459 µs native and 970.667 µs guest. Median whole-process peak RSS was 20,008,960 and 21,151,744 bytes. The emulator and private ADB group closed, and all three ports were reusable. Android app latency and the iOS local comparison remain pending. [Matched Android receipt](verification/receipts/l03-d3-taskcompletion-android-matched-20261120.json)
+
+The same TaskCompletion harness built optimized and debug arm64 iOS Simulator executables against the owned VM with Xcode 27.2 and Rust 1.99.0. Both retained executables passed strict signature verification. The Mach-O platform, linked VM symbols, and SDK dependencies matched the Simulator target. The handoff includes the exact 5,263-byte guest from the signed-size replay. All 23 command groups closed and build scratch was removed. Native execution and measurements remain pending under the Simulator pause. [iOS build receipt](verification/receipts/l03-d3-taskcompletion-ios-simulator-link-20261120.json)
 
 ### Reproducible Android engine pair
 
