@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "status": "passed_local_slice",
+  "observedAt": "2026-11-20T16:21:34.287609+00:00",
+  "base": "6047348aade7d5bb05e8013e437f36898eb90cb5",
+  "implementation": "02b26556f0c628cf63fcd4661af6e91a0bfb912f",
+  "gitTree": "8478bac9ea09ecf5a5edd447d9666341c7d3d900",
+  "priorImplementation": "fb889121180b9317a0254e030d75a33d242c64e0",
+  "priorReceiptCommit": "8632da89a3524a3f25cdabaf14889565e22c9198",
+  "environment": {
+    "host": "Darwin arm64",
+    "swift": "6.4.2",
+    "elixir": "1.20.4",
+    "erlangOtp": 29,
+    "phoenix": "1.8.16",
+    "bandit": "1.14.1",
+    "postgres": "17.11",
+    "database": "Disposable PostgreSQL and Phoenix/Bandit on IPv4 loopback",
+    "signing": "Synthetic fixture bearers and test-only artifact and assignment signing keys"
+  },
+  "verification": {
+    "buildCommand": "swift build --package-path cli --scratch-path <scratch>/swift-build --cache-path <scratch>/swift-cache --disable-dependency-cache --manifest-cache none --force-resolved-versions -j 8 -Xswiftc -gnone -Xcc -g0 --product mixer",
+    "cliTree": "25a95557190f8b1cc1bb87ef2c7db1e3f404d866",
+    "cliSha256": "35eb46930571711f33aee7d5af27ec45eaa5f9cdc02426f37a630cff98626668",
+    "testCommand": "MIX_ENV=test mix test --warnings-as-errors --seed 0 --trace test/mixer_hosted_web/customer_artifact_http_integration_test.exs test/mixer_hosted/releases/postgres_test.exs test/mixer_hosted/releases/browser_publication_test.exs test/mixer_hosted/protocol/assignment_v3_test.exs test/mixer_hosted/releases/runtime_provisioning_test.exs",
+    "fixture": "The run used the customer artifact and browser database provisioning functions from hosted/scripts/test-local.py, the catalog definer fixture role, and MIXER_TEST_RELEASE_CLI directed to the stock executable. PostgreSQL ran in the foreground on an owned loopback port.",
+    "passed": 37,
+    "failed": 0,
+    "exunitLogSha256": "ea29634f4730b090aaff3dd2e56b3d9eb6e3c4882a1ceefeb1758e77e308c1eb",
+    "postgresLogSha256": "f70d5866baa1f6b5c0b7c394662f0576f79f21588b8d079fcf0e7700021aee25",
+    "formatCheck": "Passed for changed .ex and .exs files",
+    "earlierAttempts": [
+      "The first composition run stopped at compile time because the moved stock helper call referenced an out-of-scope token. The explicit publisher token fixed it.",
+      "An intermediate run passed 32 tests. The final run additionally checked runtime provisioning and exercised the deferred commit failure under the corrected receipt catalog admission."
+    ],
+    "dependencyFetch": "SwiftPM fetched the pinned public source packages swift-crypto 5.0.3 and swift-asn1 1.7.3. Application traffic used owned loopback fixtures."
+  },
+  "observations": {
+    "populatedUpgrade": "The restricted writer committed sequence 1 and its CLI receipt on the old schema and original column grant. Migration 20261120000010 preserved the exact signed bytes, head and receipt, backfilled action=publish and allowed exact publish replay.",
+    "grant": "Before GRANT INSERT (action), PostgreSQL rejected the promotion and counts stayed at three receipts and one publication. After the grant, action INSERT passed. Table-wide INSERT, publication UPDATE and recorded_at INSERT stayed denied.",
+    "stockTransitions": "The stock CLI promoted A to sequence 2 and 7500 basis points, rolled back from B to A at sequence 4 and 2500 basis points, and promoted A at sequence 5 and 5000 basis points. Exact retries of sequences 2 and 4 returned the original receipts at head 5.",
+    "revocation": "Revoking the assignment key made exact stock promote and rollback retries exit 1 with HTTP 409 assignment_rejected. Publish replay also refused. The five signed journal entries, seven request receipts and head 5 were preserved.",
+    "browserHistory": "The browser runtime published A. The stock CLI published B. The CLI rollback endpoint refused A with HTTP 422 not_validated until the exact retained A artifact was validated, then committed and delivered the signed rollback to A.",
+    "authorization": "A viewer with a release-scoped bearer could not promote. Browser viewer reads, separate delivery grants, restricted SQL and the corrected writer receipt catalog and artifact checks remained covered by the focused tests.",
+    "deferredFailure": "A PostgreSQL trigger raised at COMMIT during sequence 5 promotion. The head stayed at sequence 4 with four publication rows and six request receipts. Removing the trigger allowed the identical request to commit."
+  },
+  "cleanup": {
+    "postgresExit": 0,
+    "postgresDataRemoved": true,
+    "reboundPorts": {
+      "postgres": 51529,
+      "bandit_port": 51608,
+      "tls_port": 51607
+    },
+    "httpFixture": {
+      "bandit_stopped": true,
+      "key_owner_stopped": true,
+      "jwks_workers_stopped": true,
+      "tls_fixture_stopped": true,
+      "ephemeral_tls_key_directory_removed": true,
+      "jwks_tls_request_count": null,
+      "bandit_port": 51608,
+      "tls_port": 51607
+    },
+    "browser": "The browser fixture verified lease cleanup and removal of the application supervisor and registered runtime children. The restarted API was stopped explicitly."
+  },
+  "scope": "Owned local publication and delivery slice. Halt, broader L05 acceptance and the root-owned source binding integration remain separate."
+}
