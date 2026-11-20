@@ -11,6 +11,7 @@ import plistlib
 import re
 import shutil
 import signal
+import stat
 import subprocess
 import tarfile
 from tempfile import mkdtemp
@@ -39,6 +40,36 @@ INPUT_FILES = (
 )
 INPUT_TREES = ("FieldLog.app", "project-template/Generated")
 
+ANDROID_PACKAGE = "dev.fieldlog.generatedr90"
+ANDROID_APP = dict(organization="mixer-local", project="fieldlog", app="fieldlog",
+                   environment="development", bundle_id=ANDROID_PACKAGE)
+HTTPS_BASE = "37e351f5ea58662ce71a85b9a740187a95f5608e"
+HTTPS_VARIANTS = {"installed": "old", "proposed": "successor"}
+HTTPS_APKS = {role: f"handoff/{name}/FieldLog.apk" for role, name in HTTPS_VARIANTS.items()}
+HTTPS_ROOTS = "handoff/old/Installed/roots.json"
+HTTPS_SEAL = "handoff/SHA256SUMS"
+HTTPS_TOOLS = {"mixer", "hostSwift", "probe", "aapt2", "apksigner", "zipalign", "openssl"}
+HTTPS_TEMPLATE = {"project-template/mixer.yml", "project-template/mixer.lock"}
+HTTPS_INPUT_FILES = HTTPS_TEMPLATE | set(HTTPS_APKS.values()) | {
+    HTTPS_ROOTS, HTTPS_SEAL, "handoff/permissions.json", "handoff/build.json", "handoff/manifest-template.json",
+    "handoff/baseline.wasm", "handoff/candidate.wasm",
+}
+HTTPS_PROBE_SOURCES = {
+    "Integrations/GeneratedReport/" + source if source.startswith("Sources/") else source: probe
+    for source, probe in FIELDLOG_STORAGE.items()
+}
+APK_MATERIAL = "assets/ChecklistRelease/"
+STORAGE = "storage.keyValue.v1"
+HTTP = "network.http.v1"
+CAPABILITIES = {
+    HTTP: ("http", "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3"),
+    STORAGE: ("storage", "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"),
+}
+NATIVE_ABI = "29ab6ba4a86990bc99d4f510fc005a17d84426d8c893d36f5061f17c46786adf"
+GRANT_SCHEMA = "b394ffd165ef28977de9743b1c1a98c419504787f2912e30d419cfb1582e15e1"
+ANDROID_SCOPE = {field: ANDROID_APP[field] for field in SCOPE_FIELDS} | {"platform": "android"}
+ANDROID_OTA_KEY_ID = "fieldlog-android-provenance-dev"
+
 
 
 def require(condition, description):
@@ -65,6 +96,15 @@ def save(path, value):
 
 def load(path):
     return json.loads(path.read_bytes())
+
+
+def strict_json(data):
+    def object_from_pairs(pairs):
+        value = dict(pairs)
+        require(len(value) == len(pairs), "Duplicate JSON field in HTTPS input")
+        return value
+
+    return json.loads(data, object_pairs_hook=object_from_pairs)
 
 
 def group_absent(pgid, seconds=0):
@@ -120,6 +160,32 @@ def input_files(root):
     return sorted(path.relative_to(root).as_posix() for path in paths)
 
 
+def https_input_files(root):
+    def unreadable(error):
+        raise error
+
+    files_found, directories_found = set(), set()
+    for directory, dirs, files in os.walk(root, followlinks=False, onerror=unreadable):
+        for name in dirs + files:
+            path = Path(directory) / name
+            relative_path = path.relative_to(root).as_posix()
+            mode = path.lstat().st_mode
+            if stat.S_ISDIR(mode):
+                directories_found.add(relative_path)
+            else:
+                require(stat.S_ISREG(mode) and (relative_path in HTTPS_TEMPLATE
+                        or relative_path.startswith(("project-template/Generated/", "handoff/"))),
+                        f"Unexpected HTTPS input entry: {relative_path}")
+                files_found.add(relative_path)
+    parents = {parent.as_posix() for name in files_found for parent in Path(name).parents} - {"."}
+    entries = files_found | directories_found
+    require(HTTPS_INPUT_FILES <= files_found and any(name.startswith("project-template/Generated/") for name in files_found)
+            and parents == directories_found
+            and len({name.casefold() for name in entries}) == len(entries),
+            "HTTPS input inventory is incomplete, contains an empty directory, or is ambiguous")
+    return sorted(files_found)
+
+
 def tool_companions(tools, java_home):
     mixer_dir = tools["mixer"].parent
     return {
@@ -134,23 +200,50 @@ def relative(path, settings):
     return os.path.relpath(path, settings.parent)
 
 
-def pin(args):
+def check_https_approvals(inputs, files, tools, approvals):
+    approved = {role: files[name] for role, name in HTTPS_APKS.items()} | {
+        "probe": tools["probe"]["sha256"], "roots": files[HTTPS_ROOTS], "handoff": files[HTTPS_SEAL],
+    }
+    require(approvals == approved and all(re.fullmatch(r"[0-9a-f]{64}", value) for value in approved.values()),
+            "The APK, probe, public roots or handoff seal differ from the independently approved SHA-256")
+    require(approved["installed"] != approved["proposed"], "Choose two distinct approved APKs")
+    seal = {}
+    for line in (inputs / HTTPS_SEAL).read_text(encoding="ascii").splitlines():
+        match = re.fullmatch(r"([0-9a-f]{64})  (.+)", line)
+        require(match, "Invalid handoff seal entry")
+        digest, name = match.groups()
+        require(name not in seal, "Duplicate handoff seal entry")
+        seal[name] = digest
+    require(seal == {name.removeprefix("handoff/"): digest for name, digest in files.items()
+                     if name.startswith("handoff/") and name != HTTPS_SEAL},
+            "Handoff differs from its full independent file seal")
+
+
+def pin(args, *, https=False):
     settings = args.settings.resolve()
     inputs = args.inputs.resolve(strict=True)
+    tool_names = HTTPS_TOOLS if https else TOOLS
     tools = dict(args.tool)
-    require(len(tools) == len(args.tool) and tools.keys() == TOOLS,
-            f"Supply each tool once: {', '.join(sorted(TOOLS))}")
+    require(len(tools) == len(args.tool) and tools.keys() == tool_names,
+            f"Supply each tool once: {', '.join(sorted(tool_names))}")
     tools = {name: Path(os.path.abspath(path)) for name, path in tools.items()}
     java_home = args.java_home.resolve(strict=True)
     inventory = {
         "schema": 1,
         "inputs": relative(inputs, settings),
-        "files": {name: file_hash(inputs / name) for name in input_files(inputs)},
+        "files": {name: file_hash(inputs / name) for name in (https_input_files if https else input_files)(inputs)},
         "javaHome": relative(java_home, settings),
         "tools": {name: {"path": relative(path, settings), "sha256": file_hash(path)}
                   for name, path in tools.items()},
         "toolCompanions": tool_companions(tools, java_home),
     }
+    if https:
+        require(not settings.is_relative_to(inputs), "Keep HTTPS settings outside the closed input directory")
+        inventory["recipe"] = "android-https"
+        inventory["approvals"] = {"installed": args.installed_apk_sha256, "proposed": args.proposed_apk_sha256,
+                                  "probe": args.probe_sha256, "roots": args.roots_sha256,
+                                  "handoff": args.handoff_seal_sha256}
+        check_https_approvals(inputs, inventory["files"], inventory["tools"], inventory["approvals"])
     with settings.open("xb") as handle:
         handle.write(encoded(inventory))
 
@@ -235,20 +328,32 @@ class LocalCommands:
 
 
 class Build(LocalCommands):
+    https = False
+
     def __init__(self, settings_path, work):
         inventory = settings_path.read_bytes()
-        settings = json.loads(inventory)
-        require(settings["schema"] == 1 and settings["tools"].keys() == TOOLS,
+        settings = (strict_json if self.https else json.loads)(inventory)
+        require(settings["schema"] == 1 and settings["tools"].keys() == (HTTPS_TOOLS if self.https else TOOLS)
+                and settings.get("recipe") == ("android-https" if self.https else None),
                 "Unsupported FieldLog input inventory")
+        if self.https:
+            require(settings.keys() == {"schema", "recipe", "approvals", "inputs", "files", "javaHome", "tools", "toolCompanions"},
+                    "Unsupported HTTPS inventory fields")
+            self.approvals = settings["approvals"]
         self.inventory_sha256 = sha(inventory)
 
         def resolve(value):
             return (settings_path.parent / value).resolve(strict=True)
 
         self.inputs = resolve(settings["inputs"])
-        require(set(input_files(self.inputs)) == settings["files"].keys(), "Pinned input file set changed")
+        if self.https:
+            require(not work.is_relative_to(self.inputs), "Keep HTTPS output outside the closed input directory")
+        require(set((https_input_files if self.https else input_files)(self.inputs)) == settings["files"].keys(),
+                "Pinned input file set changed")
         for name, digest in settings["files"].items():
             require(file_hash(self.inputs / name) == digest, f"Pinned input bytes changed: {name}")
+        if self.https:
+            check_https_approvals(self.inputs, settings["files"], settings["tools"], self.approvals)
 
         # Keep argv[0] as swiftc even when the bytes are provided by swift-driver.
         self.tools = {name: Path(os.path.abspath(settings_path.parent / item["path"]))
@@ -259,8 +364,10 @@ class Build(LocalCommands):
             require(name == "android.jar" or os.access(path, os.X_OK), f"Tool is not executable: {name}")
 
         java_home = resolve(settings["javaHome"])
-        require((java_home / "bin/keytool").resolve() == self.tools["keytool"].resolve() and
-                os.access(java_home / "bin/java", os.X_OK), "JAVA_HOME must match the pinned keytool")
+        require(os.access(java_home / "bin/java", os.X_OK), "JAVA_HOME must contain the pinned Java launcher")
+        if not self.https:
+            require((java_home / "bin/keytool").resolve() == self.tools["keytool"].resolve(),
+                    "JAVA_HOME must match the pinned keytool")
         self.companions = settings["toolCompanions"]
         require(tool_companions(self.tools, java_home) == self.companions, "Pinned tool companion bytes changed")
         host_swift = self.tools["hostSwift"]
@@ -299,7 +406,7 @@ class Build(LocalCommands):
         shutil.copytree(template / "Generated", baseline / "Generated")
         shutil.copyfile(template / "mixer.lock", baseline / "mixer.lock")
         config = load(template / "mixer.yml")
-        config["applicationIdentifiers"] = {"ios": "dev.mixer.fieldlog", "android": "dev.fieldlog.generatedr90"}
+        config["applicationIdentifiers"] = {"ios": "dev.mixer.fieldlog", "android": ANDROID_PACKAGE}
         save(baseline / "mixer.yml", config)
         guest = baseline / "Integrations/InstalledGuest/SwiftGuest"
         guest.mkdir(parents=True, exist_ok=True)
@@ -346,10 +453,10 @@ class Build(LocalCommands):
         return json.loads(self.run(self.tools["mixer"], "release", "inspect", "--directory", project,
                                    expected=2, timeout=105, mixer_cli=True))
 
-    def android_contract(self, apk):
+    def android_contract(self, apk, package_id=ANDROID_PACKAGE):
         data = self.run(self.tools["aapt2"], "dump", "permissions", apk).decode()
         package = re.findall(r"^package: (\S+)$", data, re.MULTILINE)
-        require(package == ["dev.fieldlog.generatedr90"], "Android output has a different installed package ID")
+        require(package == [package_id], "Android output has a different installed package ID")
         # Include the decoded compiled manifest so maxSdk, SDK-conditioned permissions,
         # components and scoped permission attributes participate in comparison.
         xml = self.run(self.tools["aapt2"], "dump", "xmltree", apk, "--file", "AndroidManifest.xml").decode()
@@ -469,7 +576,10 @@ class Build(LocalCommands):
 
     def release(self, target, platform, name, wasm, material, key, revision, index, sequence):
         identity = json.loads(material["identity.json"])
-        decoded = load(self.inputs / "manifest-template.json")["manifest"]
+        template = "handoff/manifest-template.json" if self.https else "manifest-template.json"
+        decoded = load(self.inputs / template)["manifest"]
+        if self.https:
+            decoded.update(https_manifest_capabilities(identity, material))
         scope = {field: identity["application"][field] for field in SCOPE_FIELDS} | {"platform": platform}
         runtime = sha(b"mixer.runtime.identity.v2\0" + cbor(identity))
         payload = wasm.read_bytes()
@@ -597,11 +707,392 @@ class Build(LocalCommands):
         return observed, directory, packet
 
 
+def apk_contents(path):
+    limit = 256 * 1_048_576
+    require(0 < path.stat().st_size <= limit, "APK exceeds the stock inspector archive limit")
+    materials, members = {}, {}
+    names = set()
+    with zipfile.ZipFile(path) as apk:
+        entries = apk.infolist()
+        require(len(entries) <= 4096 and sum(entry.file_size for entry in entries) <= 2 * limit,
+                "APK archive exceeds the material inspection limits")
+        for entry in entries:
+            name = entry.filename.rstrip("/")
+            require(name.casefold() not in names and all(part not in ("", ".", "..") for part in name.split("/"))
+                    and "\\" not in name and not stat.S_ISLNK(entry.external_attr >> 16),
+                    f"Ambiguous or unsupported APK member: {entry.filename}")
+            names.add(name.casefold())
+            if entry.is_dir() or re.fullmatch(r"META-INF/(?:MANIFEST\.MF|[^/]+\.(?:SF|RSA|DSA|EC))", name, re.IGNORECASE):
+                continue
+            if name.startswith(APK_MATERIAL):
+                asset = name.removeprefix(APK_MATERIAL)
+                maximum = 131_072 if asset == "identity.json" else 65_536
+                require(re.fullmatch(r"[\w.-]+", asset, re.ASCII) and entry.file_size <= maximum,
+                        f"Invalid release asset: {name}")
+                materials[asset] = apk.read(entry)
+            else:
+                with apk.open(entry) as data:
+                    members[name] = hashlib.file_digest(data, "sha256").hexdigest()
+    require("AndroidManifest.xml" in members and "classes.dex" in members
+            and any(re.fullmatch(r"lib/arm64-v8a/[^/]+\.so", name) for name in members),
+            "Expected a compiled Android manifest, DEX and arm64 shared library")
+    return materials, members
+
+
+def https_manifest_capabilities(identity, material):
+    hashes, grants = {}, []
+    for capability in identity["capabilities"]:
+        name = capability["id"]
+        asset, schema = CAPABILITIES[name]
+        configuration, grant = (material[asset + suffix] for suffix in (".json", "-grant.json"))
+        require(capability == {"id": name, "schema_sha256": schema, "native_sha256": NATIVE_ABI,
+                               "configuration_sha256": sha(configuration), "grants_sha256": sha(grant)},
+                f"APK configuration or grant differs from its versioned descriptor: {name}")
+        entry = strict_json(grant)
+        require(entry.keys() == {"capability_id", "schema_sha256", "permissions", "origins", "methods", "namespaces"}
+                and entry["capability_id"] == name and entry["schema_sha256"] == schema,
+                f"APK grant does not bind its capability schema: {name}")
+        hashes[name] = schema
+        grants.append(entry)
+    return {"capability_hashes": hashes,
+            "capability_grants": {"schema": 1, "schema_sha256": GRANT_SCHEMA, "entries": grants}}
+
+
+def https_identity(material, *, successor, application):
+    identity = strict_json(material["identity.json"])
+    require(identity["schema"] == 2 and identity["application"] == application
+            and identity["platform"]["os"] == "android" and identity["platform"]["architecture"] == "arm64"
+            and identity["build"]["configuration"] == "debug",
+            "Expected the configured FieldLog Android development identity")
+    require([entry["id"] for entry in identity["capabilities"]] == ([HTTP, STORAGE] if successor else [STORAGE]),
+            "Expected storage on both runtimes and HTTPS only on the successor")
+    require(identity["build"]["trust_roots_sha256"] == sha(material["roots.json"])
+            and identity["capability_execution"]["bridge_policy_sha256"] == sha(material["bridge.json"]),
+            "APK roots or bridge policy differ from the runtime descriptor")
+    grants = https_manifest_capabilities(identity, material)["capability_grants"]["entries"]
+    if successor:
+        config = strict_json(material["http.json"])
+        grant = grants[0]
+        require(config == {"schema": 1, "implementation": "urlsession-normal-tls-v1",
+                           "maximum_concurrent_requests": identity["capability_execution"]["maximum_requests"]},
+                "Expected the installed normal-TLS HTTPS implementation")
+        origins, methods = grant["origins"], grant["methods"]
+        require(grant["permissions"] == ["network.https"] and grant["namespaces"] == []
+                and isinstance(origins, list) and 1 <= len(origins) <= 32
+                and all(isinstance(origin, str) and https_origin(origin) for origin in origins)
+                and origins == sorted(set(origins))
+                and isinstance(methods, list) and 1 <= len(methods) <= 6
+                and all(method in {"DELETE", "GET", "HEAD", "PATCH", "POST", "PUT"} for method in methods)
+                and methods == sorted(set(methods)),
+                "Expected a nonempty canonical HTTPS-only grant")
+    return identity
+
+
+def https_origin(origin):
+    match = re.fullmatch(r"https://([a-z0-9.-]{1,253})(?::([1-9][0-9]{0,4}))?", origin)
+    return bool(match and all(re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label)
+                              for label in match[1].split("."))
+                and (match[2] is None or 0 < int(match[2]) <= 65535 and int(match[2]) != 443))
+
+
+def check_https_delta(installed, proposed, *, application=ANDROID_APP):
+    old_material, old_members = installed
+    new_material, new_members = proposed
+    old = https_identity(old_material, successor=False, application=application)
+    new = https_identity(new_material, successor=True, application=application)
+    require({k: v for k, v in new_material.items() if k not in {"identity.json", "http.json", "http-grant.json"}}
+            == {k: v for k, v in old_material.items() if k != "identity.json"}
+            and not {"http.json", "http-grant.json"} & old_material.keys(),
+            "APK release assets changed outside the HTTPS capability and descriptor")
+    require(old["capabilities"][0] == new["capabilities"][1] and cbor(old) != cbor(new),
+            "HTTPS successor must preserve storage and change the native fingerprint")
+    linked_inputs = {"link_inputs_sha256", "native_fallback_sha256"}
+    require({k: v for k, v in old.items() if k not in {"capabilities", "build"}}
+            == {k: v for k, v in new.items() if k not in {"capabilities", "build"}}
+            and {k: v for k, v in old["build"].items() if k not in linked_inputs}
+            == {k: v for k, v in new["build"].items() if k not in linked_inputs},
+            "Runtime identity changed outside the HTTPS capability and native link inputs")
+    require(old_members.keys() == new_members.keys(), "APK member inventory differs")
+    changed = {name for name in old_members if old_members[name] != new_members[name]}
+    require(changed and all(re.fullmatch(r"classes(?:[0-9]+)?\.dex|lib/[^/]+/[^/]+\.so", name) for name in changed),
+            "Expected a genuine compiled DEX or library change and byte-identical manifest and resources")
+    return sorted(changed)
+
+
+def stock_material(material):
+    aliases = {filename + suffix: kind + "." + capability + ".json"
+               for capability, (filename, _) in CAPABILITIES.items()
+               for suffix, kind in ((".json", "configuration"), ("-grant.json", "grant"))}
+    return {aliases[name]: data for name, data in material.items() if name in aliases} | {
+        name: material[name] for name in ("identity.json", "roots.json", "bridge.json")
+    }
+
+
+class HTTPSBuild(Build):
+    https = True
+
+    def guest_pair(self, project, record):
+        handoff = self.inputs / "handoff"
+        require(record["mixerRevision"] == HTTPS_BASE and record["fieldlogPublicRevision"] == FIELDLOG
+                and record["apkPackage"] == ANDROID_PACKAGE and record["port"] == 41897,
+                "Handoff differs from the pinned stock Mixer and FieldLog development contract")
+        payloads = {variant: handoff / f"{variant}.wasm" for variant in ("baseline", "candidate")}
+        hashes = {path.name: file_hash(path) for path in payloads.values()}
+        require(hashes == record["guestsSHA256"] and len(set(hashes.values())) == len(hashes),
+                "Expected distinct sealed baseline and confirmation payloads")
+
+        shutil.copytree(handoff / "old/source", project)
+        self.run("/usr/bin/git", "init", "-q", cwd=project)
+        template = self.inputs / "project-template"
+        shutil.copytree(template / "Generated", project / "Generated")
+        shutil.copyfile(template / "mixer.lock", project / "mixer.lock")
+        config = strict_json((template / "mixer.yml").read_bytes())
+        require(config["application"] == ANDROID_PACKAGE and "android" in config["targets"],
+                "Select a locked template for the maintained FieldLog Android package")
+        config["targets"] = ["android"]
+        config["applicationIdentifiers"] = {"android": ANDROID_PACKAGE}
+        save(project / "mixer.yml", config)
+
+        guest = project / "Integrations/InstalledGuest/SwiftGuest"
+        shutil.copytree(handoff / "hydrated", guest)
+        require({item.name: file_hash(item) for item in guest.iterdir()} == record["guestSourceSHA256"],
+                "Hydrated guest sources differ from the sealed build")
+        for source, probe in HTTPS_PROBE_SOURCES.items():
+            require(file_hash(project / source) == file_hash(handoff / "probe-package" / probe)
+                    == file_hash(handoff / "successor/source" / source),
+                    f"Host probe must use the exact FieldLog source: {source}")
+        return payloads
+
+    @staticmethod
+    def guest_build_inputs(project, record, variant, payload):
+        save(project / "Integrations/InstalledGuest/SwiftGuest/build-inputs.json", {
+            "sourceRevision": record["guestSourceRevision"],
+            "defines": ["REQUIRE_REVIEW"] if variant == "candidate" else [],
+            "payloadSHA256": file_hash(payload),
+        })
+
+    def signer(self, apk):
+        output = self.run(self.tools["apksigner"], "verify", "--verbose", "--print-certs", apk).decode()
+        signers = re.findall(r"^Signer #([0-9]+) certificate SHA-256 digest: ([0-9a-f]{64})$", output, re.MULTILINE)
+        require(len(signers) == 1 and signers[0][0] == "1" and "Number of signers: 1" in output.splitlines()
+                and re.search(r"^Verified using v[23] scheme \(.+\): true$", output, re.MULTILINE),
+                "Expected a single verified modern APK signer")
+        self.run(self.tools["zipalign"], "-c", "-P", "16", "4", apk)
+        return signers[0][1]
+
+    def native_pair(self, record):
+        sources = {role: self.inputs / name for role, name in HTTPS_APKS.items()}
+        permissions = (self.inputs / "handoff/permissions.json").read_bytes()
+        require(len(permissions) <= 65_536, "APK permissions preimage exceeds the stock inspector limit")
+        contract = strict_json(permissions)
+        roots = (self.inputs / HTTPS_ROOTS).read_bytes()
+        contents, signers = {}, {}
+        for role, apk in sources.items():
+            variant = HTTPS_VARIANTS[role]
+            build_pin = record["apks"][variant]
+            require(file_hash(apk) == self.approvals[role], f"Approved APK changed: {role}")
+            signers[role] = self.signer(apk)
+            require(self.android_contract(apk) == contract, f"Compiled Android manifest differs from its permissions preimage: {role}")
+            contents[role] = apk_contents(apk)
+            material, members = contents[role]
+            identity = strict_json(material["identity.json"])
+            require(material["roots.json"] == roots
+                    and identity["build"]["permissions_sha256"] == sha(permissions) == build_pin["permissionsSHA256"]
+                    and material["port.txt"] in (b"41897", b"41897\n"),
+                    f"APK does not bind the approved roots, permissions and port: {role}")
+            require(build_pin["apkSHA256"] == self.approvals[role]
+                    and build_pin["signerSHA256"] == signers[role]
+                    and build_pin["installedSHA256"] == {name: sha(data) for name, data in material.items()}
+                    and build_pin["runtimeFingerprint"] == sha(b"mixer.runtime.identity.v2\0" + cbor(identity))
+                    and members["AndroidManifest.xml"] == record["compiledManifestSHA256"],
+                    f"APK does not match the independently sealed build afterimages: {role}")
+        require(signers["installed"] == signers["proposed"], "The sealed APKs have different signing certificates")
+        changed_members = check_https_delta(contents["installed"], contents["proposed"])
+        return sources, {role: content[0] for role, content in contents.items()}, permissions, {
+            "signerSHA256": signers["installed"], "changedCompiledMembers": changed_members,
+            "compiledManifestSHA256": contents["installed"][1]["AndroidManifest.xml"],
+        }
+
+    def package_evidence(self, target, role, apk, material, permissions):
+        archive = target / (role + ".native")
+        shutil.copyfile(apk, archive)
+        digest = file_hash(archive)
+        require(digest == self.approvals[role], f"Packaged archive differs from the sealed APK: {role}")
+        (target / (role + ".permissions.json")).write_bytes(permissions)
+        destination = target / role
+        destination.mkdir()
+        for name, content in stock_material(material).items():
+            (destination / name).write_bytes(content)
+        return {"permissionsSHA256": sha(permissions), "identitySHA256": sha(material["identity.json"]),
+                "archiveSHA256": digest}
+
+    @contextmanager
+    def ota_key(self, path):
+        path = Path(os.path.abspath(path))
+        parent = path.parent.stat()
+        require(path.parent.resolve() == path.parent and parent.st_uid == os.getuid() and parent.st_mode & 0o077 == 0
+                and not path.is_relative_to(self.inputs) and not path.is_relative_to(self.work),
+                "Select the separately held OTA key in an operator-private directory")
+        with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), "rb") as key:
+            info = os.fstat(key.fileno())
+            require(stat.S_ISREG(info.st_mode) and info.st_uid == os.getuid() and info.st_mode & 0o077 == 0,
+                    "The OTA key must be an operator-owned private regular file")
+            der = self.run(self.tools["openssl"], "pkey", "-pubout", "-outform", "DER", stdin=key)
+            require(len(der) == 44 and der[:-32].hex() == "302a300506032b6570032100", "Expected an Ed25519 OTA key")
+            roots = [{"key_id": ANDROID_OTA_KEY_ID, "public_key": base64.b64encode(der[-32:]).decode(),
+                      "scope": ANDROID_SCOPE, "artifact": True, "assignment": True, "not_before_unix": 1,
+                      "revoked": False, "not_after_unix": 0}]
+            pinned = (self.inputs / HTTPS_ROOTS).read_bytes()
+            require(sha(pinned) == self.approvals["roots"] and strict_json(pinned) == roots,
+                    "Selected OTA key does not derive the approved Android development roots")
+            yield key
+
+    def sign(self, key, content):
+        if isinstance(key, Path):
+            return super().sign(key, content)
+        with self.temporary() as directory:
+            message = directory / "message"
+            message.write_bytes(content)
+            key.seek(0)
+            return self.run(self.tools["openssl"], "pkeyutl", "-sign", "-rawin", "-inkey", "/dev/stdin",
+                            "-in", message, stdin=key)
+
+
 def commit(build, project, message):
     build.run("/usr/bin/git", "add", "-f", ".", cwd=project)
     build.run("/usr/bin/git", "-c", "user.name=FieldLog local build", "-c", "user.email=local@invalid",
               "-c", "core.hooksPath=/dev/null", "commit", "-qm", message, cwd=project)
     return build.run("/usr/bin/git", "rev-parse", "HEAD", cwd=project).decode().strip()
+
+
+def verify_https_refusal(build, packet, proposed, state, artifact, observed):
+    recovery = state / "recovery/state.json"
+    before_launch = load(recovery)
+    result = build.run(build.tools["probe"], "refuse", packet, proposed, state)
+    before, after = (state / f"refusal-{phase}.json" for phase in ("before", "after"))
+    prior, reopened = load(before), load(recovery)
+    candidate_id = prior["healthy"]["candidateID"]
+    require(result.rstrip(b"\n") ==
+            f"Installed runtime rejected v3.manifest.compatibility; retained candidate={candidate_id} sequence=2".encode(),
+            "Probe did not report the expected installed-host refusal")
+    require(before_launch == prior and before.read_bytes() == after.read_bytes()
+            and prior["acceptedSequence"] == reopened["acceptedSequence"] == 2
+            and candidate_id == reopened["healthy"]["candidateID"]
+            and prior["candidates"][candidate_id]["artifactSHA256"] == artifact
+            and reopened["candidates"][candidate_id] == prior["candidates"][candidate_id]
+            and file_hash(state / "workspace/workspace.json") == observed["workspaceSHA256"][-1],
+            "Refusal did not retain the exact healthy offer and completed task")
+    return {"error": "v3.manifest.compatibility", "retainedSequence": 2, "retainedCandidateID": candidate_id,
+            "retainedArtifactSHA256": artifact, "recoveryStateSHA256": file_hash(before),
+            "workspaceSHA256": observed["workspaceSHA256"][-1]}
+
+
+def verify_https_inspection(build, source, directory, trust, pins, installed_runtime, candidate_runtime, status):
+    report = json.loads(build.run(build.tools["mixer"], "release", "inspect", "--directory", source,
+                                  "--qualification", directory, "--producer-trust", trust,
+                                  expected=0 if status == "ota-compatible" else 2, timeout=105, mixer_cli=True))
+    index = load(directory / "qualification.json")
+    require(report["application"] == ANDROID_PACKAGE and report["platforms"] == ["android"]
+            and report["qualificationSHA256"] == file_hash(directory / "qualification.json")
+            and report["sourceDigest"] == index["sourceDigest"] and report["sdkDigest"] == index["sdkDigest"]
+            and report["technicalEligibility"] == status and report["policyAssessment"] == "pending-project-review"
+            and report["publicationAllowed"] is False and len(report["targets"]) == 1,
+            f"Stock inspector did not report the expected development assessment: {status}")
+    target = report["targets"][0]
+    require(target["platform"] == "android" and target["status"] == status
+            and target["baselineArtifactSHA256"] == pins["baselineArtifactSHA256"]
+            and target["candidateArtifactSHA256"] == pins["candidateArtifactSHA256"]
+            and target["installedRuntime"] == installed_runtime and target["candidateRuntime"] == candidate_runtime
+            and (status != "ota-compatible" or target["behaviorReceiptSHA256"] == pins["behaviorReceiptSHA256"]),
+            "Stock Android assessment does not bind both expected native runtimes and signed offers")
+    save(directory / "inspection.json", report)
+
+
+def produce_https(args, output, trust):
+    build = HTTPSBuild(args.settings.resolve(strict=True), output)
+    require(not trust.is_relative_to(build.inputs), "Keep producer trust outside the closed input directory")
+    with build.ota_key(args.ota_key) as ota_key, build.temporary() as private:
+        handoff = strict_json((build.inputs / "handoff/build.json").read_bytes())
+        sources, materials, permissions, native_record = build.native_pair(handoff)
+        baseline, edited = (output / name for name in ("baseline-source", "review-source"))
+        payloads = build.guest_pair(baseline, handoff)
+        baseline_wasm, candidate_wasm = payloads["baseline"], payloads["candidate"]
+        build.guest_build_inputs(baseline, handoff, "baseline", baseline_wasm)
+        revisions = {"baseline": commit(build, baseline, "Pin FieldLog Android development baseline")}
+        build.run("/usr/bin/git", "clone", "-q", "--no-hardlinks", baseline, edited)
+        build.guest_build_inputs(edited, handoff, "candidate", candidate_wasm)
+        revisions["candidate"] = commit(build, edited, "Select the sealed FieldLog confirmation build")
+        reports = {"baseline": build.source(baseline), "candidate": build.source(edited)}
+        require(reports["baseline"]["sourceDigest"] != reports["candidate"]["sourceDigest"]
+                and reports["baseline"]["sdkDigest"] == reports["candidate"]["sdkDigest"],
+                "Expected a confirmation source edit with the same stock SDK")
+
+        producer_key = private / "producer.key"
+        public = build.key(producer_key)
+        producer_hash = sha(Path(__file__).read_bytes() + (Path(__file__).parent / "canonical.py").read_bytes())
+        anchor = private / "producer-trust.json"
+        save(anchor, {"schema": 1, "publicKey": public, "producerSHA256": producer_hash})
+        toolchain = {"inputPolicySHA256": build.inventory_sha256, "approvals": build.approvals,
+                     "toolSHA256": build.tool_hashes, "toolCompanionSHA256": build.companions,
+                     "versions": {name: build.run(build.tools[name], option, include_stderr=True).decode().strip()
+                                  for name, option in (("hostSwift", "--version"),
+                                                       ("aapt2", "version"), ("apksigner", "version"),
+                                                       ("openssl", "version"))},
+                     "fieldLogUpstream": FIELDLOG, "revisions": revisions, "native": native_record,
+                     "guestBuildSHA256": handoff["guestsSHA256"], "guestSourceRevision": handoff["guestSourceRevision"],
+                     "mixerRevision": HTTPS_BASE,
+                     "qualificationScope": "local development, macOS host observations for signed Android offers"}
+        compatible = output / "compatible"
+        https_change = output / "https-change"
+        installed = compatible / "android"
+        proposed = https_change / "android"
+        installed.mkdir(parents=True)
+        old = build.package_evidence(installed, "installed", sources["installed"], materials["installed"], permissions)
+        baseline_artifact, _ = build.release(installed, "android", "baseline", baseline_wasm, materials["installed"],
+                                             ota_key, revisions["baseline"], reports["baseline"]["sourceDigest"], 1)
+        compatible_artifact, _ = build.release(installed, "android", "candidate", candidate_wasm, materials["installed"],
+                                               ota_key, revisions["candidate"], reports["candidate"]["sourceDigest"], 2)
+        baseline_observed, baseline_state, _ = build.observe(installed, materials["installed"], "android", "baseline", 1)
+        seed = baseline_state / "workspace-0.json"
+        edit_observed, edit_state, packet = build.observe(installed, materials["installed"], "android", "candidate", 2, seed)
+        save(installed / "behavior.json", {"baseline": baseline_observed, "candidate": edit_observed})
+
+        shutil.copytree(installed, proposed, ignore=shutil.ignore_patterns("installed.native"))
+        shutil.copyfile(installed / "installed.native", proposed / "installed.native")
+        require(file_hash(proposed / "installed.native") == old["archiveSHA256"], "Installed APK changed during copy")
+        new = build.package_evidence(proposed, "proposed", sources["proposed"], materials["proposed"], permissions)
+        https_artifact, _ = build.release(proposed, "android", "candidate", candidate_wasm, materials["proposed"],
+                                          ota_key, revisions["candidate"], reports["candidate"]["sourceDigest"], 3)
+        https_observed, _, _ = build.observe(proposed, materials["proposed"], "android", "candidate", 3, seed)
+        require(https_observed["offer"]["payloadSHA256"] == edit_observed["offer"]["payloadSHA256"]
+                and https_observed["offer"]["runtime"] != edit_observed["offer"]["runtime"]
+                and all(https_observed[field] == edit_observed[field]
+                        for field in ("labels", "completed", "revisions", "outboxCounts")),
+                "Successor runtime did not reproduce the exact confirmation payload and behavior")
+        refusal = verify_https_refusal(build, packet, proposed, edit_state, compatible_artifact, edit_observed)
+        save(proposed / "behavior.json", {"baseline": baseline_observed, "candidate": https_observed,
+                                           "installedRefusal": refusal})
+
+        for directory, native, artifact, observation, status in (
+                (compatible, old, compatible_artifact, edit_observed, "ota-compatible"),
+                (https_change, new, https_artifact, https_observed, "store-build-required")):
+            save(directory / "toolchain.json", toolchain)
+            pins = {"installed": old, "proposed": native, "baselineArtifactSHA256": baseline_artifact,
+                    "candidateArtifactSHA256": artifact,
+                    "behaviorReceiptSHA256": file_hash(directory / "android/behavior.json")}
+            index = directory / "qualification.json"
+            save(index, {"schema": 3, "producerSHA256": producer_hash,
+                         "toolchainSHA256": file_hash(directory / "toolchain.json"),
+                         "baselineSourceDigest": reports["baseline"]["sourceDigest"],
+                         "sourceDigest": reports["candidate"]["sourceDigest"], "sdkDigest": reports["candidate"]["sdkDigest"],
+                         "sourceCommit": revisions["candidate"], "targets": {"android": pins},
+                         "scope": {field: ANDROID_SCOPE[field] for field in SCOPE_FIELDS}})
+            (directory / "qualification.ed25519").write_bytes(build.sign(producer_key, DOMAIN + index.read_bytes()))
+            verify_https_inspection(build, edited, directory, anchor, pins, baseline_observed["offer"]["runtime"],
+                                    observation["offer"]["runtime"], status)
+        public_trust = anchor.read_bytes()
+    with trust.open("xb") as handle:
+        handle.write(public_trust)
 
 
 def main():
@@ -616,16 +1107,26 @@ def main():
     produce.add_argument("--settings", type=Path, required=True)
     produce.add_argument("--output", type=Path, required=True, help="Fresh private run directory")
     produce.add_argument("--producer-trust", type=Path, required=True, help="New operator-owned file outside the run")
+    https_inventory = commands.add_parser("pin-https", parents=[inventory], add_help=False,
+                                          help="Pin the Android-only HTTPS recipe and its independent approvals")
+    for name in ("installed-apk", "proposed-apk", "probe", "roots", "handoff-seal"):
+        https_inventory.add_argument("--" + name + "-sha256", required=True)
+    https_produce = commands.add_parser("produce-https", parents=[produce], add_help=False,
+                                        help="Qualify both sealed Android APKs with the stock inspector")
+    https_produce.add_argument("--ota-key", type=Path, required=True, help="Private Ed25519 key for the approved APK roots")
     args = parser.parse_args()
     os.umask(0o077)
-    if args.command == "pin":
-        pin(args)
+    if args.command in ("pin", "pin-https"):
+        pin(args, https=args.command == "pin-https")
         return
 
     output = args.output.resolve()
     trust = args.producer_trust.resolve()
     require(not trust.is_relative_to(output) and not os.path.lexists(args.producer_trust) and
             trust.parent.is_dir(), "Choose a new trust file outside the run in an existing directory")
+    if args.command == "produce-https":
+        produce_https(args, output, trust)
+        return
     build = Build(args.settings.resolve(strict=True), output)
     baseline, edited, permission = (build.work / name for name in ("baseline-source", "review-source", "permission-source"))
     build.project(baseline)

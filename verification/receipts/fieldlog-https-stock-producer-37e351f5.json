@@ -1,0 +1,213 @@
+{
+  "schema": 1,
+  "scenario": "22.2.12",
+  "status": "PASS_LOCAL_STOCK_INSPECTOR_AND_HOST_PROBE",
+  "scope": "Stock Android development classification and selected-task macOS host behavior. No device, cloud, or publication run.",
+  "observedAtUTC": "2026-11-20T21:24:32Z",
+  "stockMixerRevision": "37e351f5ea58662ce71a85b9a740187a95f5608e",
+  "stockMixerTree": "425bb245624801b548aa12c8acb809163a8a1422",
+  "stockInspectorGitBlob": "69d8b95ce15991984c8ff4b82fb57e8fe92bf55e",
+  "producerSHA256": "d0fab4c9262d58d16b058f3802c95bed4db021f7d34ae2e21d7478f2014fe327",
+  "producerInputsSHA256": "a1fef6fe20c34dbbf1147c797360b504324e77351f483877dc8e398e5b42eaa7",
+  "environment": {
+    "macOS": "27.0.1",
+    "architecture": "arm64",
+    "python": "Python 3.14.8",
+    "tools": {
+      "aapt2": "Android Asset Packaging Tool (aapt) 2.20-13193326",
+      "apksigner": "0.9\nWARNING: A restricted method in java.lang.System has been called\nWARNING: java.lang.System::loadLibrary has been called by org.conscrypt.NativeLibraryUtil in an unnamed module (file:/opt/homebrew/share/android-commandlinetools/build-tools/36.0.0/lib/apksigner.jar)\nWARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module\nWARNING: Restricted methods will be blocked in a future release unless native access is enabled",
+      "hostSwift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0\nswift-driver version: 1.168.6",
+      "openssl": "OpenSSL 3.6.5 29 Sep 2026 (Library: OpenSSL 3.6.5 29 Sep 2026)"
+    }
+  },
+  "approvals": {
+    "handoff": "b28cc05b6f0dc2f8600cd380df06be0b299de0c96b6d63e7349500601ab15967",
+    "installed": "1967d27c0811e901ffe692c01837e310ef203b1317f81e1df186ba5c73f7abe9",
+    "probe": "d63e6516630963524b93b703438028eae118a2a251c3ac0e2beb10f385800e0b",
+    "proposed": "96ced6e846561199fc90cad3c3901cbcf3dcbe19e04c6a69291d534d5094069d",
+    "roots": "8535d7189a1cedd5ca58236e8542ff03f2538395b5caff15ffb6972ae586087a"
+  },
+  "handoffEntries": 266,
+  "native": {
+    "changedCompiledMembers": [
+      "classes.dex",
+      "lib/arm64-v8a/libmixer_public_android_jni.so"
+    ],
+    "compiledManifestSHA256": "bc8cdd88f205533c9071b897539950535d6d6961df104f35d48e288008ddd0b2",
+    "signerSHA256": "1527495e13c11cab7bdf6c74dd08c815dc036d7794e3480e99dcba174e8e7c33"
+  },
+  "guestBuildSHA256": {
+    "baseline.wasm": "5cf12aa09b638767e145f699eb396d3587b868839b60c58555d9df0dcabb0112",
+    "candidate.wasm": "5cad7f40d9544a6109c17c827e97e09c69a5b512944256eb3aa36a7a0f65ea31"
+  },
+  "guestSourceRevision": "3184c398ba5e5dcded110a65772d793ba9caf9f6",
+  "sourceRevisions": {
+    "baseline": "023b669b6377db019983639f6eb3b2d794c5a32c",
+    "candidate": "74360853843311410072ff43f5a30ba28d4f3cdf"
+  },
+  "sdkDigest": "8233754e5a5aa9185e51526072742e9305bac9c12b2bc6bb27d015465c8b38b8",
+  "targetSourceDigest": "4939c4eab7b64cacbf87c09536b891666cbebedd27878bbd78daceea444367a4",
+  "selectedOTARoot": {
+    "roles": [
+      "artifact",
+      "assignment"
+    ],
+    "privateKeyProof": "Ed25519 test-message signature verified",
+    "embeddedRootsBytesMatchedBothVerifiedAPKs": true
+  },
+  "producerTrustSHA256": "bec94ed01b658b61cd217fafdd717371fe35122374fd9be1dd71dde2c997b912",
+  "commands": [
+    "python3 -B cli/release-tools/fieldlog_provenance.py pin-https (independent APK, seal, probe, and roots SHA-256 values)",
+    "python3 -B cli/release-tools/fieldlog_provenance.py produce-https --settings \"$work/inputs.json\" --output \"$run\" --producer-trust \"$trust\" --ota-key \"$OTA_KEY\"",
+    "mixer release inspect --directory \"$run/review-source\" --qualification \"$run/compatible\" --producer-trust \"$trust\"",
+    "mixer release inspect --directory \"$run/review-source\" --qualification \"$run/https-change\" --producer-trust \"$trust\""
+  ],
+  "processReceipts": {
+    "stockBuild": {
+      "commands": 3,
+      "allDirectChildrenReaped": true,
+      "allPipeEOFAndGroupAbsent": true
+    },
+    "template": {
+      "commands": 1,
+      "allDirectChildrenReaped": true,
+      "allPipeEOFAndGroupAbsent": true
+    },
+    "initialPreflight": {
+      "commands": 10,
+      "allDirectChildrenReaped": true,
+      "allPipeEOFAndGroupAbsent": true,
+      "failure": "The first preflight looked up the public repository source. The rerun uses the Android-linked WorkspaceRepository.swift and compares it to both sealed apps and the probe source.",
+      "producerTrustEmitted": false
+    },
+    "composition": {
+      "commands": 39,
+      "allDirectChildrenReaped": true,
+      "allPipeEOFAndGroupAbsent": true
+    },
+    "exportedTrust": {
+      "commands": 2,
+      "allDirectChildrenReaped": true,
+      "allPipeEOFAndGroupAbsent": true,
+      "exits": [
+        0,
+        2
+      ]
+    }
+  },
+  "results": {
+    "compatible": {
+      "exit": 0,
+      "technicalEligibility": "ota-compatible",
+      "publicationAllowed": false,
+      "policyAssessment": "pending-project-review",
+      "qualificationSHA256": "b29d7ad56679237d06ce0437067e5b7d7597fce499ae15bc1e92a7b3e0d032a0",
+      "stockInspectionSHA256": "1d8278e8998fbff98ade23309adff480794a6a0a6c4afefb26542cc39cc39db1",
+      "behaviorSHA256": "c62b8a19bb648bfa84365e56e6d21fb1ec5b3edfc1094c1753d48f64a3cd5855",
+      "target": {
+        "baselineArtifactSHA256": "2dfe341306a70a66585fb0fef2cf23b5bea8588c530563d9b1b300e670573411",
+        "behaviorReceiptSHA256": "c62b8a19bb648bfa84365e56e6d21fb1ec5b3edfc1094c1753d48f64a3cd5855",
+        "candidateArtifactSHA256": "7c9346ccd6876e1d54e0829baf1e09484c520967f6dc9890f3835c24d365173b",
+        "candidateRuntime": "66b610ce85cf800cd585829cf28daa474c0ddf64a0bb1e0eb40807d827b94937",
+        "installedRuntime": "66b610ce85cf800cd585829cf28daa474c0ddf64a0bb1e0eb40807d827b94937",
+        "platform": "android",
+        "status": "ota-compatible"
+      },
+      "candidateSequence": 2,
+      "labels": [
+        "Complete task",
+        "Confirm completion",
+        "Reopen task"
+      ],
+      "completed": [
+        false,
+        false,
+        true
+      ],
+      "revisions": [
+        1,
+        1,
+        2
+      ],
+      "outboxCounts": [
+        3,
+        3,
+        4
+      ],
+      "sameOpenTaskSeedSHA256": "95f89d66a0389425bbf151e957a89dd79b4cea1d8c2b3d2aecf3662cdc629eca"
+    },
+    "https-change": {
+      "exit": 2,
+      "technicalEligibility": "store-build-required",
+      "publicationAllowed": false,
+      "policyAssessment": "pending-project-review",
+      "qualificationSHA256": "9a50f34cfbae2ab61bbca7c60cc6c89012ee040e0e84dbe544f6f9d8eac29a3b",
+      "stockInspectionSHA256": "a328601a32562edcc5840dbee6ae72753f0cbe2933310e943f846c1cd66d19a5",
+      "behaviorSHA256": "4dab322479c1986e70e3775d6be591cd54c45513599c7fda33f662764ded0fb9",
+      "target": {
+        "baselineArtifactSHA256": "2dfe341306a70a66585fb0fef2cf23b5bea8588c530563d9b1b300e670573411",
+        "candidateArtifactSHA256": "bcb7d774a624c9241de90b38c340f348fee756712fa0f11a7924b2d88e01b546",
+        "candidateRuntime": "13a72578bd4b8ee1aa2d1a03b98a96a853370fbf87159ec757b56dbea5cca893",
+        "installedRuntime": "66b610ce85cf800cd585829cf28daa474c0ddf64a0bb1e0eb40807d827b94937",
+        "platform": "android",
+        "reason": "The packaged candidate requires a different native build.",
+        "status": "store-build-required"
+      },
+      "candidateSequence": 3,
+      "labels": [
+        "Complete task",
+        "Confirm completion",
+        "Reopen task"
+      ],
+      "completed": [
+        false,
+        false,
+        true
+      ],
+      "revisions": [
+        1,
+        1,
+        2
+      ],
+      "outboxCounts": [
+        3,
+        3,
+        4
+      ],
+      "sameOpenTaskSeedSHA256": "95f89d66a0389425bbf151e957a89dd79b4cea1d8c2b3d2aecf3662cdc629eca"
+    }
+  },
+  "installedRefusal": {
+    "error": "v3.manifest.compatibility",
+    "recoveryStateSHA256": "4f205d24b53abfbf751e2ca06182461e4cd2479cf3b42e79ae5ec65ceaf97038",
+    "retainedArtifactSHA256": "7c9346ccd6876e1d54e0829baf1e09484c520967f6dc9890f3835c24d365173b",
+    "retainedCandidateID": "95cced16ffbf053d6e6e6571e62e1512bfc3749809cc7f8e24c1213aeb8df275",
+    "retainedSequence": 2,
+    "workspaceSHA256": "98c9e9af866ea3bef7bb9b492af52e75ca5b50c29ef49c5d56575acf5a27c0d6"
+  },
+  "focusedControls": {
+    "python": "4 passed in normal mode and 4 passed with -O",
+    "openssl": "Approved root derivation and signing passed. Unrelated private key refused.",
+    "calculationPair": {
+      "evidenceScope": "Native material control only",
+      "signatureAndAlignment": "passed",
+      "compiledManifestSHA256": "21c59f9fc1a111603b0a299a4ddf508c3ae3ae02a6df56bc9357cdc8d6c3f8ee",
+      "rejectedByOrdinaryPackageGate": true
+    }
+  },
+  "artifacts": {
+    "campaign": "verification/local/fieldlog-https-compose-dg03d6lx",
+    "stockCLI": "mixer-build/out/Products/Debug/mixer",
+    "producerTrust": "operator/trust.json",
+    "qualificationDirectory": "qualification-run",
+    "baselineObservation": "qualification-run/behavior-android-1-1",
+    "installedObservationAndRetainedState": "qualification-run/behavior-android-2-1",
+    "httpsObservation": "qualification-run/behavior-android-3-1",
+    "commandReceipt": "qualification-run/commands.json"
+  },
+  "cleanup": {
+    "removedOwnedDuplicateInputsAndBuildScratch": true,
+    "retained": "Public qualifications, raw probe state, stock executable and resource bundle, public producer trust, and operator-held development OTA key",
+    "unresolvedProcessCustody": false
+  }
+}

@@ -225,3 +225,96 @@ if work != work.resolve() or not work.name.startswith("mixer-fieldlog-inspect.")
 shutil.rmtree(work)
 PY
 ```
+
+## Qualify a sealed Android HTTPS capability addition
+
+Use `pin-https` and `produce-https` with the stock Mixer inspector built from
+`37e351f5ea58662ce71a85b9a740187a95f5608e`. Use the macOS host Swift, Android
+build tools, JDK, and OpenSSL setup described above. Select the same `aapt2`
+version the APK owner used for the compiled manifest contract. Use a separate,
+empty staging directory for this recipe.
+
+1. Prepare a development-only Ed25519 OTA key in a private, operator-owned
+   directory. Give the APK owner only the public `roots.json` and its SHA-256.
+   Use the same exact roots bytes for both APKs. The producer uses a separate,
+   disposable Ed25519 key for the qualification index.
+
+   The OTA roots contain one key with ID `fieldlog-android-provenance-dev`
+   and scope `mixer-local/fieldlog/fieldlog/development/android`. Set
+   `artifact` and `assignment` to true, `revoked` to false,
+   `not_before_unix` to 1, and `not_after_unix` to 0. Encode the 32-byte
+   Ed25519 public key as Base64 in `public_key`. Keep the private PEM key
+   operator-readable only. Set `OTA_KEY` to its path on the producer host.
+2. Copy the APK owner's entire sealed handoff to `$input/handoff`. Use the
+   approved digests of `old/FieldLog.apk` and `successor/FieldLog.apk` as
+   `INSTALLED_APK_SHA256` and `PROPOSED_APK_SHA256`. Set `HANDOFF_SEAL_SHA256`
+   to the approved SHA-256 of its `SHA256SUMS` file, and `ROOTS_SHA256` to
+   the operator's public roots digest. Both APKs must use package
+   `dev.fieldlog.generatedr90` and port `41897`. The producer uses the
+   handoff's exact `permissions.json` preimage, both Wasm binaries, and
+   their shared guest sources.
+3. Create a project template using the pinned stock CLI, SDK, and Android
+   adapter. Set `MIXER_SOURCE` to the exact Mixer source checkout for the
+   CLI. Stage only the template's `mixer.yml`, `mixer.lock`, and
+   `Generated/` under `$input/project-template`. The producer limits the
+   template to Android and records the guest build's `REQUIRE_REVIEW`
+   selection in the candidate source snapshot. Keep the inventory and
+   output outside `$input`.
+4. Set `ANDROID_PROBE` and `PROBE_SHA256` to the executable and SHA-256 from
+   the independent probe handoff. The executable must run the selected-task
+   `observe PACKET VARIANT OUTPUT` and `refuse INSTALLED_PACKET PROPOSED_OFFER
+   RETAINED_STATE` commands. The probe receives the extracted native asset
+   names in `PACKET/Installed`.
+
+```sh
+"$mixer" create FieldLog --platform android --application dev.fieldlog.generatedr90 \
+  --android-host public-v4 --directory "$work/https-template" \
+  --sdk-path "$MIXER_SOURCE/sdk" --android-adapter-path "$MIXER_SOURCE/native/android"
+mkdir "$input/project-template"
+for name in mixer.yml mixer.lock Generated; do
+  cp -R "$work/https-template/$name" "$input/project-template/"
+done
+
+driver="$repo/cli/release-tools/fieldlog_provenance.py"
+python3 -B "$driver" pin-https --inputs "$input" --settings "$work/https-inputs.json" \
+  --java-home "$JAVA_HOME" \
+  --installed-apk-sha256 "$INSTALLED_APK_SHA256" \
+  --proposed-apk-sha256 "$PROPOSED_APK_SHA256" \
+  --handoff-seal-sha256 "$HANDOFF_SEAL_SHA256" \
+  --probe-sha256 "$PROBE_SHA256" --roots-sha256 "$ROOTS_SHA256" \
+  --tool mixer "$mixer" --tool hostSwift "$HOST_SWIFT" --tool probe "$ANDROID_PROBE" \
+  --tool aapt2 "$ANDROID_BUILD_TOOLS/aapt2" \
+  --tool apksigner "$ANDROID_BUILD_TOOLS/apksigner" \
+  --tool zipalign "$ANDROID_BUILD_TOOLS/zipalign" --tool openssl "$OPENSSL"
+
+run="$work/https-run"
+trust="$work/operator/https-producer-trust.json"
+python3 -B "$driver" produce-https --settings "$work/https-inputs.json" \
+  --output "$run" --producer-trust "$trust" --ota-key "$OTA_KEY"
+
+"$mixer" release inspect --directory "$run/review-source" \
+  --qualification "$run/compatible" --producer-trust "$trust"
+
+https_status=0
+"$mixer" release inspect --directory "$run/review-source" \
+  --qualification "$run/https-change" --producer-trust "$trust" || https_status=$?
+test "$https_status" -eq 2
+```
+
+The producer verifies both APK signatures, alignment, roots, and native
+contracts. The archive hashes in the signed qualifications match the sealed
+input APKs byte for byte. Stock inspection of `compatible` exits 0 with
+`ota-compatible`. Stock inspection of `https-change` exits 2 with
+`store-build-required` and pins the same confirmation payload to the new
+runtime. Both keep `publicationAllowed` false.
+
+The producer issues the public producer trust file only after both stock
+inspections pass their expected checks. It observes the confirmation flow on
+both runtimes from the same saved open task. The HTTPS behavior receipt also
+records the installed runtime's exact compatibility refusal, recovery of its
+sequence-2 offer, and retention of the completed task. These results cover
+the macOS host probe. Keep the operator-held OTA key separate from the
+qualification and follow the owned-run cleanup instructions above.
+
+Run the producer's portable input and validation controls with
+`python3 -B cli/build-tests/test_fieldlog_https_provenance.py`.
