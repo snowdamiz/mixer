@@ -1,0 +1,38 @@
+{
+  "scope": "Pinned local SwiftPM Android compiler closure discriminator. No production change or native app build.",
+  "baseRevision": "2469bdd4a1e204bf13c40879b797ab0500d1e71c",
+  "host": "Darwin arm64",
+  "swift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+  "xcode": "Xcode 26.6\nBuild version 17F113",
+  "androidTarget": "aarch64-unknown-linux-android28",
+  "sdkMetadataSHA256": {
+    "swift-sdk.json": "e81f3f2142bce0a795cdec567ad24434db3a7b02c288eb2eef2041d2066111dc",
+    "swift-toolset.json": "0f9e3a784a4e60bf4c816460dae0ed64e0a723167af111fc05bac8a010b0e065"
+  },
+  "evidenceSHA256": "613c5cd4ccc73562c7c3b0d789f3ccbf26e4ce2ebfe59468b6060eb09b7de9e5",
+  "replaySHA256": "e59cc72da20413fea0c4163ee122bbe645c1d61757ae80f574118ac43a033751",
+  "command": "python3 -B <private-replay.py> --output <owned-packet>",
+  "controls": {
+    "unwrappedAndHookedSuccess": {
+      "result": "Both produced AArch64 ELF.",
+      "hookedCompileJobs": 3
+    },
+    "normalSiblingFailure": {
+      "exit": 1,
+      "atRelease": "The phase was still running, its pipe was open, and the held frontend was live.",
+      "afterRelease": "The hook reaped the frontend before the phase returned."
+    },
+    "interrupt": {
+      "signal": "SIGINT to the exact owned SwiftPM PID",
+      "phaseExit": -2,
+      "liveChildAtPhaseExit": {
+        "pid": 58498,
+        "pgid": 58494
+      },
+      "liveChildAtPipeEOF": true,
+      "millisecondsUntilObservedFrontendReap": 1505.112
+    }
+  },
+  "cleanup": "All observed process groups absent and owned scratch removed.",
+  "limitation": "The probe covers observed frontend jobs in the tiny fixture. Exhaustive managed compiler, linker, manifest, and nested process closure remains unverified. L05 remains open."
+}

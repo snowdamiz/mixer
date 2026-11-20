@@ -155,11 +155,13 @@ The authenticated build log route and console now report **Android build driver 
 
 A live Swift frontend targeting Android ran outside its managed driver's process group. The worker had no confirmed shutdown, and the attempt remains under a custody hold. The ordinary cancellation replay remains pending until the worker can account for an in-flight compiler. [Compiler custody receipt](verification/receipts/l05-android-compiler-process-group-20261119.json)
 
+A focused test with the pinned SwiftPM waited for the observed Android frontend after a normal sibling compiler failure. With SIGINT, SwiftPM exited and its pipe reached EOF while that frontend remained live. The test hook later reaped it. All observed groups closed. Managed cancellation still needs compiler closure before it releases capacity. [SwiftPM closure receipt](verification/receipts/l05-android-swiftpm-phase-closure-20261119.json)
+
 The ordinary local API can now select an operator-pinned Android Starter. The locked Pair24 replay persisted one source input, queued one build and one Oban job, and returned the same selections on replay. The processor was disabled. Dispatch of the selected input and live cancellation remain open. [Android Starter selection receipt](verification/receipts/l05-android-starter-selection-v51-20261119.json)
 
 The same locked Pair24 export completed the ordinary selected-input build. One new POST returned HTTP 201, and its same-key replay returned HTTP 200. Restricted Oban dispatched once, PostgreSQL settled at revision 2 and released the reservation, and the selected build returned the Android driver event and three matching authenticated downloads. An unrelated principal received HTTP 404. The observed out-of-group Swift frontend was absent after worker closure. Live cancellation remains open. [Selected Android native delivery](verification/receipts/l05-selected-android-pair24-native-delivery-20261119.json)
 
-The v52 artifact-read fixture now requires a successful metadata row while the token is live, then checks that expiry prevents its callback. All 15 focused PostgreSQL tests and both negative boundary controls passed in independent review. The normal and optimized source checks also passed. [Verification receipt](verification/receipts/phoenix-artifact-read-expiry-v52-20261119.json)
+The v52 artifact-read fixture now requires a successful metadata row while the token is live, then checks that expiry prevents its callback. All 15 focused PostgreSQL tests and both negative boundary controls passed in independent review. The normal and optimized source checks passed, followed by the public Phoenix and isolated identity-network workflows. [Verification receipt](verification/receipts/phoenix-artifact-read-expiry-v52-20261119.json)
 
 ### Android TaskCompletion parity and source diagnostic
 
