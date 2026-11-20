@@ -21,6 +21,8 @@ spec = importlib.util.spec_from_file_location("pair", HERE / "package-android-pa
 pair = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(pair)
 from package import capture, digest, inventory, pin, read, require, tree, write
+from current_abi_packet import SEALED, bindings, require_members, validate_for_seal
+from current_abi_recipe import CALCULATION_LOCK, verify as verify_recipe
 
 REVISION = "b144c2c2042a4499365d1186f46d43fba1832143"
 ABI = "29ab6ba4a86990bc99d4f510fc005a17d84426d8c893d36f5061f17c46786adf"
@@ -245,10 +247,11 @@ def package(work, packet):
         "apks": results, "changedMembers": sorted(changed), "guests": calc.GUESTS,
         "compiledManifestSHA256": old["members"]["AndroidManifest.xml"],
         "manifestContractSHA256": digest(packet / "old/permissions.json"), "port": port,
+        "handoffInputs": bindings(packet),
     })
 
 
-def seal(work, packet):
+def seal(work, packet, recipe_revision):
     stages = {
         "preflight", "fieldlog-fetch", "mixer-export", "stock-export", "build-guests", "fieldlog-checkout",
         "fieldlog-baseline", "fieldlog-clone", "fieldlog-successor-base", "fieldlog-https-overlay",
@@ -259,19 +262,30 @@ def seal(work, packet):
     receipts = {path.stem: read(path) for path in (work / "logs").glob("*.json")}
     require(receipts.keys() == stages and all(
         row["custody"] == "closed" and row["exit"] == 0 and "interrupted" not in row
-        and not row.get("scratchLimitExceeded") for row in receipts.values()), "Incomplete current ABI build stage")
+        and not any(key in row for key in ("collectionErrors", "scratchSampleError", "scratchLimitExceeded"))
+        for row in receipts.values()), "Incomplete current ABI build stage")
     tools = read(work / "preflight.json")
+    source_inputs = verify_recipe(HERE.parents[2], recipe_revision)
+    recipe_lock = source_inputs[CALCULATION_LOCK.as_posix()]
+    require(recipe_lock == tools["recipeLockSHA256"], "Calculation recipe differs from preflight")
+    validate_for_seal(packet)
     write(packet / "rebuild.json", {
         "stageResults": {name: {key: row[key] for key in ("exit", "custody")} for name, row in receipts.items()},
         "peakSampledScratchKiB": max(row["peakSampledScratchKiB"] for row in receipts.values()),
         "toolVersions": tools["toolVersions"], "swiftPMInputs": tools["swiftPMInputs"],
-        "sourceInputs": inventory(HERE, HERE), "calculationRecipeSHA256": tools["recipeLockSHA256"],
+        "recipeCommit": recipe_revision, "sourceInputs": source_inputs, "calculationRecipeSHA256": recipe_lock,
     })
-    shutil.copyfile(HERE / "android-origin.py", packet / "android-origin.py")
-    with (packet / "SHA256SUMS").open("x") as sums:
-        for name, hash_value in sorted(inventory(packet, packet).items()):
-            if name != "SHA256SUMS":
-                sums.write(f"{hash_value}  {name}\n")
+    with (packet / "android-origin.py").open("xb") as relay:
+        relay.write((HERE / "android-origin.py").read_bytes())
+    pin(packet / "android-origin.py", source_inputs[(HERE / "android-origin.py").relative_to(HERE.parents[2]).as_posix()])
+    require_members(packet, SEALED)
+    pending = work / "handoff-checksums.new"
+    with pending.open("x") as sums:
+        for name in sorted(SEALED):
+            sums.write(f"{digest(packet / name)}  {name}\n")
+    # Publish the complete checksum file without overwriting a prior seal.
+    os.link(pending, packet / "SHA256SUMS")
+    pending.unlink()
 
 
 if __name__ == "__main__":
@@ -279,9 +293,15 @@ if __name__ == "__main__":
     parser.add_argument("action", choices=("package", "seal", "adapter-pins"))
     parser.add_argument("input", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument("--recipe-revision", help="independently selected recipe commit, required for seal")
     args = parser.parse_args()
-    handlers = {"package": package, "seal": seal, "adapter-pins": adapter_pins}
+    if (args.action == "seal") != bool(args.recipe_revision):
+        parser.error("--recipe-revision is required for seal and only accepted for seal")
     try:
-        handlers[args.action](args.input.resolve(strict=True), args.output.resolve())
+        source, output = args.input.resolve(strict=True), args.output.resolve()
+        if args.action == "seal":
+            seal(source, output, args.recipe_revision)
+        else:
+            {"package": package, "adapter-pins": adapter_pins}[args.action](source, output)
     except subprocess.CalledProcessError as error:
         raise SystemExit(f"{error}\n{error.stdout or error.stderr}") from error

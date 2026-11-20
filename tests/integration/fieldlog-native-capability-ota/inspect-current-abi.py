@@ -1,7 +1,6 @@
 """Check current ABI admission with stock CLI and exact calculation evidence."""
 
 import base64
-from hashlib import sha256
 import json
 import os
 from pathlib import Path
@@ -10,14 +9,10 @@ import subprocess
 import sys
 
 HERE = Path(__file__).resolve().parent
-REPO = HERE.parents[2]
 CALC = HERE.parent / "fieldlog-task-calculation"
 sys.path.insert(0, str(CALC / "android-packaging"))
-sys.path.insert(0, str(REPO / "cli/release-tools"))
-from canonical import cbor
 from package import digest, require, read, write
-
-LABELS = ("old", "successor")
+from current_abi_packet import LABELS, bindings
 
 
 def invoke(*command, expected=0):
@@ -63,6 +58,7 @@ def protocol_check(work, packet):
         ("successor", "successor", "successor", "successor", "reviewed", None),
         ("successorOnBaseline", "old", "successor", "successor", "reviewed", "v3.manifest.compatibility"),
         ("baselineOnSuccessor", "successor", "old", "old", "baseline", "v3.manifest.compatibility"),
+        ("refusedOnBaseline", "old", "refused", "refused", "reviewed", "v3.manifest.compatibility"),
         ("misboundAssignment", "old", "old", "successor", "baseline", "v3.assignment.binding"),
         ("wrongGuest", "old", "old", "old", "reviewed", "v3.payload.integrity"),
     ):
@@ -104,12 +100,14 @@ def stage_target(packet, target, label, native_name, offer_name, guest):
     ):
         shutil.copyfile(source, target / f"{offer_name}.{destination}")
     return {
-        "archiveSHA256": digest(folder / "FieldLog.apk"), "permissionsSHA256": digest(folder / "permissions.json"),
-        "identitySHA256": digest(installed / "identity.json"),
+        "archiveSHA256": digest(target / f"{native_name}.native"),
+        "permissionsSHA256": digest(target / f"{native_name}.permissions.json"),
+        "identitySHA256": digest(directory / "identity.json"),
     }
 
 
 def inspect(work, packet):
+    handoff_inputs = bindings(packet)
     mixer = work / "stock-build/debug/mixer"
     openssl = Path("/opt/homebrew/opt/openssl@3/bin/openssl")
     require(invoke(openssl, "version").startswith("OpenSSL 3."), "Ed25519 diagnostic signing requires OpenSSL 3")
@@ -127,10 +125,7 @@ def inspect(work, packet):
         "proposed": stage_target(packet, android, "successor", "proposed", "candidate", "reviewed"),
     }
     for name, label in zip(("baseline", "candidate"), LABELS, strict=True):
-        folder = packet / label
-        artifact = sha256(cbor(read(folder / "manifest.json")["manifest"])).hexdigest()
-        require(artifact == read(folder / "assignment.json")["assignment"]["artifact_sha256"], "Signed digest drift")
-        pins[name + "ArtifactSHA256"] = artifact
+        pins[name + "ArtifactSHA256"] = handoff_inputs["offers"][label]["artifactSHA256"]
 
     # Use the actual calculation observations. The inspector's confirmation
     # observation schema differs and should stop this diagnostic at decode.
@@ -187,7 +182,7 @@ def inspect(work, packet):
         "scope": "Stock native ABI, exact native bytes and signed offer admission through the behavior decoder",
         "stockMixerSHA256": digest(mixer), "exact": exact, "wrongCandidateGuest": wrong_guest,
         "reason": "Stock confirmation behavior schema differs from the observed calculation behavior",
-        "protocol": protocol_check(work, packet), "targetPins": pins,
+        "protocol": protocol_check(work, packet), "targetPins": pins, "handoffInputs": handoff_inputs,
     })
 
 

@@ -58,10 +58,11 @@ def main():
     with log.open("xb") as stream:
         save()
         deadline = time.monotonic() + int(seconds)
-        child = subprocess.Popen(command, stdout=stream, stderr=subprocess.STDOUT, start_new_session=True)
-        result["pid"] = child.pid
-        save()
+        child = None
         try:
+            child = subprocess.Popen(command, stdout=stream, stderr=subprocess.STDOUT, start_new_session=True)
+            result["pid"] = child.pid
+            save()
             while child.poll() is None:
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
@@ -73,30 +74,57 @@ def main():
                     if result["peakSampledScratchKiB"] >= SCRATCH_STOP_KIB:
                         raise RuntimeError("Scratch exceeded the stop threshold")
         except BaseException as error:
-            result["interrupted"] = str(error)
-            save()
+            result["interrupted"] = f"{type(error).__name__}: {error}"
+        finally:
+            result["exit"] = None
+            if child is not None:
+                collect(child, result)
+        # Persist terminal observations even when the final size sample fails.
+        if result["custody"] == "closed":
             try:
-                os.killpg(child.pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
-            try:
-                child.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                pass
-        result["exit"] = child.returncode
-        for _ in range(21):
-            if child.returncode is not None and group_absent(child.pid):
-                result["custody"] = "closed"
-                break
-            time.sleep(.05)
-        result["peakSampledScratchKiB"] = max(result["peakSampledScratchKiB"], size_kib(work, output))
+                result["peakSampledScratchKiB"] = max(result["peakSampledScratchKiB"], size_kib(work, output))
+            except Exception as error:
+                result["scratchSampleError"] = f"{type(error).__name__}: {error}"
         if result["peakSampledScratchKiB"] >= SCRATCH_LIMIT_KIB:
             result["scratchLimitExceeded"] = True
         result["endedUTC"] = now()
-        save()
+        try:
+            save()
+        except OSError as error:
+            print(f"{label}: terminal receipt write failed: {error}; observed "
+                  f"pid={result.get('pid')} exit={result['exit']} custody={result['custody']}", file=sys.stderr)
+            return 1
     print(label, result["exit"], result["custody"], flush=True)
     return int(result["exit"] != 0 or result["custody"] != "closed"
-               or "interrupted" in result or result.get("scratchLimitExceeded", False))
+               or any(key in result for key in ("interrupted", "collectionErrors", "scratchSampleError",
+                                                 "scratchLimitExceeded")))
+
+
+def collect(child, result):
+    errors = []
+    if "interrupted" in result:
+        try:
+            os.killpg(child.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        except OSError as error:
+            errors.append(f"signal: {error}")
+        try:
+            child.wait(timeout=5)
+        except (OSError, subprocess.TimeoutExpired) as error:
+            errors.append(f"wait: {error}")
+    result["exit"] = child.returncode
+    if child.returncode is not None:
+        try:
+            for _ in range(21):
+                if group_absent(child.pid):
+                    result["custody"] = "closed"
+                    break
+                time.sleep(.05)
+        except OSError as error:
+            errors.append(f"observe group: {error}")
+    if errors:
+        result["collectionErrors"] = errors
 
 
 if __name__ == "__main__":

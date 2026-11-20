@@ -9,7 +9,6 @@ if [[ $# != 1 || "$1" != /* ]]; then
 fi
 recipe=$(cd "$(dirname "$0")" && pwd -P)
 calc="$recipe/../fieldlog-task-calculation/android-packaging"
-repo=$(git -C "$recipe" rev-parse --show-toplevel)
 revision=b144c2c2042a4499365d1186f46d43fba1832143
 fieldlog=552559d2d3278abb9b1aa7dcf0288102c09a202b
 campaign=$1
@@ -27,6 +26,14 @@ export MIXER_JDK="$JAVA_HOME"
 export MIXER_SWIFT="$HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift"
 unset SDKROOT TOOLCHAINS SWIFT_EXEC DEVELOPER_DIR FIELDLOG_XCODE GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_CONFIG_COUNT
 unset JAVA_TOOL_OPTIONS _JAVA_OPTIONS JDK_JAVA_OPTIONS
+
+repo=$(git -C "$recipe" rev-parse --show-toplevel)
+recipe_revision=$(git -C "$repo" rev-parse HEAD)
+verify_recipe() {
+    git --no-replace-objects -C "$repo" show "$recipe_revision:${recipe#"$repo/"}/current_abi_recipe.py" |
+        python3 -IB - "$repo" "$recipe_revision"
+}
+verify_recipe
 
 python3 -B - "$campaign" <<'PY'
 from pathlib import Path
@@ -142,5 +149,6 @@ git -C "$repo" show 5dea19db36610e312b51918b384364ba590b6ef8:cli/Sources/MixerBu
 run package 240 python3 -B "$recipe/current-abi.py" package "$work" "$packet"
 run host-replay 150 python3 -B "$recipe/replay-android-pair.py" "$campaign"
 run inspect 220 python3 -B "$recipe/inspect-current-abi.py" "$work" "$packet"
-python3 -B "$recipe/current-abi.py" seal "$work" "$packet"
+verify_recipe
+python3 -B "$recipe/current-abi.py" seal "$work" "$packet" --recipe-revision "$recipe_revision"
 (cd "$packet" && shasum -a 256 -c SHA256SUMS)

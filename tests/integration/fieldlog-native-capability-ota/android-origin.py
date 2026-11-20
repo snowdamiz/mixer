@@ -16,7 +16,7 @@ def read(path):
     return json.loads(path.read_bytes())
 
 
-def server(packet, phase_file):
+def server(packet, phase_file, observe=None):
     hosts = {label: read(packet / label / "host.json") for label in ("old", "successor")}
     scope = hosts["old"]["scope"]
     runtimes = {label: host["runtime"] for label, host in hosts.items()}
@@ -91,6 +91,9 @@ def server(packet, phase_file):
             self.end_headers()
             if body:
                 self.wfile.write(body)
+            if observe is not None:
+                self.wfile.flush()
+                observe((self.path, status, hashlib.sha256(body).hexdigest()))
 
     return HTTPServer(("127.0.0.1", port), Handler)
 

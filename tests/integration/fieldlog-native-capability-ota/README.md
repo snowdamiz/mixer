@@ -92,7 +92,9 @@ classification for this HTTPS delta remains pending.
 Use the Android calculation toolchains and install Homebrew OpenSSL 3 for the
 diagnostic signature. Run from a Mixer checkout that contains
 `b144c2c2042a4499365d1186f46d43fba1832143` and its source objects.
-Use a new campaign directory.
+Commit the recipe inputs before launch and use a new campaign directory. The
+launcher pins the recipe to the checkout commit before running the build and
+checks that same commit again before publishing the complete handoff checksums.
 
 ```sh
 mkdir -p verification/local
@@ -109,6 +111,10 @@ receives the corrected guest. The two APKs share an APK signer and an OTA
 trust root.
 
 Check `handoff/host-replay.json` for the calculation and recovery observations.
+The refusal observation binds the host probe's loopback update and artifact
+requests to the signed incompatible offer and records the saved-candidate
+fallback. The compatibility error comes from a separate verification of that
+offer.
 Check `handoff/stock-inspection.json` for the stock verifier results and the
 inspector outcome. The inspector admits both native identities and checks
 the exact packages and signed offers. It stops at `release.invalid-evidence`
