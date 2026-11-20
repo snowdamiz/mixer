@@ -1,0 +1,207 @@
+{
+  "schema": 1,
+  "slice": "L05/W11 local rendered console release-head replay",
+  "result": "pass",
+  "source": {
+    "commit": "71e6ffa51e857d5a1eda3f74c26941996ed275de",
+    "tree": "94cde08bd37868e84e4d623e059926a77e86fbbc"
+  },
+  "startedUTC": "2026-11-20T18:20:39.997846+00:00",
+  "recordedUTC": "2026-11-20T18:23:23.458369+00:00",
+  "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "tools": {
+    "python": "3.14.8",
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:15:15] [ds:15:15:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "node": "v26.13.1",
+    "npm": "11.20.0",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "vite": "8.3.5",
+    "acidPreview": "Acid Beta 0.2.74 / Chromium 152.0.7977.167 / Electron 44.9.3"
+  },
+  "replay": {
+    "command": "python3 -B tests/integration/l05-release-head/mixer_l05_replay.py --receipt verification/local/l05-replay-verified.json",
+    "filesSHA256": {
+      "mixer_l05_checkpoint.exs": "3dc1cd126c820268db9200c8f9aa5bd98aa80bf4b91186e4448b562ffbaba970",
+      "mixer_l05_dom.js": "40a283eca811bf123e9fea37cf67098bd329df1a9011afbb6085b24f7cc7bed5",
+      "mixer_l05_replay.py": "a7044a8bcd928da1ceabafedf4cd7046e660576428f8947fdabb6ba972fbf67a"
+    },
+    "signedFixture": "services/protocol/testdata/signed-release-v3.json",
+    "signedFixtureSHA256": "ee4935fedca51b728e78801cb05c5732e8547bda1e26f109330e6659a0a2f77a",
+    "productionAssetsSHA256": {
+      "assets/favicon-32.png": "3e770ea0378151a2c088e43e1b5d8713f142e688fa0edc93289eb178acf6554d",
+      "assets/flick-128.webp": "f366034547d29813bba5ffdfb99e1d8b5b3a359ef770486721a8b566ab4bf316",
+      "assets/index-B4Kv0aOf.js": "af918db76267c89e433e4146c5d86619d50d7de7d2cc7018e8bf47ce2463e9ff",
+      "assets/index-BeoFqg4-.css": "d8d4099c6ab7e496a8370b7ffce4095c05f935975a0b60ade583a912641310fa",
+      "index.html": "410562b8392d472489871d4f840cc82643a2d892d2afd58e88e0074e392702ec",
+      "third-party-notices.txt": "90bc9ee087e8c876fb6edac6f8eb61b7013c94dded0f1eaf88b8972a68706551"
+    },
+    "exUnitCommand": [
+      "mix",
+      "test",
+      "--warnings-as-errors",
+      "--seed",
+      "0",
+      "--trace",
+      "--timeout",
+      "540000",
+      "test/mixer_hosted/releases/browser_publication_test.exs:312"
+    ],
+    "exUnitResult": "Result: 1 passed, 3 excluded",
+    "authentication": "Real Phoenix HTTP and the maintained synthetic OIDC fixture issued both sessions. The owned Acid incognito tab received each original Secure cookie through a one-use route on a unique loopback HTTP origin. The browser sign-in UI was outside this replay.",
+    "writes": "The fixture uses the browser-session publish operation and the CLI HTTP publish and rollback endpoints. It asserts committed signed delivery and the recorded rollback action.",
+    "reads": "The built console fetches session and release head on its own origin. The bridge forwards both reads to Phoenix. The replay checks completed responses and rendered DOM."
+  },
+  "target": {
+    "channel": "beta",
+    "platform": "ios",
+    "applicationId": "fieldlog",
+    "organizationId": "org-a",
+    "projectId": "project-a",
+    "environmentId": "development",
+    "runtimeFingerprint": "4458cc1f9ff4357cad2e529d56de9c1e962679a3023ea72c8cb6c909d99bb888"
+  },
+  "phases": {
+    "anonymous": {
+      "status": "Sign in to view this release.",
+      "identity": null,
+      "sessionHTTP200": 2,
+      "releaseHeadReads": 0,
+      "releaseHeadHTTP": null,
+      "targetFieldsRendered": false,
+      "releaseFieldsRendered": null
+    },
+    "empty": {
+      "status": "No release has been published to this target.",
+      "identity": "owner",
+      "sessionHTTP200": 2,
+      "releaseHeadReads": 1,
+      "releaseHeadHTTP": [
+        200,
+        "no-store"
+      ],
+      "targetFieldsRendered": true,
+      "releaseFieldsRendered": null
+    },
+    "first_publish": {
+      "status": "Published release",
+      "identity": "owner",
+      "sessionHTTP200": 2,
+      "releaseHeadReads": 1,
+      "releaseHeadHTTP": [
+        200,
+        "no-store"
+      ],
+      "targetFieldsRendered": true,
+      "releaseFieldsRendered": {
+        "Manifest SHA-256": "fde8e3aa163d720681d4d0c08700966163f4245a0954bfb371acbeded1f6bf64",
+        "Payload SHA-256": "cd3e147c7afb783345f81081e9b2a764bf0a0a7b7b249ba1836a2e4b74a8c24f",
+        "Release ID": "fixture-release-v3",
+        "Rollout basis points": "1480",
+        "Sequence": "7"
+      }
+    },
+    "second_publish": {
+      "status": "Published release",
+      "identity": "owner",
+      "sessionHTTP200": 2,
+      "releaseHeadReads": 1,
+      "releaseHeadHTTP": [
+        200,
+        "no-store"
+      ],
+      "targetFieldsRendered": true,
+      "releaseFieldsRendered": {
+        "Manifest SHA-256": "36087ba48e4a65e9f87c4538727677bacd4337beab76040b9947819fa906ec77",
+        "Payload SHA-256": "cd3e147c7afb783345f81081e9b2a764bf0a0a7b7b249ba1836a2e4b74a8c24f",
+        "Release ID": "fixture-v3-next",
+        "Rollout basis points": "1500",
+        "Sequence": "8"
+      }
+    },
+    "rollback": {
+      "status": "Published release",
+      "identity": "owner",
+      "sessionHTTP200": 4,
+      "releaseHeadReads": 1,
+      "releaseHeadHTTP": [
+        200,
+        "no-store"
+      ],
+      "targetFieldsRendered": true,
+      "releaseFieldsRendered": {
+        "Manifest SHA-256": "fde8e3aa163d720681d4d0c08700966163f4245a0954bfb371acbeded1f6bf64",
+        "Payload SHA-256": "cd3e147c7afb783345f81081e9b2a764bf0a0a7b7b249ba1836a2e4b74a8c24f",
+        "Release ID": "fixture-release-v3",
+        "Rollout basis points": "1480",
+        "Sequence": "9"
+      }
+    },
+    "denied": {
+      "status": "You cannot access this release target.",
+      "identity": "other",
+      "sessionHTTP200": 1,
+      "releaseHeadReads": 1,
+      "releaseHeadHTTP": [
+        404,
+        "no-store"
+      ],
+      "targetFieldsRendered": false,
+      "releaseFieldsRendered": null
+    }
+  },
+  "deniedBody": {
+    "error": {
+      "code": "not_found",
+      "message": "Browser request refused."
+    }
+  },
+  "observations": [
+    "Empty rendered after both signed artifacts were admitted and before the first publication.",
+    "Rollback sequence 9 restored the sequence-7 manifest and rollout after Phoenix restarted.",
+    "The first rollback navigation displayed Console session unavailable. A fresh navigation rendered sequence 9. The cause of the transient state is unresolved.",
+    "One /auth/session response disconnected before the bridge completed its response. The replay counts completed responses only.",
+    "An early PostgreSQL startup failed with postmaster became multithreaded during startup. LC_ALL=C corrected the fixture environment.",
+    "An earlier replay rendered all six phases and ExUnit passed. The wrapper misread the summary and stopped before the database and port cleanup assertions. The final replay passed both assertions."
+  ],
+  "cleanup": {
+    "groupsAbsent": {
+      "git-archive": 34973,
+      "elixir-version": 34980,
+      "node-version": 35018,
+      "npm-version": 35019,
+      "postgres-version": 35024,
+      "npm-ci": 35025,
+      "console-build": 35050,
+      "mix-deps": 35111,
+      "phoenix-compile": 35191,
+      "initdb": 43945,
+      "postgres": 44865,
+      "roles": 44968,
+      "phoenix": 45031,
+      "database-removed": 81514
+    },
+    "allDirectChildrenExitedZero": true,
+    "postgresFixtureDatabaseDropped": true,
+    "loopbackPortsRebound": [
+      53182,
+      53193,
+      53341,
+      53364,
+      53387,
+      53600
+    ],
+    "scratchRemoved": true,
+    "previewOwnedIncognitoTabClosedAndAbsent": true,
+    "standaloneChromiumProfileCreated": false,
+    "earlyExternalNpmLogsRemoved": 3,
+    "newCustodyHold": null
+  },
+  "section17FollowUp": [
+    "Changed behavior or release diff.",
+    "Source revision, required capability grants, payload size, and signing identity.",
+    "Target binary identities and compatibility result.",
+    "Policy-review status and linked test receipts.",
+    "Rollout stage beyond the current basis points, publication action, and available recovery target."
+  ],
+  "scope": "Local synthetic fixture without Firebase or payment services. L05 and W11 full acceptance remain pending."
+}
