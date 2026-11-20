@@ -1,0 +1,197 @@
+{
+  "schema": 1,
+  "scope": "L05/L07 normal browser read availability in an isolated real Phoenix and PostgreSQL fixture",
+  "recordedUTC": "2026-11-20T19:04:17.451580+00:00",
+  "base": "6bcd5aa3f03383682b77188ce46c83ba730f3627",
+  "candidate": "ad6486c6eef13cd928db12ae0c699578cc3d15e6",
+  "regressionFixtureSHA256": "afc2e86f72fc4063fcb93555e12ede5cb9e9549554b43e19ba6cb9cbd1dd84f4",
+  "historicalFailure": "verification/receipts/l05-l07-console-session-restart-63097fdd.json",
+  "comparison": {
+    "shape": "Three sequential session GETs and eight synchronized pairs per phase. Page-load variants add a release-head GET to each pair. All requests used the same ordinary persisted fixture session.",
+    "phaseOrder": [
+      "before restart",
+      "after Phoenix restart before rollback",
+      "after signed rollback"
+    ],
+    "cases": [
+      {
+        "case": "session_only",
+        "phases": {
+          "before": {
+            "SESSION_HTTP": {
+              "200": 19,
+              "503": 0
+            },
+            "SESSION_HEAD": {
+              "200": 0,
+              "503": 0
+            }
+          },
+          "cold": {
+            "SESSION_HTTP": {
+              "200": 19,
+              "503": 0
+            },
+            "SESSION_HEAD": {
+              "200": 0,
+              "503": 0
+            }
+          },
+          "after": {
+            "SESSION_HTTP": {
+              "200": 19,
+              "503": 0
+            },
+            "SESSION_HEAD": {
+              "200": 0,
+              "503": 0
+            }
+          }
+        },
+        "refusedSessionReadsBeforeCheckout": [],
+        "fixtureTest": "Result: 1 passed, 3 excluded",
+        "commandGroupsClosed": 8,
+        "ownedPostgresPortRebound": 53742,
+        "scratchRemoved": true
+      },
+      {
+        "case": "page_load_before_change",
+        "phases": {
+          "before": {
+            "SESSION_HTTP": {
+              "200": 14,
+              "503": 5
+            },
+            "SESSION_HEAD": {
+              "200": 5,
+              "503": 3
+            }
+          },
+          "cold": {
+            "SESSION_HTTP": {
+              "200": 16,
+              "503": 3
+            },
+            "SESSION_HEAD": {
+              "200": 3,
+              "503": 5
+            }
+          },
+          "after": {
+            "SESSION_HTTP": {
+              "200": 17,
+              "503": 2
+            },
+            "SESSION_HEAD": {
+              "200": 2,
+              "503": 6
+            }
+          }
+        },
+        "refusedSessionReadsBeforeCheckout": [
+          {
+            "phase": "before",
+            "elapsedMs": 0
+          },
+          {
+            "phase": "before",
+            "elapsedMs": 1
+          },
+          {
+            "phase": "before",
+            "elapsedMs": 2
+          },
+          {
+            "phase": "before",
+            "elapsedMs": 1
+          },
+          {
+            "phase": "before",
+            "elapsedMs": 2
+          },
+          {
+            "phase": "cold",
+            "elapsedMs": 1
+          },
+          {
+            "phase": "cold",
+            "elapsedMs": 1
+          },
+          {
+            "phase": "cold",
+            "elapsedMs": 1
+          },
+          {
+            "phase": "after",
+            "elapsedMs": 1
+          },
+          {
+            "phase": "after",
+            "elapsedMs": 1
+          }
+        ],
+        "fixtureTest": "Result: 1 passed, 3 excluded",
+        "commandGroupsClosed": 8,
+        "ownedPostgresPortRebound": 56161,
+        "scratchRemoved": true
+      },
+      {
+        "case": "page_load_bounded_checkout",
+        "phases": {
+          "before": {
+            "SESSION_HTTP": {
+              "200": 19,
+              "503": 0
+            },
+            "SESSION_HEAD": {
+              "200": 8,
+              "503": 0
+            }
+          },
+          "cold": {
+            "SESSION_HTTP": {
+              "200": 19,
+              "503": 0
+            },
+            "SESSION_HEAD": {
+              "200": 8,
+              "503": 0
+            }
+          },
+          "after": {
+            "SESSION_HTTP": {
+              "200": 19,
+              "503": 0
+            },
+            "SESSION_HEAD": {
+              "200": 8,
+              "503": 0
+            }
+          }
+        },
+        "refusedSessionReadsBeforeCheckout": [],
+        "fixtureTest": "Result: 1 passed, 3 excluded",
+        "commandGroupsClosed": 8,
+        "ownedPostgresPortRebound": 49283,
+        "scratchRemoved": true
+      }
+    ]
+  },
+  "regression": {
+    "test": "shares a head between browser and CLI publication and delivers only committed releases",
+    "command": "mix test --warnings-as-errors --seed 0 --trace test/mixer_hosted/releases/browser_publication_test.exs:310",
+    "before": "The unchanged store returned before queueing both requests. The new assertion failed with both browser reads must wait for the lifecycle checkout. ExUnit printed Result: 0/1 passed, 3 excluded.",
+    "after": "Result: 1 passed, 3 excluded",
+    "beforeFixtureDatabaseRemoved": true,
+    "afterFixtureDatabaseRemoved": true,
+    "commandGroupsClosed": [
+      8,
+      8
+    ],
+    "scratchRemoved": true,
+    "redRunnerLimitation": "The diagnostic wrapper expected different ExUnit summary phrasing. Its two exits occurred after observing the target failure and checking database removal."
+  },
+  "interpretation": "The matched local comparison reproduces refusals before lifecycle checkout for overlapping ordinary reads, including after restart. It does not identify the exact internal branch for the earlier 1.38-second 503.",
+  "limits": "The candidate only enables bounded queueing for session and release-head metadata. The owner deadline, pool size, and write policy are unchanged. Source sealing, composed runtime verification, and the full gate remain open.",
+  "candidateDisposition": "The DBConnection queue prototype is rejected. Independent review observed a checkout exceeding the lease deadline and a pre-checkout queue drop classified as uncertain. Use the successor receipt for the retained test evidence."
+}

@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "scope": "L05/L07 bounded retry before checkout for ordinary session and release-head metadata",
+  "recordedUTC": "2026-11-20T19:12:51.971214+00:00",
+  "base": "b75df9b7c6569aae306cab36294a18498497f2b2",
+  "sourcesSHA256": {
+    "hosted/lib/mixer_hosted/browser_auth/active_read.ex": "3b24676d104f6173ad2ce69ab866b8d51bc3f64cd193880c2737fa86ad1b7171",
+    "hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex": "baacc637932bb93771a7a24d7f91051f8a18f892c52cf75df58e8e84a4fa3faa",
+    "hosted/lib/mixer_hosted/browser_auth/store.ex": "5ffaa85ca4a863eae38b4a9aabb1ab7583cc64b851aa3bfb4571c82922eb9bdd",
+    "hosted/test/mixer_hosted/releases/browser_publication_test.exs": "5acb0ddb5d1807b2f3126014f32d5153805dac2b9ef2b4365487ee06230dc2a7"
+  },
+  "baselineComparisonAndRejectedPrototype": "verification/receipts/l05-l07-browser-read-checkout-6bcd5aa3.json",
+  "prototypeReview": {
+    "commit": "ad6486c6eef13cd928db12ae0c699578cc3d15e6",
+    "observedDBConnectionQueueExceedingDeadlineMs": 5998,
+    "observedPreCheckoutQueueTimeoutMs": 3247,
+    "decision": "Do not opt into queued lifecycle transactions. Preserve existing handling of genuinely uncertain execution."
+  },
+  "policy": {
+    "requests": [
+      "GET /auth/session",
+      "GET /console-api/v1/release-head"
+    ],
+    "retryClassification": "phase=admission, outcome=not_started",
+    "pollIntervalMs": 20,
+    "retryWindowMsPerLifecycleRead": 300,
+    "maximumOwnerDeadlineMs": 5000,
+    "databaseQueue": false,
+    "changesWriteCheckoutPolicy": false
+  },
+  "fixture": {
+    "name": "shares a head between browser and CLI publication and delivers only committed releases",
+    "method": "Real disposable Phoenix and PostgreSQL, same ordinary browser session before and after restart, with two controlled checkouts held and released on the restarted instance.",
+    "baselineFailure": "Both reads exited before check-in. The fixture could not observe them waiting for the lifecycle checkout.",
+    "correctedChecks": [
+      "With both connections held, a metadata request returned HTTP 503 within 1,500 ms. The pool queue stayed empty, the browser owner generation was unchanged, and the same session returned authenticated HTTP 200 after check-in.",
+      "When both reads were pending and the holders checked in within the retry window, session and release-head returned HTTP 200 and the expected committed sequence.",
+      "Existing signed publication, restarted delivery, and rollback assertions still passed."
+    ],
+    "runs": {
+      "red": {
+        "exUnit": "Result: 0/1 passed, 3 excluded",
+        "postgresPortRebound": 58265,
+        "closedCommandGroups": 8,
+        "scratchRemoved": true
+      },
+      "green": {
+        "exUnit": "Result: 1 passed, 3 excluded",
+        "postgresPortRebound": 58263,
+        "closedCommandGroups": 8,
+        "scratchRemoved": true
+      }
+    }
+  },
+  "limits": "The isolated comparison addresses ordinary page overlap. The exact cause of the earlier 1.38-second response remains unproven. The candidate still needs independent successor review and hosted source binding."
+}

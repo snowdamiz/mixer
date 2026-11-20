@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "scope": "L05/L07 authenticated session and release-head read availability during brief local lifecycle database checkout contention and exact CI migration expectations.",
+  "recordedUTC": "2026-11-20T19:33:34.525927+00:00",
+  "base": "ad295143090e4c975564895030d81e5620b20253",
+  "candidate": "83eb51678b696c460d75a0c34d8af93eb2be6d97",
+  "candidateTree": "9bb0946ecc58384d87cc79c7d1d55fd77be45e70",
+  "sourcesSHA256": {
+    "hosted/lib/mixer_hosted/browser_auth/active_read.ex": "3b24676d104f6173ad2ce69ab866b8d51bc3f64cd193880c2737fa86ad1b7171",
+    "hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex": "5f02bcf199760f19399aab3420459a7474e5f75963d6136ac11fd28d4bf61937",
+    "hosted/lib/mixer_hosted/browser_auth/store.ex": "390538dd04a69c8ba8e6ffcf8ed7c90ec4cead95a74d38326a6ae9ffb50a845c",
+    "hosted/test/mixer_hosted/builds/coordinator_test.exs": "fafaf5804f63afe74abea9ffc7b986435545ff99c5bc82bf0531f4f2f81856c0",
+    "hosted/test/mixer_hosted/builds/operation_admission_test.exs": "85f0802cd84c92440f592a7e098676608bebaaa89c9e47c3fb2986607a659ec1",
+    "hosted/test/mixer_hosted/releases/browser_publication_test.exs": "5a5c3d0968d36849bca1da16ab52d88d24fb6ca7da18d0871b011329239c8e9d"
+  },
+  "previousEvidence": [
+    "verification/receipts/l05-l07-console-session-restart-63097fdd.json",
+    "verification/receipts/l05-l07-browser-read-checkout-6bcd5aa3.json",
+    "verification/receipts/l05-l07-browser-read-retry-v64.json"
+  ],
+  "previousCandidates": {
+    "queueEnabledPrototype": "ad6486c6eef13cd928db12ae0c699578cc3d15e6",
+    "retryWithoutCheckpointCutoff": "3213f1b8ef8f0930fc02ad51f65b92921138d243"
+  },
+  "behavior": {
+    "routes": [
+      "GET /auth/session",
+      "GET /console-api/v1/release-head"
+    ],
+    "lifecycleTransactionQueue": false,
+    "retryableFailure": {
+      "phase": "admission",
+      "outcome": "not_started"
+    },
+    "maximumRetryWindowMsPerLifecycleRead": 300,
+    "minimumRemainingLeaseBeforeRetryCutoffMs": 20,
+    "remaining": "The owner checkpoint uses the shorter of the retry cutoff and original lease deadline. The caller checks the cutoff again before a new checkout."
+  },
+  "v64PhoenixCI": {
+    "run": "https://github.com/snowdamiz/mixer/actions/runs/44798888575/job/136505525051",
+    "revision": "b75df9b7c6569aae306cab36294a18498497f2b2",
+    "testsLogSHA256": "d5144181350fd6de26fa29ecb5e5365f104ae6688cdb5857abd70cdbe0fd6898",
+    "result": "973 of 975 executed tests passed, four skipped.",
+    "failedAssertions": [
+      "hosted/test/mixer_hosted/builds/coordinator_test.exs",
+      "hosted/test/mixer_hosted/builds/operation_admission_test.exs"
+    ],
+    "correction": "Admit the two existing ordinary halt migration versions ending in 000011 and 000012 in both tests. The ordinary inventory still has 26 entries and omits the private and opt-in examples."
+  },
+  "focused": {
+    "environment": "macOS arm64, Elixir 1.20.4, PostgreSQL 17.11, offline locked Hex inputs",
+    "command": [
+      "mix",
+      "test",
+      "--warnings-as-errors",
+      "--seed",
+      "0",
+      "--trace",
+      "--timeout",
+      "120000",
+      "test/mixer_hosted/releases/browser_publication_test.exs:311",
+      "test/mixer_hosted/builds/selected_reviewed_migrations_test.exs"
+    ],
+    "mixLockSHA256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+    "result": "Result: 3 passed, 3 excluded",
+    "observations": [
+      "A real suspended RuntimeOwner returned before the original lease deadline, then accepted the same lease after resume.",
+      "Sustained contention returned HTTP 503, kept the database queue empty, and preserved owner readiness. After check-in, the same session authenticated.",
+      "Brief contention after a Phoenix restart recovered HTTP 200 on both metadata routes. Release-head sequence, signed delivery, and rollback checks passed.",
+      "Both complete migration assertion modules passed. The isolated test file contains those modules verbatim in the same source directory."
+    ],
+    "initialWrapperFailure": "The first combined runner loaded unrelated database suites without MIXER_TEST_DATABASE_PORT. Three selected tests passed and two unrelated setups were invalid. The corrected runner selected the two unchanged assertion modules and the original browser HTTP test.",
+    "closedCommandGroups": 8,
+    "postgresPortRebound": 51508,
+    "scratchRemoved": true
+  },
+  "inertCutoffControl": {
+    "fixtureSHA256": "76cb747bebbd48dcb1ed099c378e7306a9fc3735e7365f1860d810df51caf34c",
+    "priorSecondCheckoutElapsedMs": 373,
+    "correctedRefusalElapsedMs": 301,
+    "lateCheckpointSuccessElapsedMs": 321,
+    "lateCheckpointStartedAnotherCheckout": false,
+    "healthyRetryElapsedMs": 27,
+    "earlierLeaseObservedElapsedMs": 101,
+    "uncertainOutcomesRetried": false
+  },
+  "independentReview": {
+    "revision": "83eb51678b696c460d75a0c34d8af93eb2be6d97",
+    "verdict": "Scoped pass, no blocking findings.",
+    "outcomes": "Independent inert exact-function replay bounded a suspended owner to 301 ms without another checkout and an earlier lease to 61 ms. Both read operations retried proven refusal only. Both migration assertions and exclusions matched."
+  },
+  "limits": "The original 1.38-second session response remains unexplained. These checks use local synthetic identities and preserve the existing authorization deadline and unknown-outcome handling.",
+  "fullLocalSuite": {
+    "candidate": "83eb51678b696c460d75a0c34d8af93eb2be6d97",
+    "observedUTC": "2026-11-20T19:37:14.978071+00:00",
+    "sparseCheckoutRulesSHA256": "c82911f51ed97a7310f2ab00227cb47b426f8168390dcffaaef1e5121ce28cda",
+    "nodeVersion": "v26.13.1",
+    "exitCode": 0,
+    "cleanup": {
+      "postgres_stopped": true,
+      "scratch_removed": true
+    },
+    "sourceTreeSHA256": "648731b24d287206fb8f7995bca35c819ac17aa44ddb27ace8160a9d98cf76c8",
+    "postgresPortRebound": 57294,
+    "testsLogSHA256": "d78498f474b0e1be9b00d30574d79dac588e6917e72b3d5eda1cc5bd722d722d",
+    "testSummary": [
+      "Result: 975 passed, 4 skipped"
+    ],
+    "failedTests": [],
+    "closedCommandGroups": 10,
+    "scratchRemoved": true,
+    "command": "python3 -B scripts/test-local.py --output <owned report> --pg-bin /opt/homebrew/opt/postgresql@17/bin --test-timeout 420 --additional-test diagnostics/browser_login_trace_test.exs",
+    "inputs": "Exact hosted workflow sparse checkout at the product candidate and all four compiled console drivers. Offline locked Hex and npm dependencies.",
+    "initialWrapperFailure": "Without the CI sparse paths and compiled console drivers, 8 tests failed at fixture setup and 967 passed. The rerun supplied the workflow inputs.",
+    "scope": "Local host verification. GitHub CI and its Node 22 runtime are separate."
+  },
+  "sourceBinding": "verification/receipts/hosted-source-binding-v65-83eb5167.json"
+}
