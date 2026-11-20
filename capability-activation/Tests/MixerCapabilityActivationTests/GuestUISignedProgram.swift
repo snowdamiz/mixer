@@ -5,7 +5,7 @@ import Foundation
 /// distinct Saving frame precedes Saved, which requires the exact committed
 /// success packet. This is a narrow test program, not a Swift guest compiler.
 enum GuestUISignedProgram {
-    enum Mode { case valid, invalidHeader, invalidEventDocument, invalidWakeDocument, missingEvent }
+    enum Mode { case valid, invalidHeader, invalidEventDocument, invalidWakeDocument, missingEvent, localizedChecklist }
     static let event = Data(#"{"actionID":"sample.save","event":"activate","nodeID":"save","revision":1,"schemaVersion":1,"sequence":1,"value":null}"#.utf8)
     static func document(_ revision: Int, _ status: String) -> Data {
         Data("{\"schemaVersion\":1,\"revision\":\(revision),\"root\":{\"id\":\"root\",\"kind\":\"vStack\",\"properties\":{},\"children\":[{\"id\":\"status\",\"kind\":\"text\",\"properties\":{\"text\":\"\(status)\"},\"children\":[],\"actions\":[]},{\"id\":\"save\",\"kind\":\"button\",\"properties\":{\"label\":\"Save sample\"},\"children\":[],\"actions\":[{\"id\":\"sample.save\",\"event\":\"activate\"}]}],\"actions\":[]}}".utf8)
@@ -51,8 +51,23 @@ enum GuestUISignedProgram {
             }
             return out
         }
-        let ready = document(1,"Ready"), saving = document(2,"Saving sample"), saved = document(3,"Saved sample")
-        let denied = document(3,"Save unavailable")
+        func frame(_ revision: Int, _ status: String, localizedStatus: String) -> Data {
+            guard mode == .localizedChecklist else { return document(revision, status) }
+            return Data("""
+                {"schemaVersion":1,"revision":\(revision),"root":{"id":"fieldlog-task","kind":"vStack","properties":{},"actions":[],"children":[
+                  {"id":"task","kind":"text","properties":{"text":"فحص المضخة 07"},"children":[],"actions":[]},
+                  {"id":"status","kind":"text","properties":{"text":"\(localizedStatus)"},"children":[],"actions":[]},
+                  {"id":"toggle","kind":"button","properties":{"label":"وضع علامة مكتملة"},"children":[],"actions":[{"id":"task.toggle","event":"activate"}]}
+                ]}}
+                """.utf8)
+        }
+        let ready = frame(1, "Ready", localizedStatus: "الفحص قيد التنفيذ")
+        let saving = frame(2, "Saving sample", localizedStatus: "جارٍ الحفظ")
+        let saved = frame(3, "Saved sample", localizedStatus: "اكتمل الفحص")
+        let denied = frame(3, "Save unavailable", localizedStatus: "تعذر الحفظ")
+        let event = mode == .localizedChecklist
+            ? Data(#"{"actionID":"task.toggle","event":"activate","nodeID":"toggle","revision":1,"schemaVersion":1,"sequence":1,"value":null}"#.utf8)
+            : Self.event
         let request = Data(#"{"namespace":"material_test","key":"binary","valueBase64":"AAH+/w=="}"#.utf8)
         let committed = Data(#"{"abi":1,"capability":"storage.keyValue.v1","operation":"put","outcome":{"kind":"success","value":{"committed":true}},"schemaHash":"4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"}"#.utf8)
         var eventBody: [UInt8] = [0x20,0]

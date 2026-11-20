@@ -6,6 +6,10 @@ import MixerUI
 import MixerCapabilities
 @_spi(GuestUIV1) import MixerGuest
 @testable import MixerCapabilityActivation
+#if os(macOS)
+import AppKit
+import SwiftUI
+#endif
 
 private actor SignedRuntimeRetirement {
     let runtime: CapabilityGuestUIRuntime
@@ -255,6 +259,113 @@ final class GuestUISignedRuntimeTests: XCTestCase, @unchecked Sendable {
             XCTAssertTrue(stored.found); XCTAssertEqual(stored.valueBase64,"AAH+/w==")
         }
     }
+    #if os(macOS)
+    func testSignedLocalizedChecklistActionIsReachableInShortAppKitViewports() async throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["MIXER_GUEST_UI_VISIBLE_WINDOW"] == "1")
+        await MainActor.run {
+            let app = NSApplication.shared
+            app.setActivationPolicy(.accessory)
+            app.finishLaunching()
+        }
+
+        for height in [96, 16, 32] {
+            for size in [DynamicTypeSize.large, .accessibility5] {
+                let f = try fixture()
+                try await withRuntime(f, publicIngress: true) { runtime in
+                    try await stage(f, runtime, mode: .localizedChecklist, storage: true)
+                    try await exerciseLocalizedChecklist(runtime, height: height, size: size)
+                }
+            }
+        }
+    }
+
+    @MainActor
+    private func exerciseLocalizedChecklist(_ runtime: CapabilityGuestUIRuntime, height: Int, size: DynamicTypeSize) async throws {
+        let label = "288x\(height) \(size)"
+        let view = NSHostingView(rootView: MixerGuestScreen(presentation: runtime.presentation)
+            .environment(\.layoutDirection, .rightToLeft)
+            .dynamicTypeSize(size))
+        view.sizingOptions = []
+        let viewport = NSRect(x: 40, y: 80, width: 288, height: height)
+        let window = NSWindow(contentRect: viewport, styleMask: [.borderless], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        defer {
+            window.orderOut(nil)
+            window.contentView = nil
+            window.close()
+            XCTAssertFalse(window.isVisible)
+            XCTAssertNil(view.window)
+        }
+        window.contentView = view
+        window.orderFrontRegardless()
+        let start = try await runtime.start()
+        XCTAssertEqual(start.phase, .provisionalGuest, label)
+        try await awaitPresentation {
+            view.layoutSubtreeIfNeeded()
+            window.displayIfNeeded()
+            return runtime.presentation.state == .displaying(revision: 1) && runtime.presentation.inputEnabled
+        }
+        XCTAssertEqual(view.visibleRect.size, viewport.size, label)
+        XCTAssertTrue(window.isVisible, label)
+        let scrollView = nativeScrollView(in: view)
+        let travel = scrollView.map { max(0, $0.contentView.documentRect.height - $0.contentView.bounds.height) } ?? 0
+        print("FieldLog AppKit \(label) nativeScrollView=\(scrollView != nil) travel=\(travel)")
+        if height == 96 {
+            XCTAssertEqual(travel, 0, accuracy: 1, label)
+        } else {
+            XCTAssertGreaterThan(travel, 0, label)
+            if let scrollView {
+                if height == 16 {
+                    XCTAssertNil(try clickChecklistAction(in: window, height: height, presentation: runtime.presentation), label)
+                }
+                let clip = scrollView.contentView
+                let initial = clip.bounds.origin
+                let bottom = clip.isFlipped ? clip.documentRect.maxY - clip.bounds.height : clip.documentRect.minY
+                clip.scroll(to: NSPoint(x: initial.x, y: bottom))
+                scrollView.reflectScrolledClipView(clip)
+                view.layoutSubtreeIfNeeded()
+                window.displayIfNeeded()
+                XCTAssertEqual(abs(clip.bounds.minY - initial.y), travel, accuracy: 1, label)
+                print("FieldLog AppKit \(label) scrollY=\(initial.y)->\(clip.bounds.minY)")
+            }
+        }
+
+        // Pointer events are delivered only to the owned fixture window.
+        XCTAssertEqual(runtime.presentation.lifecycleObservation?.counters.acceptedEvents, 0, label)
+        let hit = try clickChecklistAction(in: window, height: height, presentation: runtime.presentation)
+        print("FieldLog AppKit \(label) hitRow=\(String(describing: hit))")
+        XCTAssertNotNil(hit, label)
+        guard hit != nil else { return }
+        try await awaitPresentation { runtime.presentation.state == .displaying(revision: 3) }
+        XCTAssertEqual(runtime.presentation.renderHost?.snapshot.document.root.children[1].properties["text"],
+                       .string("اكتمل الفحص"), label)
+        XCTAssertEqual(runtime.presentation.lifecycleObservation?.counters.acceptedEvents, 1, label)
+    }
+
+    @MainActor
+    private func nativeScrollView(in view: NSView) -> NSScrollView? {
+        if let scrollView = view as? NSScrollView { return scrollView }
+        for child in view.subviews {
+            if let scrollView = nativeScrollView(in: child) { return scrollView }
+        }
+        return nil
+    }
+
+    @MainActor
+    private func clickChecklistAction(in window: NSWindow, height: Int, presentation: GuestUIPresentation) throws -> Int? {
+        for row in 0..<height {
+            let point = NSPoint(x: window.contentLayoutRect.midX, y: Double(row) + 0.5)
+            for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+                let event = try XCTUnwrap(NSEvent.mouseEvent(with: type, location: point, modifierFlags: [],
+                    timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: window.windowNumber,
+                    context: nil, eventNumber: 0, clickCount: 1, pressure: 1))
+                window.sendEvent(event)
+            }
+            if presentation.lifecycleObservation?.counters.acceptedEvents == 1 { return row }
+        }
+        return nil
+    }
+    #endif
     func testSignedEventWithoutGrantReportsUnavailableWithoutStorage() async throws {
         let before = CapabilityAttemptReservation.occupiedSlots, f = try fixture()
         try await withRuntime(f) { runtime in

@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "requirements": ["L02", "L08", "22.2.5"],
+  "status": "passed",
+  "scope": "AppKit overflow and action reachability through MixerGuestScreen with a test-signed ABI2/UI1 Arabic checklist",
+  "baseRevision": "6d612afca0c478c92a9c9cbb8b54754c8bc37155",
+  "baseTree": "73e1c6d0e907491aa30d6a09d786a5b0a522c89d",
+  "sourceSHA256": {
+    "CapabilityGuestUIApple.swift": "60b1f8e31b0a3353f936d73cdd30e48ea5e65fe9ab0dfd325f0db3081c0e9c3c",
+    "GuestUISignedProgram.swift": "f091d823d45261a3b5e578c8d7a6b69ff395452c08e2846c9bd906186bc6095d",
+    "GuestUISignedRuntimeTests.swift": "3d115453ec3d4687c1ad38089d8dd15d0b4f14cbbfc9ed417f4be9a7eb9c0c97"
+  },
+  "tools": {
+    "macOS": "27.0.1 (26A434), arm64",
+    "xcode": "27.2 (27B52), macOS SDK 27.2",
+    "swift": "6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "rustc": "1.99.0 (b940084d7 2026-09-28)"
+  },
+  "fixture": {
+    "releaseID": "guest-ui-signed",
+    "installation": "guest-ui-signed",
+    "wasmBytes": 6984,
+    "wasmSHA256": "71b051ad3434ea58a664f96e72d6c7aa5f90820da8da145dbf544288f4c6a70f",
+    "hostTestExecutableSHA256": "b811ac2211c483d5725eb0a3682b11e2c52e70ab2d9a8a87c2d54c2cff610561",
+    "vmArchiveSHA256": "0beb9fbab5f2d1f718482391a43ecb57a3e76f6e3e0d31a0676b87b7a1852116",
+    "vmBuild": "cargo build --locked --release --lib --manifest-path vm/Cargo.toml --target-dir $RUN/vm --features experimental-capability-native",
+    "swiftTest": "MIXER_GUEST_UI_VISIBLE_WINDOW=1 swift test --package-path capability-activation --scratch-path $RUN/swiftpm --force-resolved-versions --cache-path $RUN/swiftpm-cache -Xcc -I -Xcc $PWD/vm/include -Xlinker -L -Xlinker $RUN/lib --jobs 8 --filter <filter>",
+    "notes": "Copy $RUN/vm/release/libmixer_vm.a to $RUN/lib/libmixer_vm_capability_experimental.a. Signed fixture uses test trust roots, public runtime ingress, and app-private test storage."
+  },
+  "regression": {
+    "filter": "testSignedLocalizedChecklistActionIsReachableInShortAppKitViewports",
+    "baseline": "Failed six assertions. No native scroll view in any case. Both 16-point cases had zero clickable rows.",
+    "candidate": "Passed all six cases. Each native click delivered exactly one activate event for toggle/task.toggle at revision 1. The guest checks exact packet bytes and shows its revision 3 completion only after committed storage success.",
+    "viewportWidthPoints": 288,
+    "profiles": ["large", "accessibility5"],
+    "outerLayoutDirection": "rightToLeft",
+    "measurementsPerProfile": [
+      {"heightPoints": 96, "baselineFirstHitRow": 16, "candidateFirstHitRow": 16, "candidateVerticalTravelPoints": 0},
+      {"heightPoints": 32, "baselineFirstHitRow": 0, "candidateFirstHitRow": 0, "candidateVerticalTravelPoints": 33},
+      {"heightPoints": 16, "baselineFirstHitRow": null, "candidateFirstHitRow": 0, "candidateVerticalTravelPoints": 49}
+    ],
+    "cleanup": "Each test window closed and its hosting view detached. Each signed fixture runtime retired before its temporary directory teardown."
+  },
+  "focused": {
+    "filter": "GuestUISignedRuntimeTests|GuestUIPresentationModelTests|GuestUIReadyInputTests|GuestUIInstalledModeTests|detachedAndHiddenNativeViewsCannotEarnDisplayObservation",
+    "xctestPassed": 32,
+    "swiftTestingPassed": 13
+  },
+  "limits": [
+    "Native clip movement was driven through NSClipView before pointer delivery to the fixture NSWindow. Directly injected synthetic wheel events did not move the clip.",
+    "The optional positive native display observation test timed out on both baseline and candidate with AppKit occlusion state 8192, which lacks the visible bit. The detached/hidden negative check and the signed offscreen health check passed.",
+    "The run used two Dynamic Type environment settings without asserting macOS font growth or RTL text geometry. It did not qualify installed FieldLog, iOS Simulator, Android or either local gate."
+  ]
+}

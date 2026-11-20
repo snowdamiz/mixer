@@ -26,8 +26,15 @@ private struct CapabilityGuestUIRenderedContent: View {
 
     var body: some View {
         if let host = presentation.renderHost {
-            MixerNativeView(host: host, onAction: presentation.actionHandler(host: host, attachment: attachment))
-                .disabled(!presentation.inputEnabled)
+            GeometryReader { viewport in
+                ScrollView(.vertical) {
+                    MixerNativeView(host: host, onAction: presentation.actionHandler(host: host, attachment: attachment))
+                        .disabled(!presentation.inputEnabled)
+                        // Keep fitting documents centered. Taller documents can use their full height.
+                        .frame(maxWidth: .infinity, minHeight: viewport.size.height)
+                }
+                .scrollBounceBehavior(.basedOnSize)
+            }
         } else {
             Color.clear
         }
