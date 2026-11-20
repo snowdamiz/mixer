@@ -159,6 +159,8 @@ The ordinary Phoenix backend disables HTTP/2 because Bandit 1.14.1 can log reque
 
 The maintained two-tenant privacy replay passed access controls and stock log checks with native retention disabled and enabled. A privileged in-process subscriber still received sensitive metadata from Bandit, Phoenix, and Ecto. The replay kept that finding visible in strict mode. App telemetry, external egress, and attachment and source-map retention remain open. [Privacy replay](verification/receipts/l07-hosted-privacy-replay-20261120.json) · [Original adverse observation](verification/receipts/l07-hosted-privacy-original-adverse-20261120.json)
 
+The unchanged FieldLog updater ran in two macOS processes under an Android-scoped development identity. The owned observer saw four bodyless loopback GETs and found no workspace or JPEG markers, cookies, or bearer credentials. A complete signed offer activated sequence 1. After an artifact HTTP 503, a new process recovered the same candidate and preserved the workspace and JPEG. The sandbox denied a second loopback destination, and both owned ports closed. Native diagnostics and OS export remain unverified. [Updater privacy receipt](verification/receipts/l07-fieldlog-updater-loopback-b144c2c-20261120.json)
+
 ### Restore of the Starter database and artifact store
 
 The empty fixture restored to a separate PostgreSQL 17.11 cluster. The roles and journal matched, and two fresh sessions authenticated under the restricted API role. All 38 command groups closed, eight ports were reusable, and the replay removed its scratch.
