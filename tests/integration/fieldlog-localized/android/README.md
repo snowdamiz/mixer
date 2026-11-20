@@ -133,9 +133,29 @@ Force-stop, relaunch and reopen the checklist offline. Confirm sequence 2 and
 the completed state from disk. Tap reopen once, verify the canonical open
 frame, revision +1 and one further outbox append. Relaunch offline again to
 verify the reopened state. Save the paired screenshots, journals, delivery
-logs and workspace readbacks, then close and clean up the owned emulator,
-origin and scratch. Record a visible failure and its matching durable
-readback separately if either disagrees with the screen.
+logs and workspace readbacks. Record a visible failure and its matching
+durable readback separately if they disagree.
+
+### Retire the guest and emulator
+
+1. Confirm the private ADB server's exact-serial `reverse --list` succeeds and
+   has no mappings. The command can emit a newline for an empty list. In the
+   Python driver, pass its captured byte-mode result to
+   `native_teardown.reverse_is_empty(result)`.
+2. While the reopened checklist is visible, tap **Done**. Capture the
+   ordinary app screen and the journal from the same installation. Require
+   the guest attempt to be cleared and `lastRecovery` to be `effects_closed`.
+3. Request shutdown of the owned emulator. Pass the original `Popen` handle
+   from its `start_new_session=True` launch to
+   `native_teardown.reap_owned_session(process)`. The helper waits for the
+   direct child and then polls group absence within a separate four-second
+   deadline. Record the exit code and check the owned ports after this
+   succeeds. If either observation is inconclusive, record the hold and
+   preserve the instance's scratch and ports. Use this procedure only in a
+   fresh replay.
+
+Run the host teardown controls from this directory with
+`python3 -B -m unittest test_native_teardown`.
 
 Save the workspace snapshots as `workspace-<checkpoint>.json`. Use
 `baseline-ltr`, `baseline-rtl`, and `baseline-large` for the three

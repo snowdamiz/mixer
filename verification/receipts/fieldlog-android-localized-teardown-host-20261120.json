@@ -1,0 +1,39 @@
+{
+  "observedUTC": "2026-11-20T10:50:22Z",
+  "status": "host_controls_passed",
+  "scope": "Android Arabic checklist final reverse-list and process-group observation",
+  "source": {
+    "baseCommit": "9d0eec8ac194254ce19779d87fbdd93f107c4de6",
+    "baseTree": "61f01309897bc22d77fabfb8346554e990710fab",
+    "directory": "tests/integration/fieldlog-localized/android",
+    "sha256": {
+      "native_teardown.py": "c2e16cd401b85ddd9e494072e191e60be9a4762a2cadcbddd5a3c4f5024afced",
+      "test_native_teardown.py": "a4f5ee9953f26e4428741c0cb2be552b2af1fd6866f2762a10fb020cf6839cc7",
+      "README.md": "f007cb6ddb210078936a31e4514cabdb7cbeeef3cdd7cbfd73f170bade19bb04"
+    }
+  },
+  "environment": {
+    "os": "macOS 27.0.1 arm64",
+    "python": "3.14.8",
+    "availableBytesAtPreflight": 9342021632
+  },
+  "commandsFromSourceDirectory": [
+    "python3 -B -m unittest test_native_teardown test_replay",
+    "python3 -BO -m unittest test_native_teardown test_replay"
+  ],
+  "observations": {
+    "testsPassedPerMode": 12,
+    "newTeardownControlsPerMode": 7,
+    "realProcessGroup": "After direct child exit 0, the first signal-zero observation found the forked member. Releasing its input pipe allowed terminal ESRCH within the group deadline.",
+    "refusals": ["failed ADB command", "nonempty reverse list", "direct reap timeout", "group observation EPERM", "group still present at deadline"],
+    "copiedWorkspaceReadback": {
+      "priorReceipt": "verification/receipts/fieldlog-android-localized-native-20261120.json",
+      "verifiedSnapshots": 12,
+      "workspaceRevisions": [2, 3, 4],
+      "outboxCounts": [2, 3, 4]
+    }
+  },
+  "closure": "The test sessions reached terminal group absence and the replay unit tests removed their temporary directories.",
+  "deviceOperations": 0,
+  "remaining": "Fresh installed guest retirement, emulator group closure and port reuse, and iOS localization coverage. The earlier native hold remains in force."
+}
