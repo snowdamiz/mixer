@@ -1,5 +1,5 @@
 defmodule MixerHosted.CustomerBuilds.LocalStarter do
-  @moduledoc "One opt-in, operator-pinned worker registration for an exported iOS starter."
+  @moduledoc "One opt-in, operator-pinned worker registration for an exported starter."
   alias MixerHosted.CustomerBuilds.{CreateInput, CreateRepo, CreateSchema, Inputs}
   alias MixerHosted.CustomerBuilds.LocalStarterSchema, as: Schema
   alias MixerHosted.Authorization.Postgres.Session
@@ -19,6 +19,7 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
   @starter_sdk_prefix "Generated/MixerSDK/"
   @starter_sdk_sha256 "ee03d620f05de3ecf3bb1242ab14da76082ca9b7d26ddcfbf72f8c82c967d50b"
   @starter_app_sha256 "9a3675d963109cb0d3e67b4230c1d2013a16a135263178d1c09a3fa7c6b38672"
+  @android_driver "Generated/MixerAndroid/android-build.py"
   @excluded ~w(.build .git .swiftpm node_modules .gradle .mixer target .DS_Store)
   @private_suffix ~w(.pem .key .p12 .pfx .mobileprovision .keystore .jks)
 
@@ -114,8 +115,6 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
   defp organization_owner?(_), do: false
 
   defp apply_selection(scope, :list, {:ok, starter}) do
-    Schema.admit!(CreateRepo)
-
     case selection_status(scope, starter, false) do
       "available" -> {:ok, Map.put(public_scope(scope), :starter, %{id: starter.id})}
       "missing" -> {:ok, Map.put(public_scope(scope), :starter, nil)}
@@ -126,17 +125,18 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
   defp apply_selection(scope, :list, _), do: {:ok, Map.put(public_scope(scope), :starter, nil)}
 
   defp apply_selection(scope, {:select, id}, {:ok, %{id: id} = starter}) do
-    Schema.admit!(CreateRepo)
-
     case selection_status(scope, starter, true) do
       "selected" ->
         %{
+          "platform" => platform,
           "source" => %{"sha256" => source},
           "toolchain_lock_sha256" => lock,
           "build_definition_sha256" => definition
         } = starter.spec
 
-        {:ok, %{inputs: [input]}} = Inputs.project(scope, [["ios", id, source, lock, definition]])
+        {:ok, %{inputs: [input]}} =
+          Inputs.project(scope, [[platform, id, source, lock, definition]])
+
         {:ok, Map.merge(public_scope(scope), input)}
 
       "denied" ->
@@ -155,7 +155,23 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
 
   defp apply_selection(_, {:select, _}, _), do: {:error, :not_found}
 
+  defp selection_status(_scope, %{spec: %{"platform" => "android"}} = starter, select?) do
+    Schema.admit!(CreateRepo, :android)
+
+    [status] =
+      Session.one!(
+        CreateRepo,
+        "SELECT public.mixer_local_android_starter_v1($1,$2,$3,$4,$5)",
+        [starter.id, starter.pin, starter.spec, select?, starter.worker_pin],
+        :authorization_unavailable
+      )
+
+    status
+  end
+
   defp selection_status(scope, starter, select?) do
+    Schema.admit!(CreateRepo)
+
     [status] =
       Session.one!(
         CreateRepo,
@@ -241,7 +257,7 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
            Map.take(spec, Enum.map(@scope, &Atom.to_string/1)) ==
              Map.new(scope, fn {k, v} -> {Atom.to_string(k), v} end),
          %{
-           "platform" => "ios",
+           "platform" => platform,
            "source" => %{"kind" => kind, "reference" => ref, "sha256" => tree} = source,
            "toolchain_lock_sha256" => lock,
            "build_definition_sha256" => definition
@@ -249,7 +265,7 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
          true <- Enum.sort(Map.keys(spec)) == Enum.sort(@spec_keys) and map_size(source) == 3,
          true <- kind in ["upload", "revision"] and CreateInput.id?(ref),
          id = "starter-" <> pin,
-         {:ok, %{inputs: [_]}} <- Inputs.project(scope, [["ios", id, tree, lock, definition]]),
+         {:ok, %{inputs: [_]}} <- Inputs.project(scope, [[platform, id, tree, lock, definition]]),
          %{"recipe_sha256" => ^definition} <- policy,
          true <-
            is_map(files) and map_size(files) in 1..@max_files and files["mixer.lock"] == lock,
@@ -258,9 +274,10 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
          {:ok, ^files, _} <- inventory(root),
          ^tree <- tree_digest(files),
          {:ok, recipe} <- Jason.decode(recipe_bytes),
-         true <- recipe_matches?(recipe, policy, root, files),
-         {:ok, local_closure?} <- package_closure(recipe, policy, root, files) do
-      {:ok, %{id: id, pin: pin, spec: spec, local_closure?: local_closure?}}
+         true <- recipe_matches?(recipe, policy, platform, root, files),
+         {:ok, local_closure?} <- package_closure(platform, recipe, policy, root, files) do
+      {:ok,
+       %{id: id, pin: pin, spec: spec, worker_pin: worker_pin, local_closure?: local_closure?}}
     else
       _ -> {:error, :not_found}
     end
@@ -268,13 +285,11 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
     _ -> {:error, :not_found}
   end
 
-  defp recipe_matches?(recipe, policy, root, files) do
+  defp recipe_matches?(recipe, policy, platform, root, files) do
     with %{
-           "argv" => [cli, "build", "--platform", "ios", "--directory", ^root],
+           "argv" => [cli, "build", "--platform", ^platform, "--directory", ^root],
            "cwd" => ^root,
            "environment" => %{"PATH" => "/usr/bin:/bin:/usr/sbin:/sbin"} = env,
-           "profile" => "unsigned-ios-simulator-v1",
-           "package_policy" => "exact-owned-local-manifests-no-external-packages",
            "inputs" => inputs,
            "tools" => tools,
            "timeout_seconds" => timeout
@@ -284,10 +299,14 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
          true <- Map.keys(env) -- @tool_environment == [],
          true <- Enum.all?(env, fn {_name, value} -> is_binary(value) end),
          true <- is_map(inputs) and Enum.all?(inputs, fn {name, hash} -> files[name] == hash end),
-         true <-
-           is_map(tools) and Enum.sort(Map.keys(tools)) == Enum.sort([cli, "/usr/bin/xcodebuild"]) do
+         true <- is_map(tools) and recipe_profile?(platform, recipe, cli, tools) do
       Enum.all?(tools, fn {path, hash} ->
-        case read(path, @max_tool, 0o022) do
+        # The installed Android Python can live below the admin-writable Cellar.
+        # Its file still has to be canonical, pinned, and protected from group writes.
+        ancestor_mask =
+          if platform == "android" and path == recipe["android_python"], do: 0o002, else: 0o022
+
+        case read(path, @max_tool, 0o022, ancestor_mask) do
           {:ok, contents} -> sha(contents) == hash
           _ -> false
         end
@@ -297,7 +316,50 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
     end
   end
 
-  defp package_closure(recipe, policy, root, files) do
+  defp recipe_profile?("ios", recipe, cli, tools) do
+    match?(
+      %{
+        "profile" => "unsigned-ios-simulator-v1",
+        "package_policy" => "exact-owned-local-manifests-no-external-packages"
+      },
+      recipe
+    ) and Enum.sort(Map.keys(tools)) == Enum.sort([cli, "/usr/bin/xcodebuild"])
+  end
+
+  defp recipe_profile?(
+         "android",
+         %{
+           "profile" => "unsigned-android-local-v1",
+           "package_policy" => "exact-locked-android-file-mirrors-v1",
+           "android_host_swift" => "/usr/bin/swift",
+           "android_python" => python
+         },
+         cli,
+         tools
+       ) do
+    Enum.sort(Map.keys(tools)) == Enum.sort([cli, "/usr/bin/swift", python])
+  end
+
+  defp recipe_profile?(_, _, _, _), do: false
+
+  defp package_closure("android", recipe, policy, root, files) do
+    # Installation files and mirrors are checked by the pinned worker verifier
+    # during provisioning and at dispatch. Verify the export and its lock here.
+    python = recipe["android_python"]
+    python_pin = %{"path" => python, "sha256" => recipe["tools"][python]}
+
+    with false <- Map.has_key?(recipe, "starter_package_closure"),
+         false <- Map.has_key?(policy, "starter_package_closure"),
+         true <- recipe["inputs"] == files and Map.has_key?(files, @android_driver),
+         {:ok, lock} <- read(Path.join(root, "mixer.lock"), @max_file),
+         true <- sha(lock) == files["mixer.lock"],
+         {:ok, %{"android" => %{"toolchain" => %{"tools" => %{"python" => ^python_pin}}}}} <-
+           Jason.decode(lock) do
+      {:ok, true}
+    end
+  end
+
+  defp package_closure("ios", recipe, policy, root, files) do
     case {Map.fetch(recipe, "starter_package_closure"),
           Map.fetch(policy, "starter_package_closure")} do
       {:error, :error} ->
@@ -376,8 +438,8 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
     end
   end
 
-  defp read(path, limit, write_mask \\ 0o222) do
-    with true <- canonical?(path),
+  defp read(path, limit, write_mask \\ 0o222, ancestor_mask \\ 0o022) do
+    with true <- canonical?(path, ancestor_mask),
          {:ok, info} <- File.lstat(path, @stat_options) do
       read_snapshot(path, info, limit, write_mask)
     end
@@ -417,7 +479,9 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
     end
   end
 
-  defp canonical?(path) when is_binary(path) do
+  defp canonical?(path, write_mask \\ 0o022)
+
+  defp canonical?(path, write_mask) when is_binary(path) do
     Path.type(path) == :absolute and Path.expand(path) == path and
       path
       |> Path.split()
@@ -425,7 +489,7 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
       |> Enum.all?(fn part ->
         case File.lstat(part, @stat_options) do
           {:ok, %{type: type, mode: mode}} when type in [:regular, :directory] ->
-            Bitwise.band(mode, 0o022) == 0
+            Bitwise.band(mode, write_mask) == 0
 
           _ ->
             false
@@ -433,7 +497,7 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
       end)
   end
 
-  defp canonical?(_), do: false
+  defp canonical?(_, _), do: false
 
   defp tree_digest(files) do
     files |> Enum.sort() |> Enum.map(fn {path, value} -> [path, 0, value, ?\n] end) |> sha()

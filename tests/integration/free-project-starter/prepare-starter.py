@@ -157,7 +157,11 @@ def admit_worker(destination, config_path, startup_pin, dispatch_id, dispatch_po
     # Exercise the existing worker verifier without constructing state or running commands.
     verifier = object.__new__(native_worker)
     verifier.config = config
-    if verifier.verify(spec).get(starter.KEY) != starter.VERSION:
+    recipe = verifier.verify(spec)
+    if spec["platform"] == "android":
+        if starter.KEY in config["policy"]:
+            raise SystemExit("iOS package closure does not apply to an Android registration")
+    elif recipe.get(starter.KEY) != starter.VERSION:
         raise SystemExit("starter package closure is required")
 
     worker = {"configuration_sha256": startup_pin, "id": dispatch_id, "port": dispatch_port}

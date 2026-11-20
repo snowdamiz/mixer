@@ -111,7 +111,7 @@ def main():
             fixture.wait_until(lambda: subprocess.run(psql + ["-c", "SELECT 1"], capture_output=True,
                                                        timeout=2).returncode == 0, postgres, 12)
             subprocess.run(psql + ["-c", fixture.ROLES], check=True, timeout=10)
-            with fixture.owned(["mix", "test", "--seed", "0", "--trace", TEST], host, env) as phoenix:
+            with fixture.owned(["mix", "test", "--seed", "0", "--trace", "--exclude", "android_starter", TEST], host, env) as phoenix:
                 if args.browser or args.chrome:
                     meta = fixture.wait_until(lambda: json.loads(live.read_text()) if live.exists() else None,
                                               phoenix, 100)

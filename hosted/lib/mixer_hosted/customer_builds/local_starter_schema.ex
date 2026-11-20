@@ -3,8 +3,17 @@ defmodule MixerHosted.CustomerBuilds.LocalStarterSchema do
   alias MixerHosted.Authorization.Postgres.Session
   alias MixerHosted.CustomerBuilds.CreateSchema
   @function "public.mixer_local_starter_v1(text,text,jsonb,boolean)"
+  @android_function "public.mixer_local_android_starter_v1(text,text,jsonb,boolean,text)"
+  @table "public.mixer_local_starters"
+  @android_table "public.mixer_local_android_starters"
 
-  def body do
+  def body(platform \\ :ios)
+  def body(:ios), do: writer_body(@table, "ios", "")
+
+  def body(:android),
+    do: writer_body(@android_table, "android", " AND worker_configuration_pin=$5")
+
+  defp writer_body(table, platform, catalog_binding) do
     """
     DECLARE starter record; existing record;
       org text := current_setting('mixer.authz.organization_id',true);
@@ -22,9 +31,9 @@ defmodule MixerHosted.CustomerBuilds.LocalStarterSchema do
         )
       THEN RETURN 'denied'; END IF;
 
-      SELECT * INTO starter FROM public.mixer_local_starters
+      SELECT * INTO starter FROM #{table}
         WHERE (organization_id,project_id,application_id)=(org,project,app)
-          AND input_id=$1 AND registration_pin=$2 AND spec=$3
+          AND input_id=$1 AND registration_pin=$2 AND spec=$3#{catalog_binding}
         FOR SHARE;
       IF NOT FOUND THEN RETURN 'missing'; END IF;
       IF NOT $4 THEN RETURN 'available'; END IF;
@@ -40,7 +49,7 @@ defmodule MixerHosted.CustomerBuilds.LocalStarterSchema do
         INTO existing FROM public.mixer_customer_build_inputs
         WHERE (organization_id,project_id,application_id)=(org,project,app);
       IF FOUND THEN
-        IF existing IS DISTINCT FROM ROW('ios'::text,$1,$3#>>'{source,kind}',
+        IF existing IS DISTINCT FROM ROW('#{platform}'::text,$1,$3#>>'{source,kind}',
            $3#>>'{source,reference}',$3#>>'{source,sha256}',$3->>'toolchain_lock_sha256',
            $3->>'build_definition_sha256',1,1800000::bigint,0::bigint)
           OR (SELECT count(*) FROM public.mixer_customer_build_inputs
@@ -52,35 +61,51 @@ defmodule MixerHosted.CustomerBuilds.LocalStarterSchema do
       INSERT INTO public.mixer_customer_build_inputs
         (organization_id,project_id,application_id,platform,input_id,source_kind,source_reference,
          source_sha256,toolchain_lock_sha256,build_definition_sha256,max_attempts,timeout_ms,retry_backoff_ms)
-      VALUES (org,project,app,'ios',$1,$3#>>'{source,kind}',$3#>>'{source,reference}',
+      VALUES (org,project,app,'#{platform}',$1,$3#>>'{source,kind}',$3#>>'{source,reference}',
         $3#>>'{source,sha256}',$3->>'toolchain_lock_sha256',$3->>'build_definition_sha256',1,1800000,0);
       RETURN 'selected';
     END
     """
   end
 
-  def statements do
+  def statements(platform \\ :ios)
+
+  def statements(:ios), do: catalog_statements(@table, @function, body(), "")
+
+  def statements(:android) do
+    catalog_statements(@android_table, @android_function, body(:android), """
+        worker_configuration_pin text NOT NULL CHECK(worker_configuration_pin ~ '^[0-9a-f]{64}$'),
+        CHECK(input_id='starter-' || registration_pin),
+        CHECK(spec->>'platform' IS NOT DISTINCT FROM 'android'),
+    """)
+  end
+
+  defp catalog_statements(table, function, body, columns) do
     [
       """
-      CREATE TABLE public.mixer_local_starters(
+      CREATE TABLE #{table}(
         organization_id text NOT NULL, project_id text NOT NULL, application_id text NOT NULL,
         input_id text NOT NULL, registration_pin text NOT NULL CHECK(registration_pin ~ '^[0-9a-f]{64}$'),
         spec jsonb NOT NULL CHECK(jsonb_typeof(spec)='object'),
-        PRIMARY KEY (organization_id,project_id,application_id),
+      #{columns}  PRIMARY KEY (organization_id,project_id,application_id),
         FOREIGN KEY (organization_id,project_id,application_id)
           REFERENCES public.mixer_authz_applications(organization_id,project_id,id))
       """,
-      "REVOKE ALL ON public.mixer_local_starters FROM PUBLIC",
+      "REVOKE ALL ON #{table} FROM PUBLIC",
       """
-      CREATE FUNCTION #{@function} RETURNS text LANGUAGE plpgsql VOLATILE
-      SECURITY DEFINER SET search_path=pg_catalog AS $starter$#{body()}$starter$
+      CREATE FUNCTION #{function} RETURNS text LANGUAGE plpgsql VOLATILE
+      SECURITY DEFINER SET search_path=pg_catalog AS $starter$#{body}$starter$
       """,
-      "REVOKE ALL ON FUNCTION #{@function} FROM PUBLIC",
-      "GRANT EXECUTE ON FUNCTION #{@function} TO mixer_build_create"
+      "REVOKE ALL ON FUNCTION #{function} FROM PUBLIC",
+      "GRANT EXECUTE ON FUNCTION #{function} TO mixer_build_create"
     ]
   end
 
-  def admit!(repo) do
+  def admit!(repo, platform \\ :ios)
+  def admit!(repo, :ios), do: admit!(repo, @table, @function, body())
+  def admit!(repo, :android), do: admit!(repo, @android_table, @android_function, body(:android))
+
+  defp admit!(repo, table, function, body) do
     [true] =
       Session.one!(
         repo,
@@ -99,12 +124,12 @@ defmodule MixerHosted.CustomerBuilds.LocalStarterSchema do
           AND has_function_privilege(current_user,p.oid,'EXECUTE')
           AND NOT has_function_privilege('browser_ordinary',p.oid,'EXECUTE')
           AND EXISTS (SELECT 1 FROM pg_class r
-          WHERE r.oid='public.mixer_local_starters'::regclass
+          WHERE r.oid='#{table}'::regclass
             AND r.relkind='r' AND r.relpersistence='p' AND r.relowner=p.proowner)
-        AND NOT has_table_privilege(current_user,'public.mixer_local_starters','SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')
-          AND NOT has_table_privilege('browser_ordinary','public.mixer_local_starters','SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')
-          AND NOT has_any_column_privilege(current_user,'public.mixer_local_starters','SELECT,INSERT,UPDATE,REFERENCES')
-          AND NOT has_any_column_privilege('browser_ordinary','public.mixer_local_starters','SELECT,INSERT,UPDATE,REFERENCES')
+        AND NOT has_table_privilege(current_user,'#{table}','SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')
+          AND NOT has_table_privilege('browser_ordinary','#{table}','SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')
+          AND NOT has_any_column_privilege(current_user,'#{table}','SELECT,INSERT,UPDATE,REFERENCES')
+          AND NOT has_any_column_privilege('browser_ordinary','#{table}','SELECT,INSERT,UPDATE,REFERENCES')
           AND NOT has_any_column_privilege(current_user,'public.mixer_customer_build_inputs','INSERT,UPDATE,REFERENCES')
           AND NOT has_any_column_privilege('browser_ordinary','public.mixer_customer_build_inputs','INSERT,UPDATE,REFERENCES')
           AND NOT has_table_privilege(current_user,'public.mixer_customer_build_inputs','DELETE,TRUNCATE,REFERENCES,TRIGGER')
@@ -112,7 +137,7 @@ defmodule MixerHosted.CustomerBuilds.LocalStarterSchema do
         FROM pg_proc p JOIN pg_roles owner ON owner.oid=p.proowner
         WHERE p.oid=to_regprocedure($2)
         """,
-        [body(), @function],
+        [body, function],
         :authorization_unavailable
       )
 

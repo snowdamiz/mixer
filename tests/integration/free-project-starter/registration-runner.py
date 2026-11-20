@@ -214,6 +214,7 @@ def main():
     mode.add_argument("--browser", action="store_true", help="Serve the console and run the Chrome browser proof")
     mode.add_argument("--migration", action="store_true", help="Run the closed-list migration integration against the Test runtime beams")
     mode.add_argument("--legacy-workspace", action="store_true", help="Exercise the existing workspace-only HTTP fixture")
+    mode.add_argument("--android-starter", action="store_true", help="Exercise Android starter selection with inert tools")
     parser.add_argument("--chrome", default="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
     args = parser.parse_args()
     checkout = args.checkout.resolve(strict=True)
@@ -247,7 +248,11 @@ def main():
             else:
                 env.pop("MIXER_REGISTRATION_LIVE", None)
             test = LEGACY_TEST if args.legacy_workspace else TEST
-            with owned(["mix", "test", "--seed", "0", "--trace", test], host, env) as phoenix:
+            filters = []
+            if args.android_starter:
+                test = "test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs"
+                filters = ["--only", "android_starter"]
+            with owned(["mix", "test", "--seed", "0", "--trace", *filters, test], host, env) as phoenix:
                 if args.browser:
                     metadata = wait_until(lambda: json.loads(live.read_text()) if live.exists() else None, phoenix, 100)
                     handoff = {"cookie": metadata.pop("cookie"), "nonce": os.urandom(16).hex(), "used": False, "done": str(live) + ".complete"}

@@ -155,6 +155,8 @@ The authenticated build log route and console now report **Android build driver 
 
 A live Swift frontend targeting Android ran outside its managed driver's process group. The worker had no confirmed shutdown, and the attempt remains under a custody hold. The ordinary cancellation replay remains pending until the worker can account for an in-flight compiler. [Compiler custody receipt](verification/receipts/l05-android-compiler-process-group-20261119.json)
 
+The ordinary local API can now select an operator-pinned Android Starter. The locked Pair24 replay persisted one source input, queued one build and one Oban job, and returned the same selections on replay. The processor was disabled. Dispatch of the selected input and live cancellation remain open. [Android Starter selection receipt](verification/receipts/l05-android-starter-selection-v51-20261119.json)
+
 ### Android TaskCompletion parity and source diagnostic
 
 At Mixer `7b61fe1cd9ae79d3153a29b5aff91c0146b0bd99`, the signed TaskCompletion trial passed on an owned AOSP arm64 API 36 emulator. A single staged Package Manager install matched development APK SHA-256 `f95407b596fe7d883a06a2c132b0ca0705b4f1189124d626c50c9e5a41368787`. The app drew **Open**, **Review required**, **Completed**, and **Open** from the same Swift source as the host differential. The JNI route refused the stale revision-1 input at revision 2. The fourth tap trapped at `TaskCompletion.swift:94:9`, function 8, Wasm offset 1883. The app kept the same PID and published no revision 5. **Close guest** confirmed retirement.

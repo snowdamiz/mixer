@@ -220,6 +220,243 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
     )
   end
 
+  @tag :android_starter
+  test "Android starter selects one locked build input through the ordinary API", c do
+    assert RuntimeOwner.status().phase == :storage_ready
+    assert c.hosted.processor_profile == nil
+    assert c.hosted.oban[:queues] == false
+
+    auth = login(c)
+    org = create(c, auth, "/console-api/v1/orgs", %{display_name: "Android starter owner"})
+    scope = register_app(c, auth, org, "Android project")
+    other = register_app(c, auth, org, "Other project")
+    baseline = side_effect_rows()
+    assert input_rows() == []
+    assert starter_list(c, auth, scope) == Map.put(public_scope(scope), "starter", nil)
+
+    {descriptor, settings, scratch} = prepare_android_starter!(scope)
+    %{"id" => id, "pin" => pin, "spec" => spec, "worker" => worker} = descriptor
+    worker_pin = worker["configuration_sha256"]
+    payload = Map.put(scope, :starter_id, id)
+
+    assert post(c, auth, @starters, payload).status == 503
+    [migration] = Path.wildcard("priv/local_android_source_selection/20261119000000_*.exs")
+    [{module, _}] = Code.require_file(migration)
+    assert :ok = Ecto.Migrator.up(Migration, 20_261_119_000_000, module, log: false)
+    assert post(c, auth, @starters, payload).status == 404
+
+    assert DB.q!(
+             Migration,
+             """
+             INSERT INTO public.mixer_local_android_starters
+               (organization_id, project_id, application_id, input_id, registration_pin,
+                spec, worker_configuration_pin)
+             VALUES ($1,$2,$3,$4,$5,$6,$7)
+             """,
+             [org, scope.project_id, scope.application_id, id, pin, spec, sha256("wrong worker")]
+           ).num_rows == 1
+
+    assert post(c, auth, @starters, payload).status == 404
+
+    assert DB.q!(
+             Migration,
+             """
+             UPDATE public.mixer_local_android_starters SET worker_configuration_pin=$2 WHERE input_id=$1
+             """,
+             [id, worker_pin]
+           ).num_rows == 1
+
+    assert starter_list(c, auth, scope) == Map.put(public_scope(scope), "starter", %{"id" => id})
+    assert post(c, auth, @starters, Map.put(other, :starter_id, id)).status == 404
+    assert post(c, auth, @starters, %{payload | starter_id: "unknown-starter"}).status == 404
+    assert post(c, {elem(auth, 0), "invalid"}, @starters, payload).status == 403
+
+    for field <- [:platform, :path, :command, :toolchain_lock_sha256] do
+      assert post(c, auth, @starters, Map.put(payload, field, "untrusted")).status == 400
+    end
+
+    DB.q!(
+      Admin,
+      "UPDATE public.mixer_authz_memberships SET role='developer' WHERE organization_id=$1",
+      [org]
+    )
+
+    try do
+      assert post(c, auth, @starters, payload).status == 403
+    after
+      DB.q!(
+        Admin,
+        "UPDATE public.mixer_authz_memberships SET role='owner' WHERE organization_id=$1",
+        [org]
+      )
+    end
+
+    assert_sql_denied!(descriptor)
+    assert input_rows() == []
+
+    Application.put_env(:mixer_hosted, LocalStarter, %{
+      settings
+      | worker_sha256: sha256("wrong worker")
+    })
+
+    assert post(c, auth, @starters, payload).status == 404
+    Application.put_env(:mixer_hosted, LocalStarter, settings)
+
+    for relative <- [
+          "export/mixer.lock",
+          "export/Generated/MixerAndroid/android-build.py",
+          "recipe.json",
+          "mixer"
+        ] do
+      with_stale_file(Path.join(scratch, relative), fn ->
+        assert post(c, auth, @starters, payload).status == 404
+        assert input_rows() == []
+      end)
+    end
+
+    input = %{
+      "platform" => "android",
+      "sourceInputId" => id,
+      "sourceSha256" => spec["source"]["sha256"],
+      "toolchainLockSha256" => spec["toolchain_lock_sha256"],
+      "buildDefinitionSha256" => spec["build_definition_sha256"]
+    }
+
+    for _ <- 1..2 do
+      assert response_json!(post(c, auth, @starters, payload), 200) ==
+               Map.merge(public_scope(scope), input)
+
+      assert_input_row!(descriptor)
+    end
+
+    assert input_list(c, login(c), scope) == input_page(scope, [input])
+    assert input_list(c, auth, other) == input_page(other, [])
+    assert side_effect_rows() == baseline
+
+    DB.q!(
+      Admin,
+      "UPDATE public.mixer_customer_build_inputs SET source_reference='different' WHERE input_id=$1",
+      [id]
+    )
+
+    assert post(c, auth, @starters, payload).status == 409
+    assert [[_, _, _, "android", ^id, _, "different" | _]] = input_rows()
+
+    DB.q!(
+      Admin,
+      "UPDATE public.mixer_customer_build_inputs SET source_reference=$2 WHERE input_id=$1",
+      [id, spec["source"]["reference"]]
+    )
+
+    build =
+      Map.merge(scope, %{
+        platform: "android",
+        source_input_id: id,
+        source_sha256: input["sourceSha256"],
+        toolchain_lock_sha256: input["toolchainLockSha256"],
+        build_definition_sha256: input["buildDefinitionSha256"]
+      })
+
+    path = "/console-api/v1/builds"
+    headers = [{"idempotency-key", "android-starter-build"}]
+    assert post(c, auth, path, %{build | platform: "ios"}, headers).status == 404
+
+    for field <- [:source_sha256, :toolchain_lock_sha256, :build_definition_sha256] do
+      assert post(c, auth, path, Map.replace!(build, field, sha256("different")), headers).status ==
+               409
+    end
+
+    assert %{"state" => "queued", "outcome" => "applied", "selection" => selection} =
+             response_json!(post(c, auth, path, build, headers), 201)
+
+    assert %{"state" => "queued", "selection" => ^selection} =
+             response_json!(post(c, auth, path, build, headers), 200)
+
+    assert Map.delete(selection, "build_id") ==
+             build |> Map.delete(:source_input_id) |> stringify()
+
+    effects = side_effect_rows()
+    assert length(effects["mixer_builds"]) == 1
+    assert length(effects["oban_jobs"]) == 1
+
+    assert Map.drop(effects, ~w(mixer_builds oban_jobs)) ==
+             Map.drop(baseline, ~w(mixer_builds oban_jobs))
+
+    IO.puts(
+      "ANDROID_STARTER_SELECTION " <>
+        Jason.encode!(%{
+          input: input,
+          workerPin: worker_pin,
+          source: spec["source"],
+          fixture: "inert",
+          queued: 1,
+          jobs: 1,
+          nativeStarts: 0
+        })
+    )
+  end
+
+  defp prepare_android_starter!(scope) do
+    scratch = Path.join(System.tmp_dir!(), "android-starter")
+    File.mkdir!(scratch)
+    File.chmod!(scratch, 0o700)
+    on_exit(fn -> remove_scratch!(scratch) end)
+    Application.delete_env(:mixer_hosted, LocalStarter)
+    on_exit(fn -> Application.delete_env(:mixer_hosted, LocalStarter) end)
+
+    tools = Path.expand("../tests/integration/free-project-starter")
+    port = "41769"
+
+    {startup_pin, 0} =
+      System.cmd("python3", [
+        "-B",
+        Path.join(tools, "android-selection-fixture.py"),
+        scratch,
+        scope.organization_id,
+        scope.project_id,
+        scope.application_id,
+        port
+      ])
+
+    path = Path.join(scratch, "descriptor.json")
+    startup = Path.join(scratch, "worker.json")
+    pin = String.trim(startup_pin)
+
+    {output, 0} =
+      System.cmd(
+        "python3",
+        [
+          "-B",
+          Path.join(tools, "prepare-starter.py"),
+          "--from-worker",
+          path,
+          startup,
+          pin,
+          "local-android-selection-fixture",
+          port
+        ],
+        stderr_to_stdout: true
+      )
+
+    descriptor = Jason.decode!(output)
+    refute Map.has_key?(Jason.decode!(File.read!(path)), "token")
+    assert descriptor["pin"] == sha256(File.read!(path))
+    assert descriptor["worker"]["configuration_sha256"] == sha256(File.read!(startup))
+
+    settings =
+      LocalStarter.runtime_config!(%{
+        "MIXER_LOCAL_STARTER_ORGANIZATION" => scope.organization_id,
+        "MIXER_LOCAL_STARTER_PROJECT" => scope.project_id,
+        "MIXER_LOCAL_STARTER_APPLICATION" => scope.application_id,
+        "MIXER_LOCAL_STARTER_REGISTRATION" => path,
+        "MIXER_LOCAL_STARTER_SHA256" => descriptor["pin"],
+        "MIXER_LOCAL_STARTER_WORKER_SHA256" => pin
+      })
+
+    Application.put_env(:mixer_hosted, LocalStarter, settings)
+    {descriptor, settings, scratch}
+  end
+
   defp legacy_selection_controls!(c, auth, scope, current, config) do
     settings = Application.fetch_env!(:mixer_hosted, LocalStarter)
     legacy_dir = Path.join(Path.dirname(config), "legacy")
@@ -566,8 +803,17 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
     end
   end
 
-  defp assert_sql_denied!(%{"id" => id, "pin" => pin, "spec" => spec}) do
-    execute = "SELECT public.mixer_local_starter_v1($1, $2, $3, true)"
+  defp assert_sql_denied!(%{"id" => id, "pin" => pin, "spec" => spec, "worker" => worker}) do
+    {execute, params} =
+      case spec["platform"] do
+        "android" ->
+          {"SELECT public.mixer_local_android_starter_v1($1, $2, $3, true, $4)",
+           [id, pin, spec, worker["configuration_sha256"]]}
+
+        "ios" ->
+          {"SELECT public.mixer_local_starter_v1($1, $2, $3, true)", [id, pin, spec]}
+      end
+
     write = "UPDATE public.mixer_customer_build_inputs SET source_reference = 'outside-command'"
 
     privilege =
@@ -579,13 +825,24 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
 
       assert {:error, %Postgrex.Error{postgres: %{code: :insufficient_privilege}}} =
                Ecto.Adapters.SQL.query(repo, write, [])
+
+      if spec["platform"] == "android" do
+        for query <- [
+              "SELECT worker_configuration_pin FROM public.mixer_local_android_starters",
+              "INSERT INTO public.mixer_local_android_starters DEFAULT VALUES",
+              "INSERT INTO public.mixer_customer_build_inputs DEFAULT VALUES"
+            ] do
+          assert {:error, %Postgrex.Error{postgres: %{code: :insufficient_privilege}}} =
+                   Ecto.Adapters.SQL.query(repo, query, [])
+        end
+      end
     end
 
     assert {:error, %Postgrex.Error{postgres: %{code: :insufficient_privilege}}} =
-             Ecto.Adapters.SQL.query(MixerHosted.Repo, execute, [id, pin, spec])
+             Ecto.Adapters.SQL.query(MixerHosted.Repo, execute, params)
 
     assert {:ok, %{rows: [["denied"]]}} =
-             Ecto.Adapters.SQL.query(CreateRepo, execute, [id, pin, spec])
+             Ecto.Adapters.SQL.query(CreateRepo, execute, params)
   end
 
   defp input_rows do
@@ -787,7 +1044,7 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
     response_json!(result, 201)["id"]
   end
 
-  defp post(c, {cookie, csrf}, path, body) do
+  defp post(c, {cookie, csrf}, path, body, extra_headers \\ []) do
     raw = Jason.encode!(body)
 
     http(
@@ -799,7 +1056,7 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
           {"x-mixer-csrf", csrf},
           {"content-type", "application/json"},
           {"content-length", Integer.to_string(byte_size(raw))}
-        ],
+        ] ++ extra_headers,
       "POST",
       raw
     )
