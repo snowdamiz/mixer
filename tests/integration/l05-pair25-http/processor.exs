@@ -100,6 +100,15 @@ try do
     scope = path.("build.selection") |> File.read!() |> Jason.decode!()
     %{"platform" => "android"} = scope
 
+    if System.get_env("PAIR25_BROWSER") do
+      %{"created_job_id" => job_id} = scope
+      true = is_integer(job_id) and job_id > 0
+      %{paused: true, running: []} = Oban.check_queue(queue: :builds)
+
+      %{rows: [[^job_id, "created", "available", 0]]} =
+        Repo.query!("SELECT id, args->>'kind', state::text, attempt FROM oban_jobs")
+    end
+
     scope =
       for key <- ~w(organization_id project_id application_id build_id)a,
           into: %{platform: :android},

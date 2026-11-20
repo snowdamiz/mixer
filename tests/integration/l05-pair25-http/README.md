@@ -121,13 +121,15 @@ Rendered UI and browser-originated actions require the interactive run above.
 
 ### Complete the queued browser build
 
-Add `--complete` to pass the one verified submission to the ordinary paused
-processor. The receipt ties the completed Oban `created` job to the same job ID
-observed at queue time. Terminal detail and download routes must match the
-original build scope and source pins. Owner, outsider, and anonymous reads
-must return HTTP 200, 404, and 401 respectively for detail, logs, and all three
-downloads. Billing snapshots must match before submission, after queueing, and
-after terminal readback.
+Add `--complete` to start the restricted processor and confirm it is paused
+against an empty queue before opening the bridge. The browser submits one build
+while the processor stays paused. After the bridge closes, the explicit drain
+requires the original Oban `created` job to be available with zero attempts.
+The receipt ties the completed job to that same ID. Terminal detail and
+download routes must match the original build scope and source pins. Owner,
+outsider, and anonymous reads must return HTTP 200, 404, and 401 respectively
+for detail, logs, and all three downloads. Billing snapshots must match before
+submission, after queueing, and after terminal readback.
 
 For an inert replay, run the HTTP smoke through completion. The stock runner
 protocol returns synthetic artifacts and known log counters.

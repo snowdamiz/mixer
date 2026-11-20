@@ -926,32 +926,38 @@ def drive(root, args, env, result):
                     "selected Starter differs from the approved runner inputs or enqueued work")
             result["starterRegistration" if args.browser else "starterSelection"] = starter
         result["billingBeforeBuild"] = billing_state()
-        if args.browser:
-            billing_key = "billingAfterQueue" if args.complete else "billingAfterReadback"
-            try:
-                queued = browser_run(root, args, dist, auth, api, sql, worker_port, ports, result)
-            finally:
-                result[billing_key] = billing_state()
-            require(result["billingBeforeBuild"] == result[billing_key], "browser flow changed billing state")
-            if not args.complete:
-                return
-            require(args.browser == "smoke" or result["browser"]["finish"] == "operator",
-                    "touch the browser finish file to dispatch the verified queued build")
-
-        config = {"tenant": auth["build"]["organization_id"], "worker_id": "pair25-native-worker",
-                  "port": worker_port, "token": secrets.token_hex(32)}
-        proc_env = dict(env, MIXER_HOSTED_ROLE="processor", MIXER_PROCESSOR_PROFILE="builds_v1",
-                        MIXER_BUILD_OPERATION_INTENT="durable_intent_v1", MIXER_DATABASE_HOST=HOST,
-                        MIXER_DATABASE_NAME=DB, MIXER_DATABASE_USER=rolename, MIXER_DATABASE_PASSWORD="loopback-fixture",
-                        MIXER_DATABASE_POOL_SIZE="2", MIXER_QUEUE_BUILDS_CONCURRENCY="1",
-                        MIXER_BUILD_DISPATCH="native_development_v1", MIXER_NATIVE_RETAINED_ROOT=str(state),
-                        MIXER_NATIVE_WORKER_PORT=str(worker_port), MIXER_NATIVE_WORKER_ID=config["worker_id"],
-                        MIXER_NATIVE_WORKER_TOKEN=config["token"])
-        with owned(root, "processor", ["mix", "run", "--no-start", "--no-compile", HERE / "processor.exs"],
-                   source, proc_env, receipts, stop=lambda: mark("processor.done")) as processor:
-            result["processorAdmission"] = ready("processor.ready", processor)
-            require(result["processorAdmission"] == {"role": rolename, "paused": True}, "restricted pause differs")
+        with ExitStack() as dispatch:
+            if not args.browser or args.complete:
+                config = {"tenant": auth["build"]["organization_id"], "worker_id": "pair25-native-worker",
+                          "port": worker_port, "token": secrets.token_hex(32)}
+                proc_env = dict(env, MIXER_HOSTED_ROLE="processor", MIXER_PROCESSOR_PROFILE="builds_v1",
+                                MIXER_BUILD_OPERATION_INTENT="durable_intent_v1", MIXER_DATABASE_HOST=HOST,
+                                MIXER_DATABASE_NAME=DB, MIXER_DATABASE_USER=rolename,
+                                MIXER_DATABASE_PASSWORD="loopback-fixture", MIXER_DATABASE_POOL_SIZE="2",
+                                MIXER_QUEUE_BUILDS_CONCURRENCY="1", MIXER_BUILD_DISPATCH="native_development_v1",
+                                MIXER_NATIVE_RETAINED_ROOT=str(state), MIXER_NATIVE_WORKER_PORT=str(worker_port),
+                                MIXER_NATIVE_WORKER_ID=config["worker_id"], MIXER_NATIVE_WORKER_TOKEN=config["token"])
+                processor = dispatch.enter_context(owned(
+                    root, "processor", ["mix", "run", "--no-start", "--no-compile", HERE / "processor.exs"],
+                    source, proc_env, receipts, stop=lambda: mark("processor.done"),
+                ))
+                result["processorAdmission"] = ready("processor.ready", processor)
+                require(result["processorAdmission"] == {"role": rolename, "paused": True}, "restricted pause differs")
             if args.browser:
+                if args.complete:
+                    require(all(value is None for value in observed_db().values()) and processor.poll() is None,
+                            "restricted processor must be ready against an empty queue before opening the bridge")
+                    result["browser"]["processorReadyBeforeExposure"] = True
+                billing_key = "billingAfterQueue" if args.complete else "billingAfterReadback"
+                try:
+                    queued = browser_run(root, args, dist, auth, api, sql, worker_port, ports, result)
+                finally:
+                    result[billing_key] = billing_state()
+                require(result["billingBeforeBuild"] == result[billing_key], "browser flow changed billing state")
+                if not args.complete:
+                    return
+                require(args.browser == "smoke" or result["browser"]["finish"] == "operator",
+                        "touch the browser finish file to dispatch the verified queued build")
                 scope, record_id, job_id = queued
                 result.update(createAttempts=result["browser"]["createAttempts"],
                               createHTTP=result["browser"]["createHTTP"])
@@ -968,7 +974,7 @@ def drive(root, args, env, result):
                 result["createHTTP"] = status
             require(observed_db()["jobs"] == [["created", "available"]], "expected one queued build job")
             selection_path = root / "build.selection.tmp"
-            write(selection_path, scope)
+            write(selection_path, scope | {"created_job_id": job_id} if args.browser else scope)
             selection_path.rename(root / "build.selection")
             binding = ready("build.binding", processor)
             operation = binding["operation_id"]
