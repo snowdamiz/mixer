@@ -2,26 +2,26 @@ import CMixerVMCapability
 import Dispatch
 import Foundation
 
-private struct CheckFailed: Error {
+struct CheckFailed: Error {
     let reason: String
 }
 
-private func check(_ condition: @autoclosure () -> Bool, _ reason: String) throws {
+func check(_ condition: @autoclosure () -> Bool, _ reason: String) throws {
     guard condition() else { throw CheckFailed(reason: reason) }
 }
 
-private func event(_ revision: Int) -> [UInt8] {
+func event(_ revision: Int) -> [UInt8] {
     Array("""
     {"actionID":"task.toggle","event":"activate","nodeID":"toggle","revision":\(revision),"schemaVersion":1,"sequence":\(revision),"value":null}
     """.utf8)
 }
 
-private protocol TaskPath {
+protocol TaskPath {
     mutating func frame() throws -> Data
     mutating func activate(_ bytes: [UInt8]) throws -> Bool
 }
 
-private struct NativeTask: TaskPath {
+struct NativeTask: TaskPath {
     var task = TaskCompletion()
 
     func frame() -> Data {
@@ -36,7 +36,7 @@ private struct NativeTask: TaskPath {
     }
 }
 
-private final class OwnedTask: TaskPath {
+final class OwnedTask: TaskPath {
     private let configuration = ExperimentalCapabilityConfiguration(memoryPages: 1, hostCalls: 0)
     private let module: Data
     private var handle: UInt64 = 0
@@ -190,6 +190,7 @@ private func exercise(_ path: inout some TaskPath, mode: String) throws -> Sampl
     return sample
 }
 
+#if !SWIFT_SUPPORT_MATRIX
 @main private enum MatchedTask {
     static func main() {
         do {
@@ -218,3 +219,4 @@ private func exercise(_ path: inout some TaskPath, mode: String) throws -> Sampl
         }
     }
 }
+#endif

@@ -1,0 +1,445 @@
+{
+  "outcome": "passed_scoped_macos_swift_support_controls",
+  "scope": "arm64 macOS native Swift and installed Guest UI v1 owned VM. Unsigned local fixtures and maintained SDK and VM host controls. Node/WASI model observations remain historical development evidence. Device, signed activation and gate qualification are outside this replay.",
+  "baseRevision": "b963585ef2f5089dae67b3bcd30a3cdec3f358b5",
+  "baseTree": "3e2d766c91619d857c18737cfef82dfb04406e9b",
+  "candidateTreeExcludingThisReceipt": "0a564cf51b1ddc37f09fdd6334dcc283d9130c4d",
+  "matrix": {
+    "rows": 24,
+    "rowsWithEvidenceLabel": 13,
+    "check": "python3 -B compiler/swift_support_matrix.py --check",
+    "compilerTests": {
+      "command": "python3 -B -m unittest discover -s compiler/tests -v",
+      "passed": 9
+    }
+  },
+  "ownedReplay": {
+    "command": "python3 -B compiler/Fixtures/FeatureProbe/replay.py",
+    "observedUTC": "2026-11-20T23:27:49.647799+00:00",
+    "sourceManifestSHA256": "3b3fa663291d8ab3bc546bf43399beb2e1cc78fd7ec7fa5498a5194d17bd1c6d",
+    "replaySources": {
+      "compiler/Fixtures/FeatureProbe/replay.py": "48e488ed652f52dc5ef50acbe2ee51df129d6c796beb7f4c1d4eba2037d74a02",
+      "compiler/Fixtures/FeatureProbe/Sources/FeatureProbe/main.swift": "3ec86073ed24e9bcefcade693312bfdd8cdb9928ab9f7e933584229c0e107b4d",
+      "compiler/experiments/fieldlog-installed-guest/InstalledGuest.swift": "6393c778040ad28e445b278648864b99e33f9fc7bebf0bcf5987eba13c51ffdc",
+      "compiler/Fixtures/FeatureProbe/CompactHost.swift": "475a240fd7d54c15ad0d88a53d63428fec414dea17c9999decb3cc60301758c7",
+      "compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift": "e2539a9ff78652d4b0087a63bad89172cd09aacb5457185e513f204ba1cc8b31",
+      "compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift": "617b60024af1accef044dd148360fcf889648594783057c7234b335b468071d7",
+      "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift": "508f0e5ef4b5439f6eaf0d3ff404bcc17034dce337cbb4886932b9826b483b62",
+      "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift": "25fda0bc8aa630afbfab7b53d0a05ddadee31e560f7cee37daf60c8fa24bcc63",
+      "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift": "37182a6b3da620e07730647526ca644f5e85e4e55c661cb785973516d277fde7"
+    },
+    "toolVersions": {
+      "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+      "nativeSwift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+      "guestSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+      "linker": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+      "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+      "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+      "python": "3.14.8",
+      "architecture": "arm64"
+    },
+    "nativeFeatureProbe": {
+      "status": "passed",
+      "completionBasisPoints": 5000,
+      "codableRoundTrip": true,
+      "unicodePreserved": true,
+      "emptyTitleRejected": true,
+      "wrongFieldTypeRejected": true,
+      "nonfiniteRejected": true
+    },
+    "taskCompletion": {
+      "native": {
+        "mismatchedRefusals": 3,
+        "closed": false,
+        "truncatedRefusals": 3
+      },
+      "guest": {
+        "mismatchedRefusals": 3,
+        "truncatedRefusals": 3,
+        "closed": true
+      },
+      "frameSHA256": [
+        "cba98fab9e4bed642f3b0ce41506d7a98eb2bebe37528ce1805821ac2bc49833",
+        "0d04a715c3a5fb3aae1fad401801ead8d555944960daa5f8becfc71b72460eae",
+        "d6fa309e765b4ddf5e8ee08dfdee4339ef4d5deb2f8b16e18ea591d0ee07715c",
+        "9f9839813937d389aeef9af99de5ee771c334ec97f92da084018d72ccabc7851"
+      ]
+    },
+    "compactWasm": {
+      "bytes": 2790,
+      "sha256": "b44cc18cf386e55633ea294322578bdc0f1e996cb6c58739b47e5fbe63dd29ce"
+    },
+    "vmArchive": {
+      "bytes": 19309144,
+      "sha256": "0beb9fbab5f2d1f718482391a43ecb57a3e76f6e3e0d31a0676b87b7a1852116"
+    },
+    "descriptorGuardRefusals": [
+      "differentMaximum",
+      "differentMinimum",
+      "extraFunctionExport",
+      "extraMemory",
+      "extraMemoryExport",
+      "importedFunction",
+      "missingMemory",
+      "missingMemoryExport",
+      "renamedMemoryExport",
+      "sharedMemory",
+      "startSection",
+      "unboundedMemory",
+      "wrongFunctionSignature",
+      "wrongMemoryExportIndex"
+    ],
+    "sharedMemoryControl": {
+      "bytes": 2790,
+      "sha256": "586edd070070b1da66e36cfc0fa6a416779ab8ffd254b96da2eb005d3e197624",
+      "changedByteOffset": 110,
+      "sessionHandlePublished": false,
+      "validation": {
+        "offset": 111,
+        "message": "shared/memory64 memory is unsupported",
+        "status": 1,
+        "code": "unsupported"
+      },
+      "construction": {
+        "code": "unsupported",
+        "status": 1,
+        "message": "shared/memory64 memory is unsupported",
+        "offset": 111
+      }
+    },
+    "vmTestResults": {
+      "experimental_guest_ui_validation": "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "experimental_capability_guest": "test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+    },
+    "commands": [
+      {
+        "label": "revision",
+        "argv": [
+          "/usr/bin/git",
+          "rev-parse",
+          "HEAD"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "tree",
+        "argv": [
+          "/usr/bin/git",
+          "rev-parse",
+          "HEAD^{tree}"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "macOS",
+        "argv": [
+          "/usr/bin/sw_vers"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "nativeSwift",
+        "argv": [
+          "/usr/bin/swiftc",
+          "--version"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "guestSwift",
+        "argv": [
+          "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+          "--version"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "linker",
+        "argv": [
+          "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+          "--version"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "rustc",
+        "argv": [
+          "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+          "--version"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "cargo",
+        "argv": [
+          "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "--version"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "vm-sources",
+        "argv": [
+          "/usr/bin/git",
+          "ls-files",
+          "-z",
+          "--",
+          "vm/Cargo.toml",
+          "vm/Cargo.lock",
+          "vm/src",
+          "vm/include",
+          "vm/tests"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "native-feature-build",
+        "argv": [
+          "/usr/bin/swiftc",
+          "-O",
+          "-swift-version",
+          "6",
+          "-module-cache-path",
+          "$RUN/native-modules",
+          "$REPO/compiler/Fixtures/FeatureProbe/Sources/FeatureProbe/main.swift",
+          "-o",
+          "$RUN/feature-probe"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "native-feature",
+        "argv": [
+          "$RUN/feature-probe"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "task-review-swift",
+        "argv": [
+          "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+          "-target",
+          "wasm32-unknown-none-wasm",
+          "-enable-experimental-feature",
+          "Embedded",
+          "-whole-module-optimization",
+          "-Osize",
+          "-parse-as-library",
+          "-Xfrontend",
+          "-disable-stack-protector",
+          "-D",
+          "REQUIRE_REVIEW",
+          "-module-cache-path",
+          "$RUN/guest-modules",
+          "-emit-object",
+          "$REPO/compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift",
+          "$REPO/compiler/experiments/fieldlog-installed-guest/InstalledGuest.swift",
+          "-o",
+          "$RUN/task-review.o"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "task-review-link",
+        "argv": [
+          "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+          "--no-entry",
+          "--gc-sections",
+          "--strip-all",
+          "-z",
+          "stack-size=16384",
+          "--max-memory=65536",
+          "--export=mixer_guest_ui_start_v1",
+          "--export=mixer_guest_ui_event_v1",
+          "--export=mixer_guest_capability_ready_v1",
+          "$RUN/task-review.o",
+          "-o",
+          "$RUN/task-review.wasm"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "vm-build",
+        "argv": [
+          "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "build",
+          "--lib",
+          "--offline",
+          "--locked",
+          "--release",
+          "--jobs",
+          "1",
+          "--features",
+          "experimental-capability-native",
+          "--manifest-path",
+          "$REPO/vm/Cargo.toml",
+          "--target-dir",
+          "$RUN/rust"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "host-build",
+        "argv": [
+          "/usr/bin/swiftc",
+          "-O",
+          "-whole-module-optimization",
+          "-swift-version",
+          "6",
+          "-D",
+          "SWIFT_SUPPORT_MATRIX",
+          "-parse-as-library",
+          "-module-cache-path",
+          "$RUN/native-modules",
+          "-I",
+          "$RUN",
+          "$REPO/compiler/Fixtures/FeatureProbe/CompactHost.swift",
+          "$REPO/compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift",
+          "$REPO/compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift",
+          "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift",
+          "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift",
+          "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift",
+          "$RUN/rust/release/libmixer_vm.a",
+          "-o",
+          "$RUN/compact-host"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "compact-native",
+        "argv": [
+          "$RUN/compact-host",
+          "native",
+          "$RUN/task-review.wasm"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "compact-guest",
+        "argv": [
+          "$RUN/compact-host",
+          "guest",
+          "$RUN/task-review.wasm"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "shared-memory",
+        "argv": [
+          "$RUN/compact-host",
+          "shared-memory",
+          "$RUN/task-shared-memory.wasm"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "experimental_guest_ui_validation",
+        "argv": [
+          "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "test",
+          "--test",
+          "experimental_guest_ui_validation",
+          "--offline",
+          "--locked",
+          "--release",
+          "--jobs",
+          "1",
+          "--features",
+          "experimental-capability-native",
+          "--manifest-path",
+          "$REPO/vm/Cargo.toml",
+          "--target-dir",
+          "$RUN/rust"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "experimental_capability_guest",
+        "argv": [
+          "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "test",
+          "--test",
+          "experimental_capability_guest",
+          "--offline",
+          "--locked",
+          "--release",
+          "--jobs",
+          "1",
+          "--features",
+          "experimental-capability-native",
+          "--manifest-path",
+          "$REPO/vm/Cargo.toml",
+          "--target-dir",
+          "$RUN/rust"
+        ],
+        "exit": 0
+      }
+    ],
+    "custody": {
+      "directReapedAndGroupsObservedAbsent": 20,
+      "unknown": 0,
+      "observedPeakScratchBytes": 79148085,
+      "scratchLimitBytes": 3221225472,
+      "scratchRemoved": true
+    }
+  },
+  "nativeSwiftPMEntry": {
+    "command": "swift run --package-path compiler/Fixtures/FeatureProbe --scratch-path \"$REPO/verification/local/l03-swift-support-matrix/native\" feature-probe",
+    "exit": 0,
+    "observations": {
+      "status": "passed",
+      "completionBasisPoints": 5000,
+      "codableRoundTrip": true,
+      "unicodePreserved": true,
+      "emptyTitleRejected": true,
+      "wrongFieldTypeRejected": true,
+      "nonfiniteRejected": true
+    }
+  },
+  "nativeSDK": {
+    "environment": {
+      "GIT_ALLOW_PROTOCOL": "file"
+    },
+    "argv": [
+      "/usr/bin/swift",
+      "test",
+      "--package-path",
+      "sdk",
+      "--scratch-path",
+      "$REPO/verification/local/l03-swift-support-matrix/sdk",
+      "--cache-path",
+      "$USER_HOME/Library/Caches/org.swift.swiftpm",
+      "--skip-update",
+      "--disable-prefetching",
+      "--force-resolved-versions",
+      "--filter",
+      "authoringBuildsFieldLogEditorAndGuestCodecOnlyRoundTripsValues|validationRejectsDuplicateUnsupportedAndMalformedControls|reducerEffectsReplaceAndCancelWithoutStaleDelivery|guestUIEventCodecPreservesUnicodeAndUInt64WithoutNormalization|malformedJSONAndUnpairedUnicodeFailBeforeFoundationDecoding"
+    ],
+    "packageResolvedSHA256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+    "testPlatform": "arm64e-apple-macos14.0",
+    "exit": 0,
+    "passed": [
+      "authoringBuildsFieldLogEditorAndGuestCodecOnlyRoundTripsValues",
+      "validationRejectsDuplicateUnsupportedAndMalformedControls",
+      "reducerEffectsReplaceAndCancelWithoutStaleDelivery",
+      "guestUIEventCodecPreservesUnicodeAndUInt64WithoutNormalization",
+      "malformedJSONAndUnpairedUnicodeFailBeforeFoundationDecoding"
+    ],
+    "stdoutAndStderrSHA256": "02def869df43d9467834a2848872d20e690347c87b8987574ff12e65ddb7373c"
+  },
+  "existingMatchedTaskRegression": {
+    "command": "python3 -B -c 'import sys; sys.path.insert(0, \"compiler/experiments/fieldlog-guest-benchmark\"); import matched_task; matched_task.PIN = \"b963585ef2f5089dae67b3bcd30a3cdec3f358b5\"; matched_task.main()'",
+    "scope": "Host control with the standard benchmark entry point. The public source guard used the new pinned base. This check covers the existing frame, refusal, trap, and cleanup assertions.",
+    "exit": 0,
+    "nativeDiagnostic": "TaskCompletion.swift:94: Precondition failed (SIGTRAP)",
+    "guestDiagnostic": "TaskCompletion.swift:94:9: unreachable [function=7 wasmOffset=1869]",
+    "exactFrames": true,
+    "custody": {
+      "directReapedAndGroupsObservedAbsent": 33,
+      "unknown": 0,
+      "observedPeakScratchBytes": 116238557,
+      "scratchLimitBytes": 3221225472,
+      "scratchRemoved": true
+    }
+  }
+}

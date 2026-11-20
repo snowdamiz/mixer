@@ -6,9 +6,14 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from qualification_support import (CommandRecorder, clean_environment, digest,
                                    model_observations, strict_json, tool_identity, vm_receipt)
+from swift_support_matrix import OUTPUT, render
 
 
 class QualificationTests(unittest.TestCase):
+    def test_public_swift_support_matrix_matches_its_test_mapping(self):
+        self.assertEqual(OUTPUT.read_text(encoding='utf-8'), render(),
+                         'Run python3 -B compiler/swift_support_matrix.py')
+
     def test_ambiguous_json_and_nonfinite_numbers_rejected(self):
         for value in ['{"valid":false,"valid":true}', '{"nested":{"x":1,"x":2}}', 'NaN', 'Infinity']:
             with self.subTest(value=value), self.assertRaises(ValueError):

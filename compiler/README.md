@@ -5,6 +5,13 @@ authorize an OTA release; the device must execute the exact emitted profile in
 our owned VM and verify its complete dependency/capability/runtime contract.
 
 `Fixtures/FeatureProbe` is an original small language/model probe.
+
+The [Swift language support matrix](swift-language-support.md) links scoped
+native and owned-VM claims to executable controls and records unqualified
+features. Update `swift-language-support.json` and run
+`python3 -B compiler/swift_support_matrix.py` to regenerate it. The compiler
+test suite checks the generated file for drift.
+
 `Fixtures/FieldLogCorpus/main.swift` exercises the actual models imported from an
 immutable revision of the separate FieldLog repository: 1,000 tasks, 50% progress,
 reordering, Unicode draft Codable restoration, entry commit/repeat rejection,
