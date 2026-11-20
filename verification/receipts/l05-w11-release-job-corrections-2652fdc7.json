@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "scope": "L05/W11 composed release queue review corrections",
+  "reviewedProduct": "23cda04e77ebdd172cd90ede89ef84cc8591b841",
+  "correctedProduct": "2652fdc7d424ecb9f8391e8b5d4240cab1c8d818",
+  "hostedTree": "676d3e7240d3779b4eed95afe019b28c1922750a",
+  "toolchain": {
+    "postgres": "17.11",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "oban": "2.24.2"
+  },
+  "verification": {
+    "commandFromHosted": [
+      "mix",
+      "test",
+      "--warnings-as-errors",
+      "--seed",
+      "0",
+      "--trace",
+      "test/mixer_hosted/releases/browser_publication_test.exs",
+      "test/mixer_hosted/releases/release_jobs_test.exs",
+      "test/mixer_hosted/releases/runtime_provisioning_test.exs",
+      "test/runtime_config_test.exs"
+    ],
+    "fixture": "Fresh loopback PostgreSQL 17 and the ordinary browser-role setup. The isolated runner selected PostgreSQL 17 psql through PATH.",
+    "passed": 27,
+    "logSHA256": "1add89f1f37c67271d8f66f3aa7c17bc0a54aa0a317d0025ad12f0201c500713",
+    "closure": {
+      "testExit": 0,
+      "postgresPIDAbsent": true,
+      "ownedPortReusable": true
+    },
+    "postCommitFailure": "The deferred enqueue trigger disconnected the CLI writer connection. An authenticated browser head read returned the preceding sequence immediately. The fixture uses bounded Retry-After replay of the identical CLI key and body.",
+    "operatorRecovery": "Lifeline discarded the modeled final-attempt loss before projection. The checked-in psql retry script reopened one attempt for the same job. An immediate second invocation was a no-op. The processor completed the original job and wrote one exact projection.",
+    "admission": "The clean restricted role passed. Adding TRUNCATE on prefixed oban_peers caused admission refusal. The fixture revoked it and then started the normal release processor."
+  },
+  "limits": [
+    "The earlier isolated browser 503 following a failed commit remains unexplained.",
+    "The abandoned attempt was modeled in the fixture, without an actual process crash.",
+    "The complete hosted runner and corrected v67 source admission are outside this test."
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "scope": "L05/W11 stage promotion environment and v3 identity controls",
+  "base": "b963585ef2f5089dae67b3bcd30a3cdec3f358b5",
+  "controlsCommit": "46eff9bccd8a5ea4db75c1984f88bd993fb03b08",
+  "go": {
+    "version": "1.26.4",
+    "from": "services",
+    "command": [
+      "go",
+      "test",
+      "-count=1",
+      "./protocol"
+    ],
+    "result": "passed",
+    "control": "An independently signed destination manifest and assignment admitted identical source payload bytes under the destination runtime. The source manifest and assignment stayed scoped to the source. The destination required its own artifact signing roots."
+  },
+  "swift": {
+    "version": "6.4.2",
+    "from": "runtime-identity",
+    "command": [
+      "swift",
+      "test",
+      "--disable-automatic-resolution",
+      "--skip-update"
+    ],
+    "passed": 20,
+    "logSHA256": "df967375e28d3eafaacc81536735f0bc2fa12339b449c2d6f9a866eff8f93990",
+    "control": "Changing only application.environment in the published descriptor vector produced a distinct runtime fingerprint."
+  },
+  "decision": "Use separate scoped signed envelopes and link both immutable identities in the environment promotion record. Verify each platform's manifest and assignment against its own enrolled environment and runtime. Preserve the source manifest and payload bytes.",
+  "limits": [
+    "The Go control used public synthetic fixture keys. Neither control implements or exercises a staged publish, promotion transaction, or installed app."
+  ]
+}
