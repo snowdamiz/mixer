@@ -3067,10 +3067,16 @@ WORKSPACE_V60_SOURCE_DIGEST = '70d447a7ea3bce833aace6522a9d0ea933f124c5228bc6bb8
 WORKSPACE_V60_SOURCE_COUNT = 461
 WORKSPACE_V60_MANIFEST_SHA256 = 'd8ea06de376441cf429a7390a1ab06667edce4151013e59a7a0f97a72500d4b5'
 
-WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v61/'
-WORKSPACE_SELECTION_SHA256 = 'e89e72d28ea7e60f8f176ad65c72a28aa1f7a7e54271aeecfdf6c5b5612d80bf'
-WORKSPACE_SOURCE_DIGEST = '4cc548c54e9243e3fb43bdea252dce8cad886591ce403a5d9b7f950c56296cb6'
-WORKSPACE_SOURCE_COUNT = 462
+WORKSPACE_V61_SOURCE_BASE = 'verification/identity-network-current-source-v61/'
+WORKSPACE_V61_SELECTION_SHA256 = 'e89e72d28ea7e60f8f176ad65c72a28aa1f7a7e54271aeecfdf6c5b5612d80bf'
+WORKSPACE_V61_SOURCE_DIGEST = '4cc548c54e9243e3fb43bdea252dce8cad886591ce403a5d9b7f950c56296cb6'
+WORKSPACE_V61_SOURCE_COUNT = 462
+WORKSPACE_V61_MANIFEST_SHA256 = '19290948e8bc28dc671390e166b53d4eaa2a2871bc918fe0b599eb647f505ede'
+
+WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v62/'
+WORKSPACE_SELECTION_SHA256 = 'a398a9aa0f241386eaa7b09ae933e22bd6e91ac64699ed5de818ec9a2ce3525f'
+WORKSPACE_SOURCE_DIGEST = '3e85bab9fc8c6fe4fadf893d3d9b7c24818adfe4d1d90012be725643e590bc39'
+WORKSPACE_SOURCE_COUNT = 470
 WORKSPACE_IOS_CUSTODY_HELPER = 'hosted/priv/development/ios_build_custody.py'
 WORKSPACE_IOS_CUSTODY_PATHS = {
     WORKSPACE_IOS_CUSTODY_HELPER,
@@ -3821,10 +3827,10 @@ def validate_workspace_v60_metadata(metadata):
     return selection, manifest
 
 
-def validate_workspace_source_metadata(metadata):
+def validate_workspace_v61_metadata(metadata):
     selection, manifest = _validate_workspace_metadata(
-        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
-        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V60_MANIFEST, {
+        metadata, WORKSPACE_V61_SOURCE_BASE, WORKSPACE_V61_SELECTION_SHA256,
+        WORKSPACE_V61_SOURCE_COUNT, WORKSPACE_V61_SOURCE_DIGEST, WORKSPACE_V60_MANIFEST, {
             'source_count': WORKSPACE_V60_SOURCE_COUNT,
             'source_digest_sha256': WORKSPACE_V60_SOURCE_DIGEST,
             'selection_sha256': WORKSPACE_V60_SELECTION_SHA256,
@@ -3864,6 +3870,60 @@ def validate_workspace_source_metadata(metadata):
     ):
         require(selection[key] == migration and manifest[migration] == WORKSPACE_V60_MANIFEST[migration],
                 'hosted release writer and transition source opt-in migration inventory')
+    return selection, manifest
+
+
+def validate_workspace_source_metadata(metadata):
+    selection, manifest = _validate_workspace_metadata(
+        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
+        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V61_MANIFEST, {
+            'source_count': WORKSPACE_V61_SOURCE_COUNT,
+            'source_digest_sha256': WORKSPACE_V61_SOURCE_DIGEST,
+            'selection_sha256': WORKSPACE_V61_SELECTION_SHA256,
+            'manifest_sha256': WORKSPACE_V61_MANIFEST_SHA256,
+        }, migration_count=24)
+    require(set(selection['exact_delta']) == {
+        'docs/operations/local-signed-release-delivery.md',
+        'docs/operations/provision-local-artifact-uploader.sql',
+        'hosted/config/runtime.exs',
+        'hosted/lib/mixer_hosted/application.ex',
+        'hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex',
+        'hosted/lib/mixer_hosted/browser_auth/runtime_config.ex',
+        'hosted/lib/mixer_hosted/customer_artifacts.ex',
+        'hosted/lib/mixer_hosted/customer_artifacts/local_upload.ex',
+        'hosted/lib/mixer_hosted/customer_artifacts/upload_repo.ex',
+        'hosted/lib/mixer_hosted/runtime_config.ex',
+        'hosted/scripts/check-configured-startup.exs',
+        'hosted/scripts/replay-configured-release-client.py',
+        'hosted/scripts/replay-configured-release.md',
+        'hosted/scripts/replay-configured-release.sh',
+        'hosted/test/mixer_hosted/browser_auth/ordinary_console_catalog_navigation_cookie_pg_join_test.exs',
+        'hosted/test/mixer_hosted/customer_artifacts/local_upload_test.exs',
+        'hosted/test/mixer_hosted/releases/configured_release_replay_test.exs',
+        'hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs',
+        'hosted/test/support/ordinary_browser_startup_fixture.ex',
+    } and manifest.keys() == WORKSPACE_V61_MANIFEST.keys() | {
+        'docs/operations/provision-local-artifact-uploader.sql',
+        'hosted/lib/mixer_hosted/customer_artifacts/local_upload.ex',
+        'hosted/lib/mixer_hosted/customer_artifacts/upload_repo.ex',
+        'hosted/scripts/replay-configured-release-client.py',
+        'hosted/scripts/replay-configured-release.md',
+        'hosted/scripts/replay-configured-release.sh',
+        'hosted/test/mixer_hosted/customer_artifacts/local_upload_test.exs',
+        'hosted/test/mixer_hosted/releases/configured_release_replay_test.exs',
+    }, 'hosted configured release upload source paths')
+    require(selection['identity'] == 'hosted-configured-release-upload-source-v62' and
+            selection['schema'] == 1 and selection['deployment'] is False and
+            selection['financial_effects'] is False and selection['runtime_or_GA_accepted'] is False,
+            'hosted configured release upload source scope')
+    for key, migration in (
+        ('opt_in_migration', WORKSPACE_LOCAL_SOURCE_MIGRATION),
+        ('android_opt_in_migration', WORKSPACE_ANDROID_SOURCE_MIGRATION),
+        ('managed_linux_opt_in_migration', WORKSPACE_MANAGED_LINUX_SOURCE_MIGRATION),
+        ('local_release_delivery_opt_in_migration', WORKSPACE_LOCAL_RELEASE_DELIVERY_MIGRATION),
+    ):
+        require(selection[key] == migration and manifest[migration] == WORKSPACE_V61_MANIFEST[migration],
+                'hosted configured release upload source opt-in migration inventory')
     return selection, manifest
 
 
@@ -3999,6 +4059,10 @@ def check_workspace_source(root):
         workspace_source_metadata(root, WORKSPACE_V60_SOURCE_BASE))
     v60_rows = workspace_preimage_rows(v60_selection, WORKSPACE_V60_SOURCE_BASE)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in v60_rows}, v60_rows)
+    v61_selection, _ = validate_workspace_v61_metadata(
+        workspace_source_metadata(root, WORKSPACE_V61_SOURCE_BASE))
+    v61_rows = workspace_preimage_rows(v61_selection, WORKSPACE_V61_SOURCE_BASE)
+    validate_workspace_preimages({path: (root / path).read_bytes() for path in v61_rows}, v61_rows)
     selection, manifest = validate_workspace_source_metadata(workspace_source_metadata(root, WORKSPACE_SOURCE_BASE))
     rows = workspace_preimage_rows(selection)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in rows}, rows)
@@ -5344,6 +5408,14 @@ class Collector:
         validate_workspace_preimages(v60_preimages, v60_rows)
         metadata.update(v60_metadata)
         metadata.update(v60_preimages)
+        v61_metadata = self.git_blobs(
+            [WORKSPACE_V61_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        v61_selection, _ = validate_workspace_v61_metadata(v61_metadata)
+        v61_rows = workspace_preimage_rows(v61_selection, WORKSPACE_V61_SOURCE_BASE)
+        v61_preimages = self.git_blobs(sorted(v61_rows))
+        validate_workspace_preimages(v61_preimages, v61_rows)
+        metadata.update(v61_metadata)
+        metadata.update(v61_preimages)
         workspace_metadata = self.git_blobs([WORKSPACE_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         workspace_selection, workspace_manifest = validate_workspace_source_metadata(workspace_metadata)
         validate_workspace_source_manifest(workspace_manifest)
@@ -6145,6 +6217,8 @@ _, WORKSPACE_V59_MANIFEST = validate_workspace_v59_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V59_SOURCE_BASE))
 _, WORKSPACE_V60_MANIFEST = validate_workspace_v60_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V60_SOURCE_BASE))
+_, WORKSPACE_V61_MANIFEST = validate_workspace_v61_metadata(
+    workspace_source_metadata(_source_root, WORKSPACE_V61_SOURCE_BASE))
 _, WORKSPACE_MANIFEST = validate_workspace_source_metadata(workspace_source_metadata(_source_root, WORKSPACE_SOURCE_BASE))
 
 if __name__ == '__main__':

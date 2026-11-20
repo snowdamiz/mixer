@@ -230,6 +230,7 @@ HOSTED_V58_WORKFLOW = 'hosted-v58-predecessor-bytes/' + VERIFY_WORKFLOW
 HOSTED_V59_WORKFLOW = 'hosted-v59-predecessor-bytes/' + VERIFY_WORKFLOW
 HOSTED_V60_WORKFLOW = 'hosted-v60-predecessor-bytes/' + VERIFY_WORKFLOW
 HOSTED_V61_WORKFLOW = 'hosted-v61-predecessor-bytes/' + VERIFY_WORKFLOW
+HOSTED_V62_WORKFLOW = 'hosted-v62-predecessor-bytes/' + VERIFY_WORKFLOW
 APPLE_RENDERER = 'sdk/Sources/MixerApple/MixerNativeView.swift'
 APPLE_PREIMAGE = 'apple-section-predecessor-bytes/sdk/Sources/MixerApple/MixerNativeView.swift'
 APPLE_SECTION_SOURCE_SHA256 = '1d2ebd6883fff9147aeec6d558b3ce1b2ec8f7dffc22b99c12ec5a85ab19b438'
@@ -322,7 +323,7 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
     HOSTED_V43_WORKFLOW, HOSTED_V44_WORKFLOW, HOSTED_V45_WORKFLOW, HOSTED_V46_WORKFLOW, HOSTED_V47_WORKFLOW, HOSTED_V48_WORKFLOW, HOSTED_V49_WORKFLOW, HOSTED_V50_WORKFLOW, HOSTED_V51_WORKFLOW, HOSTED_V52_WORKFLOW, HOSTED_V53_WORKFLOW, HOSTED_V54_WORKFLOW, HOSTED_V55_WORKFLOW, HOSTED_V56_WORKFLOW, HOSTED_V57_WORKFLOW,
-    HOSTED_V58_WORKFLOW, HOSTED_V59_WORKFLOW, HOSTED_V60_WORKFLOW, HOSTED_V61_WORKFLOW, GUEST_CUTOFF_PREIMAGE, WORKER_SWIFT_PROBE_PREIMAGE, CLI_NONREGULAR_INPUT_TEST_PREIMAGE,
+    HOSTED_V58_WORKFLOW, HOSTED_V59_WORKFLOW, HOSTED_V60_WORKFLOW, HOSTED_V61_WORKFLOW, HOSTED_V62_WORKFLOW, GUEST_CUTOFF_PREIMAGE, WORKER_SWIFT_PROBE_PREIMAGE, CLI_NONREGULAR_INPUT_TEST_PREIMAGE,
     SIGNED_APPLE_OVERFLOW_TEST_PREIMAGE, SPARSE_CHECKOUT_TEST_PREIMAGE,
 } | {STORE_PLATFORM_IDENTITY_PREFIX + name for name in STORE_PLATFORM_IDENTITY_INPUTS} | {
     ANDROID_OUTPUT_PREFIX + name for name in ANDROID_OUTPUT_CHANGES
@@ -475,7 +476,7 @@ def install_inputs():
                              'sparse_checkout_test_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
-                             'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow'} and
+                             'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -983,6 +984,13 @@ def install_inputs():
             installed[VERIFY_WORKFLOW] == previous.row(before) == hosted_v61['before'] and
             hosted_v61['before'] != hosted_v61['after'], 'Hosted v61 workflow preimage differs')
     installed[VERIFY_WORKFLOW] = hosted_v61['after']
+
+    hosted_v62 = binding['hosted_v62_workflow']
+    before = read_predecessor_member(HERE / HOSTED_V62_WORKFLOW)
+    require(set(hosted_v62) == {'before', 'after'} and
+            installed[VERIFY_WORKFLOW] == previous.row(before) == hosted_v62['before'] and
+            hosted_v62['before'] != hosted_v62['after'], 'Hosted v62 workflow preimage differs')
+    installed[VERIFY_WORKFLOW] = hosted_v62['after']
 
     notices = binding['hosted_v41_notices']
     before = read_predecessor_member(HERE / HOSTED_V41_NOTICES)
