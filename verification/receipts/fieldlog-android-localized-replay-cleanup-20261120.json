@@ -1,0 +1,263 @@
+{
+  "scope": "macOS host fixture: actual Mixer Wasm VM and public FieldLog repository/selected-task adapter",
+  "requirement": "L02 / L08 §22.2.5",
+  "status": "passed",
+  "observedUTC": "2026-11-20T10:05:25.716048+00:00",
+  "reviewedPredecessor": "8648e9426b5f9",
+  "hostReplay": {
+    "recipeSHA256": "4eb0c448a00ce524dacc53afb566d5de694f1f52f0433f35a25b26dfeab9ca29",
+    "commands": {
+      "prepare": {
+        "command": [
+          "/bin/bash",
+          "tests/integration/fieldlog-android-engine-pair/replay/prepare.sh",
+          "tests/integration/fieldlog-android-engine-pair",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow",
+          "$WORK"
+        ],
+        "exit": 0,
+        "ownedGroupAbsent": true,
+        "deadlineSeconds": 180
+      },
+      "bind": {
+        "command": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "tests/integration/fieldlog-localized/android/replay.py",
+          "--phase",
+          "bind",
+          "$WORK"
+        ],
+        "exit": 0,
+        "ownedGroupAbsent": true,
+        "deadlineSeconds": 30
+      },
+      "build": {
+        "command": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "tests/integration/fieldlog-localized/android/replay.py",
+          "--phase",
+          "build",
+          "$WORK"
+        ],
+        "exit": 0,
+        "ownedGroupAbsent": true,
+        "deadlineSeconds": 120
+      },
+      "baseline": {
+        "command": [
+          "$WORK/probe",
+          "baseline",
+          "$WORK/baseline.wasm",
+          "$WORK/scratch/baseline-workspace"
+        ],
+        "exit": 0,
+        "ownedGroupAbsent": true,
+        "deadlineSeconds": 20
+      },
+      "reviewed": {
+        "command": [
+          "$WORK/probe",
+          "reviewed",
+          "$WORK/reviewed.wasm",
+          "$WORK/scratch/reviewed-workspace"
+        ],
+        "exit": 0,
+        "ownedGroupAbsent": true,
+        "deadlineSeconds": 20
+      }
+    },
+    "toolchain": {
+      "swiftc": {
+        "file": "swift-driver",
+        "sha256": "3d13e20b1504d7d30038fcd2201b9d0a8ead5c09eea752a5da223453b3ae0c6f",
+        "version": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0"
+      },
+      "swift-frontend": {
+        "file": "swift-frontend",
+        "sha256": "1ed6c28434801b1abb053e283cbc7e16d8e73ff12deb2ae3a539790afafbb3f5",
+        "version": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0"
+      },
+      "clang": {
+        "file": "clang-21",
+        "sha256": "0c9e1a3944fda9538e5eb45a0a95783d9d702cb7d0f8d608ebd160a75a7d7a3c",
+        "version": "Apple clang version 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin"
+      },
+      "wasm-ld": {
+        "file": "lld",
+        "sha256": "9015cfad802c83aef7e24c1415ae4485f4ff5926837148f91ffa8a4b0dabbd97",
+        "version": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)"
+      },
+      "rustc": {
+        "file": "rustc",
+        "sha256": "dd6f58440b3418aa9157ae3f05d71eecff741ca41bc4eec120e7e8f2d933b9a0",
+        "version": "rustc 1.99.0 (b940084d7 2026-09-28)"
+      },
+      "cargo": {
+        "file": "cargo",
+        "sha256": "fc7aa5077deca8abc0651f329e8ec1d968f520e996a93b428f9935014362b382",
+        "version": "cargo 1.99.0 (5f94df478 2026-08-27)"
+      },
+      "macOS26.5 SDKSettings.json": {
+        "file": "SDKSettings.json",
+        "sha256": "f8d005f09381389167f9e0aeaa169bc9e7dff162ef22ca2fd8e98df7ff1acafe",
+        "version": "26.5"
+      },
+      "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+      "git": "git version 2.54.0 (Apple Git-157)",
+      "python": "Python 3.14.8"
+    },
+    "source": {
+      "consumer": {
+        "fileCount": 918,
+        "sha256": "e619e155178db0433d6ef554fb8729d73609e7b0ebd648183b9b6bf7c4b8099a"
+      },
+      "selectedGuestSHA256": "92797cc9e62b0a64f199d81c6ade62e6960393c61faf7c05ebf0b4115a1ace80",
+      "localizedGuestSHA256": "180f21811c230bc633982527cd09a45de14101f661e50bf95c72863904681939",
+      "localizedGuestFiles": {
+        "CapabilityImports.c": "6c8b96d5607a5f31260014b365b005120b01cef5c27d645ad7cd333afd3ea7b7",
+        "Guest.swift": "19820c06b50a9490822fef8c2e1ed9a47a06e1c74b0e2d26c448f1879db1e165",
+        "TaskWire.swift": "80dd9995544b3380d59214e1a8abb215f1d19e71997e4e776c68a44a2bc42beb",
+        "localized-guest.patch": "b4b641168f16696a67abb45d3a6e48f90c360d1af6adfbca90ed73586400a4a8",
+        "selected-task.patch": "7018c78eb86b4aa9ad9541d207eea7ff10d3af7b86e08c9c80c82ae7899ee490"
+      },
+      "storageAdapterSHA256": "cb6bfbeb41d43377b17186f1ffe3b0c164125e08b476e498d570719fb0680844",
+      "rendererSHA256": "c5eabc52292cbe3f143f290d9da0a1d3a1e8dfe58d92e386c5105091f6ef5c55",
+      "vmHeaderSHA256": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+    },
+    "payloads": {
+      "baseline": {
+        "bytes": 6214,
+        "sha256": "b8597cac2c412478f87e51a9f4db4dca2e9f80bee3b40db6330650e3d3433272"
+      },
+      "reviewed": {
+        "bytes": 6498,
+        "sha256": "1670e4442cde31ea88d529b30d54b99fb8c0a96a05259f7456ddcaac41896a44"
+      }
+    },
+    "observations": {
+      "baseline": {
+        "completed": [
+          false,
+          true,
+          false
+        ],
+        "durableAfterReopen": true,
+        "frames": [
+          {
+            "revision": 1,
+            "task": "فحص المضخة 07",
+            "status": "مفتوحة",
+            "toggle": "إكمال المهمة"
+          },
+          {
+            "revision": 2,
+            "task": "فحص المضخة 07",
+            "status": "مكتملة",
+            "toggle": "إعادة فتح المهمة"
+          },
+          {
+            "revision": 1,
+            "task": "فحص المضخة 07",
+            "status": "مكتملة",
+            "toggle": "إعادة فتح المهمة"
+          },
+          {
+            "revision": 2,
+            "task": "فحص المضخة 07",
+            "status": "مفتوحة",
+            "toggle": "إكمال المهمة"
+          }
+        ],
+        "outboxCounts": [
+          2,
+          3,
+          4
+        ],
+        "projectID": "2B50BAF5-0CEB-403F-B8E7-6D5176CF57CB",
+        "reviewWithoutWrite": false,
+        "taskID": "C98914F9-2260-4F5D-BF93-52654280D618",
+        "workspaceID": "9641CFBD-813D-404D-838E-2E6202F8D665",
+        "workspaceRevisions": [
+          2,
+          3,
+          4
+        ]
+      },
+      "reviewed": {
+        "completed": [
+          false,
+          true,
+          false
+        ],
+        "durableAfterReopen": true,
+        "frames": [
+          {
+            "revision": 1,
+            "task": "فحص المضخة 07",
+            "status": "الفحص قيد التنفيذ",
+            "toggle": "وضع علامة مكتملة"
+          },
+          {
+            "revision": 2,
+            "task": "فحص المضخة 07",
+            "status": "الفحص بانتظار التأكيد",
+            "toggle": "تأكيد إكمال الفحص"
+          },
+          {
+            "revision": 3,
+            "task": "فحص المضخة 07",
+            "status": "اكتمل الفحص",
+            "toggle": "إعادة فتح الفحص"
+          },
+          {
+            "revision": 1,
+            "task": "فحص المضخة 07",
+            "status": "اكتمل الفحص",
+            "toggle": "إعادة فتح الفحص"
+          },
+          {
+            "revision": 2,
+            "task": "فحص المضخة 07",
+            "status": "الفحص قيد التنفيذ",
+            "toggle": "وضع علامة مكتملة"
+          }
+        ],
+        "outboxCounts": [
+          2,
+          3,
+          4
+        ],
+        "projectID": "D569CA42-9EA2-4F56-ADF8-84C3647CF626",
+        "reviewWithoutWrite": true,
+        "taskID": "AEFF6A83-2A9E-4D6F-9113-3D5EC8299C55",
+        "workspaceID": "CF92B514-1870-4EEB-BAEE-56789F781F20",
+        "workspaceRevisions": [
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    "maxSampledAllocatedFileBytes": 199561216,
+    "diskBudgetBytes": 629145600,
+    "cleanup": "owned command groups proved absent and scratch removed"
+  },
+  "rawRunReceiptSHA256": "1212be92ea3746c22b27d56cc52464b5615f5c8362ba58b727fdf7ed236ea5cd",
+  "exportBindingSHA256": "e11b766275166ade5316e49a5050c2091efa47f8bc57ddf0cb2d84f08b1d7ef1",
+  "runnerSourceSHA256": "fae9b46112df3a9a4b314f4ebdbddb65f9667fa8ef89532e87528625ab5f4523",
+  "inertTestsSHA256": "40ff14e618e13dd3748ef46b5b636c5279cc0a45fbeec1f3962773239a9a0e70",
+  "cleanupControls": {
+    "command": "python3.14 -B tests/integration/fieldlog-localized/android/test_replay.py -v",
+    "optimizedFlag": "-BO",
+    "predecessor": "Four cases exposed deleted compiler scratch or missing HOLD.json. The closed pre-build case passed.",
+    "normalPassed": 5,
+    "optimizedPassed": 5
+  },
+  "pending": [
+    "Signed single-APK installation and two assignments",
+    "Android LTR and RTL reachability",
+    "Native tap and offline reopen"
+  ]
+}

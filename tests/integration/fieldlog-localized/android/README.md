@@ -26,6 +26,10 @@ whose parent already exists. It receives only `baseline.wasm`, `reviewed.wasm`
 and `binding.json`. The command emits JSON evidence to stdout and reaps its
 owned groups before removing scratch.
 
+If the replay fails after attempting the compiler build, it retains scratch
+and records the wrapper observations in `HOLD.json` when it can write the
+file. The wrapper exit and process group do not establish descendant closure.
+
 The probe runs each compiled Wasm through the pinned Mixer VM with the deferred
 start and bounded mailbox limits. Capability responses come from the ordinary
 FieldLog `FieldLogTaskStorage` over a fresh `WorkspaceRepository`. It checks

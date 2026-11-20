@@ -172,6 +172,25 @@ def build(campaign):
         "-o", campaign / "probe", cwd=host, env=env)
 
 
+def record_hold(campaign, stage, failed_stage, reason, error):
+    hold = {"stage": stage, "failedStage": failed_stage, "reason": reason,
+            "failureType": type(error).__name__}
+    try:
+        evidence = json.loads((campaign / f"{stage}.json").read_bytes())
+    except (OSError, ValueError):
+        evidence = {}
+    if isinstance(evidence, dict):
+        fields = ("pid", "pgid", "exit", "ownedGroupAbsent")
+        hold["wrapper"] = {key: evidence[key] for key in fields if key in evidence}
+
+    try:
+        with (campaign / "HOLD.json").open("x") as stream:
+            json.dump(hold, stream, indent=2)
+            stream.write("\n")
+    except FileExistsError:
+        pass
+
+
 def replay(export_dir):
     base = PINS["mixerBase"]
     git = ("/usr/bin/git", "-C", REPO)
@@ -196,7 +215,8 @@ def replay(export_dir):
     commands = {}
     observations = {}
     largest_scratch_bytes = 0
-    interrupted_compiler = False
+    build_attempted = False
+    preserve = False
     try:
         (campaign / "scratch/tmp").mkdir(parents=True)
         script = [sys.executable, "-B", __file__]
@@ -209,17 +229,10 @@ def replay(export_dir):
         ]
         for label, argv, deadline in steps:
             command_receipt = campaign / f"{label}.json"
-            try:
-                with redirect_stdout(sys.stderr):
-                    pair.run(campaign, custody, label, argv, deadline)
-            except BaseException:
-                if label == "build":
-                    # Swift may leave compiler work after an interrupted driver.
-                    interrupted_compiler = True
-                    if command_receipt.is_file():
-                        exit_code = json.loads(command_receipt.read_bytes()).get("exit")
-                        interrupted_compiler = exit_code is None or exit_code < 0
-                raise
+            if label == "build":
+                build_attempted = True
+            with redirect_stdout(sys.stderr):
+                pair.run(campaign, custody, label, argv, deadline)
             result = json.loads(command_receipt.read_bytes())
             result["deadlineSeconds"] = deadline
             for key in ("minimumFreeBytes", "pid", "pgid"):
@@ -270,18 +283,28 @@ def replay(export_dir):
             except BaseException:
                 shutil.rmtree(export_dir)
                 raise
-    except BaseException:
-        if custody.pending is None and not interrupted_compiler:
+    except BaseException as error:
+        # A wrapper's exit status and group absence cannot close escaped compiler descendants.
+        preserve = build_attempted or custody.pending is not None
+        if preserve:
+            stage = custody.pending or "build"
+            reason = ("compiler descendant closure unconfirmed after replay failure" if stage == "build"
+                      else "command terminal custody unconfirmed after replay failure")
+            try:
+                record_hold(campaign, stage, label, reason, error)
+            except OSError as hold_error:
+                print(f"Could not record hold: {hold_error}", file=sys.stderr)
+        else:
             for log in campaign.glob("*.log"):
                 with log.open("rb") as stream:
                     stream.seek(max(0, log.stat().st_size - 3000))
                     print(f"{log.name}\n{stream.read().decode(errors='replace')}", file=sys.stderr)
         raise
     finally:
-        if custody.pending is None and not interrupted_compiler:
+        if not preserve and custody.pending is None:
             shutil.rmtree(campaign)
         else:
-            stage = custody.pending or "interrupted host compiler"
+            stage = custody.pending or "build"
             print(f"Retained {campaign}: terminal custody unresolved for {stage}", file=sys.stderr)
     receipt["cleanup"] = "owned command groups proved absent and scratch removed"
     print(json.dumps(receipt, indent=2, ensure_ascii=False))
