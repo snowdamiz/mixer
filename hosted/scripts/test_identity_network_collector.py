@@ -2994,7 +2994,9 @@ def workspace_predecessor_bytes(root, path):
         return body
     body = (root / path).read_bytes()
     for base, previous in (
-        (collector.WORKSPACE_SOURCE_BASE, collector.WORKSPACE_V64_MANIFEST),
+        (collector.WORKSPACE_SOURCE_BASE, collector.WORKSPACE_V66_MANIFEST),
+        (collector.WORKSPACE_V66_SOURCE_BASE, collector.WORKSPACE_V65_MANIFEST),
+        (collector.WORKSPACE_V65_SOURCE_BASE, collector.WORKSPACE_V64_MANIFEST),
         (collector.WORKSPACE_V64_SOURCE_BASE, collector.WORKSPACE_V63_MANIFEST),
         (collector.WORKSPACE_V63_SOURCE_BASE, collector.WORKSPACE_V62_MANIFEST),
         (collector.WORKSPACE_V62_SOURCE_BASE, collector.WORKSPACE_V61_MANIFEST),
