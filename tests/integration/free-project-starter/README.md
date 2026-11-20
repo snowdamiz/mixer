@@ -101,3 +101,17 @@ The launcher records the single POST attempt before sending it. It retains one a
 A successful run checks one compiler start, one capacity release, stable fresh-session reads, unrelated-tenant denial, billing row stability, and the returned artifact bytes. It builds an unsigned generic iOS Simulator target without booting a device or using payment credentials.
 
 A positively closed build failure exits 1 with `FAILED_CLOSED_NATIVE_BUILD` after authenticated worker shutdown, normal service exits, database drop, and port rebinding. Its receipt records the exact attempt's closure and any available CLI diagnostic code. A closed run prints its receipt under `verification/local/` after removing scratch. Exit 74 preserves the printed directory for custody review. Keep it intact even if receipt writing failed.
+
+## Replay former-owner build reads after workspace exit
+
+Use `--owner-exit` to run the same one-build restart against public revision `59cab78cd8ac7a43c718914fc83fb56b33e3ef60`. Keep that commit and the pinned Starter SDK commit in the checkout's Git object database. The replay creates its scratch directory even when `verification/local/` is absent.
+
+```sh
+python3.14 -B "$DELIVERY/replay-restart.py" --owner-exit --source-only
+python3.14 -B "$DELIVERY/replay-restart.py" --owner-exit --fixture-only
+python3.14 -B "$DELIVERY/replay-restart.py" --owner-exit
+```
+
+The fixture control exercises OAuth and workspace exit with zero build rows. For the full replay, confirm the same pre-POST checkpoint described above. The launcher records one POST and waits for the registered iOS Starter build to settle before exporting and deleting the owner's organization through the authenticated workspace API.
+
+The replay waits for its short OAuth session to expire, then expires only the credential joined to that synthetic cookie in the owned database. The first build GET with the expired cookie must return `401`. The first build GET after a new OAuth login as the same principal must return `404`. Each GET has one attempt. The replay also checks the retained journal, manifest, and artifact bytes, and verifies that an unrelated tenant can still read its own workspace. Look for `PASS_SCOPED_STARTER_OWNER_EXIT` and the printed receipt.

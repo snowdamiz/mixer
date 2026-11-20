@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Replay the closed L07 Starter worker restart on pinned historical inputs."""
+"""Replay the closed Starter worker restart and optional former-owner readback."""
 import argparse
 from contextlib import ExitStack, closing
 import errno
@@ -54,6 +54,23 @@ FIXTURE_AFTERIMAGES = {
 }
 FIXTURE_PATCH = "restart-hosted-fixtures.patch"
 FIXTURE_PATCH_SHA256 = "197b2006ef124f23ea91e566cada4e58f23c8f9ca88940237d2c6c80e8a43d8a"
+EXIT_PUBLIC = "59cab78cd8ac7a43c718914fc83fb56b33e3ef60"
+EXIT_TREE = "af45a0414116ae0fa7100e1fce302ca4f8cee0c9"
+EXIT_HELPERS = {
+    "registration-runner": "66ae38001e95c80f2f3d287c56fc6a3e9382c9579b5a0666ec70943da31bad4e",
+    "prepare-starter": "b751187ba1fe77a7cb884f81470b3dbc767dfcac5acf365df58e57ac4bfe7d75",
+    "run-proof": "077fcd3f9e1a3a0b43e04a9d6ce92a398858709a88db13fcbfab06fdec3f9f7b",
+}
+EXIT_WORKERS = WORKERS | {
+    "native_artifact_worker.py": "4cd80eca9299e5f34a2e157827919a3b11d91653fb6b3443a693bca3301f81aa",
+    "compiler_worker.py": "e702b3392f0baf3a1621ba2c1639bbbb60a769a76fa71ae2419b0dc8f208d546",
+}
+EXIT_FIXTURE_PREIMAGES = FIXTURE_PREIMAGES | {
+    TEST: "3b64cbba36888c3a999f70ff7d59467a9fe917e1fe252bed5f2cd43c079aeeb8",
+}
+EXIT_FIXTURE_PATCH = "owner-exit-hosted-fixture.patch"
+EXIT_FIXTURE_PATCH_SHA256 = "bf3f61542b930e87609e9d818cae16d78286e05c1a32c04fcd5e116cd172f33b"
+EXIT_FIXTURE_TEST_SHA256 = "a8cc763876d20deac186804aaaa26ca4887f60b34be641a8f1ff7f3db5823e45"
 PROCESSOR = "restart-processor.exs"
 PROCESSOR_SHA256 = "eb46daf035472ab6ae5db4a30cdae7cf1e5aebbcc4575779b2c045cb8a0e26d4"
 DB = "browser_ordinary_installation_r1422"
@@ -148,8 +165,13 @@ class OwnedProcess(subprocess.Popen):
 
 
 class Run:
-    def __init__(self, root, mode):
+    def __init__(self, root, mode, owner_exit=False):
         self.root = root
+        self.owner_exit = owner_exit
+        self.public = EXIT_PUBLIC if owner_exit else PUBLIC
+        self.tree = EXIT_TREE if owner_exit else TREE
+        self.helper_pins = EXIT_HELPERS if owner_exit else HELPERS
+        self.worker_pins = EXIT_WORKERS if owner_exit else WORKERS
         self.hosted = root / "hosted"
         self.provenance = root / "cli-provenance"
         self.helpers = root / "helpers" / "tests/integration/free-project-starter"
@@ -160,9 +182,11 @@ class Run:
         self.unknown = False
         self.native_pending = False
         self.source_entries = None
-        self.result = {"publicCommit": PUBLIC, "publicTree": TREE, "mode": mode, "buildPOSTAttempts": 0,
+        self.result = {"publicCommit": self.public, "publicTree": self.tree, "mode": mode, "buildPOSTAttempts": 0,
                        "commands": self.attempts, "ports": self.ports, "python": sys.version,
                        "launcherSHA256": digest(Path(__file__))}
+        if owner_exit:
+            self.result.update(ownerExit=True, paymentServiceConfigured=False)
         self.env = {
             "PATH": f"{Path(sys.executable).parent}:{os.environ['PATH']}",
             "HOME": str(root),
@@ -178,6 +202,8 @@ class Run:
             "MIXER_L07_REPLAY": mode,
             "MIXER_STARTER_WORKER_CODE": str(self.hosted / "priv/development"),
         }
+        if owner_exit:
+            self.env["MIXER_L06_OWNER_EXIT"] = "1"
 
     def start(self, name, argv, *, cwd=None, env=None):
         require(name not in self.attempts, f"duplicate command attempt {name}")
@@ -286,7 +312,7 @@ class Run:
         require(path.resolve(strict=True) == path and stat.S_ISREG(path.lstat().st_mode),
                 f"pinned helper is not a regular owned file: {name}")
         source = path.read_bytes()
-        require(sha(source) == HELPERS[name], f"pinned helper changed: {name}")
+        require(sha(source) == self.helper_pins[name], f"pinned helper changed: {name}")
         return path, source
 
     def load_helper(self, name):
@@ -297,8 +323,8 @@ class Run:
         return module
 
     def stage_provenance(self):
-        self.archive("cli-source", PUBLIC, PROVENANCE_PATHS, self.provenance)
-        _, listing = self.command("cli-source-tree", ["git", "ls-tree", "-rtz", PUBLIC,
+        self.archive("cli-source", self.public, PROVENANCE_PATHS, self.provenance)
+        _, listing = self.command("cli-source-tree", ["git", "ls-tree", "-rtz", self.public,
                                                       "--", *PROVENANCE_PATHS], cwd=ROOT)
         self.source_entries = tree_entries(listing.read_bytes())
         self.result["provenanceSourceSHA256"] = verify_source_tree(self.provenance, self.source_entries)
@@ -311,41 +337,50 @@ class Run:
             self.result.setdefault("provenanceVerifiedAt", []).append(checkpoint)
 
     def stage_fixtures(self):
-        for name, expected in FIXTURE_PREIMAGES.items():
+        preimages = EXIT_FIXTURE_PREIMAGES if self.owner_exit else FIXTURE_PREIMAGES
+        for name, expected in preimages.items():
             path = self.hosted / name
             require(path.resolve(strict=True) == path and stat.S_ISREG(path.lstat().st_mode),
                     f"archived fixture is not a regular owned file: {name}")
             require(digest(path) == expected, f"archived fixture digest differs: {name}")
 
-        overlay = (DELIVERY / FIXTURE_PATCH).read_bytes()
-        require(sha(overlay) == FIXTURE_PATCH_SHA256, "fixture overlay digest differs")
-        patch = self.root / FIXTURE_PATCH
-        patch.write_bytes(overlay)
-        self.command("fixture-overlay", ["git", "apply", "--whitespace=error", patch],
-                     env={"GIT_CEILING_DIRECTORIES": str(self.root.parent)})
+        self.apply_fixture_patch("fixture-overlay", FIXTURE_PATCH, FIXTURE_PATCH_SHA256)
+        afterimages = FIXTURE_AFTERIMAGES
+        if self.owner_exit:
+            self.apply_fixture_patch("exit-fixture-overlay", EXIT_FIXTURE_PATCH, EXIT_FIXTURE_PATCH_SHA256)
+            afterimages = afterimages | {TEST: EXIT_FIXTURE_TEST_SHA256}
+            self.result["exitFixtureOverlaySHA256"] = EXIT_FIXTURE_PATCH_SHA256
 
-        for name, expected in FIXTURE_AFTERIMAGES.items():
+        for name, expected in afterimages.items():
             require(digest(self.hosted / name) == expected, f"replay fixture digest differs: {name}")
         processor = (DELIVERY / PROCESSOR).read_bytes()
         require(sha(processor) == PROCESSOR_SHA256, "replay processor digest differs")
         (self.root / PROCESSOR).write_bytes(processor)
-        self.result["fixturePreimageSHA256"] = FIXTURE_PREIMAGES
+        self.result["fixturePreimageSHA256"] = preimages
         self.result["fixtureOverlaySHA256"] = FIXTURE_PATCH_SHA256
-        self.result["fixtureSHA256"] = FIXTURE_AFTERIMAGES | {PROCESSOR: PROCESSOR_SHA256}
+        self.result["fixtureSHA256"] = afterimages | {PROCESSOR: PROCESSOR_SHA256}
         self.result["hostedLockSHA256"] = digest(self.hosted / "mix.lock")
 
+    def apply_fixture_patch(self, label, name, expected):
+        overlay = (DELIVERY / name).read_bytes()
+        require(sha(overlay) == expected, "fixture overlay digest differs")
+        patch = self.root / name
+        patch.write_bytes(overlay)
+        self.command(label, ["git", "apply", "--whitespace=error", patch],
+                     env={"GIT_CEILING_DIRECTORIES": str(self.root.parent)})
+
     def stage(self, mode):
-        _, revision = self.command("public-tree", ["git", "rev-parse", PUBLIC + "^{tree}"], cwd=ROOT)
-        require(revision.read_text().strip() == TREE, "public tree identity differs")
-        paths = [f"tests/integration/free-project-starter/{name}.py" for name in HELPERS]
-        self.archive("pinned-helpers", PUBLIC, paths, self.root / "helpers")
-        self.result["helperSourceSHA256"] = {name: sha(self.helper_source(name)[1]) for name in HELPERS}
+        _, revision = self.command("public-tree", ["git", "rev-parse", self.public + "^{tree}"], cwd=ROOT)
+        require(revision.read_text().strip() == self.tree, "public tree identity differs")
+        paths = [f"tests/integration/free-project-starter/{name}.py" for name in self.helper_pins]
+        self.archive("pinned-helpers", self.public, paths, self.root / "helpers")
+        self.result["helperSourceSHA256"] = {name: sha(self.helper_source(name)[1]) for name in self.helper_pins}
         paths = ["hosted/priv/development"] if mode == "inert" else ["hosted"]
-        self.archive("public-source", PUBLIC, paths, self.root)
+        self.archive("public-source", self.public, paths, self.root)
         self.worker_code = self.hosted / "priv/development"
-        require({name: digest(self.worker_code / name) for name in WORKERS} == WORKERS,
+        require({name: digest(self.worker_code / name) for name in self.worker_pins} == self.worker_pins,
                 "pinned worker source digest differs")
-        self.result["workerSourceSHA256"] = WORKERS
+        self.result["workerSourceSHA256"] = self.worker_pins
         if mode != "inert":
             self.stage_fixtures()
 
@@ -392,7 +427,7 @@ class Run:
                                 MIXER_BROWSER_STORAGE_PORT=str(self.ports["postgres"]))
         self.api = self.start("api", ["mix", "test", "--only", "l07_restart", "--seed", "0", "--trace", TEST],
                               cwd=self.hosted, env=self.service_env)
-        self.auth = self.ready("api.ready", self.api, 125)
+        self.auth = self.ready("api.ready", self.api, 270 if self.owner_exit else 125)
         for name in ("port", "issuerPort", "jwksPort"):
             port = self.auth[name]
             require(type(port) is int and 0 < port < 65536 and port not in self.ports.values(),
@@ -484,7 +519,7 @@ def rebound(ports):
     return sorted(ports)
 
 
-def http(auth, path, body=None):
+def http(auth, path, body=None, *, limit=24 * 1024**2):
     headers = {"Cookie": "__Host-mixer-session=" + auth["cookie"]}
     if body is not None:
         headers.update({"Origin": auth["origin"], "X-Mixer-CSRF": auth["csrf"],
@@ -493,8 +528,8 @@ def http(auth, path, body=None):
         connection.request("GET" if body is None else "POST", path,
                            None if body is None else compact(body).encode(), headers)
         with connection.getresponse() as reply:
-            data = reply.read(24 * 1024**2 + 1)
-            require(len(data) <= 24 * 1024**2, "oversized fixture HTTP response")
+            data = reply.read(limit + 1)
+            require(len(data) <= limit, "oversized fixture HTTP response")
             return reply.status, dict((key.lower(), value) for key, value in reply.getheaders()), data
 
 
@@ -641,7 +676,7 @@ class RelayRequest(StreamRequestHandler):
 
 
 def start_worker(run, label, config, startup=None, pin=None):
-    require({name: digest(run.worker_code / name) for name in WORKERS} == WORKERS,
+    require({name: digest(run.worker_code / name) for name in run.worker_pins} == run.worker_pins,
             "worker code changed before launch")
     if startup is None:
         startup = run.root / (label + ".config.json")
@@ -940,7 +975,7 @@ SNAPSHOT = """SELECT json_build_object(
 )"""
 
 
-def billing(run, label):
+def billing(run, label, owner_org=None):
     names = json.loads(run.sql(f"{label}-billing-tables", r"""
         SELECT json_agg(tablename ORDER BY tablename) FROM pg_tables
         WHERE schemaname='public' AND tablename LIKE 'mixer\_billing\_%'
@@ -951,7 +986,13 @@ def billing(run, label):
         require(re.fullmatch(r"mixer_billing_[a-z_]+", table), "unexpected billing table name")
         rows = run.sql(f"{label}-{table}",
                        f"SELECT coalesce(jsonb_agg(to_jsonb(t) ORDER BY to_jsonb(t)), '[]'::jsonb) FROM public.{table} t")
-        result[table] = {"rows": len(json.loads(rows)), "sha256": sha(rows.encode())}
+        values = json.loads(rows)
+        if owner_org is not None and table == "mixer_billing_organization_state":
+            mirror, = (row for row in values if row["organization_id"] == owner_org)
+            values.remove(mirror)
+            result["ownerMirror"] = mirror
+            rows = compact(values)
+        result[table] = {"rows": len(values), "sha256": sha(rows.encode())}
     return result
 
 
@@ -1142,6 +1183,147 @@ def settle(run, record_id, operation, selection, previous_billing, config):
                       persistedIdempotencyKey=True, stableAuthenticatedBuildReads=True,
                       unrelatedTenantBuildHTTP=denied, artifacts=outputs, sameArtifactStore=True,
                       replacementWorkerPort=config["port"])
+    return state, outsider
+
+
+def tenant_scope(auth, scope):
+    org, project, app = (scope[key] for key in SCOPE[:3])
+    requests = {
+        "session": "/auth/session",
+        "organizations": "/console-api/v1/orgs",
+        "projects": "/console-api/v1/projects?" + urlencode({"organization_id": org}),
+        "applications": "/console-api/v1/applications?" + urlencode({
+            "organization_id": org, "project_id": project}),
+    }
+    pages = {}
+    for name, path in requests.items():
+        status, _, raw = http(auth, path)
+        require(status == 200, f"unrelated tenant {name} returned HTTP {status}")
+        pages[name] = json.loads(raw)
+    require(pages.pop("session")["state"] == "authenticated", "unrelated session is unauthenticated")
+    require([item["id"] for item in pages["organizations"]["organizations"]] == [org]
+            and [(item["organization_id"], item["id"]) for item in pages["projects"]["projects"]]
+            == [(org, project)], "unrelated organization or project is out of scope")
+    require(pages["applications"] == {"organizationId": org, "projectId": project, "nextCursor": None,
+                                      "applications": [{"applicationId": app}]},
+            "unrelated application is out of scope")
+    return pages
+
+
+def owner_session(run, label, auth, *, expire=False):
+    # Bind the SQL observation or mutation to the exact synthetic cookie's credential.
+    selector = f"""
+        FROM public.mixer_browser_sessions s
+        JOIN public.mixer_authz_credentials c ON (c.profile_id,c.profile_version,c.reference) =
+             (s.profile_id,s.profile_version,s.credential_ref)
+        WHERE s.cookie_digest=decode('{sha(auth['cookie'].encode())}','hex') AND s.principal_id='person-1'
+          AND c.principal_id=s.principal_id
+    """
+    if expire:
+        changed = run.sql("expire-owner-credential", f"""
+            WITH expired AS (
+              UPDATE public.mixer_authz_credentials target
+              SET expires_at=floor(extract(epoch FROM clock_timestamp()))::bigint-5
+              WHERE (target.profile_id,target.profile_version,target.reference) = (
+                SELECT c.profile_id,c.profile_version,c.reference {selector}
+                  AND LEAST(s.idle_expires_at,s.absolute_expires_at) < extract(epoch FROM clock_timestamp())
+              ) AND target.active RETURNING 1
+            ) SELECT count(*) FROM expired
+        """)
+        require(changed == "1", "exact expired owner's fixture credential was not updated")
+    sample = json.loads(run.sql(label, f"""
+        SELECT json_build_object('principal',s.principal_id,'rowStatus',s.status,
+          'sessionExpiresAt',LEAST(s.idle_expires_at,s.absolute_expires_at),
+          'credentialExpiresAt',c.expires_at,'credentialActive',c.active,
+          'sampleAt',floor(extract(epoch FROM clock_timestamp()))::bigint) {selector}
+    """))
+    require(sample["rowStatus"] == "active" and sample["credentialActive"] is True,
+            "former-owner session or credential is not active in the fixture catalog")
+    return sample
+
+
+def first_owner_read(run, label, auth, path, session, status, error):
+    # The marker and receipt count precede the sole GET, even if the response is lost.
+    run.mark(label)
+    observation = run.result[label] = {"attempts": 1, "session": session}
+    run.evidence()
+    start = time.monotonic()
+    actual, headers, body = http(auth, path, limit=1024)
+    observation.update(httpStatus=actual, elapsedMs=round((time.monotonic() - start) * 1000),
+                       bodyBytes=len(body), bodySHA256=sha(body))
+    require(actual == status and headers.get("content-type", "").startswith("application/json")
+            and "set-cookie" not in headers and "retry-after" not in headers,
+            f"{label} returned HTTP {actual} or unexpected headers")
+    expected = {"code": error}
+    if status == 401:
+        expected["message"] = "Browser request refused."
+    require(json.loads(body) == {"error": expected}, f"{label} returned an unexpected error body")
+    observation["errorCode"] = error
+
+
+def owner_exit_readback(run, selection, outsider):
+    org, project = (selection[key] for key in SCOPE[:2])
+    require(re.fullmatch(r"org-[0-9a-f]{32}", org), "exit is restricted to the fixture-created organization")
+    unrelated = run.auth["unrelatedScope"]
+    require(org != unrelated["organization_id"], "owner and unrelated fixture scopes overlap")
+    before = tenant_scope(outsider, unrelated)
+    billing_before = billing(run, "before-exit", org)
+    operation = run.result.get("operationId")
+    retained = ledger_snapshot(run.state, operation) if operation else None
+
+    run.mark("api.exit-short")
+    owner = dict(run.auth, **run.ready("api.exit-owner", run.api, 12))
+    initial = owner_session(run, "short-owner-current", owner)
+    deadline = initial["sessionExpiresAt"]
+    require(0 < deadline - initial["sampleAt"] <= 45 and initial["credentialExpiresAt"] > initial["sampleAt"],
+            "fixture OAuth did not issue a current short owner session")
+    admin = "/console-api/v1/workspace-admin"
+    status, _, raw = http(owner, admin, {"operation": "export", "organization_id": org}, limit=4096)
+    require(status == 200, f"owner workspace export returned HTTP {status}")
+    exported = json.loads(raw)
+    require(exported["organization"]["id"] == org
+            and [(row["id"], row["active"]) for row in exported["projects"]] == [(project, True)]
+            and exported["memberships"] == [{"principal_id": "person-1", "role": "owner", "active": True}],
+            "workspace export is out of owner scope")
+    status, _, raw_exit = http(owner, admin, {
+        "operation": "delete_organization", "organization_id": org, "confirm": org}, limit=4096)
+    require(status == 200 and json.loads(raw_exit) == {"organization_id": org, "deleted": True,
+                                                      "retention": "tombstone"},
+            f"owner workspace exit failed with HTTP {status} or invalid tombstone")
+    require(run.sql("organization-tombstone", f"""
+        SELECT active FROM public.mixer_authz_organizations WHERE id='{org}'
+    """) == "f", "owned organization tombstone is missing")
+    run.result["workspace"] = {"exportHTTP": 200, "exportSHA256": sha(raw), "exportBytes": len(raw),
+                               "exitHTTP": 200, "organizationActive": False, "tombstone": True}
+
+    path = BUILD + "?" + urlencode(selection)
+    wait(lambda: int(time.time()) > deadline, 48, run.api)
+    expired = owner_session(run, "short-owner-expired", owner, expire=True)
+    require(expired["sessionExpiresAt"] == deadline
+            and max(expired["credentialExpiresAt"], deadline) < expired["sampleAt"],
+            "short owner session and joined credential have not expired")
+    first_owner_read(run, "expiredOwnerFirstBuildGET", owner, path, expired, 401, "unauthenticated")
+    run.mark("api.exit-renew")
+    fresh = run.ready("api.exit-renewed", run.api, 12)
+    renewed = dict(run.auth, cookie=fresh["cookie"])
+    require(renewed["cookie"] != owner["cookie"], "OAuth renewal reused the expired owner cookie")
+    current = owner_session(run, "renewed-owner-current", renewed)
+    require(current["sampleAt"] < min(current["credentialExpiresAt"], current["sessionExpiresAt"]),
+            "renewed owner's catalog authority is expired")
+    first_owner_read(run, "renewedFormerOwnerFirstBuildGET", renewed, path, current, 404, "not_found")
+
+    outsider = dict(run.auth, cookie=fresh["unrelatedCookie"])
+    require(tenant_scope(outsider, unrelated) == before and http(outsider, path, limit=1024)[0] == 404,
+            "unrelated tenant scope changed or the owner build became readable")
+    billing_after = billing(run, "after-exit", org)
+    mirror = billing_before.pop("ownerMirror")
+    require(mirror["active"] is True and billing_after.pop("ownerMirror") ==
+            dict(mirror, active=False, revision=mirror["revision"] + 1) and billing_before == billing_after,
+            "workspace exit changed billing beyond the owner's organization mirror")
+    run.result.update(unrelatedTenant={"ownScopeVerified": True, "sameScopedContent": True,
+                                       "ownerBuildHTTP": 404, "scope": unrelated},
+                      billingExitOnlyOwnerMirror=True, postExitStatusRetries=0)
+    return retained
 
 
 def restart_replay(run, preflight):
@@ -1238,13 +1420,30 @@ def restart_replay(run, preflight):
     new_store = (run.state / operation / "native").stat()
     require((old_store.st_dev, old_store.st_ino) == (new_store.st_dev, new_store.st_ino),
             "replacement did not use the same owned artifact store")
-    settle(run, record_id, operation, selection, baseline, new_config)
+    state, outsider = settle(run, record_id, operation, selection, baseline, new_config)
     require(relay.failure is None
             and [item for item in relay.requests if item[0] == "ensure_started"] ==
             [("ensure_started", operation, config["port"])]
             and ("artifacts", operation, new_config["port"]) in relay.requests,
             "replayed query did not use the replacement without another start")
     run.result.update(ensureStartedRequests=1, retainedArtifactReplies=1)
+    if run.owner_exit:
+        retained = owner_exit_readback(run, selection, outsider)
+        require(json.loads(run.sql("after-exit-build-state", SNAPSHOT)) == state
+                and ledger_snapshot(run.state, operation) == retained
+                and ledger(run.state, count=True) == 1 and ledger(run.state),
+                "exit or readback changed the settled build, jobs, capacity, or worker ledger")
+        store = run.state / operation / "native"
+        require(digest(store / "native-build.json") == run.result["manifestSHA256"],
+                "exit changed the retained manifest")
+        for artifact in run.result["artifacts"]:
+            path = store / artifact["sha256"]
+            info = path.lstat()
+            require(stat.S_ISREG(info.st_mode) and info.st_size == artifact["sizeBytes"]
+                    and digest(path) == artifact["sha256"], "exit changed a retained artifact")
+        run.result.update(terminalJournalSHA256=json_sha(state["builds"][0]["journal"]),
+                          retainedBuildAndWorkerUnchanged=True, retainedArtifactDigestsVerified=True)
+        return "PASS_SCOPED_STARTER_OWNER_EXIT"
     return "PASS_SCOPED_STARTER_WORKER_RESTART"
 
 
@@ -1256,14 +1455,17 @@ def main():
                        help="verify archived replay inputs without starting services")
     modes.add_argument("--fixture-only", dest="mode", action="store_const", const="fixture")
     modes.add_argument("--preflight-only", action="store_true")
+    parser.add_argument("--owner-exit", action="store_true",
+                        help="prove first former-owner build reads after the workspace exits")
     parser.add_argument("--pg-bin", type=Path, default=Path("/opt/homebrew/opt/postgresql@17/bin"))
     args = parser.parse_args()
     mode = args.mode or "full"
     os.umask(0o077)
     parent = ROOT / "verification/local"
     parent.mkdir(parents=True, exist_ok=True)
-    run = Run(Path(tempfile.mkdtemp(prefix="l07-restart-", dir=parent)).resolve(), mode)
-    print(f"L07 run directory {run.root}", flush=True)
+    prefix = "l06-owner-exit-" if args.owner_exit else "l07-restart-"
+    run = Run(Path(tempfile.mkdtemp(prefix=prefix, dir=parent)).resolve(), mode, args.owner_exit)
+    print(f"{'L06' if args.owner_exit else 'L07'} run directory {run.root}", flush=True)
     outcome = "FAILED"
     try:
         run.stage(mode)
@@ -1285,6 +1487,14 @@ def main():
                         "fixture unexpectedly created a build")
                 run.result["buildRows"] = 0
                 outcome = "PASS_ORDINARY_L07_FIXTURE"
+                if run.owner_exit:
+                    selection = dict(run.auth["ownerScope"], platform="ios", build_id="build-" + "0" * 64,
+                                     **{k: "0" * 64 for k in ("source_sha256", "toolchain_lock_sha256",
+                                                               "build_definition_sha256")})
+                    owner_exit_readback(run, selection, dict(run.auth, cookie=run.auth["unrelatedCookie"]))
+                    require(run.sql("exit-fixture-zero-builds", "SELECT count(*) FROM mixer_builds") == "0",
+                            "exit fixture unexpectedly created a build")
+                    outcome = "PASS_ORDINARY_L06_OWNER_EXIT_FIXTURE"
             else:
                 outcome = restart_replay(run, args.preflight_only)
     except BaseException as error:
@@ -1304,7 +1514,7 @@ def main():
                     "fixture services did not close cleanly")
         try:
             run.verify_provenance("after-service-shutdown")
-            for name in HELPERS:
+            for name in run.helper_pins:
                 run.helper_source(name)
         except (RuntimeError, OSError) as error:
             run.result["sourceVerificationError"] = str(error)

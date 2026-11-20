@@ -1,0 +1,45 @@
+--- a/hosted/test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs
++++ b/hosted/test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs
+@@ -135,6 +135,13 @@
+           unrelatedCookie: elem(outsider, 0)
+         })
+ 
++      ready =
++        if System.get_env("MIXER_L06_OWNER_EXIT") do
++          Map.merge(ready, %{ownerScope: scope, unrelatedScope: unrelated})
++        else
++          ready
++        end
++
+       replay_write!("api.ready", ready)
+       await_replay!(c, false)
+     end
+@@ -166,6 +173,28 @@
+       cond do
+         File.regular?(replay_path("api.done")) ->
+           :ok
++
++        File.regular?(replay_path("api.exit-short")) and
++            not File.regular?(replay_path("api.exit-owner")) ->
++          true = System.get_env("MIXER_L06_OWNER_EXIT") == "1"
++          :ok = GenServer.call(c.provider, {:mode, :session_short})
++
++          try do
++            {cookie, csrf} = login(c)
++            replay_write!("api.exit-owner", %{cookie: cookie, csrf: csrf})
++          after
++            :ok = GenServer.call(c.provider, {:mode, :ok})
++          end
++
++          await_replay!(c, renewed)
++
++        File.regular?(replay_path("api.exit-renew")) and
++            not File.regular?(replay_path("api.exit-renewed")) ->
++          true = System.get_env("MIXER_L06_OWNER_EXIT") == "1"
++          {owner, _} = login(c)
++          {outsider, _} = outsider_login(c)
++          replay_write!("api.exit-renewed", %{cookie: owner, unrelatedCookie: outsider})
++          await_replay!(c, renewed)
+ 
+         not renewed and File.regular?(replay_path("api.refresh")) ->
+           {owner, _} = login(c)
