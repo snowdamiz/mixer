@@ -7,6 +7,7 @@ defmodule MixerHosted.Releases.RuntimeProvisioning do
 
   @config "MIXER_LOCAL_RELEASE_CONFIG"
   @password "MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD"
+  @writer_enabled "MIXER_LOCAL_RELEASE_WRITER_ENABLED"
   @reader "mixer_release_delivery"
   @max_config_bytes 65_536
 
@@ -25,6 +26,20 @@ defmodule MixerHosted.Releases.RuntimeProvisioning do
 
       {_, :error} ->
         invalid!(@password)
+    end
+  end
+
+  @doc false
+  def writer_options!(env, %HostedConfig{role: role, repo: repo}, provisioning) do
+    case {Map.get(env, @writer_enabled, "false"), role, provisioning} do
+      {"false", _, _} ->
+        nil
+
+      {"true", :api, {%{target: %Target{}}, %{repo: _reader}}} ->
+        Keyword.put(repo, :pool_size, 1)
+
+      _ ->
+        invalid!(@writer_enabled)
     end
   end
 

@@ -6,6 +6,7 @@ defmodule MixerHosted.Releases.RuntimeProvisioningTest do
 
   @config "MIXER_LOCAL_RELEASE_CONFIG"
   @password "MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD"
+  @writer_enabled "MIXER_LOCAL_RELEASE_WRITER_ENABLED"
   @fixture Path.expand(
              "../../../../services/protocol/testdata/signed-release-v3.json",
              __DIR__
@@ -108,6 +109,43 @@ defmodule MixerHosted.Releases.RuntimeProvisioningTest do
       RuntimeProvisioning.load!(Map.put(ctx.env, @config, Jason.encode!(document)), ctx.hosted)
 
     assert Enum.all?(target.roots, & &1["revoked"])
+  end
+
+  test "keeps legacy delivery reader-only unless the writer is explicitly enabled", ctx do
+    assert RuntimeProvisioning.writer_options!(@base, ctx.hosted, :disabled) == nil
+    release = RuntimeProvisioning.load!(ctx.env, ctx.hosted)
+    assert RuntimeProvisioning.writer_options!(ctx.env, ctx.hosted, release) == nil
+
+    env = Map.put(ctx.env, @writer_enabled, "false")
+    assert RuntimeProvisioning.writer_options!(env, ctx.hosted, release) == nil
+  end
+
+  test "projects one verified connection with the ordinary API login", ctx do
+    env = Map.put(ctx.env, @writer_enabled, "true")
+    {_, delivery} = release = RuntimeProvisioning.load!(env, ctx.hosted)
+    writer = RuntimeProvisioning.writer_options!(env, ctx.hosted, release)
+
+    assert writer == Keyword.put(ctx.hosted.repo, :pool_size, 1)
+    assert writer[:pool_count] == 1
+    assert writer[:ssl][:verify] == :verify_peer
+    assert writer[:username] != delivery.repo[:username]
+    assert writer[:show_sensitive_data_on_connection_error] == false
+  end
+
+  test "requires the target and reader for opt-in and refuses other writer settings", ctx do
+    release = RuntimeProvisioning.load!(ctx.env, ctx.hosted)
+    enabled = Map.put(ctx.env, @writer_enabled, "true")
+
+    for {env, hosted, provisioning} <- [
+          {enabled, ctx.hosted, :disabled},
+          {enabled, %{ctx.hosted | role: :processor}, release},
+          {Map.put(ctx.env, @writer_enabled, ""), ctx.hosted, release},
+          {Map.put(ctx.env, @writer_enabled, "1"), ctx.hosted, release}
+        ] do
+      assert_raise ArgumentError, "invalid or missing hosted setting: " <> @writer_enabled, fn ->
+        RuntimeProvisioning.writer_options!(env, hosted, provisioning)
+      end
+    end
   end
 
   test "refuses processors, public binds, and shared reader credentials", ctx do

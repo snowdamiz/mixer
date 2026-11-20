@@ -10,13 +10,19 @@ if config_env() != :test do
   installation = MixerHosted.BrowserAuth.Installation.load!(env, settings)
   config :mixer_hosted, :startup, {settings, installation}
 
-  case MixerHosted.Releases.RuntimeProvisioning.load!(env, settings) do
+  release = MixerHosted.Releases.RuntimeProvisioning.load!(env, settings)
+
+  case release do
     :disabled ->
       :ok
 
     {target, delivery} ->
       config :mixer_hosted, :local_release_target, target
       config :mixer_hosted, :local_release_delivery, delivery
+  end
+
+  if writer = MixerHosted.Releases.RuntimeProvisioning.writer_options!(env, settings, release) do
+    config :mixer_hosted, MixerHosted.Releases.WriterRepo, writer
   end
 
   config :mixer_hosted,

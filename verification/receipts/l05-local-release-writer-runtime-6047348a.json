@@ -1,0 +1,155 @@
+{
+  "schema": 1,
+  "status": "passed_local_writer_runtime_slice",
+  "base": "6047348aade7d5bb05e8013e437f36898eb90cb5",
+  "testedTreeBeforeReceipt": "a93bf7ddac4b6de4f63ad3b2412a6098dbac5102",
+  "testedHostedTree": "d08320f22af95d569dd76fab90ee827f7747ed47",
+  "environment": {
+    "host": "macOS 27.0.1 arm64",
+    "elixirAndMix": "1.20.4",
+    "otp": 29,
+    "phoenix": "1.8.16",
+    "postgresql": "17.11",
+    "openssl": "4.1.0",
+    "python": "3.14.8",
+    "hostedLockSha256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+    "signedFixtureSha256": "ee4935fedca51b728e78801cb05c5732e8547bda1e26f109330e6659a0a2f77a"
+  },
+  "commandsFromHosted": {
+    "dependencies": "HEX_OFFLINE=1 mix deps.get",
+    "compile": "MIX_ENV=dev mix compile --warnings-as-errors",
+    "format": "mix format --check-formatted config/runtime.exs lib/mixer_hosted/releases/runtime_provisioning.ex test/mixer_hosted/releases/runtime_provisioning_test.exs",
+    "configuration": "MIX_ENV=test mix test --warnings-as-errors --seed 0 test/mixer_hosted/releases/runtime_provisioning_test.exs",
+    "authenticatedFixture": "MIX_ENV=test mix test --warnings-as-errors --seed 0 --trace test/mixer_hosted/releases/browser_publication_test.exs",
+    "ledger": "MIX_ENV=test mix test --warnings-as-errors --seed 0 --trace test/mixer_hosted/releases/postgres_test.exs",
+    "ordinaryStartupSeed": "MIX_ENV=test mix test --warnings-as-errors --seed 0 --trace test/mixer_hosted/releases/postgres_test.exs:192",
+    "ordinaryStartup": "MIX_ENV=dev mix phx.server --no-compile"
+  },
+  "database": "Disposable PostgreSQL bound 127.0.0.1:5432 and a private Unix socket. Normal API database connections required hostssl SCRAM and used a per-process OTP CA with a 127.0.0.1 IP SAN. The ledger fixture seeded the signed head over the private socket. Applied the CLI receipts migration as ledger_owner and the existing reader grants. The authenticated browser fixture used its own database with loopback-only test authentication.",
+  "tests": {
+    "configuration": {
+      "passed": 8,
+      "sha256": "5c0e4e839fa5ce3bcfadfe54662c329b640306ad1391558046fa5003d25afc59"
+    },
+    "authenticated-browser-cli": {
+      "summary": [
+        "Result: 4 passed"
+      ],
+      "sha256": "562c2d9152bb8cad0d4e4911dedc6120409b70b944fa9f3863e564f45e939f3b"
+    },
+    "ledger-seed": {
+      "summary": [
+        "Result: 1 passed, 11 excluded"
+      ],
+      "sha256": "1dc66974a509aa72a0d69ad05df5a277f441ced7233b93c7b7909fc37264cd39"
+    },
+    "ledger-regression": {
+      "summary": [
+        "Result: 12 passed"
+      ],
+      "sha256": "4e22f6805c68f3b30e0ccdab945b1e86d13a4a99ce006e74dd0a020c18c1a9d1"
+    }
+  },
+  "ordinaryStartup": {
+    "disabled": {
+      "health": 200,
+      "offer": 404,
+      "tlsSessions": {
+        "ledger_runtime": 3
+      },
+      "httpPort": 52537
+    },
+    "reader-only": {
+      "health": 200,
+      "offer": 200,
+      "tlsSessions": {
+        "ledger_runtime": 3,
+        "mixer_release_delivery": 1
+      },
+      "httpPort": 52559,
+      "artifact": 200,
+      "sequence": "18446744073709551615",
+      "offerSha256": "1e792d6e043dbe8a185ccbc38d37ca35fc908c0cb0ebedb65702fcba858efffd",
+      "artifactEnvelopeSha256": "ddf38dfdf901384d46392456380d329df4e57f0b138fa462f121f7391b0960cb",
+      "wrongChannel": 204
+    },
+    "writer-false": {
+      "health": 200,
+      "offer": 200,
+      "tlsSessions": {
+        "ledger_runtime": 3,
+        "mixer_release_delivery": 1
+      },
+      "httpPort": 52648,
+      "artifact": 200,
+      "sequence": "18446744073709551615",
+      "offerSha256": "1e792d6e043dbe8a185ccbc38d37ca35fc908c0cb0ebedb65702fcba858efffd",
+      "artifactEnvelopeSha256": "ddf38dfdf901384d46392456380d329df4e57f0b138fa462f121f7391b0960cb",
+      "wrongChannel": 204
+    },
+    "writer-enabled": {
+      "health": 200,
+      "offer": 200,
+      "tlsSessions": {
+        "ledger_runtime": 4,
+        "mixer_release_delivery": 1
+      },
+      "httpPort": 52693,
+      "artifact": 200,
+      "sequence": "18446744073709551615",
+      "offerSha256": "1e792d6e043dbe8a185ccbc38d37ca35fc908c0cb0ebedb65702fcba858efffd",
+      "artifactEnvelopeSha256": "ddf38dfdf901384d46392456380d329df4e57f0b138fa462f121f7391b0960cb",
+      "wrongChannel": 204
+    },
+    "untrusted-ca": {
+      "health": 200,
+      "offer": 503,
+      "tlsSessions": {},
+      "httpPort": 52730,
+      "verifiedTlsRefusedUntrustedCa": true
+    }
+  },
+  "authenticatedFixture": [
+    "The synthetic PKCE provider supplied a current human bearer. The real loopback validate and publish endpoints returned HTTP 200. The CLI publication advanced the shared browser head to sequence 8 and the authenticated browser read and public updater agreed on the sequence and digest.",
+    "The suite checked wrong-role, stale browser publication, bad signature, revoked trust, tenant and target mismatches, idempotency conflicts, effective HTTPS listener refusal, and committed delivery after Phoenix restart."
+  ],
+  "cleanup": {
+    "ordinaryStartupProcessResults": {
+      "disabled": {
+        "exit": 0,
+        "groupAbsent": true
+      },
+      "reader-only": {
+        "exit": 0,
+        "groupAbsent": true
+      },
+      "writer-false": {
+        "exit": 0,
+        "groupAbsent": true
+      },
+      "writer-enabled": {
+        "exit": 0,
+        "groupAbsent": true
+      },
+      "untrusted-ca": {
+        "exit": 0,
+        "groupAbsent": true
+      },
+      "postgres": {
+        "exit": 0,
+        "groupAbsent": true
+      }
+    },
+    "ledgerRegressionProcessResults": {
+      "postgres": {
+        "exit": 0,
+        "groupAbsent": true
+      }
+    },
+    "httpAndPostgresPortsReusable": true,
+    "externalSocketScratchRemoved": true,
+    "disposableCredentialsAbsentFromOrdinaryStartupLogs": true,
+    "firstAttempt": "PostgreSQL rejected the long Unix socket path, exited 1, and its group was absent. The successful fresh run used a short private socket directory."
+  },
+  "limits": "Normal runtime proof used a seeded signed head with configured identity disabled. Authenticated writes and browser reads used the maintained synthetic identity and browser fixture with explicit application configuration. A single ordinary boot with configured identity, stock CLI executable, and all authenticated operations was not qualified. No payment service, release deployment, or L05 gate passage."
+}

@@ -99,8 +99,9 @@ settings before starting the process.
   Base64 for each raw 32-byte public key. Root IDs must be unique.
 - `MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD` contains the password for
   `mixer_release_delivery`. Inject it using the service's secret handling.
-  The reader uses the existing DB hostname, database, port 5432,
-  certificate and hostname verification, and one connection.
+  The reader uses the ordinary API's PostgreSQL hostname, database, port 5432,
+  and TLS options. It verifies the certificate and hostname and uses one
+  connection.
 
 ```sh
 cd hosted
@@ -114,14 +115,63 @@ The browser and updater both read the registered target. The browser head
 continues to require a current browser session and tenant authorization
 through its ordinary login.
 
+## Enable CLI validation and publication
+
+1. Provision delivery for the same target using the steps above. Apply
+   migration `20261120000004` from `hosted/priv/repo/migrations` under the
+   same non-login relation owner.
+2. Confirm that the registered head's `writer_role` is the restricted login
+   in `MIXER_DATABASE_USER`. The browser publisher and CLI writer use this
+   login. Keep its existing authorization reads and lock-function grants.
+   As the administrator, set the psql variable `browser_runtime` to that login
+   and apply the release grants in the target database.
+
+   ```sql
+   BEGIN;
+   GRANT SELECT, UPDATE (sequence) ON public.mixer_release_heads TO :"browser_runtime";
+   GRANT SELECT, INSERT (
+     organization_id, project_id, application_id, environment_id, platform,
+     runtime_sha256, channel, sequence, previous_sequence, artifact_sha256,
+     signed_assignment_bytes, rollout_basis_points, idempotency_key, reason, principal_id
+   ) ON public.mixer_release_publications TO :"browser_runtime";
+   GRANT SELECT, INSERT ON public.mixer_release_cli_requests TO :"browser_runtime";
+   GRANT EXECUTE ON FUNCTION
+     public.mixer_release_publish_allowed(text,text,text,text),
+     public.mixer_release_read_allowed(text,text,text,text),
+     public.mixer_release_bound_artifact(text,text,text,text,text,text,text)
+   TO :"browser_runtime";
+   COMMIT;
+   ```
+
+   Keep the writer free of relation ownership, owner-role memberships, public
+   schema creation privileges, and direct customer artifact table access.
+   Stage the signed artifact through the separately authorized upload path.
+3. Set `MIXER_LOCAL_RELEASE_WRITER_ENABLED=true` and restart the API. The writer
+   uses one extra connection with the same login, credentials, and verified
+   TLS options as the ordinary API. The API must listen on IPv4 loopback HTTP.
+   Set the flag to `false` or omit it for reader-only provisioning.
+4. Use a current human bearer authorized for release publication and artifact
+   upload in the target tenant. Validate the staged artifact with
+   `POST /v3/orgs/:organization_id/projects/:project_id/releases/validate`.
+   Send a JSON object containing `artifact_sha256`.
+   Publish the signed assignment with
+   `POST /v3/orgs/:organization_id/projects/:project_id/channels/:channel/publish`.
+   Send a JSON object containing `signed_assignment`. Set `Idempotency-Key`
+   and `X-Mixer-Reason` on each request. Use distinct keys for validation and
+   publication. After publication, check the same sequence and artifact digest
+   in the authenticated browser head and the updater offer for an eligible
+   installation.
+
 ## Replay with a disposable signed fixture
 
 Run the configuration and effective-listener checks from `hosted/`.
 
 ```sh
 MIX_ENV=test mix test --warnings-as-errors \
-  test/mixer_hosted/releases/runtime_provisioning_test.exs \
-  test/mixer_hosted/releases/browser_publication_test.exs:27
+  test/mixer_hosted/releases/runtime_provisioning_test.exs
+MIX_ENV=test mix test --warnings-as-errors \
+  test/mixer_hosted/releases/browser_publication_test.exs:28 \
+  test/mixer_hosted/releases/browser_publication_test.exs:79
 ```
 
 For a live replay, use a disposable PostgreSQL instance on IPv4 loopback
@@ -194,5 +244,5 @@ For the independent authenticated browser regression, run the full
 `test/mixer_hosted/releases/browser_publication_test.exs` with the existing
 browser catalog fixture. That fixture supplies the synthetic sign-in and
 checks the exact tenant head in a separately seeded database using the same
-ledger migrations. Normal CLI publication still requires the reviewed
-`WriterRepo` activation.
+ledger migrations. It also checks authenticated CLI validation and publication
+against the same head.
