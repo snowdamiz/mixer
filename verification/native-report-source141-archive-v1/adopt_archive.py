@@ -303,6 +303,8 @@ CLI_NONREGULAR_INPUT_TEST = 'cli/Tests/MixerBuildTests/UpdateHardeningTests.swif
 CLI_NONREGULAR_INPUT_TEST_PREIMAGE = 'cli-nonregular-input-test-predecessor-bytes/' + CLI_NONREGULAR_INPUT_TEST
 SIGNED_APPLE_OVERFLOW_TEST = 'capability-activation/Tests/MixerCapabilityActivationTests/GuestUISignedRuntimeTests.swift'
 SIGNED_APPLE_OVERFLOW_TEST_PREIMAGE = 'signed-apple-overflow-test-predecessor-bytes/' + SIGNED_APPLE_OVERFLOW_TEST
+SPARSE_CHECKOUT_TEST = JAVA + 'test_sparse_checkout.py'
+SPARSE_CHECKOUT_TEST_PREIMAGE = 'sparse-checkout-test-predecessor-bytes/' + SPARSE_CHECKOUT_TEST
 HALT_CLI_PREFIX = 'halt-cli-predecessor-bytes/'
 SOURCE150_SHA256 = '4a202d6aa4f6b81884df32cd0fe67cc8ce9847e8d4ae2ebea8b2cf1d4711a6f8'
 HALT_CLI_SOURCE_CHANGES = {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE}
@@ -312,7 +314,7 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
     HOSTED_V43_WORKFLOW, HOSTED_V44_WORKFLOW, HOSTED_V45_WORKFLOW, HOSTED_V46_WORKFLOW, HOSTED_V47_WORKFLOW, HOSTED_V48_WORKFLOW, HOSTED_V49_WORKFLOW, HOSTED_V50_WORKFLOW, HOSTED_V51_WORKFLOW, HOSTED_V52_WORKFLOW,
     GUEST_CUTOFF_PREIMAGE, WORKER_SWIFT_PROBE_PREIMAGE, CLI_NONREGULAR_INPUT_TEST_PREIMAGE,
-    SIGNED_APPLE_OVERFLOW_TEST_PREIMAGE,
+    SIGNED_APPLE_OVERFLOW_TEST_PREIMAGE, SPARSE_CHECKOUT_TEST_PREIMAGE,
 } | {STORE_PLATFORM_IDENTITY_PREFIX + name for name in STORE_PLATFORM_IDENTITY_INPUTS} | {
     ANDROID_OUTPUT_PREFIX + name for name in ANDROID_OUTPUT_CHANGES
 } | {
@@ -461,6 +463,7 @@ def install_inputs():
                              'android_retained_output_correction_transition',
                              'managed_android_retained_transition', 'pair25_transition', 'swift_version_transition',
                              'cli_nonregular_input_test_transition', 'signed_apple_overflow_test_transition',
+                             'sparse_checkout_test_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
@@ -1113,6 +1116,16 @@ def install_inputs():
             'Installed signed Apple overflow test mode differs')
     installed[SIGNED_APPLE_OVERFLOW_TEST] = overflow_test['after']
     preimages.setdefault(SIGNED_APPLE_OVERFLOW_TEST, (raw, 0o644))
+
+    sparse_test = binding['sparse_checkout_test_transition']
+    raw = read_predecessor_member(HERE / SPARSE_CHECKOUT_TEST_PREIMAGE)
+    require(set(sparse_test) == {'before', 'after'} and SPARSE_CHECKOUT_TEST not in current and
+            sparse_test['before'] == previous.row(raw) == installed[SPARSE_CHECKOUT_TEST] and
+            sparse_test['before'] != sparse_test['after'], 'Sparse checkout test predecessor differs')
+    require(stat.S_IMODE((ROOT / SPARSE_CHECKOUT_TEST).lstat().st_mode) == 0o644,
+            'Installed sparse checkout test mode differs')
+    installed[SPARSE_CHECKOUT_TEST] = sparse_test['after']
+    preimages.setdefault(SPARSE_CHECKOUT_TEST, (raw, 0o644))
 
     previous.check_rows(ROOT, installed)
     for name, change in halt['changes'].items():

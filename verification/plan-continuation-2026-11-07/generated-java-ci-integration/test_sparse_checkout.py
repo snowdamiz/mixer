@@ -400,7 +400,7 @@ class SparseControls(unittest.TestCase):
         import shutil
         patterns = owning_patterns((ROOT / '.github/workflows/verify.yml').read_text())
         paths = owning_paths(patterns)
-        old_patterns = ('/.github/workflows/', '/cli/', '/sdk/', '/native-sdk/', '/updates/', '/native/android/', '/scripts/ci/', '/verification/plan-continuation-2026-11-07/generated-java-ci-integration/', '/verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/binding.json', '/verification/native-output-source121-v1/', '/verification/native-report-source126-v1/', '/verification/native-report-source127-v1/', '/verification/sdk-feature-ui-source141-v1/', '/verification/native-report-source141-archive-v1/')
+        without_root_lock = [pattern for pattern in patterns if pattern != '/Package.resolved']
         with tempfile.TemporaryDirectory(prefix='materialized-admission-', dir=HERE) as td:
             base = Path(td)
             repo = base / 'repo'
@@ -424,7 +424,7 @@ class SparseControls(unittest.TestCase):
             command(git + ['init', '-q'], check=True)
             command(git + ['add', '-f', '--all'], check=True)
             command(git + ['sparse-checkout', 'set', '--no-cone', '--stdin'],
-                    input=('\n'.join(old_patterns) + '\n').encode(), check=True)
+                    input=('\n'.join(without_root_lock) + '\n').encode(), check=True)
             self.assertFalse((repo / 'Package.resolved').exists())
             adopter = repo / B.SOURCE_AUTHORITY.relative_to(ROOT)
             python = [sys.executable, '-I', '-B', '-S'] + (['-O'] if sys.flags.optimize else [])
