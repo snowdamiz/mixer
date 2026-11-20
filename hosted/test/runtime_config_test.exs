@@ -31,6 +31,7 @@ defmodule MixerHosted.RuntimeConfigTest do
 
     assert is_function(config.repo[:ssl][:customize_hostname_check][:match_fun], 2)
     assert config.endpoint[:http][:ip] == {127, 0, 0, 1}
+    assert config.endpoint[:http][:http_2_options] == [enabled: false]
     refute inspect(config) =~ "synthetic"
 
     assert Enum.member?(

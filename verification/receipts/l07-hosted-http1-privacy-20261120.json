@@ -1,0 +1,35 @@
+{
+  "after": {
+    "http1": "1.1 200",
+    "http2": "0 000",
+    "http2CurlExit": 56,
+    "httpOutputSHA256": "539ad56aa35bb1eb073635865d4c1a4cbf7d7cd432dbd7e42491215ce2a9c266",
+    "runtimeConfigTestsPassed": 9
+  },
+  "afterimageSHA256": {
+    "hosted/lib/mixer_hosted/runtime_config.ex": "b8fe01519e96c83c46598ebe437b512a096e883793de12960adf9ea8b9a9d2da",
+    "hosted/test/runtime_config_test.exs": "c81a5bbf23a2a3b138e3f31fdc1410d5a7005bf6630bd4464eceb0b6fabe41d9",
+    "tests/integration/l07-hosted-privacy/http_protocol_probe.exs": "19ca636ccbb3e516668c81d1a3ad7e15675ecbf82bc50fe0d1b7a3a1c69f9bfe"
+  },
+  "base": "36e1d8bbe1bdbf4522e49cf83d740780d1c54900",
+  "before": {
+    "configRegressionReproduced": true,
+    "http1": "1.1 200",
+    "http2": "2 200",
+    "httpOutputSHA256": "e31fd3f4e90adf84f19fce06a099cba4412e3d7a54a660296de0b5c3d34a2b46"
+  },
+  "limits": "No sensitive or malformed requests, external observer, mobile traffic or production ingress were exercised.",
+  "listenerShutdownAndPortReboundInBothRuns": true,
+  "observations": "Ordinary GET /health/live over both protocols, starting the actual Bandit Phoenix endpoint from the ordinary RuntimeConfig. The probe substitutes only an ephemeral port and uses synthetic unused database configuration.",
+  "ownedScratchRemoved": true,
+  "postgresProcesses": 0,
+  "probe": "From hosted with the pinned test lock installed, run MIX_ENV=test mix run --no-start ../tests/integration/l07-hosted-privacy/http_protocol_probe.exs after.",
+  "schema": 1,
+  "scope": "HTTP/1.1 backend listener for ordinary Phoenix API ingress. Disables the Bandit protocol path whose direct diagnostics can contain raw request data.",
+  "tools": {
+    "bandit": "1.14.1",
+    "curl": "8.7.1",
+    "elixir": "1.20.4",
+    "otp": 29
+  }
+}

@@ -56,7 +56,9 @@ disabled and notification/reconnect behavior qualified before deployment.
 The API requires `MIXER_SECRET_KEY_BASE` of at least 64 bytes. It binds loopback
 port 4000 unless `MIXER_HTTP_BIND` is explicitly `0.0.0.0` and/or `MIXER_HTTP_PORT`
 is set. Cloudflare proxy, network admission and TLS termination remain deployment
-work. The API has no queues, staging, leadership or plugins.
+work. The backend listener uses HTTP/1.1. It disables Bandit's HTTP/2 listener
+because its warning logs can include request data. The API has no queues,
+staging, leadership or plugins.
 
 The processor has no HTTP endpoint. It uses database-backed leadership and a
 one-second stager, with separate `builds`, `signing`, `submissions`, `releases`,

@@ -301,7 +301,11 @@ defmodule MixerHosted.RuntimeConfig do
 
     [
       server: true,
-      http: [ip: ip, port: integer!(env, "MIXER_HTTP_PORT", 4000, 1..65_535)],
+      http: [
+        ip: ip,
+        port: integer!(env, "MIXER_HTTP_PORT", 4000, 1..65_535),
+        http_2_options: [enabled: false]
+      ],
       secret_key_base: secret
     ]
   end
