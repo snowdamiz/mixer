@@ -89,6 +89,13 @@ defmodule MixerHosted.Repo.Migrations.AddLocalReleaseJobs do
     create_sequence_parser()
     create_writer_check()
     create_processor_policy()
+
+    execute("""
+    CREATE POLICY release_peer_processor ON #{@peers}
+    USING (#{@live_processor} AND name = 'Oban')
+    WITH CHECK (#{@live_processor} AND name = 'Oban')
+    """)
+
     create_materializer()
   end
 

@@ -8,8 +8,8 @@
 -- mixer_release_processor and supply it via MIXER_DATABASE_PASSWORD.
 -- The processor uses MIXER_HOSTED_ROLE=processor, MIXER_PROCESSOR_PROFILE=releases_v1,
 -- and MIXER_DATABASE_USER=mixer_release_processor, against this same database.
--- Use Oban.Peers.Isolated and Oban.Notifiers.Isolated with staging enabled
--- and pruning disabled.
+-- Database peer leadership and staging coordinate this release queue.
+-- Pruning is disabled.
 -- The API opts in with MIXER_LOCAL_RELEASE_JOBS_ENABLED=true.
 BEGIN;
 
@@ -87,6 +87,8 @@ GRANT SELECT ON mixer_release_jobs.oban_jobs TO mixer_release_processor;
 GRANT UPDATE (state, attempt, attempted_at, attempted_by, scheduled_at,
   completed_at, discarded_at, cancelled_at, errors)
   ON mixer_release_jobs.oban_jobs TO mixer_release_processor;
+GRANT SELECT, INSERT (name, node, started_at, expires_at), DELETE, UPDATE (expires_at)
+  ON mixer_release_jobs.oban_peers TO mixer_release_processor;
 GRANT EXECUTE ON FUNCTION mixer_release_jobs.materialize_v1(bigint, integer) TO mixer_release_processor;
 
 COMMIT;

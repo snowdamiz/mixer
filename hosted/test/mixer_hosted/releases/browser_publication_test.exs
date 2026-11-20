@@ -349,7 +349,16 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
   end
 
   test "shares a head between browser and CLI publication and delivers only committed releases" do
-    c = prepare_release_fixture!("public-delivery")
+    exercise_publication!(false)
+  end
+
+  test "commits browser and CLI release jobs atomically and drains them with HTTP idle" do
+    exercise_publication!(true)
+  end
+
+  defp exercise_publication!(jobs?) do
+    fixture = if jobs?, do: "public-delivery-jobs", else: "public-delivery"
+    c = prepare_release_fixture!(fixture)
     provision!()
     provision_delivery!()
     provision_cli!()
@@ -394,6 +403,8 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     replace_config!(:local_release_delivery, delivery)
     replace_config!(WriterRepo, c.hosted.repo)
     seed_target!(target)
+    if jobs?, do: provision_release_jobs!()
+    c = put_in(c.hosted.local_release_jobs, jobs?)
     c = start!(c)
     assert %{phase: :storage_ready} = RuntimeOwner.status()
     assert [["browser_ordinary"]] = DB.q!(WriterRepo, "SELECT session_user").rows
@@ -472,6 +483,21 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
              RuntimeOwner.publish_release(owner, target, signed_first, "delivery-first", @reason)
 
     first_sequence = Integer.to_string(first["sequence"])
+
+    if jobs? do
+      assert_queued_publications!(target, [first_sequence])
+
+      assert {:ok, %{artifact_sha256: ^first_digest}} =
+               RuntimeOwner.publish_release(
+                 owner,
+                 target,
+                 signed_first,
+                 "delivery-first",
+                 @reason
+               )
+
+      assert_queued_publications!(target, [first_sequence])
+    end
 
     assert %{"release" => %{"sequence" => ^first_sequence, "manifestSha256" => ^first_digest}} =
              read!(c, owner, target)
@@ -554,14 +580,53 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     assert %{"release" => %{"sequence" => ^first_sequence}} = read!(c, owner, target)
     assert [[1]] = DB.q!(Admin, "SELECT count(*) FROM public.mixer_release_cli_requests").rows
 
-    if cli = System.get_env("MIXER_TEST_RELEASE_CLI") do
+    cli = if !jobs?, do: System.get_env("MIXER_TEST_RELEASE_CLI")
+
+    if cli do
       with_uploader!(c, config, fn ->
         StockReleaseCLI.publish!(cli, c.http_port, token, second_artifact, signed_second, second)
       end)
     else
       publish_path = cli_base <> "/channels/#{target.channel}/publish"
       body = ~s({"signed_assignment":#{signed_second}})
+
+      if jobs? do
+        assert_failed_publication = fn ->
+          assert %{status: 503} = cli_post(c, token, publish_path, "cli-second", body)
+
+          assert [[head]] = DB.q!(Admin, "SELECT sequence FROM public.mixer_release_heads").rows
+          assert Decimal.to_string(head) == first_sequence
+          assert_delivery(c, offer_path, first_path, signed_first, first_envelope, config)
+
+          assert [[1]] =
+                   DB.q!(Admin, "SELECT count(*) FROM public.mixer_release_publications").rows
+
+          assert [[1]] =
+                   DB.q!(Admin, "SELECT count(*) FROM public.mixer_release_cli_requests").rows
+
+          assert_queued_publications!(target, [first_sequence])
+        end
+
+        DB.q!(
+          Admin,
+          "REVOKE INSERT (queue) ON mixer_release_jobs.oban_jobs FROM browser_ordinary"
+        )
+
+        try do
+          assert_failed_publication.()
+        after
+          DB.q!(Admin, "GRANT INSERT (queue) ON mixer_release_jobs.oban_jobs TO browser_ordinary")
+        end
+
+        assert_failed_job_commit!(assert_failed_publication)
+      end
+
       assert %{status: 200, body: result} = cli_post(c, token, publish_path, "cli-second", body)
+
+      if jobs? do
+        assert %{status: 200, body: ^result} =
+                 cli_post(c, token, publish_path, "cli-second", body)
+      end
 
       assert %{"sequence" => sequence, "artifact_sha256" => ^second_digest} =
                Jason.decode!(result)
@@ -570,6 +635,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     end
 
     second_sequence = Integer.to_string(second["sequence"])
+    if jobs?, do: assert_queued_publications!(target, [first_sequence, second_sequence])
 
     assert %{"release" => %{"sequence" => ^second_sequence, "manifestSha256" => ^second_digest}} =
              read!(c, owner, target)
@@ -613,7 +679,8 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
       assert_no_offer(restarted, delivery_path(target, "excluded-installation"))
 
       rollback_path = cli_base <> "/channels/#{target.channel}/rollback"
-      rollback = %{first | "sequence" => second["sequence"] + 1}
+      rollback_sequence = if jobs?, do: @max_sequence, else: second["sequence"] + 1
+      rollback = %{first | "sequence" => rollback_sequence}
       signed_rollback = sign_fixture("assignment", rollback) |> Jason.encode!()
       rollback_body = ~s({"signed_assignment":#{signed_rollback}})
 
@@ -662,15 +729,162 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
       assert read!(restarted, owner, target, :details) == rolled_back
 
       assert_delivery(restarted, offer_path, first_path, signed_rollback, first_envelope, config)
+
+      if jobs? do
+        assert_queued_publications!(target, [
+          first_sequence,
+          second_sequence,
+          Integer.to_string(rollback_sequence)
+        ])
+      end
     after
       assert :ok = Application.stop(:mixer_hosted)
     end
 
-    if path = System.get_env("MIXER_PUBLIC_DELIVERY_WIRE_PROOF") do
+    if jobs?, do: assert_release_processor_drains!(c)
+
+    path = if !jobs?, do: System.get_env("MIXER_PUBLIC_DELIVERY_WIRE_PROOF")
+
+    if path do
       File.write!(
         path,
         Jason.encode!(%{offer: offer, artifact: artifact, excluded: "excluded-installation"})
       )
+    end
+  end
+
+  defp assert_queued_publications!(target, sequences) do
+    fields = Map.new(Target.filter(target), fn {key, value} -> {Atom.to_string(key), value} end)
+
+    expected =
+      Enum.map(sequences, fn sequence ->
+        [
+          "releases",
+          "MixerHosted.Releases.ReleaseJobs.Materialize",
+          Map.merge(fields, %{"version" => 1, "sequence" => sequence}),
+          "available",
+          0
+        ]
+      end)
+
+    assert DB.q!(Admin, """
+           SELECT queue,worker,args,state::text,attempt
+           FROM mixer_release_jobs.oban_jobs ORDER BY id
+           """).rows == expected
+
+    assert [[0]] =
+             DB.q!(Admin, "SELECT count(*) FROM mixer_release_jobs.offer_materializations").rows
+  end
+
+  defp assert_failed_job_commit!(assert_failure) do
+    DB.q!(Admin, """
+    CREATE FUNCTION mixer_release_jobs.fixture_fail_commit() RETURNS trigger
+    LANGUAGE plpgsql SET search_path = pg_catalog AS $body$
+    BEGIN
+      RAISE EXCEPTION 'fixture commit failure after release enqueue';
+    END $body$
+    """)
+
+    DB.q!(Admin, """
+    CREATE CONSTRAINT TRIGGER release_job_fixture_fail_commit
+    AFTER INSERT ON mixer_release_jobs.oban_jobs
+    DEFERRABLE INITIALLY DEFERRED FOR EACH ROW
+    EXECUTE FUNCTION mixer_release_jobs.fixture_fail_commit()
+    """)
+
+    try do
+      assert_failure.()
+    after
+      DB.q!(Admin, "DROP TRIGGER release_job_fixture_fail_commit ON mixer_release_jobs.oban_jobs")
+      DB.q!(Admin, "DROP FUNCTION mixer_release_jobs.fixture_fail_commit()")
+    end
+  end
+
+  defp assert_release_processor_drains!(c) do
+    hosted =
+      MixerHosted.Identity.StartupFixture.foundation_env()
+      |> Map.merge(%{
+        "MIXER_HOSTED_ROLE" => "processor",
+        "MIXER_PROCESSOR_PROFILE" => "releases_v1",
+        "MIXER_DATABASE_USER" => "mixer_release_processor"
+      })
+      |> Map.delete("MIXER_SECRET_KEY_BASE")
+      |> MixerHosted.RuntimeConfig.load!()
+
+    connection = Keyword.take(c.hosted.repo, [:hostname, :port, :database, :ssl])
+    hosted = %{hosted | repo: Keyword.merge(hosted.repo, connection)}
+    abandoned_job = materialize_abandoned_job!(connection[:database])
+    configure!(%{c | hosted: hosted}, :disabled)
+    assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
+
+    try do
+      refute Process.whereis(MixerHostedWeb.Endpoint)
+      refute Process.whereis(WriterRepo)
+      refute Process.whereis(DeliveryRepo)
+      assert [["mixer_release_processor"]] = DB.q!(MixerHosted.Repo, "SELECT session_user").rows
+
+      await_release_jobs!(System.monotonic_time(:millisecond) + 7_000)
+
+      assert [[3]] =
+               DB.q!(Admin, """
+               SELECT count(*) FROM mixer_release_jobs.offer_materializations m
+               JOIN public.mixer_release_publications p USING
+                 (organization_id,project_id,application_id,environment_id,platform,runtime_sha256,channel,sequence)
+               WHERE m.signed_assignment_bytes = p.signed_assignment_bytes
+                 AND m.artifact_sha256 = p.artifact_sha256
+                 AND m.rollout_basis_points = p.rollout_basis_points
+                 AND m.action = p.action
+               """).rows
+
+      assert [[3, 2, 1]] =
+               DB.q!(
+                 Admin,
+                 """
+                 SELECT count(*), count(*) FILTER (WHERE attempt=1),
+                        count(*) FILTER (WHERE id=$1 AND attempt=2)
+                 FROM mixer_release_jobs.oban_jobs WHERE state='completed'
+                 """,
+                 [abandoned_job]
+               ).rows
+    after
+      assert :ok = Application.stop(:mixer_hosted)
+    end
+  end
+
+  defp materialize_abandoned_job!(database) do
+    assert [[job_id]] =
+             DB.q!(Admin, """
+             UPDATE mixer_release_jobs.oban_jobs
+             SET state='executing', attempt=1, attempted_at=now() - interval '6 minutes'
+             WHERE id=(SELECT min(id) FROM mixer_release_jobs.oban_jobs)
+             RETURNING id
+             """).rows
+
+    conn = DB.connection!("mixer_release_processor", database)
+
+    try do
+      assert %{rows: [["ok"]]} =
+               Postgrex.query!(
+                 conn,
+                 "SELECT mixer_release_jobs.materialize_v1($1::bigint,$2::integer)",
+                 [job_id, 1]
+               )
+    after
+      GenServer.stop(conn)
+    end
+
+    assert [[1]] =
+             DB.q!(Admin, "SELECT count(*) FROM mixer_release_jobs.offer_materializations").rows
+
+    job_id
+  end
+
+  defp await_release_jobs!(deadline) do
+    unless DB.q!(Admin, "SELECT state::text FROM mixer_release_jobs.oban_jobs ORDER BY id").rows ==
+             List.duplicate(["completed"], 3) do
+      assert System.monotonic_time(:millisecond) < deadline, "release jobs did not drain"
+      Process.sleep(25)
+      await_release_jobs!(deadline)
     end
   end
 
@@ -899,6 +1113,52 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
       Admin,
       "GRANT EXECUTE ON FUNCTION public.mixer_release_delivery_artifact(text,text,text,text,text,text,text,text) TO mixer_release_delivery"
     )
+  end
+
+  defp provision_release_jobs! do
+    version = 20_261_120_000_014
+    module = MixerHosted.Repo.Migrations.AddLocalReleaseJobs
+
+    unless Code.ensure_loaded?(module),
+      do: Code.require_file("priv/local_release_jobs/#{version}_add_local_release_jobs.exs")
+
+    assert :ok = Ecto.Migrator.up(Migration, version, module, log: false)
+
+    database = Admin.config() |> Keyword.fetch!(:database)
+
+    on_exit(fn ->
+      conn = DB.connection!("browser_admin", database)
+
+      try do
+        Postgrex.query!(conn, "DROP OWNED BY mixer_release_processor", [])
+        Postgrex.query!(conn, "DROP ROLE mixer_release_processor", [])
+      after
+        GenServer.stop(conn)
+      end
+    end)
+
+    {output, status} =
+      System.cmd(
+        "psql",
+        [
+          "-X",
+          "-q",
+          "-w",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          to_string(DB.port()),
+          "-U",
+          "browser_admin",
+          "-d",
+          database,
+          "-f",
+          "../docs/operations/provision-local-release-jobs.sql"
+        ],
+        stderr_to_stdout: true
+      )
+
+    assert status == 0, output
   end
 
   defp provision_cli! do

@@ -254,6 +254,27 @@ Update checks return HTTP 204 while the halt is current. Previously published
 artifacts remain available under the existing delivery verification rules.
 Publish or promote at a higher signed sequence to resume new offers.
 
+## Enable the release worker queue
+
+1. After you register the release target, apply optional migration
+   `20261120000014` from `hosted/priv/local_release_jobs` as the non-login
+   release ledger owner. The owner needs `CREATE` on the ledger database.
+2. Run [provision-local-release-jobs.sql](provision-local-release-jobs.sql)
+   as the local database administrator against the ledger database. Set a
+   separate password for the restricted `mixer_release_processor` login.
+3. Start a separate hosted process with `MIXER_HOSTED_ROLE=processor`,
+   `MIXER_PROCESSOR_PROFILE=releases_v1`, and
+   `MIXER_DATABASE_USER=mixer_release_processor`. Use the same ledger database
+   and the processor password with the standard verified TLS settings.
+4. Set `MIXER_LOCAL_RELEASE_JOBS_ENABLED=true` on the API and restart it.
+   A new publication commits its release job with its ledger row and head
+   advance. Exact replay returns the original result without adding a job.
+
+Check `mixer_release_jobs.oban_jobs` for a completed `releases` job and
+`mixer_release_jobs.offer_materializations` for its corresponding projection.
+The browser and updater serve the committed ledger while jobs are pending.
+Omit the API flag or set it to `false` to stop enqueueing new jobs.
+
 ## Replay with a disposable signed fixture
 
 Run the configuration and effective-listener checks from `hosted/`.

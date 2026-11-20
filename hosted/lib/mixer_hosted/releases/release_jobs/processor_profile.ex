@@ -13,7 +13,7 @@ defmodule MixerHosted.Releases.ReleaseJobs.ProcessorProfile do
       insert_trigger: false,
       notifier: Oban.Notifiers.Isolated,
       queues: [releases: concurrency],
-      plugins: [],
+      plugins: [{Oban.Lifeline, interval: 5_000, rescue_after: :timer.minutes(5)}],
       peer: Oban.Peers.Database,
       stager: [interval: 1_000],
       shutdown_grace_period: 15_000
