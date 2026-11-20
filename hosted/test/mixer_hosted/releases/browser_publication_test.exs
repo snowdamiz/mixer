@@ -24,6 +24,57 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
   @fixtures Path.expand("../../../../services/protocol/testdata", __DIR__)
   @max_sequence 18_446_744_073_709_551_615
 
+  test "public delivery refuses a second listener in the effective endpoint settings" do
+    hosted =
+      MixerHosted.RuntimeConfig.load!(%{
+        "MIXER_HOSTED_ROLE" => "api",
+        "MIXER_DATABASE_HOST" => "db.fixture.example",
+        "MIXER_DATABASE_NAME" => "mixer_fixture",
+        "MIXER_DATABASE_USER" => "mixer_fixture",
+        "MIXER_DATABASE_PASSWORD" => "synthetic-database-secret",
+        "MIXER_SECRET_KEY_BASE" => String.duplicate("fixture-", 8)
+      })
+
+    fixture = @fixtures |> Path.join("signed-release-v3.json") |> File.read!() |> Jason.decode!()
+    assignment = fixture["signed_assignment"]["assignment"]
+
+    target = %Target{
+      scope:
+        struct!(
+          Scope,
+          Map.merge(@tenant, %{application_id: "fieldlog", environment_id: "development"})
+        ),
+      platform: "ios",
+      runtime_sha256: assignment["runtime"],
+      channel: assignment["channel"]
+    }
+
+    roots =
+      Enum.map(fixture["roots"], &Map.update!(&1, "public_key", fn v -> Base.decode64!(v) end))
+
+    reader = [username: "mixer_release_delivery"]
+
+    replace_config!(:local_release_delivery, %{
+      target: target,
+      host: fixture["host"],
+      roots: roots,
+      repo: reader
+    })
+
+    replace_config!(MixerHostedWeb.Endpoint, hosted.endpoint)
+    assert {DeliveryRepo, reader} in MixerHosted.Application.children({hosted, :disabled})
+
+    Application.put_env(
+      :mixer_hosted,
+      MixerHostedWeb.Endpoint,
+      Keyword.put(hosted.endpoint, :https, ip: {0, 0, 0, 0}, port: 8443)
+    )
+
+    assert_raise ArgumentError, "local release delivery requires a loopback HTTP listener", fn ->
+      MixerHosted.Application.children({hosted, :disabled})
+    end
+  end
+
   test "publishes the verified upload once and reads the exact tenant-scoped browser head" do
     c = prepare!(:release_operator)
     provision!()

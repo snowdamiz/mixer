@@ -101,7 +101,8 @@ defmodule MixerHosted.Application do
             do: [],
             else: [{MixerHosted.BrowserAuth.Supervisor, installation}]
 
-        delivery_children = PublicDelivery.children(hosted.endpoint)
+        endpoint = Application.get_env(:mixer_hosted, MixerHostedWeb.Endpoint, [])
+        delivery_children = PublicDelivery.children(endpoint)
 
         base ++
           identity_children ++ browser_children ++ delivery_children ++ [MixerHostedWeb.Endpoint]
