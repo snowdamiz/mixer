@@ -13,7 +13,16 @@ defmodule MixerHosted.Releases do
   alias MixerHosted.Authorization.Transaction.Context
   alias MixerHosted.Identity.{Encoding, VerifiedIdentity}
   alias MixerHosted.Protocol.{ArtifactAdmission, ArtifactV3Policy, AssignmentV3}
-  alias MixerHosted.Releases.{CLIRequest, Head, Publication, Target, WriterCatalog, WriterRepo}
+
+  alias MixerHosted.Releases.{
+    CLIRequest,
+    Head,
+    Publication,
+    ReleaseJobs,
+    Target,
+    WriterCatalog,
+    WriterRepo
+  }
 
   @action "release.publish"
   @value_fields [:artifact_sha256, :signed_assignment_bytes, :rollout_basis_points]
@@ -546,7 +555,7 @@ defmodule MixerHosted.Releases do
       case repo.insert(changeset) do
         {:ok, stored} ->
           repo.update!(Changeset.change(head, sequence: stored.sequence))
-          {:ok, stored}
+          with :ok <- ReleaseJobs.enqueue(repo, stored), do: {:ok, stored}
 
         {:error, %Changeset{errors: [artifact_sha256: _]}} ->
           {:error, :not_found}

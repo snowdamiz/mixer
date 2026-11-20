@@ -71,6 +71,18 @@ defmodule MixerHosted.Releases.RuntimeProvisioningTest do
     assert delivery.repo[:port] == 5432
   end
 
+  test "release jobs require the existing provisioned target and delivery pool", ctx do
+    key = "MIXER_LOCAL_RELEASE_JOBS_ENABLED"
+    enabled = RuntimeConfig.load!(Map.put(ctx.env, key, "true"))
+
+    assert RuntimeProvisioning.load!(ctx.env, enabled) ==
+             RuntimeProvisioning.load!(ctx.env, ctx.hosted)
+
+    assert_raise ArgumentError, "invalid or missing hosted setting: " <> @config, fn ->
+      RuntimeProvisioning.load!(@base, enabled)
+    end
+  end
+
   test "rejects invalid, ambiguous, or unbounded target metadata and trust roots", ctx do
     root = hd(ctx.document["roots"])
 

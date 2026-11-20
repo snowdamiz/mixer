@@ -13,7 +13,7 @@ defmodule MixerHosted.Releases.RuntimeProvisioning do
 
   def load!(env, %HostedConfig{} = hosted) do
     case {Map.fetch(env, @config), Map.fetch(env, @password)} do
-      {:error, :error} ->
+      {:error, :error} when not hosted.local_release_jobs ->
         :disabled
 
       {{:ok, raw}, {:ok, password}} ->

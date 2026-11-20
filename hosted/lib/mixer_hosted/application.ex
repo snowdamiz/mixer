@@ -51,16 +51,10 @@ defmodule MixerHosted.Application do
 
     case {hosted.role, hosted.identity_startup} do
       {:processor, %StartupConfig{mode: :disabled}} when installation == :disabled ->
-        profile =
-          if hosted.processor_profile == :billing_v1,
-            do: MixerHosted.Billing.ProcessorProfile,
-            else: MixerHosted.Builds.ProcessorProfile
-
-        queue =
-          if hosted.processor_profile == :billing_v1, do: :billing_reconciliation, else: :builds
-
-        true = hosted.processor_profile in [:builds_v1, :billing_v1]
+        true = hosted.processor_profile in [:builds_v1, :billing_v1, :releases_v1]
+        {profile, queue} = RuntimeConfig.processor_queue(hosted.processor_profile)
         true = hosted.create_repo == nil
+        true = hosted.local_release_jobs == false
         true = hosted.repo[:username] == profile.role()
 
         {admission, :after_connect, admission_args} =
@@ -87,6 +81,8 @@ defmodule MixerHosted.Application do
 
       {:api, %StartupConfig{} = identity} ->
         true = hosted.build_operation_intent == :disabled
+        true = hosted.processor_profile in [nil, :builds_v1]
+        true = is_boolean(hosted.local_release_jobs)
 
         identity_children =
           case identity do

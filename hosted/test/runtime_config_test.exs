@@ -1,5 +1,6 @@
 defmodule MixerHosted.RuntimeConfigTest do
   use ExUnit.Case, async: true
+  alias MixerHosted.Releases.ReleaseJobs.{ProcessorAdmission, ProcessorProfile}
   alias MixerHosted.RuntimeConfig
 
   defp env do
@@ -175,6 +176,71 @@ defmodule MixerHosted.RuntimeConfigTest do
              MixerHosted.Application.children({cfg, :disabled})
 
     assert cfg.database_connection_bound == cfg.repo[:pool_size] + 1
+  end
+
+  test "release jobs are an explicit API opt-in without a producer Oban instance" do
+    key = "MIXER_LOCAL_RELEASE_JOBS_ENABLED"
+    disabled = RuntimeConfig.load!(env())
+    assert disabled.local_release_jobs == false
+    assert RuntimeConfig.load!(Map.put(env(), key, "false")) == disabled
+
+    assert RuntimeConfig.load!(Map.put(env(), key, "true")) == %{
+             disabled
+             | local_release_jobs: true
+           }
+
+    for bad <- [Map.put(env(), key, "yes"), Map.put(processor_env(), key, "true")] do
+      assert_raise ArgumentError, "invalid or missing hosted setting: " <> key, fn ->
+        RuntimeConfig.load!(bad)
+      end
+    end
+  end
+
+  test "release processor has only the admitted prefixed queue and the database pool" do
+    env =
+      processor_env()
+      |> Map.put("MIXER_PROCESSOR_PROFILE", "releases_v1")
+      |> Map.put("MIXER_DATABASE_USER", "mixer_release_processor")
+      |> Map.put("MIXER_QUEUE_RELEASES_CONCURRENCY", "3")
+      |> Map.delete("MIXER_SECRET_KEY_BASE")
+
+    config = RuntimeConfig.load!(env)
+    oban = config.oban
+    assert config.processor_profile == :releases_v1
+    assert config.endpoint == [server: false]
+    assert config.local_release_jobs == false
+    assert config.database_connection_bound == config.repo[:pool_size]
+    assert config.repo[:after_connect] == {ProcessorAdmission, :after_connect, []}
+    assert oban == ProcessorProfile.oban(3)
+    assert oban[:queues] == [releases: 3]
+    assert oban[:prefix] == "mixer_release_jobs"
+    assert oban[:insert_trigger] == false
+    assert oban[:notifier] == Oban.Notifiers.Isolated
+    assert oban[:peer] == Oban.Peers.Database
+    assert oban[:stager] == [interval: 1_000]
+
+    assert [MixerHosted.Repo, {ProcessorAdmission, :releases_v1}, {Oban, ^oban}] =
+             MixerHosted.Application.children({config, :disabled})
+
+    for {key, value} <- [
+          {"MIXER_HOSTED_ROLE", "api"},
+          {"MIXER_DATABASE_USER", "mixer_build_processor"},
+          {"MIXER_QUEUE_BUILDS_CONCURRENCY", "1"},
+          {"MIXER_QUEUE_RELEASES_CONCURRENCY", "9"},
+          {"MIXER_BUILD_OPERATION_INTENT", "durable_intent_v1"},
+          {"MIXER_IDENTITY_MODE", "configured"}
+        ] do
+      assert_raise ArgumentError, fn -> RuntimeConfig.load!(Map.put(env, key, value)) end
+    end
+
+    for forged <- [
+          %{config | oban: Keyword.put(oban, :prefix, "public")},
+          %{config | oban: Keyword.put(oban, :queues, releases: 3, builds: 1)},
+          %{config | repo: Keyword.delete(config.repo, :after_connect)},
+          %{config | local_release_jobs: true}
+        ] do
+      assert_raise MatchError, fn -> MixerHosted.Application.children({forged, :disabled}) end
+    end
   end
 
   test "queue bounds cannot be widened or interpreted as arbitrary atoms" do

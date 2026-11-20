@@ -24,7 +24,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
 
   @error {:error, :session_unavailable}
   @hosted_keys ~w(role repo oban endpoint database_connection_bound identity_startup create_repo
-    processor_profile build_operation_intent build_cancel native artifact_upload)a
+    processor_profile build_operation_intent build_cancel local_release_jobs native artifact_upload)a
   @repo_keys ~w(hostname port database username password pool_size pool_count timeout
     connect_timeout queue_target queue_interval show_sensitive_data_on_connection_error ssl)a
   @ssl_keys ~w(verify cacerts server_name_indication customize_hostname_check)a
@@ -40,6 +40,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
          true <- create_repo?(hosted),
          true <- hosted.processor_profile in [nil, :builds_v1],
          true <- hosted.build_operation_intent === :disabled,
+         true <- is_boolean(hosted.local_release_jobs),
          true <- browser_env?(browser_env),
          {:ok, config} <- Config.load(browser_env, hosted.role, hosted.identity_startup),
          true <-

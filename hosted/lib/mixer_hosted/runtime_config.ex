@@ -13,6 +13,7 @@ defmodule MixerHosted.RuntimeConfig do
                 processor_profile: nil,
                 build_operation_intent: :disabled,
                 build_cancel: false,
+                local_release_jobs: false,
                 native: nil,
                 artifact_upload: nil
               ]
@@ -34,6 +35,7 @@ defmodule MixerHosted.RuntimeConfig do
       case Map.get(env, "MIXER_PROCESSOR_PROFILE") do
         "builds_v1" -> :builds_v1
         "billing_v1" when role == :processor -> :billing_v1
+        "releases_v1" when role == :processor -> :releases_v1
         nil when role == :api -> nil
         _ -> invalid!("MIXER_PROCESSOR_PROFILE")
       end
@@ -50,12 +52,7 @@ defmodule MixerHosted.RuntimeConfig do
           invalid!("MIXER_BUILD_OPERATION_INTENT")
       end
 
-    profile =
-      if processor_profile == :billing_v1,
-        do: MixerHosted.Billing.ProcessorProfile,
-        else: MixerHosted.Builds.ProcessorProfile
-
-    queue = if processor_profile == :billing_v1, do: :billing_reconciliation, else: :builds
+    {profile, queue} = processor_queue(processor_profile)
 
     if role == :processor and required!(env, "MIXER_DATABASE_USER") != profile.role(),
       do: invalid!("MIXER_DATABASE_USER")
@@ -123,6 +120,13 @@ defmodule MixerHosted.RuntimeConfig do
 
     endpoint = endpoint!(env, role)
 
+    local_release_jobs =
+      case Map.get(env, "MIXER_LOCAL_RELEASE_JOBS_ENABLED", "false") do
+        "false" -> false
+        "true" when role == :api -> true
+        _ -> invalid!("MIXER_LOCAL_RELEASE_JOBS_ENABLED")
+      end
+
     build_cancel =
       case Map.fetch(env, "MIXER_BUILD_CANCEL_ENABLED") do
         :error ->
@@ -176,11 +180,24 @@ defmodule MixerHosted.RuntimeConfig do
         ),
       endpoint: endpoint,
       build_cancel: build_cancel,
+      local_release_jobs: local_release_jobs,
       native: native,
       # Oban's Postgres notifier holds one additional direct connection.
-      database_connection_bound: pool_size + 1 + if(is_nil(create_repo), do: 0, else: 2)
+      database_connection_bound:
+        pool_size + if(processor_profile == :releases_v1, do: 0, else: 1) +
+          if(is_nil(create_repo), do: 0, else: 2)
     }
   end
+
+  @doc false
+  def processor_queue(profile) when profile in [:builds_v1, nil],
+    do: {MixerHosted.Builds.ProcessorProfile, :builds}
+
+  def processor_queue(:billing_v1),
+    do: {MixerHosted.Billing.ProcessorProfile, :billing_reconciliation}
+
+  def processor_queue(:releases_v1),
+    do: {MixerHosted.Releases.ReleaseJobs.ProcessorProfile, :releases}
 
   @doc false
   def processor_admission(:builds_v1, :disabled),
@@ -192,11 +209,14 @@ defmodule MixerHosted.RuntimeConfig do
   def processor_admission(:billing_v1, :disabled),
     do: {MixerHosted.Billing.ProcessorAdmission, :after_connect, []}
 
+  def processor_admission(:releases_v1, :disabled),
+    do: {MixerHosted.Releases.ReleaseJobs.ProcessorAdmission, :after_connect, []}
+
   @doc false
   def installed_processor_profile do
     case MixerHosted.Application.startup() do
       {:ok, {%__MODULE__{processor_profile: profile}, _}}
-      when profile in [nil, :builds_v1, :billing_v1] ->
+      when profile in [nil, :builds_v1, :billing_v1, :releases_v1] ->
         profile
 
       _ ->
