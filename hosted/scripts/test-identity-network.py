@@ -3031,9 +3031,15 @@ WORKSPACE_V54_SOURCE_DIGEST = 'c4cd3e59dfb8a7216bfcae71a815e8f16d6f93ed73b9642aa
 WORKSPACE_V54_SOURCE_COUNT = 423
 WORKSPACE_V54_MANIFEST_SHA256 = '927bea7299ffffb6c4b0ecf2a94db0540e55c40e291403832cc98747bd1abdee'
 
-WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v55/'
-WORKSPACE_SELECTION_SHA256 = '3d50ff95d5b7317ef7773805a0862e2342a26d3cfc01fd01ade330fbd097f5f0'
-WORKSPACE_SOURCE_DIGEST = '02750d59e2b988622e91a0bf7efc7881e39cd8fdf0dcdce17c86f8bbfd53d412'
+WORKSPACE_V55_SOURCE_BASE = 'verification/identity-network-current-source-v55/'
+WORKSPACE_V55_SELECTION_SHA256 = '3d50ff95d5b7317ef7773805a0862e2342a26d3cfc01fd01ade330fbd097f5f0'
+WORKSPACE_V55_SOURCE_DIGEST = '02750d59e2b988622e91a0bf7efc7881e39cd8fdf0dcdce17c86f8bbfd53d412'
+WORKSPACE_V55_SOURCE_COUNT = 424
+WORKSPACE_V55_MANIFEST_SHA256 = '55ed1711a8b8e8a1a8c64e780df70390534766eeea0eb9206160c376985f613c'
+
+WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v56/'
+WORKSPACE_SELECTION_SHA256 = '3177e7441fac7af3c366fdffade2797008f5f0dcd6f5a0ed03322d9f26c7a476'
+WORKSPACE_SOURCE_DIGEST = '67a063bd75a019fed09b4907256976cee9c8af686358484c0351d664b304aec1'
 WORKSPACE_SOURCE_COUNT = 424
 WORKSPACE_IOS_CUSTODY_HELPER = 'hosted/priv/development/ios_build_custody.py'
 WORKSPACE_IOS_CUSTODY_PATHS = {
@@ -3595,10 +3601,10 @@ def validate_workspace_v54_metadata(metadata):
     return selection, manifest
 
 
-def validate_workspace_source_metadata(metadata):
+def validate_workspace_v55_metadata(metadata):
     selection, manifest = _validate_workspace_metadata(
-        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
-        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V54_MANIFEST, {
+        metadata, WORKSPACE_V55_SOURCE_BASE, WORKSPACE_V55_SELECTION_SHA256,
+        WORKSPACE_V55_SOURCE_COUNT, WORKSPACE_V55_SOURCE_DIGEST, WORKSPACE_V54_MANIFEST, {
             'source_count': WORKSPACE_V54_SOURCE_COUNT,
             'source_digest_sha256': WORKSPACE_V54_SOURCE_DIGEST,
             'selection_sha256': WORKSPACE_V54_SELECTION_SHA256,
@@ -3612,6 +3618,33 @@ def validate_workspace_source_metadata(metadata):
             set(selection['exact_delta']) == WORKSPACE_IOS_CUSTODY_PATHS and
             selection['exact_delta'][WORKSPACE_IOS_CUSTODY_HELPER]['before'] is None,
             'iOS build custody source membership')
+    for key, migration in (
+        ('opt_in_migration', WORKSPACE_LOCAL_SOURCE_MIGRATION),
+        ('android_opt_in_migration', WORKSPACE_ANDROID_SOURCE_MIGRATION),
+        ('managed_linux_opt_in_migration', WORKSPACE_MANAGED_LINUX_SOURCE_MIGRATION),
+    ):
+        require(selection[key] == migration and migration in manifest, 'iOS custody opt-in migration inventory')
+    return selection, manifest
+
+
+def validate_workspace_source_metadata(metadata):
+    selection, manifest = _validate_workspace_metadata(
+        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
+        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V55_MANIFEST, {
+            'source_count': WORKSPACE_V55_SOURCE_COUNT,
+            'source_digest_sha256': WORKSPACE_V55_SOURCE_DIGEST,
+            'selection_sha256': WORKSPACE_V55_SELECTION_SHA256,
+            'manifest_sha256': WORKSPACE_V55_MANIFEST_SHA256,
+        }, migration_count=20)
+    require(selection['identity'] == 'hosted-ios-swift-preflight-custody-source-v56' and
+            selection['schema'] == 1 and selection['deployment'] is False and
+            selection['financial_effects'] is False and selection['runtime_or_GA_accepted'] is False,
+            'iOS Swift preflight custody source scope')
+    require(set(manifest) == set(WORKSPACE_V55_MANIFEST) and
+            set(selection['exact_delta']) == {
+                WORKSPACE_IOS_CUSTODY_HELPER,
+                'hosted/scripts/test_native_artifact_worker.py',
+            }, 'iOS Swift preflight custody source membership')
     for key, migration in (
         ('opt_in_migration', WORKSPACE_LOCAL_SOURCE_MIGRATION),
         ('android_opt_in_migration', WORKSPACE_ANDROID_SOURCE_MIGRATION),
@@ -3729,6 +3762,10 @@ def check_workspace_source(root):
         workspace_source_metadata(root, WORKSPACE_V54_SOURCE_BASE))
     v54_rows = workspace_preimage_rows(v54_selection, WORKSPACE_V54_SOURCE_BASE)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in v54_rows}, v54_rows)
+    v55_selection, _ = validate_workspace_v55_metadata(
+        workspace_source_metadata(root, WORKSPACE_V55_SOURCE_BASE))
+    v55_rows = workspace_preimage_rows(v55_selection, WORKSPACE_V55_SOURCE_BASE)
+    validate_workspace_preimages({path: (root / path).read_bytes() for path in v55_rows}, v55_rows)
     selection, manifest = validate_workspace_source_metadata(workspace_source_metadata(root, WORKSPACE_SOURCE_BASE))
     rows = workspace_preimage_rows(selection)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in rows}, rows)
@@ -5023,6 +5060,14 @@ class Collector:
         validate_workspace_preimages(v54_preimages, v54_rows)
         metadata.update(v54_metadata)
         metadata.update(v54_preimages)
+        v55_metadata = self.git_blobs(
+            [WORKSPACE_V55_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        v55_selection, _ = validate_workspace_v55_metadata(v55_metadata)
+        v55_rows = workspace_preimage_rows(v55_selection, WORKSPACE_V55_SOURCE_BASE)
+        v55_preimages = self.git_blobs(sorted(v55_rows))
+        validate_workspace_preimages(v55_preimages, v55_rows)
+        metadata.update(v55_metadata)
+        metadata.update(v55_preimages)
         workspace_metadata = self.git_blobs([WORKSPACE_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         workspace_selection, workspace_manifest = validate_workspace_source_metadata(workspace_metadata)
         validate_workspace_source_manifest(workspace_manifest)
@@ -5812,6 +5857,8 @@ _, WORKSPACE_V53_MANIFEST = validate_workspace_v53_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V53_SOURCE_BASE))
 _, WORKSPACE_V54_MANIFEST = validate_workspace_v54_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V54_SOURCE_BASE))
+_, WORKSPACE_V55_MANIFEST = validate_workspace_v55_metadata(
+    workspace_source_metadata(_source_root, WORKSPACE_V55_SOURCE_BASE))
 _, WORKSPACE_MANIFEST = validate_workspace_source_metadata(workspace_source_metadata(_source_root, WORKSPACE_SOURCE_BASE))
 
 if __name__ == '__main__':
