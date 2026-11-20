@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "scope": "L05/W11 release job processor admission correction and maintained hosted replay",
+  "product": "0f191753df277e210f672eaf7e464bbb88b4ccd9",
+  "hostedTree": "48dad922552056f5cc73e18aa1ce536af21f0e34",
+  "postgres": "17.11",
+  "differentialControl": {
+    "correctPrivileges": "accepted on parent and successor",
+    "priorBlindSpotsRejected": [
+      "MAINTAIN on oban_peers",
+      "MAINTAIN on oban_jobs",
+      "SELECT on oban_jobs WITH GRANT OPTION",
+      "UPDATE (state) on oban_jobs WITH GRANT OPTION"
+    ],
+    "priorRefusalPreserved": "TRUNCATE on oban_peers",
+    "additionalControl": "unscoped PUBLIC SELECT on oban_jobs refused",
+    "closure": "disposable cluster stopped, listener port reusable and scratch removed"
+  },
+  "maintainedRunner": {
+    "from": "repository root",
+    "command": [
+      "python3",
+      "-B",
+      "hosted/scripts/test-local.py",
+      "--output",
+      "<fresh-owned-report>",
+      "--pg-bin",
+      "/opt/homebrew/opt/postgresql@17/bin",
+      "--only-additional-tests",
+      "--additional-test",
+      "hosted/test/mixer_hosted/releases/browser_publication_test.exs",
+      "--additional-test",
+      "hosted/test/mixer_hosted/releases/release_jobs_test.exs",
+      "--additional-test",
+      "hosted/test/mixer_hosted/releases/runtime_provisioning_test.exs",
+      "--additional-test",
+      "hosted/test/runtime_config_test.exs",
+      "--test-timeout",
+      "180"
+    ],
+    "passed": 27,
+    "packagedReleaseChecksPassed": true,
+    "reportSHA256": "00220d9fd750ec30607ae70ab76bdc6d1abf7ac99afd7c36fb979cbcd4eceee5",
+    "testsLogSHA256": "5a0b9848c1daccd80eed47ef3ec4723a2a116d8687854f6de7c0ae4ab19ea261",
+    "operatorScriptsBound": {
+      "docs/operations/provision-local-release-jobs.sql": "53c2a5df034faf167a16d853da5bf69d027cc2841793c6fe400643d4044f2282",
+      "docs/operations/retry-local-release-job.sql": "45bd8f21cfb7af0d90c990d48dfed30026751e61b273968732fa26d7c3dc0733"
+    },
+    "closure": {
+      "postgres_stopped": true,
+      "scratch_removed": true
+    }
+  },
+  "limits": [
+    "The isolated SQL red/green control used a minimal fixture. The maintained runner separately exercised the real migrated queue.",
+    "The broader hosted suite, hosted CI, and independent database-outage delivery are outside this evidence."
+  ]
+}
