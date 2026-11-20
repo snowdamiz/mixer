@@ -31,3 +31,22 @@ and CLI HTTP publish and rollback paths. The console reads each committed
 head. The denied phase uses the second fixture tenant against the same target
 after rollback. The runner checks both the rendered fields and the response
 that Phoenix sent to the browser.
+
+
+## Verify the expanded release details
+
+Use the exact release-details source anchor and a fresh receipt path.
+
+```sh
+python3 -B tests/integration/l05-release-head/mixer_l05_replay.py \
+  --details-commit f2045e9bba7fa278e7629ef787038a254e20a504 \
+  --receipt verification/local/l05-console-details-replay.json
+```
+
+Follow the same browser flow with `mixer_l05_details_dom.js`. The runner
+inserts a seventh checkpoint after rollback for the owner browsing the
+same target with a different channel. The production console must display
+the signed metadata at sequences 7, 8 and 9. The two denied checkpoints
+return HTTP 404 with `no-store` and render no target or release details.
+
+[Expanded browser receipt](../../../verification/receipts/console-release-head-details-acid-20261120.json)

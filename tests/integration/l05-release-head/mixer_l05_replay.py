@@ -22,7 +22,7 @@ import tarfile
 import tempfile
 from threading import Lock, Thread
 import time
-from urllib.parse import parse_qsl, urlsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit
 
 PIN = "71e6ffa51e857d5a1eda3f74c26941996ed275de"
 ROOT = Path(__file__).resolve().parents[3]
@@ -34,6 +34,7 @@ STATUS = {
     "second_publish": "Published release",
     "rollback": "Published release",
     "denied": "You cannot access this release target.",
+    "wrong_target": "You cannot access this release target.",
 }
 TARGET_FIELDS = {
     "Organization ID": "organizationId", "Project ID": "projectId",
@@ -63,7 +64,7 @@ def require(condition, message):
         raise RuntimeError(message)
 
 
-def instrument(source):
+def instrument(source, details=False):
     def insert_once(before, after):
         nonlocal source
         require(source.count(before) == 1, "Pinned fixture anchor changed")
@@ -95,6 +96,20 @@ def instrument(source):
       Checkpoint.wait!(:rollback, restarted, path(target), read, Jason.decode!(denied.body))""")
     insert_once('    assert %{"state" => "authenticated"} = Jason.decode!(session.body)',
                 '    Checkpoint.capture_cookie(mode, response, &response_header/2)')
+    if details:
+        source = source.replace("path(target), read)", "path(target), read!(c, owner, target, :details))")
+        source = source.replace("path(target), read!(c, owner, target))",
+                                "path(target), read!(c, owner, target, :details))")
+        before = "Checkpoint.wait!(:rollback, restarted, path(target), read, Jason.decode!(denied.body))"
+        require(source.count(before) == 1, "Pinned rollback checkpoint changed")
+        source = source.replace(before, """wrong_target = %{target | channel: "stable"}
+      wrong = http(restarted, path(wrong_target, :details), owner)
+      denied = http(restarted, path(target, :details), other)
+      assert wrong.status == 404 and denied.status == 404
+      assert response_header(wrong, "cache-control") == ["no-store"]
+      assert response_header(denied, "cache-control") == ["no-store"]
+      assert Jason.decode!(wrong.body) == Jason.decode!(denied.body)
+      Checkpoint.wait!(:rollback, restarted, path(target), read!(restarted, owner, target, :details), Jason.decode!(denied.body))""")
     return source
 
 
@@ -245,8 +260,29 @@ def fields(wire, labels):
     return {label: str(wire[key]) for label, key in labels.items()} if wire else None
 
 
-def observe(phase, checkpoint, root, origin, child, state, lock):
-    release_path = checkpoint["path"].removeprefix("/console-api/v1/release-head")
+def details_dom(expected):
+    details = expected.get("release", {}).get("details")
+    if details is None:
+        return {}
+    return {
+        "Source commit": details["sourceCommit"],
+        "Payload size": f'{details["payloadBytes"]} bytes',
+        "Artifact signing key ID": details["artifactKeyId"],
+        "Assignment signing key ID": details["assignmentKeyId"],
+        "Ledger action": details["action"].capitalize(),
+        "Runtime admission": "Compatibility checked when this head was committed.",
+    }
+
+
+def observe(phase, checkpoint, root, origin, child, state, lock, details=False):
+    target_path = checkpoint["path"]
+    if phase == "wrong_target":
+        parts = urlsplit(target_path)
+        query = parse_qsl(parts.query)
+        require(("channel", "beta") in query, "Expected a beta fixture head")
+        target_path = parts.path + "?" + urlencode([(key, "stable" if key == "channel" else value)
+                                                   for key, value in query])
+    release_path = target_path.removeprefix("/console-api/v1/release-head")
     role = None if phase == "anonymous" else "other" if phase == "denied" else "owner"
     entry = f"/__mixer_l05_{secrets.token_hex(16)}" if phase in ("empty", "denied") else None
     with lock:
@@ -257,12 +293,17 @@ def observe(phase, checkpoint, root, origin, child, state, lock):
         "expectedStatus": STATUS[phase], "observationFile": str(root / f"dom-{phase}.json"),
     })
     dom = await_file(root / f"dom-{phase}.json", child, 90)
-    expected = checkpoint["expected"] if phase not in ("anonymous", "denied") else {}
-    require(dom == {
-        "path": state["releasePath"], "status": STATUS[phase],
-        "target": fields(expected.get("target"), TARGET_FIELDS),
-        "release": fields(expected.get("release"), RELEASE_FIELDS),
-    }, f"Rendered {phase} differs from fixture: {dom!r}")
+    denied_phase = phase in ("denied", "wrong_target")
+    expected = checkpoint["expected"] if phase != "anonymous" and not denied_phase else {}
+    release = fields(expected.get("release"), RELEASE_FIELDS)
+    expected_dom = {"path": state["releasePath"], "status": STATUS[phase],
+                    "target": fields(expected.get("target"), TARGET_FIELDS), "release": release}
+    if details:
+        expected_dom["capabilities"] = None
+        if release is not None:
+            release.update(details_dom(expected))
+            expected_dom["capabilities"] = expected["release"]["details"]["capabilities"]
+    require(dom == expected_dom, f"Rendered {phase} differs from fixture: {dom!r}")
     with lock:
         reads = [row for row in state["heads"] if row[0] == phase]
         sessions = state["sessionStatuses"][(phase, role, 200)]
@@ -270,15 +311,21 @@ def observe(phase, checkpoint, root, origin, child, state, lock):
     if phase == "anonymous":
         require(not reads, "Anonymous page requested the release head")
     else:
-        status = 404 if phase == "denied" else 200
-        body = checkpoint["denied"] if phase == "denied" else expected
-        require(phase != "denied" or set(body) == {"error"}, "Unauthorized response leaked data")
-        query = sorted(parse_qsl(urlsplit(checkpoint["path"]).query))
+        status = 404 if denied_phase else 200
+        body = checkpoint["denied"] if denied_phase else expected
+        require(not denied_phase or set(body) == {"error"}, "Unauthorized response leaked data")
+        query = parse_qsl(urlsplit(target_path).query)
+        if details:
+            query.append(("view", "details"))
+        query.sort()
         require(reads and all(read == (phase, role, query, status, "no-store", body) for read in reads),
                 f"Unexpected Phoenix release-head response for {phase}")
-    return {"status": dom["status"], "target": dom["target"], "release": dom["release"],
-            "sessionHTTP200": sessions, "headHTTP": reads[0][3:] if reads else None,
-            "headReads": len(reads), "identity": role}
+    result = {"status": dom["status"], "target": dom["target"], "release": dom["release"],
+              "sessionHTTP200": sessions, "headHTTP": reads[0][3:] if reads else None,
+              "headReads": len(reads), "identity": role}
+    if details:
+        result["capabilities"] = dom["capabilities"]
+    return result
 
 
 def free_port():
@@ -297,7 +344,12 @@ def verify_ports(ports):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--receipt", required=True, type=Path)
+    parser.add_argument("--details-commit", help="Exact full revision containing the signed details view")
     args = parser.parse_args()
+    pin = args.details_commit or PIN
+    if args.details_commit and (len(pin) != 40 or any(char not in "0123456789abcdef" for char in pin)):
+        parser.error("--details-commit requires a full lowercase commit SHA")
+    details = args.details_commit is not None
     base = ROOT / "verification/local"
     base.mkdir(exist_ok=True)
     scratch = Path(tempfile.mkdtemp(prefix="l05-release-head-", dir=base))
@@ -315,7 +367,7 @@ def main():
     state = {"heads": [], "sessionStatuses": Counter(), "clientDisconnects": Counter()}
     lock = Lock()
     result = {
-        "schema": 1, "source": {"commit": PIN, "tree": git("rev-parse", PIN + "^{tree}")},
+        "schema": 1, "source": {"commit": pin, "tree": git("rev-parse", pin + "^{tree}")},
         "observedUTC": datetime.now(timezone.utc).isoformat(),
         "host": platform.platform(), "tools": {"python": platform.python_version()},
         "browser": "Acid preview, owned incognito tab, unique .localhost HTTP origin",
@@ -328,7 +380,7 @@ def main():
     complete = False
     try:
         archive = scratch / "pin.tar"
-        run("git-archive", ["git", "-C", ROOT, "archive", "-o", archive, PIN,
+        run("git-archive", ["git", "-C", ROOT, "archive", "-o", archive, pin,
                             "hosted", "console", "services/protocol/testdata"])
         with tarfile.open(archive) as snapshot:
             snapshot.extractall(scratch, filter="data")
@@ -351,7 +403,7 @@ def main():
         run("mix-deps", ["mix", "deps.get"], hosted)
         run("phoenix-compile", ["mix", "compile", "--warnings-as-errors"], hosted)
         test = hosted / FIXTURE
-        source = instrument(test.read_text())
+        source = instrument(test.read_text(), details)
         test.write_text(source)
         shutil.copyfile(Path(__file__).with_name("mixer_l05_checkpoint.exs"),
                         test.with_name("mixer_l05_checkpoint.exs"))
@@ -391,13 +443,14 @@ def main():
                 ports.add(port)
                 origin = f"http://{hostname}:{port}"
                 with owned("phoenix", cmd, hosted, env, scratch, records) as fixture:
+                    rollback_phases = ("rollback", "wrong_target", "denied") if details else ("rollback", "denied")
                     for names in [("anonymous", "empty"), ("first_publish",),
-                                  ("second_publish",), ("rollback", "denied")]:
+                                  ("second_publish",), rollback_phases]:
                         fixture_phase = "empty" if names[0] == "anonymous" else names[0]
                         checkpoint = await_file(scratch / f"{fixture_phase}.json", fixture, 100)
                         ports.update(checkpoint[key] for key in ("phoenix", "provider", "jwks"))
                         for phase in names:
-                            outcomes[phase] = observe(phase, checkpoint, scratch, origin, fixture, state, lock)
+                            outcomes[phase] = observe(phase, checkpoint, scratch, origin, fixture, state, lock, details)
                         (scratch / f"{fixture_phase}.complete").touch()
                     require(fixture.wait(timeout=25) == 0, "Selected ExUnit test failed")
                 summary = next((line.strip() for line in (scratch / "phoenix.log").read_text().splitlines()
