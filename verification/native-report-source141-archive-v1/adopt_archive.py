@@ -272,6 +272,25 @@ MANAGED_ANDROID_CHANGES = {
     'cli/Sources/MixerBuild/ProjectGenerator.swift',
     'cli/Sources/MixerCLI/main.swift',
 }
+PAIR25_PREFIX = 'pair25-predecessor-bytes/'
+PAIR25_PREDECESSOR_REVISION = '89429afd8854cc4b8a0f734235762f55833a28d6'
+PAIR25_SOURCE_SHA256 = '6a0db1b665c429448d665a7a755f186772bd9fac0126abc6ee660843c27a0d92'
+PAIR25_SOURCE_CHANGES = {
+    'native/android/' + RENDERER,
+    'cli/Sources/MixerBuild/AndroidSDKCompatibility.swift',
+    'cli/Sources/MixerBuild/Resources/android-build.py',
+    EXPORT_RUNNER,
+}
+PAIR25_CHANGES = PAIR25_SOURCE_CHANGES | {
+    'cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift',
+    'cli/Tests/MixerBuildTests/GeneratedPublicAndroidV4Tests.swift',
+    ACTIVITY_TESTS + 'EditorTransactionHostTests.java',
+    ACTIVITY_TESTS + 'private-owner-barrier-bindings.json',
+    ACTIVITY_TESTS + 'private-owner-barrier-map.json',
+    ACTIVITY_TESTS + 'run-private-owner-crosscompile.py',
+    JAVA + 'bootstrap.py',
+    JAVA + 'test_bootstrap.py',
+}
 HALT_CLI_PREFIX = 'halt-cli-predecessor-bytes/'
 SOURCE150_SHA256 = '4a202d6aa4f6b81884df32cd0fe67cc8ce9847e8d4ae2ebea8b2cf1d4711a6f8'
 HALT_CLI_SOURCE_CHANGES = {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE}
@@ -288,6 +307,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     for name in ANDROID_OUTPUT_CORRECTION_CHANGES | {ANDROID_OUTPUT_CORRECTION_TEST}
 } | {
     MANAGED_ANDROID_PREFIX + name for name in MANAGED_ANDROID_CHANGES
+} | {
+    PAIR25_PREFIX + name for name in PAIR25_CHANGES
 } | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
 } | {
@@ -423,7 +444,7 @@ def install_inputs():
                              'hosted_v42_workflow', 'store_platform_identity_transition',
                              'worker_swift_probe_transition', 'android_retained_output_transition',
                              'android_retained_output_correction_transition',
-                             'managed_android_retained_transition',
+                             'managed_android_retained_transition', 'pair25_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
@@ -483,6 +504,14 @@ def install_inputs():
         name: read_predecessor_member(HERE / ANDROID_OUTPUT_PREFIX / name)
         for name in ANDROID_OUTPUT_CHANGES
     }
+    pair25 = binding['pair25_transition']
+    require(set(pair25) == {'baseRevision', 'sourceBefore', 'sourceAfter', 'changes', 'profileAfter'} and
+            pair25['baseRevision'] == PAIR25_PREDECESSOR_REVISION and
+            pair25['sourceBefore'] == MANAGED_ANDROID_SOURCE_SHA256 and
+            set(pair25['changes']) == PAIR25_CHANGES, 'Pair25 transition roster differs')
+    pair25_preimages = {
+        name: previous.read(HERE / (PAIR25_PREFIX + name)) for name in PAIR25_CHANGES
+    }
     preimages = {}
     for name, change in binding['changes'].items():
         require(set(change) == {'before', 'after', 'mode'} and
@@ -503,6 +532,8 @@ def install_inputs():
                 raw = inspector_preimages.get(name)
             if raw is None:
                 raw = android_output_preimages.get(name)
+            if raw is None:
+                raw = pair25_preimages.get(name)
             if raw is None:
                 raw = previous.read(path)
             require(previous.row(raw) == change['after'], 'Pair23 archive owner differs: ' + name)
@@ -1007,10 +1038,25 @@ def install_inputs():
                 'Managed Android retained output predecessor differs: ' + name)
         installed[name] = expected_source[name] = change['after']
         preimages.setdefault(name, (raw, 0o644))
-    require(current == expected_source and len(current) == 151 and binding['source'] == {
-        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': MANAGED_ANDROID_SOURCE_SHA256,
-    } and previous.digest(current) == managed_android['sourceAfter'] == MANAGED_ANDROID_SOURCE_SHA256,
+    require(previous.digest(expected_source) == managed_android['sourceAfter'] == MANAGED_ANDROID_SOURCE_SHA256,
             'Managed Android retained output source transition differs')
+
+    for name, change in pair25['changes'].items():
+        raw = pair25_preimages[name]
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == previous.row(raw) == installed[name] and
+                change['before'] != change['after'] and
+                change['mode'] == 0o644 == stat.S_IMODE((ROOT / name).lstat().st_mode),
+                'Pair25 predecessor owner or installed mode differs: ' + name)
+        installed[name] = change['after']
+        if name in PAIR25_SOURCE_CHANGES:
+            require(expected_source[name] == change['before'], 'Pair25 source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        preimages.setdefault(name, (raw, change['mode']))
+    require(current == expected_source and len(current) == 151 and binding['source'] == {
+        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': PAIR25_SOURCE_SHA256,
+    } and previous.digest(current) == pair25['sourceAfter'] == PAIR25_SOURCE_SHA256,
+            'Pair25 source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in halt['changes'].items():
@@ -1039,7 +1085,7 @@ def install_inputs():
     owner = previous.module('native_archive_actual_collector', ROOT / previous.OWNER)
     profile = owner.load_profile(ROOT)
     pair22 = historical_binding['sdk_transition']['profileAfter']
-    adapter_files = {**pair22['adapter_files'], RENDERER: current['native/android/' + RENDERER]}
+    adapter_files = {**pair22['adapter_files'], RENDERER: pair23_source['native/android/' + RENDERER]}
     expected_profile = {**pair22, 'id': 'mixer.android-source-pair.23', 'adapter_files': adapter_files,
                         'adapter_compatibility_sha256': previous.digest(adapter_files)}
     require(binding['renderer_transition'] == {
@@ -1052,11 +1098,17 @@ def install_inputs():
             'Pair23 Activity preimage differs')
     adapter_files = {**expected_profile['adapter_files'],
                      STARTER_ACTIVITY: current['native/android/' + STARTER_ACTIVITY]}
-    expected_current = {**expected_profile, 'id': 'mixer.android-source-pair.24', 'adapter_files': adapter_files,
+    expected_pair24 = {**expected_profile, 'id': 'mixer.android-source-pair.24', 'adapter_files': adapter_files,
+                       'adapter_compatibility_sha256': previous.digest(adapter_files)}
+    require(pair24['profileAfter'] == expected_pair24, 'Archive Pair24 starter profile differs')
+    require(adapter_files[RENDERER] == pair25['changes']['native/android/' + RENDERER]['before'],
+            'Pair24 renderer preimage differs')
+    adapter_files = {**adapter_files, RENDERER: current['native/android/' + RENDERER]}
+    expected_current = {**expected_pair24, 'id': 'mixer.android-source-pair.25', 'adapter_files': adapter_files,
                         'adapter_compatibility_sha256': previous.digest(adapter_files)}
-    require(pair24['profileAfter'] == expected_current == profile and
+    require(pair25['profileAfter'] == expected_current == profile and
             previous.profile_summary(profile) == binding['profile'],
-            'Archive Pair24 starter profile differs')
+            'Archive Pair25 renderer profile differs')
     selector_path = ROOT / 'cli/build-tests/current_android_profile.py'
     selector = previous.module('native_archive_current_selector', selector_path)
     require(selector.load_current_profile(ROOT) == profile, 'Current source-pair selector differs')
@@ -1107,6 +1159,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_pair24_source151_sha256': binding['pair25_transition']['sourceBefore'],
             'predecessor_managed_android_retained_sha256': binding['managed_android_retained_transition']['sourceBefore'],
             'predecessor_android_retained_output_correction_sha256': binding['android_retained_output_correction_transition']['sourceBefore'],
             'predecessor_android_retained_output_sha256': binding['android_retained_output_transition']['sourceBefore'],

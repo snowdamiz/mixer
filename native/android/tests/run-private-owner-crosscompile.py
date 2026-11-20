@@ -8,11 +8,14 @@ def save(p,value):p.write_text(json.dumps(value,indent=2,sort_keys=True)+'\n')
 def main():
  parser=argparse.ArgumentParser();parser.add_argument('--evidence',required=True,type=Path);parser.add_argument('--engine',action='store_true');args=parser.parse_args()
  evidence=args.evidence.resolve();evidence.mkdir(parents=True,exist_ok=False)
- roster=json.loads((ROOT/'verification/android-private-owner-effect-roster-amendment/required-host-roster.json').read_text())
- java=roster['closures']['B-concrete-renderer-views']['actual_production_sources']+['native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java']+['native/android/app/src/dev/mixer/android/'+name+'.java' for name in ('NativeBridge','MixerActivity','AdapterInstrumentation')]+['native/android/tests/'+name+'.java' for name in ('NativeAppearanceV2Activity','NativeAppearanceV2Instrumentation','AppearanceNativePathsV2Instrumentation','NativeCoordinatorV2IntegrationActivity','NativeCoordinatorV2IntegrationInstrumentation')]
+ roster_path='native/android/tests/private-owner-host-roster.json'
+ roster_bytes=(ROOT/roster_path).read_bytes()
+ roster=json.loads(roster_bytes)
+ java=roster['closures']['B-concrete-renderer-views']['actual_production_sources']+['native/android/app/src/dev/mixer/android/'+name+'.java' for name in ('AndroidUINativeSurface','NativeBridge','MixerActivity','AdapterInstrumentation')]+['native/android/tests/'+name+'.java' for name in ('NativeAppearanceV2Activity','NativeAppearanceV2Instrumentation','AppearanceNativePathsV2Instrumentation','NativeCoordinatorV2IntegrationActivity','NativeCoordinatorV2IntegrationInstrumentation')]
  tracked=subprocess.check_output(['git','ls-files','-z','--','native/android/engine','sdk','native/android/bridge'],cwd=ROOT).decode().split('\0')
  swift=[s for s in tracked if s and Path(s).suffix in ('.swift','.c','.h')]
  sources=java+swift+[str(Path(__file__).relative_to(ROOT))];frozen={s:(ROOT/s).read_bytes() for s in sources}
+ frozen[roster_path]=roster_bytes
  for source,data in frozen.items():
   target=evidence/'inputs'/source;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(data)
  save(evidence/'source-map.json',{s:identity(b) for s,b in frozen.items()})
@@ -36,7 +39,7 @@ def main():
   if child.returncode or timed or overflow:raise RuntimeError(label+' failed')
   return outpath.read_bytes()
  try:
-  jdk=Path('/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home').resolve();sdk=Path('/opt/homebrew/share/android-commandlinetools');android=sdk/'platforms/android-37.0/android.jar';d8=sdk/'build-tools/37.0.0/d8'
+  jdk=Path('/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home').resolve();sdk=Path('/opt/homebrew/share/android-commandlinetools');android=sdk/'platforms/android-37.0/android.jar';d8=sdk/'build-tools/37.0.0/d8'
   env['JAVA_HOME']=str(jdk);env['PATH']=str(jdk/'bin')+os.pathsep+env.get('PATH','');tools=[jdk/'bin/javac',jdk/'bin/java',android,d8];receipt['revision']=run('revision',['git','rev-parse','HEAD']).decode().strip();receipt['tools']={str(p):identity(p.read_bytes()) for p in tools};run('javac-version',[jdk/'bin/javac','-version']);run('java-version',[jdk/'bin/java','-version']);run('d8-version',[d8,'--version'])
   classes=scratch/'classes';classes.mkdir();empty=scratch/'empty';empty.mkdir()
   run('compile',[jdk/'bin/javac','--release','17','-Xlint:all','-Werror','-proc:none','-classpath',android,'-sourcepath',empty,'-d',classes,*[evidence/'inputs'/s for s in java]])

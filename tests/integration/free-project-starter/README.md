@@ -36,6 +36,8 @@ This replay checks starter selection with Phoenix, PostgreSQL, and the console. 
 
 ## Admit an Android starter
 
+Use the matching Pair24 CLI and recipe with an existing Pair24 registration. Register a separate export and lock with the matching CLI and recipe to admit a Pair25 Starter.
+
 1. Register the Pair24 Android export in the existing managed worker with the `unsigned-android-local-v1` recipe. Use a private copy of the export and make its files, directories, and recipe read-only before registering them. Pin the resolved Mixer executable path in both the recipe and its tool map. SwiftPM's `build/debug` directory can be a symlink. Use the same startup config, worker ID, and port that the local processor uses.
 2. Run `prepare-starter.py --from-worker` with that startup config and its exact SHA-256, worker ID, and port. The script runs the existing worker verifier without starting a build. It checks the registered export, lock, recipe, tools, Xcode installations, and dependency mirrors before writing the descriptor.
 3. As `browser_schema_owner`, apply [the Android starter migration](../../../hosted/priv/local_android_source_selection/20261119000000_local_android_source_selection.exs) after installing the local workspace build schema. The migration installs `public.mixer_local_android_starters` and `public.mixer_local_android_starter_v1(text,text,jsonb,boolean,text)`. The earlier iOS migration uses its existing directory and writer.

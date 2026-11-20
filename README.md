@@ -364,6 +364,8 @@ use `ios/FieldLog` in its separate checkout. See the
 
 ### Upgrade a locked project
 
+The current Android CLI creates projects with source pair 25. For a project locked to pair 24, use its matching CLI to build or export it. To build with the current CLI, run `mixer upgrade` into a new directory. The new renderer handles the return to a text field after dismissing a guest dialog.
+
 `mixer upgrade` writes a new copy of the project with the new SDK, Android
 adapter, and `mixer.lock`. It keeps an existing
 `Platforms/Android/Package.resolved`. Export a recovery copy with the original

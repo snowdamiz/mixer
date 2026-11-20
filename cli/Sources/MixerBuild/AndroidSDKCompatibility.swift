@@ -70,12 +70,12 @@ struct AndroidSDKProfile: Codable, Sendable {
 }
 
 enum AndroidSDKCompatibility {
-    // Selected frozen 26 + 27 map. Never infer or refresh from a selected SDK,
+    // Selected exact SDK and adapter projections. Never infer or refresh from a selected SDK,
     // mutable lock, resource, environment, or successful local build.
     static let profile: AndroidSDKProfile = {
         try! JSONDecoder().decode(AndroidSDKProfile.self, from: Data(#"""
         {
-          "adapter_compatibility_sha256": "9d3a16cc05a2cfceccd9578b9f89a4deca66d06104ddc6a84ccec5ede8b496dd",
+          "adapter_compatibility_sha256": "2262a2c8945476c98a98fd809a26f124181b2104337a71b10595af3bc9f19531",
           "adapter_files": {
             "Sources/MixerAndroidRuntime/DocumentSession.swift": {
               "bytes": 5338,
@@ -130,8 +130,8 @@ enum AndroidSDKCompatibility {
               "sha256": "eec46229f1419353debfc47935a2c5a207a134c257cd04d6354978fc9c04e91f"
             },
             "app/src/dev/mixer/android/NativeAppearanceViewsV2.java": {
-              "bytes": 153235,
-              "sha256": "a429a85c7c395c0df8d72c737a2b8b73ecb39de16188a5ba839293e7782e7f56"
+              "bytes": 154153,
+              "sha256": "34feafa32dcf94f5fb235e01b7f9515704e50664f39508ead18aaad35d009f65"
             },
             "app/src/dev/mixer/android/NativeBridge.java": {
               "bytes": 1076,
@@ -190,7 +190,7 @@ enum AndroidSDKCompatibility {
             "bytes": 9587,
             "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
           },
-          "id": "mixer.android-source-pair.24",
+          "id": "mixer.android-source-pair.25",
           "schema": 1,
           "sdk_compatibility_sha256": "0d030f8bba31045d58ddf1b2def3a5541efc1a15295d93e565405b77965861d8",
           "sdk_files": {

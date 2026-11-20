@@ -1539,6 +1539,9 @@ return;
             Mutation original=retained?entryMutation():null;
             if(retained){original.require();retained=original.mode==Mutation.Mode.LIVE_PRESENTATION&&original.fence==record.editorFence;}
             if(parent==null&&!retained&&(denied()||attempt!=null&&attempt.revoked||phase==Phase.QUARANTINED||phase==Phase.DRAINING||phase==Phase.CLOSING)) {
+                // View's deferred press can refresh drawables before focus and input authority return.
+                // Discard that unowned refresh without entering TextView or acquiring an editor lease.
+                if(hook.equals("drawable")&&canDiscardUnownedDrawable())return;
                 uncertain(new IllegalStateException("unknown retired editor callback"));surface();return;
             }
             if(parent==null&&!retained&&!live())return;
@@ -1547,6 +1550,14 @@ return;
             catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
             finally{end(lease);}
             surface();
+        }
+        private boolean canDiscardUnownedDrawable() {
+            return (focusLost||windowFocusLost||!record.editorFence.inputAllowed)&&
+                !permanent&&!windowHidden&&!aggregateHidden&&!viewHidden&&!detached&&
+                phase==Phase.IDLE&&consumedPredecessor()&&depth==0&&!finishing&&replacement==null&&
+                record.view==this&&record.constructed&&record.binding!=null&&!record.changing&&record.scoped==null&&
+                !record.editorFence.terminal&&!record.editorFence.commitFinish&&record.editorFence.operation==null&&
+                record.input.editorDispatchAvailable(record);
         }
         void refreshPaint(){if(record!=null&&record.binding!=null){Mutation mutation=record.mutation();mutation.require();setHighlightColor(color(fieldPaint(record).selection()));mutation.require();}}
         @Override protected void drawableStateChanged(){callback("drawable",()->{super.drawableStateChanged();if(record!=null&&(record.fieldPreservation!=null||eventsAllowed())&&(record.editorCallbackLease==null||record.editorCallbackLease.original.current()))refreshPaint();},false);}

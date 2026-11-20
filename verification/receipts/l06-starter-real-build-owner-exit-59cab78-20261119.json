@@ -1,0 +1,472 @@
+{
+  "apiFailureMarkers": [],
+  "boundsSeconds": {
+    "apiStartup": 270,
+    "exit": 32,
+    "expiredReadIncludingExpiry": 58,
+    "nativeClosure": 200,
+    "processorReadiness": 18,
+    "renewedRead": 25,
+    "settlement": 32,
+    "tenantContinuity": 38
+  },
+  "cleanup": {
+    "authenticatedWorkerShutdowns": [
+      56893
+    ],
+    "commands": {
+      "api": {
+        "custody": "TERMINAL",
+        "directChildReaped": true,
+        "exit": 0,
+        "groupAbsent": true,
+        "pgid": 67665,
+        "pid": 67665,
+        "stderrSHA256": "79d9da2d35209d5a838063b212747bc1b6d64f41b27a90d95e54fa73e1c18678",
+        "stdoutSHA256": "523d9c6e441666304a47c6dfeb1e2d757b4d68e1827537e6b405df4532b7f989"
+      },
+      "cli-build": {
+        "custody": "TERMINAL",
+        "directChildReaped": true,
+        "exit": 0,
+        "groupAbsent": true,
+        "pgid": 65883,
+        "pid": 65883,
+        "stderrSHA256": "dded367622372bbabeb9753b5c2a205758ebcc85ea6e031e5a6e0ba86ee0bdee",
+        "stdoutSHA256": "66a363620bc5e687188b28796ec35906842172deec0f2851ac2c4ad46c9fdf70"
+      },
+      "deps": {
+        "custody": "TERMINAL",
+        "directChildReaped": true,
+        "exit": 0,
+        "groupAbsent": true,
+        "pgid": 65314,
+        "pid": 65314,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "d861344cf5b40862e5e48f264c6c2cfda81e441b695acfe1d9acadc7ffa37cf8"
+      },
+      "offline-deps": {
+        "custody": "TERMINAL",
+        "directChildReaped": true,
+        "exit": 0,
+        "groupAbsent": true,
+        "pgid": 65721,
+        "pid": 65721,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "4869a3c97da4e3a9b96016f622b35732657455b167a8990265d628bec7c61707"
+      },
+      "postgres": {
+        "custody": "TERMINAL",
+        "directChildReaped": true,
+        "exit": 0,
+        "groupAbsent": true,
+        "pgid": 67653,
+        "pid": 67653,
+        "stderrSHA256": "b614d3bcd13c81d155997026b9ce5d894b803f53321e08d43ae64efdd92b5a2e",
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "processor": {
+        "custody": "TERMINAL",
+        "directChildReaped": true,
+        "exit": 0,
+        "groupAbsent": true,
+        "pgid": 77599,
+        "pid": 77599,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "5a282ff83582ebcdfd5a9c351205fbcf9375d0c4f6c6813c9256807989c78d90"
+      },
+      "worker": {
+        "custody": "TERMINAL",
+        "directChildReaped": true,
+        "exit": 0,
+        "groupAbsent": true,
+        "pgid": 77597,
+        "pid": 77597,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "databaseDropped": true,
+    "ownedGroupsAbsent": true,
+    "portsRebound": [
+      56893,
+      56900,
+      57352,
+      57358,
+      57379,
+      57486
+    ],
+    "postgresDataDirectoryVerified": true,
+    "scratchRemoved": true
+  },
+  "commands": [
+    "python3.14 -B <private-delivery>/run.py",
+    "git archive --format=tar for the exact public revision and SDK pin",
+    "mix local.hex 2.5.1 --force",
+    "mix deps.get --check-locked, then repeat with HEX_OFFLINE=1",
+    "/usr/bin/swift build --package-path <pinned-cli> --only-use-versions-from-resolved-file --product mixer",
+    "mix test --only l07_restart --seed 0 --trace test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs",
+    "mix run --no-start --no-compile <private>/restart-processor.exs"
+  ],
+  "expiryMethod": "Ordinary loopback login in the existing :session_short provider mode, wait beyond that stored session deadline, set only that cookie's joined auth catalog credential expires_at to current time minus five seconds. Renew through the ordinary loopback OAuth provider after the expired GET.",
+  "failure": null,
+  "history": {
+    "l06-starter-console-ca-a5398fa-20261119.json": "f3c30e8f1348e0225a0cb3c313bdefa2263949f45b298310f9c71acc32d5cc29",
+    "l06-starter-owner-exit-discriminator-a5398fa-20261119.json": "4376eaebf10378daa737a3591c164b055147847b14b16c899cb3c263794fd122"
+  },
+  "holdReason": null,
+  "initialSetup": {
+    "apiStartupBoundSeconds": 125,
+    "buildPOSTAttempts": 0,
+    "pendingCustody": {
+      "api": {
+        "custody": "UNKNOWN",
+        "pgid": 44302,
+        "pid": 44302
+      },
+      "postgres": {
+        "custody": "UNKNOWN",
+        "pgid": 44184,
+        "pid": 44184
+      }
+    },
+    "reason": "Hold: api terminal custody unverified (TimeoutExpired)",
+    "retainedNamespace": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-26dfd45b/verification/local/l06-owner-exit-native.a4NbCIlH",
+    "status": "HOLD"
+  },
+  "observedUTC": "2026-11-20T03:48:07.965949+00:00",
+  "rawReceiptSHA256": "2c14035b1796f14fdbf3695084e9e5056752a0c59f62c4615965429a69c4a32c",
+  "remaining": "The cause of the earlier console run's auxiliary 503 remains undetermined. This run covers the first API reads after a real build and exit at the pinned revision.",
+  "schemaVersion": 1,
+  "scope": {
+    "browserStarts": 0,
+    "deviceRuns": 0,
+    "fixture": "Ordinary Phoenix cookie HTTP, real fixture OAuth provider, private loopback PostgreSQL, restricted Oban and one native worker.",
+    "nativeTarget": "Unsigned generic iOS Simulator destination via Xcode. No simulator boot.",
+    "paymentCredentialEnvironmentKeys": 0,
+    "paymentServiceConfigured": false,
+    "postExitStatusRetries": 0,
+    "published": false,
+    "sourceChanges": "Private test fixture and launcher only."
+  },
+  "source": {
+    "cliLockSHA256": "de4bd6f84bfa554faf519a52f6c5fb9a051761ded30ae5fee4440b5e88118855",
+    "cliSHA256": "3a2d06edbb8df1f63a8867721552859b4e778e6f9eff80f2da77c1804cc82288",
+    "cliTree": "a162b11c3854735dff0218d5887eb80b332c7d52",
+    "fixturePreimageSHA256": {
+      "test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs": "3b64cbba36888c3a999f70ff7d59467a9fe917e1fe252bed5f2cd43c079aeeb8",
+      "test/support/browser_login_provider_fixture.ex": "df20f5a5dc43f3e0777095e4e79c5f9b571d2b62e55e672aac2fbcb80a7c03a7"
+    },
+    "fixtureSHA256": {
+      "exit-fixture.exs": "8c58e7b581d36901b3d3b12dd8a932910a90f976b2a6b3917bf1bbeed66a6ef2",
+      "restart-processor.exs": "eb46daf035472ab6ae5db4a30cdae7cf1e5aebbcc4575779b2c045cb8a0e26d4",
+      "test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs": "9ce4dd480b5dbfe4cd200011a5b555ce68d9d7906cada190fe194a04ec6a2ba1",
+      "test/support/browser_login_provider_fixture.ex": "c5a2ecb65fa422055e7512a40911d0686a679b688d5bd16a2fef1adf8458d522"
+    },
+    "helperSourceSHA256": {
+      "prepare-starter": "b751187ba1fe77a7cb884f81470b3dbc767dfcac5acf365df58e57ac4bfe7d75",
+      "registration-runner": "66ae38001e95c80f2f3d287c56fc6a3e9382c9579b5a0666ec70943da31bad4e",
+      "run-proof": "077fcd3f9e1a3a0b43e04a9d6ce92a398858709a88db13fcbfab06fdec3f9f7b"
+    },
+    "historicalFixtureOverlaySHA256": "197b2006ef124f23ea91e566cada4e58f23c8f9ca88940237d2c6c80e8a43d8a",
+    "hostedLockSHA256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+    "hostedTree": "e51cf0911fb97375bf0bcd6026d8ffb6ca63b954",
+    "outerLauncherSHA256": "d2d63bfa9b78aff64654b5c0c01d9259d835f1c55442e25cd2554b22c9bfa6e8",
+    "provenanceEntries": 288,
+    "provenanceSourceSHA256": "ad257045676962f5ec1701a2250fc5096bb632a15e2c830715b882f5b1143843",
+    "provenanceVerifiedAt": [
+      "after-export",
+      "prepost-ready",
+      "after-service-shutdown"
+    ],
+    "publicCommit": "59cab78cd8ac7a43c718914fc83fb56b33e3ef60",
+    "publicTree": "af45a0414116ae0fa7100e1fce302ca4f8cee0c9",
+    "scenarioSHA256": "fd666c4202fde1f5507a5624b66b29380a6db9a1f4002cbabc9f475562bcf1d0",
+    "sdkCommit": "fad0d0b3e65fd3be3b49675601693e5d91999fbe",
+    "sdkDependencyRevisions": {
+      "swift-asn1": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+      "swift-crypto": "c2cbadd7263439d8015189668f96ff5b5be565ce"
+    },
+    "starterFixtureTree": "efaab1e7ca9d185b3f54e6c5ec602ee3a2dc4671",
+    "starterLockSHA256": "d31b723e47113684790c05543da47853af15c2ebc0df6adab498e5a4ac95b07d",
+    "starterSourceSHA256": "242e71ce65479302c180bf58ebec0d76204e43cc6f14e56d0f6694eb6c9a0b0f",
+    "startingReplaySHA256": "f960866d2d70591afc7bae77c1255abc324e18826f83e0b9f3512a2a7fa5b69e",
+    "workerSourceSHA256": {
+      "compiler_worker.py": "e702b3392f0baf3a1621ba2c1639bbbb60a769a76fa71ae2419b0dc8f208d546",
+      "native_artifact_worker.py": "4cd80eca9299e5f34a2e157827919a3b11d91653fb6b3443a693bca3301f81aa",
+      "starter_package_closure.py": "b3164d0dfa8210ce26bb5a0f4b21f5ce063d90f5040522ee4d41f61a9960941d"
+    }
+  },
+  "status": "observed",
+  "tools": {
+    "mix": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:15:15] [ds:15:15:10] [async-threads:1] [jit] [dtrace]\n\nMix 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "xcode": "Xcode 27.2\nBuild version 27B52"
+  },
+  "workflow": {
+    "artifacts": [
+      {
+        "httpStatus": 200,
+        "kind": "unsigned_native_binary",
+        "sha256": "2bf7b7b93f359637104e62c5059b06ef1259faa6f748b815f07bc3e569148d72",
+        "sizeBytes": 3397951,
+        "unrelatedTenantHTTP": 404
+      },
+      {
+        "httpStatus": 200,
+        "kind": "debug_symbols",
+        "sha256": "7d410d5629fde02a4eb1cb6a138b95acb23ffb34c187e2afd1c3ea7c3d23e53f",
+        "sizeBytes": 3542413,
+        "unrelatedTenantHTTP": 404
+      },
+      {
+        "httpStatus": 200,
+        "kind": "resource_inventory",
+        "sha256": "82b7ec5b43f3b455cab9bb4ed5c2c118f9f9cf16b7ef66512ebfa03114115074",
+        "sizeBytes": 994,
+        "unrelatedTenantHTTP": 404
+      }
+    ],
+    "billingExitOnlyOwnerMirror": true,
+    "billingUnchanged": true,
+    "buildHTTP": 201,
+    "buildId": "build-8891bd7d55a3d64a92f2e079c7227a5003309247ce4354a9476d6b886f24cf55",
+    "buildPOSTAttempts": 1,
+    "capacityReleases": 1,
+    "compilerSourceSHA256": "ad257045676962f5ec1701a2250fc5096bb632a15e2c830715b882f5b1143843",
+    "compilerStarts": 1,
+    "ensureStartedRequests": 1,
+    "expiredOwnerFirstBuildGET": {
+      "bodyBytes": 73,
+      "bodyCaptureLimit": 1024,
+      "bodyClass": "browser_boundary_error",
+      "buildIdBodyPresent": false,
+      "cookieSetByResponse": false,
+      "elapsedMs": 168,
+      "errorCode": "unauthenticated",
+      "httpStatus": 401,
+      "jsonContentType": true,
+      "requestIdBodyPresent": false,
+      "requestIdHeaderPresent": true,
+      "retryAfterOneSecond": false,
+      "runtimeAfter": {
+        "generation": 1,
+        "phase": "storage_ready"
+      },
+      "runtimeBefore": {
+        "generation": 1,
+        "phase": "storage_ready"
+      },
+      "session": {
+        "credentialActive": true,
+        "credentialExpiresAt": 1795146476,
+        "credentialTimePhase": "expired",
+        "principal": "person-1",
+        "rowStatus": "active",
+        "sampleAt": 1795146481,
+        "sessionExpiresAt": 1795146480,
+        "sessionPhase": "expired"
+      },
+      "transactionEvents": [
+        {
+          "outcome": "ok",
+          "phase": "begin",
+          "pool": "lifecycle"
+        },
+        {
+          "outcome": "ok",
+          "phase": "commit",
+          "pool": "lifecycle"
+        }
+      ]
+    },
+    "jobKinds": [
+      "created",
+      "start",
+      "completed"
+    ],
+    "leaseReleased": true,
+    "manifestSHA256": "a03ab21406d5a16b4c267da737ae07f41f71d1e2d31adfc02f568e5d83e68103",
+    "nativeManifestCompilerScope": {
+      "exit": 0,
+      "scope": "unsigned-simulator/local-development",
+      "target": [
+        "generic/platform=iOS Simulator",
+        "CODE_SIGNING_ALLOWED=NO"
+      ]
+    },
+    "operationId": "a2aed16e11507f3aa90acfc3e69fb3990a4b860f99f36c3ee15ff36f5ea738ec",
+    "ownerBuildBeforeExitHTTP": 200,
+    "persistedIdempotencyKey": true,
+    "preadmissionPassed": true,
+    "processorAdmission": {
+      "durableIntent": true,
+      "paused": true,
+      "queue": "builds",
+      "role": "mixer_build_processor"
+    },
+    "recordId": "84c3ad3a-05b0-4d1d-a58a-aff4ab774fc3",
+    "renewedFormerOwnerFirstBuildGET": {
+      "bodyBytes": 30,
+      "bodyCaptureLimit": 1024,
+      "bodyClass": "dispatcher_error",
+      "buildIdBodyPresent": false,
+      "cookieSetByResponse": false,
+      "elapsedMs": 251,
+      "errorCode": "not_found",
+      "httpStatus": 404,
+      "jsonContentType": true,
+      "requestIdBodyPresent": false,
+      "requestIdHeaderPresent": true,
+      "retryAfterOneSecond": false,
+      "runtimeAfter": {
+        "generation": 1,
+        "phase": "storage_ready"
+      },
+      "runtimeBefore": {
+        "generation": 1,
+        "phase": "storage_ready"
+      },
+      "session": {
+        "credentialActive": true,
+        "credentialExpiresAt": 1795146601,
+        "credentialTimePhase": "current",
+        "principal": "person-1",
+        "rowStatus": "active",
+        "sampleAt": 1795146481,
+        "sessionExpiresAt": 1795146601,
+        "sessionPhase": "current"
+      },
+      "transactionEvents": [
+        {
+          "outcome": "ok",
+          "phase": "begin",
+          "pool": "lifecycle"
+        },
+        {
+          "outcome": "ok",
+          "phase": "commit",
+          "pool": "lifecycle"
+        },
+        {
+          "outcome": "ok",
+          "phase": "begin",
+          "pool": "lifecycle"
+        },
+        {
+          "outcome": "ok",
+          "phase": "commit",
+          "pool": "lifecycle"
+        },
+        {
+          "outcome": "ok",
+          "phase": "begin",
+          "pool": "ordinary"
+        },
+        {
+          "outcome": "ok",
+          "phase": "rollback",
+          "pool": "ordinary"
+        }
+      ]
+    },
+    "retainedBuildAndWorkerUnchanged": true,
+    "retainedOperationSHA256": "094ed11d67bee28304b818e329777a86fa42407e7bcf4576bdda96595c9b757a",
+    "revision": 2,
+    "sqliteIntegrity": "ok",
+    "stableAuthenticatedBuildReads": true,
+    "terminalFrameSHA256": "24a0a889e2a067ec7af26b2ca9ae9c237373b508dd4718ae8c1d94e29cd3ff1c",
+    "terminalJournalSHA256": "7f50e78f6006623d98a355bf9acf4310a5a1556094f7bbd07ba79d8fece9b517",
+    "terminalState": "native_succeeded",
+    "twoAuthenticatedSessions": true,
+    "unrelatedTenant": {
+      "after": [
+        {
+          "exactScopePresent": true,
+          "httpStatus": 200,
+          "route": "session"
+        },
+        {
+          "exactScopePresent": true,
+          "httpStatus": 200,
+          "route": "organizations"
+        },
+        {
+          "exactScopePresent": true,
+          "httpStatus": 200,
+          "route": "projects"
+        },
+        {
+          "exactScopePresent": true,
+          "httpStatus": 200,
+          "route": "applications"
+        }
+      ],
+      "before": [
+        {
+          "exactScopePresent": true,
+          "httpStatus": 200,
+          "route": "session"
+        },
+        {
+          "exactScopePresent": true,
+          "httpStatus": 200,
+          "route": "organizations"
+        },
+        {
+          "exactScopePresent": true,
+          "httpStatus": 200,
+          "route": "projects"
+        },
+        {
+          "exactScopePresent": true,
+          "httpStatus": 200,
+          "route": "applications"
+        }
+      ],
+      "ownScopeVerified": true,
+      "ownerBuildHTTP": 404,
+      "sameScopedContent": true
+    },
+    "unrelatedTenantBuildHTTP": 404,
+    "workerClosure": {
+      "cli_group_absent": true,
+      "cli_reaped": true,
+      "closed": true,
+      "commands": [
+        {
+          "command": "/usr/bin/xcodebuild",
+          "group_terminate_sent": false,
+          "pid": 77884,
+          "receipt_sha256": "11ad2f2bee368bc0e18eb7d427845da17803443440ac133854803f4288bf90cc",
+          "stop_reason": null
+        },
+        {
+          "command": "/usr/bin/swift",
+          "group_terminate_sent": false,
+          "pid": 77802,
+          "receipt_sha256": "658251c9379aef18a0b491dbb36f6a081b66a34882db0103adaaf288a4b518b7",
+          "stop_reason": null
+        }
+      ],
+      "exit": 0,
+      "pid": 77778,
+      "started": true
+    },
+    "workerReadyAuthenticated": true,
+    "workerStarts": 1,
+    "workerStartupSHA256": "957a18c1ef32f4e44e48d330378c2f33606c5c7303ce5c48c33b3069e8411b19",
+    "workspace": {
+      "correctOrganizationProjectAndOwner": true,
+      "exitHTTP": 200,
+      "exportBytes": 266,
+      "exportHTTP": 200,
+      "exportSHA256": "334b54977a39c9bdec066a3451c55913e27c9f5bbe7ae96b2280abcdf93135fb",
+      "organizationActive": false,
+      "shortSessionInitiallyCurrent": true,
+      "tombstone": true
+    }
+  }
+}
