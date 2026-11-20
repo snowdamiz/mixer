@@ -963,13 +963,14 @@ def drive(root, args, env, result):
             result["pausedBoundary"] = {"jobs": paused["jobs"], "operationIntents": 0, "workerListening": False}
 
             if args.select_starter and operator:
+                from linux_android_docker_adapter import DockerRecipe
                 from linux_android_pair25_layout import Pair25Layout
                 admitted_layout = Pair25Layout.read(operator["pair25_root"])
                 require(admitted_layout.projection_sha256 == starter["projection_sha256"]
                         and admitted_layout.verified_inputs == inputs
                         and admitted_layout.root / "readonly/Export" == export,
                         "runner layout differs from the selected Starter projection")
-                admitted_layout.verify_recipe(read(recipe_path))
+                admitted_layout.verify_recipe(DockerRecipe.read(recipe_path, recipe))
 
             from compiler_worker import literal
             from linux_android_runner import RunnerIdentity
