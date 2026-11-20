@@ -40,36 +40,11 @@ defmodule MixerHosted.CustomerArtifacts.Topology do
       ).rows
 
     functions_safe =
-      Enum.all?(Schema.functions_sql(), fn {name, {_args, returns, volatility, definer, body}} ->
-        case Session.query!(
-               repo,
-               """
-               SELECT count(*),bool_and(p.prosrc=$2 AND p.prosecdef=$3 AND p.proconfig=ARRAY['search_path=pg_catalog']::text[]
-                 AND p.provolatile=$4::"char" AND p.proowner=c.relowner
-               AND p.prolang=(SELECT oid FROM pg_catalog.pg_language WHERE lanname='plpgsql') AND NOT p.proleakproof AND NOT p.proisstrict
-               AND p.proparallel='u' AND p.prokind='f' AND p.provariadic=0 AND p.pronargdefaults=0 AND p.prosupport=0
-               AND pg_catalog.regexp_replace(pg_catalog.pg_get_function_result(p.oid),'[[:space:]]','','g')=pg_catalog.regexp_replace($7,'[[:space:]]','','g')
-                 AND NOT o.rolcanlogin AND NOT o.rolsuper AND NOT o.rolbypassrls AND NOT pg_catalog.pg_has_role(current_user,o.oid,'MEMBER')
-                 AND pg_catalog.pg_get_function_identity_arguments(p.oid)=$5
-                 AND pg_catalog.has_function_privilege(current_user,p.oid,'EXECUTE')=$6
-                 AND NOT EXISTS (SELECT 1 FROM pg_catalog.aclexplode(coalesce(p.proacl,pg_catalog.acldefault('f',p.proowner))) a WHERE a.grantee=0))
-               FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace JOIN pg_catalog.pg_roles o ON o.oid=p.proowner
-                 CROSS JOIN pg_catalog.pg_class c
-               WHERE n.nspname='public' AND p.proname=$1 AND c.oid='public.mixer_customer_artifacts'::regclass
-               """,
-               [
-                 name,
-                 "\n" <> body,
-                 definer,
-                 String.downcase(String.first(volatility)),
-                 identity_arguments(name),
-                 name in ~w(mixer_customer_allowed mixer_customer_artifact_metadata mixer_customer_key_exists),
-                 returns
-               ]
-             ).rows do
-          [[1, true]] -> true
-          _ -> false
-        end
+      Enum.all?(Schema.functions(), fn name ->
+        executable? =
+          name in ~w(mixer_customer_allowed mixer_customer_artifact_metadata mixer_customer_key_exists)
+
+        function_matches?(repo, name, executable?)
       end)
 
     [[no_bypass]] =
@@ -92,9 +67,48 @@ defmodule MixerHosted.CustomerArtifacts.Topology do
       ).rows
 
     if role_safe and tables_safe and functions_safe and no_bypass and
-         catalog_hash(repo) == @catalog_sha256,
+         catalog_matches?(repo),
        do: :ok,
        else: reject!(repo)
+  end
+
+  def catalog_matches?(repo), do: catalog_hash(repo) == @catalog_sha256
+
+  def immutable_function_matches?(repo),
+    do: function_matches?(repo, "mixer_customer_immutable", false)
+
+  defp function_matches?(repo, name, executable?) do
+    {_args, returns, volatility, definer, body} = Map.fetch!(Schema.functions_sql(), name)
+
+    case Session.query!(
+           repo,
+           """
+           SELECT count(*),bool_and(p.prosrc=$2 AND p.prosecdef=$3 AND p.proconfig=ARRAY['search_path=pg_catalog']::text[]
+             AND p.provolatile=$4::"char" AND p.proowner=c.relowner
+           AND p.prolang=(SELECT oid FROM pg_catalog.pg_language WHERE lanname='plpgsql') AND NOT p.proleakproof AND NOT p.proisstrict
+           AND p.proparallel='u' AND p.prokind='f' AND p.provariadic=0 AND p.pronargdefaults=0 AND p.prosupport=0
+           AND pg_catalog.regexp_replace(pg_catalog.pg_get_function_result(p.oid),'[[:space:]]','','g')=pg_catalog.regexp_replace($7,'[[:space:]]','','g')
+             AND NOT o.rolcanlogin AND NOT o.rolsuper AND NOT o.rolbypassrls AND NOT pg_catalog.pg_has_role(current_user,o.oid,'MEMBER')
+             AND pg_catalog.pg_get_function_identity_arguments(p.oid)=$5
+             AND pg_catalog.has_function_privilege(current_user,p.oid,'EXECUTE')=$6
+             AND NOT EXISTS (SELECT 1 FROM pg_catalog.aclexplode(coalesce(p.proacl,pg_catalog.acldefault('f',p.proowner))) a WHERE a.grantee=0))
+           FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace JOIN pg_catalog.pg_roles o ON o.oid=p.proowner
+             CROSS JOIN pg_catalog.pg_class c
+           WHERE n.nspname='public' AND p.proname=$1 AND c.oid='public.mixer_customer_artifacts'::regclass
+           """,
+           [
+             name,
+             "\n" <> body,
+             definer,
+             String.downcase(String.first(volatility)),
+             identity_arguments(name),
+             executable?,
+             returns
+           ]
+         ).rows do
+      [[1, true]] -> true
+      _ -> false
+    end
   end
 
   defp reject!(repo) do
@@ -108,7 +122,7 @@ defmodule MixerHosted.CustomerArtifacts.Topology do
   end
 
   @doc false
-  def catalog_hash(repo) do
+  def catalog_hash(repo, tables \\ Schema.tables()) do
     [[digest]] =
       Session.query!(
         repo,
@@ -125,7 +139,7 @@ defmodule MixerHosted.CustomerArtifacts.Topology do
             FROM pg_catalog.pg_trigger t JOIN pg_catalog.pg_class c ON c.oid=t.tgrelid JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relname=ANY($1::text[]) AND NOT t.tgisinternal)
         )::text,'UTF8')),'hex')
         """,
-        [Schema.tables()]
+        [tables]
       ).rows
 
     digest

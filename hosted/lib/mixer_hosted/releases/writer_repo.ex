@@ -5,7 +5,9 @@ defmodule MixerHosted.Releases.WriterRepo do
   Set `:local_release_target` to the reviewed target with its host and public
   roots, and configure this Repo with the provisioned writer database and login.
   Apply the local release ledger, head-read and CLI request migrations. Bind
-  the login in the target's `mixer_release_heads.writer_role` field.
+  the login in the target's `mixer_release_heads.writer_role` field. The ordinary
+  browser publisher uses the same restricted login for this head. Artifact
+  uploads and public delivery use separate logins.
 
   Give the login the existing fresh authorization SELECT and lock grants,
   head SELECT and sequence UPDATE, publication SELECT and column INSERT,

@@ -157,6 +157,7 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
   alias MixerHosted.Authorization.Scope
   alias MixerHosted.Protocol.ArtifactCBOR
   alias MixerHosted.Releases.{Target, WriterRepo}
+  alias MixerHosted.Test.StockReleaseCLI
 
   @profile %{
     profile_id: "http-profile",
@@ -593,7 +594,9 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
     assert release_counts() == [[0, 0, nil]]
 
     if cli = System.get_env("MIXER_TEST_RELEASE_CLI") do
-      for _ <- 1..2, do: stock_publish!(publisher, cli, signed, draft)
+      for _ <- 1..2,
+          do: StockReleaseCLI.publish!(cli, publisher.port, token, checked, signed, draft)
+
       assert F.counts() == [[1, 1, 1, 1]]
       assert release_counts() == [[2, 1, Decimal.new(1)]]
     else
@@ -655,6 +658,30 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
     published = request(publisher, "first publish", "POST", publish, first, cli_headers(key))
     assert published.status == 200
     assert json(published) == first_result
+
+    [[original_policy]] =
+      F.sql("""
+      SELECT pg_get_expr(polwithcheck, polrelid) FROM pg_policy
+      WHERE polrelid = 'public.mixer_release_cli_requests'::regclass
+        AND polname = 'release_cli_append'
+      """).rows
+
+    F.sql(
+      "ALTER POLICY release_cli_append ON public.mixer_release_cli_requests WITH CHECK (true)"
+    )
+
+    try do
+      publisher
+      |> request("mutated receipt policy", "POST", publish, first, cli_headers(key))
+      |> error(503, "authorization_unavailable")
+    after
+      F.sql("""
+      ALTER POLICY release_cli_append ON public.mixer_release_cli_requests
+      WITH CHECK (#{original_policy})
+      """)
+    end
+
+    assert release_counts() == [[2, 1, Decimal.new(1)]]
 
     second = ~s({"signed_assignment":#{sign_assignment(%{draft | "sequence" => 2}, private)}})
     second_key = cli_key("POST", publish, second)
@@ -798,49 +825,6 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
            (SELECT count(*) FROM public.mixer_release_publications),
            (SELECT sequence FROM public.mixer_release_heads)
     """).rows
-  end
-
-  defp stock_publish!(ctx, cli, signed, assignment) do
-    dir = System.fetch_env!("MIXER_TEST_RELEASE_CANDIDATE")
-    File.mkdir_p!(dir)
-    File.write!(Path.join(dir, "signed-manifest.json"), ctx.checked.signed_manifest_bytes)
-    File.write!(Path.join(dir, "payload.wasm"), ctx.checked.payload)
-    assignment_path = Path.join(dir, "signed-assignment.json")
-    File.write!(assignment_path, signed)
-
-    assert {output, 0} =
-             System.cmd(
-               cli,
-               [
-                 "update",
-                 "publish",
-                 dir,
-                 "--organization",
-                 "org-a",
-                 "--project",
-                 "project-a",
-                 "--channel",
-                 "dev",
-                 "--rollout",
-                 "25",
-                 "--assignment",
-                 assignment_path
-               ],
-               env: [
-                 {"MIXER_RELEASE_ORIGIN", "http://127.0.0.1:#{ctx.port}"},
-                 {"MIXER_RELEASE_TOKEN", ctx.token}
-               ],
-               stderr_to_stdout: true
-             )
-
-    assert Jason.decode!(output) == %{
-             "status" => "ok",
-             "action" => "publish",
-             "artifact_sha256" => ctx.checked.manifest_sha256,
-             "sequence" => assignment["sequence"],
-             "rollout_basis_points" => 2_500,
-             "delivery" => "local_only"
-           }
   end
 
   test "real default bearer verifier and PostgreSQL create retry read audit and wire HEAD", ctx do

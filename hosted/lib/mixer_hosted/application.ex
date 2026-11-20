@@ -4,7 +4,7 @@ defmodule MixerHosted.Application do
   @behaviour Supervisor
   alias MixerHosted.BrowserAuth.Installation
   alias MixerHosted.Identity.StartupConfig
-  alias MixerHosted.Releases.PublicDelivery
+  alias MixerHosted.Releases.{PublicDelivery, WriterRepo}
   alias MixerHosted.RuntimeConfig
   @boot Module.concat(__MODULE__, Boot)
 
@@ -86,7 +86,6 @@ defmodule MixerHosted.Application do
 
       {:api, %StartupConfig{} = identity} ->
         true = hosted.build_operation_intent == :disabled
-        base = base ++ MixerHosted.Releases.WriterRepo.children(hosted.endpoint)
 
         identity_children =
           case identity do
@@ -103,10 +102,10 @@ defmodule MixerHosted.Application do
             else: [{MixerHosted.BrowserAuth.Supervisor, installation}]
 
         endpoint = Application.get_env(:mixer_hosted, MixerHostedWeb.Endpoint, [])
-        delivery_children = PublicDelivery.children(endpoint)
+        release_children = WriterRepo.children(endpoint) ++ PublicDelivery.children(endpoint)
 
         base ++
-          identity_children ++ browser_children ++ delivery_children ++ [MixerHostedWeb.Endpoint]
+          identity_children ++ browser_children ++ release_children ++ [MixerHostedWeb.Endpoint]
 
       _ ->
         raise ArgumentError, "hosted startup unavailable"
@@ -147,7 +146,7 @@ defmodule MixerHosted.Application do
   @impl true
   def config_change(changed, new, removed) do
     restart_keys = [
-      MixerHosted.Releases.WriterRepo,
+      WriterRepo,
       :startup,
       :role,
       :identity_startup,

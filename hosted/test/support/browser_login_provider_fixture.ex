@@ -74,6 +74,7 @@ defmodule R686.Provider do
             case s.mode do
               :no_build_scope -> "mixer.workspace.read"
               :artifact_uploader -> "mixer.workspace.read mixer.artifact.upload"
+              :release_cli -> "mixer.workspace.read mixer.release.publish mixer.artifact.upload"
               _ -> String.replace(v["scope"], "openid ", "")
             end
         }

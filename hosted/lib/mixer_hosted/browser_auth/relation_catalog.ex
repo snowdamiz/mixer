@@ -6,8 +6,7 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
   """
   alias MixerHosted.BrowserAuth.{RelationManifest, WorkspaceCatalog}
 
-  @release_principal_fk {"public.mixer_release_publications", ["principal_id"],
-                         "public.mixer_authz_principals", ["id"]}
+  @release_principal_sources ~w(mixer_release_publications mixer_release_cli_requests)
   @roles [:lifecycle_login, :writer, :relation_owner, :ordinary_runtime_login]
   @marker "__mixer_relation_bound__"
   @wire_limit 2 * 1024 * 1024
@@ -597,30 +596,32 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
     "CASE WHEN pg_catalog.cardinality(#{array})>32 THEN ARRAY['#{@marker}']::pg_catalog.text[] ELSE ARRAY(SELECT n.nspname::pg_catalog.text||'.'||o.oprname::pg_catalog.text||':'||ln.nspname::pg_catalog.text||'.'||l.typname::pg_catalog.text||':'||rn.nspname::pg_catalog.text||'.'||r.typname::pg_catalog.text FROM pg_catalog.unnest(#{array}) WITH ORDINALITY k(id,ord) LEFT JOIN pg_catalog.pg_operator o ON o.oid=k.id LEFT JOIN pg_catalog.pg_namespace n ON n.oid=o.oprnamespace LEFT JOIN pg_catalog.pg_type l ON l.oid=o.oprleft LEFT JOIN pg_catalog.pg_namespace ln ON ln.oid=l.typnamespace LEFT JOIN pg_catalog.pg_type r ON r.oid=o.oprright LEFT JOIN pg_catalog.pg_namespace rn ON rn.oid=r.typnamespace ORDER BY k.ord) END"
   end
 
-  # The release ledger adds one inbound FK to the protected principal table.
-  # Admit that exact edge and its generated RI triggers when the ledger is installed.
+  # Each installed release table adds an exact edge and four RI triggers.
   defp release_foreign_keys!(state, roles) do
     {rows, state} =
       fetch!(
         state,
         """
-        SELECT c.relkind='r' AND c.relpersistence='p' AND c.relrowsecurity AND c.relforcerowsecurity
+        SELECT c.relname::pg_catalog.text AS name,
+          c.relkind='r' AND c.relpersistence='p' AND c.relrowsecurity AND c.relforcerowsecurity
           AND c.relowner=$1::pg_catalog.oid AS restricted
         FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
-        WHERE n.nspname='public' AND c.relname='mixer_release_publications'
-        LIMIT 2
+        WHERE n.nspname='public' AND c.relname::pg_catalog.text=ANY($2::pg_catalog.text[])
+        LIMIT 3
         """,
-        [roles.relation_owner],
-        [{"restricted", :bool}],
-        1,
+        [roles.relation_owner, @release_principal_sources],
+        [{"name", {:text, 63}}, {"restricted", :bool}],
+        2,
         nil
       )
 
-    case rows do
-      [] -> {[], state}
-      [%{"restricted" => true}] -> {[@release_principal_fk], state}
-      _ -> raise Unavailable
-    end
+    fks =
+      Enum.map(rows, fn %{"name" => name, "restricted" => restricted} ->
+        demand(restricted and name in @release_principal_sources)
+        {"public." <> name, ["principal_id"], "public.mixer_authz_principals", ["id"]}
+      end)
+
+    {fks, state}
   end
 
   defp constraints!(state, ids, columns, manifest, release_fks) do

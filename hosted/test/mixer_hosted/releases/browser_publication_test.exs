@@ -15,8 +15,9 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
   alias MixerHosted.Identity.{ConfiguredVerifier, KeyOwner}
   alias MixerHosted.Protocol.{ArtifactAdmission, ArtifactCBOR, AssignmentV3}
   alias MixerHosted.Releases.BrowserPublicationTest.Uploader
-  alias MixerHosted.Releases.{DeliveryRepo, Target}
+  alias MixerHosted.Releases.{DeliveryRepo, Target, WriterRepo}
   alias MixerHosted.Test.OrdinaryBrowserStartupFixture.Database, as: DB
+  alias MixerHosted.Test.StockReleaseCLI
 
   @head "/console-api/v1/release-head"
   @reason "Publish the local development release"
@@ -75,9 +76,36 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     end
   end
 
+  test "CLI-only publication refuses HTTPS in the effective endpoint settings" do
+    hosted =
+      MixerHosted.RuntimeConfig.load!(%{
+        "MIXER_HOSTED_ROLE" => "api",
+        "MIXER_DATABASE_HOST" => "db.fixture.example",
+        "MIXER_DATABASE_NAME" => "mixer_fixture",
+        "MIXER_DATABASE_USER" => "mixer_fixture",
+        "MIXER_DATABASE_PASSWORD" => "synthetic-database-secret",
+        "MIXER_SECRET_KEY_BASE" => String.duplicate("fixture-", 8)
+      })
+
+    replace_config!(WriterRepo, username: "browser_ordinary", database: "mixer_fixture")
+    replace_config!(MixerHostedWeb.Endpoint, hosted.endpoint)
+    assert WriterRepo in MixerHosted.Application.children({hosted, :disabled})
+
+    Application.put_env(
+      :mixer_hosted,
+      MixerHostedWeb.Endpoint,
+      Keyword.put(hosted.endpoint, :https, ip: {0, 0, 0, 0}, port: 8443)
+    )
+
+    assert_raise ArgumentError,
+                 "local release writer requires a loopback HTTP listener and Repo options",
+                 fn -> MixerHosted.Application.children({hosted, :disabled}) end
+  end
+
   test "publishes the verified upload once and reads the exact tenant-scoped browser head" do
     c = prepare!(:release_operator)
     provision!()
+    assert [[nil]] = DB.q!(Admin, "SELECT to_regclass('public.mixer_release_cli_requests')").rows
 
     fixture = @fixtures |> Path.join("signed-release-v3.json") |> File.read!() |> Jason.decode!()
 
@@ -278,7 +306,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     leases_clean()
   end
 
-  test "delivers only committed v3 releases over the separately provisioned public reader" do
+  test "shares a head between browser and CLI publication and delivers only committed releases" do
     key = "MIXER_BROWSER_CATALOG_FIXTURE_ROOT"
     parent = System.fetch_env!(key)
     root = Path.join(parent, "public-delivery")
@@ -289,6 +317,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     c = prepare!(:release_operator)
     provision!()
     provision_delivery!()
+    provision_cli!()
 
     fixture = @fixtures |> Path.join("signed-release-v3.json") |> File.read!() |> Jason.decode!()
     %{"host" => host, "roots" => encoded_roots, "installation" => installation} = fixture
@@ -320,8 +349,12 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
 
     replace_config!(:local_release_target, config)
     replace_config!(:local_release_delivery, delivery)
+    replace_config!(WriterRepo, c.hosted.repo)
     seed_target!(target)
     c = start!(c)
+    assert %{phase: :storage_ready} = RuntimeOwner.status()
+    assert [["browser_ordinary"]] = DB.q!(WriterRepo, "SELECT session_user").rows
+    assert [["browser_ordinary"]] = DB.q!(MixerHosted.Repo, "SELECT session_user").rows
 
     first_digest = fixture["artifact_sha256"]
     first_envelope = Jason.encode!(Map.take(fixture, ~w(signed_manifest payload)))
@@ -341,12 +374,13 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
         "payload" => fixture["payload"]
       })
 
-    assert {:ok, %{manifest_sha256: second_digest}} =
+    assert {:ok, %{manifest_sha256: second_digest} = second_artifact} =
              ArtifactAdmission.admit(second_envelope, host, roots, System.system_time(:second))
 
     second = %{
       first
       | "sequence" => first["sequence"] + 1,
+        "rollout_basis_points" => 1_500,
         "release_id" => second_manifest["release_id"],
         "artifact_sha256" => second_digest
     }
@@ -359,7 +393,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     assert_no_offer(c, offer_path)
     assert http(c, first_path, []).status == 404
     assert http(c, offer_path, [], "POST").status == 404
-    owner = login(c)
+    owner = login(c, :release_cli)
     uploader = login(c, :artifact_uploader)
     :ok = GenServer.call(c.provider, {:mode, :ok})
     identity = upload_identity!(c, uploader)
@@ -429,14 +463,43 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     Application.put_env(:mixer_hosted, :local_release_delivery, delivery)
     assert_reader_authority!(target, first_digest)
 
-    assert {:ok, %{artifact_sha256: ^second_digest}} =
+    token = access_token!(c, owner)
+    cli_base = "/v3/orgs/org-a/projects/project-a"
+    validate = cli_base <> "/releases/validate"
+    validation = Jason.encode!(%{artifact_sha256: second_digest})
+
+    assert %{status: 409, body: conflict} =
+             cli_post(c, token, validate, "delivery-first", validation)
+
+    assert %{"error" => %{"code" => "idempotency_conflict"}} = Jason.decode!(conflict)
+    assert %{status: 200} = cli_post(c, token, validate, "cli-validated-second", validation)
+
+    assert {:error, :idempotency_conflict} =
              RuntimeOwner.publish_release(
                owner,
                target,
                signed_second,
-               "delivery-second",
+               "cli-validated-second",
                @reason
              )
+
+    assert %{"release" => %{"sequence" => ^first_sequence}} = read!(c, owner, target)
+    assert [[1]] = DB.q!(Admin, "SELECT count(*) FROM public.mixer_release_cli_requests").rows
+
+    if cli = System.get_env("MIXER_TEST_RELEASE_CLI") do
+      with_uploader!(c, config, fn ->
+        StockReleaseCLI.publish!(cli, c.http_port, token, second_artifact, signed_second, second)
+      end)
+    else
+      publish_path = cli_base <> "/channels/#{target.channel}/publish"
+      body = ~s({"signed_assignment":#{signed_second}})
+      assert %{status: 200, body: result} = cli_post(c, token, publish_path, "cli-second", body)
+
+      assert %{"sequence" => sequence, "artifact_sha256" => ^second_digest} =
+               Jason.decode!(result)
+
+      assert sequence == second["sequence"]
+    end
 
     second_sequence = Integer.to_string(second["sequence"])
 
@@ -450,6 +513,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
 
     assert :ok = Application.stop(:mixer_hosted)
     refute Process.whereis(DeliveryRepo)
+    refute Process.whereis(WriterRepo)
     assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
 
     try do
@@ -578,6 +642,32 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     DB.q!(
       Admin,
       "GRANT EXECUTE ON FUNCTION public.mixer_release_delivery_artifact(text,text,text,text,text,text,text,text) TO mixer_release_delivery"
+    )
+  end
+
+  defp provision_cli! do
+    version = 20_261_120_000_004
+    module = MixerHosted.Repo.Migrations.AddLocalReleaseCLIRequests
+
+    unless Code.ensure_loaded?(module),
+      do: Code.require_file("priv/repo/migrations/#{version}_add_local_release_cli_requests.exs")
+
+    assert :ok = Ecto.Migrator.up(Migration, version, module, log: false)
+    DB.q!(Admin, "GRANT SELECT,INSERT ON public.mixer_release_cli_requests TO browser_ordinary")
+  end
+
+  defp cli_post(c, token, path, key, bytes) do
+    http(
+      c,
+      path,
+      [
+        {"authorization", "Bearer " <> token},
+        {"content-type", "application/json"},
+        {"idempotency-key", key},
+        {"content-length", Integer.to_string(byte_size(bytes))}
+      ],
+      "POST",
+      bytes
     )
   end
 
@@ -751,6 +841,15 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
   # Stage through the artifact authorization/storage path. Its isolated role
   # retires before the browser resumes its protected ACL checks.
   defp upload!(c, identity, config, digest, envelope, key \\ "uploaded-once") do
+    with_uploader!(c, config, fn ->
+      CustomerArtifacts.upload_at(identity, @tenant, digest, key, envelope, %{
+        reason: "Stage the exact maintained signed artifact",
+        source_ip: nil
+      })
+    end)
+  end
+
+  defp with_uploader!(c, config, operation) do
     DB.q!(Admin, "CREATE ROLE release_fixture_uploader LOGIN NOINHERIT")
 
     try do
@@ -800,14 +899,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
         config |> Map.delete(:target) |> Map.put(:repo, Uploader)
       )
 
-      IO.inspect(CustomerArtifacts.Topology.catalog_hash(Uploader),
-        label: "fixture artifact catalog hash"
-      )
-
-      CustomerArtifacts.upload_at(identity, @tenant, digest, key, envelope, %{
-        reason: "Stage the exact maintained signed artifact",
-        source_ip: nil
-      })
+      operation.()
     after
       if Process.whereis(Uploader), do: stop_supervised!(Uploader)
       DB.q!(Admin, "DROP OWNED BY release_fixture_uploader")
@@ -875,10 +967,15 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     session_headers
   end
 
-  defp upload_identity!(c, [{"cookie", "__Host-mixer-session=" <> cookie}]) do
+  defp access_token!(c, [{"cookie", "__Host-mixer-session=" <> cookie}]) do
     {:ok, snapshot} = StoredSnapshot.decode(raw(cookie, c))
     %{context: context, sealed: sealed} = snapshot.session_envelope
     {:ok, %Vault.Active{access_token: token}} = Vault.open(c.runtime.custody.key, context, sealed)
+    token
+  end
+
+  defp upload_identity!(c, headers) do
+    token = access_token!(c, headers)
 
     assert {:ok, identity} =
              ConfiguredVerifier.authenticate(

@@ -13,7 +13,7 @@ defmodule MixerHosted.Releases do
   alias MixerHosted.Authorization.Transaction.Context
   alias MixerHosted.Identity.{Encoding, VerifiedIdentity}
   alias MixerHosted.Protocol.{ArtifactAdmission, ArtifactV3Policy, AssignmentV3}
-  alias MixerHosted.Releases.{CLIRequest, Head, Publication, Target, WriterRepo}
+  alias MixerHosted.Releases.{CLIRequest, Head, Publication, Target, WriterCatalog, WriterRepo}
 
   @action "release.publish"
   @value_fields [:artifact_sha256, :signed_assignment_bytes, :rollout_basis_points]
@@ -108,11 +108,13 @@ defmodule MixerHosted.Releases do
 
   defp cli_locked(context, target, config, command, key, hash, reason) do
     repo = WriterRepo
-    check_writer!(repo, :cli)
+    check_writer!(repo)
     filter = Target.filter(target)
     head = repo.one(from(h in Head, where: ^filter, lock: "FOR UPDATE"))
     fresh = Context.checkpoint!(context, repo, @action, target.scope)
     {:ok, ^config} = configured_target(target)
+    WriterCatalog.check_receipts!(repo)
+    WriterCatalog.check_artifact!(repo)
     by_key = [{:idempotency_key, key} | filter]
     principal = fresh.principal.id
 
@@ -304,32 +306,42 @@ defmodule MixerHosted.Releases do
       fresh = Context.checkpoint!(context, repo, @action, target.scope)
       {:ok, ^config} = configured_target(target)
 
-      case verify(signed, artifact, config, target, last, fresh.checked_at) do
-        {:ok, signed} ->
-          values = publication_values(signed, fresh, key, reason)
+      with :ok <- browser_key_available(repo, filter, key),
+           {:ok, signed} <- verify(signed, artifact, config, target, last, fresh.checked_at) do
+        values = publication_values(signed, fresh, key, reason)
 
-          result =
-            if stored,
-              do: replay(stored, values),
-              else: append(repo, head, Map.new(filter), values)
+        result =
+          if stored,
+            do: replay(stored, values),
+            else: append(repo, head, Map.new(filter), values)
 
-          with {:ok, _} <- result do
-            {:ok, ^config} = configured_target(target)
-            now = Context.checkpoint!(context, repo, @action, target.scope).checked_at
+        with {:ok, _} <- result do
+          {:ok, ^config} = configured_target(target)
+          now = Context.checkpoint!(context, repo, @action, target.scope).checked_at
 
-            if now != fresh.checked_at,
-              do: {:ok, ^signed} = verify(signed, artifact, config, target, last, now)
+          if now != fresh.checked_at,
+            do: {:ok, ^signed} = verify(signed, artifact, config, target, last, now)
 
-            :ok = current!.(repo)
-            result
-          end
-
-        error ->
-          error
+          :ok = current!.(repo)
+          result
+        end
       end
     else
       nil -> {:error, :not_found}
       error -> error
+    end
+  end
+
+  defp browser_key_available(repo, filter, key) do
+    if WriterCatalog.receipts_installed?(repo) do
+      WriterCatalog.check_receipts!(repo)
+      by_key = [{:idempotency_key, key} | filter]
+
+      if repo.exists?(from(r in CLIRequest, where: ^by_key)),
+        do: {:error, :idempotency_conflict},
+        else: :ok
+    else
+      :ok
     end
   end
 
@@ -452,7 +464,7 @@ defmodule MixerHosted.Releases do
       Encoding.bounded_string?(reason, 512) and :binary.match(reason, <<0>>) == :nomatch
   end
 
-  defp check_writer!(repo, mode \\ :browser) do
+  defp check_writer!(repo) do
     [[count, safe?]] =
       Session.query!(repo, """
       SELECT count(*),bool_and(c.relkind='r' AND c.relrowsecurity AND c.relforcerowsecurity
@@ -474,24 +486,5 @@ defmodule MixerHosted.Releases do
       """).rows
 
     if count != 2 or not safe?, do: repo.rollback(:authorization_unavailable)
-
-    if mode == :cli do
-      [[safe?]] =
-        Session.query!(repo, """
-        SELECT c.relkind='r' AND c.relrowsecurity AND c.relforcerowsecurity
-          AND NOT r.rolcanlogin AND NOT r.rolsuper AND NOT r.rolbypassrls
-          AND NOT pg_catalog.pg_has_role(current_user,c.relowner,'MEMBER')
-          AND NOT pg_catalog.has_table_privilege(current_user,c.oid,'DELETE,TRUNCATE,REFERENCES,TRIGGER')
-          AND NOT pg_catalog.has_any_column_privilege(current_user,c.oid,'UPDATE,REFERENCES')
-          AND NOT pg_catalog.has_any_column_privilege(current_user,
-            'public.mixer_customer_artifacts','SELECT,INSERT,UPDATE,REFERENCES')
-          AND NOT pg_catalog.has_table_privilege(current_user,
-            'public.mixer_customer_artifacts','DELETE,TRUNCATE,TRIGGER')
-        FROM pg_catalog.pg_class c JOIN pg_catalog.pg_roles r ON r.oid=c.relowner
-        WHERE c.oid = 'public.mixer_release_cli_requests'::regclass
-        """).rows
-
-      if not safe?, do: repo.rollback(:authorization_unavailable)
-    end
   end
 end
