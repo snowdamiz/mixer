@@ -299,6 +299,8 @@ SWIFT_VERSION_SOURCE_CHANGES = {
     'cli/Sources/MixerBuild/ProjectGenerator.swift',
 }
 SWIFT_VERSION_CHANGES = SWIFT_VERSION_SOURCE_CHANGES | {'cli/build-tests/test_public_export.py'}
+CLI_NONREGULAR_INPUT_TEST = 'cli/Tests/MixerBuildTests/UpdateHardeningTests.swift'
+CLI_NONREGULAR_INPUT_TEST_PREIMAGE = 'cli-nonregular-input-test-predecessor-bytes/' + CLI_NONREGULAR_INPUT_TEST
 HALT_CLI_PREFIX = 'halt-cli-predecessor-bytes/'
 SOURCE150_SHA256 = '4a202d6aa4f6b81884df32cd0fe67cc8ce9847e8d4ae2ebea8b2cf1d4711a6f8'
 HALT_CLI_SOURCE_CHANGES = {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE}
@@ -307,7 +309,7 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
     HOSTED_V43_WORKFLOW, HOSTED_V44_WORKFLOW, HOSTED_V45_WORKFLOW, HOSTED_V46_WORKFLOW, HOSTED_V47_WORKFLOW, HOSTED_V48_WORKFLOW, HOSTED_V49_WORKFLOW, HOSTED_V50_WORKFLOW, HOSTED_V51_WORKFLOW, HOSTED_V52_WORKFLOW,
-    GUEST_CUTOFF_PREIMAGE, WORKER_SWIFT_PROBE_PREIMAGE,
+    GUEST_CUTOFF_PREIMAGE, WORKER_SWIFT_PROBE_PREIMAGE, CLI_NONREGULAR_INPUT_TEST_PREIMAGE,
 } | {STORE_PLATFORM_IDENTITY_PREFIX + name for name in STORE_PLATFORM_IDENTITY_INPUTS} | {
     ANDROID_OUTPUT_PREFIX + name for name in ANDROID_OUTPUT_CHANGES
 } | {
@@ -455,6 +457,7 @@ def install_inputs():
                              'worker_swift_probe_transition', 'android_retained_output_transition',
                              'android_retained_output_correction_transition',
                              'managed_android_retained_transition', 'pair25_transition', 'swift_version_transition',
+                             'cli_nonregular_input_test_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
@@ -1085,6 +1088,17 @@ def install_inputs():
     require(current == expected_source and len(current) == 151 and binding['source'] == {
         'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': swift_version['sourceAfter'],
     } and previous.digest(current) == swift_version['sourceAfter'], 'Swift version source transition differs')
+
+    cli_test = binding['cli_nonregular_input_test_transition']
+    raw = read_predecessor_member(HERE / CLI_NONREGULAR_INPUT_TEST_PREIMAGE)
+    require(set(cli_test) == {'before', 'after'} and CLI_NONREGULAR_INPUT_TEST not in current and
+            cli_test['before'] == previous.row(raw) == installed[CLI_NONREGULAR_INPUT_TEST] ==
+            historical[CLI_NONREGULAR_INPUT_TEST] and cli_test['before'] != cli_test['after'],
+            'CLI nonregular input test predecessor differs')
+    require(stat.S_IMODE((ROOT / CLI_NONREGULAR_INPUT_TEST).lstat().st_mode) == 0o644,
+            'Installed CLI nonregular input test mode differs')
+    installed[CLI_NONREGULAR_INPUT_TEST] = cli_test['after']
+    preimages.setdefault(CLI_NONREGULAR_INPUT_TEST, (raw, 0o644))
 
     previous.check_rows(ROOT, installed)
     for name, change in halt['changes'].items():

@@ -5,6 +5,8 @@ import Testing
 
 private let vmReceipt = #"{"profile":"mixer-integer-v1","valid":true,"inventory_complete":true,"imports":[],"exports":[],"opcodes":[],"extended_opcodes":[],"error":null,"inventory_error":null}"#
 
+private final class UpdateTestBundle: NSObject {}
+
 private func signedFixture(_ body: ([String], URL, Data, String) throws -> Void) throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-signed-update-test-\(UUID().uuidString)")
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
@@ -90,17 +92,31 @@ private func signedFixture(_ body: ([String], URL, Data, String) throws -> Void)
     }
 }
 
-@Test func nonRegularInputsFailWithoutOpeningOrBlocking() throws {
+@Test func nonRegularInputsFailWithoutInvokingVerifiers() throws {
     try signedFixture { args, root, _, _ in
+        let environment = ProcessInfo.processInfo.environment
+        let executable = environment["MIXER_STORE_TEST_CLI"] ??
+            Bundle(for: UpdateTestBundle.self).bundleURL.deletingLastPathComponent().appendingPathComponent("mixer").path
+        try #require(FileManager.default.isExecutableFile(atPath: executable))
+        let toolEnvironment = environment.merging(["MIXER_UPDATE_TOOL": "/usr/bin/true", "MIXER_VM": "/usr/bin/true"]) {
+            _, testValue in testValue
+        }
+        func requireInputRefusal() throws {
+            let result = try SuiteOwnedRunner.guarded {
+                try ProcessRunner.run([executable, "update", "verify"] + args, environment: toolEnvironment,
+                                      policy: .toolInspection, retaining: [root])
+            }
+            #expect(result.exitCode == 1)
+            let reply = try #require(JSONSerialization.jsonObject(with: Data(result.output.utf8)) as? [String: Any])
+            #expect(reply["code"] as? String == "update.input-type")
+        }
         let manifest = root.appendingPathComponent("manifest")
         try FileManager.default.removeItem(at: manifest)
-        #expect(mkfifo(manifest.path, 0o600) == 0)
-        let started = Date()
-        #expect(throws: MixerFailure.self) { try LocalUpdateValidation.verify(arguments: args, verifier: "/usr/bin/true", vm: "/usr/bin/true") }
-        #expect(Date().timeIntervalSince(started) < 1)
+        try #require(mkfifo(manifest.path, 0o600) == 0)
+        try requireInputRefusal()
         try FileManager.default.removeItem(at: manifest)
         try FileManager.default.createSymbolicLink(at: manifest, withDestinationURL: root.appendingPathComponent("payload"))
-        #expect(throws: MixerFailure.self) { try LocalUpdateValidation.verify(arguments: args, verifier: "/usr/bin/true", vm: "/usr/bin/true") }
+        try requireInputRefusal()
     }
 }
 
