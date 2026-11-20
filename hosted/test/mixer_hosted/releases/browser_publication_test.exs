@@ -9,7 +9,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
   import MixerHosted.Test.OrdinaryBrowserStartupFixture
   alias MixerHosted.Audit.CustomerArtifactEvent
   alias MixerHosted.Authorization.Scope
-  alias MixerHosted.BrowserAuth.{RuntimeOwner, Store, StoredSnapshot, Vault}
+  alias MixerHosted.BrowserAuth.{LifecycleRepo, RuntimeOwner, Store, StoredSnapshot, Vault}
   alias MixerHosted.BrowserAuth.StorageFixture.{Admin, Migration}
   alias MixerHosted.CustomerArtifacts
   alias MixerHosted.Identity.{ConfiguredVerifier, KeyOwner}
@@ -532,6 +532,9 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
       {:ok, {_, port}} = MixerHostedWeb.Endpoint.server_info(:http)
       restarted = %{c | http_port: port}
       assert [[1]] = DB.q!(DeliveryRepo, "SELECT 1").rows
+      assert_retry_checkpoint_stops_at_cutoff()
+      assert_browser_read_refusal_preserves_owner(restarted, owner)
+      assert_browser_reads_wait_for_checkout(restarted, owner, target, second_sequence)
       assert_delivery(restarted, offer_path, second_path, signed_second, second_envelope, config)
       assert http(restarted, first_path, []).body == first_envelope
       assert_no_offer(restarted, delivery_path(target, "excluded-installation"))
@@ -588,6 +591,112 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
         path,
         Jason.encode!(%{offer: offer, artifact: artifact, excluded: "excluded-installation"})
       )
+    end
+  end
+
+  defp assert_retry_checkpoint_stops_at_cutoff do
+    owner = Process.whereis(RuntimeOwner)
+    initial = RuntimeOwner.status()
+    deadline = System.monotonic_time(:millisecond) + 5_000
+    assert {:ok, lease} = GenServer.call(owner, {:reserve, deadline, System.system_time(:second)})
+
+    try do
+      :ok = :sys.suspend(owner)
+
+      try do
+        start = System.monotonic_time(:millisecond)
+        assert {:error, %Store.Failure{}} = RuntimeOwner.checkpoint(lease, start + 50)
+        assert System.monotonic_time(:millisecond) - start < 500
+      after
+        :ok = :sys.resume(owner)
+      end
+
+      assert :ok = RuntimeOwner.checkpoint(lease)
+      assert RuntimeOwner.status() == initial
+    after
+      assert :ok = GenServer.call(owner, {:release, lease})
+    end
+  end
+
+  defp assert_browser_reads_wait_for_checkout(c, owner, target, expected_sequence) do
+    {session, head} =
+      with_occupied_checkouts(fn pool ->
+        session = Task.async(fn -> http(c, "/auth/session", owner) end)
+        head = Task.async(fn -> http(c, path(target), owner) end)
+        await_browser_reads(pool, System.monotonic_time(:millisecond) + 250)
+        {session, head}
+      end)
+
+    assert %{status: 200, body: session_body} = Task.await(session, 3_000)
+    assert %{"state" => "authenticated"} = Jason.decode!(session_body)
+    assert %{status: 200, body: head_body} = Task.await(head, 3_000)
+    assert %{"release" => %{"sequence" => ^expected_sequence}} = Jason.decode!(head_body)
+  end
+
+  defp assert_browser_read_refusal_preserves_owner(c, owner) do
+    initial = RuntimeOwner.status()
+    assert %{phase: :storage_ready} = initial
+
+    with_occupied_checkouts(fn pool ->
+      start = System.monotonic_time(:millisecond)
+      assert http(c, "/auth/session", owner).status == 503
+      assert System.monotonic_time(:millisecond) - start < 1_500
+
+      assert [%{ready_conn_count: 0, checkout_queue_length: 0}] =
+               DBConnection.get_connection_metrics(pool)
+
+      assert RuntimeOwner.status() == initial
+    end)
+
+    assert %{status: 200, body: body} = http(c, "/auth/session", owner)
+    assert %{"state" => "authenticated"} = Jason.decode!(body)
+  end
+
+  defp with_occupied_checkouts(operation) do
+    parent = self()
+    %{pid: pool} = Ecto.Adapter.lookup_meta(LifecycleRepo)
+
+    holders =
+      for _ <- 1..2 do
+        Task.async(fn ->
+          LifecycleRepo.checkout(
+            fn ->
+              send(parent, {:checkout_held, self()})
+
+              receive do
+                :release_checkout -> :released
+              after
+                2_000 -> raise "browser read checkout control expired"
+              end
+            end,
+            timeout: 3_000
+          )
+        end)
+      end
+
+    try do
+      for holder <- holders do
+        pid = holder.pid
+        assert_receive {:checkout_held, ^pid}, 1_000
+      end
+
+      operation.(pool)
+    after
+      for holder <- holders, do: send(holder.pid, :release_checkout)
+      for holder <- holders, do: assert(Task.await(holder, 1_000) == :released)
+    end
+  end
+
+  defp await_browser_reads(pool, deadline) do
+    assert [%{ready_conn_count: 0, checkout_queue_length: 0}] =
+             DBConnection.get_connection_metrics(pool)
+
+    if map_size(:sys.get_state(RuntimeOwner).operations) != 2 do
+      assert System.monotonic_time(:millisecond) < deadline,
+             "both browser reads must wait for the lifecycle checkout"
+
+      Process.sleep(5)
+      await_browser_reads(pool, deadline)
     end
   end
 

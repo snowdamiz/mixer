@@ -22,6 +22,8 @@ defmodule MixerHosted.BrowserAuth.Store do
   @transaction_event [:mixer_hosted, :browser_auth, :store, :transaction]
   @handler {__MODULE__, :transaction_receipt}
   @ordinary_context {MixerHosted.Authorization.Transaction.Context, :active}
+  @read_checkout_retry_interval_ms 20
+  @read_checkout_retry_window_ms 300
 
   @doc false
   def admit(%RuntimeConfig{mode: :configured} = runtime, deadline) do
@@ -117,15 +119,44 @@ defmodule MixerHosted.BrowserAuth.Store do
   def lifecycle(_, _), do: failure(:admission, :not_started)
 
   @doc false
-  def active_read(lease, operation) do
+  def active_read(lease, operation, request) do
     with :ok <- RuntimeOwner.checkpoint(lease),
          true <- MixerHosted.BrowserAuth.ActiveRead.valid?(lease, operation) do
-      transact(lease.runtime, lease.deadline, lease, {:active_read, operation})
+      retry_until =
+        if request === :session or match?({:release_head, _}, request) do
+          min(
+            System.monotonic_time(:millisecond) + @read_checkout_retry_window_ms,
+            lease.deadline - @read_checkout_retry_interval_ms
+          )
+        end
+
+      read_with_checkout_retry(lease, operation, retry_until)
     else
       _ -> failure(:admission, :not_started)
     end
   rescue
     _ -> failure(:admission, :not_started)
+  end
+
+  defp read_with_checkout_retry(lease, operation, retry_until) do
+    result = transact(lease.runtime, lease.deadline, lease, {:active_read, operation})
+
+    # Never wait in the connection pool or retry work that may have started.
+    with {:error, %Failure{phase: :admission, outcome: :not_started}} <- result,
+         true <- is_integer(retry_until),
+         true <-
+           System.monotonic_time(:millisecond) + @read_checkout_retry_interval_ms < retry_until do
+      Process.sleep(@read_checkout_retry_interval_ms)
+
+      if RuntimeOwner.checkpoint(lease, retry_until) == :ok and
+           System.monotonic_time(:millisecond) < retry_until do
+        read_with_checkout_retry(lease, operation, retry_until)
+      else
+        result
+      end
+    else
+      _ -> result
+    end
   end
 
   @doc false

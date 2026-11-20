@@ -227,7 +227,7 @@ defmodule MixerHosted.BrowserAuth.ActiveRead do
                    key_lease.snapshot
                  ),
                :ok <- KeyOwner.finish(KeyOwner, key_lease),
-               {:ok, expires} <- Store.active_read(lease, {:admit, source, identity}),
+               {:ok, expires} <- Store.active_read(lease, {:admit, source, identity}, operation),
                :ok <- RuntimeOwner.checkpoint(lease),
                :ok <- KeyOwner.finish(KeyOwner, key_lease),
                {:ok, value} <-

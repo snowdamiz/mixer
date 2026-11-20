@@ -198,7 +198,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
         if is_binary(cookie) and catalog_profile?(lease.runtime, operation) do
           input = %PreauthDraft.Load{lease: lease, cookie_digest: :crypto.hash(:sha256, cookie)}
 
-          case Store.active_read(lease, {:discover, input}) do
+          case Store.active_read(lease, {:discover, input}, operation) do
             {:ok, nil} ->
               {:error, :unauthenticated}
 
@@ -416,6 +416,17 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
   def checkpoint(%PreauthDraft.Lease{} = lease), do: call(lease, {:checkpoint, lease})
   def checkpoint(_), do: Store.failure(:admission, :not_started)
 
+  @doc false
+  def checkpoint(%PreauthDraft.Lease{} = lease, cutoff) when is_integer(cutoff) do
+    deadline = min(lease.deadline, cutoff)
+
+    if System.monotonic_time(:millisecond) < deadline,
+      do: call(lease, {:checkpoint, lease}, deadline),
+      else: Store.failure(:admission, :not_started)
+  end
+
+  def checkpoint(_, _), do: Store.failure(:admission, :not_started)
+
   defp reserve(deadline, wall),
     do: GenServer.call(__MODULE__, {:reserve, deadline, wall}, remaining(deadline))
 
@@ -536,9 +547,11 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
 
   defp finish_result(_lease, _cookie, error), do: error
 
-  defp call(lease, message) do
+  defp call(lease, message), do: call(lease, message, lease.deadline)
+
+  defp call(lease, message, deadline) do
     if Process.whereis(__MODULE__) === lease.owner,
-      do: GenServer.call(lease.owner, message, remaining(lease.deadline)),
+      do: GenServer.call(lease.owner, message, remaining(deadline)),
       else: Store.failure(:commit, :committed)
   catch
     :exit, _ -> Store.failure(:commit, :committed)
