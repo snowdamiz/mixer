@@ -239,6 +239,8 @@ The managed Linux Pair25 selector uses an opt-in catalog and an operator-pinned 
 
 Hosted source v54 admits the managed Linux Starter selector and its optional migration. The focused checks passed in normal and optimized Python. The archived v53 selection restored all 422 predecessor files byte for byte. [Source admission receipt](verification/receipts/hosted-source-binding-v54-20261120.json)
 
+The compiled console control selected the managed Android Starter, reloaded the single admitted Android input, and submitted its exact scope, source, Linux lock, recipe, and idempotency key. It rendered the matching queued build. Typechecking and all 304 console tests passed on Node 22.23.3. This control used scripted API responses. A rendered pass against live Phoenix and the real selected-input build remain open. [Console selection receipt](verification/receipts/l05-managed-linux-pair25-console-control-20261120.json)
+
 The v52 artifact-read fixture now requires a successful metadata row while the token is live, then checks that expiry prevents its callback. All 15 focused PostgreSQL tests and both negative boundary controls passed in independent review. The normal and optimized source checks passed, followed by the public Phoenix and isolated identity-network workflows. [Verification receipt](verification/receipts/phoenix-artifact-read-expiry-v52-20261119.json)
 
 ### Android TaskCompletion parity and source diagnostic

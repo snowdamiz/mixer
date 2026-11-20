@@ -1,0 +1,56 @@
+diff --git a/console/src/build-submission.test.mjs b/console/src/build-submission.test.mjs
+index 11e53a693a601900c00716847ef23dcca70b1be2..a7afbc8d9b82c4b021940999ff9849eb01f54051 100644
+--- a/console/src/build-submission.test.mjs
++++ b/console/src/build-submission.test.mjs
+@@ -226,6 +226,51 @@ test("owner selects the discovered starter and the admitted input comes from the
+   } finally { reopened.close(); }
+ });
+
++test("managed Android starter reaches the exact queued build from its admitted input", async () => {
++  const starterId = "starter-" + "e".repeat(64);
++  const androidInput = input({ platform: "android", sourceInputId: starterId });
++  const f = fixture("workspace-builds");
++  try {
++    await navigate(f);
++    await emptyInputs(f);
++    (await f.request(discoveryPath)).resolve(response({ ...appScope, starter: { id: starterId } }));
++    await flush();
++
++    f.click("Select local starter");
++    const select = await f.request(startersPath, "POST");
++    assert.equal(select.headers["x-mixer-csrf"], csrf);
++    assert.deepEqual(JSON.parse(select.body), {
++      organization_id: "org", project_id: "p", application_id: "app", starter_id: starterId,
++    });
++    select.resolve(response({ ...appScope, ...androidInput }));
++
++    const refresh = await f.request(inputPath);
++    assert.deepEqual(deliveryPosts(f).map(call => call.path), [startersPath]);
++    refresh.resolve(response(page([androidInput])));
++    await flush();
++    const inputChoice = f.button("Input " + starterId);
++    assert.ok(walk(f.container).some(node => node.nodeName === "LEGEND" && node.textContent === "Android"));
++    assert.equal(f.button("Create build").disabled, true);
++
++    inputChoice.click();
++    f.click("Create build");
++    const post = await f.request("/console-api/v1/builds", "POST");
++    assert.equal(post.headers["x-mixer-csrf"], csrf);
++    assert.match(post.headers["idempotency-key"], /^[a-f0-9-]{36}$/);
++    assert.deepEqual(JSON.parse(post.body), {
++      organization_id: "org", project_id: "p", application_id: "app", platform: "android",
++      source_input_id: starterId, source_sha256: androidInput.sourceSha256,
++      toolchain_lock_sha256: androidInput.toolchainLockSha256,
++      build_definition_sha256: androidInput.buildDefinitionSha256,
++    });
++    const build = selection({ platform: "android" });
++    await committed(f, post, receipt({ selection: build }), dto({ platform: "android", maxAttempts: 1 }));
++    assert.ok(selectedText(f).includes(build.build_id));
++    assert.match(selectedText(f), /Queued/);
++    assert.deepEqual(deliveryPosts(f).map(call => call.path), [startersPath, "/console-api/v1/builds"]);
++  } finally { f.close(); }
++});
++
+ test("a late platform-build list preserves the first-source picker for the same app", async () => {
+   const f = fixture("workspace-builds");
+   try {

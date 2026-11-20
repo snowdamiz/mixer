@@ -64,6 +64,34 @@ python3 -B tests/integration/l05-pair25-http/run.py --select-starter \
 Include `--select-starter` in the real command below to build from the selected
 input using the approved stage.
 
+### Console selection control
+
+Use Node 22.23.3 and Elixir to run the compiled console tests in a disposable
+source projection. The overlay adds a test to the existing Solid event fixture.
+It checks that selecting the managed Starter reloads its admitted Android input
+and that creating from that row sends the scoped pins and displays the exact
+queued build. The test supplies fixture responses for the API.
+
+From the checkout root, set `scratch` to a new empty directory that you own.
+
+```sh
+recipe="$PWD/tests/integration/l05-pair25-http"
+git archive 9c14c70b5a2b8bd8b99b2b632fd5e67a590375e5 \
+  console website/src/styles.css website/public/assets \
+  hosted/lib/mixer_hosted/authorization/scope.ex | tar -xf - -C "$scratch"
+(
+  cd "$scratch" &&
+  git apply "$recipe/console-managed-starter.patch" &&
+  cd console &&
+  npm ci --ignore-scripts --no-audit --no-fund --cache "$scratch/npm-cache" &&
+  npm run typecheck &&
+  node --test --test-concurrency=1 tests/*.test.mjs src/*.test.mjs
+)
+```
+
+Remove the disposable projection after the commands exit. The ordinary API
+and real worker are exercised by the separate runs below.
+
 ## Zero-native-build control
 
 ```sh
