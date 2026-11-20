@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "base_commit": "d4caebb8b2f4ffcbdc848aacf16f29249536e5ad",
+  "implementation_commit": "ab8b94f466c49d82def84dce554e7e5b17f6c8c9",
+  "implementation_tree": "7cf8871a402408ab888ebd034722a4cfff256e33",
+  "host": "macOS 27.0.1 arm64, Swift 6.4.2, Go 1.26.4, Elixir 1.20.4 with OTP 29, PostgreSQL 17.11",
+  "route": "GET /v3/orgs/:org/projects/:project/audit?view=rollout_halt",
+  "storage": "One read-only SQL function projects exact-target halt publication rows after commit. The API database role has EXECUTE. The uploader, delivery and browser lifecycle roles retain their prior access.",
+  "phoenix": {
+    "command": "hosted/scripts/test-local.py --only-additional-tests with the listed files, running mix test --warnings-as-errors --seed 0 --trace",
+    "files_relative_to_hosted": [
+      "test/foundation_integration_test.exs",
+      "test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+      "test/mixer_hosted_web/customer_artifact_transport_test.exs",
+      "test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+      "test/mixer_hosted/audit/customer_artifact_event_test.exs",
+      "test/mixer_hosted/releases/postgres_test.exs",
+      "test/mixer_hosted/releases/browser_publication_test.exs",
+      "test/mixer_hosted/releases/runtime_provisioning_test.exs",
+      "test/mixer_hosted/browser_auth/actual_create_relation_profile_pg_join_test.exs",
+      "test/mixer_hosted/builds/development_dispatch_test.exs"
+    ],
+    "result": "116 passed, 1 skipped in the non-TLS fixture",
+    "held_out_case": "The opt-in TLS case passed separately",
+    "test_log_sha256": "6754f463e080c603a3e2fb4159f7131f336c523124187800717a663e723b4a18",
+    "source_manifest_sha256": "4f4920bc98e2e4d32f5eb877e4d84a7448aca6731832d94a89d4c725d99ae319",
+    "raw_halt_page_sha256": "d0e491532204aca16691a5440bfc691d4a2f10f25e0317d69a3c9820a5b9e023",
+    "halt_sample": {
+      "runtime": "0b0795abfeab3f3772a5f496c618de5d895dd1733f03f2315d5716d823f245ca",
+      "scope": {
+        "app": "fieldlog",
+        "environment": "development",
+        "organization": "org-a",
+        "platform": "ios",
+        "project": "project-a"
+      },
+      "channel": "dev",
+      "artifact_sha256": "e2bd1a0d729b360bedb17b2fa65f59c6a06616994540f5ee610029e87ffb9c36",
+      "health": {
+        "activated": 18446744073709551615,
+        "adverse_signals": 18446744073709551615,
+        "pending": 0,
+        "sequence": 9223372036854775808
+      },
+      "halt_sequence": 9223372036854775809
+    },
+    "unchanged_artifact_page_sha256": "2d939b3fc4f6d22327beaeb5f5c86a23c728da5ad6be9e3edc85c17140e3d997",
+    "artifact_event_hashes": [
+      "a330a772881d280593ff2b53c15cf75526875f9e74fbdb86592cbe631fd36f72",
+      "3b785531717d45c96c13267e85a4660fe31bfe36dde544f511f6e0ff3d5f677a"
+    ],
+    "stock_cli_sha256": "bd9376720c7d4f6702c58069a0bf0f6d9b1392145e9d8b6e1894f0c332ec48ad",
+    "observations": [
+      "A signed stock CLI halt, followed by exact replay, returned one event with its original sample.",
+      "A deferred commit failure left the halt audit page empty.",
+      "The existing artifact response bytes, cursor, events and validated schema-2 chain survived the halt and the Phoenix and repository-pool restart.",
+      "A release manager could halt. A viewer with only mixer.audit.read could read both views and was denied artifact bytes and halt writes. Publish-only scope, another organization and another project were denied. A different configured channel and a direct connection without audit context returned no rows.",
+      "The browser-only, combined browser/CLI, and exact create-relation catalog cases passed with the reviewed ordinary API grant."
+    ]
+  },
+  "tls": {
+    "command": "MIX_ENV=test MIXER_TEST_LOCAL_ARTIFACT_UPLOAD_TLS=1 mix test --no-compile --warnings-as-errors --seed 0 --trace test/mixer_hosted_web/customer_artifact_http_integration_test.exs --only local_artifact_upload_tls",
+    "result": "1 passed, 11 excluded. The normal API read an empty authorized halt view with the upload profile disabled and enabled. PostgreSQL used localhost TLS and SCRAM for runtime logins.",
+    "test_log_sha256": "55798ffd582ac2e44511e1fd41f8d1d10f6a87e0e5cfed8f0b9bb7058f33c58d"
+  },
+  "go": {
+    "command": "go test ./release -run '^TestV3HealthHaltAuthorizationAndAudit$' -count=1 -v",
+    "test_log_sha256": "68ef15dc028d8adbfcb80695a15112f8991f44360317d90c766db7e1be52be32",
+    "wire_check": "Phoenix raw response decoded as release.Event using protocol.DecodeJSON. ID=9223372036854775809 next=9223372036854775809 health={Sequence:9223372036854775808 Activated:18446744073709551615 Pending:0 AdverseSignals:18446744073709551615}"
+  },
+  "cleanup": {
+    "owned_postgres_instances_stopped": true,
+    "owned_fixture_ports_rebound": true,
+    "http_and_jwks_stopped": true,
+    "fixture_database_and_tls_scratch_removed": true
+  },
+  "scope": "Local loopback verification. The halt view has its own cursor and exposes the Go rollout_halt event payload. The default route retains the schema-2 artifact representation and chain. Restart evidence covers Phoenix and its release and audit pools."
+}
