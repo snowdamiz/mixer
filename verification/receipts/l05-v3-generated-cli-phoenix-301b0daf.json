@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "scope": "L05/W11 generated Swift signed v3 release client against maintained Phoenix fixtures",
+  "testedComposition": "f41f9685c3d26e282fae3a25f6a142bc6db92625",
+  "productOnV67": "301b0dafc57be0811aba8b0eef8f60f3ada0e383",
+  "sameProductPaths": [
+    "cli",
+    "contracts",
+    "hosted/lib",
+    "hosted/config",
+    "hosted/test",
+    "hosted/priv",
+    "updates",
+    "runtime-identity",
+    "sdk",
+    "hosted/scripts/test-local.py"
+  ],
+  "toolchain": {
+    "swift": "6.4.2",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "postgres": "17.11"
+  },
+  "swift": {
+    "from": "repository root",
+    "build": [
+      "swift",
+      "build",
+      "--package-path",
+      "cli",
+      "--product",
+      "mixer"
+    ],
+    "test": [
+      "swift",
+      "test",
+      "--package-path",
+      "cli",
+      "--filter",
+      "ReleaseRESTV3Tests"
+    ],
+    "passed": 4,
+    "binarySHA256": "b0d4faee9f178a1ac3ea83238bd455b5dd9a36f583532e82d6a301988657262d",
+    "dependencyRevisions": {
+      "swift-asn1": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+      "swift-crypto": "c2cbadd7263439d8015189668f96ff5b5be565ce"
+    },
+    "localLockedCache": true,
+    "logSHA256": "ffb16a88f44e67099c855d9d5eb5ba7fccc518791f0d5ba32ea265a89f2dc2d8"
+  },
+  "phoenix": {
+    "command": [
+      "python3",
+      "-B",
+      "hosted/scripts/test-local.py",
+      "--output",
+      "<fresh-owned-report>",
+      "--pg-bin",
+      "/opt/homebrew/opt/postgresql@17/bin",
+      "--only-additional-tests",
+      "--additional-test",
+      "hosted/test/mixer_hosted/releases/browser_publication_test.exs",
+      "--additional-test",
+      "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+      "--test-timeout",
+      "240"
+    ],
+    "environment": {
+      "MIXER_TEST_RELEASE_CLI": "<exact built mixer binary>",
+      "MIXER_TEST_RELEASE_CANDIDATE": "<fresh test candidate directory>"
+    },
+    "passed": 16,
+    "skipped": 1,
+    "skippedCase": "normal runtime configuration joins the authenticated upload to restricted TLS storage",
+    "operationsObserved": [
+      "upload",
+      "validate",
+      "publish",
+      "promote",
+      "rollback",
+      "halt"
+    ],
+    "observations": [
+      "The stock CLI completed upload, validation and publication and returned the same exact publish receipt on retry.",
+      "Stock promote and rollback advanced the locked head and preserved immutable retry results.",
+      "Stock health halt committed and delivery stopped until a later promotion. The audit survived the fixture API restart.",
+      "Browser and CLI shared the publication head in the ordinary application fixture. The opt-in release queue also drained under its restricted processor."
+    ],
+    "sourceDigestSHA256": "4c34ba127709ccc2250830cc8a927b21d3604a1201f3566839d11c3a80bb1226",
+    "runnerReceiptSHA256": "01c8873b4a64c46d1965ee87c903e4bf31b3ae2d30ac9d51116ed0ca394ab5ae",
+    "logSHA256": "84fffd683d2a9a1497e72f3bff728349da4843b53c4ea33e179c065a3743e43a",
+    "cleanup": {
+      "postgres_stopped": true,
+      "scratch_removed": true
+    }
+  },
+  "driftCheck": {
+    "command": [
+      "python3",
+      "-B",
+      "cli/release-tools/generate_release_rest_v3.py",
+      "--check",
+      "--check-router"
+    ],
+    "matchedPhoenixRoutes": 6
+  },
+  "limits": [
+    "Loopback Bandit and disposable PostgreSQL used synthetic principals, scoped bearers and development signatures.",
+    "The separate opt-in TLS uploader and production identity provider are outside this replay.",
+    "Source archive adoption, cross-environment promotion, and installed app qualification are separate."
+  ]
+}
