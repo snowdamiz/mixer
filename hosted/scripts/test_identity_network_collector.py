@@ -1802,7 +1802,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes((repository / path).read_bytes())
         def blobs(paths):
-            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE, collector.SUPERVISED_PROVIDER_SOURCE_BASE, collector.PROVIDER_IO_SOURCE_BASE, collector.CONFIGURED_STARTUP_SOURCE_BASE, collector.PUBLIC_SIGNIN_SOURCE_BASE, collector.CONSOLE_COHERENCE_SOURCE_BASE, collector.BUILD_CLOCK_SOURCE_BASE, collector.CUSTOMER_CREATE_SOURCE_BASE, collector.CI_DISCOVERY_SOURCE_BASE, collector.CUSTOMER_EXPIRY_SOURCE_BASE, collector.CUSTOMER_AUTHZ_SOURCE_BASE, collector.RESTRICTED_PROCESSOR_SOURCE_BASE, collector.DEVELOPMENT_DISPATCH_SOURCE_BASE, collector.PENDING_SESSION_SOURCE_BASE, collector.BILLING_RECONCILIATION_SOURCE_BASE, collector.WORKSPACE_V31_SOURCE_BASE, collector.WORKSPACE_V32_SOURCE_BASE, collector.WORKSPACE_V33_SOURCE_BASE, collector.WORKSPACE_V34_SOURCE_BASE, collector.WORKSPACE_V35_SOURCE_BASE, collector.WORKSPACE_V36_SOURCE_BASE, collector.WORKSPACE_V37_SOURCE_BASE, collector.WORKSPACE_V38_SOURCE_BASE, collector.WORKSPACE_V39_SOURCE_BASE, collector.WORKSPACE_V40_SOURCE_BASE, collector.WORKSPACE_V41_SOURCE_BASE, collector.WORKSPACE_V42_SOURCE_BASE, collector.WORKSPACE_V43_SOURCE_BASE, collector.WORKSPACE_V44_SOURCE_BASE, collector.WORKSPACE_V45_SOURCE_BASE, collector.WORKSPACE_V46_SOURCE_BASE, collector.WORKSPACE_V47_SOURCE_BASE, collector.WORKSPACE_V48_SOURCE_BASE, collector.WORKSPACE_V49_SOURCE_BASE, collector.WORKSPACE_V50_SOURCE_BASE, collector.WORKSPACE_V51_SOURCE_BASE, collector.WORKSPACE_V52_SOURCE_BASE, collector.WORKSPACE_V53_SOURCE_BASE, collector.WORKSPACE_V54_SOURCE_BASE, collector.WORKSPACE_V55_SOURCE_BASE, collector.WORKSPACE_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
+            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE, collector.SUPERVISED_PROVIDER_SOURCE_BASE, collector.PROVIDER_IO_SOURCE_BASE, collector.CONFIGURED_STARTUP_SOURCE_BASE, collector.PUBLIC_SIGNIN_SOURCE_BASE, collector.CONSOLE_COHERENCE_SOURCE_BASE, collector.BUILD_CLOCK_SOURCE_BASE, collector.CUSTOMER_CREATE_SOURCE_BASE, collector.CI_DISCOVERY_SOURCE_BASE, collector.CUSTOMER_EXPIRY_SOURCE_BASE, collector.CUSTOMER_AUTHZ_SOURCE_BASE, collector.RESTRICTED_PROCESSOR_SOURCE_BASE, collector.DEVELOPMENT_DISPATCH_SOURCE_BASE, collector.PENDING_SESSION_SOURCE_BASE, collector.BILLING_RECONCILIATION_SOURCE_BASE, collector.WORKSPACE_V31_SOURCE_BASE, collector.WORKSPACE_V32_SOURCE_BASE, collector.WORKSPACE_V33_SOURCE_BASE, collector.WORKSPACE_V34_SOURCE_BASE, collector.WORKSPACE_V35_SOURCE_BASE, collector.WORKSPACE_V36_SOURCE_BASE, collector.WORKSPACE_V37_SOURCE_BASE, collector.WORKSPACE_V38_SOURCE_BASE, collector.WORKSPACE_V39_SOURCE_BASE, collector.WORKSPACE_V40_SOURCE_BASE, collector.WORKSPACE_V41_SOURCE_BASE, collector.WORKSPACE_V42_SOURCE_BASE, collector.WORKSPACE_V43_SOURCE_BASE, collector.WORKSPACE_V44_SOURCE_BASE, collector.WORKSPACE_V45_SOURCE_BASE, collector.WORKSPACE_V46_SOURCE_BASE, collector.WORKSPACE_V47_SOURCE_BASE, collector.WORKSPACE_V48_SOURCE_BASE, collector.WORKSPACE_V49_SOURCE_BASE, collector.WORKSPACE_V50_SOURCE_BASE, collector.WORKSPACE_V51_SOURCE_BASE, collector.WORKSPACE_V52_SOURCE_BASE, collector.WORKSPACE_V53_SOURCE_BASE, collector.WORKSPACE_V54_SOURCE_BASE, collector.WORKSPACE_V55_SOURCE_BASE, collector.WORKSPACE_V56_SOURCE_BASE, collector.WORKSPACE_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
         subject.git_blobs = blobs
         calls = []
         def command(argv, *args, **kwargs):
@@ -3156,8 +3156,9 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = '3177e7441fac7af3c366fdffade2797008f5f0dcd6f5a0ed03322d9f26c7a476'
-    DIGEST = '67a063bd75a019fed09b4907256976cee9c8af686358484c0351d664b304aec1'
+    PIN = 'ab35fe0cb4f2654214536d05239aa0b79f6eaa2c14b2df9bff4b9f4ecc25853b'
+    DIGEST = '3099c5a5b1769ca3259fba8b0d99df607811c19186ce95f81124ef4497bcd37a'
+    COUNT = 447
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)
@@ -3182,11 +3183,14 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     def materialize(self, root, sparse, patterns):
         import shutil
         for pattern in patterns:
-            # Qualified collector-input projection: these two Go-only inputs
-            # are unavailable in the identity job and never read by the collector.
-            if pattern in ("/services/", "/contracts/release-v2.json"):
+            # Keep the signed release fixtures from the Go tree without copying
+            # unrelated service source into the collector control.
+            if pattern == "/services/":
+                rows = [(path, False) for path in collector.WORKSPACE_MANIFEST
+                        if path.startswith("services/")]
+            elif pattern == "/contracts/release-v2.json":
                 continue
-            if pattern == self.FAMILY:
+            elif pattern == self.FAMILY:
                 # glob's '*' matches within one directory component here.
                 sources = sorted((root / "verification").glob("identity-network-current-source-v*"))
                 self.assertTrue(sources)
@@ -3226,7 +3230,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
             with contextlib.redirect_stdout(output):
                 self.assertEqual(0, subject.main(["--check-source"]))
             observed = json.loads(output.getvalue())
-            self.assertEqual(424, observed["source_count"])
+            self.assertEqual(self.COUNT, observed["source_count"])
             self.assertEqual(self.DIGEST, observed["source_digest_sha256"])
             self.assertEqual(self.PIN, observed["selection_sha256"])
             self.assertFalse(observed["runtime_or_GA_accepted"])
@@ -3507,7 +3511,7 @@ class ProviderHTTPSSourceControls(unittest.TestCase):
             with self.assertRaises(SystemExit) as exited:runpy.run_path(str(COLLECTOR_PATH),run_name='__main__')
         self.assertEqual(0,exited.exception.code)
         observed=json.loads(output.getvalue())
-        self.assertEqual(424, observed['source_count'])
+        self.assertEqual(WorkflowSparseSourceControls.COUNT, observed['source_count'])
         self.assertEqual(collector.WORKSPACE_SOURCE_DIGEST,observed['source_digest_sha256'])
         self.assertEqual(collector.WORKSPACE_SELECTION_SHA256,observed['selection_sha256'])
         path=next(iter(collector.PROVIDER_HTTPS_DELTA));target=root/path;original=target.read_bytes()
@@ -4029,7 +4033,7 @@ class PublicConsoleSigninSourceControls(unittest.TestCase):
                         runpy.run_path(str(path), run_name='__main__')
                 self.assertEqual(0, exited.exception.code)
                 observed = json.loads(output.getvalue())
-                self.assertEqual(424, observed['source_count'])
+                self.assertEqual(WorkflowSparseSourceControls.COUNT, observed['source_count'])
                 self.assertEqual(collector.WORKSPACE_SELECTION_SHA256, observed['selection_sha256'])
 
     def test_v19_actual_collect_refuses_changed_new_source_before_docker(self):
@@ -4842,7 +4846,7 @@ class PendingSessionV28Controls(unittest.TestCase):
             with mock.patch.dict('os.environ', {'GITHUB_ACTIONS': 'true', 'RUNNER_OS': 'Linux', 'RUNNER_ARCH': 'X64'}, clear=True), mock.patch.object(collector.os, 'uname', return_value=collector.os.uname_result(('Linux', 'control', '0', '0', 'x86_64'))):
                 with self.assertRaisesRegex(collector.CollectorError, 'pending session selection pin'):
                     subject.collect()
-            self.assertEqual(424, subject.state['source']['product_files'])
+            self.assertEqual(WorkflowSparseSourceControls.COUNT, subject.state['source']['product_files'])
             self.assertEqual(collector.WORKSPACE_SOURCE_DIGEST, subject.state['source']['product_tree_digest_sha256'])
             self.assertFalse(any(argv[0] == 'docker' for argv in calls))
 
@@ -4975,7 +4979,7 @@ class BillingReconciliationV29Controls(unittest.TestCase):
             subject.git_blobs=blobs
             with mock.patch.dict('os.environ',{'GITHUB_ACTIONS':'true','RUNNER_OS':'Linux','RUNNER_ARCH':'X64'},clear=True),mock.patch.object(collector.os,'uname',return_value=collector.os.uname_result(('Linux','control','0','0','x86_64'))):
                 with self.assertRaisesRegex(collector.CollectorError,'billing reconciliation selection pin'):subject.collect()
-            self.assertEqual(424, subject.state['source']['product_files'])
+            self.assertEqual(WorkflowSparseSourceControls.COUNT, subject.state['source']['product_files'])
             self.assertEqual(collector.WORKSPACE_SOURCE_DIGEST,subject.state['source']['product_tree_digest_sha256'])
             self.assertFalse(any(argv[0]=='docker' for argv in calls))
 
@@ -4983,18 +4987,23 @@ class BillingReconciliationV29Controls(unittest.TestCase):
 class WorkspaceSourceCutoverControls(unittest.TestCase):
     PIN = WorkflowSparseSourceControls.PIN
 
-    def test_active_selection_restores_v55_and_rejects_workspace_drift(self):
+    def test_active_selection_restores_v56_and_rejects_workspace_drift(self):
         root = COLLECTOR_PATH.resolve().parents[2]
         helper = WorkflowSparseSourceControls()
         base = collector.WORKSPACE_SOURCE_BASE
         selection, manifest = collector.validate_workspace_source_metadata(
             collector.workspace_source_metadata(root, base))
-        self.assertEqual(424, len(manifest))
-        self.assertEqual(2, len(selection["exact_delta"]))
-        self.assertEqual(20, len(selection["reviewed_migrations"]))
+        self.assertEqual(447, len(manifest))
+        self.assertEqual(45, len(selection["exact_delta"]))
+        self.assertEqual(22, len(collector.workspace_preimage_rows(selection)))
+        self.assertEqual(22, len(selection["reviewed_migrations"]))
 
         product = {path: (root / path).read_bytes() for path in manifest}
         self.assertEqual(manifest, {path: collector._file_row(data) for path, data in product.items()})
+        v56_base = collector.WORKSPACE_V56_SOURCE_BASE
+        v56_selection, v56_manifest = collector.validate_workspace_v56_metadata(
+            collector.workspace_source_metadata(root, v56_base))
+        self.assertEqual(2, len(v56_selection["exact_delta"]))
         v55_base = collector.WORKSPACE_V55_SOURCE_BASE
         v55_selection, v55_manifest = collector.validate_workspace_v55_metadata(
             collector.workspace_source_metadata(root, v55_base))
@@ -5008,7 +5017,8 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
             collector.workspace_source_metadata(root, v53_base))
         self.assertEqual(16, len(v53_selection["exact_delta"]))
         for version, details, version_base, expected_manifest in (
-            (55, selection, base, v55_manifest),
+            (56, selection, base, v56_manifest),
+            (55, v56_selection, v56_base, v55_manifest),
             (54, v55_selection, v55_base, v54_manifest),
             (53, v54_selection, v54_base, v53_manifest),
             (52, v53_selection, v53_base, collector.WORKSPACE_V52_MANIFEST),
@@ -5025,6 +5035,11 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                 self.assertEqual(expected_manifest, inverse)
                 self.assertEqual(details["predecessor"]["source_count"], len(inverse))
                 self.assertEqual(details["predecessor"]["source_digest_sha256"], canonical_digest(inverse))
+                if version == 56:
+                    self.assertEqual(424, len(product))
+                    self.assertEqual(6_272_003, sum(len(data) for data in product.values()))
+                    self.assertEqual('67a063bd75a019fed09b4907256976cee9c8af686358484c0351d664b304aec1',
+                                     canonical_digest(inverse))
                 if version == 55:
                     self.assertEqual(424, len(product))
                     self.assertEqual(6_264_374, sum(len(data) for data in product.values()))
@@ -5040,7 +5055,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                     self.assertEqual('2d327bb3611f45c45fa35135b8ffab8d21aad02d420eabbc69e31492666f6f29',
                                      canonical_digest(inverse))
 
-        with tempfile.TemporaryDirectory(prefix="workspace-v56-source-") as directory:
+        with tempfile.TemporaryDirectory(prefix="workspace-v57-source-") as directory:
             stage = Path(directory)
             helper.materialize(root, stage, helper.patterns(
                 (root / ".github/workflows/identity-network.yml").read_text(), "identity-network"))
@@ -5085,6 +5100,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                 collector.workspace_source_metadata(stage, collector.WORKSPACE_V52_SOURCE_BASE))
             for relative in {
                 **collector.workspace_preimage_rows(selection),
+                **collector.workspace_preimage_rows(v56_selection, v56_base),
                 **collector.workspace_preimage_rows(v55_selection, v55_base),
                 **collector.workspace_preimage_rows(v54_selection, v54_base),
                 **collector.workspace_preimage_rows(v53_selection, v53_base),
@@ -5119,6 +5135,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                 target.write_bytes(original)
             for relative in (
                 *selection["exact_delta"],
+                *v56_selection["exact_delta"],
                 *(v55_selection["exact_delta"].keys() - selection["exact_delta"].keys()),
                 *v54_selection["exact_delta"],
                 *v53_selection["exact_delta"],
@@ -5166,6 +5183,11 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
             with self.assertRaisesRegex(collector.CollectorError, "installed opt-in managed Linux starter migration inventory mismatch"):
                 collector.check_workspace_source(stage)
             extra_linux.unlink()
+            extra_release = (stage / collector.WORKSPACE_LOCAL_RELEASE_DELIVERY_MIGRATION).with_name("unreviewed.exs")
+            extra_release.touch()
+            with self.assertRaisesRegex(collector.CollectorError, "installed opt-in local release delivery migration inventory mismatch"):
+                collector.check_workspace_source(stage)
+            extra_release.unlink()
             unexpected_opt_in = stage / collector.WORKSPACE_LOCAL_SOURCE_MIGRATION
             unexpected_opt_in.with_name("unexpected.exs").touch()
             with self.assertRaisesRegex(collector.CollectorError, "installed opt-in source starter migration inventory mismatch"):
@@ -5205,16 +5227,17 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
         with self.assertRaisesRegex(collector.CollectorError, "prepared archive hash mismatch"):
             collector.validate_prepared_archive(prepared(changed), manifest)
 
-    def test_collector_refuses_v53_through_v56_workspace_drift_before_docker(self):
+    def test_collector_refuses_v53_through_v57_workspace_drift_before_docker(self):
         helper = CollectorMethodWiringControls()
         for base in (collector.WORKSPACE_V53_SOURCE_BASE, collector.WORKSPACE_V54_SOURCE_BASE,
-                     collector.WORKSPACE_V55_SOURCE_BASE, collector.WORKSPACE_SOURCE_BASE):
+                     collector.WORKSPACE_V55_SOURCE_BASE, collector.WORKSPACE_V56_SOURCE_BASE,
+                     collector.WORKSPACE_SOURCE_BASE):
             for metadata_name, fault in (
                 ("selection.json", "workspace selection pin"),
                 ("selected-source-manifest.json", "workspace manifest byte pin"),
             ):
                 with self.subTest(base=base, metadata=metadata_name), tempfile.TemporaryDirectory(
-                    prefix="workspace-v56-collect-"
+                    prefix="workspace-v57-collect-"
                 ) as directory:
                     subject, calls = helper._amendment_preflight_subject(directory, exact_format_metadata())
                     original = subject.git_blobs
@@ -5231,7 +5254,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                             mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))):
                         with self.assertRaisesRegex(collector.CollectorError, fault):
                             subject.collect()
-                    self.assertEqual(424, subject.state["source"]["product_files"])
+                    self.assertEqual(WorkflowSparseSourceControls.COUNT, subject.state["source"]["product_files"])
                     self.assertEqual(WorkflowSparseSourceControls.DIGEST, subject.state["source"]["product_tree_digest_sha256"])
                     self.assertFalse(any(argv[0] == "docker" for argv in calls))
 

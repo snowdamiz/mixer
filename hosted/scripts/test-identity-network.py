@@ -3037,10 +3037,16 @@ WORKSPACE_V55_SOURCE_DIGEST = '02750d59e2b988622e91a0bf7efc7881e39cd8fdf0dcdce17
 WORKSPACE_V55_SOURCE_COUNT = 424
 WORKSPACE_V55_MANIFEST_SHA256 = '55ed1711a8b8e8a1a8c64e780df70390534766eeea0eb9206160c376985f613c'
 
-WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v56/'
-WORKSPACE_SELECTION_SHA256 = '3177e7441fac7af3c366fdffade2797008f5f0dcd6f5a0ed03322d9f26c7a476'
-WORKSPACE_SOURCE_DIGEST = '67a063bd75a019fed09b4907256976cee9c8af686358484c0351d664b304aec1'
-WORKSPACE_SOURCE_COUNT = 424
+WORKSPACE_V56_SOURCE_BASE = 'verification/identity-network-current-source-v56/'
+WORKSPACE_V56_SELECTION_SHA256 = '3177e7441fac7af3c366fdffade2797008f5f0dcd6f5a0ed03322d9f26c7a476'
+WORKSPACE_V56_SOURCE_DIGEST = '67a063bd75a019fed09b4907256976cee9c8af686358484c0351d664b304aec1'
+WORKSPACE_V56_SOURCE_COUNT = 424
+WORKSPACE_V56_MANIFEST_SHA256 = 'debf3335afa9d7d69f9b5df737cbf4ca82f744a101bf09d68f5dec503cb40348'
+
+WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v57/'
+WORKSPACE_SELECTION_SHA256 = 'ab35fe0cb4f2654214536d05239aa0b79f6eaa2c14b2df9bff4b9f4ecc25853b'
+WORKSPACE_SOURCE_DIGEST = '3099c5a5b1769ca3259fba8b0d99df607811c19186ce95f81124ef4497bcd37a'
+WORKSPACE_SOURCE_COUNT = 447
 WORKSPACE_IOS_CUSTODY_HELPER = 'hosted/priv/development/ios_build_custody.py'
 WORKSPACE_IOS_CUSTODY_PATHS = {
     WORKSPACE_IOS_CUSTODY_HELPER,
@@ -3072,6 +3078,9 @@ WORKSPACE_LOCAL_SOURCE_MIGRATION = 'hosted/priv/local_source_selection/202611180
 WORKSPACE_ANDROID_SOURCE_MIGRATION = 'hosted/priv/local_android_source_selection/20261119000000_local_android_source_selection.exs'
 WORKSPACE_MANAGED_LINUX_SOURCE_MIGRATION = (
     'hosted/priv/local_managed_linux_source_selection/20261120000000_local_managed_linux_source_selection.exs'
+)
+WORKSPACE_LOCAL_RELEASE_DELIVERY_MIGRATION = (
+    'hosted/priv/local_release_delivery/20261120000003_add_local_release_delivery.exs'
 )
 STARTER_PACKAGE_CLOSURE_SOURCE = 'hosted/priv/development/starter_package_closure.py'
 
@@ -3627,10 +3636,10 @@ def validate_workspace_v55_metadata(metadata):
     return selection, manifest
 
 
-def validate_workspace_source_metadata(metadata):
+def validate_workspace_v56_metadata(metadata):
     selection, manifest = _validate_workspace_metadata(
-        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
-        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V55_MANIFEST, {
+        metadata, WORKSPACE_V56_SOURCE_BASE, WORKSPACE_V56_SELECTION_SHA256,
+        WORKSPACE_V56_SOURCE_COUNT, WORKSPACE_V56_SOURCE_DIGEST, WORKSPACE_V55_MANIFEST, {
             'source_count': WORKSPACE_V55_SOURCE_COUNT,
             'source_digest_sha256': WORKSPACE_V55_SOURCE_DIGEST,
             'selection_sha256': WORKSPACE_V55_SELECTION_SHA256,
@@ -3651,6 +3660,29 @@ def validate_workspace_source_metadata(metadata):
         ('managed_linux_opt_in_migration', WORKSPACE_MANAGED_LINUX_SOURCE_MIGRATION),
     ):
         require(selection[key] == migration and migration in manifest, 'iOS custody opt-in migration inventory')
+    return selection, manifest
+
+
+def validate_workspace_source_metadata(metadata):
+    selection, manifest = _validate_workspace_metadata(
+        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
+        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V56_MANIFEST, {
+            'source_count': WORKSPACE_V56_SOURCE_COUNT,
+            'source_digest_sha256': WORKSPACE_V56_SOURCE_DIGEST,
+            'selection_sha256': WORKSPACE_V56_SELECTION_SHA256,
+            'manifest_sha256': WORKSPACE_V56_MANIFEST_SHA256,
+        }, migration_count=22)
+    require(selection['identity'] == 'hosted-local-signed-release-source-v57' and
+            selection['schema'] == 1 and selection['deployment'] is False and
+            selection['financial_effects'] is False and selection['runtime_or_GA_accepted'] is False,
+            'local signed release source scope')
+    for key, migration in (
+        ('opt_in_migration', WORKSPACE_LOCAL_SOURCE_MIGRATION),
+        ('android_opt_in_migration', WORKSPACE_ANDROID_SOURCE_MIGRATION),
+        ('managed_linux_opt_in_migration', WORKSPACE_MANAGED_LINUX_SOURCE_MIGRATION),
+        ('local_release_delivery_opt_in_migration', WORKSPACE_LOCAL_RELEASE_DELIVERY_MIGRATION),
+    ):
+        require(selection[key] == migration and migration in manifest, 'local signed release opt-in migration inventory')
     return selection, manifest
 
 
@@ -3766,6 +3798,10 @@ def check_workspace_source(root):
         workspace_source_metadata(root, WORKSPACE_V55_SOURCE_BASE))
     v55_rows = workspace_preimage_rows(v55_selection, WORKSPACE_V55_SOURCE_BASE)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in v55_rows}, v55_rows)
+    v56_selection, _ = validate_workspace_v56_metadata(
+        workspace_source_metadata(root, WORKSPACE_V56_SOURCE_BASE))
+    v56_rows = workspace_preimage_rows(v56_selection, WORKSPACE_V56_SOURCE_BASE)
+    validate_workspace_preimages({path: (root / path).read_bytes() for path in v56_rows}, v56_rows)
     selection, manifest = validate_workspace_source_metadata(workspace_source_metadata(root, WORKSPACE_SOURCE_BASE))
     rows = workspace_preimage_rows(selection)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in rows}, rows)
@@ -3784,6 +3820,9 @@ def check_workspace_source(root):
     managed_linux_opt_in = PurePosixPath(WORKSPACE_MANAGED_LINUX_SOURCE_MIGRATION)
     require(sorted(path.name for path in (root / managed_linux_opt_in.parent).iterdir()) == [managed_linux_opt_in.name],
             'installed opt-in managed Linux starter migration inventory mismatch')
+    release_delivery_opt_in = PurePosixPath(WORKSPACE_LOCAL_RELEASE_DELIVERY_MIGRATION)
+    require(sorted(path.name for path in (root / release_delivery_opt_in.parent).iterdir()) == [release_delivery_opt_in.name],
+            'installed opt-in local release delivery migration inventory mismatch')
     return {'identity': selection['identity'], 'source_count': len(observed),
             'source_digest_sha256': WORKSPACE_SOURCE_DIGEST,
             'selection_sha256': WORKSPACE_SELECTION_SHA256, 'runtime_or_GA_accepted': False}
@@ -5068,6 +5107,14 @@ class Collector:
         validate_workspace_preimages(v55_preimages, v55_rows)
         metadata.update(v55_metadata)
         metadata.update(v55_preimages)
+        v56_metadata = self.git_blobs(
+            [WORKSPACE_V56_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        v56_selection, _ = validate_workspace_v56_metadata(v56_metadata)
+        v56_rows = workspace_preimage_rows(v56_selection, WORKSPACE_V56_SOURCE_BASE)
+        v56_preimages = self.git_blobs(sorted(v56_rows))
+        validate_workspace_preimages(v56_preimages, v56_rows)
+        metadata.update(v56_metadata)
+        metadata.update(v56_preimages)
         workspace_metadata = self.git_blobs([WORKSPACE_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         workspace_selection, workspace_manifest = validate_workspace_source_metadata(workspace_metadata)
         validate_workspace_source_manifest(workspace_manifest)
@@ -5859,6 +5906,8 @@ _, WORKSPACE_V54_MANIFEST = validate_workspace_v54_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V54_SOURCE_BASE))
 _, WORKSPACE_V55_MANIFEST = validate_workspace_v55_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V55_SOURCE_BASE))
+_, WORKSPACE_V56_MANIFEST = validate_workspace_v56_metadata(
+    workspace_source_metadata(_source_root, WORKSPACE_V56_SOURCE_BASE))
 _, WORKSPACE_MANIFEST = validate_workspace_source_metadata(workspace_source_metadata(_source_root, WORKSPACE_SOURCE_BASE))
 
 if __name__ == '__main__':
