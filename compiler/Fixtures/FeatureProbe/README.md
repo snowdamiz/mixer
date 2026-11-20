@@ -5,11 +5,7 @@ Run these commands from the repository root. The
 
 ## Native FeatureProbe
 
-```sh
-swift run --package-path compiler/Fixtures/FeatureProbe \
-  --scratch-path "$PWD/verification/local/swift-feature-native" feature-probe
-```
-
+Run the [native replay](#native-sdk-controls) to execute the SwiftPM entry.
 The macOS executable checks the completion calculation, a record-array JSON
 round trip, exact UTF-8 bytes, and blanks rejected by the validator. The JSON
 negative case requires a type mismatch on the `completed` field. The default
@@ -65,20 +61,39 @@ service still needs a typed adapter and evidence for that service.
 
 ## Native SDK controls
 
-Use a local SwiftPM repository cache with the two revisions from
-[sdk/Package.resolved](../../../sdk/Package.resolved). The command restricts
-Git to local transport, so a missing cache fails the replay.
+Run on arm64 macOS 26 or later with Swift 6.2 or later and a local
+SwiftPM repository cache for the two revisions in
+[sdk/Package.resolved](../../../sdk/Package.resolved).
 
 ```sh
-env GIT_ALLOW_PROTOCOL=file swift test --package-path sdk \
-  --scratch-path "$PWD/verification/local/swift-support-sdk" \
-  --skip-update --disable-prefetching --force-resolved-versions \
-  --filter 'authoringBuildsFieldLogEditorAndGuestCodecOnlyRoundTripsValues|validationRejectsDuplicateUnsupportedAndMalformedControls|reducerEffectsReplaceAndCancelWithoutStaleDelivery|guestUIEventCodecPreservesUnicodeAndUInt64WithoutNormalization|malformedJSONAndUnpairedUnicodeFailBeforeFoundationDecoding'
+python3 -B compiler/Fixtures/FeatureProbe/replay_native.py
 ```
 
-The SDK checks execute native MixerUI builder output and its validator, the
-native reducer's task replacement and cancellation with an actor-gated
-effect, and the JSON and guest event codecs in a macOS process.
+The replay runs the SwiftPM FeatureProbe entry and five native SDK tests.
+The tests exercise MixerUI builder output, the document validator, the current
+FeatureStore replacement, logical effect removal, and both JSON and guest event
+codecs. The replay copies the two dependency repositories into fresh scratch
+and checks their checked-out revisions. It prints the command results and
+confirms scratch removal after observing process-group closure.
+
+The separate FeatureStore executable compiles the unchanged SDK sources. Its
+MainActor waiter starts with [`Task.immediate`](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0472-task-start-synchronously-on-caller-context.md)
+and calls `awaitCurrentEffects()` while the gate still holds the effect. The
+waiter captures the task before the store removes it. The gate releases each
+operation after replacement, cancellation, or stop. The executable joins that
+task before checking reducer delivery. The replacement result reaches the
+reducer. The three cancelled operations each return a result and deliver none.
+See the [native replay receipt](../../../verification/receipts/l03-swift-language-support-w07-correction.json)
+for the observations and the original run's unverified cleanup status.
+
+## Owned VM cancellation and retirement
+
+The earlier macOS FieldLog benchmark stopped an accepted button event before
+its guest turn began. The exchange delivered one terminal result, published no
+frame after stop, and refused later input. The bridge drained and retired the
+session. Both compact variants recorded the same behavior. This covers the
+owned Guest UI exchange for that timing. See the
+[benchmark guard results](../../../verification/receipts/fieldlog-guest-benchmark-41a05264.json).
 
 ## Development-only FieldLog model oracle
 

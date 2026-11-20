@@ -4,6 +4,7 @@
     "sdk": {"title": "SDK controls", "anchor": "native-sdk-controls", "scope": "native"},
     "compact": {"title": "Owned VM replay", "anchor": "compact-owned-vm-replay", "scope": "owned"},
     "capability": {"title": "VM controls", "anchor": "owned-vm-capability-and-validation-controls", "scope": "owned"},
+    "ownedCancellation": {"title": "Owned VM cancellation control", "anchor": "owned-vm-cancellation-and-retirement", "scope": "owned"},
     "model": {"title": "Node model oracle", "anchor": "development-only-fieldlog-model-oracle", "scope": "development"}
   },
   "rows": [
@@ -23,7 +24,7 @@
     {"feature": "Swift floating-point behavior", "label": null, "scope": "Native/guest parity for Swift-emitted Float or Double operations still needs coverage at the language level."},
     {"feature": "Foundation.Date.init(timeIntervalSince1970:)", "label": null, "scope": "The FieldLog corpus uses a fixed timestamp in its model. Swift guest date semantics remain unqualified.", "related": ["model"]},
     {"feature": "Foundation locale APIs", "label": null, "scope": "Locale selection, locale-sensitive formatting and collation need API-specific controls."},
-    {"feature": "Cancellation — native FeatureStore effects", "label": "native supported", "scope": "The native SDK suppresses late delivery after replacement, cancellation and stop, including a deliberately uncooperative effect. Swift guest Task cancellation remains unqualified.", "positive": ["sdk"], "negative": ["sdk"]},
+    {"feature": "Cancellation — native FeatureStore effects", "label": "native supported", "scope": "The macOS FeatureStore delivers the current replacement and suppresses results from three effects joined after replacement, explicit cancellation, or stop. Swift guest Task cancellation remains unqualified.", "positive": ["sdk"], "negative": ["sdk"], "related": ["ownedCancellation"]},
     {"feature": "Actor isolation", "label": null, "scope": "The SDK effect control uses a native actor gate and MainActor store. Swift isolation boundaries and guest actor runtime coverage remain open.", "related": ["sdk"]},
     {"feature": "Escaping closure capture lifetimes", "label": null, "scope": "Capture release and guest identity and lifetime need direct coverage.", "related": ["sdk"]},
     {"feature": "Host services through fixed capability imports", "label": "host bridge required", "scope": "The opt-in capability VM fixtures execute four typed enqueue routes. Unapproved import names and generic dispatch are refused. Each platform service needs its own approved adapter and behavioral qualification.", "positive": ["capability"], "negative": ["capability"]},
