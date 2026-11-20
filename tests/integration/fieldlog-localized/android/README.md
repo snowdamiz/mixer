@@ -59,54 +59,49 @@ files. The maintained pair tree ID is bound in [pins.json](pins.json).
 
 ## Root-owned APK and assignments
 
-1. Export both guests and verify both Wasm hashes and the localized source
-   digest from `binding.json`. In a fresh native campaign, use the
-   [engine-pair preparation](../../fieldlog-android-engine-pair/replay/prepare.sh)
-   and [toolchain preflight](../../fieldlog-android-engine-pair/replay/toolchain.py).
-   Recompute the 918-file consumer digest after generating `manifest-base.xml`.
-   Use the maintained overlays in their original order for FieldLog and Mixer.
-   Run the `tools` phase of the maintained [build driver](../../fieldlog-android-engine-pair/replay/build.sh)
-   through the preflight to obtain `mixer-identity`, `mixer-update` and the
-   release service from `9495996b00b5185c3d7fbf310615f69eadec9624`.
-2. Build just `scratch/pair-new/vm` for `aarch64-linux-android` using the
-   maintained offline, locked release build with
-   `experimental-capability-native`. Enforce the `new` archive and source pins
-   in [engines.json](../../fieldlog-android-engine-pair/inputs/engines.json).
-   Run [android-jni.sh](../../fieldlog-android-engine-pair/replay/android-jni.sh)
-   with `APP old NEW_ENGINE_ARCHIVE` under the preflight environment. Its
-   `old` argument selects the branch that compiles the shared C objects. The
-   linked engine comes from the explicit new archive. Run the maintained
-   [manifest/Dex step](../../fieldlog-android-engine-pair/replay/manifests.sh)
-   and use only the `old` version 24101 manifest for this APK.
-3. Generate a fresh development Ed25519 root with artifact and assignment
-   authority for the maintenance manifest's Android FieldLog scope, and choose
-   one owned loopback port. Assemble a single `Installed/` bundle using the
-   [packager's binding inputs](../../fieldlog-android-engine-pair/replay/package-pair.py).
-   Bind the actual new-engine archive, linker inputs/JNI, DEX, manifest,
-   settings, fallback sources and trust roots into the identity descriptor.
-   Derive the one host identity with `mixer-identity`. Package and development
-   sign one APK using the maintained FieldLog
-   `build-signed-checklist-android.py` source and installed asset SHA-256 list.
-   Verify the APK certificate, package/version, 16 KiB alignment, arm64 JNI and
-   identity asset against the resulting descriptor and link evidence.
-4. Use the [manifest template](../../fieldlog-android-engine-pair/inputs/manifest.json)
-   and the maintained [protocol signing calls](../../fieldlog-android-engine-pair/replay/sign.go).
-   Issue distinct releases `fieldlog-localized-baseline` and
-   `fieldlog-localized-reviewed` for the **same** derived runtime, scope, root
-   and `beta` channel, with sequences **1** and **2**. Use the exported Wasm
-   hashes and byte lengths, the localized recipe commit as `source_commit`,
-   and the localized guest inventory in `provenance_id`. Use the unchanged
-   capability grants, limits and empty asset map. Verify each exact signed
-   set with `mixer-update` against the embedded identity and root, sequence 1
-   at cursor 0 and sequence 2 at cursor 1. Record both digests and remove the
-   signing material once the packet is sealed.
-5. Run the pinned local release service with just that one host and development
-   root. Follow the [maintained origin request shapes](../../fieldlog-android-engine-pair/replay/origin.py).
-   Upload each signed manifest and base64 Wasm via the project artifact route,
-   validate each digest via `/releases/validate`, then publish only sequence 1
-   via `/channels/beta/publish`. Publish sequence 2 after observing healthy
-   sequence 1. Use the localized payloads and the one-runtime registration
-   described here when adapting the two-cohort tooling.
+The single-APK packager admits the exact sealed current-engine APK and the
+localized guest export from `c5634293217517ee66ecd4dd154f1823de9834ed`.
+[Input pins](package-pins.json) cover the APK, original descriptor and link
+evidence, sealed verification tools, and source binding. Use the maintained
+[toolchain preflight](../../fieldlog-android-engine-pair/replay/toolchain.py)
+and put Go 1.27.1 ahead of other Go installations on `PATH`.
+
+```sh
+base=/path/to/sealed/engine-pair/handoff
+guests=/path/to/verified/guests
+python3 -B tests/integration/fieldlog-localized/android/package.py \
+  --check-inputs --base "$base" --guests "$guests"
+python3 -B tests/integration/fieldlog-localized/android/package.py \
+  --base "$base" --guests "$guests"
+```
+
+The first command checks the exact inputs, manifests, and routing without
+allocating a campaign. The second compiles only the small Go fixture signer
+against the pinned protocol. It preserves the original Android manifest, DEX,
+JNI, and all other APK payload members except the installed roots, identity,
+and loopback port. It aligns and development-signs the APK with a fresh
+certificate, then verifies both assignments against the identity and root
+extracted from that APK. Scratch is removed after checksum verification. If
+the command fails or is interrupted, preserve the printed campaign and any
+custody markers for root review.
+
+From the printed `handoff/` directory run `shasum -a 256 -c SHA256SUMS`.
+Install `app/FieldLog.apk` once. `origin-config.template.json` registers the
+one runtime, fresh public root, and exact loopback listener. Add a fresh
+private file-store path and a scoped publisher token hash following the
+[maintained origin configuration](../../fieldlog-android-engine-pair/replay/origin.py),
+then run `MIXER_SERVICE_CONFIG=/absolute/local/service.json ./tools/mixer-service`.
+Do not change the listener address. `routing.json` records the routes and
+`baseline/` and `reviewed/` supply exact JSON request bodies. Upload each
+`upload.json` by artifact digest and validate each `validate.json`. Publish
+`baseline/publish.json` first and send `reviewed/publish.json` only after
+observing healthy sequence 1.
+
+If either retained input is unavailable, reproduce the original guest export
+at its pinned recipe commit and rebuild the
+[maintained engine pair](../../fieldlog-android-engine-pair/README.md) after
+storage permits. A rebuilt APK has fresh keys and a different digest, so
+review and pin the new sealed handoff before reuse.
 
 ## Root-owned device comparison
 
