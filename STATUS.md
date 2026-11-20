@@ -305,6 +305,8 @@ The maintained recipe rebuilt and signed the Android calculation packet from pin
 
 One configured Phoenix boot received six stock CLI calls for the signed FieldLog Android packet. Two publications and one rollback committed across the three exact retries. The app installed once and fetched the original signed offer and artifact bytes at each sequence. It displayed 0%, 100%, 0%, then 33%, 100%, 0%, and then 0%, 100%, 0% after rollback. A new process reopened the cached rollback offline with a fresh healthy launch. The workspace hash stayed identical. The emulator, private ADB, forwarders, PostgreSQL and Linux guest closed. [Native Phoenix delivery](verification/receipts/l05-l04-fieldlog-android-phoenix-live-20261120.json)
 
+Hosted v63 binds the Android replay to the 471-path source selection. All 470 v62 and 462 v61 inputs restored byte- and mode-exact. The Phoenix, identity-network, Verify services, and installed Source141 projections passed local source admission in both Python modes. [Hosted v63 binding](verification/receipts/hosted-source-binding-v63-20261120.json)
+
 ### TaskCompletion parity and source diagnostic
 
 At Mixer `7b61fe1cd9ae79d3153a29b5aff91c0146b0bd99`, the signed TaskCompletion trial passed on an owned AOSP arm64 API 36 emulator. A single staged Package Manager install matched development APK SHA-256 `f95407b596fe7d883a06a2c132b0ca0705b4f1189124d626c50c9e5a41368787`. The app drew **Open**, **Review required**, **Completed**, and **Open** from the same Swift source as the host differential. The JNI route refused the stale revision-1 input at revision 2. The fourth tap trapped at `TaskCompletion.swift:94:9`, function 8, Wasm offset 1883. The app kept the same PID and published no revision 5. **Close guest** confirmed retirement.
