@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "scope": "W11 release processing preflight and L05 baseline",
+  "status": "verified_pinned_ledger_baseline_and_transaction_mechanism",
+  "baseline": "b963585ef2f5089dae67b3bcd30a3cdec3f358b5",
+  "toolchain": {
+    "postgres": "17.11",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "ecto": "3.14.3",
+    "oban": "2.24.2",
+    "lockedHexArchivesVerified": 21
+  },
+  "existingTests": {
+    "hosted/test/mixer_hosted/releases/postgres_test.exs": {
+      "passed": 12,
+      "rawLogSHA256": "fe383b82c9d0aa5ada19d8905fe3e29fc71fd97a5c398ed86fb5f81599458d96",
+      "closure": {
+        "testExit": 0,
+        "postgresPIDAbsent": true,
+        "socketDirectoryEmpty": true
+      }
+    },
+    "hosted/test/mixer_hosted/releases/browser_publication_test.exs": {
+      "passed": 4,
+      "rawLogSHA256": "c414183227520d8bcadd89c9ecbedde54de7451fc73a0b432193596e887b0bc3",
+      "closure": {
+        "testExit": 0,
+        "postgresPIDAbsent": true,
+        "ownedPortReusable": true
+      },
+      "setupCorrection": "The first private cluster omitted the catalogue definer role from the maintained collector. The corrected fresh cluster used its exact role attributes."
+    }
+  },
+  "transactionProbe": {
+    "condition": "The fixture writer has INSERT(queue,worker,args), SELECT(id), and separate schema and sequence USAGE.",
+    "standardObanJobInsert": {
+      "sqlstate": "42501",
+      "emittedColumns": [
+        "args",
+        "meta",
+        "state",
+        "max_attempts",
+        "queue",
+        "worker",
+        "errors",
+        "attempt",
+        "tags"
+      ],
+      "rawLogSHA256": "3d8edf82625c54943ae0e67f3593476515c2cc7d65243aa7b24887214421d850",
+      "probeSHA256": "f4caa1f152716b5dbd2ac0b9d7e5dd8d2cd4516bcf83e2d792eab4213a801fe5",
+      "closure": {
+        "testExit": 1,
+        "postgresPIDAbsent": true,
+        "socketDirectoryEmpty": true
+      }
+    },
+    "threeColumnMultiInsert": {
+      "rawLogSHA256": "9bc3ff422dfc2964bb7786c24ec2655c877eb0690a3fda8f8688a54e0592299e",
+      "probeSHA256": "d51ede79e2b5289c61df5cce868c49551dcfe22823d458e8004108c790a27570",
+      "closure": {
+        "testExit": 0,
+        "postgresPIDAbsent": true,
+        "socketDirectoryEmpty": true
+      },
+      "returnedOneJobID": true,
+      "otherConnectionSawNeitherBeforeCommit": true,
+      "outerRollbackRemovedBoth": true,
+      "afterCommitCounts": {
+        "head": 1,
+        "jobs": 1
+      },
+      "jobDefaults": {
+        "state": "available",
+        "attempt": 0
+      },
+      "canonicalSequence": "18446744073709551615"
+    }
+  },
+  "designDecision": {
+    "producer": "Enqueue an exact fresh publication on the same Repo checkout and authorization transaction that writes the head. Persist the three job columns and use PostgreSQL defaults.",
+    "processor": "Materialize the exact committed publication through a restricted Oban role in a dedicated schema of the same database.",
+    "serving": "Continue to read the committed ledger during this slice. Independent release serving still needs its own qualification.",
+    "review": "Both source designs selected the dedicated schema and immutable projection. The transaction probe corrected the proposed insert operation without broadening privileges."
+  },
+  "limits": [
+    "The transaction discriminator used synthetic head rows and the actual prefixed Oban table. It does not exercise the future release job migration, live publication, or processor.",
+    "L05 and W11 remain open."
+  ]
+}
