@@ -6,7 +6,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
   use ExUnit.Case, async: false
 
   import MixerHosted.Test.OrdinaryBrowserStartupFixture, only: [http: 3, http: 5]
-  alias MixerHosted.Authorization
+  alias MixerHosted.{Authorization, CustomerArtifacts}
   alias MixerHosted.CustomerArtifacts.{PostgresStorage, Schema, UploadRepo}
 
   alias MixerHosted.Identity.{
@@ -21,9 +21,16 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
   alias MixerHosted.Protocol.ArtifactAdmission
   alias MixerHosted.Releases.{DeliveryRepo, Target, WriterRepo}
   alias MixerHosted.Test.ConfiguredReleaseReplayRepo, as: FixtureRepo
+  alias MixerHosted.Test.FieldLogReleasePacket
+  alias MixerHostedWeb.LocalReleaseController
 
   @mode System.get_env("MIXER_RELEASE_FIXTURE_MODE")
-  @moduletag skip: @mode not in ["linux", "startup-only", "stock-cli", "stock-cli-startup"]
+  @fieldlog? @mode in ["fieldlog", "fieldlog-control"]
+  @moduletag skip:
+               @mode not in ["linux", "startup-only", "stock-cli", "stock-cli-startup"] and
+                 not @fieldlog?
+  @stock_scopes "mixer.artifact.upload mixer.release.publish"
+  @rollback_reason "Restore the signed FieldLog calculation baseline"
   @vector Path.expand("../../../../services/protocol/testdata/signed-release-v3.json", __DIR__)
   @principal "replay-owner"
   @subject "replay-subject"
@@ -35,17 +42,33 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
   @validate "/v3/orgs/org-a/projects/project-a/releases/validate"
   @publish "/v3/orgs/org-a/projects/project-a/channels/beta/publish"
 
-  @tag timeout: 360_000
+  @tag timeout: if(@mode == "fieldlog", do: 1_700_000, else: 360_000)
   test "one ordinary API boot replays a signed local release through configured identity" do
-    linux? = @mode in ["linux", "stock-cli"]
-    stock_cli? = @mode in ["stock-cli", "stock-cli-startup"]
+    linux? = @mode in ["linux", "stock-cli", "fieldlog"]
+    stock_cli? = @fieldlog? or @mode in ["stock-cli", "stock-cli-startup"]
     if linux?, do: assert_isolated_network!()
-    if @mode == "stock-cli", do: assert_isolated_pid!()
+    if @mode in ["stock-cli", "fieldlog"], do: assert_isolated_pid!()
 
     vector = @vector |> File.read!() |> Jason.decode!()
+
+    {vector, phases} =
+      if @fieldlog? do
+        delivery = System.fetch_env!("MIXER_RELEASE_FIELDLOG_PACKET")
+
+        delivery =
+          if @mode == "fieldlog-control" and delivery == "",
+            do: FieldLogReleasePacket.synthetic!(scratch(), vector),
+            else: delivery
+
+        FieldLogReleasePacket.read!(delivery)
+      else
+        {vector, []}
+      end
+
     signed = vector["signed_assignment"]
-    assignment = signed["assignment"]
-    digest = vector["artifact_sha256"]
+    first_signed = if @fieldlog?, do: Jason.decode!(hd(phases).signed), else: signed
+    assignment = first_signed["assignment"]
+    digest = assignment["artifact_sha256"]
     envelope = Jason.encode!(Map.take(vector, ~w(signed_manifest payload)))
     signed_bytes = Jason.encode!(signed)
     uploader_password = if stock_cli?, do: Base.encode16(:crypto.strong_rand_bytes(32))
@@ -58,6 +81,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     assert target.runtime_sha256 == assignment["runtime"] and
              target.channel == assignment["channel"]
 
+    phases = if @fieldlog?, do: FieldLogReleasePacket.admit!(phases, config), else: phases
     provision!(target)
 
     if stock_cli? do
@@ -92,7 +116,10 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
                  """).rows
       end
 
-      assert %{status: 401} = post(client, @validate, [], "validate", %{artifact_sha256: digest})
+      assert %{status: 401} =
+               post(client, tenant_path(target) <> "/releases/validate", [], "validate", %{
+                 artifact_sha256: digest
+               })
 
       offer_query =
         Target.signed_scope(target)
@@ -104,7 +131,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
         |> URI.encode_query()
 
       offer_path = "/v3/updates?" <> offer_query
-      artifact_path = "/v3/artifacts/#{digest}?organization=org-a&project=project-a"
+      artifact_path = artifact_path(target, digest)
       assert %{status: 204, body: ""} = http(client, offer_path, [])
       assert %{status: 404} = http(client, artifact_path, [])
       assert_ledger!([[nil]], [])
@@ -112,6 +139,21 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
       if stock_cli?, do: assert_uploader!()
 
       if @mode == "stock-cli-startup", do: assert_relay_transport!(port)
+
+      if @fieldlog? do
+        run_fieldlog!(client, offer_path, target, phases, key)
+
+        if linux? do
+          # The maintained issuer may refresh during a device readback pause.
+          query_types =
+            for {~c"jwks.fixture.invalid", type} <- GenServer.call(dns, :queries), do: type
+
+          assert :a in query_types and :aaaa in query_types
+          assert %{accepted: count, requests: requests} = TLSFixture.info(tls)
+          assert count > 0 and length(requests) == count
+          assert Enum.all?(requests, &String.starts_with?(&1.request, "GET /keys HTTP/1.1\r\n"))
+        end
+      end
 
       if @mode == "stock-cli" do
         manifest = Jason.encode!(vector["signed_manifest"])
@@ -123,7 +165,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
             Jason.encode!(vector["payload"]) <> "}"
 
         cli_input = %{
-          token: token(key, "mixer.artifact.upload mixer.release.publish", 300),
+          token: token(key, @stock_scopes, 300),
           manifest: manifest,
           assignment: signed_bytes,
           payload: vector["payload"]
@@ -277,54 +319,315 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
   end
 
   defp expect_stock_cli!(port, input, assignment) do
-    bootstrap = Path.join(scratch(), "cli-input.json")
-    result = Path.join(scratch(), "cli-result.json")
-
     with_cli_relay!(port, fn _path ->
-      try do
-        File.write!(bootstrap, Jason.encode!(input) <> "\n", [:exclusive])
+      expect_cli!(scratch(), input, assignment, "publish", fn ->
         IO.puts("Stock CLI ready at #{scratch()}. Waiting up to 240 seconds.")
+      end)
+    end)
+  end
 
-        expected = %{
-          "status" => "ok",
-          "action" => "publish",
-          "artifact_sha256" => assignment["artifact_sha256"],
-          "sequence" => assignment["sequence"],
-          "rollout_basis_points" => assignment["rollout_basis_points"],
-          "delivery" => "local_only"
-        }
+  defp expect_cli!(directory, input, assignment, action, ready) do
+    bootstrap = Path.join(directory, "cli-input.json")
+    result = Path.join(directory, "cli-result.json")
+    bytes = Jason.encode!(input) <> "\n"
+    assert byte_size(bytes) <= 131_072
 
-        wait_for_result!(result, System.monotonic_time(:millisecond) + 240_000)
+    try do
+      File.write!(bootstrap, bytes, [:exclusive])
+      ready.()
 
-        assert {:ok, %{"first" => ^expected, "replay" => ^expected}} =
-                 result |> File.read!() |> Jason.decode()
-      after
-        assert File.rm(bootstrap) in [:ok, {:error, :enoent}]
+      expected = %{
+        "status" => "ok",
+        "action" => action,
+        "artifact_sha256" => assignment["artifact_sha256"],
+        "sequence" => assignment["sequence"],
+        "rollout_basis_points" => assignment["rollout_basis_points"],
+        "delivery" => "local_only"
+      }
+
+      wait_for_result!(result, System.monotonic_time(:millisecond) + 240_000)
+
+      assert {:ok, %{"first" => ^expected, "replay" => ^expected}} =
+               result |> File.read!() |> Jason.decode()
+    after
+      assert File.rm(bootstrap) in [:ok, {:error, :enoent}]
+    end
+  end
+
+  defp run_fieldlog!(%{http_port: port} = client, offer_path, target, phases, key) do
+    with_cli_relay!(port, fn socket ->
+      for phase <- phases do
+        sequence = phase.assignment["sequence"]
+        past = Enum.take(phases, sequence)
+        directory = Path.join(scratch(), "phase-#{sequence}")
+
+        if @mode == "fieldlog" do
+          File.mkdir!(directory)
+
+          input = %{
+            token: token(key, @stock_scopes, 300),
+            manifest: phase.manifest,
+            payload: Base.encode64(phase.payload),
+            assignment: phase.signed
+          }
+
+          expect_cli!(directory, input, phase.assignment, Atom.to_string(phase.action), fn ->
+            IO.puts(
+              "FieldLog CLI ready phase=#{sequence} scratch=#{scratch()} action=#{phase.action}"
+            )
+          end)
+        else
+          control_phase!(target, phase, List.last(phases))
+        end
+
+        assert_fieldlog_rows!(target, past)
+
+        assert_delivery!(
+          client,
+          offer_path,
+          artifact_path(target, phase.digest),
+          phase.signed,
+          phase.envelope
+        )
+
+        for artifact <- Enum.uniq_by(phases, & &1.digest), artifact.digest != phase.digest do
+          path = artifact_path(target, artifact.digest)
+
+          if Enum.any?(past, &(&1.digest == artifact.digest)) do
+            assert %{status: 200, body: body} = http(client, path, [])
+            assert body == artifact.envelope
+          else
+            assert %{status: 404} = http(client, path, [])
+          end
+        end
+
+        path = String.replace(offer_path, "platform=android", "platform=ios")
+        assert %{status: 204, body: ""} = http(client, path, [])
+
+        if @mode == "fieldlog-control" do
+          assert {phase.envelope, 0} ==
+                   relay_curl(socket, artifact_path(target, phase.digest))
+        end
+
+        if @mode == "fieldlog" do
+          IO.puts("FieldLog Android ready phase=#{sequence} digest=#{phase.digest}")
+          ack = Path.join(directory, "android-ack")
+          wait_for_result!(ack, System.monotonic_time(:millisecond) + 300_000)
+          assert File.read!(ack) == "#{sequence}\n"
+        end
       end
     end)
   end
+
+  defp control_phase!(target, phase, rollback) do
+    # Begin at the verified-identity boundary. Configured JWKS and real stock
+    # CLI transport are exercised by the isolated Linux mode.
+    now = System.system_time(:second)
+
+    identity = %VerifiedIdentity{
+      profile_id: "startup-fixture",
+      profile_version: 1,
+      issuer: StartupFixture.entry()["profile"]["issuer"],
+      subject: @subject,
+      credential_ref: @credential,
+      client_id: "reviewed-client",
+      identity_class: :human,
+      issued_at: now - 1,
+      expires_at: now + 120,
+      scopes: String.split(@stock_scopes)
+    }
+
+    if phase.action == :publish do
+      scope = target.scope
+      tenant = %{organization_id: scope.organization_id, project_id: scope.project_id}
+
+      upload_key =
+        cli_key("PUT", tenant_path(target) <> "/artifacts/" <> phase.digest, phase.envelope)
+
+      for _ <- 1..2 do
+        assert {:ok, %{status: 201}} =
+                 CustomerArtifacts.upload_at(
+                   identity,
+                   tenant,
+                   phase.digest,
+                   upload_key,
+                   phase.envelope,
+                   %{reason: "local development operation", source_ip: "127.0.0.1"}
+                 )
+
+        assert %{status: 200} =
+                 control_request(
+                   target,
+                   identity,
+                   :validate,
+                   Jason.encode!(%{artifact_sha256: phase.digest})
+                 )
+      end
+
+      if phase.assignment["sequence"] == 1 do
+        assert %{status: 409, resp_body: body} =
+                 control_request(target, identity, :rollback, assignment_body(rollback))
+
+        assert %{"error" => %{"code" => "invalid_rollback"}} = Jason.decode!(body)
+        assert_ledger!([[nil]], [])
+      end
+    end
+
+    expected = %{
+      "artifact_sha256" => phase.digest,
+      "sequence" => phase.assignment["sequence"],
+      "rollout_basis_points" => phase.assignment["rollout_basis_points"],
+      "delivery" => "local_only"
+    }
+
+    for _ <- 1..2 do
+      assert %{status: 200, resp_body: body} =
+               control_request(target, identity, phase.action, assignment_body(phase))
+
+      assert Jason.decode!(body) == expected
+    end
+  end
+
+  defp control_request(target, identity, action, body) do
+    scope = target.scope
+    path = tenant_path(target)
+    params = %{"organization_id" => scope.organization_id, "project_id" => scope.project_id}
+
+    {path, params} =
+      if action == :validate,
+        do: {path <> "/releases/validate", params},
+        else:
+          {path <> "/channels/#{target.channel}/#{action}",
+           Map.put(params, "channel", target.channel)}
+
+    reason = if action == :rollback, do: @rollback_reason, else: ""
+    key = cli_key("POST", path, body, reason)
+
+    conn =
+      Plug.Test.conn("POST", path, body)
+      |> Map.put(:path_params, params)
+      |> Plug.Conn.assign(:verified_identity, identity)
+      |> Plug.Conn.put_req_header("content-type", "application/json")
+      |> Plug.Conn.put_req_header("idempotency-key", key)
+
+    conn =
+      if reason == "", do: conn, else: Plug.Conn.put_req_header(conn, "x-mixer-reason", reason)
+
+    LocalReleaseController.call(conn, LocalReleaseController.init(action))
+  end
+
+  defp assert_fieldlog_rows!(target, phases) do
+    phase = List.last(phases)
+    published = Enum.filter(phases, &(&1.action == :publish))
+    sequence = Integer.to_string(phase.assignment["sequence"])
+
+    assert_ledger!(
+      [[sequence]],
+      Enum.map(phases, fn row ->
+        [
+          Integer.to_string(row.assignment["sequence"]),
+          row.digest,
+          row.signed,
+          @principal,
+          Atom.to_string(row.action)
+        ]
+      end)
+    )
+
+    with_repo("mixer_replay_admin", fn ->
+      assert sql!("SELECT sequence FROM public.mixer_customer_artifact_heads").rows ==
+               [[length(published)]]
+
+      assert sql!("""
+             SELECT manifest_sha256, payload_sha256, envelope_bytes, payload, creating_sequence
+             FROM public.mixer_customer_artifacts ORDER BY creating_sequence
+             """).rows ==
+               Enum.with_index(published, 1)
+               |> Enum.map(fn {row, index} ->
+                 [row.digest, row.payload_sha, row.envelope, row.payload, index]
+               end)
+
+      credential = sha256(["mixer.hosted.customer.credential_ref.v2", 0, @credential])
+
+      expected_audit =
+        Enum.map(published, &[&1.digest, @principal, credential, "artifact.upload", "created"])
+
+      assert sql!("""
+             SELECT manifest_sha256, display->'actor'->>0, display->'actor'->>8,
+               display->>'action', display->>'outcome'
+             FROM public.mixer_customer_audit_events ORDER BY sequence
+             """).rows == expected_audit
+
+      assert sql!("SELECT count(*) FROM public.mixer_customer_idempotency").rows == [
+               [length(published)]
+             ]
+
+      expected_requests =
+        Enum.map(published, &[@principal, &1.digest, nil]) ++
+          Enum.map(phases, &[@principal, &1.digest, Integer.to_string(&1.assignment["sequence"])])
+
+      assert sql!("""
+             SELECT principal_id, artifact_sha256, publication_sequence::text
+             FROM public.mixer_release_cli_requests
+             """).rows
+             |> Enum.sort() == Enum.sort(expected_requests)
+
+      expected_keys =
+        Enum.map(phases, fn row ->
+          reason = if row.action == :rollback, do: @rollback_reason, else: ""
+          path = tenant_path(target) <> "/channels/#{target.channel}/#{row.action}"
+          [cli_key("POST", path, assignment_body(row), reason)]
+        end)
+
+      assert sql!(
+               "SELECT idempotency_key FROM public.mixer_release_publications ORDER BY sequence"
+             ).rows ==
+               expected_keys
+    end)
+  end
+
+  defp assignment_body(phase), do: ~s({"signed_assignment":) <> phase.signed <> "}"
+
+  defp artifact_path(target, digest) do
+    tenant =
+      URI.encode_query(
+        organization: target.scope.organization_id,
+        project: target.scope.project_id
+      )
+
+    "/v3/artifacts/#{digest}?" <> tenant
+  end
+
+  defp tenant_path(target),
+    do: "/v3/orgs/#{target.scope.organization_id}/projects/#{target.scope.project_id}"
 
   defp assert_relay_transport!(port) do
     with_cli_relay!(port, fn path ->
       for _ <- 1..2 do
         assert {"200", 0} =
-                 System.cmd("curl", [
-                   "--silent",
-                   "--show-error",
-                   "--noproxy",
-                   "*",
-                   "--max-time",
-                   "5",
-                   "--unix-socket",
-                   path,
+                 relay_curl(path, "/health/live", [
                    "--output",
                    "/dev/null",
                    "--write-out",
-                   "%{http_code}",
-                   "http://127.0.0.1/health/live"
+                   "%{http_code}"
                  ])
       end
     end)
+  end
+
+  defp relay_curl(socket, path, options \\ []) do
+    System.cmd("curl", [
+      "--silent",
+      "--show-error",
+      "--fail",
+      "--noproxy",
+      "*",
+      "--max-time",
+      "5",
+      "--unix-socket",
+      socket
+      | options ++ ["http://127.0.0.1" <> path]
+    ])
   end
 
   defp with_cli_relay!(port, operation) do
@@ -640,12 +943,15 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     end)
   end
 
-  defp cli_key(method, path, body),
-    do: sha256(["mixer-local-release-v3", 0, method, 0, path, 0, 0, body])
+  defp cli_key(method, path, body, reason \\ ""),
+    do: sha256(["mixer-local-release-v3", 0, method, 0, path, 0, reason, 0, body])
 
   defp sha256(bytes), do: :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower)
 
   defp seed!(target) do
+    %{organization_id: org, project_id: project, application_id: app, environment_id: env} =
+      target.scope
+
     profile = StartupFixture.entry()["profile"]
 
     sql!(
@@ -657,31 +963,37 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
           "INSERT INTO public.mixer_authz_principals VALUES ('#{@principal}','human',true,0,1)",
           "INSERT INTO public.mixer_authz_bindings VALUES ('startup-fixture',1,'#{@subject}','human','#{@principal}',true,1)",
           "INSERT INTO public.mixer_authz_families VALUES ('replay-family','startup-fixture',1,'#{@principal}',true,0,NULL,1)",
-          "INSERT INTO public.mixer_authz_credentials VALUES ('startup-fixture',1,'#{@credential}','#{@principal}','replay-family',true,0,NULL,1)",
-          "INSERT INTO public.mixer_authz_organizations VALUES ('org-a',true)",
-          "INSERT INTO public.mixer_authz_projects VALUES ('org-a','project-a',true)",
-          "INSERT INTO public.mixer_authz_applications VALUES ('org-a','project-a','fieldlog',true)",
-          "INSERT INTO public.mixer_authz_environments VALUES ('org-a','project-a','fieldlog','development',true)",
-          "INSERT INTO public.mixer_authz_organization_heads VALUES ('org-a',1)",
-          "INSERT INTO public.mixer_authz_project_heads VALUES ('org-a','project-a',1)",
-          "INSERT INTO public.mixer_authz_memberships VALUES ('replay-member','#{@principal}','org-a','project-a','exact_project','owner',true,0,NULL,1)"
+          "INSERT INTO public.mixer_authz_credentials VALUES ('startup-fixture',1,'#{@credential}','#{@principal}','replay-family',true,0,NULL,1)"
         ],
         do: sql!(sql)
 
-    {:ok, genesis} = MixerHosted.Audit.CustomerArtifactEvent.genesis("org-a", "project-a")
+    for {table, values, args} <- [
+          {"organizations", "$1,true", [org]},
+          {"projects", "$1,$2,true", [org, project]},
+          {"applications", "$1,$2,$3,true", [org, project, app]},
+          {"environments", "$1,$2,$3,$4,true", [org, project, app, env]},
+          {"organization_heads", "$1,1", [org]},
+          {"project_heads", "$1,$2,1", [org, project]},
+          {"memberships",
+           "'replay-member','#{@principal}',$1,$2,'exact_project','owner',true,0,NULL,1",
+           [org, project]}
+        ],
+        do: sql!("INSERT INTO public.mixer_authz_#{table} VALUES (#{values})", args)
+
+    {:ok, genesis} = MixerHosted.Audit.CustomerArtifactEvent.genesis(org, project)
 
     sql!(
-      "INSERT INTO public.mixer_customer_artifact_heads VALUES ('org-a','project-a',0,'',$1)",
-      [genesis]
+      "INSERT INTO public.mixer_customer_artifact_heads VALUES ($1,$2,0,'',$3)",
+      [org, project, genesis]
     )
 
     sql!(
       """
       INSERT INTO public.mixer_release_heads
         (organization_id,project_id,application_id,environment_id,platform,runtime_sha256,channel,writer_role)
-      VALUES ('org-a','project-a','fieldlog','development',$1,$2,$3,'#{@writer}')
+      VALUES ($1,$2,$3,$4,$5,$6,$7,'#{@writer}')
       """,
-      [target.platform, target.runtime_sha256, target.channel]
+      [org, project, app, env, target.platform, target.runtime_sha256, target.channel]
     )
   end
 
@@ -790,7 +1102,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
       assert sql!("SELECT sequence::text FROM public.mixer_release_heads").rows == heads
 
       assert sql!(
-               "SELECT sequence::text, artifact_sha256, signed_assignment_bytes, principal_id, action FROM public.mixer_release_publications"
+               "SELECT sequence::text, artifact_sha256, signed_assignment_bytes, principal_id, action FROM public.mixer_release_publications ORDER BY sequence"
              ).rows == publications
     end)
   end

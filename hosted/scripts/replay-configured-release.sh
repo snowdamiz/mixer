@@ -2,15 +2,26 @@
 set -eu
 
 mode=linux
+packet=
 case "$#:${1:-}:${2:-}" in
   0::) ;;
   1:--startup-only:) mode=startup-only ;;
   1:--stock-cli:) mode=stock-cli ;;
   2:--startup-only:--stock-cli) mode=stock-cli-startup ;;
-  *) echo "Usage: $0 [--startup-only] [--stock-cli]" >&2; exit 2 ;;
+  2:--fieldlog:*) mode=fieldlog; packet=$2 ;;
+  3:--startup-only:--fieldlog) mode=fieldlog-control; packet=$3 ;;
+  1:--fieldlog-control:) mode=fieldlog-control ;;
+  *) echo "Usage: $0 [--startup-only] [--stock-cli | --fieldlog DELIVERY] | --fieldlog-control" >&2; exit 2 ;;
 esac
 
-if [ "$mode" = linux ] || [ "$mode" = stock-cli ]; then
+if [ "$mode" = fieldlog ] || [ "$#" -eq 3 ]; then
+  case "$packet" in
+    /*/delivery-android) [ -d "$packet" ] || exit 2 ;;
+    *) echo "Use the absolute path of the sealed delivery-android directory." >&2; exit 2 ;;
+  esac
+fi
+
+if [ "$mode" = linux ] || [ "$mode" = stock-cli ] || [ "$mode" = fieldlog ]; then
   if [ "$(uname -s)" != Linux ]; then
     echo "Configured identity replay requires a fresh Linux network namespace." >&2
     exit 2
@@ -22,7 +33,7 @@ if [ "$mode" = linux ] || [ "$mode" = stock-cli ]; then
   fi
 fi
 
-if [ "$mode" = stock-cli ]; then
+if [ "$mode" = stock-cli ] || [ "$mode" = fieldlog ]; then
   current_pid=$(readlink /proc/self/ns/pid)
   if [ -z "${MIXER_RELEASE_PARENT_PIDNS:-}" ] || [ "$current_pid" = "$MIXER_RELEASE_PARENT_PIDNS" ]; then
     echo "Enter a fresh PID namespace before running the stock CLI fixture." >&2
@@ -82,7 +93,7 @@ ssl_key_file = '$scratch/db.key'
 CONFIG
 tls_roles=mixer_replay_writer,mixer_release_delivery
 case "$mode" in
-  stock-cli*) tls_roles="$tls_roles,mixer_artifact_uploader" ;;
+  stock-cli*|fieldlog*) tls_roles="$tls_roles,mixer_artifact_uploader" ;;
 esac
 cat > "$pgdata/pg_hba.conf" <<CONFIG
 local all mixer_replay_admin trust
@@ -98,4 +109,5 @@ env -i PATH="$PATH" HOME="$HOME" TMPDIR="$scratch" MIX_ENV=test HEX_OFFLINE=1 \
   MIXER_RELEASE_FIXTURE_MODE="$mode" MIXER_RELEASE_FIXTURE_SCRATCH="$scratch" \
   MIXER_RELEASE_PARENT_NETNS="${MIXER_RELEASE_PARENT_NETNS:-}" \
   MIXER_RELEASE_PARENT_PIDNS="${MIXER_RELEASE_PARENT_PIDNS:-}" \
+  MIXER_RELEASE_FIELDLOG_PACKET="$packet" \
   mix test --warnings-as-errors --trace test/mixer_hosted/releases/configured_release_replay_test.exs

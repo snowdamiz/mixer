@@ -39,15 +39,28 @@ def decoded_receipt(data):
     return {}
 
 
-def publish_twice(mixer, port, inputs):
+ROLLBACK_REASON = "Restore the signed FieldLog calculation baseline"
+
+
+def mutate_twice(mixer, port, inputs, phase):
+    action = "rollback" if phase == 3 else "publish"
     assignment = json.loads(inputs["assignment"])["assignment"]
     scope = assignment["scope"]
+    if phase is not None and (
+        assignment["sequence"] != phase
+        or assignment["channel"] != "beta"
+        or scope != {
+            "organization": "mixer-local", "project": "fieldlog", "app": "fieldlog",
+            "environment": "development", "platform": "android",
+        }
+    ):
+        raise RuntimeError("Guest bootstrap does not identify the requested FieldLog phase")
     rollout, remainder = divmod(assignment["rollout_basis_points"], 100)
     if remainder or not 1 <= rollout <= 100:
         raise RuntimeError("The signed fixture needs a whole-percent rollout")
     expected = {
         "status": "ok",
-        "action": "publish",
+        "action": action,
         "artifact_sha256": assignment["artifact_sha256"],
         "sequence": assignment["sequence"],
         "rollout_basis_points": assignment["rollout_basis_points"],
@@ -56,13 +69,16 @@ def publish_twice(mixer, port, inputs):
 
     with tempfile.TemporaryDirectory(prefix="mixer-release-client-", dir="/tmp") as scratch:
         directory = Path(scratch)
-        (directory / "signed-manifest.json").write_bytes(inputs["manifest"].encode("utf-8"))
-        (directory / "payload.wasm").write_bytes(base64.b64decode(inputs["payload"], validate=True))
         signed_assignment = directory / "signed-assignment.json"
         signed_assignment.write_bytes(inputs["assignment"].encode("utf-8"))
+        if action == "publish":
+            (directory / "signed-manifest.json").write_bytes(inputs["manifest"].encode("utf-8"))
+            (directory / "payload.wasm").write_bytes(base64.b64decode(inputs["payload"], validate=True))
+            action_args = [scratch, "--rollout", str(rollout)]
+        else:
+            action_args = [assignment["artifact_sha256"], "--reason", ROLLBACK_REASON]
         command = [
-            mixer, "update", "publish", scratch,
-            "--channel", assignment["channel"], "--rollout", str(rollout),
+            mixer, "update", action, *action_args, "--channel", assignment["channel"],
             "--organization", scope["organization"], "--project", scope["project"],
             "--assignment", str(signed_assignment),
         ]
@@ -85,7 +101,7 @@ def publish_twice(mixer, port, inputs):
             if process.returncode:
                 code = receipt.get("code")
                 if isinstance(code, str) and re.fullmatch(
-                    r"update\.(upload|validate|publish)\.(rejected|response|transport)", code
+                    r"update\.(upload|validate|publish|rollback)\.(rejected|response|transport)", code
                 ):
                     raise RuntimeError(f"Stock CLI {stage} exited {process.returncode} ({code})")
                 raise RuntimeError(f"Stock CLI {stage} exited {process.returncode}")
@@ -98,12 +114,15 @@ def publish_twice(mixer, port, inputs):
 def run(args):
     # The guest's parent SSH daemon can reach a filesystem socket across the
     # network namespace. Only the fixture user can traverse its directory.
+    directory = args.guest_scratch
+    if args.phase is not None:
+        directory += f"/phase-{args.phase}"
     remote = shlex.join([
         "sh", "-eu", "-c",
         'umask 077; mkdir "$1/cli-claimed"; cat "$1/cli-input.json";'
         ' head -c 8193 > "$1/cli-result.tmp";'
         ' mv "$1/cli-result.tmp" "$1/cli-result.json"',
-        "sh", args.guest_scratch,
+        "sh", directory,
     ])
     command = [
         "/usr/bin/ssh", "-F", args.ssh_config, "-T",
@@ -120,7 +139,7 @@ def run(args):
     )
     try:
         inputs = read_input(ssh.stdout)
-        receipts = publish_twice(args.mixer, args.port, inputs)
+        receipts = mutate_twice(args.mixer, args.port, inputs, args.phase)
         extra, _ = ssh.communicate(receipts, timeout=15)
         if extra or ssh.returncode:
             raise RuntimeError("SSH did not confirm receipt delivery and forwarding closure")
@@ -139,6 +158,7 @@ def main():
     parser.add_argument("--guest", required=True)
     parser.add_argument("--guest-scratch", required=True)
     parser.add_argument("--port", required=True, type=int)
+    parser.add_argument("--phase", type=int, choices=(1, 2, 3), help="Run the indicated FieldLog phase")
     args = parser.parse_args()
     if sys.platform != "darwin":
         parser.error("Run this client on macOS with the stock macOS mixer executable")
