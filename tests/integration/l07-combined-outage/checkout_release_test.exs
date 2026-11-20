@@ -149,6 +149,7 @@ defmodule MixerHosted.CombinedCheckoutReleaseTest do
         refute_received :admitted_begin_timed_out
         assert RuntimeOwner.status() == initial
         assert counts() == {[[0]], [[0]]}
+        rehearse_alert(response.status)
         IO.puts("L07_CHECKPOINT refused before BEGIN, signed bytes matched during checkout")
         {snapshot, response.status, time}
       after
@@ -263,6 +264,28 @@ defmodule MixerHosted.CombinedCheckoutReleaseTest do
           signed_release: Enum.map([baseline, during, recovered], &snapshot_digests/1)
         })
     )
+  end
+
+  defp rehearse_alert(status) do
+    if directory = System.get_env("L07_LOCAL_ALERT_DIR") do
+      event = Jason.encode!(%{code: "build_checkout_unavailable", http_status: status})
+      pending = Path.join(directory, "alert.tmp")
+      File.write!(pending, event, [:exclusive])
+      File.rename!(pending, Path.join(directory, "alert.json"))
+
+      await_acknowledgment(
+        Path.join(directory, "ack"),
+        System.monotonic_time(:millisecond) + 1500
+      )
+    end
+  end
+
+  defp await_acknowledgment(path, deadline) do
+    unless File.regular?(path) do
+      assert System.monotonic_time(:millisecond) < deadline, "test alert acknowledgment timed out"
+      Process.sleep(20)
+      await_acknowledgment(path, deadline)
+    end
   end
 
   defp release_snapshot do

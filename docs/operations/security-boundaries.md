@@ -10,5 +10,9 @@
 | Delivery | Signed scope/cohort/sequence distinct from artifact | Replay, cross-scope and rollback tests; hosted delivery pending |
 | Service | Explicit credentials, local-only mode, no release private keys | Tenant/idempotency tests; production refuses startup until isolation and durable hosted backend qualify |
 
-No independent security review has occurred. A source signature does not establish
-VM safety, correct app behavior, store policy approval, or recovery-compatible data.
+Full independent security review remains pending. A source signature does not
+establish VM safety, correct app behavior, store policy approval, or
+recovery-compatible data.
+
+Use the loopback drill to rehearse a build API alert and verify that signed
+delivery remains available during checkout exhaustion. [Rehearse a local build API outage](rehearse-local-build-outage.md)

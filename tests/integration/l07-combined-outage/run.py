@@ -71,12 +71,13 @@ def retry_ready(process, check, seconds=7):
 
 
 class Run:
-    def __init__(self, scratch, pg_bin, receipt):
+    def __init__(self, scratch, pg_bin, receipt, *, rehearse_alert=False):
         self.scratch = scratch
         self.source = scratch / "source"
         self.hosted = self.source / "hosted"
         self.pg = pg_bin
         self.receipt = receipt
+        self.rehearse_alert = rehearse_alert
         self.pending = {}
         self.ports = {}
         self.receipt["commands"] = []
@@ -327,6 +328,30 @@ class Run:
             self.receipt["release_publication"]["audit_unchanged"] = True
         require(process.returncode == 0, "release origin did not shut down cleanly")
 
+    def phoenix(self, env):
+        argv = ["mix", "test", "--warnings-as-errors", "--seed", "0", "--trace",
+                "--only", "l07_combined_checkout_release", self.test]
+        if not self.rehearse_alert:
+            return self.command("phoenix-exunit", argv, cwd=self.hosted, env=env, timeout=60, check=False)
+
+        alert_dir = self.scratch / "alert"
+        alert_dir.mkdir(mode=0o700)
+        event = alert_dir / "alert.json"
+        with self.start("phoenix-exunit", argv, cwd=self.hosted,
+                        env={**env, "L07_LOCAL_ALERT_DIR": str(alert_dir)}, timeout=5) as process:
+            started = time.monotonic()
+            alert = retry_ready(process, lambda: json.loads(event.read_bytes()) if event.is_file() else None,
+                                seconds=50)
+            require(alert == {"code": "build_checkout_unavailable", "http_status": 503},
+                    "unexpected local test alert")
+            self.receipt["local_alert"] = alert
+            print("LOCAL_TEST_ALERT " + json.dumps(alert, separators=(",", ":")), flush=True)
+            with (alert_dir / "ack").open("xb"):
+                pass
+            self.receipt["local_alert"]["acknowledged"] = True
+            code = process.wait(timeout=max(0.1, started + 60 - time.monotonic()))
+        return code, (self.scratch / "phoenix-exunit.log").read_bytes()
+
     def exercise(self, sockets):
         self.ports["postgres_browser"] = port()
         self.ports["release_origin"] = port()
@@ -342,12 +367,10 @@ class Run:
             release_env = stack.enter_context(self.release(sockets, release_db, self.ports["release_origin"]))
             catalog = self.scratch / "catalog"
             catalog.mkdir()
-            code, output = self.command(
-                "phoenix-exunit", ["mix", "test", "--warnings-as-errors", "--seed", "0", "--trace",
-                "--only", "l07_combined_checkout_release", self.test], cwd=self.hosted,
-                env={**self.env, **release_env, "MIXER_BROWSER_STORAGE_PORT": str(browser_port),
-                     "MIXER_BROWSER_CATALOG_FIXTURE_ROOT": str(catalog)},
-                timeout=60, check=False)
+            code, output = self.phoenix({
+                **self.env, **release_env, "MIXER_BROWSER_STORAGE_PORT": str(browser_port),
+                "MIXER_BROWSER_CATALOG_FIXTURE_ROOT": str(catalog),
+            })
             lines = output.decode(errors="replace").splitlines()
             self.receipt["live_checkpoints"] = [line for line in lines if "L07_CHECKPOINT " in line]
             for line in lines:
@@ -358,12 +381,19 @@ class Run:
             require(code == 0 and "observed" in self.receipt,
                     "focused ExUnit failed: " + "\n".join(lines[-75:]))
             self.receipt["exunit"] = {"focused_tests": 1, "failures": 0}
+            if self.rehearse_alert:
+                observed = self.receipt["observed"]
+                require(observed["exact_key_retry_status"] == 201 and observed["retry_replay_status"] == 200
+                        and observed["jobs_one_per_build"], "local alert recovery checks failed")
+                self.receipt["local_alert"]["resolved"] = True
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--receipt", type=Path, required=True)
     parser.add_argument("--pg-bin", type=Path, default=Path("/opt/homebrew/opt/postgresql@17/bin"))
+    parser.add_argument("--rehearse-alert", action="store_true",
+                        help="deliver and acknowledge the local test alert during checkout refusal")
     args = parser.parse_args()
     args.receipt = args.receipt.resolve()
     require(not args.receipt.exists() and args.receipt.parent.is_dir(), "choose a new receipt path")
@@ -379,7 +409,7 @@ def main():
         "dependencies": "Locked public Elixir and Go dependencies, local synthetic issuer and release credentials. No billing provider or payment credentials.",
         "limits": "One refused POST and one signed offering. No TLS delivery qualification, build processor, native worker, Docker, devices, deployment, or production.",
     }
-    run = Run(scratch, args.pg_bin, receipt)
+    run = Run(scratch, args.pg_bin, receipt, rehearse_alert=args.rehearse_alert)
     try:
         run.prepare()
         # PostgreSQL limits sockaddr_un length. Use only this freshly owned directory.
