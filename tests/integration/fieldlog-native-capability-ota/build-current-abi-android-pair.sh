@@ -36,6 +36,13 @@ git --no-replace-objects -C "$repo" show "$recipe_revision:$recipe_path/current_
 recipe="$work/recipe-source/$recipe_path"
 calc="$recipe/../fieldlog-task-calculation/android-packaging"
 mkdir -p "$work"/{tmp,logs,mixer,fieldlog,swift-sdks} "$packet" "$next"/{tmp,swift-sdks} "$stock"
+# The stock CLI resolves its nested Android driver through /usr/bin/env.
+mkdir "$work/isolated-python"
+cat > "$work/isolated-python/python3" <<'SH'
+#!/bin/sh
+exec /opt/homebrew/bin/python3 -IBS "$@"
+SH
+chmod 700 "$work/isolated-python/python3"
 export TMPDIR="$work/tmp" XDG_CACHE_HOME="$work/xdg-cache" GIT_CEILING_DIRECTORIES="$work"
 bundle="$HOME/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle"
 ln -s "$bundle" "$work/swift-sdks/"
@@ -123,7 +130,8 @@ run host-old 420 /bin/zsh -f "$calc/build-host.zsh" "$work" &
 old_host=$!
 run host-successor 420 /bin/zsh -f "$calc/build-host.zsh" "$next" "$recipe/SealPair.swift" &
 next_host=$!
-run stock-project 70 "$work/stock-build/debug/mixer" create FieldLog --directory "$work/stock-project" \
+run stock-project 70 /usr/bin/env "PATH=$work/isolated-python:$PATH" \
+    "$work/stock-build/debug/mixer" create FieldLog --directory "$work/stock-project" \
     --application dev.fieldlog.generatedr90.calculation --sdk-path "$stock/sdk" --android-adapter-path "$stock/native/android" --platform android &
 stock_project=$!
 join_jobs "$old_native" "$next_native" "$old_host" "$next_host" "$stock_project"

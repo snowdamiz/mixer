@@ -16,6 +16,7 @@ import sys
 from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
+import uuid
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
@@ -275,6 +276,31 @@ if mode != 'offer-only':
         self.assertIn(str(ambient / "Library/Developer/Toolchains"), (work / "logs/preflight.log").read_text())
         self.assertFalse((work / "logs/fieldlog-fetch.json").exists())
         self.assertEqual((work / "recipe-source" / helper.relative_to(self.scratch)).read_bytes(), helper.read_bytes())
+
+        # Exercise the stock CLI's exact nested Python driver argv without building.
+        driver = ambient / "android-build.py"
+        driver.write_bytes(git("show", "b144c2c204:cli/Sources/MixerBuild/Resources/android-build.py"))
+        with patch.object(sys, "pycache_prefix", str(cache)):
+            cached_stdlib = importlib.util.cache_from_source(uuid.__file__, optimization="")
+        py_compile.compile(str(poison), cfile=cached_stdlib, dfile=uuid.__file__, optimize=0,
+                           invalidation_mode=py_compile.PycInvalidationMode.UNCHECKED_HASH, doraise=True)
+        python_path = "/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        env = os.environ | {
+            "HOME": str(ambient), "MIXER_SWIFT": str(ambient / "missing-swift"),
+            "PYTHONPATH": str(ambient), "PYTHONPYCACHEPREFIX": str(cache), "PATH": python_path,
+        }
+        args = ["/usr/bin/env", "python3", str(driver), "inspect"]
+        subprocess.run(args, env=env, capture_output=True, text=True, timeout=10)
+        self.assertTrue(startup_marker.exists() and cache_marker.exists())
+        startup_marker.unlink()
+        cache_marker.unlink()
+        result = subprocess.run(
+            args, env=env | {"PATH": str(work / "isolated-python") + ":" + python_path},
+            capture_output=True, text=True, timeout=10,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("missing-swift", result.stderr)
+        self.assertFalse(startup_marker.exists() or cache_marker.exists())
 
     def test_stage_write_failure_collects_inert_child(self):
         real_replace = Path.replace
