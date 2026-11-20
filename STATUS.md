@@ -113,6 +113,10 @@ On `9315129781d6d32215a452b0bd2722cf6123ffd1`, one authenticated free iOS Starte
 
 The fixture used PostgreSQL 17.11, Elixir 1.20.4, and Xcode 27.2 on macOS arm64. It checked the persisted request key, deterministic build ID, and stable authenticated reads with one POST. Billing rows matched before and after the build. The fixture ran without a payment service. All owned groups exited, all seven ports were reusable, and the disposable database and scratch were removed. L07 remains open for recovery when the compiler exits without verified closure and for combined load and delivery recovery.
 
+### Mixed authenticated build contention
+
+At `1e81569c47`, a real authenticated build request began its PostgreSQL transaction while a fixture held the other lifecycle connection. Four concurrent requests received HTTP 503 before BEGIN. The admitted request returned HTTP 201 after the barrier opened. The same Phoenix listener and session stayed ready at generation 1. The refused key then created exactly one build, each accepted key replayed with HTTP 200, and the unrelated tenant received HTTP 404. Exactly two builds and two jobs remained. Both direct verification and the checked-in test collector passed. The run covered admission and recovery in the build API. Native worker recovery and combined release delivery remain open. [Mixed checkout receipt](verification/receipts/l07-mixed-checkout-recovery-20261120.json)
+
 ### Restore of the Starter database and artifact store
 
 The empty fixture restored to a separate PostgreSQL 17.11 cluster. The roles and journal matched, and two fresh sessions authenticated under the restricted API role. All 38 command groups closed, eight ports were reusable, and the replay removed its scratch.

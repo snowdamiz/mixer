@@ -1,0 +1,133 @@
+{
+  "assertions": {
+    "noBuildsOrJobsBeforeBarrierRelease": true,
+    "originalAndRetriedBuildReplayHTTP200": true,
+    "refusedResponsesSetNoCookies": true,
+    "sameOwnerAndListener": true,
+    "unchangedSessionAndCsrf": true,
+    "unrelatedTenantHTTP404": true
+  },
+  "base": "1e81569c47842c07094f95b5d04009540b9365da",
+  "collector": {
+    "cleanup": {
+      "postgres_stopped": true,
+      "scratch_removed": true
+    },
+    "commandsRecorded": 66,
+    "focusedTestsPassed": 5,
+    "observed": {
+      "admittedStatus": 201,
+      "builds": 2,
+      "generation": 1,
+      "httpPort": 58694,
+      "jobs": 2,
+      "phases": [
+        "storage_ready",
+        "storage_ready"
+      ],
+      "refusedCount": 4,
+      "retryStatus": 201
+    },
+    "postgresPort": 57927,
+    "sourceArchiveSHA256": "a44c6d12465f475489175c82bf1ca9819d9c8c664c9bfff2b362b4457cf6399d",
+    "sourceTreeSHA256": "78dd502a8ac215f23e843d457840430a18fe00214265731bc17cf67fdd75afc9",
+    "testLogSHA256": "2ea9e108360dd0ff8aad853af88c8c0053bd3cb8480ffd0b30a6c0f0e0f6b260"
+  },
+  "direct": {
+    "allOwnedCommandGroupsAbsent": true,
+    "commands": [
+      {
+        "exit": 0,
+        "groupAbsent": true,
+        "label": "initdb",
+        "logSHA256": "1f690471801f5f579e867edf7c3ca77758091bc9d371c2704eefb813d0d92116"
+      },
+      {
+        "exit": 0,
+        "groupAbsent": true,
+        "label": "verify-data-dir",
+        "logSHA256": "ca84426886f3c8f12061afccd43a2997f1025ad8efa2747b140cc74983eeeec7"
+      },
+      {
+        "exit": 0,
+        "groupAbsent": true,
+        "label": "postgres-configuration",
+        "logSHA256": "490f30c36d7a9d132196a80a69747dcac83a61cfbde53833f2eb63a4c6ebdbad"
+      },
+      {
+        "exit": 0,
+        "groupAbsent": true,
+        "label": "browser-fixture-roles",
+        "logSHA256": "4982da64c0ba03fcbd29f1878c4569b2be646026c4ed233aa765ab2d37fbdf5c"
+      },
+      {
+        "exit": 0,
+        "groupAbsent": true,
+        "label": "browser-fixture-database",
+        "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "exit": 0,
+        "groupAbsent": true,
+        "label": "test",
+        "logSHA256": "1f17421ea5b361990a7e1a945ea3d6b1149f6ac64734cdb12e548c301c38893f"
+      },
+      {
+        "exit": 0,
+        "groupAbsent": true,
+        "label": "postgres-stop",
+        "logSHA256": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d"
+      },
+      {
+        "exit": 0,
+        "groupAbsent": true,
+        "label": "postgres",
+        "logSHA256": "70979b761a4b6d8bebfb2709085ed1537cac2415cdb29770c96dad7d651ba29c"
+      }
+    ],
+    "observed": {
+      "admittedStatus": 201,
+      "builds": 2,
+      "generation": 1,
+      "httpPort": 57546,
+      "jobs": 2,
+      "phases": [
+        "storage_ready",
+        "storage_ready"
+      ],
+      "refusedCount": 4,
+      "retryStatus": 201
+    }
+  },
+  "fixtureCorrections": [
+    "The initial PostgreSQL setup failed readiness before HTTP. The passing trials used the collector's UTC and UTF-8 settings.",
+    "The first external filename triggered a Mix test-load warning. The exact final filename passed warnings-as-errors.",
+    "The first collector archive omitted the two shared protocol fixtures and stopped before starting services. The complete archive passed."
+  ],
+  "hostedGitTree": "e51cf0911fb97375bf0bcd6026d8ffb6ca63b954",
+  "limits": "No native workers or release delivery started. Recovery after unverified compiler closure and combined build and release delivery load remain open.",
+  "portsRebound": [
+    57381,
+    57546,
+    57927,
+    58694
+  ],
+  "recordedUTC": "2026-11-20T06:59:49.566303+00:00",
+  "replayFromHosted": [
+    "mix deps.get --check-locked",
+    "python3.14 -B scripts/test-local.py --output ../verification/local/hosted-mixed-checkout --only-additional-tests --additional-test ../tests/integration/hosted_mixed_checkout_recovery_test.exs --test-timeout 100"
+  ],
+  "schedule": "One fixture task holds a lifecycle connection. The first authenticated build POST holds the second connection after a genuine PostgreSQL BEGIN. Four competing POSTs receive 503 with exact pre-BEGIN refusal telemetry. The first request commits after the barrier opens.",
+  "sourceSHA256": {
+    "hosted/mix.lock": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+    "hosted/test/mixer_hosted/browser_auth/customer_build_inputs_http_sql_test.exs": "d23f4b8214f6e405d4385ef96f17ef2e6e57ddbdb6e2ec6d95c6070274629d55",
+    "tests/integration/hosted_mixed_checkout_recovery_test.exs": "751bc2f0247426a39381cf84a24a4975b69726c80128f37f7633cb19fb7ee602"
+  },
+  "status": "PASS_SCOPED_MIXED_CHECKOUT_RECOVERY",
+  "tools": {
+    "elixir": "1.20.4",
+    "erlangOTP": "29",
+    "postgres": "17.11",
+    "python": "3.14.8"
+  }
+}
