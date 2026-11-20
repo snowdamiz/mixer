@@ -158,7 +158,7 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
   alias MixerHosted.Identity.{ConfiguredVerifier, KeyOwner, TLSFixture}
   alias MixerHosted.Authorization.Scope
   alias MixerHosted.Protocol.ArtifactCBOR
-  alias MixerHosted.Releases.{Target, WriterRepo}
+  alias MixerHosted.Releases.{DeliveryRepo, PublicDelivery, Target, WriterRepo}
   alias MixerHosted.Test.StockReleaseCLI
 
   @profile %{
@@ -173,6 +173,8 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
   @scopes "mixer.artifact.upload mixer.artifact.read mixer.audit.read"
   @action_version 20_261_120_000_010
   @action_migration MixerHosted.Repo.Migrations.AddLocalReleasePublicationAction
+  @health_version 20_261_120_000_011
+  @health_migration MixerHosted.Repo.Migrations.AddLocalReleaseHaltHealth
   @tls_runtime System.get_env("MIXER_TEST_LOCAL_ARTIFACT_UPLOAD_TLS") == "1"
 
   setup_all do
@@ -310,15 +312,15 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
       debug_errors: false
     )
 
-    {bandit, port} =
-      if @tls_runtime do
-        {nil, nil}
-      else
-        bandit = start_supervised!(MixerHostedWeb.Endpoint)
-        {:ok, {_, port}} = MixerHostedWeb.Endpoint.server_info(:http)
-        {bandit, port}
+    endpoint_supervisor =
+      unless @tls_runtime do
+        start_supervised!(%{
+          id: :release_http_endpoint_supervisor,
+          start: {Supervisor, :start_link, [[MixerHostedWeb.Endpoint], [strategy: :one_for_one]]}
+        })
       end
 
+    port = if endpoint_supervisor, do: endpoint_port!()
     tls_setup = TLSFixture.info(fixture)
     assert tls_setup.key_dir_removed
 
@@ -328,7 +330,7 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
           do: TLSFixture.info(fixture),
           else: %{key_dir_removed: tls_setup.key_dir_removed, requests: []}
 
-      for pid <- [bandit, owner, worker_pid, fixture], is_pid(pid) do
+      for pid <- [endpoint_supervisor, owner, worker_pid, fixture], is_pid(pid) do
         if Process.alive?(pid) do
           try do
             GenServer.stop(pid, :normal, 5_000)
@@ -344,7 +346,7 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
       end
 
       cleanup = %{
-        bandit_stopped: bandit == nil or not Process.alive?(bandit),
+        bandit_stopped: Process.whereis(MixerHostedWeb.Endpoint) == nil,
         key_owner_stopped: not Process.alive?(owner),
         jwks_workers_stopped: not Process.alive?(worker_pid),
         tls_fixture_stopped: not Process.alive?(fixture),
@@ -363,7 +365,12 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
           )
     end)
 
-    %{port: port, key: key, tls_fixture: fixture, pg_settings: settings}
+    %{
+      endpoint_supervisor: endpoint_supervisor,
+      key: key,
+      tls_fixture: fixture,
+      pg_settings: settings
+    }
   end
 
   setup context do
@@ -379,7 +386,13 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
       end
     end)
 
-    Map.merge(context, %{checked: checked, token: token(context.key), config: config})
+    port = if context.endpoint_supervisor, do: endpoint_port!()
+    Map.merge(context, %{port: port, checked: checked, token: token(context.key), config: config})
+  end
+
+  defp endpoint_port! do
+    {:ok, {{127, 0, 0, 1}, port}} = MixerHostedWeb.Endpoint.server_info(:http)
+    port
   end
 
   defp token(key, claims \\ %{}) do
@@ -1243,7 +1256,353 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
              ).rows
   end
 
-  defp release_fixture!(ctx, checked, config) do
+  @tag :release_halt_db
+  test "health halt commits an immutable sample and stops offers across API restart", ctx do
+    {checked, config} = F.artifact(Runtime)
+    {publisher, draft, private} = release_fixture!(ctx, checked, config, :delivery)
+    digest = checked.manifest_sha256
+    base = "/v3/orgs/org-a/projects/project-a/channels/dev/"
+    halt_path = base <> "halt"
+    observed = 9_223_372_036_854_775_808
+    max = 18_446_744_073_709_551_615
+
+    health = %{
+      "sequence" => observed,
+      "activated" => max,
+      "pending" => 0,
+      "adverse_signals" => max
+    }
+
+    initial =
+      sign_assignment(
+        %{draft | "sequence" => observed, "rollout_basis_points" => 10_000},
+        private
+      )
+
+    halt_draft = %{draft | "sequence" => observed + 1, "rollout_basis_points" => 0}
+    signed = sign_assignment(halt_draft, private)
+    # Use the exact Swift JSONFile formatting so both callers share one receipt.
+    body =
+      ~s({"health":{\n  "activated" : #{max},\n  "adverse_signals" : #{max},\n  "pending" : 0,\n  "sequence" : #{observed}\n}\n,"signed_assignment":#{signed}})
+
+    key = cli_key("POST", halt_path, body)
+
+    submit = fn body, key ->
+      request(publisher, "halt", "POST", halt_path, body, cli_headers(key))
+    end
+
+    migrate_release_actions!()
+    grant_release_action!()
+    start_release_delivery!(ctx.pg_settings)
+    stage_release!(publisher, checked)
+    assert %{status: 200} = release_request(publisher, base <> "publish", initial)
+    before_upgrade = release_journal()
+    assert release_counts() == [[2, 1, Decimal.new(observed)]]
+
+    Code.require_file("priv/repo/migrations/#{@health_version}_add_local_release_halt_health.exs")
+    assert :ok = Ecto.Migrator.up(Migration, @health_version, @health_migration, log: false)
+    assert release_journal() == before_upgrade
+
+    assert [[nil, nil, nil]] =
+             F.sql("""
+             SELECT health_activated,health_pending,health_adverse_signals
+             FROM public.mixer_release_publications
+             """).rows
+
+    assert %{status: 200} = release_request(publisher, base <> "publish", initial)
+
+    submit.(body, key) |> error(503, "authorization_unavailable")
+
+    F.sql("""
+    GRANT INSERT (health_activated,health_pending,health_adverse_signals)
+      ON public.mixer_release_publications TO http_release_writer
+    """)
+
+    offer_path =
+      "/v3/updates?" <>
+        URI.encode_query(
+          Map.merge(draft["scope"], %{
+            "runtime" => draft["runtime"],
+            "channel" => draft["channel"],
+            "installation" => "local"
+          })
+        )
+
+    public_artifact = "/v3/artifacts/" <> digest <> "?organization=org-a&project=project-a"
+
+    assert %{status: 200} =
+             offer = request(publisher, "initial offer", "GET", offer_path, "", [], token: nil)
+
+    assert json(offer)["signed_assignment"] == Jason.decode!(initial)
+
+    assert %{status: 200, body: envelope} =
+             request(publisher, "initial artifact", "GET", public_artifact, "", [], token: nil)
+
+    for malformed <- [
+          halt_body(signed, Map.delete(health, "pending")),
+          halt_body(signed, Map.put(health, "pending", nil)),
+          halt_body(signed, Map.put(health, "pending", -1)),
+          halt_body(signed, Map.put(health, "pending", max + 1)),
+          halt_body(signed, Map.put(health, "pending", 1.0)),
+          halt_body(signed, Map.put(health, "extra", 1)),
+          String.replace(halt_body(signed, health), ~s("pending":0), ~s("pending":0,"pending":0)),
+          String.replace_prefix(body, "{", ~s({"extra":0,))
+        ] do
+      submit.(malformed, key) |> error(400, "invalid_json")
+    end
+
+    submit.(body <> String.duplicate(" ", 128 * 1024), key) |> error(413, "body_too_large")
+    submit.(halt_body(signed, %{health | "sequence" => 0}), key) |> error(422, "invalid_health")
+
+    submit.(halt_body(signed, %{health | "adverse_signals" => 0}), key)
+    |> error(422, "invalid_health")
+
+    submit.(halt_body(signed, %{health | "sequence" => observed - 1}), key)
+    |> error(409, "stale_rollout")
+
+    nonzero = sign_assignment(%{halt_draft | "rollout_basis_points" => 1}, private)
+    wrong_channel = sign_assignment(%{halt_draft | "channel" => "stable"}, private)
+    wrong_artifact = sign_assignment(%{halt_draft | "artifact_sha256" => F.sha("other")}, private)
+    wrong_runtime = sign_assignment(%{halt_draft | "runtime" => F.sha("other runtime")}, private)
+
+    wrong_scope =
+      sign_assignment(%{halt_draft | "scope" => %{draft["scope"] | "app" => "other"}}, private)
+
+    wrong_release = sign_assignment(%{halt_draft | "release_id" => "other-release"}, private)
+    reused_sequence = sign_assignment(%{halt_draft | "sequence" => observed}, private)
+    forged = sign_assignment(halt_draft, elem(:crypto.generate_key(:eddsa, :ed25519), 1))
+
+    for {assignment, status, code} <- [
+          {nonzero, 422, "invalid_halt"},
+          {wrong_channel, 422, "invalid_halt"},
+          {wrong_artifact, 409, "stale_rollout"},
+          {wrong_runtime, 422, "unknown_runtime"},
+          {wrong_scope, 403, "scope_denied"},
+          {wrong_release, 409, "assignment_rejected"},
+          {reused_sequence, 409, "assignment_rejected"},
+          {forged, 409, "assignment_rejected"}
+        ] do
+      submit.(halt_body(assignment, health), key) |> error(status, code)
+    end
+
+    request(
+      publisher,
+      "foreign tenant",
+      "POST",
+      String.replace(halt_path, "project-a", "project-b"),
+      body,
+      cli_headers(key)
+    )
+    |> error(403, "scope_denied")
+
+    request(ctx, "bearer lacks release scope", "POST", halt_path, body, cli_headers(key))
+    |> error(403, "role_denied")
+
+    assert release_counts() == [[2, 1, Decimal.new(observed)]]
+
+    F.sql("""
+    CREATE FUNCTION public.fixture_reject_health_halt() RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN RAISE EXCEPTION 'fixture deferred halt failure'; END
+    $$
+    """)
+
+    F.sql("""
+    CREATE CONSTRAINT TRIGGER fixture_reject_health_halt
+    AFTER INSERT ON public.mixer_release_publications
+    DEFERRABLE INITIALLY DEFERRED FOR EACH ROW
+    WHEN (NEW.action = 'halt') EXECUTE FUNCTION public.fixture_reject_health_halt()
+    """)
+
+    try do
+      submit.(body, key) |> error(503, "authorization_unavailable")
+      assert release_counts() == [[2, 1, Decimal.new(observed)]]
+    after
+      F.sql("DROP TRIGGER fixture_reject_health_halt ON public.mixer_release_publications")
+      F.sql("DROP FUNCTION public.fixture_reject_health_halt()")
+    end
+
+    await_repo(WriterRepo, System.monotonic_time(:millisecond) + 4_000)
+
+    # Expiry of artifact signing authority must not block a current assignment key.
+    release_config = Application.fetch_env!(:mixer_hosted, :local_release_target)
+    [artifact_root, assignment_root] = release_config.roots
+    expired = %{artifact_root | "not_after_unix" => F.now()}
+
+    Application.put_env(:mixer_hosted, :local_release_target, %{
+      release_config
+      | roots: [expired, assignment_root]
+    })
+
+    expected = %{
+      "scope" => draft["scope"],
+      "runtime" => draft["runtime"],
+      "channel" => "dev",
+      "artifact_sha256" => digest,
+      "halt_sequence" => observed + 1,
+      "health" => health
+    }
+
+    cli = System.get_env("MIXER_TEST_RELEASE_CLI")
+    if cli, do: assert_stock_halt!(publisher, cli, signed, digest, expected)
+    assert %{status: 200, body: reply} = submit.(body, key)
+    assert Jason.decode!(reply) == expected
+    Application.put_env(:mixer_hosted, :local_release_target, release_config)
+
+    assert [[previous, activated, pending, adverse, ^signed, request_hash]] =
+             F.sql("""
+             SELECT p.previous_sequence::text, p.health_activated::text, p.health_pending::text,
+                    p.health_adverse_signals::text, p.signed_assignment_bytes, r.request_sha256
+             FROM public.mixer_release_publications p
+             JOIN public.mixer_release_cli_requests r
+               ON r.idempotency_key=p.idempotency_key AND r.publication_sequence=p.sequence
+             WHERE p.action='halt'
+             """).rows
+
+    assert [previous, activated, pending, adverse] ==
+             Enum.map([observed, max, 0, max], &to_string/1)
+
+    assert request_hash ==
+             F.sha("POST " <> halt_path <> "\0local development operation\0" <> body)
+
+    assert release_counts() == [[3, 2, Decimal.new(observed + 1)]]
+    assert_no_offer!(publisher, offer_path)
+
+    assert %{status: 200, body: ^envelope} =
+             request(publisher, "historical artifact after halt", "GET", public_artifact, "", [],
+               token: nil
+             )
+
+    :ok = Supervisor.terminate_child(ctx.endpoint_supervisor, MixerHostedWeb.Endpoint)
+    stop_supervised!(WriterRepo)
+    stop_supervised!(DeliveryRepo)
+    start_release_writer!(ctx.pg_settings)
+    start_release_delivery!(ctx.pg_settings)
+    assert {:ok, _} = Supervisor.restart_child(ctx.endpoint_supervisor, MixerHostedWeb.Endpoint)
+    publisher = %{publisher | port: endpoint_port!()}
+    assert_no_offer!(publisher, offer_path)
+    if cli, do: assert_stock_halt!(publisher, cli, signed, digest, expected)
+
+    submit = fn bytes, key ->
+      request(publisher, "halt after restart", "POST", halt_path, bytes, cli_headers(key))
+    end
+
+    assert %{status: 200, body: ^reply} = submit.(body, key)
+
+    submit.(halt_body(signed, %{health | "pending" => 2}), key)
+    |> error(409, "idempotency_conflict")
+
+    submit.(body <> " ", key) |> error(409, "idempotency_conflict")
+    second_halt = sign_assignment(%{halt_draft | "sequence" => observed + 2}, private)
+
+    submit.(halt_body(second_halt, %{health | "sequence" => observed + 1}), "already-halted")
+    |> error(409, "stale_rollout")
+
+    resumed =
+      sign_assignment(
+        %{draft | "sequence" => observed + 2, "rollout_basis_points" => 10_000},
+        private
+      )
+
+    assert_release_action!(publisher, base <> "promote", resumed, digest, observed + 2, 10_000)
+
+    assert %{status: 200} =
+             offer = request(publisher, "resumed offer", "GET", offer_path, "", [], token: nil)
+
+    assert json(offer)["signed_assignment"] == Jason.decode!(resumed)
+    assert %{status: 200, body: ^reply} = submit.(body, key)
+    if cli, do: assert_stock_halt!(publisher, cli, signed, digest, expected)
+    submit.(body, "fresh-stale") |> error(409, "stale_rollout")
+
+    F.sql(
+      "UPDATE public.mixer_authz_memberships SET role='viewer',revision=revision+1 WHERE id='member'"
+    )
+
+    submit.(body, key) |> error(403, "role_denied")
+
+    F.sql(
+      "UPDATE public.mixer_authz_memberships SET role='owner',revision=revision+1 WHERE id='member'"
+    )
+
+    revoked = %{assignment_root | "revoked" => true}
+
+    Application.put_env(:mixer_hosted, :local_release_target, %{
+      release_config
+      | roots: [artifact_root, revoked]
+    })
+
+    submit.(body, key) |> error(409, "assignment_rejected")
+    assert release_counts() == [[4, 3, Decimal.new(observed + 2)]]
+
+    assert_raise Postgrex.Error, ~r/release ledger contains committed health halts/, fn ->
+      Ecto.Migrator.down(Migration, @health_version, @health_migration, log: false)
+    end
+  end
+
+  defp halt_body(signed, health) do
+    ~s({"health":#{Jason.encode!(health)},"signed_assignment":#{signed}})
+  end
+
+  defp assert_no_offer!(publisher, offer_path) do
+    assert %{status: 204, body: ""} =
+             request(publisher, "halted offer", "GET", offer_path, "", [], token: nil)
+  end
+
+  defp assert_stock_halt!(publisher, cli, signed, digest, receipt) do
+    path = Path.join(System.fetch_env!("MIXER_TEST_RELEASE_CANDIDATE"), "halt-health.json")
+    File.mkdir_p!(Path.dirname(path))
+    File.write!(path, Jason.encode!(receipt["health"]))
+
+    assert {output, 0} =
+             stock_transition(publisher, cli, "halt", signed, digest, [
+               "--health",
+               path,
+               "--channel",
+               "dev"
+             ])
+
+    assert Jason.decode!(output) == %{
+             "status" => "ok",
+             "action" => "halt",
+             "artifact_sha256" => digest,
+             "sequence" => receipt["halt_sequence"],
+             "rollout_basis_points" => 0,
+             "health" => receipt["health"],
+             "delivery" => "local_only"
+           }
+  end
+
+  defp start_release_delivery!(settings) do
+    env = :local_release_delivery
+    login = "mixer_release_delivery"
+
+    F.sql(
+      "DO $$ BEGIN CREATE ROLE #{login} LOGIN NOINHERIT; EXCEPTION WHEN duplicate_object THEN NULL; END $$"
+    )
+
+    F.sql("GRANT USAGE ON SCHEMA public TO #{login}")
+
+    F.sql("""
+    GRANT EXECUTE ON FUNCTION public.mixer_release_delivery_offer(text,text,text,text,text,text,text),
+      public.mixer_release_delivery_artifact(text,text,text,text,text,text,text,text) TO #{login}
+    """)
+
+    config = Application.fetch_env!(:mixer_hosted, :local_release_target)
+
+    Application.put_env(
+      :mixer_hosted,
+      env,
+      Map.put(config, :repo, settings ++ [username: login, pool_size: 1])
+    )
+
+    on_exit(fn -> Application.delete_env(:mixer_hosted, env) end)
+    assert [child] = PublicDelivery.children(http: [ip: {127, 0, 0, 1}])
+    start_supervised!(child)
+
+    assert [[^login]] =
+             Ecto.Adapters.SQL.query!(DeliveryRepo, "SELECT current_user", [], log: false).rows
+  end
+
+  defp release_fixture!(ctx, checked, config, delivery \\ :disabled) do
     %{manifest: manifest, manifest_sha256: digest} = checked
     scope = manifest["scope"]
 
@@ -1270,7 +1629,7 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
         "assignment" => true
     }
 
-    provision_release_writer!(target)
+    provision_release_writer!(target, delivery)
     start_release_writer!(ctx.pg_settings)
     Application.put_env(:mixer_hosted, CustomerArtifacts, config)
 
@@ -1305,7 +1664,7 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
     {publisher, draft, private}
   end
 
-  defp provision_release_writer!(target, delivery \\ :disabled) do
+  defp provision_release_writer!(target, delivery) do
     if delivery == :delivery do
       Code.require_file(
         "priv/local_release_delivery/20261120000003_add_local_release_delivery.exs"
@@ -1341,6 +1700,13 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
         Code.require_file(
           "priv/repo/migrations/#{@action_version}_add_local_release_publication_action.exs"
         )
+
+    if Code.ensure_loaded?(@health_migration) do
+      assert Ecto.Migrator.down(Migration, @health_version, @health_migration, log: false) in [
+               :ok,
+               :already_down
+             ]
+    end
 
     assert Ecto.Migrator.down(Migration, @action_version, @action_migration, log: false) in [
              :ok,

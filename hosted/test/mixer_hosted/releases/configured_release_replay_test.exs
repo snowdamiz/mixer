@@ -825,7 +825,8 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
           {"repo/migrations", "20261120000002_add_local_release_head_read.exs"},
           {"local_release_delivery", "20261120000003_add_local_release_delivery.exs"},
           {"repo/migrations", "20261120000004_add_local_release_cli_requests.exs"},
-          {"repo/migrations", "20261120000010_add_local_release_publication_action.exs"}
+          {"repo/migrations", "20261120000010_add_local_release_publication_action.exs"},
+          {"repo/migrations", "20261120000011_add_local_release_halt_health.exs"}
         ]
 
         for {dir, file} <- migrations do
@@ -1031,7 +1032,8 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     GRANT SELECT, INSERT (
       organization_id, project_id, application_id, environment_id, platform, runtime_sha256, channel,
       sequence, previous_sequence, artifact_sha256, signed_assignment_bytes, rollout_basis_points,
-      idempotency_key, reason, principal_id, action
+      idempotency_key, reason, principal_id, action,
+      health_activated, health_pending, health_adverse_signals
     ) ON public.mixer_release_publications TO #{@writer}
     """)
 

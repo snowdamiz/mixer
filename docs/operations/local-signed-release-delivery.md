@@ -10,9 +10,9 @@ development signer holds the private keys outside Phoenix.
 1. Use the local installation database with the existing authorization and
    artifact schemas. Apply migrations `20261120000001` and `20261120000002`
    from `hosted/priv/repo/migrations`. Apply `20261120000003` from
-   `hosted/priv/local_release_delivery` afterward. Apply `20261120000010`
-   from the ordinary migration directory before starting the API, including
-   when releases are published only from the browser. Run these migrations with
+   `hosted/priv/local_release_delivery` afterward. Apply `20261120000010` and
+   `20261120000011` from the ordinary migration directory before starting the
+   API, including when releases are published only from the browser. Run these migrations with
    the common non-login relation owner as `current_user`. This role owns
    `mixer_customer_artifacts`, `mixer_release_heads`, and
    `mixer_release_publications` and has neither superuser nor BYPASSRLS.
@@ -65,18 +65,19 @@ development signer holds the private keys outside Phoenix.
 
 ## Upgrade a provisioned CLI writer
 
-Apply `20261120000004` and then `20261120000010` from
-`hosted/priv/repo/migrations` as the release relation owner. Skip
-`20261120000004` if it is already installed. The action migration gives
-existing publication rows the value `publish` and preserves the head and
-signed bytes.
+Apply any outstanding migrations `20261120000004`, `20261120000010`, and
+`20261120000011` from `hosted/priv/repo/migrations` in that order as the release
+relation owner. The action migration gives older publication rows the value
+`publish`. The halt migration leaves earlier rows and signed bytes intact.
 
 Use the existing target's `writer_role` as the psql variable `release_writer`.
 As the relation owner or local database administrator, grant the writer insert
-access to the new column before enabling promotion and rollback.
+access to the action and health columns before enabling release transitions.
 
 ```sql
 GRANT INSERT (action) ON public.mixer_release_publications TO :"release_writer";
+GRANT INSERT (health_activated, health_pending, health_adverse_signals)
+  ON public.mixer_release_publications TO :"release_writer";
 ```
 
 Keep the existing column-scoped publication grant. Publication history stays
@@ -154,8 +155,7 @@ omit the flag or set it to `false`, and restart the API.
 ## Enable CLI validation and publication
 
 1. Provision delivery and artifact upload for the same target. Apply
-   migration `20261120000004` from `hosted/priv/repo/migrations` under the
-   same non-login relation owner.
+   the outstanding migrations described above under the same non-login relation owner.
 2. Confirm that the registered head's `writer_role` is the restricted login
    in `MIXER_DATABASE_USER`. The browser publisher and CLI writer use this
    login. Keep its existing authorization reads and lock-function grants.
@@ -169,7 +169,7 @@ omit the flag or set it to `false`, and restart the API.
      organization_id, project_id, application_id, environment_id, platform,
      runtime_sha256, channel, sequence, previous_sequence, artifact_sha256,
      signed_assignment_bytes, rollout_basis_points, idempotency_key, reason, principal_id,
-     action
+     action, health_activated, health_pending, health_adverse_signals
    ) ON public.mixer_release_publications TO :"browser_runtime";
    GRANT SELECT, INSERT ON public.mixer_release_cli_requests TO :"browser_runtime";
    GRANT EXECUTE ON FUNCTION
@@ -197,6 +197,24 @@ omit the flag or set it to `false`, and restart the API.
    publication. After publication, check the same sequence and artifact digest
    in the authenticated browser head and the updater offer for an eligible
    installation.
+
+## Halt a rollout after an adverse signal
+
+Run the stock `mixer update halt` command with the current artifact digest, a
+health file, and a signed zero-percent assignment for that artifact and target
+at a higher sequence. The health file contains the observed current `sequence`
+and unsigned `activated`, `pending`, and `adverse_signals` counts. At least one
+adverse signal is required. The assignment signer must have current authority.
+
+The publication journal records one `halt` row. For authorized database
+readback, `previous_sequence` identifies the observed rollout and
+`health_activated`, `health_pending`, and `health_adverse_signals` hold the
+reported counts. An exact authorized CLI retry returns the same sample even
+after the head advances.
+
+Update checks return HTTP 204 while the halt is current. Previously published
+artifacts remain available under the existing delivery verification rules.
+Publish or promote at a higher signed sequence to resume new offers.
 
 ## Replay with a disposable signed fixture
 

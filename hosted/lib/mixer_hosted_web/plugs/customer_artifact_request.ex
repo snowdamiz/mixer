@@ -400,6 +400,15 @@ defmodule MixerHostedWeb.Plugs.CustomerArtifactRequest do
   defp error(:invalid_rollback),
     do: {409, "invalid_rollback", "Rollback target must have been previously published."}
 
+  defp error(:invalid_health),
+    do: {422, "invalid_health", "Halt requires a positive observed sequence and adverse count."}
+
+  defp error(:invalid_halt),
+    do: {422, "invalid_halt", "Halt requires a signed zero-percent assignment for this channel."}
+
+  defp error(:stale_rollout),
+    do: {409, "stale_rollout", "Health must describe the active rollout being halted."}
+
   defp error(:digest_mismatch),
     do: {422, "digest_mismatch", "Artifact identity differs from route."}
 

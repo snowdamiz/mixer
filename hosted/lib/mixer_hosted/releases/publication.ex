@@ -22,5 +22,8 @@ defmodule MixerHosted.Releases.Publication do
     field(:reason, :string)
     field(:principal_id, :string)
     field(:recorded_at, :utc_datetime_usec, read_after_writes: true)
+    field(:health_activated, :decimal, load_in_query: false)
+    field(:health_pending, :decimal, load_in_query: false)
+    field(:health_adverse_signals, :decimal, load_in_query: false)
   end
 end

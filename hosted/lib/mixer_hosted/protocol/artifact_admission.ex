@@ -49,20 +49,11 @@ defmodule MixerHosted.Protocol.ArtifactAdmission do
       when is_binary(signed_bytes) and byte_size(signed_bytes) <= @signed_limit and
              is_binary(payload) and byte_size(payload) in 1..@payload_limit do
     with true <- ArtifactV3Policy.uint?(now),
-         {:ok, signed, _, _} <- ArtifactJSON.decode(signed_bytes, @signed_limit),
-         true <- ArtifactV3Policy.exact?(signed, ~w(manifest signature)),
-         manifest = signed["manifest"],
-         true <- ArtifactV3Policy.manifest?(manifest),
-         true <- ArtifactV3Policy.compatible?(manifest, host),
+         {:ok, manifest, cbor, signature} <- signed_manifest(signed_bytes, host),
          {:ok, public_key} <-
            ArtifactV3Policy.authority(roots, manifest["key_id"], manifest["scope"], now),
-         {:ok, signature} <- base64(signed["signature"], 64, 64),
-         {:ok, cbor} <- ArtifactCBOR.encode(manifest),
          true <- :crypto.verify(:eddsa, :none, @domain <> cbor, signature, [public_key, :ed25519]),
-         payload_hash = hash(payload),
-         true <-
-           byte_size(payload) == manifest["compressed_bytes"] and
-             payload_hash == manifest["payload_sha256"] do
+         {:ok, payload_hash} <- checked_payload(manifest, payload) do
       digest = hash(cbor)
 
       {:ok,
@@ -86,6 +77,43 @@ defmodule MixerHosted.Protocol.ArtifactAdmission do
   end
 
   def admit_signed(_, _, _, _, _), do: {:error, :document_or_payload_limit}
+
+  @doc """
+  Checks retained artifact content for a halt backed by an immutable publication.
+  The publication already established artifact signing authority for this digest.
+  """
+  def check_published(signed_bytes, payload, host)
+      when is_binary(signed_bytes) and byte_size(signed_bytes) <= @signed_limit and
+             is_binary(payload) and byte_size(payload) in 1..@payload_limit do
+    with {:ok, manifest, cbor, _signature} <- signed_manifest(signed_bytes, host),
+         {:ok, _payload_hash} <- checked_payload(manifest, payload) do
+      {:ok, %{manifest: manifest, manifest_sha256: hash(cbor)}}
+    end
+  end
+
+  def check_published(_, _, _), do: {:error, :document_or_payload_limit}
+
+  defp signed_manifest(bytes, host) do
+    with {:ok, signed, _, _} <- ArtifactJSON.decode(bytes, @signed_limit),
+         true <- ArtifactV3Policy.exact?(signed, ~w(manifest signature)),
+         manifest = signed["manifest"],
+         true <- ArtifactV3Policy.manifest?(manifest),
+         true <- ArtifactV3Policy.compatible?(manifest, host),
+         {:ok, signature} <- base64(signed["signature"], 64, 64),
+         {:ok, cbor} <- ArtifactCBOR.encode(manifest) do
+      {:ok, manifest, cbor, signature}
+    else
+      _ -> {:error, :artifact_rejected}
+    end
+  end
+
+  defp checked_payload(manifest, payload) do
+    digest = hash(payload)
+
+    if byte_size(payload) == manifest["compressed_bytes"] and digest == manifest["payload_sha256"],
+      do: {:ok, digest},
+      else: {:error, :artifact_rejected}
+  end
 
   @doc "Reconstructs exact retained bytes under current policy and rejects any changed field."
   def recheck(%Checked{envelope_bytes: bytes} = checked, host, roots, now) do

@@ -28,6 +28,8 @@ defmodule MixerHosted.Authorization do
     :assignment_rejected,
     :invalid_promotion,
     :invalid_rollback,
+    :invalid_halt,
+    :stale_rollout,
     :artifact_invalid,
     :unknown_runtime,
     :storage_unavailable

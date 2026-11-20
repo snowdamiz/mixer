@@ -9,9 +9,11 @@ defmodule MixerHostedWeb.LocalReleaseController do
 
   @maximum_body 128 * 1024
   @assignment_operations [:publish, :promote, :rollback]
+  @channel_operations [:halt | @assignment_operations]
+  @health_fields ~w(sequence activated pending adverse_signals)
 
   @impl true
-  def init(operation) when operation in [:validate | @assignment_operations], do: operation
+  def init(operation) when operation in [:validate | @channel_operations], do: operation
 
   @impl true
   def call(conn, operation) do
@@ -76,7 +78,7 @@ defmodule MixerHostedWeb.LocalReleaseController do
 
   defp suffix(:validate, nil), do: {:ok, "/releases/validate"}
 
-  defp suffix(operation, channel) when operation in @assignment_operations do
+  defp suffix(operation, channel) when operation in @channel_operations do
     if ArtifactV3Policy.id?(channel),
       do: {:ok, "/channels/" <> channel <> "/" <> Atom.to_string(operation)},
       else: {:error, :not_found}
@@ -92,10 +94,31 @@ defmodule MixerHostedWeb.LocalReleaseController do
       {action, {:ok, %{"signed_assignment" => assignment} = body, [{_, _, start, length}], _}}
       when action in @assignment_operations and map_size(body) == 1 and is_map(assignment) and
              length <= 65_536 ->
-        {:ok, {action, binary_part(bytes, start, length)}}
+        {:ok, {action, binary_part(bytes, start, length), nil}}
+
+      {:halt, {:ok, %{"signed_assignment" => assignment, "health" => health} = body, spans, _}}
+      when map_size(body) == 2 and is_map(assignment) ->
+        decode_halt(bytes, spans, health)
 
       _ ->
         {:error, :invalid_json}
+    end
+  end
+
+  defp decode_halt(bytes, spans, health) do
+    span =
+      Enum.find(spans, fn {start, length, _, _} ->
+        Jason.decode!(binary_part(bytes, start, length)) == "signed_assignment"
+      end)
+
+    with {_, _, start, length} when length <= 65_536 <- span,
+         true <- ArtifactV3Policy.exact?(health, @health_fields),
+         true <- Enum.all?(Map.values(health), &ArtifactV3Policy.uint?/1) do
+      if health["sequence"] > 0 and health["adverse_signals"] > 0,
+        do: {:ok, {:halt, binary_part(bytes, start, length), health}},
+        else: {:error, :invalid_health}
+    else
+      _ -> {:error, :invalid_json}
     end
   end
 
@@ -114,4 +137,6 @@ defmodule MixerHostedWeb.LocalReleaseController do
     |> Map.take([:artifact_sha256, :rollout_basis_points, :sequence])
     |> Map.put(:delivery, "local_only")
   end
+
+  defp response(:halt, %{halt: receipt}), do: receipt
 end

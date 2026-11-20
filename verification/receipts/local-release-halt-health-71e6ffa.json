@@ -1,0 +1,64 @@
+{
+  "slice": "L05/L08 product plan section 22.2 item 10 / W11 local rollout halt",
+  "base_commit": "71e6ffa51e857d5a1eda3f74c26941996ed275de",
+  "base_tree": "94cde08bd37868e84e4d623e059926a77e86fbbc",
+  "tested_tree_excluding_this_receipt": "a170d6f064d5fdb9d3df1f0575967d8c992d59f8",
+  "migration": "20261120000011_add_local_release_halt_health.exs",
+  "design": "The existing target-locked publisher appends three conditional health counters on the immutable halt publication row. Its previous_sequence is the observed sequence. The head advance and existing principal-bound CLI request receipt commit in the same transaction. A separate health row would add a composite relationship, another insert grant, and an extra write and replay read.",
+  "environment": {
+    "host": "arm64 macOS 27.0.1",
+    "swift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9)",
+    "elixir": "1.20.4",
+    "erlang_otp": "29 (erts-17.1)",
+    "postgresql": "17.11",
+    "go": "go1.26.4 darwin/arm64",
+    "database": "Disposable IPv4-loopback PostgreSQL with synthetic identities and separate restricted writer and delivery roles",
+    "http": "Normal Phoenix Endpoint and Router on loopback Bandit with the configured verifier and synthetic JWKS"
+  },
+  "commands": [
+    {
+      "command": "git ls-remote origin refs/heads/main",
+      "exit": 0,
+      "result": "refs/heads/main was 71e6ffa51e857d5a1eda3f74c26941996ed275de"
+    },
+    {
+      "command": "swift build --package-path cli --scratch-path verification/local/l05-halt-71e6ffa/swift --disable-index-store --product mixer",
+      "exit": 0,
+      "result": "Built the stock CLI from unchanged pinned source.",
+      "cli_sha256": "38af3d1f8ec980ad76a79acf77e6ec8b538fa189353f34142a05315320a1def5"
+    },
+    {
+      "command": "mix format --check-formatted && MIX_ENV=test mix compile --warnings-as-errors",
+      "exit": 0,
+      "result": "Formatting and compilation passed."
+    },
+    {
+      "command": "MIX_ENV=test mix test --warnings-as-errors --seed 1771 test/mixer_hosted_web/customer_artifact_http_integration_test.exs test/mixer_hosted/releases/postgres_test.exs test/mixer_hosted/releases/browser_publication_test.exs test/mixer_hosted/releases/runtime_provisioning_test.exs test/mixer_hosted/builds/development_dispatch_test.exs test/mixer_hosted/protocol",
+      "exit": 0,
+      "result": "69 passed, 1 skipped in 32.1 seconds. The disposable launcher supplied the PostgreSQL port, fixture root, and stock CLI and its input directory."
+    },
+    {
+      "command": "go test ./release -run '^TestV3HealthHaltAuthorizationAndAudit$' -count=1",
+      "exit": 0,
+      "result": "The pinned Go contract test passed in 0.264 seconds."
+    }
+  ],
+  "observations": [
+    "A populated publication and its prior idempotency receipt survived the health migration. Health columns started null. A halt without the new column grant failed with the existing head and receipt counts intact.",
+    "The stock CLI committed and decoded the exact halt response using observed sequence 9223372036854775808 and activated/adverse counts 18446744073709551615. The SQL journal recorded the same values, the signed bytes, and the exact request hash.",
+    "Malformed, extra, duplicate, fractional, negative, null, out-of-range or oversized JSON, missing authorization, wrong artifact or target, stale or inactive observations, nonzero rollout and bad signatures were rejected. A deferred commit failure rolled back health, head and request receipt.",
+    "The halt worked with an expired artifact root and a current assignment root. Historical artifact delivery kept returning the original envelope under the existing delivery authority.",
+    "Update checks returned HTTP 204 with an empty body both before and after restarting the Phoenix endpoint and the writer and delivery repos. The PostgreSQL server remained up during the API restart.",
+    "A higher signed promotion restored HTTP 200 offers. Exact stock CLI halt replay returned the committed sample after restart and after promotion. Changed bytes or counts, current role loss and assignment root revocation fenced replay.",
+    "The down migration refused to remove committed halt records. Existing live browser publication, shared browser/CLI head, delivery, PostgreSQL ledger and runtime provisioning regressions passed."
+  ],
+  "limits": [
+    "The opt-in ordinary TLS upload startup case was skipped. The halt fixture used loopback PostgreSQL without TLS.",
+    "Health readback is through the release journal and exact authorized replay.",
+    "Hosted source/archive pinning and release remain parent-owned. This run covered local host runtime only."
+  ],
+  "cleanup": {
+    "postgresql": "Owned processes reaped, loopback ports rebound and disposable database directories removed.",
+    "build_and_fixture_scratch": "Removed the owned CLI build, fixture driver and scratch, hosted build and dependency directories."
+  }
+}

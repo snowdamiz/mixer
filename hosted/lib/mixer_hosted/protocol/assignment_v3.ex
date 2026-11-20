@@ -95,6 +95,31 @@ defmodule MixerHosted.Protocol.AssignmentV3 do
 
   def verify(_, _, _, _, _), do: {:error, :invalid_context}
 
+  @doc """
+  Verifies a halt against the artifact of an already committed publication.
+  Current assignment authority can stop offers after the artifact root expires.
+  """
+  def verify_halt(
+        bytes,
+        %{signed_manifest_bytes: manifest_bytes, payload: payload},
+        roots,
+        host,
+        %{channel: channel, last_sequence: observed, now: now}
+      ) do
+    with :ok <- check_context(channel, observed, now),
+         {:ok, signed} <- decode_signed(bytes),
+         :ok <- check_head(signed.assignment, channel, observed),
+         true <- observed > 0 and signed.assignment["rollout_basis_points"] == 0,
+         :ok <- authenticate(signed, roots, now),
+         {:ok, artifact} <- ArtifactAdmission.check_published(manifest_bytes, payload, host),
+         true <- binds_artifact?(signed.assignment, artifact) do
+      {:ok, signed}
+    else
+      false -> {:error, :assignment_binding}
+      {:error, _} = error -> error
+    end
+  end
+
   defp valid_assignment?(assignment) do
     ArtifactV3Policy.exact?(assignment, @assignment_fields) and
       assignment["schema"] === 3 and

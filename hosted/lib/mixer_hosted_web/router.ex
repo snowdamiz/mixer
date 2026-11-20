@@ -53,6 +53,7 @@ defmodule MixerHostedWeb.Router do
     post("/channels/:channel/publish", MixerHostedWeb.LocalReleaseController, :publish)
     post("/channels/:channel/promote", MixerHostedWeb.LocalReleaseController, :promote)
     post("/channels/:channel/rollback", MixerHostedWeb.LocalReleaseController, :rollback)
+    post("/channels/:channel/halt", MixerHostedWeb.LocalReleaseController, :halt)
     put("/artifacts/:manifest_sha256", MixerHostedWeb.CustomerArtifactController, :upload)
     get("/artifacts/:manifest_sha256", MixerHostedWeb.CustomerArtifactController, :read)
     get("/audit", MixerHostedWeb.CustomerArtifactController, :audit)
