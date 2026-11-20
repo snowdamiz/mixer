@@ -1,20 +1,21 @@
 #!/bin/zsh
 set -eu
-if (( $# != 3 )); then
-    print -u2 'Usage: build-java.zsh FIELDLOG_CHECKOUT MIXER_CHECKOUT OUTPUT'
+if (( $# < 3 || $# > 4 )); then
+    print -u2 'Usage: build-java.zsh FIELDLOG_CHECKOUT MIXER_CHECKOUT OUTPUT [ADAPTER_PINS]'
     exit 2
 fi
 recipe=${0:A:h}
 app=${1:A}/Integrations/GeneratedReport/Platforms/Android
 adapter=${2:A}/native/android
 payload=${3:A}
+pins=${4:-"$recipe/java-adapter-pins.json"}
 sdk=${ANDROID_HOME:-/opt/homebrew/share/android-commandlinetools}
 tools="$sdk/build-tools/36.0.0"
 jar="$sdk/platforms/android-36/android.jar"
 export JAVA_HOME=${MIXER_JDK:-/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home}
 mkdir "$payload"
 mkdir "$payload/classes" "$payload/dex" "$payload/jni"
-python3 -B - "$recipe/java-adapter-pins.json" "$adapter" > "$payload/adapter-inputs.txt" <<'PYTHON'
+python3 -B - "$pins" "$adapter" > "$payload/adapter-inputs.txt" <<'PYTHON'
 from hashlib import sha256
 from pathlib import Path
 import json

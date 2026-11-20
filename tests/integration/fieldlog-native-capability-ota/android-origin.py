@@ -3,6 +3,7 @@
 
 import argparse
 import base64
+import hashlib
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 from pathlib import Path
@@ -27,7 +28,9 @@ def server(packet, phase_file):
         raise ValueError("APK relay ports differ")
     tenant = {key: scope[key] for key in ("organization", "project")}
     common = scope | {"channel": "beta"}
-    payload = base64.b64encode((packet / "reviewed.wasm").read_bytes()).decode()
+    reviewed = (packet / "reviewed.wasm").read_bytes()
+    baseline_path = packet / "baseline.wasm"
+    baseline = baseline_path.read_bytes() if baseline_path.is_file() else reviewed
     offers = {}
     artifacts = {}
     for label, runtime, sequence in [
@@ -35,13 +38,15 @@ def server(packet, phase_file):
         assignment = read(packet / label / "assignment.json")
         manifest = read(packet / label / "manifest.json")
         body = assignment["assignment"]
+        payload = baseline if label == "old" else reviewed
         digest = body["artifact_sha256"]
         if (not re.fullmatch("[0-9a-f]{64}", digest) or body["runtime"] != runtime or body["sequence"] != sequence
-                or manifest["manifest"]["runtime"] != runtime or body["scope"] != scope):
+                or manifest["manifest"]["runtime"] != runtime or body["scope"] != scope
+                or manifest["manifest"]["payload_sha256"] != hashlib.sha256(payload).hexdigest()):
             raise ValueError(f"Offer scope differs for {label}")
         path = "/v3/artifacts/" + digest
         offers[label] = {"signed_assignment": assignment, "artifact_url": path + "?" + urlencode(tenant)}
-        artifacts[path] = {"signed_manifest": manifest, "payload": payload}
+        artifacts[path] = {"signed_manifest": manifest, "payload": base64.b64encode(payload).decode()}
     if len(artifacts) != len(offers):
         raise ValueError("Expected three distinct signed artifact digests")
 

@@ -86,3 +86,37 @@ The stock inspector requires distinct compiled payload hashes and signed
 qualification from a trusted producer. This pair keeps the payload identical
 and supplies development APK and OTA signatures. The stock inspector's
 classification for this HTTPS delta remains pending.
+
+## Build the current-ABI Android pair
+
+Use the Android calculation toolchains and install Homebrew OpenSSL 3 for the
+diagnostic signature. Run from a Mixer checkout that contains
+`b144c2c2042a4499365d1186f46d43fba1832143` and its source objects.
+Use a new campaign directory.
+
+```sh
+mkdir -p verification/local
+campaign="$PWD/verification/local/fieldlog-android-current-abi-my-run"
+tests/integration/fieldlog-native-capability-ota/build-current-abi-android-pair.sh "$campaign"
+(cd "$campaign/handoff" && shasum -a 256 -c SHA256SUMS)
+```
+
+The launcher builds both arm64 JNI libraries against one fresh VM archive.
+It verifies the linker maps, APK signatures, and identical compiled
+`AndroidManifest.xml` bytes, including version code 1 in both APKs. The
+storage-only APK receives the baseline calculation guest. The HTTPS APK
+receives the corrected guest. The two APKs share an APK signer and an OTA
+trust root.
+
+Check `handoff/host-replay.json` for the calculation and recovery observations.
+Check `handoff/stock-inspection.json` for the stock verifier results and the
+inspector outcome. The inspector admits both native identities and checks
+the exact packages and signed offers. It stops at `release.invalid-evidence`
+because its confirmation-flow schema cannot decode the calculation
+observations. The current host replay leaves Android installation and
+store-build classification pending.
+
+After the checksum check succeeds, keep `handoff/` and remove the campaign's
+`work/` directory. If the launcher fails, check the stage receipts in
+`work/logs/` before removing the campaign. Preserve any stage whose custody
+is `UNKNOWN`.

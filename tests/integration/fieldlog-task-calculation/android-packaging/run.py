@@ -19,8 +19,16 @@ def now():
 
 
 def size_kib(*roots):
-    totals = subprocess.check_output(["/usr/bin/du", "-sk", *roots], text=True, timeout=10)
-    return sum(int(line.split(maxsplit=1)[0]) for line in totals.splitlines())
+    for attempt in range(3):
+        sample = subprocess.run(["/usr/bin/du", "-sk", *roots], text=True, capture_output=True,
+                                timeout=10, env=os.environ | {"LC_ALL": "C"})
+        if sample.returncode == 0:
+            return sum(int(line.split(maxsplit=1)[0]) for line in sample.stdout.splitlines())
+        errors = sample.stderr.splitlines()
+        # The compiler can rename an intermediate between du's enumeration and stat.
+        if (attempt == 2 or not errors or not all(Path(root).is_dir() for root in roots)
+                or not all(line.endswith(": No such file or directory") for line in errors)):
+            sample.check_returncode()
 
 
 def group_absent(pid):

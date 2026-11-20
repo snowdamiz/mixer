@@ -10,7 +10,7 @@ unset SDKROOT TOOLCHAINS SWIFT_EXEC
 mkdir -p "$package/Sources/Seal" "$package/Sources/Probe"
 cp "$recipe/HostPackage.swift" "$package/Package.swift"
 cp "$recipe/Package.resolved" "$package/"
-cp "$recipe/Seal.swift" "$package/Sources/Seal/"
+cp "${2:-$recipe/Seal.swift}" "$package/Sources/Seal/Seal.swift"
 cp "$recipe/Probe.swift" "$package/Sources/Probe/"
 for module in FieldLogModels FieldLogStorage; do
     ln -sfn "$work/fieldlog/Integrations/GeneratedReport/Sources/$module" "$package/Sources/$module"

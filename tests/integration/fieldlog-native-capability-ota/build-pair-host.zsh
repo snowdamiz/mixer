@@ -9,17 +9,6 @@ export TMPDIR="$work/tmp" CLANG_MODULE_CACHE_PATH="$work/host-clang" SWIFTPM_MOD
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 cp "$work/host-build/debug/Probe" "$work/storage-only-probe"
 cp "$recipe/SealPair.swift" "$package/Sources/Seal/Seal.swift"
-python3 -B - "$package/Sources/Probe/Probe.swift" <<'PY'
-from pathlib import Path
-import sys
-
-source = Path(sys.argv[1])
-text = source.read_text()
-old = 'percentages == (sequence == 2 ? ["33%", "100%", "0%"] : ["0%", "100%", "0%"])'
-if text.count(old) != 1:
-    raise SystemExit("Unexpected calculation presentation probe")
-source.write_text(text.replace(old, 'percentages == ["33%", "100%", "0%"]'))
-PY
 /usr/bin/swift build --package-path "$package" --scratch-path "$work/host-build" \
     --cache-path "$work/host-cache" --config-path "$work/host-config" --security-path "$work/host-security" \
     --disable-dependency-cache --disable-prefetching --skip-update --force-resolved-versions \

@@ -17,6 +17,7 @@ import MixerUpdates
         guard let installation = UUID(uuidString: args[3]), let sequence = UInt64(args[4]),
               (1...3).contains(sequence) else { throw failure("Invalid run arguments") }
         let offline = args[5] == "offline"
+        let reviewed = args.count > 6 ? args[6] == "reviewed" : sequence == 2
         let seed = try CalculationFixture.readSeed(installed.appendingPathComponent("calculation-seed.json"))
         let store = directory.appendingPathComponent("workspace")
         let workspaceFile = store.appendingPathComponent("workspace.json")
@@ -62,7 +63,7 @@ import MixerUpdates
                   let launch = actual.activation.launchID,
                   (offline || actual.healthy != candidate),
                   counts.map(\.id) == ["completion-0", "completion-1", "completion-2"],
-                  percentages == (sequence == 2 ? ["33%", "100%", "0%"] : ["0%", "100%", "0%"]),
+                  percentages == (reviewed ? ["33%", "100%", "0%"] : ["0%", "100%", "0%"]),
                   rows.map(\.id) == tasks.map({ "row-" + $0.id.uuidString }),
                   rows.compactMap({ $0.children.first?.properties["text"]?.string }) == tasks.map(\.title),
                   let ticket = model.nativeDisplayTicket(attachment: attachment),

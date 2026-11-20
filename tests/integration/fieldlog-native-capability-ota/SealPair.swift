@@ -6,10 +6,14 @@ import MixerRuntimeIdentity
 @main struct SealPair {
     static func main() throws {
         let args = CommandLine.arguments
-        guard args.count == 5 else { throw failure("Expected packet, manifest template, Wasm and source revision") }
+        guard args.count == 5 || args.count == 6 else {
+            throw failure("Expected packet, manifest template, successor Wasm, source revision and optional baseline Wasm")
+        }
         let packet = URL(fileURLWithPath: args[1], isDirectory: true)
         let template = try object(Data(contentsOf: URL(fileURLWithPath: args[2])))
         let payload = try Data(contentsOf: URL(fileURLWithPath: args[3]))
+        let baseline = args.count == 6 ? try Data(contentsOf: URL(fileURLWithPath: args[5])) : payload
+        guard args.count == 5 || baseline != payload else { throw failure("Expected distinct compiled guests") }
         let identity = try ["old", "successor"].map {
             try CapabilityRuntimeIdentity(json: read(packet.appendingPathComponent($0), "identity-input.json"))
         }
@@ -50,8 +54,10 @@ import MixerRuntimeIdentity
         struct Offer {
             let manifest: Data
             let assignment: Data
+            let payload: Data
         }
         func issue(_ label: String, host: InstalledRuntime, withHTTPS: Bool, sequence: UInt64) throws -> Offer {
+            let guest = withHTTPS ? payload : baseline
             let materials = packet.appendingPathComponent(withHTTPS ? "successor" : "old").appendingPathComponent("Installed")
             let names = withHTTPS ? ["http-grant.json", "storage-grant.json"] : ["storage-grant.json"]
             let grants = try names.map { try StrictJSON.decode(CanonicalValue.self, from: read(materials, $0)) }
@@ -64,9 +70,9 @@ import MixerRuntimeIdentity
             body["source_commit"] = .text(args[4])
             body["provenance_id"] = .text("fieldlog-local-native-https-" + host.runtime.prefix(24))
             body["runtime"] = .text(host.runtime)
-            body["payload_sha256"] = .text(ReleaseVerifier.sha256(payload))
-            body["compressed_bytes"] = .uint(UInt64(payload.count))
-            body["expanded_bytes"] = .uint(UInt64(payload.count))
+            body["payload_sha256"] = .text(ReleaseVerifier.sha256(guest))
+            body["compressed_bytes"] = .uint(UInt64(guest.count))
+            body["expanded_bytes"] = .uint(UInt64(guest.count))
             body["key_id"] = .text(key)
             body["created_at_unix"] = .uint(now)
             let manifest = CanonicalValue.object(body)
@@ -77,7 +83,8 @@ import MixerRuntimeIdentity
                 "artifact_sha256": .text(digest), "runtime": .text(host.runtime), "key_id": .text(key), "created_at_unix": .uint(now),
             ])
             let offer = try Offer(manifest: sign(manifest, key: secret, field: "manifest", domain: "artifact"),
-                                  assignment: sign(assignment, key: secret, field: "assignment", domain: "assignment"))
+                                  assignment: sign(assignment, key: secret, field: "assignment", domain: "assignment"),
+                                  payload: guest)
             let directory = packet.appendingPathComponent(label)
             try write(offer.manifest, directory, "manifest.json")
             try write(offer.assignment, directory, "assignment.json")
@@ -85,7 +92,7 @@ import MixerRuntimeIdentity
         }
 
         func verify(_ verifier: ReleaseVerifierV3, _ offer: Offer, after: UInt64) throws -> VerifiedAssignmentV3 {
-            let artifact = try verifier.verifyArtifact(signedManifest: offer.manifest, payload: payload, now: now)
+            let artifact = try verifier.verifyArtifact(signedManifest: offer.manifest, payload: offer.payload, now: now)
             return try verifier.verifyAssignment(signedAssignment: offer.assignment, artifact: artifact,
                 channel: "beta", installation: installation, lastSequence: after, now: now)
         }
@@ -103,7 +110,7 @@ import MixerRuntimeIdentity
                 throw failure("A foreign capability map or runtime was accepted")
             } catch let error as UpdateError where error.code == "v3.manifest.compatibility" {}
         }
-        let artifact = try old.verifyArtifact(signedManifest: retained.manifest, payload: payload, now: now)
+        let artifact = try old.verifyArtifact(signedManifest: retained.manifest, payload: retained.payload, now: now)
         do {
             _ = try old.verifyAssignment(signedAssignment: candidate.assignment, artifact: artifact,
                 channel: "beta", installation: installation, lastSequence: 2, now: now)

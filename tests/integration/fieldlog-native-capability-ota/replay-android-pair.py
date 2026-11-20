@@ -49,8 +49,9 @@ def replay(campaign):
     old_material = packet / "old/Installed"
     shutil.copyfile(old_material / "calculation-seed.json", workspace / "workspace.json")
     workspace_sha = digest(workspace / "workspace.json")
-    payload = (packet / "reviewed.wasm").read_bytes()
-    payload_sha = digest(packet / "reviewed.wasm")
+    payloads = {label: packet / "reviewed.wasm" for label in ("old", "successor", "refused")}
+    if (packet / "baseline.wasm").is_file():
+        payloads["old"] = packet / "baseline.wasm"
     installation = read(packet / "verifier.json")["installation"]
     hosts = {label: read(packet / label / "host.json") for label in ("old", "successor")}
     phase_file = state / "phase"
@@ -68,16 +69,23 @@ def replay(campaign):
             with opener.open(url + body["artifact_url"], timeout=4) as response:
                 artifact = json.load(response)
                 require(read(packet / label / "manifest.json") == artifact["signed_manifest"]
-                        and base64.b64decode(artifact["payload"], validate=True) == payload,
+                        and base64.b64decode(artifact["payload"], validate=True) == payloads[label].read_bytes(),
                         f"Served manifest or payload differs for {label}")
         return raw
 
     def probe(label, sequence, offline=False):
-        executable = work / ("storage-only-probe" if label == "old" else "host-build/debug/Probe")
-        cmd = [executable, packet / label / "Installed", state, installation, str(sequence), "offline" if offline else "online"]
+        if label == "old":
+            executable = work / "storage-only-probe"
+        else:
+            successor = work / "successor/host-build/debug/Probe"
+            executable = successor if (packet / "baseline.wasm").is_file() else work / "host-build/debug/Probe"
+        variant = payloads[label].stem
+        cmd = [executable, packet / label / "Installed", state, installation, str(sequence),
+               "offline" if offline else "online", variant]
         result = json.loads(subprocess.check_output(cmd, text=True, timeout=22))
+        percentages = ["0%", "100%", "0%"] if variant == "baseline" else ["33%", "100%", "0%"]
         require(result["workspaceSHA256"] == workspace_sha and result["retired"]
-                and result["percentages"] == ["33%", "100%", "0%"], "Host presentation or workspace differs")
+                and result["percentages"] == percentages, "Host presentation or workspace differs")
         name = "recovery" if label == "old" else "recovery-" + hosts[label]["runtime"]
         path = state / "signed-checklist" / name / "state.json"
         recovery = read(path)
@@ -86,7 +94,7 @@ def replay(campaign):
         require(recovery["installation"] == installation and recovery["acceptedSequence"] == sequence
                 and recovery["fingerprint"] == hosts[label]["runtime"] and recovery["attempt"] is None
                 and candidate["artifactSHA256"] == signed["artifact_sha256"]
-                and candidate["payloadSHA256"] == payload_sha,
+                and candidate["payloadSHA256"] == digest(payloads[label]),
                 "Healthy recovery does not match the signed offer")
         return result, path
 

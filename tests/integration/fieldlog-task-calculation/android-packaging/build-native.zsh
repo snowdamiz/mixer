@@ -1,8 +1,8 @@
 #!/bin/zsh
 # Build the signed-capable payload from the composed FieldLog and pinned Mixer sources.
 set -eu
-if (( $# != 2 )); then
-    print -u2 'Usage: build-payload.zsh WORK OUTPUT'
+if (( $# < 2 || $# > 3 )); then
+    print -u2 'Usage: build-native.zsh WORK OUTPUT [LINK_MAP]'
     exit 2
 fi
 recipe=${0:A:h}
@@ -36,6 +36,10 @@ done
 
 
 objects=()
+link_map=()
+if (( $# == 3 )); then
+    link_map=(-Xlinker -Map -Xlinker "${3:A}")
+fi
 for source in "$transport/transport.c" "$transport/platform_android.c" "$app/Bridge/PublicBridge.c" "$app/Bridge/ChecklistBridge.c" "$app/Bridge/CalculationTrace/CalculationTrace.c"; do
     object="$payload/${source:t:r}.o"
     "$ndk/aarch64-linux-android28-clang" -fPIC -std=gnu11 -Wall -Wextra -Werror -I"$binding" -I"$host" -c "$source" -o "$object"
@@ -48,5 +52,5 @@ done
     --product mixer_public_android_jni -Xswiftc -DFIELDLOG_SIGNED_CHECKLIST -Xswiftc -DFIELDLOG_CALCULATION_FIXTURE -Xswiftc -DFIELDLOG_CALCULATION_TRACE -Xswiftc -gnone -Xcc -g0 \
     -Xcc "-I$app/Bridge/CalculationTrace" -Xcc "-I$app/Bridge" -Xcc "-I$engine/include" -Xcc "-I$binding" -Xcc "-I$host" \
     -Xlinker "-L$engine/lib" "${objects[@]}" -Xlinker -landroid -Xlinker -llog -Xlinker -z -Xlinker defs \
-    -Xlinker -z -Xlinker max-page-size=16384
+    -Xlinker -z -Xlinker max-page-size=16384 "${link_map[@]}"
 cp "$work/android-build/aarch64-unknown-linux-android28/debug/libmixer_public_android_jni.so" "$payload/"
