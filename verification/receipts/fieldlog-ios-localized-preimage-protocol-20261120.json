@@ -1,0 +1,45 @@
+{
+  "observedUTC": "2026-11-20T11:06:17Z",
+  "status": "protocol_controls_passed_build_binding_rejected",
+  "scope": "L02/L08 §22.2.5 iOS localization fixture before installed identity correction",
+  "source": {
+    "mixerBase": "9d0eec8ac194254ce19779d87fbdd93f107c4de6",
+    "mixerTree": "61f01309897bc22d77fabfb8346554e990710fab",
+    "fieldLog": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "xctestSourceSHA256": "2b798a6e21196ebcc4cf527f3a4e74b1b5ae7995c2b05019958336c6b401855d",
+    "stagedSourceBindingSHA256": "7c9a820bab9c21f78a8b59a8ace903a2d20a4d04df03d6c82ba9d88cc8606490",
+    "swiftCrypto": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+    "swiftASN1": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2"
+  },
+  "environment": {"os": "macOS 27.0.1 arm64", "xcode": "27.2 (27B52)", "swift": "6.4.2", "python": "3.14.8"},
+  "preparedFixture": {
+    "selector": "FieldLogUITests/ChecklistJourney/testSignedLocalizedChecklist",
+    "baselinePayload": {"bytes": 6214, "sha256": "b8597cac2c412478f87e51a9f4db4dca2e9f80bee3b40db6330650e3d3433272"},
+    "reviewedPayload": {"bytes": 6498, "sha256": "1670e4442cde31ea88d529b30d54b99fb8c0a96a05259f7456ddcaac41896a44"},
+    "temporaryRuntime": "c30a54748b9ddad9ca8dc5f26bbc7f98f1d0b702d770ad327ea61cf156592629",
+    "linkInputsSHA256": "1f4029e8ffc2288748cc9d6fdc4e00e8ef256051559b2175af7a47eea5c6723a",
+    "nativeFallbackSHA256": "92b8f487cfe506a38b64312d038dc05228ccad39be9653d8a95aa04476b7b6bd"
+  },
+  "proof": {
+    "signerSHA256": "5dfe69f5fb981d4ca3ccb390d18347890f45de249b7b723a40692914b556d8e9",
+    "verifierSHA256": "4ff9d763903e2681b44f6dbb73e4dbd03d20047a9de6a73edef86e15d1ba27e7",
+    "commands": [
+      "python3 -B prepare.py WORK --guests VERIFIED_GUESTS",
+      "xcrun swift build --package-path WORK/packet --product SignRotation",
+      "SignRotation WORK/packet/templates WORK/packet/fixture",
+      "xcrun swift build --package-path WORK/source/publisher/updates --product mixer-update",
+      "mixer-update verify-v3 using the pinned rotation recipe's eleven case arguments"
+    ],
+    "verifierAccepted": ["baseline", "replacement", "artifact-before-cutoff", "assignment-before-cutoff", "replacement-after-cutoff"],
+    "verifierRefused": ["revoked-artifact", "revoked-assignment", "wrong-runtime", "tampered-payload", "expired-artifact", "expired-assignment"]
+  },
+  "reviewFindings": [
+    "The staged descriptor uses the rotation build's link-input and fallback digests after native sources changed.",
+    "The reused headless probe expects English labels.",
+    "The reused readback expects the rotation selector, phases, and unedited workspace."
+  ],
+  "cleanup": {"directChildrenReapedAndGroupsAbsent": 19, "scratchKiBSampled": 366244, "scratchRemoved": true},
+  "deviceOperations": 0,
+  "installedBuildQualified": false,
+  "remaining": "Correct the installed identity and the localized probe and readback. Re-sign before origin and generic bundle qualification."
+}

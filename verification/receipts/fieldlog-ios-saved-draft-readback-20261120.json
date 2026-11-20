@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "scenario": "Mixer L08 §22.2.4 FieldLog iOS saved-draft rollback",
+  "status": "blocked",
+  "blocker": "Installed iOS and XCTest remain pending under the Mixer iOS device pause. The exact bound build receipt records a private binding patch and does not publish a native capture for these checkpoints.",
+  "mixer": {
+    "publicRevision": "9c14c70b5a2b8bd8b99b2b632fd5e67a590375e5",
+    "publicTree": "b37f92dfd150298311358423aa51007e74ce9e4d",
+    "worktreeHead": "58951594a866492be7ce204e93a9533f892b2550",
+    "projection": "git show from public pin; worktree HEAD unchanged"
+  },
+  "fieldLog": {
+    "publicRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "publicArchiveSHA256": "75d2ce2663ade805ca40831b17a460c248e88c62a7689d5a671182bbf0ed7840",
+    "rollbackFloorTree": "b81afd281ab00dbd1dc06d7ce0605b7f360aada6",
+    "optionalSuccessorTree": "eed0ea9f778a0b570c7abd1effe94aec7aa11fbb",
+    "hostSourceScope": "FieldLogModels and FieldLogStorage only"
+  },
+  "nativeInputReference": {
+    "path": "verification/receipts/fieldlog-ios-selected-draft-bound-app-20261119.json",
+    "sha256": "65713f8c3de099e946b8baa1221cbc3b5611d6587811078472b40ecfff6d08a9",
+    "bundleID": "dev.mixer.fieldlog",
+    "version": "0.1.0",
+    "build": "1",
+    "runtimeFingerprint": "c7dcc7ff27d404d451a5ff1a671e70f1ed6dfd16974c8a41d6406052b0f80abd",
+    "simulatorExecutableSHA256": "4dc2ab4c65edcba831235cddd9693f35719a3b436f49dd97003167cb58f87fe7",
+    "selector": "FieldLogUITests/FieldLogSignedDraftTests/testSignedOptionalFieldSurvivesRollbackAndOrdinarySave",
+    "binariesOpenedOrExecuted": false
+  },
+  "componentSHA256": {
+    "README.md": "57e429c81a9dd56e97a2b07f17e57a18055d39f7067535b51d3392042367d06f",
+    "RepositoryControl.swift": "fcb5467a7614107f95cdf54b8561102e1bcd5999e8a5a9f058b8da2e93e4347d",
+    "test_public_repository.sh": "3debb1fe2df0f5f1b078ae0d208aa38b57f4c22b7ef606df033c86e7e60699b2",
+    "test_verify.py": "ac47d77883c1e7c829da7162f20b40cb39a5aedda416c379d6c8d805d18ce66f",
+    "verify.py": "0792356c5041bd2888bde0d6d9d3ce410f43e080f0a168e505f335e30b379648"
+  },
+  "hostVerification": {
+    "status": "passed",
+    "environment": "arm64 macOS 27.0.1 (26A434)",
+    "python": "3.14.8",
+    "swift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "commands": [
+      "python3 -B tests/integration/fieldlog-saved-draft/ios/test_verify.py -v",
+      "bash -n tests/integration/fieldlog-saved-draft/ios/test_public_repository.sh",
+      "tests/integration/fieldlog-saved-draft/ios/test_public_repository.sh"
+    ],
+    "cliTests": {"total": 11, "passed": 11, "dataset": "authored positive and mutated captures"},
+    "publicRepositoryOutput": [
+      "PASS set-optional",
+      "PASS rollback-edit",
+      "PASS reopen",
+      "PASS verifier on snapshots from exact public repository"
+    ],
+    "initialHostBuildFailure": "The direct FieldLogStorage link lacked FieldLogModels. The corrected link completed for both pinned trees.",
+    "repositoryDataset": "Two separate saved drafts in one local workspace and one ImageIO-encoded JPEG. Separate macOS processes set the optional flag, read and edit through the floor, and reopen through the successor."
+  },
+  "cleanup": {
+    "repositoryScratchKiBBeforeFinalCleanup": 46400,
+    "allThreeRepositoryScratchPathsObservedAbsent": true,
+    "pythonScratchRemovedByTemporaryDirectory": true,
+    "nativeDeviceOperations": false,
+    "applicationSigning": false,
+    "remotePush": false
+  },
+  "adoptionVerification": {
+    "base": "6640232482135532b2490d1f6cf447e8ee975002",
+    "cliTestsPassedPerMode": 11,
+    "modes": ["python3 -B", "python3 -BO"],
+    "pinnedPublicRepositoryReplayExit": 0,
+    "repositoryScratchKiBBeforeCleanup": 46404,
+    "repositoryScratchObservedAbsent": true
+  },
+  "reviewer": null,
+  "localGatesPassed": []
+}
