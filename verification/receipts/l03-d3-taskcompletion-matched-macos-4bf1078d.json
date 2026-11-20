@@ -1,0 +1,851 @@
+{
+  "gate": "L03",
+  "milestone": "D3",
+  "status": "passed_scoped_macos_matched_host_measurement",
+  "observedUTC": "2026-11-20T12:22:06.545658+00:00",
+  "publicRevision": "4bf1078d46ad80912151b789c27485ff41578d1e",
+  "publicTree": "a7d7189dd9ee0233d00dff9fba056e55e6595284",
+  "scope": "Host-only D3 review/confirm/reopen. Historical host drivers were untracked. This replay uses the pinned public TaskCompletion, compact guest adapter and owned VM C ABI. No new iOS, Android, signed activation, UI, product latency, target-budget or gate verdict.",
+  "references": {
+    "verification/receipts/l03-d3-task-review-event-trap-7b61fe1c.json": "86cd1fa4364c1e9521218453332cdd26eeaf4412cf5466fd79d6f439db97a63d",
+    "verification/receipts/l03-d3-task-completion-android-7b61fe1c.json": "6904efc81bb2ea455cbd9bf821417050143bd1c6369e74fad047b8cf603f7f5c",
+    "verification/receipts/l03-d3-task-completion-host-benchmark-7b61fe1c.json": "88c7cc0cd385d50edcd3abcf3fb71d11e53ccf93c535e5dc3142b0295cab8670"
+  },
+  "replay": "python3 -B compiler/experiments/fieldlog-guest-benchmark/matched_task.py",
+  "sourceSHA256": {
+    "compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift": "617b60024af1accef044dd148360fcf889648594783057c7234b335b468071d7",
+    "compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift": "887fe08b21caca8b0d6eb70ee2d85be51d61c2e7bb152c92c6b43693ecd7e2b4",
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift": "508f0e5ef4b5439f6eaf0d3ff404bcc17034dce337cbb4886932b9826b483b62",
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift": "25fda0bc8aa630afbfab7b53d0a05ddadee31e560f7cee37daf60c8fa24bcc63",
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift": "37182a6b3da620e07730647526ca644f5e85e4e55c661cb785973516d277fde7",
+    "compiler/experiments/fieldlog-guest-benchmark/matched_task.py": "2d8137f209570e64e30d417f2d832680eccb541a96c4749cdcfb0b32e2bfe365",
+    "compiler/experiments/fieldlog-installed-guest/InstalledGuest.swift": "6393c778040ad28e445b278648864b99e33f9fc7bebf0bcf5987eba13c51ffdc"
+  },
+  "versions": {
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "hardware": "Mac17,9",
+    "swiftNative": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "swiftGuest": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "wasmLD": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "objcopy": "llvm-objcopy, compatible with GNU objcopy\nLLVM (http://llvm.org/):\n  LLVM version 21.0.0\n  Optimized build.",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "logicalCPUs": 15,
+    "architecture": "arm64"
+  },
+  "artifact": {
+    "kind": "raw unsigned Wasm with linked .debug_line",
+    "bytes": 5266,
+    "sha256": "b21b28e540a35ce0b9244e489940b3b6c1390c948ba7cfdde3cb87d79f88eb59",
+    "adapter": {
+      "bytes": 1950,
+      "sha256": "c1ef5c1dc3bbe1b45e5f4a34e5ace6e20a213632189a823b7cb069bc3dede8dc"
+    },
+    "vmArchive": {
+      "bytes": 19309144,
+      "sha256": "0beb9fbab5f2d1f718482391a43ecb57a3e76f6e3e0d31a0676b87b7a1852116"
+    },
+    "signedUpdatePayloadBytes": null,
+    "historicalAndroidTrialWasmSHA256": "59623248e6afe4fd66e4dbb0adf8ae6cd353528ad6f4769b52269a3020e2811b",
+    "measurementBoundary": "Exact byte count of the locally built, loadable diagnostic guest. The earlier Android APK and signed update envelope were outside the replay. The local fault adapter preserves the diagnostic source location with artifact-specific function and offset.",
+    "reproductionScope": "The raw Wasm length and SHA-256 describe the recorded build. An independent review rebuilt the same 5,266-byte payload in two separate scratch paths. The hashes differed in debug line and data sections. This harness does not require a stable Wasm hash across builds."
+  },
+  "differential": {
+    "frames": [
+      {
+        "revision": 1,
+        "status": "Open",
+        "button": "Complete task",
+        "sha256": "cba98fab9e4bed642f3b0ce41506d7a98eb2bebe37528ce1805821ac2bc49833",
+        "bytes": 435
+      },
+      {
+        "revision": 2,
+        "status": "Review required",
+        "button": "Confirm completion",
+        "sha256": "0d04a715c3a5fb3aae1fad401801ead8d555944960daa5f8becfc71b72460eae",
+        "bytes": 451
+      },
+      {
+        "revision": 3,
+        "status": "Completed",
+        "button": "Reopen task",
+        "sha256": "d6fa309e765b4ddf5e8ee08dfdee4339ef4d5deb2f8b16e18ea591d0ee07715c",
+        "bytes": 438
+      },
+      {
+        "revision": 4,
+        "status": "Open",
+        "button": "Complete task",
+        "sha256": "9f9839813937d389aeef9af99de5ee771c334ec97f92da084018d72ccabc7851",
+        "bytes": 435
+      }
+    ],
+    "exactBytesPerPair": true,
+    "staleAndTrailingLFRefusedWithoutFrameChangePerPath": 2,
+    "nativeDiagnostic": "TaskCompletion.swift:94: Precondition failed (SIGTRAP)",
+    "guestDiagnostic": "TaskCompletion.swift:94:9: unreachable [function=7 wasmOffset=1869]",
+    "guestStatus": 2,
+    "guestOperation": "invocation",
+    "everyGuestOwnerClosedAndStaleHandleRefused": true,
+    "descriptorRefusals": [
+      "differentMaximum",
+      "differentMinimum",
+      "extraFunctionExport",
+      "extraMemory",
+      "extraMemoryExport",
+      "importedFunction",
+      "missingMemory",
+      "missingMemoryExport",
+      "renamedMemoryExport",
+      "sharedMemory",
+      "startSection",
+      "unboundedMemory",
+      "wrongFunctionSignature",
+      "wrongMemoryExportIndex"
+    ],
+    "nativeValidatorUsed": true,
+    "fuelPerTurn": 1000000,
+    "memoryPages": 1,
+    "hostCalls": 0,
+    "fourthActivation": "Separate control only. At revision 5 the one fixture-only adapter substitution and native harness pass zero output capacity to the unchanged renderer. No fifth frame was emitted."
+  },
+  "benchmark": {
+    "order": [
+      "native",
+      "guest",
+      "guest",
+      "native",
+      "native",
+      "guest",
+      "guest",
+      "native",
+      "native",
+      "guest"
+    ],
+    "loadBefore": [
+      13.0,
+      12.2158203125,
+      13.32373046875
+    ],
+    "loadAfter": [
+      13.0,
+      12.2158203125,
+      13.32373046875
+    ],
+    "timer": "DispatchTime elapsed ns for each prepared canonical event through materialized frame. Swift includes acceptance, state transition and rendering. Guest includes C ABI write/invoke, report and control-header checks, and frame copy. Excludes startup, initial frame, event construction, close, JSON, comparison, refusal and trap controls.",
+    "memory": "Whole-process peak resident bytes via Darwin wait4 ru_maxrss. Includes startup and VM validation/construction on the guest path.",
+    "design": "Five fresh interleaved matched pairs, alternating pair order, three successful turns per process. All four frames checked in each process. Optimized native Swift and release VM, Embedded guest built -Osize. Descriptive only. A separation smaller than run-to-run spread would be treated as unresolved.",
+    "guestComponentReplay": {
+      "meaning": "Separate replay with extra timestamps after write verification and before invoke verification. Invoke includes export and argument preparation plus synchronous owning VM C call. Remainder includes report checks and frame reads. Whole-process CPU is available with each sample; no instruction-level profile.",
+      "writeInvokeNS": [
+        [
+          208,
+          317917
+        ],
+        [
+          583,
+          312125
+        ],
+        [
+          209,
+          300916
+        ]
+      ],
+      "turnNS": [
+        326042,
+        313875,
+        301834
+      ],
+      "fuel": [
+        16111,
+        15803,
+        15753
+      ]
+    },
+    "paths": {
+      "native": {
+        "processes": 5,
+        "timedTurns": 15,
+        "errors": 0,
+        "framesChecked": 20,
+        "matchedSequenceNS": {
+          "count": 5,
+          "median": 10749,
+          "min": 8834,
+          "max": 13125
+        },
+        "byTransitionNS": [
+          {
+            "count": 5,
+            "median": 9916,
+            "min": 8084,
+            "max": 12375
+          },
+          {
+            "count": 5,
+            "median": 458,
+            "min": 375,
+            "max": 584
+          },
+          {
+            "count": 5,
+            "median": 292,
+            "min": 208,
+            "max": 333
+          }
+        ],
+        "peakRSSBytes": {
+          "count": 5,
+          "median": 6651904,
+          "min": 6619136,
+          "max": 6668288
+        },
+        "samples": [
+          {
+            "turnNS": [
+              10833,
+              375,
+              208
+            ],
+            "peakRSSBytes": 6651904,
+            "processCPUNS": 5373000
+          },
+          {
+            "turnNS": [
+              12375,
+              458,
+              292
+            ],
+            "peakRSSBytes": 6651904,
+            "processCPUNS": 6139000
+          },
+          {
+            "turnNS": [
+              9916,
+              500,
+              333
+            ],
+            "peakRSSBytes": 6668288,
+            "processCPUNS": 5437000
+          },
+          {
+            "turnNS": [
+              9542,
+              584,
+              333
+            ],
+            "peakRSSBytes": 6635520,
+            "processCPUNS": 4841000
+          },
+          {
+            "turnNS": [
+              8084,
+              458,
+              292
+            ],
+            "peakRSSBytes": 6619136,
+            "processCPUNS": 5406000
+          }
+        ]
+      },
+      "guest": {
+        "processes": 5,
+        "timedTurns": 15,
+        "errors": 0,
+        "framesChecked": 20,
+        "matchedSequenceNS": {
+          "count": 5,
+          "median": 860834,
+          "min": 814500,
+          "max": 1038917
+        },
+        "byTransitionNS": [
+          {
+            "count": 5,
+            "median": 295083,
+            "min": 274625,
+            "max": 417167
+          },
+          {
+            "count": 5,
+            "median": 266125,
+            "min": 258125,
+            "max": 274250
+          },
+          {
+            "count": 5,
+            "median": 281625,
+            "min": 264292,
+            "max": 409209
+          }
+        ],
+        "peakRSSBytes": {
+          "count": 5,
+          "median": 7340032,
+          "min": 7274496,
+          "max": 7405568
+        },
+        "samples": [
+          {
+            "turnNS": [
+              274625,
+              258125,
+              409209
+            ],
+            "peakRSSBytes": 7274496,
+            "processCPUNS": 6951000,
+            "fuel": [
+              16111,
+              15803,
+              15753
+            ]
+          },
+          {
+            "turnNS": [
+              417167,
+              264083,
+              357667
+            ],
+            "peakRSSBytes": 7405568,
+            "processCPUNS": 8106000,
+            "fuel": [
+              16111,
+              15803,
+              15753
+            ]
+          },
+          {
+            "turnNS": [
+              284083,
+              266125,
+              264292
+            ],
+            "peakRSSBytes": 7372800,
+            "processCPUNS": 6663000,
+            "fuel": [
+              16111,
+              15803,
+              15753
+            ]
+          },
+          {
+            "turnNS": [
+              295083,
+              274250,
+              267625
+            ],
+            "peakRSSBytes": 7274496,
+            "processCPUNS": 6780000,
+            "fuel": [
+              16111,
+              15803,
+              15753
+            ]
+          },
+          {
+            "turnNS": [
+              306959,
+              272250,
+              281625
+            ],
+            "peakRSSBytes": 7340032,
+            "processCPUNS": 5124000,
+            "fuel": [
+              16111,
+              15803,
+              15753
+            ]
+          }
+        ]
+      }
+    },
+    "observation": {
+      "verdict": "The native path took less elapsed time for this prepared-input host workload in every pair. Both paths completed all turns and emitted the expected bytes.",
+      "guestInvokeShare": {
+        "min": 0.9751,
+        "max": 0.997
+      },
+      "attribution": "The separately instrumented replay locates the dominant measured guest cost in the synchronous owned VM invocation boundary. It cannot isolate interpreter, bookkeeping, or scheduling time inside that call.",
+      "tuningAndRelevance": "Both host branches ran optimized with identical prepared events. The native branch directly calls the model, and the owned branch includes the mandatory ABI transfers and checks. Apple Swift versions differ between native and Embedded. The host was shared. The test excludes app presentation, installed activation, target hardware, and production tuning. These samples establish no end-user latency or hardware budget."
+    }
+  },
+  "buildCommands": [
+    {
+      "label": "guest-build",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-whole-module-optimization",
+        "-Osize",
+        "-parse-as-library",
+        "-gline-tables-only",
+        "-debug-prefix-map",
+        "$REPO=.",
+        "-debug-prefix-map",
+        "$RUN=./fixture",
+        "-debug-prefix-map",
+        "$USER_HOME=/toolchain",
+        "-module-cache-path",
+        "$RUN/modules-guest",
+        "-Xfrontend",
+        "-disable-stack-protector",
+        "-D",
+        "REQUIRE_REVIEW",
+        "-emit-object",
+        "$REPO/compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift",
+        "$RUN/InstalledGuest.swift",
+        "-o",
+        "$RUN/task.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "guest-link",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--no-entry",
+        "--gc-sections",
+        "-z",
+        "stack-size=16384",
+        "--max-memory=65536",
+        "--export=mixer_guest_ui_start_v1",
+        "--export=mixer_guest_ui_event_v1",
+        "--export=mixer_guest_capability_ready_v1",
+        "$RUN/task.o",
+        "-o",
+        "$RUN/task-linked.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "guest-debug-lines",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-objcopy",
+        "--wildcard",
+        "--remove-section=.debug_*",
+        "--keep-section=.debug_line",
+        "--remove-section=name",
+        "--remove-section=producers",
+        "$RUN/task-linked.wasm",
+        "$RUN/task.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "vm-build",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--offline",
+        "--locked",
+        "--release",
+        "--lib",
+        "--jobs",
+        "1",
+        "--features",
+        "experimental-capability-native",
+        "--manifest-path",
+        "$REPO/vm/Cargo.toml",
+        "--target-dir",
+        "$RUN/rust"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "host-build",
+      "argv": [
+        "/usr/bin/swiftc",
+        "-j",
+        "1",
+        "-swift-version",
+        "6",
+        "-parse-as-library",
+        "-module-cache-path",
+        "$RUN/modules-native",
+        "-I",
+        "$RUN",
+        "-O",
+        "-whole-module-optimization",
+        "$REPO/compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift",
+        "$REPO/compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift",
+        "$RUN/rust/release/libmixer_vm.a",
+        "-o",
+        "$RUN/matched"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "host-debug-build",
+      "argv": [
+        "/usr/bin/swiftc",
+        "-j",
+        "1",
+        "-swift-version",
+        "6",
+        "-parse-as-library",
+        "-module-cache-path",
+        "$RUN/modules-native",
+        "-I",
+        "$RUN",
+        "-Onone",
+        "-g",
+        "$REPO/compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift",
+        "$REPO/compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift",
+        "$RUN/rust/release/libmixer_vm.a",
+        "-o",
+        "$RUN/matched-debug"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "guest-control",
+      "argv": [
+        "$RUN/matched",
+        "guest-control",
+        "$RUN/task.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "native-fault",
+      "argv": [
+        "$RUN/matched-debug",
+        "native-fault",
+        "$RUN/task.wasm"
+      ],
+      "exit": -5
+    },
+    {
+      "label": "pair-1-native",
+      "argv": [
+        "$RUN/matched",
+        "native",
+        "$RUN/task.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "pair-1-guest",
+      "argv": [
+        "$RUN/matched",
+        "guest",
+        "$RUN/task.wasm"
+      ],
+      "exit": 0
+    }
+  ],
+  "custody": {
+    "directReapedAndGroupsObservedAbsent": 33,
+    "unknown": 0,
+    "observedPeakScratchBytes": 116224355,
+    "scratchLimitBytes": 3221225472,
+    "scratchRemoved": true
+  },
+  "publicMainObservation": {
+    "command": "git ls-remote origin refs/heads/main",
+    "remote": "https://github.com/snowdamiz/mixer.git",
+    "revision": "4bf1078d46ad80912151b789c27485ff41578d1e"
+  },
+  "preparationAttempt": {
+    "status": "closed_before_measurement",
+    "reason": "Descriptor helper import omitted the maintained fieldlog-reactor module path. The corrected driver uses that source directory.",
+    "scratchRemoved": true
+  },
+  "replaySetup": {
+    "description": "Create a clean detached worktree at publicRevision using a checkout containing this receipt and both adopted harness files. From that existing checkout, set origin_checkout to its absolute path. Set replay_checkout to the new detached worktree. Keep the tracked pinned source intact and add exactly the two harness files.",
+    "harnessGitBlobs": {
+      "compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift": "efb9d38e3237bb0f9ba6b01627d7171d84b05d59",
+      "compiler/experiments/fieldlog-guest-benchmark/matched_task.py": "855b0ddf0ba55441a8a6022f41ba25333a62a2ff"
+    },
+    "commands": [
+      "git -C \"$origin_checkout\" worktree add --detach \"$replay_checkout\" 4bf1078d46ad80912151b789c27485ff41578d1e",
+      "cd \"$replay_checkout\"",
+      "git -C \"$origin_checkout\" cat-file blob efb9d38e3237bb0f9ba6b01627d7171d84b05d59 > compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift",
+      "git -C \"$origin_checkout\" cat-file blob 855b0ddf0ba55441a8a6022f41ba25333a62a2ff > compiler/experiments/fieldlog-guest-benchmark/matched_task.py",
+      "printf '%s  %s\\n' '887fe08b21caca8b0d6eb70ee2d85be51d61c2e7bb152c92c6b43693ecd7e2b4' 'compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift' | shasum -a 256 -c",
+      "printf '%s  %s\\n' '2d8137f209570e64e30d417f2d832680eccb541a96c4749cdcfb0b32e2bfe365' 'compiler/experiments/fieldlog-guest-benchmark/matched_task.py' | shasum -a 256 -c",
+      "python3 -B compiler/experiments/fieldlog-guest-benchmark/matched_task.py"
+    ]
+  },
+  "review": {
+    "scope": "Independent review of staged bytes, five pair summaries, exact frame and fault assertions, Darwin wait4 RSS scale, and two separate guest builds.",
+    "result": "Scoped host evidence accepted. The adopted receipt identifies the two harness overlays and records the Wasm hash as specific to the observed build."
+  },
+  "rootReplay": {
+    "rawReceiptSHA256": "0a77c0d3bf03f01c4c7008a64697eaa9838198b04e703e33ab1353a1143ce58e",
+    "checkout": "Clean detached sparse worktree at the exact public revision with the two verified adopted harness blobs.",
+    "artifact": {
+      "bytes": 5266,
+      "sha256": "80a22427de602c0e935c635546b1b93b09c6efd37858952adae37586b2510b3d"
+    },
+    "framesAndDiagnosticMatch": true,
+    "benchmark": {
+      "order": [
+        "native",
+        "guest",
+        "guest",
+        "native",
+        "native",
+        "guest",
+        "guest",
+        "native",
+        "native",
+        "guest"
+      ],
+      "loadBefore": [
+        6.00439453125,
+        7.64453125,
+        10.40966796875
+      ],
+      "loadAfter": [
+        6.00439453125,
+        7.64453125,
+        10.40966796875
+      ],
+      "timer": "DispatchTime elapsed ns for each prepared canonical event through materialized frame. Swift includes acceptance, state transition and rendering. Guest includes C ABI write/invoke, report and control-header checks, and frame copy. Excludes startup, initial frame, event construction, close, JSON, comparison, refusal and trap controls.",
+      "memory": "Whole-process peak resident bytes via Darwin wait4 ru_maxrss. Includes startup and VM validation/construction on the guest path.",
+      "design": "Five fresh interleaved matched pairs, alternating pair order, three successful turns per process. All four frames checked in each process. Optimized native Swift and release VM, Embedded guest built -Osize. Descriptive only. A separation smaller than run-to-run spread would be treated as unresolved.",
+      "guestComponentReplay": {
+        "meaning": "Separate replay with extra timestamps after write verification and before invoke verification. Invoke includes export and argument preparation plus synchronous owning VM C call. Remainder includes report checks and frame reads. Whole-process CPU is available with each sample; no instruction-level profile.",
+        "writeInvokeNS": [
+          [
+            166,
+            277209
+          ],
+          [
+            333,
+            286000
+          ],
+          [
+            291,
+            318917
+          ]
+        ],
+        "turnNS": [
+          284208,
+          290875,
+          321417
+        ],
+        "fuel": [
+          16111,
+          15803,
+          15753
+        ]
+      },
+      "paths": {
+        "native": {
+          "processes": 5,
+          "timedTurns": 15,
+          "errors": 0,
+          "framesChecked": 20,
+          "matchedSequenceNS": {
+            "count": 5,
+            "median": 7375,
+            "min": 6375,
+            "max": 13625
+          },
+          "byTransitionNS": [
+            {
+              "count": 5,
+              "median": 6708,
+              "min": 5750,
+              "max": 12875
+            },
+            {
+              "count": 5,
+              "median": 458,
+              "min": 375,
+              "max": 458
+            },
+            {
+              "count": 5,
+              "median": 292,
+              "min": 208,
+              "max": 292
+            }
+          ],
+          "peakRSSBytes": {
+            "count": 5,
+            "median": 6651904,
+            "min": 6635520,
+            "max": 6668288
+          },
+          "samples": [
+            {
+              "turnNS": [
+                7584,
+                458,
+                292
+              ],
+              "peakRSSBytes": 6668288,
+              "processCPUNS": 5692000
+            },
+            {
+              "turnNS": [
+                6292,
+                458,
+                291
+              ],
+              "peakRSSBytes": 6651904,
+              "processCPUNS": 5223000
+            },
+            {
+              "turnNS": [
+                12875,
+                458,
+                292
+              ],
+              "peakRSSBytes": 6668288,
+              "processCPUNS": 4811000
+            },
+            {
+              "turnNS": [
+                5750,
+                417,
+                208
+              ],
+              "peakRSSBytes": 6635520,
+              "processCPUNS": 3950000
+            },
+            {
+              "turnNS": [
+                6708,
+                375,
+                292
+              ],
+              "peakRSSBytes": 6651904,
+              "processCPUNS": 4316000
+            }
+          ]
+        },
+        "guest": {
+          "processes": 5,
+          "timedTurns": 15,
+          "errors": 0,
+          "framesChecked": 20,
+          "matchedSequenceNS": {
+            "count": 5,
+            "median": 862000,
+            "min": 795126,
+            "max": 968375
+          },
+          "byTransitionNS": [
+            {
+              "count": 5,
+              "median": 298833,
+              "min": 282959,
+              "max": 440209
+            },
+            {
+              "count": 5,
+              "median": 262833,
+              "min": 251375,
+              "max": 268667
+            },
+            {
+              "count": 5,
+              "median": 263333,
+              "min": 258000,
+              "max": 294500
+            }
+          ],
+          "peakRSSBytes": {
+            "count": 5,
+            "median": 7356416,
+            "min": 7340032,
+            "max": 7405568
+          },
+          "samples": [
+            {
+              "turnNS": [
+                440209,
+                262833,
+                265333
+              ],
+              "peakRSSBytes": 7405568,
+              "processCPUNS": 7741000,
+              "fuel": [
+                16111,
+                15803,
+                15753
+              ]
+            },
+            {
+              "turnNS": [
+                388167,
+                265125,
+                263333
+              ],
+              "peakRSSBytes": 7372800,
+              "processCPUNS": 7256000,
+              "fuel": [
+                16111,
+                15803,
+                15753
+              ]
+            },
+            {
+              "turnNS": [
+                298833,
+                268667,
+                294500
+              ],
+              "peakRSSBytes": 7340032,
+              "processCPUNS": 6020000,
+              "fuel": [
+                16111,
+                15803,
+                15753
+              ]
+            },
+            {
+              "turnNS": [
+                282959,
+                251375,
+                260792
+              ],
+              "peakRSSBytes": 7356416,
+              "processCPUNS": 5359000,
+              "fuel": [
+                16111,
+                15803,
+                15753
+              ]
+            },
+            {
+              "turnNS": [
+                285916,
+                261292,
+                258000
+              ],
+              "peakRSSBytes": 7340032,
+              "processCPUNS": 5611000,
+              "fuel": [
+                16111,
+                15803,
+                15753
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "custody": {
+      "directReapedAndGroupsObservedAbsent": 33,
+      "unknown": 0,
+      "observedPeakScratchBytes": 117203312,
+      "scratchLimitBytes": 3221225472,
+      "scratchRemoved": true
+    }
+  }
+}
