@@ -202,7 +202,7 @@ defmodule MixerHosted.Authorization.ArtifactReadFixture do
     :telemetry.attach(
       id,
       [:mixer_artifact_read_fixture, :repo, :query],
-      fn _, _, metadata, _ -> callback.(metadata.query) end,
+      fn _, _, metadata, _ -> callback.(metadata.query, metadata.result) end,
       nil
     )
   end
@@ -457,7 +457,7 @@ defmodule MixerHosted.Authorization.ArtifactReadTest do
   test "issuer credential membership and tenant rejection happen before metadata helper" do
     parent = self()
 
-    F.observe(:read_rejection, fn query ->
+    F.observe(:read_rejection, fn query, _result ->
       if String.contains?(query, "SELECT * FROM public.mixer_customer_artifact_metadata("),
         do: send(parent, :metadata)
     end)
@@ -602,15 +602,27 @@ defmodule MixerHosted.Authorization.ArtifactReadTest do
   end
 
   test "expiry immediately after actual metadata resolution rejects before callback" do
-    i = F.identity(%{expires_at: F.now() + 1})
+    # Integer-second expiry leaves at least a full second for metadata resolution.
+    i = F.identity(%{expires_at: F.now() + 2})
+    parent = self()
 
-    F.observe(:read_expiry, fn query ->
-      if String.starts_with?(query, "SELECT * FROM public.mixer_customer_artifact_metadata("),
-        do: F.expire(i)
-    end)
+    :ok =
+      F.observe(:read_expiry, fn
+        "SELECT * FROM public.mixer_customer_artifact_metadata($1)", {:ok, %{rows: [_]}} ->
+          resolved_at = F.now()
+          F.expire(i)
+          send(parent, {:metadata_resolved, resolved_at, F.now()})
+
+        _, _ ->
+          :ok
+      end)
 
     try do
-      assert {:error, :unauthenticated} = F.run(fn _, _ -> flunk() end, i)
+      result = F.run(fn _, _ -> flunk() end, i)
+      assert_received {:metadata_resolved, resolved_at, resumed_at}
+      assert resolved_at < i.expires_at
+      assert resumed_at >= i.expires_at
+      assert {:error, :unauthenticated} = result
     after
       :telemetry.detach(:read_expiry)
     end

@@ -1,0 +1,52 @@
+{
+  "baseRevision": "2469bdd4a1e204bf13c40879b797ab0500d1e71c",
+  "scope": "The PostgreSQL artifact authorization test observes successful metadata resolution before token expiry. Product authorization code is byte-identical.",
+  "previousCI": {
+    "run": 44651803557,
+    "job": 136008248456,
+    "passed": 936,
+    "failed": 1,
+    "skipped": 2,
+    "failedTest": "expiry immediately after actual metadata resolution rejects before callback"
+  },
+  "sourceAdmission": {
+    "identity": "hosted-artifact-read-expiry-fixture-source-v52",
+    "selectedPaths": 408,
+    "sourceDigestSHA256": "7d3b01907c7eb4f323a9dd62376bc8bffd2277dc623c23e9886a0af5108002aa",
+    "selectionSHA256": "20c47614810010cacb99d177db979acb5d6dcb92accd2c6e3d5f6d46575bcaca",
+    "exactDelta": {
+      "hosted/test/mixer_hosted/authorization/artifact_read_test.exs": {
+        "after": {
+          "bytes": 27562,
+          "sha256": "d20b5d3a532b3e75a73368927d8f897c9cd3f23630e14a5922239cf99e3a0d0d"
+        },
+        "before": {
+          "bytes": 27133,
+          "sha256": "8f92de8e22764cc6c6e5f79d377819f818f70ac5fefb443b2dc535bc2098065c"
+        }
+      }
+    },
+    "historicalV51Preserved": true,
+    "normalAndOptimized": "Both v52 installed source checks and both Source141 archive checks passed. The latter receipts were byte-identical.",
+    "focusedCollector": {
+      "normalPassed": 11,
+      "optimizedPassed": 11
+    }
+  },
+  "independentReview": {
+    "result": "pass",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "postgresql": "17.11",
+    "focusedPassed": 15,
+    "negativeControls": [
+      "An already-expired token produced no metadata observation.",
+      "Delaying observation past expiry failed the live-token assertion."
+    ],
+    "cleanup": "Both probe databases stopped, ports were reusable, and owned scratch was removed."
+  },
+  "limitations": [
+    "The test uses a one- to two-second window before the integer expiry boundary. It explicitly reports a missed boundary.",
+    "Post-push hosted CI is pending. L07 and GA dispositions are unchanged."
+  ]
+}
