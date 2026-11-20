@@ -5,6 +5,7 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
   alias MixerHosted.Authorization.Postgres.Session
   alias MixerHosted.Authorization.Transaction.Context
   alias MixerHosted.BrowserAuth.ActiveCreate
+  alias MixerHosted.Identity.BoundedJSON
 
   @action "build.create"
   @scope [:organization_id, :project_id, :application_id]
@@ -20,6 +21,8 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
   @starter_sdk_sha256 "ee03d620f05de3ecf3bb1242ab14da76082ca9b7d26ddcfbf72f8c82c967d50b"
   @starter_app_sha256 "9a3675d963109cb0d3e67b4230c1d2013a16a135263178d1c09a3fa7c6b38672"
   @android_driver "Generated/MixerAndroid/android-build.py"
+  @managed_profile "managed-linux-pair25-v1"
+  @max_managed_manifest 4096
   @excluded ~w(.build .git .swiftpm node_modules .gradle .mixer target .DS_Store)
   @private_suffix ~w(.pem .key .p12 .pfx .mobileprovision .keystore .jks)
 
@@ -27,23 +30,35 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
   def runtime_config!(env) do
     keys = ~w(MIXER_LOCAL_STARTER_ORGANIZATION MIXER_LOCAL_STARTER_PROJECT
       MIXER_LOCAL_STARTER_APPLICATION MIXER_LOCAL_STARTER_REGISTRATION MIXER_LOCAL_STARTER_SHA256
-      MIXER_LOCAL_STARTER_WORKER_SHA256)
+      MIXER_LOCAL_STARTER_WORKER_SHA256 MIXER_LOCAL_STARTER_PROFILE)
 
     case Enum.map(keys, &Map.get(env, &1)) do
-      [nil, nil, nil, nil, nil, nil] ->
+      [nil, nil, nil, nil, nil, nil, nil] ->
         nil
 
-      [org, project, app, path, pin, worker_pin] when is_binary(path) ->
+      [org, project, app, path, pin, worker_pin, nil] when is_binary(path) ->
         scope = %{organization_id: org, project_id: project, application_id: app}
 
-        if match?({:ok, _}, Inputs.new(scope, nil)) and Path.type(path) == :absolute and
-             Path.expand(path) == path and digest?(pin) and digest?(worker_pin),
-           do: %{scope: scope, path: path, sha256: pin, worker_sha256: worker_pin},
-           else: raise(ArgumentError, "invalid local starter configuration")
+        if valid_config?(scope, path, pin) and digest?(worker_pin),
+          do: %{scope: scope, path: path, sha256: pin, worker_sha256: worker_pin},
+          else: raise(ArgumentError, "invalid local starter configuration")
+
+      [org, project, app, path, pin, nil, @managed_profile]
+      when is_binary(path) and byte_size(path) in 1..1024 ->
+        scope = %{organization_id: org, project_id: project, application_id: app}
+
+        if valid_config?(scope, path, pin),
+          do: %{scope: scope, path: path, sha256: pin, profile: @managed_profile},
+          else: raise(ArgumentError, "invalid local starter configuration")
 
       _ ->
         raise ArgumentError, "incomplete local starter configuration"
     end
+  end
+
+  defp valid_config?(scope, path, pin) do
+    match?({:ok, _}, Inputs.new(scope, nil)) and Path.type(path) == :absolute and
+      Path.expand(path) == path and digest?(pin)
   end
 
   def parse(
@@ -155,6 +170,27 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
 
   defp apply_selection(_, {:select, _}, _), do: {:error, :not_found}
 
+  defp selection_status(_scope, %{profile: @managed_profile} = starter, select?) do
+    Schema.admit!(CreateRepo, :managed_linux_pair25)
+
+    [status] =
+      Session.one!(
+        CreateRepo,
+        "SELECT public.mixer_managed_linux_pair25_starter_v1($1,$2,$3,$4,$5,$6)",
+        [
+          starter.id,
+          starter.pin,
+          starter.spec,
+          select?,
+          starter.projection_sha256,
+          starter.rendered_driver_sha256
+        ],
+        :authorization_unavailable
+      )
+
+    status
+  end
+
   defp selection_status(_scope, %{spec: %{"platform" => "android"}} = starter, select?) do
     Schema.admit!(CreateRepo, :android)
 
@@ -235,9 +271,64 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
 
   @doc false
   def load(scope) do
-    with %{scope: ^scope, path: path, sha256: pin, worker_sha256: worker_pin} <-
-           Application.get_env(:mixer_hosted, __MODULE__),
-         {:ok, raw} <- read(path, 512 * 1024),
+    case Application.get_env(:mixer_hosted, __MODULE__) do
+      %{scope: ^scope, path: path, sha256: pin, profile: @managed_profile} = config
+      when not is_map_key(config, :worker_sha256) ->
+        load_managed_linux(scope, path, pin)
+
+      %{scope: ^scope, path: path, sha256: pin, worker_sha256: worker_pin} = config
+      when not is_map_key(config, :profile) ->
+        load_export(scope, path, pin, worker_pin)
+
+      _ ->
+        {:error, :not_found}
+    end
+  rescue
+    _ -> {:error, :not_found}
+  end
+
+  defp load_managed_linux(scope, path, pin) do
+    with {:ok, raw} <- read(path, @max_managed_manifest),
+         true <- canonical?(path),
+         ^pin <- sha(raw),
+         {:ok,
+          %{
+            "profile" => @managed_profile,
+            "spec" => spec,
+            "projection_sha256" => projection,
+            "rendered_driver_sha256" => driver
+          } = manifest}
+         when map_size(manifest) == 4 <- BoundedJSON.object(raw, @max_managed_manifest),
+         %{
+           "platform" => "android",
+           "source" => %{"kind" => "revision", "reference" => ref, "sha256" => tree} = source,
+           "toolchain_lock_sha256" => lock,
+           "build_definition_sha256" => definition
+         }
+         when map_size(source) == 3 <- spec,
+         true <- Enum.sort(Map.keys(spec)) == Enum.sort(@spec_keys),
+         true <- Map.take(spec, Enum.map(@scope, &Atom.to_string/1)) == stringify_scope(scope),
+         true <- Enum.all?([projection, driver, tree, lock, definition], &digest?/1),
+         true <- ref == "starter-" <> tree do
+      {:ok,
+       %{
+         profile: @managed_profile,
+         id: "starter-" <> pin,
+         pin: pin,
+         spec: spec,
+         projection_sha256: projection,
+         rendered_driver_sha256: driver
+       }}
+    else
+      _ -> {:error, :not_found}
+    end
+  end
+
+  defp stringify_scope(scope),
+    do: Map.new(scope, fn {key, value} -> {Atom.to_string(key), value} end)
+
+  defp load_export(scope, path, pin, worker_pin) do
+    with {:ok, raw} <- read(path, 512 * 1024),
          ^pin <- sha(raw),
          {:ok,
           %{
@@ -253,9 +344,7 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
          true <- CreateInput.id?(worker_id) and is_integer(port) and port in 1..65_535,
          %{"spec" => spec, "files" => files, "root" => root, "recipe" => recipe} <- grant,
          ^tenant <- scope.organization_id,
-         true <-
-           Map.take(spec, Enum.map(@scope, &Atom.to_string/1)) ==
-             Map.new(scope, fn {k, v} -> {Atom.to_string(k), v} end),
+         true <- Map.take(spec, Enum.map(@scope, &Atom.to_string/1)) == stringify_scope(scope),
          %{
            "platform" => platform,
            "source" => %{"kind" => kind, "reference" => ref, "sha256" => tree} = source,
@@ -281,8 +370,6 @@ defmodule MixerHosted.CustomerBuilds.LocalStarter do
     else
       _ -> {:error, :not_found}
     end
-  rescue
-    _ -> {:error, :not_found}
   end
 
   defp recipe_matches?(recipe, policy, platform, root, files) do

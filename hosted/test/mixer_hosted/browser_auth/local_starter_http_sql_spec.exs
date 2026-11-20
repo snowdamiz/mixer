@@ -396,6 +396,275 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
     )
   end
 
+  if System.get_env("MIXER_MANAGED_LINUX_PAIR25_STARTER_TEST") == "1" do
+    @tag :managed_linux_pair25_starter
+    test "managed Linux Starter authorizes and queues exactly one selected Pair25 input", c do
+      auth = login(c)
+
+      org =
+        create(c, auth, "/console-api/v1/orgs", %{display_name: "Managed Linux Starter owner"})
+
+      scope = register_app(c, auth, org, "Managed Linux project")
+      other = register_app(c, auth, org, "Sibling project")
+      viewer = %{organization_id: "org-a", project_id: "project-a", application_id: "fieldlog"}
+      baseline = side_effect_rows()
+
+      tree = sha256("Pair25 source")
+
+      spec =
+        Map.merge(stringify(scope), %{
+          "platform" => "android",
+          "source" => %{"kind" => "revision", "reference" => "starter-" <> tree, "sha256" => tree},
+          "toolchain_lock_sha256" => sha256("Pair25 Linux lock"),
+          "build_definition_sha256" => sha256("Pair25 Docker recipe")
+        })
+
+      profile = "managed-linux-pair25-v1"
+      projection = sha256("Pair25 projection")
+      driver = sha256("Pair25 rendered driver")
+
+      manifest = %{
+        "profile" => profile,
+        "spec" => spec,
+        "projection_sha256" => projection,
+        "rendered_driver_sha256" => driver
+      }
+
+      raw = Jason.encode!(manifest)
+      pin = sha256(raw)
+      id = "starter-" <> pin
+      payload = Map.put(scope, :starter_id, id)
+      scratch = Path.join(System.tmp_dir!(), "managed-linux-starter")
+      File.mkdir!(scratch)
+      File.chmod!(scratch, 0o700)
+      on_exit(fn -> remove_scratch!(scratch) end)
+      path = Path.join(scratch, "manifest.json")
+      write_read_only!(path, raw)
+
+      env = %{
+        "MIXER_LOCAL_STARTER_PROFILE" => profile,
+        "MIXER_LOCAL_STARTER_ORGANIZATION" => org,
+        "MIXER_LOCAL_STARTER_PROJECT" => scope.project_id,
+        "MIXER_LOCAL_STARTER_APPLICATION" => scope.application_id,
+        "MIXER_LOCAL_STARTER_REGISTRATION" => path,
+        "MIXER_LOCAL_STARTER_SHA256" => pin
+      }
+
+      assert LocalStarter.runtime_config!(%{}) == nil
+
+      for invalid <- [
+            Map.delete(env, "MIXER_LOCAL_STARTER_PROFILE"),
+            %{env | "MIXER_LOCAL_STARTER_PROFILE" => "unknown"},
+            %{env | "MIXER_LOCAL_STARTER_REGISTRATION" => "relative.json"},
+            Map.put(env, "MIXER_LOCAL_STARTER_WORKER_SHA256", sha256("unexpected worker"))
+          ] do
+        assert_raise ArgumentError, fn -> LocalStarter.runtime_config!(invalid) end
+      end
+
+      settings = LocalStarter.runtime_config!(env)
+      Application.put_env(:mixer_hosted, LocalStarter, settings)
+      on_exit(fn -> Application.delete_env(:mixer_hosted, LocalStarter) end)
+      assert {:ok, %{id: ^id, pin: ^pin, spec: ^spec}} = LocalStarter.load(scope)
+
+      duplicate = ~s({"profile":"#{profile}",) <> binary_part(raw, 1, byte_size(raw) - 1)
+
+      for invalid <- [
+            Jason.encode!(Map.put(manifest, "operation_id", "unexpected")),
+            Jason.encode!(%{manifest | "rendered_driver_sha256" => "not-a-digest"}),
+            Jason.encode!(%{manifest | "spec" => Map.put(spec, "build_id", "unexpected")}),
+            Jason.encode!(put_in(manifest, ["spec", "source", "reference"], "different")),
+            Jason.encode!(put_in(manifest, ["spec", "project_id"], other.project_id)),
+            duplicate,
+            raw <> String.duplicate(" ", 4096)
+          ] do
+        invalid_path = Path.join(scratch, "#{sha256(invalid)}.json")
+        write_read_only!(invalid_path, invalid)
+
+        Application.put_env(:mixer_hosted, LocalStarter, %{
+          settings
+          | path: invalid_path,
+            sha256: sha256(invalid)
+        })
+
+        assert LocalStarter.load(scope) == {:error, :not_found}
+      end
+
+      symlink = Path.join(scratch, "linked.json")
+      File.ln_s!(path, symlink)
+      Application.put_env(:mixer_hosted, LocalStarter, %{settings | path: symlink})
+      assert LocalStarter.load(scope) == {:error, :not_found}
+      Application.put_env(:mixer_hosted, LocalStarter, settings)
+
+      assert post(c, auth, @starters, payload).status == 503
+
+      [migration] =
+        Path.wildcard("priv/local_managed_linux_source_selection/20261120000000_*.exs")
+
+      [{module, _}] = Code.require_file(migration)
+      assert :ok = Ecto.Migrator.up(Migration, 20_261_120_000_000, module, log: false)
+
+      unavailable = Map.put(public_scope(scope), "starter", nil)
+      assert starter_list(c, auth, scope) == unavailable
+      assert post(c, auth, @starters, payload).status == 404
+
+      assert %{num_rows: 1} =
+               DB.q!(
+                 Migration,
+                 """
+                 INSERT INTO public.mixer_managed_linux_pair25_starters
+                   (organization_id,project_id,application_id,input_id,registration_pin,spec,
+                    projection_sha256,rendered_driver_sha256)
+                 VALUES($1,$2,$3,$4,$5,$6,$7,$8)
+                 """,
+                 [org, scope.project_id, scope.application_id, id, pin, spec, projection, driver]
+               )
+
+      managed_catalog_mismatch!(c, auth, scope, payload, manifest, pin)
+
+      assert starter_list(c, auth, scope) ==
+               Map.put(public_scope(scope), "starter", %{"id" => id})
+
+      assert starter_list(c, auth, other) == Map.put(public_scope(other), "starter", nil)
+      assert post(c, auth, @starters, Map.put(other, :starter_id, id)).status == 404
+      assert post(c, auth, @starters, Map.put(viewer, :starter_id, id)).status == 403
+      assert post(c, auth, @starters, %{payload | starter_id: "unprovisioned"}).status == 404
+
+      assert post(c, auth, @starters, Map.put(payload, :projection_sha256, projection)).status ==
+               400
+
+      assert post(c, {elem(auth, 0), String.duplicate("A", 43)}, @starters, payload).status == 403
+
+      membership = "UPDATE public.mixer_authz_memberships SET role=$2 WHERE organization_id=$1"
+      DB.q!(Admin, membership, [org, "developer"])
+      assert post(c, auth, @starters, payload).status == 403
+      DB.q!(Admin, membership, [org, "owner"])
+
+      with_stale_file(path, fn ->
+        assert starter_list(c, auth, scope) == unavailable
+        assert post(c, auth, @starters, payload).status == 404
+      end)
+
+      call = "SELECT public.mixer_managed_linux_pair25_starter_v1($1,$2,$3,true,$4,$5)"
+      params = [id, pin, spec, projection, driver]
+
+      assert {:error, %Postgrex.Error{postgres: %{code: :insufficient_privilege}}} =
+               Ecto.Adapters.SQL.query(MixerHosted.Repo, call, params)
+
+      assert {:ok, %{rows: [["denied"]]}} = Ecto.Adapters.SQL.query(CreateRepo, call, params)
+
+      assert {:ok, :conflict} =
+               Admin.transaction(fn ->
+                 DB.q!(
+                   Admin,
+                   """
+                   SELECT pg_advisory_xact_lock(hashtextextended(
+                     jsonb_build_array('mixer-local-starter-v1',$1::text,$2::text,$3::text)::text,0))
+                   """,
+                   [org, scope.project_id, scope.application_id]
+                 )
+
+                 assert post(c, auth, @starters, payload).status == 409
+                 :conflict
+               end)
+
+      assert input_rows() == []
+      assert side_effect_rows() == baseline
+
+      selected = response_json!(post(c, auth, @starters, payload), 200)
+      assert response_json!(post(c, auth, @starters, payload), 200) == selected
+      assert_input_row!(%{"id" => id, "spec" => spec}, 1_200_000)
+
+      assert selected ==
+               Map.merge(public_scope(scope), %{
+                 "platform" => "android",
+                 "sourceInputId" => id,
+                 "sourceSha256" => tree,
+                 "toolchainLockSha256" => spec["toolchain_lock_sha256"],
+                 "buildDefinitionSha256" => spec["build_definition_sha256"]
+               })
+
+      input = Map.drop(selected, Map.keys(public_scope(scope)))
+      assert input_list(c, auth, scope) == input_page(scope, [input])
+      assert input_list(c, auth, other) == input_page(other, [])
+
+      update = "UPDATE public.mixer_customer_build_inputs SET timeout_ms=$2 WHERE input_id=$1"
+      assert %{num_rows: 1} = DB.q!(Admin, update, [id, 1_800_000])
+      assert post(c, auth, @starters, payload).status == 409
+      assert_input_row!(%{"id" => id, "spec" => spec})
+      assert %{num_rows: 1} = DB.q!(Admin, update, [id, 1_200_000])
+
+      body = Map.new(selected, fn {key, value} -> {Macro.underscore(key), value} end)
+      headers = [{"idempotency-key", "managed-linux-starter"}]
+      builds = "/console-api/v1/builds"
+
+      assert post(c, auth, builds, %{body | "source_sha256" => sha256("different")}, headers).status ==
+               409
+
+      assert %{
+               "state" => "queued",
+               "revision" => 0,
+               "outcome" => "applied",
+               "selection" => selection
+             } =
+               response_json!(post(c, auth, builds, body, headers), 201)
+
+      assert %{"state" => "queued", "revision" => 0, "selection" => ^selection} =
+               response_json!(post(c, auth, builds, body, headers), 200)
+
+      assert Map.delete(selection, "build_id") == Map.delete(body, "source_input_id")
+      assert_input_row!(%{"id" => id, "spec" => spec}, 1_200_000)
+
+      effects = side_effect_rows()
+      assert [[%{"build_id" => build_id, "revision" => 0}]] = effects["mixer_builds"]
+      assert build_id == selection["build_id"]
+
+      assert [
+               [
+                 %{
+                   "queue" => "builds",
+                   "state" => "available",
+                   "args" => %{"build_id" => ^build_id}
+                 }
+               ]
+             ] =
+               effects["oban_jobs"]
+
+      assert Map.drop(effects, ~w(mixer_builds oban_jobs)) ==
+               Map.drop(baseline, ~w(mixer_builds oban_jobs))
+    end
+
+    defp managed_catalog_mismatch!(c, auth, scope, payload, manifest, pin) do
+      unavailable = Map.put(public_scope(scope), "starter", nil)
+      wrong_pin = sha256("different registration")
+
+      change_pin = """
+      UPDATE public.mixer_managed_linux_pair25_starters
+      SET registration_pin=$2, input_id='starter-' || $2 WHERE registration_pin=$1
+      """
+
+      assert %{num_rows: 1} = DB.q!(Migration, change_pin, [pin, wrong_pin])
+      assert starter_list(c, auth, scope) == unavailable
+      assert post(c, auth, @starters, payload).status == 404
+      assert %{num_rows: 1} = DB.q!(Migration, change_pin, [wrong_pin, pin])
+
+      spec = manifest["spec"]
+
+      for {column, wrong} <- [
+            {"spec", %{spec | "toolchain_lock_sha256" => sha256("different lock")}},
+            {"projection_sha256", sha256("different projection")},
+            {"rendered_driver_sha256", sha256("different driver")}
+          ] do
+        sql =
+          "UPDATE public.mixer_managed_linux_pair25_starters SET #{column}=$2 WHERE input_id=$1"
+
+        assert %{num_rows: 1} = DB.q!(Migration, sql, [payload.starter_id, wrong])
+        assert starter_list(c, auth, scope) == unavailable
+        assert post(c, auth, @starters, payload).status == 404
+        assert %{num_rows: 1} = DB.q!(Migration, sql, [payload.starter_id, manifest[column]])
+      end
+    end
+  end
+
   defp prepare_android_starter!(scope) do
     scratch = Path.join(System.tmp_dir!(), "android-starter")
     File.mkdir!(scratch)
@@ -890,7 +1159,7 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
     evidence
   end
 
-  defp assert_input_row!(%{"id" => id, "spec" => spec}) do
+  defp assert_input_row!(%{"id" => id, "spec" => spec}, timeout_ms \\ 1_800_000) do
     assert input_rows() == [
              [
                spec["organization_id"],
@@ -904,7 +1173,7 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
                spec["toolchain_lock_sha256"],
                spec["build_definition_sha256"],
                1,
-               1_800_000,
+               timeout_ms,
                0
              ]
            ]

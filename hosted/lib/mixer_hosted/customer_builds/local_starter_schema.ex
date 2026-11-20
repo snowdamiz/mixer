@@ -4,8 +4,10 @@ defmodule MixerHosted.CustomerBuilds.LocalStarterSchema do
   alias MixerHosted.CustomerBuilds.CreateSchema
   @function "public.mixer_local_starter_v1(text,text,jsonb,boolean)"
   @android_function "public.mixer_local_android_starter_v1(text,text,jsonb,boolean,text)"
+  @managed_function "public.mixer_managed_linux_pair25_starter_v1(text,text,jsonb,boolean,text,text)"
   @table "public.mixer_local_starters"
   @android_table "public.mixer_local_android_starters"
+  @managed_table "public.mixer_managed_linux_pair25_starters"
 
   def body(platform \\ :ios)
   def body(:ios), do: writer_body(@table, "ios", "")
@@ -13,7 +15,16 @@ defmodule MixerHosted.CustomerBuilds.LocalStarterSchema do
   def body(:android),
     do: writer_body(@android_table, "android", " AND worker_configuration_pin=$5")
 
-  defp writer_body(table, platform, catalog_binding) do
+  def body(:managed_linux_pair25) do
+    writer_body(
+      @managed_table,
+      "android",
+      " AND projection_sha256=$5 AND rendered_driver_sha256=$6",
+      1_200_000
+    )
+  end
+
+  defp writer_body(table, platform, catalog_binding, timeout_ms \\ 1_800_000) do
     """
     DECLARE starter record; existing record;
       org text := current_setting('mixer.authz.organization_id',true);
@@ -51,7 +62,7 @@ defmodule MixerHosted.CustomerBuilds.LocalStarterSchema do
       IF FOUND THEN
         IF existing IS DISTINCT FROM ROW('#{platform}'::text,$1,$3#>>'{source,kind}',
            $3#>>'{source,reference}',$3#>>'{source,sha256}',$3->>'toolchain_lock_sha256',
-           $3->>'build_definition_sha256',1,1800000::bigint,0::bigint)
+           $3->>'build_definition_sha256',1,#{timeout_ms}::bigint,0::bigint)
           OR (SELECT count(*) FROM public.mixer_customer_build_inputs
              WHERE (organization_id,project_id,application_id)=(org,project,app))<>1
         THEN RETURN 'conflict'; END IF;
@@ -62,7 +73,7 @@ defmodule MixerHosted.CustomerBuilds.LocalStarterSchema do
         (organization_id,project_id,application_id,platform,input_id,source_kind,source_reference,
          source_sha256,toolchain_lock_sha256,build_definition_sha256,max_attempts,timeout_ms,retry_backoff_ms)
       VALUES (org,project,app,'#{platform}',$1,$3#>>'{source,kind}',$3#>>'{source,reference}',
-        $3#>>'{source,sha256}',$3->>'toolchain_lock_sha256',$3->>'build_definition_sha256',1,1800000,0);
+        $3#>>'{source,sha256}',$3->>'toolchain_lock_sha256',$3->>'build_definition_sha256',1,#{timeout_ms},0);
       RETURN 'selected';
     END
     """
@@ -77,6 +88,17 @@ defmodule MixerHosted.CustomerBuilds.LocalStarterSchema do
         worker_configuration_pin text NOT NULL CHECK(worker_configuration_pin ~ '^[0-9a-f]{64}$'),
         CHECK(input_id='starter-' || registration_pin),
         CHECK(spec->>'platform' IS NOT DISTINCT FROM 'android'),
+    """)
+  end
+
+  def statements(:managed_linux_pair25) do
+    catalog_statements(@managed_table, @managed_function, body(:managed_linux_pair25), """
+        projection_sha256 text NOT NULL CHECK(projection_sha256 ~ '^[0-9a-f]{64}$'),
+        rendered_driver_sha256 text NOT NULL CHECK(rendered_driver_sha256 ~ '^[0-9a-f]{64}$'),
+        CHECK(input_id='starter-' || registration_pin),
+        CHECK(spec->>'platform' IS NOT DISTINCT FROM 'android'),
+        CHECK(spec#>>'{source,kind}' IS NOT DISTINCT FROM 'revision'),
+        CHECK((spec#>>'{source,reference}' = 'starter-' || (spec#>>'{source,sha256}')) IS TRUE),
     """)
   end
 
@@ -104,6 +126,9 @@ defmodule MixerHosted.CustomerBuilds.LocalStarterSchema do
   def admit!(repo, platform \\ :ios)
   def admit!(repo, :ios), do: admit!(repo, @table, @function, body())
   def admit!(repo, :android), do: admit!(repo, @android_table, @android_function, body(:android))
+
+  def admit!(repo, :managed_linux_pair25),
+    do: admit!(repo, @managed_table, @managed_function, body(:managed_linux_pair25))
 
   defp admit!(repo, table, function, body) do
     [true] =

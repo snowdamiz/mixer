@@ -1,0 +1,75 @@
+{
+  "baseRevision": "ab5be7384a522e131659cd7c549f1ec5d351bfc9",
+  "testedTreeBeforeReceipt": "df3a4222dd24676a83b6f2a9539a6ea8786e0fd0",
+  "observedDate": "2026-11-20",
+  "environment": {
+    "host": "arm64 macOS 27.0.1",
+    "elixir": "1.20.4",
+    "erlang": "29",
+    "hex": "2.5.1",
+    "postgresql": "17.11",
+    "python": "3.14.8",
+    "dependencies": "Fresh MIX_HOME and HEX_HOME. Copied only the installed Hex archive. Ran mix deps.get --check-locked, then used HEX_OFFLINE=1 for compilation and tests.",
+    "mixLockSha256BeforeAndAfter": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454"
+  },
+  "launcher": {
+    "migration": "hosted/priv/local_managed_linux_source_selection/20261120000000_local_managed_linux_source_selection.exs",
+    "runtime": {
+      "MIXER_LOCAL_STARTER_PROFILE": "managed-linux-pair25-v1",
+      "MIXER_LOCAL_STARTER_ORGANIZATION": "spec.organization_id",
+      "MIXER_LOCAL_STARTER_PROJECT": "spec.project_id",
+      "MIXER_LOCAL_STARTER_APPLICATION": "spec.application_id",
+      "MIXER_LOCAL_STARTER_REGISTRATION": "Canonical absolute path to the read-only manifest, 4096-byte maximum",
+      "MIXER_LOCAL_STARTER_SHA256": "Lowercase SHA-256 of exact manifest bytes"
+    },
+    "unset": "MIXER_LOCAL_STARTER_WORKER_SHA256",
+    "manifest": {
+      "profile": "managed-linux-pair25-v1",
+      "spec": {
+        "organization_id": "Scoped organization ID",
+        "project_id": "Scoped project ID",
+        "application_id": "Scoped application ID",
+        "platform": "android",
+        "source": {
+          "kind": "revision",
+          "reference": "starter-<Pair25Layout.source_tree_sha256>",
+          "sha256": "Pair25Layout.source_tree_sha256"
+        },
+        "toolchain_lock_sha256": "Pair25Layout.linux_lock_sha256",
+        "build_definition_sha256": "SHA-256 of the reviewed Docker recipe bytes"
+      },
+      "projection_sha256": "Pair25Layout.projection_sha256",
+      "rendered_driver_sha256": "Pair25Layout.rendered_driver_sha256"
+    },
+    "catalog": "As browser_schema_owner insert organization_id, project_id, application_id, input_id, registration_pin, spec, projection_sha256 and rendered_driver_sha256 into public.mixer_managed_linux_pair25_starters. Use starter-<manifest SHA-256> as input_id and the manifest SHA-256 as registration_pin. The other columns must exactly match the pinned manifest.",
+    "http": "GET and POST /console-api/v1/source-starters with normal browser authentication and application scope. POST takes starter_id. Create via POST /console-api/v1/builds using the selected DTO converted to snake_case and a stable Idempotency-Key.",
+    "workerGrant": "The launcher provisions the private one-operation grant from the committed queued-to-running attempt, separately from the Starter catalog."
+  },
+  "checks": {
+    "testCommandPrefix": "MIX_ENV=test HEX_OFFLINE=1 mix test --seed 0 --trace",
+    "testFile": "hosted/test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs",
+    "managedLinux": {
+      "selection": "MIXER_MANAGED_LINUX_PAIR25_STARTER_TEST=1; --only managed_linux_pair25_starter",
+      "result": "1 passed, 2 excluded",
+      "fixture": "Synthetic Pair25 provenance pins in the stock Phoenix HTTP and PostgreSQL path, with Oban consumption disabled",
+      "observations": "Missing and mismatched catalog, malformed and stale manifests, wrong scope, non-owner, invalid CSRF, direct SQL authorization and shared advisory-lock conflict refused. Owner list/select/reselect and verified-input list matched the exact DTO. A changed policy caused conflict. Build POST returned 201 and replay returned 200 with the same queued build. Exactly one input with (1,1200000,0), one build, and one available job. Reservation and billing rows stayed equal.",
+      "logSha256": "fafab897de36a4a7faf756109c6aa4fea8c65d28ee27a79458cf22b37370b3d9"
+    },
+    "darwinAndroid": {
+      "selection": "--only android_starter",
+      "result": "1 passed, 1 excluded",
+      "logSha256": "ae6d661c0474a9ebf286a64012b7d4f3a4c54c7bc61df55560e0c27df3a2ac11"
+    },
+    "ios": {
+      "selection": "--exclude android_starter",
+      "result": "1 passed, 1 excluded",
+      "fixture": "Existing HTTP proof with the admitted iOS app and SDK closure and an inert /usr/bin/true CLI. Standalone Command Line Tools SwiftPM failed at dyld while preparing a real CLI. Fixture preparation used the pinned source templates and verified SDK archives. The worker query proof reported zero starts.",
+      "sourceSha256": "49f12508ff8f137811f434d7f17ccb250b10739d6ac8cfc9b169b68d7a1b9d77",
+      "logSha256": "cf465c346b9c8855057c51cb69a8da6d76b65aca97d717af5b15269bbe2f1520"
+    },
+    "predecessorSql": "Compared both complete catalog statement lists to the pinned LocalStarterSchema in the same BEAM. iOS and Darwin Android matched byte-for-byte.",
+    "compileAndFormat": "Offline mix compile --warnings-as-errors and targeted mix format --check-formatted passed."
+  },
+  "cleanup": "All owned fixture databases dropped. Owned Mix and PostgreSQL groups closed and PostgreSQL ports were reusable. Removed the temporary dependency symlink, SwiftPM diagnostic report, and all owned scratch (390352 KiB immediately before removal, within the 2 GB budget).",
+  "scope": "Local HTTP selection and durable queued create. Parent owns hosted source selection composition and the real Pair25 layout-to-worker replay. Docker, devices and Xcode were not run."
+}
