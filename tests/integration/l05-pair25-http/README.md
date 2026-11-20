@@ -84,3 +84,26 @@ two events must match the sealed readback for the real driver. Root owns the
 daemon, operator inputs, and volume retirement. After service closure and port
 reuse, the launcher removes its scratch. If the live operation or a process
 remains unresolved, the receipt records the retained scratch path.
+
+## Cancel a running build
+
+Add `--cancel` and use a new `--receipt` path. With no `--operator`, the inert
+runner stays running after its first start until the ordinary owner request
+reaches the stock stop protocol. With `--operator`, use a fresh operation on
+the prepared stage. The fixture reads the runner's Docker journal and checks
+the exact container against the pinned daemon, identity, image, and mounts.
+It waits for an `aarch64-unknown-linux-android` Swift frontend in that
+container before posting to `/console-api/v1/builds/cancel` as the owner.
+`--seconds` covers running observation and settlement in cancellation mode.
+
+The fixture requires a 202 response, one matching capacity release by the
+restricted Oban processor, one original start in each ledger, and a stopped
+runner with the matching worker tombstone and closure diagnostic. It also
+checks the worker artifact request and all three Android download routes for
+the exact cancelled build. The real variant verifies that Docker removed the
+observed container and its output directory without sealing a bundle.
+
+```sh
+python3 -B tests/integration/l05-pair25-http/run.py --cancel \
+  --scratch "$HOME/.t3/userdata" --receipt verification/local/pair25-cancel-inert.json
+```

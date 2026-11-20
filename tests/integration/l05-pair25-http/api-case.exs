@@ -84,6 +84,12 @@ defp pair25_wait!(c, renewed, deadline) do
     File.regular?(pair25_path("api.done")) ->
       :ok
 
+    File.regular?(pair25_path("api.cancel-auth.request")) and
+        not File.regular?(pair25_path("api.cancel-auth")) ->
+      {cookie, csrf} = login(c)
+      pair25_publish!("api.cancel-auth", %{cookie: cookie, csrf: csrf})
+      pair25_wait!(c, renewed, deadline)
+
     not renewed and File.regular?(pair25_path("api.refresh")) ->
       {owner, _} = login(c)
       {outsider, _} = pair25_outsider(c)
@@ -144,4 +150,12 @@ defp pair25_processor!(c) do
   c
   |> put_in([:hosted, Access.key(:processor_profile)], :builds_v1)
   |> put_in([:hosted, Access.key(:native)], %{retained_root: pair25_path("worker")})
+  |> then(fn c ->
+    if System.get_env("PAIR25_CANCEL") == "1" do
+      for sql <- MixerHosted.CustomerBuilds.CancelSchema.statements(), do: DB.q!(Migration, sql)
+      put_in(c, [:hosted, Access.key(:build_cancel)], true)
+    else
+      c
+    end
+  end)
 end
