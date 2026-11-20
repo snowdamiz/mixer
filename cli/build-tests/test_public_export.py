@@ -119,7 +119,12 @@ exit "${EXPORT_SWIFT_EXIT:-0}"
         self.assertEqual(lock["swiftVersion"], canonical)
         shutil.rmtree(self.destination)
 
-        for banner in (f"{driver} {compiler}\n{target}", f"{driver}\n{compiler}\n{target}"):
+        for banner in (
+            f"{driver} {compiler}\n{target}",
+            f"{driver}\n{compiler}\n{target}",
+            f"{compiler}\n{driver} {target}",
+            f"{compiler}\n{driver}\n{target}",
+        ):
             with self.subTest(banner=banner):
                 lock["swiftVersion"] = banner
                 lock_path.write_text(json.dumps(lock))
@@ -148,12 +153,19 @@ exit "${EXPORT_SWIFT_EXIT:-0}"
                 self.assertFalse(self.destination.exists())
                 self.assert_clean_staging()
 
-        lock["swiftVersion"] = f"{compiler}\n{target}"
-        lock_path.write_text(json.dumps(lock))
-        status, report = self.export(split_env)
-        self.assertEqual(status, 1, report)
-        self.assertEqual(report["code"], "lock.toolchain-drift", report)
-        self.assert_clean_staging()
+        for banner in (
+            f"{compiler}\n{target}",
+            f"{compiler}\n{driver}  {target}",
+            f"{compiler}\n{driver}\n{target}\n",
+        ):
+            with self.subTest(banner=banner):
+                lock["swiftVersion"] = banner
+                lock_path.write_text(json.dumps(lock))
+                status, report = self.export(split_env)
+                self.assertEqual(status, 1, report)
+                self.assertEqual(report["code"], "lock.toolchain-drift", report)
+                self.assertFalse(self.destination.exists())
+                self.assert_clean_staging()
 
     def test_swift_identity_accepts_a_driverless_toolchain(self):
         banner = "Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx26.0"

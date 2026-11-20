@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "scope": "Local Mixer CLI schema 1 Swift lock compatibility and Source141 archive restoration",
+  "observedDate": "2026-11-20",
+  "pins": {
+    "composition": "d5c8ad04a33a5dc7d7ca240f03c45f9ff3dbe03e",
+    "streamOrderCandidate": "3910f2f6ca5d44e62490a625425da683c86d2bba",
+    "shippedPredecessor": "a7588b902202f11afb0989fbbe5e4435856187ed",
+    "sourceBeforeSHA256": "6a0db1b665c429448d665a7a755f186772bd9fac0126abc6ee660843c27a0d92",
+    "sourceAfterSHA256": "3693b7424928421348e43156de8cb307619e0470d5566ece5ee3094e60f638f6",
+    "archiveMemberDigest": "bb0acc5637d308a7ed2b2b71dba41f71db9f0b73355fff496d49e81c47babc7f",
+    "archiveSealSHA256": "13bcfc86dc5580e88e18f40dc18ca8e1105da204e3e2782ddf4f0b970093ecd2",
+    "restoredSource141SHA256": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab",
+    "restoredSource127SHA256": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7",
+    "cliPackageResolvedSHA256": "de4bd6f84bfa554faf519a52f6c5fb9a051761ded30ae5fee4440b5e88118855",
+    "testedCLISHA256": "250cd00c6f5da546a5be10acc32de95a535103dac0b3822de8a84f7633362a08"
+  },
+  "environment": {
+    "host": "arm64 macOS 27.0.1 (26A434)",
+    "swift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1), swift-driver 1.168.6",
+    "python": "3.14.8"
+  },
+  "commands": [
+    "swift build --package-path cli --scratch-path <build> --cache-path <cache> --only-use-versions-from-resolved-file -j 8 --product mixer",
+    "MIXER_STORE_TEST_CLI=<built-mixer> python3 -I -B -S -m unittest discover -s cli/build-tests -p test_public_export.py -k preserves_split_banner -v",
+    "MIXER_STORE_TEST_CLI=<built-mixer> python3 -I -B -S [-O] -m unittest discover -s cli/build-tests -p test_public_export.py -k swift_identity -k test_upgrade -k test_changed_sdk_after -k test_competing_exports -k test_concurrent_empty_destination -v",
+    "MIXER_STORE_TEST_CLI=<built-mixer> swift test --package-path cli --scratch-path <build> --cache-path <cache> --only-use-versions-from-resolved-file -j 8 --filter 'ownedCommandControlSchedules|androidCompatibilityOrdinaryRelocationCommonLockAndCopiedExportPass|nonRegularInputsFailWithoutInvokingVerifiers'",
+    "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+    "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py prepare-source141 --out <restored141>",
+    "python3 -I -B -S [-O] <restored141>/verification/sdk-feature-ui-source141-v1/test_source141.py",
+    "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py prepare-predecessor --out <restored127>",
+    "python3 -I -B -S [-O] <restored127>/verification/native-report-source127-v1/adopt_envelope.py verify --workflow-installed",
+    "python3 -I -B -S [-O] <restored127>/verification/native-report-source127-v1/test_source127.py",
+    "python3 -I -B -S scripts/check-verification-artifacts.py"
+  ],
+  "results": {
+    "before": "Both new export subcases, and the upgrade using the newline-separated form, returned lock.toolchain-drift on d5c8ad04a3.",
+    "after": "Both exports preserved the exact input lock bytes. Compiler, target and driver drift and extra lock whitespace still returned lock.toolchain-drift.",
+    "publicExportTestsPassedPerPythonMode": 13,
+    "focusedSwiftTestsPassed": 3,
+    "source141TestsPassedPerPythonMode": 3,
+    "source127TestsPassedPerPythonMode": 20,
+    "installedAndSource127VerifyOutputIdenticalAcrossPythonModes": true,
+    "source141AndSource127RestoredBytesIdenticalAcrossPythonModes": true,
+    "swiftTransitionPreimagesMatchingShippedRevision": 5,
+    "independentNonregularInputTestTransitionMatchesComposition": true
+  },
+  "limitations": "Host SwiftPM and Python only. The historical L07 replay was outside this run."
+}

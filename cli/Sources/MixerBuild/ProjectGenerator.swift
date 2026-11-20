@@ -23,10 +23,12 @@ private struct SwiftVersionIdentity {
     func matches(lockBanner: String) -> Bool {
         if lockBanner.utf8.elementsEqual(banner.utf8) { return true }
         guard let driver else { return false }
-        // Schema 1 also recorded the driver before the compiler, including
-        // the inline form when stderr ended with a space and no newline.
+        // Schema 1 could record the driver before or between the stdout
+        // lines, including inline when stderr ended with a space.
         return lockBanner.utf8.elementsEqual("\(driver) \(compiler)\n\(target)".utf8)
             || lockBanner.utf8.elementsEqual("\(driver)\n\(compiler)\n\(target)".utf8)
+            || lockBanner.utf8.elementsEqual("\(compiler)\n\(driver) \(target)".utf8)
+            || lockBanner.utf8.elementsEqual("\(compiler)\n\(driver)\n\(target)".utf8)
     }
 
     private init?(banner: String) {
