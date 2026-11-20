@@ -13,7 +13,7 @@ import stat
 import subprocess
 import sys
 import time
-from urllib.parse import urlencode
+from urllib.parse import parse_qsl, urlencode, urlsplit
 
 XCODE = "/usr/bin/xcodebuild"
 SWIFT_PROBE = ["/usr/bin/swift", "--version"]
@@ -401,11 +401,17 @@ def complete_after_cut(kit, result, output, config_path, config_sha, spec, bindi
                                   [start_id, "start", "completed"]],
             "original attempt did not settle once and release its capacity")
     [[start, completed]] = json.loads(sql("SELECT json_agg(journal->'events') FROM mixer_builds"))
-    require(start["event"] == {"type": "start", "ref": binding["ref"]}
-            and completed == {"id": event, "event": {"type": "completed", "ref": binding["ref"],
+    result["settlementObservation"] = dict(jobs=versions, journal=[start, completed],
+                                           reservation=final["capacity"][0], starts=row["starts"])
+    require(set(start) == set(completed) == {"id", "event", "now_ms"}
+            and type(start["now_ms"]) is int and type(completed["now_ms"]) is int
+            and 0 < start["now_ms"] <= completed["now_ms"] <= binding["deadline_ms"]
+            and start["event"] == {"type": "start", "ref": binding["ref"]}
+            and completed["id"] == event
+            and completed["event"] == {"type": "completed", "ref": binding["ref"],
                 "result": {"outcome": "native_succeeded", "artifacts": [
                     {"kind": item["kind"], "sha256": item["sha256"], "size_bytes": item["sizeBytes"]}
-                    for item in artifacts]}}},
+                    for item in artifacts]}},
             "journal does not contain exactly one native success for the original attempt")
     report_path = output / "native/native-build.json"
     require(file_sha(report_path) == row["manifest_sha256"], "retained manifest digest differs")
@@ -428,12 +434,21 @@ def complete_after_cut(kit, result, output, config_path, config_sha, spec, bindi
     require([a["kind"] for a in artifacts] == list(kit["ATTACHMENTS"])
             and [{key: a[key] for key in ("kind", "sha256", "sizeBytes")} for a in detail["artifacts"]]
             == artifacts, "authenticated detail does not list the three durable artifacts")
-    for artifact in artifacts:
+    result["downloadObservations"] = []
+    for artifact, descriptor in zip(artifacts, detail["artifacts"], strict=True):
         kind, size, digest = (artifact[key] for key in ("kind", "sizeBytes", "sha256"))
-        url = "/console-api/v1/build-artifacts/" + kind + query
+        url = descriptor["downloadPath"]
+        route = urlsplit(url)
+        require(not (route.scheme or route.netloc or route.fragment)
+                and route.path == "/console-api/v1/build-artifacts/" + kind
+                and sorted(parse_qsl(route.query, keep_blank_values=True, strict_parsing=True)) ==
+                    sorted(scope.items()), "authenticated detail contains an unexpected artifact route")
         status, headers, body = http(auth, url, cookie=owner)
         headers = {k.lower(): v for k, v in headers.items()}
-        require((status, http(auth, url)[0], len(body), sha(body)) == (200, 401, size, digest)
+        anonymous_http = http(auth, url)[0]
+        result["downloadObservations"].append(dict(kind=kind, ownerHTTP=status, anonymousHTTP=anonymous_http,
+                                                    sizeBytes=len(body), sha256=sha(body)))
+        require((status, anonymous_http, len(body), sha(body)) == (200, 401, size, digest)
                 and headers.get("content-type") == "application/octet-stream"
                 and headers.get("content-disposition") == f'attachment; filename="{kind}"',
                 "authenticated artifact bytes differ from the original durable digest")
