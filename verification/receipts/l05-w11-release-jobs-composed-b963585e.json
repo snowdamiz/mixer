@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "scope": "L05/W11 local opt-in PostgreSQL release queue",
+  "baseline": "b963585ef2f5089dae67b3bcd30a3cdec3f358b5",
+  "product": "23cda04e77ebdd172cd90ede89ef84cc8591b841",
+  "hostedTree": "67b111567d35908375de83dc9f8fb363c9cbaf2c",
+  "toolchain": {
+    "postgres": "17.11",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "ecto": "3.14.3",
+    "oban": "2.24.2"
+  },
+  "verification": {
+    "commandFromHosted": [
+      "mix",
+      "test",
+      "--warnings-as-errors",
+      "--seed",
+      "0",
+      "--trace",
+      "test/mixer_hosted/releases/browser_publication_test.exs",
+      "test/mixer_hosted/releases/release_jobs_test.exs",
+      "test/runtime_config_test.exs"
+    ],
+    "setup": "Use the maintained ordinary browser fixture roles in a disposable PostgreSQL 17 database. Set MIXER_BROWSER_STORAGE_PORT and a private MIXER_BROWSER_CATALOG_FIXTURE_ROOT. The queue case applies the optional migration and executes the checked-in operator SQL as the fixture administrator.",
+    "result": {
+      "passed": 18,
+      "failed": 0
+    },
+    "runs": {
+      "r1": {
+        "result": 0,
+        "logSHA256": "e2ae64234455dc9e9b301c9ae1a5ba742265b975d5e14063b8e3ad0f551bd27b",
+        "postgresStopped": true,
+        "postgresPortReusable": true
+      },
+      "r2": {
+        "result": 2,
+        "logSHA256": "eb8471f86afc4fcd5c5d39320fd80fc9933c38a4342a23b8f89360bf76b4ba0a",
+        "postgresStopped": true,
+        "postgresPortReusable": true
+      },
+      "r3": {
+        "result": 0,
+        "logSHA256": "ad356072c1c38ec219e195681e57ca15dc487ae9518404752e5be730f7942931",
+        "postgresStopped": true,
+        "postgresPortReusable": true
+      }
+    },
+    "earlierFailure": "R2 observed an authenticated browser-head 503 immediately after a deliberately failed deferred commit. Its cause was unresolved. R3 checked the committed ledger and exact public delivery after each failure and checked the browser head after the successful retry.",
+    "producer": "A browser operator publication, signed CLI HTTP publication, and signed CLI HTTP rollback at 18446744073709551615 committed three jobs in the same ledger with the processor stopped. Browser and CLI exact replays added zero jobs. Insert denial and a deferred queue trigger failure both returned 503 and preserved the head, publication count, CLI receipt count, job count, and served offer.",
+    "processor": "In the same fixture database, the API stopped before the real releases_v1 profile started. The restricted processor completed all three jobs and produced a unique byte-exact projection for each. A fixture-aged executing job already had its projection committed through the restricted SQL entry point. Lifeline rescued that job and it acknowledged on attempt two."
+  },
+  "limits": [
+    "The CLI HTTP cases used fixture-issued bearer requests and signed bytes. No stock CLI process ran in this queue campaign.",
+    "The fixture modeled processor loss after materialization. It did not interrupt a running processor process.",
+    "The browser and updater served the committed ledger. Delivery independent of the PostgreSQL database remains unverified.",
+    "Source binding, independent review, and hosted CI are pending at this checkpoint."
+  ]
+}
