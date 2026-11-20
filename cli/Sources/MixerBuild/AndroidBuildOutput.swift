@@ -146,30 +146,37 @@ public enum AndroidBuildOutput {
     private static let platformPins = "Platforms/Android/Package.resolved"
 
     public static func build(root requestedRoot: URL, output: URL) throws -> Report {
-        guard ProcessInfo.processInfo.environment["MIXER_WORKER_COMMAND_CONTROL"] != "1" else {
-            throw MixerFailure("android.output-worker", "Retained Android output is available for standalone local development.")
-        }
         let root = requestedRoot.resolvingSymlinksInPath().standardizedFileURL
         let context = ProcessExecutionContext.localDevelopment
+        let worker = try WorkerProfile.load(root: root, output: output, context: context)
         guard root.path != "/", context.receiptDirectory.path != root.path,
               !context.receiptDirectory.path.hasPrefix(root.path + "/") else {
             throw MixerFailure("android.output-scratch", "Retained Android builds require temporary storage outside the project.")
         }
-        let store = try NativeBuildOutput.prepare(output: output, root: root, requireSourceIdentity: true)
-        let validated = try AndroidProject.prepareBuild(root: root)
+        let standaloneStore = try worker == nil
+            ? NativeBuildOutput.prepare(output: output, root: root, requireSourceIdentity: true) : nil
+        let validated = try AndroidProject.prepareBuild(root: root, worker: worker != nil)
         guard let android = validated.lock.android else {
             throw MixerFailure("android.not-generated", "Retained products require a locked Android project.")
         }
+        let workerEnvironment = try worker?.environment(toolchain: android.toolchain)
         let before = try source(root)
         guard before.lock == identity(validated.bytes) else { throw drift }
+        if worker != nil, before.sdkPins != before.platformPins {
+            throw MixerFailure("android.output-worker", "The managed Android platform lock must match the admitted SDK lock.")
+        }
         let config = try ApplicationConfiguration.load(root)
         let cli = try runningExecutableIdentity()
+        if let worker {
+            try ProjectBuild.verifyHostSwift(lock: validated.lock, swiftExecutable: worker.hostSwift)
+        }
+        let store = try standaloneStore ?? NativeBuildOutput.prepare(output: output, root: root, requireSourceIdentity: true)
 
         let scratch = try context.makeInputSnapshot()
         defer { scratch.removeIfUnheld() }
         let staging = scratch.directory.appendingPathComponent("android-build", isDirectory: true)
-        let environment = try buildEnvironment(in: scratch.directory)
-        let command = ["python3", "-I", "-B", "-S", root.appendingPathComponent(driver).path,
+        let environment = try buildEnvironment(in: scratch.directory, worker: workerEnvironment)
+        let command = [worker?.python ?? "python3", "-I", "-B", "-S", root.appendingPathComponent(driver).path,
                        "build-retained-v1", root.path, staging.path]
         let result = try ProcessRunner.run(command, at: root, environment: environment, policy: .developmentBuild,
                                            context: context, retaining: scratch.retainedInputDirectories)
@@ -358,29 +365,151 @@ public enum AndroidBuildOutput {
         return Product(kind: kind, sha256: item.sha256, sizeBytes: item.size, ownedPath: item.path)
     }
 
-    private static func buildEnvironment(in scratch: URL) throws -> [String: String] {
+    private static func buildEnvironment(in scratch: URL, worker: [String: String]?) throws -> [String: String] {
         let initial = ProcessInfo.processInfo.environment
         let keys = ["PATH", "DEVELOPER_DIR", "ANDROID_HOME", "ANDROID_SDK_ROOT", "MIXER_JDK", "MIXER_SWIFT",
                     "MIXER_SWIFT_SDKS_PATH", "MIXER_ANDROID_ARTIFACT_PATH"]
-        var environment = initial.filter { keys.contains($0.key) }
-        let toolsHome = FileManager.default.homeDirectoryForCurrentUser
-        environment["MIXER_SWIFT"] = initial["MIXER_SWIFT"] ?? toolsHome
-            .appendingPathComponent("Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift").path
-        environment["MIXER_SWIFT_SDKS_PATH"] = initial["MIXER_SWIFT_SDKS_PATH"] ?? toolsHome
-            .appendingPathComponent(".swiftpm/swift-sdks").path
-        environment["PATH"] = initial["PATH"] ?? "/usr/bin:/bin:/usr/sbin:/sbin"
-        for name in ["home", "tmp"] {
+        var environment = worker ?? initial.filter { keys.contains($0.key) }
+        if worker == nil {
+            let toolsHome = FileManager.default.homeDirectoryForCurrentUser
+            environment["MIXER_SWIFT"] = initial["MIXER_SWIFT"] ?? toolsHome
+                .appendingPathComponent("Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift").path
+            environment["MIXER_SWIFT_SDKS_PATH"] = initial["MIXER_SWIFT_SDKS_PATH"] ?? toolsHome
+                .appendingPathComponent(".swiftpm/swift-sdks").path
+            environment["PATH"] = initial["PATH"] ?? "/usr/bin:/bin:/usr/sbin:/sbin"
+        }
+        let privateDirectories = worker == nil ? ["home", "tmp"] : ["home", "tmp", "module-cache"]
+        for name in privateDirectories {
             try FileManager.default.createDirectory(at: scratch.appendingPathComponent(name), withIntermediateDirectories: false,
                                                     attributes: [.posixPermissions: 0o700])
         }
         environment["HOME"] = scratch.appendingPathComponent("home").path
         environment["CFFIXED_USER_HOME"] = environment["HOME"]
         environment["TMPDIR"] = scratch.appendingPathComponent("tmp").path
+        if worker != nil {
+            environment["CLANG_MODULE_CACHE_PATH"] = scratch.appendingPathComponent("module-cache").path
+            environment["SWIFTPM_MODULECACHE_OVERRIDE"] = environment["CLANG_MODULE_CACHE_PATH"]
+        }
         environment["LANG"] = "C"
         environment["LC_ALL"] = "C"
         environment["GIT_CONFIG_NOSYSTEM"] = "1"
         environment["GIT_CONFIG_GLOBAL"] = "/dev/null"
         environment["GIT_TERMINAL_PROMPT"] = "0"
         return environment
+    }
+}
+
+private struct WorkerProfile {
+    private static let profileKey = "MIXER_WORKER_NATIVE_PROFILE"
+    private static let pythonKey = "MIXER_WORKER_ANDROID_PYTHON"
+    private static let hostSwiftKey = "MIXER_WORKER_ANDROID_HOST_SWIFT"
+    private static let developerKey = "MIXER_WORKER_ANDROID_DEVELOPER_DIR"
+    private static let mirrors = [
+        (key: "MIXER_WORKER_ANDROID_SWIFT_ASN1_MIRROR", repository: "swift-asn1.git"),
+        (key: "MIXER_WORKER_ANDROID_SWIFT_CRYPTO_MIRROR", repository: "swift-crypto.git")
+    ]
+    let python: String
+    let hostSwift: String
+    private let developerDirectory: URL
+    private let mirrorURIs: [String]
+
+    private static func refusal(_ reason: String) -> MixerFailure {
+        MixerFailure("android.output-worker", reason)
+    }
+
+    static func load(root: URL, output: URL, context: ProcessExecutionContext) throws -> Self? {
+        let env = ProcessInfo.processInfo.environment
+        let control = env["MIXER_WORKER_COMMAND_CONTROL"]
+        let fields = [profileKey, pythonKey, hostSwiftKey, developerKey] + mirrors.map(\.key)
+        if control == nil, fields.allSatisfy({ env[$0] == nil }) { return nil }
+        guard control == "1", env[profileKey] == "unsigned-android-local-v1" else {
+            throw refusal("Managed Android output requires the unsigned-android-local-v1 worker profile.")
+        }
+        guard let python = env[pythonKey], path(python) != nil else {
+            throw refusal("Managed Android output requires an absolute Python executable.")
+        }
+        guard let hostSwift = env[hostSwiftKey], path(hostSwift) != nil, access(hostSwift, X_OK) == 0 else {
+            throw refusal("Managed Android output requires an absolute host Swift executable.")
+        }
+        guard let developerDirectory = path(env[developerKey]),
+              entry("usr/bin/xcodebuild", in: developerDirectory, type: S_IFREG) else {
+            throw refusal("Managed Android output requires an absolute Xcode developer directory.")
+        }
+        let tmp = context.receiptDirectory.deletingLastPathComponent().path
+        var tmpInfo = stat()
+        guard env["TMPDIR"] == tmp, lstat(tmp, &tmpInfo) == 0,
+              tmpInfo.st_mode == S_IFDIR | 0o700, tmpInfo.st_uid == geteuid() else {
+            throw refusal("Managed Android output requires a canonical, private worker TMPDIR.")
+        }
+        var identities: [stat] = []
+        let uris = try mirrors.map { mirror in
+            guard let uri = env[mirror.key], let url = mirrorPath(uri), url.lastPathComponent == mirror.repository,
+                  [root.path, output.standardizedFileURL.path, tmp].allSatisfy({ !overlap(url.path, $0) }) else {
+                throw refusal("Invalid local Android dependency mirror in \(mirror.key).")
+            }
+            var info = stat()
+            guard lstat(url.path, &info) == 0, info.st_mode & S_IFMT == S_IFDIR,
+                  !identities.contains(where: { $0.st_dev == info.st_dev && $0.st_ino == info.st_ino }),
+                  entry("HEAD", in: url, type: S_IFREG), entry("config", in: url, type: S_IFREG),
+                  entry("objects", in: url, type: S_IFDIR), entry("refs", in: url, type: S_IFDIR) else {
+                throw refusal("Expected a distinct bare Git mirror in \(mirror.key).")
+            }
+            identities.append(info)
+            return uri
+        }
+        return Self(python: python, hostSwift: hostSwift, developerDirectory: developerDirectory, mirrorURIs: uris)
+    }
+
+    func environment(toolchain: AndroidToolchainIdentity) throws -> [String: String] {
+        guard let pin = toolchain.tools["python"], pin.path == python,
+              let actual = try? VerificationFile.tool(python), actual.path == python, actual.sha256 == pin.sha256 else {
+            throw Self.refusal("Worker Python differs from the Android toolchain lock.")
+        }
+        // The worker admits the complete lock before forwarding this profile.
+        guard let swift = Self.path(toolchain.tools["swift"]?.path),
+              let sdks = Self.path(toolchain.sdk_search_path),
+              let sdkMetadata = Self.path(toolchain.metadata["swift_sdk"]?.path),
+              let jdk = Self.path(toolchain.distributions["jdk"]?.path),
+              let buildTools = Self.path(toolchain.distributions["android_build_tools"]?.path) else {
+            throw Self.refusal("Managed Android tool locations must be absolute, locked paths.")
+        }
+        var env = [
+            "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+            "DEVELOPER_DIR": developerDirectory.path,
+            "MIXER_SWIFT": swift.path, "MIXER_SWIFT_SDKS_PATH": sdks.path, "MIXER_JDK": jdk.path,
+            "MIXER_ANDROID_ARTIFACT_PATH": sdkMetadata.deletingLastPathComponent().path,
+            "ANDROID_HOME": buildTools.deletingLastPathComponent().deletingLastPathComponent().path,
+            "GIT_ALLOW_PROTOCOL": "file", "GIT_NO_REPLACE_OBJECTS": "1", "GIT_CONFIG_COUNT": "2"
+        ]
+        for (index, mirror) in Self.mirrors.enumerated() {
+            env["GIT_CONFIG_KEY_\(index)"] = "url.\(mirrorURIs[index]).insteadOf"
+            env["GIT_CONFIG_VALUE_\(index)"] = "https://github.com/apple/\(mirror.repository)"
+        }
+        return env
+    }
+
+    private static func path(_ value: String?) -> URL? {
+        guard let value, value.hasPrefix("/"), value != "/",
+              value.rangeOfCharacter(from: .controlCharacters) == nil else { return nil }
+        let url = URL(fileURLWithPath: value)
+        return value == url.standardizedFileURL.path ? url : nil
+    }
+
+    private static func mirrorPath(_ uri: String) -> URL? {
+        guard uri.hasPrefix("file:///"), let parts = URLComponents(string: uri),
+              parts.query == nil, parts.fragment == nil,
+              parts.percentEncodedPath == String(uri.dropFirst("file://".count)),
+              let url = path(parts.percentEncodedPath.removingPercentEncoding),
+              url.path == url.resolvingSymlinksInPath().path else { return nil }
+        return url
+    }
+
+    private static func overlap(_ lhs: String, _ rhs: String) -> Bool {
+        lhs == rhs || lhs.hasPrefix(rhs + "/") || rhs.hasPrefix(lhs + "/")
+    }
+
+    private static func entry(_ name: String, in directory: URL, type: mode_t) -> Bool {
+        var info = stat()
+        return lstat(directory.appendingPathComponent(name).path, &info) == 0 && info.st_mode & S_IFMT == type
     }
 }

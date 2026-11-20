@@ -84,6 +84,18 @@ Creation bundles a hashed SDK source snapshot for local development. Mobile host
 guest, hosted distribution and GA qualification remain explicit open gates.
 """
 
+func withRetainedBuildClosure<T>(_ build: () throws -> T) throws -> T {
+    let result: T
+    do {
+        result = try build()
+    } catch {
+        try ProcessExecutionContext.localDevelopment.acknowledgeWorkerClosure()
+        throw error
+    }
+    try ProcessExecutionContext.localDevelopment.acknowledgeWorkerClosure()
+    return result
+}
+
 do {
     let raw = Array(CommandLine.arguments.dropFirst())
     if raw.starts(with: ["update", "verify"]) {
@@ -148,22 +160,19 @@ do {
         guard words.count == 1 else { throw MixerFailure("arguments.build", "Unexpected positional argument") }
         if let destination = arguments.options["--output"] {
             if words[0] == "build", arguments.options["--platform"] == "android" {
-                try output(AndroidBuildOutput.build(root: root, output: path(destination)))
+                try withRetainedBuildClosure {
+                    try output(AndroidBuildOutput.build(root: root, output: path(destination)))
+                }
                 exit(0)
             }
             guard words[0] == "build", arguments.options["--platform"] == "ios" else {
                 throw MixerFailure("arguments.output-platform", "--output requires an explicit --platform ios or android build.")
             }
-            let code: Int32
-            do {
+            let code = try withRetainedBuildClosure {
                 let report = try ProjectBuild.runRetainingNative(root: root, test: false, platform: "ios", output: path(destination))
                 try output(report)
-                code = report.succeeded ? 0 : (report.commandResult.exitCode == 0 ? 1 : report.commandResult.exitCode)
-            } catch {
-                try ProcessExecutionContext.localDevelopment.acknowledgeWorkerClosure()
-                throw error
+                return report.succeeded ? 0 : (report.commandResult.exitCode == 0 ? 1 : report.commandResult.exitCode)
             }
-            try ProcessExecutionContext.localDevelopment.acknowledgeWorkerClosure()
             exit(code)
         }
         let result = try ProjectBuild.run(root: root, test: words[0] == "test", platform: arguments.options["--platform"] ?? "host")

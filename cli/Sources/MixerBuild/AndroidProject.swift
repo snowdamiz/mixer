@@ -150,8 +150,11 @@ public enum AndroidProject {
         return try ProcessRunner.run(["python3", root.appendingPathComponent("Generated/MixerAndroid/android-build.py").path, "build", root.path], at: root, policy: .developmentBuild)
     }
 
-    static func prepareBuild(root: URL) throws -> (lock: ToolchainLock, bytes: Data) {
-        let validated = try ProjectBuild.verifiedLock(root: root, androidRequired: true)
+    static func prepareBuild(root: URL, worker: Bool = false) throws -> (lock: ToolchainLock, bytes: Data) {
+        // The managed caller checks host Swift after all static inputs pass.
+        let validated = try worker
+            ? ProjectBuild.verifiedSourceLock(root: root, androidRequired: true)
+            : ProjectBuild.verifiedLock(root: root, androidRequired: true)
         guard validated.lock.android != nil else { throw MixerFailure("android.not-generated", "This project has no locked Android host. Create a new project with --platform android; existing sources are never overwritten.") }
         let config = try ApplicationConfiguration.load(root)
         try AndroidSDKCompatibility.requireHost(config.androidHost)
@@ -167,9 +170,25 @@ public enum AndroidProject {
             }
         }
         guard config.targets.contains("android"), config.capabilities.isEmpty else { throw MixerFailure("android.unsupported-capability", "Android local consumer requires an android target and no declared native capabilities; capability hosts are not integrated in this slice.") }
-        guard try SourceDigest.files(in: root.appendingPathComponent("Resources")).isEmpty else { throw MixerFailure("android.unsupported-resources", "Android resource packaging is not integrated. App resources cannot be silently omitted.") }
-        // Starters created before the seed was added may still have no platform lock.
-        try seedDependencyLock(root: root)
+        let resources = root.appendingPathComponent("Resources")
+        let resourcesEmpty: Bool
+        if worker {
+            // File-only materialization omits the empty Starter directory.
+            var info = stat()
+            if lstat(resources.path, &info) == 0 {
+                resourcesEmpty = try info.st_mode & S_IFMT == S_IFDIR
+                    && FileManager.default.contentsOfDirectory(atPath: resources.path).isEmpty
+            } else {
+                resourcesEmpty = errno == ENOENT
+            }
+        } else {
+            resourcesEmpty = try SourceDigest.files(in: resources).isEmpty
+        }
+        guard resourcesEmpty else { throw MixerFailure("android.unsupported-resources", "Android resource packaging is not integrated. App resources cannot be silently omitted.") }
+        if !worker {
+            // Starters created before the seed was added may still have no platform lock.
+            try seedDependencyLock(root: root)
+        }
         return validated
     }
 

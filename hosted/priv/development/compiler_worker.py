@@ -87,6 +87,9 @@ class Worker:
         return grant
 
     def verify(self, spec):
+        return self.verify_recipe(spec, "ios", "exact-owned-local-manifests-no-external-packages")
+
+    def verify_recipe(self, spec, platform, package_policy):
         grant = self.authorize(spec)
         key = grant["spec"]
         root = Path(grant["root"])
@@ -113,9 +116,11 @@ class Worker:
         policy = self.config["policy"]
         if digest(recipe_bytes) != key["build_definition_sha256"] or digest(recipe_bytes) != policy["recipe_sha256"]:
             raise Refusal("unavailable")
-        if recipe["argv"] != [policy["cli"], "build", "--platform", "ios", "--directory", str(root)] or recipe["cwd"] != str(root):
+        if (key["platform"] != platform
+                or recipe["argv"] != [policy["cli"], "build", "--platform", platform, "--directory", str(root)]
+                or recipe["cwd"] != str(root)):
             raise Refusal("unavailable")
-        if recipe["environment"] != policy["environment"] or recipe["package_policy"] != "exact-owned-local-manifests-no-external-packages":
+        if recipe["environment"] != policy["environment"] or recipe["package_policy"] != package_policy:
             raise Refusal("unavailable")
         # The trusted setup pins every manifest, capability and SDK file, rather
         # than trying to authorize executable package manifests with syntax scans.

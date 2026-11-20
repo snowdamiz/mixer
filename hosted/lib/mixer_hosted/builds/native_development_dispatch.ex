@@ -1,6 +1,6 @@
 defmodule MixerHosted.Builds.NativeDevelopmentDispatch do
   @moduledoc """
-  Opt-in loopback adapter for locally retained unsigned iOS Simulator outputs.
+  Opt-in loopback adapter for locally retained unsigned iOS Simulator and Android outputs.
 
   The coordinator uses query_completion/1 under a durable, running lease.
   The worker revalidates its closed native checkpoint before reporting artifacts.
@@ -10,8 +10,8 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatch do
   alias MixerHosted.Builds.Lifecycle.ArtifactRef
   alias MixerHosted.Builds.Dispatch.{Observation, Request}
 
-  @kinds Enum.map(Lifecycle.native_artifact_kinds(), &Atom.to_string/1)
-  @max_artifact_bytes 256 * 1024 * 1024
+  @kinds for kind <- Lifecycle.native_artifact_kinds(), do: {Atom.to_string(kind), kind}
+  @legacy_ios_descriptor_max_bytes 256 * 1024 * 1024
 
   @impl true
   def query(request), do: observe("query", request)
@@ -25,13 +25,26 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatch do
   def query_completion(%Request{} = request) do
     with {:ok, %Observation{status: :running} = observation} <- query(request),
          {:ok, descriptors} <- native_artifacts(request),
-         {:ok, result} <- native_result(request.operation_id, descriptors) do
+         {:ok, result} <- native_result(request.operation_id, request.spec.platform, descriptors) do
       {:ok, %{observation | status: {:completed, result}}}
     end
   end
 
-  defp native_result(operation_id, descriptors) do
-    if Enum.any?(descriptors, &(&1["sizeBytes"] > Lifecycle.native_artifact_max_bytes())) do
+  defp native_result(operation_id, platform, descriptors) do
+    artifacts =
+      Enum.zip_with(descriptors, @kinds, fn descriptor, {_name, kind} ->
+        %ArtifactRef{
+          kind: kind,
+          size_bytes: descriptor["sizeBytes"],
+          sha256: descriptor["sha256"]
+        }
+      end)
+
+    if platform == :ios and
+         Enum.any?(
+           artifacts,
+           &(&1.size_bytes > Lifecycle.native_artifact_max_bytes(:ios, &1.kind))
+         ) do
       diagnostic = :crypto.hash(:sha256, "native_output_too_large:" <> operation_id)
 
       {:ok,
@@ -42,17 +55,8 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatch do
          diagnostic_sha256: Base.encode16(diagnostic, case: :lower)
        }}
     else
-      artifacts =
-        Enum.zip_with(descriptors, Lifecycle.native_artifact_kinds(), fn descriptor, kind ->
-          %ArtifactRef{
-            kind: kind,
-            size_bytes: descriptor["sizeBytes"],
-            sha256: descriptor["sha256"]
-          }
-        end)
-
-      with true <- Lifecycle.native_artifacts?(artifacts),
-           :ok <- RetainedNativeArtifacts.verify(operation_id, artifacts) do
+      with true <- Lifecycle.native_artifacts?(platform, artifacts),
+           :ok <- RetainedNativeArtifacts.verify(operation_id, platform, artifacts) do
         {:ok, %{outcome: :native_succeeded, artifacts: artifacts}}
       else
         _ -> {:error, :uncertain}
@@ -61,16 +65,38 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatch do
   end
 
   def native_artifacts(%Request{} = request) do
-    with {:ok, %{"status" => "native_ready", "artifacts" => artifacts}} <-
-           exchange("artifacts", request),
-         true <- valid_artifacts?(artifacts) do
+    with {:ok, reply} <- exchange("artifacts", request),
+         {:ok, artifacts} <- reply_artifacts(request, reply),
+         true <- valid_artifacts?(request.spec.platform, artifacts) do
       {:ok, artifacts}
     else
-      {:ok, _} -> {:error, :uncertain}
       false -> {:error, :uncertain}
       error -> error
     end
   end
+
+  defp reply_artifacts(
+         %Request{spec: %{platform: :android}, operation_id: operation_id},
+         %{
+           "status" => "native_ready",
+           "profile" => "unsigned-android-local-v1",
+           "platform" => "android",
+           "operation_id" => operation_id,
+           "artifacts" => artifacts
+         } = reply
+       )
+       when is_binary(operation_id) and map_size(reply) == 5,
+       do: {:ok, artifacts}
+
+  defp reply_artifacts(
+         %Request{spec: %{platform: :ios}},
+         %{"status" => "native_ready", "artifacts" => artifacts} = reply
+       )
+       when not is_map_key(reply, "profile") and not is_map_key(reply, "platform") and
+              not is_map_key(reply, "operation_id"),
+       do: {:ok, artifacts}
+
+  defp reply_artifacts(_, _), do: {:error, :uncertain}
 
   defp observe(action, %Request{} = request) do
     with {:ok, reply} <- exchange(action, request),
@@ -105,7 +131,7 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatch do
              expected = :crypto.mac(:hmac, :sha256, token, "response\n" <> nonce <> "\n" <> body),
              {:ok, signature} <- Base.decode16(mac, case: :lower),
              true <- Plug.Crypto.secure_compare(expected, signature),
-             {:ok, reply} <- Jason.decode(body) do
+             {:ok, reply} <- decode_reply(action, request, body) do
           case reply do
             %{"error" => "stale"} -> {:error, :stale}
             %{"error" => "unavailable"} -> {:error, :unavailable}
@@ -124,6 +150,25 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatch do
   rescue
     _ -> {:error, :uncertain}
   end
+
+  defp decode_reply("artifacts", %Request{spec: %{platform: :android}}, body) do
+    with {:ok, reply} <- Jason.decode(body, objects: :ordered_objects) do
+      {:ok, unique_json_value!(reply)}
+    end
+  end
+
+  defp decode_reply(_action, _request, body), do: Jason.decode(body)
+
+  defp unique_json_value!(%Jason.OrderedObject{values: fields}) do
+    object = Map.new(fields, fn {key, value} -> {key, unique_json_value!(value)} end)
+    if map_size(object) != length(fields), do: raise(ArgumentError, "duplicate JSON key")
+    object
+  end
+
+  defp unique_json_value!(values) when is_list(values),
+    do: Enum.map(values, &unique_json_value!/1)
+
+  defp unique_json_value!(value), do: value
 
   defp status(%{"status" => "absent"}), do: {:ok, :absent}
   defp status(%{"status" => "running"}), do: {:ok, :running}
@@ -145,19 +190,24 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatch do
 
   defp status(_), do: {:error, :uncertain}
 
-  defp valid_artifacts?([_, _, _] = artifacts) do
+  defp valid_artifacts?(platform, [_, _, _] = artifacts) do
     Enum.zip(artifacts, @kinds)
     |> Enum.all?(fn
-      {%{"kind" => kind, "sizeBytes" => bytes, "sha256" => sha} = artifact, kind}
-      when map_size(artifact) == 3 and is_integer(bytes) and bytes in 1..@max_artifact_bytes ->
-        sha?(sha)
+      {%{"kind" => name, "sizeBytes" => bytes, "sha256" => sha} = artifact, {name, kind}}
+      when map_size(artifact) == 3 and is_integer(bytes) and bytes >= 1 ->
+        bytes <= descriptor_max_bytes(platform, kind) and sha?(sha)
 
       _ ->
         false
     end)
   end
 
-  defp valid_artifacts?(_), do: false
+  defp valid_artifacts?(_, _), do: false
+
+  defp descriptor_max_bytes(:ios, _kind), do: @legacy_ios_descriptor_max_bytes
+
+  defp descriptor_max_bytes(:android, kind),
+    do: Lifecycle.native_artifact_max_bytes(:android, kind)
 
   defp sha?(value),
     do: is_binary(value) and byte_size(value) == 64 and Regex.match?(~r/\A[0-9a-f]+\z/, value)

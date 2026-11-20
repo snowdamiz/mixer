@@ -217,6 +217,7 @@ HOSTED_V45_WORKFLOW = 'hosted-v45-predecessor-bytes/' + VERIFY_WORKFLOW
 HOSTED_V46_WORKFLOW = 'hosted-v46-predecessor-bytes/' + VERIFY_WORKFLOW
 HOSTED_V47_WORKFLOW = 'hosted-v47-predecessor-bytes/' + VERIFY_WORKFLOW
 HOSTED_V48_WORKFLOW = 'hosted-v48-predecessor-bytes/' + VERIFY_WORKFLOW
+HOSTED_V49_WORKFLOW = 'hosted-v49-predecessor-bytes/' + VERIFY_WORKFLOW
 APPLE_RENDERER = 'sdk/Sources/MixerApple/MixerNativeView.swift'
 APPLE_PREIMAGE = 'apple-section-predecessor-bytes/sdk/Sources/MixerApple/MixerNativeView.swift'
 APPLE_SECTION_SOURCE_SHA256 = '1d2ebd6883fff9147aeec6d558b3ce1b2ec8f7dffc22b99c12ec5a85ab19b438'
@@ -260,6 +261,14 @@ ANDROID_OUTPUT_CORRECTION_CHANGES = {
     'cli/Sources/MixerBuild/Resources/android-build.py',
 }
 ANDROID_OUTPUT_CORRECTION_TEST = 'cli/build-tests/test_android_public_host.py'
+MANAGED_ANDROID_PREFIX = 'managed-android-retained-predecessor-bytes/'
+MANAGED_ANDROID_SOURCE_SHA256 = 'b63abaaad38808250ee3f4273224412b7428e52f0e42af2031df10e45f917718'
+MANAGED_ANDROID_CHANGES = {
+    'cli/Sources/MixerBuild/AndroidBuildOutput.swift',
+    'cli/Sources/MixerBuild/AndroidProject.swift',
+    'cli/Sources/MixerBuild/ProjectGenerator.swift',
+    'cli/Sources/MixerCLI/main.swift',
+}
 HALT_CLI_PREFIX = 'halt-cli-predecessor-bytes/'
 SOURCE150_SHA256 = '4a202d6aa4f6b81884df32cd0fe67cc8ce9847e8d4ae2ebea8b2cf1d4711a6f8'
 HALT_CLI_SOURCE_CHANGES = {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE}
@@ -267,13 +276,15 @@ HALT_CLI_CHANGES = HALT_CLI_SOURCE_CHANGES | {VERIFY_WORKFLOW, JAVA + 'test_spar
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
-    HOSTED_V43_WORKFLOW, HOSTED_V44_WORKFLOW, HOSTED_V45_WORKFLOW, HOSTED_V46_WORKFLOW, HOSTED_V47_WORKFLOW, HOSTED_V48_WORKFLOW,
+    HOSTED_V43_WORKFLOW, HOSTED_V44_WORKFLOW, HOSTED_V45_WORKFLOW, HOSTED_V46_WORKFLOW, HOSTED_V47_WORKFLOW, HOSTED_V48_WORKFLOW, HOSTED_V49_WORKFLOW,
     GUEST_CUTOFF_PREIMAGE, WORKER_SWIFT_PROBE_PREIMAGE,
 } | {STORE_PLATFORM_IDENTITY_PREFIX + name for name in STORE_PLATFORM_IDENTITY_INPUTS} | {
     ANDROID_OUTPUT_PREFIX + name for name in ANDROID_OUTPUT_CHANGES
 } | {
     ANDROID_OUTPUT_CORRECTION_PREFIX + name
     for name in ANDROID_OUTPUT_CORRECTION_CHANGES | {ANDROID_OUTPUT_CORRECTION_TEST}
+} | {
+    MANAGED_ANDROID_PREFIX + name for name in MANAGED_ANDROID_CHANGES
 } | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
 } | {
@@ -409,8 +420,9 @@ def install_inputs():
                              'hosted_v42_workflow', 'store_platform_identity_transition',
                              'worker_swift_probe_transition', 'android_retained_output_transition',
                              'android_retained_output_correction_transition',
+                             'managed_android_retained_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
-                             'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow'} and
+                             'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
@@ -818,6 +830,13 @@ def install_inputs():
             hosted_v48['before'] != hosted_v48['after'], 'Hosted v48 workflow preimage differs')
     installed[VERIFY_WORKFLOW] = hosted_v48['after']
 
+    hosted_v49 = binding['hosted_v49_workflow']
+    before = read_predecessor_member(HERE / HOSTED_V49_WORKFLOW)
+    require(set(hosted_v49) == {'before', 'after'} and
+            installed[VERIFY_WORKFLOW] == previous.row(before) == hosted_v49['before'] and
+            hosted_v49['before'] != hosted_v49['after'], 'Hosted v49 workflow preimage differs')
+    installed[VERIFY_WORKFLOW] = hosted_v49['after']
+
     notices = binding['hosted_v41_notices']
     before = read_predecessor_member(HERE / HOSTED_V41_NOTICES)
     require(set(notices) == {'before', 'after'} and
@@ -947,10 +966,27 @@ def install_inputs():
             require(expected_source[name] == change['before'], 'Android correction source preimage differs: ' + name)
             expected_source[name] = change['after']
         preimages.setdefault(name, (raw, 0o644))
-    require(current == expected_source and len(current) == 151 and binding['source'] == {
-        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': ANDROID_OUTPUT_CORRECTION_SOURCE_SHA256,
-    } and previous.digest(current) == correction['sourceAfter'] == ANDROID_OUTPUT_CORRECTION_SOURCE_SHA256,
+    require(len(expected_source) == 151 and
+            previous.digest(expected_source) == correction['sourceAfter'] == ANDROID_OUTPUT_CORRECTION_SOURCE_SHA256,
             'Android retained output correction source transition differs')
+
+    managed_android = binding['managed_android_retained_transition']
+    require(set(managed_android) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            managed_android['sourceBefore'] == ANDROID_OUTPUT_CORRECTION_SOURCE_SHA256 and
+            set(managed_android['changes']) == MANAGED_ANDROID_CHANGES,
+            'Managed Android retained output transition roster differs')
+    for name, change in managed_android['changes'].items():
+        raw = read_predecessor_member(HERE / (MANAGED_ANDROID_PREFIX + name))
+        require(set(change) == {'before', 'after'} and
+                change['before'] == previous.row(raw) == installed[name] == expected_source[name] and
+                change['before'] != change['after'],
+                'Managed Android retained output predecessor differs: ' + name)
+        installed[name] = expected_source[name] = change['after']
+        preimages.setdefault(name, (raw, 0o644))
+    require(current == expected_source and len(current) == 151 and binding['source'] == {
+        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': MANAGED_ANDROID_SOURCE_SHA256,
+    } and previous.digest(current) == managed_android['sourceAfter'] == MANAGED_ANDROID_SOURCE_SHA256,
+            'Managed Android retained output source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in halt['changes'].items():
@@ -1047,6 +1083,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_managed_android_retained_sha256': binding['managed_android_retained_transition']['sourceBefore'],
             'predecessor_android_retained_output_correction_sha256': binding['android_retained_output_correction_transition']['sourceBefore'],
             'predecessor_android_retained_output_sha256': binding['android_retained_output_transition']['sourceBefore'],
             'predecessor_guest_cutoff_sha256': binding['guest_cutoff_transition']['sourceBefore'],

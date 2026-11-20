@@ -273,6 +273,33 @@ public enum ProjectBuild {
         root: URL, androidRequired: Bool = false, requireCurrentAndroidProfile: Bool = true,
         swiftExecutable: String = "swift"
     ) throws -> (lock: ToolchainLock, bytes: Data) {
+        let (lock, bytes) = try verifiedSourceLock(root: root, androidRequired: androidRequired,
+                                                  requireCurrentAndroidProfile: requireCurrentAndroidProfile)
+        try verifyHostSwift(lock: lock, swiftExecutable: swiftExecutable)
+        return (lock, bytes)
+    }
+
+    static func verifyHostSwift(lock: ToolchainLock, swiftExecutable: String) throws {
+        let version = try ProcessRunner.run([swiftExecutable, "--version"], policy: .toolInspection)
+        if ProcessInfo.processInfo.environment["MIXER_SWIFT_IDENTITY_DIAGNOSTICS"] == "1" {
+            let environment = ProcessInfo.processInfo.environment
+            let observation: [String: Any] = [
+                "event": "mixer.swift-lock-comparison", "argv": version.command,
+                "expected": lock.swiftVersion, "observed": version.output,
+                "exitCode": version.exitCode, "outputTruncated": version.outputTruncated,
+                "cwd": FileManager.default.currentDirectoryPath,
+                "environment": environment.filter { ["PATH", "DEVELOPER_DIR", "TOOLCHAINS", "SWIFT_EXEC", "SDKROOT", "MIXER_SWIFT"].contains($0.key) }
+            ]
+            if let bytes = try? JSONSerialization.data(withJSONObject: observation, options: [.sortedKeys]) {
+                FileHandle.standardError.write(bytes + Data([10]))
+            }
+        }
+        guard version.succeeded, version.output.trimmingCharacters(in: .whitespacesAndNewlines) == lock.swiftVersion else { throw MixerFailure("lock.toolchain-drift", "Swift host compiler differs from mixer.lock. Select the pinned toolchain.") }
+    }
+
+    static func verifiedSourceLock(
+        root: URL, androidRequired: Bool, requireCurrentAndroidProfile: Bool = true
+    ) throws -> (lock: ToolchainLock, bytes: Data) {
         let config = try ApplicationConfiguration.load(root)
         try AndroidSDKCompatibility.requireHost(config.androidHost)
         let lockURL = root.appendingPathComponent("mixer.lock")
@@ -295,21 +322,6 @@ public enum ProjectBuild {
         if let android = lock.android {
             guard try SourceDigest.tree(root.appendingPathComponent("Generated/MixerAndroid")) == android.adapterDigest else { throw MixerFailure("lock.android-drift", "Bundled Android adapter source differs from mixer.lock. Restore the original locked adapter snapshot.") }
         }
-        let version = try ProcessRunner.run([swiftExecutable, "--version"], policy: .toolInspection)
-        if ProcessInfo.processInfo.environment["MIXER_SWIFT_IDENTITY_DIAGNOSTICS"] == "1" {
-            let environment = ProcessInfo.processInfo.environment
-            let observation: [String: Any] = [
-                "event": "mixer.swift-lock-comparison", "argv": version.command,
-                "expected": lock.swiftVersion, "observed": version.output,
-                "exitCode": version.exitCode, "outputTruncated": version.outputTruncated,
-                "cwd": FileManager.default.currentDirectoryPath,
-                "environment": environment.filter { ["PATH", "DEVELOPER_DIR", "TOOLCHAINS", "SWIFT_EXEC", "SDKROOT", "MIXER_SWIFT"].contains($0.key) }
-            ]
-            if let bytes = try? JSONSerialization.data(withJSONObject: observation, options: [.sortedKeys]) {
-                FileHandle.standardError.write(bytes + Data([10]))
-            }
-        }
-        guard version.succeeded, version.output.trimmingCharacters(in: .whitespacesAndNewlines) == lock.swiftVersion else { throw MixerFailure("lock.toolchain-drift", "Swift host compiler differs from mixer.lock. Select the pinned toolchain.") }
         return (lock, bytes)
     }
     public static func run(root: URL, test: Bool, platform: String) throws -> CommandResult {

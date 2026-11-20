@@ -1,6 +1,13 @@
 defmodule MixerHosted.Builds.NativeDevelopmentDispatchTest do
   use ExUnit.Case, async: false
-  alias MixerHosted.Builds.{Dispatch, NativeDevelopmentDispatch, RetainedNativeArtifacts}
+
+  alias MixerHosted.Builds.{
+    Dispatch,
+    Lifecycle,
+    NativeDevelopmentDispatch,
+    RetainedNativeArtifacts
+  }
+
   alias MixerHosted.Builds.Lifecycle.ArtifactRef
   alias MixerHosted.Builds.Dispatch.Request
 
@@ -64,6 +71,14 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatchTest do
 
     with_peer(
       "artifacts",
+      %{"status" => "native_ready", "artifacts" => artifacts, "detail" => "legacy extra field"},
+      fn ->
+        assert NativeDevelopmentDispatch.native_artifacts(request) == {:ok, artifacts}
+      end
+    )
+
+    with_peer(
+      "artifacts",
       %{"status" => "native_ready", "artifacts" => List.duplicate(hd(artifacts), 3)},
       fn ->
         assert NativeDevelopmentDispatch.native_artifacts(request) == {:error, :uncertain}
@@ -109,24 +124,96 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatchTest do
         }
       end)
 
-    with_peers(
-      [
-        {"query", %{"status" => "running"}},
-        {"artifacts", %{"status" => "native_ready", "artifacts" => artifacts}}
-      ],
-      fn ->
-        assert {:ok, {:completed, %{outcome: :failed, class: :policy, code: :policy_rejection}}} =
-                 Dispatch.observation(
-                   request,
-                   NativeDevelopmentDispatch.query_completion(request)
-                 )
-      end,
-      :valid
-    )
+    diagnostic =
+      :crypto.hash(:sha256, "native_output_too_large:" <> request.operation_id)
+      |> Base.encode16(case: :lower)
+
+    assert completion(request, %{"status" => "native_ready", "artifacts" => artifacts}) ==
+             {:ok,
+              {:completed,
+               %{
+                 outcome: :failed,
+                 class: :policy,
+                 code: :policy_rejection,
+                 diagnostic_sha256: diagnostic
+               }}}
+
+    oversized = [%{hd(artifacts) | "sizeBytes" => 256 * 1024 * 1024 + 1} | tl(artifacts)]
+
+    assert completion(request, %{"status" => "native_ready", "artifacts" => oversized}) ==
+             {:error, :uncertain}
+  end
+
+  test "rejects native completion envelopes outside the requested platform and operation", %{
+    request: ios
+  } do
+    android = %{ios | spec: %{platform: :android}}
+    artifacts = Enum.map(Lifecycle.native_artifact_kinds(), &descriptor(&1, 10))
+    reply = android_reply(android, artifacts)
+    legacy = Map.take(reply, ["status", "artifacts"])
+
+    for invalid <- [
+          legacy,
+          Map.delete(reply, "operation_id"),
+          Map.delete(reply, "platform"),
+          Map.delete(reply, "profile"),
+          %{reply | "operation_id" => String.duplicate("b", 64)},
+          %{reply | "platform" => "ios"},
+          %{reply | "profile" => "unsigned-ios-local-v1"},
+          %{reply | "status" => "running"},
+          Map.put(reply, "extra", true),
+          %{reply | "artifacts" => Enum.reverse(artifacts)},
+          %{reply | "artifacts" => tl(artifacts)},
+          %{reply | "artifacts" => [Map.put(hd(artifacts), "path", "/unused") | tl(artifacts)]},
+          %{reply | "artifacts" => [%{hd(artifacts) | "sha256" => "invalid"} | tl(artifacts)]},
+          Jason.OrderedObject.new([{"operation_id", android.operation_id} | Map.to_list(reply)]),
+          %{reply | "artifacts" => [duplicate_size(hd(artifacts)) | tl(artifacts)]}
+        ] do
+      assert completion(android, invalid) == {:error, :uncertain}
+
+      with_peer("artifacts", invalid, fn ->
+        assert NativeDevelopmentDispatch.native_artifacts(android) == {:error, :uncertain}
+      end)
+    end
+
+    for invalid <- [
+          reply,
+          Map.delete(reply, "platform"),
+          Map.take(reply, ["status", "artifacts", "platform"])
+        ] do
+      with_peer("artifacts", invalid, fn ->
+        assert NativeDevelopmentDispatch.native_artifacts(ios) == {:error, :uncertain}
+      end)
+    end
+  end
+
+  test "applies Android size bounds per artifact role", %{request: request} do
+    android = %{request | spec: %{platform: :android}}
+    kinds = Lifecycle.native_artifact_kinds()
+
+    for kind <- kinds do
+      cap = Lifecycle.native_artifact_max_bytes(:android, kind)
+      at_cap = Enum.map(kinds, &descriptor(&1, if(&1 == kind, do: cap, else: 10)))
+
+      with_peer("artifacts", android_reply(android, at_cap), fn ->
+        assert NativeDevelopmentDispatch.native_artifacts(android) == {:ok, at_cap}
+      end)
+
+      for invalid_size <- [0, cap + 1] do
+        invalid = Enum.map(kinds, &descriptor(&1, if(&1 == kind, do: invalid_size, else: 10)))
+        reply = android_reply(android, invalid)
+
+        with_peer("artifacts", reply, fn ->
+          assert NativeDevelopmentDispatch.native_artifacts(android) == {:error, :uncertain}
+        end)
+
+        assert completion(android, reply) == {:error, :uncertain}
+      end
+    end
   end
 
   test "bounded retained verification widens only the Android binary role", %{
-    request: %{operation_id: operation}
+    request: %{operation_id: operation} = ios
   } do
     {tmp_dir, 0} = System.cmd("realpath", [System.tmp_dir!()])
     suffix = Base.url_encode64(:crypto.strong_rand_bytes(12), padding: false)
@@ -145,6 +232,28 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatchTest do
     apk = sparse_artifact(store, :unsigned_native_binary, 27_795_723)
     android_cap = sparse_artifact(store, :unsigned_native_binary, 32 * 1024 * 1024)
     over_cap = sparse_artifact(store, :unsigned_native_binary, 32 * 1024 * 1024 + 1)
+
+    for retained_binary <- [binary, ios_cap] do
+      refs = [retained_binary, symbols, inventory]
+      reply = %{"status" => "native_ready", "artifacts" => Enum.map(refs, &descriptor/1)}
+
+      assert completion(ios, reply) ==
+               {:ok, {:completed, %{outcome: :native_succeeded, artifacts: refs}}}
+    end
+
+    android = %{ios | spec: %{platform: :android}}
+
+    for retained_binary <- [apk, android_cap] do
+      refs = [retained_binary, symbols, inventory]
+      reply = android_reply(android, Enum.map(refs, &descriptor/1))
+
+      assert completion(android, reply) ==
+               {:ok, {:completed, %{outcome: :native_succeeded, artifacts: refs}}}
+    end
+
+    wrong_digest = %{apk | sha256: binary.sha256}
+    reply = android_reply(android, Enum.map([wrong_digest, symbols, inventory], &descriptor/1))
+    assert completion(android, reply) == {:error, :uncertain}
 
     assert :ok = RetainedNativeArtifacts.verify(operation, [ios_cap, symbols, inventory])
     assert :ok = RetainedNativeArtifacts.verify(operation, :android, [apk, symbols, inventory])
@@ -168,8 +277,40 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatchTest do
     assert {:error, :uncertain} =
              RetainedNativeArtifacts.verify(operation, :android, [apk, inventory, symbols])
 
-    assert {:ok, <<0>>} = RetainedNativeArtifacts.read(operation, binary)
-    assert {:error, :storage_unavailable} = RetainedNativeArtifacts.read(operation, apk)
+    assert {:ok, <<0>>} = RetainedNativeArtifacts.read(operation, :ios, binary)
+    assert {:error, :storage_unavailable} = RetainedNativeArtifacts.read(operation, :ios, apk)
+  end
+
+  defp completion(request, reply) do
+    with_peers(
+      [{"query", %{"status" => "running"}}, {"artifacts", reply}],
+      fn ->
+        Dispatch.observation(request, NativeDevelopmentDispatch.query_completion(request))
+      end,
+      :valid
+    )
+  end
+
+  defp android_reply(request, artifacts) do
+    %{
+      "status" => "native_ready",
+      "profile" => "unsigned-android-local-v1",
+      "platform" => "android",
+      "operation_id" => request.operation_id,
+      "artifacts" => artifacts
+    }
+  end
+
+  defp descriptor(%ArtifactRef{} = ref) do
+    %{"kind" => Atom.to_string(ref.kind), "sizeBytes" => ref.size_bytes, "sha256" => ref.sha256}
+  end
+
+  defp descriptor(kind, size) do
+    descriptor(%ArtifactRef{kind: kind, size_bytes: size, sha256: String.duplicate("a", 64)})
+  end
+
+  defp duplicate_size(descriptor) do
+    Jason.OrderedObject.new([{"sizeBytes", descriptor["sizeBytes"]} | Map.to_list(descriptor)])
   end
 
   defp sparse_artifact(store, kind, size) do
@@ -203,7 +344,13 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatchTest do
 
     {:ok, port} = :inet.port(listener)
 
-    Application.put_env(:mixer_hosted, @key, %{port: port, worker_id: "local", token: @secret})
+    settings = Application.get_env(:mixer_hosted, @key, %{})
+
+    Application.put_env(
+      :mixer_hosted,
+      @key,
+      Map.merge(settings, %{port: port, worker_id: "local", token: @secret})
+    )
 
     {pid, monitor} =
       spawn_monitor(fn ->
@@ -230,8 +377,9 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatchTest do
       end)
 
     try do
-      fun.()
+      result = fun.()
       assert_receive {:DOWN, ^monitor, :process, ^pid, :normal}
+      result
     after
       :gen_tcp.close(listener)
     end
