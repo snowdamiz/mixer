@@ -86,16 +86,19 @@ the command fails or is interrupted, preserve the printed campaign and any
 custody markers for root review.
 
 From the printed `handoff/` directory run `shasum -a 256 -c SHA256SUMS`.
-Install `app/FieldLog.apk` once. `origin-config.template.json` registers the
-one runtime, fresh public root, and exact loopback listener. Add a fresh
-private file-store path and a scoped publisher token hash following the
-[maintained origin configuration](../../fieldlog-android-engine-pair/replay/origin.py),
-then run `MIXER_SERVICE_CONFIG=/absolute/local/service.json ./tools/mixer-service`.
-Do not change the listener address. `routing.json` records the routes and
-`baseline/` and `reviewed/` supply exact JSON request bodies. Upload each
-`upload.json` by artifact digest and validate each `validate.json`. Publish
-`baseline/publish.json` first and send `reviewed/publish.json` only after
-observing healthy sequence 1.
+From the Mixer checkout, run the loopback origin against that same handoff.
+
+```sh
+python3 -B tests/integration/fieldlog-localized/android/origin.py "$handoff"
+```
+
+For the installed replay, add `--control "$control"`, where `$control` is
+a fresh directory path. The service uploads and validates both releases,
+publishes sequence 1, and writes `baseline.ready.json` after verifying its
+offer. Use the port in that record for the exact ADB reverse. Once sequence 1
+is healthy on the installed device, create `"$control/publish-reviewed"`.
+Wait for `reviewed.ready.json` before pressing **Check for update**. To
+stop the origin, create `"$control/stop"` and wait for its terminal receipt.
 
 If either retained input is unavailable, reproduce the original guest export
 at its pinned recipe commit and rebuild the
@@ -133,3 +136,9 @@ verify the reopened state. Save the paired screenshots, journals, delivery
 logs and workspace readbacks, then close and clean up the owned emulator,
 origin and scratch. Record a visible failure and its matching durable
 readback separately if either disagrees with the screen.
+
+Save the workspace snapshots as `workspace-<checkpoint>.json`. Use
+`baseline-ltr`, `baseline-rtl`, and `baseline-large` for the three
+scale and direction captures, and the matching `reviewed-` labels for
+sequence 2. Run `verify-workspace.py --help` for the full checkpoint list.
+After the replay, pass the capture directory to `verify-workspace.py`.
