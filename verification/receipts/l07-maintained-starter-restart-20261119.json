@@ -1,5 +1,5 @@
 {
-  "status": "maintained-replay-source-inert-and-hosted-fixture-passed",
+  "status": "maintained-starter-replay-all-controls-and-real-restart-passed",
   "integrationBaseRevision": "89429afd8854cc4b8a0f734235762f55833a28d6",
   "scope": "The checked-in entry point verifies and applies its two test fixture changes inside the pinned historical archive. The live-replay fixtures, processor script, and worker inputs are byte-bound.",
   "fileSHA256": {
@@ -120,6 +120,107 @@
     }
   },
   "fullNativeProof": "verification/receipts/l07-versioned-starter-worker-restart-20261119.json",
-  "fullNativeScope": "The full live Starter restart ran the equivalent historical fixtures before the archive integration. The integrated launcher ran its three bounded zero-build controls.",
-  "localGate": "L07 running"
+  "fullNativeScope": "The maintained launcher ran one full build and restart from the published checkout. The pinned historical hosted and worker fixtures were used for both native proofs.",
+  "localGate": "L07 running",
+  "publishedReplay": {
+    "launcherRevision": "24e0f2869e",
+    "command": "python3.14 -B tests/integration/free-project-starter/replay-restart.py",
+    "rawResultSHA256": "cab0298c5c9fbb7c6905133e545250599d6cfa007a059c74d204daf72c1d3bc2",
+    "closedCommandGroups": 49,
+    "ownedScratchRemoved": true,
+    "publicCommit": "201ead70ff68bfe18de24c0642f518701459e0a4",
+    "publicTree": "bc795366f84ca7d68890b84a97bd8773fe1dc786",
+    "launcherSHA256": "f960866d2d70591afc7bae77c1255abc324e18826f83e0b9f3512a2a7fa5b69e",
+    "fixtureOverlaySHA256": "197b2006ef124f23ea91e566cada4e58f23c8f9ca88940237d2c6c80e8a43d8a",
+    "provenanceSourceSHA256": "8c7b6022210d13a8830500ef5c406db8f8fd6bcf93c883ab5e6718ed1f172b90",
+    "provenanceVerifiedAt": [
+      "after-export",
+      "prepost-ready",
+      "before-post",
+      "after-service-shutdown"
+    ],
+    "starterSourceSHA256": "242e71ce65479302c180bf58ebec0d76204e43cc6f14e56d0f6694eb6c9a0b0f",
+    "starterLockSHA256": "d31b723e47113684790c05543da47853af15c2ebc0df6adab498e5a4ac95b07d",
+    "cliSHA256": "5522ea4f2f158291f846fbbc6f11a0253b5c4a24e328a7680fd5cd3c12c62583",
+    "workerClosure": {
+      "cli_group_absent": true,
+      "cli_reaped": true,
+      "closed": true,
+      "commands": [
+        {
+          "command": "/usr/bin/xcodebuild",
+          "group_terminate_sent": false,
+          "pid": 52158,
+          "receipt_sha256": "153c8f6d59fd9685e2a397f080a7b775d83d96baaaa30c7bb09629ba32e8d286",
+          "stop_reason": null
+        },
+        {
+          "command": "/usr/bin/swift",
+          "group_terminate_sent": false,
+          "pid": 52078,
+          "receipt_sha256": "c3c2a1bc3f3ce48171d78e3ee79ae46d16ae2b0186a665faf8f37b45aa160e5e",
+          "stop_reason": null
+        }
+      ],
+      "exit": 0,
+      "pid": 52076,
+      "started": true
+    },
+    "terminalRowThroughReplacementSHA256": "4aeffc08e985246bb98c72a176ac93b407cb1b74d27acc5af2c65b71219dcd4a",
+    "sameLedger": true,
+    "sameArtifactStore": true,
+    "sameRelayListener": true,
+    "workerStarts": 1,
+    "compilerStarts": 1,
+    "workerRestarts": 1,
+    "retainedArtifactReplies": 1,
+    "buildPOSTAttempts": 1,
+    "buildHTTP": 201,
+    "buildId": "build-85e0e1afa1c34cf8361d8b776b281d0617ce861dc2979df3fe20a17f0fbcae05",
+    "revision": 2,
+    "terminalState": "native_succeeded",
+    "capacityReleases": 1,
+    "stableAuthenticatedBuildReads": true,
+    "unrelatedTenantBuildHTTP": 404,
+    "artifacts": [
+      {
+        "httpStatus": 200,
+        "kind": "unsigned_native_binary",
+        "sha256": "31c4d824977c9adc8e43227af89f34431977ed4f42cbaa28093b21f5531ef863",
+        "sizeBytes": 3400191,
+        "unrelatedTenantHTTP": 404
+      },
+      {
+        "httpStatus": 200,
+        "kind": "debug_symbols",
+        "sha256": "23d5abfbf57de05af14a74b6b46f554cbe02c1ea97bb735887a4eaae8ddc4f89",
+        "sizeBytes": 3548161,
+        "unrelatedTenantHTTP": 404
+      },
+      {
+        "httpStatus": 200,
+        "kind": "resource_inventory",
+        "sha256": "d17e23673eca1c696a6c351f671e4a013b87467fb72ac9c3c51c53eb39926354",
+        "sizeBytes": 994,
+        "unrelatedTenantHTTP": 404
+      }
+    ],
+    "billingUnchanged": true,
+    "databaseDropped": true,
+    "portsRebound": [
+      58886,
+      59021,
+      59679,
+      59691,
+      59721,
+      59922,
+      61616
+    ],
+    "paymentServiceConfigured": false,
+    "mix": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:15:15] [ds:15:15:10] [async-threads:1] [jit] [dtrace]\n\nMix 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "xcode": "Xcode 27.2\nBuild version 27B52",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]"
+  }
 }
