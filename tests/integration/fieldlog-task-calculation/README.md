@@ -44,3 +44,33 @@ files omit single-space markers on blank context lines and produce the same
 Swift files as the originals. The replay shares the C imports with the
 saved-draft integration and uses the v3 loopback client and runtime fixtures
 from the pinned Mixer tree. [Source pins](inputs.json)
+
+## Check an installed Android launch and retirement
+
+For each signed phase, capture the recovery state while the checklist is
+open. Keep the installed APK, assignment, and workspace checks from the
+packet replay. Use the expected runtime, sequence, artifact hash, and payload
+hash from its verified assignment and manifest. Use the installation ID
+recorded at the first checkpoint.
+
+```sh
+readback=tests/integration/fieldlog-task-calculation/android-readback.py
+python3 -B "$readback" "$live_state" \
+    --runtime "$runtime" --installation "$installation" --sequence "$sequence" \
+    --artifact "$artifact_sha256" --payload "$payload_sha256"
+```
+
+Once the live readback succeeds, tap **Done** and capture the state again.
+Pass both snapshots to check that the same healthy launch survived
+retirement and its attempt cleared.
+
+```sh
+python3 -B "$readback" "$live_state" --retired "$retired_state" \
+    --runtime "$runtime" --installation "$installation" --sequence "$sequence" \
+    --artifact "$artifact_sha256" --payload "$payload_sha256"
+```
+
+Repeat for the corrected assignment, the rollback assignment, and the cold
+offline reopen. Compare the candidate and launch identifiers across phases.
+The offline reopen keeps the rollback candidate and earns health for a new
+launch. Compare the workspace bytes at every checkpoint.

@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "recordedUTC": "2026-11-20T04:43:51.861484+00:00",
+  "scenario": "L08 section 22.2.1",
+  "status": "passed_readback_controls",
+  "baseCommit": "d82b78782ae1a9bcccdbc2e3d5890a78ba27413c",
+  "source": "tests/integration/fieldlog-task-calculation/android-readback.py",
+  "sourceSHA256": "eb50030748fa01ed762103f9cf3b9c8b5c2901c48e2997c704acdddec9262cef",
+  "observedRetiredSnapshot": {
+    "receipt": "verification/receipts/fieldlog-android-calculation-first-open-20261119.json",
+    "sha256": "486427cfa4cb117a06991c1dd68f0526561d276d1f316983e5f0a0a6d0cc26bf"
+  },
+  "activeControl": "Constructed from the closed sequence-1 capture using the store's actual live attempt fields. This is a control, not a second device capture.",
+  "controls": {
+    "live": {
+      "exit": 0,
+      "error": ""
+    },
+    "same_launch_retired": {
+      "exit": 0,
+      "error": ""
+    },
+    "pending_download": {
+      "exit": 1,
+      "error": "Recovery readback refused: Download is still pending"
+    },
+    "missing_health": {
+      "exit": 1,
+      "error": "Recovery readback refused: Expected committed health and a live attempt"
+    },
+    "retired_presented_as_live": {
+      "exit": 1,
+      "error": "Recovery readback refused: Expected committed health and a live attempt"
+    },
+    "wrong_installation": {
+      "exit": 1,
+      "error": "Recovery readback refused: Recovery scope or sequence differs from the installed assignment"
+    },
+    "wrong_accepted_sequence": {
+      "exit": 1,
+      "error": "Recovery readback refused: Recovery scope or sequence differs from the installed assignment"
+    },
+    "still_live_after_done": {
+      "exit": 1,
+      "error": "Recovery readback refused: Installed guest did not retire normally"
+    },
+    "staged_after_done": {
+      "exit": 1,
+      "error": "Recovery readback refused: Installed guest did not retire normally"
+    },
+    "failed_retirement": {
+      "exit": 1,
+      "error": "Recovery readback refused: Installed guest did not retire normally"
+    },
+    "previous_candidate_changed": {
+      "exit": 1,
+      "error": "Recovery readback refused: Retirement changed previousHealthy"
+    },
+    "wrong_live_launch": {
+      "exit": 1,
+      "error": "Recovery readback refused: Healthy launch differs from the active attempt"
+    },
+    "missing_first_screen": {
+      "exit": 1,
+      "error": "Recovery readback refused: Required health milestones have not committed"
+    },
+    "health_replaced_during_close": {
+      "exit": 1,
+      "error": "Recovery readback refused: Retirement changed healthy"
+    },
+    "candidate_lags_assignment": {
+      "exit": 1,
+      "error": "Recovery readback refused: Healthy candidate differs from the expected signed artifact"
+    },
+    "candidate_wrong_payload": {
+      "exit": 1,
+      "error": "Recovery readback refused: Healthy candidate differs from the expected signed artifact"
+    }
+  },
+  "python": "3.14 normal and optimized",
+  "scope": "Local CLI readback and two-phase comparison. No new device operation. The signed packet, exact APK, workspace continuity, and mobile scenario outcomes continue to require separate actual replay evidence.",
+  "remaining": [
+    "native sequence 2",
+    "native sequence 3",
+    "cold offline reopen",
+    "installed iOS full calculation"
+  ],
+  "cleanup": "Temporary control snapshots removed. Held resources remained untouched."
+}
