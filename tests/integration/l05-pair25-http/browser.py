@@ -18,6 +18,7 @@ STARTERS = "/console-api/v1/source-starters"
 INPUTS = "/console-api/v1/build-inputs"
 BUILDS = "/console-api/v1/builds"
 SESSION = "/auth/session"
+DIRECTORY = ("/console-api/v1/orgs", "/console-api/v1/projects", "/console-api/v1/applications")
 SCOPE = ("organization_id", "project_id", "application_id")
 PUBLIC = {
     "organization_id": "organizationId", "project_id": "projectId", "application_id": "applicationId",
@@ -72,7 +73,7 @@ class BrowserEvidence:
         if path == SESSION:
             self.receipt["sessionHTTP"] = status
             return
-        if path not in (STARTERS, INPUTS, BUILDS):
+        if path not in (*DIRECTORY, STARTERS, INPUTS, BUILDS):
             return
         event = {"method": method, "route": path, "status": status}
         if len(self.receipt["http"]) < 80:
