@@ -1,0 +1,282 @@
+{
+  "outcome": "passed_scoped_w07_featurestore_completion_and_native_cleanup",
+  "scope": "L03 macOS host SwiftPM and FeatureStore controls. Swift guest Task cancellation, device behavior, and gate acceptance remain outside this receipt.",
+  "publicBaseRevision": "b963585ef2f5089dae67b3bcd30a3cdec3f358b5",
+  "correctedW07Revision": "4a9d6009c7c034618c224e1c5cad8d5dedb0de86",
+  "originalExecutionReceipt": {
+    "path": "verification/receipts/l03-swift-language-support-b963585e.json",
+    "sha256": "97adaa539e551e0a83589bd31efb4ac93274c2051a1b453fd3e62721226f60e4",
+    "nativeSwiftPMEntryCleanup": "unverified",
+    "nativeSDKCleanup": "unverified",
+    "historicalScratchInspected": false
+  },
+  "firstNativeRerunCollector": {
+    "revision": "cb8105649cd4e3acb291a1b547a84bf3d8b4276f",
+    "exit": 1,
+    "cause": "The collector expected one five-test summary. Swift Testing reported passing runs of three and two tests.",
+    "passedPerTestRun": [
+      3,
+      2
+    ],
+    "ownedScratchEmptyAfterExit": true
+  },
+  "nativeReplay": {
+    "command": "python3 -B compiler/Fixtures/FeatureProbe/replay_native.py",
+    "observedUTC": "2026-11-20T23:41:27.430413+00:00",
+    "revision": "467841c18a23620b2d0cc60c4cdced4050ad30d4",
+    "tree": "d31f8be76c8479221952e53f76951c0542f898c6",
+    "toolVersions": {
+      "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+      "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+      "python": "3.14.8",
+      "architecture": "arm64"
+    },
+    "inputsSHA256": {
+      "sdk/Package.resolved": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+      "compiler/Fixtures/FeatureProbe/EffectCompletion.swift": "2de5a5fe5a2360459f6ff26f827157ae68ddcd10c2672ab5fe0a57d03d90aa79",
+      "sdk/Sources/MixerCore/FeatureStore.swift": "3fb26a1b1ce6a8863ea53d0c5751b3229ddad1113b486cb2c430d1d0dbcb385f",
+      "sdk/Sources/MixerCore/Lifecycle.swift": "67d6dc636bb36ce765e5a0c4ee9db93d61ce7b17938e3d9a1a0ff84020927a91",
+      "compiler/Fixtures/FeatureProbe/Sources/FeatureProbe/main.swift": "3ec86073ed24e9bcefcade693312bfdd8cdb9928ab9f7e933584229c0e107b4d",
+      "compiler/Fixtures/FeatureProbe/Package.swift": "72c00508723ad50cbd974a1aef7abfe4cc8bfe971b99615009340a28afb2351e",
+      "compiler/Fixtures/FeatureProbe/replay_native.py": "fd854610406f04122277b7d78b9d92740d443b70c8a34be9e198c167615361c7"
+    },
+    "nativeSwiftPMEntry": {
+      "status": "passed",
+      "completionBasisPoints": 5000,
+      "codableRoundTrip": true,
+      "unicodePreserved": true,
+      "emptyTitleRejected": true,
+      "wrongFieldTypeRejected": true,
+      "nonfiniteRejected": true
+    },
+    "featureStoreCompletion": {
+      "joined": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "reducerDeliveries": [
+        2
+      ],
+      "returnedAfterCancellation": [
+        1,
+        3,
+        4
+      ]
+    },
+    "nativeSDK": {
+      "passed": [
+        "authoringBuildsFieldLogEditorAndGuestCodecOnlyRoundTripsValues",
+        "validationRejectsDuplicateUnsupportedAndMalformedControls",
+        "reducerEffectsReplaceAndCancelWithoutStaleDelivery",
+        "guestUIEventCodecPreservesUnicodeAndUInt64WithoutNormalization",
+        "malformedJSONAndUnpairedUnicodeFailBeforeFoundationDecoding"
+      ],
+      "passedPerTestRun": [
+        3,
+        2
+      ],
+      "testPlatforms": [
+        "arm64e-apple-macos14.0"
+      ],
+      "pinnedCheckouts": {
+        "swift-asn1": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+        "swift-crypto": "c2cbadd7263439d8015189668f96ff5b5be565ce"
+      },
+      "stdoutSHA256": "2a7f938ae8a5fc3e2f01d81f76572ebeec6aa43094d5bf5093eec0468d2b311a",
+      "stderrSHA256": "10e097f16f28ada3525f648569d30d025945d8f21504a312d068b5809f82d263"
+    },
+    "commands": [
+      {
+        "label": "revision",
+        "argv": [
+          "/usr/bin/git",
+          "rev-parse",
+          "HEAD"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "tree",
+        "argv": [
+          "/usr/bin/git",
+          "rev-parse",
+          "HEAD^{tree}"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "macos-version",
+        "argv": [
+          "/usr/bin/sw_vers"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "swift-version",
+        "argv": [
+          "/usr/bin/swift",
+          "--version"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "copy-swift-asn1",
+        "argv": [
+          "/usr/bin/git",
+          "clone",
+          "--mirror",
+          "--no-local",
+          "$USER_HOME/Library/Caches/org.swift.swiftpm/repositories/swift-asn1-7065ad2c",
+          "$RUN/cache/repositories/swift-asn1-7065ad2c"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "copy-swift-crypto",
+        "argv": [
+          "/usr/bin/git",
+          "clone",
+          "--mirror",
+          "--no-local",
+          "$USER_HOME/Library/Caches/org.swift.swiftpm/repositories/swift-crypto-7e0614ea",
+          "$RUN/cache/repositories/swift-crypto-7e0614ea"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "native-swiftpm-entry",
+        "argv": [
+          "/usr/bin/swift",
+          "run",
+          "--cache-path",
+          "$RUN/cache",
+          "--config-path",
+          "$RUN/config",
+          "--security-path",
+          "$RUN/security",
+          "--package-path",
+          "$REPO/compiler/Fixtures/FeatureProbe",
+          "--scratch-path",
+          "$RUN/native",
+          "feature-probe"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "effect-completion-build",
+        "argv": [
+          "/usr/bin/swiftc",
+          "-O",
+          "-swift-version",
+          "6",
+          "-target",
+          "arm64-apple-macosx26.0",
+          "-parse-as-library",
+          "-module-cache-path",
+          "$RUN/modules",
+          "$REPO/sdk/Sources/MixerCore/FeatureStore.swift",
+          "$REPO/sdk/Sources/MixerCore/Lifecycle.swift",
+          "$REPO/compiler/Fixtures/FeatureProbe/EffectCompletion.swift",
+          "-o",
+          "$RUN/effect-completion"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "effect-completion",
+        "argv": [
+          "$RUN/effect-completion"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "native-sdk",
+        "argv": [
+          "/usr/bin/swift",
+          "test",
+          "--cache-path",
+          "$RUN/cache",
+          "--config-path",
+          "$RUN/config",
+          "--security-path",
+          "$RUN/security",
+          "--package-path",
+          "$REPO/sdk",
+          "--scratch-path",
+          "$RUN/sdk",
+          "--jobs",
+          "8",
+          "--skip-update",
+          "--disable-prefetching",
+          "--force-resolved-versions",
+          "--filter",
+          "authoringBuildsFieldLogEditorAndGuestCodecOnlyRoundTripsValues|validationRejectsDuplicateUnsupportedAndMalformedControls|reducerEffectsReplaceAndCancelWithoutStaleDelivery|guestUIEventCodecPreservesUnicodeAndUInt64WithoutNormalization|malformedJSONAndUnpairedUnicodeFailBeforeFoundationDecoding"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "verify-swift-asn1",
+        "argv": [
+          "/usr/bin/git",
+          "-C",
+          "$RUN/sdk/checkouts/swift-asn1",
+          "rev-parse",
+          "HEAD"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "verify-swift-crypto",
+        "argv": [
+          "/usr/bin/git",
+          "-C",
+          "$RUN/sdk/checkouts/swift-crypto",
+          "rev-parse",
+          "HEAD"
+        ],
+        "exit": 0
+      }
+    ],
+    "custody": {
+      "directReapedAndGroupsObservedAbsent": 12,
+      "unknown": 0,
+      "observedPeakScratchBytes": 454202140,
+      "scratchRemoved": true
+    }
+  },
+  "relatedOwnedVMCancellation": {
+    "receipt": "verification/receipts/fieldlog-guest-benchmark-41a05264.json",
+    "sourceRevision": "735ecec14e10e2dfed1e58a122c3fab08e569bef",
+    "scope": "Accepted button-event cancellation before the guest turn began in both macOS compact FieldLog variants.",
+    "baseline": "one terminal result, turnBegan=false, no frame published after stop, later input closed, drained and retired",
+    "reviewed": "one terminal result, turnBegan=false, no frame published after stop, later input closed, drained and retired"
+  },
+  "matrix": {
+    "check": "python3 -B compiler/swift_support_matrix.py --check",
+    "exit": 0,
+    "rows": 24,
+    "rowsWithEvidenceLabel": 13,
+    "changedRows": [
+      "Cancellation — native FeatureStore effects"
+    ]
+  },
+  "compilerTests": {
+    "command": "python3 -B -m unittest discover -s compiler/tests -v",
+    "passed": 9,
+    "exit": 0
+  },
+  "publicBaseUnchangedPaths": [
+    "sdk",
+    "native-sdk",
+    "vm",
+    "release",
+    "native",
+    "cli",
+    "experimental-capability-runtime",
+    "gates"
+  ],
+  "localGatesPassed": [],
+  "gaGatesPassed": []
+}
