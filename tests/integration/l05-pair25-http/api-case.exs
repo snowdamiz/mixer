@@ -254,16 +254,104 @@ defp pair25_wait!(c, renewed, deadline) do
       pair25_publish!("api.cancel-auth", %{cookie: cookie, csrf: csrf})
       pair25_wait!(c, renewed, deadline)
 
+    File.regular?(pair25_path("api.checkout.request")) and
+        not File.regular?(pair25_path("api.checkout.closed")) ->
+      pair25_checkout_outage!()
+      pair25_wait!(c, renewed, deadline)
+
     not renewed and File.regular?(pair25_path("api.refresh")) ->
-      {owner, _} = login(c)
+      {owner, owner_csrf} = login(c)
       {outsider, _} = pair25_outsider(c)
-      pair25_publish!("api.sessions", %{owner: owner, outsider: outsider})
+      pair25_publish!("api.sessions", %{owner: owner, owner_csrf: owner_csrf, outsider: outsider})
       pair25_wait!(c, true, deadline)
 
     true ->
       Process.sleep(50)
       pair25_wait!(c, renewed, deadline)
   end
+end
+
+@checkout_event [:mixer_hosted, :browser_auth, :store, :transaction]
+
+def pair25_checkout_event(
+      @checkout_event,
+      %{queue_time: duration, total_time: duration} = measurements,
+      %{
+        repo: MixerHosted.BrowserAuth.LifecycleRepo,
+        query: "begin",
+        result:
+          {:error,
+           %DBConnection.ConnectionError{
+             reason: :error,
+             message: "connection not available and queuing is disabled"
+           }}
+      },
+      test
+    )
+    when is_integer(duration) and duration >= 0 and map_size(measurements) == 2 do
+  send(test, {:checkout_refused_before_begin, duration})
+end
+
+def pair25_checkout_event(_, _, _, _), do: :ok
+
+defp pair25_checkout_outage! do
+  alias MixerHosted.BrowserAuth.LifecycleRepo
+
+  lifecycle = RuntimeOwner.status()
+  assert lifecycle.phase == :storage_ready
+  assert Process.whereis(MixerHostedWeb.Endpoint)
+  %{pid: pool} = Ecto.Adapter.lookup_meta(LifecycleRepo)
+
+  assert [%{ready_conn_count: 2, checkout_queue_length: 0}] =
+           DBConnection.get_connection_metrics(pool)
+
+  parent = self()
+  observer = make_ref()
+  :ok = :telemetry.attach(observer, @checkout_event, &__MODULE__.pair25_checkout_event/4, parent)
+
+  tasks =
+    for _ <- 1..2 do
+      Task.async(fn ->
+        LifecycleRepo.checkout(
+          fn ->
+            send(parent, {:checkout_held, self()})
+
+            receive do
+              :release_checkout -> :released
+            after
+              5_000 -> raise "Pair25 checkout hold expired"
+            end
+          end,
+          queue: false,
+          timeout: 6_000
+        )
+      end)
+    end
+
+  try do
+    for task <- tasks do
+      holder = task.pid
+      assert_receive {:checkout_held, ^holder}, 1_000
+    end
+
+    assert [%{ready_conn_count: 0, checkout_queue_length: 0}] =
+             DBConnection.get_connection_metrics(pool)
+
+    pair25_publish!("api.checkout.ready", %{held: 2, queue: 0})
+    assert_receive {:checkout_refused_before_begin, duration}, 3_000
+    pair25_publish!("api.checkout.refused", %{before_begin: true, queue_ns: duration})
+  after
+    :telemetry.detach(observer)
+    for task <- tasks, do: send(task.pid, :release_checkout)
+    for task <- tasks, do: assert(Task.await(task, 1_000) == :released)
+  end
+
+  assert RuntimeOwner.status() == lifecycle
+
+  assert [%{ready_conn_count: 2, checkout_queue_length: 0}] =
+           DBConnection.get_connection_metrics(pool)
+
+  pair25_publish!("api.checkout.closed", %{checked_in: 2, generation: lifecycle.generation})
 end
 
 defp pair25_publish!(name, data) do

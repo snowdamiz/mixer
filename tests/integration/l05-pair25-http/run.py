@@ -22,7 +22,7 @@ import sys
 import tarfile
 import tempfile
 import time
-from urllib.parse import parse_qs, urlencode
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[2]
@@ -164,6 +164,24 @@ def http(auth, path, *, cookie=None, body=None, empty_post=False):
             payload = response.read(limit + 1)
             require(len(payload) <= limit, "fixture HTTP body exceeds read budget")
             return response.status, dict(response.getheaders()), payload
+
+
+def release_snapshot(configuration):
+    snapshot = {}
+    for kind in ("offer", "artifact"):
+        observation = configuration[kind]
+        target = urlsplit(observation["url"])
+        require(target.scheme == "http" and target.hostname == HOST and target.port
+                and target.netloc == f"{HOST}:{target.port}" and target.path.startswith("/v3/")
+                and not target.fragment, "release probe must use a pinned IPv4 loopback route")
+        with closing(HTTPConnection(HOST, target.port, timeout=1)) as connection:
+            connection.request("GET", target.path + ("?" + target.query if target.query else ""))
+            with connection.getresponse() as response:
+                raw = response.read(65_537)
+        require(response.status == 200 and len(raw) <= 65_536 and sha(raw) == observation["sha256"],
+                f"committed release {kind} changed")
+        snapshot[kind] = {"http": response.status, "bytes": len(raw), "sha256": sha(raw)}
+    return snapshot
 
 
 def wire(config, action, request=None):
@@ -926,6 +944,10 @@ def drive(root, args, env, result):
                     "selected Starter differs from the approved runner inputs or enqueued work")
             result["starterRegistration" if args.browser else "starterSelection"] = starter
         result["billingBeforeBuild"] = billing_state()
+        if args.release_observation:
+            release = read(args.release_observation)
+            require(set(release) == {"offer", "artifact"}, "unexpected release observation fields")
+            combined = result["combinedOutage"] = {"before": release_snapshot(release)}
         with ExitStack() as dispatch:
             if not args.browser or args.complete:
                 config = {"tenant": auth["build"]["organization_id"], "worker_id": "pair25-native-worker",
@@ -1160,6 +1182,28 @@ def drive(root, args, env, result):
                             recovery["offlineRetry"] = wait(retried_offline, until - time.monotonic(), processor)
                             recovery["duringOutage"] = verify_running(auth, scope, sessions)
                             require_no_bundle(state, grant)
+                            if args.release_observation:
+                                outage_auth = dict(auth, csrf=sessions["owner_csrf"])
+                                require(connect_errno(worker_port) == errno.ECONNREFUSED,
+                                        "checkout experiment must run during the worker outage")
+                                mark("api.checkout.request")
+                                combined["saturated"] = ready("api.checkout.ready", api, seconds=4)
+                                combined["during"] = release_snapshot(release)
+                                status, headers, raw = http(
+                                    outage_auth, BUILD, cookie=sessions["owner"], body=auth["build"])
+                                combined["refusedHTTP"] = status
+                                require(status == 503 and not any(k.lower() == "set-cookie" for k in headers)
+                                        and json.loads(raw) == {"error": {"code": "authorization_unavailable",
+                                                                          "message": "Build request refused."}},
+                                        "original build key did not get the bounded checkout refusal")
+                                combined["refusal"] = ready("api.checkout.refused", api, seconds=4)
+                                combined["recoveredPool"] = ready("api.checkout.closed", api, seconds=4)
+                                require(combined["refusal"]["before_begin"]
+                                        and combined["saturated"] == {"held": 2, "queue": 0}
+                                        and combined["recoveredPool"]["checked_in"] == 2
+                                        and start_job()[0] == original_job[0]
+                                        and observed_db()["record"] == [[binding["record_id"], 1]],
+                                        "checkout changed the original protected operation")
                             wait(lambda: plain_bind_errno(worker_port) is None,
                                  until - time.monotonic(), processor, interval=0.2)
                             require_same_files()
@@ -1177,6 +1221,18 @@ def drive(root, args, env, result):
                             wait(lambda: listening(worker_port), until - time.monotonic(), worker)
                             recovery["reopenedWorkerPID"] = worker.pid
                             recovery["samePortListening"] = True
+                            if args.release_observation:
+                                status, headers, raw = http(
+                                    outage_auth, BUILD, cookie=sessions["owner"], body=auth["build"])
+                                combined["retryHTTP"] = status
+                                require(status == 200 and json.loads(raw)["selection"] == scope
+                                        and not any(k.lower() == "set-cookie" for k in headers)
+                                        and start_job()[0] == original_job[0],
+                                        "same session and key did not read the original build after reopen")
+                                combined["after"] = release_snapshot(release)
+                                require(combined["before"] == combined["during"] == combined["after"],
+                                        "signed delivery changed during the checkout and worker outage")
+                                combined["sameBuildAndObanJob"] = True
 
                             def resumed():
                                 rows = runner_journal(runner_dir)
@@ -1433,6 +1489,8 @@ def main():
                         help="dispatch and read back the original build from --browser queue or smoke")
     parser.add_argument("--npm-cache", type=Path, default=Path.home() / ".npm",
                         help="read-only source for locked console package tarballs")
+    parser.add_argument("--release-observation", type=Path,
+                        help="private loopback signed release observation from the combined L07 launcher")
     parser.add_argument("--seconds", type=int, help="settlement budget and browser handoff window (capped at 300)")
     args = parser.parse_args()
     if args.complete and args.browser not in ("queue", "smoke"):
@@ -1443,6 +1501,8 @@ def main():
         parser.error("--operator with --browser requires --browser queue --complete")
     if args.worker_crash and not args.cancel:
         parser.error("--worker-crash requires --cancel")
+    if args.release_observation and not args.worker_crash:
+        parser.error("--release-observation requires --worker-crash")
     if args.inert_finish_on_reopen and (not args.worker_crash or args.operator):
         parser.error("--inert-finish-on-reopen requires --worker-crash without --operator")
     if args.seconds is None:

@@ -15,6 +15,7 @@ import shutil
 import signal
 import socket
 import subprocess
+import sys
 import tarfile
 import tempfile
 import time
@@ -151,7 +152,7 @@ class Run:
             require(code == 0, f"{label} exited {code}: {output[-4000:].decode(errors='replace')}")
         return code, output
 
-    def prepare(self):
+    def prepare(self, *, release_only=False):
         _, remote = self.command("public-main", ["git", "ls-remote", REMOTE, "refs/heads/main"])
         main = remote.decode().split()[0]
         if main != PIN:
@@ -183,10 +184,11 @@ class Run:
                 ("go", ["go", "version"]),
             )
         }
-        self.command("locked-hosted-deps", ["mix", "deps.get", "--check-locked"], cwd=self.hosted)
-        self.command("hosted-compile", ["mix", "compile", "--warnings-as-errors"],
-                     cwd=self.hosted, timeout=100)
-        self.command("test-format", ["mix", "format", "--check-formatted", self.test], cwd=self.hosted)
+        if not release_only:
+            self.command("locked-hosted-deps", ["mix", "deps.get", "--check-locked"], cwd=self.hosted)
+            self.command("hosted-compile", ["mix", "compile", "--warnings-as-errors"],
+                         cwd=self.hosted, timeout=100)
+            self.command("test-format", ["mix", "format", "--check-formatted", self.test], cwd=self.hosted)
 
         overlay = self.scratch / "signer-overlay.json"
         overlay.write_text(json.dumps({"Replace": {
@@ -328,6 +330,38 @@ class Run:
             self.receipt["release_publication"]["audit_unchanged"] = True
         require(process.returncode == 0, "release origin did not shut down cleanly")
 
+    def pair25(self, sockets, scratch_parent, operator):
+        self.ports["release_origin"] = port()
+        with ExitStack() as stack:
+            release_db = stack.enter_context(self.postgres(
+                "release-postgres", host=str(sockets), number=5432, owner="mixer_migration_owner",
+                sockets=sockets))
+            release_env = stack.enter_context(self.release(sockets, release_db, self.ports["release_origin"]))
+            observation_path = self.scratch / "release-observation.json"
+            observation_path.write_text(json.dumps({
+                name: {"url": release_env[f"L07_RELEASE_{name.upper()}_URL"],
+                       "sha256": sha256(Path(release_env[f"L07_EXPECTED_{name.upper()}"]))}
+                for name in ("offer", "artifact")
+            }))
+            output = self.scratch / "pair25-result.json"
+            command = [sys.executable, "-B", ROOT / "tests/integration/l05-pair25-http/run.py",
+                       "--cancel", "--worker-crash", "--scratch", scratch_parent, "--receipt", output,
+                       "--release-observation", observation_path, "--pg-bin", self.pg]
+            if operator is None:
+                command.extend(("--inert-finish-on-reopen", "--seconds", "100"))
+            else:
+                command.extend(("--operator", operator, "--seconds", "900"))
+            self.receipt["nestedCustodyUnresolved"] = True
+            env = {**self.env, "HEX_HOME": os.environ["HEX_HOME"]}
+            code, stdout = self.command("pair25-outage", command, env=env, timeout=1_230, check=False)
+            evidence = json.loads(output.read_bytes())
+            self.receipt["pair25"] = evidence
+            self.receipt["nestedCustodyUnresolved"] = not evidence.get("scratchRemoved", False)
+            require(code == 0 and evidence.get("passed") and evidence.get("nativeDispatchResolved")
+                    and evidence["combinedOutage"]["sameBuildAndObanJob"]
+                    and evidence["workerStarts"] == evidence["runnerStarts"] == 1,
+                    "Pair25 checkout and recovery failed: " + stdout[-3_000:].decode(errors="replace"))
+
     def phoenix(self, env):
         argv = ["mix", "test", "--warnings-as-errors", "--seed", "0", "--trace",
                 "--only", "l07_combined_checkout_release", self.test]
@@ -394,7 +428,14 @@ def main():
     parser.add_argument("--pg-bin", type=Path, default=Path("/opt/homebrew/opt/postgresql@17/bin"))
     parser.add_argument("--rehearse-alert", action="store_true",
                         help="deliver and acknowledge the local test alert during checkout refusal")
+    parser.add_argument("--pair25-scratch-parent", type=Path,
+                        help="run the Pair25 worker outage with signed delivery, using a short private scratch parent")
+    parser.add_argument("--operator", type=Path, help="approved Pair25 operator config for the real compiler retry")
     args = parser.parse_args()
+    if args.pair25_scratch_parent and (args.rehearse_alert or not os.environ.get("HEX_HOME")):
+        parser.error("the Pair25 replay requires a private lock-verified HEX_HOME and no alert flag")
+    if args.operator and not args.pair25_scratch_parent:
+        parser.error("--operator requires --pair25-scratch-parent")
     args.receipt = args.receipt.resolve()
     require(not args.receipt.exists() and args.receipt.parent.is_dir(), "choose a new receipt path")
     os.umask(0o077)
@@ -411,17 +452,25 @@ def main():
     }
     run = Run(scratch, args.pg_bin, receipt, rehearse_alert=args.rehearse_alert)
     try:
-        run.prepare()
+        run.prepare(release_only=bool(args.pair25_scratch_parent))
         # PostgreSQL limits sockaddr_un length. Use only this freshly owned directory.
         sockets = Path(tempfile.mkdtemp(prefix="mixer-l07-sock.", dir="/tmp"))
-        run.exercise(sockets)
-        receipt["status"] = "PASS_SCOPED_COMBINED_CHECKOUT_RELEASE"
+        if args.pair25_scratch_parent:
+            receipt["scope"] = "One ordinary Pair25 worker outage with an original-key checkout refusal and signed PostgreSQL delivery."
+            receipt["limits"] = "Real managed compiler in operator mode. Inert runner in the default Pair25 mode."
+            run.pair25(sockets, args.pair25_scratch_parent.resolve(strict=True),
+                       args.operator.resolve(strict=True) if args.operator else None)
+            receipt["status"] = "PASS_SCOPED_PAIR25_WORKER_OUTAGE_RELEASE"
+        else:
+            run.exercise(sockets)
+            receipt["status"] = "PASS_SCOPED_COMBINED_CHECKOUT_RELEASE"
     except Exception as exc:
         receipt["error"] = str(exc)
     finally:
         cleanup = receipt["cleanup"] = {"unresolved_groups": run.pending, "ports": run.ports}
         try:
             require(not run.pending, f"retaining scratch for unresolved groups: {run.pending}")
+            require(not receipt.get("nestedCustodyUnresolved"), "retaining inputs for unresolved Pair25 custody")
             cleanup["ports_rebound"] = {label: rebind(number) for label, number in run.ports.items()}
             if sockets is not None:
                 sockets.rmdir()
