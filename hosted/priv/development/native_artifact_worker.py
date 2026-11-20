@@ -502,6 +502,73 @@ def prepare_build(recipe, files, output, android_tools):
     return project, store, tmp, environment, argv, launch_environment
 
 
+def read_cli_ack(tmp):
+    # The pinned CLI acknowledges only after its synchronous command scope
+    # unwinds without a hold. Never inspect command scratch without that proof.
+    try:
+        prefix = "mixer-command-receipts-"
+        basename = read_owned(tmp / "cli-closed", len(prefix) + 36, allow_owner_write=True).decode("ascii")
+        if not basename.startswith(prefix) or str(uuid.UUID(basename[len(prefix):])).upper() != basename[len(prefix):]:
+            return BuildUncertainty.CLI_ACK_INVALID
+    except FileNotFoundError:
+        return BuildUncertainty.CLI_ACK_MISSING
+    except (OSError, ValueError, Refusal):
+        return BuildUncertainty.CLI_ACK_INVALID
+    return basename
+
+
+def read_nested_receipts(tmp, basename, *, strict):
+    try:
+        receipt_root = tmp / basename
+        try:
+            root_info = receipt_root.lstat()
+        except FileNotFoundError:
+            directories = []
+        else:
+            if root_info.st_mode != stat.S_IFDIR | 0o700 or root_info.st_uid != os.getuid():
+                return BuildUncertainty.NESTED_RECEIPT_INVALID
+            directories = sorted(receipt_root.iterdir())
+        receipts = []
+        for command in directories:
+            if not command.name.startswith("command-"):
+                continue
+            if not stat.S_ISDIR(command.lstat().st_mode):
+                return BuildUncertainty.NESTED_RECEIPT_INVALID
+            try:
+                (command / "HOLD.json").lstat()
+            except FileNotFoundError:
+                pass
+            else:
+                return BuildUncertainty.NESTED_RECEIPT_INVALID
+            receipt = command / "receipt.json"
+            if not stat.S_ISREG(receipt.lstat().st_mode):
+                return BuildUncertainty.NESTED_RECEIPT_INVALID
+            data = (receipt.read_bytes() if not strict
+                    else read_owned(receipt, 1024 * 1024, allow_owner_write=True))
+            item = json.loads(data)
+            argv_receipt = item["command"]
+            if (type(argv_receipt) is not list or not argv_receipt
+                    or not all(type(arg) is str for arg in argv_receipt) or not argv_receipt[0].startswith("/")
+                    or item["state"] != "TERMINAL"
+                    or any(type(item[key]) is not int for key in ("pid", "ownedPGID", "ownedSession"))
+                    or item["pid"] != item["ownedPGID"]
+                    or item["pid"] != item["ownedSession"] or item["pid"] <= 1
+                    or not all(item.get(key) is True for key in ("terminalCustody", "directChildReaped",
+                               "stdoutEOF", "stderrEOF", "descriptorsClosed", "ownedGroupAbsent"))):
+                return BuildUncertainty.NESTED_RECEIPT_INVALID
+            if strict:
+                start, terminal = item.get("runtimeStartedNS"), item.get("terminalNS")
+                if type(start) is not int or type(terminal) is not int or not 0 < start <= terminal < 2**64:
+                    return BuildUncertainty.NESTED_RECEIPT_INVALID
+            receipts.append((item, digest(data)))
+    except (OSError, ValueError, KeyError, TypeError, Refusal):
+        return BuildUncertainty.NESTED_RECEIPT_INVALID
+    if strict:
+        # Command directory names are random. The CLI serializes commands on one monotonic clock.
+        receipts.sort(key=lambda entry: entry[0]["runtimeStartedNS"])
+    return receipt_root, receipts
+
+
 def build(recipe, files, output, request, launch):
     android = recipe.get("profile") == ANDROID_PROFILE
     with ExitStack() as logs:
@@ -543,75 +610,32 @@ def build(recipe, files, output, request, launch):
             code = proc.wait(timeout=remaining)
         except subprocess.TimeoutExpired:
             return BuildUncertainty.CLI_WAIT_TIMEOUT
-    # The pinned CLI acknowledges only after its synchronous command scope
-    # unwinds without a hold. Never inspect command scratch without that proof.
-    try:
-        prefix = "mixer-command-receipts-"
-        basename = read_owned(tmp / "cli-closed", len(prefix) + 36, allow_owner_write=True).decode("ascii")
-        if not basename.startswith(prefix) or str(uuid.UUID(basename[len(prefix):])).upper() != basename[len(prefix):]:
-            return BuildUncertainty.CLI_ACK_INVALID
-    except FileNotFoundError:
-        return BuildUncertainty.CLI_ACK_MISSING
-    except (OSError, ValueError, Refusal):
-        return BuildUncertainty.CLI_ACK_INVALID
+    basename = read_cli_ack(tmp)
+    if isinstance(basename, BuildUncertainty):
+        return basename
     if not group_absent(proc.pid):
         return BuildUncertainty.CLI_GROUP_UNCONFIRMED
-    try:
-        receipt_root = tmp / basename
-        try:
-            root_info = receipt_root.lstat()
-        except FileNotFoundError:
-            directories = []
-        else:
-            if root_info.st_mode != stat.S_IFDIR | 0o700 or root_info.st_uid != os.getuid():
-                return BuildUncertainty.NESTED_RECEIPT_INVALID
-            directories = sorted(receipt_root.iterdir())
-        receipts = []
-        for command in directories:
-            if not command.name.startswith("command-"):
-                continue
-            if not stat.S_ISDIR(command.lstat().st_mode):
-                return BuildUncertainty.NESTED_RECEIPT_INVALID
-            try:
-                (command / "HOLD.json").lstat()
-            except FileNotFoundError:
-                pass
-            else:
-                return BuildUncertainty.NESTED_RECEIPT_INVALID
-            receipt = command / "receipt.json"
-            if not stat.S_ISREG(receipt.lstat().st_mode):
-                return BuildUncertainty.NESTED_RECEIPT_INVALID
-            data = (receipt.read_bytes() if android_tools is None
-                    else read_owned(receipt, 1024 * 1024, allow_owner_write=True))
-            item = json.loads(data)
-            argv_receipt = item["command"]
-            if (type(argv_receipt) is not list or not argv_receipt
-                    or not all(type(arg) is str for arg in argv_receipt) or not argv_receipt[0].startswith("/")
-                    or item["state"] != "TERMINAL"
-                    or any(type(item[key]) is not int for key in ("pid", "ownedPGID", "ownedSession"))
-                    or item["pid"] != item["ownedPGID"]
-                    or item["pid"] != item["ownedSession"] or item["pid"] <= 1
-                    or not all(item.get(key) is True for key in ("terminalCustody", "directChildReaped",
-                               "stdoutEOF", "stderrEOF", "descriptorsClosed", "ownedGroupAbsent"))):
-                return BuildUncertainty.NESTED_RECEIPT_INVALID
-            if android_tools is not None:
-                start, terminal = item.get("runtimeStartedNS"), item.get("terminalNS")
-                if type(start) is not int or type(terminal) is not int or not 0 < start <= terminal < 2**64:
-                    return BuildUncertainty.NESTED_RECEIPT_INVALID
-            receipts.append((item, digest(data)))
-    except (OSError, ValueError, KeyError, TypeError, Refusal):
-        return BuildUncertainty.NESTED_RECEIPT_INVALID
-    if android_tools is not None:
-        # Command directory names are random. The CLI serializes commands on one monotonic clock.
-        receipts.sort(key=lambda entry: entry[0]["runtimeStartedNS"])
+    nested = read_nested_receipts(tmp, basename, strict=android_tools is not None)
+    if isinstance(nested, BuildUncertainty):
+        return nested
+    return collect_build_result(output, recipe, files, request["spec"], proc.pid, code, nested,
+                                android_tools=android_tools, cancelled=launch.cancelled)
+
+
+def collect_build_result(output, recipe, files, spec, pid, code, nested, *, android_tools=None,
+                         cancelled=False, stop_before_artifacts=False):
+    project, store, tmp, home = (output / p for p in ("project", "native", "tmp", "home"))
+    environment = dict(recipe["environment"], TMPDIR=str(tmp), CFFIXED_USER_HOME=str(home))
+    cli = recipe["argv"][0]
+    receipt_root, receipts = nested
     commands = [item for item, _ in receipts]
     proof = [{"command": item["command"][0], "pid": item["pid"], "receipt_sha256": sha,
               "stop_reason": item.get("stopReason"), "group_terminate_sent": item.get("groupTerminateSent", False)}
              for item, sha in receipts]
-    result = {"closed": True, "started": True, "pid": proc.pid, "exit": code,
+    result = {"closed": True, "started": True, "pid": pid, "exit": code,
               "cli_reaped": True, "cli_group_absent": True, "commands": proof}
     if android_tools is not None:
-        outcome = interpret_android_driver(commands, *android_tools, project, receipt_root, code, launch.cancelled)
+        outcome = interpret_android_driver(commands, *android_tools, project, receipt_root, code, cancelled)
         if isinstance(outcome, BuildUncertainty):
             return outcome
         result["android_driver_outcome"] = outcome.value
@@ -638,16 +662,16 @@ def build(recipe, files, output, request, launch):
     except ValueError:
         pass  # Log projection cannot change the original build or closure outcome.
     if android_tools is not None:
-        if outcome is AndroidDriverOutcome.SUCCEEDED and code == 0 and not launch.cancelled:
+        if outcome is AndroidDriverOutcome.SUCCEEDED and code == 0 and not cancelled:
             try:
                 result.update(retained_android_report(
-                    store, project, request["spec"], files, Path(argv[0]), recipe["tools"][argv[0]],
+                    store, project, spec, files, Path(cli), recipe["tools"][cli],
                     commands[1]["command"],
                 ))
             except (OSError, ValueError, KeyError, TypeError, Refusal):
                 pass  # Preserve known closure if the retained products are unavailable.
         return result
-    if not compiler:
+    if not compiler or stop_before_artifacts:
         return result
     try:
         manifest = read_owned(store / "native-build.json", 8 * 1024 * 1024)
@@ -658,9 +682,9 @@ def build(recipe, files, output, request, launch):
                 or report["scope"] != "unsigned-simulator/local-development"
                 or command != binding["command"] or "CODE_SIGNING_ALLOWED=NO" not in command
                 or "generic/platform=iOS Simulator" not in command
-                or binding["authoritativeSourceDigest"] != request["spec"]["source"]["sha256"]
-                or binding["lockSHA256"] != request["spec"]["toolchain_lock_sha256"]
-                or binding["cliExecutableSHA256"] != recipe["tools"][argv[0]]
+                or binding["authoritativeSourceDigest"] != spec["source"]["sha256"]
+                or binding["lockSHA256"] != spec["toolchain_lock_sha256"]
+                or binding["cliExecutableSHA256"] != recipe["tools"][cli]
                 or binding["environment"] != environment
                 or binding["resourceInventoryPolicy"] != "retained-app-files-v1"):
             return result
@@ -701,7 +725,14 @@ class NativeWorker(Worker):
             from linux_android_runner import LinuxAndroidRunnerClient
 
             linux_runner = LinuxAndroidRunnerClient(**config["linux_runner"])
+        self.ios_custody = None
+        if "ios_custodian" in config:
+            from ios_build_custody import IOSCustody
+
+            self.ios_custody = IOSCustody(config)
         super().__init__(config, state)
+        if self.ios_custody is not None:
+            self.ios_custody.initialize(self.db)
         self.linux_runner = linux_runner
         self.launch = None
         self.db.execute("CREATE TABLE IF NOT EXISTS request_nonces (nonce BLOB PRIMARY KEY) WITHOUT ROWID")
@@ -977,6 +1008,10 @@ class NativeWorker(Worker):
         if type(operation) is not str:
             raise Refusal("unavailable")
         previous = self.load(operation)
+        if previous is not None and "ios_custody" in previous:
+            if (self.ios_custody is None or operation != self.ios_custody.operation
+                    or previous["ios_custody"]["configuration"] != self.ios_custody.configuration):
+                raise Refusal("uncertain")
         runner = self.linux_runner
         registered_for_runner = (runner is not None and request["spec"]["platform"] == "android"
                                  and request["spec"]["build_definition_sha256"] == runner.recipe_sha256)
@@ -988,6 +1023,19 @@ class NativeWorker(Worker):
             raise Refusal("unavailable")
         reply = super().request("query", request)
         value = self.load(operation)
+        if "ios_custody" in value:
+            if action == "stop" and value["status"] in ("running", "uncertain"):
+                self.stop(operation, value)
+            if value["status"] in ("running", "uncertain"):
+                self.ios_custody.reconcile(self, operation, value)
+            if value["status"] == "closed" and value.get("tombstone"):
+                stopped = self.stop(operation, value)
+                if action != "artifacts":
+                    return stopped
+            if value["status"] == "uncertain":
+                if action == "stop":
+                    return {"error": "uncertain"}
+                reply = {"error": "uncertain"}
         status = value["status"]
         if action == "stop":
             if status == "absent":
@@ -1012,6 +1060,8 @@ class NativeWorker(Worker):
             raise Refusal("unavailable")
         if status == "closed" and not value.get("tombstone") and value["closure"].get("preflight_failed"):
             return {"status": "preflight_failed", "diagnostic_sha256": self.closure_diagnostic(operation, value)}
+        if status == "closed" and "ios_custody" in value:
+            return {"status": "build_failed", "diagnostic_sha256": self.closure_diagnostic(operation, value)}
         if status in ("closed", "native_ready"):
             # Reconciliation can install the stop tombstone when its deadline expires.
             return {"status": "running"}
@@ -1019,6 +1069,9 @@ class NativeWorker(Worker):
             recipe = self.verify(request["spec"])
             if self.capacity_occupied():
                 raise Refusal("unavailable")
+            if self.ios_custody is not None and request["spec"]["platform"] == "ios":
+                self.ios_custody.submit(self, operation, value, recipe)
+                return {"status": "running"}
             value.update(status="running", starts=1)
             self.save(operation, value)
             self.active = operation
@@ -1030,11 +1083,12 @@ class NativeWorker(Worker):
 
     def close(self):
         self.finish()
-        # The independent runner retains custody across controller shutdown.
-        # A local process with unproven custody still prevents shutdown.
+        # Independent owners retain custody across controller shutdown.
+        # Unproven in-process custody still prevents shutdown.
         if self.db.execute("""SELECT 1 FROM operations
                 WHERE json_extract(value,'$.status')='uncertain'
-                  AND json_type(value,'$.linux_runner') IS NULL""").fetchone():
+                  AND json_type(value,'$.linux_runner') IS NULL
+                  AND json_type(value,'$.ios_custody') IS NULL""").fetchone():
             raise Refusal("uncertain")
         super().close()
 

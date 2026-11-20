@@ -86,14 +86,16 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatchTest do
     )
   end
 
-  test "preflight failure completes without querying native artifacts", %{request: request} do
+  test "terminal native failures complete without querying artifacts", %{request: request} do
     sha = String.duplicate("b", 64)
-    reply = %{"status" => "preflight_failed", "diagnostic_sha256" => sha}
 
-    for {action, callback} <- [
+    for failure <- ["preflight_failed", "build_failed"],
+        {action, callback} <- [
           {"query", &NativeDevelopmentDispatch.query_completion/1},
           {"ensure_started", &NativeDevelopmentDispatch.ensure_started/1}
         ] do
+      reply = %{"status" => failure, "diagnostic_sha256" => sha}
+
       with_peer(action, reply, fn ->
         assert {:ok,
                 {:completed,
@@ -107,7 +109,7 @@ defmodule MixerHosted.Builds.NativeDevelopmentDispatchTest do
       end)
     end
 
-    with_peer("query", %{reply | "diagnostic_sha256" => "malformed"}, fn ->
+    with_peer("query", %{"status" => "build_failed", "diagnostic_sha256" => "malformed"}, fn ->
       assert NativeDevelopmentDispatch.query_completion(request) == {:error, :uncertain}
     end)
   end

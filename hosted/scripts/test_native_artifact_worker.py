@@ -8,6 +8,7 @@ from pathlib import Path
 import plistlib
 import queue
 import secrets
+import signal
 import shutil
 import socket
 import socketserver
@@ -22,6 +23,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "priv" / "development"))
+import ios_build_custody
 import native_artifact_worker
 import linux_android_artifact_importer as linux_importer
 from linux_android_runner import LinuxAndroidRunnerClient
@@ -1841,6 +1843,653 @@ sys.exit(exit_code)
         self.assertEqual({"status": "absent"}, self.worker.request("query", self.request))
         with self.assertRaisesRegex(Refusal, "unavailable"):
             self.worker.request("artifacts", dict(self.request, ref=dict(self.ref, fence=2)))
+
+
+IOS_CLI_FIXTURE = """
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+tmp = Path(os.environ["TMPDIR"])
+store = Path(sys.argv[-1])
+mode = Path("mixer.lock").read_text()
+(tmp / "fixture-cli-pid").write_text(str(os.getpid()))
+basename = "mixer-command-receipts-10000000-1000-1000-1000-100000000000"
+
+
+def write(path, value):
+    path.write_text(json.dumps(value))
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def wait_for(names):
+    deadline = time.monotonic() + 12
+    while time.monotonic() < deadline:
+        for name in names:
+            if (tmp / name).is_file():
+                return name
+        time.sleep(.01)
+    raise RuntimeError("Fixture barrier timed out")
+
+
+if mode == "preflight":
+    (tmp / "cli-closed").write_text(basename)
+    sys.exit(23)
+
+command = ["/usr/bin/xcodebuild", "CODE_SIGNING_ALLOWED=NO", "generic/platform=iOS Simulator"]
+child_code = '''
+import pathlib, sys, time
+tmp, mode = pathlib.Path(sys.argv[1]), sys.argv[2]
+until = time.monotonic() + 12
+while time.monotonic() < until:
+    if (tmp / 'cancel-requested').is_file():
+        sys.exit(24)
+    if (tmp / 'release-nested').is_file():
+        print('inert output')
+        sys.exit(23 if mode == 'failure' else 0)
+    time.sleep(.01)
+sys.exit(70)
+'''
+child = subprocess.Popen([sys.executable, "-IB", "-c", child_code, str(tmp), mode],
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+pid = child.pid
+(tmp / "fixture-nested-pid").write_text(str(pid))
+
+store.mkdir()
+artifacts = []
+for kind in ("unsigned_native_binary", "debug_symbols", "resource_inventory"):
+    data = kind.encode()
+    path = store / sha(data)
+    path.write_bytes(data)
+    path.chmod(0o400)
+    artifacts.append(dict(kind=kind, ownedPath=str(path), sizeBytes=len(data), sha256=path.name))
+manifest = store / "native-build.json"
+write(manifest, {
+    "formatVersion": 2, "scope": "unsigned-simulator/local-development",
+    "commandResult": {"exitCode": 0, "output": "SwiftCompile inert"},
+    "binding": {"command": command, "lockSHA256": sha(mode.encode()),
+                "authoritativeSourceDigest": sha(("mixer.lock" + chr(0) + sha(mode.encode()) + chr(10)).encode()),
+                "cliExecutableSHA256": sha(Path(sys.argv[0]).read_bytes()),
+                "environment": {key: os.environ[key] for key in ("PATH", "TMPDIR", "CFFIXED_USER_HOME")},
+                "resourceInventoryPolicy": "retained-app-files-v1"},
+    "nativeProduct": {"nativeBinary": artifacts[0], "debugSymbols": artifacts[1]},
+    "resourceInventory": artifacts[2],
+})
+manifest.chmod(0o400)
+observed, status = os.waitpid(pid, 0)
+child.returncode = code = os.waitstatus_to_exitcode(status)
+if observed != pid or code not in (0, 23, 24):
+    raise RuntimeError("Fixture child not positively reaped")
+with child.stdout, child.stderr:
+    raw_out, raw_err = child.stdout.read(), child.stderr.read()
+try:
+    os.killpg(pid, 0)
+except ProcessLookupError:
+    pass
+else:
+    raise RuntimeError("Fixture nested group is still present")
+cancelled = code == 24
+directory = tmp / basename / "command-fixture"
+directory.mkdir(parents=True)
+write(directory / "receipt.json", {
+    **dict.fromkeys(("terminalCustody", "directChildReaped", "stdoutEOF", "stderrEOF",
+                     "descriptorsClosed", "ownedGroupAbsent", "released"), True),
+    "schema": "mixer.owned-command.2", "command": command, "state": "TERMINAL",
+    "exitCode": code, "stdoutBytes": len(raw_out), "stderrBytes": len(raw_err), "outputTruncated": False,
+    "pid": pid, "ownedPGID": pid, "ownedSession": pid, "runtimeStartedNS": 1, "terminalNS": 2,
+    "stopReason": "cancelled" if cancelled else None,
+})
+if mode != "no-ack":
+    (tmp / "cli-closed").write_text(basename)
+wait_for(("release-cli",))
+sys.exit(code)
+"""
+
+
+@unittest.skipUnless(sys.platform == "darwin", "Independent iOS custody uses macOS")
+class IOSCustodySocketTest(unittest.TestCase):
+    call = NativeWorkerTest.call
+
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp(prefix="mixer-l07-inert-")).resolve()
+        self.state = self.root / "state"
+        self.operation = "a" * 64
+        self.output = self.state / self.operation
+        self.tmp = self.output / "tmp"
+        self.log = self.state / ("customer-log-v1-" + self.operation)
+        self.children = []
+        self.addCleanup(self.cleanup_fixture)
+        self.entry = Path(ios_build_custody.__file__)
+        self.python = [sys.executable, "-IB"] + (["-O"] if sys.flags.optimize else [])
+
+    def prepare(self, mode="success"):
+        source = self.root / "source"
+        source.mkdir()
+        (source / "mixer.lock").write_text(mode)
+        lock_sha = digest(mode.encode())
+        files = {"mixer.lock": lock_sha}
+        cli = self.root / "inert-cli"
+        cli.write_text("#!" + sys.executable + " -I\n" + IOS_CLI_FIXTURE)
+        cli.chmod(0o500)
+        # Read the system stub's bytes for ordinary recipe verification. The
+        # only executable used for the build is the pinned inert fixture.
+        xcode = Path("/usr/bin/xcodebuild")
+        tools = {str(cli): digest(cli.read_bytes()), str(xcode): digest(xcode.read_bytes())}
+        env = {"PATH": "/usr/bin:/bin:/usr/sbin:/sbin"}
+        recipe = dict(profile="unsigned-ios-simulator-v1", timeout_seconds=25,
+                      argv=[str(cli), "build", "--platform", "ios", "--directory", str(source)],
+                      cwd=str(source), environment=env,
+                      package_policy="exact-owned-local-manifests-no-external-packages",
+                      inputs=files, tools=tools)
+        recipe_path = self.root / "recipe.json"
+        recipe_path.write_text(literal(recipe))
+        recipe_sha = digest(recipe_path.read_bytes())
+        scope = dict(organization_id="organization", project_id="project", application_id="app", platform="ios")
+        spec = dict(scope, source={"sha256": digest(f"mixer.lock\0{lock_sha}\n".encode())},
+                    toolchain_lock_sha256=lock_sha, build_definition_sha256=recipe_sha)
+        _, pins = ios_build_custody.runtime_image()
+        self.config = dict(worker_id="native", token=secrets.token_hex(24), tenant="organization",
+                           registration=dict(spec=spec, root=str(source), recipe=str(recipe_path), files=files),
+                           policy=dict(cli=str(cli), recipe_sha256=recipe_sha, environment=env,
+                                       inputs=files, tools=tools),
+                           ios_custodian=dict(operation_id=self.operation, runtime_sha256=pins))
+        self.request = dict(operation_id=self.operation, spec=dict(spec, build_id="build"),
+                            ref=dict(scope, build_id="build", fence=1, attempt=1),
+                            deadline_ms=now_ms() + 30_000,
+                            guard=dict(record_id="record", epoch=1, revision=1,
+                                       owner_id="original", expires_at=now_ms() + 25_000))
+        self.fresh = dict(self.request, guard=dict(self.request["guard"], epoch=2, owner_id="replacement"))
+
+    def launch(self, name, action, config=None, wrapper=None):
+        config_path = self.root / (name + ".json")
+        data = literal(config or self.config).encode()
+        config_path.write_bytes(data)
+        args = [action, str(config_path), digest(data), str(self.state)]
+        entry = [str(self.entry)] if wrapper is None else ["-c", wrapper, str(self.entry)]
+        with (self.root / (name + ".log")).open("xb") as log:
+            proc = OwnedBuildProcess(self.python + entry + args, cwd=self.root, stdin=subprocess.DEVNULL,
+                                     stdout=log, stderr=log, start_new_session=True)
+        self.children.append((proc, action))
+        return proc
+
+    def inject_observer(self, injection):
+        wrapper = """
+import importlib.util, sys
+from pathlib import Path
+spec = importlib.util.spec_from_file_location("ios_build_custody", sys.argv[1])
+module = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = module
+spec.loader.exec_module(module)
+bootstrap = module.bootstrap
+
+def instrument(config):
+    native = bootstrap(config)
+    exec(INJECTION, dict(globals(), native=native))
+    return native
+
+module.bootstrap = instrument
+raise SystemExit(module.main(sys.argv[2:]))
+"""
+        return self.launch("observer", "observe", wrapper="INJECTION = " + repr(injection) + wrapper)
+
+    def listen(self, name="worker", config=None, request=None):
+        with socket.socket() as listener:
+            listener.bind(("127.0.0.1", 0))
+            address = listener.getsockname()
+        proc = self.launch(name, "worker", dict(config or self.config, port=address[1]))
+
+        def ready():
+            try:
+                return self.call(address, "query", request or self.request)
+            except ConnectionRefusedError:
+                return None
+
+        self.wait_for("worker socket", ready)
+        return proc, address
+
+    def wait_for(self, label, probe, seconds=7):
+        deadline = time.monotonic() + seconds
+        while time.monotonic() < deadline:
+            value = probe()
+            if value:
+                return value
+            time.sleep(.015)
+        self.fail("Timed out waiting for " + label)
+
+    def collect(self, proc, expected=None, seconds=9):
+        def reap():
+            if proc.returncode is None:
+                pid, status = os.waitpid(proc.pid, os.WNOHANG)
+                if pid == proc.pid:
+                    proc.returncode = os.waitstatus_to_exitcode(status)
+            return proc.returncode is not None
+
+        self.wait_for("positive direct reap", reap, seconds)
+        self.assertTrue(native_artifact_worker.group_absent(proc.pid))
+        if expected is not None:
+            if expected != proc.returncode:
+                logs = {p.name: p.read_text(errors="replace") for p in self.root.glob("*.log")}
+                self.fail(f"Expected {expected}, got {proc.returncode}: {logs}")
+
+    def cleanup_fixture(self):
+        (self.root / "release-preparation").touch()
+        if self.tmp.is_dir():
+            for name in ("release-nested", "release-cli"):
+                (self.tmp / name).touch()
+        for proc, action in self.children:
+            if proc.returncode is None and action == "worker":
+                os.kill(proc.pid, signal.SIGKILL)
+            self.collect(proc, seconds=28)
+        for name in ("fixture-cli-pid", "fixture-nested-pid"):
+            path = self.tmp / name
+            if path.is_file():
+                self.assertTrue(native_artifact_worker.group_absent(int(path.read_text())))
+        for name in ("inert-pid", "constructor-pid"):
+            marker = self.root / name
+            if marker.is_file():
+                pid = int(marker.read_text())
+                self.wait_for("owned child group absence", lambda: native_artifact_worker.group_absent(pid))
+        shutil.rmtree(self.root)
+
+    def ledger(self, query):
+        database = self.state / "operations.sqlite"
+        with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)) as db:
+            return db.execute(query, (self.operation,)).fetchone()
+
+    def row(self):
+        return json.loads(self.ledger("SELECT value FROM operations WHERE id=?")[0])
+
+    def claim(self):
+        return self.ledger("""SELECT guard, parent_pid, launch, terminal, uncertain
+                              FROM ios_custody_claims WHERE operation=?""")
+
+    def held(self, address, request):
+        self.assertEqual({"error": "uncertain"}, self.call(address, "query", request))
+        self.assertEqual({"error": "uncertain"}, self.call(address, "ensure_started", request))
+        self.assertEqual({"error": "unavailable"}, self.call(address, "artifacts", request))
+        self.assertEqual((1, "uncertain"), (self.row()["starts"], self.row()["status"]))
+        self.assertFalse(self.log.exists())
+        self.assertEqual({"error": "unavailable"},
+                         self.call(address, "ensure_started", dict(request, operation_id="b" * 64)))
+
+    def diagnostic(self, reply):
+        sha = reply["diagnostic_sha256"]
+        data = (self.state / "blobs" / sha).read_bytes()
+        self.assertEqual(sha, digest(data))
+        return json.loads(data)["closure"]
+
+    def test_fresh_guard_reconciles_after_ack_and_positive_reap(self):
+        self.prepare()
+        worker, address = self.listen()
+        self.assertEqual({"status": "running"}, self.call(address, "ensure_started", self.request))
+        self.assertIsNone(self.claim())
+        self.assertFalse(self.output.exists())
+        observer = self.launch("observer", "observe")
+        claim = self.wait_for("one CLI launch", lambda: (row := self.claim()) and row[2] and row)
+        self.assertEqual(self.request["guard"], json.loads(claim[0]))
+        outer = json.loads(claim[2])
+        self.assertEqual(observer.pid, claim[1])
+        self.assertEqual(outer["pid"], os.getpgid(outer["pid"]))
+        self.collect(self.launch("duplicate", "observe"), 3)
+        self.assertEqual(claim, self.claim())
+
+        self.wait_for("staged artifact manifest", (self.output / "native" / "native-build.json").is_file)
+        os.kill(worker.pid, signal.SIGKILL)
+        self.collect(worker, -signal.SIGKILL)
+        _, replacement = self.listen("replacement")
+        self.held(replacement, self.fresh)
+        child_pid = int((self.tmp / "fixture-nested-pid").read_text())
+        self.assertEqual(child_pid, os.getpgid(child_pid))
+        self.assertEqual({"error": "stale"}, self.call(replacement, "query", self.request))
+        (self.tmp / "release-nested").touch()
+        self.wait_for("nested acknowledgement", (self.tmp / "cli-closed").is_file)
+        self.assertTrue(native_artifact_worker.group_absent(child_pid))
+        self.assertEqual(outer["pid"], os.getpgid(outer["pid"]))
+        self.assertEqual(claim, self.claim())
+        self.held(replacement, self.fresh)
+
+        (self.tmp / "release-cli").touch()
+        self.collect(observer, 0)
+        self.assertTrue(native_artifact_worker.group_absent(outer["pid"]))
+        self.assertEqual({"status": "running"}, self.call(replacement, "query", self.fresh))
+        artifacts = self.call(replacement, "artifacts", self.fresh)
+        self.assertEqual({"status": "native_ready", "artifacts": [
+            {"kind": kind, "sha256": digest(kind.encode()), "sizeBytes": len(kind)} for kind in KINDS
+        ]}, artifacts)
+        self.assertEqual(0, json.loads(self.log.read_bytes())["compiler"]["exitCode"])
+        row = self.row()
+        self.assertEqual(1, row["starts"])
+        self.assertEqual(self.fresh["guard"], row["guard"])
+        self.assertEqual(self.request["guard"], row["ios_custody"]["guard"])
+        self.assertEqual("succeeded", row["closure"]["ios_outcome"])
+        self.assertEqual(claim[:3], self.claim()[:3])
+        self.collect(self.launch("duplicate-after", "observe"), 3)
+        self.assertEqual({"status": "closed"}, self.call(replacement, "shutdown"))
+
+    def test_revised_guard_during_preparation_never_launches(self):
+        self.prepare()
+        revised = dict(self.request, guard=dict(self.request["guard"], revision=2))
+        _, address = self.listen()
+        self.assertEqual({"status": "running"}, self.call(address, "ensure_started", self.request))
+        # Pause the separately started observer after it durably claims the
+        # original guard, while leaving the socket and SQLite boundary intact.
+        observer = self.inject_observer("""
+import time
+prepare = native.prepare_build
+def pause(*args):
+    Path("preparing").touch()
+    deadline = time.monotonic() + 8
+    while not Path("release-preparation").is_file():
+        if time.monotonic() >= deadline:
+            raise TimeoutError("Preparation barrier")
+        time.sleep(.01)
+    return prepare(*args)
+native.prepare_build = pause
+""")
+        self.wait_for("claimed preparation", (self.root / "preparing").is_file)
+        self.assertEqual(self.request["guard"], json.loads(self.claim()[0]))
+        self.assertEqual({"status": "running"}, self.call(address, "query", revised))
+        (self.root / "release-preparation").touch()
+        self.collect(observer, 0)
+        self.assertFalse((self.tmp / "fixture-cli-pid").exists())
+        self.assertIsNone(self.claim()[2])
+        refused = self.call(address, "ensure_started", revised)
+        self.assertEqual("preflight_failed", refused["status"])
+        self.assertEqual({"not_started": "guard_changed"}, self.diagnostic(refused)["ios_custody"])
+        self.assertFalse(self.log.exists())
+        self.assertEqual(1, self.row()["starts"])
+        self.collect(self.launch("duplicate", "observe"), 3)
+
+    def constructor_crosses_deadline(self, address, deadline):
+        observer = self.inject_observer(f"""
+import time
+spawn = native.OwnedBuildProcess
+def delayed(*args, **kwargs):
+    until = time.monotonic() + 3
+    while native.now_ms() <= {deadline}:
+        if time.monotonic() >= until:
+            raise TimeoutError("Constructor deadline control")
+        time.sleep(.005)
+    proc = spawn(*args, **kwargs)
+    Path("constructor-pid").write_text(str(proc.pid))
+    return proc
+native.OwnedBuildProcess = delayed
+""")
+        self.collect(observer)
+        self.assertTrue((self.root / "constructor-pid").is_file())
+        started = (self.tmp / "fixture-cli-pid").is_file
+        if observer.returncode == 74:
+            self.wait_for("late CLI fixture marker", started, seconds=1)
+        self.assertFalse(started(), "CLI entered after the admission window")
+        self.assertEqual(0, observer.returncode)
+        failed = self.call(address, "query", self.fresh)
+        self.assertEqual("preflight_failed", failed["status"])
+        self.assert_inert_closure(failed, "preflight_failed", "admission_expired")
+
+    def test_original_guard_expires_inside_constructor(self):
+        self.prepare("preflight")
+        deadline = now_ms() + 1_500
+        self.request["guard"]["expires_at"] = deadline
+        _, address = self.listen()
+        self.assertEqual({"status": "running"}, self.call(address, "ensure_started", self.request))
+        self.constructor_crosses_deadline(address, deadline)
+
+    def test_operation_deadline_expires_inside_constructor(self):
+        self.prepare("preflight")
+        deadline = now_ms() + 1_500
+        self.request["deadline_ms"] = self.fresh["deadline_ms"] = deadline
+        _, address = self.listen()
+        self.assertEqual({"status": "running"}, self.call(address, "ensure_started", self.request))
+        self.constructor_crosses_deadline(address, deadline)
+
+    def assert_inert_closure(self, reply, status, reason):
+        self.assertEqual(status, reply["status"])
+        closure = self.diagnostic(reply)
+        self.assertFalse(closure["started"])
+        terminal = closure["ios_custody"]
+        self.assertEqual(reason, terminal["not_started"])
+        outer = terminal["inert"]
+        identity = json.loads(self.claim()[2])
+        self.assertEqual(identity["pid"], identity["pgid"])
+        self.assertEqual(identity["pid"], identity["sid"])
+        self.assertEqual(dict(identity, parent_pid=self.claim()[1], exit=0, direct_child_reaped=True,
+                              group_absent=True, descriptors_closed=True), outer)
+        self.assertFalse((self.tmp / "fixture-cli-pid").exists())
+        self.assertFalse(self.log.exists())
+
+    def test_parent_release_wakes_launcher_after_guard_expires(self):
+        self.prepare("preflight")
+        deadline = now_ms() + 1_500
+        self.request["guard"]["expires_at"] = deadline
+        _, address = self.listen()
+        self.assertEqual({"status": "running"}, self.call(address, "ensure_started", self.request))
+        observer = self.inject_observer(rf"""
+import time
+spawn = native.OwnedBuildProcess
+def delay_launcher(args, **kwargs):
+    args = list(args)
+    script = args.index("-c") + 1
+    prefix = (
+        "import os, time\n"
+        "original_read = os.read\n"
+        "def record_token(fd, count):\n"
+        "    token = original_read(fd, count)\n"
+        "    with open('launcher-token', 'wb') as handle:\n"
+        "        handle.write(token)\n"
+        "    return token\n"
+        "os.read = record_token\n"
+        "while time.time_ns() // 1_000_000 <= {deadline}: time.sleep(.005)\n"
+    )
+    args[script] = prefix + args[script]
+    return spawn(args, **kwargs)
+native.OwnedBuildProcess = delay_launcher
+""")
+        self.collect(observer, 0)
+        self.assertEqual(b"\x01", (self.output / "project" / "launcher-token").read_bytes())
+        self.assert_inert_closure(self.call(address, "query", self.fresh), "preflight_failed", "admission_expired")
+
+    def test_stop_committed_after_inert_constructor_before_release(self):
+        self.prepare("preflight")
+        _, address = self.listen()
+        self.assertEqual({"status": "running"}, self.call(address, "ensure_started", self.request))
+        observer = self.inject_observer("""
+import time
+spawn = native.OwnedBuildProcess
+def pause(*args, **kwargs):
+    proc = spawn(*args, **kwargs)
+    Path("constructor-pid").write_text(str(proc.pid))
+    until = time.monotonic() + 3
+    while not Path("release-preparation").is_file() and time.monotonic() < until:
+        time.sleep(.005)
+    return proc
+native.OwnedBuildProcess = pause
+""")
+        self.wait_for("inert constructor", (self.root / "constructor-pid").is_file)
+        self.assertEqual({"error": "uncertain"}, self.call(address, "stop", self.request))
+        self.assertTrue(self.row()["tombstone"])
+        self.assertIsNone(self.claim()[2])
+        (self.root / "release-preparation").touch()
+        self.collect(observer, 0)
+        stopped = self.call(address, "query", self.fresh)
+        self.assert_inert_closure(stopped, "stopped", "stopped_before_launch")
+        self.assertEqual(stopped, self.call(address, "stop", self.fresh))
+
+    def failed_inert_identity_or_journal(self, fail_identity):
+        self.prepare("preflight")
+        _, address = self.listen()
+        self.assertEqual({"status": "running"}, self.call(address, "ensure_started", self.request))
+        if not fail_identity:
+            with closing(sqlite3.connect(self.state / "operations.sqlite")) as db, db:
+                db.execute("""CREATE TRIGGER refuse_launch BEFORE UPDATE OF launch ON ios_custody_claims
+                              BEGIN SELECT RAISE(ABORT, 'injected launch write failure'); END""")
+        observer = self.inject_observer(f"""
+import os, time
+spawn = native.OwnedBuildProcess
+waitpid = os.waitpid
+def inert(args, **kwargs):
+    kwargs.pop("pass_fds", None)
+    program = "pass" if {fail_identity} else "import time; time.sleep(.35)"
+    proc = spawn([sys.executable, "-IB", "-c", program], **kwargs)
+    Path("inert-pid").write_text(str(proc.pid))
+    if {fail_identity}:
+        until = time.monotonic() + 3
+        while os.waitid(os.P_PID, proc.pid, os.WEXITED | os.WNOWAIT | os.WNOHANG) is None:
+            if time.monotonic() >= until:
+                raise TimeoutError("Inert exit barrier")
+            time.sleep(.005)
+        def missing(pid):
+            if pid == proc.pid:
+                raise ProcessLookupError(3, "injected ESRCH after inert exit")
+            return getpgid(pid)
+        getpgid = os.getpgid
+        os.getpgid = missing
+    return proc
+
+def observe_reap(pid, flags):
+    outcome = waitpid(pid, flags)
+    if outcome[0] == pid:
+        Path("inert-reaped").write_text(str(pid))
+    return outcome
+native.OwnedBuildProcess = inert
+os.waitpid = observe_reap
+""")
+        self.collect(observer, 74)
+        pid = int((self.root / "inert-pid").read_text())
+        self.wait_for("inert child group absence", lambda: native_artifact_worker.group_absent(pid))
+        self.assertFalse((self.tmp / "fixture-cli-pid").exists())
+        self.assertEqual((None, None, 1), self.claim()[2:])
+        self.held(address, self.fresh)
+        marker = self.root / "inert-reaped"
+        self.assertTrue(marker.exists(), "observer abandoned the exact child without a matching waitpid")
+        self.assertEqual(pid, int(marker.read_text()))
+        self.assertEqual({"status": "closed"}, self.call(address, "shutdown"))
+
+    def test_exited_inert_child_with_missing_group_identity_is_reaped(self):
+        self.failed_inert_identity_or_journal(fail_identity=True)
+
+    def test_failed_launch_record_keeps_exact_inert_child_on_reap_path(self):
+        self.failed_inert_identity_or_journal(fail_identity=False)
+
+    def test_replacement_with_moved_root_cannot_stop_existing_claim(self):
+        self.prepare("preflight")
+        worker, address = self.listen()
+        self.assertEqual({"status": "running"}, self.call(address, "ensure_started", self.request))
+        shutil.copytree(self.config["registration"]["root"], self.root / "moved-source")
+        config = dict(self.config, registration=dict(self.config["registration"], root=str(self.root / "moved-source")))
+        self.assertEqual({"status": "closed"}, self.call(address, "shutdown"))
+        self.collect(worker, 0)
+        before = self.row()
+        _, replacement = self.listen("replacement", config)
+        self.assertEqual({"error": "uncertain"}, self.call(replacement, "stop", self.fresh))
+        self.assertFalse(self.row().get("tombstone"), "replacement fenced another configuration's operation")
+        for action in ("query", "ensure_started", "artifacts"):
+            self.assertEqual({"error": "uncertain"}, self.call(replacement, action, self.fresh))
+        self.assertEqual(before, self.row())
+        self.assertIsNone(self.claim())
+        self.assertFalse(self.output.exists())
+        self.assertEqual({"status": "closed"}, self.call(replacement, "shutdown"))
+        _, original = self.listen("original")
+        self.assertEqual({"status": "closed"}, self.call(original, "shutdown"))
+
+    def test_stop_tombstone_wins_and_waits_for_both_closures(self):
+        self.prepare()
+        _, address = self.listen()
+        self.assertEqual({"status": "running"}, self.call(address, "ensure_started", self.request))
+        observer = self.launch("observer", "observe")
+        self.wait_for("staged artifact manifest", (self.output / "native" / "native-build.json").is_file)
+        self.assertEqual({"error": "uncertain"}, self.call(address, "stop", self.fresh))
+        self.wait_for("cancellation acknowledgement", (self.tmp / "cli-closed").is_file)
+        self.assertTrue((self.tmp / "cancel-requested").is_file())
+        self.assertTrue(self.row()["tombstone"])
+        self.held(address, self.fresh)
+        (self.tmp / "release-cli").touch()
+        self.collect(observer, 0)
+        stopped = self.call(address, "query", self.fresh)
+        self.assertEqual("stopped", stopped["status"])
+        closure = self.diagnostic(stopped)
+        self.assertEqual("cancelled", closure["ios_outcome"])
+        self.assertTrue(closure["ios_custody"]["outer"]["direct_child_reaped"])
+        self.assertEqual(stopped, self.call(address, "stop", self.fresh))
+        self.assertEqual(stopped, self.call(address, "ensure_started", self.fresh))
+        self.assertEqual({"error": "unavailable"}, self.call(address, "artifacts", self.fresh))
+        self.assertNotIn("artifacts", self.row())
+        self.assertTrue(self.log.is_file())
+
+    def test_closed_compiler_failure_is_neither_success_nor_stop(self):
+        self.prepare("failure")
+        _, address = self.listen()
+        self.assertEqual({"status": "running"}, self.call(address, "ensure_started", self.request))
+        observer = self.launch("observer", "observe")
+        self.wait_for("staged artifact manifest", (self.output / "native" / "native-build.json").is_file)
+        (self.tmp / "release-nested").touch()
+        (self.tmp / "release-cli").touch()
+        self.collect(observer, 0)
+        failed = self.call(address, "query", self.fresh)
+        self.assertEqual("build_failed", failed["status"])
+        self.assertEqual("build_failed", self.diagnostic(failed)["ios_outcome"])
+        self.assertEqual({"error": "unavailable"}, self.call(address, "artifacts", self.fresh))
+        self.assertFalse(self.row().get("tombstone"))
+        self.assertEqual(23, json.loads(self.log.read_bytes())["compiler"]["exitCode"])
+
+    def test_parent_reap_without_nested_ack_keeps_capacity_and_data_held(self):
+        self.prepare("no-ack")
+        _, address = self.listen()
+        self.assertEqual({"status": "running"}, self.call(address, "ensure_started", self.request))
+        observer = self.launch("observer", "observe")
+        self.wait_for("staged artifact manifest", (self.output / "native" / "native-build.json").is_file)
+        (self.tmp / "release-nested").touch()
+        (self.tmp / "release-cli").touch()
+        self.collect(observer, 74)
+        self.assertIsNone(self.claim()[3])
+        self.assertEqual(1, self.claim()[4])
+        self.held(address, self.fresh)
+        self.collect(self.launch("duplicate", "observe"), 3)
+        self.assertEqual({"status": "closed"}, self.call(address, "shutdown"))
+        later = dict(self.fresh, operation_id="b" * 64)
+        options = dict(self.config["ios_custodian"], operation_id=later["operation_id"])
+        _, rearmed = self.listen("rearmed", dict(self.config, ios_custodian=options), later)
+        self.assertEqual({"error": "unavailable"}, self.call(rearmed, "ensure_started", later))
+
+    def test_ordinary_preflight_failure_has_ack_and_parent_closure(self):
+        self.prepare("preflight")
+        _, address = self.listen()
+        self.assertEqual({"status": "running"}, self.call(address, "ensure_started", self.request))
+        self.collect(self.launch("observer", "observe"), 0)
+        failed = self.call(address, "query", self.fresh)
+        self.assertEqual("preflight_failed", failed["status"])
+        closure = self.diagnostic(failed)
+        self.assertEqual([], closure["commands"])
+        self.assertTrue(closure["ios_custody"]["outer"]["direct_child_reaped"])
+        self.assertIsNone(json.loads(self.log.read_bytes())["compiler"])
+        self.assertEqual({"error": "unavailable"}, self.call(address, "artifacts", self.fresh))
+
+    def test_stop_before_observer_admission_cannot_launch(self):
+        self.prepare()
+        _, address = self.listen()
+        self.assertEqual({"status": "running"}, self.call(address, "ensure_started", self.request))
+        self.assertEqual({"error": "uncertain"}, self.call(address, "stop", self.fresh))
+        self.collect(self.launch("observer", "observe"), 0)
+        self.assertFalse(self.output.exists())
+        self.assertEqual(self.request["guard"], json.loads(self.claim()[0]))
+        stopped = self.call(address, "ensure_started", self.fresh)
+        self.assertEqual("stopped", stopped["status"])
+        self.assertEqual({"not_started": "stopped_before_launch"}, self.diagnostic(stopped)["ios_custody"])
+
+    def test_runtime_rejects_wrong_worker_and_helper_pins(self):
+        self.prepare()
+        for key in ("native_artifact_worker", "ios_build_custody", "compiler_worker"):
+            options = dict(self.config["ios_custodian"])
+            options["runtime_sha256"] = dict(options["runtime_sha256"], **{key: "0" * 64})
+            config = dict(self.config, ios_custodian=options, port=0)
+            self.collect(self.launch(key, "worker", config), 1)
+            self.assertFalse(self.state.exists())
 
 
 if __name__ == "__main__":

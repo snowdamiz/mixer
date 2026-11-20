@@ -38,7 +38,9 @@ class Worker:
         self.db = sqlite3.connect(self.state / "operations.sqlite")
         self.db.execute("PRAGMA synchronous=FULL")
         self.db.execute("CREATE TABLE IF NOT EXISTS operations (id TEXT PRIMARY KEY, value TEXT NOT NULL)")
-        self.db.execute("UPDATE operations SET value=json_set(value,'$.status','uncertain') WHERE json_extract(value,'$.status')='running'")
+        # Independent iOS custody recovers only rows bound to its configuration.
+        self.db.execute("""UPDATE operations SET value=json_set(value,'$.status','uncertain')
+            WHERE json_extract(value,'$.status')='running' AND json_type(value,'$.ios_custody') IS NULL""")
         self.db.commit()
         self.future = None
         self.active = None
