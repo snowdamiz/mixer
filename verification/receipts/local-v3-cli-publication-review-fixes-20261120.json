@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "status": "verified_local_checkpoint",
+  "correctedDeliveryBase": "b833051552cbd9b541f3cfcb8f1415b0c9ffb0a6",
+  "reviewedPublication": "42aee236aaaf7b3448c63426013ebd4e9a522b9f",
+  "composedBase": "cde13e226d9874d6fa4c64a3567a3039b9391c17",
+  "testedRevision": "fb4b40a0f3cd6fc74cb3df3951405165648c3508",
+  "testedTree": "a18b7a45ab50253bc13d60babe0df44e1a39a91e",
+  "testedHostedTree": "e5d2793915de98a0d1a0fa099c5784c0d6fabde8",
+  "environment": {
+    "postgresql": "17.11",
+    "elixir": "1.20.4",
+    "erlangOtp": "29",
+    "swift": "6.4.2.1.9",
+    "dependencyResolution": "Offline Hex cache and local pinned SwiftPM cache",
+    "stockCLI": {
+      "sourceTree": "25a95557190f8b1cc1bb87ef2c7db1e3f404d866",
+      "sha256": "082b355b890f9855514d79ec4c95caab3af2a6ae528dfebe5d55011d0298aca2"
+    }
+  },
+  "verification": {
+    "dependencies": "HEX_OFFLINE=1 MIX_ENV=test mix deps.get",
+    "compile": "MIX_ENV=test mix compile --warnings-as-errors",
+    "format": "MIX_ENV=test mix format --check-formatted",
+    "cliBuild": "GIT_ALLOW_PROTOCOL=file swift build --package-path cli --scratch-path <owned>/swift-build --cache-path <owned>/swift-cache --config-path <owned>/swift-config --security-path <owned>/swift-security --skip-update --disable-prefetching --only-use-versions-from-resolved-file --product mixer",
+    "postgres": "initdb -U mixer_fixture -A trust --no-locale -E UTF8 in owned scratch; foreground postgres -h 127.0.0.1 -p <ephemeral> -k \"\" -c timezone=UTC -c jit=off -c shared_buffers=32MB",
+    "testCommand": [
+      "mix",
+      "test",
+      "--warnings-as-errors",
+      "--seed",
+      "0",
+      "--trace",
+      "test/mixer_hosted/releases/browser_publication_test.exs",
+      "test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+      "test/mixer_hosted/releases/postgres_test.exs",
+      "test/mixer_hosted/protocol/assignment_v3_test.exs",
+      "test/mixer_hosted/protocol/artifact_admission_test.exs"
+    ],
+    "stockCLICommand": "mixer update publish <candidate> --organization org-a --project project-a --channel beta --rollout 15 --assignment <signed-assignment>",
+    "stockCLIConfiguredInBothHTTPFixtures": true,
+    "testCount": 40,
+    "testExit": 0,
+    "testLogSha256": "1e097d06d93467d9cf653b1bc99ac46c188612bd0cca88ff746c83594c466bdd",
+    "postgresLogSha256": "f36ef2bb16bf1a09698aea563c9d1009468a08e8a2aba4f78f1a47c8b568f10c",
+    "observed": [
+      "Effective endpoint rejects HTTPS with only WriterRepo enabled.",
+      "Browser publication and head read work with CLI migration 000004 absent and installed. Delivery migration 000003 was applied explicitly from priv/local_release_delivery.",
+      "The ordinary Phoenix app uses browser_ordinary in both Repo and WriterRepo. Upload and anonymous delivery use distinct restricted logins.",
+      "The browser committed sequence 7. Reusing its key for CLI validation returned 409. Reusing a committed CLI validation key in browser publication returned idempotency_conflict without advancing the head.",
+      "The stock CLI used the ordinary Phoenix listener for upload, validation and publication of sequence 8. The browser and anonymous readers saw the committed head, and anonymous delivery survived stopping and restarting Phoenix.",
+      "Changing release_cli_append caused exact CLI replay to return 503 with receipt count, publication count and head unchanged. Restoring the definition allowed the subsequent writes and retries."
+    ]
+  },
+  "baseline": {
+    "revision": "cde13e226d9874d6fa4c64a3567a3039b9391c17",
+    "regressionsApplied": true,
+    "testLogSha256": "939e3ba017afae9d8d6f27859c25cb2ac375b08954a1207fd6a2e1154d6507cc",
+    "observedFailures": [
+      "CLI-only HTTPS startup was accepted.",
+      "Browser startup with migration 000004 was unavailable. The browser-only case passed.",
+      "A replay under the mutated receipt policy returned HTTP 200."
+    ]
+  },
+  "additionalObservations": {
+    "postgresql16": "The earlier focused CLI shape matched PostgreSQL 17 and the CLI-only regression passed. The ordinary browser fixture uses the PostgreSQL 17-only build_catalog_v3 profile.",
+    "precheckpointFixture": "A stock-CLI fixture initially requested a fractional rollout percentage. The final fixture uses 15%, preserving both eligibility controls."
+  },
+  "cleanup": {
+    "allOwnedTestAndPostgresGroupsAbsent": true,
+    "allPostgresExitCodes": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "allPostgresPortsRebound": [
+      65245,
+      49875,
+      49925,
+      51487,
+      51800,
+      52937,
+      53489,
+      55185,
+      56978,
+      57739
+    ],
+    "httpFixture": {
+      "bandit_stopped": true,
+      "key_owner_stopped": true,
+      "jwks_workers_stopped": true,
+      "tls_fixture_stopped": true,
+      "ephemeral_tls_key_directory_removed": true,
+      "jwks_tls_request_count": null,
+      "bandit_port": 57762,
+      "tls_port": 57761,
+      "bandit_port_rebound": true,
+      "tls_port_rebound": true
+    },
+    "observedScratchKiB": 1208040
+  },
+  "sibling": {
+    "revision": "fb889121180b9317a0254e030d75a33d242c64e0",
+    "patchBase": "42aee236aaaf7b3448c63426013ebd4e9a522b9f",
+    "conflicts": [
+      "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs"
+    ],
+    "resolutionNote": "Keep the shared StockReleaseCLI.publish! helper and the mutated policy regression. Retain the sibling stock transition command helper and transition assertions. Retest on the parent composition."
+  },
+  "scope": "Local only. Parent owns main, promotion/rollback composition, v57 source binding, workflow changes and gate decisions."
+}
