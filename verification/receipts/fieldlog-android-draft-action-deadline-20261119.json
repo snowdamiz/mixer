@@ -1,0 +1,572 @@
+{
+  "mixerPlanRevision": "fe0bde4628ade59abbb2f57fc7d96510579cea37",
+  "scope": "Native Android draft input and storage deadline diagnosis for L08 section 22.2.4",
+  "gateStatus": "running",
+  "device": {
+    "serial": "emulator-5646",
+    "avd": "fieldlog_l04_55b2ab29bfba",
+    "image": "system-images;android-36;default;arm64-v8a",
+    "consolePorts": [
+      5646,
+      5647
+    ],
+    "ro.boot.qemu.avd_name": "fieldlog_l04_55b2ab29bfba",
+    "ro.build.version.sdk": "36",
+    "ro.product.cpu.abi": "arm64-v8a",
+    "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys",
+    "initialADBUID": "2000",
+    "privateADBPort": 50397
+  },
+  "tools": {
+    "adb": "Android Debug Bridge version 1.0.41\nVersion 37.0.1-15733141\nInstalled as /opt/homebrew/share/android-commandlinetools/platform-tools/adb\nRunning on Darwin 27.0.0 (arm64)",
+    "emulator": [
+      "Android emulator version 37.2.12.0 (build_id 16428233) (CL:N/A)",
+      "Copyright (C) 2006-2024 The Android Open Source Project and many others."
+    ]
+  },
+  "toolchain": {
+    "androidBuildTools": "36.0.0",
+    "androidNdk": "27.1.12297006",
+    "build_tools_sha256": "444165a9190ea88d31724ec375e9d8f633c61b62820739cea400c2234d17e71e",
+    "compiler_sha256": "1ed6c28434801b1abb053e283cbc7e16d8e73ff12deb2ae3a539790afafbb3f5",
+    "compiler_version": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)",
+    "host": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "jdk": "javac 25.0.4.1",
+    "rust": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "sdk_sha256": "e72a978739b28a8902fe2b69cd6f57bb72bf343c98ab1486b02ac36eea5a72dc",
+    "sdk_version": "android28",
+    "xcodeAndroidCrossBuild": "Xcode 26.6\nBuild version 17F113",
+    "xcodeHost": "Xcode 27.2\nBuild version 27B52"
+  },
+  "source": {
+    "changedLinkEntries": {
+      "app/Integrations/GeneratedReport/Platforms/Android/Bridge/ChecklistBridge.c": {
+        "rebuild": "8ec1c8c10d93bae2ae4e1969e6118a856086c44be264d296f11b2211455a467a",
+        "reviewed": "e9b5a1340ec9eefca4d6a1695e92a5b75de93f7423612f91f83515c0d69b845d"
+      },
+      "app/Integrations/GeneratedReport/Platforms/Android/Bridge/DraftPressTrace.c": {
+        "rebuild": "4b3c92e5b6982dee14d4960801286e9a4c81775b056c985572c9724bca1ccfd5",
+        "reviewed": null
+      },
+      "app/Integrations/GeneratedReport/Platforms/Android/Bridge/DraftPressTrace.h": {
+        "rebuild": "7bc492d27259086e13d66263f518f63098935536f4756f58c2febe53d517c4ab",
+        "reviewed": null
+      },
+      "app/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java": {
+        "rebuild": "3071d61d109a06e0d0d8d774dc5a88e8f607896192b50e085b4e5a76ac56dd1e",
+        "reviewed": "6cce516dd2b839a5371c8cf3678692ccd751ce7af0026d53c195740d8a3e0680"
+      },
+      "mixer/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift": {
+        "rebuild": "fae941e37e087685738df3d3b8b449ec97382b60000124e6a8c54863f48c2e31",
+        "reviewed": "29cdbf9eddffa5ac333c44637151e1bf74e39850cffbb4aff051619282754e3d"
+      },
+      "mixer/experimental-capability-runtime/Sources/CMixerVMCapability/include/MixerVMCapability.h": {
+        "rebuild": "f17721a9788439382e4a2e6b43b984d4adb38698bb2f2c02ad6c4d3d1feba9a5",
+        "reviewed": "76c46ecb5ce7e785a0b036e75f8b37b0c648d9550b293803cf5a6b48959eeaf4"
+      },
+      "mixer/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift": {
+        "rebuild": "2afc00247874814114b05a20fd265ee345d0bf377a5506be0ff42743e2a6fecb",
+        "reviewed": "84616e753fc5a882d3ce7b6236f0c1d70475f1bdd6f58fb10f6fd42876eb8d72"
+      },
+      "mixer/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Ownership.swift": {
+        "rebuild": "28b84f0e64f0d11cd20a716d0a734734ec49561e2940028a7e14733445e3fec5",
+        "reviewed": "ec3956e84d1c65ab8ba23a2cdfde16decd53d9a740ecee3cee7d9b2652ebb865"
+      },
+      "mixer/verification/android-binding-stage4/host-bridge/mixer_android_host_bridge.h": {
+        "rebuild": "6eaebcf085b857cb63656e26f87eaac84860061852f0e73e03ad7858eeacedd9",
+        "reviewed": "609c101b60db7dbc3ab33e3e1ee4b79cb59b18a8cb93d3ce1abb1917f683bf54"
+      },
+      "payload/bridge/ChecklistBridge.o": {
+        "rebuild": "193e22083955da4b8c7f7f6fe4537cc9a4bd1d07701242ffd3ea094a903ecfb9",
+        "reviewed": "61561485b2faac000ef2321fc8d6073415fc75b73c58f57747df9ffc6d356494"
+      },
+      "payload/bridge/DraftPressTrace.o": {
+        "rebuild": "d7c9e9c120aa567b86578b5fcca97558ccde599774bf5659bf4a89680275a2b3",
+        "reviewed": null
+      },
+      "payload/classes.dex": {
+        "rebuild": "b305b79dac625e27fdc5a293b1a4c989b0025a601011ce2674800a804acd6004",
+        "reviewed": "fc272f3943b241341a04a517935eb7a959da23289c255d91b4e928bba933cd34"
+      },
+      "payload/libmixer_public_android_jni.so": {
+        "rebuild": "ed79064a2caa3e524170df560219781dda218ff9764f8fa1e2f4ab1bc5a31239",
+        "reviewed": "17c91c743c258406ac70a6225880d356d0c741abfbaf3e1ee4c5a89f93886199"
+      },
+      "payload/recipe/build-payload.zsh": {
+        "rebuild": "3ba22dfc3640ede9f13aeb3cd6c92caab331c8f0b0f780b653648dda14eb4b03",
+        "reviewed": "0d86c6bd7a4f60fa5017de58d4bd0c4ad467bcdd180e03cc02638b6f0f3df9a4"
+      },
+      "payload/recipe/seal-and-package.py": {
+        "rebuild": "c6f5501794a38b69b57ebdc5fd4880c0112671ac5dcc0e964b608851e0eddae9",
+        "reviewed": "4382a9ed6d88b719681f0283af06be98ba78169e997e36eec4ef8288127843d3"
+      }
+    },
+    "diagnosticOverlaysSHA256": {
+      "fieldlog-press-trace.patch": "0797e591fa8b5431364d90dffb8dc472447805989bbec9eaf452c8c3bb6c2343",
+      "mixer-press-trace.patch": "67ba4b3583011660590c8e1e429fb4b580df31e3e44c38eb1b524849acbf9663"
+    },
+    "engine": {
+      "artifact_sha256": "af8147961b1ffc138a38208fbb1a25481f75c36baac20a9e10a2b4355ca93c20",
+      "source_sha256": "2d6fb9128e74ec80d3c3c180ffb0d41ec54a376fc6d79f52951093b6a84bd4a3",
+      "version": "5dea19db36610e312b51918b384364ba590b6ef8"
+    },
+    "fallbackSHA256": "57f1f92b997b084677ed5d822edd79c48c90051c1fed25167b0d22f9d171595f",
+    "fieldLogRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "fieldLogTree": "deac0a5ca9f491236cf3b7220baddd27efbf525d",
+    "linkInputSHA256": "2233c515428638dd754d5738c2c702daf8db61fb643ff3d44fba6cf1b7cf5471",
+    "linkInventoryEntries": 909,
+    "mixerGitTree": "b0a6a2fed1837169edc655da6b17ef3ccf58afec",
+    "mixerRevision": "5dea19db36610e312b51918b384364ba590b6ef8",
+    "overlayTrees": [
+      "audited-patches/rollback-floor.patch b81afd281ab00dbd1dc06d7ce0605b7f360aada6",
+      "audited-patches/optional-successor.patch eed0ea9f778a0b570c7abd1effe94aec7aa11fbb",
+      "android-app-composition.patch 3e456ac47f590b5749f465dad193d6551b9c1804"
+    ],
+    "overlaysSHA256": {
+      "android-app-composition.patch": "528551a733face2802a5b2d7e6b078de92e828c1f7acec6814915ce26cce0e54",
+      "audited-patches/optional-successor.patch": "2596169364099a0f6f040e53ddd3e663b3040b8d6265b1a052125da21e917d44",
+      "audited-patches/rollback-floor.patch": "05a6ee7e057a3485387c18d964673a508f3e2a49c7e9d7f8315da1b95c36c9da"
+    },
+    "profile": "mixer.android-source-pair.24",
+    "profileLockSHA256": "2bdb096cd2396ee8fd4ee3c5de93b34468ea72a53ba996052ba7d69833ab7d61",
+    "reviewedFieldLogTree": "3e456ac47f590b5749f465dad193d6551b9c1804",
+    "reviewedWasmSHA256": {
+      "baseline": "f6178390e737d3cf2b4937c64e79e849ac17f518abd357dd02d934c728480e5c",
+      "optional": "cfb47b6a2c687f67054fc96a83be85cc75b5a368c0ffcf64db82ff3a042395e1"
+    },
+    "swiftPMPins": {
+      "swift-asn1": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+      "swift-crypto": "c2cbadd7263439d8015189668f96ff5b5be565ce"
+    }
+  },
+  "runtime": "ffd8acdf556b62e013343e8358e933973a18a763cd2e3040c481a364b32679f4",
+  "apk": {
+    "status": "passed",
+    "sha256": "be7688a70653e74eff2fb21561795cd65edccb8b759fb141bee5fcc5f27f726a",
+    "v3": true,
+    "alignmentKiB": 16,
+    "certificateSHA256": "396fb5c02d4c52f59cef2687c24e677e97317b1590824cb1a0a1eef67d50d11e"
+  },
+  "installedApkSHA256": "be7688a70653e74eff2fb21561795cd65edccb8b759fb141bee5fcc5f27f726a",
+  "driver": "python3 -B replay.py --native --console 5646 --apk packet/FieldLog-selected-draft-dev-arm64.apk",
+  "firstRun": {
+    "outcome": "stopped at the early DocumentsUI observation before guest actions",
+    "correction": "Waited for the visible picker, imported the JPEG first, and paced native input before observing each transition."
+  },
+  "hydration": "Both signed sequences hydrated the same draft with the source JPEG linked.",
+  "trace": [
+    {
+      "t_ns": 415466757198,
+      "stage": "completion",
+      "scope": 1,
+      "press": 0,
+      "event": 0,
+      "rev": 0,
+      "code": 1,
+      "elapsed_ns": 0,
+      "detail": 2,
+      "pid": 2558
+    },
+    {
+      "t_ns": 415466850989,
+      "stage": "post",
+      "scope": 1,
+      "press": 0,
+      "event": 0,
+      "rev": 0,
+      "code": 0,
+      "elapsed_ns": 0,
+      "detail": 2,
+      "pid": 2558
+    },
+    {
+      "t_ns": 415472794406,
+      "stage": "frame",
+      "scope": 1,
+      "press": 0,
+      "event": 0,
+      "rev": 1,
+      "code": 0,
+      "elapsed_ns": 0,
+      "detail": 0,
+      "pid": 2558
+    },
+    {
+      "t_ns": 446503027421,
+      "stage": "listener",
+      "press": 1,
+      "rev": 1,
+      "code": 0,
+      "pid": 2558
+    },
+    {
+      "t_ns": 446503615921,
+      "stage": "gate",
+      "press": 1,
+      "rev": 1,
+      "code": 0,
+      "pid": 2558
+    },
+    {
+      "t_ns": 446746454254,
+      "stage": "offer",
+      "scope": 1,
+      "press": 1,
+      "event": 1,
+      "rev": 1,
+      "code": 0,
+      "elapsed_ns": 0,
+      "detail": 0,
+      "pid": 2558
+    },
+    {
+      "t_ns": 446746725921,
+      "stage": "witness_return",
+      "press": 1,
+      "rev": 1,
+      "code": 0,
+      "pid": 2558
+    },
+    {
+      "t_ns": 446939590671,
+      "stage": "invoke",
+      "scope": 1,
+      "press": 0,
+      "event": 1,
+      "rev": 1,
+      "code": 0,
+      "elapsed_ns": 0,
+      "detail": 0,
+      "pid": 2558
+    },
+    {
+      "t_ns": 447084273129,
+      "stage": "guest",
+      "scope": 1,
+      "press": 0,
+      "event": 1,
+      "rev": 1,
+      "code": 0,
+      "elapsed_ns": 144712166,
+      "detail": 1,
+      "pid": 2558
+    },
+    {
+      "t_ns": 476960751685,
+      "stage": "completion",
+      "scope": 1,
+      "press": 0,
+      "event": 1,
+      "rev": 0,
+      "code": 13,
+      "elapsed_ns": 0,
+      "detail": 2,
+      "pid": 2558
+    },
+    {
+      "t_ns": 476961075935,
+      "stage": "post",
+      "scope": 1,
+      "press": 0,
+      "event": 1,
+      "rev": 0,
+      "code": 1,
+      "elapsed_ns": 0,
+      "detail": 2,
+      "pid": 2558
+    },
+    {
+      "t_ns": 476972263602,
+      "stage": "frame",
+      "scope": 1,
+      "press": 0,
+      "event": 0,
+      "rev": 2,
+      "code": 0,
+      "elapsed_ns": 0,
+      "detail": 0,
+      "pid": 2558
+    },
+    {
+      "t_ns": 559259871141,
+      "stage": "completion",
+      "scope": 2,
+      "press": 0,
+      "event": 0,
+      "rev": 0,
+      "code": 1,
+      "elapsed_ns": 0,
+      "detail": 2,
+      "pid": 2558
+    },
+    {
+      "t_ns": 559259960266,
+      "stage": "post",
+      "scope": 2,
+      "press": 0,
+      "event": 0,
+      "rev": 0,
+      "code": 0,
+      "elapsed_ns": 0,
+      "detail": 2,
+      "pid": 2558
+    },
+    {
+      "t_ns": 559286987724,
+      "stage": "frame",
+      "scope": 2,
+      "press": 0,
+      "event": 0,
+      "rev": 1,
+      "code": 0,
+      "elapsed_ns": 0,
+      "detail": 0,
+      "pid": 2558
+    },
+    {
+      "t_ns": 589658559947,
+      "stage": "listener",
+      "press": 2,
+      "rev": 1,
+      "code": 0,
+      "pid": 2558
+    },
+    {
+      "t_ns": 589658924281,
+      "stage": "gate",
+      "press": 2,
+      "rev": 1,
+      "code": 0,
+      "pid": 2558
+    },
+    {
+      "t_ns": 589660267614,
+      "stage": "offer",
+      "scope": 2,
+      "press": 2,
+      "event": 1,
+      "rev": 1,
+      "code": 0,
+      "elapsed_ns": 0,
+      "detail": 0,
+      "pid": 2558
+    },
+    {
+      "t_ns": 589660373906,
+      "stage": "witness_return",
+      "press": 2,
+      "rev": 1,
+      "code": 0,
+      "pid": 2558
+    },
+    {
+      "t_ns": 589668445614,
+      "stage": "invoke",
+      "scope": 2,
+      "press": 0,
+      "event": 1,
+      "rev": 1,
+      "code": 0,
+      "elapsed_ns": 0,
+      "detail": 0,
+      "pid": 2558
+    },
+    {
+      "t_ns": 589675066822,
+      "stage": "guest",
+      "scope": 2,
+      "press": 0,
+      "event": 1,
+      "rev": 1,
+      "code": 0,
+      "elapsed_ns": 6636792,
+      "detail": 1,
+      "pid": 2558
+    },
+    {
+      "t_ns": 619680146045,
+      "stage": "completion",
+      "scope": 2,
+      "press": 0,
+      "event": 1,
+      "rev": 0,
+      "code": 12,
+      "elapsed_ns": 0,
+      "detail": 3,
+      "pid": 2558
+    },
+    {
+      "t_ns": 619680554712,
+      "stage": "post",
+      "scope": 2,
+      "press": 0,
+      "event": 1,
+      "rev": 0,
+      "code": 2,
+      "elapsed_ns": 0,
+      "detail": 3,
+      "pid": 2558
+    },
+    {
+      "t_ns": 649696289726,
+      "stage": "completion",
+      "scope": 2,
+      "press": 0,
+      "event": 1,
+      "rev": 0,
+      "code": 13,
+      "elapsed_ns": 0,
+      "detail": 2,
+      "pid": 2558
+    },
+    {
+      "t_ns": 649708426726,
+      "stage": "post",
+      "scope": 2,
+      "press": 0,
+      "event": 1,
+      "rev": 0,
+      "code": 2,
+      "elapsed_ns": 0,
+      "detail": 2,
+      "pid": 2558
+    },
+    {
+      "t_ns": 649731395559,
+      "stage": "frame",
+      "scope": 2,
+      "press": 0,
+      "event": 0,
+      "rev": 2,
+      "code": 0,
+      "elapsed_ns": 0,
+      "detail": 0,
+      "pid": 2558
+    }
+  ],
+  "firstFailures": [
+    {
+      "sequence": 1,
+      "action": "Check saved draft",
+      "operation": "GET",
+      "completion": "deadline",
+      "invokeToCompletionNS": 30021161014,
+      "rendered": "Saved draft unavailable / No photo shown"
+    },
+    {
+      "sequence": 2,
+      "action": "Mark follow-up required",
+      "operation": "PUT",
+      "completion": "cancelled",
+      "invokeToCompletionNS": 30011700431,
+      "completionPost": "matching native post threw; a follow-on GET separately reached its deadline",
+      "rendered": "Saved draft unavailable / No photo shown / Follow-up unset"
+    }
+  ],
+  "persistence": {
+    "workspaceSHA256": "f4e372b1c1a817a89e98d3c591498eb8f65169f09a87568dde1bd56be545d09c",
+    "sameSnapshotAtRevision": 3,
+    "jpeg": "4bd5645e09d5f9edf2d86eb23631b75d4a19f1d72f013e54733fb1d42b362e45",
+    "followUpCommitted": false,
+    "sameInstallation": "7570272d-8ed3-4c1e-adbd-8a04d00abc1b"
+  },
+  "screens": {
+    "seed": {
+      "picker": {
+        "file": "seed-05-picker.png",
+        "sha256": "268d500561e4b495f26b8f2b3f112e2a1a5a4e8d678ba7f523218149dc49585d",
+        "observation": "DocumentsUI Recent shows the red and green synthetic JPEG"
+      },
+      "saved-a": {
+        "file": "seed-10-saved-a.png",
+        "sha256": "c130d380fa555b78af9dc1f0b875c811167d15ae68a3975c50ab4817697afdaf",
+        "observation": "Ordinary editor shows L08ValveA, OriginalNote, and one on-device attachment after Save draft"
+      }
+    },
+    "baseline": {
+      "loaded": {
+        "file": "baseline-02-loaded.png",
+        "sha256": "b7c64b5722b9d06d55217dba6161b646610c308b1b41cd57a659a1f1586ebca2",
+        "observation": "Signed sequence 1 shows Saved draft loaded and JPEG linked"
+      },
+      "after-check": {
+        "file": "baseline-03-after-check.png",
+        "sha256": "593c0e5c04902eea85b555dc1d04cbfd5757ebc21a823361aaf1756774288646",
+        "observation": "Sequence 1 shows Saved draft unavailable and No photo shown after one Check tap"
+      }
+    },
+    "optional": {
+      "unset": {
+        "file": "optional-02-unset.png",
+        "sha256": "a1127462f1f2fe64b23b16ac83efbc8d436e49449192dad70bcbaa0d6abbe635",
+        "observation": "Sequence 2 shows Follow-up unset and JPEG linked"
+      },
+      "after-press": {
+        "file": "optional-04-after-press.png",
+        "sha256": "0f51e56c234895dd7687edb297834b1d654845151cc65184e68da1f93f586235",
+        "observation": "Sequence 2 shows Saved draft unavailable, No photo shown, Follow-up unset, and Reload draft after one Mark tap"
+      }
+    }
+  },
+  "recoveries": [
+    {
+      "installation": "7570272d-8ed3-4c1e-adbd-8a04d00abc1b",
+      "sequence": 1,
+      "candidate": "64f49dec2a687fc9a3a425110e19da4dc79bcdd5767103f79d2147578acb7995",
+      "launch": "195ECB54-42C8-4880-BA99-A88FA6E7D312",
+      "artifactSHA256": "91c985ae02276760dbf92d63d9dc9dc77dae778815f3f39122b778aa9c8d39c8",
+      "payloadSHA256": "12f577a6b62c7d23493bb6fba2d519e4e847d25a0042c5575f65bc3383791bcb",
+      "releaseID": "fieldlog-draft-baseline",
+      "sha256": "b2dedeb6244e5ff2874b3cd2dd407ad160685e6ea6ea6f9c7815a23810106d3f"
+    },
+    {
+      "installation": "7570272d-8ed3-4c1e-adbd-8a04d00abc1b",
+      "sequence": 2,
+      "candidate": "ed06cf525a275c5594bf2fbc99a2e1317ec6b3229761aebb08d4bcf818a89368",
+      "launch": "1E6641B6-0F9A-48E8-B91B-2B271F2CD0EF",
+      "artifactSHA256": "c949c014a3f3a35acf6e2e3c9ce203d8324d7bd9fd5c4f6faab7b77dc0c7f55a",
+      "payloadSHA256": "6c09f2057a4f4203aea93ad9ef8af596a8507fda3676b6403796bf8509789b1a",
+      "releaseID": "fieldlog-draft-optional",
+      "sha256": "658169d514ede88b0f3ada5c614372a1b082b5c000b3e3b873676363dd20fcc5"
+    }
+  ],
+  "cleanup": {
+    "first": {
+      "rebound": [
+        5644,
+        5645,
+        62127,
+        62030
+      ],
+      "commandGroupsAbsent": 246,
+      "longLivedOwnerGroupsAbsent": 4,
+      "cleanup": {
+        "emulator": true,
+        "adb": true,
+        "service": true,
+        "instance": true
+      }
+    },
+    "diagnostic": {
+      "rebound": [
+        5646,
+        5647,
+        50397,
+        50370
+      ],
+      "commandGroupsAbsent": 294,
+      "longLivedOwnerGroupsAbsent": 4,
+      "cleanup": {
+        "mapping": true,
+        "emulator": true,
+        "adb": true,
+        "service": true,
+        "instance": true
+      }
+    }
+  },
+  "limits": [
+    "The trace observes capability completion and native posting. Storage lease entry and main run-loop scheduling were not instrumented.",
+    "The diagnosis ended after sequence 2. Rollback, offline editing, cold reopen and re-upgrade remain pending."
+  ]
+}
