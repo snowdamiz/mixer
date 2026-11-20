@@ -1,0 +1,80 @@
+{
+  "date": "2026-11-20",
+  "scope": "Empty independent PostgreSQL restore and corrected readback assertions; no new native build or settled-restore pass",
+  "pinnedFixture": {
+    "publicCommit": "201ead70ff68bfe18de24c0642f518701459e0a4",
+    "restoreBase": "57f3ed4f17b80f15fc6d646b14c6dbfa05bd7eea",
+    "restoreBaseTree": "fd2db4b611d952bbfafaf34cee0c02ba048b7346",
+    "launcherSHA256": "f960866d2d70591afc7bae77c1255abc324e18826f83e0b9f3512a2a7fa5b69e",
+    "restoreFixtureSHA256": "7772bf74dd517d7f39c9b0de44742c54f814b423bf1c036516d5713de8aa6d03",
+    "restoreTestSHA256": "efb1abfef2a467b87a2f7acc66a7bbf87b4a8b7bca79abcf38a51bdce2da120c",
+    "restoreRepairSHA256": "1012536ad091cfd43d8e06f627dc05b2d3a7316af56a58f8e6c8dfa29eb552ad"
+  },
+  "fixtureOnly": {
+    "command": "python3.14 -B tests/integration/hosted-expiry-restore/replay-starter.py --fixture-only",
+    "terminalCommands": 38,
+    "status": "PASS_EMPTY_STARTER_RESTORE_CONTROL",
+    "restoreLauncherSHA256": "1c8213660c4ac156e411a666a3a3b20c1f6971d6e699064719484e632b361e05",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "mix": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:15:15] [ds:15:15:10] [async-threads:1] [jit] [dtrace]\n\nMix 1.20.4 (compiled with Erlang/OTP 29)",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "buildPOSTAttempts": 0,
+    "postgresSystemIdentifiers": [
+      "7710117210881752795",
+      "7710117337883843974"
+    ],
+    "postgresDumpSHA256": "822d1ba66294ae5cc27d81ecb71d648ac0061c1cf0c03ef69cdba046af23fdc1",
+    "roleDumpSHA256": "b77c53d29278fab70ab70f962dbb8de57453060b0aa0d523e5cea4f0ab8439f9",
+    "postgresJournalSHA256": "632dbfc0f8344b62df7bd6ff9647a8e5f2c6ea79d31a1bde6c81328418e411a6",
+    "sourceWritersClosedBeforeBackup": true,
+    "restoredStorageReady": true,
+    "restoredFreshSessions": true,
+    "restoredJournalMatches": true,
+    "restoredRolesMatch": true,
+    "restoredQueuesDisabled": true,
+    "restoredProcessorLaunched": false,
+    "restoredWorkerLaunched": false,
+    "restoredCompilerStarts": 0,
+    "restoredAPIExit": 0,
+    "restoredPostgresExit": 0,
+    "databaseDropped": true,
+    "portsRebound": [
+      54506,
+      54587,
+      54592,
+      54615,
+      54711,
+      54745,
+      54752,
+      54772
+    ],
+    "scratchRemoved": true
+  },
+  "readbackControls": {
+    "commands": [
+      "python3.14 -B tests/integration/hosted-expiry-restore/test_starter_readback.py",
+      "python3.14 -O -B tests/integration/hosted-expiry-restore/test_starter_readback.py"
+    ],
+    "passesPerMode": 6,
+    "testSHA256": "f8f039867049ec86f8e199b06b90a9d9dd387b0bf2210b7374781c10bdafb696",
+    "launcherSHA256": "79bff1af1d044f09dfc52672df33375fbeb04c2fa6dd738b25dbebc9544f9ab5"
+  },
+  "fullAttempt": {
+    "command": "python3.14 -B tests/integration/hosted-expiry-restore/replay-starter.py",
+    "diagnosticCode": "lock.toolchain-drift",
+    "stoppedAt": "starter-export",
+    "terminalCommands": 26,
+    "status": "FAILED",
+    "restoreLauncherSHA256": "79bff1af1d044f09dfc52672df33375fbeb04c2fa6dd738b25dbebc9544f9ab5",
+    "buildPOSTAttempts": 0,
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "xcode": "Xcode 27.2\nBuild version 27B52",
+    "ports": {},
+    "scratchRemoved": true
+  },
+  "limitations": [
+    "The empty run predates the final closed-failure diagnostics and teardown correction.",
+    "The full run stopped before PostgreSQL startup and worker registration.",
+    "L07 remains open for a complete settled restore and recovery with unverified compiler closure."
+  ]
+}

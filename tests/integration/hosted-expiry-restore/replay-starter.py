@@ -4,7 +4,6 @@
 import argparse
 from contextlib import closing
 import hashlib
-from importlib.util import module_from_spec, spec_from_file_location
 import json
 import os
 from pathlib import Path
@@ -12,9 +11,11 @@ import re
 import shutil
 import signal
 import sqlite3
+import subprocess
 import sys
 import tempfile
 import traceback
+from types import ModuleType
 from urllib.parse import parse_qsl, urlencode, urlsplit
 
 DELIVERY = Path(__file__).resolve().parent
@@ -41,12 +42,20 @@ MEMBERSHIPS = """SELECT coalesce(jsonb_agg(to_jsonb(m) ORDER BY to_jsonb(m)), '[
 
 
 def load_launcher():
-    for path, expected in PINS.items():
-        if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
-            raise RuntimeError(f"Use the pinned public checkout at {BASE}: {path.name} differs")
-    spec = spec_from_file_location("starter_restart", LAUNCHER)
-    module = module_from_spec(spec)
-    spec.loader.exec_module(module)
+    revision_path = f"{BASE}:{LAUNCHER.relative_to(ROOT).as_posix()}"
+    source = subprocess.check_output(
+        ["git", "--no-pager", "show", revision_path],
+        cwd=ROOT,
+        env={**os.environ, "GIT_NO_LAZY_FETCH": "1"},
+        timeout=10,
+    )
+    if hashlib.sha256(source).hexdigest() != PINS[LAUNCHER]:
+        raise RuntimeError(f"Pinned Starter launcher at {BASE} differs")
+    if hashlib.sha256(REPAIR.read_bytes()).hexdigest() != PINS[REPAIR]:
+        raise RuntimeError("Pinned expiry repair differs")
+    module = ModuleType("starter_restart")
+    module.__file__ = str(LAUNCHER)
+    exec(compile(source, revision_path, "exec"), vars(module))
     return module
 
 
@@ -62,7 +71,8 @@ class RestoreRun(starter.Run):
         self.bundle.mkdir(mode=0o700)
         self.target.mkdir(mode=0o700)
         self.target_pg = self.target_api = None
-        self.result.update(restoreBase=BASE, restoreBaseTree=TREE, restoreLauncherSHA256=digest(Path(__file__)),
+        self.result.update(launcherSHA256=PINS[LAUNCHER], restoreBase=BASE, restoreBaseTree=TREE,
+                           restoreLauncherSHA256=digest(Path(__file__)),
                            restoreFixtureSHA256=digest(FIXTURE),
                            restoreRepairSHA256=PINS[REPAIR], restoredCompilerStarts=None)
 
@@ -96,6 +106,40 @@ class RestoreRun(starter.Run):
             self.relay = None
         starter.close_worker(self)
         self.result["sourceWritersClosedBeforeBackup"] = True
+
+    def close_services(self):
+        require(not self.unknown and not self.native_pending, "live service custody is unknown")
+        self.verify_active_services()
+        if getattr(self, "processor", None) is not None:
+            self.mark("processor.done")
+            self.finish("processor", self.processor, seconds=35, check=False)
+            self.processor = None
+        if getattr(self, "relay", None) is not None:
+            self.relay.finish()
+            self.relay = None
+        starter.close_worker(self)
+        if getattr(self, "api", None) is not None:
+            self.mark("api.done")
+            self.finish("api", self.api, seconds=35, check=False)
+            self.api = None
+        if getattr(self, "pg", None) is not None:
+            try:
+                if self.pg.poll() is None and self.result.get("postgresDataDirectoryVerified"):
+                    remaining = self.sql(
+                        "database-closed",
+                        f"SELECT count(*) FROM pg_database WHERE datname='{starter.DB}'",
+                        "postgres",
+                    )
+                    self.result["databaseDropped"] = remaining == "0"
+            except Exception as error:
+                if self.unknown:
+                    raise
+                self.result["databaseDropped"] = False
+                self.result["databaseCheckError"] = f"{type(error).__name__}: {error}"
+            finally:
+                if not self.unknown:
+                    self.finish("postgres", self.pg, shutdown=signal.SIGINT, check=False)
+                    self.pg = None
 
     def open_target(self, pg):
         data = self.target / "pg"
@@ -218,48 +262,67 @@ def capture_worker(run, operation, row):
     return pins
 
 
-def build_digest(body, selection):
+def build_readback(body, selection, ledger):
     data = json.loads(body)
     build = data["build"]
     require((build["buildId"], build["revision"], build["state"]) ==
             (selection["build_id"], 2, "native_succeeded"), "unexpected authenticated build")
+    expected = {item["kind"]: item for item in ledger}
+    require(set(expected) == set(starter.KINDS) and len(ledger) == len(expected),
+            "unexpected artifact kinds in the ledger")
+    require(len(build["artifacts"]) == len(expected), "incomplete artifact descriptors")
+    downloads = {}
     for artifact in build["artifacts"]:
-        path = urlsplit(artifact["downloadPath"])
-        route = "/console-api/v1/build-artifacts/" + artifact["kind"]
-        pairs = parse_qsl(path.query, strict_parsing=True)
+        kind = artifact["kind"]
+        require(kind in expected and kind not in downloads, "unexpected or duplicate artifact descriptor")
+        item = expected[kind]
+        require((artifact["sha256"], artifact["sizeBytes"]) == (item["sha256"], item["sizeBytes"]),
+                f"{kind} descriptor differs from the worker ledger")
+        advertised = artifact["downloadPath"]
+        path = urlsplit(advertised)
+        route = "/console-api/v1/build-artifacts/" + kind
+        pairs = parse_qsl(path.query, keep_blank_values=True, strict_parsing=True)
         require(path.path == route and not (path.scheme or path.netloc or path.fragment)
                 and len(pairs) == len(selection) and dict(pairs) == selection,
                 "artifact download URL does not bind the build selection")
+        downloads[kind] = advertised
         artifact["downloadPath"] = route + "?" + urlencode(sorted(selection.items()))
-    return starter.json_sha(data)
+    return starter.json_sha(data), downloads
+
+
+def read_as_owner_and_outsider(auth, path, label):
+    code, headers, body = starter.http(auth, path)
+    outsider = dict(auth, cookie=auth["unrelatedCookie"])
+    denied, outsider_headers, outsider_body = starter.http(outsider, path)
+    errors = {403: {"error": {"code": "permission_denied"}}, 404: {"error": {"code": "not_found"}}}
+    require(code == 200 and denied in errors, f"{label} returned {code} for owner or {denied} for outsider")
+    require(headers.get("cache-control") == outsider_headers.get("cache-control") == "no-store",
+            f"{label} response can be cached")
+    require(json.loads(outsider_body) == errors[denied], f"{label} exposed data to an unrelated tenant")
+    return headers, body, {"httpStatus": code, "outsiderHTTP": denied,
+                           "sha256": starter.sha(body), "sizeBytes": len(body)}
 
 
 def get_readback(auth, selection, row):
-    outsider = dict(auth, cookie=auth["unrelatedCookie"])
     scope = "?" + urlencode(selection)
-    outputs = {}
-    for key, path in [("build", starter.BUILD), ("logs", "/console-api/v1/build-logs"),
-                      *((kind, "/console-api/v1/build-artifacts/" + kind) for kind in starter.KINDS)]:
-        code, headers, body = starter.http(auth, path + scope)
-        denied = starter.http(outsider, path + scope)[0]
-        require(code == 200 and denied in (403, 404), f"{key} returned {code} for owner or {denied} for outsider")
-        output = {"httpStatus": code, "outsiderHTTP": denied, "sha256": starter.sha(body), "sizeBytes": len(body)}
-        if key == "build":
-            output["contentSHA256"] = build_digest(body, selection)
-        elif key == "logs":
-            data = json.loads(body)
-            logs = data["buildLogs"]
-            require((logs["revision"], logs["state"], logs["attempt"]) == (2, "native_succeeded", 1)
-                    and [(event["event"], event["exitCode"]) for event in logs["events"]] ==
-                    [("compiler_finished", 0), ("build_command_finished", 0)], "unexpected terminal logs")
-            output["contentSHA256"] = starter.json_sha(data)
-        else:
-            item = next(a for a in row["artifacts"] if a["kind"] == key)
-            require(headers["content-type"] == "application/octet-stream"
-                    and headers["content-disposition"] == f'attachment; filename="{key}"'
-                    and (output["sha256"], output["sizeBytes"]) == (item["sha256"], item["sizeBytes"]),
-                    f"{key} bytes or headers differ from the committed artifact")
-        outputs[key] = output
+    _, body, build_output = read_as_owner_and_outsider(auth, starter.BUILD + scope, "build")
+    build_output["contentSHA256"], downloads = build_readback(body, selection, row["artifacts"])
+    _, body, log_output = read_as_owner_and_outsider(auth, "/console-api/v1/build-logs" + scope, "logs")
+    data = json.loads(body)
+    logs = data["buildLogs"]
+    require((logs["revision"], logs["state"], logs["attempt"]) == (2, "native_succeeded", 1)
+            and [(event["event"], event["exitCode"]) for event in logs["events"]] ==
+            [("compiler_finished", 0), ("build_command_finished", 0)], "unexpected terminal logs")
+    log_output["contentSHA256"] = starter.json_sha(data)
+    outputs = {"build": build_output, "logs": log_output}
+    for item in row["artifacts"]:
+        kind = item["kind"]
+        headers, _, output = read_as_owner_and_outsider(auth, downloads[kind], kind)
+        require(headers["content-type"] == "application/octet-stream"
+                and headers["content-disposition"] == f'attachment; filename="{kind}"'
+                and (output["sha256"], output["sizeBytes"]) == (item["sha256"], item["sizeBytes"]),
+                f"{kind} bytes or headers differ from the committed artifact")
+        outputs[kind] = output
     return outputs
 
 
@@ -278,6 +341,8 @@ def replay(run, args):
     run.stage_restore()
     run.hosted_dependencies()
     settings = starter.prepare_export(run) if full else {}
+    run.command("hosted-test-compile", ["mix", "compile"], cwd=run.hosted,
+                env={"HEX_OFFLINE": "1"}, seconds=240)
     run.open_database(args)
     run.launch_api(settings)
     if full:
@@ -324,8 +389,6 @@ def replay(run, args):
     require(run.closed() and run.result["databaseDropped"]
             and all(run.attempts[name]["exit"] == 0 for name in ("api", "processor", "postgres")),
             "source services did not close before restoring")
-    run.api = run.pg = None
-
     run.restore_database(pg, source)
     target_worker = run.target / "worker"
     if full:
@@ -359,6 +422,23 @@ def replay(run, args):
     return "PASS_SCOPED_STARTER_BACKUP_RESTORE" if full else "PASS_EMPTY_STARTER_RESTORE_CONTROL"
 
 
+def save_closed_failure_logs(run, receipt):
+    commands = sorted({"api", "restored-api"} | {
+        name for name, attempt in run.attempts.items() if attempt.get("exit") not in (None, 0)
+    })
+    logs = [run.root / f"{name}.{stream}" for name in commands for stream in ("out", "err")]
+    logs = [log for log in logs if log.is_file() and log.stat().st_size]
+    if not logs:
+        return
+    directory = receipt.with_suffix(".diagnostics")
+    directory.mkdir(mode=0o700)
+    for log in logs:
+        with log.open("rb") as source:
+            source.seek(max(0, log.stat().st_size - 32 * 1024))
+            (directory / log.name).write_bytes(source.read(32 * 1024))
+    run.result["closedFailureDiagnostics"] = str(directory)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fixture-only", action="store_true", help="restore the hosted fixture with zero builds")
@@ -389,6 +469,8 @@ def main():
         if status.startswith("PASS"):
             require(run.result["restoredAPIExit"] == run.result["restoredPostgresExit"] == 0,
                     "restored services did not close normally")
+        else:
+            save_closed_failure_logs(run, receipt)
         run.result.update(status=status, scratchRemoved=True)
         pending = receipt.with_suffix(".closed.json")
         starter.record(pending, run.result)

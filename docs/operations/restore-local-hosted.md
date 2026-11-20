@@ -74,13 +74,14 @@ checks above to qualify the restored API and artifacts.
 
 ## Replay one settled iOS Starter backup
 
-Start from public Mixer commit `57f3ed4f17b80f15fc6d646b14c6dbfa05bd7eea` with
-the three Starter restore files from `tests/integration/hosted-expiry-restore/`.
-Use a checkout with the pinned source and SDK commits available locally. A
-normal clone contains them. For a shallow clone, fetch both commits from
+Use a Mixer checkout containing the Starter restore replay and the three
+pinned commits below. The replay reads the Starter launcher from
+`57f3ed4f17b80f15fc6d646b14c6dbfa05bd7eea` and verifies its exact bytes. A
+normal clone contains the commits. For a shallow clone, fetch them from
 `https://github.com/snowdamiz/mixer.git`.
 
 ```sh
+git cat-file -e '57f3ed4f17b80f15fc6d646b14c6dbfa05bd7eea^{commit}'
 git cat-file -e '201ead70ff68bfe18de24c0642f518701459e0a4^{commit}'
 git cat-file -e 'fad0d0b3e65fd3be3b49675601693e5d91999fbe^{commit}'
 ```
@@ -94,9 +95,16 @@ catalog.
 python3.14 -B tests/integration/hosted-expiry-restore/replay-starter.py --fixture-only
 ```
 
+Run the offline readback tests to check the download and authorization assertions.
+
+```sh
+python3.14 -B tests/integration/hosted-expiry-restore/test_starter_readback.py
+```
+
 For the full replay, select Xcode on macOS and provide enough disk space for
 the CLI build and generic iOS Simulator compilation. The launcher acquires
-locked Mix and SwiftPM inputs in its private run directory. Pass `--pg-bin`
+locked Mix and SwiftPM inputs in its private run directory. It compiles the
+hosted test application before starting PostgreSQL and Phoenix. Pass `--pg-bin`
 with the PostgreSQL 17 bin directory if you use a non-Homebrew installation.
 
 ```sh
@@ -114,7 +122,8 @@ The replay restores the roles and unchanged dump, applies the two pinned
 CHECK expressions, and compares the recovered journal and SQLite row. It
 starts a separate API under `browser_ordinary` and uses fresh owner and
 unrelated-tenant sessions. It checks the build and logs, compares all three
-downloads with the original sizes and digests, and verifies tenant denial.
+advertised downloads with the original sizes and digests, and checks the
+outsider response bodies and both sessions' cache headers.
 The target API reads the copied retained store with its build queues disabled.
 The restore starts zero workers and zero compilers.
 
@@ -122,6 +131,8 @@ On successful closure, the launcher removes the private run directory and
 prints a receipt under `verification/local/`. The receipt includes both
 cluster identifiers, backup digests, HTTP digests, and port cleanup. Exit 74
 requires preserving the exact printed run directory for custody review.
+After a closed failure, a private diagnostics directory retains bounded API
+output and the output of failed commands.
 
 The earlier native build and authenticated restore used a separate fixture.
 Its recorded digests describe that run. New build and backup digests come
