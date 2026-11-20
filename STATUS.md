@@ -281,6 +281,8 @@ Normal Phoenix startup now accepts one opt-in release target and its public trus
 
 Normal CLI writer activation and the complete installed release journey remain open. Promotion and rollback have an isolated stock CLI pass at local commit `fb88912118`. The reviewed candidate still needs an upgrade grant for the new action column, a defined retry contract after assignment-key revocation, and a validation path for legacy browser publications.
 
+Hosted v59 binds the composed release and privacy source. The standalone startup check now supplies disabled release leaves and passes all 15 controls. The composed source formats and compiles with warnings treated as errors, and 41 selected provisioning, protocol, and listener checks passed. [Hosted v59 binding](verification/receipts/hosted-source-binding-v59-20261120.json) · [Startup CI repair](verification/receipts/l05-isolated-release-startup-ci-repair-20261120.json)
+
 The v52 artifact-read fixture now requires a successful metadata row while the token is live, then checks that expiry prevents its callback. All 15 focused PostgreSQL tests and both negative boundary controls passed in independent review. The normal and optimized source checks passed, followed by the public Phoenix and isolated identity-network workflows. [Verification receipt](verification/receipts/phoenix-artifact-read-expiry-v52-20261119.json)
 
 ### Android TaskCompletion parity and source diagnostic
