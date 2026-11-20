@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "scope": "Section 17 local current-release head detail candidate",
+  "recorded_utc": "2026-11-20T20:10:46+00:00",
+  "base_commit": "c58d706ad39fdd9ed5154a57129bfbf834fd91f7",
+  "candidate_tree_before_receipt": "49a73ebe1ecb6533d71800e6d1c69c1ab35a6ddf",
+  "tools": {
+    "macOS": "27.0.1",
+    "node": "22.23.3",
+    "vite": "8.3.5",
+    "elixir": "1.20.4",
+    "erlang": "29 / erts 17.1",
+    "postgres": "17.11"
+  },
+  "contract": {
+    "query": "GET /console-api/v1/release-head with the seven existing exact target fields and view=details",
+    "published_addition": "release.details {sourceCommit, payloadBytes, artifactKeyId, assignmentKeyId, action, capabilities}",
+    "capabilities": "Ordered exact v3 manifest capability IDs. A null permission list means the manifest omitted the grant entry. An empty list preserves a grant with zero declared permissions.",
+    "migration": "hosted/priv/repo/migrations/20261120000013_add_local_release_head_details.exs",
+    "migration_owner": "Common non-login relation owner without superuser or BYPASSRLS",
+    "grant": "GRANT EXECUTE ON FUNCTION public.mixer_release_head_details(text,text,text,text,text,text,text) TO :\"browser_runtime\";",
+    "runtime_evidence": "Compatibility at publication time. The signed manifest supplies the byte count, which publication checked against the payload. The read reconciles the payload digest with stored metadata without loading the payload."
+  },
+  "checks": {
+    "hosted": {
+      "command": "python3 -B hosted/scripts/test-local.py --output verification/local/release-head-details-c58/hosted-run --only-additional-tests --additional-test hosted/test/mixer_hosted/releases/browser_publication_test.exs --additional-test hosted/test/mixer_hosted/releases/postgres_test.exs --additional-test hosted/test/mixer_hosted/protocol/artifact_admission_test.exs --additional-test hosted/test/mixer_hosted/protocol/assignment_v3_test.exs --additional-test hosted/test/foundation_integration_test.exs --additional-test hosted/test/mixer_hosted/builds/development_dispatch_test.exs",
+      "source_tree_sha256": "99349c47056d07264ef028e7ce19ed030739e66a9617aa3c5bef6f630f9c9137",
+      "test_summary": "44 passed. Includes signed artifact and assignment corpus, release ledger, ordinary configured browser admission, migration inventory and foundation migration, and cookie HTTP replay.",
+      "test_log_sha256": "7adfa3f9a4ebd9847cf0234b72b1cbb41d17baea66a09a7b1565a6039c0efa20",
+      "production_release_built": true,
+      "cleanup": {
+        "postgres_stopped": true,
+        "scratch_removed": true
+      }
+    },
+    "migration_inventory": {
+      "cwd": "hosted",
+      "command": "mix test --warnings-as-errors --seed 0 --only module:MixerHosted.Builds.CoordinatorReviewedMigrationsTest --only module:MixerHosted.Builds.OperationAdmissionReviewedMigrationsTest test/mixer_hosted/builds/coordinator_test.exs test/mixer_hosted/builds/operation_admission_test.exs",
+      "test_summary": "2 passed, 42 excluded"
+    },
+    "console": {
+      "cwd": "console",
+      "command": "npm exec --cache ../verification/local/release-head-details-c58/npm --yes --package=node@22.23.3 -- sh -c 'node --version && npm run build && npm test'",
+      "test_summary": "308 passed, including 5 Releases route cases",
+      "log_sha256": "054ebcc0fffe24458a3771f8d9ec2d02c8cb3a28304fc89b943d6a736c60825b",
+      "asset_sha256": {
+        "assets/favicon-32.png": "3e770ea0378151a2c088e43e1b5d8713f142e688fa0edc93289eb178acf6554d",
+        "assets/flick-128.webp": "f366034547d29813bba5ffdfb99e1d8b5b3a359ef770486721a8b566ab4bf316",
+        "assets/index-ByY8ilrL.css": "f241f008f0df2f8a6a9e1cfb6b6a83c51fec579d07e462768eda59f372c66a3f",
+        "assets/index-CUj-sPP5.js": "9fa18ef87976bf161ddfa00b233ccdd6b32dd96ca32098628e0d010f83e19694",
+        "index.html": "b93b9fc1009cb86e956c526ff74134782fa6639f6f4dee706a94a3aa525a9f44",
+        "third-party-notices.txt": "90bc9ee087e8c876fb6edac6f8eb61b7013c94dded0f1eaf88b8972a68706551"
+      }
+    }
+  },
+  "observations": [
+    "Both views returned the exact empty DTO. The legacy published DTO kept its original fields.",
+    "The current head alone supplied details after staging, first publish, second publish, and rollback. Rollback restored the first artifact metadata under the new sequence and rollback action.",
+    "Exact-target reads returned 404 for a different environment, platform, runtime, or channel in the same tenant and across tenants. An ordinary SQL login without the effect context returned no rows.",
+    "Malformed signed JSON, mismatched retained canonical CBOR, and mismatched payload digest each produced a closed HTTP 503. The console refused missing, extra, malformed, and cross-target DTO data."
+  ],
+  "limits": [
+    "Synthetic PostgreSQL and OIDC fixtures exercised ordinary Phoenix HTTP. Console tests exercised the app in its maintained DOM fixture and built the production assets. Live Acid browser replay, source binding, product adoption, and launch qualification are root-owned.",
+    "Runtime admission is scoped to the committed publication. The console has no claim about current runtime policy, tests, provenance validation, or available recovery targets.",
+    "The existing Acid replay driver pins the earlier summary slice. Root can reuse the same ordered fixture phases with the candidate revision, request view=details for the HTTP checkpoint, keep the public /releases route query to the seven target fields, and update the expected details DOM and body."
+  ]
+}

@@ -123,7 +123,7 @@ defmodule MixerHosted.BrowserAuth.Store do
     with :ok <- RuntimeOwner.checkpoint(lease),
          true <- MixerHosted.BrowserAuth.ActiveRead.valid?(lease, operation) do
       retry_until =
-        if request === :session or match?({:release_head, _}, request) do
+        if request === :session or match?({:release_head, _, _}, request) do
           min(
             System.monotonic_time(:millisecond) + @read_checkout_retry_window_ms,
             lease.deadline - @read_checkout_retry_interval_ms

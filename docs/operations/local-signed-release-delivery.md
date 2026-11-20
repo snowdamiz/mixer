@@ -102,6 +102,26 @@ stays the same on an empty page. The default audit view continues to return
 the schema-2 artifact events and their existing cursor. Use each cursor with
 its original view.
 
+## Enable current release details in the console
+
+Apply `20261120000013` from `hosted/priv/repo/migrations` as the common
+non-login relation owner. Grant the function to the existing `browser_runtime`
+login named in the target's `writer_role`.
+
+```sql
+GRANT EXECUTE ON FUNCTION
+  public.mixer_release_head_details(text,text,text,text,text,text,text)
+  TO :"browser_runtime";
+```
+
+Use `view=details` with the existing seven target query parameters on
+`GET /console-api/v1/release-head`. The function uses the same live
+`release.read` authorization and reads only the publication at that target's
+committed head. The console reports the runtime compatibility check at
+commit time. The byte count comes from the bound manifest and was checked
+against the payload at publication. The read checks the manifest and stored
+digests without loading the payload.
+
 ## Start the ordinary API
 
 Supply the normal API environment, including `MIXER_HOSTED_ROLE=api`, the

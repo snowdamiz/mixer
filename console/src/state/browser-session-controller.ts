@@ -172,8 +172,8 @@ export function createBrowserSessionController(options: BrowserSessionClientOpti
     });
     const rawReleaseHead = createCookieReleaseHeadClient(settings);
     const releaseHead: ReleaseHeadClient = Object.freeze({
-      read: (target: ReleaseHeadTarget, signal?: AbortSignal) =>
-        delegate(value, owned => rawReleaseHead.read(target, owned), signal),
+      readDetails: (target: ReleaseHeadTarget, signal?: AbortSignal) =>
+        delegate(value, owned => rawReleaseHead.readDetails(target, owned), signal),
     });
     const rawCatalog = createCookieBuildCatalogClient(settings);
     const rawRead = createCookieBuildClient(settings);

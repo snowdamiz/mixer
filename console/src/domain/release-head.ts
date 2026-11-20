@@ -19,6 +19,30 @@ export interface PublishedRelease {
   readonly rolloutBasisPoints: number;
   readonly manifestSha256: Sha256;
   readonly payloadSha256: Sha256;
+  readonly details: ReleaseHeadDetails;
+}
+
+const manifestPermissions = {
+  "network.http.v1": "network.https",
+  "storage.keyValue.v1": "storage.appPrivate",
+} as const;
+
+type CapabilityId = keyof typeof manifestPermissions;
+type Permission = typeof manifestPermissions[CapabilityId];
+type LedgerAction = "publish" | "promote" | "rollback" | "halt";
+
+interface ReleaseCapability {
+  readonly id: CapabilityId;
+  readonly permissions: readonly Permission[] | null;
+}
+
+interface ReleaseHeadDetails {
+  readonly sourceCommit: string;
+  readonly payloadBytes: number;
+  readonly artifactKeyId: string;
+  readonly assignmentKeyId: string;
+  readonly action: LedgerAction;
+  readonly capabilities: readonly ReleaseCapability[];
 }
 
 export type ReleaseHead =
@@ -79,20 +103,51 @@ export function releaseHeadQuery(target: ReleaseHeadTarget): string {
   return new URLSearchParams(targetFields.map(([param, key]) => [param, target[key]])).toString();
 }
 
-export function parseReleaseHead(value: unknown, expected: ReleaseHeadTarget): ReleaseHead {
+function isCapabilityId(value: unknown): value is CapabilityId {
+  return typeof value === "string" && Object.hasOwn(manifestPermissions, value);
+}
+
+function parseCapabilities(value: unknown): readonly ReleaseCapability[] {
+  requireValid(Array.isArray(value) && value.length <= 2);
+  let previous = "";
+  return Object.freeze(Array.from(value, (entry: unknown) => {
+    requireValid(catalogRecord(entry, ["id", "permissions"]));
+    const { id, permissions } = entry;
+    requireValid(isCapabilityId(id) && id > previous);
+    previous = id;
+    if (permissions === null) return Object.freeze({ id, permissions: null });
+    const permission = manifestPermissions[id];
+    requireValid(Array.isArray(permissions) &&
+      (permissions.length === 0 || (permissions.length === 1 && permissions[0] === permission)));
+    return Object.freeze({ id, permissions: Object.freeze(permissions.length === 0 ? [] : [permission]) });
+  }));
+}
+
+function parseDetails(value: unknown): ReleaseHeadDetails {
+  requireValid(catalogRecord(value, ["sourceCommit", "payloadBytes", "artifactKeyId", "assignmentKeyId", "action", "capabilities"]));
+  const { sourceCommit, payloadBytes, artifactKeyId, assignmentKeyId, action, capabilities } = value;
+  requireValid(typeof sourceCommit === "string" && (sourceCommit.length === 40 || isSha256(sourceCommit)) &&
+    !/[^a-f0-9]/u.test(sourceCommit) && typeof payloadBytes === "number" &&
+    Number.isInteger(payloadBytes) && payloadBytes >= 1 && payloadBytes <= 4_194_304 &&
+    isBuildCatalogId(artifactKeyId) && isBuildCatalogId(assignmentKeyId) &&
+    (action === "publish" || action === "promote" || action === "rollback" || action === "halt"));
+  return Object.freeze({ sourceCommit, payloadBytes, artifactKeyId, assignmentKeyId, action, capabilities: parseCapabilities(capabilities) });
+}
+
+export function parseReleaseHeadDetails(value: unknown, expected: ReleaseHeadTarget): ReleaseHead {
   requireValid(catalogRecord(value, ["kind", "target"], ["release"]));
   const target = snapshotReleaseHeadTarget(value.target);
   requireValid(targetKeys.every(key => target[key] === expected[key]));
   if (value.kind === "empty" && !Object.hasOwn(value, "release")) return Object.freeze({ kind: "empty", target });
   requireValid(value.kind === "published" &&
-    catalogRecord(value.release, ["releaseId", "sequence", "rolloutBasisPoints", "manifestSha256", "payloadSha256"]));
-  const { releaseId, sequence, rolloutBasisPoints, manifestSha256, payloadSha256 } = value.release;
+    catalogRecord(value.release, ["releaseId", "sequence", "rolloutBasisPoints", "manifestSha256", "payloadSha256", "details"]));
+  const { releaseId, sequence, rolloutBasisPoints, manifestSha256, payloadSha256, details } = value.release;
   requireValid(isBuildCatalogId(releaseId) && isReleaseSequence(sequence) &&
     typeof rolloutBasisPoints === "number" && Number.isInteger(rolloutBasisPoints) &&
     rolloutBasisPoints >= 0 && rolloutBasisPoints <= 10_000 &&
     isSha256(manifestSha256) && isSha256(payloadSha256));
   return Object.freeze({
     kind: "published", target,
-    release: Object.freeze({ releaseId, sequence, rolloutBasisPoints, manifestSha256, payloadSha256 }),
+    release: Object.freeze({ releaseId, sequence, rolloutBasisPoints, manifestSha256, payloadSha256, details: parseDetails(details) }),
   });
 }

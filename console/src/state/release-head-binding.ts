@@ -42,7 +42,7 @@ export function createReleaseHeadBinding(
     const commit = (state: Outcome) => {
       if (!controller.signal.aborted && current() === read) setOutcome({ read, state });
     };
-    void read.client.read(read.target, controller.signal).then(commit, (error: unknown) => {
+    void read.client.readDetails(read.target, controller.signal).then(commit, (error: unknown) => {
       if (error instanceof WorkspaceClientError && (error.code === "permission_denied" || error.code === "not_found")) {
         commit({ kind: "denied" });
       } else {

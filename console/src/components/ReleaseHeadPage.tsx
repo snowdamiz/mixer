@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router";
-import { Show } from "solid-js";
+import { For, Show } from "solid-js";
 import type { Accessor } from "solid-js";
 import type { ReleaseHeadState } from "../state/release-head-binding.js";
 import "./release-head-page.css";
@@ -16,6 +16,8 @@ const statusCopy = {
   empty: "No release has been published to this target.",
   published: "Published release",
 } satisfies Record<ReleaseHeadState["kind"], string>;
+
+const actionCopy = { publish: "Publish", promote: "Promote", rollback: "Rollback", halt: "Halt" } as const;
 
 export function ReleaseHeadPage(props: {
   readonly state: Accessor<ReleaseHeadState>;
@@ -56,6 +58,24 @@ export function ReleaseHeadPage(props: {
         <div><dt>Rollout basis points</dt><dd>{release().rolloutBasisPoints}</dd></div>
         <div><dt>Manifest SHA-256</dt><dd><code>{release().manifestSha256}</code></dd></div>
         <div><dt>Payload SHA-256</dt><dd><code>{release().payloadSha256}</code></dd></div>
+        <div><dt>Source commit</dt><dd><code>{release().details.sourceCommit}</code></dd></div>
+        <div><dt>Payload size</dt><dd>{release().details.payloadBytes} bytes</dd></div>
+        <div><dt>Artifact signing key ID</dt><dd><code>{release().details.artifactKeyId}</code></dd></div>
+        <div><dt>Assignment signing key ID</dt><dd><code>{release().details.assignmentKeyId}</code></dd></div>
+        <div><dt>Ledger action</dt><dd>{actionCopy[release().details.action]}</dd></div>
+        <div><dt>Runtime admission</dt><dd>Compatibility checked when this head was committed.</dd></div>
+        <div><dt>Manifest capabilities</dt><dd>
+          <Show when={release().details.capabilities.length > 0} fallback="None declared">
+            <ul class="release-head-capabilities">
+              <For each={release().details.capabilities}>{capability => <li>
+                <code>{capability.id}</code>
+                <div>{capability.permissions === null ? "No grant entry" :
+                  capability.permissions.length === 0 ? "No permissions declared" :
+                    capability.permissions.map(permission => <code>{permission}</code>)}</div>
+              </li>}</For>
+            </ul>
+          </Show>
+        </dd></div>
       </dl>}</Show>
     </div>
   </section>;

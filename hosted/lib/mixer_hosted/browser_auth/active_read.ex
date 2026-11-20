@@ -303,8 +303,17 @@ defmodule MixerHosted.BrowserAuth.ActiveRead do
            expires
          )
 
-  defp value({:release_head, target}, _token, _csrf, _source, _expires, _lease, identity, _kl),
-    do: {:ok, MixerHosted.Releases.BrowserHead.read(identity, target)}
+  defp value(
+         {:release_head, target, view},
+         _token,
+         _csrf,
+         _source,
+         _expires,
+         _lease,
+         identity,
+         _kl
+       ),
+       do: {:ok, MixerHosted.Releases.BrowserHead.read(identity, target, MixerHosted.Repo, view)}
 
   defp value(
          {:release_publish, target, bytes, key, reason},

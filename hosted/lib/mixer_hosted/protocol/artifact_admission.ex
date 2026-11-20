@@ -49,7 +49,8 @@ defmodule MixerHosted.Protocol.ArtifactAdmission do
       when is_binary(signed_bytes) and byte_size(signed_bytes) <= @signed_limit and
              is_binary(payload) and byte_size(payload) in 1..@payload_limit do
     with true <- ArtifactV3Policy.uint?(now),
-         {:ok, manifest, cbor, signature} <- signed_manifest(signed_bytes, host),
+         {:ok, manifest, cbor, signature} <- decode_signed_manifest(signed_bytes),
+         true <- ArtifactV3Policy.compatible?(manifest, host),
          {:ok, public_key} <-
            ArtifactV3Policy.authority(roots, manifest["key_id"], manifest["scope"], now),
          true <- :crypto.verify(:eddsa, :none, @domain <> cbor, signature, [public_key, :ed25519]),
@@ -85,20 +86,23 @@ defmodule MixerHosted.Protocol.ArtifactAdmission do
   def check_published(signed_bytes, payload, host)
       when is_binary(signed_bytes) and byte_size(signed_bytes) <= @signed_limit and
              is_binary(payload) and byte_size(payload) in 1..@payload_limit do
-    with {:ok, manifest, cbor, _signature} <- signed_manifest(signed_bytes, host),
+    with {:ok, manifest, cbor, _signature} <- decode_signed_manifest(signed_bytes),
+         true <- ArtifactV3Policy.compatible?(manifest, host),
          {:ok, _payload_hash} <- checked_payload(manifest, payload) do
       {:ok, %{manifest: manifest, manifest_sha256: hash(cbor)}}
+    else
+      _ -> {:error, :artifact_rejected}
     end
   end
 
   def check_published(_, _, _), do: {:error, :document_or_payload_limit}
 
-  defp signed_manifest(bytes, host) do
+  @doc "Decodes the closed signed document and reconstructs canonical CBOR. Confers no signing or runtime authority."
+  def decode_signed_manifest(bytes) do
     with {:ok, signed, _, _} <- ArtifactJSON.decode(bytes, @signed_limit),
          true <- ArtifactV3Policy.exact?(signed, ~w(manifest signature)),
          manifest = signed["manifest"],
          true <- ArtifactV3Policy.manifest?(manifest),
-         true <- ArtifactV3Policy.compatible?(manifest, host),
          {:ok, signature} <- base64(signed["signature"], 64, 64),
          {:ok, cbor} <- ArtifactCBOR.encode(manifest) do
       {:ok, manifest, cbor, signature}

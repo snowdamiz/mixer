@@ -114,8 +114,8 @@ defmodule MixerHostedWeb.BrowserHTTP do
              ~w(content-encoding x-http-method-override x-method-override),
              &(get_req_header(conn, &1) == [])
            ),
-         {:ok, target} <- MixerHostedWeb.BrowserReleaseHeadRequest.parse(conn.query_string) do
-      case RuntimeOwner.read_release_head(conn.req_headers, target) do
+         {:ok, target, view} <- MixerHostedWeb.BrowserReleaseHeadRequest.parse(conn.query_string) do
+      case RuntimeOwner.read_release_head(conn.req_headers, target, view) do
         {:ok, {:ok, head}} ->
           json(conn, 200, head)
 

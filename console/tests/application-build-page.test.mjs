@@ -488,12 +488,19 @@ const releaseTarget = {
 const publishedRelease = {
   releaseId: "committed-release", sequence: "18446744073709551615", rolloutBasisPoints: 3750,
   manifestSha256: "b".repeat(64), payloadSha256: "c".repeat(64),
+  details: {
+    sourceCommit: "d".repeat(40), payloadBytes: 61, artifactKeyId: "artifact-v3", assignmentKeyId: "assignment-v3",
+    action: "rollback", capabilities: [
+      { id: "network.http.v1", permissions: ["network.https"] },
+      { id: "storage.keyValue.v1", permissions: ["storage.appPrivate"] },
+    ],
+  },
 };
 const releaseQuery = channel =>
   "organization_id=org&project_id=p&application_id=app&environment_id=prod&platform=ios&runtime_fingerprint="
   + releaseTarget.runtimeFingerprint + "&channel=" + channel;
 const releaseRoute = channel => "/releases?" + releaseQuery(channel);
-const releaseEndpoint = channel => "/console-api/v1/release-head?" + releaseQuery(channel);
+const releaseEndpoint = channel => "/console-api/v1/release-head?" + releaseQuery(channel) + "&view=details";
 const releaseCalls = f => f.calls.filter(call => call.path.startsWith("/console-api/v1/release-head?"));
 const go = (f, value) => f.history.set({ value, replace: false, scroll: false });
 const publish = (channel, release = publishedRelease) => json({
@@ -528,8 +535,13 @@ test("Releases waits for a session and displays only the committed head from an 
     await flush();
     assert.equal(releaseStatus(f), "Published release");
     const fields = walk(f.container).filter(node => node.nodeName === "DD").map(node => node.textContent);
-    assert.deepEqual(fields, [...Object.values(releaseTarget), ...Object.values(publishedRelease).map(String)]);
-    assert.doesNotMatch(f.text(), /Checks passed|Checks incomplete|Sign off|Publish release/);
+    assert.deepEqual(fields, [
+      ...Object.values(releaseTarget), publishedRelease.releaseId, publishedRelease.sequence, "3750",
+      publishedRelease.manifestSha256, publishedRelease.payloadSha256, publishedRelease.details.sourceCommit,
+      "61 bytes", "artifact-v3", "assignment-v3", "Rollback", "Compatibility checked when this head was committed.",
+      "network.http.v1network.httpsstorage.keyValue.v1storage.appPrivate",
+    ]);
+    assert.doesNotMatch(f.text(), /Checks passed|Checks incomplete|Sign off|Publish release|Rollback available/);
     assert.equal(walk(f.container).some(node => node.nodeName === "BUTTON"), false);
   } finally { f.close(); }
 });
@@ -646,6 +658,20 @@ test("Releases handles access denials, unavailable responses, and invalid succes
     ];
     for (const sequence of [5, "0", "01", "+1", "1\n", "18446744073709551616"]) {
       cases.push([publish("beta", { ...publishedRelease, sequence }), "Release head unavailable."]);
+    }
+    const { details, ...summary } = publishedRelease;
+    cases.push([publish("beta", summary), "Release head unavailable."]);
+    for (const invalid of [
+      { sourceCommit: "f".repeat(39) }, { sourceCommit: "F".repeat(40) },
+      { payloadBytes: 0 }, { payloadBytes: 4_194_305 }, { payloadBytes: 1.5 }, { payloadBytes: "61" },
+      { artifactKeyId: "artifact with spaces" }, { assignmentKeyId: "" }, { action: "delete" },
+      { payload: privateText }, { capabilities: [{ id: "network.http.v1", permissions: ["storage.appPrivate"] }] },
+      { capabilities: [{ id: "custom.v1", permissions: [] }] },
+      { capabilities: [{ id: "network.http.v1", permissions: [], origins: [privateText] }] },
+      { capabilities: [details.capabilities[0], details.capabilities[0]] },
+      { capabilities: details.capabilities.toReversed() },
+    ]) {
+      cases.push([publish("beta", { ...publishedRelease, details: { ...details, ...invalid } }), "Release head unavailable."]);
     }
     for (const [index, [response, expected]] of cases.entries()) {
       go(f, releaseRoute("beta"));

@@ -107,6 +107,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     provision!()
     provision_actions!()
     provision_halt_audit!()
+    provision_details!()
     assert [[nil]] = DB.q!(Admin, "SELECT to_regclass('public.mixer_release_cli_requests')").rows
 
     fixture = @fixtures |> Path.join("signed-release-v3.json") |> File.read!() |> Jason.decode!()
@@ -153,6 +154,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
 
     assert %{"kind" => "empty", "target" => wire} = read!(c, owner, target)
     assert wire == string_keys(Target.wire(target))
+    assert read!(c, owner, target, :details) == read!(c, owner, target)
     assert_status(c, other, target, 404)
     assert_status(c, owner, %{target | scope: %{target.scope | environment_id: "staging"}}, 404)
     assert_status(c, owner, %{target | channel: "different"}, 404)
@@ -168,6 +170,10 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
 
     assert http(c, path(target) <> "&channel=beta", owner).status == 400
     assert http(c, path(target), owner, "POST").status == 404
+    assert http(c, path(target) <> "&view=summary", owner).status == 400
+    assert http(c, path(target, :details) <> "&view=details", owner).status == 400
+    assert http(c, path(target, :details) <> "&sequence=1", owner).status == 400
+    assert http(c, path(target, :details), headers(preauth.cookie)).status == 401
 
     assert {:error, :not_found} = publish(owner, target, bytes)
     assert {:error, :permission_denied} = publish(no_publish_scope, target, bytes)
@@ -238,6 +244,24 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
 
     assert read!(c, owner, target) == published
 
+    expected = %{
+      "sourceCommit" => String.duplicate("a", 40),
+      "payloadBytes" => byte_size(payload),
+      "artifactKeyId" => "fixture-v3-artifact",
+      "assignmentKeyId" => "fixture-v3-assignment",
+      "action" => "publish",
+      "capabilities" => [
+        %{"id" => "network.http.v1", "permissions" => ["network.https"]},
+        %{"id" => "storage.keyValue.v1", "permissions" => ["storage.appPrivate"]}
+      ]
+    }
+
+    detailed = put_in(published, ["release", "details"], expected)
+    assert read!(c, owner, target, :details) == detailed
+    assert_details_privileges!(target)
+    assert_invalid_details_refused!(c, owner, target, manifest_sha256)
+    assert read!(c, owner, target, :details) == detailed
+
     assert %{num_rows: 1} =
              DB.q!(
                Admin,
@@ -246,6 +270,8 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
 
     assert read!(c, no_publish_scope, target) == published
     assert read!(c, owner, target) == published
+    assert read!(c, no_publish_scope, target, :details) == detailed
+    assert read!(c, owner, target, :details) == detailed
     assert {:error, :permission_denied} = publish(owner, target, bytes)
 
     assert %{num_rows: 1} =
@@ -256,6 +282,17 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
 
     assert_status(c, other, target, 404)
     assert_status(c, owner, %{target | scope: %{target.scope | environment_id: "staging"}}, 404)
+
+    for {headers, denied} <- [
+          {other, target},
+          {owner, %{target | scope: %{target.scope | environment_id: "staging"}}},
+          {owner, %{target | channel: "different"}},
+          {owner, %{target | platform: "android"}},
+          {owner, %{target | runtime_sha256: String.duplicate("a", 64)}},
+          {owner,
+           %{target | scope: %{target.scope | organization_id: "org-b", project_id: "project-b"}}}
+        ],
+        do: assert_status(c, headers, denied, 404, :details)
 
     assert [[sequence, ^bytes, "person-1", "initial"]] =
              DB.q!(
@@ -304,6 +341,9 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
              )
 
     assert {:error, %Store.Failure{}} = publish(owner, target, bytes)
+    revoked = http(c, path(target, :details), owner)
+    assert revoked.status in [401, 404, 503]
+    refute revoked.body =~ expected["artifactKeyId"]
     assert [[2]] = DB.q!(Admin, "SELECT count(*) FROM public.mixer_release_publications").rows
     leases_clean()
   end
@@ -315,6 +355,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     provision_cli!()
     provision_actions!()
     provision_halt_audit!()
+    provision_details!()
 
     DB.q!(
       Admin,
@@ -375,10 +416,15 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     signed_first =
       sign_fixture("assignment", first) |> Jason.encode!(pretty: true) |> Kernel.<>("\n")
 
-    second_manifest = %{
+    second_manifest =
       fixture["signed_manifest"]["manifest"]
-      | "release_id" => "fixture-v3-next"
-    }
+      |> Map.merge(%{
+        "release_id" => "fixture-v3-next",
+        "source_commit" => String.duplicate("b", 64)
+      })
+      |> update_in(["capability_grants", "entries"], fn [network, _storage] ->
+        [Map.put(network, "permissions", [])]
+      end)
 
     second_envelope =
       Jason.encode!(%{
@@ -417,6 +463,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
              upload!(c, identity, config, second_digest, second_envelope, "delivery-second")
 
     assert %{"kind" => "empty"} = read!(c, owner, target)
+    assert %{"kind" => "empty"} = read!(c, owner, target, :details)
     assert_no_offer(c, offer_path)
     assert http(c, first_path, []).status == 404
     assert http(c, second_path, []).status == 404
@@ -428,6 +475,15 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
 
     assert %{"release" => %{"sequence" => ^first_sequence, "manifestSha256" => ^first_digest}} =
              read!(c, owner, target)
+
+    first_head = read!(c, owner, target, :details)
+
+    assert %{
+             "release" => %{
+               "manifestSha256" => ^first_digest,
+               "details" => %{"action" => "publish"}
+             }
+           } = first_head
 
     {offer, artifact} =
       assert_delivery(c, offer_path, first_path, signed_first, first_envelope, config)
@@ -518,6 +574,23 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     assert %{"release" => %{"sequence" => ^second_sequence, "manifestSha256" => ^second_digest}} =
              read!(c, owner, target)
 
+    assert %{
+             "release" => %{
+               "sequence" => ^second_sequence,
+               "manifestSha256" => ^second_digest,
+               "details" => %{
+                 "sourceCommit" => source,
+                 "action" => "publish",
+                 "capabilities" => [
+                   %{"id" => "network.http.v1", "permissions" => []},
+                   %{"id" => "storage.keyValue.v1", "permissions" => nil}
+                 ]
+               }
+             }
+           } = read!(c, owner, target, :details)
+
+    assert source == second_manifest["source_commit"]
+
     assert_delivery(c, offer_path, second_path, signed_second, second_envelope, config)
     assert http(c, first_path, []).body == first_envelope
     assert [[2]] = DB.q!(Admin, "SELECT count(*) FROM public.mixer_release_publications").rows
@@ -580,6 +653,13 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
                JOIN public.mixer_release_heads h USING
                  (organization_id,project_id,application_id,environment_id,platform,runtime_sha256,channel,sequence)
                """).rows
+
+      rolled_back =
+        first_head
+        |> put_in(["release", "sequence"], Integer.to_string(sequence))
+        |> put_in(["release", "details", "action"], "rollback")
+
+      assert read!(restarted, owner, target, :details) == rolled_back
 
       assert_delivery(restarted, offer_path, first_path, signed_rollback, first_envelope, config)
     after
@@ -862,6 +942,106 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     GRANT EXECUTE ON FUNCTION public.mixer_release_audit_halts(text,text,text,text,text,text,text,numeric,integer)
       TO browser_ordinary
     """)
+  end
+
+  defp provision_details! do
+    version = 20_261_120_000_013
+    module = MixerHosted.Repo.Migrations.AddLocalReleaseHeadDetails
+
+    unless Code.ensure_loaded?(module),
+      do: Code.require_file("priv/repo/migrations/#{version}_add_local_release_head_details.exs")
+
+    assert :ok = Ecto.Migrator.up(Migration, version, module, log: false)
+
+    DB.q!(Admin, """
+    GRANT EXECUTE ON FUNCTION public.mixer_release_head_details(text,text,text,text,text,text,text)
+      TO browser_ordinary
+    """)
+  end
+
+  defp assert_details_privileges!(target) do
+    assert [["browser_schema_owner", true, true, false, false, false, false]] =
+             DB.q!(Admin, """
+             SELECT pg_get_userbyid(p.proowner), p.prosecdef,
+                    has_function_privilege('browser_ordinary', p.oid, 'EXECUTE'),
+                    has_function_privilege('browser_lifecycle', p.oid, 'EXECUTE'),
+                    has_function_privilege('browser_writer', p.oid, 'EXECUTE'),
+                    has_any_column_privilege('browser_ordinary', 'public.mixer_customer_artifacts', 'SELECT'),
+                    EXISTS (SELECT 1 FROM aclexplode(p.proacl) WHERE grantee=0)
+             FROM pg_proc p WHERE p.oid =
+               'public.mixer_release_head_details(text,text,text,text,text,text,text)'::regprocedure
+             """).rows
+
+    ordinary = DB.connection!("browser_ordinary")
+
+    try do
+      assert [] =
+               Postgrex.query!(
+                 ordinary,
+                 "SELECT * FROM public.mixer_release_head_details($1,$2,$3,$4,$5,$6,$7)",
+                 [
+                   "org-a",
+                   "project-a",
+                   "fieldlog",
+                   "development",
+                   target.platform,
+                   target.runtime_sha256,
+                   target.channel
+                 ]
+               ).rows
+    after
+      GenServer.stop(ordinary)
+    end
+  end
+
+  defp assert_invalid_details_refused!(c, owner, target, digest) do
+    [[signed, canonical, payload_digest]] =
+      DB.q!(
+        Admin,
+        """
+        SELECT signed_manifest_bytes,canonical_manifest_cbor,payload_sha256
+        FROM public.mixer_customer_artifacts WHERE manifest_sha256=$1
+        """,
+        [digest]
+      ).rows
+
+    replace = fn document, cbor, payload_hash ->
+      assert {:ok, :ok} =
+               Admin.transaction(fn ->
+                 # Fault injection confined to this disposable cluster's exact committed artifact.
+                 DB.q!(Admin, "SET LOCAL session_replication_role = replica")
+
+                 assert %{num_rows: 1} =
+                          DB.q!(
+                            Admin,
+                            """
+                            UPDATE public.mixer_customer_artifacts
+                            SET signed_manifest_bytes=$1,canonical_manifest_cbor=$2,payload_sha256=$3
+                            WHERE organization_id='org-a' AND project_id='project-a' AND manifest_sha256=$4
+                            """,
+                            [document, cbor, payload_hash, digest]
+                          )
+
+                 :ok
+               end)
+    end
+
+    try do
+      for {document, cbor, payload_hash} <- [
+            {"{}", canonical, payload_digest},
+            {signed, canonical <> <<0>>, payload_digest},
+            {signed, canonical, String.duplicate("0", 64)}
+          ] do
+        replace.(document, cbor, payload_hash)
+        response = http(c, path(target, :details), owner)
+        assert response.status == 503
+
+        assert %{"error" => %{"code" => "authorization_unavailable"}} =
+                 Jason.decode!(response.body)
+      end
+    after
+      replace.(signed, canonical, payload_digest)
+    end
   end
 
   defp cli_post(c, token, path, key, bytes) do
@@ -1199,20 +1379,20 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
   defp publish(headers, target, bytes),
     do: RuntimeOwner.publish_release(headers, target, bytes, "initial", @reason)
 
-  defp read!(c, headers, target) do
-    response = http(c, path(target), headers)
+  defp read!(c, headers, target, view \\ :summary) do
+    response = http(c, path(target, view), headers)
     assert response.status == 200
     assert response_header(response, "cache-control") == ["no-store"]
     Jason.decode!(response.body)
   end
 
-  defp assert_status(c, headers, target, status) do
-    response = http(c, path(target), headers)
+  defp assert_status(c, headers, target, status, view \\ :summary) do
+    response = http(c, path(target, view), headers)
     assert response.status == status
     assert %{"error" => %{"code" => "not_found"}} = Jason.decode!(response.body)
   end
 
-  defp path(target) do
+  defp path(target, view \\ :summary) do
     @head <>
       "?" <>
       URI.encode_query(
@@ -1221,7 +1401,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
           runtime_fingerprint: target.runtime_sha256,
           channel: target.channel
         })
-      )
+      ) <> if(view == :details, do: "&view=details", else: "")
   end
 
   defp string_keys(map), do: Map.new(map, fn {key, value} -> {Atom.to_string(key), value} end)
