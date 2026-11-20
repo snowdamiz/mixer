@@ -85,6 +85,15 @@ defmodule MixerHosted.Releases.PostgresTest do
 
     migrate_both_orders(migrations)
 
+    {version, module} =
+      load_migration(
+        migrations,
+        {20_261_120_000_010, "add_local_release_publication_action",
+         MixerHosted.Repo.Migrations.AddLocalReleasePublicationAction}
+      )
+
+    assert :ok = Ecto.Migrator.up(Migration, version, module, log: false)
+
     provision_authz()
     seed_tenant()
 

@@ -394,6 +394,12 @@ defmodule MixerHostedWeb.Plugs.CustomerArtifactRequest do
   defp error(:assignment_rejected),
     do: {409, "assignment_rejected", "Signed assignment rejected."}
 
+  defp error(:invalid_promotion),
+    do: {409, "invalid_promotion", "Promotion must expand the current artifact rollout."}
+
+  defp error(:invalid_rollback),
+    do: {409, "invalid_rollback", "Rollback target must have been previously published."}
+
   defp error(:digest_mismatch),
     do: {422, "digest_mismatch", "Artifact identity differs from route."}
 

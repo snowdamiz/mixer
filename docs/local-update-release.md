@@ -37,6 +37,25 @@ stages can remain in storage. The channel changes only when the service commits
 the assignment. Use the v3 public offer endpoint to check the current channel
 for an eligible installation.
 
+### Validate an artifact published in the browser
+
+The hosted CLI writer requires a validation receipt for the exact manifest
+digest at the provisioned target. CLI publish creates that receipt. If you
+published in the browser, validate the retained artifact with the local
+release endpoint before promotion or rollback. Set the manifest digest and
+use a distinct idempotency key for this validation.
+
+```sh
+validation="$(jq -cn --arg digest "$artifact_sha256" '{artifact_sha256: $digest}')"
+curl -fsS "$MIXER_RELEASE_ORIGIN/v3/orgs/org-a/projects/project-a/releases/validate" \
+  -H "Authorization: Bearer $MIXER_RELEASE_TOKEN" \
+  -H "Idempotency-Key: $MIXER_VALIDATION_REQUEST_KEY" \
+  -H 'Content-Type: application/json' --data-binary "$validation"
+```
+
+Expect HTTP 200 and `protocol_valid: true`. Use the digest of the previously
+published artifact when preparing a rollback.
+
 ## Halt an unhealthy rollout
 
 Record the release sequence you observed and the installation counts at the
@@ -69,9 +88,11 @@ If the outcome is uncertain, repeat the command against the same origin with
 the same signed file bytes, payload, options, health counts, rollback reason, and publisher
 identity. Keep the signed files byte-for-byte intact. Each stage derives its
 idempotency key from its method, route, request bytes, and reason. If the service
-already committed a stage, it returns the recorded response. A successful
-replay confirms the original operation. The current channel may have advanced
-since then.
+already committed a signed publication, the hosted CLI writer checks the
+retained signature and artifact against the current trust roots before
+returning the recorded response. A revoked assignment key causes the retry
+to fail. A successful retry confirms the original operation and leaves the
+current channel head in place.
 
 The JSON receipt reports the artifact digest, sequence, rollout in basis points,
 and `delivery: local_only`. The local service verifies signed protocol and host

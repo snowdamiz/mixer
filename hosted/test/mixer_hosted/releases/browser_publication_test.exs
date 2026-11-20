@@ -105,6 +105,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
   test "publishes the verified upload once and reads the exact tenant-scoped browser head" do
     c = prepare_release_fixture!("browser-publication")
     provision!()
+    provision_actions!()
     assert [[nil]] = DB.q!(Admin, "SELECT to_regclass('public.mixer_release_cli_requests')").rows
 
     fixture = @fixtures |> Path.join("signed-release-v3.json") |> File.read!() |> Jason.decode!()
@@ -311,6 +312,12 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     provision!()
     provision_delivery!()
     provision_cli!()
+    provision_actions!()
+
+    DB.q!(
+      Admin,
+      "GRANT INSERT (action) ON public.mixer_release_publications TO browser_ordinary"
+    )
 
     fixture = @fixtures |> Path.join("signed-release-v3.json") |> File.read!() |> Jason.decode!()
     %{"host" => host, "roots" => encoded_roots, "installation" => installation} = fixture
@@ -516,6 +523,50 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
       assert_delivery(restarted, offer_path, second_path, signed_second, second_envelope, config)
       assert http(restarted, first_path, []).body == first_envelope
       assert_no_offer(restarted, delivery_path(target, "excluded-installation"))
+
+      rollback_path = cli_base <> "/channels/#{target.channel}/rollback"
+      rollback = %{first | "sequence" => second["sequence"] + 1}
+      signed_rollback = sign_fixture("assignment", rollback) |> Jason.encode!()
+      rollback_body = ~s({"signed_assignment":#{signed_rollback}})
+
+      assert %{status: 422, body: unvalidated} =
+               cli_post(
+                 restarted,
+                 token,
+                 rollback_path,
+                 "browser-artifact-rollback",
+                 rollback_body
+               )
+
+      assert %{"error" => %{"code" => "not_validated"}} = Jason.decode!(unvalidated)
+      assert [[2]] = DB.q!(Admin, "SELECT count(*) FROM public.mixer_release_publications").rows
+
+      first_validation = Jason.encode!(%{artifact_sha256: first_digest})
+
+      assert %{status: 200} =
+               cli_post(restarted, token, validate, "validate-browser-artifact", first_validation)
+
+      assert %{status: 200, body: result} =
+               cli_post(
+                 restarted,
+                 token,
+                 rollback_path,
+                 "browser-artifact-rollback",
+                 rollback_body
+               )
+
+      assert %{"sequence" => sequence, "artifact_sha256" => ^first_digest} = Jason.decode!(result)
+      assert sequence == rollback["sequence"]
+
+      assert [[^signed_rollback, "rollback"]] =
+               DB.q!(Admin, """
+               SELECT p.signed_assignment_bytes,p.action
+               FROM public.mixer_release_publications p
+               JOIN public.mixer_release_heads h USING
+                 (organization_id,project_id,application_id,environment_id,platform,runtime_sha256,channel,sequence)
+               """).rows
+
+      assert_delivery(restarted, offer_path, first_path, signed_rollback, first_envelope, config)
     after
       assert :ok = Application.stop(:mixer_hosted)
     end
@@ -658,6 +709,19 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
 
     assert :ok = Ecto.Migrator.up(Migration, version, module, log: false)
     DB.q!(Admin, "GRANT SELECT,INSERT ON public.mixer_release_cli_requests TO browser_ordinary")
+  end
+
+  defp provision_actions! do
+    version = 20_261_120_000_010
+    module = MixerHosted.Repo.Migrations.AddLocalReleasePublicationAction
+
+    unless Code.ensure_loaded?(module),
+      do:
+        Code.require_file(
+          "priv/repo/migrations/#{version}_add_local_release_publication_action.exs"
+        )
+
+    assert :ok = Ecto.Migrator.up(Migration, version, module, log: false)
   end
 
   defp cli_post(c, token, path, key, bytes) do

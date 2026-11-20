@@ -26,6 +26,8 @@ defmodule MixerHosted.Authorization do
     :release_not_found,
     :not_validated,
     :assignment_rejected,
+    :invalid_promotion,
+    :invalid_rollback,
     :artifact_invalid,
     :unknown_runtime,
     :storage_unavailable

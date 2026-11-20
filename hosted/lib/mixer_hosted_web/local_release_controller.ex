@@ -8,9 +8,10 @@ defmodule MixerHostedWeb.LocalReleaseController do
   alias MixerHostedWeb.Plugs.CustomerArtifactRequest, as: Request
 
   @maximum_body 128 * 1024
+  @assignment_operations [:publish, :promote, :rollback]
 
   @impl true
-  def init(operation) when operation in [:validate, :publish], do: operation
+  def init(operation) when operation in [:validate | @assignment_operations], do: operation
 
   @impl true
   def call(conn, operation) do
@@ -75,9 +76,9 @@ defmodule MixerHostedWeb.LocalReleaseController do
 
   defp suffix(:validate, nil), do: {:ok, "/releases/validate"}
 
-  defp suffix(:publish, channel) do
+  defp suffix(operation, channel) when operation in @assignment_operations do
     if ArtifactV3Policy.id?(channel),
-      do: {:ok, "/channels/" <> channel <> "/publish"},
+      do: {:ok, "/channels/" <> channel <> "/" <> Atom.to_string(operation)},
       else: {:error, :not_found}
   end
 
@@ -88,9 +89,10 @@ defmodule MixerHostedWeb.LocalReleaseController do
           do: {:ok, {:validate, digest}},
           else: {:error, :invalid_json}
 
-      {:publish, {:ok, %{"signed_assignment" => assignment} = body, [{_, _, start, length}], _}}
-      when map_size(body) == 1 and is_map(assignment) and length <= 65_536 ->
-        {:ok, {:publish, binary_part(bytes, start, length)}}
+      {action, {:ok, %{"signed_assignment" => assignment} = body, [{_, _, start, length}], _}}
+      when action in @assignment_operations and map_size(body) == 1 and is_map(assignment) and
+             length <= 65_536 ->
+        {:ok, {action, binary_part(bytes, start, length)}}
 
       _ ->
         {:error, :invalid_json}
@@ -107,7 +109,7 @@ defmodule MixerHostedWeb.LocalReleaseController do
     }
   end
 
-  defp response(:publish, result) do
+  defp response(operation, result) when operation in @assignment_operations do
     result
     |> Map.take([:artifact_sha256, :rollout_basis_points, :sequence])
     |> Map.put(:delivery, "local_only")

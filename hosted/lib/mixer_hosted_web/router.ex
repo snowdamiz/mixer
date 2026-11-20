@@ -51,6 +51,8 @@ defmodule MixerHostedWeb.Router do
     pipe_through(:customer_identity)
     post("/releases/validate", MixerHostedWeb.LocalReleaseController, :validate)
     post("/channels/:channel/publish", MixerHostedWeb.LocalReleaseController, :publish)
+    post("/channels/:channel/promote", MixerHostedWeb.LocalReleaseController, :promote)
+    post("/channels/:channel/rollback", MixerHostedWeb.LocalReleaseController, :rollback)
     put("/artifacts/:manifest_sha256", MixerHostedWeb.CustomerArtifactController, :upload)
     get("/artifacts/:manifest_sha256", MixerHostedWeb.CustomerArtifactController, :read)
     get("/audit", MixerHostedWeb.CustomerArtifactController, :audit)

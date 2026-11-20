@@ -14,6 +14,7 @@ defmodule MixerHosted.Releases.Publication do
     field(:channel, :string, primary_key: true)
     field(:sequence, :decimal, primary_key: true)
     field(:previous_sequence, :decimal)
+    field(:action, :string)
     field(:artifact_sha256, :string)
     field(:signed_assignment_bytes, :binary)
     field(:rollout_basis_points, :integer)

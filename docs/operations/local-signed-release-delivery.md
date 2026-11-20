@@ -61,6 +61,26 @@ development signer holds the private keys outside Phoenix.
    free of memberships, object ownership, and table grants. Keep public
    schema creation disabled for runtime logins.
 
+## Upgrade a provisioned CLI writer
+
+Apply `20261120000004` and then `20261120000010` from
+`hosted/priv/repo/migrations` as the release relation owner. Skip
+`20261120000004` if it is already installed. The action migration gives
+existing publication rows the value `publish` and preserves the head and
+signed bytes.
+
+Use the existing target's `writer_role` as the psql variable `release_writer`.
+As the relation owner or local database administrator, grant the writer insert
+access to the new column before enabling promotion and rollback.
+
+```sql
+GRANT INSERT (action) ON public.mixer_release_publications TO :"release_writer";
+```
+
+Keep the existing column-scoped publication grant. Publication history stays
+append-only, and the delivery login keeps its function-only access. The
+ordinary publisher uses the default `publish` action.
+
 ## Start the ordinary API
 
 Supply the normal API environment, including `MIXER_HOSTED_ROLE=api`, the

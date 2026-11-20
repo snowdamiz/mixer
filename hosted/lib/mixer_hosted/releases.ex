@@ -124,7 +124,7 @@ defmodule MixerHosted.Releases do
           {:error, :release_not_found}
 
         receipt = repo.get_by(CLIRequest, by_key) ->
-          cli_replay(receipt, hash, principal, filter)
+          cli_replay(receipt, hash, principal, command, {target, config, filter}, context)
 
         repo.exists?(from(p in Publication, where: ^by_key)) ->
           {:error, :idempotency_conflict}
@@ -141,9 +141,8 @@ defmodule MixerHosted.Releases do
             }
 
             repo.insert!(struct!(CLIRequest, Map.merge(Map.new(filter), fields)))
-            now = Context.checkpoint!(context, repo, @action, target.scope).checked_at
 
-            with :ok <- if(now == fresh.checked_at, do: :ok, else: verify_at.(now)),
+            with :ok <- cli_verify_at_checkpoint(context, target, fresh.checked_at, verify_at),
                  do: {:ok, result}
           end
       end
@@ -156,13 +155,15 @@ defmodule MixerHosted.Releases do
          %CLIRequest{request_sha256: hash, principal_id: principal} = receipt,
          hash,
          principal,
-         filter
+         command,
+         {target, config, filter},
+         context
        ) do
-    case receipt.publication_sequence do
-      nil ->
-        {:ok, %{artifact_sha256: receipt.artifact_sha256}}
+    case {command, receipt.publication_sequence} do
+      {{:validate, digest}, nil} when digest == receipt.artifact_sha256 ->
+        {:ok, %{artifact_sha256: digest}}
 
-      sequence ->
+      {{action, bytes}, %Decimal{} = sequence} when action in [:publish, :promote, :rollback] ->
         row =
           WriterRepo.get_by!(
             Publication,
@@ -174,11 +175,38 @@ defmodule MixerHosted.Releases do
             ] ++ filter
           )
 
-        {:ok, result(row)}
+        with true <- row.action == Atom.to_string(action) and row.signed_assignment_bytes == bytes,
+             {:ok, artifact} <- cli_artifact(target, row.artifact_sha256, :not_validated),
+             :ok <- check_replay_signature(row, artifact, config, target, context) do
+          {:ok, result(row)}
+        else
+          false -> {:error, :idempotency_conflict}
+          {:error, _} = error -> error
+        end
+
+      _ ->
+        {:error, :idempotency_conflict}
     end
   end
 
-  defp cli_replay(_, _, _, _), do: {:error, :idempotency_conflict}
+  defp cli_replay(_, _, _, _, _, _), do: {:error, :idempotency_conflict}
+
+  defp check_replay_signature(row, artifact, config, target, context) do
+    # The receipt identifies a committed assignment. Its retry does not advance the head.
+    verify_at = fn now ->
+      verify_cli_assignment(row.signed_assignment_bytes, artifact, config, target.channel, 0, now)
+    end
+
+    %{checked_at: now} = Context.checkpoint!(context, WriterRepo, @action, target.scope)
+    {:ok, ^config} = configured_target(target)
+
+    with :ok <- verify_at.(now), do: cli_verify_at_checkpoint(context, target, now, verify_at)
+  end
+
+  defp cli_verify_at_checkpoint(context, target, checked_at, verify_at) do
+    now = Context.checkpoint!(context, WriterRepo, @action, target.scope).checked_at
+    if now == checked_at, do: :ok, else: verify_at.(now)
+  end
 
   defp cli_new({:validate, digest}, _head, _filter, target, config, fresh, _key, _reason) do
     with {:ok, artifact} <- cli_artifact(target, digest, :release_not_found) do
@@ -190,7 +218,8 @@ defmodule MixerHosted.Releases do
     end
   end
 
-  defp cli_new({:publish, bytes}, head, filter, target, config, fresh, key, reason) do
+  defp cli_new({action, bytes}, head, filter, target, config, fresh, key, reason)
+       when action in [:publish, :promote, :rollback] do
     with {:ok, signed} <- cli_decode_assignment(bytes),
          :ok <- cli_assignment(target, signed.assignment),
          digest = signed.assignment["artifact_sha256"],
@@ -204,15 +233,16 @@ defmodule MixerHosted.Releases do
          {:ok, artifact} <- cli_artifact(target, digest, :not_validated),
          last = if(head.sequence, do: Decimal.to_integer(head.sequence), else: 0),
          verify_at = fn now ->
-           verify_cli_assignment(signed, artifact, config, target.channel, last, now)
+           verify_cli_assignment(bytes, artifact, config, target.channel, last, now)
          end,
          :ok <- verify_at.(fresh.checked_at),
+         :ok <- cli_transition(action, head, filter, signed.assignment),
          {:ok, result} <-
            append(
              WriterRepo,
              head,
              Map.new(filter),
-             publication_values(signed, fresh, key, reason)
+             publication_values(signed, fresh, key, reason, action)
            ) do
       {:ok, result, verify_at}
     else
@@ -222,6 +252,38 @@ defmodule MixerHosted.Releases do
       {:error, _} = error ->
         error
     end
+  end
+
+  defp cli_transition(:publish, _head, _filter, _assignment), do: :ok
+
+  defp cli_transition(:promote, head, filter, assignment) do
+    digest = assignment["artifact_sha256"]
+    rollout = assignment["rollout_basis_points"]
+
+    if head.sequence &&
+         WriterRepo.exists?(
+           from(p in Publication,
+             where: ^filter,
+             where: p.sequence == ^head.sequence and p.artifact_sha256 == ^digest,
+             where: p.rollout_basis_points < ^rollout
+           )
+         ),
+       do: :ok,
+       else: {:error, :invalid_promotion}
+  end
+
+  defp cli_transition(:rollback, head, filter, assignment) do
+    digest = assignment["artifact_sha256"]
+
+    if head.sequence &&
+         WriterRepo.exists?(
+           from(p in Publication,
+             where: ^filter,
+             where: p.sequence <= ^head.sequence and p.artifact_sha256 == ^digest
+           )
+         ),
+       do: :ok,
+       else: {:error, :invalid_rollback}
   end
 
   defp cli_decode_assignment(bytes) do
@@ -244,9 +306,9 @@ defmodule MixerHosted.Releases do
     end
   end
 
-  defp verify_cli_assignment(signed, artifact, config, channel, last, now) do
+  defp verify_cli_assignment(bytes, artifact, config, channel, last, now) do
     case AssignmentV3.verify(
-           signed.signed_assignment_bytes,
+           bytes,
            artifact,
            config.roots,
            config.host,
@@ -256,7 +318,7 @@ defmodule MixerHosted.Releases do
              now: now
            }
          ) do
-      {:ok, ^signed} ->
+      {:ok, _signed} ->
         :ok
 
       {:error, reason} when reason in [:artifact_rejected, :document_or_payload_limit] ->
@@ -282,8 +344,8 @@ defmodule MixerHosted.Releases do
     end
   end
 
-  defp publication_values(signed, fresh, key, reason) do
-    %{
+  defp publication_values(signed, fresh, key, reason, action \\ :publish) do
+    values = %{
       sequence: Decimal.new(signed.assignment["sequence"]),
       idempotency_key: key,
       reason: reason,
@@ -292,6 +354,8 @@ defmodule MixerHosted.Releases do
       signed_assignment_bytes: signed.signed_assignment_bytes,
       rollout_basis_points: signed.assignment["rollout_basis_points"]
     }
+
+    if action == :publish, do: values, else: Map.put(values, :action, Atom.to_string(action))
   end
 
   defp publish_signed!(context, repo, target, signed, config, current!, key, reason) do
@@ -440,7 +504,7 @@ defmodule MixerHosted.Releases do
 
   defp replay(stored, values) do
     # Numeric may round-trip with a different scale. Compare its value exactly.
-    if Decimal.equal?(stored.sequence, values.sequence) and
+    if stored.action == "publish" and Decimal.equal?(stored.sequence, values.sequence) and
          Map.take(stored, Map.keys(values) -- [:sequence]) === Map.delete(values, :sequence) do
       {:ok, result(stored)}
     else
