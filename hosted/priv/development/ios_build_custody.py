@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import socket
 import sqlite3
 import stat
@@ -95,7 +96,25 @@ def load_row(db, operation):
     return json.loads(found[0]) if found else None
 
 
-def nested_closure(native, tmp):
+def retained_xcode_command(native, project, files):
+    private_directory(project)
+    raw = native.read_owned(project / "mixer.yml", 1024 * 1024, allow_owner_write=True)
+    require(native.digest(raw) == files.get("mixer.yml"))
+    config = json.loads(raw)
+    name = config["name"]
+    require(type(name) is str and re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}", name))
+    derived = project / ".mixer" / "ios-build"
+    return [
+        "/usr/bin/xcodebuild", "-project", str(project / "Platforms" / "iOS" / (name + ".xcodeproj")),
+        "-scheme", name, "-configuration", "Debug", "-sdk", "iphonesimulator",
+        "-destination", "generic/platform=iOS Simulator", "-derivedDataPath", str(derived),
+        "-clonedSourcePackagesDirPath", str(derived / "SourcePackages"), "-jobs", "4",
+        "DEBUG_INFORMATION_FORMAT=dwarf-with-dsym", "ARCHS=arm64", "ONLY_ACTIVE_ARCH=YES",
+        "ENABLE_DEBUG_DYLIB=NO", "COMPILER_INDEX_STORE_ENABLE=NO", "CODE_SIGNING_ALLOWED=NO", "build",
+    ]
+
+
+def nested_closure(native, tmp, files):
     private_directory(tmp.parent)
     private_directory(tmp)
     basename = native.read_cli_ack(tmp)
@@ -106,7 +125,16 @@ def nested_closure(native, tmp):
     require(len(receipts) <= 2)
     for item, _ in receipts:
         require(item["schema"] == "mixer.owned-command.2" and item["released"] is True
+                and item.get("uncertainty") is None
                 and type(item["exitCode"]) is int and -255 <= item["exitCode"] <= 255)
+        reason = item.get("stopReason")
+        require(reason in (None, "cancelled", "runtime-deadline", "generated-output-limit",
+                           "aggregate-output-limit"))
+        terminated = item.get("groupTerminateSent")
+        killed = item.get("groupKillSent", False)
+        require((terminated is None or type(terminated) is bool) and type(killed) is bool
+                and (not terminated or reason == "cancelled")
+                and (not killed or reason not in (None, "cancelled")))
     probe = receipts[0][0] if receipts and receipts[0][0]["command"] == ["/usr/bin/swift", "--version"] else None
     compiler = receipts[1:] if probe is not None else receipts
     require(len(compiler) <= 1)
@@ -115,22 +143,26 @@ def nested_closure(native, tmp):
         command = item["command"]
         require(command[0] == "/usr/bin/xcodebuild" and "CODE_SIGNING_ALLOWED=NO" in command
                 and "generic/platform=iOS Simulator" in command)
-        if probe is not None:
+        if "mixer.yml" in files or probe is not None:
+            require(probe is not None and command == retained_xcode_command(native, tmp.parent / "project", files))
             require(probe["exitCode"] == 0 and probe.get("stopReason") is None
                     and probe["terminalNS"] <= item["runtimeStartedNS"])
     return nested, {"receipt_root": basename, "receipt_sha256s": [sha for _, sha in receipts]}
 
 
-def classify(code, receipts):
+def classify(code, receipts, *, stop_requested):
     require(code >= 0)
-    if not receipts or receipts[-1][0]["command"][0] != "/usr/bin/xcodebuild":
+    if not receipts:
         require(code > 0)
         return "preflight_failed"
     child, _ = receipts[-1]
     reason = child.get("stopReason")
     if reason == "cancelled":
-        require(code > 0)
+        require(code > 0 and stop_requested)
         return "cancelled"
+    if child["command"][0] != "/usr/bin/xcodebuild":
+        require(code > 0)
+        return "preflight_failed"
     if reason in ("runtime-deadline", "generated-output-limit", "aggregate-output-limit"):
         require(code > 0)
         return "build_failed"
@@ -344,9 +376,8 @@ class IOSCustody:
                 self.record_terminal(native, db, {"not_started": refusal, "inert": outer})
             return True
 
-        nested, proof = nested_closure(native, tmp)
-        outcome = classify(code, nested[1])
-        require(outcome != "cancelled" or load_row(db, operation).get("tombstone"))
+        nested, proof = nested_closure(native, tmp, self.registration["files"])
+        outcome = classify(code, nested[1], stop_requested=load_row(db, operation).get("tombstone") is True)
         with db:
             self.record_terminal(native, db, {"outer": outer, "nested": proof, "outcome": outcome})
         return True
@@ -430,10 +461,10 @@ class IOSCustody:
             return {"closed": True, "started": False, "preflight_failed": True, "ios_custody": terminal}
 
         pid, code = self.closed_outer(native, launch, parent_pid, terminal["outer"])
-        nested, proof = nested_closure(native, output / "tmp")
+        nested, proof = nested_closure(native, output / "tmp", self.registration["files"])
         require(terminal["nested"] == proof)
-        outcome = classify(code, nested[1])
-        require(terminal["outcome"] == outcome and (outcome != "cancelled" or row.get("tombstone")))
+        outcome = classify(code, nested[1], stop_requested=row.get("tombstone") is True)
+        require(terminal["outcome"] == outcome)
         result = native.collect_build_result(
             output, intent["recipe"], self.registration["files"], row["binding"]["spec"], pid, code, nested,
             stop_before_artifacts=row.get("tombstone", False) or outcome != "succeeded",

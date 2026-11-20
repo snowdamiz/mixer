@@ -2474,12 +2474,18 @@ os.waitpid = observe_reap
         basename = "mixer-command-receipts-AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
         self.output.mkdir(mode=0o700, parents=True)
         self.tmp.mkdir(mode=0o700)
+        project = self.output / "project"
+        project.mkdir(mode=0o700)
+        configuration = project / "mixer.yml"
+        configuration.write_text('{"name":"Starter"}')
+        configuration.chmod(0o600)
+        files = {"mixer.yml": digest(configuration.read_bytes())}
         receipt_root = self.tmp / basename
         receipt_root.mkdir(mode=0o700)
         (self.tmp / "cli-closed").write_text(basename)
         (self.tmp / "cli-closed").chmod(0o600)
 
-        def write_receipt(name, command, pid, start, end, exit_code=0):
+        def write_receipt(name, command, pid, start, end, exit_code=0, **extra):
             directory = receipt_root / name
             directory.mkdir(mode=0o700, exist_ok=True)
             path = directory / "receipt.json"
@@ -2489,20 +2495,35 @@ os.waitpid = observe_reap
                 schema="mixer.owned-command.2", state="TERMINAL", stopReason=None, command=command,
                 pid=pid, ownedPGID=pid, ownedSession=pid, runtimeStartedNS=start, terminalNS=end,
                 exitCode=exit_code,
-            )).encode()
+            ) | extra).encode()
             path.write_bytes(raw)
             path.chmod(0o600)
             return digest(raw)
 
         probe = ["/usr/bin/swift", "--version"]
-        compiler = ["/usr/bin/xcodebuild", "-destination", "generic/platform=iOS Simulator",
-                    "CODE_SIGNING_ALLOWED=NO"]
+        compiler = [
+            "/usr/bin/xcodebuild", "-project", str(project / "Platforms/iOS/Starter.xcodeproj"),
+            "-scheme", "Starter", "-configuration", "Debug", "-sdk", "iphonesimulator",
+            "-destination", "generic/platform=iOS Simulator", "-derivedDataPath", str(project / ".mixer/ios-build"),
+            "-clonedSourcePackagesDirPath", str(project / ".mixer/ios-build/SourcePackages"), "-jobs", "4",
+            "DEBUG_INFORMATION_FORMAT=dwarf-with-dsym", "ARCHS=arm64", "ONLY_ACTIVE_ARCH=YES",
+            "ENABLE_DEBUG_DYLIB=NO", "COMPILER_INDEX_STORE_ENABLE=NO", "CODE_SIGNING_ALLOWED=NO", "build",
+        ]
         swift_sha = write_receipt("command-z", probe, 41, 1, 2)
         xcode_sha = write_receipt("command-a", compiler, 42, 3, 4)
-        nested, proof = ios_build_custody.nested_closure(native_artifact_worker, self.tmp)
+        nested, proof = ios_build_custody.nested_closure(native_artifact_worker, self.tmp, files)
         self.assertEqual([probe, compiler], [item["command"] for item, _ in nested[1]])
         self.assertEqual({"receipt_root": basename, "receipt_sha256s": [swift_sha, xcode_sha]}, proof)
-        self.assertEqual("succeeded", ios_build_custody.classify(0, nested[1]))
+        self.assertEqual("succeeded", ios_build_custody.classify(0, nested[1], stop_requested=False))
+        for invalid in (compiler[:-1], compiler[:4] + ["AnotherScheme"] + compiler[5:]):
+            write_receipt("command-a", invalid, 42, 3, 4)
+            with self.assertRaisesRegex(Refusal, "uncertain"):
+                ios_build_custody.nested_closure(native_artifact_worker, self.tmp, files)
+        write_receipt("command-a", compiler, 42, 3, 4)
+        configuration.write_text('{"name":"AnotherScheme"}')
+        with self.assertRaisesRegex(Refusal, "uncertain"):
+            ios_build_custody.nested_closure(native_artifact_worker, self.tmp, files)
+        configuration.write_text('{"name":"Starter"}')
 
         for name, command, start, end, code in (
             ("failed Swift probe before compiler", probe, 1, 2, 1),
@@ -2514,14 +2535,25 @@ os.waitpid = observe_reap
             with self.subTest(name=name):
                 write_receipt("command-z", command, 41, start, end, code)
                 with self.assertRaisesRegex(Refusal, "uncertain"):
-                    ios_build_custody.nested_closure(native_artifact_worker, self.tmp)
+                    ios_build_custody.nested_closure(native_artifact_worker, self.tmp, files)
 
         shutil.rmtree(receipt_root / "command-a")
         write_receipt("command-z", probe, 41, 1, 2, 1)
-        closed_probe, _ = ios_build_custody.nested_closure(native_artifact_worker, self.tmp)
-        self.assertEqual("preflight_failed", ios_build_custody.classify(1, closed_probe[1]))
+        closed_probe, _ = ios_build_custody.nested_closure(native_artifact_worker, self.tmp, files)
+        self.assertEqual("preflight_failed", ios_build_custody.classify(1, closed_probe[1], stop_requested=False))
         with self.assertRaisesRegex(Refusal, "uncertain"):
-            ios_build_custody.classify(0, closed_probe[1])
+            ios_build_custody.classify(0, closed_probe[1], stop_requested=False)
+
+        for fields in ({"uncertainty": "incomplete"}, {"stopReason": "unknown"},
+                       {"groupKillSent": True, "stopReason": "cancelled"}):
+            write_receipt("command-z", probe, 41, 1, 2, 1, **fields)
+            with self.assertRaisesRegex(Refusal, "uncertain"):
+                ios_build_custody.nested_closure(native_artifact_worker, self.tmp, files)
+        write_receipt("command-z", probe, 41, 1, 2, 1, stopReason="cancelled")
+        cancelled_probe, _ = ios_build_custody.nested_closure(native_artifact_worker, self.tmp, files)
+        with self.assertRaisesRegex(Refusal, "uncertain"):
+            ios_build_custody.classify(1, cancelled_probe[1], stop_requested=False)
+        self.assertEqual("cancelled", ios_build_custody.classify(1, cancelled_probe[1], stop_requested=True))
 
     def test_stop_before_observer_admission_cannot_launch(self):
         self.prepare()
