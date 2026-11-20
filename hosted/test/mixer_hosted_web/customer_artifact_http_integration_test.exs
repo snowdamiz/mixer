@@ -56,9 +56,7 @@ defmodule MixerHosted.CustomerArtifactHTTPFixture do
 
   # The shape is owned test input. Both private keys are freshly generated and
   # remain in memory; no fixture key is a production trust root.
-  def artifact(repo) do
-    payload = "HTTP integration protocol payload, not executable guest code."
-
+  def artifact(repo, payload \\ "HTTP integration protocol payload, not executable guest code.") do
     scope = %{
       "organization" => "org-a",
       "project" => "project-a",
@@ -156,6 +154,9 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
   alias MixerHosted.CustomerArtifactHTTPFixture, as: F
   alias MixerHosted.CustomerArtifactHTTPFixture.{Admin, Migration, Runtime}
   alias MixerHosted.Identity.{ConfiguredVerifier, KeyOwner, TLSFixture}
+  alias MixerHosted.Authorization.Scope
+  alias MixerHosted.Protocol.ArtifactCBOR
+  alias MixerHosted.Releases.{Target, WriterRepo}
 
   @profile %{
     profile_id: "http-profile",
@@ -335,7 +336,7 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
           )
     end)
 
-    %{port: port, key: key, tls_fixture: fixture}
+    %{port: port, key: key, tls_fixture: fixture, pg_settings: settings}
   end
 
   setup context do
@@ -483,6 +484,363 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
     assert is_binary(message) and byte_size(message) <= 200
     assert header(response, "x-request-id") == [id]
     assert header(response, "retry-after") == if(status == 503, do: ["1"], else: [])
+  end
+
+  test "stock local publish over Bandit preserves validation and exact authorized retries", ctx do
+    {checked, config} = F.artifact(Runtime, <<0, 97, 115, 109, 1, 0, 0, 0>>)
+    %{manifest: manifest, manifest_sha256: digest} = checked
+    scope = manifest["scope"]
+
+    target = %Target{
+      scope: %Scope{
+        organization_id: scope["organization"],
+        project_id: scope["project"],
+        application_id: scope["app"],
+        environment_id: scope["environment"]
+      },
+      platform: scope["platform"],
+      runtime_sha256: manifest["runtime"],
+      channel: "dev"
+    }
+
+    {public, private} = :crypto.generate_key(:eddsa, :ed25519)
+    [root] = config.roots
+
+    assignment_root = %{
+      root
+      | "key_id" => "cli-assignment",
+        "public_key" => public,
+        "artifact" => false,
+        "assignment" => true
+    }
+
+    provision_release_writer!(ctx.pg_settings, target)
+    Application.put_env(:mixer_hosted, CustomerArtifacts, config)
+
+    Application.put_env(:mixer_hosted, :local_release_target, %{
+      target: target,
+      host: config.host,
+      roots: [root, assignment_root]
+    })
+
+    on_exit(fn -> Application.delete_env(:mixer_hosted, :local_release_target) end)
+    token = token(ctx.key, %{"scope" => @scopes <> " mixer.release.publish"})
+    publisher = %{ctx | token: token, checked: checked}
+
+    draft = %{
+      "schema" => 3,
+      "scope" => scope,
+      "channel" => target.channel,
+      "cohort" => "sha256-v1",
+      "rollout_basis_points" => 2_500,
+      "sequence" => 1,
+      "release_id" => manifest["release_id"],
+      "artifact_sha256" => digest,
+      "runtime" => target.runtime_sha256,
+      "key_id" => assignment_root["key_id"],
+      "created_at_unix" => F.now()
+    }
+
+    base = "/v3/orgs/org-a/projects/project-a"
+    validate = base <> "/releases/validate"
+    publish = base <> "/channels/dev/publish"
+    validation = "{\n  \"artifact_sha256\" : \"#{digest}\"\n}\n"
+    signed = sign_assignment(draft, private)
+    first = ~s({"signed_assignment":#{signed}})
+    key = cli_key("POST", publish, first)
+    validation_key = cli_key("POST", validate, validation)
+
+    for {path, body} <- [{validate, validation}, {publish, first}] do
+      headers = cli_headers(cli_key("POST", path, body))
+
+      for invalid <- [nil, token(ctx.key, %{"exp" => F.now() - 1})] do
+        publisher
+        |> request("invalid bearer", "POST", path, body, headers, token: invalid)
+        |> error(401, "unauthenticated")
+      end
+
+      publisher
+      |> request("scope missing", "POST", path, body, headers, token: ctx.token)
+      |> error(403, "role_denied")
+
+      publisher
+      |> request(
+        "other tenant",
+        "POST",
+        String.replace(path, "project-a", "project-b"),
+        body,
+        headers
+      )
+      |> error(403, "scope_denied")
+    end
+
+    assert release_counts() == [[0, 0, nil]]
+
+    publisher
+    |> request(
+      "validate before upload",
+      "POST",
+      validate,
+      validation,
+      cli_headers(validation_key)
+    )
+    |> error(404, "not_found")
+
+    publisher
+    |> request("publish before validation", "POST", publish, first, cli_headers(key))
+    |> error(422, "not_validated")
+
+    assert release_counts() == [[0, 0, nil]]
+
+    if cli = System.get_env("MIXER_TEST_RELEASE_CLI") do
+      for _ <- 1..2, do: stock_publish!(publisher, cli, signed, draft)
+      assert F.counts() == [[1, 1, 1, 1]]
+      assert release_counts() == [[2, 1, Decimal.new(1)]]
+    else
+      upload =
+        ~s({"signed_manifest":#{checked.signed_manifest_bytes},"payload":"#{Base.encode64(checked.payload)}"})
+
+      upload_path = path(publisher)
+      upload_key = cli_key("PUT", upload_path, upload)
+
+      assert %{status: 201} =
+               request(
+                 publisher,
+                 "stock upload body",
+                 "PUT",
+                 upload_path,
+                 upload,
+                 cli_headers(upload_key)
+               )
+
+      publisher
+      |> request(
+        "retained upload still requires validation",
+        "POST",
+        publish,
+        first,
+        cli_headers(key)
+      )
+      |> error(422, "not_validated")
+    end
+
+    expect_validation = %{
+      "artifact_sha256" => digest,
+      "protocol_valid" => true,
+      "compiler_eligibility_verified" => false,
+      "policy_approved" => false,
+      "mobile_qualified" => false
+    }
+
+    validated =
+      request(
+        publisher,
+        "stock validate",
+        "POST",
+        validate,
+        validation,
+        cli_headers(validation_key)
+      )
+
+    assert validated.status == 200
+    assert json(validated) == expect_validation
+
+    first_result = %{
+      "artifact_sha256" => digest,
+      "sequence" => 1,
+      "rollout_basis_points" => 2_500,
+      "delivery" => "local_only"
+    }
+
+    published = request(publisher, "first publish", "POST", publish, first, cli_headers(key))
+    assert published.status == 200
+    assert json(published) == first_result
+
+    second = ~s({"signed_assignment":#{sign_assignment(%{draft | "sequence" => 2}, private)}})
+    second_key = cli_key("POST", publish, second)
+
+    for {body, reused, label} <- [
+          {first <> " ", key, "different outer bytes"},
+          {second, key, "different signed assignment"},
+          {first, validation_key, "key reused across operations"}
+        ] do
+      publisher
+      |> request(label, "POST", publish, body, cli_headers(reused))
+      |> error(409, "idempotency_conflict")
+    end
+
+    tampered =
+      ~s({"signed_assignment":#{sign_assignment(%{draft | "sequence" => 2}, elem(:crypto.generate_key(:eddsa, :ed25519), 1))}})
+
+    publisher
+    |> request("invalid signature", "POST", publish, tampered, cli_headers(second_key))
+    |> error(409, "assignment_rejected")
+
+    next = request(publisher, "advance head", "POST", publish, second, cli_headers(second_key))
+    assert next.status == 200
+    assert json(next) == %{first_result | "sequence" => 2}
+
+    replayed =
+      request(publisher, "exact retry behind head", "POST", publish, first, cli_headers(key))
+
+    assert replayed.status == 200
+    assert json(replayed) == first_result
+
+    publisher
+    |> request("stale sequence with new key", "POST", publish, first, cli_headers("new-key"))
+    |> error(409, "assignment_rejected")
+
+    F.sql(
+      "UPDATE public.mixer_authz_credentials SET active=false,revision=revision+1 WHERE reference='token'"
+    )
+
+    publisher
+    |> request("revoked credential cannot replay", "POST", publish, first, cli_headers(key))
+    |> error(401, "unauthenticated")
+
+    assert release_counts() == [[3, 2, Decimal.new(2)]]
+
+    assert [[^signed]] =
+             F.sql(
+               "SELECT signed_assignment_bytes FROM public.mixer_release_publications WHERE sequence=1"
+             ).rows
+  end
+
+  defp provision_release_writer!(settings, target) do
+    for {version, module, file} <- [
+          {20_261_120_000_001, MixerHosted.Repo.Migrations.AddLocalReleaseLedger,
+           "add_local_release_ledger"},
+          {20_261_120_000_002, MixerHosted.Repo.Migrations.AddLocalReleaseHeadRead,
+           "add_local_release_head_read"},
+          {20_261_120_000_004, MixerHosted.Repo.Migrations.AddLocalReleaseCLIRequests,
+           "add_local_release_cli_requests"}
+        ] do
+      unless Code.ensure_loaded?(module),
+        do: Code.require_file("priv/repo/migrations/#{version}_#{file}.exs")
+
+      assert :ok = Ecto.Migrator.up(Migration, version, module, log: false)
+    end
+
+    F.sql("CREATE ROLE http_release_writer LOGIN NOINHERIT")
+    F.sql("GRANT USAGE ON SCHEMA public TO http_release_writer")
+
+    for table <-
+          ~w(profiles principals bindings families credentials organizations projects applications environments organization_heads project_heads memberships),
+        do: F.sql("GRANT SELECT ON public.mixer_authz_#{table} TO http_release_writer")
+
+    for action <- ~w(profiles principals families credentials organization_heads project_heads),
+        do:
+          F.sql(
+            "GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{action}() TO http_release_writer"
+          )
+
+    F.sql("GRANT SELECT,UPDATE(sequence) ON public.mixer_release_heads TO http_release_writer")
+
+    F.sql("""
+    GRANT SELECT,INSERT (organization_id,project_id,application_id,environment_id,platform,runtime_sha256,
+      channel,sequence,previous_sequence,artifact_sha256,signed_assignment_bytes,rollout_basis_points,
+      idempotency_key,reason,principal_id) ON public.mixer_release_publications TO http_release_writer
+    """)
+
+    F.sql("GRANT SELECT,INSERT ON public.mixer_release_cli_requests TO http_release_writer")
+
+    F.sql("""
+    GRANT EXECUTE ON FUNCTION public.mixer_release_publish_allowed(text,text,text,text),
+      public.mixer_release_read_allowed(text,text,text,text),
+      public.mixer_release_bound_artifact(text,text,text,text,text,text,text,text) TO http_release_writer
+    """)
+
+    F.sql(
+      "UPDATE public.mixer_authz_memberships SET role='owner',revision=revision+1 WHERE id='member'"
+    )
+
+    Ecto.Adapters.SQL.query!(
+      Migration,
+      """
+      INSERT INTO public.mixer_release_heads
+        (organization_id,project_id,application_id,environment_id,platform,runtime_sha256,channel,writer_role)
+      VALUES ('org-a','project-a','fieldlog','development',$1,$2,$3,'http_release_writer')
+      """,
+      [target.platform, target.runtime_sha256, target.channel],
+      log: false
+    )
+
+    refute Process.whereis(WriterRepo)
+
+    Application.put_env(
+      :mixer_hosted,
+      WriterRepo,
+      settings ++ [username: "http_release_writer", pool_size: 1]
+    )
+
+    on_exit(fn -> Application.delete_env(:mixer_hosted, WriterRepo) end)
+    assert [child] = WriterRepo.children(http: [ip: {127, 0, 0, 1}])
+    start_supervised!(child)
+
+    assert [["http_release_writer"]] =
+             Ecto.Adapters.SQL.query!(WriterRepo, "SELECT current_user", [], log: false).rows
+  end
+
+  defp cli_key(method, path, bytes),
+    do: F.sha("mixer-local-release-v3\0#{method}\0#{path}\0\0" <> bytes)
+
+  defp cli_headers(key), do: [{"content-type", "application/json"}, {"idempotency-key", key}]
+
+  defp sign_assignment(assignment, key) do
+    {:ok, cbor} = ArtifactCBOR.encode(assignment)
+    signature = :crypto.sign(:eddsa, :none, "mixer.assignment.v3\0" <> cbor, [key, :ed25519])
+    Jason.encode!(%{"assignment" => assignment, "signature" => Base.encode64(signature)})
+  end
+
+  defp release_counts do
+    F.sql("""
+    SELECT (SELECT count(*) FROM public.mixer_release_cli_requests),
+           (SELECT count(*) FROM public.mixer_release_publications),
+           (SELECT sequence FROM public.mixer_release_heads)
+    """).rows
+  end
+
+  defp stock_publish!(ctx, cli, signed, assignment) do
+    dir = System.fetch_env!("MIXER_TEST_RELEASE_CANDIDATE")
+    File.mkdir_p!(dir)
+    File.write!(Path.join(dir, "signed-manifest.json"), ctx.checked.signed_manifest_bytes)
+    File.write!(Path.join(dir, "payload.wasm"), ctx.checked.payload)
+    assignment_path = Path.join(dir, "signed-assignment.json")
+    File.write!(assignment_path, signed)
+
+    assert {output, 0} =
+             System.cmd(
+               cli,
+               [
+                 "update",
+                 "publish",
+                 dir,
+                 "--organization",
+                 "org-a",
+                 "--project",
+                 "project-a",
+                 "--channel",
+                 "dev",
+                 "--rollout",
+                 "25",
+                 "--assignment",
+                 assignment_path
+               ],
+               env: [
+                 {"MIXER_RELEASE_ORIGIN", "http://127.0.0.1:#{ctx.port}"},
+                 {"MIXER_RELEASE_TOKEN", ctx.token}
+               ],
+               stderr_to_stdout: true
+             )
+
+    assert Jason.decode!(output) == %{
+             "status" => "ok",
+             "action" => "publish",
+             "artifact_sha256" => ctx.checked.manifest_sha256,
+             "sequence" => assignment["sequence"],
+             "rollout_basis_points" => 2_500,
+             "delivery" => "local_only"
+           }
   end
 
   test "real default bearer verifier and PostgreSQL create retry read audit and wire HEAD", ctx do

@@ -2,9 +2,8 @@ defmodule MixerHosted.Releases do
   @moduledoc """
   Local v3 publication ledger for a single provisioned target.
 
-  The browser seam verifies the exact stored artifact and signed assignment
-  inside the fresh authorization transaction. The configured Repo connects as
-  the provisioned restricted Phoenix writer.
+  Both publication entry points verify the retained signed bytes inside a
+  fresh authorization transaction with the provisioned head locked.
   """
 
   import Ecto.Query, only: [from: 2]
@@ -13,8 +12,8 @@ defmodule MixerHosted.Releases do
   alias MixerHosted.Authorization.Postgres.Session
   alias MixerHosted.Authorization.Transaction.Context
   alias MixerHosted.Identity.{Encoding, VerifiedIdentity}
-  alias MixerHosted.Protocol.{ArtifactV3Policy, AssignmentV3}
-  alias MixerHosted.Releases.{Head, Publication, Target}
+  alias MixerHosted.Protocol.{ArtifactAdmission, ArtifactV3Policy, AssignmentV3}
+  alias MixerHosted.Releases.{CLIRequest, Head, Publication, Target, WriterRepo}
 
   @action "release.publish"
   @value_fields [:artifact_sha256, :signed_assignment_bytes, :rollout_basis_points]
@@ -64,6 +63,235 @@ defmodule MixerHosted.Releases do
 
   def publish(_, _, _, _, _), do: {:error, :invalid_request}
 
+  @doc false
+  def cli(identity, {org, project, channel}, command, key, request_hash, reason) do
+    with true <- Process.whereis(WriterRepo) != nil,
+         {:ok, %{target: %Target{} = target}} <-
+           Application.fetch_env(:mixer_hosted, :local_release_target),
+         {:ok, ^target} <- Target.new(target),
+         :ok <- cli_route(target, org, project, channel),
+         true <- valid_metadata?(key, reason) and ArtifactV3Policy.digest?(request_hash),
+         {:ok, config} <- configured_target(target) do
+      Authorization.with_authorized_transaction(
+        identity,
+        @action,
+        target.scope,
+        fn context ->
+          cli_locked(context, target, config, command, key, request_hash, reason)
+        end,
+        WriterRepo
+      )
+      |> case do
+        {:error, :not_found} -> {:error, :scope_denied}
+        result -> result
+      end
+    else
+      :error -> {:error, :release_not_found}
+      false -> {:error, :release_not_found}
+      {:error, _} = error -> error
+      _ -> {:error, :authorization_unavailable}
+    end
+  end
+
+  defp cli_route(target, org, project, channel) do
+    cond do
+      {org, project} != {target.scope.organization_id, target.scope.project_id} ->
+        {:error, :scope_denied}
+
+      channel != nil and channel != target.channel ->
+        {:error, :release_not_found}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp cli_locked(context, target, config, command, key, hash, reason) do
+    repo = WriterRepo
+    check_writer!(repo, :cli)
+    filter = Target.filter(target)
+    head = repo.one(from(h in Head, where: ^filter, lock: "FOR UPDATE"))
+    fresh = Context.checkpoint!(context, repo, @action, target.scope)
+    {:ok, ^config} = configured_target(target)
+    by_key = [{:idempotency_key, key} | filter]
+    principal = fresh.principal.id
+
+    result =
+      cond do
+        head == nil ->
+          {:error, :release_not_found}
+
+        receipt = repo.get_by(CLIRequest, by_key) ->
+          cli_replay(receipt, hash, principal, filter)
+
+        repo.exists?(from(p in Publication, where: ^by_key)) ->
+          {:error, :idempotency_conflict}
+
+        true ->
+          with {:ok, result, verify_at} <-
+                 cli_new(command, head, filter, target, config, fresh, key, reason) do
+            fields = %{
+              idempotency_key: key,
+              request_sha256: hash,
+              principal_id: principal,
+              artifact_sha256: result.artifact_sha256,
+              publication_sequence: result[:sequence] && Decimal.new(result.sequence)
+            }
+
+            repo.insert!(struct!(CLIRequest, Map.merge(Map.new(filter), fields)))
+            now = Context.checkpoint!(context, repo, @action, target.scope).checked_at
+
+            with :ok <- if(now == fresh.checked_at, do: :ok, else: verify_at.(now)),
+                 do: {:ok, result}
+          end
+      end
+
+    {:ok, ^config} = configured_target(target)
+    result
+  end
+
+  defp cli_replay(
+         %CLIRequest{request_sha256: hash, principal_id: principal} = receipt,
+         hash,
+         principal,
+         filter
+       ) do
+    case receipt.publication_sequence do
+      nil ->
+        {:ok, %{artifact_sha256: receipt.artifact_sha256}}
+
+      sequence ->
+        row =
+          WriterRepo.get_by!(
+            Publication,
+            [
+              sequence: sequence,
+              artifact_sha256: receipt.artifact_sha256,
+              idempotency_key: receipt.idempotency_key,
+              principal_id: principal
+            ] ++ filter
+          )
+
+        {:ok, result(row)}
+    end
+  end
+
+  defp cli_replay(_, _, _, _), do: {:error, :idempotency_conflict}
+
+  defp cli_new({:validate, digest}, _head, _filter, target, config, fresh, _key, _reason) do
+    with {:ok, artifact} <- cli_artifact(target, digest, :release_not_found) do
+      verify_at = fn now -> validate_artifact(artifact, config, digest, now) end
+
+      with :ok <- verify_at.(fresh.checked_at) do
+        {:ok, %{artifact_sha256: digest}, verify_at}
+      end
+    end
+  end
+
+  defp cli_new({:publish, bytes}, head, filter, target, config, fresh, key, reason) do
+    with {:ok, signed} <- cli_decode_assignment(bytes),
+         :ok <- cli_assignment(target, signed.assignment),
+         digest = signed.assignment["artifact_sha256"],
+         true <-
+           WriterRepo.exists?(
+             from(r in CLIRequest,
+               where: ^filter,
+               where: r.artifact_sha256 == ^digest and is_nil(r.publication_sequence)
+             )
+           ),
+         {:ok, artifact} <- cli_artifact(target, digest, :not_validated),
+         last = if(head.sequence, do: Decimal.to_integer(head.sequence), else: 0),
+         verify_at = fn now ->
+           verify_cli_assignment(signed, artifact, config, target.channel, last, now)
+         end,
+         :ok <- verify_at.(fresh.checked_at),
+         {:ok, result} <-
+           append(
+             WriterRepo,
+             head,
+             Map.new(filter),
+             publication_values(signed, fresh, key, reason)
+           ) do
+      {:ok, result, verify_at}
+    else
+      false ->
+        {:error, :not_validated}
+
+      {:error, _} = error ->
+        error
+    end
+  end
+
+  defp cli_decode_assignment(bytes) do
+    case AssignmentV3.decode_signed(bytes) do
+      {:ok, _} = signed -> signed
+      {:error, _} -> {:error, :assignment_rejected}
+    end
+  end
+
+  defp validate_artifact(artifact, config, digest, now) do
+    case ArtifactAdmission.admit_signed(
+           artifact.signed_manifest_bytes,
+           artifact.payload,
+           config.host,
+           config.roots,
+           now
+         ) do
+      {:ok, %{manifest_sha256: ^digest}} -> :ok
+      _ -> {:error, :artifact_invalid}
+    end
+  end
+
+  defp verify_cli_assignment(signed, artifact, config, channel, last, now) do
+    case AssignmentV3.verify(
+           signed.signed_assignment_bytes,
+           artifact,
+           config.roots,
+           config.host,
+           %{
+             channel: channel,
+             last_sequence: last,
+             now: now
+           }
+         ) do
+      {:ok, ^signed} ->
+        :ok
+
+      {:error, reason} when reason in [:artifact_rejected, :document_or_payload_limit] ->
+        {:error, :artifact_invalid}
+
+      {:error, _} ->
+        {:error, :assignment_rejected}
+    end
+  end
+
+  defp cli_assignment(target, assignment) do
+    cond do
+      assignment["scope"] != Target.signed_scope(target) -> {:error, :scope_denied}
+      assignment["runtime"] != target.runtime_sha256 -> {:error, :unknown_runtime}
+      true -> :ok
+    end
+  end
+
+  defp cli_artifact(target, digest, missing) do
+    case stored_artifact(WriterRepo, target, digest) do
+      {:error, :not_found} -> {:error, missing}
+      result -> result
+    end
+  end
+
+  defp publication_values(signed, fresh, key, reason) do
+    %{
+      sequence: Decimal.new(signed.assignment["sequence"]),
+      idempotency_key: key,
+      reason: reason,
+      principal_id: fresh.principal.id,
+      artifact_sha256: signed.assignment["artifact_sha256"],
+      signed_assignment_bytes: signed.signed_assignment_bytes,
+      rollout_basis_points: signed.assignment["rollout_basis_points"]
+    }
+  end
+
   defp publish_signed!(context, repo, target, signed, config, current!, key, reason) do
     check_writer!(repo)
     filter = Target.filter(target)
@@ -78,15 +306,7 @@ defmodule MixerHosted.Releases do
 
       case verify(signed, artifact, config, target, last, fresh.checked_at) do
         {:ok, signed} ->
-          values = %{
-            sequence: Decimal.new(signed.assignment["sequence"]),
-            idempotency_key: key,
-            reason: reason,
-            principal_id: fresh.principal.id,
-            artifact_sha256: signed.assignment["artifact_sha256"],
-            signed_assignment_bytes: signed.signed_assignment_bytes,
-            rollout_basis_points: signed.assignment["rollout_basis_points"]
-          }
+          values = publication_values(signed, fresh, key, reason)
 
           result =
             if stored,
@@ -232,7 +452,7 @@ defmodule MixerHosted.Releases do
       Encoding.bounded_string?(reason, 512) and :binary.match(reason, <<0>>) == :nomatch
   end
 
-  defp check_writer!(repo) do
+  defp check_writer!(repo, mode \\ :browser) do
     [[count, safe?]] =
       Session.query!(repo, """
       SELECT count(*),bool_and(c.relkind='r' AND c.relrowsecurity AND c.relforcerowsecurity
@@ -254,5 +474,24 @@ defmodule MixerHosted.Releases do
       """).rows
 
     if count != 2 or not safe?, do: repo.rollback(:authorization_unavailable)
+
+    if mode == :cli do
+      [[safe?]] =
+        Session.query!(repo, """
+        SELECT c.relkind='r' AND c.relrowsecurity AND c.relforcerowsecurity
+          AND NOT r.rolcanlogin AND NOT r.rolsuper AND NOT r.rolbypassrls
+          AND NOT pg_catalog.pg_has_role(current_user,c.relowner,'MEMBER')
+          AND NOT pg_catalog.has_table_privilege(current_user,c.oid,'DELETE,TRUNCATE,REFERENCES,TRIGGER')
+          AND NOT pg_catalog.has_any_column_privilege(current_user,c.oid,'UPDATE,REFERENCES')
+          AND NOT pg_catalog.has_any_column_privilege(current_user,
+            'public.mixer_customer_artifacts','SELECT,INSERT,UPDATE,REFERENCES')
+          AND NOT pg_catalog.has_table_privilege(current_user,
+            'public.mixer_customer_artifacts','DELETE,TRUNCATE,TRIGGER')
+        FROM pg_catalog.pg_class c JOIN pg_catalog.pg_roles r ON r.oid=c.relowner
+        WHERE c.oid = 'public.mixer_release_cli_requests'::regclass
+        """).rows
+
+      if not safe?, do: repo.rollback(:authorization_unavailable)
+    end
   end
 end

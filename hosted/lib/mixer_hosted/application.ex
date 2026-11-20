@@ -86,6 +86,7 @@ defmodule MixerHosted.Application do
 
       {:api, %StartupConfig{} = identity} ->
         true = hosted.build_operation_intent == :disabled
+        base = base ++ MixerHosted.Releases.WriterRepo.children(hosted.endpoint)
 
         identity_children =
           case identity do
@@ -146,6 +147,7 @@ defmodule MixerHosted.Application do
   @impl true
   def config_change(changed, new, removed) do
     restart_keys = [
+      MixerHosted.Releases.WriterRepo,
       :startup,
       :role,
       :identity_startup,

@@ -22,6 +22,12 @@ defmodule MixerHosted.Authorization do
     :conflict,
     :immutable_conflict,
     :idempotency_conflict,
+    :scope_denied,
+    :release_not_found,
+    :not_validated,
+    :assignment_rejected,
+    :artifact_invalid,
+    :unknown_runtime,
     :storage_unavailable
   ]
 

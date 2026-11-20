@@ -54,7 +54,8 @@ defmodule MixerHostedWeb.Plugs.CustomerArtifactRequest do
          :ok <- encoding(get_req_header(conn, "content-encoding")),
          :ok <- media(get_req_header(conn, "content-type"), operation),
          {:ok, key, reason} <- mutation_headers(conn, operation),
-         {:ok, bytes, conn} <- body(conn, operation, clock),
+         {:ok, bytes, conn} <-
+           body(conn, if(operation == :upload, do: @maximum_body, else: 0), clock),
          :ok <- envelope(bytes, operation) do
       assign(conn, :customer_artifact_request, %{
         route: route,
@@ -224,8 +225,17 @@ defmodule MixerHostedWeb.Plugs.CustomerArtifactRequest do
 
   defp mutation_headers(_, _), do: {:ok, nil, ""}
 
-  defp body(conn, operation, clock) do
-    maximum = if operation == :upload, do: @maximum_body, else: 0
+  @doc false
+  def read_json_mutation(conn, maximum) do
+    with :ok <- encoding(get_req_header(conn, "content-encoding")),
+         :ok <- media(get_req_header(conn, "content-type"), :upload),
+         {:ok, key, reason} <- mutation_headers(conn, :upload),
+         {:ok, bytes, conn} <- body(conn, maximum, {System, :monotonic_time, [:millisecond]}) do
+      {:ok, key, reason, bytes, conn}
+    end
+  end
+
+  defp body(conn, maximum, clock) do
     deadline = milliseconds(clock) + @read_deadline_ms
     read(conn, maximum, deadline, clock, [], 0, 0)
   rescue
@@ -356,6 +366,9 @@ defmodule MixerHostedWeb.Plugs.CustomerArtifactRequest do
 
   defp error(:unauthenticated), do: {401, "unauthenticated", "Authentication required."}
   defp error(:permission_denied), do: {403, "permission_denied", "Permission denied."}
+  defp error(:scope_denied), do: {403, "scope_denied", "Release scope denied."}
+  defp error(:role_denied), do: {403, "role_denied", "Release permission denied."}
+  defp error(:release_not_found), do: error(:not_found)
   defp error(:not_found), do: {404, "not_found", "Resource not found."}
 
   defp error(:idempotency_required),
@@ -371,6 +384,15 @@ defmodule MixerHostedWeb.Plugs.CustomerArtifactRequest do
   defp error(:body_too_large), do: {413, "body_too_large", "Request body exceeds the byte limit."}
   defp error(:invalid_json), do: {400, "invalid_json", "Invalid artifact JSON envelope."}
   defp error(:artifact_invalid), do: {422, "artifact_invalid", "Artifact admission rejected."}
+
+  defp error(:not_validated),
+    do: {422, "not_validated", "Artifact must be uploaded and validated."}
+
+  defp error(:unknown_runtime),
+    do: {422, "unknown_runtime", "Release runtime is not provisioned."}
+
+  defp error(:assignment_rejected),
+    do: {409, "assignment_rejected", "Signed assignment rejected."}
 
   defp error(:digest_mismatch),
     do: {422, "digest_mismatch", "Artifact identity differs from route."}
