@@ -1,0 +1,339 @@
+{
+  "buildRequest": {
+    "cancellationRequests": 0,
+    "count": 1,
+    "status": 201
+  },
+  "cleanup": {
+    "hold": {
+      "anyCleanupRequiresTerminalCustody": true,
+      "container": "0038c3243873647a5dcf8ff49960cc1c498292fbeb3f2c02bde09234dcb29029",
+      "daemonID": "89a79547-714b-4e61-91ae-cc9bccde9c04",
+      "fixtureScratch": "/Users/andreyyurlov/.t3/userdata/p25-z1xadr03",
+      "imageReferences": {
+        "compat": "docker.io/library/ubuntu@sha256:77eb101c607d6e3d4f5ad0c8a02c2136c689b98aba1f359e6502ba517e5c57ec",
+        "python": "docker.io/library/python@sha256:3dc01f342e31ad8de39338d14ab12de0090c9102b34f75ca9774ff1f4f5e904e",
+        "swift": "docker.io/library/swift@sha256:a7ec691ec569f1ff646952ffad348aebf5d829718e91ad56ae05cae6e57016f8"
+      },
+      "operatorStage": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/pair25-recovery-live.ky7uese5",
+      "reason": "The first post-reopen API state was discarded by a fixture assertion before terminal container custody or settlement.",
+      "scope": "This live Pair25 Docker operation and its owned immutable stage",
+      "volume": "mixer-pair25-0caa450b554d56a4cd93f367c5bb9e141f1de8377303cd3dd27fdf110aaba2ed"
+    },
+    "hostCommands": {
+      "api": {
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "a468d5b087648501590c69ff58d4accbc0a25674410101e778c2231fc26c7a1a",
+        "pid": 18949
+      },
+      "compile": {
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "42d4edf69044ab08475814eeae447f249630bce71b0fa5d1266285bc1787ed84",
+        "pid": 17933
+      },
+      "deps": {
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "d573786b4acab8a0eb0d4394eafd2cd024321d681ca7cd26e20cefeea2835d0a",
+        "pid": 17891
+      },
+      "initdb": {
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "f30ed22a85e966fbab78e83bf7050a97d39077508dd1a5137c22bb6f4aabd137",
+        "pid": 18771
+      },
+      "postgres": {
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "97c6b497ca270fe2dc4b75111c4778c38c1a669abf95ceb0969b4d79e9a92958",
+        "pid": 18900
+      },
+      "processor": {
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "2a9122904176813b6d234bccf6bf27c12357d0fb9ac084500a8a21c0df3529b9",
+        "pid": 19212
+      },
+      "runner": {
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pid": 19313
+      },
+      "runner-init": {
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pid": 19273
+      },
+      "worker": {
+        "exit": -9,
+        "groupAbsent": true,
+        "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pid": 19357
+      },
+      "worker-reopened": {
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pid": 32851
+      }
+    },
+    "networkPortRebindUnobserved": true,
+    "rawSHA256": "cce0ddf24f919bda0fc6c385a609ba50a44e91f1ff280d5c61a30d2d6e08b65d",
+    "terminalContainerClosureUnobserved": true
+  },
+  "commands": {
+    "firstAttempt": "python3.14 -B tests/integration/l05-pair25-http/run.py --cancel --worker-crash --seconds 900 --scratch SCRATCH --operator OPERATOR --receipt FIRST",
+    "firstAttemptDependencies": [
+      "mix deps.get --check-locked",
+      "HEX_OFFLINE=1 mix deps.get --check-locked"
+    ],
+    "liveAttempt": "MIX_HOME=PRIVATE_MIX_HOME HEX_HOME=PRIVATE_HEX_HOME python3.14 -B tests/integration/l05-pair25-http/run.py --cancel --worker-crash --seconds 900 --scratch SCRATCH --operator OPERATOR --receipt LIVE"
+  },
+  "firstUnverifiedBoundary": {
+    "detailStateCaptured": false,
+    "failure": {
+      "detail": "live console detail changed scope, attempt, or advertised an artifact",
+      "type": "RuntimeError"
+    },
+    "naturalCompletionHypothesisUnverified": true,
+    "point": "first authorized build detail after same-port worker reopen"
+  },
+  "fixtureSHA256": {
+    "api-case.exs": "68416a08726fda6988ec6a24eaabfae4b29ae835bbdea8ab8e1aafaeba361a68",
+    "processor.exs": "130bb44a3bc3fd938da9a229a40390c1b8d94ca9784d7cb99bf35e67eb41d248",
+    "run.py": "0d0a99d034080d4cca303c4ad45609ca7c4a0f4a3889c198eea62fd25df4de15"
+  },
+  "gate": "L07 remains open",
+  "hostedTree": "63053bd38c27e60d7d929af00706d2b1e526db40",
+  "initialPreparation": {
+    "dependenciesGroupClosed": true,
+    "failure": "Shared Hex cache.ets checksum_error and missing offline decimal metadata.",
+    "nativeDispatchPossible": false,
+    "rawSHA256": "cccebcd55d7dff894e93246e962d26ecc3fdd1ec971c45159efd590bba36cacf",
+    "scratchRemoved": true
+  },
+  "launcherMain": "10a4aebbdcceb5c76c121eb3d19efa0604b95580",
+  "privateHex": {
+    "lockSHA256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+    "onlineAndOfflineCheckLockedCompleted": true
+  },
+  "productPin": "11b9cb43e3d90de5580efda9b9e2e3a47e387be3",
+  "projection": {
+    "approvalSHA256": "1460b8f1d38435cc6ae84888d31522490e3e5c454ab01be0e8a3aaeb886f0448",
+    "closedSetupCommands": 38,
+    "hostFreeBytes": {
+      "before-volume": 16644599808,
+      "lock-closed": 13038129152,
+      "ready": 13043384320,
+      "setup-closed": 13047119872
+    },
+    "inputs": {
+      "linux_lock_sha256": "9e58bd6dd1f502fa79e969d61956219488aa59d89f4fda3848ae6b92e7790d70",
+      "rendered_driver_sha256": "98dba189e05b6d3a445b714e492487ac7d163ddf94be035e1124a3fc070aa7b9",
+      "source_tree_sha256": "a2365a71ca08a03477a32c3027a80d7de9a0162b650f02c3189eb295e052676f"
+    },
+    "removedSetupContainers": 4,
+    "singleVolumeUsed": true,
+    "stagingInputReceiptSHA256": "27523243d101a2781db67d9434f0c1f85af3a5f97472ddba812b39defe05ed93"
+  },
+  "runnerIdentity": {
+    "binding_sha256": "b6c4dc5c02d72337be992f7daab881d59b42bb64bbf076e532e790a56a4b8c43",
+    "operation_id": "0a1360249314b2fe065258b5626df5bc9b003d3740833d15fc2586df092c2c37",
+    "recipe_sha256": "67efd23af633e15464070d018c4059a6caf1aee38891bc56aa47b06302176935",
+    "store_id": "cb10087f52036f900ae278e077c2b94de2a8fab2f4c15f81c765fc595f70d1ab"
+  },
+  "runningOperation": {
+    "deadline_ms": 1795167521280,
+    "operation_id": "0a1360249314b2fe065258b5626df5bc9b003d3740833d15fc2586df092c2c37",
+    "record_id": "de4bcfc3-b30d-45bc-857e-256a5efe8d7c",
+    "ref": {
+      "application_id": "example.source.app",
+      "attempt": 1,
+      "build_id": "build-a764d056a7303a7ba03ecbe7e63781823fde8053ccbeec2837321e7e0166495a",
+      "fence": 1,
+      "organization_id": "org-330e595d4aef4cda8595568acaa8b5c8",
+      "platform": "android",
+      "project_id": "project-4cca6b99b6434d38bbe1a9cca920b9b2"
+    },
+    "spec": {
+      "application_id": "example.source.app",
+      "build_definition_sha256": "67efd23af633e15464070d018c4059a6caf1aee38891bc56aa47b06302176935",
+      "build_id": "build-a764d056a7303a7ba03ecbe7e63781823fde8053ccbeec2837321e7e0166495a",
+      "organization_id": "org-330e595d4aef4cda8595568acaa8b5c8",
+      "platform": "android",
+      "project_id": "project-4cca6b99b6434d38bbe1a9cca920b9b2",
+      "source": {
+        "kind": "revision",
+        "reference": "starter-a2365a71ca08a03477a32c3027a80d7de9a0162b650f02c3189eb295e052676f",
+        "sha256": "a2365a71ca08a03477a32c3027a80d7de9a0162b650f02c3189eb295e052676f"
+      },
+      "toolchain_lock_sha256": "9e58bd6dd1f502fa79e969d61956219488aa59d89f4fda3848ae6b92e7790d70"
+    },
+    "started_at_ms": 1795166321280
+  },
+  "scope": "Local L07 Pair25 Swift compiler and ordinary Phoenix/Oban worker-outage observation",
+  "status": "partial_hold",
+  "versions": {
+    "mix": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:15:15] [ds:15:15:10] [async-threads:1] [jit] [dtrace]\n\nMix 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]"
+  },
+  "workerRecovery": {
+    "admissionBeforeReopen": [
+      "0a1360249314b2fe065258b5626df5bc9b003d3740833d15fc2586df092c2c37",
+      "de4bcfc3-b30d-45bc-857e-256a5efe8d7c",
+      1795167521280,
+      "admitted",
+      1,
+      24,
+      "oban:2:bebfec80-41e7-4cc1-a408-c703c2e688ec"
+    ],
+    "beforeExit": {
+      "artifactHTTP": {
+        "debug_symbols": {
+          "anonymousHTTP": 401,
+          "outsiderHTTP": 404,
+          "ownerHTTP": 404
+        },
+        "resource_inventory": {
+          "anonymousHTTP": 401,
+          "outsiderHTTP": 404,
+          "ownerHTTP": 404
+        },
+        "unsigned_native_binary": {
+          "anonymousHTTP": 401,
+          "outsiderHTTP": 404,
+          "ownerHTTP": 404
+        }
+      },
+      "detail": {
+        "applicationId": "example.source.app",
+        "attempt": 1,
+        "buildId": "build-a764d056a7303a7ba03ecbe7e63781823fde8053ccbeec2837321e7e0166495a",
+        "organizationId": "org-330e595d4aef4cda8595568acaa8b5c8",
+        "platform": "android",
+        "projectId": "project-4cca6b99b6434d38bbe1a9cca920b9b2",
+        "revision": 1,
+        "state": "running",
+        "workerCompletionPending": true
+      },
+      "detailHTTP": [
+        200,
+        404,
+        401
+      ],
+      "logsHTTP": [
+        404,
+        404,
+        401
+      ]
+    },
+    "downMilliseconds": 29039,
+    "duringOutage": {
+      "artifactHTTP": {
+        "debug_symbols": {
+          "anonymousHTTP": 401,
+          "outsiderHTTP": 404,
+          "ownerHTTP": 404
+        },
+        "resource_inventory": {
+          "anonymousHTTP": 401,
+          "outsiderHTTP": 404,
+          "ownerHTTP": 404
+        },
+        "unsigned_native_binary": {
+          "anonymousHTTP": 401,
+          "outsiderHTTP": 404,
+          "ownerHTTP": 404
+        }
+      },
+      "detail": {
+        "applicationId": "example.source.app",
+        "attempt": 1,
+        "buildId": "build-a764d056a7303a7ba03ecbe7e63781823fde8053ccbeec2837321e7e0166495a",
+        "organizationId": "org-330e595d4aef4cda8595568acaa8b5c8",
+        "platform": "android",
+        "projectId": "project-4cca6b99b6434d38bbe1a9cca920b9b2",
+        "revision": 1,
+        "state": "running",
+        "workerCompletionPending": true
+      },
+      "detailHTTP": [
+        200,
+        404,
+        401
+      ],
+      "logsHTTP": [
+        404,
+        404,
+        401
+      ]
+    },
+    "firstPlainBindErrno": 48,
+    "frontendBeforeExit": {
+      "container": "0038c3243873647a5dcf8ff49960cc1c498292fbeb3f2c02bde09234dcb29029",
+      "executable": "/usr/bin/swift-frontend",
+      "observedAtMS": 1795166334994,
+      "pid": 94928,
+      "target": "aarch64-unknown-linux-android28"
+    },
+    "offlineReservation": [
+      "de4bcfc3-b30d-45bc-857e-256a5efe8d7c",
+      1,
+      1,
+      true,
+      null
+    ],
+    "offlineRetry": [
+      [
+        2,
+        0,
+        "scheduled",
+        1795166337973
+      ],
+      [
+        "0a1360249314b2fe065258b5626df5bc9b003d3740833d15fc2586df092c2c37",
+        "de4bcfc3-b30d-45bc-857e-256a5efe8d7c",
+        1795167521280,
+        "admitted",
+        1,
+        10,
+        "oban:2:86680e00-ad98-4419-bf0b-3fbc5ed02e2c"
+      ]
+    ],
+    "outageConnectErrno": 61,
+    "port": 55947,
+    "reapedAtMS": 1795166337186,
+    "reopenedRunnerGuard": {
+      "epoch": 25,
+      "expires_at": 1795166377047,
+      "owner_id": "oban:2:172b1dec-50cc-4974-ae84-1367c00f0cd3",
+      "record_id": "de4bcfc3-b30d-45bc-857e-256a5efe8d7c",
+      "revision": 1
+    },
+    "runnerPID": 19313,
+    "samePortPlainBind": true,
+    "signal": {
+      "name": "SIGKILL",
+      "targetPGID": 19357,
+      "targetPID": 19357
+    },
+    "startJobAfterReopen": [
+      2,
+      1,
+      "executing",
+      1795166368041
+    ],
+    "startJobBeforeExit": [
+      2,
+      0,
+      "scheduled",
+      1795166335966
+    ]
+  }
+}
