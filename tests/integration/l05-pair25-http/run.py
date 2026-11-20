@@ -725,6 +725,20 @@ def drive(root, args, env, result):
     def observed_db():
         return json.loads(sql(SQL_STATE))
 
+    def billing_state():
+        tables = sql("""
+            SELECT tablename FROM pg_catalog.pg_tables
+            WHERE schemaname = 'public' AND starts_with(tablename, 'mixer_billing_')
+            ORDER BY tablename
+        """).splitlines()
+        require("mixer_billing_organization_state" in tables, "billing state relation missing")
+        snapshot = {}
+        for table in tables:
+            require(re.fullmatch(r"[a-z_]+", table), "unexpected billing relation name")
+            rows = sql(f"SELECT to_jsonb(t) FROM public.{table} AS t ORDER BY 1")
+            snapshot[table] = {"rows": len(rows.splitlines()), "sha256": sha(rows.encode())}
+        return snapshot
+
     with owned(root, "initdb", [pg / "initdb", "-D", root / "pg", "-U", "fixture_admin", "--locale=C",
                                "--encoding=UTF8", "--auth=trust", "--no-sync"], root, env, receipts) as child:
         child.wait(timeout=15)
@@ -744,6 +758,7 @@ def drive(root, args, env, result):
         auth = ready("api.ready", api, seconds=65)
         ports.extend(auth[key] for key in ("port", "issuer", "jwks"))
         require(len(set(ports)) == len(ports), "fixture listener collision")
+        result["billingBeforeBuild"] = billing_state()
 
         config = {"tenant": auth["build"]["organization_id"], "worker_id": "pair25-native-worker",
                   "port": worker_port, "token": secrets.token_hex(32)}
@@ -1171,6 +1186,9 @@ def drive(root, args, env, result):
                             "native success changed after artifact and log readback")
             if args.worker_crash:
                 recovery["outcome"] = "cancelled" if result["cancellationExercised"] else "native_succeeded"
+            result["billingAfterReadback"] = billing_state()
+            require(result["billingBeforeBuild"] == result["billingAfterReadback"],
+                    "build or readback changed billing state")
 
     require(not Path(runner["socket_path"]).exists(), "runner socket was retained")
     with ExitStack() as stack:

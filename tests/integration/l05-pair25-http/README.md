@@ -36,6 +36,9 @@ configurations, checks listener startup, then resumes that queue. Fresh owner
 and unrelated-tenant sessions read the terminal detail, logs and three artifact
 routes after worker shutdown.
 
+The fixture records a row count and SHA-256 for each billing table before the
+build and after terminal readback. Both snapshots must match.
+
 ## Zero-native-build control
 
 ```sh
