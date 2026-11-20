@@ -10,7 +10,9 @@ development signer holds the private keys outside Phoenix.
 1. Use the local installation database with the existing authorization and
    artifact schemas. Apply migrations `20261120000001` and `20261120000002`
    from `hosted/priv/repo/migrations`. Apply `20261120000003` from
-   `hosted/priv/local_release_delivery` afterward. Run these migrations with
+   `hosted/priv/local_release_delivery` afterward. Apply `20261120000010`
+   from the ordinary migration directory before starting the API, including
+   when releases are published only from the browser. Run these migrations with
    the common non-login relation owner as `current_user`. This role owns
    `mixer_customer_artifacts`, `mixer_release_heads`, and
    `mixer_release_publications` and has neither superuser nor BYPASSRLS.
@@ -132,7 +134,8 @@ through its ordinary login.
    GRANT SELECT, INSERT (
      organization_id, project_id, application_id, environment_id, platform,
      runtime_sha256, channel, sequence, previous_sequence, artifact_sha256,
-     signed_assignment_bytes, rollout_basis_points, idempotency_key, reason, principal_id
+     signed_assignment_bytes, rollout_basis_points, idempotency_key, reason, principal_id,
+     action
    ) ON public.mixer_release_publications TO :"browser_runtime";
    GRANT SELECT, INSERT ON public.mixer_release_cli_requests TO :"browser_runtime";
    GRANT EXECUTE ON FUNCTION
