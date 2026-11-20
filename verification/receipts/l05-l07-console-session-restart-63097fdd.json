@@ -1,0 +1,649 @@
+{
+  "schema": 1,
+  "slice": "L05/L07 local persisted browser session across Phoenix restart",
+  "result": "comparison_complete_ordinary_session_503_observed_historical_cause_unresolved",
+  "source": {
+    "commit": "63097fdd138efbc57465aeabf3ad58fcdd0aaa87",
+    "tree": "5fdaf06b00827fed6585c3cf1e9c074783286e77",
+    "hostedTree": "cb77b4e29aafa21bdf5ef76f37c4173046ff72e9",
+    "consoleTree": "095acd8a81476a4bb07ffc62f047f4522dcc3fad",
+    "protocolTestdataTree": "1a8717b190ebc87d62510f3689319f6caf3ae83c",
+    "referenceReplayCommit": "c2e69175dc0aadf8fb1d802328046be73e05e62c",
+    "referenceReceipt": "verification/receipts/l05-console-release-head-71e6ffa.json"
+  },
+  "startedUTC": "2026-11-20T18:31:26.842114+00:00",
+  "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "tools": {
+    "python": "3.14.8",
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:15:15] [ds:15:15:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "node": "v26.13.1",
+    "npm": "11.20.0",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "vite": "8.3.5",
+    "phoenix": "1.8.16",
+    "acidPreviewChromium": "152.0.7977.167"
+  },
+  "runner": {
+    "invocation": "python3 -B verification/local/l05-session-comparison/replay.py --receipt verification/local/l05-session-comparison/authenticated.json",
+    "diagnosticOverlaySHA256": {
+      "replay.py": "583541bd42527ba7b553e65257ba99a32df4aa5af9276c3c971cf0582901ba21",
+      "mixer_l05_checkpoint.exs": "801e756049c5206a2c48ca4e73bcd2c92149336c4a7f96c06b4b3c403a5d256f"
+    },
+    "overlayRetained": false,
+    "signedFixtureSHA256": "ee4935fedca51b728e78801cb05c5732e8547bda1e26f109330e6659a0a2f77a",
+    "browserAssetsSHA256": {
+      "assets/favicon-32.png": "3e770ea0378151a2c088e43e1b5d8713f142e688fa0edc93289eb178acf6554d",
+      "assets/flick-128.webp": "f366034547d29813bba5ffdfb99e1d8b5b3a359ef770486721a8b566ab4bf316",
+      "assets/index-B4Kv0aOf.js": "af918db76267c89e433e4146c5d86619d50d7de7d2cc7018e8bf47ce2463e9ff",
+      "assets/index-BeoFqg4-.css": "d8d4099c6ab7e496a8370b7ffce4095c05f935975a0b60ade583a912641310fa",
+      "index.html": "410562b8392d472489871d4f840cc82643a2d892d2afd58e88e0074e392702ec",
+      "third-party-notices.txt": "90bc9ee087e8c876fb6edac6f8eb61b7013c94dded0f1eaf88b8972a68706551"
+    },
+    "fixtureCommand": [
+      "mix",
+      "test",
+      "--warnings-as-errors",
+      "--seed",
+      "0",
+      "--trace",
+      "--timeout",
+      "540000",
+      "test/mixer_hosted/releases/browser_publication_test.exs:312"
+    ],
+    "fixtureResult": "Result: 1 passed, 3 excluded",
+    "setup": [
+      "Build the production console and signed-release ExUnit fixture from the pinned public tree. Use the root replay bridge and its synthetic OIDC login against real loopback Phoenix and PostgreSQL. Add observation-only checkpoints immediately after Application.stop and after the restarted endpoint reports its port.",
+      "Open one owned Acid incognito tab at a unique loopback origin. Use the existing one-use 303 as a top-level navigation to install the original Phoenix-issued owner session. Keep that cookie across the application restart and both rollback navigations.",
+      "Use new HTTP connections for direct and bridged GET /auth/session with the same credential, sending the preview navigation in the same observation window. Compare generation internally. Log each bridge request's selected checkpoint and listener, original upstream status or transport category, and whether its downstream write completed.",
+      "Hold the before-handoff observation briefly at the restarted checkpoint with the bridge still on its previous checkpoint. Resume the existing signed rollback; switch the bridge to the rollback checkpoint before the first rollback navigation. Reopen the same release URL without rotating the session."
+    ],
+    "timing": "UTC milliseconds align fixture and harness events; durations use monotonic clocks. Browser resource start times are relative to timeOriginUTCms. Chromium resource status 0 means no HTTP status was exposed; bridge delivered only means its downstream write completed."
+  },
+  "observations": [
+    "With Phoenix stopped, the old listener refused the direct connection and the bridge returned 502. While the new Phoenix listener served the same persisted authenticated session with HTTP 200, the intentionally stale bridge still selected the old listener and returned 502 to the probe and both browser reads. The browser displayed Console session unavailable.",
+    "After the bridge switched to the new listener, a fresh direct authenticated read returned HTTP 503 in 1379.31 ms and the bridge probe received HTTP 503 from the new upstream in 11.18 ms. The browser's first rollback navigation in that window received HTTP 200 on the session read it used and rendered signed rollback sequence 9.",
+    "On reopening, both probes returned HTTP 200 for the original generation. The browser issued two overlapping session reads on the new listener, 6 ms apart by bridge arrival. Phoenix returned HTTP 200 for one and HTTP 503 for the other. Chromium reported 0 for the first and 503 for the second. The document loaded with HTTP 200 and ended on Console session unavailable.",
+    "A similar pair appeared before the restart: Phoenix sent HTTP 200 and 503 to two browser reads using the original cookie and the same old listener; the browser received the 503 and displayed Console session unavailable. The ordinary HTTP 503 is therefore reproducible across both listener generations in this fixture.",
+    "The new listener produced a genuine session-read availability failure without needing the Python bridge or preview to generate the HTTP 503. The stale bridge route is a separate 502 failure mode. The direct and browser probes could overlap, so the run does not identify the internal admission failure or establish whether serialized reads can hit it. It also does not retrospectively identify the cause of the reference run's first rollback screen or single disconnected response."
+  ],
+  "narrowRepro": [
+    "Use the existing signed publication fixture's owner credential. Confirm a direct session read has HTTP 200 and keep the credential alive across the normal Phoenix application restart with the same database.",
+    "At the completed rollback checkpoint, select the new listener in the bridge. Run one fresh direct authenticated session read and open the release page in Acid preview in the same window; also read through the bridge. Record each HTTP outcome and the chosen listener.",
+    "Reopen that release page using the same cookie. The observed failure had two overlapping browser session reads, an upstream 503 on the new listener, and a final session-unavailable screen despite a neighboring authenticated 200. The source boundary that maps failures to 503 is BrowserHTTP.dispatch for GET /auth/session calling RuntimeOwner.read_session. The exact internal branch was not captured."
+  ],
+  "phases": {
+    "baseline": {
+      "checkpointReadUTCms": 1795199615382,
+      "knownPhoenixListener": 64880,
+      "bridgeSelectedListener": 64880,
+      "bridgePhase": "baseline",
+      "fixtureCheckpointUTCms": 1795199615371,
+      "restartMarkersUTCms": {},
+      "cookieMatchesBaseline": true,
+      "reads": [
+        {
+          "client": "direct",
+          "connectedPort": 64880,
+          "startedUTCms": 1795199615382,
+          "http": 200,
+          "noStore": true,
+          "session": "authenticated",
+          "sameGeneration": true,
+          "ms": 203.6
+        },
+        {
+          "client": "bridge",
+          "connectedPort": 64841,
+          "startedUTCms": 1795199615586,
+          "http": 200,
+          "noStore": true,
+          "session": "authenticated",
+          "sameGeneration": true,
+          "ms": 308.3
+        }
+      ],
+      "browser": {
+        "toolStartedUTCms": 1795199615791,
+        "navigationStartedUTCms": 1795199615791,
+        "navigation": {
+          "result": "loaded"
+        },
+        "navigationReturnedUTCms": 1795199615902,
+        "document": {
+          "chromium": "152.0.7977.167",
+          "documentHTTP": 200,
+          "expectedSequenceRendered": false,
+          "finalCategory": "session_unavailable",
+          "navLoadMs": 72.4,
+          "redirectCount": 1,
+          "resources": [
+            {
+              "durationMs": 35.5,
+              "endpoint": "session",
+              "http": 0,
+              "startedMs": 37.4
+            },
+            {
+              "durationMs": 2.8,
+              "endpoint": "session",
+              "http": 503,
+              "startedMs": 72.7
+            }
+          ],
+          "states": [
+            {
+              "atMs": 105,
+              "category": "session_unavailable"
+            }
+          ],
+          "timeOriginUTCms": 1795199615808
+        }
+      }
+    },
+    "stopped": {
+      "checkpointReadUTCms": 1795199616868,
+      "knownPhoenixListener": 64880,
+      "bridgeSelectedListener": 64880,
+      "bridgePhase": "baseline",
+      "fixtureCheckpointUTCms": 1795199616816,
+      "restartMarkersUTCms": {
+        "application_stopped": 1795199616816,
+        "stop_requested": 1795199616787
+      },
+      "cookieMatchesBaseline": true,
+      "reads": [
+        {
+          "client": "direct",
+          "connectedPort": 64880,
+          "startedUTCms": 1795199616868,
+          "http": null,
+          "transportError": "ConnectionRefusedError",
+          "ms": 2.42
+        },
+        {
+          "client": "bridge",
+          "connectedPort": 64841,
+          "startedUTCms": 1795199616870,
+          "http": 502,
+          "noStore": false,
+          "session": "non_json",
+          "ms": 2.95
+        }
+      ]
+    },
+    "restarted_before_handoff": {
+      "checkpointReadUTCms": 1795199617387,
+      "knownPhoenixListener": 65026,
+      "bridgeSelectedListener": 64880,
+      "bridgePhase": "baseline",
+      "fixtureCheckpointUTCms": 1795199617373,
+      "restartMarkersUTCms": {
+        "application_stopped": 1795199616816,
+        "stop_requested": 1795199616787,
+        "new_listener_known": 1795199617369
+      },
+      "cookieMatchesBaseline": true,
+      "reads": [
+        {
+          "client": "direct",
+          "connectedPort": 65026,
+          "startedUTCms": 1795199617387,
+          "http": 200,
+          "noStore": true,
+          "session": "authenticated",
+          "sameGeneration": true,
+          "ms": 1152.63
+        },
+        {
+          "client": "bridge",
+          "connectedPort": 64841,
+          "startedUTCms": 1795199618540,
+          "http": 502,
+          "noStore": false,
+          "session": "non_json",
+          "ms": 0.75
+        }
+      ],
+      "browser": {
+        "toolStartedUTCms": 1795199617917,
+        "navigationStartedUTCms": 1795199617917,
+        "navigation": {
+          "result": "loaded"
+        },
+        "navigationReturnedUTCms": 1795199618548,
+        "document": {
+          "chromium": "152.0.7977.167",
+          "documentHTTP": 200,
+          "expectedSequenceRendered": false,
+          "finalCategory": "session_unavailable",
+          "navLoadMs": 24.8,
+          "redirectCount": 0,
+          "resources": [
+            {
+              "durationMs": 2.4,
+              "endpoint": "session",
+              "http": 502,
+              "startedMs": 21.4
+            },
+            {
+              "durationMs": 1.8,
+              "endpoint": "session",
+              "http": 502,
+              "startedMs": 24.9
+            }
+          ],
+          "states": [
+            {
+              "atMs": 241,
+              "category": "session_unavailable"
+            }
+          ],
+          "timeOriginUTCms": 1795199618508
+        }
+      }
+    },
+    "rollback_first": {
+      "checkpointReadUTCms": 1795199625734,
+      "knownPhoenixListener": 65026,
+      "bridgeSelectedListener": 65026,
+      "bridgePhase": "rollback_first",
+      "fixtureCheckpointUTCms": 1795199624878,
+      "restartMarkersUTCms": {
+        "application_stopped": 1795199616816,
+        "stop_requested": 1795199616787,
+        "new_listener_known": 1795199617369
+      },
+      "cookieMatchesBaseline": true,
+      "reads": [
+        {
+          "client": "direct",
+          "connectedPort": 65026,
+          "startedUTCms": 1795199625735,
+          "http": 503,
+          "noStore": true,
+          "session": "other_response",
+          "ms": 1379.31
+        },
+        {
+          "client": "bridge",
+          "connectedPort": 64841,
+          "startedUTCms": 1795199627114,
+          "http": 503,
+          "noStore": true,
+          "session": "other_response",
+          "ms": 11.18
+        }
+      ],
+      "browser": {
+        "toolStartedUTCms": 1795199626843,
+        "navigationStartedUTCms": 1795199626843,
+        "navigation": {
+          "result": "loaded"
+        },
+        "navigationReturnedUTCms": 1795199628986,
+        "document": {
+          "chromium": "152.0.7977.167",
+          "documentHTTP": 200,
+          "expectedSequenceRendered": true,
+          "finalCategory": "published",
+          "navLoadMs": 19.6,
+          "redirectCount": 0,
+          "resources": [
+            {
+              "durationMs": 3.7,
+              "endpoint": "session",
+              "http": 0,
+              "startedMs": 16.7
+            },
+            {
+              "durationMs": 1211,
+              "endpoint": "session",
+              "http": 200,
+              "startedMs": 19.8
+            },
+            {
+              "durationMs": 1657.3,
+              "endpoint": "release_head",
+              "http": 200,
+              "startedMs": 1232.2
+            }
+          ],
+          "states": [
+            {
+              "atMs": 3028,
+              "category": "published"
+            }
+          ],
+          "timeOriginUTCms": 1795199627093
+        }
+      }
+    },
+    "rollback_reopen": {
+      "checkpointReadUTCms": 1795199630382,
+      "knownPhoenixListener": 65026,
+      "bridgeSelectedListener": 65026,
+      "bridgePhase": "rollback_first",
+      "fixtureCheckpointUTCms": 1795199624878,
+      "restartMarkersUTCms": {
+        "application_stopped": 1795199616816,
+        "stop_requested": 1795199616787,
+        "new_listener_known": 1795199617369
+      },
+      "cookieMatchesBaseline": true,
+      "reads": [
+        {
+          "client": "direct",
+          "connectedPort": 65026,
+          "startedUTCms": 1795199630383,
+          "http": 200,
+          "noStore": true,
+          "session": "authenticated",
+          "sameGeneration": true,
+          "ms": 976.82
+        },
+        {
+          "client": "bridge",
+          "connectedPort": 64841,
+          "startedUTCms": 1795199631360,
+          "http": 200,
+          "noStore": true,
+          "session": "authenticated",
+          "sameGeneration": true,
+          "ms": 532.25
+        }
+      ],
+      "browser": {
+        "toolStartedUTCms": 1795199630720,
+        "navigationStartedUTCms": 1795199630720,
+        "navigation": {
+          "result": "loaded"
+        },
+        "navigationReturnedUTCms": 1795199631035,
+        "document": {
+          "chromium": "152.0.7977.167",
+          "documentHTTP": 200,
+          "expectedSequenceRendered": false,
+          "finalCategory": "session_unavailable",
+          "navLoadMs": 25.7,
+          "redirectCount": 0,
+          "resources": [
+            {
+              "durationMs": 9,
+              "endpoint": "session",
+              "http": 0,
+              "startedMs": 17.5
+            },
+            {
+              "durationMs": 4.5,
+              "endpoint": "session",
+              "http": 503,
+              "startedMs": 25.9
+            }
+          ],
+          "states": [
+            {
+              "atMs": 257,
+              "category": "session_unavailable"
+            }
+          ],
+          "timeOriginUTCms": 1795199630956
+        }
+      }
+    }
+  },
+  "bridgeTrace": [
+    {
+      "phase": "baseline",
+      "action": "baseline",
+      "endpoint": "/auth/session",
+      "listener": 64880,
+      "startedUTCms": 1795199615592,
+      "client": "bridge-probe",
+      "upstreamHTTP": 200,
+      "upstreamError": null,
+      "ownerCredentialMatches": true,
+      "session": "authenticated",
+      "sameGeneration": true,
+      "bridgeHTTP": 200,
+      "delivered": true,
+      "ms": 302.49
+    },
+    {
+      "phase": "baseline",
+      "action": "baseline",
+      "endpoint": "/auth/session",
+      "listener": 64880,
+      "startedUTCms": 1795199615846,
+      "client": "preview",
+      "upstreamHTTP": 200,
+      "upstreamError": null,
+      "ownerCredentialMatches": true,
+      "session": "authenticated",
+      "sameGeneration": true,
+      "bridgeHTTP": 200,
+      "delivered": true,
+      "ms": 151.58
+    },
+    {
+      "phase": "baseline",
+      "action": "baseline",
+      "endpoint": "/auth/session",
+      "listener": 64880,
+      "startedUTCms": 1795199615881,
+      "client": "preview",
+      "upstreamHTTP": 503,
+      "upstreamError": null,
+      "ownerCredentialMatches": true,
+      "session": "other_response",
+      "bridgeHTTP": 503,
+      "delivered": true,
+      "ms": 1.89
+    },
+    {
+      "phase": "baseline",
+      "action": "stopped",
+      "endpoint": "/auth/session",
+      "listener": 64880,
+      "startedUTCms": 1795199616872,
+      "client": "bridge-probe",
+      "upstreamHTTP": null,
+      "upstreamError": "ConnectionRefusedError",
+      "ownerCredentialMatches": true,
+      "bridgeHTTP": 502,
+      "delivered": true,
+      "ms": 0.39
+    },
+    {
+      "phase": "baseline",
+      "action": "restarted_before_handoff",
+      "endpoint": "/auth/session",
+      "listener": 64880,
+      "startedUTCms": 1795199618530,
+      "client": "preview",
+      "upstreamHTTP": null,
+      "upstreamError": "ConnectionRefusedError",
+      "ownerCredentialMatches": true,
+      "bridgeHTTP": 502,
+      "delivered": true,
+      "ms": 0.75
+    },
+    {
+      "phase": "baseline",
+      "action": "restarted_before_handoff",
+      "endpoint": "/auth/session",
+      "listener": 64880,
+      "startedUTCms": 1795199618534,
+      "client": "preview",
+      "upstreamHTTP": null,
+      "upstreamError": "ConnectionRefusedError",
+      "ownerCredentialMatches": true,
+      "bridgeHTTP": 502,
+      "delivered": true,
+      "ms": 0.2
+    },
+    {
+      "phase": "baseline",
+      "action": "restarted_before_handoff",
+      "endpoint": "/auth/session",
+      "listener": 64880,
+      "startedUTCms": 1795199618541,
+      "client": "bridge-probe",
+      "upstreamHTTP": null,
+      "upstreamError": "ConnectionRefusedError",
+      "ownerCredentialMatches": true,
+      "bridgeHTTP": 502,
+      "delivered": true,
+      "ms": 0.18
+    },
+    {
+      "phase": "rollback_first",
+      "action": "rollback_first",
+      "endpoint": "/auth/session",
+      "listener": 65026,
+      "startedUTCms": 1795199627111,
+      "client": "preview",
+      "upstreamHTTP": 200,
+      "upstreamError": null,
+      "ownerCredentialMatches": true,
+      "session": "authenticated",
+      "sameGeneration": true,
+      "bridgeHTTP": 200,
+      "delivered": true,
+      "ms": 508.2
+    },
+    {
+      "phase": "rollback_first",
+      "action": "rollback_first",
+      "endpoint": "/auth/session",
+      "listener": 65026,
+      "startedUTCms": 1795199627113,
+      "client": "preview",
+      "upstreamHTTP": 200,
+      "upstreamError": null,
+      "ownerCredentialMatches": true,
+      "session": "authenticated",
+      "sameGeneration": true,
+      "bridgeHTTP": 200,
+      "delivered": true,
+      "ms": 1209.72
+    },
+    {
+      "phase": "rollback_first",
+      "action": "rollback_first",
+      "endpoint": "/auth/session",
+      "listener": 65026,
+      "startedUTCms": 1795199627115,
+      "client": "bridge-probe",
+      "upstreamHTTP": 503,
+      "upstreamError": null,
+      "ownerCredentialMatches": true,
+      "session": "other_response",
+      "bridgeHTTP": 503,
+      "delivered": true,
+      "ms": 10.22
+    },
+    {
+      "phase": "rollback_first",
+      "action": "rollback_first",
+      "endpoint": "/console-api/v1/release-head",
+      "listener": 65026,
+      "startedUTCms": 1795199628334,
+      "client": "preview",
+      "upstreamHTTP": 200,
+      "upstreamError": null,
+      "ownerCredentialMatches": true,
+      "bridgeHTTP": 200,
+      "delivered": true,
+      "ms": 1648.13
+    },
+    {
+      "phase": "rollback_first",
+      "action": "rollback_reopen",
+      "endpoint": "/auth/session",
+      "listener": 65026,
+      "startedUTCms": 1795199630978,
+      "client": "preview",
+      "upstreamHTTP": 200,
+      "upstreamError": null,
+      "ownerCredentialMatches": true,
+      "session": "authenticated",
+      "sameGeneration": true,
+      "bridgeHTTP": 200,
+      "delivered": true,
+      "ms": 631.59
+    },
+    {
+      "phase": "rollback_first",
+      "action": "rollback_reopen",
+      "endpoint": "/auth/session",
+      "listener": 65026,
+      "startedUTCms": 1795199630984,
+      "client": "preview",
+      "upstreamHTTP": 503,
+      "upstreamError": null,
+      "ownerCredentialMatches": true,
+      "session": "other_response",
+      "bridgeHTTP": 503,
+      "delivered": true,
+      "ms": 1.1
+    },
+    {
+      "phase": "rollback_first",
+      "action": "rollback_reopen",
+      "endpoint": "/auth/session",
+      "listener": 65026,
+      "startedUTCms": 1795199631361,
+      "client": "bridge-probe",
+      "upstreamHTTP": 200,
+      "upstreamError": null,
+      "ownerCredentialMatches": true,
+      "session": "authenticated",
+      "sameGeneration": true,
+      "bridgeHTTP": 200,
+      "delivered": true,
+      "ms": 530.44
+    }
+  ],
+  "clientDisconnects": {},
+  "discardedBrowserSetup": {
+    "reason": "A same-origin fetch of the handoff did not install the owner credential in the preview tab. Only the top-level-navigation run is used for authenticated browser conclusions.",
+    "ownerCredentialMatched": false,
+    "clientDisconnects": {
+      "/auth/session": 1
+    },
+    "bothReadPathsStillAdmittedPersistedSession": true
+  },
+  "cleanup": {
+    "ownedIncognitoTabsClosed": 2,
+    "previewStatusAfterClosingAuthenticatedTab": "unavailable; no current or listed tab",
+    "noStandaloneBrowser": true,
+    "bothFixtureDatabasesDropped": true,
+    "ownedCommandGroupsAbsent": {
+      "discardedSetup": 14,
+      "authenticatedComparison": 14
+    },
+    "allDirectChildrenExitedZero": true,
+    "loopbackPortsRebound": {
+      "discardedSetup": [
+        62572,
+        62577,
+        62599,
+        62603,
+        62611,
+        62999
+      ],
+      "authenticatedComparison": [
+        64828,
+        64841,
+        64867,
+        64872,
+        64880,
+        65026
+      ]
+    },
+    "bothRunScratchTreesRemoved": true,
+    "newCustodyHold": null,
+    "diagnosticSourceAndRawLocalReceiptsRemoved": true
+  },
+  "scope": "Local test evidence only. No product, existing replay, or gate edits, no pushes, and no native, cloud, or production work."
+}

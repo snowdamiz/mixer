@@ -311,6 +311,8 @@ Hosted v63 binds the Android replay to the 471-path source selection. All 470 v6
 
 The production console rendered the empty release head, two signed releases at sequences 7 and 8, and rollback at sequence 9 with the original manifest digest. Phoenix issued the browser's sessions through a synthetic identity fixture. The second tenant received HTTP 404 and saw no release fields. The first navigation after Phoenix restarted reported an unavailable session. A fresh navigation showed sequence 9. The cause of the first failure remains open. [Rendered console receipt](verification/receipts/l05-console-release-head-71e6ffa.json)
 
+A follow-up sent the same persisted session directly to the replacement Phoenix listener. One read returned HTTP 503, and two overlapping browser session reads returned 200 and 503. The bridge also returned a separate HTTP 502 while it still pointed at the retired listener. The internal cause of the Phoenix 503 remains open. [Session restart comparison](verification/receipts/l05-l07-console-session-restart-63097fdd.json)
+
 ### TaskCompletion parity and source diagnostic
 
 At Mixer `7b61fe1cd9ae79d3153a29b5aff91c0146b0bd99`, the signed TaskCompletion trial passed on an owned AOSP arm64 API 36 emulator. A single staged Package Manager install matched development APK SHA-256 `f95407b596fe7d883a06a2c132b0ca0705b4f1189124d626c50c9e5a41368787`. The app drew **Open**, **Review required**, **Completed**, and **Open** from the same Swift source as the host differential. The JNI route refused the stale revision-1 input at revision 2. The fourth tap trapped at `TaskCompletion.swift:94:9`, function 8, Wasm offset 1883. The app kept the same PID and published no revision 5. **Close guest** confirmed retirement.
