@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "scope": "Local frozen hosted source and Source141 archive admission. Root owns adoption and the main-branch pause checkpoint.",
+  "source_revision": "c86c5a39cf6e4bd365ca75859775d97b558dbbbe",
+  "source_tree": "dc2db9f8eb8e534aa6a74f69d1f76d73d0f2ce0a",
+  "product_anchor": "e326ce2041d8b2176b2086b2f59cd6cde6d97e56",
+  "predecessor": "36e1d8bbe1bdbf4522e49cf83d740780d1c54900",
+  "environment": {"system": "macOS 27.0.1 (26A434) arm64", "git": "2.56.0", "python": "3.14.8"},
+  "root_runtime_evidence": {
+    "receipt": "verification/receipts/l07-hosted-http1-privacy-20261120.json",
+    "receipt_sha256": "0baa77d77216ae4cc62b6f117ad214957868c26b12fefbea9efc6be9d76f7741",
+    "afterimage_hashes_verified": 3,
+    "recorded_http1_after": "1.1 200",
+    "recorded_http2_before": "2 200",
+    "recorded_http2_after_curl_exit": 56,
+    "recorded_runtime_config_tests_passed": 9,
+    "recorded_listener_shutdown_and_port_rebind_in_both_runs": true
+  },
+  "hosted_source": {
+    "identity": "hosted-local-http1-privacy-source-v58",
+    "files": 448,
+    "bytes": 7049043,
+    "git_file_modes": {"100644": 446, "100755": 2},
+    "canonical_sha256": "2c6068919c592055f120babd8d2073701960908578011878285e2da961db7a86",
+    "selection_sha256": "b3191c2b13fed1acafda2b28f5fee58856a1ddefefea5308e816db98683de045",
+    "manifest_sha256": "9319a903e6950f19148715efb13d5a314e109accd0d580d7145ffd5ba6f11743",
+    "anchor_blobs_and_modes_verified": 448,
+    "exact_delta": 4,
+    "exact_preimages": 3,
+    "restored_v57": {
+      "files_compared_byte_for_byte_and_mode_for_mode": 447,
+      "bytes": 7046989,
+      "canonical_sha256": "3099c5a5b1769ca3259fba8b0d99df607811c19186ce95f81124ef4497bcd37a",
+      "selection_sha256": "ab35fe0cb4f2654214536d05239aa0b79f6eaa2c14b2df9bff4b9f4ecc25853b",
+      "original_checker_passed_in_both_modes": true
+    },
+    "ordinary_migrations_identical_by_blob_and_mode": 22,
+    "opt_in_migrations_identical_by_blob_and_mode": 4,
+    "collector_controls_passed_per_mode": 13,
+    "git_sparse_projection_files_passed_in_both_modes": {
+      "hosted.yml:phoenix": 870,
+      "identity-network.yml:identity-network": 1051,
+      "verify.yml:services": 1217
+    }
+  },
+  "source141_archive": {
+    "seal_tree_sha256": "b9657d8d3e9acc7fd0b485c91ee1621e2a87f5cf369345cc704a6a6ea9dc91f9",
+    "installed_files": 151,
+    "installed_source_sha256": "3693b7424928421348e43156de8cb307619e0470d5566ece5ee3094e60f638f6",
+    "installed_workflow_sha256": "2937551afec6a2d3673891538b6ce7ce2d746c940c89848bcb1c96b7b9e90179",
+    "exact_v57_workflow_preimage_sha256": "053bef81e15fcaf8c2db2e0014db5aec1e8e20175ba7962f3b0d9c509d43f098",
+    "exact_v57_workflow_preimage_bytes": 76962,
+    "git_selected_authority_paths_verified_per_mode": {"swift-host": 1095, "android-generated-java": 1095},
+    "android_full_projection_files": 1280,
+    "sparse_controls_passed_per_mode": 16,
+    "missing_and_stale_workflow_and_preimage_refusals_per_mode": 4,
+    "restored_source141": {"files": 890, "sha256": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab", "workflow_sha256": "b283a00fc9a7ca1b900306d3a4226e182e0ba966014efe0d3427207806f0c69e"},
+    "restored_source127": {"files": 845, "sha256": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7"}
+  },
+  "retention": {
+    "staged_artifact_check_for_pins": {"files": 49644, "bytes": 954578147},
+    "verification_policy_limits": {"max_files": 75000, "max_total_bytes": 1073741824, "max_file_bytes": 1048576},
+    "owned_scratch_reserve_bytes": 536870912,
+    "peak_sampled_allocated_bytes": 392871936,
+    "both_owned_replay_namespaces_removed": true
+  },
+  "replay": {
+    "comparison": "Use git ls-tree -r and git -c tar.umask=0022 archive for the frozen rosters. Invert the v58 exact_delta using its three exact preimages and remove the added probe. Compare the resulting bytes and modes to the v57 archive, then run the original v57 checker in its identity-network projection.",
+    "projections": "Feed tracked paths and the literal non-cone workflow stanzas to git sparse-checkout check-rules --no-cone --rules-file. Materialize the three hosted job projections, the Swift Source141 authority closure and the full Android job projection. Initialize Git metadata in the Android projection for the Git sparse controls.",
+    "commands_in_normal_and_optimized_python": [
+      "python3 -B hosted/scripts/test-identity-network.py --check-source",
+      "python3 -B hosted/scripts/test_identity_network_collector.py -v WorkspaceSourceCutoverControls WorkflowSparseSourceControls CurrentCLISelectionControls CollectorMethodWiringControls.test_collect_requires_actual_prepare_result_before_bootstrap",
+      "python3 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+      "python3 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py prepare-source141 --out <owned-output>",
+      "python3 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py prepare-predecessor --out <owned-output>",
+      "python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v"
+    ],
+    "negative_archive_controls": "In the owned Android projection remove and separately stale the live verify.yml and its v58 workflow preimage. Each mutation must fail verify --workflow-installed in both modes.",
+    "retention_command": "python3 -B scripts/check-verification-artifacts.py",
+    "corrected_setup": "The first projection omitted Git metadata and two normal-mode sparse controls exited through Git status 128. The corrected projection initialized an empty Git repository and all 16 controls passed in both modes."
+  },
+  "limits": "Static source, inventory, archive and local sparse-checkout evidence. Runtime observations come from the root protocol receipt. Live migration, compiler, native device, hosted CI and GA verification are outside this replay."
+}
