@@ -34,8 +34,12 @@ class LiveReceiptProof(unittest.TestCase):
         self.root = self.tmp / "mixer-command-receipts-00000000-0000-0000-0000-000000000001"
         self.command = self.root / "command-00000000-0000-0000-0000-000000000002"
         self.probe = self.root / "command-00000000-0000-0000-0000-000000000003"
-        for directory in (self.tmp, self.root, self.command, self.probe):
+        for directory in (self.project, self.tmp, self.root, self.command, self.probe):
             directory.mkdir(mode=0o700)
+        configuration = self.project / "mixer.yml"
+        configuration.write_text('{"name":"Starter"}')
+        configuration.chmod(0o600)
+        self.files = {"mixer.yml": live.file_sha(configuration)}
         self.path = self.command / "receipt.json"
         self.receipt = dict(schema="mixer.owned-command.2", released=True, state="RUNNING",
                             pid=111, ownedPGID=111, ownedSession=111, runtimeStartedNS=100,
@@ -65,7 +69,7 @@ class LiveReceiptProof(unittest.TestCase):
         witness = live.running_xcode(self.output, NATIVE)
         self.assertEqual(witness[1][1]["pid"], 111)
         nested = self.close_xcode()
-        self.assertEqual(CUSTODY.nested_closure(NATIVE, self.tmp)[1], nested)
+        self.assertEqual(CUSTODY.nested_closure(NATIVE, self.tmp, self.files)[1], nested)
         terminal, digest = live.terminal_xcode(self.tmp, witness, nested, NATIVE, 150)
         self.assertEqual(terminal["state"], "TERMINAL")
         self.assertEqual(nested["receipt_sha256s"], [witness[0][2], digest])
@@ -101,7 +105,7 @@ class LiveReceiptProof(unittest.TestCase):
                            second / "receipt.json")
         self.assertEqual(len(NATIVE.read_nested_receipts(self.tmp, self.root.name, strict=True)[1]), 3)
         with self.assertRaises(NATIVE.Refusal):
-            CUSTODY.nested_closure(NATIVE, self.tmp)
+            CUSTODY.nested_closure(NATIVE, self.tmp, self.files)
         with self.assertRaisesRegex(RuntimeError, "lone Xcode invocation"):
             live.terminal_xcode(self.tmp, witness, nested, NATIVE, 150)
 

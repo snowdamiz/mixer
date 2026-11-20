@@ -48,10 +48,10 @@ PREPARE = "tests/integration/free-project-starter/prepare-starter.py"
 API_TEST = "test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs"
 ADOPTED = "a1baffe7014ef2d65004955a6aec29e8bec9a2ba"
 V55_TREE = "908d4ecdd9b9eac889ea57490529c94573fbb374"
-LIVE_OVERLAY = "4b7465bf52cfff893fe21acf3d825d69d7ab4101"
+LIVE_OVERLAY = "7c02d59c01551ffdbac1c7ef7ee8353360e4f843"
 LIVE_OVERLAY_PINS = {
-    "hosted/priv/development/ios_build_custody.py": "0385c514a1f2e0a18ccaeb665538e831bfd48fcbaa999d7313ab0492c1b4331c",
-    WORKER_TEST: "45b4e3816a8c866145377331a136e4af701391964656ab82698ed7f97bfa9ad6",
+    "hosted/priv/development/ios_build_custody.py": "e385641ce84318174a1df3eaba6cabfe5d91ec8403a3460becfe97afe395b449",
+    "hosted/scripts/test_native_artifact_worker.py": "68f84ba1e64f62b753a5ebcfe0b87f40c5c90c0d785bd2a35e2018f15dcea29d",
 }
 
 
@@ -80,10 +80,10 @@ def provision(root, cache, archives, result, *, live=False, preflight=False):
 
     kit = runpy.run_path(str(root / PAIR / "run.py"))
     result["overlaySHA256"] = {}
-    if live and (git("rev-parse", f"{LIVE_OVERLAY}^").decode().strip() != ADOPTED
-                 or set(git("diff", "--name-only", ADOPTED, LIVE_OVERLAY).decode().splitlines())
-                 != LIVE_OVERLAY_PINS.keys()):
-        raise RuntimeError("tested live overlay parent or changed file roster differs")
+    if live:
+        git("merge-base", "--is-ancestor", ADOPTED, LIVE_OVERLAY)
+        if set(git("diff", "--name-only", ADOPTED, LIVE_OVERLAY).decode().splitlines()) != LIVE_OVERLAY_PINS.keys():
+            raise RuntimeError("tested live overlay changed file roster differs")
     overlay = LIVE_OVERLAY if live else OVERLAY
     for path in LIVE_OVERLAY_PINS if live else HOSTED_FILES:
         data = git("show", f"{overlay}:{path}")
