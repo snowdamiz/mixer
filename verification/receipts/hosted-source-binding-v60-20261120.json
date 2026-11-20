@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "scope": "Hosted v60 test-source admission and CLI141 Verify archive. Root owns adoption.",
+  "inputs": {
+    "root": "224337fd48ea4488ae205e23e5ba5786552f79f4",
+    "public_v59": "6047348aade7d5bb05e8013e437f36898eb90cb5",
+    "selected_tests": "75a28aad4b0b0e6d7bb563e0d1ff8111169a2741",
+    "unselected_collector_fixture": "f1cef5ff87ab2cdea315c3f6e0b6e4cb88261e21",
+    "root_collector_cherry_pick": "5aa0054b83148c6ec1cbc0077d9aa8e180312f47",
+    "verified_tree_excluding_this_receipt": "4a7bd23a82f4625d5ce5e9dac20292bfb3f27b8f"
+  },
+  "environment": {
+    "macOS": "27.0.1",
+    "architecture": "arm64",
+    "git": "2.56.0",
+    "python": "3.14.8"
+  },
+  "source": {
+    "identity": "hosted-ci-test-source-v60",
+    "count": 461,
+    "exact_delta_and_preimages": 4,
+    "reviewed_migrations": 23,
+    "unchanged_opt_in_migrations": 4,
+    "selection_sha256": "c72d7729048bb8f75b658f6f28c05b2d5ba36bc4565a134eb46707700419344f",
+    "manifest_sha256": "d8ea06de376441cf429a7390a1ab06667edce4151013e59a7a0f97a72500d4b5",
+    "source_digest_sha256": "70d447a7ea3bce833aace6522a9d0ea933f124c5228bc6bb83fedd353e9c5b2a",
+    "v59_restored_exact_bytes_and_modes": 461,
+    "v59_restored_bytes": 7150633,
+    "v59_restored_modes": {"100644": 459, "100755": 2},
+    "v59_restored_digest_sha256": "81e1e68f47384c824c29cf7f35904e96d9e0b0f68f45dee4abfb56aaa6c76012",
+    "sparse_workflow_source_checks_passed_in_both_modes": ["hosted.yml/phoenix", "identity-network.yml/identity-network", "verify.yml/services"]
+  },
+  "collector": {
+    "public_v59_regressions_reproduced": 3,
+    "exact_regressions_passed_per_mode": [
+      "BrowserBuildSourceSelectionControls.test_actual_source_count_and_digest_match_independently_pinned_metadata",
+      "PendingSessionV28Controls.test_current_source_check_rejects_each_corruption_without_touching_originals",
+      "BillingReconciliationV29Controls.test_current_source_checks_corrupt_full16_before_dispatch"
+    ],
+    "additional_controls_passed_per_mode": 13
+  },
+  "cli141": {
+    "workflow_archive_admitted_per_mode": ["android-generated-java", "swift-host and android-generated-java projection intersection"],
+    "sparse_controls_passed_per_mode": 16,
+    "negative_controls_refused_per_mode": ["changed Verify", "stale v59 Verify", "changed v59 Verify preimage", "missing v59 Verify preimage"],
+    "seal_tree_sha256": "b597db2e88b7d05ec44f276d9f19d9492b6f595abdbe5e6809454fd9ad2fb6ff",
+    "installed_source_count": 151,
+    "installed_source_sha256": "3693b7424928421348e43156de8cb307619e0470d5566ece5ee3094e60f638f6",
+    "restored_source141_files": 890,
+    "restored_source141_sha256": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab",
+    "restored_source127_files": 845,
+    "restored_source127_sha256": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7",
+    "restored_verify_sha256": "b283a00fc9a7ca1b900306d3a4226e182e0ba966014efe0d3427207806f0c69e"
+  },
+  "commands": [
+    "git sparse-checkout check-rules -z --no-cone --rules-file <literal workflow stanza>",
+    "git -c tar.umask=0022 archive <exact revision or tree> -- <roster>",
+    "python3 -B [-O] hosted/scripts/test-identity-network.py --check-source",
+    "python3 -B [-O] hosted/scripts/test_identity_network_collector.py -v <three named regressions>",
+    "python3 -B [-O] hosted/scripts/test_identity_network_collector.py -v WorkspaceSourceCutoverControls WorkflowSparseSourceControls CurrentCLISelectionControls CollectorMethodWiringControls.test_collect_requires_actual_prepare_result_before_bootstrap",
+    "python3 -I -B -S [-O] verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v",
+    "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+    "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py prepare-source141 --out <owned output>",
+    "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py prepare-predecessor --out <owned output>",
+    "python3 -B [-O] scripts/check-verification-artifacts.py"
+  ],
+  "retention_before_this_receipt": {
+    "tracked_files": 49676,
+    "tracked_bytes": 955292002,
+    "budget_bytes": 1073741824
+  },
+  "observations": [
+    "The first Swift projection materialization used the union with Android and exceeded argv capacity before Git launch. The CLI141 verification used the workflow projection intersection.",
+    "The archive preparation initially refused the /tmp symlink ancestry. Both modes passed using the same owned scratch by its canonical /private/tmp path.",
+    "The focused Phoenix replay recorded by root passed 56 with exit 0 on the exact four test afterimages. No Phoenix or full collector rerun was part of this successor."
+  ],
+  "runtime_or_GA_accepted": false,
+  "owned_scratch_removed": true
+}
