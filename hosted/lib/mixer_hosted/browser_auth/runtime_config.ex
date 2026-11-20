@@ -185,8 +185,12 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
   defp create_connections(%HostedConfig{create_repo: nil}), do: 0
   defp create_connections(%HostedConfig{}), do: 2
 
-  defp additional_connections(hosted),
-    do: create_connections(hosted) + LocalUpload.connections(hosted.artifact_upload)
+  defp additional_connections(%HostedConfig{artifact_upload: nil} = hosted),
+    do: create_connections(hosted)
+
+  defp additional_connections(%HostedConfig{artifact_upload: upload} = hosted)
+       when is_struct(upload, LocalUpload),
+       do: create_connections(hosted) + 1
 
   defp create_repo?(%HostedConfig{create_repo: nil}), do: true
 

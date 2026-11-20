@@ -70,8 +70,6 @@ defmodule MixerHosted.Releases.WriterRepo do
 end
 
 defmodule MixerHosted.CustomerArtifacts.LocalUpload do
-  def connections(nil), do: 0
-
   def children(%{artifact_upload: nil}, _, _) do
     :error = Application.fetch_env(:mixer_hosted, MixerHosted.CustomerArtifacts.UploadRepo)
     []
@@ -500,7 +498,8 @@ IO.puts(
         "RuntimeOwner",
         "Endpoint.config_change",
         "PublicDelivery.children",
-        "WriterRepo.children", "LocalUpload.children"
+        "WriterRepo.children",
+        "LocalUpload.children"
       ],
       database_admission_proved: false,
       all_owned_names_absent: true,

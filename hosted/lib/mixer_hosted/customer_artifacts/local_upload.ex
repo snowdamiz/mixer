@@ -60,9 +60,6 @@ defmodule MixerHosted.CustomerArtifacts.LocalUpload do
     end
   end
 
-  def connections(nil), do: 0
-  def connections(%__MODULE__{}), do: 1
-
   def children(%RuntimeConfig{artifact_upload: nil}, _, _), do: []
 
   def children(
