@@ -429,6 +429,7 @@
         "verification/receipts/l05-android-starter-selection-v51-20261119.json",
         "verification/receipts/managed-android-cancel-drain-20261119.json",
         "verification/receipts/l05-android-swiftpm-phase-closure-20261119.json",
+        "verification/receipts/l05-android-swiftpm-compiler-boundary-20261119.json",
         "verification/receipts/l05-selected-android-pair24-native-delivery-20261119.json"
       ],
       "reviewer": null
@@ -437,7 +438,7 @@
       "id": "L06",
       "name": "Free accounts and administration",
       "requirement": "Free organizations can use the full testing workflow without a card, subscription, Stripe credentials, or payment service. Memberships, permissions, usage visibility, quotas, support, export, and deletion work locally. Paid plans, invoices, payment collection, paid entitlements, and purchase integrations may remain unimplemented and inactive.",
-      "status": "running",
+      "status": "passed",
       "evidence": [
         "STATUS.md#rendered-free-starter-build",
         "verification/receipts/l06-member-session-read-lock-41a05264.json",
@@ -503,9 +504,11 @@
       "verification/identity-network-current-source-v43/selection.json",
         "verification/receipts/l06-starter-console-ca-a5398fa-20261119.json",
         "verification/receipts/l06-starter-owner-exit-discriminator-a5398fa-20261119.json",
-        "verification/receipts/l06-starter-real-build-owner-exit-59cab78-20261119.json"
+        "verification/receipts/l06-starter-real-build-owner-exit-59cab78-20261119.json",
+        "verification/receipts/l06-maintained-starter-owner-exit-20261119.json",
+        "verification/receipts/l06-local-acceptance-20261119.json"
       ],
-      "reviewer": null
+      "reviewer": "Independent L06 acceptance and maintained-replay reviewers, with root verification of the fixture verdict correction"
     },
     {
       "id": "L07",
@@ -1138,7 +1141,7 @@
   "currentWork": {
     "androidRetainedStarterArtifacts": "The standalone CLI built and reopened the unsigned Pair24 Starter APK, symbols and inventory. A separate disposable signer verified the exact APK after compiler closure. Managed Android builds and delivery remain open.",
     "starterFormerOwnerRead": "After one real registered iOS Starter build settled and the owner exited, the first expired-cookie build GET returned 401 and the first renewed former-owner GET returned 404. Tenant B retained its own access, and the build history stayed intact. The historical HTTP 503 remains unexplained.",
-    "renderedStarterWorkspaceExit": "One free iOS Starter build completed through the console, including its compiler log, all three downloads, export, and exit. The unrelated tenant's first reads passed. The supplemental expired-cookie request returned 503 in the browser campaign. The separate real-build API run verified the 401 and 404 outcomes.",
+    "renderedStarterWorkspaceExit": "One free iOS Starter build completed through the console, including its compiler log, all three downloads, export, and exit. The unrelated tenant's first reads passed. The supplemental expired-cookie request returned 503 in the browser campaign. The maintained real-build API replay verified the 401 and 404 outcomes from a fresh checkout. Combined with the free administration evidence, L06 passed locally.",
     "androidStarterOfflineResolve": "The ordinary Pair24 Starter resolved pinned Swift dependencies from verified local mirrors and preserved both lockfiles. Managed Android compilation and artifact delivery remain open.",
     "november18": "Both mobile development fixtures ran a locally served signed update and rollback. Android recovered its healthy candidate offline after force-stop and resumed the interrupted download. Whole-workflow acceptance with saved task hydration is pending. The unsigned native build client fetched all three artifacts after worker shutdown.",
     "publicSdkRoot": "Public SDK root verified on macOS and Linux. L01 subsequently passed independent local review for Pair24.",

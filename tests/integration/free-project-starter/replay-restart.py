@@ -1486,7 +1486,6 @@ def main():
                 require(run.sql("fixture-zero-builds", "SELECT count(*) FROM mixer_builds") == "0",
                         "fixture unexpectedly created a build")
                 run.result["buildRows"] = 0
-                outcome = "PASS_ORDINARY_L07_FIXTURE"
                 if run.owner_exit:
                     selection = dict(run.auth["ownerScope"], platform="ios", build_id="build-" + "0" * 64,
                                      **{k: "0" * 64 for k in ("source_sha256", "toolchain_lock_sha256",
@@ -1495,6 +1494,8 @@ def main():
                     require(run.sql("exit-fixture-zero-builds", "SELECT count(*) FROM mixer_builds") == "0",
                             "exit fixture unexpectedly created a build")
                     outcome = "PASS_ORDINARY_L06_OWNER_EXIT_FIXTURE"
+                else:
+                    outcome = "PASS_ORDINARY_L07_FIXTURE"
             else:
                 outcome = restart_replay(run, args.preflight_only)
     except BaseException as error:
