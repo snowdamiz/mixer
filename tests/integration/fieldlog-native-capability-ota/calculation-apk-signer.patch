@@ -1,0 +1,15 @@
+--- calculation-distributor.py
++++ calculation-distributor.py
+@@ -165,10 +165,7 @@
+         verify_image(unsigned, assets, libraries, notices)
+         run(env, tools / "zipalign", "-P", "16", "-f", "4", unsigned, aligned)
+-        key = work / "development.p12"
++        key = Path(env["FIELDLOG_PAIR_APK_KEYSTORE"])
+         password = "FIELDLOG_LOCAL_APK_PASSWORD"
+-        signing = env | {password: os.urandom(24).hex()}
+-        run(signing, args.java_home / "bin/keytool", "-genkeypair", "-storetype", "PKCS12", "-keystore", key,
+-            "-alias", "fieldlog-local", "-storepass:env", password, "-keypass:env", password,
+-            "-keyalg", "EC", "-groupname", "secp256r1", "-validity", "30", "-dname", "CN=FieldLog Local Development")
++        signing = env
+         run(signing, tools / "apksigner", "sign", "--ks", key, "--ks-pass", f"env:{password}",
+             "--v3-signing-enabled", "true", "--v4-signing-enabled", "false", "--out", signed, aligned)

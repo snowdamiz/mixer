@@ -1,0 +1,63 @@
+--- a/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
++++ b/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
+@@ -1,4 +1,4 @@
+-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.fieldlog.generatedr90.calculation" android:versionCode="1" android:versionName="0.1.0">
++<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.fieldlog.generatedr90.calculation" android:versionCode="2" android:versionName="0.1.0">
+   <uses-sdk android:minSdkVersion="36" android:targetSdkVersion="36" />
+   <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="FieldLogGenerated" android:debuggable="true" android:allowBackup="false" android:extractNativeLibs="true" android:supportsRtl="true">
+     <provider android:name="dev.fieldlog.generatedr90.androidhost.PublicBridge$ReportProvider" android:authorities="dev.fieldlog.generatedr90.calculation.reports" android:exported="false" android:grantUriPermissions="true" />
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -683,7 +683,7 @@
+         private File installedMaterial() throws IOException {
+             File directory = new File(activity.getFilesDir(), "checklist-installed");
+             if (!directory.exists() && !directory.mkdir()) throw new IOException("directory");
+-            for (String name : new String[]{"identity.json", "roots.json", "storage.json", "storage-grant.json", "bridge.json", "port.txt"}) {
++            for (String name : new String[]{"identity.json", "roots.json", "storage.json", "storage-grant.json", "bridge.json", "port.txt", "http.json", "http-grant.json"}) {
+                 try (java.io.InputStream asset = activity.getAssets().open("ChecklistRelease/" + name)) {
+                     Files.copy(asset, new File(directory, name).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                 }
+--- a/Integrations/InstalledGuest/SignedTask.swift
++++ b/Integrations/InstalledGuest/SignedTask.swift
+@@ -44,21 +44,37 @@
+         }
+         #endif
+         let storageID = CapabilitySchemas.storageID
+-        guard Set(identity.installedRuntime.capabilityHashes.keys) == [storageID] else {
+-            throw UpdateError("fieldlog.capabilities", "The checklist guest requires only selected-draft storage")
++        #if DEBUG && FIELDLOG_CALCULATION_FIXTURE
++        let httpID = CapabilitySchemas.httpID
++        let expectedCapabilities: Set<String> = [storageID, httpID]
++        #else
++        let expectedCapabilities: Set<String> = [storageID]
++        #endif
++        guard Set(identity.installedRuntime.capabilityHashes.keys) == expectedCapabilities else {
++            throw UpdateError("fieldlog.capabilities", "The checklist identity differs from the native capability set")
+         }
+-        let materials: [CapabilityMaterialFile] = try [
++        let storageMaterials: [CapabilityMaterialFile] = try [
+             .init(role: .bridgePolicy, bytes: read(material, "bridge.json")),
+             .init(role: .configuration(capabilityID: storageID), bytes: read(material, "storage.json")),
+             .init(role: .installedGrant(capabilityID: storageID), bytes: read(material, "storage-grant.json")),
+         ]
++        #if DEBUG && FIELDLOG_CALCULATION_FIXTURE
++        let materials = try storageMaterials + [
++            .init(role: .configuration(capabilityID: httpID), bytes: read(material, "http.json")),
++            .init(role: .installedGrant(capabilityID: httpID), bytes: read(material, "http-grant.json")),
++        ]
++        let recovery = directory.appendingPathComponent("recovery-" + identity.fingerprint, isDirectory: true)
++        #else
++        let materials = storageMaterials
++        let recovery = directory.appendingPathComponent("recovery", isDirectory: true)
++        #endif
+         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+         let execution = try InstalledCapabilityExecution(identityJSON: identityBytes, materials: materials,
+             trustRootsJSON: read(material, "roots.json"), privateContainer: directory,
+             applicationStorage: .init(runtimeFingerprint: identity.fingerprint, namespace: FieldLogDraftStorage.namespace,
+                 service: storage, allowsDeferredGuestUIStartup: true))
+         let installation = installation.uuidString.lowercased()
+-        let owner = try await Owner.open(configuration: .init(directory: directory.appendingPathComponent("recovery"),
++        let owner = try await Owner.open(configuration: .init(directory: recovery,
+             channel: "beta", installation: installation, observationSeconds: 1), execution: execution)
+         return Self(owner: owner, identity: identity, installation: installation, port: port, directory: directory)
+     }

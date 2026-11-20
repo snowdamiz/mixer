@@ -49,31 +49,40 @@ independently pinned producer trust. The HTTPS host replay provides the OTA
 refusal and does not produce that qualification packet.
 [Earlier CLI receipt](../../../verification/receipts/fieldlog-release-inspection-clean-pin-41a05264.json)
 
-## Qualify the installed Android path
+## Build the Android native handoff
 
-Use the [Android calculation source rebuild](../fieldlog-task-calculation/README.md#rebuild-the-android-apk-and-replay-it-on-the-host)
-for the storage-only app and the [Android engine-pair recipe](https://github.com/snowdamiz/mixer/blob/71e6ffa51e857d5a1eda3f74c26941996ed275de/tests/integration/fieldlog-android-engine-pair/README.md)
-for same-signer APKs, distinct fingerprints, and runtime-specific delivery.
+Use the toolchains and SDK paths from the [Android calculation source
+rebuild](../fieldlog-task-calculation/README.md#rebuild-the-android-apk-and-replay-it-on-the-host).
+Use a new directory under ignored `verification/local/` and keep loopback
+port 41897 free.
 
-The existing Android FieldLog source guard accepts a storage-only checklist
-identity. The Java asset copier, Swift installed-material loader, and asset
-packager also list only the storage materials. For an HTTPS successor,
-update those three points in the new native build to carry the independently
-pinned HTTP configuration and installed grant alongside storage. Seal and
-sign the new runtime identity from that build. The current replay supplies
-no successor APK. [FieldLog app and loader overlay](https://github.com/snowdamiz/mixer/blob/71e6ffa51e857d5a1eda3f74c26941996ed275de/tests/integration/fieldlog-android-engine-pair/overlays/fieldlog-l04.patch)
+```sh
+mkdir -p verification/local
+tests/integration/fieldlog-native-capability-ota/build-android-pair.sh \
+  "$PWD/verification/local/fieldlog-android-https-my-run"
+```
 
-1. On the root-owned emulator, install the storage-only APK. Open the
-   corrected signed calculation and capture the APK hash, selected task,
-   workspace bytes, installation ID, and healthy recovery state.
-2. Try the higher-sequence HTTPS offer for the old fingerprint. Capture its
-   release refusal and recheck the old runtime's offer. To exercise client
-   refusal, use an owned test origin that presents the incompatible signed
-   offer to the installed client.
-3. Reopen the old APK online and offline. Check that the signed candidate,
-   sequence, workspace, and installation ID match the initial readbacks.
-   Reuse the calculation recipe's `android-readback.py` for recovery and
-   owner retirement.
-4. Publish the valid candidate for the new fingerprint and repeat the cohort
-   readbacks using the new APK. Close the origin, remove the exact ADB reverse,
-   and record cleanup of the owned emulator.
+The launcher first checks the storage-only calculation rebuild. It then applies
+the successor overlay to the traced FieldLog source and rebuilds Java and JNI
+against the same VM archive. Both APKs use one disposable development signer
+and one OTA root. The installed HTTPS assets come from the SDK revision linked
+by the calculation recipe, with the same bytes as the reviewed host replay.
+Only the successor material loader accepts the two-capability identity.
+
+The Android loopback relay serves the exact signed APK-scoped offers. The pair
+replay checks that enabling the successor leaves the old offer byte-identical
+and that each offer verifies only against its own runtime. The macOS probes
+execute the same corrected guest against both packaged material sets. They
+check the old host's refusal and cold offline fallback, then open the
+successor against the same workspace and installation ID.
+
+Use the sealed `handoff/` directory for the [root-owned Android
+replay](ANDROID-HANDOFF.md). After the launcher verifies the seal and all
+commands close, remove the owned `work/` and `calculation/` directories.
+On failure, inspect the current campaign's stage receipts. Preserve the
+campaign if custody remains unknown.
+
+The stock inspector requires distinct compiled payload hashes and signed
+qualification from a trusted producer. This pair keeps the payload identical
+and supplies development APK and OTA signatures. The stock inspector's
+classification for this HTTPS delta remains pending.
