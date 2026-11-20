@@ -1,0 +1,74 @@
+--- a/Seal.swift
++++ b/Seal.swift
+@@ -32,7 +32,7 @@
+         else { throw UpdateError("fieldlog.grants", "Expected the same reviewed grant and source map") }
+
+         let secret = Curve25519.Signing.PrivateKey()
+-        let keyID = "fieldlog-android-calculation-source-local"
++        let keyID = "fieldlog-android-row-source-local"
+         let roots = [TrustRoot(keyID: keyID, publicKey: secret.publicKey.rawRepresentation,
+             scope: scope, artifact: true, assignment: true, notBeforeUnix: 1)]
+         let rootsBytes = try encoder.encode(roots)
+@@ -64,12 +64,12 @@
+         var artifacts: [String: VerifiedArtifactV3] = [:]
+         for variant in ["baseline", "reviewed"] {
+             let payload = try read(guests, "\(variant).wasm")
+-            guard payload.count == 10_540 else {
++            guard payload.count == (variant == "baseline" ? 6485 : 9908) else {
+                 throw UpdateError("fieldlog.payload", "Payload exceeds Android delivery bounds")
+             }
+             let count = CanonicalValue.uint(UInt64(payload.count))
+             var manifest = template
+-            manifest["release_id"] = .text("fieldlog-calculation-" + variant)
++            manifest["release_id"] = .text("fieldlog-row-" + variant)
+             manifest["source_commit"] = .text("552559d2d3278abb9b1aa7dcf0288102c09a202b")
+             manifest["provenance_id"] = .text("fieldlog-l08-android-" + String(current.runtime.prefix(24)))
+             manifest["runtime"] = .text(current.runtime)
+--- a/replay-host.py
++++ b/replay-host.py
+@@ -104,7 +104,14 @@
+             and rollback["candidate"] == offline["candidate"]
+             and baseline["artifactSHA256"] == rollback["artifactSHA256"] == offline["artifactSHA256"]
+             and len({p["pid"] for p in phases}) == 4
+-            and {p["workspaceSHA256"] for p in phases} == {seed_hash},
++            and baseline["workspaceSHA256"] == seed_hash != correction["workspaceSHA256"]
++            and correction["workspaceSHA256"] == rollback["workspaceSHA256"] == offline["workspaceSHA256"]
++            and [p["guestActions"] for p in phases] == [0, 1, 0, 0]
++            and [p["revision"] for p in phases] == [9, 10, 10, 10]
++            and [p["outbox"] for p in phases] == [11, 12, 12, 12]
++            and baseline["order"] == [correction["order"][i] for i in (0, 2, 1)]
++            and correction["order"] == rollback["order"] == offline["order"]
++            and len({p["openDraft"] for p in phases}) == 1,
+             "Rollback or cold offline outcome differs")
+     result = {"status": "passed", "runtime": receipt["androidRuntime"], "installation": install,
+               "hostProbeSHA256": probe_hash, "originExit": origin.returncode, "offlineLoopbackRefused": True,
+@@ -112,7 +119,7 @@
+     with (packet / "host-receipt.json").open("x") as stream:
+         json.dump(result, stream, sort_keys=True, indent=2)
+         stream.write("\n")
+-    print("Verified baseline, correction, rollback, cold offline reopen and exact workspace readback")
++    print("Verified baseline, one durable move, signed rollback and cold offline draft readback")
+
+
+ if __name__ == "__main__":
+--- a/run.py
++++ b/run.py
+@@ -19,8 +19,16 @@
+
+
+ def size_kib(*roots):
+-    totals = subprocess.check_output(["/usr/bin/du", "-sk", *roots], text=True, timeout=10)
+-    return sum(int(line.split(maxsplit=1)[0]) for line in totals.splitlines())
++    sample = subprocess.run(["/usr/bin/du", "-sk", *roots], capture_output=True, text=True, timeout=10)
++    # Swift/Xcode can rename a temporary object while du walks the active build.
++    totals = sample.stdout.splitlines()
++    vanished = sample.stderr.splitlines()
++    if len(totals) != len(roots) or (sample.returncode != 0 and not (
++        vanished and all(line.startswith("du: ") and line.endswith(": No such file or directory")
++                         for line in vanished)
++    )):
++        raise RuntimeError(f"Unable to sample owned scratch: {sample.stderr}")
++    return sum(int(line.split(maxsplit=1)[0]) for line in totals)
+
+
+ def group_absent(pid):

@@ -1,0 +1,47 @@
+--- a/Guest.swift
++++ b/Guest.swift
+@@ -48,11 +48,9 @@
+     let selectedRow = withUnsafeBytes(of: &ui) { interface in
+         withUnsafeBytes(of: &payload) { data -> Int? in
+             let event = UnsafeRawBufferPointer(start: interface.baseAddress! + headerSize, count: Int(length))
+-            for index in 1..<rowCount {
+-                let id = UnsafeRawBufferPointer(rebasing: data[rows[index].id])
++            for index in 1..<rowCount where isMoveTarget(index, data: data) {
+                 var reader = TaskWireReader(event)
+-                if reader.consume(#"{"actionID":"move-"#), reader.consume(id),
+-                   reader.consume(#"","event":"activate","nodeID":"move-"#), reader.consume(id),
++                if reader.consume(#"{"actionID":"draft.action","event":"activate","nodeID":"toggle"#),
+                    reader.consume(#"","revision":"#), reader.consume(revision),
+                    reader.consume(#","schemaVersion":1,"sequence":"#), reader.consume(sequence),
+                    reader.consume(#","value":null}"#), reader.atEnd { return index }
+@@ -208,17 +206,23 @@
+     output.appendEscapedTitle(title)
+     output.append(#""},"children":[],"actions":[]}"#)
+     #if FIELDLOG_UPDATED
+-    if index > 0 {
+-        output.append(#",{"id":"move-"#)
+-        output.append(id)
+-        output.append(#"","kind":"button","properties":{"accessibilityIdentifier":"move-"#)
++    if isMoveTarget(index, data: data) {
++        output.append(#",{"id":"toggle","kind":"button","properties":{"accessibilityIdentifier":"move-"#)
+         output.append(id)
+         output.append(#"","label":"Move up: "#)
+         output.appendEscapedTitle(title)
+-        output.append(#""},"children":[],"actions":[{"id":"move-"#)
+-        output.append(id)
+-        output.append(#"","event":"activate"}]}"#)
++        output.append(#""},"children":[],"actions":[{"id":"draft.action","event":"activate"}]}"#)
+     }
+     #endif
+     output.append("]}")
+ }
++
++#if FIELDLOG_UPDATED
++private func isMoveTarget(_ index: Int, data: UnsafeRawBufferPointer) -> Bool {
++    guard index == 2 else { return false }
++    var target = TaskWireReader(UnsafeRawBufferPointer(rebasing: data[rows[index].id]))
++    var predecessor = TaskWireReader(UnsafeRawBufferPointer(rebasing: data[rows[index - 1].id]))
++    return target.consume("91094B1F-51E9-42AD-9CF1-64055970E7CB") && target.atEnd
++        && predecessor.consume("D8FD094D-6A4E-4B03-930E-1C4BEE0FB8A7") && predecessor.atEnd
++}
++#endif

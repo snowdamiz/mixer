@@ -1,0 +1,73 @@
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -397,7 +397,7 @@
+         try (InputStream material = getAssets().open("ChecklistRelease/identity.json")) {
+             if (material.read() < 0) throw new IOException("empty checklist identity");
+             android.widget.Button open = new android.widget.Button(this);
+-            open.setText(CalculationFixture.enabled(this) ? "Open signed checklist" : "Open signed draft check");
++            open.setText(CalculationFixture.enabled(this) ? "Open signed task reorder" : "Open signed draft check");
+             open.setAllCaps(false);
+             open.setOnClickListener(view -> openChecklist());
+             content.addView(open, new FrameLayout.LayoutParams(-2, -2, android.view.Gravity.BOTTOM | android.view.Gravity.END));
+@@ -770,7 +770,7 @@
+                 JSONObject frame = new JSONObject(new String(packet, StandardCharsets.UTF_8));
+                 GuestFrame next = new GuestFrame(facade, attachment, input, probe);
+                 if (CalculationFixture.enabled(activity)) {
+-                    CalculationFixture.render(activity, frame, next);
++                    CalculationFixture.render(activity, frame, next, next.action);
+                     return replaceGuest(next);
+                 }
+                 JSONObject root = frame.getJSONObject("root");
+--- a/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
+@@ -40,7 +40,8 @@
+   }
+   private static let maximumSnapshotBytes = 32 * 1024 * 1024
+
+-  public init(directory: URL, fault: Fault? = nil, expectedSeed: Data? = nil) throws {
++  public init(directory: URL, fault: Fault? = nil, expectedSeed: Data? = nil,
++              requireExistingSeed: Bool = true) throws {
+     self.directory = directory
+     self.fault = fault
+     try FileManager.default.createDirectory(
+@@ -56,10 +57,12 @@
+       let file = directory.appendingPathComponent("workspace.json")
+       if let expectedSeed {
+         if FileManager.default.fileExists(atPath: file.path) {
+-          let handle = try FileHandle(forReadingFrom: file)
+-          defer { try? handle.close() }
+-          guard try handle.read(upToCount: expectedSeed.count + 1) == expectedSeed else {
+-            throw FieldLogError.storage("The saved workspace differs from the fixture seed.")
++          if requireExistingSeed {
++            let handle = try FileHandle(forReadingFrom: file)
++            defer { try? handle.close() }
++            guard try handle.read(upToCount: expectedSeed.count + 1) == expectedSeed else {
++              throw FieldLogError.storage("The saved workspace differs from the fixture seed.")
++            }
+           }
+         } else {
+           try Self.atomic(expectedSeed, to: file, fault: fault)
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -176,7 +176,7 @@
+         let workspaceDirectory = directory.appendingPathComponent("FieldLog", isDirectory: true)
+         #if DEBUG && FIELDLOG_CALCULATION_FIXTURE
+         let seed = try CalculationFixture.readSeed(directory.appendingPathComponent("calculation-seed.json"))
+-        let repository = try WorkspaceRepository(directory: workspaceDirectory, expectedSeed: seed)
++        let repository = try WorkspaceRepository(directory: workspaceDirectory, expectedSeed: seed, requireExistingSeed: false)
+         #else
+         let repository = try WorkspaceRepository(directory: workspaceDirectory)
+         #endif
+@@ -203,12 +203,10 @@
+             self.repository = repository; self.workspace = workspace; self.projectID = project.id
+             self.editor = editor; self.reconciler = reconciler; self.snapshot = try reconciler.currentSnapshot()
+             _ = try Self.appPacket(snapshot)
+-            #if !(DEBUG && FIELDLOG_CALCULATION_FIXTURE)
+             if let id = workspace.restoration.openDraftID,
+                let draft = workspace.drafts.first(where: { $0.id == id && $0.projectID == project.id }) {
+                 try selectEntry(draft)
+             }
+-            #endif
+         } catch { await repository.close(); throw error }
+     }
+     // V4's SDK value policy covers vertical fields. The app opts only its note
