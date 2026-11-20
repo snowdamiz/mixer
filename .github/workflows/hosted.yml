@@ -8,6 +8,8 @@ on:
       - 'tests/integration/l07-hosted-privacy/http_protocol_probe.exs'
       - 'docs/operations/local-signed-release-delivery.md'
       - 'docs/operations/provision-local-release-reader.sql'
+      - 'docs/operations/provision-local-release-jobs.sql'
+      - 'docs/operations/retry-local-release-job.sql'
       - 'docs/operations/provision-local-artifact-uploader.sql'
       - 'tests/integration/l07-hosted-privacy/README.md'
       - 'tests/integration/l07-hosted-privacy/privacy_http_test.exs'
@@ -93,6 +95,7 @@ on:
       - 'verification/identity-network-current-source-v64/selection.json'
       - 'verification/identity-network-current-source-v65/selection.json'
       - 'verification/identity-network-current-source-v66/selection.json'
+      - 'verification/identity-network-current-source-v67/selection.json'
       - 'verification/identity-network-current-source-v24/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v25/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v26/selected-source-manifest.json'
@@ -135,6 +138,7 @@ on:
       - 'verification/identity-network-current-source-v64/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v65/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v66/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v67/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v29/preimages/**'
       - 'verification/identity-network-current-source-v31/preimages/**'
       - 'verification/identity-network-current-source-v32/preimages/**'
@@ -172,6 +176,7 @@ on:
       - 'verification/identity-network-current-source-v64/preimages/**'
       - 'verification/identity-network-current-source-v65/preimages/**'
       - 'verification/identity-network-current-source-v66/preimages/**'
+      - 'verification/identity-network-current-source-v67/preimages/**'
       - 'console/src/App.tsx'
       - 'console/src/components/ReleaseHeadPage.tsx'
       - 'console/src/components/release-head-page.css'
@@ -221,6 +226,8 @@ on:
       - 'tests/integration/l07-hosted-privacy/http_protocol_probe.exs'
       - 'docs/operations/local-signed-release-delivery.md'
       - 'docs/operations/provision-local-release-reader.sql'
+      - 'docs/operations/provision-local-release-jobs.sql'
+      - 'docs/operations/retry-local-release-job.sql'
       - 'docs/operations/provision-local-artifact-uploader.sql'
       - 'tests/integration/l07-hosted-privacy/README.md'
       - 'tests/integration/l07-hosted-privacy/privacy_http_test.exs'
@@ -306,6 +313,7 @@ on:
       - 'verification/identity-network-current-source-v64/selection.json'
       - 'verification/identity-network-current-source-v65/selection.json'
       - 'verification/identity-network-current-source-v66/selection.json'
+      - 'verification/identity-network-current-source-v67/selection.json'
       - 'verification/identity-network-current-source-v24/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v25/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v26/selected-source-manifest.json'
@@ -348,6 +356,7 @@ on:
       - 'verification/identity-network-current-source-v64/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v65/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v66/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v67/selected-source-manifest.json'
       - 'verification/identity-network-current-source-v29/preimages/**'
       - 'verification/identity-network-current-source-v31/preimages/**'
       - 'verification/identity-network-current-source-v32/preimages/**'
@@ -385,6 +394,7 @@ on:
       - 'verification/identity-network-current-source-v64/preimages/**'
       - 'verification/identity-network-current-source-v65/preimages/**'
       - 'verification/identity-network-current-source-v66/preimages/**'
+      - 'verification/identity-network-current-source-v67/preimages/**'
       - 'console/src/App.tsx'
       - 'console/src/components/ReleaseHeadPage.tsx'
       - 'console/src/components/release-head-page.css'
@@ -443,6 +453,8 @@ jobs:
             /tests/integration/l07-hosted-privacy/http_protocol_probe.exs
             /docs/operations/local-signed-release-delivery.md
             /docs/operations/provision-local-release-reader.sql
+            /docs/operations/provision-local-release-jobs.sql
+            /docs/operations/retry-local-release-job.sql
             /docs/operations/provision-local-artifact-uploader.sql
             /tests/integration/l07-hosted-privacy/README.md
             /tests/integration/l07-hosted-privacy/privacy_http_test.exs
@@ -581,6 +593,7 @@ jobs:
             /verification/identity-network-current-source-v64/selection.json
             /verification/identity-network-current-source-v65/selection.json
             /verification/identity-network-current-source-v66/selection.json
+            /verification/identity-network-current-source-v67/selection.json
             /verification/identity-network-current-source-v24/selected-source-manifest.json
             /verification/identity-network-current-source-v25/selected-source-manifest.json
             /verification/identity-network-current-source-v26/selected-source-manifest.json
@@ -623,6 +636,7 @@ jobs:
             /verification/identity-network-current-source-v64/selected-source-manifest.json
             /verification/identity-network-current-source-v65/selected-source-manifest.json
             /verification/identity-network-current-source-v66/selected-source-manifest.json
+            /verification/identity-network-current-source-v67/selected-source-manifest.json
             /verification/identity-network-current-source-v29/preimages/
             /verification/identity-network-current-source-v31/preimages/
             /verification/identity-network-current-source-v32/preimages/
@@ -660,6 +674,7 @@ jobs:
             /verification/identity-network-current-source-v64/preimages/
             /verification/identity-network-current-source-v65/preimages/
             /verification/identity-network-current-source-v66/preimages/
+            /verification/identity-network-current-source-v67/preimages/
             /console/src/api/build-submission.ts
             /console/src/brand.css
             /console/src/build-submission-test-runtime.tsx
@@ -691,6 +706,8 @@ jobs:
             /verification/hosted-customer-workspace-http-integration/node-client-driver.mjs
             /verification/hosted-customer-artifact-event/golden_event.hex
             /verification/hosted-customer-artifact-event/golden_hashes.txt
+      - name: Admit the explicitly selected current hosted source
+        run: python3 -B hosted/scripts/test-identity-network.py --check-source
       - uses: actions/setup-node@v4
         with:
           node-version: '22.23.3'
