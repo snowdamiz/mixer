@@ -301,6 +301,8 @@ SWIFT_VERSION_SOURCE_CHANGES = {
 SWIFT_VERSION_CHANGES = SWIFT_VERSION_SOURCE_CHANGES | {'cli/build-tests/test_public_export.py'}
 CLI_NONREGULAR_INPUT_TEST = 'cli/Tests/MixerBuildTests/UpdateHardeningTests.swift'
 CLI_NONREGULAR_INPUT_TEST_PREIMAGE = 'cli-nonregular-input-test-predecessor-bytes/' + CLI_NONREGULAR_INPUT_TEST
+SIGNED_APPLE_OVERFLOW_TEST = 'capability-activation/Tests/MixerCapabilityActivationTests/GuestUISignedRuntimeTests.swift'
+SIGNED_APPLE_OVERFLOW_TEST_PREIMAGE = 'signed-apple-overflow-test-predecessor-bytes/' + SIGNED_APPLE_OVERFLOW_TEST
 HALT_CLI_PREFIX = 'halt-cli-predecessor-bytes/'
 SOURCE150_SHA256 = '4a202d6aa4f6b81884df32cd0fe67cc8ce9847e8d4ae2ebea8b2cf1d4711a6f8'
 HALT_CLI_SOURCE_CHANGES = {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE}
@@ -310,6 +312,7 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
     HOSTED_V43_WORKFLOW, HOSTED_V44_WORKFLOW, HOSTED_V45_WORKFLOW, HOSTED_V46_WORKFLOW, HOSTED_V47_WORKFLOW, HOSTED_V48_WORKFLOW, HOSTED_V49_WORKFLOW, HOSTED_V50_WORKFLOW, HOSTED_V51_WORKFLOW, HOSTED_V52_WORKFLOW,
     GUEST_CUTOFF_PREIMAGE, WORKER_SWIFT_PROBE_PREIMAGE, CLI_NONREGULAR_INPUT_TEST_PREIMAGE,
+    SIGNED_APPLE_OVERFLOW_TEST_PREIMAGE,
 } | {STORE_PLATFORM_IDENTITY_PREFIX + name for name in STORE_PLATFORM_IDENTITY_INPUTS} | {
     ANDROID_OUTPUT_PREFIX + name for name in ANDROID_OUTPUT_CHANGES
 } | {
@@ -457,7 +460,7 @@ def install_inputs():
                              'worker_swift_probe_transition', 'android_retained_output_transition',
                              'android_retained_output_correction_transition',
                              'managed_android_retained_transition', 'pair25_transition', 'swift_version_transition',
-                             'cli_nonregular_input_test_transition',
+                             'cli_nonregular_input_test_transition', 'signed_apple_overflow_test_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
@@ -1099,6 +1102,17 @@ def install_inputs():
             'Installed CLI nonregular input test mode differs')
     installed[CLI_NONREGULAR_INPUT_TEST] = cli_test['after']
     preimages.setdefault(CLI_NONREGULAR_INPUT_TEST, (raw, 0o644))
+
+    overflow_test = binding['signed_apple_overflow_test_transition']
+    raw = read_predecessor_member(HERE / SIGNED_APPLE_OVERFLOW_TEST_PREIMAGE)
+    require(set(overflow_test) == {'before', 'after'} and SIGNED_APPLE_OVERFLOW_TEST not in current and
+            overflow_test['before'] == previous.row(raw) == installed[SIGNED_APPLE_OVERFLOW_TEST] ==
+            historical[SIGNED_APPLE_OVERFLOW_TEST] and overflow_test['before'] != overflow_test['after'],
+            'Signed Apple overflow test predecessor differs')
+    require(stat.S_IMODE((ROOT / SIGNED_APPLE_OVERFLOW_TEST).lstat().st_mode) == 0o644,
+            'Installed signed Apple overflow test mode differs')
+    installed[SIGNED_APPLE_OVERFLOW_TEST] = overflow_test['after']
+    preimages.setdefault(SIGNED_APPLE_OVERFLOW_TEST, (raw, 0o644))
 
     previous.check_rows(ROOT, installed)
     for name, change in halt['changes'].items():
