@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scope": "Browser release fixture database cleanup",
+  "repair": "fdef656bd1d9c51fefef04da42f32efd3966c224",
+  "publicBase": "b4f6f2f5297f98916572b289bc60e848d69002f1",
+  "fixtureBlob": "cca9e9193016ce7907e272ded94ad26d1e49fb14",
+  "originalCI": {
+    "run": 44777997623,
+    "job": 136432857973,
+    "failure": "One fixture database session prevented DROP DATABASE. The next CREATE DATABASE failed with 42P04.",
+    "unresolved": "A prior /auth/session request returned 503. Neither the archived response nor isolated replays identified the failed operation."
+  },
+  "independentVerification": {
+    "platform": "Isolated Ubuntu 24.04 arm64, PostgreSQL 17.12, OTP 29.1.1, Elixir 1.20.4",
+    "negative": "Intentionally retained fixture connection reproduced 55006 followed by 42P04.",
+    "positive": "Both controls and focused suite passed 20/20. Exact stock runner with the CI seed and timeout passed 18/18, including both publication cases.",
+    "storage": "Memory-backed PostgreSQL storage after a separate disk-backed checkpoint timeout.",
+    "cleanup": "Owned PostgreSQL processes and VM stopped. Disposable checkout and scratch removed."
+  }
+}
