@@ -4,6 +4,7 @@ defmodule MixerHosted.Application do
   @behaviour Supervisor
   alias MixerHosted.BrowserAuth.Installation
   alias MixerHosted.Identity.StartupConfig
+  alias MixerHosted.Releases.PublicDelivery
   alias MixerHosted.RuntimeConfig
   @boot Module.concat(__MODULE__, Boot)
 
@@ -100,7 +101,10 @@ defmodule MixerHosted.Application do
             do: [],
             else: [{MixerHosted.BrowserAuth.Supervisor, installation}]
 
-        base ++ identity_children ++ browser_children ++ [MixerHostedWeb.Endpoint]
+        delivery_children = PublicDelivery.children(hosted.endpoint)
+
+        base ++
+          identity_children ++ browser_children ++ delivery_children ++ [MixerHostedWeb.Endpoint]
 
       _ ->
         raise ArgumentError, "hosted startup unavailable"
@@ -145,6 +149,7 @@ defmodule MixerHosted.Application do
       :role,
       :identity_startup,
       :build_operation_intent,
+      :local_release_delivery,
       MixerHosted.Repo,
       Oban,
       MixerHostedWeb.Endpoint

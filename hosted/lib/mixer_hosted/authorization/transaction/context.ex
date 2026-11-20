@@ -17,6 +17,8 @@ defmodule MixerHosted.Authorization.Transaction.Context do
     "build.create" => "mixer.build.create",
     "artifact.read" => "mixer.artifact.read",
     "artifact.upload" => "mixer.artifact.upload",
+    "release.read" => "mixer.workspace.read",
+    "release.publish" => "mixer.release.publish",
     "audit.read" => "mixer.audit.read"
   }
   @effect_errors [

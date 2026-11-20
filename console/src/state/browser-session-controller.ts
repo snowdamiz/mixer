@@ -16,6 +16,9 @@ import { createCookieWorkspaceClient } from "../api/cookie-workspace-client.js";
 import { WorkspaceClientError } from "../api/workspace-client.js";
 import type { WorkspaceClient, WorkspacePageRequest } from "../api/workspace-client.js";
 import type { WorkspaceSession } from "./workspace-controller.js";
+import { createCookieReleaseHeadClient } from "../api/cookie-release-head-client.js";
+import type { ReleaseHeadClient } from "../api/cookie-release-head-client.js";
+import type { ReleaseHeadTarget } from "../domain/release-head.js";
 import { createCookieBuildClient } from "../api/cookie-build-client.js";
 import type { CookieBuildClient } from "../api/cookie-build-client.js";
 import { createCookieBuildCatalogClient } from "../api/cookie-build-catalog-client.js";
@@ -28,6 +31,7 @@ export type ConsoleSession = Exclude<WorkspaceSession, { readonly kind: "ready" 
     readonly workspaceCreate?: WorkspaceCreateClient;
     readonly workspaceAdmin?: WorkspaceAdminClient;
     readonly workspaceSupport?: WorkspaceSupportClient;
+    readonly releaseHead: ReleaseHeadClient;
     readonly buildClients: Readonly<{ catalog: BuildCatalogClient; read: CookieBuildClient; create?: BuildSubmissionClient;
       cancel?: CancelBuild; registerApplication?: RegisterApplication; sourceStarters?: SourceStarterClient }> };
 
@@ -166,6 +170,11 @@ export function createBrowserSessionController(options: BrowserSessionClientOpti
       organizations: (page?: WorkspacePageRequest, signal?: AbortSignal) => delegate(value, owned => cookieClient.organizations(page, owned), signal),
       projects: (organizationId: string, page?: WorkspacePageRequest, signal?: AbortSignal) => delegate(value, owned => cookieClient.projects(organizationId, page, owned), signal),
     });
+    const rawReleaseHead = createCookieReleaseHeadClient(settings);
+    const releaseHead: ReleaseHeadClient = Object.freeze({
+      read: (target: ReleaseHeadTarget, signal?: AbortSignal) =>
+        delegate(value, owned => rawReleaseHead.read(target, owned), signal),
+    });
     const rawCatalog = createCookieBuildCatalogClient(settings);
     const rawRead = createCookieBuildClient(settings);
     const catalog: BuildCatalogClient = Object.freeze({
@@ -231,7 +240,7 @@ export function createBrowserSessionController(options: BrowserSessionClientOpti
     capability = value;
     // Each accepted check is a fresh local epoch, including equal server generation strings.
     // Server metadata and CSRF never enter the public session or workspace client.
-    session = Object.freeze({ kind: "ready", client, ...workspaceWriters(), buildClients: Object.freeze({ ...reads, ...buildWriters() }) });
+    session = Object.freeze({ kind: "ready", client, releaseHead, ...workspaceWriters(), buildClients: Object.freeze({ ...reads, ...buildWriters() }) });
     deadlineTimer = setTimeout(() => { if (capability === value && epoch === value.epoch) clear(); },
       Math.max(0, Math.floor(monoDeadline - now.mono)));
     revision++; notify();

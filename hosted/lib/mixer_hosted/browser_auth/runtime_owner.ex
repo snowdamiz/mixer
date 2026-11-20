@@ -100,6 +100,22 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
   def cancel_build(raw_headers, input),
     do: read_private(raw_headers, {:create, {:cancel, input}, nil, raw_headers})
 
+  @doc "Private console read through the current active browser session."
+  def read_release_head(raw_headers, target) do
+    with {:ok, target} <- MixerHosted.Releases.Target.new(target) do
+      read_private(raw_headers, {:release_head, target})
+    end
+  end
+
+  @doc "Trusted local operator application entrypoint. The caller does not supply signing trust."
+  def publish_release(raw_headers, target, bytes, key, reason) do
+    with {:ok, target} <- MixerHosted.Releases.Target.new(target),
+         {:ok, result} <-
+           read_private(raw_headers, {:release_publish, target, bytes, key, reason}) do
+      result
+    end
+  end
+
   def read_build_inputs(raw_headers, input),
     do: read_private(raw_headers, {:create, {:inputs, input}, nil, raw_headers})
 

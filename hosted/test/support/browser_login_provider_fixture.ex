@@ -54,10 +54,12 @@ defmodule R686.Provider do
       true ->
         now = System.system_time(:second)
 
+        subject = if s.mode == :other_tenant, do: "subject-2", else: "subject-1"
+
         claims = %{
           "iss" => s.config.issuer,
           "aud" => s.config.api_audience,
-          "sub" => "subject-1",
+          "sub" => subject,
           "client_id" => s.config.client_id,
           "iat" => now - 1,
           "exp" =>
@@ -69,10 +71,11 @@ defmodule R686.Provider do
               end,
           "jti" => Protocol.random_token(),
           "scope" =>
-            if(s.mode == :no_build_scope,
-              do: "mixer.workspace.read",
-              else: String.replace(v["scope"], "openid ", "")
-            )
+            case s.mode do
+              :no_build_scope -> "mixer.workspace.read"
+              :artifact_uploader -> "mixer.workspace.read mixer.artifact.upload"
+              _ -> String.replace(v["scope"], "openid ", "")
+            end
         }
 
         access = sign(s.key, claims, "at+jwt")
@@ -81,7 +84,7 @@ defmodule R686.Provider do
         id = %{
           "iss" => s.config.issuer,
           "aud" => s.config.client_id,
-          "sub" => "subject-1",
+          "sub" => subject,
           "iat" => now - 1,
           "exp" =>
             now +

@@ -7,11 +7,14 @@ defmodule MixerHostedWeb.BrowserHTTP do
 
   @paths ~w(/auth/session /console-api/v1/orgs /console-api/v1/projects /console-api/v1/workspace-admin /console-api/v1/support-requests /console-api/v1/builds /console-api/v1/applications /console-api/v1/build-catalog /console-api/v1/build-inputs /console-api/v1/source-starters)
   @logs_path "/console-api/v1/build-logs"
+  @release_head_path "/console-api/v1/release-head"
   @cancel_path "/console-api/v1/builds/cancel"
   @artifact_paths for kind <- MixerHosted.Builds.RetainedNativeArtifacts.kinds(),
                       do: "/console-api/v1/build-artifacts/" <> kind
   def owns_path?(path),
-    do: path in [@cancel_path, @logs_path] or path in @paths or path in @artifact_paths
+    do:
+      path in [@cancel_path, @logs_path, @release_head_path] or path in @paths or
+        path in @artifact_paths
 
   def init([]), do: []
 
@@ -103,6 +106,34 @@ defmodule MixerHostedWeb.BrowserHTTP do
     end
   rescue
     _ -> error(conn, 503)
+  end
+
+  defp dispatch(%{request_path: @release_head_path} = conn) do
+    with true <-
+           Enum.all?(
+             ~w(content-encoding x-http-method-override x-method-override),
+             &(get_req_header(conn, &1) == [])
+           ),
+         {:ok, target} <- MixerHostedWeb.BrowserReleaseHeadRequest.parse(conn.query_string) do
+      case RuntimeOwner.read_release_head(conn.req_headers, target) do
+        {:ok, {:ok, head}} ->
+          json(conn, 200, head)
+
+        {:ok, {:error, reason}} when reason in [:not_found, :permission_denied] ->
+          error(conn, 404)
+
+        {:ok, {:error, :unauthenticated}} ->
+          error(conn, 401)
+
+        {:error, :unauthenticated} ->
+          error(conn, 401)
+
+        _ ->
+          error(conn, 503)
+      end
+    else
+      _ -> error(conn, 400)
+    end
   end
 
   defp dispatch(%{request_path: "/console-api/v1/source-starters"} = conn) do

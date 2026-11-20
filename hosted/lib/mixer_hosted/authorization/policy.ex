@@ -5,7 +5,7 @@ defmodule MixerHosted.Authorization.Policy do
   Inputs are current server repository evidence, never HTTP roles or claims.
   Validation cannot prove database freshness, lineage, locks or revocation.
   A result is an evaluation, not a transaction context or storage capability.
-  Only human artifact read/upload and project audit read are implemented.
+  Evaluates human artifact read/upload, release publication, build creation and project audit read.
   """
 
   alias MixerHosted.Authorization.Scope
@@ -19,6 +19,8 @@ defmodule MixerHosted.Authorization.Policy do
     "build.create" => {"mixer.build.create", ~w(owner administrator developer)},
     "artifact.read" => {"mixer.artifact.read", @read_roles},
     "artifact.upload" => {"mixer.artifact.upload", @write_roles},
+    "release.read" => {"mixer.workspace.read", @read_roles},
+    "release.publish" => {"mixer.release.publish", ~w(owner administrator release_manager)},
     "audit.read" => {"mixer.audit.read", @read_roles}
   }
   @identity_fields [

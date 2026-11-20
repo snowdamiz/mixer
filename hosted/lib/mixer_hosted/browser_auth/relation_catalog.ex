@@ -5,6 +5,9 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
   This function is not a storage/readiness/owner admission receipt.
   """
   alias MixerHosted.BrowserAuth.{RelationManifest, WorkspaceCatalog}
+
+  @release_principal_fk {"public.mixer_release_publications", ["principal_id"],
+                         "public.mixer_authz_principals", ["id"]}
   @roles [:lifecycle_login, :writer, :relation_owner, :ordinary_runtime_login]
   @marker "__mixer_relation_bound__"
   @wire_limit 2 * 1024 * 1024
@@ -92,7 +95,8 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
       {relations, state} = relations!(state, role_oids)
       ids = Enum.map(relations, & &1["oid"])
       {columns, state} = columns!(state, ids, manifest)
-      {constraints, state} = constraints!(state, ids, columns, manifest)
+      {release_fks, state} = release_foreign_keys!(state, role_oids)
+      {constraints, state} = constraints!(state, ids, columns, manifest, release_fks)
       {indexes, state} = indexes!(state, ids, columns, constraints, manifest, role_oids)
       {_, state} = triggers!(state, ids, constraints, indexes, manifest, role_oids)
       {_, state} = policies!(state, ids, manifest, role_oids, workspace_policies)
@@ -593,7 +597,35 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
     "CASE WHEN pg_catalog.cardinality(#{array})>32 THEN ARRAY['#{@marker}']::pg_catalog.text[] ELSE ARRAY(SELECT n.nspname::pg_catalog.text||'.'||o.oprname::pg_catalog.text||':'||ln.nspname::pg_catalog.text||'.'||l.typname::pg_catalog.text||':'||rn.nspname::pg_catalog.text||'.'||r.typname::pg_catalog.text FROM pg_catalog.unnest(#{array}) WITH ORDINALITY k(id,ord) LEFT JOIN pg_catalog.pg_operator o ON o.oid=k.id LEFT JOIN pg_catalog.pg_namespace n ON n.oid=o.oprnamespace LEFT JOIN pg_catalog.pg_type l ON l.oid=o.oprleft LEFT JOIN pg_catalog.pg_namespace ln ON ln.oid=l.typnamespace LEFT JOIN pg_catalog.pg_type r ON r.oid=o.oprright LEFT JOIN pg_catalog.pg_namespace rn ON rn.oid=r.typnamespace ORDER BY k.ord) END"
   end
 
-  defp constraints!(state, ids, columns, manifest) do
+  # The release ledger adds one inbound FK to the protected principal table.
+  # Admit that exact edge and its generated RI triggers when the ledger is installed.
+  defp release_foreign_keys!(state, roles) do
+    {rows, state} =
+      fetch!(
+        state,
+        """
+        SELECT c.relkind='r' AND c.relpersistence='p' AND c.relrowsecurity AND c.relforcerowsecurity
+          AND c.relowner=$1::pg_catalog.oid AS restricted
+        FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+        WHERE n.nspname='public' AND c.relname='mixer_release_publications'
+        LIMIT 2
+        """,
+        [roles.relation_owner],
+        [{"restricted", :bool}],
+        1,
+        nil
+      )
+
+    case rows do
+      [] -> {[], state}
+      [%{"restricted" => true}] -> {[@release_principal_fk], state}
+      _ -> raise Unavailable
+    end
+  end
+
+  defp constraints!(state, ids, columns, manifest, release_fks) do
+    count = 109 + length(release_fks)
+
     schema = [
       {"oid", :oid},
       {"relid", :oid},
@@ -640,18 +672,18 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
         FROM pg_catalog.pg_constraint c JOIN pg_catalog.pg_class r ON r.oid=c.conrelid JOIN pg_catalog.pg_namespace n ON n.oid=r.relnamespace
         LEFT JOIN pg_catalog.pg_class tr ON tr.oid=c.confrelid LEFT JOIN pg_catalog.pg_namespace tn ON tn.oid=tr.relnamespace
         WHERE c.conrelid IN(SELECT oid FROM targets) OR c.confrelid IN(SELECT oid FROM targets)
-        ORDER BY c.oid LIMIT 110
+        ORDER BY c.oid LIMIT #{count + 1}
         """
 
-    {rows, state} = fetch!(state, sql, [ids], schema, 109, 109)
-    demand(length(Enum.uniq(Enum.map(rows, & &1["oid"]))) == 109)
+    {rows, state} = fetch!(state, sql, [ids], schema, count, count)
+    demand(length(Enum.uniq(Enum.map(rows, & &1["oid"]))) == count)
 
     demand(
       Enum.frequencies(Enum.map(rows, & &1["kind"])) === %{
         "c" => 80,
         "p" => 9,
         "u" => 4,
-        "f" => 12,
+        "f" => 12 + length(release_fks),
         "t" => 4
       }
     )
@@ -725,7 +757,7 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
     demand(
       Enum.frequencies(
         Enum.map(fks, &{&1["relation"], &1["keys"], &1["target"], &1["target_keys"]})
-      ) === Enum.frequencies(expected_fks)
+      ) === Enum.frequencies(expected_fks ++ release_fks)
     )
 
     each!(fks, state, fn r ->
@@ -897,6 +929,10 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
   end
 
   defp triggers!(state, ids, constraints, indexes, manifest, roles) do
+    foreign_keys = Enum.filter(constraints, &(&1["kind"] == "f"))
+    ri_count = 4 * length(foreign_keys)
+    count = 5 + ri_count
+
     schema = [
       {"oid", :oid},
       {"relid", :oid},
@@ -955,7 +991,7 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
         JOIN pg_catalog.pg_namespace tn ON tn.oid=rt.typnamespace JOIN pg_catalog.pg_language l ON l.oid=p.prolang
         WHERE t.tgrelid IN(SELECT oid FROM targets) OR t.tgconstraint IN(
           SELECT k.oid FROM pg_catalog.pg_constraint k WHERE k.conrelid IN(SELECT oid FROM targets) OR k.confrelid IN(SELECT oid FROM targets))
-        ORDER BY t.oid LIMIT 54
+        ORDER BY t.oid LIMIT #{count + 1}
         """
 
     {rows, state} =
@@ -964,11 +1000,11 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
         sql,
         [ids, roles.writer, roles.lifecycle_login, roles.ordinary_runtime_login],
         schema,
-        53,
-        53
+        count,
+        count
       )
 
-    demand(length(Enum.uniq(Enum.map(rows, & &1["oid"]))) == 53)
+    demand(length(Enum.uniq(Enum.map(rows, & &1["oid"]))) == count)
 
     each!(rows, state, fn t ->
       demand(
@@ -983,7 +1019,7 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
     end)
 
     ri = Enum.filter(rows, & &1["internal"])
-    demand(length(ri) == 48)
+    demand(length(ri) == ri_count)
 
     funcs = %{
       "pg_catalog.RI_FKey_check_ins" => {5, :child},
@@ -992,7 +1028,7 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
       "pg_catalog.RI_FKey_noaction_upd" => {17, :parent}
     }
 
-    each!(Enum.filter(constraints, &(&1["kind"] == "f")), state, fn c ->
+    each!(foreign_keys, state, fn c ->
       group = Enum.filter(ri, &(&1["constraint"] == c["oid"]))
 
       demand(

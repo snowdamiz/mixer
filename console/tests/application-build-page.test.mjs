@@ -59,12 +59,12 @@ const scope={organizationId:"org",projectId:"p"};
 const dto=(change={})=>({...scope,applicationId:"app",buildId:"b-ios",platform:"ios",sourceSha256:"a".repeat(64),toolchainLockSha256:"b".repeat(64),buildDefinitionSha256:"c".repeat(64),revision:2,state:"queued",attempt:1,maxAttempts:3,failureCode:null,workerCompletionPending:false,...change});
 const apps=(ids=["app","empty"],nextCursor=null,projectId="p")=>({...scope,projectId,applications:ids.map(applicationId=>({applicationId})),nextCursor});
 const catalog=(rows=[dto(),dto({buildId:"c-android",platform:"android",state:"running",workerCompletionPending:true})],applicationId="app",nextCursor=null)=>({...scope,applicationId,builds:rows,nextCursor});
-function fixture(profile){const calls=[],waiting=[];let index=0;const fetch=(url,options)=>{
+function fixture(profile, initialPath){const calls=[],waiting=[];let index=0;const fetch=(url,options)=>{
   if (url === "/console-api/v1/workspace-admin" && JSON.parse(options.body).operation === "usage") {
     return Promise.resolve(json({ organization_id: "org", plan: "free", active_projects: 2, project_limit: 3,
       held_builds: 0, build_limit: 2, builds: 0, can_administer: false }));
   }
-  return new Promise((resolve,reject)=>{const call={path:String(url),...options,resolve,reject};calls.push(call);waiting.shift()?.(call);});};const container=document.createElement("div");document.appendChild(container);const app=mount(container,fetch,profile);return {...app,container,calls,async request(expected, method = "GET"){const call=calls[index++]??await new Promise(resolve=>waiting.push(resolve));assert.equal(call.path,expected);assert.equal(call.method,method);assert.equal(call.credentials,"same-origin");return call;},text:()=>container.textContent,click(text,tag="BUTTON"){const node=walk(container).find(n=>n.nodeName===tag&&n.textContent.includes(text));assert(node,"missing "+tag+" "+text);node.click();return node;},close(){app.dispose();container.remove();}};}
+  return new Promise((resolve,reject)=>{const call={path:String(url),...options,resolve,reject};calls.push(call);waiting.shift()?.(call);});};const container=document.createElement("div");document.appendChild(container);const app=mount(container,fetch,profile,initialPath);return {...app,container,calls,async request(expected, method = "GET"){const call=calls[index++]??await new Promise(resolve=>waiting.push(resolve));assert.equal(call.path,expected);assert.equal(call.method,method);assert.equal(call.credentials,"same-origin");return call;},text:()=>container.textContent,click(text,tag="BUTTON"){const node=walk(container).find(n=>n.nodeName===tag&&n.textContent.includes(text));assert(node,"missing "+tag+" "+text);node.click();return node;},close(){app.dispose();container.remove();}};}
 async function admitted(f, organizations = [{id:"org",display_name:"Test studio",organization_roles:["owner"]}]){
   const call = await f.request("/auth/session");
   call.resolve(json({state:"authenticated",generation:"A".repeat(43),csrf_token:"A".repeat(43),expires_at:Math.floor(Date.now()/1000)+60}));
@@ -478,5 +478,191 @@ test("registration is hidden for a viewer, outside the opt-in profile, and on em
     (await f.request(applicationListPath)).resolve(json(apps(["existing"])));
     await flush();
     assert.match(f.text(), /existing/);
+  } finally { f.close(); }
+});
+
+const releaseTarget = {
+  organizationId: "org", projectId: "p", applicationId: "app", environmentId: "prod",
+  platform: "ios", runtimeFingerprint: "a".repeat(64), channel: "beta",
+};
+const publishedRelease = {
+  releaseId: "committed-release", sequence: "18446744073709551615", rolloutBasisPoints: 3750,
+  manifestSha256: "b".repeat(64), payloadSha256: "c".repeat(64),
+};
+const releaseQuery = channel =>
+  "organization_id=org&project_id=p&application_id=app&environment_id=prod&platform=ios&runtime_fingerprint="
+  + releaseTarget.runtimeFingerprint + "&channel=" + channel;
+const releaseRoute = channel => "/releases?" + releaseQuery(channel);
+const releaseEndpoint = channel => "/console-api/v1/release-head?" + releaseQuery(channel);
+const releaseCalls = f => f.calls.filter(call => call.path.startsWith("/console-api/v1/release-head?"));
+const go = (f, value) => f.history.set({ value, replace: false, scroll: false });
+const publish = (channel, release = publishedRelease) => json({
+  kind: "published", target: { ...releaseTarget, channel }, release,
+});
+const releaseStatus = f => walk(f.container).find(node => node.getAttribute("role") === "status")?.textContent;
+const admitReleaseSession = async f => {
+  (await f.request("/auth/session")).resolve(json({
+    state: "authenticated", generation: "A".repeat(43), csrf_token: "A".repeat(43),
+    expires_at: Math.floor(Date.now() / 1000) + 60,
+  }));
+  await flush();
+};
+
+test("Releases waits for a session and displays only the committed head from an exact cookie GET", { timeout: 5000 }, async () => {
+  const f = fixture(undefined, releaseRoute("beta"));
+  try {
+    assert.equal(releaseStatus(f), "Console session unavailable.");
+    assert.equal(releaseCalls(f).length, 0);
+    await admitReleaseSession(f);
+    const [read] = releaseCalls(f);
+    assert.equal(read.path, releaseEndpoint("beta"));
+    assert.equal(read.method, "GET");
+    assert.equal(read.credentials, "same-origin");
+    assert.equal(read.redirect, "error");
+    assert.equal(read.cache, "no-store");
+    assert.equal(read.referrerPolicy, "no-referrer");
+    assert.deepEqual(read.headers, { accept: "application/json" });
+    assert.equal(read.body, undefined);
+    assert.equal(releaseStatus(f), "Loading release head…");
+    read.resolve(publish("beta"));
+    await flush();
+    assert.equal(releaseStatus(f), "Published release");
+    const fields = walk(f.container).filter(node => node.nodeName === "DD").map(node => node.textContent);
+    assert.deepEqual(fields, [...Object.values(releaseTarget), ...Object.values(publishedRelease).map(String)]);
+    assert.doesNotMatch(f.text(), /Checks passed|Checks incomplete|Sign off|Publish release/);
+    assert.equal(walk(f.container).some(node => node.nodeName === "BUTTON"), false);
+  } finally { f.close(); }
+});
+
+test("Releases rejects incomplete, duplicate, unknown, and malformed query fields before sending a read", { timeout: 5000 }, async () => {
+  const f = fixture(undefined, "/releases");
+  try {
+    await admitReleaseSession(f);
+    assert.match(releaseStatus(f), /Open a release link/);
+    const query = releaseQuery("beta");
+    for (const invalid of [
+      query.replace("environment_id=prod&", ""),
+      query + "&channel=beta",
+      query + "&%63hannel=beta",
+      query.replace("channel=beta", "extra=beta"),
+      query.replace("channel=beta", "channel=%FF"),
+      query.replace("channel=beta", "channel=%25"),
+      query.replace("platform=ios", "platform=web"),
+      query.replace("organization_id=org", "organization_id=*"),
+      query.replace("a".repeat(64), "A".repeat(64)),
+      query.replace("a".repeat(64), "a".repeat(64) + "%0A"),
+      query + "&",
+    ]) {
+      go(f, "/releases?" + invalid);
+      await flush();
+      assert.equal(releaseStatus(f), "This release link does not specify a valid target.", invalid);
+    }
+    assert.equal(releaseCalls(f).length, 0);
+  } finally { f.close(); }
+});
+
+test("Releases drops delayed HTTP replies after URL and console-session changes", { timeout: 5000 }, async () => {
+  const f = fixture(undefined, releaseRoute("beta"));
+  try {
+    await admitReleaseSession(f);
+    const [staleTarget] = releaseCalls(f);
+    go(f, releaseRoute("stable"));
+    await flush();
+    const [, stable] = releaseCalls(f);
+    assert.equal(stable.path, releaseEndpoint("stable"));
+    assert.equal(staleTarget.signal.aborted, true);
+    stable.resolve(json({ kind: "empty", target: { ...releaseTarget, channel: "stable" } }));
+    await flush();
+    staleTarget.resolve(publish("beta"));
+    await flush();
+    assert.equal(releaseStatus(f), "No release has been published to this target.");
+    assert.doesNotMatch(f.text(), /committed-release|18446744073709551615/);
+
+    go(f, releaseRoute("beta"));
+    await flush();
+    const [, , staleSession] = releaseCalls(f);
+    f.controller.revalidate();
+    assert.equal(staleSession.signal.aborted, true);
+    assert.equal(releaseStatus(f), "Console session unavailable.");
+    staleSession.resolve(publish("beta"));
+    f.calls.at(-1).resolve(json({ state: "unauthenticated", csrf_token: "A".repeat(43) }));
+    await flush();
+    assert.equal(releaseStatus(f), "Sign in to view this release.");
+    assert.doesNotMatch(f.text(), /committed-release|18446744073709551615/);
+    assert.equal(releaseCalls(f).length, 3);
+  } finally { f.close(); }
+});
+
+test("Releases aborts on live workspace selection changes and when left", { timeout: 5000 }, async () => {
+  const f = fixture();
+  try {
+    await admitReleaseSession(f);
+    (await f.request("/console-api/v1/orgs")).resolve(json({
+      organizations: [{ id: "org", display_name: "Test studio", organization_roles: ["owner"] }], next_cursor: null,
+    }));
+    await flush();
+    f.click("Test studio");
+    (await f.request("/console-api/v1/projects?organization_id=org")).resolve(json({
+      projects: [
+        { organization_id: "org", id: "p", display_name: "Test project", roles: ["viewer"] },
+        { organization_id: "org", id: "q", display_name: "Other project", roles: ["viewer"] },
+      ], next_cursor: null,
+    }));
+    await flush();
+    f.click("Test project");
+    go(f, releaseRoute("beta"));
+    const old = await f.request(releaseEndpoint("beta"));
+    f.selectProject({ organizationId: "org", projectId: "q" });
+    assert.equal(old.signal.aborted, true);
+    old.resolve(publish("beta"));
+    await flush();
+    assert.equal(releaseStatus(f), "This release target is outside your selected workspace.");
+    assert.equal(releaseCalls(f).length, 1);
+    assert.doesNotMatch(f.text(), /committed-release/);
+
+    f.selectProject({ organizationId: "org", projectId: "p" });
+    const current = await f.request(releaseEndpoint("beta"));
+    go(f, "/workspace");
+    await flush();
+    assert.equal(current.signal.aborted, true);
+  } finally { f.close(); }
+});
+
+test("Releases handles access denials, unavailable responses, and invalid successful bodies without disclosure", { timeout: 5000 }, async () => {
+  const f = fixture(undefined, "/releases");
+  try {
+    await admitReleaseSession(f);
+    const privateText = "private-response-sentinel";
+    const cases = [
+      [new Response(privateText, { status: 403 }), "You cannot access this release target."],
+      [new Response(privateText, { status: 404 }), "You cannot access this release target."],
+      [new Response(privateText, { status: 503 }), "Release head unavailable."],
+      [json({ kind: "empty", target: releaseTarget, release: publishedRelease }), "Release head unavailable."],
+      [new Response('{"kind":"published","kind":"empty","target":' + JSON.stringify(releaseTarget) + '}', {
+        headers: { "content-type": "application/json" },
+      }), "Release head unavailable."],
+      [json({ kind: "empty", target: { ...releaseTarget, channel: "other" } }), "Release head unavailable."],
+      [json({ kind: "published", target: releaseTarget, release: { ...publishedRelease, signature: privateText } }), "Release head unavailable."],
+    ];
+    for (const sequence of [5, "0", "01", "+1", "1\n", "18446744073709551616"]) {
+      cases.push([publish("beta", { ...publishedRelease, sequence }), "Release head unavailable."]);
+    }
+    for (const [index, [response, expected]] of cases.entries()) {
+      go(f, releaseRoute("beta"));
+      await flush();
+      releaseCalls(f)[index].resolve(response);
+      await flush();
+      assert.equal(releaseStatus(f), expected);
+      assert.doesNotMatch(f.text(), /private-response-sentinel|committed-release/);
+      go(f, "/releases");
+      await flush();
+    }
+    go(f, releaseRoute("beta"));
+    await flush();
+    releaseCalls(f).at(-1).resolve(new Response(privateText, { status: 401 }));
+    await flush();
+    assert.equal(f.controller.getSession().kind, "unavailable");
+    assert.equal(releaseStatus(f), "Console session unavailable.");
+    assert.doesNotMatch(f.text(), /private-response-sentinel/);
   } finally { f.close(); }
 });

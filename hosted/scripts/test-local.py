@@ -60,6 +60,7 @@ def provision_customer_artifact_fixtures(pg_bin, port, run_command):
     env = {}
     for prefix, database, variable in [
         ("storage", "mixer_customer_artifact_storage", "MIXER_ARTIFACT_STORAGE_TEST_PORT"),
+        ("ledger", "mixer_local_release_ledger", "MIXER_RELEASE_LEDGER_TEST_PORT"),
         ("read_scope", "mixer_artifact_read_scope", "MIXER_ARTIFACT_READ_SCOPE_TEST_PORT"),
         ("facade", "mixer_customer_artifact_facade", "MIXER_ARTIFACT_FACADE_TEST_PORT"),
         ("http_artifact", "mixer_customer_artifact_http", "MIXER_ARTIFACT_HTTP_TEST_PORT"),

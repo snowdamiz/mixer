@@ -1,8 +1,9 @@
-import { A, Navigate, Route, Router, useCurrentMatches } from "@solidjs/router";
+import { A, Navigate, Route, Router, useCurrentMatches, useLocation } from "@solidjs/router";
 import { lazy, Show } from "solid-js";
 import type { ParentProps } from "solid-js";
 import { SignIn } from "./components/SignIn.js";
-import { ReleaseChecks } from "./components/ReleaseChecks.js";
+import { ReleaseHeadPage } from "./components/ReleaseHeadPage.js";
+import { createReleaseHeadBinding } from "./state/release-head-binding.js";
 import { ApplicationBuildPage } from "./components/ApplicationBuildPage.js";
 import { createBuildSelectionBinding } from "./state/build-selection-binding.js";
 import { WorkspacePage } from "./components/WorkspacePage.js";
@@ -70,12 +71,19 @@ function ApplicationBuildRoute(props: ConsoleSessionProps) {
     binding={binding} workspace={workspace.state()} onRetrySession={() => props.onRetrySession?.()} />;
 }
 
+function ReleaseHeadRoute(props: ConsoleSessionProps) {
+  const location = useLocation();
+  const workspace = useWorkspace();
+  const state = createReleaseHeadBinding(() => location.search, () => props.session, workspace.state);
+  return <ReleaseHeadPage state={state} onRetrySession={() => props.onRetrySession?.()} />;
+}
+
 export function ConsoleRoutes(props: ConsoleSessionProps = {}) {
   return <>
     <Route path="/" component={() => <Navigate href="/releases" />} />
     <Route path="/workspace" component={() => <WorkspacePage session={props.session} />} />
     <Route path="/builds" component={() => <ApplicationBuildRoute session={props.session} onRetrySession={() => props.onRetrySession?.()} />} />
-    <Route path="/releases" component={() => <ReleaseChecks state={{ kind: "unavailable" }} />} />
+    <Route path="/releases" component={() => <ReleaseHeadRoute session={props.session} onRetrySession={() => props.onRetrySession?.()} />} />
     <Show when={BuildsPreview}>{Component => <Route path="/preview/builds" component={Component()} />}</Show>
     <Show when={Preview}>{Component => <Route path="/preview/release-checks" component={Component()} />}</Show>
     <Route path="*" component={NotFound} />

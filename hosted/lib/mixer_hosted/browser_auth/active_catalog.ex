@@ -106,7 +106,13 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
       }
       |> Map.put(:ordinary_function, @workspace_name)
 
-  for manifest <- [@v1, @v2, @v3, @v4, @v5] do
+  @v6 Map.put(
+        %{@v2 | function_acl_limit: 33},
+        :ordinary_function,
+        "mixer_browser_current_active_load"
+      )
+
+  for manifest <- [@v1, @v2, @v3, @v4, @v5, @v6] do
     unless map_size(manifest.functions) == manifest.function_count and
              map_size(manifest.composites) == manifest.composite_count and
              manifest.function_limit == manifest.function_count + 1 and
@@ -136,6 +142,10 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
   def check_workspace_function_surface!(repo, expected_roles, deadline, version)
       when version in [4, 5],
       do: check_surface!(repo, expected_roles, deadline, version, :ordinary_runtime_login)
+
+  @doc false
+  def check_release_function_surface!(repo, expected_roles, deadline),
+    do: check_surface!(repo, expected_roles, deadline, 6, :ordinary_runtime_login)
 
   defp check_surface!(repo, expected_roles, monotonic_deadline_ms, version, login) do
     try do
@@ -167,6 +177,7 @@ defmodule MixerHosted.BrowserAuth.ActiveCatalog do
   defp selected_manifest!(version) when version === 3, do: @v3
   defp selected_manifest!(version) when version === 4, do: @v4
   defp selected_manifest!(version) when version === 5, do: @v5
+  defp selected_manifest!(version) when version === 6, do: @v6
   defp selected_manifest!(_), do: raise(Unavailable)
 
   defp validate_roles!(roles) do

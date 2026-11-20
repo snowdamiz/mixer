@@ -9,6 +9,9 @@ defmodule MixerHostedWeb.Router do
   # that auth, workers, migrations, delivery, or a production service are ready.
   get("/health/live", MixerHostedWeb.HealthController, :live)
 
+  get("/v3/updates", MixerHostedWeb.PublicReleaseController, :offer)
+  get("/v3/artifacts/:digest", MixerHostedWeb.PublicReleaseController, :artifact)
+
   scope "/v3" do
     pipe_through(:customer_identity)
     get("/orgs", MixerHostedWeb.CustomerWorkspaceController, :organizations)

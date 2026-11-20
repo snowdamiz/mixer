@@ -596,7 +596,7 @@ defmodule MixerHosted.Authorization.PolicyTest do
   test "invalid requests cannot trigger a policy repository callback" do
     for {caller, action, scope} <- [
           {nil, "artifact.read", @scope},
-          {identity(), "release.publish", @scope},
+          {identity(), "release.promote", @scope},
           {identity(), "artifact.upload", @project},
           {identity(%{identity_class: :service}), "artifact.read", @scope}
         ] do

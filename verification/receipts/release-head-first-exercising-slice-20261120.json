@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "observedAt": "2026-11-20T13:52:26.707885+00:00",
+  "status": "passed_local_slice",
+  "base": "00aa86d374ada80f64a25255c1adaac427db2d13",
+  "composition": [
+    {
+      "candidate": "5fe55ab67ccc1e62b919beb6a65bb366da3abb79",
+      "cherryPick": "7ddaa016195169120e511866921868b4f0787fe5",
+      "component": "signed assignment"
+    },
+    {
+      "candidate": "ce232ea26f721be120162778b821dd521e2f14d1",
+      "cherryPick": "d217726c7b1c0c40fa9698df8f0eb338a33196bf",
+      "component": "PostgreSQL ledger"
+    },
+    {
+      "candidate": "c50177ceb0a3517114d32e00dbefc1bc319f495a",
+      "cherryPick": "247d51a13b287ba059e1c47ff3214d787be3e03f",
+      "component": "console release head"
+    }
+  ],
+  "revision": "9c4c92b3bd882fc3d76a9b5d28a6be799f1a6e24",
+  "gitTree": "8091df14e9cd77524f9adeb99e396c68df898e09",
+  "hostedInputTreeSha256": "8e4f5350fd324c74e05ed8bbb5547d95fcc6276d56478dae208aa7988c7a8205",
+  "environment": {
+    "host": "local macOS arm64",
+    "elixir": "1.20.4",
+    "erlangOtp": "29",
+    "phoenix": "1.8.16",
+    "postgres": "17.11",
+    "node": "22.23.3",
+    "npm": "11.20.0",
+    "database": "new disposable loopback-only PostgreSQL cluster",
+    "browser": "ordinary Phoenix endpoint and disposable cookie sessions from the synthetic signed PKCE provider fixture"
+  },
+  "fixture": {
+    "path": "services/protocol/testdata/signed-release-v3.json",
+    "sha256": "ee4935fedca51b728e78801cb05c5732e8547bda1e26f109330e6659a0a2f77a"
+  },
+  "boundary": {
+    "artifactStaging": "CustomerArtifacts.upload_at with a separately scoped verified synthetic identity and temporary restricted SQL login",
+    "publication": "BrowserAuth.RuntimeOwner.publish_release with the current operator session, then AssignmentV3.verify and Releases.publish",
+    "headRead": "GET /console-api/v1/release-head through Phoenix BrowserHTTP"
+  },
+  "observations": {
+    "owner": {
+      "status": 200,
+      "authorizedUnpublishedHead": "empty",
+      "committedRelease": {
+        "releaseId": "fixture-release-v3",
+        "sequence": "7",
+        "rolloutBasisPoints": 10000,
+        "manifestSha256": "fde8e3aa163d720681d4d0c08700966163f4245a0954bfb371acbeded1f6bf64",
+        "payloadSha256": "cd3e147c7afb783345f81081e9b2a764bf0a0a7b7b249ba1836a2e4b74a8c24f"
+      }
+    },
+    "otherTenantStatus": 404,
+    "wrongEnvironmentPlatformRuntimeChannelStatus": 404,
+    "duplicateQueryStatus": 400,
+    "publishPostStatus": 404,
+    "publishRefused": [
+      "preauthentication session",
+      "missing publish scope",
+      "other tenant",
+      "missing exact upload",
+      "wrong channel",
+      "wrong target platform",
+      "invalid signature",
+      "revoked assignment authority",
+      "revoked operator credential"
+    ],
+    "exactReplayMatchesOriginalResult": true,
+    "sameSequenceWithNewKey": "conflict",
+    "sameKeyWithChangedReason": "idempotency_conflict",
+    "publicationRowsAfterReplay": 1,
+    "storedAssignmentAndArtifactMatchExactBytes": true
+  },
+  "verification": {
+    "hosted": {
+      "runner": "hosted/scripts/test-local.py --only-additional-tests --test-timeout 120",
+      "tests": [
+        "hosted/test/mixer_hosted/releases/browser_publication_test.exs",
+        "hosted/test/mixer_hosted/releases/postgres_test.exs",
+        "hosted/test/mixer_hosted/protocol/assignment_v3_test.exs",
+        "hosted/test/mixer_hosted/identity/access_token_verifier_test.exs",
+        "hosted/test/mixer_hosted/browser_auth/config_test.exs",
+        "hosted/test/mixer_hosted/browser_auth/runtime_config_test.exs",
+        "hosted/test/mixer_hosted/browser_auth/trusted_read_http_test.exs",
+        "hosted/test/mixer_hosted/customer_artifacts/postgres_storage_test.exs",
+        "hosted/test/mixer_hosted/customer_artifacts_test.exs"
+      ],
+      "browserReadDriver": "hosted/test/support/browser_read_client.mjs compiled with the console client per .github/workflows/hosted.yml",
+      "formatCompileAndLocalReleaseBuild": "passed",
+      "passed": 121,
+      "testOutputSha256": "9d1267a330440d0837e2a5a1d616b3f271e551926fcb8b94ead9797b37bafaf5"
+    },
+    "console": {
+      "commands": [
+        "npm run typecheck",
+        "npm test"
+      ],
+      "passed": 308,
+      "testOutputSha256": "ae96b4453c27dc4e10002a742df534f02e917e855988b5420a70f2f1d22b1703"
+    },
+    "precedingRegressions": {
+      "hostedMissingBrowserDriver": "120 passed and one setup failure; replay with the workflow fixture driver passed all 121",
+      "consoleLocalRuntimeAndSparseCheckout": "replayed with the website fixture paths and the pinned Node runtime"
+    }
+  },
+  "cleanup": {
+    "postgres_stopped": true,
+    "scratch_removed": true,
+    "postgresPortReusable": true,
+    "largestObservedScratchMiB": 761
+  },
+  "remaining": [
+    "public CLI upload/validate/publish HTTP path",
+    "external identity provider",
+    "device delivery",
+    "deployment and launch qualification"
+  ]
+}

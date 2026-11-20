@@ -1,6 +1,10 @@
 defmodule MixerHosted.BrowserAuth.ActiveRead do
   @moduledoc false
+  alias MixerHosted.Authorization.Postgres.Session
+
   alias MixerHosted.BrowserAuth.{
+    ActiveCatalog,
+    Config,
     Store,
     RuntimeOwner,
     PreauthDraft,
@@ -43,25 +47,25 @@ defmodule MixerHosted.BrowserAuth.ActiveRead do
         deadline
       )
 
-  def effect!({:admit, s, i}, deadline) do
-    query!(
-      "SELECT public.mixer_browser_current_active_load($1::bytea,$2::bytea,$3::bigint,ROW($4::text,$5::integer,$6::text,$7::text,$8::text,$9::text,$10::bigint,$11::bigint,$12::text[])::public.mixer_browser_access_evidence)",
-      [
-        s.browser["cookie_digest"],
-        s.browser["config_digest"],
-        s.browser["revision"],
-        i.profile_id,
-        i.profile_version,
-        i.issuer,
-        i.subject,
-        i.client_id,
-        i.credential_ref,
-        i.issued_at,
-        i.expires_at,
-        i.scopes
-      ],
-      deadline
-    )
+  @current_sql "SELECT public.mixer_browser_current_active_load($1::bytea,$2::bytea,$3::bigint,ROW($4::text,$5::integer,$6::text,$7::text,$8::text,$9::text,$10::bigint,$11::bigint,$12::text[])::public.mixer_browser_access_evidence)"
+
+  def effect!({:admit, s, i}, deadline), do: query!(@current_sql, current_args(s, i), deadline)
+
+  defp current_args(s, i) do
+    [
+      s.browser["cookie_digest"],
+      s.browser["config_digest"],
+      s.browser["revision"],
+      i.profile_id,
+      i.profile_version,
+      i.issuer,
+      i.subject,
+      i.client_id,
+      i.credential_ref,
+      i.issued_at,
+      i.expires_at,
+      i.scopes
+    ]
   end
 
   def decode!({:discover, _}, nil), do: nil
@@ -299,6 +303,33 @@ defmodule MixerHosted.BrowserAuth.ActiveRead do
            expires
          )
 
+  defp value({:release_head, target}, _token, _csrf, _source, _expires, _lease, identity, _kl),
+    do: {:ok, MixerHosted.Releases.BrowserHead.read(identity, target)}
+
+  defp value(
+         {:release_publish, target, bytes, key, reason},
+         _token,
+         _csrf,
+         source,
+         expires,
+         lease,
+         identity,
+         kl
+       ) do
+    if Config.scope_profile(lease.runtime.browser_config.scope) ==
+         :release_operator and
+         "mixer.release.publish" in identity.scopes do
+      current! = fn repo ->
+        check_release_session!(repo, lease, kl, source, identity, expires)
+      end
+
+      {:ok,
+       MixerHosted.Releases.publish(identity, {:signed, target, bytes, current!}, key, reason)}
+    else
+      {:ok, {:error, :permission_denied}}
+    end
+  end
+
   defp value(operation, token, csrf, source, expires, _lease, _identity, _kl),
     do: value(operation, token, csrf, source, expires)
 
@@ -326,6 +357,35 @@ defmodule MixerHosted.BrowserAuth.ActiveRead do
     MixerHostedWeb.BrowserBuildCatalogDispatcher.dispatch(token, request, %{
       request_id: Base.encode16(:crypto.strong_rand_bytes(16), case: :lower)
     })
+  end
+
+  defp check_release_session!(repo, lease, kl, source, identity, expires) do
+    :ok = RuntimeOwner.checkpoint(lease)
+    :ok = KeyOwner.finish(KeyOwner, kl)
+
+    Session.query!(repo, "SET LOCAL search_path = pg_catalog")
+    Session.query!(repo, "SET LOCAL bytea_output = 'hex'")
+
+    :function_surface_verified =
+      ActiveCatalog.check_release_function_surface!(
+        repo,
+        lease.runtime.expected_roles,
+        lease.deadline
+      )
+
+    # The same active read now takes its shared session/authority locks on the
+    # writer transaction itself. Those locks live through the ledger commit.
+    [[raw]] =
+      Session.query!(
+        repo,
+        @current_sql,
+        current_args(source, identity)
+      ).rows
+
+    ^expires = decode!({:admit, source, identity}, raw)
+    true = System.system_time(:second) < expires
+    :ok = KeyOwner.finish(KeyOwner, kl)
+    RuntimeOwner.checkpoint(lease)
   end
 
   defp query!(sql, params, deadline) do

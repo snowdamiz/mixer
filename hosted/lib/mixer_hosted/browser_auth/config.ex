@@ -33,6 +33,7 @@ defmodule MixerHosted.BrowserAuth.Config do
 
   @scope_profiles %{
     "openid mixer.workspace.read" => :workspace_read,
+    "openid mixer.workspace.read mixer.release.publish" => :release_operator,
     "openid mixer.workspace.read mixer.build.read" => :build_read,
     "openid mixer.workspace.read mixer.build.read mixer.build.create" => :build_create,
     "openid mixer.workspace.read mixer.workspace.manage" => :workspace_manage,

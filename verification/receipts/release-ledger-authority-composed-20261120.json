@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "status": "passed_local_slice",
+  "observedOn": "2026-11-20",
+  "compositionBase": "00aa86d374ada80f64a25255c1adaac427db2d13",
+  "compositionHead": "b4b5cb59291f061a800003ed2622f6bd95a9eaa9",
+  "incomingLedgerBase": "ce232ea26f721be120162778b821dd521e2f14d1",
+  "incomingFix": "9d83238af6ae3ba6962047698e8845ec107907ff",
+  "incomingReceipt": "a903181fa8c8bec1de2384274db3bfe57759d8b2",
+  "importedReceiptCommit": "a188af5b2833f3ed19d8aa7397b82fa00847822f",
+  "testedRevision": "866a49b48e26a6a7470ca7a17825adff12b103a4",
+  "testedTree": "011381c07fdcf37b111af38732a7283f806d8a01",
+  "hostedTree": "0efd8ee84f501aa5d09f91e8fbc9253888a92de0",
+  "consoleTree": "095acd8a81476a4bb07ffc62f047f4522dcc3fad",
+  "environment": {
+    "host": "macOS arm64",
+    "elixir": "1.20.4",
+    "mix": "1.20.4",
+    "otp": "29",
+    "postgresql": "17.11",
+    "python": "3.14.8",
+    "swiftHostToolchain": "Apple Swift 6.4.2",
+    "dependencies": "Offline private Hex cache with the 21 package archives selected by hosted/mix.lock",
+    "lockSha256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454"
+  },
+  "migrations": {
+    "managedLinuxStarter": "20261120000000",
+    "localReleaseLedger": "20261120000001",
+    "localReleaseHeadRead": "20261120000002",
+    "observation": "The reviewed migration inventory passed. Both Starter and ledger produce their own relations and version rows in either application order. Ecto warned when the optional older Starter migration was applied second."
+  },
+  "signedInputs": {
+    "services/protocol/testdata/signed-release-v3.json": "ee4935fedca51b728e78801cb05c5732e8547bda1e26f109330e6659a0a2f77a",
+    "services/protocol/testdata/release-v3-cases.json": "8f62ae6bc91e951c3c66ab16689dd20f9465c7b671b2f24ad44b5960923c2b44"
+  },
+  "commands": {
+    "dependencies": "HEX_OFFLINE=1 MIX_ENV=test mix deps.get",
+    "format": "MIX_ENV=test mix format --check-formatted",
+    "compile": "MIX_ENV=test mix compile --warnings-as-errors",
+    "testPrefix": "MIX_ENV=test mix test --warnings-as-errors --seed 0 --trace",
+    "cluster": "initdb and foreground postgres on ephemeral loopback TCP with timezone UTC and synthetic fixture roles. Authorization, browser and artifact roles follow hosted/scripts/test-local.py. The Starter proof also provisions mixer_build_create per registration-runner.py."
+  },
+  "composed": {
+    "testPathsRelativeToHosted": [
+      "test/mixer_hosted/releases/browser_publication_test.exs",
+      "test/mixer_hosted/releases/postgres_test.exs",
+      "test/mixer_hosted/protocol/assignment_v3_test.exs",
+      "test/mixer_hosted/authorization/policy_test.exs",
+      "test/mixer_hosted/authorization/postgres_repository_test.exs",
+      "test/foundation_integration_test.exs",
+      "test/mixer_hosted/browser_auth/config_test.exs",
+      "test/mixer_hosted/browser_auth/runtime_config_test.exs"
+    ],
+    "passed": 125,
+    "failed": 0,
+    "testOutputSha256": "5c2e52a64bd6d9d991cff980e43c35060ff9e4fd487e7476c995f191dbdad98d",
+    "postgresOutputSha256": "0db5f087f32d42dab6b8d613f33129071678a1c91307b71cac5fef79d1067e06",
+    "observations": [
+      "The ordinary browser SQL role can execute the publish guard and bound-artifact reader. It can update only the head sequence and has a column-level publication insert grant that excludes recorded_at.",
+      "RuntimeOwner.publish_release used a signed PKCE fixture session and the exact CustomerArtifacts upload. It refused missing and mismatched sources, invalid signatures, revoked assignment authority and revoked operator credentials.",
+      "After the current session cleared admission and PostgreSQL showed its writer waiting on the head row lock, the fixture changed its stored vault tag. The request returned authorization_unavailable, with an empty head and zero publications. The fixture used transaction-local replication mode to inject the stored mismatch.",
+      "The signed sequence 7 and then the signed uint64 maximum 18446744073709551615 persisted with their exact signed bytes. GET /console-api/v1/release-head returned HTTP 200 and the complete decimal string. The original key replayed its original receipt after the advance.",
+      "A viewer with workspace-read scope received the same head. A viewer with publish scope was denied publication, and another tenant received HTTP 404 and could not publish. Unpublished and mismatched targets retained their original response semantics.",
+      "Same-key changed requests returned idempotency_conflict and same-sequence new-key requests returned conflict. The restricted SQL controls covered concurrent contenders, current identity and grant checks, immutable recorded_at and deferred rollback."
+    ]
+  },
+  "legacyStarter": {
+    "testPathRelativeToHosted": "test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs:67",
+    "cliSource": "201ead70ff68bfe18de24c0642f518701459e0a4",
+    "sdkSource": "fad0d0b3e65fd3be3b49675601693e5d91999fbe",
+    "cliSha256": "b540a72f1a8ef5d91b220e028bbe338fc82f6d938269e0e46dba0c21059564e6",
+    "exportSha256": "242e71ce65479302c180bf58ebec0d76204e43cc6f14e56d0f6694eb6c9a0b0f",
+    "prepare": "The original free-project-starter fixture workflow used a locked host CLI build, create, export, --local-sdk, upgrade, --complete-export, export, and config validate.",
+    "passed": 1,
+    "failed": 0,
+    "excludedByLineSelection": 1,
+    "testOutputSha256": "30913f3954524e741cad48afe75b98be37f920bfeb15d49d1be361ad6c64507c",
+    "postgresOutputSha256": "94e77363d30d4ef3557e4a1bc0b5b5d438c1ab646def19bda95b652ab99d1425",
+    "discriminator": {
+      "result": "The existing Starter path check rejected the fixture when its proof directory was beneath world-writable /private/tmp. The same source, exported bytes and test passed from an owned directory with protected ancestors.",
+      "rejectedRunTestOutputSha256": "85db6c423ce6371d81a1e1dffb36cdbcc0fb25beb42e83dc1fe7193baa0c356d"
+    },
+    "observations": [
+      "An organization owner selected and replayed the registered Starter over HTTP. A viewer and mismatched scopes were denied. A legacy catalog entry could replay an exact existing input and returned conflict when its retained reference differed.",
+      "The final authorized Starter selection left one persisted input and zero builds, jobs, reservations or worker starts. Billing rows were unchanged. The query-only fixture worker joined and its listener port closed."
+    ]
+  },
+  "cleanup": {
+    "postgresExitCodes": [0, 0],
+    "finalPostgresPortsRebound": [49622, 50005],
+    "ownedScratchRemoved": true,
+    "temporaryDependencyLinkRemoved": true,
+    "largestSampledCombinedScratchMiB": 620
+  },
+  "remaining": "Independent review and source selection are root-owned. Public CLI mutation, device, deployed, hosted-provider and launch qualification are outside this receipt."
+}

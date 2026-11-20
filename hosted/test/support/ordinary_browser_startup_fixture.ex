@@ -318,6 +318,9 @@ defmodule MixerHosted.Test.OrdinaryBrowserStartupFixture do
       "session_vault_ref" => "vault://fixture/browser",
       "scope" =>
         case create do
+          :release_operator ->
+            "openid mixer.workspace.read mixer.release.publish"
+
           :workspace_builds ->
             "openid mixer.workspace.read mixer.workspace.manage mixer.build.read mixer.build.create"
 

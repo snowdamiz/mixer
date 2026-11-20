@@ -97,6 +97,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
     case {Config.scope_profile(scope), catalog} do
       {:workspace_builds, :workspace_v1} -> 5
       {:workspace_manage, :workspace_v1} -> 4
+      {:release_operator, _} -> 6
       {:build_create, _} -> 3
       _ -> 2
     end
@@ -106,7 +107,10 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
     if workspace_manage_scope?(scope), do: @error, else: {:ok, :legacy}
   end
 
-  defp workspace_catalog(%Config{mode: :configured}, "v1"), do: {:ok, :workspace_v1}
+  defp workspace_catalog(%Config{mode: :configured, scope: scope}, "v1") do
+    if Config.scope_profile(scope) == :release_operator, do: @error, else: {:ok, :workspace_v1}
+  end
+
   defp workspace_catalog(_, _), do: @error
 
   defp construct(%Config{mode: :disabled}, _hosted, nil, nil) do

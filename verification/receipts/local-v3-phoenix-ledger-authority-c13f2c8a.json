@@ -1,0 +1,38 @@
+{
+  "status": "passed",
+  "reviewed_candidate": "ce232ea26f721be120162778b821dd521e2f14d1",
+  "tested_revision": "9d83238af6ae3ba6962047698e8845ec107907ff",
+  "tested_tree": "de5c33d44e633fb282c5822e0b66114217213a79",
+  "scope": "Local Phoenix release ledger, restricted PostgreSQL authorization and ordinary migration compatibility.",
+  "tool_versions": {
+    "elixir": "1.20.4",
+    "mix": "1.20.4",
+    "otp": "29",
+    "postgresql": "17.11"
+  },
+  "commands": [
+    "HEX_OFFLINE=1 MIX_ENV=test mix deps.get",
+    "mix format --check-formatted",
+    "MIX_ENV=test mix compile --warnings-as-errors",
+    "MIX_ENV=test mix test --warnings-as-errors --seed 0 --trace test/mixer_hosted/releases/postgres_test.exs test/mixer_hosted/authorization/policy_test.exs test/mixer_hosted/authorization/postgres_repository_test.exs test/foundation_integration_test.exs"
+  ],
+  "database": {
+    "startup": "Fresh initdb and foreground postgres on a private Unix socket and ephemeral loopback port with synthetic fixture roles.",
+    "writer": "ledger_runtime connected directly and had neither superuser nor BYPASSRLS.",
+    "cleanup": "PostgreSQL exited 0, its postmaster.pid was absent, and the temporary cluster directory was removed."
+  },
+  "observations": [
+    "The ordinary reviewed migration inventory applied successfully. Tracked paths have distinct versions for managed Linux Starter (20261120000000) and the ledger (20261120000001).",
+    "After installing the authorization and artifact schema and provisioning the build writer role, both migrations returned :ok and produced both sets of relations and both schema_migrations rows in each application order. Ecto emitted its version-order warning when the optional Starter migration followed the ledger.",
+    "Under the restricted login, missing, wrong-scope, wrong-environment, mismatched credential, expired, malformed, and developer contexts had no head visibility, updated no head, and received PostgreSQL insufficient_privilege on publication insert. Fully populated settings were denied when the exact app, environment, credential, or membership was inactive or when the operator grant covered a different project.",
+    "An exact-project release_manager with the console handoff scopes published the original bytes through Releases.publish/5. Wrong app and environment were denied.",
+    "The writer could neither set recorded_at nor insert under another principal. The application rejected an overbroad recorded_at grant. Successful writes retained the database-generated timestamp.",
+    "PostgreSQL reported both same-key contenders waiting on the release head lock. One request committed, the other received :idempotency_conflict, and the head and immutable publication agreed on the winner.",
+    "Exact-byte replay, cross-environment artifact binding, uint64 sequence handling, and deferred-failure rollback passed."
+  ],
+  "result": {
+    "passed": 71,
+    "failed": 0
+  },
+  "integration_boundary": "The SQL guard rechecks live authorization records. Caller identity admission, signed assignment verification, HTTP handling and transaction-artifact reads are composed by the owning integration lane."
+}

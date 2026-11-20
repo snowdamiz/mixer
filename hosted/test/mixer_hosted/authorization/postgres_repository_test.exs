@@ -353,7 +353,7 @@ defmodule MixerHosted.Authorization.PostgresRepositoryTest do
 
   test "scope intersection, unsupported actions, classes and future iat keep existing semantics" do
     assert {:error, :permission_denied} = F.evaluate(F.identity(%{scopes: []}))
-    assert {:error, :permission_denied} = F.evaluate(F.identity(), "release.publish")
+    assert {:error, :permission_denied} = F.evaluate(F.identity(), "release.promote")
     assert {:error, :permission_denied} = F.evaluate(F.identity(%{identity_class: :service}))
     time = F.now()
 
