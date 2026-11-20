@@ -15,6 +15,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
   alias MixerHosted.Identity.{ConfiguredVerifier, KeyOwner}
   alias MixerHosted.Protocol.{ArtifactAdmission, ArtifactCBOR, AssignmentV3}
   alias MixerHosted.Releases.BrowserPublicationTest.Uploader
+  alias MixerHosted.Releases.ReleaseJobs.ProcessorAdmission
   alias MixerHosted.Releases.{DeliveryRepo, Target, WriterRepo}
   alias MixerHosted.Test.OrdinaryBrowserStartupFixture.Database, as: DB
   alias MixerHosted.Test.StockReleaseCLI
@@ -589,10 +590,11 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     else
       publish_path = cli_base <> "/channels/#{target.channel}/publish"
       body = ~s({"signed_assignment":#{signed_second}})
+      publish_second = fn -> cli_post(c, token, publish_path, "cli-second", body) end
 
       if jobs? do
         assert_failed_publication = fn ->
-          assert %{status: 503} = cli_post(c, token, publish_path, "cli-second", body)
+          assert %{status: 503} = publish_second.()
 
           assert [[head]] = DB.q!(Admin, "SELECT sequence FROM public.mixer_release_heads").rows
           assert Decimal.to_string(head) == first_sequence
@@ -619,13 +621,14 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
         end
 
         assert_failed_job_commit!(assert_failed_publication)
+        assert %{"release" => %{"sequence" => ^first_sequence}} = read!(c, owner, target)
       end
 
-      assert %{status: 200, body: result} = cli_post(c, token, publish_path, "cli-second", body)
+      assert %{status: 200, body: result} =
+               if(jobs?, do: retry_release_write(publish_second, 2), else: publish_second.())
 
       if jobs? do
-        assert %{status: 200, body: ^result} =
-                 cli_post(c, token, publish_path, "cli-second", body)
+        assert %{status: 200, body: ^result} = publish_second.()
       end
 
       assert %{"sequence" => sequence, "artifact_sha256" => ^second_digest} =
@@ -800,6 +803,19 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     end
   end
 
+  defp retry_release_write(request, retries) do
+    case request.() do
+      %{status: 503, body: body} = refusal when retries > 0 ->
+        assert response_header(refusal, "retry-after") == ["1"]
+        assert %{"error" => %{"code" => "authorization_unavailable"}} = Jason.decode!(body)
+        Process.sleep(1_000)
+        retry_release_write(request, retries - 1)
+
+      result ->
+        result
+    end
+  end
+
   defp assert_release_processor_drains!(c) do
     hosted =
       MixerHosted.Identity.StartupFixture.foundation_env()
@@ -814,6 +830,8 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     connection = Keyword.take(c.hosted.repo, [:hostname, :port, :database, :ssl])
     hosted = %{hosted | repo: Keyword.merge(hosted.repo, connection)}
     abandoned_job = materialize_abandoned_job!(connection[:database])
+    {exhausted_job, exhausted_attempt} = abandon_final_release_attempt!()
+    assert_release_peer_admission!(connection[:database])
     configure!(%{c | hosted: hosted}, :disabled)
     assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
 
@@ -823,7 +841,23 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
       refute Process.whereis(DeliveryRepo)
       assert [["mixer_release_processor"]] = DB.q!(MixerHosted.Repo, "SELECT session_user").rows
 
-      await_release_jobs!(System.monotonic_time(:millisecond) + 7_000)
+      await_release_jobs!(
+        [["completed"], ["completed"], ["discarded"]],
+        System.monotonic_time(:millisecond) + 10_000
+      )
+
+      assert [[2]] =
+               DB.q!(Admin, "SELECT count(*) FROM mixer_release_jobs.offer_materializations").rows
+
+      retry_args = ["-v", "release_job_id=#{exhausted_job}"]
+      retry_result = release_jobs_sql!("retry-local-release-job.sql", retry_args)
+      assert retry_result == "#{exhausted_job}|#{exhausted_attempt}|#{exhausted_attempt + 1}"
+      assert release_jobs_sql!("retry-local-release-job.sql", retry_args) == ""
+
+      await_release_jobs!(
+        [["completed"], ["completed"], ["completed"]],
+        System.monotonic_time(:millisecond) + 5_000
+      )
 
       assert [[3]] =
                DB.q!(Admin, """
@@ -836,15 +870,16 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
                  AND m.action = p.action
                """).rows
 
-      assert [[3, 2, 1]] =
+      assert [[3, 1, 1, 1]] =
                DB.q!(
                  Admin,
                  """
                  SELECT count(*), count(*) FILTER (WHERE attempt=1),
-                        count(*) FILTER (WHERE id=$1 AND attempt=2)
+                        count(*) FILTER (WHERE id=$1 AND attempt=2),
+                        count(*) FILTER (WHERE id=$2 AND attempt=$3)
                  FROM mixer_release_jobs.oban_jobs WHERE state='completed'
                  """,
-                 [abandoned_job]
+                 [abandoned_job, exhausted_job, exhausted_attempt + 1]
                ).rows
     after
       assert :ok = Application.stop(:mixer_hosted)
@@ -879,12 +914,47 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     job_id
   end
 
-  defp await_release_jobs!(deadline) do
+  defp abandon_final_release_attempt! do
+    assert [[job_id, attempt]] =
+             DB.q!(Admin, """
+             UPDATE mixer_release_jobs.oban_jobs
+             SET state='executing', attempt=max_attempts, attempted_at=now() - interval '6 minutes'
+             WHERE id=(SELECT max(id) FROM mixer_release_jobs.oban_jobs)
+             RETURNING id, attempt
+             """).rows
+
+    {job_id, attempt}
+  end
+
+  defp assert_release_peer_admission!(database) do
+    conn = DB.connection!("mixer_release_processor", database)
+
+    try do
+      assert :ok = ProcessorAdmission.after_connect(conn)
+
+      DB.q!(Admin, "GRANT TRUNCATE ON mixer_release_jobs.oban_peers TO mixer_release_processor")
+
+      assert_raise RuntimeError, "release processor admission refused", fn ->
+        ProcessorAdmission.after_connect(conn)
+      end
+    after
+      DB.q!(
+        Admin,
+        "REVOKE TRUNCATE ON mixer_release_jobs.oban_peers FROM mixer_release_processor"
+      )
+
+      GenServer.stop(conn)
+    end
+  end
+
+  defp await_release_jobs!(expected, deadline) do
     unless DB.q!(Admin, "SELECT state::text FROM mixer_release_jobs.oban_jobs ORDER BY id").rows ==
-             List.duplicate(["completed"], 3) do
-      assert System.monotonic_time(:millisecond) < deadline, "release jobs did not drain"
+             expected do
+      assert System.monotonic_time(:millisecond) < deadline,
+             "release jobs did not reach #{inspect(expected)}"
+
       Process.sleep(25)
-      await_release_jobs!(deadline)
+      await_release_jobs!(expected, deadline)
     end
   end
 
@@ -1137,12 +1207,19 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
       end
     end)
 
+    assert release_jobs_sql!("provision-local-release-jobs.sql") == ""
+  end
+
+  defp release_jobs_sql!(name, options \\ []) do
+    database = Admin.config() |> Keyword.fetch!(:database)
+
     {output, status} =
       System.cmd(
         "psql",
         [
           "-X",
           "-q",
+          "-At",
           "-w",
           "-h",
           "127.0.0.1",
@@ -1151,14 +1228,13 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
           "-U",
           "browser_admin",
           "-d",
-          database,
-          "-f",
-          "../docs/operations/provision-local-release-jobs.sql"
-        ],
+          database
+        ] ++ options ++ ["-f", "../docs/operations/#{name}"],
         stderr_to_stdout: true
       )
 
     assert status == 0, output
+    String.trim(output)
   end
 
   defp provision_cli! do

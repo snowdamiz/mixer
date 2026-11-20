@@ -275,6 +275,13 @@ Check `mixer_release_jobs.oban_jobs` for a completed `releases` job and
 The browser and updater serve the committed ledger while jobs are pending.
 Omit the API flag or set it to `false` to stop enqueueing new jobs.
 
+If a release job exhausts its attempts, resolve the storage failure before
+retrying. Run [retry-local-release-job.sql](retry-local-release-job.sql) as the
+local ledger administrator with `psql -v release_job_id=<job-id>`. One returned
+row means the job is available for one more attempt. An empty result means
+the job was ineligible for this operation. Check the job state and the
+projection after the processor runs.
+
 ## Replay with a disposable signed fixture
 
 Run the configuration and effective-listener checks from `hosted/`.

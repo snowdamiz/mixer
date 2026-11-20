@@ -48,10 +48,25 @@ defmodule MixerHosted.Releases.ReleaseJobs.ProcessorAdmission do
     )
     AND pg_catalog.has_table_privilege(current_user, s.peers, 'SELECT')
     AND pg_catalog.has_table_privilege(current_user, s.peers, 'DELETE')
+    AND NOT pg_catalog.has_table_privilege(current_user, s.peers,
+      'TRUNCATE,TRIGGER,SELECT WITH GRANT OPTION,DELETE WITH GRANT OPTION')
+    AND NOT pg_catalog.has_any_column_privilege(current_user, s.peers, 'REFERENCES')
     AND pg_catalog.has_column_privilege(current_user, s.peers, 'expires_at', 'UPDATE')
     AND NOT EXISTS (
       SELECT 1 FROM (VALUES ('name'), ('node'), ('started_at'), ('expires_at')) c(name)
       WHERE NOT pg_catalog.has_column_privilege(current_user, s.peers, c.name, 'INSERT')
+    )
+    AND NOT EXISTS (
+      SELECT 1 FROM pg_catalog.pg_attribute a
+      WHERE a.attrelid = s.peers AND a.attnum > 0 AND NOT a.attisdropped
+        AND (
+          (a.attname NOT IN ('name', 'node', 'started_at', 'expires_at')
+            AND pg_catalog.has_column_privilege(current_user, s.peers, a.attnum, 'INSERT'))
+          OR (a.attname <> 'expires_at'
+            AND pg_catalog.has_column_privilege(current_user, s.peers, a.attnum, 'UPDATE'))
+          OR pg_catalog.has_column_privilege(current_user, s.peers, a.attnum,
+            'SELECT WITH GRANT OPTION,INSERT WITH GRANT OPTION,UPDATE WITH GRANT OPTION')
+        )
     )
     AND NOT EXISTS (
       SELECT 1 FROM isolated_relations c WHERE pg_catalog.pg_has_role(current_user, c.relowner, 'MEMBER')

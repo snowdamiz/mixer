@@ -155,6 +155,9 @@ def manifest():
     for name in ("signed-release-v3.json", "release-v3-cases.json"):
         fixture = root.parent / "services/protocol/testdata" / name
         inputs[str(fixture.relative_to(root.parent))] = digest(fixture)
+    for name in ("provision-local-release-jobs.sql", "retry-local-release-job.sql"):
+        script = root.parent / "docs/operations" / name
+        inputs[str(script.relative_to(root.parent))] = digest(script)
     for test in additional_tests:
         inputs[str(test.relative_to(root.parent))] = digest(test)
     return inputs
@@ -310,6 +313,8 @@ IO.inspect(%{fixture_init_rejected: fixture_init_rejected, owner_absent: true,
         if not args.only_additional_tests:
             test_argv.append("test")
         test_argv.extend(map(str, additional_tests))
+    # The release publication fixture starts psql by name.
+    env["PATH"] = os.pathsep.join((str(args.pg_bin.resolve()), env.get("PATH", os.defpath)))
     run("tests", test_argv, env, timeout=args.test_timeout)
     if before != manifest():
         raise RuntimeError("source changed during tests")
