@@ -486,7 +486,13 @@ IO.puts(
     Jason.encode!(%{
       result: result,
       mix_env: Mix.env(),
-      fake_leaves: ["LifecycleRepo", "RuntimeOwner", "Endpoint.config_change"],
+      fake_leaves: [
+        "LifecycleRepo",
+        "RuntimeOwner",
+        "Endpoint.config_change",
+        "PublicDelivery.children",
+        "WriterRepo.children"
+      ],
       database_admission_proved: false,
       all_owned_names_absent: true,
       application_started: false
