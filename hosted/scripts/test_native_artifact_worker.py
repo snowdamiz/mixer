@@ -2470,6 +2470,59 @@ os.waitpid = observe_reap
         self.assertIsNone(json.loads(self.log.read_bytes())["compiler"])
         self.assertEqual({"error": "unavailable"}, self.call(address, "artifacts", self.fresh))
 
+    def test_starter_retained_build_binds_swift_probe_and_xcode_receipts(self):
+        basename = "mixer-command-receipts-AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
+        self.output.mkdir(mode=0o700, parents=True)
+        self.tmp.mkdir(mode=0o700)
+        receipt_root = self.tmp / basename
+        receipt_root.mkdir(mode=0o700)
+        (self.tmp / "cli-closed").write_text(basename)
+        (self.tmp / "cli-closed").chmod(0o600)
+
+        def write_receipt(name, command, pid, start, end, exit_code=0):
+            directory = receipt_root / name
+            directory.mkdir(mode=0o700, exist_ok=True)
+            path = directory / "receipt.json"
+            raw = literal(dict(
+                **dict.fromkeys(("terminalCustody", "directChildReaped", "stdoutEOF", "stderrEOF",
+                                 "descriptorsClosed", "ownedGroupAbsent", "released"), True),
+                schema="mixer.owned-command.2", state="TERMINAL", stopReason=None, command=command,
+                pid=pid, ownedPGID=pid, ownedSession=pid, runtimeStartedNS=start, terminalNS=end,
+                exitCode=exit_code,
+            )).encode()
+            path.write_bytes(raw)
+            path.chmod(0o600)
+            return digest(raw)
+
+        probe = ["/usr/bin/swift", "--version"]
+        compiler = ["/usr/bin/xcodebuild", "-destination", "generic/platform=iOS Simulator",
+                    "CODE_SIGNING_ALLOWED=NO"]
+        swift_sha = write_receipt("command-z", probe, 41, 1, 2)
+        xcode_sha = write_receipt("command-a", compiler, 42, 3, 4)
+        nested, proof = ios_build_custody.nested_closure(native_artifact_worker, self.tmp)
+        self.assertEqual([probe, compiler], [item["command"] for item, _ in nested[1]])
+        self.assertEqual({"receipt_root": basename, "receipt_sha256s": [swift_sha, xcode_sha]}, proof)
+        self.assertEqual("succeeded", ios_build_custody.classify(0, nested[1]))
+
+        for name, command, start, end, code in (
+            ("failed Swift probe before compiler", probe, 1, 2, 1),
+            ("unexpected Swift invocation", ["/usr/bin/swift", "build"], 1, 2, 0),
+            ("Swift probe overlapping compiler", probe, 1, 4, 0),
+            ("reversed command order", probe, 5, 6, 0),
+            ("duplicate compiler invocation", compiler, 1, 2, 0),
+        ):
+            with self.subTest(name=name):
+                write_receipt("command-z", command, 41, start, end, code)
+                with self.assertRaisesRegex(Refusal, "uncertain"):
+                    ios_build_custody.nested_closure(native_artifact_worker, self.tmp)
+
+        shutil.rmtree(receipt_root / "command-a")
+        write_receipt("command-z", probe, 41, 1, 2, 1)
+        closed_probe, _ = ios_build_custody.nested_closure(native_artifact_worker, self.tmp)
+        self.assertEqual("preflight_failed", ios_build_custody.classify(1, closed_probe[1]))
+        with self.assertRaisesRegex(Refusal, "uncertain"):
+            ios_build_custody.classify(0, closed_probe[1])
+
     def test_stop_before_observer_admission_cannot_launch(self):
         self.prepare()
         _, address = self.listen()

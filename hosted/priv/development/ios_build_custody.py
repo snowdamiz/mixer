@@ -103,22 +103,30 @@ def nested_closure(native, tmp):
     nested = native.read_nested_receipts(tmp, basename, strict=True)
     require(not isinstance(nested, native.BuildUncertainty))
     _, receipts = nested
-    require(len(receipts) <= 1)
+    require(len(receipts) <= 2)
     for item, _ in receipts:
         require(item["schema"] == "mixer.owned-command.2" and item["released"] is True
-                and type(item["exitCode"]) is int and -255 <= item["exitCode"] <= 255
-                and item["command"][0] == "/usr/bin/xcodebuild"
-                and "CODE_SIGNING_ALLOWED=NO" in item["command"]
-                and "generic/platform=iOS Simulator" in item["command"])
+                and type(item["exitCode"]) is int and -255 <= item["exitCode"] <= 255)
+    probe = receipts[0][0] if receipts and receipts[0][0]["command"] == ["/usr/bin/swift", "--version"] else None
+    compiler = receipts[1:] if probe is not None else receipts
+    require(len(compiler) <= 1)
+    if compiler:
+        item, _ = compiler[0]
+        command = item["command"]
+        require(command[0] == "/usr/bin/xcodebuild" and "CODE_SIGNING_ALLOWED=NO" in command
+                and "generic/platform=iOS Simulator" in command)
+        if probe is not None:
+            require(probe["exitCode"] == 0 and probe.get("stopReason") is None
+                    and probe["terminalNS"] <= item["runtimeStartedNS"])
     return nested, {"receipt_root": basename, "receipt_sha256s": [sha for _, sha in receipts]}
 
 
 def classify(code, receipts):
     require(code >= 0)
-    if not receipts:
+    if not receipts or receipts[-1][0]["command"][0] != "/usr/bin/xcodebuild":
         require(code > 0)
         return "preflight_failed"
-    child, _ = receipts[0]
+    child, _ = receipts[-1]
     reason = child.get("stopReason")
     if reason == "cancelled":
         require(code > 0)
