@@ -1,0 +1,592 @@
+{
+  "recordedAtUTC": "2026-11-20T14:43:13.034279+00:00",
+  "commit": "aae21e0880ea8991992f83322fa1ec47cb4e2908",
+  "tree": "e9e4ce6708a20e20326aa25a896aa7dcbe1f3492",
+  "hostedTree": "cb7c18973c07238126e9c282db1948adf9a8ea49",
+  "localOriginMainAtRun": "aae21e0880ea8991992f83322fa1ec47cb4e2908",
+  "sourceBlobChecksAfterReplay": 356,
+  "tools": {
+    "OS": "macOS 27.0.1 arm64 (26A434)",
+    "Mix": "1.20.4 / OTP 29",
+    "PostgreSQL": "17.11",
+    "Python": "3.14.8",
+    "Phoenix": "1.8.16",
+    "Bandit": "1.14.1",
+    "Ecto SQL": "3.14.0"
+  },
+  "scope": "Mixer product plan §18.2 and local gate L07, hosted API privacy slice",
+  "verdict": "FAIL: Unredacted event metadata in Bandit, Phoenix error rendering, and Ecto query results was observable in process in both configurations.",
+  "boundary": [
+    "Pinned product implementation, stock ordinary browser runtime and PostgreSQL roles/grants, two independently authenticated synthetic owners.",
+    "Only the existing test provider and registration test file were temporarily adapted in scratch. The provider accepts a second synthetic subject; the registration helper is exposed for reuse and its original test excluded.",
+    "Local fixture OIDC provider; real socket HTTP, signed fixture claims, database-backed sessions, membership checks, committed journal projections, filesystem reads.",
+    "Synthetic terminal journals, three retained artifact blobs, and sanitized log projection files were seeded directly; nothing compiled and no worker dispatched.",
+    "A test-only in-process observer received original telemetry metadata and kept only marker labels and field names. Zero Bandit request or Repo query subscribers were present at the pre-probe sample. The existing Phoenix error event handler was present. No external receiver was exercised."
+  ],
+  "unavailableOrOutsideScope": [
+    "/metrics, /telemetry, /console-api/v1/source-maps, and /console-api/v1/crash-attachments returned HTTP 404 with and without a fixture cookie; the pinned Phoenix router has no handlers for those surfaces.",
+    "The V3 release artifact manifest validates a source-map digest. Separate release artifact serving, source-map file retrieval and retention, and crash attachment intake/access/retention were outside this replay.",
+    "No mobile SDK telemetry uploader, app-scoped identifier, telemetry-disable setting, or third-party exporter was exercised. No mobile/device or production privacy claim.",
+    "Browser workspace export was exercised. Positive bearer workspace export, audit history export, CLI/app export, offboarding/deletion, and backup retention were outside this replay.",
+    "Native binaries and symbols were tested as synthetic owned blobs for access and headers. Their actual content, worker-side log generation and any raw operator-only files were outside this replay."
+  ],
+  "fixtureSHA256": {
+    "run.py": "127205e69689fbf6ef60f7208a11b401f0ca41790609e09f2559e3941054dc13",
+    "privacy_http_test.exs": "6795ca947898d5407aa3b8e8ba0edb1d549c6e973e0c983262e14b0bb996aa9d"
+  },
+  "runs": [
+    {
+      "logger": {
+        "bytes": 56,
+        "hits": [],
+        "controlSeen": true
+      },
+      "mode": "default",
+      "checks": {
+        "downloads": {
+          "resource_inventory": {
+            "owner": 503,
+            "otherTenant": 404
+          },
+          "unsigned_native_binary": {
+            "owner": 503,
+            "otherTenant": 404
+          },
+          "debug_symbols": {
+            "owner": 503,
+            "otherTenant": 404
+          }
+        },
+        "tenants": 2,
+        "ownBuild": [
+          200,
+          200
+        ],
+        "crossTenantBuild": [
+          404,
+          404
+        ],
+        "ownExport": [
+          200,
+          200
+        ],
+        "crossTenantExport": [
+          404,
+          404
+        ],
+        "ownLogs": [
+          404,
+          404
+        ],
+        "crossTenantLogs": [
+          404,
+          404
+        ],
+        "malformedQuery": [
+          400,
+          400
+        ],
+        "malformedProjection": [],
+        "rejectedBearer": 401,
+        "absentRoutes": 8
+      },
+      "defaultHandlers": {
+        "bandit.request.start": 0,
+        "bandit.request.stop": 0,
+        "mixer_hosted.customer_builds.transaction": 0,
+        "mixer_hosted.repo.query": 0,
+        "phoenix.error_rendered": 1
+      },
+      "postgresLogHits": [],
+      "observedEvents": {
+        "bandit.request.start": 37,
+        "bandit.request.stop": 37,
+        "mixer_hosted.customer_builds.transaction": 28,
+        "mixer_hosted.repo.query": 1634,
+        "phoenix.error_rendered": 8
+      },
+      "eventsWithMarkers": {
+        "bandit.request.start": 33,
+        "bandit.request.stop": 33,
+        "mixer_hosted.repo.query": 6,
+        "phoenix.error_rendered": 4
+      },
+      "telemetryExamples": [
+        {
+          "status": null,
+          "path": "/console-api/v1/support-requests",
+          "fields": {
+            "adapter": [
+              "form_a"
+            ],
+            "req_headers": [
+              "cookie_a",
+              "csrf_a"
+            ]
+          },
+          "event": "bandit.request.start",
+          "hits": [
+            "cookie_a",
+            "csrf_a",
+            "form_a"
+          ]
+        },
+        {
+          "status": null,
+          "path": "/console-api/v1/support-requests",
+          "fields": {
+            "adapter": [
+              "form_b"
+            ],
+            "req_headers": [
+              "cookie_b",
+              "csrf_b"
+            ]
+          },
+          "event": "bandit.request.start",
+          "hits": [
+            "cookie_b",
+            "csrf_b",
+            "form_b"
+          ]
+        },
+        {
+          "status": 400,
+          "path": "/console-api/v1/build-logs",
+          "fields": {
+            "req_headers": [
+              "cookie_a"
+            ],
+            "query_string": [
+              "query_secret"
+            ]
+          },
+          "event": "bandit.request.stop",
+          "hits": [
+            "cookie_a",
+            "query_secret"
+          ]
+        },
+        {
+          "status": 400,
+          "path": "/console-api/v1/build-logs",
+          "fields": {
+            "req_headers": [
+              "cookie_b"
+            ],
+            "query_string": [
+              "query_secret"
+            ]
+          },
+          "event": "bandit.request.stop",
+          "hits": [
+            "cookie_b",
+            "query_secret"
+          ]
+        },
+        {
+          "status": 200,
+          "path": "/console-api/v1/builds",
+          "fields": {
+            "req_headers": [
+              "cookie_a"
+            ]
+          },
+          "event": "bandit.request.stop",
+          "hits": [
+            "cookie_a"
+          ]
+        },
+        {
+          "status": 200,
+          "path": "/console-api/v1/builds",
+          "fields": {
+            "req_headers": [
+              "cookie_b"
+            ]
+          },
+          "event": "bandit.request.stop",
+          "hits": [
+            "cookie_b"
+          ]
+        },
+        {
+          "status": 404,
+          "path": "/console-api/v1/builds",
+          "fields": {
+            "req_headers": [
+              "cookie_a"
+            ]
+          },
+          "event": "bandit.request.stop",
+          "hits": [
+            "cookie_a"
+          ]
+        },
+        {
+          "status": 404,
+          "path": "/console-api/v1/builds",
+          "fields": {
+            "req_headers": [
+              "cookie_b"
+            ]
+          },
+          "event": "bandit.request.stop",
+          "hits": [
+            "cookie_b"
+          ]
+        },
+        {
+          "status": 401,
+          "path": "/v3/orgs",
+          "fields": {
+            "req_headers": [
+              "bearer"
+            ]
+          },
+          "event": "bandit.request.stop",
+          "hits": [
+            "bearer"
+          ]
+        },
+        {
+          "status": null,
+          "path": null,
+          "fields": {
+            "result": [
+              "tenant_a"
+            ]
+          },
+          "event": "mixer_hosted.repo.query",
+          "hits": [
+            "tenant_a"
+          ]
+        },
+        {
+          "status": null,
+          "path": null,
+          "fields": {
+            "result": [
+              "tenant_b"
+            ]
+          },
+          "event": "mixer_hosted.repo.query",
+          "hits": [
+            "tenant_b"
+          ]
+        },
+        {
+          "status": null,
+          "path": "/metrics",
+          "fields": {
+            "req_headers": [
+              "cookie_a"
+            ],
+            "query_string": [
+              "query_secret"
+            ]
+          },
+          "event": "phoenix.error_rendered",
+          "hits": [
+            "cookie_a",
+            "query_secret"
+          ]
+        }
+      ],
+      "phoenixStdout": {
+        "bytes": 7447,
+        "markerMatches": []
+      },
+      "scratchAllocatedKiBAtPostgresReady": 100052,
+      "phoenixPort": 53712,
+      "cleanup": {
+        "mixProcessGroup": 48731,
+        "postgresProcessGroup": 48717,
+        "groupsObservedAbsent": true,
+        "databaseDropped": true,
+        "bothListenerPortsReusable": true,
+        "runScratchRemoved": true
+      },
+      "exitCode": 2,
+      "failedAssertion": "Request telemetry contains private markers."
+    },
+    {
+      "logger": {
+        "bytes": 56,
+        "hits": [],
+        "controlSeen": true
+      },
+      "mode": "retained",
+      "checks": {
+        "downloads": {
+          "resource_inventory": {
+            "owner": 200,
+            "otherTenant": 404
+          },
+          "unsigned_native_binary": {
+            "owner": 200,
+            "otherTenant": 404
+          },
+          "debug_symbols": {
+            "owner": 200,
+            "otherTenant": 404
+          }
+        },
+        "tenants": 2,
+        "ownBuild": [
+          200,
+          200
+        ],
+        "crossTenantBuild": [
+          404,
+          404
+        ],
+        "ownExport": [
+          200,
+          200
+        ],
+        "crossTenantExport": [
+          404,
+          404
+        ],
+        "ownLogs": [
+          200,
+          200
+        ],
+        "crossTenantLogs": [
+          404,
+          404
+        ],
+        "malformedQuery": [
+          400,
+          400
+        ],
+        "malformedProjection": [
+          503,
+          503
+        ],
+        "rejectedBearer": 401,
+        "absentRoutes": 8
+      },
+      "defaultHandlers": {
+        "bandit.request.start": 0,
+        "bandit.request.stop": 0,
+        "mixer_hosted.customer_builds.transaction": 0,
+        "mixer_hosted.repo.query": 0,
+        "phoenix.error_rendered": 1
+      },
+      "postgresLogHits": [],
+      "observedEvents": {
+        "bandit.request.start": 39,
+        "bandit.request.stop": 39,
+        "mixer_hosted.customer_builds.transaction": 42,
+        "mixer_hosted.repo.query": 1914,
+        "phoenix.error_rendered": 8
+      },
+      "eventsWithMarkers": {
+        "bandit.request.start": 35,
+        "bandit.request.stop": 35,
+        "mixer_hosted.repo.query": 6,
+        "phoenix.error_rendered": 4
+      },
+      "telemetryExamples": [
+        {
+          "status": null,
+          "path": "/console-api/v1/support-requests",
+          "fields": {
+            "adapter": [
+              "form_a"
+            ],
+            "req_headers": [
+              "cookie_a",
+              "csrf_a"
+            ]
+          },
+          "event": "bandit.request.start",
+          "hits": [
+            "cookie_a",
+            "csrf_a",
+            "form_a"
+          ]
+        },
+        {
+          "status": null,
+          "path": "/console-api/v1/support-requests",
+          "fields": {
+            "adapter": [
+              "form_b"
+            ],
+            "req_headers": [
+              "cookie_b",
+              "csrf_b"
+            ]
+          },
+          "event": "bandit.request.start",
+          "hits": [
+            "cookie_b",
+            "csrf_b",
+            "form_b"
+          ]
+        },
+        {
+          "status": 400,
+          "path": "/console-api/v1/build-logs",
+          "fields": {
+            "req_headers": [
+              "cookie_a"
+            ],
+            "query_string": [
+              "query_secret"
+            ]
+          },
+          "event": "bandit.request.stop",
+          "hits": [
+            "cookie_a",
+            "query_secret"
+          ]
+        },
+        {
+          "status": 400,
+          "path": "/console-api/v1/build-logs",
+          "fields": {
+            "req_headers": [
+              "cookie_b"
+            ],
+            "query_string": [
+              "query_secret"
+            ]
+          },
+          "event": "bandit.request.stop",
+          "hits": [
+            "cookie_b",
+            "query_secret"
+          ]
+        },
+        {
+          "status": 200,
+          "path": "/console-api/v1/builds",
+          "fields": {
+            "req_headers": [
+              "cookie_a"
+            ]
+          },
+          "event": "bandit.request.stop",
+          "hits": [
+            "cookie_a"
+          ]
+        },
+        {
+          "status": 200,
+          "path": "/console-api/v1/builds",
+          "fields": {
+            "req_headers": [
+              "cookie_b"
+            ]
+          },
+          "event": "bandit.request.stop",
+          "hits": [
+            "cookie_b"
+          ]
+        },
+        {
+          "status": 404,
+          "path": "/console-api/v1/builds",
+          "fields": {
+            "req_headers": [
+              "cookie_a"
+            ]
+          },
+          "event": "bandit.request.stop",
+          "hits": [
+            "cookie_a"
+          ]
+        },
+        {
+          "status": 404,
+          "path": "/console-api/v1/builds",
+          "fields": {
+            "req_headers": [
+              "cookie_b"
+            ]
+          },
+          "event": "bandit.request.stop",
+          "hits": [
+            "cookie_b"
+          ]
+        },
+        {
+          "status": 401,
+          "path": "/v3/orgs",
+          "fields": {
+            "req_headers": [
+              "bearer"
+            ]
+          },
+          "event": "bandit.request.stop",
+          "hits": [
+            "bearer"
+          ]
+        },
+        {
+          "status": null,
+          "path": null,
+          "fields": {
+            "result": [
+              "tenant_a"
+            ]
+          },
+          "event": "mixer_hosted.repo.query",
+          "hits": [
+            "tenant_a"
+          ]
+        },
+        {
+          "status": null,
+          "path": null,
+          "fields": {
+            "result": [
+              "tenant_b"
+            ]
+          },
+          "event": "mixer_hosted.repo.query",
+          "hits": [
+            "tenant_b"
+          ]
+        },
+        {
+          "status": null,
+          "path": "/metrics",
+          "fields": {
+            "req_headers": [
+              "cookie_a"
+            ],
+            "query_string": [
+              "query_secret"
+            ]
+          },
+          "event": "phoenix.error_rendered",
+          "hits": [
+            "cookie_a",
+            "query_secret"
+          ]
+        }
+      ],
+      "phoenixStdout": {
+        "bytes": 8011,
+        "markerMatches": []
+      },
+      "scratchAllocatedKiBAtPostgresReady": 100052,
+      "phoenixPort": 54008,
+      "cleanup": {
+        "mixProcessGroup": 49195,
+        "postgresProcessGroup": 49181,
+        "groupsObservedAbsent": true,
+        "databaseDropped": true,
+        "bothListenerPortsReusable": true,
+        "runScratchRemoved": true
+      },
+      "exitCode": 2,
+      "failedAssertion": "Request telemetry contains private markers."
+    }
+  ]
+}
