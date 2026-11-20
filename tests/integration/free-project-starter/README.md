@@ -34,7 +34,7 @@ Operator provisioning uses the opt-in migration at `hosted/priv/local_source_sel
 
 This replay checks starter selection with Phoenix, PostgreSQL, and the console. The worker receives a signed query and records zero compiler starts.
 
-## Admit an Android starter
+## Admit a macOS-built Android Starter
 
 Use the matching Pair24 CLI and recipe with an existing Pair24 registration. Register a separate export and lock with the matching CLI and recipe to admit a Pair25 Starter.
 
@@ -51,6 +51,49 @@ Run the API and restricted SQL proof from a checkout with locked hosted dependen
 ```sh
 python3 -B tests/integration/free-project-starter/registration-runner.py "$PWD" --android-starter
 ```
+
+## Admit a managed Linux Pair25 Starter
+
+Use the [managed Pair25 layout](../managed-android-local-linux-pair25/MANAGED-LAYOUT.md)
+to prepare the offline export and approve the Linux projection. Create the
+organization, project, and application through the ordinary workspace API.
+Record their exact IDs for the Starter registration.
+
+1. Admit the stage with `Pair25Layout.read`. Use the fixed Pair25 recipe for the
+   approved image and entrypoint. Record the SHA-256 of the exact recipe bytes.
+2. Write a read-only manifest at a canonical absolute path in the private
+   operator directory. Include these four fields.
+   - `profile` is `managed-linux-pair25-v1`.
+   - `spec` contains the three scope IDs, `platform: "android"`,
+     `source`, `toolchain_lock_sha256`, and `build_definition_sha256`.
+     Use the projected Linux lock hash for `toolchain_lock_sha256` and the
+     recipe hash for `build_definition_sha256`. Set `source.kind` to
+     `revision`, `source.sha256` to the projected source tree hash, and
+     `source.reference` to `starter-<source tree hash>`.
+   - `projection_sha256` is the approval file hash reported by the layout.
+   - `rendered_driver_sha256` is the admitted Android driver hash.
+3. As `browser_schema_owner`, apply the [opt-in migration](../../../hosted/priv/local_managed_linux_source_selection/20261120000000_local_managed_linux_source_selection.exs)
+   after installing the local workspace build schema. Insert the scope,
+   complete `spec`, projection hash, and driver hash in
+   `public.mixer_managed_linux_pair25_starters`. Set `registration_pin` to
+   the manifest SHA-256 and `input_id` to `starter-<manifest SHA-256>`.
+4. Set `MIXER_LOCAL_STARTER_PROFILE=managed-linux-pair25-v1` on the API.
+   Set the organization, project, application, registration path, and
+   manifest SHA-256 with the corresponding `MIXER_LOCAL_STARTER_*` variables.
+   Leave `MIXER_LOCAL_STARTER_WORKER_SHA256` unset for this profile.
+
+The owner lists and selects the Starter through
+`/console-api/v1/source-starters` and submits the returned input to
+`/console-api/v1/builds`. The selection writes the verified input. The
+operator binds the approved registration to the exact running attempt while
+the build processor is paused before dispatch. Start the worker and runner
+with matching grants for that operation, then resume the processor.
+
+Run the [selected Pair25 replay](../l05-pair25-http/README.md#select-the-managed-linux-starter)
+to exercise this sequence. Its `--select-starter` control uses the ordinary
+API, restricted Oban, and the managed worker protocol with an inert build
+backend. Use the approved operator stage with the replay's real build command
+to run Docker.
 
 ## L07 closed worker restart
 
