@@ -3,6 +3,7 @@
 import argparse
 from contextlib import contextmanager, closing, ExitStack, nullcontext
 from dataclasses import asdict
+import errno
 import hashlib
 import hmac
 from http.client import HTTPConnection
@@ -26,6 +27,7 @@ from urllib.parse import urlencode
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[2]
 PIN = "ffbd472419c4fd5bb3bf32735738155a9caa9cc8"
+RECOVERY_PIN = "11b9cb43e3d90de5580efda9b9e2e3a47e387be3"
 INERT_LOCK = b"inert Linux lock\n"
 INERT_DRIVER_LOG = {"exitCode": 0, "stdoutBytes": 320, "stderrBytes": 80, "outputTruncated": False}
 HOST = "127.0.0.1"
@@ -93,10 +95,14 @@ def wait(pred, seconds, child=None, *, interval=0.05):
     raise TimeoutError("fixture readiness or settlement deadline expired")
 
 
-def listening(port_number):
+def connect_errno(port_number):
     with socket.socket() as sock:
         sock.settimeout(0.25)
-        return sock.connect_ex((HOST, port_number)) == 0
+        return sock.connect_ex((HOST, port_number))
+
+
+def listening(port_number):
+    return connect_errno(port_number) == 0
 
 
 def group_absent(pid):
@@ -108,7 +114,7 @@ def group_absent(pid):
 
 
 @contextmanager
-def owned(root, name, argv, cwd, env, receipts, stop=None):
+def owned(root, name, argv, cwd, env, receipts, stop=None, *, exit_codes=(0,)):
     output = root / (name + ".log")
     with output.open("xb") as log:
         process = subprocess.Popen(argv, cwd=cwd, env=env, stdin=subprocess.DEVNULL,
@@ -128,7 +134,7 @@ def owned(root, name, argv, cwd, env, receipts, stop=None):
             except (OSError, TimeoutError, subprocess.TimeoutExpired) as error:
                 raise CustodyUnknown(f"{name} custody unknown for PGID {process.pid}") from error
             receipts[name].update(exit=code, groupAbsent=True, logSHA256=sha(output.read_bytes()))
-            if code:
+            if code not in exit_codes:
                 print(output.read_text(errors="replace")[-3600:], file=sys.stderr)
                 raise RuntimeError(f"{name} exited {code}")
 
@@ -189,13 +195,13 @@ def fixtures(source):
 
 
 def stage(root, env, result):
-    receipts = result["commands"]
+    pin = result["productPin"]
     result["hostedTree"] = subprocess.check_output(
-        ["git", "rev-parse", f"{PIN}:hosted"], cwd=REPO, env=env, text=True, timeout=5,
+        ["git", "rev-parse", f"{pin}:hosted"], cwd=REPO, env=env, text=True, timeout=5,
     ).strip()
     archive = root / "source.tar"
     with archive.open("xb") as stream:
-        subprocess.run(["git", "archive", PIN, "hosted", "tests/integration/free-project-starter/registration-runner.py"],
+        subprocess.run(["git", "archive", pin, "hosted", "tests/integration/free-project-starter/registration-runner.py"],
                        cwd=REPO, env=env, stdout=stream, check=True, timeout=20)
     with tarfile.open(archive) as stream:
         stream.extractall(root, filter="data")
@@ -249,7 +255,7 @@ def recipe_inputs(root, args, result):
     return None, inputs, recipe, recipe_path, root / "export"
 
 
-def control_runner(root, runner, grant, lock_digest, cancel):
+def control_runner(root, runner, grant, lock_digest, cancel, seconds):
     # The stock socket, guard, durable store and importer surround this inert adapter.
     from linux_android_runner_server import ContainerObservation, open_runner
     from linux_android_runner import RunnerIdentity
@@ -308,7 +314,7 @@ def control_runner(root, runner, grant, lock_digest, cancel):
     with open_runner(Path(runner["socket_path"]).parent, recipe_sha256=runner["recipe_sha256"],
                      store_id=runner["store_id"], adapter=InertAdapter(), initialize=True,
                      identity_pins={identity.operation_id: identity}, require_start_pin=True) as server:
-        until = time.monotonic() + 48
+        until = time.monotonic() + seconds
         while not (root / "runner.done").exists() and time.monotonic() < until:
             server.serve_one()
 
@@ -448,6 +454,50 @@ def original_start(current, identity):
         return guard
 
 
+def running_admission(snapshot, binding):
+    record, operation, deadline = (binding[key] for key in ("record_id", "operation_id", "deadline_ms"))
+    [admission] = snapshot["operations"]
+    require(snapshot["record"] == [[record, 1]] and snapshot["capacity"] == [[record, 1, 1, True, None]]
+            and admission[:5] == [operation, record, deadline, "admitted", 1],
+            "the running attempt must hold its original capacity and admission")
+    return admission
+
+
+def verify_running(auth, scope, sessions):
+    owner, outsider = sessions["owner"], sessions["outsider"]
+    for cookie in (owner, outsider):
+        status, _, raw = http(auth, "/auth/session", cookie=cookie)
+        require(status == 200 and json.loads(raw)["state"] == "authenticated",
+                "live console session unavailable during recovery")
+    query = "?" + urlencode(scope)
+    status, _, raw = http(auth, BUILD + query, cookie=owner)
+    statuses = (status, http(auth, BUILD + query, cookie=outsider)[0], http(auth, BUILD + query)[0])
+    require(statuses == (200, 404, 401), f"live build detail authorization differs: {statuses}")
+    detail = json.loads(raw)["build"]
+    expected = {"organizationId": scope["organization_id"], "projectId": scope["project_id"],
+                "applicationId": scope["application_id"], "buildId": scope["build_id"],
+                "platform": "android", "revision": 1, "state": "running", "attempt": 1,
+                "workerCompletionPending": True}
+    require({key: detail[key] for key in expected} == expected and not detail.get("artifacts"),
+            "live console detail changed scope, attempt, or advertised an artifact")
+    log_statuses = tuple(http(auth, LOGS + query, cookie=cookie)[0] for cookie in (owner, outsider, None))
+    require(log_statuses == (404, 404, 401), f"running build exposed logs: {log_statuses}")
+    return {"detail": expected, "detailHTTP": statuses, "logsHTTP": log_statuses,
+            "artifactHTTP": verify_no_downloads(query, auth, owner, outsider)}
+
+
+def plain_bind_errno(port_number):
+    # Match the stock TCPServer's bind options. SO_REUSEADDR can give a false pass here.
+    with socket.socket() as probe:
+        try:
+            probe.bind((HOST, port_number))
+        except OSError as error:
+            if error.errno != errno.EADDRINUSE:
+                raise
+            return error.errno
+    return None
+
+
 def request_cancel(auth, scope):
     status, _, raw = http(auth, CANCEL + "?" + urlencode(scope), cookie=auth["cookie"], empty_post=True)
     require(status == 202, f"ordinary owner cancel returned {status}: {raw!r}")
@@ -507,14 +557,19 @@ def verify_stop(final, sql, journals, start_guard, state, binding, grant, config
             "build journal does not tie the capacity release to the original operation and closure")
     require(wire(config, "artifacts", dict(row["binding"], operation_id=operation, guard=worker_guard)) ==
             {"error": "unavailable"}, "stopped worker exposed an artifact")
-    bundle = Path(grant["bundle"])
-    require(not any(os.path.lexists(path) for path in
-                    (bundle, bundle.with_name(f".mixer-l05-{operation}.pending"), state / operation)),
-            "cancelled operation materialized an artifact bundle")
+    require_no_bundle(state, grant)
     return {"workerStarts": 1, "runnerStarts": 1, "runnerPhase": phase, "workerTombstone": True,
             "stopIntent": final["operations"][0], "cancellationClosure": row["closure"],
             "diagnosticSHA256": digest, "capacityReleased": True, "capacityReleaseEvent": event_id,
             "cancelObanJobID": cancel_job, "settledJobs": final["jobs"], "workerArtifactRequest": "unavailable"}
+
+
+def require_no_bundle(state, grant):
+    bundle = Path(grant["bundle"])
+    operation = grant["identity"]["operation_id"]
+    require(not any(os.path.lexists(path) for path in
+                    (bundle, bundle.with_name(f".mixer-l05-{operation}.pending"), state / operation)),
+            "operation materialized an unexpected artifact bundle")
 
 
 def verify_container_stop(adapter, identity, frontend):
@@ -539,13 +594,18 @@ def verify_cancelled(auth, scope, sessions):
     require((detail["buildId"], detail["revision"], detail["state"], detail["attempt"],
              detail["workerCompletionPending"]) == (scope["build_id"], 3, "cancelled", 1, False)
             and not detail.get("artifacts"), "cancelled build detail differs")
+    return {"state": detail["state"], "revision": detail["revision"],
+            "artifactHTTP": verify_no_downloads(query, auth, owner, outsider)}
+
+
+def verify_no_downloads(query, auth, owner, outsider):
     downloads = {}
     for kind in ATTACHMENTS:
         path = "/console-api/v1/build-artifacts/" + kind + query
         statuses = (http(auth, path, cookie=owner)[0], http(auth, path, cookie=outsider)[0], http(auth, path)[0])
-        require(statuses == (404, 404, 401), f"cancelled artifact {kind} response differs: {statuses}")
+        require(statuses == (404, 404, 401), f"unavailable artifact {kind} response differs: {statuses}")
         downloads[kind] = dict(zip(("ownerHTTP", "outsiderHTTP", "anonymousHTTP"), statuses, strict=True))
-    return {"state": detail["state"], "revision": detail["revision"], "artifactHTTP": downloads}
+    return downloads
 
 
 def drive(root, args, env, result):
@@ -670,7 +730,9 @@ def drive(root, args, env, result):
                 runner_command = [*prefix, "serve", runner_path, runner_pin]
                 stop_runner = signal.SIGTERM
             else:
-                runner_command = [sys.executable, "-B", HERE / "run.py", "--inert-child", root, opts]
+                runner_seconds = max(48, args.seconds + 15) if args.worker_crash else 48
+                runner_command = [sys.executable, "-B", HERE / "run.py", "--inert-child", root, opts,
+                                  str(runner_seconds)]
                 stop_runner = lambda: mark("runner.done")
 
             result["workerConfigSHA256"] = worker_pin
@@ -681,15 +743,29 @@ def drive(root, args, env, result):
             def stop_worker():
                 require(wire(config, "shutdown") == {"status": "closed"}, "worker shutdown refused")
 
-            with owned(root, "worker", worker_command, root, env, receipts, stop_worker) as worker:
+            sessions = None
+            with ExitStack() as worker_service:
+                crash_worker = False
+
+                def stop_initial_worker():
+                    if crash_worker:
+                        require(os.getpgid(worker.pid) == os.getsid(worker.pid) == worker.pid,
+                                "SIGKILL target is not the owned worker session leader")
+                        worker.send_signal(signal.SIGKILL)
+                        recovery["signal"] = {"name": "SIGKILL", "targetPID": worker.pid, "targetPGID": worker.pid}
+                    else:
+                        stop_worker()
+
+                worker = worker_service.enter_context(
+                    owned(root, "worker", worker_command, root, env, receipts, stop_initial_worker,
+                          exit_codes=(0, -signal.SIGKILL) if args.worker_crash else (0,))
+                )
                 wait(lambda: listening(worker_port), 8, worker)
                 result["nativeDispatchPossible"] = bool(operator)
                 mark("processor.run")
 
                 if args.cancel:
                     runner_identity = RunnerIdentity(**identity)
-                    deadline = binding["deadline_ms"]
-                    record = binding["record_id"]
                     until = time.monotonic() + args.seconds
 
                     def journals():
@@ -700,12 +776,8 @@ def drive(root, args, env, result):
                     guard = wait(lambda: original_start(journals(), runner_identity),
                                  until - time.monotonic(), processor)
                     before = observed_db()
-                    require(before["record"] == [[record, 1]] and before["capacity"] == [[record, 1, 1, True, None]]
-                            and [row[:5] for row in before["operations"]] == [[operation, record, deadline, "admitted", 1]],
-                            "the running attempt must hold its original capacity and admission")
+                    running_admission(before, binding)
                     result["runningReservation"] = before["capacity"][0]
-                    mark("api.cancel-auth.request")
-                    cancel_auth = auth | ready("api.cancel-auth", api)
                     observer = cancel_container(runner_dir, operator, recipe_path, runner_identity) if operator else nullcontext()
                     with observer as adapter:
                         if adapter:
@@ -715,9 +787,118 @@ def drive(root, args, env, result):
                             )
                         else:
                             start = read(root / "inert.start")
-                            require(start["identity"] == identity and start["cutoff"] <= min(deadline, guard["expires_at"]),
+                            require(start["identity"] == identity
+                                    and start["cutoff"] <= min(binding["deadline_ms"], guard["expires_at"]),
                                     "inert adapter did not receive the original guarded start")
                             result["inertStart"] = start
+                        if args.worker_crash:
+                            mark("api.refresh")
+                            sessions = ready("api.sessions", api)
+                            recovery = result["workerRecovery"] = {"port": worker_port, "runnerPID": runner_process.pid}
+                            if adapter:
+                                recovery["frontendBeforeExit"] = result["frontendBeforeCancel"]
+                            recovery["beforeExit"] = verify_running(auth, scope, sessions)
+                            runner_socket = Path(runner["socket_path"])
+                            paths = (config_path, state / "operations.sqlite", runner_socket, runner_dir / "operations.sqlite")
+
+                            def file_ids():
+                                return [(meta.st_dev, meta.st_ino) for meta in (path.stat() for path in paths)]
+
+                            def start_job():
+                                [job] = json.loads(sql(
+                                    "SELECT json_agg(json_build_array(id, attempt, state::text, "
+                                    "floor(extract(epoch FROM attempted_at) * 1000)::bigint)) "
+                                    "FROM oban_jobs WHERE args->>'kind' = 'start'"
+                                ))
+                                return job
+
+                            def require_same_files():
+                                require(file_ids() == initial_files and runner_socket.is_socket()
+                                        and sha(config_path.read_bytes()) == worker_pin
+                                        and config["port"] == read(config_path)["port"] == worker_port,
+                                        "worker config, exact port, SQLite store, or independent runner changed")
+
+                            initial_files = file_ids()
+                            original_job = start_job()
+                            require(worker.poll() is None and runner_process.poll() is None
+                                    and runner_process.pid != worker.pid,
+                                    "expected a live worker and independent runner before worker exit")
+                            killed_at = time.monotonic()
+                            crash_worker = True
+                            worker_service.close()
+                            require("signal" in recovery and receipts["worker"]["exit"] == -signal.SIGKILL
+                                    and receipts["worker"]["groupAbsent"],
+                                    "original worker was not directly reaped after SIGKILL with group absence")
+                            reaped_at_ms = time.time_ns() // 1_000_000
+                            recovery["reapedAtMS"] = reaped_at_ms
+                            require(connect_errno(worker_port) == errno.ECONNREFUSED,
+                                    "exact worker port did not refuse connections after exit")
+                            recovery["outageConnectErrno"] = errno.ECONNREFUSED
+                            require_same_files()
+                            offline_journals = cancel_journals(state, runner_dir, binding, runner_identity)
+                            require(original_start(offline_journals, runner_identity), "original start was lost at worker exit")
+                            recovery["firstPlainBindErrno"] = plain_bind_errno(worker_port)
+
+                            def retried_offline():
+                                job = start_job()
+                                admission = running_admission(observed_db(), binding)
+                                require(job[0] == original_job[0], "original Oban start job was replaced")
+                                # Snoozing resets the Oban attempt counter. Use attempted_at to observe a completed retry.
+                                if (job[2] == "scheduled" and job[3] is not None and job[3] > reaped_at_ms
+                                        and admission[5] > offline_journals[0]["guard"]["epoch"]):
+                                    return job, admission
+
+                            recovery["startJobBeforeExit"] = original_job
+                            recovery["offlineRetry"] = wait(retried_offline, until - time.monotonic(), processor)
+                            recovery["duringOutage"] = verify_running(auth, scope, sessions)
+                            require_no_bundle(state, grant)
+                            wait(lambda: plain_bind_errno(worker_port) is None,
+                                 until - time.monotonic(), processor, interval=0.2)
+                            require_same_files()
+                            require(connect_errno(worker_port) == errno.ECONNREFUSED and runner_process.poll() is None
+                                    and cancel_journals(state, runner_dir, binding, runner_identity) == offline_journals,
+                                    "worker or runner ledger changed while the worker was offline")
+                            offline_admission = running_admission(observed_db(), binding)
+                            recovery["offlineReservation"] = before["capacity"][0]
+                            recovery["admissionBeforeReopen"] = offline_admission
+                            recovery["downMilliseconds"] = round((time.monotonic() - killed_at) * 1000)
+                            recovery["samePortPlainBind"] = True
+                            worker = worker_service.enter_context(
+                                owned(root, "worker-reopened", worker_command, root, env, receipts, stop_worker)
+                            )
+                            require(worker.pid != recovery["signal"]["targetPID"], "reopened worker reused the old PID")
+                            wait(lambda: listening(worker_port), until - time.monotonic(), worker)
+                            require_same_files()
+
+                            def resumed():
+                                current = journals()
+                                resumed_guard = original_start(current, runner_identity)
+                                if resumed_guard and resumed_guard["epoch"] > offline_admission[5]:
+                                    job = start_job()
+                                    admission = running_admission(observed_db(), binding)
+                                    require(job[0] == original_job[0] and resumed_guard["owner_id"].startswith(f"oban:{job[0]}:")
+                                            and resumed_guard["epoch"] <= current[0]["guard"]["epoch"] <= admission[5],
+                                            "reopened worker did not observe the original restricted Oban operation")
+                                    return resumed_guard, job
+
+                            guard, job = wait(resumed, until - time.monotonic(), processor)
+                            recovery["reopenedRunnerGuard"] = guard
+                            recovery["startJobAfterReopen"] = job
+                            recovery["afterReopen"] = verify_running(auth, scope, sessions)
+                            recovery["sameConfigSQLiteAndRunner"] = True
+                            require_no_bundle(state, grant)
+                            if adapter:
+                                frontend = wait(lambda: observed_frontend(adapter, runner_identity),
+                                                until - time.monotonic(), processor, interval=0.2)
+                                require(frontend["container"] == recovery["frontendBeforeExit"]["container"],
+                                        "reopened worker observed a different Docker container")
+                                result["frontendBeforeCancel"] = frontend
+                            else:
+                                require(read(root / "inert.start") == start and not (root / "inert.stop").exists(),
+                                        "inert runner did not preserve its one active start")
+
+                        mark("api.cancel-auth.request")
+                        cancel_auth = auth | ready("api.cancel-auth", api)
                         result["cancelAttempts"] = 1
                         result["cancelRequestedAtMS"] = time.time_ns() // 1_000_000
                         result.update(cancelHTTP=request_cancel(cancel_auth, scope), cancellationExercised=True)
@@ -808,8 +989,9 @@ def drive(root, args, env, result):
                         result["changedDeadlineAndExpiredGuardRefused"] = True
                     result["nativeDispatchResolved"] = True
 
-            mark("api.refresh")
-            sessions = ready("api.sessions", api)
+            if sessions is None:
+                mark("api.refresh")
+                sessions = ready("api.sessions", api)
             if args.cancel:
                 result["cancelledBuild"] = verify_cancelled(auth, scope, sessions)
             else:
@@ -829,12 +1011,12 @@ def drive(root, args, env, result):
 
 def main():
     if sys.argv[1:2] == ["--inert-child"]:
-        root, code = map(Path, sys.argv[2:])
+        root, code = map(Path, sys.argv[2:4])
         sys.path.insert(0, str(code))
         config = read(root / "worker.json")
         [grant] = config["linux_artifact_imports"].values()
         control_runner(root, config["linux_runner"], grant, grant["inputs"]["linux_lock_sha256"],
-                       cancel=os.environ.get("PAIR25_CANCEL") == "1")
+                       cancel=os.environ.get("PAIR25_CANCEL") == "1", seconds=int(sys.argv[4]))
         return
 
     parser = argparse.ArgumentParser(description=__doc__)
@@ -843,14 +1025,20 @@ def main():
     parser.add_argument("--receipt", type=Path, required=True)
     parser.add_argument("--operator", type=Path, help="real Pair25 stage/daemon operator JSON; omitted for inert replay")
     parser.add_argument("--cancel", action="store_true", help="cancel the original operation while it is running")
-    parser.add_argument("--seconds", type=int, default=30, help="settlement budget, at most 1,150 seconds")
+    parser.add_argument("--worker-crash", action="store_true", help="SIGKILL and reopen the owned worker before cancel")
+    parser.add_argument("--seconds", type=int, help="settlement budget, at most 1,150 seconds")
     args = parser.parse_args()
+    if args.worker_crash and not args.cancel:
+        parser.error("--worker-crash requires --cancel")
+    if args.seconds is None:
+        args.seconds = 75 if args.worker_crash else 30
     if not 1 <= args.seconds <= 1150:
         parser.error("use a settlement budget between 1 and 1,150 seconds")
     require(not args.receipt.exists(), "receipt already exists")
     os.umask(0o077)
     root = Path(tempfile.mkdtemp(prefix="p25-", dir=args.scratch.resolve(strict=True)))
-    result = {"productPin": PIN, "mode": "real" if args.operator else "inert", "python": sys.version,
+    result = {"productPin": RECOVERY_PIN if args.worker_crash else PIN,
+              "mode": "real" if args.operator else "inert", "python": sys.version,
               "fixtureSHA256": {name: sha((HERE / name).read_bytes())
                                 for name in ("run.py", "processor.exs", "api-case.exs")},
               "commands": {}, "cancellationExercised": False, "nativeDispatchPossible": False}
@@ -863,11 +1051,17 @@ def main():
         require(len(os.fsencode(root / "r/runner.sock")) < 103, "scratch path exceeds Unix socket budget")
         drive(root, args, env, result)
         result["passed"] = True
+    except Exception as error:
+        result["failure"] = {"type": type(error).__name__, "detail": str(error)}
+        raise
     finally:
         unresolved = result["nativeDispatchPossible"] and not result.get("nativeDispatchResolved")
         unknown = any(not meta["groupAbsent"] for meta in result["commands"].values())
         if unknown or unresolved:
             result["scratchHeld"] = str(root)
+            result["scratchHoldReason"] = {"unknownGroups": {name: meta["pid"]
+                                           for name, meta in result["commands"].items() if not meta["groupAbsent"]},
+                                           "liveDispatchUnresolved": unresolved}
         else:
             shutil.rmtree(root)
             result["scratchRemoved"] = True

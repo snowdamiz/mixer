@@ -107,3 +107,35 @@ observed container and its output directory without sealing a bundle.
 python3 -B tests/integration/l05-pair25-http/run.py --cancel \
   --scratch "$HOME/.t3/userdata" --receipt verification/local/pair25-cancel-inert.json
 ```
+
+## Recover after an abrupt worker exit
+
+Run the L07 replay with the inert runner backend. The fixture archives product
+commit `11b9cb43e3d90de5580efda9b9e2e3a47e387be3` for this mode.
+
+```sh
+mkdir -p verification/local
+python3 -B tests/integration/l05-pair25-http/run.py --cancel --worker-crash \
+  --seconds 75 --scratch "$HOME/.t3/userdata" \
+  --receipt verification/local/pair25-worker-crash.json
+```
+
+The fixture sends SIGKILL to its owned worker PID after both ledgers record the
+original start. The independent runner stays live. During the outage, restricted
+Oban retries the original job, PostgreSQL holds the capacity reservation, and
+the console build, logs, and artifact APIs enforce the original scope. The
+fixture waits for direct reap, process group absence, and an exact loopback bind
+with the stock socket options. It then reopens the same config and SQLite store.
+The existing Oban job must reach the original runner with a fresh guard before
+the fixture sends the one authenticated cancellation.
+
+For a live follow-up, use a fresh stage and dedicated daemon from the real run
+instructions. The live mode requires an Android Swift frontend in the same
+pinned container before the exit and again after recovery.
+
+```sh
+python3 -B tests/integration/l05-pair25-http/run.py --cancel --worker-crash \
+  --seconds 900 --scratch "$HOME/.t3/userdata" \
+  --operator /absolute/path/pair25-operator.json \
+  --receipt verification/local/pair25-worker-crash-live.json
+```
