@@ -283,6 +283,8 @@ Normal CLI writer activation and the complete installed release journey remain o
 
 Hosted v59 binds the composed release and privacy source. The standalone startup check now supplies disabled release leaves and passes all 15 controls. The composed source formats and compiles with warnings treated as errors, and 41 selected provisioning, protocol, and listener checks passed. [Hosted v59 binding](verification/receipts/hosted-source-binding-v59-20261120.json) · [Startup CI repair](verification/receipts/l05-isolated-release-startup-ci-repair-20261120.json)
 
+Full v59 CI exposed stale migration checks and a shared evidence directory in the release fixture. The repaired Phoenix replay passed 56 selected tests on PostgreSQL 17 with the former shared directory occupied. The identity and Verify services runs also exposed stale predecessor selection in the collector fixtures. The repair restored each intervening source version, and all 316 collector tests passed under the identity sparse checkout and both Verify services Python modes. [Phoenix CI repair](verification/receipts/hosted-v59-ci-phoenix-repair-20261120.json) · [Collector CI repair](verification/receipts/hosted-v59-ci-collector-repair-20261120.json)
+
 The v52 artifact-read fixture now requires a successful metadata row while the token is live, then checks that expiry prevents its callback. All 15 focused PostgreSQL tests and both negative boundary controls passed in independent review. The normal and optimized source checks passed, followed by the public Phoenix and isolated identity-network workflows. [Verification receipt](verification/receipts/phoenix-artifact-read-expiry-v52-20261119.json)
 
 ### Android TaskCompletion parity and source diagnostic
