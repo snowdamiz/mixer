@@ -251,5 +251,43 @@
   },
   "limits": "Single synthetic release and two scoped tenants on one Mac. This receipt covers the local release database using both catalog repairs. Managed-provider recovery, native updater installation, GA qualification, and the remainder of L07/G30 were outside scope.",
   "priorCustodyHoldsPreserved": true,
-  "newCustodyHolds": []
+  "newCustodyHolds": [],
+  "rootReplay": {
+    "recordedAtUtc": "2026-11-20T18:23:56.410701+00:00",
+    "fixtureIntegration": "3728d9f63a",
+    "command": "python3 -B tests/integration/phoenix-release-restore/replay.py --postgres-bin /opt/homebrew/opt/postgresql@17/bin",
+    "exitCode": 0,
+    "postgresSystemIdentifiers": [
+      "7710320857466352477",
+      "7710320876117276377"
+    ],
+    "lockedDependenciesSHA256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+    "snapshotSHA256": "1cd337b52b4e9158d8b80b181fec13bae707c3c50e0e99d3e0dcb632c843358f",
+    "backupSHA256": "c7f3e55189a2d85a69b4a9df6767d8a57ceebf118e7c35cfe50ceffb5a636e1e",
+    "exUnit": {
+      "source": "Result: 1 passed, 1 skipped",
+      "target": "Result: 1 passed, 1 skipped"
+    },
+    "verifiedTarget": {
+      "rolesAndMembershipsMatch": true,
+      "catalogExpressionsMatch": true,
+      "byteIdenticalHTTPReadback": true,
+      "snapshotUnchangedByReadsAndRetries": true,
+      "unrelatedTenantArtifactAndAuditRead": 404,
+      "changedPublishRequest": 409
+    },
+    "cleanup": {
+      "clustersReapedWithExitZeroAndGroupAbsent": 2,
+      "commandGroupsClosed": 53,
+      "portsRebound": [
+        54278,
+        54290,
+        54297,
+        54350,
+        54436,
+        54446
+      ],
+      "scratchRemoved": "/private/tmp/mixer-release-restore-puq7f6js"
+    }
+  }
 }

@@ -149,3 +149,32 @@ single native build, and the limits of the final cross-cluster comparison.
 The settled-build receipt records the matching canonical build and log content,
 all three artifact digests, and unchanged restore state after authenticated
 reads. [Settled Starter restore receipt](../../verification/receipts/l07-starter-settled-restore-20261120.json)
+
+## Replay one committed Phoenix release
+
+Use PostgreSQL 17 client and server tools from the same installation, Python
+3.14, and Elixir 1.20.4 on OTP 29. Prepare the locked Hex dependencies in your
+local cache. Set `HEX_HOME` and `MIX_HOME` if you keep the cache and archives
+outside their default locations. Use a checkout with the same `hosted/mix.lock`
+as the fixture's pinned source, `71e6ffa51e857d5a1eda3f74c26941996ed275de`.
+
+From the Mixer checkout root, run the replay with the PostgreSQL bin directory.
+
+```sh
+python3 -B tests/integration/phoenix-release-restore/replay.py \
+  --postgres-bin /opt/homebrew/opt/postgresql@17/bin
+```
+
+The replay publishes a signed beta release, freezes the source, and restores
+the database and fixture roles into a second loopback cluster. It applies the
+two expiry CHECK repairs and restores the exact
+`mixer_customer_idempotency_key_check` expression on the disposable target.
+PostgreSQL 17.11 flattens the request-key expression during restore, which
+causes Mixer to refuse upload replay until the catalog matches its pin.
+
+Check that the output reports matching owner downloads, audit responses, and
+updater bytes. The replay verifies cross-tenant refusal and checks that exact
+request-key retries preserve the frozen rows. It closes both clusters,
+checks that all six ports can be rebound, and removes its scratch directory.
+If the replay writes `HOLD.json`, preserve that scratch directory.
+[Phoenix release restore receipt](../../verification/receipts/l07-phoenix-release-restore-71e6ffa5.json)
