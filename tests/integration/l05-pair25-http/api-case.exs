@@ -14,12 +14,38 @@ test "serve one ordinary Android build for the Pair25 fixture", c do
     Path.join(System.fetch_env!("PAIR25_RUN"), "inputs.json") |> File.read!() |> Jason.decode!()
 
   source = pins["source_tree_sha256"]
+  reference = "starter-" <> source
+
+  {build, starter} =
+    if System.get_env("PAIR25_SELECT_STARTER") == "1" do
+      pair25_select_starter!(c, owner, outsider, scope, pins, reference)
+    else
+      {pair25_seed_input!(scope, pins, reference), nil}
+    end
+
+  {cookie, csrf} = login(c)
+
+  pair25_publish!("api.ready", %{
+    port: c.http_port,
+    issuer: c.provider_port,
+    jwks: GenServer.call(c.fixture, :authority).port,
+    origin: c.config.public_origin,
+    build: build,
+    source_reference: reference,
+    starter: starter,
+    cookie: cookie,
+    csrf: csrf
+  })
+
+  pair25_wait!(c, false, System.monotonic_time(:millisecond) + 1_240_000)
+end
+
+defp pair25_seed_input!(scope, pins, reference) do
+  source = pins["source_tree_sha256"]
   lock = pins["linux_lock_sha256"]
   recipe = pins["recipe_sha256"]
   input = "pair25-" <> source
-  reference = "starter-" <> source
 
-  # Stock verified-input relation. The Linux layout is operator-registered.
   assert %{num_rows: 1} =
            DB.q!(
              Migration,
@@ -42,29 +68,140 @@ test "serve one ordinary Android build for the Pair25 fixture", c do
              ]
            )
 
-  build =
-    Map.merge(scope, %{
-      platform: "android",
-      source_input_id: input,
-      source_sha256: source,
-      toolchain_lock_sha256: lock,
-      build_definition_sha256: recipe
+  Map.merge(scope, %{
+    platform: "android",
+    source_input_id: input,
+    source_sha256: source,
+    toolchain_lock_sha256: lock,
+    build_definition_sha256: recipe
+  })
+end
+
+defp pair25_select_starter!(c, owner, outsider, scope, pins, reference) do
+  [migration] = Path.wildcard("priv/local_managed_linux_source_selection/20261120000000_*.exs")
+  [{module, _}] = Code.require_file(migration)
+  assert :ok = Ecto.Migrator.up(Migration, 20_261_120_000_000, module, log: false)
+  assert input_rows() == []
+
+  spec =
+    Map.merge(stringify(scope), %{
+      "platform" => "android",
+      "source" => %{
+        "kind" => "revision",
+        "reference" => reference,
+        "sha256" => pins["source_tree_sha256"]
+      },
+      "toolchain_lock_sha256" => pins["linux_lock_sha256"],
+      "build_definition_sha256" => pins["recipe_sha256"]
     })
 
-  {cookie, csrf} = login(c)
+  profile = "managed-linux-pair25-v1"
 
-  pair25_publish!("api.ready", %{
-    port: c.http_port,
-    issuer: c.provider_port,
-    jwks: GenServer.call(c.fixture, :authority).port,
-    origin: c.config.public_origin,
-    build: build,
-    source_reference: reference,
-    cookie: cookie,
-    csrf: csrf
-  })
+  manifest = %{
+    "profile" => profile,
+    "spec" => spec,
+    "projection_sha256" => pins["projection_sha256"],
+    "rendered_driver_sha256" => pins["rendered_driver_sha256"]
+  }
 
-  pair25_wait!(c, false, System.monotonic_time(:millisecond) + 1_240_000)
+  raw = Jason.encode!(manifest)
+  pin = sha256(raw)
+  id = "starter-" <> pin
+  path = pair25_path("starter-registration.json")
+  File.write!(path, raw, [:exclusive])
+  File.chmod!(path, 0o400)
+
+  settings =
+    LocalStarter.runtime_config!(%{
+      "MIXER_LOCAL_STARTER_PROFILE" => profile,
+      "MIXER_LOCAL_STARTER_ORGANIZATION" => scope.organization_id,
+      "MIXER_LOCAL_STARTER_PROJECT" => scope.project_id,
+      "MIXER_LOCAL_STARTER_APPLICATION" => scope.application_id,
+      "MIXER_LOCAL_STARTER_REGISTRATION" => path,
+      "MIXER_LOCAL_STARTER_SHA256" => pin
+    })
+
+  Application.put_env(:mixer_hosted, LocalStarter, settings)
+  assert starter_list(c, owner, scope) == Map.put(public_scope(scope), "starter", nil)
+
+  assert %{num_rows: 1} =
+           DB.q!(
+             Migration,
+             """
+             INSERT INTO public.mixer_managed_linux_pair25_starters
+               (organization_id, project_id, application_id, input_id, registration_pin, spec,
+                projection_sha256, rendered_driver_sha256)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+             """,
+             [
+               scope.organization_id,
+               scope.project_id,
+               scope.application_id,
+               id,
+               pin,
+               spec,
+               manifest["projection_sha256"],
+               manifest["rendered_driver_sha256"]
+             ]
+           )
+
+  payload = Map.put(scope, :starter_id, id)
+  assert starter_list(c, owner, scope) == Map.put(public_scope(scope), "starter", %{"id" => id})
+  assert post(c, outsider, @starters, payload).status == 404
+  assert post(c, owner, @starters, %{payload | starter_id: "unregistered-starter"}).status == 404
+  assert input_rows() == []
+  before = side_effect_rows()
+
+  selected = response_json!(post(c, owner, @starters, payload), 200)
+  assert response_json!(post(c, owner, @starters, payload), 200) == selected
+
+  assert selected ==
+           Map.merge(public_scope(scope), %{
+             "platform" => "android",
+             "sourceInputId" => id,
+             "sourceSha256" => pins["source_tree_sha256"],
+             "toolchainLockSha256" => pins["linux_lock_sha256"],
+             "buildDefinitionSha256" => pins["recipe_sha256"]
+           })
+
+  assert input_rows() == [
+           [
+             scope.organization_id,
+             scope.project_id,
+             scope.application_id,
+             "android",
+             id,
+             "revision",
+             reference,
+             pins["source_tree_sha256"],
+             pins["linux_lock_sha256"],
+             pins["recipe_sha256"],
+             1,
+             1_200_000,
+             0
+           ]
+         ]
+
+  build = Map.new(selected, fn {key, value} -> {Macro.underscore(key), value} end)
+  wrong = %{build | "source_sha256" => sha256("wrong Pair25 input")}
+
+  assert post(c, owner, "/console-api/v1/builds", wrong, [{"idempotency-key", "pair25-bad-input"}]).status ==
+           409
+
+  assert side_effect_rows() == before
+
+  {build,
+   %{
+     id: id,
+     manifest_sha256: pin,
+     projection_sha256: manifest["projection_sha256"],
+     rendered_driver_sha256: manifest["rendered_driver_sha256"],
+     verified_input_rows: 1,
+     selection_http: [200, 200],
+     outsider_http: 404,
+     unregistered_starter_http: 404,
+     mismatched_build_http: 409
+   }}
 end
 
 defp pair25_outsider(c) do

@@ -28,6 +28,7 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[2]
 PIN = "ffbd472419c4fd5bb3bf32735738155a9caa9cc8"
 RECOVERY_PIN = "11b9cb43e3d90de5580efda9b9e2e3a47e387be3"
+STARTER_PIN = "f6577616a8394ca1104f2ba8c430d7ac124ea095"
 INERT_LOCK = b"inert Linux lock\n"
 INERT_DRIVER_LOG = {"exitCode": 0, "stdoutBytes": 320, "stderrBytes": 80, "outputTruncated": False}
 HOST = "127.0.0.1"
@@ -695,7 +696,8 @@ def drive(root, args, env, result):
     source = stage(root, env, result)
     operator, inputs, recipe, recipe_path, export = recipe_inputs(root, args, result)
     compile_hosted(root, source, env, receipts)
-    write(root / "inputs.json", dict(inputs, recipe_sha256=recipe))
+    projection = result["approvedLayout"]["projectionSHA256"] if operator else sha(b"inert Pair25 projection")
+    write(root / "inputs.json", dict(inputs, recipe_sha256=recipe, projection_sha256=projection))
     result["inputs"] = dict(inputs, recipe_sha256=recipe)
     pg = args.pg_bin
     result["postgres"] = subprocess.check_output([pg / "postgres", "--version"], text=True, timeout=3).strip()
@@ -752,12 +754,30 @@ def drive(root, args, env, result):
         require(sql("SHOW data_directory", "postgres") == str(root / "pg"), "PostgreSQL directory differs")
         registration = root / "tests/integration/free-project-starter/registration-runner.py"
         sql(runpy.run_path(registration)["ROLES"], "postgres")
+        if args.select_starter:
+            require(connect_errno(worker_port) == errno.ECONNREFUSED and not (runner_dir / "runner.sock").exists(),
+                    "Starter selection requires unstarted worker and runner")
         api = services.enter_context(owned(root, "api", ["mix", "test", "--no-compile", "--only", "pair25_http",
                         "test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs"],
                         source, env, receipts, stop=lambda: mark("api.done")))
         auth = ready("api.ready", api, seconds=65)
         ports.extend(auth[key] for key in ("port", "issuer", "jwks"))
         require(len(set(ports)) == len(ports), "fixture listener collision")
+        if args.select_starter:
+            starter = auth["starter"]
+            raw = (root / "starter-registration.json").read_bytes()
+            spec = {key: auth["build"][key] for key in SPEC_FIELDS}
+            spec.update(source={"kind": "revision", "reference": f"starter-{inputs['source_tree_sha256']}",
+                                "sha256": inputs["source_tree_sha256"]},
+                        toolchain_lock_sha256=inputs["linux_lock_sha256"], build_definition_sha256=recipe)
+            require(starter["manifest_sha256"] == sha(raw)
+                    and starter["id"] == auth["build"]["source_input_id"] == f"starter-{sha(raw)}"
+                    and json.loads(raw) == {"profile": "managed-linux-pair25-v1", "spec": spec,
+                                            "projection_sha256": projection,
+                                            "rendered_driver_sha256": inputs["rendered_driver_sha256"]}
+                    and all(value is None for value in observed_db().values()),
+                    "selected Starter differs from the approved runner inputs or enqueued work")
+            result["starterSelection"] = starter
         result["billingBeforeBuild"] = billing_state()
 
         config = {"tenant": auth["build"]["organization_id"], "worker_id": "pair25-native-worker",
@@ -799,6 +819,15 @@ def drive(root, args, env, result):
                     and paused["jobs"] == [["created", "completed"], ["start", "available"]]
                     and paused["operations"] is None and not listening(worker_port), "worker dispatch preceded binding")
             result["pausedBoundary"] = {"jobs": paused["jobs"], "operationIntents": 0, "workerListening": False}
+
+            if args.select_starter and operator:
+                from linux_android_pair25_layout import Pair25Layout
+                admitted_layout = Pair25Layout.read(operator["pair25_root"])
+                require(admitted_layout.projection_sha256 == starter["projection_sha256"]
+                        and admitted_layout.verified_inputs == inputs
+                        and admitted_layout.root / "readonly/Export" == export,
+                        "runner layout differs from the selected Starter projection")
+                admitted_layout.verify_recipe(read(recipe_path))
 
             from compiler_worker import literal
             from linux_android_runner import RunnerIdentity
@@ -858,6 +887,9 @@ def drive(root, args, env, result):
                           exit_codes=(0, -signal.SIGKILL) if args.worker_crash else (0,))
                 )
                 wait(lambda: listening(worker_port), 8, worker)
+                if args.select_starter and operator:
+                    admitted_layout.recheck_stage()
+                    result["approvedProjectionMatchesSelection"] = True
                 result["nativeDispatchPossible"] = bool(operator)
                 mark("processor.run")
 
@@ -1215,6 +1247,8 @@ def main():
     parser.add_argument("--pg-bin", type=Path, default=Path("/opt/homebrew/opt/postgresql@17/bin"))
     parser.add_argument("--receipt", type=Path, required=True)
     parser.add_argument("--operator", type=Path, help="real Pair25 stage/daemon operator JSON; omitted for inert replay")
+    parser.add_argument("--select-starter", action="store_true",
+                        help="select the operator registration through the authenticated Starter API")
     parser.add_argument("--cancel", action="store_true", help="cancel the original operation while it is running")
     parser.add_argument("--worker-crash", action="store_true",
                         help="SIGKILL and reopen the owned worker, then cancel if active or verify native success")
@@ -1233,7 +1267,8 @@ def main():
     require(not args.receipt.exists(), "receipt already exists")
     os.umask(0o077)
     root = Path(tempfile.mkdtemp(prefix="p25-", dir=args.scratch.resolve(strict=True)))
-    result = {"productPin": RECOVERY_PIN if args.worker_crash else PIN,
+    product_pin = STARTER_PIN if args.select_starter else RECOVERY_PIN if args.worker_crash else PIN
+    result = {"productPin": product_pin,
               "mode": "real" if args.operator else "inert", "python": sys.version,
               "fixtureSHA256": {name: sha((HERE / name).read_bytes())
                                 for name in ("run.py", "processor.exs", "api-case.exs")},
@@ -1245,6 +1280,8 @@ def main():
                PAIR25_RUN=str(root), PYTHONDONTWRITEBYTECODE="1", PYTHONOPTIMIZE=str(sys.flags.optimize))
     if args.cancel:
         env["PAIR25_CANCEL"] = "1"
+    if args.select_starter:
+        env["PAIR25_SELECT_STARTER"] = "1"
     try:
         require(len(os.fsencode(root / "r/runner.sock")) < 103, "scratch path exceeds Unix socket budget")
         drive(root, args, env, result)

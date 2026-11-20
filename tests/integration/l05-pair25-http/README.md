@@ -39,6 +39,31 @@ routes after worker shutdown.
 The fixture records a row count and SHA-256 for each billing table before the
 build and after terminal readback. Both snapshots must match.
 
+## Select the managed Linux Starter
+
+Add `--select-starter` to use hosted commit
+`f6577616a8394ca1104f2ba8c430d7ac124ea095` and provision the opt-in managed
+Linux Starter catalog. The fixture starts with an empty verified-input table.
+It registers the approved projection, Linux lock, rendered driver, and Docker
+recipe after ordinary app onboarding. The owner lists and selects the Starter
+through `/console-api/v1/source-starters` while the worker and runner are down.
+
+Two selections must return the same input and leave one verified row. An
+unrelated tenant and an unknown Starter ID receive HTTP 404. A build with a
+changed source digest receives HTTP 409 with no enqueue. The launcher submits
+the accepted build using the selected response. Before resuming Oban, it
+matches the committed attempt with the approved registration and grants the
+worker and runner access to that operation.
+
+```sh
+mkdir -p verification/local
+python3 -B tests/integration/l05-pair25-http/run.py --select-starter \
+  --scratch "$HOME/.t3/userdata" --receipt verification/local/pair25-selected-inert.json
+```
+
+Include `--select-starter` in the real command below to build from the selected
+input using the approved stage.
+
 ## Zero-native-build control
 
 ```sh
