@@ -25,6 +25,16 @@ TREE = "fd2db4b611d952bbfafaf34cee0c02ba048b7346"
 LAUNCHER = ROOT / "tests/integration/free-project-starter/replay-restart.py"
 REPAIR = ROOT / "scripts/restore-local-authz-expiry.sql"
 FIXTURE = DELIVERY / "starter-restore-fixture.patch"
+CLI_PATCH = DELIVERY / "starter-swift-lock.patch"
+CLI_PATCH_SHA256 = "900dd380712ae10365e92b5d494573e0e2659403db77f0838f821fa9f5bdd068"
+BASE_PROVENANCE_SHA256 = "8c7b6022210d13a8830500ef5c406db8f8fd6bcf93c883ab5e6718ed1f172b90"
+CLI_PROVENANCE_SHA256 = "1338f7f1b16e646b4665ba67cf08a850da1f08b89b00a8bbcb4505ae48b2e161"
+CLI_BLOBS = {
+    "OwnedCommand.swift": ("5413ff4c56eddffc65aa925c3503b02f2fcae383", "183796e1701105787524204869dc55cf7b086803"),
+    "POSIXCommandControl.swift": ("8f5ac69694687ed6357b2bab828f12906cef0a17", "ab919235bc34467ffd3c13292b25de4d7846a328"),
+    "ProcessRunner.swift": ("a988b328499f5ba5502ecbb119d47ee19ae5ff34", "fdd57e151080cb4d98c8b8d057201c28cc62fde0"),
+    "ProjectGenerator.swift": ("11e269f91b7f7ed4b4b279ccfa14d7c87a76b8f4", "de0013471a4e448243108d35da475b2da8d0a5fd"),
+}
 TEST = "test/mixer_hosted/browser_auth/starter_restore_spec.exs"
 SUPPORT = "test/support/ordinary_browser_startup_fixture.ex"
 SUPPORT_SHA256 = "90e8781bd974496ab8eca4464de4a677a9de1aba0f679396bdece8e5fac0fced"
@@ -95,6 +105,24 @@ class RestoreRun(starter.Run):
         shutil.copyfile(DELIVERY / "starter-restore.exs", self.hosted / TEST)
         self.result["restoreFixtureAfterimageSHA256"] = digest(self.hosted / SUPPORT)
         self.result["restoreTestSHA256"] = digest(self.hosted / TEST)
+
+    def stage_provenance(self):
+        super().stage_provenance()
+        require(self.result["provenanceSourceSHA256"] == BASE_PROVENANCE_SHA256,
+                "unexpected CLI archive source digest")
+        require(digest(CLI_PATCH) == CLI_PATCH_SHA256, "pinned CLI Swift lock patch differs")
+        installed = dict(self.source_entries)
+        for name, (before, after) in CLI_BLOBS.items():
+            path = f"cli/Sources/MixerBuild/{name}"
+            require(installed[path] == ("100644", before), f"CLI patch predecessor differs: {path}")
+            installed[path] = ("100644", after)
+        self.command("starter-swift-lock-overlay", ["git", "apply", "--whitespace=error", CLI_PATCH],
+                     cwd=self.provenance, env={"GIT_CEILING_DIRECTORIES": str(self.root.parent)})
+        self.source_entries = installed
+        self.result.update(provenanceBaseSHA256=BASE_PROVENANCE_SHA256,
+                           provenanceOverlaySHA256=CLI_PATCH_SHA256,
+                           provenanceSourceSHA256=CLI_PROVENANCE_SHA256)
+        self.verify_provenance("after-swift-lock-overlay")
 
     def close_source_writers(self):
         self.verify_active_services()

@@ -106,6 +106,10 @@ the CLI build and generic iOS Simulator compilation. The launcher acquires
 locked Mix and SwiftPM inputs in its private run directory. It compiles the
 hosted test application before starting PostgreSQL and Phoenix. Pass `--pg-bin`
 with the PostgreSQL 17 bin directory if you use a non-Homebrew installation.
+The launcher verifies the four preimages in the pinned CLI source archive,
+applies `starter-swift-lock.patch`, and checks the resulting inventory digest.
+The patch makes the Swift banner comparison independent of stream order. The
+pinned hosted source, worker, and SDK inputs retain their original revisions.
 
 ```sh
 python3.14 -B tests/integration/hosted-expiry-restore/replay-starter.py
@@ -141,3 +145,7 @@ from the current run. [Historical Starter restore receipt](../../verification/re
 The fresh-checkout receipt records the PostgreSQL and HTTP controls, the
 single native build, and the limits of the final cross-cluster comparison.
 [Fresh-checkout Starter restore receipt](../../verification/receipts/l07-fresh-starter-backup-restore-20261119.json)
+
+The settled-build receipt records the matching canonical build and log content,
+all three artifact digests, and unchanged restore state after authenticated
+reads. [Settled Starter restore receipt](../../verification/receipts/l07-starter-settled-restore-20261120.json)

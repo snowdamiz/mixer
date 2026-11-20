@@ -115,7 +115,9 @@ The fixture used PostgreSQL 17.11, Elixir 1.20.4, and Xcode 27.2 on macOS arm64.
 
 The empty fixture restored to a separate PostgreSQL 17.11 cluster. The roles and journal matched, and two fresh sessions authenticated under the restricted API role. All 38 command groups closed, eight ports were reusable, and the replay removed its scratch.
 
-The tightened replay fetches the three advertised downloads and checks their ledger descriptors, exact denial bodies, and cache headers. Six offline controls passed in normal and optimized Python. The full attempt stopped at `starter-export` with `lock.toolchain-drift` before PostgreSQL started or a build was requested. The full settled restore remains open. [Restore controls and failure receipt](verification/receipts/l07-starter-restore-controls-20261120.json)
+The first full replay stopped at `starter-export` with `lock.toolchain-drift`. The corrected replay applies a pinned four-file Swift lock patch only to the historical CLI build. It submitted one iOS Starter build, closed one compiler invocation, and backed up the settled journal, SQLite ledger, and retained files. [Restore controls and initial failure](verification/receipts/l07-starter-restore-controls-20261120.json)
+
+A separate PostgreSQL cluster restored the same journal and served matching build and log content and all three advertised artifacts with fresh owner sessions. The unrelated tenant received the expected HTTP 404 body for each read. Both sessions received `Cache-Control: no-store`. The reads left the restored journal, SQLite operation, and artifact bytes unchanged. The target launched no worker or compiler. All 73 command groups closed, all 11 ports were reusable, and scratch was removed. Recovery after unverified compiler closure remains open under L07. [Settled Starter restore receipt](verification/receipts/l07-starter-settled-restore-20261120.json)
 
 ### Android FieldLog engine replacement
 
