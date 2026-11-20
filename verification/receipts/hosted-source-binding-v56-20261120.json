@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "scope": "Local frozen hosted source selection and CLI archive verification",
+  "candidate": {
+    "public_v55_predecessor": "a1baffe7014ef2d65004955a6aec29e8bec9a2ba",
+    "direct_parent": "7c02d59c01551ffdbac1c7ef7ee8353360e4f843",
+    "commit": "2ad23d67a3790aa1cf7191c250fae747e4775e54",
+    "tree": "c293e48690e2bf5747f5dbbc26d05d7d518a4c16",
+    "both_product_modes": "100644",
+    "product_blobs_equal_to_direct_parent": {
+      "hosted/priv/development/ios_build_custody.py": "d99e7a3403caf02a5a74addd782566a690efca4f",
+      "hosted/scripts/test_native_artifact_worker.py": "aab1c0d1dacc88086c1f1e0d2ac59909219ed65e"
+    }
+  },
+  "environment": {
+    "system": "macOS 27.0.1 (26A434) arm64",
+    "git": "2.56.0",
+    "python": "3.14.8"
+  },
+  "hosted_source": {
+    "identity": "hosted-ios-swift-preflight-custody-source-v56",
+    "files": 424,
+    "bytes": 6272003,
+    "canonical_sha256": "67a063bd75a019fed09b4907256976cee9c8af686358484c0351d664b304aec1",
+    "selection_sha256": "3177e7441fac7af3c366fdffade2797008f5f0dcd6f5a0ed03322d9f26c7a476",
+    "manifest_sha256": "debf3335afa9d7d69f9b5df737cbf4ca82f744a101bf09d68f5dec503cb40348",
+    "exact_delta_and_preimages": 2,
+    "restored_v55": {
+      "unchanged_metadata_and_history": "verification/identity-network-current-source-v55",
+      "files_compared_byte_for_byte_to_public_git_archive": 424,
+      "bytes": 6264374,
+      "canonical_sha256": "02750d59e2b988622e91a0bf7efc7881e39cd8fdf0dcdce17c86f8bbfd53d412",
+      "selection_sha256": "3d50ff95d5b7317ef7773805a0862e2342a26d3cfc01fd01ade330fbd097f5f0",
+      "passed_original_v55_check_source_in_both_modes": true
+    },
+    "automatic_migrations": 20,
+    "opt_in_migrations": 3,
+    "focused_collector_controls_passed_each_mode": 13,
+    "passed_projections_in_both_modes": [
+      "hosted.yml:phoenix",
+      "identity-network.yml:identity-network",
+      "verify.yml:services"
+    ]
+  },
+  "cli_source_archive": {
+    "seal_sha256": "332f2f2da6263bbbbc62dc60a40f1cb76eed3261e6f62e1a1e7f78674c155494",
+    "installed_files": 151,
+    "installed_source_sha256": "3693b7424928421348e43156de8cb307619e0470d5566ece5ee3094e60f638f6",
+    "installed_verify_workflow_sha256": "c44bc250c783da2e3fc6472faa94bd045fdf1c5007af660ab7f08590eba34ae7",
+    "exact_v55_verify_workflow_preimage_sha256": "5c704958b73a0c97bd464ef48defc059bea706de74354ac2630522642723216b",
+    "restored_source141": {
+      "files": 890,
+      "sha256": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab",
+      "verify_workflow_sha256": "b283a00fc9a7ca1b900306d3a4226e182e0ba966014efe0d3427207806f0c69e"
+    },
+    "restored_source127": {
+      "files": 845,
+      "sha256": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7"
+    },
+    "sparse_controls_passed_each_mode": 16,
+    "git_selected_authority_inputs_verified_in_both_modes": {
+      "swift-host": 1093,
+      "android-generated-java": 1093
+    },
+    "missing_and_stale_current_verify_workflow_and_v56_preimage_refusals_each_mode": 4
+  },
+  "commands": {
+    "python_order": "Run each Python command normally and with -O before the script path.",
+    "hosted": [
+      "python3 -B hosted/scripts/test-identity-network.py --check-source",
+      "python3 -B hosted/scripts/test_identity_network_collector.py -v WorkspaceSourceCutoverControls WorkflowSparseSourceControls CurrentCLISelectionControls CollectorMethodWiringControls.test_collect_requires_actual_prepare_result_before_bootstrap"
+    ],
+    "cli": [
+      "python3 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+      "python3 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py prepare-source141 --out <fresh-owned-output>",
+      "python3 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py prepare-predecessor --out <fresh-owned-output>",
+      "python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v"
+    ],
+    "additional_checks": "Compare restored v55 bytes with git archive at a1baffe701 and run the original check-source on that restored projection. Use git sparse-checkout check-rules to select both CLI projections from Verify and run installed admission in each."
+  },
+  "scratch": {
+    "cap_bytes": 2147483648,
+    "cleanup": "Owned sparse checkout, projections and temporary outputs removed after verification.",
+    "largest_observed_allocated_kib": 421376
+  },
+  "retention": "Staged verification artifact check passed.",
+  "scope_limits": "Source and archive checks only. Root owns native replay and the admission decision. No real builds, devices, Docker, production credentials or push.",
+  "root_reported_worker_controls": {
+    "product_commit": "7c02d59c01551ffdbac1c7ef7ee8353360e4f843",
+    "passes_each_mode": 45,
+    "skips_each_mode": 1,
+    "skip": "Operator-retained Pair25 bundle"
+  }
+}
