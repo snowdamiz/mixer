@@ -1,0 +1,80 @@
+{
+  "schema": 1,
+  "gate": "L05 configured-identity HTTP replay",
+  "result": "passed",
+  "startedUTC": "2026-11-20T16:58:10Z",
+  "finishedUTC": "2026-11-20T16:58:19Z",
+  "source": {
+    "revision": "1c8e25837b9b25755d3ea1ab591d7ec48f043b05",
+    "directParent": "6ba8a10248cc8f6db08faf6e218d9c9cc5d346e4",
+    "tree": "35d7948732abefd504154a15b7542e1982efc70c",
+    "hostedTree": "3fe9b6f2ecc394f00f715e1b400c0f9bec923e17",
+    "runbookSha256": "8a5f304f195e4e03ef4dfb91e2905251d9249b69c273df3cc88888e5a947f146",
+    "runnerSha256": "0f34988e59086a4321b506e9d4e034c1ad383f7c4e177b4038a3c067c84cc19b",
+    "testSha256": "8a0b17b3937a2d46453665d4fa9df03d7f4f1f4953d400159cac3f3776a2f901",
+    "mixLockSha256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+    "signedVectorBlob": "b6016b64067ecc773b1b01d6e1968b8664d17c45"
+  },
+  "provisioning": {
+    "guest": "Ubuntu 24.04.5 LTS, Linux 6.8.0-147-generic aarch64",
+    "vm": "Lima 2.3.0, VZ, 16 GiB disk, plain mode",
+    "limaDarwinArm64Sha256": "b7af444bd8f91d3c307477e562f2cf3bd7595d62b9429185e4fa841563578cfc",
+    "ubuntu20261017Arm64Sha256": "50e24e1fb79e89116e939d90aa7738f7af48c442fa1bc2510131e0b39c50348e",
+    "otp": "29.1.1, ERTS 17.1, built from official Erlang release source",
+    "otpSourceSha256": "054e0143e39c780e091107fc9b345792a9c1a55f6bac1eca1c1101510fc06bf6",
+    "elixir": "1.20.4 (OTP 29 official release archive)",
+    "elixirArchiveSha256": "7863c546cda13fecc949e562e326042451dacf8fd8698a36783cb71eeb223b46",
+    "postgresql": "16.15-0ubuntu0.24.04.1, signed Ubuntu repository, dpkg -V clean",
+    "openssl": "3.0.13",
+    "iproute2": "6.1.0",
+    "utilLinux": "2.39.3",
+    "hex": "2.7.0 built on the pinned toolchain from upstream commit 92cb6a1b10c9b008ccb6fa229f5d9916840dc09d after the published archive failed to load on OTP 29",
+    "rebar3": "3.28.0 official release, SHA-256 5a28b1cca082d3b023ec0f5df9d9f9d52557036c6f2a21c1ffa11b93a984dd42",
+    "dependencies": "MIX_ENV=test mix deps.get --check-locked, then offline dependency and application compilation"
+  },
+  "isolation": {
+    "hostMounts": [],
+    "sshAgentForwarded": false,
+    "parentNet": "net:[4026531840]",
+    "testNet": "net:[4026532321]",
+    "parentPidNs": "pid:[4026531836]",
+    "testPidNs": "pid:[4026532319]",
+    "namespaceInitPid": 1,
+    "interfaces": ["lo"],
+    "ipv4Addresses": ["127.0.0.1/8", "8.8.8.8/32"],
+    "ipv4RouteDestinations": ["8.8.8.8", "127.0.0.0/8", "127.0.0.1", "127.255.255.255"],
+    "ipv6RouteDestinations": ["::1"],
+    "listenersAtEntry": [],
+    "issuerTraffic": "The configured resolver at 127.0.0.1:53 and jwks.fixture.invalid at the namespace-local 8.8.8.8:443 were loopback-only."
+  },
+  "run": {
+    "command": "From hosted/, as in scripts/replay-configured-release.md: guest sudo unshare --net --pid --fork --kill-child --mount-proc, verify namespace isolation, then runuser as the unprivileged guest user and execute ./scripts/replay-configured-release.sh with MIXER_RELEASE_PARENT_NETNS set",
+    "testCommand": "MIX_ENV=test HEX_OFFLINE=1 mix test --warnings-as-errors --trace test/mixer_hosted/releases/configured_release_replay_test.exs (runner-owned clean environment)",
+    "seed": 597638,
+    "exit": 0,
+    "output": [
+      "TLSFixture lifecycle: %{active: 0, requests: 1, accepted: 1, terminal_results: [%{stage: :peer_close, outcome: :peer_closed, unexpected_bytes: 0}], peer_closed: 1}",
+      "Configured release replay completed in linux mode.",
+      "Result: 1 passed",
+      "Removed owned PostgreSQL and fixture scratch.",
+      "No guest processes remain in either owned replay namespace."
+    ],
+    "transcriptSha256": "01d6c9f17aa2bd4c11df5a516d9dc1f0109c7815608c221425ced3bfb7856f6c",
+    "warning": "The clean runner environment reported Latin-1 native filename encoding. The exact runner and test completed successfully."
+  },
+  "passedAssertions": {
+    "boot": "Ordinary configured API, cold key cache, health 200, TLS for restricted PostgreSQL writer and delivery accounts, neither with direct artifact SELECT.",
+    "beforePublication": "Missing bearer validation 401, updater offer 204, artifact 404, null head and empty publication ledger.",
+    "firstBearer": "HTTP validate 200 with exact artifact digest and protocol_valid=true. Configured verifier bound the minted bearer to profile startup-fixture, subject replay-subject, credential replay-token and scope mixer.release.publish. Cold lookup made one A and one AAAA query and exactly one verified TLS GET /keys. Validate left the ledger empty.",
+    "publishAndExactRetry": "Both HTTP publish requests returned 200 with byte-identical responses and delivery=local_only. Exactly one publication held sequence 7, rollout 10000 basis points, the signed assignment bytes, principal replay-owner and action publish. Head remained 7.",
+    "updater": "Registered beta offer and artifact HTTP GET both returned 200 with the exact signed assignment and artifact envelope bytes. Stable-channel offer returned 204. JWKS accepted connection count remained one.",
+    "scope": ["org-a", "project-a", "fieldlog", "development", "ios", "4458cc1f9ff4357cad2e529d56de9c1e962679a3023ea72c8cb6c909d99bb888", "beta"],
+    "artifactManifestSha256": "fde8e3aa163d720681d4d0c08700966163f4245a0954bfb371acbeded1f6bf64"
+  },
+  "closure": {
+    "services": "ExUnit verified Phoenix, repos, key owner, DNS and TLS stopped. pg_ctl confirmed PostgreSQL stopped and runner scratch was removed.",
+    "guest": "No processes remained in either owned namespace. No guest test scratch or PostgreSQL clusters remained.",
+    "host": "VZ reported stopped, Lima reported Stopped, owned host PID 67035 returned ESRCH, the instance was deleted and the dedicated LIMA_HOME was empty before host scratch removal."
+  },
+  "scopeLimit": "Artifact staging used the fixture's authorized PostgreSQL path. Stock CLI upload activation is outside this replay."
+}
