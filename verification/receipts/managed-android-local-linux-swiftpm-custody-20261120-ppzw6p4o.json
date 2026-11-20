@@ -1,0 +1,526 @@
+{
+  "schema": 1,
+  "trial": "mixer-swift-android-linux-ppzw6p4o",
+  "outcome": "pass",
+  "scope": "Local standalone SwiftPM Android arm64 API 28 dynamic library and one real frontend cancellation via a private Docker PID namespace. No Mixer application code compiled.",
+  "qualification": "Compiler custody evidence for Product Plan sections 14.1\u201314.3. No hosted L05 or GA gate credit, Android device/runtime test, managed queue integration, or standalone macOS verification.",
+  "source": {
+    "briefBaseCommit": "d82b78782ae1a9bcccdbc2e3d5890a78ba27413c",
+    "briefBaseTree": "efeac46b43e5778baa8c6377ae37c7f0c7e734c7",
+    "checkoutHead": "58951594a866492be7ce204e93a9533f892b2550",
+    "manifest": "// swift-tools-version: 6.3\nimport PackageDescription\n\nlet package = Package(\n    name: \"CustodyProbe\",\n    products: [.library(name: \"CustodyProbe\", type: .dynamic, targets: [\"CustodyProbe\"])],\n    targets: [.target(name: \"CustodyProbe\")]\n)\n",
+    "tinySwiftSource": "@_cdecl(\"mixer_custody_answer\")\npublic func answer() -> Int32 {\n    42\n}\n",
+    "fixtures": {
+      "build": {
+        "files": {
+          "Package.swift": {
+            "sha256": "3023112cce075c325976f0296d297748e9e18f243eebc70af4b7098f43eaa0d8",
+            "bytes": 242
+          },
+          "Sources/CustodyProbe/CustodyProbe.swift": {
+            "sha256": "eb33f5b7f72c5ffb12436c2e1a0189dfa90c3af920af90ede1315107bf60dc2d",
+            "bytes": 73
+          }
+        },
+        "definition": "Tiny exported Int32 function returning 42."
+      },
+      "cancel": {
+        "files": {
+          "Package.swift": {
+            "sha256": "3023112cce075c325976f0296d297748e9e18f243eebc70af4b7098f43eaa0d8",
+            "bytes": 242
+          },
+          "Sources/CustodyProbe/CustodyProbe.swift": {
+            "sha256": "93154b4b51ad9848be9d4f8211ecc60108d230869c02dc7681714e352ceca06b",
+            "bytes": 1471853
+          }
+        },
+        "definition": "Tiny exported Int32 function returning 42 plus 18000 independent, bounded-size arithmetic functions to provide an observation window."
+      }
+    },
+    "cancellationFixtureGenerator": "Append \"\\npublic func operation{number}(_ value: Int32) -> Int32 {{\\n    (value &* 3) &+ {number}\\n}}\\n\" to the tiny Swift source with a Python f-string for number in range(18000). The longer input gives an observation window and was chosen for this trial."
+  },
+  "host": {
+    "macOS": "27.0.1 (26A434)",
+    "dockerContext": "desktop-linux",
+    "daemon": "Docker Desktop 29.8.2 Linux aarch64 7.0.14-linuxkit",
+    "capacity": {
+      "macDiskFreeBeforeGiB": 126,
+      "daemonCPUCount": 15,
+      "daemonMemoryBytes": 8318844928
+    }
+  },
+  "inputs": {
+    "swift": {
+      "version": "6.3.3",
+      "tag": "docker.io/library/swift:6.3.3-noble",
+      "officialImageSource": "https://www.swift.org/install/linux/ubuntu/24_04/",
+      "indexDigest": "sha256:1ba0416be43dc57ba6ff7d02114356cad1ab17364024b7669385e3fe41a224aa",
+      "platformManifests": {
+        "linux/amd64": {
+          "digest": "sha256:51f5e4c2626d63879f3e97e1d476ac0494a220ad656baafd3a1db3a7310b3fce",
+          "configDigest": "sha256:ccad06a6ba1c84af32165c0e12c861948bf50cc48b27ea3b27d99a7ba7aa9bd8",
+          "compressedLayerBytes": 1254594997
+        },
+        "linux/arm64": {
+          "digest": "sha256:3ad77b443f5f41d8c6c693659d9c951538dfeb79403e67cd40abca2501d4f191",
+          "configDigest": "sha256:3af9ff4bbeb3912a60bee99a537e4bd44e9010a8f933eefe29161e0f472464e9",
+          "compressedLayerBytes": 1244505156
+        }
+      }
+    },
+    "androidSDK": {
+      "id": "swift-6.3.3-RELEASE_android",
+      "archive": "https://download.swift.org/swift-6.3.3-release/android-sdk/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE_android.artifactbundle.tar.gz",
+      "releaseMetadata": "https://www.swift.org/api/v1/install/releases.json",
+      "archiveBytes": 333223533,
+      "archiveSHA256VerifiedAgainstRelease": "d160cc3206dd1886dae3fef2337af5e25ec034692cd0ec225721c56cc69da7f5"
+    },
+    "ndk": {
+      "release": "r27d (27.3.13750724)",
+      "archive": "https://dl.google.com/android/repository/android-ndk-r27d-linux.zip",
+      "releaseMetadata": "https://github.com/android/ndk/releases/tag/r27d",
+      "archiveBytes": 663956036,
+      "archiveSHA1VerifiedAgainstRelease": "22105e410cf29afcf163760cc95522b9fb981121",
+      "archiveSHA256": "601246087a682d1944e1e16dd85bc6e49560fe8b6d61255be2829178c8ed15d9"
+    },
+    "architectureDecision": "r27d only supplies x86-64 Linux host executables. The emulated amd64 SwiftPM run stopped at the package manifest. The native arm64 route uses pinned arm64 Swift and its bundled LLVM tools with the same official r27d target headers, libraries, and Clang resource inputs. A worker needing to execute r27d's host binaries should use native x86-64 Linux."
+  },
+  "setup": {
+    "name": "mixer-swift-android-linux-ppzw6p4o-prepare-v2",
+    "id": "9b9ddf772f9591fd157961c8f77b5c12df7fc754c8916e0ad2645d7b6390fa61",
+    "result": "pass",
+    "startAtUTC": "2026-11-20T05:05:38.213088+00:00",
+    "waitTerminalState": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-11-20T05:05:38.99603596Z",
+      "FinishedAt": "2026-11-20T05:06:16.139487922Z"
+    },
+    "removedAndExactIdAbsent": true,
+    "observerCorrection": "The exact Linux machine field was printed as X86-64. The first host checker compared case-sensitively to x86-64. Corrected against terminal output without repeating setup.",
+    "evidence": [
+      "x86_64",
+      "Swift version 6.3.3 (swift-6.3.3-RELEASE)",
+      "Target: x86_64-unknown-linux-gnu",
+      "Pkg.Desc = Android NDK",
+      "Pkg.Revision = 27.3.13750724",
+      "Pkg.BaseRevision = 27.3.13750724",
+      "Pkg.ReleaseName = r27d",
+      "fc5c67c636ef5b46a51edf7a1ff20b8bfaa54cd6a7ee22926dd26d6f6af70e43  /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/scripts/setup-android-sdk.sh",
+      "setup-android-sdk.sh: success: ndk-sysroot linked to Android NDK at /inputs/android-ndk-r27d/toolchains/llvm/prebuilt",
+      "  Class:                             ELF64",
+      "  Machine:                           Advanced Micro Devices X86-64",
+      "LLD 18.0.4 (compatible with GNU linkers)"
+    ],
+    "method": "Unpack checksum-verified archives offline into a labelled case-sensitive Docker volume. Use tar --no-same-owner with capabilities dropped. Run the SDK's own setup script with ANDROID_NDK_HOME=/inputs/android-ndk-r27d and remove the script directory before build mounts. Confirm the two case-distinct NDK headers, sysroot symlink, arm64 Swift runtime object, and exact NDK linker."
+  },
+  "earlierAttempts": [
+    {
+      "outcome": "host archive extraction stopped",
+      "evidence": "The default macOS filesystem collided on xt_RATEEST.h and xt_rateest.h. The ZIP checksum had matched."
+    },
+    {
+      "name": "mixer-swift-android-linux-ppzw6p4o-prepare",
+      "id": "3ca72272809e04d088348b336905a826a9b4f026f7260b6c5997bdff022b3c90",
+      "startAtUTC": "2026-11-20T05:03:33.799528+00:00",
+      "stateBeforeRemoval": {
+        "Status": "created",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 128,
+        "Error": "failed to create task for container: failed to initialize logging driver: compression cannot be enabled when max file count is 1",
+        "StartedAt": "0001-01-01T00:00:00Z",
+        "FinishedAt": "0001-01-01T00:00:00Z"
+      },
+      "removedAndExactIdAbsent": true,
+      "error": "docker container exited 1: Error response from daemon: compression cannot be enabled when max file count is 1",
+      "diagnosis": "Docker's local logger rejected compression with max-file=1 before starting a process. Set compress=false and use a fresh payload container."
+    },
+    {
+      "name": "mixer-swift-android-linux-ppzw6p4o-prepare",
+      "id": "2349be1be3c3beca1a9f32518a6bbfba892015e34c2faff6f948108ccf72074d",
+      "stateBeforeRemoval": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 2,
+        "Error": "",
+        "StartedAt": "2026-11-20T05:03:59.197882428Z",
+        "FinishedAt": "2026-11-20T05:04:14.191894504Z"
+      },
+      "removedAndExactIdAbsent": true,
+      "diagnosis": "GNU tar rejected archive-owned chown with capabilities dropped. A host retry script also used a case-sensitive match for the volume absence error, so the unchanged setup ran once more before the --no-same-owner fix."
+    },
+    {
+      "name": "mixer-swift-android-linux-ppzw6p4o-prepare",
+      "id": "34e0247b29b6cd5ba590598c670f7d63ab7076aabf2a5c91d151641b9a9ff59a",
+      "startAtUTC": "2026-11-20T05:04:57.255201+00:00",
+      "waitTerminalState": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 2,
+        "Error": "",
+        "StartedAt": "2026-11-20T05:04:57.975093427Z",
+        "FinishedAt": "2026-11-20T05:05:25.664685968Z"
+      },
+      "removedAndExactIdAbsent": true,
+      "error": "",
+      "diagnosis": "GNU tar tried to apply archive owner 998:998 without CAP_CHOWN; use --no-same-owner."
+    },
+    {
+      "name": "mixer-swift-android-linux-ppzw6p4o-build-v2",
+      "id": "5f4debe1a051e32e1cfc3ae2dfaf943702af26aed7aebcc6f576ab5e0983e702",
+      "startAtUTC": "2026-11-20T05:06:33.905386+00:00",
+      "waitTerminalState": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 1,
+        "Error": "",
+        "StartedAt": "2026-11-20T05:06:34.50441975Z",
+        "FinishedAt": "2026-11-20T05:06:42.65713242Z"
+      },
+      "removedAndExactIdAbsent": true,
+      "error": "",
+      "diagnosis": "SwiftPM reported Invalid manifest after printing the x86_64 manifest compiler and linker commands. It never launched an Android frontend. The underlying manifest failure was not proven."
+    },
+    {
+      "name": "mixer-swift-android-linux-ppzw6p4o-build-arm64",
+      "id": "199728d4b285bdc537e74f77af78c2c83dfc254110652184813c33ab49584bfa",
+      "startAtUTC": "2026-11-20T05:09:13.089256+00:00",
+      "waitTerminalState": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 1,
+        "Error": "",
+        "StartedAt": "2026-11-20T05:09:13.749442671Z",
+        "FinishedAt": "2026-11-20T05:09:15.755315505Z"
+      },
+      "removedAndExactIdAbsent": true,
+      "error": "",
+      "diagnosis": "The native host evaluated the manifest and launched Android compilation. SwiftPM selected swift-x86_64 resources when passed a bundle ID plus --triple. The Android frontend failed to find its arm64 Swift module. Select the exact SDK by target triple alone, as the pinned Mixer source does."
+    }
+  ],
+  "build": {
+    "name": "mixer-swift-android-linux-ppzw6p4o-build-arm64-v2",
+    "id": "7197af895aa614ed026682997b1400f7cde556f8434191d4617564d43f35d147",
+    "result": "pass",
+    "startAtUTC": "2026-11-20T05:10:41.519652+00:00",
+    "waitTerminalState": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-11-20T05:10:42.616287503Z",
+      "FinishedAt": "2026-11-20T05:10:48.109657214Z"
+    },
+    "removedAndExactIdAbsent": true,
+    "invocation": [
+      "swift",
+      "build",
+      "--package-path",
+      "/input/source",
+      "--scratch-path",
+      "/out/build",
+      "--cache-path",
+      "/out/cache",
+      "--config-path",
+      "/out/config",
+      "--security-path",
+      "/out/security",
+      "--swift-sdks-path",
+      "/inputs/sdk",
+      "--swift-sdk",
+      "aarch64-unknown-linux-android28",
+      "--build-system",
+      "native",
+      "--jobs",
+      "1",
+      "--verbose"
+    ],
+    "artifact": {
+      "file": "libCustodyProbe.so",
+      "sha256": "b2fbfaac37a6477cfcefe470afc85f3ecd57a79b08d3c9c94477f076e8849616",
+      "bytes": 35408,
+      "elfEvidence": [
+        "Class:                             ELF64",
+        "Type:                              DYN (Shared object file)",
+        "Machine:                           AArch64",
+        "0x0000000000000001 (NEEDED)             Shared library: [libswiftSwiftOnoneSupport.so]",
+        "0x0000000000000001 (NEEDED)             Shared library: [libswiftCore.so]",
+        "0x0000000000000001 (NEEDED)             Shared library: [libswift_Concurrency.so]",
+        "0x0000000000000001 (NEEDED)             Shared library: [libswift_StringProcessing.so]",
+        "0x0000000000000001 (NEEDED)             Shared library: [libswift_RegexParser.so]",
+        "0x0000000000000001 (NEEDED)             Shared library: [libdl.so]",
+        "0x0000000000000001 (NEEDED)             Shared library: [libc.so]",
+        "19: 0000000000000d70    20 FUNC    GLOBAL PROTECTED   30 mixer_custody_answer",
+        "Displaying notes found in: .note.android.ident",
+        "Android              0x00000084\tNT_VERSION (version)\t   description data: 1c 00 00 00 72 32 37 64 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 31 33 37 35 30 37 32 34 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+      ]
+    },
+    "containerOutput": [
+      "Worker machine: aarch64",
+      "Swift version 6.3.3 (swift-6.3.3-RELEASE)",
+      "Target: aarch64-unknown-linux-gnu",
+      "PID namespace: pid:[4026532829]",
+      "Uid:\t65534\t65534\t65534\t65534",
+      "NSpid:\t1",
+      "CapEff:\t0000000000000000",
+      "CapBnd:\t0000000000000000",
+      "NoNewPrivs:\t1",
+      "Seccomp:\t2",
+      "tmpfs options: rw,nosuid,nodev,relatime",
+      "Bundled linker: LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51) (compatible with GNU linkers)",
+      "Swift version 6.3.3 (swift-6.3.3-RELEASE)",
+      "Target: aarch64-unknown-linux-android28",
+      "Swift version 6.3.3 (swift-6.3.3-RELEASE)",
+      "Target: aarch64-unknown-linux-android28",
+      "Target: aarch64-unknown-linux-android28",
+      "Build complete! (3.47s)"
+    ],
+    "androidFrontendCommand": "/usr/bin/swift-frontend -frontend -c -primary-file /input/source/Sources/CustodyProbe/CustodyProbe.swift -emit-dependencies-path /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/CustodyProbe.d -emit-reference-dependencies-path /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/CustodyProbe.swiftdeps -serialize-diagnostics-path /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/CustodyProbe.dia -target aarch64-unknown-linux-android28 -Xllvm -aarch64-use-tbi -disable-objc-interop -sdk /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot -I /out/build/aarch64-unknown-linux-android28/debug/Modules -no-color-diagnostics -Xcc -fno-color-diagnostics -enable-testing -g -debug-info-format=dwarf -dwarf-version=4 -module-cache-path /out/build/aarch64-unknown-linux-android28/debug/ModuleCache -swift-version 6 -Onone -D SWIFT_PACKAGE -D DEBUG -D SWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE -empty-abi-descriptor -resource-dir /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64 -enable-anonymous-context-mangled-names -file-compilation-dir /input/source -Xcc --sysroot -Xcc /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot -Xcc -fPIC -Xcc -g -Xcc -fno-omit-frame-pointer -no-auto-bridging-header-chaining -module-name CustodyProbe -package-name source -in-process-plugin-server-path /usr/lib/swift/host/libSwiftInProcPluginServer.so -plugin-path /usr/lib/swift/host/plugins -plugin-path /usr/local/lib/swift/host/plugins -parse-as-library -o /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/CustodyProbe.swift.o -index-store-path /out/build/aarch64-unknown-linux-android28/debug/index/store -index-system-modules",
+    "androidLinkCommand": "/usr/bin/clang -shared -Xlinker --build-id -L /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/android -L /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/android/aarch64 -L /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot/usr/lib/swift/android -L /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot/usr/lib/swift/android/aarch64 /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot/usr/lib/swift/android/aarch64/swiftrt.o /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/CustodyProbe.swift.o /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/CustodyProbe.swiftmodule.o @/out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/CustodyProbe.autolink --sysroot /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot -L /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/android -lswiftCore --target=aarch64-unknown-linux-android28 -v -L /out/build/aarch64-unknown-linux-android28/debug -Xlinker '-rpath=$ORIGIN' -Xlinker -z -Xlinker max-page-size=16384 -resource-dir /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/clang -fuse-ld=lld -o /out/build/aarch64-unknown-linux-android28/debug/libCustodyProbe.so",
+    "actualBundledLinker": "\"/usr/bin/ld.lld\" --sysroot=/inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot -EL --fix-cortex-a53-843419 -z now -z relro -z max-page-size=16384 --no-rosegment --use-android-relr-tags --pack-dyn-relocs=relr --hash-style=gnu --eh-frame-hdr -m aarch64linux -shared -o /out/build/aarch64-unknown-linux-android28/debug/libCustodyProbe.so /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot/usr/lib/aarch64-linux-android/28/crtbegin_so.o -L/inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/android -L/inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/android/aarch64 -L/inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot/usr/lib/swift/android -L/inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot/usr/lib/swift/android/aarch64 -L/inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/android -L/out/build/aarch64-unknown-linux-android28/debug -L/inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/clang/lib/linux/aarch64 -L/inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot/usr/lib/aarch64-linux-android/28 -L/inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot/usr/lib/aarch64-linux-android -L/inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot/usr/lib --build-id /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot/usr/lib/swift/android/aarch64/swiftrt.o /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/CustodyProbe.swift.o /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/CustodyProbe.swiftmodule.o -lswiftSwiftOnoneSupport -lswiftCore -lswift_Concurrency -lswift_StringProcessing -lswift_RegexParser -lswiftCore \"-rpath=\\$ORIGIN\" -z max-page-size=16384 /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/clang/lib/linux/libclang_rt.builtins-aarch64-and"
+  },
+  "cancellation": {
+    "name": "mixer-swift-android-linux-ppzw6p4o-cancel-arm64-v2",
+    "id": "d7ef8b876fe3db54f3852f01bee1c4ccedd7380764b8a2789fcf24ddc17db40b",
+    "result": "pass",
+    "startAtUTC": "2026-11-20T05:11:10.897803+00:00",
+    "waitTerminalState": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 137,
+      "Error": "",
+      "StartedAt": "2026-11-20T05:11:11.342294878Z",
+      "FinishedAt": "2026-11-20T05:11:15.319372796Z"
+    },
+    "removedAndExactIdAbsent": true,
+    "invocation": [
+      "swift",
+      "build",
+      "--package-path",
+      "/input/source",
+      "--scratch-path",
+      "/out/build",
+      "--cache-path",
+      "/out/cache",
+      "--config-path",
+      "/out/config",
+      "--security-path",
+      "/out/security",
+      "--swift-sdks-path",
+      "/inputs/sdk",
+      "--swift-sdk",
+      "aarch64-unknown-linux-android28",
+      "--build-system",
+      "native",
+      "--jobs",
+      "1",
+      "--verbose"
+    ],
+    "observationMethod": "Same-UID process-table observation inside the exact container, checking swift-frontend executable inode, Android target, -frontend -c, fixture source, common PID namespace, Swift compiler parent, non-stopped live state and positive CPU ticks before Docker SIGKILL.",
+    "frontendObservation": {
+      "exitCode": 0,
+      "output": "frontend_exe=/usr/bin/swift-frontend\nnamespace=pid:[4026532829]\nName:\tswift-frontend\nState:\tR (running)\nPid:\t157\nPPid:\t116\nUid:\t65534\t65534\t65534\t65534\nNSpid:\t157\nCapEff:\t0000000000000000\nNoNewPrivs:\t1\nfrontend_start_ticks=88099\nfrontend_cpu_ticks=2\nparent_command=/usr/bin/swiftc\nfrontend_command=/usr/bin/swift-frontend -frontend -c -primary-file /input/source/Sources/CustodyProbe/CustodyProbe.swift -emit-dependencies-path /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/CustodyProbe.d -emit-reference-dependencies-path /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/CustodyProbe.swiftdeps -serialize-diagnostics-path /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/CustodyProbe.dia -target aarch64-unknown-linux-android28 -Xllvm -aarch64-use-tbi -disable-objc-interop -sdk /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot -I /out/build/aarch64-unknown-linux-android28/debug/Modules -no-color-diagnostics -Xcc -fno-color-diagnostics -enable-testing -g -debug-info-format=dwarf -dwarf-version=4 -module-cache-path /out/build/aarch64-unknown-linux-android28/debug/ModuleCache -swift-version 6 -Onone -D SWIFT_PACKAGE -D DEBUG -D SWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE -empty-abi-descriptor -resource-dir /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64 -enable-anonymous-context-mangled-names -file-compilation-dir /input/source -Xcc --sysroot -Xcc /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot -Xcc -fPIC -Xcc -g -Xcc -fno-omit-frame-pointer -no-auto-bridging-header-chaining -module-name CustodyProbe -package-name source -in-process-plugin-server-path /usr/lib/swift/host/libSwiftInProcPluginServer.so -plugin-path /usr/lib/swift/host/plugins -plugin-path /usr/local/lib/swift/host/plugins -parse-as-library -o /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/CustodyProbe.swift.o -index-store-path /out/build/aarch64-unknown-linux-android28/debug/index/store -index-system-modules",
+      "error": "",
+      "receivedAtUTC": "2026-11-20T05:11:14.945611+00:00"
+    },
+    "isolationOutput": [
+      "PID namespace: pid:[4026532829]",
+      "Uid:\t65534\t65534\t65534\t65534",
+      "NSpid:\t1",
+      "CapEff:\t0000000000000000",
+      "CapBnd:\t0000000000000000",
+      "NoNewPrivs:\t1",
+      "Seccomp:\t2",
+      "Building for debugging...",
+      "Write auxiliary file /out/build/aarch64-unknown-linux-android28/debug/swift-version-24593BA9C3E375BF.txt",
+      "Write auxiliary file /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/sources",
+      "/usr/bin/swiftc -module-name CustodyProbe -emit-dependencies -emit-module -emit-module-path /out/build/aarch64-unknown-linux-android28/debug/Modules/CustodyProbe.swiftmodule -output-file-map /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/output-file-map.json -parse-as-library -incremental -c @/out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/sources -I /out/build/aarch64-unknown-linux-android28/debug/Modules -target aarch64-unknown-linux-android28 -v -incremental -enable-batch-mode -serialize-diagnostics -index-store-path /out/build/aarch64-unknown-linux-android28/debug/index/store -Onone -enable-testing -j1 -DSWIFT_PACKAGE -DDEBUG -DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE -module-cache-path /out/build/aarch64-unknown-linux-android28/debug/ModuleCache -resource-dir /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64 -parseable-output -parse-as-library -emit-objc-header -emit-objc-header-path /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/include/CustodyProbe-Swift.h -swift-version 6 -sdk /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot -Xclang-linker -fuse-ld=lld -sdk /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot -g -Xcc --sysroot -Xcc /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot -Xcc -fPIC -Xcc -g -package-name source -Xcc -fno-omit-frame-pointer",
+      "Swift version 6.3.3 (swift-6.3.3-RELEASE)"
+    ],
+    "stateBeforeKill": {
+      "Status": "running",
+      "Running": true,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 27485,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-11-20T05:11:11.342294878Z",
+      "FinishedAt": "0001-01-01T00:00:00Z"
+    },
+    "killCommand": [
+      "docker",
+      "--context",
+      "desktop-linux",
+      "container",
+      "kill",
+      "--signal",
+      "KILL",
+      "d7ef8b876fe3db54f3852f01bee1c4ccedd7380764b8a2789fcf24ddc17db40b"
+    ],
+    "killSentAtUTC": "2026-11-20T05:11:15.178834+00:00",
+    "killAcknowledgedId": "d7ef8b876fe3db54f3852f01bee1c4ccedd7380764b8a2789fcf24ddc17db40b",
+    "killAcknowledgedAtUTC": "2026-11-20T05:11:15.463163+00:00",
+    "daemonFrontendBeforeKill": [
+      "27738               27663               R                   /usr/bin/swift-frontend -frontend -c -primary-file /input/source/Sources/CustodyProbe/CustodyProbe.swift -emit-dependencies-path /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/CustodyProbe.d -emit-reference-dependencies-path /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/CustodyProbe.swiftdeps -serialize-diagnostics-path /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/CustodyProbe.dia -target aarch64-unknown-linux-android28 -Xllvm -aarch64-use-tbi -disable-objc-interop -sdk /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot -I /out/build/aarch64-unknown-linux-android28/debug/Modules -no-color-diagnostics -Xcc -fno-color-diagnostics -enable-testing -g -debug-info-format=dwarf -dwarf-version=4 -module-cache-path /out/build/aarch64-unknown-linux-android28/debug/ModuleCache -swift-version 6 -Onone -D SWIFT_PACKAGE -D DEBUG -D SWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE -empty-abi-descriptor -resource-dir /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64 -enable-anonymous-context-mangled-names -file-compilation-dir /input/source -Xcc --sysroot -Xcc /inputs/sdk/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/ndk-sysroot -Xcc -fPIC -Xcc -g -Xcc -fno-omit-frame-pointer -no-auto-bridging-header-chaining -module-name CustodyProbe -package-name source -in-process-plugin-server-path /usr/lib/swift/host/libSwiftInProcPluginServer.so -plugin-path /usr/lib/swift/host/plugins -plugin-path /usr/local/lib/swift/host/plugins -parse-as-library -o /out/build/aarch64-unknown-linux-android28/debug/CustodyProbe.build/CustodyProbe.swift.o -index-store-path /out/build/aarch64-unknown-linux-android28/debug/index/store -index-system-modules"
+    ],
+    "libraryPresentAfterKill": false,
+    "terminalProof": "Docker wait return matched the exact container's daemon ExitCode. Daemon showed exited, PID 0, Running=false, Paused=false, Restarting=false, Dead=false before removal. This test sent KILL to the container while its own PID namespace was active."
+  },
+  "isolation": {
+    "build": {
+      "image": "sha256:3ad77b443f5f41d8c6c693659d9c951538dfeb79403e67cd40abca2501d4f191",
+      "labels": {
+        "description": "Docker Container for the Swift programming language",
+        "dev.mixer.local-phase": "build",
+        "dev.mixer.local-trial": "mixer-swift-android-linux-ppzw6p4o",
+        "maintainer": "Swift Infrastructure <swift-infrastructure@forums.swift.org>",
+        "org.opencontainers.image.version": "24.04"
+      },
+      "user": "65534:65534",
+      "privileged": false,
+      "readOnlyRootfs": true,
+      "networkMode": "none",
+      "pidMode": "",
+      "ipcMode": "private",
+      "capAdd": null,
+      "capDrop": [
+        "ALL"
+      ],
+      "securityOpt": [
+        "no-new-privileges=true"
+      ],
+      "restart": {
+        "MaximumRetryCount": 0,
+        "Name": "no"
+      },
+      "nanoCpus": 2000000000,
+      "memory": 3221225472,
+      "memorySwap": 3221225472,
+      "pidsLimit": 128,
+      "mounts": [
+        {
+          "Type": "volume",
+          "Destination": "/inputs",
+          "RW": false
+        },
+        {
+          "Type": "bind",
+          "Destination": "/out",
+          "RW": true
+        },
+        {
+          "Type": "bind",
+          "Destination": "/input/source",
+          "RW": false
+        }
+      ],
+      "tmpfs": "/tmp:rw,nosuid,nodev,exec,size=512m"
+    },
+    "cancel": {
+      "image": "sha256:3ad77b443f5f41d8c6c693659d9c951538dfeb79403e67cd40abca2501d4f191",
+      "labels": {
+        "description": "Docker Container for the Swift programming language",
+        "dev.mixer.local-phase": "cancel",
+        "dev.mixer.local-trial": "mixer-swift-android-linux-ppzw6p4o",
+        "maintainer": "Swift Infrastructure <swift-infrastructure@forums.swift.org>",
+        "org.opencontainers.image.version": "24.04"
+      },
+      "user": "65534:65534",
+      "privileged": false,
+      "readOnlyRootfs": true,
+      "networkMode": "none",
+      "pidMode": "",
+      "ipcMode": "private",
+      "capAdd": null,
+      "capDrop": [
+        "ALL"
+      ],
+      "securityOpt": [
+        "no-new-privileges=true"
+      ],
+      "restart": {
+        "MaximumRetryCount": 0,
+        "Name": "no"
+      },
+      "nanoCpus": 2000000000,
+      "memory": 3221225472,
+      "memorySwap": 3221225472,
+      "pidsLimit": 128,
+      "mounts": [
+        {
+          "Type": "volume",
+          "Destination": "/inputs",
+          "RW": false
+        },
+        {
+          "Type": "bind",
+          "Destination": "/out",
+          "RW": true
+        },
+        {
+          "Type": "bind",
+          "Destination": "/input/source",
+          "RW": false
+        }
+      ],
+      "tmpfs": "/tmp:rw,nosuid,nodev,exec,size=512m"
+    }
+  },
+  "cleanup": {
+    "initialVolumeRemovedAndExactNameAbsent": "mixer-swift-android-linux-ppzw6p4o-inputs",
+    "allRecordedContainersAbsentOnRecheck": true,
+    "finalVolumeRemovedAndExactNameAbsent": "mixer-swift-android-linux-ppzw6p4o-inputs-v2",
+    "images": {
+      "docker.io/library/swift@sha256:51f5e4c2626d63879f3e97e1d476ac0494a220ad656baafd3a1db3a7310b3fce": "Exact pull reference removed without force or prune and confirmed absent",
+      "docker.io/library/swift@sha256:3ad77b443f5f41d8c6c693659d9c951538dfeb79403e67cd40abca2501d4f191": "Exact pull reference removed without force or prune and confirmed absent"
+    },
+    "verifiedAtUTC": "2026-11-20T05:12:00.510842+00:00",
+    "scratchRemovedAndExactPathAbsent": "verification/local/swift-android-linux-custody.pPZW6P4o"
+  }
+}
