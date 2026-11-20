@@ -1,0 +1,56 @@
+--- a/probe/main.swift
++++ b/probe/main.swift
+@@ -23,7 +23,7 @@
+ let workspaceDirectory = work.appending(path: "workspace", directoryHint: .isDirectory)
+ let workspaceFile = workspaceDirectory.appending(path: "workspace.json")
+ let repository = try WorkspaceRepository(directory: workspaceDirectory)
+-let title = "Inspect pump"
++let title = "فحص المضخة 07"
+ let project = try await repository.transact { state in
+     try state.createProject(title: "Checklist workshop", site: "Yard")
+ }
+@@ -92,5 +92,6 @@
+ @MainActor
+-func checkFirstFrame(_ owner: CapabilityGuestUIRuntime, candidate: String) async throws {
++func checkFirstFrame(_ owner: CapabilityGuestUIRuntime, candidate: String,
++                     expectedTitle: String, expectedStatus: String, expectedAction: String) async throws {
+     let started = try await owner.start()
+     guard let launch = started.launchID, started.candidateID == candidate,
+           started.phase == .provisionalGuest, started.effectsMayHaveOpened else {
+@@ -100,9 +101,11 @@
+     while ContinuousClock.now < deadline {
+         if let document = owner.presentation.renderHost?.snapshot.document {
+             let children = document.root.children
++            let title = children.first { $0.id == "task" }?.properties["text"]?.string
+             let status = children.first { $0.id == "status" }?.properties["text"]?.string
+             let action = children.first { $0.id == "toggle" }?.properties["label"]?.string
+-            try check(document.revision == 1 && status == "Open" && action == "Complete task",
++            try check(document.revision == 1 && title == expectedTitle &&
++                      status == expectedStatus && action == expectedAction,
+                       "Wrong first frame from the saved workspace")
+             guard let bytes = owner.startupDiagnostic(launchID: launch) else {
+                 throw UpdateError("fixture.first_frame", "Missing diagnostics for the same launch")
+@@ -165,8 +168,9 @@
+             try await checkWorkspace()
+             print("\(name): \(expected), recovery and workspace byte-identical")
+         }
+-        try await checkFirstFrame(owner, candidate: candidate)
+-        print("baseline: sequence 1, feature_started, saved Open task in validated first frame")
++        try await checkFirstFrame(owner, candidate: candidate, expectedTitle: title,
++                                  expectedStatus: "مفتوحة", expectedAction: "إكمال المهمة")
++        print("baseline: sequence 1, feature_started, saved Arabic task in validated first frame")
+         return candidate
+     }
+     try await withOwner { owner in
+@@ -176,8 +180,9 @@
+         try check(replacement != baseline, "Replacement reuses the baseline candidate")
+         let durable = try JSONSerialization.jsonObject(with: Data(contentsOf: state)) as? [String: Any]
+         try check(durable?["installation"] as? String == installation, "Durable installation identifier changed")
+-        try await checkFirstFrame(owner, candidate: replacement)
+-        print("replacement: sequence 2, same installation, feature_started, saved Open task in validated first frame")
++        try await checkFirstFrame(owner, candidate: replacement, expectedTitle: title,
++                                  expectedStatus: "الفحص قيد التنفيذ", expectedAction: "وضع علامة مكتملة")
++        print("replacement: sequence 2, same installation, feature_started, saved Arabic task in validated first frame")
+     }
+     try await checkWorkspace()
+     print("retired both host owners, workspace SHA-256 \(ReleaseVerifier.sha256(savedBytes))")

@@ -1,0 +1,78 @@
+diff --git a/ios/FieldLog/WorkspaceModel.swift b/ios/FieldLog/WorkspaceModel.swift
+--- a/ios/FieldLog/WorkspaceModel.swift
++++ b/ios/FieldLog/WorkspaceModel.swift
+@@ -39,9 +39,26 @@
+             "UI-test workspaces require a Debug build. No workspace was opened.")
+         #endif
+       }
++      #if DEBUG
++      let seedLocalized = arguments.contains("--fieldlog-localized-seed")
++      if seedLocalized && !isTestWorkspace {
++        throw FieldLogError.validation("Localized checklist setup requires an isolated UI-test workspace.")
++      }
++      #endif
+       let directory = support.appendingPathComponent(workspaceFolder, isDirectory: true)
+       recoveryDirectory = directory.appendingPathComponent("signed-checklist", isDirectory: true)
+       let repository = try WorkspaceRepository(directory: directory)
++      #if DEBUG
++      if seedLocalized {
++        let projectID = UUID()
++        _ = try await repository.transact(expectedRevision: 0) {
++          try $0.createProject(id: projectID, title: "Checklist workshop", site: "")
++        }
++        _ = try await repository.transact(expectedRevision: 1) {
++          try $0.saveTask(projectID: projectID, title: "فحص المضخة 07", responsible: "Night shift")
++        }
++      }
++      #endif
+       self.repository = repository
+       workspace = await repository.snapshot()
+       openError = nil
+diff --git a/ios/FieldLog/SignedChecklist.swift b/ios/FieldLog/SignedChecklist.swift
+--- a/ios/FieldLog/SignedChecklist.swift
++++ b/ios/FieldLog/SignedChecklist.swift
+@@ -29,6 +29,8 @@
+   @State private var recovery = SignedChecklistRecovery()
+   @State private var status = "Opening checklist"
+   #if DEBUG
++  @Environment(\.layoutDirection) private var checklistDirection
++  @Environment(\.dynamicTypeSize) private var checklistTextSize
+   @State private var evidence = ""
+   @State private var deliveryObservation: FieldLogSignedTask.Launch?
+   private var useStoredRotationInstallation: Bool {
+@@ -79,7 +81,8 @@
+       .padding().navigationTitle(task.title)
+       .toolbar {
+         ToolbarItem(placement: .cancellationAction) {
+-          Button("Done") { recovery.begin(.done) }.disabled(!recovery.canFinish)
++          Button("Done") { recovery.begin(.done) }
++            .disabled(!recovery.canFinish).accessibilityIdentifier("checklist-done")
+         }
+         ToolbarItem(placement: .primaryAction) {
+           Button("Check for update") { recovery.begin(.checkForUpdate) }
+@@ -381,6 +384,10 @@
+     let workspaceSHA256: String
+     let revision: UInt64
+     let outbox: Int
++    let outboxIDs: [UUID]
++    let outboxKinds: [PendingChange.Kind]
++    let rightToLeft: Bool
++    let textSize: String
+     let lastChangeID: UUID?
+     let lastChangeRecord: UUID?
+     let candidate: String
+@@ -436,7 +443,13 @@
+         previous: (state["previousHealthy"] as? [String: Any])?["candidateID"] as? String)
+     }
++    let textSize = switch checklistTextSize {
++    case .large: "large"
++    case .accessibility5: "accessibility5"
++    default: "other"
++    }
+     let observation = Observation(workspaceID: workspace.id, taskID: saved.id, projectID: saved.projectID,
+       taskBytes: try encoder.encode(saved), workspaceSHA256: checksum(savedBytes), revision: workspace.revision,
+-      outbox: workspace.outbox.count, lastChangeID: workspace.outbox.last?.id,
++      outbox: workspace.outbox.count, outboxIDs: workspace.outbox.map(\.id), outboxKinds: workspace.outbox.map(\.kind),
++      rightToLeft: checklistDirection == .rightToLeft, textSize: textSize, lastChangeID: workspace.outbox.last?.id,
+       lastChangeRecord: workspace.outbox.last?.recordID, candidate: candidate, launch: launch,
+       sequence: health.acceptedSequence, partialBytes: spool?.count ?? 0, partialSHA256: spool.map(checksum),
