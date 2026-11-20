@@ -43,3 +43,28 @@ checkout, job, and release observations to find the affected boundary.
 If cleanup identifies a held process or directory, preserve that exact
 resource. Escalation for a live incident, production delivery, and customer
 communication have separate procedures and qualification.
+
+## Rehearse worker loss during concurrent requests
+
+Prepare a dedicated daemon and an approved Pair25 operator file. Verify the
+Swift image with `docker image inspect --platform linux/arm64` on that daemon.
+The `Descriptor.digest` field must match the pinned manifest. Docker Engine
+29 with the containerd image store reports the descriptor.
+[Prepare the Pair25 stage](../../tests/integration/managed-android-local-linux-pair25/MANAGED-LAYOUT.md)
+
+Use the lock-verified Hex cache, a short private scratch parent, and a new
+receipt path. Run from the repository root.
+
+```sh
+HEX_HOME="$hex_cache" python3 -Bu tests/integration/l07-combined-outage/run.py \
+	--checkout-burst --pair25-scratch-parent "$scratch_parent" \
+	--operator "$operator_json" --receipt verification/local/pair25-outage-burst.json
+```
+
+Check that `pair25.combinedOutage` reports four pre-BEGIN 503 responses with
+both signed reads completed while all four responses were pending. Confirm
+that the original session and key return 200 after the worker reopens. The
+receipt must show one native completion, one capacity release, no
+cancellation, unchanged release audit bytes, tenant refusals, and closure of
+the fixture. Retire the dedicated daemon and verify port reuse before
+removing the stage.
