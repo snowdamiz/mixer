@@ -1,15 +1,49 @@
 --- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
 +++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
-@@ -397,7 +397,7 @@
+@@ -5,6 +5,7 @@ import android.content.Intent;
+ import android.content.res.AssetFileDescriptor;
+ import android.graphics.Bitmap;
+ import android.graphics.ImageDecoder;
++import android.graphics.Insets;
+ import android.net.Uri;
+ import android.os.CancellationSignal;
+ import java.io.ByteArrayOutputStream;
+@@ -17,6 +18,7 @@ import android.os.Handler;
+ import android.os.Looper;
+ import android.os.SystemClock;
+ import android.view.View;
++import android.view.WindowInsets;
+ import android.view.WindowInsetsController;
+ import android.widget.FrameLayout;
+ import dev.mixer.android.AndroidUIProfile;
+@@ -397,10 +399,25 @@ public final class PublicActivity extends Activity {
          try (InputStream material = getAssets().open("ChecklistRelease/identity.json")) {
              if (material.read() < 0) throw new IOException("empty checklist identity");
              android.widget.Button open = new android.widget.Button(this);
 -            open.setText(CalculationFixture.enabled(this) ? "Open signed checklist" : "Open signed draft check");
-+            open.setText(CalculationFixture.enabled(this) ? "Open signed task reorder" : "Open signed draft check");
++            boolean reorder = CalculationFixture.enabled(this);
++            open.setText(reorder ? "Open signed task reorder" : "Open signed draft check");
              open.setAllCaps(false);
              open.setOnClickListener(view -> openChecklist());
              content.addView(open, new FrameLayout.LayoutParams(-2, -2, android.view.Gravity.BOTTOM | android.view.Gravity.END));
-@@ -770,7 +770,7 @@
++            if (reorder) {
++                content.setOnApplyWindowInsetsListener((view, insets) -> {
++                    Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
++                    FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) open.getLayoutParams();
++                    if (params.leftMargin != bars.left || params.rightMargin != bars.right || params.bottomMargin != bars.bottom) {
++                        params.leftMargin = bars.left;
++                        params.rightMargin = bars.right;
++                        params.bottomMargin = bars.bottom;
++                        open.setLayoutParams(params);
++                    }
++                    return insets;
++                });
++                content.requestApplyInsets();
++            }
+         } catch (IOException absent) {
+             // The ordinary package omits signed checklist material.
+         }
+@@ -770,7 +787,7 @@ public final class PublicActivity extends Activity {
                  JSONObject frame = new JSONObject(new String(packet, StandardCharsets.UTF_8));
                  GuestFrame next = new GuestFrame(facade, attachment, input, probe);
                  if (CalculationFixture.enabled(activity)) {

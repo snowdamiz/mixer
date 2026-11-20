@@ -33,8 +33,11 @@ if a stage reports UNKNOWN.
 
 Use the APK and delivery from the same verified packet and a fresh app install.
 The fixture uses the calculation package ID
-`dev.fieldlog.generatedr90.calculation`. The Activity inherits its bottom-end
-launch button and waits for window focus before opening the workspace.
+`dev.fieldlog.generatedr90.calculation`. The Activity keeps the bottom-end
+launch button inside the delivered system-bar insets and waits for window
+focus before opening the workspace. Keep the device's default three-button
+navigation. Confirm the button lies above the navigation bar before tapping its
+center.
 
 1. Check `SHA256SUMS` and the APK signature. Serve phase 1 and map the packet's
    recorded port to the private loopback origin on the owned device.

@@ -12,7 +12,7 @@ ADAPTER = "app/src/dev/mixer/android/NativeAppearanceViewsV2.java"
 ADAPTER_SHA = "34feafa32dcf94f5fb235e01b7f9515704e50664f39508ead18aaad35d009f65"
 INPUT_SOURCE = "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift"
 INPUT_SOURCE_SHA = "29cdbf9eddffa5ac333c44637151e1bf74e39850cffbb4aff051619282754e3d"
-FIELDLOG_ROW_TREE = "312c2b121096ae064e906371d66de3df660a1f4f"
+FIELDLOG_ROW_TREE = "8b485333d1caa832748944cf25fe9726588b21cb"
 
 
 def git(work, *args):
