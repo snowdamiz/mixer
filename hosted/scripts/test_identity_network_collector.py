@@ -1802,7 +1802,7 @@ class CollectorMethodWiringControls(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes((repository / path).read_bytes())
         def blobs(paths):
-            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE, collector.SUPERVISED_PROVIDER_SOURCE_BASE, collector.PROVIDER_IO_SOURCE_BASE, collector.CONFIGURED_STARTUP_SOURCE_BASE, collector.PUBLIC_SIGNIN_SOURCE_BASE, collector.CONSOLE_COHERENCE_SOURCE_BASE, collector.BUILD_CLOCK_SOURCE_BASE, collector.CUSTOMER_CREATE_SOURCE_BASE, collector.CI_DISCOVERY_SOURCE_BASE, collector.CUSTOMER_EXPIRY_SOURCE_BASE, collector.CUSTOMER_AUTHZ_SOURCE_BASE, collector.RESTRICTED_PROCESSOR_SOURCE_BASE, collector.DEVELOPMENT_DISPATCH_SOURCE_BASE, collector.PENDING_SESSION_SOURCE_BASE, collector.BILLING_RECONCILIATION_SOURCE_BASE, collector.WORKSPACE_V31_SOURCE_BASE, collector.WORKSPACE_V32_SOURCE_BASE, collector.WORKSPACE_V33_SOURCE_BASE, collector.WORKSPACE_V34_SOURCE_BASE, collector.WORKSPACE_V35_SOURCE_BASE, collector.WORKSPACE_V36_SOURCE_BASE, collector.WORKSPACE_V37_SOURCE_BASE, collector.WORKSPACE_V38_SOURCE_BASE, collector.WORKSPACE_V39_SOURCE_BASE, collector.WORKSPACE_V40_SOURCE_BASE, collector.WORKSPACE_V41_SOURCE_BASE, collector.WORKSPACE_V42_SOURCE_BASE, collector.WORKSPACE_V43_SOURCE_BASE, collector.WORKSPACE_V44_SOURCE_BASE, collector.WORKSPACE_V45_SOURCE_BASE, collector.WORKSPACE_V46_SOURCE_BASE, collector.WORKSPACE_V47_SOURCE_BASE, collector.WORKSPACE_V48_SOURCE_BASE, collector.WORKSPACE_V49_SOURCE_BASE, collector.WORKSPACE_V50_SOURCE_BASE, collector.WORKSPACE_V51_SOURCE_BASE, collector.WORKSPACE_V52_SOURCE_BASE, collector.WORKSPACE_V53_SOURCE_BASE, collector.WORKSPACE_V54_SOURCE_BASE, collector.WORKSPACE_V55_SOURCE_BASE, collector.WORKSPACE_V56_SOURCE_BASE, collector.WORKSPACE_V57_SOURCE_BASE, collector.WORKSPACE_V58_SOURCE_BASE, collector.WORKSPACE_V59_SOURCE_BASE, collector.WORKSPACE_V60_SOURCE_BASE, collector.WORKSPACE_V61_SOURCE_BASE, collector.WORKSPACE_V62_SOURCE_BASE, collector.WORKSPACE_V63_SOURCE_BASE, collector.WORKSPACE_V64_SOURCE_BASE, collector.WORKSPACE_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
+            return {path: (repository / path).read_bytes() if path.startswith((collector.CURRENT_SOURCE_BASE, collector.SUCCESSOR_SOURCE_BASE, collector.PRIVATE_SOURCE_BASE, collector.BROWSER_SOURCE_BASE, collector.OPERATION_SOURCE_BASE, collector.LIFETIME_SOURCE_BASE, collector.COMMIT_SOURCE_BASE, collector.PROXY_SOURCE_BASE, collector.BUILD_READ_SOURCE_BASE, collector.BROWSER_BUILD_SOURCE_BASE, collector.OWNED_EVIDENCE_SOURCE_BASE, collector.HOSTED_COMPILER_SOURCE_BASE, collector.CATALOG_JOIN_SOURCE_BASE, collector.PROVIDER_HTTPS_SOURCE_BASE, collector.ORDINARY_BROWSER_SOURCE_BASE, collector.SUPERVISED_PROVIDER_SOURCE_BASE, collector.PROVIDER_IO_SOURCE_BASE, collector.CONFIGURED_STARTUP_SOURCE_BASE, collector.PUBLIC_SIGNIN_SOURCE_BASE, collector.CONSOLE_COHERENCE_SOURCE_BASE, collector.BUILD_CLOCK_SOURCE_BASE, collector.CUSTOMER_CREATE_SOURCE_BASE, collector.CI_DISCOVERY_SOURCE_BASE, collector.CUSTOMER_EXPIRY_SOURCE_BASE, collector.CUSTOMER_AUTHZ_SOURCE_BASE, collector.RESTRICTED_PROCESSOR_SOURCE_BASE, collector.DEVELOPMENT_DISPATCH_SOURCE_BASE, collector.PENDING_SESSION_SOURCE_BASE, collector.BILLING_RECONCILIATION_SOURCE_BASE, collector.WORKSPACE_V31_SOURCE_BASE, collector.WORKSPACE_V32_SOURCE_BASE, collector.WORKSPACE_V33_SOURCE_BASE, collector.WORKSPACE_V34_SOURCE_BASE, collector.WORKSPACE_V35_SOURCE_BASE, collector.WORKSPACE_V36_SOURCE_BASE, collector.WORKSPACE_V37_SOURCE_BASE, collector.WORKSPACE_V38_SOURCE_BASE, collector.WORKSPACE_V39_SOURCE_BASE, collector.WORKSPACE_V40_SOURCE_BASE, collector.WORKSPACE_V41_SOURCE_BASE, collector.WORKSPACE_V42_SOURCE_BASE, collector.WORKSPACE_V43_SOURCE_BASE, collector.WORKSPACE_V44_SOURCE_BASE, collector.WORKSPACE_V45_SOURCE_BASE, collector.WORKSPACE_V46_SOURCE_BASE, collector.WORKSPACE_V47_SOURCE_BASE, collector.WORKSPACE_V48_SOURCE_BASE, collector.WORKSPACE_V49_SOURCE_BASE, collector.WORKSPACE_V50_SOURCE_BASE, collector.WORKSPACE_V51_SOURCE_BASE, collector.WORKSPACE_V52_SOURCE_BASE, collector.WORKSPACE_V53_SOURCE_BASE, collector.WORKSPACE_V54_SOURCE_BASE, collector.WORKSPACE_V55_SOURCE_BASE, collector.WORKSPACE_V56_SOURCE_BASE, collector.WORKSPACE_V57_SOURCE_BASE, collector.WORKSPACE_V58_SOURCE_BASE, collector.WORKSPACE_V59_SOURCE_BASE, collector.WORKSPACE_V60_SOURCE_BASE, collector.WORKSPACE_V61_SOURCE_BASE, collector.WORKSPACE_V62_SOURCE_BASE, collector.WORKSPACE_V63_SOURCE_BASE, collector.WORKSPACE_V64_SOURCE_BASE, collector.WORKSPACE_V65_SOURCE_BASE, collector.WORKSPACE_SOURCE_BASE)) or not path.startswith("verification/") else metadata[path] for path in paths}
         subject.git_blobs = blobs
         calls = []
         def command(argv, *args, **kwargs):
@@ -3165,9 +3165,9 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = '8e5a3433e851334cbb2bcd3cb98765dfb78019a5dae49f33bdeac11f46b2db19'
-    DIGEST = '5ca20a5dcc184499f011c9f79756600ecf4c91fe993c0eae4f2f5eb4bdf0c999'
-    COUNT = 474
+    PIN = 'ca20f07870d15c0bea2d5f8dbd1e7000dc70d3be119cff5c382684eeacc8872f'
+    DIGEST = '8328b3aab204f504f08d409fc32233c8eaceaaa588e78a1a1b9fb650708de396'
+    COUNT = 475
 
     def patterns(self, workflow, job):
         lines = workflow.splitlines(keepends=True)
@@ -3222,7 +3222,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
                     shutil.copytree(source, destination, dirs_exist_ok=True)
                 else:
                     self.assertTrue(source.is_file(), relative)
-                    shutil.copyfile(source, destination)
+                    shutil.copy2(source, destination)
 
     def check_real_main(self, sparse):
         import contextlib
@@ -4996,26 +4996,34 @@ class BillingReconciliationV29Controls(unittest.TestCase):
 class WorkspaceSourceCutoverControls(unittest.TestCase):
     PIN = WorkflowSparseSourceControls.PIN
 
-    def test_active_selection_restores_v64_and_v63_and_rejects_workspace_drift(self):
+    def test_active_selection_restores_v65_and_v64_and_rejects_workspace_drift(self):
         root = COLLECTOR_PATH.resolve().parents[2]
         helper = WorkflowSparseSourceControls()
         base = collector.WORKSPACE_SOURCE_BASE
         selection, manifest = collector.validate_workspace_source_metadata(
             collector.workspace_source_metadata(root, base))
-        self.assertEqual(474, len(manifest))
-        self.assertEqual(6, len(selection["exact_delta"]))
-        self.assertEqual(6, len(collector.workspace_preimage_rows(selection)))
-        self.assertEqual(26, len(selection["reviewed_migrations"]))
+        self.assertEqual(475, len(manifest))
+        self.assertEqual(21, len(selection["exact_delta"]))
+        self.assertEqual(20, len(collector.workspace_preimage_rows(selection)))
+        self.assertEqual(27, len(selection["reviewed_migrations"]))
         self.assertIs(selection["conditional_on_independent_successor_review"], True)
 
         product = {path: (root / path).read_bytes() for path in manifest}
         self.assertEqual(manifest, {path: collector._file_row(data) for path, data in product.items()})
+        v65_base = collector.WORKSPACE_V65_SOURCE_BASE
+        v65_selection, v65_manifest = collector.validate_workspace_v65_metadata(
+            collector.workspace_source_metadata(root, v65_base))
+        self.assertEqual(6, len(v65_selection["exact_delta"]))
+        self.assertEqual(6, len(collector.workspace_preimage_rows(v65_selection, v65_base)))
+        self.assertEqual([*v65_selection["reviewed_migrations"],
+                          "20261120000013_add_local_release_head_details.exs"],
+                         selection["reviewed_migrations"])
         v64_base = collector.WORKSPACE_V64_SOURCE_BASE
         v64_selection, v64_manifest = collector.validate_workspace_v64_metadata(
             collector.workspace_source_metadata(root, v64_base))
         self.assertEqual(19, len(v64_selection["exact_delta"]))
         self.assertEqual(16, len(collector.workspace_preimage_rows(v64_selection, v64_base)))
-        self.assertEqual(v64_selection["reviewed_migrations"], selection["reviewed_migrations"])
+        self.assertEqual(v64_selection["reviewed_migrations"], v65_selection["reviewed_migrations"])
         v63_base = collector.WORKSPACE_V63_SOURCE_BASE
         v63_selection, v63_manifest = collector.validate_workspace_v63_metadata(
             collector.workspace_source_metadata(root, v63_base))
@@ -5081,7 +5089,8 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
             collector.workspace_source_metadata(root, v53_base))
         self.assertEqual(16, len(v53_selection["exact_delta"]))
         for version, details, version_base, expected_manifest in (
-            (64, selection, base, v64_manifest),
+            (65, selection, base, v65_manifest),
+            (64, v65_selection, v65_base, v64_manifest),
             (63, v64_selection, v64_base, v63_manifest),
             (62, v63_selection, v63_base, v62_manifest),
             (61, v62_selection, v62_base, v61_manifest),
@@ -5162,7 +5171,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                     self.assertEqual('2d327bb3611f45c45fa35135b8ffab8d21aad02d420eabbc69e31492666f6f29',
                                      canonical_digest(inverse))
 
-        with tempfile.TemporaryDirectory(prefix="workspace-v65-source-") as directory:
+        with tempfile.TemporaryDirectory(prefix="workspace-v66-source-") as directory:
             stage = Path(directory)
             helper.materialize(root, stage, helper.patterns(
                 (root / ".github/workflows/identity-network.yml").read_text(), "identity-network"))
@@ -5207,6 +5216,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                 collector.workspace_source_metadata(stage, collector.WORKSPACE_V52_SOURCE_BASE))
             for relative in {
                 **collector.workspace_preimage_rows(selection),
+                **collector.workspace_preimage_rows(v65_selection, v65_base),
                 **collector.workspace_preimage_rows(v64_selection, v64_base),
                 **collector.workspace_preimage_rows(v63_selection, v63_base),
                 **collector.workspace_preimage_rows(v62_selection, v62_base),
@@ -5284,6 +5294,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                 with self.subTest(path=relative):
                     target = stage / relative
                     original = target.read_bytes()
+                    original_mode = target.stat().st_mode & 0o777
                     target.write_bytes(original + b"\n")
                     with self.assertRaisesRegex(collector.CollectorError, "workspace source digest"):
                         collector.check_workspace_source(stage)
@@ -5291,6 +5302,19 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                     with self.assertRaises(FileNotFoundError):
                         collector.check_workspace_source(stage)
                     target.write_bytes(original)
+                    target.chmod(original_mode)
+            for relative, original_mode, changed_mode in (
+                (collector.WORKSPACE_RELEASE_HEAD_DETAILS_MIGRATION, 0o644, 0o755),
+                ("hosted/scripts/replay-configured-release.sh", 0o755, 0o644),
+                (next(iter(collector.workspace_preimage_rows(selection))), 0o644, 0o755),
+                (next(iter(collector.workspace_preimage_rows(v65_selection, v65_base))), 0o644, 0o755),
+            ):
+                with self.subTest(mode_path=relative):
+                    target = stage / relative
+                    target.chmod(changed_mode)
+                    with self.assertRaisesRegex(collector.CollectorError, "workspace source file mode differs"):
+                        collector.check_workspace_source(stage)
+                    target.chmod(original_mode)
             extra = stage / "hosted/priv/repo/migrations/20261117999999_unreviewed.exs"
             extra.touch()
             with self.assertRaisesRegex(collector.CollectorError, "installed reviewed migration inventory mismatch"):
@@ -5350,7 +5374,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
         with self.assertRaisesRegex(collector.CollectorError, "prepared archive hash mismatch"):
             collector.validate_prepared_archive(prepared(changed), manifest)
 
-    def test_collector_refuses_v53_through_v65_workspace_drift_before_docker(self):
+    def test_collector_refuses_v53_through_v66_workspace_drift_before_docker(self):
         helper = CollectorMethodWiringControls()
         for base in (collector.WORKSPACE_V53_SOURCE_BASE, collector.WORKSPACE_V54_SOURCE_BASE,
                      collector.WORKSPACE_V55_SOURCE_BASE, collector.WORKSPACE_V56_SOURCE_BASE,
@@ -5358,13 +5382,13 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                      collector.WORKSPACE_V59_SOURCE_BASE, collector.WORKSPACE_V60_SOURCE_BASE,
                      collector.WORKSPACE_V61_SOURCE_BASE, collector.WORKSPACE_V62_SOURCE_BASE,
                      collector.WORKSPACE_V63_SOURCE_BASE, collector.WORKSPACE_V64_SOURCE_BASE,
-                     collector.WORKSPACE_SOURCE_BASE):
+                     collector.WORKSPACE_V65_SOURCE_BASE, collector.WORKSPACE_SOURCE_BASE):
             for metadata_name, fault in (
                 ("selection.json", "workspace selection pin"),
                 ("selected-source-manifest.json", "workspace manifest byte pin"),
             ):
                 with self.subTest(base=base, metadata=metadata_name), tempfile.TemporaryDirectory(
-                    prefix="workspace-v65-collect-"
+                    prefix="workspace-v66-collect-"
                 ) as directory:
                     subject, calls = helper._amendment_preflight_subject(directory, exact_format_metadata())
                     original = subject.git_blobs
