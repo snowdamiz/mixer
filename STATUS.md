@@ -151,6 +151,8 @@ The opt-in independent macOS build owner recovered one iOS attempt through the o
 
 A separate run interrupted the worker during an unsigned generic iOS Starter build. The independent parent retained custody of the CLI through Swift preflight and one Xcode invocation. Oban retried the same job during the outage, and the replacement worker reopened the original ledger and port. The original attempt settled as `native_succeeded` with one start and one capacity release. The owner read two log events and three digest-matched downloads. Anonymous downloads returned 401. All owned processes closed, five ports were reusable, and the fixture and staging scratch were removed. Hosted v56 admits the two-command receipt check and restores all 424 v55 source files. No Simulator or device ran. [Live recovery receipt](verification/receipts/l07-ios-active-native-recovery-20261120.json) · [Hosted v56 binding](verification/receipts/hosted-source-binding-v56-20261120.json)
 
+The maintained staging command rebuilt the pinned CLI and exported the same Starter source and lock in fresh scratch. Preflight admitted the new CLI digest and verified the pinned source and tools. All 21 preparation commands closed, both scratch directories were removed, and preflight made zero build POSTs. [Replay guide](tests/integration/l07-ios-active-custody/README.md) · [Fresh staging receipt](verification/receipts/l07-ios-starter-stage-preflight-20261120.json)
+
 ### Restore of the Starter database and artifact store
 
 The empty fixture restored to a separate PostgreSQL 17.11 cluster. The roles and journal matched, and two fresh sessions authenticated under the restricted API role. All 38 command groups closed, eight ports were reusable, and the replay removed its scratch.

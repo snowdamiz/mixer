@@ -469,17 +469,32 @@ def save_closed_failure_logs(run, receipt):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--fixture-only", action="store_true", help="restore the hosted fixture with zero builds")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--fixture-only", action="store_true", help="restore the hosted fixture with zero builds")
+    mode.add_argument("--stage-only", action="store_true", help="prepare the CLI and Starter export for live custody replay")
     parser.add_argument("--pg-bin", type=Path, default=Path("/opt/homebrew/opt/postgresql@17/bin"))
     args = parser.parse_args()
     os.umask(0o077)
     parent = ROOT / "verification/local"
     parent.mkdir(parents=True, exist_ok=True)
-    run = RestoreRun(Path(tempfile.mkdtemp(prefix="l07-starter-backup-", dir=parent)).resolve(),
-                     "fixture" if args.fixture_only else "full")
-    print(f"L07 backup replay directory {run.root}", flush=True)
+    if args.stage_only:
+        prefix, replay_mode = "l07-xcode-inputs-", "prepare-live-custody"
+    else:
+        prefix, replay_mode = "l07-starter-backup-", "fixture" if args.fixture_only else "full"
+    run = RestoreRun(Path(tempfile.mkdtemp(prefix=prefix, dir=parent)).resolve(), replay_mode)
+    print(f"L07 scratch directory {run.root}", flush=True)
     status = "FAILED"
     try:
+        if args.stage_only:
+            run.stage("inert")
+            starter.prepare_export(run)
+            require(run.closed() and run.result["buildPOSTAttempts"] == 0,
+                    "staging did not close every command or attempted a build POST")
+            run.result.update(status="PASS_STAGE", allPreparedCommandsClosed=True,
+                              zeroFixtureBuildPOSTs=True)
+            run.evidence()
+            print(f"PASS_STAGE {run.root / 'result.json'}", flush=True)
+            return 0
         status = replay(run, args)
     except BaseException as error:
         run.result["error"] = f"{type(error).__name__}: {error}"
@@ -489,11 +504,14 @@ def main():
     try:
         if run.unknown or run.native_pending:
             raise starter.Hold("command or native operation custody is unknown")
+        if args.stage_only and run.attempts.get("cli-build", {}).get("exit", 0) != 0:
+            raise starter.Hold("SwiftPM failed before nested compiler closure could be verified")
         run.close_target()
         run.close_services()
         require(run.closed(), "closure receipts do not cover every command")
         run.result["portsRebound"] = starter.rebound(run.ports.values())
-        run.verify_provenance("after-service-shutdown")
+        if not args.stage_only:
+            run.verify_provenance("after-service-shutdown")
         if status.startswith("PASS"):
             require(run.result["restoredAPIExit"] == run.result["restoredPostgresExit"] == 0,
                     "restored services did not close normally")
