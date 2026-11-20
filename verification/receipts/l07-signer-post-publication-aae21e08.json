@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "id": "l07-signer-post-publication-aae21e08",
+  "status": "passed scoped host fixture recovery",
+  "recordedUTC": "2026-11-20 14:37:35 UTC",
+  "source": {
+    "revision": "aae21e0880ea8991992f83322fa1ec47cb4e2908",
+    "tree": "e9e4ce6708a20e20326aa25a896aa7dcbe1f3492",
+    "attesterTree": "e0788c1950906142e3ef66e719ba1a0ebcd77787",
+    "extraction": "git archive aae21e0880ea8991992f83322fa1ec47cb4e2908 services/go.mod services/go.sum services/cmd/mixer-native-attest",
+    "productEdits": false
+  },
+  "tools": {
+    "host": "macOS 27.0.1 (26A434) arm64, local APFS with ownership checked by the CLI",
+    "go": "go1.26.4 darwin/arm64",
+    "cgo": "Apple clang 21.0.0 (clang-2100.4.1.1), used for the host signer's Darwin ACL check"
+  },
+  "replay": {
+    "driver": "tests/integration/l07-native-attestation/lost_ack_darwin_test.go",
+    "driverSha256": "d46730c4af1ef7a4c200226980f6b62b55d46f8e5ce6065e0cd73303d240c48e",
+    "instructions": "Extract the pinned package and module files to fresh mode-0700 APFS scratch. Copy the test driver into the extracted services/cmd/mixer-native-attest directory. Run from the extracted services directory with private GOCACHE, GOMODCACHE and GOTMPDIR. Set MIXER_ATTEST_PROOF_BIN to the absolute path of the built signer and run the focused tests.",
+    "env": {
+      "CGO_ENABLED": "1",
+      "CC": "/usr/bin/clang",
+      "GOTOOLCHAIN": "local",
+      "GOENV": "off",
+      "GOWORK": "off",
+      "GOPROXY": "off",
+      "GOSUMDB": "off",
+      "GOTELEMETRY": "off",
+      "GORACE": "atexit_sleep_ms=0"
+    },
+    "commands": [
+      "go build -race -buildvcs=false -mod=readonly -o \"$MIXER_ATTEST_PROOF_BIN\" ./cmd/mixer-native-attest",
+      "go test -race -buildvcs=false -mod=readonly ./cmd/mixer-native-attest -run '^TestWorkerClosedSignerLostPublicationAck$' -count=3 -timeout=45s -v",
+      "go test -race -buildvcs=false -mod=readonly ./cmd/mixer-native-attest -run '^Test(ConcurrentAttestationsPublishOneEnvelope|FixedOriginAndACLs)$' -count=1 -timeout=45s -v"
+    ],
+    "signerSha256": "411402248bddde02c122182b0eff4fc153de15f2ffbca57028e0f36f80e23282"
+  },
+  "observations": {
+    "fixture": "Existing authenticated loopback fixture for native_succeeded, workerCompletionPending=false, journal revision 2, attempt 1, and three synthetic artifacts. Each run used fresh Ed25519 keys and a synthetic session.",
+    "fault": "The standalone sign command inherited stdout as a pipe whose only read end was closed before launch. The process was reaped by SIGPIPE with empty stderr. The pinned main writes stdout only after publish succeeds, which includes stage write and file Sync, an exclusive link, staging unlink and directory Sync.",
+    "publication": "Exactly one regular 0400 final envelope with one hard link and no staging file. The later verifier returned the same basename. Envelope bytes, inode and modification time stayed identical through all controls.",
+    "retry": "Original sign inputs refused with exit 1 and 'build already attested or state unavailable'. The same invocation still refused after the original private key was moved off its path. The existing-state check predates source observation and private-key loading in the pinned CLI.",
+    "conflicts": "Alternate key with the original selection and conflicting source pin for the same build scope refused with exit 1. Verify with an alternate pinned public key refused with 'attestation signature failed'. All refusal controls added zero HTTP requests.",
+    "verifiedBytes": "Verify with the original independently passed public SPKI and original selection accepted the stored Ed25519 signature and reconstructed statement after fetching build detail and the three artifacts.",
+    "loopbackRequests": {
+      "firstSign": 4,
+      "allRefusalsCombined": 0,
+      "successfulVerify": 4,
+      "totalPerRun": 8
+    },
+    "lostAckRuns": [
+      {
+        "firstSignerPid": 23280,
+        "envelopeSha256": "4b0fede66a822fe301c88b5b978ec88c77e8e15d2b734fd38f7d910dbf07e301",
+        "envelopeBytes": 1203,
+        "name": "ab32e77f82df925d946f4d7696de1c6906a498c3c089d9b27e5bc5309dc86677.json"
+      },
+      {
+        "firstSignerPid": 23297,
+        "envelopeSha256": "f00caf1b3a0cd984d526ce1d2571ed8c4a010db801a53519b059fd63fff5df64",
+        "envelopeBytes": 1203,
+        "name": "ab32e77f82df925d946f4d7696de1c6906a498c3c089d9b27e5bc5309dc86677.json"
+      },
+      {
+        "firstSignerPid": 23315,
+        "envelopeSha256": "516f2f3cf2299b0ddf83656e6a257496e9065a81dd2aa6b10420aed23b6defaf",
+        "envelopeBytes": 1203,
+        "name": "ab32e77f82df925d946f4d7696de1c6906a498c3c089d9b27e5bc5309dc86677.json"
+      }
+    ],
+    "existingRaceControls": [
+      {
+        "test": "TestConcurrentAttestationsPublishOneEnvelope",
+        "result": "PASS"
+      },
+      {
+        "test": "TestFixedOriginAndACLs",
+        "result": "PASS"
+      }
+    ]
+  },
+  "cleanup": {
+    "scratch": "verification/local/l07-signer-post-publication-aae21e08/owned-run-n_qf9d88",
+    "scratchRemovedAndCheckedAbsent": true,
+    "keysEnvelopeBinariesCachesRemoved": true,
+    "fixtureClosedAndPortReboundEachRun": true,
+    "testProcessesWaited": true,
+    "retained": [
+      "compact receipt",
+      "ignored replay test source"
+    ]
+  },
+  "limits": "Signer-only recovery using an already-settled synthetic HTTP fixture. No worker or processor was started, and no native application build, device, daemon restart, power-loss test, hosted service, real secret, Docker, push, or gate change was involved. Repeating sign is a refusal; recovery uses verify.",
+  "adoption": {
+    "originalReceiptSHA256": "5525ac987d7278b286ca5b483e853c4338af4a157a73806ca3bb8df29422c52c",
+    "trackedDriverMatchesRecordedSHA256": true,
+    "guideSHA256": "767d39adef3c0eb7803d28a5ff21b995915ebd60c04ca1b690920c10db75f351",
+    "rootStandaloneSignerSHA256": "bba49017d8b04db86ecff45755b7aa5eb2e6a98dc756785f79069ae86a729046",
+    "documentedCommandPassedRaceRuns": 3,
+    "rootFixturePortReboundEachRun": true,
+    "rootReplayScratchRemoved": true
+  }
+}

@@ -153,6 +153,8 @@ A separate run interrupted the worker during an unsigned generic iOS Starter bui
 
 The maintained staging command rebuilt the pinned CLI and exported the same Starter source and lock in fresh scratch. Preflight admitted the new CLI digest and verified the pinned source and tools. All 21 preparation commands closed, both scratch directories were removed, and preflight made zero build POSTs. [Replay guide](tests/integration/l07-ios-active-custody/README.md) · [Fresh staging receipt](verification/receipts/l07-ios-starter-stage-preflight-20261120.json)
 
+Three local development signer runs lost the acknowledgment after publishing one envelope. A repeat `sign` refused before reading the private key or sending a request. The original public key verified the exact committed envelope, and the fixture port became reusable after each run. [Signer recovery receipt](verification/receipts/l07-signer-post-publication-aae21e08.json) · [Replay guide](tests/integration/l07-native-attestation/README.md)
+
 ### Restore of the Starter database and artifact store
 
 The empty fixture restored to a separate PostgreSQL 17.11 cluster. The roles and journal matched, and two fresh sessions authenticated under the restricted API role. All 38 command groups closed, eight ports were reusable, and the replay removed its scratch.
