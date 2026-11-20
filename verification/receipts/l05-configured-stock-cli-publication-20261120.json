@@ -1,0 +1,187 @@
+{
+  "schema": 1,
+  "gate": "L05",
+  "status": "verified_configured_stock_cli_publication",
+  "recordedUTC": "2026-11-20T17:27:02.377110+00:00",
+  "source": {
+    "revision": "64eb187d9b908386ab25d72d7894ead003ec26f7",
+    "tree": "2a3646288307ac7c763cc8702d126a759c9813ed",
+    "hostedTree": "bcd544d0c35fd5acc315a8c9033469a66fc183f9",
+    "cliTree": "25a95557190f8b1cc1bb87ef2c7db1e3f404d866",
+    "fixtureSuccessor": "49c49ab7c37f0c3fecc0a26ce8e41ee50b03afa0",
+    "uploaderACL": "5fdc96459d657c94dea8d1595067349058857839",
+    "archiveSHA256": "9d602b975704e9193abc72d39c1074df485f876cd950a3a1c8f3cf73ceb6de6a",
+    "fileSHA256": {
+      "hosted/scripts/replay-configured-release-client.py": "938464de493adaa5cb4ba418da79bc159cd72d3dde039b637398800de4bda69d",
+      "hosted/scripts/replay-configured-release.sh": "0fa56faf806266b118156de74cd42f8d7563828b42eed41e15f47170d663d4a4",
+      "hosted/test/mixer_hosted/releases/configured_release_replay_test.exs": "7ba862d686464a0af8b8df9f233f648b01c711592cf1cca491e0c033477da25d",
+      "hosted/scripts/replay-configured-release.md": "42592fd50405856b7ab12d0a9abdad4b1dc692f421353449f871db1064674135",
+      "hosted/config/runtime.exs": "aa2c4ed58e31bc8cd6619d73cd002a3a219b142280f5883817b5555e324552d8",
+      "hosted/lib/mixer_hosted/customer_artifacts/local_upload.ex": "bfd9a833498f485c4c535abb581f39d922cafd45573faf2a5cfd8e7e9e1e2d37",
+      "hosted/lib/mixer_hosted/releases.ex": "8999418d95a76b47de55d5357e54fa622e2a56af685278cc81e5fac6665f5bdb",
+      "docs/operations/provision-local-artifact-uploader.sql": "669de634dd7478ffae1427e43af661e32e4f1e8cbfc58db8117cbb58fdb6b68d",
+      "services/protocol/testdata/signed-release-v3.json": "ee4935fedca51b728e78801cb05c5732e8547bda1e26f109330e6659a0a2f77a",
+      "hosted/mix.lock": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454"
+    }
+  },
+  "toolchain": {
+    "macOS": "27.0.1 (26A434) arm64",
+    "xcode": "27.2 (27B52)",
+    "swift": "6.4.2",
+    "guest": "Ubuntu 24.04.5 LTS aarch64 in Lima 2.3.0, Virtualization.framework",
+    "elixir": "1.20.4 on OTP 29.1.1",
+    "hex": "2.7.0 built from 92cb6a1b10c9b008ccb6fa229f5d9916840dc09d",
+    "postgresql": "pg_ctl (PostgreSQL) 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1)",
+    "publicInputSHA256": {
+      "lima.tar.gz": "b7af444bd8f91d3c307477e562f2cf3bd7595d62b9429185e4fa841563578cfc",
+      "ubuntu.img": "50e24e1fb79e89116e939d90aa7738f7af48c442fa1bc2510131e0b39c50348e",
+      "otp.tar.gz": "054e0143e39c780e091107fc9b345792a9c1a55f6bac1eca1c1101510fc06bf6",
+      "elixir.zip": "7863c546cda13fecc949e562e326042451dacf8fd8698a36783cb71eeb223b46",
+      "hex-source.tar": "9fa62ac605debf713bc55bcbf51059604c71f7880b4cad822b7dac6df12c6b06",
+      "rebar3": "5a28b1cca082d3b023ec0f5df9d9f9d52557036c6f2a21c1ffa11b93a984dd42"
+    }
+  },
+  "stockBinary": {
+    "cliTree": "25a95557190f8b1cc1bb87ef2c7db1e3f404d866",
+    "packageResolved": {
+      "bytes": 656,
+      "sha256": "de4bd6f84bfa554faf519a52f6c5fb9a051761ded30ae5fee4440b5e88118855"
+    },
+    "product": {
+      "bytes": 10533360,
+      "sha256": "f9981ec02c44158ff47f81c754c1332485618a1b649a28ddadab11d574ba5f00"
+    },
+    "buildSystem": "swiftpm-native",
+    "groupsAbsent": 4,
+    "maxAllocatedScratchBytes": 240635904,
+    "commands": [
+      {
+        "label": "cli-source",
+        "argv": [
+          "/usr/bin/git",
+          "rev-parse",
+          "HEAD:cli"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "stock-cli",
+        "argv": [
+          "/usr/bin/swift",
+          "build",
+          "--build-system",
+          "native",
+          "--package-path",
+          "$REPO/cli",
+          "--scratch-path",
+          "$RUN/build",
+          "--cache-path",
+          "$RUN/cache",
+          "--config-path",
+          "$RUN/config",
+          "--security-path",
+          "$RUN/security",
+          "--disable-dependency-cache",
+          "--force-resolved-versions",
+          "-j",
+          "3",
+          "--product",
+          "mixer"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "bin-path",
+        "argv": [
+          "/usr/bin/swift",
+          "build",
+          "--build-system",
+          "native",
+          "--package-path",
+          "$REPO/cli",
+          "--scratch-path",
+          "$RUN/build",
+          "--cache-path",
+          "$RUN/cache",
+          "--config-path",
+          "$RUN/config",
+          "--security-path",
+          "$RUN/security",
+          "--disable-dependency-cache",
+          "--force-resolved-versions",
+          "-j",
+          "3",
+          "--show-bin-path"
+        ],
+        "exit": 0
+      },
+      {
+        "label": "product-identity",
+        "argv": [
+          "/usr/bin/file",
+          "$RUN/mixer"
+        ],
+        "exit": 0
+      }
+    ]
+  },
+  "isolatedBoot": {
+    "fixture": "--stock-cli using production runtime configuration under ExUnit",
+    "guestBoundary": "Fresh Linux network and PID namespaces on an owned plain VZ guest, with loopback only. No host mounts or SSH agent forwarding.",
+    "clientBoundary": "Owned Mac IPv4 loopback SSH stream-local forward into the private filesystem socket of the guest fixture.",
+    "before": "Zero retained artifacts, upload audit rows, upload receipts, validation receipts, and publications. Public offer 204, artifact 404, and unauthenticated validation 401.",
+    "actor": "The configured bearer did one TLS JWKS request. The verified actor authorized both artifact upload and release publication.",
+    "pools": "Separate restricted writer, delivery and uploader roles with a verified PostgreSQL TLS connection per pool."
+  },
+  "publication": {
+    "stockInvocation": "mixer update publish with the exact manifest, payload, assignment, and scope. The two invocations used identical inputs and returned the same release receipt.",
+    "scope": {
+      "organization": "org-a",
+      "project": "project-a",
+      "app": "fieldlog",
+      "environment": "development",
+      "platform": "ios"
+    },
+    "channel": "beta",
+    "runtime": "4458cc1f9ff4357cad2e529d56de9c1e962679a3023ea72c8cb6c909d99bb888",
+    "manifestSHA256": "fde8e3aa163d720681d4d0c08700966163f4245a0954bfb371acbeded1f6bf64",
+    "sequence": 7,
+    "rolloutBasisPoints": 10000,
+    "rows": {
+      "artifacts": 1,
+      "uploadAudit": 1,
+      "uploadIdempotency": 1,
+      "validations": 1,
+      "publications": 1
+    },
+    "delivery": "The updater returned the exact signed assignment and artifact envelope. The other channel returned no offer."
+  },
+  "results": {
+    "guest": "1 passed",
+    "guestTranscriptSHA256": "5bbd943fcfedccf98a95975b8345839c2baa7e699335251730ab68b08ff75e27",
+    "stockClientTranscriptSHA256": "75820042bf78684df49cd91e450906f9cec4ebda09560830179060bd72703183",
+    "provisioningTranscriptSHA256": "9e15b710e6942241e495d687a73614c6913c73b1858bdf53644b0e761c5c8347",
+    "guestWarnings": [
+      "Shell PS1 was unset in the noninteractive wrapper.",
+      "The fixture runner reported Latin-1 native filename encoding."
+    ]
+  },
+  "buildRecovery": "Two initial SwiftPM builds reached the logical scratch guard. Both command groups closed. The native SwiftPM build system completed with an allocated-byte scratch check and the same locked sources.",
+  "closure": {
+    "ownedGuestProcessCheck": "Fixture scratch absent, no PostgreSQL clusters, no postgres or beam.smp processes",
+    "stateBeforeDeletion": "Stopped",
+    "hostPIDsObservedAbsent": {
+      "mxrelease/ha.pid": 65599,
+      "mxrelease/vz.pid": 65599
+    },
+    "vmDeleted": true,
+    "portsReusable": [
+      54974,
+      59179
+    ],
+    "fixtureHostGroupAbsent": true,
+    "stockClientHostGroupAbsent": true,
+    "hostScratchRemoved": true
+  },
+  "scopeLimit": "The source-controlled development vector was already signed. This replay verifies a configured bearer, normal upload, validation, publication and exact updater bytes through one boot. Browser sign-in, installed activation and full L05 qualification are separate."
+}
