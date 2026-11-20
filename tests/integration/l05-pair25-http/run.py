@@ -22,7 +22,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
-from threading import Barrier, Event
+from threading import Barrier, Event, Lock
 import time
 from urllib.parse import parse_qs, urlencode, urlsplit
 
@@ -36,6 +36,7 @@ INERT_LOCK = b"inert Linux lock\n"
 INERT_DRIVER_LOG = {"exitCode": 0, "stdoutBytes": 320, "stderrBytes": 80, "outputTruncated": False}
 HOST = "127.0.0.1"
 BURST_RETRIES = 4
+BURST_SECONDS = 4
 DB = "browser_ordinary_installation_r1422"
 BUILD = "/console-api/v1/builds"
 CANCEL = BUILD + "/cancel"
@@ -161,7 +162,56 @@ def owned(root, name, argv, cwd, env, receipts, stop=None, *, exit_codes=(0,)):
                 raise RuntimeError(f"{name} exited {code}")
 
 
-def http(auth, path, *, cookie=None, body=None, empty_post=False):
+class BurstConnections:
+    def __init__(self):
+        self.deadline = time.monotonic() + BURST_SECONDS
+        self.sockets = set()
+        self.lock = Lock()
+        self.closed = False
+
+    def remaining(self):
+        seconds = self.deadline - time.monotonic()
+        if seconds <= 0:
+            raise TimeoutError("checkout burst reached its deadline")
+        return seconds
+
+    @contextmanager
+    def open(self, port, timeout):
+        # Register before connect so the controller can interrupt every network read.
+        with self.lock:
+            require(not self.closed, "checkout burst closed")
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sockets.add(sock)
+        try:
+            sock.settimeout(min(timeout, self.remaining()))
+            sock.connect((HOST, port))
+            with closing(HTTPConnection(HOST, port)) as connection:
+                connection.sock = sock
+                yield connection
+        finally:
+            with self.lock:
+                self.sockets.discard(sock)
+            sock.close()
+
+    def close(self):
+        with self.lock:
+            self.closed = True
+            for sock in self.sockets:
+                try:
+                    # HTTPResponse can hold its own file reference to the descriptor.
+                    sock.shutdown(socket.SHUT_RDWR)
+                except OSError:
+                    pass
+                sock.close()
+
+
+def loopback_http(port, timeout, burst):
+    if burst is None:
+        return closing(HTTPConnection(HOST, port, timeout=timeout))
+    return burst.open(port, timeout)
+
+
+def http(auth, path, *, cookie=None, body=None, empty_post=False, burst=None):
     headers = {}
     if cookie:
         headers["Cookie"] = "__Host-mixer-session=" + cookie
@@ -170,7 +220,7 @@ def http(auth, path, *, cookie=None, body=None, empty_post=False):
         headers.update({"Origin": auth["origin"], "X-Mixer-CSRF": auth["csrf"]})
     if body is not None:
         headers.update({"Content-Type": "application/json", "Idempotency-Key": "pair25-one-build"})
-    with closing(HTTPConnection(HOST, auth["port"], timeout=10)) as connection:
+    with loopback_http(auth["port"], 10, burst) as connection:
         payload = json.dumps(body) if body is not None else None
         connection.request("POST" if post else "GET", path, payload, headers)
         with connection.getresponse() as response:
@@ -180,13 +230,13 @@ def http(auth, path, *, cookie=None, body=None, empty_post=False):
             return response.status, dict(response.getheaders()), payload
 
 
-def release_read(configuration, kind):
+def release_read(configuration, kind, *, burst=None):
     observation = configuration[kind]
     target = urlsplit(observation["url"])
     require(target.scheme == "http" and target.hostname == HOST and target.port
             and target.netloc == f"{HOST}:{target.port}" and target.path.startswith("/v3/")
             and not target.fragment, "release probe must use a pinned IPv4 loopback route")
-    with closing(HTTPConnection(HOST, target.port, timeout=1)) as connection:
+    with loopback_http(target.port, 1, burst) as connection:
         connection.request("GET", target.path + ("?" + target.query if target.query else ""))
         with connection.getresponse() as response:
             raw = response.read(65_537)
@@ -199,8 +249,8 @@ def release_snapshot(configuration):
     return {kind: release_read(configuration, kind) for kind in ("offer", "artifact")}
 
 
-def checkout_refusal(auth, cookie, body):
-    status, headers, raw = http(auth, BUILD, cookie=cookie, body=body)
+def checkout_refusal(auth, cookie, body, *, burst=None):
+    status, headers, raw = http(auth, BUILD, cookie=cookie, body=body, burst=burst)
     require(status == 503 and not any(k.lower() == "set-cookie" for k in headers)
             and json.loads(raw) == {"error": {"code": "authorization_unavailable",
                                               "message": "Build request refused."}},
@@ -213,29 +263,36 @@ def checkout_burst(auth, cookie, release, refusals_ready, release_responses):
     participants = BURST_RETRIES + len(kinds)
     start = Barrier(participants, timeout=2)
     read_signed = Event()
+    connections = BurstConnections()
 
     def retry():
         start.wait()
-        return checkout_refusal(auth, cookie, auth["build"])
+        return checkout_refusal(auth, cookie, auth["build"], burst=connections)
 
     def signed_read(kind):
         start.wait()
         # Phoenix has paused every refused POST before writing its response.
-        require(read_signed.wait(timeout=5), "signed reads timed out waiting for pre-BEGIN refusals")
-        return release_read(release, kind)
+        require(read_signed.wait(timeout=connections.remaining()),
+                "signed reads timed out waiting for pre-BEGIN refusals")
+        return release_read(release, kind, burst=connections)
 
     with ThreadPoolExecutor(max_workers=participants) as pool:
-        retries = [pool.submit(retry) for _ in range(BURST_RETRIES)]
-        reads = {kind: pool.submit(signed_read, kind) for kind in kinds}
-        refusal = refusals_ready()
-        require(refusal["before_begin"] is True and len(refusal["queue_ns"]) == BURST_RETRIES,
-                "checkout burst did not observe four pre-BEGIN refusals")
-        read_signed.set()
-        during = {kind: future.result() for kind, future in reads.items()}
-        require(all(not retry.done() for retry in retries),
-                "signed reads did not overlap all the pre-BEGIN refusals")
-        release_responses()
-        return during, refusal, [retry.result() for retry in retries]
+        try:
+            retries = [pool.submit(retry) for _ in range(BURST_RETRIES)]
+            reads = {kind: pool.submit(signed_read, kind) for kind in kinds}
+            refusal = refusals_ready(connections.remaining())
+            require(refusal["before_begin"] is True and len(refusal["queue_ns"]) == BURST_RETRIES,
+                    "checkout burst did not observe four pre-BEGIN refusals")
+            read_signed.set()
+            during = {kind: future.result(timeout=connections.remaining()) for kind, future in reads.items()}
+            require(all(not retry.done() for retry in retries),
+                    "signed reads did not overlap all the pre-BEGIN refusals")
+            release_responses()
+            return during, refusal, [retry.result(timeout=connections.remaining()) for retry in retries]
+        finally:
+            connections.close()
+            read_signed.set()
+            start.abort()
 
 
 def wire(config, action, request=None):
@@ -1252,7 +1309,7 @@ def drive(root, args, env, result):
                                 if args.checkout_burst:
                                     during, refusal, statuses = checkout_burst(
                                         outage_auth, sessions["owner"], release,
-                                        lambda: ready("api.checkout.refused", api, seconds=4),
+                                        lambda seconds: ready("api.checkout.refused", api, seconds=seconds),
                                         lambda: mark("api.checkout.respond"),
                                     )
                                     require(connect_errno(worker_port) == errno.ECONNREFUSED

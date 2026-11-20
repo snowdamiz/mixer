@@ -1,12 +1,14 @@
 """Bounded Pair25 recovery controls with the stock Python worker and runner."""
 from contextlib import closing, contextmanager
 from dataclasses import asdict
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
 from pathlib import Path
 import shutil
 import sys
 import tempfile
+from threading import Event, Lock, Thread
 import time
 import unittest
 from unittest.mock import patch
@@ -41,6 +43,69 @@ class RecoveryTest(unittest.TestCase):
         self.scope = dict(organization_id="organization", project_id="project", application_id="application",
                           platform="android", build_id="build", source_sha256="b" * 64,
                           toolchain_lock_sha256=run.sha(run.INERT_LOCK), build_definition_sha256="d" * 64)
+
+    def test_checkout_burst_closes_active_connections_at_shared_deadline(self):
+        post_handlers = set()
+        signed_reads = set()
+        lock = Lock()
+        refused = Event()
+        stop = Event()
+
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, *_):
+                pass
+
+            def do_POST(self):
+                self.rfile.read(int(self.headers["Content-Length"]))
+                with lock:
+                    post_handlers.add(self.client_address)
+                    if len(post_handlers) == run.BURST_RETRIES:
+                        refused.set()
+                stop.wait(timeout=8)
+
+            def do_GET(self):
+                with lock:
+                    signed_reads.add(self.path)
+                try:
+                    self.send_response(200)
+                    self.send_header("Content-Length", "128")
+                    self.end_headers()
+                    for _ in range(128):
+                        if stop.wait(0.025):
+                            break
+                        self.wfile.write(b"x")
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+
+        class Server(ThreadingHTTPServer):
+            daemon_threads = False
+
+        with Server((run.HOST, 0), Handler) as server:
+            thread = Thread(target=server.serve_forever, kwargs={"poll_interval": 0.02})
+            thread.start()
+            port = server.server_port
+            origin = f"http://{run.HOST}:{port}"
+            auth = {"origin": origin, "port": port, "csrf": "fixture", "build": {}}
+            release = {kind: {"url": f"{origin}/v3/{kind}", "sha256": "0" * 64}
+                       for kind in ("offer", "artifact")}
+
+            def ready(seconds):
+                self.assertTrue(refused.wait(timeout=seconds))
+                return {"before_begin": True, "queue_ns": [0] * run.BURST_RETRIES}
+
+            started = time.monotonic()
+            try:
+                with patch.object(run, "BURST_SECONDS", 1):
+                    with self.assertRaises(TimeoutError):
+                        run.checkout_burst(auth, "owner", release, ready,
+                                           lambda: self.fail("released timed-out POSTs"))
+                self.assertLess(time.monotonic() - started, 1.75)
+                self.assertEqual(signed_reads, {"/v3/offer", "/v3/artifact"})
+            finally:
+                stop.set()
+                server.shutdown()
+                thread.join(timeout=2)
+                self.assertFalse(thread.is_alive())
 
     def detail(self, state, artifacts=()):
         running = state == "running"
