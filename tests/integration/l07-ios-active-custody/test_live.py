@@ -136,7 +136,10 @@ class LiveReceiptProof(unittest.TestCase):
     def test_historical_stage_is_refused_by_exact_input_pin(self):
         stage = self.output / "historical.json"
         stage.write_bytes(git("show", f"{ADOPTED}:verification/receipts/l07-versioned-starter-worker-restart-20261119.json"))
-        args = SimpleNamespace(stage_receipt=stage)
+        args = SimpleNamespace(stage_receipt=stage, stage_sha256="f" * 64)
+        with self.assertRaisesRegex(RuntimeError, "staging receipt SHA-256 differs"):
+            live.stage_recipe(self.output, {"sha": NATIVE.digest}, args, {}, "")
+        args.stage_sha256 = live.file_sha(stage)
         with self.assertRaisesRegex(RuntimeError, "staging receipt differs"):
             live.stage_recipe(self.output, {"sha": NATIVE.digest}, args, {}, "")
 

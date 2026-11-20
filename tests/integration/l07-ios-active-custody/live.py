@@ -1,4 +1,4 @@
-"""Opt-in completion schedule for the adopted v55 custody worker."""
+"""Opt-in completion schedule for the independently supervised iOS worker."""
 
 import errno
 import hashlib
@@ -17,7 +17,6 @@ from urllib.parse import parse_qsl, urlencode, urlsplit
 
 XCODE = "/usr/bin/xcodebuild"
 SWIFT_PROBE = ["/usr/bin/swift", "--version"]
-STAGE_SHA256 = "ef64efaa7c48ba1f7510824ec3f4222bf31f0a751cc7bb97bab0c987a256eb5d"
 STAGE_PINS = {
     "publicCommit": "201ead70ff68bfe18de24c0642f518701459e0a4",
     "publicTree": "bc795366f84ca7d68890b84a97bd8773fe1dc786",
@@ -27,7 +26,6 @@ STAGE_PINS = {
     "provenanceSourceSHA256": "1338f7f1b16e646b4665ba67cf08a850da1f08b89b00a8bbcb4505ae48b2e161",
     "starterSourceSHA256": "9d1285c5b66eca9c9b09b6471fcf4a6a9bb28445adfa81acd0133de72f0554c9",
     "starterLockSHA256": "cf4f39cd9ff2cfd48cc960c358293f49b5e7c9c75757efdeee291770af983227",
-    "cliSHA256": "31770eaa056570232b33970a8b690acfced11ec21f5bb871625641b9e256ffbe",
     "xcode": "Xcode 27.2\nBuild version 27B52",
 }
 XCODE_SHA256 = "7d9561a7f8e3c5d70a571422a4522de986c003879dab3bf7562963b6cdc3e658"
@@ -54,12 +52,12 @@ def file_sha(path):
 
 def stage_recipe(root, kit, args, result, prepare):
     stage_bytes = args.stage_receipt.read_bytes()
+    require(kit["sha"](stage_bytes) == args.stage_sha256, "staging receipt SHA-256 differs")
     stage = json.loads(stage_bytes)
-    require(kit["sha"](stage_bytes) == STAGE_SHA256
-            and all(stage.get(key) == pin for key, pin in STAGE_PINS.items())
+    require(all(stage.get(key) == pin for key, pin in STAGE_PINS.items())
             and stage.get("allPreparedCommandsClosed") is True and stage.get("zeroFixtureBuildPOSTs") is True,
             "staging receipt differs from the approved Starter archive, provenance or tool pins")
-    result.update(starterStageSHA256=STAGE_SHA256,
+    result.update(starterStageSHA256=args.stage_sha256,
                   compilerSourceSHA256=stage["provenanceSourceSHA256"])
 
     source, staged_cli = (path.absolute() for path in (args.export, args.cli))

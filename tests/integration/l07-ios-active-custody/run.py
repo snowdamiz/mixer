@@ -651,12 +651,15 @@ def main():
     parser.add_argument("--export", type=Path, help="already verified, staged Starter export")
     parser.add_argument("--cli", type=Path, help="canonical path of the staged retained-output CLI")
     parser.add_argument("--stage-receipt", type=Path, help="verified staging receipt with source and CLI digests")
+    parser.add_argument("--stage-sha256", help="SHA-256 of the independently checked staging receipt")
     args = parser.parse_args()
     if args.receipt.exists() or sys.platform != "darwin":
         parser.error("run on macOS and use a new receipt path")
-    if args.live and not all((args.export, args.cli, args.stage_receipt)):
-        parser.error("--live requires --export, --cli and --stage-receipt")
-    if not args.live and any((args.export, args.cli, args.stage_receipt, args.preflight_only)):
+    if args.live and not all((args.export, args.cli, args.stage_receipt, args.stage_sha256)):
+        parser.error("--live requires --export, --cli, --stage-receipt and --stage-sha256")
+    if args.stage_sha256 and not re.fullmatch(r"[0-9a-f]{64}", args.stage_sha256):
+        parser.error("--stage-sha256 requires a lowercase SHA-256 hex digest")
+    if not args.live and any((args.export, args.cli, args.stage_receipt, args.stage_sha256, args.preflight_only)):
         parser.error("staged inputs and --preflight-only require --live")
 
     os.umask(0o077)
