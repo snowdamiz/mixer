@@ -189,7 +189,10 @@ defmodule MixerHosted.Test.OrdinaryBrowserStartupFixture do
       try do
         Postgrex.query!(conn, "SET statement_timeout='15s'", [])
 
-        Postgrex.query!(conn, "DROP DATABASE browser_ordinary_installation_r1422", [],
+        Postgrex.query!(
+          conn,
+          "DROP DATABASE browser_ordinary_installation_r1422 WITH (FORCE)",
+          [],
           timeout: 20_000
         )
       after
