@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "status": "passed_local_composition",
+  "observedOn": "2026-11-20",
+  "base": "750efc95dba5787113edd2cda2a38f0aa80506f8",
+  "testedRevision": "969697601d96e9390bcc8ca5cea57134f6c898fd",
+  "testedTree": "31fd987f305c858e89ffdf7ea4245fd361c82a56",
+  "hostedTree": "7d03e6e086015b6199c4ea6ac3768c3cfc493270",
+  "consoleTree": "095acd8a81476a4bb07ffc62f047f4522dcc3fad",
+  "inputs": {
+    "releaseRange": "00aa86d374ada80f64a25255c1adaac427db2d13..19deb869b11c427566eb40fc35b239707c26b5e3",
+    "review": [
+      "e94b873a51ebc804164f91df425f0e2435ff91ee",
+      "ef4f5ed46694da5beaf7334f86380a15c0ee2458",
+      "f61fc3b38d12731c1d9489ab37b788227237ccfd"
+    ],
+    "delivery": [
+      "3e57554d5e914805cbff5d8dfec48bdfb0e5fd1b",
+      "7f37ffd10a453081945b0a187561bc68b1f22973"
+    ],
+    "sha256": {
+      "hosted/mix.lock": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+      "console/package-lock.json": "c9211456af0220053efefcddcbfffa8bcbe506c1a96e754f8d3d58a4934bc1f0",
+      "services/protocol/testdata/signed-release-v3.json": "ee4935fedca51b728e78801cb05c5732e8547bda1e26f109330e6659a0a2f77a",
+      "services/protocol/testdata/release-v3-cases.json": "8f62ae6bc91e951c3c66ab16689dd20f9465c7b671b2f24ad44b5960923c2b44"
+    }
+  },
+  "environment": {
+    "host": "macOS 27.0.1 arm64",
+    "elixirAndMix": "1.20.4",
+    "otp": "29",
+    "phoenix": "1.8.16",
+    "postgresql": "17.11",
+    "python": "3.14.8",
+    "node": "26.13.1 with NODE_OPTIONS=--test-reporter=tap",
+    "npm": "11.20.0",
+    "typescript": "5.9.3",
+    "go": "1.26.4 darwin/arm64"
+  },
+  "postgresPhoenix": {
+    "fixture": "Single disposable IPv4 loopback cluster. initdb -U mixer_fixture --no-locale -E UTF8 --auth-local=trust --auth-host=trust. PostgreSQL used -h 127.0.0.1 -p <port> -k '' -c timezone=UTC -c jit=off -c shared_buffers=32MB. Reused provision_browser_read_fixture and provision_customer_authorization_fixture from hosted/scripts/test-local.py. Provisioned only the ledger entry from provision_customer_artifact_fixtures and the restricted LOGIN NOINHERIT mixer_build_create role. Each Mix invocation had a fresh MIXER_BROWSER_CATALOG_FIXTURE_ROOT and used the same fixture database port. No payment service or billing credentials were needed.",
+    "commandsFromHosted": [
+      "HEX_OFFLINE=1 MIX_ENV=test mix deps.get",
+      "MIX_ENV=test mix format --check-formatted",
+      "MIX_ENV=test mix compile --warnings-as-errors",
+      "MIX_ENV=test mix test --warnings-as-errors --seed 0 --trace test/mixer_hosted/releases/browser_publication_test.exs test/mixer_hosted/releases/postgres_test.exs test/mixer_hosted/protocol/assignment_v3_test.exs test/mixer_hosted/protocol/artifact_admission_test.exs",
+      "MIX_ENV=test MIXER_MANAGED_LINUX_PAIR25_STARTER_TEST=1 mix test --warnings-as-errors --seed 0 --trace --only managed_linux_pair25_starter test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs"
+    ],
+    "releaseTests": {
+      "passed": 29,
+      "failed": 0,
+      "sha256": "6ddfe4b04a1997afd68c853359e98dda180ebe1e530c18e5f8b14f53f911620a"
+    },
+    "starterTests": {
+      "passed": 1,
+      "failed": 0,
+      "excluded": 2,
+      "sha256": "bfd21c6b1e1a612f4b4f00959efa7f0b5b376c84baa9ce74e35feb34e9174a0a"
+    },
+    "postgresLogSha256": "161ae67d412e77d6fe481e94600b6dbaf88fb0fb97da9b1c5fb9dca2539a9a11",
+    "observations": [
+      "A signed-in current actor saw the empty browser head while both artifacts were staged. The same actor committed sequences 7 and 8. The browser head and the public offer agreed on both sequences and manifest digests. The public artifact responses preserved the exact signed envelopes and payload.",
+      "A viewer could read but not publish after a live role change. Stale publication lost its database race. Other tenants and mismatched targets could not read the browser head. Restricted SQL tested live credential, membership, project binding and reader-role changes.",
+      "Staged artifacts returned 404 and the eligible installation got no offer before publication. After the second commit, the first previously committed artifact stayed readable. The current offer and both artifacts survived a Phoenix restart on the same PostgreSQL cluster.",
+      "Cohort, tenant, runtime, channel and trust restrictions were enforced. The public reader could not SELECT the artifact table or mutate the ledger directly. The browser writer could not invoke the public artifact function. Reader functions restored the caller's authorization settings.",
+      "Existing managed Linux Starter and all three release migrations installed in either order and rolled back before publication. The existing Starter HTTP test selected one pinned input, enforced role and tenant checks, and queued one build with workers disabled. The two other Starter variants were excluded."
+    ],
+    "postgresCleanup": {
+      "exit": 0,
+      "groupAbsent": true,
+      "reboundPort": 50333
+    }
+  },
+  "console": {
+    "method": "Offline locked npm install. For each workflow, Git matched the literal non-cone sparse patterns against tracked console paths. Ran tsc --project tsconfig.json and node --test tests/workspace-binding.test.mjs tests/cookie-build-client.test.mjs tests/application-build-page.test.mjs on each projection. Also ran the hosted workflow's literal workspace HTTP client compile.",
+    "filesPerProjection": 73,
+    "testsPassedPerProjection": 63,
+    "pathListSha256": "88d66830a494943d2318aa14b497ec8daba2bb886f4ddad02fea4a8fea74c683",
+    "hostedWorkflowBlob": "74d70f951b3d9ec29804a1c4512b4658ef77276a",
+    "hostedOutputSha256": "6a2da135ed5bcf91db30fa764ec00ba030ea06791a46f0240b41f8ec41e38993",
+    "identityNetworkWorkflowBlob": "b984ff77aa6a5f6a66cd18fe11ae6a4e1f40b0b6",
+    "identityNetworkOutputSha256": "441bf87b1dc12b7637ee761ef979afc6781baca0915837b3f47c3b7a1dd9d477"
+  },
+  "wire": {
+    "capture": "Bodies saved by MIXER_PUBLIC_DELIVERY_WIRE_PROOF during the Phoenix HTTPS-provider fixture and loopback HTTP replay.",
+    "captureSha256": "b03bb2aaa090de61cfb7bd878f4c1bdcd98fc89ecc2c7f5166f03b72ee86e0be",
+    "goVerifier": "Decoded both response bodies with the repository's v3 protocol package, verified signatures, payload and cohort with the fixture's public roots, and checked the relative tenant-scoped artifact URL.",
+    "sequence": 7,
+    "artifactSha256": "fde8e3aa163d720681d4d0c08700966163f4245a0954bfb371acbeded1f6bf64",
+    "payloadSha256": "cd3e147c7afb783345f81081e9b2a764bf0a0a7b7b249ba1836a2e4b74a8c24f",
+    "rolloutBasisPoints": 1480,
+    "eligibleBucket": 1479,
+    "excludedBucket": 8585
+  },
+  "scope": "Local detached composition and loopback fixture verification. v57 selection belongs to root. The v56 binding, archived source, gates, product plan and release metadata outside receipts match the base."
+}
