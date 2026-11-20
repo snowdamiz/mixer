@@ -1,0 +1,252 @@
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Bridge/CalculationTrace/CalculationTrace.c b/Integrations/GeneratedReport/Platforms/Android/Bridge/CalculationTrace/CalculationTrace.c
+new file mode 100644
+index 0000000..287f3eb
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/CalculationTrace/CalculationTrace.c
+@@ -0,0 +1,42 @@
++#include "CalculationTrace.h"
++#include <android/log.h>
++#include <inttypes.h>
++#include <jni.h>
++#include <stdatomic.h>
++#include <time.h>
++
++enum { TRACE_SECONDS = 18, TRACE_RECORDS = 2048 };
++static const uint64_t nanos_per_second = 1000000000;
++static _Atomic(uint64_t) deadline;
++static _Atomic(uint32_t) count;
++
++void fieldlog_calculation_trace(FieldLogCalculationEdge edge, uint64_t generation,
++                               uint64_t facade, uint64_t probe, uint64_t frame, int32_t value) {
++    uint64_t until = atomic_load_explicit(&deadline, memory_order_relaxed);
++    if ((until == 0 && edge != FL_CALC_OPEN) ||
++        atomic_load_explicit(&count, memory_order_relaxed) >= TRACE_RECORDS) return;
++
++    struct timespec time;
++    if (clock_gettime(CLOCK_BOOTTIME, &time) != 0) return;
++    uint64_t now = (uint64_t)time.tv_sec * nanos_per_second + (uint64_t)time.tv_nsec;
++    if (edge == FL_CALC_OPEN) {
++        until = now + TRACE_SECONDS * nanos_per_second;
++        uint64_t unarmed = 0;
++        if (!atomic_compare_exchange_strong_explicit(&deadline, &unarmed, until,
++                memory_order_relaxed, memory_order_relaxed)) return;
++    }
++    if (now >= until) return;
++    uint32_t ordinal = atomic_fetch_add_explicit(&count, 1, memory_order_relaxed) + 1;
++    if (ordinal > TRACE_RECORDS) return;
++    __android_log_print(ANDROID_LOG_INFO, "FieldLogCalcTrace",
++        "edge=%u ordinal=%" PRIu32 " ns=%" PRIu64 " gen=%" PRIu64
++        " facade=%" PRIu64 " probe=%" PRIu64 " frame=%" PRIu64 " value=%" PRId32,
++        (unsigned)edge, ordinal, now, generation, facade, probe, frame, value);
++}
++
++JNIEXPORT void JNICALL Java_dev_fieldlog_generatedr90_androidhost_CalculationTrace_record(
++    JNIEnv *env, jclass cls, jint edge, jlong facade, jlong probe, jint value) {
++    (void)env; (void)cls;
++    if (edge >= FL_CALC_OPEN && edge <= FL_CALC_WITNESS_RETURN && facade >= 0 && probe >= 0)
++        fieldlog_calculation_trace((FieldLogCalculationEdge)edge, 0, (uint64_t)facade, (uint64_t)probe, 0, value);
++}
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Bridge/CalculationTrace/CalculationTrace.h b/Integrations/GeneratedReport/Platforms/Android/Bridge/CalculationTrace/CalculationTrace.h
+new file mode 100644
+index 0000000..103ae78
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/CalculationTrace/CalculationTrace.h
+@@ -0,0 +1,33 @@
++#ifndef FIELDLOG_CALCULATION_TRACE_H
++#define FIELDLOG_CALCULATION_TRACE_H
++#include <stdint.h>
++
++typedef enum {
++    FL_CALC_OPEN = 1,
++    FL_CALC_POLL_ENTER,
++    FL_CALC_POLL_RETURN,
++    FL_CALC_FOCUS_ENTER,
++    FL_CALC_FOCUS_RETURN,
++    FL_CALC_DRAW_ENTER,
++    FL_CALC_DRAW_RETURN,
++    FL_CALC_DRAW_QUEUED,
++    FL_CALC_DRAW_GATE,
++    FL_CALC_WITNESS_ENTER,
++    FL_CALC_WITNESS_RETURN,
++    FL_CALC_PUMP_ENTER,
++    FL_CALC_COPY_ENTER,
++    FL_CALC_COPY_RETURN,
++    FL_CALC_INTENT_DURABLE,
++    FL_CALC_VM_ENABLE_ENTER,
++    FL_CALC_VM_ENABLE_RETURN,
++    FL_CALC_EFFECTS_CONFIRMED,
++    FL_CALC_APPLY_ENTER,
++    FL_CALC_APPLY_RETURN,
++    FL_CALC_DRAW_ACCEPTED,
++    FL_CALC_FIRST_SCREEN
++} FieldLogCalculationEdge;
++
++__attribute__((visibility("hidden")))
++void fieldlog_calculation_trace(FieldLogCalculationEdge edge, uint64_t generation,
++                               uint64_t facade, uint64_t probe, uint64_t frame, int32_t value);
++#endif
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Bridge/CalculationTrace/module.modulemap b/Integrations/GeneratedReport/Platforms/Android/Bridge/CalculationTrace/module.modulemap
+new file mode 100644
+index 0000000..a295aef
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/CalculationTrace/module.modulemap
+@@ -0,0 +1,4 @@
++module CFieldLogCalculationTrace {
++    header "CalculationTrace.h"
++    export *
++}
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/CalculationTrace.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/CalculationTrace.java
+new file mode 100644
+index 0000000..8ed7a62
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/CalculationTrace.java
+@@ -0,0 +1,24 @@
++package dev.fieldlog.generatedr90.androidhost;
++
++/** First checklist open only. Call sites and arming all belong to the Activity UI thread. */
++final class CalculationTrace {
++    enum Edge {
++        OPEN, POLL_ENTER, POLL_RETURN, FOCUS_ENTER, FOCUS_RETURN, DRAW_ENTER, DRAW_RETURN,
++        DRAW_QUEUED, DRAW_GATE, WITNESS_ENTER, WITNESS_RETURN
++    }
++
++    private static boolean armed;
++    private CalculationTrace() {}
++
++    static void arm() {
++        if (armed) return;
++        armed = true;
++        mark(Edge.OPEN, 0, 0, 0);
++    }
++
++    static void mark(Edge edge, long facade, long probe, int value) {
++        if (armed) record(edge.ordinal() + 1, facade, probe, value);
++    }
++
++    private static native void record(int edge, long facade, long probe, int value);
++}
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+index a56358c..ad207ff 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -1,5 +1,6 @@
+ package dev.fieldlog.generatedr90.androidhost;
+ import android.app.Activity;
++import dev.fieldlog.generatedr90.androidhost.CalculationTrace.Edge;
+ import android.content.Intent;
+ import android.content.res.AssetFileDescriptor;
+ import android.graphics.Bitmap;
+@@ -411,6 +412,7 @@ public final class PublicActivity extends Activity {
+                 || !resumed || !root.hasWindowFocus() || checklistBlockedByService()) return;
+         if (!events.isEmpty()) drainEvents();
+         if (failed || checklistBlockedByService()) return;
++        if (CalculationFixture.enabled(this)) CalculationTrace.arm();
+         ChecklistPanel panel = new ChecklistPanel(this, context);
+         if (panel.open()) {
+             checklist = panel;
+@@ -556,12 +558,14 @@ public final class PublicActivity extends Activity {
+         scheduleChecklistRefresh();
+     }
+     @Override public void onWindowFocusChanged(boolean hasFocus) {
++        CalculationTrace.mark(Edge.FOCUS_ENTER, 0, 0, hasFocus ? 1 : 0);
+         super.onWindowFocusChanged(hasFocus);
+         if (hasFocus) {
+             postReportDelivery();
+             postPhotoDelivery();
+             scheduleChecklistRefresh();
+         }
++        CalculationTrace.mark(Edge.FOCUS_RETURN, 0, 0, hasFocus ? 1 : 0);
+     }
+     @Override public void onPause() {
+         resumed = false;
+@@ -722,7 +726,9 @@ public final class PublicActivity extends Activity {
+         }
+ 
+         private void poll() {
++            CalculationTrace.mark(Edge.POLL_ENTER, 0, 0, 0);
+             String state = status();
++            CalculationTrace.mark(Edge.POLL_RETURN, 0, 0, state != null ? 1 : 0);
+             if (closing && "Closed".equals(state) && unregisterRetired()) {
+                 remaining = 0;
+                 awaitingReply = false;
+@@ -853,6 +859,7 @@ public final class PublicActivity extends Activity {
+             final Button action = new Button(activity);
+             boolean scheduled;
+             boolean observed;
++            boolean tracedDraw;
+             private final Runnable afterDraw = this::queueObservation;
+             private final Runnable observe = this::observeFrame;
+ 
+@@ -877,13 +884,21 @@ public final class PublicActivity extends Activity {
+ 
+             private void queueObservation() {
+                 if (visible()) postOnAnimation(observe);
+-                else scheduled = false;
++                else {
++                    scheduled = false;
++                    CalculationTrace.mark(Edge.DRAW_GATE, facade, probe, 1);
++                }
+             }
+ 
+             private void observeFrame() {
+                 scheduled = false;
+-                if (!visible()) return;
++                if (!visible()) {
++                    CalculationTrace.mark(Edge.DRAW_GATE, facade, probe, 2);
++                    return;
++                }
++                CalculationTrace.mark(Edge.WITNESS_ENTER, facade, probe, 0);
+                 int status = witness(facade, attachment, probe, true);
++                CalculationTrace.mark(Edge.WITNESS_RETURN, facade, probe, status);
+                 observed = status == 0;
+                 if (status != 0) android.util.Log.w("FieldLogChecklist", "Display witness refused: " + status);
+                 action.setEnabled(observed && enabled);
+@@ -897,9 +912,16 @@ public final class PublicActivity extends Activity {
+             }
+             @Override protected void dispatchDraw(Canvas canvas) {
+                 // Backgroundless ViewGroups can reach child drawing without entering draw().
++                if (!tracedDraw) CalculationTrace.mark(Edge.DRAW_ENTER, facade, probe, 0);
+                 super.dispatchDraw(canvas);
+-                if (observed || scheduled || !visible()) return;
++                boolean queue = !observed && !scheduled && visible();
++                if (!tracedDraw) {
++                    tracedDraw = true;
++                    CalculationTrace.mark(Edge.DRAW_RETURN, facade, probe, queue ? 1 : 0);
++                }
++                if (!queue) return;
+                 scheduled = true;
++                CalculationTrace.mark(Edge.DRAW_QUEUED, facade, probe, 0);
+                 postOnAnimation(afterDraw);
+             }
+         }
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
+index 3e5dfa7..fa3ba45 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
+@@ -1,6 +1,9 @@
+ #if FIELDLOG_SIGNED_CHECKLIST
+ import FieldLogInstalledGuest
+ import Foundation
++#if FIELDLOG_CALCULATION_TRACE
++import CFieldLogCalculationTrace
++#endif
+ 
+ private final class ChecklistReply: @unchecked Sendable {
+     private let lock = NSLock()
+@@ -100,7 +103,16 @@ func checklistSubmit(_ action: Int32, _ context: Int64, _ root: UnsafePointer<CC
+ @_cdecl("fieldlog_checklist_status")
+ func checklistStatus(_ output: UnsafeMutablePointer<CChar>, _ capacity: Int) {
+     guard Thread.isMainThread, (2...512).contains(capacity) else { return }
++    #if FIELDLOG_CALCULATION_TRACE
++    fieldlog_calculation_trace(FL_CALC_PUMP_ENTER, 0, 0, 0, 0, 0)
++    #endif
+     _ = RunLoop.main.run(mode: .default, before: Date(timeIntervalSinceNow: 0.001))
++    #if FIELDLOG_CALCULATION_TRACE
++    fieldlog_calculation_trace(FL_CALC_COPY_ENTER, 0, 0, 0, 0, 0)
++    #endif
+     checklistReply.copy(to: output, capacity: capacity)
++    #if FIELDLOG_CALCULATION_TRACE
++    fieldlog_calculation_trace(FL_CALC_COPY_RETURN, 0, 0, 0, 0, 0)
++    #endif
+ }
+ #endif

@@ -37,7 +37,9 @@ The runner writes command logs and `receipt.json` under
 `verification/local/fieldlog-task-calculation-my-replay/`. It removes the
 disposable checkouts, builds, caches, payloads, and stores after custody
 closes. If custody remains unresolved, the receipt identifies the retained
-run. iOS Simulator and Android emulator remain pending for this scenario.
+run. The installed Android calculation replay has separate evidence. Installed
+iOS calculation remains pending.
+[Android calculation receipt](../../../verification/receipts/fieldlog-android-calculation-correction-20261120.json)
 
 The recovered source matches the closed host run's SHA-256 pins. The patch
 files omit single-space markers on blank context lines and produce the same
@@ -74,3 +76,33 @@ Repeat for the corrected assignment, the rollback assignment, and the cold
 offline reopen. Compare the candidate and launch identifiers across phases.
 The offline reopen keeps the rollback candidate and earns health for a new
 launch. Compare the workspace bytes at every checkpoint.
+
+## Reconstruct the source of the Android calculation replay
+
+Use a fresh disposable FieldLog checkout. The checker stages the patches and
+leaves the traced tree in the checkout. Both source overlays and the delivered
+byte pins are tracked in Mixer.
+
+```sh
+git clone https://github.com/snowdamiz/fieldlog.git "$FIELDLOG"
+git -C "$FIELDLOG" checkout --detach 552559d2d3278abb9b1aa7dcf0288102c09a202b
+python3 -B tests/integration/fieldlog-task-calculation/android-source-check.py "$FIELDLOG"
+```
+
+The checker applies the three selected-draft patches, then the calculation
+overlay. It verifies pre-trace tree `5c36b0c71f00727bfd75418feae668bf8d527835` and
+25 file hashes. It applies the trace overlay and verifies tree
+`7753563b91fe162cfb058cb175ccde979b430033` and 29 file hashes. A fresh checkout
+is required after a successful or interrupted run.
+[Source receipt](../../../verification/receipts/fieldlog-android-calculation-source-review-20261120.json)
+
+The delivered native packager still uses the previous APK as an archive and
+includes its digest in the runtime identity. To replace that input, rebuild
+the JNI library and Java output with public Mixer
+`5dea19db36610e312b51918b384364ba590b6ef8` and the packet's Mixer trace patch.
+Package those outputs with the packet's exact workspace seed and public
+identity template, the engine-pair bridge and storage JSON and appearance
+descriptor, the 18 pinned Android support libraries, and the license notices.
+Bind the explicit inputs into a fresh runtime identity and sign with fresh
+development keys. Qualify the resulting APK separately.
+[Engine-pair source recipe](../fieldlog-android-engine-pair/replay/prepare.sh)

@@ -1,0 +1,470 @@
+diff --git a/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml b/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
+index 1f59963..f66c59b 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
++++ b/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
+@@ -1,7 +1,7 @@
+-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.fieldlog.generatedr90" android:versionCode="1" android:versionName="0.1.0">
+-  <uses-sdk android:minSdkVersion="36" android:targetSdkVersion="37" />
++<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.fieldlog.generatedr90.calculation" android:versionCode="1" android:versionName="0.1.0">
++  <uses-sdk android:minSdkVersion="36" android:targetSdkVersion="36" />
+   <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="FieldLogGenerated" android:debuggable="true" android:allowBackup="false" android:extractNativeLibs="true" android:supportsRtl="true">
+-    <provider android:name="dev.fieldlog.generatedr90.androidhost.PublicBridge$ReportProvider" android:authorities="dev.fieldlog.generatedr90.reports" android:exported="false" android:grantUriPermissions="true" />
++    <provider android:name="dev.fieldlog.generatedr90.androidhost.PublicBridge$ReportProvider" android:authorities="dev.fieldlog.generatedr90.calculation.reports" android:exported="false" android:grantUriPermissions="true" />
+     <activity android:name="dev.fieldlog.generatedr90.androidhost.PublicActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
+       <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+     </activity>
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/CalculationFixture.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/CalculationFixture.java
+new file mode 100644
+index 0000000..9c5de61
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/CalculationFixture.java
+@@ -0,0 +1,105 @@
++package dev.fieldlog.generatedr90.androidhost;
++
++import android.content.Context;
++import android.content.pm.ApplicationInfo;
++import android.widget.LinearLayout;
++import android.widget.TextView;
++import java.io.File;
++import java.io.IOException;
++import java.io.InputStream;
++import java.nio.file.Files;
++import java.nio.file.StandardCopyOption;
++import java.util.HashSet;
++import java.util.Set;
++import java.util.UUID;
++import org.json.JSONArray;
++import org.json.JSONException;
++import org.json.JSONObject;
++
++final class CalculationFixture {
++    private static final String PACKAGE = "dev.fieldlog.generatedr90.calculation";
++
++    private CalculationFixture() {}
++
++    static boolean enabled(Context context) {
++        return PACKAGE.equals(context.getPackageName())
++            && (context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
++    }
++
++    static void stageSeed(Context context) throws IOException {
++        try (InputStream seed = context.getAssets().open("ChecklistRelease/calculation-seed.json")) {
++            Files.copy(seed, new File(context.getFilesDir(), "calculation-seed.json").toPath(),
++                StandardCopyOption.REPLACE_EXISTING);
++        }
++    }
++
++    static void render(Context context, JSONObject frame, LinearLayout destination) throws JSONException {
++        JSONObject root = frame.getJSONObject("root");
++        require(frame.getInt("schemaVersion") == 1 && frame.getLong("revision") > 0);
++        emptyStack(root, "fieldlog-rows");
++        JSONArray children = root.getJSONArray("children");
++        require(children.length() == 7);
++        for (int index = 0; index < 3; index++) {
++            String value = text(children.getJSONObject(index), "completion-" + index, false);
++            require(value.matches("(0|[1-9][0-9]?|100)%"));
++            addText(context, destination, value, 20);
++        }
++
++        // The exact guest includes reorder actions. This fixture exposes only the read-only projection.
++        text(children.getJSONObject(3), "heading", false);
++        Set<String> seen = new HashSet<>();
++        for (int index = 0; index < 3; index++) {
++            JSONObject row = children.getJSONObject(index + 4);
++            String id = row.getString("id");
++            require(id.startsWith("row-") && id.length() == 40 && seen.add(id));
++            String task = id.substring(4);
++            try {
++                require(UUID.fromString(task).toString().equalsIgnoreCase(task));
++            } catch (IllegalArgumentException invalid) {
++                throw new JSONException("Invalid calculation row identifier");
++            }
++            emptyStack(row, id);
++            JSONArray cells = row.getJSONArray("children");
++            require(cells.length() == (index == 0 ? 1 : 2));
++            String title = text(cells.getJSONObject(0), "title-" + task, true);
++            if (index != 0) {
++                String move = "move-" + task;
++                JSONObject button = cells.getJSONObject(1);
++                JSONObject props = button.getJSONObject("properties");
++                JSONArray actions = button.getJSONArray("actions");
++                require(move.equals(button.getString("id")) && "button".equals(button.getString("kind"))
++                    && props.length() == 2 && move.equals(props.getString("accessibilityIdentifier"))
++                    && ("Move up: " + title).equals(props.getString("label"))
++                    && button.getJSONArray("children").length() == 0 && actions.length() == 1);
++                JSONObject action = actions.getJSONObject(0);
++                require(move.equals(action.getString("id")) && "activate".equals(action.getString("event")));
++            }
++            addText(context, destination, title, 18);
++        }
++    }
++
++    private static void emptyStack(JSONObject node, String id) throws JSONException {
++        require(id.equals(node.getString("id")) && "vStack".equals(node.getString("kind"))
++            && node.getJSONObject("properties").length() == 0 && node.getJSONArray("actions").length() == 0);
++    }
++
++    private static String text(JSONObject node, String id, boolean hasAccessibilityID) throws JSONException {
++        JSONObject props = node.getJSONObject("properties");
++        require(id.equals(node.getString("id")) && "text".equals(node.getString("kind"))
++            && node.getJSONArray("children").length() == 0 && node.getJSONArray("actions").length() == 0
++            && props.length() == (hasAccessibilityID ? 2 : 1)
++            && (!hasAccessibilityID || id.equals(props.getString("accessibilityIdentifier"))));
++        return props.getString("text");
++    }
++
++    private static void addText(Context context, LinearLayout destination, String value, int size) {
++        TextView text = new TextView(context);
++        text.setText(value);
++        text.setTextSize(size);
++        destination.addView(text);
++    }
++
++    private static void require(boolean condition) throws JSONException {
++        if (!condition) throw new JSONException("Unsupported FieldLog calculation frame");
++    }
++}
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+index 3a0fafc..a56358c 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -195,7 +195,7 @@ public final class PublicActivity extends Activity {
+             stage="prepared-publish";
+             PublicBridge.ReportFiles.publish(opaque,file,size,android.os.SystemClock.elapsedRealtime()); published=true;
+             stage="prepared-uri";
+-            reportURI=PublicBridge.ReportProvider.uri(opaque);
++            reportURI=PublicBridge.ReportProvider.uri(this, opaque);
+             stage="prepared-chooser";
+             Intent chooser=PublicBridge.ReportIntent.chooser(reportURI);
+             stage="prepared-start-activity";
+@@ -396,7 +396,7 @@ public final class PublicActivity extends Activity {
+         try (InputStream material = getAssets().open("ChecklistRelease/identity.json")) {
+             if (material.read() < 0) throw new IOException("empty checklist identity");
+             android.widget.Button open = new android.widget.Button(this);
+-            open.setText("Open signed draft check");
++            open.setText(CalculationFixture.enabled(this) ? "Open signed checklist" : "Open signed draft check");
+             open.setAllCaps(false);
+             open.setOnClickListener(view -> openChecklist());
+             content.addView(open, new FrameLayout.LayoutParams(-2, -2, android.view.Gravity.BOTTOM | android.view.Gravity.END));
+@@ -454,6 +454,14 @@ public final class PublicActivity extends Activity {
+             }
+             return;
+         }
++        if (CalculationFixture.enabled(this)) {
++            try {
++                CalculationFixture.stageSeed(this);
++            } catch (IOException invalidSeed) {
++                fail();
++                return;
++            }
++        }
+         surface = new AndroidUINativeSurface(this, root, AndroidUIProfile.MEASURED_MULTILINE_LONG_NOTES_V4, this::enqueue);
+         workspaceOwner = this;
+         long opened = PublicBridge.open(this, surface.profile().name());
+@@ -614,7 +622,7 @@ public final class PublicActivity extends Activity {
+             this.activity = activity;
+             this.context = context;
+             dialog = new Dialog(activity);
+-            dialog.setTitle("Signed draft check");
++            dialog.setTitle(CalculationFixture.enabled(activity) ? "Signed checklist" : "Signed draft check");
+             dialog.setCancelable(false);
+             LinearLayout contents = new LinearLayout(activity);
+             contents.setOrientation(LinearLayout.VERTICAL);
+@@ -754,6 +762,11 @@ public final class PublicActivity extends Activity {
+         private boolean applyGuest(long facade, long attachment, long input, long probe, byte[] packet) {
+             try {
+                 JSONObject frame = new JSONObject(new String(packet, StandardCharsets.UTF_8));
++                GuestFrame next = new GuestFrame(facade, attachment, input, probe);
++                if (CalculationFixture.enabled(activity)) {
++                    CalculationFixture.render(activity, frame, next);
++                    return replaceGuest(next);
++                }
+                 JSONObject root = frame.getJSONObject("root");
+                 require(frame.getInt("schemaVersion") == 1 && frame.getLong("revision") > 0
+                     && "fieldlog-draft".equals(root.getString("id")) && "vStack".equals(root.getString("kind"))
+@@ -762,7 +775,6 @@ public final class PublicActivity extends Activity {
+                 int nodeCount = nodes.length();
+                 require(nodeCount == 3 || nodeCount == 4);
+                 String[] labels = {"validation", "photo", "follow-up"};
+-                GuestFrame next = new GuestFrame(facade, attachment, input, probe);
+                 for (int i = 0; i < nodeCount - 1; i++) {
+                     JSONObject node = nodes.getJSONObject(i);
+                     require(labels[i].equals(node.getString("id"))
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
+index a43d58c..023854d 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
+@@ -38,16 +38,18 @@ public final class PublicBridge {
+         if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) throw new IllegalStateException("Android main thread required");
+     }
+ public static final class ReportProvider extends ContentProvider {
+-    static final String AUTHORITY="dev.fieldlog.generatedr90.reports";
+     private static final Handler CLOSES=new Handler(Looper.getMainLooper());
+-    static Uri uri(String token) { return new Uri.Builder().scheme("content").authority(AUTHORITY).appendPath(ReportFiles.token(token)).build(); }
+-    static String token(Uri uri) throws FileNotFoundException {
+-        if (uri==null || !"content".equals(uri.getScheme()) || !AUTHORITY.equals(uri.getAuthority()) ||
++    private static String authority(Context context) { return context.getPackageName() + ".reports"; }
++    static Uri uri(Context context, String token) {
++        return new Uri.Builder().scheme("content").authority(authority(context)).appendPath(ReportFiles.token(token)).build();
++    }
++    private String token(Uri uri) throws FileNotFoundException {
++        if (uri==null || !"content".equals(uri.getScheme()) || !authority(getContext()).equals(uri.getAuthority()) ||
+             uri.getQuery()!=null || uri.getFragment()!=null || uri.getPathSegments().size()!=1)
+             throw new FileNotFoundException("report URI");
+         String token=uri.getPathSegments().get(0);
+         try { ReportFiles.token(token); } catch (IllegalArgumentException e) { throw new FileNotFoundException("report URI"); }
+-        if (!uri.equals(uri(token))) throw new FileNotFoundException("noncanonical report URI");
++        if (!uri.equals(uri(getContext(), token))) throw new FileNotFoundException("noncanonical report URI");
+         return token;
+     }
+     @Override public boolean onCreate() {
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index 48ae044..f3e2db2 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -173,7 +173,13 @@ private enum WorkspaceEdit: Sendable {
+     private var observers: [UUID: @MainActor (UIRenderSnapshot) -> Void] = [:]
+ 
+     public convenience init(directory: URL) async throws {
+-        let repository = try WorkspaceRepository(directory: directory.appendingPathComponent("FieldLog", isDirectory: true))
++        let workspaceDirectory = directory.appendingPathComponent("FieldLog", isDirectory: true)
++        #if DEBUG && FIELDLOG_CALCULATION_FIXTURE
++        let seed = try CalculationFixture.readSeed(directory.appendingPathComponent("calculation-seed.json"))
++        let repository = try WorkspaceRepository(directory: workspaceDirectory, expectedSeed: seed)
++        #else
++        let repository = try WorkspaceRepository(directory: workspaceDirectory)
++        #endif
+         try await self.init(repository: repository)
+     }
+     // Internal composition point also permits deterministic storage scheduling tests.
+@@ -185,17 +191,24 @@ private enum WorkspaceEdit: Sendable {
+                     try next.createProject(title: "FieldLog", site: "Local workspace")
+                 }
+             }
+-            guard let project = workspace.projects.first else { throw PublicHostError.storage }
++            #if DEBUG && FIELDLOG_CALCULATION_FIXTURE
++            let selectedProject = workspace.projects.first { $0.id == CalculationFixture.projectID }
++            #else
++            let selectedProject = workspace.projects.first
++            #endif
++            guard let project = selectedProject else { throw PublicHostError.storage }
+             let editor = try TaskEditor(save: { _, _ in .failed("Unadmitted save") })
+             var reconciler = UIReconciler(validator: UIValidator(supportedTextFieldAxes: AndroidUIProfile.measuredMultilineLongNotesV4.capabilities.textFieldAxes, textValuePolicy: AndroidUIProfile.measuredMultilineLongNotesV4.textValuePolicy))
+             try reconciler.apply(Self.document(editor.state, workspace: workspace, project: project.id, queue: false, taskPage: 0, queuePage: 0, busy: false, feedback: nil, failure: nil, revision: 1))
+             self.repository = repository; self.workspace = workspace; self.projectID = project.id
+             self.editor = editor; self.reconciler = reconciler; self.snapshot = try reconciler.currentSnapshot()
+             _ = try Self.appPacket(snapshot)
++            #if !(DEBUG && FIELDLOG_CALCULATION_FIXTURE)
+             if let id = workspace.restoration.openDraftID,
+                let draft = workspace.drafts.first(where: { $0.id == id && $0.projectID == project.id }) {
+                 try selectEntry(draft)
+             }
++            #endif
+         } catch { await repository.close(); throw error }
+     }
+     // V4's SDK value policy covers vertical fields. The app opts only its note
+@@ -230,6 +243,18 @@ private enum WorkspaceEdit: Sendable {
+         return entryState.draft.id
+     }
+ 
++    #if DEBUG && FIELDLOG_CALCULATION_FIXTURE
++    func calculationStorage() async throws -> any InstalledApplicationStorageServing {
++        try await waitForSave()
++        let tasks = try await repository.readCommittedSnapshot().tasks(for: projectID)
++        guard projectID == CalculationFixture.projectID,
++              let task = tasks.first(where: { $0.id == CalculationFixture.taskID }) else {
++            throw PublicHostError.action
++        }
++        return try CalculationFixture.storage(repository: repository, task: task)
++    }
++    #endif
++
+     func attachSignedDraft() async throws -> any InstalledApplicationStorageServing {
+         try await waitForSave()
+         guard let draftID = savedDraftSelection else { throw PublicHostError.action }
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
+index 7f1a0db..3e5dfa7 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
+@@ -49,7 +49,11 @@ private let checklistReply = ChecklistReply()
+         }
+         do {
+             guard let presentation else { throw PublicHostError.context }
++            #if DEBUG && FIELDLOG_CALCULATION_FIXTURE
++            let storage = try await presentation.calculationStorage()
++            #else
+             let storage = try await presentation.attachSignedDraft()
++            #endif
+             let opened = try await FieldLogSignedTask.open(storage: storage,
+                 material: material, directory: root.appendingPathComponent("signed-checklist"),
+                 bundleID: bundleID, installation: installation)
+@@ -68,7 +72,11 @@ private let checklistReply = ChecklistReply()
+             checklistReply.set("The signed checklist could not be displayed")
+         } catch {
+             presentation?.detachSignedDraft()
++            #if DEBUG && FIELDLOG_CALCULATION_FIXTURE
++            checklistReply.set("The signed calculation could not be opened")
++            #else
+             checklistReply.set("Select a saved draft and publish a compatible release")
++            #endif
+         }
+     }
+ }
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift b/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
+index ac31d34..ff6f295 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
+@@ -40,7 +40,7 @@ public actor WorkspaceRepository {
+   }
+   private static let maximumSnapshotBytes = 32 * 1024 * 1024
+ 
+-  public init(directory: URL, fault: Fault? = nil) throws {
++  public init(directory: URL, fault: Fault? = nil, expectedSeed: Data? = nil) throws {
+     self.directory = directory
+     self.fault = fault
+     try FileManager.default.createDirectory(
+@@ -54,7 +54,18 @@ public actor WorkspaceRepository {
+     }
+     do {
+       let file = directory.appendingPathComponent("workspace.json")
+-      if FileManager.default.fileExists(atPath: file.path) {
++      if let expectedSeed {
++        if FileManager.default.fileExists(atPath: file.path) {
++          let handle = try FileHandle(forReadingFrom: file)
++          defer { try? handle.close() }
++          guard try handle.read(upToCount: expectedSeed.count + 1) == expectedSeed else {
++            throw FieldLogError.storage("The saved workspace differs from the fixture seed.")
++          }
++        } else {
++          try Self.atomic(expectedSeed, to: file, fault: fault)
++        }
++        workspace = try Self.read(file)
++      } else if FileManager.default.fileExists(atPath: file.path) {
+         workspace = try Self.read(file)
+       } else {
+         workspace = Workspace()
+diff --git a/Integrations/InstalledGuest/CalculationFixture.swift b/Integrations/InstalledGuest/CalculationFixture.swift
+new file mode 100644
+index 0000000..5d39a12
+--- /dev/null
++++ b/Integrations/InstalledGuest/CalculationFixture.swift
+@@ -0,0 +1,77 @@
++#if DEBUG && FIELDLOG_CALCULATION_FIXTURE
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++import MixerCapabilities
++import MixerUpdates
++
++public enum CalculationFixture {
++    public static let bundleID = "dev.fieldlog.generatedr90.calculation"
++    public static let projectID = UUID(uuidString: "22F02008-0000-4000-8000-000000000001")!
++    public static let taskID = UUID(uuidString: "D8FD094D-6A4E-4B03-930E-1C4BEE0FB8A7")!
++    public static let projects = [
++        projectID,
++        UUID(uuidString: "22F02008-0000-4000-8000-000000000002")!,
++        UUID(uuidString: "22F02008-0000-4000-8000-000000000004")!,
++    ]
++
++    public static func readSeed(_ file: URL) throws -> Data {
++        let source = try FileHandle(forReadingFrom: file)
++        defer { try? source.close() }
++        let bytes = try source.read(upToCount: 3531) ?? Data()
++        guard bytes.count == 3530,
++              ReleaseVerifier.sha256(bytes) == "f202de8c0101f04e7d6624f90a7f521ce416eb36ae3994d7b1f0692380043260" else {
++            throw UpdateError("fieldlog.calculationSeed", "The calculation fixture requires the exact saved workspace")
++        }
++        return bytes
++    }
++
++    public static func storage(repository: WorkspaceRepository,
++                               task: WorkTask) throws -> any InstalledApplicationStorageServing {
++        guard task.projectID == projectID, task.id == taskID else {
++            throw UpdateError("fieldlog.calculationFixture", "Incorrect calculation project or task")
++        }
++        return CalculationFixtureStorage(repository: repository)
++    }
++
++    static func admits(_ payload: Data) -> Bool {
++        guard payload.count == 10_540 else { return false }
++        switch ReleaseVerifier.sha256(payload) {
++        case "35feea36a6c37cfb6d7c104143f8da041acd93551f42e23fe42f1b885e107610",
++             "904f5d414478dcacab2efdcf91f1969b3036ed9b5a763bb5943ad80843a5ea2f":
++            return true
++        default:
++            return false
++        }
++    }
++}
++
++struct CalculationFixtureStorage: InstalledApplicationStorageServing {
++    let repository: WorkspaceRepository
++
++    func get(_ arguments: KVGetArguments) async throws -> KVGetResponse {
++        guard arguments.namespace == FieldLogDraftStorage.namespace, arguments.key == "completion-rows" else {
++            throw CapabilityFailure.permissionDenied
++        }
++        let state = try await repository.readCommittedSnapshot()
++        let projects = CalculationFixture.projects.map { state.tasks(for: $0) }
++        let tasks = projects[0]
++        guard projects.map(\.count) == [3, 2, 0], tasks[1].id == CalculationFixture.taskID,
++              tasks.allSatisfy({
++                  (1...96).contains($0.title.utf8.count) && !$0.title.utf8.contains { $0 < 32 || $0 == 127 }
++              }) else { throw CapabilityFailure.unavailable }
++        let completion = projects.map { $0.map { $0.completed ? "1" : "0" }.joined() + "\n" }.joined()
++        let rows = tasks.map { "\($0.id.uuidString)\t\($0.title)\n" }.joined()
++        return .init(found: true, valueBase64: Data("\(state.revision)\n\(completion)\(rows)".utf8).base64EncodedString())
++    }
++
++    func put(_ arguments: KVPutArguments, maximumTotalBytes: Int,
++             maximumEntries: Int) async throws -> KVMutationResponse {
++        throw CapabilityFailure.permissionDenied
++    }
++
++    func delete(_ arguments: KVDeleteArguments) async throws -> KVMutationResponse {
++        throw CapabilityFailure.permissionDenied
++    }
++}
++#endif
+diff --git a/Integrations/InstalledGuest/Delivery.swift b/Integrations/InstalledGuest/Delivery.swift
+index e5e2dbd..55eba4f 100644
+--- a/Integrations/InstalledGuest/Delivery.swift
++++ b/Integrations/InstalledGuest/Delivery.swift
+@@ -37,12 +37,20 @@ struct FieldLogDelivery {
+               Set(artifact.keys) == ["signed_manifest", "payload"],
+               let manifest = artifact["signed_manifest"], let encoded = artifact["payload"]?.text,
+               let payload = Data(base64Encoded: encoded), !payload.isEmpty,
+-              payload.count <= 8192, payload.base64EncodedString() == encoded else { throw invalidOffer }
++              acceptsPayload(payload), payload.base64EncodedString() == encoded else { throw invalidOffer }
+         let encoder = JSONEncoder()
+         encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+         return try Package(manifest: encoder.encode(manifest), assignment: encoder.encode(assignment), payload: payload)
+     }
+ 
++    private func acceptsPayload(_ payload: Data) -> Bool {
++        #if DEBUG && FIELDLOG_CALCULATION_FIXTURE
++        return CalculationFixture.admits(payload)
++        #else
++        return payload.count <= 8192
++        #endif
++    }
++
+     private var invalidOffer: UpdateError { UpdateError("fieldlog.delivery", "Invalid checklist release response") }
+ 
+     private func url(_ path: String, _ query: [(String, String)]) throws -> URL {
+diff --git a/Integrations/InstalledGuest/SignedTask.swift b/Integrations/InstalledGuest/SignedTask.swift
+index 913b2e4..2352790 100644
+--- a/Integrations/InstalledGuest/SignedTask.swift
++++ b/Integrations/InstalledGuest/SignedTask.swift
+@@ -38,6 +38,11 @@ public struct FieldLogSignedTask: Sendable {
+                 .trimmingCharacters(in: .whitespacesAndNewlines)), port > 0 else {
+             throw UpdateError("fieldlog.identity", "Invalid installed FieldLog delivery identity")
+         }
++        #if DEBUG && FIELDLOG_CALCULATION_FIXTURE
++        guard bundleID == CalculationFixture.bundleID, scope.platform == "android" else {
++            throw UpdateError("fieldlog.calculationFixture", "Incorrect calculation app or platform")
++        }
++        #endif
+         let storageID = CapabilitySchemas.storageID
+         guard Set(identity.installedRuntime.capabilityHashes.keys) == [storageID] else {
+             throw UpdateError("fieldlog.capabilities", "The checklist guest requires only selected-draft storage")
