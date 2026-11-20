@@ -1,0 +1,178 @@
+# Provision local signed release delivery
+
+Use this procedure for an operator-owned local installation. The ordinary
+Phoenix API serves one registered v3 release target over IPv4 loopback HTTP.
+It verifies signed offers and artifacts with public Ed25519 trust roots. The
+development signer holds the private keys outside Phoenix.
+
+## Provision PostgreSQL
+
+1. Use the local installation database with the existing authorization and
+   artifact schemas. Apply migrations `20261120000001` and `20261120000002`
+   from `hosted/priv/repo/migrations`. Apply `20261120000003` from
+   `hosted/priv/local_release_delivery` afterward. Run these migrations with
+   the common non-login relation owner as `current_user`. This role owns
+   `mixer_customer_artifacts`, `mixer_release_heads`, and
+   `mixer_release_publications` and has neither superuser nor BYPASSRLS.
+   With that owner already selected, run the delivery migration from `hosted/`.
+
+   ```sh
+   mix ecto.migrate --migrations-path priv/local_release_delivery --to 20261120000003
+   ```
+
+2. Register the target in `public.mixer_release_heads` as the relation owner
+   with a null `sequence`. Use the existing restricted browser runtime login
+   as `writer_role`. The organization, project, app, environment, platform,
+   runtime fingerprint, and channel must match the configuration used below.
+   The trigger and release ledger advance the head when a publish commits.
+
+   ```sql
+   INSERT INTO public.mixer_release_heads (
+     organization_id, project_id, application_id, environment_id,
+     platform, runtime_sha256, channel, writer_role
+   ) VALUES (
+     :'organization', :'project', :'app', :'environment',
+     :'platform', :'runtime_sha256', :'channel', :'browser_runtime'
+   );
+   ```
+
+   Set the psql variables to the installation values before running the SQL.
+   For browser head access, the existing browser runtime login needs
+   `SELECT` on both release tables and `EXECUTE` on
+   `public.mixer_release_read_allowed(text,text,text,text)` and
+   `public.mixer_release_bound_artifact(text,text,text,text,text,text,text,text)`.
+   Keep the standard browser identity, session, and tenant policies in effect.
+
+3. From `hosted/`, connect to the target database as the local administrator
+   with authority to create the reader and grant the database, schema, and
+   function privileges. Use a DSN without a password and supply administrator
+   authentication through your normal psql setup.
+
+   ```sh
+   psql -X -v ON_ERROR_STOP=1 "$MIXER_LOCAL_ADMIN_DSN" \
+     -f ../docs/operations/provision-local-release-reader.sql
+   psql -X "$MIXER_LOCAL_ADMIN_DSN"
+   ```
+
+   Run `\password mixer_release_delivery` in psql and assign a distinct
+   password. Use TLS and password authentication for the runtime connection.
+   The script requires a fresh login and grants database `CONNECT`, schema
+   `USAGE`, and `EXECUTE` on the offer and artifact functions. Keep the login
+   free of memberships, object ownership, and table grants. Keep public
+   schema creation disabled for runtime logins.
+
+## Start the ordinary API
+
+Supply the normal API environment, including `MIXER_HOSTED_ROLE=api`, the
+existing DB login and password, and `MIXER_SECRET_KEY_BASE`. Use
+`MIXER_HTTP_BIND=127.0.0.1` and omit any HTTPS listener. Supply both additional
+settings before starting the process.
+
+- `MIXER_LOCAL_RELEASE_CONFIG` contains a JSON object with exactly
+  `host`, `channel`, and `roots`. Use the installed v3 host object for
+  `host`, including the exact scope, runtime fingerprint, protocol tuple,
+  capability hashes, state version, and limits. Use the registered channel as
+  `channel`. The limit is 65,536 bytes.
+- `roots` contains one to 128 v3 trust records for the host scope. Each record
+  has `key_id`, `public_key`, `scope`, `artifact`, `assignment`, `revoked`,
+  `not_before_unix`, and `not_after_unix`. Use canonical padded standard
+  Base64 for each raw 32-byte public key. Root IDs must be unique.
+- `MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD` contains the password for
+  `mixer_release_delivery`. Inject it using the service's secret handling.
+  The reader uses the existing DB hostname, database, port 5432,
+  certificate and hostname verification, and one connection.
+
+```sh
+cd hosted
+export MIXER_LOCAL_RELEASE_CONFIG="$(cat "$MIXER_LOCAL_RELEASE_CONFIG_FILE")"
+mix phx.server
+```
+
+Omit both settings to disable local delivery. One missing or invalid setting
+aborts startup. Restart the API after changing the target or trust roots.
+The browser and updater both read the registered target. The browser head
+continues to require a current browser session and tenant authorization
+through its ordinary login.
+
+## Replay with a disposable signed fixture
+
+Run the configuration and effective-listener checks from `hosted/`.
+
+```sh
+MIX_ENV=test mix test --warnings-as-errors \
+  test/mixer_hosted/releases/runtime_provisioning_test.exs \
+  test/mixer_hosted/releases/browser_publication_test.exs:27
+```
+
+For a live replay, use a disposable PostgreSQL instance on IPv4 loopback
+port 5432. Keep its administrator socket in private scratch. Configure TLS
+with a disposable CA, a server certificate for `127.0.0.1`, and a `hostssl`
+SCRAM rule for loopback. In the API process only, set
+`ERL_AFLAGS="-public_key cacerts_path '\"$MIXER_FIXTURE_CA\"'"` to trust the
+fixture CA through OTP. The normal API and delivery Repo options both keep
+peer and hostname verification enabled.
+
+As the fixture cluster administrator, create these roles and database.
+
+```sql
+CREATE ROLE ledger_fixture_admin LOGIN SUPERUSER;
+CREATE ROLE ledger_owner NOLOGIN NOINHERIT;
+CREATE ROLE ledger_runtime LOGIN NOINHERIT;
+CREATE ROLE mixer_customer_build_catalog_definer_v1 NOLOGIN NOINHERIT;
+CREATE DATABASE mixer_local_release_ledger OWNER ledger_fixture_admin;
+\connect mixer_local_release_ledger
+REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+ALTER SCHEMA public OWNER TO ledger_owner;
+GRANT USAGE ON SCHEMA public TO ledger_runtime;
+\password ledger_runtime
+```
+
+Set `MIXER_FIXTURE_SOCKET` to the owned PostgreSQL socket directory. Run the
+existing ledger test to install the schema and commit the synthetic signed
+release through the restricted writer. Then install the reader grants and set
+its password as above.
+
+```sh
+MIX_ENV=test MIXER_RELEASE_LEDGER_TEST_PORT=5432 \
+  MIXER_RELEASE_LEDGER_TEST_SOCKET="$MIXER_FIXTURE_SOCKET" \
+  mix test --warnings-as-errors test/mixer_hosted/releases/postgres_test.exs:192
+
+vector=../services/protocol/testdata/signed-release-v3.json
+release_config="$(jq -c \
+  '{host, roots, channel: .signed_assignment.assignment.channel}' "$vector")"
+```
+
+Start `mix phx.server` with `MIXER_DATABASE_HOST=127.0.0.1`,
+`MIXER_DATABASE_NAME=mixer_local_release_ledger`, and
+`MIXER_DATABASE_USER=ledger_runtime`. Use the two fixture passwords and keep
+the browser profile disabled for this replay. First start with both release
+settings unset and expect 404. Stop the API, export `MIXER_LOCAL_RELEASE_CONFIG`
+from `$release_config`, inject the reader password, and restart the API before
+requesting the offer.
+
+```sh
+origin="http://127.0.0.1:${MIXER_HTTP_PORT:-4000}"
+offer="$(curl -fsS --get "$origin/v3/updates" \
+  --data-urlencode organization=org-a --data-urlencode project=project-a \
+  --data-urlencode app=fieldlog --data-urlencode environment=development \
+  --data-urlencode platform=ios --data-urlencode channel=beta \
+  --data-urlencode "runtime=$(jq -r .host.runtime "$vector")" \
+  --data-urlencode "installation=$(jq -r .installation "$vector")")"
+printf '%s\n' "$offer"
+curl -fsS "$origin$(printf '%s' "$offer" | jq -r .artifact_url)"
+```
+
+Expect HTTP 200 for the offer and artifact, sequence
+`18446744073709551615` in the signed assignment, and the fixture's signed
+manifest and payload in the artifact. An otherwise valid offer query with a
+different channel returns 204. The artifact URL with a different tenant returns
+404. In `pg_stat_ssl`, confirm that the ordinary login and delivery login
+both use TLS. Stop the owned API and PostgreSQL, confirm both ports are reusable,
+and remove the fixture scratch.
+
+For the independent authenticated browser regression, run the full
+`test/mixer_hosted/releases/browser_publication_test.exs` with the existing
+browser catalog fixture. That fixture supplies the synthetic sign-in and
+checks the exact tenant head in a separately seeded database using the same
+ledger migrations. Normal CLI publication still requires the reviewed
+`WriterRepo` activation.
