@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "scope": "Local v3 release operator configuration and ordinary Phoenix startup on synthetic signed data",
+  "base": "36e1d8bbe1bdbf4522e49cf83d740780d1c54900",
+  "testedHostedTree": "14194765d0d927c34bc46147037fe40eb78caae8",
+  "candidateTreeBeforeReceipt": "927acca9ce0c285c76b1156799b4eb135ed3102d",
+  "environment": {
+    "host": "macOS 27.0.1 arm64",
+    "elixir": "1.20.4",
+    "mix": "1.20.4",
+    "otp": 29,
+    "postgresql": "17.11",
+    "openssl": "4.1.0",
+    "python": "3.14.8"
+  },
+  "commands": {
+    "dependencies": "HEX_OFFLINE=1 MIX_ENV=dev mix deps.get",
+    "compile": "MIX_ENV=dev mix compile --warnings-as-errors and MIX_ENV=test mix compile --warnings-as-errors",
+    "format": "mix format --check-formatted",
+    "configuration": "MIX_ENV=test mix test --warnings-as-errors test/mixer_hosted/releases/runtime_provisioning_test.exs test/mixer_hosted/releases/browser_publication_test.exs:27",
+    "seed": "MIX_ENV=test mix test --warnings-as-errors --trace test/mixer_hosted/releases/postgres_test.exs:192 with MIXER_RELEASE_LEDGER_TEST_PORT=5432 and MIXER_RELEASE_LEDGER_TEST_SOCKET pointing to the owned PostgreSQL socket",
+    "provision": "psql -X -v ON_ERROR_STOP=1 -f priv/local_release_delivery/provision_reader.sql connected to the disposable mixer_local_release_ledger database",
+    "startup": "MIX_ENV=dev mix phx.server, once with both settings absent and once with the exact host, channel and public roots from signed-release-v3.json and a separate SCRAM password. The API used the OTP per-process CA path for the disposable CA.",
+    "browser": "MIX_ENV=test mix test --seed 0 --warnings-as-errors test/mixer_hosted/releases/browser_publication_test.exs with an isolated PostgreSQL cluster and the synthetic browser catalog fixture"
+  },
+  "observed": {
+    "configurationAndEffectiveListenerTestsPassed": 6,
+    "ledgerSeedTestsPassed": 1,
+    "browserFixtureTestsPassed": 3,
+    "seedLogSha256": "c6188909fe1299ffca934a5f1abe9f9dba3bb2beac503f776066648c5d340bff",
+    "browserLogSha256": "f2a48b90e429bda72b6757ed2cb2fa6a5fa5428ab71776c674538818a4dbef6f",
+    "disabledOfferStatus": 404,
+    "disabledReaderConnections": 0,
+    "validOfferStatus": 200,
+    "signedAssignmentSequence": "18446744073709551615",
+    "offerSha256": "1e792d6e043dbe8a185ccbc38d37ca35fc908c0cb0ebedb65702fcba858efffd",
+    "validArtifactStatus": 200,
+    "artifactEnvelopeSha256": "ddf38dfdf901384d46392456380d329df4e57f0b138fa462f121f7391b0960cb",
+    "wrongChannelStatus": 204,
+    "wrongProjectArtifactStatus": 404,
+    "tlsConnections": {"ledger_runtime": 3, "mixer_release_delivery": 1},
+    "readerDenied": [
+      "public schema CREATE",
+      "artifact SELECT",
+      "head UPDATE",
+      "publication DELETE",
+      "membership in ledger_runtime or any role"
+    ],
+    "writerDenied": "EXECUTE on mixer_release_delivery_offer"
+  },
+  "cleanup": {
+    "ownedCommandAndServiceGroupsAbsent": true,
+    "reboundPorts": [5432, 52266, 53257],
+    "largestSampledScratchKiB": 186044
+  },
+  "limits": "The ordinary startup read used seeded fixture publications and a disposable CA, with browser auth disabled. The separate authenticated browser regression uses synthetic sign-in and its test storage profile. Normal CLI publication depends on the sibling WriterRepo activation after its review fixes. This slice records no L05 or GA passage."
+}

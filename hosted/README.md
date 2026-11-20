@@ -75,6 +75,12 @@ tenant tables/RLS and role validation will be implemented with the identity seam
 Dependencies are pinned in `mix.exs`/`mix.lock` and inventoried in the repository's
 `THIRD_PARTY.yml`. This scaffold is not a production deployment or a GA gate pass.
 
+### Local signed v3 release delivery
+
+Follow the local release delivery runbook to register one target and serve its
+committed signed offers and artifacts through the loopback API. Delivery adds one
+direct PostgreSQL connection. [Provision local signed release delivery](../docs/operations/local-signed-release-delivery.md)
+
 ### Local native dispatch and build cancellation
 
 For the restricted `builds_v1` processor, provision migrations 498–500 and the
