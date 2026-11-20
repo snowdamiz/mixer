@@ -13,6 +13,26 @@ Use the tracked results to assess L01–L08 and rerun any check that needs fresh
 evidence from a clean checkout. Paths to disposable run files are historical
 references. See [the worktree verification policy](mixer-product-plan.md#worktree-local-verification).
 
+## November 20 signed release queue
+
+The opt-in Phoenix queue commits a signed publication, the release head, and
+one Oban job in the same PostgreSQL transaction. Exact retries added no jobs.
+The updater served the committed release while the processor was stopped. A
+denied enqueue and a deferred commit failure preserved the prior release.
+
+The restricted processor wrote three byte-exact projections. The fixture
+recovered an abandoned job that already had a projection and a discarded job
+that had exhausted its attempts. The administrator retried the discarded job
+without changing its ID. The maintained runner passed all 27 selected tests
+and the packaged-release checks. The final independent review passed the
+processor grant correction. The earlier transient browser-head 503 remains
+unexplained. [Hosted replay](verification/receipts/l05-w11-release-jobs-final-admission-0f191753.json)
+
+Hosted v67 admitted 483 source paths in five sparse projections and restored
+v66 and v65 byte-for-byte with their original modes. Dual-platform environment
+promotion and delivery through a control-plane database outage remain open.
+[Source binding](verification/receipts/hosted-source-binding-v67-0f191753.json)
+
 ## November 19 local verification
 
 The combined FieldLog iOS and Android storage patches passed 30 host checks across the compatible rollback and successor writers. An independent replay passed all 30 checks and 10 additional controls. The four writers refused newly introduced draft and entry ID overlaps, preserved edits to existing pairs, and recovered a complete snapshot after a write fault. [Composed storage receipt](verification/receipts/fieldlog-l08-cross-platform-draft-overlap-20261119.json)
