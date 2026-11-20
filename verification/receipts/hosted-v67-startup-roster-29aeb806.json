@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "scope": "Hosted v67 CI startup compile inputs",
+  "baseline": "1bf567bd70b34237d1bf98b6e0a6e5b6c06df23d",
+  "successor": "29aeb8069f1b7e85cb221bbc6e2713354cc32f9e",
+  "failedRun": {
+    "run": 44837625115,
+    "job": 136637882554,
+    "step": "Startup secret constructor production-mode checks"
+  },
+  "toolchain": {
+    "elixir": "1.20.4",
+    "otp": "29",
+    "dependencies": "locked local Hex archives"
+  },
+  "cause": "The standalone fixture compilation lists omitted the release processor profile while compiling RuntimeConfig.",
+  "correction": "Each standalone configuration runner compiles the release processor profile alongside the build and billing profiles.",
+  "commands": [
+    {
+      "command": [
+        "elixir",
+        "--erl",
+        "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+        "hosted/scripts/check-startup-secrets.exs",
+        "hosted/deps/jason/lib"
+      ],
+      "successorScriptSHA256": "53c33db0a4379c85de6b37e3a147a00fd831ba33b32518b7c81d12dde42bca3a",
+      "baselineExit": 1,
+      "baselineLogSHA256": "7267e0504f8218ff3b0fc58be140e51cce6446ad691841a5d69953336a001ff1",
+      "successorExit": 0,
+      "testsPassed": 8,
+      "successorLogSHA256": "7d7d7f7c598b73f9f6a0b547ceac1f421474ded2c37f1c1d1ade7828bf5414ec"
+    },
+    {
+      "command": [
+        "elixir",
+        "--erl",
+        "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+        "-pa",
+        "hosted/_build/prod/lib/hpax/ebin",
+        "-pa",
+        "hosted/_build/prod/lib/mint/ebin",
+        "-pa",
+        "hosted/_build/prod/lib/jose/ebin",
+        "hosted/scripts/check-configured-startup.exs",
+        "hosted/deps/jason/lib"
+      ],
+      "successorScriptSHA256": "17e5d49c2ce5cd3002b3411770854f6f62e2649e8d0640a7e4feef1549d9de29",
+      "baselineExit": 1,
+      "baselineLogSHA256": "9e427cc1581f110f530cd75e3cfccabdd29144d3faebcc5dfcd0cf5f306f9e22",
+      "successorExit": 0,
+      "testsPassed": 15,
+      "successorLogSHA256": "dc85ec34d272a19877f7a1033b17efad661413c969ebeb05c2849d7a56bb0542"
+    },
+    {
+      "command": [
+        "elixir",
+        "--erl",
+        "+S 2:2 +SDcpu 1 +SDio 1 +sbwt none",
+        "hosted/scripts/check-provider-trust-config.exs",
+        "hosted/deps/jason/lib"
+      ],
+      "successorScriptSHA256": "8432c0ec85530d1b79709c30de3ce6aec8e6f0cc9725c084781c65b8877d9b33",
+      "baselineExit": 0,
+      "baselineLogSHA256": "1a34edd21033effc9bde391ed129f50aa99b0c7fed0f5818b761647f845d5552",
+      "successorExit": 0,
+      "testsPassed": 12,
+      "successorLogSHA256": "60aa16a3826ec46a8826e9f84338f0ef4df336b231ced2183a73f3fe140626e6"
+    }
+  ],
+  "formatCheck": true,
+  "limits": [
+    "Local macOS replay of the hosted command lists used the workflow's isolated fake leaves. It does not verify the successor GitHub run.",
+    "Collector predecessor fixture repair has separate evidence."
+  ]
+}
