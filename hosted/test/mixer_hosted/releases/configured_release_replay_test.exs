@@ -7,7 +7,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
 
   import MixerHosted.Test.OrdinaryBrowserStartupFixture, only: [http: 3, http: 5]
   alias MixerHosted.Authorization
-  alias MixerHosted.CustomerArtifacts.{PostgresStorage, Schema}
+  alias MixerHosted.CustomerArtifacts.{PostgresStorage, Schema, UploadRepo}
 
   alias MixerHosted.Identity.{
     ConfiguredVerifier,
@@ -23,7 +23,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
   alias MixerHosted.Test.ConfiguredReleaseReplayRepo, as: FixtureRepo
 
   @mode System.get_env("MIXER_RELEASE_FIXTURE_MODE")
-  @moduletag skip: @mode not in ["linux", "startup-only"]
+  @moduletag skip: @mode not in ["linux", "startup-only", "stock-cli", "stock-cli-startup"]
   @vector Path.expand("../../../../services/protocol/testdata/signed-release-v3.json", __DIR__)
   @principal "replay-owner"
   @subject "replay-subject"
@@ -31,12 +31,16 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
   @writer "mixer_replay_writer"
   @reader "mixer_release_delivery"
   @stage "mixer_replay_stage"
+  @uploader "mixer_artifact_uploader"
   @validate "/v3/orgs/org-a/projects/project-a/releases/validate"
   @publish "/v3/orgs/org-a/projects/project-a/channels/beta/publish"
 
+  @tag timeout: 360_000
   test "one ordinary API boot replays a signed local release through configured identity" do
-    linux? = @mode == "linux"
+    linux? = @mode in ["linux", "stock-cli"]
+    stock_cli? = @mode in ["stock-cli", "stock-cli-startup"]
     if linux?, do: assert_isolated_network!()
+    if @mode == "stock-cli", do: assert_isolated_pid!()
 
     vector = @vector |> File.read!() |> Jason.decode!()
     signed = vector["signed_assignment"]
@@ -44,8 +48,9 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     digest = vector["artifact_sha256"]
     envelope = Jason.encode!(Map.take(vector, ~w(signed_manifest payload)))
     signed_bytes = Jason.encode!(signed)
+    uploader_password = if stock_cli?, do: Base.encode16(:crypto.strong_rand_bytes(32))
     {dns, tls, key} = if linux?, do: start_issuer!(), else: {nil, nil, nil}
-    load_runtime!(vector, assignment, tls)
+    load_runtime!(vector, assignment, tls, uploader_password)
 
     %{target: target} = config = Application.fetch_env!(:mixer_hosted, :local_release_target)
     assert Target.signed_scope(target) == assignment["scope"]
@@ -54,7 +59,12 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
              target.channel == assignment["channel"]
 
     provision!(target)
-    stage!(config, digest, envelope)
+
+    if stock_cli? do
+      provision_uploader!(uploader_password)
+    else
+      stage!(config, digest, envelope)
+    end
 
     assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
 
@@ -98,8 +108,35 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
       assert %{status: 204, body: ""} = http(client, offer_path, [])
       assert %{status: 404} = http(client, artifact_path, [])
       assert_ledger!([[nil]], [])
+      if stock_cli?, do: assert_empty_upload!()
+      if stock_cli?, do: assert_uploader!()
 
-      if linux? do
+      if @mode == "stock-cli-startup", do: assert_relay_transport!(port)
+
+      if @mode == "stock-cli" do
+        manifest = Jason.encode!(vector["signed_manifest"])
+
+        expected_envelope =
+          ~s({"signed_manifest":) <>
+            manifest <>
+            ~s(,"payload":) <>
+            Jason.encode!(vector["payload"]) <> "}"
+
+        cli_input = %{
+          token: token(key, "mixer.artifact.upload mixer.release.publish", 300),
+          manifest: manifest,
+          assignment: signed_bytes,
+          payload: vector["payload"]
+        }
+
+        expect_stock_cli!(port, cli_input, assignment)
+        assert_cold_fetch!(dns, tls)
+        assert_stock_cli_rows!(assignment, vector, expected_envelope, signed_bytes)
+        assert_delivery!(client, offer_path, artifact_path, signed_bytes, expected_envelope)
+        assert %{accepted: 1} = TLSFixture.info(tls)
+      end
+
+      if @mode == "linux" do
         token = token(key)
         headers = [{"authorization", "Bearer " <> token}]
 
@@ -122,15 +159,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
                 }} =
                  ConfiguredVerifier.authenticate(token, System.system_time(:second))
 
-        query_types =
-          for {~c"jwks.fixture.invalid", type} <- GenServer.call(dns, :queries), do: type
-
-        assert Enum.sort(query_types) == [:a, :aaaa]
-
-        assert %{accepted: 1, key_dir_removed: true, requests: [%{request: request}]} =
-                 TLSFixture.info(tls)
-
-        assert String.starts_with?(request, "GET /keys HTTP/1.1\r\n")
+        assert_cold_fetch!(dns, tls)
 
         assert %{status: 200, body: published} =
                  post(client, @publish, headers, "publish", %{signed_assignment: signed})
@@ -153,19 +182,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
           [sequence_text, digest, signed_bytes, @principal, "publish"]
         ])
 
-        assert %{status: 200, body: offer} = http(client, offer_path, [])
-
-        assert Jason.decode!(offer) == %{
-                 "signed_assignment" => signed,
-                 "artifact_url" => artifact_path
-               }
-
-        assert :binary.match(offer, signed_bytes) != :nomatch
-        assert %{status: 200, body: ^envelope} = http(client, artifact_path, [])
-
-        assert %{status: 204} =
-                 http(client, String.replace(offer_path, "channel=beta", "channel=stable"), [])
-
+        assert_delivery!(client, offer_path, artifact_path, signed_bytes, envelope)
         assert %{accepted: 1} = TLSFixture.info(tls)
       end
     after
@@ -178,7 +195,8 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
           MixerHostedWeb.Endpoint,
           KeyOwner,
           WriterRepo,
-          DeliveryRepo
+          DeliveryRepo,
+          UploadRepo
         ],
         do: refute(Process.whereis(name))
 
@@ -190,6 +208,12 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     end
 
     IO.puts("Configured release replay completed in #{@mode} mode.")
+  end
+
+  defp assert_isolated_pid! do
+    parent = System.fetch_env!("MIXER_RELEASE_PARENT_PIDNS")
+    assert parent =~ ~r/\Apid:\[\d+\]\z/
+    refute File.read_link!("/proc/self/ns/pid") == parent
   end
 
   defp assert_isolated_network! do
@@ -226,7 +250,173 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     {dns, tls, key}
   end
 
-  defp token(key) do
+  defp assert_cold_fetch!(dns, tls) do
+    query_types =
+      for {~c"jwks.fixture.invalid", type} <- GenServer.call(dns, :queries), do: type
+
+    assert Enum.sort(query_types) == [:a, :aaaa]
+
+    assert %{accepted: 1, key_dir_removed: true, requests: [%{request: request}]} =
+             TLSFixture.info(tls)
+
+    assert String.starts_with?(request, "GET /keys HTTP/1.1\r\n")
+  end
+
+  defp assert_delivery!(client, offer_path, artifact_path, signed_bytes, envelope) do
+    offer =
+      ~s({"signed_assignment":) <>
+        signed_bytes <>
+        ~s(,"artifact_url":) <>
+        Jason.encode!(artifact_path) <> "}"
+
+    assert %{status: 200, body: ^offer} = http(client, offer_path, [])
+    assert %{status: 200, body: ^envelope} = http(client, artifact_path, [])
+
+    assert %{status: 204} =
+             http(client, String.replace(offer_path, "channel=beta", "channel=stable"), [])
+  end
+
+  defp expect_stock_cli!(port, input, assignment) do
+    bootstrap = Path.join(scratch(), "cli-input.json")
+    result = Path.join(scratch(), "cli-result.json")
+
+    with_cli_relay!(port, fn _path ->
+      try do
+        File.write!(bootstrap, Jason.encode!(input) <> "\n", [:exclusive])
+        IO.puts("Stock CLI ready at #{scratch()}. Waiting up to 240 seconds.")
+
+        expected = %{
+          "status" => "ok",
+          "action" => "publish",
+          "artifact_sha256" => assignment["artifact_sha256"],
+          "sequence" => assignment["sequence"],
+          "rollout_basis_points" => assignment["rollout_basis_points"],
+          "delivery" => "local_only"
+        }
+
+        wait_for_result!(result, System.monotonic_time(:millisecond) + 240_000)
+
+        assert {:ok, %{"first" => ^expected, "replay" => ^expected}} =
+                 result |> File.read!() |> Jason.decode()
+      after
+        assert File.rm(bootstrap) in [:ok, {:error, :enoent}]
+      end
+    end)
+  end
+
+  defp assert_relay_transport!(port) do
+    with_cli_relay!(port, fn path ->
+      for _ <- 1..2 do
+        assert {"200", 0} =
+                 System.cmd("curl", [
+                   "--silent",
+                   "--show-error",
+                   "--noproxy",
+                   "*",
+                   "--max-time",
+                   "5",
+                   "--unix-socket",
+                   path,
+                   "--output",
+                   "/dev/null",
+                   "--write-out",
+                   "%{http_code}",
+                   "http://127.0.0.1/health/live"
+                 ])
+      end
+    end)
+  end
+
+  defp with_cli_relay!(port, operation) do
+    path = Path.join(scratch(), "cli.sock")
+    supervisor = start_supervised!(Task.Supervisor)
+    opts = [:binary, active: false, send_timeout: 2000, send_timeout_close: true]
+    {:ok, listener} = :gen_tcp.listen(0, opts ++ [ifaddr: {:local, path}])
+
+    try do
+      File.chmod!(path, 0o600)
+
+      {:ok, _} =
+        Task.Supervisor.start_child(supervisor, fn ->
+          relay_accept(supervisor, listener, port, opts)
+        end)
+
+      operation.(path)
+    after
+      :ok = :gen_tcp.close(listener)
+      stop_supervised!(Task.Supervisor)
+      refute Process.alive?(supervisor)
+      File.rm!(path)
+    end
+  end
+
+  defp wait_for_result!(path, deadline) do
+    case File.lstat(path) do
+      {:ok, %File.Stat{type: :regular, size: size}} when size in 1..8192 ->
+        :ok
+
+      {:error, :enoent} ->
+        assert System.monotonic_time(:millisecond) < deadline, "Stock CLI result timed out"
+        Process.sleep(100)
+        wait_for_result!(path, deadline)
+
+      _ ->
+        flunk("Invalid or incomplete stock CLI result")
+    end
+  end
+
+  defp relay_accept(supervisor, listener, port, opts) do
+    case :gen_tcp.accept(listener) do
+      {:ok, incoming} ->
+        with {:ok, owner} <-
+               Task.Supervisor.start_child(supervisor, fn -> relay_connect(port, opts) end),
+             :ok <- :gen_tcp.controlling_process(incoming, owner) do
+          send(owner, {:socket, incoming})
+        else
+          _ -> :gen_tcp.close(incoming)
+        end
+
+        relay_accept(supervisor, listener, port, opts)
+
+      {:error, :closed} ->
+        :ok
+    end
+  end
+
+  defp relay_connect(port, opts) do
+    receive do
+      {:socket, incoming} ->
+        with {:ok, outgoing} <- :gen_tcp.connect({127, 0, 0, 1}, port, opts, 2000),
+             :ok <- :inet.setopts(incoming, active: :once),
+             :ok <- :inet.setopts(outgoing, active: :once) do
+          relay(incoming, outgoing)
+        end
+    after
+      2000 -> :ok
+    end
+  end
+
+  defp relay(left, right) do
+    receive do
+      {:tcp, from, bytes} when from in [left, right] ->
+        to = if from == left, do: right, else: left
+
+        with :ok <- :gen_tcp.send(to, bytes),
+             :ok <- :inet.setopts(from, active: :once) do
+          relay(left, right)
+        end
+
+      {:tcp_closed, _} ->
+        :ok
+
+      {:tcp_error, _, _} ->
+        :ok
+    after
+      45_000 -> :ok
+    end
+  end
+
+  defp token(key, scope \\ "mixer.release.publish", lifetime \\ 120) do
     claims = %{
       "iss" => StartupFixture.entry()["profile"]["issuer"],
       "aud" => "mixer-api",
@@ -234,8 +424,8 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
       "sub" => @subject,
       "jti" => @credential,
       "iat" => System.system_time(:second) - 1,
-      "exp" => System.system_time(:second) + 120,
-      "scope" => "mixer.release.publish"
+      "exp" => System.system_time(:second) + lifetime,
+      "scope" => scope
     }
 
     {_, compact} =
@@ -250,7 +440,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     compact
   end
 
-  defp load_runtime!(vector, assignment, tls) do
+  defp load_runtime!(vector, assignment, tls, uploader_password) do
     pem = File.read!(Path.join(scratch(), "ca.pem"))
 
     jwks_ca =
@@ -277,6 +467,16 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
       "MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD" => "synthetic-replay-reader",
       "MIXER_LOCAL_RELEASE_WRITER_ENABLED" => "true"
     }
+
+    env =
+      if uploader_password do
+        Map.merge(env, %{
+          "MIXER_LOCAL_ARTIFACT_UPLOAD_ENABLED" => "true",
+          "MIXER_LOCAL_ARTIFACT_UPLOAD_PASSWORD" => uploader_password
+        })
+      else
+        env
+      end
 
     prior = Application.get_all_env(:mixer_hosted)
     System.put_env(env)
@@ -340,6 +540,110 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
 
     with_repo("mixer_replay_admin", fn -> seed!(target) end)
   end
+
+  defp provision_uploader!(password) do
+    assert {_, 0} =
+             System.cmd("psql", [
+               "-X",
+               "-q",
+               "-w",
+               "-v",
+               "ON_ERROR_STOP=1",
+               "-h",
+               scratch(),
+               "-U",
+               "mixer_replay_admin",
+               "-d",
+               "postgres",
+               "-f",
+               "../docs/operations/provision-local-artifact-uploader.sql"
+             ])
+
+    with_repo("mixer_replay_admin", fn ->
+      # The password contains only hex digits and travels over the private admin socket.
+      case Ecto.Adapters.SQL.query(
+             FixtureRepo,
+             "ALTER ROLE #{@uploader} PASSWORD '#{password}'",
+             [],
+             log: false
+           ) do
+        {:ok, _} -> :ok
+        {:error, _} -> flunk("Could not set the fixture uploader password")
+      end
+    end)
+  end
+
+  defp assert_uploader! do
+    assert [[@uploader, true, false]] =
+             Ecto.Adapters.SQL.query!(UploadRepo, """
+             SELECT session_user::text, ssl,
+               has_table_privilege(current_user,'public.mixer_release_publications','INSERT')
+             FROM pg_stat_ssl WHERE pid=pg_backend_pid()
+             """).rows
+
+    assert {:ok, :ok} =
+             UploadRepo.transaction(fn -> PostgresStorage.check_topology!(UploadRepo) end)
+  end
+
+  defp assert_empty_upload! do
+    with_repo("mixer_replay_admin", fn ->
+      assert sql!("SELECT sequence FROM public.mixer_customer_artifact_heads").rows == [[0]]
+
+      for table <-
+            ~w(mixer_customer_artifacts mixer_customer_audit_events mixer_customer_idempotency mixer_release_cli_requests),
+          do: assert(sql!("SELECT 1 FROM public.#{table} LIMIT 1").rows == [])
+    end)
+  end
+
+  defp assert_stock_cli_rows!(assignment, vector, envelope, signed_bytes) do
+    digest = vector["artifact_sha256"]
+    payload = Base.decode64!(vector["payload"])
+    payload_sha = vector["signed_manifest"]["manifest"]["payload_sha256"]
+    credential_sha = sha256(["mixer.hosted.customer.credential_ref.v2", 0, @credential])
+    sequence = Integer.to_string(assignment["sequence"])
+    upload_path = "/v3/orgs/org-a/projects/project-a/artifacts/" <> digest
+    upload_key = cli_key("PUT", upload_path, envelope)
+    publish_key = cli_key("POST", @publish, [~s({"signed_assignment":), signed_bytes, "}"])
+
+    assert_ledger!([[sequence]], [[sequence, digest, signed_bytes, @principal, "publish"]])
+
+    with_repo("mixer_replay_admin", fn ->
+      assert sql!("SELECT sequence FROM public.mixer_customer_artifact_heads").rows == [[1]]
+
+      assert sql!("""
+             SELECT manifest_sha256, payload_sha256, envelope_bytes, payload, creating_sequence
+             FROM public.mixer_customer_artifacts
+             """).rows == [[digest, payload_sha, envelope, payload, 1]]
+
+      assert [[1, ^digest, @principal, ^credential_sha, "artifact.upload", "created", request]] =
+               sql!("""
+               SELECT sequence, manifest_sha256, display->'actor'->>0, display->'actor'->>8,
+                 display->>'action', display->>'outcome', display->>'request_sha256'
+               FROM public.mixer_customer_audit_events
+               """).rows
+
+      assert sql!("""
+             SELECT key, principal_id, action, manifest_sha256, payload_sha256, event_sequence,
+               status, request_sha256
+             FROM public.mixer_customer_idempotency
+             """).rows == [
+               [upload_key, @principal, "artifact.upload", digest, payload_sha, 1, 201, request]
+             ]
+
+      assert sql!("""
+             SELECT principal_id, artifact_sha256, publication_sequence::text
+             FROM public.mixer_release_cli_requests ORDER BY publication_sequence NULLS FIRST
+             """).rows == [[@principal, digest, nil], [@principal, digest, sequence]]
+
+      assert sql!("SELECT idempotency_key FROM public.mixer_release_publications").rows ==
+               [[publish_key]]
+    end)
+  end
+
+  defp cli_key(method, path, body),
+    do: sha256(["mixer-local-release-v3", 0, method, 0, path, 0, 0, body])
+
+  defp sha256(bytes), do: :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower)
 
   defp seed!(target) do
     profile = StartupFixture.entry()["profile"]

@@ -2,17 +2,15 @@
 set -eu
 
 mode=linux
-if [ "$#" -gt 1 ]; then
-  echo "Usage: $0 [--startup-only]" >&2
-  exit 2
-fi
-case "${1:-}" in
-  "") ;;
-  --startup-only) mode=startup-only ;;
-  *) echo "Usage: $0 [--startup-only]" >&2; exit 2 ;;
+case "$#:${1:-}:${2:-}" in
+  0::) ;;
+  1:--startup-only:) mode=startup-only ;;
+  1:--stock-cli:) mode=stock-cli ;;
+  2:--startup-only:--stock-cli) mode=stock-cli-startup ;;
+  *) echo "Usage: $0 [--startup-only] [--stock-cli]" >&2; exit 2 ;;
 esac
 
-if [ "$mode" = linux ]; then
+if [ "$mode" = linux ] || [ "$mode" = stock-cli ]; then
   if [ "$(uname -s)" != Linux ]; then
     echo "Configured identity replay requires a fresh Linux network namespace." >&2
     exit 2
@@ -20,6 +18,14 @@ if [ "$mode" = linux ]; then
   current=$(readlink /proc/self/ns/net)
   if [ -z "${MIXER_RELEASE_PARENT_NETNS:-}" ] || [ "$current" = "$MIXER_RELEASE_PARENT_NETNS" ]; then
     echo "Enter a fresh network namespace before running this script." >&2
+    exit 2
+  fi
+fi
+
+if [ "$mode" = stock-cli ]; then
+  current_pid=$(readlink /proc/self/ns/pid)
+  if [ -z "${MIXER_RELEASE_PARENT_PIDNS:-}" ] || [ "$current_pid" = "$MIXER_RELEASE_PARENT_PIDNS" ]; then
+    echo "Enter a fresh PID namespace before running the stock CLI fixture." >&2
     exit 2
   fi
 fi
@@ -74,10 +80,14 @@ ssl = on
 ssl_cert_file = '$scratch/db.pem'
 ssl_key_file = '$scratch/db.key'
 CONFIG
-cat > "$pgdata/pg_hba.conf" <<'CONFIG'
+tls_roles=mixer_replay_writer,mixer_release_delivery
+case "$mode" in
+  stock-cli*) tls_roles="$tls_roles,mixer_artifact_uploader" ;;
+esac
+cat > "$pgdata/pg_hba.conf" <<CONFIG
 local all mixer_replay_admin trust
 local all mixer_replay_stage trust
-hostssl postgres mixer_replay_writer,mixer_release_delivery 127.0.0.1/32 scram-sha-256
+hostssl postgres $tls_roles 127.0.0.1/32 scram-sha-256
 CONFIG
 if ! pg_ctl -D "$pgdata" -l "$scratch/postgres.log" -w -t 15 start; then
   cat "$scratch/postgres.log" >&2
@@ -87,4 +97,5 @@ fi
 env -i PATH="$PATH" HOME="$HOME" TMPDIR="$scratch" MIX_ENV=test HEX_OFFLINE=1 \
   MIXER_RELEASE_FIXTURE_MODE="$mode" MIXER_RELEASE_FIXTURE_SCRATCH="$scratch" \
   MIXER_RELEASE_PARENT_NETNS="${MIXER_RELEASE_PARENT_NETNS:-}" \
+  MIXER_RELEASE_PARENT_PIDNS="${MIXER_RELEASE_PARENT_PIDNS:-}" \
   mix test --warnings-as-errors --trace test/mixer_hosted/releases/configured_release_replay_test.exs
