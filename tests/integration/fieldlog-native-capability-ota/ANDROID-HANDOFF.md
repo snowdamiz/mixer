@@ -69,6 +69,7 @@ Read the files with `adb_owned exec-out run-as "$pkg" cat PATH`.
 
 | Checkpoint | Path |
 | --- | --- |
+| Staged workspace seed | `files/calculation-seed.json` |
 | Workspace | `files/FieldLog/workspace.json` |
 | Installation ID | `shared_prefs/signed-checklist.xml` |
 | Old recovery | `files/signed-checklist/recovery/state.json` |
