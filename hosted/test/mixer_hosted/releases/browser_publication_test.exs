@@ -831,7 +831,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     hosted = %{hosted | repo: Keyword.merge(hosted.repo, connection)}
     abandoned_job = materialize_abandoned_job!(connection[:database])
     {exhausted_job, exhausted_attempt} = abandon_final_release_attempt!()
-    assert_release_peer_admission!(connection[:database])
+    assert_release_processor_admission!(connection[:database])
     configure!(%{c | hosted: hosted}, :disabled)
     assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
 
@@ -926,25 +926,47 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     {job_id, attempt}
   end
 
-  defp assert_release_peer_admission!(database) do
+  defp assert_release_processor_admission!(database) do
     conn = DB.connection!("mixer_release_processor", database)
 
     try do
       assert :ok = ProcessorAdmission.after_connect(conn)
 
-      DB.q!(Admin, "GRANT TRUNCATE ON mixer_release_jobs.oban_peers TO mixer_release_processor")
+      assert_release_grant_refused!(conn, "oban_peers", "TRUNCATE")
+      assert_release_grant_refused!(conn, "oban_jobs", "SELECT", true)
+      assert_release_grant_refused!(conn, "oban_jobs", "UPDATE (state)", true)
 
+      assert [[version]] = DB.q!(Admin, "SHOW server_version_num").rows
+
+      if String.to_integer(version) >= 170_000 do
+        for table <- ["oban_jobs", "oban_peers"] do
+          assert_release_grant_refused!(conn, table, "MAINTAIN")
+        end
+      end
+    after
+      GenServer.stop(conn)
+    end
+  end
+
+  defp assert_release_grant_refused!(conn, table, privilege, grantable \\ false) do
+    relation = "mixer_release_jobs.#{table}"
+    grant_option = if grantable, do: " WITH GRANT OPTION", else: ""
+    revoke_option = if grantable, do: "GRANT OPTION FOR ", else: ""
+
+    DB.q!(Admin, "GRANT #{privilege} ON #{relation} TO mixer_release_processor#{grant_option}")
+
+    try do
       assert_raise RuntimeError, "release processor admission refused", fn ->
         ProcessorAdmission.after_connect(conn)
       end
     after
       DB.q!(
         Admin,
-        "REVOKE TRUNCATE ON mixer_release_jobs.oban_peers FROM mixer_release_processor"
+        "REVOKE #{revoke_option}#{privilege} ON #{relation} FROM mixer_release_processor"
       )
-
-      GenServer.stop(conn)
     end
+
+    assert :ok = ProcessorAdmission.after_connect(conn)
   end
 
   defp await_release_jobs!(expected, deadline) do

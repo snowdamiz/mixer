@@ -33,8 +33,20 @@ defmodule MixerHosted.Releases.ReleaseJobs.ProcessorAdmission do
     AND NOT pg_catalog.has_schema_privilege(current_user, 'mixer_release_jobs', 'CREATE')
     AND s.projection IS NOT NULL
     AND pg_catalog.obj_description(s.jobs, 'pg_class') = '14'
+    AND NOT EXISTS (
+      SELECT 1 FROM pg_catalog.pg_class c
+      WHERE c.oid IN (s.jobs, s.peers) AND (
+        c.relowner = r.oid OR EXISTS (
+          SELECT 1 FROM pg_catalog.aclexplode(c.relacl) a
+          WHERE a.grantee = 0 OR (a.grantee = r.oid AND (
+            a.is_grantable OR NOT (
+              a.privilege_type = 'SELECT' OR (c.oid = s.peers AND a.privilege_type = 'DELETE')
+            )
+          ))
+        )
+      )
+    )
     AND pg_catalog.has_table_privilege(current_user, s.jobs, 'SELECT')
-    AND NOT pg_catalog.has_table_privilege(current_user, s.jobs, 'DELETE,TRUNCATE,TRIGGER')
     AND NOT pg_catalog.has_any_column_privilege(current_user, s.jobs, 'INSERT,REFERENCES')
     AND NOT EXISTS (
       SELECT 1 FROM job_updates u
@@ -43,13 +55,15 @@ defmodule MixerHosted.Releases.ReleaseJobs.ProcessorAdmission do
     AND NOT EXISTS (
       SELECT 1 FROM pg_catalog.pg_attribute a
       WHERE a.attrelid = s.jobs AND a.attnum > 0 AND NOT a.attisdropped
-        AND NOT EXISTS (SELECT 1 FROM job_updates u WHERE u.name = a.attname)
-        AND pg_catalog.has_column_privilege(current_user, s.jobs, a.attnum, 'UPDATE')
+        AND (
+          (NOT EXISTS (SELECT 1 FROM job_updates u WHERE u.name = a.attname)
+            AND pg_catalog.has_column_privilege(current_user, s.jobs, a.attnum, 'UPDATE'))
+          OR pg_catalog.has_column_privilege(current_user, s.jobs, a.attnum,
+            'SELECT WITH GRANT OPTION,UPDATE WITH GRANT OPTION')
+        )
     )
     AND pg_catalog.has_table_privilege(current_user, s.peers, 'SELECT')
     AND pg_catalog.has_table_privilege(current_user, s.peers, 'DELETE')
-    AND NOT pg_catalog.has_table_privilege(current_user, s.peers,
-      'TRUNCATE,TRIGGER,SELECT WITH GRANT OPTION,DELETE WITH GRANT OPTION')
     AND NOT pg_catalog.has_any_column_privilege(current_user, s.peers, 'REFERENCES')
     AND pg_catalog.has_column_privilege(current_user, s.peers, 'expires_at', 'UPDATE')
     AND NOT EXISTS (
