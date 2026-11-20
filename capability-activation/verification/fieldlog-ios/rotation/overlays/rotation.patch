@@ -1,0 +1,133 @@
+--- a/Integrations/InstalledGuest/SignedTask.swift
++++ b/Integrations/InstalledGuest/SignedTask.swift
+@@ -80,7 +80,14 @@
+                     port: deliveryPort, hostname: hostname, directory: directory)
+     }
+
++    #if DEBUG
++    public var rotationInstallation: String { installation }
++    #endif
++
+     public struct Launch: Sendable {
++        #if DEBUG
++        public fileprivate(set) var rotationDeliveryError: String? = nil
++        #endif
+         public let status: String
+         public let stagedCandidate: String?
+         public let artifactSHA256: String?
+@@ -124,9 +131,22 @@
+             if let deliveryError { throw deliveryError }
+             throw UpdateError("fieldlog.release", "No signed checklist release is available")
+         }
+-        return Launch(status: deliveryError == nil ? "Signed checklist" : "Using saved checklist release",
+-                      stagedCandidate: stagedCandidate, artifactSHA256: deliveredArtifact, replayedPrefixBytes: replayedPrefix.count,
+-                      replayedPrefixSHA256: replayedPrefix.isEmpty ? nil : ReleaseVerifier.sha256(replayedPrefix))
++        let result = Launch(status: deliveryError == nil ? "Signed checklist" : "Using saved checklist release",
++                            stagedCandidate: stagedCandidate, artifactSHA256: deliveredArtifact, replayedPrefixBytes: replayedPrefix.count,
++                            replayedPrefixSHA256: replayedPrefix.isEmpty ? nil : ReleaseVerifier.sha256(replayedPrefix))
++        #if DEBUG
++        var observed = result
++        if let error = deliveryError as? UpdateError {
++            observed.rotationDeliveryError = error.code
++        } else if let error = deliveryError as? URLError, error.code == .cannotConnectToHost {
++            observed.rotationDeliveryError = "offline"
++        } else if deliveryError != nil {
++            observed.rotationDeliveryError = "other"
++        }
++        return observed
++        #else
++        return result
++        #endif
+     }
+
+     public func recovery() async -> CapabilityGuestUIRecoverySnapshot {
+--- a/ios/FieldLog/SignedChecklist.swift
++++ b/ios/FieldLog/SignedChecklist.swift
+@@ -31,6 +31,10 @@
+   #if DEBUG
+   @State private var evidence = ""
+   @State private var deliveryObservation: FieldLogSignedTask.Launch?
++  private var useStoredRotationInstallation: Bool {
++    testInstallation != nil && ProcessInfo.processInfo.arguments.contains("--fieldlog-rotation-replay")
++  }
++
+   private var testInstallation: UUID? {
+     guard isolatedTestWorkspace, ProcessInfo.processInfo.arguments.contains("--fieldlog-checklist-observation")
+     else { return nil }
+@@ -186,8 +190,8 @@
+       var localOrigin: URL?
+       let testID: UUID?
+       #if DEBUG
+-      testID = testInstallation
+-      if testID != nil, let address = ProcessInfo.processInfo.environment["FIELDLOG_CHECKLIST_DATA_URL"] {
++      testID = useStoredRotationInstallation ? nil : testInstallation
++      if testInstallation != nil, let address = ProcessInfo.processInfo.environment["FIELDLOG_CHECKLIST_DATA_URL"] {
+         guard let url = URL(string: address) else {
+           throw FieldLogError.validation("Invalid test checklist origin.")
+         }
+@@ -357,6 +361,18 @@
+     try? encoded.write(to: path, options: .atomic)
+   }
+
++  private struct RotationObservation: Encodable {
++    let installation: String
++    let process: Int32
++    let deliveryError: String?
++    let healthLaunch: String
++    let milestones: [String]
++    let artifact: String
++    let payload: String
++    let candidates: [String]
++    let previous: String?
++  }
++
+   private struct Observation: Encodable {
+     let workspaceID: UUID
+     let taskID: UUID
+@@ -377,6 +393,7 @@
+     let launchedArtifactSHA256: String?
+     let replayedPrefixBytes: Int
+     let replayedPrefixSHA256: String?
++    let rotation: RotationObservation?
+   }
+
+   @MainActor private func observe(_ guest: FieldLogSignedTask) async throws -> String {
+@@ -394,6 +411,30 @@
+     encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+     let spool = try? Data(contentsOf: recoveryDirectory.appendingPathComponent("artifact.partial"))
+     let delivered = deliveryObservation.flatMap { $0.stagedCandidate == candidate ? $0 : nil }
++    var rotation: RotationObservation?
++    if useStoredRotationInstallation {
++      let url = recoveryDirectory.appendingPathComponent("recovery/state.json")
++      let bytes = try Data(contentsOf: url)
++      guard bytes.count <= 1_048_576,
++            let state = try JSONSerialization.jsonObject(with: bytes) as? [String: Any],
++            let stored = state["healthy"] as? [String: Any],
++            stored["candidateID"] as? String == candidate,
++            let healthLaunch = stored["launchID"] as? String, healthLaunch == launch,
++            let milestones = stored["completedMilestones"] as? [String],
++            let inventory = state["candidates"] as? [String: [String: Any]],
++            let record = inventory[candidate],
++            let artifact = record["artifactSHA256"] as? String,
++            let payload = record["payloadSHA256"] as? String,
++            state["installation"] as? String == guest.rotationInstallation,
++            installation.lowercased() == guest.rotationInstallation,
++            health.downloading == nil, health.staged == nil
++      else { return "" }
++      rotation = RotationObservation(installation: guest.rotationInstallation,
++        process: ProcessInfo.processInfo.processIdentifier,
++        deliveryError: deliveryObservation?.rotationDeliveryError, healthLaunch: healthLaunch,
++        milestones: milestones, artifact: artifact, payload: payload, candidates: inventory.keys.sorted(),
++        previous: (state["previousHealthy"] as? [String: Any])?["candidateID"] as? String)
++    }
+     let observation = Observation(workspaceID: workspace.id, taskID: saved.id, projectID: saved.projectID,
+       taskBytes: try encoder.encode(saved), workspaceSHA256: checksum(savedBytes), revision: workspace.revision,
+       outbox: workspace.outbox.count, lastChangeID: workspace.outbox.last?.id,
+@@ -402,6 +444,6 @@
+       partialArtifactSHA256: spool.map { String(decoding: $0.prefix(64), as: UTF8.self) },
+       partialPrefixSHA256: spool.map { checksum($0.dropFirst(64)) },
+       launchedArtifactSHA256: delivered?.artifactSHA256, replayedPrefixBytes: delivered?.replayedPrefixBytes ?? 0,
+-      replayedPrefixSHA256: delivered?.replayedPrefixSHA256)
++      replayedPrefixSHA256: delivered?.replayedPrefixSHA256, rotation: rotation)
+     return String(decoding: try encoder.encode(observation), as: UTF8.self)
+   }

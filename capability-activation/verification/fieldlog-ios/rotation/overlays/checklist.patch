@@ -1,0 +1,1552 @@
+--- /dev/null
++++ b/Integrations/InstalledGuest/Delivery.swift
+@@ -0,0 +1,213 @@
++import Foundation
++#if canImport(FoundationNetworking)
++import FoundationNetworking
++#endif
++import MixerUpdates
++
++struct FieldLogDelivery {
++    struct Package {
++        let manifest: Data
++        let assignment: Data
++        let payload: Data
++        let artifactSHA256: String
++        let replayedPrefix: Data
++    }
++
++    private struct Object {
++        let fields: [String: CanonicalValue]
++        let replayedPrefix: Data
++    }
++
++    var hostname = "127.0.0.1"
++    let port: UInt16
++    let host: InstalledRuntime
++    let installation: String
++    let partialFile: URL
++
++    func fetch(after sequence: UInt64) async throws -> Package? {
++        let scope = host.scope
++        let tenant = [("organization", scope.organization), ("project", scope.project)]
++        let offerURL = try url("/v3/updates", tenant + [
++            ("app", scope.app), ("environment", scope.environment), ("platform", scope.platform),
++            ("runtime", host.runtime), ("channel", "beta"), ("installation", installation),
++        ])
++        guard let offer = try await fetchObject(offerURL, permitsNoOffer: true)?.fields else { return nil }
++        guard Set(offer.keys) == ["signed_assignment", "artifact_url"],
++              let assignment = offer["signed_assignment"], let fields = assignment.object?["assignment"]?.object,
++              let offeredSequence = fields["sequence"]?.uint, let digest = fields["artifact_sha256"]?.text,
++              digest.utf8.count == 64, digest.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }) else {
++            throw invalidOffer
++        }
++        guard offeredSequence > sequence else { return nil }
++        let artifactURL = try url("/v3/artifacts/" + digest, tenant)
++        guard offer["artifact_url"]?.text == artifactURL.path + "?" + (artifactURL.query ?? ""),
++              let transfer = try await fetchObject(artifactURL, permitsNoOffer: false, partial: PartialArtifact(url: partialFile, digest: digest)),
++              case let artifact = transfer.fields, Set(artifact.keys) == ["signed_manifest", "payload"],
++              let manifest = artifact["signed_manifest"], let encoded = artifact["payload"]?.text,
++              let payload = Data(base64Encoded: encoded), !payload.isEmpty,
++              payload.count <= 8192, payload.base64EncodedString() == encoded else { throw invalidOffer }
++        let encoder = JSONEncoder()
++        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
++        return try Package(manifest: encoder.encode(manifest), assignment: encoder.encode(assignment),
++                           payload: payload, artifactSHA256: digest, replayedPrefix: transfer.replayedPrefix)
++    }
++
++    private var invalidOffer: UpdateError { UpdateError("fieldlog.delivery", "Invalid checklist release response") }
++
++    private func url(_ path: String, _ query: [(String, String)]) throws -> URL {
++        var target = URLComponents()
++        target.scheme = "http"
++        target.host = hostname
++        target.port = Int(port)
++        target.path = path
++        target.queryItems = query.map { URLQueryItem(name: $0.0, value: $0.1) }
++        guard let url = target.url else { throw invalidOffer }
++        return url
++    }
++
++    private func fetchObject(_ url: URL, permitsNoOffer: Bool, partial: PartialArtifact? = nil) async throws -> Object? {
++        let configuration = URLSessionConfiguration.ephemeral
++        configuration.timeoutIntervalForRequest = 4
++        configuration.timeoutIntervalForResource = 7
++        configuration.urlCredentialStorage = nil
++        configuration.httpShouldSetCookies = false
++        configuration.connectionProxyDictionary = ["HTTPEnable": false, "HTTPSEnable": false, "SOCKSEnable": false]
++        let receiver = ResponseReceiver(url: url, permitsNoOffer: permitsNoOffer, partial: partial)
++        let queue = OperationQueue()
++        queue.maxConcurrentOperationCount = 1
++        let session = URLSession(configuration: configuration, delegate: receiver, delegateQueue: queue)
++        defer { session.invalidateAndCancel() }
++        var response = receiver.response(in: session).makeAsyncIterator()
++        guard let result = try await response.next(), let bytes = result else {
++            try Task.checkCancellation()
++            return nil
++        }
++        guard let fields = try StrictJSON.decode(CanonicalValue.self, from: bytes.body, maximumBytes: ResponseReceiver.limit).object else {
++            throw invalidOffer
++        }
++        return Object(fields: fields, replayedPrefix: bytes.replayedPrefix)
++    }
++}
++
++/// The service returns a complete JSON envelope. On reconnect, compare the
++/// replayed prefix before appending new bytes. The spool carries no authority.
++private struct PartialArtifact {
++    let url: URL
++    let digest: String
++
++    func read(maximumBytes: Int) -> Data {
++        guard let input = try? FileHandle(forReadingFrom: url) else { return Data() }
++        defer { try? input.close() }
++        let key = Data(digest.utf8)
++        guard let bytes = try? input.read(upToCount: maximumBytes + key.count + 1),
++              bytes.count <= maximumBytes + key.count, bytes.starts(with: key) else { return Data() }
++        return Data(bytes.dropFirst(key.count))
++    }
++
++    func save(_ bytes: Data) throws {
++        try (Data(digest.utf8) + bytes).write(to: url, options: .atomic)
++    }
++
++    func remove() { try? FileManager.default.removeItem(at: url) }
++}
++
++private final class ResponseReceiver: NSObject, URLSessionDataDelegate, @unchecked Sendable {
++    struct Transfer: Sendable {
++        let body: Data
++        let replayedPrefix: Data
++    }
++
++    static let limit = 65_536
++    private let url: URL
++    private let permitsNoOffer: Bool
++    private var body: Data?
++    private var declined = false
++    private let partial: PartialArtifact?
++    private let prefix: Data
++    private var received = 0
++    private let continuation: AsyncThrowingStream<Transfer?, any Error>.Continuation
++    private let stream: AsyncThrowingStream<Transfer?, any Error>
++
++    init(url: URL, permitsNoOffer: Bool, partial: PartialArtifact?) {
++        self.url = url
++        self.permitsNoOffer = permitsNoOffer
++        self.partial = partial
++        self.prefix = partial?.read(maximumBytes: Self.limit) ?? Data()
++        (stream, continuation) = AsyncThrowingStream.makeStream(bufferingPolicy: .bufferingNewest(1))
++    }
++
++    func response(in session: URLSession) -> AsyncThrowingStream<Transfer?, any Error> {
++        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
++        request.setValue("identity", forHTTPHeaderField: "Accept-Encoding")
++        let task = session.dataTask(with: request)
++        continuation.onTermination = { _ in task.cancel() }
++        task.resume()
++        return stream
++    }
++
++    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
++                    newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void) {
++        completionHandler(nil)
++    }
++
++    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
++                    completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
++        if let http = response as? HTTPURLResponse, http.url == url {
++            if permitsNoOffer, http.statusCode == 204 || http.statusCode == 404 {
++                declined = true
++                continuation.yield(nil)
++                continuation.finish()
++                completionHandler(.cancel)
++                return
++            }
++            if http.statusCode == 200, http.mimeType == "application/json",
++               http.expectedContentLength <= Self.limit {
++                body = prefix
++                completionHandler(.allow)
++                return
++            }
++        }
++        refuse()
++        completionHandler(.cancel)
++    }
++
++    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
++        guard body != nil, data.count <= Self.limit - received else {
++            refuse()
++            dataTask.cancel()
++            return
++        }
++        let repeated = min(data.count, max(0, prefix.count - received))
++        guard repeated == 0 || prefix[received..<received + repeated].elementsEqual(data.prefix(repeated)) else {
++            partial?.remove()
++            refuse()
++            dataTask.cancel()
++            return
++        }
++        received += data.count
++        if repeated < data.count, let body {
++            let next = body + data.dropFirst(repeated)
++            do {
++                try partial?.save(next)
++                self.body = next
++            } catch {
++                continuation.finish(throwing: error)
++                dataTask.cancel()
++            }
++        }
++    }
++
++    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
++        if declined { return }
++        if let error { continuation.finish(throwing: error) }
++        else if let body, received == body.count {
++            partial?.remove()
++            continuation.yield(Transfer(body: body, replayedPrefix: prefix))
++            continuation.finish()
++        } else { refuse() }
++    }
++
++    private func refuse() {
++        continuation.finish(throwing: UpdateError("fieldlog.delivery", "Release service returned an invalid response"))
++    }
++}
+--- /dev/null
++++ b/Integrations/InstalledGuest/SignedTask.swift
+@@ -0,0 +1,166 @@
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++import MixerCapabilities
++#if os(Android)
++@_spi(AndroidGuestUIV1) import MixerCapabilityActivation
++#else
++import MixerCapabilityActivation
++#endif
++import MixerRuntimeIdentity
++import MixerUpdates
++
++public struct FieldLogSignedTask: Sendable {
++    #if os(Android)
++    private typealias Owner = CapabilityGuestUIAndroidRuntime
++    #else
++    public typealias Owner = CapabilityGuestUIRuntime
++    #endif
++
++    #if os(Android)
++    private let owner: Owner
++    #else
++    public let owner: Owner
++    #endif
++    private let identity: CapabilityRuntimeIdentity
++    private let installation: String
++    private let port: UInt16
++    private let hostname: String
++    private let directory: URL
++
++    public static func open(task: WorkTask, repository: WorkspaceRepository, material: URL,
++                            directory: URL, bundleID: String, installation: UUID,
++                            developmentOrigin: URL? = nil) async throws -> Self {
++        let identityBytes = try read(material, "identity.json", limit: 131_072)
++        let identity = try CapabilityRuntimeIdentity(json: identityBytes)
++        let scope = identity.installedRuntime.scope
++        guard scope.environment == "development",
++              identity.descriptor.object?["application"]?.object?["bundle_id"]?.text == bundleID,
++              let port = UInt16(try String(contentsOf: material.appendingPathComponent("port.txt"), encoding: .utf8)
++                .trimmingCharacters(in: .whitespacesAndNewlines)), port > 0 else {
++            throw UpdateError("fieldlog.identity", "Invalid installed FieldLog delivery identity")
++        }
++        let hostname: String
++        let deliveryPort: UInt16
++        if let developmentOrigin {
++            guard let endpoint = URLComponents(url: developmentOrigin, resolvingAgainstBaseURL: false),
++                  endpoint.scheme == "http", let host = endpoint.host,
++                  host == "127.0.0.1" || (host.hasSuffix(".local") &&
++                    host.utf8.allSatisfy({ (97...122).contains($0) || (48...57).contains($0) || $0 == 45 || $0 == 46 })),
++                  let rawPort = endpoint.port, let overridePort = UInt16(exactly: rawPort), overridePort > 1023,
++                  endpoint.path.isEmpty, endpoint.user == nil, endpoint.password == nil,
++                  endpoint.query == nil, endpoint.fragment == nil else {
++                throw UpdateError("fieldlog.origin", "Invalid local checklist development origin")
++            }
++            hostname = host
++            deliveryPort = overridePort
++        } else {
++            hostname = "127.0.0.1"
++            deliveryPort = port
++        }
++        let storageID = CapabilitySchemas.storageID
++        guard Set(identity.installedRuntime.capabilityHashes.keys) == [storageID] else {
++            throw UpdateError("fieldlog.capabilities", "The checklist guest requires only task storage")
++        }
++        let storage = FieldLogTaskStorage(repository: repository, projectID: task.projectID, taskID: task.id)
++        let materials: [CapabilityMaterialFile] = try [
++            .init(role: .bridgePolicy, bytes: read(material, "bridge.json")),
++            .init(role: .configuration(capabilityID: storageID), bytes: read(material, "storage.json")),
++            .init(role: .installedGrant(capabilityID: storageID), bytes: read(material, "storage-grant.json")),
++        ]
++        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
++        let execution = try InstalledCapabilityExecution(identityJSON: identityBytes, materials: materials,
++            trustRootsJSON: read(material, "roots.json"), privateContainer: directory,
++            applicationStorage: .init(runtimeFingerprint: identity.fingerprint, namespace: FieldLogTaskStorage.namespace,
++                service: storage, allowsDeferredGuestUIStartup: true))
++        let installation = installation.uuidString.lowercased()
++        let owner = try await Owner.open(configuration: .init(directory: directory.appendingPathComponent("recovery"),
++            channel: "beta", installation: installation, observationSeconds: 1), execution: execution)
++        return Self(owner: owner, identity: identity, installation: installation,
++                    port: deliveryPort, hostname: hostname, directory: directory)
++    }
++
++    public struct Launch: Sendable {
++        public let status: String
++        public let stagedCandidate: String?
++        public let artifactSHA256: String?
++        public let replayedPrefixBytes: Int
++        public let replayedPrefixSHA256: String?
++    }
++
++    public func start() async throws -> String {
++        try await startWithDeliveryObservation().status
++    }
++
++    public func startWithDeliveryObservation() async throws -> Launch {
++        let previous = await recovery()
++        var deliveryError: (any Error)?
++        var stagedCandidate: String?
++        var deliveredArtifact: String?
++        var replayedPrefix = Data()
++        do {
++            let delivery = FieldLogDelivery(hostname: hostname, port: port, host: identity.installedRuntime, installation: installation,
++                partialFile: directory.appendingPathComponent("artifact.partial"))
++            if let package = try await delivery.fetch(after: previous.acceptedSequence) {
++                #if os(Android)
++                try await owner.stage(manifest: package.manifest, assignment: package.assignment, bytes: package.payload)
++                #else
++                try await owner.beginDownload(signedManifest: package.manifest, signedAssignment: package.assignment)
++                try await owner.appendDownload(package.payload, atOffset: 0)
++                try await owner.finishDownload()
++                #endif
++                stagedCandidate = await recovery().staged
++                deliveredArtifact = package.artifactSHA256
++                replayedPrefix = package.replayedPrefix
++            }
++        } catch is CancellationError {
++            throw CancellationError()
++        } catch {
++            deliveryError = error
++        }
++        try Task.checkCancellation()
++        let activation = try await owner.start()
++        guard activation.candidateID != nil else {
++            if let deliveryError { throw deliveryError }
++            throw UpdateError("fieldlog.release", "No signed checklist release is available")
++        }
++        return Launch(status: deliveryError == nil ? "Signed checklist" : "Using saved checklist release",
++                      stagedCandidate: stagedCandidate, artifactSHA256: deliveredArtifact, replayedPrefixBytes: replayedPrefix.count,
++                      replayedPrefixSHA256: replayedPrefix.isEmpty ? nil : ReleaseVerifier.sha256(replayedPrefix))
++    }
++
++    public func recovery() async -> CapabilityGuestUIRecoverySnapshot {
++        #if os(Android)
++        owner.recoverySnapshot()
++        #else
++        await owner.recoverySnapshot()
++        #endif
++    }
++
++    public func close() async -> Bool {
++        #if os(Android)
++        await owner.close()
++        #else
++        await owner.close()
++        let deadline = ContinuousClock.now + .seconds(8)
++        repeat {
++            let state = await owner.recoverySnapshot()
++            guard state.closed, !state.incompleteAttempt else { return false }
++            if !state.activation.cleanupPending { return true }
++            do { try await Task.sleep(for: .milliseconds(20)) }
++            catch { return false }
++        } while ContinuousClock.now < deadline
++        return false
++        #endif
++    }
++
++    private static func read(_ directory: URL, _ name: String, limit: Int = 65_536) throws -> Data {
++        let handle = try FileHandle(forReadingFrom: directory.appendingPathComponent(name))
++        defer { try? handle.close() }
++        let bytes = try handle.read(upToCount: limit + 1) ?? Data()
++        guard !bytes.isEmpty, bytes.count <= limit else {
++            throw UpdateError("fieldlog.material", "Invalid installed checklist material")
++        }
++        return bytes
++    }
++}
+--- /dev/null
++++ b/Integrations/InstalledGuest/TaskStorage.swift
+@@ -0,0 +1,77 @@
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++import MixerCapabilities
++
++/// A view of one host-selected task in the open FieldLog workspace.
++public struct FieldLogTaskStorage: InstalledApplicationStorageServing {
++    public static let namespace = "fieldlog-task-v1"
++    private let repository: WorkspaceRepository
++    private let projectID: UUID
++    private let taskID: UUID
++
++    public init(repository: WorkspaceRepository, projectID: UUID, taskID: UUID) {
++        self.repository = repository
++        self.projectID = projectID
++        self.taskID = taskID
++    }
++
++    public func get(_ arguments: KVGetArguments) async throws -> KVGetResponse {
++        try authorize(arguments.namespace, arguments.key)
++        try Task.checkCancellation()
++        let state: Workspace
++        do {
++            state = try await repository.readCommittedSnapshot()
++        } catch {
++            throw CapabilityFailure.ioFailure
++        }
++        try Task.checkCancellation()
++        guard let task = task(in: state) else {
++            return KVGetResponse(found: false, valueBase64: "")
++        }
++        // Versioned namespace, UInt64 big-endian revision and one completion byte.
++        var bytes = withUnsafeBytes(of: state.revision.bigEndian) { Data($0) }
++        bytes.append(task.completed ? 1 : 0)
++        return KVGetResponse(found: true, valueBase64: bytes.base64EncodedString())
++    }
++
++    public func put(_ arguments: KVPutArguments, maximumTotalBytes: Int, maximumEntries: Int) async throws -> KVMutationResponse {
++        try authorize(arguments.namespace, arguments.key)
++        guard let bytes = Data(base64Encoded: arguments.valueBase64), bytes.count == 9,
++              let bit = bytes.last, bit <= 1 else { throw CapabilityFailure.invalidResponse }
++        // The installed quota applies to one bounded value.
++        guard maximumEntries >= 1, maximumTotalBytes >= bytes.count else {
++            throw CapabilityFailure.quotaExceeded
++        }
++        let revision = bytes.prefix(8).reduce(UInt64(0)) { ($0 << 8) | UInt64($1) }
++        do {
++            _ = try await repository.transact(expectedRevision: revision) { state in
++                try Task.checkCancellation()
++                guard let task = task(in: state) else { throw CapabilityFailure.permissionDenied }
++                guard task.completed != (bit == 1) else { throw WriteUnchanged() }
++                try state.toggleTask(task.id)
++            }
++            return KVMutationResponse(committed: true)
++        } catch is WriteUnchanged {
++            return KVMutationResponse(committed: true)
++        } catch FieldLogError.staleRevision {
++            return KVMutationResponse(committed: false)
++        }
++    }
++
++    public func delete(_ arguments: KVDeleteArguments) async throws -> KVMutationResponse {
++        throw CapabilityFailure.permissionDenied
++    }
++
++    private func authorize(_ namespace: String, _ key: String) throws {
++        guard namespace == Self.namespace, key == "selected-task" else {
++            throw CapabilityFailure.permissionDenied
++        }
++    }
++
++    private func task(in state: Workspace) -> WorkTask? {
++        state.tasks.first { $0.id == taskID && $0.projectID == projectID }
++    }
++
++    private struct WriteUnchanged: Error {}
++}
+--- a/Package.resolved
++++ b/Package.resolved
+@@ -1,12 +1,22 @@
+ {
+-  "originHash" : "1973991a7d948bf04287fee7b6f3bd27a641797cb209794b3374de9bb08e8fd9",
++  "originHash" : "39fed78c1997805c904fc0c3dddd05b90504391f3d79b326d066d6ff37cb747d",
+   "pins" : [
+     {
+-      "identity" : "mixer",
++      "identity" : "swift-asn1",
+       "kind" : "remoteSourceControl",
+-      "location" : "https://github.com/snowdamiz/mixer.git",
++      "location" : "https://github.com/apple/swift-asn1.git",
+       "state" : {
+-        "revision" : "56ff14c925168284761c5aca4f0bd4129cf3c995"
++        "revision" : "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
++        "version" : "1.7.3"
++      }
++    },
++    {
++      "identity" : "swift-crypto",
++      "kind" : "remoteSourceControl",
++      "location" : "https://github.com/apple/swift-crypto.git",
++      "state" : {
++        "revision" : "c2cbadd7263439d8015189668f96ff5b5be565ce",
++        "version" : "5.0.3"
+       }
+     }
+   ],
+--- a/Package.swift
++++ b/Package.swift
+@@ -1,15 +1,22 @@
+-// swift-tools-version: 6.0
++// swift-tools-version: 6.2
+ import PackageDescription
+
+ let package = Package(
+     name: "FieldLog",
+     platforms: [.iOS("26.0"), .macOS(.v14)],
+-    products: [.library(name: "FieldLogModels", targets: ["FieldLogModels"]), .library(name: "FieldLogStorage", targets: ["FieldLogStorage"]), .library(name: "FieldLogFeatures", targets: ["FieldLogFeatures"])],
+-    dependencies: [.package(url: "https://github.com/snowdamiz/mixer.git", revision: "56ff14c925168284761c5aca4f0bd4129cf3c995")],
++    products: [.library(name: "FieldLogModels", targets: ["FieldLogModels"]), .library(name: "FieldLogStorage", targets: ["FieldLogStorage"]), .library(name: "FieldLogFeatures", targets: ["FieldLogFeatures"]), .library(name: "FieldLogInstalledGuest", targets: ["FieldLogInstalledGuest"])],
++    dependencies: [.package(path: "../mixer/sdk"), .package(path: "../mixer/capability-activation"), .package(path: "../mixer/runtime-identity"), .package(path: "../mixer/updates")],
+     targets: [
+         .target(name: "FieldLogModels"),
+         .target(name: "FieldLogStorage", dependencies: ["FieldLogModels"]),
+-        .target(name: "FieldLogFeatures", dependencies: ["FieldLogModels", .product(name: "MixerCore", package: "mixer"), .product(name: "MixerUI", package: "mixer"), .product(name: "MixerApple", package: "mixer", condition: .when(platforms: [.iOS, .macOS]))]),
+-        .testTarget(name: "FieldLogTests", dependencies: ["FieldLogModels", "FieldLogStorage", "FieldLogFeatures", .product(name: "MixerUI", package: "mixer"), .product(name: "MixerApple", package: "mixer", condition: .when(platforms: [.iOS, .macOS]))])
++        .target(name: "FieldLogFeatures", dependencies: ["FieldLogModels", .product(name: "MixerCore", package: "sdk"), .product(name: "MixerUI", package: "sdk"), .product(name: "MixerApple", package: "sdk", condition: .when(platforms: [.iOS, .macOS]))]),
++        .target(name: "FieldLogInstalledGuest", dependencies: [
++            "FieldLogModels", "FieldLogStorage",
++            .product(name: "MixerCapabilities", package: "sdk"),
++            .product(name: "MixerCapabilityActivation", package: "capability-activation"),
++            .product(name: "MixerRuntimeIdentity", package: "runtime-identity"),
++            .product(name: "MixerUpdates", package: "updates"),
++        ], path: "Integrations/InstalledGuest"),
++        .testTarget(name: "FieldLogTests", dependencies: ["FieldLogModels", "FieldLogStorage", "FieldLogFeatures", .product(name: "MixerUI", package: "sdk"), .product(name: "MixerApple", package: "sdk", condition: .when(platforms: [.iOS, .macOS]))])
+     ]
+ )
+--- a/Sources/FieldLogFeatures/TaskEditorAppleFieldsHost.swift
++++ b/Sources/FieldLogFeatures/TaskEditorAppleFieldsHost.swift
+@@ -137,6 +137,13 @@
+   {
+     do { try accept(action, from: host, installation: receipt); eventFailure = nil }
+     catch { record(error, from: host, installation: receipt) }
++  }
++
++  func acceptIssued(_ issued: IssuedUIAction, from host: MixerUIHost) throws {
++    guard host === nativeHost else { throw TaskEditorAppleFieldsError.foreignHost }
++    _ = try host.snapshot.checkedEnvelope(for: issued)
++    try accept(issued.action, from: host, installation: installation)
++    eventFailure = nil
+   }
+
+   func record(_ error: any Error, from host: MixerUIHost,
+@@ -237,8 +244,11 @@
+     let owner = self.owner
+     let host = owner.nativeHost
+     let receipt = owner.installation
+-    MixerNativeView(host: host,
+-      onAction: { [weak owner] action in owner?.receive(action, from: host, installation: receipt) },
++    MixerNativeView(host: host, trackSynchronousTextChanges: true,
++      onIssuedAction: { [weak owner] action in
++        guard let owner else { throw TaskEditorAppleFieldsError.closed }
++        try owner.acceptIssued(action, from: host)
++      },
+       onEventFailure: { [weak owner] error in owner?.record(error, from: host, installation: receipt) })
+       .disabled(owner.inputUnavailable)
+   }
+--- a/Sources/FieldLogFeatures/TaskEditorPresentation.swift
++++ b/Sources/FieldLogFeatures/TaskEditorPresentation.swift
+@@ -142,7 +142,7 @@
+           MixerUI.TextField("task.title", "What needs to happen?", value: state.title,
+             action: "task.title.change", axis: .vertical).accessibilityIdentifier("task-title").disabled(inactive)
+           MixerUI.TextField("task.responsible", "Responsible person (optional)",
+-            value: state.responsible, action: "task.responsible.change").disabled(inactive)
++            value: state.responsible, action: "task.responsible.change").accessibilityIdentifier("task-owner").disabled(inactive)
+         }
+         if let failure = state.failure {
+           MixerUI.Section("task.failure") {
+--- a/Sources/FieldLogStorage/WorkspaceRepository.swift
++++ b/Sources/FieldLogStorage/WorkspaceRepository.swift
+@@ -3,6 +3,8 @@
+
+ #if canImport(Darwin)
+   import Darwin
++#elseif canImport(Android)
++  import Android
+ #elseif canImport(Glibc)
+   import Glibc
+ #endif
+@@ -10,6 +12,8 @@
+ private func closeDescriptor(_ fd: Int32) {
+   #if canImport(Darwin)
+     _ = Darwin.close(fd)
++  #elseif canImport(Android)
++    _ = Android.close(fd)
+   #elseif canImport(Glibc)
+     _ = Glibc.close(fd)
+   #endif
+@@ -67,6 +71,13 @@
+     }
+   }
+   public func snapshot() -> Workspace { workspace }
++
++  public func readCommittedSnapshot() throws -> Workspace {
++    guard !unavailable else { throw FieldLogError.storage("Workspace is closed or requires reopening.") }
++    let current = try Self.read(directory.appendingPathComponent("workspace.json"))
++    guard current == workspace else { throw FieldLogError.staleRevision }
++    return current
++  }
+
+   @discardableResult public func transact(
+     expectedRevision: UInt64? = nil, _ mutation: @Sendable (inout Workspace) throws -> Void
+--- /dev/null
++++ b/ios/FieldLog/ChecklistInfo.plist
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0"><dict>
++    <key>NSAppTransportSecurity</key><dict><key>NSAllowsLocalNetworking</key><true/></dict>
++    <key>NSLocalNetworkUsageDescription</key>
++    <string>Connect to the developer checklist service on this local network.</string>
++</dict></plist>
+--- a/ios/FieldLog/ProjectDetail.swift
++++ b/ios/FieldLog/ProjectDetail.swift
+@@ -11,6 +11,7 @@
+   let projectID: UUID
+   let onEdit: (EntryDraft) -> Void
+   @State private var addingTask = false
++  @State private var checklistTask: WorkTask?
+   @State private var sharing: ShareDocument?
+   @State private var exportError: String?
+   var body: some View {
+@@ -39,7 +40,8 @@
+             ForEach(workspace.tasks(for: projectID)) { task in
+               HStack(alignment: .top) {
+                 Button {
+-                  model.toggleTask(task.id)
++                  if SignedChecklist.material != nil { checklistTask = task }
++                  else { model.toggleTask(task.id) }
+                 } label: {
+                   HStack(alignment: .top, spacing: 12) {
+                     Image(systemName: task.completed ? "checkmark.circle.fill" : "circle").font(
+@@ -54,7 +56,12 @@
+                   }.padding(.vertical, 3)
+                 }.buttonStyle(.plain).accessibilityLabel(
+                   "\(task.title), \(task.completed ? "completed":"not completed")"
+-                ).accessibilityHint("Double tap to \(task.completed ? "reopen":"complete") task")
++                ).accessibilityHint(
++                  SignedChecklist.material != nil ? "Open signed checklist" :
++                    "Double tap to \(task.completed ? "reopen" : "complete") task"
++                )
++                  .accessibilityIdentifier("checklist-task-" + task.id.uuidString.lowercased())
++                  .disabled(SignedChecklist.material != nil && model.pendingSaves != 0)
+                   .frame(maxWidth: .infinity, alignment: .leading)
+                 if workspace.tasks(for: projectID).count > 1 {
+                   Menu {
+@@ -166,6 +173,12 @@
+           description: Text("The workspace has not been changed."))
+       }
+     }.sheet(isPresented: $addingTask) { NewTaskView(projectID: projectID) }
++      .sheet(item: $checklistTask, onDismiss: { Task { await model.refreshChecklist() } }) { task in
++        if let repository = model.repository, let recovery = model.recoveryDirectory {
++          SignedChecklist(task: task, repository: repository, recoveryDirectory: recovery,
++                          isolatedTestWorkspace: model.isTestWorkspace)
++        }
++      }
+       .sheet(item: $sharing) { ShareSheet(url: $0.url) }
+       .alert(
+         "Report couldn't be created",
+--- /dev/null
++++ b/ios/FieldLog/SignedChecklist.swift
+@@ -0,0 +1,421 @@
++import FieldLogInstalledGuest
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++#if DEBUG
++@_spi(FieldLogStartupDiagnostics) import MixerCapabilityActivation
++#else
++import MixerCapabilityActivation
++#endif
++import SwiftUI
++#if DEBUG
++import CryptoKit
++#endif
++
++struct SignedChecklist: View {
++  private struct MountedChecklist {
++    let operation: SignedChecklistRecovery.Operation
++    let task: FieldLogSignedTask
++    var canPresent: Bool
++  }
++
++  let task: WorkTask
++  let repository: WorkspaceRepository
++  let recoveryDirectory: URL
++  let isolatedTestWorkspace: Bool
++  @Environment(\.dismiss) private var dismiss
++  @AppStorage("fieldlog.releaseInstallation") private var installation = ""
++  @State private var guest: MountedChecklist?
++  @State private var recovery = SignedChecklistRecovery()
++  @State private var status = "Opening checklist"
++  #if DEBUG
++  @State private var evidence = ""
++  @State private var deliveryObservation: FieldLogSignedTask.Launch?
++  private var testInstallation: UUID? {
++    guard isolatedTestWorkspace, ProcessInfo.processInfo.arguments.contains("--fieldlog-checklist-observation")
++    else { return nil }
++    let folder = recoveryDirectory.deletingLastPathComponent().lastPathComponent
++    return UUID(uuidString: String(folder.dropFirst("FieldLogUITest-".count)))
++  }
++  #endif
++
++  static var material: URL? { Bundle.main.url(forResource: "ChecklistRelease", withExtension: nil) }
++
++  var body: some View {
++    NavigationStack {
++      VStack(alignment: .leading, spacing: 12) {
++        Text(releaseStatus).accessibilityIdentifier("checklist-release-state")
++        recoveryControls
++        #if DEBUG
++        if testInstallation != nil {
++          Text("Checklist test evidence").font(.caption2)
++            .accessibilityIdentifier("checklist-evidence")
++            .accessibilityValue(evidence)
++            .task {
++              while !Task.isCancelled {
++                if let guest, recovery.phase == .active {
++                  let value = (try? await observe(guest.task)) ?? ""
++                  if isCurrent(guest.operation), recovery.phase == .active { evidence = value }
++                } else {
++                  evidence = ""
++                }
++                try? await Task.sleep(for: .milliseconds(100))
++              }
++            }
++        }
++        #endif
++        if recovery.showsGuest, let guest, guest.operation == recovery.operation, guest.canPresent {
++          MixerGuestScreen(presentation: guest.task.owner.presentation)
++            .id(guest.operation.id)
++            .allowsHitTesting(recovery.phase == .active)
++            .disabled(recovery.phase != .active)
++            .frame(maxWidth: .infinity, maxHeight: .infinity)
++        }
++      }
++      .padding().navigationTitle(task.title)
++      .toolbar {
++        ToolbarItem(placement: .cancellationAction) {
++          Button("Done") { recovery.begin(.done) }.disabled(!recovery.canFinish)
++        }
++        ToolbarItem(placement: .primaryAction) {
++          Button("Check for update") { recovery.begin(.checkForUpdate) }
++            .disabled(!recovery.canCheckForUpdate).accessibilityIdentifier("checklist-check-updates")
++        }
++      }
++      .task(id: recovery.operation.id) { [operation = recovery.operation] in
++        await run(operation)
++      }
++    }
++    .interactiveDismissDisabled()
++  }
++
++  private var releaseStatus: String {
++    switch recovery.phase {
++    case .opening: "Opening checklist"
++    case .retiring(let stop), .retirementPending(let stop), .stopped(let stop, _): stop.title
++    case .reopenFailed: "Could not reopen the saved checklist"
++    case .closing: "Closing checklist"
++    case .closePending: "Waiting for checklist retirement"
++    default: status
++    }
++  }
++
++  @ViewBuilder private var recoveryControls: some View {
++    switch recovery.phase {
++    case .retiring:
++      Text("Closing the previous checklist.").foregroundStyle(.secondary)
++    case .retirementPending(let stop):
++      Text("The previous checklist is still closing.").foregroundStyle(.secondary)
++      Button("Check again") { recovery.begin(.checkRetirement(stop)) }
++    case .stopped(_, let saved?):
++      savedTaskStatus(saved)
++      Button("Reopen saved checklist") { recovery.begin(.reopenSaved(saved)) }
++        .accessibilityIdentifier("checklist-reopen-saved")
++    case .stopped:
++      Text("The saved checklist is unavailable.").foregroundStyle(.secondary)
++    case .reopenFailed(let saved, let pending):
++      savedTaskStatus(saved)
++      if pending { Text("The previous checklist is still closing.").foregroundStyle(.secondary) }
++    case .closing(let saved?), .closePending(let saved?):
++      savedTaskStatus(saved)
++    default:
++      EmptyView()
++    }
++  }
++
++  private func savedTaskStatus(_ saved: SignedChecklistRecovery.Saved) -> some View {
++    Text(saved.completed ? "Saved task status: Completed" : "Saved task status: Open")
++      .foregroundStyle(.secondary)
++  }
++
++  @MainActor private func isCurrent(_ operation: SignedChecklistRecovery.Operation) -> Bool {
++    !Task.isCancelled && recovery.operation == operation
++  }
++
++  @MainActor private func run(_ operation: SignedChecklistRecovery.Operation) async {
++    guard isCurrent(operation) else { return }
++    switch operation.command {
++    case .checkForUpdate, .reopenSaved:
++      if recovery.phase == .opening {
++        await open(operation)
++      } else if recovery.phase == .active, let guest, guest.operation == operation {
++        await observeActive(guest.task, operation: operation)
++      }
++    case .checkRetirement:
++      await finishRecovery(operation)
++    case .done:
++      if await retire(operation), isCurrent(operation) { dismiss() }
++      else if isCurrent(operation) { recovery.closeDelayed(operation) }
++    }
++    if Task.isCancelled, recovery.operation == operation, let guest {
++      _ = await guest.task.close()
++    }
++  }
++
++  @MainActor private func open(_ operation: SignedChecklistRecovery.Operation) async {
++    #if DEBUG
++    deliveryObservation = nil
++    evidence = ""
++    #endif
++    let previous = guest?.task
++    if let previous {
++      let state = await previous.recovery()
++      guard isCurrent(operation) else { return }
++      if await recoverIfStopped(previous, state: state, operation: operation, wasActive: true) { return }
++    }
++    let retired = await retire(operation)
++    guard isCurrent(operation) else { return }
++    if let previous {
++      let state = await previous.recovery()
++      guard isCurrent(operation) else { return }
++      if let cause = state.activation.terminalCause, cause != .closed,
++         await recoverIfStopped(previous, state: state, operation: operation, wasActive: true,
++                                retirement: retired) { return }
++    }
++    guard retired else {
++      if isCurrent(operation) { recovery.openFailed(operation, retired: false) }
++      return
++    }
++    #if DEBUG
++    var startupFailureTrigger = "openingError"
++    #endif
++    do {
++      guard let material = Self.material, let bundleID = Bundle.main.bundleIdentifier else {
++        throw FieldLogError.validation("Checklist releases are unavailable.")
++      }
++      var localOrigin: URL?
++      let testID: UUID?
++      #if DEBUG
++      testID = testInstallation
++      if testID != nil, let address = ProcessInfo.processInfo.environment["FIELDLOG_CHECKLIST_DATA_URL"] {
++        guard let url = URL(string: address) else {
++          throw FieldLogError.validation("Invalid test checklist origin.")
++        }
++        localOrigin = url
++      }
++      #else
++      testID = nil
++      #endif
++      let storedID = UUID(uuidString: installation)
++      let savedCandidate: String?
++      if case .reopenSaved(let saved) = operation.command {
++        guard testID != nil || storedID != nil else {
++          throw FieldLogError.validation("The saved checklist is unavailable.")
++        }
++        savedCandidate = saved.candidate
++      } else {
++        savedCandidate = nil
++      }
++      let id = testID ?? storedID ?? UUID()
++      if testID == nil, storedID == nil { installation = id.uuidString }
++      let opened = try await FieldLogSignedTask.open(task: task, repository: repository, material: material,
++        directory: recoveryDirectory, bundleID: bundleID, installation: id, developmentOrigin: localOrigin)
++      guard isCurrent(operation) else {
++        _ = await opened.close()
++        return
++      }
++      guest = MountedChecklist(operation: operation, task: opened, canPresent: savedCandidate == nil)
++      let launchStatus: String
++      if let candidate = savedCandidate {
++        // With no staged candidate, the runtime can only select eligible committed health.
++        let stored = await opened.recovery()
++        guard isCurrent(operation) else { return }
++        guard stored.healthy == candidate, stored.staged == nil, !stored.requiresReopen,
++              !stored.incompleteAttempt else {
++          throw FieldLogError.validation("The saved checklist is unavailable.")
++        }
++        let activation = try await opened.owner.start()
++        guard isCurrent(operation) else { return }
++        guard SignedChecklistRecovery.Saved.contains(candidate: activation.candidateID, healthy: stored.healthy,
++                                                    previousHealthy: stored.previousHealthy) else {
++          throw FieldLogError.validation("The saved checklist is unavailable.")
++        }
++        guest?.canPresent = true
++        launchStatus = "Using saved checklist release"
++      } else {
++        let launch = try await opened.startWithDeliveryObservation()
++        guard isCurrent(operation) else { return }
++        launchStatus = launch.status
++        #if DEBUG
++        deliveryObservation = launch
++        #endif
++      }
++      // The screen has to be mounted before the native first-screen observation.
++      let deadline = ContinuousClock.now + .seconds(12)
++      while isCurrent(operation), ContinuousClock.now < deadline {
++        let state = await opened.recovery()
++        guard isCurrent(operation) else { return }
++        if await recoverIfStopped(opened, state: state, operation: operation) { return }
++        if state.activation.phase == .healthyGuest, let healthy = state.healthy,
++           healthy == state.activation.candidateID, state.activation.terminalCause == nil,
++           !state.requiresReopen, !state.closed, recovery.opened(operation) {
++          status = savedCandidate == nil ? "\(launchStatus) · Sequence \(state.acceptedSequence)" : launchStatus
++          await observeActive(opened, operation: operation)
++          return
++        }
++        if state.activation.terminalCause != nil { break }
++        try await Task.sleep(for: .milliseconds(50))
++      }
++      if isCurrent(operation) {
++        #if DEBUG
++        startupFailureTrigger = "healthWaitExpired"
++        #endif
++        throw FieldLogError.validation("The signed checklist could not be displayed.")
++      }
++    } catch {
++      guard isCurrent(operation) else { return }
++      if let guest, guest.operation == operation {
++        let state = await guest.task.recovery()
++        guard isCurrent(operation) else { return }
++        #if DEBUG
++        recordStartupFailure(guest.task, state: state, operation: operation, trigger: startupFailureTrigger)
++        #endif
++        if await recoverIfStopped(guest.task, state: state, operation: operation) { return }
++      }
++      let retired = await retire(operation)
++      guard isCurrent(operation) else { return }
++      status = error.localizedDescription
++      recovery.openFailed(operation, retired: retired)
++    }
++  }
++
++  @MainActor private func observeActive(_ opened: FieldLogSignedTask,
++                                       operation: SignedChecklistRecovery.Operation) async {
++    while isCurrent(operation) {
++      let state = await opened.recovery()
++      guard isCurrent(operation) else { return }
++      if await recoverIfStopped(opened, state: state, operation: operation, wasActive: true) { return }
++      do { try await Task.sleep(for: .milliseconds(50)) }
++      catch { return }
++    }
++  }
++
++  private func isDeadline(_ activation: CapabilityGuestUIActivationSnapshot) -> Bool {
++    activation.terminalCause == .deadline ||
++      (activation.terminalCause == .bridge && activation.firstBridgeFailure?.kind == .deadlineExceeded)
++  }
++
++  @MainActor private func recoverIfStopped(_ owner: FieldLogSignedTask,
++    state: CapabilityGuestUIRecoverySnapshot, operation: SignedChecklistRecovery.Operation,
++    wasActive: Bool = false, retirement: Bool? = nil
++  ) async -> Bool {
++    let activation = state.activation
++    guard activation.terminalCause != nil || state.closed || state.requiresReopen ||
++            activation.phase == .recoveryRequired || activation.phase == .stopping ||
++            (wasActive && activation.phase != .healthyGuest) else { return false }
++    #if DEBUG
++    recordStartupFailure(owner, state: state, operation: operation, trigger: "activationTerminal")
++    #endif
++    // The durable candidate may be from an earlier launch. It is a source for
++    // recovery while opening; only the live healthy phase enables input.
++    let hasSavedRelease = wasActive || SignedChecklistRecovery.Saved.contains(
++      candidate: activation.candidateID, healthy: state.healthy, previousHealthy: state.previousHealthy)
++    let reason: SignedChecklistRecovery.Stop = isDeadline(activation) ? .deadline : .interrupted
++    guard isCurrent(operation), recovery.stopped(operation, reason: reason,
++                                               hasSavedRelease: hasSavedRelease) else { return false }
++    await finishRecovery(operation, owner: owner, retirement: retirement)
++    return true
++  }
++
++  @MainActor private func finishRecovery(_ operation: SignedChecklistRecovery.Operation,
++                                        owner: FieldLogSignedTask? = nil, retirement: Bool? = nil) async {
++    guard let stopped = owner ?? guest?.task, isCurrent(operation) else { return }
++    let retired: Bool
++    if let retirement { retired = retirement }
++    else { retired = await retire(operation) }
++    guard retired else {
++      if isCurrent(operation) { recovery.retirementFinished(operation, retired: false) }
++      return
++    }
++    let state = await stopped.recovery()
++    let saved = await SignedChecklistRecovery.Saved.read(healthy: state.healthy, staged: state.staged,
++      repository: repository, taskID: task.id, projectID: task.projectID)
++    guard isCurrent(operation) else { return }
++    recovery.retirementFinished(operation, retired: true, saved: saved,
++                                confirmedDeadline: isDeadline(state.activation))
++  }
++
++  #if DEBUG
++  @MainActor private func recordStartupFailure(_ owner: FieldLogSignedTask,
++    state: CapabilityGuestUIRecoverySnapshot, operation: SignedChecklistRecovery.Operation, trigger: String) {
++    guard testInstallation != nil, isCurrent(operation), recovery.phase == .opening,
++          guest?.operation == operation,
++          let launch = state.activation.launchID,
++          let data = owner.owner.startupDiagnostic(launchID: launch),
++          let runtime = try? JSONSerialization.jsonObject(with: data) else { return }
++
++    let path = recoveryDirectory.appendingPathComponent("startup-failure.json")
++    guard !FileManager.default.fileExists(atPath: path.path) else { return }
++    let packet: [String: Any] = [
++      "schema": 1, "operation": operation.id.uuidString, "trigger": trigger,
++      "publishedPhase": String(describing: state.activation.phase), "acceptedSequence": state.acceptedSequence,
++      "healthyCandidate": state.healthy as Any? ?? NSNull(), "incompleteAttempt": state.incompleteAttempt,
++      "runtime": runtime,
++    ]
++    guard let encoded = try? JSONSerialization.data(withJSONObject: packet, options: [.sortedKeys]),
++          encoded.count <= 4096 else { return }
++    try? encoded.write(to: path, options: .atomic)
++  }
++
++  private struct Observation: Encodable {
++    let workspaceID: UUID
++    let taskID: UUID
++    let projectID: UUID
++    let taskBytes: Data
++    let workspaceSHA256: String
++    let revision: UInt64
++    let outbox: Int
++    let lastChangeID: UUID?
++    let lastChangeRecord: UUID?
++    let candidate: String
++    let launch: String
++    let sequence: UInt64
++    let partialBytes: Int
++    let partialSHA256: String?
++    let partialArtifactSHA256: String?
++    let partialPrefixSHA256: String?
++    let launchedArtifactSHA256: String?
++    let replayedPrefixBytes: Int
++    let replayedPrefixSHA256: String?
++  }
++
++  @MainActor private func observe(_ guest: FieldLogSignedTask) async throws -> String {
++    let health = await guest.recovery()
++    guard health.activation.phase == .healthyGuest,
++          let candidate = health.healthy, candidate == health.activation.candidateID,
++          let launch = health.activation.launchID else { return "" }
++    let workspace = try await repository.readCommittedSnapshot()
++    let savedURL = recoveryDirectory.deletingLastPathComponent().appendingPathComponent("workspace.json")
++    let savedBytes = try Data(contentsOf: savedURL)
++    guard try JSONDecoder().decode(Workspace.self, from: savedBytes) == workspace,
++          let saved = workspace.tasks.first(where: { $0.id == task.id && $0.projectID == task.projectID })
++    else { return "" }
++    let encoder = JSONEncoder()
++    encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
++    let spool = try? Data(contentsOf: recoveryDirectory.appendingPathComponent("artifact.partial"))
++    let delivered = deliveryObservation.flatMap { $0.stagedCandidate == candidate ? $0 : nil }
++    let observation = Observation(workspaceID: workspace.id, taskID: saved.id, projectID: saved.projectID,
++      taskBytes: try encoder.encode(saved), workspaceSHA256: checksum(savedBytes), revision: workspace.revision,
++      outbox: workspace.outbox.count, lastChangeID: workspace.outbox.last?.id,
++      lastChangeRecord: workspace.outbox.last?.recordID, candidate: candidate, launch: launch,
++      sequence: health.acceptedSequence, partialBytes: spool?.count ?? 0, partialSHA256: spool.map(checksum),
++      partialArtifactSHA256: spool.map { String(decoding: $0.prefix(64), as: UTF8.self) },
++      partialPrefixSHA256: spool.map { checksum($0.dropFirst(64)) },
++      launchedArtifactSHA256: delivered?.artifactSHA256, replayedPrefixBytes: delivered?.replayedPrefixBytes ?? 0,
++      replayedPrefixSHA256: delivered?.replayedPrefixSHA256)
++    return String(decoding: try encoder.encode(observation), as: UTF8.self)
++  }
++
++  private func checksum(_ bytes: Data) -> String {
++    SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
++  }
++  #endif
++
++  @MainActor private func retire(_ operation: SignedChecklistRecovery.Operation) async -> Bool {
++    guard isCurrent(operation) else { return false }
++    if let guest, !(await guest.task.close()) { return false }
++    guard isCurrent(operation) else { return false }
++    guest = nil
++    return true
++  }
++}
+--- /dev/null
++++ b/ios/FieldLog/SignedChecklistRecovery.swift
+@@ -0,0 +1,130 @@
++import FieldLogStorage
++import Foundation
++
++struct SignedChecklistRecovery {
++  enum Stop: Equatable {
++    case deadline, interrupted
++
++    var title: String {
++      switch self {
++      case .deadline: "Checklist timed out"
++      case .interrupted: "Checklist stopped"
++      }
++    }
++  }
++
++  struct Saved: Equatable {
++    let candidate: String
++    let completed: Bool
++
++    init?(healthy: String?, staged: String?, completed: Bool?) {
++      guard let healthy, staged == nil, let completed else { return nil }
++      self.candidate = healthy
++      self.completed = completed
++    }
++
++    static func contains(candidate: String?, healthy: String?, previousHealthy: String?) -> Bool {
++      guard let candidate else { return false }
++      return candidate == healthy || candidate == previousHealthy
++    }
++
++    static func read(healthy: String?, staged: String?, repository: WorkspaceRepository,
++                     taskID: UUID, projectID: UUID) async -> Self? {
++      let workspace = try? await repository.readCommittedSnapshot()
++      let task = workspace?.tasks.first { $0.id == taskID && $0.projectID == projectID }
++      return Self(healthy: healthy, staged: staged, completed: task?.completed)
++    }
++  }
++
++  enum Command: Equatable {
++    case checkForUpdate, reopenSaved(Saved), checkRetirement(Stop), done
++  }
++
++  struct Operation: Equatable {
++    let id = UUID()
++    let command: Command
++  }
++
++  enum Phase: Equatable {
++    case opening, active, unavailable
++    case closing(Saved?), closePending(Saved?)
++    case retiring(Stop), retirementPending(Stop), stopped(Stop, Saved?)
++    case reopenFailed(Saved, retirementPending: Bool)
++  }
++
++  private(set) var operation = Operation(command: .checkForUpdate)
++  private(set) var phase: Phase = .opening
++
++  var showsGuest: Bool { phase == .opening || phase == .active }
++
++  var canCheckForUpdate: Bool {
++    switch phase {
++    case .active, .unavailable: true
++    default: false
++    }
++  }
++
++  var canFinish: Bool {
++    switch phase {
++    case .active, .unavailable, .stopped, .retirementPending, .reopenFailed, .closePending: true
++    default: false
++    }
++  }
++
++  mutating func begin(_ command: Command) {
++    switch command {
++    case .checkForUpdate where canCheckForUpdate:
++      phase = .opening
++    case .done where canFinish:
++      switch phase {
++      case .stopped(_, let saved), .closePending(let saved): phase = .closing(saved)
++      case .reopenFailed(let saved, _): phase = .closing(saved)
++      default: phase = .closing(nil)
++      }
++    case .reopenSaved(let requested):
++      guard case .stopped(_, let saved?) = phase, saved == requested else { return }
++      phase = .opening
++    case .checkRetirement(let stop) where phase == .retirementPending(stop):
++      phase = .retiring(stop)
++    default:
++      return
++    }
++    operation = Operation(command: command)
++  }
++
++  mutating func opened(_ operation: Operation) -> Bool {
++    guard self.operation == operation, phase == .opening else { return false }
++    phase = .active
++    return true
++  }
++
++  mutating func openFailed(_ operation: Operation, retired: Bool) {
++    guard self.operation == operation, phase == .opening else { return }
++    if case .reopenSaved(let saved) = operation.command {
++      phase = .reopenFailed(saved, retirementPending: !retired)
++    } else {
++      phase = retired ? .unavailable : .closePending(nil)
++    }
++  }
++
++  mutating func closeDelayed(_ operation: Operation) {
++    guard self.operation == operation, case .closing(let saved) = phase else { return }
++    phase = .closePending(saved)
++  }
++
++  mutating func stopped(_ operation: Operation, reason: Stop, hasSavedRelease: Bool = false) -> Bool {
++    guard self.operation == operation else { return false }
++    if phase != .active {
++      guard phase == .opening, operation.command == .checkForUpdate, hasSavedRelease else { return false }
++    }
++    phase = .retiring(reason)
++    return true
++  }
++
++  mutating func retirementFinished(_ operation: Operation, retired: Bool, saved: Saved? = nil,
++                                   confirmedDeadline: Bool = false) {
++    guard self.operation == operation, case .retiring(let stop) = phase else { return }
++    let reason = confirmedDeadline ? .deadline : stop
++    phase = retired ? .stopped(reason, saved) : .retirementPending(reason)
++  }
++}
+--- a/ios/FieldLog/WorkspaceModel.swift
++++ b/ios/FieldLog/WorkspaceModel.swift
+@@ -10,7 +10,8 @@
+   @Published private(set) var pendingSaves = 0
+   @Published private(set) var unsavedDrafts: [UUID: EntryDraft] = [:]
+   @Published private(set) var isTestWorkspace = false
+-  private var repository: WorkspaceRepository?
++  private(set) var repository: WorkspaceRepository?
++  private(set) var recoveryDirectory: URL?
+   private var saveChain: Task<Bool, Never>?
+   private var opened = false
+
+@@ -38,8 +39,9 @@
+             "UI-test workspaces require a Debug build. No workspace was opened.")
+         #endif
+       }
+-      let repository = try WorkspaceRepository(
+-        directory: support.appendingPathComponent(workspaceFolder, isDirectory: true))
++      let directory = support.appendingPathComponent(workspaceFolder, isDirectory: true)
++      recoveryDirectory = directory.appendingPathComponent("signed-checklist", isDirectory: true)
++      let repository = try WorkspaceRepository(directory: directory)
+       self.repository = repository
+       workspace = await repository.snapshot()
+       openError = nil
+@@ -75,6 +77,10 @@
+     return next
+   }
+   func flush() async { _ = await saveChain?.value }
++  func refreshChecklist() async {
++    await flush()
++    workspace = await repository?.snapshot()
++  }
+   func createProject(title: String, site: String) async -> UUID? {
+     let id = UUID()
+     let date = Date()
+--- a/ios/FieldLog.xcodeproj/project.pbxproj
++++ b/ios/FieldLog.xcodeproj/project.pbxproj
+@@ -5,21 +5,32 @@
+  classes = {};
+  objectVersion = 60;
+  objects = {
+-  A00000000000000000000001 = { isa = PBXProject; attributes = { LastUpgradeCheck = 2700; }; buildConfigurationList = A00000000000000000000002; compatibilityVersion = "Xcode 15.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base); mainGroup = A00000000000000000000003; productRefGroup = A00000000000000000000004; projectDirPath = ""; projectRoot = ""; targets = (A00000000000000000000005, B00000000000000000000001); packageReferences = (A00000000000000000000020); };
++  C00000000000000000000001 = { isa = XCLocalSwiftPackageReference; relativePath = "../../mixer/capability-activation"; };
++  C00000000000000000000002 = { isa = XCSwiftPackageProductDependency; package = A00000000000000000000020; productName = FieldLogInstalledGuest; };
++  C00000000000000000000003 = { isa = XCSwiftPackageProductDependency; package = C00000000000000000000001; productName = MixerCapabilityActivation; };
++  C00000000000000000000004 = { isa = PBXBuildFile; productRef = C00000000000000000000002; };
++  C00000000000000000000005 = { isa = PBXBuildFile; productRef = C00000000000000000000003; };
++  C00000000000000000000006 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignedChecklist.swift; sourceTree = "<group>"; };
++  C00000000000000000000007 = { isa = PBXBuildFile; fileRef = C00000000000000000000006; };
++  C00000000000000000000008 = { isa = PBXFileReference; lastKnownFileType = folder; path = ChecklistRelease; sourceTree = "<group>"; };
++  C00000000000000000000009 = { isa = PBXBuildFile; fileRef = C00000000000000000000008; };
++  C0000000000000000000000A = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignedChecklistRecovery.swift; sourceTree = "<group>"; };
++  C0000000000000000000000B = { isa = PBXBuildFile; fileRef = C0000000000000000000000A; };
++  A00000000000000000000001 = { isa = PBXProject; attributes = { LastUpgradeCheck = 2700; }; buildConfigurationList = A00000000000000000000002; compatibilityVersion = "Xcode 15.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base); mainGroup = A00000000000000000000003; productRefGroup = A00000000000000000000004; projectDirPath = ""; projectRoot = ""; targets = (A00000000000000000000005, B00000000000000000000001); packageReferences = (A00000000000000000000020, C00000000000000000000001); };
+   A00000000000000000000002 = { isa = XCConfigurationList; buildConfigurations = (A00000000000000000000006, A00000000000000000000007); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+   A00000000000000000000003 = { isa = PBXGroup; children = (A00000000000000000000008, B00000000000000000000002, A00000000000000000000004); sourceTree = "<group>"; };
+   A00000000000000000000004 = { isa = PBXGroup; name = Products; children = (A00000000000000000000009, B00000000000000000000003); sourceTree = "<group>"; };
+-  A00000000000000000000005 = { isa = PBXNativeTarget; buildConfigurationList = A00000000000000000000010; buildPhases = (A00000000000000000000011, A00000000000000000000012, A00000000000000000000013); buildRules = (); dependencies = (); name = FieldLog; productName = FieldLog; productReference = A00000000000000000000009; productType = "com.apple.product-type.application"; packageProductDependencies = (A00000000000000000000022, A00000000000000000000023, A00000000000000000000026); };
++  A00000000000000000000005 = { isa = PBXNativeTarget; buildConfigurationList = A00000000000000000000010; buildPhases = (A00000000000000000000011, A00000000000000000000012, A00000000000000000000013); buildRules = (); dependencies = (); name = FieldLog; productName = FieldLog; productReference = A00000000000000000000009; productType = "com.apple.product-type.application"; packageProductDependencies = (A00000000000000000000022, A00000000000000000000023, A00000000000000000000026, C00000000000000000000002, C00000000000000000000003); };
+   A00000000000000000000006 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 26.0; SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; ONLY_ACTIVE_ARCH = YES; }; name = Debug; };
+   A00000000000000000000007 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 26.0; SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; }; name = Release; };
+-  A00000000000000000000008 = { isa = PBXGroup; path = FieldLog; children = (A00000000000000000000030,A00000000000000000000031,A00000000000000000000032,A00000000000000000000033,A00000000000000000000034); sourceTree = "<group>"; };
++  A00000000000000000000008 = { isa = PBXGroup; path = FieldLog; children = (A00000000000000000000030,A00000000000000000000031,A00000000000000000000032,A00000000000000000000033,A00000000000000000000034, C00000000000000000000006, C0000000000000000000000A, C00000000000000000000008); sourceTree = "<group>"; };
+   A00000000000000000000009 = { isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FieldLog.app; sourceTree = BUILT_PRODUCTS_DIR; };
+   A00000000000000000000010 = { isa = XCConfigurationList; buildConfigurations = (A00000000000000000000014, A00000000000000000000015); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+-  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040,A00000000000000000000041,A00000000000000000000042,A00000000000000000000043,A00000000000000000000044); runOnlyForDeploymentPostprocessing = 0; };
+-  A00000000000000000000012 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000024,A00000000000000000000025,A00000000000000000000027); runOnlyForDeploymentPostprocessing = 0; };
+-  A00000000000000000000013 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+-  A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Debug; };
+-  A00000000000000000000015 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-O"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Release; };
++  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040,A00000000000000000000041,A00000000000000000000042,A00000000000000000000043,A00000000000000000000044, C00000000000000000000007, C0000000000000000000000B); runOnlyForDeploymentPostprocessing = 0; };
++  A00000000000000000000012 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000024,A00000000000000000000025,A00000000000000000000027, C00000000000000000000004, C00000000000000000000005); runOnlyForDeploymentPostprocessing = 0; };
++  A00000000000000000000013 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (C00000000000000000000009); runOnlyForDeploymentPostprocessing = 0; };
++  A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_FILE = FieldLog/ChecklistInfo.plist; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Debug; };
++  A00000000000000000000015 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_FILE = FieldLog/ChecklistInfo.plist; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-O"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Release; };
+   A00000000000000000000020 = { isa = XCLocalSwiftPackageReference; relativePath = ".."; };
+   A00000000000000000000022 = { isa = XCSwiftPackageProductDependency; package = A00000000000000000000020; productName = FieldLogModels; };
+   A00000000000000000000023 = { isa = XCSwiftPackageProductDependency; package = A00000000000000000000020; productName = FieldLogStorage; };
+@@ -39,13 +50,15 @@
+   A00000000000000000000044 = { isa = PBXBuildFile; fileRef = A00000000000000000000034; };
+
+   B00000000000000000000001 = { isa = PBXNativeTarget; buildConfigurationList = B00000000000000000000004; buildPhases = (B00000000000000000000005,B00000000000000000000006,B00000000000000000000007); buildRules = (); dependencies = (B00000000000000000000008); name = FieldLogUITests; productName = FieldLogUITests; productReference = B00000000000000000000003; productType = "com.apple.product-type.bundle.ui-testing"; };
+-  B00000000000000000000002 = { isa = PBXGroup; path = FieldLogUITests; children = (B00000000000000000000009); sourceTree = "<group>"; };
++  B00000000000000000000002 = { isa = PBXGroup; path = FieldLogUITests; children = (B00000000000000000000009, D00000000000000000000001); sourceTree = "<group>"; };
+   B00000000000000000000003 = { isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FieldLogUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+   B00000000000000000000004 = { isa = XCConfigurationList; buildConfigurations = (B00000000000000000000010,B00000000000000000000011); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+-  B00000000000000000000005 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B00000000000000000000012); runOnlyForDeploymentPostprocessing = 0; };
++  B00000000000000000000005 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B00000000000000000000012, D00000000000000000000002); runOnlyForDeploymentPostprocessing = 0; };
+   B00000000000000000000006 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+   B00000000000000000000007 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+   B00000000000000000000008 = { isa = PBXTargetDependency; target = A00000000000000000000005; targetProxy = B00000000000000000000013; };
++  D00000000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChecklistJourney.swift; sourceTree = "<group>"; };
++  D00000000000000000000002 = { isa = PBXBuildFile; fileRef = D00000000000000000000001; };
+   B00000000000000000000009 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FieldLogUITests.swift; sourceTree = "<group>"; };
+   B00000000000000000000010 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog.uitests; PRODUCT_NAME = "$(TARGET_NAME)"; GENERATE_INFOPLIST_FILE = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; TEST_TARGET_NAME = FieldLog; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"; }; name = Debug; };
+   B00000000000000000000011 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog.uitests; PRODUCT_NAME = "$(TARGET_NAME)"; GENERATE_INFOPLIST_FILE = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-O"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; TEST_TARGET_NAME = FieldLog; LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks"; }; name = Release; };
+--- a/ios/FieldLog.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
++++ b/ios/FieldLog.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+@@ -1,12 +1,22 @@
+ {
+-  "originHash" : "609c3118ec21aa7b00623604e3f58905498b6f62dcb51af7992c7aeafb4327ee",
++  "originHash" : "39fed78c1997805c904fc0c3dddd05b90504391f3d79b326d066d6ff37cb747d",
+   "pins" : [
+     {
+-      "identity" : "mixer",
++      "identity" : "swift-asn1",
+       "kind" : "remoteSourceControl",
+-      "location" : "https://github.com/snowdamiz/mixer.git",
++      "location" : "https://github.com/apple/swift-asn1.git",
+       "state" : {
+-        "revision" : "56ff14c925168284761c5aca4f0bd4129cf3c995"
++        "revision" : "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
++        "version" : "1.7.3"
++      }
++    },
++    {
++      "identity" : "swift-crypto",
++      "kind" : "remoteSourceControl",
++      "location" : "https://github.com/apple/swift-crypto.git",
++      "state" : {
++        "revision" : "c2cbadd7263439d8015189668f96ff5b5be565ce",
++        "version" : "5.0.3"
+       }
+     }
+   ],
+--- /dev/null
++++ b/scripts/signed-checklist-recovery-tests.swift
+@@ -0,0 +1,186 @@
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++
++@main struct SignedChecklistRecoveryTests {
++  static func main() async throws {
++    let directory = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
++    try await stopAroundWrite(directory)
++    try stopsBeforeFirstHealthPoll()
++    try failedReopenKeepsSavedStatus()
++    try ignoresDoneAndReplacement()
++    try rejectsUnverifiedReopen()
++  }
++
++  static func stopsBeforeFirstHealthPoll() throws {
++    var model = SignedChecklistRecovery()
++    let opening = model.operation
++    try check(!model.stopped(opening, reason: .deadline), "Startup failure alone establishes no health")
++    try check(model.stopped(opening, reason: .deadline, hasSavedRelease: true),
++      "A first terminal observation with a durable saved release enters recovery")
++    model.retirementFinished(opening, retired: true,
++      saved: .init(healthy: "sequence-2", staged: nil, completed: false))
++    let stopped = model.phase
++    model.begin(.checkForUpdate)
++    try check(model.operation == opening && model.phase == stopped,
++      "Check for update cannot launch after a stopped guest")
++
++    var active = SignedChecklistRecovery()
++    try check(active.opened(active.operation), "Current checklist reached health")
++    active.begin(.checkForUpdate)
++    let update = active.operation
++    try check(active.stopped(update, reason: .deadline, hasSavedRelease: true),
++      "A terminal former owner redirects an update request to recovery")
++    try check(!active.opened(update), "The redirected update cannot install a replacement")
++    try check(SignedChecklistRecovery.Saved.contains(candidate: "sequence-1", healthy: "sequence-2",
++      previousHealthy: "sequence-1"), "The previous committed candidate can supply saved recovery")
++    try check(!SignedChecklistRecovery.Saved.contains(candidate: nil, healthy: nil, previousHealthy: nil),
++      "No candidate cannot stand in for a saved release")
++    print("PASS terminal snapshot between health polls and update redirected to recovery")
++  }
++
++  static func failedReopenKeepsSavedStatus() throws {
++    var model = SignedChecklistRecovery()
++    let initial = model.operation
++    let saved = try requireSaved(completed: true)
++    try check(model.opened(initial), "Initial checklist reached health")
++    try check(model.stopped(initial, reason: .deadline), "Active owner stopped")
++    model.retirementFinished(initial, retired: true, saved: saved)
++    model.begin(.reopenSaved(saved))
++    let reopen = model.operation
++    try check(!model.stopped(reopen, reason: .deadline, hasSavedRelease: true),
++      "Old durable health cannot turn a pre-health saved startup failure into a new recovery offer")
++    var retiredFailure = model
++    retiredFailure.openFailed(reopen, retired: true)
++    retiredFailure.begin(.checkForUpdate)
++    try check(retiredFailure.operation == reopen &&
++      retiredFailure.phase == .reopenFailed(saved, retirementPending: false),
++      "A fully retired startup failure keeps Completed and does not become an update request")
++    model.openFailed(reopen, retired: false)
++    model.begin(.reopenSaved(saved))
++    model.begin(.checkForUpdate)
++    try check(model.operation == reopen && model.phase == .reopenFailed(saved, retirementPending: true),
++      "Failed reopen retains Completed and blocks new launches while retirement is unconfirmed")
++    try check(model.canFinish && !model.canCheckForUpdate, "Done can retry retirement without opening a guest")
++    model.begin(.done)
++    try check(model.operation.command == .done, "Done takes over retirement")
++    model.closeDelayed(model.operation)
++    try check(model.phase == .closePending(saved), "An unfinished Done keeps the saved task status")
++    model.begin(.done)
++    try check(model.phase == .closing(saved), "Retrying Done keeps the saved task status")
++    print("PASS failed saved reopen keeps committed status and fences launches")
++  }
++
++  static func stopAroundWrite(_ directory: URL) async throws {
++    let repository = try WorkspaceRepository(directory: directory)
++    let workspace = try await repository.transact { state in
++      let projectID = try state.createProject(title: "Inspection", site: "Yard")
++      try state.saveTask(projectID: projectID, title: "Check gate", responsible: "Night shift")
++    }
++    let task = workspace.tasks[0]
++    var model = SignedChecklistRecovery()
++    let initialOperation = model.operation
++    try check(model.opened(initialOperation), "Initial checklist reached health")
++    try check(model.stopped(initialOperation, reason: .deadline), "An active deadline becomes visible")
++    guard let before = await SignedChecklistRecovery.Saved.read(healthy: "sequence-2", staged: nil,
++      repository: repository, taskID: task.id, projectID: task.projectID)
++    else { throw Failure(message: "Read the saved task before an edit") }
++    try check(!before.completed, "A stop before a write preserves Open")
++    model.retirementFinished(initialOperation, retired: true, saved: before)
++    try check(model.phase == .stopped(.deadline, before), "Recovery shows the saved Open task")
++    model.begin(.reopenSaved(before))
++    let reopened = model.operation
++    try check(model.opened(reopened), "The user explicitly reopened the retained candidate")
++    let unchanged = try await repository.readCommittedSnapshot()
++    try check(unchanged == workspace, "Reopening before an edit leaves the snapshot intact")
++
++    let committed = try await repository.transact(expectedRevision: workspace.revision) {
++      try $0.toggleTask(task.id)
++    }
++    let savedFile = directory.appendingPathComponent("workspace.json")
++    let committedBytes = try Data(contentsOf: savedFile)
++    try check(model.stopped(reopened, reason: .interrupted), "A stop after commit replaces guest controls")
++    try check(!model.showsGuest, "Stopped guest controls are removed")
++    model.begin(.reopenSaved(before))
++    try check(model.operation == reopened, "Reopen cannot run before close completes")
++    model.retirementFinished(reopened, retired: false)
++    try check(model.phase == .retirementPending(.interrupted), "Unconfirmed cleanup remains pending")
++    try check(!model.canCheckForUpdate, "Update cannot replace a closing owner")
++    model.begin(.checkRetirement(.interrupted))
++    let retirement = model.operation
++    guard let saved = await SignedChecklistRecovery.Saved.read(healthy: "sequence-2", staged: nil,
++      repository: repository, taskID: task.id, projectID: task.projectID)
++    else { throw Failure(message: "Read the saved task after the edit") }
++    try check(saved.completed, "The saved truth includes the edit that never rendered")
++    model.retirementFinished(retirement, retired: true, saved: saved, confirmedDeadline: true)
++    try check(model.phase == .stopped(.deadline, saved), "Checked terminal detail updates the status")
++    model.begin(.reopenSaved(saved))
++    let recovered = model.operation
++    model.begin(.reopenSaved(saved))
++    try check(model.operation == recovered, "A second reopen tap cannot create another launch")
++    try check(model.opened(recovered), "Explicit reopen completes on fresh health")
++    let after = try await repository.readCommittedSnapshot()
++    let afterBytes = try Data(contentsOf: savedFile)
++    try check(committed.revision == workspace.revision + 1 && committed.outbox.count == workspace.outbox.count + 1,
++      "The submitted edit committed exactly once")
++    try check(after == committed && afterBytes == committedBytes,
++      "Recovery leaves task, revision, outbox and workspace bytes intact")
++    await repository.close()
++    print("PASS before-write, after-write-before-display, retirement fence and no duplicate edit")
++  }
++
++  static func ignoresDoneAndReplacement() throws {
++    var model = SignedChecklistRecovery()
++    let original = model.operation
++    try check(model.opened(original), "Original owner reached health")
++    model.begin(.checkForUpdate)
++    let replacement = model.operation
++    try check(!model.stopped(original, reason: .deadline), "A stale stop cannot interrupt replacement")
++    try check(model.opened(replacement), "Replacement can reach health")
++    try check(!model.stopped(original, reason: .deadline), "A stale stop cannot interrupt a healthy replacement")
++    try check(model.stopped(replacement, reason: .deadline), "Replacement can stop")
++    model.retirementFinished(replacement, retired: false)
++    model.begin(.done)
++    let done = model.operation
++    try check(!model.stopped(replacement, reason: .deadline), "A stale stop cannot change Done")
++    model.retirementFinished(replacement, retired: true,
++      saved: .init(healthy: "sequence-2", staged: nil, completed: true))
++    model.openFailed(replacement, retired: true)
++    try check(!model.opened(original), "A stale healthy notification cannot change Done")
++    try check(model.phase == .closing(nil) && model.operation == done,
++      "Late health, failure and retirement results cannot restore the guest after Done")
++    print("PASS stale notifications after Done and replacement")
++  }
++
++  static func rejectsUnverifiedReopen() throws {
++    var model = SignedChecklistRecovery()
++    let operation = model.operation
++    try check(model.opened(operation), "Initial checklist reached health")
++    try check(model.stopped(operation, reason: .interrupted), "Interrupted status is visible")
++    try check(SignedChecklistRecovery.Saved(healthy: nil, staged: nil, completed: true) == nil,
++      "Missing durable health prevents saved reopen")
++    try check(SignedChecklistRecovery.Saved(healthy: "sequence-2", staged: "sequence-3", completed: true) == nil,
++      "A staged candidate prevents a retained-only launch")
++    try check(SignedChecklistRecovery.Saved(healthy: "sequence-2", staged: nil, completed: nil) == nil,
++      "Unverified task state prevents saved reopen")
++    model.retirementFinished(operation, retired: true)
++    model.begin(.reopenSaved(try requireSaved(completed: true)))
++    try check(model.operation == operation, "There is no saved reopen without verified eligibility")
++    print("PASS unverified saved reopen is refused")
++  }
++
++  static func requireSaved(completed: Bool) throws -> SignedChecklistRecovery.Saved {
++    guard let saved = SignedChecklistRecovery.Saved(healthy: "sequence-2", staged: nil, completed: completed)
++    else { throw Failure(message: "Build an eligible saved state for the model") }
++    return saved
++  }
++
++  static func check(_ condition: Bool, _ message: String) throws {
++    guard condition else { throw Failure(message: message) }
++  }
++
++  struct Failure: LocalizedError {
++    let message: String
++    var errorDescription: String? { message }
++  }
++}
+--- /dev/null
++++ b/scripts/test-signed-checklist-recovery.sh
+@@ -0,0 +1,22 @@
++#!/bin/sh
++set -eu
++
++cd "$(dirname "$0")/.."
++scratch=$(mktemp -d "${TMPDIR:-/tmp}/fieldlog-sheet-tests.XXXXXXXX")
++trap 'rm -rf "$scratch"' EXIT
++trap 'exit 1' HUP INT TERM
++mkdir "$scratch/cache"
++export TMPDIR="$scratch"
++
++swiftc -swift-version 6 -warnings-as-errors -module-cache-path "$scratch/cache" \
++  -parse-as-library -emit-module -emit-object -module-name FieldLogModels \
++  -emit-module-path "$scratch/FieldLogModels.swiftmodule" \
++  -o "$scratch/FieldLogModels.o" Sources/FieldLogModels/Workspace.swift
++swiftc -swift-version 6 -warnings-as-errors -module-cache-path "$scratch/cache" -I "$scratch" \
++  -parse-as-library -emit-module -emit-object -module-name FieldLogStorage \
++  -emit-module-path "$scratch/FieldLogStorage.swiftmodule" \
++  -o "$scratch/FieldLogStorage.o" Sources/FieldLogStorage/WorkspaceRepository.swift
++swiftc -swift-version 6 -warnings-as-errors -module-cache-path "$scratch/cache" -I "$scratch" \
++  -parse-as-library -o "$scratch/host-tests" "$scratch/FieldLogModels.o" "$scratch/FieldLogStorage.o" \
++  ios/FieldLog/SignedChecklistRecovery.swift scripts/signed-checklist-recovery-tests.swift
++"$scratch/host-tests" "$scratch/workspace"

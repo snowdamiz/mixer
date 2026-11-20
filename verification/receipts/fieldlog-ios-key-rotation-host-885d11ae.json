@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "status": "host_pass_native_pending",
+  "recordedUTC": "2026-11-20T05:30:00Z",
+  "scope": "L04 and L08 §22.2.11 public-source development fixture, macOS host only",
+  "recipe": "capability-activation/verification/fieldlog-ios/rotation/README.md",
+  "source": {
+    "worktreeBase": "58951594a866492be7ce204e93a9533f892b2550",
+    "worktreeBaseTree": "f610b7745283d445727cf32e0ee3fd45427dd925",
+    "priorRecipeCheckpoint": "9abcfa470a15dba5aad8c409a4e7f32863dc5687",
+    "publicMixer": "a7588b902202f11afb0989fbbe5e4435856187ed",
+    "fieldLog": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "sdkAndVM": "584cd1947edd590fd9fc732197f7d737287ab36f",
+    "publisher": "fef67b64cddf5e0185d2f4234a60f15a070d26cd",
+    "guestBase": "3184c398ba5e5dcded110a65772d793ba9caf9f6",
+    "guestTree": "7991d0ce5c8ba46e8ccb8abedd691aee6d982b20",
+    "selectedTaskOverlayBlob": "742efd5b481482ceb1c3e83b3b0adbf96bd77e37",
+    "verifiedHostOverlayFiles": 29,
+    "pinsSHA256": "f381324da0bb22dcde89ce7b71909ede80923f49b24575784d3219dbc4e19477",
+    "xctestSelector": "FieldLogUITests/ChecklistJourney/testDevelopmentKeyRotation",
+    "xctestSourceSHA256": "ab78aa19b5105716d2f877d4a8b3f8a123e97f0e7f75b6201a1641ca4cf9667c",
+    "xctestCheckpointSeconds": 35
+  },
+  "tools": {
+    "host": "macOS arm64",
+    "python": "3.14.8",
+    "xcode": "27.2 (27B52)",
+    "iPhoneSimulatorSDK": "27.2",
+    "hostSwift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "guestSwift": "Apple Swift 6.3.3 (swift-6.3.3-RELEASE)",
+    "rust": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "publisherGo": "go1.27.1 darwin/arm64",
+    "hostVMArchiveSHA256": "bc6b286fdd17507acf073846283dc7e9f32c3a7de8d98ac2c3d6ce35a23e4f74"
+  },
+  "payloads": {
+    "freshFixture": true,
+    "exactHistoricalProducerAvailable": false,
+    "baseline": {
+      "bytes": 6133,
+      "sha256": "8a3cdbfda08c053ee4f42865fd796ab0cf23270776783a6a6419dcd9119aa013"
+    },
+    "reviewed": {
+      "bytes": 6183,
+      "sha256": "c486d9af66c9b7aa5b44743ac87220dec811bdc1fde8e4dfa3b2a875b004e575"
+    }
+  },
+  "signingSample": {
+    "installedIdentitySHA256": "ef9b5e74d9de3ab79e571c0def12da74b71ccce50a9f149988ebe87285b01a91",
+    "publicRootsSHA256": "0ef9773d88454da7396edc83f60a2ff2059f1e69ebf9f3231ea28bbdbbccbdce",
+    "runtimeFingerprint": "1df5a693b9ad549d0b77ec2b742b814f15554412daf630fcf3a601ca5bb09885",
+    "installation": "885d11ae-0000-4000-8000-000000000004",
+    "issuedUnix": 1795152472,
+    "initialKeyCutoffUnix": 1795757272,
+    "roleSeparatedDevelopmentRoots": 6,
+    "baselineArtifactSHA256": "e5058f09840e4196e3021534f7a4eadc1f6d86cd711b01916c1c5d0d341e4f33",
+    "revokedArtifactSHA256": "07e6faae077ec084cd70cc6bd41f4862a3a3da57f3b251290061b152dc91cbec",
+    "replacementArtifactSHA256": "330d7fcf90a35c1ef1de6e4d324ea4b8484cc342dae256d9f9499252df4df463",
+    "revokedAndExpiredAssignmentArtifactEnvelopesByteIdenticalToReplacement": true,
+    "privateKeysWrittenOrRetained": false
+  },
+  "observed": {
+    "prepare.py WORK": "exit 0, verified pinned public source and 29 overlaid files",
+    "build-guest.sh WORK": "exit 0, sealed both source-built modules against exact size and hash pins",
+    "prepare.py CONTROL --payloads ALTERED_PAIR": "exit 1 for one-byte reviewed mutation, neither Wasm staged",
+    "test-signed-checklist-recovery.sh": "exit 0, five saved-workspace recovery checks",
+    "swiftc -typecheck -target arm64-apple-ios26.0-simulator": "exit 0 on exact XCTest source with Xcode 27.2",
+    "SignRotation TEMPLATES FIXTURE": "exit 0, full installed identity and seven ephemeral signed cases",
+    "validate-host.py FIXTURE HOST_VALIDATION": {
+      "exit": 0,
+      "protocolCases": 11,
+      "accepted": ["baseline", "replacement", "artifact-before-cutoff", "assignment-before-cutoff", "replacement-after-cutoff"],
+      "v3.signature.authority": ["revoked-artifact", "revoked-assignment", "expired-artifact", "expired-assignment"],
+      "v3.manifest.compatibility": ["wrong-runtime"],
+      "v3.payload.integrity": ["tampered-payload"],
+      "clock": "explicit --now, cutoff minus one second and cutoff, same installation",
+      "publication": "baseline and replacement published, four refused attempts preserved the exact baseline offer",
+      "service": "exit 0, child reaped, owned group absent, listener refused connection"
+    },
+    "InstalledProbe FIXTURE HOST_WORK": {
+      "exit": 0,
+      "outerTimeoutSeconds": 25,
+      "acceptedSequence": [1, 2],
+      "sameInstallationAcrossOwnerReopen": true,
+      "rejectedWithByteIdenticalRecoveryAndWorkspace": ["revoked-artifact", "revoked-assignment", "wrong-runtime"],
+      "workspace": "real FieldLog repository at revision 2, two outbox entries, saved task unchanged and Open",
+      "workspaceSHA256": "c9c15162ced8c022b81f8100b7973b83cb13bd68e009bb1081e6df972b29da68",
+      "bothSignedGuests": "feature_started and validated revision-1 guest frame showing Open and Complete task",
+      "nativeFirstScreenOrHealthCommitted": false,
+      "retirement": "both owners closed with no pending cleanup, child reaped and owned group absent"
+    },
+    "origin.py HOST_SMOKE --smoke": {
+      "exit": 0,
+      "exactOfferAndArtifactResponses": 8,
+      "installAndRuntimeScoped": true,
+      "offlineListenerRefusedConnection": true,
+      "bothListenersClosedAndThreadsJoined": true
+    }
+  },
+  "limits": {
+    "buildForTestingRun": false,
+    "deviceOperations": 0,
+    "nativeTestRun": false,
+    "pending": "Root adoption and unchanged XCTest and disk readback for healthy baseline, offline reopen and replacement with previous healthy candidate"
+  },
+  "cleanup": {
+    "ownedScratchRemoved": true,
+    "signedFixtureAndBinariesRetained": false,
+    "unresolvedNewCustody": false
+  },
+  "localGatesPassed": [],
+  "gaGatesPassed": []
+}

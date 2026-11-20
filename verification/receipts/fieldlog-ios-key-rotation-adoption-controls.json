@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "status": "host_controls_passed_native_pending",
+  "recordedUTC": "2026-11-20T06:12:08Z",
+  "scope": "Private FieldLog iOS key rotation recipe. macOS loopback and inert filesystem controls.",
+  "source": {
+    "parent": "7db00fcd55170dbe200ccfe71feffea213c3450b",
+    "parentTree": "f010f97b14a1c3cf02bacd9a4e52bf16f352f8b0",
+    "recipeTree": "a201abc5f71e22ea107daa0a72750734528b3683",
+    "xctestSourceSHA256": "ab78aa19b5105716d2f877d4a8b3f8a123e97f0e7f75b6201a1641ca4cf9667c",
+    "pinsSHA256": "f381324da0bb22dcde89ce7b71909ede80923f49b24575784d3219dbc4e19477"
+  },
+  "host": {"os": "macOS 27.0.1", "architecture": "arm64", "python": "3.14.8"},
+  "commands": [
+    "python3 -B - (inline loopback, write-fault, plan, dispatch and readback controls)",
+    "python3 -B origin.py <inert-evidence>/origin --smoke --seconds 3",
+    "python3 -B prepare-run.py iphonesimulator <inert-products>",
+    "python3 -B prepare-run.py iphonesimulator <inert-products> --origin-run <inert-origin> --device-id 885d11ae-0000-4000-8000-000000000001 --run-dir <inert-dispatch>",
+    "python3 -B verify-readback.py <inert-evidence> 885d11ae-0000-4000-8000-000000000001"
+  ],
+  "observations": [
+    "Loopback response digests matched received bytes, phase receipts and traffic.jsonl. The offline listener closed and both final listener closure checks passed.",
+    "Five trace mutations failed, including replacement update substitution into the revoked-assignment phase with matching artifact envelope, payload, sequence and installation. A coordinated substitution in both traffic and transition receipts also failed.",
+    "Short writes and broken pipes on both routes left the phase without a completed traffic event for the affected route.",
+    "Four inert plan cases passed across modern and legacy layouts. Six negative cases rejected excluding or invalid filters and an absent bundle executable.",
+    "Prepared plan and reported argv named the exact rotation method and retained the 360-second execution allowance. Missing, extra, wrong and skipped selectors and the wrong device were rejected.",
+    "The readback CLI reconciled inert evidence and rejected changed phase data, dispatch selector and result attachment selector.",
+    "The XCTest source, overlays and pins matched the parent. Temporary files were removed."
+  ],
+  "pending": "Actual method discovery at XCTest dispatch, generic iOS build, Simulator execution and native readback."
+}

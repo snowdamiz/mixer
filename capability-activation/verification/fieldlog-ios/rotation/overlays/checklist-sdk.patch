@@ -1,0 +1,578 @@
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityAttemptSignals.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityAttemptSignals.swift
+@@ -37,6 +37,30 @@
+     private var firstBridgeFailure: ExperimentalCapabilityFailure?
+     private var effectsMayHaveOpened = false
+     private var notificationSent = false
++    #if DEBUG
++    private var startupTrace: CapabilityGuestUIStartupTrace?
++
++    func beginStartupTrace(_ selection: CapabilityStartupSelection) {
++        guard guestUI != nil else { return }
++        lock.lock(); defer { lock.unlock() }
++        startupTrace = CapabilityGuestUIStartupTrace(selection)
++    }
++    func updateStartupTrace(_ update: (inout CapabilityGuestUIStartupTrace) -> Void) {
++        lock.lock(); defer { lock.unlock() }
++        guard var trace = startupTrace, trace.frozen == nil else { return }
++        update(&trace)
++        startupTrace = trace
++    }
++    func freezeStartupTrace() {
++        guard let guestUI else { return }
++        updateStartupTrace { $0.frozen = $0.read(guestUI) }
++    }
++    var startupDiagnostic: CapabilityGuestUIStartupDiagnostic? {
++        guard let guestUI else { return nil }
++        lock.lock(); defer { lock.unlock() }
++        return startupTrace?.read(guestUI)
++    }
++    #endif
+
+     init(generation: UInt64, guestUI: GuestUIExchangeV1? = nil) {
+         precondition(generation > 0)
+@@ -52,6 +76,9 @@
+         if firstCause == nil { firstCause = .bridge(failure) }
+         let notify = !notificationSent; notificationSent = true
+         lock.unlock()
++        #if DEBUG
++        freezeStartupTrace()
++        #endif
+         if guestUI != nil || notify { signalNotification() }
+     }
+     func requestStop(_ cause: CapabilityAttemptLocalStop) {
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartControl.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartControl.swift
+@@ -194,7 +194,13 @@
+         observation?.timer = try CapabilityColdStartObservationTimer(seconds: seconds, signals: signals)
+     }
+     func setPhase(_ next: CapabilityActivationPhase) {
+-        lock.lock(); if !closed { phase = next }; lock.unlock()
++        lock.lock(); defer { lock.unlock() }
++        if !closed {
++            phase = next
++            #if DEBUG
++            observation?.signals.updateStartupTrace { $0.phase = next }
++            #endif
++        }
+     }
+     func markConsumed(_ value: Bool) { lock.lock(); consumedActive = value; lock.unlock() }
+     func beginNotification(_ generation: UInt64) -> Bool {
+@@ -221,6 +227,9 @@
+     func detachObservation() -> CapabilityColdStartObservation? {
+         lock.lock(); defer { lock.unlock() }
+         let old = observation ?? endingObservation
++        #if DEBUG
++        old?.signals.freezeStartupTrace()
++        #endif
+         if let old { lastSignal = old.signals.snapshot; lastSignalObject = old.signals }
+         observation = nil; endingObservation = nil; pendingWake = false; return old
+     }
+@@ -243,6 +252,9 @@
+         let signal = (observation ?? endingObservation)?.signals, value = concrete, wait = retirementWait
+         let old = ordinary, cancel = cancellation, store = store
+         let stopStore = !consumedActive
++        #if DEBUG
++        signal?.freezeStartupTrace()
++        #endif
+         concrete = nil; lock.unlock()
+         signal?.requestStop(cause) // Before native cancellation or closing I/O.
+         old?.cancel(); cancel?.cancel(); wait?.cancelWait()
+@@ -272,6 +284,12 @@
+         lock.unlock()
+         return CapabilityGuestUIActivationSnapshot(base, ui: signal?.guestUI)
+     }
++    #if DEBUG
++    var startupDiagnosticSignals: CapabilityAttemptSignals? {
++        lock.lock(); defer { lock.unlock() }
++        return (observation ?? endingObservation)?.signals ?? lastSignalObject
++    }
++    #endif
+     var snapshot: CapabilityActivationSnapshot {
+         lock.lock()
+         var currentPhase = phase
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift
+@@ -109,6 +109,9 @@
+                 allowsDeferredStartup: installed.applicationStorage?.allowsDeferredGuestUIStartup == true)
+         }
+         let signals = CapabilityAttemptSignals(generation: selection.generation, guestUI: exchange)
++        #if DEBUG
++        signals.beginStartupTrace(selection)
++        #endif
+         try control.installObservation(signals, worker: self, candidate: selection.candidateID,
+             launch: selection.launchID, op: op)
+         var consumed: CapabilityConsumedStartup?
+@@ -123,6 +126,9 @@
+                 }
+                 try control.requireCurrent(op)
+             }
++            #if DEBUG
++            signals.updateStartupTrace { $0.step = "consumeSelection" }
++            #endif
+             let input = try await store.consume(selection, signals: signals)
+             consumed = input; active = input; self.signals = signals; milestones.removeAll(); earnedHealth = false
+             control.markConsumed(true)
+@@ -130,13 +136,25 @@
+             let attempt = try CapabilityConcreteAttempt(consumed: input, installed: installed,
+                 reservation: control.reservation, signals: signals)
+             try control.installConcrete(attempt, signals: signals) // Before any construct await.
++            #if DEBUG
++            signals.updateStartupTrace { $0.step = "construct" }
++            #endif
+             try await attempt.construct()
+             try requireAttempt(op, signals)
++            #if DEBUG
++            signals.updateStartupTrace { $0.step = "guestStartup" }
++            #endif
+             if exchange != nil { try await attempt.startupGuestUI() }
+             else { _ = try await attempt.startup() } // Effects remain disabled.
+             try requireAttempt(op, signals)
++            #if DEBUG
++            signals.updateStartupTrace { $0.step = "recordEffectsIntent" }
++            #endif
+             try await store.recordEffectsIntent(input, signals: signals)
+             try requireAttempt(op, signals)
++            #if DEBUG
++            signals.updateStartupTrace { $0.step = "enableEffects" }
++            #endif
+             try await attempt.enableEffects() // Original selected absolute cutoff.
+             try requireAttempt(op, signals)
+             try await store.confirmEffectsEnabled(input, signals: signals)
+@@ -147,6 +165,9 @@
+                 milestones.insert("feature_started")
+                 try requireAttempt(op, signals)
+             }
++            #if DEBUG
++            signals.updateStartupTrace { $0.step = "observeHealth" }
++            #endif
+             try control.armTimer(seconds: configuration.observationSeconds, signals: signals)
+             control.setPhase(.provisionalGuest)
+             return .live
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityConcreteAttempt.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityConcreteAttempt.swift
+@@ -183,15 +183,25 @@
+     func sessionForMethod() throws -> ExperimentalCapabilitySession {
+         try locked { s in guard !s.stopped, let session = s.session else { throw concreteAttemptError("stopped") }; return session }
+     }
+-    func requireOpen(deadline: Bool) throws {
++    func requireOpen(deadline: Bool, file: StaticString = #fileID, line: UInt = #line) throws {
+         guard !locked({ $0.stopped }), !signals.snapshot.stopped else { throw concreteAttemptError("stopped") }
+         if deadline && DispatchTime.now().uptimeNanoseconds >= cutoff {
+-            signals.requestStop(.deadline); throw concreteAttemptError("deadline")
++            #if DEBUG
++            signals.updateStartupTrace { $0.deadlineCheckpoint = "\(file):\(line)" }
++            #endif
++            signals.requestStop(.deadline)
++            #if DEBUG
++            signals.freezeStartupTrace()
++            #endif
++            throw concreteAttemptError("deadline")
+         }
+         try Task.checkCancellation()
+     }
+     func stop(_ cause: CapabilityAttemptLocalStop?) {
+         if let cause { signals.requestStop(cause) } // Before any bridge cancellation.
++        #if DEBUG
++        signals.freezeStartupTrace()
++        #endif
+         let unused = stopOwned()
+         if unused { retirement.setupDidReturn() }
+     }
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift
+@@ -1,6 +1,9 @@
+ #if canImport(SwiftUI) && canImport(MixerApple)
+ import Foundation
+ import MixerApple
++#if DEBUG
++@_spi(GuestUIV1) import MixerGuest
++#endif
+
+ /// Signed guest UI owner. Its private presentation binding is the only route
+ /// for native events and visible-screen observations. No executable, document,
+@@ -90,6 +93,24 @@
+     public func recoverySnapshot() async -> CapabilityGuestUIRecoverySnapshot {
+         CapabilityGuestUIRecoverySnapshot(core.control.recoverySnapshot, activation: core.control.guestUISnapshot)
+     }
++    #if DEBUG
++    /// Private FieldLog replay probe. A later native error detail is correlated
++    /// through the same signal object as the frozen pre-retirement observation.
++    @_spi(FieldLogStartupDiagnostics)
++    public func startupDiagnostic(launchID: String) -> Data? {
++        guard let signals = core.control.startupDiagnosticSignals,
++              let captured = signals.startupDiagnostic, captured.launchID == launchID else { return nil }
++        let signal = signals.snapshot
++        let bridge = signal.firstBridgeFailure
++        let encoder = JSONEncoder()
++        encoder.outputFormatting = [.sortedKeys]
++        return try? encoder.encode(FieldLogStartupDiagnostic(startup: captured,
++            terminalCauseAtRead: signal.guestUI?.stop.map { String(describing: $0) },
++            bridgeOperation: bridge.map { String(describing: $0.operation) },
++            bridgeCode: bridge?.code, bridgeStatus: bridge?.nativeStatus,
++            bridgeFunction: bridge?.location?.functionIndex, bridgeByteOffset: bridge?.location?.byteOffset))
++    }
++    #endif
+     /// Admission and local cause stop synchronously before native cancellation.
+     /// Awaiting close joins coordinator work/fds; actual native exit may remain
+     /// counted indefinitely and is exposed by cleanupPending.
+@@ -101,4 +122,16 @@
+     }
+ }
+
++#if DEBUG
++private struct FieldLogStartupDiagnostic: Encodable {
++    let startup: CapabilityGuestUIStartupDiagnostic
++    let terminalCauseAtRead: String?
++    let bridgeOperation: String?
++    let bridgeCode: String?
++    let bridgeStatus: UInt32?
++    let bridgeFunction: UInt32?
++    let bridgeByteOffset: UInt32?
++}
+ #endif
++
++#endif
+--- /dev/null
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIStartupDiagnostic.swift
+@@ -0,0 +1,62 @@
++#if DEBUG
++import Foundation
++@_spi(GuestUIV1) import MixerGuest
++
++/// Private replay evidence. Contains only scalar attempt metadata.
++struct CapabilityGuestUIStartupDiagnostic: Encodable, Sendable {
++    let launchID: String
++    let candidateID: String
++    let generation: UInt64
++    let startupBegan: UInt64
++    let startupCutoff: UInt64
++    let capturedAt: UInt64
++    let exchangeStoppedAt: UInt64?
++    let phase: String
++    let step: String
++    let deadlineCheckpoint: String?
++    let terminalCause: String?
++    let hasStarted: Bool
++    let effectsIntent: Bool
++    let effectsConfirmed: Bool
++    let producedFrames: UInt64
++    let latestRevision: UInt64?
++    let installedRevision: UInt64?
++    let pendingNativeReceipt: UInt64?
++    let acceptedStoreMilestones: [String]
++    let sameLaunchHealthCommitted: Bool
++}
++
++struct CapabilityGuestUIStartupTrace {
++    let launchID: String
++    let candidateID: String
++    let began: UInt64
++    let cutoff: UInt64
++    var phase: CapabilityActivationPhase = .starting
++    var step = "bindPresentation"
++    var deadlineCheckpoint: String?
++    var milestones: Set<String> = []
++    var healthCommitted = false
++    var frozen: CapabilityGuestUIStartupDiagnostic?
++
++    init(_ selection: CapabilityStartupSelection) {
++        launchID = selection.launchID
++        candidateID = selection.candidateID
++        began = selection.startupBeganUptimeNanoseconds
++        cutoff = selection.startupCutoffUptimeNanoseconds
++    }
++
++    func read(_ exchange: GuestUIExchangeV1) -> CapabilityGuestUIStartupDiagnostic {
++        if let frozen { return frozen }
++        let (ui, stoppedAt) = exchange.startupDiagnosticSnapshot()
++        return CapabilityGuestUIStartupDiagnostic(launchID: launchID, candidateID: candidateID,
++            generation: ui.generation, startupBegan: began, startupCutoff: cutoff,
++            capturedAt: DispatchTime.now().uptimeNanoseconds, exchangeStoppedAt: stoppedAt,
++            phase: String(describing: phase), step: step, deadlineCheckpoint: deadlineCheckpoint,
++            terminalCause: ui.stop.map { String(describing: $0) }, hasStarted: ui.hasStarted,
++            effectsIntent: ui.effectsMayHaveOpened, effectsConfirmed: ui.effectsConfirmed,
++            producedFrames: ui.counters.producedFrames, latestRevision: ui.latestRevision,
++            installedRevision: ui.displayedRevision, pendingNativeReceipt: ui.pendingPresentationReceipt?.revision,
++            acceptedStoreMilestones: milestones.sorted(), sameLaunchHealthCommitted: healthCommitted)
++    }
++}
++#endif
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift
+@@ -558,6 +558,9 @@
+         guard effectsEnabledAt != nil, configuration.requiredMilestones.contains(id) else { throw capabilityRecoveryError("milestone") }
+         try signals.requireCommitEntry(expectedGeneration: input.generation)
+         milestones.insert(id) // Fixed installed <=16 set; duplicates are idempotent.
++        #if DEBUG
++        signals.updateStartupTrace { $0.milestones.insert(id) }
++        #endif
+     }
+     func commitHealth(_ input: CapabilityConsumedStartup, signals: CapabilityAttemptSignals,
+                       _ op: CapabilityRecoveryOperation) throws -> Bool {
+@@ -576,6 +579,9 @@
+         try op.enterCommit(); try signals.requireCommitEntry(expectedGeneration: input.generation)
+         state = next
+         do { try d.atomicState(encoded); publish() } catch { recoveryRequired = true; poison(); throw error }
++        #if DEBUG
++        signals.updateStartupTrace { $0.healthCommitted = true }
++        #endif
+         // A concurrent terminal cannot undo entered I/O or masquerade as health.
+         try op.check()
+         return !signals.snapshot.stopped
+--- a/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Native.swift
++++ b/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Native.swift
+@@ -90,7 +90,10 @@
+             fuelUsed: report.fuel_used, hostCallsUsed: report.host_calls_used)
+     }
+     func startup() throws -> ExperimentalCapabilityInvocation {
+-        var report = MixerVmReport(); let status = mixer_vm_capability_session_startup_v1(handle, &report)
++        var report = MixerVmReport()
++        let before = FieldLogTurnSample()
++        let status = mixer_vm_capability_session_startup_v1(handle, &report)
++        before.record("startup", handle, status, report)
+         try check(status, report, operation: .startup); return try Self.invocation(report, operation: .startup)
+     }
+     func enable() throws {
+@@ -99,16 +102,20 @@
+     func invoke(_ export: String, arguments: [ExperimentalVMValue]) throws -> ExperimentalCapabilityInvocation {
+         let name = Array(export.utf8), values = arguments.map(\.native)
+         var report = MixerVmReport()
++        let before = FieldLogTurnSample()
+         let status = name.withUnsafeBufferPointer { name in
+             values.withUnsafeBufferPointer { args in
+                 mixer_vm_capability_session_invoke_v1(handle, name.baseAddress, name.count, args.baseAddress, args.count, &report)
+             }
+         }
++        if status != 0 { before.record("invoke", handle, status, report) }
+         try check(status, report, operation: .invocation); return try Self.invocation(report, operation: .invocation)
+     }
+     func wake() throws -> Bool {
+         var flag: UInt32 = 0, report = MixerVmReport()
++        let before = FieldLogTurnSample()
+         let status = mixer_vm_capability_session_wake_v1(handle, &flag, &report)
++        if status != 0 { before.record("wake", handle, status, report) }
+         try check(status, report, operation: .wake)
+         guard flag <= 1 else { throw ExperimentalCapabilityError("invalid_native_wake", operation: .wake) }
+         return flag == 1
+@@ -193,3 +200,30 @@
+         debugLines = nil
+     }
+ }
++
++
++// Private Simulator fixture. Both clock readings bracket the synchronous C call.
++private struct FieldLogTurnSample {
++    let began = DispatchTime.now().uptimeNanoseconds
++    let cpu = clock_gettime_nsec_np(CLOCK_THREAD_CPUTIME_ID)
++
++    func record(_ operation: String, _ handle: UInt64, _ status: UInt32, _ report: MixerVmReport) {
++        let endedCPU = clock_gettime_nsec_np(CLOCK_THREAD_CPUTIME_ID)
++        let ended = DispatchTime.now().uptimeNanoseconds
++        let args = ProcessInfo.processInfo.arguments
++        guard args.contains("--fieldlog-checklist-observation"),
++              let index = args.firstIndex(of: "--fieldlog-ui-workspace"), index + 1 < args.count,
++              let id = UUID(uuidString: args[index + 1]),
++              let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
++        else { return }
++        let directory = support.appendingPathComponent("FieldLogUITest-" + id.uuidString.lowercased())
++        let clocks: [String: Any] = ["operation": operation, "handle": handle, "status": status,
++            "began": began, "ended": ended, "wallNS": ended - began, "threadCPUNS": endedCPU - cpu,
++            "fuel": report.fuel_used, "hostCalls": report.host_calls_used,
++            "function": report.function, "offset": report.offset, "pid": ProcessInfo.processInfo.processIdentifier]
++        if let data = try? JSONSerialization.data(withJSONObject: clocks, options: [.sortedKeys]) {
++            let name = "vm-clock-" + String(began) + ".json"
++            try? data.write(to: directory.appendingPathComponent(name), options: .atomic)
++        }
++    }
++}
+--- a/sdk/Sources/MixerApple/MixerNativeView.swift
++++ b/sdk/Sources/MixerApple/MixerNativeView.swift
+@@ -70,32 +70,88 @@
+     @ObservedObject private var host: MixerUIHost
+     private let dispatch: @MainActor (UIEventEnvelope) throws -> Void
+     private let onEventFailure: @MainActor (any Error) -> Void
++    private let trackSynchronousTextChanges: Bool
+
+     public init(host: MixerUIHost, onAction: @escaping @MainActor (RoutedUIAction) -> Void,
+                 onEventFailure: @escaping @MainActor (any Error) -> Void = { _ in }) {
+         self.host = host; self.dispatch = { onAction(try host.route($0)) }; self.onEventFailure = onEventFailure
++        self.trackSynchronousTextChanges = false
+     }
+
+     public init(host: MixerUIHost, onIssuedAction: @escaping @MainActor (IssuedUIAction) -> Void,
+                 onEventFailure: @escaping @MainActor (any Error) -> Void = { _ in }) {
+-        self.host = host; self.dispatch = { onIssuedAction(try host.routeIssued($0)) }; self.onEventFailure = onEventFailure
++        self.init(host: host, trackSynchronousTextChanges: false, onIssuedAction: onIssuedAction,
++                  onEventFailure: onEventFailure)
++    }
++
++    /// Opt in when the issued-action handler synchronously installs the exact
++    /// text it accepts. The same SwiftUI binding can then deliver another edit
++    /// before SwiftUI installs a binding for the new render.
++    public init(host: MixerUIHost, trackSynchronousTextChanges: Bool,
++                onIssuedAction: @escaping @MainActor (IssuedUIAction) throws -> Void,
++                onEventFailure: @escaping @MainActor (any Error) -> Void = { _ in }) {
++        self.host = host; self.dispatch = { try onIssuedAction(host.routeIssued($0)) }; self.onEventFailure = onEventFailure
++        self.trackSynchronousTextChanges = trackSynchronousTextChanges
+     }
+
+     public var body: some SwiftUI.View {
+-        NativeNode(node: host.snapshot.document.root, snapshot: host.snapshot) { envelope in
+-            do { try dispatch(envelope) }
+-            catch { onEventFailure(error) }
++        NativeNode(node: host.snapshot.document.root, snapshot: host.snapshot,
++                   textHost: trackSynchronousTextChanges ? host : nil) { envelope in
++            do { try dispatch(envelope); return true }
++            catch { onEventFailure(error); return false }
+         }
+         .id(host.snapshot.identity(for: host.snapshot.document.root.id))
+         .background(FeatureDisplayCompletion(id: host.featureDisplayID) { host.completeFeatureDisplay($0) })
+     }
++}
++
++/// Only the edit initiated by this binding may advance its render cursor.
++/// A separate update (including another control's edit) leaves it stale.
++@MainActor
++func mixerNativeTextBinding(node: UINode, snapshot: UIRenderSnapshot, host: MixerUIHost?,
++                            dispatch: @escaping @MainActor (UIEventEnvelope) -> Bool) -> Binding<String> {
++    guard let identity = snapshot.identity(for: node.id),
++          node.actions.contains(where: { $0.event == .textChange }) else {
++        return .constant(node.properties["value"]!.string!)
++    }
++    var revision = snapshot.document.revision
++    var accepted = node.properties["value"]!.string!
++    var writing = false
++    return Binding(get: { accepted }, set: { [weak host] value in
++        guard !writing else { return }
++        writing = true
++        defer { writing = false }
++        let before = host?.snapshot
++        let issuedRevision = revision
++        guard dispatch(UIEventEnvelope(revision: issuedRevision, identity: identity, event: .textChange,
++                                       value: .string(value))),
++              let before, let after = host?.snapshot,
++              before.document.revision == issuedRevision,
++              issuedRevision < UInt64.max, after.document.revision == issuedRevision + 1,
++              after.document.schemaVersion == before.document.schemaVersion,
++              after.identity(for: node.id) == identity,
++              applyingText(value, to: node.id, in: before.document.root) == after.document.root else { return }
++        revision = after.document.revision
++        accepted = value
++    })
++}
++
++private func applyingText(_ value: String, to id: String, in node: UINode) -> UINode {
++    if node.id == id {
++        var updated = node
++        updated.properties["value"] = .string(value)
++        return updated
++    }
++    return UINode(id: node.id, kind: node.kind, properties: node.properties,
++                  children: node.children.map { applyingText(value, to: id, in: $0) }, actions: node.actions)
+ }
+
+ @MainActor
+ private struct NativeNode: SwiftUI.View {
+     let node: UINode
+     let snapshot: UIRenderSnapshot
+-    let dispatch: @MainActor (UIEventEnvelope) -> Void
++    let textHost: MixerUIHost?
++    let dispatch: @MainActor (UIEventEnvelope) -> Bool
+
+     var body: some SwiftUI.View {
+         accessibility(accessibilityContainer(render()))
+@@ -114,14 +170,14 @@
+
+     private var children: some SwiftUI.View {
+         ForEach(node.children, id: \.id) { child in
+-            NativeNode(node: child, snapshot: snapshot, dispatch: dispatch)
++            NativeNode(node: child, snapshot: snapshot, textHost: textHost, dispatch: dispatch)
+                 .id(snapshot.identity(for: child.id))
+         }
+     }
+
+     private func emit(_ event: UIEventKind, value: UIValue = .null) {
+         guard node.actions.contains(where: { $0.event == event }), let identity = snapshot.identity(for: node.id) else { return }
+-        dispatch(UIEventEnvelope(revision: snapshot.document.revision, identity: identity, event: event, value: value))
++        _ = dispatch(UIEventEnvelope(revision: snapshot.document.revision, identity: identity, event: event, value: value))
+     }
+
+     private func render() -> AnyView {
+@@ -135,7 +191,7 @@
+         case .button:
+             return AnyView(SwiftUI.Button(node.properties["label"]!.string!, role: buttonRole) { emit(.activate) })
+         case .textField:
+-            let binding = Binding<String>(get: { node.properties["value"]!.string! }, set: { emit(.textChange, value: .string($0)) })
++            let binding = mixerNativeTextBinding(node: node, snapshot: snapshot, host: textHost, dispatch: dispatch)
+             let axis: SwiftUI.Axis = node.properties["axis"]?.string == TextFieldAxis.vertical.rawValue ? .vertical : .horizontal
+             return AnyView(SwiftUI.TextField(node.properties["label"]!.string!, text: binding, axis: axis).onSubmit { emit(.submit) })
+         case .toggle:
+@@ -156,7 +212,7 @@
+             return AnyView(SwiftUI.Section { children })
+         case .navigation:
+             return AnyView(SwiftUI.NavigationStack {
+-                NativeNode(node: node.children[0], snapshot: snapshot, dispatch: dispatch)
++                NativeNode(node: node.children[0], snapshot: snapshot, textHost: textHost, dispatch: dispatch)
+                     .id(snapshot.identity(for: node.children[0].id))
+                     .navigationTitle(node.properties["title"]?.string ?? "")
+             })
+--- a/sdk/Sources/MixerGuest/GuestUIExchangeCore.swift
++++ b/sdk/Sources/MixerGuest/GuestUIExchangeCore.swift
+@@ -60,6 +60,10 @@
+         var displayedFrameSerial: UInt64?
+         var receipt: GuestUIPresentationReceiptV1?
+         var counters = GuestUIExchangeCountersV1()
++        #if DEBUG
++        var beforeStop: GuestUIExchangeSnapshotV1?
++        var stoppedAt: UInt64?
++        #endif
+     }
+     private static let validator = UIValidator(limits: UIValidationLimits(
+         maximumMessageBytes: 65536, maximumNodes: 256, maximumDepth: 16,
+@@ -102,6 +106,10 @@
+         s.stop = .protocolViolation(terminal); stopContents(&s, &notices)
+     }
+     private func stopContents(_ s: inout State, _ notices: inout Notices) {
++        #if DEBUG
++        s.stoppedAt = DispatchTime.now().uptimeNanoseconds
++        s.beforeStop = snapshot(s)
++        #endif
+         if let event = s.event {
+             switch event {
+             case .preparing: s.event = nil // Admission never completed.
+@@ -454,12 +462,20 @@
+         }
+     }
+     public func snapshot() -> GuestUIExchangeSnapshotV1 {
+-        mutate { s, _ in GuestUIExchangeSnapshotV1(generation: generation, stop: s.stop,
++        mutate { s, _ in snapshot(s) }
++    }
++    #if DEBUG
++    func startupDiagnosticSnapshot() -> (GuestUIExchangeSnapshotV1, stoppedAt: UInt64?) {
++        mutate { s, _ in (s.beforeStop ?? snapshot(s), s.stoppedAt) }
++    }
++    #endif
++    private func snapshot(_ s: State) -> GuestUIExchangeSnapshotV1 {
++        GuestUIExchangeSnapshotV1(generation: generation, stop: s.stop,
+             effectsMayHaveOpened: s.intent, effectsConfirmed: s.confirmed, hasStarted: s.started,
+             guestTurnInFlight: s.turn != nil, eventOutstanding: s.event != nil,
+             presentationInFlight: s.presentation != nil, latestRevision: s.latestRevision,
+             displayedRevision: s.displayed?.document.revision, pendingPresentationReceipt: s.receipt,
+-            firstUIProtocolFailure: s.firstUIFailure, counters: s.counters) }
++            firstUIProtocolFailure: s.firstUIFailure, counters: s.counters)
+     }
+ }
+
+--- a/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift
++++ b/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift
+@@ -51,4 +51,9 @@
+     public func recordProtocolFailure(_ failure: GuestUIProtocolFailureV1) { core.recordProtocolFailure(failure) }
+     public func stop(_ cause: GuestUIExternalStopV1) { core.stop(cause) }
+     public func snapshot() -> GuestUIExchangeSnapshotV1 { core.snapshot() }
++    #if DEBUG
++    public func startupDiagnosticSnapshot() -> (GuestUIExchangeSnapshotV1, stoppedAt: UInt64?) {
++        core.startupDiagnosticSnapshot()
++    }
++    #endif
+ }
