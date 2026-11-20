@@ -49,3 +49,53 @@ Run the API and restricted SQL proof from a checkout with locked hosted dependen
 ```sh
 python3 -B tests/integration/free-project-starter/registration-runner.py "$PWD" --android-starter
 ```
+
+## L07 closed worker restart
+
+Run the replay from a Mixer checkout with both pinned commits in its Git object database. The replay uses hosted, worker, CLI, and helper source from `201ead70ff68bfe18de24c0642f518701459e0a4`. It uses the Starter SDK from `fad0d0b3e65fd3be3b49675601693e5d91999fbe`.
+
+The launcher applies `restart-hosted-fixtures.patch` in the run's historical archive. It verifies the patch, both fixture files before and after applying it, and the restricted processor script. The fixture afterimages match the corrected five-file replay patch with SHA-256 `3e6b58e1932f77e98138f10ece92d8bc9f73471aa8fe5eb7138591bb883388c4`. The active Android Starter tests and v52 source selection use the current checkout. The launcher verifies the three pinned worker modules before each worker launch.
+
+From the checkout root on a Mac with Python 3.14, run the inert and source controls.
+
+```sh
+DELIVERY=tests/integration/free-project-starter
+python3.14 -B "$DELIVERY/replay-restart.py" --inert-only
+python3.14 -B "$DELIVERY/replay-restart.py" --source-only
+```
+
+The inert control starts the pinned worker twice on loopback. It checks that read-only canaries create zero operations and that restart preserves a synthetic terminal row and the ledger's identity. The control checks authenticated shutdown, rejects injected custody faults, and tests that CLI provenance rejects an unexpected entry inside its source root. The source control admits the historical fixtures and verifies every archived CLI provenance entry. Both controls run without Xcode.
+
+With Elixir 1.20.4 and PostgreSQL 17 installed, add `--fixture-only` to exercise the ordinary Phoenix fixture and restricted Oban processor. The fixture authenticates two tenants, checks cross-tenant access, and closes with zero build rows. Use `--pg-bin /absolute/path/to/bin` for a non-Homebrew PostgreSQL 17 install. Mix installs Hex 2.5.1 into the run directory, acquires the locked dependencies, and resolves them again offline.
+
+For a full replay, use a Mac with Xcode selected and the same Elixir and PostgreSQL versions. The launcher builds the host CLI with SwiftPM's locked revisions. The CLI's compiled-in provenance root contains only the pinned `cli`, `sdk`, `updates`, and `runtime-identity` trees. Hosted source, SwiftPM scratch and caches, and the Starter export live outside that root. The launcher verifies every provenance entry against Git after extraction, after export, at the pre-POST gate, and after service shutdown. It checks the retained manifest's source digest against that inventory.
+
+```sh
+python3.14 -B "$DELIVERY/replay-restart.py"
+```
+
+Use `--preflight-only` to close after authenticating the real Starter worker and checking that the queue is paused. For one full replay, set `RUN` to the fresh run directory printed by the launcher. Confirm the pre-POST checkpoint within 90 seconds from a second shell.
+
+```sh
+python3.14 -B - "$RUN" <<'PY'
+import json
+from pathlib import Path
+import sys
+
+run = Path(sys.argv[1])
+state = json.loads((run / "result.json").read_text())
+assert state["status"] == "all_real_services_prepost_ready"
+assert state["buildPOSTAttempts"] == state["workerStarts"] == state["compilerStarts"] == 0
+assert state["workerReadyAuthenticated"] and state["processorAdmission"]["paused"]
+assert state["paymentServiceConfigured"] is False
+assert state["provenanceVerifiedAt"] == ["after-export", "prepost-ready"]
+assert set(state["helperSourceSHA256"]) == {"registration-runner", "prepare-starter", "run-proof"}
+(run / "prepost-verified").touch(exist_ok=False)
+PY
+```
+
+The launcher records the single POST attempt before sending it. It retains one authenticated artifact reply after checking the matching durable operation, compiler closure, and manifest. It captures the SQLite file identity and terminal row before shutting down the first worker. Both must match after shutdown and after the replacement answers an authenticated query. The replacement uses a new port and startup digest behind the same relay listener. The original registration and artifact store stay bound to the operation.
+
+A successful run checks one compiler start, one capacity release, stable fresh-session reads, unrelated-tenant denial, billing row stability, and the returned artifact bytes. It builds an unsigned generic iOS Simulator target without booting a device or using payment credentials.
+
+A positively closed build failure exits 1 with `FAILED_CLOSED_NATIVE_BUILD` after authenticated worker shutdown, normal service exits, database drop, and port rebinding. Its receipt records the exact attempt's closure and any available CLI diagnostic code. A closed run prints its receipt under `verification/local/` after removing scratch. Exit 74 preserves the printed directory for custody review. Keep it intact even if receipt writing failed.

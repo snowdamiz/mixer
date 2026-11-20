@@ -1,0 +1,270 @@
+diff --git a/hosted/test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs b/hosted/test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs
+index 8d8a6a9b3c953dbbb549b721fd261867662b4e0f..54a7b8f581e1b5528c241d7c548452c1ca5e0988 100644
+--- a/hosted/test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs
++++ b/hosted/test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs
+@@ -17,6 +17,8 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
+   @test_app "example.source.app"
+
+   setup_all do
++    restart = System.get_env("MIXER_L07_REPLAY")
++    if restart, do: assert_owned_database!()
+     c = prepare!(:workspace_builds)
+
+     for version <- [
+@@ -55,6 +57,8 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
+     [{module, _}] = Code.require_file(path)
+     assert :ok = Ecto.Migrator.up(Migration, 20_261_118_000_012, module, log: false)
+
++    c = if restart, do: provision_restart!(c), else: c
++
+     c
+     |> put_in(
+       [:hosted, Access.key(:create_repo)],
+@@ -63,6 +67,188 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
+     |> start!()
+   end
+
++  if System.get_env("MIXER_L07_REPLAY") do
++    @tag :l07_restart
++    @tag timeout: :infinity
++    test "serve one closed Starter worker restart replay", c do
++      assert RuntimeOwner.status().phase == :storage_ready
++      assert c.hosted.oban[:queues] == false
++      owner = login(c)
++      scope = replay_scope(c, owner, "L07 owner")
++      outsider = outsider_login(c)
++      unrelated = replay_scope(c, outsider, "L07 unrelated tenant")
++      refute scope.organization_id == unrelated.organization_id
++      assert starter_list(c, owner, scope) == Map.put(public_scope(scope), "starter", nil)
++
++      assert starter_list(c, outsider, unrelated) ==
++               Map.put(public_scope(unrelated), "starter", nil)
++
++      assert get(c, outsider, @starters, scope).status in [403, 404]
++
++      starter =
++        if System.fetch_env!("MIXER_L07_REPLAY") == "full" do
++          {_, descriptor, config, _} = prepare_starter!(scope)
++          %{"id" => id, "pin" => pin, "spec" => spec} = descriptor
++
++          assert DB.q!(
++                   Migration,
++                   """
++                   INSERT INTO public.mixer_local_starters
++                     (organization_id, project_id, application_id, input_id, registration_pin, spec)
++                   VALUES ($1, $2, $3, $4, $5, $6)
++                   """,
++                   [scope.organization_id, scope.project_id, scope.application_id, id, pin, spec]
++                 ).num_rows == 1
++
++          selected =
++            response_json!(post(c, owner, @starters, Map.put(scope, :starter_id, id)), 200)
++
++          assert selected["sourceInputId"] == id
++          assert_input_row!(descriptor)
++          assert %{"inputs" => [input]} = input_list(c, owner, scope)
++          assert input["sourceInputId"] == id
++
++          %{
++            selection: selected,
++            spec: spec,
++            startup: Path.rootname(config) <> ".worker-startup.json",
++            startupPin: descriptor["worker"]["configuration_sha256"]
++          }
++        else
++          assert input_rows() == []
++          %{}
++        end
++
++      for table <-
++            ~w(mixer_builds oban_jobs mixer_build_reservations mixer_build_operation_admissions) do
++        assert DB.q!(Admin, "SELECT count(*) FROM " <> table).rows == [[0]]
++      end
++
++      ready =
++        Map.merge(starter, %{
++          port: c.http_port,
++          issuerPort: c.provider_port,
++          jwksPort: GenServer.call(c.fixture, :authority).port,
++          origin: c.config.public_origin,
++          cookie: elem(owner, 0),
++          csrf: elem(owner, 1),
++          unrelatedCookie: elem(outsider, 0)
++        })
++
++      replay_write!("api.ready", ready)
++      await_replay!(c, false)
++    end
++
++    defp replay_scope(c, auth, name) do
++      org = create(c, auth, "/console-api/v1/orgs", %{display_name: name})
++      register_app(c, auth, org, name)
++    end
++
++    defp outsider_login(c) do
++      :ok = GenServer.call(c.provider, {:subject, "subject-2"})
++
++      try do
++        login(c)
++      after
++        :ok = GenServer.call(c.provider, {:subject, "subject-1"})
++      end
++    end
++
++    defp replay_write!(name, value) do
++      path = replay_path(name)
++      File.write!(path <> ".tmp", Jason.encode!(value), [:exclusive])
++      File.rename!(path <> ".tmp", path)
++    end
++
++    defp replay_path(name), do: Path.join(System.fetch_env!("MIXER_L07_ROOT"), name)
++
++    defp await_replay!(c, renewed) do
++      cond do
++        File.regular?(replay_path("api.done")) ->
++          :ok
++
++        not renewed and File.regular?(replay_path("api.refresh")) ->
++          {owner, _} = login(c)
++          {outsider, _} = outsider_login(c)
++          replay_write!("api.renewed", %{cookie: owner, unrelatedCookie: outsider})
++          await_replay!(c, true)
++
++        true ->
++          Process.sleep(50)
++          await_replay!(c, renewed)
++      end
++    end
++  end
++
++  defp assert_owned_database! do
++    expected = Path.join(System.fetch_env!("MIXER_L07_ROOT"), "pg")
++
++    {:ok, conn} =
++      Postgrex.start_link(
++        hostname: "127.0.0.1",
++        port: DB.port(),
++        database: "postgres",
++        username: "browser_admin",
++        ssl: false,
++        backoff_type: :stop
++      )
++
++    try do
++      assert %{rows: [[^expected]]} = Postgrex.query!(conn, "SHOW data_directory", [])
++    after
++      GenServer.stop(conn)
++    end
++  end
++
++  defp provision_restart!(c) do
++    alias MixerHosted.Builds.ProcessorProfile
++
++    for version <- [20_261_110_000_498, 20_261_110_000_499, 20_261_110_000_500] do
++      [path] = Path.wildcard("priv/unselected_operation_admission/#{version}_*.exs")
++      [{module, _}] = Code.require_file(path)
++      assert :ok = Ecto.Migrator.up(Migration, version, module, log: false)
++    end
++
++    for sql <- ProcessorProfile.statements(:builds_v1) do
++      DB.q!(
++        Admin,
++        String.replace(sql, ~s(:"processor_database"), "browser_ordinary_installation_r1422")
++      )
++    end
++
++    for sql <- ProcessorProfile.operation_intent_statements(:durable_intent_v1),
++        do: DB.q!(Admin, sql)
++
++    for sql <-
++          SelfServiceSchema.processor_policy_statements() ++
++            MixerHosted.CustomerBuilds.CancelSchema.statements(),
++        do: DB.q!(Migration, sql)
++
++    DB.q!(Admin, "INSERT INTO public.mixer_authz_principals VALUES('person-2','human',true,0,1)")
++
++    DB.q!(
++      Admin,
++      "INSERT INTO public.mixer_authz_bindings VALUES('humans',1,'subject-2','human','person-2',true,1)"
++    )
++
++    DB.q!(
++      Admin,
++      ~s(UPDATE mixer_build_fleet_capacity SET configured=true,"limit"=2,revision=1 WHERE id='fleet')
++    )
++
++    DB.q!(
++      Admin,
++      ~s(UPDATE mixer_build_fleet_platform_capacities SET configured=true,"limit"=2,revision=1 WHERE platform='ios')
++    )
++
++    c
++    |> put_in([:hosted, Access.key(:processor_profile)], :builds_v1)
++    |> put_in([:hosted, Access.key(:build_cancel)], true)
++    |> put_in([:hosted, Access.key(:native)], %{
++      retained_root: Path.join(System.fetch_env!("MIXER_L07_ROOT"), "worker")
++    })
++  end
++
+   @tag timeout: 250_000
+   test "owner selects the operator-pinned export through HTTP and commits exactly one input", c do
+     assert RuntimeOwner.status().phase == :storage_ready
+@@ -399,7 +585,7 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
+     unique = Base.url_encode64(:crypto.strong_rand_bytes(12), padding: false)
+     scratch = Path.join(proof_root, "starter-proof-" <> unique)
+     File.mkdir!(scratch)
+-    on_exit(fn -> remove_scratch!(scratch) end)
++    unless System.get_env("MIXER_L07_REPLAY"), do: on_exit(fn -> remove_scratch!(scratch) end)
+     File.chmod!(scratch, 0o700)
+
+     export = Path.join(scratch, "exported-starter")
+diff --git a/hosted/test/support/browser_login_provider_fixture.ex b/hosted/test/support/browser_login_provider_fixture.ex
+index 6323baf610895a3b4b3e1d07e7905b8f890cd73a..5bac5d5bbec89a9128d898743b680738026d6653 100644
+--- a/hosted/test/support/browser_login_provider_fixture.ex
++++ b/hosted/test/support/browser_login_provider_fixture.ex
+@@ -21,19 +21,24 @@ defmodule R686.Provider do
+   use GenServer
+   alias MixerHosted.BrowserAuth.Protocol
+   def start_link(opts), do: GenServer.start_link(__MODULE__, opts)
+-  def init(opts), do: {:ok, Map.merge(opts, %{codes: %{}, mode: :ok, count: 0})}
++
++  def init(opts),
++    do: {:ok, Map.merge(opts, %{codes: %{}, mode: :ok, count: 0, subject: "subject-1"})}
+
+   def handle_call({:register, query}, _, s) do
+     values = URI.decode_query(query)
+     code = Protocol.random_token()
+-    {:reply, code, put_in(s.codes[code], values)}
++    {:reply, code, put_in(s.codes[code], {values, s.subject})}
+   end
+
++  def handle_call({:subject, subject}, _, s) when subject in ["subject-1", "subject-2"],
++    do: {:reply, :ok, %{s | subject: subject}}
++
+   def handle_call({:mode, mode}, _, s), do: {:reply, :ok, %{s | mode: mode}}
+   def handle_call(:count, _, s), do: {:reply, s.count, s}
+
+   def handle_call({:exchange, r}, _, s) do
+-    {v, codes} = Map.pop(s.codes, r.code)
++    {{v, subject}, codes} = Map.pop(s.codes, r.code, {nil, nil})
+     s = %{s | codes: codes, count: s.count + 1}
+
+     valid =
+@@ -57,7 +62,7 @@ defmodule R686.Provider do
+         claims = %{
+           "iss" => s.config.issuer,
+           "aud" => s.config.api_audience,
+-          "sub" => "subject-1",
++          "sub" => subject,
+           "client_id" => s.config.client_id,
+           "iat" => now - 1,
+           "exp" =>
+@@ -81,7 +86,7 @@ defmodule R686.Provider do
+         id = %{
+           "iss" => s.config.issuer,
+           "aud" => s.config.client_id,
+-          "sub" => "subject-1",
++          "sub" => subject,
+           "iat" => now - 1,
+           "exp" =>
+             now +
