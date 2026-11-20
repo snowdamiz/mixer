@@ -90,6 +90,50 @@ SDK. For an iOS-only project, omit `--android-adapter-path` and select
 `--platform ios` for the build. Reopen your saved data in the upgraded app
 before you switch to it.
 
+## Exercise the Pair24 to Pair25 upgrade with a public V4 Starter
+
+Use the Android toolchain variables from the README and a fresh `work`
+directory. Build the host CLIs with Xcode 27.2, then use Xcode 26.6 for the
+Android commands. Both CLI builds and the exported app resolve their locked
+Swift dependencies. An existing verified local mirror of each package can
+supply those revisions.
+
+```sh
+pair24=59cab78cd8ac7a43c718914fc83fb56b33e3ef60
+pair25=57f3ed4f17b80f15fc6d646b14c6dbfa05bd7eea
+for rev in "$pair24" "$pair25"; do
+    mkdir "$work/$rev"
+    git archive --format=tar -o "$work/$rev.tar" "$rev" cli sdk updates runtime-identity native/android
+    tar -xf "$work/$rev.tar" -C "$work/$rev"
+    DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+        swift build --package-path "$work/$rev/cli" --scratch-path "$work/$rev-cli" \
+        --only-use-versions-from-resolved-file --product mixer
+done
+old_cli="$work/$pair24-cli/debug/mixer"
+new_cli="$work/$pair25-cli/debug/mixer"
+export DEVELOPER_DIR=/Applications/Xcode_26.6.app/Contents/Developer
+
+"$old_cli" create UpgradeStarter --platform android --android-host public-v4 \
+    --directory "$work/Pair24" --sdk-path "$work/$pair24/sdk" \
+    --android-adapter-path "$work/$pair24/native/android"
+"$old_cli" export "$work/Recovery" --directory "$work/Pair24"
+"$new_cli" upgrade "$work/Pair25" --directory "$work/Pair24" \
+    --sdk-path "$work/$pair25/sdk" --android-adapter-path "$work/$pair25/native/android"
+cmp "$work/Pair24/Platforms/Android/Package.resolved" "$work/Pair25/Platforms/Android/Package.resolved"
+"$new_cli" export "$work/Export" --directory "$work/Pair25"
+mv "$work/Export" "$work/IndependentProject"
+(
+    cd "$work/IndependentProject"
+    python3 Generated/MixerAndroid/android-build.py build "$PWD"
+)
+```
+
+Use your installed Xcode 27.2 path in the CLI build command. The Pair25 CLI
+reports `android.sdk-profile-mismatch` if you build or export the Pair24
+project directly. The public V4 APK targets API 37 and requires API 36. Check
+the arm64 ELF, exact launcher, 16 KiB APK alignment, notices, and retained
+platform lock in the [independent export receipt](../../verification/receipts/l01-l08-pair25-independent-export-20261119.json).
+
 ## Recover from an interrupted project edit
 
 If upgrade reports `lock.sdk-drift` after an interrupted SDK edit, save the
