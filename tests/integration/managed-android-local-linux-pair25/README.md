@@ -38,14 +38,16 @@ lock, and Android package lock against the receipt before accessing Docker.
 Set `recipe` to this directory and `receipt` to the Linux build receipt above.
 Place the five archives listed in `toolSources.archives` under `$stage/archives`
 with the receipt's file names. Verify each SHA-256 before extracting anything.
-Extract the Google build-tools and platform ZIPs. Move the directories that
+Extract the Google build-tools and platform ZIPs into separate directories.
+Both archives contain an `android-37.0` directory. Move the directories that
 directly contain `aapt2` and `android.jar` to
 `$stage/android-sdk/build-tools/37.0.0` and
 `$stage/android-sdk/platforms/android-37.0`, respectively. The setup container
 extracts the Swift SDK, NDK, and JDK into a case-sensitive volume.
 
 Create a bare mirror for each locked package and check the tag against the
-revision in the receipt.
+revision in the receipt. Make the staged export, SDK, and mirrors readable by
+the worker's UID 65534. Keep the host staging directory private.
 
 ```sh
 mkdir "$stage/mirrors"
@@ -93,8 +95,9 @@ The lock phase writes `linux-mixer.lock`. The launcher checks the expected
 Linux toolchain and verifies that only `android.toolchain` differs from the
 Mac lock. The build mounts that file at `/project/mixer.lock` over the
 read-only export. The launcher rechecks the original Mac input hashes and
-prints the result directory containing the unsigned APK, readback, and Linux
-lock.
+prints the result directory containing the unsigned APK, debug-symbol ZIP,
+resource inventory, readback, and Linux lock. The readback lists the three
+deliverable kinds with their SHA-256 digests and sizes.
 
 The launcher bounds setup, lock, and build waits to 160, 150, and 600 seconds.
 It checks Docker's terminal state and removes its exact container IDs and

@@ -41,7 +41,8 @@ check_image() {
     descriptor=$(gtimeout 30 "${docker_cmd[@]}" manifest inspect --verbose "$ref")
     jq -e --arg manifest "${ref##*@}" --arg arch "$arch" --arg config "$config" '
         .Descriptor.digest == $manifest and .Descriptor.platform.os == "linux"
-        and .Descriptor.platform.architecture == $arch and .OCIManifest.config.digest == $config
+        and .Descriptor.platform.architecture == $arch
+        and (.OCIManifest.config.digest // .SchemaV2Manifest.config.digest) == $config
     ' <<< "$descriptor" > /dev/null
     gtimeout 15 "${docker_cmd[@]}" image inspect --platform "linux/$arch" "$ref" |
         jq -e --arg manifest "${ref##*@}" --arg arch "$arch" --arg config "$config" '
@@ -193,5 +194,6 @@ check_export
 
 # Keep just the proof outputs in a new host-owned directory.
 output=$(mktemp -d "$stage/pair25-result.XXXXXXXX")
-mv "$run/deliver/"{UpgradeStarter-unsigned.apk,readback.json} "$linux_lock" "$output/"
+mv "$run/deliver/"{UpgradeStarter-unsigned.apk,debug-symbols.zip,resource-inventory.json,readback.json} \
+    "$linux_lock" "$output/"
 echo "Pair25 proof outputs: $output"

@@ -19,6 +19,7 @@ LOCK = PROJECT / 'mixer.lock'
 PIN = 'Platforms/Android/Package.resolved'
 APP = 'com.example.upgradestarter'
 ABI = 'arm64-v8a'
+MIB = 1024 * 1024
 
 
 def require(condition, message):
@@ -113,6 +114,56 @@ def readback(driver, apk, report):
             'noticeSHA256': notices, 'elfLoadAlignmentBytes': elf_alignment}
 
 
+def retain_products(driver, apk, report):
+    symbols = RETAINED / 'debug-symbols.zip'
+    sources = [
+        ('unsigned_native_binary', apk, report['apk_bytes'], report['apk_sha256'], 32 * MIB),
+        ('debug_symbols', symbols, report['symbols_bytes'], report['symbols_sha256'], 16 * MIB),
+    ]
+    artifacts = []
+    for kind, source, size, digest, limit in sources:
+        require(0 < size <= limit and source.stat().st_size == size and driver.digest(source) == digest,
+                f'Retained {kind} size or digest differs')
+        artifacts.append({'kind': kind, 'file': source.name, 'sizeBytes': size, 'sha256': digest})
+
+    debug = report['debug_products']
+    require({row['library'] for row in debug} ==
+            {f'lib/{ABI}/libAppAndroid.so', f'lib/{ABI}/libmixer_public_android_jni.so'} and len(debug) == 2,
+            'Unexpected debug libraries')
+    with ZipFile(symbols) as archive:
+        require(archive.namelist() == [row['debugPath'] for row in debug],
+                'Debug archive membership differs from the driver receipt')
+        for row in debug:
+            entry = archive.getinfo(row['debugPath'])
+            require(0 < entry.file_size == row['sizeBytes'], 'Debug data size differs')
+            with archive.open(entry) as content:
+                require(hashlib.file_digest(content, 'sha256').hexdigest() == row['sha256'],
+                        'Debug data digest differs')
+
+    inventory = DELIVERY / 'resource-inventory.json'
+    inventory.write_text(json.dumps({
+        'formatVersion': 1,
+        'apkSHA256': report['apk_sha256'],
+        'debugSymbolsSHA256': report['symbols_sha256'],
+        **report['apk_identity'],
+        'androidHost': report['android_host'],
+        'entries': report['apk_entries'],
+        'nativeDependencies': report['native_dependencies'],
+        'debugProducts': debug,
+    }, indent=2, sort_keys=True) + '\n')
+    size = inventory.stat().st_size
+    require(0 < size <= 16 * MIB, 'Resource inventory exceeds the retained limit')
+    artifacts.append({'kind': 'resource_inventory', 'file': inventory.name,
+                      'sizeBytes': size, 'sha256': driver.digest(inventory)})
+
+    for _, source, size, digest, _ in sources:
+        destination = DELIVERY / source.name
+        shutil.copyfile(source, destination)
+        require(destination.stat().st_size == size and driver.digest(destination) == digest,
+                f'Copied {source.name} differs from the produced artifact')
+    return artifacts
+
+
 def main():
     driver = configured_driver()
     if sys.argv[1:] == ['lock']:
@@ -137,9 +188,7 @@ def main():
          'exitCode': command['exit_code']}
         for command in report['commands']
     ]
-    shutil.copyfile(apk, DELIVERY / apk.name)
-    require(driver.digest(DELIVERY / apk.name) == report['apk_sha256'],
-            'Copied APK digest differs from produced APK')
+    facts['artifacts'] = retain_products(driver, apk, report)
     (DELIVERY / 'readback.json').write_text(json.dumps(facts, indent=2) + '\n')
 
 
