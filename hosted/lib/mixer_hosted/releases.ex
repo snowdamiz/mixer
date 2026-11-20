@@ -17,11 +17,6 @@ defmodule MixerHosted.Releases do
 
   @action "release.publish"
   @value_fields [:artifact_sha256, :signed_assignment_bytes, :rollout_basis_points]
-  @health_fields [
-    health_activated: "activated",
-    health_pending: "pending",
-    health_adverse_signals: "adverse_signals"
-  ]
 
   @type result :: %{
           sequence: pos_integer(),
@@ -183,7 +178,7 @@ defmodule MixerHosted.Releases do
           )
 
         with true <- row.action == Atom.to_string(action) and row.signed_assignment_bytes == bytes,
-             true <- action != :halt or health == release_health(row),
+             true <- action != :halt or health == Publication.health(row),
              {:ok, artifact} <- cli_artifact(target, row.artifact_sha256, :not_validated),
              :ok <- check_replay_signature(action, row, artifact, config, target, context) do
           {:ok, cli_result(row, target)}
@@ -409,9 +404,11 @@ defmodule MixerHosted.Releases do
         values
 
       :halt ->
-        Enum.reduce(@health_fields, Map.put(values, :action, "halt"), fn {field, key}, acc ->
-          Map.put(acc, field, Decimal.new(Map.fetch!(health, key)))
-        end)
+        Enum.reduce(
+          Publication.health_fields(),
+          Map.put(values, :action, "halt"),
+          fn {field, key}, acc -> Map.put(acc, field, Decimal.new(Map.fetch!(health, key))) end
+        )
 
       _ ->
         Map.put(values, :action, Atom.to_string(action))
@@ -582,25 +579,10 @@ defmodule MixerHosted.Releases do
     )
   end
 
-  defp cli_result(%Publication{action: "halt"} = stored, target) do
-    Map.put(result(stored), :halt, %{
-      scope: Target.signed_scope(target),
-      runtime: target.runtime_sha256,
-      channel: target.channel,
-      artifact_sha256: stored.artifact_sha256,
-      halt_sequence: Decimal.to_integer(stored.sequence),
-      health: release_health(stored)
-    })
-  end
+  defp cli_result(%Publication{action: "halt"} = stored, target),
+    do: Map.put(result(stored), :halt, Publication.halt_sample(stored, target))
 
   defp cli_result(stored, _target), do: result(stored)
-
-  defp release_health(stored) do
-    Map.new(@health_fields, fn {field, key} ->
-      {key, Decimal.to_integer(Map.fetch!(stored, field))}
-    end)
-    |> Map.put("sequence", Decimal.to_integer(stored.previous_sequence))
-  end
 
   defp valid_metadata?(key, reason) do
     is_binary(key) and byte_size(key) in 1..128 and

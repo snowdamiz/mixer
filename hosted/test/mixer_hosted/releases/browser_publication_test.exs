@@ -106,6 +106,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     c = prepare_release_fixture!("browser-publication")
     provision!()
     provision_actions!()
+    provision_halt_audit!()
     assert [[nil]] = DB.q!(Admin, "SELECT to_regclass('public.mixer_release_cli_requests')").rows
 
     fixture = @fixtures |> Path.join("signed-release-v3.json") |> File.read!() |> Jason.decode!()
@@ -313,6 +314,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     provision_delivery!()
     provision_cli!()
     provision_actions!()
+    provision_halt_audit!()
 
     DB.q!(
       Admin,
@@ -355,6 +357,16 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     assert %{phase: :storage_ready} = RuntimeOwner.status()
     assert [["browser_ordinary"]] = DB.q!(WriterRepo, "SELECT session_user").rows
     assert [["browser_ordinary"]] = DB.q!(MixerHosted.Repo, "SELECT session_user").rows
+
+    assert [[true, false, false, false]] =
+             DB.q!(Admin, """
+             SELECT has_function_privilege('browser_ordinary', p.oid, 'EXECUTE'),
+                    has_function_privilege('browser_lifecycle', p.oid, 'EXECUTE'),
+                    has_function_privilege('browser_writer', p.oid, 'EXECUTE'),
+                    has_function_privilege('mixer_release_delivery', p.oid, 'EXECUTE')
+             FROM pg_proc p WHERE p.oid =
+               'public.mixer_release_audit_halts(text,text,text,text,text,text,text,numeric,integer)'::regprocedure
+             """).rows
 
     first_digest = fixture["artifact_sha256"]
     first_envelope = Jason.encode!(Map.take(fixture, ~w(signed_manifest payload)))
@@ -722,6 +734,25 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
         )
 
     assert :ok = Ecto.Migrator.up(Migration, version, module, log: false)
+  end
+
+  defp provision_halt_audit! do
+    for {version, filename, module} <- [
+          {20_261_120_000_011, "add_local_release_halt_health",
+           MixerHosted.Repo.Migrations.AddLocalReleaseHaltHealth},
+          {20_261_120_000_012, "add_local_release_halt_audit",
+           MixerHosted.Repo.Migrations.AddLocalReleaseHaltAudit}
+        ] do
+      unless Code.ensure_loaded?(module),
+        do: Code.require_file("priv/repo/migrations/#{version}_#{filename}.exs")
+
+      assert :ok = Ecto.Migrator.up(Migration, version, module, log: false)
+    end
+
+    DB.q!(Admin, """
+    GRANT EXECUTE ON FUNCTION public.mixer_release_audit_halts(text,text,text,text,text,text,text,numeric,integer)
+      TO browser_ordinary
+    """)
   end
 
   defp cli_post(c, token, path, key, bytes) do

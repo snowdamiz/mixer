@@ -20,6 +20,7 @@ defmodule MixerHosted.CustomerArtifacts do
   alias MixerHosted.Authorization.{Policy, Scope}
   alias MixerHosted.CustomerArtifacts.{LocalUpload, PostgresStorage}
   alias MixerHosted.Protocol.{ArtifactAdmission, ArtifactV3Policy}
+  alias MixerHosted.Releases.RolloutHaltAudit
 
   @maximum 9_007_199_254_740_991
 
@@ -104,6 +105,18 @@ defmodule MixerHosted.CustomerArtifacts do
         fn context -> PostgresStorage.audit(context, after_sequence, limit, config) end,
         config.repo
       )
+    end
+  end
+
+  @doc false
+  def audit_halts(identity, route_tenant, after_sequence, limit, request_metadata) do
+    with {:ok, project} <- project(route_tenant),
+         {:ok, ^project} <- Policy.request(identity, "audit.read", project, now()),
+         :ok <- required_scope(identity, "mixer.audit.read"),
+         :ok <- metadata(request_metadata),
+         {:ok, target} <- RolloutHaltAudit.configured_target(),
+         :ok <- same_project(project, target.scope) do
+      RolloutHaltAudit.read(identity, project, target, after_sequence, limit)
     end
   end
 

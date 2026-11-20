@@ -63,13 +63,15 @@ defmodule MixerHostedWeb.CustomerArtifactController do
           facade.read(identity, request.route, request.digest, request.metadata)
 
         :audit ->
-          facade.audit(
+          operation = if request.page[:view] == :rollout_halt, do: :audit_halts, else: :audit
+
+          apply(facade, operation, [
             identity,
             request.route,
             request.page.after,
             request.page.limit,
             request.metadata
-          )
+          ])
       end
 
     respond(conn, operation, request.digest, result)

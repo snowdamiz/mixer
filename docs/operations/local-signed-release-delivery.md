@@ -84,6 +84,24 @@ Keep the existing column-scoped publication grant. Publication history stays
 append-only, and the delivery login keeps its function-only access. The
 ordinary publisher uses the default `publish` action.
 
+To enable halt audit reads, apply `20261120000012` and grant only the
+ordinary API database login access to the bounded read function. Apply the
+migration as the same non-login relation owner.
+
+```sql
+GRANT EXECUTE ON FUNCTION
+  public.mixer_release_audit_halts(text,text,text,text,text,text,text,numeric,integer)
+  TO :"api_runtime";
+```
+
+Use `GET /v3/orgs/:org/projects/:project/audit?view=rollout_halt` with the
+existing project audit role and `mixer.audit.read` scope. Each event contains
+`id`, `action`, and the Go V3 `rollout_halt` sample. The cursor is the last
+halt assignment sequence, supports the full unsigned 64-bit range, and
+stays the same on an empty page. The default audit view continues to return
+the schema-2 artifact events and their existing cursor. Use each cursor with
+its original view.
+
 ## Start the ordinary API
 
 Supply the normal API environment, including `MIXER_HOSTED_ROLE=api`, the

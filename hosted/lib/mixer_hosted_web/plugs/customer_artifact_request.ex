@@ -12,6 +12,7 @@ defmodule MixerHostedWeb.Plugs.CustomerArtifactRequest do
 
   @maximum_body 6_291_456
   @maximum_cursor 9_007_199_254_740_991
+  @maximum_halt_cursor 18_446_744_073_709_551_615
   @read_length 65_536
   @maximum_reads 128
   @read_deadline_ms 15_000
@@ -137,7 +138,7 @@ defmodule MixerHostedWeb.Plugs.CustomerArtifactRequest do
   defp query(query, :audit) when is_binary(query) and byte_size(query) <= 8_192 do
     fields = :binary.split(query, "&", [:global])
 
-    if length(fields) <= 2 do
+    if length(fields) <= 3 do
       Enum.reduce_while(fields, {:ok, %{}}, fn field, {:ok, page} ->
         case :binary.split(field, "=") do
           [name, value] -> query_field(name, value, page)
@@ -145,7 +146,7 @@ defmodule MixerHostedWeb.Plugs.CustomerArtifactRequest do
         end
       end)
       |> case do
-        {:ok, page} -> {:ok, Map.merge(%{after: 0, limit: 100}, page)}
+        {:ok, page} -> audit_page(page)
         _ -> {:error, :invalid_request}
       end
     else
@@ -158,9 +159,9 @@ defmodule MixerHostedWeb.Plugs.CustomerArtifactRequest do
   defp query_field(raw_name, raw_value, page) do
     with {:ok, name} <- decode(raw_name),
          {:ok, value} <- decode(raw_value),
-         key when key in [:after, :limit] <- query_key(name),
+         key when key in [:after, :limit, :view] <- query_key(name),
          false <- Map.has_key?(page, key),
-         {:ok, value} <- decimal(value, key) do
+         {:ok, value} <- query_value(value, key) do
       {:cont, {:ok, Map.put(page, key, value)}}
     else
       _ -> {:halt, {:error, :invalid_request}}
@@ -177,24 +178,46 @@ defmodule MixerHostedWeb.Plugs.CustomerArtifactRequest do
 
   defp query_key("after"), do: :after
   defp query_key("limit"), do: :limit
+  defp query_key("view"), do: :view
   defp query_key(_), do: :invalid
-  defp decimal("", :after), do: {:ok, 0}
-  defp decimal("", :limit), do: {:ok, 100}
 
-  defp decimal(value, key) when byte_size(value) in 1..16 do
-    if Enum.all?(:binary.bin_to_list(value), &(&1 in ?0..?9)) do
-      number = String.to_integer(value)
+  defp query_value("rollout_halt", :view), do: {:ok, :rollout_halt}
+  defp query_value("", :after), do: {:ok, ""}
+  defp query_value("", :limit), do: {:ok, 100}
+  defp query_value(value, :after) when byte_size(value) in 1..20, do: {:ok, value}
 
-      if (key == :after and number <= @maximum_cursor) or
-           (key == :limit and number in 1..100),
-         do: {:ok, number},
-         else: {:error, :invalid_request}
+  defp query_value(value, :limit) when byte_size(value) in 1..16 do
+    decimal(value, 1, 100)
+  end
+
+  defp query_value(_, _), do: {:error, :invalid_request}
+
+  defp audit_page(page) do
+    {digits, maximum} =
+      if page[:view] == :rollout_halt, do: {20, @maximum_halt_cursor}, else: {16, @maximum_cursor}
+
+    after_value = Map.get(page, :after, "")
+
+    with true <- byte_size(after_value) <= digits,
+         {:ok, after_sequence} <- decimal(default_cursor(after_value), 0, maximum) do
+      {:ok, page |> Map.put(:after, after_sequence) |> Map.put_new(:limit, 100)}
     else
-      {:error, :invalid_request}
+      _ -> {:error, :invalid_request}
     end
   end
 
-  defp decimal(_, _), do: {:error, :invalid_request}
+  defp default_cursor(""), do: "0"
+  defp default_cursor(value), do: value
+
+  defp decimal(value, minimum, maximum) do
+    with true <- Enum.all?(:binary.bin_to_list(value), &(&1 in ?0..?9)),
+         number = String.to_integer(value),
+         true <- number >= minimum and number <= maximum do
+      {:ok, number}
+    else
+      _ -> {:error, :invalid_request}
+    end
+  end
 
   defp encoding([]), do: :ok
   defp encoding(_), do: {:error, :unsupported_content_encoding}

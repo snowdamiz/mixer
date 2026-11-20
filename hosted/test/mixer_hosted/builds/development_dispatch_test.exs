@@ -220,7 +220,8 @@ defmodule MixerHosted.Builds.DevelopmentDispatchTest do
                "20261120000002_add_local_release_head_read.exs",
                "20261120000004_add_local_release_cli_requests.exs",
                "20261120000010_add_local_release_publication_action.exs",
-               "20261120000011_add_local_release_halt_health.exs"
+               "20261120000011_add_local_release_halt_health.exs",
+               "20261120000012_add_local_release_halt_audit.exs"
              ]
 
     assert :ok = MixerHosted.Test.Migrations.check_files!(migrations)

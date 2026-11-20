@@ -151,6 +151,7 @@ end
 defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
   use ExUnit.Case, async: false
   @moduletag :customer_artifact_http_db
+  alias MixerHosted.Audit.CustomerArtifactEvent
   alias MixerHosted.CustomerArtifacts
   alias MixerHosted.CustomerArtifacts.{Schema, UploadRepo}
   alias MixerHosted.CustomerArtifactHTTPFixture, as: F
@@ -175,6 +176,8 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
   @action_migration MixerHosted.Repo.Migrations.AddLocalReleasePublicationAction
   @health_version 20_261_120_000_011
   @health_migration MixerHosted.Repo.Migrations.AddLocalReleaseHaltHealth
+  @halt_audit_version 20_261_120_000_012
+  @halt_audit_migration MixerHosted.Repo.Migrations.AddLocalReleaseHaltAudit
   @tls_runtime System.get_env("MIXER_TEST_LOCAL_ARTIFACT_UPLOAD_TLS") == "1"
 
   setup_all do
@@ -548,6 +551,9 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
     provision_release_writer!(target, :delivery)
     migrate_release_actions!()
     grant_release_action!()
+    migrate_halt_health!()
+    migrate_halt_audit!()
+    grant_halt_audit!()
 
     for script <- ~w(provision-local-release-reader.sql provision-local-artifact-uploader.sql) do
       assert {_, 0} =
@@ -612,6 +618,10 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
 
     with_runtime(Map.put(env, "MIXER_LOCAL_ARTIFACT_UPLOAD_PASSWORD", nil), db_port, fn ->
       refute Process.whereis(UploadRepo)
+      await_repo(MixerHosted.Repo, System.monotonic_time(:millisecond) + 4_000)
+
+      assert %{"events" => [], "next" => 0} =
+               halt_audit(ctx, "audit with uploader disabled") |> json()
 
       error(
         request(
@@ -635,6 +645,11 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
       fn ->
         assert {:ok, {%{database_connection_bound: 4}, :disabled}} =
                  MixerHosted.Application.startup()
+
+        await_repo(MixerHosted.Repo, System.monotonic_time(:millisecond) + 4_000)
+
+        assert %{"events" => [], "next" => 0} =
+                 halt_audit(ctx, "audit with uploader enabled") |> json()
 
         assert [["mixer_artifact_uploader", true]] =
                  Ecto.Adapters.SQL.query!(
@@ -1295,13 +1310,55 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
     grant_release_action!()
     start_release_delivery!(ctx.pg_settings)
     stage_release!(publisher, checked)
+
+    assert %{status: 200} =
+             request(
+               publisher,
+               "second artifact audit event",
+               "PUT",
+               path(publisher),
+               checked.envelope_bytes,
+               cli_headers("another-upload")
+             )
+
+    assert %{status: 200, body: legacy_audit} =
+             request(publisher, "original audit", "GET", audit_path())
+
+    assert %{"events" => [first, second], "next" => 2} = Jason.decode!(legacy_audit)
+    assert {:ok, prior} = CustomerArtifactEvent.decode(first)
+    assert {:ok, latest} = CustomerArtifactEvent.decode(second)
+    assert :ok = CustomerArtifactEvent.validate_edge(prior, nil)
+    assert :ok = CustomerArtifactEvent.validate_edge(latest, prior)
+
+    F.sql(
+      "UPDATE public.mixer_authz_memberships SET role='release_manager',revision=revision+1 WHERE id='member'"
+    )
+
     assert %{status: 200} = release_request(publisher, base <> "publish", initial)
     before_upgrade = release_journal()
     assert release_counts() == [[2, 1, Decimal.new(observed)]]
 
-    Code.require_file("priv/repo/migrations/#{@health_version}_add_local_release_halt_health.exs")
-    assert :ok = Ecto.Migrator.up(Migration, @health_version, @health_migration, log: false)
+    migrate_halt_health!()
     assert release_journal() == before_upgrade
+    migrate_halt_audit!()
+
+    audit_repo =
+      {MixerHosted.Repo, ctx.pg_settings ++ [username: "http_release_writer", pool_size: 1]}
+
+    start_supervised!(audit_repo)
+    assert halt_audit(publisher, "audit without function grant").status == 503
+
+    grant_halt_audit!()
+
+    assert [[false, false]] =
+             F.sql("""
+             SELECT has_function_privilege('http_artifact_runtime', p.oid, 'EXECUTE'),
+                    has_function_privilege('mixer_release_delivery', p.oid, 'EXECUTE')
+             FROM pg_proc p WHERE p.oid =
+               'public.mixer_release_audit_halts(text,text,text,text,text,text,text,numeric,integer)'::regprocedure
+             """).rows
+
+    assert %{"events" => [], "next" => 0} = halt_audit(publisher, "before halt") |> json()
 
     assert [[nil, nil, nil]] =
              F.sql("""
@@ -1416,6 +1473,9 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
     try do
       submit.(body, key) |> error(503, "authorization_unavailable")
       assert release_counts() == [[2, 1, Decimal.new(observed)]]
+
+      assert %{"events" => [], "next" => 0} =
+               halt_audit(publisher, "audit after commit rollback") |> json()
     after
       F.sql("DROP TRIGGER fixture_reject_health_halt ON public.mixer_release_publications")
       F.sql("DROP FUNCTION public.fixture_reject_health_halt()")
@@ -1448,6 +1508,108 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
     assert Jason.decode!(reply) == expected
     Application.put_env(:mixer_hosted, :local_release_target, release_config)
 
+    assert %{status: 200, body: halt_audit_body} =
+             halt_audit(publisher, "operator audit after replay")
+
+    assert Jason.decode!(halt_audit_body) == %{
+             "events" => [
+               %{
+                 "id" => observed + 1,
+                 "action" => "POST " <> halt_path,
+                 "rollout_halt" => expected
+               }
+             ],
+             "next" => observed + 1
+           }
+
+    assert %{status: 200, body: ^halt_audit_body} =
+             halt_audit(publisher, "halt page from unsigned cursor", "&after=#{observed}&limit=1")
+
+    for cursor <- [observed + 1, max] do
+      assert %{"events" => [], "next" => ^cursor} =
+               halt_audit(publisher, "terminal halt page", "&after=#{cursor}") |> json()
+    end
+
+    for query <- ["&after=#{max + 1}", "&view=rollout_halt", "&limit=101"] do
+      halt_audit(publisher, "invalid halt page", query) |> error(400, "invalid_request")
+    end
+
+    assert %{status: 200, body: ^legacy_audit} =
+             request(publisher, "artifact audit unchanged after halt", "GET", audit_path())
+
+    F.sql(
+      "UPDATE public.mixer_authz_memberships SET role='viewer',revision=revision+1 WHERE id='other-member'"
+    )
+
+    reader = %{
+      publisher
+      | token:
+          token(ctx.key, %{
+            "sub" => "other-subject",
+            "jti" => "other-token",
+            "scope" => "mixer.audit.read"
+          })
+    }
+
+    if evidence = System.get_env("MIXER_ARTIFACT_HTTP_EVIDENCE"),
+      do: File.write!(Path.join(evidence, "halt-audit-response.json"), halt_audit_body)
+
+    assert %{status: 200, body: ^halt_audit_body} = halt_audit(reader, "viewer audit-only scope")
+
+    other_target = %{release_config.target | channel: "stable"}
+
+    Application.put_env(:mixer_hosted, :local_release_target, %{
+      release_config
+      | target: other_target
+    })
+
+    try do
+      assert %{"events" => [], "next" => 0} =
+               halt_audit(reader, "different configured channel") |> json()
+    after
+      Application.put_env(:mixer_hosted, :local_release_target, release_config)
+    end
+
+    assert %{status: 200, body: ^legacy_audit} =
+             request(reader, "viewer artifact chain", "GET", audit_path())
+
+    request(reader, "audit scope cannot read artifact", "GET", path(publisher))
+    |> error(403, "permission_denied")
+
+    request(reader, "viewer cannot halt", "POST", halt_path, body, cli_headers(key))
+    |> error(403, "role_denied")
+
+    wrong_scope = %{publisher | token: token(ctx.key, %{"scope" => "mixer.release.publish"})}
+    halt_audit(wrong_scope, "publish scope cannot read audit") |> error(403, "permission_denied")
+
+    request(
+      reader,
+      "halt audit other tenant",
+      "GET",
+      String.replace(audit_path(), "org-a", "org-b") <> "?view=rollout_halt"
+    )
+    |> error(404, "not_found")
+
+    request(
+      reader,
+      "halt audit other project",
+      "GET",
+      String.replace(audit_path(), "project-a", "project-b") <> "?view=rollout_halt"
+    )
+    |> error(404, "not_found")
+
+    # Even the permitted SQL role gets no rows without a live audit context.
+    assert [] =
+             Ecto.Adapters.SQL.query!(
+               MixerHosted.Repo,
+               """
+               SELECT * FROM public.mixer_release_audit_halts(
+                 'org-a','project-a','fieldlog','development',$1,$2,'dev',0,100)
+               """,
+               [draft["scope"]["platform"], draft["runtime"]],
+               log: false
+             ).rows
+
     assert [[previous, activated, pending, adverse, ^signed, request_hash]] =
              F.sql("""
              SELECT p.previous_sequence::text, p.health_activated::text, p.health_pending::text,
@@ -1475,10 +1637,13 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
     :ok = Supervisor.terminate_child(ctx.endpoint_supervisor, MixerHostedWeb.Endpoint)
     stop_supervised!(WriterRepo)
     stop_supervised!(DeliveryRepo)
+    stop_supervised!(MixerHosted.Repo)
     start_release_writer!(ctx.pg_settings)
     start_release_delivery!(ctx.pg_settings)
+    start_supervised!(audit_repo)
     assert {:ok, _} = Supervisor.restart_child(ctx.endpoint_supervisor, MixerHostedWeb.Endpoint)
     publisher = %{publisher | port: endpoint_port!()}
+    reader = %{reader | port: publisher.port}
     assert_no_offer!(publisher, offer_path)
     if cli, do: assert_stock_halt!(publisher, cli, signed, digest, expected)
 
@@ -1487,6 +1652,19 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
     end
 
     assert %{status: 200, body: ^reply} = submit.(body, key)
+    assert %{status: 200, body: ^halt_audit_body} = halt_audit(reader, "halt audit after restart")
+
+    assert %{status: 200, body: ^legacy_audit} =
+             request(reader, "artifact audit after restart", "GET", audit_path())
+
+    assert %{"events" => [^second], "next" => 2} =
+             request(
+               reader,
+               "artifact cursor after restart",
+               "GET",
+               audit_path() <> "?after=1&limit=1"
+             )
+             |> json()
 
     submit.(halt_body(signed, %{health | "pending" => 2}), key)
     |> error(409, "idempotency_conflict")
@@ -1513,6 +1691,9 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
     if cli, do: assert_stock_halt!(publisher, cli, signed, digest, expected)
     submit.(body, "fresh-stale") |> error(409, "stale_rollout")
 
+    assert %{status: 200, body: ^halt_audit_body} =
+             halt_audit(reader, "halt audit after promotion and replay")
+
     F.sql(
       "UPDATE public.mixer_authz_memberships SET role='viewer',revision=revision+1 WHERE id='member'"
     )
@@ -1536,6 +1717,37 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
     assert_raise Postgrex.Error, ~r/release ledger contains committed health halts/, fn ->
       Ecto.Migrator.down(Migration, @health_version, @health_migration, log: false)
     end
+  end
+
+  defp halt_audit(ctx, label, query \\ ""),
+    do: request(ctx, label, "GET", audit_path() <> "?view=rollout_halt" <> query)
+
+  defp migrate_halt_health! do
+    unless Code.ensure_loaded?(@health_migration),
+      do:
+        Code.require_file(
+          "priv/repo/migrations/#{@health_version}_add_local_release_halt_health.exs"
+        )
+
+    assert :ok = Ecto.Migrator.up(Migration, @health_version, @health_migration, log: false)
+  end
+
+  defp migrate_halt_audit! do
+    unless Code.ensure_loaded?(@halt_audit_migration),
+      do:
+        Code.require_file(
+          "priv/repo/migrations/#{@halt_audit_version}_add_local_release_halt_audit.exs"
+        )
+
+    assert :ok =
+             Ecto.Migrator.up(Migration, @halt_audit_version, @halt_audit_migration, log: false)
+  end
+
+  defp grant_halt_audit! do
+    F.sql("""
+    GRANT EXECUTE ON FUNCTION public.mixer_release_audit_halts(text,text,text,text,text,text,text,numeric,integer)
+      TO http_release_writer
+    """)
   end
 
   defp halt_body(signed, health) do
@@ -1700,6 +1912,13 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
         Code.require_file(
           "priv/repo/migrations/#{@action_version}_add_local_release_publication_action.exs"
         )
+
+    if Code.ensure_loaded?(@halt_audit_migration) do
+      assert Ecto.Migrator.down(Migration, @halt_audit_version, @halt_audit_migration, log: false) in [
+               :ok,
+               :already_down
+             ]
+    end
 
     if Code.ensure_loaded?(@health_migration) do
       assert Ecto.Migrator.down(Migration, @health_version, @health_migration, log: false) in [
