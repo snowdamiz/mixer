@@ -1,0 +1,55 @@
+{
+  "afterimageSHA256": {
+    "hosted/test/mixer_hosted/builds/coordinator_test.exs": "0c0a80194e4fa53ba70591231cd25ae1c52205349e8fd60c7e6d37d3eda63ab0",
+    "hosted/test/mixer_hosted/builds/development_dispatch_test.exs": "4df84732328eba62c3959feaa977e42632f2914f50429d404352a80edf12689a",
+    "hosted/test/mixer_hosted/builds/operation_admission_test.exs": "0c18532b5d79812cf486052b1bac7758231deb256070c281434e4e99741e1da8",
+    "hosted/test/mixer_hosted/releases/browser_publication_test.exs": "fe0fa6dc80c54dadd9c6819235a5dc0416aee36e7940340418844a69918af766"
+  },
+  "base": "6047348aade7d5bb05e8013e437f36898eb90cb5",
+  "correctedTestCommit": "75a28aad4b0b0e6d7bb563e0d1ff8111169a2741",
+  "downloadedEvidenceAndLocalReplayRemoved": true,
+  "github": {
+    "artifactId": 14645914523,
+    "assertionFailures": [
+      "coordinator reviewed versions",
+      "operation admission reviewed versions",
+      "compiled application migration inventory",
+      "release evidence directory collision"
+    ],
+    "reportedCleanup": true,
+    "runId": 44767588861,
+    "testsLogSHA256": "6ba1d47f93a1bb30018ad01a6bd06e42bfbc50708ab47bcc50f21c5a111a4294"
+  },
+  "localCorrectedAttempt": {
+    "assertionsPassed": 56,
+    "command": [
+      "mix",
+      "test",
+      "--warnings-as-errors",
+      "--seed",
+      "0",
+      "--trace",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/v59-phoenix-repair.npfwr6Ul/hosted/diagnostics/occupy_unrelated_browser_fixture_test.exs",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/v59-phoenix-repair.npfwr6Ul/hosted/test/mixer_hosted/builds/coordinator_test.exs",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/v59-phoenix-repair.npfwr6Ul/hosted/test/mixer_hosted/builds/operation_admission_test.exs",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/v59-phoenix-repair.npfwr6Ul/hosted/test/mixer_hosted/builds/development_dispatch_test.exs",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/v59-phoenix-repair.npfwr6Ul/hosted/test/mixer_hosted/releases/browser_publication_test.exs"
+    ],
+    "databaseScratchRemoved": true,
+    "diagnostic": "Create ordinary-r1422 in the shared fixture root before the test suite. The two release cases must create separate evidence subtrees.",
+    "diagnosticSource": "root = System.fetch_env!(\"MIXER_BROWSER_CATALOG_FIXTURE_ROOT\")\n:ok = File.mkdir(Path.join(root, \"ordinary-r1422\"))\n",
+    "exit": 0,
+    "postgres": "17.11",
+    "postgresStopped": true,
+    "testArcSHA256": "1e2b40c0014664866e7293e33a2bec02813b7fac9c05c40e8165aaae6be37205",
+    "testsLogSHA256": "8ecd6432ade99e4c782f248dfb03ecf81f44d545102630b740b98babf86c3b41"
+  },
+  "localFirstAttempt": {
+    "assertionsPassed": 56,
+    "closed": true,
+    "diagnosticIssue": "The synthetic occupied-directory file lacked the ExUnit _test suffix and produced a load-filter warning.",
+    "exit": 1
+  },
+  "schema": 1,
+  "scope": "Full Phoenix CI failure analysis and focused local PostgreSQL replay with the corrected hosted test files."
+}
