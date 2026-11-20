@@ -9,6 +9,74 @@ public struct GeneratedProject: Codable, Sendable {
     public var nextSteps: [String]
 }
 
+private struct SwiftVersionIdentity {
+    private static let driverPrefix = "swift-driver version: "
+    let compiler: Substring
+    let target: Substring
+    let driver: Substring?
+
+    var banner: String {
+        if let driver { return "\(compiler)\n\(target)\n\(driver)" }
+        return "\(compiler)\n\(target)"
+    }
+
+    func matches(lockBanner: String) -> Bool {
+        if lockBanner.utf8.elementsEqual(banner.utf8) { return true }
+        guard let driver else { return false }
+        // Schema 1 also recorded the driver before the compiler, including
+        // the inline form when stderr ended with a space and no newline.
+        return lockBanner.utf8.elementsEqual("\(driver) \(compiler)\n\(target)".utf8)
+            || lockBanner.utf8.elementsEqual("\(driver)\n\(compiler)\n\(target)".utf8)
+    }
+
+    private init?(banner: String) {
+        var lines = banner.split(separator: "\n", omittingEmptySubsequences: false)
+        var driverLine: Substring?
+        if let first = lines.first, first.hasPrefix(Self.driverPrefix) {
+            if lines.count == 2, let separator = first.dropFirst(Self.driverPrefix.count).firstIndex(of: " ") {
+                driverLine = first[..<separator]
+                lines[0] = first[first.index(after: separator)...]
+            } else {
+                driverLine = lines.removeFirst()
+            }
+        } else if lines.count == 3 {
+            driverLine = lines.removeLast()
+        }
+        guard lines.count == 2,
+              ["Apple Swift version ", "Swift version "].contains(where: {
+                  lines[0].hasPrefix($0) && lines[0].count > $0.count
+              }),
+              lines[1].hasPrefix("Target: "), lines[1].count > "Target: ".count,
+              !lines[1].dropFirst("Target: ".count).contains(where: \.isWhitespace) else { return nil }
+        if let driverLine {
+            let value = driverLine.dropFirst(Self.driverPrefix.count)
+            guard driverLine.hasPrefix(Self.driverPrefix), !value.isEmpty,
+                  !value.contains(where: \.isWhitespace) else { return nil }
+        }
+        compiler = lines[0]
+        target = lines[1]
+        driver = driverLine
+    }
+
+    static func inspect(swiftExecutable: String = "swift") throws -> (CommandResult, Self?) {
+        var stdout = Data(), stderr = Data()
+        let result = try ProcessRunner.run([swiftExecutable, "--version"], policy: .toolInspection, captureOutput: { stream, bytes in
+            switch stream {
+            case .stdout: stdout.append(bytes)
+            case .stderr: stderr.append(bytes)
+            }
+        })
+        guard result.succeeded, !result.outputTruncated,
+              let standard = String(data: stdout, encoding: .utf8),
+              let error = String(data: stderr, encoding: .utf8) else { return (result, nil) }
+        // Drain order is useful for diagnostics only. Finish each stream
+        // before assembling the version records, including unterminated stderr.
+        let banner = [standard, error].map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }.joined(separator: "\n")
+        return (result, Self(banner: banner))
+    }
+}
+
 public enum ProjectGenerator {
     public static func create(name: String, application: String, destination: URL, sdk: URL, platform: String = "ios", androidAdapter: URL? = nil, androidHost: AndroidApplicationHost? = nil) throws -> GeneratedProject {
         guard ["ios", "android"].contains(platform) else { throw MixerFailure("create.platform", "Create supports ios (default) or android (both native hosts).") }
@@ -44,10 +112,11 @@ public enum ProjectGenerator {
             adapterDigest = try AndroidProject.snapshot(adapter: androidAdapter, destination: staging.appendingPathComponent("Generated/MixerAndroid"))
             try AndroidSDKCompatibility.admitProject(staging)
         }
-        let version = try ProcessRunner.run(["swift", "--version"], policy: .toolInspection)
+        let (version, identity) = try SwiftVersionIdentity.inspect()
         guard version.succeeded else { throw MixerFailure("create.swift", version.output) }
+        guard let identity else { throw MixerFailure("create.swift", "Could not read a complete Swift version banner. \(version.output)") }
         try JSONFile.write(config, to: staging.appendingPathComponent("mixer.yml"))
-        var lock = ToolchainLock(sdkDigest: digest, swiftVersion: version.output.trimmingCharacters(in: .whitespacesAndNewlines))
+        var lock = ToolchainLock(sdkDigest: digest, swiftVersion: identity.banner)
         if let adapterDigest {
             lock.android = AndroidToolchainLock(adapterDigest: adapterDigest, toolchain: try AndroidProject.inspectToolchain(), profile: AndroidSDKCompatibility.profile.lock)
         }
@@ -280,21 +349,22 @@ public enum ProjectBuild {
     }
 
     static func verifyHostSwift(lock: ToolchainLock, swiftExecutable: String) throws {
-        let version = try ProcessRunner.run([swiftExecutable, "--version"], policy: .toolInspection)
+        let (version, identity) = try SwiftVersionIdentity.inspect(swiftExecutable: swiftExecutable)
         if ProcessInfo.processInfo.environment["MIXER_SWIFT_IDENTITY_DIAGNOSTICS"] == "1" {
             let environment = ProcessInfo.processInfo.environment
-            let observation: [String: Any] = [
+            var observation: [String: Any] = [
                 "event": "mixer.swift-lock-comparison", "argv": version.command,
                 "expected": lock.swiftVersion, "observed": version.output,
                 "exitCode": version.exitCode, "outputTruncated": version.outputTruncated,
                 "cwd": FileManager.default.currentDirectoryPath,
                 "environment": environment.filter { ["PATH", "DEVELOPER_DIR", "TOOLCHAINS", "SWIFT_EXEC", "SDKROOT", "MIXER_SWIFT"].contains($0.key) }
             ]
+            if let identity { observation["observedIdentity"] = identity.banner }
             if let bytes = try? JSONSerialization.data(withJSONObject: observation, options: [.sortedKeys]) {
                 FileHandle.standardError.write(bytes + Data([10]))
             }
         }
-        guard version.succeeded, version.output.trimmingCharacters(in: .whitespacesAndNewlines) == lock.swiftVersion else { throw MixerFailure("lock.toolchain-drift", "Swift host compiler differs from mixer.lock. Select the pinned toolchain.") }
+        guard identity?.matches(lockBanner: lock.swiftVersion) == true else { throw MixerFailure("lock.toolchain-drift", "Swift host compiler differs from mixer.lock. Select the pinned toolchain.") }
     }
 
     static func verifiedSourceLock(

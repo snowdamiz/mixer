@@ -291,6 +291,14 @@ PAIR25_CHANGES = PAIR25_SOURCE_CHANGES | {
     JAVA + 'bootstrap.py',
     JAVA + 'test_bootstrap.py',
 }
+SWIFT_VERSION_PREFIX = 'swift-version-predecessor-bytes/'
+SWIFT_VERSION_SOURCE_CHANGES = {
+    'cli/Sources/MixerBuild/OwnedCommand.swift',
+    'cli/Sources/MixerBuild/POSIXCommandControl.swift',
+    'cli/Sources/MixerBuild/ProcessRunner.swift',
+    'cli/Sources/MixerBuild/ProjectGenerator.swift',
+}
+SWIFT_VERSION_CHANGES = SWIFT_VERSION_SOURCE_CHANGES | {'cli/build-tests/test_public_export.py'}
 HALT_CLI_PREFIX = 'halt-cli-predecessor-bytes/'
 SOURCE150_SHA256 = '4a202d6aa4f6b81884df32cd0fe67cc8ce9847e8d4ae2ebea8b2cf1d4711a6f8'
 HALT_CLI_SOURCE_CHANGES = {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE}
@@ -309,6 +317,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     MANAGED_ANDROID_PREFIX + name for name in MANAGED_ANDROID_CHANGES
 } | {
     PAIR25_PREFIX + name for name in PAIR25_CHANGES
+} | {
+    SWIFT_VERSION_PREFIX + name for name in SWIFT_VERSION_CHANGES
 } | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
 } | {
@@ -444,7 +454,7 @@ def install_inputs():
                              'hosted_v42_workflow', 'store_platform_identity_transition',
                              'worker_swift_probe_transition', 'android_retained_output_transition',
                              'android_retained_output_correction_transition',
-                             'managed_android_retained_transition', 'pair25_transition',
+                             'managed_android_retained_transition', 'pair25_transition', 'swift_version_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow'} and
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
@@ -1053,10 +1063,28 @@ def install_inputs():
             require(expected_source[name] == change['before'], 'Pair25 source preimage differs: ' + name)
             expected_source[name] = change['after']
         preimages.setdefault(name, (raw, change['mode']))
-    require(current == expected_source and len(current) == 151 and binding['source'] == {
-        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': PAIR25_SOURCE_SHA256,
-    } and previous.digest(current) == pair25['sourceAfter'] == PAIR25_SOURCE_SHA256,
+    require(previous.digest(expected_source) == pair25['sourceAfter'] == PAIR25_SOURCE_SHA256,
             'Pair25 source transition differs')
+
+    swift_version = binding['swift_version_transition']
+    require(set(swift_version) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            swift_version['sourceBefore'] == PAIR25_SOURCE_SHA256 and
+            set(swift_version['changes']) == SWIFT_VERSION_CHANGES, 'Swift version change roster differs')
+    for name, change in swift_version['changes'].items():
+        raw = read_predecessor_member(HERE / (SWIFT_VERSION_PREFIX + name))
+        require(set(change) == {'before', 'after'} and
+                change['before'] == previous.row(raw) == installed[name] and
+                change['before'] != change['after'] and
+                stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'Swift version predecessor or installed mode differs: ' + name)
+        installed[name] = change['after']
+        if name in SWIFT_VERSION_SOURCE_CHANGES:
+            require(expected_source[name] == change['before'], 'Swift version source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        preimages.setdefault(name, (raw, 0o644))
+    require(current == expected_source and len(current) == 151 and binding['source'] == {
+        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': swift_version['sourceAfter'],
+    } and previous.digest(current) == swift_version['sourceAfter'], 'Swift version source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in halt['changes'].items():
@@ -1159,6 +1187,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_swift_version_sha256': binding['swift_version_transition']['sourceBefore'],
             'predecessor_pair24_source151_sha256': binding['pair25_transition']['sourceBefore'],
             'predecessor_managed_android_retained_sha256': binding['managed_android_retained_transition']['sourceBefore'],
             'predecessor_android_retained_output_correction_sha256': binding['android_retained_output_correction_transition']['sourceBefore'],

@@ -102,17 +102,20 @@ final class OwnedCommandExecution {
     private let control: any OwnedCommandControl
     private let save: (CommandCustodyReceipt) throws -> Void
     private let cancellationRequested: () throws -> Bool
+    private let captureOutput: ((CommandStream, Data) -> Void)?
     private var tail = CommandTail()
     private var previousTime: UInt64 = 0
     init(command: [String], directory: URL?, policy: ProcessPolicy, aggregateLimit: UInt64,
          aggregateUsed: UInt64, retainedInputs: [URL] = [], control: any OwnedCommandControl,
          cancellationRequested: @escaping () throws -> Bool = { false },
+         captureOutput: ((CommandStream, Data) -> Void)? = nil,
          save: @escaping (CommandCustodyReceipt) throws -> Void) {
         receipt = CommandCustodyReceipt(command: command, directory: directory?.path, policy: policy,
             aggregateLimit: aggregateLimit, aggregatePreviouslyGenerated: aggregateUsed)
         receipt.retainedInputDirectories = retainedInputs.map { $0.path }
         self.control = control; self.save = save
         self.cancellationRequested = cancellationRequested
+        self.captureOutput = captureOutput
     }
     private func now() throws -> UInt64 {
         let value = try control.monotonicNow()
@@ -137,6 +140,7 @@ final class OwnedCommandExecution {
             else { receipt.stderrBytes = try add(receipt.stderrBytes, UInt64(bytes.count)) }
             tail.append(bytes)
             receipt.outputTruncated = receipt.generatedBytes > UInt64(CommandTail.capacity)
+            if !receipt.outputTruncated { captureOutput?(stream, bytes) }
         }
     }
     func execute(directory: URL?, environment: [String: String]) throws -> CommandResult {

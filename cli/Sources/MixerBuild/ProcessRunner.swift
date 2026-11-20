@@ -13,6 +13,13 @@ public enum ProcessRunner {
     public static func run(_ command: [String], at directory: URL? = nil, environment: [String: String]? = nil,
                            policy: ProcessPolicy = .developmentBuild,
                            context: ProcessExecutionContext = .localDevelopment, retaining inputs: [URL] = []) throws -> CommandResult {
+        try run(command, at: directory, environment: environment, policy: policy, context: context,
+                retaining: inputs, captureOutput: nil)
+    }
+
+    static func run(_ command: [String], at directory: URL? = nil, environment: [String: String]? = nil,
+                    policy: ProcessPolicy, context: ProcessExecutionContext = .localDevelopment,
+                    retaining inputs: [URL] = [], captureOutput: ((CommandStream, Data) -> Void)?) throws -> CommandResult {
         guard !command.isEmpty else { throw MixerFailure("command.empty", "Empty command") }
         let selectedEnvironment = environment ?? ProcessInfo.processInfo.environment
         guard command.allSatisfy({ !$0.utf8.contains(0) }), directory?.path.utf8.contains(0) != true,
@@ -20,7 +27,9 @@ public enum ProcessRunner {
               policy.runtimeSeconds > 0, policy.cleanupSeconds > 0, policy.generatedOutputBytes > 0 else {
             throw MixerFailure("command.invalid", "Invalid argv, cwd, environment or command limits")
         }
-        return try context.run(command: command, directory: directory, environment: selectedEnvironment, policy: policy, retainedInputs: inputs + (directory.map { [$0] } ?? []))
+        return try context.run(command: command, directory: directory, environment: selectedEnvironment,
+                               policy: policy, retainedInputs: inputs + (directory.map { [$0] } ?? []),
+                               captureOutput: captureOutput)
     }
 }
 

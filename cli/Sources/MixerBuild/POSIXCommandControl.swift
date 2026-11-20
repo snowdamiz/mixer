@@ -244,6 +244,7 @@ public final class ProcessExecutionContext: @unchecked Sendable {
         if hold == nil { try? FileManager.default.removeItem(at: directory) }
     }
     func run(command: [String], directory: URL?, environment: [String: String], policy: ProcessPolicy, retainedInputs: [URL] = [],
+             captureOutput: ((CommandStream, Data) -> Void)? = nil,
              controlFactory: () -> any OwnedCommandControl = { POSIXCommandControl() },
              receiptFactory: (URL) throws -> (String, (CommandCustodyReceipt) throws -> Void) = { parent in
                  let store = try CommandReceiptStore(parent: parent); return (store.directory.path, store.persist)
@@ -259,7 +260,8 @@ public final class ProcessExecutionContext: @unchecked Sendable {
         }
         let execution = OwnedCommandExecution(command: command, directory: directory, policy: policy,
             aggregateLimit: aggregateGeneratedOutputBytes, aggregateUsed: generated, retainedInputs: retainedInputs,
-            control: controlFactory(), cancellationRequested: cancellationRequested, save: store.1)
+            control: controlFactory(), cancellationRequested: cancellationRequested,
+            captureOutput: captureOutput, save: store.1)
         defer {
             let (total, overflow) = generated.addingReportingOverflow(execution.receipt.generatedBytes)
             generated = overflow ? UInt64.max : total

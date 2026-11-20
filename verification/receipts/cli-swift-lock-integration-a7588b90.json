@@ -1,0 +1,219 @@
+{
+  "checks": {
+    "commands": [
+      "swift build --package-path cli --scratch-path <owned-build> --only-use-versions-from-resolved-file -j 8 --product mixer",
+      "python3 -I -B -S [-O] -m unittest discover -s cli/build-tests -p test_public_export.py -k swift_identity -k test_upgrade -k test_changed_sdk_after -k test_competing_exports -k test_concurrent_empty_destination -v",
+      "swift test --package-path cli --scratch-path <owned-build> -j 8 --filter ownedCommandControlSchedules|androidCompatibilityOrdinaryRelocationCommonLockAndCopiedExportPass",
+      "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+      "python3 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py prepare-source141 --out <restored>",
+      "python3 -I -B -S [-O] <restored>/verification/sdk-feature-ui-source141-v1/test_source141.py",
+      "python3 scripts/check-verification-artifacts.py"
+    ],
+    "host": "arm64 macOS",
+    "publicExportPassedPerPythonMode": 13,
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "swiftControlsPassed": 2
+  },
+  "l07": {
+    "baselineProvenanceSHA256": "8c7b6022210d13a8830500ef5c406db8f8fd6bcf93c883ab5e6718ed1f172b90",
+    "cliPackageResolvedSHA256": "de4bd6f84bfa554faf519a52f6c5fb9a051761ded30ae5fee4440b5e88118855",
+    "fixtureOverlaySHA256": "197b2006ef124f23ea91e566cada4e58f23c8f9ca88940237d2c6c80e8a43d8a",
+    "helperSourceSHA256": {
+      "prepare-starter": "fe28b796ed75e0ada06e82ca591227a59bf15d203f22fa89a7affb47511126d0",
+      "registration-runner": "cc1ac339f3968926395c35b1f403682d25f37805d76819c624b96c7d01b706e9",
+      "run-proof": "b36a5bcec8414929b2d792a483afd669b6e2dc86fffc496eb3fd8ecb229b325a"
+    },
+    "launcherRevision": "57f3ed4f17b80f15fc6d646b14c6dbfa05bd7eea",
+    "launcherSHA256": "f960866d2d70591afc7bae77c1255abc324e18826f83e0b9f3512a2a7fa5b69e",
+    "overlay": {
+      "commit": "e5f1ab823a221f5a6464d948bac829d86807f1ac",
+      "files": {
+        "cli/Sources/MixerBuild/OwnedCommand.swift": {
+          "after": {
+            "blob": "183796e1701105787524204869dc55cf7b086803",
+            "bytes": 13101,
+            "sha256": "bf985b2d6eadb0cd9c96ae8b65d29c8012dc53dccc10c24d60caa9efbee38698"
+          },
+          "before": {
+            "blob": "5413ff4c56eddffc65aa925c3503b02f2fcae383",
+            "bytes": 12856,
+            "sha256": "c096e65ac56dcf6914b6a4d3b43216edb218dd41ab66dfb7284ca2e3d21ca95e"
+          },
+          "mode": "100644"
+        },
+        "cli/Sources/MixerBuild/POSIXCommandControl.swift": {
+          "after": {
+            "blob": "ab919235bc34467ffd3c13292b25de4d7846a328",
+            "bytes": 15543,
+            "sha256": "7437a4e1f98913178f07a05ba97e1fafabb7d373af95e31679af81a496fac416"
+          },
+          "before": {
+            "blob": "8f5ac69694687ed6357b2bab828f12906cef0a17",
+            "bytes": 15433,
+            "sha256": "f25a99a749c049b98d9b5d5ca8350e826ecb91dea9b71caa7e0f05c213995959"
+          },
+          "mode": "100644"
+        },
+        "cli/Sources/MixerBuild/ProcessRunner.swift": {
+          "after": {
+            "blob": "fdd57e151080cb4d98c8b8d057201c28cc62fde0",
+            "bytes": 5445,
+            "sha256": "55c515de991c2f02dbb2ecbc15038d02358f6163591b423ea0db3da2eedde288"
+          },
+          "before": {
+            "blob": "a988b328499f5ba5502ecbb119d47ee19ae5ff34",
+            "bytes": 4864,
+            "sha256": "c8a63c35085d601c5a5d0c07a884cc21e28e49ae8d1f1d984297a6cfbe9142de"
+          },
+          "mode": "100644"
+        },
+        "cli/Sources/MixerBuild/ProjectGenerator.swift": {
+          "after": {
+            "blob": "de0013471a4e448243108d35da475b2da8d0a5fd",
+            "bytes": 32467,
+            "sha256": "f3b3100035708350f345ff96e6334bdc53bc6a054534581dc84cbd24c0b0bca8"
+          },
+          "before": {
+            "blob": "11e269f91b7f7ed4b4b279ccfa14d7c87a76b8f4",
+            "bytes": 29177,
+            "sha256": "04da5027cb59356501cc1867955971f15156acb799e0c422570737997ad888e5"
+          },
+          "mode": "100644"
+        }
+      },
+      "localRef": "refs/heads/t3/cli-swift-lock-l07-overlay",
+      "patchSHA256": "900dd380712ae10365e92b5d494573e0e2659403db77f0838f821fa9f5bdd068",
+      "tree": "af5ea0e43c08a2d56f56c139448b7183d7e70dba"
+    },
+    "overlayProvenanceSHA256": "1338f7f1b16e646b4665ba67cf08a850da1f08b89b00a8bbcb4505ae48b2e161",
+    "provenanceEntries": 283,
+    "provenancePaths": [
+      "cli",
+      "sdk",
+      "updates",
+      "runtime-identity"
+    ],
+    "publicCommit": "201ead70ff68bfe18de24c0642f518701459e0a4",
+    "publicTree": "bc795366f84ca7d68890b84a97bd8773fe1dc786",
+    "replay": {
+      "baseline": "PASS_L07_SOURCE_ADMISSION",
+      "buildPOSTAttempts": 0,
+      "candidate": "PASS_L07_NARROW_STARTER_EXPORT",
+      "lockSHA256ByStage": {
+        "derived": "cf4f39cd9ff2cfd48cc960c358293f49b5e7c9c75757efdeee291770af983227",
+        "exported": "cf4f39cd9ff2cfd48cc960c358293f49b5e7c9c75757efdeee291770af983227",
+        "generated": "e2fcc884f105ff2fcf7e9dfc899517a3615a135884ef34ddd2de3c660531d176",
+        "original": "e2fcc884f105ff2fcf7e9dfc899517a3615a135884ef34ddd2de3c660531d176"
+      },
+      "lockSchema": 1,
+      "nativeBuilds": 0,
+      "observedCLISHA256": "27129429111b3c711d8783ad67c1cca593f854faad7841b9af35be443bfbad95",
+      "operation": "Pinned stage(source), original and overlay stage_provenance, and pinned prepare_export with the exact CLI overlay selection",
+      "originalManifestRejectedOverlay": true,
+      "ownedReplayScratchRemoved": true,
+      "provenanceVerifiedAt": [
+        "overlay-admitted-before-cli-build",
+        "after-export",
+        "before-cleanup"
+      ],
+      "serviceStarts": 0,
+      "starterLockSHA256": "cf4f39cd9ff2cfd48cc960c358293f49b5e7c9c75757efdeee291770af983227",
+      "starterSourceSHA256": "9d1285c5b66eca9c9b09b6471fcf4a6a9bb28445adfa81acd0133de72f0554c9",
+      "swiftVersionIdentity": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0\nswift-driver version: 1.168.6",
+      "terminalCommandGroups": 30,
+      "xcodeVersionInspection": "Xcode 27.2\nBuild version 27B52"
+    },
+    "sdkCommit": "fad0d0b3e65fd3be3b49675601693e5d91999fbe",
+    "sdkDependencyRevisions": {
+      "swift-asn1": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+      "swift-crypto": "c2cbadd7263439d8015189668f96ff5b5be565ce"
+    },
+    "selection": "Keep PUBLIC, TREE, SDK, helpers, fixtures and worker pins. Select the exact overlay commit only for the provenance archive and its Git tree listing. Require the pinned parent and tree, exact four mode/preimage/afterimage rows, and the overlay provenance digest. Compile from that separate archive and carry its digest with the newly exported Starter source and lock digests into worker registration and artifact checks.",
+    "workerSourceSHA256": {
+      "compiler_worker.py": "7e9185b80559f8a708ebdc4ac7683c61e7bf4f0ffff897342bb9c05eb6ea3e24",
+      "native_artifact_worker.py": "f03052a171611ae3da967d61fcbad90c92ab565bef1da64a3570054e27c1119b",
+      "starter_package_closure.py": "b3164d0dfa8210ce26bb5a0f4b21f5ce063d90f5040522ee4d41f61a9960941d"
+    }
+  },
+  "observedUtc": "2026-11-20T05:53:04+00:00",
+  "priorLocalFix": "0ccd8993faf9186294f6d6a02ea3c618ea0e88c8",
+  "publicBase": "a7588b902202f11afb0989fbbe5e4435856187ed",
+  "rebasedInputs": {
+    "cli/Sources/MixerBuild/OwnedCommand.swift": {
+      "after": {
+        "blob": "183796e1701105787524204869dc55cf7b086803",
+        "bytes": 13101,
+        "sha256": "bf985b2d6eadb0cd9c96ae8b65d29c8012dc53dccc10c24d60caa9efbee38698"
+      },
+      "before": {
+        "bytes": 12856,
+        "sha256": "c096e65ac56dcf6914b6a4d3b43216edb218dd41ab66dfb7284ca2e3d21ca95e"
+      }
+    },
+    "cli/Sources/MixerBuild/POSIXCommandControl.swift": {
+      "after": {
+        "blob": "ab919235bc34467ffd3c13292b25de4d7846a328",
+        "bytes": 15543,
+        "sha256": "7437a4e1f98913178f07a05ba97e1fafabb7d373af95e31679af81a496fac416"
+      },
+      "before": {
+        "bytes": 15433,
+        "sha256": "f25a99a749c049b98d9b5d5ca8350e826ecb91dea9b71caa7e0f05c213995959"
+      }
+    },
+    "cli/Sources/MixerBuild/ProcessRunner.swift": {
+      "after": {
+        "blob": "fdd57e151080cb4d98c8b8d057201c28cc62fde0",
+        "bytes": 5445,
+        "sha256": "55c515de991c2f02dbb2ecbc15038d02358f6163591b423ea0db3da2eedde288"
+      },
+      "before": {
+        "bytes": 4864,
+        "sha256": "c8a63c35085d601c5a5d0c07a884cc21e28e49ae8d1f1d984297a6cfbe9142de"
+      }
+    },
+    "cli/Sources/MixerBuild/ProjectGenerator.swift": {
+      "after": {
+        "blob": "952ab523aa5982561d74bfd983e763c7d74b3182",
+        "bytes": 33043,
+        "sha256": "9f5c032cbc66c39b9205ccde35f26912a5329b620816a33e03b7e1417424010d"
+      },
+      "before": {
+        "bytes": 29753,
+        "sha256": "e86ba352617d388620a68a735b789e8bce7af7d0b9c28984cd3b726a989ebc32"
+      }
+    },
+    "cli/build-tests/test_public_export.py": {
+      "after": {
+        "blob": "07217d2ac0ae761d52b0c8055531c828042c0fa9",
+        "bytes": 21957,
+        "sha256": "679727238f2e5086d16670ad9d40cf18216924f960b3911026caeb85e31c8e7e"
+      },
+      "before": {
+        "bytes": 18343,
+        "sha256": "e1f404eba31cf062ab226fdd063eb1a2dfb2e9c521a2d93d3a489dc0c1aa7b75"
+      }
+    }
+  },
+  "schema": 1,
+  "scope": "Local Swift lock integration and historical L07 source admission and Starter export",
+  "sourceAuthority": {
+    "after": "d775629be46df1bafb10cca4def75ad0df0f0504d1d69e9c98207666e0666dcd",
+    "archiveMemberDigest": "82069f27576be4f1b441b564fac0c747fff2f79ec5d03ed076c87db2ab06c934",
+    "archiveSealSHA256": "3590b6dc5dc921307d5346cdd3514cc4d29f052292504f2327a71e024af2e051",
+    "before": "6a0db1b665c429448d665a7a755f186772bd9fac0126abc6ee660843c27a0d92",
+    "count": 151,
+    "installedVerifyNormalAndOptimizedMatch": true,
+    "profile": {
+      "adapter_count": 27,
+      "adapter_sha256": "2262a2c8945476c98a98fd809a26f124181b2104337a71b10595af3bc9f19531",
+      "id": "mixer.android-source-pair.25",
+      "java_sources": 21,
+      "sdk_count": 26,
+      "sdk_sha256": "0d030f8bba31045d58ddf1b2def3a5541efc1a15295d93e565405b77965861d8"
+    },
+    "restoredControlsPassedPerPythonMode": 3,
+    "restoredSource127": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7",
+    "restoredSource141": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab"
+  }
+}

@@ -87,6 +87,83 @@ class PublicExportTests(unittest.TestCase):
     def assert_clean_staging(self):
         self.assertEqual(list(self.root.glob(".mixer-export-*")), [])
 
+    def test_swift_identity_preserves_split_banner_and_legacy_locks(self):
+        compiler = "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)"
+        target = "Target: arm64-apple-macosx27.0.0"
+        driver = "swift-driver version: 1.168.6"
+        canonical = f"{compiler}\n{target}\n{driver}"
+        self.script("swift", r'''
+test "$#" = 1 && test "$1" = --version
+if test "$EXPORT_STDERR_FIRST" = 1; then
+    printf '%s ' "$EXPORT_DRIVER" >&2
+    /bin/sleep 0.15
+    printf '%s\n%s\n' "$EXPORT_COMPILER" "$EXPORT_TARGET"
+else
+    printf '%s\n' "$EXPORT_COMPILER"
+    /bin/sleep 0.15
+    printf '%s ' "$EXPORT_DRIVER" >&2
+    /bin/sleep 0.15
+    printf '%s\n' "$EXPORT_TARGET"
+fi
+exit "${EXPORT_SWIFT_EXIT:-0}"
+''')
+        env = dict(self.tool_env, EXPORT_COMPILER=compiler, EXPORT_TARGET=target,
+                   EXPORT_DRIVER=driver, EXPORT_STDERR_FIRST="1")
+        self.create(env=env)
+        lock_path = self.project / "mixer.lock"
+        lock = json.loads(lock_path.read_bytes())
+        split_env = dict(env, EXPORT_STDERR_FIRST="0")
+
+        status, report = self.export(split_env)
+        self.assertEqual(status, 0, report)
+        self.assertEqual(lock["swiftVersion"], canonical)
+        shutil.rmtree(self.destination)
+
+        for banner in (f"{driver} {compiler}\n{target}", f"{driver}\n{compiler}\n{target}"):
+            with self.subTest(banner=banner):
+                lock["swiftVersion"] = banner
+                lock_path.write_text(json.dumps(lock))
+                status, report = self.export(split_env)
+                self.assertEqual(status, 0, report)
+                self.assertEqual((self.destination / "mixer.lock").read_bytes(), lock_path.read_bytes())
+                shutil.rmtree(self.destination)
+
+        status, report = self.upgrade(env=split_env)
+        self.assertEqual(status, 0, report)
+        self.assertEqual(json.loads((self.destination / "mixer.lock").read_bytes())["swiftVersion"],
+                         lock["swiftVersion"])
+        shutil.rmtree(self.destination)
+
+        for key, value in (
+            ("EXPORT_COMPILER", compiler.replace("6.4.2.1.9", "6.4.2.1.8")),
+            ("EXPORT_TARGET", target.replace("arm64", "x86_64")),
+            ("EXPORT_DRIVER", driver.replace("1.168.6", "1.168.7")),
+            ("EXPORT_DRIVER", driver + "\nunexpected output"),
+            ("EXPORT_SWIFT_EXIT", "7"),
+        ):
+            with self.subTest(key=key, value=value):
+                status, report = self.export(dict(split_env, **{key: value}))
+                self.assertEqual(status, 1, report)
+                self.assertEqual(report["code"], "lock.toolchain-drift", report)
+                self.assertFalse(self.destination.exists())
+                self.assert_clean_staging()
+
+        lock["swiftVersion"] = f"{compiler}\n{target}"
+        lock_path.write_text(json.dumps(lock))
+        status, report = self.export(split_env)
+        self.assertEqual(status, 1, report)
+        self.assertEqual(report["code"], "lock.toolchain-drift", report)
+        self.assert_clean_staging()
+
+    def test_swift_identity_accepts_a_driverless_toolchain(self):
+        banner = "Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx26.0"
+        self.script("swift", 'test "$#" = 1 && test "$1" = --version\nprintf "%s\\n" '
+                    + shlex.quote(banner) + '\n')
+        self.create(env=self.tool_env)
+        self.assertEqual(json.loads((self.project / "mixer.lock").read_bytes())["swiftVersion"], banner)
+        status, report = self.export(self.tool_env)
+        self.assertEqual(status, 0, report)
+
     def test_upgrade_copies_project_files_and_verifies_the_new_lock(self):
         self.create()
         data = self.project / "OfflineWorkspace" / "draft.json"
