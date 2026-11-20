@@ -1133,6 +1133,8 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
       F.sql("DROP FUNCTION public.fixture_reject_release_publication()")
     end
 
+    # Postgrex discards the connection on an error returned by COMMIT.
+    await_repo(WriterRepo, System.monotonic_time(:millisecond) + 4_000)
     assert_release_action!(publisher, promote, final, a, 5, 5_000)
     assert_release_action!(publisher, promote, expanded, a, 2, 7_500)
     assert_release_action!(publisher, rollback, restored, a, 4, 2_500, reason)
@@ -1931,17 +1933,17 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
     end
   end
 
-  defp await_runtime(deadline) do
-    case Ecto.Adapters.SQL.query(Runtime, "SELECT 1", [], log: false, queue: false, timeout: 100) do
+  defp await_repo(repo, deadline) do
+    case Ecto.Adapters.SQL.query(repo, "SELECT 1", [], log: false, queue: false, timeout: 100) do
       {:ok, _} ->
         :ok
 
       _ ->
         if System.monotonic_time(:millisecond) >= deadline,
-          do: flunk("owned runtime connection did not reconnect")
+          do: flunk("#{inspect(repo)} did not reconnect")
 
         Process.sleep(25)
-        await_runtime(deadline)
+        await_repo(repo, deadline)
     end
   end
 
@@ -2034,7 +2036,7 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
 
     error(failed, 503, "authorization_unavailable")
     assert F.counts() == [[0, 0, 0, 0]]
-    await_runtime(System.monotonic_time(:millisecond) + 4000)
+    await_repo(Runtime, System.monotonic_time(:millisecond) + 4_000)
 
     assert request(
              ctx,

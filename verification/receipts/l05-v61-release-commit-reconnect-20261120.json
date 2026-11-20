@@ -1,0 +1,259 @@
+{
+  "base": "b4f6f2f5297f98916572b289bc60e848d69002f1",
+  "beforeSHA256": "3921cc86355869f71b9f6480e6db12791c4434ea7b8c77745d7cc9febb2e6446",
+  "afterSHA256": "91fed535e247f305f4323a370f2c225e741190befa811383eac7830b461d7ec0",
+  "lockedArchives": 21,
+  "fixedResults": [
+    {
+      "run": "first",
+      "assertions": "Rollback and publication replay passed after Postgrex disconnected on COMMIT.",
+      "transcriptSHA256": "a00196af2fd3ea6bec4fb474330583c0b18c01852dd00c89e4d46f23d5ba25bf",
+      "postgresClosedAndPortReusable": true
+    },
+    {
+      "run": "second",
+      "assertions": "Rollback and publication replay passed after Postgrex disconnected on COMMIT.",
+      "transcriptSHA256": "98493b3aed7e1691c44070359a5fcdbee07daa131789e3ac49ed000dbbe43a00",
+      "postgresClosedAndPortReusable": true
+    }
+  ],
+  "commands": [
+    {
+      "label": "locked-deps",
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "deps.get",
+        "--check-locked"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "compile",
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "compile",
+        "--warnings-as-errors"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "format",
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "format",
+        "--check-formatted",
+        "test/mixer_hosted_web/customer_artifact_http_integration_test.exs"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "first-initdb",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/initdb",
+        "-D",
+        "$RUN/first-db",
+        "-U",
+        "mixer_fixture",
+        "--auth=trust",
+        "--no-locale",
+        "-E",
+        "UTF8"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "first-roles",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "52416",
+        "-U",
+        "mixer_fixture",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-d",
+        "postgres",
+        "-c",
+        "CREATE ROLE http_artifact_fixture_admin LOGIN SUPERUSER; CREATE ROLE http_artifact_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS; CREATE ROLE http_artifact_runtime LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "first-database",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/createdb",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "52416",
+        "-U",
+        "mixer_fixture",
+        "-O",
+        "http_artifact_fixture_admin",
+        "mixer_customer_artifact_http"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "first-grants",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "52416",
+        "-U",
+        "mixer_fixture",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-d",
+        "mixer_customer_artifact_http",
+        "-c",
+        "REVOKE CREATE ON SCHEMA public FROM PUBLIC; ALTER SCHEMA public OWNER TO http_artifact_owner; GRANT USAGE ON SCHEMA public TO http_artifact_runtime;"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "first-test",
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "test",
+        "--warnings-as-errors",
+        "--seed",
+        "0",
+        "--trace",
+        "test/mixer_hosted_web/customer_artifact_http_integration_test.exs:695"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "first-postgres-stop",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/pg_ctl",
+        "-D",
+        "$RUN/first-db",
+        "-w",
+        "-t",
+        "12",
+        "-m",
+        "fast",
+        "stop"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "second-initdb",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/initdb",
+        "-D",
+        "$RUN/second-db",
+        "-U",
+        "mixer_fixture",
+        "--auth=trust",
+        "--no-locale",
+        "-E",
+        "UTF8"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "second-roles",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "52557",
+        "-U",
+        "mixer_fixture",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-d",
+        "postgres",
+        "-c",
+        "CREATE ROLE http_artifact_fixture_admin LOGIN SUPERUSER; CREATE ROLE http_artifact_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS; CREATE ROLE http_artifact_runtime LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "second-database",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/createdb",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "52557",
+        "-U",
+        "mixer_fixture",
+        "-O",
+        "http_artifact_fixture_admin",
+        "mixer_customer_artifact_http"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "second-grants",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "52557",
+        "-U",
+        "mixer_fixture",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-d",
+        "mixer_customer_artifact_http",
+        "-c",
+        "REVOKE CREATE ON SCHEMA public FROM PUBLIC; ALTER SCHEMA public OWNER TO http_artifact_owner; GRANT USAGE ON SCHEMA public TO http_artifact_runtime;"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "second-test",
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "test",
+        "--warnings-as-errors",
+        "--seed",
+        "0",
+        "--trace",
+        "test/mixer_hosted_web/customer_artifact_http_integration_test.exs:695"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "second-postgres-stop",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/pg_ctl",
+        "-D",
+        "$RUN/second-db",
+        "-w",
+        "-t",
+        "12",
+        "-m",
+        "fast",
+        "stop"
+      ],
+      "exit": 0
+    }
+  ],
+  "scratchRemoved": true,
+  "githubFailure": {
+    "run": "https://github.com/snowdamiz/mixer/actions/runs/44777997623",
+    "job": 136432857973,
+    "testsLogSHA256": "624db0e639f86a01894e75414e499353855d74b2866ee4bef27a29ab264acaa8",
+    "result": "966 of 969 passed, 2 skipped, three failed",
+    "promotionFailure": "The first retry after the injected deferred COMMIT failure returned HTTP 503 while the single writer connection reconnected."
+  },
+  "localBaseline": "Exact b4f6f2f529 source on separate PostgreSQL 17.11 returned 503 on the immediate retry after the P0001 COMMIT error. Postgrex logged that it disconnected the writer. PostgreSQL and all command groups closed. A plain-bind cleanup probe hit TIME_WAIT, and the scratch was removed.",
+  "scope": "Fixture waits on a read-only query to the replacement writer before replaying the exact failed request once. The test still asserts rollback of head, publication and request receipt at the injected failure. Production transactions are unchanged.",
+  "remaining": "Two browser release fixture failures require separate repair and hosted CI confirmation."
+}
