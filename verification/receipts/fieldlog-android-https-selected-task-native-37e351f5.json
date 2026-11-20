@@ -1,0 +1,173 @@
+{
+  "schema": 1,
+  "scenario": "FieldLog \u00a722.2.12 ordinary Android selected-task signed confirmation and HTTPS native replacement",
+  "status": "observed_behavior_with_unresolved_emulator_custody",
+  "observedAtUTC": "2026-11-20T21:36:46Z",
+  "stockMixerRevision": "37e351f5ea58662ce71a85b9a740187a95f5608e",
+  "relatedStockReceipt": "verification/receipts/fieldlog-https-stock-producer-37e351f5.json",
+  "independentHostReplay": {
+    "receiptSHA256": "775c01c188ebd967910515552bd6bb5f7bd95523c1165fe93c75d60263184f1c",
+    "probeSHA256": "d63e6516630963524b93b703438028eae118a2a251c3ac0e2beb10f385800e0b",
+    "handOffSealSHA256": "e13eeb1fb2fb014081381b582a356f2e8a5648c8e4e48eb7abbdaa83c6884b9c",
+    "sameNative": {
+      "classification": "ota-compatible",
+      "publicationAllowed": false
+    },
+    "httpsSuccessor": {
+      "classification": "store-build-required",
+      "publicationAllowed": false
+    }
+  },
+  "installedFixtures": {
+    "application": "dev.fieldlog.generatedr90",
+    "activity": "dev.fieldlog.generatedr90.androidhost.PublicActivity",
+    "arm64AndroidAPI": 36,
+    "sealedMembersVerified": 266,
+    "pairSealSHA256": "b28cc05b6f0dc2f8600cd380df06be0b299de0c96b6d63e7349500601ab15967",
+    "oldInstalledAPK_SHA256": "1967d27c0811e901ffe692c01837e310ef203b1317f81e1df186ba5c73f7abe9",
+    "successorInstalledAPK_SHA256": "96ced6e846561199fc90cad3c3901cbcf3dcbe19e04c6a69291d534d5094069d",
+    "oldRuntime": "66b610ce85cf800cd585829cf28daa474c0ddf64a0bb1e0eb40807d827b94937",
+    "successorRuntime": "13a72578bd4b8ee1aa2d1a03b98a96a853370fbf87159ec757b56dbea5cca893",
+    "publicRootsSHA256": "8535d7189a1cedd5ca58236e8542ff03f2538395b5caff15ffb6972ae586087a"
+  },
+  "observations": [
+    {
+      "sequence": 1,
+      "route": "Open signed checklist",
+      "frames": [
+        "Open",
+        "Complete task",
+        "Reopen task"
+      ],
+      "revisionBeforeAfter": [
+        2,
+        3
+      ],
+      "taskSaved": true,
+      "reopenedSameTaskForSequence2": true,
+      "health": [
+        "first_screen",
+        "feature_started"
+      ]
+    },
+    {
+      "sequence": 2,
+      "route": "Check for update",
+      "frames": [
+        "Open",
+        "Confirm completion",
+        "Reopen task"
+      ],
+      "unchangedWorkspaceDuringReview": true,
+      "health": [
+        "first_screen",
+        "feature_started"
+      ]
+    },
+    {
+      "offeredSequence": 3,
+      "oldRuntimeOfferAndArtifactHTTPStatus": [
+        200,
+        200
+      ],
+      "oldRuntimeOfferedArtifact": "bcb7d774a624c9241de90b38c340f348fee756712fa0f11a7924b2d88e01b546",
+      "offerBodySHA256": "99acdadade2ed09d33aa49570a30e95fd477c2f7120d2ebabde491376ecabcbc",
+      "artifactBodySHA256": "6e62bc3e712314bd7f8fdc60d928209ce6427b66886df674754fa33444212d8d",
+      "fallback": "Using saved checklist release | Sequence 2",
+      "unchangedWorkspace": true,
+      "unchangedCandidateInventory": true,
+      "androidReopenedHealthyCandidate": true,
+      "hostVerifierRefusal": "v3.manifest.compatibility"
+    },
+    {
+      "sequence": 2,
+      "coldOfflineReopen": true,
+      "reversedPortRemoved": true,
+      "airplaneModeEnabled": true,
+      "ip4AndIp6Unreachable": true,
+      "label": "Using saved checklist release | Sequence 2",
+      "completedTaskRendered": true,
+      "unchangedWorkspace": true
+    },
+    {
+      "sequence": 3,
+      "packageManagerInPlaceInstall": true,
+      "newAPKMatched": true,
+      "unchangedAcrossPackageReplacement": [
+        "workspace",
+        "installation preferences",
+        "old runtime recovery journal"
+      ],
+      "frames": [
+        "Completed",
+        "Reopen task",
+        "Complete task",
+        "Confirm completion",
+        "Reopen task"
+      ],
+      "unchangedWorkspaceDuringReview": true
+    }
+  ],
+  "attemptNotes": [
+    "The launch supervisor restarted only the owned loopback origin before installation to use the updater's payload field.",
+    "The offline script initially saw a one-byte newline from adb reverse --list. The corrected check compared the trimmed response and completed the same offline segment without revisiting the prior action.",
+    "Device JSON envelopes serialize without the handoff's final newline. The storage-only sequence-2 device envelopes matched the exact manifest and assignment after removing that newline.",
+    "The hold stopped further artifact inspection. Sequence-2 and sequence-3 post-confirmation workspace snapshots were taken but their outbox counts were not independently checked in the Android run."
+  ],
+  "cleanup": {
+    "emulatorCustody": "UNKNOWN",
+    "reason": "EPERM while observing absence of emulator PGID 17018 after direct-child reap",
+    "owner": {
+      "avd": "fl_confirm_n0k1eas4",
+      "serial": "emulator-5692",
+      "groups": {
+        "avd-create": {
+          "pid": 16912,
+          "groupAbsent": true,
+          "exit": 0
+        },
+        "origin": {
+          "pid": 16986,
+          "groupAbsent": true,
+          "exit": -15
+        },
+        "adb-server": {
+          "pid": 16995,
+          "groupAbsent": true,
+          "exit": -15
+        },
+        "emulator": {
+          "pid": 17018,
+          "groupAbsent": false
+        },
+        "origin-resumed": {
+          "pid": 26795,
+          "groupAbsent": true,
+          "exit": -15
+        }
+      },
+      "portsReusable": [],
+      "status": "failed",
+      "availableBytesBeforeLaunch": 138709151744,
+      "adbPort": 50924,
+      "originPort": 41897,
+      "consolePort": 5692,
+      "transportPort": 5693,
+      "props": {
+        "ro.boot.qemu.avd_name": "fl_confirm_n0k1eas4",
+        "ro.build.version.sdk": "36",
+        "ro.product.cpu.abi": "arm64-v8a"
+      },
+      "failure": "Could not observe owned group 17018"
+    },
+    "ownedReverseRemoved": true,
+    "retainedScratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/l08-native-confirmation.n0k1eas4",
+    "reference": "HOLD.json",
+    "instruction": "Preserve this exact AVD, the owned emulator PID/PGID 17018, and this campaign tree without inspection, enumeration, probing, signalling, waiting, retry or cleanup. Use the copied compact receipt and top-level HOLD.json for custody metadata only. Do not infer process-group or external-device absence from outer exit."
+  },
+  "limitations": [
+    "The Android run records observed selected-task behavior. Unresolved cleanup prevents accepting the installed run as a complete pass.",
+    "The app did not exercise an actual HTTPS request from Wasm.",
+    "L04, L08 and all later release gates remain open."
+  ]
+}
