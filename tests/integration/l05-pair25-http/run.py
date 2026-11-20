@@ -29,6 +29,7 @@ REPO = HERE.parents[2]
 PIN = "ffbd472419c4fd5bb3bf32735738155a9caa9cc8"
 RECOVERY_PIN = "11b9cb43e3d90de5580efda9b9e2e3a47e387be3"
 STARTER_PIN = "f6577616a8394ca1104f2ba8c430d7ac124ea095"
+BROWSER_PIN = "26000a3fa85a96e5e1e13df221528ac7df8b9add"
 INERT_LOCK = b"inert Linux lock\n"
 INERT_DRIVER_LOG = {"exitCode": 0, "stdoutBytes": 320, "stderrBytes": 80, "outputTruncated": False}
 HOST = "127.0.0.1"
@@ -141,7 +142,8 @@ def owned(root, name, argv, cwd, env, receipts, stop=None, *, exit_codes=(0,)):
                 raise CustodyUnknown(f"{name} custody unknown for PGID {process.pid}") from error
             receipts[name].update(exit=code, groupAbsent=True, logSHA256=sha(output.read_bytes()))
             if code not in exit_codes:
-                print(output.read_text(errors="replace")[-3600:], file=sys.stderr)
+                if not env.get("PAIR25_BROWSER") or name in {"deps", "compile", "console-deps", "console-bundle"}:
+                    print(output.read_text(errors="replace")[-3600:], file=sys.stderr)
                 raise RuntimeError(f"{name} exited {code}")
 
 
@@ -206,8 +208,14 @@ def stage(root, env, result):
         ["git", "rev-parse", f"{pin}:hosted"], cwd=REPO, env=env, text=True, timeout=5,
     ).strip()
     archive = root / "source.tar"
+    paths = ["hosted", "tests/integration/free-project-starter/registration-runner.py"]
+    if result.get("browser"):
+        paths.append("console")
+        result["consoleTree"] = subprocess.check_output(
+            ["git", "rev-parse", f"{pin}:console"], cwd=REPO, env=env, text=True, timeout=5,
+        ).strip()
     with archive.open("xb") as stream:
-        subprocess.run(["git", "archive", pin, "hosted", "tests/integration/free-project-starter/registration-runner.py"],
+        subprocess.run(["git", "archive", pin, *paths],
                        cwd=REPO, env=env, stdout=stream, check=True, timeout=20)
     with tarfile.open(archive) as stream:
         stream.extractall(root, filter="data")
@@ -691,10 +699,134 @@ def verify_no_downloads(query, auth, owner, outsider):
     return downloads
 
 
+def compile_console(root, args, env, result):
+    import browser
+
+    console = root / "console"
+    cache = root / "npm-cache"
+    dist = root / "dist"
+    result["node"] = subprocess.check_output(["node", "--version"], env=env, text=True, timeout=5).strip()
+    result["npm"] = subprocess.check_output(["npm", "--version"], env=env, text=True, timeout=5).strip()
+    result["npmCacheSeedBytes"] = browser.seed_npm_cache(console / "package-lock.json", args.npm_cache, cache)
+    npm_env = dict(env, NPM_CONFIG_CACHE=str(cache), NPM_CONFIG_OFFLINE="true",
+                   NPM_CONFIG_UPDATE_NOTIFIER="false", NPM_CONFIG_USERCONFIG=os.devnull)
+    for name, command, seconds in (
+        ("console-deps", ["npm", "ci", "--offline", "--ignore-scripts", "--no-audit", "--no-fund"], 45),
+        ("console-bundle", ["node", "node_modules/vite/bin/vite.js", "build", "--mode", "local-workspace-builds",
+                            "--configLoader", "runner", "--outDir", str(dist)], 35),
+    ):
+        with owned(root, name, command, console, npm_env, result["commands"], stop=signal.SIGTERM) as child:
+            child.wait(timeout=seconds)
+    result["consoleAssets"] = {
+        str(path.relative_to(dist)): sha(path.read_bytes())
+        for path in sorted(dist.rglob("*")) if path.is_file()
+    }
+    require("index.html" in result["consoleAssets"]
+            and any(name.endswith(".js") for name in result["consoleAssets"]), "console bundle is incomplete")
+    return dist
+
+
+def verify_port_reuse(ports, result):
+    with ExitStack() as stack:
+        for selected in ports:
+            sock = stack.enter_context(socket.socket())
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            sock.bind((HOST, selected))
+            sock.listen(1)
+    result["portsReusable"] = ports
+
+
+def browser_run(root, args, dist, auth, api, sql, worker_port, ports, result):
+    import browser
+
+    selection = result["browser"]
+    expected = auth["build"]
+    require(sql("SELECT count(*) FROM mixer_customer_build_inputs") == "0"
+            and sql("SELECT count(*) FROM mixer_managed_linux_pair25_starters") == "1",
+            "browser requires one managed registration and zero verified inputs")
+    selection.update(verifiedInputsBefore=0, registeredStarters=1, workerListeningBefore=False, http=[])
+    queue = args.browser != "select"
+    evidence = browser.BrowserEvidence(expected, selection)
+    with browser.bridge(dist, auth, evidence, queue) as (bridge_port, url):
+        require(bridge_port not in ports, "browser listener collision")
+        ports.append(bridge_port)
+        if args.browser == "smoke":
+            browser.smoke(bridge_port, url, evidence.scope)
+            selection["finish"] = "http-smoke"
+        else:
+            handoff = root / "browser.private.json"
+            done = root / "browser.done"
+            write(handoff, {"url": url, "finishFile": str(done), "starterId": auth["starter"]["id"],
+                            "scope": evidence.scope, "seconds": args.seconds})
+            print(f"Pair25 private browser handoff file {handoff}", flush=True)
+            try:
+                wait(done.is_file, args.seconds, api, interval=0.2)
+                selection["finish"] = "operator"
+            except TimeoutError:
+                selection["finish"] = "deadline"
+
+    snapshot = json.loads(sql(SQL_STATE))
+    rows = json.loads(sql("""
+        SELECT coalesce(json_agg(json_build_array(
+          organization_id,project_id,application_id,platform,input_id,source_kind,source_reference,
+          source_sha256,toolchain_lock_sha256,build_definition_sha256,max_attempts,timeout_ms,retry_backoff_ms
+        )), '[]') FROM mixer_customer_build_inputs
+    """))
+    require(rows == [[*(expected[key] for key in SPEC_FIELDS), expected["source_input_id"],
+                      "revision", auth["source_reference"], expected["source_sha256"],
+                      expected["toolchain_lock_sha256"], expected["build_definition_sha256"],
+                      1, 1_200_000, 0]], "browser admission did not persist the exact registered input")
+    selection["verifiedInputsAfter"] = len(rows)
+    worker_listening = connect_errno(worker_port) != errno.ECONNREFUSED
+    require(not worker_listening and not (root / "r/runner.sock").exists()
+            and all(snapshot[key] is None for key in ("operations", "capacity", "leases")),
+            "browser flow crossed the paused dispatch boundary")
+    selection.update(workerListeningAfter=worker_listening, operationIntents=0, capacityReservations=0,
+                     coordinatorLeases=0, apiQueuesDisabled=True)
+    evidence.verify(queue)
+    if not queue:
+        require(snapshot["record"] is None and snapshot["jobs"] is None, "selection-only browser flow queued work")
+        selection.update(buildRows=0, jobRows=0)
+        return
+
+    records = json.loads(sql("""
+        SELECT coalesce(json_agg(json_build_object(
+          'id', id, 'buildId', build_id, 'requestKey', request_key, 'journal', journal, 'revision', revision
+        )), '[]') FROM mixer_builds
+    """))
+    jobs = json.loads(sql("""
+        SELECT coalesce(json_agg(json_build_object(
+          'queue', queue, 'worker', worker, 'state', state, 'attempt', attempt, 'args', args
+        )), '[]') FROM oban_jobs
+    """))
+    require(len(records) == len(jobs) == 1, "browser flow did not persist exactly one build and one job")
+    record, = records
+    queue_scope = {key: evidence.queued[key] for key in (*SPEC_FIELDS, "build_id")}
+    journal = record["journal"]
+    creation = journal["creation"]
+    spec = queue_scope | {
+        "source": {"kind": "revision", "reference": auth["source_reference"], "sha256": expected["source_sha256"]},
+        "toolchain_lock_sha256": expected["toolchain_lock_sha256"],
+        "build_definition_sha256": expected["build_definition_sha256"],
+    }
+    require(evidence.key is not None and record["requestKey"] == creation["request_key"] == evidence.key
+            and record["buildId"] == evidence.queued["build_id"] and record["revision"] == 0
+            and creation["spec"] == spec and journal["events"] == [],
+            "queued build did not persist the exact browser submission")
+    require(jobs == [{"queue": "builds", "worker": "MixerHosted.Builds.Coordinator", "state": "available",
+                      "attempt": 0, "args": queue_scope | {"build_record_id": record["id"], "revision": 0,
+                                                           "kind": "created", "attempt": 1, "fence": 1}}],
+            "queued build did not persist one undispatched job for the exact record")
+    selection.update(buildRows=len(records), jobRows=len(jobs), persistedIdempotencyKeyMatched=True,
+                     queuedBuild=evidence.queued | {"record_id": record["id"], "revision": 0},
+                     jobs=snapshot["jobs"])
+
+
 def drive(root, args, env, result):
     receipts = result["commands"]
     source = stage(root, env, result)
     operator, inputs, recipe, recipe_path, export = recipe_inputs(root, args, result)
+    dist = compile_console(root, args, env, result) if args.browser else None
     compile_hosted(root, source, env, receipts)
     projection = result["approvedLayout"]["projectionSHA256"] if operator else sha(b"inert Pair25 projection")
     write(root / "inputs.json", dict(inputs, recipe_sha256=recipe, projection_sha256=projection))
@@ -747,6 +879,8 @@ def drive(root, args, env, result):
 
     rolename = "mixer_build_processor"
     with ExitStack() as services:
+        if args.browser:
+            services.callback(verify_port_reuse, ports, result)
         services.enter_context(owned(root, "postgres", [pg / "postgres", "-D", root / "pg", "-h", HOST,
                                      "-p", str(db_port), "-k", "", "-c", "jit=off"],
                                      root, env, receipts, stop=signal.SIGINT))
@@ -754,7 +888,7 @@ def drive(root, args, env, result):
         require(sql("SHOW data_directory", "postgres") == str(root / "pg"), "PostgreSQL directory differs")
         registration = root / "tests/integration/free-project-starter/registration-runner.py"
         sql(runpy.run_path(registration)["ROLES"], "postgres")
-        if args.select_starter:
+        if args.select_starter or args.browser:
             require(connect_errno(worker_port) == errno.ECONNREFUSED and not (runner_dir / "runner.sock").exists(),
                     "Starter selection requires unstarted worker and runner")
         api = services.enter_context(owned(root, "api", ["mix", "test", "--no-compile", "--only", "pair25_http",
@@ -763,7 +897,7 @@ def drive(root, args, env, result):
         auth = ready("api.ready", api, seconds=65)
         ports.extend(auth[key] for key in ("port", "issuer", "jwks"))
         require(len(set(ports)) == len(ports), "fixture listener collision")
-        if args.select_starter:
+        if args.select_starter or args.browser:
             starter = auth["starter"]
             raw = (root / "starter-registration.json").read_bytes()
             spec = {key: auth["build"][key] for key in SPEC_FIELDS}
@@ -777,8 +911,16 @@ def drive(root, args, env, result):
                                             "rendered_driver_sha256": inputs["rendered_driver_sha256"]}
                     and all(value is None for value in observed_db().values()),
                     "selected Starter differs from the approved runner inputs or enqueued work")
-            result["starterSelection"] = starter
+            result["starterRegistration" if args.browser else "starterSelection"] = starter
         result["billingBeforeBuild"] = billing_state()
+        if args.browser:
+            try:
+                browser_run(root, args, dist, auth, api, sql, worker_port, ports, result)
+            finally:
+                result["billingAfterReadback"] = billing_state()
+            require(result["billingBeforeBuild"] == result["billingAfterReadback"],
+                    "browser flow changed billing state")
+            return
 
         config = {"tenant": auth["build"]["organization_id"], "worker_id": "pair25-native-worker",
                   "port": worker_port, "token": secrets.token_hex(32)}
@@ -1223,13 +1365,7 @@ def drive(root, args, env, result):
                     "build or readback changed billing state")
 
     require(not Path(runner["socket_path"]).exists(), "runner socket was retained")
-    with ExitStack() as stack:
-        for selected in ports:
-            sock = stack.enter_context(socket.socket())
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.bind((HOST, selected))
-            sock.listen(1)
-    result["portsReusable"] = ports
+    verify_port_reuse(ports, result)
 
 
 def main():
@@ -1254,25 +1390,40 @@ def main():
                         help="SIGKILL and reopen the owned worker, then cancel if active or verify native success")
     parser.add_argument("--inert-finish-on-reopen", action="store_true",
                         help="with inert worker-crash mode, settle the original operation before the first recovery read")
-    parser.add_argument("--seconds", type=int, help="settlement budget, at most 1,150 seconds")
+    parser.add_argument("--browser", choices=("select", "queue", "smoke"),
+                        help="serve the compiled console for selection, selection plus one build, or a no-browser HTTP smoke")
+    parser.add_argument("--npm-cache", type=Path, default=Path.home() / ".npm",
+                        help="read-only source for locked console package tarballs")
+    parser.add_argument("--seconds", type=int, help="settlement budget or browser handoff window")
     args = parser.parse_args()
+    if args.browser and (args.operator or args.select_starter or args.cancel or args.worker_crash
+                         or args.inert_finish_on_reopen):
+        parser.error("--browser is a standalone managed Starter mode")
     if args.worker_crash and not args.cancel:
         parser.error("--worker-crash requires --cancel")
     if args.inert_finish_on_reopen and (not args.worker_crash or args.operator):
         parser.error("--inert-finish-on-reopen requires --worker-crash without --operator")
     if args.seconds is None:
-        args.seconds = 75 if args.worker_crash else 30
-    if not 1 <= args.seconds <= 1150:
-        parser.error("use a settlement budget between 1 and 1,150 seconds")
+        args.seconds = 120 if args.browser else 75 if args.worker_crash else 30
+    limit = 300 if args.browser else 1150
+    if not 1 <= args.seconds <= limit:
+        parser.error(f"use a time budget between 1 and {limit} seconds")
     require(not args.receipt.exists(), "receipt already exists")
     os.umask(0o077)
     root = Path(tempfile.mkdtemp(prefix="p25-", dir=args.scratch.resolve(strict=True)))
-    product_pin = STARTER_PIN if args.select_starter else RECOVERY_PIN if args.worker_crash else PIN
+    product_pin = BROWSER_PIN if args.browser else STARTER_PIN if args.select_starter else RECOVERY_PIN if args.worker_crash else PIN
     result = {"productPin": product_pin,
               "mode": "real" if args.operator else "inert", "python": sys.version,
               "fixtureSHA256": {name: sha((HERE / name).read_bytes())
                                 for name in ("run.py", "processor.exs", "api-case.exs")},
               "commands": {}, "cancelAttempts": 0, "cancellationExercised": False, "nativeDispatchPossible": False}
+    if args.browser:
+        result["mode"] = "loopback-console"
+        result["fixtureSHA256"]["browser.py"] = sha((HERE / "browser.py").read_bytes())
+        result["browser"] = {"mode": args.browser,
+                             "httpClient": "Python smoke" if args.browser == "smoke" else "external browser"}
+        if args.browser != "smoke":
+            result["browser"]["windowSeconds"] = args.seconds
     if args.worker_crash and not args.operator:
         result["inertRecoveryMode"] = "finish-on-reopen" if args.inert_finish_on_reopen else "stay-active"
     env = {key: os.environ[key] for key in ("PATH", "HOME", "MIX_HOME", "HEX_HOME") if key in os.environ}
@@ -1282,12 +1433,21 @@ def main():
         env["PAIR25_CANCEL"] = "1"
     if args.select_starter:
         env["PAIR25_SELECT_STARTER"] = "1"
+    if args.browser:
+        env["PAIR25_BROWSER"] = args.browser
     try:
         require(len(os.fsencode(root / "r/runner.sock")) < 103, "scratch path exceeds Unix socket budget")
         drive(root, args, env, result)
         result["passed"] = True
     except Exception as error:
-        result["failure"] = {"type": type(error).__name__, "detail": str(error)}
+        result["failure"] = {"type": type(error).__name__}
+        if args.browser:
+            # Subprocess or parser exceptions can include private fixture paths or wire values.
+            if type(error) is RuntimeError:
+                result["failure"]["detail"] = str(error)
+            print("Pair25 browser fixture failed. See the sanitized receipt.", file=sys.stderr)
+            raise SystemExit(1) from None
+        result["failure"]["detail"] = str(error)
         raise
     finally:
         unresolved = result["nativeDispatchPossible"] and not result.get("nativeDispatchResolved")

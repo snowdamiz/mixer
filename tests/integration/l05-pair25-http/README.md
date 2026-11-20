@@ -64,6 +64,80 @@ python3 -B tests/integration/l05-pair25-http/run.py --select-starter \
 Include `--select-starter` in the real command below to build from the selected
 input using the approved stage.
 
+### Loopback browser
+
+The browser mode archives the ordinary hosted and console sources from
+`26000a3fa85a96e5e1e13df221528ac7df8b9add`. Have that commit locally and put
+Node 22.18+ and npm on `PATH` in addition to the hosted prerequisites above.
+The mode bundles the stock console with Vite's `local-workspace-builds` mode.
+It installs from a private copy of the locked npm tarballs already present in
+`$HOME/.npm`. Use `--npm-cache` to point to a different populated cache. Hex
+and npm dependency resolution are offline.
+
+```sh
+mkdir -p verification/local
+python3 -B tests/integration/l05-pair25-http/run.py --browser queue \
+  --seconds 180 --scratch "$HOME/.t3/userdata" \
+  --receipt verification/local/pair25-browser-queue.json
+```
+
+The fixture prints the path to a private JSON file after it is ready.
+Open that file locally and navigate to its one-use `url` in an isolated
+browser session. Use `localhost` as written so that the browser accepts the
+Secure cookie. Keep the URL and the file out of logs and evidence. The file
+also contains the exact `starterId`, application scope and `finishFile` path.
+
+1. In **Pair25 owner**, choose **Pair25 project**, click **View builds**, and
+   select **example.source.app**. Click **New build**.
+2. Observe **No admitted source inputs**, then click **Select local starter**.
+   Confirm the Android row contains the exact `starterId` from the handoff.
+3. In queue mode, select that row and click **Create build** once. Observe
+   **Submission confirmed** and **Queued** for the same build ID.
+4. After collecting browser evidence, touch the private `finishFile`.
+   The launcher also closes the fixture when the handoff window expires.
+
+Use `--browser select` for steps 1–2 only. This mode verifies that selection
+leaves zero builds and jobs. Queue mode leaves one revision-zero build and one
+available `created` Oban job. The launcher compares the submitted idempotency
+key with both the persisted request key and the journal without recording its
+value. Both modes require exactly one verified Android input, no worker
+listener, no dispatch intent, reservation or coordinator lease, and unchanged
+billing snapshots. The receipt includes scoped HTTP outcomes, bundle hashes,
+and teardown observations. The bridge issues the synthetic session only once
+and forwards the browser's cookie, CSRF header and idempotency key to the local
+Phoenix endpoint. There is no native worker, runner, Docker or Android compiler
+in this mode. The registration uses the fixture's inert Pair25 inputs.
+
+Run the HTTP smoke using a separate receipt path.
+
+```sh
+python3 -B tests/integration/l05-pair25-http/run.py --browser smoke \
+  --scratch "$HOME/.t3/userdata" --receipt verification/local/pair25-browser-smoke.json
+```
+
+The smoke loads the served HTML and JavaScript bundle over loopback. Python
+performs the selection, create and detail requests through the same bridge.
+Rendered UI and browser-originated actions require the interactive run above.
+
+If offline Hex reports a missing registry entry, warm a disposable copy
+before starting the fixture. Substitute your configured Hex cache path for
+`$HOME/.hex` if needed.
+
+```sh
+prep=$(mktemp -d "$HOME/.t3/userdata/p25-hex.XXXXXXXX")
+mkdir "$prep/hex" "$prep/source"
+cp -R "$HOME/.hex/packages" "$HOME/.hex/cache.bin" "$prep/hex/"
+git archive 26000a3fa85a96e5e1e13df221528ac7df8b9add hosted | tar -x -C "$prep/source"
+(
+  cd "$prep/source/hosted" &&
+  env -u HEX_OFFLINE MIX_ENV=test HEX_HOME="$prep/hex" HEX_HTTP_TIMEOUT=8 \
+    TMPDIR="$prep" mix deps.get --check-locked
+)
+```
+
+Set `HEX_HOME="$prep/hex"` when you run the fixture. Remove the disposable
+cache and source after the replay and its cleanup checks finish.
+
 ### Console selection control
 
 Use Node 22.23.3 and Elixir to run the compiled console tests in a disposable
