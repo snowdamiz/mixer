@@ -344,8 +344,12 @@ class Run:
                 for name in ("offer", "artifact")
             }))
             output = self.scratch / "pair25-result.json"
+            child_scratch = Path(tempfile.mkdtemp(prefix="p25-", dir=scratch_parent))
+            custody = child_scratch / "custody.jsonl"
+            custody.touch(exist_ok=False)
+            self.receipt["pair25Scratch"] = str(child_scratch)
             command = [sys.executable, "-B", ROOT / "tests/integration/l05-pair25-http/run.py",
-                       "--cancel", "--worker-crash", "--scratch", scratch_parent, "--receipt", output,
+                       "--worker-crash", "--reserved-scratch", child_scratch, "--receipt", output,
                        "--release-observation", observation_path, "--pg-bin", self.pg]
             if operator is None:
                 command.extend(("--inert-finish-on-reopen", "--seconds", "100"))
@@ -353,14 +357,27 @@ class Run:
                 command.extend(("--operator", operator, "--seconds", "900"))
             self.receipt["nestedCustodyUnresolved"] = True
             env = {**self.env, "HEX_HOME": os.environ["HEX_HOME"]}
-            code, stdout = self.command("pair25-outage", command, env=env, timeout=1_230, check=False)
-            evidence = json.loads(output.read_bytes())
-            self.receipt["pair25"] = evidence
-            self.receipt["nestedCustodyUnresolved"] = not evidence.get("scratchRemoved", False)
-            require(code == 0 and evidence.get("passed") and evidence.get("nativeDispatchResolved")
-                    and evidence["combinedOutage"]["sameBuildAndObanJob"]
-                    and evidence["workerStarts"] == evidence["runnerStarts"] == 1,
-                    "Pair25 checkout and recovery failed: " + stdout[-3_000:].decode(errors="replace"))
+            try:
+                code, stdout = self.command("pair25-outage", command, env=env, timeout=1_230, check=False)
+                evidence = json.loads(output.read_bytes())
+                self.receipt["pair25"] = evidence
+                self.receipt["nestedCustodyUnresolved"] = not evidence.get("scratchRemoved", False)
+                require(code == 0 and evidence.get("passed") and evidence.get("nativeDispatchResolved")
+                        and evidence["combinedOutage"]["sameBuildAndObanJob"]
+                        and evidence["workerStarts"] == evidence["runnerStarts"] == 1
+                        and evidence["terminalBuild"]["state"] == "native_succeeded"
+                        and evidence["capacityReleaseEvent"] == "coordinator:1:1:completed"
+                        and evidence["capacityReleased"] is True
+                        and evidence["cancelAttempts"] == 0 and evidence["cancellationExercised"] is False,
+                        "Pair25 checkout and completion failed: " + stdout[-3_000:].decode(errors="replace"))
+            finally:
+                if self.receipt["nestedCustodyUnresolved"] and custody.is_file():
+                    with custody.open("rb") as stream:
+                        lines = stream.read(32_769).splitlines()
+                    try:
+                        self.receipt["pair25CustodyJournal"] = [json.loads(line) for line in lines]
+                    except ValueError:
+                        self.receipt["pair25CustodyJournalIncomplete"] = True
 
     def phoenix(self, env):
         argv = ["mix", "test", "--warnings-as-errors", "--seed", "0", "--trace",

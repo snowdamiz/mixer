@@ -120,6 +120,15 @@ def group_absent(pid):
     return False
 
 
+def record_custody(root, label, process, *, closed):
+    journal = root / "custody.jsonl"
+    if journal.is_file():
+        with journal.open("a") as stream:
+            print(json.dumps({"label": label, "pid_pgid": process.pid, "closed": closed}), file=stream)
+            stream.flush()
+            os.fsync(stream.fileno())
+
+
 @contextmanager
 def owned(root, name, argv, cwd, env, receipts, stop=None, *, exit_codes=(0,)):
     output = root / (name + ".log")
@@ -128,6 +137,7 @@ def owned(root, name, argv, cwd, env, receipts, stop=None, *, exit_codes=(0,)):
                                    stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
         receipts[name] = {"pid": process.pid, "groupAbsent": False}
         try:
+            record_custody(root, name, process, closed=False)
             yield process
         finally:
             try:
@@ -141,6 +151,7 @@ def owned(root, name, argv, cwd, env, receipts, stop=None, *, exit_codes=(0,)):
             except (OSError, TimeoutError, subprocess.TimeoutExpired) as error:
                 raise CustodyUnknown(f"{name} custody unknown for PGID {process.pid}") from error
             receipts[name].update(exit=code, groupAbsent=True, logSHA256=sha(output.read_bytes()))
+            record_custody(root, name, process, closed=True)
             if code not in exit_codes:
                 if not env.get("PAIR25_BROWSER") or name in {"deps", "compile", "console-deps", "console-bundle"}:
                     print(output.read_text(errors="replace")[-3600:], file=sys.stderr)
@@ -1093,7 +1104,7 @@ def drive(root, args, env, result):
                 result["nativeDispatchPossible"] = bool(operator)
                 mark("processor.run")
 
-                if args.cancel:
+                if args.cancel or args.worker_crash:
                     runner_identity = RunnerIdentity(**identity)
                     until = time.monotonic() + args.seconds
 
@@ -1301,14 +1312,14 @@ def drive(root, args, env, result):
                                 if verify_recovery_detail(observation, scope) == "native_succeeded":
                                     return "native_succeeded", None
 
-                        if outcome == "running":
+                        if args.cancel and outcome == "running":
                             mark("api.cancel-auth.request")
                             cancel_auth = auth | ready("api.cancel-auth", api)
                             if args.worker_crash:
                                 outcome, frontend = wait(active_or_completed, until - time.monotonic(), processor,
                                                          interval=0.2)
 
-                        if outcome == "running":
+                        if args.cancel and outcome == "running":
                             if adapter:
                                 result["frontendBeforeCancel"] = frontend
                             result["cancelAttempts"] = 1
@@ -1472,7 +1483,9 @@ def main():
         return
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--scratch", required=True, type=Path, help="existing private-parent path on this host")
+    scratch = parser.add_mutually_exclusive_group(required=True)
+    scratch.add_argument("--scratch", type=Path, help="existing private-parent path on this host")
+    scratch.add_argument("--reserved-scratch", type=Path, help="empty private directory reserved by the outer fixture")
     parser.add_argument("--pg-bin", type=Path, default=Path("/opt/homebrew/opt/postgresql@17/bin"))
     parser.add_argument("--receipt", type=Path, required=True)
     parser.add_argument("--operator", type=Path, help="real Pair25 stage/daemon operator JSON; omitted for inert replay")
@@ -1480,7 +1493,7 @@ def main():
                         help="select the operator registration through the authenticated Starter API")
     parser.add_argument("--cancel", action="store_true", help="cancel the original operation while it is running")
     parser.add_argument("--worker-crash", action="store_true",
-                        help="SIGKILL and reopen the owned worker, then cancel if active or verify native success")
+                        help="SIGKILL and reopen the owned worker, then observe terminal settlement")
     parser.add_argument("--inert-finish-on-reopen", action="store_true",
                         help="with inert worker-crash mode, settle the original operation before the first recovery read")
     parser.add_argument("--browser", choices=("select", "queue", "smoke"),
@@ -1499,10 +1512,10 @@ def main():
         parser.error("--browser handles Starter selection and does not support cancellation or recovery")
     if args.browser and args.operator and (args.browser != "queue" or not args.complete):
         parser.error("--operator with --browser requires --browser queue --complete")
-    if args.worker_crash and not args.cancel:
-        parser.error("--worker-crash requires --cancel")
-    if args.release_observation and not args.worker_crash:
-        parser.error("--release-observation requires --worker-crash")
+    if args.release_observation and (not args.worker_crash or args.cancel):
+        parser.error("--release-observation requires completion-only --worker-crash")
+    if args.worker_crash and not (args.cancel or args.release_observation):
+        parser.error("--worker-crash requires --cancel or --release-observation")
     if args.inert_finish_on_reopen and (not args.worker_crash or args.operator):
         parser.error("--inert-finish-on-reopen requires --worker-crash without --operator")
     if args.seconds is None:
@@ -1512,7 +1525,17 @@ def main():
         parser.error(f"use a time budget between 1 and {limit} seconds")
     require(not args.receipt.exists(), "receipt already exists")
     os.umask(0o077)
-    root = Path(tempfile.mkdtemp(prefix="p25-", dir=args.scratch.resolve(strict=True)))
+    if args.reserved_scratch:
+        root = args.reserved_scratch.resolve(strict=True)
+        require(root == args.reserved_scratch.absolute() and root.is_dir()
+                and root.stat().st_uid == os.getuid() and root.stat().st_mode & 0o777 == 0o700
+                and set(root.iterdir()) == {root / "custody.jsonl"}
+                and (root / "custody.jsonl").is_file()
+                and not (root / "custody.jsonl").is_symlink()
+                and (root / "custody.jsonl").stat().st_size == 0,
+                "reserved scratch must be a private owned directory with an empty custody journal")
+    else:
+        root = Path(tempfile.mkdtemp(prefix="p25-", dir=args.scratch.resolve(strict=True)))
     product_pin = BROWSER_PIN if args.browser else STARTER_PIN if args.select_starter else RECOVERY_PIN if args.worker_crash else PIN
     result = {"productPin": product_pin,
               "mode": "real" if args.operator else "inert", "python": sys.version,
@@ -1532,7 +1555,7 @@ def main():
     env = {key: os.environ[key] for key in ("PATH", "HOME", "MIX_HOME", "HEX_HOME") if key in os.environ}
     env.update(MIX_ENV="test", HEX_OFFLINE="1", GIT_NO_LAZY_FETCH="1", LC_ALL="C", TMPDIR=str(root),
                PAIR25_RUN=str(root), PYTHONDONTWRITEBYTECODE="1", PYTHONOPTIMIZE=str(sys.flags.optimize))
-    if args.cancel:
+    if args.cancel or args.worker_crash:
         env["PAIR25_CANCEL"] = "1"
     if args.select_starter:
         env["PAIR25_SELECT_STARTER"] = "1"
