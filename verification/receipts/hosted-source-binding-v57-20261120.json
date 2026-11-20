@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "scope": "Local source selection, static migration admission and CLI archive verification. Root adoption is pending independent review.",
+  "candidate": {
+    "composition": "969697601d96e9390bcc8ca5cea57134f6c898fd",
+    "composition_receipt_commit": "51af12a8d6ad5f2d58925b389e147f2ea9465acf",
+    "reviewed_four_file_correction": "b833051552cbd9b541f3cfcb8f1415b0c9ffb0a6",
+    "corrected_parent": "a5a2a90e1e4c262cf4a9358b382715ab7e6090cf",
+    "commit": "d2bca6dcf743cfb3e6fc463b14e1f3efee9eea12",
+    "tree": "7f5aad6b7a56f1ef61f03935f718664f19827c7a",
+    "public_v56_installation": "aae21e0880ea8991992f83322fa1ec47cb4e2908",
+    "common_v56_base": "750efc95dba5787113edd2cda2a38f0aa80506f8",
+    "ancestry": "The public v56 installation and the signed release composition branch from the same v56 base. Their 424 v56 source inputs are identical by Git blob and mode. The public installation's L07 changes are outside the candidate ancestry.",
+    "review_findings_applied": [
+      "Public release startup now validates the effective Phoenix listener configuration. The root-verified browser publication test is included byte for byte.",
+      "Hosted and identity-network both trigger for application-build-page-runtime.tsx on push and pull request. Both workflows retain the composed console sparse paths."
+    ],
+    "corrected_product_and_test_blobs": {
+      "hosted/lib/mixer_hosted/application.ex": "3d3917b134a2da7412a487db721fd70faeb16705",
+      "hosted/test/mixer_hosted/releases/browser_publication_test.exs": "42c485f29b10d24ba2ae23b367090c391cd20e82"
+    },
+    "composed_product_and_test_paths_compared_with_modes": 43,
+    "existing_shared_release_fixtures_added_to_the_selection": [
+      "services/protocol/testdata/release-v3-cases.json",
+      "services/protocol/testdata/signed-release-v3.json"
+    ]
+  },
+  "environment": {
+    "system": "macOS 27.0.1 (26A434) arm64",
+    "git": "2.56.0",
+    "python": "3.14.8"
+  },
+  "hosted_source": {
+    "identity": "hosted-local-signed-release-source-v57",
+    "files": 447,
+    "bytes": 7046989,
+    "canonical_sha256": "3099c5a5b1769ca3259fba8b0d99df607811c19186ce95f81124ef4497bcd37a",
+    "selection_sha256": "ab35fe0cb4f2654214536d05239aa0b79f6eaa2c14b2df9bff4b9f4ecc25853b",
+    "manifest_sha256": "ed761837f682dc7d49f170c51a45aa4b63068d2d20ee20540ff7358450f838c2",
+    "exact_delta": 45,
+    "exact_preimages": 22,
+    "restored_v56": {
+      "files_compared_byte_for_byte_and_mode_for_mode_to_public_git_archive": 424,
+      "bytes": 6272003,
+      "canonical_sha256": "67a063bd75a019fed09b4907256976cee9c8af686358484c0351d664b304aec1",
+      "selection_sha256": "3177e7441fac7af3c366fdffade2797008f5f0dcd6f5a0ed03322d9f26c7a476",
+      "passed_original_v56_check_source_in_both_modes": true
+    },
+    "ordinary_migrations": 22,
+    "opt_in_migrations": 4,
+    "static_browser_migration_runner_inputs": 40,
+    "focused_collector_controls_passed_each_mode": 13,
+    "git_sparse_projections_passed_in_both_modes": {
+      "hosted.yml:phoenix": 864,
+      "identity-network.yml:identity-network": 1045,
+      "verify.yml:services": 1211
+    }
+  },
+  "cli_source_archive": {
+    "seal_sha256": "ce0244c1c25ae8cedb3789298cacb32b070d3ac2bb889df1d531665849b57ae3",
+    "installed_files": 151,
+    "installed_source_sha256": "3693b7424928421348e43156de8cb307619e0470d5566ece5ee3094e60f638f6",
+    "installed_verify_workflow_sha256": "053bef81e15fcaf8c2db2e0014db5aec1e8e20175ba7962f3b0d9c509d43f098",
+    "exact_v56_verify_workflow_preimage_sha256": "c44bc250c783da2e3fc6472faa94bd045fdf1c5007af660ab7f08590eba34ae7",
+    "restored_source141": {
+      "files": 890,
+      "sha256": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab",
+      "verify_workflow_sha256": "b283a00fc9a7ca1b900306d3a4226e182e0ba966014efe0d3427207806f0c69e"
+    },
+    "restored_source127": {
+      "files": 845,
+      "sha256": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7"
+    },
+    "git_selected_authority_inputs_verified_in_both_modes": {
+      "swift-host": 1094,
+      "android-generated-java": 1094
+    },
+    "sparse_controls_passed_each_mode": 16,
+    "missing_or_stale_current_verify_or_v57_preimage_refusals_each_mode": 4
+  },
+  "replay": {
+    "modes": "Run each Python command normally and with -O before the script path.",
+    "commands": [
+      "python3 -B hosted/scripts/test-identity-network.py --check-source",
+      "python3 -B hosted/scripts/test_identity_network_collector.py -v WorkspaceSourceCutoverControls WorkflowSparseSourceControls CurrentCLISelectionControls CollectorMethodWiringControls.test_collect_requires_actual_prepare_result_before_bootstrap",
+      "python3 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+      "python3 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py prepare-source141 --out <fresh-owned-output>",
+      "python3 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py prepare-predecessor --out <fresh-owned-output>",
+      "python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v",
+      "python3 -B scripts/check-verification-artifacts.py"
+    ],
+    "exact_comparison": "Use git ls-tree -r and git -c tar.umask=0022 archive on the selected paths. Invert the v57 exact_delta by deleting paths with a null before row and replacing the others with sealed preimages. Compare all 424 restored files with the public v56 Git archive and run the original v56 check-source on that restored projection.",
+    "sparse_matching": "Match tracked paths with git sparse-checkout check-rules --no-cone --rules-file against each literal job stanza, retaining Swift's exclusion rule. Materialize the Swift CLI authority projection and the Android job projection. Run installed archive admission in both. Run the CLI sparse controls, predecessor restores and missing/stale controls in the Android projection."
+  },
+  "scratch": {
+    "cap_bytes": 2147483648,
+    "corrected_campaign_largest_observed_total_allocated_kib": 95068,
+    "cleanup": "Verified removal of the owned scratch and all projections, temporary Git metadata and outputs."
+  },
+  "retention": "Staged verification artifact check passed.",
+  "limits": "No runtime, live database migration, hosted GitHub job, compiler, native device or GA qualification ran in this lane. No push or adoption."
+}
