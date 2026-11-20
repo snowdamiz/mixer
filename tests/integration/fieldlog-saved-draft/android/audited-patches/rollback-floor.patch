@@ -1,0 +1,216 @@
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogFeatures/EntryEditor.swift b/Integrations/GeneratedReport/Sources/FieldLogFeatures/EntryEditor.swift
+index eb22418125166e08d6177ac41c25539f5d4a035e..c968b76e1fb3399a78ada6fd3f53b2619f35f300 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogFeatures/EntryEditor.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogFeatures/EntryEditor.swift
+@@ -28,9 +28,10 @@ public struct EntrySaveIntent: Sendable {
+     guard workspace.projects.contains(where: { $0.id == projectID }) else {
+       throw FieldLogError.missingRecord
+     }
+-    if let existing = workspace.drafts.first(where: { $0.id == draft.id }),
+-      existing.projectID != projectID { throw FieldLogError.missingRecord }
+-    if let entry = workspace.entries.first(where: { $0.id == draft.id }) {
++    let existing = workspace.drafts.first { $0.id == draft.id }
++    if let existing, existing.projectID != projectID { throw FieldLogError.missingRecord }
++    if kind == .commit || existing == nil,
++      let entry = workspace.entries.first(where: { $0.id == draft.id }) {
+       guard matches(entry) else {
+         throw FieldLogError.validation("This entry has already been committed. Reopen it before editing.")
+       }
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift b/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift
+index 91615788bea186663fbb8a23231e304802366f8a..066c11250d4eb9a64c491c2693e6fb4d735bb6fd 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift
+@@ -76,6 +76,7 @@ public struct LogEntry: Codable, Equatable, Identifiable, Sendable {
+   public var occurredAt: Date
+   public var attachmentIDs: [UUID]
+   public var savedAt: Date
++  public var followUpRequired: Bool? = nil
+ }
+ public struct EntryDraft: Codable, Equatable, Identifiable, Sendable {
+   public var id: UUID
+@@ -85,6 +86,7 @@ public struct EntryDraft: Codable, Equatable, Identifiable, Sendable {
+   public var category: EntryCategory
+   public var occurredAt: Date
+   public var attachmentIDs: [UUID]
++  public var followUpRequired: Bool? = nil
+   public var updatedAt: Date
+   public init(
+     id: UUID = UUID(), projectID: UUID, title: String = "", note: String = "",
+@@ -299,14 +301,23 @@ public struct Workspace: Codable, Equatable, Sendable {
+     }
+     try Self.text(draft.title, label: "Draft title", maximum: 160)
+     try Self.text(draft.note, label: "Draft note", maximum: 100000)
++    var merged = draft
+     if let i = drafts.firstIndex(where: { $0.id == draft.id }) {
+-      var merged = draft
++      let saved = drafts[i]
++      guard saved.projectID == draft.projectID else {
++        throw FieldLogError.validation("An existing draft cannot change projects.")
++      }
+       merged.attachmentIDs =
+-        drafts[i].attachmentIDs
+-        + draft.attachmentIDs.filter { !drafts[i].attachmentIDs.contains($0) }
++        saved.attachmentIDs + draft.attachmentIDs.filter { !saved.attachmentIDs.contains($0) }
++      // Ordinary editor saves can carry a stale copy of the optional field.
++      merged.followUpRequired = saved.followUpRequired
+       drafts[i] = merged
+     } else {
+-      drafts.append(draft)
++      guard !entries.contains(where: { $0.id == draft.id }) else {
++        throw FieldLogError.validation("This draft has already been saved.")
++      }
++      merged.followUpRequired = nil
++      drafts.append(merged)
+     }
+   }
+   public mutating func commitDraft(_ id: UUID, now: Date = Date()) throws {
+@@ -324,7 +335,7 @@ public struct Workspace: Codable, Equatable, Sendable {
+         id: id, projectID: draft.projectID,
+         title: draft.title.trimmingCharacters(in: .whitespacesAndNewlines), note: draft.note,
+         category: draft.category, occurredAt: draft.occurredAt, attachmentIDs: draft.attachmentIDs,
+-        savedAt: now))
++        savedAt: now, followUpRequired: draft.followUpRequired))
+     drafts.removeAll { $0.id == id }
+     if restoration.openDraftID == id { restoration.openDraftID = nil }
+     try enqueue(.entrySaved, id, now: now)
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift b/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
+index c3aa7a10eae986efa52c1bdfb28d3c4c61bc8153..486808645214bac166454202df479cab82508124 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
+@@ -97,6 +97,7 @@ public actor WorkspaceRepository {
+     try mutation(&next)
+     next.revision = workspace.revision + 1
+     try next.validate()
++    try Self.validateDraftTransition(from: current, to: next)
+     do { try Self.write(next, to: file, fault: fault) } catch {
+       unavailable = true
+       throw error
+@@ -104,6 +105,29 @@ public actor WorkspaceRepository {
+     workspace = next
+     return workspace
+   }
++  private static func validateDraftTransition(from current: Workspace, to next: Workspace) throws {
++    let previous = Dictionary(uniqueKeysWithValues: current.drafts.map { ($0.id, $0.projectID) })
++    for draft in next.drafts {
++      if let project = previous[draft.id], project != draft.projectID {
++        throw FieldLogError.validation("An existing draft cannot change projects.")
++      }
++    }
++
++    let remaining = Set(next.drafts.map(\.id))
++    let existingEntries = Set(current.entries.map(\.id))
++    for entry in next.entries {
++      let wasEntry = existingEntries.contains(entry.id)
++      let draftProject = previous[entry.id]
++      if remaining.contains(entry.id) {
++        // Old snapshots may contain both records. Only preserve pairs already on disk.
++        guard wasEntry, draftProject != nil else {
++          throw FieldLogError.validation("A draft and a saved entry cannot share a new identifier.")
++        }
++      } else if !wasEntry, let draftProject, draftProject != entry.projectID {
++        throw FieldLogError.validation("An existing draft cannot change projects.")
++      }
++    }
++  }
+   public func addPhoto(jpeg: Data, to draftID: UUID, now: Date = Date()) throws -> Workspace {
+     guard (1...6_291_456).contains(jpeg.count), jpeg.starts(with: [0xff, 0xd8, 0xff]) else {
+       throw FieldLogError.validation("Choose a JPEG photo up to 6 MiB.")
+diff --git a/Sources/FieldLogModels/Workspace.swift b/Sources/FieldLogModels/Workspace.swift
+index 91615788bea186663fbb8a23231e304802366f8a..066c11250d4eb9a64c491c2693e6fb4d735bb6fd 100644
+--- a/Sources/FieldLogModels/Workspace.swift
++++ b/Sources/FieldLogModels/Workspace.swift
+@@ -76,6 +76,7 @@ public struct LogEntry: Codable, Equatable, Identifiable, Sendable {
+   public var occurredAt: Date
+   public var attachmentIDs: [UUID]
+   public var savedAt: Date
++  public var followUpRequired: Bool? = nil
+ }
+ public struct EntryDraft: Codable, Equatable, Identifiable, Sendable {
+   public var id: UUID
+@@ -85,6 +86,7 @@ public struct EntryDraft: Codable, Equatable, Identifiable, Sendable {
+   public var category: EntryCategory
+   public var occurredAt: Date
+   public var attachmentIDs: [UUID]
++  public var followUpRequired: Bool? = nil
+   public var updatedAt: Date
+   public init(
+     id: UUID = UUID(), projectID: UUID, title: String = "", note: String = "",
+@@ -299,14 +301,23 @@ public struct Workspace: Codable, Equatable, Sendable {
+     }
+     try Self.text(draft.title, label: "Draft title", maximum: 160)
+     try Self.text(draft.note, label: "Draft note", maximum: 100000)
++    var merged = draft
+     if let i = drafts.firstIndex(where: { $0.id == draft.id }) {
+-      var merged = draft
++      let saved = drafts[i]
++      guard saved.projectID == draft.projectID else {
++        throw FieldLogError.validation("An existing draft cannot change projects.")
++      }
+       merged.attachmentIDs =
+-        drafts[i].attachmentIDs
+-        + draft.attachmentIDs.filter { !drafts[i].attachmentIDs.contains($0) }
++        saved.attachmentIDs + draft.attachmentIDs.filter { !saved.attachmentIDs.contains($0) }
++      // Ordinary editor saves can carry a stale copy of the optional field.
++      merged.followUpRequired = saved.followUpRequired
+       drafts[i] = merged
+     } else {
+-      drafts.append(draft)
++      guard !entries.contains(where: { $0.id == draft.id }) else {
++        throw FieldLogError.validation("This draft has already been saved.")
++      }
++      merged.followUpRequired = nil
++      drafts.append(merged)
+     }
+   }
+   public mutating func commitDraft(_ id: UUID, now: Date = Date()) throws {
+@@ -324,7 +335,7 @@ public struct Workspace: Codable, Equatable, Sendable {
+         id: id, projectID: draft.projectID,
+         title: draft.title.trimmingCharacters(in: .whitespacesAndNewlines), note: draft.note,
+         category: draft.category, occurredAt: draft.occurredAt, attachmentIDs: draft.attachmentIDs,
+-        savedAt: now))
++        savedAt: now, followUpRequired: draft.followUpRequired))
+     drafts.removeAll { $0.id == id }
+     if restoration.openDraftID == id { restoration.openDraftID = nil }
+     try enqueue(.entrySaved, id, now: now)
+diff --git a/Sources/FieldLogStorage/WorkspaceRepository.swift b/Sources/FieldLogStorage/WorkspaceRepository.swift
+index f5a99605351ad460d0cb44011db0d4889d6df7b0..4a864058ceea0935b358362b223350ab71b4e0a3 100644
+--- a/Sources/FieldLogStorage/WorkspaceRepository.swift
++++ b/Sources/FieldLogStorage/WorkspaceRepository.swift
+@@ -91,6 +91,7 @@ public actor WorkspaceRepository {
+     try mutation(&next)
+     next.revision = workspace.revision + 1
+     try next.validate()
++    try Self.validateDraftTransition(from: current, to: next)
+     do { try Self.write(next, to: file, fault: fault) } catch {
+       unavailable = true
+       throw error
+@@ -98,6 +99,29 @@ public actor WorkspaceRepository {
+     workspace = next
+     return workspace
+   }
++  private static func validateDraftTransition(from current: Workspace, to next: Workspace) throws {
++    let previous = Dictionary(uniqueKeysWithValues: current.drafts.map { ($0.id, $0.projectID) })
++    for draft in next.drafts {
++      if let project = previous[draft.id], project != draft.projectID {
++        throw FieldLogError.validation("An existing draft cannot change projects.")
++      }
++    }
++
++    let remaining = Set(next.drafts.map(\.id))
++    let existingEntries = Set(current.entries.map(\.id))
++    for entry in next.entries {
++      let wasEntry = existingEntries.contains(entry.id)
++      let draftProject = previous[entry.id]
++      if remaining.contains(entry.id) {
++        // Old snapshots may contain both records. Only preserve pairs already on disk.
++        guard wasEntry, draftProject != nil else {
++          throw FieldLogError.validation("A draft and a saved entry cannot share a new identifier.")
++        }
++      } else if !wasEntry, let draftProject, draftProject != entry.projectID {
++        throw FieldLogError.validation("An existing draft cannot change projects.")
++      }
++    }
++  }
+   public func addPhoto(jpeg: Data, to draftID: UUID, now: Date = Date()) throws -> Workspace {
+     guard (1...6_291_456).contains(jpeg.count), jpeg.starts(with: [0xff, 0xd8, 0xff]) else {
+       throw FieldLogError.validation("Choose a JPEG photo up to 6 MiB.")

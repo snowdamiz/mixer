@@ -1,0 +1,71 @@
+diff --git a/Integrations/InstalledGuest/SelectedDraftBinding.swift b/Integrations/InstalledGuest/SelectedDraftBinding.swift
+index 454af4630874ff713f0c0f501c655e49c07a641a..329587a4e8a65cb75ae34688742290e69cb27587 100644
+--- a/Integrations/InstalledGuest/SelectedDraftBinding.swift
++++ b/Integrations/InstalledGuest/SelectedDraftBinding.swift
+@@ -43,16 +43,21 @@ import MixerCapabilities
+         lease = nil
+     }
+ 
+-    @MainActor private final class Lease: InstalledApplicationStorageServing {
++    // Android stops servicing the Swift main run loop once the checklist is
++    // open. Selection and detach stay synchronous on the editor actor.
++    private final class Lease: InstalledApplicationStorageServing, @unchecked Sendable {
+         private let storage: FieldLogDraftStorage
++        private let lock = NSLock()
+         private var active = true
+-        private var pending: [UUID: @MainActor () -> Void] = [:]
++        private var pending: [UUID: @Sendable () -> Void] = [:]
+ 
+         init(storage: FieldLogDraftStorage) { self.storage = storage }
+ 
+         func revoke() {
+-            active = false
+-            for cancel in pending.values { cancel() }
++            lock.withLock {
++                active = false
++                for cancel in pending.values { cancel() }
++            }
+         }
+ 
+         func get(_ arguments: KVGetArguments) async throws -> KVGetResponse {
+@@ -72,21 +77,28 @@ import MixerCapabilities
+         private func perform<Value: Sendable>(
+             _ operation: @escaping @Sendable (FieldLogDraftStorage) async throws -> Value
+         ) async throws -> Value {
+-            guard active else { throw CapabilityFailure.permissionDenied }
+-            try Task.checkCancellation()
+             let id = UUID()
+-            let storage = self.storage
+-            let task = Task { try await operation(storage) }
+-            pending[id] = { task.cancel() }
+-            defer { pending[id] = nil }
+-            let result = await withTaskCancellationHandler {
+-                await task.result
++            return try await withTaskCancellationHandler {
++                let task = try lock.withLock {
++                    guard active else { throw CapabilityFailure.permissionDenied }
++                    try Task.checkCancellation()
++                    let task = Task.detached(priority: Task.currentPriority) { [storage] in
++                        try Task.checkCancellation()
++                        return try await operation(storage)
++                    }
++                    pending[id] = { task.cancel() }
++                    return task
++                }
++                let result = await task.result
++                return try lock.withLock {
++                    pending[id] = nil
++                    guard active else { throw CapabilityFailure.permissionDenied }
++                    try Task.checkCancellation()
++                    return try result.get()
++                }
+             } onCancel: {
+-                task.cancel()
++                self.lock.withLock { self.pending[id]?() }
+             }
+-            guard active else { throw CapabilityFailure.permissionDenied }
+-            try Task.checkCancellation()
+-            return try result.get()
+         }
+     }
+ }

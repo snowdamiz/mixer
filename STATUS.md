@@ -119,6 +119,12 @@ The first full replay stopped at `starter-export` with `lock.toolchain-drift`. T
 
 A separate PostgreSQL cluster restored the same journal and served matching build and log content and all three advertised artifacts with fresh owner sessions. The unrelated tenant received the expected HTTP 404 body for each read. Both sessions received `Cache-Control: no-store`. The reads left the restored journal, SQLite operation, and artifact bytes unchanged. The target launched no worker or compiler. All 73 command groups closed, all 11 ports were reusable, and scratch was removed. Recovery after unverified compiler closure remains open under L07. [Settled Starter restore receipt](verification/receipts/l07-starter-settled-restore-20261120.json)
 
+### Android FieldLog saved-draft rollback
+
+On an owned Android 36 arm64 emulator, the same FieldLog installation accepted four signed assignments. The optional guest saved the follow-up flag. The rollback guest reopened the same JPEG-linked draft, and the ordinary editor saved a new note with airplane mode on, no default route, and the release origin mapping removed. A cold reopen read the edit from disk and used the cached rollback guest. The re-upgraded guest recovered the true flag, edited note, and same JPEG bytes. An unsaved draft could not open a new signed session. [Android readback receipt](verification/receipts/fieldlog-android-saved-draft-offline-readback-20261120.json)
+
+The closed run stopped before saving the second draft after an invalid driver swipe. A later attempt displayed the rollback guest and failed the durable recovery check after reopening the panel to correct a screenshot label. That emulator and its private ADB server remain held. Two-draft isolation and the final installed APK readback remain open. The maintained rebuild recipe includes per-phase custody checks and Rust LLVM tools. Its seven inert controls passed in normal and optimized Python. [Clean rebuild receipt](verification/receipts/fieldlog-android-saved-draft-terminal-d82b7878.json) · [Rebuild recipe](tests/integration/fieldlog-saved-draft/android/README.md)
+
 ### Android FieldLog engine replacement
 
 Section 22.2.13 passed on one owned AOSP arm64 API 36 emulator. FieldLog saved an open task through the ordinary form. Android installed version 24102 over 24101 with `pm install -r` and the same development signer. The old engine displayed signed sequence 7, and the replacement displayed sequence 1. Both showed **Open** and reached durable `first_screen` and `feature_started` before **Done** closed effects.

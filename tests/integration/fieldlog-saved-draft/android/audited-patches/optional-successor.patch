@@ -1,0 +1,440 @@
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift b/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift
+index 066c11250d4eb9a64c491c2693e6fb4d735bb6fd..2ab526ceeb7e73507b46b3c1d9729f4b40b8aa17 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift
+@@ -79,6 +79,10 @@ public struct LogEntry: Codable, Equatable, Identifiable, Sendable {
+   public var followUpRequired: Bool? = nil
+ }
+ public struct EntryDraft: Codable, Equatable, Identifiable, Sendable {
++  public func validateTitleForCommit() throws {
++    try Workspace.text(title, label: "Entry title", maximum: 160, required: true)
++  }
++
+   public var id: UUID
+   public var projectID: UUID
+   public var title: String
+@@ -324,7 +328,7 @@ public struct Workspace: Codable, Equatable, Sendable {
+     guard let draft = drafts.first(where: { $0.id == id }) else {
+       throw FieldLogError.missingRecord
+     }
+-    try Self.text(draft.title, label: "Entry title", maximum: 160, required: true)
++    try draft.validateTitleForCommit()
+     // The draft identity becomes the saved entry identity. A repeated commit
+     // cannot append a duplicate entry or outbox operation.
+     guard !entries.contains(where: { $0.id == id }) else {
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift b/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
+index 486808645214bac166454202df479cab82508124..ac31d3413342c3a3570244af5174acd096c0d4b4 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
+@@ -30,6 +30,14 @@ public actor WorkspaceRepository {
+   private let fault: Fault?
+   private var workspace: Workspace
+   private var unavailable = false
++  // A selection lives only in this open repository and follows one committed draft lifetime.
++  private var draftSelections: [UUID: UUID] = [:]
++
++  public struct DraftSelection: Sendable {
++    fileprivate let draftID: UUID
++    fileprivate let projectID: UUID
++    fileprivate let token: UUID
++  }
+   private static let maximumSnapshotBytes = 32 * 1024 * 1024
+ 
+   public init(directory: URL, fault: Fault? = nil) throws {
+@@ -66,6 +74,7 @@ public actor WorkspaceRepository {
+   }
+   public func close() {
+     unavailable = true
++    draftSelections.removeAll()
+     if lockFD >= 0 {
+       flock(lockFD, LOCK_UN)
+       closeDescriptor(lockFD)
+@@ -74,6 +83,64 @@ public actor WorkspaceRepository {
+   }
+   public func snapshot() -> Workspace { workspace }
+ 
++  public func readCommittedSnapshot() throws -> Workspace {
++    guard !unavailable else { throw FieldLogError.storage("Workspace is closed or requires reopening.") }
++    let current = try Self.read(directory.appendingPathComponent("workspace.json"))
++    guard current == workspace else { throw FieldLogError.staleRevision }
++    return current
++  }
++
++  public func readSavedDraft(projectID: UUID, draftID: UUID) throws -> (
++    revision: UInt64, draft: EntryDraft?
++  ) {
++    let committed = try readCommittedSnapshot()
++    let draft = committed.drafts.first { $0.id == draftID && $0.projectID == projectID }
++    return (committed.revision, draft)
++  }
++
++  public func validateSavedDraft(projectID: UUID, draftID: UUID) throws {
++    guard let draft = try readSavedDraft(projectID: projectID, draftID: draftID).draft else {
++      throw FieldLogError.missingRecord
++    }
++    try draft.validateTitleForCommit()
++  }
++
++  public func selectSavedDraft(projectID: UUID, draftID: UUID) throws -> DraftSelection {
++    guard try readSavedDraft(projectID: projectID, draftID: draftID).draft != nil else {
++      throw FieldLogError.missingRecord
++    }
++    let token = draftSelections[draftID] ?? UUID()
++    draftSelections[draftID] = token
++    return DraftSelection(draftID: draftID, projectID: projectID, token: token)
++  }
++
++  public func readSelectedDraft(_ selection: DraftSelection) throws -> (
++    revision: UInt64, draft: EntryDraft?
++  ) {
++    let committed = try readCommittedSnapshot()
++    guard draftSelections[selection.draftID] == selection.token else {
++      return (committed.revision, nil)
++    }
++    let draft = committed.drafts.first {
++      $0.id == selection.draftID && $0.projectID == selection.projectID
++    }
++    return (committed.revision, draft)
++  }
++
++  @discardableResult public func updateSelectedDraftFollowUp(
++    _ selection: DraftSelection, expectedRevision: UInt64,
++    _ update: @Sendable (inout Bool?) throws -> Void
++  ) throws -> Workspace {
++    let selected = draftSelections[selection.draftID] == selection.token
++    return try transact(expectedRevision: expectedRevision) { workspace in
++      try Task.checkCancellation()
++      guard selected, let index = workspace.drafts.firstIndex(where: {
++        $0.id == selection.draftID && $0.projectID == selection.projectID
++      }) else { throw FieldLogError.missingRecord }
++      try update(&workspace.drafts[index].followUpRequired)
++    }
++  }
++
+   @discardableResult public func transact(
+     expectedRevision: UInt64? = nil, _ mutation: @Sendable (inout Workspace) throws -> Void
+   ) throws -> Workspace {
+@@ -102,6 +169,14 @@ public actor WorkspaceRepository {
+       unavailable = true
+       throw error
+     }
++    if next.id != current.id {
++      draftSelections.removeAll()
++    } else if !draftSelections.isEmpty {
++      // A same-project, same-ID record in a single snapshot transition is an edit.
++      // After committed removal, even an exact copy must be selected again.
++      let remaining = Set(next.drafts.map(\.id))
++      draftSelections = draftSelections.filter { remaining.contains($0.key) }
++    }
+     workspace = next
+     return workspace
+   }
+diff --git a/Integrations/InstalledGuest/FieldLogDraftStorage.swift b/Integrations/InstalledGuest/FieldLogDraftStorage.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..48022f44ce1be5b9ae26ed132b04b0d51c551564
+--- /dev/null
++++ b/Integrations/InstalledGuest/FieldLogDraftStorage.swift
+@@ -0,0 +1,65 @@
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++import MixerCapabilities
++
++public struct FieldLogDraftStorage: InstalledApplicationStorageServing {
++    public static let namespace = "fieldlog-task-v1"
++    private static let key = "selected-draft"
++    private let repository: WorkspaceRepository
++    private let selection: WorkspaceRepository.DraftSelection
++
++    public init(repository: WorkspaceRepository, projectID: UUID, draftID: UUID) async throws {
++        self.repository = repository
++        self.selection = try await repository.selectSavedDraft(projectID: projectID, draftID: draftID)
++    }
++
++    public func get(_ arguments: KVGetArguments) async throws -> KVGetResponse {
++        try authorize(arguments.namespace, arguments.key)
++        try Task.checkCancellation()
++        let (revision, saved) = try await repository.readSelectedDraft(selection)
++        guard let draft = saved else {
++            return .init(found: false, valueBase64: "")
++        }
++        // ABI: big-endian revision, then raw title presence, title validity, photo linkage, and follow-up.
++        var bytes = withUnsafeBytes(of: revision.bigEndian) { Data($0) }
++        var flags: UInt8 = 0
++        if !draft.title.isEmpty { flags |= 1 }
++        if (try? draft.validateTitleForCommit()) != nil { flags |= 2 }
++        if !draft.attachmentIDs.isEmpty { flags |= 4 }
++        if let followUp = draft.followUpRequired { flags |= followUp ? 8 : 16 }
++        bytes.append(flags)
++        return .init(found: true, valueBase64: bytes.base64EncodedString())
++    }
++
++    public func put(_ arguments: KVPutArguments, maximumTotalBytes: Int, maximumEntries: Int) async throws -> KVMutationResponse {
++        try authorize(arguments.namespace, arguments.key)
++        guard let bytes = Data(base64Encoded: arguments.valueBase64), bytes.count == 9,
++              let value = bytes.last, value == 1 || value == 2 else { throw CapabilityFailure.invalidResponse }
++        let revision = bytes.prefix(8).reduce(UInt64(0)) { ($0 << 8) | UInt64($1) }
++        do {
++            try await repository.updateSelectedDraftFollowUp(selection, expectedRevision: revision) { followUp in
++                guard followUp != (value == 1) else { throw NoChange() }
++                guard maximumTotalBytes >= bytes.count, maximumEntries >= 1 else { throw CapabilityFailure.quotaExceeded }
++                followUp = value == 1
++            }
++            return .init(committed: true)
++        } catch is NoChange {
++            return .init(committed: true)
++        } catch FieldLogError.staleRevision {
++            return .init(committed: false)
++        } catch FieldLogError.missingRecord {
++            throw CapabilityFailure.permissionDenied
++        }
++    }
++
++    public func delete(_ arguments: KVDeleteArguments) async throws -> KVMutationResponse {
++        throw CapabilityFailure.permissionDenied
++    }
++
++    private func authorize(_ namespace: String, _ key: String) throws {
++        guard namespace == Self.namespace, key == Self.key else { throw CapabilityFailure.permissionDenied }
++    }
++
++    private struct NoChange: Error {}
++}
+diff --git a/Sources/FieldLogModels/Workspace.swift b/Sources/FieldLogModels/Workspace.swift
+index 066c11250d4eb9a64c491c2693e6fb4d735bb6fd..2ab526ceeb7e73507b46b3c1d9729f4b40b8aa17 100644
+--- a/Sources/FieldLogModels/Workspace.swift
++++ b/Sources/FieldLogModels/Workspace.swift
+@@ -79,6 +79,10 @@ public struct LogEntry: Codable, Equatable, Identifiable, Sendable {
+   public var followUpRequired: Bool? = nil
+ }
+ public struct EntryDraft: Codable, Equatable, Identifiable, Sendable {
++  public func validateTitleForCommit() throws {
++    try Workspace.text(title, label: "Entry title", maximum: 160, required: true)
++  }
++
+   public var id: UUID
+   public var projectID: UUID
+   public var title: String
+@@ -324,7 +328,7 @@ public struct Workspace: Codable, Equatable, Sendable {
+     guard let draft = drafts.first(where: { $0.id == id }) else {
+       throw FieldLogError.missingRecord
+     }
+-    try Self.text(draft.title, label: "Entry title", maximum: 160, required: true)
++    try draft.validateTitleForCommit()
+     // The draft identity becomes the saved entry identity. A repeated commit
+     // cannot append a duplicate entry or outbox operation.
+     guard !entries.contains(where: { $0.id == id }) else {
+diff --git a/Sources/FieldLogStorage/WorkspaceRepository.swift b/Sources/FieldLogStorage/WorkspaceRepository.swift
+index 4a864058ceea0935b358362b223350ab71b4e0a3..7de54570abf38578a87c333875c6411e7ba43b2d 100644
+--- a/Sources/FieldLogStorage/WorkspaceRepository.swift
++++ b/Sources/FieldLogStorage/WorkspaceRepository.swift
+@@ -3,6 +3,8 @@ import Foundation
+ 
+ #if canImport(Darwin)
+   import Darwin
++#elseif canImport(Android)
++  import Android
+ #elseif canImport(Glibc)
+   import Glibc
+ #endif
+@@ -10,6 +12,8 @@ import Foundation
+ private func closeDescriptor(_ fd: Int32) {
+   #if canImport(Darwin)
+     _ = Darwin.close(fd)
++  #elseif canImport(Android)
++    _ = Android.close(fd)
+   #elseif canImport(Glibc)
+     _ = Glibc.close(fd)
+   #endif
+@@ -24,6 +28,14 @@ public actor WorkspaceRepository {
+   private let fault: Fault?
+   private var workspace: Workspace
+   private var unavailable = false
++  // A selection lives only in this open repository and follows one committed draft lifetime.
++  private var draftSelections: [UUID: UUID] = [:]
++
++  public struct DraftSelection: Sendable {
++    fileprivate let draftID: UUID
++    fileprivate let projectID: UUID
++    fileprivate let token: UUID
++  }
+   private static let maximumSnapshotBytes = 32 * 1024 * 1024
+ 
+   public init(directory: URL, fault: Fault? = nil) throws {
+@@ -60,6 +72,7 @@ public actor WorkspaceRepository {
+   }
+   public func close() {
+     unavailable = true
++    draftSelections.removeAll()
+     if lockFD >= 0 {
+       flock(lockFD, LOCK_UN)
+       closeDescriptor(lockFD)
+@@ -68,6 +81,64 @@ public actor WorkspaceRepository {
+   }
+   public func snapshot() -> Workspace { workspace }
+ 
++  public func readCommittedSnapshot() throws -> Workspace {
++    guard !unavailable else { throw FieldLogError.storage("Workspace is closed or requires reopening.") }
++    let current = try Self.read(directory.appendingPathComponent("workspace.json"))
++    guard current == workspace else { throw FieldLogError.staleRevision }
++    return current
++  }
++
++  public func readSavedDraft(projectID: UUID, draftID: UUID) throws -> (
++    revision: UInt64, draft: EntryDraft?
++  ) {
++    let committed = try readCommittedSnapshot()
++    let draft = committed.drafts.first { $0.id == draftID && $0.projectID == projectID }
++    return (committed.revision, draft)
++  }
++
++  public func validateSavedDraft(projectID: UUID, draftID: UUID) throws {
++    guard let draft = try readSavedDraft(projectID: projectID, draftID: draftID).draft else {
++      throw FieldLogError.missingRecord
++    }
++    try draft.validateTitleForCommit()
++  }
++
++  public func selectSavedDraft(projectID: UUID, draftID: UUID) throws -> DraftSelection {
++    guard try readSavedDraft(projectID: projectID, draftID: draftID).draft != nil else {
++      throw FieldLogError.missingRecord
++    }
++    let token = draftSelections[draftID] ?? UUID()
++    draftSelections[draftID] = token
++    return DraftSelection(draftID: draftID, projectID: projectID, token: token)
++  }
++
++  public func readSelectedDraft(_ selection: DraftSelection) throws -> (
++    revision: UInt64, draft: EntryDraft?
++  ) {
++    let committed = try readCommittedSnapshot()
++    guard draftSelections[selection.draftID] == selection.token else {
++      return (committed.revision, nil)
++    }
++    let draft = committed.drafts.first {
++      $0.id == selection.draftID && $0.projectID == selection.projectID
++    }
++    return (committed.revision, draft)
++  }
++
++  @discardableResult public func updateSelectedDraftFollowUp(
++    _ selection: DraftSelection, expectedRevision: UInt64,
++    _ update: @Sendable (inout Bool?) throws -> Void
++  ) throws -> Workspace {
++    let selected = draftSelections[selection.draftID] == selection.token
++    return try transact(expectedRevision: expectedRevision) { workspace in
++      try Task.checkCancellation()
++      guard selected, let index = workspace.drafts.firstIndex(where: {
++        $0.id == selection.draftID && $0.projectID == selection.projectID
++      }) else { throw FieldLogError.missingRecord }
++      try update(&workspace.drafts[index].followUpRequired)
++    }
++  }
++
+   @discardableResult public func transact(
+     expectedRevision: UInt64? = nil, _ mutation: @Sendable (inout Workspace) throws -> Void
+   ) throws -> Workspace {
+@@ -96,6 +167,14 @@ public actor WorkspaceRepository {
+       unavailable = true
+       throw error
+     }
++    if next.id != current.id {
++      draftSelections.removeAll()
++    } else if !draftSelections.isEmpty {
++      // A same-project, same-ID record in a single snapshot transition is an edit.
++      // After committed removal, even an exact copy must be selected again.
++      let remaining = Set(next.drafts.map(\.id))
++      draftSelections = draftSelections.filter { remaining.contains($0.key) }
++    }
+     workspace = next
+     return workspace
+   }
+diff --git a/ios/FieldLog/EntryEditor.swift b/ios/FieldLog/EntryEditor.swift
+index a7ec16e9323f4aec0bcae385a858cbf0e47598f3..5f0b06f40aca8fbb38916774e2d465f8c23fbf4b 100644
+--- a/ios/FieldLog/EntryEditor.swift
++++ b/ios/FieldLog/EntryEditor.swift
+@@ -12,6 +12,8 @@ struct EntryEditor: View {
+   @State private var selection: PhotosPickerItem?
+   @State private var attaching = false
+   @State private var committing = false
++  @State private var checkingSavedDraft = false
++  @State private var draftCheckMessage: String?
+   @State private var photoError: String?
+   var body: some View {
+     NavigationStack {
+@@ -51,6 +53,23 @@ struct EntryEditor: View {
+           }
+         }
+         Section {
++          Button("Check saved draft") {
++            checkingSavedDraft = true
++            Task {
++              defer { checkingSavedDraft = false }
++              do {
++                try await model.checkSavedDraft(projectID: draft.projectID, draftID: draft.id)
++                draftCheckMessage = "The saved draft has a valid title."
++              } catch {
++                draftCheckMessage = error.localizedDescription
++              }
++            }
++          }
++          .disabled(
++            checkingSavedDraft || committing || attaching || model.pendingSaves > 0
++              || model.unsavedDrafts[draft.id] != nil
++          )
++          .accessibilityIdentifier("check-saved-draft")
+           Button {
+             committing = true
+             Task {
+@@ -95,6 +114,15 @@ struct EntryEditor: View {
+         attaching = false
+       }
+     }
++    .alert(
++      "Saved draft check",
++      isPresented: Binding(
++        get: { draftCheckMessage != nil }, set: { if !$0 { draftCheckMessage = nil } })
++    ) {
++      Button("OK", role: .cancel) { draftCheckMessage = nil }
++    } message: {
++      Text(draftCheckMessage ?? "")
++    }
+     .alert(
+       "Photo couldn't be attached",
+       isPresented: Binding(get: { photoError != nil }, set: { if !$0 { photoError = nil } })
+diff --git a/ios/FieldLog/WorkspaceModel.swift b/ios/FieldLog/WorkspaceModel.swift
+index 8f8cd66fbffbc057290ed17c4592fd4c55bdcf7e..500a5f56ef5a78322d55c30fa08729bc25480f5c 100644
+--- a/ios/FieldLog/WorkspaceModel.swift
++++ b/ios/FieldLog/WorkspaceModel.swift
+@@ -14,10 +14,19 @@ import SwiftUI
+   private var saveChain: Task<Bool, Never>?
+   private var opened = false
+ 
++  init(repository: WorkspaceRepository? = nil) {
++    self.repository = repository
++  }
++
+   func open() async {
+     guard !opened else { return }
+     opened = true
+     loading = true
++    if let repository {
++      workspace = await repository.snapshot()
++      loading = false
++      return
++    }
+     do {
+       let support = try FileManager.default.url(
+         for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+@@ -139,6 +148,11 @@ import SwiftUI
+     async -> Bool
+   { await queueDraft(draft, open: open, close: close).value }
+   func scheduleDraft(_ draft: EntryDraft) { _ = queueDraft(draft) }
++  func checkSavedDraft(projectID: UUID, draftID: UUID) async throws {
++    guard let repository else { throw FieldLogError.missingRecord }
++    try await repository.validateSavedDraft(projectID: projectID, draftID: draftID)
++  }
++
+   func commit(_ draft: EntryDraft) async -> Bool {
+     let success = await enqueue { state in
+       try state.saveDraft(draft)

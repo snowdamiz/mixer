@@ -1,0 +1,214 @@
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Bridge/ChecklistBridge.c b/Integrations/GeneratedReport/Platforms/Android/Bridge/ChecklistBridge.c
+index 437ca0e..aba267a 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Bridge/ChecklistBridge.c
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/ChecklistBridge.c
+@@ -1,5 +1,6 @@
+ #include "mixer_ui_binding.h"
+ #include "mixer_android_host_bridge.h"
++#include "DraftPressTrace.h"
+ #include <jni.h>
+ #include <pthread.h>
+ #include <string.h>
+@@ -205,11 +206,15 @@ JNIEXPORT jboolean JNICALL JNI_NAME(unregisterRetired)(JNIEnv *env, jobject self
+     return JNI_TRUE;
+ }
+ 
+-JNIEXPORT jint JNICALL JNI_NAME(witness)(JNIEnv *env, jobject self, jlong facade, jlong attachment, jlong token, jboolean display) {
++JNIEXPORT jint JNICALL JNI_NAME(witness)(JNIEnv *env, jobject self, jlong facade, jlong attachment,
++                                         jlong token, jboolean display, jlong press) {
+     if (!owns_registration(env, self) || facade <= 0 || attachment <= 0 || token <= 0)
+         return MXUIT_INVALID;
+-    return mxis_guest_ui_witness(facade, attachment, token,
+-                                 display ? MXIS_WITNESS_DRAWN : MXIS_WITNESS_TOGGLE_TAPPED);
++    uint64_t previous = fieldlog_press_bind(!display && press > 0 ? (uint64_t)press : 0);
++    int32_t status = mxis_guest_ui_witness(facade, attachment, token,
++                                          display ? MXIS_WITNESS_DRAWN : MXIS_WITNESS_TOGGLE_TAPPED);
++    fieldlog_press_bind(previous);
++    return status;
+ }
+ JNIEXPORT jboolean JNICALL JNI_NAME(cycle)(JNIEnv *env, jobject self, jint action, jlong context,
+                                          jstring root, jstring assets, jstring installation, jstring bundle) {
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Bridge/DraftPressTrace.c b/Integrations/GeneratedReport/Platforms/Android/Bridge/DraftPressTrace.c
+new file mode 100644
+index 0000000..1e2fea4
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/DraftPressTrace.c
+@@ -0,0 +1,69 @@
++#include "DraftPressTrace.h"
++#include <android/log.h>
++#include <inttypes.h>
++#include <pthread.h>
++#include <time.h>
++
++static _Thread_local uint64_t current_press;
++static pthread_mutex_t scopes_lock = PTHREAD_MUTEX_INITIALIZER;
++static uint64_t scope_serial;
++// Match the existing 16 guest owner permits. Keys are private, live
++// exchange identities. Only the independently issued ordinal is logged.
++static struct { const void *exchange; uint64_t serial; } scopes[16];
++
++uint64_t fieldlog_press_bind(uint64_t press) {
++    uint64_t previous = current_press;
++    current_press = press;
++    return previous;
++}
++
++uint64_t fieldlog_press_current(void) { return current_press; }
++
++uint64_t fieldlog_press_scope(const void *exchange, uint32_t create) {
++    if (!exchange) return 0;
++    uint64_t result = 0;
++    unsigned empty = 16;
++    pthread_mutex_lock(&scopes_lock);
++    for (unsigned i = 0; i < 16; ++i) {
++        if (scopes[i].exchange == exchange) { result = scopes[i].serial; break; }
++        if (!scopes[i].exchange && empty == 16) empty = i;
++    }
++    if (!result && create && empty < 16 && scope_serial < UINT64_MAX) {
++        result = ++scope_serial;
++        scopes[empty].exchange = exchange;
++        scopes[empty].serial = result;
++    }
++    pthread_mutex_unlock(&scopes_lock);
++    return result;
++}
++
++void fieldlog_press_unset_scope(const void *exchange) {
++    if (!exchange) return;
++    pthread_mutex_lock(&scopes_lock);
++    for (unsigned i = 0; i < 16; ++i) {
++        if (scopes[i].exchange == exchange) { scopes[i].exchange = NULL; break; }
++    }
++    pthread_mutex_unlock(&scopes_lock);
++}
++
++void fieldlog_press_trace(uint32_t stage, uint64_t scope, uint64_t press, uint64_t event,
++                          uint64_t revision, uint32_t code, uint64_t elapsed, uint64_t detail) {
++    const char *name;
++    switch (stage) {
++        case FIELDLOG_TRACE_OFFER: name = "offer"; break;
++        case FIELDLOG_TRACE_GUEST: name = "guest"; break;
++        case FIELDLOG_TRACE_COMPLETION: name = "completion"; break;
++        case FIELDLOG_TRACE_POST: name = "post"; break;
++        case FIELDLOG_TRACE_FRAME: name = "frame"; break;
++        case FIELDLOG_TRACE_INVOKE: name = "invoke"; break;
++        default: return;
++    }
++    if (scope == 0 && press == 0) return;
++    struct timespec now;
++    if (clock_gettime(CLOCK_BOOTTIME, &now) != 0) return;
++    uint64_t timestamp = (uint64_t)now.tv_sec * UINT64_C(1000000000) + (uint64_t)now.tv_nsec;
++    __android_log_print(ANDROID_LOG_INFO, "FieldLogDraftPress",
++        "t_ns=%" PRIu64 " stage=%s scope=%" PRIu64 " press=%" PRIu64 " event=%" PRIu64
++        " rev=%" PRIu64 " code=%" PRIu32 " elapsed_ns=%" PRIu64 " detail=%" PRIu64,
++        timestamp, name, scope, press, event, revision, code, elapsed, detail);
++}
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Bridge/DraftPressTrace.h b/Integrations/GeneratedReport/Platforms/Android/Bridge/DraftPressTrace.h
+new file mode 100644
+index 0000000..08c192d
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/DraftPressTrace.h
+@@ -0,0 +1,22 @@
++#ifndef FIELDLOG_DRAFT_PRESS_TRACE_H
++#define FIELDLOG_DRAFT_PRESS_TRACE_H
++
++#include <stdint.h>
++
++enum fieldlog_press_stage {
++    FIELDLOG_TRACE_OFFER = 1,
++    FIELDLOG_TRACE_GUEST,
++    FIELDLOG_TRACE_COMPLETION,
++    FIELDLOG_TRACE_POST,
++    FIELDLOG_TRACE_FRAME,
++    FIELDLOG_TRACE_INVOKE
++};
++
++__attribute__((visibility("hidden"))) uint64_t fieldlog_press_bind(uint64_t press);
++__attribute__((visibility("hidden"))) uint64_t fieldlog_press_current(void);
++__attribute__((visibility("hidden"))) uint64_t fieldlog_press_scope(const void *exchange, uint32_t create);
++__attribute__((visibility("hidden"))) void fieldlog_press_unset_scope(const void *exchange);
++__attribute__((visibility("hidden"))) void fieldlog_press_trace(uint32_t stage, uint64_t scope,
++    uint64_t press, uint64_t event, uint64_t revision, uint32_t code, uint64_t elapsed, uint64_t detail);
++
++#endif
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+index 3a0fafc..d097087 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -594,7 +594,14 @@ public final class PublicActivity extends Activity {
+         private native boolean unregisterRetired();
+         private native boolean cycle(int action, long context, String directory, String assets, String installation, String bundle);
+         private native String status();
+-        private native int witness(long facade, long attachment, long token, boolean display);
++        private native int witness(long facade, long attachment, long token, boolean display, long press);
++        private static final String PRESS_TRACE = "FieldLogDraftPress";
++        private static long pressSerial; // Main Looper, across dialog and activity recreation.
++
++        private static void tracePress(long press, String stage, long revision, int code) {
++            android.util.Log.i(PRESS_TRACE, "t_ns=" + SystemClock.elapsedRealtimeNanos()
++                + " stage=" + stage + " press=" + press + " rev=" + revision + " code=" + code);
++        }
+ 
+         private final PublicActivity activity;
+         private final long context;
+@@ -755,14 +762,15 @@ public final class PublicActivity extends Activity {
+             try {
+                 JSONObject frame = new JSONObject(new String(packet, StandardCharsets.UTF_8));
+                 JSONObject root = frame.getJSONObject("root");
+-                require(frame.getInt("schemaVersion") == 1 && frame.getLong("revision") > 0
++                long revision = frame.getLong("revision");
++                require(frame.getInt("schemaVersion") == 1 && revision > 0
+                     && "fieldlog-draft".equals(root.getString("id")) && "vStack".equals(root.getString("kind"))
+                     && root.getJSONObject("properties").length() == 0 && root.getJSONArray("actions").length() == 0);
+                 JSONArray nodes = root.getJSONArray("children");
+                 int nodeCount = nodes.length();
+                 require(nodeCount == 3 || nodeCount == 4);
+                 String[] labels = {"validation", "photo", "follow-up"};
+-                GuestFrame next = new GuestFrame(facade, attachment, input, probe);
++                GuestFrame next = new GuestFrame(facade, attachment, input, probe, revision);
+                 for (int i = 0; i < nodeCount - 1; i++) {
+                     JSONObject node = nodes.getJSONObject(i);
+                     require(labels[i].equals(node.getString("id"))
+@@ -837,22 +845,29 @@ public final class PublicActivity extends Activity {
+         }
+ 
+         private final class GuestFrame extends LinearLayout {
+-            final long facade, attachment, input, probe;
++            final long facade, attachment, input, probe, revision;
+             final Button action = new Button(activity);
+             boolean scheduled;
+             boolean observed;
+             private final Runnable afterDraw = this::queueObservation;
+             private final Runnable observe = this::observeFrame;
+ 
+-            GuestFrame(long facade, long attachment, long input, long probe) {
++            GuestFrame(long facade, long attachment, long input, long probe, long revision) {
+                 super(activity);
+                 this.facade = facade; this.attachment = attachment; this.input = input; this.probe = probe;
++                this.revision = revision;
+                 setOrientation(LinearLayout.VERTICAL);
+                 action.setAllCaps(false);
+                 action.setEnabled(false);
+                 action.setOnClickListener(view -> {
+-                    if (current != this || !observed || !enabled || !visible()) return;
+-                    if (witness(facade, attachment, input, false) == 0) action.setEnabled(false);
++                    long press = pressSerial < Long.MAX_VALUE ? ++pressSerial : 0;
++                    if (press != 0) tracePress(press, "listener", revision, 0);
++                    int gate = current != this ? 1 : !observed ? 2 : !enabled ? 3 : !visible() ? 4 : 0;
++                    if (press != 0) tracePress(press, "gate", revision, gate);
++                    if (gate != 0) return;
++                    int status = witness(facade, attachment, input, false, press);
++                    if (press != 0) tracePress(press, "witness_return", revision, status);
++                    if (status == 0) action.setEnabled(false);
+                 });
+             }
+             void disarm() {
+@@ -871,7 +886,7 @@ public final class PublicActivity extends Activity {
+             private void observeFrame() {
+                 scheduled = false;
+                 if (!visible()) return;
+-                int status = witness(facade, attachment, probe, true);
++                int status = witness(facade, attachment, probe, true, 0);
+                 observed = status == 0;
+                 if (status != 0) android.util.Log.w("FieldLogChecklist", "Display witness refused: " + status);
+                 action.setEnabled(observed && enabled);

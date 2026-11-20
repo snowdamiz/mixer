@@ -1,0 +1,315 @@
+diff --git a/fieldlog/Integrations/GeneratedReport/Platforms/Android/Bridge/DraftPressTrace.c b/fieldlog/Integrations/GeneratedReport/Platforms/Android/Bridge/DraftPressTrace.c
+index 1e2fea43f637f5984a45c3c87b223abe297c13db..1d1b208dffa49752ffa643ffe966f70eeacbe47a 100644
+--- a/fieldlog/Integrations/GeneratedReport/Platforms/Android/Bridge/DraftPressTrace.c
++++ b/fieldlog/Integrations/GeneratedReport/Platforms/Android/Bridge/DraftPressTrace.c
+@@ -56,9 +56,18 @@ void fieldlog_press_trace(uint32_t stage, uint64_t scope, uint64_t press, uint64
+         case FIELDLOG_TRACE_POST: name = "post"; break;
+         case FIELDLOG_TRACE_FRAME: name = "frame"; break;
+         case FIELDLOG_TRACE_INVOKE: name = "invoke"; break;
++        case FIELDLOG_TRACE_FIRST_DOCUMENT: name = "first_document"; break;
++        case FIELDLOG_TRACE_FIRST_DRAW: name = "first_draw"; break;
++        case FIELDLOG_TRACE_CHECKLIST_BEGIN: name = "checklist_begin"; break;
++        case FIELDLOG_TRACE_CHECKLIST_OBSERVE: name = "checklist_observe"; break;
++        case FIELDLOG_TRACE_CHECKLIST_RESULT: name = "checklist_result"; break;
++        case FIELDLOG_TRACE_CHECKLIST_PROTOCOL: name = "checklist_protocol"; break;
++        case FIELDLOG_TRACE_CHECKLIST_BRIDGE: name = "checklist_bridge"; break;
++        case FIELDLOG_TRACE_CHECKLIST_RETIRE: name = "checklist_retire"; break;
+         default: return;
+     }
+-    if (scope == 0 && press == 0) return;
++    // Checklist stages carry a process-local open ordinal in the event column.
++    if (stage >= FIELDLOG_TRACE_CHECKLIST_BEGIN ? event == 0 : scope == 0 && press == 0) return;
+     struct timespec now;
+     if (clock_gettime(CLOCK_BOOTTIME, &now) != 0) return;
+     uint64_t timestamp = (uint64_t)now.tv_sec * UINT64_C(1000000000) + (uint64_t)now.tv_nsec;
+diff --git a/fieldlog/Integrations/GeneratedReport/Platforms/Android/Bridge/DraftPressTrace.h b/fieldlog/Integrations/GeneratedReport/Platforms/Android/Bridge/DraftPressTrace.h
+index 08c192d25b5a5b4a3cd333a555ded45154ea43ff..b0d4f409e6e31bbe8c820374b33aaf802d234d5d 100644
+--- a/fieldlog/Integrations/GeneratedReport/Platforms/Android/Bridge/DraftPressTrace.h
++++ b/fieldlog/Integrations/GeneratedReport/Platforms/Android/Bridge/DraftPressTrace.h
+@@ -9,7 +9,15 @@ enum fieldlog_press_stage {
+     FIELDLOG_TRACE_COMPLETION,
+     FIELDLOG_TRACE_POST,
+     FIELDLOG_TRACE_FRAME,
+-    FIELDLOG_TRACE_INVOKE
++    FIELDLOG_TRACE_INVOKE,
++    FIELDLOG_TRACE_FIRST_DOCUMENT,
++    FIELDLOG_TRACE_FIRST_DRAW,
++    FIELDLOG_TRACE_CHECKLIST_BEGIN,
++    FIELDLOG_TRACE_CHECKLIST_OBSERVE,
++    FIELDLOG_TRACE_CHECKLIST_RESULT,
++    FIELDLOG_TRACE_CHECKLIST_PROTOCOL,
++    FIELDLOG_TRACE_CHECKLIST_BRIDGE,
++    FIELDLOG_TRACE_CHECKLIST_RETIRE
+ };
+ 
+ __attribute__((visibility("hidden"))) uint64_t fieldlog_press_bind(uint64_t press);
+diff --git a/fieldlog/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift b/fieldlog/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
+index 7f1a0dbfd6c6bac62e8f707a638f2c4298af7956..846225cf4e3e6b71f81b18d67550c9b80e4f2694 100644
+--- a/fieldlog/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
++++ b/fieldlog/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
+@@ -1,6 +1,10 @@
+ #if FIELDLOG_SIGNED_CHECKLIST
+ import FieldLogInstalledGuest
+ import Foundation
++#if FIELDLOG_DRAFT_PRESS_TRACE
++import CMixerUIAndroidHostBridge
++import MixerCapabilityActivation
++#endif
+ 
+ private final class ChecklistReply: @unchecked Sendable {
+     private let lock = NSLock()
+@@ -27,6 +31,76 @@ private let checklistReply = ChecklistReply()
+     static var guest: FieldLogSignedTask?
+     static var context: Int64?
+ 
++    #if FIELDLOG_DRAFT_PRESS_TRACE
++    private static var launchSerial: UInt64 = 0
++    private static var tracedOwner: (launch: UInt64, scope: UInt64) = (0, 0)
++
++    private static func trace(_ stage: fieldlog_press_stage, launch: UInt64, scope: UInt64 = 0,
++                              code: UInt32 = 0, detail: UInt64 = 0) {
++        fieldlog_press_trace(stage.rawValue, scope, 0, launch, 0, code, 0, detail)
++    }
++
++    private static func phase(_ value: CapabilityActivationPhase) -> UInt64 {
++        ordinal(value, [.idle, .starting, .provisionalGuest, .healthyGuest,
++            .nativeFallback, .stopping, .recoveryRequired, .closed])
++    }
++
++    private static func ordinal<Value: Equatable>(_ value: Value, _ known: [Value]) -> UInt64 {
++        known.firstIndex(of: value).map { UInt64($0 + 1) } ?? 0
++    }
++
++    private static func terminal(_ cause: CapabilityGuestUITerminalCause,
++                                 state: CapabilityGuestUIActivationSnapshot, launch: UInt64, scope: UInt64) {
++        let outcome: UInt32
++        switch cause {
++        case .bridge: outcome = 3
++        case .cancelled: outcome = 4
++        case .deadline: outcome = 5
++        case .closed: outcome = 6
++        case .protocolViolation: outcome = 7
++        @unknown default: outcome = 9
++        }
++        trace(FIELDLOG_TRACE_CHECKLIST_RESULT, launch: launch, scope: scope, code: outcome, detail: phase(state.phase))
++        if let protocolFailure = state.firstUIProtocolFailure {
++            let stage = ordinal(protocolFailure.failure.phase, [.validation, .startup, .event, .wake, .presentation])
++            let reason = ordinal(protocolFailure.failure.code, [.requiredExport, .startupResult, .startupDeadline,
++                .header, .memoryRange, .bufferChanged, .document, .revisionRegressed, .sameRevisionMutation,
++                .eventEncoding, .eventResult, .sequenceExhausted, .presentationInvariant])
++            trace(FIELDLOG_TRACE_CHECKLIST_PROTOCOL, launch: launch, scope: scope, code: UInt32(reason), detail: stage)
++        }
++        if let bridge = state.firstBridgeFailure {
++            let stage = ordinal(bridge.operation, [.localAPI, .validation, .construction, .startup, .enableEffects,
++                .invocation, .wake, .readMemory, .writeMemory, .take, .post, .ackExit, .limitDeadline, .expire, .close])
++            let (kind, reason): (UInt32, UInt64) = switch bridge.kind {
++            case .callerAPI(let value):
++                (1, ordinal(value, [.invalidInput, .consumedOperation, .unknownExport, .invalidInvocation,
++                    .invalidNativeArguments, .invalidLifecycleState, .nativeBusy, .invalidNativeSession]))
++            case .validation(let value):
++                (2, ordinal(value, [.malformed, .unsupported, .invalidBodyOrStructure, .configuredLimit,
++                    .invalidLimits, .requiredDefinedExport]))
++            case .instantiation(let value):
++                (3, ordinal(value, [.initialDataBounds, .initialElementBounds, .admissionRejected]))
++            case .guestTrap(let value):
++                (4, ordinal(value, [.unreachable, .integerDivideByZero, .integerOverflow, .invalidConversionToInteger,
++                    .memoryOutOfBounds, .tableOutOfBounds, .indirectCallNull, .indirectCallTypeMismatch, .hostAbort]))
++            case .cancelled: (5, 0)
++            case .deadlineExceeded: (6, 0)
++            case .resource(let value):
++                (7, ordinal(value, [.fuel, .hostCalls, .callDepth, .operandStack, .nativeInstantiationAllocation,
++                    .capabilityPayloadAllocation, .requestIdentityExhaustion, .nativeSessionCapacity,
++                    .validationCapacity, .constructionCapacity, .commandCapacity]))
++            case .panicOrQuarantine(let value):
++                (8, ordinal(value, [.poisoned, .containedPanic, .invariant, .registryPoisoned]))
++            case .unknown(let value):
++                (9, ordinal(value, [.malformedNativeReport, .unexpectedStatusOrOperation, .unrecognizedCode,
++                    .terminalState, .unsupportedEnvironment, .nativeProtocol, .bridgeInvariant, .nonBridgeError]))
++            @unknown default: (0, 0)
++            }
++            trace(FIELDLOG_TRACE_CHECKLIST_BRIDGE, launch: launch, scope: scope, code: kind, detail: stage * 100 + reason)
++        }
++    }
++    #endif
++
+     static func perform(_ action: Int32, context id: Int64, root: URL, material: URL,
+                         installation: UUID, bundleID: String) async {
+         guard context == nil || context == id else {
+@@ -36,9 +110,19 @@ private let checklistReply = ChecklistReply()
+         context = id
+         let presentation = checklistPresentation(id)
+         presentation?.detachSignedDraft()
+-        if let guest, !(await guest.close()) {
+-            checklistReply.set("Checklist retirement pending")
+-            return
++        if let guest {
++            #if FIELDLOG_DRAFT_PRESS_TRACE
++            let owner = tracedOwner
++            trace(FIELDLOG_TRACE_CHECKLIST_RETIRE, launch: owner.launch, scope: owner.scope, code: 1)
++            #endif
++            let retired = await guest.close()
++            #if FIELDLOG_DRAFT_PRESS_TRACE
++            trace(FIELDLOG_TRACE_CHECKLIST_RETIRE, launch: owner.launch, scope: owner.scope, code: retired ? 2 : 3)
++            #endif
++            if !retired {
++                checklistReply.set("Checklist retirement pending")
++                return
++            }
+         }
+         guest = nil
+         if action == 2 {
+@@ -47,6 +131,11 @@ private let checklistReply = ChecklistReply()
+             checklistReply.set("Closed")
+             return
+         }
++        #if FIELDLOG_DRAFT_PRESS_TRACE
++        let launch = launchSerial == .max ? 0 : launchSerial + 1
++        if launch != 0 { launchSerial = launch }
++        trace(FIELDLOG_TRACE_CHECKLIST_BEGIN, launch: launch)
++        #endif
+         do {
+             guard let presentation else { throw PublicHostError.context }
+             let storage = try await presentation.attachSignedDraft()
+@@ -54,21 +143,54 @@ private let checklistReply = ChecklistReply()
+                 material: material, directory: root.appendingPathComponent("signed-checklist"),
+                 bundleID: bundleID, installation: installation)
+             guest = opened
++            #if FIELDLOG_DRAFT_PRESS_TRACE
++            tracedOwner = (launch, 0)
++            #endif
+             let delivery = try await opened.start()
+             let deadline = ContinuousClock.now + .seconds(12)
++            #if FIELDLOG_DRAFT_PRESS_TRACE
++            trace(FIELDLOG_TRACE_CHECKLIST_OBSERVE, launch: launch)
++            var lastPhase: CapabilityActivationPhase?
++            var sawTerminal = false
++            #endif
+             while ContinuousClock.now < deadline {
+                 let state = await opened.recovery()
++                #if FIELDLOG_DRAFT_PRESS_TRACE
++                if state.activation.fieldLogTraceScope != 0 { tracedOwner.scope = state.activation.fieldLogTraceScope }
++                lastPhase = state.activation.phase
++                #endif
+                 if state.activation.phase == .healthyGuest, state.healthy == state.activation.candidateID {
+                     checklistReply.set("\(delivery) | Sequence \(state.acceptedSequence)")
++                    #if FIELDLOG_DRAFT_PRESS_TRACE
++                    trace(FIELDLOG_TRACE_CHECKLIST_RESULT, launch: launch, scope: tracedOwner.scope,
++                          code: 1, detail: phase(state.activation.phase))
++                    #endif
+                     return
+                 }
+-                if state.activation.terminalCause != nil { break }
++                if state.activation.terminalCause != nil {
++                    #if FIELDLOG_DRAFT_PRESS_TRACE
++                    if let cause = state.activation.terminalCause {
++                        sawTerminal = true
++                        terminal(cause, state: state.activation, launch: launch, scope: tracedOwner.scope)
++                    }
++                    #endif
++                    break
++                }
+                 try await Task.sleep(for: .milliseconds(50))
+             }
+             checklistReply.set("The signed checklist could not be displayed")
++            #if FIELDLOG_DRAFT_PRESS_TRACE
++            if !sawTerminal {
++                trace(FIELDLOG_TRACE_CHECKLIST_RESULT, launch: launch, scope: tracedOwner.scope,
++                      code: 2, detail: lastPhase.map(phase) ?? 0)
++            }
++            #endif
+         } catch {
+             presentation?.detachSignedDraft()
+             checklistReply.set("Select a saved draft and publish a compatible release")
++            #if FIELDLOG_DRAFT_PRESS_TRACE
++            trace(FIELDLOG_TRACE_CHECKLIST_RESULT, launch: launch, code: 8)
++            #endif
+         }
+     }
+ }
+diff --git a/mixer/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartControl.swift b/mixer/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartControl.swift
+index f0f3c2f0dce77e48f6441fe895efc036970832dd..527cf4e8a8f1d4acca5e7c166dbc54a8d0ce4283 100644
+--- a/mixer/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartControl.swift
++++ b/mixer/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartControl.swift
+@@ -1,4 +1,7 @@
+ import Foundation
++#if FIELDLOG_DRAFT_PRESS_TRACE
++import CMixerUIAndroidHostBridge
++#endif
+ @_spi(GuestUIV1) import MixerGuest
+ 
+ enum CapabilityColdStartOperationKind { case opening, download, start, milestone }
+@@ -268,9 +271,19 @@ final class CapabilityColdStartControl: @unchecked Sendable {
+     var guestUISnapshot: CapabilityGuestUIActivationSnapshot {
+         let base = snapshot
+         lock.lock()
+-        let signal = (observation ?? endingObservation)?.signals.snapshot ?? lastSignalObject?.snapshot ?? lastSignal
++        let signals = (observation ?? endingObservation)?.signals ?? lastSignalObject
++        let signal = signals?.snapshot ?? lastSignal
++        #if FIELDLOG_DRAFT_PRESS_TRACE
++        let scope = signals?.guestUI.map { fieldlog_press_scope(Unmanaged.passUnretained($0).toOpaque(), 0) } ?? 0
++        #endif
+         lock.unlock()
++        #if FIELDLOG_DRAFT_PRESS_TRACE
++        var result = CapabilityGuestUIActivationSnapshot(base, ui: signal?.guestUI)
++        result.fieldLogTraceScope = scope
++        return result
++        #else
+         return CapabilityGuestUIActivationSnapshot(base, ui: signal?.guestUI)
++        #endif
+     }
+     var snapshot: CapabilityActivationSnapshot {
+         lock.lock()
+diff --git a/mixer/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift b/mixer/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift
+index 2af690be7dba8811c16f501830897aec34b14a75..8340f822a98cc11d7b8d023cf119d0add88804a6 100644
+--- a/mixer/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift
++++ b/mixer/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift
+@@ -245,6 +245,11 @@ final class CapabilityGuestUIAndroidResources: @unchecked Sendable {
+             if !resources.observedFirstScreen {
+                 guard exchange.observePresentation(ticket) else { return Int32(MXUIT_STALE.rawValue) }
+                 resources.observedFirstScreen = true
++                #if FIELDLOG_DRAFT_PRESS_TRACE
++                let key = Unmanaged.passUnretained(exchange).toOpaque()
++                fieldlog_press_trace(FIELDLOG_TRACE_FIRST_DRAW.rawValue, fieldlog_press_scope(key, 0),
++                    0, 0, ticket.revision, 0, 0, 0)
++                #endif
+             }
+             resources.observedProbe = token
+             return Int32(MXUIT_OK.rawValue)
+diff --git a/mixer/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIDiagnostics.swift b/mixer/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIDiagnostics.swift
+index 549fe0b78ce9e2a7546d7c90c1f5c7a79057700d..81bd94bf9b34795ad985378585134c16eff4fbd1 100644
+--- a/mixer/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIDiagnostics.swift
++++ b/mixer/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIDiagnostics.swift
+@@ -17,6 +17,9 @@ public struct CapabilityGuestUIActivationSnapshot: Sendable {
+     public let firstUIProtocolFailure: GuestUIProtocolTerminalV1?
+     public let requiresReopen: Bool
+     public let cleanupPending: Bool
++    #if FIELDLOG_DRAFT_PRESS_TRACE
++    public internal(set) var fieldLogTraceScope: UInt64 = 0
++    #endif
+ 
+     init(_ base: CapabilityActivationSnapshot, ui: GuestUIExchangeSnapshotV1?) {
+         phase = base.phase; candidateID = base.candidateID; launchID = base.launchID
+diff --git a/mixer/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift b/mixer/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift
+index 777f82087b50128086a48d2ffd1caf07f628f08c..89c6d8ae5738e24a18c425bfff08270e3311beb2 100644
+--- a/mixer/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift
++++ b/mixer/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift
+@@ -76,6 +76,7 @@ final class GuestUITurns: @unchecked Sendable {
+     }
+     #if FIELDLOG_DRAFT_PRESS_TRACE
+     let traceScope: UInt64
++    private var tracedFirstDocument = false
+     // The pinned FieldLog event export either submits one request or does
+     // nothing while its previous request is pending. A ready turn can chain
+     // the write's readback without changing the originating event.
+@@ -208,5 +209,11 @@ final class GuestUITurns: @unchecked Sendable {
+         try exchange.finishTurn(claim, documentBytes: document,
+             startupCutoff: awaitingInitialDocument ? startupCutoff : nil)
+         if awaitingInitialDocument { initialDocument = .published }
++        #if FIELDLOG_DRAFT_PRESS_TRACE
++        if !tracedFirstDocument {
++            tracedFirstDocument = true
++            fieldlog_press_trace(FIELDLOG_TRACE_FIRST_DOCUMENT.rawValue, traceScope, 0, 0, 0, 0, 0, 0)
++        }
++        #endif
+     }
+ }

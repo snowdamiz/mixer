@@ -1,0 +1,227 @@
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift
+@@ -183,6 +183,11 @@
+             }
+             pendingPacket = nil
+             guard applied == Int32(MXUIT_OK.rawValue) else { throw coldStartError("android_native_apply") }
++            #if FIELDLOG_DRAFT_PRESS_TRACE
++            let key = Unmanaged.passUnretained(exchange).toOpaque()
++            fieldlog_press_trace(FIELDLOG_TRACE_FRAME.rawValue, fieldlog_press_scope(key, 0), 0, 0,
++                frame.document.document.revision, 0, 0, 0)
++            #endif
+         }
+         let appliedTicket = exchange.completePresentation(claim, snapshot: snapshot)
+         if claim.frame != nil { ticket = appliedTicket }
+@@ -248,7 +253,26 @@
+               let snapshot = resources.snapshot,
+               let identity = snapshot.identity(for: "toggle") else { return Int32(MXUIT_STALE.rawValue) }
+         let event = UIEventEnvelope(revision: snapshot.document.revision, identity: identity, event: .activate)
+-        if case .offered(.accepted) = exchange.offerNativeInput(event, generation: ticket.generation) {
++        let admission = exchange.offerNativeInput(event, generation: ticket.generation)
++        #if FIELDLOG_DRAFT_PRESS_TRACE
++        let press = fieldlog_press_current()
++        if press != 0 {
++            let code: UInt32
++            var sequence: UInt64 = 0
++            switch admission {
++            case .offered(.accepted(let accepted)): code = 0; sequence = accepted
++            case .readyBusy: code = 1
++            case .offered(.busy): code = 2
++            case .offered(.stale): code = 3
++            case .offered(.closed): code = 4
++            case .offered(.invalid): code = 5
++            }
++            let key = Unmanaged.passUnretained(exchange).toOpaque()
++            fieldlog_press_trace(FIELDLOG_TRACE_OFFER.rawValue, fieldlog_press_scope(key, 0), press,
++                sequence, event.revision, code, 0, 0)
++        }
++        #endif
++        if case .offered(.accepted) = admission {
+             return Int32(MXUIT_OK.rawValue)
+         }
+         return Int32(MXUIT_BUSY.rawValue)
+--- a/experimental-capability-runtime/Sources/CMixerVMCapability/include/MixerVMCapability.h
++++ b/experimental-capability-runtime/Sources/CMixerVMCapability/include/MixerVMCapability.h
+@@ -4,4 +4,7 @@
+ #include <mixer_vm_capability.h>
+ #include <mixer_vm_guest_ui.h>
+ #include <mixer_vm_guest_ui_deferred.h>
++#ifdef FIELDLOG_DRAFT_PRESS_TRACE
++#include "DraftPressTrace.h"
+ #endif
++#endif
+--- a/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift
++++ b/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift
+@@ -1,4 +1,7 @@
+ import Foundation
++#if FIELDLOG_DRAFT_PRESS_TRACE
++import CMixerVMCapability
++#endif
+ @_spi(GuestUIV1) import MixerGuest
+ 
+ /// Owned numeric descriptors only. All reads and turns stay on the existing
+@@ -71,7 +74,21 @@
+             throw GuestUIProtocolFailureV1(phase: .startup, code: .startupDeadline)
+         }
+     }
+-    init(exchange: GuestUIExchangeV1) { self.exchange = exchange }
++    #if FIELDLOG_DRAFT_PRESS_TRACE
++    let traceScope: UInt64
++    // The pinned FieldLog event export either submits one request or does
++    // nothing while its previous request is pending. A ready turn can chain
++    // the write's readback without changing the originating event.
++    private(set) var traceStorageSequence: UInt64 = 0
++    deinit { fieldlog_press_unset_scope(Unmanaged.passUnretained(exchange).toOpaque()) }
++    #endif
++
++    init(exchange: GuestUIExchangeV1) {
++        self.exchange = exchange
++        #if FIELDLOG_DRAFT_PRESS_TRACE
++        traceScope = fieldlog_press_scope(Unmanaged.passUnretained(exchange).toOpaque(), 1)
++        #endif
++    }
+     static func requireLive(_ exchange: GuestUIExchangeV1) throws {
+         try exchange.requireCommitEntry(generation: exchange.snapshot().generation)
+     }
+@@ -109,17 +126,45 @@
+         switch claim.kind {
+         case .startup:
+             throw GuestUIProtocolFailureV1(phase: .startup, code: .startupResult)
+-        case .event(_, let bytes):
++        case .event(let sequence, let bytes):
++            #if FIELDLOG_DRAFT_PRESS_TRACE
++            let revision = exchange.snapshot().latestRevision ?? 0
++            let start = DispatchTime.now().uptimeNanoseconds
++            var traceCode: UInt32 = 1 // Event buffer check refused.
++            var hostCalls: UInt64 = 0
++            defer {
++                fieldlog_press_trace(FIELDLOG_TRACE_GUEST.rawValue, traceScope, 0, sequence, revision,
++                    traceCode, DispatchTime.now().uptimeNanoseconds - start, hostCalls)
++            }
++            #endif
+             guard let eventOffset, let eventCapacity, bytes.count <= Int(eventCapacity) else {
+                 throw GuestUIProtocolFailureV1(phase: .event, code: .eventEncoding)
+             }
+             initialDocument = .immediate
+             // One claimed worker operation. No pump wake can split this pair.
++            #if FIELDLOG_DRAFT_PRESS_TRACE
++            traceCode = 2 // Native event buffer write threw.
++            #endif
+             try native.write(offset: eventOffset, data: bytes)
++            #if FIELDLOG_DRAFT_PRESS_TRACE
++            traceCode = 3 // Invocation threw.
++            fieldlog_press_trace(FIELDLOG_TRACE_INVOKE.rawValue, traceScope, 0, sequence, revision, 0, 0, 0)
++            #endif
+             let result = try native.invoke("mixer_guest_ui_event_v1", arguments: [.i32(Int32(bytes.count))])
++            #if FIELDLOG_DRAFT_PRESS_TRACE
++            traceCode = 4 // Guest refused the event.
++            hostCalls = result.hostCallsUsed
++            if hostCalls == 1 { traceStorageSequence = sequence }
++            #endif
+             if nativeTurns < .max { nativeTurns += 1 }
+             guard result.value == .i32(0) else { throw GuestUIProtocolFailureV1(phase: .event, code: .eventResult) }
++            #if FIELDLOG_DRAFT_PRESS_TRACE
++            traceCode = 5 // Result harvest threw after a successful invocation.
++            #endif
+             try harvest(native, claim: claim, phase: .event)
++            #if FIELDLOG_DRAFT_PRESS_TRACE
++            traceCode = 0
++            #endif
+             return true
+         case .ready:
+             guard try native.wake() else {
+--- a/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Ownership.swift
++++ b/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Ownership.swift
+@@ -2,6 +2,9 @@
+ import Dispatch
+ import MixerCapabilities
+ @_spi(GuestUIV1) import MixerGuest
++#if FIELDLOG_DRAFT_PRESS_TRACE
++import CMixerVMCapability
++#endif
+ 
+ final class Locked<Value>: @unchecked Sendable {
+     private let lock = NSLock()
+@@ -63,6 +66,9 @@
+     }
+     let token: UInt64
+     let operation: GuestCapabilityOperationV1
++    #if FIELDLOG_DRAFT_PRESS_TRACE
++    var traceSequence: UInt64 = 0 // Owned by the guest queue.
++    #endif
+     let state = Locked(State())
+     var index: Int { Int(UInt32(truncatingIfNeeded: token) - 1) }
+     init(token: UInt64, operation: GuestCapabilityOperationV1) { self.token = token; self.operation = operation }
+@@ -373,6 +379,9 @@
+                         continue
+                     case .call(let token, let operation, let arguments):
+                         let ticket = NativeTicket(token: token, operation: operation)
++                        #if FIELDLOG_DRAFT_PRESS_TRACE
++                        ticket.traceSequence = guestUI?.traceStorageSequence ?? 0
++                        #endif
+                         let installed = control.withLock { state -> Int in
+                             if let old = state.tickets[ticket.index], !old.state.withLock({ $0.acknowledged && !$0.workerRunning }) { return -1 }
+                             state.tickets[ticket.index] = ticket; state.status.acceptedCalls &+= 1
+@@ -585,6 +594,30 @@
+                 guard ContinuousClock.now < cutoff else { return }
+                 do {
+                     let bytes = try GuestCapabilityTransportCodecV1.encodeCompletion(outcome, operation: ticket.operation)
++                    #if FIELDLOG_DRAFT_PRESS_TRACE
++                    if let guestUI {
++                        let code: UInt32
++                        switch outcome {
++                        case .success(.get(let response)): code = response.found ? 1 : 2
++                        case .success(.put(let response)): code = response.committed ? 3 : 4
++                        case .success: code = 5
++                        case .rejected: code = 6
++                        case .failure(let reason):
++                            switch reason {
++                            case .permissionDenied: code = 10
++                            case .unavailable: code = 11
++                            case .cancelled: code = 12
++                            case .deadlineExceeded: code = 13
++                            case .invalidResponse: code = 14
++                            case .redirectDenied: code = 15
++                            case .quotaExceeded: code = 16
++                            case .ioFailure: code = 17
++                            }
++                        }
++                        fieldlog_press_trace(FIELDLOG_TRACE_COMPLETION.rawValue, guestUI.traceScope, 0,
++                            ticket.traceSequence, 0, code, 0, UInt64(ticket.operation.rawValue))
++                    }
++                    #endif
+                     ticket.state.withLock { state in
+                         state.localOutcome = nil; state.encodedResult = bytes
+                         if guestUI?.awaitingInitialDocument == true, case .success(.get(let response)) = outcome {
+@@ -598,9 +631,21 @@
+                 guard ContinuousClock.now < cutoff else { return }
+                 do {
+                     let delivered = try native.post(token: ticket.token, operation: ticket.operation, data: bytes)
++                    #if FIELDLOG_DRAFT_PRESS_TRACE
++                    if let guestUI {
++                        fieldlog_press_trace(FIELDLOG_TRACE_POST.rawValue, guestUI.traceScope, 0, ticket.traceSequence,
++                            0, delivered ? 0 : 1, 0, UInt64(ticket.operation.rawValue))
++                    }
++                    #endif
+                     if delivered && snapshot.containsHydrationSnapshot { guestUI?.didPostHydrationSnapshot() }
+                 }
+                 catch {
++                    #if FIELDLOG_DRAFT_PRESS_TRACE
++                    if let guestUI {
++                        fieldlog_press_trace(FIELDLOG_TRACE_POST.rawValue, guestUI.traceScope, 0, ticket.traceSequence,
++                            0, 2, 0, UInt64(ticket.operation.rawValue))
++                    }
++                    #endif
+                     let e = error as? ExperimentalCapabilityError
+                     if !(e?.nativeStatus == 3 && (snapshot.cancelRequested || snapshot.deadline.map { ContinuousClock.now >= $0 } == true || closed)) {
+                         fail(error)
+--- a/verification/android-binding-stage4/host-bridge/mixer_android_host_bridge.h
++++ b/verification/android-binding-stage4/host-bridge/mixer_android_host_bridge.h
+@@ -9,4 +9,7 @@
+ int32_t mxis_host_slot_acquire(uint64_t facade, uint64_t entry, uint64_t *generation);
+ int32_t mxis_host_inspect(uint64_t facade, uint64_t entry, struct mxis_host_snapshot *output);
+ int32_t mxis_host_release_destroyed(uint64_t facade, uint64_t generation);
++#ifdef FIELDLOG_DRAFT_PRESS_TRACE
++#include "DraftPressTrace.h"
+ #endif
++#endif

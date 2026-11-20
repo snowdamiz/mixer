@@ -1,0 +1,2720 @@
+diff --git a/.github/workflows/generated-report-android.yml b/.github/workflows/generated-report-android.yml
+index c8853bbf35adb28470ac94bc430a60a9c60b65a2..17c5ce37698908473f450ce6f4734497c4cdac97 100644
+--- a/.github/workflows/generated-report-android.yml
++++ b/.github/workflows/generated-report-android.yml
+@@ -25,7 +25,7 @@ jobs:
+       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+       PYTHONDONTWRITEBYTECODE: '1'
+       PYTHONUNBUFFERED: '1'
+-      MIXER_REVISION: a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b
++      MIXER_REVISION: 735ecec14e10e2dfed1e58a122c3fab08e569bef
+     steps:
+       - name: Initialize the Android CI runtime path
+         run: |
+@@ -43,7 +43,7 @@ jobs:
+         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+         with:
+           repository: snowdamiz/mixer
+-          ref: a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b
++          ref: ${{ env.MIXER_REVISION }}
+           path: .ci-mixer-cli
+           fetch-depth: 1
+           persist-credentials: false
+@@ -55,18 +55,10 @@ jobs:
+             /native/android/
+             /scripts/ci/check-android-generated-java.py
+             /scripts/ci/check-android-binding.py
+-            /verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/current-source-inputs.json
+-            /verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py
+-
+-      - name: Check out the unchanged public Swift SDK pin
+-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+-        with:
+-          repository: snowdamiz/mixer
+-          ref: 8efc1a9e5b1602117f8211c95bfd4203cc91f689
+-          path: .ci-mixer-sdk
+-          sparse-checkout: sdk
+-          fetch-depth: 1
+-          persist-credentials: false
++            /native-sdk/Package.swift
++            /native-sdk/Sources/CMixerVM/
++            /native-sdk/Sources/MixerNativeBackend/
++            /verification/native-report-source141-archive-v1/current-source-inputs.json
+ 
+       - name: Admit source and installed platform prerequisites
+         timeout-minutes: 2
+@@ -82,7 +74,6 @@ jobs:
+           set -x
+           test "$RUNNER_OS/$RUNNER_ARCH" = macOS/X64
+           test "$(git -C .ci-mixer-cli rev-parse HEAD)" = "$MIXER_REVISION"
+-          test "$(git -C .ci-mixer-sdk rev-parse HEAD)" = 8efc1a9e5b1602117f8211c95bfd4203cc91f689
+           test "$(xcodebuild -version)" = $'Xcode 26.6\nBuild version 17F113'
+           test "$(xcrun --sdk macosx --show-sdk-version)" = 26.5
+           : "${JAVA_HOME_25_X64:?Image JDK 25 is required}"
+@@ -101,13 +92,13 @@ jobs:
+           import hashlib, json, os, shutil
+           from pathlib import Path
+           root = Path('.ci-mixer-cli')
+-          manifest = json.loads((root / 'verification/plan-continuation-2026-11-07/source113-inspection-caller-r3/current-source-inputs.json').read_text())
+-          assert len(manifest) == 119
++          manifest = json.loads((root / 'verification/native-report-source141-archive-v1/current-source-inputs.json').read_text())
++          assert len(manifest) == 141
+           for name, expected in manifest.items():
+               data = (root / name).read_bytes()
+               assert len(data) == expected['bytes'] and hashlib.sha256(data).hexdigest() == expected['sha256'], name
+           digest = hashlib.sha256(''.join(p + '\0' + v['sha256'] + '\n' for p, v in sorted(manifest.items())).encode()).hexdigest()
+-          assert digest == '80754549d262f01c49d2759e61b04d7581d1f63832d5a98bb558fe84a180185c'
++          assert digest == 'f68f02c92c93947becf9e29b7eeef43b88313f13e7f7c915fdf47f902f4f81cd'
+           android = Path(os.environ['ANDROID_HOME'])
+           for path, line in [
+               ('ndk/27.3.13750724/source.properties', 'Pkg.Revision = 27.3.13750724'),
+@@ -205,7 +196,7 @@ jobs:
+           export TMPDIR="$FIELDLOG_CI_ROOT/tmp/"
+           export CLANG_MODULE_CACHE_PATH="$FIELDLOG_CI_ROOT/clang-cache"
+           export SWIFTPM_MODULECACHE_OVERRIDE="$FIELDLOG_CI_ROOT/module-cache"
+-          if python3 -B Integrations/GeneratedReport/scripts/build-android.py --mixer "$FIELDLOG_MIXER" --sdk-checkout "$GITHUB_WORKSPACE/.ci-mixer-sdk" --android-adapter-path "$GITHUB_WORKSPACE/.ci-mixer-cli/native/android" --output "$FIELDLOG_OUTPUT" > "$FIELDLOG_CI_ROOT/evidence/public-recipe.log" 2>&1; then
++          if python3 -B Integrations/GeneratedReport/scripts/build-android.py --mixer "$FIELDLOG_MIXER" --sdk-checkout "$GITHUB_WORKSPACE/.ci-mixer-cli" --android-adapter-path "$GITHUB_WORKSPACE/.ci-mixer-cli/native/android" --output "$FIELDLOG_OUTPUT" > "$FIELDLOG_CI_ROOT/evidence/public-recipe.log" 2>&1; then
+             :
+           else
+             result=$?
+@@ -230,8 +221,9 @@ jobs:
+           from pathlib import Path
+           evidence = Path(os.environ['FIELDLOG_CI_ROOT']) / 'evidence'
+           lock = json.loads((evidence / 'mixer.lock').read_text())
+-          assert lock['android']['profile']['id'] == 'mixer.android-source-pair.21'
+-          assert lock['android']['profile']['adapter_compatibility_sha256'] == 'a076078c052649b425c1d6eff4103f35561e06caf7a316f58f6bf06a52377452'
++          assert lock['android']['profile']['id'] == 'mixer.android-source-pair.23'
++          assert lock['android']['profile']['sdk_compatibility_sha256'] == '0d030f8bba31045d58ddf1b2def3a5541efc1a15295d93e565405b77965861d8'
++          assert lock['android']['profile']['adapter_compatibility_sha256'] == 'ee12eaa723135d7354e08b8b20575f42328f6669c9c61d3287e0746b6623b48c'
+           with zipfile.ZipFile(evidence / 'FieldLogGenerated-unsigned.apk') as apk:
+               assert not any(p.upper().startswith('META-INF/') for p in apk.namelist()), 'Unexpected APK signature member'
+               assert apk.testzip() is None
+@@ -249,8 +241,8 @@ jobs:
+           assert sum(v['bytes'] for v in files.values()) <= 100 * 1024**2
+           provenance = {'qualification': 'development unsigned Android public-recipe build',
+               'fieldlog_revision': os.environ['GITHUB_SHA'], 'mixer_revision': os.environ['MIXER_REVISION'],
+-              'swift_sdk_revision': '8efc1a9e5b1602117f8211c95bfd4203cc91f689',
+-              'CLI119_source_sha256': '80754549d262f01c49d2759e61b04d7581d1f63832d5a98bb558fe84a180185c',
++              'swift_sdk_revision': os.environ['MIXER_REVISION'],
++              'CLI141_source_sha256': 'f68f02c92c93947becf9e29b7eeef43b88313f13e7f7c915fdf47f902f4f81cd',
+               'run_id': os.environ['GITHUB_RUN_ID'], 'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'],
+               'files': files, 'signing_store_immutable_packages_devices_GA': 'pending'}
+           (evidence / 'provenance.json').write_text(json.dumps(provenance, indent=2) + '\n')
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Bridge/ChecklistBridge.c b/Integrations/GeneratedReport/Platforms/Android/Bridge/ChecklistBridge.c
+new file mode 100644
+index 0000000000000000000000000000000000000000..437ca0ebe3488870b161ba1a71e72aa0a40dd464
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/ChecklistBridge.c
+@@ -0,0 +1,234 @@
++#include "mixer_ui_binding.h"
++#include "mixer_android_host_bridge.h"
++#include <jni.h>
++#include <pthread.h>
++#include <string.h>
++
++extern int32_t fieldlog_checklist_submit(int32_t, int64_t, const char *, const char *, const char *, const char *);
++extern void fieldlog_checklist_status(char *, intptr_t);
++
++struct slot {
++    struct mxis_host_snapshot state;
++    jweak window;
++};
++
++// Only the final destructor uses this mutex off the installed UI thread.
++// No Java call runs while it is held.
++static pthread_mutex_t slots_lock = PTHREAD_MUTEX_INITIALIZER;
++static struct slot slots[MXUIT_FACADE_CAPACITY];
++static uint64_t generations;
++static JavaVM *vm;
++// Registration and Java callbacks are main-Looper-owned. The Swift close
++// outcome and the destructor's slot release are separate retirement proofs.
++static jweak registered;
++static int close_requested;
++static jmethodID apply_method, enable_method, retire_method;
++
++static JNIEnv *env_for_ui(void) {
++    JNIEnv *env = NULL;
++    return vm && (*vm)->GetEnv(vm, (void **)&env, JNI_VERSION_1_6) == JNI_OK ? env : NULL;
++}
++static int32_t result(JNIEnv *env, jboolean accepted) {
++    if ((*env)->ExceptionCheck(env)) { (*env)->ExceptionClear(env); return MXUIT_IO; }
++    return accepted ? MXUIT_OK : MXUIT_IO;
++}
++static struct slot *lookup(uint64_t facade, uint64_t entry) {
++    if (mxuit_ui_validate(facade, entry) != MXUIT_OK) return NULL;
++    struct slot *found = NULL;
++    pthread_mutex_lock(&slots_lock);
++    for (unsigned i = 0; i < MXUIT_FACADE_CAPACITY; ++i)
++        if (slots[i].state.facade == facade) { found = &slots[i]; break; }
++    pthread_mutex_unlock(&slots_lock);
++    return found;
++}
++
++int32_t mxis_host_slot_acquire(uint64_t facade, uint64_t entry, uint64_t *generation) {
++    if (!generation || mxuit_ui_validate(facade, entry) != MXUIT_OK) return MXUIT_INVALID;
++    *generation = 0;
++    JNIEnv *env = env_for_ui();
++    if (!env || !registered) return MXUIT_UNAVAILABLE;
++    jobject window = (*env)->NewLocalRef(env, registered);
++    if (!window) return result(env, JNI_FALSE);
++    jweak weak = (*env)->NewWeakGlobalRef(env, window);
++    (*env)->DeleteLocalRef(env, window);
++    if (!weak) return result(env, JNI_FALSE);
++    pthread_mutex_lock(&slots_lock);
++    for (unsigned i = 0; i < MXUIT_FACADE_CAPACITY; ++i) {
++        if (!slots[i].state.facade && generations != UINT64_MAX) {
++            *generation = ++generations;
++            slots[i].state = (struct mxis_host_snapshot){.facade=facade, .generation=*generation, .published=1, .weak_owner_live=1};
++            slots[i].window = weak;
++            break;
++        }
++    }
++    pthread_mutex_unlock(&slots_lock);
++    if (!*generation) (*env)->DeleteWeakGlobalRef(env, weak);
++    return *generation ? MXUIT_OK : MXUIT_CAPACITY;
++}
++
++int32_t mxis_host_inspect(uint64_t facade, uint64_t entry, struct mxis_host_snapshot *out) {
++    struct slot *slot = lookup(facade, entry);
++    JNIEnv *env = env_for_ui();
++    if (!slot || !env || !out) return MXUIT_STALE;
++    *out = slot->state;
++    if (slot->window) out->weak_owner_live = !(*env)->IsSameObject(env, slot->window, NULL);
++    return MXUIT_OK;
++}
++
++int32_t mxis_apply(uint64_t facade, uint64_t entry, uint64_t attachment, uint64_t input,
++                   uint64_t probe, const uint8_t *packet, uint32_t bytes) {
++    struct slot *slot = lookup(facade, entry);
++    JNIEnv *env = env_for_ui();
++    if (!env || !slot || !slot->window || !packet || !bytes || bytes > 65536) return MXUIT_INVALID;
++    jobject window = (*env)->NewLocalRef(env, slot->window);
++    jbyteArray copy = window ? (*env)->NewByteArray(env, (jsize)bytes) : NULL;
++    jboolean accepted = JNI_FALSE;
++    if (copy) {
++        (*env)->SetByteArrayRegion(env, copy, 0, (jsize)bytes, (const jbyte *)packet);
++        if (!(*env)->ExceptionCheck(env))
++            accepted = (*env)->CallBooleanMethod(env, window, apply_method, (jlong)facade, (jlong)attachment,
++                                                  (jlong)input, (jlong)probe, copy);
++        (*env)->DeleteLocalRef(env, copy);
++    }
++    if (window) (*env)->DeleteLocalRef(env, window);
++    int32_t status = result(env, accepted);
++    if (status == MXUIT_OK) {
++        slot->state.tree_live = slot->state.listener_live = 1;
++        slot->state.packet_bytes = bytes;
++    }
++    return status;
++}
++
++int32_t mxis_interaction(uint64_t facade, uint64_t entry, uint32_t enabled) {
++    struct slot *slot = lookup(facade, entry);
++    JNIEnv *env = env_for_ui();
++    if (!env || !slot || !slot->window || enabled > 1) return MXUIT_INVALID;
++    jobject window = (*env)->NewLocalRef(env, slot->window);
++    jboolean accepted = window ? (*env)->CallBooleanMethod(env, window, enable_method, (jlong)facade, (jboolean)enabled) : JNI_FALSE;
++    if (window) (*env)->DeleteLocalRef(env, window);
++    int32_t status = result(env, accepted);
++    if (status == MXUIT_OK) slot->state.interaction = enabled;
++    return status;
++}
++
++int32_t mxis_retire(uint64_t facade, uint64_t entry, uint32_t final) {
++    struct slot *slot = lookup(facade, entry);
++    JNIEnv *env = env_for_ui();
++    if (!env || !slot || !slot->window || final > 1) return MXUIT_INVALID;
++    jobject window = (*env)->NewLocalRef(env, slot->window);
++    jboolean accepted = window ? (*env)->CallBooleanMethod(env, window, retire_method, (jlong)facade) : JNI_FALSE;
++    if (window) (*env)->DeleteLocalRef(env, window);
++    int32_t status = result(env, accepted);
++    if (status != MXUIT_OK) return status;
++    slot->state.tree_live = slot->state.listener_live = slot->state.packet_bytes = slot->state.interaction = 0;
++    if (final) {
++        (*env)->DeleteWeakGlobalRef(env, slot->window);
++        slot->window = NULL;
++        slot->state.weak_owner_live = 0;
++        slot->state.cleared = 1;
++        slot->state.final_entry = entry;
++    }
++    return MXUIT_OK;
++}
++
++int32_t mxis_host_release_destroyed(uint64_t facade, uint64_t generation) {
++    if (mxuit_facade_begin_close(facade) != MXUIT_STALE) return MXUIT_BUSY;
++    int32_t status = MXUIT_STALE;
++    pthread_mutex_lock(&slots_lock);
++    for (unsigned i = 0; i < MXUIT_FACADE_CAPACITY; ++i) {
++        struct slot *slot = &slots[i];
++        if (slot->state.facade == facade && slot->state.generation == generation &&
++            slot->state.cleared && slot->state.final_entry && !slot->window) {
++            memset(slot, 0, sizeof(*slot));
++            status = MXUIT_OK;
++            break;
++        }
++    }
++    pthread_mutex_unlock(&slots_lock);
++    return status;
++}
++
++static int main_looper(JNIEnv *env) {
++    jclass cls = (*env)->FindClass(env, "android/os/Looper");
++    if (!cls) return 0;
++    jmethodID my = (*env)->GetStaticMethodID(env, cls, "myLooper", "()Landroid/os/Looper;");
++    jmethodID main = my ? (*env)->GetStaticMethodID(env, cls, "getMainLooper", "()Landroid/os/Looper;") : NULL;
++    jobject current = main ? (*env)->CallStaticObjectMethod(env, cls, my) : NULL;
++    if ((*env)->ExceptionCheck(env) || !current) return 0;
++    jobject expected = (*env)->CallStaticObjectMethod(env, cls, main);
++    if ((*env)->ExceptionCheck(env) || !expected) return 0;
++    return (*env)->IsSameObject(env, current, expected);
++}
++
++static int owns_registration(JNIEnv *env, jobject self) {
++    return main_looper(env) && registered && (*env)->IsSameObject(env, self, registered);
++}
++
++static int slots_empty(void) {
++    int empty = 1;
++    pthread_mutex_lock(&slots_lock);
++    for (unsigned i = 0; i < MXUIT_FACADE_CAPACITY; ++i) {
++        if (slots[i].state.facade) {
++            empty = 0;
++            break;
++        }
++    }
++    pthread_mutex_unlock(&slots_lock);
++    return empty;
++}
++
++#define JNI_NAME(name) Java_dev_fieldlog_generatedr90_androidhost_PublicActivity_00024ChecklistPanel_##name
++JNIEXPORT jboolean JNICALL JNI_NAME(initialize)(JNIEnv *env, jobject self) {
++    if (!main_looper(env)) return JNI_FALSE;
++    if (registered) return (*env)->IsSameObject(env, self, registered);
++    if (!slots_empty()) return JNI_FALSE;
++    jclass cls = (*env)->GetObjectClass(env, self);
++    if (!cls) return JNI_FALSE;
++    apply_method = (*env)->GetMethodID(env, cls, "applyGuest", "(JJJJ[B)Z");
++    if (!apply_method) return JNI_FALSE;
++    enable_method = (*env)->GetMethodID(env, cls, "enableGuest", "(JZ)Z");
++    if (!enable_method) return JNI_FALSE;
++    retire_method = (*env)->GetMethodID(env, cls, "retireGuest", "(J)Z");
++    if (!retire_method || (*env)->GetJavaVM(env, &vm) != JNI_OK || mxuit_install() != MXUIT_OK) return JNI_FALSE;
++    registered = (*env)->NewWeakGlobalRef(env, self);
++    return registered != NULL;
++}
++
++JNIEXPORT jboolean JNICALL JNI_NAME(unregisterRetired)(JNIEnv *env, jobject self) {
++    if (!owns_registration(env, self) || !close_requested) return JNI_FALSE;
++    char text[512] = {0};
++    fieldlog_checklist_status(text, sizeof(text));
++    if (strncmp(text, "Closed", 6) != 0 || !slots_empty()) return JNI_FALSE;
++    (*env)->DeleteWeakGlobalRef(env, registered);
++    registered = NULL;
++    close_requested = 0;
++    return JNI_TRUE;
++}
++
++JNIEXPORT jint JNICALL JNI_NAME(witness)(JNIEnv *env, jobject self, jlong facade, jlong attachment, jlong token, jboolean display) {
++    if (!owns_registration(env, self) || facade <= 0 || attachment <= 0 || token <= 0)
++        return MXUIT_INVALID;
++    return mxis_guest_ui_witness(facade, attachment, token,
++                                 display ? MXIS_WITNESS_DRAWN : MXIS_WITNESS_TOGGLE_TAPPED);
++}
++JNIEXPORT jboolean JNICALL JNI_NAME(cycle)(JNIEnv *env, jobject self, jint action, jlong context,
++                                         jstring root, jstring assets, jstring installation, jstring bundle) {
++    if (!owns_registration(env, self) || !root || !assets || !installation || !bundle) return JNI_FALSE;
++    jstring args[] = {root, assets, installation, bundle};
++    const char *text[4] = {0};
++    for (int i = 0; i < 4; ++i) {
++        if ((*env)->GetStringUTFLength(env, args[i]) > 4096) break;
++        text[i] = (*env)->GetStringUTFChars(env, args[i], NULL);
++        if (!text[i]) break;
++    }
++    jboolean accepted = text[3] && fieldlog_checklist_submit(action, context, text[0], text[1], text[2], text[3]);
++    for (int i = 0; i < 4 && text[i]; ++i) (*env)->ReleaseStringUTFChars(env, args[i], text[i]);
++    if (accepted) close_requested = action == 2;
++    return accepted;
++}
++JNIEXPORT jstring JNICALL JNI_NAME(status)(JNIEnv *env, jobject self) {
++    if (!owns_registration(env, self)) return NULL;
++    char text[512] = {0};
++    fieldlog_checklist_status(text, sizeof(text));
++    return (*env)->NewStringUTF(env, text);
++}
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c b/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
+index 8a6921d1304ce41442ea689aad78ce7332ea3109..aa90808fe5ecd0301c5a6b787eff5d0ab01300f0 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
+@@ -140,6 +140,10 @@ static jint event_host(JNIEnv *e,jclass ignored,jlong id,jbyteArray owner,jbyteA
+     if(result==0) result=execute_report(e,c,NULL,0,-1);
+     return result;
+ }
++static jint refresh_host(JNIEnv *e,jclass ignored,jlong id) {
++    (void)ignored;
++    return execute(e,find(id),3,NULL,0,NULL,0,NULL,0);
++}
+ static jint close_host(JNIEnv *e,jclass ignored,jlong id) {
+     (void)ignored; Context *c=find(id); if(!c||c->failed) return 1;
+     if(execute(e,c,2,NULL,0,NULL,0,NULL,0)) { c->failed=1; return 1; }
+@@ -154,7 +158,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm,void *reserved) {
+     jclass type=(*e)->FindClass(e,"dev/fieldlog/generatedr90/androidhost/PublicBridge"); if(!type) return JNI_ERR;
+     JNINativeMethod methods[]={{"openNative","(Ldev/fieldlog/generatedr90/androidhost/PublicActivity;Ljava/lang/String;[B)J",(void*)open_host},
+         {"eventNative","(J[B[B)I",(void*)event_host},{"closeNative","(J)I",(void*)close_host},
+-        {"photoNative","(J[BI[B)I",(void*)photo_host},{"reportNative","(J[BI)I",(void*)report_host}};
+-    jint status=(*e)->RegisterNatives(e,type,methods,5); (*e)->DeleteLocalRef(e,type);
++        {"photoNative","(J[BI[B)I",(void*)photo_host},{"reportNative","(J[BI)I",(void*)report_host},
++        {"refreshNative","(J)I",(void*)refresh_host}};
++    jint status=(*e)->RegisterNatives(e,type,methods,6); (*e)->DeleteLocalRef(e,type);
+     return status==0?JNI_VERSION_1_6:JNI_ERR;
+ }
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+index 3af3f347f96fa6e2b39c94e7fe73ee43970a6889..3a0fafc69f292c3d0174ca22c59fae4c857ed132 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -14,6 +14,7 @@ import android.os.Build;
+ import android.os.Bundle;
+ import android.os.Handler;
+ import android.os.Looper;
++import android.os.SystemClock;
+ import android.view.View;
+ import android.view.WindowInsetsController;
+ import android.widget.FrameLayout;
+@@ -21,10 +22,47 @@ import dev.mixer.android.AndroidUIProfile;
+ import dev.mixer.android.AndroidUINativeSurface;
+ import java.util.Arrays;
+ import java.util.ArrayDeque;
++import android.app.Dialog;
++import android.graphics.Canvas;
++import android.graphics.Rect;
++import android.widget.Button;
++import android.widget.LinearLayout;
++import android.widget.TextView;
++import java.io.File;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.Files;
++import java.nio.file.StandardCopyOption;
++import java.util.UUID;
++import org.json.JSONArray;
++import org.json.JSONException;
++import org.json.JSONObject;
+ 
+ public final class PublicActivity extends Activity {
++    // All accesses run on the main looper. A successor waits for the actual
++    // close callback before it can attempt to lock the same workspace.
++    private static PublicActivity workspaceOwner;
+     private final Handler handler = new Handler(Looper.getMainLooper());
+     private FrameLayout root;
++    private ChecklistPanel checklist;
++    private boolean checklistRefreshPending;
++    private void checklistClosed(ChecklistPanel holder) {
++        if (checklist != holder) return;
++        checklist = null;
++        if (destroyed || failed || isFinishing()) return;
++        checklistRefreshPending = true;
++        scheduleChecklistRefresh();
++    }
++    private void scheduleChecklistRefresh() {
++        if (checklistRefreshPending && !handler.post(this::refreshChecklistWhenFocused)) fail();
++    }
++    private void refreshChecklistWhenFocused() {
++        if (!checklistRefreshPending || !resumed || destroyed || failed || isFinishing() || !root.hasWindowFocus()) return;
++        checklistRefreshPending = false;
++        if (PublicBridge.refreshChecklist(context) != 0) {
++            fail();
++            android.widget.Toast.makeText(this, "FieldLog could not refresh the workspace", android.widget.Toast.LENGTH_LONG).show();
++        }
++    }
+     private AndroidUINativeSurface surface;
+     private byte[] owner;
+     private long context;
+@@ -32,7 +70,9 @@ public final class PublicActivity extends Activity {
+     private static final int MAX_EVENTS = 32, MAX_BYTES = 1048576;
+     private byte[] pendingReport;
+     private long reportContext;
+-    private boolean reportLaunched, reportPaused;
++    private int reportCode;
++    private record ReportCompletion(long context, byte[] token, int result) {}
++    private ReportCompletion reportCompletion;
+     private Thread reportWorker;
+     private PublicBridge.ReportFiles.WorkLease reportLease;
+     private android.os.ParcelFileDescriptor reportInput;
+@@ -46,7 +86,7 @@ public final class PublicActivity extends Activity {
+     }
+     private void abandonReportPreparation() {
+         PublicBridge.ReportFiles.cancelWork(reportLease);
+-        handler.removeCallbacks(reportDeadline); pendingReport=null; reportLaunched=false; reportPaused=false;
++        handler.removeCallbacks(reportDeadline); pendingReport=null; reportCode=0;
+         android.os.ParcelFileDescriptor input=reportInput;
+         if(input!=null) try { input.close(); } catch(IOException ignored) { }
+         if(reportWorker!=null) reportWorker.interrupt();
+@@ -62,7 +102,8 @@ public final class PublicActivity extends Activity {
+             reportWorker=null; reportInput=null;
+         }
+         if (Looper.myLooper()!=Looper.getMainLooper() || destroyed || failed || capturedContext!=context ||
+-            pendingReport!=null || reportWorker!=null || request==null || request.length!=36 ||
++            pendingReport!=null || reportCompletion!=null || reportWorker!=null || nextExternalCode>65534 ||
++            request==null || request.length!=36 ||
+             path==null || path.length==0 || path.length>4096 || size<=0 || size>PublicBridge.ReportFiles.MAX_BYTES || descriptor<0) { reportBoundary("request-admission-refused",null); return 1; }
+         PublicBridge.ReportFiles.WorkLease reserved=null;
+         String requestStage="request-token";
+@@ -81,7 +122,7 @@ public final class PublicActivity extends Activity {
+             requestStage="request-descriptor";
+             final android.os.ParcelFileDescriptor input=android.os.ParcelFileDescriptor.fromFd(descriptor);
+             reportInput=input;
+-            pendingReport=captured; reportContext=capturedContext; reportInput=input; reportLaunched=false; reportPaused=false;
++            pendingReport=captured; reportContext=capturedContext; reportInput=input;
+             reportWorker=new Thread(() -> {
+                 java.io.File copied=null;
+                 String stage="worker-source";
+@@ -158,7 +199,10 @@ public final class PublicActivity extends Activity {
+             stage="prepared-chooser";
+             Intent chooser=PublicBridge.ReportIntent.chooser(reportURI);
+             stage="prepared-start-activity";
+-            startActivity(chooser); reportLaunched=true;
++            if (nextExternalCode > 65534) throw new IllegalStateException("activity request code exhausted");
++            int code = nextExternalCode++;
++            startActivityForResult(chooser, code);
++            reportCode = code;
+             reportBoundary("prepared-started",null);
+             stage="prepared-report-jni";
+             if (PublicBridge.report(context,token,1)!=0) fail();
+@@ -171,11 +215,26 @@ public final class PublicActivity extends Activity {
+     private void finishReport(int result) {
+         PublicBridge.ReportFiles.cancelWork(reportLease);
+         handler.removeCallbacks(reportDeadline);
+-        byte[] token=pendingReport; pendingReport=null; reportLaunched=false; reportPaused=false;
++        byte[] token=pendingReport; pendingReport=null; reportCode=0;
+         android.os.ParcelFileDescriptor input=reportInput;
+         if(input!=null) try { input.close(); } catch(IOException ignored) { }
+         if(reportWorker!=null) reportWorker.interrupt();
+-        if(!destroyed && !failed && token!=null && reportContext==context && PublicBridge.report(context,token,result)!=0) fail();
++        if (!destroyed && !failed && token != null && reportContext == context) {
++            reportCompletion = new ReportCompletion(reportContext, token, result);
++            postReportDelivery();
++        }
++    }
++    private void postReportDelivery() {
++        if (reportCompletion != null && !handler.post(this::deliverReportWhenReady)) fail();
++    }
++    private void deliverReportWhenReady() {
++        if (destroyed || failed || reportCompletion == null || reportCompletion.context() != context ||
++                !resumed || !root.hasWindowFocus()) return;
++        ReportCompletion completion = reportCompletion;
++        reportCompletion = null;
++        if (!events.isEmpty()) drainEvents();
++        if (!destroyed && !failed && completion.context() == context &&
++                PublicBridge.report(context, completion.token(), completion.result()) != 0) fail();
+     }
+     private static final class CapturedEvent {
+         final long context; final AndroidUINativeSurface surface; final byte[] owner, envelope;
+@@ -186,10 +245,14 @@ public final class PublicActivity extends Activity {
+     private final ArrayDeque<CapturedEvent> events = new ArrayDeque<>();
+     private int eventBytes = 2; // JSON array delimiters, plus comma per subsequent event.
+     private int readiness;
++    private long workspaceWaitDeadline;
++    private boolean resumed;
+     private byte[] pendingPhoto;
+-    private boolean photoResultClaimed;
++    private record PhotoCompletion(int result, byte[] jpeg) {}
++    private PhotoCompletion photoCompletion;
++    private boolean photoLaunchQueued, photoResultClaimed;
+     private long photoContext;
+-    private int photoCode, nextPhotoCode = 100;
++    private int photoCode, nextExternalCode = 100;
+     private volatile CancellationSignal photoCancellation;
+     private volatile InputStream photoStream;
+     private volatile Thread photoThread;
+@@ -213,18 +276,24 @@ public final class PublicActivity extends Activity {
+     // Called only by the separate app-native service after public UI admission.
+     public int photoRequest(long capturedContext, byte[] request) {
+         if (Looper.myLooper() != Looper.getMainLooper() || destroyed || failed || capturedContext != context ||
+-                request == null || request.length != 36) return 1;
++                photoLaunchQueued || request == null || request.length != 36) return 1;
+         final byte[] token = request.clone();
+-        return handler.post(() -> launchPhoto(capturedContext, token)) ? 0 : 1;
++        photoLaunchQueued = true;
++        if (handler.post(() -> {
++            photoLaunchQueued = false;
++            launchPhoto(capturedContext, token);
++        })) return 0;
++        photoLaunchQueued = false;
++        return 1;
+     }
+     @SuppressWarnings("deprecation")
+     private void launchPhoto(long capturedContext, byte[] request) {
+         if (destroyed || failed || capturedContext != context) return;
+-        if (pendingPhoto != null || (photoThread != null && photoThread.isAlive()) || nextPhotoCode > 65534) {
++        if (pendingPhoto != null || (photoThread != null && photoThread.isAlive()) || nextExternalCode > 65534) {
+             if (PublicBridge.photo(capturedContext, request, 4, new byte[0]) != 0) fail();
+             return;
+         }
+-        pendingPhoto = request; photoResultClaimed = false; photoContext = capturedContext; photoCode = nextPhotoCode++;
++        pendingPhoto = request; photoResultClaimed = false; photoContext = capturedContext; photoCode = nextExternalCode++;
+         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
+                 .setType("image/*").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+         try { startActivityForResult(intent, photoCode); }
+@@ -234,6 +303,11 @@ public final class PublicActivity extends Activity {
+     @Override @SuppressWarnings("deprecation")
+     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+         super.onActivityResult(requestCode, resultCode, data);
++        if (reportCode != 0 && requestCode == reportCode) {
++            // Returning from the chooser does not confirm delivery.
++            finishReport(0);
++            return;
++        }
+         if (destroyed || failed || pendingPhoto == null || requestCode != photoCode || photoResultClaimed) return;
+         // Claim before any result handling or worker creation, on the main thread.
+         photoResultClaimed = true;
+@@ -290,17 +364,62 @@ public final class PublicActivity extends Activity {
+         Thread worker = photoThread; if (worker != null) worker.interrupt();
+     }
+     private void finishPhoto(long capturedContext, byte[] request, int result, byte[] jpeg) {
+-        if (destroyed || failed || capturedContext != context || pendingPhoto == null || !Arrays.equals(request, pendingPhoto)) return;
+-        handler.removeCallbacks(photoDeadline); pendingPhoto = null;
++        if (destroyed || failed || capturedContext != context || pendingPhoto == null ||
++                photoCompletion != null || !Arrays.equals(request, pendingPhoto)) return;
++        handler.removeCallbacks(photoDeadline);
++        photoCompletion = new PhotoCompletion(result, jpeg);
++        deliverPhotoWhenReady();
++    }
++    private void postPhotoDelivery() {
++        // Window focus dispatch can reach the Activity before the root view.
++        if (photoCompletion != null && !handler.post(this::deliverPhotoWhenReady)) fail();
++    }
++    private void deliverPhotoWhenReady() {
++        if (destroyed || failed || photoCompletion == null || pendingPhoto == null ||
++                photoContext != context || !resumed || !root.hasWindowFocus()) return;
++        PhotoCompletion completion = photoCompletion;
++        byte[] request = pendingPhoto;
++        long capturedContext = photoContext;
++        photoCompletion = null;
++        pendingPhoto = null;
+         // Flush genuine UI events before the separate service completion.
+         if (!events.isEmpty()) drainEvents();
+-        if (!destroyed && !failed && PublicBridge.photo(capturedContext, request, result, jpeg) != 0) fail();
++        if (!destroyed && !failed && capturedContext == context &&
++                PublicBridge.photo(capturedContext, request, completion.result(), completion.jpeg()) != 0) fail();
+     }
+     @Override public void onCreate(Bundle state) {
+-        super.onCreate(state); root = new FrameLayout(this); setContentView(root);
++        super.onCreate(state);
++        FrameLayout content = new FrameLayout(this);
++        root = new FrameLayout(this);
++        content.addView(root, new FrameLayout.LayoutParams(-1, -1));
++        setContentView(content);
++        try (InputStream material = getAssets().open("ChecklistRelease/identity.json")) {
++            if (material.read() < 0) throw new IOException("empty checklist identity");
++            android.widget.Button open = new android.widget.Button(this);
++            open.setText("Open signed draft check");
++            open.setAllCaps(false);
++            open.setOnClickListener(view -> openChecklist());
++            content.addView(open, new FrameLayout.LayoutParams(-2, -2, android.view.Gravity.BOTTOM | android.view.Gravity.END));
++        } catch (IOException absent) {
++            // The ordinary package omits signed checklist material.
++        }
+         configureSystemBarAppearance();
+         if (!handler.post(this::openWhenReady)) throw new IllegalStateException("host queue unavailable");
+     }
++    private void openChecklist() {
++        if (checklist != null || checklistRefreshPending || context <= 0 || failed || destroyed || isFinishing()
++                || !resumed || !root.hasWindowFocus() || checklistBlockedByService()) return;
++        if (!events.isEmpty()) drainEvents();
++        if (failed || checklistBlockedByService()) return;
++        ChecklistPanel panel = new ChecklistPanel(this, context);
++        if (panel.open()) {
++            checklist = panel;
++            surface.gateInput();
++        }
++    }
++    private boolean checklistBlockedByService() {
++        return photoLaunchQueued || pendingPhoto != null || pendingReport != null || reportCompletion != null;
++    }
+     private void configureSystemBarAppearance() {
+         // The manifest fixes this app window to Theme.Material.Light.NoActionBar.
+         if (Build.VERSION.SDK_INT >= 30) {
+@@ -323,9 +442,23 @@ public final class PublicActivity extends Activity {
+             if (++readiness > 625 || !handler.postDelayed(this::openWhenReady, 16)) fail();
+             return;
+         }
++        if (workspaceOwner != null) {
++            long now = SystemClock.elapsedRealtime();
++            if (workspaceWaitDeadline == 0) {
++                // Allow the prior operation and the bounded retirement attempts to finish.
++                workspaceWaitDeadline = now + 80_000;
++            }
++            if (now >= workspaceWaitDeadline || !handler.postDelayed(this::openWhenReady, 50)) {
++                fail();
++                android.widget.Toast.makeText(this, "FieldLog could not close the previous workspace", android.widget.Toast.LENGTH_LONG).show();
++            }
++            return;
++        }
+         surface = new AndroidUINativeSurface(this, root, AndroidUIProfile.MEASURED_MULTILINE_LONG_NOTES_V4, this::enqueue);
+-        context = PublicBridge.open(this, surface.profile().name());
+-        if (context <= 0) fail();
++        workspaceOwner = this;
++        long opened = PublicBridge.open(this, surface.profile().name());
++        if (opened > 0) context = opened;
++        else fail();
+     }
+     private void enqueue(byte[] capturedOwner, byte[] envelope) {
+         if (Looper.myLooper() != Looper.getMainLooper() || destroyed || failed || draining || context <= 0 || surface == null ||
+@@ -398,18 +531,365 @@ public final class PublicActivity extends Activity {
+             return 0;
+         } catch (RuntimeException error) { android.util.Log.e("MixerAndroidHost", "Native surface operation failed: " + operation, error); fail(); return 1; }
+     }
+-    private void fail() { failed = true; invalidateEvents(); if (surface != null) surface.gateInput(); }
+-    @Override public void onResume() { super.onResume(); if (surface != null) surface.onResume(); if(reportPaused && reportLaunched) finishReport(0); }
+-    @Override public void onPause() { if(reportLaunched) reportPaused=true; if (surface != null) surface.onPause(); super.onPause(); }
++    private void fail() {
++        failed = true;
++        reportCompletion = null;
++        photoCompletion = null;
++        checklistRefreshPending = false;
++        invalidateEvents();
++        if (surface != null) surface.gateInput();
++    }
++    @Override public void onResume() {
++        super.onResume();
++        resumed = true;
++        if (surface != null) surface.onResume();
++        postReportDelivery();
++        postPhotoDelivery();
++        scheduleChecklistRefresh();
++    }
++    @Override public void onWindowFocusChanged(boolean hasFocus) {
++        super.onWindowFocusChanged(hasFocus);
++        if (hasFocus) {
++            postReportDelivery();
++            postPhotoDelivery();
++            scheduleChecklistRefresh();
++        }
++    }
++    @Override public void onPause() {
++        resumed = false;
++        if (surface != null) surface.onPause();
++        super.onPause();
++    }
+     @Override public void onStop() { if (surface != null) surface.onStop(); super.onStop(); }
+     @Override public void onDestroy() {
+-        destroyed = true; finishReport(2); revokeReport(); pendingPhoto = null; cancelPhotoWorker();
++        destroyed = true;
++        checklistRefreshPending = false;
++        reportCompletion = null;
++        finishReport(2);
++        revokeReport();
++        photoLaunchQueued = false;
++        pendingPhoto = null;
++        photoCompletion = null;
++        cancelPhotoWorker();
+         Thread worker = photoThread;
+         if (worker != null) try { worker.join(100); } catch (InterruptedException error) { Thread.currentThread().interrupt(); }
+         // A provider that ignores cancellation may outlive this bounded join;
+         // destroyed/context/request fencing prevents every late mutation.
+         invalidateEvents(); handler.removeCallbacksAndMessages(null);
+-        if (context > 0 && PublicBridge.close(context) != 0) failed = true;
+-        if (surface != null) surface.close(); super.onDestroy();
++        if (checklist == null) closeSurface();
++        else checklist.close(this::closeSurface);
++        super.onDestroy();
++    }
++    private void closeSurface() {
++        boolean closed = context <= 0 || PublicBridge.close(context) == 0;
++        if (!closed) failed = true;
++        if (surface != null) surface.close();
++        if (closed && workspaceOwner == this) workspaceOwner = null;
++    }
++
++    /** Native surface for the signed checklist opened from FieldLog's public activity. */
++    private static final class ChecklistPanel {
++        static { System.loadLibrary("mixer_public_android_jni"); }
++        private native boolean initialize();
++        private native boolean unregisterRetired();
++        private native boolean cycle(int action, long context, String directory, String assets, String installation, String bundle);
++        private native String status();
++        private native int witness(long facade, long attachment, long token, boolean display);
++
++        private final PublicActivity activity;
++        private final long context;
++        private final Dialog dialog;
++        private final Button update, done;
++        private final TextView result;
++        private final LinearLayout guest;
++        private final Handler handler = new Handler(Looper.getMainLooper());
++        private GuestFrame current;
++        private static final int POLL_LIMIT = 500;
++        private boolean enabled, closing, closeAfterOperation, awaitingReply;
++        private int remaining, closeRetries;
++        private long teardownDeadline;
++        private Runnable afterClose = () -> {};
++
++        ChecklistPanel(PublicActivity activity, long context) {
++            this.activity = activity;
++            this.context = context;
++            dialog = new Dialog(activity);
++            dialog.setTitle("Signed draft check");
++            dialog.setCancelable(false);
++            LinearLayout contents = new LinearLayout(activity);
++            contents.setOrientation(LinearLayout.VERTICAL);
++            contents.setPadding(24, 24, 24, 24);
++            result = new TextView(activity);
++            update = new Button(activity);
++            done = new Button(activity);
++            guest = new LinearLayout(activity);
++            guest.setOrientation(LinearLayout.VERTICAL);
++            update.setText("Check for update");
++            done.setText("Done");
++            update.setAllCaps(false);
++            done.setAllCaps(false);
++            update.setOnClickListener(view -> start(1));
++            done.setOnClickListener(view -> close(() -> {}));
++            contents.addView(result);
++            contents.addView(guest);
++            contents.addView(update);
++            contents.addView(done);
++            dialog.setContentView(contents);
++        }
++
++        boolean open() {
++            if (!initialize()) return false;
++            dialog.show();
++            start(1);
++            return true;
++        }
++
++        void close(Runnable completion) {
++            afterClose = completion;
++            closeAfterOperation = true;
++            closeRetries = 1;
++            if (activity.destroyed) {
++                // An active dialog poll may be about to expire. Give the
++                // teardown its own deadline across the pending reply and close.
++                if (teardownDeadline == 0) teardownDeadline = SystemClock.elapsedRealtime() + 75_000;
++                dialog.dismiss();
++            }
++            if (remaining != 0) return;
++            if (awaitingReply) schedulePoll();
++            else start(2);
++        }
++
++        private String installation() throws IOException {
++            android.content.SharedPreferences preferences = activity.getSharedPreferences("signed-checklist", 0);
++            String value = preferences.getString("installation", null);
++            if (value != null) return value;
++            value = UUID.randomUUID().toString();
++            if (!preferences.edit().putString("installation", value).commit()) throw new IOException("installation");
++            return value;
++        }
++
++        private File installedMaterial() throws IOException {
++            File directory = new File(activity.getFilesDir(), "checklist-installed");
++            if (!directory.exists() && !directory.mkdir()) throw new IOException("directory");
++            for (String name : new String[]{"identity.json", "roots.json", "storage.json", "storage-grant.json", "bridge.json", "port.txt"}) {
++                try (java.io.InputStream asset = activity.getAssets().open("ChecklistRelease/" + name)) {
++                    Files.copy(asset, new File(directory, name).toPath(), StandardCopyOption.REPLACE_EXISTING);
++                }
++            }
++            return directory;
++        }
++
++        private void start(int action) {
++            if (awaitingReply || remaining != 0) return;
++            closing = action == 2;
++            update.setEnabled(false);
++            done.setEnabled(false);
++            if (current != null) current.action.setEnabled(false);
++            try {
++                File materials = action == 1 ? installedMaterial() : new File(activity.getFilesDir(), "checklist-installed");
++                if (!cycle(action, context, activity.getFilesDir().getCanonicalPath(), materials.getCanonicalPath(),
++                    installation(), activity.getPackageName())) throw new IOException("checklist operation");
++                awaitingReply = true;
++                result.setText("Opening checklist");
++                schedulePoll();
++            } catch (IOException error) {
++                result.setText("Checklist operation could not start");
++                update.setEnabled(!closeAfterOperation && !activity.destroyed);
++                done.setEnabled(!activity.destroyed);
++            }
++        }
++
++        private void schedulePoll() {
++            done.setEnabled(false);
++            remaining = POLL_LIMIT;
++            if (!handler.post(this::poll)) pollExpired();
++        }
++
++        private void pollExpired() {
++            remaining = 0;
++            result.setText("Checklist operation has not settled");
++            // A live user can resume polling this operation. Teardown retains
++            // the native owner until retirement is proven.
++            done.setEnabled(!activity.destroyed);
++        }
++
++        private void poll() {
++            String state = status();
++            if (closing && "Closed".equals(state) && unregisterRetired()) {
++                remaining = 0;
++                awaitingReply = false;
++                dialog.dismiss();
++                afterClose.run();
++                activity.checklistClosed(this);
++                return;
++            }
++            if (state == null || "Opening checklist".equals(state) || (closing && "Closed".equals(state))) {
++                boolean wait = teardownDeadline != 0
++                    ? SystemClock.elapsedRealtime() < teardownDeadline
++                    : --remaining > 0;
++                if (!wait || !handler.postDelayed(this::poll, 50)) pollExpired();
++                return;
++            }
++            remaining = 0;
++            awaitingReply = false;
++            result.setText(state);
++            if (closing) {
++                // Retry only a terminal close result. Never overlap two cycles
++                // or unregister while the C transport still owns a facade.
++                if ("Checklist retirement pending".equals(state) && closeRetries > 0) {
++                    closeRetries--;
++                    start(2);
++                    return;
++                }
++                done.setEnabled(!activity.destroyed);
++            } else if (closeAfterOperation) {
++                start(2);
++            } else {
++                update.setEnabled(!"Checklist retirement pending".equals(state));
++                done.setEnabled(true);
++            }
++        }
++
++        @SuppressWarnings("unused") // JNI transport callbacks
++        private boolean applyGuest(long facade, long attachment, long input, long probe, byte[] packet) {
++            try {
++                JSONObject frame = new JSONObject(new String(packet, StandardCharsets.UTF_8));
++                JSONObject root = frame.getJSONObject("root");
++                require(frame.getInt("schemaVersion") == 1 && frame.getLong("revision") > 0
++                    && "fieldlog-draft".equals(root.getString("id")) && "vStack".equals(root.getString("kind"))
++                    && root.getJSONObject("properties").length() == 0 && root.getJSONArray("actions").length() == 0);
++                JSONArray nodes = root.getJSONArray("children");
++                int nodeCount = nodes.length();
++                require(nodeCount == 3 || nodeCount == 4);
++                String[] labels = {"validation", "photo", "follow-up"};
++                GuestFrame next = new GuestFrame(facade, attachment, input, probe);
++                for (int i = 0; i < nodeCount - 1; i++) {
++                    JSONObject node = nodes.getJSONObject(i);
++                    require(labels[i].equals(node.getString("id"))
++                        && "text".equals(node.getString("kind")) && node.getJSONArray("children").length() == 0
++                        && node.getJSONArray("actions").length() == 0 && node.getJSONObject("properties").length() == 1);
++                    TextView text = new TextView(activity);
++                    text.setText(node.getJSONObject("properties").getString("text"));
++                    text.setTextSize(18);
++                    next.addView(text);
++                }
++                JSONObject node = nodes.getJSONObject(nodeCount - 1);
++                JSONArray commands = node.getJSONArray("actions");
++                require("toggle".equals(node.getString("id")) && "button".equals(node.getString("kind"))
++                    && node.getJSONArray("children").length() == 0 && node.getJSONObject("properties").length() == 1
++                    && commands.length() == 1
++                    && "draft.action".equals(commands.getJSONObject(0).getString("id"))
++                    && "activate".equals(commands.getJSONObject(0).getString("event")));
++                next.action.setText(node.getJSONObject("properties").getString("label"));
++                next.addView(next.action);
++                return replaceGuest(next);
++            } catch (JSONException failure) {
++                return false;
++            }
++        }
++
++        private static void require(boolean condition) throws JSONException {
++            if (!condition) throw new JSONException("Unsupported FieldLog presentation");
++        }
++
++        private boolean replaceGuest(GuestFrame next) {
++            // Keep the previous frame and its state until the new child is attached.
++            try {
++                guest.addView(next);
++            } catch (RuntimeException failure) {
++                // ViewGroup can throw after it has already inserted the child.
++                next.disarm();
++                guest.removeView(next);
++                if (current == null) result.setText("FAILED guest frame attachment");
++                return false;
++            }
++            detachCurrent();
++            current = next;
++            return true;
++        }
++
++        private void detachCurrent() {
++            if (current != null) {
++                // Remove posted animation callbacks while the View is still attached.
++                current.disarm();
++                guest.removeView(current);
++                current = null;
++            }
++            enabled = false;
++        }
++
++        @SuppressWarnings("unused")
++        private boolean enableGuest(long facade, boolean value) {
++            if (current == null) return !value;
++            if (current.facade != facade) return false;
++            enabled = value;
++            current.action.setEnabled(value && current.observed);
++            return true;
++        }
++
++        @SuppressWarnings("unused")
++        private boolean retireGuest(long facade) {
++            if (current != null && current.facade != facade) return false;
++            detachCurrent();
++            if (guest.getChildCount() != 0) return false;
++            if (result.getText().toString().startsWith("HEALTHY")) result.setText("Guest retired");
++            return true;
++        }
++
++        private final class GuestFrame extends LinearLayout {
++            final long facade, attachment, input, probe;
++            final Button action = new Button(activity);
++            boolean scheduled;
++            boolean observed;
++            private final Runnable afterDraw = this::queueObservation;
++            private final Runnable observe = this::observeFrame;
++
++            GuestFrame(long facade, long attachment, long input, long probe) {
++                super(activity);
++                this.facade = facade; this.attachment = attachment; this.input = input; this.probe = probe;
++                setOrientation(LinearLayout.VERTICAL);
++                action.setAllCaps(false);
++                action.setEnabled(false);
++                action.setOnClickListener(view -> {
++                    if (current != this || !observed || !enabled || !visible()) return;
++                    if (witness(facade, attachment, input, false) == 0) action.setEnabled(false);
++                });
++            }
++            void disarm() {
++                action.setOnClickListener(null);
++                action.setEnabled(false);
++                removeCallbacks(afterDraw);
++                removeCallbacks(observe);
++                scheduled = false;
++            }
++
++            private void queueObservation() {
++                if (visible()) postOnAnimation(observe);
++                else scheduled = false;
++            }
++
++            private void observeFrame() {
++                scheduled = false;
++                if (!visible()) return;
++                int status = witness(facade, attachment, probe, true);
++                observed = status == 0;
++                if (status != 0) android.util.Log.w("FieldLogChecklist", "Display witness refused: " + status);
++                action.setEnabled(observed && enabled);
++            }
++
++            private boolean visible() {
++                Rect bounds = new Rect();
++                return current == this && !closing && isAttachedToWindow() && isShown()
++                    && hasWindowFocus() && getWindowVisibility() == View.VISIBLE && getGlobalVisibleRect(bounds)
++                    && bounds.width() > 0 && bounds.height() > 0;
++            }
++            @Override protected void dispatchDraw(Canvas canvas) {
++                // Backgroundless ViewGroups can reach child drawing without entering draw().
++                super.dispatchDraw(canvas);
++                if (observed || scheduled || !visible()) return;
++                scheduled = true;
++                postOnAnimation(afterDraw);
++            }
++        }
+     }
+ }
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
+index abd1da6adb49fe10f15249c899b4f8ce1c161520..a43d58c7738fe7203141855b5b66a63af8cc8859 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
+@@ -24,6 +24,7 @@ public final class PublicBridge {
+         }
+     }
+     public static int event(long context, byte[] owner, byte[] envelope) { requireMain(); return eventNative(context, owner, envelope); }
++    static int refreshChecklist(long context) { requireMain(); return refreshNative(context); }
+     public static int close(long context) { requireMain(); return closeNative(context); }
+     public static int photo(long context, byte[] request, int result, byte[] jpeg) { requireMain(); return photoNative(context, request, result, jpeg); }
+     public static int report(long context, byte[] request, int result) { requireMain(); android.util.Log.i("FieldLogShareR1702", "report-jni-enter"); int status=reportNative(context, request, result); android.util.Log.i("FieldLogShareR1702", "report-jni-return accepted="+(status==0)); return status; }
+@@ -31,6 +32,7 @@ public final class PublicBridge {
+     private static native int photoNative(long context, byte[] request, int result, byte[] jpeg);
+     private static native long openNative(PublicActivity receiver, String profile, byte[] directory);
+     private static native int eventNative(long context, byte[] originalOwner, byte[] originalEnvelope);
++    private static native int refreshNative(long context);
+     private static native int closeNative(long context);
+     private static void requireMain() {
+         if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) throw new IllegalStateException("Android main thread required");
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Package.resolved b/Integrations/GeneratedReport/Platforms/Android/Package.resolved
+new file mode 100644
+index 0000000000000000000000000000000000000000..8fa6c157f7eb331d6888a714e61f26fca731b39f
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Package.resolved
+@@ -0,0 +1,24 @@
++{
++  "originHash" : "360e677cac50e3d10d9df33bc4a7310e5e24c4b2a2930c3c3367a32d0f0a7a83",
++  "pins" : [
++    {
++      "identity" : "swift-asn1",
++      "kind" : "remoteSourceControl",
++      "location" : "https://github.com/apple/swift-asn1.git",
++      "state" : {
++        "revision" : "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
++        "version" : "1.7.3"
++      }
++    },
++    {
++      "identity" : "swift-crypto",
++      "kind" : "remoteSourceControl",
++      "location" : "https://github.com/apple/swift-crypto.git",
++      "state" : {
++        "revision" : "c2cbadd7263439d8015189668f96ff5b5be565ce",
++        "version" : "5.0.3"
++      }
++    }
++  ],
++  "version" : 3
++}
+diff --git a/Integrations/GeneratedReport/Platforms/Android/res/xml/checklist_network.xml b/Integrations/GeneratedReport/Platforms/Android/res/xml/checklist_network.xml
+new file mode 100644
+index 0000000000000000000000000000000000000000..876ea671ef8b2f6750524514659a3e52e6b1eb45
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/res/xml/checklist_network.xml
+@@ -0,0 +1,5 @@
++<?xml version="1.0" encoding="utf-8"?>
++<network-security-config>
++  <base-config cleartextTrafficPermitted="false" />
++  <domain-config cleartextTrafficPermitted="true"><domain>127.0.0.1</domain></domain-config>
++</network-security-config>
+diff --git a/Integrations/GeneratedReport/README.md b/Integrations/GeneratedReport/README.md
+index 15168404f084617bdaaaf40727faf0d3aeead030..6d025d2ef40ac913c8c0f70cf07837c8883b91e0 100644
+--- a/Integrations/GeneratedReport/README.md
++++ b/Integrations/GeneratedReport/README.md
+@@ -4,7 +4,7 @@ This additive development package preserves the ordinary FieldLog app and its or
+ 
+ Sources and host tests come from the accepted R992 source ZIP (SHA-256 b9b725460ccb69e78cc4962217b089ebc323ce2fc3244f48a451a38fcdeb472b). PublicActivity and PublicBridge incorporate the independently reviewed R1702 report fix. The package-private ReportRoot class at the end of PublicBridge.java preserves trusted-root canonicalization and the two-file public Android host source inventory. ReportFiles, ReportIntent, the source descriptor checks, strict child no-follow checks, and fixed-stage diagnostics remain unchanged. NativeRendererSDK is supplied by Mixer and is never copied into this app.
+ 
+-The public Mixer development pin is 8efc1a9e5b1602117f8211c95bfd4203cc91f689. Supply its SDK directory explicitly for local development; no engine internals or substitute APIs are used:
++The generated report host-test pin is 8efc1a9e5b1602117f8211c95bfd4203cc91f689. Supply its SDK directory explicitly for local development; no engine internals or substitute APIs are used:
+ 
+ ```sh
+ export FIELDLOG_MIXER_SDK=/absolute/pinned-mixer/sdk
+@@ -25,17 +25,19 @@ java -cp /absolute/owned-scratch/classes \
+   dev.fieldlog.generatedr90.androidhost.ReportFilesChecks /absolute/owned-scratch/report-workspace
+ ```
+ 
+-To create the native development tree, use a public Mixer CLI and a clean checkout at the Swift SDK pin above, including sdk/. Supply the Android adapter separately with `--android-adapter-path`; the old Swift SDK pin does not supply the current Pair21 adapter. The selected public CLI authoritatively admits its exact 27 adapter inputs; unrelated worktree changes outside those inputs do not require a clean adapter repository. The Swift SDK checkout must still be clean and pinned. The output path must be absent, including when an existing directory is empty; existing paths are rejected before source or tool work. The recipe invokes public `mixer create` with public-v4 and installs the app-owned Swift, C, Java, manifest, and test sources. It preserves the CLI-created SDK snapshot and lock. The library product remains AppAndroid; its Swift module is FieldLogAndroid, matching the actual tests. The application package depends only on the three real FieldLog modules, without starter AppModels/AppFeatures targets.
++Use the CLI, SDK, and Android adapter from the same Mixer checkout. The hosted recipe uses Pair23 at `735ecec14e10e2dfed1e58a122c3fab08e569bef`. The combined local development recipe uses Pair24 at `5dea19db36610e312b51918b384364ba590b6ef8`. The recipe checks the SDK revision and calls `mixer create` with `public-v4`. It keeps the generated SDK snapshot and `mixer.lock`, then installs FieldLog's own Swift, C, Java, manifest, and test sources. Use a fresh output path.
+ 
+ ```sh
+ python3 scripts/build-android.py --mixer /absolute/public/mixer \
+-  --sdk-checkout /absolute/pinned-mixer \
+-  --android-adapter-path /absolute/pair21-mixer/native/android \
++  --sdk-checkout /absolute/pair23-mixer \
++  --android-adapter-path /absolute/pair23-mixer/native/android \
+   --output /absolute/fresh/FieldLogGenerated \
+   --prepare-only
+ ```
+ 
+-Omit `--prepare-only` to request the existing unsigned Android build. That build requires the platform toolchain and is outside this host-only verification. Preparation, APK/native compilation, installation, device behavior, signing, immutable published-package consumption, and final D0-D8/GA qualification each require their own evidence. A source checkout or host pass does not qualify those gates.
++FieldLog supplies its own `Platforms/Android/Package.resolved`. The lock uses the origin hash from SwiftPM resolution of the FieldLog Android package and the exact pins from Pair23's SDK lock. The recipe checks those pins against the generated SDK snapshot before installing app files.
++
++For an independent export build, move `.fieldlog-build` out of the prepared tree to keep the preparation logs separate. Run `mixer export <fresh-export> --directory <prepared-app>`. Move the prepared tree and the source checkout out of their original paths, then run `mixer build --platform android --directory <fresh-export>` with the same installed toolchain. Omit `--prepare-only` to build the unsigned APK directly in the prepared tree.
+ 
+ Run the recipe boundary controls without native tools:
+ 
+@@ -43,6 +45,41 @@ Run the recipe boundary controls without native tools:
+ python3 -m unittest discover -s Tests/Recipe -p 'test_*.py'
+ ```
+ 
++## Package the signed-checklist Android development variant
++
++Prepare a fresh public-v4 project with the Pair24 CLI and checkout.
++Set `PREPARED_PROJECT` to the prepared project. Mixer generates the appearance
++descriptor and admits the SDK, adapter, and toolchain.
++
++Build the JNI library with the signed-checklist flag using the same FieldLog
++sources as the prepared project. Link the public bridge, checklist bridge,
++Mixer Android transport, and the experimental capability VM archive built
++from the pinned Mixer revision. Compile the Java sources with the prepared
++project's Mixer adapter. Link the checklist manifest using the loopback-only
++network policy. Seal the local Android delivery against the rebuilt binaries,
++generated descriptor, and source inputs before packaging.
++
++Use the matching sealed delivery's `Installed` directory and checksums.
++Pass those values as a JSON object keyed by the six file names
++`bridge.json`, `identity.json`, `port.txt`, `roots.json`, `storage-grant.json`,
++and `storage.json`.
++
++```sh
++python3 scripts/build-signed-checklist-android.py \
++  --mixer-project "$PREPARED_PROJECT" --manifest-apk "$MANIFEST_APK" \
++  --dex "$CLASSES_DEX" --jni-library "$FIELDLOG_JNI" \
++  --installed-checklist "$CHECKLIST_INSTALLED" --checklist-sha256 "$CHECKLIST_SHA256" \
++  --android-sdk "$ANDROID_HOME" --swift-android-sdk "$SWIFT_ANDROID_SDK" \
++  --java-home "$JAVA_HOME" --output "$FRESH_APK"
++```
++
++Set `SWIFT_ANDROID_SDK` to the `swift-android` directory in the Swift 6.3.3
++Android SDK bundle. Use Android build tools 36.0.0 and NDK 27.1.12297006.
++The recipe packages the seven assets and the matching runtime notices. It
++checks the native library closure, 16 KiB alignment, and the development
++signature before writing the APK. Each build creates a disposable signing key. Use a clean install
++when replacing an APK signed by a different key.
++
+ ## Build the public Android recipe on GitHub
+ 
+ The `GeneratedReport Android public recipe` workflow runs the actual unsigned APK recipe on `macos-26-intel`. A push that changes this integration or its Android workflow starts a build. Inspect that run before dispatching another:
+@@ -58,7 +95,7 @@ To request a separate build of published `main`, use:
+ gh workflow run generated-report-android.yml --repo snowdamiz/fieldlog --ref main
+ ```
+ 
+-The workflow checks out public Mixer revision `a63f5cd2867b0b7d2668dbb1c93e28cd8f07c44b` for the complete CLI, SDK, and updates package closure and the Pair21 Android adapter. It verifies the 119 source inputs against digest `80754549d262f01c49d2759e61b04d7581d1f63832d5a98bb558fe84a180185c`. The app's separate Swift SDK checkout remains pinned to `8efc1a9e5b1602117f8211c95bfd4203cc91f689`.
++The Android workflow builds the CLI and generates the app from the same Pair23 checkout. It verifies all 141 source inputs against digest `f68f02c92c93947becf9e29b7eeef43b88313f13e7f7c915fdf47f902f4f81cd`.
+ 
+ The cross toolchain is the official Swift 6.3.3 macOS package and matching Android Swift SDK. The workflow verifies the package's macOS trust report and published SDK checksum. It requires Xcode 26.6 build 17F113, macOS SDK 26.5, image JDK 25.0.4, Android platform 37.0 revision 2, build-tools 37.0.0, and NDK r27d `27.3.13750724`. These explicit checks fail if an image update removes a prerequisite. The [GitHub runner inventory](https://github.com/actions/runner-images/blob/main/images/macos/macos-26-Readme.md) lists the image inputs. The [Swift package instructions](https://www.swift.org/install/macos/package_installer/) describe its signing identity.
+ 
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+index 9d20e7a9c0057ad3a5983044cccf4b42c1877efe..ca5ceed8afe07c267c928d002d33e0e7eb93eb40 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+@@ -50,7 +50,12 @@ private final class Replies: @unchecked Sendable {
+ }
+ private let replies = Replies()
+ @MainActor private enum Applications {
+-    static var values: [Int64: (PublicAndroidApplication, BridgeSurface)] = [:]
++    private static var values: [Int64: (PublicAndroidApplication, BridgeSurface)] = [:]
++    #if FIELDLOG_SIGNED_CHECKLIST
++    static func checklistPresentation(_ context: Int64) -> ProjectPresentation? {
++        values[context]?.0.presentation
++    }
++    #endif
+     static func report(_ id: Int64, _ token: Data, _ result: Int32,
+         _ callback: @escaping @convention(c) @Sendable (Int64, UnsafePointer<UInt8>?, Int, UnsafePointer<UInt8>?, Int, Int, Int32) -> Int32) async -> Int32 {
+         guard let (app, surface) = values[id], !surface.failure else { return 2 }
+@@ -121,12 +126,22 @@ private let replies = Replies()
+                 await application.close()
+                 guard !surface.failure else { throw PublicHostError.surface }
+                 values.removeValue(forKey: id)
++            case 3:
++                guard let (application, surface) = values[id], !surface.failure else { throw PublicHostError.context }
++                try await application.presentation.reloadChecklist()
++                try await application.settle()
+             default: throw PublicHostError.context
+             }
+             return 1
+         } catch { return 2 }
+     }
+ }
++#if FIELDLOG_SIGNED_CHECKLIST
++@MainActor func checklistPresentation(_ context: Int64) -> ProjectPresentation? {
++    Applications.checklistPresentation(context)
++}
++#endif
++
+ @_cdecl("mixer_public_android_submit")
+ public func publicAndroidSubmit(_ context: Int64, _ operation: Int32,
+     _ profile: UnsafePointer<UInt8>?, _ profileCount: Int,
+@@ -134,7 +149,8 @@ public func publicAndroidSubmit(_ context: Int64, _ operation: Int32,
+     _ owner: UnsafePointer<UInt8>?, _ ownerCount: Int,
+     _ event: UnsafePointer<UInt8>?, _ eventCount: Int,
+     _ callback: @convention(c) @Sendable @escaping (Int64, Int32, UnsafePointer<UInt8>?, Int, UnsafePointer<UInt8>?, Int, UnsafePointer<UInt8>?, Int) -> Int32) -> Int32 {
+-    guard context > 0, (0...2).contains(operation), (0...64).contains(profileCount),
++    guard context > 0, (0...3).contains(operation), (0...64).contains(profileCount),
++          (operation != 3 || (profileCount == 0 && ownerCount == 0 && eventCount == 0)),
+           (0...4096).contains(directoryCount), (operation == 0 ? directoryCount > 0 : directoryCount == 0),
+           (directoryCount == 0 || directory != nil), (0...64).contains(ownerCount), (0...1_048_576).contains(eventCount),
+           (profileCount == 0 || profile != nil), (ownerCount == 0 || owner != nil), (eventCount == 0 || event != nil) else { return 1 }
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index 73b481f6d58e46d71175ae805004ddd9ee39bd81..48ae04463cba51be22fe9016d485aa4bd020d6e6 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -5,8 +5,21 @@ import FieldLogStorage
+ import MixerCore
+ import MixerUI
+ import MixerAndroid
++#if FIELDLOG_SIGNED_CHECKLIST
++import FieldLogInstalledGuest
++import MixerCapabilities
++#endif
+ 
+ public enum PublicHostError: Error { case bounds, surface, closed, profile, context, storage, action }
++// Replacing a draft retires its native fields, including any active editor.
++private enum EntryField: String {
++    case title, note, date
++
++    func nodeID(_ draftID: UUID) -> String {
++        "entry." + draftID.uuidString.lowercased() + "." + rawValue
++    }
++}
++
+ // A deliberately finite RFC3339 subset: Gregorian years 0001...9999,
+ // seconds 00...59, 1...3 fractional digits, and Z or an explicit ±HH:MM.
+ // Civil-day arithmetic rejects invalid dates without calendar normalization.
+@@ -107,7 +120,7 @@ private enum WorkspaceEdit: Sendable {
+     public private(set) var snapshot: UIRenderSnapshot
+     public private(set) var workspace: Workspace
+     public var state: TaskEditorState { editor.state }
+-    private let repository: WorkspaceRepository
++    let repository: WorkspaceRepository
+     private let projectID: UUID
+     private var editor: TaskEditor
+     private var editorObservation: UUID?
+@@ -117,6 +130,9 @@ private enum WorkspaceEdit: Sendable {
+     private var closed = false
+     private var showingQueue = false
+     private var showingEntries = false
++    #if FIELDLOG_SIGNED_CHECKLIST
++    private let signedDraftBinding = SelectedDraftBinding()
++    #endif
+     private var entryEditor: EntryEditor?
+     private var entryObservation: UUID?
+     private var entryDateInput: (draftID: UUID, text: String)?
+@@ -184,10 +200,11 @@ private enum WorkspaceEdit: Sendable {
+     }
+     // V4's SDK value policy covers vertical fields. The app opts only its note
+     // into that allowance, including transaction projections that have no event.
+-    private nonisolated static func appPacket(_ snapshot: UIRenderSnapshot) throws -> Data {
++    private nonisolated static func appPacket(_ snapshot: UIRenderSnapshot, draftID: UUID? = nil) throws -> Data {
++        let noteID = draftID.map(EntryField.note.nodeID)
+         var pending = [snapshot.document.root]
+         while let node = pending.popLast() {
+-            if node.kind == .textField, node.id != "entry.note", let value = node.properties["value"]?.string {
++            if node.kind == .textField, node.id != noteID, let value = node.properties["value"]?.string {
+                 guard UITextValuePolicy.standard.accepts(value, for: node) else {
+                     throw UIValidationError.limitExceeded("stringBytes")
+                 }
+@@ -204,6 +221,33 @@ private enum WorkspaceEdit: Sendable {
+         let id = UUID(); observers[id] = receive
+         return { [weak self] in self?.observers.removeValue(forKey: id) }
+     }
++    #if FIELDLOG_SIGNED_CHECKLIST
++    private var savedDraftSelection: UUID? {
++        guard !closed, showingEntries, !showingQueue, let entryState,
++              entryState.committed == nil, !entryState.saving,
++              workspace.drafts.contains(where: { $0.id == entryState.draft.id && $0.projectID == projectID })
++        else { return nil }
++        return entryState.draft.id
++    }
++
++    func attachSignedDraft() async throws -> any InstalledApplicationStorageServing {
++        try await waitForSave()
++        guard let draftID = savedDraftSelection else { throw PublicHostError.action }
++        return try await signedDraftBinding.attach(repository: repository, projectID: projectID, draftID: draftID)
++    }
++
++    func detachSignedDraft() { signedDraftBinding.detach() }
++    #endif
++    func reloadChecklist() async throws {
++        try await waitForSave()
++        let saved = try await repository.readCommittedSnapshot()
++        guard !closed else { throw PublicHostError.closed }
++        let (next, frame) = try render(state, workspace: saved, feedback: changeFeedback, failure: changeFailure)
++        workspace = saved
++        reconciler = next
++        snapshot = frame
++        publish()
++    }
+     public func send(_ event: UIEventEnvelope) throws { try sendBatch([event], from: snapshot) }
+ 
+     public func sendBatch(_ events: [UIEventEnvelope], from captured: UIRenderSnapshot) throws {
+@@ -215,8 +259,9 @@ private enum WorkspaceEdit: Sendable {
+         let actions = try events.map { try captured.route($0) }
+         // Public V4 grants long values to vertical fields. FieldLog selects that
+         // permission only for its note; every other field keeps the standard bound.
++        let noteID = entryState.map { EntryField.note.nodeID($0.draft.id) }
+         for action in actions {
+-            if case let .string(value) = action.value, action.nodeID != "entry.note" {
++            if case let .string(value) = action.value, action.nodeID != noteID {
+                 guard value.utf8.count <= UIValidationLimits.standard.maximumStringBytes,
+                       !value.utf8.contains(0) else { throw PublicHostError.bounds }
+             }
+@@ -435,13 +480,14 @@ private enum WorkspaceEdit: Sendable {
+     }
+     private func editEntry(_ actions: [RoutedUIAction]) throws {
+         guard let current = entryState, current.committed == nil else { throw PublicHostError.action }
++        let draftID = current.draft.id
+         // All actions are still from the one original snapshot. Validate the entire
+         // grammar before invoking a reducer or admitting its repository callback.
+         for (index, action) in actions.enumerated() {
+             switch (action.nodeID, action.actionID, action.event, action.value) {
+-            case ("entry.title", "entry.title.change", .textChange, .string),
+-                 ("entry.note", "entry.note.change", .textChange, .string),
+-                 ("entry.date.input", "entry.date.change", .textChange, .string): break
++            case (EntryField.title.nodeID(draftID), "entry.title.change", .textChange, .string),
++                 (EntryField.note.nodeID(draftID), "entry.note.change", .textChange, .string),
++                 (EntryField.date.nodeID(draftID), "entry.date.change", .textChange, .string): break
+             case (let id, let actionID, .activate, .null) where EntryCategory.allCases.contains(where: { id == "entry.category." + $0.rawValue && actionID == id }): break
+             case ("entry.photo.select", "entry.photo.select", .activate, .null):
+                 guard index == actions.count - 1, photoRequest == nil, current.draft.attachmentIDs.count < 8 else { throw PublicHostError.action }
+@@ -458,7 +504,7 @@ private enum WorkspaceEdit: Sendable {
+         var dateText: String? = actions.isEmpty && !preservingDateInput ? nil : entryDateInput.flatMap { $0.draftID == draft?.id ? $0.text : nil }
+         var parsedDates: [Int: Date] = [:]
+         for (index, action) in actions.enumerated() {
+-            if action.nodeID == "entry.date.input", case .string(let value) = action.value {
++            if action.actionID == "entry.date.change", case .string(let value) = action.value {
+                 guard value.utf8.count <= UIValidationLimits.standard.maximumStringBytes,
+                       !value.utf8.contains(0) else { throw PublicHostError.bounds }
+                 if value != (dateText ?? draft.map { EntryDateText.format($0.occurredAt) }) {
+@@ -486,11 +532,11 @@ private enum WorkspaceEdit: Sendable {
+         let priorPhoto = (photoRequest, photoDelivered, photoReserved, photoMessage)
+         do {
+             for (index, action) in actions.enumerated() {
+-                switch (action.nodeID, action.event, action.value) {
+-                case ("entry.date.input", .textChange, .string):
++                switch (action.actionID, action.event, action.value) {
++                case ("entry.date.change", .textChange, .string):
+                     if let date = parsedDates[index] { try candidate.changeOccurredAt(date) }
+-                case ("entry.title", .textChange, .string(let text)): try candidate.changeTitle(text)
+-                case ("entry.note", .textChange, .string(let text)): try candidate.changeNote(text)
++                case ("entry.title.change", .textChange, .string(let text)): try candidate.changeTitle(text)
++                case ("entry.note.change", .textChange, .string(let text)): try candidate.changeNote(text)
+                 case ("entry.photo.select", .activate, .null):
+                     try EntrySaveIntent(projectID: project, draft: candidate.state.draft, kind: .draft).validate()
+                     photoRequest = PhotoSelectionRequest(id: UUID(), draftID: candidate.state.draft.id, generation: photoGeneration)
+@@ -529,7 +575,7 @@ private enum WorkspaceEdit: Sendable {
+         do {
+             let (r, s) = try render(state, feedback: changeFeedback, failure: changeFailure)
+             reconciler = r; snapshot = s; publishedEntryState = entryState; publish()
+-        } catch { renderingFailure = error; closed = true }
++        } catch { closeAfterRenderingFailure(error) }
+     }
+     private func turnEntryPage(drafts: Bool, delta: Int) throws {
+         let count = drafts ? workspace.drafts.filter { $0.projectID == projectID }.count : workspace.entries(for: projectID).count
+@@ -558,7 +604,7 @@ private enum WorkspaceEdit: Sendable {
+                 taskPage: taskPage, queuePage: queuePage, busy: false, feedback: nil, failure: nil,
+                 revision: revision + 1, entries: true, entry: phase, entryPage: entryPage, draftPage: draftPage, dateInput: dateInput,
+                 photoPending: photoPending, photoMessage: photoMessage, photoBusy: photoBusy))
+-            _ = try appPacket(projection.currentSnapshot())
++            _ = try appPacket(projection.currentSnapshot(), draftID: phase.draft.id)
+         }
+     }
+     private nonisolated static func entryDocument(_ state: EntryEditorState, workspace: Workspace, project: UUID, entryPage: Int, draftPage: Int, revision: UInt64, dateInput: String?, photoPending: Bool = false, photoMessage: String? = nil, photoBusy: Bool = false, reportPending: Bool = false, reportMessage: String? = nil) -> UIDocument {
+@@ -575,10 +621,10 @@ private enum WorkspaceEdit: Sendable {
+                     MixerUI.Button("entry.new", "New entry", action: "entry.new").accessibilityIdentifier("entry-new").disabled(state.saving)
+                 }
+                 MixerUI.Section("entry.fields", title: "Entry") {
+-                    MixerUI.TextField("entry.title", "Title", value: state.draft.title, action: "entry.title.change", axis: .vertical).accessibilityIdentifier("entry-title").disabled(inactive)
+-                    MixerUI.TextField("entry.note", "Note", value: state.draft.note, action: "entry.note.change", axis: .vertical).accessibilityIdentifier("entry-note").disabled(inactive)
++                    MixerUI.TextField(EntryField.title.nodeID(state.draft.id), "Title", value: state.draft.title, action: "entry.title.change", axis: .vertical).accessibilityIdentifier("entry-title").disabled(inactive)
++                    MixerUI.TextField(EntryField.note.nodeID(state.draft.id), "Note", value: state.draft.note, action: "entry.note.change", axis: .vertical).accessibilityIdentifier("entry-note").disabled(inactive)
+                     MixerUI.Text("entry.occurredAt", "Occurred at: " + state.draft.occurredAt.formatted(.iso8601.year().month().day().time(includingFractionalSeconds: true).timeZone(separator: .colon)))
+-                    MixerUI.TextField("entry.date.input", "Date and time (include timezone)", value: dateInput ?? EntryDateText.format(state.draft.occurredAt), action: "entry.date.change").accessibilityIdentifier("entry-date").disabled(inactive)
++                    MixerUI.TextField(EntryField.date.nodeID(state.draft.id), "Date and time (include timezone)", value: dateInput ?? EntryDateText.format(state.draft.occurredAt), action: "entry.date.change").accessibilityIdentifier("entry-date").disabled(inactive)
+                     MixerUI.Text("entry.date.help", EntryDateText.help)
+                     if !dateValid { MixerUI.Text("entry.date.error", EntryDateText.error) }
+                     MixerUI.Button("entry.photo.select", "Select photo", action: "entry.photo.select").accessibilityIdentifier("entry-photo-select").disabled(inactive || photoPending || state.draft.attachmentIDs.count >= 8)
+@@ -689,7 +735,7 @@ private enum WorkspaceEdit: Sendable {
+             do {
+                 let (nextReconciler, next) = try render(state, feedback: changeFeedback, failure: changeFailure)
+                 reconciler = nextReconciler; snapshot = next; publish()
+-            } catch { renderingFailure = error; closed = true }
++            } catch { closeAfterRenderingFailure(error) }
+         }
+     }
+     private func savedWorkspace(_ saved: Workspace) throws {
+@@ -703,22 +749,38 @@ private enum WorkspaceEdit: Sendable {
+         do {
+             let (nextReconciler, next) = try render(state, feedback: changeFeedback, failure: changeFailure)
+             reconciler = nextReconciler; snapshot = next; publishedState = state; publish()
+-        } catch { renderingFailure = error; closed = true }
++        } catch { closeAfterRenderingFailure(error) }
+     }
+     private func render(_ state: TaskEditorState, workspace: Workspace? = nil, queue: Bool? = nil, entries: Bool? = nil, entry: EntryEditorState? = nil, dateInput: String? = nil, entryPage: Int? = nil, draftPage: Int? = nil, taskPage: Int? = nil, queuePage: Int? = nil, busy: Bool? = nil, feedback: String?, failure: String?) throws -> (UIReconciler, UIRenderSnapshot) {
+         guard snapshot.document.revision < UInt64.max else { throw PublicHostError.bounds }
++        let renderedEntry = entry ?? entryState
+         var next = reconciler
+-        try next.apply(Self.document(state, workspace: workspace ?? self.workspace, project: projectID, queue: queue ?? showingQueue, taskPage: taskPage ?? self.taskPage, queuePage: queuePage ?? self.queuePage, busy: busy ?? changingWorkspace, feedback: feedback, failure: failure, revision: snapshot.document.revision + 1, entries: entries ?? showingEntries, entry: entry ?? entryState, entryPage: entryPage ?? self.entryPage, draftPage: draftPage ?? self.draftPage, dateInput: entry != nil ? dateInput : entryDateInput.flatMap { $0.draftID == entryState?.draft.id ? $0.text : nil }, photoPending: photoRequest != nil, photoMessage: photoMessage, photoBusy: photoApplying, reportPending: reportPreparing || reportRequest != nil, reportMessage: reportMessage))
++        try next.apply(Self.document(state, workspace: workspace ?? self.workspace, project: projectID, queue: queue ?? showingQueue, taskPage: taskPage ?? self.taskPage, queuePage: queuePage ?? self.queuePage, busy: busy ?? changingWorkspace, feedback: feedback, failure: failure, revision: snapshot.document.revision + 1, entries: entries ?? showingEntries, entry: renderedEntry, entryPage: entryPage ?? self.entryPage, draftPage: draftPage ?? self.draftPage, dateInput: entry != nil ? dateInput : entryDateInput.flatMap { $0.draftID == entryState?.draft.id ? $0.text : nil }, photoPending: photoRequest != nil, photoMessage: photoMessage, photoBusy: photoApplying, reportPending: reportPreparing || reportRequest != nil, reportMessage: reportMessage))
+         let result = try next.currentSnapshot()
+-        _ = try Self.appPacket(result)
++        _ = try Self.appPacket(result, draftID: renderedEntry?.draft.id)
+         return (next, result)
+     }
+-    private func publish() { for receive in Array(observers.values) { receive(snapshot) } }
++    private func publish() {
++        #if FIELDLOG_SIGNED_CHECKLIST
++        signedDraftBinding.select(projectID: projectID, draftID: savedDraftSelection)
++        #endif
++        for receive in Array(observers.values) { receive(snapshot) }
++    }
++    private func closeAfterRenderingFailure(_ error: any Error) {
++        renderingFailure = error
++        closed = true
++        #if FIELDLOG_SIGNED_CHECKLIST
++        signedDraftBinding.select(projectID: projectID, draftID: nil)
++        #endif
++    }
+     public func waitForSave() async throws {
+         await editor.waitForSave(); await entryEditor?.waitForSave(); await change?.value; await reportTask?.value
+         if let renderingFailure { throw renderingFailure }
+     }
+     public func close() async {
++        #if FIELDLOG_SIGNED_CHECKLIST
++        signedDraftBinding.select(projectID: projectID, draftID: nil)
++        #endif
+         closed = true; photoGeneration = UUID(); photoRequest = nil; reportGeneration = UUID(); reportRequest = nil; observers.removeAll()
+         if let editorObservation { editor.removeObserver(editorObservation) }; editorObservation = nil
+         await editor.waitForSave(); await entryEditor?.waitForSave(); await change?.value
+@@ -821,7 +883,13 @@ private enum WorkspaceEdit: Sendable {
+                             let key = "task." + task.id.uuidString.lowercased()
+                             MixerUI.Text(key + ".title", "\(index + 1). " + task.title + (task.completed ? " · Completed" : " · Not completed"))
+                             if !task.responsible.isEmpty { MixerUI.Text(key + ".responsible", task.responsible) }
++                            #if FIELDLOG_SIGNED_CHECKLIST
++                            if tasks.count != 1 {
++                                MixerUI.Button(key + ".complete", (task.completed ? "Reopen: " : "Complete: ") + task.title, action: key + ".complete").accessibilityIdentifier(key + ".complete").disabled(inactive)
++                            }
++                            #else
+                             MixerUI.Button(key + ".complete", (task.completed ? "Reopen: " : "Complete: ") + task.title, action: key + ".complete").accessibilityIdentifier(key + ".complete").disabled(inactive)
++                            #endif
+                             if tasks.count > 1 {
+                                 MixerUI.Button(key + ".up", "Move up: " + task.title, action: key + ".up").accessibilityIdentifier(key + ".up").disabled(inactive || index == 0)
+                                 MixerUI.Button(key + ".down", "Move down: " + task.title, action: key + ".down").accessibilityIdentifier(key + ".down").disabled(inactive || index == tasks.count - 1)
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..7f1a0dbfd6c6bac62e8f707a638f2c4298af7956
+--- /dev/null
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
+@@ -0,0 +1,98 @@
++#if FIELDLOG_SIGNED_CHECKLIST
++import FieldLogInstalledGuest
++import Foundation
++
++private final class ChecklistReply: @unchecked Sendable {
++    private let lock = NSLock()
++    private var text = "Preparing checklist"
++    func begin(_ action: Int32) -> Bool {
++        lock.withLock {
++            guard text != "Opening checklist", action == 2 || text != "Checklist retirement pending" else { return false }
++            text = "Opening checklist"
++            return true
++        }
++    }
++    func set(_ value: String) { lock.withLock { text = value } }
++    func copy(to output: UnsafeMutablePointer<CChar>, capacity: Int) {
++        lock.withLock {
++            let bytes = text.utf8.prefix(capacity - 1)
++            for (index, byte) in bytes.enumerated() { output[index] = byte < 128 ? CChar(byte) : 63 }
++            output[bytes.count] = 0
++        }
++    }
++}
++private let checklistReply = ChecklistReply()
++
++@MainActor private enum Checklist {
++    static var guest: FieldLogSignedTask?
++    static var context: Int64?
++
++    static func perform(_ action: Int32, context id: Int64, root: URL, material: URL,
++                        installation: UUID, bundleID: String) async {
++        guard context == nil || context == id else {
++            checklistReply.set("Checklist retirement pending")
++            return
++        }
++        context = id
++        let presentation = checklistPresentation(id)
++        presentation?.detachSignedDraft()
++        if let guest, !(await guest.close()) {
++            checklistReply.set("Checklist retirement pending")
++            return
++        }
++        guest = nil
++        if action == 2 {
++            context = nil
++            // The ordinary activity reloads after retirement through its own native bridge.
++            checklistReply.set("Closed")
++            return
++        }
++        do {
++            guard let presentation else { throw PublicHostError.context }
++            let storage = try await presentation.attachSignedDraft()
++            let opened = try await FieldLogSignedTask.open(storage: storage,
++                material: material, directory: root.appendingPathComponent("signed-checklist"),
++                bundleID: bundleID, installation: installation)
++            guest = opened
++            let delivery = try await opened.start()
++            let deadline = ContinuousClock.now + .seconds(12)
++            while ContinuousClock.now < deadline {
++                let state = await opened.recovery()
++                if state.activation.phase == .healthyGuest, state.healthy == state.activation.candidateID {
++                    checklistReply.set("\(delivery) | Sequence \(state.acceptedSequence)")
++                    return
++                }
++                if state.activation.terminalCause != nil { break }
++                try await Task.sleep(for: .milliseconds(50))
++            }
++            checklistReply.set("The signed checklist could not be displayed")
++        } catch {
++            presentation?.detachSignedDraft()
++            checklistReply.set("Select a saved draft and publish a compatible release")
++        }
++    }
++}
++
++@_cdecl("fieldlog_checklist_submit")
++func checklistSubmit(_ action: Int32, _ context: Int64, _ root: UnsafePointer<CChar>,
++                     _ material: UnsafePointer<CChar>, _ id: UnsafePointer<CChar>,
++                     _ bundle: UnsafePointer<CChar>) -> Int32 {
++    guard (1...2).contains(action), context > 0,
++          let installation = UUID(uuidString: String(cString: id)), checklistReply.begin(action) else { return 0 }
++    let directory = URL(fileURLWithPath: String(cString: root), isDirectory: true)
++    let materials = URL(fileURLWithPath: String(cString: material), isDirectory: true)
++    let bundleID = String(cString: bundle)
++    Task { @MainActor in
++        await Checklist.perform(action, context: context, root: directory, material: materials,
++                                installation: installation, bundleID: bundleID)
++    }
++    return 1
++}
++
++@_cdecl("fieldlog_checklist_status")
++func checklistStatus(_ output: UnsafeMutablePointer<CChar>, _ capacity: Int) {
++    guard Thread.isMainThread, (2...512).contains(capacity) else { return }
++    _ = RunLoop.main.run(mode: .default, before: Date(timeIntervalSinceNow: 0.001))
++    checklistReply.copy(to: output, capacity: capacity)
++}
++#endif
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryDatePresentationTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryDatePresentationTests.swift
+index 3ea8a665c22024702d6965514d7ff9954cdd4f3f..2c64ef58924cf96b8713872e6c074c48b3fd7f44 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryDatePresentationTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryDatePresentationTests.swift
+@@ -6,18 +6,17 @@ import MixerUI
+ import MixerAndroid
+ @testable import FieldLogAndroid
+ 
+-private func dateNodes(_ n: UINode) -> [UINode] { [n] + n.children.flatMap(dateNodes) }
+ @MainActor private func dateNode(_ app: PublicAndroidApplication, _ id: String) throws -> UINode {
+-    try XCTUnwrap(dateNodes(app.presentation.snapshot.document.root).first { $0.id == id })
++    try XCTUnwrap(fieldLogNode(id, in: app.presentation.snapshot.document.root))
+ }
+ @MainActor private func dateValue(_ app: PublicAndroidApplication) throws -> String {
+-    try XCTUnwrap(dateNode(app, "entry.date.input").properties["value"]?.string)
++    try XCTUnwrap(dateNode(app, "entry-date").properties["value"]?.string)
+ }
+ private func dateDirectory(_ label: String) -> URL {
+     URL(fileURLWithPath: ProcessInfo.processInfo.environment["FIELDLOG_WORKSPACE"]!).appendingPathComponent("date-" + label)
+ }
+ @MainActor private func typeDate(_ app: PublicAndroidApplication, _ text: String) throws {
+-    try send(app, "entry.date.input", .textChange, .string(text))
++    try send(app, "entry-date", .textChange, .string(text))
+ }
+ 
+ final class EntryDatePresentationTests: XCTestCase {
+@@ -25,8 +24,8 @@ final class EntryDatePresentationTests: XCTestCase {
+         let dir = dateDirectory("roundtrip"), app = try await open(dir)
+         try send(app, "workspace.entries")
+         let note = "e\u{301}\n👩🏽‍🔬 exact\n"
+-        try send(app, "entry.title", .textChange, .string("Leap day"))
+-        try send(app, "entry.note", .textChange, .string(note))
++        try send(app, "entry-title", .textChange, .string("Leap day"))
++        try send(app, "entry-note", .textChange, .string(note))
+         let before = try Data(contentsOf: file(dir))
+         let raw = "2024-02-29T23:45:12.125+05:30"
+         try typeDate(app, raw)
+@@ -85,7 +84,7 @@ final class EntryDatePresentationTests: XCTestCase {
+     @MainActor func testInvalidPartialInputRetainedNavigationAndWholeBatchRefusal() async throws {
+         let dir = dateDirectory("invalid"), app = try await open(dir)
+         try send(app, "workspace.entries")
+-        try send(app, "entry.title", .textChange, .string("Valid title"))
++        try send(app, "entry-title", .textChange, .string("Valid title"))
+         try typeDate(app, "2024-02-29T00:00:00Z")
+         let valid = try XCTUnwrap(app.presentation.entryState).draft.occurredAt
+         let raw = "2024-02-"
+@@ -107,8 +106,8 @@ final class EntryDatePresentationTests: XCTestCase {
+         XCTAssertEqual(try dateValue(app), raw)
+         try typeDate(app, "2024-02-29T00:00:00Z")
+         let captured = app.presentation.snapshot, state = app.presentation.entryState
+-        let title = try event(app, "entry.title", .textChange, .string("Must not leak"))
+-        let invalid = try event(app, "entry.date.input", .textChange, .string("2023-02-29T00:00:00Z"))
++        let title = try event(app, "entry-title", .textChange, .string("Must not leak"))
++        let invalid = try event(app, "entry-date", .textChange, .string("2023-02-29T00:00:00Z"))
+         let save = try event(app, "entry.saveDraft")
+         try rejects("invalid date plus save is atomic") { try app.sendBatch(owner: app.host.owner!, originalEnvelopes: JSONEncoder().encode([title, invalid, save])) }
+         XCTAssertEqual(app.presentation.entryState, state)
+@@ -117,7 +116,7 @@ final class EntryDatePresentationTests: XCTestCase {
+         XCTAssertEqual(try Data(contentsOf: file(dir)), before)
+         XCTAssertEqual(app.presentation.workspace.outbox.filter { $0.kind == .entrySaved }.count, 0)
+         // A stale event from the previous draft must not edit the new draft.
+-        let stale = try event(app, "entry.date.input", .textChange, .string("2026-01-01T00:00:00Z"))
++        let stale = try event(app, "entry-date", .textChange, .string("2026-01-01T00:00:00Z"))
+         try send(app, "entry.new")
+         let newDate = app.presentation.entryState?.draft.occurredAt
+         try rejects("crossdraft date") { try app.send(owner: app.host.owner!, originalEnvelope: JSONEncoder().encode(stale)) }
+@@ -163,7 +162,7 @@ final class EntryDatePresentationTests: XCTestCase {
+     @MainActor func testBatchedDateCategorySaveStorageFailureRetainsExactRetry() async throws {
+         let dir = dateDirectory("storage-retry"), app = try await open(dir)
+         try send(app, "workspace.entries")
+-        try send(app, "entry.title", .textChange, .string("Retry exact"))
++        try send(app, "entry-title", .textChange, .string("Retry exact"))
+         let raw = "2000-02-29T01:00:00.125+01:00"
+         let expected = Date(timeIntervalSince1970: 951782400.125)
+         let originalFile = file(dir), backup = originalFile.appendingPathExtension("r780-backup")
+@@ -172,7 +171,7 @@ final class EntryDatePresentationTests: XCTestCase {
+         // exact original file to prove the presentation can retry the same input.
+         try FileManager.default.moveItem(at: originalFile, to: backup)
+         try FileManager.default.createDirectory(at: originalFile, withIntermediateDirectories: false)
+-        let batch = [try event(app, "entry.date.input", .textChange, .string(raw)),
++        let batch = [try event(app, "entry-date", .textChange, .string(raw)),
+                      try event(app, "entry.category.delivery"), try event(app, "entry.saveDraft")]
+         try app.sendBatch(owner: app.host.owner!, originalEnvelopes: JSONEncoder().encode(batch))
+         try await app.settle()
+@@ -189,7 +188,7 @@ final class EntryDatePresentationTests: XCTestCase {
+         XCTAssertEqual(app.presentation.workspace.drafts.first?.occurredAt, expected)
+         XCTAssertEqual(try dateValue(app), raw)
+         let edited = "2000-03-01T01:00:00.125+01:00"
+-        let commit = [try event(app, "entry.date.input", .textChange, .string(edited)),
++        let commit = [try event(app, "entry-date", .textChange, .string(edited)),
+                       try event(app, "entry.category.issue"), try event(app, "entry.commit")]
+         try app.sendBatch(owner: app.host.owner!, originalEnvelopes: JSONEncoder().encode(commit))
+         try await app.settle()
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryPresentationTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryPresentationTests.swift
+index 4436d5dc61cecc3f0043d5e9f1b029e6baa05d88..f2d0c7d998b45670c360c4096fbac2a7fc53e23f 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryPresentationTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryPresentationTests.swift
+@@ -15,8 +15,8 @@ private func entryDirectory(_ label: String) -> URL {
+     URL(fileURLWithPath: ProcessInfo.processInfo.environment["FIELDLOG_WORKSPACE"]!).appendingPathComponent("entry-" + label)
+ }
+ @MainActor private func typeEntry(_ app: PublicAndroidApplication, title: String, note: String) throws {
+-    try send(app, "entry.title", .textChange, .string(title))
+-    try send(app, "entry.note", .textChange, .string(note))
++    try send(app, "entry-title", .textChange, .string(title))
++    try send(app, "entry-note", .textChange, .string(note))
+ }
+ 
+ final class EntryPresentationTests: XCTestCase {
+@@ -50,11 +50,11 @@ final class EntryPresentationTests: XCTestCase {
+         XCTAssertEqual(saved.outbox.filter { $0.kind == .entrySaved }.count, 0)
+         try rejects("closed owner") { try app.send(owner: oldOwner, originalEnvelope: JSONEncoder().encode(stale)) }
+         let fresh = try await open(dir)
+-        XCTAssertNotNil(fresh.presentation.snapshot.identity(for: "entry.note"), "Restoration selects the durable draft")
++        XCTAssertNotNil(fieldLogNode("entry-note", in: fresh.presentation.snapshot.document.root), "Restoration selects the durable draft")
+         XCTAssertEqual(fresh.presentation.entryState?.draft.id, draft.id)
+         XCTAssertTrue(try XCTUnwrap(fresh.presentation.entryState).draft.note.utf8.elementsEqual(note.utf8))
+         try rejects("wrong owner") { try fresh.send(owner: oldOwner, originalEnvelope: JSONEncoder().encode(stale)) }
+-        try send(fresh, "entry.note", .textChange, .string(note + "Edited\n"))
++        try send(fresh, "entry-note", .textChange, .string(note + "Edited\n"))
+         let commit = try event(fresh, "entry.commit")
+         try send(fresh, "entry.commit"); try await fresh.settle()
+         XCTAssertEqual(fresh.presentation.workspace.entries.count, 1)
+@@ -78,12 +78,12 @@ final class EntryPresentationTests: XCTestCase {
+         let dir = entryDirectory("batch"), app = try await open(dir)
+         try send(app, "workspace.entries")
+         let diskBefore = try Data(contentsOf: file(dir))
+-        let disabled = [try event(app, "entry.title", .textChange, .string("Ready")), try event(app, "entry.commit")]
++        let disabled = [try event(app, "entry-title", .textChange, .string("Ready")), try event(app, "entry.commit")]
+         try rejects("disabled original commit cannot be rebased") { try app.sendBatch(owner: app.host.owner!, originalEnvelopes: JSONEncoder().encode(disabled)) }
+         try typeEntry(app, title: "Ready", note: "Old")
+         let captured = app.presentation.snapshot, before = app.presentation.entryState
+-        let title = try event(app, "entry.title", .textChange, .string("Updated"))
+-        let note = try event(app, "entry.note", .textChange, .string("e\u{301}\n🧪"))
++        let title = try event(app, "entry-title", .textChange, .string("Updated"))
++        let note = try event(app, "entry-note", .textChange, .string("e\u{301}\n🧪"))
+         let commit = try event(app, "entry.commit"), queue = try event(app, "workspace.queue")
+         var publications = 0
+         let unsubscribe = app.presentation.observe { _ in publications += 1 }; defer { unsubscribe() }
+@@ -94,9 +94,9 @@ final class EntryPresentationTests: XCTestCase {
+         XCTAssertEqual(app.presentation.snapshot.document, captured.document)
+         XCTAssertEqual(publications, 0)
+         XCTAssertEqual(try Data(contentsOf: file(dir)), diskBefore)
+-        try rejects("wrong event kind") { try send(app, "entry.note", .activate, .null) }
+-        try rejects("wrong value") { try send(app, "entry.note", .textChange, .bool(true)) }
+-        try rejects("V4 oversized field") { try send(app, "entry.note", .textChange, .string(String(repeating: "é", count: 50_001))) }
++        try rejects("wrong event kind") { try send(app, "entry-note", .activate, .null) }
++        try rejects("wrong value") { try send(app, "entry-note", .textChange, .bool(true)) }
++        try rejects("V4 oversized field") { try send(app, "entry-note", .textChange, .string(String(repeating: "é", count: 50_001))) }
+         XCTAssertEqual(app.presentation.entryState, before)
+         XCTAssertEqual(try Data(contentsOf: file(dir)), diskBefore)
+         try app.sendBatch(owner: app.host.owner!, originalEnvelopes: JSONEncoder().encode([title, note, commit]))
+@@ -133,7 +133,7 @@ final class EntryPresentationTests: XCTestCase {
+         XCTAssertTrue(try entryNode(app, "entry.occurredAt").properties["text"]!.string!.contains("875"))
+         XCTAssertTrue(try entryNode(app, "entry.date.help").properties["text"]!.string!.contains("not available"))
+         XCTAssertEqual(try Data(contentsOf: file(dir)), before)
+-        try send(app, "entry.title", .textChange, .string("First edited"))
++        try send(app, "entry-title", .textChange, .string("First edited"))
+         try send(app, "entry.commit"); try await app.settle()
+         let committed = try XCTUnwrap(app.presentation.workspace.entries.first)
+         XCTAssertEqual(committed.attachmentIDs, selected.attachmentIDs)
+@@ -216,7 +216,7 @@ final class EntryPresentationTests: XCTestCase {
+         XCTAssertEqual(app.presentation.workspace.drafts.count, 1)
+         XCTAssertTrue(app.presentation.workspace.entries.isEmpty)
+         let before = try Data(contentsOf: file(dir))
+-        try send(app, "entry.note", .textChange, .string("unsafe\u{0}note"))
++        try send(app, "entry-note", .textChange, .string("unsafe\u{0}note"))
+         try send(app, "entry.saveDraft"); try await app.settle()
+         XCTAssertNotNil(app.presentation.entryState?.failure)
+         XCTAssertEqual(app.presentation.entryState?.draft.note, "unsafe\u{0}note")
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
+index 0b382f9e01cdf4e580870cc5c17536a80ccf7c0c..6c32516b6ae81f9385785b9f9d873680635d93a5 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
+@@ -16,7 +16,8 @@ private struct Packet {
+     let document: UIDocument
+     let identities: [UINodeIdentity]
+     func event(_ id: String, _ kind: UIEventKind, _ value: UIValue = .null) throws -> UIEventEnvelope {
+-        UIEventEnvelope(revision: document.revision, identity: try XCTUnwrap(identities.first { $0.id == id }), event: kind, value: value)
++        let node = try XCTUnwrap(fieldLogNode(id, in: document.root))
++        return UIEventEnvelope(revision: document.revision, identity: try XCTUnwrap(identities.first { $0.id == node.id }), event: kind, value: value)
+     }
+ }
+ @MainActor private enum Captures {
+@@ -80,6 +81,61 @@ private let callback: @convention(c) @Sendable (Int64, Int32, UnsafePointer<UInt
+ }
+ 
+ final class FieldLogGeneratedHostTests: XCTestCase {
++    @MainActor func testNewEntryReplacesEditedDraftFieldIdentitiesAndKeepsSelectors() throws {
++        let root = URL(fileURLWithPath: try XCTUnwrap(ProcessInfo.processInfo.environment["FIELDLOG_WORKSPACE"]))
++        let dir = root.appendingPathComponent("centry-new-entry")
++        let context: Int64 = 403
++        XCTAssertEqual(try request(context, 0, directory: dir), 1)
++        defer { XCTAssertEqual(try request(context, 2), 1) }
++
++        func packet() throws -> Packet {
++            try Packet.decode(XCTUnwrap(Captures.frames[context]?.last).packet)
++        }
++        func send(_ events: [UIEventEnvelope], expected: Int32 = 1) throws {
++            let owner = try XCTUnwrap(Captures.frames[context]?.last).owner
++            XCTAssertEqual(try request(context, 1, owner: owner, event: JSONEncoder().encode(events)), expected)
++        }
++        func field(_ selector: String, in packet: Packet) throws -> UINode {
++            var pending = [packet.document.root]
++            var matching: [UINode] = []
++            while let node = pending.popLast() {
++                if node.properties["accessibilityIdentifier"] == .string(selector) { matching.append(node) }
++                pending.append(contentsOf: node.children)
++            }
++            XCTAssertEqual(matching.count, 1, selector)
++            let node = try XCTUnwrap(matching.first)
++            XCTAssertEqual(node.kind, .textField)
++            return node
++        }
++
++        try send([packet().event("workspace.entries", .activate)])
++        let initial = try packet()
++        let edits = [("entry-title", "Inspection"), ("entry-note", "First draft\n"), ("entry-date", "2024-02-29T23:45:12.125+05:30")]
++        try send(edits.map { selector, value in
++            try initial.event(field(selector, in: initial).id, .textChange, .string(value))
++        })
++        let edited = try packet()
++        let oldFields = try edits.map { selector, value in
++            let current = try field(selector, in: edited)
++            XCTAssertEqual(current.properties["value"], .string(value))
++            XCTAssertEqual(try edited.event(current.id, .textChange).identity,
++                           try initial.event(field(selector, in: initial).id, .textChange).identity)
++            return current
++        }
++
++        let before = try Data(contentsOf: file(dir))
++        try send([edited.event("entry.new", .activate)])
++        let replacement = try packet()
++        XCTAssertEqual(replacement.document.revision, edited.document.revision + 1)
++        for ((selector, value), old) in zip(edits, oldFields) {
++            let new = try field(selector, in: replacement)
++            XCTAssertEqual(new.actions, old.actions)
++            XCTAssertNotEqual(new.properties["value"], .string(value))
++            XCTAssertNil(replacement.identities.first { $0.id == old.id }, selector)
++        }
++        XCTAssertEqual(try Data(contentsOf: file(dir)), before)
++    }
++
+     @MainActor func testV4DirectoryABIOriginalLongNoteSaveFreshReopenCommit() throws {
+         let root = URL(fileURLWithPath: try XCTUnwrap(ProcessInfo.processInfo.environment["FIELDLOG_WORKSPACE"]))
+         let dir = root.appendingPathComponent("centry-v4-long-note")
+@@ -88,11 +144,11 @@ final class FieldLogGeneratedHostTests: XCTestCase {
+         var packet = try Packet.decode(frame.packet)
+         XCTAssertEqual(try request(401, 1, owner: frame.owner, event: JSONEncoder().encode(packet.event("workspace.entries", .activate))), 1)
+         frame = try XCTUnwrap(Captures.frames[401]?.last); packet = try Packet.decode(frame.packet)
+-        XCTAssertEqual(try request(401, 1, owner: frame.owner, event: JSONEncoder().encode(packet.event("entry.title", .textChange, .string("C-entry V4")))), 1)
++        XCTAssertEqual(try request(401, 1, owner: frame.owner, event: JSONEncoder().encode(packet.event("entry-title", .textChange, .string("C-entry V4")))), 1)
+         frame = try XCTUnwrap(Captures.frames[401]?.last); packet = try Packet.decode(frame.packet)
+         let note = String(repeating: "é\n", count: 33_333) + "X"
+         XCTAssertEqual(note.utf8.count, 100_000)
+-        let batch = try JSONEncoder().encode([packet.event("entry.note", .textChange, .string(note)), packet.event("entry.saveDraft", .activate)])
++        let batch = try JSONEncoder().encode([packet.event("entry-note", .textChange, .string(note)), packet.event("entry.saveDraft", .activate)])
+         XCTAssertGreaterThan(batch.count, 131_072)
+         XCTAssertEqual(try request(401, 1, owner: frame.owner, event: batch), 1)
+         XCTAssertEqual(Array(try disk(dir).drafts[0].note.utf8), Array(note.utf8))
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift
+index b03adc2dc8b7ffe0ea83b89f9217b400be65de3f..f9a9ee879fff99f85aed25f6b47f37087ba9e56f 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift
+@@ -32,9 +32,16 @@ func rejects(_ label: String, _ action: () throws -> Void) throws {
+     }
+     func revoke(owner: UUID) { precondition(owner == self.owner); self.owner = nil }
+ }
++func fieldLogNode(_ idOrSelector: String, in root: UINode) -> UINode? {
++    if root.id == idOrSelector || root.properties["accessibilityIdentifier"] == .string(idOrSelector) { return root }
++    for child in root.children {
++        if let match = fieldLogNode(idOrSelector, in: child) { return match }
++    }
++    return nil
++}
+ @MainActor func event(_ app: PublicAndroidApplication, _ id: String, _ kind: UIEventKind = .activate, _ value: UIValue = .null) throws -> UIEventEnvelope {
+     let s = app.presentation.snapshot
+-    guard let identity = s.identity(for: id) else { throw ReviewError.failed("Missing node " + id) }
++    guard let node = fieldLogNode(id, in: s.document.root), let identity = s.identity(for: node.id) else { throw ReviewError.failed("Missing node " + id) }
+     return UIEventEnvelope(revision: s.document.revision, identity: identity, event: kind, value: value)
+ }
+ @MainActor func send(_ app: PublicAndroidApplication, _ id: String, _ kind: UIEventKind = .activate, _ value: UIValue = .null) throws {
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/LongNoteV4Tests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/LongNoteV4Tests.swift
+index e313f20b7bd3f699b5f3189c4ebbd4a490eae2e0..c4880a8a16a1e378faa5f15b196c3e148476146e 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/LongNoteV4Tests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/LongNoteV4Tests.swift
+@@ -12,15 +12,15 @@ final class LongNoteV4Tests: XCTestCase {
+         let dir = root.appendingPathComponent("long-note-v4")
+         let app = try await open(dir)
+         try send(app, "workspace.entries")
+-        try send(app, "entry.title", .textChange, .string("Long note 🧪"))
++        try send(app, "entry-title", .textChange, .string("Long note 🧪"))
+         let note = String(repeating: "é\n", count: 33_333) + "X"
+         XCTAssertEqual(note.utf8.count, 100_000)
+-        let original = try JSONEncoder().encode([event(app, "entry.note", .textChange, .string(note)), event(app, "entry.saveDraft")])
++        let original = try JSONEncoder().encode([event(app, "entry-note", .textChange, .string(note)), event(app, "entry.saveDraft")])
+         XCTAssertGreaterThan(original.count, 131_072)
+         XCTAssertLessThan(original.count, AndroidUIProfile.measuredMultilineLongNotesV4.maximumEventBytes)
+         let before = try Data(contentsOf: file(dir))
+         let state = app.presentation.entryState, snapshot = app.presentation.snapshot.document
+-        for (id, value) in [("entry.note", note + "X"), ("entry.title", String(repeating: "é", count: 8193)), ("entry.title", "unsafe\u{0}title")] {
++        for (id, value) in [("entry-note", note + "X"), ("entry-title", String(repeating: "é", count: 8193)), ("entry-title", "unsafe\u{0}title")] {
+             try rejects("V4 field refusal " + id) { try send(app, id, .textChange, .string(value)) }
+             XCTAssertEqual(app.presentation.entryState, state)
+             XCTAssertEqual(app.presentation.snapshot.document, snapshot)
+@@ -70,7 +70,7 @@ final class LongNoteV4Tests: XCTestCase {
+         try send(app, "workspace.entries")
+         var legacy = UIReconciler(validator: UIValidator(supportedTextFieldAxes: AndroidUIProfile.measuredMultilineRetirementV3.capabilities.textFieldAxes))
+         try legacy.apply(app.presentation.snapshot.document)
+-        let oldEnvelope = try event(app, "entry.note", .textChange, .string(String(repeating: "é", count: 8193)))
++        let oldEnvelope = try event(app, "entry-note", .textChange, .string(String(repeating: "é", count: 8193)))
+         XCTAssertThrowsError(try legacy.currentSnapshot().route(oldEnvelope), "Original V3 oversized-field refusal remains")
+         await app.close()
+     }
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PhotoSelectionTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PhotoSelectionTests.swift
+index c45aad06d0ec746deacd77b2a1585b7c4eedd1dd..6ffcc9ade79a1a302972ae18c4a35281614e973d 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PhotoSelectionTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PhotoSelectionTests.swift
+@@ -36,9 +36,9 @@ final class PhotoSelectionTests: XCTestCase {
+         let dir = photoDir("roundtrip"), app = try await open(dir)
+         try send(app, "workspace.entries")
+         let before = try Data(contentsOf: file(dir)), note = "e\u{301}\n👩🏽‍🔬 exact\n"
+-        let batch = [try event(app, "entry.title", .textChange, .string("Photo entry")),
+-                     try event(app, "entry.note", .textChange, .string(note)),
+-                     try event(app, "entry.date.input", .textChange, .string("2024-02-29T01:00:00+01:00")),
++        let batch = [try event(app, "entry-title", .textChange, .string("Photo entry")),
++                     try event(app, "entry-note", .textChange, .string(note)),
++                     try event(app, "entry-date", .textChange, .string("2024-02-29T01:00:00+01:00")),
+                      try event(app, "entry.category.issue"), try event(app, "entry.photo.select")]
+         var publications = 0
+         let cancel = app.presentation.observe { _ in publications += 1 }
+@@ -48,7 +48,7 @@ final class PhotoSelectionTests: XCTestCase {
+         let request = try XCTUnwrap(app.presentation.takePhotoRequest())
+         XCTAssertNil(app.presentation.takePhotoRequest())
+         XCTAssertEqual(request.draftID, app.presentation.entryState?.draft.id)
+-        try send(app, "entry.note", .textChange, .string(note + "later edit"))
++        try send(app, "entry-note", .textChange, .string(note + "later edit"))
+         try send(app, "entry.saveDraft")
+         let accepted = await app.presentation.completePhoto(requestID: request.id, result: .jpeg(photoJPEG))
+         XCTAssertTrue(accepted)
+@@ -73,10 +73,10 @@ final class PhotoSelectionTests: XCTestCase {
+         let dir = photoDir("refusals"), app = try await open(dir)
+         try send(app, "workspace.entries")
+         let before = try Data(contentsOf: file(dir)), state = app.presentation.entryState, snapshot = app.presentation.snapshot
+-        let select = try event(app, "entry.photo.select"), title = try event(app, "entry.title", .textChange, .string("Must not leak"))
+-        let invalid = try event(app, "entry.date.input", .textChange, .string("2024-02-"))
+-        let nul = try event(app, "entry.note", .textChange, .string("bad\0note"))
+-        let oversized = try event(app, "entry.note", .textChange, .string(String(repeating: "a", count: 100001)))
++        let select = try event(app, "entry.photo.select"), title = try event(app, "entry-title", .textChange, .string("Must not leak"))
++        let invalid = try event(app, "entry-date", .textChange, .string("2024-02-"))
++        let nul = try event(app, "entry-note", .textChange, .string("bad\0note"))
++        let oversized = try event(app, "entry-note", .textChange, .string(String(repeating: "a", count: 100001)))
+         for batch in [[select, title], [title, select, select], [title, invalid, select], [nul, select], [oversized, select]] {
+             try rejects("photo original batch refusal") { try app.sendBatch(owner: app.host.owner!, originalEnvelopes: JSONEncoder().encode(batch)) }
+             XCTAssertEqual(app.presentation.entryState, state)
+@@ -90,8 +90,8 @@ final class PhotoSelectionTests: XCTestCase {
+         let results: [PhotoSelectionResult] = [.cancelled, .failed(.denied), .failed(.invalid), .failed(.tooLarge), .failed(.unavailable), .jpeg(Data()), .jpeg(Data([1, 2, 3]))]
+         for (index, result) in results.enumerated() {
+             let dir = photoDir("zero-\(index)"), app = try await open(dir)
+-            try send(app, "workspace.entries"); try send(app, "entry.title", .textChange, .string("Keep title"))
+-            try send(app, "entry.note", .textChange, .string("Keep\nexact"))
++            try send(app, "workspace.entries"); try send(app, "entry-title", .textChange, .string("Keep title"))
++            try send(app, "entry-note", .textChange, .string("Keep\nexact"))
+             let draft = app.presentation.entryState?.draft, before = try Data(contentsOf: file(dir))
+             try send(app, "entry.photo.select")
+             let request = try XCTUnwrap(app.presentation.takePhotoRequest())
+@@ -119,11 +119,11 @@ final class PhotoSelectionTests: XCTestCase {
+         XCTAssertFalse(late)
+         try send(app, "entry.photo.select")
+         let invalid = try XCTUnwrap(app.presentation.takePhotoRequest())
+-        try send(app, "entry.date.input", .textChange, .string("2024-02-"))
++        try send(app, "entry-date", .textChange, .string("2024-02-"))
+         let before = try Data(contentsOf: file(dir))
+         let rejected = await app.presentation.completePhoto(requestID: invalid.id, result: .jpeg(photoJPEG))
+         XCTAssertFalse(rejected); XCTAssertEqual(try Data(contentsOf: file(dir)), before)
+-        try send(app, "entry.date.input", .textChange, .string("2024-02-29T00:00:00Z"))
++        try send(app, "entry-date", .textChange, .string("2024-02-29T00:00:00Z"))
+         try send(app, "entry.photo.select")
+         let closed = try XCTUnwrap(app.presentation.takePhotoRequest())
+         await app.close()
+@@ -133,14 +133,15 @@ final class PhotoSelectionTests: XCTestCase {
+     @MainActor func testReservationExcludesNewSaveAcrossDrainSuspensionAndRetainsEarlierEdits() async throws {
+         let dir = photoDir("reservation-barrier"), p = try await ProjectPresentation(directory: dir)
+         func action(_ id: String, _ kind: UIEventKind = .activate, _ value: UIValue = .null) throws -> UIEventEnvelope {
+-            UIEventEnvelope(revision: p.snapshot.document.revision, identity: try XCTUnwrap(p.snapshot.identity(for: id)), event: kind, value: value)
++            let node = try XCTUnwrap(fieldLogNode(id, in: p.snapshot.document.root))
++            return UIEventEnvelope(revision: p.snapshot.document.revision, identity: try XCTUnwrap(p.snapshot.identity(for: node.id)), event: kind, value: value)
+         }
+         try p.send(action("workspace.entries"))
+-        try p.send(action("entry.title", .textChange, .string("Retain before callback")))
+-        try p.send(action("entry.note", .textChange, .string("before reservation\nexact")))
++        try p.send(action("entry-title", .textChange, .string("Retain before callback")))
++        try p.send(action("entry-note", .textChange, .string("before reservation\nexact")))
+         try p.send(action("entry.photo.select"))
+         let request = try XCTUnwrap(p.takePhotoRequest()), save = try action("entry.saveDraft")
+-        let note = try action("entry.note", .textChange, .string("must not enter"))
++        let note = try action("entry-note", .textChange, .string("must not enter"))
+         let before = try Data(contentsOf: file(dir)), gate = PhotoDrainGate()
+         p.photoDrainBarrier = { await gate.hold() }
+         let completion = Task { @MainActor in await p.completePhoto(requestID: request.id, result: .jpeg(photoJPEG)) }
+@@ -155,7 +156,7 @@ final class PhotoSelectionTests: XCTestCase {
+         XCTAssertEqual(p.workspace.drafts.first?.title, "Retain before callback")
+         XCTAssertEqual(p.workspace.attachments.count, 1)
+         // Reservation is released, so the next ordinary edit/save can proceed.
+-        try p.send(action("entry.title", .textChange, .string("After completion")))
++        try p.send(action("entry-title", .textChange, .string("After completion")))
+         try p.send(action("entry.saveDraft")); try await p.waitForSave()
+         XCTAssertEqual(p.workspace.drafts.first?.title, "After completion")
+         await p.close()
+diff --git a/Integrations/GeneratedReport/Tests/Recipe/test_build_android.py b/Integrations/GeneratedReport/Tests/Recipe/test_build_android.py
+index 97cac7e829e886aa61d6d59e43107d72ae92fe77..b69209b6d0a688efbb143423e2ea099446951b9a 100644
+--- a/Integrations/GeneratedReport/Tests/Recipe/test_build_android.py
++++ b/Integrations/GeneratedReport/Tests/Recipe/test_build_android.py
+@@ -18,7 +18,7 @@ class RecipeTests(unittest.TestCase):
+     def setUp(self):
+         self.temp = tempfile.TemporaryDirectory()
+         self.addCleanup(self.temp.cleanup)
+-        self.root = Path(self.temp.name)
++        self.root = Path(self.temp.name).resolve()
+ 
+     def argv(self, output, sdk=None, mixer=None, adapter=None):
+         return [str(SCRIPT), "--mixer", str(mixer or self.root / "missing-cli"),
+@@ -120,7 +120,7 @@ class RecipeTests(unittest.TestCase):
+         self.assertEqual(command[1:3], ["create", "FieldLogGenerated"])
+         self.assertEqual(command[command.index("--android-adapter-path") + 1], str(adapter))
+         self.assertEqual(command[command.index("--sdk-path") + 1], str(sdk / "sdk"))
+-        self.assertEqual(recipe.PIN, "8efc1a9e5b1602117f8211c95bfd4203cc91f689")
++        self.assertEqual(recipe.PIN, "735ecec14e10e2dfed1e58a122c3fab08e569bef")
+         self.assertTrue(all(call.args[0][3] == str(sdk) for call in git.call_args_list))
+         install.assert_called_once()
+         self.assertEqual((adapter / "unrelated-local-work").read_text(), "preserve")
+diff --git a/Integrations/GeneratedReport/scripts/build-android.py b/Integrations/GeneratedReport/scripts/build-android.py
+index 7bfc7ed073d18c7bd556c29eb239b9068aed1e35..dedbbea6a4ab4e4dabfa0deecc1b2a2619a9c7ca 100644
+--- a/Integrations/GeneratedReport/scripts/build-android.py
++++ b/Integrations/GeneratedReport/scripts/build-android.py
+@@ -11,7 +11,8 @@ import sys
+ import tempfile
+ import time
+ 
+-PIN = "8efc1a9e5b1602117f8211c95bfd4203cc91f689"
++PIN = "735ecec14e10e2dfed1e58a122c3fab08e569bef"
++LOCAL_MIXER_PIN = "5dea19db36610e312b51918b384364ba590b6ef8"
+ APP = Path(__file__).resolve().parents[1]
+ 
+ 
+@@ -20,6 +21,7 @@ def app_inputs():
+     platform = APP / "Platforms/Android"
+     files = [(platform / "ApplicationPackage.swift", Path("Package.swift")),
+              (platform / "Package.swift", Path("Platforms/Android/Package.swift")),
++             (platform / "Package.resolved", Path("Platforms/Android/Package.resolved")),
+              (platform / "AndroidManifest.xml", Path("Platforms/Android/AndroidManifest.xml")),
+              (platform / "Bridge/PublicBridge.c", Path("Platforms/Android/Bridge/PublicBridge.c"))]
+     java = Path("Java/dev/fieldlog/generatedr90/androidhost")
+@@ -42,6 +44,11 @@ def app_inputs():
+ 
+ def install_app_inputs(output, files, modules):
+     """Install app sources after public mixer create; preserve Generated/MixerSDK."""
++    app_lock = json.loads((APP / "Platforms/Android/Package.resolved").read_bytes())
++    sdk_lock = json.loads((output / "Generated/MixerSDK/Package.resolved").read_bytes())
++    if app_lock["pins"] != sdk_lock["pins"]:
++        raise ValueError("FieldLog's Android dependency pins differ from the admitted SDK lock")
++
+     # Replace the starter bridge and Swift entry together, before mixer build.
+     entry = output / "Platforms/Android/Sources/AppAndroid"
+     tests = output / "Platforms/Android/Tests/AppAndroidTests"
+@@ -84,14 +91,14 @@ def main():
+         parser.error("--sdk-checkout must be a revision-pinned checkout with required Swift SDK inputs")
+     if not adapter.is_dir():
+         parser.error("--android-adapter-path must name an Android adapter directory")
+-    for command, expected in ((["rev-parse", "HEAD"], PIN),
+-                              (["rev-parse", "--show-toplevel"], str(sdk)),
+-                              (["status", "--porcelain"], "")):
++    for command, expected in ((["rev-parse", "HEAD"], {PIN, LOCAL_MIXER_PIN}),
++                              (["rev-parse", "--show-toplevel"], {str(sdk)}),
++                              (["status", "--porcelain"], {""})):
+         observed = subprocess.check_output(
+             ["git", "--no-optional-locks", "-C", str(sdk), *command],
+             text=True, timeout=15).strip()
+-        if observed != expected:
+-            parser.error("SDK must be a clean revision-pinned checkout with required Swift SDK inputs at " + PIN)
++        if observed not in expected:
++            parser.error(f"SDK must be a clean checkout at {PIN} or {LOCAL_MIXER_PIN}")
+ 
+     files, modules = app_inputs()
+ 
+diff --git a/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py b/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..e078d8caa56a950329ac215eee7e40144ad61ceb
+--- /dev/null
++++ b/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
+@@ -0,0 +1,217 @@
++#!/usr/bin/env python3
++"""Assemble and verify the FieldLog signed-checklist development APK."""
++import argparse
++import hashlib
++import json
++import os
++from pathlib import Path
++import re
++import runpy
++import stat
++import subprocess
++import sys
++import tempfile
++import zipfile
++
++APPEARANCE = "MixerAppearanceV2/descriptor.json"
++APPEARANCE_BYTES = 9587
++APPEARANCE_SHA256 = "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
++CHECKLIST_LIMITS = {
++    "bridge.json": 65_536,
++    "identity.json": 131_072,
++    "port.txt": 32,
++    "roots.json": 65_536,
++    "storage-grant.json": 65_536,
++    "storage.json": 65_536,
++}
++MANIFEST_MEMBERS = {"AndroidManifest.xml", "res/xml/checklist_network.xml", "resources.arsc"}
++NATIVE_PREFIX = "lib/arm64-v8a/"
++
++
++def read_bounded(path, limit):
++    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
++    with os.fdopen(fd, "rb") as stream:
++        if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
++            raise ValueError(f"Expected a regular file: {path}")
++        data = stream.read(limit + 1)
++    if not 0 < len(data) <= limit:
++        raise ValueError(f"Invalid input size: {path}")
++    return data
++
++
++def appearance_asset(project):
++    directory = project
++    for component in ("Generated", "MixerAndroid", "app", "assets", "MixerAppearanceV2"):
++        directory /= component
++        if directory.is_symlink() or not directory.is_dir():
++            raise ValueError(f"Missing or invalid Mixer appearance directory: {directory}")
++    descriptor = read_bounded(directory / "descriptor.json", APPEARANCE_BYTES)
++    if len(descriptor) != APPEARANCE_BYTES or hashlib.sha256(descriptor).hexdigest() != APPEARANCE_SHA256:
++        raise ValueError(f"Mixer appearance descriptor differs from the admitted default: {directory}")
++    return descriptor
++
++
++def checklist_assets(directory, lock):
++    if directory.is_symlink() or {path.name for path in directory.iterdir()} != CHECKLIST_LIMITS.keys():
++        raise ValueError("Expected exactly the six Installed checklist inputs")
++    pins = json.loads(read_bounded(lock, 4096))
++    if not isinstance(pins, dict) or pins.keys() != CHECKLIST_LIMITS.keys():
++        raise ValueError("Checklist SHA-256 JSON must pin exactly the six Installed files")
++    assets = {}
++    for name, limit in CHECKLIST_LIMITS.items():
++        data = read_bounded(directory / name, limit)
++        if hashlib.sha256(data).hexdigest() != pins[name]:
++            raise ValueError(f"Installed checklist input differs from its SHA-256 pin: {name}")
++        assets[f"assets/ChecklistRelease/{name}"] = data
++    return assets
++
++
++def run(env, *args):
++    return subprocess.check_output(args, env=env, text=True, stderr=subprocess.STDOUT, timeout=90)
++
++
++def native_libraries(engine, ndk, swift_sdk, env):
++    sys_libs = ndk / "sysroot/usr/lib/aarch64-linux-android"
++    platform_libs = {path.name for path in (sys_libs / "28").glob("*.so")}
++    if not platform_libs or engine.name != "libmixer_public_android_jni.so":
++        raise ValueError("Expected the Android 28 sysroot and the signed-checklist JNI library")
++    swift_libs = swift_sdk / "swift-resources/usr/lib/swift-aarch64/android"
++    libraries = {engine.name: engine}
++    pending = [engine]
++    while pending:
++        library = pending.pop()
++        dump = run(env, ndk / "bin/llvm-readelf", "-h", "-d", "-lW", library)
++        loads = [line.split() for line in dump.splitlines() if line.lstrip().startswith("LOAD ")]
++        if not re.search(r"^\s*Machine:\s*AArch64\s*$", dump, re.MULTILINE) or not loads:
++            raise ValueError(f"Expected an arm64 ELF with loadable segments: {library}")
++        if any(int(load[-1], 16) < 16_384 for load in loads):
++            raise ValueError(f"ELF load alignment is below 16 KiB: {library}")
++        for name in re.findall(r"\(NEEDED\)[^\n]*\[([^\]]+)\]", dump):
++            if not re.fullmatch(r"lib[A-Za-z0-9_+.-]+\.so", name):
++                raise ValueError(f"Invalid ELF dependency name: {name}")
++            if name in platform_libs or name in libraries:
++                continue
++            path = (sys_libs if name == "libc++_shared.so" else swift_libs) / name
++            libraries[name] = path
++            pending.append(path)
++    return libraries
++
++
++def runtime_notices(project, libraries, ndk, swift_sdk):
++    # Reuse the notice bound to the ICU payload by the generated Mixer builder.
++    swift_license = swift_sdk / "swift-resources/usr/share/swift/LICENSE.txt"
++    paths = {"Swift-SDK-LICENSE.txt": swift_license}
++    if "libc++_shared.so" in libraries:
++        paths.update({"Android-NDK-NOTICE.txt": ndk.parents[3] / "NOTICE",
++                      "Android-NDK-NOTICE.toolchain.txt": ndk.parents[3] / "NOTICE.toolchain"})
++    notices = {f"third-party-notices/{name}": read_bounded(path, 2 * 1024 * 1024)
++               for name, path in paths.items()}
++    if icu := libraries.get("lib_FoundationICU.so"):
++        mixer = runpy.run_path(str(project / "Generated/MixerAndroid/android-build.py"))
++        if hashlib.sha256(icu.read_bytes()).hexdigest() != "41171d3eed0f99b2057b9b528c14a4ad27d07f1e102d106facfcd0db8faf2a4a":
++            raise ValueError("Foundation ICU has no verified notice binding")
++        notices["third-party-notices/Apple-ICU-76.1-LICENSE.txt"] = mixer["APPLE_ICU_LICENSE"].encode("utf-8")
++    return notices
++
++
++def verify_image(path, assets, libraries, notices, signed=False):
++    with zipfile.ZipFile(path) as apk:
++        names = apk.namelist()
++        if len(set(names)) != len(names):
++            raise ValueError("Duplicate APK entry")
++        if {name for name in names if name.startswith("assets/")} != assets.keys():
++            raise ValueError("APK asset inventory differs from the appearance and checklist inputs")
++        for name, data in assets.items():
++            with apk.open(name) as stream:
++                if stream.read(len(data) + 1) != data:
++                    raise ValueError(f"APK asset differs from its admitted input: {name}")
++        for name, data in notices.items():
++            if apk.read(name) != data:
++                raise ValueError(f"APK runtime notice differs from its input: {name}")
++        native_names = {NATIVE_PREFIX + name for name in libraries}
++        payload_names = {name for name in names if not signed or not name.startswith("META-INF/")}
++        if payload_names != MANIFEST_MEMBERS | {"classes.dex"} | assets.keys() | native_names | notices.keys():
++            raise ValueError("Unexpected APK payload inventory")
++        if any(apk.getinfo(name).compress_type != zipfile.ZIP_STORED for name in native_names):
++            raise ValueError("APK native library must be stored")
++
++
++def build(args):
++    output = args.output
++    if output.exists() or output.is_symlink():
++        raise FileExistsError(output)
++    assets = {"assets/" + APPEARANCE: appearance_asset(args.mixer_project)}
++    assets.update(checklist_assets(args.installed_checklist, args.checklist_sha256))
++    env = os.environ | {"JAVA_HOME": str(args.java_home), "LC_ALL": "C"}
++    tools = args.android_sdk / "build-tools/36.0.0"
++    ndk = args.android_sdk / "ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64"
++    libraries = native_libraries(args.jni_library, ndk, args.swift_android_sdk, env)
++    notices = runtime_notices(args.mixer_project, libraries, ndk, args.swift_android_sdk)
++    with tempfile.TemporaryDirectory(prefix="fieldlog-apk-", dir=output.parent) as scratch:
++        work = Path(scratch)
++        unsigned, aligned, signed = (work / name for name in ("unsigned.apk", "aligned.apk", "signed.apk"))
++        with (zipfile.ZipFile(args.manifest_apk) as manifest,
++              zipfile.ZipFile(unsigned, "x", zipfile.ZIP_STORED) as apk):
++            if sorted(manifest.namelist()) != sorted(MANIFEST_MEMBERS):
++                raise ValueError("Expected the unsigned signed-checklist manifest and network policy")
++            for name in sorted(MANIFEST_MEMBERS):
++                apk.writestr(name, manifest.read(name))
++            apk.write(args.dex, "classes.dex")
++            for name, data in (assets | notices).items():
++                apk.writestr(name, data)
++            for name, path in sorted(libraries.items()):
++                apk.write(path, NATIVE_PREFIX + name)
++        verify_image(unsigned, assets, libraries, notices)
++        run(env, tools / "zipalign", "-P", "16", "-f", "4", unsigned, aligned)
++        key = work / "development.p12"
++        password = "FIELDLOG_LOCAL_APK_PASSWORD"
++        signing = env | {password: os.urandom(24).hex()}
++        run(signing, args.java_home / "bin/keytool", "-genkeypair", "-storetype", "PKCS12", "-keystore", key,
++            "-alias", "fieldlog-local", "-storepass:env", password, "-keypass:env", password,
++            "-keyalg", "EC", "-groupname", "secp256r1", "-validity", "30", "-dname", "CN=FieldLog Local Development")
++        run(signing, tools / "apksigner", "sign", "--ks", key, "--ks-pass", f"env:{password}",
++            "--v3-signing-enabled", "true", "--v4-signing-enabled", "false", "--out", signed, aligned)
++        signatures = run(env, tools / "apksigner", "verify", "--verbose", "--print-certs", "-Werr", signed)
++        if "Verified using v3 scheme (APK Signature Scheme v3): true" not in signatures:
++            raise ValueError("Expected a v3 development APK signature")
++        run(env, tools / "zipalign", "-c", "-P", "16", "4", signed)
++        badging = run(env, tools / "aapt2", "dump", "badging", signed)
++        lines = badging.splitlines()
++        for entry in ("minSdkVersion:'36'", "targetSdkVersion:'37'", "native-code: 'arm64-v8a'"):
++            if entry not in lines:
++                raise ValueError(f"Unexpected APK badging. Expected {entry}")
++        for prefix in ("package: name='dev.fieldlog.generatedr90' ",
++                       "launchable-activity: name='dev.fieldlog.generatedr90.androidhost.PublicActivity' "):
++            if not any(line.startswith(prefix) for line in lines):
++                raise ValueError(f"Unexpected APK badging. Expected {prefix.strip()}")
++        verify_image(signed, assets, libraries, notices, signed=True)
++        os.link(signed, output)
++    print(f"Development APK: {output}")
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    paths = {
++        "mixer-project": "Project prepared by the pinned Mixer CLI with public-v4",
++        "manifest-apk": "Unsigned aapt2 link output for the signed checklist",
++        "dex": "Signed-checklist app classes.dex from d8",
++        "jni-library": "Strict-linked libmixer_public_android_jni.so",
++        "installed-checklist": "Installed directory from the signed checklist build",
++        "checklist-sha256": "Trusted JSON object mapping the six Installed names to their SHA-256 values",
++        "android-sdk": "Android SDK with build tools 36.0.0 and NDK 27.1.12297006",
++        "swift-android-sdk": "swift-android directory from the pinned Swift Android SDK",
++        "java-home": "JDK home containing bin/keytool",
++        "output": "Fresh APK path in an existing destination directory",
++    }
++    for name, help_text in paths.items():
++        parser.add_argument("--" + name, required=True, type=Path, help=help_text)
++    try:
++        build(parser.parse_args())
++    except subprocess.CalledProcessError as error:
++        sys.exit(f"{error}\n{error.stdout}")
++    except (OSError, ValueError, subprocess.TimeoutExpired, zipfile.BadZipFile) as error:
++        sys.exit(str(error))
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/Integrations/InstalledGuest/Delivery.swift b/Integrations/InstalledGuest/Delivery.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..e5e2dbdb8ecdfb36d7a113313db19452a16c342b
+--- /dev/null
++++ b/Integrations/InstalledGuest/Delivery.swift
+@@ -0,0 +1,199 @@
++import Foundation
++#if canImport(FoundationNetworking)
++import FoundationNetworking
++#endif
++import MixerUpdates
++
++struct FieldLogDelivery {
++    struct Package {
++        let manifest: Data
++        let assignment: Data
++        let payload: Data
++    }
++
++    let port: UInt16
++    let host: InstalledRuntime
++    let installation: String
++    let partialFile: URL
++
++    func fetch(after sequence: UInt64) async throws -> Package? {
++        let scope = host.scope
++        let tenant = [("organization", scope.organization), ("project", scope.project)]
++        let offerURL = try url("/v3/updates", tenant + [
++            ("app", scope.app), ("environment", scope.environment), ("platform", scope.platform),
++            ("runtime", host.runtime), ("channel", "beta"), ("installation", installation),
++        ])
++        guard let offer = try await fetchObject(offerURL, permitsNoOffer: true) else { return nil }
++        guard Set(offer.keys) == ["signed_assignment", "artifact_url"],
++              let assignment = offer["signed_assignment"], let fields = assignment.object?["assignment"]?.object,
++              let offeredSequence = fields["sequence"]?.uint, let digest = fields["artifact_sha256"]?.text,
++              digest.utf8.count == 64, digest.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }) else {
++            throw invalidOffer
++        }
++        guard offeredSequence > sequence else { return nil }
++        let artifactURL = try url("/v3/artifacts/" + digest, tenant)
++        guard offer["artifact_url"]?.text == artifactURL.path + "?" + (artifactURL.query ?? ""),
++              let artifact = try await fetchObject(artifactURL, permitsNoOffer: false, partial: PartialArtifact(url: partialFile, digest: digest)),
++              Set(artifact.keys) == ["signed_manifest", "payload"],
++              let manifest = artifact["signed_manifest"], let encoded = artifact["payload"]?.text,
++              let payload = Data(base64Encoded: encoded), !payload.isEmpty,
++              payload.count <= 8192, payload.base64EncodedString() == encoded else { throw invalidOffer }
++        let encoder = JSONEncoder()
++        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
++        return try Package(manifest: encoder.encode(manifest), assignment: encoder.encode(assignment), payload: payload)
++    }
++
++    private var invalidOffer: UpdateError { UpdateError("fieldlog.delivery", "Invalid checklist release response") }
++
++    private func url(_ path: String, _ query: [(String, String)]) throws -> URL {
++        var target = URLComponents()
++        target.scheme = "http"
++        target.host = "127.0.0.1"
++        target.port = Int(port)
++        target.path = path
++        target.queryItems = query.map { URLQueryItem(name: $0.0, value: $0.1) }
++        guard let url = target.url else { throw invalidOffer }
++        return url
++    }
++
++    private func fetchObject(_ url: URL, permitsNoOffer: Bool, partial: PartialArtifact? = nil) async throws -> [String: CanonicalValue]? {
++        let configuration = URLSessionConfiguration.ephemeral
++        configuration.timeoutIntervalForRequest = 4
++        configuration.timeoutIntervalForResource = 7
++        configuration.urlCredentialStorage = nil
++        configuration.httpShouldSetCookies = false
++        configuration.connectionProxyDictionary = ["HTTPEnable": false, "HTTPSEnable": false, "SOCKSEnable": false]
++        let receiver = ResponseReceiver(url: url, permitsNoOffer: permitsNoOffer, partial: partial)
++        let queue = OperationQueue()
++        queue.maxConcurrentOperationCount = 1
++        let session = URLSession(configuration: configuration, delegate: receiver, delegateQueue: queue)
++        defer { session.invalidateAndCancel() }
++        var response = receiver.response(in: session).makeAsyncIterator()
++        guard let result = try await response.next(), let bytes = result else {
++            try Task.checkCancellation()
++            return nil
++        }
++        guard let fields = try StrictJSON.decode(CanonicalValue.self, from: bytes, maximumBytes: ResponseReceiver.limit).object else {
++            throw invalidOffer
++        }
++        return fields
++    }
++}
++
++/// The service returns a complete JSON envelope. On reconnect, compare the
++/// replayed prefix before appending new bytes. The spool carries no authority.
++private struct PartialArtifact {
++    let url: URL
++    let digest: String
++
++    func read(maximumBytes: Int) -> Data {
++        guard let input = try? FileHandle(forReadingFrom: url) else { return Data() }
++        defer { try? input.close() }
++        let key = Data(digest.utf8)
++        guard let bytes = try? input.read(upToCount: maximumBytes + key.count + 1),
++              bytes.count <= maximumBytes + key.count, bytes.starts(with: key) else { return Data() }
++        return Data(bytes.dropFirst(key.count))
++    }
++
++    func save(_ bytes: Data) throws {
++        try (Data(digest.utf8) + bytes).write(to: url, options: .atomic)
++    }
++
++    func remove() { try? FileManager.default.removeItem(at: url) }
++}
++
++private final class ResponseReceiver: NSObject, URLSessionDataDelegate, @unchecked Sendable {
++    static let limit = 65_536
++    private let url: URL
++    private let permitsNoOffer: Bool
++    private var body: Data?
++    private var declined = false
++    private let partial: PartialArtifact?
++    private let prefix: Data
++    private var received = 0
++    private let continuation: AsyncThrowingStream<Data?, any Error>.Continuation
++    private let stream: AsyncThrowingStream<Data?, any Error>
++
++    init(url: URL, permitsNoOffer: Bool, partial: PartialArtifact?) {
++        self.url = url
++        self.permitsNoOffer = permitsNoOffer
++        self.partial = partial
++        self.prefix = partial?.read(maximumBytes: Self.limit) ?? Data()
++        (stream, continuation) = AsyncThrowingStream.makeStream(bufferingPolicy: .bufferingNewest(1))
++    }
++
++    func response(in session: URLSession) -> AsyncThrowingStream<Data?, any Error> {
++        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
++        request.setValue("identity", forHTTPHeaderField: "Accept-Encoding")
++        let task = session.dataTask(with: request)
++        continuation.onTermination = { _ in task.cancel() }
++        task.resume()
++        return stream
++    }
++
++    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
++                    newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void) {
++        completionHandler(nil)
++    }
++
++    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
++                    completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
++        if let http = response as? HTTPURLResponse, http.url == url {
++            if permitsNoOffer, http.statusCode == 204 || http.statusCode == 404 {
++                declined = true
++                continuation.yield(nil)
++                continuation.finish()
++                completionHandler(.cancel)
++                return
++            }
++            if http.statusCode == 200, http.mimeType == "application/json",
++               http.expectedContentLength <= Self.limit {
++                body = prefix
++                completionHandler(.allow)
++                return
++            }
++        }
++        refuse()
++        completionHandler(.cancel)
++    }
++
++    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
++        guard body != nil, data.count <= Self.limit - received else {
++            refuse()
++            dataTask.cancel()
++            return
++        }
++        let repeated = min(data.count, max(0, prefix.count - received))
++        guard repeated == 0 || prefix[received..<received + repeated].elementsEqual(data.prefix(repeated)) else {
++            partial?.remove()
++            refuse()
++            dataTask.cancel()
++            return
++        }
++        received += data.count
++        if repeated < data.count, let body {
++            let next = body + data.dropFirst(repeated)
++            do {
++                try partial?.save(next)
++                self.body = next
++            } catch {
++                continuation.finish(throwing: error)
++                dataTask.cancel()
++            }
++        }
++    }
++
++    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
++        if declined { return }
++        if let error { continuation.finish(throwing: error) }
++        else if let body, received == body.count {
++            partial?.remove()
++            continuation.yield(body)
++            continuation.finish()
++        } else { refuse() }
++    }
++
++    private func refuse() {
++        continuation.finish(throwing: UpdateError("fieldlog.delivery", "Release service returned an invalid response"))
++    }
++}
+diff --git a/Integrations/InstalledGuest/SelectedDraftBinding.swift b/Integrations/InstalledGuest/SelectedDraftBinding.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..454af4630874ff713f0c0f501c655e49c07a641a
+--- /dev/null
++++ b/Integrations/InstalledGuest/SelectedDraftBinding.swift
+@@ -0,0 +1,92 @@
++import FieldLogStorage
++import Foundation
++import MixerCapabilities
++
++/// The ordinary editor publishes selection. Each signed presentation gets a
++/// separate lease, even when it reopens the same saved draft.
++@MainActor public final class SelectedDraftBinding {
++    private struct Selection: Equatable {
++        let projectID: UUID
++        let draftID: UUID
++    }
++
++    private var selection: Selection?
++    private var generation = UUID()
++    private var lease: Lease?
++
++    public init() {}
++
++    public func select(projectID: UUID, draftID: UUID?) {
++        let next = draftID.map { Selection(projectID: projectID, draftID: $0) }
++        guard selection != next else { return }
++        detach()
++        selection = next
++    }
++
++    public func attach(repository: WorkspaceRepository, projectID: UUID, draftID: UUID) async throws
++        -> any InstalledApplicationStorageServing {
++        let requested = Selection(projectID: projectID, draftID: draftID)
++        guard requested == selection else { throw CapabilityFailure.permissionDenied }
++        detach()
++        let pending = generation
++        let storage = try await FieldLogDraftStorage(repository: repository, projectID: projectID, draftID: draftID)
++        try Task.checkCancellation()
++        guard generation == pending else { throw CapabilityFailure.permissionDenied }
++        let lease = Lease(storage: storage)
++        self.lease = lease
++        return lease
++    }
++
++    public func detach() {
++        generation = UUID()
++        lease?.revoke()
++        lease = nil
++    }
++
++    @MainActor private final class Lease: InstalledApplicationStorageServing {
++        private let storage: FieldLogDraftStorage
++        private var active = true
++        private var pending: [UUID: @MainActor () -> Void] = [:]
++
++        init(storage: FieldLogDraftStorage) { self.storage = storage }
++
++        func revoke() {
++            active = false
++            for cancel in pending.values { cancel() }
++        }
++
++        func get(_ arguments: KVGetArguments) async throws -> KVGetResponse {
++            try await perform { try await $0.get(arguments) }
++        }
++
++        func put(_ arguments: KVPutArguments, maximumTotalBytes: Int, maximumEntries: Int) async throws -> KVMutationResponse {
++            try await perform {
++                try await $0.put(arguments, maximumTotalBytes: maximumTotalBytes, maximumEntries: maximumEntries)
++            }
++        }
++
++        func delete(_ arguments: KVDeleteArguments) async throws -> KVMutationResponse {
++            throw CapabilityFailure.permissionDenied
++        }
++
++        private func perform<Value: Sendable>(
++            _ operation: @escaping @Sendable (FieldLogDraftStorage) async throws -> Value
++        ) async throws -> Value {
++            guard active else { throw CapabilityFailure.permissionDenied }
++            try Task.checkCancellation()
++            let id = UUID()
++            let storage = self.storage
++            let task = Task { try await operation(storage) }
++            pending[id] = { task.cancel() }
++            defer { pending[id] = nil }
++            let result = await withTaskCancellationHandler {
++                await task.result
++            } onCancel: {
++                task.cancel()
++            }
++            guard active else { throw CapabilityFailure.permissionDenied }
++            try Task.checkCancellation()
++            return try result.get()
++        }
++    }
++}
+diff --git a/Integrations/InstalledGuest/SignedTask.swift b/Integrations/InstalledGuest/SignedTask.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..913b2e41613a59ee7045e79c560fd2abd98f8735
+--- /dev/null
++++ b/Integrations/InstalledGuest/SignedTask.swift
+@@ -0,0 +1,124 @@
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++import MixerCapabilities
++#if os(Android)
++@_spi(AndroidGuestUIV1) import MixerCapabilityActivation
++#else
++import MixerCapabilityActivation
++#endif
++import MixerRuntimeIdentity
++import MixerUpdates
++
++public struct FieldLogSignedTask: Sendable {
++    #if os(Android)
++    private typealias Owner = CapabilityGuestUIAndroidRuntime
++    #else
++    public typealias Owner = CapabilityGuestUIRuntime
++    #endif
++
++    #if os(Android)
++    private let owner: Owner
++    #else
++    public let owner: Owner
++    #endif
++    private let identity: CapabilityRuntimeIdentity
++    private let installation: String
++    private let port: UInt16
++    private let directory: URL
++
++    public static func open(storage: any InstalledApplicationStorageServing, material: URL,
++                            directory: URL, bundleID: String, installation: UUID) async throws -> Self {
++        let identityBytes = try read(material, "identity.json", limit: 131_072)
++        let identity = try CapabilityRuntimeIdentity(json: identityBytes)
++        let scope = identity.installedRuntime.scope
++        guard scope.environment == "development",
++              identity.descriptor.object?["application"]?.object?["bundle_id"]?.text == bundleID,
++              let port = UInt16(try String(contentsOf: material.appendingPathComponent("port.txt"), encoding: .utf8)
++                .trimmingCharacters(in: .whitespacesAndNewlines)), port > 0 else {
++            throw UpdateError("fieldlog.identity", "Invalid installed FieldLog delivery identity")
++        }
++        let storageID = CapabilitySchemas.storageID
++        guard Set(identity.installedRuntime.capabilityHashes.keys) == [storageID] else {
++            throw UpdateError("fieldlog.capabilities", "The checklist guest requires only selected-draft storage")
++        }
++        let materials: [CapabilityMaterialFile] = try [
++            .init(role: .bridgePolicy, bytes: read(material, "bridge.json")),
++            .init(role: .configuration(capabilityID: storageID), bytes: read(material, "storage.json")),
++            .init(role: .installedGrant(capabilityID: storageID), bytes: read(material, "storage-grant.json")),
++        ]
++        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
++        let execution = try InstalledCapabilityExecution(identityJSON: identityBytes, materials: materials,
++            trustRootsJSON: read(material, "roots.json"), privateContainer: directory,
++            applicationStorage: .init(runtimeFingerprint: identity.fingerprint, namespace: FieldLogDraftStorage.namespace,
++                service: storage, allowsDeferredGuestUIStartup: true))
++        let installation = installation.uuidString.lowercased()
++        let owner = try await Owner.open(configuration: .init(directory: directory.appendingPathComponent("recovery"),
++            channel: "beta", installation: installation, observationSeconds: 1), execution: execution)
++        return Self(owner: owner, identity: identity, installation: installation, port: port, directory: directory)
++    }
++
++    public func start() async throws -> String {
++        let previous = await recovery()
++        var deliveryError: (any Error)?
++        do {
++            let delivery = FieldLogDelivery(port: port, host: identity.installedRuntime, installation: installation,
++                partialFile: directory.appendingPathComponent("artifact.partial"))
++            if let package = try await delivery.fetch(after: previous.acceptedSequence) {
++                #if os(Android)
++                try await owner.stage(manifest: package.manifest, assignment: package.assignment, bytes: package.payload)
++                #else
++                try await owner.beginDownload(signedManifest: package.manifest, signedAssignment: package.assignment)
++                try await owner.appendDownload(package.payload, atOffset: 0)
++                try await owner.finishDownload()
++                #endif
++            }
++        } catch is CancellationError {
++            throw CancellationError()
++        } catch {
++            deliveryError = error
++        }
++        try Task.checkCancellation()
++        let activation = try await owner.start()
++        guard activation.candidateID != nil else {
++            if let deliveryError { throw deliveryError }
++            throw UpdateError("fieldlog.release", "No signed checklist release is available")
++        }
++        return deliveryError == nil ? "Signed checklist" : "Using saved checklist release"
++    }
++
++    public func recovery() async -> CapabilityGuestUIRecoverySnapshot {
++        #if os(Android)
++        owner.recoverySnapshot()
++        #else
++        await owner.recoverySnapshot()
++        #endif
++    }
++
++    public func close() async -> Bool {
++        #if os(Android)
++        await owner.close()
++        #else
++        await owner.close()
++        let deadline = ContinuousClock.now + .seconds(8)
++        repeat {
++            let state = await owner.recoverySnapshot()
++            guard state.closed, !state.incompleteAttempt else { return false }
++            if !state.activation.cleanupPending { return true }
++            do { try await Task.sleep(for: .milliseconds(20)) }
++            catch { return false }
++        } while ContinuousClock.now < deadline
++        return false
++        #endif
++    }
++
++    private static func read(_ directory: URL, _ name: String, limit: Int = 65_536) throws -> Data {
++        let handle = try FileHandle(forReadingFrom: directory.appendingPathComponent(name))
++        defer { try? handle.close() }
++        let bytes = try handle.read(upToCount: limit + 1) ?? Data()
++        guard !bytes.isEmpty, bytes.count <= limit else {
++            throw UpdateError("fieldlog.material", "Invalid installed checklist material")
++        }
++        return bytes
++    }
++}
