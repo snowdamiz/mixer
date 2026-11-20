@@ -1,0 +1,156 @@
+{
+  "cli141_archive": {
+    "cli_selected_source_count": 151,
+    "installed_cli_source_sha256": "3693b7424928421348e43156de8cb307619e0470d5566ece5ee3094e60f638f6",
+    "modes": [
+      "normal",
+      "optimized"
+    ],
+    "probe": "Reused the generated-Java sparse-control helper for the 1091 required paths. Ran the archive adopter with intact inputs and with Verify or its v53 preimage deleted or changed by one newline.",
+    "projected_paths": 1091,
+    "restored_source141_sha256": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab",
+    "restored_verify": {
+      "bytes": 66445,
+      "sha256": "b283a00fc9a7ca1b900306d3a4226e182e0ba966014efe0d3427207806f0c69e"
+    },
+    "result": "installed report and restored workflow matched; two missing and two stale cases refused",
+    "verify_transition": {
+      "after": {
+        "bytes": 75960,
+        "sha256": "1291a96ad07b141d8b990e5a93bed924641cf6785cace0f179810f51cb08dfe3"
+      },
+      "before": {
+        "bytes": 75718,
+        "sha256": "4cb86dbc8c276fd9d272c99764fdd419b05c2f707e3ab1772dcad76d3f8495d4"
+      }
+    }
+  },
+  "commands": {
+    "cli141_installed": "python3 -I -B -S [ -O ] verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+    "cli141_restore": "python3 -I -B -S [ -O ] verification/native-report-source141-archive-v1/adopt_archive.py prepare-source141 --out <owned-fresh-path>",
+    "focused_tests": "python3 -B [ -O ] hosted/scripts/test_identity_network_collector.py WorkspaceSourceCutoverControls WorkflowSparseSourceControls CollectorMethodWiringControls.test_collect_requires_actual_prepare_result_before_bootstrap -v",
+    "installed_source": "python3 -B [ -O ] hosted/scripts/test-identity-network.py --check-source",
+    "retention": "python3 scripts/check-verification-artifacts.py"
+  },
+  "environment": {
+    "git": "git version 2.56.0",
+    "machine": "arm64",
+    "python": "3.14.8",
+    "system": "Darwin",
+    "system_version": "27.0.1"
+  },
+  "first_pass_observations": [
+    "The original prepared-archive fixture emitted a PAX header for the new migration path, which exceeds 100 bytes. The corrected fixture matches the existing USTAR writer and explicitly checks PAX refusal.",
+    "The first disposable archive projection used hard links and failed the unaliased-native-SDK input check. The verified projections copied ordinary files."
+  ],
+  "focused_tests": [
+    {
+      "mode": "normal",
+      "passed": 12,
+      "seconds": 22.442
+    },
+    {
+      "mode": "optimized",
+      "passed": 12,
+      "seconds": 21.519
+    }
+  ],
+  "installed_v54": {
+    "candidate_source_delta": {
+      "hosted/lib/mixer_hosted/customer_builds/local_starter.ex": {
+        "after": {
+          "bytes": 20805,
+          "sha256": "2b4f4765002a5053c12172d96105e05ffb2c5ba9d1a4a5451015f922a905ca47"
+        },
+        "before": {
+          "bytes": 17862,
+          "sha256": "e3cdc08fcf2c1da78e9d468bc75d0a096badf9febd494fd53c13b240cbd9891a"
+        }
+      },
+      "hosted/lib/mixer_hosted/customer_builds/local_starter_schema.ex": {
+        "after": {
+          "bytes": 8717,
+          "sha256": "51fae30e60cf4ea0187b156c284e6f7f1f6adf542ec564631b48e3ff2640df27"
+        },
+        "before": {
+          "bytes": 7581,
+          "sha256": "ff14354c27f0eceff9138e2609154560ad01bb68648abc9a7c98a0f645077f47"
+        }
+      },
+      "hosted/priv/local_managed_linux_source_selection/20261120000000_local_managed_linux_source_selection.exs": {
+        "after": {
+          "bytes": 461,
+          "sha256": "43986e67956e330e8b473752ee0bbec4be1f54a0dca2339fe5b2d09c1cff4e2e"
+        },
+        "before": null
+      },
+      "hosted/test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs": {
+        "after": {
+          "bytes": 48049,
+          "sha256": "c035b4f5bd644aae92603f5d88eef35a81a32e65e43ec5128b0089723cd1277a"
+        },
+        "before": {
+          "bytes": 36792,
+          "sha256": "3b64cbba36888c3a999f70ff7d59467a9fe917e1fe252bed5f2cd43c079aeeb8"
+        }
+      }
+    },
+    "identity": "hosted-managed-linux-pair25-starter-selection-source-v54",
+    "manifest": {
+      "bytes": 70587,
+      "path": "selected-source-manifest.json",
+      "sha256": "927bea7299ffffb6c4b0ecf2a94db0540e55c40e291403832cc98747bd1abdee"
+    },
+    "opt_in_migrations": [
+      "hosted/priv/local_source_selection/20261118000012_local_source_selection.exs",
+      "hosted/priv/local_android_source_selection/20261119000000_local_android_source_selection.exs",
+      "hosted/priv/local_managed_linux_source_selection/20261120000000_local_managed_linux_source_selection.exs"
+    ],
+    "reviewed_automatic_migrations": 20,
+    "runtime_or_GA_accepted": false,
+    "selection_sha256": "054d5a1f5eabbc02172b31878cf6a1d848c6ba15507b39e3454637e053b92c37",
+    "source_bytes": 6209113,
+    "source_count": 423,
+    "source_digest_sha256": "c4cd3e59dfb8a7216bfcae71a815e8f16d6f93ed73b9642aa7b4fbf775480627"
+  },
+  "provenance": {
+    "candidate_patch_id": "c3469e7e2e57d25dfb6111f27fd046f7273b8db2",
+    "exact_candidate_on_main": "b01467c89d0079a386396df4761990c71760c569",
+    "matching_candidate_blobs_and_modes": 5,
+    "public_main": "9bdd8958da5612cfb015cd6d5de62c4d245dba0b",
+    "reviewed_candidate": "a4a8a55ea34d52e4255d11d16e2a2542ecf444d5",
+    "reviewed_candidate_base": "ab5be7384a522e131659cd7c549f1ec5d351bfc9",
+    "staged_tree_before_this_receipt": "8a0b969291fdc25d828f0d19c54dcbc201b3bfa6"
+  },
+  "restored_v53": {
+    "canonical_sha256": "2d327bb3611f45c45fa35135b8ffab8d21aad02d420eabbc69e31492666f6f29",
+    "git_blobs_identical_to_pinned_main": 422,
+    "linux_runner_delta_paths_preserved": 16,
+    "manifest": {
+      "bytes": 70371,
+      "sha256": "a2efff8359403ff0b888a25ac663f8fa95312b16f03ba34bcbea2fa539d231f9"
+    },
+    "selection": {
+      "bytes": 6070,
+      "sha256": "eb7e84a3afd9ff217aab7ef90063e00d86f29be0831d0fef2bc831f31badd01f"
+    },
+    "source_bytes": 6193316,
+    "source_count": 422
+  },
+  "retention": "Passed with the binding staged before recording this receipt",
+  "runtime_integration": "Parent-owned, outside this host-source result",
+  "schema": 1,
+  "scope": "Host source binding and workflow metadata admission",
+  "scratch": {
+    "checkout": "Fresh sparse worktree under verification/local",
+    "incremental_budget_mib": 800,
+    "max_sampled_kib_in_owned_run_directory": 305096
+  },
+  "workflow_projections": {
+    "hosted.yml:phoenix": "Passed installed admission in both modes",
+    "hosted_and_identity_push_pull_request_filters": "Exact additions mirror v53",
+    "identity-network.yml:identity-network": "Passed installed admission in both modes",
+    "verify.yml:services": "Passed installed admission in both modes",
+    "verify.yml:swift-host and android-generated-java": "Non-cone rules include Verify and its new immutable predecessor"
+  }
+}

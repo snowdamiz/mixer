@@ -228,6 +228,9 @@ The same locked Pair24 export completed the ordinary selected-input build. One n
 
 The managed Linux Pair25 selector uses an opt-in catalog and an operator-pinned manifest. Two ordinary selection requests returned the same input and persisted one row. An unrelated tenant and an unknown Starter received HTTP 404. A build request with a changed digest returned HTTP 409 without enqueue. Restricted Oban dispatched one build from the selected response in each of two runs. One completed with two log events and three matching fixture artifacts. One settled after the owner's HTTP 202 cancellation and exposed no artifacts. Both runs used the inert backend and released capacity once. The two billing mirror rows matched before build and after readback. Real Docker compilation from the selected input remains open. [Selector controls](verification/receipts/l05-managed-linux-pair25-starter-selection-20261120.json) · [Selected dispatch](verification/receipts/l05-managed-linux-pair25-selected-dispatch-20261120.json) · [Billing controls](verification/receipts/l05-pair25-free-build-billing-control-20261120.json)
 
+
+Hosted source v54 admits the managed Linux Starter selector and its optional migration. The focused checks passed in normal and optimized Python. The archived v53 selection restored all 422 predecessor files byte for byte. [Source admission receipt](verification/receipts/hosted-source-binding-v54-20261120.json)
+
 The v52 artifact-read fixture now requires a successful metadata row while the token is live, then checks that expiry prevents its callback. All 15 focused PostgreSQL tests and both negative boundary controls passed in independent review. The normal and optimized source checks passed, followed by the public Phoenix and isolated identity-network workflows. [Verification receipt](verification/receipts/phoenix-artifact-read-expiry-v52-20261119.json)
 
 ### Android TaskCompletion parity and source diagnostic

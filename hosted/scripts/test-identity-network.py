@@ -3019,10 +3019,16 @@ WORKSPACE_V52_SOURCE_DIGEST = '7d3b01907c7eb4f323a9dd62376bc8bffd2277dc623c23e98
 WORKSPACE_V52_SOURCE_COUNT = 408
 WORKSPACE_V52_MANIFEST_SHA256 = '842081d4f3982fc83d98200a2286d9d83ad64414cbea62f2a0190dd174b3e189'
 
-WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v53/'
-WORKSPACE_SELECTION_SHA256 = 'eb7e84a3afd9ff217aab7ef90063e00d86f29be0831d0fef2bc831f31badd01f'
-WORKSPACE_SOURCE_DIGEST = '2d327bb3611f45c45fa35135b8ffab8d21aad02d420eabbc69e31492666f6f29'
-WORKSPACE_SOURCE_COUNT = 422
+WORKSPACE_V53_SOURCE_BASE = 'verification/identity-network-current-source-v53/'
+WORKSPACE_V53_SELECTION_SHA256 = 'eb7e84a3afd9ff217aab7ef90063e00d86f29be0831d0fef2bc831f31badd01f'
+WORKSPACE_V53_SOURCE_DIGEST = '2d327bb3611f45c45fa35135b8ffab8d21aad02d420eabbc69e31492666f6f29'
+WORKSPACE_V53_SOURCE_COUNT = 422
+WORKSPACE_V53_MANIFEST_SHA256 = 'a2efff8359403ff0b888a25ac663f8fa95312b16f03ba34bcbea2fa539d231f9'
+
+WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v54/'
+WORKSPACE_SELECTION_SHA256 = '054d5a1f5eabbc02172b31878cf6a1d848c6ba15507b39e3454637e053b92c37'
+WORKSPACE_SOURCE_DIGEST = 'c4cd3e59dfb8a7216bfcae71a815e8f16d6f93ed73b9642aa7b4fbf775480627'
+WORKSPACE_SOURCE_COUNT = 423
 WORKSPACE_LINUX_RUNNER_PATHS = {
     'cli/Sources/MixerBuild/Resources/android-build.py',
     'hosted/priv/development/linux_android_artifact_importer.py',
@@ -3043,6 +3049,9 @@ WORKSPACE_LINUX_RUNNER_PATHS = {
 }
 WORKSPACE_LOCAL_SOURCE_MIGRATION = 'hosted/priv/local_source_selection/20261118000012_local_source_selection.exs'
 WORKSPACE_ANDROID_SOURCE_MIGRATION = 'hosted/priv/local_android_source_selection/20261119000000_local_android_source_selection.exs'
+WORKSPACE_MANAGED_LINUX_SOURCE_MIGRATION = (
+    'hosted/priv/local_managed_linux_source_selection/20261120000000_local_managed_linux_source_selection.exs'
+)
 STARTER_PACKAGE_CLOSURE_SOURCE = 'hosted/priv/development/starter_package_closure.py'
 
 
@@ -3518,10 +3527,10 @@ def validate_workspace_v52_metadata(metadata):
     return selection, manifest
 
 
-def validate_workspace_source_metadata(metadata):
+def validate_workspace_v53_metadata(metadata):
     selection, manifest = _validate_workspace_metadata(
-        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
-        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V52_MANIFEST, {
+        metadata, WORKSPACE_V53_SOURCE_BASE, WORKSPACE_V53_SELECTION_SHA256,
+        WORKSPACE_V53_SOURCE_COUNT, WORKSPACE_V53_SOURCE_DIGEST, WORKSPACE_V52_MANIFEST, {
             'source_count': WORKSPACE_V52_SOURCE_COUNT,
             'source_digest_sha256': WORKSPACE_V52_SOURCE_DIGEST,
             'selection_sha256': WORKSPACE_V52_SELECTION_SHA256,
@@ -3538,6 +3547,36 @@ def validate_workspace_source_metadata(metadata):
             WORKSPACE_LOCAL_SOURCE_MIGRATION in manifest, 'opt-in source starter migration')
     require(selection['android_opt_in_migration'] == WORKSPACE_ANDROID_SOURCE_MIGRATION and
             WORKSPACE_ANDROID_SOURCE_MIGRATION in manifest, 'opt-in Android starter migration')
+    return selection, manifest
+
+
+def validate_workspace_source_metadata(metadata):
+    selection, manifest = _validate_workspace_metadata(
+        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
+        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V53_MANIFEST, {
+            'source_count': WORKSPACE_V53_SOURCE_COUNT,
+            'source_digest_sha256': WORKSPACE_V53_SOURCE_DIGEST,
+            'selection_sha256': WORKSPACE_V53_SELECTION_SHA256,
+            'manifest_sha256': WORKSPACE_V53_MANIFEST_SHA256,
+        }, migration_count=20)
+    require(selection['identity'] == 'hosted-managed-linux-pair25-starter-selection-source-v54' and
+            selection['schema'] == 1 and selection['deployment'] is False and
+            selection['financial_effects'] is False and selection['runtime_or_GA_accepted'] is False,
+            'Managed Linux Pair25 starter selection source scope')
+    require(set(manifest) == set(WORKSPACE_V53_MANIFEST) | {WORKSPACE_MANAGED_LINUX_SOURCE_MIGRATION} and
+            set(selection['exact_delta']) == {
+                'hosted/lib/mixer_hosted/customer_builds/local_starter.ex',
+                'hosted/lib/mixer_hosted/customer_builds/local_starter_schema.ex',
+                'hosted/test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs',
+                WORKSPACE_MANAGED_LINUX_SOURCE_MIGRATION,
+            }, 'Managed Linux Pair25 starter selection source membership')
+    require(selection['opt_in_migration'] == WORKSPACE_LOCAL_SOURCE_MIGRATION and
+            WORKSPACE_LOCAL_SOURCE_MIGRATION in manifest, 'opt-in source starter migration')
+    require(selection['android_opt_in_migration'] == WORKSPACE_ANDROID_SOURCE_MIGRATION and
+            WORKSPACE_ANDROID_SOURCE_MIGRATION in manifest, 'opt-in Android starter migration')
+    require(selection['managed_linux_opt_in_migration'] == WORKSPACE_MANAGED_LINUX_SOURCE_MIGRATION and
+            selection['exact_delta'][WORKSPACE_MANAGED_LINUX_SOURCE_MIGRATION]['before'] is None,
+            'opt-in managed Linux starter migration')
     return selection, manifest
 
 
@@ -3641,6 +3680,10 @@ def check_workspace_source(root):
         workspace_source_metadata(root, WORKSPACE_V52_SOURCE_BASE))
     v52_rows = workspace_preimage_rows(v52_selection, WORKSPACE_V52_SOURCE_BASE)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in v52_rows}, v52_rows)
+    v53_selection, _ = validate_workspace_v53_metadata(
+        workspace_source_metadata(root, WORKSPACE_V53_SOURCE_BASE))
+    v53_rows = workspace_preimage_rows(v53_selection, WORKSPACE_V53_SOURCE_BASE)
+    validate_workspace_preimages({path: (root / path).read_bytes() for path in v53_rows}, v53_rows)
     selection, manifest = validate_workspace_source_metadata(workspace_source_metadata(root, WORKSPACE_SOURCE_BASE))
     rows = workspace_preimage_rows(selection)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in rows}, rows)
@@ -3656,6 +3699,9 @@ def check_workspace_source(root):
     android_opt_in = PurePosixPath(WORKSPACE_ANDROID_SOURCE_MIGRATION)
     require(sorted(path.name for path in (root / android_opt_in.parent).iterdir()) == [android_opt_in.name],
             'installed opt-in Android starter migration inventory mismatch')
+    managed_linux_opt_in = PurePosixPath(WORKSPACE_MANAGED_LINUX_SOURCE_MIGRATION)
+    require(sorted(path.name for path in (root / managed_linux_opt_in.parent).iterdir()) == [managed_linux_opt_in.name],
+            'installed opt-in managed Linux starter migration inventory mismatch')
     return {'identity': selection['identity'], 'source_count': len(observed),
             'source_digest_sha256': WORKSPACE_SOURCE_DIGEST,
             'selection_sha256': WORKSPACE_SELECTION_SHA256, 'runtime_or_GA_accepted': False}
@@ -4916,6 +4962,14 @@ class Collector:
         validate_workspace_preimages(v52_preimages, v52_rows)
         metadata.update(v52_metadata)
         metadata.update(v52_preimages)
+        v53_metadata = self.git_blobs(
+            [WORKSPACE_V53_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        v53_selection, _ = validate_workspace_v53_metadata(v53_metadata)
+        v53_rows = workspace_preimage_rows(v53_selection, WORKSPACE_V53_SOURCE_BASE)
+        v53_preimages = self.git_blobs(sorted(v53_rows))
+        validate_workspace_preimages(v53_preimages, v53_rows)
+        metadata.update(v53_metadata)
+        metadata.update(v53_preimages)
         workspace_metadata = self.git_blobs([WORKSPACE_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         workspace_selection, workspace_manifest = validate_workspace_source_metadata(workspace_metadata)
         validate_workspace_source_manifest(workspace_manifest)
@@ -5701,6 +5755,8 @@ _, WORKSPACE_V51_MANIFEST = validate_workspace_v51_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V51_SOURCE_BASE))
 _, WORKSPACE_V52_MANIFEST = validate_workspace_v52_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V52_SOURCE_BASE))
+_, WORKSPACE_V53_MANIFEST = validate_workspace_v53_metadata(
+    workspace_source_metadata(_source_root, WORKSPACE_V53_SOURCE_BASE))
 _, WORKSPACE_MANIFEST = validate_workspace_source_metadata(workspace_source_metadata(_source_root, WORKSPACE_SOURCE_BASE))
 
 if __name__ == '__main__':
