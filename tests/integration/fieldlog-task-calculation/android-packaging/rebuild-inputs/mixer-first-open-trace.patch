@@ -1,0 +1,111 @@
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift
+@@ -1,4 +1,7 @@
+ import Foundation
++#if os(Android) && FIELDLOG_CALCULATION_TRACE
++import CFieldLogCalculationTrace
++#endif
+ @_spi(GuestUIV1) import MixerExperimentalCapabilityRuntime
+ @_spi(GuestUIV1) import MixerGuest
+ @_spi(CapabilityDurableV3) import MixerUpdates
+@@ -540,6 +543,9 @@
+         // The sticky latch wins even if the following write is uncertain.
+         state = next
+         do { try d.atomicState(encoded); publish() } catch { recoveryRequired = true; poison(); throw error }
++        #if os(Android) && FIELDLOG_CALCULATION_TRACE
++        fieldlog_calculation_trace(FL_CALC_INTENT_DURABLE, input.generation, 0, 0, 0, 0)
++        #endif
+         try op.check(); try signals.requireCommitEntry(expectedGeneration: input.generation)
+     }
+     func confirmEffectsEnabled(_ input: CapabilityConsumedStartup, signals: CapabilityAttemptSignals,
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityConcreteAttempt.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityConcreteAttempt.swift
+@@ -1,4 +1,7 @@
+ import Foundation
++#if os(Android) && FIELDLOG_CALCULATION_TRACE
++import CFieldLogCalculationTrace
++#endif
+ import Dispatch
+ @_spi(InstalledApplicationStorage) import MixerCapabilities
+ @_spi(CapabilityLifecycle) import MixerExperimentalCapabilityRuntime
+@@ -94,7 +97,13 @@
+     private static func enableOwned(_ c: CapabilityConcreteControl) async throws {
+         try c.requireOpen(deadline: true)
+         let session = try c.sessionForMethod()
++        #if os(Android) && FIELDLOG_CALCULATION_TRACE
++        fieldlog_calculation_trace(FL_CALC_VM_ENABLE_ENTER, c.signals.generation, 0, 0, 0, 0)
++        #endif
+         try await session.enableOwnedEffects(noLaterThanUptimeNanoseconds: c.cutoff)
++        #if os(Android) && FIELDLOG_CALCULATION_TRACE
++        fieldlog_calculation_trace(FL_CALC_VM_ENABLE_RETURN, c.signals.generation, 0, 0, 0, 0)
++        #endif
+         try c.requireOpen(deadline: true)
+     }
+     private static func startupGuestUIOwned(_ c: CapabilityConcreteControl) async throws {
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift
+@@ -1,4 +1,7 @@
+ import Foundation
++#if os(Android) && FIELDLOG_CALCULATION_TRACE
++import CFieldLogCalculationTrace
++#endif
+ @_spi(GuestUIV1) import MixerGuest
+ 
+ /// All durable/adapter work is reached from this private non-MainActor owner.
+@@ -143,6 +146,9 @@
+             try requireAttempt(op, signals)
+             if let exchange {
+                 try exchange.confirmEffectsEnabled(generation: input.generation)
++                #if os(Android) && FIELDLOG_CALCULATION_TRACE
++                fieldlog_calculation_trace(FL_CALC_EFFECTS_CONFIRMED, input.generation, 0, 0, 0, 0)
++                #endif
+                 try await store.reportMilestone(input, id: "feature_started")
+                 milestones.insert("feature_started")
+                 try requireAttempt(op, signals)
+@@ -233,6 +239,9 @@
+                 try await store.reportMilestone(active, id: "first_screen")
+                 milestones.insert("first_screen")
+                 exchange.consumeObservedPresentation(generation: receipt.generation, frameSerial: receipt.frameSerial)
++                #if os(Android) && FIELDLOG_CALCULATION_TRACE
++                fieldlog_calculation_trace(FL_CALC_FIRST_SCREEN, receipt.generation, 0, 0, receipt.frameSerial, 0)
++                #endif
+             } catch {
+                 if !signals.snapshot.stopped { signals.requestStop(.closed) }
+             }
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift
+@@ -1,5 +1,8 @@
+ #if canImport(CMixerUITransport) && canImport(CMixerUIAndroidHostBridge)
+ import Foundation
++#if os(Android) && FIELDLOG_CALCULATION_TRACE
++import CFieldLogCalculationTrace
++#endif
+ @_spi(GuestUIV1) import MixerGuest
+ import MixerUI
+ import CMixerUITransport
+@@ -178,9 +181,15 @@
+             guard let packet = pendingPacket, packet.count <= 65536 else { throw coldStartError("android_packet") }
+             guard tokenSerial <= UInt64(Int64.max) - 3 else { throw coldStartError("android_ui_identity") }
+             attachment = tokenSerial + 1; input = tokenSerial + 2; probe = tokenSerial + 3; tokenSerial += 3
++            #if os(Android) && FIELDLOG_CALCULATION_TRACE
++            fieldlog_calculation_trace(FL_CALC_APPLY_ENTER, frame.generation, facade, probe, frame.serial, 0)
++            #endif
+             let applied = packet.withUnsafeBytes { bytes in
+                 mxis_apply(facade, entry, attachment, input, probe, bytes.bindMemory(to: UInt8.self).baseAddress, UInt32(bytes.count))
+             }
++            #if os(Android) && FIELDLOG_CALCULATION_TRACE
++            fieldlog_calculation_trace(FL_CALC_APPLY_RETURN, frame.generation, facade, probe, frame.serial, applied)
++            #endif
+             pendingPacket = nil
+             guard applied == Int32(MXUIT_OK.rawValue) else { throw coldStartError("android_native_apply") }
+         }
+@@ -240,6 +249,9 @@
+             if !resources.observedFirstScreen {
+                 guard exchange.observePresentation(ticket) else { return Int32(MXUIT_STALE.rawValue) }
+                 resources.observedFirstScreen = true
++                #if os(Android) && FIELDLOG_CALCULATION_TRACE
++                fieldlog_calculation_trace(FL_CALC_DRAW_ACCEPTED, ticket.generation, resources.facade, token, ticket.frameSerial, 0)
++                #endif
+             }
+             resources.observedProbe = token
+             return Int32(MXUIT_OK.rawValue)

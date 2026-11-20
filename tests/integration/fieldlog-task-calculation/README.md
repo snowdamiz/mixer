@@ -96,13 +96,45 @@ overlay. It verifies pre-trace tree `5c36b0c71f00727bfd75418feae668bf8d527835` a
 is required after a successful or interrupted run.
 [Source receipt](../../../verification/receipts/fieldlog-android-calculation-source-review-20261120.json)
 
-The delivered native packager still uses the previous APK as an archive and
-includes its digest in the runtime identity. To replace that input, rebuild
-the JNI library and Java output with public Mixer
-`5dea19db36610e312b51918b384364ba590b6ef8` and the packet's Mixer trace patch.
-Package those outputs with the packet's exact workspace seed and public
-identity template, the engine-pair bridge and storage JSON and appearance
-descriptor, the 18 pinned Android support libraries, and the license notices.
-Bind the explicit inputs into a fresh runtime identity and sign with fresh
-development keys. Qualify the resulting APK separately.
-[Engine-pair source recipe](../fieldlog-android-engine-pair/replay/prepare.sh)
+## Rebuild the Android APK and replay it on the host
+
+Use arm64 macOS with Xcode 26.6 at `/Applications/Xcode_26.6.app` and
+Xcode 27.2 at `/Applications/Xcode.app`. Install the Swift 6.3.3 release
+toolchain and its Android SDK bundle in the standard per-user locations.
+Install Rust 1.99.0 with the `aarch64-linux-android` target and `llvm-tools`.
+The recipe uses Homebrew OpenJDK 25.0.4.1, Android SDK Platform 36,
+Build Tools 36.0.0, and NDK 27.1.12297006. It uses the pinned Swift Crypto
+and Swift ASN.1 revisions from the standard SwiftPM repository cache.
+The toolchain lock lists the exact compiler, resource, DEX, and signing
+inputs that the preflight verifies. [Toolchain pins](android-packaging/toolchain-pins.json)
+
+Use a Mixer checkout containing the recipe, the pinned Mixer commit
+`5dea19db36610e312b51918b384364ba590b6ef8`, and its source objects.
+The recipe fetches the pinned public FieldLog commit from GitHub.
+It uses only local inputs after that fetch.
+
+```sh
+run=$(mktemp -d /tmp/fieldlog-calculation.XXXXXXXX)
+run=$(cd "$run" && pwd -P)
+tests/integration/fieldlog-task-calculation/android-packaging/rebuild.sh "$run/work" "$run/handoff"
+(cd "$run/handoff" && shasum -a 256 -c SHA256SUMS)
+```
+
+The command needs free loopback port 41897 and up to 6 GiB of local space.
+It writes the APK, signed delivery, origin script, checksums, and receipts
+to `handoff`. The build uses the tracked 3,530-byte fixture seed and publishes
+its hash in both the APK and the host receipt. The witness runs baseline,
+correction, rollback, and a cold offline reopen against the same fixture.
+[Recipe inputs](android-packaging/recipe.sha256)
+
+Each rebuild creates its own development certificate and OTA root. Signing
+time, launch identifiers, and the signed APK and OTA bytes vary. The build
+receipt records the freshly linked JNI hash and the exact pinned DEX hash.
+The JNI library embeds build paths from Swift Crypto's BoringSSL sources,
+so its digest can vary with the scratch directory. The APK and its signed
+delivery share the runtime fingerprint recorded for that build.
+
+After success, remove the owned `work` directory and keep `handoff` for
+device qualification. If the command fails, use `work/logs` to check stage
+exit and custody. Preserve a stage with an `UNKNOWN` result or an
+interruption inside the VM builder until its nested commands are accounted for.
