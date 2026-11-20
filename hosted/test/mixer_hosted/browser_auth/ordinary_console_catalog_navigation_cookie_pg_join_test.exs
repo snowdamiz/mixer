@@ -16,7 +16,9 @@ defmodule MixerHosted.BrowserAuth.OrdinaryConsoleCatalogNavigationCookiePGJoinTe
     Protocol
   }
 
+  alias MixerHosted.CustomerArtifacts.{LocalUpload, UploadRepo}
   alias MixerHosted.Identity.KeyOwner
+  alias MixerHosted.Releases.RuntimeProvisioning
 
   setup_all do
     Fixture.prepare!()
@@ -168,6 +170,132 @@ defmodule MixerHosted.BrowserAuth.OrdinaryConsoleCatalogNavigationCookiePGJoinTe
       })
     )
 
+    leases_clean()
+  end
+
+  @tag :without_application
+  test "ordinary browser sessions admit only the exact installed uploader grants", c do
+    refute Process.whereis(UploadRepo)
+    assert bootstrap_http(Fixture.start!(c)).cookie != ""
+    assert :ok = Application.stop(:mixer_hosted)
+
+    {output, status} =
+      System.cmd(
+        "psql",
+        ~w(-X -w -h 127.0.0.1 -U browser_admin -d browser_ordinary_installation_r1422 -v ON_ERROR_STOP=1) ++
+          [
+            "-p",
+            to_string(F.port()),
+            "-f",
+            "../docs/operations/provision-local-artifact-uploader.sql"
+          ],
+        env: [{"PGSSLMODE", "disable"}],
+        stderr_to_stdout: true
+      )
+
+    assert status == 0, output
+
+    on_exit(fn ->
+      F.q!(Admin, "DROP OWNED BY mixer_artifact_uploader")
+      F.q!(Admin, "DROP ROLE mixer_artifact_uploader")
+    end)
+
+    F.q!(Admin, "CREATE ROLE mixer_release_delivery LOGIN NOINHERIT")
+    on_exit(fn -> F.q!(Admin, "DROP ROLE mixer_release_delivery") end)
+
+    c =
+      put_in(c.hosted.endpoint[:http],
+        ip: {127, 0, 0, 1},
+        port: 0,
+        http_2_options: [enabled: false]
+      )
+
+    vector = File.read!("../services/protocol/testdata/signed-release-v3.json") |> Jason.decode!()
+
+    release_env = %{
+      "MIXER_LOCAL_RELEASE_CONFIG" =>
+        Jason.encode!(%{
+          host: vector["host"],
+          roots: vector["roots"],
+          channel: vector["signed_assignment"]["assignment"]["channel"]
+        }),
+      "MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD" => "fixture-reader"
+    }
+
+    {target, delivery} = release = RuntimeProvisioning.load!(release_env, c.hosted)
+    Application.put_env(:mixer_hosted, :local_release_target, target)
+    Application.put_env(:mixer_hosted, :local_release_delivery, delivery)
+
+    enabled =
+      LocalUpload.configure!(
+        %{
+          "MIXER_LOCAL_ARTIFACT_UPLOAD_ENABLED" => "true",
+          "MIXER_LOCAL_ARTIFACT_UPLOAD_PASSWORD" => "fixture-uploader"
+        },
+        c.hosted,
+        release
+      )
+
+    running = Fixture.start!(%{c | hosted: enabled})
+
+    assert {:ok, %{repo: UploadRepo}} = LocalUpload.configuration()
+
+    assert [["mixer_artifact_uploader"]] ==
+             F.q!(UploadRepo, "SELECT session_user::text").rows
+
+    assert bootstrap_http(running).cookie != ""
+    assert :ok = Application.stop(:mixer_hosted)
+
+    default_off = %{c | hosted: LocalUpload.configure!(%{}, c.hosted, release)}
+    running = Fixture.start!(default_off)
+    assert :disabled = LocalUpload.configuration()
+    refute Process.whereis(UploadRepo)
+    assert bootstrap_http(running).cookie != ""
+    assert :ok = Application.stop(:mixer_hosted)
+
+    for {mutate, restore} <- [
+          {"REVOKE SELECT ON public.mixer_authz_profiles FROM mixer_artifact_uploader",
+           "GRANT SELECT ON public.mixer_authz_profiles TO mixer_artifact_uploader"},
+          {"GRANT SELECT ON public.mixer_browser_sessions TO mixer_artifact_uploader",
+           "REVOKE SELECT ON public.mixer_browser_sessions FROM mixer_artifact_uploader"},
+          {"GRANT UPDATE (id) ON public.mixer_authz_profiles TO mixer_artifact_uploader",
+           "REVOKE UPDATE (id) ON public.mixer_authz_profiles FROM mixer_artifact_uploader"},
+          {"GRANT SELECT ON public.mixer_authz_profiles TO mixer_artifact_uploader WITH GRANT OPTION",
+           "REVOKE GRANT OPTION FOR SELECT ON public.mixer_authz_profiles FROM mixer_artifact_uploader"},
+          {"ALTER TABLE public.mixer_authz_profiles OWNER TO browser_admin",
+           "ALTER TABLE public.mixer_authz_profiles OWNER TO browser_schema_owner"},
+          {"ALTER ROLE mixer_artifact_uploader RENAME TO wrong_artifact_uploader",
+           "ALTER ROLE wrong_artifact_uploader RENAME TO mixer_artifact_uploader"},
+          {"ALTER ROLE mixer_artifact_uploader NOLOGIN",
+           "ALTER ROLE mixer_artifact_uploader LOGIN"},
+          {"ALTER ROLE mixer_artifact_uploader INHERIT",
+           "ALTER ROLE mixer_artifact_uploader NOINHERIT"},
+          {"ALTER ROLE mixer_artifact_uploader BYPASSRLS",
+           "ALTER ROLE mixer_artifact_uploader NOBYPASSRLS"},
+          {"GRANT mixer_release_delivery TO mixer_artifact_uploader",
+           "REVOKE mixer_release_delivery FROM mixer_artifact_uploader"},
+          {"GRANT mixer_artifact_uploader TO mixer_release_delivery",
+           "REVOKE mixer_artifact_uploader FROM mixer_release_delivery"},
+          {"GRANT CREATE ON SCHEMA public TO mixer_artifact_uploader",
+           "REVOKE CREATE ON SCHEMA public FROM mixer_artifact_uploader"},
+          {"ALTER ROLE mixer_artifact_uploader IN DATABASE browser_ordinary_installation_r1422 SET search_path TO public",
+           "ALTER ROLE mixer_artifact_uploader IN DATABASE browser_ordinary_installation_r1422 RESET search_path"}
+        ] do
+      F.q!(Admin, mutate)
+
+      try do
+        refused = Fixture.start!(default_off)
+        assert RuntimeOwner.status().phase == :unavailable, mutate
+        response = http(refused, "/auth/session", [])
+        assert response.status == 503, mutate
+        assert response_header(response, "set-cookie") == [], mutate
+        assert :ok = Application.stop(:mixer_hosted)
+      after
+        F.q!(Admin, restore)
+      end
+    end
+
+    assert bootstrap_http(Fixture.start!(default_off)).cookie != ""
     leases_clean()
   end
 

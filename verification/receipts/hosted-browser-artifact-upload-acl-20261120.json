@@ -1,0 +1,47 @@
+{
+  "status": "passed",
+  "integration_base": "d3c215031d98fbdd1c746f047c75300e24208e99",
+  "tested_tree_without_receipt": "68ffbcb1f144add74c6db7b4f50f9112fef510b8",
+  "tools": {
+    "postgresql": "17.11",
+    "elixir": "1.20.4",
+    "erlang_otp": 29,
+    "node": "26.13.1"
+  },
+  "test_command_from_hosted": [
+    "mix", "test", "--warnings-as-errors", "--seed", "0", "--trace",
+    "test/mixer_hosted/browser_auth/ordinary_console_catalog_navigation_cookie_pg_join_test.exs",
+    "test/mixer_hosted/customer_artifacts/local_upload_test.exs"
+  ],
+  "fixture": "Private PostgreSQL cluster bound to loopback, C locale, plain local DB connections, maintained browser and authorization provisioning functions from scripts/test-local.py, ordinary Phoenix/Bandit endpoint, synthetic provider and compiled console client.",
+  "runner_deviation": "The full scripts/test-local.py runner stopped at its repository-wide format preflight because the integration base's check-configured-startup.exs is unformatted. A private harness called the maintained provisioning functions and ran the selected ExUnit modules directly. Both changed Elixir files passed mix format --check-formatted.",
+  "baseline": {
+    "product_source": "integration base, with the new regression test",
+    "result": "13 passed, 1 failed",
+    "observation": "GET /auth/session returned 200 before provisioning and 503 after applying the checked-in provisioning SQL and starting the uploader pool."
+  },
+  "candidate": {
+    "result": "14 passed",
+    "observation": "GET /auth/session returned 200 and emitted a usable cookie with grants absent, with the installed uploader enabled, and after restarting with upload default-off and the grants retained. The enabled pool used session_user mixer_artifact_uploader. No uploader pool ran in the default-off restart.",
+    "refusals": {
+      "observation": "Each variant returned 503 and emitted no cookie. The restored exact shape returned 200 and emitted a usable cookie.",
+      "variants": [
+        "partial grant set",
+        "extra SELECT on browser sessions",
+        "extra column UPDATE",
+        "grantable SELECT",
+        "different relation owner",
+        "different uploader role name",
+        "NOLOGIN",
+        "INHERIT",
+        "BYPASSRLS",
+        "membership in another role",
+        "another role as uploader member",
+        "schema CREATE",
+        "database-specific role setting"
+      ]
+    }
+  },
+  "cleanup": "Both measured PostgreSQL postmasters exited, owned process groups were absent, ports were reusable, and owned data directories were removed.",
+  "scope": "Local browser session and uploader startup coexistence with exact browser relation ACL admission. This run did not perform a signed artifact upload, exercise PostgreSQL TLS or PostgreSQL 16, or qualify a release."
+}

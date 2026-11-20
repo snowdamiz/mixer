@@ -7,6 +7,13 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
   alias MixerHosted.BrowserAuth.{RelationManifest, WorkspaceCatalog}
 
   @release_principal_sources ~w(mixer_release_publications mixer_release_cli_requests)
+  @uploader_relations ~w(
+    public.mixer_authz_bindings
+    public.mixer_authz_credentials
+    public.mixer_authz_families
+    public.mixer_authz_principals
+    public.mixer_authz_profiles
+  )
   @roles [:lifecycle_login, :writer, :relation_owner, :ordinary_runtime_login]
   @marker "__mixer_relation_bound__"
   @wire_limit 2 * 1024 * 1024
@@ -1161,6 +1168,36 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
   defp table_tokens(17), do: ~w(SELECT INSERT UPDATE DELETE TRUNCATE REFERENCES TRIGGER MAINTAIN)
   defp apps(roles), do: [roles.lifecycle_login, roles.writer, roles.ordinary_runtime_login]
 
+  defp uploader_acl!(state, roles) do
+    {[%{"oid" => oid}], state} =
+      fetch!(
+        state,
+        """
+        SELECT r.oid::pg_catalog.int8 AS oid FROM pg_catalog.pg_roles r
+        WHERE r.rolname='mixer_artifact_uploader' AND r.rolcanlogin
+          AND NOT (r.rolsuper OR r.rolbypassrls OR r.rolcreatedb OR r.rolcreaterole
+            OR r.rolreplication OR r.rolinherit)
+          AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_auth_members m WHERE r.oid IN(m.member,m.roleid))
+          AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_db_role_setting s WHERE s.setrole=r.oid)
+          AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_shdepend d
+            WHERE d.refclassid='pg_catalog.pg_authid'::pg_catalog.regclass
+              AND d.refobjid=r.oid AND d.deptype='o')
+          AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_database d
+            WHERE pg_catalog.has_database_privilege(r.oid,d.oid,'CREATE'))
+          AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_namespace n
+            WHERE pg_catalog.has_schema_privilege(r.oid,n.oid,'CREATE'))
+        LIMIT 2
+        """,
+        [],
+        [{"oid", :oid}],
+        1,
+        1
+      )
+
+    demand(oid > 0 and oid not in Map.values(roles))
+    {Enum.map(@uploader_relations, &acl_row(&1, nil, oid, roles.relation_owner, "SELECT")), state}
+  end
+
   defp privileges!(state, ids, columns, manifest, roles, major, extra_acl) do
     schema = [
       {"relation", {:text, 127}},
@@ -1213,7 +1250,18 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
       end)
 
     expected = expected ++ extra_acl
-    {rows, state} = fetch!(state, sql, [ids], schema, 512, length(expected))
+    installed_count = length(expected) + length(@uploader_relations)
+    {rows, state} = fetch!(state, sql, [ids], schema, min(512, installed_count), nil)
+
+    # Provisioning persists across restarts with the upload feature disabled.
+    {expected, state} =
+      if length(rows) == installed_count do
+        {uploader, state} = uploader_acl!(state, roles)
+        {expected ++ uploader, state}
+      else
+        {expected, state}
+      end
+
     demand(Enum.frequencies(rows) === Enum.frequencies(expected))
     tokens = table_tokens(major)
 
