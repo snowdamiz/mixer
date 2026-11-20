@@ -1,0 +1,106 @@
+{
+  "sourceSHA256": {
+    "hosted/config/runtime.exs": "aa2c4ed58e31bc8cd6619d73cd002a3a219b142280f5883817b5555e324552d8",
+    "hosted/lib/mixer_hosted/application.ex": "59ad7a1069afdbcc26287deae04caeccddb6a1383b345a5f3abd8f4318ef56d6",
+    "hosted/lib/mixer_hosted/browser_auth/runtime_config.ex": "82b07a1781b0ea5076a38fa12fe0fcfd4d50a98b256f2af2ce63a5c526a73cb9",
+    "hosted/lib/mixer_hosted/customer_artifacts/local_upload.ex": "bfd9a833498f485c4c535abb581f39d922cafd45573faf2a5cfd8e7e9e1e2d37",
+    "hosted/scripts/check-configured-startup.exs": "87f9bd32abbb09052da413d6c0d149f971ab437cdb7ab8b9b48fda606d8bcad0"
+  },
+  "checks": {
+    "provider-trust-config": {
+      "passed": 12,
+      "stdoutSHA256": "2446d32a5ad8ed3cdaae9976b619dba613cea096cbe1b8334ecddb69b3e3f89d"
+    },
+    "startup-secrets": {
+      "passed": 8,
+      "stdoutSHA256": "c49560a00bfb148e2d79e9802b8cf9860359dc38dfeccd8a76d16ed394c5bf11"
+    },
+    "configured-startup": {
+      "passed": 15,
+      "stdoutSHA256": "d169e54431fa7e69932ed19f723b197786058b34415418145a2b1d6260cc17ce"
+    },
+    "focused-mix": {
+      "passed": 80,
+      "stdoutSHA256": "dc611c5e8030dc8208670e2f0d351d3d50aca64b0aac9f7ab0d8747b1d30d1eb"
+    }
+  },
+  "archivesVerified": 21,
+  "commands": [
+    {
+      "label": "locked-deps",
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "deps.get",
+        "--check-locked"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "composition-deps",
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "deps.compile",
+        "hpax",
+        "mint",
+        "jose"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "provider-trust-config",
+      "argv": [
+        "/opt/homebrew/bin/elixir",
+        "hosted/scripts/check-provider-trust-config.exs",
+        "hosted/deps/jason/lib"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "startup-secrets",
+      "argv": [
+        "/opt/homebrew/bin/elixir",
+        "hosted/scripts/check-startup-secrets.exs",
+        "hosted/deps/jason/lib"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "configured-startup",
+      "argv": [
+        "/opt/homebrew/bin/elixir",
+        "-pa",
+        "hosted/_build/prod/lib/hpax/ebin",
+        "-pa",
+        "hosted/_build/prod/lib/mint/ebin",
+        "-pa",
+        "hosted/_build/prod/lib/jose/ebin",
+        "hosted/scripts/check-configured-startup.exs",
+        "hosted/deps/jason/lib"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "focused-mix",
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "test",
+        "--warnings-as-errors",
+        "--seed",
+        "0",
+        "test/mixer_hosted/customer_artifacts/local_upload_test.exs",
+        "test/runtime_config_test.exs",
+        "test/mixer_hosted/browser_auth/runtime_config_test.exs",
+        "test/mixer_hosted/releases/runtime_provisioning_test.exs",
+        "test/mixer_hosted_web/customer_artifact_transport_test.exs"
+      ],
+      "exit": 0
+    }
+  ],
+  "groupsAbsent": 6,
+  "scratchRemoved": true,
+  "scope": "Standalone hosted CI startup controls and focused Mix checks after composing the opt-in uploader on v61",
+  "rootIntegration": "e0a162a461",
+  "uploaderProducer": "e608b6f644e6e06eb08656a9025a7e632f912e37",
+  "originalFailure": "Standalone configured-startup failed on missing LocalUpload calls before its disabled uploader leaf was added. Constructor-only checks use the validated hosted struct without starting an uploader.",
+  "remaining": "Provisioned uploader ACL compatibility with configured browser storage and an ordinary stock CLI replay remain open."
+}
