@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "gate": "L05",
+  "status": "stock_cli_synthetic_fixture_pass_ordinary_join_blocked",
+  "publicBase": "6047348aade7d5bb05e8013e437f36898eb90cb5",
+  "candidate": "7e2633cdb8eb86f42c2ab756564872bae5a3dfc5",
+  "candidateTree": "040299458371982ae221636824de20f72b97d84c",
+  "hostedTree": "d08320f22af95d569dd76fab90ee827f7747ed47",
+  "cliTree": "25a95557190f8b1cc1bb87ef2c7db1e3f404d866",
+  "sourceIdentity": "Detached sparse checkout of the candidate, whose only parent is the exact public base. CLI, SDK, updates, runtime-identity and protocol fixture paths match the public base.",
+  "environment": {
+    "host": "macOS 27.0.1 arm64",
+    "swift": "6.4.2",
+    "mix": "1.20.4",
+    "otp": "29",
+    "postgresql": "17.11",
+    "mixLockSha256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+    "cliResolvedSha256": "de4bd6f84bfa554faf519a52f6c5fb9a051761ded30ae5fee4440b5e88118855"
+  },
+  "commands": {
+    "cli": "swift build --package-path cli --scratch-path <owned> --cache-path <owned> --config-path <owned> --security-path <owned> --manifest-cache local --only-use-versions-from-resolved-file --skip-update -j 8 --product mixer",
+    "hostedDependencies": "HEX_OFFLINE=1 MIX_ENV=test mix deps.get",
+    "hostedBuild": "MIX_ENV=test mix compile --warnings-as-errors",
+    "fixture": "MIX_ENV=test mix test --warnings-as-errors --seed 0 --trace --no-color test/mixer_hosted/releases/runtime_provisioning_test.exs test/mixer_hosted/releases/browser_publication_test.exs",
+    "fixtureEntry": "MIXER_TEST_RELEASE_CLI=<stock executable>, MIXER_TEST_RELEASE_CANDIDATE=<owned directory>, MIXER_PUBLIC_DELIVERY_WIRE_PROOF=<owned JSON>, MIXER_BROWSER_STORAGE_PORT=<owned port>, MIXER_BROWSER_CATALOG_FIXTURE_ROOT=<owned directory>",
+    "runtimeProjection": "MIX_ENV=dev mix run --no-start --no-compile <runtime assertions>",
+    "hostedDevBuild": "MIX_ENV=dev mix compile --warnings-as-errors"
+  },
+  "fixture": {
+    "result": "12 passed",
+    "logSha256": "e2e0750f116295f584778c6857434b82778a93fcc3a6a5cb6819865e39bb2aab",
+    "mixerBinarySha256": "535e5e0cdbc4049db80fc509cb58040cd1032ed9fbb2168fda65aa15c6eb4b15",
+    "test": "shares a head between browser and CLI publication and delivers only committed releases",
+    "scope": "Test-compiled Phoenix with live loopback HTTP, non-TLS PostgreSQL, fixture PKCE/OIDC and bearer verification, and a separate test-provisioned uploader role/repo. Browser head was read via authenticated HTTP. No browser UI was driven.",
+    "cliCommand": "mixer update publish <candidate> --organization org-a --project project-a --channel beta --rollout 15 --assignment <signed-assignment.json>",
+    "cliSuccess": "The unmodified stock command passed its upload, validate and publish response checks and the harness matched its complete success receipt.",
+    "previousSequence": 7,
+    "sequence": 8,
+    "artifactSha256": "36087ba48e4a65e9f87c4538727677bacd4337beab76040b9947819fa906ec77",
+    "payloadSha256": "cd3e147c7afb783345f81081e9b2a764bf0a0a7b7b249ba1836a2e4b74a8c24f",
+    "signedAssignmentFileSha256": "b59122df4b62f22dbcda56f331b2c10f6847940e5d91a63431547e5df375a368",
+    "checks": [
+      "Authenticated browser head and updater offer matched the exact new sequence and artifact digest after stock CLI publication.",
+      "The updater returned the exact signed assignment and artifact envelope. The fixture verified those bytes together and reread the same release after restarting Phoenix.",
+      "The ledger held two publications, one browser and one CLI. Tested controls refused excluded installations, wrong targets, cross-tenant artifact access and unauthorized reader/writer operations."
+    ]
+  },
+  "blockers": {
+    "identity": "The exact DNSResolver returned {:error, :dns_rejected} for jwks.fixture.invalid when the maintained owned DNSFixture returned 127.0.0.1. The same test resolved its global-answer control without opening a connection to that address. Both the configured access-token JWKS transport and browser HTTPS provider use this resolver. The maintained real-network proof requires Linux and MIXER_ISOLATED_NETNS=1 with locally routed global-unicast test addressing. That isolation or an equivalent approved synthetic provider is missing on this macOS run.",
+    "artifactUpload": "The standard runtime config has WriterRepo and DeliveryRepo and omits the CustomerArtifacts application configuration. Stock update publish begins with PUT /v3/orgs/:org/projects/:project/artifacts/:digest even for an existing artifact. The upload facade returned storage_unavailable with ordinary config. The maintained test supplies its own restricted uploader Repo and trust config. Ordinary stock publication requires a separately authorized uploader with launch-time Repo and trust provisioning.",
+    "dnsProbeOutputSha256": "c6745da58ddced4c884e37bd00cdb6d7a611d2a413d17961ea281981cf027802",
+    "runtimeProjectionOutputSha256": "22a964c3efa03d939dbed28d0019bcfb69eebe0810187ae27d38360995bdc705",
+    "runtimeProjection": "The no-start dev probe loaded the real runtime.exs from environment. Configured identity was accepted and ordinary, release reader and WriterRepo options all had verify_peer. With no app running, the facade demonstrated the missing upload configuration. No ordinary authenticated request or TLS database connection was attempted in this probe."
+  },
+  "cleanup": {
+    "firstPostgresAttempt": "Postmaster rejected the unset LC_ALL with 'postmaster became multithreaded during startup', exited 1 and its owned group 7605 was observed absent. The corrected run used LC_ALL=C and a fresh data directory.",
+    "livePostgres": "pg_ctl fast shutdown succeeded, postmaster group 15081 absent, direct exit 0, postmaster.pid absent and loopback port 57732 reusable.",
+    "fixture": "Phoenix/ExUnit command group 15092 absent, direct exit 0. Zero named fixture databases and temporary publication roles remained before PostgreSQL stopped. Reported TLS JWKS fixture had zero active connections and one peer closure. The separate DNS GenServer stopped explicitly.",
+    "worktreeAndScratchRemoved": true
+  },
+  "limits": "Scoped test evidence only. No single ordinary Phoenix/TLS authenticated join, candidate promotion, source or workflow binding changes, deployment, payment, or L05 gate passage."
+}
