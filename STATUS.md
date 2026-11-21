@@ -77,6 +77,14 @@ The v74 and Swift hosted custody records remain in force.
 [Intel receipt](verification/receipts/hosted-v75-intel-android-44869279038.json) ·
 [Swift host diagnosis](verification/receipts/swift-cli-host-sig11-v75-44869279038.json)
 
+The one-off Swift Testing diagnostic reproduced signal 11 in serial mode on
+macOS 15.8.2 with Xcode 26.3 and Swift 6.2.4. The crash report matches the
+test bundle UUID. The crashing thread reached Foundation's URL path decoder
+from the malformed-NUL fixture in `ownedCommandControlSchedules()`.
+Default scheduling did not run. The diagnostic's retained scratch and
+unconfirmed descendants remain under its UNKNOWN custody record.
+[Exact hosted diagnostic](verification/receipts/swift-cli-host-serial-crash-44876481949.json)
+
 ## November 20 local release delivery outage and recovery
 
 A committed Phoenix release reached local Workerd through the private historical

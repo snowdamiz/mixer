@@ -1,0 +1,101 @@
+{
+  "scope": "Pinned v76 CLI Swift Testing diagnostic on the runner image that reported the v75 and v76 failures.",
+  "workflow": {
+    "commit": "03e50d05d2f56de83ff6b5d90593e29a8e4baaf7",
+    "run": 44876481949,
+    "attempt": 1,
+    "job": 136762184205,
+    "conclusion": "failure"
+  },
+  "artifact": {
+    "id": 14695194995,
+    "zipBytes": 53905,
+    "zipSha256": "1cc945fbba927c0c8b891bbf41e886e5af8d9e3cd093bf6a5c4433af458f95ee",
+    "inspectedInMemory": true
+  },
+  "testCheckout": {
+    "commit": "32cd2c54b6d397f178200b6d95a27125f5c2de24",
+    "tree": "362136b1113ee2ca8976387b461138d45a844daf",
+    "testFile": "cli/Tests/MixerBuildTests/OwnedCommandControlTests.swift",
+    "testFileBlobAtBothRevisions": "af192342868b6e3ff9a82ba0eb999cb20b5a03d7"
+  },
+  "toolchain": {
+    "macOS": {
+      "train": "macOS 15.8.2",
+      "build": "24H232",
+      "releaseType": "User"
+    },
+    "architecture": "arm64",
+    "xcodeVersion": "26.3",
+    "xcodeBuild": "17C529",
+    "swift": "6.2.4"
+  },
+  "serial": {
+    "eventCounts": {
+      "runStarted": 1,
+      "testStarted": 66,
+      "testEnded": 65,
+      "testCaseStarted": 272,
+      "testCaseEnded": 272
+    },
+    "lastStartedTest": "MixerBuildTests.ownedCommandControlSchedules()/OwnedCommandControlTests.swift:5:2",
+    "swiftPMExit": 1,
+    "swiftPMOutput": "[0/1] Planning build\nerror: Exited with unexpected signal code 11"
+  },
+  "defaultScheduling": "Did not start after the serial failure.",
+  "crash": {
+    "timestamp": "2026-11-21 06:41:04.00 +0000",
+    "type": "EXC_BAD_ACCESS",
+    "signal": "SIGSEGV",
+    "subtype": "KERN_INVALID_ADDRESS at 0x0000000000000000",
+    "helperPID": 2397,
+    "parentSwiftPMPID": 2130,
+    "helperPath": "/Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/libexec/swift/pm/swiftpm-testing-helper",
+    "helperUUID": "659e7bd0-d05e-3960-b8cd-77fd8841ef6d",
+    "bundleUUID": "9bc4e31a-4c0b-31d0-8bb3-e75c0915be08",
+    "faultingThread": 1,
+    "frames": [
+      {
+        "image": "CoreFoundation",
+        "offset": 1379820,
+        "symbol": "CF_IS_OBJC"
+      },
+      {
+        "image": "CoreFoundation",
+        "offset": 1508284,
+        "symbol": "_CFURLCopyPath"
+      },
+      {
+        "image": "Foundation",
+        "offset": 7530832,
+        "symbol": "URL.path(percentEncoded:)"
+      },
+      {
+        "image": "MixerCLIPackageTests",
+        "offset": 3524524,
+        "symbol": "implicit closure #60 in static OwnedCommandProof.run()"
+      },
+      {
+        "image": "MixerCLIPackageTests",
+        "offset": 3482328,
+        "symbol": "require(_:_:)"
+      },
+      {
+        "image": "MixerCLIPackageTests",
+        "offset": 3461984,
+        "symbol": "static OwnedCommandProof.run()"
+      },
+      {
+        "image": "MixerCLIPackageTests",
+        "offset": 3432800,
+        "symbol": "ownedCommandControlSchedules()"
+      }
+    ]
+  },
+  "sourceFinding": "The test's only URL.path(percentEncoded:) call is line 274, where an assertion decodes a file URL constructed from a filesystem path containing a NUL. The symbolized stack is consistent with that assertion. The serial job establishes that suite parallelism is unnecessary to trigger the failure.",
+  "custody": {
+    "scope": "Only the exact hosted diagnostic namespace and its unconfirmed descendants",
+    "status": "UNKNOWN until the complete test run and fixture holds are checked. Preserve /Users/runner/work/_temp/mixer-v76-swift-testing.\nswiftpm_pid=2130\nswiftpm_exit=1",
+    "holdsReleased": false
+  }
+}
