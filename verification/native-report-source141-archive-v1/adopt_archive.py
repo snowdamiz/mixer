@@ -420,6 +420,23 @@ NATIVE_FINGERPRINT_PREFIX = 'native-fingerprint-predecessor-bytes/'
 NATIVE_FINGERPRINT_SOURCE_PREIMAGE = NATIVE_FINGERPRINT_PREFIX + SOURCE_INPUTS_MANIFEST
 NATIVE_FINGERPRINT_SOURCE_SHA256 = '70107ea77590add389199189bf363abf42f551df2859cd79cbd1b09d3fc170ac'
 NATIVE_FINGERPRINT_CHANGES = {CAPABILITY_IDENTITY, SPARSE_CHECKOUT_TEST}
+PRIVATE_F10_PREFIX = 'private-f10-predecessor-bytes/'
+PRIVATE_F10_SOURCE_PREIMAGE = PRIVATE_F10_PREFIX + SOURCE_INPUTS_MANIFEST
+PRIVATE_F10_SOURCE_SHA256 = '9b66d5d55405d32d865c4085eb2be31aab0142b6cd0d75d7ebe63728e66ca346'
+PRIVATE_F10_SOURCE_CHANGES = {
+    'runtime-identity/Sources/MixerRuntimeIdentity/CapabilityRuntimeIdentity.swift',
+    'sdk/Sources/MixerGuest/GuestUIExchangeCore.swift',
+    'sdk/Sources/MixerGuest/GuestUIExchangeV3.swift',
+    'updates/Sources/MixerUpdates/Verifier.swift',
+    'updates/Sources/MixerUpdates/VerifierV3.swift',
+}
+PRIVATE_F10_CHANGES = PRIVATE_F10_SOURCE_CHANGES | {
+    CAPABILITY + 'CapabilityColdStartControl.swift',
+    CAPABILITY + 'CapabilityColdStartRuntime.swift',
+    CAPABILITY + 'CapabilityColdStartWorker.swift',
+    CAPABILITY + 'CapabilityGuestUIAndroidRuntime.swift',
+    SPARSE_CHECKOUT_TEST,
+}
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, STANDARDS_REPLAY_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
@@ -472,6 +489,9 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
 } | {
     NATIVE_FINGERPRINT_SOURCE_PREIMAGE,
     *(NATIVE_FINGERPRINT_PREFIX + name for name in NATIVE_FINGERPRINT_CHANGES),
+} | {
+    PRIVATE_F10_SOURCE_PREIMAGE,
+    *(PRIVATE_F10_PREFIX + name for name in PRIVATE_F10_CHANGES),
 } | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
 } | {
@@ -609,6 +629,7 @@ def install_inputs():
                              'managed_android_retained_transition', 'pair25_transition', 'swift_version_transition',
                              'cli_nonregular_input_test_transition', 'signed_apple_overflow_test_transition',
                              'w09_signed_apple_test_transition', 'fieldlog_commit_transition', 'native_fingerprint_transition',
+                             'private_f10_transition',
                              'sparse_checkout_test_transition', 'release_rest_v3_transition', 'stock_promotion_transition',
                              'hosted_v71_transition', 'hosted_v72_transition', 'hosted_v73_transition',
                              'hosted_v74_transition', 'hosted_v76_transition', 'hosted_v77_transition',
@@ -622,6 +643,21 @@ def install_inputs():
             type(binding['schema']) is int and binding['schema'] == 1 and binding['type'] == TYPE and
             binding['predecessor_binding'] == (PREVIOUS / 'binding.json').as_posix() and
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
+
+    private_f10 = binding['private_f10_transition']
+    require(set(private_f10) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            set(private_f10['changes']) == PRIVATE_F10_CHANGES,
+            'Private F10 change roster differs')
+    private_f10_preimages = {}
+    for name, change in private_f10['changes'].items():
+        path = HERE / PRIVATE_F10_PREFIX / name
+        raw = read_predecessor_member(path)
+        require(set(change) == {'before', 'after', 'mode'} and change['before'] != change['after'] and
+                change['before'] == previous.row(raw) and
+                change['mode'] == stat.S_IMODE(path.lstat().st_mode) ==
+                stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'Private F10 owner bytes or mode differ: ' + name)
+        private_f10_preimages[name] = (raw, change['mode'])
 
     original = ROOT / PREVIOUS
     current = previous.load(HERE / SOURCE_INPUTS_MANIFEST)
@@ -706,6 +742,8 @@ def install_inputs():
                 raw = android_output_preimages.get(name)
             if raw is None:
                 raw = pair25_preimages.get(name)
+            if raw is None and name in private_f10_preimages:
+                raw, _ = private_f10_preimages[name]
             if raw is None:
                 raw = previous.read(path)
             require(previous.row(raw) == change['after'], 'Pair23 archive owner differs: ' + name)
@@ -1714,11 +1752,29 @@ def install_inputs():
     require(identity_change['before'] == expected_source[CAPABILITY_IDENTITY],
             'Native fingerprint source preimage differs')
     expected_source[CAPABILITY_IDENTITY] = identity_change['after']
-    require(current == expected_source and len(current) == len(fieldlog_source) and
-            previous.digest(current) == fingerprint['sourceAfter'] == NATIVE_FINGERPRINT_SOURCE_SHA256 and
-            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
-                                  'sha256': NATIVE_FINGERPRINT_SOURCE_SHA256},
+    fingerprint_source_path = HERE / PRIVATE_F10_SOURCE_PREIMAGE
+    fingerprint_source = previous.load(fingerprint_source_path)
+    require(fingerprint_source == expected_source and len(fingerprint_source) == len(fieldlog_source) and
+            previous.digest(fingerprint_source) == fingerprint['sourceAfter'] == NATIVE_FINGERPRINT_SOURCE_SHA256 and
+            stat.S_IMODE(fingerprint_source_path.lstat().st_mode) == 0o644,
             'Native fingerprint source transition differs')
+
+    require(private_f10['sourceBefore'] == fingerprint['sourceAfter'] and
+            PRIVATE_F10_CHANGES <= installed.keys() and
+            expected_source.keys() & PRIVATE_F10_CHANGES == PRIVATE_F10_SOURCE_CHANGES,
+            'Private F10 predecessor roster differs')
+    for name, change in private_f10['changes'].items():
+        require(change['before'] == installed[name], 'Private F10 predecessor row differs: ' + name)
+        installed[name] = change['after']
+        if name in PRIVATE_F10_SOURCE_CHANGES:
+            require(change['before'] == expected_source[name],
+                    'Private F10 source preimage differs: ' + name)
+            expected_source[name] = change['after']
+    require(current == expected_source and len(current) == len(fingerprint_source) and
+            previous.digest(current) == private_f10['sourceAfter'] == PRIVATE_F10_SOURCE_SHA256 and
+            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
+                                  'sha256': PRIVATE_F10_SOURCE_SHA256},
+            'Private F10 source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in release['changes'].items():
@@ -1747,6 +1803,8 @@ def install_inputs():
                 'Installed capability archive owner mode differs: ' + name)
         if name in effective and name not in preimages:
             preimages[name] = (capability_preimages[name], change['mode'])
+    # Earlier preimages also include the capability fallback above.
+    preimages = {**private_f10_preimages, **preimages}
     owner = previous.module('native_archive_actual_collector', ROOT / previous.OWNER)
     profile = owner.load_profile(ROOT)
     pair22 = historical_binding['sdk_transition']['profileAfter']
@@ -1824,6 +1882,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_native_fingerprint_sha256': binding['private_f10_transition']['sourceBefore'],
             'predecessor_fieldlog_commit_sha256': binding['native_fingerprint_transition']['sourceBefore'],
             'predecessor_v82_source154_sha256': binding['fieldlog_commit_transition']['sourceBefore'],
             'predecessor_swiftpm_migration_sha256': binding['swiftpm_migration_transition']['sourceBefore'],
