@@ -181,8 +181,9 @@ workspace reopened byte-for-byte, with zero writes. Pagination kept the
 previous page visible and input busy until the matching found response.
 Entries stopped at the historical handoff. All 34 replay groups closed.
 Review found that a paging read expiring during admission could leave input
-busy after the mailbox acknowledged its cancellation. A correction and
-boundary replay are underway. Native display and installed OTA remain open.
+busy after the mailbox acknowledged its cancellation. Automated
+cybersecurity screening stopped the delegated correction. The candidate
+remains open. Native display and installed OTA remain open.
 [Six-action replay](verification/receipts/fieldlog-f10-v3-signed-six-actions-2acaac67.json)
 
 The app-owned storage guide exercises the public installed storage adapter.
@@ -1221,6 +1222,15 @@ A reduced F05 JSON probe linked to 12,651,963 bytes and 40 initial memory pages 
 The F05 design keeps the existing signed recovery authority and selects one closed V3 runtime owner. The exact guest exceeds the 4 MiB installed ceiling. Work proceeds on a compact signed-host control and a separate guest-size measurement. [Design decision](verification/receipts/fieldlog-f05-signed-design-decision-41a05264.json)
 
 The F05 host probe compiled the historical FieldLog reducer and presentation to Swift/WASI and ran them on the owned development256 VM. Current edit, stale-action rejection and cancel checks passed. Retirement reported zero current usage in all fourteen ledger counters and zero live tickets or cleanup invariant failures. The probe used a candidate WASI build fix. Installed signed selection and device runs remain open. [F05 host receipt](verification/receipts/fieldlog-f05-public-swift-5961ea0c.json)
+
+A compact unsigned Embedded Swift editor now runs in the owned VM on
+`2acaac6760`. It compiles the title reduction extracted from the two
+historical editors and matches their observed state across 12 turns
+each. The 86,887-byte guest has zero imports and two initial memory
+pages. One longer equivalence case still exhausts the fixed fuel
+budget. Save, signed installation, platform rendering, and full parity
+remain open. The experiment is under independent review.
+[Compact editor evidence](verification/receipts/fieldlog-f05-f06-embedded-editor-2acaac67.json)
 
 The L07 terminal restart attempt used a CLI that predates the current closure acknowledgement. The worker declined shutdown, leaving compiler custody unknown. Three separate no-compiler controls passed. [Worker custody receipt](verification/receipts/l07-worker-terminal-restart-hold-41a05264.json)
 
