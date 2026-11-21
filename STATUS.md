@@ -969,9 +969,17 @@ recipe files. Android compiled 14 app-owned Swift inputs into the
 ordinary launcher package. The author's static checks verified the
 linked `5d467c65…` identity, APK v3 signature, both Entry Commit
 signatures, and 16 KiB alignment across all 19 arm64 libraries. The
-separate Entry Commit fixture remains bundled. Independent package
-review, the matched Apple build, and installed behavior remain pending.
+separate Entry Commit fixture remains bundled. Independent review matched
+all 78 retained file hashes and verified both development signatures.
+The packaged JNI calls the shared title-field implementation from the
+ordinary form. The matched Apple build and installed behavior remain open.
 [Shared-editor APK receipt](verification/receipts/fieldlog-d2-pair25-shared-editor-eb08569c.json)
+
+The first matched iPhoneOS build stopped before FieldLog compilation. Its
+scratch guard counted a sparse Xcode cache at 37 GiB apparent size. The
+scratch occupied 149 MiB on disk when the run closed and was removed.
+The follow-up uses allocated disk blocks for the same 4 GiB limit.
+[Initial Apple build receipt](verification/receipts/fieldlog-d2-shared-task-presentation-eb08569c-iphoneos-guard-failure.json)
 
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
 
@@ -1388,9 +1396,25 @@ claims with zero repository writes. F05 and F06 passed Edit, Cancel,
 and durable Save, and the F06 uncertain commit did not replay. The
 author recorded 30 combined, 27 flag-off, and three editor-only passes
 with 81 command groups closed. The earlier V1 readiness failure remains
-recorded. Source141 admission and signed replay of the composed revision
-are pending. Installed mobile behavior remains open.
+recorded. Installed mobile behavior remains open.
 [Corrected author replay](verification/receipts/fieldlog-installed-compact-editor-correction-5d076635.json)
+
+The exact composed runtime at `276d84b419` passed 61 headless macOS XCTest
+executions across combined, flag-off, editor-only, and W09 selections.
+Edit, Cancel, and Save matched both historical editors. The two rejected
+Saving cases wrote nothing, and the post-rename case preserved one durable
+write without replay. The first build stopped at the harness's file-size
+limit. The successful combined run's collector missed its XCTest executable
+hash. The receipt preserves the test output counts and exact VM, guest, and
+source hashes. Root verified all 11 runtime Git objects in the final
+composition.
+[Composed signed replay](verification/receipts/fieldlog-composed-signed-editor-replay-276d84b4.json)
+
+The reviewed Source141 successor admits all 157 inputs in both workflow
+sparse projections and both Python modes. It restores the 155-input
+predecessor and the 890-file Source141 and 845-file Source127 trees with
+matching bytes and modes. The composed archive check passed in both modes.
+[Source141 successor](verification/receipts/fieldlog-signed-editor-source141-successor.json)
 
 Automated cybersecurity screening rejected the delegated Unicode input
 verification near the 4 KiB encoded limit. That run produced no result.

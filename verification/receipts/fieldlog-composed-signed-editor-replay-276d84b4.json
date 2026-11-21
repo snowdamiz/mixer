@@ -1,0 +1,1249 @@
+{
+  "schema": 1,
+  "composedSource": {
+    "commit": "276d84b4195970cf86fb7b9bd61ee5960bc99396",
+    "tree": "7b56895a2051b4818fb555f25321617341cf0277",
+    "archiveSHA256": "d904e909352eed1d23489f8272bf899ae22eccf62d951632e69bf1087948a093",
+    "selectedGitObjects": {
+      "capabilities/java": "6568089f3f746a38fc52a3678b83e5b1a1ffda80",
+      "capabilities/schema": "28f30f1c8c7ec048a7e0b677d7a44e0c354ba86f",
+      "capabilities/tools/generate.py": "326f1d195e23189b0c7951af757d523adc3841e6",
+      "capability-activation": "365c20360e25d64b8b46b10062996f9d71aaf6be",
+      "compiler/experiments/fieldlog-embedded-editor": "8da4d1dcd7fccd1cb04610525d9efe520513a4d2",
+      "compiler/experiments/fieldlog-installed-editor": "c5c06fb68ed395850ed9e614ec2b34d5cebda704",
+      "experimental-capability-runtime": "79ae578bfc4ca6865fd18337b43e2ecffe9419e9",
+      "runtime-identity": "cae30cab1bc2d0a804f2d317a3fb33b18428dc67",
+      "sdk": "da0a358a6984e198525ea76c7be7fd2af245e12e",
+      "updates": "dcbc7767552374b8dd77c76cbce7a912b735b18d",
+      "vm": "ec1ddb74b7c6c2eabd91d1f60ed243ffc69ce6f4"
+    }
+  },
+  "scope": "Actual headless macOS XCTest replay with fresh ephemeral development signing and registered in-process renderer",
+  "authorRecipe": "verification/receipts/fieldlog-installed-compact-editor-correction-5d076635.json",
+  "localGatesPassed": [],
+  "gaGatesPassed": [],
+  "tools": {
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "hostSwift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0\nswift-driver version: 1.168.6",
+    "xcode": "Xcode 27.2\nBuild version 27B52",
+    "macOSSDK": "27.2",
+    "guestSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "wasmLinker": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "guestClang": "Apple clang version 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "python": "Python 3.14.8",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "guestLibrarySHA256": {
+      "swiftUnicodeDataTables": "ca3b58ac9ae7c17c93e44bb503af7155ac209143a6f4728306142a070b0382b7",
+      "WASILibc": "42d929e52aaeac6c4ed56946cd3e92e40574322bc43af529c19cfbf67893b352"
+    }
+  },
+  "firstAttempt": {
+    "failure": "test-combined exit -25, group absent True, None",
+    "diagnostic": "SIGXFSZ during Swift Build pre-planning with the harness 512 MiB file-size cap. XCTest was not reached. The corrected attempt removes the per-file cap and retains the aggregate allocated-scratch and wall limits.",
+    "command": {
+      "argv": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "$MIXER/capability-activation",
+        "--scratch-path",
+        "$WORK/spm-combined",
+        "--cache-path",
+        "$WORK/spm-cache",
+        "--config-path",
+        "$WORK/spm-config",
+        "--security-path",
+        "$WORK/spm-security",
+        "--force-resolved-versions",
+        "--skip-update",
+        "-j",
+        "8",
+        "-Xcc",
+        "-I$MIXER/vm/include",
+        "-Xlinker",
+        "-L$WORK",
+        "-Xlinker",
+        "$WORK/libFieldLogPinned.a",
+        "-Xswiftc",
+        "-DMIXER_PRIVATE_FIELDLOG_EDITOR",
+        "-Xswiftc",
+        "-DFIELDLOG_EDITOR_REPLAY",
+        "-Xswiftc",
+        "-I$WORK/host-modules",
+        "-Xcc",
+        "-DMIXER_PRIVATE_F10",
+        "-Xswiftc",
+        "-DMIXER_PRIVATE_F10",
+        "--filter",
+        "FieldLogInstalledEditorTests|GuestUIInstalledModeTests|GuestUIReadyInputTests|GuestUISignedRuntimeTests/(testSignedStartupDisplaysButOffscreenCannotEarnHealth|testSignedEventCommitsStorageBeforeGuestShowsSaved|testSignedCommitFactsReadUsesAcceptedEventOnceAndRetiresWithOwner|testSignedCommitFactsReadDeniesReadyWrongActionAndMalformedEvent|testPublicUIFacadeUsesSignedIngressWithoutCallerClockOrMilestone|testMissingRequiredUIExportCannotStageOrCreateAdapter|testInvalidEventFrameStopsBeforeItsPutButInvalidWakePreservesCommittedPut)"
+      ],
+      "groupAbsent": true,
+      "localPGID": 1576,
+      "exit": -25,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "be42d06865cff199780e3ef7710f95cee721ee41a5d01ecdf823d735278945b5"
+    },
+    "cleanup": {
+      "maximumObservedAllocatedScratchBytes": 315830272,
+      "scratchStopThresholdBytes": 3972844748,
+      "wallLimitSeconds": 1200,
+      "perFileMaxBytes": 536870912,
+      "guestPrepGroups": {
+        "tools": 2,
+        "F05": 15,
+        "F06": 20
+      },
+      "guestPrepCommandsObservedGroupAbsent": 37,
+      "terminalDirectCommands": 25,
+      "totalDirectCommands": 25,
+      "scratchRemoved": true
+    }
+  },
+  "status": "PASS_SCOPED_MACOS_COMPOSED_SIGNED_EDITOR",
+  "historicalFieldLogTrees": {
+    "F05": "8d962e2f3b52aad4b417f98b5553bc5762fde908",
+    "F06": "c1a7af912e145556491aadb33a90ddac785e88c1"
+  },
+  "guestInputs": {
+    "compiler/experiments/fieldlog-installed-editor/Document.swift": "5eb5d71f1684b6272d7471cb77809462b29454e65ce24708bd125f7a3640c0f1",
+    "compiler/experiments/fieldlog-installed-editor/EditorWire.swift": "832f565e5a1912ac20d989675b56c89e9a0b7933f4f693f75fb815378668fb89",
+    "compiler/experiments/fieldlog-installed-editor/Guest.swift": "5f081866e18caaffddb3986d674858d365b7077afd0eb2b13053396d68ab67c3",
+    "compiler/experiments/fieldlog-installed-editor/Imports.c": "ecafe150bad3e5783bd1cde097ed58080ba0db9275721e228c89e7efd84a2a61",
+    "compiler/experiments/fieldlog-installed-editor/Oracle.swift": "77b42b95b72b05f3e61465c790fc2d85671eb8d415e017dd717ab97145563108",
+    "compiler/experiments/fieldlog-installed-editor/Reduction.swift": "52cad24d150a7a1d991c5134c42705809470f8611a0a22e8ede4240f112eab2f",
+    "compiler/experiments/fieldlog-installed-editor/contract.txt": "9f45c82756688d7c1ccd3bc4055ecf0a4e0f238bc62da63cbb7e34cc76daad71",
+    "compiler/experiments/fieldlog-installed-editor/prepare.py": "534eb54ee7e9d879a6e4c78999a2abf2cfe1287a0e8fbb8ff567b42e9a8d2994",
+    "compiler/experiments/fieldlog-embedded-editor/EditorBoundary.swift": "8382e18b2ab76f6b59caa2404e31f8fe2f87325fd449741f688d6dd8c5ba7514",
+    "compiler/experiments/fieldlog-embedded-editor/replay.py": "76232bbabc344d78974f1ad8f58fc89a7088d2185cb7b33310d59f6b8c04da89"
+  },
+  "vm": {
+    "tree": "ec1ddb74b7c6c2eabd91d1f60ed243ffc69ce6f4",
+    "sourceArchiveSHA256": "af2e1a7e633af7b71cf25c9a5a04cae5aedfb36e618e6594540a4a7c4c36654d",
+    "archiveSHA256": "9c222595bdd5756c646b4ce068d04ea7324fe29f168e61460434f1b7b9f91999",
+    "matchesFirstAttemptArchiveBytes": false,
+    "matchesAuthorArchiveBytes": false,
+    "matchesAuthorSourceArchiveBytes": false
+  },
+  "nativeGeneratorIdentity": {
+    "generatorSHA256": "10a5e249f3188a292c6a510656566d55ca3582e60951d4439a257bbe1b9bd7a5",
+    "generatedSwiftSHA256": "ceaea22845779e21a5f5ae8f60ad82f2a8701cfb274fe8b45b89c514558c2102",
+    "capabilities": {
+      "network.http.v1": "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3",
+      "storage.keyValue.v1": "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"
+    },
+    "contractSHA256": "ca53c3c2ea1d8f08020468cc5d458d86542e0806d6494840557e591342f1154e",
+    "nativeImplementationSHA256": "5d467c65cf58917ab499840226bb5ae577fbae3cd063577985555141d131e92a"
+  },
+  "guestAndOracle": {
+    "F05": {
+      "source": {
+        "Package.swift": "612ee5c4ee1241011f2d4ae280e557b83da79561c2795e46406f1ee5e9f23449",
+        "Sources/FieldLogFeatures/TaskEditorPresentation.swift": "27138036a9e2e3f204c69dbb5130f210ab49281e4d09c0b1098614894c29132a",
+        "Sources/FieldLogModels/Workspace.swift": "6f11d54b41081b20429be486f074f886ec6f53083753bf7a19c67a3c5d19e014",
+        "Sources/FieldLogStorage/WorkspaceRepository.swift": "e5d621ae25cd807f696cfc0174d93b2e3fa557ac417830a8d6e212ee9f6d927e",
+        "Sources/FieldLogFeatures/TaskEditor.swift": "ef5321a92467868227007b856aca5c7ed142e5337d8dbb20a07e0e3394335310"
+      },
+      "guest": {
+        "bytes": 102293,
+        "sha256": "5094061505f461e8af4909904af9bf91c4f021d5c85c91c85e1f5c78b2a3cc4a"
+      },
+      "pins": {
+        "fieldlog": "70f3aa1d28f29e7c327a17fd46199480d41ca749",
+        "sdk": "d8c6965a277ca21e685f3ef9e0f68a7d59b46156",
+        "sdkTree": "fa1a446b6fa6f4b1b5e79fa3b19284e0c1013dba",
+        "axis": "horizontal",
+        "files": {
+          "Package.swift": "5cc35eceb897ee5de1edda0ec42cd593acc8504a",
+          "Sources/FieldLogFeatures/TaskEditorPresentation.swift": "67caf99cd93fe76250735eee9b96f15661aa50e9"
+        }
+      },
+      "sdkArchiveSHA256": "bacaf631e417958cfb13efaf10780e334073bac1936f4f7c682185d071f3fa56",
+      "traceSHA256": "fd7ce9d73f97ad403d1e91eafdbb2fc1ed377d98421aa0b0de0a23e9b70ce2b5",
+      "fieldlogTree": "8d962e2f3b52aad4b417f98b5553bc5762fde908"
+    },
+    "F06": {
+      "source": {
+        "Package.swift": "fbb47af281fa5f56b4aba6abad751f2a6c586a3235a4bedeb9caa0730eae8989",
+        "Sources/FieldLogFeatures/TaskEditorPresentation.swift": "e3ca09be97082e47b21290d6542a936a3fa683597501ec800a7055fad24a3f00",
+        "Sources/FieldLogFeatures/TaskEditorAppleFieldsHost.swift": "22ee3522b4a6bed9b9b82f24aa799ca02401dde9a1fe4e01679636b955c091db",
+        "Sources/FieldLogModels/Workspace.swift": "6f11d54b41081b20429be486f074f886ec6f53083753bf7a19c67a3c5d19e014",
+        "Sources/FieldLogStorage/WorkspaceRepository.swift": "e5d621ae25cd807f696cfc0174d93b2e3fa557ac417830a8d6e212ee9f6d927e",
+        "Sources/FieldLogFeatures/TaskEditor.swift": "ef5321a92467868227007b856aca5c7ed142e5337d8dbb20a07e0e3394335310"
+      },
+      "guest": {
+        "bytes": 102348,
+        "sha256": "daac079493826e0a19c0f91f50219d755236e3d181bbeca4da1521d0ddccdef1"
+      },
+      "rejectionControls": {
+        "absent-saving": {
+          "bytes": 102361,
+          "sha256": "49cd768851838016b57dbf5639c7c5c08854188d6a656f3d80e5a3c9d7b04eab"
+        },
+        "rejected-saving": {
+          "bytes": 102356,
+          "sha256": "b40768a32d11a82454f05fd5ef4c1bb23e9d48ff7723d4226b8ee9edd2045897"
+        }
+      },
+      "pins": {
+        "fieldlog": "4d17c92656d3a7574506f06414bc2f08af469122",
+        "sdk": "56ff14c925168284761c5aca4f0bd4129cf3c995",
+        "sdkTree": "ab7fdd557af1278e5127fe7ff59ff0df7d7820f0",
+        "axis": "vertical",
+        "files": {
+          "Package.swift": "072b7be9626de4c38ab4bff95967f0e502ab3956",
+          "Sources/FieldLogFeatures/TaskEditorPresentation.swift": "2988fb76f35e807a1b9d99890fa322280336cbb3",
+          "Sources/FieldLogFeatures/TaskEditorAppleFieldsHost.swift": "6ddd3e6284b008c9b86ba8ad6d40163011d7cd46"
+        }
+      },
+      "sdkArchiveSHA256": "c6439820a8518bcbcdc96a2ab11bde0ed087912f82e9656b9ca336a4a7d71326",
+      "traceSHA256": "637811d7a74d61d1916e6f49b27141e273b96530aa1d44cea038c5227bb62d0b",
+      "fieldlogTree": "c1a7af912e145556491aadb33a90ddac785e88c1"
+    }
+  },
+  "pinnedHostRepository": {
+    "archiveSHA256": "a45af6ec42f1b6c75f99ef2ce473e5c6ebf3bbdf8a6ce3a45acc6cf68afc1f3d",
+    "moduleSHA256": {
+      "FieldLogModels.swiftmodule": "275e30478c746e16d75774e5e4664f527a76f49bd3277cca181c1ee589fff256",
+      "FieldLogStorage.swiftmodule": "3f0a6a9477090b747952d5b0fb0908957a26a85db435754619923bfdd9a28f40"
+    }
+  },
+  "authorComparisons": {
+    "F05": {
+      "oracleTraceSHA256Matches": true,
+      "guestBytesMatchAuthor": false,
+      "guestSizeMatchesAuthor": true
+    },
+    "F06": {
+      "oracleTraceSHA256Matches": true,
+      "guestBytesMatchAuthor": false,
+      "guestSizeMatchesAuthor": true,
+      "rejectionWasmMatchesAuthor": {
+        "absent-saving": false,
+        "rejected-saving": false
+      }
+    }
+  },
+  "tests": {
+    "combined": {
+      "passed": 30,
+      "failed": 0,
+      "casesPassed": [
+        "FieldLogInstalledEditorTests testPresenterOwnerSpansUnboundOpenPresentationAndClose",
+        "FieldLogInstalledEditorTests testSignedAbsentAndRejectedSavingFramesRetireWithoutWrite",
+        "FieldLogInstalledEditorTests testSignedHistoricalEditors",
+        "GuestUIInstalledModeTests testExactUIMilestonesAndIdentityFingerprintBinding",
+        "GuestUIInstalledModeTests testPublicCapabilityFacadeRejectsReservedModesBeforePoolAndFilesystem",
+        "GuestUIInstalledModeTests testPublicFacadesRejectReservedV2BeforePoolCaptureAndFilesystem",
+        "GuestUIInstalledModeTests testReservedStartupAndEveryMarkerCombinationSelectOnlyExactUIMode",
+        "GuestUIInstalledModeTests testReservedV2MarkersRejectBothSelectors",
+        "GuestUIInstalledModeTests testWrongMarkerVersionsAndHashesRejectBothModesWithoutNamespacePrefixMatching",
+        "GuestUIReadyInputTests testCurrentValidDuplicatePreservesFirstPendingIntent",
+        "GuestUIReadyInputTests testDetachAndForeignAttachmentCancelAuthority",
+        "GuestUIReadyInputTests testForeignAndRetiredAttachmentInvalidateCurrentPendingIntent",
+        "GuestUIReadyInputTests testForeignHostAfterPendingInvalidatesWithoutAdmission",
+        "GuestUIReadyInputTests testInvalidCurrentRouteInvalidatesPendingBeforeDuplicateGate",
+        "GuestUIReadyInputTests testNewRevisionCancelsPendingAndRejectsLateCallback",
+        "GuestUIReadyInputTests testOutstandingEventCancelsPendingRatherThanReplayingAcceptedInput",
+        "GuestUIReadyInputTests testOwnerGenerationChangeRejectsCapturedInput",
+        "GuestUIReadyInputTests testOwnerRetirementUsesCurrentOwnerAcrossMovingAndStablePoolCounts",
+        "GuestUIReadyInputTests testReadyCompletionRetainsExactlyOneIntentWithoutNewFrame",
+        "GuestUIReadyInputTests testSDKReadyBusyClassificationAndObserverDoNotPublishLegacyFrames",
+        "GuestUIReadyInputTests testStaleFrameCallbackInvalidatesNewRevisionPendingIntent",
+        "GuestUIReadyInputTests testStaleOwnerCallbackInvalidatesNewOwnerPendingWithSameNumbers",
+        "GuestUIReadyInputTests testStopCloseAndTerminalFailureDiscardPendingAndFinishObserver",
+        "GuestUISignedRuntimeTests testInvalidEventFrameStopsBeforeItsPutButInvalidWakePreservesCommittedPut",
+        "GuestUISignedRuntimeTests testMissingRequiredUIExportCannotStageOrCreateAdapter",
+        "GuestUISignedRuntimeTests testPublicUIFacadeUsesSignedIngressWithoutCallerClockOrMilestone",
+        "GuestUISignedRuntimeTests testSignedCommitFactsReadDeniesReadyWrongActionAndMalformedEvent",
+        "GuestUISignedRuntimeTests testSignedCommitFactsReadUsesAcceptedEventOnceAndRetiresWithOwner",
+        "GuestUISignedRuntimeTests testSignedEventCommitsStorageBeforeGuestShowsSaved",
+        "GuestUISignedRuntimeTests testSignedStartupDisplaysButOffscreenCannotEarnHealth"
+      ],
+      "casesFailed": [],
+      "diagnosticLines": [],
+      "editorObservations": [
+        "FIELDLOG EDITOR absent-saving terminal-sequence=2 writes=0 reserved=0",
+        "FIELDLOG EDITOR rejected-saving terminal-sequence=2 writes=0 reserved=0",
+        "FIELDLOG EDITOR F05 editCancel writes=0 closed=true retired=true",
+        "FIELDLOG EDITOR F05 save writes=1 closed=true retired=true",
+        "FIELDLOG EDITOR F06 editCancel writes=0 closed=true retired=true",
+        "FIELDLOG EDITOR F06 save writes=1 closed=true retired=true",
+        "FIELDLOG EDITOR F06 uncertainSave writes=1 closed=true retired=true"
+      ],
+      "expected": 30,
+      "exit": 0,
+      "filter": "FieldLogInstalledEditorTests|GuestUIInstalledModeTests|GuestUIReadyInputTests|GuestUISignedRuntimeTests/(testSignedStartupDisplaysButOffscreenCannotEarnHealth|testSignedEventCommitsStorageBeforeGuestShowsSaved|testSignedCommitFactsReadUsesAcceptedEventOnceAndRetiresWithOwner|testSignedCommitFactsReadDeniesReadyWrongActionAndMalformedEvent|testPublicUIFacadeUsesSignedIngressWithoutCallerClockOrMilestone|testMissingRequiredUIExportCannotStageOrCreateAdapter|testInvalidEventFrameStopsBeforeItsPutButInvalidWakePreservesCommittedPut)",
+      "lifecycleSummary": {
+        "lines": 41,
+        "lineSequenceSHA256": "7efc53e455d17edc8a0e4e3d8aaf274dcd5e62af46ed051e765f89a5de526d1f",
+        "inputs": {
+          "LIFECYCLE input beforeTurn=Optional(false) acceptedBefore=Optional(0) acceptedAfter=Optional(1) eventAfter=Optional(true) stopAfter=nil": 7
+        },
+        "closeReturns": 17,
+        "closeReturnsAtZeroPool": 17
+      }
+    },
+    "flag-off": {
+      "passed": 27,
+      "failed": 0,
+      "casesPassed": [
+        "GuestUIInstalledModeTests testExactUIMilestonesAndIdentityFingerprintBinding",
+        "GuestUIInstalledModeTests testPublicCapabilityFacadeRejectsReservedModesBeforePoolAndFilesystem",
+        "GuestUIInstalledModeTests testPublicFacadesRejectReservedV2BeforePoolCaptureAndFilesystem",
+        "GuestUIInstalledModeTests testReservedStartupAndEveryMarkerCombinationSelectOnlyExactUIMode",
+        "GuestUIInstalledModeTests testReservedV2MarkersRejectBothSelectors",
+        "GuestUIInstalledModeTests testWrongMarkerVersionsAndHashesRejectBothModesWithoutNamespacePrefixMatching",
+        "GuestUIReadyInputTests testCurrentValidDuplicatePreservesFirstPendingIntent",
+        "GuestUIReadyInputTests testDetachAndForeignAttachmentCancelAuthority",
+        "GuestUIReadyInputTests testForeignAndRetiredAttachmentInvalidateCurrentPendingIntent",
+        "GuestUIReadyInputTests testForeignHostAfterPendingInvalidatesWithoutAdmission",
+        "GuestUIReadyInputTests testInvalidCurrentRouteInvalidatesPendingBeforeDuplicateGate",
+        "GuestUIReadyInputTests testNewRevisionCancelsPendingAndRejectsLateCallback",
+        "GuestUIReadyInputTests testOutstandingEventCancelsPendingRatherThanReplayingAcceptedInput",
+        "GuestUIReadyInputTests testOwnerGenerationChangeRejectsCapturedInput",
+        "GuestUIReadyInputTests testOwnerRetirementUsesCurrentOwnerAcrossMovingAndStablePoolCounts",
+        "GuestUIReadyInputTests testReadyCompletionRetainsExactlyOneIntentWithoutNewFrame",
+        "GuestUIReadyInputTests testSDKReadyBusyClassificationAndObserverDoNotPublishLegacyFrames",
+        "GuestUIReadyInputTests testStaleFrameCallbackInvalidatesNewRevisionPendingIntent",
+        "GuestUIReadyInputTests testStaleOwnerCallbackInvalidatesNewOwnerPendingWithSameNumbers",
+        "GuestUIReadyInputTests testStopCloseAndTerminalFailureDiscardPendingAndFinishObserver",
+        "GuestUISignedRuntimeTests testInvalidEventFrameStopsBeforeItsPutButInvalidWakePreservesCommittedPut",
+        "GuestUISignedRuntimeTests testMissingRequiredUIExportCannotStageOrCreateAdapter",
+        "GuestUISignedRuntimeTests testPublicUIFacadeUsesSignedIngressWithoutCallerClockOrMilestone",
+        "GuestUISignedRuntimeTests testSignedCommitFactsReadDeniesReadyWrongActionAndMalformedEvent",
+        "GuestUISignedRuntimeTests testSignedCommitFactsReadUsesAcceptedEventOnceAndRetiresWithOwner",
+        "GuestUISignedRuntimeTests testSignedEventCommitsStorageBeforeGuestShowsSaved",
+        "GuestUISignedRuntimeTests testSignedStartupDisplaysButOffscreenCannotEarnHealth"
+      ],
+      "casesFailed": [],
+      "diagnosticLines": [],
+      "editorObservations": [],
+      "exit": 0,
+      "expected": 27,
+      "filter": "GuestUIInstalledModeTests|GuestUIReadyInputTests|GuestUISignedRuntimeTests/(testSignedStartupDisplaysButOffscreenCannotEarnHealth|testSignedEventCommitsStorageBeforeGuestShowsSaved|testSignedCommitFactsReadUsesAcceptedEventOnceAndRetiresWithOwner|testSignedCommitFactsReadDeniesReadyWrongActionAndMalformedEvent|testPublicUIFacadeUsesSignedIngressWithoutCallerClockOrMilestone|testMissingRequiredUIExportCannotStageOrCreateAdapter|testInvalidEventFrameStopsBeforeItsPutButInvalidWakePreservesCommittedPut)",
+      "swiftPMCheckouts": {
+        "swift-asn1": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+        "swift-crypto": "c2cbadd7263439d8015189668f96ff5b5be565ce"
+      },
+      "testExecutableSHA256": "52c5dab66b7a1d537a50450b92b377c3be8359254d7e25e99084b1e60e108d98",
+      "lifecycleSummary": {
+        "lines": 41,
+        "lineSequenceSHA256": "e0fe516243a8c30c95dd4cc95d91827ad325c2e8f82122ae8915be2d72a8c722",
+        "inputs": {
+          "LIFECYCLE input beforeTurn=Optional(false) acceptedBefore=Optional(0) acceptedAfter=Optional(1) eventAfter=Optional(true) stopAfter=nil": 7
+        },
+        "closeReturns": 17,
+        "closeReturnsAtZeroPool": 17
+      }
+    },
+    "editor-only": {
+      "passed": 3,
+      "failed": 0,
+      "casesPassed": [
+        "FieldLogInstalledEditorTests testPresenterOwnerSpansUnboundOpenPresentationAndClose",
+        "FieldLogInstalledEditorTests testSignedAbsentAndRejectedSavingFramesRetireWithoutWrite",
+        "FieldLogInstalledEditorTests testSignedHistoricalEditors"
+      ],
+      "casesFailed": [],
+      "diagnosticLines": [],
+      "editorObservations": [
+        "FIELDLOG EDITOR absent-saving terminal-sequence=2 writes=0 reserved=0",
+        "FIELDLOG EDITOR rejected-saving terminal-sequence=2 writes=0 reserved=0",
+        "FIELDLOG EDITOR F05 editCancel writes=0 closed=true retired=true",
+        "FIELDLOG EDITOR F05 save writes=1 closed=true retired=true",
+        "FIELDLOG EDITOR F06 editCancel writes=0 closed=true retired=true",
+        "FIELDLOG EDITOR F06 save writes=1 closed=true retired=true",
+        "FIELDLOG EDITOR F06 uncertainSave writes=1 closed=true retired=true"
+      ],
+      "exit": 0,
+      "expected": 3,
+      "filter": "FieldLogInstalledEditorTests",
+      "swiftPMCheckouts": {
+        "swift-asn1": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+        "swift-crypto": "c2cbadd7263439d8015189668f96ff5b5be565ce"
+      },
+      "testExecutableSHA256": "e083769bbe35122b915ea7edeb04cdc86aed8b38b9642aec1c26c476620c92e5",
+      "lifecycleSummary": {
+        "lines": 0,
+        "lineSequenceSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "inputs": {},
+        "closeReturns": 0,
+        "closeReturnsAtZeroPool": 0
+      }
+    }
+  },
+  "observedUTC": "2026-11-21T13:53:21.987419+00:00",
+  "commands": {
+    "composition-tree": {
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "$REPO",
+        "rev-parse",
+        "276d84b4195970cf86fb7b9bd61ee5960bc99396^{tree}"
+      ],
+      "groupAbsent": true,
+      "localPGID": 14032,
+      "exit": 0,
+      "stdoutSHA256": "84bdf0e263914a1bf03fa4200bbb51f2cf2d885592ea2c615f13209f2818d760",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "init-fieldlog": {
+      "argv": [
+        "/usr/bin/git",
+        "init",
+        "--quiet",
+        "--bare",
+        "$WORK/fieldlog"
+      ],
+      "groupAbsent": true,
+      "localPGID": 14033,
+      "exit": 0,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "composed-archive": {
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "$REPO",
+        "archive",
+        "--format=tar",
+        "276d84b4195970cf86fb7b9bd61ee5960bc99396",
+        "capability-activation",
+        "experimental-capability-runtime",
+        "runtime-identity",
+        "sdk",
+        "updates",
+        "vm",
+        "capabilities/tools/generate.py",
+        "capabilities/schema",
+        "capabilities/java",
+        "compiler/experiments/fieldlog-installed-editor",
+        "compiler/experiments/fieldlog-embedded-editor"
+      ],
+      "groupAbsent": true,
+      "localPGID": 14034,
+      "exit": 0,
+      "stdoutSHA256": "d904e909352eed1d23489f8272bf899ae22eccf62d951632e69bf1087948a093",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "fetch-fieldlog": {
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "$WORK/fieldlog",
+        "-c",
+        "credential.helper=",
+        "-c",
+        "gc.auto=0",
+        "fetch",
+        "--quiet",
+        "--no-tags",
+        "--depth=1",
+        "https://github.com/snowdamiz/fieldlog.git",
+        "70f3aa1d28f29e7c327a17fd46199480d41ca749",
+        "4d17c92656d3a7574506f06414bc2f08af469122"
+      ],
+      "groupAbsent": true,
+      "localPGID": 14035,
+      "exit": 0,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "fieldlog-tree-F05": {
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "$WORK/fieldlog",
+        "rev-parse",
+        "70f3aa1d28f29e7c327a17fd46199480d41ca749^{tree}"
+      ],
+      "groupAbsent": true,
+      "localPGID": 14042,
+      "exit": 0,
+      "stdoutSHA256": "5c19f2b622cea08bd28950f8fd28267f17c90eb7b01b8285389b71b937a78d2a",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "fieldlog-tree-F06": {
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "$WORK/fieldlog",
+        "rev-parse",
+        "4d17c92656d3a7574506f06414bc2f08af469122^{tree}"
+      ],
+      "groupAbsent": true,
+      "localPGID": 14043,
+      "exit": 0,
+      "stdoutSHA256": "9540dc6b94066e52cb7aebaa10b2d1197125b7d9c289c0390a938c8b1488a0b5",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "init-mixer": {
+      "argv": [
+        "/usr/bin/git",
+        "init",
+        "--quiet",
+        "$MIXER"
+      ],
+      "groupAbsent": true,
+      "localPGID": 14044,
+      "exit": 0,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "git-common-dir": {
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "$REPO",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "groupAbsent": true,
+      "localPGID": 14045,
+      "exit": 0,
+      "stdoutSHA256": "64066d900719440fc900d61d495ddfc8843673768d531317eb549e7ed5637b3c",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "vm-source-archive": {
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "$REPO",
+        "archive",
+        "276d84b4195970cf86fb7b9bd61ee5960bc99396",
+        "vm"
+      ],
+      "groupAbsent": true,
+      "localPGID": 14046,
+      "exit": 0,
+      "stdoutSHA256": "af2e1a7e633af7b71cf25c9a5a04cae5aedfb36e618e6594540a4a7c4c36654d",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "vm-build": {
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--edition=2021",
+        "--crate-name",
+        "mixer_vm_capability_experimental",
+        "--crate-type",
+        "staticlib",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "overflow-checks=on",
+        "--cfg",
+        "feature=\"experimental-capability-mailbox\"",
+        "--cfg",
+        "feature=\"experimental-capability-guest\"",
+        "--cfg",
+        "feature=\"experimental-capability-native\"",
+        "--cfg",
+        "feature=\"private-fieldlog-f10\"",
+        "$MIXER/vm/src/lib.rs",
+        "-o",
+        "$WORK/libmixer_vm_capability_experimental.a"
+      ],
+      "groupAbsent": true,
+      "localPGID": 14049,
+      "exit": 0,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "prepare-guest-oracles": {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "$MIXER/compiler/experiments/fieldlog-installed-editor/prepare.py",
+        "--work",
+        "$WORK/prepared",
+        "--fieldlog",
+        "$WORK/fieldlog",
+        "--tools",
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr",
+        "--wasm-sdk",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1",
+        "--rejection-controls"
+      ],
+      "groupAbsent": true,
+      "localPGID": 14047,
+      "exit": 0,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "native-generator-check": {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "$MIXER/capabilities/tools/generate.py",
+        "--check"
+      ],
+      "groupAbsent": true,
+      "localPGID": 14048,
+      "exit": 0,
+      "stdoutSHA256": "ec93bc6ff7daf7f07647f113d12473e05ee49a1339a667ae6a3b4395eb1c65d1",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "pinned-repository-archive": {
+      "argv": [
+        "/usr/bin/libtool",
+        "-static",
+        "-o",
+        "$WORK/libFieldLogPinned.a",
+        "$WORK/prepared/F05/FieldLogModels.o",
+        "$WORK/prepared/F05/FieldLogStorage.o"
+      ],
+      "groupAbsent": true,
+      "localPGID": 14333,
+      "exit": 0,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "author-receipt-pin": {
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "$REPO",
+        "show",
+        "276d84b4195970cf86fb7b9bd61ee5960bc99396:verification/receipts/fieldlog-installed-compact-editor-correction-5d076635.json"
+      ],
+      "groupAbsent": true,
+      "localPGID": 14334,
+      "exit": 0,
+      "stdoutSHA256": "d1f47d7658c7728ced70619f7ec33c4e34b3819d400f8b23e54c704e05ec6ea1",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "test-combined": {
+      "argv": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "$MIXER/capability-activation",
+        "--scratch-path",
+        "$WORK/spm-combined",
+        "--skip-update",
+        "-j",
+        "8",
+        "-Xcc",
+        "-I$MIXER/vm/include",
+        "-Xlinker",
+        "-L$WORK",
+        "-Xlinker",
+        "$WORK/libFieldLogPinned.a",
+        "-Xswiftc",
+        "-DMIXER_PRIVATE_FIELDLOG_EDITOR",
+        "-Xswiftc",
+        "-DFIELDLOG_EDITOR_REPLAY",
+        "-Xswiftc",
+        "-I$WORK/host-modules",
+        "-Xcc",
+        "-DMIXER_PRIVATE_F10",
+        "-Xswiftc",
+        "-DMIXER_PRIVATE_F10",
+        "--cache-path",
+        "$WORK/spm-cache",
+        "--config-path",
+        "$WORK/spm-config",
+        "--security-path",
+        "$WORK/spm-security",
+        "--force-resolved-versions",
+        "--filter",
+        "FieldLogInstalledEditorTests|GuestUIInstalledModeTests|GuestUIReadyInputTests|GuestUISignedRuntimeTests/(testSignedStartupDisplaysButOffscreenCannotEarnHealth|testSignedEventCommitsStorageBeforeGuestShowsSaved|testSignedCommitFactsReadUsesAcceptedEventOnceAndRetiresWithOwner|testSignedCommitFactsReadDeniesReadyWrongActionAndMalformedEvent|testPublicUIFacadeUsesSignedIngressWithoutCallerClockOrMilestone|testMissingRequiredUIExportCannotStageOrCreateAdapter|testInvalidEventFrameStopsBeforeItsPutButInvalidWakePreservesCommittedPut)"
+      ],
+      "groupAbsent": true,
+      "localPGID": 14335,
+      "exit": 0,
+      "stdoutSHA256": "34a1d81fd2a8c30f23b79bb5a84bdfc56728341266e73600b3355ebcd2d021b5",
+      "stderrSHA256": "0efc853c34fffab4ca3744a2fefa58ac4e93e8c918e2b4924177b1d22aa9c706"
+    }
+  },
+  "cleanup": {
+    "scratchRemoved": true,
+    "maximumObservedAllocatedScratchBytes": 620716032,
+    "largestObservedApparentFileBytes": 25769803776,
+    "scratchStopThresholdBytes": 3972844748,
+    "wallLimitSeconds": 1200,
+    "fileSizeLimit": [
+      9223372036854775807,
+      9223372036854775807
+    ],
+    "terminalDirectCommands": 15,
+    "totalDirectCommands": 15,
+    "guestPrepGroups": {
+      "tools": 2,
+      "F05": 15,
+      "F06": 20
+    },
+    "guestPrepCommandsObservedGroupAbsent": 37
+  },
+  "combinedCollector": {
+    "failureAfterTests": "Unexpected XCTest bundle list: []",
+    "combinedResultAuthority": "Original SwiftPM exit 0 and the full exact test case output. The ancillary collector used a fixed bundle name before either remaining selector ran.",
+    "dependencyPinEvidence": "SwiftPM ran with --force-resolved-versions. The combined checkout directories were removed before a separate HEAD read."
+  },
+  "limitations": [
+    "Headless macOS registered renderer with development signatures. F10 scope is selector and cross-mode refusal.",
+    "4 KiB encoded event cap and short supported text. No device or GUI exercised.",
+    "Post-rename uncertainty uses process-level cold reopen and no replay.",
+    "Archive successor admission is outside this replay.",
+    "Local VM and guest archives were freshly rebuilt. Binary reproducibility against the author's archived artifacts is unverified; exact consumed hashes are recorded by invocation."
+  ],
+  "selectorContinuation": {
+    "vm": {
+      "tree": "ec1ddb74b7c6c2eabd91d1f60ed243ffc69ce6f4",
+      "sourceArchiveSHA256": "af2e1a7e633af7b71cf25c9a5a04cae5aedfb36e618e6594540a4a7c4c36654d",
+      "archiveSHA256": "54768b538c18bafa8702a61559b02b13732e8e5376c0773add18705bc1de25a1"
+    },
+    "guestAndOracle": {
+      "F05": {
+        "guest": {
+          "bytes": 102293,
+          "sha256": "7aeda62d776b1e7ab17a728cfd18d570145114e518ac644ff11eda870eee8546"
+        },
+        "traceSHA256": "fd7ce9d73f97ad403d1e91eafdbb2fc1ed377d98421aa0b0de0a23e9b70ce2b5"
+      },
+      "F06": {
+        "guest": {
+          "bytes": 102348,
+          "sha256": "23d73670fcaf7dc65a412085cdf1103f667649391411b27bb0f20682b2589434"
+        },
+        "rejectionControls": {
+          "absent-saving": {
+            "bytes": 102361,
+            "sha256": "6f563b355323b7eb35548c9a327df7f397a83781b9e7753ffa15419704d9fc90"
+          },
+          "rejected-saving": {
+            "bytes": 102356,
+            "sha256": "526574f038ddee101c8f35bb106a0ebefd29d7ea1550e0b77b83758cb1886121"
+          }
+        },
+        "traceSHA256": "637811d7a74d61d1916e6f49b27141e273b96530aa1d44cea038c5227bb62d0b"
+      }
+    },
+    "pinnedHostRepository": {
+      "archiveSHA256": "f225de38f4ff3861842607a893fa12b37775c4925ce9a177dc309dc70f03f6f8",
+      "moduleSHA256": {
+        "FieldLogStorage.swiftmodule": "3f0a6a9477090b747952d5b0fb0908957a26a85db435754619923bfdd9a28f40",
+        "FieldLogModels.swiftmodule": "275e30478c746e16d75774e5e4664f527a76f49bd3277cca181c1ee589fff256"
+      }
+    },
+    "commands": {
+      "composition-tree": {
+        "argv": [
+          "/usr/bin/git",
+          "-C",
+          "$REPO",
+          "rev-parse",
+          "276d84b4195970cf86fb7b9bd61ee5960bc99396^{tree}"
+        ],
+        "groupAbsent": true,
+        "localPGID": 25518,
+        "exit": 0,
+        "stdoutSHA256": "84bdf0e263914a1bf03fa4200bbb51f2cf2d885592ea2c615f13209f2818d760",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "init-fieldlog": {
+        "argv": [
+          "/usr/bin/git",
+          "init",
+          "--quiet",
+          "--bare",
+          "$WORK/fieldlog"
+        ],
+        "groupAbsent": true,
+        "localPGID": 25519,
+        "exit": 0,
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "fetch-fieldlog": {
+        "argv": [
+          "/usr/bin/git",
+          "-C",
+          "$WORK/fieldlog",
+          "-c",
+          "credential.helper=",
+          "-c",
+          "gc.auto=0",
+          "fetch",
+          "--quiet",
+          "--no-tags",
+          "--depth=1",
+          "https://github.com/snowdamiz/fieldlog.git",
+          "70f3aa1d28f29e7c327a17fd46199480d41ca749",
+          "4d17c92656d3a7574506f06414bc2f08af469122"
+        ],
+        "groupAbsent": true,
+        "localPGID": 25520,
+        "exit": 0,
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "composed-archive": {
+        "argv": [
+          "/usr/bin/git",
+          "-C",
+          "$REPO",
+          "archive",
+          "--format=tar",
+          "276d84b4195970cf86fb7b9bd61ee5960bc99396",
+          "capability-activation",
+          "experimental-capability-runtime",
+          "runtime-identity",
+          "sdk",
+          "updates",
+          "vm",
+          "capabilities/tools/generate.py",
+          "capabilities/schema",
+          "capabilities/java",
+          "compiler/experiments/fieldlog-installed-editor",
+          "compiler/experiments/fieldlog-embedded-editor"
+        ],
+        "groupAbsent": true,
+        "localPGID": 25521,
+        "exit": 0,
+        "stdoutSHA256": "d904e909352eed1d23489f8272bf899ae22eccf62d951632e69bf1087948a093",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "fieldlog-tree-F05": {
+        "argv": [
+          "/usr/bin/git",
+          "-C",
+          "$WORK/fieldlog",
+          "rev-parse",
+          "70f3aa1d28f29e7c327a17fd46199480d41ca749^{tree}"
+        ],
+        "groupAbsent": true,
+        "localPGID": 25528,
+        "exit": 0,
+        "stdoutSHA256": "5c19f2b622cea08bd28950f8fd28267f17c90eb7b01b8285389b71b937a78d2a",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "fieldlog-tree-F06": {
+        "argv": [
+          "/usr/bin/git",
+          "-C",
+          "$WORK/fieldlog",
+          "rev-parse",
+          "4d17c92656d3a7574506f06414bc2f08af469122^{tree}"
+        ],
+        "groupAbsent": true,
+        "localPGID": 25529,
+        "exit": 0,
+        "stdoutSHA256": "9540dc6b94066e52cb7aebaa10b2d1197125b7d9c289c0390a938c8b1488a0b5",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "init-mixer": {
+        "argv": [
+          "/usr/bin/git",
+          "init",
+          "--quiet",
+          "$MIXER"
+        ],
+        "groupAbsent": true,
+        "localPGID": 25530,
+        "exit": 0,
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "git-common-dir": {
+        "argv": [
+          "/usr/bin/git",
+          "-C",
+          "$REPO",
+          "rev-parse",
+          "--path-format=absolute",
+          "--git-common-dir"
+        ],
+        "groupAbsent": true,
+        "localPGID": 25531,
+        "exit": 0,
+        "stdoutSHA256": "64066d900719440fc900d61d495ddfc8843673768d531317eb549e7ed5637b3c",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "vm-build": {
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+          "--edition=2021",
+          "--crate-name",
+          "mixer_vm_capability_experimental",
+          "--crate-type",
+          "staticlib",
+          "-C",
+          "opt-level=3",
+          "-C",
+          "overflow-checks=on",
+          "--cfg",
+          "feature=\"experimental-capability-mailbox\"",
+          "--cfg",
+          "feature=\"experimental-capability-guest\"",
+          "--cfg",
+          "feature=\"experimental-capability-native\"",
+          "--cfg",
+          "feature=\"private-fieldlog-f10\"",
+          "$MIXER/vm/src/lib.rs",
+          "-o",
+          "$WORK/libmixer_vm_capability_experimental.a"
+        ],
+        "groupAbsent": true,
+        "localPGID": 25532,
+        "exit": 0,
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "prepare-guest-oracles": {
+        "argv": [
+          "/opt/homebrew/opt/python@3.14/bin/python3.14",
+          "-B",
+          "$MIXER/compiler/experiments/fieldlog-installed-editor/prepare.py",
+          "--work",
+          "$WORK/prepared",
+          "--fieldlog",
+          "$WORK/fieldlog",
+          "--tools",
+          "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr",
+          "--wasm-sdk",
+          "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1",
+          "--rejection-controls"
+        ],
+        "groupAbsent": true,
+        "localPGID": 25533,
+        "exit": 0,
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "pinned-repository-archive": {
+        "argv": [
+          "/usr/bin/libtool",
+          "-static",
+          "-o",
+          "$WORK/libFieldLogPinned.a",
+          "$WORK/prepared/F05/FieldLogModels.o",
+          "$WORK/prepared/F05/FieldLogStorage.o"
+        ],
+        "groupAbsent": true,
+        "localPGID": 29304,
+        "exit": 0,
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "author-receipt-pin": {
+        "argv": [
+          "/usr/bin/git",
+          "-C",
+          "$REPO",
+          "show",
+          "276d84b4195970cf86fb7b9bd61ee5960bc99396:verification/receipts/fieldlog-installed-compact-editor-correction-5d076635.json"
+        ],
+        "groupAbsent": true,
+        "localPGID": 29305,
+        "exit": 0,
+        "stdoutSHA256": "d1f47d7658c7728ced70619f7ec33c4e34b3819d400f8b23e54c704e05ec6ea1",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "test-flag-off": {
+        "argv": [
+          "/usr/bin/swift",
+          "test",
+          "--package-path",
+          "$MIXER/capability-activation",
+          "--scratch-path",
+          "$WORK/spm-flag-off",
+          "--skip-update",
+          "-j",
+          "8",
+          "-Xcc",
+          "-I$MIXER/vm/include",
+          "-Xlinker",
+          "-L$WORK",
+          "--cache-path",
+          "$WORK/spm-cache",
+          "--config-path",
+          "$WORK/spm-config",
+          "--security-path",
+          "$WORK/spm-security",
+          "--force-resolved-versions",
+          "--filter",
+          "GuestUIInstalledModeTests|GuestUIReadyInputTests|GuestUISignedRuntimeTests/(testSignedStartupDisplaysButOffscreenCannotEarnHealth|testSignedEventCommitsStorageBeforeGuestShowsSaved|testSignedCommitFactsReadUsesAcceptedEventOnceAndRetiresWithOwner|testSignedCommitFactsReadDeniesReadyWrongActionAndMalformedEvent|testPublicUIFacadeUsesSignedIngressWithoutCallerClockOrMilestone|testMissingRequiredUIExportCannotStageOrCreateAdapter|testInvalidEventFrameStopsBeforeItsPutButInvalidWakePreservesCommittedPut)"
+        ],
+        "groupAbsent": true,
+        "localPGID": 29306,
+        "exit": 0,
+        "stdoutSHA256": "2fc3dfd88977568307e72698792c41361c96e04ad7e3e910f29882bfa08a32c1",
+        "stderrSHA256": "9b188401b379165bbf8a829d90781328c046059d8ad7dd97a90ac076c97d07bc"
+      },
+      "flag-off-pin-swift-asn1": {
+        "argv": [
+          "/usr/bin/git",
+          "-C",
+          "$WORK/spm-flag-off/checkouts/swift-asn1",
+          "rev-parse",
+          "HEAD"
+        ],
+        "groupAbsent": true,
+        "localPGID": 30288,
+        "exit": 0,
+        "stdoutSHA256": "e628c4d76bb4548181639c9d9abd6bb33cf2f5fa507a1873bbf9fecb57498606",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "flag-off-pin-swift-crypto": {
+        "argv": [
+          "/usr/bin/git",
+          "-C",
+          "$WORK/spm-flag-off/checkouts/swift-crypto",
+          "rev-parse",
+          "HEAD"
+        ],
+        "groupAbsent": true,
+        "localPGID": 30289,
+        "exit": 0,
+        "stdoutSHA256": "5c04dce16ef56e07d4ffa8ad7d5ce56743e5e47306673931443722358d679f14",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "test-editor-only": {
+        "argv": [
+          "/usr/bin/swift",
+          "test",
+          "--package-path",
+          "$MIXER/capability-activation",
+          "--scratch-path",
+          "$WORK/spm-editor-only",
+          "--skip-update",
+          "-j",
+          "8",
+          "-Xcc",
+          "-I$MIXER/vm/include",
+          "-Xlinker",
+          "-L$WORK",
+          "-Xlinker",
+          "$WORK/libFieldLogPinned.a",
+          "-Xswiftc",
+          "-DMIXER_PRIVATE_FIELDLOG_EDITOR",
+          "-Xswiftc",
+          "-DFIELDLOG_EDITOR_REPLAY",
+          "-Xswiftc",
+          "-I$WORK/host-modules",
+          "--cache-path",
+          "$WORK/spm-cache",
+          "--config-path",
+          "$WORK/spm-config",
+          "--security-path",
+          "$WORK/spm-security",
+          "--force-resolved-versions",
+          "--filter",
+          "FieldLogInstalledEditorTests"
+        ],
+        "groupAbsent": true,
+        "localPGID": 30299,
+        "exit": 0,
+        "stdoutSHA256": "022afd7344a71d3fd869688009f396a4a99719031f03ae0e0094458c29e30617",
+        "stderrSHA256": "f4848d856af193dd82a9388fa36cd31d3844a3e589b3a8cdac20aa10fe8a4bbf"
+      },
+      "editor-only-pin-swift-asn1": {
+        "argv": [
+          "/usr/bin/git",
+          "-C",
+          "$WORK/spm-editor-only/checkouts/swift-asn1",
+          "rev-parse",
+          "HEAD"
+        ],
+        "groupAbsent": true,
+        "localPGID": 31052,
+        "exit": 0,
+        "stdoutSHA256": "e628c4d76bb4548181639c9d9abd6bb33cf2f5fa507a1873bbf9fecb57498606",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "editor-only-pin-swift-crypto": {
+        "argv": [
+          "/usr/bin/git",
+          "-C",
+          "$WORK/spm-editor-only/checkouts/swift-crypto",
+          "rev-parse",
+          "HEAD"
+        ],
+        "groupAbsent": true,
+        "localPGID": 31053,
+        "exit": 0,
+        "stdoutSHA256": "5c04dce16ef56e07d4ffa8ad7d5ce56743e5e47306673931443722358d679f14",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "cleanup": {
+      "scratchRemoved": true,
+      "wallLimitSeconds": 740,
+      "allocatedScratchStopBytes": 3972844748,
+      "terminalDirectCommands": 18,
+      "totalDirectCommands": 18,
+      "guestPrepCommandsObservedGroupAbsent": 37,
+      "maximumObservedAllocatedScratchBytes": 598605824,
+      "largestObservedApparentFileBytes": 25769803776
+    }
+  },
+  "dedicatedW09": {
+    "commands": {
+      "source": {
+        "argv": [
+          "/usr/bin/git",
+          "-C",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-1997036f",
+          "archive",
+          "--format=tar",
+          "276d84b4195970cf86fb7b9bd61ee5960bc99396",
+          "capability-activation",
+          "experimental-capability-runtime",
+          "runtime-identity",
+          "sdk",
+          "updates",
+          "vm",
+          "capabilities/tools/generate.py",
+          "capabilities/schema",
+          "capabilities/java",
+          "compiler/experiments/fieldlog-installed-editor",
+          "compiler/experiments/fieldlog-embedded-editor"
+        ],
+        "groupAbsent": true,
+        "localPGID": 36212,
+        "exit": 0,
+        "stdoutSHA256": "d904e909352eed1d23489f8272bf899ae22eccf62d951632e69bf1087948a093",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "vm": {
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+          "--edition=2021",
+          "--crate-name",
+          "mixer_vm_capability_experimental",
+          "--crate-type",
+          "staticlib",
+          "-C",
+          "opt-level=3",
+          "-C",
+          "overflow-checks=on",
+          "--cfg",
+          "feature=\"experimental-capability-mailbox\"",
+          "--cfg",
+          "feature=\"experimental-capability-guest\"",
+          "--cfg",
+          "feature=\"experimental-capability-native\"",
+          "--cfg",
+          "feature=\"private-fieldlog-f10\"",
+          "$MIXER/vm/src/lib.rs",
+          "-o",
+          "$WORK/libmixer_vm_capability_experimental.a"
+        ],
+        "groupAbsent": true,
+        "localPGID": 36213,
+        "exit": 0,
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "w09": {
+        "argv": [
+          "/usr/bin/swift",
+          "test",
+          "--package-path",
+          "$MIXER/capability-activation",
+          "--scratch-path",
+          "$WORK/spm",
+          "--skip-update",
+          "-j",
+          "8",
+          "-Xcc",
+          "-I$MIXER/vm/include",
+          "-Xlinker",
+          "-L$WORK",
+          "--cache-path",
+          "$WORK/spm-cache",
+          "--config-path",
+          "$WORK/spm-config",
+          "--security-path",
+          "$WORK/spm-security",
+          "--force-resolved-versions",
+          "--filter",
+          "GuestUISignedRuntimeTests/testInstalledApplicationStorageGrantDenialAndColdReadback"
+        ],
+        "groupAbsent": true,
+        "localPGID": 36214,
+        "exit": 0,
+        "stdoutSHA256": "d4bc91daed0955950cd2cc603742aaf5143fd13bd8ef081565859062bacdb9e7",
+        "stderrSHA256": "9601100dad30b0a7d1f55b720fc94b525629a74e48cbd4209cbd7a8a23fd7912"
+      },
+      "pin-swift-asn1": {
+        "argv": [
+          "/usr/bin/git",
+          "-C",
+          "$WORK/spm/checkouts/swift-asn1",
+          "rev-parse",
+          "HEAD"
+        ],
+        "groupAbsent": true,
+        "localPGID": 42586,
+        "exit": 0,
+        "stdoutSHA256": "e628c4d76bb4548181639c9d9abd6bb33cf2f5fa507a1873bbf9fecb57498606",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "pin-swift-crypto": {
+        "argv": [
+          "/usr/bin/git",
+          "-C",
+          "$WORK/spm/checkouts/swift-crypto",
+          "rev-parse",
+          "HEAD"
+        ],
+        "groupAbsent": true,
+        "localPGID": 42587,
+        "exit": 0,
+        "stdoutSHA256": "5c04dce16ef56e07d4ffa8ad7d5ce56743e5e47306673931443722358d679f14",
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "vm": {
+      "tree": "ec1ddb74b7c6c2eabd91d1f60ed243ffc69ce6f4",
+      "sourceArchiveSHA256": "af2e1a7e633af7b71cf25c9a5a04cae5aedfb36e618e6594540a4a7c4c36654d",
+      "archiveSHA256": "96b25880d436767b39a90e02bd7fa44bdded9ebdd3c567601520f3adcd90be76"
+    },
+    "filter": "GuestUISignedRuntimeTests/testInstalledApplicationStorageGrantDenialAndColdReadback",
+    "observations": [
+      "Test Case '-[MixerCapabilityActivationTests.GuestUISignedRuntimeTests testInstalledApplicationStorageGrantDenialAndColdReadback]' started.",
+      "Test Case '-[MixerCapabilityActivationTests.GuestUISignedRuntimeTests testInstalledApplicationStorageGrantDenialAndColdReadback]' passed (0.089 seconds).",
+      "W09 signed storage retirement confirmed"
+    ],
+    "assertions": [],
+    "passed": 1,
+    "failed": 0,
+    "swiftPMCheckouts": {
+      "swift-asn1": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+      "swift-crypto": "c2cbadd7263439d8015189668f96ff5b5be565ce"
+    },
+    "status": "PASS",
+    "cleanup": {
+      "scratchRemoved": true,
+      "maximumObservedAllocatedScratchBytes": 518307840,
+      "allocatedScratchStopBytes": 3972844748,
+      "terminalDirectCommands": 5,
+      "totalDirectCommands": 5
+    },
+    "lifecycleSummary": {
+      "lines": 6,
+      "lineSequenceSHA256": "d6a2e7d39f44b31a32a134369db64af875d012c52bf7b520fe485ed8e574f1c0",
+      "inputs": {
+        "LIFECYCLE input beforeTurn=Optional(false) acceptedBefore=Optional(0) acceptedAfter=Optional(1) eventAfter=Optional(true) stopAfter=nil": 2
+      },
+      "closeReturns": 2,
+      "closeReturnsAtZeroPool": 2
+    }
+  },
+  "readiness": {
+    "historicalAssertionReproduced": false,
+    "failedAssertionsObserved": 0
+  },
+  "behavior": [
+    "Both historical title axes matched the rebuilt F05 and F06 document and issued-action oracles. Edit and Cancel made zero writes. Save made one durable task and outbox append with exact cold-readback coverage.",
+    "Both F06 Saving rejection guests reached terminal sequence 2, made zero writes, left zero reserved slots, and preserved the exact seed bytes on cold reopen.",
+    "Presenter ownership refused competitors before filesystem and pool admission. Joined close, early-error recovery, and retirement were exercised.",
+    "The F06 post-rename uncertainty path preserved one durable append, retired the action owner, and refused replay or a duplicate save."
+  ]
+}
