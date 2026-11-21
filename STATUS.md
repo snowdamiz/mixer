@@ -1001,6 +1001,18 @@ and removed owned scratch. Rebuilt Wasm bytes differ across these runs.
 [Macro replay](verification/receipts/w07-l03-checklist-macro-maintained-root-98ef1420.json) ·
 [Runner correction](verification/receipts/w07-l03-checklist-macro-custody-41a05264.json)
 
+The Entry Commit guest's 16 varying bytes came from Swift's
+`.swift_modhash` segment. Changing the absolute object output path changed
+that segment, and relinking the same object preserved the Wasm bytes. The
+fixture now writes the exact Entry Commit object through stdout. Two fresh
+output directories reproduced the same 7,606-byte module in the composed
+checkout. The producer's owned VM runs reached **Committed once** and closed
+their sessions. Independent review verified the other five fixture variants
+and the package boundary. The ordinary APK recipe still pins the earlier SDK
+checkout. A package using this module needs the updated checkout and freshly
+signed release material.
+[Entry Commit reproducibility and VM receipt](verification/receipts/l03-l08-fieldlog-entry-commit-reproducibility-d7ab346e.json)
+
 A compact Swift event trapped at function 3, byte 514 in the owned VM.
 The matching line table resolved that position to `SwiftEventGuest.swift:32:9`
 and LLVM agreed. Stripped and mismatched inputs preserved the raw trap

@@ -34,10 +34,15 @@ for variant in entry-commit entry-commit-multiple entry-commit-unconsumed baseli
     if [[ "$variant" != entry-commit* ]]; then
         exports+=(--export=mixer_guest_ui_hydrate_v1)
     fi
-    "$guest_bin/swiftc" -target wasm32-unknown-none-wasm -enable-experimental-feature Embedded \
-        -enable-experimental-feature Extern -whole-module-optimization -Osize -parse-as-library \
-        -Xfrontend -disable-stack-protector "${defines[@]}" -emit-object "${inputs[@]}" "$draft/TaskWire.swift" \
-        -o "$output/$variant.o"
+    swift_args=(-target wasm32-unknown-none-wasm -enable-experimental-feature Embedded
+        -enable-experimental-feature Extern -whole-module-optimization -Osize -parse-as-library
+        -Xfrontend -disable-stack-protector "${defines[@]}" -emit-object "${inputs[@]}" "$draft/TaskWire.swift")
+    if [[ "$variant" == entry-commit ]]; then
+        # Swift includes the object output path in its module hash.
+        "$guest_bin/swiftc" "${swift_args[@]}" -o - > "$output/$variant.o"
+    else
+        "$guest_bin/swiftc" "${swift_args[@]}" -o "$output/$variant.o"
+    fi
     "$guest_bin/wasm-ld" --no-entry --gc-sections --strip-all -z stack-size=16384 --max-memory=65536 \
         "${exports[@]}" "$output/$variant.o" "$output/imports.o" -o "$output/$variant.wasm"
 done
