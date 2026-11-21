@@ -1,0 +1,41 @@
+{
+  "scope": "W12/L05 authenticated attachment of a local iOS simulator development attestation to one settled hosted build",
+  "recorded_at_utc": "2026-11-21T01:43:58Z",
+  "source_base": "e58c39d00025a626d8d48d07a1805c3ac05886aa",
+  "source_base_tree": "f74b4ba3275d9bd0e2db57bc4cb131685df4fc7f",
+  "source_tree_before_receipt": "0dca57277b76a2cf4afed2bbc0b31eefd2224b71",
+  "environment": {
+    "host": "macOS 27.0.1 (26A434), arm64",
+    "elixir": "1.20.4",
+    "erlang": "29, ERTS 17.1",
+    "postgres": "17.11 (Homebrew)",
+    "ecto_sql": "3.14.0",
+    "postgrex": "0.22.4"
+  },
+  "verification": [
+    {
+      "cwd": "hosted",
+      "command": "MIXER_ATTESTATION_TEST_SOCKET=<owned Unix socket directory> mix test test/mixer_hosted/builds/{native_attestation_attachment,retained_native_attestation,native_development_attestation,native_development_dispatch,journal,lifecycle}_test.exs test/mixer_hosted/{authorization/policy,identity/access_token_verifier}_test.exs --seed 0",
+      "output": "Result: 120 passed, including nine attachment controls and the signed access-token scope check."
+    },
+    {
+      "cwd": "hosted",
+      "command": "R1026_PG_PORT=<owned loopback cluster port> R1026_EVIDENCE=<owned scratch output> mix test --seed 0 test/customer_build_read_test.exs",
+      "output": "Result: 10 passed."
+    },
+    {
+      "cwd": "hosted",
+      "command": "mix format --check-formatted <changed Elixir files> && MIX_ENV=test mix compile --warnings-as-errors",
+      "output": "Exit 0."
+    }
+  ],
+  "observations": [
+    "The opt-in migration ran without stage 000016. The only new execution grant was issued explicitly to the restricted fixture login. That login could neither read nor mutate the attachment table directly and could not read the build, reservation or lease relations. An extra execution grant caused admission to fail closed.",
+    "A journal replay with two attempts resolved the worker operation of the second, settled attempt. Concurrent identical submissions produced one insertion and one duplicate. An independent SQL connection read the exact signed envelope and bound metadata and confirmed the journal was unchanged.",
+    "Malformed, wrong-key, wrong-origin, foreign-scope, changed-revision, changed-attempt and reordered-subject envelopes were rejected. A newly valid envelope under a different enrolled public key could not replace the stored bytes.",
+    "Held or changed admission, revocation between the two transactions, missing retained artifacts and replacement of the database UUID under the same customer selection could not create a row. A forced context failure after the INSERT rolled back the attachment.",
+    "Both owned PostgreSQL clusters stopped. Their postmaster PID files were absent. The Unix socket disappeared and the separate TCP endpoint did not respond."
+  ],
+  "root_integration": "Keep migration 20261120000017 in the opt-in local_native_attestation path. Use the fixed AttestationRepo with the dedicated trusted verifier login, the existing read-only authorization grants and the explicit function grant in a local fixture. Set :native_development_attestation to the independently enrolled public Ed25519 SPKI DER and exact loopback signing origin. Call CustomerBuilds.attach_native_development_attestation/3 with an authenticated identity carrying mixer.build.attest and a current owner, administrator or developer grant on the selected application.",
+  "limitations": "The fixture used synthetic worker journal, reservation and lease rows, private retained test archives and ephemeral signing keys. The API seam has no HTTP route or automatic Repo startup. Live signer and worker integration, export and retirement behavior for attached evidence, and release and device qualification remain outside this receipt."
+}

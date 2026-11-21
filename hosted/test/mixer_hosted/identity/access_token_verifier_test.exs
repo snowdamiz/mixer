@@ -111,6 +111,13 @@ defmodule MixerHosted.Identity.AccessTokenVerifierTest do
     end
   end
 
+  test "a signed build attestation scope is distinct from build read and create", c do
+    claims = %{c.claims | "scope" => "mixer.build.attest"}
+
+    assert {:ok, %VerifiedIdentity{scopes: ["mixer.build.attest"]}} =
+             AccessTokenVerifier.verify(sign(c, claims), @now, c.snapshot)
+  end
+
   test "signature and payload changes, wrong key and noncanonical signature are rejected", c do
     [header, payload, signature] = :binary.split(sign(c), ".", [:global])
 

@@ -6,18 +6,8 @@ defmodule MixerHosted.CustomerBuilds.Snapshot do
 
   def project(record, selection, kind \\ nil) do
     with {:ok, s} <- Selection.new(selection),
-         true <- is_map(record),
-         true <- Map.take(record, @scope) == Map.take(s, @scope),
-         {:ok, build} <- Journal.restore(record.journal),
+         {:ok, build} <- restore(record, s),
          spec = build.spec,
-         true <-
-           Map.take(spec, @scope) |> Map.put(:platform, Atom.to_string(spec.platform)) ==
-             Map.take(s, @scope),
-         true <- build.request_key == record.request_key,
-         true <- record.revision === length(record.journal["events"]),
-         true <- spec.source.sha256 == s.source_sha256,
-         true <- spec.toolchain_lock_sha256 == s.toolchain_lock_sha256,
-         true <- spec.build_definition_sha256 == s.build_definition_sha256,
          {:ok, status} <- Lifecycle.customer_status(build) do
       dto =
         %{
@@ -38,6 +28,28 @@ defmodule MixerHosted.CustomerBuilds.Snapshot do
         }
 
       result(dto, record, build, s, kind)
+    else
+      _ -> {:error, :storage_unavailable}
+    end
+  rescue
+    _ -> {:error, :storage_unavailable}
+  end
+
+  @doc false
+  def restore(record, %Selection{} = s) do
+    with true <- is_map(record),
+         true <- Map.take(record, @scope) == Map.take(s, @scope),
+         {:ok, build} <- Journal.restore(record.journal),
+         spec = build.spec,
+         true <-
+           Map.take(spec, @scope) |> Map.put(:platform, Atom.to_string(spec.platform)) ==
+             Map.take(s, @scope),
+         true <- build.request_key == record.request_key,
+         true <- record.revision === length(record.journal["events"]),
+         true <- spec.source.sha256 == s.source_sha256,
+         true <- spec.toolchain_lock_sha256 == s.toolchain_lock_sha256,
+         true <- spec.build_definition_sha256 == s.build_definition_sha256 do
+      {:ok, build}
     else
       _ -> {:error, :storage_unavailable}
     end

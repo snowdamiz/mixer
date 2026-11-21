@@ -1,9 +1,11 @@
 defmodule MixerHosted.CustomerBuilds.CreateSchema do
   @moduledoc "Additive development schema. Trusted provisioning only; no customer DDL."
-  def guard do
+  def guard, do: guard(:create)
+
+  def guard(purpose) when purpose in [:create, :attest] do
     """
-    current_setting('mixer.authz.action',true)='build.create'
-    AND current_setting('mixer.authz.required_scope',true)='mixer.build.create'
+    current_setting('mixer.authz.action',true)='build.#{purpose}'
+    AND current_setting('mixer.authz.required_scope',true)='mixer.build.#{purpose}'
     AND current_setting('mixer.authz.phase',true)='effect'
     AND COALESCE(current_setting('mixer.authz.environment_id',true),'')=''
     AND COALESCE(current_setting('mixer.authz.directory_mode',true),'')=''
