@@ -205,6 +205,13 @@ the original 360-second alarm. L07 remains open.
 [Composed verification](verification/receipts/l07-private-source-map-v81-composition.json) ·
 [v82 source admission](verification/receipts/hosted-v82-private-source-map-retention-source-admission.json)
 
+Published v82 Phoenix passed 1,029 cases and skipped 32. The Linux
+source-map fixture reached the signed owner export and received
+`output_unavailable`. The corrected browser trace ran to its normal
+capture limit. PostgreSQL stopped and owned scratch was removed. The
+source-map export refusal is under investigation.
+[Hosted failure evidence](verification/receipts/hosted-v82-phoenix-private-source-map-failure.json)
+
 Hosted v82 Identity Network stopped during the first Git blob collection,
 before creating any containers or running either network method. The
 exact request and a complete local readback matched all 571 pinned blobs.
