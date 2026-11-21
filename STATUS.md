@@ -200,6 +200,14 @@ fingerprint needs updated installed identity and freshly signed release
 and assignment material. Hosted verification of the refresh is pending.
 [Fingerprint and archive receipt](verification/receipts/native-capability-fingerprint-dbb9275d58.json)
 
+On hosted `6bc461f4fc`, Swift Host passed the generated capability step
+and Swift Capability Native passed all three native preimage controls.
+The latter then stopped while Swift 6.2.4 type-checked the signed guest
+test fixture. The fixture correction emits byte-identical Wasm for
+all nine modes and both additional scope controls on local Swift 6.3.3.
+Hosted compilation of the corrected fixture remains open.
+[Fixture comparison](verification/receipts/hosted-swift-62-signed-fixture-byte-assembly.json)
+
 The corrected signed guest displays Commit refused when the repository
 declines a write. The macOS replay preserved workspace and outbox bytes and
 joined the host owner after Done. The matching development APK passed

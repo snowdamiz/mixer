@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "scope": "Fixture-only fix for the hosted Apple Swift 6.2.4 constraint solver failure.",
+  "baseline": {
+    "revision": "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d",
+    "run": 44898891210,
+    "attempt": 1,
+    "job": 136830339419,
+    "toolchain": "Xcode 26.3 (17C529), Apple Swift 6.2.4",
+    "nativePreimageTestsPassed": 3,
+    "sourceLine": 64,
+    "diagnostic": "the compiler is unable to type-check this expression in reasonable time"
+  },
+  "candidate": {
+    "revision": "8ccc74a16ade9f5c6cc83c2e85d902fddde21ccd",
+    "tree": "8f17526026955d950df6a5895f99a84b08167319",
+    "path": "capability-activation/Tests/MixerCapabilityActivationTests/GuestUISignedProgram.swift",
+    "gitBlob": "8d4b76d5bbdf8c7d616511b1810ff10ea25a8f66",
+    "change": "Build the same import and completion instructions with explicitly typed array appends in enqueue, poll and checkCompletion."
+  },
+  "localVerification": {
+    "toolchain": "Xcode 26.6, Apple Swift 6.3.3",
+    "actualCommandShape": "swift run --package-path $SCRATCH --scratch-path $SCRATCH/build --cache-path $SCRATCH/cache --config-path $SCRATCH/config --disable-dependency-cache --disable-index-store --jobs 4 -Xswiftc -Xfrontend -Xswiftc -warn-long-expression-type-checking=100 FixtureCheck",
+    "method": "Build a temporary SwiftPM target using exact MixerCore, MixerCapabilityIO, and MixerCapabilities Git blobs. Both fixture enums run in one executable. The baseline enum is renamed only to distinguish it. Compare complete Data equality before printing SHA-256.",
+    "identicalFixtures": [
+      [
+        "valid",
+        6343,
+        "fde0492be3e21c77c902586c4bbd75fb4e35a8a4d170cc0039ea3c1185e8eecf"
+      ],
+      [
+        "invalidHeader",
+        6343,
+        "0e28def57518d5ed012e11c5774906cc6cde53875708758f87b76a88a9e294e4"
+      ],
+      [
+        "invalidEventDocument",
+        6343,
+        "59b6c7b2f02775b55020ee127b8d2161a25de8b7ba1a3972b9943413f66488a6"
+      ],
+      [
+        "invalidWakeDocument",
+        6343,
+        "2e80a977c2b790116bc0385a365dfdf387247025a42786433572ac25a54ddc2f"
+      ],
+      [
+        "missingEvent",
+        6317,
+        "58784fd8c40dd34faa3b60635f48e5abc57ab3c8bef613fd17b6f12f8bfbf36b"
+      ],
+      [
+        "localizedChecklist",
+        6984,
+        "71b051ad3434ea58a664f96e72d6c7aa5f90820da8da145dbf544288f4c6a70f"
+      ],
+      [
+        "commitFacts",
+        12783,
+        "60d736fba4b4283401799cc5d37a21196da73e4aeef8c26e0200a21000ddb489"
+      ],
+      [
+        "invalidCommitFacts",
+        9825,
+        "fb3547033d4e4bdbf408ba9cceb8e899167015d15e8deae4fc5af66e57f08c39"
+      ],
+      [
+        "readyCommitFacts",
+        12785,
+        "84696ae86ab9542d6a1e9d43322ccd4e48921cfe1c9769e0ae003930f9f235f7"
+      ],
+      [
+        "wrongActionDenial",
+        12509,
+        "79f56f15434bc8ceb95a3a0c373a0a6e5f2cea66522dff85a686f917687623f6"
+      ],
+      [
+        "outsideScope",
+        6343,
+        "f6f4a27a082599d21fe5ca1836af3fbecee8ad0c38480ff22d9a87b7bc34b2a3"
+      ]
+    ],
+    "childReaped": true,
+    "processGroupAbsent": true,
+    "scratchRemoved": true
+  },
+  "limits": [
+    "Exact Swift 6.2.4 verification requires hosted CI. Both variants compiled on the locally available Apple Swift 6.3.3.",
+    "The comparison verifies emitted fixture bytes. It did not rerun signed runtime or install tests."
+  ]
+}
