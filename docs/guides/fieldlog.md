@@ -88,9 +88,29 @@ platform lock and compares app-owned files before and after export.
 The replay moves the export to a fresh `Build/CI` directory and removes the
 preparation tree. The bundled Android driver then builds the unsigned APK
 with a fresh home, caches, and output directory. The receipt captures the
-source and lock hashes, APK checks, and scratch cleanup. This is the Android
-build step of product plan §16.3. The installed launch is a separate step.
+source and lock hashes, APK checks, and scratch cleanup.
 [Verified build receipt](../../verification/receipts/fieldlog-independent-export-v74.json)
+
+### Launch the exported FieldLog APK
+
+Keep the APK from your own independent build before removing its output.
+Use the Android build tools to sign it with a development key. Set
+`adb_port` and `serial` to the private ADB server port and serial of your
+disposable API 36 arm64 emulator. Set `signed_apk` to the signed APK.
+
+```sh
+	adb -P "${adb_port:?}" -s "${serial:?}" install --no-streaming "${signed_apk:?}"
+	adb -P "$adb_port" -s "$serial" shell am start -W \
+		-a android.intent.action.MAIN -c android.intent.category.LAUNCHER \
+		-n dev.fieldlog.generatedr90/.androidhost.PublicActivity
+	adb -P "$adb_port" -s "$serial" shell dumpsys activity activities \
+		| grep -F 'ResumedActivity'
+```
+
+Check that installation ends with `Success`, the launcher reports `Status: ok`,
+and the resumed activity is `dev.fieldlog.generatedr90/.androidhost.PublicActivity`.
+Shut down the disposable emulator and its private ADB server after the check.
+[Verified Android launch](../../verification/receipts/fieldlog-independent-export-android-launch-v74.json)
 
 ## Replay offline sync and the photo queue
 

@@ -20,8 +20,13 @@ an unsigned arm64 APK from a fresh, relocated `Build/CI` export. The bundled
 Android driver built after the preparation tree was removed. The source and
 dependency locks matched before and after the build. APK inspection confirmed
 the FieldLog launcher, API 36 minimum, API 37 target, and 16 KiB alignment.
-The build scratch was removed. The installed launch for §16.3 and W15 remains
-pending. [Build receipt](verification/receipts/fieldlog-independent-export-v74.json) ·
+A second independent build produced a development-signed APK. The exact APK
+installed and cold-launched on a fresh API 36 arm64 emulator. Android reported
+PublicActivity as resumed. The private ADB server and emulator closed, all
+three ports were reusable, and the fresh scratch was removed. Earlier ADB
+setup and port-reuse holds remain active. W15 and L08 remain open.
+[Build receipt](verification/receipts/fieldlog-independent-export-v74.json) ·
+[Installed launch receipt](verification/receipts/fieldlog-independent-export-android-launch-v74.json) ·
 [Replay](docs/guides/fieldlog.md#build-the-v74-export-in-independent-android-ci)
 
 ## November 20 hosted v73 verification
