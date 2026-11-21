@@ -186,6 +186,10 @@ Swift Host, the Swift aggregate, and Android generated Java. The push
 triggered only Owned Engine checks.
 [Terminal CI receipt](verification/receipts/hosted-restore-evidence-ci-terminal-55b4d634.json)
 
+The next compiler and FieldLog evidence checkpoint `e99446de27` also passed
+all nine Owned Engine jobs. That push triggered only Owned Engine checks.
+[Terminal FieldLog evidence CI receipt](verification/receipts/hosted-fieldlog-evidence-ci-terminal-e99446de.json)
+
 The six-action private V3 candidate `790d0b2253` delivered Open, Next,
 Tasks, reopen, Previous, and Entries through the signed guest. Its two
 pages displayed 26 real pending records from three scoped reads. The
