@@ -29,7 +29,7 @@ const manifestPermissions = {
 
 type CapabilityId = keyof typeof manifestPermissions;
 type Permission = typeof manifestPermissions[CapabilityId];
-type LedgerAction = "publish" | "promote" | "rollback" | "halt";
+type LedgerAction = "publish" | "promote" | "stage_promote" | "rollback" | "halt";
 
 interface ReleaseCapability {
   readonly id: CapabilityId;
@@ -130,7 +130,8 @@ function parseDetails(value: unknown): ReleaseHeadDetails {
     !/[^a-f0-9]/u.test(sourceCommit) && typeof payloadBytes === "number" &&
     Number.isInteger(payloadBytes) && payloadBytes >= 1 && payloadBytes <= 4_194_304 &&
     isBuildCatalogId(artifactKeyId) && isBuildCatalogId(assignmentKeyId) &&
-    (action === "publish" || action === "promote" || action === "rollback" || action === "halt"));
+    (action === "publish" || action === "promote" || action === "stage_promote" ||
+      action === "rollback" || action === "halt"));
   return Object.freeze({ sourceCommit, payloadBytes, artifactKeyId, assignmentKeyId, action, capabilities: parseCapabilities(capabilities) });
 }
 

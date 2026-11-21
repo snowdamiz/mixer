@@ -1,6 +1,7 @@
 import { A } from "@solidjs/router";
 import { For, Show } from "solid-js";
 import type { Accessor } from "solid-js";
+import type { PublishedRelease } from "../domain/release-head.js";
 import type { ReleaseHeadState } from "../state/release-head-binding.js";
 import "./release-head-page.css";
 
@@ -17,7 +18,13 @@ const statusCopy = {
   published: "Published release",
 } satisfies Record<ReleaseHeadState["kind"], string>;
 
-const actionCopy = { publish: "Publish", promote: "Promote", rollback: "Rollback", halt: "Halt" } as const;
+const actionCopy = {
+  publish: "Publish",
+  promote: "Rollout expansion",
+  stage_promote: "Environment promotion",
+  rollback: "Rollback",
+  halt: "Halt",
+} satisfies Record<PublishedRelease["details"]["action"], string>;
 
 export function ReleaseHeadPage(props: {
   readonly state: Accessor<ReleaseHeadState>;
@@ -63,6 +70,9 @@ export function ReleaseHeadPage(props: {
         <div><dt>Artifact signing key ID</dt><dd><code>{release().details.artifactKeyId}</code></dd></div>
         <div><dt>Assignment signing key ID</dt><dd><code>{release().details.assignmentKeyId}</code></dd></div>
         <div><dt>Ledger action</dt><dd>{actionCopy[release().details.action]}</dd></div>
+        <Show when={release().details.action === "stage_promote"}>
+          <div><dt>Promotion group status</dt><dd>Unavailable</dd></div>
+        </Show>
         <div><dt>Runtime admission</dt><dd>Compatibility checked when this head was committed.</dd></div>
         <div><dt>Manifest capabilities</dt><dd>
           <Show when={release().details.capabilities.length > 0} fallback="None declared">

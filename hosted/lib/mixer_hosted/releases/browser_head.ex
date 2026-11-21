@@ -39,7 +39,7 @@ defmodule MixerHosted.Releases.BrowserHead do
       {:summary, [[nil, nil, nil, nil, nil]]} ->
         {:ok, %{kind: "empty", target: Target.wire(target)}}
 
-      {:details, [[nil, nil, nil, nil, nil, nil, nil, nil]]} ->
+      {view, [[nil, nil, nil, nil, nil, nil, nil, nil]]} when view in [:details, :details_v2] ->
         {:ok, %{kind: "empty", target: Target.wire(target)}}
 
       {view, [[%Decimal{} = sequence, bytes, rollout, manifest_digest, payload_digest | rest]]} ->
@@ -71,7 +71,7 @@ defmodule MixerHosted.Releases.BrowserHead do
     """
   end
 
-  defp query(:details),
+  defp query(view) when view in [:details, :details_v2],
     do: "SELECT * FROM public.mixer_release_head_details($1,$2,$3,$4,$5,$6,$7)"
 
   defp published(target, sequence, bytes, rollout, manifest_digest, payload_digest, metadata) do
@@ -114,12 +114,9 @@ defmodule MixerHosted.Releases.BrowserHead do
 
   defp details({:summary, []}, _, _), do: {:ok, %{}}
 
-  # The browser displays both kinds of promotion using its existing action.
-  defp details({:details, ["stage_promote", signed, canonical]}, assignment, payload_digest),
-    do: details({:details, ["promote", signed, canonical]}, assignment, payload_digest)
-
-  defp details({:details, [action, signed, canonical]}, assignment, payload_digest)
-       when action in ~w(publish promote rollback halt) do
+  defp details({view, [action, signed, canonical]}, assignment, payload_digest)
+       when view in [:details, :details_v2] and
+              action in ~w(publish promote stage_promote rollback halt) do
     %{
       "scope" => scope,
       "runtime" => runtime,
@@ -156,7 +153,7 @@ defmodule MixerHosted.Releases.BrowserHead do
            payloadBytes: payload_bytes,
            artifactKeyId: artifact_key_id,
            assignmentKeyId: assignment_key_id,
-           action: action,
+           action: wire_action(view, action),
            capabilities: capabilities
          }
        }}
@@ -164,6 +161,9 @@ defmodule MixerHosted.Releases.BrowserHead do
   end
 
   defp details(_, _, _), do: {:error, :storage_unavailable}
+
+  defp wire_action(:details, "stage_promote"), do: "promote"
+  defp wire_action(_, action), do: action
 
   defp columns(alias_name, fields), do: Enum.map_join(fields, ",", &"#{alias_name}.#{&1}")
 end

@@ -500,7 +500,7 @@ const releaseQuery = channel =>
   "organization_id=org&project_id=p&application_id=app&environment_id=prod&platform=ios&runtime_fingerprint="
   + releaseTarget.runtimeFingerprint + "&channel=" + channel;
 const releaseRoute = channel => "/releases?" + releaseQuery(channel);
-const releaseEndpoint = channel => "/console-api/v1/release-head?" + releaseQuery(channel) + "&view=details";
+const releaseEndpoint = channel => "/console-api/v1/release-head?" + releaseQuery(channel) + "&view=details-v2";
 const releaseCalls = f => f.calls.filter(call => call.path.startsWith("/console-api/v1/release-head?"));
 const go = (f, value) => f.history.set({ value, replace: false, scroll: false });
 const publish = (channel, release = publishedRelease) => json({
@@ -543,6 +543,42 @@ test("Releases waits for a session and displays only the committed head from an 
     ]);
     assert.doesNotMatch(f.text(), /Checks passed|Checks incomplete|Sign off|Publish release|Rollback available/);
     assert.equal(walk(f.container).some(node => node.nodeName === "BUTTON"), false);
+  } finally { f.close(); }
+});
+
+test("Releases distinguishes environment promotion on each exact platform from rollout expansion", { timeout: 5000 }, async () => {
+  const f = fixture(undefined, "/releases");
+  try {
+    await admitReleaseSession(f);
+    const cases = [
+      { platform: "ios", environment: "staging", sequence: "3", action: "stage_promote", label: "Environment promotion" },
+      { platform: "android", environment: "staging", sequence: "12", action: "stage_promote", label: "Environment promotion" },
+      { platform: "ios", environment: "development", sequence: "8", action: "promote", label: "Rollout expansion" },
+    ];
+    const fields = () => Object.fromEntries(walk(f.container)
+      .filter(node => node.nodeName === "DT")
+      .map(node => [node.textContent, node.nextSibling.textContent]));
+    for (const [index, { platform, environment, sequence, action, label }] of cases.entries()) {
+      const target = { ...releaseTarget, platform, environmentId: environment, runtimeFingerprint: String(index + 1).repeat(64) };
+      const query = releaseQuery(target.channel).replace("platform=ios", `platform=${platform}`)
+        .replace("environment_id=prod", `environment_id=${environment}`)
+        .replace(releaseTarget.runtimeFingerprint, target.runtimeFingerprint);
+      go(f, "/releases?" + query);
+      await flush();
+      const request = releaseCalls(f)[index];
+      assert.equal(request.path, "/console-api/v1/release-head?" + query + "&view=details-v2");
+      const details = { ...publishedRelease.details, sourceCommit: String(index + 1).repeat(40), action };
+      request.resolve(json({ kind: "published", target, release: { ...publishedRelease, sequence, details } }));
+      await flush();
+      const displayed = fields();
+      assert.equal(displayed.Platform, platform);
+      assert.equal(displayed["Environment ID"], environment);
+      assert.equal(displayed.Sequence, sequence);
+      assert.equal(displayed["Source commit"], details.sourceCommit);
+      assert.equal(displayed["Ledger action"], label);
+      assert.equal(displayed["Promotion group status"], action === "stage_promote" ? "Unavailable" : undefined);
+    }
+    assert.equal(releaseCalls(f).length, cases.length);
   } finally { f.close(); }
 });
 

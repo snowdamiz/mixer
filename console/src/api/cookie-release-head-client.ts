@@ -18,7 +18,7 @@ export function createCookieReleaseHeadClient(options: WorkspaceTransportOptions
       let target: ReleaseHeadTarget;
       try { target = snapshotReleaseHeadTarget(input); }
       catch { return workspaceFailure("invalid_request"); }
-      return request("/console-api/v1/release-head?" + releaseHeadQuery(target) + "&view=details",
+      return request("/console-api/v1/release-head?" + releaseHeadQuery(target) + "&view=details-v2",
         value => parseReleaseHeadDetails(value, target), signal);
     },
   });

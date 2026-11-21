@@ -38,6 +38,9 @@ defmodule MixerHostedWeb.BrowserReleaseHeadRequest do
       ["view", "details"] when not is_map_key(fields, "view") ->
         {:cont, {:ok, Map.put(fields, "view", :details)}}
 
+      ["view", "details-v2"] when not is_map_key(fields, "view") ->
+        {:cont, {:ok, Map.put(fields, "view", :details_v2)}}
+
       [name, value] when name in @fields and not is_map_key(fields, name) ->
         {:cont, {:ok, Map.put(fields, name, value)}}
 

@@ -1,0 +1,145 @@
+{
+  "schema": 1,
+  "kind": "Local exact-target console environment promotion read",
+  "observedUTC": "2026-11-21T07:04:55Z",
+  "source": {
+    "basePublicV77": "03e50d05d2f56de83ff6b5d90593e29a8e4baaf7",
+    "testedTreeBeforeReceipt": "70947f0e36c8c84a2354a7e012fc3bdf0a9c3180"
+  },
+  "host": {
+    "macOS": "27.0.1",
+    "arch": "arm64",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "postgresql": "17.11",
+    "node": "22.23.3",
+    "vite": "8.3.5",
+    "python": "Python 3.14.8"
+  },
+  "verification": {
+    "hosted": {
+      "command": "mix test --warnings-as-errors --seed 0 --trace test/mixer_hosted/releases/browser_publication_test.exs",
+      "workingDirectory": "hosted",
+      "setup": "Disposable loopback PostgreSQL 17 cluster with the existing browser read and catalog fixture role provisioning. Normal MixerHosted startup, browser session, local release HTTP routes, signing verification and Oban transaction paths.",
+      "result": "7 passed"
+    },
+    "console": {
+      "commands": [
+        "npm test",
+        "npm run build"
+      ],
+      "workingDirectory": "console",
+      "result": "309 tests passed and the production Vite build passed",
+      "node": "22.23.3 (repository CI pin)"
+    },
+    "browser": {
+      "setup": "Built console in an owned Acid incognito tab. The repository's loopback static proxy forwarded the ordinary secure session cookie and exact GETs to the Phoenix fixture. A temporary test checkpoint kept the same committed fixture serving during rendering.",
+      "result": "1 hosted promotion test passed with 6 excluded. The authenticated browser made one negotiated request per page.",
+      "observations": [
+        {
+          "phase": "ios",
+          "http": 200,
+          "cacheControl": "no-store",
+          "target": {
+            "platform": "ios",
+            "channel": "candidate",
+            "applicationId": "fieldlog",
+            "organizationId": "org-a",
+            "projectId": "project-a",
+            "environmentId": "staging",
+            "runtimeFingerprint": "01bd70712d3e3d4644e5e906cefae9373e937c1c06aa9e10cf7f86ec6d5e7fb7"
+          },
+          "admittedSequence": "3",
+          "admittedSourceCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "rolloutBasisPoints": 10000,
+          "manifestSha256": "1644d91a8412e30ba94289ec29c6d46f640050ae2428c58b6e02c6bdb8732da6",
+          "payloadSha256": "33c6490c88b96f77f9c95e13f3a74b6a5986db054ffd434e8629d55ccb745222",
+          "wireAction": "stage_promote",
+          "domAction": "Environment promotion",
+          "domGroupStatus": "Unavailable"
+        },
+        {
+          "phase": "android",
+          "http": 200,
+          "cacheControl": "no-store",
+          "target": {
+            "platform": "android",
+            "channel": "candidate",
+            "applicationId": "fieldlog",
+            "organizationId": "org-a",
+            "projectId": "project-a",
+            "environmentId": "staging",
+            "runtimeFingerprint": "3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432"
+          },
+          "admittedSequence": "12",
+          "admittedSourceCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "rolloutBasisPoints": 10000,
+          "manifestSha256": "55d4910d15675d87a9466a14e0ab63349e729826e77cd3fdb6df55d0bf8124d6",
+          "payloadSha256": "a64f1f4abaf6d8582f6d971c6df16110ba1a0a7266697087a5d892f56d909a62",
+          "wireAction": "stage_promote",
+          "domAction": "Environment promotion",
+          "domGroupStatus": "Unavailable"
+        },
+        {
+          "phase": "expansion",
+          "http": 200,
+          "cacheControl": "no-store",
+          "target": {
+            "platform": "ios",
+            "channel": "internal",
+            "applicationId": "fieldlog",
+            "organizationId": "org-a",
+            "projectId": "project-a",
+            "environmentId": "development",
+            "runtimeFingerprint": "2184c5aa3e8c2b757f2a6a5a6c0d554d273a51acb38178a44f0c12d5515b702c"
+          },
+          "admittedSequence": "8",
+          "admittedSourceCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "rolloutBasisPoints": 2000,
+          "manifestSha256": "f8ec7cf9a159ccbeaad2367e172b1be947b40ebddc08138754ffa2a8d105ed21",
+          "payloadSha256": "33c6490c88b96f77f9c95e13f3a74b6a5986db054ffd434e8629d55ccb745222",
+          "wireAction": "promote",
+          "domAction": "Rollout expansion"
+        },
+        {
+          "phase": "missing",
+          "http": 404,
+          "request": {
+            "application_id": "fieldlog",
+            "channel": "unregistered",
+            "environment_id": "staging",
+            "organization_id": "org-a",
+            "platform": "android",
+            "project_id": "project-a",
+            "runtime_fingerprint": "3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432",
+            "view": "details-v2"
+          },
+          "domStatus": "You cannot access this release target."
+        }
+      ]
+    },
+    "compatibility": [
+      "Legacy no-view summary omitted details for both staged heads.",
+      "Legacy view=details still returned promote for both staged heads, and returned the same response as view=details-v2 after ordinary rollout expansion.",
+      "Before the committed promotion, both negotiated target reads returned empty. Missing target coordinates, cross-tenant cookie and absent cookie were refused. Mixed duplicate view values were refused.",
+      "The ordinary runtime role retained EXECUTE on mixer_release_head_details without SELECT on artifact columns. Lifecycle, writer helper and PUBLIC lacked EXECUTE. No migration or grant changed."
+    ],
+    "correctedSetupControls": [
+      "The first isolated compile lacked the expected hosted/deps path. The next PostgreSQL fixture setup lacked the existing catalog-definer role. Both were corrected with task-owned local inputs.",
+      "The initial expansion test used a source assignment already at 10,000 basis points. It was corrected to publish at 1,000 and expand to 2,000.",
+      "Node 26 changed child test reporter defaults. The full console suite passed on the repository's Node 22.23.3 CI pin."
+    ]
+  },
+  "scope": "Each platform observation is a separate authorized read of a committed target. The projection provides no promotion-group proof and the page reports that status as unavailable. Local Phoenix, PostgreSQL and console only. L05 and release qualification remain open.",
+  "cleanup": {
+    "ownedBrowserTabClosed": true,
+    "mixAndPostgreSQLGroupsAbsent": true,
+    "closedListeners": [
+      "PostgreSQL",
+      "Phoenix",
+      "fixture provider",
+      "console proxy"
+    ],
+    "temporaryDiagnosticAndScratchRemoved": true
+  }
+}

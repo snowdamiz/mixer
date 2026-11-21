@@ -153,9 +153,10 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     provision_details!()
 
     vector = vector()
+    source_ios = variant(vector, "ios", "development", "internal", 7)
 
     source = %{
-      ios: variant(vector, "ios", "development", "internal", 7),
+      ios: put_in(source_ios.assignment["rollout_basis_points"], 1_000),
       android: variant(vector, "android", "development", "internal", 9)
     }
 
@@ -336,6 +337,15 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     assert request.(promotion_body(ios, unstaged)).status == 404
     assert_empty_stage_promotion!()
 
+    for value <- Map.values(destination) do
+      target = value.enrollment.target
+
+      assert read!(c, owner, target, :details_v2) == %{
+               "kind" => "empty",
+               "target" => string_keys(Target.wire(target))
+             }
+    end
+
     assert_failed_job_commit!(fn ->
       assert request.(body).status == 503
       assert_empty_stage_promotion!()
@@ -400,6 +410,73 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
              SELECT (SELECT count(*) FROM public.mixer_stage_promotion_bindings),
                     (SELECT count(*) FROM mixer_release_jobs.oban_jobs WHERE args->>'environment_id'='staging')
              """).rows
+
+    other = login(c, :other_tenant)
+
+    for value <- Map.values(destination) do
+      target = value.enrollment.target
+      signed = publication(value)
+      promoted = read!(c, owner, target, :details_v2)
+
+      assert %{"kind" => "published", "target" => wire, "release" => release} = promoted
+      assert wire == string_keys(Target.wire(target))
+      assert release["sequence"] == Integer.to_string(signed.sequence)
+      assert release["manifestSha256"] == signed.artifact_sha256
+      assert release["details"]["sourceCommit"] == value.manifest["source_commit"]
+      assert release["details"]["action"] == "stage_promote"
+
+      assert read!(c, owner, target) == update_in(promoted["release"], &Map.delete(&1, "details"))
+
+      assert read!(c, owner, target, :details) ==
+               put_in(promoted["release"]["details"]["action"], "promote")
+
+      assert_status(c, other, target, 404, :details_v2)
+      assert http(c, path(target, :details_v2), []).status == 401
+      assert http(c, path(target, :details_v2) <> "&view=details", owner).status == 400
+
+      for wrong <- [
+            %{target | platform: if(target.platform == "ios", do: "android", else: "ios")},
+            %{target | scope: %{target.scope | environment_id: "development"}},
+            %{target | channel: "unregistered"}
+          ],
+          do: assert_status(c, owner, wrong, 404, :details_v2)
+    end
+
+    variant = source.ios
+    target = variant.enrollment.target
+    assert_details_privileges!(target)
+    original = publication(variant)
+
+    expansion =
+      update_in(variant.assignment, fn assignment ->
+        %{assignment | "sequence" => 8, "rollout_basis_points" => 2_000}
+      end)
+
+    cli_base = "/v3/orgs/org-a/projects/project-a"
+    validation = Jason.encode!(%{artifact_sha256: original.artifact_sha256})
+
+    assert %{status: 200} =
+             cli_post(c, token, cli_base <> "/releases/validate", "validate", validation)
+
+    assert %{status: 200} =
+             cli_post(
+               c,
+               token,
+               cli_base <> "/channels/internal/promote",
+               "rollout-expansion",
+               ~s({"signed_assignment":#{spaced_assignment(expansion)}})
+             )
+
+    assert %{
+             "release" => %{
+               "sequence" => "8",
+               "rolloutBasisPoints" => 2_000,
+               "details" => %{"action" => "promote"}
+             }
+           } =
+             expanded = read!(c, owner, target, :details_v2)
+
+    assert read!(c, owner, target, :details) == expanded
   end
 
   test "publishes the verified upload once and reads the exact tenant-scoped browser head" do
@@ -2215,8 +2292,12 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
           runtime_fingerprint: target.runtime_sha256,
           channel: target.channel
         })
-      ) <> if(view == :details, do: "&view=details", else: "")
+      ) <> view_query(view)
   end
+
+  defp view_query(:summary), do: ""
+  defp view_query(:details), do: "&view=details"
+  defp view_query(:details_v2), do: "&view=details-v2"
 
   defp string_keys(map), do: Map.new(map, fn {key, value} -> {Atom.to_string(key), value} end)
 end
