@@ -934,8 +934,11 @@ scratch for the signed owner export. Focused macOS checks verified the
 exact export bytes and cleanup after success and assertion failure.
 The reviewed source packet binds the one changed test and restores v83
 and v82. All three sparse workflows admitted 572 inputs, while
-Source141 and Pair25 preserved their existing input sets. Hosted Linux
-verification remains pending.
+Source141 and Pair25 preserved their existing input sets. The exact
+v84 Linux Phoenix run passed all 1,030 executed tests, including the
+signed owner export. It skipped 32 tests and confirmed database
+shutdown and owned scratch removal.
+[Hosted owner export](verification/receipts/hosted-v84-phoenix-owner-export-3c9f6ece.json)
 [Fixture verification](verification/receipts/l07-source-map-fixture-os-scratch-857e4b4a.json) ·
 [v84 source binding](verification/receipts/l07-hosted-source-v84-866c3e80.json) ·
 [Root admission](verification/receipts/l07-hosted-source-v84-root-admission.json)
@@ -1132,6 +1135,20 @@ seven focused controls, three publication regressions, and the owned VM
 replay. All 26 nested command groups closed.
 [Checklist formatter fixture](compiler/experiments/checklist-existential/README.md) ·
 [Canonical replay](verification/receipts/w07-l03-checklist-existential-canonical.json)
+
+The current FieldLog Android APK ran five checklist scrolls at each of
+20 and 1,000 tasks on an isolated 60 Hz API 36 arm64 emulator. Each
+trial started the ordinary activity cold, verified its expected first
+page, revealed new rows by swiping, and preserved the workspace bytes.
+For 1,000 tasks, the median of five graphics frame p95 observations
+was 17.54 ms, with a 17.49–55.73 ms range. Activity Manager cold launch
+time was 229 ms at the median, and median process RSS was 190.95 MiB.
+Timing varied within both datasets. This evidence covers
+`FrameCompleted − IntendedVsync` for the first 20-row page. The
+packaged signed guest contains 7,606 Wasm bytes and 2,055 bytes of
+manifest and assignment metadata. All owned groups closed.
+[Native measurement](verification/receipts/fieldlog-api36-checklist-measurement-e39a5ea3.json) ·
+[Setup and partial attempts](verification/receipts/fieldlog-api36-checklist-measurement-attempts.json)
 
 The Entry Commit guest's 16 varying bytes came from Swift's
 `.swift_modhash` segment. Changing the absolute object output path changed
