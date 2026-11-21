@@ -12,6 +12,25 @@ features. Update `swift-language-support.json` and run
 `python3 -B compiler/swift_support_matrix.py` to regenerate it. The compiler
 test suite checks the generated file for drift.
 
+## Read a Swift location from a guest trap
+
+On arm64 macOS, run the compact event diagnostic with the Swift 6.3.3
+release toolchain and Cargo 1.99.0. The command uses a fresh name under
+`verification/local`. Use `--toolchain` and `--cargo` if the tools are
+installed outside the defaults shown by `--help`.
+
+```sh
+python3 -B compiler/experiments/swift-event-diagnostic/replay.py swift-event-location
+```
+
+The owned VM reports a function index and absolute Wasm offset for the
+fixture's event trap. The probe compares the entire Wasm before reading its
+DWARF line table. For the matching fixture, its resolver and LLVM identify
+`SwiftEventGuest.swift:32:9`. Stripped and mismatched artifacts report the
+same trap coordinates without a Swift location. This is a development
+fixture. Production symbolication and debugger transport remain open.
+[Replay receipt](../verification/receipts/w15-l03-v79-swift-event-diagnostic.json)
+
 `Fixtures/FieldLogCorpus/main.swift` exercises the actual models imported from an
 immutable revision of the separate FieldLog repository: 1,000 tasks, 50% progress,
 reordering, Unicode draft Codable restoration, entry commit/repeat rejection,

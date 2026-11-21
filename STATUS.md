@@ -305,7 +305,8 @@ Exact source and workflow preimages recover v79 and v78. The installed CLI
 still validates 154 inputs, and the ordinary migration inventory remains at 27.
 Full collector and hosted CI results are pending.
 [Source admission](verification/receipts/hosted-v80-console-promotion-history-source-admission.json) ·
-[Console composition](verification/receipts/console-promotion-history-v80-composition.json)
+[Console composition](verification/receipts/console-promotion-history-v80-composition.json) ·
+[Phoenix fixture replay](verification/receipts/console-promotion-v80-composed-phoenix.json)
 
 ## November 20 generated release REST client
 
@@ -363,6 +364,13 @@ The separate dynamic-loop builder passed natively and failed guest linking
 on the array allocator imports. Independent replay confirmed both scopes.
 [Fixed-slot replay](verification/receipts/l03-swift-fixed-slot-result-builder.json) ·
 [Dynamic-loop boundary](verification/receipts/l03-swift-result-builder-v78.json)
+
+A compact Swift event trapped at function 3, byte 514 in the owned VM.
+The matching line table resolved that position to `SwiftEventGuest.swift:32:9`
+and LLVM agreed. Stripped and mismatched inputs preserved the raw trap
+coordinates and withheld the source location. Independent replay confirmed
+all four owner closures. This covers one macOS host diagnostic.
+[Swift trap replay](verification/receipts/w15-l03-v79-swift-event-diagnostic.json)
 
 The maintained WebAssembly Core replay reproduced ten exact returns, three
 traps, and six invalid-module refusals on arm64 macOS. The Rust CLI and the
