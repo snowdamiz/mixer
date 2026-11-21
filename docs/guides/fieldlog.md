@@ -94,9 +94,9 @@ source and lock hashes, APK checks, and scratch cleanup.
 
 ### Launch the exported FieldLog APK
 
-The replay copies the verified APK to `--apk-output` before it removes the
-build scratch. Sign the APK with a development key using the Android build
-tools. Set `adb_port` and `serial` to the private ADB server port and serial of
+Choose an `--apk-output` path on the same filesystem as `verification/local`.
+The replay retains the verified APK at that path when it removes the build
+scratch. Sign the APK with a development key using the Android build tools. Set `adb_port` and `serial` to the private ADB server port and serial of
 your disposable API 36 arm64 emulator. Set `signed_apk` to the signed APK.
 
 ```sh
