@@ -214,8 +214,8 @@ def enroll(root, kit, env, pg, result, api, auth, operator, ready, *, preflight)
     credentials = operator / "credentials"
     wrapper = command(root, kit, result, "attest-settled",
                       [sys.executable, "-B", auth["wrapper"], "--run-root", root,
-                       "--settlement-sha256", file_sha(settlement), "--api-port", auth["port"],
-                       "--pg-port", result["ports"][0], "--psql", pg / "psql",
+                       "--settlement-sha256", file_sha(settlement), "--api-port", str(auth["port"]),
+                       "--pg-port", str(result["ports"][0]), "--psql", pg / "psql",
                        "--session", credentials / "session", "--bearer", credentials / "bearer",
                        "--private-key", private, "--public-key", public, "--enrolled-spki-sha256", pin],
                       env, timeout=600)

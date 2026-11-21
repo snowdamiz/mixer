@@ -1,7 +1,10 @@
 """Inert controls for the managed v74 runner's nested wrapper custody."""
 
+import base64
 from contextlib import ExitStack
+import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -152,6 +155,48 @@ class WrapperCustody(unittest.TestCase):
         self.assertEqual(group_absent.call_count, 3)
         self.assertEqual(stop.call_count, 2)
         verify_ports.assert_called_once()
+
+    def test_managed_enrollment_passes_both_ports_as_process_arguments(self):
+        scratch = Path(self.enterContext(TemporaryDirectory(prefix="l07-enroll-control-")))
+        root = scratch / "run"
+        operator = scratch / "operator"
+        root.mkdir()
+        operator.mkdir()
+        closed = {"exit": 0, "groupAbsent": True, "directChildReaped": True}
+        result = {
+            "commands": {name: closed for name in ("processor", "worker", "independent-parent")},
+            "liveCustodyPending": False, "xcodeInvocations": 1, "liveClosure": {"xcodeExit": 0},
+            "ports": [54321],
+        }
+
+        def sha(data):
+            return hashlib.sha256(data).hexdigest()
+
+        class WrapperReached(Exception):
+            pass
+
+        def launch(_root, _kit, _result, name, argv, _env, **_options):
+            if name == "keygen":
+                argv[-1].touch()
+            elif name == "public-key":
+                argv[-1].write_bytes(b"header\n" + base64.b64encode(v74.PREFLIGHT_SPKI) + b"\n")
+            else:
+                self.assertEqual(name, "attest-settled")
+                args = [os.fspath(value) for value in argv]
+                self.assertEqual(args[args.index("--api-port") + 1], "61234")
+                self.assertEqual(args[args.index("--pg-port") + 1], "54321")
+                raise WrapperReached
+
+        ready = Mock(return_value={
+            "origin": "http://127.0.0.1:61234", "spkiSHA256": sha(v74.PREFLIGHT_SPKI),
+            "role": "mixer_native_attestation_writer", "missingBuildHTTP": 404,
+            "missingScopeHTTP": 403, "rows": 0, "browserStorageReady": True,
+            "freshBrowserSession": True,
+        })
+        with patch.object(v74, "command", side_effect=launch), self.assertRaises(WrapperReached):
+            v74.enroll(root, {"require": live.require, "sha": sha}, {}, scratch, result, None,
+                       {"port": 61234, "wrapper": scratch / "wrapper.py"}, operator, ready,
+                       preflight=False)
 
     def test_default_and_v55_keep_terminal_cleanup(self):
         for mode in ("", "--live"):
