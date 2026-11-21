@@ -234,6 +234,13 @@ capture limit. PostgreSQL stopped and owned scratch was removed. The
 source-map export refusal is under investigation.
 [Hosted failure evidence](verification/receipts/hosted-v82-phoenix-private-source-map-failure.json)
 
+Phoenix on follow-up `dbb9275d58` reached the same assertion. The suite
+again recorded 1,029 passes, one failure, and 32 skips. The signed owner
+export returned `output_unavailable`. The protocol, session storage, and
+migration checks passed. The foundation receipt confirms PostgreSQL stopped
+and owned scratch was removed.
+[Follow-up failure evidence](verification/receipts/hosted-v82-followup-phoenix-dbb9275d.json)
+
 Hosted v82 Identity Network stopped during the first Git blob collection,
 before creating any containers or running either network method. The
 exact request and a complete local readback matched all 571 pinned blobs.
