@@ -146,6 +146,11 @@ allocation bytes. All 16 session slots opened and closed afterward.
 This control covers one pinned seed. Continuous fuzz qualification
 remains open. [Mutation replay](verification/receipts/l03-guest-ui-v1-export-mutation-7a9b6516.json)
 
+The compiler qualification recorder now preserves the cleanup error and
+observed log sizes when custody is unknown. All 14 compiler support
+tests passed in normal and optimized Python. The earlier hold for PID
+99218 remains active. [Recorder verification](verification/receipts/l03-qualification-recorder-custody-f13d6dab.json)
+
 ## November 19 local verification
 
 The combined FieldLog iOS and Android storage patches passed 30 host checks across the compatible rollback and successor writers. An independent replay passed all 30 checks and 10 additional controls. The four writers refused newly introduced draft and entry ID overlaps, preserved edits to existing pairs, and recovered a complete snapshot after a write fault. [Composed storage receipt](verification/receipts/fieldlog-l08-cross-platform-draft-overlap-20261119.json)
