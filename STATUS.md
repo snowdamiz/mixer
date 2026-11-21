@@ -788,9 +788,16 @@ and a fresh generation started with identical bytes. Independent
 review confirmed the pinned source and reconstructed the recorded
 observations. The author recorded 22 closed command groups and scratch
 removal. The initial SDK header and host compilation failures occurred
-before runtime. The captured runner is historical while its outcome
-checks and receipt publication are corrected.
+before runtime. The captured runner remains historical.
 [Allocation recovery receipt](verification/receipts/l03-guest-allocator-release-followup-abadfffa10.json) · [Initial setup failures](verification/receipts/l03-guest-allocator-release-abadfffa10.json)
+
+The maintained allocator control requires the exact VM archive and
+allocation outcomes. Its fresh run reproduced both sessions and observed
+all 25 command groups close. The receipt is published without replacing
+prior evidence. Independent review compiled the host assertions and
+passed all 11 inert controls. The observed Wasm and runtime output
+digests match the historical pass.
+[Strict allocator receipt](verification/receipts/l03-guest-allocator-release-strict-abadfffa10.json)
 
 A compact Swift event trapped at function 3, byte 514 in the owned VM.
 The matching line table resolved that position to `SwiftEventGuest.swift:32:9`
