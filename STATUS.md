@@ -1011,6 +1011,19 @@ development certificates and a fresh install in one disposable API 36
 emulator.
 [Installed exit receipt](verification/receipts/fieldlog-e39a5ea3-relocated-android-workspace-readback.json)
 
+## November 21 FieldLog Android draft save with retained focus
+
+Both the relocated Pair25 development APK and the current camera and
+queue APK opened the same synthetic draft and seven JPEGs offline.
+After typing in Note and hiding the keyboard with Back, Save draft
+triggered `unsupportedNativeOperation` in the native renderer. The
+surface retired and the repository stayed at revision 8 with identical
+workspace bytes. The earlier export restore and camera and queue
+results still cover their recorded actions. The first boot attempt
+stopped at the emulator userdata space check. All four attempts closed
+their owned groups, released the private ports, and removed scratch.
+[Installed save refusal](verification/receipts/fieldlog-android-focused-draft-save-20261121.json)
+
 ## November 21 FieldLog release-origin restart
 
 The stock loopback Go service delivered the exact Pair24 sequence-1
