@@ -57,8 +57,8 @@ predecessor. [Release REST contract](contracts/release-rest-v3.md) · [Source ad
 
 ## November 20 Swift language support matrix
 
-The generated Swift support matrix maps 13 scoped claims to executable
-controls. Eleven rows remain unqualified. Native Swift and the owned guest
+The generated Swift support matrix maps 14 scoped claims to executable
+controls. Ten rows remain unqualified. Native Swift and the owned guest
 produced the same four FieldLog frames and refused six malformed events
 without changing state. The owned validator and session constructor refused
 shared memory before admitting a guest session.
@@ -67,6 +67,12 @@ The macOS FeatureStore probe joined the replacement, replaced, cancelled,
 and stopped tasks before checking delivery. Only the replacement reached
 the reducer. Swift guest task cancellation and installed iOS TaskCompletion
 qualification remain open. [Swift language support](compiler/swift-language-support.md) · [Scoped host and VM replay](verification/receipts/l03-swift-language-support-b963585e.json) · [Completion control](verification/receipts/l03-swift-language-support-w07-correction.json)
+
+For seven finite inputs on arm64 macOS, Swift `Float` and `Double` arithmetic
+and comparisons matched native result bits through the installed Guest UI v1
+VM. The guest rejected a short input without changing its result and retired
+with a stale-handle refusal. The two recorded builds emitted different Wasm
+hashes and the same observed instructions and ordered frames. [Producer replay](verification/receipts/swift-floating-point-preview-6f4fdee12e.json) · [Integration replay](verification/receipts/l03-swift-floating-point-integration-b463c00d.json)
 
 ## November 19 local verification
 
