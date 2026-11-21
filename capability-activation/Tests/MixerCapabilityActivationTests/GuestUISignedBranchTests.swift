@@ -90,6 +90,123 @@ final class GuestUISignedBranchTests: XCTestCase {
     }
 
     @MainActor
+    func testSignedSwiftValidateTrapDiagnostic() async throws {
+        guard let directory = ProcessInfo.processInfo.environment["MIXER_SIGNED_SWIFT_DIAGNOSTIC_MODULES"] else {
+            throw XCTSkip("Requires the compact Swift event fixtures from the W15 installed-host replay")
+        }
+        let expected = UIDocument(revision: 1, root: UINode(
+            id: "button", kind: .button, properties: ["label": .string("Validate")],
+            actions: [.init(id: "validate", event: .activate)]))
+        let moduleDirectory = URL(fileURLWithPath: directory, isDirectory: true)
+
+        for variant in ["matched", "stripped"] {
+            let payload = try Data(contentsOf: moduleDirectory.appendingPathComponent(variant + ".wasm"))
+            try await withOwner(checkFallbackAfterRetirement: true) { fixture, owner in
+                try await append(payload, signedFor: payload, fixture: fixture, owner: owner)
+                try await owner.finishDownload()
+                let staged = await owner.recoverySnapshot()
+                XCTAssertNotNil(staged.staged)
+                XCTAssertEqual(staged.acceptedSequence, 1)
+
+                let startup = try await owner.start()
+                guard startup.phase == .provisionalGuest else {
+                    return XCTFail("Signed Swift startup reached \(startup.phase), cause \(String(describing: startup.terminalCause))")
+                }
+                XCTAssertTrue(startup.effectsMayHaveOpened)
+                XCTAssertEqual(startup.candidateID, staged.staged)
+                XCTAssertNil(startup.firstBridgeFailure)
+
+                let model = owner.presentation
+                try await awaitPresentation { model.state == .displaying(revision: 1) }
+                let attachment = try XCTUnwrap(model.claimNativeAttachment())
+                try await awaitPresentation { model.inputEnabled }
+                let host = try XCTUnwrap(model.renderHost)
+                XCTAssertEqual(host.snapshot.document, expected)
+
+                @MainActor
+                func routeValidate() throws -> RoutedUIAction {
+                    let identity = try XCTUnwrap(host.snapshot.identity(for: "button"))
+                    let action = try host.route(.init(revision: 1, identity: identity, event: .activate))
+                    XCTAssertEqual(action.actionID, "validate")
+                    return action
+                }
+
+                model.actionHandler(host: host, attachment: attachment)(try routeValidate())
+                try await awaitPresentation {
+                    model.lastEventResult?.outcome == .delivered && model.inputEnabled
+                }
+                XCTAssertEqual(model.lastEventResult?.sequence, 1)
+                XCTAssertEqual(model.state, .displaying(revision: 1))
+                XCTAssertEqual(model.renderHost?.snapshot.document, expected)
+                XCTAssertEqual(model.lifecycleObservation?.counters.acceptedEvents, 1)
+                XCTAssertEqual(model.lifecycleObservation?.counters.deliveredEvents, 1)
+                XCTAssertEqual(model.lifecycleObservation?.counters.terminalEvents, 0)
+                // Returning the same document keeps the existing revision on screen.
+                XCTAssertEqual(model.lifecycleObservation?.counters.producedFrames, 1)
+                let beforeTrap = await owner.recoverySnapshot()
+                XCTAssertEqual(beforeTrap.activation.phase, .provisionalGuest)
+                XCTAssertNil(beforeTrap.activation.firstBridgeFailure)
+                XCTAssertNil(beforeTrap.activation.firstUIProtocolFailure)
+                XCTAssertNil(beforeTrap.healthy)
+                print("SIGNED_SWIFT \(variant) bytes=\(payload.count) sha256=\(ReleaseVerifier.sha256(payload)) accepted=\(staged.acceptedSequence) label=Validate revision=\(host.snapshot.document.revision) delivered=\(model.lastEventResult?.sequence ?? 0)")
+
+                let oldHandler = model.actionHandler(host: host, attachment: attachment)
+                let action = try routeValidate()
+                oldHandler(action)
+                try await awaitPresentation {
+                    model.state == .stopped && model.lastEventResult?.outcome == .terminal(turnBegan: true)
+                }
+                XCTAssertEqual(model.lastEventResult?.sequence, 2)
+                XCTAssertFalse(model.inputEnabled)
+                XCTAssertNil(model.renderHost)
+                let terminalResult = model.lastEventResult
+                oldHandler(action)
+                XCTAssertEqual(model.lastEventResult, terminalResult)
+                XCTAssertFalse(model.inputEnabled)
+
+                let deadline = ContinuousClock.now + .seconds(5)
+                var recovery = await owner.recoverySnapshot()
+                while (recovery.activation.firstBridgeFailure == nil || recovery.busy || recovery.incompleteAttempt ||
+                       recovery.activation.cleanupPending || !recovery.requiresReopen), ContinuousClock.now < deadline {
+                    try await Task.sleep(for: .milliseconds(2))
+                    recovery = await owner.recoverySnapshot()
+                }
+                let failure = try XCTUnwrap(recovery.activation.firstBridgeFailure)
+                let location = try XCTUnwrap(failure.location)
+                XCTAssertEqual(failure.kind, .guestTrap(.unreachable))
+                XCTAssertEqual(failure.operation, .invocation)
+                XCTAssertEqual(failure.code, "unreachable")
+                XCTAssertEqual(failure.nativeStatus, 2)
+                XCTAssertEqual(location.functionIndex, 3)
+                XCTAssertEqual(location.byteOffset, 514)
+                if variant == "matched" {
+                    let source = try XCTUnwrap(location.source)
+                    XCTAssertEqual(source.file, "SwiftEventGuest.swift")
+                    XCTAssertEqual(source.line, 32)
+                    XCTAssertEqual(source.column, 9)
+                } else {
+                    XCTAssertNil(location.source)
+                }
+                XCTAssertEqual(recovery.activation.terminalCause, .bridge)
+                XCTAssertNil(recovery.activation.firstUIProtocolFailure)
+                XCTAssertEqual(recovery.activation.phase, .recoveryRequired)
+                XCTAssertTrue(recovery.activation.effectsMayHaveOpened)
+                XCTAssertTrue(recovery.requiresReopen)
+                XCTAssertTrue(recovery.activation.requiresReopen)
+                XCTAssertFalse(recovery.incompleteAttempt)
+                XCTAssertFalse(recovery.busy)
+                XCTAssertFalse(recovery.activation.cleanupPending)
+                XCTAssertNil(recovery.staged)
+                XCTAssertNil(recovery.healthy)
+                XCTAssertNil(recovery.previousHealthy)
+                let source = location.source.map { "\($0.file):\($0.line):\($0.column ?? 0)" } ?? "none"
+                print("SIGNED_SWIFT \(variant) kind=\(failure.kind) operation=\(failure.operation) status=\(failure.nativeStatus ?? 0) code=\(failure.code) function=\(location.functionIndex ?? 0) offset=\(location.byteOffset) source=\(source)")
+                print("SIGNED_SWIFT \(variant) terminalSequence=\(terminalResult?.sequence ?? 0) outcome=\(String(describing: terminalResult?.outcome)) phase=\(recovery.activation.phase) requiresReopen=\(recovery.requiresReopen) input=\(model.inputEnabled) renderHost=\(model.renderHost != nil)")
+            }
+        }
+    }
+
+    @MainActor
     private func append(_ bytes: Data, signedFor payload: Data, fixture: GuestUISignedFixture,
                         owner: CapabilityGuestUIRuntime) async throws {
         let (manifest, assignment) = try fixture.documents(payload)
@@ -98,7 +215,8 @@ final class GuestUISignedBranchTests: XCTestCase {
     }
 
     @MainActor
-    private func withOwner(_ exercise: (GuestUISignedFixture, CapabilityGuestUIRuntime) async throws -> Void) async throws {
+    private func withOwner(checkFallbackAfterRetirement: Bool = false,
+                           _ exercise: (GuestUISignedFixture, CapabilityGuestUIRuntime) async throws -> Void) async throws {
         let files = FileManager.default
         let root = files.temporaryDirectory.appendingPathComponent("mixer-signed-branch-" + UUID().uuidString)
         try files.createDirectory(at: root, withIntermediateDirectories: false)
@@ -125,6 +243,32 @@ final class GuestUISignedBranchTests: XCTestCase {
         do { try await exercise(fixture, owner) }
         catch { failure = error }
 
+        let recovery = try await retire(owner, baseline: baseline)
+        removable = recovery.closed && !recovery.activation.cleanupPending
+        XCTAssertTrue(removable)
+        if let failure { throw failure }
+
+        if checkFallbackAfterRetirement {
+            removable = false
+            let reopened = try await CapabilityGuestUIRuntime.open(configuration: fixture.configuration, execution: fixture.execution)
+            do {
+                let fallback = try await reopened.start()
+                XCTAssertEqual(fallback.phase, .nativeFallback)
+                XCTAssertFalse(fallback.effectsMayHaveOpened)
+                XCTAssertEqual(reopened.presentation.state, .waiting)
+                XCTAssertNil(reopened.presentation.renderHost)
+                XCTAssertFalse(reopened.presentation.inputEnabled)
+                print("SIGNED_SWIFT reopened=\(fallback.phase) presentation=\(reopened.presentation.state) input=\(reopened.presentation.inputEnabled)")
+            } catch { failure = error }
+            let recovered = try await retire(reopened, baseline: baseline)
+            removable = recovered.closed && !recovered.activation.cleanupPending
+            XCTAssertTrue(removable)
+            if let failure { throw failure }
+        }
+    }
+
+    @MainActor
+    private func retire(_ owner: CapabilityGuestUIRuntime, baseline: Int) async throws -> CapabilityGuestUIRecoverySnapshot {
         var closeReturned = false
         let close = Task {
             await owner.close()
@@ -133,15 +277,13 @@ final class GuestUISignedBranchTests: XCTestCase {
         try await awaitPresentation { closeReturned && owner.ownerRetired }
         await close.value
         let recovery = await owner.recoverySnapshot()
-        removable = recovery.closed && !recovery.activation.cleanupPending
-        XCTAssertTrue(removable)
         XCTAssertEqual(owner.presentation.state, .stopped)
         XCTAssertNil(owner.presentation.renderHost)
         XCTAssertFalse(owner.presentation.inputEnabled)
         let slots = CapabilityAttemptReservation.occupiedSlots
         XCTAssertEqual(slots, baseline)
         print("SIGNED_BRANCH retired=\(owner.ownerRetired) closed=\(recovery.closed) cleanupPending=\(recovery.activation.cleanupPending) slots=\(baseline)->\(slots)")
-        if let failure { throw failure }
+        return recovery
     }
 }
 

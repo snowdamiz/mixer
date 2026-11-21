@@ -1,0 +1,326 @@
+{
+  "schema_version": 1,
+  "work": "W15/L03 signed installed Guest UI V1 Swift event diagnostics",
+  "status": "passed_scoped_host_control",
+  "scope": "Offscreen macOS installed VM, production activation and presentation path with synthetic signed ingress. No window, device, external source, or gate qualification.",
+  "base_revision": "ded1488a5f6a6d68878b5144cf034247e9411547",
+  "base_tree": "e35f467c9009ca77fd0516b280249db8ad217d38",
+  "tested_overlay_tree": "6c6c3a05d7d950fedfd701a3e0c396bb2a45b7dc",
+  "fixture": {
+    "test": "capability-activation/Tests/MixerCapabilityActivationTests/GuestUISignedBranchTests.swift::testSignedSwiftValidateTrapDiagnostic",
+    "test_sha256": "05904f3c4f179ff2b9c720be39913ccc3e31697af8f94a42d530f4b7421b6228",
+    "guest_source": "compiler/experiments/swift-event-diagnostic/SwiftEventGuest.swift",
+    "guest_source_sha256": "7467977b6aabe440b676bc4065d456478722c3a2a480fee6419ffd691f8764c2",
+    "patch_sha256": "17d76dbb55e337fbb4f09f27dd6020dfb8b26f5249927b93fb0b65d5d64a198e",
+    "signer": "GuestUISignedFixture synthetic V3 manifest and assignment, separately signed payload digest for each variant",
+    "limits": {
+      "memory_bytes": 65536,
+      "fuel": 100000,
+      "startup_milliseconds": 60000,
+      "capability_grants": []
+    }
+  },
+  "original_compact_guest": {
+    "declared_event_capacity_bytes": 128,
+    "required_bytes": 4096,
+    "observed_both": "Staged, then nativeFallback with startup/header protocolViolation beforeIntent",
+    "typed_baseline": {
+      "exit": 1,
+      "custody": "TERMINAL",
+      "stdout_sha256": "5438134def19c37c667602a3e2886899a03e7b894b3afc0d7b5d03a23d540ea1",
+      "stderr_sha256": "339d78638326c906956c049e6ad43f092b961ced047f227ed152e92063edc973",
+      "modules_env": "MIXER_SIGNED_SWIFT_DIAGNOSTIC_MODULES=$RUN"
+    },
+    "minimal_correction": "Guest fixture declares 4096-byte event buffer and allocates 4352 bytes for header, event, and document. Standalone header assertion updated to 4096."
+  },
+  "tools": {
+    "host": [
+      "ProductName:\t\tmacOS",
+      "ProductVersion:\t\t27.0.1",
+      "BuildVersion:\t\t26A434"
+    ],
+    "arch": "arm64",
+    "xcode": "Xcode 27.2\nBuild version 27B52",
+    "macos_sdk": "27.2",
+    "host_swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "guest_swift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)",
+    "wasm_ld": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "llvm_objcopy": [
+      "  LLVM version 21.0.0",
+      "  Optimized build."
+    ],
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "python": "3.14.8",
+    "swiftpm_pins": {
+      "swift-asn1": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+      "swift-crypto": "c2cbadd7263439d8015189668f96ff5b5be565ce"
+    }
+  },
+  "installed_vm": {
+    "build": {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "$RUN/source/experimental-capability-runtime/build-vm.py",
+        "--revision",
+        "ded1488a5f6a6d68878b5144cf034247e9411547",
+        "--target",
+        "host",
+        "--output",
+        "$RUN/installed-vm",
+        "--rustc",
+        "$HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc"
+      ],
+      "exit": 0,
+      "custody": "TERMINAL",
+      "stdout_sha256": "69f7655967a1c25e14302c9b73e33c3c67084b8eafb1b2034d3e549f5dae273a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "vm_tree": "1682169a33d05bd96c7f9fd433d556107bbb7a66",
+    "target": "aarch64-apple-darwin",
+    "feature": "experimental-capability-native",
+    "source_manifest_sha256": "ae7628b22926ed845c1715bfedccf8bede0e214bf795de5407fabd36af81d88b",
+    "source_archive_sha256": "db9b37ceccfa8c7a11189006e483ef3ad3cbc3df28aee17803f89e7822fde593",
+    "guest_ui_header_sha256": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+    "archive": {
+      "bytes": 19309136,
+      "sha256": "bc6b286fdd17507acf073846283dc7e9f32c3a7de8d98ac2c3d6ce35a23e4f74"
+    },
+    "linked_xctest": {
+      "bytes": 16175264,
+      "sha256": "a6bd2b6ab0bd9ea4ae4b0716539979c094ec34d3bbc72919fb120235c463156f"
+    }
+  },
+  "module_build": {
+    "profile": "Embedded Swift wasm32-unknown-none-wasm, -Osize, 16384-byte stack, one 65536-byte page",
+    "commands": {
+      "matched-swift": [
+        "$HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-whole-module-optimization",
+        "-Osize",
+        "-parse-as-library",
+        "-gline-tables-only",
+        "-debug-prefix-map",
+        "$RUN/source=.",
+        "-debug-prefix-map",
+        "$HOME=/toolchain",
+        "-Xfrontend",
+        "-disable-stack-protector",
+        "-emit-object",
+        "$RUN/source/compiler/experiments/swift-event-diagnostic/SwiftEventGuest.swift",
+        "-o",
+        "$RUN/contract-sized/matched.o"
+      ],
+      "matched-link": [
+        "$HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--no-entry",
+        "--gc-sections",
+        "-z",
+        "stack-size=16384",
+        "--max-memory=65536",
+        "--export=mixer_guest_ui_start_v1",
+        "--export=mixer_guest_ui_event_v1",
+        "--export=mixer_guest_capability_ready_v1",
+        "$RUN/contract-sized/matched.o",
+        "-o",
+        "$RUN/contract-sized/matched-linked.wasm"
+      ],
+      "matched-line-table": [
+        "$HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-objcopy",
+        "--wildcard",
+        "--remove-section=.debug_*",
+        "--keep-section=.debug_line",
+        "--remove-section=name",
+        "--remove-section=producers",
+        "$RUN/contract-sized/matched-linked.wasm",
+        "$RUN/contract-sized/matched.wasm"
+      ],
+      "strip": [
+        "$HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-objcopy",
+        "--remove-section=.debug_line",
+        "$RUN/contract-sized/matched.wasm",
+        "$RUN/contract-sized/stripped.wasm"
+      ],
+      "disassembly": [
+        "$HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-objdump",
+        "-d",
+        "$RUN/contract-sized/matched.wasm"
+      ],
+      "line-table": [
+        "/usr/bin/dwarfdump",
+        "--debug-line",
+        "$RUN/contract-sized/matched.wasm"
+      ]
+    },
+    "matched": {
+      "bytes": 2741,
+      "sha256": "65239e9b7e8760c3c5dd12394b1ae51fdb24e160d83b0b16d6562b44e516f9e0"
+    },
+    "stripped": {
+      "bytes": 1267,
+      "sha256": "3f21176ed3142eb38805e7b3d99aa62cc6847eb431e4d2e3665db4ac737434ac"
+    },
+    "line_table_sha256": "1cbc51bac19dc9cf69778e8615f0f4a353dd35d436c04ebe10abff2b26ff9985",
+    "byte_identity": "Stripped module exactly equals matched module with the .debug_line custom section removed."
+  },
+  "observations": {
+    "both": {
+      "admission": "acceptedSequence 1, staged and selected as provisionalGuest",
+      "nonfault": {
+        "displayed_revision": 1,
+        "label": "Validate",
+        "delivered_sequence": 1,
+        "produced_frames": 1
+      },
+      "terminal": {
+        "event_sequence": 2,
+        "turn_began": true,
+        "public_cause": "bridge",
+        "kind": "guestTrap.unreachable",
+        "operation": "invocation",
+        "native_status": 2,
+        "code": "unreachable",
+        "function_index": 3,
+        "absolute_wasm_offset": 514,
+        "code_relative_offset": 313,
+        "phase": "recoveryRequired",
+        "requires_reopen": true,
+        "effects_may_have_opened": true,
+        "input_enabled": false,
+        "render_host": false,
+        "stale_handler_dropped": true
+      },
+      "reopened": {
+        "phase": "nativeFallback",
+        "presentation": "waiting",
+        "effects_may_have_opened": false,
+        "input_enabled": false
+      }
+    },
+    "matched_public_source": {
+      "file": "SwiftEventGuest.swift",
+      "line": 32,
+      "column": 9
+    },
+    "matched_llvm_relative_source": {
+      "file": "compiler/experiments/swift-event-diagnostic/SwiftEventGuest.swift",
+      "line": 32,
+      "column": 9
+    },
+    "stripped_public_source": null,
+    "diagnostic_metadata_authority": "Adding or removing .debug_line changed only source diagnostics in these runs. Native signed validation runs before the session binds line data. Recovery classification uses the checked trap tuple."
+  },
+  "swift_test": {
+    "command": {
+      "argv": [
+        "/usr/bin/xcrun",
+        "swift",
+        "test",
+        "--package-path",
+        "$RUN/source/capability-activation",
+        "--scratch-path",
+        "$RUN/swift-build",
+        "--cache-path",
+        "$RUN/swift-cache",
+        "--config-path",
+        "$RUN/swift-config",
+        "--security-path",
+        "$RUN/swift-security",
+        "--disable-dependency-cache",
+        "--force-resolved-versions",
+        "--disable-index-store",
+        "--manifest-cache",
+        "local",
+        "--jobs",
+        "8",
+        "--no-parallel",
+        "--disable-swift-testing",
+        "-Xcc",
+        "-I$RUN/installed-vm/include",
+        "-Xlinker",
+        "-L$RUN/installed-vm/lib",
+        "--filter",
+        "GuestUISignedBranchTests"
+      ],
+      "exit": 0,
+      "custody": "TERMINAL",
+      "stdout_sha256": "13012e42846c75f1fc1ea62affed278a2c5f425a8c6a106ba91ca2a282ca8e65",
+      "stderr_sha256": "4883dd11c84b58ba74b8ffd3fe13efff7079eb8e8a10cb6ceac1fa3ffafcf6b1"
+    },
+    "modules_env": "MIXER_SIGNED_SWIFT_DIAGNOSTIC_MODULES=$RUN/contract-sized",
+    "dependency_resolution": "Pinned SwiftPM repositories read from existing local Git caches via process-local URL rewrites.",
+    "tests_passed": 3,
+    "diagnostic_variants": 2,
+    "additional_controls": [
+      "signed branch table selection for three actions",
+      "signed payload mismatch integrity refusal"
+    ]
+  },
+  "earlier_attempts": [
+    {
+      "problem": "Installed builder refused symlinked /tmp before compiling; reran under /private/tmp.",
+      "result": {
+        "exit": 1,
+        "custody": "TERMINAL",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "9394f00db8ce80263ed80c574412e4bcf1a5c669eb4cd54217ea9bde481d8805"
+      }
+    },
+    {
+      "problem": "First XCTest build found missing MainActor on the local test router; fixed in the test.",
+      "result": {
+        "exit": 1,
+        "custody": "TERMINAL",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "a3b65c3341af0d96c71b84631ed23824bdbc31c506f442178c9cacda33416052"
+      }
+    },
+    {
+      "problem": "Original guest reached nativeFallback; the typed baseline captured both startup/header refusals.",
+      "result": {
+        "exit": 1,
+        "custody": "TERMINAL",
+        "stdout_sha256": "b849f9846edb6e8da2909b395a2e2941c75bf55fc9343ffe9b3de052cee57e1b",
+        "stderr_sha256": "bbf4db2abfc97edfbf8e610f5a0e7e82940f3228c638b3659a499410e97db6b3"
+      }
+    }
+  ],
+  "cleanup": {
+    "final_closed_owners": 8,
+    "final_temp_roots_removed": 6,
+    "temp_roots_verified_absent_across_executions": 17,
+    "owner_slots_before_and_after_each_close": [
+      0,
+      0
+    ],
+    "owned_command_groups": "terminal, as recorded by the relevant runners",
+    "isolated_checkout_and_external_build_scratch": "removed; absence checked"
+  },
+  "standalone_regression": {
+    "status": "passed",
+    "variants": [
+      "alternate",
+      "matched",
+      "stripped",
+      "wrongTable"
+    ],
+    "trap": {
+      "absoluteWasmOffset": 514,
+      "codeRelativeOffset": 313,
+      "column": 9,
+      "file": "compiler/experiments/swift-event-diagnostic/SwiftEventGuest.swift",
+      "functionIndex": 3,
+      "instruction": "unreachable",
+      "line": 32
+    },
+    "commands_closed": 27,
+    "note": "Reused the predecessor replay with its base pin set to the exact composed commit after confirming the original pinned engine inputs were unchanged.",
+    "command": "import replay; replay.PIN='ded1488a5f6a6d68878b5144cf034247e9411547'; replay.main()"
+  },
+  "verification_artifact_retention": "passed with the receipt staged in the isolated checkout index"
+}

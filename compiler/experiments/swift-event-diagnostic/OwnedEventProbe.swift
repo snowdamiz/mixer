@@ -66,7 +66,7 @@ private func replay(_ module: Data, _ candidate: Data) throws -> Observation {
         }
     }
     try require(header[0] == 827_672_909 && header[1] == 32 && header[4] == UInt32(address) + 32
-                && header[5] == 128 && header[2] == header[4] + header[5]
+                && header[5] == 4096 && header[2] == header[4] + header[5]
                 && (1...224).contains(header[3]) && header[6] == 0 && header[7] == 0, "control header")
     let initial = try read(header[2], count: Int(header[3]))
     guard let document = String(data: initial, encoding: .utf8) else {

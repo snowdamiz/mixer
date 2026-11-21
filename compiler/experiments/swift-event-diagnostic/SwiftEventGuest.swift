@@ -2,9 +2,9 @@ private let accepted: StaticString = #"{"actionID":"validate","event":"activate"
 private let fault: StaticString = #"{"actionID":"validate","event":"activate","nodeID":"button","revision":1,"schemaVersion":1,"sequence":2,"value":null}"#
 private let document: StaticString = #"{"schemaVersion":1,"revision":1,"root":{"id":"button","kind":"button","properties":{"label":"Validate"},"actions":[{"id":"validate","event":"activate"}],"children":[]}}"#
 private let headerSize = 32
-private let eventCapacity = 128
+private let eventCapacity = 4096
 private let documentOffset = headerSize + eventCapacity
-private nonisolated(unsafe) var memory = InlineArray<384, UInt8>(repeating: 0)
+private nonisolated(unsafe) var memory = InlineArray<4352, UInt8>(repeating: 0)
 
 @_cdecl("mixer_guest_ui_start_v1")
 public func start() -> UInt32 {
