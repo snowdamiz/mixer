@@ -1,0 +1,699 @@
+{
+  "status": "pass",
+  "sourceRevision": "9c21d3edb4738c6e0c51a6cc6355465ac18c208c",
+  "sourceTree": "3c479b0ce29c1668dc46c1862d73090da6d20c0d",
+  "sourceArchiveSHA256": "c8c30f2b5d7c51b177cb3f9f7f0f3272e6c4560f9a59571fa2060e9fc7e8dde5",
+  "lockedDependenciesSHA256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+  "baseReplaySHA256": "130dae3b3f91e69d103a68d9f5e8a82c4694258e9364fed08b5f6f5b7955e3e2",
+  "replaySHA256": "a4fd0ffd3feb8891ca504647f847966d17d517a3d0fc741b93e9fb7268dcc219",
+  "overlaySHA256": "ccfabd062e132a28261ae2b01804ef929e30c40cb0806c6dc7424817fec60d58",
+  "executedFixtureSHA256": {
+    "test/mixer_hosted/releases/browser_publication_test.exs": "ce3764ce10c9f0e041cd59c91ae5c3e5e44d05db391c08ad9643de4b00ee976b",
+    "test/support/ordinary_browser_startup_fixture.ex": "06c4f2750624be715f29a7197630693f38e802daeec81b67e5add8d3e8f7df52"
+  },
+  "optInMigration": {
+    "version": 20261120000021,
+    "sha256": "09a71f35e7e36e7abc6461d2bba145c9f1b4a8ab0ea50034997dc56299d11cec",
+    "restoredFromDump": true
+  },
+  "environment": {
+    "host": "Darwin arm64",
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "python": "3.14.8",
+    "postgres": {
+      "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+      "initdb": "initdb (PostgreSQL) 17.11 (Homebrew)",
+      "psql": "psql (PostgreSQL) 17.11 (Homebrew)",
+      "pg_dump": "pg_dump (PostgreSQL) 17.11 (Homebrew)",
+      "pg_dumpall": "pg_dumpall (PostgreSQL) 17.11 (Homebrew)",
+      "pg_restore": "pg_restore (PostgreSQL) 17.11 (Homebrew)"
+    }
+  },
+  "restore": {
+    "systemIdentifiers": {
+      "source": "7710558166915193056",
+      "target": "7710558225866299813"
+    },
+    "sourceQuiescedReadOnlyAndStoppedBeforeTarget": true,
+    "targetDatabaseAbsentBeforeRestore": true,
+    "pgRestoreInvocations": 1,
+    "command": [
+      "pg_restore",
+      "--exit-on-error",
+      "--create",
+      "-d",
+      "postgres",
+      "promotion.dump"
+    ],
+    "dumpSHA256": "2688494baca3076797bc48e18f4ec5d10439b62668e5850e043644b9520d5d6a",
+    "passwordFreeRolesSHA256": "f5188a03385e72133d6c550a9a1deb28d857ba2d6a4dd8400d5cf338c2ebca24",
+    "roleFlagsAndMembershipsEqual": true,
+    "roleNames": [
+      "browser_admin",
+      "browser_lifecycle",
+      "browser_ordinary",
+      "browser_schema_owner",
+      "browser_writer",
+      "mixer_customer_build_catalog_definer_v1",
+      "mixer_release_delivery",
+      "mixer_release_processor"
+    ],
+    "pinnedCheckRepairs": {
+      "authzExpiry": true,
+      "artifactIdempotencyKey": true
+    },
+    "checkDefinitionsEqualAfterRepair": true
+  },
+  "snapshot": {
+    "sha256": "58ca0f1846bd57bf9517e17a961e7bbf0a6fa3ff23eed75b6e84a3f2ebab23a6",
+    "equalAt": [
+      "source freeze",
+      "source after dump",
+      "raw target restore",
+      "restored after browser reads and role control"
+    ],
+    "tables": {
+      "public.schema_migrations": {
+        "rows": 18,
+        "sha256": "90bc328b18c94d9278f7b5df8251330c24b8228cf433c0dd768822972fe3bf00"
+      },
+      "public.mixer_release_heads": {
+        "rows": 4,
+        "sha256": "8846c9c56c3f89ffaa02f68567fd2629e371474498047cb831283e8516dbac41"
+      },
+      "mixer_release_jobs.oban_jobs": {
+        "rows": 7,
+        "sha256": "7306ebd4b4bb8d6809eaddef58aa708ef3c22863264d2987e03f0f34c52f4cb3"
+      },
+      "public.mixer_authz_memberships": {
+        "rows": 54,
+        "sha256": "e8e8cf7a7f3bcb69d48c45c63a5c99f75efb8ce186f281621c4493081bd2e73e"
+      },
+      "public.mixer_customer_artifacts": {
+        "rows": 4,
+        "sha256": "81764cc5bfadcb3ec8414103668f707c21eb891bbd6fbd307e6f0d236f9cd90a"
+      },
+      "public.mixer_customer_idempotency": {
+        "rows": 4,
+        "sha256": "9ec585316f982e96011b7e026c0e9e208d2a152897dadcb8bd372ecdfec37653"
+      },
+      "public.mixer_release_cli_requests": {
+        "rows": 6,
+        "sha256": "4ef6b8b88c3505f9541b0c12dbc6a583f58fa7f521c45888c24bd8bed31afae5"
+      },
+      "public.mixer_release_publications": {
+        "rows": 7,
+        "sha256": "3b8a2543330e2586ce73d70c802c1d1f6ac5c3abd955b6461453bb6612e44d02"
+      },
+      "public.mixer_customer_audit_events": {
+        "rows": 4,
+        "sha256": "417333eefb8c8a394d34e1dd3ef5a63ea9283b9c82d0261a83a9120dbc4a61af"
+      },
+      "public.mixer_customer_artifact_heads": {
+        "rows": 1,
+        "sha256": "88761a6231fe5f9f36d5da6dfc8e3aa2ead8e65eaf136eddb8010724dba0d7b9"
+      },
+      "public.mixer_stage_promotion_bindings": {
+        "rows": 1,
+        "sha256": "4c67bdcb80ad5418703a8468ea2503aa2a473d92f445bdfb3d39b7bf3cc40aa1"
+      },
+      "public.mixer_stage_promotion_directions": {
+        "rows": 1,
+        "sha256": "897b848151074da9cb06d79948b744f17db46d1ff7a94c6d36f9927f4c652aaa"
+      },
+      "mixer_release_jobs.offer_materializations": {
+        "rows": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "public.mixer_release_delivery_enrollments": {
+        "rows": 4,
+        "sha256": "247501d59377312e5852a9e0aaa00773995532f830d34c98b36355e7463d59af"
+      }
+    }
+  },
+  "catalog": {
+    "relations": [
+      [
+        "mixer_release_heads",
+        "browser_schema_owner",
+        true,
+        true
+      ],
+      [
+        "mixer_release_publications",
+        "browser_schema_owner",
+        true,
+        true
+      ],
+      [
+        "mixer_stage_promotion_bindings",
+        "browser_schema_owner",
+        true,
+        true
+      ],
+      [
+        "mixer_stage_promotion_directions",
+        "browser_schema_owner",
+        true,
+        true
+      ]
+    ],
+    "readFunctionSHA256": "ab4c9ad40b1622d8859276830934a00260a19d28a6cb3c27952bd1703090c71f",
+    "policyCount": 14,
+    "prettyPolicySHA256": "ec1d0e84ab55fcb5eabb187fccb56634ea68e454a4c273872a68e190510b27b3",
+    "rawPolicySHA256": {
+      "source": "9bb13dcf98bbd70f11ab6b635f72b2cbd2b71c1c89974cab5be74d01b393f5ae",
+      "target": "eddaa634b68dd0540357e1b9e36d6c4d09eaaa07c0f2931c8af02ed2596fa2cd"
+    },
+    "onlyRawDifference": {
+      "policy": "stage_binding_append",
+      "field": "WITH CHECK",
+      "source": ".mixer_release_publications p\n  WHERE (((p.organization_id = mixer_stage_promotion_bindings.organization_id) AND (p.project_id = mixer_stage_promotion_bindings.project_id) AND (p.application_id = mixer_stage_promotion_bi",
+      "target": ".mixer_release_publications p\n  WHERE ((p.organization_id = mixer_stage_promotion_bindings.organization_id) AND (p.project_id = mixer_stage_promotion_bindings.project_id) AND (p.application_id = mixer_stage_promotion_bin"
+    }
+  },
+  "source": {
+    "command": [
+      "mix",
+      "test",
+      "--warnings-as-errors",
+      "--trace",
+      "--no-color",
+      "--seed",
+      "0",
+      "--timeout",
+      "120000",
+      "test/mixer_hosted/releases/browser_publication_test.exs:146"
+    ],
+    "transcript": [
+      "V80 opt-in",
+      "V80 rollback",
+      "V80 canonical",
+      "V80 readback",
+      "* test authenticates and atomically promotes both staged destinations over loopback HTTP (11544.6ms) [L#146]",
+      "Result: 1 passed, 7 excluded"
+    ],
+    "stdoutSHA256": "95a239806cd34325aad7a993f53a2151456e9231785b6aa2ca292439d9ab6174",
+    "events": {
+      "opt-in": {
+        "version": 20261120000021,
+        "absentBeforeMigration": true
+      },
+      "rollback": {
+        "after": {
+          "bindings": {
+            "rows": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "jobs": {
+            "rows": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "publications": {
+            "rows": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "release_heads": {
+            "rows": 2,
+            "sha256": "63d71cd41f12466067d31f8c645d64bc7a9aebda57ae8a0b56183ae6c2dd72ef"
+          }
+        },
+        "response": {
+          "status": 503,
+          "body": {
+            "error": {
+              "code": "authorization_unavailable",
+              "message": "Authorization unavailable. Retry shortly."
+            },
+            "request_id": "GOoGNWLmaRsJDxgAABDB"
+          },
+          "databaseError": "27840 [1313] ERROR:  PZ080: v80_queue_commit_android",
+          "databaseStatement": "27840 [1313] STATEMENT:  COMMIT"
+        },
+        "requestPath": "/v3/orgs/org-a/projects/project-a/apps/fieldlog/release-promotions/dev-to-stage",
+        "requestBodySHA256": "a48a159d7086a8664458770a1a9c1a1c9131f44d9213fa2f67b0235e7e1f2a9d",
+        "idempotencyKey": "a70c0f64ffe8302605205428c414f4aba9aba59bb4782ae38a02e02b5b0d938d",
+        "before": {
+          "bindings": {
+            "rows": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "jobs": {
+            "rows": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "publications": {
+            "rows": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "release_heads": {
+            "rows": 2,
+            "sha256": "63d71cd41f12466067d31f8c645d64bc7a9aebda57ae8a0b56183ae6c2dd72ef"
+          }
+        }
+      },
+      "canonical": {
+        "status": 200,
+        "requestBodySHA256": "a48a159d7086a8664458770a1a9c1a1c9131f44d9213fa2f67b0235e7e1f2a9d",
+        "idempotencyKey": "a70c0f64ffe8302605205428c414f4aba9aba59bb4782ae38a02e02b5b0d938d",
+        "receipt": {
+          "android": {
+            "artifact_sha256": "55d4910d15675d87a9466a14e0ab63349e729826e77cd3fdb6df55d0bf8124d6",
+            "rollout_basis_points": 10000,
+            "sequence": 12
+          },
+          "delivery": "local_only",
+          "ios": {
+            "artifact_sha256": "1644d91a8412e30ba94289ec29c6d46f640050ae2428c58b6e02c6bdb8732da6",
+            "rollout_basis_points": 10000,
+            "sequence": 3
+          }
+        }
+      },
+      "readback": {
+        "anchors": {
+          "android": {
+            "viewer": {
+              "status": 200,
+              "group": {
+                "android": {
+                  "headSequence": "13",
+                  "manifestSha256": "55d4910d15675d87a9466a14e0ab63349e729826e77cd3fdb6df55d0bf8124d6",
+                  "sequence": "12",
+                  "target": {
+                    "applicationId": "fieldlog",
+                    "channel": "candidate",
+                    "environmentId": "staging",
+                    "organizationId": "org-a",
+                    "platform": "android",
+                    "projectId": "project-a",
+                    "runtimeFingerprint": "3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432"
+                  }
+                },
+                "ios": {
+                  "headSequence": "4",
+                  "manifestSha256": "1644d91a8412e30ba94289ec29c6d46f640050ae2428c58b6e02c6bdb8732da6",
+                  "sequence": "3",
+                  "target": {
+                    "applicationId": "fieldlog",
+                    "channel": "candidate",
+                    "environmentId": "staging",
+                    "organizationId": "org-a",
+                    "platform": "ios",
+                    "projectId": "project-a",
+                    "runtimeFingerprint": "01bd70712d3e3d4644e5e906cefae9373e937c1c06aa9e10cf7f86ec6d5e7fb7"
+                  }
+                },
+                "kind": "committed"
+              }
+            },
+            "otherTenant": {
+              "status": 404,
+              "body": {
+                "error": {
+                  "code": "not_found",
+                  "message": "Browser request refused."
+                }
+              }
+            },
+            "unauthenticatedStatus": 401,
+            "headDetails": {
+              "kind": "published",
+              "release": {
+                "details": {
+                  "action": "publish",
+                  "artifactKeyId": "staging.android.fixture-v3-artifact",
+                  "assignmentKeyId": "staging.android.fixture-v3-assignment",
+                  "capabilities": [
+                    {
+                      "id": "network.http.v1",
+                      "permissions": [
+                        "network.https"
+                      ]
+                    },
+                    {
+                      "id": "storage.keyValue.v1",
+                      "permissions": [
+                        "storage.appPrivate"
+                      ]
+                    }
+                  ],
+                  "payloadBytes": 68,
+                  "sourceCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                },
+                "manifestSha256": "55d4910d15675d87a9466a14e0ab63349e729826e77cd3fdb6df55d0bf8124d6",
+                "payloadSha256": "a64f1f4abaf6d8582f6d971c6df16110ba1a0a7266697087a5d892f56d909a62",
+                "releaseId": "fixture-release-v3",
+                "rolloutBasisPoints": 10000,
+                "sequence": "13"
+              },
+              "target": {
+                "applicationId": "fieldlog",
+                "channel": "candidate",
+                "environmentId": "staging",
+                "organizationId": "org-a",
+                "platform": "android",
+                "projectId": "project-a",
+                "runtimeFingerprint": "3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432"
+              }
+            }
+          },
+          "ios": {
+            "viewer": {
+              "status": 200,
+              "group": {
+                "android": {
+                  "headSequence": "13",
+                  "manifestSha256": "55d4910d15675d87a9466a14e0ab63349e729826e77cd3fdb6df55d0bf8124d6",
+                  "sequence": "12",
+                  "target": {
+                    "applicationId": "fieldlog",
+                    "channel": "candidate",
+                    "environmentId": "staging",
+                    "organizationId": "org-a",
+                    "platform": "android",
+                    "projectId": "project-a",
+                    "runtimeFingerprint": "3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432"
+                  }
+                },
+                "ios": {
+                  "headSequence": "4",
+                  "manifestSha256": "1644d91a8412e30ba94289ec29c6d46f640050ae2428c58b6e02c6bdb8732da6",
+                  "sequence": "3",
+                  "target": {
+                    "applicationId": "fieldlog",
+                    "channel": "candidate",
+                    "environmentId": "staging",
+                    "organizationId": "org-a",
+                    "platform": "ios",
+                    "projectId": "project-a",
+                    "runtimeFingerprint": "01bd70712d3e3d4644e5e906cefae9373e937c1c06aa9e10cf7f86ec6d5e7fb7"
+                  }
+                },
+                "kind": "committed"
+              }
+            },
+            "otherTenant": {
+              "status": 404,
+              "body": {
+                "error": {
+                  "code": "not_found",
+                  "message": "Browser request refused."
+                }
+              }
+            },
+            "unauthenticatedStatus": 401,
+            "headDetails": {
+              "kind": "published",
+              "release": {
+                "details": {
+                  "action": "publish",
+                  "artifactKeyId": "staging.ios.fixture-v3-artifact",
+                  "assignmentKeyId": "staging.ios.fixture-v3-assignment",
+                  "capabilities": [
+                    {
+                      "id": "network.http.v1",
+                      "permissions": [
+                        "network.https"
+                      ]
+                    },
+                    {
+                      "id": "storage.keyValue.v1",
+                      "permissions": [
+                        "storage.appPrivate"
+                      ]
+                    }
+                  ],
+                  "payloadBytes": 64,
+                  "sourceCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                },
+                "manifestSha256": "1644d91a8412e30ba94289ec29c6d46f640050ae2428c58b6e02c6bdb8732da6",
+                "payloadSha256": "33c6490c88b96f77f9c95e13f3a74b6a5986db054ffd434e8629d55ccb745222",
+                "releaseId": "fixture-release-v3",
+                "rolloutBasisPoints": 10000,
+                "sequence": "4"
+              },
+              "target": {
+                "applicationId": "fieldlog",
+                "channel": "candidate",
+                "environmentId": "staging",
+                "organizationId": "org-a",
+                "platform": "ios",
+                "projectId": "project-a",
+                "runtimeFingerprint": "01bd70712d3e3d4644e5e906cefae9373e937c1c06aa9e10cf7f86ec6d5e7fb7"
+              }
+            }
+          }
+        },
+        "viewerRole": "viewer",
+        "otherTenantOrganization": "org-b"
+      }
+    }
+  },
+  "target": {
+    "command": [
+      "mix",
+      "test",
+      "--warnings-as-errors",
+      "--trace",
+      "--no-color",
+      "--seed",
+      "0",
+      "--timeout",
+      "120000",
+      "test/mixer_hosted/releases/browser_publication_test.exs:548"
+    ],
+    "transcript": [
+      "V80 readback",
+      "V80 role-control",
+      "* test reads both historical promotion anchors using fresh sessions on restored v80 (3735.8ms) [L#548]",
+      "Result: 1 passed, 7 excluded"
+    ],
+    "stdoutSHA256": "bdecd1bec7190babb66ae4ea341ba3917b8d87eb50085acd501422b4c53b5a3a",
+    "events": {
+      "readback": {
+        "anchors": {
+          "android": {
+            "viewer": {
+              "status": 200,
+              "group": {
+                "android": {
+                  "headSequence": "13",
+                  "manifestSha256": "55d4910d15675d87a9466a14e0ab63349e729826e77cd3fdb6df55d0bf8124d6",
+                  "sequence": "12",
+                  "target": {
+                    "applicationId": "fieldlog",
+                    "channel": "candidate",
+                    "environmentId": "staging",
+                    "organizationId": "org-a",
+                    "platform": "android",
+                    "projectId": "project-a",
+                    "runtimeFingerprint": "3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432"
+                  }
+                },
+                "ios": {
+                  "headSequence": "4",
+                  "manifestSha256": "1644d91a8412e30ba94289ec29c6d46f640050ae2428c58b6e02c6bdb8732da6",
+                  "sequence": "3",
+                  "target": {
+                    "applicationId": "fieldlog",
+                    "channel": "candidate",
+                    "environmentId": "staging",
+                    "organizationId": "org-a",
+                    "platform": "ios",
+                    "projectId": "project-a",
+                    "runtimeFingerprint": "01bd70712d3e3d4644e5e906cefae9373e937c1c06aa9e10cf7f86ec6d5e7fb7"
+                  }
+                },
+                "kind": "committed"
+              }
+            },
+            "otherTenant": {
+              "status": 404,
+              "body": {
+                "error": {
+                  "code": "not_found",
+                  "message": "Browser request refused."
+                }
+              }
+            },
+            "unauthenticatedStatus": 401,
+            "headDetails": {
+              "kind": "published",
+              "release": {
+                "details": {
+                  "action": "publish",
+                  "artifactKeyId": "staging.android.fixture-v3-artifact",
+                  "assignmentKeyId": "staging.android.fixture-v3-assignment",
+                  "capabilities": [
+                    {
+                      "id": "network.http.v1",
+                      "permissions": [
+                        "network.https"
+                      ]
+                    },
+                    {
+                      "id": "storage.keyValue.v1",
+                      "permissions": [
+                        "storage.appPrivate"
+                      ]
+                    }
+                  ],
+                  "payloadBytes": 68,
+                  "sourceCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                },
+                "manifestSha256": "55d4910d15675d87a9466a14e0ab63349e729826e77cd3fdb6df55d0bf8124d6",
+                "payloadSha256": "a64f1f4abaf6d8582f6d971c6df16110ba1a0a7266697087a5d892f56d909a62",
+                "releaseId": "fixture-release-v3",
+                "rolloutBasisPoints": 10000,
+                "sequence": "13"
+              },
+              "target": {
+                "applicationId": "fieldlog",
+                "channel": "candidate",
+                "environmentId": "staging",
+                "organizationId": "org-a",
+                "platform": "android",
+                "projectId": "project-a",
+                "runtimeFingerprint": "3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432"
+              }
+            }
+          },
+          "ios": {
+            "viewer": {
+              "status": 200,
+              "group": {
+                "android": {
+                  "headSequence": "13",
+                  "manifestSha256": "55d4910d15675d87a9466a14e0ab63349e729826e77cd3fdb6df55d0bf8124d6",
+                  "sequence": "12",
+                  "target": {
+                    "applicationId": "fieldlog",
+                    "channel": "candidate",
+                    "environmentId": "staging",
+                    "organizationId": "org-a",
+                    "platform": "android",
+                    "projectId": "project-a",
+                    "runtimeFingerprint": "3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432"
+                  }
+                },
+                "ios": {
+                  "headSequence": "4",
+                  "manifestSha256": "1644d91a8412e30ba94289ec29c6d46f640050ae2428c58b6e02c6bdb8732da6",
+                  "sequence": "3",
+                  "target": {
+                    "applicationId": "fieldlog",
+                    "channel": "candidate",
+                    "environmentId": "staging",
+                    "organizationId": "org-a",
+                    "platform": "ios",
+                    "projectId": "project-a",
+                    "runtimeFingerprint": "01bd70712d3e3d4644e5e906cefae9373e937c1c06aa9e10cf7f86ec6d5e7fb7"
+                  }
+                },
+                "kind": "committed"
+              }
+            },
+            "otherTenant": {
+              "status": 404,
+              "body": {
+                "error": {
+                  "code": "not_found",
+                  "message": "Browser request refused."
+                }
+              }
+            },
+            "unauthenticatedStatus": 401,
+            "headDetails": {
+              "kind": "published",
+              "release": {
+                "details": {
+                  "action": "publish",
+                  "artifactKeyId": "staging.ios.fixture-v3-artifact",
+                  "assignmentKeyId": "staging.ios.fixture-v3-assignment",
+                  "capabilities": [
+                    {
+                      "id": "network.http.v1",
+                      "permissions": [
+                        "network.https"
+                      ]
+                    },
+                    {
+                      "id": "storage.keyValue.v1",
+                      "permissions": [
+                        "storage.appPrivate"
+                      ]
+                    }
+                  ],
+                  "payloadBytes": 64,
+                  "sourceCommit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                },
+                "manifestSha256": "1644d91a8412e30ba94289ec29c6d46f640050ae2428c58b6e02c6bdb8732da6",
+                "payloadSha256": "33c6490c88b96f77f9c95e13f3a74b6a5986db054ffd434e8629d55ccb745222",
+                "releaseId": "fixture-release-v3",
+                "rolloutBasisPoints": 10000,
+                "sequence": "4"
+              },
+              "target": {
+                "applicationId": "fieldlog",
+                "channel": "candidate",
+                "environmentId": "staging",
+                "organizationId": "org-a",
+                "platform": "ios",
+                "projectId": "project-a",
+                "runtimeFingerprint": "01bd70712d3e3d4644e5e906cefae9373e937c1c06aa9e10cf7f86ec6d5e7fb7"
+              }
+            }
+          }
+        },
+        "viewerRole": "viewer",
+        "otherTenantOrganization": "org-b"
+      },
+      "role-control": {
+        "login": "browser_ordinary",
+        "directBindingRows": 0,
+        "definerRowsWithReleaseRead": 2,
+        "definerRowsWithWrongPhase": 0,
+        "transaction": "rollback"
+      }
+    }
+  },
+  "scope": "Fixture-scoped local L05/L07 evidence for signed two-platform stage promotion and historical destination reads via Phoenix over loopback HTTP with synthetic OIDC. Comparison covers the listed tables, four release relations and promotion-read function. Browser login writes lifecycle state outside the ledger snapshot. The role control uses release.read and tests the restored read policies on the iOS anchor. Stage append WITH CHECK is compared by PostgreSQL deparse after nested-AND flattening.",
+  "cleanup": {
+    "clustersReapedWithExitZeroAndGroupAbsent": 2,
+    "portsRebound": {
+      "source-postgres": 56902,
+      "source-bandit": 56952,
+      "source-provider": 56938,
+      "source-jwks": 56931,
+      "target-postgres": 57239,
+      "target-bandit": 57274,
+      "target-provider": 57268,
+      "target-jwks": 57267
+    },
+    "commandGroupsClosed": 63,
+    "scratchRemoved": "/private/tmp/mixer-v80-promotion-proof-k0oms56l"
+  },
+  "priorReceipt": {
+    "checkpoint": "f9a6e5a2dbd5e512be3c0e6865b06c93fcc357ea",
+    "path": "verification/receipts/l05-l07-v80-stage-promotion-restore.json"
+  },
+  "setupAttempt": {
+    "result": "PostgreSQL 42501 browser lifecycle provisioning denied before publication, endpoint startup, or restore",
+    "correction": "Use the stock fixture NOINHERIT flags for browser_lifecycle and browser_ordinary",
+    "cleanup": {
+      "clustersReapedWithExitZeroAndGroupAbsent": 1,
+      "portsRebound": {
+        "source-postgres": 55670
+      },
+      "commandGroupsClosed": 17,
+      "scratchRemoved": "/private/tmp/mixer-v80-promotion-proof-wwgl5qfx"
+    }
+  },
+  "testScope": {
+    "failedRequestSnapshot": "Exact ordered row values for staging heads, publications, bindings and jobs in org-a/project-a/fieldlog. Sequence allocator state is outside the row comparison.",
+    "browserTransport": "Bandit/Phoenix HTTP via the existing browser flow fixture with fresh session cookies, synthetic loopback OIDC and JWKS. Source browser readback ran after both successor publications. Target readback ran after one restore and the two pinned CHECK repairs, with no target fixture migrations or reseeding.",
+    "policyComparison": "PostgreSQL 17 non-pretty deparse differs only in stage_binding_append WITH CHECK, where dump/restore flattened nested AND in the publication subquery. Pretty deparses and policy metadata match across the four measured relations. No policy was edited. The rolled-back role control exercises receipt read admission/refusal, with no post-restore append test.",
+    "cleanup": "All PostgreSQL, Bandit, provider and JWKS ports from both successful fixture startups rebound. Source setup failure reached only PostgreSQL."
+  }
+}

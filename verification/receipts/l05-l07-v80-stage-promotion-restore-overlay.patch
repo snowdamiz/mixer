@@ -1,0 +1,741 @@
+--- a/hosted/test/mixer_hosted/releases/browser_publication_test.exs
++++ b/hosted/test/mixer_hosted/releases/browser_publication_test.exs
+@@ -349,10 +349,50 @@
+              }
+     end
+ 
+-    assert_failed_job_commit!(fn ->
+-      assert request.(body).status == 503
+-      assert_empty_stage_promotion!()
+-    end)
++    before_failure = promotion_rollback_rows!()
++    log = System.fetch_env!("MIXER_V80_POSTGRES_LOG")
++    offset = File.stat!(log).size
++
++    failure =
++      assert_failed_job_commit!(fn ->
++        response = request.(body)
++        assert response.status == 503
++
++        assert %{"error" => %{"code" => "authorization_unavailable"}} =
++                 payload =
++                 Jason.decode!(response.body)
++
++        assert_empty_stage_promotion!()
++        assert promotion_rollback_rows!() == before_failure
++
++        tail = File.read!(log) |> binary_part(offset, File.stat!(log).size - offset)
++        lines = String.split(tail, "\n")
++        [marker] = Enum.filter(lines, &String.contains?(&1, "ERROR:  PZ080: v80_queue_commit_"))
++        [backend | _] = String.split(marker, " ", parts: 2)
++
++        [commit] =
++          Enum.filter(
++            lines,
++            &(String.starts_with?(&1, backend <> " ") and
++                String.downcase(String.trim_trailing(&1)) =~ ~r/statement:\s+commit$/)
++          )
++
++        %{
++          status: response.status,
++          body: payload,
++          databaseError: marker,
++          databaseStatement: commit
++        }
++      end)
++
++    v80_trace("rollback", %{
++      requestPath: @promotion_path,
++      requestBodySHA256: v80_hash(body),
++      idempotencyKey: idempotency_key,
++      response: failure,
++      before: v80_row_digests(before_failure),
++      after: v80_row_digests(promotion_rollback_rows!())
++    })
+ 
+     expected = %{
+       "ios" => promotion_receipt(destination.ios),
+@@ -384,12 +424,19 @@
+       end
+     end
+ 
+-    response = retry_release_write(fn -> request.(body) end, 2)
++    response = request.(body)
+     assert response.status == 200
+     assert response_header(response, "cache-control") == ["no-store"]
+     response_payload = Jason.decode!(response.body)
+ 
+     assert response_payload == expected
++
++    v80_trace("canonical", %{
++      status: response.status,
++      requestBodySHA256: v80_hash(body),
++      idempotencyKey: idempotency_key,
++      receipt: response_payload
++    })
+ 
+     assert %{status: 200, body: replay} = request.(body)
+     assert Jason.decode!(replay) == response_payload
+@@ -482,7 +529,199 @@
+              expanded = read!(c, owner, target, :details_v2)
+ 
+     assert read!(c, owner, target, :details) == expanded
+-  end
++
++    # Select the viewer on the source before freeze. Target startup does not seed or edit it.
++    assert %{num_rows: 1} =
++             DB.q!(
++               Admin,
++               "UPDATE public.mixer_authz_memberships SET role='viewer' WHERE id='member-a'"
++             )
++
++    destinations = %{
++      ios: {destination.ios.enrollment.target, promotion_view(destination.ios), "4"},
++      android: {destination.android.enrollment.target, promotion_view(destination.android), "13"}
++    }
++
++    v80_readback!(c, destinations)
++  end
++
++  test "reads both historical promotion anchors using fresh sessions on restored v80" do
++    c = prepare_release_fixture!("restored-stage-promotion") |> start!()
++    assert %{phase: :storage_ready} = RuntimeOwner.status()
++    source = System.fetch_env!("MIXER_V80_SOURCE_READBACK") |> File.read!() |> Jason.decode!()
++
++    destinations =
++      Map.new([:ios, :android], fn platform ->
++        anchor =
++          source["anchors"][Atom.to_string(platform)]["viewer"]["group"][Atom.to_string(platform)]
++
++        wire = anchor["target"]
++
++        {:ok, target} =
++          Target.new(%Target{
++            scope: %Scope{
++              organization_id: wire["organizationId"],
++              project_id: wire["projectId"],
++              application_id: wire["applicationId"],
++              environment_id: wire["environmentId"]
++            },
++            platform: wire["platform"],
++            runtime_sha256: wire["runtimeFingerprint"],
++            channel: wire["channel"]
++          })
++
++        {platform,
++         {target,
++          {:promotion_group, String.to_integer(anchor["sequence"]), anchor["manifestSha256"]},
++          anchor["headSequence"]}}
++      end)
++
++    v80_readback!(c, destinations)
++  end
++
++  defp v80_readback!(c, destinations) do
++    assert [["viewer"], ["owner"]] =
++             DB.q!(
++               Admin,
++               "SELECT role FROM public.mixer_authz_memberships WHERE id IN ('member-a','member-b') ORDER BY id"
++             ).rows
++
++    viewer = login(c, :no_build_scope)
++    other = login(c, :other_tenant)
++    assert %{status: 200, body: orgs} = http(c, "/console-api/v1/orgs", other)
++    assert %{"organizations" => [%{"id" => "org-b"}]} = Jason.decode!(orgs)
++
++    expected =
++      Map.new(destinations, fn {platform, {target, {:promotion_group, sequence, digest}, head}} ->
++        {Atom.to_string(platform),
++         %{
++           "target" => string_keys(Target.wire(target)),
++           "sequence" => Integer.to_string(sequence),
++           "headSequence" => head,
++           "manifestSha256" => digest
++         }}
++      end)
++      |> Map.put("kind", "committed")
++
++    anchors =
++      Map.new(destinations, fn {platform, {target, view, head}} ->
++        assert %{status: 200, body: group} = admitted = http(c, path(target, view), viewer)
++        assert response_header(admitted, "cache-control") == ["no-store"]
++        assert Jason.decode!(group) == expected
++        assert %{status: 404, body: refusal} = http(c, path(target, view), other)
++        assert %{"error" => %{"code" => "not_found"}} = Jason.decode!(refusal)
++        assert %{status: 401} = http(c, path(target, view), [])
++        details = read!(c, viewer, target, :details_v2)
++
++        assert %{
++                 "kind" => "published",
++                 "release" => %{
++                   "sequence" => ^head,
++                   "details" => %{"action" => "publish"}
++                 }
++               } = details
++
++        {platform,
++         %{
++           viewer: %{status: admitted.status, group: Jason.decode!(group)},
++           otherTenant: %{status: 404, body: Jason.decode!(refusal)},
++           unauthenticatedStatus: 401,
++           headDetails: details
++         }}
++      end)
++
++    v80_trace("readback", %{
++      anchors: anchors,
++      viewerRole: "viewer",
++      otherTenantOrganization: "org-b"
++    })
++
++    if System.get_env("MIXER_V80_PHASE") == "target" do
++      {target, {:promotion_group, sequence, digest}, _} = destinations.ios
++      identity = upload_identity!(c, viewer)
++      repo = MixerHosted.Repo
++      query = &MixerHosted.Authorization.Postgres.Session.query!(repo, &1, &2)
++
++      receipt_sql =
++        "SELECT count(*) FROM public.mixer_stage_promotion_receipts($1,$2,$3,$4,$5,$6,$7,$8,$9)"
++
++      params = [
++        "org-a",
++        "project-a",
++        "fieldlog",
++        "staging",
++        target.platform,
++        target.runtime_sha256,
++        target.channel,
++        Decimal.new(sequence),
++        digest
++      ]
++
++      assert {:error, :conflict} =
++               MixerHosted.Authorization.with_authorized_transaction(
++                 identity,
++                 "release.read",
++                 target.scope,
++                 fn _ ->
++                   assert [["browser_ordinary", "browser_ordinary"]] =
++                            query.("SELECT current_user::text, session_user::text", []).rows
++
++                   assert [[0]] =
++                            query.(
++                              "SELECT count(*) FROM public.mixer_stage_promotion_bindings",
++                              []
++                            ).rows
++
++                   assert [[2]] = query.(receipt_sql, params).rows
++                   query.("SET LOCAL mixer.authz.phase = 'v80-refusal-control'", [])
++                   assert [[0]] = query.(receipt_sql, params).rows
++                   {:error, :conflict}
++                 end
++               )
++
++      v80_trace("role-control", %{
++        login: "browser_ordinary",
++        directBindingRows: 0,
++        definerRowsWithReleaseRead: 2,
++        definerRowsWithWrongPhase: 0,
++        transaction: "rollback"
++      })
++    end
++  end
++
++  defp promotion_rollback_rows! do
++    scope = "organization_id='org-a' AND project_id='project-a' AND application_id='fieldlog'"
++
++    Map.new(
++      [
++        {"release_heads", "public.mixer_release_heads", scope <> " AND environment_id='staging'"},
++        {"publications", "public.mixer_release_publications",
++         scope <> " AND environment_id='staging'"},
++        {"bindings", "public.mixer_stage_promotion_bindings",
++         scope <> " AND destination_environment_id='staging'"},
++        {"jobs", "mixer_release_jobs.oban_jobs",
++         """
++         args @> '{"organization_id":"org-a","project_id":"project-a","application_id":"fieldlog","environment_id":"staging"}'::jsonb
++         """}
++      ],
++      fn {name, table, filter} ->
++        [[count, rows]] =
++          DB.q!(Admin, """
++          SELECT count(*), coalesce(jsonb_agg(to_jsonb(r) ORDER BY to_jsonb(r)), '[]')::text
++          FROM #{table} r WHERE #{filter}
++          """).rows
++
++        {name, {count, rows}}
++      end
++    )
++  end
++
++  defp v80_row_digests(rows) do
++    Map.new(rows, fn {name, {count, json}} -> {name, %{rows: count, sha256: v80_hash(json)}} end)
++  end
++
++  defp v80_hash(bytes), do: :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower)
++  defp v80_trace(event, payload), do: IO.puts("V80 #{event} #{Jason.encode!(payload)}")
+ 
+   defp assert_promotion_groups!(c, owner, other, destination, source, request, response_payload) do
+     ios = destination.ios
+@@ -1314,7 +1553,11 @@
+     CREATE FUNCTION mixer_release_jobs.fixture_fail_commit() RETURNS trigger
+     LANGUAGE plpgsql SET search_path = pg_catalog AS $body$
+     BEGIN
+-      RAISE EXCEPTION 'fixture commit failure after release enqueue';
++      IF NEW.args @> '{"organization_id":"org-a","project_id":"project-a","application_id":"fieldlog","environment_id":"staging"}'::jsonb THEN
++        RAISE EXCEPTION USING ERRCODE = 'PZ080',
++          MESSAGE = 'v80_queue_commit_' || (NEW.args->>'platform');
++      END IF;
++      RETURN NULL;
+     END $body$
+     """)
+ 
+@@ -1326,6 +1569,13 @@
+     """)
+ 
+     try do
++      assert [[true, true]] =
++               DB.q!(Admin, """
++               SELECT tgdeferrable, tginitdeferred FROM pg_trigger
++               WHERE tgname='release_job_fixture_fail_commit'
++               AND tgrelid='mixer_release_jobs.oban_jobs'::regclass
++               """).rows
++
+       assert_failure.()
+     after
+       DB.q!(Admin, "DROP TRIGGER release_job_fixture_fail_commit ON mixer_release_jobs.oban_jobs")
+@@ -1718,6 +1968,17 @@
+     version = 20_261_120_000_021
+     module = MixerHosted.Repo.Migrations.AddLocalStagePromotionRead
+     file = "priv/local_stage_promotion_read/#{version}_add_local_stage_promotion_read.exs"
++
++    if System.get_env("MIXER_V80_PHASE") == "source" do
++      assert [[0, nil]] =
++               DB.q!(Admin, """
++               SELECT (SELECT count(*) FROM public.schema_migrations WHERE version=20261120000021),
++                      to_regprocedure('public.mixer_stage_promotion_receipts(text,text,text,text,text,text,text,numeric,text)')::text
++               """).rows
++
++      v80_trace("opt-in", %{version: version, absentBeforeMigration: true})
++    end
++
+     unless Code.ensure_loaded?(module), do: Code.require_file(file)
+     assert :ok = Ecto.Migrator.up(Migration, version, module, log: false)
+ 
+@@ -1884,16 +2145,18 @@
+ 
+     DB.q!(Admin, "CREATE ROLE mixer_release_delivery LOGIN NOINHERIT")
+ 
+-    on_exit(fn ->
+-      conn = DB.connection!("browser_admin")
+-
+-      try do
+-        Postgrex.query!(conn, "DROP OWNED BY mixer_release_delivery", [])
+-        Postgrex.query!(conn, "DROP ROLE mixer_release_delivery", [])
+-      after
+-        GenServer.stop(conn)
+-      end
+-    end)
++    if System.get_env("MIXER_V80_PHASE") != "source" do
++      on_exit(fn ->
++        conn = DB.connection!("browser_admin")
++
++        try do
++          Postgrex.query!(conn, "DROP OWNED BY mixer_release_delivery", [])
++          Postgrex.query!(conn, "DROP ROLE mixer_release_delivery", [])
++        after
++          GenServer.stop(conn)
++        end
++      end)
++    end
+ 
+     DB.q!(Admin, "GRANT USAGE ON SCHEMA public TO mixer_release_delivery")
+ 
+@@ -1919,16 +2182,18 @@
+ 
+     database = Admin.config() |> Keyword.fetch!(:database)
+ 
+-    on_exit(fn ->
+-      conn = DB.connection!("browser_admin", database)
+-
+-      try do
+-        Postgrex.query!(conn, "DROP OWNED BY mixer_release_processor", [])
+-        Postgrex.query!(conn, "DROP ROLE mixer_release_processor", [])
+-      after
+-        GenServer.stop(conn)
+-      end
+-    end)
++    if System.get_env("MIXER_V80_PHASE") != "source" do
++      on_exit(fn ->
++        conn = DB.connection!("browser_admin", database)
++
++        try do
++          Postgrex.query!(conn, "DROP OWNED BY mixer_release_processor", [])
++          Postgrex.query!(conn, "DROP ROLE mixer_release_processor", [])
++        after
++          GenServer.stop(conn)
++        end
++      end)
++    end
+ 
+     assert release_jobs_sql!("provision-local-release-jobs.sql") == ""
+   end
+--- a/hosted/test/support/ordinary_browser_startup_fixture.ex
++++ b/hosted/test/support/ordinary_browser_startup_fixture.ex
+@@ -123,6 +123,12 @@
+ 
+     assert {:ok, _} = result
+     {:ok, {_, port}} = MixerHostedWeb.Endpoint.server_info(:http)
++
++    if path = System.get_env("MIXER_V80_PORTS") do
++      jwks = c.identity.owner_options[:fixture].port
++      File.write!(path, "bandit #{port}\nprovider #{c.provider_port}\njwks #{jwks}\n")
++    end
++
+     Map.merge(c, %{http_port: port, root: root})
+   end
+ 
+@@ -206,34 +212,40 @@
+   def prepare!(create \\ false, evidence_name \\ nil) do
+     refuse_names!(@all_names)
+     prepare_evidence!(create, evidence_name)
+-    conn = F.connection!("browser_admin", "postgres")
+-
+-    try do
+-      Postgrex.query!(
+-        conn,
+-        "CREATE DATABASE browser_ordinary_installation_r1422 OWNER browser_schema_owner",
+-        []
+-      )
+-    after
+-      GenServer.stop(conn)
+-    end
+-
+-    on_exit(fn ->
++    restored? = System.get_env("MIXER_V80_PHASE") == "target"
++
++    unless restored? do
+       conn = F.connection!("browser_admin", "postgres")
+ 
+       try do
+-        Postgrex.query!(conn, "SET statement_timeout='15s'", [])
+-
+         Postgrex.query!(
+           conn,
+-          "DROP DATABASE browser_ordinary_installation_r1422 WITH (FORCE)",
+-          [],
+-          timeout: 20_000
++          "CREATE DATABASE browser_ordinary_installation_r1422 OWNER browser_schema_owner",
++          []
+         )
+       after
+         GenServer.stop(conn)
+       end
+-    end)
++
++      if System.get_env("MIXER_V80_PHASE") != "source" do
++        on_exit(fn ->
++          conn = F.connection!("browser_admin", "postgres")
++
++          try do
++            Postgrex.query!(conn, "SET statement_timeout='15s'", [])
++
++            Postgrex.query!(
++              conn,
++              "DROP DATABASE browser_ordinary_installation_r1422 WITH (FORCE)",
++              [],
++              timeout: 20_000
++            )
++          after
++            GenServer.stop(conn)
++          end
++        end)
++      end
++    end
+ 
+     for app <- [:ecto_sql, :postgrex, :jason, :jose, :mint, :ssl, :bandit],
+         do: Application.ensure_all_started(app)
+@@ -268,45 +280,47 @@
+          ]}
+     )
+ 
+-    F.install!()
+-    F.q!(Admin, "GRANT USAGE ON SCHEMA public TO browser_ordinary")
+-    F.q!(Admin, "GRANT SELECT ON ALL TABLES IN SCHEMA public TO browser_ordinary")
+-
+-    for helper <- ~w(profiles principals families credentials organization_heads project_heads),
+-        do:
+-          F.q!(
+-            Admin,
+-            "GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO browser_ordinary"
+-          )
+-
+-    for table <- ~w(sessions session_vault oidc_attempts session_events),
+-        do: F.q!(Admin, "REVOKE SELECT ON public.mixer_browser_#{table} FROM browser_ordinary")
+-
+-    for sql <- ActivationPreparationSchema.statements(), do: F.q!(Migration, sql)
+-    F.provision!()
+-    conn = F.connection!("browser_admin")
+-
+-    for sql <-
+-          ActivationPreparationSchema.provisioning_statements(
+-            "browser_writer",
+-            "browser_lifecycle",
+-            "browser_schema_owner"
+-          ),
+-        do: Postgrex.query!(conn, sql, [])
+-
+-    GenServer.stop(conn)
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_profiles VALUES('humans',1,'https://issuer.fixture.invalid','console','human',true,1)"
+-    )
+-
+-    F.q!(Admin, "INSERT INTO public.mixer_authz_principals VALUES('person-1','human',true,0,1)")
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_bindings VALUES('humans',1,'subject-1','human','person-1',true,1)"
+-    )
++    unless restored? do
++      F.install!()
++      F.q!(Admin, "GRANT USAGE ON SCHEMA public TO browser_ordinary")
++      F.q!(Admin, "GRANT SELECT ON ALL TABLES IN SCHEMA public TO browser_ordinary")
++
++      for helper <- ~w(profiles principals families credentials organization_heads project_heads),
++          do:
++            F.q!(
++              Admin,
++              "GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO browser_ordinary"
++            )
++
++      for table <- ~w(sessions session_vault oidc_attempts session_events),
++          do: F.q!(Admin, "REVOKE SELECT ON public.mixer_browser_#{table} FROM browser_ordinary")
++
++      for sql <- ActivationPreparationSchema.statements(), do: F.q!(Migration, sql)
++      F.provision!()
++      conn = F.connection!("browser_admin")
++
++      for sql <-
++            ActivationPreparationSchema.provisioning_statements(
++              "browser_writer",
++              "browser_lifecycle",
++              "browser_schema_owner"
++            ),
++          do: Postgrex.query!(conn, sql, [])
++
++      GenServer.stop(conn)
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_profiles VALUES('humans',1,'https://issuer.fixture.invalid','console','human',true,1)"
++      )
++
++      F.q!(Admin, "INSERT INTO public.mixer_authz_principals VALUES('person-1','human',true,0,1)")
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_bindings VALUES('humans',1,'subject-1','human','person-1',true,1)"
++      )
++    end
+ 
+     fixture = start_supervised!(TLSFixture)
+     auth = GenServer.call(fixture, :authority)
+@@ -444,101 +458,105 @@
+       custody: custody
+     }
+ 
+-    for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.statements(), do: F.q!(Migration, sql)
+-    conn = F.connection!("browser_admin")
+-
+-    for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.provisioning_statements(),
+-        do: Postgrex.query!(conn, sql, [])
+-
+-    GenServer.stop(conn)
+-
+-    unless Code.ensure_loaded?(MixerHosted.Repo.Migrations.AddBuildJournals),
+-      do: Code.require_file("priv/repo/migrations/20261025000000_add_build_journals.exs")
+-
+-    :ok =
+-      Ecto.Migrator.up(
++    unless restored? do
++      for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.statements(), do: F.q!(Migration, sql)
++      conn = F.connection!("browser_admin")
++
++      for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.provisioning_statements(),
++          do: Postgrex.query!(conn, sql, [])
++
++      GenServer.stop(conn)
++
++      unless Code.ensure_loaded?(MixerHosted.Repo.Migrations.AddBuildJournals),
++        do: Code.require_file("priv/repo/migrations/20261025000000_add_build_journals.exs")
++
++      :ok =
++        Ecto.Migrator.up(
++          Migration,
++          20_261_025_000_000,
++          MixerHosted.Repo.Migrations.AddBuildJournals,
++          log: false
++        )
++
++      :ok = Ecto.Migrator.up(Migration, 1, R1026.ObanMigration, log: false)
++      F.q!(Migration, MixerHosted.CustomerBuilds.Schema.ddl())
++
++      F.q!(
+         Migration,
+-        20_261_025_000_000,
+-        MixerHosted.Repo.Migrations.AddBuildJournals,
+-        log: false
+-      )
+-
+-    :ok = Ecto.Migrator.up(Migration, 1, R1026.ObanMigration, log: false)
+-    F.q!(Migration, MixerHosted.CustomerBuilds.Schema.ddl())
+-
+-    F.q!(
+-      Migration,
+-      "REVOKE ALL ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) FROM PUBLIC"
+-    )
+-
+-    F.q!(
+-      Migration,
+-      "GRANT EXECUTE ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) TO browser_ordinary"
+-    )
++        "REVOKE ALL ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) FROM PUBLIC"
++      )
++
++      F.q!(
++        Migration,
++        "GRANT EXECUTE ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) TO browser_ordinary"
++      )
++    end
+ 
+     now = System.system_time(:second)
+     {:ok, snapshot} = TrustSnapshot.new(profile, jwks, now, now + 300)
+     provider = start_supervised!({R686.Provider, %{key: key, wrong_key: wrong, config: config}})
+ 
+-    {:ok, :ok} =
+-      Migration.transaction(fn ->
+-        Enum.each(MixerHosted.CustomerArtifacts.Schema.statements(), &F.q!(Migration, &1))
+-      end)
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES('org-a',true,'Visible'),('org-b',true,'Hidden')"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a','project-a',true,'Project A'),('org-b','project-b',true,'Project B')"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_applications VALUES('org-a','project-a','fieldlog',true)"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_memberships VALUES('member-a','person-1','org-a',NULL,'all_projects','viewer',true,0,NULL,1)"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_organization_heads SELECT id,1 FROM public.mixer_authz_organizations"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_project_heads SELECT organization_id,id,1 FROM public.mixer_authz_projects"
+-    )
+-
+-    for n <- 0..51 do
+-      id = "r604-" <> String.pad_leading(Integer.to_string(n), 2, "0")
++    unless restored? do
++      {:ok, :ok} =
++        Migration.transaction(fn ->
++          Enum.each(MixerHosted.CustomerArtifacts.Schema.statements(), &F.q!(Migration, &1))
++        end)
+ 
+       F.q!(
+         Admin,
+-        "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES($1,true,$1)",
+-        [id]
+-      )
+-
+-      F.q!(Admin, "INSERT INTO public.mixer_authz_organization_heads VALUES($1,1)", [id])
++        "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES('org-a',true,'Visible'),('org-b',true,'Hidden')"
++      )
+ 
+       F.q!(
+         Admin,
+-        "INSERT INTO public.mixer_authz_memberships VALUES($1,'person-1',$2,NULL,'all_projects','viewer',true,0,NULL,1)",
+-        ["member-" <> id, id]
++        "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a','project-a',true,'Project A'),('org-b','project-b',true,'Project B')"
+       )
+ 
+       F.q!(
+         Admin,
+-        "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a',$1,true,$1)",
+-        [id]
+-      )
+-
+-      F.q!(Admin, "INSERT INTO public.mixer_authz_project_heads VALUES('org-a',$1,1)", [id])
++        "INSERT INTO public.mixer_authz_applications VALUES('org-a','project-a','fieldlog',true)"
++      )
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_memberships VALUES('member-a','person-1','org-a',NULL,'all_projects','viewer',true,0,NULL,1)"
++      )
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_organization_heads SELECT id,1 FROM public.mixer_authz_organizations"
++      )
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_project_heads SELECT organization_id,id,1 FROM public.mixer_authz_projects"
++      )
++
++      for n <- 0..51 do
++        id = "r604-" <> String.pad_leading(Integer.to_string(n), 2, "0")
++
++        F.q!(
++          Admin,
++          "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES($1,true,$1)",
++          [id]
++        )
++
++        F.q!(Admin, "INSERT INTO public.mixer_authz_organization_heads VALUES($1,1)", [id])
++
++        F.q!(
++          Admin,
++          "INSERT INTO public.mixer_authz_memberships VALUES($1,'person-1',$2,NULL,'all_projects','viewer',true,0,NULL,1)",
++          ["member-" <> id, id]
++        )
++
++        F.q!(
++          Admin,
++          "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a',$1,true,$1)",
++          [id]
++        )
++
++        F.q!(Admin, "INSERT INTO public.mixer_authz_project_heads VALUES('org-a',$1,1)", [id])
++      end
+     end
+ 
+     authorization =
+@@ -558,7 +576,10 @@
+ 
+     {:ok, {_, provider_port}} = ThousandIsland.listener_info(authorization)
+ 
+-    for sql <- MixerHosted.CustomerBuildCatalog.Schema.private_statements(), do: F.q!(Admin, sql)
++    unless restored? do
++      for sql <- MixerHosted.CustomerBuildCatalog.Schema.private_statements(),
++          do: F.q!(Admin, sql)
++    end
+ 
+     base = MixerHosted.RuntimeConfig.load!(MixerHosted.Identity.StartupFixture.foundation_env())
+ 

@@ -1,0 +1,155 @@
+{
+  "status": "replay_retired",
+  "decision": "Retain the exact independently verified historical overlay and receipt. Omit the archived replay driver from the publication. The bounded corrected attempts stopped before signed rollback or restored selector execution.",
+  "checkpoint": "550ad9d8f02a66c68de4f2f3a6c9dce27b469c02",
+  "sourceRevision": "9c21d3edb4738c6e0c51a6cc6355465ac18c208c",
+  "sourceTree": "3c479b0ce29c1668dc46c1862d73090da6d20c0d",
+  "historicalEvidence": {
+    "receipt": "verification/receipts/l05-l07-v80-stage-promotion-restore.json",
+    "receiptGitBlob": "43e4b59094370c1917bcc829f4f3ed9a35b96449",
+    "overlay": "verification/receipts/l05-l07-v80-stage-promotion-restore-overlay.patch",
+    "overlayGitBlob": "fbba3b43b895d3ec22960e82cc6cf97bacce6acd",
+    "overlaySHA256": "ccfabd062e132a28261ae2b01804ef929e30c40cb0806c6dc7424817fec60d58",
+    "archivedDriverGitBlob": "083b90faeb20de88440cf97c78ab867f62623a9b",
+    "archivedDriverIntentionallyOmitted": true,
+    "rollback": {
+      "httpStatus": 503,
+      "sqlstate": "PZ080",
+      "statement": "COMMIT",
+      "comparedRowsUnchanged": true
+    },
+    "realRestoredSelectors": [
+      "android",
+      "ios"
+    ],
+    "restoredRoles": [
+      "browser_admin",
+      "browser_lifecycle",
+      "browser_ordinary",
+      "browser_schema_owner",
+      "browser_writer",
+      "mixer_customer_build_catalog_definer_v1",
+      "mixer_release_delivery",
+      "mixer_release_processor"
+    ],
+    "roleControl": {
+      "login": "browser_ordinary",
+      "directBindingRows": 0,
+      "definerRowsWithReleaseRead": 2,
+      "definerRowsWithWrongPhase": 0,
+      "transaction": "rollback"
+    }
+  },
+  "command": [
+    "python3",
+    "verification/receipts/l05-l07-v80-stage-promotion-restore-replay.py",
+    "--postgres-bin",
+    "/opt/homebrew/opt/postgresql@17/bin"
+  ],
+  "environment": {
+    "host": "Darwin arm64",
+    "python": "Python 3.14.8",
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:15:15] [ds:15:15:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)"
+  },
+  "controls": {
+    "launchAdmission": {
+      "injection": "KeyboardInterrupt from inert stand-ins at actual bounded-command and PostgreSQL Popen calls",
+      "checkpointBehavior": "Both scratch paths removed with empty holds",
+      "candidateBehavior": "Both launch holds existed at entry, had no PID and retained scratch"
+    },
+    "postgresAuth": {
+      "method": "Read runtime GUCs and pg_hba_file_rules over private Unix socket, then run bounded psql TCP probes",
+      "listenAddresses": "127.0.0.1",
+      "unixDirectoryAndSocketMode": "0700",
+      "hba": [
+        [
+          "local",
+          "all",
+          "all",
+          "trust"
+        ],
+        [
+          "host",
+          "browser_ordinary_installation_r1422",
+          "browser_lifecycle",
+          "127.0.0.1/32",
+          "scram-sha-256"
+        ]
+      ],
+      "lifecycleWithoutPassword": "refused: no password supplied",
+      "lifecycleWrongPassword": "refused: password authentication failed",
+      "adminOverTcp": "refused: no pg_hba.conf entry",
+      "lifecycleWithEphemeralPassword": "harmless SELECT returned browser_lifecycle:127.0.0.1/32",
+      "credentialAbsentFromCheckedPostgresLogCommandMetadataAndSqlScript": true,
+      "scratchRemovedAfterObservedGroupExitAndTcpAndUnixRebind": true
+    },
+    "partialStart": {
+      "method": "Actual replay phase and cleanup with an inert loopback listener that records JWKS and exits 19",
+      "retainedDiagnostic": "Known command group closure, JWKS port rebound, provider and Bandit unobserved",
+      "scratchRetainedByReplay": true
+    },
+    "occupiedPort": {
+      "method": "Keep an inert in-process loopback server listening while cleanup tries to rebind",
+      "checkpointBehavior": "Scratch removed despite EADDRINUSE",
+      "candidateBehavior": "EADDRINUSE recorded and scratch retained"
+    },
+    "fixtureAdmission": {
+      "method": "Compile pinned BrowserAuth.Installation in test mode with inert struct dependencies and call valid?/2",
+      "matchingTcpOptions": "accepted",
+      "unixOrdinaryAndTcpLifecycleOptions": "refused"
+    },
+    "inertControlScratchRemovedAfterIndependentClosure": true
+  },
+  "attempts": [
+    {
+      "transport": "Unix sockets only",
+      "result": "Source ExUnit fixture refused socket_dir at pinned LifecycleRepo.init/2",
+      "sourceExUnitExit": 2,
+      "driverExit": 1,
+      "signedRequestExecuted": false,
+      "targetStarted": false,
+      "stderrSHA256": "b5236bedcfbb69760f45706dcddd65898b073bcb8eb92d64ec46ffba42722071",
+      "scratchRetained": "/private/tmp/mixer-v80-promotion-proof-qz3ni72h",
+      "retentionReason": "Incomplete listener evidence"
+    },
+    {
+      "transport": "Private Unix sockets for ordinary and admin clients; ephemeral loopback SCRAM for lifecycle",
+      "driverSHA256": "49341d9b2374c794a4dfdad4a42156fb5480a90213cd07eec5a914c7e99f4262",
+      "overlaySHA256": "bf6d970495c984a6766393140ae98d26fb61bf8d11abc06810ffed0ea73c32bb",
+      "result": "Pinned Installation.valid?/2 rejected differing ordinary and lifecycle connection settings",
+      "sourceExUnitExit": 2,
+      "driverExit": 1,
+      "signedRequestExecuted": false,
+      "targetStarted": false,
+      "stderrSHA256": "c8b7b08bbb625c0ab24b6a9e019b3423e1944d3489784ddc5ec49664d072a1d6",
+      "cleanup": {
+        "phases": {
+          "source": {
+            "portsDirectory": "/private/tmp/mixer-v80-promotion-proof-enco3y4c/source-ports",
+            "commandError": "mix exited 2: ['test', '--warnings-as-errors']",
+            "commandGroupClosed": true,
+            "ports": {
+              "jwks": 64739,
+              "provider": 64740
+            },
+            "portErrors": {
+              "bandit": "[Errno 2] No such file or directory: '/private/tmp/mixer-v80-promotion-proof-enco3y4c/source-ports/bandit'"
+            }
+          }
+        },
+        "tcpPortsRebound": {
+          "source-postgres": 64733,
+          "source-jwks": 64739,
+          "source-provider": 64740
+        },
+        "postgresSocketsRebound": {
+          "source": "/private/tmp/mixer-v80-promotion-proof-enco3y4c/s/.s.PGSQL.64733"
+        },
+        "failures": []
+      },
+      "scratchRetained": "/private/tmp/mixer-v80-promotion-proof-enco3y4c",
+      "retentionReason": "Bandit port unobserved, reuse unconfirmed"
+    }
+  ]
+}

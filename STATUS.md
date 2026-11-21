@@ -393,6 +393,18 @@ the v80 and v79 source and workflow bytes. The full collector passed all
 [Source admission](verification/receipts/hosted-v81-console-promotion-sign-in-resume-source-admission.json) ·
 [Collector replay](verification/receipts/hosted-v81-services-collector-final.json)
 
+The v80 restore fixture observed PostgreSQL reject the injected queue
+operation at COMMIT with SQLSTATE `PZ080`. The failed request preserved
+the scoped ledger. Retrying the same request succeeded. After a restore
+into a distinct cluster, a fresh authorized browser session could read
+either platform's original promotion receipt, and another tenant received
+404 for both selectors. The replay driver was retired after two corrected
+attempts stopped at application startup. The authority test covers restored
+reads. The two subsequent attempts retain scratch because Bandit port
+reuse was unverified.
+[Historical evidence](verification/receipts/l05-l07-v80-stage-promotion-restore.json) ·
+[Replay retirement](verification/receipts/l05-l07-v80-stage-promotion-restore-replay-retirement.json)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,
