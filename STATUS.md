@@ -315,9 +315,12 @@ joined the host owner after Done. The matching development APK passed
 signature, alignment, and exact embedded payload checks. The first owned
 ADB setup stopped before emulator launch and closed. The second stopped
 before APK installation after the private ADB connection timed out.
-Emulator PID and PGID 44098 remain UNKNOWN and the exact scratch is held.
+Emulator PID and PGID 44098 had unconfirmed closure at startup.
+A later user-authorized check found no matching processes and confirmed
+the group had already exited. The startup scratch remains preserved.
 [APK verification](verification/receipts/fieldlog-android-entry-commit-candidate-e1903e78.json) ·
-[Emulator startup hold](verification/receipts/fieldlog-entry-commit-api36-startup-hold.json)
+[Original startup hold](verification/receipts/fieldlog-entry-commit-api36-startup-hold.json) ·
+[Group absence receipt](verification/receipts/fieldlog-entry-commit-api36-pgid-44098-resolution.json)
 
 A private ADB loopback test reproduced the five-second connect timeout while
 the server still answered its version request. Its inert peer had accepted
