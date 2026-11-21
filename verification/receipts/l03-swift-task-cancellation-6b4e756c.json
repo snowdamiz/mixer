@@ -1,0 +1,233 @@
+{
+  "schema": 1,
+  "result": "PASS_SCOPED",
+  "observedUTC": "2026-11-21T23:02:53.600384+00:00",
+  "revision": "6b4e756c67bbb7c1b1046f49efd7f9a0ab65c8d0",
+  "tree": "2d3981e7954a0723ef53d767624db480473bbd68",
+  "tools": {
+    "swift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "xcode": "Xcode 26.6\nBuild version 17F113"
+  },
+  "scope": "Swift Task.isCancelled and Task.checkCancellation with an explicitly cancelled task",
+  "sources": {
+    "compiler/Fixtures/FeatureProbe/replay.py": {
+      "bytes": 35423,
+      "sha256": "b8dc8e637177468258c039230bd135c36af9b75f712c23da8d511026b5b37525"
+    },
+    "compiler/Fixtures/FeatureProbe/TaskCancellation.swift": {
+      "bytes": 1542,
+      "sha256": "aa42a6501cee97ac5afd6ac0201055b3752ae6f2aff8c6a6690954111d6d9361"
+    }
+  },
+  "native": {
+    "executable": {
+      "bytes": 59560,
+      "sha256": "59263663f6f2739ee78969cb32a1e3584a7d8656a0a2843721002d59c85800d8"
+    },
+    "flagsMeaning": "1 = cancelled, 2 = CancellationError",
+    "control": [
+      0,
+      0
+    ],
+    "cancelled": [
+      0,
+      3
+    ],
+    "nextControl": [
+      0,
+      0
+    ]
+  },
+  "embedded": {
+    "target": "wasm32-unknown-none-wasm",
+    "objectProduced": false,
+    "refusals": {
+      "implicit-concurrency": "$REPO/compiler/Fixtures/FeatureProbe/TaskCancellation.swift:16:21: error: cannot find 'Task' in scope\n14 | #else\n15 | func currentCancellationState() -> UInt32 {\n16 |     let cancelled = Task.isCancelled\n   |                     `- error: cannot find 'Task' in scope\n17 |     do {\n18 |         try Task.checkCancellation()\n\n$REPO/compiler/Fixtures/FeatureProbe/TaskCancellation.swift:18:13: error: cannot find 'Task' in scope\n16 |     let cancelled = Task.isCancelled\n17 |     do {\n18 |         try Task.checkCancellation()\n   |             `- error: cannot find 'Task' in scope\n19 |         return cancellationStateCode(cancelled: cancelled, checkThrew: false)\n20 |     } catch is CancellationError {\n\n$REPO/compiler/Fixtures/FeatureProbe/TaskCancellation.swift:20:16: error: cannot find type 'CancellationError' in scope\n18 |         try Task.checkCancellation()\n19 |         return cancellationStateCode(cancelled: cancelled, checkThrew: false)\n20 |     } catch is CancellationError {\n   |                `- error: cannot find type 'CancellationError' in scope\n21 |         return cancellationStateCode(cancelled: cancelled, checkThrew: true)\n22 |     } catch {\n\n$REPO/compiler/Fixtures/FeatureProbe/TaskCancellation.swift:28:28: error: cannot find 'AsyncStream' in scope\n26 | \n27 | func observeTask(cancel: Bool) async -> (UInt32, UInt32) {\n28 |     let (started, start) = AsyncStream<Void>.makeStream()\n   |                            `- error: cannot find 'AsyncStream' in scope\n29 |     let (released, release) = AsyncStream<Void>.makeStream()\n30 |     let task = Task {\n\n$REPO/compiler/Fixtures/FeatureProbe/TaskCancellation.swift:29:31: error: cannot find 'AsyncStream' in scope\n27 | func observeTask(cancel: Bool) async -> (UInt32, UInt32) {\n28 |     let (started, start) = AsyncStream<Void>.makeStream()\n29 |     let (released, release) = AsyncStream<Void>.makeStream()\n   |                               `- error: cannot find 'AsyncStream' in scope\n30 |     let task = Task {\n31 |         let before = currentCancellationState()\n\n$REPO/compiler/Fixtures/FeatureProbe/TaskCancellation.swift:30:16: error: cannot find 'Task' in scope\n28 |     let (started, start) = AsyncStream<Void>.makeStream()\n29 |     let (released, release) = AsyncStream<Void>.makeStream()\n30 |     let task = Task {\n   |                `- error: cannot find 'Task' in scope\n31 |         let before = currentCancellationState()\n32 |         start.finish()\n\n$REPO/compiler/Fixtures/FeatureProbe/TaskCancellation.swift:36:5: error: missing protocol 'AsyncSequence'\n34 |         return (before, currentCancellationState())\n35 |     }\n36 |     for await _ in started { }\n   |     `- error: missing protocol 'AsyncSequence'\n37 |     if cancel { task.cancel() }\n38 |     release.finish()\n\n$REPO/compiler/Fixtures/FeatureProbe/TaskCancellation.swift:39:12: warning: no 'async' operations occur within 'await' expression\n37 |     if cancel { task.cancel() }\n38 |     release.finish()\n39 |     return await task.value\n   |            `- warning: no 'async' operations occur within 'await' expression\n40 | }\n41 | \n\n$REPO/compiler/Fixtures/FeatureProbe/TaskCancellation.swift:44:24: error: '_Concurrency' module not imported, required for async main\n42 | @main\n43 | struct TaskCancellationProbe {\n44 |     static func main() async {\n   |                        `- error: '_Concurrency' module not imported, required for async main\n45 |         for cancel in [false, true, false] {\n46 |             let (before, after) = await observeTask(cancel: cancel)",
+      "explicit-concurrency": "$REPO/compiler/Fixtures/FeatureProbe/TaskCancellation.swift:2:8: error: could not find module '_Concurrency' for target 'wasm32-unknown-none-wasm'; found: arm64e-apple-none-macho, armv7-apple-none-macho, arm64-apple-macos, x86_64-unknown-none-elf, arm64-apple-none-macho, armv7-none-none-eabi, armv7m-apple-none-macho, arm64e-apple-ios, armv7em-none-none-eabi, arm64e-apple-macos, x86_64-apple-macos, arm64-apple-ios, armv7em-apple-none-macho, at: $USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/embedded/_Concurrency.swiftmodule/wasm32-unknown-none-wasm\n 1 | #if EXPLICIT_CONCURRENCY_IMPORT\n 2 | import _Concurrency\n   |        `- error: could not find module '_Concurrency' for target 'wasm32-unknown-none-wasm'; found: arm64e-apple-none-macho, armv7-apple-none-macho, arm64-apple-macos, x86_64-unknown-none-elf, arm64-apple-none-macho, armv7-none-none-eabi, armv7m-apple-none-macho, arm64e-apple-ios, armv7em-none-none-eabi, arm64e-apple-macos, x86_64-apple-macos, arm64-apple-ios, armv7em-apple-none-macho, at: $USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/embedded/_Concurrency.swiftmodule/wasm32-unknown-none-wasm\n 3 | #endif\n 4 |"
+    },
+    "scalarControl": {
+      "bytes": 4707,
+      "sha256": "363dc4160d7ed98c8bada01d5ca7e47c4ca2e17454dd36986b4342671e233bb9"
+    },
+    "vmInvoked": false
+  },
+  "commands": [
+    {
+      "label": "host-sdk",
+      "argv": [
+        "/usr/bin/xcrun",
+        "--sdk",
+        "macosx",
+        "--show-sdk-path"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "revision",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "tree",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "HEAD^{tree}"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "swift-version",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "xcode-version",
+      "argv": [
+        "/usr/bin/xcodebuild",
+        "-version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "task-cancellation-native-build",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-sdk",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-target",
+        "arm64-apple-macosx15.0",
+        "-swift-version",
+        "6",
+        "-module-cache-path",
+        "$RUN/native-cache",
+        "-parse-as-library",
+        "-O",
+        "-D",
+        "EXPLICIT_CONCURRENCY_IMPORT",
+        "$REPO/compiler/Fixtures/FeatureProbe/TaskCancellation.swift",
+        "-o",
+        "$RUN/task-cancellation-native"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "task-cancellation-native-observation",
+      "argv": [
+        "$RUN/task-cancellation-native"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "implicit-concurrency",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-swift-version",
+        "6",
+        "-parse-as-library",
+        "-whole-module-optimization",
+        "-Osize",
+        "-emit-object",
+        "-module-cache-path",
+        "$RUN/guest-cache",
+        "$REPO/compiler/Fixtures/FeatureProbe/TaskCancellation.swift",
+        "-o",
+        "$RUN/implicit-concurrency.o"
+      ],
+      "exit": 1
+    },
+    {
+      "label": "explicit-concurrency",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-swift-version",
+        "6",
+        "-parse-as-library",
+        "-whole-module-optimization",
+        "-Osize",
+        "-emit-object",
+        "-module-cache-path",
+        "$RUN/guest-cache",
+        "-D",
+        "EXPLICIT_CONCURRENCY_IMPORT",
+        "$REPO/compiler/Fixtures/FeatureProbe/TaskCancellation.swift",
+        "-o",
+        "$RUN/explicit-concurrency.o"
+      ],
+      "exit": 1
+    },
+    {
+      "label": "scalar-control",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-swift-version",
+        "6",
+        "-parse-as-library",
+        "-whole-module-optimization",
+        "-Osize",
+        "-emit-object",
+        "-module-cache-path",
+        "$RUN/guest-cache",
+        "-D",
+        "EMBEDDED_SCALAR_CONTROL",
+        "$REPO/compiler/Fixtures/FeatureProbe/TaskCancellation.swift",
+        "-o",
+        "$RUN/scalar-control.o"
+      ],
+      "exit": 0
+    }
+  ],
+  "custody": {
+    "directReapedAndGroupsObservedAbsent": 10,
+    "unknown": 0,
+    "observedPeakScratchBytes": 172293814,
+    "scratchLimitBytes": 3221225472,
+    "scratchRemoved": true
+  },
+  "sourceBinding": "The recorded Git revision and tree are the base. The two hashed replay inputs include this change.",
+  "defaultReplay": {
+    "vmTests": {
+      "experimental_guest_ui_validation": "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "experimental_capability_guest": "test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+    },
+    "taskCompletionFrameSHA256": [
+      "cba98fab9e4bed642f3b0ce41506d7a98eb2bebe37528ce1805821ac2bc49833",
+      "0d04a715c3a5fb3aae1fad401801ead8d555944960daa5f8becfc71b72460eae",
+      "d6fa309e765b4ddf5e8ee08dfdee4339ef4d5deb2f8b16e18ea591d0ee07715c",
+      "9f9839813937d389aeef9af99de5ee771c334ec97f92da084018d72ccabc7851"
+    ],
+    "custody": {
+      "directReapedAndGroupsObservedAbsent": 34,
+      "unknown": 0,
+      "observedPeakScratchBytes": 79351273,
+      "scratchLimitBytes": 3221225472,
+      "scratchRemoved": true
+    },
+    "rawSHA256": "3e9bb505b6157815363674be72f6fa92f6b22dff0b6774f6ed7316c23e3eea60"
+  },
+  "focusedRawSHA256": "9412338ba0b3bd8a8540056749641f8e74af8d31b04487b64c0f9f6c6d2d9357",
+  "limits": [
+    "Native explicit Task cancellation on arm64 macOS and one Embedded compiler target.",
+    "The task fixture stops before object emission for the guest target. No cancellation task ran in Wasm.",
+    "No installed mobile application or device was used."
+  ]
+}

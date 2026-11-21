@@ -2212,6 +2212,15 @@ Embedded Swift refused Foundation before emitting an object. The
 Foundation-free control emitted a Wasm object.
 [Project-search receipt](verification/receipts/l03-fieldlog-project-search-8e8d75c3.json)
 
+The Swift 6.3.3 cancellation replay observed a cancelled task and
+caught `CancellationError` from `Task.checkCancellation()`. Two
+uncancelled controls stayed clear. The pinned Embedded Wasm compiler
+refused the task APIs before object emission, and the scalar control
+emitted a Wasm object. The default replay matched all four prior
+TaskCompletion frames and passed all 32 VM tests. Both replay
+scratch directories were removed.
+[Cancellation receipt](verification/receipts/l03-swift-task-cancellation-6b4e756c.json)
+
 At Mixer `7b61fe1cd9ae79d3153a29b5aff91c0146b0bd99`, the signed TaskCompletion trial passed on an owned AOSP arm64 API 36 emulator. A single staged Package Manager install matched development APK SHA-256 `f95407b596fe7d883a06a2c132b0ca0705b4f1189124d626c50c9e5a41368787`. The app drew **Open**, **Review required**, **Completed**, and **Open** from the same Swift source as the host differential. The JNI route refused the stale revision-1 input at revision 2. The fourth tap trapped at `TaskCompletion.swift:94:9`, function 8, Wasm offset 1883. The app kept the same PID and published no revision 5. **Close guest** confirmed retirement.
 
 The rebuild used Wasm SHA-256 `59623248e6afe4fd66e4dbb0adf8ae6cd353528ad6f4769b52269a3020e2811b` and verified the same four frames and diagnostic on macOS before the Android run. The first Android attempt reused a debug-only `run-as` check and closed before guest launch. The passing run used direct screenshots and PID-scoped logcat readback. It used Android Emulator 37.2.12, ADB 37.0.1, and system image build 13818094. All 344 recorded groups closed, the private ADB and emulator exited, the disposable AVD was removed, and all three ports were reusable. D3 remains open for iOS and the local target performance comparison. [Installed Android replay](verification/receipts/l03-d3-task-completion-android-7b61fe1c.json)

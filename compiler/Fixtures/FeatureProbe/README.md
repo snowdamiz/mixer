@@ -276,6 +276,23 @@ that the module is unavailable for that target. Neither guest invocation
 emits an object.
 [Actor isolation receipt](../../../verification/receipts/l03-swift-actor-isolation-5aafc1a7.json)
 
+## Swift task cancellation replay
+
+Use Swift 6.3.3 on arm64 macOS with Xcode 26.6 installed at
+`/Applications/Xcode_26.6.app`.
+
+```sh
+python3 -B compiler/Fixtures/FeatureProbe/replay.py --task-cancellation
+```
+
+Each task reports its cancellation status before the driver cancels or releases
+it. The cancelled task then reports `Task.isCancelled == true` and catches
+`CancellationError` from `Task.checkCancellation()`. Both uncancelled tasks
+complete with clear flags. Embedded Swift refuses the task source before object
+emission, with unresolved `Task` references and an unavailable explicit
+`_Concurrency` import. The scalar-only arm emits a Wasm object.
+[Cancellation receipt](../../../verification/receipts/l03-swift-task-cancellation-6b4e756c.json)
+
 ## Native SDK controls
 
 Run on arm64 macOS 26 or later with Swift 6.2 or later and a local

@@ -394,6 +394,53 @@ def actor_isolation_campaign(run, result):
     result["embedded"] = dict(target="wasm32-unknown-none-wasm", objectProduced=False, refusals=refusals)
 
 
+def task_cancellation_campaign(run, result):
+    run.env["DEVELOPER_DIR"] = "/Applications/Xcode_26.6.app/Contents/Developer"
+    call = run.command
+    swift = run.swift / "swiftc"
+    source = HERE / "TaskCancellation.swift"
+    sdk = call("host-sdk", "/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path")[0].strip()
+    result.update(
+        observedUTC=datetime.now(timezone.utc).isoformat(),
+        revision=call("revision", "/usr/bin/git", "rev-parse", "HEAD")[0].strip(),
+        tree=call("tree", "/usr/bin/git", "rev-parse", "HEAD^{tree}")[0].strip(),
+        tools={
+            "swift": call("swift-version", swift, "--version")[0].strip(),
+            "xcode": call("xcode-version", "/usr/bin/xcodebuild", "-version")[0].strip(),
+        },
+        scope="Swift Task.isCancelled and Task.checkCancellation with an explicitly cancelled task",
+        sources={str(path.relative_to(ROOT)): identity(path) for path in (Path(__file__), source)},
+    )
+    binary = run.scratch / "task-cancellation-native"
+    call("task-cancellation-native-build", swift, "-sdk", sdk, "-target", "arm64-apple-macosx15.0",
+         "-swift-version", "6", "-module-cache-path", run.scratch / "native-cache",
+         "-parse-as-library", "-O", "-D", "EXPLICIT_CONCURRENCY_IMPORT", source, "-o", binary, bound=35)
+    observation = call("task-cancellation-native-observation", binary)[0]
+    require(observation == "0 0\n0 3\n0 0\n", f"unexpected cancellation states: {observation!r}")
+    result["native"] = dict(executable=identity(binary), flagsMeaning="1 = cancelled, 2 = CancellationError",
+                            control=[0, 0], cancelled=[0, 3], nextControl=[0, 0])
+
+    target = "wasm32-unknown-none-wasm"
+    guest = (swift, "-target", target, "-enable-experimental-feature", "Embedded", "-swift-version", "6",
+             "-parse-as-library", "-whole-module-optimization", "-Osize", "-emit-object",
+             "-module-cache-path", run.scratch / "guest-cache")
+    refusals = {}
+    for name, flags, expected in (
+        ("implicit-concurrency", (), "cannot find 'Task' in scope"),
+        ("explicit-concurrency", ("-D", "EXPLICIT_CONCURRENCY_IMPORT"),
+         "could not find module '_Concurrency' for target 'wasm32-unknown-none-wasm'"),
+    ):
+        output = run.scratch / f"{name}.o"
+        _, diagnostic, _ = call(name, *guest, *flags, source, "-o", output, expected=1, bound=35)
+        require(expected in diagnostic and not output.exists(), f"unexpected Embedded Swift outcome:\n{diagnostic}")
+        refusals[name] = diagnostic.replace(str(ROOT), "$REPO").replace(str(Path.home()), "$USER_HOME").strip()
+    control = run.scratch / "scalar-control.o"
+    call("scalar-control", *guest, "-D", "EMBEDDED_SCALAR_CONTROL", source, "-o", control, bound=35)
+    require(control.read_bytes().startswith(b"\x00asm\x01\x00\x00\x00"), "missing Wasm control object")
+    result["embedded"] = dict(target=target, objectProduced=False, refusals=refusals,
+                              scalarControl=identity(control), vmInvoked=False)
+
+
 def campaign(run):
     call = run.command
     out = run.scratch
@@ -528,6 +575,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     focused = parser.add_mutually_exclusive_group()
     focused.add_argument("--actor-isolation", action="store_true", help="check native and Embedded actor isolation")
+    focused.add_argument("--task-cancellation", action="store_true",
+                         help="check native Swift task cancellation and the Embedded boundary")
     focused.add_argument("--result-builder", action="store_true", help="run the dynamic-loop builder replay")
     focused.add_argument("--fixed-slot-result-builder", action="store_true", help="run the fixed-slot builder replay")
     focused.add_argument("--enum-typed-throws", action="store_true", help="run the enum payload and typed throws replay")
@@ -553,12 +602,14 @@ def main():
     run = Run(scratch)
     failed = False
     try:
-        if (args.actor_isolation or args.result_builder or args.fixed_slot_result_builder
+        if (args.actor_isolation or args.task_cancellation or args.result_builder or args.fixed_slot_result_builder
                 or args.enum_typed_throws or closure):
             result = {}
             try:
                 if args.actor_isolation:
                     actor_isolation_campaign(run, result)
+                elif args.task_cancellation:
+                    task_cancellation_campaign(run, result)
                 elif args.enum_typed_throws:
                     enum_typed_throws_campaign(run, result)
                 elif closure:
