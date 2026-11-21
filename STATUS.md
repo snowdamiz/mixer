@@ -38,8 +38,17 @@ receipt directory. The published metadata lacks the rejected entry's mode
 and owner. Custody for PID/PGID 68831 and its retained scratch is UNKNOWN.
 Fresh arm64 controls reproduced a window where Foundation exposed the
 directory at `0755` before applying `0700`. The local producer fix passed
-the same control with `0700` at creation. Hosted archive admission is
-pending. [Failure metadata and local controls](verification/receipts/hosted-v74-receipt-directory-atomicity.json)
+the same control with `0700` at creation.
+[Failure metadata and local controls](verification/receipts/hosted-v74-receipt-directory-atomicity.json)
+
+The fresh v75 Intel job passed both create commands and all six generated Java
+consumers. Both inner inspections used the 300-second runtime and 60-second
+cleanup policy. All 79 outer command groups closed and the owned scratch was
+removed. The Swift host job separately exited on signal 11 during CLI Swift
+Testing. Its exact crashing test and overall descendant custody remain unknown.
+The v74 and Swift hosted custody records remain in force.
+[Intel receipt](verification/receipts/hosted-v75-intel-android-44869279038.json) ·
+[Swift host diagnosis](verification/receipts/swift-cli-host-sig11-v75-44869279038.json)
 
 ## November 20 local release delivery outage and recovery
 

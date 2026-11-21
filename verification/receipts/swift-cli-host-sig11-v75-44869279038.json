@@ -1,0 +1,74 @@
+{
+  "revision": "e30ec4b7c59f737a01876dac8d49de844e6b787b",
+  "tree": "132510a01789c61f61a9eb6b8bd04e9f455ec2ae",
+  "result": "CLI_SWIFT_TESTING_SIGSEGV_UNATTRIBUTED",
+  "hosted": {
+    "run": 44869279038,
+    "job": 136739915948,
+    "jobURL": "https://github.com/snowdamiz/mixer/actions/runs/44869279038/job/136739915948",
+    "logCommand": "gh api --allow-escape-sequences repos/snowdamiz/mixer/actions/jobs/136739915948/logs",
+    "logSHA256": "429365491c4605b5ca0626207ed2fe00759f5463add3b1ac4ce0989a3f52c364",
+    "logBytes": 413091,
+    "host": "macOS 15.8.2 (24H232), arm64",
+    "toolchain": "Xcode 26.3, Apple Swift 6.2.4 (swiftlang-6.2.4.1.4 clang-1700.6.4.2), Swift Testing 1501",
+    "failingCommand": "swift test --package-path cli -j 2",
+    "signal": 11,
+    "reportedAt": "2026-11-21T05:14:39.5573680Z",
+    "evidence": {
+      "rootSwiftTestingPassed": 228,
+      "updateVerifierSwiftTestingPassed": 69,
+      "cliXCTestExecuted": 33,
+      "cliXCTestSkipped": 1,
+      "cliXCTestFailed": 0,
+      "cliSwiftTestingTopLevelStarts": 80,
+      "cliSwiftTestingParameterizedStarts": 249,
+      "cliSwiftTestingTerminalEvents": 0,
+      "signalLogLine": 3136,
+      "receiptTestStartLogLine": 3267,
+      "anAttributedCrashFrameWasAvailable": false
+    },
+    "custody": {
+      "artifactURL": "https://github.com/snowdamiz/mixer/actions/runs/44869279038/artifacts/14693151983",
+      "artifactSHA256": "6b89175b75bc1e0c9af622e47773e107f4cb9bec807e4b388107d5351a8b369d",
+      "recordedStoreChild": {
+        "id": "CEA40E01-6469-400A-A249-A66814B3BD0B",
+        "pid": 15044,
+        "pgid": 15044,
+        "exitCode": 1,
+        "state": "TERMINAL",
+        "directChildReaped": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "ownedGroupAbsent": true
+      },
+      "limitation": "The copied artifact contains one terminal store-child receipt and no suite hold record. The log and receipt leave overall descendant custody for the interrupted CLI Swift Testing runner unobserved. No additional PID or PGID is established.",
+      "scope": "/Users/runner/work/_temp/cli-host-swift-host-44869279038-1/"
+    }
+  },
+  "v75Changes": {
+    "5f1675741983af3ae8b326f00d909ef1da8c0681": "Private mkdir and lstat checks for newly created receipt directories.",
+    "b10a88ac8686e4249d9feceaf6e31fc840d18fe4": "URL validation before receipt and command factories, with HTTPS, NUL, malformed UTF-8 and literal-percent controls in ownedCommandControlSchedules.",
+    "conclusion": "The receipt test started in the hosted runner. Its start has the same evidentiary weight as the other concurrent starts for crash attribution. The standalone v75 proof passed on the local toolchain. A hosted-runtime or concurrency-specific interaction remains unresolved for both changes."
+  },
+  "localControl": {
+    "host": "macOS 27.0.1 (26A434), arm64",
+    "toolchain": "Xcode 26.6 (17F113), Apple Swift 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101), swift-driver 1.148.6",
+    "test": "ownedCommandControlSchedules() via its unchanged OwnedCommandProof.run() body with MIXER_BOUNDARY_STANDALONE",
+    "sourceSHA256": {
+      "cli/Sources/MixerBuild/POSIXCommandControl.swift": "630cf57f5670f3dcc188b97eb01a8ebc1889a3f8d3f911f5ba4ab016367e84be",
+      "cli/Tests/MixerBuildTests/OwnedCommandControlTests.swift": "d5bf2b7a21e190c9a9d929a3dee7e2dd5c318552115f42f4c597966ca6b19684"
+    },
+    "commands": [
+      "clang -isysroot <Xcode-26.6-MacOSX.sdk> -target arm64-apple-macos14.0 -I include -c process.c -o process.o",
+      "swiftc -sdk <Xcode-26.6-MacOSX.sdk> -target arm64-apple-macos14.0 -swift-version 6 -D MIXER_BOUNDARY_STANDALONE -module-cache-path cache -I include OwnedCommand.swift POSIXCommandControl.swift ProcessRunner.swift MixerFailure.swift OwnedCommandControlTests.swift main.swift process.o -o control",
+      "./control"
+    ],
+    "boundsSeconds": {"clang": 15, "swiftc": 30, "control": 10},
+    "output": "PASS ownedCommandControlSchedules: 302 proof groups",
+    "exitCode": 0,
+    "environmentLimits": "The harness extracted the existing MixerFailure declaration and invoked OwnedCommandProof.run directly. Its factories used fake process controls. It exercised the real receipt filesystem operations in fresh scratch without Swift Testing concurrency or the hosted Foundation runtime.",
+    "custody": "All launched local command leaders were reaped, and every corresponding process group was observed absent. The test had no real command child. The dedicated scratch was removed.",
+    "newLocalHolds": []
+  },
+  "fix": "No source change was verified. The hosted log cannot identify an individual crashing test or establish a cause."
+}
