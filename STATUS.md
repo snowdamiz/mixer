@@ -33,6 +33,14 @@ for both creates. All six generated Java consumers compiled, and the
 command groups and owned scratch closed. The VM job ran the Guest UI v1
 export-name mutation control in debug and release. [CI receipt](verification/receipts/hosted-v73-ci-6235f51c.json)
 
+The v74 Intel run stopped during `debug-export` after rejecting a command
+receipt directory. The published metadata lacks the rejected entry's mode
+and owner. Custody for PID/PGID 68831 and its retained scratch is UNKNOWN.
+Fresh arm64 controls reproduced a window where Foundation exposed the
+directory at `0755` before applying `0700`. The local producer fix passed
+the same control with `0700` at creation. Hosted archive admission is
+pending. [Failure metadata and local controls](verification/receipts/hosted-v74-receipt-directory-atomicity.json)
+
 ## November 20 local release delivery outage and recovery
 
 A committed Phoenix release reached local Workerd through the private historical

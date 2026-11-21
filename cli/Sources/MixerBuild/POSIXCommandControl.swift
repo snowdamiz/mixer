@@ -96,13 +96,28 @@ final class POSIXCommandControl: OwnedCommandControl {
 
 final class CommandReceiptStore {
     let directory: URL
+
+    private static func createPrivateDirectory(_ url: URL) throws {
+        // The live receipt observer can see the directory as soon as mkdir returns.
+        guard mkdir(url.path, 0o700) == 0 else {
+            throw ProcessIOFailure(operation: "create-receipt-directory", code: errno)
+        }
+        var info = stat()
+        guard lstat(url.path, &info) == 0 else {
+            throw ProcessIOFailure(operation: "inspect-receipt-directory", code: errno)
+        }
+        guard info.st_mode == S_IFDIR | 0o700, info.st_uid == geteuid() else {
+            throw MixerFailure("process.receipt-directory", "Receipt directory must be owned and private (0700)")
+        }
+    }
+
     init(parent: URL) throws {
         directory = parent.appendingPathComponent("command-\(UUID().uuidString)", isDirectory: true)
         if !FileManager.default.fileExists(atPath: parent.path) {
-            try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
+            try Self.createPrivateDirectory(parent)
             try parent.deletingLastPathComponent().path.withCString { try checked(mx_sync_directory($0), "persist-receipt-root-entry") }
         }
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
+        try Self.createPrivateDirectory(directory)
         try parent.path.withCString { try checked(mx_sync_directory($0), "persist-command-directory-entry") }
     }
     func persist(_ receipt: CommandCustodyReceipt) throws {

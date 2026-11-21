@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "scope": "Published Intel CI failure metadata and fresh inert macOS arm64 producer/observer controls",
+  "base_commit": "44aecbeb6a82a4a93321cff6a8ab86c5aa421900",
+  "base_tree": "4ac68f788cc806672eede50a842cb153c7199496",
+  "hosted_failure": {
+    "repository": "snowdamiz/mixer",
+    "run": 44863139576,
+    "job": 136720790394,
+    "top_level_artifact": 14691760814,
+    "top_level_artifact_zip_sha256": "f0f9e83d08294cc87104352c367f134bb98a4e9b502a2c522a01c3b3a525c636",
+    "metadata_members": [
+      "integration/commands/INNER-HOLD.json",
+      "integration/commands/commands.json",
+      "integration/receipt.json"
+    ],
+    "label": "debug-export",
+    "operation": "cli-execution-or-receipt",
+    "diagnostic": "Inner receipt directory is not private",
+    "retained_cli_tmp": "/Users/runner/work/_temp/generated-java-ci/integration/inner-cli/012-debug-export-rv2nvf1_/tmp",
+    "rejected_path_relative_to_tmp": "mixer-command-receipts-76E722E2-388E-450C-90DC-68E7E08B084E/command-2A500C0C-6F9E-42D0-A22D-6DFFD090D29A",
+    "outer_pid": 68831,
+    "outer_pgid": 68831,
+    "outer_exit_code": null,
+    "outer_terminal_custody": false,
+    "owned_scratch_removed": false,
+    "rejected_entry_kind_from_stat": null,
+    "rejected_entry_uid": null,
+    "rejected_entry_mode": null,
+    "hosted_mismatch_cause_confirmed": false,
+    "custody": "UNKNOWN. Preserve the original process and scratch hold."
+  },
+  "previous_intel_pass": {
+    "commit": "6235f51c8c3e530237903c3e1811c636160fae24",
+    "run": 44860471645,
+    "job": 136712435347,
+    "receipt": "verification/receipts/hosted-v73-ci-6235f51c.json",
+    "identical_v73_v74_source_sha256": {
+      "cli/Sources/MixerBuild/OwnedCommand.swift": "0f9f9e063936cc8e9a5d03069b09a5ebf3e913ab30be821987bb26e395bce1f9",
+      "cli/Sources/MixerBuild/POSIXCommandControl.swift": "7437a4e1f98913178f07a05ba97e1fafabb7d373af95e31679af81a496fac416",
+      "cli/Sources/MixerBuild/ProcessRunner.swift": "55c515de991c2f02dbb2ecbc15038d02358f6163591b423ea0db3da2eedde288",
+      "cli/Sources/MixerBuild/ProjectGenerator.swift": "6ecc2c345290c4855b58f3d27316238d6321e8f7c7d6b842b9e582e81a2c69f2",
+      "scripts/ci/check-android-generated-java.py": "65698fc3b6dfa68901394fdc44656451446f652c2322916d492b241abbe0c004"
+    }
+  },
+  "producer_and_observer": {
+    "producer_path": [
+      "ProjectBuild.export verifies the original and staged copy through verifiedLock.",
+      "SwiftVersionIdentity.inspect invokes swift --version through ProcessRunner and the shared ProcessExecutionContext.",
+      "The local-development context sets its receipt root under the canonical per-CLI TMPDIR. Each CommandReceiptStore creates a command-UUID entry under that root before inner launch."
+    ],
+    "observer_path": "Commands.run_cli scans with inner_paths during live observation. private_directory uses lstat and requires an ordinary directory, the effective UID, and exact mode 0700. Terminal receipt validation runs separately.",
+    "candidate_change": "Request mode 0700 at mkdir for both creation points and verify directory type, owner and exact mode before admitting the receipt store. Directory-entry sync and receipt persistence use the existing paths."
+  },
+  "controls": {
+    "host": "macOS 27.0.1 (26A434), arm64",
+    "tools": {
+      "swift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+      "clang": "Apple clang 21.0.0 (clang-2100.4.1.1)",
+      "python": "3.14.8"
+    },
+    "mode_control": {
+      "method": "Compile the exact receipt producer, OwnedCommand, ProcessRunner and MixerProcessIO with the MixerFailure declaration and an inert entry point. Use two CommandReceiptStore allocations under a fresh per-process TMPDIR. A DYLD interposer around mkdir and mkdirat pauses after a successful syscall and samples the actual mode. Call the unmodified Python inner_paths(live=True) while the producer is paused. Resume it and check final modes.",
+      "commands": [
+        "clang -dynamiclib build/observe.c -o build/observe.dylib",
+        "clang -I tree/cli/Sources/MixerProcessIO/include -c tree/cli/Sources/MixerProcessIO/process.c -o build/process.o",
+        "swiftc -module-cache-path build/module-cache -I tree/cli/Sources/MixerProcessIO/include tree/cli/Sources/MixerBuild/{OwnedCommand,POSIXCommandControl,ProcessRunner}.swift build/MixerFailure.swift build/main.swift build/process.o -o build/baseline",
+        "python3 -I -B -S build/probe.py baseline 022",
+        "swiftc -D MIXER_BOUNDARY_STANDALONE -module-cache-path build/module-cache -I tree/cli/Sources/MixerProcessIO/include tree/cli/Sources/MixerBuild/{OwnedCommand,POSIXCommandControl,ProcessRunner}.swift build/MixerFailure.swift build/main.swift build/OwnedCommandControlTests.swift build/process.o -o build/candidate",
+        "python3 -I -B -S build/probe.py candidate <000|022|077|200>"
+      ],
+      "baseline_umask_022": {
+        "mkdir_requested_mode": "0777",
+        "first_visible_modes": ["0755", "0755", "0755"],
+        "entries": ["context root", "first command", "second command"],
+        "observer": ["rejected", "rejected", "rejected"],
+        "settled_command_modes": ["0700", "0700"]
+      },
+      "candidate_umasks_000_022_077": {
+        "mkdir_requested_mode": "0700",
+        "first_visible_modes_per_run": ["0700", "0700", "0700"],
+        "observer_per_run": ["accepted", "accepted", "accepted"],
+        "settled_command_modes_per_run": ["0700", "0700"]
+      },
+      "candidate_umask_200": {
+        "first_visible_root_mode": "0500",
+        "observer": "rejected",
+        "producer": "process.receipt, then sticky process.custody-held on subsequent admission. Command-control factory was never called."
+      }
+    },
+    "swift_standalone_fake_custody_groups_passed_per_positive_run": 298,
+    "python_runner_commands": [
+      "python3 -B -S -m unittest discover -s scripts/ci/tests -p test_android_generated_java_runner.py",
+      "python3 -B -S -O -m unittest discover -s scripts/ci/tests -p test_android_generated_java_runner.py"
+    ],
+    "python_runner_tests_passed_per_mode": 66,
+    "setup_correction": "The initial sparse Python run lacked CLI source and the historical SDK binding fixture. Both runs passed after those pinned inputs were materialized.",
+    "limitation": "The controls reproduce a producer visibility window locally. Published Intel failure metadata lacks the rejected entry's stat tuple. The controls do not establish what the hosted observer saw."
+  },
+  "archive_admission_pending": {
+    "canonical_row": "cli/Sources/MixerBuild/POSIXCommandControl.swift",
+    "preimage": {
+      "bytes": 15543,
+      "sha256": "7437a4e1f98913178f07a05ba97e1fafabb7d373af95e31679af81a496fac416"
+    },
+    "candidate": {
+      "bytes": 16050,
+      "sha256": "d72f55a58e7b0a83c4ca282c5d723d33872686e9127d1a12cff489ea10f36fc9"
+    },
+    "source_manifest_count": 153,
+    "source_manifest_digest_before": "2a9d99e0dea712c70d7be383958e67cd040577565c847861b89c0fc598ba4fcd",
+    "source_manifest_digest_with_candidate_row": "03587fc1fd585e40f30ff97094f500497a2496c7b7cacbaeb26e6d4c8318621e",
+    "required_for_successor": [
+      "Update verification/native-report-source141-archive-v1/current-source-inputs.json and the source digest in binding.json.",
+      "Add an exact successor transition, preserving the v74 Swift producer bytes and mode 0644 as a sealed preimage. Extend adopt_archive.py to verify the transition and preserve predecessor restoration.",
+      "Recompute archive seal.json membership and tree digest. Refresh the tracked identities in scripts/verification-artifact-policy.json and any bootstrap or sparse controls with pinned archive expectations."
+    ]
+  }
+}
