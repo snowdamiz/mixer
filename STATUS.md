@@ -962,6 +962,13 @@ case. Source admission matched 572 inputs in both Python modes.
 [Reversible v85 binding](verification/receipts/l07-r1026-v85-composition.json) ·
 [Candidate-only replay](verification/receipts/l07-r1026-v85-root-replay.json)
 
+The exact hosted v85 push passed all 11 jobs. Linux Phoenix recorded
+1,030 passes and 32 skips. The corrected R1026 test observed PostgreSQL
+acknowledge COMMIT before token expiry and rejected the response after
+expiry. The signed owner export passed again. Identity passed both
+isolated network methods. Intel cross-compiled all six Java consumers.
+[Hosted v85 terminal receipt](verification/receipts/hosted-v85-terminal-1e2de013.json)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,
