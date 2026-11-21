@@ -774,9 +774,13 @@ matched measurement and the whole-app sharing assessment.
 The Pair25 recipe then built a signed development APK from FieldLog tree
 `e09018a23e3a` and preserved the observed Apple build closure. Actual Android
 compilation used 14 app-owned Swift files. Six files across the two targets
-were byte-identical, comprising 937 of 5,354 distinct source lines. The APK
-carries the old native capability fingerprint. A rebuild and reseal on an
-SDK with the corrected fingerprint, plus installed behavior, remain open.
+were byte-identical, comprising 937 of 5,354 distinct source lines.
+Independent review matched all 41 APK members, its APK v3 signature,
+both embedded Ed25519 signatures, and the two source rosters. The APK
+carries the old native capability fingerprint. The corrected Android
+rebuild must check the linked fingerprint and both sealed identity fields
+against its SDK pin. The older Apple build remains tied to its original
+Mixer revision. Installed behavior remains open.
 [Pair25 build evidence](verification/receipts/fieldlog-d2-pair25-android-build-dbb9275d.json)
 
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
