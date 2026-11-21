@@ -16,8 +16,12 @@ defmodule MixerHosted.Builds.RetainedNativeAttestationTest do
   @magic "MXNATIVE1\n"
   @config_key :native_development_dispatch
 
-  @moduletag :tmp_dir
-  setup %{tmp_dir: root} do
+  setup do
+    {tmp_dir, 0} = System.cmd("realpath", [System.tmp_dir!()])
+    suffix = Base.url_encode64(:crypto.strong_rand_bytes(12), padding: false)
+    root = Path.join(String.trim_trailing(tmp_dir, "\n"), "mixer-retained-attestation-#{suffix}")
+    File.mkdir!(root)
+    on_exit(fn -> File.rm_rf!(root) end)
     File.chmod!(root, 0o700)
     previous = Application.fetch_env(:mixer_hosted, @config_key)
     Application.put_env(:mixer_hosted, @config_key, %{retained_root: root})
