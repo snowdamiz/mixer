@@ -1,0 +1,37 @@
+{
+  "source": "302b3ac1de89799027fe86d90ef9ee7580f1ffc8",
+  "cli_tree": "8e311e4a086c492cdb6af7bc8039f931083f41f1",
+  "hosted_tree": "d48e675ec428b069f7a27596f6d52a98d2a795f0",
+  "binary_sha256": "30ec00dea60eb048bdc96df781617dec8d5a35941f25d71be704efc89d7155ac",
+  "fixture_source_tree_sha256": "2fae1d51f3871180a544b399c8129a20cdfcb17e7475f8f1941e8b2a74b591db",
+  "signed_assignments_sha256": {
+    "ios": "7ad33d21cc2bcd6125d3b86c28bc6e12a49204fb79eee736796fe289f4a2fec8",
+    "android": "84099abd25f775aa76db111a3a71ba9650608870f7c32ae94fbcdcddaf7d988e"
+  },
+  "tests": {
+    "cli_contract": {
+      "passed": 5,
+      "route_declarations_matched": 7
+    },
+    "hosted": {
+      "passed": 26,
+      "selected": [
+        "test/mixer_hosted/releases/browser_publication_test.exs",
+        "test/mixer_hosted_web/local_release_controller_test.exs",
+        "test/mixer_hosted/releases/runtime_provisioning_test.exs"
+      ],
+      "cleanup": {
+        "postgres_stopped": true,
+        "scratch_removed": true
+      }
+    }
+  },
+  "observed": [
+    "The normal provisioning loader resolved all four exact signed release targets from default and registry inputs before starting the local Phoenix fixture.",
+    "The stock CLI sent both original signed destination files with the source sequences via the generated HTTP operation.",
+    "A failed commit exposed neither destination publication nor its queue job. The real CLI then received both signed destination receipts and replayed them exactly.",
+    "Both byte-identical signed spans, one binding and two target-scoped Oban jobs remained committed.",
+    "The effective listener control refused a mismatched or missing listener."
+  ],
+  "scope": "Local ordinary Phoenix, stock Swift executable, and PostgreSQL with synthetic build artifacts. The programmatic fixture used the production configuration loader and projected its direction before boot. Native device delivery, hosted source admission, and a deployed environment were outside this run."
+}
