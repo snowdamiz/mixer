@@ -344,10 +344,12 @@ Java package as the application ID and exited 1 before editor input.
 Static APK readback identifies the correct component as
 `dev.fieldlog.generatedr90/dev.fieldlog.generatedr90.androidhost.PublicActivity`.
 The private ADB server and all 25 boot, install, and preflight commands
-closed. The emulator child exited 0, and group 75289 remained unconfirmed.
-Preserve that group, the exact three ports, and its scratch without
-inspection, process operations, retry, or cleanup.
-[Fresh launch and custody receipt](verification/receipts/fieldlog-entry-editor-fresh-api36-launch-hold.json)
+closed. The emulator child exited 0, and group 75289 remained unconfirmed
+at teardown. A later user-authorized observation found the PID and group
+absent. Both kernel checks returned `ESRCH`. No termination signal was sent.
+The historical scratch and exact three ports were left untouched.
+[Fresh launch and custody receipt](verification/receipts/fieldlog-entry-editor-fresh-api36-launch-hold.json) ·
+[Group absence receipt](verification/receipts/fieldlog-entry-editor-api36-pgid-75289-resolution.json)
 
 ## November 20 local release delivery outage and recovery
 
