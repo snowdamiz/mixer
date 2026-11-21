@@ -152,10 +152,19 @@ the workspace bytes. Wrong and mixed identities were refused. The smoke
 inherits the stale baseline capability fingerprint for installed admission.
 Independent review found that caller-reported milestones could establish
 health before observed presentation and that the bridge lacked a successful
-hydration requirement. Corrections are underway. Native display, later
-pages, and the two-target signed OTA count remain open. An earlier replay
+hydration requirement. Native display, later pages, and the two-target
+signed OTA count remain open. An earlier replay
 scratch remains held because its process-group custody is unknown.
 [Candidate smoke receipt](verification/receipts/fieldlog-f10-macos-signed-smoke.json)
+
+The reviewed correction requires an observed actionable frame for durable
+health and an exact posted, found queue response for hydration. The signed
+macOS run kept failed, missing, wrong-request, and retired outcomes inert.
+The good path hydrated one read, wrote nothing, and reopened the workspace
+byte for byte. The pinned replay closed all 30 command groups. The 33-file
+correction now has a local composition at `dda816101e`. Its exact signed
+replay and successor Source141 binding are underway.
+[Corrected V3 receipt](verification/receipts/fieldlog-f10-v3-observed-admission-macos.json)
 
 The app-owned storage guide exercises the public installed storage adapter.
 The signed host fixture committed one scoped write, refused an out-of-scope
@@ -790,6 +799,14 @@ rebuild must check the linked fingerprint and both sealed identity fields
 against its SDK pin. The older Apple build remains tied to its original
 Mixer revision. Installed behavior remains open.
 [Pair25 build evidence](verification/receipts/fieldlog-d2-pair25-android-build-dbb9275d.json)
+
+The corrected `6bc461f4fc` Android build resealed the actual JNI, DEX,
+manifest, and installed resources. All 41 package members and both native
+identity fields matched readback. Its development guest uses a storage-only
+grant with two request slots and a 2 MiB reservation. The exact package
+review and matched Apple Simulator bundle build are underway. Installed
+behavior remains open.
+[Corrected Android reseal](verification/receipts/fieldlog-d2-pair25-android-reseal-6bc461f4.json)
 
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
 
