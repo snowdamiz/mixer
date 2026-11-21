@@ -13,6 +13,17 @@ Use the tracked results to assess L01–L08 and rerun any check that needs fresh
 evidence from a clean checkout. Paths to disposable run files are historical
 references. See [the worktree verification policy](mixer-product-plan.md#worktree-local-verification).
 
+## November 21 FieldLog native date correction
+
+The ordinary v74 export kept a partial date visible, disabled Save draft and
+Commit entry, and preserved the workspace bytes. Correcting the date in the
+same editor restored both controls. Save draft persisted the offset-normalized
+instant. A cold launch restored the same title, timestamp, and draft. A single
+Commit reused the draft ID, added one entrySaved event, and cleared the draft.
+The next cold launch read the exact same committed workspace bytes. Both
+owned ADB and emulator groups closed, and scratch was removed. L02 and L08
+remain open. [Native date receipt](verification/receipts/fieldlog-android-date-correction-cold-commit-v76.json)
+
 ## November 20 independent FieldLog Android export
 
 Maintained FieldLog source upgraded to public v74 (`44aecbeb6a82a`) and built
