@@ -10,7 +10,8 @@ enum GuestUISignedProgram {
     static func document(_ revision: Int, _ status: String) -> Data {
         Data("{\"schemaVersion\":1,\"revision\":\(revision),\"root\":{\"id\":\"root\",\"kind\":\"vStack\",\"properties\":{},\"children\":[{\"id\":\"status\",\"kind\":\"text\",\"properties\":{\"text\":\"\(status)\"},\"children\":[],\"actions\":[]},{\"id\":\"save\",\"kind\":\"button\",\"properties\":{\"label\":\"Save sample\"},\"children\":[],\"actions\":[{\"id\":\"sample.save\",\"event\":\"activate\"}]}],\"actions\":[]}}".utf8)
     }
-    static func build(_ mode: Mode = .valid) -> Data {
+    static func build(_ mode: Mode = .valid, storageNamespace: String = "material_test",
+                      expectedDenial: Data? = nil) -> Data {
         func u(_ value: Int) -> [UInt8] {
             var n = value, out: [UInt8] = []
             repeat { let b = UInt8(n & 127); n >>= 7; out.append(b | (n == 0 ? 0 : 128)) } while n != 0
@@ -68,8 +69,9 @@ enum GuestUISignedProgram {
         let event = mode == .localizedChecklist
             ? Data(#"{"actionID":"task.toggle","event":"activate","nodeID":"toggle","revision":1,"schemaVersion":1,"sequence":1,"value":null}"#.utf8)
             : Self.event
-        let request = Data(#"{"namespace":"material_test","key":"binary","valueBase64":"AAH+/w=="}"#.utf8)
+        let request = Data(#"{"namespace":"\#(storageNamespace)","key":"binary","valueBase64":"AAH+/w=="}"#.utf8)
         let committed = Data(#"{"abi":1,"capability":"storage.keyValue.v1","operation":"put","outcome":{"kind":"success","value":{"committed":true}},"schemaHash":"4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"}"#.utf8)
+        let expected = expectedDenial ?? committed
         var eventBody: [UInt8] = [0x20,0]
         eventBody += i(event.count)
         eventBody += [0x47,0x04,0x40,0x00,0x0b]
@@ -90,14 +92,23 @@ enum GuestUISignedProgram {
         wake += [0x10,1,0x45,0x04,0x40]
         wake += i(160)
         wake += [0x28,0,0]
-        wake += i(committed.count)
+        wake += i(expected.count)
         wake += [0x46,0x04,0x40]
-        wake += check(10000,committed)
-        wake += store(15,mode == .invalidWakeDocument ? 8192 : 3000)
-        wake += store(19,mode == .invalidWakeDocument ? 2 : saved.count)
+        wake += check(10000,expected)
+        if expectedDenial != nil {
+            wake += store(15,3500)
+            wake += store(19,denied.count)
+        } else {
+            wake += store(15,mode == .invalidWakeDocument ? 8192 : 3000)
+            wake += store(19,mode == .invalidWakeDocument ? 2 : saved.count)
+        }
         wake += [0x05]
-        wake += store(15,3500)
-        wake += store(19,denied.count)
+        if expectedDenial != nil {
+            wake += [0x00] // A different completion cannot satisfy the scoped denial control.
+        } else {
+            wake += store(15,3500)
+            wake += store(19,denied.count)
+        }
         wake += [0x0b,0x0b,0x0b]
         var types: [UInt8] = [5]
         types += [0x60,3,0x7f,0x7f,0x7f,1,0x7f]

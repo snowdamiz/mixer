@@ -14,7 +14,7 @@ struct GuestUISignedFixture {
     var configuration: CapabilityColdStartConfiguration {
         .init(directory: root.appendingPathComponent("recovery"), channel: "beta", installation: "guest-ui-signed", observationSeconds: 1)
     }
-    init(root: URL, deferredService: (any InstalledApplicationStorageServing)? = nil,
+    init(root: URL, storageService: (any InstalledApplicationStorageServing)? = nil, deferredStartup: Bool = false,
          boundNamespace: String = "material_test", boundFingerprint: String? = nil) throws {
         self.root = root
         key = try .init(rawRepresentation: Data(repeating: 0x53, count: 32))
@@ -32,7 +32,7 @@ struct GuestUISignedFixture {
         var dependencies = identity["dependencies"] as! [[String: Any]]
         dependencies.append(["id":"mixer.guest-ui-event-v1", "version":"1", "artifact_sha256":"34180d46e20e403c9cd3f3aa1584a7b6d0e67e94900267c7aa51c87116566024"])
         dependencies.append(["id":"mixer.guest-ui-native-header-v1", "version":"1", "artifact_sha256":"d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5"])
-        if deferredService != nil {
+        if deferredStartup {
             dependencies.append(["id": CapabilityInstalledExecutionMode.deferredStartupID, "version": "1",
                                  "artifact_sha256": CapabilityInstalledExecutionMode.deferredStartupSHA256])
         }
@@ -44,9 +44,9 @@ struct GuestUISignedFixture {
             .init(role: .installedGrant(capabilityID: CapabilitySchemas.httpID), bytes: try resource("http-grant.json")),
             .init(role: .installedGrant(capabilityID: CapabilitySchemas.storageID), bytes: try resource("storage-grant.json"))]
         let identityJSON = try JSONSerialization.data(withJSONObject: identity, options: [.sortedKeys, .withoutEscapingSlashes])
-        let storage = try deferredService.map {
+        let storage = try storageService.map {
             InstalledApplicationStorage(runtimeFingerprint: try boundFingerprint ?? CapabilityRuntimeIdentity(json: identityJSON).fingerprint,
-                                        namespace: boundNamespace, service: $0, allowsDeferredGuestUIStartup: true)
+                                        namespace: boundNamespace, service: $0, allowsDeferredGuestUIStartup: deferredStartup)
         }
         execution = try InstalledCapabilityExecution(identityJSON: identityJSON,
             materials: materials, trustRootsJSON: roots, privateContainer: root, applicationStorage: storage)

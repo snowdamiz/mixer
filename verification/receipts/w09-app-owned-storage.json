@@ -1,0 +1,107 @@
+{
+  "scope": "Section 9 / W09 signed app-owned storage control, macOS arm64 host",
+  "public_base": "9c21d3edb4738c6e0c51a6cc6355465ac18c208c",
+  "public_base_tree": "3c479b0ce29c1668dc46c1862d73090da6d20c0d",
+  "overlay_checkpoint": "c515b63f0f474437788c70d94f9c0dd238afebae",
+  "composed_tree_before_receipt": "7176a7526000c3ddf0044fd131dade316fa08487",
+  "composed_build_input_trees": {
+    "capability-activation": "081b76e0c87c25c00b8392c1af0e770c9d743145",
+    "experimental-capability-runtime": "80068e5e9ef054d47a49cec6f5831c7dbe877b45",
+    "runtime-identity": "2217de7c6108f38ff14bc711ccc0e17a80f15c6b",
+    "sdk": "d453a5db4ad431d71c2a82b6a880ff6195855612",
+    "updates": "ec6b73179f8e0d4882761e157977502a12e32421",
+    "vm": "1682169a33d05bd96c7f9fd433d556107bbb7a66"
+  },
+  "source_sha256": {
+    "capability-activation/Tests/MixerCapabilityActivationTests/DeferredSignedGrantTests.swift": "5b97971db90aab98dbebb164079677375735b985768a2f1477188e90bf1891cf",
+    "capability-activation/Tests/MixerCapabilityActivationTests/GuestUISignedFixture.swift": "6c108aa0466379903ee1a8edf5234566971dba4a116784985c97fe453c592204",
+    "capability-activation/Tests/MixerCapabilityActivationTests/GuestUISignedProgram.swift": "4372516be50a82603806b2b9ee9178fe8cb432e0f66662cd125114ca1d750c5e",
+    "capability-activation/Tests/MixerCapabilityActivationTests/GuestUISignedRuntimeTests.swift": "b6c5203302f73a6309fa6086ca69cbd3058d356e07db8d2edef29ec067da3e08"
+  },
+  "build_lock_sha256": {
+    "vm/Cargo.lock": "d877b303c72f7d7bfd9e3d7535b8eb10db3fb63be118b3281cdcc0db21ef0f96",
+    "capability-activation/Package.resolved": "012e229a00cb38b7d8845643ef1bd8795f3c3e6de2717b22c82bb37d493da1bc"
+  },
+  "tools": {
+    "macos": "27.0.1 (26A434)",
+    "xcode": "27.2 (27B52)",
+    "swift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "rustc": "1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "1.99.0 (5f94df478 2026-08-27)"
+  },
+  "build_and_command": "From the exact-base sparse checkout, /bin/sh executed the shell block in capabilities/app-owned-storage.md. Cargo built the locked offline release VM with experimental-capability-native and SwiftPM linked that archive into the macOS XCTest package with the resolved dependency versions. The focused replay used fresh scratch and replaced only the filter argument with the listed regex.",
+  "primary": {
+    "filter": "GuestUISignedRuntimeTests/testInstalledApplicationStorageGrantDenialAndColdReadback",
+    "recipe_sha256": "8ccb96220c9e9727721ebd1d76195502d5724e2e9e4782f40aa2405bd4421b92",
+    "exit": 0,
+    "passed_xctests": [
+      "GuestUISignedRuntimeTests/testInstalledApplicationStorageGrantDenialAndColdReadback"
+    ],
+    "failed_xctests": 0,
+    "build_output": [
+      "Finished `release` profile [optimized] target(s) in 1.22s",
+      "Build complete! (15.11 sec)"
+    ],
+    "scratch_removed": true
+  },
+  "focused": {
+    "filter": "GuestUISignedRuntimeTests/(testInstalledApplicationStorageGrantDenialAndColdReadback|testSignedEventCommitsStorageBeforeGuestShowsSaved|testSignedEventWithoutGrantReportsUnavailableWithoutStorage)$|DeferredSignedGrantTests/testDeferredStartupRequiresBoundInstalledMaterialAndEffectiveSignedGrant$",
+    "recipe_sha256": "3c6ad7d880ed077769ce4f1cf85b067786261d2456ce90f5b0cb8c8932a20448",
+    "exit": 0,
+    "passed_xctests": [
+      "DeferredSignedGrantTests/testDeferredStartupRequiresBoundInstalledMaterialAndEffectiveSignedGrant",
+      "GuestUISignedRuntimeTests/testInstalledApplicationStorageGrantDenialAndColdReadback",
+      "GuestUISignedRuntimeTests/testSignedEventCommitsStorageBeforeGuestShowsSaved",
+      "GuestUISignedRuntimeTests/testSignedEventWithoutGrantReportsUnavailableWithoutStorage"
+    ],
+    "failed_xctests": 0,
+    "build_output": [
+      "Finished `release` profile [optimized] target(s) in 0.77s",
+      "Build complete! (12.76 sec)"
+    ],
+    "scratch_removed": true
+  },
+  "signed_observations": {
+    "granted_put": "Guest consumed committed: true. The app repository received the exact typed write for material_test/binary. Its put rejects any quotas other than 4194304 bytes and 1024 entries.",
+    "denied_put": "Guest consumed the exact permissionDenied completion for outside_scope. The repository write count stayed at one and the built-in storage directory was absent.",
+    "retirement_and_readback": "For each of the two owners the close returned and ownerRetired was true, with snapshot closed=true and cleanupPending=false. The fixture closed the app repository only after both confirmations, then a fresh repository opened the same directory and returned found: true with valueBase64 AAH+/w==.",
+    "cleanup": "Both guide runs emitted retirement confirmation and passed XCTest teardown. Their owned run directories were absent after the scripts exited."
+  },
+  "inert_guide_controls": {
+    "scope": "Exact guide recipe under /bin/sh with PATH stubs. Cargo created a placeholder archive. Swift wrote storage, runtime recovery and evidence sentinels under TMPDIR. Retention assertions compared every sentinel and the saved test log, and checked the reported scratch path.",
+    "inputs": {
+      "cargo": "#!/bin/sh\nset -eu\nmkdir -p \"$CARGO_TARGET_DIR/release\"\nprintf 'mock static archive\n' > \"$CARGO_TARGET_DIR/release/libmixer_vm.a\"\n",
+      "swift": "#!/bin/sh\nset -eu\nmkdir -p \"$TMPDIR/mock/storage\" \"$TMPDIR/mock/recovery\" \"$TMPDIR/mock/evidence\"\nprintf 'storage sentinel\n' > \"$TMPDIR/mock/storage/value\"\nprintf 'runtime sentinel\n' > \"$TMPDIR/mock/recovery/state\"\nprintf 'diagnostic sentinel\n' > \"$TMPDIR/mock/evidence/trace\"\ncase \"$W09_CONTROL\" in\n    uncertain) printf 'inert runtime retirement unconfirmed\n' >&2; exit 74 ;;\n    missing) printf 'inert test exited without confirmation\n' ;;\n    failed_after_marker) printf 'W09 signed storage retirement confirmed\n'; exit 1 ;;\n    confirmed) printf 'W09 signed storage retirement confirmed\n' ;;\nesac\n"
+    },
+    "results": [
+      {
+        "case": "uncertain",
+        "exit": 74,
+        "retained": true
+      },
+      {
+        "case": "missing",
+        "exit": 1,
+        "retained": true
+      },
+      {
+        "case": "failed_after_marker",
+        "exit": 1,
+        "retained": true
+      },
+      {
+        "case": "confirmed",
+        "exit": 0,
+        "retained": false
+      }
+    ]
+  },
+  "localized_appkit_preservation": {
+    "test_and_helpers_byte_identical_to_base": true,
+    "test_and_helpers_sha256": "7a84f68cf4f008a91881a1732f360f5c87a0ae57412d47f614bc9fef38eb62cd",
+    "localized_wasm_bytes": 6984,
+    "base_and_composed_localized_wasm_sha256": "71b051ad3434ea58a664f96e72d6c7aa5f90820da8da145dbf544288f4c6a70f",
+    "execution": "The AppKit test compiled with the XCTest package. Its visible-window test was outside both selections."
+  },
+  "limits": "Headless in-process macOS test with synthetic data and test-only signing. The inert controls cover shell retention only. No real wedged runtime was induced. No process restart, crash, power-loss, device, production, FieldLog composition or gate qualification was attempted."
+}

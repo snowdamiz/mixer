@@ -48,9 +48,9 @@ final class DeferredSignedGrantTests: XCTestCase, @unchecked Sendable {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-hydration-grant-" + UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
         let service = UnusedHydrationRepository()
-        let fixture = try GuestUISignedFixture(root: root, deferredService: service)
-        XCTAssertThrowsError(try GuestUISignedFixture(root: root, deferredService: service, boundNamespace: "other"))
-        XCTAssertThrowsError(try GuestUISignedFixture(root: root, deferredService: service, boundFingerprint: "wrong"))
+        let fixture = try GuestUISignedFixture(root: root, storageService: service, deferredStartup: true)
+        XCTAssertThrowsError(try GuestUISignedFixture(root: root, storageService: service, deferredStartup: true, boundNamespace: "other"))
+        XCTAssertThrowsError(try GuestUISignedFixture(root: root, storageService: service, deferredStartup: true, boundFingerprint: "wrong"))
         let runtime = try await CapabilityGuestUIRuntime.openOwned(configuration: fixture.configuration,
             installed: fixture.execution.installed, environment: .init(wall: { 1000 }))
         do {

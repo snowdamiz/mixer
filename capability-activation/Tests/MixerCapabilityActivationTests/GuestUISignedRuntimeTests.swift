@@ -11,6 +11,33 @@ import AppKit
 import SwiftUI
 #endif
 
+private actor SignedApplicationRepository: InstalledApplicationStorageServing {
+    static let namespace = "material_test"
+    private let store: AppPrivateKeyValueStore
+    private(set) var writes: [KVPutArguments] = []
+
+    init(directory: URL) throws {
+        store = try AppPrivateKeyValueStore(directory: directory, namespaces: [Self.namespace],
+                                            maximumTotalBytes: 4_194_304, maximumEntries: 1024)
+    }
+
+    func get(_ arguments: KVGetArguments) async throws -> KVGetResponse {
+        try await store.get(arguments)
+    }
+
+    func put(_ arguments: KVPutArguments, maximumTotalBytes: Int, maximumEntries: Int) async throws -> KVMutationResponse {
+        writes.append(arguments)
+        guard maximumTotalBytes == 4_194_304, maximumEntries == 1024 else { throw CapabilityFailure.ioFailure }
+        return try await store.put(arguments)
+    }
+
+    func delete(_ arguments: KVDeleteArguments) async throws -> KVMutationResponse {
+        try await store.delete(arguments)
+    }
+
+    func close() async { await store.close() }
+}
+
 private actor SignedRuntimeRetirement {
     let runtime: CapabilityGuestUIRuntime
     private var job: Task<Void, Never>?
@@ -18,7 +45,7 @@ private actor SignedRuntimeRetirement {
     private var deadline: ContinuousClock.Instant?
     private var failure: UpdateError?
     init(_ runtime: CapabilityGuestUIRuntime) { self.runtime = runtime }
-    var retired: Bool { closeReturned && runtime.ownerRetired }
+    private(set) var retired = false
     func close() async throws {
         if let failure { throw failure }
         if job == nil {
@@ -33,6 +60,13 @@ private actor SignedRuntimeRetirement {
             try await Task.sleep(for: .milliseconds(2))
         }
         await job?.value
+        let snapshot = await runtime.recoverySnapshot()
+        guard snapshot.closed, !snapshot.activation.cleanupPending else {
+            let error = UpdateError("test.retirement_unconfirmed", "This UI owner still has cleanup pending")
+            failure = error
+            throw error
+        }
+        retired = true
     }
 }
 
@@ -60,29 +94,37 @@ final class GuestUISignedRuntimeTests: XCTestCase, @unchecked Sendable {
         }
         try await close(runtime, baseline: baseline)
     }
-    private func fixture() throws -> GuestUISignedFixture {
+    private func requireFixtureRetirement(_ root: URL) async throws {
+        guard !incompleteOpen.contains(root.path) else {
+            throw UpdateError("test.retirement_unconfirmed", "Retaining fixture after incomplete open: \(root.path)")
+        }
+        for owner in fixtureOwners[root.path] ?? [] {
+            guard await owner.retired else {
+                throw UpdateError("test.retirement_unconfirmed", "Retaining fixture while its owner has not retired: \(root.path)")
+            }
+        }
+    }
+    private func fixtureRoot() throws -> URL {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-signed-ui-" + UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
         addTeardownBlock { [self] in
-            guard !incompleteOpen.contains(root.path) else {
-                XCTFail("Retaining fixture after incomplete open: \(root.path)"); return
-            }
-            for owner in fixtureOwners[root.path] ?? [] {
-                guard await owner.retired else {
-                    XCTFail("Retaining fixture while its owner has not retired: \(root.path)"); return
-                }
-            }
+            try await requireFixtureRetirement(root)
             try FileManager.default.removeItem(at: root)
         }
-        return try GuestUISignedFixture(root: root)
+        return root
+    }
+    private func fixture() throws -> GuestUISignedFixture {
+        try GuestUISignedFixture(root: fixtureRoot())
     }
     private func open(_ f: GuestUISignedFixture) async throws -> CapabilityGuestUIRuntime {
         try await CapabilityGuestUIRuntime.openOwned(configuration:f.configuration, installed:f.execution.installed,
             environment:.init(wall:{1000}))
     }
     private func stage(_ f: GuestUISignedFixture, _ runtime: CapabilityGuestUIRuntime,
-                       mode: GuestUISignedProgram.Mode = .valid, storage: Bool = true) async throws {
-        let bytes = GuestUISignedProgram.build(mode), documents = try f.documents(bytes,storage:storage)
+                       mode: GuestUISignedProgram.Mode = .valid, storage: Bool = true,
+                       payload: Data? = nil, sequence: UInt64 = 1) async throws {
+        let bytes = payload ?? GuestUISignedProgram.build(mode)
+        let documents = try f.documents(bytes, sequence: sequence, storage: storage)
         try await runtime.beginDownload(signedManifest:documents.0,signedAssignment:documents.1)
         try await runtime.appendDownload(bytes,atOffset:0); try await runtime.finishDownload()
     }
@@ -366,6 +408,53 @@ final class GuestUISignedRuntimeTests: XCTestCase, @unchecked Sendable {
         return nil
     }
     #endif
+    func testInstalledApplicationStorageGrantDenialAndColdReadback() async throws {
+        let root = try fixtureRoot()
+        let directory = root.appendingPathComponent("app-owned-repository", isDirectory: true)
+        let namespace = SignedApplicationRepository.namespace
+        let expected = KVPutArguments(namespace: namespace, key: "binary", valueBase64: "AAH+/w==")
+        let denial = try GuestCapabilityTransportCodecV1.encodeCompletion(.failure(.permissionDenied), operation: .storagePut)
+        let repository = try SignedApplicationRepository(directory: directory)
+        do {
+            let fixture = try GuestUISignedFixture(root: root, storageService: repository, boundNamespace: namespace)
+            for sequence: UInt64 in [1, 2] {
+                let allowed = sequence == 1
+                let payload = GuestUISignedProgram.build(storageNamespace: allowed ? namespace : "outside_scope",
+                                                         expectedDenial: allowed ? nil : denial)
+                try await withRuntime(fixture, publicIngress: true) { runtime in
+                    try await stage(fixture, runtime, payload: payload, sequence: sequence)
+                    let start = try await runtime.start()
+                    XCTAssertTrue(start.effectsMayHaveOpened)
+                    try await activateSave(runtime)
+                    try await eventually("Guest did not consume the expected storage completion") {
+                        await MainActor.run { runtime.presentation.state == .displaying(revision: 3) }
+                    }
+                    let text = await MainActor.run {
+                        runtime.presentation.renderHost?.snapshot.document.root.children.first?.properties["text"]
+                    }
+                    XCTAssertEqual(text, .string(allowed ? "Saved sample" : "Save unavailable"))
+                    let writes = await repository.writes
+                    XCTAssertEqual(writes, [expected])
+                }
+            }
+        } catch {
+            if (try? await requireFixtureRetirement(root)) != nil {
+                await repository.close()
+            }
+            throw error
+        }
+        try await requireFixtureRetirement(root)
+        await repository.close()
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent(namespace).path))
+        let reopened = try SignedApplicationRepository(directory: directory)
+        let value: KVGetResponse
+        do { value = try await reopened.get(.init(namespace: namespace, key: expected.key)) }
+        catch { await reopened.close(); throw error }
+        await reopened.close()
+        XCTAssertEqual(value, KVGetResponse(found: true, valueBase64: expected.valueBase64))
+        print("W09 signed storage retirement confirmed")
+    }
     func testSignedEventWithoutGrantReportsUnavailableWithoutStorage() async throws {
         let before = CapabilityAttemptReservation.occupiedSlots, f = try fixture()
         try await withRuntime(f) { runtime in

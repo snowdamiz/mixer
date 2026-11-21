@@ -166,6 +166,9 @@ compiler/publication pipeline and immutable package registry integration remain 
 Customer extension registration, plugin trust policy, cloud signing and publication
 are unavailable; no arbitrary plugin is accepted by the closed dispatch table.
 
+To attach an app-owned repository to the registered storage capability, follow the
+[app-owned storage guide](app-owned-storage.md) and run its signed host control.
+
 ```sh
 python3 capabilities/tools/generate.py --check
 swift test --package-path capabilities
