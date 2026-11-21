@@ -126,6 +126,16 @@ generic iOS Simulator build, both Guest UI C clients, and all six Intel
 Android consumers passed.
 [Hosted verification](verification/receipts/owned-engine-ci-9d6adeee.json)
 
+## November 21 FieldLog pending changes
+
+The compact signed Pending Changes fixture rendered 26 real disk-backed
+records across two pages. Six actions completed and returning from Tasks
+preserved the page cursor. The observer counted four storage reads and
+zero write attempts. Both owners retired, and cold reopen matched the
+workspace bytes. V1 still refuses the exact historical navigation layout.
+The offscreen macOS result leaves F10 and the two-target OTA count open.
+[F10 replay](verification/receipts/fieldlog-f10-signed-pending-queue-v80.json)
+
 ## November 21 FieldLog signed entry Commit
 
 The corrected signed guest displays Commit refused when the repository

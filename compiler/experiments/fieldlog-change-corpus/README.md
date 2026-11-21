@@ -20,6 +20,32 @@ The native exclusions are **F07** for shipping the Android launcher, manifest an
 
 The 0/17 and 0/20 figures report achieved evidence. The pass/fail capability of unexecuted rows remains open. Patch size, on-device behavior, full Section 22 recovery and the two-target 80% threshold are unmeasured here. L08, G27 and G33 remain open.
 
+## F10 signed Pending Changes host replay
+
+The macOS fixture uses the same bounded Swift queue projection in the native
+control and the Embedded Swift guest. It seeds the real FieldLog repository
+with 26 unsent records. The signed guest shows pages of 20 and 6 and preserves
+page 2 after returning from Tasks. Six host actions are delivered. The
+Entries action reaches the destination handoff marker. The fixture records
+four storage reads, zero write attempts, and identical bytes and revision
+after reopening the repository.
+
+Run the replay from a Mixer checkout containing public v80. Supply a separate
+FieldLog checkout containing the corpus history. The toolchain paths appear
+in `--help`.
+
+```sh
+python3 -B compiler/experiments/fieldlog-change-corpus/pending-queue/replay.py \
+  f10-pending-queue --fieldlog /absolute/path/to/fieldlog
+```
+
+The second signed fixture hydrates the historical navigation layout and
+routes the queue-open action. V1 refuses the returned `navigation` root at
+`event/document` before it presents the queue. Both owners retire. F10 still
+requires the historical app route and signed OTA verification on both
+local targets. Rebuilt Wasm hashes can vary with the scratch path.
+[Signed F10 receipt](../../../verification/receipts/fieldlog-f10-signed-pending-queue-v80.json)
+
 ## First unsupported case
 
 - **F01 is the earliest source-only gap.** The historical change applies `.scrollDismissesKeyboard(.interactively)` at `ios/FieldLog/EntryEditor.swift:68`. The signed Guest UI V1 route has no corresponding guest operation. No device or signed payload was run for it.
