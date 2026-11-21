@@ -186,9 +186,19 @@ On published `dbb9275d58`, Swift Host and Swift Capability Native failed
 their generated identity and native preimage checks. The checked fingerprint
 describes 17 inputs. The two changed SDK capability files and the added
 Commit continuation yield a different fingerprint across 18 inputs.
-The capability schema preimage is unchanged. The generated identity,
-linked admission, and archived source binding need a coordinated refresh.
+The capability schema preimage is unchanged.
 [Hosted failure and exact preimage comparison](verification/receipts/hosted-v82-followup-native-identity-drift-dbb9275d.json)
+
+The reviewed refresh binds the 18 inputs across generated identities,
+linked admission, test material, and Source141. The composed generator
+and three native preimage controls passed, including optimized Python
+for the controls. Source141 admitted 155 inputs in both Python modes,
+and independent review restored both earlier archives. The author ran
+22 linked macOS tests, including six signed FieldLog and W09 controls.
+All 53 Pair25 input pins matched. An app rebuilt with the new linked
+fingerprint needs updated installed identity and freshly signed release
+and assignment material. Hosted verification of the refresh is pending.
+[Fingerprint and archive receipt](verification/receipts/native-capability-fingerprint-dbb9275d58.json)
 
 The corrected signed guest displays Commit refused when the repository
 declines a write. The macOS replay preserved workspace and outbox bytes and
