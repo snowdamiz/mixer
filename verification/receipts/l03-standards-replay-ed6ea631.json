@@ -1,0 +1,2922 @@
+{
+  "status": "passed_scoped_replay",
+  "started_utc": "2026-11-21T00:52:00.892557+00:00",
+  "runner_argv": [
+    "vm/verification/standards-replay/replay.py",
+    "--rust-bin",
+    "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin",
+    "--receipt",
+    "verification/receipts/l03-standards-replay-ed6ea631.json"
+  ],
+  "runner_sha256": {
+    "replay.py": "1732fb3b9387d1ba2f7a4c2ab0f0559b86b4569462aacd07bda33e1b8add12e6",
+    "commands.py": "44b63bd1c29404fe654515b1994240e4794074126788ac644c842d1882cf08e8",
+    "client.c": "e188d97d4fa34e0a45df7ac822801aaf4fb32264ad92ef96e9f3579969159577"
+  },
+  "scratch": "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t",
+  "spec_revision": "05ca4182176763112561ae20153975c12bd689e4",
+  "wabt_release": {
+    "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz",
+    "sha256": "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
+  },
+  "profile": "mixer-table-memory-v3",
+  "installed_feature": "experimental-capability-native",
+  "installed_execution": "legacy V3 session C ABI from the installed capability archive",
+  "guest_ui_v1": "admission refusal only for unchanged upstream modules",
+  "fixtures": {
+    "unreached-valid.wast": {
+      "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/unreached-valid.wast",
+      "sha256": "15f2f0a2b2619fbc80324bf832cdb09b19123bb7003df89bc6ae76ddaa597405"
+    },
+    "i32.wast": {
+      "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/i32.wast",
+      "sha256": "f3b7e8fd641893ea0989a8ab801fce0654d276d27b5cad9cf482291a422cffe8"
+    },
+    "memory.wast": {
+      "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/memory.wast",
+      "sha256": "9356ea6a84252e61421bbe7560a8244983accf0266f36986dbf94eaacfff80df"
+    },
+    "br_table.wast": {
+      "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/br_table.wast",
+      "sha256": "e9106d4f8f7bb0c12f51b2cc4bb443166c1d033be7ced74047f3705b2441167d"
+    },
+    "load.wast": {
+      "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/load.wast",
+      "sha256": "2f69ef5634207e065d022d7c26c92016ff1d14a94c5c755927d37fe14e63e256"
+    }
+  },
+  "modules": [
+    {
+      "fixture": "unreached-valid.wast",
+      "line": 49,
+      "wasm_sha256": "317c8b1bda6424da9474f67881bb0aef7efc01ab8482e0689ffde721877ad0a6",
+      "wasm_bytes": 66,
+      "wabt": {
+        "status": 0,
+        "diagnostic": []
+      },
+      "core": {
+        "valid": true,
+        "error": null
+      },
+      "installed_c": {
+        "validate": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "guest_ui_v1_validate": {
+          "status": 1,
+          "code": "unsupported",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "i32.wast",
+      "line": 3,
+      "wasm_sha256": "9e1e9fae98975dc6026537e3ce534061ae977c7a82d25c5b98ee946f5b843b88",
+      "wasm_bytes": 521,
+      "wabt": {
+        "status": 0,
+        "diagnostic": []
+      },
+      "core": {
+        "valid": true,
+        "error": null
+      },
+      "installed_c": {
+        "validate": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "guest_ui_v1_validate": {
+          "status": 1,
+          "code": "unsupported",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "i32.wast",
+      "line": 444,
+      "wasm_sha256": "b2dff1c88236c0520997e47a107e91438369ccaf0df07f5d4b7102041d94d8a5",
+      "wasm_bytes": 26,
+      "wabt": {
+        "status": 1,
+        "diagnostic": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.1.wasm:0000018: error: type mismatch in i32.eqz, expected [i32] but got []"
+        ]
+      },
+      "core": {
+        "valid": false,
+        "error": {
+          "code": "validation",
+          "message": "operand stack underflow",
+          "function": 0,
+          "offset": 23
+        }
+      },
+      "installed_c": {
+        "validate": {
+          "status": 1,
+          "code": "validation",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "guest_ui_v1_validate": {
+          "status": 1,
+          "code": "unsupported",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "memory.wast",
+      "line": 51,
+      "wasm_sha256": "ed85b3c064e52c8a525d3c7e05d29df1ad7f13be7b738632b088dfc284407d2d",
+      "wasm_bytes": 14,
+      "wabt": {
+        "status": 1,
+        "diagnostic": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.20.wasm:000000e: error: max pages (0) must be >= initial pages (1)"
+        ]
+      },
+      "core": {
+        "valid": false,
+        "error": {
+          "code": "limit",
+          "message": "memory bounds exceed profile",
+          "function": null,
+          "offset": 14
+        }
+      },
+      "installed_c": {
+        "validate": {
+          "status": 1,
+          "code": "limit",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "guest_ui_v1_validate": {
+          "status": 1,
+          "code": "limit",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "memory.wast",
+      "line": 92,
+      "wasm_sha256": "f00ef8682f7e8c8ac66a9b20aa6037cd50cb7a6bcb241806f02ca840fde9b0cb",
+      "wasm_bytes": 525,
+      "wabt": {
+        "status": 0,
+        "diagnostic": []
+      },
+      "core": {
+        "valid": true,
+        "error": null
+      },
+      "installed_c": {
+        "validate": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "guest_ui_v1_validate": {
+          "status": 1,
+          "code": "capability_export",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "br_table.wast",
+      "line": 1462,
+      "wasm_sha256": "0030ac36425cb86e2df8ac906860f83b88c0f46135245361298826a6e8e893d5",
+      "wasm_bytes": 39,
+      "wabt": {
+        "status": 1,
+        "diagnostic": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/br_table/commands.4.wasm:0000023: error: type mismatch in br_table, expected [i32] but got [i64]"
+        ]
+      },
+      "core": {
+        "valid": false,
+        "error": {
+          "code": "validation",
+          "message": "expected i32, found i64",
+          "function": 0,
+          "offset": 30
+        }
+      },
+      "installed_c": {
+        "validate": {
+          "status": 1,
+          "code": "validation",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "guest_ui_v1_validate": {
+          "status": 1,
+          "code": "unsupported",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "br_table.wast",
+      "line": 1481,
+      "wasm_sha256": "3198b37d562fd64c9b4495b9f7358356a4c340693a7f3bf13cdc45006959e4b4",
+      "wasm_bytes": 38,
+      "wabt": {
+        "status": 1,
+        "diagnostic": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/br_table/commands.6.wasm:0000023: error: type mismatch in br_table, expected [i64] but got [i32]"
+        ]
+      },
+      "core": {
+        "valid": false,
+        "error": {
+          "code": "validation",
+          "message": "br_table targets have different label types",
+          "function": 0,
+          "offset": 31
+        }
+      },
+      "installed_c": {
+        "validate": {
+          "status": 1,
+          "code": "validation",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "guest_ui_v1_validate": {
+          "status": 1,
+          "code": "unsupported",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "br_table.wast",
+      "line": 1605,
+      "wasm_sha256": "18a9fb1f0f19b58e9a604acbb3e62b1575218b6e5360109936199f7825f73e1f",
+      "wasm_bytes": 33,
+      "wabt": {
+        "status": 1,
+        "diagnostic": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/br_table/commands.19.wasm:000001f: error: invalid depth: 2 (max 1)"
+        ]
+      },
+      "core": {
+        "valid": false,
+        "error": {
+          "code": "validation",
+          "message": "branch depth exceeds control stack",
+          "function": 0,
+          "offset": 27
+        }
+      },
+      "installed_c": {
+        "validate": {
+          "status": 1,
+          "code": "validation",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "guest_ui_v1_validate": {
+          "status": 1,
+          "code": "unsupported",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "load.wast",
+      "line": 312,
+      "wasm_sha256": "4f994383cbe5c3d3412d1cac9e081d7da90d3ed2cff7195f580f12a0c730285c",
+      "wasm_bytes": 34,
+      "wabt": {
+        "status": 1,
+        "diagnostic": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/load/commands.14.wasm:0000021: error: type mismatch at end of function, expected [] but got [i32]"
+        ]
+      },
+      "core": {
+        "valid": false,
+        "error": {
+          "code": "validation",
+          "message": "extra values at control end",
+          "function": 0,
+          "offset": 33
+        }
+      },
+      "installed_c": {
+        "validate": {
+          "status": 1,
+          "code": "validation",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "guest_ui_v1_validate": {
+          "status": 1,
+          "code": "validation",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    }
+  ],
+  "cases": [
+    {
+      "fixture": "unreached-valid.wast",
+      "module_line": 49,
+      "upstream": {
+        "type": "assert_trap",
+        "line": 63,
+        "action": {
+          "type": "invoke",
+          "field": "meet-bottom",
+          "args": []
+        },
+        "text": "unreachable",
+        "expected": []
+      },
+      "core": {
+        "ok": false,
+        "error": {
+          "code": "unreachable",
+          "message": "unreachable instruction executed",
+          "function": 0,
+          "offset": 44
+        }
+      },
+      "installed_c": {
+        "create": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "invoke": {
+          "status": 2,
+          "code": "unreachable",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 3,
+          "host_calls_used": 0
+        },
+        "close": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "i32.wast",
+      "module_line": 3,
+      "upstream": {
+        "type": "assert_return",
+        "line": 39,
+        "action": {
+          "type": "invoke",
+          "field": "add",
+          "args": [
+            {
+              "type": "i32",
+              "value": "4294967295"
+            },
+            {
+              "type": "i32",
+              "value": "4294967295"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "4294967294"
+          }
+        ]
+      },
+      "core": {
+        "ok": true,
+        "profile": "mixer-table-memory-v3",
+        "export": "add",
+        "result": {
+          "type": "i32",
+          "value": -2
+        },
+        "fuel_used": 4,
+        "host_calls_used": 0
+      },
+      "installed_c": {
+        "create": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "invoke": {
+          "status": 0,
+          "code": "",
+          "value_type": 1,
+          "value": -2,
+          "fuel_used": 4,
+          "host_calls_used": 0
+        },
+        "close": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "i32.wast",
+      "module_line": 3,
+      "upstream": {
+        "type": "assert_return",
+        "line": 41,
+        "action": {
+          "type": "invoke",
+          "field": "add",
+          "args": [
+            {
+              "type": "i32",
+              "value": "2147483647"
+            },
+            {
+              "type": "i32",
+              "value": "1"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "2147483648"
+          }
+        ]
+      },
+      "core": {
+        "ok": true,
+        "profile": "mixer-table-memory-v3",
+        "export": "add",
+        "result": {
+          "type": "i32",
+          "value": -2147483648
+        },
+        "fuel_used": 4,
+        "host_calls_used": 0
+      },
+      "installed_c": {
+        "create": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "invoke": {
+          "status": 0,
+          "code": "",
+          "value_type": 1,
+          "value": -2147483648,
+          "fuel_used": 4,
+          "host_calls_used": 0
+        },
+        "close": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "i32.wast",
+      "module_line": 3,
+      "upstream": {
+        "type": "assert_trap",
+        "line": 64,
+        "action": {
+          "type": "invoke",
+          "field": "div_s",
+          "args": [
+            {
+              "type": "i32",
+              "value": "1"
+            },
+            {
+              "type": "i32",
+              "value": "0"
+            }
+          ]
+        },
+        "text": "integer divide by zero",
+        "expected": [
+          {
+            "type": "i32"
+          }
+        ]
+      },
+      "core": {
+        "ok": false,
+        "error": {
+          "code": "integer_divide_by_zero",
+          "message": "integer division by zero",
+          "function": 3,
+          "offset": 315
+        }
+      },
+      "installed_c": {
+        "create": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "invoke": {
+          "status": 2,
+          "code": "integer_divide_by_zero",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 3,
+          "host_calls_used": 0
+        },
+        "close": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "i32.wast",
+      "module_line": 3,
+      "upstream": {
+        "type": "assert_trap",
+        "line": 66,
+        "action": {
+          "type": "invoke",
+          "field": "div_s",
+          "args": [
+            {
+              "type": "i32",
+              "value": "2147483648"
+            },
+            {
+              "type": "i32",
+              "value": "4294967295"
+            }
+          ]
+        },
+        "text": "integer overflow",
+        "expected": [
+          {
+            "type": "i32"
+          }
+        ]
+      },
+      "core": {
+        "ok": false,
+        "error": {
+          "code": "integer_overflow",
+          "message": "signed integer division overflow",
+          "function": 3,
+          "offset": 315
+        }
+      },
+      "installed_c": {
+        "create": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "invoke": {
+          "status": 2,
+          "code": "integer_overflow",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 3,
+          "host_calls_used": 0
+        },
+        "close": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "i32.wast",
+      "module_line": 3,
+      "upstream": {
+        "type": "assert_return",
+        "line": 72,
+        "action": {
+          "type": "invoke",
+          "field": "div_s",
+          "args": [
+            {
+              "type": "i32",
+              "value": "2147483648"
+            },
+            {
+              "type": "i32",
+              "value": "2"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "3221225472"
+          }
+        ]
+      },
+      "core": {
+        "ok": true,
+        "profile": "mixer-table-memory-v3",
+        "export": "div_s",
+        "result": {
+          "type": "i32",
+          "value": -1073741824
+        },
+        "fuel_used": 4,
+        "host_calls_used": 0
+      },
+      "installed_c": {
+        "create": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "invoke": {
+          "status": 0,
+          "code": "",
+          "value_type": 1,
+          "value": -1073741824,
+          "fuel_used": 4,
+          "host_calls_used": 0
+        },
+        "close": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "i32.wast",
+      "module_line": 3,
+      "upstream": {
+        "type": "assert_return",
+        "line": 220,
+        "action": {
+          "type": "invoke",
+          "field": "rotl",
+          "args": [
+            {
+              "type": "i32",
+              "value": "1"
+            },
+            {
+              "type": "i32",
+              "value": "32"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "1"
+          }
+        ]
+      },
+      "core": {
+        "ok": true,
+        "profile": "mixer-table-memory-v3",
+        "export": "rotl",
+        "result": {
+          "type": "i32",
+          "value": 1
+        },
+        "fuel_used": 4,
+        "host_calls_used": 0
+      },
+      "installed_c": {
+        "create": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "invoke": {
+          "status": 0,
+          "code": "",
+          "value_type": 1,
+          "value": 1,
+          "fuel_used": 4,
+          "host_calls_used": 0
+        },
+        "close": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "i32.wast",
+      "module_line": 3,
+      "upstream": {
+        "type": "assert_return",
+        "line": 228,
+        "action": {
+          "type": "invoke",
+          "field": "rotl",
+          "args": [
+            {
+              "type": "i32",
+              "value": "1"
+            },
+            {
+              "type": "i32",
+              "value": "31"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "2147483648"
+          }
+        ]
+      },
+      "core": {
+        "ok": true,
+        "profile": "mixer-table-memory-v3",
+        "export": "rotl",
+        "result": {
+          "type": "i32",
+          "value": -2147483648
+        },
+        "fuel_used": 4,
+        "host_calls_used": 0
+      },
+      "installed_c": {
+        "create": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "invoke": {
+          "status": 0,
+          "code": "",
+          "value_type": 1,
+          "value": -2147483648,
+          "fuel_used": 4,
+          "host_calls_used": 0
+        },
+        "close": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "i32.wast",
+      "module_line": 444,
+      "upstream": {
+        "type": "assert_invalid",
+        "line": 444,
+        "filename": "commands.1.wasm",
+        "text": "type mismatch",
+        "module_type": "binary"
+      }
+    },
+    {
+      "fixture": "memory.wast",
+      "module_line": 51,
+      "upstream": {
+        "type": "assert_invalid",
+        "line": 51,
+        "filename": "commands.20.wasm",
+        "text": "size minimum must not be greater than maximum",
+        "module_type": "binary"
+      }
+    },
+    {
+      "fixture": "memory.wast",
+      "module_line": 92,
+      "upstream": {
+        "type": "assert_return",
+        "line": 180,
+        "action": {
+          "type": "invoke",
+          "field": "data",
+          "args": []
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "1"
+          }
+        ]
+      },
+      "core": {
+        "ok": true,
+        "profile": "mixer-table-memory-v3",
+        "export": "data",
+        "result": {
+          "type": "i32",
+          "value": 1
+        },
+        "fuel_used": 40,
+        "host_calls_used": 0
+      },
+      "installed_c": {
+        "create": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "invoke": {
+          "status": 0,
+          "code": "",
+          "value_type": 1,
+          "value": 1,
+          "fuel_used": 40,
+          "host_calls_used": 0
+        },
+        "close": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "memory.wast",
+      "module_line": 92,
+      "upstream": {
+        "type": "assert_return",
+        "line": 181,
+        "action": {
+          "type": "invoke",
+          "field": "cast",
+          "args": []
+        },
+        "expected": [
+          {
+            "type": "f64",
+            "value": "4631107791820423168"
+          }
+        ]
+      },
+      "core": {
+        "ok": true,
+        "profile": "mixer-table-memory-v3",
+        "export": "cast",
+        "result": {
+          "type": "f64",
+          "bits": "0x4045000000000000",
+          "value": "42"
+        },
+        "fuel_used": 19,
+        "host_calls_used": 0
+      },
+      "installed_c": {
+        "create": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "invoke": {
+          "status": 0,
+          "code": "",
+          "value_type": 4,
+          "value": 4631107791820423168,
+          "fuel_used": 19,
+          "host_calls_used": 0
+        },
+        "close": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "memory.wast",
+      "module_line": 92,
+      "upstream": {
+        "type": "assert_return",
+        "line": 183,
+        "action": {
+          "type": "invoke",
+          "field": "i32_load8_s",
+          "args": [
+            {
+              "type": "i32",
+              "value": "4294967295"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "4294967295"
+          }
+        ]
+      },
+      "core": {
+        "ok": true,
+        "profile": "mixer-table-memory-v3",
+        "export": "i32_load8_s",
+        "result": {
+          "type": "i32",
+          "value": -1
+        },
+        "fuel_used": 6,
+        "host_calls_used": 0
+      },
+      "installed_c": {
+        "create": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "invoke": {
+          "status": 0,
+          "code": "",
+          "value_type": 1,
+          "value": -1,
+          "fuel_used": 6,
+          "host_calls_used": 0
+        },
+        "close": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "memory.wast",
+      "module_line": 92,
+      "upstream": {
+        "type": "assert_return",
+        "line": 184,
+        "action": {
+          "type": "invoke",
+          "field": "i32_load8_u",
+          "args": [
+            {
+              "type": "i32",
+              "value": "4294967295"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "255"
+          }
+        ]
+      },
+      "core": {
+        "ok": true,
+        "profile": "mixer-table-memory-v3",
+        "export": "i32_load8_u",
+        "result": {
+          "type": "i32",
+          "value": 255
+        },
+        "fuel_used": 6,
+        "host_calls_used": 0
+      },
+      "installed_c": {
+        "create": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "invoke": {
+          "status": 0,
+          "code": "",
+          "value_type": 1,
+          "value": 255,
+          "fuel_used": 6,
+          "host_calls_used": 0
+        },
+        "close": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "memory.wast",
+      "module_line": 92,
+      "upstream": {
+        "type": "assert_return",
+        "line": 207,
+        "action": {
+          "type": "invoke",
+          "field": "i64_load32_u",
+          "args": [
+            {
+              "type": "i64",
+              "value": "18446744073709551615"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i64",
+            "value": "4294967295"
+          }
+        ]
+      },
+      "core": {
+        "ok": true,
+        "profile": "mixer-table-memory-v3",
+        "export": "i64_load32_u",
+        "result": {
+          "type": "i64",
+          "value": "4294967295"
+        },
+        "fuel_used": 6,
+        "host_calls_used": 0
+      },
+      "installed_c": {
+        "create": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "invoke": {
+          "status": 0,
+          "code": "",
+          "value_type": 2,
+          "value": 4294967295,
+          "fuel_used": 6,
+          "host_calls_used": 0
+        },
+        "close": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    {
+      "fixture": "br_table.wast",
+      "module_line": 1462,
+      "upstream": {
+        "type": "assert_invalid",
+        "line": 1462,
+        "filename": "commands.4.wasm",
+        "text": "type mismatch",
+        "module_type": "binary"
+      }
+    },
+    {
+      "fixture": "br_table.wast",
+      "module_line": 1481,
+      "upstream": {
+        "type": "assert_invalid",
+        "line": 1481,
+        "filename": "commands.6.wasm",
+        "text": "type mismatch",
+        "module_type": "binary"
+      }
+    },
+    {
+      "fixture": "br_table.wast",
+      "module_line": 1605,
+      "upstream": {
+        "type": "assert_invalid",
+        "line": 1605,
+        "filename": "commands.19.wasm",
+        "text": "unknown label",
+        "module_type": "binary"
+      }
+    },
+    {
+      "fixture": "load.wast",
+      "module_line": 312,
+      "upstream": {
+        "type": "assert_invalid",
+        "line": 312,
+        "filename": "commands.14.wasm",
+        "text": "type mismatch",
+        "module_type": "binary"
+      }
+    }
+  ],
+  "command_environment": {
+    "PATH": "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "RUSTC": "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+    "CARGO_HOME": "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/cargo-home",
+    "CARGO_TARGET_DIR": "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target",
+    "TMPDIR": "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/tmp",
+    "MACOSX_DEPLOYMENT_TARGET": "14.0",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "GIT_NO_LAZY_FETCH": "1",
+    "GIT_OPTIONAL_LOCKS": "0"
+  },
+  "source_revision": "ed6ea631450a86d31336ffd49224e7704e7d73b5",
+  "vm_tree": "62efca2793a308383a8ff43d448c48765d25ff75",
+  "tools": {
+    "python": "3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0",
+    "wast2json": "1.0.36 (git~1.0.37)",
+    "wasm-validate": "1.0.36 (git~1.0.37)"
+  },
+  "artifacts_sha256": {
+    "mixer-vm": "7b8590dfb7496e04cf0c6ef54e0bdc7e93f74d6cb7bd9cb2ee7098adf32bdf4b",
+    "libmixer_vm_capability_experimental.a": "bc6b286fdd17507acf073846283dc7e9f32c3a7de8d98ac2c3d6ce35a23e4f74",
+    "client": "369bc474c2ac0148df849a1d9395ad068425dd69461d5017ec3671694d2e5b9c",
+    "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+    "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+    "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "mixer_vm_guest_ui_deferred.h": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+  },
+  "commands": [
+    {
+      "name": "revision",
+      "argv": [
+        "/usr/bin/git",
+        "--no-replace-objects",
+        "-C",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631",
+        "rev-parse",
+        "HEAD",
+        "HEAD:vm"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 20780,
+      "pgid": 20780,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "379ddf82b9d5f1927b938c2a502b9e9d7dd6812090b7b39511e9d2d8f32fe68c",
+      "output_bytes": 82,
+      "elapsed_seconds": 0.077591
+    },
+    {
+      "name": "vm-diff",
+      "argv": [
+        "/usr/bin/git",
+        "--no-replace-objects",
+        "-C",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631",
+        "diff",
+        "HEAD",
+        "--name-only",
+        "--",
+        "vm/src",
+        "vm/include",
+        "vm/Cargo.toml",
+        "vm/Cargo.lock",
+        "vm/build.rs"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 20794,
+      "pgid": 20794,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.085917
+    },
+    {
+      "name": "vm-untracked",
+      "argv": [
+        "/usr/bin/git",
+        "--no-replace-objects",
+        "-C",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631",
+        "ls-files",
+        "--others",
+        "--",
+        "vm/src",
+        "vm/include",
+        "vm/Cargo.toml",
+        "vm/Cargo.lock",
+        "vm/build.rs"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 20795,
+      "pgid": 20795,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.03391
+    },
+    {
+      "name": "macos",
+      "argv": [
+        "/usr/bin/sw_vers"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 20799,
+      "pgid": 20799,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "4ef10a0fc370704ea84699cf3851e51488598c5f1ab35cb572eb6b96278a8e5c",
+      "output_bytes": 66,
+      "elapsed_seconds": 0.01827
+    },
+    {
+      "name": "cargo-version",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "--version"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 20800,
+      "pgid": 20800,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566",
+      "output_bytes": 36,
+      "elapsed_seconds": 0.085312
+    },
+    {
+      "name": "rustc-version",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--version"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 20801,
+      "pgid": 20801,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "8dc912acd5bfeafc70b01b1d2a2afb0844afa02f5dba2f1ae8d5c212d005afb6",
+      "output_bytes": 36,
+      "elapsed_seconds": 0.331107
+    },
+    {
+      "name": "clang-version",
+      "argv": [
+        "/usr/bin/clang",
+        "--version"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 20888,
+      "pgid": 20888,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "b8a2569d699eec50baaf1719096d0801d16fb28fbcb2df7ffd0a07cd26d9fd47",
+      "output_bytes": 200,
+      "elapsed_seconds": 0.164904
+    },
+    {
+      "name": "curl-version",
+      "argv": [
+        "/usr/bin/curl",
+        "--version"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 20925,
+      "pgid": 20925,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "70631102a19b01fd5d0e0fa35a74d1c6616a2c7f5068e09e2209e921be454fe1",
+      "output_bytes": 413,
+      "elapsed_seconds": 0.011657
+    },
+    {
+      "name": "build",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--locked",
+        "--offline",
+        "--release",
+        "--lib",
+        "--bin",
+        "mixer-vm",
+        "--no-default-features",
+        "--features",
+        "experimental-capability-native",
+        "--manifest-path",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/vm/Cargo.toml"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 90,
+      "output_cap_bytes": 524288,
+      "pid": 20928,
+      "pgid": 20928,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "a182927e1ec59cf1f7d4105370bec52dde512e13d8457fbe860264c8ab223782",
+      "output_bytes": 159,
+      "elapsed_seconds": 4.473168
+    },
+    {
+      "name": "link-client",
+      "argv": [
+        "/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/install/include",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/vm/verification/standards-replay/client.c",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/install/lib/libmixer_vm_capability_experimental.a",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21597,
+      "pgid": 21597,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.210311
+    },
+    {
+      "name": "download-wabt",
+      "argv": [
+        "/usr/bin/curl",
+        "-qfsSL",
+        "--proto",
+        "=https",
+        "--proto-redir",
+        "=https",
+        "--max-time",
+        "25",
+        "--max-filesize",
+        "25165824",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt.tar.gz",
+        "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21697,
+      "pgid": 21697,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.304224
+    },
+    {
+      "name": "extract-wabt",
+      "argv": [
+        "/usr/bin/tar",
+        "-xzf",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt.tar.gz",
+        "wabt-1.0.37/bin/wast2json",
+        "wabt-1.0.37/bin/wasm-validate"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21720,
+      "pgid": 21720,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.021547
+    },
+    {
+      "name": "wast2json",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt-1.0.37/bin/wast2json",
+        "--version"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21721,
+      "pgid": 21721,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "ac00ce7f180c846540f2abe95df11d2d5293c888f116667be7bfa61019923f00",
+      "output_bytes": 20,
+      "elapsed_seconds": 0.052459
+    },
+    {
+      "name": "wasm-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt-1.0.37/bin/wasm-validate",
+        "--version"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21725,
+      "pgid": 21725,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "ac00ce7f180c846540f2abe95df11d2d5293c888f116667be7bfa61019923f00",
+      "output_bytes": 20,
+      "elapsed_seconds": 0.027801
+    },
+    {
+      "name": "unreached-valid-fetch",
+      "argv": [
+        "/usr/bin/curl",
+        "-qfsSL",
+        "--proto",
+        "=https",
+        "--proto-redir",
+        "=https",
+        "--max-time",
+        "25",
+        "--max-filesize",
+        "524288",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/unreached-valid/unreached-valid.wast",
+        "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/unreached-valid.wast"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21728,
+      "pgid": 21728,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.048187
+    },
+    {
+      "name": "unreached-valid-translate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt-1.0.37/bin/wast2json",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/unreached-valid/unreached-valid.wast",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/unreached-valid/commands.json"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21730,
+      "pgid": 21730,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.004689
+    },
+    {
+      "name": "unreached-valid-49-wabt",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt-1.0.37/bin/wasm-validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/unreached-valid/commands.1.wasm"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21731,
+      "pgid": 21731,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.00389
+    },
+    {
+      "name": "unreached-valid-49-core-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/unreached-valid/commands.1.wasm"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21732,
+      "pgid": 21732,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "7e4acab766472d05c87c1ebd17f8414dba34ad386a8003994a1f1209c4f41486",
+      "output_bytes": 408,
+      "elapsed_seconds": 0.025267
+    },
+    {
+      "name": "unreached-valid-49-c-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/unreached-valid/commands.1.wasm"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21739,
+      "pgid": 21739,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "f0153d848a1dc7996e03e867a76b1e046dcbe48814ccce7c21c0aaada2b1d95c",
+      "output_bytes": 71,
+      "elapsed_seconds": 0.059466
+    },
+    {
+      "name": "unreached-valid-63-core-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "invoke",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/unreached-valid/commands.1.wasm",
+        "meet-bottom"
+      ],
+      "expected_exit_code": 2,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21768,
+      "pgid": 21768,
+      "output_eof": true,
+      "exit_code": 2,
+      "custody": "child reaped and group absent",
+      "output_sha256": "f0184742ec385060fb9d3a379e720a5a45b9d952ffa6997974cb61033bd52e87",
+      "output_bytes": 114,
+      "elapsed_seconds": 0.003657
+    },
+    {
+      "name": "unreached-valid-63-c-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/unreached-valid/commands.1.wasm",
+        "meet-bottom"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21769,
+      "pgid": 21769,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "f00071efd12923d6431d9bcab2be5980969488a4a0c77cd2c2b4fed018fadc3e",
+      "output_bytes": 76,
+      "elapsed_seconds": 0.00376
+    },
+    {
+      "name": "i32-fetch",
+      "argv": [
+        "/usr/bin/curl",
+        "-qfsSL",
+        "--proto",
+        "=https",
+        "--proto-redir",
+        "=https",
+        "--max-time",
+        "25",
+        "--max-filesize",
+        "524288",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/i32.wast",
+        "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/i32.wast"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21770,
+      "pgid": 21770,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.098841
+    },
+    {
+      "name": "i32-translate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt-1.0.37/bin/wast2json",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/i32.wast",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.json"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21817,
+      "pgid": 21817,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.016592
+    },
+    {
+      "name": "i32-3-wabt",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt-1.0.37/bin/wasm-validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.0.wasm"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21825,
+      "pgid": 21825,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.004649
+    },
+    {
+      "name": "i32-3-core-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.0.wasm"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21826,
+      "pgid": 21826,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "b6e9f320e77b6eb8d5b8d0ee468b6263bca31eb98ca1a03d22ab917a47e7054f",
+      "output_bytes": 2206,
+      "elapsed_seconds": 0.004074
+    },
+    {
+      "name": "i32-3-c-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.0.wasm"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21829,
+      "pgid": 21829,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "f0153d848a1dc7996e03e867a76b1e046dcbe48814ccce7c21c0aaada2b1d95c",
+      "output_bytes": 71,
+      "elapsed_seconds": 0.004289
+    },
+    {
+      "name": "i32-39-core-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "invoke",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.0.wasm",
+        "add",
+        "i32:-1",
+        "i32:-1"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21833,
+      "pgid": 21833,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "bb17ecab45d5480785ac3294d2168d2a8ad5213827d117d2ce218f5e4f77487f",
+      "output_bytes": 130,
+      "elapsed_seconds": 0.003376
+    },
+    {
+      "name": "i32-39-c-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.0.wasm",
+        "add",
+        "i32:-1",
+        "i32:-1"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21834,
+      "pgid": 21834,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "6242bfbef193769abf05a4a78852f21a692a8c510558c13b80a8bffe46b9e9a2",
+      "output_bytes": 66,
+      "elapsed_seconds": 0.003884
+    },
+    {
+      "name": "i32-41-core-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "invoke",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.0.wasm",
+        "add",
+        "i32:2147483647",
+        "i32:1"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21837,
+      "pgid": 21837,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "de65f0055b17438e94afbb10b21f41329e0bcfaa7dd899040d9f49da7bb2fb2a",
+      "output_bytes": 139,
+      "elapsed_seconds": 0.003781
+    },
+    {
+      "name": "i32-41-c-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.0.wasm",
+        "add",
+        "i32:2147483647",
+        "i32:1"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21838,
+      "pgid": 21838,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "40fa1a6db28cb917c788870357e537f21a2c75b18c8210462d8e819a6eb64035",
+      "output_bytes": 75,
+      "elapsed_seconds": 0.004441
+    },
+    {
+      "name": "i32-64-core-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "invoke",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.0.wasm",
+        "div_s",
+        "i32:1",
+        "i32:0"
+      ],
+      "expected_exit_code": 2,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21839,
+      "pgid": 21839,
+      "output_eof": true,
+      "exit_code": 2,
+      "custody": "child reaped and group absent",
+      "output_sha256": "d38493f589b156dc529aff4b4a75fab41e7de9f1a9d9576a9ecf2f977ebd74db",
+      "output_bytes": 118,
+      "elapsed_seconds": 0.004103
+    },
+    {
+      "name": "i32-64-c-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.0.wasm",
+        "div_s",
+        "i32:1",
+        "i32:0"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21843,
+      "pgid": 21843,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "be9ad3b5d2e63435b86447c584605bbc566b1c9fcd55a39310b0969ddb33111e",
+      "output_bytes": 87,
+      "elapsed_seconds": 0.004146
+    },
+    {
+      "name": "i32-66-core-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "invoke",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.0.wasm",
+        "div_s",
+        "i32:-2147483648",
+        "i32:-1"
+      ],
+      "expected_exit_code": 2,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21844,
+      "pgid": 21844,
+      "output_eof": true,
+      "exit_code": 2,
+      "custody": "child reaped and group absent",
+      "output_sha256": "64865ffbf0555d941441f247e7a7c329577b52ede1f83687a5383cf7e95b7421",
+      "output_bytes": 120,
+      "elapsed_seconds": 0.003294
+    },
+    {
+      "name": "i32-66-c-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.0.wasm",
+        "div_s",
+        "i32:-2147483648",
+        "i32:-1"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21845,
+      "pgid": 21845,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "dcae39d326e6ed51ff025834b488c980584facdf9a02ba703fb454a3aefd4c65",
+      "output_bytes": 81,
+      "elapsed_seconds": 0.003941
+    },
+    {
+      "name": "i32-72-core-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "invoke",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.0.wasm",
+        "div_s",
+        "i32:-2147483648",
+        "i32:2"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21846,
+      "pgid": 21846,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "b12ba7e205a2376c5d904f5d53074354907748f02eebcdb8751139f7ebd25255",
+      "output_bytes": 141,
+      "elapsed_seconds": 0.003956
+    },
+    {
+      "name": "i32-72-c-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.0.wasm",
+        "div_s",
+        "i32:-2147483648",
+        "i32:2"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21848,
+      "pgid": 21848,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "c723da388f14db9deb716fb0b760da25703a4d423af10875ff1d25565878c902",
+      "output_bytes": 75,
+      "elapsed_seconds": 0.004088
+    },
+    {
+      "name": "i32-220-core-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "invoke",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.0.wasm",
+        "rotl",
+        "i32:1",
+        "i32:32"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21849,
+      "pgid": 21849,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "72a9acce5fb4a541d1b3783b96c1e6106feb2dc8ceda9bf6e283ba08ad486c94",
+      "output_bytes": 130,
+      "elapsed_seconds": 0.00391
+    },
+    {
+      "name": "i32-220-c-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.0.wasm",
+        "rotl",
+        "i32:1",
+        "i32:32"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21850,
+      "pgid": 21850,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "fdd4ddb4d1f285b80333cc3afb68d9931bc540481c9a0d88fcb0f7d47545b6ef",
+      "output_bytes": 65,
+      "elapsed_seconds": 0.003804
+    },
+    {
+      "name": "i32-228-core-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "invoke",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.0.wasm",
+        "rotl",
+        "i32:1",
+        "i32:31"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21851,
+      "pgid": 21851,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "aefb7224bf8923586ea4261137491bcb4ce5f7947bf85b3c042b2c2c7143c5db",
+      "output_bytes": 140,
+      "elapsed_seconds": 0.003408
+    },
+    {
+      "name": "i32-228-c-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.0.wasm",
+        "rotl",
+        "i32:1",
+        "i32:31"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21852,
+      "pgid": 21852,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "40fa1a6db28cb917c788870357e537f21a2c75b18c8210462d8e819a6eb64035",
+      "output_bytes": 75,
+      "elapsed_seconds": 0.003789
+    },
+    {
+      "name": "i32-444-wabt",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt-1.0.37/bin/wasm-validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.1.wasm"
+      ],
+      "expected_exit_code": 1,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21853,
+      "pgid": 21853,
+      "output_eof": true,
+      "exit_code": 1,
+      "custody": "child reaped and group absent",
+      "output_sha256": "35c211bd34400abbc0e7044c9222124466c3ddfbf5f1f6e0d89fc5bfbf112f76",
+      "output_bytes": 192,
+      "elapsed_seconds": 0.005221
+    },
+    {
+      "name": "i32-444-core-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.1.wasm"
+      ],
+      "expected_exit_code": 2,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21854,
+      "pgid": 21854,
+      "output_eof": true,
+      "exit_code": 2,
+      "custody": "child reaped and group absent",
+      "output_sha256": "28ac82fe8754aa3725a6c071255f637dac0a09b41c022336d5e6672fb4e7ec63",
+      "output_bytes": 334,
+      "elapsed_seconds": 0.003834
+    },
+    {
+      "name": "i32-444-c-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/i32/commands.1.wasm"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21855,
+      "pgid": 21855,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "726022910722fce39181c010bcc309705780b0026ba96c6f24ee0df14536fcd7",
+      "output_bytes": 81,
+      "elapsed_seconds": 0.004144
+    },
+    {
+      "name": "memory-fetch",
+      "argv": [
+        "/usr/bin/curl",
+        "-qfsSL",
+        "--proto",
+        "=https",
+        "--proto-redir",
+        "=https",
+        "--max-time",
+        "25",
+        "--max-filesize",
+        "524288",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/memory.wast",
+        "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/memory.wast"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21856,
+      "pgid": 21856,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.084648
+    },
+    {
+      "name": "memory-translate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt-1.0.37/bin/wast2json",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/memory.wast",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.json"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21869,
+      "pgid": 21869,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.020715
+    },
+    {
+      "name": "memory-51-wabt",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt-1.0.37/bin/wasm-validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.20.wasm"
+      ],
+      "expected_exit_code": 1,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21871,
+      "pgid": 21871,
+      "output_eof": true,
+      "exit_code": 1,
+      "custody": "child reaped and group absent",
+      "output_sha256": "75df8ba8f1458a91224c68e1e6502ae6a417c9874978bcf359da366c67303bfa",
+      "output_bytes": 187,
+      "elapsed_seconds": 0.008777
+    },
+    {
+      "name": "memory-51-core-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.20.wasm"
+      ],
+      "expected_exit_code": 2,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21873,
+      "pgid": 21873,
+      "output_eof": true,
+      "exit_code": 2,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e7cc0048752b8d576e9a1fcab159cdb5e9ef862da0a61765f4c4e33008b75676",
+      "output_bytes": 255,
+      "elapsed_seconds": 0.00624
+    },
+    {
+      "name": "memory-51-c-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.20.wasm"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21874,
+      "pgid": 21874,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "1794528a6ad6ba8f4304556aa377437f5f5f8d9c3f8a5334eb63c955e28d04ec",
+      "output_bytes": 70,
+      "elapsed_seconds": 0.007715
+    },
+    {
+      "name": "memory-92-wabt",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt-1.0.37/bin/wasm-validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.30.wasm"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21875,
+      "pgid": 21875,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.009731
+    },
+    {
+      "name": "memory-92-core-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.30.wasm"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21876,
+      "pgid": 21876,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "6b8fef8d1c4ce154be8da5a128a08bb8be2d3e386786d7a27c95625e4c3121d9",
+      "output_bytes": 1455,
+      "elapsed_seconds": 0.006766
+    },
+    {
+      "name": "memory-92-c-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.30.wasm"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21877,
+      "pgid": 21877,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "ee00183cefb48d2890e3921e6e3f165809a57a14d9d5d9607e62998a083f4d59",
+      "output_bytes": 77,
+      "elapsed_seconds": 0.006843
+    },
+    {
+      "name": "memory-180-core-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "invoke",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.30.wasm",
+        "data"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21878,
+      "pgid": 21878,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "ea8cfcc310aaad5dd2ff0a039e5f00942b93e60fdeebe79e1fe60ad6f2eea811",
+      "output_bytes": 131,
+      "elapsed_seconds": 0.005728
+    },
+    {
+      "name": "memory-180-c-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.30.wasm",
+        "data"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21879,
+      "pgid": 21879,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "f55b27e8f34f7c23fe094b8af25165a8fe033831d010b69e9f6f467eb5a01bfd",
+      "output_bytes": 66,
+      "elapsed_seconds": 0.007407
+    },
+    {
+      "name": "memory-181-core-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "invoke",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.30.wasm",
+        "cast"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21880,
+      "pgid": 21880,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "69fb18780a7a9c2b090d1d6d00a4f6157ca5b75b8a6f0a6cd10708aa4ef3d4d6",
+      "output_bytes": 162,
+      "elapsed_seconds": 0.006733
+    },
+    {
+      "name": "memory-181-c-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.30.wasm",
+        "cast"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21881,
+      "pgid": 21881,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "861070feaaffec58febd3e33518f88f21b79d33f8d59152345f3369f126e23f2",
+      "output_bytes": 84,
+      "elapsed_seconds": 0.008956
+    },
+    {
+      "name": "memory-183-core-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "invoke",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.30.wasm",
+        "i32_load8_s",
+        "i32:-1"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21882,
+      "pgid": 21882,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "11eef0c0972e9b84d4fe6d47a2a6e62f4becd2cad4fe9deeba859456e1ea4402",
+      "output_bytes": 138,
+      "elapsed_seconds": 0.006331
+    },
+    {
+      "name": "memory-183-c-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.30.wasm",
+        "i32_load8_s",
+        "i32:-1"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21883,
+      "pgid": 21883,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "955924d3d375a03b195992ca2a2b458990ca0ca5444a52f38b7539ae219fdbe4",
+      "output_bytes": 66,
+      "elapsed_seconds": 0.006363
+    },
+    {
+      "name": "memory-184-core-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "invoke",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.30.wasm",
+        "i32_load8_u",
+        "i32:-1"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21884,
+      "pgid": 21884,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "9868e8ca92d6f86e8b48b055fcc3b147558234bdfe99c9881771c11110f1e2f8",
+      "output_bytes": 139,
+      "elapsed_seconds": 0.006199
+    },
+    {
+      "name": "memory-184-c-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.30.wasm",
+        "i32_load8_u",
+        "i32:-1"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21885,
+      "pgid": 21885,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "86a8f9a45e253923716bcf0ded47e28d2184f8c7acca274c63327c150fd6129d",
+      "output_bytes": 67,
+      "elapsed_seconds": 0.007763
+    },
+    {
+      "name": "memory-207-core-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "invoke",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.30.wasm",
+        "i64_load32_u",
+        "i64:-1"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21886,
+      "pgid": 21886,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "61e96417b76de7d7d633b3f7bbb34b9010b014c0de9db16aa3c44c60f88687b6",
+      "output_bytes": 149,
+      "elapsed_seconds": 0.005148
+    },
+    {
+      "name": "memory-207-c-invoke",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/memory/commands.30.wasm",
+        "i64_load32_u",
+        "i64:-1"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21887,
+      "pgid": 21887,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "5a34e7a71c5178ea2213c35bc76e0410ad7c366bb32c36d2d3ca031de30ab808",
+      "output_bytes": 74,
+      "elapsed_seconds": 0.004389
+    },
+    {
+      "name": "br_table-fetch",
+      "argv": [
+        "/usr/bin/curl",
+        "-qfsSL",
+        "--proto",
+        "=https",
+        "--proto-redir",
+        "=https",
+        "--max-time",
+        "25",
+        "--max-filesize",
+        "524288",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/br_table/br_table.wast",
+        "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/br_table.wast"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21889,
+      "pgid": 21889,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.09822
+    },
+    {
+      "name": "br_table-translate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt-1.0.37/bin/wast2json",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/br_table/br_table.wast",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/br_table/commands.json"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21896,
+      "pgid": 21896,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.009906
+    },
+    {
+      "name": "br_table-1462-wabt",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt-1.0.37/bin/wasm-validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/br_table/commands.4.wasm"
+      ],
+      "expected_exit_code": 1,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21898,
+      "pgid": 21898,
+      "output_eof": true,
+      "exit_code": 1,
+      "custody": "child reaped and group absent",
+      "output_sha256": "c05eaf5388049f872173b84dca3a113d0d3ad1f65553269f2956ebc0ee0300b5",
+      "output_bytes": 603,
+      "elapsed_seconds": 0.005074
+    },
+    {
+      "name": "br_table-1462-core-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/br_table/commands.4.wasm"
+      ],
+      "expected_exit_code": 2,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21899,
+      "pgid": 21899,
+      "output_eof": true,
+      "exit_code": 2,
+      "custody": "child reaped and group absent",
+      "output_sha256": "405b0df61f4259ceead618aeeeafe9823e8b090ce6d354c84d483e20ed08b717",
+      "output_bytes": 390,
+      "elapsed_seconds": 0.003077
+    },
+    {
+      "name": "br_table-1462-c-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/br_table/commands.4.wasm"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21900,
+      "pgid": 21900,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "726022910722fce39181c010bcc309705780b0026ba96c6f24ee0df14536fcd7",
+      "output_bytes": 81,
+      "elapsed_seconds": 0.003208
+    },
+    {
+      "name": "br_table-1481-wabt",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt-1.0.37/bin/wasm-validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/br_table/commands.6.wasm"
+      ],
+      "expected_exit_code": 1,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21901,
+      "pgid": 21901,
+      "output_eof": true,
+      "exit_code": 1,
+      "custody": "child reaped and group absent",
+      "output_sha256": "3c12408dd65803a833b7fad63d7101074a37ed42c96131a0dc142969f14be67d",
+      "output_bytes": 604,
+      "elapsed_seconds": 0.003591
+    },
+    {
+      "name": "br_table-1481-core-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/br_table/commands.6.wasm"
+      ],
+      "expected_exit_code": 2,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21902,
+      "pgid": 21902,
+      "output_eof": true,
+      "exit_code": 2,
+      "custody": "child reaped and group absent",
+      "output_sha256": "a1a912d483cf700296846c045f82f6b31c1903f933f57c49e6a05fd05805057a",
+      "output_bytes": 382,
+      "elapsed_seconds": 0.003427
+    },
+    {
+      "name": "br_table-1481-c-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/br_table/commands.6.wasm"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21903,
+      "pgid": 21903,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "726022910722fce39181c010bcc309705780b0026ba96c6f24ee0df14536fcd7",
+      "output_bytes": 81,
+      "elapsed_seconds": 0.003644
+    },
+    {
+      "name": "br_table-1605-wabt",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt-1.0.37/bin/wasm-validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/br_table/commands.19.wasm"
+      ],
+      "expected_exit_code": 1,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21904,
+      "pgid": 21904,
+      "output_eof": true,
+      "exit_code": 1,
+      "custody": "child reaped and group absent",
+      "output_sha256": "3517b708a453b52d78f906c0fd5a04e4abf781fa0d7c75e33d7a4619bfe483c8",
+      "output_bytes": 171,
+      "elapsed_seconds": 0.003922
+    },
+    {
+      "name": "br_table-1605-core-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/br_table/commands.19.wasm"
+      ],
+      "expected_exit_code": 2,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21905,
+      "pgid": 21905,
+      "output_eof": true,
+      "exit_code": 2,
+      "custody": "child reaped and group absent",
+      "output_sha256": "495a0d8d4b4fbf813b4fd4c5deaed06c8a5d528a983049c04973dfddc0b15a8a",
+      "output_bytes": 373,
+      "elapsed_seconds": 0.002938
+    },
+    {
+      "name": "br_table-1605-c-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/br_table/commands.19.wasm"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21906,
+      "pgid": 21906,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "726022910722fce39181c010bcc309705780b0026ba96c6f24ee0df14536fcd7",
+      "output_bytes": 81,
+      "elapsed_seconds": 0.003447
+    },
+    {
+      "name": "load-fetch",
+      "argv": [
+        "/usr/bin/curl",
+        "-qfsSL",
+        "--proto",
+        "=https",
+        "--proto-redir",
+        "=https",
+        "--max-time",
+        "25",
+        "--max-filesize",
+        "524288",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/load/load.wast",
+        "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/load.wast"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21907,
+      "pgid": 21907,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.056659
+    },
+    {
+      "name": "load-translate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt-1.0.37/bin/wast2json",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/load/load.wast",
+        "-o",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/load/commands.json"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21914,
+      "pgid": 21914,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.008574
+    },
+    {
+      "name": "load-312-wabt",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/wabt-1.0.37/bin/wasm-validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/load/commands.14.wasm"
+      ],
+      "expected_exit_code": 1,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21915,
+      "pgid": 21915,
+      "output_eof": true,
+      "exit_code": 1,
+      "custody": "child reaped and group absent",
+      "output_sha256": "d7bef3446f5913b0b4888094b5ef5fc24771031b9dcd2bf141346594317e5bbc",
+      "output_bytes": 202,
+      "elapsed_seconds": 0.004177
+    },
+    {
+      "name": "load-312-core-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "validate",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/load/commands.14.wasm"
+      ],
+      "expected_exit_code": 2,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21917,
+      "pgid": 21917,
+      "output_eof": true,
+      "exit_code": 2,
+      "custody": "child reaped and group absent",
+      "output_sha256": "5b5b27489c994b0dce88677c854f886e5b8ac0e3d8033d04e890b142c8cd16fa",
+      "output_bytes": 338,
+      "elapsed_seconds": 0.002867
+    },
+    {
+      "name": "load-312-c-validate",
+      "argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/client",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/l03-standards-ed6ea631/verification/local/vm-standards-2lnrt02t/load/commands.14.wasm"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 21918,
+      "pgid": 21918,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "023dacd049e83c241643f0994a7b594c9ffc43832ea3a610022fe55031068f1f",
+      "output_bytes": 80,
+      "elapsed_seconds": 0.003127
+    }
+  ],
+  "assertion_counts": {
+    "assert_trap": 3,
+    "assert_return": 10,
+    "assert_invalid": 6
+  },
+  "scratch_removed": true
+}
