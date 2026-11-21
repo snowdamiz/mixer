@@ -1342,6 +1342,9 @@ Swift Host and Android generated Java sparse preflights passed the published
 rejected the unbound candidate at `GuestUIEditorV2.swift`. A successor must
 bind the corrected source and preserve predecessor restoration. All 16
 preflight command groups closed and scratch was removed.
+The capability generator and all 53 Pair25 SDK and adapter file pins
+matched on both revisions. Those checks covered the selected inputs and
+did not compile an Android consumer.
 [Source141 preflight](verification/receipts/fieldlog-signed-editor-source141-preflight-eae2a13a.json)
 
 The L07 terminal restart attempt used a CLI that predates the current closure acknowledgement. The worker declined shutdown, leaving compiler custody unknown. Three separate no-compiler controls passed. [Worker custody receipt](verification/receipts/l07-worker-terminal-restart-hold-41a05264.json)
