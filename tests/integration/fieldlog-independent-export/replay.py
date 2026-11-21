@@ -254,7 +254,7 @@ class Replay:
         self.run("independent-build", [sys.executable, "Generated/MixerAndroid/android-build.py", "build", destination],
                  destination, ci, timeout=600)
         require(inventory(destination) == exported, "Build changed exported app source or locks")
-        self.verify_apk(destination, ci, exported)
+        return self.verify_apk(destination, ci, exported)
 
     def verify_apk(self, project, env, exported):
         output = project / ".mixer/android-build"
@@ -296,13 +296,36 @@ class Replay:
             "buildReceiptSHA256": digest(receipt_path), "driverSourceTreeSHA256": report["source_tree_sha256"],
             "completedToolCommands": len(report["commands"]), "sourceAndLocksUnchanged": True,
         }
+        return apk
+
+
+def publish_apk(apk, destination, expected_sha256):
+    with tempfile.NamedTemporaryFile(dir=destination.parent, prefix=".fieldlog-apk-") as prepared:
+        with apk.open("rb") as source:
+            shutil.copyfileobj(source, prepared)
+        prepared.flush()
+        require(digest(Path(prepared.name)) == expected_sha256, "APK handoff SHA-256 differs from the verified build")
+        os.fsync(prepared.fileno())
+        # Publish the complete file only if the destination is still free.
+        os.link(prepared.name, destination)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--receipt", type=Path, required=True, help="New path for the compact JSON receipt")
     parser.add_argument("--host-developer-dir", type=Path, default=Path("/Applications/Xcode.app/Contents/Developer"))
+    parser.add_argument("--apk-output", type=Path, help="New path for the verified unsigned APK")
     args = parser.parse_args()
+    if args.apk_output is not None:
+        output = args.apk_output.absolute()
+        if not output.parent.is_dir():
+            parser.error("--apk-output requires an existing parent directory")
+        if os.path.lexists(output):
+            parser.error("--apk-output already exists")
+        if output.resolve() == args.receipt.resolve():
+            parser.error("--apk-output and --receipt require distinct paths")
+        args.apk_output = output
+
     with args.receipt.open("x") as destination:
         receipt = {"schema": "mixer.local-development-evidence.v1", "scope": "FieldLog §16.3/W15 independent Android export build only",
                    "recordedAtUTC": datetime.now(timezone.utc).isoformat(), "status": "blocked", "sources": {}, "patches": {},
@@ -313,7 +336,11 @@ def main():
         replay = Replay(scratch, args, receipt)
         print(f"Build scratch: {scratch}", flush=True)
         try:
-            replay.execute()
+            apk = replay.execute()
+            if args.apk_output is not None:
+                artifact = receipt["artifact"]
+                publish_apk(apk, args.apk_output, artifact["sha256"])
+                artifact["output"] = str(args.apk_output)
             receipt["status"] = "passed"
         except (KeyError, OSError, RuntimeError, ValueError, subprocess.SubprocessError, KeyboardInterrupt) as error:
             receipt["failure"] = str(error).replace(str(scratch), "$work")

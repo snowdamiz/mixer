@@ -77,12 +77,13 @@ SwiftPM dependencies. The local Mixer checkout needs the v74 commit.
 	mkdir -p verification/local
 	python3 -B tests/integration/fieldlog-independent-export/replay.py \
 		--host-developer-dir /Applications/Xcode.app/Contents/Developer \
-		--receipt verification/local/my-fieldlog-v74-export.json
+		--receipt verification/local/my-fieldlog-v74-export.json \
+		--apk-output verification/local/my-fieldlog-v74-unsigned.apk
 ```
 
-Use a new path for `--receipt`. The replay applies the four patches above,
-prepares FieldLog with the Pair23 recipe, and upgrades the project with the
-CLI from v74 (`44aecbeb6a82a4a93321cff6a8ab86c5aa421900`). It keeps FieldLog's
+Use new paths for `--receipt` and `--apk-output`. The replay applies the four
+patches above, prepares FieldLog with the Pair23 recipe, and upgrades the
+project with the CLI from v74 (`44aecbeb6a82a4a93321cff6a8ab86c5aa421900`). It keeps FieldLog's
 platform lock and compares app-owned files before and after export.
 
 The replay moves the export to a fresh `Build/CI` directory and removes the
@@ -93,10 +94,10 @@ source and lock hashes, APK checks, and scratch cleanup.
 
 ### Launch the exported FieldLog APK
 
-Keep the APK from your own independent build before removing its output.
-Use the Android build tools to sign it with a development key. Set
-`adb_port` and `serial` to the private ADB server port and serial of your
-disposable API 36 arm64 emulator. Set `signed_apk` to the signed APK.
+The replay copies the verified APK to `--apk-output` before it removes the
+build scratch. Sign the APK with a development key using the Android build
+tools. Set `adb_port` and `serial` to the private ADB server port and serial of
+your disposable API 36 arm64 emulator. Set `signed_apk` to the signed APK.
 
 ```sh
 	adb -P "${adb_port:?}" -s "${serial:?}" install --no-streaming "${signed_apk:?}"
