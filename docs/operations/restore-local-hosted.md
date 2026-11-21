@@ -55,6 +55,39 @@ If startup fails after the script succeeds, preserve the restore and inspect the
 exact admission error. Verify the remaining catalog, roles, and selected Mixer
 source before proceeding.
 
+## Check saved promotion records and a new promotion
+
+Use a disposable restore that already contains the opt-in promotion record
+migration `20261120000021` and both staging targets. Restore the original
+roles and grants. If the release fixture needs the artifact request-key
+CHECK repair, use the pinned repair linked below before starting the API.
+
+1. Sign in again as a viewer with `release.read` for the staging environment.
+   Open the saved iOS and Android promotion links. Each link should return the
+   same two original publication receipts and the current head for each target.
+2. To test a write, leave the release queue consumers stopped and keep queue
+   insertion enabled. Use a fresh bearer for a project owner with
+   `mixer.release.publish`. Submit the next promotion on the local API at
+   `POST /v3/orgs/<org>/projects/<project>/apps/<app>/release-promotions/dev-to-stage`.
+   Set `Authorization`, `Content-Type: application/json`, `Idempotency-Key`,
+   and `X-Mixer-Reason`. Use `source_ios_sequence` and
+   `source_android_sequence` for the current development heads. Include the
+   two staging assignments as `ios_signed_assignment` and
+   `android_signed_assignment`.
+3. Check that each staging head advances to its signed sequence. Compare the
+   ledger before and after the request. Expect two publication rows, one
+   promotion record for the pair, and one queue job per platform.
+4. Retry with the same request bytes, idempotency key, and reason. Expect the same
+   HTTP 200 response bytes and zero new rows or jobs. Reopen the older
+   promotion links and check that they still return the original publications.
+
+The recorded run advanced iOS from 3 to 4 and Android from 12 to 13. Both
+older links returned the same historical pair. The fixture verified durable
+queue insertion with the consumers stopped.
+[Runtime receipt](../../verification/receipts/l05-l07-restored-stage-promotion-2acaac67.json) ·
+[Queue configuration](local-signed-release-delivery.md#enable-the-release-worker-queue) ·
+[Artifact request-key CHECK repair](../../tests/integration/phoenix-release-restore/restore-artifact-key.sql)
+
 ## Reproduce the CHECK repair
 
 Use the PostgreSQL 17 client and server tools from the same installation.
