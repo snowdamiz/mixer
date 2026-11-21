@@ -136,6 +136,15 @@ workspace bytes. V1 still refuses the exact historical navigation layout.
 The offscreen macOS result leaves F10 and the two-target OTA count open.
 [F10 replay](verification/receipts/fieldlog-f10-signed-pending-queue-v80.json)
 
+The app-owned storage guide exercises the public installed storage adapter.
+The signed host fixture committed one scoped write, refused an out-of-scope
+write before repository entry, and read the saved bytes through a fresh
+repository instance in the same process. The primary test and four focused
+cases passed. The existing visible AppKit case compiled and was outside
+the selection. The guide retains scratch when retirement is unconfirmed.
+[Authoring guide](capabilities/app-owned-storage.md) ·
+[Signed storage receipt](verification/receipts/w09-app-owned-storage.json)
+
 ## November 21 FieldLog signed entry Commit
 
 The corrected signed guest displays Commit refused when the repository
