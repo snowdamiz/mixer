@@ -1,0 +1,512 @@
+{
+  "applicability": {
+    "analysis": "The ordinary Bandit endpoint uses Plug routes and browser HTTP middleware. Reviewed hosted application source and configuration showed no Phoenix socket mount, Channel, Presence tracker, LiveView, or binary Phoenix broadcast call path. Neither advisory prerequisite was found on these public routes.",
+    "reviewed": [
+      "hosted/lib/mixer_hosted_web/endpoint.ex",
+      "hosted/lib/mixer_hosted_web/router.ex",
+      "hosted/lib/mixer_hosted_web/browser_login_http.ex",
+      "hosted/lib/mixer_hosted_web/billing_webhook_endpoint.ex",
+      "hosted/lib",
+      "hosted/config",
+      "hosted/mix.exs"
+    ],
+    "verification_scope": "Static applicability review and ordinary positive HTTP checks on an isolated loopback endpoint."
+  },
+  "cleanup": {
+    "retained_deliverables_only": true,
+    "scratch_limit_bytes": 2147483648,
+    "temporary_root": "/private/tmp/mixer-phx1817.OnQl3fLL"
+  },
+  "commands": {
+    "baseline_audit": {
+      "argv": [
+        "mix",
+        "hex.audit"
+      ],
+      "exit": 1,
+      "findings": [
+        "GHSA-pvfx-rx4x-phrr",
+        "GHSA-5vmc-qgf8-rw36"
+      ],
+      "output": {
+        "bytes": 487,
+        "sha256": "eb5f0654b607739fac2516d318106001abc0bdf8608a4108c75ad421f7806d9e"
+      }
+    },
+    "compile_prod": {
+      "MIX_ENV": "prod",
+      "argv": [
+        "mix",
+        "compile",
+        "--warnings-as-errors"
+      ],
+      "exit": 0,
+      "output": {
+        "bytes": 2034,
+        "sha256": "80515f293e77376fd835689586addb20e98a8ada0afa2630ee310dfaf05752ef"
+      }
+    },
+    "compile_test": {
+      "MIX_ENV": "test",
+      "argv": [
+        "mix",
+        "compile",
+        "--warnings-as-errors"
+      ],
+      "exit": 0,
+      "output": {
+        "bytes": 53,
+        "sha256": "053fb1686c8b9696f8a1f8715a6ca04bd79c5ed0e5bfaccc2c4c07a6a23bdc7f"
+      }
+    },
+    "deps": {
+      "argv": [
+        "mix",
+        "deps"
+      ],
+      "exit": 0,
+      "locked_dependencies_ok": 21,
+      "output": {
+        "bytes": 1707,
+        "sha256": "e367000cee3be7b0e37996dbcbd2de809eb1dd865ef13f0d54fba7f46d963511"
+      }
+    },
+    "endpoint": {
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "check-normal-endpoint.exs"
+      ],
+      "checks": [
+        "GET /health/live returned 200, alive JSON and Cache-Control no-store",
+        "HEAD /health/live returned 200 with an empty body",
+        "Router matched GET /health/live, /v3/updates and /v3/artifacts/:digest",
+        "Endpoint supervisor stopped normally"
+      ],
+      "driver": {
+        "bytes": 1474,
+        "sha256": "6e4ecd7543ecf8607a46d7d2fa973c46305fa70cc8ffd05d6b008bee39c1b5f0"
+      },
+      "exit": 0,
+      "output": {
+        "bytes": 482,
+        "sha256": "0f6a8271a290a44fc341441983a318480a1ba93a1cd7d1cab5c8ece6897cca6a"
+      }
+    },
+    "format": {
+      "argv": [
+        "mix",
+        "format",
+        "--check-formatted",
+        "mix.exs",
+        "lib/mixer_hosted/browser_auth/relation_manifest.ex"
+      ],
+      "exit": 0
+    },
+    "locked_get": {
+      "argv": [
+        "mix",
+        "deps.get",
+        "--check-locked"
+      ],
+      "exit": 0,
+      "lock_unchanged": true,
+      "output": {
+        "bytes": 1105,
+        "sha256": "41410be9bf11ebf99f66c96902db0c77eba82828a97b40ac018d8b8fe1ca56fa"
+      }
+    },
+    "patched_audit": {
+      "argv": [
+        "mix",
+        "hex.audit"
+      ],
+      "exit": 0,
+      "findings": [],
+      "output": {
+        "bytes": 47,
+        "sha256": "25ce35312da15695b9ab9e466ebdba2c1460f780ca6a14e164646fee228030d6"
+      }
+    },
+    "test": {
+      "argv": [
+        "mix",
+        "test",
+        "test/runtime_config_test.exs"
+      ],
+      "exit": 0,
+      "output": {
+        "bytes": 129,
+        "sha256": "6ab9c714e928c07cc5883f06ffa1c2cb5c69f445eb12a62229055d0179d3edbe"
+      },
+      "passed": 11
+    }
+  },
+  "implementation": {
+    "composition": {
+      "anchor_metadata": {
+        "GIT_AUTHOR_DATE": "2026-11-21T19:06:00+00:00",
+        "GIT_AUTHOR_EMAIL": "source-preparation@users.noreply.github.com",
+        "GIT_AUTHOR_NAME": "Mixer source preparation",
+        "GIT_COMMITTER_DATE": "2026-11-21T19:06:00+00:00",
+        "GIT_COMMITTER_EMAIL": "source-preparation@users.noreply.github.com",
+        "GIT_COMMITTER_NAME": "Mixer source preparation"
+      },
+      "archive_changes": {
+        ".github/workflows/hosted.yml": {
+          "after": {
+            "bytes": 69955,
+            "sha256": "e19c4decab7ded6bd88d25ff24287502004eee8c6d8cc6c29649bae8453c010f"
+          },
+          "before": {
+            "bytes": 69139,
+            "sha256": "ccc69354b639341fae8e5d50d576e25a2e7c00ac9b3875e1bcca2fb208ace07b"
+          },
+          "mode": 420
+        },
+        ".github/workflows/identity-network.yml": {
+          "after": {
+            "bytes": 58569,
+            "sha256": "523302fc3bcf472209e975733743de87a8b19bc9f4cd6e70806769209955f281"
+          },
+          "before": {
+            "bytes": 57753,
+            "sha256": "64575280980ad76775682753f0243cf30c84fb09234773b1d13b506b8829aa96"
+          },
+          "mode": 420
+        },
+        ".github/workflows/verify.yml": {
+          "after": {
+            "bytes": 87096,
+            "sha256": "1565120540ef001d866687a2d160d121aadb86637eefc1edfee4ab62c364945d"
+          },
+          "before": {
+            "bytes": 86280,
+            "sha256": "09bc2262e016a46428199688ba34dc3c6d568c2e5e7a0d067807d0d6a9a83621"
+          },
+          "mode": 420
+        },
+        "THIRD_PARTY.yml": {
+          "after": {
+            "bytes": 32987,
+            "sha256": "0740625c702e814a0975a6c4b000d39f93961f6aaf09baf14b28d20b3c3638c6"
+          },
+          "before": {
+            "bytes": 32988,
+            "sha256": "d1b490b5631d19b95c0f659b2cad58c62477ef28a7dffc2d2b2763d6bc23f869"
+          },
+          "mode": 420
+        }
+      },
+      "candidate_revision": "751b314e5f46157bf561a6f1e9813e6205e83172",
+      "candidate_tree": "da9698b658a58a4d4c30c5424f232b7e61991180",
+      "composition_paths": [
+        ".github/workflows/hosted.yml",
+        ".github/workflows/identity-network.yml",
+        ".github/workflows/verify.yml",
+        "THIRD_PARTY.yml",
+        "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex",
+        "hosted/mix.exs",
+        "hosted/mix.lock",
+        "hosted/priv/browser_auth/relation_surface_v1_pg16.json",
+        "hosted/priv/browser_auth/relation_surface_v1_pg17.json",
+        "hosted/scripts/test-identity-network.py",
+        "hosted/scripts/test_identity_network_collector.py",
+        "verification/identity-network-current-source-v86/application-manifest.json",
+        "verification/identity-network-current-source-v86/preimages/hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex",
+        "verification/identity-network-current-source-v86/preimages/hosted/mix.exs",
+        "verification/identity-network-current-source-v86/preimages/hosted/mix.lock",
+        "verification/identity-network-current-source-v86/preimages/hosted/priv/browser_auth/relation_surface_v1_pg16.json",
+        "verification/identity-network-current-source-v86/preimages/hosted/priv/browser_auth/relation_surface_v1_pg17.json",
+        "verification/identity-network-current-source-v86/selected-source-manifest.json",
+        "verification/identity-network-current-source-v86/selection.json",
+        "verification/native-report-source141-archive-v1/adopt_archive.py",
+        "verification/native-report-source141-archive-v1/binding.json",
+        "verification/native-report-source141-archive-v1/hosted-v86-predecessor-bytes/.github/workflows/hosted.yml",
+        "verification/native-report-source141-archive-v1/hosted-v86-predecessor-bytes/.github/workflows/identity-network.yml",
+        "verification/native-report-source141-archive-v1/hosted-v86-predecessor-bytes/.github/workflows/verify.yml",
+        "verification/native-report-source141-archive-v1/hosted-v86-predecessor-bytes/THIRD_PARTY.yml",
+        "verification/native-report-source141-archive-v1/seal.json"
+      ],
+      "files": {
+        "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex": {
+          "after": {
+            "bytes": 1463,
+            "sha256": "a8be72aaab6c1e962a9f028f50a3ddb67a9aa8802334f703f5245527bc33df94"
+          },
+          "before": {
+            "bytes": 1463,
+            "sha256": "7a7ba25cb83f5bd8ee42139cf6c98065549b0bc89bee880b82149b87eb971a3f"
+          }
+        },
+        "hosted/mix.exs": {
+          "after": {
+            "bytes": 1344,
+            "sha256": "efc8548a25c5abb9d10517dfc3ffb0475e97508b734814bea10b7c226e406839"
+          },
+          "before": {
+            "bytes": 1344,
+            "sha256": "b384f38282eda519793044128a8d7f0fab0eee77cd66f93710372cdb59ee0efa"
+          }
+        },
+        "hosted/mix.lock": {
+          "after": {
+            "bytes": 7964,
+            "sha256": "0526954f8ac64d241a7d6e1471a2f09d28668e06c7692cd5da3aa3a3afd29522"
+          },
+          "before": {
+            "bytes": 7964,
+            "sha256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454"
+          }
+        },
+        "hosted/priv/browser_auth/relation_surface_v1_pg16.json": {
+          "after": {
+            "bytes": 132435,
+            "sha256": "94bfe3bab12cc3b1a198490dd68c0e687605411b245e60dffe6e6efba5c2db01"
+          },
+          "before": {
+            "bytes": 132435,
+            "sha256": "251403a75bf373c894cbea8e326cbd8aaa26a0a2d72109272f8672b3670e893e"
+          }
+        },
+        "hosted/priv/browser_auth/relation_surface_v1_pg17.json": {
+          "after": {
+            "bytes": 132435,
+            "sha256": "19667634a04e2b311ba097a5854570e629d7277ba8963f50c9af097badb883f1"
+          },
+          "before": {
+            "bytes": 132435,
+            "sha256": "cbf683f7b7346122cda39a803ae21bc857a8ea08bdedcad0c3fbe2bdd2acd909"
+          }
+        }
+      },
+      "forward_reverse_tree_match": true,
+      "inventory_receipt": "verification/receipts/hosted-phoenix-1.8.17.json",
+      "lock": {
+        "bytes": 7964,
+        "sha256": "0526954f8ac64d241a7d6e1471a2f09d28668e06c7692cd5da3aa3a3afd29522"
+      },
+      "manifest": {
+        "bytes": 95721,
+        "sha256": "536189cbc8ca0c4876ad0f878a83cd73cbfc104a8cd6b040cd30c9c1615f153b"
+      },
+      "old_lock": {
+        "bytes": 7964,
+        "sha256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454"
+      },
+      "patches": {
+        "phoenix-dependency.patch": {
+          "bytes": 4792,
+          "sha256": "068316d65b91c6d0b6552cd1ced726b53346033fa2bf4989778c261525b48f65"
+        },
+        "phoenix-product.patch": {
+          "bytes": 9243,
+          "sha256": "582f179773bf4c60fa9f20e9f0f7e5e3105be93f60098ead4f70df72a0fc7dc2"
+        },
+        "phoenix-v86.patch": {
+          "bytes": 698328,
+          "sha256": "8fe1f1948958285cdf9759b2acb9e30f51797a916c0386c79747f4473b336e51"
+        }
+      },
+      "product_anchor": "20135073d4accbc4df01ae7d8631fa2b587801d8",
+      "product_message": "Pin hosted Phoenix to 1.8.17 and update relation bindings",
+      "product_paths": [
+        "THIRD_PARTY.yml",
+        "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex",
+        "hosted/mix.exs",
+        "hosted/mix.lock",
+        "hosted/priv/browser_auth/relation_surface_v1_pg16.json",
+        "hosted/priv/browser_auth/relation_surface_v1_pg17.json"
+      ],
+      "product_tree": "522c536622aee25561c67d73a6efffd539703812",
+      "selected_source_count": 572,
+      "selected_source_digest": "24c249c5a18b8ac0ae2a250bb13115154f61bd97e07f47a56ed9323757c046ed",
+      "selection": {
+        "bytes": 6301,
+        "sha256": "91ef9c3205719b885abbee69018e3f4433795a5eaa0b6aaa79885949030dac4e"
+      }
+    },
+    "dependency_rows_modified": [
+      "phoenix"
+    ],
+    "relation_control": "A compile with only the dependency patch stopped at RelationManifest with unreviewed relation source. Each PG16/PG17 manifest updates just source_bindings.hosted/mix.lock. RelationManifest pins their new full-file checksums. Parsed relation, grants, migration and other bindings are identical to v85.",
+    "resolution_control": "A trial mix deps.update phoenix also selected telemetry 1.4.3 and websock_adapter 0.7.2. The delivered lock kept the original telemetry 1.4.2 and websock_adapter 0.6.0 rows and preserved every other row byte for byte.",
+    "reversible_bindings": [
+      "The 572-file v86 selection changes five hosted members. Its application manifest and five exact preimages reconstruct the v85 source manifest. The three hosted workflow profiles include all eight v86 packet members.",
+      "The Source141 owner archive installs three workflow hashes and the THIRD_PARTY.yml inventory transition with exact v85 bytes and file modes. Earlier archived packets, frozen lock pins and legacy notice inventory retain their original bytes."
+    ]
+  },
+  "integration": {
+    "binding_blockers": [],
+    "handoff": "Apply phoenix-v86.patch at the exact public revision and add this receipt at the inventory_receipt path. The patch tree excludes this receipt because the receipt records its digest. The product and dependency patches are review views of the same changes.",
+    "pending": [
+      "Root integration and independent review",
+      "Hosted CI execution",
+      "Deployed-route and full database-backed integration qualification"
+    ]
+  },
+  "phoenix": {
+    "advisories": [
+      {
+        "affected_1_8_range": ">= 1.8.0-rc.0, < 1.8.17",
+        "cve": "CVE-2026-128361",
+        "id": "GHSA-pvfx-rx4x-phrr",
+        "patched": "1.8.17",
+        "url": "https://github.com/phoenixframework/phoenix/security/advisories/GHSA-pvfx-rx4x-phrr"
+      },
+      {
+        "affected_1_8_range": ">= 1.8.0-rc.0, < 1.8.17",
+        "cve": "CVE-2026-129344",
+        "id": "GHSA-5vmc-qgf8-rw36",
+        "patched": "1.8.17",
+        "url": "https://github.com/phoenixframework/phoenix/security/advisories/GHSA-5vmc-qgf8-rw36"
+      }
+    ],
+    "from": "1.8.16",
+    "hex": {
+      "inner_checksum": "2047c3b0a093f0e6c25b3f18970fbb8410219be739877c82433687e5d8cfbd2e",
+      "metadata_sha256": "6aa76c3a99fccb53feb1e298bc954ea3607c577d352f98f20065f102d1cea1bf",
+      "notice_path": "verification/phoenix-foundation/notices/phoenix/LICENSE.md",
+      "notice_sha256": "41a686069f0199ff369d7e5277d5267385cc54d9199f1efc960bacbe2e799255",
+      "outer_checksum": "21fd4d6a33c6af4e86b95156a49815a59140c2ba4ef8cf19565dbb7be881633e",
+      "tarball": "https://repo.hex.pm/tarballs/phoenix-1.8.17.tar",
+      "url": "https://hex.pm/api/packages/phoenix/releases/1.8.17"
+    },
+    "license": "MIT",
+    "to": "1.8.17",
+    "upstream": {
+      "github_signature_verified": true,
+      "hex_and_tag_mix_exs_sha256": "322df1022b9ac6a4ecb5f60af13d5f83535c39e46d5dc358f71384e671792d62",
+      "release": "https://github.com/phoenixframework/phoenix/releases/tag/v1.8.17",
+      "tag_commit": "bd8b91c97c3e3b657fa29f81f7287461e6d34c9e"
+    }
+  },
+  "public_source": {
+    "revision": "1e2de0130d001ef9ada0001b59f9ae8b7f67b72a",
+    "tree": "6218549dff3d59b06251d10b20e257f13f565140",
+    "url": "https://github.com/snowdamiz/mixer/commit/1e2de0130d001ef9ada0001b59f9ae8b7f67b72a"
+  },
+  "recorded_at_utc": "2026-11-21T19:14:04+00:00",
+  "schema": 1,
+  "scope": "Defensive Phoenix patch maintenance on exact public Mixer source. Local host compile, dependency verification, ordinary HTTP, router matching, source admission and predecessor reconstruction.",
+  "source_verification": {
+    "archive_commands": [
+      "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+      "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py prepare-source141 --out <owned>",
+      "python3 -I -B -S [-O] <restored>/verification/sdk-feature-ui-source141-v1/adopt_sdk.py prepare-predecessor --out <owned>"
+    ],
+    "archive_output": {
+      "predecessor": {
+        "bytes": 8700,
+        "sha256": "6c5f4840b4d9b99c5a7c3ed182aa04f8fe1c48c2c185b9cd7c58f63c49c2de80"
+      },
+      "v86": {
+        "bytes": 8720,
+        "sha256": "0a8cfdf631fbbb6550e575cbac8cb73d1eb7453e7822f3e39e4773dd9133f785"
+      }
+    },
+    "archives_byte_and_mode_identical_original_to_v86": {
+      "Source127": {
+        "file_bytes_and_modes_sha256": "bdd60a29e71ef0fba27fc73e9877151bb2d3698fc6d758d2b20abb2f1e9456e5",
+        "files": 845
+      },
+      "Source141": {
+        "file_bytes_and_modes_sha256": "332f8812761b00268b5e7aa8268f6d12f916e0dad1947c3192d3a80cbd21ca95",
+        "files": 890
+      }
+    },
+    "artifact_policy": {
+      "argv": [
+        "python3",
+        "scripts/check-verification-artifacts.py"
+      ],
+      "bytes_before_receipt": 972587164,
+      "exit": 0,
+      "files_before_receipt": 50415
+    },
+    "candidate_fix_after_hosted_controls": [
+      "verification/native-report-source141-archive-v1/seal.json"
+    ],
+    "collector_controls": {
+      "normal": {
+        "focused": {
+          "exit": 0,
+          "output": {
+            "bytes": 1195,
+            "sha256": "73ac378dc9ab3541d76ae0bf145a8ae4520ca86db167f5a2c115ee82e50ca607"
+          },
+          "passed": 6
+        },
+        "sparse_and_cutover": {
+          "exit": 0,
+          "output": {
+            "bytes": 2658,
+            "sha256": "a03c4f38d06277a4b0dfbbc579a1a35cb0659af51fb530232a7c3ab6be8f1c52"
+          },
+          "passed": 15
+        }
+      },
+      "optimized": {
+        "focused": {
+          "exit": 0,
+          "output": {
+            "bytes": 1195,
+            "sha256": "81bcf554bfb6ed8d0acc3a16c7364aaf05a98c4769ed8aedd0ad52543c79fbfa"
+          },
+          "passed": 6
+        },
+        "sparse_and_cutover": {
+          "exit": 0,
+          "output": {
+            "bytes": 2658,
+            "sha256": "12d456d6bd476f347bfc6c3e7cab4efc978de4a1493e4e0e0e50549f073903fd"
+          },
+          "passed": 15
+        }
+      }
+    },
+    "collector_controls_command": "python3 -B [-O] hosted/scripts/test_identity_network_collector.py with WorkflowSparseSourceControls and WorkspaceSourceCutoverControls, plus the six targeted v85-compatible controls.",
+    "source_preflight_command": "python3 -B [-O] hosted/scripts/test-identity-network.py --check-source",
+    "source_preflight_profiles": [
+      "phoenix",
+      "identity-network",
+      "services"
+    ],
+    "sparse_profile_receipts": {
+      "identity-network": {
+        "materialized_tracked": 1470,
+        "pattern_count": 349,
+        "patterns_sha256": "afc75d8869ffe1f5f512efb3f664ed1b7005d2a022942fbe0604ddaf2a7a4fef",
+        "revision": "449d1792cdb9e156a4701debc97b3d2b4849de85"
+      },
+      "phoenix": {
+        "materialized_tracked": 1289,
+        "pattern_count": 344,
+        "patterns_sha256": "a66ebeabb428f326af48ff97655afae91ff8054a9713791e7b86480b0f90ebe1",
+        "revision": "449d1792cdb9e156a4701debc97b3d2b4849de85"
+      },
+      "services": {
+        "materialized_tracked": 1627,
+        "pattern_count": 347,
+        "patterns_sha256": "ef5dd1cf6bfca95e9c21faed99021575cbec0c0047e854bb377f8959117752db",
+        "revision": "449d1792cdb9e156a4701debc97b3d2b4849de85"
+      },
+      "swift-host": {
+        "materialized_tracked": 6777,
+        "pattern_count": 47,
+        "patterns_sha256": "547b6651d800aa185d3de921216850164f5862dafe4738b3dc79a023752d1ed9",
+        "revision": "449d1792cdb9e156a4701debc97b3d2b4849de85"
+      }
+    }
+  },
+  "status": "local_source_and_hosted_smoke_passed",
+  "toolchain": {
+    "elixir_mix": "1.20.4",
+    "erlang_otp": "29.1.1",
+    "git": "2.56.0",
+    "hex": "2.5.1",
+    "host": "Darwin arm64",
+    "python": "3.14.8"
+  }
+}

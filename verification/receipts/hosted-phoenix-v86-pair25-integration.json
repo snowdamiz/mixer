@@ -1,0 +1,158 @@
+{
+  "scope": "Local v86 source admission and archival restoration",
+  "status": "Source admission, refusal and restoration passed. Full collector suites incomplete.",
+  "tools": {
+    "git": "2.56.0",
+    "python": "3.14.8"
+  },
+  "roots": {
+    "local_base": "9c0cc7cd3788280dc1449245abf10100b822407a",
+    "public_v85": "1e2de0130d001ef9ada0001b59f9ae8b7f67b72a",
+    "pair25_fixture": "31cc575b899424fe5ac3486fbb12ff2e5d347e5f",
+    "reviewed_v86_author_patch_sha256": "8fe1f1948958285cdf9759b2acb9e30f51797a916c0386c79747f4473b336e51",
+    "author_patch_plus_increment_tree": "1a6b543c9d39d04b155e373cd30982fc05509a28",
+    "patched_copy_of_root_index_tree": "2059ef7b14ecb9bd921ad49be1b3682ae8b982b3",
+    "local_replay_revision": "2fc635f9c051e9494908d29129af684e0cf7eff4"
+  },
+  "patch": {
+    "file": "v86-pair25-incremental.patch",
+    "bytes": 121864,
+    "paths": 11,
+    "sha256": "c9ef8f8db9954efaa4500d2c32c9d074a7a764a2a2e5807f2820ea6061d962d3",
+    "apply_to_copied_root_index": 0
+  },
+  "pair25": {
+    "path": "tests/integration/l05-pair25-http/run.py",
+    "git_mode": "100644",
+    "after": {
+      "bytes": 104443,
+      "sha256": "cbcb821ade5ae9b64b3ccdaf704935c3aba04e053c0da5ed830da15e97340284"
+    },
+    "before": {
+      "bytes": 102524,
+      "sha256": "7400135d3e610e30bf1249a93ea76390ee2a22cd613ced26bbebf2f67dda0033"
+    }
+  },
+  "v86": {
+    "selected": {
+      "manifest": {
+        "bytes": 95721,
+        "path": "selected-source-manifest.json",
+        "sha256": "d4da8a286ed82200e9cbc65d4e15f8e172251616e84aebc7f1b2c50b8bee6818"
+      },
+      "source_count": 572,
+      "source_digest_sha256": "ccca49c4caf9a456e3e049d3ff48c652b83db1a32a70172122e56c2f76b14578"
+    },
+    "selection_sha256": "bf4f1c8ccc6e5688b52c50e45ef32412c44f1a6a32cad08b2f15c1a615936ae2",
+    "application_manifest": {
+      "bytes": 2127,
+      "path": "application-manifest.json",
+      "sha256": "cb8ca72023dd4df86b1d0c10fbb6be2e366db7355ad85303e68c9a0cb26ff836"
+    },
+    "exact_delta_paths": [
+      "hosted/lib/mixer_hosted/browser_auth/relation_manifest.ex",
+      "hosted/mix.exs",
+      "hosted/mix.lock",
+      "hosted/priv/browser_auth/relation_surface_v1_pg16.json",
+      "hosted/priv/browser_auth/relation_surface_v1_pg17.json",
+      "tests/integration/l05-pair25-http/run.py"
+    ],
+    "historical_v85_tree_bytes_and_modes_match_public": true,
+    "phoenix_package_and_product_inputs_match_author_patch": true,
+    "workflow_delta": "one exact predecessor path added to each source profile",
+    "real_git_authority_tree": {
+      "members": 34,
+      "bytes": 4389,
+      "budget_bytes": 8192
+    }
+  },
+  "verification": {
+    "baseline_refusal": "workspace source digest",
+    "source_check": {
+      "command": "python3 -B [-O] hosted/scripts/test-identity-network.py --check-source",
+      "checkout": "git sparse-checkout set --no-cone --stdin with literal workflow patterns",
+      "profiles": {
+        "hosted.yml/phoenix": {
+          "patterns": 345,
+          "pattern_sha256": "b74825b5f7be8e3bba635d830bc08ae9538bc3c47af08791dba615389e526715",
+          "exit_codes": {
+            "normal": 0,
+            "optimized": 0
+          }
+        },
+        "identity-network.yml/identity-network": {
+          "patterns": 350,
+          "pattern_sha256": "937c19443cfc9e4ebb309b40c2c69ef2a276284894adfa62fe76edef241c0dcf",
+          "exit_codes": {
+            "normal": 0,
+            "optimized": 0
+          }
+        },
+        "verify.yml/services": {
+          "patterns": 348,
+          "pattern_sha256": "89970bfd9bb17eb24931f6e577c906589b205698d27238a8eea7810b783097f8",
+          "exit_codes": {
+            "normal": 0,
+            "optimized": 0
+          }
+        }
+      }
+    },
+    "phoenix_profile_source_refusals_in_normal_and_optimized": [
+      "stale public v85 product leaf",
+      "missing product leaf",
+      "executable product leaf",
+      "changed preimage bytes",
+      "missing preimage",
+      "executable preimage",
+      "extra packet member"
+    ],
+    "swift_host_archive": {
+      "modes": [
+        "normal",
+        "optimized"
+      ],
+      "commands": [
+        "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+        "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py prepare-source141 --out <owned-source141>",
+        "python3 -I -B -S [-O] <owned-source141>/verification/sdk-feature-ui-source141-v1/adopt_sdk.py prepare-predecessor --out <owned-source127>"
+      ],
+      "installed_sha256": "1cc30c10eab3b4fa5bcdc0851b4ec5b27054472a133250be8f5740b329c29ba4",
+      "source141": {
+        "files": 890,
+        "sha256": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab"
+      },
+      "source127": {
+        "files": 845,
+        "sha256": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7"
+      },
+      "stale_installed_verify_workflow_refusal": "Owning bytes differ: .github/workflows/verify.yml"
+    },
+    "copied_root_index_retention": {
+      "files": 50427,
+      "bytes": 973022490,
+      "exit_code": 0
+    },
+    "adjacent_collector_controls": {
+      "command": "python3 -B hosted/scripts/test_identity_network_collector.py WorkspaceSourceCutoverControls",
+      "normal": {
+        "tests": 6,
+        "exit_code": 0
+      },
+      "optimized": "Exact 572-row v85 inverse, application byte/mode pins, and Git fixture/preimage wrong-mode refusals passed. The broader optimized cutover class was stopped at the task limit after its inverse and workspace-drift test passed."
+    },
+    "full_collector_suites": {
+      "command": "python3 -B [-O] hosted/scripts/test_identity_network_collector.py",
+      "initial_shared_checkout": "Invalidated because an existing test temporarily rewrites a tracked fixture.",
+      "isolated_normal": {
+        "identity-network": "360-second suite alarm",
+        "services": "360-second suite alarm"
+      },
+      "isolated_optimized": {
+        "identity-network": "stopped at task limit",
+        "services": "stopped at task limit"
+      }
+    }
+  },
+  "runtime_native_ci_or_release_accepted": false
+}

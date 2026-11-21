@@ -969,6 +969,30 @@ expiry. The signed owner export passed again. Identity passed both
 isolated network methods. Intel cross-compiled all six Java consumers.
 [Hosted v85 terminal receipt](verification/receipts/hosted-v85-terminal-1e2de013.json)
 
+Phoenix is pinned to 1.8.17, the upstream fix for GHSA-pvfx-rx4x-phrr
+and GHSA-5vmc-qgf8-rw36. The private Hex audit reported zero findings
+after the update. The ordinary Mixer endpoint uses Plug HTTP routes.
+Source inspection found no Channel or Presence entry point. The
+PG16 and PG17 relation manifests bind the new dependency lock.
+Test and production compilation and loopback GET and HEAD passed.
+Hosted v86 admits the exact updated inputs and preserves v85, Source141
+and Source127 restoration.
+[Dependency and source verification](verification/receipts/hosted-phoenix-1.8.17.json)
+
+The exact updated hosted subtree also passed the focused R1026
+assertion on PostgreSQL 17.11 with SCRAM. The same restricted backend
+acknowledged the live reads before and after expiry, and the late
+response was refused. All ten recorded commands closed. PostgreSQL
+exited cleanly, its loopback port rebound, and scratch was removed.
+[Database replay](verification/receipts/hosted-phoenix-1.8.17-scram-r1026.json)
+
+The combined v86 source selection also binds the completed Pair25
+browser runner. All three non-cone workflow checkouts admitted the 572
+inputs in normal and optimized Python. Focused refusal checks and
+Source141 and Source127 restoration passed. The full local collector
+runs reached their time limits. The exact hosted run remains pending.
+[Combined source binding](verification/receipts/hosted-phoenix-v86-pair25-integration.json)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,
@@ -1553,6 +1577,16 @@ for this tree.
 [Apple host and native build receipt](verification/receipts/fieldlog-d2-entry-editor-photos-e39a5ea3.json) ·
 [Source-bound Android host receipt](verification/receipts/fieldlog-d2-entry-editor-photos-android-host-00406fe7.json)
 
+On a fresh offline arm64 API 36 emulator, the reviewed `00406fe735`
+development APK opened an existing draft with seven synthetic photos.
+Android DocumentsUI delivered the eighth photo. The next frame disabled
+photo selection, and tapping it left the exact workspace unchanged.
+The cold app reopened with the same ordered references and all eight
+JPEGs. The photo write advanced revision 9 to 10 without adding an outbox
+entry. All 111 recorded commands, private ADB and the emulator closed,
+and all three listener ports were reusable.
+[Installed photo capacity replay](verification/receipts/fieldlog-d2-entry-editor-photos-api36-00406fe7.json)
+
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
 
 A free owner created one build through Phoenix, restricted Oban, and the loopback worker. The worker's inert exit-23 fixture settled the build and released capacity. Organization exit was refused before settlement and succeeded afterwards. The former owner lost access while tenant B retained its export and created another project. [Settled build and organization exit](verification/receipts/l06-settled-exit-65c89e08.json)
@@ -1756,6 +1790,12 @@ at all three checkpoints. Eleven fixture groups and both disposable
 Chrome instances closed, all nine ports could rebind, and the owned
 Docker daemon, Linux VM, and scratch were removed.
 [Rendered terminal replay](verification/receipts/l05-pair25-browser-rendered-terminal-1e2de013.json)
+
+**L05 passed for the documented local platform workflow.** Independent
+review verified the rendered iOS and Android build evidence, restricted
+live cancellation, separate development signing, stock CLI transitions,
+SCRAM restore and signed rollback delivery, and store protocol fixtures.
+[Local acceptance](verification/receipts/l05-local-platform-acceptance-20261121.json)
 
 An isolated Phoenix and PostgreSQL replay committed signed v3 sequences 7 and 8 for one provisioned target. The browser head and public updater agreed on both. The updater refused staged artifacts, and committed bytes remained available after Phoenix restarted. The independent review led to a startup check that refuses an extra HTTPS listener and workflow triggers for the release UI fixture. Hosted v57 binds the corrected source. [Signed release replay](verification/receipts/local-signed-release-v56-composition-20261120.json) · [Listener checks](verification/receipts/l05-release-delivery-effective-listener-20261120.json) · [Hosted v57 binding](verification/receipts/hosted-source-binding-v57-20261120.json)
 

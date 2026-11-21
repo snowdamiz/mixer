@@ -1,0 +1,203 @@
+{
+  "commands": [
+    {
+      "name": "hosted-archive",
+      "argv": [
+        "git",
+        "archive",
+        "4d00b2c26570cf20e925716a3d2e73dcc752faf4",
+        "hosted"
+      ],
+      "groupAbsent": true,
+      "pid": 3048,
+      "exit": 0,
+      "stdoutSHA256": "4b10befafb2d3df9c9dc4cc934e6fbe07b63026e4eab867c82e7149ebf514e5e",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "extract",
+      "argv": [
+        "/usr/bin/tar",
+        "-xf",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/mixer-v86-pg17-8jhkevij/logs/hosted-archive.out",
+        "-C",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/mixer-v86-pg17-8jhkevij/src"
+      ],
+      "groupAbsent": true,
+      "pid": 3088,
+      "exit": 0,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "fetch-phoenix",
+      "argv": [
+        "/usr/bin/curl",
+        "--fail",
+        "--silent",
+        "--show-error",
+        "--max-time",
+        "25",
+        "--output",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/mixer-v86-pg17-8jhkevij/hex/packages/hexpm/phoenix-1.8.17.tar",
+        "https://repo.hex.pm/tarballs/phoenix-1.8.17.tar"
+      ],
+      "groupAbsent": true,
+      "pid": 3141,
+      "exit": 0,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "resolve",
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "deps.get",
+        "--check-locked"
+      ],
+      "groupAbsent": true,
+      "pid": 3186,
+      "exit": 0,
+      "stdoutSHA256": "6dfe4dd40d1fbbb1c677b141ae54a78535a1616983c9c7f16d68a023a2d07551",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "locked-offline",
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "deps.get",
+        "--check-locked"
+      ],
+      "groupAbsent": true,
+      "pid": 4787,
+      "exit": 0,
+      "stdoutSHA256": "5840fd1fd3e2d531efa01d6efae8b5c7dc6d949706bfa6d59c070eaf061527d8",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "initdb",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/initdb",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/mixer-v86-pg17-8jhkevij/db",
+        "-U",
+        "mixer_fixture",
+        "--pwfile=/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/mixer-v86-pg17-8jhkevij/bootstrap-key",
+        "--auth-local=scram-sha-256",
+        "--auth-host=scram-sha-256",
+        "--no-locale",
+        "-E",
+        "UTF8"
+      ],
+      "groupAbsent": true,
+      "pid": 4851,
+      "exit": 0,
+      "stdoutSHA256": "ad5a311cc510824e4d28d5be8dd5e5cad2cceeb39611eeb4edad21b7767441f0",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "roles",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "54437",
+        "-U",
+        "mixer_fixture",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-d",
+        "postgres"
+      ],
+      "groupAbsent": true,
+      "pid": 4969,
+      "exit": 0,
+      "stdoutSHA256": "6656b461d3ce311fbbb98d95769a69ce452f89f80f75640f99b4867be6bc0419",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "grants",
+      "argv": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "54437",
+        "-U",
+        "mixer_fixture",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-d",
+        "mixer_customer_build_read",
+        "-c",
+        "REVOKE CREATE ON SCHEMA public FROM PUBLIC; ALTER SCHEMA public OWNER TO r1026_owner; GRANT USAGE ON SCHEMA public TO r1026_runtime;"
+      ],
+      "groupAbsent": true,
+      "pid": 4981,
+      "exit": 0,
+      "stdoutSHA256": "d4fcb02d3b55cbe32968ccb84af358a75f2d16cb89f04f303dd6b0a355a8bdec",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "format",
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "format",
+        "--check-formatted",
+        "lib/mixer_hosted/browser_auth/relation_manifest.ex",
+        "test/customer_build_read_test.exs"
+      ],
+      "groupAbsent": true,
+      "pid": 4983,
+      "exit": 0,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "r1026",
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "test",
+        "test/customer_build_read_test.exs:818",
+        "--seed",
+        "0",
+        "--trace"
+      ],
+      "groupAbsent": true,
+      "pid": 5043,
+      "exit": 0,
+      "stdoutSHA256": "e79d165723bc0e7697c1b5ff4866f0d09ccef4cd3ec47651f091401ffd1c93fd",
+      "stderrSHA256": "79d9da2d35209d5a838063b212747bc1b6d64f41b27a90d95e54fa73e1c18678"
+    }
+  ],
+  "scratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/mixer-v86-pg17-8jhkevij",
+  "stagedTree": "4d00b2c26570cf20e925716a3d2e73dcc752faf4",
+  "lockSHA256": "0526954f8ac64d241a7d6e1471a2f09d28668e06c7692cd5da3aa3a3afd29522",
+  "hostedArchiveSHA256": "4b10befafb2d3df9c9dc4cc934e6fbe07b63026e4eab867c82e7149ebf514e5e",
+  "postgresPort": 54437,
+  "postgresPID": 4952,
+  "r1026": {
+    "passed": 1,
+    "excluded": 9,
+    "runtimeSCRAMObserved": true,
+    "runtimeCommitReadback": [
+      "2026-11-21 14:35:57.836 EST [5883] r1026_runtime mixer_customer_build_read LOG:  statement: COMMIT",
+      "2026-11-21 14:35:57.887 EST [5883] r1026_runtime mixer_customer_build_read LOG:  statement: COMMIT",
+      "2026-11-21 14:36:00.048 EST [5883] r1026_runtime mixer_customer_build_read LOG:  statement: COMMIT"
+    ]
+  },
+  "passed": true,
+  "postgresExit": 0,
+  "postgresGroupAbsent": true,
+  "portRebound": true,
+  "postgresLogSHA256": "823fc81f915d57427bbb824da90130a2241dc5dadb035410f78f598cda812bc8",
+  "unknownCustody": [],
+  "schema": 1,
+  "scope": "Exact Phoenix 1.8.17 hosted subtree in the staged v86 composition. Focused R1026 PostgreSQL 17.11 run with SCRAM and the ordinary restricted runtime role.",
+  "stagedHostedTree": "ee61152306c1ddb380295aa1ddb9f50b70208ebc",
+  "stagedOutcomeSHA256": "4cd841401d61196e0ca699fd31a8eb13579e0b4029c457ebe19f2ac6de606a81",
+  "scratchRemoved": true
+}
