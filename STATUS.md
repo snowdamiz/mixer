@@ -1221,6 +1221,19 @@ this patch.
 [Host and build receipt](verification/receipts/fieldlog-d2-checklist-move.json) ·
 [Compiler inputs](verification/receipts/fieldlog-d2-checklist-move-compiler-inputs.json)
 
+FieldLog `e39a5ea393` shares project checklist, draft, entry, and queue
+content through both ordinary owners. Paired host routes passed, and
+both ordinary arm64 targets linked. The exact rosters gain 100 shared
+physical lines and remove 12 unshared lines. A negative control that
+reversed the shared queue failed both routes. Independent review also
+checked 20-row slices of a 50,000-item queue. The normalized Apple
+cold-reopen digest remains producer evidence because its snapshot is
+absent from the handoff. The fresh campaign recorded closure for 25
+commands. Seven earlier command holds remain preserved.
+[Product patch](verification/receipts/fieldlog-d2-ordinary-screens-e39a5ea3.patch) ·
+[Reviewed producer receipt](verification/receipts/fieldlog-d2-ordinary-screens-e39a5ea3.json) ·
+[Initial holds](verification/receipts/fieldlog-d2-ordinary-screens-e39a5ea3-initial-holds.json)
+
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
 
 A free owner created one build through Phoenix, restricted Oban, and the loopback worker. The worker's inert exit-23 fixture settled the build and released capacity. Organization exit was refused before settlement and succeeded afterwards. The former owner lost access while tenant B retained its export and created another project. [Settled build and organization exit](verification/receipts/l06-settled-exit-65c89e08.json)

@@ -1,0 +1,669 @@
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index fff498c0ed3308074a772b10e796e3db0fb97e52..3d2c57c9c0dfc361613b4723564ebefdb11a3b7b 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -106,16 +106,6 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
+     var preflight: (@Sendable (Workspace) throws -> Void)?
+ }
+ 
+-private enum WorkspaceEdit: Sendable {
+-    case complete(UUID), order(UUID, [UUID])
+-    func apply(_ workspace: inout Workspace) throws {
+-        switch self {
+-        case .complete(let id): try workspace.toggleTask(id)
+-        case .order(let project, let ids): try workspace.reorderTasks(projectID: project, ids: ids)
+-        }
+-    }
+-}
+-
+ @MainActor public final class ProjectPresentation: AndroidUIBatchPresentation {
+     public private(set) var snapshot: UIRenderSnapshot
+     public private(set) var workspace: Workspace
+@@ -339,7 +329,7 @@ private enum WorkspaceEdit: Sendable {
+             if showingEntries && !showingQueue {
+                 if action.nodeID == "entry.photo.cancel", action.actionID == "entry.photo.cancel" { try cancelPhoto(); return }
+                 if action.nodeID == "entry.new", action.actionID == "entry.new" { try selectEntry(nil); return }
+-                for draft in workspace.drafts where draft.projectID == projectID {
++                for draft in ProjectNotes(in: workspace, projectID: projectID).drafts {
+                     let key = "draft." + draft.id.uuidString.lowercased()
+                     if action.nodeID == key, action.actionID == key { try selectEntry(draft); return }
+                 }
+@@ -368,13 +358,13 @@ private enum WorkspaceEdit: Sendable {
+             for task in workspace.tasks(for: projectID) {
+                 let key = "task." + task.id.uuidString.lowercased()
+                 guard action.actionID == action.nodeID else { continue }
+-                if action.nodeID == key + ".complete" { try begin(.complete(task.id), focus: task.id); return }
++                if action.nodeID == key + ".complete" { try begin(.toggle(task.id), focus: task.id); return }
+                 if action.nodeID == key + ".up" || action.nodeID == key + ".down" {
+                     let offset = action.nodeID == key + ".up" ? -1 : 1
+-                    guard let order = try? workspace.taskOrder(moving: task.id, by: offset) else {
++                    guard let edit = try? ChecklistEdit.moving(task.id, by: offset, in: workspace) else {
+                         throw PublicHostError.action
+                     }
+-                    try begin(.order(order.projectID, order.ids), focus: task.id); return
++                    try begin(edit, focus: task.id); return
+                 }
+             }
+         }
+@@ -673,7 +663,8 @@ private enum WorkspaceEdit: Sendable {
+         } catch { closeAfterRenderingFailure(error) }
+     }
+     private func turnEntryPage(drafts: Bool, delta: Int) throws {
+-        let count = drafts ? workspace.drafts.filter { $0.projectID == projectID }.count : workspace.entries(for: projectID).count
++        let notes = ProjectNotes(in: workspace, projectID: projectID)
++        let count = drafts ? notes.drafts.count : notes.entries.count
+         let current = Self.page(drafts ? draftPage : entryPage, count: count), destination = current + delta
+         guard destination >= 0, destination <= Self.page(Int.max, count: count) else { throw PublicHostError.action }
+         let (r, s) = try render(state, entryPage: drafts ? entryPage : destination, draftPage: drafts ? destination : draftPage, feedback: nil, failure: nil)
+@@ -704,7 +695,8 @@ private enum WorkspaceEdit: Sendable {
+     }
+     private nonisolated static func entryDocument(_ state: EntryEditorState, workspace: Workspace, project: UUID, entryPage: Int, draftPage: Int, revision: UInt64, dateInput: String?, photoPending: Bool = false, photoMessage: String? = nil, photoBusy: Bool = false, reportPending: Bool = false, reportMessage: String? = nil) -> UIDocument {
+         let inactive = state.saving || state.committed != nil || photoBusy
+-        let entries = workspace.entries(for: project), drafts = workspace.drafts.filter { $0.projectID == project }
++        let notes = ProjectNotes(in: workspace, projectID: project)
++        let entries = notes.entries, drafts = notes.drafts
+         let ep = page(entryPage, count: entries.count), dp = page(draftPage, count: drafts.count)
+         let dateValid = dateInput == nil || EntryDateText.parse(dateInput!) != nil
+         let canCommit = (try? EntrySaveIntent(projectID: project, draft: state.draft, kind: .commit).validate()) != nil
+@@ -749,7 +741,7 @@ private enum WorkspaceEdit: Sendable {
+                     MixerUI.Button("drafts.previous", "Previous drafts", action: "drafts.previous").disabled(state.saving || dp == 0)
+                     MixerUI.Button("drafts.next", "Next drafts", action: "drafts.next").disabled(state.saving || (dp + 1) * pageSize >= drafts.count)
+                     for draft in drafts.dropFirst(dp * pageSize).prefix(pageSize) {
+-                        MixerUI.Button("draft." + draft.id.uuidString.lowercased(), draft.title.isEmpty ? "Untitled draft" : draft.title, action: "draft." + draft.id.uuidString.lowercased()).accessibilityIdentifier("draft." + draft.id.uuidString.lowercased()).disabled(state.saving)
++                        MixerUI.Button("draft." + draft.id.uuidString.lowercased(), draft.displayTitle(whenUntitled: "Untitled draft"), action: "draft." + draft.id.uuidString.lowercased()).accessibilityIdentifier("draft." + draft.id.uuidString.lowercased()).disabled(state.saving)
+                     }
+                 }
+                 MixerUI.Section("entry.saved", title: "Saved entries") {
+@@ -814,7 +806,7 @@ private enum WorkspaceEdit: Sendable {
+         if queue { queuePage = destination } else { taskPage = destination }
+         reconciler = nextReconciler; snapshot = next; publish()
+     }
+-    private func begin(_ edit: WorkspaceEdit, focus: UUID) throws {
++    private func begin(_ edit: ChecklistEdit, focus: UUID) throws {
+         let (nextReconciler, next) = try render(state, busy: true, feedback: nil, failure: nil)
+         let revision = workspace.revision, stagedState = state, project = projectID, queuePage = self.queuePage
+         changingWorkspace = true; changeFailure = nil; changeFeedback = nil
+@@ -822,7 +814,7 @@ private enum WorkspaceEdit: Sendable {
+         change = Task { @MainActor [self] in
+             do {
+                 workspace = try await repository.transact(expectedRevision: revision) { next in
+-                    try edit.apply(&next)
++                    try edit.apply(to: &next)
+                     let destination = try Self.focusPage(focus, workspace: next, project: project)
+                     try Self.preflight(next, state: stagedState, project: project, taskPage: destination,
+                         queuePage: queuePage, reconciler: nextReconciler)
+@@ -926,45 +918,44 @@ private enum WorkspaceEdit: Sendable {
+         guard let index = workspace.tasks(for: project).firstIndex(where: { $0.id == id }) else { throw PublicHostError.action }
+         return index / pageSize
+     }
+-    private nonisolated static func changeLabel(_ item: PendingChange, workspace: Workspace) -> String {
+-        let title = workspace.tasks.first { $0.id == item.recordID }?.title ?? "Task"
+-        switch item.kind {
+-        case .projectCreated: return "Project created"
+-        case .taskSaved: return "Task updated: " + title
+-        case .taskOrderChanged: return "Checklist reordered"
+-        case .entrySaved: return "Entry saved"
+-        }
+-    }
+     private nonisolated static func document(_ state: TaskEditorState, workspace: Workspace, project: UUID, queue: Bool, taskPage: Int, queuePage: Int, busy: Bool, feedback: String?, failure: String?, revision: UInt64, entries: Bool = false, entry: EntryEditorState? = nil, entryPage: Int = 0, draftPage: Int = 0, dateInput: String? = nil, photoPending: Bool = false, photoMessage: String? = nil, photoBusy: Bool = false, reportPending: Bool = false, reportMessage: String? = nil) -> UIDocument {
+         if entries && !queue, let entry { return entryDocument(entry, workspace: workspace, project: project, entryPage: entryPage, draftPage: draftPage, revision: revision, dateInput: dateInput, photoPending: photoPending, photoMessage: photoMessage, photoBusy: photoBusy) }
+         let inactive = state.saving || busy
+-        let tasks = ChecklistRow.rows(in: workspace, projectID: project)
+-        let taskPage = page(taskPage, count: tasks.count), queuePage = page(queuePage, count: workspace.outbox.count)
+-        let taskStart = taskPage * pageSize, queueStart = queuePage * pageSize
++        let changes = DevicePendingChanges(in: workspace)
++        let pending = changes.newestFirst
+         return MixerUI.Navigation("task.screen", title: queue ? "On device" : "FieldLog") {
+             MixerUI.List("task.form") {
+                 if queue {
++                    let queuePage = page(queuePage, count: pending.count)
++                    let queueStart = queuePage * pageSize
+                     MixerUI.Section("queue.summary", title: "On device") {
+                         MixerUI.Text("queue.explanation", "Your records are saved locally. Cloud sync isn't connected. Nothing in this queue has been sent to a server.")
+                         MixerUI.Button("workspace.back", "Tasks", action: "workspace.back").accessibilityIdentifier("workspace-tasks")
+                         MixerUI.Button("workspace.entries", "Entries", action: "workspace.entries").accessibilityIdentifier("workspace-entries")
+                     }
+-                    MixerUI.Section("queue.changes", title: "Pending changes (\(workspace.outbox.count))") {
+-                        MixerUI.Text("queue.position", "Page \(queuePage + 1) of \(page(Int.max, count: workspace.outbox.count) + 1) · Changes \(workspace.outbox.isEmpty ? 0 : queueStart + 1)–\(min(queueStart + pageSize, workspace.outbox.count)) of \(workspace.outbox.count) · Newest first")
++                    MixerUI.Section("queue.changes", title: "Pending changes (\(pending.count))") {
++                        MixerUI.Text("queue.position", "Page \(queuePage + 1) of \(page(Int.max, count: pending.count) + 1) · Changes \(pending.isEmpty ? 0 : queueStart + 1)–\(min(queueStart + pageSize, pending.count)) of \(pending.count) · Newest first")
+                         MixerUI.Button("queue.previous", "Previous", action: "queue.previous").accessibilityIdentifier("queue.previous").disabled(inactive || queuePage == 0)
+-                        MixerUI.Button("queue.next", "Next", action: "queue.next").accessibilityIdentifier("queue.next").disabled(inactive || queueStart + pageSize >= workspace.outbox.count)
+-                        if workspace.outbox.isEmpty { MixerUI.Text("queue.empty", "Changes you make will appear here.") }
+-                        for item in workspace.outbox.reversed().dropFirst(queueStart).prefix(pageSize) {
+-                            MixerUI.Text("pending." + item.id.uuidString.lowercased(), changeLabel(item, workspace: workspace) + " — Saved on device · Not sent")
++                        MixerUI.Button("queue.next", "Next", action: "queue.next").accessibilityIdentifier("queue.next").disabled(inactive || queueStart + pageSize >= pending.count)
++                        if pending.isEmpty { MixerUI.Text("queue.empty", "Changes you make will appear here.") }
++                        for item in pending.dropFirst(queueStart).prefix(pageSize) {
++                            let label = DevicePendingChanges.label(for: item.kind)
++                            let detail = item.kind == .taskSaved ? ": " + (changes.taskTitle(for: item) ?? "Task") : ""
++                            MixerUI.Text("pending." + item.id.uuidString.lowercased(), label + detail + " — Saved on device · Not sent")
+                         }
+                     }
+                 } else {
++                    let checklist = ProjectChecklist(in: workspace, projectID: project)
++                    let tasks = checklist.rows
++                    let progress = checklist.progress
++                    let taskPage = page(taskPage, count: progress.total)
++                    let taskStart = taskPage * pageSize
+                     MixerUI.Section("workspace.summary", title: "Local workspace") {
+                         MixerUI.Button("workspace.report", "Share project report", action: "workspace.report").accessibilityIdentifier("workspace-report").disabled(inactive || reportPending)
+                         MixerUI.Text("workspace.report.scope", "Saved local records only. Unsaved input and photo files are not included. Nothing is uploaded by FieldLog.")
+                         if let reportMessage { MixerUI.Text("workspace.report.status", reportMessage) }
+                         MixerUI.Button("workspace.entries", "Entries", action: "workspace.entries").accessibilityIdentifier("workspace-entries").disabled(inactive)
+-                        MixerUI.Text("workspace.progress", "\(tasks.filter(\.completed).count) of \(tasks.count) tasks completed")
++                        MixerUI.Text("workspace.progress", "\(progress.completed) of \(progress.total) tasks completed")
+                         MixerUI.Button("workspace.queue", "On device · \(workspace.outbox.count) pending changes · Not sent", action: "workspace.queue").accessibilityIdentifier("workspace-on-device").disabled(inactive)
+                     }
+                     MixerUI.Section("task.fields", title: "New task") {
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogFeatures/ChecklistEdit.swift b/Integrations/GeneratedReport/Sources/FieldLogFeatures/ChecklistEdit.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..0bd262022c8992ffc31c29388a5699ecf81fefaa
+--- /dev/null
++++ b/Integrations/GeneratedReport/Sources/FieldLogFeatures/ChecklistEdit.swift
+@@ -0,0 +1,21 @@
++import FieldLogModels
++import Foundation
++
++public enum ChecklistEdit: Sendable {
++  case toggle(UUID)
++  case order(projectID: UUID, ids: [UUID])
++
++  public static func moving(_ id: UUID, by offset: Int, in workspace: Workspace) throws -> Self {
++    let order = try workspace.taskOrder(moving: id, by: offset)
++    return .order(projectID: order.projectID, ids: order.ids)
++  }
++
++  public func apply(to workspace: inout Workspace) throws {
++    switch self {
++    case .toggle(let id):
++      try workspace.toggleTask(id)
++    case .order(let projectID, let ids):
++      try workspace.reorderTasks(projectID: projectID, ids: ids)
++    }
++  }
++}
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogFeatures/ChecklistRow.swift b/Integrations/GeneratedReport/Sources/FieldLogFeatures/ChecklistRow.swift
+index 77ae01e3ed3cd129af7e7090e28afa41355649a6..446b026fabea44e06434c998087a1c515ef94db8 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogFeatures/ChecklistRow.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogFeatures/ChecklistRow.swift
+@@ -11,9 +11,23 @@ public struct ChecklistRow: Identifiable, Equatable, Sendable {
+   public let canMoveDown: Bool
+ 
+   public static func rows(in workspace: Workspace, projectID: UUID) -> [Self] {
+-    let tasks = workspace.tasks(for: projectID)
+-    return tasks.enumerated().map { index, task in
+-      Self(
++    Array(ProjectChecklist(in: workspace, projectID: projectID).rows)
++  }
++}
++
++public struct ProjectChecklist {
++  private let tasks: [WorkTask]
++
++  public init(in workspace: Workspace, projectID: UUID) {
++    tasks = workspace.tasks(for: projectID)
++  }
++
++  public var progress: ChecklistProgress { ChecklistProgress(tasks) }
++
++  public var rows: some RandomAccessCollection<ChecklistRow> {
++    tasks.indices.lazy.map { index in
++      let task = tasks[index]
++      return ChecklistRow(
+         id: task.id, title: task.title, responsible: task.responsible, completed: task.completed,
+         number: index + 1, canMoveUp: index > 0, canMoveDown: index + 1 < tasks.count)
+     }
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogFeatures/DevicePendingChanges.swift b/Integrations/GeneratedReport/Sources/FieldLogFeatures/DevicePendingChanges.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..669de4bf9dfcc85960be191db66fc1b1fa3886cf
+--- /dev/null
++++ b/Integrations/GeneratedReport/Sources/FieldLogFeatures/DevicePendingChanges.swift
+@@ -0,0 +1,26 @@
++import FieldLogModels
++
++public struct DevicePendingChanges {
++  private let workspace: Workspace
++
++  public init(in workspace: Workspace) {
++    self.workspace = workspace
++  }
++
++  // A view of the complete device outbox. Callers can slice before formatting.
++  public var newestFirst: ReversedCollection<[PendingChange]> { workspace.outbox.reversed() }
++
++  public static func label(for kind: PendingChange.Kind) -> String {
++    switch kind {
++    case .projectCreated: "Project created"
++    case .taskSaved: "Task updated"
++    case .taskOrderChanged: "Checklist reordered"
++    case .entrySaved: "Entry saved"
++    }
++  }
++
++  public func taskTitle(for item: PendingChange) -> String? {
++    guard item.kind == .taskSaved else { return nil }
++    return workspace.tasks.first { $0.id == item.recordID }?.title
++  }
++}
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogFeatures/ProjectNotes.swift b/Integrations/GeneratedReport/Sources/FieldLogFeatures/ProjectNotes.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..32587ef65e359265009d3cadf8b62932caac8720
+--- /dev/null
++++ b/Integrations/GeneratedReport/Sources/FieldLogFeatures/ProjectNotes.swift
+@@ -0,0 +1,21 @@
++import FieldLogModels
++import Foundation
++
++public struct ProjectNotes {
++  private let workspace: Workspace
++  private let projectID: UUID
++
++  public init(in workspace: Workspace, projectID: UUID) {
++    self.workspace = workspace
++    self.projectID = projectID
++  }
++
++  public var drafts: [EntryDraft] { workspace.drafts.filter { $0.projectID == projectID } }
++  public var entries: [LogEntry] { workspace.entries(for: projectID) }
++}
++
++extension EntryDraft {
++  public func displayTitle(whenUntitled fallback: String) -> String {
++    title.isEmpty ? fallback : title
++  }
++}
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift b/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift
+index 40ef6f27dd831af74f196a278efb182bc547b219..8d2adb575d5ee6a0cb87c68d34016f2c75a199bb 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift
+@@ -107,6 +107,22 @@ public struct EntryDraft: Codable, Equatable, Identifiable, Sendable {
+     self.updatedAt = updatedAt
+   }
+ }
++public struct ChecklistProgress: Equatable, Sendable {
++  public let completed: Int
++  public let total: Int
++  public var fraction: Double { total == 0 ? 0 : Double(completed) / Double(total) }
++
++  public init(_ tasks: some Sequence<WorkTask>) {
++    var completed = 0
++    var total = 0
++    for task in tasks {
++      total += 1
++      if task.completed { completed += 1 }
++    }
++    self.completed = completed
++    self.total = total
++  }
++}
+ public struct PendingChange: Codable, Equatable, Identifiable, Sendable {
+   public enum Kind: String, Codable, Sendable {
+     case projectCreated, taskSaved, taskOrderChanged, entrySaved
+@@ -235,8 +251,10 @@ public struct Workspace: Codable, Equatable, Sendable {
+     }
+   }
+   public func progress(for projectID: UUID) -> Double {
+-    let items = tasks(for: projectID)
+-    return items.isEmpty ? 0 : Double(items.filter(\.completed).count) / Double(items.count)
++    checklistProgress(for: projectID).fraction
++  }
++  public func checklistProgress(for projectID: UUID) -> ChecklistProgress {
++    ChecklistProgress(tasks.lazy.filter { $0.projectID == projectID })
+   }
+   public func entries(for projectID: UUID) -> [LogEntry] {
+     entries.filter { $0.projectID == projectID }.sorted { $0.occurredAt > $1.occurredAt }
+diff --git a/Package.swift b/Package.swift
+index 5009c1b79fd5887d1a60da73f8b73cd8baafc584..3c7c2f5c670534450e352785a2eaaf4a225cdee6 100644
+--- a/Package.swift
++++ b/Package.swift
+@@ -14,7 +14,7 @@ let package = Package(
+             name: "FieldLogEntrySaving",
+             dependencies: ["FieldLogModels", .product(name: "MixerCore", package: "sdk")],
+             path: "Integrations/GeneratedReport/Sources/FieldLogFeatures",
+-            exclude: ["ChecklistRow.swift", "EntryEditorAppleHost.swift", "TaskEditor.swift", "TaskEditorAppleFieldsHost.swift", "TaskEditorPresentation.swift"],
++            exclude: ["ChecklistEdit.swift", "ChecklistRow.swift", "DevicePendingChanges.swift", "ProjectNotes.swift", "EntryEditorAppleHost.swift", "TaskEditor.swift", "TaskEditorAppleFieldsHost.swift", "TaskEditorPresentation.swift"],
+             sources: ["EntryEditor.swift", "EntrySaveDecision.swift"]
+         ),
+         .testTarget(name: "FieldLogTests", dependencies: ["FieldLogModels", "FieldLogStorage", "FieldLogFeatures", .product(name: "MixerUI", package: "sdk"), .product(name: "MixerApple", package: "sdk", condition: .when(platforms: [.iOS, .macOS]))])
+diff --git a/Sources/FieldLogFeatures/ChecklistEdit.swift b/Sources/FieldLogFeatures/ChecklistEdit.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..0bd262022c8992ffc31c29388a5699ecf81fefaa
+--- /dev/null
++++ b/Sources/FieldLogFeatures/ChecklistEdit.swift
+@@ -0,0 +1,21 @@
++import FieldLogModels
++import Foundation
++
++public enum ChecklistEdit: Sendable {
++  case toggle(UUID)
++  case order(projectID: UUID, ids: [UUID])
++
++  public static func moving(_ id: UUID, by offset: Int, in workspace: Workspace) throws -> Self {
++    let order = try workspace.taskOrder(moving: id, by: offset)
++    return .order(projectID: order.projectID, ids: order.ids)
++  }
++
++  public func apply(to workspace: inout Workspace) throws {
++    switch self {
++    case .toggle(let id):
++      try workspace.toggleTask(id)
++    case .order(let projectID, let ids):
++      try workspace.reorderTasks(projectID: projectID, ids: ids)
++    }
++  }
++}
+diff --git a/Sources/FieldLogFeatures/ChecklistRow.swift b/Sources/FieldLogFeatures/ChecklistRow.swift
+index 77ae01e3ed3cd129af7e7090e28afa41355649a6..446b026fabea44e06434c998087a1c515ef94db8 100644
+--- a/Sources/FieldLogFeatures/ChecklistRow.swift
++++ b/Sources/FieldLogFeatures/ChecklistRow.swift
+@@ -11,9 +11,23 @@ public struct ChecklistRow: Identifiable, Equatable, Sendable {
+   public let canMoveDown: Bool
+ 
+   public static func rows(in workspace: Workspace, projectID: UUID) -> [Self] {
+-    let tasks = workspace.tasks(for: projectID)
+-    return tasks.enumerated().map { index, task in
+-      Self(
++    Array(ProjectChecklist(in: workspace, projectID: projectID).rows)
++  }
++}
++
++public struct ProjectChecklist {
++  private let tasks: [WorkTask]
++
++  public init(in workspace: Workspace, projectID: UUID) {
++    tasks = workspace.tasks(for: projectID)
++  }
++
++  public var progress: ChecklistProgress { ChecklistProgress(tasks) }
++
++  public var rows: some RandomAccessCollection<ChecklistRow> {
++    tasks.indices.lazy.map { index in
++      let task = tasks[index]
++      return ChecklistRow(
+         id: task.id, title: task.title, responsible: task.responsible, completed: task.completed,
+         number: index + 1, canMoveUp: index > 0, canMoveDown: index + 1 < tasks.count)
+     }
+diff --git a/Sources/FieldLogFeatures/DevicePendingChanges.swift b/Sources/FieldLogFeatures/DevicePendingChanges.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..669de4bf9dfcc85960be191db66fc1b1fa3886cf
+--- /dev/null
++++ b/Sources/FieldLogFeatures/DevicePendingChanges.swift
+@@ -0,0 +1,26 @@
++import FieldLogModels
++
++public struct DevicePendingChanges {
++  private let workspace: Workspace
++
++  public init(in workspace: Workspace) {
++    self.workspace = workspace
++  }
++
++  // A view of the complete device outbox. Callers can slice before formatting.
++  public var newestFirst: ReversedCollection<[PendingChange]> { workspace.outbox.reversed() }
++
++  public static func label(for kind: PendingChange.Kind) -> String {
++    switch kind {
++    case .projectCreated: "Project created"
++    case .taskSaved: "Task updated"
++    case .taskOrderChanged: "Checklist reordered"
++    case .entrySaved: "Entry saved"
++    }
++  }
++
++  public func taskTitle(for item: PendingChange) -> String? {
++    guard item.kind == .taskSaved else { return nil }
++    return workspace.tasks.first { $0.id == item.recordID }?.title
++  }
++}
+diff --git a/Sources/FieldLogFeatures/ProjectNotes.swift b/Sources/FieldLogFeatures/ProjectNotes.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..32587ef65e359265009d3cadf8b62932caac8720
+--- /dev/null
++++ b/Sources/FieldLogFeatures/ProjectNotes.swift
+@@ -0,0 +1,21 @@
++import FieldLogModels
++import Foundation
++
++public struct ProjectNotes {
++  private let workspace: Workspace
++  private let projectID: UUID
++
++  public init(in workspace: Workspace, projectID: UUID) {
++    self.workspace = workspace
++    self.projectID = projectID
++  }
++
++  public var drafts: [EntryDraft] { workspace.drafts.filter { $0.projectID == projectID } }
++  public var entries: [LogEntry] { workspace.entries(for: projectID) }
++}
++
++extension EntryDraft {
++  public func displayTitle(whenUntitled fallback: String) -> String {
++    title.isEmpty ? fallback : title
++  }
++}
+diff --git a/Sources/FieldLogModels/Workspace.swift b/Sources/FieldLogModels/Workspace.swift
+index 40ef6f27dd831af74f196a278efb182bc547b219..8d2adb575d5ee6a0cb87c68d34016f2c75a199bb 100644
+--- a/Sources/FieldLogModels/Workspace.swift
++++ b/Sources/FieldLogModels/Workspace.swift
+@@ -107,6 +107,22 @@ public struct EntryDraft: Codable, Equatable, Identifiable, Sendable {
+     self.updatedAt = updatedAt
+   }
+ }
++public struct ChecklistProgress: Equatable, Sendable {
++  public let completed: Int
++  public let total: Int
++  public var fraction: Double { total == 0 ? 0 : Double(completed) / Double(total) }
++
++  public init(_ tasks: some Sequence<WorkTask>) {
++    var completed = 0
++    var total = 0
++    for task in tasks {
++      total += 1
++      if task.completed { completed += 1 }
++    }
++    self.completed = completed
++    self.total = total
++  }
++}
+ public struct PendingChange: Codable, Equatable, Identifiable, Sendable {
+   public enum Kind: String, Codable, Sendable {
+     case projectCreated, taskSaved, taskOrderChanged, entrySaved
+@@ -235,8 +251,10 @@ public struct Workspace: Codable, Equatable, Sendable {
+     }
+   }
+   public func progress(for projectID: UUID) -> Double {
+-    let items = tasks(for: projectID)
+-    return items.isEmpty ? 0 : Double(items.filter(\.completed).count) / Double(items.count)
++    checklistProgress(for: projectID).fraction
++  }
++  public func checklistProgress(for projectID: UUID) -> ChecklistProgress {
++    ChecklistProgress(tasks.lazy.filter { $0.projectID == projectID })
+   }
+   public func entries(for projectID: UUID) -> [LogEntry] {
+     entries.filter { $0.projectID == projectID }.sorted { $0.occurredAt > $1.occurredAt }
+diff --git a/ios/FieldLog/ProjectDetail.swift b/ios/FieldLog/ProjectDetail.swift
+index bc40581e61a519438f3e04d3560e9a591a530300..f2dda688882d61d05e8d530a639e818128d1f248 100644
+--- a/ios/FieldLog/ProjectDetail.swift
++++ b/ios/FieldLog/ProjectDetail.swift
+@@ -18,8 +18,11 @@ struct ProjectDetail: View {
+       if let workspace = model.workspace,
+         let project = workspace.projects.first(where: { $0.id == projectID })
+       {
+-        let checklist = ChecklistRow.rows(in: workspace, projectID: projectID)
+-        let completed = checklist.filter(\.completed).count
++        let checklist = ProjectChecklist(in: workspace, projectID: projectID)
++        let progress = checklist.progress
++        let notes = ProjectNotes(in: workspace, projectID: projectID)
++        let drafts = notes.drafts
++        let entries = notes.entries
+         List {
+           Section {
+             VStack(alignment: .leading, spacing: 12) {
+@@ -29,16 +32,16 @@ struct ProjectDetail: View {
+               HStack {
+                 Text("Project progress").font(.subheadline)
+                 Spacer()
+-                Text("\(completed) of \(checklist.count)").font(
++                Text("\(progress.completed) of \(progress.total)").font(
+                   .subheadline.monospacedDigit()
+                 ).foregroundStyle(.secondary)
+               }
+-              ProgressView(value: checklist.isEmpty ? 0 : Double(completed) / Double(checklist.count))
++              ProgressView(value: progress.fraction)
+                 .tint(FieldStyle.green)
+             }.padding(.vertical, 6)
+           }
+           Section {
+-            ForEach(checklist) { task in
++            ForEach(checklist.rows) { task in
+               HStack(alignment: .top) {
+                 Button {
+                   model.toggleTask(task.id)
+@@ -78,7 +81,7 @@ struct ProjectDetail: View {
+               }
+             }
+             .onMove { source, destination in
+-              var ids = checklist.map(\.id)
++              var ids = checklist.rows.map(\.id)
+               ids.move(fromOffsets: source, toOffset: destination)
+               model.reorder(projectID: projectID, ids: ids)
+             }
+@@ -86,7 +89,6 @@ struct ProjectDetail: View {
+           } header: {
+             Text("CHECKLIST")
+           }
+-          let drafts = workspace.drafts.filter { $0.projectID == projectID }
+           if !drafts.isEmpty {
+             Section("DRAFTS") {
+               ForEach(drafts) { draft in
+@@ -96,7 +98,7 @@ struct ProjectDetail: View {
+                 } label: {
+                   Label {
+                     VStack(alignment: .leading, spacing: 4) {
+-                      Text(draft.title.isEmpty ? "Untitled entry" : draft.title).foregroundStyle(
++                      Text(draft.displayTitle(whenUntitled: "Untitled entry")).foregroundStyle(
+                         .primary)
+                       Text(
+                         "Saved draft · \(draft.updatedAt.formatted(date:.abbreviated,time:.shortened))"
+@@ -110,11 +112,11 @@ struct ProjectDetail: View {
+             }
+           }
+           Section {
+-            if workspace.entries(for: projectID).isEmpty {
++            if entries.isEmpty {
+               Text("No entries yet. Add a note, observation or photo from the field.")
+                 .foregroundStyle(.secondary).padding(.vertical, 6)
+             }
+-            ForEach(workspace.entries(for: projectID)) { entry in
++            ForEach(entries) { entry in
+               NavigationLink {
+                 EntryDetail(entry: entry)
+               } label: {
+diff --git a/ios/FieldLog/WorkspaceModel.swift b/ios/FieldLog/WorkspaceModel.swift
+index 08462026fdd41d6f51d0a0568ad2075dc52fd966..31c2008a86a376529be4a65ed347a8e82de14b40 100644
+--- a/ios/FieldLog/WorkspaceModel.swift
++++ b/ios/FieldLog/WorkspaceModel.swift
+@@ -1,3 +1,4 @@
++import FieldLogFeatures
+ import FieldLogModels
+ import FieldLogStorage
+ import MixerCapabilityActivation
+@@ -104,14 +105,14 @@ import SwiftUI
+     await enqueue { try $0.saveTask(projectID: projectID, title: title, responsible: responsible) }
+       .value
+   }
+-  func toggleTask(_ id: UUID) { enqueue { try $0.toggleTask(id) } }
++  func toggleTask(_ id: UUID) { enqueue { try ChecklistEdit.toggle(id).apply(to: &$0) } }
+   func reorder(projectID: UUID, ids: [UUID]) {
+-    enqueue { try $0.reorderTasks(projectID: projectID, ids: ids) }
++    enqueue { try ChecklistEdit.order(projectID: projectID, ids: ids).apply(to: &$0) }
+   }
+   func moveTask(_ id: UUID, offset: Int) {
+     enqueue { state in
+-      let order = try state.taskOrder(moving: id, by: offset)
+-      try state.reorderTasks(projectID: order.projectID, ids: order.ids)
++      let edit = try ChecklistEdit.moving(id, by: offset, in: state)
++      try edit.apply(to: &state)
+     }
+   }
+   func restoreProject(_ id: UUID?) {
+diff --git a/ios/FieldLog/WorkspaceView.swift b/ios/FieldLog/WorkspaceView.swift
+index 7d3be3c815679ac5110d30603c4314f2ce563670..6e23ce477e67248b99e287f9ea65dba6d728c07f 100644
+--- a/ios/FieldLog/WorkspaceView.swift
++++ b/ios/FieldLog/WorkspaceView.swift
+@@ -1,3 +1,4 @@
++import FieldLogFeatures
+ import FieldLogModels
+ import SwiftUI
+ 
+@@ -114,15 +115,15 @@ private struct ProjectList: View {
+                   Label(project.site, systemImage: "mappin").font(.subheadline).foregroundStyle(
+                     .secondary)
+                 }
++                let progress = workspace.checklistProgress(for: project.id)
+                 HStack {
+-                  let tasks = workspace.tasks(for: project.id)
+                   Label(
+-                    "\(tasks.filter(\.completed).count)/\(tasks.count) tasks",
++                    "\(progress.completed)/\(progress.total) tasks",
+                     systemImage: "checkmark.circle")
+                   Spacer()
+                   Text("\(workspace.entries(for:project.id).count) entries")
+                 }.font(.caption).foregroundStyle(.secondary)
+-                ProgressView(value: workspace.progress(for: project.id)).tint(FieldStyle.green)
++                ProgressView(value: progress.fraction).tint(FieldStyle.green)
+               }.padding(.vertical, 6)
+             }
+           }
+@@ -190,6 +191,7 @@ private struct DeviceQueue: View {
+   let workspace: Workspace
+   let onEdit: (EntryDraft) -> Void
+   var body: some View {
++    let pending = DevicePendingChanges(in: workspace).newestFirst
+     List {
+       Section {
+         Label("Your records are saved locally", systemImage: "internaldrive.fill").font(.headline)
+@@ -204,7 +206,7 @@ private struct DeviceQueue: View {
+               onEdit(draft)
+             } label: {
+               VStack(alignment: .leading, spacing: 4) {
+-                Text(draft.title.isEmpty ? "Untitled entry" : draft.title).foregroundStyle(.primary)
++                Text(draft.displayTitle(whenUntitled: "Untitled entry")).foregroundStyle(.primary)
+                 Text(workspace.projects.first { $0.id == draft.projectID }?.title ?? "Project")
+                   .font(.caption).foregroundStyle(.secondary)
+               }
+@@ -212,13 +214,13 @@ private struct DeviceQueue: View {
+           }
+         }
+       }
+-      Section("\(workspace.outbox.count) PENDING CHANGE\(workspace.outbox.count==1 ? "":"S")") {
+-        if workspace.outbox.isEmpty {
++      Section("\(pending.count) PENDING CHANGE\(pending.count==1 ? "":"S")") {
++        if pending.isEmpty {
+           Text("Changes you make will appear here.").foregroundStyle(.secondary)
+         }
+-        ForEach(workspace.outbox.reversed()) { item in
++        ForEach(pending) { item in
+           VStack(alignment: .leading, spacing: 4) {
+-            Text(label(item.kind))
++            Text(DevicePendingChanges.label(for: item.kind))
+             Text(item.createdAt, style: .date).font(.caption).foregroundStyle(.secondary)
+             Label("Saved on device · not sent", systemImage: "clock").font(.caption)
+               .foregroundStyle(.secondary)
+@@ -227,14 +229,6 @@ private struct DeviceQueue: View {
+       }
+     }.navigationTitle("On device")
+   }
+-  private func label(_ kind: PendingChange.Kind) -> String {
+-    switch kind {
+-    case .projectCreated: "Project created"
+-    case .taskSaved: "Task updated"
+-    case .taskOrderChanged: "Checklist reordered"
+-    case .entrySaved: "Entry saved"
+-    }
+-  }
+ }
+ 
+ private struct SettingsView: View {

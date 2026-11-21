@@ -179,6 +179,27 @@ conditional source. Native behavior remains a separate check.
 [Host and build receipt](../verification/receipts/fieldlog-d2-checklist-move.json) ·
 [Compiler inputs](../verification/receipts/fieldlog-d2-checklist-move-compiler-inputs.json)
 
+## Shared project screens
+
+FieldLog `e39a5ea393` shares checklist progress and actions, project
+drafts and saved entries, and pending-change ordering and labels.
+Apple keeps its native SwiftUI controls. Android keeps its captured
+revision, render preflight, and page focus. The pending list reads
+commits in reverse append order.
+[Exact source patch](../verification/receipts/fieldlog-d2-ordinary-screens-e39a5ea3.patch)
+
+The paired host tests exercised completion, moves across rows 20–21,
+list and queue order, stale refusals, and exact cold reopen in each arm.
+Both stock arm64 targets linked. Shared physical lines rose from 1,526
+to 1,626, and unshared lines fell from 3,287 to 3,275. The shared lines
+include 61 additional UI lines and 39 additional logic lines. The
+deduplicated source total rose from 4,813 to 4,901 lines, with physical
+overlap increasing from 31.7% to 33.2%. These compiler inputs include
+conditional bodies that differ between targets. Device UI and Android
+APK assembly remain unverified for this tree.
+[Compiler rosters](../verification/receipts/fieldlog-d2-ordinary-screens-e39a5ea3-compiler-inputs.json) ·
+[Host and build receipt](../verification/receipts/fieldlog-d2-ordinary-screens-e39a5ea3.json)
+
 ## Reproduce the source measurement
 
 From the Mixer repository on a Mac with Git, Python, and SwiftPM, run the following in Bash. The commands use the receipt, the public FieldLog pin, and the four overlays. They evaluate package metadata without building either app or resolving SDK dependencies.

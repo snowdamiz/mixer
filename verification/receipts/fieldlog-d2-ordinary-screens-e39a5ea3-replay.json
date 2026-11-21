@@ -1,0 +1,19 @@
+{
+  "environment": "Use a fresh directory directly under Mixer verification/local. Use the local Git object database with 5fd075d6df, 569e7f9c13, 6bc461f4fc and 6e8780afce. The pinned native tools and Android AArch64 Swift SDK must be installed.",
+  "setup": "Copy the files from proof/replay to the new scratch directory. Copy the exact product patch into it as product.patch. Run the command steps from that scratch directory. Pass this delivery's absolute proof path as PROOF_DIR.",
+  "steps": [
+    "python3 run.py materialize 40 /bin/bash materialize.sh",
+    "python3 run.py prepare-hosts 30 /bin/bash prepare.sh \"$PROOF_DIR\"",
+    "python3 run.py vm-host 125 /bin/bash vm.sh aarch64-apple-darwin host",
+    "python3 run.py vm-ios 125 /bin/bash vm.sh aarch64-apple-ios ios",
+    "python3 run.py mirror-crypto 100 /bin/bash mirror.sh swift-crypto 5.0.3 c2cbadd7263439d8015189668f96ff5b5be565ce",
+    "python3 run.py mirror-asn1 100 /bin/bash mirror.sh swift-asn1 1.7.4 917b472dbe53ba699cbb0495f9a95a084bc6364d",
+    "For baseline and candidate, run python3 run.py arm64-ROUTE 125 /bin/bash build.sh android-arm64 ROUTE and then python3 run.py ios-ROUTE 105 /bin/bash build.sh iphoneos ROUTE. The mirror source revisions are checked before linking.",
+    "python3 \"$PROOF_DIR/compiler-diff.py\" \"$PWD\" > compiler-diff.json",
+    "python3 run.py native-readback 35 /bin/bash producers.sh",
+    "For baseline, candidate and reverse, run python3 run.py apple-ROUTE-host 100 /bin/bash build.sh apple-host ROUTE-host, then run the corresponding ChecklistHost from its scratch/debug directory with a fresh workspace argument. See the exact paths in commands/apple-ROUTE-route.json.",
+    "For baseline and candidate, export FIELDLOG_TEST_FILTER='ChecklistRowRoutingTests|OrdinaryScreenTests|FieldLogPaginationTests|EntryPresentationTests' and run python3 run.py android-ROUTE-host 105 /bin/bash build.sh android-host ROUTE-host.",
+    "Unset FIELDLOG_TEST_FILTER for the reverse control and run python3 run.py android-reverse-host 105 /bin/bash build.sh android-host reverse-host. Require matching ORDINARY_QUEUE_ORDER failures on the reverse Android and Apple routes while the paired normal routes pass.",
+    "For each command require direct child reap, owned group absence and output EOF. Retain only unresolved custody paths or requested proof artifacts. Retire confirmed closed build outputs if needed to stay under the cap."
+  ]
+}
