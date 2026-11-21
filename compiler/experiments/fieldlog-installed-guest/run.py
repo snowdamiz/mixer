@@ -26,7 +26,7 @@ SDK_NAME = 'swift-6.3.3-RELEASE_wasm'
 
 
 def build_compact_guest(run, toolchain, out, variant, source, *, flags=(),
-                        diagnostics=False, optimization='-Osize'):
+                        diagnostics=False, optimization='-Osize', object_via_stdout=False):
     obj = out / f'{variant}.o'
     wasm = out / f'{variant}.wasm'
     linked = out / f'{variant}-linked.wasm' if diagnostics else wasm
@@ -34,10 +34,16 @@ def build_compact_guest(run, toolchain, out, variant, source, *, flags=(),
                         '-debug-prefix-map', f'{Path.home()}=/toolchain'] if diagnostics else []
     strip_flags = [] if diagnostics else ['--strip-all']
     exports = [f'--export={name}' for name in replay_abi.SIGNATURES]
-    run(f'{variant}-swift', toolchain / 'swiftc', '-target', 'wasm32-unknown-none-wasm',
-        '-enable-experimental-feature', 'Embedded', '-whole-module-optimization', optimization,
-        '-parse-as-library', *diagnostic_flags, '-Xfrontend', '-disable-stack-protector',
-        *flags, '-emit-object', *source, '-o', obj)
+    compile_object = (toolchain / 'swiftc', '-target', 'wasm32-unknown-none-wasm',
+                      '-enable-experimental-feature', 'Embedded', '-whole-module-optimization', optimization,
+                      '-parse-as-library', *diagnostic_flags, '-Xfrontend', '-disable-stack-protector',
+                      *flags, '-emit-object', *source)
+    if object_via_stdout:
+        # Swift includes the object output filename in its module hash.
+        capture = 'output=$1\nshift\nexec "$@" > "$output"'
+        run(f'{variant}-swift', '/bin/sh', '-c', capture, 'capture-object', obj, *compile_object, '-o', '-')
+    else:
+        run(f'{variant}-swift', *compile_object, '-o', obj)
     run(f'{variant}-link', toolchain / 'wasm-ld', '--no-entry', '--gc-sections',
         *strip_flags, '-z', 'stack-size=16384', '--max-memory=65536', *exports, obj, '-o', linked)
     if diagnostics:

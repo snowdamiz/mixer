@@ -256,9 +256,12 @@ def focused_preview_campaign(run, result, cases, *, mode, source, define, scope)
     result["hostExecutable"] = identity(host)
     result["native"] = observe_preview(
         run, host, run.scratch / f"{mode}.wasm", input_file, f"{mode}-native", names, expected, refusal_frame)
+    object_via_stdout = mode == "enum-throws"
+    module_name = ("-module-name", "MixerEnumTypedThrowProbe") if object_via_stdout else ()
     wasm = build_compact_guest(
         lambda *args: run.command(*args, bound=35), run.swift, run.scratch, mode, [fixture, adapter],
-        flags=("-D", define, "-module-cache-path", run.scratch / "guest-modules"))
+        flags=("-D", define, "-module-cache-path", run.scratch / "guest-modules", *module_name),
+        object_via_stdout=object_via_stdout)
     result["wasm"] = identity(wasm)
     descriptors = replay_abi.check_descriptors(wasm.read_bytes())
     result["guestDescriptors"] = {key: descriptors[key] for key in ("imports", "memories", "startFunction")}
