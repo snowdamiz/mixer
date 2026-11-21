@@ -1,0 +1,15 @@
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index f28252f16490342c8e16d60712cea9a27ab5be70..9126835a0eb39d322f9acbd708657865dae467ac 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -927 +927,2 @@ private struct QueueSyncView {
+-        let canOpenSignedCommit = !inactive && !photoPending && !reportPending && drafts.contains { $0.id == state.draft.id }
++        let showsSignedCommit = state.committed == nil && !photoBusy && !photoPending && !reportPending &&
++            drafts.contains { $0.id == state.draft.id }
+@@ -960 +961,2 @@ private struct QueueSyncView {
+-                    if canOpenSignedCommit {
++                    // The focused V4 field handoff requires stable sibling identities in the saving frame.
++                    if showsSignedCommit {
+@@ -962 +964 @@ private struct QueueSyncView {
+-                            .accessibilityIdentifier("entry-open-signed-commit")
++                            .accessibilityIdentifier("entry-open-signed-commit").disabled(state.saving)

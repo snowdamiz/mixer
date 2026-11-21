@@ -1024,6 +1024,16 @@ stopped at the emulator userdata space check. All four attempts closed
 their owned groups, released the private ports, and removed scratch.
 [Installed save refusal](verification/receipts/fieldlog-android-focused-draft-save-20261121.json)
 
+The reviewed correction keeps the signed Entry Commit button present
+and disabled while the ordinary editor saves. On the corrected API 36
+APK, Note retained focus after Back and both Save draft and Commit
+entry reached disk once. The draft and committed entry reused the
+same ID and seven JPEGs. The commit appended one outbox event.
+Separate cold launches confirmed exact saved and committed bytes.
+The first run committed successfully but stopped at the entry-row
+locator. Both runs closed their groups and removed scratch.
+[Correction and installed verification](verification/receipts/fieldlog-android-focused-entry-save-installed-114e9820.json)
+
 ## November 21 FieldLog release-origin restart
 
 The stock loopback Go service delivered the exact Pair24 sequence-1
