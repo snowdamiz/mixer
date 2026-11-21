@@ -96,9 +96,33 @@ def associated_types_control(run, host, wasm):
     )
 
 
-def replay_preview(run, host, wasm, name, operands, expected):
+def property_wrapper_control(run, host, wasm):
+    cases = {
+        "set": (240, 240, 1),
+        "clamp": (1_250, 1_000, 2),
+        "same-bounded-value": (1_200, 1_000, 2),
+        "update-after-refusal": (480, 480, 3),
+    }
+    operands = {name: struct.pack("<H", reading) for name, (reading, *_) in cases.items()}
+    expected = [bytes(8), *(struct.pack("<2I", value, changes) for _, value, changes in cases.values())]
+    return dict(
+        inputLayout="little-endian UInt16 reading; 65535 reserved",
+        frameLayout="little-endian UInt32 bounded reading followed by UInt32 count of changes",
+        **replay_preview(run, host, wasm, "wrapper", operands, expected, refused_input=b"\xff\xff"),
+    )
+
+
+def replay_preview(run, host, wasm, name, operands, expected, *, refused_input=None):
     input_file = run.scratch / f"{name}-inputs"
-    input_file.write_bytes(b"".join(operands.values()))
+    events = list(operands.values())
+    if refused_input is None:
+        invalid = events[0][:-1]
+        refusal_frame = expected[-1]
+    else:
+        invalid = refused_input
+        refusal_frame = expected[-2]
+        events.insert(-1, invalid)
+    input_file.write_bytes(b"".join(events))
     observations = {}
     names = ["initial", *operands]
     for mode in ("native", "guest"):
@@ -108,19 +132,21 @@ def replay_preview(run, host, wasm, name, operands, expected):
         require(len(frames) == len(expected), f"{label}: missing frames")
         for case, actual, target in zip(names, frames, expected, strict=True):
             require(actual == target, f"{label}: {case} expected {target.hex()}, got {actual.hex()}")
+        refused = base64.b64decode(row.pop("refusedFrame"), validate=True)
+        require(refused == refusal_frame, f"{label}: refusal changed the previous frame")
         fuel = row.pop("guestFuel")
-        require(row == dict(truncatedRefusedWithoutPublication=True, closed=mode == "guest"),
-                f"{label}: unexpected refusal or close: {row}")
+        require(row == dict(closed=mode == "guest"), f"{label}: unexpected close: {row}")
         require((len(fuel) == len(operands) and all(0 < turn <= 1_000_000 for turn in fuel))
                 if mode == "guest" else not fuel, f"{label}: unexpected fuel: {fuel}")
-        observations[mode] = dict(**row, guestFuel=fuel,
+        observations[mode] = dict(**row, guestFuel=fuel, refusedFrameHex=refused.hex(),
                                  framesHex=dict(zip(names, (frame.hex() for frame in frames), strict=True)))
     require(observations["native"]["framesHex"] == observations["guest"]["framesHex"],
             f"{name}: frame bytes differ between native Swift and the owned VM")
     return dict(
         inputFile=identity(input_file),
+        inputOrderHex=[event.hex() for event in events],
         inputsHex={case: value.hex() for case, value in operands.items()},
-        truncatedInputBytes=len(next(iter(operands.values()))) - 1,
+        refusedInputHex=invalid.hex(),
         **observations,
     )
 
@@ -137,8 +163,10 @@ def campaign(run):
     prior = ROOT / "verification/receipts/l03-d3-task-review-event-trap-7b61fe1c.json"
     floating = HERE / "FloatingPoint.swift"
     associated = HERE / "AssociatedTypes.swift"
+    wrapper = HERE / "PropertyWrapper.swift"
     preview_guest = HERE / "CompactPreviewGuest.swift"
-    host = [HERE / "CompactHost.swift", floating, associated, BENCHMARK / "MatchedTask.swift", model, *runtime_sources]
+    host = [HERE / "CompactHost.swift", floating, associated, wrapper,
+            BENCHMARK / "MatchedTask.swift", model, *runtime_sources]
     native = HERE / "Sources/FeatureProbe/main.swift"
     version_commands = {
         "macOS": ("/usr/bin/sw_vers",),
@@ -179,7 +207,10 @@ def campaign(run):
     associated_wasm = build_compact_guest(
         lambda *args: call(*args, bound=35), run.swift, out, "associated", [associated, preview_guest],
         flags=("-D", "ASSOCIATED_TYPES_GUEST", "-module-cache-path", out / "guest-modules"))
-    for preview_wasm in (floating_wasm, associated_wasm):
+    wrapper_wasm = build_compact_guest(
+        lambda *args: call(*args, bound=35), run.swift, out, "wrapper", [wrapper, preview_guest],
+        flags=("-D", "PROPERTY_WRAPPER_GUEST", "-module-cache-path", out / "guest-modules"))
+    for preview_wasm in (floating_wasm, associated_wasm, wrapper_wasm):
         replay_abi.check_descriptors(preview_wasm.read_bytes())
     refusals = replay_abi.negative_controls(module, descriptor)
     mutated, flag_offset = shared_memory_control(module)
@@ -213,6 +244,7 @@ def campaign(run):
 
     floating_point = floating_point_control(run, out / "compact-host", floating_wasm)
     associated_types = associated_types_control(run, out / "compact-host", associated_wasm)
+    property_wrapper = property_wrapper_control(run, out / "compact-host", wrapper_wasm)
     disassembly = call("floating-disassembly", run.swift / "llvm-objdump", "--disassemble", floating_wasm)[0]
     instructions = sorted(set(re.findall(r"\bf(?:32|64)\.(?:add|sub|mul|div|lt|eq)\b", disassembly)))
     require(len(instructions) == 12, f"missing floating-point instructions in the executed module: {instructions}")
@@ -249,6 +281,10 @@ def campaign(run):
             installedABI="Guest UI v1", vmProfile="table-memory-v3",
             memoryPages=1, fuelPerTurn=1_000_000, hostCallsPerTurn=0,
             wasm=identity(associated_wasm), **associated_types),
+        propertyWrapperPreview=dict(
+            installedABI="Guest UI v1", vmProfile="table-memory-v3",
+            memoryPages=1, fuelPerTurn=1_000_000, hostCallsPerTurn=0,
+            wasm=identity(wrapper_wasm), **property_wrapper),
         compactWasm=identity(wasm), vmArchive=identity(archive),
         descriptorGuardRefusals=sorted(refusals),
         sharedMemoryControl=dict(**identity(rejected_wasm), changedByteOffset=flag_offset,

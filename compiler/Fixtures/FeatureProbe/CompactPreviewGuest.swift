@@ -1,4 +1,7 @@
-#if ASSOCIATED_TYPES_GUEST
+#if PROPERTY_WRAPPER_GUEST
+private typealias Preview = PropertyWrapperPreview
+private nonisolated(unsafe) var preview = Preview()
+#elseif ASSOCIATED_TYPES_GUEST
 private typealias Preview = AssociatedTypesPreview
 #else
 private typealias Preview = FloatingPointPreview
@@ -31,7 +34,11 @@ public func guestEvent(_ length: UInt32) -> UInt32 {
         let input = UnsafeRawBufferPointer(rebasing: buffer[eventStart ..< eventStart + Int(length)])
         let output = UnsafeMutableRawBufferPointer(
             rebasing: buffer[documentStart ..< documentStart + Preview.outputSize])
+#if PROPERTY_WRAPPER_GUEST
+        return preview.render(input, into: output) ? 0 : 1
+#else
         return Preview.render(input, into: output) ? 0 : 1
+#endif
     }
 }
 

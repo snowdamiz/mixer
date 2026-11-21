@@ -76,6 +76,22 @@ Closing the guest session makes the old handle invalid. This covers
 statically specialized generic calls on arm64 macOS.
 [Associated-type replay receipt](../../../verification/receipts/l03-swift-associated-types-v73.json)
 
+## Swift property-wrapper replay
+
+Run the compact owned-VM replay above. Native Swift and Embedded Swift
+compile the same `PropertyWrapper.swift`. The host sends little-endian
+`UInt16` readings from a file as successive preview events. The value-type
+wrapper caps the stored reading at 1,000. Its `$measurement` projection
+counts changes to that bounded value.
+
+Both paths must emit the same eight-byte frames. Readings 240, 1,250 and
+1,200 produce reading/count pairs (240, 1), (1,000, 2) and (1,000, 2).
+The full-width reserved reading 65,535 is refused and leaves the previous
+frame byte-identical. The next reading, 480, must produce (480, 3).
+The Guest UI V1 session closes and its stale handle is refused. This covers
+one concrete wrapper and projection on arm64 macOS.
+[Property-wrapper replay receipt](../../../verification/receipts/l03-swift-property-wrapper-v77.json)
+
 ## Owned VM capability and validation controls
 
 The compact replay executes the suites below using Rust 1.99.0. To run them

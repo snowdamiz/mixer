@@ -1,0 +1,331 @@
+{
+  "schemaVersion": 1,
+  "work": "W07/L03, product plan §7.3",
+  "status": "passed_scoped_host_control",
+  "observedUTC": "2026-11-21T06:49:52.024186+00:00",
+  "publicBaseRevision": "03e50d05d2f56de83ff6b5d90593e29a8e4baaf7",
+  "publicBaseTree": "de681738a6ea84fd329a30482e32cf0e386eac3a",
+  "testedTreeBeforeReceipt": "b1ea61e62cbf6373d1121fdb0c64b301e8f6d2b2",
+  "vmTree": "1682169a33d05bd96c7f9fd433d556107bbb7a66",
+  "vmLockBlob": "8410bf3ba3962528bb5566f6dee259c1d8016ff1",
+  "sourceManifestSHA256": "0a7e7469774e87c6e46122617df2067fcd51f02896ddefaa88792534acc367d0",
+  "replaySourcesSHA256": {
+    "compiler/Fixtures/FeatureProbe/replay.py": "7f8f9c6c860e01968ac1ab9ccce3d5dff9c1c48c55c508dc0288e1cf3985d972",
+    "compiler/Fixtures/FeatureProbe/CompactPreviewGuest.swift": "09a9d084223bb32c60109c04943d3966b9621ea859bed45675a077b876417cbd",
+    "compiler/Fixtures/FeatureProbe/CompactHost.swift": "a8beea938167204a6b8e682ae07d376cadc28970ea0c84521861b4c797a4974b",
+    "compiler/Fixtures/FeatureProbe/PropertyWrapper.swift": "472da4e3283880b85ca6e702e6f132a7186d1ab3820996badaca9a6fd6935597",
+    "compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift": "e2539a9ff78652d4b0087a63bad89172cd09aacb5457185e513f204ba1cc8b31"
+  },
+  "tools": {
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "nativeSwift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "guestSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "linker": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "objdump": "LLVM (http://llvm.org/):\n  LLVM version 21.0.0\n  Optimized build.",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "python": "3.14.8",
+    "architecture": "arm64"
+  },
+  "scope": "One concrete value-type wrapper with a mutating setter and read-only projection. Unsigned host fixtures on arm64 macOS.",
+  "replay": "python3 -B compiler/Fixtures/FeatureProbe/replay.py",
+  "hostExecutable": {
+    "bytes": 2035296,
+    "sha256": "91aba964ce0a228628ffd36d1b62f702e54413f6053af82072edf190f431ab32"
+  },
+  "vmArchive": {
+    "bytes": 19309144,
+    "sha256": "0beb9fbab5f2d1f718482391a43ecb57a3e76f6e3e0d31a0676b87b7a1852116"
+  },
+  "propertyWrapperPreview": {
+    "installedABI": "Guest UI v1",
+    "vmProfile": "table-memory-v3",
+    "memoryPages": 1,
+    "fuelPerTurn": 1000000,
+    "hostCallsPerTurn": 0,
+    "wasm": {
+      "bytes": 528,
+      "sha256": "9690a360f7ddb9ba6ee97b0bc2ff26662d9e63959e921dea356db0509f0752e8"
+    },
+    "inputLayout": "little-endian UInt16 reading; 65535 reserved",
+    "frameLayout": "little-endian UInt32 bounded reading followed by UInt32 count of changes",
+    "inputFile": {
+      "bytes": 10,
+      "sha256": "7eac464b4f1e46475183330437c5b14abb19c14c5757019619386e2920553a12"
+    },
+    "inputOrderHex": [
+      "f000",
+      "e204",
+      "b004",
+      "ffff",
+      "e001"
+    ],
+    "inputsHex": {
+      "set": "f000",
+      "clamp": "e204",
+      "same-bounded-value": "b004",
+      "update-after-refusal": "e001"
+    },
+    "refusedInputHex": "ffff",
+    "native": {
+      "closed": false,
+      "guestFuel": [],
+      "refusedFrameHex": "e803000002000000",
+      "framesHex": {
+        "initial": "0000000000000000",
+        "set": "f000000001000000",
+        "clamp": "e803000002000000",
+        "same-bounded-value": "e803000002000000",
+        "update-after-refusal": "e001000003000000"
+      }
+    },
+    "guest": {
+      "closed": true,
+      "guestFuel": [
+        86,
+        86,
+        76,
+        86
+      ],
+      "refusedFrameHex": "e803000002000000",
+      "framesHex": {
+        "initial": "0000000000000000",
+        "set": "f000000001000000",
+        "clamp": "e803000002000000",
+        "same-bounded-value": "e803000002000000",
+        "update-after-refusal": "e001000003000000"
+      }
+    },
+    "guestRetirement": {
+      "closeSymbol": "mixer_vm_capability_session_close_v1",
+      "staleHandleProbe": "mixer_vm_capability_session_startup_v1",
+      "staleHandleStatus": 3
+    }
+  },
+  "maintainedControls": {
+    "nativeFeatureProbe": {
+      "status": "passed",
+      "completionBasisPoints": 5000,
+      "codableRoundTrip": true,
+      "unicodePreserved": true,
+      "emptyTitleRejected": true,
+      "wrongFieldTypeRejected": true,
+      "nonfiniteRejected": true
+    },
+    "fieldLogReviewFrameSHA256": [
+      "cba98fab9e4bed642f3b0ce41506d7a98eb2bebe37528ce1805821ac2bc49833",
+      "0d04a715c3a5fb3aae1fad401801ead8d555944960daa5f8becfc71b72460eae",
+      "d6fa309e765b4ddf5e8ee08dfdee4339ef4d5deb2f8b16e18ea591d0ee07715c",
+      "9f9839813937d389aeef9af99de5ee771c334ec97f92da084018d72ccabc7851"
+    ],
+    "fieldLogRefusalsPerPath": {
+      "truncated": 3,
+      "mismatched": 3
+    },
+    "floatingPointEventCount": 7,
+    "associatedTypeEventCount": 4,
+    "descriptorGuardRefusals": [
+      "differentMaximum",
+      "differentMinimum",
+      "extraFunctionExport",
+      "extraMemory",
+      "extraMemoryExport",
+      "importedFunction",
+      "missingMemory",
+      "missingMemoryExport",
+      "renamedMemoryExport",
+      "sharedMemory",
+      "startSection",
+      "unboundedMemory",
+      "wrongFunctionSignature",
+      "wrongMemoryExportIndex"
+    ],
+    "sharedMemoryRefusal": {
+      "bytes": 2790,
+      "sha256": "07adb220a27faf76114aaa9744a0f9c59de9f5506f0ac8215e431b06b469655c",
+      "changedByteOffset": 110,
+      "sessionHandlePublished": false,
+      "validation": {
+        "code": "unsupported",
+        "offset": 111,
+        "status": 1,
+        "message": "shared/memory64 memory is unsupported"
+      },
+      "construction": {
+        "message": "shared/memory64 memory is unsupported",
+        "code": "unsupported",
+        "offset": 111,
+        "status": 1
+      }
+    },
+    "vmSuites": {
+      "experimental_guest_ui_validation": "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "experimental_capability_guest": "test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+    }
+  },
+  "commands": [
+    {
+      "label": "wrapper-swift",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-whole-module-optimization",
+        "-Osize",
+        "-parse-as-library",
+        "-Xfrontend",
+        "-disable-stack-protector",
+        "-D",
+        "PROPERTY_WRAPPER_GUEST",
+        "-module-cache-path",
+        "$RUN/guest-modules",
+        "-emit-object",
+        "$REPO/compiler/Fixtures/FeatureProbe/PropertyWrapper.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/CompactPreviewGuest.swift",
+        "-o",
+        "$RUN/wrapper.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "wrapper-link",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--no-entry",
+        "--gc-sections",
+        "--strip-all",
+        "-z",
+        "stack-size=16384",
+        "--max-memory=65536",
+        "--export=mixer_guest_ui_start_v1",
+        "--export=mixer_guest_ui_event_v1",
+        "--export=mixer_guest_capability_ready_v1",
+        "$RUN/wrapper.o",
+        "-o",
+        "$RUN/wrapper.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "vm-build",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--lib",
+        "--offline",
+        "--locked",
+        "--release",
+        "--jobs",
+        "1",
+        "--features",
+        "experimental-capability-native",
+        "--manifest-path",
+        "$REPO/vm/Cargo.toml",
+        "--target-dir",
+        "$RUN/rust"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "host-build",
+      "argv": [
+        "/usr/bin/swiftc",
+        "-O",
+        "-whole-module-optimization",
+        "-swift-version",
+        "6",
+        "-D",
+        "SWIFT_SUPPORT_MATRIX",
+        "-parse-as-library",
+        "-module-cache-path",
+        "$RUN/native-modules",
+        "-I",
+        "$RUN",
+        "$REPO/compiler/Fixtures/FeatureProbe/CompactHost.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/FloatingPoint.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/AssociatedTypes.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/PropertyWrapper.swift",
+        "$REPO/compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift",
+        "$REPO/compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift",
+        "$RUN/rust/release/libmixer_vm.a",
+        "-o",
+        "$RUN/compact-host"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "wrapper-native",
+      "argv": [
+        "$RUN/compact-host",
+        "wrapper-native",
+        "$RUN/wrapper.wasm",
+        "$RUN/wrapper-inputs"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "wrapper-guest",
+      "argv": [
+        "$RUN/compact-host",
+        "wrapper-guest",
+        "$RUN/wrapper.wasm",
+        "$RUN/wrapper-inputs"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "experimental_guest_ui_validation",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--test",
+        "experimental_guest_ui_validation",
+        "--offline",
+        "--locked",
+        "--release",
+        "--jobs",
+        "1",
+        "--features",
+        "experimental-capability-native",
+        "--manifest-path",
+        "$REPO/vm/Cargo.toml",
+        "--target-dir",
+        "$RUN/rust"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "experimental_capability_guest",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--test",
+        "experimental_capability_guest",
+        "--offline",
+        "--locked",
+        "--release",
+        "--jobs",
+        "1",
+        "--features",
+        "experimental-capability-native",
+        "--manifest-path",
+        "$REPO/vm/Cargo.toml",
+        "--target-dir",
+        "$RUN/rust"
+      ],
+      "exit": 0
+    }
+  ],
+  "custody": {
+    "directReapedAndGroupsObservedAbsent": 34,
+    "unknown": 0,
+    "observedPeakScratchBytes": 79708556,
+    "scratchLimitBytes": 3221225472,
+    "scratchRemoved": true
+  }
+}

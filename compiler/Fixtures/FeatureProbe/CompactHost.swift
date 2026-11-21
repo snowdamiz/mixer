@@ -87,31 +87,45 @@ private struct NativePreview: TaskPath {
 
 private struct PreviewObservation: Encodable {
     let frames: [Data]
-    let truncatedRefusedWithoutPublication: Bool
+    let refusedFrame: Data
     let guestFuel: [UInt64]
     let closed: Bool
 }
 
 private func exercisePreview(
-    _ path: inout some TaskPath, inputs: Data, width: Int
+    _ path: inout some TaskPath, inputs: Data, width: Int, refusePenultimateEvent: Bool = false
 ) throws -> PreviewObservation {
-    try check(!inputs.isEmpty && inputs.count <= 8 * width && inputs.count.isMultiple(of: width),
-              "invalid preview case file")
+    let minimumEvents = refusePenultimateEvent ? 3 : 1
+    try check(inputs.count >= minimumEvents * width && inputs.count <= 8 * width
+        && inputs.count.isMultiple(of: width), "invalid preview case file")
+    var events = stride(from: 0, to: inputs.count, by: width).map { offset in
+        (bytes: Array(inputs[offset ..< offset + width]), accepts: true)
+    }
+    if refusePenultimateEvent {
+        events[events.count - 2].accepts = false
+    } else {
+        events.append((Array(inputs.prefix(width - 1)), false))
+    }
+
     var frames = [try path.frame()]
+    var refusedFrame: Data?
     var guestFuel: [UInt64] = []
     let owned = path as? OwnedTask
-    for offset in stride(from: 0, to: inputs.count, by: width) {
-        let accepted = try path.activate(Array(inputs[offset ..< offset + width]))
-        try check(accepted, "valid preview input refused at offset \(offset)")
-        frames.append(try path.frame())
-        if let owned { guestFuel.append(owned.fuel) }
+    for event in events {
+        let accepted = try path.activate(event.bytes)
+        let frame = try path.frame()
+        try check(accepted == event.accepts, "unexpected preview event result")
+        if accepted {
+            frames.append(frame)
+            if let owned { guestFuel.append(owned.fuel) }
+        } else {
+            try check(frame == frames.last, "refused preview event changed the frame")
+            refusedFrame = frame
+        }
     }
-    let refused = try !path.activate(Array(inputs.prefix(width - 1)))
-    let unchanged = try path.frame() == frames.last
-    try check(refused && unchanged, "truncated preview input changed the result")
+    guard let refusedFrame else { throw CheckFailed(reason: "missing preview refusal") }
     try owned?.close()
-    return PreviewObservation(frames: frames, truncatedRefusedWithoutPublication: refused,
-                              guestFuel: guestFuel, closed: owned != nil)
+    return PreviewObservation(frames: frames, refusedFrame: refusedFrame, guestFuel: guestFuel, closed: owned != nil)
 }
 
 @main private enum CompactHost {
@@ -119,7 +133,8 @@ private func exercisePreview(
         let args = CommandLine.arguments
         try check(args.count >= 3, "expected a mode and Wasm path")
         let mode = args[1]
-        let preview = ["floating-native", "floating-guest", "associated-native", "associated-guest"].contains(mode)
+        let preview = ["floating-native", "floating-guest", "associated-native", "associated-guest",
+                       "wrapper-native", "wrapper-guest"].contains(mode)
         try check(args.count == (preview ? 4 : 3), "unexpected replay arguments")
         let encoder = JSONEncoder()
         let result: Data
@@ -143,12 +158,27 @@ private func exercisePreview(
                 : NativePreview(outputSize: AssociatedTypesPreview.outputSize, render: AssociatedTypesPreview.render)
             let inputs = try Data(contentsOf: URL(fileURLWithPath: args[3]))
             result = try encoder.encode(exercisePreview(&path, inputs: inputs, width: width))
-        case "floating-guest", "associated-guest":
-            let width = mode == "floating-guest" ? FloatingPointPreview.inputSize : AssociatedTypesPreview.inputSize
+        case "wrapper-native":
+            var state = PropertyWrapperPreview()
+            var path = NativePreview(outputSize: PropertyWrapperPreview.outputSize) { input, output in
+                state.render(input, into: output)
+            }
+            let inputs = try Data(contentsOf: URL(fileURLWithPath: args[3]))
+            result = try encoder.encode(exercisePreview(
+                &path, inputs: inputs, width: PropertyWrapperPreview.inputSize, refusePenultimateEvent: true))
+        case "floating-guest", "associated-guest", "wrapper-guest":
+            let wrapper = mode == "wrapper-guest"
+            let width: Int
+            switch mode {
+            case "floating-guest": width = FloatingPointPreview.inputSize
+            case "associated-guest": width = AssociatedTypesPreview.inputSize
+            default: width = PropertyWrapperPreview.inputSize
+            }
             var path = OwnedTask(try Data(contentsOf: URL(fileURLWithPath: args[2])), measureComponents: false)
             let inputs = try Data(contentsOf: URL(fileURLWithPath: args[3]))
             try path.open()
-            result = try encoder.encode(exercisePreview(&path, inputs: inputs, width: width))
+            result = try encoder.encode(exercisePreview(
+                &path, inputs: inputs, width: width, refusePenultimateEvent: wrapper))
         default:
             throw CheckFailed(reason: "unknown mode")
         }
