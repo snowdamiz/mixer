@@ -1,0 +1,75 @@
+{
+  "scope": "Root runtime verification of the exact composed v79 browser release and promotion group paths.",
+  "revision": "b93f6974350c0f28d2f8c022b1e384227f28b5bf",
+  "tree": "a846c7eb9b9f4e86ac2b011bfce30dc29846415d",
+  "beforeAfterIdenticalFiles": 449,
+  "testCount": 7,
+  "commands": [
+    {
+      "name": "locked-dependencies",
+      "argv": [
+        "/opt/homebrew/bin/mix",
+        "deps.get",
+        "--only",
+        "test"
+      ],
+      "exitCode": 0,
+      "terminalCustody": "TERMINAL",
+      "stdout": {
+        "path": "locked-dependencies.stdout",
+        "bytes": 1336,
+        "sha256": "6dec96b0711959550e488a3694bf7780ccdd2ad9e80904cf2b2fa5fe32ab0fea"
+      },
+      "stderr": {
+        "path": "locked-dependencies.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "browser-promotion",
+      "argv": [
+        "/bin/sh",
+        "scripts/replay-local-stage-promotion-browser.sh"
+      ],
+      "exitCode": 0,
+      "terminalCustody": "TERMINAL",
+      "stdout": {
+        "path": "browser-promotion.stdout",
+        "bytes": 6385,
+        "sha256": "20fdd817ec568b3c114abd3b3c1147ee9eafa471304fb7afd40af4fb58599718"
+      },
+      "stderr": {
+        "path": "browser-promotion.stderr",
+        "bytes": 606,
+        "sha256": "79d9da2d35209d5a838063b212747bc1b6d64f41b27a90d95e54fa73e1c18678"
+      }
+    }
+  ],
+  "cleanup": {
+    "postgresStopped": true,
+    "loopbackPortReusable": true,
+    "ownedFixtureScratchRemoved": true,
+    "outerScratchRemoved": true
+  },
+  "hostedV78": {
+    "revision": "814c7218c088a16b7218e75ba0e197162401d167",
+    "phoenix": {
+      "run": 44880492550,
+      "conclusion": "success",
+      "artifactId": 14697379865,
+      "zipSha256": "781cd8e29f84a892eb020d533a1b54a026ffcb9c5b1c5411ddd299e6b1fe8e44",
+      "testsPassed": 1027,
+      "testsSkipped": 32,
+      "sourceUnchanged": true,
+      "postgresStopped": true,
+      "scratchRemoved": true,
+      "exactReplayPassed": true
+    },
+    "identityNetwork": {
+      "run": 44880492543,
+      "job": 136774532487,
+      "conclusion": "success"
+    }
+  }
+}

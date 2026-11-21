@@ -256,6 +256,16 @@ each exact target independently, so it reports the promotion group as
 unavailable. Independent review passed the parser, focused console tests,
 and production build. [Console promotion replay](verification/receipts/console-staged-release-head-v77.json)
 
+The opt-in group view reads both committed destination receipts and their
+current heads in one PostgreSQL statement. The live console retained
+Android's original sequence 12 and displayed its advanced head at 13.
+Independent review passed the request and client controls. The exact
+composed root replay passed all seven Bandit/PostgreSQL tests, preserved
+449 source inputs, stopped PostgreSQL, and removed scratch. Hosted v78
+Phoenix and Identity Network passed.
+[Group replay](verification/receipts/console-exact-stage-promotion-group.json) ·
+[Root verification](verification/receipts/console-promotion-group-root-v79.json)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,
