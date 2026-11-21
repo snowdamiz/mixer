@@ -232,7 +232,24 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     ios = spaced_assignment(destination.ios)
     android = spaced_assignment(destination.android)
     body = promotion_body(ios, android)
-    request = &promotion_post(c, token, @promotion_path, &1)
+
+    idempotency_key =
+      :crypto.hash(
+        :sha256,
+        Enum.join(["mixer-local-release-v3", "POST", @promotion_path, @reason, body], <<0>>)
+      )
+      |> Base.encode16(case: :lower)
+
+    request =
+      &promotion_post(
+        c,
+        token,
+        @promotion_path,
+        &1,
+        [{"x-mixer-reason", @reason}],
+        idempotency_key
+      )
+
     unauthorized = &promotion_post(c, &1, @promotion_path, body)
 
     assert request.(body).status == 404
@@ -296,16 +313,42 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
       assert_empty_stage_promotion!()
     end)
 
+    expected = %{
+      "ios" => promotion_receipt(destination.ios),
+      "android" => promotion_receipt(destination.android),
+      "delivery" => "local_only"
+    }
+
+    if cli = System.get_env("MIXER_TEST_RELEASE_CLI") do
+      receipts =
+        Map.merge(expected, %{
+          "status" => "ok",
+          "action" => "promote-environment",
+          "direction_id" => @promotion_direction
+        })
+
+      for _ <- 1..2 do
+        StockReleaseCLI.promote_environment!(
+          cli,
+          c.http_port,
+          token,
+          %{
+            direction: @promotion_direction,
+            reason: @reason,
+            ios: %{source_sequence: 7, assignment: ios},
+            android: %{source_sequence: 9, assignment: android}
+          },
+          receipts
+        )
+      end
+    end
+
     response = retry_release_write(fn -> request.(body) end, 2)
     assert response.status == 200
     assert response_header(response, "cache-control") == ["no-store"]
     response_payload = Jason.decode!(response.body)
 
-    assert response_payload == %{
-             "ios" => promotion_receipt(destination.ios),
-             "android" => promotion_receipt(destination.android),
-             "delivery" => "local_only"
-           }
+    assert response_payload == expected
 
     assert %{status: 200, body: replay} = request.(body)
     assert Jason.decode!(replay) == response_payload
@@ -1495,10 +1538,10 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
   end
 
   defp promotion_body(ios, android, source_ios_sequence \\ "7", extra \\ "") do
-    ~s({"source_android_sequence":9,"ios_signed_assignment":) <>
-      ios <>
-      ~s(,"source_ios_sequence":) <>
+    ~s({"source_ios_sequence":) <>
       source_ios_sequence <>
+      ~s(,"source_android_sequence":9,"ios_signed_assignment":) <>
+      ios <>
       ~s(,"android_signed_assignment":) <> android <> extra <> "}"
   end
 
@@ -1510,7 +1553,14 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     }
   end
 
-  defp promotion_post(c, token, path, bytes, metadata \\ [{"x-mixer-reason", @reason}]) do
+  defp promotion_post(
+         c,
+         token,
+         path,
+         bytes,
+         metadata \\ [{"x-mixer-reason", @reason}],
+         key \\ "http-promote"
+       ) do
     authorization = if token, do: [{"authorization", "Bearer " <> token}], else: []
 
     http(
@@ -1520,7 +1570,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
         metadata ++
         [
           {"content-type", "application/json"},
-          {"idempotency-key", "http-promote"},
+          {"idempotency-key", key},
           {"content-length", Integer.to_string(byte_size(bytes))}
         ],
       "POST",
