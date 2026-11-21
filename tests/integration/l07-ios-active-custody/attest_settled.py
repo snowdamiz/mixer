@@ -4,6 +4,7 @@
 import argparse
 import base64
 from contextlib import ExitStack, closing
+import errno
 import hashlib
 from http.client import HTTPConnection
 import io
@@ -12,10 +13,10 @@ import os
 from pathlib import Path
 import re
 import runpy
+import selectors
 import signal
 import sqlite3
 import stat
-import subprocess
 import sys
 import tarfile
 import time
@@ -36,8 +37,9 @@ HEX = re.compile(r"[0-9a-f]{64}")
 ARCHIVE_LIMIT = 256 << 20
 INVENTORY_LIMIT = 8 << 20
 COMMAND_LOG_LIMIT = 4 << 20
+COMMAND_CLEANUP_SECONDS = 3
 
-# Reuse the v74 process adapter and nested-receipt validators without starting a worker.
+# Reuse the v74 nested-receipt validators without starting a worker.
 sys.path.insert(0, str(REPO / "hosted/priv/development"))
 try:
     import ios_build_custody as ios
@@ -46,7 +48,7 @@ finally:
     sys.path.pop(0)
 
 kit = runpy.run_path(str(REPO / "tests/integration/l05-pair25-http/run.py"))
-wait, group_absent = (kit[name] for name in ("wait", "group_absent"))
+group_absent = kit["group_absent"]
 
 
 def sha(data):
@@ -65,10 +67,6 @@ class CustodyUnknown(RuntimeError):
     pass
 
 
-class CommandOutputLimit(RuntimeError):
-    pass
-
-
 def save_record(path, value):
     pending = path.with_suffix(".pending")
     with pending.open("x") as stream:
@@ -84,87 +82,210 @@ def save_record(path, value):
         os.close(fd)
 
 
+def exec_command(argv, cwd, env, deadline, gate, launch, stdin, stdout, stderr):
+    # This child becomes the tool in its own session. There is no launcher
+    # process whose exit could be mistaken for closure of the tool's group.
+    try:
+        os.setsid()
+        os.chdir(cwd)
+        for source, target in ((stdin, 0), (stdout, 1), (stderr, 2)):
+            os.dup2(source, target)
+        for fd in os.listdir("/dev/fd"):
+            fd = int(fd)
+            if fd > 2 and fd not in (gate, launch):
+                try:
+                    os.close(fd)
+                except OSError as error:
+                    if error.errno != errno.EBADF:
+                        raise
+        for name in ("SIGPIPE", "SIGXFZ", "SIGXFSZ"):
+            if hasattr(signal, name):
+                signal.signal(getattr(signal, name), signal.SIG_DFL)
+        os.write(launch, b"R")
+        require(os.read(gate, 1) == b"G" and time.monotonic() < deadline, "command gate expired")
+        os.close(gate)
+        os.execvpe(argv[0], argv, env)
+    except BaseException:
+        try:
+            os.write(launch, b"F")
+        finally:
+            os._exit(125)
+    os._exit(125)
+
+
 def run_command(work, name, argv, *, seconds, cwd=None, env, secret=None):
-    """Run one trusted tool with private file logs and explicit group custody."""
+    """Run one trusted tool under a shared launch and collection deadline."""
+    deadline = time.monotonic() + seconds
     hold = work.parent / "HOLD.json"
     require(not os.path.lexists(hold), "prior command custody is unresolved")
+    require(signal.getsignal(signal.SIGCHLD) == signal.SIG_DFL, "command requires exclusive child reaping")
     logs = work / "commands" / name
     logs.mkdir(parents=True, mode=0o700)
     argv = list(map(str, argv))
     custody = dict(command=name, argv=argv, cwd=str(cwd or work), seconds=seconds,
                    custody="UNKNOWN", directChildReaped=False, groupAbsent=False,
-                   descriptorsClosed=False, signalAttempted=False, stage="launch", logs=str(logs))
-    stdout, stderr = logs / "stdout", logs / "stderr"
+                   descriptorsClosed=False, signalAttempted=False, stage="launch", logs=str(logs),
+                   stdoutEOF=False, stderrEOF=False, execPipeEOF=False, outputLimitExceeded=False)
+    buffers = {stream: bytearray() for stream in ("stdout", "stderr")}
+    unresolved = None
+
+    def persist_logs():
+        for stream, data in buffers.items():
+            with (logs / stream).open("xb") as output:
+                output.write(data)
+        custody["logBytes"] = {stream: len(data) for stream, data in buffers.items()}
+
     try:
         with ExitStack() as descriptors:
-            out = descriptors.enter_context(stdout.open("xb"))
-            err = descriptors.enter_context(stderr.open("xb"))
-            stdin = subprocess.DEVNULL
+            def pipe():
+                read, write = os.pipe()
+                return (descriptors.enter_context(os.fdopen(read, "rb", buffering=0)),
+                        descriptors.enter_context(os.fdopen(write, "wb", buffering=0)))
+
+            gate_read, gate_write = pipe()
+            launch_read, launch_write = pipe()
+            output_pipes = {stream: pipe() for stream in buffers}
+            stdin_read, stdin_write = pipe()
             if secret is not None:
-                # The token is passed once via an anonymous pipe and never reaches a log or receipt.
-                stdin, writer = os.pipe()
-                descriptors.callback(os.close, stdin)
+                # Complete the anonymous token handoff before admitting any child.
+                os.set_blocking(stdin_write.fileno(), False)
+                require(stdin_write.write(secret) == len(secret), "incomplete token handoff")
+            stdin_write.close()
+            selector = descriptors.enter_context(selectors.DefaultSelector())
+            for stream, (read, _) in output_pipes.items():
+                os.set_blocking(read.fileno(), False)
+                selector.register(read, selectors.EVENT_READ, stream)
+            os.set_blocking(launch_read.fileno(), False)
+            selector.register(launch_read, selectors.EVENT_READ, "launch")
+            require(time.monotonic() < deadline, "command admission exceeded its budget")
+            save_record(hold, custody)
+            require(time.monotonic() < deadline, "command admission exceeded its budget")
+            pid = os.fork()
+            if pid == 0:
                 try:
-                    os.set_blocking(writer, False)
-                    require(os.write(writer, secret) == len(secret), "incomplete token handoff")
+                    exec_command(argv, cwd or work, env, deadline, gate_read.fileno(), launch_write.fileno(),
+                                 stdin_read.fileno(),
+                                 *(write.fileno() for _, write in output_pipes.values()))
                 finally:
-                    os.close(writer)
-            save_record(hold, custody)
-            started = time.monotonic()
-            child = native.OwnedBuildProcess(argv, cwd=cwd or work, env=env, stdin=stdin,
-                                             stdout=out, stderr=err, start_new_session=True)
-            require(type(child.pid) is int and child.pid > 1, "invalid owned process identity")
-            custody.update(pid=child.pid, pgid=child.pid, stage="reap-direct-child")
+                    os._exit(125)
+            custody.update(pid=pid, stage="await-session")
+            gate_read.close()
+            launch_write.close()
+            stdin_read.close()
+            for _, write in output_pipes.values():
+                write.close()
             save_record(hold, custody)
 
-            def reap(*, check_output=False):
-                pid, status = os.waitpid(child.pid, os.WNOHANG)
-                if pid == child.pid:
-                    child.returncode = os.waitstatus_to_exitcode(status)
-                    custody.update(exit=child.returncode, directChildReaped=True)
-                    return True
-                require(pid == 0, "unexpected waitpid identity")
-                if check_output and max(os.fstat(out.fileno()).st_size,
-                                        os.fstat(err.fileno()).st_size) > COMMAND_LOG_LIMIT:
-                    raise CommandOutputLimit("command log limit exceeded")
-                return False
+            def pump(until):
+                for key, _ in selector.select(max(0, min(0.02, until - time.monotonic()))):
+                    stream = key.data
+                    try:
+                        chunk = os.read(key.fd, 1 if stream == "launch" else 65536)
+                    except BlockingIOError:
+                        continue
+                    if stream == "launch":
+                        if custody["stage"] == "await-session":
+                            require(chunk == b"R", "owned command session was not confirmed")
+                            custody.update(pgid=pid, stage="await-exec")
+                            save_record(hold, custody)
+                            require(time.monotonic() < deadline, "command launch exceeded its budget")
+                            os.set_blocking(gate_write.fileno(), False)
+                            require(gate_write.write(b"G") == 1, "incomplete command handoff")
+                            gate_write.close()
+                        else:
+                            require(not chunk, "owned command exec failed")
+                            custody["execPipeEOF"] = True
+                            selector.unregister(key.fileobj)
+                    elif chunk:
+                        room = COMMAND_LOG_LIMIT - len(buffers[stream])
+                        buffers[stream].extend(chunk[:room])
+                        custody["outputLimitExceeded"] |= len(chunk) > room
+                    else:
+                        custody[stream + "EOF"] = True
+                        selector.unregister(key.fileobj)
 
-            try:
-                wait(lambda: reap(check_output=True), seconds - (time.monotonic() - started))
-            except (TimeoutError, CommandOutputLimit) as error:
-                custody.update(stop="timeout" if isinstance(error, TimeoutError) else "output-limit",
-                               signal="SIGKILL", stage="stop-owned-group")
+            def collect(until, *, stopping=False):
+                while time.monotonic() < until:
+                    pump(until)
+                    if not stopping:
+                        if custody["outputLimitExceeded"]:
+                            return "output-limit"
+                        if time.monotonic() >= until:
+                            break
+                    if selector.get_map():
+                        continue
+                    custody["stage"] = "reap-direct-child"
+                    if not custody["directChildReaped"]:
+                        reaped, status = os.waitpid(pid, os.WNOHANG)
+                        require(reaped in (0, pid), "unexpected waitpid identity")
+                        if reaped == pid:
+                            custody.update(exit=os.waitstatus_to_exitcode(status), directChildReaped=True)
+                    if custody["directChildReaped"]:
+                        custody["stage"] = "observe-group-absence"
+                        if group_absent(pid):
+                            custody["groupAbsent"] = True
+                            return None
+                        time.sleep(max(0, min(0.02, until - time.monotonic())))
+                return "timeout"
+
+            stop = collect(deadline)
+            if stop:
+                custody["stop"] = stop
+                require("pgid" in custody, "owned command session exceeded its budget")
+                require(not custody["directChildReaped"], "owned group closure exceeded its budget")
+                exec_confirmed = custody["execPipeEOF"]
+                if not exec_confirmed:
+                    # EOF after SIGKILL cannot establish that exec took place.
+                    selector.unregister(launch_read)
+                    gate_write.close()
+                custody.update(signal="SIGKILL", stage="stop-owned-group")
                 save_record(hold, custody)
                 custody["signalAttempted"] = True
                 try:
-                    os.killpg(child.pid, signal.SIGKILL)
+                    os.killpg(pid, signal.SIGKILL)
                     custody["signalOutcome"] = "sent"
                 except ProcessLookupError:
                     custody["signalOutcome"] = "already-absent"
                 except OSError as denied:
                     custody["signalOutcome"] = "denied" if isinstance(denied, PermissionError) else "error"
                     raise
-                custody["stage"] = "reap-after-stop"
-                wait(reap, 3)
-            custody["stage"] = "observe-group-absence"
-            wait(lambda: group_absent(child.pid), 3)
-            custody["groupAbsent"] = True
+                require(collect(time.monotonic() + COMMAND_CLEANUP_SECONDS, stopping=True) is None,
+                        "owned command closure exceeded its cleanup budget")
+                if not exec_confirmed:
+                    custody["stage"] = "await-exec"
+                    unresolved = TimeoutError("owned command exec exceeded its budget")
+                elif name == "go-build":
+                    # An interrupted compiler driver supplies no closure for
+                    # any tool it launched outside this process group.
+                    custody["stage"] = "observe-go-descendants"
+                    unresolved = RuntimeError("interrupted Go build has no descendant closure")
+            elif custody["exit"] < 0:
+                # An unsolicited signal could have closed the launch pipe
+                # before exec. A normal close-on-exec EOF is insufficient here.
+                custody["stage"] = "await-exec"
+                unresolved = RuntimeError("signal left exact command launch unconfirmed")
+        custody["descriptorsClosed"] = True
+        if unresolved is not None:
+            raise unresolved
     except BaseException as error:
+        try:
+            persist_logs()
+        except OSError as log_error:
+            error.add_note(f"Command log persistence failed: {log_error}")
         if os.path.lexists(hold):
             retain_hold(hold, custody, error)
         raise
-    custody.update(descriptorsClosed=True, stage="record-terminal")
+    custody["stage"] = "record-terminal"
     try:
-        sizes = {path.name: path.stat().st_size for path in (stdout, stderr)}
-        custody.update(custody="TERMINAL", logBytes=sizes,
-                       outputLimitExceeded=max(sizes.values()) > COMMAND_LOG_LIMIT)
+        persist_logs()
+        custody["custody"] = "TERMINAL"
         save_record(logs / "result.json", custody)
         hold.unlink()
     except BaseException as error:
         retain_hold(hold, custody, error)
     require(not custody.get("stop") and not custody["outputLimitExceeded"] and custody["exit"] == 0,
             f"{name} failed or exceeded its budget. See {logs}")
-    return stdout.read_bytes()
+    return bytes(buffers["stdout"])
 
 
 def retain_hold(hold, custody, error):

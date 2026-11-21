@@ -1,4 +1,4 @@
-"""Inert admission controls. No network, database server, or subprocess runs."""
+"""Inert admission and process controls. No product services or native tools."""
 
 import base64
 from contextlib import closing
@@ -9,9 +9,10 @@ import signal
 import sqlite3
 import sys
 import tempfile
+import time
 from types import SimpleNamespace
 import unittest
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 import attest_settled as step
 from live import CLOSED_FACTS
@@ -168,9 +169,7 @@ class SettledAdmissionTests(unittest.TestCase):
         self.postgres = self.enterContext(patch.object(step, "inspect_postgres", return_value=self.snapshot))
         self.get = self.enterContext(patch.object(step, "get", side_effect=self.fixture_get))
         self.build = self.enterContext(patch.object(step, "build_signer", side_effect=ReadyToBuildSigner))
-        self.enterContext(patch.object(step.native, "OwnedBuildProcess", side_effect=AssertionError("process")))
-        self.enterContext(patch.object(step.subprocess, "check_output", side_effect=AssertionError("subprocess")))
-        self.enterContext(patch.object(step.subprocess, "run", side_effect=AssertionError("subprocess")))
+        self.enterContext(patch.object(step.os, "fork", side_effect=AssertionError("process")))
 
     def fixture_get(self, port, target, token, media, limit):
         self.assertEqual((port, token), (self.args.api_port, "A" * 43))
@@ -267,81 +266,204 @@ class CommandCustodyTests(unittest.TestCase):
         self.work = root / "attestation"
         self.work.mkdir(mode=0o700)
         self.hold = root / "HOLD.json"
-        self.logs = self.work / "commands/go-build"
-        self.child = SimpleNamespace(pid=989898, returncode=None)
-        self.launch = self.enterContext(patch.object(step.native, "OwnedBuildProcess", side_effect=self.fake_launch))
-        self.waitpid = self.enterContext(patch.object(step.os, "waitpid", return_value=(self.child.pid, 0)))
-        self.killpg = self.enterContext(patch.object(step.os, "killpg", side_effect=ProcessLookupError))
+        self.logs = self.work / "commands/control"
 
-    def fake_launch(self, argv, *, stdout, stderr, stdin, **kwargs):
-        self.assertTrue(kwargs["start_new_session"])
-        self.assertEqual(json.loads(self.hold.read_bytes())["custody"], "UNKNOWN")
-        self.stdin = stdin
-        if stdin != step.subprocess.DEVNULL:
-            self.assertEqual(os.read(stdin, 1024), b"synthetic-token\n")
-        stdout.write(b"partial output\n")
-        stderr.write(b"partial diagnostic\n")
-        return self.child
-
-    def command(self, *, seconds=1, secret=None):
-        return step.run_command(self.work, "go-build", ["go", "build"],
+    def command(self, source="pass", *, seconds=4, secret=None, name="control"):
+        return step.run_command(self.work, name, [sys.executable, "-I", "-c", source],
                                 env={}, seconds=seconds, secret=secret)
 
-    def test_denied_group_signal_stops_without_probe_or_retry(self):
-        self.killpg.side_effect = PermissionError(1, "synthetic denied signal")
-        with self.assertRaisesRegex(step.CustodyUnknown, "Preserve") as error:
-            self.command(seconds=0, secret=b"synthetic-token\n")
+    def test_token_stdin_after_durable_admission(self):
+        token = b"synthetic-token\n"
+        # The control checks the received bytes without echoing them, and
+        # verifies the actual tool is the group leader recorded before exec.
+        output = self.command(f"""
+import hashlib, json, os, sys
+from pathlib import Path
+r = json.loads(Path({str(self.hold)!r}).read_bytes())
+assert r["custody"] == "UNKNOWN" and r["stage"] == "await-exec"
+assert r["pid"] == r["pgid"] == os.getpid() == os.getpgrp() == os.getsid(0)
+assert hashlib.sha256(sys.stdin.buffer.read()).hexdigest() == {step.sha(token)!r}
+print("admitted")
+""", secret=token)
+        self.assertEqual(output, b"admitted\n")
+        for path in self.logs.iterdir():
+            self.assertNotIn(token.rstrip(), path.read_bytes())
+        self.assert_terminal()
+
+    def assert_terminal(self):
+        self.assertFalse(self.hold.exists())
+        receipt = json.loads((self.logs / "result.json").read_bytes())
+        self.assertEqual(receipt["custody"], "TERMINAL")
+        self.assertTrue(all(receipt[field] for field in
+                            ("execPipeEOF", "directChildReaped", "groupAbsent", "descriptorsClosed",
+                             "stdoutEOF", "stderrEOF")))
+        return receipt
+
+    def test_exec_stall_cuts_off_and_preserves_unknown(self):
+        marker = self.work / "inert-exec-entered"
+
+        def stalled_exec(*args):
+            marker.touch()
+            time.sleep(8)
+            os._exit(126)
+
+        start = time.monotonic()
+        with patch.object(step.os, "execvpe", side_effect=stalled_exec):
+            with self.assertRaisesRegex(step.CustodyUnknown, "Preserve"):
+                self.command(seconds=1)
+        self.assertLess(time.monotonic() - start, 4)
+        self.assertTrue(marker.is_file())
         receipt = json.loads(self.hold.read_bytes())
-        self.assertIsInstance(error.exception.__cause__, PermissionError)
+        self.assertEqual((receipt["custody"], receipt["stage"], receipt["stop"]),
+                         ("UNKNOWN", "await-exec", "timeout"))
+        self.assertEqual(receipt["pgid"], receipt["pid"])
+        self.assertTrue(receipt["directChildReaped"] and receipt["groupAbsent"] and receipt["descriptorsClosed"])
+        self.assertFalse(receipt["execPipeEOF"])
+        self.assertFalse((self.logs / "result.json").exists())
+        with self.assertRaisesRegex(RuntimeError, "prior command custody"):
+            self.command()
+
+    def test_slow_admission_cannot_release_a_command(self):
+        save_record = step.save_record
+
+        def delayed_save(path, value):
+            save_record(path, value)
+            if path == self.hold and "pid" not in value:
+                time.sleep(0.15)
+
+        with (patch.object(step, "save_record", side_effect=delayed_save),
+              patch.object(step.os, "fork") as fork):
+            with self.assertRaises(step.CustodyUnknown) as error:
+                self.command(seconds=0.1)
+            self.assertRegex(str(error.exception.__cause__), "admission exceeded")
+            fork.assert_not_called()
+
+    def test_session_stall_never_signals_an_unconfirmed_group(self):
+        pipes = []
+        real_pipe = os.pipe
+        pid = 989898
+
+        def record_pipe():
+            pipes.append(real_pipe())
+            return pipes[-1]
+
+        def fake_fork():
+            launch_writer = os.dup(pipes[1][1])
+            self.addCleanup(os.close, launch_writer)
+            return pid
+
+        with (patch.object(step.os, "pipe", side_effect=record_pipe),
+              patch.object(step.os, "fork", side_effect=fake_fork),
+              patch.object(step.os, "waitpid") as waitpid,
+              patch.object(step.os, "killpg") as killpg):
+            with self.assertRaises(step.CustodyUnknown):
+                self.command(seconds=0.25)
+            waitpid.assert_not_called()
+            killpg.assert_not_called()
+        receipt = json.loads(self.hold.read_bytes())
+        self.assertEqual((receipt["custody"], receipt["pid"], receipt["stage"], receipt["stop"]),
+                         ("UNKNOWN", pid, "await-session", "timeout"))
+        self.assertNotIn("pgid", receipt)
+
+    def test_fast_overrun_has_hard_cap_on_each_stream(self):
+        for fd in (1, 2):
+            with self.subTest(fd=fd):
+                name = f"control-{fd}"
+                self.logs = self.work / "commands" / name
+                with self.assertRaisesRegex(RuntimeError, "exceeded its budget"):
+                    self.command(f"""
+import os
+for _ in range(256):
+    os.write({fd}, b"x" * 65536)
+""", name=name)
+                receipt = self.assert_terminal()
+                stream = "stdout" if fd == 1 else "stderr"
+                other_stream = "stderr" if fd == 1 else "stdout"
+                self.assertEqual((receipt["stop"], receipt["outputLimitExceeded"]), ("output-limit", True))
+                self.assertEqual((self.logs / stream).read_bytes(), b"x" * step.COMMAND_LOG_LIMIT)
+                self.assertEqual(receipt["logBytes"], {stream: step.COMMAND_LOG_LIMIT, other_stream: 0})
+
+    def test_exact_output_cap_is_accepted(self):
+        self.assertEqual(self.command(f"""
+import sys
+sys.stdout.buffer.write(b"x" * {step.COMMAND_LOG_LIMIT})
+"""), b"x" * step.COMMAND_LOG_LIMIT)
+        self.assertFalse(self.assert_terminal()["outputLimitExceeded"])
+
+    def test_denied_group_signal_stops_without_probe_or_retry(self):
+        pipes = []
+        real_pipe = os.pipe
+        pid = 989898
+
+        def record_pipe():
+            pipes.append(real_pipe())
+            return pipes[-1]
+
+        def fake_fork():
+            gate, launch, stdout, stderr, _ = pipes
+            reader = os.dup(gate[0])
+            self.addCleanup(os.close, reader)
+            os.write(launch[1], b"R")
+            os.write(stdout[1], b"partial output\n")
+            os.write(stderr[1], b"partial diagnostic\n")
+            return pid
+
+        token = b"synthetic-token\n"
+        with (patch.object(step.os, "pipe", side_effect=record_pipe),
+              patch.object(step.os, "fork", side_effect=fake_fork),
+              patch.object(step.os, "waitpid", return_value=(0, 0)),
+              patch.object(step.os, "killpg", side_effect=PermissionError("synthetic denial")) as killpg):
+            with self.assertRaises(step.CustodyUnknown) as error:
+                self.command(seconds=0.25, secret=token)
+            self.assertIsInstance(error.exception.__cause__, PermissionError)
+            killpg.assert_called_once_with(pid, signal.SIGKILL)
+        receipt = json.loads(self.hold.read_bytes())
         self.assertEqual((receipt["custody"], receipt["pid"], receipt["pgid"], receipt["stop"],
                           receipt["signalOutcome"], receipt["errorType"], receipt["stage"]),
-                         ("UNKNOWN", self.child.pid, self.child.pid, "timeout", "denied", "PermissionError",
-                          "stop-owned-group"))
+                         ("UNKNOWN", pid, pid, "timeout", "denied", "PermissionError", "stop-owned-group"))
         self.assertFalse(receipt["directChildReaped"] or receipt["groupAbsent"])
         self.assertEqual((self.logs / "stdout").read_bytes(), b"partial output\n")
         self.assertEqual((self.logs / "stderr").read_bytes(), b"partial diagnostic\n")
-        self.assertNotIn(b"synthetic-token", self.hold.read_bytes())
-        with self.assertRaises(OSError):
-            os.fstat(self.stdin)
-        with self.assertRaisesRegex(RuntimeError, "prior command custody"):
-            step.run_command(self.work, "sign", ["inert"], env={}, seconds=1)
-        self.launch.assert_called_once()
-        self.killpg.assert_called_once_with(self.child.pid, signal.SIGKILL)
-        self.waitpid.assert_not_called()
+        self.assertNotIn(token.rstrip(), self.hold.read_bytes())
 
     def test_denied_group_probe_after_exit_zero_preserves_unknown(self):
-        self.killpg.side_effect = PermissionError(1, "synthetic denied probe")
-        with self.assertRaises(step.CustodyUnknown):
-            self.command()
+        with patch.object(step.os, "killpg", side_effect=PermissionError("synthetic denial")) as killpg:
+            with self.assertRaises(step.CustodyUnknown):
+                self.command()
         receipt = json.loads(self.hold.read_bytes())
         self.assertEqual((receipt["custody"], receipt["exit"], receipt["errorType"], receipt["stage"]),
                          ("UNKNOWN", 0, "PermissionError", "observe-group-absence"))
         self.assertTrue(receipt["directChildReaped"])
         self.assertFalse(receipt["groupAbsent"] or receipt["signalAttempted"])
-        self.killpg.assert_called_once_with(self.child.pid, 0)
-        self.waitpid.assert_called_once_with(self.child.pid, os.WNOHANG)
+        killpg.assert_called_once_with(receipt["pid"], 0)
 
-    def test_failed_constructor_has_no_inferred_identity_or_cleanup(self):
-        self.launch.side_effect = PermissionError(1, "synthetic launch failure")
-        with self.assertRaises(step.CustodyUnknown):
-            self.command()
+    def test_failed_fork_has_no_inferred_identity_or_cleanup(self):
+        with (patch.object(step.os, "fork", side_effect=OSError("synthetic launch failure")),
+              patch.object(step.os, "waitpid") as waitpid,
+              patch.object(step.os, "killpg") as killpg):
+            with self.assertRaises(step.CustodyUnknown):
+                self.command()
+            waitpid.assert_not_called()
+            killpg.assert_not_called()
         receipt = json.loads(self.hold.read_bytes())
         self.assertEqual(receipt["custody"], "UNKNOWN")
         self.assertNotIn("pid", receipt)
-        self.waitpid.assert_not_called()
-        self.killpg.assert_not_called()
 
     def test_signal_then_positive_closure_still_refuses_timeout(self):
-        self.killpg.side_effect = [None, ProcessLookupError()]
-        self.waitpid.return_value = (self.child.pid, signal.SIGKILL)
         with self.assertRaisesRegex(RuntimeError, "exceeded its budget"):
-            self.command(seconds=0)
-        receipt = json.loads((self.logs / "result.json").read_bytes())
+            self.command("import time; time.sleep(8)", seconds=1)
+        receipt = self.assert_terminal()
         self.assertEqual((receipt["custody"], receipt["exit"], receipt["stop"], receipt["signalOutcome"]),
                          ("TERMINAL", -signal.SIGKILL, "timeout", "sent"))
-        self.assertTrue(receipt["directChildReaped"] and receipt["groupAbsent"] and receipt["descriptorsClosed"])
-        self.assertFalse(self.hold.exists())
-        self.assertEqual(self.killpg.call_args_list, [call(self.child.pid, signal.SIGKILL), call(self.child.pid, 0)])
+
+    def test_interrupted_go_group_does_not_prove_nested_closure(self):
+        with self.assertRaises(step.CustodyUnknown):
+            self.command("import time; time.sleep(8)", seconds=1, name="go-build")
+        receipt = json.loads(self.hold.read_bytes())
+        self.assertEqual((receipt["custody"], receipt["stage"], receipt["stop"]),
+                         ("UNKNOWN", "observe-go-descendants", "timeout"))
+        self.assertTrue(receipt["directChildReaped"] and receipt["groupAbsent"])
+        self.assertFalse((self.work / "commands/go-build/result.json").exists())
 
 
 if __name__ == "__main__":
