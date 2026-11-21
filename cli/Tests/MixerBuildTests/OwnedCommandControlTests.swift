@@ -259,6 +259,57 @@ enum OwnedCommandProof {
             try require(f.calls.isEmpty, "held preparation cannot launch")
             groups += 1
         }
+        do {
+            let files = FileManager.default
+            let sandbox = files.temporaryDirectory.appendingPathComponent("receipt-parent-proof-\(UUID().uuidString)")
+            try files.createDirectory(at: sandbox, withIntermediateDirectories: false)
+            defer { try? files.removeItem(at: sandbox) }
+
+            var https = URLComponents()
+            https.scheme = "https"
+            https.host = "example.invalid"
+            https.path = sandbox.appendingPathComponent("https-receipts").path
+            guard let httpsURL = https.url else { throw ProofFailure(description: "invalid HTTPS test fixture") }
+            let nulURL = URL(fileURLWithPath: sandbox.appendingPathComponent("nul-receipts").path + "\u{0}suffix")
+            try require(nulURL.path(percentEncoded: false).utf8.contains(0), "NUL fixture must encode a NUL path byte")
+            guard let undecodableURL = URL(string: nulURL.absoluteString + "%FF") else {
+                throw ProofFailure(description: "invalid undecodable path test fixture")
+            }
+
+            for (name, parent) in [("HTTPS", httpsURL), ("NUL", nulURL), ("NUL with invalid UTF-8", undecodableURL)] {
+                do {
+                    _ = try CommandReceiptStore(parent: parent)
+                    throw ProofFailure(description: "\(name) receipt parent was accepted by the store")
+                } catch let error as MixerFailure {
+                    try require(error.code == "process.receipt-directory", "\(name) receipt parent must fail validation")
+                }
+                let entries = try files.contentsOfDirectory(atPath: sandbox.path)
+                try require(entries.isEmpty, "\(name) receipt parent created a directory")
+
+                let context = ProcessExecutionContext(receiptDirectory: parent)
+                let fake = FakeCommand()
+                var receiptFactoryCalls = 0
+                var controlFactoryCalls = 0
+                for expected in ["process.receipt", "process.custody-held"] {
+                    do {
+                        _ = try context.run(command: argv, directory: cwd, environment: [:], policy: policy,
+                            controlFactory: { controlFactoryCalls += 1; return fake },
+                            receiptFactory: { _ in receiptFactoryCalls += 1; return ("fake", fake.persist) })
+                        throw ProofFailure(description: "\(name) receipt parent was admitted")
+                    } catch let error as MixerFailure {
+                        try require(error.code == expected, "\(name) receipt rejection must retain the existing hold semantics")
+                    }
+                }
+                try require(receiptFactoryCalls == 0 && controlFactoryCalls == 0,
+                    "\(name) receipt parent must be rejected before either factory")
+                groups += 1
+            }
+
+            let literal = sandbox.appendingPathComponent("literal%00-suffix", isDirectory: true)
+            let store = try CommandReceiptStore(parent: literal)
+            try require(files.fileExists(atPath: store.directory.path), "literal %00 is a valid directory name")
+            groups += 1
+        }
         return groups
     }
 }

@@ -97,6 +97,13 @@ final class POSIXCommandControl: OwnedCommandControl {
 final class CommandReceiptStore {
     let directory: URL
 
+    fileprivate static func validateParent(_ parent: URL) throws {
+        // An invalid UTF-8 escape can hide a NUL when Foundation decodes the path.
+        guard parent.isFileURL, !parent.path(percentEncoded: true).contains("%00") else {
+            throw MixerFailure("process.receipt-directory", "Receipt directory must be a file URL with no NUL bytes in its path")
+        }
+    }
+
     private static func createPrivateDirectory(_ url: URL) throws {
         // The live receipt observer can see the directory as soon as mkdir returns.
         guard mkdir(url.path, 0o700) == 0 else {
@@ -112,6 +119,7 @@ final class CommandReceiptStore {
     }
 
     init(parent: URL) throws {
+        try Self.validateParent(parent)
         directory = parent.appendingPathComponent("command-\(UUID().uuidString)", isDirectory: true)
         if !FileManager.default.fileExists(atPath: parent.path) {
             try Self.createPrivateDirectory(parent)
@@ -267,8 +275,10 @@ public final class ProcessExecutionContext: @unchecked Sendable {
         lock.lock(); defer { lock.unlock() }
         try requireAdmission()
         let store: (String, (CommandCustodyReceipt) throws -> Void)
-        do { store = try receiptFactory(receiptDirectory) }
-        catch {
+        do {
+            try CommandReceiptStore.validateParent(receiptDirectory)
+            store = try receiptFactory(receiptDirectory)
+        } catch {
             let reason = "Receipt directory could not be prepared: \(error)"
             hold = ProcessCustodyHold(receiptDirectory: receiptDirectory.path, retainedInputDirectories: retainedInputs.map { $0.path }, reason: reason)
             throw MixerFailure("process.receipt", reason)
