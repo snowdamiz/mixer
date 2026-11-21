@@ -389,6 +389,27 @@ and all 113 commands reached terminal custody, and the three ports rebound
 before the disposable AVD was removed.
 [Installed editor and signed Commit receipt](verification/receipts/fieldlog-e39a5ea3-api36-ordinary-signed-entry-commit.json)
 
+A separate clean API 36 install of the same APK completed checklist row
+20, moved it to rank 21, and moved it back to rank 20 through the ordinary
+UI. The view moved to page 2 and back to page 1. Row 20 kept its completed
+state, and the last row's **Move down** button was disabled. The workspace
+advanced three revisions and appended one `taskSaved` and two
+`taskOrderChanged` records. Cold reopen and queue viewing preserved the
+exact workspace bytes. The 22 tasks were synthetic fixture data.
+[Installed checklist result](verification/receipts/fieldlog-e39a5ea3-api36-checklist-page-boundary.json)
+
+On another clean install, an Android test IME sent a composing candidate
+and replaced it with a two-line note containing a decomposed accent and an
+emoji. The IME refused the Title field and a repeated commit request.
+Save draft preserved the exact note bytes through a cold launch. The
+signed Entry Commit displayed **Committed once**, saved the draft under
+the same record ID, and appended one `entrySaved` record. The final cold
+launch preserved the workspace bytes. The original keyboard was restored,
+the test IME was uninstalled, and both disposable emulator campaigns
+recorded terminal process groups and reusable ports before removing their
+scratch.
+[Installed Unicode note result](verification/receipts/fieldlog-e39a5ea3-api36-unicode-note-signed-commit.json)
+
 ## November 20 local release delivery outage and recovery
 
 A committed Phoenix release reached local Workerd through the private historical

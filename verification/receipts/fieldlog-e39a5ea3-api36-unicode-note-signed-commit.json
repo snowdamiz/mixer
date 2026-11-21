@@ -1,0 +1,157 @@
+{
+  "schema": 1,
+  "decision": "PASS for installed Android multiline Unicode note and signed Entry Commit",
+  "scope": "Exact reviewed FieldLog development APK, ordinary PublicActivity on a fresh Android API 36 arm64 emulator, using a separately installed fixed-input Android InputMethodService.",
+  "recordedUTC": "2026-11-21T16:59:57.188443+00:00",
+  "materials": {
+    "FieldLogTree": "e39a5ea393076ca3f64b00648bf86f350ccf03dd",
+    "MixerRevision": "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d",
+    "apkSHA256": "2105750eee7e398405b0c3a08a19a6aa692efb77afc038ae351f465f1ca127d7",
+    "apkBuildReceiptSHA256": "2988ba0f6bf9ce8d11b083eb8fe116ccf3ec4200b1f7523d6b7760bf3c0b6d13",
+    "launcher": "dev.fieldlog.generatedr90/dev.fieldlog.generatedr90.androidhost.PublicActivity",
+    "imeAPKsha256": "9bac7a259e3e9144409ee576b5349dc1083b8b13a9d797937a60bc60bbd959ea",
+    "imeBuildReceiptSHA256": "bd66b65732ad418fc0ec1420ac0bd91f32736cc108eefa3c25a29eae7e63b4e9",
+    "imeComponent": "dev.mixer.verification.fieldlog.noteime/.NoteIme"
+  },
+  "device": {
+    "avd": "fieldlog_ime_b9fd496dc475",
+    "api": "36",
+    "abi": "arm64-v8a"
+  },
+  "observed": {
+    "titleFieldRefusedPrepare": true,
+    "twoStageCompositionReplacedByCommit": true,
+    "duplicateCommitRefused": true,
+    "orderedBroadcasts": [
+      {
+        "action": "dev.mixer.verification.fieldlog.noteime.PREPARE",
+        "reply": "Broadcast completed: result=24, data=\"REJECTED\"",
+        "command": "adb-038"
+      },
+      {
+        "action": "dev.mixer.verification.fieldlog.noteime.PREPARE",
+        "reply": "Broadcast completed: result=23, data=\"PREPARED\"",
+        "command": "adb-043"
+      },
+      {
+        "action": "dev.mixer.verification.fieldlog.noteime.COMMIT",
+        "reply": "Broadcast completed: result=23, data=\"COMMITTED\"",
+        "command": "adb-046"
+      },
+      {
+        "action": "dev.mixer.verification.fieldlog.noteime.COMMIT",
+        "reply": "Broadcast completed: result=24, data=\"REJECTED\"",
+        "command": "adb-049"
+      }
+    ],
+    "noWritesBeforeSaveDraft": true,
+    "note": "Café — pump\nValve 🔧",
+    "noteUTF8Bytes": 26,
+    "noteSHA256": "3b0e76924afbbf89847b01c7480ddbe8c59c47a0044d02769ffc880ad1fb46a7",
+    "noteAccessibleBeforeSaveAndAfterProcessRestart": true,
+    "draftWorkspaceByteIdenticalAfterColdLaunch": true,
+    "signedSequence": 1,
+    "signedCommitResult": "Committed once",
+    "originalDraftIDAndContentPreserved": true,
+    "extraEntrySavedRecords": 1,
+    "finalRevision": 3,
+    "committedWorkspaceByteIdenticalAfterColdLaunch": true,
+    "commitRemovedWhileDoneRemained": true,
+    "coldLaunchOutputs": [
+      "Starting: Intent { cmp=dev.fieldlog.generatedr90/.androidhost.PublicActivity }\nStatus: ok\nLaunchState: COLD\nActivity: dev.fieldlog.generatedr90/.androidhost.PublicActivity\nTotalTime: 791\nWaitTime: 792\nComplete\n",
+      "Starting: Intent { cmp=dev.fieldlog.generatedr90/.androidhost.PublicActivity }\nStatus: ok\nLaunchState: COLD\nActivity: dev.fieldlog.generatedr90/.androidhost.PublicActivity\nTotalTime: 447\nWaitTime: 449\nComplete\n"
+    ],
+    "workspaceReadback": [
+      {
+        "command": "adb-031",
+        "revision": 1,
+        "bytes": 534,
+        "sha256": "f40d1a5ca8ded49c0685afca513ff232af49ac86d02a88a158c6d69342b6ce0b"
+      },
+      {
+        "command": "adb-050",
+        "revision": 1,
+        "bytes": 534,
+        "sha256": "f40d1a5ca8ded49c0685afca513ff232af49ac86d02a88a158c6d69342b6ce0b"
+      },
+      {
+        "command": "adb-060",
+        "revision": 2,
+        "bytes": 852,
+        "sha256": "d74f987cea6d084ce434b1cfe31a3cc3ffeb90fd9e2cafd502b225eb5e4e376d"
+      },
+      {
+        "command": "adb-065",
+        "revision": 2,
+        "bytes": 852,
+        "sha256": "d74f987cea6d084ce434b1cfe31a3cc3ffeb90fd9e2cafd502b225eb5e4e376d"
+      },
+      {
+        "command": "adb-077",
+        "revision": 3,
+        "bytes": 956,
+        "sha256": "10abc8b79bb432b4d7ef00a53aa9a7ad859d05989929561bbc13201751168073"
+      },
+      {
+        "command": "adb-083",
+        "revision": 3,
+        "bytes": 956,
+        "sha256": "10abc8b79bb432b4d7ef00a53aa9a7ad859d05989929561bbc13201751168073"
+      }
+    ]
+  },
+  "limits": [
+    "The fixture uses Android InputConnection through the installed test IME. Gboard, other languages, physical keyboard and long-input boundaries were outside this run.",
+    "The run observed signed Commit and Done dismissal without collecting internal guest-owner retirement telemetry. Apple installed behavior and OTA were outside this run."
+  ],
+  "custody": {
+    "terminalCommands": 92,
+    "commandLogsVerified": true,
+    "originalInputMethodRestored": true,
+    "testInputMethodUninstalled": true,
+    "services": [
+      {
+        "label": "private-adb",
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+          "-P",
+          "59018",
+          "--one-device",
+          "fieldlog_ime_b9fd496dc475-no-usb",
+          "nodaemon",
+          "server"
+        ],
+        "pid": 18636,
+        "status": -15,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "emulator",
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+          "-avd",
+          "fieldlog_ime_b9fd496dc475",
+          "-ports",
+          "59019,59020",
+          "-no-window",
+          "-no-audio",
+          "-no-snapshot",
+          "-gpu",
+          "swiftshader_indirect"
+        ],
+        "pid": 18637,
+        "status": 0,
+        "custody": "TERMINAL"
+      }
+    ],
+    "portsRebound": [
+      59018,
+      59019,
+      59020
+    ],
+    "controllerSHA256": "af211cf182f38a07d2245cf4236267e74479c1892333d2fa4ef51cdf34136db5",
+    "liveReceiptSHA256": "e173b24d07b4bc6fc91c7d527ee7e618233af451f117f5de1ada667f3a569a20",
+    "scratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-ime-e39-api36-fhw_xo_x",
+    "scratchRemoved": true
+  }
+}
