@@ -347,6 +347,53 @@ def focused_preview_campaign(run, result, cases, *, mode, source, define, scope,
         require(result["native"][key] == result["guest"][key], f"{mode}: native and guest differ in {key}")
 
 
+def actor_isolation_campaign(run, result):
+    run.env["DEVELOPER_DIR"] = "/Applications/Xcode_26.6.app/Contents/Developer"
+    call = run.command
+    source = HERE / "ActorIsolation.swift"
+    refusal = HERE / "ActorIsolationRefusal.swift"
+    swift = run.swift / "swiftc"
+    sdk = call("host-sdk", "/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path")[0].strip()
+    result.update(
+        observedUTC=datetime.now(timezone.utc).isoformat(),
+        revision=call("revision", "/usr/bin/git", "rev-parse", "HEAD")[0].strip(),
+        tree=call("tree", "/usr/bin/git", "rev-parse", "HEAD^{tree}")[0].strip(),
+        tools={
+            "swift": call("swift-version", swift, "--version")[0].strip(),
+            "xcode": call("xcode-version", "/usr/bin/xcodebuild", "-version")[0].strip(),
+        },
+        scope="Native actor isolation and the pinned Embedded Swift Wasm compiler boundary",
+        sources={str(path.relative_to(ROOT)): identity(path) for path in (Path(__file__), source, refusal)},
+    )
+    binary = run.scratch / "actor-native"
+    native = (swift, "-sdk", sdk, "-target", "arm64-apple-macosx15.0", "-swift-version", "6",
+              "-module-cache-path", run.scratch / "native-cache")
+    call("actor-native-build", *native, "-parse-as-library", "-O", source, "-o", binary, bound=35)
+    observation = call("actor-native-observation", binary)[0]
+    require(observation == "0\n1\n1\n", f"unexpected checklist states: {observation!r}")
+    _, native_diagnostic, _ = call("actor-native-refusal", *native, "-typecheck", refusal, expected=1)
+    require("actor-isolated instance method 'count()' in a synchronous nonisolated context" in native_diagnostic,
+            f"unexpected native isolation diagnostic:\n{native_diagnostic}")
+    result["native"] = dict(states=[0, 1, 1], executable=identity(binary),
+                            isolationRefusal=native_diagnostic.replace(str(ROOT), "$REPO").strip())
+
+    guest = (swift, "-target", "wasm32-unknown-none-wasm", "-enable-experimental-feature", "Embedded",
+             "-swift-version", "6", "-parse-as-library", "-whole-module-optimization", "-Osize",
+             "-emit-object", "-module-cache-path", run.scratch / "guest-cache")
+    refusals = {}
+    for name, flags, expected in (
+        ("implicit-concurrency", (), ("unknown attribute 'MainActor'", "required for async main")),
+        ("explicit-concurrency", ("-D", "EXPLICIT_CONCURRENCY_IMPORT"),
+         ("could not find module '_Concurrency' for target 'wasm32-unknown-none-wasm'",)),
+    ):
+        output = run.scratch / f"{name}.o"
+        _, diagnostic, _ = call(name, *guest, *flags, source, "-o", output, expected=1, bound=35)
+        require(all(fragment in diagnostic for fragment in expected) and not output.exists(),
+                f"unexpected Embedded Swift outcome:\n{diagnostic}")
+        refusals[name] = diagnostic.replace(str(ROOT), "$REPO").replace(str(Path.home()), "$USER_HOME").strip()
+    result["embedded"] = dict(target="wasm32-unknown-none-wasm", objectProduced=False, refusals=refusals)
+
+
 def campaign(run):
     call = run.command
     out = run.scratch
@@ -480,6 +527,7 @@ def campaign(run):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     focused = parser.add_mutually_exclusive_group()
+    focused.add_argument("--actor-isolation", action="store_true", help="check native and Embedded actor isolation")
     focused.add_argument("--result-builder", action="store_true", help="run the dynamic-loop builder replay")
     focused.add_argument("--fixed-slot-result-builder", action="store_true", help="run the fixed-slot builder replay")
     focused.add_argument("--enum-typed-throws", action="store_true", help="run the enum payload and typed throws replay")
@@ -505,10 +553,13 @@ def main():
     run = Run(scratch)
     failed = False
     try:
-        if args.result_builder or args.fixed_slot_result_builder or args.enum_typed_throws or closure:
+        if (args.actor_isolation or args.result_builder or args.fixed_slot_result_builder
+                or args.enum_typed_throws or closure):
             result = {}
             try:
-                if args.enum_typed_throws:
+                if args.actor_isolation:
+                    actor_isolation_campaign(run, result)
+                elif args.enum_typed_throws:
                     enum_typed_throws_campaign(run, result)
                 elif closure:
                     escaping_closure_campaign(run, result, value_only=args.escaping_closure_value_only,

@@ -867,6 +867,14 @@ All 36 command groups closed again and scratch was removed.
 [Strict paired replay](verification/receipts/l03-guest-allocator-growth-strict-41a05264.json) ·
 [Independent replay](verification/receipts/l03-guest-allocator-growth-maintained-root.json)
 
+Swift 6.3.3 verified the actor-isolated checklist counter on macOS with
+an explicit native SDK and target. A synchronous call from outside the
+actor failed at compile time. The Embedded Wasm target refused the tested
+`@MainActor` async entry and could not load `_Concurrency` when imported
+explicitly. Both guest compilations stopped before object emission.
+Independent review matched the receipts, scope, and existing selectors.
+[Actor boundary replay](verification/receipts/l03-swift-actor-isolation-5aafc1a7.json)
+
 A compact Swift event trapped at function 3, byte 514 in the owned VM.
 The matching line table resolved that position to `SwiftEventGuest.swift:32:9`
 and LLVM agreed. Stripped and mismatched inputs preserved the raw trap

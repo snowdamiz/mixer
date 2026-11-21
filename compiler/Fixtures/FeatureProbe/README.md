@@ -248,6 +248,23 @@ The growth fixture checks the exact allocation that grows memory,
 pre-growth canaries, `ENOMEM` at its ceiling, reuse, and retirement.
 [Reviewed growth receipt](../../../verification/receipts/l03-guest-allocator-growth-strict-41a05264.json)
 
+## Swift actor isolation replay
+
+Use Swift 6.3.3 on arm64 macOS with Xcode 26.6 installed at
+`/Applications/Xcode_26.6.app`.
+
+```sh
+python3 -B compiler/Fixtures/FeatureProbe/replay.py --actor-isolation
+```
+
+The native fixture awaits its checklist actor from `@MainActor` and observes
+counts 0, 1, and 1. The synchronous nonisolated call is diagnosed separately.
+For the Embedded Wasm target, the compiler refuses the fixture's
+`@MainActor` and async entry. An explicit `_Concurrency` import reports
+that the module is unavailable for that target. Neither guest invocation
+emits an object.
+[Actor isolation receipt](../../../verification/receipts/l03-swift-actor-isolation-5aafc1a7.json)
+
 ## Native SDK controls
 
 Run on arm64 macOS 26 or later with Swift 6.2 or later and a local

@@ -1,0 +1,187 @@
+{
+  "observedUTC": "2026-11-21T15:54:00.357088+00:00",
+  "revision": "5aafc1a7136b2b303110adf7cdfa42594e0b9efc",
+  "tree": "f1925d67bcfa365ced8d97abe24857891a1e0904",
+  "tools": {
+    "swift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "xcode": "Xcode 26.6\nBuild version 17F113"
+  },
+  "scope": "Native actor isolation and the pinned Embedded Swift Wasm compiler boundary",
+  "sources": {
+    "compiler/Fixtures/FeatureProbe/replay.py": {
+      "bytes": 32076,
+      "sha256": "55f4f2887c96d266b05756aaae3e2db41c5f9710224551fa2a5bdae22bee268f"
+    },
+    "compiler/Fixtures/FeatureProbe/ActorIsolation.swift": {
+      "bytes": 613,
+      "sha256": "6725fbf29a1a90791a4a57e565bc5e8c2fcbe1deb7461f5a4fef3a4c13550c77"
+    },
+    "compiler/Fixtures/FeatureProbe/ActorIsolationRefusal.swift": {
+      "bytes": 141,
+      "sha256": "57d39916a6f2b2370b555b2f7d7f3c2300a7887d1e8df67f2161f10973254280"
+    }
+  },
+  "native": {
+    "states": [
+      0,
+      1,
+      1
+    ],
+    "executable": {
+      "bytes": 56256,
+      "sha256": "6ca92ec36f86912bccbf7dcfb59829e0f9e90cfa55956cddf0c5252623dc01de"
+    },
+    "isolationRefusal": "$REPO/compiler/Fixtures/FeatureProbe/ActorIsolationRefusal.swift:6:14: error: call to actor-isolated instance method 'count()' in a synchronous nonisolated context [#ActorIsolatedCall]\n1 | actor ChecklistProgress {\n2 |     func count() -> UInt32 { 0 }\n  |          `- note: calls to instance method 'count()' from outside of its actor context are implicitly asynchronous\n3 | }\n4 | \n5 | func refresh(_ progress: ChecklistProgress) -> UInt32 {\n6 |     progress.count()\n  |              `- error: call to actor-isolated instance method 'count()' in a synchronous nonisolated context [#ActorIsolatedCall]\n7 | }\n8 | \n\n[#ActorIsolatedCall]: <https://docs.swift.org/compiler/documentation/diagnostics/actor-isolated-call>"
+  },
+  "embedded": {
+    "target": "wasm32-unknown-none-wasm",
+    "objectProduced": false,
+    "refusals": {
+      "implicit-concurrency": "$REPO/compiler/Fixtures/FeatureProbe/ActorIsolation.swift:18:2: error: unknown attribute 'MainActor'\n16 | }\n17 | \n18 | @MainActor\n   |  `- error: unknown attribute 'MainActor'\n19 | func refresh(_ progress: ChecklistProgress) async -> UInt32 {\n20 |     await progress.count()\n\n$REPO/compiler/Fixtures/FeatureProbe/ActorIsolation.swift:25:6: error: unknown attribute 'MainActor'\n23 | @main\n24 | struct ActorProbe {\n25 |     @MainActor\n   |      `- error: unknown attribute 'MainActor'\n26 |     static func main() async {\n27 |         let progress = ChecklistProgress()\n\n$REPO/compiler/Fixtures/FeatureProbe/ActorIsolation.swift:26:24: error: '_Concurrency' module not imported, required for async main\n24 | struct ActorProbe {\n25 |     @MainActor\n26 |     static func main() async {\n   |                        `- error: '_Concurrency' module not imported, required for async main\n27 |         let progress = ChecklistProgress()\n28 |         print(await refresh(progress))",
+      "explicit-concurrency": "$REPO/compiler/Fixtures/FeatureProbe/ActorIsolation.swift:2:8: error: could not find module '_Concurrency' for target 'wasm32-unknown-none-wasm'; found: arm64e-apple-none-macho, armv7-apple-none-macho, arm64-apple-macos, x86_64-unknown-none-elf, arm64-apple-none-macho, armv7-none-none-eabi, armv7m-apple-none-macho, arm64e-apple-ios, armv7em-none-none-eabi, arm64e-apple-macos, x86_64-apple-macos, arm64-apple-ios, armv7em-apple-none-macho, at: $USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/embedded/_Concurrency.swiftmodule/wasm32-unknown-none-wasm\n 1 | #if EXPLICIT_CONCURRENCY_IMPORT\n 2 | import _Concurrency\n   |        `- error: could not find module '_Concurrency' for target 'wasm32-unknown-none-wasm'; found: arm64e-apple-none-macho, armv7-apple-none-macho, arm64-apple-macos, x86_64-unknown-none-elf, arm64-apple-none-macho, armv7-none-none-eabi, armv7m-apple-none-macho, arm64e-apple-ios, armv7em-none-none-eabi, arm64e-apple-macos, x86_64-apple-macos, arm64-apple-ios, armv7em-apple-none-macho, at: $USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/embedded/_Concurrency.swiftmodule/wasm32-unknown-none-wasm\n 3 | #endif\n 4 |"
+    }
+  },
+  "commands": [
+    {
+      "label": "host-sdk",
+      "argv": [
+        "/usr/bin/xcrun",
+        "--sdk",
+        "macosx",
+        "--show-sdk-path"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "revision",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "tree",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "HEAD^{tree}"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "swift-version",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "xcode-version",
+      "argv": [
+        "/usr/bin/xcodebuild",
+        "-version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "actor-native-build",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-sdk",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-target",
+        "arm64-apple-macosx15.0",
+        "-swift-version",
+        "6",
+        "-module-cache-path",
+        "$RUN/native-cache",
+        "-parse-as-library",
+        "-O",
+        "$REPO/compiler/Fixtures/FeatureProbe/ActorIsolation.swift",
+        "-o",
+        "$RUN/actor-native"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "actor-native-observation",
+      "argv": [
+        "$RUN/actor-native"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "actor-native-refusal",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-sdk",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-target",
+        "arm64-apple-macosx15.0",
+        "-swift-version",
+        "6",
+        "-module-cache-path",
+        "$RUN/native-cache",
+        "-typecheck",
+        "$REPO/compiler/Fixtures/FeatureProbe/ActorIsolationRefusal.swift"
+      ],
+      "exit": 1
+    },
+    {
+      "label": "implicit-concurrency",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-swift-version",
+        "6",
+        "-parse-as-library",
+        "-whole-module-optimization",
+        "-Osize",
+        "-emit-object",
+        "-module-cache-path",
+        "$RUN/guest-cache",
+        "$REPO/compiler/Fixtures/FeatureProbe/ActorIsolation.swift",
+        "-o",
+        "$RUN/implicit-concurrency.o"
+      ],
+      "exit": 1
+    },
+    {
+      "label": "explicit-concurrency",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-swift-version",
+        "6",
+        "-parse-as-library",
+        "-whole-module-optimization",
+        "-Osize",
+        "-emit-object",
+        "-module-cache-path",
+        "$RUN/guest-cache",
+        "-D",
+        "EXPLICIT_CONCURRENCY_IMPORT",
+        "$REPO/compiler/Fixtures/FeatureProbe/ActorIsolation.swift",
+        "-o",
+        "$RUN/explicit-concurrency.o"
+      ],
+      "exit": 1
+    }
+  ],
+  "custody": {
+    "directReapedAndGroupsObservedAbsent": 10,
+    "unknown": 0,
+    "observedPeakScratchBytes": 17629159,
+    "scratchLimitBytes": 3221225472,
+    "scratchRemoved": true
+  }
+}
