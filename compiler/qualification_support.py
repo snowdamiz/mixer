@@ -116,11 +116,12 @@ class CommandRecorder:
                     group_gone = True
         except (OSError, subprocess.TimeoutExpired) as error:
             item['cleanupError'] = f'{step} failed ({error})'
-            return
+            return error
         if group_gone:
             item['terminalCustody'] = 'TERMINAL'
         else:
             item['cleanupError'] = 'Process group still present after direct child exit'
+        return None
 
     def run(self, name, command, *, env=None, expected=(0,), timeout=300):
         if not name or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._' for c in name):
@@ -157,14 +158,15 @@ class CommandRecorder:
                             break
                         time.sleep(0.02)
                 finally:
-                    self._finish_process(process, item)
+                    cleanup_error = self._finish_process(process, item)
             if item['terminalCustody'] == 'UNKNOWN':
                 reason = 'could not confirm process termination'
                 if item['timedOut']:
                     reason = 'timed out'
                 elif item['outputLimitExceeded']:
                     reason = 'exceeded its command log byte limit'
-                raise RuntimeError(f'{name} {reason}. UNKNOWN process custody. Preserve {self.output}')
+                message = f'{name} {reason}. UNKNOWN process custody. Preserve {self.output}'
+                raise RuntimeError(message) from cleanup_error
             item['outputLimitExceeded'] |= max(stdout.stat().st_size, stderr.stat().st_size) > self.log_limit
             if tool_identity(command[0]) != identity:
                 raise RuntimeError(f'{name} executable changed during execution')
@@ -186,6 +188,7 @@ class CommandRecorder:
                 metadata = item[key] = {'path': path.name}
                 try:
                     metadata['bytes'] = path.stat().st_size
+                    item['outputLimitExceeded'] |= metadata['bytes'] > self.log_limit
                     # An unresolved writer may still be appending to the log.
                     if item['terminalCustody'] != 'UNKNOWN':
                         metadata['sha256'] = digest(path)

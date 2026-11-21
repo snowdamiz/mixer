@@ -98,10 +98,10 @@ class QualificationTests(unittest.TestCase):
                 stderr.write(b'partial')
                 return child
 
+            denied = PermissionError(errno.EPERM, 'kill denied')
             with (patch('qualification_support._QualificationProcess', side_effect=launch),
-                  patch('qualification_support.os.killpg',
-                        side_effect=PermissionError(errno.EPERM, 'kill denied')) as killpg):
-                with self.assertRaisesRegex(RuntimeError, 'log byte limit.*UNKNOWN'):
+                  patch('qualification_support.os.killpg', side_effect=denied) as killpg):
+                with self.assertRaisesRegex(RuntimeError, 'log byte limit.*UNKNOWN') as raised:
                     recorder.run('denied-flood', [sys.executable])
 
             killpg.assert_called_once_with(child.pid, signal.SIGKILL)
@@ -116,6 +116,7 @@ class QualificationTests(unittest.TestCase):
             self.assertIn('elapsedSeconds', item)
             self.assertEqual(item['stdout'], {'path': 'denied-flood.stdout', 'bytes': 8})
             self.assertEqual(Path(folder, item['stderr']['path']).read_bytes(), b'partial')
+            self.assertIs(raised.exception.__cause__, denied)
 
     def test_cleanup_failures_keep_command_error_and_evidence(self):
         for cleanup_error in (PermissionError(errno.EPERM, 'kill denied'),
@@ -189,20 +190,32 @@ class QualificationTests(unittest.TestCase):
             self.assertEqual(item['stdout']['sha256'], digest(Path(folder, 'write.stdout')))
             self.assertNotIn('stderr', item)
 
-    def test_denied_group_observation_is_unknown_after_child_exit(self):
+    def test_denied_group_observation_retains_final_log_overrun_after_child_exit(self):
         with tempfile.TemporaryDirectory() as folder:
-            recorder, commands = self.recorder(folder)
+            recorder, commands = self.recorder(folder, log_limit=32)
             child = Mock(pid=314, **{'poll.return_value': 0})
-            with (patch('qualification_support._QualificationProcess', return_value=child),
-                  patch('qualification_support.os.killpg',
-                        side_effect=PermissionError(errno.EPERM, 'observation denied')) as killpg):
-                with self.assertRaisesRegex(RuntimeError, 'UNKNOWN'):
+
+            def launch(*args, stdout, stderr, **kwargs):
+                stdout.write(b'partial')
+                stderr.write(b'x' * 33)
+                return child
+
+            denied = PermissionError(errno.EPERM, 'observation denied')
+            with (patch('qualification_support._QualificationProcess', side_effect=launch),
+                  patch('qualification_support.os.killpg', side_effect=denied) as killpg):
+                with self.assertRaisesRegex(RuntimeError, 'UNKNOWN') as raised:
                     recorder.run('denied-observation', [sys.executable])
 
             killpg.assert_called_once_with(child.pid, 0)
+            child.poll.assert_called_once()
             child.wait.assert_not_called()
-            self.assertEqual(commands[0]['exitCode'], 0)
-            self.assertEqual(commands[0]['terminalCustody'], 'UNKNOWN')
+            item = commands[0]
+            self.assertEqual(item['exitCode'], 0)
+            self.assertEqual(item['terminalCustody'], 'UNKNOWN')
+            self.assertEqual(item['stdout'], {'path': 'denied-observation.stdout', 'bytes': 7})
+            self.assertEqual(item['stderr'], {'path': 'denied-observation.stderr', 'bytes': 33})
+            self.assertTrue(item['outputLimitExceeded'])
+            self.assertIs(raised.exception.__cause__, denied)
 
     def test_timeout_retains_partial_stdout_and_failure_record(self):
         with self.owned_recorder() as (folder, recorder, commands):
