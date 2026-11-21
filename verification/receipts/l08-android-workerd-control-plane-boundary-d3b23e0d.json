@@ -1,0 +1,887 @@
+{
+  "schema": 1,
+  "recordedUTC": "2026-11-21T21:41:16+00:00",
+  "scenario": "L08 \u00a722.2.14 exact installed Pair24 Android packet at the independent local Workerd and stock Go origin boundary",
+  "publicMixer": "d3b23e0dcb5dc177ff6bbb32eeb045e024952146",
+  "publicMixerTree": "d67c6c7301dc8c83727e8fe78204f4a530cc7de4",
+  "workerdSourceTree": "69c83879d2e3880af36b981b3c406fed10ba0d7d",
+  "stockGoSourceTree": "3088ff98513c3b9be8890c500deb5989c21412dc",
+  "priorEvidence": {
+    "localPhoenixWorkerd": "verification/receipts/l05-delivery-cross-runtime-20261120.json",
+    "installedAndroidStockGoCommit": "7d257e0d1beda17874fc0ce7d015d81bf640870a",
+    "installedAndroidStockGo": "verification/receipts/l08-android-installed-release-origin-outage-d89c742e.json"
+  },
+  "environment": {
+    "host": "macOS 27.0.1 arm64",
+    "npm": "10.9.9",
+    "go": "1.26.4",
+    "python": "3.14.8",
+    "node": "v22.23.3",
+    "workerd": "1.20260730.1",
+    "miniflare": "4.20260730.0",
+    "typescript": "5.9.3"
+  },
+  "dependencyLockSHA256": "65ff754d1818362d70fe5a4deb1943121f4661db65b7b15f7afe9fd1912bceb5",
+  "stockGoBinarySHA256": "0430c5f98c7daafb671aac5600f01bd6c8ce9b421f7b104914bab529eb943bc2",
+  "commands": [
+    "git archive d3b23e0dcb5dc177ff6bbb32eeb045e024952146 release-delivery-origin services hosted-worker-controller/package.json hosted-worker-controller/package-lock.json hosted-worker-controller/test/owned-workerd-identity.mjs",
+    "Node v22.23.3 official darwin-arm64 archive verified against release SHA256 listing",
+    "npm ci --ignore-scripts --no-audit --no-fund",
+    "node hosted-worker-controller/node_modules/typescript/bin/tsc -p release-delivery-origin",
+    "GOTOOLCHAIN=local GOPROXY=off go build -mod=readonly -trimpath -buildvcs=false -o <scratch>/mixer-service ./cmd/mixer-service",
+    "TMPDIR=<scratch> python3 launch-boundary.py",
+    "MIXER_PAIR24_MANUAL=1 MIXER_PAIR24_BASELINE_LEASE_MS=7000 via pipe; 20000 via PTY, each with six acknowledgements"
+  ],
+  "automatic": {
+    "status": "passed_local_host_discriminator",
+    "toolchain": {
+      "node": "v22.23.3",
+      "workerd": "1.20260730.1",
+      "miniflare": "4.20260730.0",
+      "typescript": "5.9.3"
+    },
+    "phases": {
+      "noSnapshot": {
+        "edgeOffer": {
+          "status": 204,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "contentType": null,
+          "cacheControl": "no-store"
+        },
+        "edgeArtifact": {
+          "status": 404,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "contentType": null,
+          "cacheControl": "no-store"
+        },
+        "writerPublicGet": {
+          "status": 404,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "contentType": null,
+          "cacheControl": "no-store"
+        },
+        "writerPublicPost": {
+          "status": 405,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "contentType": null,
+          "cacheControl": "no-store"
+        }
+      },
+      "beforeOriginCut": {
+        "origin": {
+          "offer": {
+            "status": 200,
+            "bytes": 771,
+            "sha256": "7b03080627b2fdb827d965ade545fd4a414489fab69890c392c02b30678e81ce",
+            "contentType": "application/json",
+            "cacheControl": "no-store"
+          },
+          "artifacts": [
+            {
+              "path": "/v3/artifacts/964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff?organization=mixer-local&project=fieldlog",
+              "status": 200,
+              "bytes": 8722,
+              "sha256": "8c52ff247cfa20e59ea797de1be414c0dc2c4bb8657e6a0caa1a036c497abb78",
+              "contentType": "application/json",
+              "cacheControl": "no-store"
+            }
+          ]
+        },
+        "edge": {
+          "offer": {
+            "status": 200,
+            "bytes": 766,
+            "sha256": "8a3e8bb91f16b5522eb48fe0b84eb7e677935d6c78e5abb9199c021d5f8b2fe4",
+            "contentType": "application/json",
+            "cacheControl": "no-store"
+          },
+          "artifacts": [
+            {
+              "path": "/v3/artifacts/964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff?organization=mixer-local&project=fieldlog",
+              "status": 200,
+              "bytes": 8722,
+              "sha256": "8c52ff247cfa20e59ea797de1be414c0dc2c4bb8657e6a0caa1a036c497abb78",
+              "contentType": "application/json",
+              "cacheControl": "no-store"
+            }
+          ]
+        },
+        "lease": {
+          "version": 1,
+          "target": {
+            "organization": "mixer-local",
+            "project": "fieldlog",
+            "app": "fieldlog",
+            "environment": "development",
+            "platform": "android",
+            "runtime": "7027fcb3a5af73841c29f7d8ca4c512b610e461b0e7156537cb623841f1b1e30",
+            "channel": "beta"
+          },
+          "revision": "1",
+          "issued_at_ms": 1795297043817,
+          "expires_at_ms": 1795297050317,
+          "head": {
+            "sequence": "1",
+            "assignment_sha256": "93ef9638e7f9d0ce94a143a3d7f1b39953177472b01b72c31626864cb55a401c",
+            "artifact_sha256": "964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff",
+            "rollout_basis_points": 10000,
+            "enabled": true
+          },
+          "artifacts": [
+            {
+              "manifest_sha256": "964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff",
+              "envelope_sha256": "8c52ff247cfa20e59ea797de1be414c0dc2c4bb8657e6a0caa1a036c497abb78"
+            }
+          ]
+        }
+      },
+      "originCutLiveLease": {
+        "origin": "ECONNREFUSED",
+        "edge": {
+          "offer": {
+            "status": 200,
+            "bytes": 766,
+            "sha256": "8a3e8bb91f16b5522eb48fe0b84eb7e677935d6c78e5abb9199c021d5f8b2fe4",
+            "contentType": "application/json",
+            "cacheControl": "no-store"
+          },
+          "artifacts": [
+            {
+              "path": "/v3/artifacts/964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff?organization=mixer-local&project=fieldlog",
+              "status": 200,
+              "bytes": 8722,
+              "sha256": "8c52ff247cfa20e59ea797de1be414c0dc2c4bb8657e6a0caa1a036c497abb78",
+              "contentType": "application/json",
+              "cacheControl": "no-store"
+            }
+          ]
+        },
+        "observedAtUnixMs": 1795297043836,
+        "exactBeforeAfter": true
+      },
+      "originCutExpiredLease": {
+        "origin": "ECONNREFUSED",
+        "edgeOffer": {
+          "status": 204,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "contentType": null,
+          "cacheControl": "no-store"
+        },
+        "edgeArtifact": {
+          "status": 404,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "contentType": null,
+          "cacheControl": "no-store"
+        }
+      },
+      "beforeEdgeCut": {
+        "origin": {
+          "offer": {
+            "status": 200,
+            "bytes": 772,
+            "sha256": "b5a2a3c58a9eb856bf50c627ce00cc4820b8bab52264e1ab2156767e6b64fa48",
+            "contentType": "application/json",
+            "cacheControl": "no-store"
+          },
+          "artifacts": [
+            {
+              "path": "/v3/artifacts/964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff?organization=mixer-local&project=fieldlog",
+              "status": 200,
+              "bytes": 8722,
+              "sha256": "8c52ff247cfa20e59ea797de1be414c0dc2c4bb8657e6a0caa1a036c497abb78",
+              "contentType": "application/json",
+              "cacheControl": "no-store"
+            },
+            {
+              "path": "/v3/artifacts/66bafc9348ee9db1777ceb42bdcc4d5e83c8670af2edaf450c7da804158104c9?organization=mixer-local&project=fieldlog",
+              "status": 200,
+              "bytes": 8723,
+              "sha256": "d7e1192c9085f26e05cc55f9bb35686e6380c6a5fc0861b044c243aeda800476",
+              "contentType": "application/json",
+              "cacheControl": "no-store"
+            }
+          ]
+        },
+        "edge": {
+          "offer": {
+            "status": 200,
+            "bytes": 767,
+            "sha256": "4a37beeb3ec86fda62d9491568ceb9b7ebc4e3aa1de67716ac3d023c744dc3ab",
+            "contentType": "application/json",
+            "cacheControl": "no-store"
+          },
+          "artifacts": [
+            {
+              "path": "/v3/artifacts/964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff?organization=mixer-local&project=fieldlog",
+              "status": 200,
+              "bytes": 8722,
+              "sha256": "8c52ff247cfa20e59ea797de1be414c0dc2c4bb8657e6a0caa1a036c497abb78",
+              "contentType": "application/json",
+              "cacheControl": "no-store"
+            },
+            {
+              "path": "/v3/artifacts/66bafc9348ee9db1777ceb42bdcc4d5e83c8670af2edaf450c7da804158104c9?organization=mixer-local&project=fieldlog",
+              "status": 200,
+              "bytes": 8723,
+              "sha256": "d7e1192c9085f26e05cc55f9bb35686e6380c6a5fc0861b044c243aeda800476",
+              "contentType": "application/json",
+              "cacheControl": "no-store"
+            }
+          ]
+        },
+        "lease": {
+          "version": 1,
+          "target": {
+            "organization": "mixer-local",
+            "project": "fieldlog",
+            "app": "fieldlog",
+            "environment": "development",
+            "platform": "android",
+            "runtime": "7027fcb3a5af73841c29f7d8ca4c512b610e461b0e7156537cb623841f1b1e30",
+            "channel": "beta"
+          },
+          "revision": "2",
+          "issued_at_ms": 1795297050463,
+          "expires_at_ms": 1795297110463,
+          "head": {
+            "sequence": "2",
+            "assignment_sha256": "60554908e4fa81b0112ec10e02dd7877d1ca63a8736173e516df789f9eadc198",
+            "artifact_sha256": "66bafc9348ee9db1777ceb42bdcc4d5e83c8670af2edaf450c7da804158104c9",
+            "rollout_basis_points": 10000,
+            "enabled": true
+          },
+          "artifacts": [
+            {
+              "manifest_sha256": "964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff",
+              "envelope_sha256": "8c52ff247cfa20e59ea797de1be414c0dc2c4bb8657e6a0caa1a036c497abb78"
+            },
+            {
+              "manifest_sha256": "66bafc9348ee9db1777ceb42bdcc4d5e83c8670af2edaf450c7da804158104c9",
+              "envelope_sha256": "d7e1192c9085f26e05cc55f9bb35686e6380c6a5fc0861b044c243aeda800476"
+            }
+          ]
+        }
+      },
+      "edgeCut": {
+        "edgeOffer": "ECONNREFUSED",
+        "edgeArtifact": "ECONNREFUSED",
+        "originHealth": {
+          "status": 200,
+          "bytes": 45,
+          "sha256": "728063799a6a113baac49dc697ade9b819e0a3d3c1f13ffd833856a2571132b7",
+          "contentType": "application/json",
+          "cacheControl": "no-store"
+        },
+        "origin": {
+          "offer": {
+            "status": 200,
+            "bytes": 772,
+            "sha256": "b5a2a3c58a9eb856bf50c627ce00cc4820b8bab52264e1ab2156767e6b64fa48",
+            "contentType": "application/json",
+            "cacheControl": "no-store"
+          },
+          "artifacts": [
+            {
+              "path": "/v3/artifacts/964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff?organization=mixer-local&project=fieldlog",
+              "status": 200,
+              "bytes": 8722,
+              "sha256": "8c52ff247cfa20e59ea797de1be414c0dc2c4bb8657e6a0caa1a036c497abb78",
+              "contentType": "application/json",
+              "cacheControl": "no-store"
+            },
+            {
+              "path": "/v3/artifacts/66bafc9348ee9db1777ceb42bdcc4d5e83c8670af2edaf450c7da804158104c9?organization=mixer-local&project=fieldlog",
+              "status": 200,
+              "bytes": 8723,
+              "sha256": "d7e1192c9085f26e05cc55f9bb35686e6380c6a5fc0861b044c243aeda800476",
+              "contentType": "application/json",
+              "cacheControl": "no-store"
+            }
+          ]
+        }
+      },
+      "edgeRecovered": {
+        "edge": {
+          "offer": {
+            "status": 200,
+            "bytes": 767,
+            "sha256": "4a37beeb3ec86fda62d9491568ceb9b7ebc4e3aa1de67716ac3d023c744dc3ab",
+            "contentType": "application/json",
+            "cacheControl": "no-store"
+          },
+          "artifacts": [
+            {
+              "path": "/v3/artifacts/964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff?organization=mixer-local&project=fieldlog",
+              "status": 200,
+              "bytes": 8722,
+              "sha256": "8c52ff247cfa20e59ea797de1be414c0dc2c4bb8657e6a0caa1a036c497abb78",
+              "contentType": "application/json",
+              "cacheControl": "no-store"
+            },
+            {
+              "path": "/v3/artifacts/66bafc9348ee9db1777ceb42bdcc4d5e83c8670af2edaf450c7da804158104c9?organization=mixer-local&project=fieldlog",
+              "status": 200,
+              "bytes": 8723,
+              "sha256": "d7e1192c9085f26e05cc55f9bb35686e6380c6a5fc0861b044c243aeda800476",
+              "contentType": "application/json",
+              "cacheControl": "no-store"
+            }
+          ]
+        },
+        "samePortAndPersistedLease": true
+      }
+    },
+    "processes": [
+      {
+        "kind": "stock Go origin",
+        "instance": 1,
+        "pid": 57305,
+        "pgid": 57305,
+        "code": 0,
+        "signal": null,
+        "exactPidAbsent": true,
+        "groupAbsent": true,
+        "reaped": true,
+        "tcpAfter": "ECONNREFUSED",
+        "portRebound": true
+      },
+      {
+        "kind": "stock Go origin",
+        "instance": 2,
+        "pid": 57416,
+        "pgid": 57416,
+        "code": 0,
+        "signal": null,
+        "exactPidAbsent": true,
+        "groupAbsent": true,
+        "reaped": true,
+        "tcpAfter": "ECONNREFUSED",
+        "portRebound": true
+      },
+      {
+        "kind": "Workerd",
+        "instance": 1,
+        "launchAttempts": 1,
+        "pid": 57306,
+        "pgid": 57306,
+        "ready": "verified",
+        "beforeDispose": "verified",
+        "unexpectedChildren": null,
+        "disposed": true,
+        "close": {
+          "code": null,
+          "signal": "SIGKILL"
+        },
+        "exactPidAbsent": true,
+        "groupAbsent": true,
+        "ports": [
+          57448,
+          57450
+        ],
+        "tcpAfter": "ECONNREFUSED",
+        "portRebound": true
+      },
+      {
+        "kind": "Workerd",
+        "instance": 2,
+        "launchAttempts": 1,
+        "pid": 57418,
+        "pgid": 57418,
+        "ready": "verified",
+        "beforeDispose": "verified",
+        "unexpectedChildren": null,
+        "disposed": true,
+        "close": {
+          "code": null,
+          "signal": "SIGKILL"
+        },
+        "exactPidAbsent": true,
+        "groupAbsent": true,
+        "ports": [
+          57492,
+          57450
+        ],
+        "tcpAfter": "ECONNREFUSED",
+        "portRebound": true
+      }
+    ],
+    "listeners": {
+      "origin": 57442,
+      "edge": 57450
+    },
+    "mutations": [
+      {
+        "sequence": 1,
+        "operation": "upload",
+        "path": "/v3/orgs/mixer-local/projects/fieldlog/artifacts/964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff",
+        "status": 201,
+        "bytes": 103,
+        "sha256": "7639081c9441f785ca9a220aa3a818c3383966544c79a80e5ebfc462ad6ab585",
+        "contentType": "application/json",
+        "cacheControl": "no-store"
+      },
+      {
+        "sequence": 1,
+        "operation": "validate",
+        "path": "/v3/orgs/mixer-local/projects/fieldlog/releases/validate",
+        "status": 200,
+        "bytes": 195,
+        "sha256": "80b243f369ba847f155d2fcc4df90650d47e74ee16083062ce94d138bca2a83b",
+        "contentType": "application/json",
+        "cacheControl": "no-store"
+      },
+      {
+        "sequence": 1,
+        "operation": "publish",
+        "path": "/v3/orgs/mixer-local/projects/fieldlog/channels/beta/publish",
+        "status": 200,
+        "bytes": 152,
+        "sha256": "f40eb8f7b78f2b86826790d1abb3e7b666a703aa050f62f96a9d262b6e96d430",
+        "contentType": "application/json",
+        "cacheControl": "no-store"
+      },
+      {
+        "sequence": 2,
+        "operation": "upload",
+        "path": "/v3/orgs/mixer-local/projects/fieldlog/artifacts/66bafc9348ee9db1777ceb42bdcc4d5e83c8670af2edaf450c7da804158104c9",
+        "status": 201,
+        "bytes": 103,
+        "sha256": "57f2ad20af7aef347425b04f62bfc1df5c440768c817438b9bc3d0c6f46d3e7f",
+        "contentType": "application/json",
+        "cacheControl": "no-store"
+      },
+      {
+        "sequence": 2,
+        "operation": "validate",
+        "path": "/v3/orgs/mixer-local/projects/fieldlog/releases/validate",
+        "status": 200,
+        "bytes": 195,
+        "sha256": "238b88948979c24a9a08a39e6655bc4fbba1789cbc5d86a3eb4df1c9f17ad419",
+        "contentType": "application/json",
+        "cacheControl": "no-store"
+      },
+      {
+        "sequence": 2,
+        "operation": "publish",
+        "path": "/v3/orgs/mixer-local/projects/fieldlog/channels/beta/publish",
+        "status": 200,
+        "bytes": 152,
+        "sha256": "1892e327cd04d3d7f4c21f34018dde59f964ae0890ee92d5f39f7c471c8f5ca4",
+        "contentType": "application/json",
+        "cacheControl": "no-store"
+      }
+    ],
+    "offerPath": "/v3/updates?organization=mixer-local&project=fieldlog&app=fieldlog&environment=development&platform=android&runtime=7027fcb3a5af73841c29f7d8ca4c512b610e461b0e7156537cb623841f1b1e30&channel=beta&installation=5270baf7-48a2-4084-89e6-b6e1e5717d88",
+    "target": {
+      "organization": "mixer-local",
+      "project": "fieldlog",
+      "app": "fieldlog",
+      "environment": "development",
+      "platform": "android",
+      "runtime": "7027fcb3a5af73841c29f7d8ca4c512b610e461b0e7156537cb623841f1b1e30",
+      "channel": "beta"
+    },
+    "guestPort": 18762,
+    "stages": [
+      {
+        "sequence": 1,
+        "digest": "964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff",
+        "artifactPath": "/v3/artifacts/964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff?organization=mixer-local&project=fieldlog",
+        "assignmentSha256": "93ef9638e7f9d0ce94a143a3d7f1b39953177472b01b72c31626864cb55a401c",
+        "signedManifestSha256": "12b9e0078c8e8e12d9bbb8638c2ec0774b248e86f172ae1cd4bdb940488d59e4",
+        "payloadBytes": 5450,
+        "payloadSha256": "a92944f065b6e4b42c9945baa917d57863e70d1c08b062dc151b6cf9a0e6e16c"
+      },
+      {
+        "sequence": 2,
+        "digest": "66bafc9348ee9db1777ceb42bdcc4d5e83c8670af2edaf450c7da804158104c9",
+        "artifactPath": "/v3/artifacts/66bafc9348ee9db1777ceb42bdcc4d5e83c8670af2edaf450c7da804158104c9?organization=mixer-local&project=fieldlog",
+        "assignmentSha256": "60554908e4fa81b0112ec10e02dd7877d1ca63a8736173e516df789f9eadc198",
+        "signedManifestSha256": "23babaa737211d35cf9601bb90cf27c4e7da4a91487efc873625b2d5326de284",
+        "payloadBytes": 5450,
+        "payloadSha256": "d2a110cf68b0f99709a514272e98bef49223b1ed9471fbaeade3b4c1e398252c"
+      }
+    ],
+    "closedPorts": [
+      57442,
+      57450,
+      57448,
+      57492
+    ],
+    "runner": {
+      "pid": 57303,
+      "pgid": 57303,
+      "apkSHA256": "60542e51513cec9ec6e0c061ac3a80db668490e2056ab6a7e29225365924c726",
+      "apkBytes": 134896552,
+      "embeddedAssetsSHA256": {
+        "identity.json": "1c34af03ae963e70daf19de1c70a5a61da3542200121fd585bd32cfd9e0b34ea",
+        "roots.json": "f207443b351cd2c4477ba3719dcc58bcabb212a595c86bfe3b18319f1e021ac0",
+        "port.txt": "7fca5d6fb48cc8ce3d27ffb4d179bef3cf6f24a59e1dabddfc1f7964e15ee5b3"
+      },
+      "fixtureDriverSHA256": "c37e7fc7625d868307aa4a9acfb904ce89dd08ce80fa8e30409be8aa7e842a18",
+      "exit": 0,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    "resultSHA256": "3d7b1a10ddb1c2360d20d99215412de6c5939b4a9cc72f8806c098a471cffa7f"
+  },
+  "operatorCheckpointOrder": [
+    "baseline-live",
+    "origin-cut-live-lease",
+    "origin-cut-expired-lease",
+    "corrected-edge-live",
+    "edge-cut",
+    "edge-recovered"
+  ],
+  "checkpointPipe": {
+    "mode": "operator_checkpoints",
+    "status": "passed_local_host_discriminator",
+    "listeners": {
+      "origin": 57671,
+      "edge": 57676
+    },
+    "closedPorts": [
+      57671,
+      57676,
+      57675,
+      57710
+    ],
+    "processes": [
+      {
+        "kind": "stock Go origin",
+        "instance": 1,
+        "pid": 68456,
+        "pgid": 68456,
+        "code": 0,
+        "signal": null,
+        "exactPidAbsent": true,
+        "groupAbsent": true,
+        "reaped": true,
+        "tcpAfter": "ECONNREFUSED",
+        "portRebound": true
+      },
+      {
+        "kind": "stock Go origin",
+        "instance": 2,
+        "pid": 68509,
+        "pgid": 68509,
+        "code": 0,
+        "signal": null,
+        "exactPidAbsent": true,
+        "groupAbsent": true,
+        "reaped": true,
+        "tcpAfter": "ECONNREFUSED",
+        "portRebound": true
+      },
+      {
+        "kind": "Workerd",
+        "instance": 1,
+        "launchAttempts": 1,
+        "pid": 68476,
+        "pgid": 68476,
+        "ready": "verified",
+        "beforeDispose": "verified",
+        "unexpectedChildren": null,
+        "disposed": true,
+        "close": {
+          "code": null,
+          "signal": "SIGKILL"
+        },
+        "exactPidAbsent": true,
+        "groupAbsent": true,
+        "ports": [
+          57675,
+          57676
+        ],
+        "tcpAfter": "ECONNREFUSED",
+        "portRebound": true
+      },
+      {
+        "kind": "Workerd",
+        "instance": 2,
+        "launchAttempts": 1,
+        "pid": 68530,
+        "pgid": 68530,
+        "ready": "verified",
+        "beforeDispose": "verified",
+        "unexpectedChildren": null,
+        "disposed": true,
+        "close": {
+          "code": null,
+          "signal": "SIGKILL"
+        },
+        "exactPidAbsent": true,
+        "groupAbsent": true,
+        "ports": [
+          57710,
+          57676
+        ],
+        "tcpAfter": "ECONNREFUSED",
+        "portRebound": true
+      }
+    ],
+    "runner": {
+      "pid": 68455,
+      "pgid": 68455,
+      "apkSHA256": "60542e51513cec9ec6e0c061ac3a80db668490e2056ab6a7e29225365924c726",
+      "apkBytes": 134896552,
+      "embeddedAssetsSHA256": {
+        "identity.json": "1c34af03ae963e70daf19de1c70a5a61da3542200121fd585bd32cfd9e0b34ea",
+        "roots.json": "f207443b351cd2c4477ba3719dcc58bcabb212a595c86bfe3b18319f1e021ac0",
+        "port.txt": "7fca5d6fb48cc8ce3d27ffb4d179bef3cf6f24a59e1dabddfc1f7964e15ee5b3"
+      },
+      "fixtureDriverSHA256": "14f6f916d54ff400c87bca8d3e6f87aa3358fb0a97ae2552ced4c1bc6739a688",
+      "exit": 0,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    "supervisor": {
+      "pid": 68454,
+      "pgid": 68454,
+      "exit": 0,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    "resultSHA256": "958bc6fd06ec8173fd97d25dabbab725592deb9e5875cb535f4b456aa4be048a"
+  },
+  "checkpointPTY": {
+    "mode": "operator_checkpoints",
+    "status": "passed_local_host_discriminator",
+    "listeners": {
+      "origin": 57823,
+      "edge": 57828
+    },
+    "closedPorts": [
+      57823,
+      57828,
+      57826,
+      57933
+    ],
+    "processes": [
+      {
+        "kind": "stock Go origin",
+        "instance": 1,
+        "pid": 72499,
+        "pgid": 72499,
+        "code": 0,
+        "signal": null,
+        "exactPidAbsent": true,
+        "groupAbsent": true,
+        "reaped": true,
+        "tcpAfter": "ECONNREFUSED",
+        "portRebound": true
+      },
+      {
+        "kind": "stock Go origin",
+        "instance": 2,
+        "pid": 76444,
+        "pgid": 76444,
+        "code": 0,
+        "signal": null,
+        "exactPidAbsent": true,
+        "groupAbsent": true,
+        "reaped": true,
+        "tcpAfter": "ECONNREFUSED",
+        "portRebound": true
+      },
+      {
+        "kind": "Workerd",
+        "instance": 1,
+        "launchAttempts": 1,
+        "pid": 72500,
+        "pgid": 72500,
+        "ready": "verified",
+        "beforeDispose": "verified",
+        "unexpectedChildren": null,
+        "disposed": true,
+        "close": {
+          "code": null,
+          "signal": "SIGKILL"
+        },
+        "exactPidAbsent": true,
+        "groupAbsent": true,
+        "ports": [
+          57826,
+          57828
+        ],
+        "tcpAfter": "ECONNREFUSED",
+        "portRebound": true
+      },
+      {
+        "kind": "Workerd",
+        "instance": 2,
+        "launchAttempts": 1,
+        "pid": 76483,
+        "pgid": 76483,
+        "ready": "verified",
+        "beforeDispose": "verified",
+        "unexpectedChildren": null,
+        "disposed": true,
+        "close": {
+          "code": null,
+          "signal": "SIGKILL"
+        },
+        "exactPidAbsent": true,
+        "groupAbsent": true,
+        "ports": [
+          57933,
+          57828
+        ],
+        "tcpAfter": "ECONNREFUSED",
+        "portRebound": true
+      }
+    ],
+    "runner": {
+      "pid": 72498,
+      "pgid": 72498,
+      "apkSHA256": "60542e51513cec9ec6e0c061ac3a80db668490e2056ab6a7e29225365924c726",
+      "apkBytes": 134896552,
+      "embeddedAssetsSHA256": {
+        "identity.json": "1c34af03ae963e70daf19de1c70a5a61da3542200121fd585bd32cfd9e0b34ea",
+        "roots.json": "f207443b351cd2c4477ba3719dcc58bcabb212a595c86bfe3b18319f1e021ac0",
+        "port.txt": "7fca5d6fb48cc8ce3d27ffb4d179bef3cf6f24a59e1dabddfc1f7964e15ee5b3"
+      },
+      "fixtureDriverSHA256": "14f6f916d54ff400c87bca8d3e6f87aa3358fb0a97ae2552ced4c1bc6739a688",
+      "exit": 0,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    "resultSHA256": "69dbec736aa944fc5d415c7bb50eed29a6278d838eb9d2a6d4753f4b33514b91"
+  },
+  "preparationProcesses": [
+    {
+      "label": "stock Go build",
+      "pid": 31585,
+      "pgid": 31585,
+      "exit": 0,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "npm node-darwin-arm64 package attempt (ETARGET)",
+      "pid": 31586,
+      "pgid": 31586,
+      "exit": 1,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "official Node checksums",
+      "pid": 35836,
+      "pgid": 35836,
+      "exit": 0,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "official Node archive",
+      "pid": 35839,
+      "pgid": 35839,
+      "exit": 0,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "extract Node",
+      "pid": 35898,
+      "pgid": 35898,
+      "exit": 0,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "Node version",
+      "pid": 35926,
+      "pgid": 35926,
+      "exit": 0,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "npm version",
+      "pid": 35946,
+      "pgid": 35946,
+      "exit": 0,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "npm ci",
+      "pid": 35947,
+      "pgid": 35947,
+      "exit": 0,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "label": "TypeScript compile",
+      "pid": 36110,
+      "pgid": 36110,
+      "exit": 0,
+      "reaped": true,
+      "groupAbsent": true
+    }
+  ],
+  "preListenerFixtureCorrections": [
+    {
+      "reason": "Corrected createRequire lockfile path.",
+      "pid": 51036,
+      "pgid": 51036,
+      "apkSHA256": "60542e51513cec9ec6e0c061ac3a80db668490e2056ab6a7e29225365924c726",
+      "apkBytes": 134896552,
+      "embeddedAssetsSHA256": {
+        "identity.json": "1c34af03ae963e70daf19de1c70a5a61da3542200121fd585bd32cfd9e0b34ea",
+        "roots.json": "f207443b351cd2c4477ba3719dcc58bcabb212a595c86bfe3b18319f1e021ac0",
+        "port.txt": "7fca5d6fb48cc8ce3d27ffb4d179bef3cf6f24a59e1dabddfc1f7964e15ee5b3"
+      },
+      "fixtureDriverSHA256": "3a60389671744f23baec8d940c3ac24da73da459749772a3a58ce234033a8720",
+      "exit": 1,
+      "reaped": true,
+      "groupAbsent": true
+    },
+    {
+      "reason": "Matched the existing root contract: not_after_unix=0 has no time limit.",
+      "pid": 56442,
+      "pgid": 56442,
+      "apkSHA256": "60542e51513cec9ec6e0c061ac3a80db668490e2056ab6a7e29225365924c726",
+      "apkBytes": 134896552,
+      "embeddedAssetsSHA256": {
+        "identity.json": "1c34af03ae963e70daf19de1c70a5a61da3542200121fd585bd32cfd9e0b34ea",
+        "roots.json": "f207443b351cd2c4477ba3719dcc58bcabb212a595c86bfe3b18319f1e021ac0",
+        "port.txt": "7fca5d6fb48cc8ce3d27ffb4d179bef3cf6f24a59e1dabddfc1f7964e15ee5b3"
+      },
+      "fixtureDriverSHA256": "3daf64ac61c762ba9489c0003dce7691e682dc93e6c1296795761e6e89500170",
+      "exit": 1,
+      "reaped": true,
+      "groupAbsent": true
+    }
+  ],
+  "handoff": {
+    "path": "verification/local/pair24-release-edge-boundary",
+    "sha256": {
+      "README.md": "4e9a653d055659716ba272b4e38564a5d490c68b6f23d1ac05ebed3157478fe0",
+      "launch-boundary.py": "9f24be0460fc97ac6c7a2cfbcea2a4dfa0e8c1faf638ca1ecd5124a6134b796e",
+      "pair24-boundary.mjs": "14f6f916d54ff400c87bca8d3e6f87aa3358fb0a97ae2552ced4c1bc6739a688",
+      "prepare.py": "fd305aa7dbf3fc9e28ce200f7c04ceefc954b09738c93397bee0e80381db3acb"
+    }
+  },
+  "limits": [
+    "This is host loopback evidence using the public release Worker, actual Workerd local R2 and an independent stock Go release origin. The maintained fixture writer applied lease snapshots through a private Miniflare binding after Go admission and publication.",
+    "The target uses the observed prior installed Android installation identifier and public paths. The APK was hashed and its embedded identity, roots and port verified against the exact private packet.",
+    "Full offer envelopes serialize differently between Go and Workerd. The exact original signed assignment is embedded in the Workerd response; both decoded signed objects match. Artifact bodies are byte-identical between Go and Workerd.",
+    "The prior Phoenix/PostgreSQL-backed publisher proof is separate. This run covers the exact Android target with the private fixture writer. Installed Android, Phoenix publisher admission for this target, and Cloudflare CDN qualification remain pending for this boundary."
+  ],
+  "gateChanges": [],
+  "cleanup": {
+    "externalScratchRemoved": true,
+    "taskCreatedGlobalNpmLogsRemoved": 4,
+    "allOwnedRuntimeGroupsReapedAndAbsent": true,
+    "allObservedRuntimePortsRefusedConnectionsAndRebound": true
+  }
+}

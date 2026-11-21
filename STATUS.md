@@ -1030,6 +1030,17 @@ closed. Both Go groups, private ADB, and the emulator retired. The reverse
 mapping was removed, the ports rebound, and the scratch was removed.
 [Installed outage receipt](verification/receipts/l08-android-installed-release-origin-outage-d89c742e.json)
 
+A separate installed replay mapped the app's release port to local
+Workerd and ran stock Go on a different port. Workerd served the
+signed baseline after Go stopped. When the lease expired, Workerd
+returned no offer and refused the expired artifact. The app kept its
+healthy candidate. During the Workerd cut, Go remained healthy while
+the app cold-reopened sequence 1 and saved an ordinary note edit.
+Workerd reopened on the same port and delivered sequence 2. The app
+retained the draft, JPEG, and outbox. All owned host and device
+groups closed, the listed ports were reusable, and scratch was removed.
+[Installed Workerd replay](verification/receipts/l08-android-installed-workerd-outage-d3b23e0d.json) · [Host controls](verification/receipts/l08-android-workerd-control-plane-boundary-d3b23e0d.json)
+
 ## November 21 installed Android update refusals
 
 The Pair24 Android API 36 replay exercised 15 stages on one development
