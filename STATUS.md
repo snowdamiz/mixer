@@ -174,6 +174,13 @@ on the local composition.
 [Exact composed replay](verification/receipts/fieldlog-f10-v3-root-dda81610.json) ·
 [Source141 binding](verification/receipts/source141-private-f10-dda81610.json)
 
+All nine hosted jobs passed on exact published `2acaac6760`. Source141
+admitted the same 155 inputs in both preflights and postflight. The ordinary
+build kept private F10 disabled and passed signed Commit and W09 tests.
+Intel passed all six Java cross-compiles. The opt-in replay remains
+separate local evidence.
+[Published F10 CI receipt](verification/receipts/hosted-private-f10-ci-terminal-2acaac67.json)
+
 The six-action private V3 candidate `790d0b2253` delivered Open, Next,
 Tasks, reopen, Previous, and Entries through the signed guest. Its two
 pages displayed 26 real pending records from three scoped reads. The
@@ -1229,7 +1236,8 @@ historical editors and matches their observed state across 12 turns
 each. The 86,887-byte guest has zero imports and two initial memory
 pages. One longer equivalence case still exhausts the fixed fuel
 budget. Save, signed installation, platform rendering, and full parity
-remain open. The experiment is under independent review.
+remain open. Independent review confirmed the source identity, projected
+trace, and scope of the unsigned host proof.
 [Compact editor evidence](verification/receipts/fieldlog-f05-f06-embedded-editor-2acaac67.json)
 
 The L07 terminal restart attempt used a CLI that predates the current closure acknowledgement. The worker declined shutdown, leaving compiler custody unknown. Three separate no-compiler controls passed. [Worker custody receipt](verification/receipts/l07-worker-terminal-restart-hold-41a05264.json)

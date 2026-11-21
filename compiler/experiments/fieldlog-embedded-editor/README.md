@@ -16,9 +16,10 @@ generation and event checks, publication and cancellation onto just the title
 and Cancel controls.
 
 For every turn, the harness compares the reply, revision, outcome, route count
-and title UTF-8 against the untouched historical presentation. The original
-presentation also checks its reducer title against the document value. The
-harness verifies that rejected actions leave the original serialized document
+and title UTF-8 against the untouched historical presentation. It compares the
+published snapshot title with the document value on each turn. Cancel
+verifies the latest reducer spelling. The harness verifies that rejected
+actions leave the original serialized document
 and projected state unchanged. The F06 oracle confirms the historical title
 has the vertical axis and delivers the multiline edit through its shared
 presentation.
