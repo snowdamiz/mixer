@@ -74,6 +74,12 @@ VM. The guest rejected a short input without changing its result and retired
 with a stale-handle refusal. The two recorded builds emitted different Wasm
 hashes and the same observed instructions and ordered frames. [Producer replay](verification/receipts/swift-floating-point-preview-6f4fdee12e.json) · [Integration replay](verification/receipts/l03-swift-floating-point-integration-b463c00d.json)
 
+The maintained WebAssembly Core replay reproduced ten exact returns, three
+traps, and six invalid-module refusals on arm64 macOS. The Rust CLI and the
+installed V3 session C ABI agreed on the selected upstream cases. Guest UI v1
+coverage consists of admission refusals. The replay used a private Git export,
+and all 79 command groups closed. [Replay commands](vm/verification/standards-replay/README.md) · [Integration receipt](verification/receipts/l03-standards-replay-integration-9f4acf56.json)
+
 ## November 19 local verification
 
 The combined FieldLog iOS and Android storage patches passed 30 host checks across the compatible rollback and successor writers. An independent replay passed all 30 checks and 10 additional controls. The four writers refused newly introduced draft and entry ID overlaps, preserved edits to existing pairs, and recovered a complete snapshot after a write fault. [Composed storage receipt](verification/receipts/fieldlog-l08-cross-platform-draft-overlap-20261119.json)
