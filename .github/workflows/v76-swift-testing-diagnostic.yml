@@ -1,0 +1,221 @@
+name: v76 CLI Swift Testing diagnostic
+
+"on":
+  push:
+    paths:
+      - .github/workflows/v76-swift-testing-diagnostic.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  swift-testing-v76:
+    # A fresh dispatch is required for any rerun.
+    if: github.run_attempt == '1'
+    runs-on: macos-15
+    timeout-minutes: 40
+    defaults:
+      run:
+        shell: bash
+    env:
+      V76_REVISION: 32cd2c54b6d397f178200b6d95a27125f5c2de24
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+      TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
+    steps:
+      - name: Check out the public v76 source
+        uses: actions/checkout@v4
+        timeout-minutes: 4
+        with:
+          ref: 32cd2c54b6d397f178200b6d95a27125f5c2de24
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /cli/
+            /sdk/
+            /updates/
+            /runtime-identity/
+            /native/android/
+            /scripts/ci/verify-apple-toolchain.py
+            /scripts/ci/prepare-cli-host-tests.py
+
+      - name: Admit arm64, Xcode 26.3 build 17C529 and Swift 6.2.4
+        timeout-minutes: 3
+        run: |
+          umask 077
+          root="$(cd "$RUNNER_TEMP" && pwd -P)/mixer-v76-swift-testing"
+          mkdir "$root"
+          mkdir "$root/evidence" "$root/build-tmp"
+          printf 'DIAGNOSTIC_ROOT=%s\n' "$root" >> "$GITHUB_ENV"
+          printf 'event=%s\nworkflow_commit=%s\n' "$GITHUB_EVENT_NAME" "$GITHUB_SHA" > "$root/evidence/source.txt"
+          git rev-parse HEAD HEAD^{tree} >> "$root/evidence/source.txt"
+          test "$(git rev-parse HEAD)" = "$V76_REVISION"
+          test "$(uname -m)" = arm64
+          python3 scripts/ci/verify-apple-toolchain.py \
+            --developer-dir "$DEVELOPER_DIR" --xcode-version 26.3 --xcode-build 17C529 \
+            --output "$root/evidence/apple-toolchain.json"
+          python3 - "$root/evidence/apple-toolchain.json" <<'PY'
+          import json
+          import os
+          import sys
+
+          with open(sys.argv[1]) as stream:
+              receipt = json.load(stream)
+          if receipt["swiftVersion"] != [6, 2, 4] or receipt["sourceRevision"] != os.environ["V76_REVISION"]:
+              raise SystemExit("Unexpected Swift version or source revision")
+          PY
+          python3 -I -B -S scripts/ci/prepare-cli-host-tests.py \
+            --toolchain-receipt "$root/evidence/apple-toolchain.json" --output "$root/serial"
+
+      - name: Build the CLI and test bundle once
+        timeout-minutes: 15
+        run: |
+          umask 077
+          root="$DIAGNOSTIC_ROOT"
+          evidence="$root/evidence"
+          source "$root/serial/environment.sh"
+          export TMPDIR="$root/build-tmp/"
+          options=(--package-path cli --scratch-path "$root/build"
+                   --cache-path "$root/cache" --config-path "$root/config"
+                   --security-path "$root/security" --force-resolved-versions -j 2)
+          printf 'UNKNOWN until build completion is recorded. Preserve %s.\n' "$root" > "$evidence/build.status"
+          if swift build "${options[@]}" --build-tests > "$evidence/build.stdout" 2> "$evidence/build.stderr"; then
+            printf 'build_exit=0\n' > "$evidence/build.status"
+          else
+            status=$?
+            printf 'build_exit=%s\n' "$status" >> "$evidence/build.status"
+            exit "$status"
+          fi
+          bin="$(swift build "${options[@]}" --show-bin-path)"
+          bin="$(cd "$bin" && pwd -P)"
+          test_binary="$bin/MixerCLIPackageTests.xctest/Contents/MacOS/MixerCLIPackageTests"
+          test -x "$test_binary"
+          test -x "$bin/mixer"
+          printf '%s\n' "$test_binary" "$bin/mixer" > "$evidence/binaries.paths"
+          shasum -a 256 "$test_binary" "$bin/mixer" > "$evidence/binaries.sha256"
+          xcrun dwarfdump --uuid "$test_binary" "$bin/mixer" > "$evidence/binaries.uuid"
+          otool -L "$test_binary" "$bin/mixer" > "$evidence/binaries.libraries"
+          git diff --exit-code HEAD -- cli/Package.resolved
+
+      - name: Run Swift Testing serially, then with default scheduling
+        timeout-minutes: 12
+        run: |
+          umask 077
+          root="$DIAGNOSTIC_ROOT"
+          evidence="$root/evidence"
+          options=(--package-path cli --scratch-path "$root/build"
+                   --cache-path "$root/cache" --config-path "$root/config"
+                   --security-path "$root/security" --force-resolved-versions -j 2)
+          touch "$evidence/test-window-start"
+          for mode in serial default; do
+            (
+              scheduling=(--no-parallel)
+              if [[ "$mode" == default ]]; then
+                python3 -I -B -S scripts/ci/prepare-cli-host-tests.py \
+                  --toolchain-receipt "$evidence/apple-toolchain.json" --output "$root/default"
+                scheduling=()
+              fi
+              source "$root/$mode/environment.sh"
+              export MIXER_STORE_TEST_CLI
+              MIXER_STORE_TEST_CLI="$(sed -n '2p' "$evidence/binaries.paths")"
+              shasum -a 256 -c "$evidence/binaries.sha256"
+              printf 'UNKNOWN until the complete test run and fixture holds are checked. Preserve %s.\n' \
+                "$root" > "$evidence/$mode.status"
+              swift test "${options[@]}" --skip-build --disable-xctest --enable-swift-testing \
+                --event-stream-version 0 --event-stream-output-path "$evidence/$mode.events.jsonl" \
+                "${scheduling[@]}" > "$evidence/$mode.stdout" 2> "$evidence/$mode.stderr" &
+              swift_pid=$!
+              printf 'swiftpm_pid=%s\n' "$swift_pid" >> "$evidence/$mode.status"
+              if wait "$swift_pid"; then
+                printf 'swiftpm_exit=0\n' >> "$evidence/$mode.status"
+              else
+                status=$?
+                printf 'swiftpm_exit=%s\n' "$status" >> "$evidence/$mode.status"
+                exit "$status"
+              fi
+              test ! -e "$MIXER_SUITE_HOLD"
+              test ! -e "$MIXER_STORE_CUSTODY_DIR/HOLD.json"
+              grep -Eq 'Testing Library Version: 1501([[:space:]]|$)' "$evidence/$mode.stdout"
+              grep -Eq 'Test run with 132 tests( in [0-9]+ suites?)? passed' "$evidence/$mode.stdout"
+              grep -Eq '"kind"[[:space:]]*:[[:space:]]*"runEnded"' "$evidence/$mode.events.jsonl"
+              shasum -a 256 -c "$evidence/binaries.sha256"
+              printf 'swiftpm_pid=%s\nswiftpm_exit=0\ncompleted_132_tests=true\n' "$swift_pid" > "$evidence/$mode.status"
+            )
+          done
+
+      - name: Collect new crash reports for the test runner and CLI
+        if: always()
+        timeout-minutes: 2
+        env:
+          DIAGNOSTIC_JOB_STATUS: ${{ job.status }}
+        run: |
+          umask 077
+          if [[ -z "${DIAGNOSTIC_ROOT:-}" || ! -f "$DIAGNOSTIC_ROOT/evidence/test-window-start" ]]; then
+            exit 0
+          fi
+          # Give ReportCrash a bounded flush window after an interrupted run.
+          if [[ "$DIAGNOSTIC_JOB_STATUS" != success ]]; then sleep 15; fi
+          python3 -I -B -S - "$DIAGNOSTIC_ROOT/evidence" <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import re
+          import stat
+          import sys
+
+          evidence = Path(sys.argv[1])
+          started = (evidence / "test-window-start").stat().st_mtime
+          executables = set((evidence / "binaries.paths").read_text().splitlines())
+          names = sorted({Path(path).name for path in executables})
+          copied = []
+          for label, directory in (
+              ("user", Path.home() / "Library/Logs/DiagnosticReports"),
+              ("system", Path("/Library/Logs/DiagnosticReports")),
+          ):
+              for name in names:
+                  for report in sorted(directory.glob(f"{name}-*")):
+                      if len(copied) >= 8 or report.suffix not in {".ips", ".crash"}:
+                          continue
+                      try:
+                          info = report.lstat()
+                          if not stat.S_ISREG(info.st_mode) or info.st_birthtime < started:
+                              continue
+                          with report.open("rb") as stream:
+                              raw = stream.read(4 * 1024 * 1024 + 1)
+                          if len(raw) > 4 * 1024 * 1024:
+                              continue
+                          if report.suffix == ".ips":
+                              header, body = raw.decode("utf-8").split("\n", 1)
+                              if str(json.loads(header).get("bug_type")) != "309":
+                                  continue
+                              path = json.loads(body).get("procPath")
+                          else:
+                              match = re.search(rb"^Path:\s*([^\r\n]+)", raw, re.MULTILINE)
+                              path = os.fsdecode(match[1]).strip() if match else None
+                          if path not in executables:
+                              continue
+                          output = f"{label}-{report.name}"
+                          (evidence / output).write_bytes(raw)
+                          copied.append(output)
+                      except (OSError, ValueError, TypeError, AttributeError):
+                          continue
+          (evidence / "crash-reports.json").write_text(json.dumps(copied, indent=2) + "\n")
+          PY
+
+      - name: Upload scoped diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        timeout-minutes: 3
+        with:
+          name: v76-swift-testing-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/mixer-v76-swift-testing/evidence/
+            ${{ runner.temp }}/mixer-v76-swift-testing/serial/selection.json
+            ${{ runner.temp }}/mixer-v76-swift-testing/serial/SUITE-HOLD.json
+            ${{ runner.temp }}/mixer-v76-swift-testing/serial/store-children/*.json
+            ${{ runner.temp }}/mixer-v76-swift-testing/default/selection.json
+            ${{ runner.temp }}/mixer-v76-swift-testing/default/SUITE-HOLD.json
+            ${{ runner.temp }}/mixer-v76-swift-testing/default/store-children/*.json
