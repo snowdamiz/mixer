@@ -15,12 +15,17 @@ references. See [the worktree verification policy](mixer-product-plan.md#worktre
 
 ## November 21 SwiftPM import
 
-The local v78-based CLI accepts `swift package describe --type json` output
-and traces findings through the described local Swift target dependencies.
-Two self-authored packages built and ran with Swift 6.4.2. The default report
-matched v78 byte for byte on both packages. The graph stays advisory, with
-explicit states for targets whose sources could not be associated. W15 remains
-in progress. [SwiftPM import receipt](verification/receipts/import-swiftpm-description-v78.json)
+The stock CLI accepts `swift package describe --type json` output and traces
+findings through its local Swift target dependencies. The graph stays advisory.
+In the macOS replay, SwiftPM built and ran a package with a local AppKit module,
+an aliased target, and a copied Swift resource. The report kept the ambiguous
+AppKit dependency, showed a separate dependency finding, and left the copied
+resource unassigned. The full CLI run passed 137 Swift Testing cases and 32
+XCTest cases, with one skip. Source141 admits the reviewed Swift files and
+restores the previous 153-source archive. W15 remains in progress.
+[Importer receipt](verification/receipts/import-swiftpm-description-v78.json) ·
+[Stock CLI replay](verification/receipts/swiftpm-import-full-cli-v79.json) ·
+[Source141 verification](verification/receipts/source141-swiftpm-migration-source-admission.json)
 
 ## November 21 FieldLog native date correction
 
