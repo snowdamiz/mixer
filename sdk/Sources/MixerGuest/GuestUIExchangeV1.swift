@@ -14,6 +14,24 @@ import MixerUI
         self.allowsDeferredStartup = allowsDeferredStartup
         core = try GuestUIExchangeCore(generation: generation, codec: .legacy)
     }
+#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
+    @_spi(PrivateFieldLogEditor)
+    public init(fieldLogEditorGeneration generation: UInt64) throws {
+        allowsDeferredStartup = false
+        core = try GuestUIExchangeCore(generation: generation, codec: .fieldLogEditor)
+    }
+
+    @_spi(PrivateFieldLogEditor)
+    public func offerFieldLogEditorAction(_ action: IssuedUIAction, generation: UInt64) -> GuestUIEventAdmissionV1 {
+        guard core.requiresBoundedIssuedEvent else { return .invalid(.invalidValue) }
+        return core.offerIssued(action, generation: generation)
+    }
+
+    @_spi(PrivateFieldLogEditor)
+    public func completeUnchangedFieldLogEditorPresentation(_ claim: GuestUIPresentationClaimV1) -> Bool {
+        core.requiresBoundedIssuedEvent && core.completeUnchangedPresentation(claim) != nil
+    }
+#endif
     public func finishStartupWithoutDocument(_ claim: GuestUITurnClaimV1) throws {
         guard allowsDeferredStartup else { throw GuestUIControlRejectionV1.staleClaim }
         try core.finishStartupWithoutDocument(claim)

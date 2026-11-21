@@ -1,10 +1,13 @@
 import Foundation
 @_spi(InstalledApplicationStorage) import MixerCapabilities
 import MixerRuntimeIdentity
-import MixerUpdates
+@_spi(PrivateFieldLogEditor) import MixerUpdates
 #if os(macOS) && MIXER_PRIVATE_F10
 @_spi(PrivateFieldLogF10) import MixerRuntimeIdentity
 @_spi(PrivateFieldLogF10) import MixerUpdates
+#endif
+#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
+@_spi(PrivateFieldLogEditor) import MixerRuntimeIdentity
 #endif
 
 /// An untrusted input file. Bounds and private copies are applied together when
@@ -77,8 +80,25 @@ public struct InstalledCapabilityExecution: Sendable {
             privateContainer: privateContainer, applicationStorage: storage, privateF10: true)
     }
 #endif
+#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
+    @_spi(PrivateFieldLogEditor)
+    public init(privateDevelopmentFieldLogEditorJSON identityJSON: Data, materials: [CapabilityMaterialFile],
+                trustRootsJSON: Data, privateContainer: URL, presenter: FieldLogEditorPresenter) throws {
+        let identity = try CapabilityRuntimeIdentity(privateDevelopmentFieldLogEditorJSON: identityJSON)
+        try CapabilityInstalledExecutionMode.requireFieldLogEditor(identity, milestones: ["feature_started", "first_screen"])
+        guard identity.capabilities.map(\.id) == [CapabilitySchemas.storageID] else {
+            throw materialError("fieldlog_editor_capability")
+        }
+        let storage = InstalledApplicationStorage(runtimeFingerprint: identity.fingerprint,
+            namespace: FieldLogEditorStorage.namespace, service: FieldLogEditorStorage(),
+            guestUICommitFacts: presenter.commitFacts)
+        try self.init(identity: identity, materials: materials, trustRootsJSON: trustRootsJSON,
+            privateContainer: privateContainer, applicationStorage: storage, privateF10: false,
+            fieldLogEditorID: presenter.identity)
+    }
+#endif
     private init(identity: CapabilityRuntimeIdentity, materials: [CapabilityMaterialFile], trustRootsJSON: Data,
-                 privateContainer: URL, applicationStorage: InstalledApplicationStorage?, privateF10: Bool) throws {
+                 privateContainer: URL, applicationStorage: InstalledApplicationStorage?, privateF10: Bool, fieldLogEditorID: UUID? = nil) throws {
         guard trustRootsJSON.count <= 65_536, materials.count <= 5 else { throw materialError("size") }
         guard materials.allSatisfy({ $0.bytes.count <= 65_536 }) else { throw materialError("size") }
         try MaterialRules.linkedIdentity(identity)
@@ -137,19 +157,29 @@ public struct InstalledCapabilityExecution: Sendable {
         let roots = try StrictJSON.decode([TrustRoot].self, from: rootsBytes, maximumBytes: 65_536)
         guard roots.count <= 128 else { throw materialError("roots.count") }
         let verifier: ReleaseVerifierV3
-#if os(macOS) && MIXER_PRIVATE_F10
-        if privateF10 {
-            verifier = try ReleaseVerifierV3(privateDevelopmentF10: identity.installedRuntime, roots: roots)
+#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
+        if fieldLogEditorID != nil {
+            verifier = try ReleaseVerifierV3(privateDevelopmentFieldLogEditor: identity.installedRuntime, roots: roots)
         } else {
-            verifier = try ReleaseVerifierV3(host: identity.installedRuntime, roots: roots)
+            verifier = try Self.ordinaryVerifier(identity, roots, privateF10: privateF10)
         }
 #else
-        verifier = try ReleaseVerifierV3(host: identity.installedRuntime, roots: roots)
+        verifier = try Self.ordinaryVerifier(identity, roots, privateF10: privateF10)
 #endif
         runtimeFingerprint = identity.fingerprint
         installed = InstalledMaterial(identity: identity, files: files, rootsBytes: rootsBytes, privateContainer: privateContainer,
                                       bridge: bridge, configurations: configurations, grants: grants, verifier: verifier,
-                                      applicationStorage: applicationStorage, privateF10: privateF10)
+                                      applicationStorage: applicationStorage, privateF10: privateF10, fieldLogEditorID: fieldLogEditorID)
+    }
+
+    private static func ordinaryVerifier(_ identity: CapabilityRuntimeIdentity, _ roots: [TrustRoot],
+                                         privateF10: Bool) throws -> ReleaseVerifierV3 {
+#if os(macOS) && MIXER_PRIVATE_F10
+        if privateF10 {
+            return try ReleaseVerifierV3(privateDevelopmentF10: identity.installedRuntime, roots: roots)
+        }
+#endif
+        return try ReleaseVerifierV3(host: identity.installedRuntime, roots: roots)
     }
 }
 
@@ -164,6 +194,7 @@ struct InstalledMaterial: Sendable {
     let verifier: ReleaseVerifierV3
     let applicationStorage: InstalledApplicationStorage?
     let privateF10: Bool
+    let fieldLogEditorID: UUID?
 }
 struct InstalledBridgePolicy: Sendable { let burst: UInt32; let startsPerSecond: UInt32 }
 enum InstalledConfiguration: Sendable {

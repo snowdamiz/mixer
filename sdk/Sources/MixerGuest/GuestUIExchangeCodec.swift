@@ -5,6 +5,7 @@ import MixerUI
 struct GuestUIExchangeCodec: Sendable {
     enum StartupPresentation { case afterEffects, beforeEffects }
     var startupPresentation: StartupPresentation = .afterEffects
+    var issuedEventByteLimit: Int? = nil
     let maximumBytes: Int
     let decode: @Sendable (Data) throws -> ValidatedUIDocument
     let accepts: @Sendable (RoutedUIAction, UIEventEnvelope, UIDocument) -> Bool

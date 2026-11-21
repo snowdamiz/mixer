@@ -49,6 +49,16 @@ struct CapabilityExecutionPolicy: Sendable {
                 throw materialError("private_f10_grant")
             }
         }
+#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
+        if installed.fieldLogEditorID != nil {
+            guard grants.entries.count == 1, let only = grants.entries.first,
+                  only.capabilityID == CapabilitySchemas.storageID, only.schemaSHA256 == CapabilitySchemas.storageSHA256,
+                  only.permissions == ["storage.appPrivate"], only.namespaces == [FieldLogEditorStorage.namespace],
+                  only.methods.isEmpty, only.origins.isEmpty else {
+                throw materialError("fieldlog_editor_grant")
+            }
+        }
+#endif
         // The SDK independently validates and intersects both sets for dispatch.
         policy = try CapabilityPolicy(installed: nativeGrants, manifest: signedGrants)
         native = Self.nativeConfiguration(installed: installed, signed: limits)

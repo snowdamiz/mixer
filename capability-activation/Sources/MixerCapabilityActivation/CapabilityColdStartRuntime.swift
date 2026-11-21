@@ -23,16 +23,28 @@ public final class CapabilityColdStartRuntime: Sendable {
         return try await openShared(configuration: configuration, installed: execution.installed, environment: .init(), presentation: presenter)
     }
 #endif
+#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
+    @_spi(PrivateFieldLogEditor)
+    public static func openFieldLogEditor(configuration: CapabilityColdStartConfiguration, execution: InstalledCapabilityExecution,
+                                          presenter: FieldLogEditorPresenter) async throws -> CapabilityColdStartRuntime {
+        guard execution.installed.fieldLogEditorID == presenter.identity else { throw coldStartError("installed_mode") }
+        try CapabilityInstalledExecutionMode.requireFieldLogEditor(execution.installed.identity, milestones: configuration.requiredMilestones)
+        let owner = try await presenter.claimOwner()
+        return try await openShared(configuration: configuration, installed: execution.installed, environment: .init(), presentation: owner)
+    }
+#endif
     private static func openShared(configuration: CapabilityColdStartConfiguration, installed: InstalledMaterial,
                                    environment: CapabilityRecoveryEnvironment,
                                    presentation: (any CapabilityColdStartPresentation)?) async throws -> CapabilityColdStartRuntime {
-        let checked = try configuration.checked()
-        let reservation = try CapabilityAttemptReservation.acquire() // Before actor/I/O/captured owner allocation.
+        var reservation: CapabilityAttemptReservation?
         var core: CapabilityColdStartCloseCore?
         var opening: CapabilityColdStartOperation?
         do {
+            let checked = try configuration.checked()
+            let acquired = try CapabilityAttemptReservation.acquire()
+            reservation = acquired
             let created = try CapabilityColdStartCloseCore(configuration: checked, installed: installed, environment: environment,
-                reservation: reservation, alternatePresentation: presentation)
+                reservation: acquired, alternatePresentation: presentation)
             core = created
             let op = try created.control.admit(.opening); opening = op
             let core = created
@@ -44,7 +56,13 @@ public final class CapabilityColdStartRuntime: Sendable {
             if let core {
                 if let opening { core.control.finish(opening) }
                 core.requestClose(.closed); await core.waitForClose()
-            } else { reservation.beginClosing() }
+            } else {
+                reservation?.beginClosing()
+#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
+                // Without a core, no startup could have bound this claim.
+                if let owner = presentation as? FieldLogEditorPresentationOwner { await owner.release() }
+#endif
+            }
             throw error
         }
     }
@@ -157,6 +175,11 @@ final class CapabilityColdStartCloseCore: @unchecked Sendable {
             let recovery = await worker.closeStore()
             control.storeDidClose(recovery)
             control.reservation.beginClosing()
+#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
+            if let owner = presentation as? FieldLogEditorPresentationOwner, !control.reservation.isQuarantined {
+                await owner.release()
+            }
+#endif
             finishJob()
         }
     }

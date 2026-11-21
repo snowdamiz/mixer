@@ -1,5 +1,5 @@
 import MixerRuntimeIdentity
-import MixerUpdates
+@_spi(PrivateFieldLogEditor) import MixerUpdates
 
 /// A pure check of already captured installed identity. Passing this check is
 /// not executable selection, validation, adapter creation or UI health.
@@ -31,6 +31,24 @@ enum CapabilityInstalledExecutionMode {
             guard let fields = dependencies.first(where: { $0.object?["id"]?.text == id })?.object,
                   fields["version"]?.text == "3", fields["artifact_sha256"]?.text == digest else { throw rejection() }
         }
+    }
+#endif
+
+#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
+    static func requireFieldLogEditor(_ identity: CapabilityRuntimeIdentity, milestones: Set<String>) throws {
+        let dependencies = try entries(identity)
+        guard identity.execution.startupExport == startup,
+              milestones == ["feature_started", "first_screen"],
+              identity.installedRuntime.scope == FieldLogEditorDevelopment.scope,
+              identity.installedRuntime.uiSchema == 1,
+              let contract = dependencies.first(where: { $0.object?["id"]?.text == FieldLogEditorDevelopment.dependency })?.object,
+              contract["version"]?.text == "1", contract["artifact_sha256"]?.text == FieldLogEditorDevelopment.contractSHA256,
+              let header = dependencies.first(where: { $0.object?["id"]?.text == headerID })?.object,
+              header["version"]?.text == "1", header["artifact_sha256"]?.text == headerSHA256,
+              !dependencies.contains(where: { entry in
+                  [contractID, deferredStartupID, f10WireID, f10HeaderID, "mixer.guest-ui-event-v2", "mixer.guest-ui-native-header-v2"]
+                    .contains(entry.object?["id"]?.text ?? "")
+              }) else { throw rejection() }
     }
 #endif
 
@@ -70,7 +88,7 @@ enum CapabilityInstalledExecutionMode {
                   .contains(identity.execution.startupExport),
               !dependencies.contains(where: { entry in
                   let id = entry.object?["id"]?.text
-                  return id == "mixer.guest-ui-event-v2" || id == "mixer.guest-ui-native-header-v2" || id == f10WireID || id == f10HeaderID
+                  return id == "mixer.guest-ui-event-v2" || id == "mixer.guest-ui-native-header-v2" || id == f10WireID || id == f10HeaderID || id == FieldLogEditorDevelopment.dependency
               }) else { throw rejection() }
         return dependencies
     }

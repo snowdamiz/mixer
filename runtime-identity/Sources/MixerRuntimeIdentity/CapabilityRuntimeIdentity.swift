@@ -1,5 +1,5 @@
 import Foundation
-import MixerUpdates
+@_spi(PrivateFieldLogEditor) import MixerUpdates
 
 /// Explicit schema2 description of declared installed capability build inputs.
 /// Its InstalledRuntime is a raw DTO, never verified release or execution authority.
@@ -59,7 +59,14 @@ public struct CapabilityRuntimeIdentity: Sendable {
         try self.init(json: json, privateF10: true)
     }
 #endif
-    private init(json: Data, privateF10: Bool) throws {
+#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
+    @_spi(PrivateFieldLogEditor)
+    public init(privateDevelopmentFieldLogEditorJSON json: Data) throws {
+        try self.init(json: json, privateF10: false, privateEditor: true)
+    }
+#endif
+    private init(json: Data, privateF10: Bool, privateEditor: Bool = false) throws {
+        let privateMacOS = privateF10 || privateEditor
         guard json.count <= Self.maximumDescriptorBytes else { throw capabilityIdentityError("size") }
         // Data may wrap externally mutable no-copy storage. Both strict scanning
         // and Foundation decoding must observe this same privately owned copy.
@@ -74,19 +81,31 @@ public struct CapabilityRuntimeIdentity: Sendable {
         let app = try CapabilityIdentityFields(root.value("application"), keys: ["organization", "project", "app", "environment", "bundle_id"])
         let organization = try app.identifier("organization"), project = try app.identifier("project")
         let appID = try app.identifier("app"), environment = try app.identifier("environment")
-        _ = try app.identifier("bundle_id")
+        let bundleID = try app.identifier("bundle_id")
 
         let platform = try CapabilityIdentityFields(root.value("platform"), keys: ["os", "architecture", "environment", "minimum_os", "target"])
-        let os = try platform.oneOf("os", privateF10 ? ["macos"] : ["ios", "android"])
+        let os = try platform.oneOf("os", privateMacOS ? ["macos"] : ["ios", "android"])
         let architecture = try platform.oneOf("architecture", ["arm64", "x86_64"])
         let deployment = try platform.oneOf("environment", ["device", "simulator"])
         let minimumOS = try platform.identifier("minimum_os")
         let target = try platform.identifier("target")
-        if privateF10 {
+        if privateMacOS {
             guard environment == "development", deployment == "device", minimumOS == "14.0",
                   target == "\(architecture)-apple-macosx14.0" else { throw capabilityIdentityError("platform") }
         } else {
             try Self.checkPlatform(os: os, architecture: architecture, environment: deployment, minimumOS: minimumOS, target: target)
+        }
+
+        let scope = UpdateScope(organization: organization, project: project, app: appID, environment: environment, platform: os)
+        if privateEditor {
+            guard scope == FieldLogEditorDevelopment.scope, bundleID == FieldLogEditorDevelopment.bundleID else {
+                throw capabilityIdentityError("fieldlog_editor_scope")
+            }
+#if arch(arm64)
+            guard architecture == "arm64" else { throw capabilityIdentityError("platform") }
+#elseif arch(x86_64)
+            guard architecture == "x86_64" else { throw capabilityIdentityError("platform") }
+#endif
         }
 
         let engine = try CapabilityIdentityFields(root.value("engine"), keys: ["version", "source_sha256", "artifact_sha256", "profile", "guest_abi", "ui_schema", "ui_contract_sha256", "capability_contract_sha256"])
@@ -95,7 +114,9 @@ public struct CapabilityRuntimeIdentity: Sendable {
         let profile = try engine.oneOf("profile", ["mixer-table-memory-v3"])
         let guestABI = try engine.number("guest_abi", 2...2), uiSchema = try engine.number("ui_schema", privateF10 ? 3...3 : 1...1)
 
-        guard try engine.label("ui_contract_sha256") == (privateF10 ? "2aa7ea5a007be20decffb7a35f450e89e7e77691bbaef4694c7f9456ba7787fc" : Self.uiContractSHA256),
+        let uiContract = privateEditor ? FieldLogEditorDevelopment.contractSHA256 :
+            (privateF10 ? "2aa7ea5a007be20decffb7a35f450e89e7e77691bbaef4694c7f9456ba7787fc" : Self.uiContractSHA256)
+        guard try engine.label("ui_contract_sha256") == uiContract,
               try engine.label("capability_contract_sha256") == Self.semanticCapabilitySHA256 else { throw capabilityIdentityError("contract") }
 
         let toolchain = try CapabilityIdentityFields(root.value("toolchain"), keys: ["compiler_version", "compiler_sha256", "sdk_version", "sdk_sha256", "build_tools_sha256"])
@@ -103,12 +124,21 @@ public struct CapabilityRuntimeIdentity: Sendable {
         try toolchain.digests(["compiler_sha256", "sdk_sha256", "build_tools_sha256"])
 
         var previousDependency: String?
+        var editorMarker = false
         for entry in try root.list("dependencies", maximum: 128) {
             let dependency = try CapabilityIdentityFields(entry, keys: ["id", "version", "artifact_sha256"])
             let id = try dependency.identifier("id")
             try Self.next(id, previous: &previousDependency)
             _ = try dependency.label("version"); try dependency.digests(["artifact_sha256"])
+            if id == FieldLogEditorDevelopment.dependency {
+                guard privateEditor, try dependency.label("version") == "1",
+                      try dependency.label("artifact_sha256") == FieldLogEditorDevelopment.contractSHA256 else {
+                    throw capabilityIdentityError("fieldlog_editor_dependency")
+                }
+                editorMarker = true
+            }
         }
+        guard editorMarker == privateEditor else { throw capabilityIdentityError("fieldlog_editor_dependency") }
         var capabilityHashes: [String: String] = [:]
         var previousCapability: String?
         var records: [CapabilityRecord] = []
@@ -124,7 +154,7 @@ public struct CapabilityRuntimeIdentity: Sendable {
         }
 
         let build = try CapabilityIdentityFields(root.value("build"), keys: ["configuration", "settings_sha256", "generated_bridge_sha256", "link_inputs_sha256", "native_fallback_sha256", "permissions_sha256", "entitlements_sha256", "trust_roots_sha256", "resource_policy_sha256"])
-        _ = try build.oneOf("configuration", privateF10 ? ["debug"] : ["debug", "release"])
+        _ = try build.oneOf("configuration", privateMacOS ? ["debug"] : ["debug", "release"])
         try build.digests(["settings_sha256", "generated_bridge_sha256", "link_inputs_sha256", "native_fallback_sha256", "permissions_sha256", "entitlements_sha256", "trust_roots_sha256", "resource_policy_sha256"])
 
         let policy = try CapabilityIdentityFields(root.value("execution"), keys: ["startup_export", "startup_ms", "max_payload_bytes", "memory_bytes", "fuel", "operand_stack", "call_depth", "host_calls", "state_schema", "protocol"])
@@ -154,7 +184,7 @@ public struct CapabilityRuntimeIdentity: Sendable {
         let fingerprint = ReleaseVerifier.sha256(Data(Self.domain.utf8) + cbor)
         self.fingerprint = fingerprint; canonicalCBOR = cbor; descriptor = value
         installedRuntime = InstalledRuntime(
-            scope: UpdateScope(organization: organization, project: project, app: appID, environment: environment, platform: os),
+            scope: scope,
             runtime: fingerprint, protocolVersion: protocolVersion, guestABI: guestABI, uiSchema: uiSchema,
             capabilityHashes: capabilityHashes, stateVersion: state, maxPayloadBytes: payload,
             limits: ResourceLimits(memoryBytes: memory, fuel: fuel, startupMilliseconds: startupMS))

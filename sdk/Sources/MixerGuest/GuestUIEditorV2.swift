@@ -117,15 +117,21 @@ import MixerUI
 
 @_spi(GuestUIV2) public enum GuestUIEventCodecV2 {
     public static func encode(_ value: GuestUIEventV2) throws -> Data {
+        try encode(sequence: value.sequence, revision: value.revision, nodeID: value.nodeID,
+                   actionID: value.actionID, payload: value.payload)
+    }
+
+    static func encode(sequence: UInt64, revision: UInt64, nodeID: String, actionID: String,
+                       payload: GuestUIEventPayloadV2) throws -> Data {
         let encoder = JSONEncoder(); encoder.outputFormatting = [.withoutEscapingSlashes]
-        var bytes = Data(#"{"actionID":"#.utf8); bytes.append(try encoder.encode(value.actionID))
-        switch value.payload {
+        var bytes = Data(#"{"actionID":"#.utf8); bytes.append(try encoder.encode(actionID))
+        switch payload {
         case .activate: bytes.append(Data(#","event":"activate","nodeID":"#.utf8))
         case .textChange: bytes.append(Data(#","event":"textChange","nodeID":"#.utf8))
         }
-        bytes.append(try encoder.encode(value.nodeID))
-        bytes.append(Data(",\"revision\":\(value.revision),\"schemaVersion\":1,\"sequence\":\(value.sequence),\"value\":".utf8))
-        switch value.payload {
+        bytes.append(try encoder.encode(nodeID))
+        bytes.append(Data(",\"revision\":\(revision),\"schemaVersion\":1,\"sequence\":\(sequence),\"value\":".utf8))
+        switch payload {
         case .activate: bytes.append(Data("null".utf8))
         case .textChange(let text): bytes.append(try encoder.encode(text))
         }

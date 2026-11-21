@@ -28,6 +28,11 @@ final class CapabilityRecoveryStore: Sendable {
             return try CapabilityInstalledExecutionMode.requirePrivateF10(installed.identity, milestones: milestones)
         }
 #endif
+#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
+        if installed.fieldLogEditorID != nil && guestUI {
+            return try CapabilityInstalledExecutionMode.requireFieldLogEditor(installed.identity, milestones: milestones)
+        }
+#endif
         if guestUI { try CapabilityInstalledExecutionMode.requireGuestUI(installed.identity, milestones: milestones) }
     }
 
@@ -576,6 +581,13 @@ private actor CapabilityRecoveryWorker {
                   let ui = signals.ui?.snapshot(), ui.effectsConfirmed,
                   ui.pendingPresentationReceipt == presentation else { throw capabilityRecoveryError("milestone") }
         }
+#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
+        if installed.fieldLogEditorID != nil && id == "first_screen" {
+            guard let presentation, presentation.generation == input.generation,
+                  let ui = signals.ui?.snapshot(), ui.effectsConfirmed,
+                  ui.pendingPresentationReceipt == presentation else { throw capabilityRecoveryError("milestone") }
+        }
+#endif
         try signals.requireCommitEntry(expectedGeneration: input.generation)
         milestones.insert(id) // Fixed installed <=16 set; duplicates are idempotent.
     }

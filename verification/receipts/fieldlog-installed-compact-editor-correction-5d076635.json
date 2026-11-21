@@ -1,0 +1,286 @@
+{
+  "schema": 1,
+  "status": "PASS_MACOS_FIELDLOG_EDITOR_REVIEW_CORRECTION",
+  "observedUTC": "2026-11-21T13:32:56.271346+00:00",
+  "reviewedSource": {
+    "commit": "eae2a13aef93be6fd9c62f7ddf37c5c0a194a6f9",
+    "tree": "5600639145454ecc27710d14688f293fb519abf3"
+  },
+  "testedSource": {
+    "commit": "5d07663547f9f3b5ea7cff3d4fdbbcc4fddc08f5",
+    "tree": "e0cd3555931b3d90d0c3fed8abf8d5dc9d37b0a7",
+    "changedSourceSHA256": {
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartRuntime.swift": "5c1e09b8c0f65dda0dcb8594da2c4db2ff951233f94eeca7a7bb0476845d9dde",
+      "capability-activation/Sources/MixerCapabilityActivation/FieldLogEditorPresenter.swift": "b4b1a84d71370865bfe6f29a1f5a2844f48066a3b8560171f95c915ae8a0898d",
+      "capability-activation/Tests/MixerCapabilityActivationTests/FieldLogInstalledEditorTests.swift": "c03d76c8795d24fca33839765f12c84415cd6a353335306394004b4cd582c5b1",
+      "compiler/experiments/fieldlog-installed-editor/Guest.swift": "5f081866e18caaffddb3986d674858d365b7077afd0eb2b13053396d68ab67c3",
+      "compiler/experiments/fieldlog-installed-editor/prepare.py": "534eb54ee7e9d879a6e4c78999a2abf2cfe1287a0e8fbb8ff567b42e9a8d2994"
+    }
+  },
+  "tools": {
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "macOSSDK": "27.2",
+    "hostSwift": "swift-driver version: 1.168.6 Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "guestSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "wasmLinker": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)"
+  },
+  "linkedVM": {
+    "tree": "ec1ddb74b7c6c2eabd91d1f60ed243ffc69ce6f4",
+    "archiveSHA256": "a05e26dd26d84931cfb0584e8febb045cfbd8471295dd947d950f757ed716aed",
+    "sourceArchiveSHA256": "6970e31ac43013d5dad797d640088b2b35fda3531d4bf9ab933f93349cead365"
+  },
+  "historical": {
+    "F05": {
+      "fieldlogCommit": "70f3aa1d28f29e7c327a17fd46199480d41ca749",
+      "sdkCommit": "d8c6965a277ca21e685f3ef9e0f68a7d59b46156",
+      "sdkTree": "fa1a446b6fa6f4b1b5e79fa3b19284e0c1013dba",
+      "oracleTraceSHA256": "fd7ce9d73f97ad403d1e91eafdbb2fc1ed377d98421aa0b0de0a23e9b70ce2b5",
+      "wasm": {
+        "bytes": 102293,
+        "sha256": "64ac262177e8388ff6db58b5cfac3c162d5d428515ee3d2d7149a25843c9e5e1"
+      }
+    },
+    "F06": {
+      "fieldlogCommit": "4d17c92656d3a7574506f06414bc2f08af469122",
+      "sdkCommit": "56ff14c925168284761c5aca4f0bd4129cf3c995",
+      "sdkTree": "ab7fdd557af1278e5127fe7ff59ff0df7d7820f0",
+      "oracleTraceSHA256": "637811d7a74d61d1916e6f49b27141e273b96530aa1d44cea038c5227bb62d0b",
+      "wasm": {
+        "bytes": 102348,
+        "sha256": "a80e759d3988e0e25df1a883d664df2c2eaa46ac46cd87dd4df26d6d9def5464"
+      },
+      "rejectionControls": {
+        "absent-saving": {
+          "bytes": 102361,
+          "sha256": "5f05e27aced100ea0f247557cad08b22f1a39b822a443f1cc21556f61b2912cf"
+        },
+        "rejected-saving": {
+          "bytes": 102356,
+          "sha256": "a8ea91ac7374964f20134a364ff296912909afc0cf934b48b1e32dc05c0cd94d"
+        }
+      }
+    }
+  },
+  "observed": [
+    "Presenter ownership refused a second instance before filesystem or pool admission, both before startup and with a live rendered frame. Closing a separate unbound runtime preserved the first frame, native action, and reservation. The presenter was reusable after joined close, including after failures before reservation and during recovery-store open.",
+    "Both F06 signed rejection controls issued the fixed facts request after the Save event but produced an absent or invalid Saving frame. Both produced observed terminal sequence 2, zero repository writes, exact seed bytes on cold reopen, and the reservation baseline.",
+    "Signed F05/F06 exact document and issued-event parity, durable Save and F06 post-rename uncertainty with no replay were rerun. Compiled private F10 selector controls passed in the combined configuration."
+  ],
+  "readiness": {
+    "preservedFirstFailure": {
+      "receipt": "verification/receipts/fieldlog-installed-compact-editor-eae2a13a.json",
+      "testedCommit": "eae2a13aef93be6fd9c62f7ddf37c5c0a194a6f9",
+      "exit": 1,
+      "assertion": "capability-activation/Tests/MixerCapabilityActivationTests/GuestUISignedRuntimeTests.swift:308: error: -[MixerCapabilityActivationTests.GuestUISignedRuntimeTests testInvalidEventFrameStopsBeforeItsPutButInvalidWakePreservesCommittedPut] : XCTAssertTrue failed",
+      "stdoutSHA256": "919d0b2334aa037d601a5eab4493e25fa2a71a13534c984b87ddc26be58e4f6e"
+    },
+    "review": "The signed V1 helper waits for display before attaching, while inputEnabled also requires the separate readiness predicate and a live attachment. The historical assertion did not establish the exact reason readiness was false. All final V1 activation and ready-input controls passed with the original fixture synchronization and assertions."
+  },
+  "firstCorrectionBuild": {
+    "exit": 1,
+    "groupAbsent": true,
+    "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSHA256": "c1cd4e29144fe3432ecdf8c3a5f602c4d1e69264e275841dd31a435d563a4e0e",
+    "diagnostic": "New XCTest async helpers needed the test's MainActor isolation. The failed build executed no tests."
+  },
+  "tests": {
+    "combined": {
+      "exit": 0,
+      "groupAbsent": true,
+      "stdoutSHA256": "1676639c5fe10cbdbab3b33bf13fe3285b8387a331257aea6ca3d8afd1091696",
+      "stderrSHA256": "c7d96b10360ce5a3d258ff3a5bb34e5ce81299defeeed9b89c6b25b832371bf7",
+      "argv": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "$MIXER/capability-activation",
+        "--scratch-path",
+        "$WORK/spm-combined",
+        "--skip-update",
+        "-j",
+        "8",
+        "-Xcc",
+        "-I$MIXER/vm/include",
+        "-Xlinker",
+        "-L$WORK",
+        "-Xlinker",
+        "$WORK/libFieldLogPinned.a",
+        "-Xswiftc",
+        "-DMIXER_PRIVATE_FIELDLOG_EDITOR",
+        "-Xswiftc",
+        "-DFIELDLOG_EDITOR_REPLAY",
+        "-Xswiftc",
+        "-I$WORK/host-modules",
+        "-Xcc",
+        "-DMIXER_PRIVATE_F10",
+        "-Xswiftc",
+        "-DMIXER_PRIVATE_F10",
+        "--filter",
+        "FieldLogInstalledEditorTests|GuestUIInstalledModeTests|GuestUIReadyInputTests|GuestUISignedRuntimeTests/(testSignedStartupDisplaysButOffscreenCannotEarnHealth|testSignedEventCommitsStorageBeforeGuestShowsSaved|testSignedCommitFactsReadUsesAcceptedEventOnceAndRetiresWithOwner|testSignedCommitFactsReadDeniesReadyWrongActionAndMalformedEvent|testPublicUIFacadeUsesSignedIngressWithoutCallerClockOrMilestone|testMissingRequiredUIExportCannotStageOrCreateAdapter|testInvalidEventFrameStopsBeforeItsPutButInvalidWakePreservesCommittedPut)"
+      ],
+      "passed": 30,
+      "editorXCTests": [
+        "testPresenterOwnerSpansUnboundOpenPresentationAndClose",
+        "testSignedAbsentAndRejectedSavingFramesRetireWithoutWrite",
+        "testSignedHistoricalEditors"
+      ],
+      "editorObservations": [
+        "FIELDLOG EDITOR absent-saving terminal-sequence=2 writes=0 reserved=0",
+        "FIELDLOG EDITOR rejected-saving terminal-sequence=2 writes=0 reserved=0",
+        "FIELDLOG EDITOR F05 editCancel writes=0 closed=true retired=true",
+        "FIELDLOG EDITOR F05 save writes=1 closed=true retired=true",
+        "FIELDLOG EDITOR F06 editCancel writes=0 closed=true retired=true",
+        "FIELDLOG EDITOR F06 save writes=1 closed=true retired=true",
+        "FIELDLOG EDITOR F06 uncertainSave writes=1 closed=true retired=true"
+      ]
+    },
+    "default": {
+      "exit": 0,
+      "groupAbsent": true,
+      "stdoutSHA256": "4f83326ea8b1e15a9a64d6ce176a32cb909f00cbb8364d9987470f50dcc21bfb",
+      "stderrSHA256": "da3615ec00bd1eb793458f773b5ccec75856c8dcda652741079c66ae4737b077",
+      "argv": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "$MIXER/capability-activation",
+        "--scratch-path",
+        "$WORK/spm-default",
+        "--skip-update",
+        "-j",
+        "8",
+        "-Xcc",
+        "-I$MIXER/vm/include",
+        "-Xlinker",
+        "-L$WORK",
+        "--filter",
+        "GuestUIInstalledModeTests|GuestUIReadyInputTests|GuestUISignedRuntimeTests/(testSignedStartupDisplaysButOffscreenCannotEarnHealth|testSignedEventCommitsStorageBeforeGuestShowsSaved|testSignedCommitFactsReadUsesAcceptedEventOnceAndRetiresWithOwner|testSignedCommitFactsReadDeniesReadyWrongActionAndMalformedEvent|testPublicUIFacadeUsesSignedIngressWithoutCallerClockOrMilestone|testMissingRequiredUIExportCannotStageOrCreateAdapter|testInvalidEventFrameStopsBeforeItsPutButInvalidWakePreservesCommittedPut)"
+      ],
+      "passed": 27
+    },
+    "editor-only": {
+      "exit": 0,
+      "groupAbsent": true,
+      "stdoutSHA256": "f9011a05b470c20ae88945f44b8d798f210805c193285d97105e7dbbd4996154",
+      "stderrSHA256": "29622fbd989c8a4bc85073dd70becb170c63ba231d8e8242b60e8bb78fd84a6f",
+      "argv": [
+        "/usr/bin/swift",
+        "test",
+        "--package-path",
+        "$MIXER/capability-activation",
+        "--scratch-path",
+        "$WORK/spm-editor-only",
+        "--skip-update",
+        "-j",
+        "8",
+        "-Xcc",
+        "-I$MIXER/vm/include",
+        "-Xlinker",
+        "-L$WORK",
+        "-Xlinker",
+        "$WORK/libFieldLogPinned.a",
+        "-Xswiftc",
+        "-DMIXER_PRIVATE_FIELDLOG_EDITOR",
+        "-Xswiftc",
+        "-DFIELDLOG_EDITOR_REPLAY",
+        "-Xswiftc",
+        "-I$WORK/host-modules",
+        "--filter",
+        "FieldLogInstalledEditorTests"
+      ],
+      "passed": 3,
+      "editorXCTests": [
+        "testPresenterOwnerSpansUnboundOpenPresentationAndClose",
+        "testSignedAbsentAndRejectedSavingFramesRetireWithoutWrite",
+        "testSignedHistoricalEditors"
+      ],
+      "editorObservations": [
+        "FIELDLOG EDITOR absent-saving terminal-sequence=2 writes=0 reserved=0",
+        "FIELDLOG EDITOR rejected-saving terminal-sequence=2 writes=0 reserved=0",
+        "FIELDLOG EDITOR F05 editCancel writes=0 closed=true retired=true",
+        "FIELDLOG EDITOR F05 save writes=1 closed=true retired=true",
+        "FIELDLOG EDITOR F06 editCancel writes=0 closed=true retired=true",
+        "FIELDLOG EDITOR F06 save writes=1 closed=true retired=true",
+        "FIELDLOG EDITOR F06 uncertainSave writes=1 closed=true retired=true"
+      ]
+    }
+  },
+  "replay": {
+    "nativeBuild": {
+      "exit": 0,
+      "groupAbsent": true,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "argv": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--edition=2021",
+        "--crate-name",
+        "mixer_vm_capability_experimental",
+        "--crate-type",
+        "staticlib",
+        "-C",
+        "opt-level=3",
+        "-C",
+        "overflow-checks=on",
+        "--cfg",
+        "feature=\"experimental-capability-mailbox\"",
+        "--cfg",
+        "feature=\"experimental-capability-guest\"",
+        "--cfg",
+        "feature=\"experimental-capability-native\"",
+        "--cfg",
+        "feature=\"private-fieldlog-f10\"",
+        "$MIXER/vm/src/lib.rs",
+        "-o",
+        "$WORK/libmixer_vm_capability_experimental.a"
+      ]
+    },
+    "payloadAndOracleBuild": {
+      "exit": 0,
+      "groupAbsent": true,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "$MIXER/compiler/experiments/fieldlog-installed-editor/prepare.py",
+        "--work",
+        "$WORK/prepared-final",
+        "--fieldlog",
+        "$WORK/fieldlog",
+        "--tools",
+        "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr",
+        "--wasm-sdk",
+        "/Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1",
+        "--rejection-controls"
+      ]
+    },
+    "pinnedRepositoryArchive": {
+      "exit": 0,
+      "groupAbsent": true,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "argv": [
+        "/usr/bin/libtool",
+        "-static",
+        "-o",
+        "$WORK/libFieldLogPinned.a",
+        "$WORK/prepared-final/F05/FieldLogModels.o",
+        "$WORK/prepared-final/F05/FieldLogStorage.o"
+      ]
+    }
+  },
+  "limitations": [
+    "Headless macOS only. Encoded events remain bounded at 4 KiB and the long Unicode path remains unqualified.",
+    "Source141 raw preflight independently blocks the installed archive binding at GuestUIEditorV2.swift. Archive pin and SHA updates remain root work."
+  ],
+  "cleanup": {
+    "reapedCommandGroupsObservedAbsent": 81,
+    "allCommandsTerminal": true,
+    "largestObservedScratchSize": "1.4 GiB reported by du -sh",
+    "scratchRemoved": true
+  },
+  "localGatesPassed": [],
+  "gaGatesPassed": []
+}

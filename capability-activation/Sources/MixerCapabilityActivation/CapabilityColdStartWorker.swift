@@ -1,5 +1,8 @@
 import Foundation
 @_spi(GuestUIV1) import MixerGuest
+#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
+@_spi(PrivateFieldLogEditor) import MixerGuest
+#endif
 #if os(macOS) && MIXER_PRIVATE_F10
 @_spi(FeatureUIV3) import MixerGuest
 #endif
@@ -200,6 +203,9 @@ actor CapabilityColdStartWorker {
 #if os(macOS) && MIXER_PRIVATE_F10
         if installed.privateF10 { return try GuestUIExchangeV3(generation: generation, textValuePolicy: .standard) }
 #endif
+#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
+        if installed.fieldLogEditorID != nil { return try GuestUIExchangeV1(fieldLogEditorGeneration: generation) }
+#endif
         return try GuestUIExchangeV1(generation: generation,
             allowsDeferredStartup: installed.applicationStorage?.allowsDeferredGuestUIStartup == true)
     }
@@ -226,7 +232,7 @@ actor CapabilityColdStartWorker {
         if let observation { try await finishObservation(observation) }
     }
     private func reportMilestoneOwned(_ id: String, _ op: CapabilityColdStartOperation) async throws -> CapabilityColdStartObservation? {
-        guard installed?.privateF10 != true else { throw coldStartError("milestone") }
+        guard installed?.privateF10 != true, installed?.fieldLogEditorID == nil else { throw coldStartError("milestone") }
         let store = try currentStore(op)
         guard let active, let signals else { throw coldStartError("not_observing") }
         guard configuration.requiredMilestones.contains(id) else { throw coldStartError("milestone") }

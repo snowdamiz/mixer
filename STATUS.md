@@ -1370,6 +1370,18 @@ matched on both revisions. Those checks covered the selected inputs and
 did not compile an Android consumer.
 [Source141 preflight](verification/receipts/fieldlog-signed-editor-source141-preflight-eae2a13a.json)
 
+Independent review passed the corrected signed compact editor at
+`5d07663547`. The macOS development profile uses the installed MUI1 owner
+and admits text events up to the 4 KiB encoded limit. The presenter has
+one owner through joined close. Rejected Saving frames complete their
+claims with zero repository writes. F05 and F06 passed Edit, Cancel,
+and durable Save, and the F06 uncertain commit did not replay. The
+author recorded 30 combined, 27 flag-off, and three editor-only passes
+with 81 command groups closed. The earlier V1 readiness failure remains
+recorded. Source141 admission and signed replay of the composed revision
+are pending. Installed mobile behavior remains open.
+[Corrected author replay](verification/receipts/fieldlog-installed-compact-editor-correction-5d076635.json)
+
 The L07 terminal restart attempt used a CLI that predates the current closure acknowledgement. The worker declined shutdown, leaving compiler custody unknown. Three separate no-compiler controls passed. [Worker custody receipt](verification/receipts/l07-worker-terminal-restart-hold-41a05264.json)
 
 A restricted Oban build reached one durable worker start. The test stopped its owned worker before compiler spawn. Restart on the same journal observed uncertainty with no second start. The owner replayed the original build, tenant B received 404, and the coordinator retained capacity after lease expiry. Post-spawn closure and artifact readback remain open. [Worker recovery receipt](verification/receipts/l07-worker-recovery-07a536f3.json)

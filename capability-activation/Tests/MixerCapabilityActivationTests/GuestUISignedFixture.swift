@@ -53,7 +53,7 @@ struct GuestUISignedFixture {
         execution = try InstalledCapabilityExecution(identityJSON: identityJSON,
             materials: materials, trustRootsJSON: roots, privateContainer: root, applicationStorage: storage)
     }
-#if os(macOS) && MIXER_PRIVATE_F10
+#if os(macOS) && (MIXER_PRIVATE_F10 || MIXER_PRIVATE_FIELDLOG_EDITOR)
     init(root: URL, execution: InstalledCapabilityExecution, key: Curve25519.Signing.PrivateKey) {
         self.root = root
         self.execution = execution
@@ -62,14 +62,15 @@ struct GuestUISignedFixture {
 #endif
     func documents(_ bytes: Data, sequence: UInt64 = 1, startupMilliseconds: UInt64 = 60_000, storage: Bool = false,
                    memoryBytes: UInt64 = 65_536, fuel: UInt64 = 100_000,
-                   sourceCommit: String = String(repeating: "5", count: 40)) throws -> (Data, Data) {
+                   sourceCommit: String = String(repeating: "5", count: 40),
+                   storageNamespace: String = "material_test", runtimeFingerprint: String? = nil) throws -> (Data, Data) {
         let host = execution.installed.identity.installedRuntime, s = host.scope
         let scope = CanonicalValue.object(["organization": .text(s.organization), "project": .text(s.project), "app": .text(s.app), "environment": .text(s.environment), "platform": .text(s.platform)])
         let entries: [CanonicalValue] = storage ? [.object(["capability_id": .text(CapabilitySchemas.storageID), "schema_sha256": .text(CapabilitySchemas.storageSHA256),
-            "permissions": .array([.text("storage.appPrivate")]), "namespaces": .array([.text("material_test")]), "origins": .array([]), "methods": .array([])])] : []
+            "permissions": .array([.text("storage.appPrivate")]), "namespaces": .array([.text(storageNamespace)]), "origins": .array([]), "methods": .array([])])] : []
         let manifest = CanonicalValue.object([
             "schema": .uint(3), "scope": scope, "release_id": .text("guest-ui-signed"), "source_commit": .text(sourceCommit),
-            "provenance_id": .text("guest-ui-signed-test"), "runtime": .text(host.runtime), "protocol": .uint(3), "guest_abi": .uint(2), "ui_schema": .uint(host.uiSchema),
+            "provenance_id": .text("guest-ui-signed-test"), "runtime": .text(runtimeFingerprint ?? host.runtime), "protocol": .uint(3), "guest_abi": .uint(2), "ui_schema": .uint(host.uiSchema),
             "capability_hashes": .object(host.capabilityHashes.mapValues(CanonicalValue.text)), "state_min": .uint(0), "state_max": .uint(0),
             "payload_sha256": .text(ReleaseVerifier.sha256(bytes)), "compressed_bytes": .uint(UInt64(bytes.count)), "expanded_bytes": .uint(UInt64(bytes.count)),
             "compression": .text("none"), "asset_hashes": .object([:]), "source_map_sha256": .text(String(repeating: "6", count: 64)),
@@ -78,7 +79,7 @@ struct GuestUISignedFixture {
                 "schema_sha256": .text(VerifiedCapabilityGrantsV3.descriptorSHA256), "entries": .array(entries)])])
         let assignment = CanonicalValue.object(["schema": .uint(3), "scope": scope, "channel": .text("beta"), "cohort": .text("sha256-v1"),
             "rollout_basis_points": .uint(10_000), "sequence": .uint(sequence), "release_id": .text("guest-ui-signed"),
-            "artifact_sha256": .text(ReleaseVerifier.sha256(try manifest.canonicalCBOR())), "runtime": .text(host.runtime), "key_id": .text("guest-ui-signed-test"), "created_at_unix": .uint(100)])
+            "artifact_sha256": .text(ReleaseVerifier.sha256(try manifest.canonicalCBOR())), "runtime": .text(runtimeFingerprint ?? host.runtime), "key_id": .text("guest-ui-signed-test"), "created_at_unix": .uint(100)])
         func signed(_ value: CanonicalValue, assignment: Bool) throws -> Data {
             let prefix = assignment ? "mixer.assignment.v3\0" : "mixer.artifact.v3\0"
             let signature = try key.signature(for: Data(prefix.utf8) + value.canonicalCBOR())

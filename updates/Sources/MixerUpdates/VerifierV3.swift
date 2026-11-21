@@ -139,8 +139,17 @@ public struct ReleaseVerifierV3: Sendable {
         try self.init(host: host, roots: roots, privateF10: true)
     }
 #endif
-    private init(host: InstalledRuntime, roots: [TrustRoot], privateF10: Bool) throws {
-        try V3Rules.scope(host.scope, privateF10: privateF10)
+#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
+    @_spi(PrivateFieldLogEditor)
+    public init(privateDevelopmentFieldLogEditor host: InstalledRuntime, roots: [TrustRoot]) throws {
+        guard host.scope == FieldLogEditorDevelopment.scope else {
+            throw V3Rules.error("scope.invalid", "Expected the FieldLog editor development scope")
+        }
+        try self.init(host: host, roots: roots, privateF10: false, privateEditor: true)
+    }
+#endif
+    private init(host: InstalledRuntime, roots: [TrustRoot], privateF10: Bool, privateEditor: Bool = false) throws {
+        try V3Rules.scope(host.scope, privateF10: privateF10 || privateEditor)
         guard V3Rules.digest(host.runtime), host.protocolVersion == 3, host.guestABI == 2, host.uiSchema == (privateF10 ? 3 : 1),
               (1...V3Rules.payloadMaximum).contains(host.maxPayloadBytes),
               (1...V3Rules.payloadMaximum).contains(host.limits.memoryBytes),
@@ -154,7 +163,10 @@ public struct ReleaseVerifierV3: Sendable {
         }
         var captured: [String: TrustRoot] = [:]
         for root in roots {
-            try V3Rules.scope(root.scope, privateF10: privateF10)
+            if privateEditor && root.scope != host.scope {
+                throw V3Rules.error("trust.invalid", "FieldLog editor requires development roots scoped to this host")
+            }
+            try V3Rules.scope(root.scope, privateF10: privateF10 || privateEditor)
             if privateF10 && root.scope != host.scope {
                 throw V3Rules.error("trust.invalid", "Private F10 requires development roots scoped to this host")
             }
@@ -437,7 +449,8 @@ public struct ReleaseVerifierV3: Sendable {
         for field in ["organization", "project", "app", "environment"] {
             guard try V3Rules.identifier(fields.text(field)) else { throw V3Rules.error("scope.invalid", "Invalid scope identifier") }
         }
-        guard try (host.uiSchema == 3 ? ["macos"] : ["ios", "android"]).contains(fields.text("platform")) else { throw V3Rules.error("scope.invalid", "Invalid platform") }
+        let macOS = host.uiSchema == 3 || host.scope == FieldLogEditorDevelopment.scope
+        guard try (macOS ? ["macos"] : ["ios", "android"]).contains(fields.text("platform")) else { throw V3Rules.error("scope.invalid", "Invalid platform") }
     }
     private func grants(_ value: CanonicalValue, hashes: [String: CanonicalValue]) throws -> [VerifiedCapabilityGrantV3] {
         let fields = try V3Rules.object(value, keys: ["schema", "schema_sha256", "entries"])

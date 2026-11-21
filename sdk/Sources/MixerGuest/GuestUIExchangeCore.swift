@@ -269,6 +269,7 @@ final class GuestUIExchangeCore: @unchecked Sendable {
     func offerIssued(_ issued: IssuedUIAction, generation expected: UInt64) -> GuestUIEventAdmissionV1 {
         offerNativeInput(issued.envelope, generation: expected, classifyReady: false, issued: issued).ordinaryAdmission
     }
+    var requiresBoundedIssuedEvent: Bool { codec.issuedEventByteLimit != nil }
     /// Acknowledges a delivered unchanged document without repainting or replacing native identity.
     func completeUnchangedPresentation(_ claim: GuestUIPresentationClaimV1) -> UIRenderSnapshot? {
         mutate { s, notices in
@@ -290,7 +291,7 @@ final class GuestUIExchangeCore: @unchecked Sendable {
     }
     private func offerNativeInput(_ envelope: UIEventEnvelope, generation expected: UInt64,
                                   classifyReady: Bool, issued: IssuedUIAction? = nil) -> GuestUINativeInputAdmissionV1 {
-        enum Preparation { case rejected(GuestUIEventAdmissionV1), readyBusy, encode(UInt64, RoutedUIAction) }
+        enum Preparation { case rejected(GuestUIEventAdmissionV1), readyBusy, encode(UInt64, RoutedUIAction, Data?) }
         let preparation: Preparation = mutate { s, notices in
             guard expected == generation else { return .rejected(.stale) }
             guard s.stop == nil else { return .rejected(.closed) }
@@ -320,21 +321,31 @@ final class GuestUIExchangeCore: @unchecked Sendable {
                 return .rejected(.closed)
             }
             let sequence = s.eventSequence + 1
+            var boundedEvent: Data?
+            if let limit = codec.issuedEventByteLimit {
+                guard issued != nil,
+                      let bytes = try? codec.encodeEvent(sequence, action, displayed.document),
+                      bytes.count <= limit else { return .rejected(.invalid(.invalidValue)) }
+                boundedEvent = bytes
+            }
             if let issued { s.lastIssuedSerial = issued.serial }
             s.event = .preparing(sequence); s.counters.maximumEventSlots = 1
             s.refresh = true; notices.insert(.delivery)
-            return .encode(sequence, action)
+            return .encode(sequence, action, boundedEvent)
         }
-        guard case .encode(let sequence, let action) = preparation else {
+        guard case .encode(let sequence, let action, let boundedEvent) = preparation else {
             if case .rejected(let result) = preparation { return .offered(result) }
             if case .readyBusy = preparation { return .readyBusy }
             return .offered(.closed)
         }
         let bytes: Data
         do {
-            let document = mutate { s, _ in s.lastDocument?.document }
-            guard let document else { throw GuestUIEditorErrorV2.routing }
-            bytes = try codec.encodeEvent(sequence, action, document)
+            if let boundedEvent { bytes = boundedEvent }
+            else {
+                let document = mutate { s, _ in s.lastDocument?.document }
+                guard let document else { throw GuestUIEditorErrorV2.routing }
+                bytes = try codec.encodeEvent(sequence, action, document)
+            }
         } catch {
             return .offered(mutate { s, notices in
                 guard s.stop == nil, case .preparing(sequence)? = s.event else { return .closed }
