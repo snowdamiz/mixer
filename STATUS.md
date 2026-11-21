@@ -953,7 +953,7 @@ SwiftPM package split. Baseline and candidate macOS replays verified
 unsaved discard, stale-action refusal, and exactly one task and linked
 outbox record after Save and cold reopen. The candidate also linked arm64
 `libAppAndroid.so` for API 28 with Swift 6.3.3 after an Xcode 27.2 frontend
-crash. APK assembly and installed behavior for this tree remain pending.
+crash.
 [Shared task presentation receipt](verification/receipts/fieldlog-d2-shared-task-presentation-eb08569c.json)
 
 The checked-in replay reproduced all three package-access refusals on the
@@ -962,6 +962,16 @@ command groups closed and scratch was removed. The 11 inert runner
 controls passed. They cover unresolved custody, receipt publication
 failure, and propagation of a requested Android compile failure.
 [Maintained host replay receipt](verification/receipts/fieldlog-d2-shared-task-presentation-maintained-replay.json)
+
+The reviewed shared-editor tree `eb08569c13b5` produced a development
+APK against Mixer `6bc461f4fc`. The packaging overlay changed eight
+recipe files. Android compiled 14 app-owned Swift inputs into the
+ordinary launcher package. The author's static checks verified the
+linked `5d467c65…` identity, APK v3 signature, both Entry Commit
+signatures, and 16 KiB alignment across all 19 arm64 libraries. The
+separate Entry Commit fixture remains bundled. Independent package
+review, the matched Apple build, and installed behavior remain pending.
+[Shared-editor APK receipt](verification/receipts/fieldlog-d2-pair25-shared-editor-eb08569c.json)
 
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
 
@@ -1381,6 +1391,9 @@ with 81 command groups closed. The earlier V1 readiness failure remains
 recorded. Source141 admission and signed replay of the composed revision
 are pending. Installed mobile behavior remains open.
 [Corrected author replay](verification/receipts/fieldlog-installed-compact-editor-correction-5d076635.json)
+
+Automated cybersecurity screening rejected the delegated Unicode input
+verification near the 4 KiB encoded limit. That run produced no result.
 
 The L07 terminal restart attempt used a CLI that predates the current closure acknowledgement. The worker declined shutdown, leaving compiler custody unknown. Three separate no-compiler controls passed. [Worker custody receipt](verification/receipts/l07-worker-terminal-restart-hold-41a05264.json)
 

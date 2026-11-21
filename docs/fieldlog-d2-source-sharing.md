@@ -57,7 +57,10 @@ requested compile returns a nonzero status and preserves its logs.
 On success the runner removes its work directory after publishing the
 receipt. If it reports unresolved custody, preserve the reported path.
 
-APK packaging and installed verification for this tree remain pending.
+The paired SDK built an Android arm64 development APK from this tree.
+The build linked 14 app-owned Swift inputs. The author verified the APK
+signature, linked identity, and alignment. Installed verification remains
+pending. [APK build receipt](../verification/receipts/fieldlog-d2-pair25-shared-editor-eb08569c.json)
 The historical counts above describe the earlier exports. The 90%
 whole-app assessment still needs a matched application baseline.
 
