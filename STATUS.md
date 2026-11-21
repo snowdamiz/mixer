@@ -902,10 +902,12 @@ optimized Python and restored the prior hosted selection and Source141
 and Source127 byte-for-byte, including file modes. Root passed 323 normal
 collector tests. The optimized suite passed 320 before its existing
 360-second alarm, and the remaining three passed in a focused run.
-Source141 still selects 157 inputs, and all 16 Android sparse controls
-passed in both modes. Exact hosted execution remains pending.
+A fresh optimized run then passed all 323 tests in one process within
+the original alarm. Source141 still selects 157 inputs, and all 16 Android
+sparse controls passed in both modes. Exact hosted execution remains pending.
 [Source binding](verification/receipts/d6-hosted-source-v83-binding.json) ·
-[Root admission](verification/receipts/d6-hosted-source-v83-root-admission.json)
+[Root admission](verification/receipts/d6-hosted-source-v83-root-admission.json) ·
+[Optimized replay](verification/receipts/d6-hosted-source-v83-optimized-rerun.json)
 
 ## November 20 generated release REST client
 
