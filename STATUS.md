@@ -162,9 +162,13 @@ health and an exact posted, found queue response for hydration. The signed
 macOS run kept failed, missing, wrong-request, and retired outcomes inert.
 The good path hydrated one read, wrote nothing, and reopened the workspace
 byte for byte. The pinned replay closed all 30 command groups. The 33-file
-correction now has a local composition at `dda816101e`. Its exact signed
-replay and successor Source141 binding are underway.
-[Corrected V3 receipt](verification/receipts/fieldlog-f10-v3-observed-admission-macos.json)
+correction has a local composition at `dda816101e`. A fresh replay
+re-signed for that exact source and VM archive. It confirmed provisional
+health until presentation, all five inert response outcomes, and the V1
+Commit, W09, and ordinary milestone controls. All 30 recorded groups closed.
+The successor Source141 binding remains open.
+[Corrected V3 receipt](verification/receipts/fieldlog-f10-v3-observed-admission-macos.json) ·
+[Exact composed replay](verification/receipts/fieldlog-f10-v3-root-dda81610.json)
 
 The app-owned storage guide exercises the public installed storage adapter.
 The signed host fixture committed one scoped write, refused an out-of-scope
