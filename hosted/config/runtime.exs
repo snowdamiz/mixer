@@ -21,9 +21,19 @@ if config_env() != :test do
       config :mixer_hosted, :local_release_delivery, delivery
   end
 
-  if writer = MixerHosted.Releases.RuntimeProvisioning.writer_options!(env, settings, release) do
+  writer = MixerHosted.Releases.RuntimeProvisioning.writer_options!(env, settings, release)
+
+  if writer do
     config :mixer_hosted, MixerHosted.Releases.WriterRepo, writer
   end
+
+  config :mixer_hosted,
+         :local_stage_promotion_directions,
+         MixerHosted.Releases.RuntimeProvisioning.stage_promotion_directions!(
+           env,
+           release,
+           writer
+         )
 
   config :mixer_hosted,
          MixerHosted.CustomerBuilds.LocalStarter,

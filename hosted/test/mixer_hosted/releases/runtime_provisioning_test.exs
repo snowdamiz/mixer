@@ -1,11 +1,14 @@
 defmodule MixerHosted.Releases.RuntimeProvisioningTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
-  alias MixerHosted.Releases.{RuntimeProvisioning, Target}
+  alias MixerHosted.Releases.{RuntimeProvisioning, Target, WriterRepo}
+  alias MixerHosted.Releases.EnvironmentPromotion.Direction
+  alias MixerHosted.Releases.EnvironmentPromotion.Direction.Enrollment
   alias MixerHosted.RuntimeConfig
 
   @config "MIXER_LOCAL_RELEASE_CONFIG"
   @registry "MIXER_LOCAL_RELEASE_TARGET_REGISTRY"
+  @directions "MIXER_LOCAL_STAGE_PROMOTION_DIRECTIONS"
   @password "MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD"
   @writer_enabled "MIXER_LOCAL_RELEASE_WRITER_ENABLED"
   @fixture Path.expand(
@@ -119,11 +122,15 @@ defmodule MixerHosted.Releases.RuntimeProvisioningTest do
   end
 
   defp android_document(document) do
+    with_target_scope(document, "platform", "android")
+  end
+
+  defp with_target_scope(document, field, value) do
     document
-    |> put_in(["host", "scope", "platform"], "android")
+    |> put_in(["host", "scope", field], value)
     |> update_in(
       ["roots"],
-      &Enum.map(&1, fn root -> put_in(root, ["scope", "platform"], "android") end)
+      &Enum.map(&1, fn root -> put_in(root, ["scope", field], value) end)
     )
   end
 
@@ -202,6 +209,213 @@ defmodule MixerHosted.Releases.RuntimeProvisioningTest do
         RuntimeProvisioning.writer_options!(env, hosted, provisioning)
       end
     end
+  end
+
+  describe "local stage promotion directions" do
+    setup ctx do
+      source_ios = ctx.document
+
+      source_android =
+        source_ios
+        |> android_document()
+        |> put_in(["host", "runtime"], String.duplicate("a", 64))
+
+      destination_ios =
+        source_ios
+        |> with_target_scope("environment", "staging")
+        |> put_in(["host", "runtime"], String.duplicate("b", 64))
+        |> Map.put("channel", "stable")
+
+      destination_android =
+        destination_ios
+        |> android_document()
+        |> put_in(["host", "runtime"], String.duplicate("c", 64))
+
+      additional = [source_android, destination_ios, destination_android]
+
+      env =
+        Map.merge(ctx.env, %{
+          @registry => Jason.encode!(additional),
+          @writer_enabled => "true"
+        })
+
+      direction = %{
+        "direction_id" => "development-to-staging",
+        "source" => %{"ios" => wire(source_ios), "android" => wire(source_android)},
+        "destination" => %{"ios" => wire(destination_ios), "android" => wire(destination_android)}
+      }
+
+      %{promotion_env: env, direction: direction, additional: additional}
+    end
+
+    test "normal runtime config resolves both routes to their provisioned host and roots", ctx do
+      reverse = %{
+        "direction_id" => "staging-to-development",
+        "source" => ctx.direction["destination"],
+        "destination" => ctx.direction["source"]
+      }
+
+      env = Map.put(ctx.promotion_env, @directions, Jason.encode!([ctx.direction, reverse]))
+      config = read_runtime!(env)
+      {default, delivery} = RuntimeProvisioning.load!(ctx.promotion_env, ctx.hosted)
+
+      assert config[:local_release_target] == default
+      assert config[:local_release_delivery] == delivery
+      assert config[WriterRepo] == Keyword.put(ctx.hosted.repo, :pool_size, 1)
+
+      [source_android, destination_ios, destination_android] =
+        Enum.map(ctx.additional, fn document ->
+          Enum.find_value(delivery.registry, fn {_target, entry} ->
+            if entry.host == document["host"], do: struct!(Enrollment, entry)
+          end)
+        end)
+
+      source = %{ios: struct!(Enrollment, default), android: source_android}
+      destination = %{ios: destination_ios, android: destination_android}
+
+      assert config[:local_stage_promotion_directions] == %{
+               "development-to-staging" => %Direction{source: source, destination: destination},
+               "staging-to-development" => %Direction{source: destination, destination: source}
+             }
+
+      assert read_runtime!(ctx.promotion_env)[:local_stage_promotion_directions] == %{}
+      assert read_runtime!(@base)[:local_stage_promotion_directions] == %{}
+    end
+
+    test "normal runtime config refuses directions without an enabled local API writer", ctx do
+      raw = Jason.encode!([ctx.direction])
+      env = Map.put(ctx.promotion_env, @directions, raw)
+
+      processor =
+        Map.merge(@base, %{
+          @directions => raw,
+          "MIXER_HOSTED_ROLE" => "processor",
+          "MIXER_PROCESSOR_PROFILE" => "builds_v1",
+          "MIXER_DATABASE_USER" => "mixer_build_processor"
+        })
+
+      for invalid_env <- [
+            Map.delete(env, @writer_enabled),
+            Map.put(@base, @directions, raw),
+            processor
+          ] do
+        assert_raise ArgumentError, "invalid or missing hosted setting: " <> @directions, fn ->
+          read_runtime!(invalid_env)
+        end
+      end
+    end
+
+    test "refuses malformed, duplicate, and unbounded direction input", ctx do
+      direction = ctx.direction
+      encoded = Jason.encode!([direction])
+
+      invalid = [
+        "",
+        encoded <> String.duplicate(" ", 65_537 - byte_size(encoded)),
+        String.replace(
+          encoded,
+          ~s("direction_id":),
+          ~s("direction_\\u0069d":"other","direction_id":)
+        ),
+        Jason.encode!(direction),
+        Jason.encode!([]),
+        Jason.encode!([direction, direction]),
+        Jason.encode!(for n <- 1..33, do: %{direction | "direction_id" => "direction-#{n}"}),
+        Jason.encode!([Map.delete(direction, "direction_id")]),
+        Jason.encode!([%{direction | "direction_id" => "invalid id"}]),
+        Jason.encode!([Map.put(direction, "writer_role", "override")]),
+        Jason.encode!([put_in(direction, ["source", "host"], ctx.document["host"])]),
+        Jason.encode!([put_in(direction, ["destination", "ios", "roots"], ctx.document["roots"])])
+      ]
+
+      for raw <- invalid do
+        assert_invalid_directions(ctx, ctx.promotion_env, raw)
+      end
+    end
+
+    test "requires four exact registered targets with both platforms in different stages", ctx do
+      direction = ctx.direction
+
+      invalid = [
+        update_in(direction, ["destination"], &Map.delete(&1, "android")),
+        put_in(direction, ["source", "ios"], direction["source"]["android"]),
+        put_in(direction, ["destination", "ios", "channel"], "unregistered"),
+        put_in(
+          direction,
+          ["destination", "ios", "runtimeFingerprint"],
+          String.duplicate("9", 64)
+        ),
+        put_in(direction, ["destination", "android"], direction["source"]["android"]),
+        %{direction | "destination" => direction["source"]}
+      ]
+
+      for wrong <- invalid do
+        assert_invalid_directions(ctx, ctx.promotion_env, Jason.encode!([wrong]))
+      end
+
+      env = Map.put(ctx.promotion_env, @registry, Jason.encode!(Enum.take(ctx.additional, 2)))
+      assert_invalid_directions(ctx, env, Jason.encode!([direction]))
+    end
+
+    test "refuses exact registered targets from different organizations, projects, or apps",
+         ctx do
+      [_, destination_ios, destination_android] = ctx.additional
+
+      for field <- ~w(organization project app) do
+        other_ios = with_target_scope(destination_ios, field, "other")
+        other_android = with_target_scope(destination_android, field, "other")
+        additional = ctx.additional ++ [other_ios, other_android]
+        env = Map.put(ctx.promotion_env, @registry, Jason.encode!(additional))
+
+        for ios <- [destination_ios, other_ios] do
+          direction =
+            put_in(ctx.direction, ["destination"], %{
+              "ios" => wire(ios),
+              "android" => wire(other_android)
+            })
+
+          assert_invalid_directions(ctx, env, Jason.encode!([direction]))
+        end
+      end
+    end
+  end
+
+  defp assert_invalid_directions(ctx, env, raw) do
+    release = RuntimeProvisioning.load!(env, ctx.hosted)
+    writer = RuntimeProvisioning.writer_options!(env, ctx.hosted, release)
+
+    assert_raise ArgumentError, "invalid or missing hosted setting: " <> @directions, fn ->
+      RuntimeProvisioning.stage_promotion_directions!(
+        Map.put(env, @directions, raw),
+        release,
+        writer
+      )
+    end
+  end
+
+  defp read_runtime!(env) do
+    previous = Map.filter(System.get_env(), fn {key, _} -> String.starts_with?(key, "MIXER_") end)
+    Enum.each(Map.keys(previous), &System.delete_env/1)
+    System.put_env(env)
+
+    try do
+      Config.Reader.read!("config/runtime.exs", env: :prod) |> Keyword.fetch!(:mixer_hosted)
+    after
+      Enum.each(Map.keys(env), &System.delete_env/1)
+      System.put_env(previous)
+    end
+  end
+
+  defp wire(%{"host" => %{"scope" => scope, "runtime" => runtime}, "channel" => channel}) do
+    %{
+      "organizationId" => scope["organization"],
+      "projectId" => scope["project"],
+      "applicationId" => scope["app"],
+      "environmentId" => scope["environment"],
+      "platform" => scope["platform"],
+      "runtimeFingerprint" => runtime,
+      "channel" => channel
+    }
   end
 
   test "refuses processors, public binds, and shared reader credentials", ctx do

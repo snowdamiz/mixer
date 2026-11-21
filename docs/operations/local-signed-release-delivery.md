@@ -236,6 +236,88 @@ omit the flag or set it to `false`, and restart the API.
    in the authenticated browser head and the updater offer for an eligible
    installation.
 
+## Promote a signed release between environments
+
+1. Register both iOS and Android heads in each environment and enroll all
+   four targets for delivery. Put one target in `MIXER_LOCAL_RELEASE_CONFIG`
+   and the others in `MIXER_LOCAL_RELEASE_TARGET_REGISTRY`. Use the installed
+   host and scoped public roots for each target. Follow the
+   [target registry setup](../../hosted/scripts/replay-local-release-target-registry.md).
+2. Apply `20261120000016` from `hosted/priv/local_stage_promotion` as the
+   restricted ledger owner. As that owner, insert an active row into
+   `public.mixer_stage_promotion_directions` with the direction ID, tenant,
+   source and destination environment IDs, and all four runtime fingerprints
+   and channels. Set `writer_role` to the restricted API login in
+   `MIXER_DATABASE_USER`. Use that login as the writer of both destination heads.
+3. Keep the existing CLI publication grants. As the administrator, set the
+   psql variable `release_writer` to the API login and grant access to the
+   promotion functions and binding ledger.
+
+   ```sql
+   GRANT EXECUTE ON FUNCTION public.mixer_stage_promotion_admit(text),
+     public.mixer_stage_promotion_source(text,numeric,numeric) TO :"release_writer";
+   GRANT SELECT, INSERT (
+     direction_id, writer_role, organization_id, project_id, application_id,
+     source_environment_id, destination_environment_id,
+     source_ios_runtime_sha256, source_ios_channel,
+     source_android_runtime_sha256, source_android_channel,
+     destination_ios_runtime_sha256, destination_ios_channel,
+     destination_android_runtime_sha256, destination_android_channel,
+     idempotency_key, request_sha256, principal_id, reason,
+     source_ios_sequence, source_ios_artifact_sha256,
+     source_android_sequence, source_android_artifact_sha256,
+     destination_ios_sequence, destination_ios_artifact_sha256,
+     destination_android_sequence, destination_android_artifact_sha256
+   ) ON public.mixer_stage_promotion_bindings TO :"release_writer";
+   ```
+
+4. On the IPv4 loopback HTTP API, set `MIXER_LOCAL_RELEASE_WRITER_ENABLED=true`
+   and set `MIXER_LOCAL_STAGE_PROMOTION_DIRECTIONS` to a JSON array of 1–32
+   direction objects, up to 65,536 bytes total. Restart the API. Unset the
+   direction variable and restart to disable the routes.
+
+   Each object has exactly `direction_id`, `source`, and `destination`.
+   Use the unique SQL direction ID, 1–128 characters from `A–Z`, `a–z`,
+   `0–9`, underscore, period, or hyphen. Both sides have exactly `ios` and
+   `android`. Each platform entry has the seven target fields below. Replace
+   the example fingerprint with the target's 64-digit lowercase hex digest.
+
+   ```json
+   {
+     "organizationId": "org-a",
+     "projectId": "project-a",
+     "applicationId": "fieldlog",
+     "environmentId": "development",
+     "platform": "ios",
+     "runtimeFingerprint": "IOS_DEVELOPMENT_RUNTIME_SHA256",
+     "channel": "beta"
+   }
+   ```
+
+   Use one organization, project, and application across the route, and one
+   distinct environment per side. The API resolves host policy and roots from
+   the exact configured targets. At request time PostgreSQL checks the active
+   SQL direction, writer, and four delivery enrollments.
+5. Select one committed source publication per platform from the same release.
+   For each destination, sign a manifest for its own scope and runtime with
+   the corresponding source payload and release content. Stage the signed
+   artifact through [artifact upload](#enable-signed-artifact-upload) with
+   that destination target as the uploader's default. Sign each destination
+   assignment against the staged manifest digest at a sequence above its head.
+6. Point the CLI at the local promotion API and use a current human bearer
+   with `mixer.release.publish` and destination publication access. Run the
+   command with the two source sequences and signed destination assignment files.
+
+   ```sh
+   mixer update promote-environment DIRECTION \
+     --organization ORG --project PROJECT --application APP \
+     --source-ios-sequence N --source-android-sequence N \
+     --ios-assignment FILE --android-assignment FILE --reason REASON
+   ```
+
+   A successful response reports both destination publications. The service
+   advances both heads and records one binding in the same transaction.
+
 ## Halt a rollout after an adverse signal
 
 Run the stock `mixer update halt` command with the current artifact digest, a
