@@ -234,6 +234,16 @@ trigger. The local allocator and FieldLog runtime evidence retain their
 separate scope.
 [Matched-build terminal CI receipt](verification/receipts/hosted-fieldlog-allocator-ci-terminal-5fd075d6.json)
 
+The published builder and export checkpoint `98ef14202e` passed eight
+Owned Engine jobs. Both Intel sparse-checkout suites passed 16 tests,
+but their reported times totaled 370.699 seconds against a six-minute
+step budget. The six-consumer integration was skipped, and terminal
+Intel process custody is unverified. The sparse test inputs and workflow
+match the previous green commit. Independent review identified the
+materialized-checkout test as the largest contributor to the slowdown.
+Source141, signed Swift, VM, and Services checks passed.
+[Builder and export terminal CI receipt](verification/receipts/hosted-fieldlog-builder-ci-terminal-98ef1420.json)
+
 The six-action private V3 candidate `790d0b2253` delivered Open, Next,
 Tasks, reopen, Previous, and Entries through the signed guest. Its two
 pages displayed 26 real pending records from three scoped reads. The
