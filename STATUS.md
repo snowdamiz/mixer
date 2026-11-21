@@ -385,6 +385,14 @@ coordinates and withheld the source location. Independent replay confirmed
 all four owner closures. This covers one macOS host diagnostic.
 [Swift trap replay](verification/receipts/w15-l03-v79-swift-event-diagnostic.json)
 
+The signed installed host emitted the same trap after its second routed
+event. Both variants reported function 3 and Wasm byte 514. The matching
+variant reported the Swift line, and the separately signed stripped variant
+returned no source location. Both retired, disabled input, and reopened
+to native fallback. Independent offscreen macOS verification passed three
+selected tests. Swift Wasm hashes varied across scratch paths.
+[Signed diagnostic replay](verification/receipts/w15-l03-signed-installed-swift-event-diagnostic.json)
+
 The maintained WebAssembly Core replay reproduced ten exact returns, three
 traps, and six invalid-module refusals on arm64 macOS. The Rust CLI and the
 installed V3 session C ABI agreed on the selected upstream cases. Guest UI v1
@@ -647,6 +655,13 @@ observed. All 64 recorded commands closed and all five ports were reusable.
 The historical 503 did not recur. This loopback control used browser cookies
 without driving a frontend or forcing the old cookie to expire.
 [Post-build renewal receipt](verification/receipts/l05-v79-post-build-browser-renewal.json)
+
+The v80 follow-up let the old synthetic session expire after a real managed
+build. Its first organization request returned 401. A single new OAuth
+exchange issued a distinct cookie, and all five first reads returned 200.
+No SQL exception occurred and the persisted build records were unchanged.
+This HTTP-only replay did not reproduce the historical rendered-browser 503.
+[Expired-session replay](verification/receipts/l05-v80-post-build-browser-expiry.json)
 
 Native build completion now verifies each retained artifact with reads of at most 64 KiB. A 16 MiB storage control returned the same bytes and passed eight refusal checks on both revisions. Hosted source v45 admits the exact verifier, and its 59 focused Elixir tests passed. Authenticated HTTP streaming and the Android worker remain open. [Bounded verification receipt](verification/receipts/hosted-bounded-retained-verification-v45.json)
 

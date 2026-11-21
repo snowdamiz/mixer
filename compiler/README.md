@@ -31,6 +31,12 @@ same trap coordinates without a Swift location. This is a development
 fixture. Production symbolication and debugger transport remain open.
 [Replay receipt](../verification/receipts/w15-l03-v79-swift-event-diagnostic.json)
 
+The [signed installed replay](../verification/receipts/w15-l03-signed-installed-swift-event-diagnostic.json)
+routes the failing event from an offscreen macOS view. Read the typed failure
+from the terminal diagnostic snapshot. The source location is present for the
+matching signed Wasm with line metadata and absent for a separately signed
+stripped build. Both variants retain the same raw trap coordinates.
+
 `Fixtures/FieldLogCorpus/main.swift` exercises the actual models imported from an
 immutable revision of the separate FieldLog repository: 1,000 tasks, 50% progress,
 reordering, Unicode draft Codable restoration, entry commit/repeat rejection,
