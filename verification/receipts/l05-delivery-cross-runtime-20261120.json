@@ -1,0 +1,179 @@
+{
+  "scope": "Section 13.3, one enrolled iOS runtime target in the local Phoenix and real Workerd R2 replay",
+  "observed_at_utc": "2026-11-21T02:47:54Z",
+  "public_base": "5551f171ca",
+  "elixir_history_and_locks": "969e009a64e795ea41339d56886e38d6e6cd8015",
+  "worker_source": "fd584d82efaaaa33fe7146ef2ea321ced7c51144",
+  "tested_source_commit": "d4b18d30febf8c91772dac18646cf934ae6d8a83",
+  "tested_source_tree": "e3698e3d9918ae371725e0d2adebe5b31ed6cbbb",
+  "environment": {
+    "host": "macOS 27.0.1 arm64",
+    "elixir": "1.20.4",
+    "otp": 29,
+    "phoenix": "1.8.16",
+    "postgresql": "17.11",
+    "go": "1.26.4",
+    "go_postgres_driver": "pgx v5.11.0",
+    "npm": "10.9.9",
+    "typescript": "5.9.3",
+    "node": "v22.23.3",
+    "workerd": "1.20260730.1",
+    "miniflare": "4.20260730.0"
+  },
+  "lock_sha256": {
+    "hosted/mix.lock": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+    "hosted-worker-controller/package-lock.json": "65ff754d1818362d70fe5a4deb1943121f4661db65b7b15f7afe9fd1912bceb5",
+    "services/go.sum": "a5e7a8db07eba28dbde48bf9a54c4e9084a5a95ded581c0ff44c08b74e3dfe69"
+  },
+  "command": "sh hosted/scripts/replay-local-release-target-registry.sh cross-runtime",
+  "result": {
+    "exit_code": 0,
+    "summary": "Result: 1 passed, 3 skipped",
+    "seed": 98381
+  },
+  "database": {
+    "before": "17.11 verify-full mixer_release_delivery",
+    "outage": "connection_refused",
+    "recovered": "17.11 verify-full mixer_release_delivery"
+  },
+  "locks": "A separate PostgreSQL session received lock_not_available for both the exact head and enrollment before each active CAS permit. The linked fence callback waited for the Workerd result before returning.",
+  "outage": {
+    "offerSha256": "91ec96d2f81706492f3e20dc4bd698e2dafa03283d8f526e1eb7b79deca7e585",
+    "assignmentSha256": "24a098dd74c5628c66f7f5db360fab771df4523daf678ec0f75785ff01b7c39f",
+    "artifacts": [
+      {
+        "manifest_sha256": "e885471c42391f617a8c6aaf8ce1900b59a4435299e70bd078d02966f44f13cc",
+        "envelope_sha256": "15bae2059c0884f7923f34aa4d6acefe5042ecba52ff905c2be7b299617636ae"
+      },
+      {
+        "manifest_sha256": "d4b5681fc62934de71b9d7e232b7e589332f77bc781f580880b3de1821f4356f",
+        "envelope_sha256": "8da992c5e68ac8141aafd311d27e43e9ef660b2818edb5f619c776db914e5b24"
+      }
+    ],
+    "unrelatedDenied": true,
+    "stagedOnlyDenied": true,
+    "writerHttpDenied": true,
+    "initialPointer": {
+      "hash": "d119285f538779edd6496adaacb856e2179097c8aa5c3ab8082278e9637972b3",
+      "etag": "0c8c600df51edc41b7fc5af8599143db",
+      "revision": "1",
+      "sequence": "8",
+      "enabled": true,
+      "issued_at_ms": 1795229260128,
+      "expires_at_ms": 1795229266628,
+      "assignment_sha256": "24a098dd74c5628c66f7f5db360fab771df4523daf678ec0f75785ff01b7c39f"
+    },
+    "freshReadUnavailable": true,
+    "cachedFenceUnavailable": true,
+    "expiredOffer": 204,
+    "expiredArtifacts": [
+      404,
+      404
+    ],
+    "lease_ms": 6500,
+    "byte_comparison": "Exact raw HTTP offer and both envelope bodies before and during actual TCP refusal. Exact hash-bound assignment and allowlist read back from Workerd R2."
+  },
+  "late": {
+    "result": "indeterminate",
+    "localPermit": "expired",
+    "pointerUnchanged": true
+  },
+  "recovery": {
+    "ambiguity": "indeterminate",
+    "reconciled": {
+      "hash": "a280a00f7039701b40b9d0371c6710e887d95e77a4b710f79465877458ca4c9d",
+      "etag": "7f0e88daa7c698e5b1d53f1d9faf7f89",
+      "revision": "2",
+      "sequence": "8",
+      "enabled": true,
+      "issued_at_ms": 1795229272714,
+      "expires_at_ms": 1795229376000,
+      "assignment_sha256": "24a098dd74c5628c66f7f5db360fab771df4523daf678ec0f75785ff01b7c39f"
+    },
+    "rootDeadlineCap": true,
+    "acknowledgement": "The fixture substituted an indeterminate acknowledgement after the real R2 CAS applied. A pointer read matched the attempted hash and revision before any subsequent write."
+  },
+  "halt": {
+    "staleAuthorityRefused": true,
+    "staleEtagRefused": true,
+    "offer": 204,
+    "pointer": {
+      "hash": "f5de5324b2c98c8fbc2c885c1ec1e2cc68efbb5a828c715e52f216899dec7867",
+      "etag": "0c5ea533fcb9bfbc7c694051564a3371",
+      "revision": "3",
+      "sequence": "9",
+      "enabled": false,
+      "issued_at_ms": 1795229273533,
+      "expires_at_ms": 1795229376000,
+      "assignment_sha256": "29c68d8bf6320580ab92b4e9c8781d497cd69ac77e95dd002c5bc0fced22e4e0"
+    },
+    "artifacts": "Both preceding published envelopes remained byte-exact. The staged-only artifact stayed 404."
+  },
+  "closure": {
+    "outagePostmaster": {
+      "pid": 50907,
+      "code": 0,
+      "signal": null,
+      "exactPidAbsent": true,
+      "groupAbsent": true
+    },
+    "recoveredPostmaster": {
+      "pid": 52535,
+      "code": 0,
+      "signal": null,
+      "exactPidAbsent": true,
+      "groupAbsent": true
+    },
+    "phoenix": {
+      "pid": 50945,
+      "code": 0,
+      "signal": null,
+      "exactPidAbsent": true,
+      "groupAbsent": true
+    },
+    "databaseAndPhoenixPortsReusable": true,
+    "workerd": {
+      "launchAttempts": 1,
+      "pid": 52219,
+      "pgid": 52219,
+      "ready": "verified",
+      "beforeDispose": "verified",
+      "unexpectedChildren": null,
+      "disposed": true,
+      "close": {
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      "exactPidAbsent": true,
+      "groupAbsent": true
+    },
+    "scratch_removed": true
+  },
+  "regression_replays": [
+    {
+      "command": "sh hosted/scripts/replay-local-release-target-registry.sh publish-fence",
+      "seed": 841108,
+      "result": "1 passed, 3 skipped, exit 0",
+      "scratch_removed": true
+    },
+    {
+      "command": "sh hosted/scripts/replay-local-release-target-registry.sh export",
+      "seed": 420868,
+      "result": "1 passed, 3 skipped, exit 0",
+      "scratch_removed": true
+    }
+  ],
+  "other_checks": [
+    "Locked TypeScript no-emit check",
+    "5 Workerd custody controls",
+    "Elixir format check"
+  ],
+  "related_receipts": [
+    "l05-delivery-cross-runtime-first-outage-20261120.json",
+    "l05-delivery-fence-commit-ack-20261120.json"
+  ],
+  "limits": [
+    "The separate sibling receipt injects transaction COMMIT acknowledgement loss and generic rollback over real PostgreSQL. The Workerd replay injects an ambiguous callback acknowledgement after its real CAS.",
+    "The replay uses one synthetic enrolled target and Workerd local R2. Provider R2, CDN behavior, devices and broader L05 acceptance remain outside this result."
+  ]
+}

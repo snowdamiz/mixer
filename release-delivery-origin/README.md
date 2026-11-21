@@ -13,7 +13,7 @@ Phoenix, PostgreSQL, or any signer.
 
 ## Snapshot contract
 
-`src/writer.ts` is the storage API for a future authorized exporter. It has no
+`src/writer.ts` is the storage API for an authorized exporter. It has no
 public HTTP route. Keep its write access separate from delivery. The exporter
 must obtain a consistent view of committed publication and current trust using
 the existing product rules. Before staging bytes, it must verify the original v3
@@ -150,6 +150,6 @@ checks. The publisher controls use a separate bucket and a fixture authority
 source to cover authority changes during staging, exclusive expiry and
 stale replay. The replay uses the hosted worker controller's locked toolchain and
 workerd identity check. It exercises a separate delivery process and actual
-local Worker storage. The PostgreSQL table and miniflare writer are fixture
-inputs. Product exporter wiring, provider R2 and CDN behavior, and full L05
-acceptance remain pending.
+local Worker storage. The PostgreSQL table and Miniflare writer are fixture
+inputs. The cross-runtime replay above covers the Phoenix export and permit.
+Provider R2, CDN behavior, and full L05 acceptance remain pending.

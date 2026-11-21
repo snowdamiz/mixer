@@ -13,6 +13,23 @@ Use the tracked results to assess L01–L08 and rerun any check that needs fresh
 evidence from a clean checkout. Paths to disposable run files are historical
 references. See [the worktree verification policy](mixer-product-plan.md#worktree-local-verification).
 
+## November 20 local release delivery outage and recovery
+
+A committed Phoenix release reached local Workerd through the private historical
+export and the PostgreSQL pointer fence. Workerd served the exact offer and
+both allowlisted artifacts while PostgreSQL was stopped. Renewal was refused.
+The lease expired with HTTP 204 for offers and 404 for both artifacts. After
+verified TLS recovery, a late permit left the pointer unchanged. An ambiguous
+acknowledgement was reconciled to exactly one pointer advance. A signed halt
+refused stale authority and a stale pointer ETag. L05 remains in progress.
+[Cross-runtime replay](verification/receipts/l05-delivery-cross-runtime-20261120.json)
+· [First outage proof](verification/receipts/l05-delivery-cross-runtime-first-outage-20261120.json)
+
+Separate PostgreSQL protocol controls reproduced COMMIT acknowledgement loss
+and generic rollback after the CAS. The corrected fence reported indeterminate
+in both cases and preserved certain conflict and pre-CAS unavailable.
+[COMMIT acknowledgement controls](verification/receipts/l05-delivery-fence-commit-ack-20261120.json)
+
 ## November 20 signed release queue
 
 The opt-in Phoenix queue commits a signed publication, the release head, and
