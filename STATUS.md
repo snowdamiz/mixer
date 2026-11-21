@@ -205,6 +205,14 @@ the original 360-second alarm. L07 remains open.
 [Composed verification](verification/receipts/l07-private-source-map-v81-composition.json) ·
 [v82 source admission](verification/receipts/hosted-v82-private-source-map-retention-source-admission.json)
 
+Hosted v82 Identity Network stopped during the first Git blob collection,
+before creating any containers or running either network method. The
+exact request and a complete local readback matched all 571 pinned blobs.
+The framed response grew from 8,382,516 bytes on v81 to 8,501,053 bytes
+on v82, exceeding the existing 8 MiB per-command limit. The finalizer
+verified cleanup. A bounded batching correction is underway.
+[Exact overflow evidence](verification/receipts/hosted-v82-identity-source-batch-overflow.json)
+
 ## November 21 attestation readiness
 
 The ordinary application-registration and native-attestation fixtures now use
