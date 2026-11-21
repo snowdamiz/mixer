@@ -3,6 +3,21 @@ import Foundation
 @_spi(GuestUIV1) import MixerGuest
 import MixerUpdates
 
+protocol CapabilityAttemptUI: AnyObject, Sendable {
+    var coordinatorWake: GuestUIWakeV1 { get }
+    func stop(_ cause: GuestUIExternalStopV1)
+    func snapshot() -> GuestUIExchangeSnapshotV1
+    func requireCommitEntry(generation: UInt64) throws
+    func enterEffectsIntent(generation: UInt64) throws
+    func confirmEffectsEnabled(generation: UInt64) throws
+    func consumeObservedPresentation(generation: UInt64, frameSerial: UInt64)
+}
+extension GuestUIExchangeV1: CapabilityAttemptUI {}
+#if os(macOS) && MIXER_PRIVATE_F10
+@_spi(FeatureUIV3) import MixerGuest
+extension GuestUIExchangeV3: CapabilityAttemptUI {}
+#endif
+
 enum CapabilityAttemptLocalStop: Sendable { case cancelled, deadline, closed }
 enum CapabilityAttemptFirstCause: Sendable {
     case bridge(ExperimentalCapabilityFailure)
@@ -30,7 +45,8 @@ struct CapabilityAttemptSignalSnapshot: Sendable {
 final class CapabilityAttemptSignals: CapabilityBridgeTerminalObserver, @unchecked Sendable {
     let generation: UInt64
     let notifications: AsyncStream<Void>
-    let guestUI: GuestUIExchangeV1?
+    let ui: (any CapabilityAttemptUI)?
+    var guestUI: GuestUIExchangeV1? { ui as? GuestUIExchangeV1 }
     private let continuation: AsyncStream<Void>.Continuation
     private let lock = NSLock()
     private var firstCause: CapabilityAttemptFirstCause?
@@ -38,33 +54,33 @@ final class CapabilityAttemptSignals: CapabilityBridgeTerminalObserver, @uncheck
     private var effectsMayHaveOpened = false
     private var notificationSent = false
 
-    init(generation: UInt64, guestUI: GuestUIExchangeV1? = nil) {
+    init(generation: UInt64, guestUI: (any CapabilityAttemptUI)? = nil) {
         precondition(generation > 0)
         precondition(guestUI == nil || guestUI?.snapshot().generation == generation)
-        self.generation = generation; self.guestUI = guestUI
+        self.generation = generation; self.ui = guestUI
         let stream = AsyncStream<Void>.makeStream(bufferingPolicy: .bufferingNewest(1))
         notifications = stream.stream; continuation = stream.continuation
     }
     func recordTerminalFailure(_ failure: ExperimentalCapabilityFailure) {
-        guestUI?.stop(.bridge) // Admission stops before detail publication.
+        ui?.stop(.bridge) // Admission stops before detail publication.
         lock.lock()
         if firstBridgeFailure == nil { firstBridgeFailure = failure }
         if firstCause == nil { firstCause = .bridge(failure) }
         let notify = !notificationSent; notificationSent = true
         lock.unlock()
-        if guestUI != nil || notify { signalNotification() }
+        if ui != nil || notify { signalNotification() }
     }
     func requestStop(_ cause: CapabilityAttemptLocalStop) {
         switch cause {
-        case .cancelled: guestUI?.stop(.cancelled)
-        case .deadline: guestUI?.stop(.deadline)
-        case .closed: guestUI?.stop(.closed)
+        case .cancelled: ui?.stop(.cancelled)
+        case .deadline: ui?.stop(.deadline)
+        case .closed: ui?.stop(.closed)
         }
         lock.lock()
         if firstCause == nil { firstCause = .local(cause) }
         let notify = !notificationSent; notificationSent = true
         lock.unlock()
-        if guestUI != nil || notify { signalNotification() }
+        if ui != nil || notify { signalNotification() }
     }
     /// A bounded coordinator-owned observation timer or ordinary-operation tail
     /// may re-poke the same consumer. This never consumes the first terminal
@@ -77,7 +93,7 @@ final class CapabilityAttemptSignals: CapabilityBridgeTerminalObserver, @uncheck
     }
     var snapshot: CapabilityAttemptSignalSnapshot {
         lock.lock(); defer { lock.unlock() }
-        let ui = guestUI?.snapshot()
+        let ui = ui?.snapshot()
         var cause = firstCause
         if let ui {
             // The shared guard is authoritative. A bridge tag can precede its
@@ -108,17 +124,17 @@ final class CapabilityAttemptSignals: CapabilityBridgeTerminalObserver, @uncheck
         lock.lock(); defer { lock.unlock() }
         try requireOpen(expectedGeneration)
         guard !effectsMayHaveOpened else { throw UpdateError("capability.activation.effects_intent", "Effects intent already entered") }
-        try guestUI?.enterEffectsIntent(generation: expectedGeneration)
+        try ui?.enterEffectsIntent(generation: expectedGeneration)
         effectsMayHaveOpened = true
     }
-    func finishNotifications() { guestUI?.coordinatorWake.finish(); continuation.finish() }
+    func finishNotifications() { ui?.coordinatorWake.finish(); continuation.finish() }
     private func signalNotification() {
-        if let guestUI { guestUI.coordinatorWake.signal() }
+        if let ui { ui.coordinatorWake.signal() }
         else { continuation.yield(()) }
     }
     private func requireOpen(_ expectedGeneration: UInt64) throws {
         guard expectedGeneration == generation else { throw UpdateError("capability.activation.stale", "Attempt generation changed") }
-        if let guestUI { try guestUI.requireCommitEntry(generation: expectedGeneration) }
+        if let ui { try ui.requireCommitEntry(generation: expectedGeneration) }
         else if firstCause != nil { throw UpdateError("capability.activation.stopped", "Attempt stopped before commit entry") }
     }
 }

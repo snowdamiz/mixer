@@ -238,6 +238,10 @@ public struct ReleaseVerifier: Sendable {
 
     public static func cohort(scope: UpdateScope, channel: String, installation: String) throws -> UInt64 {
         try scope.validate()
+        return try cohortForCheckedScope(scope, channel: channel, installation: installation)
+    }
+
+    static func cohortForCheckedScope(_ scope: UpdateScope, channel: String, installation: String) throws -> UInt64 {
         guard validID(channel), validID(installation) else { throw UpdateError("cohort.identity", "Invalid cohort identity") }
         let value = CanonicalValue.object(["organization": .text(scope.organization), "project": .text(scope.project), "app": .text(scope.app), "environment": .text(scope.environment), "channel": .text(channel), "installation": .text(installation)])
         return SHA256.hash(data: try value.canonicalCBOR()).reduce(UInt64(0)) { ($0 * 256 + UInt64($1)) % 10_000 }

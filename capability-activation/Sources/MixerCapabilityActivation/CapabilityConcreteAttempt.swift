@@ -4,6 +4,10 @@ import Dispatch
 @_spi(CapabilityLifecycle) import MixerExperimentalCapabilityRuntime
 @_spi(GuestUIV1) import MixerExperimentalCapabilityRuntime
 @_spi(GuestUIV1) import MixerGuest
+#if os(macOS) && MIXER_PRIVATE_F10
+@_spi(FeatureUIV3) import MixerGuest
+@_spi(PrivateFieldLogF10) import MixerExperimentalCapabilityRuntime
+#endif
 import MixerUpdates
 
 /// Private concrete owner, never an evidence ingress or public execution API.
@@ -48,7 +52,7 @@ final class CapabilityConcreteAttempt: Sendable {
         } catch { control.stop(nil); control.methodDidReturn(); throw error }
     }
     func startupGuestUI() async throws {
-        guard control.signals.guestUI != nil else { throw concreteAttemptError("installed_mode") }
+        guard control.signals.ui != nil else { throw concreteAttemptError("installed_mode") }
         try control.beginMethod()
         do {
             try await withTaskCancellationHandler {
@@ -251,16 +255,7 @@ private actor CapabilityConcreteSetup {
             group = createdGroup
             guard control.installGroup(createdGroup) else { createdGroup.closeIfUntransferred(); throw concreteAttemptError("stopped") }
             try control.requireOpen(deadline: true)
-            let construction: ExperimentalCapabilityConstruction
-            if let exchange = control.signals.guestUI {
-                construction = try ExperimentalCapabilitySession.prepareOwnedGuestUIV1(module: input.consumed.module,
-                    configuration: input.consumed.policy.native, policy: input.consumed.policy.policy,
-                    adapterGroup: createdGroup, exchange: exchange)
-            } else {
-                construction = try ExperimentalCapabilitySession.prepareOwned(module: input.consumed.module,
-                    startupExport: input.consumed.startupExport, configuration: input.consumed.policy.native,
-                    policy: input.consumed.policy.policy, adapterGroup: createdGroup)
-            }
+            let construction = try prepareConstruction(input, group: createdGroup)
             guard control.installConstruction(construction) else { construction.cancel(); throw concreteAttemptError("stopped") }
             let session = try await construction.create()
             guard control.installSession(session) else { session.close(); throw concreteAttemptError("stopped") }
@@ -270,6 +265,25 @@ private actor CapabilityConcreteSetup {
             else if let storage { await storage.close() } // Before group, no cleanup Task exists.
             throw error
         }
+    }
+    private func prepareConstruction(_ input: CapabilityConcreteControl.Input, group: OwnedCapabilityAdapterGroup) throws
+        -> ExperimentalCapabilityConstruction {
+#if os(macOS) && MIXER_PRIVATE_F10
+        if input.installed.privateF10 {
+            guard let exchange = control.signals.ui as? GuestUIExchangeV3 else { throw concreteAttemptError("installed_mode") }
+            return try ExperimentalCapabilitySession.prepareOwnedF10(module: input.consumed.module,
+                configuration: input.consumed.policy.native, policy: input.consumed.policy.policy,
+                adapterGroup: group, exchange: exchange)
+        }
+#endif
+        if let exchange = control.signals.guestUI {
+            return try ExperimentalCapabilitySession.prepareOwnedGuestUIV1(module: input.consumed.module,
+                configuration: input.consumed.policy.native, policy: input.consumed.policy.policy,
+                adapterGroup: group, exchange: exchange)
+        }
+        return try ExperimentalCapabilitySession.prepareOwned(module: input.consumed.module,
+            startupExport: input.consumed.startupExport, configuration: input.consumed.policy.native,
+            policy: input.consumed.policy.policy, adapterGroup: group)
     }
 }
 

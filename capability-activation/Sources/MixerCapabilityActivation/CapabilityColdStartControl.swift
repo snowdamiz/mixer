@@ -49,7 +49,7 @@ final class CapabilityColdStartObservation: @unchecked Sendable {
     func finish() async -> CapabilityPresentationJoinStatus? {
         let (first, presentation, early) = beginFinish()
         guard first else { return early }
-        signals.guestUI?.stop(.closed)
+        signals.ui?.stop(.closed)
         timer?.cancel()
         signals.finishNotifications()
         if let timer { await timer.waitForCancellation() }
@@ -150,7 +150,7 @@ final class CapabilityColdStartControl: @unchecked Sendable {
     func installObservation(_ signals: CapabilityAttemptSignals, worker: CapabilityColdStartWorker,
                             candidate: String, launch: String, op: CapabilityColdStartOperation) throws {
         let box = CapabilityColdStartWeakWorker(worker), stream = signals.notifications, generation = signals.generation
-        let reader = try signals.guestUI?.coordinatorWake.takeConsumer()
+        let reader = try signals.ui?.coordinatorWake.takeConsumer()
         lock.lock(); defer { lock.unlock() }
         guard !closed, ordinary === op, observation == nil, endingObservation == nil else { throw coldStartError("closed") }
         let consumer = Task.detached {

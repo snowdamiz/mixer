@@ -1,5 +1,8 @@
 import Foundation
 @_spi(GuestUIV1) import MixerGuest
+#if os(macOS) && MIXER_PRIVATE_F10
+@_spi(FeatureUIV3) import MixerGuest
+#endif
 
 /// All durable/adapter work is reached from this private non-MainActor owner.
 /// The reservation's retained store worker reaches notification consumers only
@@ -104,16 +107,20 @@ actor CapabilityColdStartWorker {
                                    _ op: CapabilityColdStartOperation) async throws -> StartupStep {
         let store = try currentStore(op)
         guard let installed else { throw coldStartError("closed") }
-        let exchange = try presentation.map { _ in
-            try GuestUIExchangeV1(generation: selection.generation,
-                allowsDeferredStartup: installed.applicationStorage?.allowsDeferredGuestUIStartup == true)
-        }
+        let exchange = try makeExchange(generation: selection.generation, installed: installed)
         let signals = CapabilityAttemptSignals(generation: selection.generation, guestUI: exchange)
         try control.installObservation(signals, worker: self, candidate: selection.candidateID,
             launch: selection.launchID, op: op)
         var consumed: CapabilityConsumedStartup?
         do {
-            if let presentation, let exchange {
+#if os(macOS) && MIXER_PRIVATE_F10
+            if let v3 = exchange as? GuestUIExchangeV3 {
+                guard let headless = presentation as? F10HeadlessPresenter else { throw coldStartError("installed_mode") }
+                try await headless.bind(v3)
+                try control.requireCurrent(op)
+            }
+#endif
+            if let presentation, let exchange = exchange as? GuestUIExchangeV1 {
                 let presentation = try await presentation.bindForStartup(exchange)
                 guard control.installPresentationLifetime(presentation, signals: signals, op: op) else {
                     exchange.stop(.closed)
@@ -135,6 +142,12 @@ actor CapabilityColdStartWorker {
             if exchange != nil { try await attempt.startupGuestUI() }
             else { _ = try await attempt.startup() } // Effects remain disabled.
             try requireAttempt(op, signals)
+#if os(macOS) && MIXER_PRIVATE_F10
+            if let v3 = exchange as? GuestUIExchangeV3, let headless = presentation as? F10HeadlessPresenter {
+                try await headless.presentInert(v3)
+                try requireAttempt(op, signals)
+            }
+#endif
             try await store.recordEffectsIntent(input, signals: signals)
             try requireAttempt(op, signals)
             try await attempt.enableEffects() // Original selected absolute cutoff.
@@ -182,6 +195,14 @@ actor CapabilityColdStartWorker {
             }
         }
     }
+    private func makeExchange(generation: UInt64, installed: InstalledMaterial) throws -> (any CapabilityAttemptUI)? {
+        guard presentation != nil else { return nil }
+#if os(macOS) && MIXER_PRIVATE_F10
+        if installed.privateF10 { return try GuestUIExchangeV3(generation: generation, textValuePolicy: .standard) }
+#endif
+        return try GuestUIExchangeV1(generation: generation,
+            allowsDeferredStartup: installed.applicationStorage?.allowsDeferredGuestUIStartup == true)
+    }
     private func requireAttempt(_ op: CapabilityColdStartOperation, _ signals: CapabilityAttemptSignals) throws {
         try control.requireCurrent(op)
         guard !signals.snapshot.stopped else { throw coldStartError("terminal") }
@@ -205,6 +226,7 @@ actor CapabilityColdStartWorker {
         if let observation { try await finishObservation(observation) }
     }
     private func reportMilestoneOwned(_ id: String, _ op: CapabilityColdStartOperation) async throws -> CapabilityColdStartObservation? {
+        guard installed?.privateF10 != true else { throw coldStartError("milestone") }
         let store = try currentStore(op)
         guard let active, let signals else { throw coldStartError("not_observing") }
         guard configuration.requiredMilestones.contains(id) else { throw coldStartError("milestone") }
@@ -227,10 +249,11 @@ actor CapabilityColdStartWorker {
     private func reconcileOwned(fromConsumer: Bool) async -> CapabilityColdStartObservation? {
         control.clearPendingWake()
         guard !control.isClosed, let active, let signals, let store else { return nil }
-        if let exchange = signals.guestUI, !signals.snapshot.stopped,
-           let receipt = exchange.snapshot().pendingPresentationReceipt {
+        if let exchange = signals.ui, !signals.snapshot.stopped,
+           let receipt = exchange.snapshot().pendingPresentationReceipt,
+           installed?.privateF10 != true || receipt.revision == 2 {
             do {
-                try await store.reportMilestone(active, id: "first_screen")
+                try await store.reportMilestone(active, id: "first_screen", presentation: receipt)
                 milestones.insert("first_screen")
                 exchange.consumeObservedPresentation(generation: receipt.generation, frameSerial: receipt.frameSerial)
             } catch {

@@ -2,6 +2,10 @@ import Foundation
 @_spi(InstalledApplicationStorage) import MixerCapabilities
 import MixerRuntimeIdentity
 import MixerUpdates
+#if os(macOS) && MIXER_PRIVATE_F10
+@_spi(PrivateFieldLogF10) import MixerRuntimeIdentity
+@_spi(PrivateFieldLogF10) import MixerUpdates
+#endif
 
 /// An untrusted input file. Bounds and private copies are applied together when
 /// the complete installed material set is admitted.
@@ -57,17 +61,26 @@ public struct InstalledCapabilityExecution: Sendable {
 
     public init(identityJSON: Data, materials: [CapabilityMaterialFile], trustRootsJSON: Data,
                 privateContainer: URL, applicationStorage: InstalledApplicationStorage?) throws {
-        guard identityJSON.count <= 131_072, trustRootsJSON.count <= 65_536, materials.count <= 5 else { throw materialError("size") }
-        var total = 0
-        for file in materials {
-            guard file.bytes.count <= 65_536 else { throw materialError("size") }
-            total += file.bytes.count
-        }
-        guard total <= 327_680 else { throw materialError("size") }
-
-        // The identity parser takes its own owned snapshot. All subsequent
-        // descriptor reads use that value, never the caller-backed input again.
-        let identity = try CapabilityRuntimeIdentity(json: identityJSON)
+        try self.init(identity: CapabilityRuntimeIdentity(json: identityJSON), materials: materials,
+            trustRootsJSON: trustRootsJSON, privateContainer: privateContainer,
+            applicationStorage: applicationStorage, privateF10: false)
+    }
+#if os(macOS) && MIXER_PRIVATE_F10
+    init(privateDevelopmentF10JSON identityJSON: Data, materials: [CapabilityMaterialFile], trustRootsJSON: Data,
+         privateContainer: URL, repository: any InstalledApplicationStorageServing) throws {
+        let identity = try CapabilityRuntimeIdentity(privateDevelopmentF10JSON: identityJSON)
+        try CapabilityInstalledExecutionMode.requirePrivateF10(identity, milestones: ["feature_started", "first_screen"])
+        guard identity.capabilities.map(\.id) == [CapabilitySchemas.storageID] else { throw materialError("private_f10") }
+        let storage = InstalledApplicationStorage(runtimeFingerprint: identity.fingerprint,
+            namespace: "material_test", service: F10ReadOnlyStorage(repository: repository))
+        try self.init(identity: identity, materials: materials, trustRootsJSON: trustRootsJSON,
+            privateContainer: privateContainer, applicationStorage: storage, privateF10: true)
+    }
+#endif
+    private init(identity: CapabilityRuntimeIdentity, materials: [CapabilityMaterialFile], trustRootsJSON: Data,
+                 privateContainer: URL, applicationStorage: InstalledApplicationStorage?, privateF10: Bool) throws {
+        guard trustRootsJSON.count <= 65_536, materials.count <= 5 else { throw materialError("size") }
+        guard materials.allSatisfy({ $0.bytes.count <= 65_536 }) else { throw materialError("size") }
         try MaterialRules.linkedIdentity(identity)
         let expected = Set(["bridge"] + identity.capabilities.flatMap { ["configuration:" + $0.id, "grant:" + $0.id] })
         let capabilityIDs = Set(identity.capabilities.map(\.id))
@@ -123,11 +136,20 @@ public struct InstalledCapabilityExecution: Sendable {
               ReleaseVerifier.sha256(rootsBytes) == digest else { throw materialError("roots.digest") }
         let roots = try StrictJSON.decode([TrustRoot].self, from: rootsBytes, maximumBytes: 65_536)
         guard roots.count <= 128 else { throw materialError("roots.count") }
-        let verifier = try ReleaseVerifierV3(host: identity.installedRuntime, roots: roots)
+        let verifier: ReleaseVerifierV3
+#if os(macOS) && MIXER_PRIVATE_F10
+        if privateF10 {
+            verifier = try ReleaseVerifierV3(privateDevelopmentF10: identity.installedRuntime, roots: roots)
+        } else {
+            verifier = try ReleaseVerifierV3(host: identity.installedRuntime, roots: roots)
+        }
+#else
+        verifier = try ReleaseVerifierV3(host: identity.installedRuntime, roots: roots)
+#endif
         runtimeFingerprint = identity.fingerprint
         installed = InstalledMaterial(identity: identity, files: files, rootsBytes: rootsBytes, privateContainer: privateContainer,
                                       bridge: bridge, configurations: configurations, grants: grants, verifier: verifier,
-                                      applicationStorage: applicationStorage)
+                                      applicationStorage: applicationStorage, privateF10: privateF10)
     }
 }
 
@@ -141,6 +163,7 @@ struct InstalledMaterial: Sendable {
     let grants: [String: InstalledGrant]
     let verifier: ReleaseVerifierV3
     let applicationStorage: InstalledApplicationStorage?
+    let privateF10: Bool
 }
 struct InstalledBridgePolicy: Sendable { let burst: UInt32; let startsPerSecond: UInt32 }
 enum InstalledConfiguration: Sendable {

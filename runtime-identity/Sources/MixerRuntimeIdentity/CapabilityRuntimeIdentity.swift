@@ -51,6 +51,15 @@ public struct CapabilityRuntimeIdentity: Sendable {
     }
 
     public init(json: Data) throws {
+        try self.init(json: json, privateF10: false)
+    }
+#if os(macOS) && MIXER_PRIVATE_F10
+    @_spi(PrivateFieldLogF10)
+    public init(privateDevelopmentF10JSON json: Data) throws {
+        try self.init(json: json, privateF10: true)
+    }
+#endif
+    private init(json: Data, privateF10: Bool) throws {
         guard json.count <= Self.maximumDescriptorBytes else { throw capabilityIdentityError("size") }
         // Data may wrap externally mutable no-copy storage. Both strict scanning
         // and Foundation decoding must observe this same privately owned copy.
@@ -68,20 +77,25 @@ public struct CapabilityRuntimeIdentity: Sendable {
         _ = try app.identifier("bundle_id")
 
         let platform = try CapabilityIdentityFields(root.value("platform"), keys: ["os", "architecture", "environment", "minimum_os", "target"])
-        let os = try platform.oneOf("os", ["ios", "android"])
+        let os = try platform.oneOf("os", privateF10 ? ["macos"] : ["ios", "android"])
         let architecture = try platform.oneOf("architecture", ["arm64", "x86_64"])
         let deployment = try platform.oneOf("environment", ["device", "simulator"])
         let minimumOS = try platform.identifier("minimum_os")
         let target = try platform.identifier("target")
-        try Self.checkPlatform(os: os, architecture: architecture, environment: deployment, minimumOS: minimumOS, target: target)
+        if privateF10 {
+            guard environment == "development", deployment == "device", minimumOS == "14.0",
+                  target == "\(architecture)-apple-macosx14.0" else { throw capabilityIdentityError("platform") }
+        } else {
+            try Self.checkPlatform(os: os, architecture: architecture, environment: deployment, minimumOS: minimumOS, target: target)
+        }
 
         let engine = try CapabilityIdentityFields(root.value("engine"), keys: ["version", "source_sha256", "artifact_sha256", "profile", "guest_abi", "ui_schema", "ui_contract_sha256", "capability_contract_sha256"])
         _ = try engine.label("version")
         try engine.digests(["source_sha256", "artifact_sha256", "ui_contract_sha256", "capability_contract_sha256"])
         let profile = try engine.oneOf("profile", ["mixer-table-memory-v3"])
-        let guestABI = try engine.number("guest_abi", 2...2), uiSchema = try engine.number("ui_schema", 1...1)
+        let guestABI = try engine.number("guest_abi", 2...2), uiSchema = try engine.number("ui_schema", privateF10 ? 3...3 : 1...1)
 
-        guard try engine.label("ui_contract_sha256") == Self.uiContractSHA256,
+        guard try engine.label("ui_contract_sha256") == (privateF10 ? "2aa7ea5a007be20decffb7a35f450e89e7e77691bbaef4694c7f9456ba7787fc" : Self.uiContractSHA256),
               try engine.label("capability_contract_sha256") == Self.semanticCapabilitySHA256 else { throw capabilityIdentityError("contract") }
 
         let toolchain = try CapabilityIdentityFields(root.value("toolchain"), keys: ["compiler_version", "compiler_sha256", "sdk_version", "sdk_sha256", "build_tools_sha256"])
@@ -110,7 +124,7 @@ public struct CapabilityRuntimeIdentity: Sendable {
         }
 
         let build = try CapabilityIdentityFields(root.value("build"), keys: ["configuration", "settings_sha256", "generated_bridge_sha256", "link_inputs_sha256", "native_fallback_sha256", "permissions_sha256", "entitlements_sha256", "trust_roots_sha256", "resource_policy_sha256"])
-        _ = try build.oneOf("configuration", ["debug", "release"])
+        _ = try build.oneOf("configuration", privateF10 ? ["debug"] : ["debug", "release"])
         try build.digests(["settings_sha256", "generated_bridge_sha256", "link_inputs_sha256", "native_fallback_sha256", "permissions_sha256", "entitlements_sha256", "trust_roots_sha256", "resource_policy_sha256"])
 
         let policy = try CapabilityIdentityFields(root.value("execution"), keys: ["startup_export", "startup_ms", "max_payload_bytes", "memory_bytes", "fuel", "operand_stack", "call_depth", "host_calls", "state_schema", "protocol"])

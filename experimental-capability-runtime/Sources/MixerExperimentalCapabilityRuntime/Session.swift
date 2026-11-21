@@ -1,6 +1,9 @@
 import Foundation
 @_spi(InstalledApplicationStorage) import MixerCapabilities
 @_spi(GuestUIV1) import MixerGuest
+#if os(macOS) && MIXER_PRIVATE_F10
+@_spi(FeatureUIV3) import MixerGuest
+#endif
 
 /// A synchronous construction reservation. Pending and native-draining owners
 /// share sixteen permits. No C work is scheduled until the one-shot create call.
@@ -11,7 +14,7 @@ public final class ExperimentalCapabilityConstruction: @unchecked Sendable {
         let configuration: ExperimentalCapabilityConfiguration
         let policy: CapabilityPolicy
         let adapters: InstalledCapabilityAdapters
-        let exchange: GuestUIExchangeV1?
+        let exchange: (any RuntimeGuestUIExchange)?
     }
     private struct State {
         var input: Input?
@@ -22,10 +25,10 @@ public final class ExperimentalCapabilityConstruction: @unchecked Sendable {
     private let state: Locked<State>
     private let permit: ConstructionPermit
     private let lifecycle: AdapterCloseCore?
-    private let guestUIExchange: GuestUIExchangeV1?
+    private let guestUIExchange: (any RuntimeGuestUIExchange)?
     fileprivate init(module: Data, startup: String, configuration: ExperimentalCapabilityConfiguration,
                      policy: CapabilityPolicy, adapters: InstalledCapabilityAdapters, permit: ConstructionPermit, lifecycle: AdapterCloseCore? = nil,
-                     exchange: GuestUIExchangeV1? = nil) {
+                     exchange: (any RuntimeGuestUIExchange)? = nil) {
         state = Locked(State(input: Input(module: module, startup: startup, configuration: configuration, policy: policy, adapters: adapters, exchange: exchange)))
         self.permit = permit; self.lifecycle = lifecycle
         guestUIExchange = exchange
@@ -123,16 +126,22 @@ public final class ExperimentalCapabilityConstruction: @unchecked Sendable {
                                         reservationBytes: input.configuration.reservationBytes) {
                 throw ExperimentalCapabilityError("application_storage_commit_limits", operation: .construction)
             }
+            var privateF10 = false
+#if os(macOS) && MIXER_PRIVATE_F10
+            privateF10 = input.exchange is GuestUIExchangeV3
+#endif
             if let exchange = input.exchange {
                 try GuestUITurns.requireLive(exchange)
-                try NativeCapabilitySession.validateGuestUI(module: input.module, configuration: input.configuration,
-                    deferredStartup: exchange.allowsDeferredStartup)
+                if let v1 = exchange as? GuestUIExchangeV1 {
+                    try NativeCapabilitySession.validateGuestUI(module: input.module, configuration: input.configuration,
+                        deferredStartup: v1.allowsDeferredStartup)
+                }
                 try GuestUITurns.requireLive(exchange)
             }
             let createdHost = try CapabilityHost(policy: input.policy, maximumRequests: Int(input.configuration.maximumRequests),
                 timeoutMilliseconds: input.configuration.timeoutMilliseconds, installedAdapters: input.adapters)
             host = createdHost
-            let native = try NativeCapabilitySession(module: input.module, startup: input.startup, configuration: input.configuration)
+            let native = try NativeCapabilitySession(module: input.module, startup: input.startup, configuration: input.configuration, privateF10: privateF10)
             lifecycle?.expectsNative()
             return .success(NativeExitOwner(native: native, host: createdHost, configuration: input.configuration,
                 permit: permit, lifecycle: lifecycle, exchange: input.exchange, commitFacts: input.adapters.guestUICommitFacts))
@@ -159,6 +168,21 @@ public final class ExperimentalCapabilitySession: @unchecked Sendable {
     public static func prepareOwnedGuestUIV1(module: Data, configuration: ExperimentalCapabilityConfiguration,
                                            policy: CapabilityPolicy, adapterGroup: OwnedCapabilityAdapterGroup,
                                            exchange: GuestUIExchangeV1) throws -> ExperimentalCapabilityConstruction {
+        try prepareOwnedUI(module: module, startup: "mixer_guest_ui_start_v1", configuration: configuration,
+            policy: policy, adapterGroup: adapterGroup, exchange: exchange)
+    }
+#if os(macOS) && MIXER_PRIVATE_F10
+    @_spi(PrivateFieldLogF10)
+    public static func prepareOwnedF10(module: Data, configuration: ExperimentalCapabilityConfiguration,
+                                        policy: CapabilityPolicy, adapterGroup: OwnedCapabilityAdapterGroup,
+                                        exchange: GuestUIExchangeV3) throws -> ExperimentalCapabilityConstruction {
+        try prepareOwnedUI(module: module, startup: GuestUIProtocolV3.startupExport, configuration: configuration,
+            policy: policy, adapterGroup: adapterGroup, exchange: exchange)
+    }
+#endif
+    private static func prepareOwnedUI(module: Data, startup: String, configuration: ExperimentalCapabilityConfiguration,
+                                       policy: CapabilityPolicy, adapterGroup: OwnedCapabilityAdapterGroup,
+                                       exchange: any RuntimeGuestUIExchange) throws -> ExperimentalCapabilityConstruction {
         guard module.count <= 4_194_304 else { throw ExperimentalCapabilityError("invalid_module_or_startup") }
         try configuration.validate()
         try GuestUITurns.requireLive(exchange)
@@ -168,7 +192,7 @@ public final class ExperimentalCapabilitySession: @unchecked Sendable {
             let snapshot = module.withUnsafeBytes { bytes in
                 bytes.isEmpty ? Data() : Data(bytes: bytes.baseAddress!, count: bytes.count)
             }
-            return ExperimentalCapabilityConstruction(module: snapshot, startup: "mixer_guest_ui_start_v1", configuration: configuration,
+            return ExperimentalCapabilityConstruction(module: snapshot, startup: startup, configuration: configuration,
                 policy: policy, adapters: adapters, permit: permit, lifecycle: adapterGroup.core, exchange: exchange)
         } catch { permit.release(); throw error }
     }

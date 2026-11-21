@@ -1,4 +1,7 @@
 import Foundation
+#if os(macOS) && MIXER_PRIVATE_F10
+@_spi(PrivateFieldLogF10) import MixerExperimentalCapabilityRuntime
+#endif
 @_spi(GuestUIV1) import MixerExperimentalCapabilityRuntime
 @_spi(GuestUIV1) import MixerGuest
 @_spi(CapabilityDurableV3) import MixerUpdates
@@ -18,13 +21,21 @@ final class CapabilityRecoveryStore: Sendable {
     private init(worker: CapabilityRecoveryWorker, control: CapabilityRecoveryControl, obligation: CapabilityStoreObligation, monotonic: @escaping @Sendable () -> UInt64) {
         self.worker = worker; self.control = control; self.obligation = obligation; self.monotonic = monotonic
     }
+    private static func requireExecutionMode(_ installed: InstalledMaterial, guestUI: Bool,
+                                             milestones: Set<String>) throws {
+#if os(macOS) && MIXER_PRIVATE_F10
+        if installed.privateF10 && guestUI {
+            return try CapabilityInstalledExecutionMode.requirePrivateF10(installed.identity, milestones: milestones)
+        }
+#endif
+        if guestUI { try CapabilityInstalledExecutionMode.requireGuestUI(installed.identity, milestones: milestones) }
+    }
+
     static func open(admission: CapabilityRecoveryStoreAdmission, installed: InstalledMaterial,
                      configuration: CapabilityRecoveryConfiguration,
                      environment: CapabilityRecoveryEnvironment = .init(),
                      guestUI: Bool = false) async throws -> CapabilityRecoveryStore {
-        if guestUI {
-            try CapabilityInstalledExecutionMode.requireGuestUI(installed.identity, milestones: configuration.requiredMilestones)
-        }
+        try Self.requireExecutionMode(installed, guestUI: guestUI, milestones: configuration.requiredMilestones)
         let obligation = try admission.claimStore() // Before actor/configuration capture or any I/O.
         do {
             try validate(configuration)
@@ -92,10 +103,13 @@ final class CapabilityRecoveryStore: Sendable {
         let op = try control.admit(); defer { control.finish(op) }
         try await withTaskCancellationHandler { try await worker.confirmEffectsEnabled(consumed, signals: signals, op) } onCancel: { op.cancel() }
     }
-    func reportMilestone(_ consumed: CapabilityConsumedStartup, id: String) async throws {
+    func reportMilestone(_ consumed: CapabilityConsumedStartup, id: String,
+                         presentation: GuestUIPresentationReceiptV1? = nil) async throws {
         guard capabilityRecoveryIdentifier(id) else { throw capabilityRecoveryError("milestone") }
         let op = try control.admit(); defer { control.finish(op) }
-        try await withTaskCancellationHandler { try await worker.reportMilestone(consumed, id: id, op) } onCancel: { op.cancel() }
+        try await withTaskCancellationHandler {
+            try await worker.reportMilestone(consumed, id: id, presentation: presentation, op)
+        } onCancel: { op.cancel() }
     }
     func commitHealth(_ consumed: CapabilityConsumedStartup, signals: CapabilityAttemptSignals) async throws -> Bool {
         let op = try control.admit(); defer { control.finish(op) }
@@ -488,7 +502,7 @@ private actor CapabilityRecoveryWorker {
                  _ op: CapabilityRecoveryOperation) async throws -> CapabilityConsumedStartup {
         let (_, s) = try available(op)
         guard prepared === selection, active == nil, signals.generation == selection.generation,
-              (signals.guestUI != nil) == guestUI,
+              (signals.ui != nil) == guestUI,
               s.attempt?.launchID == selection.launchID else { throw capabilityRecoveryError("selection") }
         do {
             try checkStartupClock(began: selection.startupBeganUptimeNanoseconds, cutoff: selection.startupCutoffUptimeNanoseconds)
@@ -552,10 +566,16 @@ private actor CapabilityRecoveryWorker {
         // Only the private coordinator calls this AFTER actual native enable.
         effectsEnabledAt = environment.monotonic()
     }
-    func reportMilestone(_ input: CapabilityConsumedStartup, id: String, _ op: CapabilityRecoveryOperation) throws {
+    func reportMilestone(_ input: CapabilityConsumedStartup, id: String,
+                         presentation: GuestUIPresentationReceiptV1?, _ op: CapabilityRecoveryOperation) throws {
         guard let signals = activeSignals else { throw capabilityRecoveryError("attempt") }
         _ = try bound(input, signals, op)
         guard effectsEnabledAt != nil, configuration.requiredMilestones.contains(id) else { throw capabilityRecoveryError("milestone") }
+        if installed.privateF10 && id == "first_screen" {
+            guard let presentation, presentation.generation == input.generation, presentation.revision == 2,
+                  let ui = signals.ui?.snapshot(), ui.effectsConfirmed,
+                  ui.pendingPresentationReceipt == presentation else { throw capabilityRecoveryError("milestone") }
+        }
         try signals.requireCommitEntry(expectedGeneration: input.generation)
         milestones.insert(id) // Fixed installed <=16 set; duplicates are idempotent.
     }
@@ -626,6 +646,11 @@ private actor CapabilityRecoveryWorker {
         return .nativeFallback
     }
     private func prepareValidation(_ module: Data, configuration: ExperimentalCapabilityConfiguration) throws -> ExperimentalCapabilityValidation {
+#if os(macOS) && MIXER_PRIVATE_F10
+        if installed.privateF10 {
+            return try ExperimentalCapabilityValidator.prepareF10(module: module, configuration: configuration)
+        }
+#endif
         if guestUI {
             return try ExperimentalCapabilityValidator.prepareGuestUIV1(module: module, configuration: configuration,
                 deferredStartup: installed.applicationStorage?.allowsDeferredGuestUIStartup == true)

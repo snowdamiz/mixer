@@ -2,6 +2,9 @@ import Foundation
 import Dispatch
 import CMixerVMCapability
 @_spi(GuestUIV1) import MixerGuest
+#if os(macOS) && MIXER_PRIVATE_F10
+@_spi(FeatureUIV3) import MixerGuest
+#endif
 
 private final class ValidationPermit: @unchecked Sendable {
     private static let count = Locked(0)
@@ -54,6 +57,19 @@ public enum ExperimentalCapabilityValidator {
         return ExperimentalCapabilityValidation(module: snapshot, startup: "mixer_guest_ui_start_v1", configuration: configuration,
             permit: permit, mode: deferredStartup ? .deferredGuestUI : .guestUI)
     }
+#if os(macOS) && MIXER_PRIVATE_F10
+    @_spi(PrivateFieldLogF10)
+    public static func prepareF10(module: Data, configuration: ExperimentalCapabilityConfiguration) throws -> ExperimentalCapabilityValidation {
+        guard module.count <= 4_194_304 else { throw ExperimentalCapabilityError("invalid_module_or_startup") }
+        try configuration.validate()
+        let permit = try ValidationPermit.acquire()
+        let snapshot = module.withUnsafeBytes { bytes in
+            bytes.isEmpty ? Data() : Data(bytes: bytes.baseAddress!, count: bytes.count)
+        }
+        return ExperimentalCapabilityValidation(module: snapshot, startup: GuestUIProtocolV3.startupExport,
+            configuration: configuration, permit: permit, mode: .privateF10)
+    }
+#endif
     public static func prepare(module: Data, startupExport: String,
                                configuration: ExperimentalCapabilityConfiguration = .init()) throws -> ExperimentalCapabilityValidation {
         guard module.count <= 4_194_304, !startupExport.isEmpty, startupExport.utf8.prefix(4097).count <= 4096 else {
@@ -72,7 +88,12 @@ public enum ExperimentalCapabilityValidator {
 /// Two process permits cover unused, queued, running and cancelled/draining
 /// validations. Cancellation cannot interrupt the synchronous native validator.
 public final class ExperimentalCapabilityValidation: @unchecked Sendable {
-    fileprivate enum Mode: Sendable { case capability, guestUI, deferredGuestUI }
+    fileprivate enum Mode: Sendable {
+        case capability, guestUI, deferredGuestUI
+#if os(macOS) && MIXER_PRIVATE_F10
+        case privateF10
+#endif
+    }
     private struct Input: Sendable {
         let module: Data
         let startup: String
@@ -135,6 +156,11 @@ public final class ExperimentalCapabilityValidation: @unchecked Sendable {
             return state.cancelled ? nil : input
         }
         guard let input else { return .failure(CancellationError()) }
+#if os(macOS) && MIXER_PRIVATE_F10
+        if input.mode == .privateF10 {
+            return Result { try NativeCapabilitySession.validateF10(module: input.module, configuration: input.configuration) }
+        }
+#endif
         if input.mode != .capability {
             do {
                 try NativeCapabilitySession.validateGuestUI(module: input.module, configuration: input.configuration,

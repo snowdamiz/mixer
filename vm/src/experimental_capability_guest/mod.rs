@@ -13,6 +13,12 @@ use std::sync::{
 use std::time::{Duration, Instant};
 pub const IMPORT_MODULE: &str = "mixer.capability.v1";
 pub const WAKE_EXPORT: &str = "mixer_guest_capability_ready_v1";
+#[cfg(all(target_os = "macos", feature = "private-fieldlog-f10"))]
+pub(crate) const F10_START: &str = "mixer_guest_ui_start_v3";
+#[cfg(all(target_os = "macos", feature = "private-fieldlog-f10"))]
+const F10_EVENT: &str = "mixer_guest_ui_event_v3";
+#[cfg(all(target_os = "macos", feature = "private-fieldlog-f10"))]
+const F10_READY: &str = "mixer_guest_ui_ready_v3";
 #[derive(Clone, Copy, Debug)]
 pub struct GuestLimits {
     pub turn_milliseconds: u32,
@@ -199,6 +205,10 @@ impl CapabilityGuest {
     ) -> Result<Self, Error> {
         let (module, startup_index, wake_index) =
             Self::validated(wasm, &vm, &mailbox, guest, installed_startup_export)?;
+        Self::instantiate(module, startup_index, wake_index, vm, mailbox, guest)
+    }
+    fn instantiate(module: Module, startup_index: u32, wake_index: u32, vm: Limits,
+                   mailbox: mb::Limits, guest: GuestLimits) -> Result<Self, Error> {
         let instance = Instance::new_capability(module, vm)?;
         let shared = Arc::new(Shared {
             mailbox: mb::Mailbox::new(mailbox).map_err(|e| {
@@ -227,6 +237,21 @@ impl CapabilityGuest {
         guest: GuestLimits,
         installed_startup_export: &str,
     ) -> Result<(Module, u32, u32), Error> {
+        if installed_startup_export == "mixer_guest_ui_start_v3" {
+            return Err(error("capability_export", "private V3 startup requires its explicit profile"));
+        }
+        let checked = Self::validated_with_wake(wasm, vm, mailbox, guest, installed_startup_export, WAKE_EXPORT)?;
+        if ["mixer_guest_ui_start_v3", "mixer_guest_ui_event_v3", "mixer_guest_ui_ready_v3"]
+            .iter().any(|name| checked.0.exports.contains_key(*name))
+        {
+            return Err(error("capability_export", "private V3 exports require their explicit profile"));
+        }
+        Ok(checked)
+    }
+    fn validated_with_wake(
+        wasm: &[u8], vm: &Limits, mailbox: &mb::Limits, guest: GuestLimits,
+        installed_startup_export: &str, ready: &str,
+    ) -> Result<(Module, u32, u32), Error> {
         if vm.profile != Profile::TableMemoryV3
             || guest.turn_milliseconds == 0
             || guest.turn_milliseconds > 50
@@ -253,7 +278,7 @@ impl CapabilityGuest {
         }
         let module = Module::decode_capability(wasm, vm)?;
         let startup_index = exported(&module, installed_startup_export, false)?;
-        let wake_index = exported(&module, WAKE_EXPORT, true)?;
+        let wake_index = exported(&module, ready, true)?;
         Ok((module, startup_index, wake_index))
     }
     /// Exact constructor validation, with no instance linear memory/owner/startup.
@@ -303,6 +328,44 @@ impl CapabilityGuest {
         if deferred_startup {
             exports.push((HYDRATE_V1, &[], Some(Type::I32)));
         }
+        Self::require_exports(&module, exports)
+    }
+    #[cfg(all(target_os = "macos", feature = "private-fieldlog-f10"))]
+    fn validated_f10(wasm: &[u8], vm: &Limits, mailbox: &mb::Limits, guest: GuestLimits)
+        -> Result<(Module, u32, u32), Error> {
+        let (module, startup, ready) =
+            Self::validated_with_wake(wasm, vm, mailbox, guest, F10_START, F10_READY)?;
+        if module.imports.len() != 2
+            || !["storage_get", "poll"].iter().all(|name| module.imports.iter().any(|import|
+                import.module == IMPORT_MODULE && import.name == *name))
+            || module.exports.iter().any(|(name, &(kind, index))| match name.as_str() {
+                F10_START | F10_EVENT | F10_READY => false,
+                "memory" => kind != 2 || index != 0,
+                _ => true,
+            })
+        {
+            return Err(error("capability_export", "private F10 imports or exports differ"));
+        }
+        Self::require_exports(&module, [
+            (F10_START, &[][..], Some(Type::I32)),
+            (F10_EVENT, &[Type::I32][..], Some(Type::I32)),
+            (F10_READY, &[][..], None),
+        ])?;
+        Ok((module, startup, ready))
+    }
+    #[cfg(all(target_os = "macos", feature = "private-fieldlog-f10"))]
+    pub(crate) fn validate_f10(wasm: &[u8], vm: &Limits, mailbox: &mb::Limits, guest: GuestLimits)
+        -> Result<(), Error> {
+        Self::validated_f10(wasm, vm, mailbox, guest).map(|_| ())
+    }
+    #[cfg(all(target_os = "macos", feature = "private-fieldlog-f10"))]
+    pub(crate) fn new_f10(wasm: &[u8], vm: Limits, mailbox: mb::Limits, guest: GuestLimits)
+        -> Result<Self, Error> {
+        let (module, startup, ready) = Self::validated_f10(wasm, &vm, &mailbox, guest)?;
+        Self::instantiate(module, startup, ready, vm, mailbox, guest)
+    }
+    #[cfg(feature = "experimental-capability-native")]
+    fn require_exports<'a>(module: &Module, exports: impl IntoIterator<Item = (&'a str, &'a [Type], Option<Type>)>) -> Result<(), Error> {
         for (name, params, result) in exports {
             let valid = module.exports.get(name).is_some_and(|&(kind, index)| {
                 kind == 0

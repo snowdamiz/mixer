@@ -13,12 +13,26 @@ public final class CapabilityColdStartRuntime: Sendable {
     static func openOwned(configuration: CapabilityColdStartConfiguration, installed: InstalledMaterial,
                           environment: CapabilityRecoveryEnvironment) async throws -> CapabilityColdStartRuntime {
         try CapabilityInstalledExecutionMode.requireCapabilityOnly(installed.identity)
+        return try await openShared(configuration: configuration, installed: installed, environment: environment, presentation: nil)
+    }
+#if os(macOS) && MIXER_PRIVATE_F10
+    static func openPrivateF10(configuration: CapabilityColdStartConfiguration, execution: InstalledCapabilityExecution,
+                               presenter: F10HeadlessPresenter) async throws -> any F10InstalledColdStart {
+        guard execution.installed.privateF10 else { throw coldStartError("installed_mode") }
+        try CapabilityInstalledExecutionMode.requirePrivateF10(execution.installed.identity, milestones: configuration.requiredMilestones)
+        return try await openShared(configuration: configuration, installed: execution.installed, environment: .init(), presentation: presenter)
+    }
+#endif
+    private static func openShared(configuration: CapabilityColdStartConfiguration, installed: InstalledMaterial,
+                                   environment: CapabilityRecoveryEnvironment,
+                                   presentation: (any CapabilityColdStartPresentation)?) async throws -> CapabilityColdStartRuntime {
         let checked = try configuration.checked()
         let reservation = try CapabilityAttemptReservation.acquire() // Before actor/I/O/captured owner allocation.
         var core: CapabilityColdStartCloseCore?
         var opening: CapabilityColdStartOperation?
         do {
-            let created = try CapabilityColdStartCloseCore(configuration: checked, installed: installed, environment: environment, reservation: reservation)
+            let created = try CapabilityColdStartCloseCore(configuration: checked, installed: installed, environment: environment,
+                reservation: reservation, alternatePresentation: presentation)
             core = created
             let op = try created.control.admit(.opening); opening = op
             let core = created
@@ -93,6 +107,18 @@ public final class CapabilityColdStartRuntime: Sendable {
     }
 }
 
+#if os(macOS) && MIXER_PRIVATE_F10
+protocol F10InstalledColdStart: Sendable {
+    func beginDownload(signedManifest: Data, signedAssignment: Data) async throws
+    func appendDownload(_ bytes: Data, atOffset offset: UInt64) async throws
+    func finishDownload() async throws
+    func start() async throws -> CapabilityActivationSnapshot
+    func recoverySnapshot() async -> CapabilityColdStartRecoverySnapshot
+    func close() async
+}
+extension CapabilityColdStartRuntime: F10InstalledColdStart {}
+#endif
+
 /// Separate from facade deinit. This is the only coordinator cleanup Task; it
 /// never substitutes for or awaits the bridge's host-close/native-exit cleanup.
 final class CapabilityColdStartCloseCore: @unchecked Sendable {
@@ -106,12 +132,12 @@ final class CapabilityColdStartCloseCore: @unchecked Sendable {
     init(configuration: CapabilityRecoveryConfiguration, installed: InstalledMaterial,
          environment: CapabilityRecoveryEnvironment, reservation: CapabilityAttemptReservation,
          guestUIBinding: CapabilityGuestUIPresentationBinding? = nil,
-         androidPresentation: (any CapabilityColdStartPresentation)? = nil) throws {
-        precondition(guestUIBinding == nil || androidPresentation == nil)
+         alternatePresentation: (any CapabilityColdStartPresentation)? = nil) throws {
+        precondition(guestUIBinding == nil || alternatePresentation == nil)
         let admission = try reservation.issueStoreAdmission()
         let control = CapabilityColdStartControl(reservation: reservation)
         self.control = control; self.guestUIBinding = guestUIBinding
-        presentation = androidPresentation ?? guestUIBinding
+        presentation = alternatePresentation ?? guestUIBinding
         worker = CapabilityColdStartWorker(configuration: configuration, installed: installed,
             environment: environment, admission: admission, control: control, presentation: presentation)
     }

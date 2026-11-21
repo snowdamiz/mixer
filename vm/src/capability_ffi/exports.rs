@@ -79,8 +79,31 @@ pub unsafe extern "C" fn mixer_vm_capability_session_create_v1(
             cap,
             handle,
             out,
+            #[cfg(all(target_os = "macos", feature = "private-fieldlog-f10"))]
+            false,
         )
     }
+}
+/// # Safety
+/// Uses the same pointer contract as the V1 validation entry.
+#[cfg(all(target_os = "macos", feature = "private-fieldlog-f10"))]
+#[no_mangle]
+pub unsafe extern "C" fn mixer_private_f10_validate(
+    module: *const u8, n: usize, vm: *const MixerVmLimits, cap: *const MixerVmCapabilityLimitsV1,
+    out: *mut MixerVmReport,
+) -> u32 {
+    unsafe { api::f10_validate(module, n, vm, cap, out) }
+}
+/// # Safety
+/// Uses the same pointer contract as the V1 create entry.
+#[cfg(all(target_os = "macos", feature = "private-fieldlog-f10"))]
+#[no_mangle]
+pub unsafe extern "C" fn mixer_private_f10_create(
+    module: *const u8, n: usize, vm: *const MixerVmLimits, cap: *const MixerVmCapabilityLimitsV1,
+    handle: *mut u64, out: *mut MixerVmReport,
+) -> u32 {
+    let name = crate::experimental_capability_guest::F10_START.as_bytes();
+    unsafe { api::create(&CapabilityRegistry, module, n, name.as_ptr(), name.len(), vm, cap, handle, out, true) }
 }
 /// # Safety
 /// Every pointer obeys the complete storage and lifetime contract in mixer_vm_capability.h.

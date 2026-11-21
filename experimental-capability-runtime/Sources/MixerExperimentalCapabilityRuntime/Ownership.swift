@@ -114,7 +114,7 @@ final class NativeExitOwner: @unchecked Sendable {
     private var rateTime = ContinuousClock.now
 
     init(native: NativeCapabilitySession, host: CapabilityHost, configuration: ExperimentalCapabilityConfiguration,
-         permit: ConstructionPermit, lifecycle: AdapterCloseCore? = nil, exchange: GuestUIExchangeV1? = nil,
+         permit: ConstructionPermit, lifecycle: AdapterCloseCore? = nil, exchange: (any RuntimeGuestUIExchange)? = nil,
          commitFacts: InstalledGuestUICommitFacts? = nil) {
         self.native = native; self.host = host; self.configuration = configuration
         self.permit = permit; self.lifecycle = lifecycle; rateTokens = Double(configuration.dispatchBurst)
@@ -399,7 +399,7 @@ final class NativeExitOwner: @unchecked Sendable {
                             if !closedRejection(error) { fail(error) }
                         }
                         else if installed != 1 || !effectsOpen { local(ticket, outcome: .failure(.unavailable)) }
-                        else if guestUI?.acceptsHydrationOperation(isRead: operation == .storageGet) == false {
+                        else if try guestUI?.acceptsHydrationOperation(token: token, isRead: operation == .storageGet) == false {
                             local(ticket, outcome: .failure(.permissionDenied))
                         } else { ticket.state.withLock { $0.arguments = arguments } }
                         continue
@@ -423,7 +423,7 @@ final class NativeExitOwner: @unchecked Sendable {
                         // the first user event, which opens ordinary admission.
                         // An opted-in owner also needs a proven empty mailbox
                         // between turns, even when this pump's budget expires.
-                        if drainHint && (guestUI.publishedHydration || guestUI.commitFacts != nil) { break }
+                        if drainHint && guestUI.needsEmptyMailboxBeforeNextTurn { break }
                         guard let result = try guestUI.next(native, ready: readyHint) else { break }
                         if case .idle = result { readyHint = false; break }
                         switch result {
@@ -550,6 +550,10 @@ final class NativeExitOwner: @unchecked Sendable {
             guard ContinuousClock.now < cutoff else { return }
             do {
                 let operation = try GuestCapabilityTransportCodecV1.decodeArguments(bytes, operation: ticket.operation)
+                guard guestUI?.acceptsTypedHydrationOperation(operation, token: ticket.token) != false else {
+                    local(ticket, outcome: .failure(.permissionDenied))
+                    return
+                }
                 ticket.state.withLock { $0.arguments = nil; $0.typedOperation = operation }
             } catch { local(ticket, outcome: .rejected(.invalidArguments)); return }
         }
@@ -653,7 +657,8 @@ final class NativeExitOwner: @unchecked Sendable {
                 guard ContinuousClock.now < cutoff else { return }
                 do {
                     let delivered = try native.post(token: ticket.token, operation: ticket.operation, data: bytes)
-                    if delivered && snapshot.containsHydrationSnapshot { guestUI?.didPostHydrationSnapshot() }
+                    try guestUI?.recordHydrationPost(token: ticket.token, delivered: delivered,
+                                                     found: snapshot.containsHydrationSnapshot)
                     if delivered && snapshot.containsCommitFacts, ticket.commitEvent?.didPostFacts() == true {
                         postedCommitFacts = ticket
                     }

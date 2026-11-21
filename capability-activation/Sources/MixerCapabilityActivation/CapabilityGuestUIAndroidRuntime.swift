@@ -40,7 +40,7 @@ public final class CapabilityGuestUIAndroidRuntime: Sendable {
             let prepared = try await CapabilityGuestUIAndroidBinding.prepareHost(reservation: reservation)
             preparation = prepared
             let created = try CapabilityColdStartCloseCore(configuration: checked, installed: installed,
-                environment: .init(), reservation: reservation, androidPresentation: prepared.binding)
+                environment: .init(), reservation: reservation, alternatePresentation: prepared.binding)
             core = created
             try prepared.transferToBinding()
             transferred = true

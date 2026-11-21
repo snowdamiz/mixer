@@ -203,7 +203,8 @@ final class GuestUIExchangeCore: @unchecked Sendable {
         #endif
     }
 
-    public func finishTurn(_ claim: GuestUITurnClaimV1, documentBytes: Data, startupCutoff: UInt64? = nil) throws {
+    public func finishTurn(_ claim: GuestUITurnClaimV1, documentBytes: Data, startupCutoff: UInt64? = nil,
+                           documentPolicy: ((UIDocument) -> Bool)? = nil) throws {
         try mutate { s, _ in try requireTurn(claim, s) }
         guard (1...codec.maximumBytes).contains(documentBytes.count) else {
             try mutate { s, notices in
@@ -216,7 +217,9 @@ final class GuestUIExchangeCore: @unchecked Sendable {
         let document: ValidatedUIDocument
         do {
             document = try codec.decode(owned)
-            guard document.document.revision > 0 else { throw failure(claim, .document) }
+            guard document.document.revision > 0, documentPolicy?(document.document) != false else {
+                throw failure(claim, .document)
+            }
         } catch {
             // A concurrent close is an ordinary dropped turn, not a later protocol stop.
             try mutate { s, notices in

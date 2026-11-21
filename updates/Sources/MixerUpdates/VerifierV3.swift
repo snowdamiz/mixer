@@ -131,8 +131,17 @@ public struct ReleaseVerifierV3: Sendable {
     private let context: V3VerificationContext
 
     public init(host: InstalledRuntime, roots: [TrustRoot]) throws {
-        try V3Rules.scope(host.scope)
-        guard V3Rules.digest(host.runtime), host.protocolVersion == 3, host.guestABI == 2, host.uiSchema == 1,
+        try self.init(host: host, roots: roots, privateF10: false)
+    }
+#if os(macOS) && MIXER_PRIVATE_F10
+    @_spi(PrivateFieldLogF10)
+    public init(privateDevelopmentF10 host: InstalledRuntime, roots: [TrustRoot]) throws {
+        try self.init(host: host, roots: roots, privateF10: true)
+    }
+#endif
+    private init(host: InstalledRuntime, roots: [TrustRoot], privateF10: Bool) throws {
+        try V3Rules.scope(host.scope, privateF10: privateF10)
+        guard V3Rules.digest(host.runtime), host.protocolVersion == 3, host.guestABI == 2, host.uiSchema == (privateF10 ? 3 : 1),
               (1...V3Rules.payloadMaximum).contains(host.maxPayloadBytes),
               (1...V3Rules.payloadMaximum).contains(host.limits.memoryBytes),
               (1...1_000_000).contains(host.limits.fuel), (1...60_000).contains(host.limits.startupMilliseconds),
@@ -145,7 +154,10 @@ public struct ReleaseVerifierV3: Sendable {
         }
         var captured: [String: TrustRoot] = [:]
         for root in roots {
-            try V3Rules.scope(root.scope)
+            try V3Rules.scope(root.scope, privateF10: privateF10)
+            if privateF10 && root.scope != host.scope {
+                throw V3Rules.error("trust.invalid", "Private F10 requires development roots scoped to this host")
+            }
             guard V3Rules.identifier(root.keyID), root.publicKey.count == 32, root.artifact || root.assignment,
                   root.notAfterUnix == 0 || root.notAfterUnix > root.notBeforeUnix else {
                 throw V3Rules.error("trust.invalid", "Invalid pinned root configuration")
@@ -205,7 +217,7 @@ public struct ReleaseVerifierV3: Sendable {
         let sequence = try fields.uint("sequence")
         guard sequence > lastSequence else { throw V3Rules.error("assignment.replay", "Assignment sequence must increase") }
         try authorize(fields, canonical: assignment.canonicalCBOR(), signature: signature, artifact: false, now: now)
-        let bucket = try ReleaseVerifier.cohort(scope: host.scope, channel: channel, installation: installation)
+        let bucket = try ReleaseVerifier.cohortForCheckedScope(host.scope, channel: channel, installation: installation)
         guard try bucket < fields.uint("rollout_basis_points") else { throw V3Rules.error("assignment.cohort", "Installation is outside rollout") }
         return VerifiedAssignmentV3(assignment: assignment, artifact: artifact, sequence: sequence,
             bucket: bucket, channel: channel, installation: installation, signature: signature)
@@ -320,7 +332,7 @@ public struct ReleaseVerifierV3: Sendable {
         }
         try durableAuthorize(fields, canonical: assignment.canonicalCBOR(), signature: signature,
             artifact: false, authority: authority)
-        let bucket = try ReleaseVerifier.cohort(scope: host.scope, channel: channel, installation: installation)
+        let bucket = try ReleaseVerifier.cohortForCheckedScope(host.scope, channel: channel, installation: installation)
         guard try bucket < fields.uint("rollout_basis_points") else {
             throw V3Rules.error("assignment.cohort", "Installation is outside rollout")
         }
@@ -382,8 +394,9 @@ public struct ReleaseVerifierV3: Sendable {
     private func manifestObject(_ value: CanonicalValue) throws -> V3Manifest {
         let fields = try V3Rules.object(value, keys: V3Rules.manifestKeys)
         try scopeObject(fields.required("scope"))
-        guard try fields.uint("schema") == 3, try fields.uint("protocol") == 3, try fields.uint("guest_abi") == 2, try fields.uint("ui_schema") == 1 else {
-            throw V3Rules.error("manifest.version", "Expected exact v3/ABI2/UI1 tuple")
+        guard try fields.uint("schema") == 3, try fields.uint("protocol") == 3, try fields.uint("guest_abi") == 2, try fields.uint("ui_schema") == host.uiSchema else {
+            throw V3Rules.error("manifest.version", host.uiSchema == 3
+                ? "Expected exact v3/ABI2/UI3 tuple" : "Expected exact v3/ABI2/UI1 tuple")
         }
         for field in ["release_id", "provenance_id", "key_id"] {
             guard try V3Rules.identifier(fields.text(field)) else { throw V3Rules.error("manifest.identity", "Invalid signed identifier") }
@@ -424,7 +437,7 @@ public struct ReleaseVerifierV3: Sendable {
         for field in ["organization", "project", "app", "environment"] {
             guard try V3Rules.identifier(fields.text(field)) else { throw V3Rules.error("scope.invalid", "Invalid scope identifier") }
         }
-        guard try ["ios", "android"].contains(fields.text("platform")) else { throw V3Rules.error("scope.invalid", "Invalid platform") }
+        guard try (host.uiSchema == 3 ? ["macos"] : ["ios", "android"]).contains(fields.text("platform")) else { throw V3Rules.error("scope.invalid", "Invalid platform") }
     }
     private func grants(_ value: CanonicalValue, hashes: [String: CanonicalValue]) throws -> [VerifiedCapabilityGrantV3] {
         let fields = try V3Rules.object(value, keys: ["schema", "schema_sha256", "entries"])
@@ -516,8 +529,10 @@ private enum V3Rules {
     static func identifier(_ text: String) -> Bool {
         (1...128).contains(text.utf8.count) && text.utf8.allSatisfy { (65...90).contains($0) || (97...122).contains($0) || (48...57).contains($0) || [45,46,95].contains($0) }
     }
-    static func scope(_ scope: UpdateScope) throws {
-        guard [scope.organization,scope.project,scope.app,scope.environment].allSatisfy(identifier), ["ios","android"].contains(scope.platform) else {
+    static func scope(_ scope: UpdateScope, privateF10: Bool) throws {
+        let platformOK = privateF10 ? scope.platform == "macos" && scope.environment == "development"
+            : ["ios", "android"].contains(scope.platform)
+        guard [scope.organization,scope.project,scope.app,scope.environment].allSatisfy(identifier), platformOK else {
             throw error("scope.invalid", "Invalid application scope")
         }
     }

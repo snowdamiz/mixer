@@ -20,6 +20,17 @@ import MixerUI
     public func claimNextTurn(ready: Bool) throws -> GuestUITurnClaimV1? { try core.claimNextTurn(ready: ready) }
     public func finishReadyWithoutInvocation(_ claim: GuestUITurnClaimV1) throws { try core.finishReadyWithoutInvocation(claim) }
     public func finishTurn(_ claim: GuestUITurnClaimV1, documentBytes: Data) throws { try core.finishTurn(claim, documentBytes: documentBytes) }
+#if os(macOS) && MIXER_PRIVATE_F10
+    public func finishFieldLogHydration(_ claim: GuestUITurnClaimV1, documentBytes: Data, startupCutoff: UInt64) throws {
+        try core.finishTurn(claim, documentBytes: documentBytes, startupCutoff: startupCutoff) { document in
+            document.revision == 2 && document.root.properties["disabled"]?.bool != true
+                && document.root.children.contains { node in
+                    node.id == "workspace.queue" && node.kind == .button && node.properties["disabled"]?.bool != true
+                        && node.actions.contains { $0.id == "workspace.queue" && $0.event == .activate }
+                }
+        }
+    }
+#endif
     public func offer(_ event: UIEventEnvelope, generation: UInt64) -> GuestUIEventAdmissionV1 { core.offer(event, generation: generation) }
     public func offerNativeInput(_ event: UIEventEnvelope, generation: UInt64) -> GuestUINativeInputAdmissionV1 { core.offerNativeInput(event, generation: generation) }
     public func claimPresentation(generation: UInt64) -> GuestUIPresentationClaimV1? { core.claimPresentation(generation: generation) }

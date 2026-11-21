@@ -195,6 +195,22 @@ pub(super) unsafe fn guest_ui_validate_v2(
         })
     }
 }
+#[cfg(all(target_os = "macos", feature = "private-fieldlog-f10"))]
+pub(super) unsafe fn f10_validate(
+    module: *const u8, n: usize, vm: *const MixerVmLimits, cap: *const MixerVmCapabilityLimitsV1,
+    out: *mut MixerVmReport,
+) -> u32 {
+    if p::guest_ui_validate(module, n, vm, cap, out).is_err() { return 3; }
+    unsafe {
+        boundary(out, || {
+            let (vm, mb, guest) = limits(vm, cap)?;
+            Ok(match CapabilityGuest::validate_f10(input(module, n), &vm, &mb, guest) {
+                Ok(()) => MixerVmReport::default(),
+                Err(e) => error::vm(e, 1),
+            })
+        })
+    }
+}
 #[allow(clippy::too_many_arguments)]
 pub(super) unsafe fn create<R: Registry>(
     registry: &R,
@@ -206,6 +222,7 @@ pub(super) unsafe fn create<R: Registry>(
     cap: *const MixerVmCapabilityLimitsV1,
     handle: *mut u64,
     out: *mut MixerVmReport,
+    #[cfg(all(target_os = "macos", feature = "private-fieldlog-f10"))] private_f10: bool,
 ) -> u32 {
     if p::create(module, n, startup, startup_len, vm, cap, handle, out).is_err() {
         return 3;
@@ -216,6 +233,19 @@ pub(super) unsafe fn create<R: Registry>(
             let (vm, mb, guest) = limits(vm, cap)?;
             let startup = name(startup, startup_len)?;
             let reservation = registry.reserve()?;
+            #[cfg(all(target_os = "macos", feature = "private-fieldlog-f10"))]
+            if private_f10 {
+                if let Err(e) = CapabilityGuest::validate_f10(input(module, n), &vm, &mb, guest) {
+                    return Ok(error::vm(e, 1));
+                }
+                let guest = match CapabilityGuest::new_f10(input(module, n), vm.clone(), mb, guest) {
+                    Ok(guest) => guest,
+                    Err(e) => return Ok(error::vm(e, 2)),
+                };
+                let id = reservation.publish(CapabilitySession::new(guest, vm))?;
+                handle.write_unaligned(id);
+                return Ok(MixerVmReport::default());
+            }
             if let Err(e) =
                 CapabilityGuest::validate_only(input(module, n), &vm, &mb, guest, startup)
             {

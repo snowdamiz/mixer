@@ -41,6 +41,14 @@ struct CapabilityExecutionPolicy: Sendable {
             CapabilityGrant(capabilityID: $0.capabilityID, schemaSHA256: $0.schemaSHA256,
                 permissions: Set($0.permissions), origins: Set($0.origins), methods: Set($0.methods), namespaces: Set($0.namespaces))
         }
+        if installed.privateF10 {
+            guard grants.entries.count == 1, let only = grants.entries.first,
+                  only.capabilityID == CapabilitySchemas.storageID, only.schemaSHA256 == CapabilitySchemas.storageSHA256,
+                  only.permissions == ["storage.appPrivate"], only.namespaces == ["material_test"],
+                  only.methods.isEmpty, only.origins.isEmpty else {
+                throw materialError("private_f10_grant")
+            }
+        }
         // The SDK independently validates and intersects both sets for dispatch.
         policy = try CapabilityPolicy(installed: nativeGrants, manifest: signedGrants)
         native = Self.nativeConfiguration(installed: installed, signed: limits)

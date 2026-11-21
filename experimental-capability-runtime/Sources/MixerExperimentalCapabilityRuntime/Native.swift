@@ -41,18 +41,34 @@ final class NativeCapabilitySession: @unchecked Sendable {
             throw error
         }
     }
+#if os(macOS) && MIXER_PRIVATE_F10
+    static func validateF10(module: Data, configuration: ExperimentalCapabilityConfiguration) throws {
+        var vm = configuration.vm, cap = configuration.capability, report = MixerVmReport()
+        let status = module.withUnsafeBytes {
+            mixer_private_f10_validate($0.bindMemory(to: UInt8.self).baseAddress, $0.count, &vm, &cap, &report)
+        }
+        try check(status, report, operation: .validation, moduleLength: module.count, configuration: configuration)
+    }
+    var memoryLimitBytes: UInt64 { UInt64(configuration.memoryPages) * 65_536 }
+#endif
     let handle: UInt64
     private let moduleLength: Int
     private var debugLines: GuestDebugLines?
     private let configuration: ExperimentalCapabilityConfiguration
     private var scratch = Data(count: 524288)
-    init(module: Data, startup: String, configuration: ExperimentalCapabilityConfiguration) throws {
+    init(module: Data, startup: String, configuration: ExperimentalCapabilityConfiguration, privateF10: Bool = false) throws {
         self.moduleLength = module.count; self.configuration = configuration
         var vm = configuration.vm, cap = configuration.capability
         var output: UInt64 = 0, report = MixerVmReport()
         let name = Array(startup.utf8)
         let status = module.withUnsafeBytes { bytes in
-            name.withUnsafeBufferPointer { name in
+#if os(macOS) && MIXER_PRIVATE_F10
+            if privateF10 {
+                return mixer_private_f10_create(bytes.bindMemory(to: UInt8.self).baseAddress, bytes.count,
+                    &vm, &cap, &output, &report)
+            }
+#endif
+            return name.withUnsafeBufferPointer { name in
                 mixer_vm_capability_session_create_v1(bytes.bindMemory(to: UInt8.self).baseAddress, bytes.count,
                     name.baseAddress, name.count, &vm, &cap, &output, &report)
             }
