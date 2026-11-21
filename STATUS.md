@@ -115,6 +115,12 @@ Emulator PID and PGID 44098 remain UNKNOWN and the exact scratch is held.
 [APK verification](verification/receipts/fieldlog-android-entry-commit-candidate-e1903e78.json) ·
 [Emulator startup hold](verification/receipts/fieldlog-entry-commit-api36-startup-hold.json)
 
+A private ADB loopback test reproduced the five-second connect timeout while
+the server still answered its version request. Its inert peer had accepted
+TCP and received the ADB handshake request. The isolated probe cleaned up.
+The held emulator's completed startup stage remains unknown.
+[ADB loopback diagnosis](verification/receipts/fieldlog-entry-commit-api36-adb-loopback-diagnosis.json)
+
 ## November 20 local release delivery outage and recovery
 
 A committed Phoenix release reached local Workerd through the private historical

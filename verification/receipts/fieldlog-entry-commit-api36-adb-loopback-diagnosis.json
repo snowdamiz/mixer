@@ -1,0 +1,90 @@
+{
+  "scope": "FieldLog Android startup diagnosis using a foreground private ADB server and an inert owned TCP peer.",
+  "sourceRevision": "814c7218c088a16b7218e75ba0e197162401d167",
+  "sourceTree": "f4444270428cf2d8b0b4dd2e9abee91347b161be",
+  "startupHoldReceipt": "verification/receipts/fieldlog-entry-commit-api36-startup-hold.json",
+  "canonicalBootRecipe": "verification/android-emulator-boot-diagnosis/boot_probe.py",
+  "host": "Darwin 27.0.0 arm64",
+  "pythonVersion": "3.14.8",
+  "adb": {
+    "path": "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+    "version": "37.0.1-15733141",
+    "sha256": "1811e253b21b12cbfda7201ebaf86c10e7ddcb5c606a7a81f7c82b4c429c2d3b",
+    "arguments": ["-L", "tcp:51580", "nodaemon", "server"],
+    "discoveryEnvironment": {
+      "ADB_USB": "0",
+      "ADB_EMU": "0",
+      "ADB_MDNS": "0",
+      "ADB_MDNS_AUTO_CONNECT": "0"
+    }
+  },
+  "containment": {
+    "sandbox": "/usr/bin/sandbox-exec",
+    "allowedListener": "localhost:51580",
+    "allowedOutboundPeer": "localhost:51581",
+    "deniedOwnedPeerControl": "127.0.0.1:51582",
+    "inertControl": "Allowlisted peer received the control payload. The sandbox denied the unlisted loopback destination and process fork.",
+    "listenerCommand": ["/usr/sbin/lsof", "-nP", "-a", "-p", "94649", "-iTCP", "-sTCP:LISTEN", "-Fn"],
+    "ownedListener": "127.0.0.1:51580",
+    "client": "Direct bounded smart-socket requests to the verified listener, with no ADB client process or auto-start."
+  },
+  "observations": {
+    "serverReady": {
+      "request": "host:version",
+      "reply": ["OKAY", "0029"],
+      "millisecondsSinceServerLaunch": 97
+    },
+    "silentPeer": {
+      "request": "host:connect:127.0.0.1:51581",
+      "tcpAcceptedAndInitialAdbPacketReadWithinMilliseconds": 1,
+      "initialPacket": "CNXN",
+      "peerSentBytes": 0,
+      "hostVersionDuringConnect": ["OKAY", "0029"],
+      "exactTargetRequest": "host-serial:127.0.0.1:51581:get-state",
+      "exactTargetReply": ["FAIL", "device offline"],
+      "clientDeadlineMilliseconds": 5000,
+      "elapsedMilliseconds": 5003,
+      "connectReplyReceivedByDeadline": false,
+      "hostVersionAfterPeerClosed": ["OKAY", "0029"]
+    }
+  },
+  "preflights": [
+    {
+      "pid": 80239,
+      "pgid": 80239,
+      "exit": 65,
+      "result": "Sandbox rejected numeric 127.0.0.1 in its address filter. The foreground ADB server did not start.",
+      "directChildReaped": true,
+      "groupAbsent": true,
+      "scratchRemoved": true
+    },
+    {
+      "pid": 85949,
+      "pgid": 85949,
+      "exit": 1,
+      "result": "The positive control assumed ECONNREFUSED on a bound port without a listener and observed EAGAIN. The foreground ADB server did not start. The succeeding control used an owned listening peer and verified delivery.",
+      "directChildReaped": true,
+      "groupAbsent": true,
+      "scratchRemoved": true
+    }
+  ],
+  "cleanup": {
+    "groupAbsenceObservation": "killpg(pgid, 0) returned ESRCH after direct child reap",
+    "processes": [
+      {"name": "inert containment control", "pid": 94648, "pgid": 94648, "exit": 0, "directChildReaped": true, "groupAbsent": true},
+      {"name": "foreground ADB", "pid": 94649, "pgid": 94649, "signal": "SIGTERM", "exit": -15, "directChildReaped": true, "groupAbsent": true},
+      {"name": "exact PID listener observer", "pid": 94650, "pgid": 94650, "exit": 0, "directChildReaped": true, "groupAbsent": true}
+    ],
+    "loopbackPortsRebound": [51580, 51581, 51582],
+    "scratchRemoved": true
+  },
+  "conclusion": "A five-second connect deadline can expire after TCP accept while the private ADB server stays responsive and the exact transport remains offline. Which stage the held emulator reached is unknown.",
+  "nextOwnedBoot": [
+    "Verify the fresh port-only server listener belongs to the foreground PID and obtain a bounded host:version reply before launching the disposable API 36 emulator.",
+    "Use fresh assigned ports. Wait for the emulator-owned loopback transport listener before connecting once. Record exact-target state separately and bound every observation. An expired client deadline alone does not establish that the server-side connect finished.",
+    "After the exact transport reports device, use the canonical bounded sys.boot_completed loop and verify the intended AVD and API level before APK install. Reap each owned group and establish group absence separately."
+  ],
+  "nativeEmulatorRuns": 0,
+  "apkInstallAttempted": false,
+  "gateStatusChanged": false
+}
