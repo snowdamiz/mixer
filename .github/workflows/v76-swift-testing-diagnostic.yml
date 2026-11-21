@@ -58,12 +58,30 @@ jobs:
           python3 - "$root/evidence/apple-toolchain.json" <<'PY'
           import json
           import os
+          from pathlib import Path
           import sys
 
-          with open(sys.argv[1]) as stream:
-              receipt = json.load(stream)
+          receipt_path = Path(sys.argv[1])
+          receipt = json.loads(receipt_path.read_text())
           if receipt["swiftVersion"] != [6, 2, 4] or receipt["sourceRevision"] != os.environ["V76_REVISION"]:
               raise SystemExit("Unexpected Swift version or source revision")
+
+          toolchain = (Path(os.environ["DEVELOPER_DIR"]) / "Toolchains/XcodeDefault.xctoolchain").resolve(strict=True)
+          swift_bin = Path(receipt["swiftPath"]).parent.resolve(strict=True)
+          if swift_bin != toolchain / "usr/bin":
+              raise SystemExit("Swift is outside the pinned Xcode default toolchain bin directory")
+          # SwiftPM 6.2.4 UserToolchain.getSwiftTestingHelper checks the host bin
+          # directory before its sibling libexec/swift/pm directory.
+          for directory in (swift_bin, swift_bin.parent / "libexec/swift/pm"):
+              candidate = directory / "swiftpm-testing-helper"
+              if candidate.is_file() and os.access(candidate, os.X_OK):
+                  helper = candidate.resolve(strict=True)
+                  if not helper.is_relative_to(toolchain):
+                      raise SystemExit("Swift Testing helper resolves outside the pinned toolchain")
+                  receipt_path.with_name("swift-testing-helper.path").write_text(f"{helper}\n")
+                  break
+          else:
+              raise SystemExit("Swift Testing helper missing from the pinned toolchain")
           PY
           python3 -I -B -S scripts/ci/prepare-cli-host-tests.py \
             --toolchain-receipt "$root/evidence/apple-toolchain.json" --output "$root/serial"
@@ -87,8 +105,19 @@ jobs:
             printf 'build_exit=%s\n' "$status" >> "$evidence/build.status"
             exit "$status"
           fi
-          bin="$(swift build "${options[@]}" --show-bin-path)"
-          bin="$(cd "$bin" && pwd -P)"
+          printf 'UNKNOWN until --show-bin-path completes and the bin directory is validated. Preserve %s.\n' \
+            "$root" > "$evidence/bin-path.status"
+          if swift build "${options[@]}" --show-bin-path > "$evidence/bin-path.stdout" 2> "$evidence/bin-path.stderr"; then
+            bin="$(cat "$evidence/bin-path.stdout")"
+          else
+            status=$?
+            printf 'bin_path_exit=%s\n' "$status" >> "$evidence/bin-path.status"
+            exit "$status"
+          fi
+          test -n "$bin" || exit 1
+          bin="$(cd "$bin" && pwd -P)" || exit 1
+          [[ "$bin" == "$root/build/"* ]] || exit 1
+          printf 'bin_path_exit=0\nbin_path=%s\n' "$bin" > "$evidence/bin-path.status"
           test_binary="$bin/MixerCLIPackageTests.xctest/Contents/MacOS/MixerCLIPackageTests"
           test -x "$test_binary"
           test -x "$bin/mixer"
@@ -166,8 +195,16 @@ jobs:
 
           evidence = Path(sys.argv[1])
           started = (evidence / "test-window-start").stat().st_mtime
-          executables = set((evidence / "binaries.paths").read_text().splitlines())
-          names = sorted({Path(path).name for path in executables})
+          test_binary, cli_binary = (evidence / "binaries.paths").read_text().splitlines()
+          executables = (test_binary, cli_binary)
+          helper = (evidence / "swift-testing-helper.path").read_text().strip()
+          bundle_uuids = {
+              uuid.lower() for uuid in re.findall(
+                  rf"^UUID: ([0-9A-Fa-f-]{{36}}) \([^)]+\) {re.escape(test_binary)}$",
+                  (evidence / "binaries.uuid").read_text(), re.MULTILINE,
+              )
+          }
+          names = sorted({Path(path).name for path in (*executables, helper)})
           copied = []
           for label, directory in (
               ("user", Path.home() / "Library/Logs/DiagnosticReports"),
@@ -189,12 +226,25 @@ jobs:
                               header, body = raw.decode("utf-8").split("\n", 1)
                               if str(json.loads(header).get("bug_type")) != "309":
                                   continue
-                              path = json.loads(body).get("procPath")
+                              crash = json.loads(body)
+                              path = crash.get("procPath")
+                              if path == helper:
+                                  # The shared runner must have loaded this build's test bundle.
+                                  images = crash.get("usedImages")
+                                  if not isinstance(images, list) or not any(
+                                      isinstance(image, dict)
+                                      and isinstance(image.get("uuid"), str)
+                                      and image["uuid"].lower() in bundle_uuids
+                                      for image in images
+                                  ):
+                                      continue
+                              elif path not in executables:
+                                  continue
                           else:
                               match = re.search(rb"^Path:\s*([^\r\n]+)", raw, re.MULTILINE)
                               path = os.fsdecode(match[1]).strip() if match else None
-                          if path not in executables:
-                              continue
+                              if path not in executables:
+                                  continue
                           output = f"{label}-{report.name}"
                           (evidence / output).write_bytes(raw)
                           copied.append(output)
