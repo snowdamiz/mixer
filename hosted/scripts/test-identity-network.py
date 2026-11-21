@@ -3165,16 +3165,24 @@ WORKSPACE_V77_SOURCE_DIGEST = '75a359913aee7533669d8db442315f9e7c73af1ff35087eb4
 WORKSPACE_V77_SOURCE_COUNT = 555
 WORKSPACE_V77_MANIFEST_SHA256 = '5af92d1b52d17aa87d1d03491467dc12638464bd27b0c41ec0023a3a69639872'
 
-WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v78/'
-WORKSPACE_SELECTION_SHA256 = '565df8020c6feaafd29b9539a01557f88a97d305f47f387702333c1b75953e91'
-WORKSPACE_SOURCE_DIGEST = 'ebec5d8761512ec53c35c8bf721b2945556ae5c4e7fdd42b7bf0aeb7dda7df51'
-WORKSPACE_SOURCE_COUNT = 555
+WORKSPACE_V78_SOURCE_BASE = 'verification/identity-network-current-source-v78/'
+WORKSPACE_V78_SELECTION_SHA256 = '565df8020c6feaafd29b9539a01557f88a97d305f47f387702333c1b75953e91'
+WORKSPACE_V78_SOURCE_DIGEST = 'ebec5d8761512ec53c35c8bf721b2945556ae5c4e7fdd42b7bf0aeb7dda7df51'
+WORKSPACE_V78_SOURCE_COUNT = 555
+WORKSPACE_V78_MANIFEST_SHA256 = '60261015820f8b4c8cd4d2ca8597453f649e0f6b5f04157d1e5a7bc83f61eb9d'
+WORKSPACE_V78_APPLICATION_MANIFEST = WORKSPACE_V78_SOURCE_BASE + 'application-manifest.json'
+
+WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v79/'
+WORKSPACE_SELECTION_SHA256 = 'ce4b13fb33119d26534e69a8292e62dc2509184841c29006ca48419fe01f0458'
+WORKSPACE_SOURCE_DIGEST = 'd9c832ec91bb677186a00f571a48e351af37e810749b43616e70ea5708b0df85'
+WORKSPACE_SOURCE_COUNT = 558
 WORKSPACE_APPLICATION_MANIFEST = WORKSPACE_SOURCE_BASE + 'application-manifest.json'
 WORKSPACE_RETAINED_ATTESTATION_TEST = 'hosted/test/mixer_hosted/builds/retained_native_attestation_test.exs'
 WORKSPACE_RELEASE_HEAD_DETAILS_MIGRATION = 'hosted/priv/repo/migrations/20261120000013_add_local_release_head_details.exs'
 WORKSPACE_EXECUTABLES = {
     'hosted/scripts/replay-local-release-target-registry.sh',
     'hosted/scripts/replay-local-stage-promotion.sh',
+    'hosted/scripts/replay-local-stage-promotion-browser.sh',
     'hosted/priv/unselected_browser_active_read/apply-active-read-upgrade.sh',
     'hosted/scripts/replay-configured-release.sh',
     'tests/integration/managed-android-local-linux-pair25/prepare-toolchain.sh',
@@ -3223,6 +3231,9 @@ WORKSPACE_LOCAL_RELEASE_TARGET_REGISTRY_MIGRATION = (
 )
 WORKSPACE_LOCAL_STAGE_PROMOTION_MIGRATION = (
     'hosted/priv/local_stage_promotion/20261120000016_add_local_stage_promotion.exs'
+)
+WORKSPACE_LOCAL_STAGE_PROMOTION_READ_MIGRATION = (
+    'hosted/priv/local_stage_promotion_read/20261120000021_add_local_stage_promotion_read.exs'
 )
 WORKSPACE_DELIVERY_MIGRATIONS = {
     'local_release_delivery_export_opt_in_migration':
@@ -4610,10 +4621,10 @@ def validate_workspace_v77_metadata(metadata):
     return selection, manifest
 
 
-def validate_workspace_source_metadata(metadata):
+def validate_workspace_v78_metadata(metadata):
     selection, manifest = _validate_workspace_metadata(
-        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
-        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V77_MANIFEST, {
+        metadata, WORKSPACE_V78_SOURCE_BASE, WORKSPACE_V78_SELECTION_SHA256,
+        WORKSPACE_V78_SOURCE_COUNT, WORKSPACE_V78_SOURCE_DIGEST, WORKSPACE_V77_MANIFEST, {
             'source_count': WORKSPACE_V77_SOURCE_COUNT,
             'source_digest_sha256': WORKSPACE_V77_SOURCE_DIGEST,
             'selection_sha256': WORKSPACE_V77_SELECTION_SHA256,
@@ -4638,6 +4649,46 @@ def validate_workspace_source_metadata(metadata):
                 'hosted/lib/mixer_hosted_web/browser_release_head_request.ex',
                 'hosted/test/mixer_hosted/releases/browser_publication_test.exs',
             }, 'console release head details v2 source scope or anchor')
+    return selection, manifest
+
+
+def validate_workspace_source_metadata(metadata):
+    selection, manifest = _validate_workspace_metadata(
+        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
+        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V78_MANIFEST, {
+            'source_count': WORKSPACE_V78_SOURCE_COUNT,
+            'source_digest_sha256': WORKSPACE_V78_SOURCE_DIGEST,
+            'selection_sha256': WORKSPACE_V78_SELECTION_SHA256,
+            'manifest_sha256': WORKSPACE_V78_MANIFEST_SHA256,
+        }, migration_count=27)
+    current_fields = {'identity', 'product_anchor', 'product_tree', 'composed_parent',
+                      'predecessor', 'selected', 'exact_delta', 'application_manifest'}
+    require(set(selection) == WORKSPACE_V78_SELECTION.keys() | {'local_stage_promotion_read_opt_in_migration'} and
+            all(selection[key] == value for key, value in WORKSPACE_V78_SELECTION.items()
+                if key not in current_fields) and
+            selection['identity'] == 'hosted-console-exact-stage-promotion-group-source-v79' and
+            selection['product_anchor'] == 'b93f6974350c0f28d2f8c022b1e384227f28b5bf' and
+            selection['product_tree'] == 'a846c7eb9b9f4e86ac2b011bfce30dc29846415d' and
+            selection['composed_parent'] == '814c7218c088a16b7218e75ba0e197162401d167' and
+            selection['local_stage_promotion_read_opt_in_migration'] ==
+                WORKSPACE_LOCAL_STAGE_PROMOTION_READ_MIGRATION and
+            set(selection['exact_delta']) == {
+                'console/src/api/cookie-release-head-client.ts',
+                'console/src/components/ReleaseHeadPage.tsx',
+                'console/src/components/release-head-page.css',
+                'console/src/domain/release-head.ts',
+                'console/src/state/browser-session-controller.ts',
+                'console/src/state/release-head-binding.ts',
+                'console/tests/application-build-page.test.mjs',
+                'docs/operations/local-signed-release-delivery.md',
+                'hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex',
+                'hosted/lib/mixer_hosted/releases/browser_head.ex',
+                'hosted/lib/mixer_hosted_web/browser_release_head_request.ex',
+                WORKSPACE_LOCAL_STAGE_PROMOTION_READ_MIGRATION,
+                'hosted/scripts/replay-local-stage-promotion-browser.sh',
+                'hosted/test/mixer_hosted/releases/browser_publication_test.exs',
+                'verification/receipts/console-exact-stage-promotion-group.json',
+            }, 'console exact stage promotion group source scope or anchor')
     return selection, manifest
 
 
@@ -4827,15 +4878,20 @@ def check_workspace_source(root):
     v77_selection, _ = validate_workspace_v77_metadata(
         workspace_source_metadata(root, WORKSPACE_V77_SOURCE_BASE))
     v77_rows = workspace_preimage_rows(v77_selection, WORKSPACE_V77_SOURCE_BASE)
+    v78_selection, v78_manifest = validate_workspace_v78_metadata(
+        workspace_source_metadata(root, WORKSPACE_V78_SOURCE_BASE))
+    v78_rows, v78_modes = workspace_application_preimages(
+        v78_selection, v78_manifest, (root / WORKSPACE_V78_APPLICATION_MANIFEST).read_bytes(),
+        base=WORKSPACE_V78_SOURCE_BASE, predecessor=WORKSPACE_V77_MANIFEST)
     selection, manifest = validate_workspace_source_metadata(workspace_source_metadata(root, WORKSPACE_SOURCE_BASE))
     rows, modes = workspace_application_preimages(
         selection, manifest, (root / WORKSPACE_APPLICATION_MANIFEST).read_bytes(),
-        base=WORKSPACE_SOURCE_BASE, predecessor=WORKSPACE_V77_MANIFEST)
-    application_modes = {**v76_modes, **modes}
+        base=WORKSPACE_SOURCE_BASE, predecessor=WORKSPACE_V78_MANIFEST)
+    application_modes = {**v76_modes, **v78_modes, **modes}
     executable_preimages = {WORKSPACE_V74_SOURCE_BASE + 'preimages/' + path for path in WORKSPACE_EXECUTABLES}
     executable = WORKSPACE_EXECUTABLES | executable_preimages
     for path in (*manifest, *v65_rows, *v66_rows, *v67_rows, *v68_rows, *v69_rows,
-                 *v70_rows, *v71_rows, *v72_rows, *v73_rows, *v74_rows, *v76_rows, *v77_rows, *rows):
+                 *v70_rows, *v71_rows, *v72_rows, *v73_rows, *v74_rows, *v76_rows, *v77_rows, *v78_rows, *rows):
         mode = (root / path).lstat().st_mode
         expected = application_modes.get(path, 0o755 if path in executable else 0o644)
         require(stat.S_ISREG(mode) and stat.S_IMODE(mode) == expected,
@@ -4852,6 +4908,7 @@ def check_workspace_source(root):
     validate_workspace_preimages({path: (root / path).read_bytes() for path in v74_rows}, v74_rows)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in v76_rows}, v76_rows)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in v77_rows}, v77_rows)
+    validate_workspace_preimages({path: (root / path).read_bytes() for path in v78_rows}, v78_rows)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in rows}, rows)
     observed = {path: _file_row((root / path).read_bytes()) for path in manifest}
     validate_workspace_source_manifest(observed)
@@ -4877,6 +4934,7 @@ def check_workspace_source(root):
     for migration, label in (
         (WORKSPACE_LOCAL_RELEASE_TARGET_REGISTRY_MIGRATION, 'local release target registry'),
         (WORKSPACE_LOCAL_STAGE_PROMOTION_MIGRATION, 'local stage promotion'),
+        (WORKSPACE_LOCAL_STAGE_PROMOTION_READ_MIGRATION, 'local stage promotion read'),
         (WORKSPACE_LOCAL_NATIVE_ATTESTATION_MIGRATION, 'local native development attestation'),
     ):
         opt_in = PurePosixPath(migration)
@@ -6344,13 +6402,25 @@ class Collector:
         validate_workspace_preimages(v77_preimages, v77_rows)
         metadata.update(v77_metadata)
         metadata.update(v77_preimages)
+        v78_metadata = self.git_blobs(
+            [WORKSPACE_V78_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        v78_selection, v78_manifest = validate_workspace_v78_metadata(v78_metadata)
+        v78_application = self.git_blobs([WORKSPACE_V78_APPLICATION_MANIFEST])
+        v78_rows, _ = workspace_application_preimages(
+            v78_selection, v78_manifest, v78_application[WORKSPACE_V78_APPLICATION_MANIFEST],
+            base=WORKSPACE_V78_SOURCE_BASE, predecessor=WORKSPACE_V77_MANIFEST)
+        v78_preimages = self.git_blobs(sorted(v78_rows))
+        validate_workspace_preimages(v78_preimages, v78_rows)
+        metadata.update(v78_metadata)
+        metadata.update(v78_application)
+        metadata.update(v78_preimages)
         workspace_metadata = self.git_blobs([WORKSPACE_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         workspace_selection, workspace_manifest = validate_workspace_source_metadata(workspace_metadata)
         validate_workspace_source_manifest(workspace_manifest)
         application = self.git_blobs([WORKSPACE_APPLICATION_MANIFEST])
         rows, _ = workspace_application_preimages(
             workspace_selection, workspace_manifest, application[WORKSPACE_APPLICATION_MANIFEST],
-            base=WORKSPACE_SOURCE_BASE, predecessor=WORKSPACE_V77_MANIFEST)
+            base=WORKSPACE_SOURCE_BASE, predecessor=WORKSPACE_V78_MANIFEST)
         preimages = self.git_blobs(sorted(rows))
         validate_workspace_preimages(preimages, rows)
         metadata.update(workspace_metadata)
@@ -7181,6 +7251,8 @@ WORKSPACE_V76_SELECTION, WORKSPACE_V76_MANIFEST = validate_workspace_v76_metadat
     workspace_source_metadata(_source_root, WORKSPACE_V76_SOURCE_BASE))
 WORKSPACE_V77_SELECTION, WORKSPACE_V77_MANIFEST = validate_workspace_v77_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V77_SOURCE_BASE))
+WORKSPACE_V78_SELECTION, WORKSPACE_V78_MANIFEST = validate_workspace_v78_metadata(
+    workspace_source_metadata(_source_root, WORKSPACE_V78_SOURCE_BASE))
 _, WORKSPACE_MANIFEST = validate_workspace_source_metadata(workspace_source_metadata(_source_root, WORKSPACE_SOURCE_BASE))
 
 if __name__ == '__main__':
