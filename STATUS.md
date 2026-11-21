@@ -993,6 +993,19 @@ Source141 and Source127 restoration passed. The full local collector
 runs reached their time limits. The exact hosted run remains pending.
 [Combined source binding](verification/receipts/hosted-phoenix-v86-pair25-integration.json)
 
+## November 21 FieldLog Android exit readback
+
+The relocated Pair25 development APK opened the same FieldLog workspace
+after a separate data restore. The original app saved one entry and a
+draft with a DocumentsUI JPEG. The exported build opened the draft on its
+first offline launch, showed the saved entry, and listed the same two
+pending changes. The workspace and JPEG matched the backup byte for byte
+after the queue read. Both private process groups closed, the three
+ports were reusable, and scratch was removed. This run used separate
+development certificates and a fresh install in one disposable API 36
+emulator.
+[Installed exit receipt](verification/receipts/fieldlog-e39a5ea3-relocated-android-workspace-readback.json)
+
 ## November 21 Android saved-draft validation
 
 One fresh FieldLog Pair24 development install on Android API 36 saved

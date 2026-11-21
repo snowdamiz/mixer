@@ -190,5 +190,15 @@ the SDK checkouts, and the Mixer CLI builds were unavailable. It also reopened
 a saved FieldLog workspace through the app's storage code on the host. See the
 [upgrade, recovery, and exit replay](../../verification/receipts/l08-public-upgrade-02002272.json).
 
+For a disposable development replay, stop FieldLog before copying
+`files/FieldLog/workspace.json` and the matching `files/FieldLog/photos/`
+directory. Restore both to the exported development app before its first
+launch. The replay used `adb run-as`, which requires a debuggable app.
+The two APKs had different development certificates and used separate
+installs. Keep the backup until the exported app opens the same draft
+and saved entry, lists the pending changes, and reads back the same
+workspace and photo bytes.
+[Installed Android exit replay](../../verification/receipts/fieldlog-e39a5ea3-relocated-android-workspace-readback.json)
+
 To run this build from the maintained FieldLog source with the v74 SDK,
 follow the [independent Android CI replay](fieldlog.md#build-the-v74-export-in-independent-android-ci).
