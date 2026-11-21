@@ -1064,6 +1064,18 @@ were removed. Prior setup and hierarchy-label failures are preserved
 in the receipt. Apple installed pagination remains pending.
 [Installed replay](verification/receipts/fieldlog-android-project-picker-installed-ad6c8dba.json) · [Reviewed Android patch](verification/receipts/fieldlog-android-project-picker-ad6c8dba.patch)
 
+## November 21 Apple signed draft validation host replay
+
+On macOS, the Apple selected-draft owner and stock VM checked a
+photo-linked draft titled with three spaces. Signed sequence 1 showed
+“Ready to save entry”. Sequence 2 showed “Entry title is required”,
+and a cache-only reopen retained sequence 2. All checks preserved the
+workspace, outbox, and JPEG, with zero attempted repository writes.
+The host reopened the runtime and repository in one process and
+acknowledged display through the attachment API. The iPhoneOS arm64
+XCTest product built. Installed Simulator execution remains pending.
+[Host and generic build receipt](verification/receipts/fieldlog-ios-222-stock-vm-host-d89c742e.json)
+
 ## November 21 Android saved-draft validation
 
 One fresh FieldLog Pair24 development install on Android API 36 saved
