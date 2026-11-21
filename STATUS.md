@@ -661,6 +661,15 @@ The retained iOS build now runs the worker's Swift version probe as `/usr/bin/sw
 
 The D2 source audit matched the iOS 27 and Android 16 conflict runs to the same FieldLog task contract and SQLite backend. Both native runs retained the local title and peer assignee at version 3 with two committed events. The apps used separate workspaces, platform adapters, and SDK revisions. A fresh host replay reached version 4 after a lost acknowledgement and another offline edit. [Source sharing and paired workflow](verification/receipts/fieldlog-d2-task-conflict-source-sharing-20261119.json)
 
+The measured export targets list 14 distinct app-owned Swift inputs. Three
+are byte-identical across the two targets, including two directly shared
+logic inputs. The shared UI input is listed by both targets, and its
+Android runtime use remains unverified. The iOS and Android exports use
+different FieldLog trees and SDK revisions. The whole-app sharing target
+remains unassessed.
+[Source-sharing report](docs/fieldlog-d2-source-sharing.md) ·
+[Measurement receipt](verification/receipts/fieldlog-d2-app-source-sharing-v82.json)
+
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
 
 A free owner created one build through Phoenix, restricted Oban, and the loopback worker. The worker's inert exit-23 fixture settled the build and released capacity. Organization exit was refused before settlement and succeeded afterwards. The former owner lost access while tenant B retained its export and created another project. [Settled build and organization exit](verification/receipts/l06-settled-exit-65c89e08.json)

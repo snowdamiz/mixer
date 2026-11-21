@@ -1,0 +1,306 @@
+{
+  "schema": "mixer.local.fieldlog-app-source-sharing.v1",
+  "recordedAtUTC": "2026-11-21T10:34:08Z",
+  "scope": {
+    "milestone": "D2",
+    "localGate": "L02",
+    "productPlanSection": "20.2",
+    "status": "scoped_target_input_comparison",
+    "wholeAppTargetAssessed": false
+  },
+  "mixerEvidenceBase": {
+    "version": "v82",
+    "revision": "e1202816e8bb5bbeb3583c0d458918923b895426",
+    "tree": "b8ca3e3b07b65b98dfd3668fc8faf001272a5904"
+  },
+  "fieldlog": {
+    "url": "https://github.com/snowdamiz/fieldlog.git",
+    "revision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "tree": "1b62520f35c7e57a01b568291078686574f627c4"
+  },
+  "priorEvidence": {
+    "iosBuild": {
+      "path": "verification/receipts/fieldlog-ios-independent-export-v80.json",
+      "sha256": "d01aa08af701541cea55ae6c582a40e6a2f5eaad8c75a819822037458ab9be6f"
+    },
+    "androidBuild": {
+      "path": "verification/receipts/fieldlog-independent-export-v74.json",
+      "sha256": "c240096e280057276d1b54dddf488bcbea6512d7cd379dbc2b09f0d9280ce3ac"
+    },
+    "androidLaunch": {
+      "path": "verification/receipts/fieldlog-independent-export-android-launch-v74.json",
+      "sha256": "01ca1a149666d0ee052573578a0b1ef62c229945d05ac3b0bca03566da5ec290"
+    },
+    "taskContractOnly": {
+      "path": "verification/receipts/fieldlog-d2-task-conflict-source-sharing-20261119.json",
+      "sha256": "e07d198036e53cbe22aa3546f134b14a49ded3fd80250507f0f36ad461200f3c"
+    },
+    "launchBinding": {
+      "observed": "Development-signed APK installed and cold-launched on an API 36 arm64 emulator. Same launcher identity as the v74 unsigned build.",
+      "unsignedAPKFromBuildSHA256": "378dceca963dd0f20b7278bd46afe08b0c190b4469f9c3f1027e43e030d5c1a1",
+      "signedAPKFromLaunchSHA256": "2d59bc09c3d6db2a16a5b855f13dbd286c55cffc56fa410b0a9a6c94a396fe25",
+      "producerReceiptSHA256ReportedByLaunch": "d04d8ffdb40afa60b869803d6ce7ef0e14fe5084bd1c2785733c6e60b0d9734c",
+      "exactProducerBindingVerified": false
+    }
+  },
+  "targets": {
+    "ios": {
+      "mixerVersion": "v80",
+      "mixerRevision": "5f4277e12e4872df43483307ec607a65e87dbae1",
+      "fieldlogTreeBeforeSDKPreparation": "1b62520f35c7e57a01b568291078686574f627c4",
+      "appInventoryBeforeSDKPreparation": {
+        "files": 90,
+        "sha256": "8c0608228afaecd771ae9714bfb8a1da9ac9df88ebb24845b7870656af6327da"
+      },
+      "originalPackageSHA256": "fbb47af281fa5f56b4aba6abad751f2a6c586a3235a4bedeb9caa0730eae8989",
+      "metadataSHA256": {
+        "Package.swift": "fcaaa61bd44e812f34510992c58399312fcb4816703af18ec5e20d51a2da48c3",
+        "ios/FieldLog.xcodeproj/project.pbxproj": "84da40b2153529f772c522f3f7baf302d2f9d4f1a63f2e51a44776ce27697292",
+        "ios/FieldLog.xcodeproj/xcshareddata/xcschemes/FieldLog.xcscheme": "3dc11d6edff748f8939253f52d593d879b4c07b04082bcba0ef40cf975f493a2"
+      },
+      "configuration": "Debug, generic arm64 iOS Simulator (SDK iphonesimulator27.2)",
+      "membershipEvidence": "Xcode scheme and PBXSourcesBuildPhase plus three declared local SwiftPM products evaluated by SwiftPM. Result matches all ten paths in the v80 observed compile roster.",
+      "scheme": "FieldLog",
+      "target": "FieldLog",
+      "blueprintIdentifier": "A00000000000000000000005",
+      "product": "FieldLog.app",
+      "appIdentifier": "dev.mixer.fieldlog",
+      "swiftEntry": "FieldLogApp",
+      "localProducts": [
+        "FieldLogModels",
+        "FieldLogStorage",
+        "FieldLogFeatures"
+      ]
+    },
+    "android": {
+      "mixerVersion": "v74",
+      "mixerRevision": "44aecbeb6a82a4a93321cff6a8ab86c5aa421900",
+      "pair23PreparationRevision": "735ecec14e10e2dfed1e58a122c3fab08e569bef",
+      "fieldlogPatchedTree": "ae412e340186be869795561ed8f4f5905317b867",
+      "overlaySourceRevision": "44aecbeb6a82a4a93321cff6a8ab86c5aa421900",
+      "overlaysInApplicationOrder": [
+        {
+          "path": "verification/fieldlog-pair23/public-build.patch",
+          "sha256": "8a09fb83471392e16c836aa3a95a8b02d841525e2cea2ea857415e0484006749"
+        },
+        {
+          "path": "verification/fieldlog-pair23/draft-fields.patch",
+          "sha256": "c118068f49e67f5d4fff24a549df515ca137167d94daaeda8ce5b6cf99818212"
+        },
+        {
+          "path": "verification/fieldlog-pair23/photo-return.patch",
+          "sha256": "1683452af3df6ff07ad33fc47b4619a5dfd90fe2eec63b2e587d9eb25076563f"
+        },
+        {
+          "path": "verification/fieldlog-pair23/report-return.patch",
+          "sha256": "af4a337aa5cdd950f1a9f41aeb8f6a0c05b225dd6a66b5e178a614c7e1db95ca"
+        }
+      ],
+      "recipe": {
+        "originalPath": "Integrations/GeneratedReport/scripts/build-android.py",
+        "sha256": "bf3fee88ea83bc50cc1997928f4710c500de6b46891ca855efa1b01f6d622e32",
+        "functions": [
+          "app_inputs",
+          "install_app_inputs"
+        ]
+      },
+      "exportAppInventorySHA256ReportedByBuild": "2a38bebe244c18b80af68d92519d48c298b03f5c359b0758f9e1c873b2d82350",
+      "metadataSHA256": {
+        "Package.swift": "769337a19090687a545805f910e0eb20527f9cf9f00df02af2df816f6612dbb6",
+        "Platforms/Android/Package.swift": "360e677cac50e3d10d9df33bc4a7310e5e24c4b2a2930c3c3367a32d0f0a7a83",
+        "Platforms/Android/Package.resolved": "abf619c18799ea2dbb169494bcb928b47c95d2cc5e70e433328f6380ae035e80",
+        "Platforms/Android/AndroidManifest.xml": "348c442527a2852f2869ae4b2a54baf88a90422ac26bdc5d328bba2996724361",
+        "Platforms/Android/Bridge/PublicBridge.c": "f753b2c2c1ade0e600a08323c076373ef400826bc841670e96952401dcf43be2",
+        "Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java": "e9d0fd90649dc73b816af704ccd24535abd7b284c306ec27faa5f3047b73c5ed",
+        "Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java": "092fb4ba528e2faa8bee5bc56a7ddf8daf4a5f467a662b373321a27d2f331699"
+      },
+      "configuration": "Release, arm64-v8a via aarch64-unknown-linux-android28 Swift SDK, APK min API 36 and target API 37",
+      "membershipEvidence": "Executable SwiftPM describe and dump-package for both copied platform and root manifests, build recipe and v74 driver. Prior build records libAppAndroid.so, with no per-file Android swiftc roster in the supplied compact receipt.",
+      "driverTemplate": "cli/Sources/MixerBuild/Resources/android-build.py",
+      "renderedDriverSHA256": "98dba189e05b6d3a445b714e492487ac7d163ddf94be035e1124a3fc070aa7b9",
+      "package": "FieldLogGeneratedAndroid",
+      "target": "FieldLogAndroid",
+      "product": "AppAndroid",
+      "applicationPackage": "FieldLogGenerated",
+      "localProducts": [
+        "FieldLogFeatures",
+        "FieldLogModels",
+        "FieldLogStorage"
+      ],
+      "launcher": "dev.fieldlog.generatedr90.androidhost.PublicActivity",
+      "swiftBridgeSymbol": "mixer_public_android_submit",
+      "explicitlyExcludedFeaturePaths": [
+        "Sources/FieldLogFeatures/TaskEditorAppleFieldsHost.swift",
+        "Sources/FieldLogFeatures/EntryEditorAppleHost.swift"
+      ],
+      "sameHashExcludedAppleAdapter": "22ee3522b4a6bed9b9b82f24aa799ca02401dde9a1fe4e01679636b955c091db"
+    }
+  },
+  "measurement": {
+    "unit": "One app-owned Swift file in a production target's source list. A unit is shared only when its counterpart is a member on both sides and SHA-256 and file bytes match.",
+    "denominator": "The distinct union counts shared units once and both variants of a divergent unit. Per-target totals include every admitted file on that side. Source file membership does not establish link or runtime use.",
+    "bytes": "Raw file bytes. No normalization, partial matching, or credit for equivalent behavior.",
+    "physicalLines": "LF-delimited source lines, including blanks, comments, imports, and inactive conditional text. All measured files end in LF. These are physical lines, not executable LOC.",
+    "roles": "Whole-file primary responsibilities. PublicFactory stays mixed. TaskEditorPresentation is UI projection with event routing. WorkspaceModel and NativeEntry are logic or boundary adapters.",
+    "exclusions": [
+      "Mixer SDK and Android renderer, Swift runtime and third-party packages are dependencies or engine code.",
+      "Swift and Xcode test targets are outside the application closure.",
+      "Mixer create emits Sources/AppModels/Entry.swift, Sources/AppFeatures/ProjectFeature.swift and Platforms/iOS/FieldLogGeneratedApp.swift. They are starter code outside the FieldLog Android target closure. The installer replaces the generated Android Swift entry and factory with FieldLog-owned sources from the tracked integration.",
+      "Both Apple-only integration host files are excluded by the Android root manifest. The separately maintained integration host-test manifest is not installed as either release manifest.",
+      "Manifests, build recipes, assets, Java, and C are outside the app-owned Swift measure. The Android app-owned Java and C host inputs are recorded under metadataSHA256."
+    ],
+    "compiledUIUseLimitation": "TaskEditorPresentation.swift is a SwiftPM source input on both sides. The ordinary iOS Apple fields host references it. No other Android production Swift input names its presentation, snapshot, outcome, or error types. PublicFactory directly builds Android documents and drives TaskEditor. No Android linked-symbol or runtime-use proof for the shared presentation.",
+    "directUseSensitivity": {
+      "verifiedSharedUIUnits": [],
+      "compiledUIDenominatorFiles": 6,
+      "scope": "No directly shared UI use established in this pair. The compiled-input count is unchanged."
+    }
+  },
+  "metrics": {
+    "ui": {
+      "sharedUnits": [
+        "TaskEditorPresentation"
+      ],
+      "shared": {
+        "files": 1,
+        "bytes": 7705,
+        "physicalLines": 168
+      },
+      "ios": {
+        "files": 6,
+        "bytes": 50569,
+        "physicalLines": 1184
+      },
+      "android": {
+        "files": 1,
+        "bytes": 7705,
+        "physicalLines": 168
+      },
+      "distinctUnion": {
+        "files": 6,
+        "bytes": 50569,
+        "physicalLines": 1184
+      }
+    },
+    "logic": {
+      "sharedUnits": [
+        "TaskEditor",
+        "Workspace"
+      ],
+      "shared": {
+        "files": 2,
+        "bytes": 17308,
+        "physicalLines": 430
+      },
+      "ios": {
+        "files": 4,
+        "bytes": 31712,
+        "physicalLines": 797
+      },
+      "android": {
+        "files": 5,
+        "bytes": 47440,
+        "physicalLines": 1050
+      },
+      "distinctUnion": {
+        "files": 7,
+        "bytes": 61844,
+        "physicalLines": 1417
+      }
+    },
+    "mixed": {
+      "sharedUnits": [],
+      "shared": {
+        "files": 0,
+        "bytes": 0,
+        "physicalLines": 0
+      },
+      "ios": {
+        "files": 0,
+        "bytes": 0,
+        "physicalLines": 0
+      },
+      "android": {
+        "files": 1,
+        "bytes": 62537,
+        "physicalLines": 896
+      },
+      "distinctUnion": {
+        "files": 1,
+        "bytes": 62537,
+        "physicalLines": 896
+      }
+    },
+    "all": {
+      "sharedUnits": [
+        "TaskEditor",
+        "TaskEditorPresentation",
+        "Workspace"
+      ],
+      "shared": {
+        "files": 3,
+        "bytes": 25013,
+        "physicalLines": 598
+      },
+      "ios": {
+        "files": 10,
+        "bytes": 82281,
+        "physicalLines": 1981
+      },
+      "android": {
+        "files": 7,
+        "bytes": 117682,
+        "physicalLines": 2114
+      },
+      "distinctUnion": {
+        "files": 14,
+        "bytes": 174950,
+        "physicalLines": 3497
+      }
+    }
+  },
+  "sourceUnits": {
+    "EntryEditorAndroid": {"category": "logic", "role": "Draft state, validation, and save intent used by the Android host", "android": {"target": "FieldLogFeatures", "repoPath": "Integrations/GeneratedReport/Sources/FieldLogFeatures/EntryEditor.swift", "buildPath": "Sources/FieldLogFeatures/EntryEditor.swift", "sha256": "e1e210533dafb0c90b3aa320254acb0d3ede5d7686e00603ec28275d1b62e6b7", "bytes": 8000, "physicalLines": 181}},
+    "EntryEditorIOS": {"category": "ui", "role": "Apple SwiftUI entry form, PhotosUI, and photo preview", "ios": {"target": "FieldLog", "repoPath": "ios/FieldLog/EntryEditor.swift", "buildPath": "ios/FieldLog/EntryEditor.swift", "sha256": "298055fc9e84151b750008d39d895cdd448d08dcc387161d3d0d50fc000b768d", "bytes": 6777, "physicalLines": 174}},
+    "FieldLogApp": {"category": "ui", "role": "Apple app entry, root scene, launch lifecycle, and styles", "ios": {"target": "FieldLog", "repoPath": "ios/FieldLog/FieldLogApp.swift", "buildPath": "ios/FieldLog/FieldLogApp.swift", "sha256": "2325db5b6941216cc22d76b3446de080e5355527f143f1be46f9c27fad02768e", "bytes": 1114, "physicalLines": 31}},
+    "NativeEntry": {"category": "logic", "role": "Android Swift C ABI adapter, host lifecycle, and callback dispatch", "android": {"target": "FieldLogAndroid", "repoPath": "Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift", "buildPath": "Platforms/Android/Sources/AppAndroid/NativeEntry.swift", "sha256": "f80ae321beb1cc95aeb6671552a98231ed3c6ffbc93fbc1867ccdd129d308fc5", "bytes": 11172, "physicalLines": 181}},
+    "ProjectDetail": {"category": "ui", "role": "Apple project, task and entry screens, and UIKit share sheet", "ios": {"target": "FieldLog", "repoPath": "ios/FieldLog/ProjectDetail.swift", "buildPath": "ios/FieldLog/ProjectDetail.swift", "sha256": "921e0ea5b35d6a0dc418b53fa7fd1aaa3b2bcd1e11c6cfca0fa50628fcb3ee63", "bytes": 12664, "physicalLines": 302}},
+    "PublicFactory": {"category": "mixed", "role": "Android host composition, UI documents, event routing, save admission, persistence, photos, and report sharing", "android": {"target": "FieldLogAndroid", "repoPath": "Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift", "buildPath": "Platforms/Android/Sources/AppAndroid/PublicFactory.swift", "sha256": "a6e175dfc2faa692561ce3e8cc664e34cf9688fae07c4ca85de5a9a7e0ec59e7", "bytes": 62537, "physicalLines": 896}},
+    "TaskEditor": {"category": "logic", "role": "Task state, validation, and save effects", "ios": {"target": "FieldLogFeatures", "repoPath": "Sources/FieldLogFeatures/TaskEditor.swift", "buildPath": "Sources/FieldLogFeatures/TaskEditor.swift", "sha256": "ef5321a92467868227007b856aca5c7ed142e5337d8dbb20a07e0e3394335310", "bytes": 3027, "physicalLines": 73}, "android": {"target": "FieldLogFeatures", "repoPath": "Integrations/GeneratedReport/Sources/FieldLogFeatures/TaskEditor.swift", "buildPath": "Sources/FieldLogFeatures/TaskEditor.swift", "sha256": "ef5321a92467868227007b856aca5c7ed142e5337d8dbb20a07e0e3394335310", "bytes": 3027, "physicalLines": 73}},
+    "TaskEditorAppleFieldsHost": {"category": "ui", "role": "Apple-only native text fields and event projection", "ios": {"target": "FieldLogFeatures", "repoPath": "Sources/FieldLogFeatures/TaskEditorAppleFieldsHost.swift", "buildPath": "Sources/FieldLogFeatures/TaskEditorAppleFieldsHost.swift", "sha256": "22ee3522b4a6bed9b9b82f24aa799ca02401dde9a1fe4e01679636b955c091db", "bytes": 11745, "physicalLines": 246}},
+    "TaskEditorPresentation": {"category": "ui", "role": "Task UI document, navigation state, and event routing", "ios": {"target": "FieldLogFeatures", "repoPath": "Sources/FieldLogFeatures/TaskEditorPresentation.swift", "buildPath": "Sources/FieldLogFeatures/TaskEditorPresentation.swift", "sha256": "e3ca09be97082e47b21290d6542a936a3fa683597501ec800a7055fad24a3f00", "bytes": 7705, "physicalLines": 168}, "android": {"target": "FieldLogFeatures", "repoPath": "Integrations/GeneratedReport/Sources/FieldLogFeatures/TaskEditorPresentation.swift", "buildPath": "Sources/FieldLogFeatures/TaskEditorPresentation.swift", "sha256": "e3ca09be97082e47b21290d6542a936a3fa683597501ec800a7055fad24a3f00", "bytes": 7705, "physicalLines": 168}},
+    "Workspace": {"category": "logic", "role": "Domain model, validation, and workspace mutations", "ios": {"target": "FieldLogModels", "repoPath": "Sources/FieldLogModels/Workspace.swift", "buildPath": "Sources/FieldLogModels/Workspace.swift", "sha256": "6f11d54b41081b20429be486f074f886ec6f53083753bf7a19c67a3c5d19e014", "bytes": 14281, "physicalLines": 357}, "android": {"target": "FieldLogModels", "repoPath": "Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift", "buildPath": "Sources/FieldLogModels/Workspace.swift", "sha256": "6f11d54b41081b20429be486f074f886ec6f53083753bf7a19c67a3c5d19e014", "bytes": 14281, "physicalLines": 357}},
+    "WorkspaceModel": {"category": "logic", "role": "Apple ObservableObject adapter for local state, persistence, and queued mutations", "ios": {"target": "FieldLog", "repoPath": "ios/FieldLog/WorkspaceModel.swift", "buildPath": "ios/FieldLog/WorkspaceModel.swift", "sha256": "9be22a61b81fc2df5f0e49e3c0d0861b3287df4b7b2ff28db0a3e2ca7d5da0e8", "bytes": 6244, "physicalLines": 163}},
+    "WorkspaceRepository": {"category": "logic", "role": "Persistence, photo storage, and report export. Android adds platform I/O and prepared-photo storage", "ios": {"target": "FieldLogStorage", "repoPath": "Sources/FieldLogStorage/WorkspaceRepository.swift", "buildPath": "Sources/FieldLogStorage/WorkspaceRepository.swift", "sha256": "e5d621ae25cd807f696cfc0174d93b2e3fa557ac417830a8d6e212ee9f6d927e", "bytes": 8160, "physicalLines": 204}, "android": {"target": "FieldLogStorage", "repoPath": "Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift", "buildPath": "Sources/FieldLogStorage/WorkspaceRepository.swift", "sha256": "cf46c525631d9883ed22783180ed6ad9466ffa74ddeaa650fe7437ecc7ff0aba", "bytes": 10960, "physicalLines": 258}},
+    "WorkspaceView": {"category": "ui", "role": "Apple workspace screens, navigation, and queue views", "ios": {"target": "FieldLog", "repoPath": "ios/FieldLog/WorkspaceView.swift", "buildPath": "ios/FieldLog/WorkspaceView.swift", "sha256": "1915971d3f2c5a4f2b67aeb5454fc00e74aa2b7783be4dfc7ad4e86c92d0f737", "bytes": 10564, "physicalLines": 263}}
+  },
+  "tools": {
+    "git": "git version 2.56.0",
+    "python": "Python 3.14.8",
+    "swift": [
+      "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+      "Target: arm64-apple-macosx27.0.0"
+    ],
+    "xcode": [
+      "Xcode 27.2",
+      "Build version 27B52"
+    ],
+    "sourceMembershipCommands": [
+      "swift package --package-path <package-root> --scratch-path <owned-scratch>/build --cache-path <owned-scratch>/cache --config-path <owned-scratch>/config --security-path <owned-scratch>/security --manifest-cache none --disable-dependency-cache describe --type json",
+      "Same SwiftPM options with dump-package",
+      "plutil -convert json -o - ios/FieldLog.xcodeproj/project.pbxproj"
+    ]
+  },
+  "limits": [
+    "The platform targets use distinct app source trees, different SDK pins, different optimization modes, and independent platform composition. These measurements do not qualify all FieldLog flows or the 90% whole-app goal.",
+    "Prior iOS evidence is build-only. Prior Android launch is scoped startup evidence. The as-recorded producer receipt hash differs from the pinned compact build receipt, and the compact records do not supply a byte-for-byte unsigned-to-signed binding.",
+    "The exact per-file Android compile or link roster and full 216-entry export were not replayed. Android input membership is reconstructed from executable manifest metadata, the verified patched tree, and the recorded build selection.",
+    "The earlier task-conflict audit covers a different patched task contract and does not extend this denominator."
+  ],
+  "deviceOperations": 0,
+  "fullBuilds": 0,
+  "cleanup": {
+    "historicalHoldsAccessed": false,
+    "ownedScratchRemoved": true
+  }
+}
