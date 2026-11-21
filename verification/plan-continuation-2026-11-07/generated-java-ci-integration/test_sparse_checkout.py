@@ -106,7 +106,8 @@ def admission_paths(root=None, binding=None):
         for key in ('capability_transition', 'upgrade_transition', 'pair24_transition',
                     'cancel_cli_transition', 'local_store_transition',
                     'release_inspector_transition', 'icu_notice_transition', 'halt_cli_transition',
-                    'release_rest_v3_transition', 'stock_promotion_transition', 'hosted_v71_transition'):
+                    'release_rest_v3_transition', 'stock_promotion_transition',
+                    'hosted_v71_transition', 'hosted_v72_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
