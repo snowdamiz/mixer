@@ -1,7 +1,11 @@
 import Crypto
 import Foundation
 import MixerCapabilities
+#if FIELDLOG_ENTRY_SAVE_REPLAY
+import FieldLogInstalledGuest
+#else
 import FieldLogDraftIntegration
+#endif
 import MixerRuntimeIdentity
 import MixerUpdates
 
@@ -68,7 +72,7 @@ func signReleases(fixtures: URL, guests: URL, output: URL, archive: String, bina
     let created = UInt64(Date().timeIntervalSince1970)
     let sourceMap = Data("{}".utf8)
     var digests: [String: String] = [:]
-    for variant in ["baseline", "corrected", "optional"] {
+    for variant in Set(Host.variants).sorted() {
         let payload = try Trial.read(guests, variant + ".wasm")
         let length = CanonicalValue.uint(UInt64(payload.count))
         let manifest = CanonicalValue.object([

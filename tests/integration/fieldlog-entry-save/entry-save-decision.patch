@@ -1,0 +1,139 @@
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index 48ae044..cf854d6 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -236,6 +236,23 @@ private enum WorkspaceEdit: Sendable {
+         return try await signedDraftBinding.attach(repository: repository, projectID: projectID, draftID: draftID)
+     }
+
++    func attachEntrySaveDecision() async throws -> any InstalledApplicationStorageServing {
++        try await waitForSave()
++        guard let draftID = savedDraftSelection else { throw PublicHostError.action }
++        return try await signedDraftBinding.attach(repository: repository, projectID: projectID, draftID: draftID,
++                                                    entrySaveFacts: { [weak self] revision in
++            guard let self, self.savedDraftSelection == draftID, self.workspace.revision == revision,
++                  let draft = self.entryState?.draft,
++                  self.entryDateInput.map({ EntryDateText.parse($0.text) != nil }) ?? true else {
++                throw CapabilityFailure.permissionDenied
++            }
++            let facts = EntrySaveIntent(projectID: self.projectID, draft: draft, kind: .commit).decisionFacts
++            var packet = withUnsafeBytes(of: facts.counts.bigEndian) { Data($0) }
++            packet.append(facts.flags)
++            return packet
++        })
++    }
++
+     func detachSignedDraft() { signedDraftBinding.detach() }
+     #endif
+     func reloadChecklist() async throws {
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogFeatures/EntryEditor.swift b/Integrations/GeneratedReport/Sources/FieldLogFeatures/EntryEditor.swift
+index c968b76..29d8a64 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogFeatures/EntryEditor.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogFeatures/EntryEditor.swift
+@@ -13,12 +13,22 @@ public struct EntrySaveIntent: Sendable {
+     self.projectID = projectID; self.draft = draft; self.kind = kind; self.now = now
+   }
+
++  public var decisionFacts: EntrySaveDecision.Facts {
++    .init(projectMatches: draft.projectID == projectID, commit: kind == .commit,
++      titleBytes: UInt32(clamping: draft.title.utf8.count),
++      titleBlank: draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
++      titleHasNUL: draft.title.utf8.contains(0),
++      noteBytes: UInt32(clamping: draft.note.utf8.count),
++      noteHasNUL: draft.note.utf8.contains(0),
++      dateIsFinite: draft.occurredAt.timeIntervalSinceReferenceDate.isFinite)
++  }
++
+   public func validate() throws {
+-    guard draft.projectID == projectID else { throw FieldLogError.missingRecord }
+-    try Workspace.text(draft.title, label: "Entry title", maximum: 160, required: kind == .commit)
+-    try Workspace.text(draft.note, label: "Note", maximum: 100000)
+-    guard draft.occurredAt.timeIntervalSinceReferenceDate.isFinite else {
+-      throw FieldLogError.validation("Choose a valid entry date.")
++    let decision = decisionFacts.decision
++    switch decision {
++    case .eligible: return
++    case .wrongProject: throw FieldLogError.missingRecord
++    default: throw FieldLogError.validation(decision.message.description)
+     }
+   }
+
+diff --git a/Integrations/InstalledGuest/FieldLogDraftStorage.swift b/Integrations/InstalledGuest/FieldLogDraftStorage.swift
+index 48022f4..e6494cc 100644
+--- a/Integrations/InstalledGuest/FieldLogDraftStorage.swift
++++ b/Integrations/InstalledGuest/FieldLogDraftStorage.swift
+@@ -14,6 +14,12 @@ public struct FieldLogDraftStorage: InstalledApplicationStorageServing {
+         self.selection = try await repository.selectSavedDraft(projectID: projectID, draftID: draftID)
+     }
+
++    func selectedDraftRevision() async throws -> UInt64 {
++        let (revision, draft) = try await repository.readSelectedDraft(selection)
++        guard draft != nil else { throw CapabilityFailure.permissionDenied }
++        return revision
++    }
++
+     public func get(_ arguments: KVGetArguments) async throws -> KVGetResponse {
+         try authorize(arguments.namespace, arguments.key)
+         try Task.checkCancellation()
+diff --git a/Integrations/InstalledGuest/SelectedDraftBinding.swift b/Integrations/InstalledGuest/SelectedDraftBinding.swift
+index 454af46..e6c02af 100644
+--- a/Integrations/InstalledGuest/SelectedDraftBinding.swift
++++ b/Integrations/InstalledGuest/SelectedDraftBinding.swift
+@@ -23,7 +23,10 @@ import MixerCapabilities
+         selection = next
+     }
+
+-    public func attach(repository: WorkspaceRepository, projectID: UUID, draftID: UUID) async throws
++    public static let entrySaveDecisionKey = "entry-save-decision-v1"
++
++    public func attach(repository: WorkspaceRepository, projectID: UUID, draftID: UUID,
++                       entrySaveFacts: (@MainActor @Sendable (UInt64) throws -> Data)? = nil) async throws
+         -> any InstalledApplicationStorageServing {
+         let requested = Selection(projectID: projectID, draftID: draftID)
+         guard requested == selection else { throw CapabilityFailure.permissionDenied }
+@@ -32,7 +35,7 @@ import MixerCapabilities
+         let storage = try await FieldLogDraftStorage(repository: repository, projectID: projectID, draftID: draftID)
+         try Task.checkCancellation()
+         guard generation == pending else { throw CapabilityFailure.permissionDenied }
+-        let lease = Lease(storage: storage)
++        let lease = Lease(storage: storage, entrySaveFacts: entrySaveFacts)
+         self.lease = lease
+         return lease
+     }
+@@ -48,7 +51,12 @@ import MixerCapabilities
+         private var active = true
+         private var pending: [UUID: @MainActor () -> Void] = [:]
+
+-        init(storage: FieldLogDraftStorage) { self.storage = storage }
++        private let entrySaveFacts: (@MainActor @Sendable (UInt64) throws -> Data)?
++
++        init(storage: FieldLogDraftStorage, entrySaveFacts: (@MainActor @Sendable (UInt64) throws -> Data)?) {
++            self.storage = storage
++            self.entrySaveFacts = entrySaveFacts
++        }
+
+         func revoke() {
+             active = false
+@@ -56,11 +64,20 @@ import MixerCapabilities
+         }
+
+         func get(_ arguments: KVGetArguments) async throws -> KVGetResponse {
+-            try await perform { try await $0.get(arguments) }
++            guard let entrySaveFacts else { return try await perform { try await $0.get(arguments) } }
++            guard arguments.namespace == FieldLogDraftStorage.namespace,
++                  arguments.key == SelectedDraftBinding.entrySaveDecisionKey else {
++                throw CapabilityFailure.permissionDenied
++            }
++            let revision = try await perform { try await $0.selectedDraftRevision() }
++            guard active else { throw CapabilityFailure.permissionDenied }
++            let facts = try entrySaveFacts(revision)
++            return .init(found: true, valueBase64: facts.base64EncodedString())
+         }
+
+         func put(_ arguments: KVPutArguments, maximumTotalBytes: Int, maximumEntries: Int) async throws -> KVMutationResponse {
+-            try await perform {
++            guard entrySaveFacts == nil else { throw CapabilityFailure.permissionDenied }
++            return try await perform {
+                 try await $0.put(arguments, maximumTotalBytes: maximumTotalBytes, maximumEntries: maximumEntries)
+             }
+         }
