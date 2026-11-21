@@ -147,14 +147,14 @@ launch, and independent hosted CI remain separate checks.
 Use the same Xcode, local mirror, and fresh-state setup as above. This recipe
 pins public Mixer to `6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d` and reconstructs
 FieldLog product tree `85e6fbe362c50553a781daba1e467c6829eb668c` from public
-FieldLog commit `552559d2d3278abb9b1aa7dcf0288102c09a202b`. Start with an empty
-scratch directory. Use the public Mixer checkout at
-`5fd075d6df49ccf2b2e4699a7bc2e59c7b3fd2e8` as the source of the ordered recipe
-and its Git objects. [Matched compiler inputs](../../verification/receipts/fieldlog-d2-combined-85e6fbe3-compiler-inputs.json)
+FieldLog commit `552559d2d3278abb9b1aa7dcf0288102c09a202b`. Run from the root
+of a Mixer checkout containing this guide and the relocated-export receipt.
+Start with an empty scratch directory. The reconstruction step reads the
+ordered recipe from `5fd075d6df49ccf2b2e4699a7bc2e59c7b3fd2e8` with `git show`.
+[Matched compiler inputs](../../verification/receipts/fieldlog-d2-combined-85e6fbe3-compiler-inputs.json)
 
 Before the first `use_fresh_state` call, resolve Rust 1.99.0 from your
-installed toolchain. Keep a local Cargo cache with the dependencies from
-the pinned VM's `Cargo.lock`. The VM build below uses the cache offline.
+installed toolchain. The pinned VM has no Cargo registry dependencies.
 
 ```bash
 cargo_bin="$(rustup which --toolchain 1.99.0 cargo)"
@@ -162,8 +162,6 @@ rustc_bin="$(rustup which --toolchain 1.99.0 rustc)"
 test -x "$cargo_bin"
 test -x "$rustc_bin"
 test -d "$("$rustc_bin" --print target-libdir --target aarch64-apple-ios-sim)"
-cargo_registry="${CARGO_HOME:-$HOME/.cargo}/registry"
-test -d "$cargo_registry"
 receipt="$PWD/verification/receipts/fieldlog-d2-combined-85e6fbe3-relocated-ios-export.json"
 test -f "$receipt"
 ```
@@ -255,7 +253,6 @@ pinned VM offline and add its headers and archive to the preparation app.
 vm="$app/Generated/CapabilityVM"
 cargo_target="$work/prep/cargo-target"
 mkdir -p "$vm" "$work/prep/cargo-home"
-cp -R "$cargo_registry" "$work/prep/cargo-home/registry"
 SDKROOT="$(xcrun --sdk iphonesimulator27.2 --show-sdk-path)" \
 CARGO_HOME="$work/prep/cargo-home" RUSTC="$rustc_bin" \
 "$cargo_bin" build --manifest-path "$work/prep/mixer/vm/Cargo.toml" \

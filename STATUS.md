@@ -71,10 +71,12 @@ All 79 successful-run command groups closed. An earlier `git init`
 attempt retains its scratch hold after an unconfirmed group check.
 The corrected guide pins Rust, checks both export inventories and the
 VM symbol attribution, and distinguishes the generated iOS target from
-FieldLog's native project. The documentation checks passed without
-another Xcode run. Installed behavior remains unverified.
+FieldLog's native project. An offline build with an empty Cargo
+directory reproduced the exact VM archive. Both guide paths resolve
+their pinned inputs. Installed behavior remains unverified.
 [Maintained export guide](docs/guides/fieldlog-ios-export.md#build-the-maintained-fieldlog-app-with-the-capability-vm) ·
-[Relocated export receipt](verification/receipts/fieldlog-d2-combined-85e6fbe3-relocated-ios-export.json)
+[Relocated export receipt](verification/receipts/fieldlog-d2-combined-85e6fbe3-relocated-ios-export.json) ·
+[Offline VM build](verification/receipts/l08-fieldlog-ios-vm-empty-cargo-home-6bc461f4.json)
 
 ## November 21 hosted v76 verification
 
