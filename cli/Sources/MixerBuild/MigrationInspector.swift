@@ -52,7 +52,12 @@ public enum MigrationInspector {
             let matches = inventory.scan()
             if let target { package?.recordImports(inventory.localImports, file: relative, target: target) }
             for match in matches {
-                let (_, category, message, remediation) = rules[match.rule]
+                var (_, category, message, remediation) = rules[match.rule]
+                if let spelling = inventory.ambiguousImports[match] {
+                    category = "compiler-review"
+                    message = "Ambiguous \(spelling) import matches a declared local dependency and a framework"
+                    remediation = "Verify which module the original target toolchain imports before choosing a migration."
+                }
                 findings.append(MigrationFinding(file: relative, line: match.line, category: category, message: message, remediation: remediation))
             }
             if let line = inventory.reviewLine {
@@ -98,11 +103,12 @@ private struct SwiftInventory {
     private var stack: [Context] = [.code(depth: 0, start: 1)]
     private var previous: [Token] = []
     private var matches: Set<Match> = []
-    private let importTargets: [Data: String]?
+    private let importTargets: [Data: SwiftPackageInventory.ImportTarget]?
     private(set) var localImports: [String: Int] = [:]
+    private(set) var ambiguousImports: [Match: String] = [:]
     private(set) var reviewLine: Int?
 
-    init(_ data: Data, importTargets: [Data: String]? = nil) {
+    init(_ data: Data, importTargets: [Data: SwiftPackageInventory.ImportTarget]? = nil) {
         bytes = Array(data)
         self.importTargets = importTargets
         if bytes.starts(with: [0xEF, 0xBB, 0xBF]) { index = 3 }
@@ -140,13 +146,15 @@ private struct SwiftInventory {
             else if kinds.contains(last.text), !last.raw, previous.count == 2, previous[0].text == "import", !previous[0].raw { importToken = previous[0] }
             else { importToken = nil }
             if let importToken {
-                if let rule = ["SwiftUI": 0, "UIKit": 1, "AppKit": 2, "StoreKit": 3, "CoreLocation": 4][token.text] {
-                    matches.insert(Match(rule: rule, line: importToken.line))
-                }
                 let startsScopedImport = last.text == "import" && !token.raw && kinds.contains(token.text)
-                if stack.count == 1, !startsScopedImport, let importTargets,
-                   let target = importTargets[Data(token.text.utf8)], localImports[target] == nil {
-                    localImports[target] = importToken.line
+                let target = stack.count == 1 && !startsScopedImport ? importTargets?[Data(token.text.utf8)] : nil
+                if let rule = ["SwiftUI": 0, "UIKit": 1, "AppKit": 2, "StoreKit": 3, "CoreLocation": 4][token.text] {
+                    let match = Match(rule: rule, line: importToken.line)
+                    matches.insert(match)
+                    if target != nil { ambiguousImports[match] = token.text }
+                }
+                if case let .locatable(module)? = target, localImports[module] == nil {
+                    localImports[module] = importToken.line
                 }
             }
         }

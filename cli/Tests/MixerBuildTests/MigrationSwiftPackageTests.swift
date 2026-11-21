@@ -135,3 +135,79 @@ private func writeDescription(_ file: URL, root: URL, targets: [DescriptionTarge
         #expect(throws: MixerFailure.self) { try MigrationInspector.inspect(root, swiftPMDescription: root) }
     }
 }
+
+@Test func swiftPMDescriptionMarksFrameworkSpellingSharedWithDeclaredDependency() throws {
+    try withDescription(files: [
+        "Local.swift": "public struct Widget {}",
+        "Bridge.swift": """
+        import AppKit; import UIKit
+        import struct
+            AppKit.Widget
+        """,
+        "Desktop.swift": "import AppKit",
+        "Copied.swift": "import AppKit",
+    ]) { root, description in
+        let bridge = DescriptionTarget(name: "Bridge", c99name: "Bridge", path: ".", sources: ["Bridge.swift"], target_dependencies: ["Local-Desktop"])
+        let desktop = DescriptionTarget(name: "Desktop", c99name: "Desktop", path: ".", sources: ["Desktop.swift"], target_dependencies: [])
+        let alias = DescriptionTarget(name: "Local-Desktop", c99name: "AppKit", path: ".", sources: ["Local.swift"], target_dependencies: [])
+        let unverified = DescriptionTarget(name: "Local-Desktop", c99name: "AppKit", path: ".", sources: ["Local.swift", "Missing.swift"], target_dependencies: [])
+        let duplicate = DescriptionTarget(name: "Other", c99name: "AppKit", path: ".", sources: ["Other.swift"], target_dependencies: [])
+        let plain = try MigrationInspector.inspect(root)
+        #expect(plain.findings.filter { $0.file == "Bridge.swift" && $0.category == "unsupported-mobile" }.map(\.line) == [1, 2])
+
+        for (targets, located) in [([alias], true), ([unverified], false), ([alias, duplicate], false)] {
+            try writeDescription(description, root: root, targets: [bridge, desktop] + targets)
+            let report = try MigrationInspector.inspect(root, swiftPMDescription: description)
+            let package = try #require(report.swiftPackage)
+            let bridge = try #require(package.modules.first { $0.name == "Bridge" })
+            let edge = try #require(bridge.localDependencies.first)
+            #expect(edge.module == "Local-Desktop")
+            #expect(edge.importSpelling == (located ? "AppKit" : nil))
+            #expect(edge.line == (located ? 1 : nil))
+            #expect(bridge.sourceClassification == .platformSpecific)
+            #expect(bridge.findings.filter { $0.category == "compiler-review" }.map(\.line) == [1, 2])
+            #expect(bridge.findings.filter { $0.category == "compiler-review" }.allSatisfy { $0.message.contains("AppKit") })
+            #expect(bridge.findings.count == 3)
+            #expect(report.findings.filter { $0.category == "unsupported-mobile" }.map(\.file) == ["Copied.swift", "Desktop.swift"])
+        }
+    }
+}
+
+@Test func swiftPMDescriptionFindsDistinctPositiveDepthWitnessThroughCyclesAndTies() throws {
+    let graph = [
+        "AOrigin": ["Join"],
+        "Entry": ["Right", "Left"],
+        "IsolatedOrigin": ["Relay"],
+        "Join": ["AOrigin", "ZOrigin", "YOrigin"],
+        "Left": ["Join"],
+        "Relay": ["IsolatedOrigin"],
+        "Right": ["Join"],
+        "YOrigin": [],
+        "ZOrigin": [],
+    ]
+    let originNames: Set<String> = ["AOrigin", "IsolatedOrigin", "YOrigin", "ZOrigin"]
+    let files = Dictionary(uniqueKeysWithValues: graph.keys.map { name in
+        ("\(name).swift", originNames.contains(name) ? "import AppKit" : "import Foundation")
+    })
+    try withDescription(files: files) { root, description in
+        let targets = graph.keys.sorted().reversed().map {
+            DescriptionTarget(name: $0, c99name: $0, path: ".", sources: ["\($0).swift"], target_dependencies: graph[$0, default: []])
+        }
+        try writeDescription(description, root: root, targets: targets)
+        let report = try MigrationInspector.inspect(root, swiftPMDescription: description)
+        let package = try #require(report.swiftPackage)
+        let modules = Dictionary(uniqueKeysWithValues: package.modules.map { ($0.name, $0) })
+        let origin = try #require(modules["AOrigin"])
+        #expect(origin.sourceClassification == .unsupported)
+        #expect(origin.findings.count == 1)
+        #expect(origin.dependencyCauses.map(\.originModule) == ["YOrigin"])
+        #expect(origin.dependencyCauses.first?.dependencyDepth == 2)
+        #expect(origin.dependencyCauses.first?.via.module == "Join")
+        #expect(modules["IsolatedOrigin"]?.dependencyCauses.isEmpty == true)
+        #expect(modules["Relay"]?.dependencyCauses.first?.originModule == "IsolatedOrigin")
+        #expect(modules["Entry"]?.sourceClassification == .noSourceHints)
+        #expect(modules["Entry"]?.dependencyCauses.map(\.originModule) == ["AOrigin"])
+        #expect(modules["Entry"]?.dependencyCauses.first?.dependencyDepth == 3)
+        #expect(modules["Entry"]?.dependencyCauses.first?.via.module == "Left")
+    }
+}

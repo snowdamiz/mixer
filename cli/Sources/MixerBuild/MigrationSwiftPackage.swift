@@ -4,7 +4,7 @@ import Foundation
 public struct MigrationSwiftPackage: Codable, Sendable {
     public var basis = "supplied-swiftpm-description"
     public var moduleGraph = "advisory"
-    public var explanation = "Target membership and dependency edges come from the supplied SwiftPM description. The importer checks file associations but cannot establish graph provenance, freshness, or platform conditions. Causes follow described edges between associated Swift targets to the nearest finding of each class. Import locations are lexical hints. Product dependencies and other target kinds are outside this traversal."
+    public var explanation = "Target membership and dependency edges come from the supplied SwiftPM description. The importer checks file associations but cannot establish graph provenance, freshness, or platform conditions. Causes follow described edges between associated Swift targets to the nearest finding of each class in another target. Import locations and shared local and framework spellings are lexical hints. Product dependencies and other target kinds are outside this traversal."
     public let modules: [MigrationModule]
     public let unassignedSwiftFiles: [String]
 }
@@ -120,6 +120,11 @@ private struct SwiftPackageDescription: Decodable {
 }
 
 struct SwiftPackageInventory {
+    enum ImportTarget {
+        case declaredOnly
+        case locatable(String)
+    }
+
     private typealias Description = SwiftPackageDescription
     private typealias Target = Description.Target
 
@@ -133,7 +138,7 @@ struct SwiftPackageInventory {
     private let targetByFile: [Data: String]
     private let unassigned: [String]
     private let sourceDependencies: [String: [String]]
-    private let importTargetsByModule: [String: [Data: String]]
+    private let importTargetsByModule: [String: [Data: ImportTarget]]
     private var importsByModule: [String: [String: MigrationModule.Dependency]] = [:]
 
     init(description: URL, root: URL, swiftFiles: [URL], relativePaths: [String]) throws {
@@ -196,14 +201,15 @@ struct SwiftPackageInventory {
         }
         let bySpelling = Dictionary(grouping: graph.targets, by: { Data($0.c99name.utf8) })
         var sourceDependencies: [String: [String]] = [:]
-        var importTargetsByModule: [String: [Data: String]] = [:]
+        var importTargetsByModule: [String: [Data: ImportTarget]] = [:]
         for (name, module) in modules where module.association == .associated {
-            let dependencies = module.target.dependencies.filter { modules[$0]?.association == .associated }.sorted()
-            sourceDependencies[name] = dependencies
-            for dependency in dependencies {
-                guard let spelling = modules[dependency]?.target.c99name else { continue }
-                let key = Data(spelling.utf8)
-                if bySpelling[key]?.count == 1 { importTargetsByModule[name, default: [:]][key] = dependency }
+            for dependency in module.target.dependencies.sorted() {
+                guard let target = modules[dependency] else { continue }
+                let key = Data(target.target.c99name.utf8)
+                let associated = target.association == .associated
+                if associated { sourceDependencies[name, default: []].append(dependency) }
+                importTargetsByModule[name, default: [:]][key] =
+                    associated && bySpelling[key]?.count == 1 ? .locatable(dependency) : .declaredOnly
             }
         }
         self.modules = modules
@@ -215,7 +221,7 @@ struct SwiftPackageInventory {
 
     func target(for file: String) -> String? { targetByFile[Data(file.utf8)] }
 
-    func importTargets(for name: String) -> [Data: String]? { importTargetsByModule[name] }
+    func importTargets(for name: String) -> [Data: ImportTarget]? { importTargetsByModule[name] }
 
     mutating func recordImports(_ imports: [String: Int], file: String, target: String) {
         for (dependency, line) in imports where importsByModule[target]?[dependency] == nil {
@@ -245,23 +251,29 @@ struct SwiftPackageInventory {
         var classes: [String: Classification] = [:]
         var causes: [String: [MigrationModule.Cause]] = [:]
         for classification in Classification.allCases where classification != .noSourceHints {
-            // Walk backward from each origin once per class to keep the shortest witness.
+            // Keep the two nearest distinct origins so a direct finding cannot mask a second origin.
             var queue: [(name: String, origin: String, finding: MigrationFinding, depth: Int)] = []
+            var visitedOrigins: [String: [String]] = [:]
             for name in names {
                 if let finding = findingsByModule[name, default: []].first(where: { Classification(category: $0.category) == classification }) {
                     queue.append((name, name, finding, 0))
+                    visitedOrigins[name] = [name]
                     if classes[name] == nil { classes[name] = classification }
                 }
             }
-            var visited = Set(queue.map(\.name))
             var next = 0
             while next < queue.count {
                 let entry = queue[next]
                 next += 1
-                for (dependent, edge) in incoming[entry.name, default: []] where visited.insert(dependent).inserted {
+                for (dependent, edge) in incoming[entry.name, default: []] {
+                    let origins = visitedOrigins[dependent, default: []]
+                    guard origins.count < 2, !origins.contains(entry.origin) else { continue }
                     let depth = entry.depth + 1
-                    causes[dependent, default: []].append(.init(classification: classification, via: edge,
-                                                               dependencyDepth: depth, originModule: entry.origin, finding: entry.finding))
+                    if origins.isEmpty || origins.first == dependent {
+                        causes[dependent, default: []].append(.init(classification: classification, via: edge,
+                                                                   dependencyDepth: depth, originModule: entry.origin, finding: entry.finding))
+                    }
+                    visitedOrigins[dependent, default: []].append(entry.origin)
                     queue.append((dependent, entry.origin, entry.finding, depth))
                 }
             }
