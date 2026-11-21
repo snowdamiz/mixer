@@ -200,6 +200,57 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
   test "Go signs the authorized worker operation and PostgreSQL attachment verifies it", c do
     b = completed!(c.selection, retry: true)
     retain!(c.root, b.operation, b.products)
+    {port, _path, signed} = go_sign!(c, b)
+    origin = "http://127.0.0.1:#{port}"
+
+    Application.put_env(:mixer_hosted, :native_development_attestation, %{
+      origin: origin,
+      public_spki_der: c.spki
+    })
+
+    assert {:ok, :attached} = attach(c, signed)
+    assert {:ok, :duplicate} = attach(c, signed)
+    assert stored(b) == [[5, 2, b.operation, @binding, sha(c.spki), origin, signed]]
+  end
+
+  @tag :ordinary_http
+  unless System.get_env(@go_signer), do: @tag(skip: "requires the compiled Go attestation CLI")
+
+  test "stock Go attach sends the same signed envelope twice through the ordinary v3 writer", c do
+    b = completed!(c.selection, retry: true)
+    retain!(c.root, b.operation, b.products)
+    put_config(:native_development_dispatch, %{retained_root: c.root})
+    {port, path, signed} = go_sign!(c, b)
+    origin = "http://127.0.0.1:#{port}"
+
+    jwt = start_bearer_fixture!(c.identity)
+    token = bearer(jwt, c.identity, "mixer.build.attest")
+    public_path = Path.join(c.root, "trusted-public.pem")
+
+    write_private_file!(
+      public_path,
+      :public_key.pem_encode([{:SubjectPublicKeyInfo, c.spki, :not_encrypted}])
+    )
+
+    start_http_api!(c, port, c.spki)
+    assert_login!(Repo, @reader)
+    assert_login!(AttestationRepo, @writer)
+    assert writer_count() == 1
+    assert stored(b) == []
+
+    assert {"attached\n", 0} = go_attest(c, "attach", origin, public_path, token)
+    assert stored(b) == [[5, 2, b.operation, @binding, sha(c.spki), origin, signed]]
+    assert {"duplicate\n", 0} = go_attest(c, "attach", origin, public_path, token)
+    assert stored(b) == [[5, 2, b.operation, @binding, sha(c.spki), origin, signed]]
+    assert File.read!(path) == signed
+
+    assert sql("SELECT revision,journal FROM public.mixer_builds WHERE id=$1", [b.id]).rows ==
+             [[5, b.journal]]
+
+    stop_http_api!(port)
+  end
+
+  defp go_sign!(c, b) do
     start_supervised!({Repo, c.repo_opts ++ [username: @reader]})
     assert_login!(Repo, @reader)
     identity = %{c.identity | scopes: ["mixer.build.read"]}
@@ -213,19 +264,15 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
     plug = {SignerFixture, %{token: token, identity: identity}}
 
     listener =
-      start_supervised!({Bandit, plug: plug, ip: {127, 0, 0, 1}, port: 0, startup_log: false})
+      start_supervised!(
+        {Bandit, plug: plug, ip: {127, 0, 0, 1}, port: 0, startup_log: false},
+        id: SignerFixture
+      )
 
     {:ok, {{127, 0, 0, 1}, port}} = ThousandIsland.listener_info(listener)
     origin = "http://127.0.0.1:#{port}"
 
-    Application.put_env(:mixer_hosted, :native_development_attestation, %{
-      origin: origin,
-      public_spki_der: c.spki
-    })
-
-    session_path = Path.join(c.root, "session")
     key_path = Path.join(c.root, "test-key.pem")
-    write_private_file!(session_path, token <> "\n")
     der = Base.decode16!("302E020100300506032B657004220420") <> c.key
 
     write_private_file!(
@@ -233,16 +280,41 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
       :public_key.pem_encode([{:PrivateKeyInfo, der, :not_encrypted}])
     )
 
-    {output, 0} =
+    assert {output, 0} = go_attest(c, "sign", origin, key_path, token)
+    File.rm!(key_path)
+    stop_supervised!(SignerFixture)
+    stop_supervised!(Repo)
+
+    name = String.trim(output)
+    assert Path.basename(name) == name
+    path = Path.join(c.root, name)
+    signed = File.read!(path)
+
+    assert %{
+             "statement" => %{
+               "profile" => "mixer.native-build.ios-simulator.development.v2",
+               "provenance" => %{"workerOperationId" => operation}
+             }
+           } = Jason.decode!(signed)
+
+    assert operation == b.operation
+    {port, path, signed}
+  end
+
+  defp go_attest(c, command, origin, key_path, token) do
+    token_path = Path.join(c.root, "go-token")
+    write_private_file!(token_path, token <> "\n")
+
+    try do
       System.cmd(
         "/bin/sh",
         [
           "-c",
           ~s(input=$1; shift; exec "$@" < "$input"),
           "fixture",
-          session_path,
+          token_path,
           System.fetch_env!(@go_signer),
-          "sign",
+          command,
           "-origin",
           origin,
           "-selection",
@@ -254,22 +326,9 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
         ],
         stderr_to_stdout: true
       )
-
-    name = String.trim(output)
-    assert Path.basename(name) == name
-    signed = File.read!(Path.join(c.root, name))
-
-    assert %{
-             "statement" => %{
-               "profile" => "mixer.native-build.ios-simulator.development.v2",
-               "provenance" => %{"workerOperationId" => operation}
-             }
-           } = Jason.decode!(signed)
-
-    assert operation == b.operation
-    assert {:ok, :attached} = attach(c, signed)
-    assert {:ok, :duplicate} = attach(c, signed)
-    assert stored(b) == [[5, 2, b.operation, @binding, sha(c.spki), origin, signed]]
+    after
+      File.rm!(token_path)
+    end
   end
 
   @tag :ordinary_http
