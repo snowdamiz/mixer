@@ -1018,8 +1018,17 @@ offer and artifact. Its port refused connections after shutdown. A fresh
 process reopened the same store and served identical bytes, then delivered
 the signed sequence-2 correction. Each publication added one audit event
 and outbox row. Exact retries did not write. Both origin groups closed,
-the port was reusable, and scratch was removed. The installed app
-outage journey remains pending. [Host replay](verification/receipts/l08-android-release-outage-host-d89c742e9d.json)
+the port was reusable, and scratch was removed. [Host replay](verification/receipts/l08-android-release-outage-host-d89c742e9d.json)
+
+The installed API 36 app then activated the same sequence 1. With the
+Go origin stopped and its port refusing TCP, a fresh app process
+reopened the healthy cached release. The ordinary editor saved a note
+and a second cold launch read back the same bytes. The restarted origin
+served the known baseline and then sequence 2. The same install activated
+the correction and retained the note, outbox, and JPEG. All 174 commands
+closed. Both Go groups, private ADB, and the emulator retired. The reverse
+mapping was removed, the ports rebound, and the scratch was removed.
+[Installed outage receipt](verification/receipts/l08-android-installed-release-origin-outage-d89c742e.json)
 
 ## November 21 installed Android update refusals
 
