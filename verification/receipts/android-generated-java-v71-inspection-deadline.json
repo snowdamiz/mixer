@@ -1,0 +1,269 @@
+{
+  "schema": 1,
+  "status": "local-candidate-pass-hosted-verification-pending",
+  "observed_utc": "2026-11-21T03:05:01.996231+00:00",
+  "run": {
+    "id": 44855208723,
+    "job": 136695680624,
+    "attempt": 1,
+    "workflow": "Owned engine checks",
+    "job_key": "android-generated-java",
+    "revision": "5551f171ca6a02202e104f47444d662885aa8bd9",
+    "tree": "77caa7b929830a1eddfa92f8a5932cdb101a92eb",
+    "runs_on": "macos-26-intel",
+    "image": {
+      "ImageOS": "macos26",
+      "ImageVersion": "20260824.0517.1",
+      "RUNNER_ARCH": "X64",
+      "RUNNER_OS": "macOS"
+    },
+    "url": "https://github.com/snowdamiz/mixer/actions/runs/44855208723/job/136695680624"
+  },
+  "artifacts": [
+    {
+      "id": 14687938644,
+      "name": "generated-java-top-level-5551f171ca6a02202e104f47444d662885aa8bd9-44855208723-1",
+      "bytes": 49550,
+      "sha256": "4144cfd52c537cda8e02efb85afaacd65af57dc7524cfde7f4e7b2199c28ac0d"
+    },
+    {
+      "id": 14688436583,
+      "name": "generated-java-inspection-phases-5551f171ca6a02202e104f47444d662885aa8bd9-44855208723-1",
+      "bytes": 5634,
+      "sha256": "bd4844303028a222fa27b4d2e20d71d2a75ecc45fa835ba025618f38bf1ccf5a"
+    }
+  ],
+  "bootstrap_official_inspect_seconds_without_sidecar": 67.162,
+  "inspect_attempts": {
+    "integration_official_inspect": {
+      "pid": 36260,
+      "phase_file": "inspection-36260-2b33eace274541d0aa65e1e7497670cc.jsonl",
+      "progress_file": "inspection-progress-36260-2dfe7d7a04d94a4cb0309fb893dc15a5.jsonl",
+      "trees_completed": {
+        "swift_toolchain": {
+          "seconds": 23.83,
+          "cpu_seconds": 20.426,
+          "bytes_read": 4904356389,
+          "files_completed": 3400,
+          "read_calls": 10986,
+          "cache_hits": 46
+        },
+        "swift_android_sdk": {
+          "seconds": 26.377,
+          "cpu_seconds": 20.526,
+          "bytes_read": 3677205885,
+          "files_completed": 11572,
+          "read_calls": 26066,
+          "cache_hits": 35
+        },
+        "android_platform": {
+          "seconds": 15.08,
+          "cpu_seconds": 7.116,
+          "bytes_read": 125004498,
+          "files_completed": 11385,
+          "read_calls": 22829,
+          "cache_hits": 1
+        },
+        "android_build_tools": {
+          "seconds": 1.494,
+          "cpu_seconds": 1.204,
+          "bytes_read": 185731878,
+          "files_completed": 170,
+          "read_calls": 485,
+          "cache_hits": 5
+        },
+        "jdk": {
+          "seconds": 1.347,
+          "cpu_seconds": 1.037,
+          "bytes_read": 245165086,
+          "files_completed": 395,
+          "read_calls": 1004,
+          "cache_hits": 3
+        }
+      },
+      "last_phase": "distribution.hash.jdk",
+      "last_phase_state": "end",
+      "command_seconds": 69.358
+    },
+    "bundled_debug_create_inspect": {
+      "pid": 43610,
+      "phase_file": "inspection-43610-8985caf97e514623996cfc72bbf25e97.jsonl",
+      "progress_file": "inspection-progress-43610-4952f79d637e4886bf998713e79c4488.jsonl",
+      "trees_completed": {
+        "swift_toolchain": {
+          "seconds": 111.977,
+          "cpu_seconds": 48.795,
+          "bytes_read": 4904356389,
+          "files_completed": 3400,
+          "read_calls": 10986,
+          "cache_hits": 46
+        },
+        "swift_android_sdk": {
+          "seconds": 55.866,
+          "cpu_seconds": 25.548,
+          "bytes_read": 3677205885,
+          "files_completed": 11572,
+          "read_calls": 26066,
+          "cache_hits": 35
+        }
+      },
+      "last_phase": "distribution.hash.android_platform",
+      "last_phase_state": "begin",
+      "inner_runtime_to_cleanup_seconds": 180.004098,
+      "inner_exit": 9,
+      "inner_stop": "runtime-deadline",
+      "terminal_facts": {
+        "released": true,
+        "directChildReaped": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "ownedGroupAbsent": true,
+        "descriptorsClosed": true,
+        "terminalCustody": true
+      },
+      "group_kill_sent": true,
+      "outer_debug_create_seconds": 181.498,
+      "outer_debug_create_exit": 1
+    }
+  },
+  "cleanup_observed": {
+    "bootstrap_owned_removed": true,
+    "integration_scratch_retained": true,
+    "outer_and_inner_custody_terminal": true
+  },
+  "diagnosis": "The bundled invocation completed the same measured SHA-256 work for both Swift trees and entered Android platform hashing at the 180s inner deadline. The standalone invocation completed all five trees with matching bootstrap and integration inventories. This establishes a capacity mismatch for the strict scanner and the scoped deadline on the observed runner. The wall and CPU timings do not establish why the executor was slower or a regression in the hash path. The alarm fixture does not enter this diagnosis.",
+  "policy": {
+    "precedent": "4a4dd6ce5c introduced a separate finite policy for full Android inventory while leaving the 30s Swift version probe.",
+    "old_runtime_seconds": 180,
+    "runtime_seconds": 300,
+    "sizing": "Scale the standalone remainder (including probes and the three smaller trees) by the slower observed Swift tree wall-time ratio, then add the bundled time already spent on the two Swift trees. This is a sizing scenario, not a measured completion time or guaranteed bound.",
+    "sizing_scenario_seconds": 257.8,
+    "sizing_headroom_seconds": 42.2,
+    "version_seconds": 30,
+    "inner_cleanup_seconds": 60,
+    "inner_output_bytes": 67108864,
+    "integration_command_seconds": 600,
+    "integration_seconds": 2400,
+    "bootstrap_command_seconds": 300,
+    "bootstrap_seconds": 1200,
+    "workflow_step_minutes": 62,
+    "workflow_job_minutes": 70
+  },
+  "candidate": {
+    "base_revision": "7a9b6516b3504505ac157cafc55f57360c19c463",
+    "base_tree": "42741f22960b547dfeb65edae6382ecf882b100e",
+    "patch": "verification/local/v71-inspection-deadline/candidate.patch",
+    "bytes": 7934,
+    "sha256": "72b39a10493c965417d8ab75180992281eff02f7b2199a2435bd59b12c6cff37",
+    "changed_paths": {
+      "cli/Sources/MixerBuild/OwnedCommand.swift": {
+        "before": {
+          "bytes": 13101,
+          "sha256": "bf985b2d6eadb0cd9c96ae8b65d29c8012dc53dccc10c24d60caa9efbee38698"
+        },
+        "after": {
+          "bytes": 13194,
+          "sha256": "0f9f9e063936cc8e9a5d03069b09a5ebf3e913ab30be821987bb26e395bce1f9"
+        }
+      },
+      "scripts/ci/check-android-generated-java.py": {
+        "before": {
+          "bytes": 67782,
+          "sha256": "f5c9b03012faa3ef01ef7f623acbd80008fbfdb652da15f7176b695ff20c4e25"
+        },
+        "after": {
+          "bytes": 67782,
+          "sha256": "65698fc3b6dfa68901394fdc44656451446f652c2322916d492b241abbe0c004"
+        }
+      },
+      "cli/Tests/MixerBuildTests/AndroidInspectionPolicyReceiptTests.swift": {
+        "before": {
+          "bytes": 6196,
+          "sha256": "224984ae0d55de4f4809a89938b047d38a88027a12a09ed4dc542acfb8bf39be"
+        },
+        "after": {
+          "bytes": 6353,
+          "sha256": "eded99fbd0e24a10dd4582fff6574afa2d847f2451c529681eb0e3b2abc9a926"
+        }
+      },
+      "scripts/ci/tests/test_android_generated_java_runner.py": {
+        "before": {
+          "bytes": 81773,
+          "sha256": "27859916bc0b05d493eab215cbbf15cf82851aca1ecf744686a56ee89292e706"
+        },
+        "after": {
+          "bytes": 84560,
+          "sha256": "ac1a38e4e6738ad41e1933728e565ad95960e5011e76809b465304a5da25b1eb"
+        }
+      }
+    },
+    "matched_observed_sources": {
+      "cli/Sources/MixerBuild/OwnedCommand.swift": {
+        "bytes": 13101,
+        "sha256": "bf985b2d6eadb0cd9c96ae8b65d29c8012dc53dccc10c24d60caa9efbee38698"
+      },
+      "cli/Sources/MixerBuild/AndroidProject.swift": {
+        "bytes": 24617,
+        "sha256": "d2a83ecf49d24ef43d663b926b15ebd7af1300948f0a7e950a5f3dc2ef471eb6"
+      },
+      "cli/Sources/MixerBuild/Resources/android-build.py": {
+        "bytes": 87595,
+        "sha256": "2e162fe2c557d7352050f8d096121570181e5a1952820c09479346ac86fb7236"
+      },
+      "scripts/ci/check-android-generated-java.py": {
+        "bytes": 67782,
+        "sha256": "f5c9b03012faa3ef01ef7f623acbd80008fbfdb652da15f7176b695ff20c4e25"
+      },
+      "verification/plan-continuation-2026-11-07/generated-java-ci-integration/bootstrap.py": {
+        "bytes": 22932,
+        "sha256": "353562d46a194b62140e7014140a3f5fa0390f485f0e55cd60ee77dcc0e352f5"
+      }
+    },
+    "workflow_preimage": {
+      "5551f171ca6a02202e104f47444d662885aa8bd9": {
+        "bytes": 81101,
+        "sha256": "7c15b373d305db321441fd24bf4ac440b3deeb657cab362ad798d703ad8f21b5"
+      },
+      "7a9b6516b3504505ac157cafc55f57360c19c463": {
+        "bytes": 81343,
+        "sha256": "50fcbbfc40e11515a2fa49e0279b8fcc160f8949b4e84efddcd8fdab4992f0c9"
+      }
+    },
+    "source_bindings_root_owned": {
+      "predecessor_count": 153,
+      "before": "94579736cbdf9205800b3fa8290bbf46899f679d556a9ea84edcf6ac9a380676",
+      "after_candidate_only": "2a9d99e0dea712c70d7be383958e67cd040577565c847861b89c0fc598ba4fcd",
+      "source_rows_changed": [
+        "cli/Sources/MixerBuild/OwnedCommand.swift",
+        "scripts/ci/check-android-generated-java.py"
+      ],
+      "additional_archive_installed_row": "cli/Tests/MixerBuildTests/AndroidInspectionPolicyReceiptTests.swift",
+      "composition": "Append a transition after hosted v72. Retain old source, runner and test preimages and historical inverse checks. Advance the current manifest, installed rows and seal. Update sparse assertions that equate the current digest with stock promotion. The added Python test is outside the current source manifest."
+    }
+  },
+  "verification": {
+    "environment": {
+      "host": "Darwin arm64",
+      "swift": "Apple Swift 6.4.2",
+      "python": "3.14.8"
+    },
+    "swift": {
+      "command": "swift test --package-path cli --force-resolved-versions -j 6 --filter AndroidInspectionPolicyReceiptTests",
+      "result": "4 passed; 250s simulated success, deadline at simulated 300s, output-limit and UNKNOWN custody controls"
+    },
+    "python": {
+      "command": "python3 -I -B -S scripts/ci/tests/test_android_generated_java_runner.py InspectionReceiptPolicyControls -v",
+      "result": "Preimage refused the new policy. Candidate passed in normal and -O modes and refused the old full inspection policy and an extended version policy."
+    },
+    "digest": {
+      "command": "python3 -I -B -S scripts/ci/tests/test_android_inspection_digests.py -v",
+      "result": "32 passed in each of normal and -O modes."
+    },
+    "patch": "Forward applied to an independent exact-base source extraction and all four bytes compared to the tested candidate."
+  },
+  "root_workflow_path": {
+    "compose_first": "Run source141 archive verify --workflow-installed and generated-java-ci-integration/test_sparse_checkout.py, both normal and -O, after rebinding.",
+    "then": "Inspect one fresh run for the composed SHA in Owned engine checks / android-generated-java. Preserve top-level and terminal phase artifacts. Require both create inspections with the exact new policy, all six original/relocated/exported consumers, digest equality, and final terminal cleanup. Use fresh job resources."
+  },
+  "scope": "Local host regression and source candidate only. No device traffic, GitHub mutation, push, rerun, hold access, or generated Java matrix pass."
+}

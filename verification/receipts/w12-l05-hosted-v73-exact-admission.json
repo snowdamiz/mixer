@@ -1,0 +1,679 @@
+{
+  "schema": 1,
+  "status": "local-source-and-archive-admission-pass-hosted-ci-pending",
+  "observed_utc": "2026-11-21T03:15:36.969163+00:00",
+  "commits": {
+    "public_v72": "7a9b6516b3504505ac157cafc55f57360c19c463",
+    "hosted_product": "2d47fcaea5887fa1e003fe3124a7f783973477c8",
+    "android_product": "b94abfdc1463bf7e652302ba5d1fe83efb2f0863",
+    "binding": "a7639fc0234fb03fdda9a066b8182980ad5337a9",
+    "binding_tree": "4a6e1340837cdd0a5ede5d67940fb05e2973ec18"
+  },
+  "tools": {
+    "host": "Darwin arm64",
+    "git": "2.56.0",
+    "python": "3.13.16",
+    "python_modes": {
+      "normal": "-I -B -S",
+      "optimized": "-I -B -S -O"
+    }
+  },
+  "hosted_v73": {
+    "identity": "hosted-retained-native-attestation-test-scratch-source-v73",
+    "source": {
+      "manifest": {
+        "bytes": 84439,
+        "path": "selected-source-manifest.json",
+        "sha256": "784d02c4b3748fe932d11e87f1aab0c96d8c39fb770086f6bf72dc1ada7dd75a"
+      },
+      "source_count": 504,
+      "source_digest_sha256": "135bb8705082da140b1eeb63d735e94cbb26d27754a8f14719e022bee9546b07"
+    },
+    "selection_sha256": "83b0397baf3b2d09ade391882b1493fd3c7536f0c5138b6464eb3cb1f2b4f394",
+    "exact_delta": {
+      "hosted/test/mixer_hosted/builds/retained_native_attestation_test.exs": {
+        "after": {
+          "bytes": 10944,
+          "sha256": "bc20fb671c0c55e108ac14ebd6390856e8e505da0114219ba7749858679842d1"
+        },
+        "before": {
+          "bytes": 10681,
+          "sha256": "25b2735115071780b6e3e173e4772fd4be2db04ca4648e6bfb3c1cf42b98025b"
+        }
+      }
+    },
+    "runtime_or_GA_accepted": false
+  },
+  "root_maintained_runner": {
+    "provenance": "Root supplied the paired local observations.",
+    "v72_hosted_ci": {
+      "run": 44857447545,
+      "job": 136702851346,
+      "passed": 1021,
+      "skipped": 25,
+      "outcome": "test-local.py rejected the changed source manifest."
+    },
+    "command_from_hosted": "python3 -I -B -S scripts/test-local.py --pg-bin /opt/homebrew/opt/postgresql@17/bin --output <owned> --only-additional-tests --additional-test test/mixer_hosted/builds/retained_native_attestation_test.exs --test-timeout 80",
+    "same_source_image_with_original_exunit_tmp_dir": {
+      "passed": 7,
+      "manifest_error": "source changed during tests",
+      "scratch": "Seven ExUnit scratch paths populated the expected test module directory under hosted/tmp."
+    },
+    "exact_root_fix": {
+      "passed": 7,
+      "manifest_check": "passed",
+      "hosted_tmp_present": false,
+      "source_tree_sha256": "04306e32c410e4308f46057c95d545c6077fa64c0861c6b82a343deb50c037bd"
+    },
+    "cleanup": "Both PostgreSQL setups stopped and root removed owned scratch."
+  },
+  "installed_archive": {
+    "source": {
+      "count": 153,
+      "manifest": "current-source-inputs.json",
+      "sha256": "2a9d99e0dea712c70d7be383958e67cd040577565c847861b89c0fc598ba4fcd"
+    },
+    "sealed_members": 207,
+    "seal_tree_sha256": "fada3245758140beb488e82f21ec2cbf5c0a9b1643d0b84078eaeed2369cad12",
+    "v72_manifest_sha256": "fbecef6c00517916fca14c661deb665fbfa5d771d3ac6f183f1ab34a81d7b61e",
+    "preserved_paths": {
+      "hosted_v73_transition": [
+        ".github/workflows/hosted.yml",
+        ".github/workflows/identity-network.yml",
+        ".github/workflows/verify.yml",
+        "verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py"
+      ],
+      "android_inspection_deadline_transition": [
+        "cli/Sources/MixerBuild/OwnedCommand.swift",
+        "cli/Tests/MixerBuildTests/AndroidInspectionPolicyReceiptTests.swift",
+        "scripts/ci/check-android-generated-java.py",
+        "scripts/ci/tests/test_android_generated_java_runner.py"
+      ]
+    }
+  },
+  "android_supplied_patch": {
+    "sha256": "72b39a10493c965417d8ab75180992281eff02f7b2199a2435bd59b12c6cff37",
+    "receipt": "verification/receipts/android-generated-java-v71-inspection-deadline.json",
+    "receipt_sha256": "2c031caadcfbdbbf0a30ab96cda8b1bc717bad31e0c29a7bcddda43b64bf9405",
+    "swift_evidence": "The supplied receipt records four passing focused Swift tests on the exact patch bytes.",
+    "sparse": "Existing paths include the two changed test files in both CLI projections.",
+    "old_checker_refusal": {
+      "normal": {
+        "command": "python3.13 -I -B -S scripts/ci/tests/test_android_generated_java_runner.py InspectionReceiptPolicyControls -v",
+        "exit": 1,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "9490e8e49b31cb9097e211a11cc639818b5296fc0071fe0f1fee37d7d9d46e2e",
+        "expected_error": "Wrong typed inner policy"
+      },
+      "optimized": {
+        "command": "python3.13 -I -B -S -O scripts/ci/tests/test_android_generated_java_runner.py InspectionReceiptPolicyControls -v",
+        "exit": 1,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "672af408837dd76751b7b7c15feb65602532479bd3ce41c5ceda6ae2b2a32452",
+        "expected_error": "Wrong typed inner policy"
+      }
+    }
+  },
+  "projection_method": "Applied the exact non-cone rules from each workflow with Git. Compared physical paths, modes, and blob IDs with the selected index. The three hosted projections retained the same rules and excluded all three paths changed in the corrected binding.",
+  "projection_commands": {
+    "hosted": "hosted/scripts/test-identity-network.py --check-source",
+    "collector_identity_network": "hosted/scripts/test_identity_network_collector.py -v WorkflowSparseSourceControls WorkspaceSourceCutoverControls FormatAmendmentControls CatalogJoinSourceControls PendingSessionV28Controls.test_current_source_check_rejects_each_corruption_without_touching_originals BillingReconciliationV29Controls.test_current_source_checks_corrupt_full16_before_dispatch BillingReconciliationV29Controls.test_collector_admits_workspace_then_refuses_v29_metadata_before_docker",
+    "collector_services": "hosted/scripts/test_identity_network_collector.py -v WorkflowSparseSourceControls",
+    "installed": "verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+    "android_policy": "scripts/ci/tests/test_android_generated_java_runner.py InspectionReceiptPolicyControls -v",
+    "android_progress": "cli/build-tests/test_android_inspection_progress.py -v",
+    "release_routes": "cli/release-tools/generate_release_rest_v3.py --check --check-router",
+    "android_sparse": "verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v",
+    "android_bootstrap": "verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py -v",
+    "android_inspection_digests": "scripts/ci/tests/test_android_inspection_digests.py -v"
+  },
+  "projections": {
+    "phoenix": {
+      "files": 1102,
+      "skip_worktree": 53211,
+      "rules": 277,
+      "rules_sha256": "e9be398491d2c258e3db9d4e8e364cf3c3454362d6d1d1a1523ec0f3fbf5845e",
+      "path_mode_blob_sha256": "643380ecf8b2e12f8e066debb8f1f73138d5c21ac8270798e4533ab62eda72e3",
+      "workflow": "hosted.yml",
+      "modes": {
+        "normal": {
+          "hosted": {
+            "exit": 0,
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stdout_sha256": "59e89993496d51c2072f8c629d235b625a47ea776687545f8fea38ef53b4edd5"
+          }
+        },
+        "optimized": {
+          "hosted": {
+            "exit": 0,
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stdout_sha256": "59e89993496d51c2072f8c629d235b625a47ea776687545f8fea38ef53b4edd5"
+          }
+        }
+      }
+    },
+    "identity-network": {
+      "files": 1283,
+      "skip_worktree": 53030,
+      "rules": 282,
+      "rules_sha256": "868d98faf2b8635cb3475cbe21b08fd28314dc18723f9fccdb3367a07c52a7c9",
+      "path_mode_blob_sha256": "c3ff7088aed4efc4668a7a310ccf1ce6518872226d717796dde9c7f847285953",
+      "workflow": "identity-network.yml",
+      "modes": {
+        "normal": {
+          "collector": {
+            "exit": 0,
+            "passed": 22,
+            "stderr_sha256": "01ba189f1522656027896bc73f6156129424e616464dec567a016d288322c3b3",
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "hosted": {
+            "exit": 0,
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stdout_sha256": "59e89993496d51c2072f8c629d235b625a47ea776687545f8fea38ef53b4edd5"
+          }
+        },
+        "optimized": {
+          "collector": {
+            "exit": 0,
+            "passed": 22,
+            "stderr_sha256": "877780acc2fe81322eb3bb42b40a03937d2b4c37615caf147dde5fd06ec4d156",
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "hosted": {
+            "exit": 0,
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stdout_sha256": "59e89993496d51c2072f8c629d235b625a47ea776687545f8fea38ef53b4edd5"
+          }
+        }
+      }
+    },
+    "services": {
+      "files": 1449,
+      "skip_worktree": 52864,
+      "rules": 282,
+      "rules_sha256": "4c054ff0d5fdf3db9e1516ef1712aebde9aeb878317688bfd3382a96ffb91d98",
+      "path_mode_blob_sha256": "30e57f965abcbe52b0e2c7b69a2da674300f8f071fcbee404086f603a17a7f38",
+      "workflow": "verify.yml",
+      "modes": {
+        "normal": {
+          "collector": {
+            "exit": 0,
+            "passed": 8,
+            "stderr_sha256": "4f691be7071a7a79f50c09f24e4a9e53a913cff07cbfaf418cdcdc1dc028323a",
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "hosted": {
+            "exit": 0,
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stdout_sha256": "59e89993496d51c2072f8c629d235b625a47ea776687545f8fea38ef53b4edd5"
+          }
+        },
+        "optimized": {
+          "collector": {
+            "exit": 0,
+            "passed": 8,
+            "stderr_sha256": "134fc0bfce8ca924f8d1420694db735bc6488600daa0f9a3513b7cae9721bc52",
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "hosted": {
+            "exit": 0,
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stdout_sha256": "59e89993496d51c2072f8c629d235b625a47ea776687545f8fea38ef53b4edd5"
+          }
+        }
+      }
+    },
+    "swift-host": {
+      "files": 6506,
+      "skip_worktree": 47807,
+      "rules": 45,
+      "rules_sha256": "cbf16b85647117dd2c7edb0e40f55801078bbb0c44722313ad80bb5badf59bf1",
+      "path_mode_blob_sha256": "57c3560d79dc12a72541bfcbd0ee1e830acfddaad8efeba278eec53252a5a5ce",
+      "workflow": "verify.yml",
+      "modes": {
+        "normal": {
+          "installed": {
+            "exit": 0,
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stdout_sha256": "eb55a13c2dd09dd7b8af35c9bc3b3f40cb7b5625ba3d2a7c8ca72ac7cf063d7b"
+          },
+          "policy": {
+            "exit": 0,
+            "passed": 1,
+            "stderr_sha256": "ed25e7d5a0b199827bfe5025355c10ee03a9dc98cfda9cfbf5dc7c29d3426fb3",
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "progress": {
+            "exit": 0,
+            "passed": 12,
+            "stderr_sha256": "1a717b7dbf3c31a6eb71b5e3ab5420b7a5651b084b2bfb8632c0eee47d45b69b",
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "routes": {
+            "exit": 0,
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stdout_sha256": "1895633553eacae21c55b0a331eeca9ed16207c2834c089ed76861de5a4621a0"
+          }
+        },
+        "optimized": {
+          "installed": {
+            "exit": 0,
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stdout_sha256": "eb55a13c2dd09dd7b8af35c9bc3b3f40cb7b5625ba3d2a7c8ca72ac7cf063d7b"
+          },
+          "policy": {
+            "exit": 0,
+            "passed": 1,
+            "stderr_sha256": "5a61ba9669f47676e4c33c7ad8be40341e8e2fcc2e88acc826c01d9771304cb3",
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "progress": {
+            "exit": 0,
+            "passed": 12,
+            "stderr_sha256": "cc171f987968ba6a969050903900838bb39b7c0650608140aaa8f250a06f3f64",
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "routes": {
+            "exit": 0,
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stdout_sha256": "1895633553eacae21c55b0a331eeca9ed16207c2834c089ed76861de5a4621a0"
+          }
+        }
+      }
+    },
+    "android-generated-java": {
+      "files": 1326,
+      "skip_worktree": 52987,
+      "rules": 32,
+      "rules_sha256": "8f6fd75d457540dc4463f36a4d313be7af22a55512eb2babddf2c544b877da47",
+      "path_mode_blob_sha256": "54e0f726d96a214b37bafa381cff26014b73eae9a43131aa02137592de1ca020",
+      "workflow": "verify.yml",
+      "modes": {
+        "normal": {
+          "installed": {
+            "exit": 0,
+            "stdout_sha256": "eb55a13c2dd09dd7b8af35c9bc3b3f40cb7b5625ba3d2a7c8ca72ac7cf063d7b",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "android_policy": {
+            "exit": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "bf0219748c19a768ebcf4c7262b5f667314a2296104408c198260ca36a7b50a4",
+            "passed": 1
+          },
+          "android_progress": {
+            "exit": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "dc4619b0d389b77e61dd7ef7f9254260927a2a85ea4a0632a8ed0a8d72c31908",
+            "passed": 12
+          },
+          "android_sparse": {
+            "exit": 0,
+            "stdout_sha256": "c462271e2124186844a47d5b4109258c9fd0114ac38d2b52680fd886906e684c",
+            "stderr_sha256": "8a1b9e1a0e224d17de26ef2f229e52c64d1f44994fe89609aa2325d44d90b329",
+            "passed": 16
+          },
+          "android_bootstrap": {
+            "exit": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "2a2cf148635c9b0af8588eb800708acb0440c0d3a215b5b7377b1733f9d3aa62",
+            "passed": 45
+          },
+          "android_inspection_digests": {
+            "exit": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "30056a75526986335ecb4d4b7ea4bbf8477f353459f293df9a926140eddf801e",
+            "passed": 32
+          }
+        },
+        "optimized": {
+          "installed": {
+            "exit": 0,
+            "stdout_sha256": "eb55a13c2dd09dd7b8af35c9bc3b3f40cb7b5625ba3d2a7c8ca72ac7cf063d7b",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "android_policy": {
+            "exit": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "ed25e7d5a0b199827bfe5025355c10ee03a9dc98cfda9cfbf5dc7c29d3426fb3",
+            "passed": 1
+          },
+          "android_progress": {
+            "exit": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "282f997b352aed5dc3f1adf8bd1cbf71ed8a714fd9a9e4e27a48edb9a15ec0b9",
+            "passed": 12
+          },
+          "android_sparse": {
+            "exit": 0,
+            "stdout_sha256": "c462271e2124186844a47d5b4109258c9fd0114ac38d2b52680fd886906e684c",
+            "stderr_sha256": "bb67c1a354f9ee00e9c81c8ecb5fbc283d4b22a66aa8c68eded1c3e14f14323a",
+            "passed": 16
+          },
+          "android_bootstrap": {
+            "exit": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "a727ae369ba67c45120f615491ba3d0259d60e0eaa1e1639098fe3cb0025a9cd",
+            "passed": 45
+          },
+          "android_inspection_digests": {
+            "exit": 0,
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "6311d0c201ed341992243a429755c81b90a5136e8ed455bbad254e98628410ba",
+            "passed": 32
+          }
+        }
+      }
+    }
+  },
+  "historical": {
+    "preserved_git_trees": {
+      "verification/identity-network-current-source-v71": "040000 tree b5c38d47f1cf6c84dfa8929e848457f71d12301b",
+      "verification/identity-network-current-source-v72": "040000 tree 4e5b8128bdfc59ae27f170824c1de890da08acf3",
+      "verification/native-report-source141-archive-v1/hosted-v71-predecessor-bytes": "040000 tree db3cb9893e707b784959b85e98d35210b4a130bd",
+      "verification/native-report-source141-archive-v1/hosted-v72-predecessor-bytes": "040000 tree 96bf6dc1533774cf3b535193d84fb4251deb1d82"
+    },
+    "v72_v71": {
+      "cli": {
+        "71": {
+          "inverse_owning_paths": [
+            ".github/workflows/verify.yml",
+            "verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py"
+          ],
+          "modes": {
+            "normal": {
+              "admission": {
+                "source_count": 153,
+                "source_sha256": "94579736cbdf9205800b3fa8290bbf46899f679d556a9ea84edcf6ac9a380676"
+              },
+              "command": "python3.13 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+              "exit": 0,
+              "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "stdout_sha256": "d9acbb72df6dbf0fad49976b89086d092af3557b7495f0240f9d56f339588291"
+            },
+            "optimized": {
+              "admission": {
+                "source_count": 153,
+                "source_sha256": "94579736cbdf9205800b3fa8290bbf46899f679d556a9ea84edcf6ac9a380676"
+              },
+              "command": "python3.13 -I -B -S -O verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+              "exit": 0,
+              "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "stdout_sha256": "d9acbb72df6dbf0fad49976b89086d092af3557b7495f0240f9d56f339588291"
+            }
+          },
+          "revision": "5551f171ca6a02202e104f47444d662885aa8bd9",
+          "seal_file_sha256": "24dac67cfbb4b0a9a918071ab8ae4023debc55bfb7b545e51724c112822cdd8b"
+        },
+        "72": {
+          "inverse_owning_paths": [
+            ".github/workflows/hosted.yml",
+            ".github/workflows/identity-network.yml",
+            ".github/workflows/verify.yml",
+            "cli/Sources/MixerBuild/OwnedCommand.swift",
+            "cli/Tests/MixerBuildTests/AndroidInspectionPolicyReceiptTests.swift",
+            "scripts/ci/check-android-generated-java.py",
+            "scripts/ci/tests/test_android_generated_java_runner.py",
+            "verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py"
+          ],
+          "modes": {
+            "normal": {
+              "admission": {
+                "source_count": 153,
+                "source_sha256": "94579736cbdf9205800b3fa8290bbf46899f679d556a9ea84edcf6ac9a380676"
+              },
+              "command": "python3.13 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+              "exit": 0,
+              "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "stdout_sha256": "d9acbb72df6dbf0fad49976b89086d092af3557b7495f0240f9d56f339588291"
+            },
+            "optimized": {
+              "admission": {
+                "source_count": 153,
+                "source_sha256": "94579736cbdf9205800b3fa8290bbf46899f679d556a9ea84edcf6ac9a380676"
+              },
+              "command": "python3.13 -I -B -S -O verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+              "exit": 0,
+              "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "stdout_sha256": "d9acbb72df6dbf0fad49976b89086d092af3557b7495f0240f9d56f339588291"
+            }
+          },
+          "revision": "7a9b6516b3504505ac157cafc55f57360c19c463",
+          "seal_file_sha256": "330b7281441b0c3cdc23bdec9ea3c88254c2d7a7fbbdb63ea7838fee70b9b088"
+        }
+      },
+      "hosted": {
+        "71": {
+          "files": 496,
+          "modes": {
+            "normal": {
+              "admission": {
+                "identity": "hosted-stage-direction-id-source-v71",
+                "runtime_or_GA_accepted": false,
+                "selection_sha256": "c15ae59ad58f94fce2d30b9d147ddc66a42125d23be093c8d5af659e85650645",
+                "source_count": 496,
+                "source_digest_sha256": "7eb285f7a5a4b3961b438fad209a945ff9cf2c0a2ffdefd90d20834a72de5f69"
+              },
+              "command": "python3.13 -I -B -S hosted/scripts/test-identity-network.py --check-source",
+              "exit": 0,
+              "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "stdout_sha256": "41d51d2e76bcf6dc2e5209df4c9c71150cdfd32f7817bd979fcc917711eb188c"
+            },
+            "optimized": {
+              "admission": {
+                "identity": "hosted-stage-direction-id-source-v71",
+                "runtime_or_GA_accepted": false,
+                "selection_sha256": "c15ae59ad58f94fce2d30b9d147ddc66a42125d23be093c8d5af659e85650645",
+                "source_count": 496,
+                "source_digest_sha256": "7eb285f7a5a4b3961b438fad209a945ff9cf2c0a2ffdefd90d20834a72de5f69"
+              },
+              "command": "python3.13 -I -B -S -O hosted/scripts/test-identity-network.py --check-source",
+              "exit": 0,
+              "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "stdout_sha256": "41d51d2e76bcf6dc2e5209df4c9c71150cdfd32f7817bd979fcc917711eb188c"
+            }
+          },
+          "revision": "5551f171ca6a02202e104f47444d662885aa8bd9"
+        },
+        "72": {
+          "files": 504,
+          "modes": {
+            "normal": {
+              "admission": {
+                "identity": "hosted-local-ios-simulator-development-attestation-source-v72",
+                "runtime_or_GA_accepted": false,
+                "selection_sha256": "d37601208680fca14efa420a737fa0edb4e8f0d6a1d3c72d8c6629577d50088d",
+                "source_count": 504,
+                "source_digest_sha256": "b91c6995ab2f45a90921b06711941a5a9e9775c9bc9e7d73d460126a11dc9612"
+              },
+              "command": "python3.13 -I -B -S hosted/scripts/test-identity-network.py --check-source",
+              "exit": 0,
+              "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "stdout_sha256": "c15a3b7034fa212c403990539a3b84f67134762a8b4ffbe7779332be5c319822"
+            },
+            "optimized": {
+              "admission": {
+                "identity": "hosted-local-ios-simulator-development-attestation-source-v72",
+                "runtime_or_GA_accepted": false,
+                "selection_sha256": "d37601208680fca14efa420a737fa0edb4e8f0d6a1d3c72d8c6629577d50088d",
+                "source_count": 504,
+                "source_digest_sha256": "b91c6995ab2f45a90921b06711941a5a9e9775c9bc9e7d73d460126a11dc9612"
+              },
+              "command": "python3.13 -I -B -S -O hosted/scripts/test-identity-network.py --check-source",
+              "exit": 0,
+              "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "stdout_sha256": "c15a3b7034fa212c403990539a3b84f67134762a8b4ffbe7779332be5c319822"
+            }
+          },
+          "revision": "7a9b6516b3504505ac157cafc55f57360c19c463"
+        }
+      }
+    },
+    "source141_source127": {
+      "final-restored-source127-normal": {
+        "controls": {
+          "command": "python3.13 -I -B -S verification/native-report-source127-v1/test_source127.py -v",
+          "exit": 0,
+          "passed": 20,
+          "stderr_sha256": "73f9bcdb560dd387c97efd9c7ba0dba5b43e1997b1a19e1c6ad02cc8e8062f2e",
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "prepare": {
+          "command": "python3.13 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py prepare-predecessor --out <owned>/final-restored-source127-normal",
+          "exit": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_sha256": "73ecaefddd2135e19bbdcbba9ba6a3ff976a419d239ea960bf2fecfdf6dbd656"
+        },
+        "verify": {
+          "command": "python3.13 -I -B -S verification/native-report-source127-v1/adopt_envelope.py verify --workflow-installed",
+          "exit": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_sha256": "0cb67b2e09ed90b78498eefb0d9735d1b5425dd8d711f4b5072b00a914002519"
+        }
+      },
+      "final-restored-source127-optimized": {
+        "controls": {
+          "command": "python3.13 -I -B -S -O verification/native-report-source127-v1/test_source127.py -v",
+          "exit": 0,
+          "passed": 20,
+          "stderr_sha256": "ecae1ff7e8dbb69e6668127d17ea757e3e1cb8a80fbf27775f1aeb9eec5e5811",
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "prepare": {
+          "command": "python3.13 -I -B -S -O verification/native-report-source141-archive-v1/adopt_archive.py prepare-predecessor --out <owned>/final-restored-source127-optimized",
+          "exit": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_sha256": "63a04f42a0aeb6b020f2b39f9db0606e2ebd285f10fbb4893247f74965632184"
+        },
+        "verify": {
+          "command": "python3.13 -I -B -S -O verification/native-report-source127-v1/adopt_envelope.py verify --workflow-installed",
+          "exit": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_sha256": "0cb67b2e09ed90b78498eefb0d9735d1b5425dd8d711f4b5072b00a914002519"
+        }
+      },
+      "final-restored-source141-normal": {
+        "controls": {
+          "command": "python3.13 -I -B -S verification/sdk-feature-ui-source141-v1/test_source141.py -v",
+          "exit": 0,
+          "passed": 3,
+          "stderr_sha256": "9b225d238f44b5c141b70efa0daa5f8661dccaa0dc9334c65219e473d6196c63",
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "prepare": {
+          "command": "python3.13 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py prepare-source141 --out <owned>/final-restored-source141-normal",
+          "exit": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_sha256": "0c3199e01248e4ab59e643a6424b2109785001a78b3e65c40377a59a23eda98e"
+        },
+        "verify": {
+          "command": "python3.13 -I -B -S verification/sdk-feature-ui-source141-v1/adopt_sdk.py verify",
+          "exit": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_sha256": "a4ec769dd76cb68de04a24d86247d41fa408683afc536e4e01ff7443ebcc5e4e"
+        }
+      },
+      "final-restored-source141-optimized": {
+        "controls": {
+          "command": "python3.13 -I -B -S -O verification/sdk-feature-ui-source141-v1/test_source141.py -v",
+          "exit": 0,
+          "passed": 3,
+          "stderr_sha256": "373f7fec440266edc3ee04b7ea86b521044470bf59bb5f70f49cb0e972fcea72",
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "prepare": {
+          "command": "python3.13 -I -B -S -O verification/native-report-source141-archive-v1/adopt_archive.py prepare-source141 --out <owned>/final-restored-source141-optimized",
+          "exit": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_sha256": "3eb4e478296b17baf6033b7ad33fec442a00ed4b79249f20463fd2294f611008"
+        },
+        "verify": {
+          "command": "python3.13 -I -B -S -O verification/sdk-feature-ui-source141-v1/adopt_sdk.py verify",
+          "exit": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_sha256": "a4ec769dd76cb68de04a24d86247d41fa408683afc536e4e01ff7443ebcc5e4e"
+        }
+      }
+    },
+    "method": "Compared each inverse path from sealed predecessor bytes against the pinned Git blob and mode. Ran original v72 and v71 verifiers in their exact sparse checkouts. Rebuilt fresh Source141 and Source127 predecessor directories and ran their original verifiers and tests."
+  },
+  "refusals": {
+    "hosted": {
+      "paths": [
+        "hosted/test/mixer_hosted/builds/retained_native_attestation_test.exs",
+        "verification/identity-network-current-source-v73/preimages/hosted/test/mixer_hosted/builds/retained_native_attestation_test.exs",
+        "verification/identity-network-current-source-v72/preimages/hosted/lib/mixer_hosted/authorization/policy.ex",
+        "verification/identity-network-current-source-v71/preimages/hosted/lib/mixer_hosted/releases/environment_promotion/direction.ex"
+      ],
+      "cases": 16,
+      "observations_sha256": "7e4fc2fd886124150c8bb1dede095a2f1f33e71a6957fb08fc317a3ba3be08d2",
+      "restored": {
+        "command": "python3.13 -I -B -S hosted/scripts/test-identity-network.py --check-source",
+        "exit": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "59e89993496d51c2072f8c629d235b625a47ea776687545f8fea38ef53b4edd5"
+      }
+    },
+    "cli": {
+      "paths": [
+        ".github/workflows/hosted.yml",
+        "verification/native-report-source141-archive-v1/hosted-v73-predecessor-bytes/.github/workflows/hosted.yml",
+        ".github/workflows/identity-network.yml",
+        "verification/native-report-source141-archive-v1/hosted-v73-predecessor-bytes/.github/workflows/identity-network.yml",
+        ".github/workflows/verify.yml",
+        "verification/native-report-source141-archive-v1/hosted-v73-predecessor-bytes/.github/workflows/verify.yml",
+        "verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py",
+        "verification/native-report-source141-archive-v1/hosted-v73-predecessor-bytes/verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py",
+        "cli/Sources/MixerBuild/OwnedCommand.swift",
+        "verification/native-report-source141-archive-v1/android-inspection-deadline-predecessor-bytes/cli/Sources/MixerBuild/OwnedCommand.swift",
+        "cli/Tests/MixerBuildTests/AndroidInspectionPolicyReceiptTests.swift",
+        "verification/native-report-source141-archive-v1/android-inspection-deadline-predecessor-bytes/cli/Tests/MixerBuildTests/AndroidInspectionPolicyReceiptTests.swift",
+        "scripts/ci/check-android-generated-java.py",
+        "verification/native-report-source141-archive-v1/android-inspection-deadline-predecessor-bytes/scripts/ci/check-android-generated-java.py",
+        "scripts/ci/tests/test_android_generated_java_runner.py",
+        "verification/native-report-source141-archive-v1/android-inspection-deadline-predecessor-bytes/scripts/ci/tests/test_android_generated_java_runner.py"
+      ],
+      "cases": 64,
+      "observations_sha256": "20984d3b679de33759b7581bba338807806303db99eec6e6616ffce9ccceb774",
+      "restored": {
+        "normal": {
+          "command": "python3.13 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+          "exit": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_sha256": "eb55a13c2dd09dd7b8af35c9bc3b3f40cb7b5625ba3d2a7c8ca72ac7cf063d7b"
+        },
+        "optimized": {
+          "command": "python3.13 -I -B -S -O verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+          "exit": 0,
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_sha256": "eb55a13c2dd09dd7b8af35c9bc3b3f40cb7b5625ba3d2a7c8ca72ac7cf063d7b"
+        }
+      }
+    },
+    "method": "Changed fixture bytes and executable modes one at a time in owned sparse worktrees. Both Python modes refused each change and admitted the restored checkout."
+  },
+  "recovered_checks": [
+    {
+      "observation": "The first Android sparse suite compared the live source digest to the stock-promotion digest. The corrected test verifies the Android transition and passed all 16 cases in both modes.",
+      "failed_stderr_sha256": "5d69e4a92b555a6e84349aa92e0fd4b6bc3be40a95da38231fc28dd2e56c5f2a"
+    },
+    {
+      "observation": "The final archive correctly refused an existing restore directory. A fresh output directory passed.",
+      "refusal_summary_sha256": "d539c734797e9e3d86141c3548484f9bd92ad02cb0325214ce16bed34c25b10c"
+    },
+    {
+      "observation": "An earlier archive check reported the changed Verify workflow mode before the new check. The corrected control checked that the verifier refused each mode change and named the changed path.",
+      "refusal_stderr_sha256": "9189d9fc659ed2f434d16ca97bdfeba10245b927d33ad12f0e05e0bea90427cc"
+    }
+  ],
+  "pending_root_ci": [
+    "Phoenix on the combined target revision, including final source-manifest equality and cleanup.",
+    "Identity network and Services hosted jobs on the combined target revision.",
+    "Swift host hosted suite and macOS Intel Android generated Java six-consumer integration on the combined target revision."
+  ],
+  "cleanup": {
+    "detached_sparse_test_worktrees_removed": 11,
+    "restore_directories_logs_and_binding_worktree": "Owned temporary paths scheduled for removal after this receipt is committed."
+  }
+}
