@@ -1177,6 +1177,15 @@ advanced the revision once. Camera cancellation and queue readback
 worked after dismissal. Both owned attempts removed scratch.
 [Installed map and exact source delta](verification/receipts/fieldlog-android-site-map-pair25-87c95c5a-installed.json)
 
+A separate replay on the same APK cancelled at 65,536 bytes, resumed
+and reconciled the lost acknowledgment. SQLite held one new event
+and the exact JPEG. One local outbox record retired after the retry.
+The emulator, private ADB and loopback fixture closed, and scratch
+was removed. The reviewed Apple camera and map patches also compose
+with the Android packaging delta in either order. Both repository
+copies match on the paired source tree. Installed evidence remains
+bound to each tested build. [Queue and paired source receipt](verification/receipts/fieldlog-paired-site-map-7b2b98f0.json)
+
 The reviewed iOS Site Map queues project restoration in navigation
 order and checks the active map session during pin publication.
 The review reproduced a late save from the earlier implementation.
