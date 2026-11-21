@@ -1,4 +1,5 @@
 """Bounded evidence collection for the local, trusted-tool compiler harness."""
+from contextlib import ExitStack
 from pathlib import Path
 import hashlib
 import json
@@ -82,11 +83,44 @@ def vm_receipt(value, exit_code):
     return value
 
 
+class _QualificationProcess(subprocess.Popen):
+    def __del__(self):
+        # Popen's finalizer can poll and register a child for later implicit polls.
+        # Only the recorder may observe a child whose custody is unresolved.
+        pass
+
+
 class CommandRecorder:
     def __init__(self, output, commands, cwd, *, log_limit=64 * 1024 * 1024,
                  result_limit=2 * 1024 * 1024):
         self.output, self.commands, self.cwd = Path(output), commands, cwd
         self.log_limit, self.result_limit = log_limit, result_limit
+
+    @staticmethod
+    def _finish_process(process, item):
+        group_gone = False
+        step = 'stop process group'
+        try:
+            if item['exitCode'] is None:
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    group_gone = True
+                step = 'reap direct child'
+                item['exitCode'] = process.wait(timeout=3)
+            if not group_gone:
+                step = 'observe process group absence'
+                try:
+                    os.killpg(process.pid, 0)
+                except ProcessLookupError:
+                    group_gone = True
+        except (OSError, subprocess.TimeoutExpired) as error:
+            item['cleanupError'] = f'{step} failed ({error})'
+            return
+        if group_gone:
+            item['terminalCustody'] = 'TERMINAL'
+        else:
+            item['cleanupError'] = 'Process group still present after direct child exit'
 
     def run(self, name, command, *, env=None, expected=(0,), timeout=300):
         if not name or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._' for c in name):
@@ -95,23 +129,42 @@ class CommandRecorder:
         identity = tool_identity(command[0])
         started = time.monotonic()
         item = {'name': name, 'command': command, 'executable': identity,
-                'exitCode': None, 'timedOut': False, 'outputLimitExceeded': False}
+                'exitCode': None, 'timedOut': False, 'outputLimitExceeded': False,
+                'terminalCustody': 'NOT_STARTED'}
         self.commands.append(item)
         stdout, stderr = self.output / (name + '.stdout'), self.output / (name + '.stderr')
-        process = None
+        opened_logs = {}
+        evidence_error = None
         try:
-            with stdout.open('xb') as out, stderr.open('xb') as err:
-                process = subprocess.Popen(command, cwd=self.cwd, env=env, stdout=out, stderr=err,
-                                           start_new_session=True)
-                while process.poll() is None:
-                    item['timedOut'] = time.monotonic() - started > timeout
-                    item['outputLimitExceeded'] = max(os.fstat(out.fileno()).st_size,
-                                                       os.fstat(err.fileno()).st_size) > self.log_limit
-                    if item['timedOut'] or item['outputLimitExceeded']:
-                        os.killpg(process.pid, signal.SIGKILL)
-                        break
-                    time.sleep(0.02)
-                item['exitCode'] = process.wait()
+            with ExitStack() as logs:
+                out = logs.enter_context(stdout.open('xb'))
+                opened_logs['stdout'] = stdout
+                err = logs.enter_context(stderr.open('xb'))
+                opened_logs['stderr'] = stderr
+                item['terminalCustody'] = 'UNKNOWN'
+                process = _QualificationProcess(command, cwd=self.cwd, env=env, stdout=out,
+                                                stderr=err, start_new_session=True)
+                item['pid'] = item['pgid'] = process.pid
+                try:
+                    while True:
+                        item['exitCode'] = process.poll()
+                        if item['exitCode'] is not None:
+                            break
+                        item['timedOut'] = time.monotonic() - started > timeout
+                        item['outputLimitExceeded'] = max(os.fstat(out.fileno()).st_size,
+                                                           os.fstat(err.fileno()).st_size) > self.log_limit
+                        if item['timedOut'] or item['outputLimitExceeded']:
+                            break
+                        time.sleep(0.02)
+                finally:
+                    self._finish_process(process, item)
+            if item['terminalCustody'] == 'UNKNOWN':
+                reason = 'could not confirm process termination'
+                if item['timedOut']:
+                    reason = 'timed out'
+                elif item['outputLimitExceeded']:
+                    reason = 'exceeded its command log byte limit'
+                raise RuntimeError(f'{name} {reason}. UNKNOWN process custody. Preserve {self.output}')
             item['outputLimitExceeded'] |= max(stdout.stat().st_size, stderr.stat().st_size) > self.log_limit
             if tool_identity(command[0]) != identity:
                 raise RuntimeError(f'{name} executable changed during execution')
@@ -123,14 +176,24 @@ class CommandRecorder:
                 raise RuntimeError(f'{name} failed ({item["exitCode"]}); see {stderr}')
             if stdout.stat().st_size > self.result_limit:
                 raise RuntimeError(f'{name} exceeded its bounded result byte limit')
-            return stdout.read_text(encoding='utf-8')
+            result = stdout.read_text(encoding='utf-8')
+        except Exception as error:
+            item['error'] = str(error)
+            raise
         finally:
-            if process is not None and process.poll() is None:
-                os.killpg(process.pid, signal.SIGKILL)
-                process.wait()
-            # Keep evidence even on spawn errors, invalid UTF-8, timeouts and
-            # receipt parsing failures. Logs are streamed to disk, never pipes.
             item['elapsedSeconds'] = round(time.monotonic() - started, 3)
-            for key, path in [('stdout', stdout), ('stderr', stderr)]:
-                if path.exists():
-                    item[key] = {'path': path.name, 'bytes': path.stat().st_size, 'sha256': digest(path)}
+            for key, path in opened_logs.items():
+                metadata = item[key] = {'path': path.name}
+                try:
+                    metadata['bytes'] = path.stat().st_size
+                    # An unresolved writer may still be appending to the log.
+                    if item['terminalCustody'] != 'UNKNOWN':
+                        metadata['sha256'] = digest(path)
+                except OSError as error:
+                    metadata['error'] = str(error)
+                    if evidence_error is None:
+                        evidence_error = error
+        if evidence_error is not None:
+            item['error'] = f'{name} could not record command log evidence'
+            raise RuntimeError(item['error']) from evidence_error
+        return result
