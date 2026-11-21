@@ -1,0 +1,85 @@
+{
+  "work_item": "W15 §16.2",
+  "status": "local-implementation-verified",
+  "base": "814c7218c088a16b7218e75ba0e197162401d167",
+  "candidate_tree_before_receipt": "38fa6f76837fcae7863dd8ec800958bd628a6012",
+  "environment": {
+    "host": "arm64 macOS 27.0.1 (26A434), case-insensitive APFS",
+    "xcode": "27.2 (27B52)",
+    "swift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1), driver 1.168.6",
+    "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift",
+    "target": "arm64-apple-macosx27.0.0"
+  },
+  "commands": [
+    "swift build --package-path cli --product mixer (pinned base and candidate)",
+    "swift package --package-path PACKAGE describe --type json (two self-authored packages)",
+    "swift build --package-path PACKAGE [--product probe]",
+    "swift run --package-path PACKAGE --skip-build PRODUCT",
+    "mixer import PACKAGE [--swiftpm-description DESCRIPTION.json] [--output REPORT.json]",
+    "swift test --package-path cli --filter 'swiftPMDescription|commentsAndStringExamples|nestedCommentsAndAnnotated|ordinaryRawAndMultiline|interpolationScans|unicodeAndMixed|identifierBoundaries|incompleteOrUnsupported|invalidUTF8Requires|existingSizeAndSymlink|longRawDelimiter|maximumSizeRawDelimiter|incompleteLongRaw|hashRunsInCode|importerIsReadOnlyAndNeverAuthorizesRelease'",
+    "python3 scripts/check-verification-artifacts.py"
+  ],
+  "fixture_runs": [
+    {
+      "product": "probe",
+      "exit": 0,
+      "stdout": "graph-ok",
+      "facts": "The lowercase package@swift-6.swift was active beside inactive Package.swift. The manifest computed Desktop-Kit, whose APFS directory is desktop-Kit. An undeclared Desktop_Kit directory and the copied Templates/Resource.swift stayed unassigned. Entry → Front → Desktop-Kit traced the sole unsupported cause to Desktop.swift:1. Front's lexical import used SwiftPM's Desktop_Kit c99name."
+    },
+    {
+      "product": "explicit",
+      "exit": 0,
+      "stdout": "declared-edge",
+      "facts": "Core-Kit used path '.' and explicit nested sources. Entry's declared edge traced a finding with no invented source line. Solo's conditional import text produced no edge. CSystem reported unsupported-target."
+    }
+  ],
+  "assertions": {
+    "focused_swift_tests": {
+      "passed": 17,
+      "failed": 0
+    },
+    "default_reports_byte_identical": 2,
+    "invalid_inputs_rejected": "Wrong root, parent traversal, absolute target path, case-aliased duplicate source, unknown edge, wrong JSON value type, excess target count, excess byte count, FIFO, symlink, directory.",
+    "other_controls": "Stale target sources suppressed partial findings and downstream causes. Rejected missing, duplicate, and unrelated CLI flag usage. Saved JSON matched stdout and existing output was protected. Poisoned selected manifest failed SwiftPM describe while stock import still returned the same module graph. Fixture source hashes matched before and after imports.",
+    "observed_output": {
+      "explicit_entry_edge": {
+        "module": "Core-Kit"
+      },
+      "explicit_v78_default_sha256": "212ec9d9b13534663d356ce4133cb74a9dea47db02975e3ea6c3c555d9cc654b",
+      "fixture_source_sha256": {
+        "explicit": "b9340cc5418e7926066554c33ed424121800eb6a18194efe779c59fc37e1b735",
+        "sample": "a088fa1afd60c042a5d7a8f78d585f2143e8ff34b8647822bc0400810b6b9639"
+      },
+      "import_with_manifest_that_swiftpm_rejects": "passed",
+      "invalid_cli_input_cases": 11,
+      "sample_entry_cause": {
+        "classification": "unsupported",
+        "dependencyDepth": 2,
+        "finding": {
+          "category": "unsupported-mobile",
+          "file": "Sources/desktop-Kit/Desktop.swift",
+          "line": 1,
+          "message": "macOS AppKit import",
+          "remediation": "Replace desktop UI with a supported mobile surface."
+        },
+        "originModule": "Desktop-Kit",
+        "via": {
+          "file": "Sources/Entry/main.swift",
+          "line": 1,
+          "module": "Front"
+        }
+      },
+      "sample_v78_default_sha256": "793bfa2dab9512774e58434c244a7b0b00b0b29512645b5ffeefe1d346056694",
+      "swiftpm_description_sha256": {
+        "explicit.json": "1e5cc5ee85e0605a2e03c20b9d1f913778d4cbc6b808ea7681a5737e5c1e52bb",
+        "sample.json": "2ab71ac2680b025f493dd2150c078dcf996e14533ed11162d59193b155f0f124"
+      }
+    }
+  },
+  "scope": "Advisory input for ordinary local Swift target relationships. Conditions, external product graphs, graph provenance and freshness, and OTA eligibility remain unverified. This is a component result for W15.",
+  "cleanup": {
+    "verification_scratch_removed": true,
+    "scope": "Owned fixtures, graph inputs, binaries, build outputs, caches, and logs removed before commit. The disposable sparse worktree is removed after commit. The local branch retains the deliverables.",
+    "device_or_remote_activity": false
+  }
+}

@@ -13,6 +13,15 @@ Use the tracked results to assess L01–L08 and rerun any check that needs fresh
 evidence from a clean checkout. Paths to disposable run files are historical
 references. See [the worktree verification policy](mixer-product-plan.md#worktree-local-verification).
 
+## November 21 SwiftPM import
+
+The local v78-based CLI accepts `swift package describe --type json` output
+and traces findings through the described local Swift target dependencies.
+Two self-authored packages built and ran with Swift 6.4.2. The default report
+matched v78 byte for byte on both packages. The graph stays advisory, with
+explicit states for targets whose sources could not be associated. W15 remains
+in progress. [SwiftPM import receipt](verification/receipts/import-swiftpm-description-v78.json)
+
 ## November 21 FieldLog native date correction
 
 The ordinary v74 export kept a partial date visible, disabled Save draft and

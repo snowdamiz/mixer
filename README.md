@@ -362,6 +362,20 @@ own project. The report does not verify technical eligibility. For FieldLog,
 use `ios/FieldLog` in its separate checkout. See the
 [FieldLog import receipt](verification/receipts/fieldlog-advisory-import-root-r5864.json).
 
+For a Swift package you trust, generate a description with SwiftPM and give it
+to the importer. Use the package root for both commands.
+
+```sh
+swift package --package-path "$package" describe --type json > "$work/package-description.json"
+"$mixer_cli" import "$package" --swiftpm-description "$work/package-description.json"
+```
+
+SwiftPM evaluates the manifest when it generates the description. The importer
+reads the saved JSON and source files. The report uses described local Swift
+target dependencies and compile sources to trace findings. It marks targets
+with missing or uninspected sources as `unverified-sources`. The graph is
+advisory. Refresh the description after changing the package.
+
 ### Upgrade a locked project
 
 The current Android CLI creates projects with source pair 25. For a project locked to pair 24, use its matching CLI to build or export it. To build with the current CLI, run `mixer upgrade` into a new directory. The new renderer handles the return to a text field after dismissing a guest dialog.

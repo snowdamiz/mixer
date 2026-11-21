@@ -15,14 +15,23 @@ public struct MigrationReport: Codable, Sendable {
     public var findings: [MigrationFinding]
     public var authority = "advisory-only"
     public var technicalEligibility = "unverified"
+    public var swiftPackage: MigrationSwiftPackage?
     public var explanation = "Read-only lexical inventory. This does not type-check source, resolve dependencies, certify sharing, or authorize OTA. Macros and conditional compilation require compiler analysis."
 }
 
 public enum MigrationInspector {
     public static func inspect(_ root: URL) throws -> MigrationReport {
+        try inspect(root, swiftPMDescription: nil)
+    }
+
+    public static func inspect(_ root: URL, swiftPMDescription: URL?) throws -> MigrationReport {
         let root = root.resolvingSymlinksInPath().standardizedFileURL
         var findings: [MigrationFinding] = []
         let swift = try SourceDigest.files(in: root).filter { $0.pathExtension == "swift" }
+        let relativePaths = swift.map { String($0.path.dropFirst(root.path.count + 1)) }
+        var package = try swiftPMDescription.map {
+            try SwiftPackageInventory(description: $0, root: root, swiftFiles: swift, relativePaths: relativePaths)
+        }
         let rules: [(String, String, String, String)] = [
             ("import SwiftUI", "adaptation-required", "Apple SwiftUI import", "Migrate selected screens to MixerUI; preserve native screens behind explicit adapters."),
             ("import UIKit", "platform-specific", "UIKit import", "Keep UIKit code in an Apple host capability with an Android implementation."),
@@ -35,12 +44,13 @@ public enum MigrationInspector {
             ("#if", "compiler-review", "Conditional compilation", "Compile and compare each target's complete dependency graph."),
             ("#externalMacro", "compiler-review", "Compiler macro", "Inventory expanded output and type-check each native and guest target.")
         ]
-        for file in swift {
+        for (file, relative) in zip(swift, relativePaths) {
             let data = try Data(contentsOf: file)
             guard data.count <= 16 * 1_048_576 else { throw MixerFailure("import.size", "Swift file exceeds inventory limit: \(file.path)") }
-            let relative = String(file.path.dropFirst(root.standardizedFileURL.path.count + 1))
-            var inventory = SwiftInventory(data)
+            let target = package?.target(for: relative)
+            var inventory = SwiftInventory(data, importTargets: target.flatMap { package?.importTargets(for: $0) })
             let matches = inventory.scan()
+            if let target { package?.recordImports(inventory.localImports, file: relative, target: target) }
             for match in matches {
                 let (_, category, message, remediation) = rules[match.rule]
                 findings.append(MigrationFinding(file: relative, line: match.line, category: category, message: message, remediation: remediation))
@@ -49,7 +59,8 @@ public enum MigrationInspector {
                 findings.append(MigrationFinding(file: relative, line: line, category: "compiler-review", message: "Incomplete or unsupported lexical form", remediation: "Compile the original source with its target toolchain; this lexical inventory may be incomplete."))
             }
         }
-        return MigrationReport(source: root.path, swiftFiles: swift.count, findings: findings)
+        return MigrationReport(source: root.path, swiftFiles: swift.count, findings: findings,
+                               swiftPackage: package?.report(findings: findings))
     }
 }
 
@@ -87,10 +98,13 @@ private struct SwiftInventory {
     private var stack: [Context] = [.code(depth: 0, start: 1)]
     private var previous: [Token] = []
     private var matches: Set<Match> = []
+    private let importTargets: [Data: String]?
+    private(set) var localImports: [String: Int] = [:]
     private(set) var reviewLine: Int?
 
-    init(_ data: Data) {
+    init(_ data: Data, importTargets: [Data: String]? = nil) {
         bytes = Array(data)
+        self.importTargets = importTargets
         if bytes.starts(with: [0xEF, 0xBB, 0xBF]) { index = 3 }
         if String(data: data, encoding: .utf8) == nil { reviewLine = 1 }
     }
@@ -125,8 +139,15 @@ private struct SwiftInventory {
             if last.text == "import", !last.raw { importToken = last }
             else if kinds.contains(last.text), !last.raw, previous.count == 2, previous[0].text == "import", !previous[0].raw { importToken = previous[0] }
             else { importToken = nil }
-            if let importToken, let rule = ["SwiftUI": 0, "UIKit": 1, "AppKit": 2, "StoreKit": 3, "CoreLocation": 4][token.text] {
-                matches.insert(Match(rule: rule, line: importToken.line))
+            if let importToken {
+                if let rule = ["SwiftUI": 0, "UIKit": 1, "AppKit": 2, "StoreKit": 3, "CoreLocation": 4][token.text] {
+                    matches.insert(Match(rule: rule, line: importToken.line))
+                }
+                let startsScopedImport = last.text == "import" && !token.raw && kinds.contains(token.text)
+                if stack.count == 1, !startsScopedImport, let importTargets,
+                   let target = importTargets[Data(token.text.utf8)], localImports[target] == nil {
+                    localImports[target] = importToken.line
+                }
             }
         }
         previous.append(token)

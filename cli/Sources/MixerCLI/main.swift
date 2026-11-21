@@ -12,7 +12,7 @@ struct Arguments {
             if value == "--help" { positional.append("help") }
             else if value == "--json" { json = true }
             else if value.hasPrefix("--") {
-                guard ["--directory", "--application", "--sdk-path", "--android-adapter-path", "--android-host", "--platform", "--output", "--device", "--provider", "--build-id", "--app-id", "--version-code", "--track", "--request", "--artifact", "--qualification", "--producer-trust"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
+                guard ["--directory", "--application", "--sdk-path", "--android-adapter-path", "--android-host", "--platform", "--output", "--swiftpm-description", "--device", "--provider", "--build-id", "--app-id", "--version-code", "--track", "--request", "--artifact", "--qualification", "--producer-trust"].contains(value), index + 1 < values.count, !values[index + 1].hasPrefix("--"), options[value] == nil else { throw MixerFailure("arguments.option", "Unknown, missing, or duplicate option: \(value)") }
                 index += 1; options[value] = values[index]
             } else { positional.append(value) }
             index += 1
@@ -52,7 +52,8 @@ mixer 0.1.0-dev — owned Swift mobile platform (development preview)
   mixer report --request REQUEST.json --output NEW_PRIVATE_STORE
   mixer test [--platform host] [--directory PATH]
   mixer run ios --device SIMULATOR_UUID [--directory PATH]
-  mixer import PATH [--output REPORT.json]
+  mixer import PATH [--swiftpm-description DESCRIPTION.json] [--output REPORT.json]
+    Use JSON from swift package describe --type json for advisory local target causes.
   mixer release inspect [--directory PATH] [--qualification DIR --producer-trust LOCAL_TRUST.json]
   mixer export PATH [--directory SOURCE]
   mixer upgrade PATH --sdk-path PATH [--android-adapter-path PATH] [--directory SOURCE]
@@ -122,7 +123,7 @@ do {
     let allowedOptions: [String: Set<String>] = [
         "create": ["--directory", "--application", "--sdk-path", "--platform", "--android-adapter-path", "--android-host"], "config": ["--directory"],
         "build": ["--directory", "--platform", "--output"], "test": ["--directory", "--platform"],
-        "run": ["--directory", "--device"], "import": ["--output"],
+        "run": ["--directory", "--device"], "import": ["--output", "--swiftpm-description"],
         "release": ["--directory", "--qualification", "--producer-trust"], "export": ["--directory"],
         "upgrade": ["--directory", "--sdk-path", "--android-adapter-path"],
         "report": ["--request", "--output"],
@@ -186,8 +187,10 @@ do {
         try output(result)
         if !result.succeeded { exit(result.exitCode == 0 ? 1 : result.exitCode) }
     case "import":
-        guard words.count == 2 else { throw MixerFailure("arguments.import", "Usage: mixer import PATH [--output REPORT.json]") }
-        let report = try MigrationInspector.inspect(path(words[1]))
+        guard words.count == 2 else { throw MixerFailure("arguments.import", "Usage: mixer import PATH [--swiftpm-description DESCRIPTION.json] [--output REPORT.json]") }
+        let report = try MigrationInspector.inspect(
+            path(words[1]), swiftPMDescription: arguments.options["--swiftpm-description"].map(path)
+        )
         if let file = arguments.options["--output"] {
             guard !FileManager.default.fileExists(atPath: path(file).path) else { throw MixerFailure("import.report-exists", "Refusing to overwrite report.") }
             try JSONFile.write(report, to: path(file))
