@@ -1244,6 +1244,11 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
                 AND pg_catalog.left(n.nspname::pg_catalog.text,3)<>'pg_'
                 AND pg_catalog.has_schema_privilege(r.oid,n.oid,'USAGE')))
           AND (SELECT count(*) FROM objects)=$5
+          AND EXISTS(SELECT 1 FROM pg_catalog.pg_class t
+            WHERE t.oid=pg_catalog.to_regclass('public.mixer_native_development_attestations')
+              AND t.relowner=$4::pg_catalog.oid AND t.relkind='r'
+              AND t.relrowsecurity AND t.relforcerowsecurity
+              AND #{AttestationSchema.owner_policy_roster_sql("t")})
           AND NOT EXISTS(SELECT 1 FROM objects o
             WHERE NOT #{acl_ok("o.acl")} OR
               (SELECT count(*) FROM pg_catalog.aclexplode(o.acl) a WHERE a.grantee=r.oid)<>1 OR

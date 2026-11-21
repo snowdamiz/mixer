@@ -13,6 +13,7 @@ defmodule MixerHosted.BrowserAuth.OrdinaryNativeAttestationCatalogPGJoinTest do
   @authorization "public.mixer_authz_profiles"
   @heads "public.mixer_authz_project_heads"
   @lock "public.mixer_authz_lock_profiles()"
+  @table "public.mixer_native_development_attestations"
   @entry "public.mixer_native_development_attestation_v1(text,text,text,text,jsonb,text,text,text,text,bytea)"
   @spki Base.encode64(
           Base.decode16!(
@@ -294,9 +295,14 @@ defmodule MixerHosted.BrowserAuth.OrdinaryNativeAttestationCatalogPGJoinTest do
        "REVOKE UPDATE ON #{@heads} FROM #{@writer}"},
       {"maintain build relation", "GRANT MAINTAIN ON public.mixer_builds TO #{@writer}",
        "REVOKE MAINTAIN ON public.mixer_builds FROM #{@writer}"},
-      {"implicit attestation read",
-       "GRANT SELECT ON public.mixer_native_development_attestations TO PUBLIC",
-       "REVOKE SELECT ON public.mixer_native_development_attestations FROM PUBLIC"},
+      {"missing attestation owner SELECT policy",
+       "DROP POLICY attestation_owner_read ON #{@table}",
+       "CREATE POLICY attestation_owner_read ON #{@table} FOR SELECT TO browser_schema_owner USING (true)"},
+      {"altered attestation owner INSERT policy",
+       "ALTER POLICY attestation_owner_insert ON #{@table} WITH CHECK (false)",
+       "ALTER POLICY attestation_owner_insert ON #{@table} WITH CHECK (true)"},
+      {"implicit attestation read", "GRANT SELECT ON #{@table} TO PUBLIC",
+       "REVOKE SELECT ON #{@table} FROM PUBLIC"},
       {"implicit column read", "GRANT SELECT (revision) ON #{@heads} TO PUBLIC",
        "REVOKE SELECT (revision) ON #{@heads} FROM PUBLIC"},
       {"another login can invoke the attestation entry",

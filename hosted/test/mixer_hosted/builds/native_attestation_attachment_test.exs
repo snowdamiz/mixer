@@ -940,6 +940,47 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
     assert {:ok, :attached} = attach(c, signed)
   end
 
+  test "admission requires the migration's exact owner row-level security policies" do
+    read = "attestation_owner_read ON #{@table}"
+    insert = "attestation_owner_insert ON #{@table}"
+    extra = "attestation_veto ON #{@table}"
+    owner = "attestation_fixture_owner"
+
+    admit = fn ->
+      AttestationRepo.transaction(fn -> AttestationSchema.admit!(AttestationRepo) end)
+    end
+
+    assert {:ok, :ok} = admit.()
+
+    mutations = [
+      {"DROP POLICY #{read}", "CREATE POLICY #{read} FOR SELECT TO #{owner} USING (true)"},
+      {"DROP POLICY #{insert}",
+       "CREATE POLICY #{insert} FOR INSERT TO #{owner} WITH CHECK (true)"},
+      {"ALTER POLICY #{read} USING (false)", "ALTER POLICY #{read} USING (true)"},
+      {"ALTER POLICY #{insert} WITH CHECK (false)", "ALTER POLICY #{insert} WITH CHECK (true)"},
+      {"ALTER POLICY #{read} TO PUBLIC", "ALTER POLICY #{read} TO #{owner}"},
+      {"CREATE POLICY #{extra} AS RESTRICTIVE FOR INSERT TO PUBLIC WITH CHECK (false)",
+       "DROP POLICY #{extra}"}
+    ]
+
+    outcomes =
+      for {change, restore} <- mutations do
+        sql(change)
+
+        try do
+          {change, admit.()}
+        after
+          sql(restore)
+        end
+      end
+
+    assert Enum.reject(outcomes, fn {_, result} ->
+             result == {:ok, {:error, :authorization_unavailable}}
+           end) == []
+
+    assert {:ok, :ok} = admit.()
+  end
+
   defp executes?(role) do
     [[result]] = sql("SELECT has_function_privilege($1,$2,'EXECUTE')", [role, @entry]).rows
     result
