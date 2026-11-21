@@ -9,6 +9,7 @@ defmodule MixerHosted.Repo.Migrations.AddLocalReleaseJobs do
   @offers "#{@prefix}.offer_materializations"
   @publications "public.mixer_release_publications"
   @heads "public.mixer_release_heads"
+  @enrollments "public.mixer_release_delivery_enrollments"
   @stamp "#{@prefix}.stamp_publication_v1"
   @sequence_parser "#{@prefix}.publication_sequence_v1"
   @writer_check "#{@prefix}.writer_can_enqueue_v1"
@@ -36,7 +37,7 @@ defmodule MixerHosted.Repo.Migrations.AddLocalReleaseJobs do
     $body$
     """)
 
-    execute("CREATE SCHEMA #{@prefix}")
+    create_queue_schema()
     Oban.Migration.up(prefix: @prefix, version: 14, create_schema: false)
 
     # A full transaction ID survives xid wraparound and also matches inserts
@@ -79,11 +80,9 @@ defmodule MixerHosted.Repo.Migrations.AddLocalReleaseJobs do
       "CREATE POLICY release_offer_insert ON #{@offers} FOR INSERT TO CURRENT_USER WITH CHECK (true)"
     )
 
-    # The ledger enforces one local target. The canonical sequence identifies a
-    # single publication within that target and can be enqueued at most once.
     execute("""
-    CREATE UNIQUE INDEX release_job_publication_sequence
-    ON #{@jobs} ((args ->> 'sequence')) WHERE #{@queue}
+    CREATE UNIQUE INDEX release_job_publication_reference
+    ON #{@jobs} (#{reference_key()}) WHERE #{@queue}
     """)
 
     create_sequence_parser()
@@ -122,7 +121,45 @@ defmodule MixerHosted.Repo.Migrations.AddLocalReleaseJobs do
     execute("ALTER TABLE #{@publications} DROP COLUMN release_jobs_xact_id")
     execute("DROP TABLE #{@offers}")
     Oban.Migration.down(prefix: @prefix, version: 1)
-    execute("DROP SCHEMA #{@prefix}")
+
+    execute("""
+    DO $body$
+    BEGIN
+      DROP SCHEMA #{@prefix};
+      IF pg_catalog.to_regclass('#{@enrollments}') IS NOT NULL THEN
+        CREATE SCHEMA #{@prefix};
+        REVOKE ALL ON SCHEMA #{@prefix} FROM PUBLIC;
+      END IF;
+    END
+    $body$
+    """)
+  end
+
+  defp create_queue_schema do
+    execute("""
+    DO $body$
+    BEGIN
+      IF pg_catalog.to_regnamespace('#{@prefix}') IS NULL THEN
+        CREATE SCHEMA #{@prefix};
+      ELSIF NOT EXISTS (
+        SELECT 1 FROM pg_catalog.pg_namespace n
+        JOIN pg_catalog.pg_class e ON e.oid = pg_catalog.to_regclass('#{@enrollments}')
+        WHERE n.nspname = '#{@prefix}' AND n.nspowner = e.relowner
+          AND pg_catalog.pg_get_userbyid(n.nspowner) = current_user
+          AND e.relkind = 'r' AND e.relrowsecurity AND e.relforcerowsecurity
+          AND NOT EXISTS (
+            SELECT 1 FROM pg_catalog.pg_depend d
+            WHERE d.refclassid = 'pg_catalog.pg_namespace'::regclass AND d.refobjid = n.oid
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM pg_catalog.aclexplode(n.nspacl) a WHERE a.grantee <> n.nspowner
+          )
+      ) THEN
+        RAISE EXCEPTION 'release jobs require a new schema or the empty target registry reservation';
+      END IF;
+    END
+    $body$
+    """)
   end
 
   defp create_publication_stamp do
@@ -252,6 +289,9 @@ defmodule MixerHosted.Repo.Migrations.AddLocalReleaseJobs do
 
     execute("REVOKE ALL ON FUNCTION #{@materialize}(bigint,integer) FROM PUBLIC")
   end
+
+  defp reference_key,
+    do: Enum.map_join(@target ++ ["sequence"], ",", &"(args ->> '#{&1}')")
 
   defp qualified_target(relation), do: Enum.map_join(@target, ",", &"#{relation}.#{&1}")
   defp reference_target(reference), do: Enum.map_join(@target, ",", &"#{reference}->>'#{&1}'")

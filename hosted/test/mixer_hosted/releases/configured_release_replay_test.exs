@@ -6,7 +6,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
   use ExUnit.Case, async: false
 
   import MixerHosted.Test.OrdinaryBrowserStartupFixture, only: [http: 3, http: 5]
-  alias MixerHosted.{Authorization, CustomerArtifacts}
+  alias MixerHosted.{Authorization, CustomerArtifacts, Releases}
   alias MixerHosted.CustomerArtifacts.{PostgresStorage, Schema, UploadRepo}
 
   alias MixerHosted.Identity.{
@@ -33,6 +33,8 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
   @subject "replay-subject"
   @credential "replay-token"
   @writer "mixer_replay_writer"
+  @android_writer "mixer_replay_android_writer"
+  @processor "mixer_release_processor"
   @reader "mixer_release_delivery"
   @stage "mixer_replay_stage"
   @uploader "mixer_artifact_uploader"
@@ -263,19 +265,32 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
 
   @tag skip: @mode != "target-registry"
   @tag timeout: 60_000
-  test "ordinary Phoenix delivers exact enrolled targets and retained artifacts" do
+  test "release jobs and signed delivery coexist in either migration order" do
     vector = @vector |> File.read!() |> Jason.decode!()
     assignment = vector["signed_assignment"]["assignment"]
-    default_document = Map.put(Map.take(vector, ~w(host roots)), "channel", assignment["channel"])
+    order = System.fetch_env!("MIXER_RELEASE_QUEUE_ORDER")
     default_scope = vector["host"]["scope"]
+    {default_document, default_key} = signed_scope(vector, default_scope)
     android_scope = %{default_scope | "platform" => "android"}
     other_scope = %{default_scope | "organization" => "org-b"}
     {android_document, android_key} = signed_scope(vector, android_scope)
     {other_document, other_key} = signed_scope(vector, other_scope)
 
-    load_runtime!(default_document, assignment, nil, nil, %{
-      "MIXER_LOCAL_RELEASE_TARGET_REGISTRY" => Jason.encode!([android_document, other_document])
-    })
+    env =
+      load_runtime!(default_document, assignment, nil, nil, %{
+        "MIXER_LOCAL_RELEASE_TARGET_REGISTRY" =>
+          Jason.encode!([android_document, other_document]),
+        "MIXER_LOCAL_RELEASE_JOBS_ENABLED" => "true"
+      })
+
+    processor =
+      Map.take(env, ~w(MIXER_DATABASE_HOST MIXER_DATABASE_NAME))
+      |> Map.merge(%{
+        "MIXER_HOSTED_ROLE" => "processor",
+        "MIXER_PROCESSOR_PROFILE" => "releases_v1",
+        "MIXER_DATABASE_USER" => @processor,
+        "MIXER_DATABASE_PASSWORD" => "synthetic-replay-processor"
+      })
 
     %{target: default} =
       default_config = Application.fetch_env!(:mixer_hosted, :local_release_target)
@@ -294,22 +309,77 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
 
     provision!(default)
 
-    default_row = %{
-      sequence: 7,
-      digest: assignment["artifact_sha256"],
-      envelope: Jason.encode!(Map.take(vector, ~w(signed_manifest payload))),
-      signed: Jason.encode!(vector["signed_assignment"])
-    }
+    queue = migration("local_release_jobs", "20261120000014_add_local_release_jobs.exs")
+
+    registry =
+      migration(
+        "local_release_target_registry",
+        "20261120000015_add_local_release_target_registry.exs"
+      )
+
+    with_repo("mixer_replay_admin", fn ->
+      sql!("GRANT CREATE ON DATABASE postgres TO mixer_replay_owner")
+    end)
+
+    with_ledger_owner(fn ->
+      for file <- [
+            "20261120000012_add_local_release_halt_audit.exs",
+            "20261120000013_add_local_release_head_details.exs"
+          ],
+          do: assert(:ok == migrate(:up, migration("repo/migrations", file)))
+    end)
+
+    default_row = signed_release(vector, default_config, default_key, 7)
+    next = signed_release(vector, default_config, default_key, 8)
+    rollback_assignment = default_row.signed |> Jason.decode!() |> Map.fetch!("assignment")
+    rollback_assignment = %{rollback_assignment | "sequence" => 9}
+
+    rollback =
+      default_row
+      |> Map.merge(%{sequence: 9, action: :rollback})
+      |> Map.put(
+        :signed,
+        Jason.encode!(sign_fixture("assignment", "assignment", rollback_assignment, default_key))
+      )
 
     [first, current, staged] =
-      for sequence <- [6, 7, 8], do: signed_release(vector, android, android_key, sequence)
+      for sequence <- [6, 8, 9], do: signed_release(vector, android, android_key, sequence)
 
-    cross = signed_release(vector, other, other_key, 7)
+    cross = signed_release(vector, other, other_key, 8)
     owner = fixture_identity()
     other_owner = fixture_identity("other-subject", "other-credential")
 
     stage!(default_config, default_row.digest, default_row.envelope)
-    publish_fixture!(default, default_row, owner, @principal)
+
+    retained =
+      case order do
+        "queue-first" ->
+          with_ledger_owner(fn ->
+            assert :ok = migrate(:up, queue)
+            # Reproduce the sequence-only index of the originally installed 000014.
+            sql!("DROP INDEX IF EXISTS mixer_release_jobs.release_job_publication_reference")
+
+            sql!("""
+            CREATE UNIQUE INDEX IF NOT EXISTS release_job_publication_sequence
+            ON mixer_release_jobs.oban_jobs ((args ->> 'sequence'))
+            WHERE queue = 'releases' AND worker = 'MixerHosted.Releases.ReleaseJobs.Materialize'
+            """)
+          end)
+
+          provision_queue!()
+          with_registry_http!(fn _ -> publish_and_replay!(default, default_row, owner) end)
+          drain_queue!(processor, [{default, default_row}])
+
+          snapshot = retained_queue!()
+          assert [[_, %{"sequence" => "7"}, "completed", 1]] = elem(snapshot, 0)
+          assert [[_, _, _]] = elem(snapshot, 1)
+          assert_failed_queue_upgrade!(registry, snapshot)
+          snapshot
+
+        "registry-first" ->
+          publish_fixture!(default, default_row, owner, @principal)
+          {[], []}
+      end
 
     with_registry_http!(fn client ->
       assert %{status: 204} = http(client, offer_path(default), [])
@@ -320,17 +390,101 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
       Application.put_env(:mixer_hosted, :local_release_delivery, delivery)
     end)
 
+    with_ledger_owner(fn ->
+      assert :ok = migrate(:up, registry)
+
+      if order == "registry-first" do
+        assert :ok = migrate(:up, queue)
+        assert :ok = migrate(:down, queue)
+
+        assert [[true, true, nil]] =
+                 sql!("""
+                 SELECT to_regclass('public.mixer_release_delivery_enrollments') IS NOT NULL,
+                        to_regnamespace('mixer_release_jobs') IS NOT NULL,
+                        to_regclass('mixer_release_jobs.oban_jobs')
+                 """).rows
+
+        assert :ok = migrate(:up, queue)
+      end
+
+      assert [[nil, nil, true]] =
+               sql!("""
+               SELECT to_regclass('public.mixer_release_one_local_target'),
+                      to_regclass('mixer_release_jobs.release_job_publication_sequence'),
+                      to_regclass('mixer_release_jobs.release_job_publication_reference') IS NOT NULL
+               """).rows
+    end)
+
+    assert retained_queue!() == retained
     provision_registry!(default, android.target, other.target)
+    provision_queue!()
 
     for {config, release, identity, principal, publish?} <- [
           {android, first, owner, @principal, true},
-          {android, current, owner, @principal, true},
+          {android, current, owner, @principal, false},
           {android, staged, owner, @principal, false},
           {other, cross, other_owner, "other-owner", true}
         ] do
       stage!(config, release.digest, release.envelope, identity, "stage-" <> release.digest)
-      if publish?, do: publish_fixture!(config.target, release, identity, principal)
+
+      if publish? do
+        writer = if config.target == android.target, do: @android_writer, else: @writer
+        publish_fixture!(config.target, release, identity, principal, writer)
+      end
     end
+
+    stage!(default_config, next.digest, next.envelope, owner, "stage-next")
+
+    with_registry_http!(fn _ ->
+      publish_and_replay!(default, next, owner)
+      publish_and_replay!(default, rollback, owner)
+    end)
+
+    with_release_runtime!(
+      Map.merge(env, %{
+        "MIXER_DATABASE_USER" => @android_writer,
+        "MIXER_DATABASE_PASSWORD" => "synthetic-replay-android-writer",
+        "MIXER_LOCAL_RELEASE_CONFIG" => Jason.encode!(android_document),
+        "MIXER_LOCAL_RELEASE_TARGET_REGISTRY" => Jason.encode!([default_document, other_document])
+      }),
+      fn ->
+        with_registry_http!(fn _ ->
+          publish_and_replay!(android.target, current, owner, @android_writer)
+        end)
+      end
+    )
+
+    {jobs, _} = retained_queue!()
+    same_sequence = Enum.filter(jobs, fn [_, args, _, _] -> args["sequence"] == "8" end)
+
+    assert [
+             [default_id, default_args, "available", 0],
+             [android_id, android_args, "available", 0]
+           ] =
+             same_sequence
+
+    refute default_id == android_id
+    assert default_args == queue_reference(default, next)
+    assert android_args == queue_reference(android.target, current)
+    expected = [{default, next}, {default, rollback}, {android.target, current}]
+    expected = if order == "queue-first", do: [{default, default_row} | expected], else: expected
+    assert length(jobs) == length(expected)
+    repaired_attempt = retry_discarded_job!(android_id)
+    drain_queue!(processor, expected)
+
+    with_ledger_owner(fn ->
+      assert_raise Postgrex.Error, ~r/release jobs storage contains retained work/, fn ->
+        migrate(:down, queue)
+      end
+    end)
+
+    {completed, offers} = retained_queue!()
+    {initial_jobs, initial_offers} = retained
+    assert length(completed) == length(expected) and length(offers) == length(expected)
+    assert Enum.take(completed, length(initial_jobs)) == initial_jobs
+    assert initial_offers -- offers == []
+    assert [default_id, default_args, "completed", 1] in completed
+    assert [android_id, android_args, "completed", repaired_attempt] in completed
 
     with_repo(@writer, fn ->
       assert {:ok, []} ==
@@ -355,7 +509,12 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     end)
 
     with_registry_http!(fn client ->
-      assert_offer!(client, default, default_row, artifact_path(default, default_row.digest))
+      assert_offer!(client, default, rollback, artifact_path(default, rollback.digest))
+
+      assert %{status: 200, body: previous} =
+               http(client, artifact_path(default, next.digest), [])
+
+      assert previous == next.envelope
 
       assert_offer!(
         client,
@@ -430,10 +589,233 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     end)
 
     IO.puts(
-      "Verified same-sequence heads, live root and SQL enrollment revocation, queue interlock and Phoenix cleanup."
+      "Verified #{order} with distinct sequence-8 jobs #{default_id} and #{android_id}, exact replay, " <>
+        "immutable projections, signed rollback, operator repair, schema rollback, and delivery revocation."
     )
 
     IO.puts("Historical HTTP envelope SHA-256 #{sha256(first.envelope)}")
+  end
+
+  defp publish_and_replay!(target, release, identity, writer \\ @writer) do
+    assert [[^writer, true]] =
+             WriterRepo.query!("""
+             SELECT session_user::text, ssl FROM pg_stat_ssl WHERE pid = pg_backend_pid()
+             """).rows
+
+    route = {target.scope.organization_id, target.scope.project_id, target.channel}
+    reason = "Publish a signed release in the registry fixture"
+    action = Map.get(release, :action, :publish)
+    key = "#{action}-#{release.sequence}"
+
+    assert {:ok, _} =
+             Releases.cli(
+               identity,
+               put_elem(route, 2, nil),
+               {:validate, release.digest},
+               "validate-#{release.sequence}",
+               sha256("validate:" <> release.digest),
+               reason
+             )
+
+    command = {action, release.signed, nil}
+    hash = sha256(release.signed)
+    assert {:ok, published} = Releases.cli(identity, route, command, key, hash, reason)
+
+    assert %{sequence: release.sequence, signed_assignment_bytes: release.signed} ==
+             Map.take(published, [:sequence, :signed_assignment_bytes])
+
+    assert {:ok, ^published} = Releases.cli(identity, route, command, key, hash, reason)
+  end
+
+  defp queue_reference(target, release) do
+    Map.new(Enum.zip(@coordinates, coordinates(target)))
+    |> Map.merge(%{"version" => 1, "sequence" => Integer.to_string(release.sequence)})
+  end
+
+  defp provision_queue! do
+    assert "" == release_jobs_sql!("provision-local-release-jobs.sql")
+
+    with_repo("mixer_replay_admin", fn ->
+      sql!("ALTER ROLE #{@processor} PASSWORD 'synthetic-replay-processor'")
+    end)
+  end
+
+  defp retry_discarded_job!(job_id) do
+    max_attempts =
+      with_repo("mixer_replay_admin", fn ->
+        [[max_attempts]] =
+          sql!(
+            """
+            UPDATE mixer_release_jobs.oban_jobs
+            SET state='discarded', attempt=max_attempts, discarded_at=now()
+            WHERE id=$1 AND state='available'
+            RETURNING max_attempts
+            """,
+            [job_id]
+          ).rows
+
+        max_attempts
+      end)
+
+    args = ["-v", "release_job_id=#{job_id}"]
+
+    assert release_jobs_sql!("retry-local-release-job.sql", args) ==
+             "#{job_id}|#{max_attempts}|#{max_attempts + 1}"
+
+    assert "" == release_jobs_sql!("retry-local-release-job.sql", args)
+    max_attempts + 1
+  end
+
+  defp release_jobs_sql!(name, args \\ []) do
+    {output, status} =
+      System.cmd(
+        "psql",
+        [
+          "-X",
+          "-q",
+          "-At",
+          "-w",
+          "-h",
+          scratch(),
+          "-U",
+          "mixer_replay_admin",
+          "-d",
+          "postgres"
+        ] ++ args ++ ["-f", "../docs/operations/#{name}"],
+        stderr_to_stdout: true
+      )
+
+    assert status == 0, output
+    String.trim(output)
+  end
+
+  defp with_ledger_owner(run) do
+    with_repo("mixer_replay_admin", run,
+      after_connect: fn conn -> Postgrex.query!(conn, "SET ROLE mixer_replay_owner", []) end
+    )
+  end
+
+  defp retained_queue! do
+    with_repo("mixer_replay_admin", fn ->
+      {
+        sql!("SELECT id,args,state::text,attempt FROM mixer_release_jobs.oban_jobs ORDER BY id").rows,
+        sql!(
+          "SELECT platform,sequence::text,signed_assignment_bytes FROM mixer_release_jobs.offer_materializations ORDER BY platform,sequence"
+        ).rows
+      }
+    end)
+  end
+
+  defp assert_failed_queue_upgrade!(registry, {jobs, [[_, _, signed]]}) do
+    with_repo("mixer_replay_admin", fn ->
+      assert %{num_rows: 1} =
+               sql!(
+                 "UPDATE mixer_release_jobs.offer_materializations SET signed_assignment_bytes=$1",
+                 [signed <> <<0>>]
+               )
+    end)
+
+    invalid = retained_queue!()
+
+    with_ledger_owner(fn ->
+      assert_raise Postgrex.Error,
+                   ~r/retained release queue work does not match the immutable ledger/,
+                   fn ->
+                     migrate(:up, registry)
+                   end
+
+      assert [[true, true, nil, nil]] =
+               sql!("""
+               SELECT to_regclass('public.mixer_release_one_local_target') IS NOT NULL,
+                      to_regclass('mixer_release_jobs.release_job_publication_sequence') IS NOT NULL,
+                      to_regclass('mixer_release_jobs.release_job_publication_reference'),
+                      to_regclass('public.mixer_release_delivery_enrollments')
+               """).rows
+    end)
+
+    assert retained_queue!() == invalid
+
+    with_repo("mixer_replay_admin", fn ->
+      assert %{num_rows: 1} =
+               sql!(
+                 "UPDATE mixer_release_jobs.offer_materializations SET signed_assignment_bytes=$1",
+                 [signed]
+               )
+    end)
+
+    assert {^jobs, [[_, _, ^signed]]} = retained_queue!()
+  end
+
+  defp drain_queue!(processor, expected) do
+    with_release_runtime!(
+      processor,
+      fn ->
+        assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
+
+        try do
+          assert [[@processor, true]] =
+                   MixerHosted.Repo.query!("""
+                   SELECT session_user::text, ssl FROM pg_stat_ssl WHERE pid = pg_backend_pid()
+                   """).rows
+
+          with_repo("mixer_replay_admin", fn ->
+            await_completed!(length(expected), System.monotonic_time(:millisecond) + 8_000)
+
+            rows =
+              sql!("""
+              SELECT #{Enum.map_join(@coordinates, ",", &"m.#{&1}")}, m.sequence::text,
+                     m.signed_assignment_bytes,m.artifact_sha256,m.rollout_basis_points,m.action
+              FROM mixer_release_jobs.offer_materializations m
+              JOIN public.mixer_release_publications p USING (#{@columns},sequence)
+              WHERE (m.signed_assignment_bytes,m.artifact_sha256,m.rollout_basis_points,m.action)
+                  = (p.signed_assignment_bytes,p.artifact_sha256,p.rollout_basis_points,p.action)
+              """).rows
+
+            assert MapSet.new(rows) ==
+                     MapSet.new(expected, fn {target, release} ->
+                       coordinates(target) ++
+                         [
+                           Integer.to_string(release.sequence),
+                           release.signed,
+                           release.digest,
+                           10000,
+                           Atom.to_string(Map.get(release, :action, :publish))
+                         ]
+                     end)
+          end)
+        after
+          :ok = Application.stop(:mixer_hosted)
+        end
+      end
+    )
+  end
+
+  defp await_completed!(count, deadline) do
+    rows = sql!("SELECT state::text FROM mixer_release_jobs.oban_jobs ORDER BY id").rows
+
+    unless rows == List.duplicate(["completed"], count) do
+      assert System.monotonic_time(:millisecond) < deadline,
+             "Release jobs failed to drain: #{inspect(rows)}"
+
+      Process.sleep(50)
+      await_completed!(count, deadline)
+    end
+  end
+
+  defp with_release_runtime!(env, run) do
+    prior = Application.get_all_env(:mixer_hosted)
+
+    try do
+      if env["MIXER_HOSTED_ROLE"] == "processor" do
+        for key <- [:local_release_target, :local_release_delivery, WriterRepo],
+            do: Application.delete_env(:mixer_hosted, key)
+      end
+
+      apply_runtime!(env)
+      run.()
+    after
+      restore_runtime!(prior)
+    end
   end
 
   defp with_registry_http!(run) do
@@ -460,56 +842,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
 
   defp provision_registry!(default, android, other) do
     with_repo("mixer_replay_admin", fn ->
-      sql!("GRANT CREATE ON DATABASE postgres TO mixer_replay_owner")
-    end)
-
-    with_repo(
-      "mixer_replay_admin",
-      fn ->
-        for file <- [
-              "20261120000012_add_local_release_halt_audit.exs",
-              "20261120000013_add_local_release_head_details.exs"
-            ],
-            do: assert(:ok == migrate(:up, migration("repo/migrations", file)))
-
-        queue = migration("local_release_jobs", "20261120000014_add_local_release_jobs.exs")
-
-        registry =
-          migration(
-            "local_release_target_registry",
-            "20261120000015_add_local_release_target_registry.exs"
-          )
-
-        assert :ok = migrate(:up, queue)
-
-        assert_raise Postgrex.Error, ~r/without sequence-only release jobs/, fn ->
-          migrate(:up, registry)
-        end
-
-        assert [[true, false]] =
-                 sql!("""
-                 SELECT to_regclass('public.mixer_release_one_local_target') IS NOT NULL,
-                        to_regclass('public.mixer_release_delivery_enrollments') IS NOT NULL
-                 """).rows
-
-        assert :ok = migrate(:down, queue)
-        assert :ok = migrate(:up, registry)
-
-        assert_raise Postgrex.Error, ~r/schema "mixer_release_jobs" already exists/, fn ->
-          migrate(:up, queue)
-        end
-
-        assert [[nil, nil]] =
-                 sql!("""
-                 SELECT to_regclass('public.mixer_release_one_local_target'),
-                        to_regclass('mixer_release_jobs.oban_jobs')
-                 """).rows
-      end,
-      after_connect: fn conn -> Postgrex.query!(conn, "SET ROLE mixer_replay_owner", []) end
-    )
-
-    with_repo("mixer_replay_admin", fn ->
-      seed_head!(android)
+      seed_head!(android, @android_writer)
       seed_identity!("other-owner", "other-subject", "other-credential", "other-family")
       seed_scope!(other, "other-owner", "other-membership")
       seed_head!(other)
@@ -543,8 +876,8 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     )
   end
 
-  defp publish_fixture!(target, release, identity, principal) do
-    with_repo(@writer, fn ->
+  defp publish_fixture!(target, release, identity, principal, writer \\ @writer) do
+    with_repo(writer, fn ->
       assert {:ok, :published} =
                Authorization.with_authorized_transaction(
                  identity,
@@ -1241,6 +1574,18 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
 
     env = Map.merge(env, extra_env)
     prior = Application.get_all_env(:mixer_hosted)
+    apply_runtime!(env)
+
+    on_exit(fn ->
+      restore_runtime!(prior)
+      :public_key.cacerts_clear()
+    end)
+
+    env
+  end
+
+  defp apply_runtime!(env) do
+    prior = Application.get_all_env(:mixer_hosted)
     System.put_env(env)
 
     try do
@@ -1249,18 +1594,23 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     after
       Enum.each(Map.keys(env), &System.delete_env/1)
     end
+  end
 
-    on_exit(fn ->
-      for {key, _} <- Application.get_all_env(:mixer_hosted),
-          do: Application.delete_env(:mixer_hosted, key)
+  defp restore_runtime!(prior) do
+    for {key, _} <- Application.get_all_env(:mixer_hosted),
+        do: Application.delete_env(:mixer_hosted, key)
 
-      Application.put_all_env(mixer_hosted: prior)
-      :public_key.cacerts_clear()
-    end)
+    Application.put_all_env(mixer_hosted: prior)
   end
 
   defp provision!(target) do
     with_repo("mixer_replay_admin", fn ->
+      if @mode == "target-registry" do
+        sql!(
+          "CREATE ROLE #{@android_writer} LOGIN NOINHERIT PASSWORD 'synthetic-replay-android-writer'"
+        )
+      end
+
       for sql <- [
             "CREATE ROLE mixer_replay_owner NOLOGIN NOINHERIT",
             "REVOKE CREATE ON SCHEMA public FROM PUBLIC",
@@ -1467,28 +1817,29 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     )
   end
 
-  defp seed_head!(target) do
+  defp seed_head!(target, writer \\ @writer) do
     sql!(
       """
       INSERT INTO public.mixer_release_heads
         (organization_id,project_id,application_id,environment_id,platform,runtime_sha256,channel,writer_role)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,'#{@writer}')
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
       """,
-      coordinates(target)
+      coordinates(target) ++ [writer]
     )
   end
 
   defp grant! do
-    sql!("GRANT USAGE ON SCHEMA public TO #{@writer}, #{@reader}, #{@stage}")
+    writers = if @mode == "target-registry", do: "#{@writer}, #{@android_writer}", else: @writer
+    sql!("GRANT USAGE ON SCHEMA public TO #{writers}, #{@reader}, #{@stage}")
 
     for table <-
           ~w(profiles principals bindings families credentials organizations projects applications environments organization_heads project_heads memberships),
-        do: sql!("GRANT SELECT ON public.mixer_authz_#{table} TO #{@writer}, #{@stage}")
+        do: sql!("GRANT SELECT ON public.mixer_authz_#{table} TO #{writers}, #{@stage}")
 
     for helper <- ~w(profiles principals families credentials organization_heads project_heads),
         do:
           sql!(
-            "GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO #{@writer}, #{@stage}"
+            "GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO #{writers}, #{@stage}"
           )
 
     for table <- ~w(artifacts audit_events idempotency),
@@ -1505,8 +1856,8 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
       "GRANT SELECT,UPDATE(sequence,event_sha256,state_sha256) ON public.mixer_customer_artifact_heads TO #{@stage}"
     )
 
-    sql!("GRANT SELECT,UPDATE(sequence) ON public.mixer_release_heads TO #{@writer}")
-    sql!("GRANT SELECT,INSERT ON public.mixer_release_cli_requests TO #{@writer}")
+    sql!("GRANT SELECT,UPDATE(sequence) ON public.mixer_release_heads TO #{writers}")
+    sql!("GRANT SELECT,INSERT ON public.mixer_release_cli_requests TO #{writers}")
 
     sql!("""
     GRANT SELECT, INSERT (
@@ -1514,13 +1865,13 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
       sequence, previous_sequence, artifact_sha256, signed_assignment_bytes, rollout_basis_points,
       idempotency_key, reason, principal_id, action,
       health_activated, health_pending, health_adverse_signals
-    ) ON public.mixer_release_publications TO #{@writer}
+    ) ON public.mixer_release_publications TO #{writers}
     """)
 
     sql!("""
     GRANT EXECUTE ON FUNCTION public.mixer_release_publish_allowed(text,text,text,text),
       public.mixer_release_read_allowed(text,text,text,text),
-      public.mixer_release_bound_artifact(text,text,text,text,text,text,text,text) TO #{@writer}
+      public.mixer_release_bound_artifact(text,text,text,text,text,text,text,text) TO #{writers}
     """)
 
     sql!("""

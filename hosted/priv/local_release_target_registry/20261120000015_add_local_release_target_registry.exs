@@ -8,6 +8,9 @@ defmodule MixerHosted.Repo.Migrations.AddLocalReleaseTargetRegistry do
   @enrollments "public.mixer_release_delivery_enrollments"
   @identity ~w(organization_id project_id application_id environment_id platform runtime_sha256)
   @target @identity ++ ["channel"]
+  @jobs "mixer_release_jobs.oban_jobs"
+  @offers "mixer_release_jobs.offer_materializations"
+  @queue "queue = 'releases' AND worker = 'MixerHosted.Releases.ReleaseJobs.Materialize'"
   @offer "public.mixer_release_delivery_offer"
   @artifact "public.mixer_release_delivery_artifact"
   @coordinates "org text, proj text, app text, env text, os text, runtime text, lane text"
@@ -30,17 +33,11 @@ defmodule MixerHosted.Repo.Migrations.AddLocalReleaseTargetRegistry do
             AND pg_catalog.pg_get_userbyid(p.proowner)=current_user AND p.prosecdef) <> 2 THEN
         RAISE EXCEPTION 'target registry requires the original restricted delivery functions';
       END IF;
-      IF pg_catalog.to_regnamespace('mixer_release_jobs') IS NOT NULL THEN
-        RAISE EXCEPTION 'target registry requires a database without sequence-only release jobs';
-      END IF;
     END
     $body$
     """)
 
-    # Reserve the schema name that 000014 unconditionally creates. This also
-    # prevents installing the sequence-only queue after enabling multi-target.
-    execute("CREATE SCHEMA mixer_release_jobs")
-    execute("REVOKE ALL ON SCHEMA mixer_release_jobs FROM PUBLIC")
+    prepare_queue()
 
     key = Enum.join(@target, ",")
 
@@ -98,6 +95,66 @@ defmodule MixerHosted.Repo.Migrations.AddLocalReleaseTargetRegistry do
 
   def down,
     do: raise("target registry rollback requires a forward migration preserving enrollment")
+
+  defp prepare_queue do
+    fields = Enum.map_join(@target, ",", &"'#{&1}',p.#{&1}")
+    reference_key = Enum.map_join(@target ++ ["sequence"], ",", &"(args ->> '#{&1}')")
+
+    # Block ledger writes first, in publisher order, while allowing an in-flight
+    # materializer to finish its ledger read before taking the queue locks.
+    execute("LOCK TABLE #{@heads}, #{@entries} IN SHARE ROW EXCLUSIVE MODE")
+
+    execute("""
+    DO $body$
+    BEGIN
+      IF pg_catalog.to_regnamespace('mixer_release_jobs') IS NULL THEN
+        -- Reserve the name against installation of the original singleton queue.
+        CREATE SCHEMA mixer_release_jobs;
+        REVOKE ALL ON SCHEMA mixer_release_jobs FROM PUBLIC;
+        RETURN;
+      END IF;
+
+      IF (SELECT count(*) FROM pg_catalog.pg_class c
+          WHERE c.oid IN (pg_catalog.to_regclass('#{@jobs}'), pg_catalog.to_regclass('#{@offers}'))
+            AND c.relkind = 'r' AND c.relrowsecurity AND c.relforcerowsecurity
+            AND pg_catalog.pg_get_userbyid(c.relowner) = current_user) <> 2
+         OR pg_catalog.obj_description(pg_catalog.to_regclass('#{@jobs}'), 'pg_class')
+              IS DISTINCT FROM '14' THEN
+        RAISE EXCEPTION 'target registry requires the restricted release queue';
+      END IF;
+
+      LOCK TABLE #{@jobs}, #{@offers} IN ACCESS EXCLUSIVE MODE;
+
+      IF EXISTS (
+        SELECT 1 FROM #{@jobs} j
+        WHERE #{@queue} AND NOT EXISTS (
+          SELECT 1 FROM #{@entries} p
+          WHERE (#{columns("p", @target)}) = (#{Enum.map_join(@target, ",", &"j.args->>'#{&1}'")})
+            AND p.sequence = mixer_release_jobs.publication_sequence_v1(j.args)
+            AND p.release_jobs_xact_id IS NOT NULL
+            AND j.args = jsonb_build_object('version',1,#{fields},'sequence',trunc(p.sequence)::text)
+        )
+      ) OR EXISTS (
+        SELECT 1 FROM #{@offers} o
+        WHERE NOT EXISTS (
+          SELECT 1 FROM #{@entries} p
+          WHERE #{same("p", "o", @target ++ ["sequence"])}
+            AND p.release_jobs_xact_id IS NOT NULL
+            AND (p.signed_assignment_bytes,p.artifact_sha256,p.rollout_basis_points,p.action)
+              = (o.signed_assignment_bytes,o.artifact_sha256,o.rollout_basis_points,o.action)
+        )
+      ) THEN
+        RAISE EXCEPTION 'retained release queue work does not match the immutable ledger';
+      END IF;
+
+      DROP INDEX IF EXISTS mixer_release_jobs.release_job_publication_reference;
+      CREATE UNIQUE INDEX release_job_publication_reference
+        ON #{@jobs} (#{reference_key}) WHERE #{@queue};
+      DROP INDEX IF EXISTS mixer_release_jobs.release_job_publication_sequence;
+    END
+    $body$
+    """)
+  end
 
   defp create_reader(name, arguments, returns, query) do
     # Preserve the grants, caller validation and artifact RLS context from 000003.

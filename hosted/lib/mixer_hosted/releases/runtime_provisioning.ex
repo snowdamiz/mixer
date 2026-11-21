@@ -16,8 +16,6 @@ defmodule MixerHosted.Releases.RuntimeProvisioning do
   def load!(env, %HostedConfig{} = hosted) do
     registry = Map.fetch(env, @registry)
 
-    if registry != :error and hosted.local_release_jobs, do: invalid!(@registry)
-
     case {Map.fetch(env, @config), Map.fetch(env, @password)} do
       {:error, :error} when not hosted.local_release_jobs and registry == :error ->
         :disabled

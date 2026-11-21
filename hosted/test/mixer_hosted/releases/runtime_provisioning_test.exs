@@ -89,6 +89,11 @@ defmodule MixerHosted.Releases.RuntimeProvisioningTest do
     env = Map.put(ctx.env, @registry, Jason.encode!([document]))
     {default, delivery} = RuntimeProvisioning.load!(env, ctx.hosted)
     assert {^default, _} = RuntimeProvisioning.load!(ctx.env, ctx.hosted)
+    refute ctx.hosted.local_release_jobs
+
+    enabled = RuntimeConfig.load!(Map.put(env, "MIXER_LOCAL_RELEASE_JOBS_ENABLED", "true"))
+    assert enabled.local_release_jobs
+    assert {default, delivery} == RuntimeProvisioning.load!(env, enabled)
 
     assert [{target, %{target: target, host: host, roots: roots}}] =
              Map.to_list(delivery.registry)
@@ -98,13 +103,8 @@ defmodule MixerHosted.Releases.RuntimeProvisioningTest do
     assert Enum.all?(roots, &(&1["scope"] == host["scope"]))
   end
 
-  test "rejects queue mode, duplicate selections and cross-scope roots", ctx do
+  test "rejects duplicate selections and cross-scope roots", ctx do
     document = android_document(ctx.document)
-    env = Map.put(ctx.env, @registry, Jason.encode!([document]))
-
-    assert_raise ArgumentError, ~r/MIXER_LOCAL_RELEASE_TARGET_REGISTRY/, fn ->
-      RuntimeProvisioning.load!(env, %{ctx.hosted | local_release_jobs: true})
-    end
 
     for entries <- [
           [],

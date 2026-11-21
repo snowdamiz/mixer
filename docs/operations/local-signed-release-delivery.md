@@ -258,17 +258,26 @@ Publish or promote at a higher signed sequence to resume new offers.
 
 1. After you register the release target, apply optional migration
    `20261120000014` from `hosted/priv/local_release_jobs` as the non-login
-   release ledger owner. The owner needs `CREATE` on the ledger database.
+   release ledger owner. The owner needs `CREATE` on the ledger database. If
+   the optional target registry is already installed, use the current queue
+   migration with its empty schema reservation. To add the registry to an
+   existing queue, run the current `20261120000015` as the ledger owner. It
+   validates the retained jobs and projections and installs full-reference
+   uniqueness in the transaction that allows additional heads.
 2. Run [provision-local-release-jobs.sql](provision-local-release-jobs.sql)
-   as the local database administrator against the ledger database. Set a
-   separate password for the restricted `mixer_release_processor` login.
+   as the local database administrator against the ledger database. The script
+   provisions the restricted login on every registered head. Rerun it after
+   registering a new writer. Set a separate password for the restricted
+   `mixer_release_processor` login.
 3. Start a separate hosted process with `MIXER_HOSTED_ROLE=processor`,
    `MIXER_PROCESSOR_PROFILE=releases_v1`, and
    `MIXER_DATABASE_USER=mixer_release_processor`. Use the same ledger database
    and the processor password with the standard verified TLS settings.
 4. Set `MIXER_LOCAL_RELEASE_JOBS_ENABLED=true` on the API and restart it.
    A new publication commits its release job with its ledger row and head
-   advance. Exact replay returns the original result without adding a job.
+   advance. The job key includes all seven target coordinates and the
+   publication sequence. Exact replay returns the original result without
+   adding a job.
 
 Check `mixer_release_jobs.oban_jobs` for a completed `releases` job and
 `mixer_release_jobs.offer_materializations` for its corresponding projection.

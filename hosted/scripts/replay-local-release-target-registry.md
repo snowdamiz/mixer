@@ -6,14 +6,18 @@ Keep the existing loopback HTTP listener and the separate
 `MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD` for `mixer_release_delivery`.
 
 1. Use a database with the release ledger and the optional
-   `20261120000003` delivery migration. Leave
-   `MIXER_LOCAL_RELEASE_JOBS_ENABLED` off.
+   `20261120000003` delivery migration.
 2. Apply `priv/local_release_target_registry/20261120000015_add_local_release_target_registry.exs`
-   in an Ecto migration transaction as the same restricted, non-login owner.
-   The owner needs `CREATE` on the database. The migration refuses an existing
-   `mixer_release_jobs` schema and reserves that schema name to block
-   later installation of `20261120000014`. Keep the reservation until the
-   queue deduplicates by the full publication reference, including sequence.
+   in an Ecto migration transaction as the restricted, non-login ledger owner.
+   The owner needs `CREATE` on the database. For an existing singleton queue,
+   the migration validates retained jobs and projections against the immutable
+   ledger and installs full publication-reference uniqueness before allowing
+   multiple heads. For a registry-first database, the current `20261120000014`
+   queue migration uses the registry's empty schema reservation. Apply it
+   from `priv/local_release_jobs` explicitly. Ecto warns about the lower
+   version when `000015` is already installed. An empty queue rollback from
+   that same path restores the reservation. The queue refuses rollback
+   while it contains retained work.
 3. Provision a release head and its writer role for each target. For every
    target you intend to deliver, including the default, insert a row into
    `public.mixer_release_delivery_enrollments` as the restricted owner. Set
@@ -25,6 +29,12 @@ Keep the existing loopback HTTP listener and the separate
    additional entries. Use the v3 fields `host`, `channel`, and `roots` in
    every entry. Supply the host and public roots for that entry's scope.
    Restart Phoenix after changing the config.
+
+The queue remains opt-in. Follow the
+[release queue setup](../../docs/operations/local-signed-release-delivery.md#enable-the-release-worker-queue)
+after provisioning the heads. Each API writer still uses one explicit release
+target and its registered login. Use that target as the API's default when
+publishing for it.
 
 Both delivery functions require enrollment as soon as the migration
 commits. Existing heads receive no automatic enrollment. Removing an
@@ -44,9 +54,18 @@ artifact URL always resolves against the configured default.
 ## Replay the local fixture
 
 With the locked test dependencies available and IPv4 loopback ports 5432
-and 47301 free, run `hosted/scripts/replay-local-release-target-registry.sh`
-as an unprivileged user. The runner uses PostgreSQL, OpenSSL, and Mix. It
-starts an isolated PostgreSQL cluster and the ordinary Phoenix API on
-loopback. The test uses fixture identities and synthetic signed artifacts.
-Look for one passing registry test and
+and 47301 free, run both orders from `hosted/` as an unprivileged user.
+
+```sh
+sh scripts/replay-local-release-target-registry.sh queue-first
+sh scripts/replay-local-release-target-registry.sh registry-first
+```
+
+Each run starts an isolated PostgreSQL cluster and the ordinary Phoenix API and
+release processor on loopback. Two restricted writers publish and replay the
+same sequence for two exact targets, and the processor materializes the signed
+bytes for each. The replay also publishes a signed rollback and retries a
+discarded job by ID. The queue-first run checks that a failed upgrade leaves
+the legacy queue and singleton intact, then upgrades with the original job
+and projection retained. Each run ends with one passing registry test and
 `Removed owned PostgreSQL and fixture scratch.`

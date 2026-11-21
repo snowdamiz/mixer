@@ -3,6 +3,11 @@ set -eu
 
 [ "$(id -u)" -ne 0 ] || { echo 'Use an unprivileged fixture user.' >&2; exit 2; }
 cd "$(dirname "$0")/.."
+order=${1:-queue-first}
+case "$order" in
+  queue-first|registry-first) ;;
+  *) echo 'Expected queue-first or registry-first.' >&2; exit 2 ;;
+esac
 umask 077
 scratch=$(mktemp -d /tmp/mixer-target-registry.XXXXXX)
 pgdata="$scratch/db"
@@ -44,8 +49,8 @@ ssl_cert_file = '$scratch/db.pem'
 ssl_key_file = '$scratch/db.key'
 CONFIG
 cat >"$pgdata/pg_hba.conf" <<CONFIG
-local all mixer_replay_admin,mixer_replay_writer,mixer_replay_stage trust
-hostssl postgres mixer_replay_writer,mixer_release_delivery 127.0.0.1/32 scram-sha-256
+local all mixer_replay_admin,mixer_replay_writer,mixer_replay_android_writer,mixer_replay_stage trust
+hostssl postgres mixer_replay_writer,mixer_replay_android_writer,mixer_release_delivery,mixer_release_processor 127.0.0.1/32 scram-sha-256
 CONFIG
 if ! pg_ctl -D "$pgdata" -l "$scratch/postgres.log" -w -t 15 start; then
   cat "$scratch/postgres.log" >&2
@@ -54,4 +59,5 @@ fi
 
 env -i PATH="$PATH" HOME="$HOME" TMPDIR="$scratch" MIX_ENV=test HEX_OFFLINE=1 \
   MIXER_RELEASE_FIXTURE_MODE=target-registry MIXER_RELEASE_FIXTURE_SCRATCH="$scratch" \
+  MIXER_RELEASE_QUEUE_ORDER="$order" \
   mix test --warnings-as-errors --trace test/mixer_hosted/releases/configured_release_replay_test.exs

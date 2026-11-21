@@ -1,0 +1,66 @@
+{
+  "scope": "W11 local release queue and target registry coexistence",
+  "base": "fa62b5d6e5754605a6471eec1a09603b94b275aa",
+  "tested_tree_before_receipt": "a1da8a430e37731c152c8193be2fbacb042a9f36",
+  "environment": {
+    "host": "macOS arm64",
+    "postgresql": "17.11",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "oban": "2.24.2",
+    "phoenix": "1.8.16",
+    "transport": "Owned loopback clusters, verified TLS for registry API writers, reader, and processor"
+  },
+  "registry_replays": [
+    {
+      "command_from_hosted": "sh scripts/replay-local-release-target-registry.sh queue-first",
+      "starting_migration": "Current 000014 with the historical sequence-only index fixture",
+      "seed": 782435,
+      "sequence_8_job_ids_ios_android": [2, 4],
+      "result": "1 passed, 1 skipped"
+    },
+    {
+      "command_from_hosted": "sh scripts/replay-local-release-target-registry.sh registry-first",
+      "starting_migration": "Current 000015",
+      "seed": 734240,
+      "sequence_8_job_ids_ios_android": [1, 3],
+      "result": "1 passed, 1 skipped"
+    },
+    {
+      "command_from_hosted": "sh scripts/replay-local-release-target-registry.sh queue-first",
+      "starting_migration": "Byte-exact 000014 from the base commit in the isolated replay checkout",
+      "seed": 583251,
+      "sequence_8_job_ids_ios_android": [2, 4],
+      "result": "1 passed, 1 skipped"
+    },
+    {
+      "command_from_hosted": "sh scripts/replay-local-release-target-registry.sh registry-first",
+      "starting_migration": "Byte-exact 000015 from the base commit in the isolated replay checkout",
+      "seed": 355601,
+      "sequence_8_job_ids_ios_android": [1, 3],
+      "result": "1 passed, 1 skipped"
+    }
+  ],
+  "observations": {
+    "before_fix": "The queue-first regression failed with P0001 and the original sequence-only queue interlock.",
+    "queue_first": "Retained sequence-7 job ID 1, completed at attempt 1, and its existing signed projection across the upgrade. A mismatched projection fixture made migration 000015 fail with the old index, singleton, jobs, and projections intact.",
+    "registry_first": "Current 000014 adopted the empty reservation. Rolling back the empty queue restored the reservation and left enrollment storage in place. Explicitly reapplying 000014 succeeded with Ecto's out-of-order version warning.",
+    "publication": "Two registered targets with separate restricted writer logins ran the ordinary publication service, published sequence 8, and replayed their requests with one job per exact reference. A signed sequence-9 rollback also replayed with one job.",
+    "processing": "The ordinary releases_v1 processor projected the exact signed bytes, digest, rollout, and action from each immutable ledger row. The unchanged operator script repaired the discarded Android job by ID exactly once and it completed on the next attempt. The iOS sequence-8 job completed on its first attempt.",
+    "delivery_and_cleanup": "The exact signed rollback and historical artifact were served through ordinary Phoenix. Existing enrollment and root revocation checks passed. Queue rollback refused retained jobs. Each replay released the owned PostgreSQL cluster and scratch."
+  },
+  "regressions": [
+    {
+      "command_from_hosted": "MIX_ENV=test HEX_OFFLINE=1 mix test --warnings-as-errors test/mixer_hosted/releases/runtime_provisioning_test.exs test/mixer_hosted/releases/release_jobs_test.exs",
+      "seed": 450619,
+      "result": "13 passed"
+    },
+    {
+      "command_from_hosted": "MIX_ENV=test HEX_OFFLINE=1 mix test --warnings-as-errors --trace test/mixer_hosted/releases/browser_publication_test.exs:356",
+      "fixture": "Owned loopback PostgreSQL browser storage catalog fixture",
+      "seed": 926619,
+      "result": "1 passed, 4 excluded. The preceding admitted attempt received a transient browser session 503 after restart."
+    }
+  ],
+  "limits": "Local synthetic fixtures. Registry publication uses the ordinary service with fixture identities, and the separate browser regression exercises authenticated HTTP. No launch or deployment evidence."
+}
