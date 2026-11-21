@@ -1,0 +1,298 @@
+{
+  "scope": "The compact Swift typed-error fixture on arm64 macOS with the pinned compiler and linker",
+  "testedRevision": "160fb7429e6186436e6b15fb217d4467f3742297",
+  "testedTree": "9652135c02968f75c1533cfad0b21073414518ce",
+  "inputSHA256": {
+    "compiler/Fixtures/FeatureProbe/replay.py": "53c96261d8b9ba21f090c23dca9982ef87dc7b737fbbae8ccc101611de9512ab",
+    "compiler/Fixtures/FeatureProbe/EnumTypedThrows.swift": "15f477e0a864faf96aaa6c8ada414109e699124d4b086d69d1a002e3a7d2bb64",
+    "compiler/Fixtures/FeatureProbe/CompactPreviewGuest.swift": "f8aeeafe15b4ddc8776a0917c789082ea22476f62eb208f9e354e1b462ce6755",
+    "compiler/experiments/fieldlog-installed-guest/run.py": "9fa19032d9b7666b092b72a3b6a02fefa5209c899f1cb27a8ab44c903f3f9982"
+  },
+  "tools": {
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "nativeSwift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "guestSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "linker": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)"
+  },
+  "observedCause": "The absolute object output argument affected the Swift module hash. All 16 differences were the same compiler metadata bytes at Wasm offsets 518 through 533.",
+  "buildChange": "Use a fixed Swift module name and emit the Swift object to stdout before linking the captured object. Only the enum typed-error replay selects this compile mode.",
+  "firstPathExperiment": {
+    "artifacts": {
+      "first": {
+        "size": 534,
+        "sha256": "3fa9d6d8264314e9d9098b37a44a3cb91afe82424ac40ef084476644a73c91eb"
+      },
+      "samePath": {
+        "size": 534,
+        "sha256": "3fa9d6d8264314e9d9098b37a44a3cb91afe82424ac40ef084476644a73c91eb"
+      },
+      "differentPath": {
+        "size": 534,
+        "sha256": "a9db799805cc962478219b2189cdc5475d8eab1fd37f1bb47260ca70da16b9c8"
+      },
+      "namedA": {
+        "size": 534,
+        "sha256": "4f81045ff2d0cff3fb754ebcb3148209e2a569996c32f7d16c50fc05e288e187"
+      },
+      "namedB": {
+        "size": 534,
+        "sha256": "b55bad5c7de8dd4c376aca67180f1989735915fd0cd290a15babc72330b0d142"
+      }
+    },
+    "samePath": {
+      "equal": true,
+      "changedSections": []
+    },
+    "differentPath": {
+      "equal": false,
+      "changedSections": [
+        {
+          "kind": 11,
+          "lengths": [
+            23,
+            23
+          ],
+          "changedSameOffsetBytes": 16
+        }
+      ]
+    },
+    "explicitModuleNameDifferentPath": {
+      "equal": false,
+      "changedSections": [
+        {
+          "kind": 11,
+          "lengths": [
+            23,
+            23
+          ],
+          "changedSameOffsetBytes": 16
+        }
+      ]
+    },
+    "commandsClosed": 10,
+    "scratchRemoved": true
+  },
+  "oneVariableAtATime": {
+    "observations": {
+      "baseline": {
+        "wasmBytes": 534,
+        "wasmSHA256": "8697239eb370e8521c087a0f3dac133eefdd5e0d2100ed9abe6fda1613467c8d",
+        "matchingObjectModuleHash": "fbbe23a0f7a5016537c22ded861fd7ea",
+        "wasmModuleHashOffset": 518,
+        "bytesWithoutModuleHashSHA256": "11dcc5e225424c26d9ab2aa4976376ce37907f3744fcce4c07fa1aab710f7ba6"
+      },
+      "onlyOutputPath": {
+        "wasmBytes": 534,
+        "wasmSHA256": "02b7465250571b4dbef879e85606186029c8a9598aa3afe2053c5a9db8e940cf",
+        "matchingObjectModuleHash": "a8234694c17c064b7ecbafa08c38cdc9",
+        "wasmModuleHashOffset": 518,
+        "bytesWithoutModuleHashSHA256": "11dcc5e225424c26d9ab2aa4976376ce37907f3744fcce4c07fa1aab710f7ba6"
+      },
+      "onlyCachePath": {
+        "wasmBytes": 534,
+        "wasmSHA256": "8697239eb370e8521c087a0f3dac133eefdd5e0d2100ed9abe6fda1613467c8d",
+        "matchingObjectModuleHash": "fbbe23a0f7a5016537c22ded861fd7ea",
+        "wasmModuleHashOffset": 518,
+        "bytesWithoutModuleHashSHA256": "11dcc5e225424c26d9ab2aa4976376ce37907f3744fcce4c07fa1aab710f7ba6"
+      },
+      "mappedA": {
+        "wasmBytes": 534,
+        "wasmSHA256": "8697239eb370e8521c087a0f3dac133eefdd5e0d2100ed9abe6fda1613467c8d",
+        "matchingObjectModuleHash": "fbbe23a0f7a5016537c22ded861fd7ea",
+        "wasmModuleHashOffset": 518,
+        "bytesWithoutModuleHashSHA256": "11dcc5e225424c26d9ab2aa4976376ce37907f3744fcce4c07fa1aab710f7ba6"
+      },
+      "mappedB": {
+        "wasmBytes": 534,
+        "wasmSHA256": "02b7465250571b4dbef879e85606186029c8a9598aa3afe2053c5a9db8e940cf",
+        "matchingObjectModuleHash": "a8234694c17c064b7ecbafa08c38cdc9",
+        "wasmModuleHashOffset": 518,
+        "bytesWithoutModuleHashSHA256": "11dcc5e225424c26d9ab2aa4976376ce37907f3744fcce4c07fa1aab710f7ba6"
+      },
+      "stdoutA": {
+        "wasmBytes": 534,
+        "wasmSHA256": "99c8e69e7325af87d65c8dea4e18d4d2cfea6dfac943c6da102cf8fc05ad9b71",
+        "matchingObjectModuleHash": "202b19ccc2f0239489cf7f17dc3391f0",
+        "wasmModuleHashOffset": 518,
+        "bytesWithoutModuleHashSHA256": "11dcc5e225424c26d9ab2aa4976376ce37907f3744fcce4c07fa1aab710f7ba6"
+      },
+      "stdoutB": {
+        "wasmBytes": 534,
+        "wasmSHA256": "99c8e69e7325af87d65c8dea4e18d4d2cfea6dfac943c6da102cf8fc05ad9b71",
+        "matchingObjectModuleHash": "202b19ccc2f0239489cf7f17dc3391f0",
+        "wasmModuleHashOffset": 518,
+        "bytesWithoutModuleHashSHA256": "11dcc5e225424c26d9ab2aa4976376ce37907f3744fcce4c07fa1aab710f7ba6"
+      }
+    },
+    "commandsClosed": 14,
+    "scratchRemoved": true
+  },
+  "focusedReplay": [
+    {
+      "observedUTC": "2026-11-21T13:08:52.403344+00:00",
+      "revision": "160fb7429e6186436e6b15fb217d4467f3742297",
+      "tree": "9652135c02968f75c1533cfad0b21073414518ce",
+      "vmTree": "ec1ddb74b7c6c2eabd91d1f60ed243ffc69ce6f4",
+      "wasm": {
+        "bytes": 534,
+        "sha256": "99c8e69e7325af87d65c8dea4e18d4d2cfea6dfac943c6da102cf8fc05ad9b71"
+      },
+      "vmArchive": {
+        "bytes": 19316872,
+        "sha256": "6a9ef08edafb9a3f9c35d3a98197584987a3b70cb429fddba6e1c562a927b822"
+      },
+      "guestDescriptors": {
+        "imports": [],
+        "memories": [
+          {
+            "minimum": 1,
+            "maximum": 1
+          }
+        ],
+        "startFunction": null
+      },
+      "native": {
+        "closed": false,
+        "guestFuel": [],
+        "refusedFrameHex": "e803000000000000",
+        "framesHex": {
+          "initial": "0000000000000000",
+          "flat-fee": "0c00000000000000",
+          "item-at-limit": "e803000000000000",
+          "item-after-refusal": "390000004c040000"
+        }
+      },
+      "guest": {
+        "closed": true,
+        "reclaimedRegistrySlot": true,
+        "guestFuel": [
+          75,
+          82,
+          82
+        ],
+        "refusedFrameHex": "e803000000000000",
+        "framesHex": {
+          "initial": "0000000000000000",
+          "flat-fee": "0c00000000000000",
+          "item-at-limit": "e803000000000000",
+          "item-after-refusal": "390000004c040000"
+        }
+      },
+      "custody": {
+        "directReapedAndGroupsObservedAbsent": 15,
+        "unknown": 0,
+        "observedPeakScratchBytes": 75337771,
+        "scratchLimitBytes": 3221225472,
+        "scratchRemoved": true
+      }
+    },
+    {
+      "observedUTC": "2026-11-21T13:09:03.073071+00:00",
+      "revision": "160fb7429e6186436e6b15fb217d4467f3742297",
+      "tree": "9652135c02968f75c1533cfad0b21073414518ce",
+      "vmTree": "ec1ddb74b7c6c2eabd91d1f60ed243ffc69ce6f4",
+      "wasm": {
+        "bytes": 534,
+        "sha256": "99c8e69e7325af87d65c8dea4e18d4d2cfea6dfac943c6da102cf8fc05ad9b71"
+      },
+      "vmArchive": {
+        "bytes": 19316872,
+        "sha256": "6a9ef08edafb9a3f9c35d3a98197584987a3b70cb429fddba6e1c562a927b822"
+      },
+      "guestDescriptors": {
+        "imports": [],
+        "memories": [
+          {
+            "minimum": 1,
+            "maximum": 1
+          }
+        ],
+        "startFunction": null
+      },
+      "native": {
+        "closed": false,
+        "guestFuel": [],
+        "refusedFrameHex": "e803000000000000",
+        "framesHex": {
+          "initial": "0000000000000000",
+          "flat-fee": "0c00000000000000",
+          "item-at-limit": "e803000000000000",
+          "item-after-refusal": "390000004c040000"
+        }
+      },
+      "guest": {
+        "closed": true,
+        "reclaimedRegistrySlot": true,
+        "guestFuel": [
+          75,
+          82,
+          82
+        ],
+        "refusedFrameHex": "e803000000000000",
+        "framesHex": {
+          "initial": "0000000000000000",
+          "flat-fee": "0c00000000000000",
+          "item-at-limit": "e803000000000000",
+          "item-after-refusal": "390000004c040000"
+        }
+      },
+      "custody": {
+        "directReapedAndGroupsObservedAbsent": 15,
+        "unknown": 0,
+        "observedPeakScratchBytes": 75337771,
+        "scratchLimitBytes": 3221225472,
+        "scratchRemoved": true
+      }
+    }
+  ],
+  "regressionReplays": {
+    "default": {
+      "revision": "160fb7429e6186436e6b15fb217d4467f3742297",
+      "tree": "9652135c02968f75c1533cfad0b21073414518ce",
+      "vmTestResults": {
+        "experimental_guest_ui_validation": "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "experimental_capability_guest": "test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      },
+      "custody": {
+        "directReapedAndGroupsObservedAbsent": 34,
+        "unknown": 0,
+        "observedPeakScratchBytes": 79347785,
+        "scratchLimitBytes": 3221225472,
+        "scratchRemoved": true
+      }
+    },
+    "fixedSlotResultBuilder": {
+      "revision": "160fb7429e6186436e6b15fb217d4467f3742297",
+      "tree": "9652135c02968f75c1533cfad0b21073414518ce",
+      "guest": {
+        "reclaimedRegistrySlot": true,
+        "closed": true,
+        "guestFuel": [
+          144,
+          159,
+          170,
+          127
+        ],
+        "refusedFrameHex": "21343536",
+        "framesHex": {
+          "initial": "00000000",
+          "priority-one": "21390000",
+          "ordinary-two": "2e313200",
+          "priority-three": "21343536",
+          "ordinary-empty-after-refusal": "2e000000"
+        }
+      },
+      "custody": {
+        "directReapedAndGroupsObservedAbsent": 15,
+        "unknown": 0,
+        "observedPeakScratchBytes": 75338668,
+        "scratchLimitBytes": 3221225472,
+        "scratchRemoved": true
+      }
+    }
+  },
+  "compilerTestsPassed": 14,
+  "swiftSupportMatrixCheck": "passed"
+}

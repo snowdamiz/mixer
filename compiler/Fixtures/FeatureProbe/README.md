@@ -155,6 +155,11 @@ on arm64 macOS. Untyped throwing, Foundation and signed or device execution
 remain unqualified by this replay.
 [Enum and typed throws replay receipt](../../../verification/receipts/l03-swift-enum-typed-throws.json)
 
+This mode emits the object to stdout before linking it. A fixed object output
+argument keeps Swift's module hash stable across scratch directories with the
+same compiler and inputs.
+[Reproducibility receipt](../../../verification/receipts/l03-swift-enum-typed-throws-reproducibility-160fb742.json)
+
 ## Owned VM capability and validation controls
 
 The compact replay executes the suites below using Rust 1.99.0. To run them

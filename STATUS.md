@@ -700,11 +700,16 @@ Independent review matched the source pins, frame bytes, and support matrix.
 Signed activation and mobile execution remain open.
 [Typed-error replay](verification/receipts/l03-swift-enum-typed-throws.json)
 
-The composed checkout replay reproduced the frame bytes, fuel observations,
-and linked VM archive from the first run. All 15 command groups closed and
-scratch was removed. The 534-byte Wasm had a different digest. Its binary
-difference remains unexplained.
-[Composed replay receipt](verification/receipts/l03-swift-enum-typed-throws-composed-2c3cf5e0.json)
+The first composed replay reproduced the frames, fuel, and linked VM
+archive. Its 534-byte Wasm had a different digest. A controlled rebuild
+isolated the difference to the 16-byte Swift module hash carried in the
+Wasm data section. With a fixed Swift object output argument, two fresh
+replays emitted byte-identical Wasm and preserved the matching frames,
+fuel, and close behavior. The default replay passed 32 VM tests and the
+fixed-slot builder passed its replay. All observed command groups closed
+and scratch was removed.
+[First composed replay](verification/receipts/l03-swift-enum-typed-throws-composed-2c3cf5e0.json) ·
+[Reproducibility receipt](verification/receipts/l03-swift-enum-typed-throws-reproducibility-160fb742.json)
 
 A compact Swift event trapped at function 3, byte 514 in the owned VM.
 The matching line table resolved that position to `SwiftEventGuest.swift:32:9`
