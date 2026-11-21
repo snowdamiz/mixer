@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "observed_at_utc": "2026-11-21T03:39:36+00:00",
+  "source_commit": "07c4931451803cde2d36b6a42d40771c1148995b",
+  "command": "python3 -B -m unittest discover -s compiler/tests",
+  "python": "3.14.8 arm64 macOS",
+  "result": "Nine tests ran. One bounded output test ended in PermissionError EPERM.",
+  "test": "test_qualification_support.QualificationTests.test_command_output_and_in_memory_results_are_bounded",
+  "observed_pid": 99218,
+  "attempted_process_group": 99218,
+  "custody": "UNKNOWN",
+  "evidence": [
+    "The inert Python child was launched with start_new_session.",
+    "The output-limit signal and the finally-block signal both returned EPERM.",
+    "CPython warned that the subprocess was still running. No direct reap or process-group absence was observed.",
+    "The test uses TemporaryDirectory. The failing output omitted its path and has no cleanup receipt."
+  ],
+  "hold": "Preserve the exact child and attempted process group without inspection, signalling, waiting, retrying, or resource cleanup. Do not enumerate scratch to locate the test directory.",
+  "scope_limit": "This control uses the unchanged compiler qualification recorder from v73. The generated support matrix check passed separately. The associated-type host replay has its own reviewed receipt."
+}
