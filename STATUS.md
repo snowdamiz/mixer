@@ -40,6 +40,17 @@ setup and port-reuse holds remain active. W15 and L08 remain open.
 [Installed launch receipt](verification/receipts/fieldlog-independent-export-android-launch-v74.json) ·
 [Replay](docs/guides/fieldlog.md#build-the-v74-export-in-independent-android-ci)
 
+## November 21 hosted v76 verification
+
+Identity Network and Intel Android passed at `32cd2c54b6`. Intel verified both
+creates and all six consumers with terminal command custody. Phoenix admitted
+all 555 sources, then stopped with one invalid test after a fixture directory
+already existed. ExUnit recorded 1,026 passes and 29 skips before the final
+source comparison. Swift host reproduced signal 11 in the CLI testing bundle.
+The logs leave the crashing test unidentified. All 129 retained CLI command
+receipts recorded terminal custody. Earlier holds remain active.
+[Terminal CI receipt](verification/receipts/hosted-v76-terminal-ci-32cd2c54.json)
+
 ## November 20 hosted v73 verification
 
 All three v73 hosted workflows passed. The Phoenix fixture kept its
