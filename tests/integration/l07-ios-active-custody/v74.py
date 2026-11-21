@@ -10,7 +10,7 @@ import sys
 import time
 
 BASE = "44aecbeb6a82a4a93321cff6a8ab86c5aa421900"
-CATALOG_REVISION = "2fa5d18c7d7eed4b8687d2d6159fae8606636431"
+CATALOG_REVISION = "d8461558a05867d6e4656b9469b244f5b92b1146"
 CATALOG_HOSTED_TREE = "5f45ec34fa5a3ffa75c878eaeed00d0887171b50"
 # Published Ed25519 test vector public key, used only for the zero-build preflight.
 PREFLIGHT_SPKI = bytes.fromhex(
