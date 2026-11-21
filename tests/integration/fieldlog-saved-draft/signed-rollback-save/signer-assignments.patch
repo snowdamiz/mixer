@@ -1,0 +1,23 @@
+diff --git a/Sign.swift b/Sign.swift
+--- a/Sign.swift
++++ b/Sign.swift
+@@ -86 +86 @@
+-        let variants = draftTools ? Array(InstalledDraftGuest.variants.prefix(3)) : ["entry-commit"]
++        let variants = draftTools ? InstalledDraftGuest.variants : ["entry-commit"]
+@@ -95,0 +96 @@
++        var manifests: [String: Data] = [:]
+@@ -115 +116,9 @@
+-            let manifestBytes = try signed(manifest, "manifest", "artifact")
++            let manifestBytes: Data
++            if let previous = manifests[variant] {
++                manifestBytes = previous
++            } else {
++                manifestBytes = try signed(manifest, "manifest", "artifact")
++                manifests[variant] = manifestBytes
++                try write("\(variant).manifest.json", manifestBytes)
++                try write("\(variant).wasm", payload)
++            }
+@@ -125 +133,0 @@
+-            try write("\(variant).manifest.json", manifestBytes)
+@@ -127 +134,0 @@
+-            try write("\(variant).wasm", payload)
