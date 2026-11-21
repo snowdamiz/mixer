@@ -1,0 +1,672 @@
+{
+  "cleanup": "The fixture PostgreSQL instances shut down. Only the requested source and evidence commits remain after the owned worktrees and scratch are removed.",
+  "cli_archive": {
+    "seal_members": 198,
+    "seal_sha256": "ccc3ef43327d19c1dfc9d89e1698d2483e42ba11e0788bd4e9ba674569ff8c8a",
+    "source": {
+      "count": 153,
+      "manifest": "current-source-inputs.json",
+      "sha256": "94579736cbdf9205800b3fa8290bbf46899f679d556a9ea84edcf6ac9a380676"
+    },
+    "transition": {
+      "changes": {
+        ".github/workflows/verify.yml": {
+          "after": {
+            "bytes": 81343,
+            "sha256": "50fcbbfc40e11515a2fa49e0279b8fcc160f8949b4e84efddcd8fdab4992f0c9"
+          },
+          "before": {
+            "bytes": 81101,
+            "sha256": "7c15b373d305db321441fd24bf4ac440b3deeb657cab362ad798d703ad8f21b5"
+          }
+        },
+        "verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py": {
+          "after": {
+            "bytes": 30821,
+            "sha256": "e14839189da3bb7aa86d5722ce0c3ad0b4be7599011dd9cceee35389cbfd2ee5"
+          },
+          "before": {
+            "bytes": 30776,
+            "sha256": "4e97b7fc1e7f59eab02172a55da4cc432ae7bf0a655cc8bd5e89fd118a1cba3b"
+          }
+        }
+      }
+    }
+  },
+  "hosted_v72": {
+    "changed_paths": 20,
+    "identity": "hosted-local-ios-simulator-development-attestation-source-v72",
+    "manifest": {
+      "bytes": 84439,
+      "path": "selected-source-manifest.json",
+      "sha256": "860069a7b26d9f2d7c784ce215460d1b15f82a8716e833582970b1d32e6019fa"
+    },
+    "preimages": 12,
+    "selection_sha256": "d37601208680fca14efa420a737fa0edb4e8f0d6a1d3c72d8c6629577d50088d",
+    "source_count": 504,
+    "source_digest_sha256": "b91c6995ab2f45a90921b06711941a5a9e9775c9bc9e7d73d460126a11dc9612"
+  },
+  "observed_at_utc": "2026-11-21T02:39:37+00:00",
+  "observed_recovery": [
+    "The first sparse harness stopped when it omitted the Swift-host exclusion rule. The corrected harness materialized the five exact projections. No bootstrap ran in the initial checkout.",
+    "The first maintained invocation inherited deterministic retained-test scratch. The final invocation started with a clean checkout and ran the retained verifier in the separate attachment suite.",
+    "The first CLI archive corruption check expected the wrong error text. The corrected check observed byte and mode refusals and restored the tested files."
+  ],
+  "public_base": "5551f171ca6a02202e104f47444d662885aa8bd9",
+  "reviewed_chain": {
+    "61ec9b0fa48755d6b770230b5d02c8de836a2d0c": "4afbb4c750f870561d4fe698e66ee710f36aaa8b",
+    "716a3f3ac4cfd42485c5e7a6f112234fdc6492f1": "f2f84bf0efd864ff463e40ec95042ccb84923969",
+    "727663eceea97389f261496e97fc9386ff0739e3": "62a512e654fc72623451c005e1fed696532595fa",
+    "e58c39d00025a626d8d48d07a1805c3ac05886aa": "f79ecbcb90e2b1593eb0d50a44ca11e35da57af6"
+  },
+  "runtime": {
+    "attachment": {
+      "command": "MIXER_ATTESTATION_TEST_SOCKET=<owned canonical Unix socket directory> MIXER_ATTESTATION_TEST_GO_SIGNER=<owned signer> mix test --warnings-as-errors --seed 0 --trace test/mixer_hosted/builds/{native_attestation_attachment,retained_native_attestation,native_development_attestation,native_development_dispatch,journal,lifecycle}_test.exs test/mixer_hosted/{authorization/policy,identity/access_token_verifier}_test.exs",
+      "direct_nonowner_function_acl": [
+        [
+          "mixer_native_attestation_writer",
+          "EXECUTE",
+          false
+        ]
+      ],
+      "migration": {
+        "observed_schema_migrations_at_or_above_20261120000017": [
+          20261120000020
+        ],
+        "opt_in_path": "hosted/priv/local_native_attestation/20261120000020_add_native_development_attestations.exs",
+        "reserved_for_delivery": [
+          20261120000017,
+          20261120000018,
+          20261120000019
+        ]
+      },
+      "passed": 121,
+      "pg_cleanup": "Fast shutdown completed and the owned postmaster PID file, Unix socket and socket lock were absent.",
+      "proof": "The built Go signer read and signed the authorized settled operation. The Elixir call verified and persisted the exact envelope, recognized replay, and rejected replacement with byte-identical products. Legacy v1 verification passed and v1 attachment was refused. Restricted SQL controls covered unauthorized grants, revocation, default PUBLIC EXECUTE, absence of relation privileges and transactional rollback.",
+      "restricted_database_cases": 10,
+      "tests_log_sha256": "97bc962ba2b1c64ec1aee1b7bca5c733e514c19f6ea25476f267c61f39626073"
+    },
+    "go": {
+      "build_command": "GOPROXY=off CGO_ENABLED=1 go -C services build -mod=readonly -o <owned-signer> ./cmd/mixer-native-attest",
+      "passed": [
+        "TestReadArtifactRejectsSameSizeCorruption",
+        "TestFixedOriginAndACLs",
+        "TestConcurrentAttestationsPublishOneEnvelope",
+        "TestCompletedOperationRequiredAndLegacyVerification",
+        "TestParsedPublicKeyVerifiesAfterLoaderReturns"
+      ],
+      "signer_binary_sha256": "84fdb222ff6f5d51abf216813f71708cdccaae3c986d68c87329834759aae588",
+      "test_command": "GOPROXY=off CGO_ENABLED=1 go -C services test -mod=readonly -race -v -count=1 -timeout=90s ./cmd/mixer-native-attest",
+      "tests_log_sha256": "b4445eb2fb9f3cd9fbb07e17a8bd6cf423943e51eb0fea07111e7fa1a452cab4"
+    },
+    "maintained_hosted": {
+      "browser": "Ordinary authenticated loopback Phoenix and PostgreSQL with the fixture provider and compiled stock Node clients. The dedicated completion read refused unauthenticated, queued and revoked access. It returned the settled operation with no-store. Its JSON, with workerOperationId removed, equaled the entire legacy build detail response.",
+      "cleanup": {
+        "postgres_stopped": true,
+        "scratch_removed": true
+      },
+      "command": "python3.13 -I -B -S scripts/test-local.py --pg-bin /opt/homebrew/opt/postgresql@17/bin --output <owned> --only-additional-tests --test-timeout 180, with one --additional-test per path listed",
+      "format_compile_release_and_fixture_cleanup": {
+        "compile": {
+          "exit": 0,
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "format": {
+          "exit": 0,
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "postgres-stop": {
+          "exit": 0,
+          "log_sha256": "ca19178a35ab4153b75b494963b66ce8243e1b94c173107c87b44d09db23652d"
+        },
+        "release-build": {
+          "exit": 0,
+          "log_sha256": "69757b36e923aaa3f009df697466448c2c23ccaff56c092a8f3b01dad44bc70e"
+        },
+        "release-missing-config": {
+          "exit": 1,
+          "log_sha256": "60f541e00e45c74fadcb7af39949ee0b9ad793683d8d971490fb92484da05c27"
+        },
+        "release-test-exclusion": {
+          "exit": 0,
+          "log_sha256": "e8c74e53fcb98e84b61ea8295e5b342140da22e1fb1af5751097bbeda7d2b5d5"
+        }
+      },
+      "passed": 51,
+      "paths": [
+        "test/mixer_hosted/browser_auth/ordinary_console_catalog_navigation_cookie_pg_join_test.exs",
+        "test/mixer_hosted/browser_auth/customer_build_inputs_http_sql_test.exs",
+        "test/customer_build_read_test.exs",
+        "test/mixer_hosted/builds/native_development_attestation_test.exs",
+        "test/mixer_hosted/identity/access_token_verifier_test.exs"
+      ],
+      "source_tree_sha256": "9a792669d9a90877539881f412d75e49d79731c058a74fc15224f8cf7512c69c",
+      "tests_log_sha256": "b107677af6bb711f2693097ac03b10a06cf462c324799d55c3b4ebea8f5bcad7"
+    }
+  },
+  "schema": 1,
+  "scope": "Local iOS Simulator development attestation fixtures on macOS. The ordinary Phoenix browser session serves the completed operation and legacy detail. The dedicated attachment call is exercised only through the explicit restricted PostgreSQL fixture and still requires ordinary runtime wiring by root.",
+  "scope_limits": [
+    "The fixtures use synthetic journals, retained product bytes, signing material, browser sessions and database roles.",
+    "Root owns live admission and startup wiring for the dedicated attachment call.",
+    "Device execution, remote CI, deployment, and release admission remain outside this fixture evidence. L05 and W12 remain in progress."
+  ],
+  "sparse": {
+    "byte_and_mode_refusals": {
+      "v71-preimage": {
+        "checks": {
+          "normal_byte": {
+            "exit": 1,
+            "expected_error": "workspace source preimages differ"
+          },
+          "normal_mode": {
+            "exit": 1,
+            "expected_error": "workspace source file mode differs"
+          },
+          "optimized_byte": {
+            "exit": 1,
+            "expected_error": "workspace source preimages differ"
+          },
+          "optimized_mode": {
+            "exit": 1,
+            "expected_error": "workspace source file mode differs"
+          }
+        },
+        "path": "verification/identity-network-current-source-v71/preimages/hosted/lib/mixer_hosted/releases/environment_promotion/direction.ex",
+        "restored": {
+          "command": "python3.13 -I -B -S hosted/scripts/test-identity-network.py --check-source",
+          "exit": 0,
+          "stdout_sha256": "c15a3b7034fa212c403990539a3b84f67134762a8b4ffbe7779332be5c319822"
+        }
+      },
+      "v72-cli-installed": {
+        "checks": {
+          "normal_byte": {
+            "exit": 1,
+            "expected_error": "Owning bytes differ"
+          },
+          "normal_mode": {
+            "exit": 1,
+            "expected_error": "mode"
+          },
+          "optimized_byte": {
+            "exit": 1,
+            "expected_error": "Owning bytes differ"
+          },
+          "optimized_mode": {
+            "exit": 1,
+            "expected_error": "mode"
+          }
+        },
+        "path": "verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py",
+        "restored": {
+          "command": "python3.13 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+          "exit": 0,
+          "stdout_sha256": "d9acbb72df6dbf0fad49976b89086d092af3557b7495f0240f9d56f339588291"
+        }
+      },
+      "v72-cli-preimage": {
+        "checks": {
+          "normal_byte": {
+            "exit": 1,
+            "expected_error": "Owning bytes differ"
+          },
+          "normal_mode": {
+            "exit": 1,
+            "expected_error": "mode"
+          },
+          "optimized_byte": {
+            "exit": 1,
+            "expected_error": "Owning bytes differ"
+          },
+          "optimized_mode": {
+            "exit": 1,
+            "expected_error": "mode"
+          }
+        },
+        "path": "verification/native-report-source141-archive-v1/hosted-v72-predecessor-bytes/.github/workflows/verify.yml",
+        "restored": {
+          "command": "python3.13 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+          "exit": 0,
+          "stdout_sha256": "d9acbb72df6dbf0fad49976b89086d092af3557b7495f0240f9d56f339588291"
+        }
+      },
+      "v72-preimage": {
+        "checks": {
+          "normal_byte": {
+            "exit": 1,
+            "expected_error": "workspace source preimages differ"
+          },
+          "normal_mode": {
+            "exit": 1,
+            "expected_error": "workspace source file mode differs"
+          },
+          "optimized_byte": {
+            "exit": 1,
+            "expected_error": "workspace source preimages differ"
+          },
+          "optimized_mode": {
+            "exit": 1,
+            "expected_error": "workspace source file mode differs"
+          }
+        },
+        "path": "verification/identity-network-current-source-v72/preimages/hosted/lib/mixer_hosted/authorization/policy.ex",
+        "restored": {
+          "command": "python3.13 -I -B -S hosted/scripts/test-identity-network.py --check-source",
+          "exit": 0,
+          "stdout_sha256": "c15a3b7034fa212c403990539a3b84f67134762a8b4ffbe7779332be5c319822"
+        }
+      }
+    },
+    "historical_restoration": {
+      "archive_predecessors": {
+        "normal": {
+          "Source127": {
+            "admission": {
+              "command": "python3.13 -I -B -S verification/native-report-source127-v1/adopt_envelope.py verify --workflow-installed",
+              "exit": 0,
+              "stdout_sha256": "0cb67b2e09ed90b78498eefb0d9735d1b5425dd8d711f4b5072b00a914002519"
+            },
+            "controls": {
+              "case_names_sha256": "c96541546fcd2de1626173d571712b0346f3845278290a6f89a053f97f52bcb6",
+              "command": "python3.13 -I -B -S verification/native-report-source127-v1/test_source127.py",
+              "exit": 0,
+              "passed": 20
+            },
+            "files": 845,
+            "path_mode_blob_sha256": "37ed72c05b97f15973dd08a06afeafadf4db64048bbbaed326a35eee37d6ca54"
+          },
+          "Source141": {
+            "admission": {
+              "command": "python3.13 -I -B -S verification/sdk-feature-ui-source141-v1/adopt_sdk.py verify",
+              "exit": 0,
+              "stdout_sha256": "a4ec769dd76cb68de04a24d86247d41fa408683afc536e4e01ff7443ebcc5e4e"
+            },
+            "controls": {
+              "case_names_sha256": "245b924e3c42a2dd595044c06d184539b83f9cb07dea42ec9fc50157d7e48472",
+              "command": "python3.13 -I -B -S verification/sdk-feature-ui-source141-v1/test_source141.py",
+              "exit": 0,
+              "passed": 3
+            },
+            "files": 890,
+            "path_mode_blob_sha256": "7c61c17913414de0c4189783d324ebce1a73ffbdb2387c9a24b847a26406c29f"
+          }
+        },
+        "optimized": {
+          "Source127": {
+            "admission": {
+              "command": "python3.13 -I -B -S -O verification/native-report-source127-v1/adopt_envelope.py verify --workflow-installed",
+              "exit": 0,
+              "stdout_sha256": "0cb67b2e09ed90b78498eefb0d9735d1b5425dd8d711f4b5072b00a914002519"
+            },
+            "controls": {
+              "case_names_sha256": "c96541546fcd2de1626173d571712b0346f3845278290a6f89a053f97f52bcb6",
+              "command": "python3.13 -I -B -S -O verification/native-report-source127-v1/test_source127.py",
+              "exit": 0,
+              "passed": 20
+            },
+            "files": 845,
+            "path_mode_blob_sha256": "37ed72c05b97f15973dd08a06afeafadf4db64048bbbaed326a35eee37d6ca54"
+          },
+          "Source141": {
+            "admission": {
+              "command": "python3.13 -I -B -S -O verification/sdk-feature-ui-source141-v1/adopt_sdk.py verify",
+              "exit": 0,
+              "stdout_sha256": "a4ec769dd76cb68de04a24d86247d41fa408683afc536e4e01ff7443ebcc5e4e"
+            },
+            "controls": {
+              "case_names_sha256": "245b924e3c42a2dd595044c06d184539b83f9cb07dea42ec9fc50157d7e48472",
+              "command": "python3.13 -I -B -S -O verification/sdk-feature-ui-source141-v1/test_source141.py",
+              "exit": 0,
+              "passed": 3
+            },
+            "files": 890,
+            "path_mode_blob_sha256": "7c61c17913414de0c4189783d324ebce1a73ffbdb2387c9a24b847a26406c29f"
+          }
+        }
+      },
+      "cli": {
+        "70": {
+          "archive": {
+            "files": 194,
+            "path_mode_blob_sha256": "eee04e13d5aaa951830d480eb6c0627b2b09abc26a95710db6be4bbb2ed07005"
+          },
+          "inventory": {
+            "files": 350,
+            "path_mode_blob_sha256": "a008846418f679e3ec2a330494e9e4e49d00120d86e4d18477b3ce4e5e414780"
+          },
+          "normal": {
+            "command": "python3.13 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+            "exit": 0,
+            "stdout_sha256": "d9acbb72df6dbf0fad49976b89086d092af3557b7495f0240f9d56f339588291"
+          },
+          "optimized": {
+            "command": "python3.13 -I -B -S -O verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+            "exit": 0,
+            "stdout_sha256": "d9acbb72df6dbf0fad49976b89086d092af3557b7495f0240f9d56f339588291"
+          },
+          "revision": "288c8a94c3503547ac44733efa5e5dc06bae0775",
+          "seal_sha256": "5484b3b0418172373abe027f89ae4cb5b6e7784fb9106858d94227b208336e0f",
+          "source_count": 153
+        },
+        "71": {
+          "archive": {
+            "files": 197,
+            "path_mode_blob_sha256": "e77de00d07d3ff4d819b2a28bb44755b2216c08597b89be8e94de2d37942d1b9"
+          },
+          "inventory": {
+            "files": 353,
+            "path_mode_blob_sha256": "5af4a5f703f9b716a56eba241ab4b4b93d745c324e8355b0b0add77bece6be98"
+          },
+          "normal": {
+            "command": "python3.13 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+            "exit": 0,
+            "stdout_sha256": "d9acbb72df6dbf0fad49976b89086d092af3557b7495f0240f9d56f339588291"
+          },
+          "optimized": {
+            "command": "python3.13 -I -B -S -O verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+            "exit": 0,
+            "stdout_sha256": "d9acbb72df6dbf0fad49976b89086d092af3557b7495f0240f9d56f339588291"
+          },
+          "revision": "5551f171ca6a02202e104f47444d662885aa8bd9",
+          "seal_sha256": "423732ea7e079bec424f1afa84acdba1427679587d06a1878275ec7d0b7ec4df",
+          "source_count": 153
+        }
+      },
+      "hosted": {
+        "70": {
+          "admission": {
+            "identity": "hosted-configured-stock-stage-promotion-source-v70",
+            "runtime_or_GA_accepted": false,
+            "selection_sha256": "b29b1ccecd339ca4beb672fedf760db03eadec239b59f6000c55598eb9c21ad0",
+            "source_count": 496,
+            "source_digest_sha256": "02ff0f362650d63f55d573f0230102e52fcc64a1b0ef7f78564859ed22fbec2f"
+          },
+          "files": 496,
+          "normal": {
+            "command": "python3.13 -I -B -S hosted/scripts/test-identity-network.py --check-source",
+            "exit": 0,
+            "stdout_sha256": "7b4b548c7c3d0f975f711f3d5698c21406cb0c53e4ad5877c704e3bb9166715b"
+          },
+          "optimized": {
+            "command": "python3.13 -I -B -S -O hosted/scripts/test-identity-network.py --check-source",
+            "exit": 0,
+            "stdout_sha256": "7b4b548c7c3d0f975f711f3d5698c21406cb0c53e4ad5877c704e3bb9166715b"
+          },
+          "path_mode_blob_sha256": "1f65d810a03df3edad493db2be0874732ca34cd6b53acbc14da729caea113e19",
+          "revision": "288c8a94c3503547ac44733efa5e5dc06bae0775"
+        },
+        "71": {
+          "admission": {
+            "identity": "hosted-stage-direction-id-source-v71",
+            "runtime_or_GA_accepted": false,
+            "selection_sha256": "c15ae59ad58f94fce2d30b9d147ddc66a42125d23be093c8d5af659e85650645",
+            "source_count": 496,
+            "source_digest_sha256": "7eb285f7a5a4b3961b438fad209a945ff9cf2c0a2ffdefd90d20834a72de5f69"
+          },
+          "files": 496,
+          "normal": {
+            "command": "python3.13 -I -B -S hosted/scripts/test-identity-network.py --check-source",
+            "exit": 0,
+            "stdout_sha256": "41d51d2e76bcf6dc2e5209df4c9c71150cdfd32f7817bd979fcc917711eb188c"
+          },
+          "optimized": {
+            "command": "python3.13 -I -B -S -O hosted/scripts/test-identity-network.py --check-source",
+            "exit": 0,
+            "stdout_sha256": "41d51d2e76bcf6dc2e5209df4c9c71150cdfd32f7817bd979fcc917711eb188c"
+          },
+          "path_mode_blob_sha256": "d6970170847bb2c36c75baec81fff5695bb5ca88c9f86fd9d7031af4ac393d52",
+          "revision": "5551f171ca6a02202e104f47444d662885aa8bd9"
+        }
+      },
+      "method": "Inverted the hosted v72 and v71 manifests with their archived bytes and modes. Inverted the CLI v72 and v71 installed transitions using sealed preimages, then loaded pinned historical archive authorities. Verified restored file modes and Git blob IDs against the v71/v70 commits and ran their original verifiers in both modes. Prepared Source141 and Source127 from the active archive and ran the historical adopters and controls."
+    },
+    "method": "Exact non-cone job rules from the tested commit, applied with git sparse-checkout set --no-cone --stdin to five detached Git worktrees. Physical files equaled the non-skip-worktree index roster. SHA-256 inventory encodes sorted UTF-8 path, NUL, Git mode, NUL, blob ID and LF. Bootstrap controls ran on the exact android-generated-java projection only.",
+    "projections": {
+      "android-generated-java": {
+        "files": 1317,
+        "modes": {
+          "normal": {
+            "bootstrap": {
+              "case_names_sha256": "49b63d0b794d74d051a1ee75794efdb9d6ef2c650408a2bb44d834fa857cfcc6",
+              "command": "python3.13 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py -v",
+              "exit": 0,
+              "passed": 45
+            },
+            "installed": {
+              "command": "python3.13 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+              "exit": 0,
+              "stdout_sha256": "d9acbb72df6dbf0fad49976b89086d092af3557b7495f0240f9d56f339588291"
+            },
+            "progress": {
+              "case_names_sha256": "4f2cdfe669c3ddb8c2c8b22575e8542127e8638fc6164778bca4952254c13d92",
+              "command": "python3.13 -I -B -S cli/build-tests/test_android_inspection_progress.py -v",
+              "exit": 0,
+              "passed": 12
+            },
+            "sparse": {
+              "case_names_sha256": "9ddb8bba695cb77f1fd71288becfc30a3761666f0639c5da98016d1c8073d91c",
+              "command": "python3.13 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v",
+              "exit": 0,
+              "passed": 16,
+              "stdout_sha256": "c462271e2124186844a47d5b4109258c9fd0114ac38d2b52680fd886906e684c"
+            }
+          },
+          "optimized": {
+            "bootstrap": {
+              "case_names_sha256": "49b63d0b794d74d051a1ee75794efdb9d6ef2c650408a2bb44d834fa857cfcc6",
+              "command": "python3.13 -I -B -S -O verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py -v",
+              "exit": 0,
+              "passed": 45
+            },
+            "installed": {
+              "command": "python3.13 -I -B -S -O verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+              "exit": 0,
+              "stdout_sha256": "d9acbb72df6dbf0fad49976b89086d092af3557b7495f0240f9d56f339588291"
+            },
+            "progress": {
+              "case_names_sha256": "4f2cdfe669c3ddb8c2c8b22575e8542127e8638fc6164778bca4952254c13d92",
+              "command": "python3.13 -I -B -S -O cli/build-tests/test_android_inspection_progress.py -v",
+              "exit": 0,
+              "passed": 12
+            },
+            "sparse": {
+              "case_names_sha256": "9ddb8bba695cb77f1fd71288becfc30a3761666f0639c5da98016d1c8073d91c",
+              "command": "python3.13 -I -B -S -O verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v",
+              "exit": 0,
+              "passed": 16,
+              "stdout_sha256": "c462271e2124186844a47d5b4109258c9fd0114ac38d2b52680fd886906e684c"
+            }
+          }
+        },
+        "path_mode_blob_sha256": "78b358b8f3efc65010729338877c4b2e4d5313d32dc21e29b6fa408805cc1d9b",
+        "rules": 32,
+        "rules_sha256": "8f6fd75d457540dc4463f36a4d313be7af22a55512eb2babddf2c544b877da47",
+        "skip_worktree": 52983,
+        "workflow": "verify.yml"
+      },
+      "identity-network": {
+        "files": 1280,
+        "modes": {
+          "normal": {
+            "collector": {
+              "case_names_sha256": "a396a8f0200b3b446813cce89c2c26f89262fbaa2e72a14e18ac114512afba87",
+              "command": "python3.13 -I -B -S hosted/scripts/test_identity_network_collector.py -v WorkflowSparseSourceControls WorkspaceSourceCutoverControls FormatAmendmentControls CatalogJoinSourceControls PendingSessionV28Controls.test_current_source_check_rejects_each_corruption_without_touching_originals BillingReconciliationV29Controls.test_current_source_checks_corrupt_full16_before_dispatch BillingReconciliationV29Controls.test_collector_admits_workspace_then_refuses_v29_metadata_before_docker",
+              "exit": 0,
+              "passed": 22
+            },
+            "hosted": {
+              "command": "python3.13 -I -B -S hosted/scripts/test-identity-network.py --check-source",
+              "exit": 0,
+              "stdout_sha256": "c15a3b7034fa212c403990539a3b84f67134762a8b4ffbe7779332be5c319822"
+            }
+          },
+          "optimized": {
+            "collector": {
+              "case_names_sha256": "a396a8f0200b3b446813cce89c2c26f89262fbaa2e72a14e18ac114512afba87",
+              "command": "python3.13 -I -B -S -O hosted/scripts/test_identity_network_collector.py -v WorkflowSparseSourceControls WorkspaceSourceCutoverControls FormatAmendmentControls CatalogJoinSourceControls PendingSessionV28Controls.test_current_source_check_rejects_each_corruption_without_touching_originals BillingReconciliationV29Controls.test_current_source_checks_corrupt_full16_before_dispatch BillingReconciliationV29Controls.test_collector_admits_workspace_then_refuses_v29_metadata_before_docker",
+              "exit": 0,
+              "passed": 22
+            },
+            "hosted": {
+              "command": "python3.13 -I -B -S -O hosted/scripts/test-identity-network.py --check-source",
+              "exit": 0,
+              "stdout_sha256": "c15a3b7034fa212c403990539a3b84f67134762a8b4ffbe7779332be5c319822"
+            }
+          }
+        },
+        "path_mode_blob_sha256": "0829eba842c984ae4b90dbc89fb85a0cd29b70c58ccb719aa9cbe6b77de572a7",
+        "rules": 279,
+        "rules_sha256": "8d7c532def920b8bb5ee89595d562c666e214d1814f10b8226e2ed64f391e4cc",
+        "skip_worktree": 53020,
+        "workflow": "identity-network.yml"
+      },
+      "phoenix": {
+        "files": 1099,
+        "modes": {
+          "normal": {
+            "hosted": {
+              "command": "python3.13 -I -B -S hosted/scripts/test-identity-network.py --check-source",
+              "exit": 0,
+              "stdout_sha256": "c15a3b7034fa212c403990539a3b84f67134762a8b4ffbe7779332be5c319822"
+            }
+          },
+          "optimized": {
+            "hosted": {
+              "command": "python3.13 -I -B -S -O hosted/scripts/test-identity-network.py --check-source",
+              "exit": 0,
+              "stdout_sha256": "c15a3b7034fa212c403990539a3b84f67134762a8b4ffbe7779332be5c319822"
+            }
+          }
+        },
+        "path_mode_blob_sha256": "d0131bfb2ade8637cacf5834afdc0c452e4177d4f413a343fe42ef16f40acf83",
+        "rules": 274,
+        "rules_sha256": "2eef63f0c953c3978917fac3e0f8b50726dad666371c1bf217191591b59678ca",
+        "skip_worktree": 53201,
+        "workflow": "hosted.yml"
+      },
+      "services": {
+        "files": 1446,
+        "modes": {
+          "normal": {
+            "collector": {
+              "case_names_sha256": "fdb6ce5c62654083d52dd35395653cb67fda0c1207ff320052892801e9ed9aac",
+              "command": "python3.13 -I -B -S hosted/scripts/test_identity_network_collector.py -v WorkflowSparseSourceControls",
+              "exit": 0,
+              "passed": 8
+            },
+            "hosted": {
+              "command": "python3.13 -I -B -S hosted/scripts/test-identity-network.py --check-source",
+              "exit": 0,
+              "stdout_sha256": "c15a3b7034fa212c403990539a3b84f67134762a8b4ffbe7779332be5c319822"
+            }
+          },
+          "optimized": {
+            "collector": {
+              "case_names_sha256": "fdb6ce5c62654083d52dd35395653cb67fda0c1207ff320052892801e9ed9aac",
+              "command": "python3.13 -I -B -S -O hosted/scripts/test_identity_network_collector.py -v WorkflowSparseSourceControls",
+              "exit": 0,
+              "passed": 8
+            },
+            "hosted": {
+              "command": "python3.13 -I -B -S -O hosted/scripts/test-identity-network.py --check-source",
+              "exit": 0,
+              "stdout_sha256": "c15a3b7034fa212c403990539a3b84f67134762a8b4ffbe7779332be5c319822"
+            }
+          }
+        },
+        "path_mode_blob_sha256": "90453a767884a8603e8a27b16ef5d67aefd45222f46c96acea6e70dab5e33f1f",
+        "rules": 279,
+        "rules_sha256": "bb30e1ecd4559cf5975088026d253e3edb7e160ce1332d9dd8fd0aac3e21e1ea",
+        "skip_worktree": 52854,
+        "workflow": "verify.yml"
+      },
+      "swift-host": {
+        "files": 6497,
+        "modes": {
+          "normal": {
+            "installed": {
+              "command": "python3.13 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+              "exit": 0,
+              "stdout_sha256": "d9acbb72df6dbf0fad49976b89086d092af3557b7495f0240f9d56f339588291"
+            },
+            "progress": {
+              "case_names_sha256": "4f2cdfe669c3ddb8c2c8b22575e8542127e8638fc6164778bca4952254c13d92",
+              "command": "python3.13 -I -B -S cli/build-tests/test_android_inspection_progress.py -v",
+              "exit": 0,
+              "passed": 12
+            },
+            "routes": {
+              "command": "python3.13 -I -B -S cli/release-tools/generate_release_rest_v3.py --check --check-router",
+              "exit": 0,
+              "stdout_sha256": "1895633553eacae21c55b0a331eeca9ed16207c2834c089ed76861de5a4621a0"
+            }
+          },
+          "optimized": {
+            "installed": {
+              "command": "python3.13 -I -B -S -O verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+              "exit": 0,
+              "stdout_sha256": "d9acbb72df6dbf0fad49976b89086d092af3557b7495f0240f9d56f339588291"
+            },
+            "progress": {
+              "case_names_sha256": "4f2cdfe669c3ddb8c2c8b22575e8542127e8638fc6164778bca4952254c13d92",
+              "command": "python3.13 -I -B -S -O cli/build-tests/test_android_inspection_progress.py -v",
+              "exit": 0,
+              "passed": 12
+            },
+            "routes": {
+              "command": "python3.13 -I -B -S -O cli/release-tools/generate_release_rest_v3.py --check --check-router",
+              "exit": 0,
+              "stdout_sha256": "1895633553eacae21c55b0a331eeca9ed16207c2834c089ed76861de5a4621a0"
+            }
+          }
+        },
+        "path_mode_blob_sha256": "36e69f3352800a89af7b11518d63ab40dceef475d2a1587ce78782fb6aba6702",
+        "rules": 45,
+        "rules_sha256": "cbf16b85647117dd2c7edb0e40f55801078bbb0c44722313ad80bb5badf59bf1",
+        "skip_worktree": 47803,
+        "workflow": "verify.yml"
+      }
+    }
+  },
+  "tools": {
+    "elixir": "1.20.4",
+    "erlang": "OTP 29 (ERTS 17.1)",
+    "git": "2.56.0",
+    "go": "1.26.4 darwin/arm64",
+    "node": "26.13.1",
+    "platform": "macOS 27.0.1 (26A434) arm64",
+    "postgres": "17.11 (Homebrew)",
+    "python": "3.13.16"
+  },
+  "verified_candidate": {
+    "commit": "1f7eda68843036122a0ec92463bfc89f26b8cb6e",
+    "reviewed_product_git_blobs": {
+      "hosted/lib/mixer_hosted/authorization/policy.ex": "4c9f9ff0b6798317917d7ef18488a67de2e9ebca",
+      "hosted/lib/mixer_hosted/authorization/transaction/context.ex": "43f704d3dec23bb909a7d0e12abed15ada04d6bb",
+      "hosted/lib/mixer_hosted/browser_auth/runtime_owner.ex": "002c92c7bce0058c52c63f187aa628f85cd13a56",
+      "hosted/lib/mixer_hosted/builds/native_development_attestation.ex": "8d8c1bcc6bbe5c633172356ca986bc14a14cfae9",
+      "hosted/lib/mixer_hosted/builds/retained_native_artifacts.ex": "9464420b5da7c36f0bdd24cce26e04aa92f33c7a",
+      "hosted/lib/mixer_hosted/customer_builds.ex": "97f52aaacd8c9f90b533d610dfc10a3761812cc6",
+      "hosted/lib/mixer_hosted/customer_builds/attach_native_attestation.ex": "de864c101eea1486ecc6efaf1adad255c80049ae",
+      "hosted/lib/mixer_hosted/customer_builds/attestation_schema.ex": "f01efb229e3ea2c135e123a0bd2a885bbf822117",
+      "hosted/lib/mixer_hosted/customer_builds/create_schema.ex": "95b24bcbd2858e8467b1f18cd12742aebe13e910",
+      "hosted/lib/mixer_hosted/customer_builds/snapshot.ex": "7262c56cbdb0e54400759bda399b14679898aa08",
+      "hosted/lib/mixer_hosted/identity/access_token_verifier.ex": "dc31cf547668bce3c680ec047d21524177bbdd35",
+      "hosted/lib/mixer_hosted_web/browser_build_dispatcher.ex": "7d7361ef4300a8a92426ac0009d0eb8f963e3966",
+      "hosted/lib/mixer_hosted_web/browser_http.ex": "2963c2eb05bbd48f2193e1576bd2254325b84f68",
+      "hosted/priv/local_native_attestation/20261120000020_add_native_development_attestations.exs": "d5c7fd6d6b5a79c1ebd8251107b3a7cea7fed2da",
+      "hosted/test/mixer_hosted/browser_auth/customer_build_inputs_http_sql_test.exs": "6cd0b7aa1d71b7654559a8cc15e0e7d40ab9c207",
+      "hosted/test/mixer_hosted/builds/fixtures/native_development_attestation_v1.json": "9c0d42f51bcbfbe47f2aa38c2cb3654714761da8",
+      "hosted/test/mixer_hosted/builds/native_attestation_attachment_test.exs": "e55614427d45d024254e39dea8c740836fdd5a04",
+      "hosted/test/mixer_hosted/builds/native_development_attestation_test.exs": "d07d237c57e08dfcf9fd513f4ae233349252a094",
+      "hosted/test/mixer_hosted/builds/retained_native_attestation_test.exs": "140dbef662f13d1cfeed5f1cdea0691304fdd9f7",
+      "hosted/test/mixer_hosted/identity/access_token_verifier_test.exs": "33c1bda4a662c6049bf2e1edcb8afaf49f24009f",
+      "services/cmd/mixer-native-attest/README.md": "5eaeaa111fa0f6bebaaf5d8ef9876cf8d29dff11",
+      "services/cmd/mixer-native-attest/build.go": "61fc31eca7fe09eb69c65812d7be0520315704c4",
+      "services/cmd/mixer-native-attest/integration_darwin_test.go": "217a65c096fd51a72c4ea45716d2f7bd9d623d83",
+      "services/cmd/mixer-native-attest/main.go": "0085e3c7b1f6e8bbe3fcad2d96092aca084b186e"
+    },
+    "tree": "0c644806c5c5a38efc6db8b2685bf2142eecf938"
+  }
+}
