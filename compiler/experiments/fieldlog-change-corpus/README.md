@@ -58,8 +58,16 @@ python3 -B compiler/experiments/fieldlog-change-corpus/pending-queue/replay-head
 
 The runner uses the pinned v81 Mixer and FieldLog source. Use `--fieldlog`
 to supply a local Git checkout containing the pinned FieldLog history.
-Signed V3 installation and the native display path remain open.
 [Headless V3 replay](../../../verification/receipts/fieldlog-f10-historical-queue-v81-feature-ui-v3-review-fix.json)
+
+The private signed V3 replay on `dda816101e` builds a development guest
+against the exact installed VM and runs it on macOS. It hydrates the first
+page through one scoped read, delivers the queue action, and displays the
+historical navigation and list with 20 pending rows. Durable health requires
+the observed actionable frame. The replay leaves the workspace bytes
+unchanged. The rest of the signed route and native display remain open.
+[Private replay recipe](../../../capability-activation/verification/private-fieldlog-f10/README.md) ·
+[Signed V3 receipt](../../../verification/receipts/fieldlog-f10-v3-root-dda81610.json)
 
 ## First unsupported case
 
