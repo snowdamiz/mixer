@@ -1,0 +1,48 @@
+{
+  "kind": "local hosted v77 composition replay",
+  "platform": "macOS 27.0.1 arm64",
+  "tools": {
+    "elixir": "1.20.4",
+    "otp": "29",
+    "postgres": "17.11",
+    "node": "26.13.1"
+  },
+  "fullCommand": "python3 -B hosted/scripts/test-local.py --output <owned-output> --test-timeout 600 --additional-test diagnostics/browser_login_trace_test.exs",
+  "runs": {
+    "phoenix": {
+      "status": "failed",
+      "cleanup": {
+        "postgres_stopped": true,
+        "scratch_removed": true
+      },
+      "sourceTreeSHA256": "64672f1a52a37c80e9e67a08294cf3610f7d132bb44de3649ad6a4228beae232",
+      "summary": "Result: 1026/1027 passed, 30 skipped",
+      "finding": "The root sparse checkout omitted the tracked customer-artifact audit golden file. The catalog fixture ran without the original v76 eexist error.",
+      "revision": "d7b0c7e0f8020e515187b8d0dbfbbd0e7cd93bff"
+    },
+    "phoenix-with-grants": {
+      "status": "failed",
+      "cleanup": {
+        "postgres_stopped": true,
+        "scratch_removed": true
+      },
+      "sourceTreeSHA256": "ab8ead9cdc989001267c316316453a2d8a033e30bf4190faf31114428dd00e4f",
+      "summary": "Result: 1026/1027 passed, 32 skipped",
+      "finding": "The concurrent exact build-create test expected [200, 201] and observed [201, 503]. Its observer recorded SQLSTATE 55P03 in the browser session effect. The earlier run and focused rerun passed this case.",
+      "revision": "c1ed0a88d381da4119a18d8c5fc8e02466063868"
+    },
+    "phoenix-focused": {
+      "status": "passed",
+      "cleanup": {
+        "postgres_stopped": true,
+        "scratch_removed": true
+      },
+      "sourceTreeSHA256": "06e117c5213f03474d88443d58af52bd7e66ae31798eeea4bf8839e0d075cf2a",
+      "summary": "Result: 3 passed, 15 skipped",
+      "revision": "e4208f832924e50dc276a394f4dfb4c061fdc155",
+      "command": "python3 -B hosted/scripts/test-local.py --output <owned-output> --test-timeout 150 --only-additional-tests with the build-create exact replay, ordinary attestation catalog, and dedicated attestation PostgreSQL test files",
+      "scope": "Ordinary catalog and concurrent replay passed. The dedicated attachment class requires a separate W12 PostgreSQL fixture and accounts for all 15 skips. The script reached its final unchanged-source comparison."
+    }
+  },
+  "hostedRuntime": "pending"
+}

@@ -114,6 +114,15 @@ effective SELECT and INSERT independently. Revoking either grant closed both
 admission paths before a write. Restoring the grants let the stock signer
 attach and replay with one row. [Readiness receipt](verification/receipts/l05-native-attestation-owner-admission-v77.json)
 
+Hosted v77 source admission passed across all five sparse projections in
+normal and optimized Python. The full local Phoenix replay reached the
+concurrent build-create check, where one request hit a PostgreSQL lock timeout
+and returned 503. The focused rerun passed the concurrency and browser
+admission checks and reached the final unchanged-source comparison. The
+separate attachment database suite was skipped by this runner.
+[Sparse replay](verification/receipts/hosted-v77-owner-privilege-source-admission.json) ·
+[Local Phoenix replay](verification/receipts/hosted-v77-local-phoenix-composition.json)
+
 ## November 20 local development attestation attachment
 
 The stock Go signer signed a retained iOS Simulator build completion, then
