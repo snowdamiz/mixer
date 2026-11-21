@@ -28,6 +28,29 @@ python3 -B "$notice_recipe/prepare-successor.py" --mixer "$repo" "$work"
 test "$(git -C "$work/fieldlog" write-tree)" = 0c38770065656bf7c5a2aa768055ff8b453b082d
 ```
 
+## Include the reviewed project pickers
+
+To build the product with the installed Android picker and the Apple
+pagination change, apply both patches after the notice preparation.
+Run this before the host CLI, Java, or JNI build. The photo-only
+predecessor above remains available for historical replay.
+
+```bash
+fieldlog="$work/fieldlog"
+android_patch="$repo/verification/receipts/fieldlog-android-project-picker-ad6c8dba.patch"
+apple_patch="$repo/verification/receipts/fieldlog-apple-project-pagination-00406fe7.patch"
+printf '%s  %s\n' \
+  53a221508c9d2fee4c6821e9954aaf8f880a4a9d5a4c77af82e516e64335d85a "$android_patch" \
+  4fbbb6e6c63afd886df2054d36c1024e3cdcab014a4307d14c1a896900ae2c4e "$apple_patch" |
+  shasum -a 256 -c
+git -C "$fieldlog" apply --index --unidiff-zero --whitespace=error "$android_patch"
+git -C "$fieldlog" apply --index --whitespace=error "$apple_patch"
+test "$(git -C "$fieldlog" write-tree)" = bb1aff13c8f4ed27c7bed24f0fde96fbe873a15b
+```
+
+The Android build uses a fresh development signer. Use a fresh
+disposable install for the replay. [Installed Android evidence](../../../../verification/receipts/fieldlog-android-project-picker-installed-ad6c8dba.json)
+
 Continue the original recipe's setup at `export MIXER_SWIFT=` through
 `build-android.py --prepare-only`. Keep `$app` set to the prepared
 project or its relocated export.

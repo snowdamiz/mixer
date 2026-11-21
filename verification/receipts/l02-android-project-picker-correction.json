@@ -1,0 +1,89 @@
+{
+  "boundaries": {
+    "candidateDeviceQualification": "pending",
+    "emulatorRuns": 0,
+    "heldResourcesTouched": false,
+    "publishes": 0
+  },
+  "cleanup": {
+    "removed": [
+      "owned source and SDK checkouts",
+      "SwiftPM build outputs and caches",
+      "JVM classes",
+      "test workspaces",
+      "temporary indexes and intermediate runs"
+    ],
+    "retained": [
+      "delivery artifacts",
+      "compact coordinator receipt"
+    ]
+  },
+  "commands": {
+    "capture": "Copy delivery/CapturePickerFramesTests.swift into the installed Tests/AppAndroidTests. Set FIELDLOG_PICKER_PACKET_OUT=<capture-directory> and append --filter CapturePickerFramesTests. Set FIELDLOG_PICKER_CAPTURE_BASELINE=1 for the original singleton Search control.",
+    "jvm": "python3 delivery/run-jvm.py <exported-pinned-native-sdk> <java-home> <new-classes-dir> delivery/packets/original delivery/packets/corrected",
+    "originalSwiftComparison": "Same installed manifests and original production source, with the two corrected test files only. Append --filter 'ProjectPickerRegressionTests|FieldLogPaginationTests'.",
+    "projection": "PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 <product>/Integrations/GeneratedReport/scripts/check-materialization.py --output <host> --sdk <pinned-sdk-subtree>",
+    "swiftTest": "FIELDLOG_WORKSPACE=<fresh-fixtures> /usr/bin/swift test --package-path <host>/Platforms/Android --scratch-path <build> --cache-path <cache> --config-path <config> --security-path <security> --disable-dependency-cache --disable-prefetching --force-resolved-versions --disable-index-store --jobs 10"
+  },
+  "coordinatorRevision": "58951594a866492be7ce204e93a9533f892b2550",
+  "coordinatorTree": "f610b7745283d445727cf32e0ee3fd45427dd925",
+  "delivery": "verification/local/l02-picker-correction.9rDLoDDr/delivery",
+  "mixerSDK": {
+    "jvmInputsVerified": 107,
+    "revision": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+    "swiftFilesVerified": 97,
+    "tree": "da0a358a6984e198525ea76c7be7fd2af245e12e"
+  },
+  "observations": {
+    "correctedJVM": "Two real live IME callbacks at one revision, filtered echo retaining buffer, composition retirement while selecting, disk-failure frame, refocused retry, destination B, late callback refusal and owner revocation",
+    "correctedJVMViewportWidthsPx": [
+      1206,
+      320
+    ],
+    "correctedSwiftTestsPassed": 38,
+    "installedManifestEdits": 0,
+    "originalJVMRefusal": "unsupportedNativeOperation at NativeRenderer.preflightEditorsV2 (NativeRenderer.java:565)",
+    "originalSwiftFailures": [
+      "selection changed focused Search sibling roster",
+      "Entries Projects advertised enabled with a pending report",
+      "pure same-revision Search batch threw action"
+    ],
+    "originalSwiftRegressionsFailed": 3,
+    "report": "Projects stays disabled from preparation on Tasks through report handoff on Entries, then re-enables after closing the share sheet.",
+    "storage": "Search and report UI retained exact workspace bytes. Failed selection preserved the previous disk bytes. Successful retry changed only selectedProjectID and the workspace revision. The existing L02 host test also verified cold restoration and project scoping.",
+    "swiftCaptureRunsPassed": 2
+  },
+  "observedUTC": "2026-11-21T20:55:16.579086+00:00",
+  "product": {
+    "baseTree": "00406fe735a3e48b075dd545d8df77670caab336",
+    "correctedArchiveSHA256": "d982f9fd292f4a81107ceff17f4c0d3f9d186878e1c2c5051e35be208f0602ee",
+    "correctedCandidateTree": "ad6c8dbaf3fde19b8a15e9aa54787c9d9660b9d8",
+    "correctedPatchReplayAndArchiveReproducedTree": true,
+    "correctedPatchSHA256": "f46dc5ddb41703cfaec1dd4b1632234d1118b6ec68ea6b64cecefdc6a9517995",
+    "originalCandidateTree": "9048ee72baf629d724a2346a9977c792993e4245",
+    "originalPatchAndArchiveReconstructedBothTrees": true,
+    "privatePackagingInstalled": false,
+    "sourceAndPostimagePinsSHA256": "b4dd89c7ae0b7c3f72d559aca633e1b5933e08f0c5738ae4017d9605ae4892f7",
+    "sourcePathsChangedByCorrection": [
+      "Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift",
+      "Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift",
+      "Integrations/GeneratedReport/Tests/FieldLogAndroidTests/ProjectPickerRegressionTests.swift"
+    ]
+  },
+  "result": "PASS_SCOPED_SWIFTPM_HOST_AND_PINNED_JVM",
+  "review": "l02-9048ee72-android-project-selection-exact-review",
+  "schema": 1,
+  "scope": "FieldLog ordinary Android project picker, public SwiftPM Android application host, pinned V4 native owner and renderer on JVM with controlled Android/JNI leaves",
+  "tools": {
+    "git": "git version 2.56.0",
+    "installerPython": "Python 3.9.6",
+    "java": "openjdk version \"25.0.4.1\" 2026-08-18\nOpenJDK Runtime Environment Homebrew (build 25.0.4.1)\nOpenJDK 64-Bit Server VM Homebrew (build 25.0.4.1, mixed mode, sharing)",
+    "javaHome": "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home",
+    "javac": "javac 25.0.4.1",
+    "macOS": "27.0.1",
+    "python": "Python 3.14.8",
+    "swift": "swift-driver version: 1.168.6 Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "xcode": "Xcode 27.2\nBuild version 27B52"
+  },
+  "verificationArtifactPolicy": "PASS using an isolated coordinator index with this receipt staged"
+}

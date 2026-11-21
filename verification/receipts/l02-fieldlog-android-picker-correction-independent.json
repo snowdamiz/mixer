@@ -1,0 +1,68 @@
+{
+  "review": "L02 Android FieldLog project picker correction",
+  "dateUTC": "2026-11-21",
+  "disposition": "PASS for the three requested corrections in the pinned host scope",
+  "delivery": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-2f3ba3b5/verification/local/l02-picker-correction.9rDLoDDr/delivery",
+    "baselineGitTree": "00406fe735a3e48b075dd545d8df77670caab336",
+    "correctedGitTree": "ad6c8dbaf3fde19b8a15e9aa54787c9d9660b9d8",
+    "rejectedGitTreeForPacketControl": "9048ee72baf629d724a2346a9977c792993e4245",
+    "archiveSHA256": "d982f9fd292f4a81107ceff17f4c0d3f9d186878e1c2c5051e35be208f0602ee",
+    "patchSHA256": "f46dc5ddb41703cfaec1dd4b1632234d1118b6ec68ea6b64cecefdc6a9517995",
+    "manifestSHA256": "b4dd89c7ae0b7c3f72d559aca633e1b5933e08f0c5738ae4017d9605ae4892f7",
+    "rosterSHA256": "c28e0a901893ba77dadad95dc28b3b8ad22c58ae34cf8cab790eb50eb980b579",
+    "rosterBlobs": 118,
+    "verifiedManifestDeliveryEntries": 34,
+    "reviewBriefDigestCorrection": "The supplied roster SHA-256 names source-postimage-pins.json. Its product-tree-roster.txt entry equals the delivered and independently regenerated roster.",
+    "reconstruction": "Imported tar contents into a private Git index, wrote the exact candidate tree, and compared its regenerated roster byte-for-byte. Reverse patch yielded the exact baseline tree. A fresh index seeded from that baseline passed forward patch validation and wrote the exact candidate tree. The test worktree had no tracked product differences."
+  },
+  "mixer": {
+    "publicRevision": "d89c742e9d6a7b6277830f201a350ccc0e7d7096",
+    "pair25Revision": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+    "nativeAndroidTreeAtBothRevisions": "e9a2b0c1329b4b32a3d8a0fb5585d015f3d26dbe",
+    "swiftSDKTreeAtBothRevisions": "da0a358a6984e198525ea76c7be7fd2af245e12e",
+    "verifiedSwiftSDKBlobs": 97,
+    "verifiedJVMInputBlobs": 107,
+    "swiftASN1": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+    "swiftCrypto": "c2cbadd7263439d8015189668f96ff5b5be565ce"
+  },
+  "tools": {
+    "git": "2.56.0",
+    "javacJVM": "Homebrew OpenJDK 25.0.4.1 arm64",
+    "swift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9), arm64-apple-macosx27.0.0"
+  },
+  "commands": [
+    "git archive 857e4b4aa7a32cda368257b2be1a63e77106bed8 sdk native/android",
+    "python3 delivery/run-jvm.py PINNED_MIXER JDK CLASSES delivery/packets/original delivery/packets/corrected",
+    "javac -J-XX:ActiveProcessorCount=2 --release 17 -Xlint:all -Werror -proc:none -classpath CLASSES -d CLASSES PickerRoundTrip.java",
+    "FIELDLOG_MIXER_SDK=PINNED_MIXER/sdk FIELDLOG_WORKSPACE=FRESH_PER_RUN PICKER_JAVA=JDK/bin/java PICKER_CLASSES=CLASSES PICKER_WIDTH=WIDTH swift test --force-resolved-versions --disable-dependency-cache --cache-path OWNED_CACHE --config-path OWNED_CONFIG --security-path OWNED_SECURITY --scratch-path OWNED_BUILD --package-path CANDIDATE/Integrations/GeneratedReport --jobs 8 --filter FieldLogAndroidTests"
+  ],
+  "observations": {
+    "originalRendererControl": "Replayed the delivered original frames at width 1206 and reproduced unsupportedNativeOperation from NativeRenderer.preflightEditorsV2 on the busy frame.",
+    "correctedRendererControl": "Passed at widths 320 and 1206, including active Search composition before project click, busy retirement, failure recovery, retry and destination.",
+    "independentCrossLanguageRoundTrip": "39 XCTest methods passed with zero failures at each width on separate fresh workspaces. The extra method drove a persistent JVM renderer from the exact Swift FieldLog host and checked Java owner revocation and process exit 0.",
+    "search": "The renderer emitted raw D and Dock callbacks with one revision and exact Search identity. The public Swift snapshot bound each to projects.search.change. Raw FIFO admission installed exactly one Dock echo, retained focus and filtered A, with byte-identical storage. For each invalid envelope, both positions were refused. Owner, stale revision, wrong ID, wrong generation, wrong event, wrong value and oversize were exercised along with mixed Search/project and replay of the pre-echo click.",
+    "storageAndRendering": "The busy frame arrived before the write. A temporarily displaced workspace forced a real read failure and preserved its bytes, Search value and retry controls. The retry preserved the failure sibling in the busy frame, retired the new connection and committed one restoration-only revision before destination B rendered.",
+    "report": "Projects disabled and emitted no native callback through Tasks preparation, Queue and Entries while a report was pending, and Entries after open. A forged current Entries callback was refused as disabled. Report close re-enabled the native control; navigation preserved workspace bytes."
+  },
+  "limits": [
+    "The renderer used pinned Android/JNI host leaves. Android OS IME, touch and main-looper scheduling, APK installation and device execution are outside this result.",
+    "A real renderer Search edit plus click captured at one revision was refused atomically when supplied in the same drain. Source inspection of PublicActivity and its bridge shows that the refusal would gate the Activity. Whether normal OS input queues that mix is unmeasured. The passing headless sequence drained Search, installed its echo, and then clicked the project.",
+    "The first extended harness reached the host leaf probe history ceiling. A later broad run reused fixtures and failed on accumulated state. Resetting probe history per command and using fresh fixtures for each width produced the recorded final passes.",
+    "Original replay used delivered frames only. Installation and release decisions remain root-owned."
+  ],
+  "evidenceDirectory": "verification/local/l02-picker-independent.wFc3DaRV",
+  "retainedEvidenceSHA256": {
+    "IndependentPickerRoundTripTests.swift": "7c9fc5532746d76cbf25b4db104f5fb794dd91cf5cbd031123e7eab9e81c7445",
+    "PickerRoundTrip.java": "e2d53bb21739fbacb0ba1e0e8c67f68c7af7267e09915fadcc3327285fd6cc7b",
+    "logs/final-1206.log": "537fdaa0168686282a96c08deb8c4c9507d2c795be8f1b3323d6092b8d3d6cf6",
+    "logs/final-320.log": "c119dcf195d928d20a51ff2a49aac2e5f939e57eae1c379c5384f6958b8d87e3",
+    "logs/replay.log": "c306468390521ff44d4bbf89f87e469d3fc30dddde01e6e7ed4b2f375466b240",
+    "logs/roundtrip-final.log": "116677430be5da8fa42b484a092513416db7512350e98a5219342ab501223ca0",
+    "logs/roundtrip-narrow.log": "e061cbf94da15d20146859717f384f30b60149a5f0e4a85b34f51c9f49eb403f",
+    "logs/roundtrip-reset.log": "58d2eedc49c5fb63564bee1272481c652ff32d7e11557112b528fb9305e791d3",
+    "logs/roundtrip.log": "56633f0df014b38fa1ef44f3b0da386d1474f7994de599f140418555f23c176a",
+    "logs/swift-host.log": "27bb603e3ed902d95160124a5b9f272122b311998043dcd52086f27b2209a7cc",
+    "tree-roster.txt": "c28e0a901893ba77dadad95dc28b3b8ad22c58ae34cf8cab790eb50eb980b579"
+  }
+}

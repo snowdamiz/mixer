@@ -1050,6 +1050,20 @@ project picker is under correction after its native renderer review.
 [Build receipt](verification/receipts/fieldlog-apple-project-pagination-00406fe7.json) ·
 [Host projection check](verification/receipts/fieldlog-apple-project-pagination-host-review-00406fe7.json)
 
+## November 21 installed Android project picker
+
+The corrected ordinary FieldLog APK opened the North Ridge project
+with Search still focused on an API 36 arm64 emulator. It paginated
+23 saved projects, returned an empty search result, and distinguished
+two Valve Route projects by site. Only the selected project's task,
+draft, and entry labels appeared in the checked screens. Selection
+advanced the workspace revision from 52 to 53 and preserved all 47
+outbox records. The same APK reopened North Ridge in a fresh process.
+All 118 commands closed, and the emulator, private ADB, and scratch
+were removed. Prior setup and hierarchy-label failures are preserved
+in the receipt. Apple installed pagination remains pending.
+[Installed replay](verification/receipts/fieldlog-android-project-picker-installed-ad6c8dba.json) · [Reviewed Android patch](verification/receipts/fieldlog-android-project-picker-ad6c8dba.patch)
+
 ## November 21 Android saved-draft validation
 
 One fresh FieldLog Pair24 development install on Android API 36 saved

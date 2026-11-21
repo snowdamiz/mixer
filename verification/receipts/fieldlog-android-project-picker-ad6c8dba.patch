@@ -1,0 +1,598 @@
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index 2bb3905fa85506669396233862b2b6a059ebdac6..590a13ce7ea952478d228015d85e91671394774a 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -108,0 +109,6 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
++private struct ProjectPicker {
++    var query = ""
++    var page = 0
++    var failure: String?
++}
++
+@@ -114 +120,2 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
+-    private let projectID: UUID
++    private var projectID: UUID
++    private var projectPicker: ProjectPicker?
+@@ -157,0 +165 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
++    private var initialEntryDraft: EntryDraft?
+@@ -208 +216,3 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
+-            guard let project = workspace.projects.first else { throw PublicHostError.storage }
++            guard let projectID = workspace.restoration.selectedProjectID ?? workspace.projects.first?.id else {
++                throw PublicHostError.storage
++            }
+@@ -211,2 +221,2 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
+-            try reconciler.apply(Self.document(editor.state, workspace: workspace, project: project.id, queue: false, taskPage: 0, queuePage: 0, busy: false, feedback: nil, failure: nil, revision: 1))
+-            self.repository = repository; self.workspace = workspace; self.projectID = project.id
++            try reconciler.apply(Self.document(editor.state, workspace: workspace, project: projectID, queue: false, taskPage: 0, queuePage: 0, busy: false, feedback: nil, failure: nil, revision: 1))
++            self.repository = repository; self.workspace = workspace; self.projectID = projectID
+@@ -219 +229 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
+-               let draft = workspace.drafts.first(where: { $0.id == id && $0.projectID == project.id }) {
++               let draft = workspace.drafts.first(where: { $0.id == id && $0.projectID == projectID }) {
+@@ -249 +259 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
+-        guard !closed, showingEntries, !showingQueue, let entryState,
++        guard !closed, projectPicker == nil, showingEntries, !showingQueue, let entryState,
+@@ -286,0 +297 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
++        guard projectPicker == nil || !changingWorkspace else { throw PublicHostError.action }
+@@ -288 +299 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
+-        if showingEntries, !showingQueue, let entryEditor, entryEditor.state.committed == nil,
++        if projectPicker == nil, showingEntries, !showingQueue, let entryEditor, entryEditor.state.committed == nil,
+@@ -319,0 +331,4 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
++        if let projectPicker {
++            try routeProjectPicker(actions, picker: projectPicker)
++            return
++        }
+@@ -320,0 +336,5 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
++            if action.nodeID == "workspace.projects", action.actionID == "workspace.projects" {
++                guard photoRequest == nil, !reportSharePending else { throw PublicHostError.action }
++                try showProjectPicker(ProjectPicker())
++                return
++            }
+@@ -384,0 +405,120 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
++    private func hasUnsavedProjectInput(in workspace: Workspace) -> Bool {
++        if !state.saved && (!state.title.isEmpty || !state.responsible.isEmpty) { return true }
++        guard let entryState, entryState.committed == nil else { return false }
++        let draft = entryState.draft
++        if let input = entryDateInput, input.draftID == draft.id,
++           EntryDateText.parse(input.text) != draft.occurredAt { return true }
++        guard let original = workspace.drafts.first(where: { $0.id == draft.id && $0.projectID == projectID })
++                  ?? initialEntryDraft, original.id == draft.id else { return true }
++        return !original.title.utf8.elementsEqual(draft.title.utf8)
++            || !original.note.utf8.elementsEqual(draft.note.utf8)
++            || original.category != draft.category || original.occurredAt != draft.occurredAt
++            || original.attachmentIDs != draft.attachmentIDs
++    }
++
++    private func routeProjectPicker(_ actions: [RoutedUIAction], picker: ProjectPicker) throws {
++        if let last = actions.last, case .string(let query) = last.value,
++           actions.allSatisfy({ action in
++               switch (action.nodeID, action.actionID, action.event, action.value) {
++               case ("projects.search", "projects.search.change", .textChange, .string): true
++               default: false
++               }
++           }) {
++            try showProjectPicker(ProjectPicker(query: query))
++            return
++        }
++        guard actions.count == 1, let action = actions.first,
++              action.event == .activate, action.value == .null,
++              action.nodeID == action.actionID else { throw PublicHostError.action }
++        switch action.nodeID {
++        case "projects.back":
++            try showProjectPicker(nil)
++        case "projects.previous", "projects.next":
++            let count = workspace.matchingProjects(picker.query).count
++            let current = Self.page(picker.page, count: count)
++            let destination = current + (action.nodeID == "projects.previous" ? -1 : 1)
++            guard Self.page(destination, count: count) == destination else { throw PublicHostError.action }
++            try showProjectPicker(ProjectPicker(query: picker.query, page: destination))
++        default:
++            guard let selected = workspace.projects.first(where: { Self.projectKey($0.id) == action.nodeID })
++            else { throw PublicHostError.action }
++            if selected.id == projectID {
++                try showProjectPicker(nil)
++            } else {
++                guard !hasUnsavedProjectInput(in: workspace), photoRequest == nil, !reportSharePending
++                else { throw PublicHostError.action }
++                try openProject(selected.id, from: picker)
++            }
++        }
++    }
++
++    private func showProjectPicker(_ picker: ProjectPicker?) throws {
++        let frame: (UIReconciler, UIRenderSnapshot)
++        if let picker {
++            frame = try projectPickerFrame(picker, workspace: workspace, busy: false)
++        } else {
++            frame = try render(state, includePicker: false, feedback: changeFeedback, failure: changeFailure)
++        }
++        projectPicker = picker
++        (reconciler, snapshot) = frame
++        publish()
++    }
++
++    private func openProject(_ destination: UUID, from picker: ProjectPicker) throws {
++        // A focused Search connection can be retired by disabling its field
++        // only with the existing sibling roster, including any retry error.
++        let busy = try projectPickerFrame(picker, workspace: workspace, busy: true)
++        guard busy.1.document.revision < UInt64.max else { throw PublicHostError.bounds }
++        let replacement = try TaskEditorPresentation(save: { _, _ in .failed("Unadmitted save") })
++        // Selection changes restoration only. Validate the destination frame
++        // against the same project records the expected-revision write admits.
++        let detail = Self.document(replacement.state, workspace: workspace, project: destination,
++            queue: false, taskPage: 0, queuePage: queuePage, busy: false, feedback: nil, failure: nil,
++            revision: busy.1.document.revision + 1)
++        let selected = try Self.validatedFrame(detail, from: busy.0)
++        let revision = workspace.revision
++        changingWorkspace = true
++        (reconciler, snapshot) = busy
++        change = Task { @MainActor [self] in
++            do {
++                workspace = try await repository.transact(expectedRevision: revision) {
++                    $0.restoration.selectedProjectID = destination
++                }
++            } catch {
++                changingWorkspace = false
++                guard !closed else { return }
++                var failed = picker
++                failed.failure = "Couldn’t open this project. Try again, or reopen FieldLog if the problem continues."
++                do { try showProjectPicker(failed) } catch { closeAfterRenderingFailure(error) }
++                return
++            }
++            changingWorkspace = false
++            guard !closed else { return }
++            if let editorObservation { editor.removeObserver(editorObservation) }
++            if let entryObservation { entryEditor?.removeObserver(entryObservation) }
++            try? editor.close()
++            try? entryEditor?.close()
++            editor = replacement
++            editorObservation = nil
++            publishedState = replacement.state
++            entryEditor = nil
++            entryObservation = nil
++            initialEntryDraft = nil
++            entryDateInput = nil
++            publishedEntryState = nil
++            photoMessage = nil
++            reportMessage = nil
++            changeFeedback = nil
++            changeFailure = nil
++            projectID = destination
++            taskPage = 0
++            entryPage = 0
++            draftPage = 0
++            showingEntries = false
++            showingQueue = false
++            projectPicker = nil
++            (reconciler, snapshot) = selected
++            publish()
++        }
++        publish()
++    }
+@@ -598,0 +739 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
++        let initial = candidate.state.draft
+@@ -632,0 +774 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
++            if initialEntryDraft?.id != initial.id { initialEntryDraft = initial }
+@@ -710,0 +853,5 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
++                    MixerUI.Button("workspace.projects", "Projects", action: "workspace.projects")
++                        .accessibilityIdentifier("workspace-projects").disabled(state.saving || photoPending || photoBusy || reportPending)
++                    if let name = workspace.projects.first(where: { $0.id == project })?.title {
++                        MixerUI.Text("workspace.project.title", name)
++                    }
+@@ -741,0 +889 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
++                    if drafts.isEmpty { MixerUI.Text("drafts.empty", "No saved drafts in this project.") }
+@@ -749,0 +898 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
++                    if entries.isEmpty { MixerUI.Text("entries.empty", "No saved entries in this project.") }
+@@ -848 +997 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
+-    private func render(_ state: TaskEditorState, workspace: Workspace? = nil, queue: Bool? = nil, entries: Bool? = nil, entry: EntryEditorState? = nil, dateInput: String? = nil, entryPage: Int? = nil, draftPage: Int? = nil, taskPage: Int? = nil, queuePage: Int? = nil, busy: Bool? = nil, feedback: String?, failure: String?) throws -> (UIReconciler, UIRenderSnapshot) {
++    private func projectPickerFrame(_ picker: ProjectPicker, workspace: Workspace, busy: Bool) throws -> (UIReconciler, UIRenderSnapshot) {
+@@ -849,0 +999,47 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
++        let matches = workspace.matchingProjects(picker.query)
++        let last = Self.page(Int.max, count: matches.count)
++        let page = Self.page(picker.page, count: matches.count)
++        let unsaved = hasUnsavedProjectInput(in: workspace)
++        let document = MixerUI.Navigation("projects.screen", title: "Projects") {
++            MixerUI.List("projects.list") {
++                MixerUI.Section("projects.navigation") {
++                    MixerUI.Button("projects.back", busy ? "Opening project…" : "Back to current project", action: "projects.back")
++                        .accessibilityIdentifier("projects-back").disabled(busy)
++                    if let name = workspace.projects.first(where: { $0.id == projectID })?.title {
++                        MixerUI.Text("projects.current", "Current project: " + name)
++                    }
++                    MixerUI.TextField("projects.search", "Search projects or sites", value: picker.query, action: "projects.search.change")
++                        .accessibilityIdentifier("projects-search").disabled(busy)
++                    if unsaved {
++                        MixerUI.Text("projects.unsaved", "Save or clear your edits before opening a different project.")
++                    }
++                    if let failure = picker.failure { MixerUI.Text("projects.failure", failure) }
++                }
++                MixerUI.Section("projects.results", title: "Saved projects") {
++                    if matches.isEmpty {
++                        MixerUI.Text("projects.empty", workspace.projects.isEmpty
++                            ? "No saved projects on this device." : "No projects match your search.")
++                    } else {
++                        MixerUI.Text("projects.position", "Page \(page + 1) of \(last + 1) · \(matches.count) projects")
++                        MixerUI.Button("projects.previous", "Previous projects", action: "projects.previous")
++                            .accessibilityIdentifier("projects.previous").disabled(busy || page == 0)
++                        MixerUI.Button("projects.next", "Next projects", action: "projects.next")
++                            .accessibilityIdentifier("projects.next").disabled(busy || page == last)
++                        for project in matches.dropFirst(page * Self.pageSize).prefix(Self.pageSize) {
++                            let key = Self.projectKey(project.id)
++                            let name = project.site.isEmpty ? project.title : project.title + " · " + project.site
++                            MixerUI.Button(key, name, action: key).accessibilityIdentifier(key)
++                                .disabled(busy || (unsaved && project.id != projectID))
++                        }
++                    }
++                }
++            }
++        }.document(revision: snapshot.document.revision + 1)
++        return try Self.validatedFrame(document, from: reconciler)
++    }
++
++    private func render(_ state: TaskEditorState, workspace: Workspace? = nil, queue: Bool? = nil, entries: Bool? = nil, entry: EntryEditorState? = nil, dateInput: String? = nil, entryPage: Int? = nil, draftPage: Int? = nil, taskPage: Int? = nil, queuePage: Int? = nil, busy: Bool? = nil, includePicker: Bool = true, feedback: String?, failure: String?) throws -> (UIReconciler, UIRenderSnapshot) {
++        guard snapshot.document.revision < UInt64.max else { throw PublicHostError.bounds }
++        if includePicker, let projectPicker {
++            return try projectPickerFrame(projectPicker, workspace: workspace ?? self.workspace, busy: busy ?? changingWorkspace)
++        }
+@@ -850,0 +1047,4 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
++        let document = Self.document(state, workspace: workspace ?? self.workspace, project: projectID, queue: queue ?? showingQueue, taskPage: taskPage ?? self.taskPage, queuePage: queuePage ?? self.queuePage, busy: busy ?? changingWorkspace, feedback: feedback, failure: failure, revision: snapshot.document.revision + 1, entries: entries ?? showingEntries, entry: renderedEntry, entryPage: entryPage ?? self.entryPage, draftPage: draftPage ?? self.draftPage, dateInput: entry != nil ? dateInput : entryDateInput.flatMap { $0.draftID == entryState?.draft.id ? $0.text : nil }, photoPending: photoRequest != nil, photoMessage: photoMessage, photoBusy: photoApplying, reportPending: reportPreparing || reportRequest != nil, reportMessage: reportMessage)
++        return try Self.validatedFrame(document, from: reconciler, draftID: renderedEntry?.draft.id)
++    }
++    private nonisolated static func validatedFrame(_ document: UIDocument, from reconciler: UIReconciler, draftID: UUID? = nil) throws -> (UIReconciler, UIRenderSnapshot) {
+@@ -852 +1052 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
+-        try next.apply(Self.document(state, workspace: workspace ?? self.workspace, project: projectID, queue: queue ?? showingQueue, taskPage: taskPage ?? self.taskPage, queuePage: queuePage ?? self.queuePage, busy: busy ?? changingWorkspace, feedback: feedback, failure: failure, revision: snapshot.document.revision + 1, entries: entries ?? showingEntries, entry: renderedEntry, entryPage: entryPage ?? self.entryPage, draftPage: draftPage ?? self.draftPage, dateInput: entry != nil ? dateInput : entryDateInput.flatMap { $0.draftID == entryState?.draft.id ? $0.text : nil }, photoPending: photoRequest != nil, photoMessage: photoMessage, photoBusy: photoApplying, reportPending: reportPreparing || reportRequest != nil, reportMessage: reportMessage))
++        try next.apply(document)
+@@ -854 +1054 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
+-        _ = try Self.appPacket(result, draftID: renderedEntry?.draft.id)
++        _ = try appPacket(result, draftID: draftID)
+@@ -918,0 +1119,3 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
++    private nonisolated static func projectKey(_ id: UUID) -> String {
++        "project." + id.uuidString.lowercased()
++    }
+@@ -924 +1127,5 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
+-        if entries && !queue, let entry { return entryDocument(entry, workspace: workspace, project: project, entryPage: entryPage, draftPage: draftPage, revision: revision, dateInput: dateInput, photoPending: photoPending, photoMessage: photoMessage, photoBusy: photoBusy) }
++        if entries && !queue, let entry {
++            return entryDocument(entry, workspace: workspace, project: project, entryPage: entryPage, draftPage: draftPage,
++                                 revision: revision, dateInput: dateInput, photoPending: photoPending,
++                                 photoMessage: photoMessage, photoBusy: photoBusy, reportPending: reportPending)
++        }
+@@ -925,0 +1133 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
++        let canBrowseProjects = !inactive && !photoPending && !photoBusy && !reportPending
+@@ -934,0 +1143,2 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
++                        MixerUI.Button("workspace.projects", "Projects", action: "workspace.projects")
++                            .accessibilityIdentifier("workspace-projects").disabled(!canBrowseProjects)
+@@ -955,0 +1166,5 @@ public enum ReportShareResult: Sendable { case opened, closed, unavailable }
++                        MixerUI.Button("workspace.projects", "Projects", action: "workspace.projects")
++                            .accessibilityIdentifier("workspace-projects").disabled(!canBrowseProjects)
++                        if let name = workspace.projects.first(where: { $0.id == project })?.title {
++                            MixerUI.Text("workspace.project.title", name)
++                        }
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/ChecklistRowRoutingTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/ChecklistRowRoutingTests.swift
+index 9b357e2ba92da46a8e1f20aea490e279421facbf..9fb7f3159fb7ea20813aca36ca267c142b267125 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/ChecklistRowRoutingTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/ChecklistRowRoutingTests.swift
+@@ -21,0 +22 @@ final class ChecklistRowRoutingTests: XCTestCase {
++            workspace.restoration.selectedProjectID = project
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift
+index f9a9ee879fff99f85aed25f6b47f37087ba9e56f..85b0b36817cc2425ff9a77032863dfd255d60c7c 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift
+@@ -22,0 +23 @@ func rejects(_ label: String, _ action: () throws -> Void) throws {
++    private(set) var document: UIDocument?
+@@ -30 +31 @@ func rejects(_ label: String, _ action: () throws -> Void) throws {
+-        _ = try UIDocument.decode(JSONSerialization.data(withJSONObject: object["document"]!), validator: UIValidator(supportedTextFieldAxes: profile.capabilities.textFieldAxes, textValuePolicy: profile.textValuePolicy))
++        document = try UIDocument.decode(JSONSerialization.data(withJSONObject: object["document"]!), validator: UIValidator(supportedTextFieldAxes: profile.capabilities.textFieldAxes, textValuePolicy: profile.textValuePolicy))
+@@ -163 +164,6 @@ func disk(_ directory: URL) throws -> Workspace { try JSONDecoder().decode(Works
+-        let a = try w.createProject(title: "A", site: ""), b = try w.createProject(title: "B", site: "")
++        let a = try w.createProject(title: "A", site: "South Dock", now: Date(timeIntervalSince1970: 0))
++        let b = try w.createProject(title: "B", site: "North Dock", now: Date(timeIntervalSince1970: 1))
++        for index in 2...21 {
++            try w.createProject(title: index == 21 ? "B" : "Fixture \(index)", site: "Other site",
++                                now: Date(timeIntervalSince1970: Double(index)))
++        }
+@@ -166 +172,13 @@ func disk(_ directory: URL) throws -> Workspace { try JSONDecoder().decode(Works
+-        try w.saveTask(projectID: b, title: "B1", responsible: "B")
++        try w.saveDraft(EntryDraft(projectID: a, title: "A draft"))
++        let aEntry = EntryDraft(projectID: a, title: "A entry")
++        try w.saveDraft(aEntry)
++        try w.commitDraft(aEntry.id)
++        for index in 1...22 {
++            let date = Date(timeIntervalSince1970: Double(index))
++            try w.saveTask(projectID: b, title: "B task \(index)", responsible: "B")
++            try w.saveDraft(EntryDraft(projectID: b, title: "B draft \(index)", updatedAt: date))
++            let entry = EntryDraft(projectID: b, title: "B entry \(index)", occurredAt: date)
++            try w.saveDraft(entry)
++            try w.commitDraft(entry.id)
++        }
++        w.restoration.selectedProjectID = nil
+@@ -169,6 +187,146 @@ func disk(_ directory: URL) throws -> Workspace { try JSONDecoder().decode(Works
+-    let app = try await open(dir), bTask = baseline.tasks[2]
+-    try rejects("foreign project task not in captured document") { try send(app, "task." + bTask.id.uuidString.lowercased() + ".complete") }
+-    try send(app, "task." + baseline.tasks[0].id.uuidString.lowercased() + ".complete"); try await app.settle()
+-    try send(app, "task." + baseline.tasks[1].id.uuidString.lowercased() + ".up"); try await app.settle()
+-    let retainedTask = app.presentation.workspace.tasks.first(where: { $0.id == bTask.id })
+-    try check(retainedTask == bTask, "other project unchanged")
++    let surface = R109Surface(), app = try await open(dir, surface)
++    let owner = try XCTUnwrap(surface.owner)
++    let a = baseline.projects[0].id, b = baseline.projects[1].id
++    func key(_ prefix: String, _ id: UUID) -> String { prefix + "." + id.uuidString.lowercased() }
++    let aKey = key("project", a), bKey = key("project", b)
++    let twinKey = key("project", try XCTUnwrap(baseline.projects.last?.id))
++    let aTasks = baseline.tasks(for: a), bTasks = baseline.tasks(for: b)
++    let aTask = key("task", aTasks[0].id), bTask = key("task", bTasks[0].id)
++    let aDraft = try XCTUnwrap(baseline.drafts.first { $0.projectID == a })
++    let aEntry = try XCTUnwrap(baseline.entries.first { $0.projectID == a })
++    let bDrafts = baseline.drafts.filter { $0.projectID == b }
++    let bEntries = baseline.entries(for: b)
++    func node(_ id: String, in view: R109Surface = surface) throws -> UINode? {
++        fieldLogNode(id, in: try XCTUnwrap(view.document).root)
++    }
++    func refuse(_ label: String, _ send: () throws -> Void) throws {
++        let before = try Data(contentsOf: file(dir)), frames = surface.frames.count
++        try rejects(label, send)
++        try check(Data(contentsOf: file(dir)) == before && surface.frames.count == frames, label + " has no side effects")
++    }
++    func deliver(_ event: UIEventEnvelope, as sender: UUID = owner, to target: PublicAndroidApplication = app) throws {
++        try target.send(owner: sender, originalEnvelope: JSONEncoder().encode(event))
++    }
++    func search(_ query: String) throws { try send(app, "projects-search", .textChange, .string(query)) }
++
++    try check(node("workspace.project.title")?.properties["text"] == .string("A"), "legacy first-project launch")
++    try check(node(aTask + ".complete") != nil && node(bTask + ".complete") == nil, "A tasks only")
++    let foreignTask = UIEventEnvelope(revision: app.presentation.snapshot.document.revision,
++        identity: UINodeIdentity(id: bTask + ".complete", generation: 1), event: .activate)
++    try refuse("foreign project task in A") { try deliver(foreignTask) }
++    try send(app, aTask + ".complete"); try await app.settle()
++    try send(app, key("task", aTasks[1].id) + ".up"); try await app.settle()
++    try check(disk(dir).tasks(for: b) == bTasks, "A completion and move retain B")
++    let aAction = try event(app, aTask + ".complete")
++
++    let beforeBrowsing = try Data(contentsOf: file(dir))
++    try typeTask(app, "Retain in A", "Jo")
++    try send(app, "workspace-projects")
++    try search("North Dock")
++    try check(node("projects.unsaved") != nil && node(bKey)?.properties["disabled"] == .bool(true), "unsaved task blocks switching")
++    try refuse("unsaved task selection") { try send(app, bKey) }
++    try send(app, "projects-back")
++    try check(app.presentation.state.title == "Retain in A" && app.presentation.state.responsible == "Jo", "picker retains task input")
++    try typeTask(app, "", "")
++    try send(app, "workspace-entries")
++    try send(app, key("draft", aDraft.id))
++    let originalDate = try XCTUnwrap(node("entry-date")?.properties["value"]?.string)
++    try send(app, "entry-date", .textChange, .string("unfinished date"))
++    try send(app, "workspace-projects")
++    try search("North Dock")
++    try check(node(bKey)?.properties["disabled"] == .bool(true), "unfinished date blocks switching")
++    try refuse("unsaved entry selection") { try send(app, bKey) }
++    try send(app, "projects-back")
++    try check(node("entry-date")?.properties["value"] == .string("unfinished date"), "picker retains exact entry date input")
++    try check(Data(contentsOf: file(dir)) == beforeBrowsing, "search and back are read-only")
++    try send(app, "entry-date", .textChange, .string(originalDate))
++    try send(app, "entry-save-draft")
++    try refuse("picker during queued draft save") { try send(app, "workspace-projects") }
++    try await app.settle()
++
++    try send(app, "workspace-projects")
++    try check(node("projects-search")?.actions == [UIActionBinding(id: "projects.search.change", event: .textChange)],
++              "accessible search routes from the decoded frame")
++    try check(node("projects.position")?.properties["text"] == .string("Page 1 of 2 · 22 projects"),
++              "project list uses twenty rows")
++    for project in baseline.matchingProjects("").prefix(20) {
++        try check(node(key("project", project.id)) != nil, "project page one exact roster")
++    }
++    try check(node(aKey) == nil && node(bKey) == nil && node(twinKey) != nil, "B is on page two and its same-title project is on page one")
++    try send(app, "projects.next")
++    try check(node(aKey) != nil && node(bKey) != nil && node(twinKey) == nil, "second project page")
++    let oldB = try event(app, bKey)
++    try search("B")
++    try check(node(bKey) != nil && node(twinKey) != nil, "title search resets pagination and retains distinct same-title IDs")
++    try search("somewhere else")
++    try check(node("projects.empty")?.properties["text"] == .string("No projects match your search.") &&
++              node(bKey) == nil && node("projects.next") == nil, "meaningful empty search")
++    let offPage = UIEventEnvelope(revision: app.presentation.snapshot.document.revision, identity: oldB.identity, event: .activate)
++    try refuse("project hidden by current search") { try deliver(offPage) }
++    try search("  north DOCK  ")
++    try check(node(bKey)?.properties["accessibilityIdentifier"] == .string(bKey) && node(aKey) == nil &&
++              node(twinKey) == nil, "site search exposes only B by stable ID")
++    let selectB = try event(app, bKey)
++    let searchEvent = try event(app, "projects-search", .textChange, .string("South Dock"))
++    try refuse("stale selection in a new search revision") { try deliver(oldB) }
++    try refuse("foreign owner selecting B") { try deliver(selectB, as: UUID()) }
++    try refuse("mixed search and selection batch") {
++        try app.sendBatch(owner: owner, originalEnvelopes: JSONEncoder().encode([searchEvent, selectB]))
++    }
++    let beforeSwitch = try disk(dir)
++    let beforeSwitchBytes = try Data(contentsOf: file(dir))
++    let heldFile = file(dir).appendingPathExtension("test-retry")
++    try FileManager.default.moveItem(at: file(dir), to: heldFile)
++    try deliver(selectB)
++    try await app.settle()
++    try check(node("projects.failure") != nil && node("projects.current")?.properties["text"] == .string("Current project: A") &&
++              !FileManager.default.fileExists(atPath: file(dir).path) && Data(contentsOf: heldFile) == beforeSwitchBytes,
++              "failed storage selection leaves A, query and previous bytes intact")
++    try FileManager.default.moveItem(at: heldFile, to: file(dir))
++    let retryRoster = try XCTUnwrap(node("projects.navigation")).children.map(\.id)
++    try send(app, bKey)
++    try check(node("projects.navigation")?.children.map(\.id) == retryRoster &&
++              node("projects-search")?.properties["disabled"] == .bool(true) &&
++              node(bKey)?.properties["disabled"] == .bool(true) &&
++              Data(contentsOf: file(dir)) == beforeSwitchBytes,
++              "selection disables input with a stable Search sibling roster before the write")
++    try refuse("back during queued project selection") { try send(app, "projects-back") }
++    try await app.settle()
++    var expected = beforeSwitch
++    expected.revision += 1
++    expected.restoration.selectedProjectID = b
++    try check(disk(dir) == expected && expected.restoration.openDraftID == aDraft.id, "selection writes restoration only")
++    try check(surface.owner == owner && node("workspace.project.title")?.properties["text"] == .string("B") &&
++              node(aTask + ".complete") == nil && node(bTask + ".complete") != nil,
++              "B checklist appears under the original owner")
++    try refuse("stale A action after B selection") { try deliver(aAction) }
++    let retargetedA = UIEventEnvelope(revision: app.presentation.snapshot.document.revision, identity: aAction.identity, event: .activate)
++    try refuse("A identity with B's revision") { try deliver(retargetedA) }
++    try send(app, "tasks.next")
++    try check(node(bTask + ".complete") == nil && node(aTask + ".complete") == nil &&
++              node(key("task", bTasks[20].id) + ".complete") != nil && node(key("task", bTasks[21].id) + ".complete") != nil,
++              "B task page two stays scoped")
++
++    try send(app, "workspace-entries")
++    try check(app.presentation.entryState?.draft.projectID == b &&
++              node(key("draft", aDraft.id)) == nil && node(key("entry", aEntry.id)) == nil &&
++              node(key("draft", bDrafts[0].id)) != nil && node(key("entry", bEntries[0].id)) != nil,
++              "B editor, drafts and entries all use B")
++    try send(app, "drafts.next")
++    try send(app, "entries.next")
++    try check(node(key("draft", bDrafts[0].id)) == nil && node(key("draft", bDrafts[20].id)) != nil &&
++              node(key("entry", bEntries[0].id)) == nil && node(key("entry", bEntries[20].id)) != nil &&
++              node(key("draft", aDraft.id)) == nil && node(key("entry", aEntry.id)) == nil, "B draft and entry page boundaries")
++    try send(app, key("draft", bDrafts[20].id))
++    try check(app.presentation.entryState?.draft.id == bDrafts[20].id, "B draft selected by stable ID")
++    try send(app, "workspace-on-device")
++    let aChange = try XCTUnwrap(expected.outbox.last { $0.recordID == aTasks[0].id })
++    let bChange = try XCTUnwrap(expected.outbox.last { $0.recordID == bEntries[0].id })
++    try check(node(key("pending", aChange.id)) != nil && node(key("pending", bChange.id)) != nil &&
++              node("queue.position")?.properties["text"]?.string?.contains("of \(expected.outbox.count)") == true,
++              "device queue includes pending changes for both projects")
++    try send(app, "workspace-projects")
++    try search("North Dock")
++    try send(app, bKey)
++    try check(node("queue.position") != nil && disk(dir) == expected, "selecting the current project returns without a write")
++    let savedBytes = try Data(contentsOf: file(dir))
+@@ -176 +334,24 @@ func disk(_ directory: URL) throws -> Workspace { try JSONDecoder().decode(Works
+-    print("PASS project scope: completion/reorder retain task identity and leave other project records untouched")
++    try check(surface.owner == nil, "closed owner revoked")
++    let freshSurface = R109Surface(), reopened = try await open(dir, freshSurface)
++    try check(freshSurface.owner != owner && node("workspace.project.title", in: freshSurface)?.properties["text"] == .string("B") &&
++              node(bTask + ".complete", in: freshSurface) != nil && node(aTask + ".complete", in: freshSurface) == nil &&
++              reopened.presentation.entryState == nil, "cold reopen restores B without opening A's draft")
++    try rejects("closed picker owner on cold reopen") { try deliver(selectB, to: reopened) }
++    try check(Data(contentsOf: file(dir)) == savedBytes, "navigation, cold read and old-owner refusal leave bytes unchanged")
++    try typeTask(reopened, "New task in B", "Jo")
++    try send(reopened, "task-save"); try await reopened.settle()
++    let afterBSave = try disk(dir)
++    try check(afterBSave.tasks(for: a) == expected.tasks(for: a) &&
++              afterBSave.tasks(for: b).last?.title == "New task in B" &&
++              afterBSave.outbox.count == expected.outbox.count + 1,
++              "first save in cold B is scoped to B")
++    try send(reopened, "workspace-projects")
++    try send(reopened, "projects-search", .textChange, .string("Other site"))
++    try send(reopened, twinKey); try await reopened.settle()
++    try check(node("tasks.empty", in: freshSurface) != nil &&
++              node(bTask + ".complete", in: freshSurface) == nil, "empty project has its own checklist state")
++    try send(reopened, "workspace-entries")
++    try check(node("drafts.empty", in: freshSurface) != nil && node("entries.empty", in: freshSurface) != nil,
++              "empty project has its own draft and entry states")
++    await reopened.close()
++    print("PASS project navigation: 22 projects, site/title/no-match, stable IDs, dirty/queued/stale/foreign/mixed refusal, storage retry, scoped pages, device queue and cold restoration")
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/ProjectPickerRegressionTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/ProjectPickerRegressionTests.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..d1f0eb57d419143d8e3ff56ba50c43ae2f4cf771
+--- /dev/null
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/ProjectPickerRegressionTests.swift
+@@ -0,0 +1,101 @@
++import Foundation
++import XCTest
++import FieldLogStorage
++import MixerUI
++import MixerAndroid
++@testable import FieldLogAndroid
++
++final class ProjectPickerRegressionTests: XCTestCase {
++    @MainActor func testSearchBatchIsAtomicAndUsesLastValue() async throws {
++        let directory = try fixtureDirectory("search-batch")
++        let repository = try WorkspaceRepository(directory: directory.appendingPathComponent("FieldLog"))
++        let workspace = try await repository.transact { value in
++            try value.createProject(title: "South", site: "Yard")
++            try value.createProject(title: "North", site: "Dock")
++        }
++        await repository.close()
++        let surface = R109Surface()
++        let app = try await open(directory, surface)
++        let owner = try XCTUnwrap(surface.owner)
++        let before = try Data(contentsOf: file(directory))
++        let foreign = try event(app, "task.title", .textChange, .string("Other editor"))
++        try send(app, "workspace-projects")
++        let first = try event(app, "projects-search", .textChange, .string("Yard"))
++        let last = try event(app, "projects-search", .textChange, .string("Dock"))
++        let back = try event(app, "projects-back")
++        let frameCount = surface.frames.count
++        let revision = app.presentation.snapshot.document.revision
++        let retargeted = UIEventEnvelope(revision: revision, identity: foreign.identity,
++                                         event: .textChange, value: .string("Dock"))
++        let malformed = UIEventEnvelope(revision: revision, identity: last.identity,
++                                         event: .textChange, value: .bool(false))
++        let stale = UIEventEnvelope(revision: revision - 1, identity: last.identity,
++                                     event: .textChange, value: .string("Dock"))
++        let oversized = UIEventEnvelope(revision: revision, identity: last.identity,
++                                         event: .textChange, value: .string(String(repeating: "x", count: UIValidationLimits.standard.maximumStringBytes + 1)))
++
++        func sendBatch(_ events: [UIEventEnvelope], from sender: UUID = owner) throws {
++            try app.sendBatch(owner: sender, originalEnvelopes: JSONEncoder().encode(events))
++        }
++        for invalid in [back, retargeted, malformed, stale, oversized] {
++            XCTAssertThrowsError(try sendBatch([first, invalid]))
++        }
++        XCTAssertThrowsError(try sendBatch([back, first]))
++        XCTAssertThrowsError(try sendBatch([first, last], from: UUID()))
++        XCTAssertEqual(surface.frames.count, frameCount)
++        XCTAssertEqual(app.presentation.snapshot.document.revision, revision)
++        XCTAssertEqual(try Data(contentsOf: file(directory)), before)
++
++        try sendBatch([first, last])
++        let document = try XCTUnwrap(surface.document)
++        XCTAssertEqual(surface.frames.count, frameCount + 1)
++        XCTAssertEqual(document.revision, revision + 1)
++        XCTAssertEqual(fieldLogNode("projects-search", in: document.root)?.properties["value"], .string("Dock"))
++        let south = try "project." + XCTUnwrap(workspace.projects.first { $0.title == "South" }).id.uuidString.lowercased()
++        let north = try "project." + XCTUnwrap(workspace.projects.first { $0.title == "North" }).id.uuidString.lowercased()
++        XCTAssertNil(fieldLogNode(south, in: document.root))
++        XCTAssertNotNil(fieldLogNode(north, in: document.root))
++        XCTAssertEqual(try Data(contentsOf: file(directory)), before)
++        await app.close()
++    }
++
++    @MainActor func testEntriesProjectPickerFollowsReportHandoff() async throws {
++        let directory = try fixtureDirectory("entries-report")
++        let surface = R109Surface()
++        let app = try await open(directory, surface)
++        let before = try Data(contentsOf: file(directory))
++        try send(app, "workspace-report")
++        let preparing = try XCTUnwrap(surface.document)
++        XCTAssertEqual(fieldLogNode("workspace-projects", in: preparing.root)?.properties["disabled"], .bool(true))
++        XCTAssertThrowsError(try send(app, "workspace-entries"))
++        try await app.settle()
++        let request = try XCTUnwrap(app.presentation.takeReportRequest())
++        try send(app, "workspace-entries")
++        let pending = try XCTUnwrap(surface.document)
++        XCTAssertEqual(pending.root.id, "entry.screen")
++        XCTAssertEqual(fieldLogNode("workspace-projects", in: pending.root)?.properties["disabled"], .bool(true))
++        let frameCount = surface.frames.count
++        XCTAssertThrowsError(try send(app, "workspace-projects"))
++        XCTAssertEqual(surface.frames.count, frameCount)
++
++        XCTAssertTrue(app.presentation.completeReport(requestID: request.id, result: .opened))
++        try await app.settle()
++        let opened = try XCTUnwrap(surface.document)
++        XCTAssertEqual(fieldLogNode("workspace-projects", in: opened.root)?.properties["disabled"], .bool(true))
++        XCTAssertTrue(app.presentation.completeReport(requestID: request.id, result: .closed))
++        try await app.settle()
++        let finished = try XCTUnwrap(surface.document)
++        XCTAssertEqual(finished.root.id, "entry.screen")
++        XCTAssertEqual(fieldLogNode("workspace-projects", in: finished.root)?.properties["disabled"], .bool(false))
++        XCTAssertFalse(app.presentation.reportSharePending)
++        try send(app, "workspace-projects")
++        XCTAssertEqual(surface.document?.root.id, "projects.screen")
++        XCTAssertEqual(try Data(contentsOf: file(directory)), before)
++        await app.close()
++    }
++
++    private func fixtureDirectory(_ name: String) throws -> URL {
++        let path = try XCTUnwrap(ProcessInfo.processInfo.environment["FIELDLOG_WORKSPACE"])
++        return URL(fileURLWithPath: path).appendingPathComponent(name + "-" + UUID().uuidString)
++    }
++}
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/ReportShareTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/ReportShareTests.swift
+index a37d8f6b028e8e8d41800d7ac05bbe6c8df55ef1..2216a8e7640d26660c2ce2c516c3569817284752 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/ReportShareTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/ReportShareTests.swift
+@@ -23,0 +24 @@ final class ReportShareTests: XCTestCase {
++            w.restoration.selectedProjectID = first
