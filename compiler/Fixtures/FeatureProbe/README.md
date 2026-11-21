@@ -343,3 +343,25 @@ Embedded Wasm compiler refuses both Foundation imports before object
 emission. The Foundation-free control emits an object from the same input
 cases. The [maintained receipt](../../../verification/receipts/w07-l03-foundation-date-maintained.json)
 records the results and preserves the original run.
+
+## Swift String title replay
+
+This host replay uses a synthetic FieldLog title event with up to 32 UTF-8
+bytes. It checks `String(validating:as:)`, ASCII edge whitespace trimming,
+and the exact UTF-8 bytes and Unicode scalar count of the remaining title.
+On arm64 macOS, native Foundation and Embedded Swift with the pinned Swift
+6.3.3 WASI allocator matched all four accepted title frames. All twelve
+refusals preserved the previous frame. The owned VM reclaimed the closed
+session slot and refused the retired handle. The guest uses one memory
+page and zero host calls.
+
+The Foundation arm stopped at the import. The bare standard-library link
+refused unresolved `posix_memalign` and `free`. This result covers the
+tested title wire format and ASCII whitespace rules. Unicode normalization,
+locale-sensitive trimming, and grapheme counts need their own checks.
+
+Rebuild from the pinned source projection using the recipe and exact fixture
+sources in the producer receipt. The independent replay reconstructed those
+sources and used a separate UTF-8 and ASCII-trim oracle for all 16 events.
+[Producer and replay recipe](../../../verification/receipts/l03-swift-string-title-7d257e0d.json) ·
+[Independent replay](../../../verification/receipts/l03-swift-string-title-independent-7d257e0d.json)

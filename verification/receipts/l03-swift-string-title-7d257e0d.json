@@ -1,0 +1,742 @@
+{
+  "gate": "L03 §7.3",
+  "startedUTC": "2026-11-21T21:38:31.061516+00:00",
+  "publicRevision": "7d257e0d1beda17874fc0ce7d015d81bf640870a",
+  "publicTree": "5d13c046a6a3aed8cce7632578c19e0c48cf01ee",
+  "scope": "Unsigned fixed-width synthetic FieldLog title-change preview on arm64 macOS. Guest UI V1 compact ABI, owned VM, table-memory-v3, 1 page, 1,000,000 fuel per event, zero host calls. ASCII edge whitespace domain (HT–CR and space); byte counts and Unicode scalar counts, with no normalization or grapheme counts. No installed FieldLog, signing, devices, or general guest Foundation/String qualification.",
+  "layout": {
+    "input": "action byte 1, title byte length, up to 32 title bytes with zero padding",
+    "frame": "trimmed title byte length, scalar count, exact trimmed bytes, zero padding to 34",
+    "initial": "34 zero bytes"
+  },
+  "pinnedReplay": {
+    "compiler/Fixtures/FeatureProbe/replay.py": {
+      "bytes": 32076,
+      "sha256": "55f4f2887c96d266b05756aaae3e2db41c5f9710224551fa2a5bdae22bee268f"
+    },
+    "compiler/Fixtures/FeatureProbe/CompactPreviewGuest.swift": {
+      "bytes": 2489,
+      "sha256": "eb27f4baeaa5ebf8c4d0db3554918ab6b5ccff56d10b8d1484ab1f17d4bc957d"
+    },
+    "compiler/experiments/fieldlog-guest-benchmark/matched_task.py": {
+      "bytes": 17964,
+      "sha256": "2d8137f209570e64e30d417f2d832680eccb541a96c4749cdcfb0b32e2bfe365"
+    },
+    "compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift": {
+      "bytes": 9964,
+      "sha256": "7706eb6827072168637a90ecbfc7b73b78f85b059367d9ec0d706cb02462d248"
+    },
+    "compiler/experiments/fieldlog-installed-guest/run.py": {
+      "bytes": 9800,
+      "sha256": "9fa19032d9b7666b092b72a3b6a02fefa5209c899f1cb27a8ab44c903f3f9982"
+    },
+    "compiler/experiments/fieldlog-installed-guest/replay_abi.py": {
+      "bytes": 4935,
+      "sha256": "96ec1f79559e0742fab2589bc2d852ba07e6463372af8e7f9aea8f0cc98793c0"
+    }
+  },
+  "fixtureHashes": {
+    "TitlePreview.swift": {
+      "bytes": 3471,
+      "sha256": "ae3c559b5567ffa3ed3140b885ee64f13322401370af5fac9e3af5c468adc545"
+    },
+    "TitleHost.swift": {
+      "bytes": 2661,
+      "sha256": "29e8e06bd2614dfe952737c8ee9497ef047fdfea2a69a358db147bfc643b2b36"
+    },
+    "CompactPreviewGuest.swift": {
+      "bytes": 2481,
+      "sha256": "b41ac093125e6eaa3374bfd830931230a441c16e6cb3ca6f5c80280080e6d18d"
+    },
+    "replay-title.py": {
+      "bytes": 10538,
+      "sha256": "4d9b32d82f0529d3a208be4cd3c3dfe8e90f805eb903c83a71519395620853b8"
+    }
+  },
+  "events": [
+    {
+      "name": "decomposed-accent",
+      "inputHex": "010a200943616665cc810d0a00000000000000000000000000000000000000000000",
+      "expectedFrameHex": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "accepts": true
+    },
+    {
+      "name": "bad-action",
+      "inputHex": "02056f74686572000000000000000000000000000000000000000000000000000000",
+      "expectedFrameHex": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "accepts": false
+    },
+    {
+      "name": "short-envelope",
+      "inputHex": "01056f746865720000000000000000000000000000000000000000000000000000",
+      "expectedFrameHex": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "accepts": false
+    },
+    {
+      "name": "declared-length-over-capacity",
+      "inputHex": "01210000000000000000000000000000000000000000000000000000000000000000",
+      "expectedFrameHex": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "accepts": false
+    },
+    {
+      "name": "nonzero-padding",
+      "inputHex": "01016100000000000000000000000000000000000000000000000000000000000001",
+      "expectedFrameHex": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "accepts": false
+    },
+    {
+      "name": "arabic",
+      "inputHex": "010c0ad985d8b1d8add8a8d8a7200000000000000000000000000000000000000000",
+      "expectedFrameHex": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "accepts": true
+    },
+    {
+      "name": "empty-title",
+      "inputHex": "01000000000000000000000000000000000000000000000000000000000000000000",
+      "expectedFrameHex": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "accepts": false
+    },
+    {
+      "name": "blank-title",
+      "inputHex": "010520090d0a20000000000000000000000000000000000000000000000000000000",
+      "expectedFrameHex": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "accepts": false
+    },
+    {
+      "name": "orphan-continuation",
+      "inputHex": "01024180000000000000000000000000000000000000000000000000000000000000",
+      "expectedFrameHex": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "accepts": false
+    },
+    {
+      "name": "overlong-encoding",
+      "inputHex": "0102c0af000000000000000000000000000000000000000000000000000000000000",
+      "expectedFrameHex": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "accepts": false
+    },
+    {
+      "name": "utf16-surrogate",
+      "inputHex": "0103eda0800000000000000000000000000000000000000000000000000000000000",
+      "expectedFrameHex": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "accepts": false
+    },
+    {
+      "name": "above-unicode-maximum",
+      "inputHex": "0104f490808000000000000000000000000000000000000000000000000000000000",
+      "expectedFrameHex": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "accepts": false
+    },
+    {
+      "name": "bad-continuation",
+      "inputHex": "0103e228a10000000000000000000000000000000000000000000000000000000000",
+      "expectedFrameHex": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "accepts": false
+    },
+    {
+      "name": "accent-and-emoji-zwj",
+      "inputHex": "0112202065cc8120f09f91a9e2808df09f92bb090000000000000000000000000000",
+      "expectedFrameHex": "0f0665cc8120f09f91a9e2808df09f92bb0000000000000000000000000000000000",
+      "accepts": true
+    },
+    {
+      "name": "truncated-four-byte-scalar",
+      "inputHex": "0103f09fa70000000000000000000000000000000000000000000000000000000000",
+      "expectedFrameHex": "0f0665cc8120f09f91a9e2808df09f92bb0000000000000000000000000000000000",
+      "accepts": false
+    },
+    {
+      "name": "emoji-after-refusal",
+      "inputHex": "010609f09fa7aa200000000000000000000000000000000000000000000000000000",
+      "expectedFrameHex": "0401f09fa7aa00000000000000000000000000000000000000000000000000000000",
+      "accepts": true
+    }
+  ],
+  "tools": {
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "nativeSwift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "guestSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "linker": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)"
+  },
+  "foundation-native": {
+    "exactFramesAndDecisions": true,
+    "initialFrameHex": "00000000000000000000000000000000000000000000000000000000000000000000",
+    "accepted": 4,
+    "refused": 12,
+    "retiredAndReclaimed": false,
+    "observedFramesHex": {
+      "decomposed-accent": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "bad-action": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "short-envelope": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "declared-length-over-capacity": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "nonzero-padding": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "arabic": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "empty-title": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "blank-title": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "orphan-continuation": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "overlong-encoding": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "utf16-surrogate": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "above-unicode-maximum": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "bad-continuation": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "accent-and-emoji-zwj": "0f0665cc8120f09f91a9e2808df09f92bb0000000000000000000000000000000000",
+      "truncated-four-byte-scalar": "0f0665cc8120f09f91a9e2808df09f92bb0000000000000000000000000000000000",
+      "emoji-after-refusal": "0401f09fa7aa00000000000000000000000000000000000000000000000000000000"
+    }
+  },
+  "stdlib-string-native": {
+    "exactFramesAndDecisions": true,
+    "initialFrameHex": "00000000000000000000000000000000000000000000000000000000000000000000",
+    "accepted": 4,
+    "refused": 12,
+    "retiredAndReclaimed": false,
+    "observedFramesHex": {
+      "decomposed-accent": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "bad-action": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "short-envelope": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "declared-length-over-capacity": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "nonzero-padding": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "arabic": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "empty-title": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "blank-title": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "orphan-continuation": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "overlong-encoding": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "utf16-surrogate": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "above-unicode-maximum": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "bad-continuation": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "accent-and-emoji-zwj": "0f0665cc8120f09f91a9e2808df09f92bb0000000000000000000000000000000000",
+      "truncated-four-byte-scalar": "0f0665cc8120f09f91a9e2808df09f92bb0000000000000000000000000000000000",
+      "emoji-after-refusal": "0401f09fa7aa00000000000000000000000000000000000000000000000000000000"
+    }
+  },
+  "embeddedAttempts": {
+    "foundation": {
+      "compiled": false,
+      "exit": 1,
+      "diagnostic": "$CAMPAIGN/TitlePreview.swift:2:8: error: no such module 'Foundation'\n 1 | #if TITLE_FOUNDATION\n 2 | import Foundation\n   |        `- error: no such module 'Foundation'\n 3 | #endif\n 4 | \n\n<unknown>:0: note: did you forget to set an SDK using -sdk or SDKROOT?\n<unknown>:0: note: use \"xcrun swiftc\" to select the default macOS SDK installed with Xcode\n",
+      "objectEmitted": false
+    },
+    "stdlib-string": {
+      "compiled": true,
+      "artifact": {
+        "bytes": 42751,
+        "sha256": "9c3a574d4d364b28a1aa1e414a07fee99c9048bce3523ad4974bb44c13c6bef7"
+      }
+    }
+  },
+  "stockWasiAllocator": {
+    "sdkArchive": {
+      "path": "~/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1/WASI.sdk/lib/wasm32-wasip1/libc.a",
+      "bytes": 1040606,
+      "sha256": "42d929e52aaeac6c4ed56946cd3e92e40574322bc43af529c19cfbf67893b352"
+    },
+    "guestObject": {
+      "bytes": 59081,
+      "sha256": "5c0aba1e73748a95ce10f2a3f675ef8058d249980fd18bf2c054682d6f7b875f"
+    },
+    "baselineRefusal": "wasm-ld: error: $RUN/stdlib-string-guest.o: undefined symbol: posix_memalign\nwasm-ld: error: $RUN/stdlib-string-guest.o: undefined symbol: free",
+    "archiveExtraction": [
+      "reference\textracted\tsymbol",
+      "stdlib-string-guest.o\tlibc.a(dlmalloc.o)\tfree",
+      "libc.a(dlmalloc.o)\tlibc.a(errno.o)\terrno",
+      "libc.a(sbrk.o)\tlibc.a(abort.o)\tabort",
+      "libc.a(dlmalloc.o)\tlibc.a(sbrk.o)\tsbrk",
+      "libc.a(__wasilibc_real.o)\tlibc.a(strlen.o)\tstrlen",
+      "libc.a(_Exit.o)\tlibc.a(__wasilibc_real.o)\t__wasi_proc_exit",
+      "libc.a(exit.o)\tlibc.a(_Exit.o)\t_Exit",
+      "<internal>\tlibc.a(exit.o)\t__wasm_call_dtors"
+    ],
+    "retainedArchiveMembers": [
+      "abort.o",
+      "dlmalloc.o",
+      "errno.o",
+      "exit.o",
+      "sbrk.o"
+    ]
+  },
+  "vmArchive": {
+    "bytes": 19316872,
+    "sha256": "6a9ef08edafb9a3f9c35d3a98197584987a3b70cb429fddba6e1c562a927b822"
+  },
+  "hostExecutable": {
+    "bytes": 2017536,
+    "sha256": "68c165275234220c5ac6abbe5a2de2bdb10fcdd75a82d340234a4525de444e28"
+  },
+  "guestArtifacts": {
+    "stdlib-string": {
+      "bytes": 42751,
+      "sha256": "9c3a574d4d364b28a1aa1e414a07fee99c9048bce3523ad4974bb44c13c6bef7",
+      "imports": [],
+      "memories": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ],
+      "startFunction": null,
+      "exports": [
+        {
+          "name": "memory",
+          "kind": "memory",
+          "index": 0
+        },
+        {
+          "name": "mixer_guest_ui_start_v1",
+          "kind": "function",
+          "index": 124,
+          "typeIndex": 14,
+          "signature": {
+            "parameters": [],
+            "results": [
+              "i32"
+            ]
+          }
+        },
+        {
+          "name": "mixer_guest_ui_event_v1",
+          "kind": "function",
+          "index": 125,
+          "typeIndex": 15,
+          "signature": {
+            "parameters": [
+              "i32"
+            ],
+            "results": [
+              "i32"
+            ]
+          }
+        },
+        {
+          "name": "mixer_guest_capability_ready_v1",
+          "kind": "function",
+          "index": 126,
+          "typeIndex": 17,
+          "signature": {
+            "parameters": [],
+            "results": []
+          }
+        }
+      ]
+    }
+  },
+  "stdlib-string-owned-vm": {
+    "exactFramesAndDecisions": true,
+    "initialFrameHex": "00000000000000000000000000000000000000000000000000000000000000000000",
+    "accepted": 4,
+    "refused": 12,
+    "retiredAndReclaimed": true,
+    "observedFramesHex": {
+      "decomposed-accent": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "bad-action": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "short-envelope": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "declared-length-over-capacity": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "nonzero-padding": "060543616665cc810000000000000000000000000000000000000000000000000000",
+      "arabic": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "empty-title": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "blank-title": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "orphan-continuation": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "overlong-encoding": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "utf16-surrogate": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "above-unicode-maximum": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "bad-continuation": "0a05d985d8b1d8add8a8d8a700000000000000000000000000000000000000000000",
+      "accent-and-emoji-zwj": "0f0665cc8120f09f91a9e2808df09f92bb0000000000000000000000000000000000",
+      "truncated-four-byte-scalar": "0f0665cc8120f09f91a9e2808df09f92bb0000000000000000000000000000000000",
+      "emoji-after-refusal": "0401f09fa7aa00000000000000000000000000000000000000000000000000000000"
+    },
+    "fuelPerEvent": {
+      "decomposed-accent": 12510,
+      "bad-action": 75,
+      "short-envelope": 23,
+      "declared-length-over-capacity": 81,
+      "nonzero-padding": 586,
+      "arabic": 19447,
+      "empty-title": 1324,
+      "blank-title": 3596,
+      "orphan-continuation": 995,
+      "overlong-encoding": 997,
+      "utf16-surrogate": 1034,
+      "above-unicode-maximum": 1072,
+      "bad-continuation": 968,
+      "accent-and-emoji-zwj": 25301,
+      "truncated-four-byte-scalar": 1084,
+      "emoji-after-refusal": 5226
+    }
+  },
+  "result": "passed-scoped-guest-string",
+  "commands": [
+    {
+      "label": "macOS",
+      "argv": [
+        "/usr/bin/sw_vers"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "nativeSwift",
+      "argv": [
+        "/usr/bin/swiftc",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "guestSwift",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "linker",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "rustc",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "cargo",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "foundation-native-build",
+      "argv": [
+        "/usr/bin/swiftc",
+        "-O",
+        "-swift-version",
+        "6",
+        "-parse-as-library",
+        "-module-cache-path",
+        "$RUN/native-modules",
+        "-D",
+        "TITLE_FOUNDATION",
+        "$CAMPAIGN/TitleHost.swift",
+        "$CAMPAIGN/TitlePreview.swift",
+        "-o",
+        "$RUN/native-foundation"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "foundation-native",
+      "argv": [
+        "$RUN/native-foundation",
+        "$RUN/events.json"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "stdlib-string-native-build",
+      "argv": [
+        "/usr/bin/swiftc",
+        "-O",
+        "-swift-version",
+        "6",
+        "-parse-as-library",
+        "-module-cache-path",
+        "$RUN/native-modules",
+        "-D",
+        "TITLE_STRING",
+        "$CAMPAIGN/TitleHost.swift",
+        "$CAMPAIGN/TitlePreview.swift",
+        "-o",
+        "$RUN/native-stdlib-string"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "stdlib-string-native",
+      "argv": [
+        "$RUN/native-stdlib-string",
+        "$RUN/events.json"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "foundation-guest-swift",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-whole-module-optimization",
+        "-Osize",
+        "-parse-as-library",
+        "-Xfrontend",
+        "-disable-stack-protector",
+        "-module-cache-path",
+        "$RUN/guest-modules",
+        "-D",
+        "TITLE_FOUNDATION",
+        "-emit-object",
+        "$CAMPAIGN/TitlePreview.swift",
+        "$RUN/CompactPreviewGuest.swift",
+        "-o",
+        "$RUN/foundation-guest.o"
+      ],
+      "exit": 1
+    },
+    {
+      "label": "stdlib-string-guest-swift",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-whole-module-optimization",
+        "-Osize",
+        "-parse-as-library",
+        "-Xfrontend",
+        "-disable-stack-protector",
+        "-module-cache-path",
+        "$RUN/guest-modules",
+        "-D",
+        "TITLE_STRING",
+        "-emit-object",
+        "$CAMPAIGN/TitlePreview.swift",
+        "$RUN/CompactPreviewGuest.swift",
+        "-o",
+        "$RUN/stdlib-string-guest.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "stdlib-string-guest-link-without-libc",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--no-entry",
+        "--gc-sections",
+        "--strip-all",
+        "-z",
+        "stack-size=16384",
+        "--max-memory=65536",
+        "--export=mixer_guest_ui_start_v1",
+        "--export=mixer_guest_ui_event_v1",
+        "--export=mixer_guest_capability_ready_v1",
+        "$RUN/stdlib-string-guest.o",
+        "-o",
+        "$RUN/stdlib-string-guest.wasm"
+      ],
+      "exit": 1
+    },
+    {
+      "label": "stdlib-string-guest-link",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--no-entry",
+        "--gc-sections",
+        "--strip-all",
+        "-z",
+        "stack-size=16384",
+        "--max-memory=65536",
+        "--export=mixer_guest_ui_start_v1",
+        "--export=mixer_guest_ui_event_v1",
+        "--export=mixer_guest_capability_ready_v1",
+        "$RUN/stdlib-string-guest.o",
+        "$RUN/libc.a",
+        "--why-extract=$RUN/libc-extraction.tsv",
+        "--Map=$RUN/stdlib-string-guest.map",
+        "-o",
+        "$RUN/stdlib-string-guest.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "vm-build",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--lib",
+        "--offline",
+        "--locked",
+        "--release",
+        "--jobs",
+        "1",
+        "--features",
+        "experimental-capability-native",
+        "--manifest-path",
+        "$REPO/vm/Cargo.toml",
+        "--target-dir",
+        "$RUN/rust"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "host-build",
+      "argv": [
+        "/usr/bin/swiftc",
+        "-O",
+        "-whole-module-optimization",
+        "-swift-version",
+        "6",
+        "-D",
+        "SWIFT_SUPPORT_MATRIX",
+        "-D",
+        "TITLE_OWNED_HOST",
+        "-parse-as-library",
+        "-module-cache-path",
+        "$RUN/native-modules",
+        "-I",
+        "$RUN",
+        "$CAMPAIGN/TitleHost.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/FloatingPoint.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/AssociatedTypes.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/PropertyWrapper.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/ResultBuilder.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/FixedSlotResultBuilder.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/EnumTypedThrows.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/EscapingClosure.swift",
+        "$REPO/compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift",
+        "$REPO/compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift",
+        "$RUN/rust/release/libmixer_vm.a",
+        "-o",
+        "$RUN/compact-host"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "stdlib-string-owned-vm",
+      "argv": [
+        "$RUN/compact-host",
+        "$RUN/events.json",
+        "$RUN/stdlib-string-guest.wasm"
+      ],
+      "exit": 0
+    }
+  ],
+  "custody": {
+    "directReapedAndGroupsObservedAbsent": 17,
+    "unknown": 0,
+    "peakBuildBytes": 76728363,
+    "buildLimitBytes": 3221225472,
+    "totalAcrossBothAttempts": 30,
+    "scratchRelativePath": "verification/local/l03-title-7d257e0d-cu0BC7FX",
+    "scratchRemoved": true,
+    "cleanupObservedUTC": "2026-11-21T21:39:50.854460+00:00"
+  },
+  "finishedUTC": "2026-11-21T21:38:40.959659+00:00",
+  "publicCommitURL": "https://github.com/snowdamiz/mixer/commit/7d257e0d1beda17874fc0ce7d015d81bf640870a",
+  "vmTree": "ec1ddb74b7c6c2eabd91d1f60ed243ffc69ce6f4",
+  "sourceProjection": {
+    "archiveFromRevision": "7d257e0d1beda17874fc0ce7d015d81bf640870a",
+    "paths": [
+      "vm/Cargo.toml",
+      "vm/Cargo.lock",
+      "vm/src",
+      "vm/include",
+      "vm/examples",
+      "compiler/Fixtures/FeatureProbe",
+      "compiler/qualification_support.py",
+      "compiler/experiments/fieldlog-installed-guest",
+      "compiler/experiments/fieldlog-guest-benchmark",
+      "compiler/experiments/fieldlog-reactor/support.py",
+      "compiler/experiments/profile-budget/analyze.py",
+      "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime"
+    ],
+    "exportedGitBlobsVerified": 147
+  },
+  "initialBareLinkAttempt": {
+    "result": "standard-library Swift emitted an object; the bare link produced no Wasm",
+    "guestCompiler": {
+      "label": "stdlib-string-guest-swift",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-whole-module-optimization",
+        "-Osize",
+        "-parse-as-library",
+        "-Xfrontend",
+        "-disable-stack-protector",
+        "-module-cache-path",
+        "$RUN/guest-modules",
+        "-D",
+        "TITLE_STRING",
+        "-emit-object",
+        "$CAMPAIGN/TitlePreview.swift",
+        "$RUN/CompactPreviewGuest.swift",
+        "-o",
+        "$RUN/stdlib-string-guest.o"
+      ],
+      "exit": 0
+    },
+    "bareLink": {
+      "label": "stdlib-string-guest-link",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--no-entry",
+        "--gc-sections",
+        "--strip-all",
+        "-z",
+        "stack-size=16384",
+        "--max-memory=65536",
+        "--export=mixer_guest_ui_start_v1",
+        "--export=mixer_guest_ui_event_v1",
+        "--export=mixer_guest_capability_ready_v1",
+        "$RUN/stdlib-string-guest.o",
+        "-o",
+        "$RUN/stdlib-string-guest.wasm"
+      ],
+      "exit": 1
+    },
+    "diagnostic": "ValueError('stdlib-string-guest-link exit 1, stop=None\\nwasm-ld: error: $CAMPAIGN/build/stdlib-string-guest.o: undefined symbol: posix_memalign\\nwasm-ld: error: $CAMPAIGN/build/stdlib-string-guest.o: undefined symbol: free\\n')",
+    "custody": {
+      "directReapedAndGroupsObservedAbsent": 13,
+      "unknown": null,
+      "peakBuildBytes": 30998619,
+      "buildLimitBytes": 3221225472
+    }
+  },
+  "retirementChecks": [
+    "First session closed; startup via the retired handle failed with status 3.",
+    "A fresh generation reused the registry slot and exposed the original all-zero frame.",
+    "The first generation remained refused after slot reuse. The fresh session also closed and refused stale startup."
+  ],
+  "interpretation": {
+    "foundation": "Native Foundation matched the oracle. Embedded compilation of the identical Foundation arm stopped at import and emitted no object.",
+    "guestString": "Embedded standard-library String(validating:as:), unicodeScalars (including slicing/count) and utf8 were executed directly in owned Guest UI V1.",
+    "allocator": "The same emitted object was first linked bare and then linked with the checksum-verified stock WASI libc.a. The final module has zero imports.",
+    "byteFallback": "No byte-only fallback was needed or executed.",
+    "excluded": [
+      "Unicode whitespace beyond ASCII edge whitespace",
+      "normalization or grapheme equivalence",
+      "general guest Swift or Foundation compatibility",
+      "signed releases",
+      "installed app or device behavior",
+      "gate promotion"
+    ]
+  },
+  "reproduction": {
+    "steps": [
+      "Create a new private directory under verification/local with a source subdirectory.",
+      "Run git archive at publicRevision with sourceProjection.paths, extracting into the source subdirectory.",
+      "Write fixtureSources to their named files alongside source. Use native Swift and the installed stock Swift 6.3.3 toolchain/WASI archive shown in tools and stockWasiAllocator.",
+      "Run python3 -B replay-title.py. Read result.json. After all groups are reaped and absent, remove the private directory."
+    ],
+    "fixtureSources": {
+      "TitlePreview.swift": "#if TITLE_FOUNDATION\nimport Foundation\n#endif\n\nenum TitlePreview {\n    static let inputSize = 34\n    static let outputSize = 34\n\n    static func render(_ input: UnsafeRawBufferPointer, into output: UnsafeMutableRawBufferPointer) -> Bool {\n        guard input.count == inputSize, input[0] == 1 else { return false }\n        let end = 2 + Int(input[1])\n        guard end <= inputSize else { return false }\n        for offset in end ..< inputSize {\n            if input[offset] != 0 { return false }\n        }\n        let title = UnsafeRawBufferPointer(rebasing: input[2 ..< end])\n#if TITLE_FOUNDATION || TITLE_STRING\n        guard let decoded = String(validating: title, as: UTF8.self) else { return false }\n#if TITLE_FOUNDATION\n        let trimmed = decoded.trimmingCharacters(in: .whitespacesAndNewlines)\n#else\n        let scalars = decoded.unicodeScalars\n        var first = scalars.startIndex\n        var last = scalars.endIndex\n        while first < last, edgeWhitespace(scalars[first].value) {\n            scalars.formIndex(after: &first)\n        }\n        while first < last {\n            let previous = scalars.index(before: last)\n            guard edgeWhitespace(scalars[previous].value) else { break }\n            last = previous\n        }\n        let trimmed = String(scalars[first ..< last])\n#endif\n        let utf8 = trimmed.utf8\n        guard !utf8.isEmpty else { return false }\n        output[0] = UInt8(utf8.count)\n        output[1] = UInt8(trimmed.unicodeScalars.count)\n        for offset in 2 ..< outputSize { output[offset] = 0 }\n        var offset = 2\n        for byte in utf8 {\n            output[offset] = byte\n            offset += 1\n        }\n#else\n        var first = 0\n        var last = title.count\n        while first < last, edgeWhitespace(UInt32(title[first])) { first += 1 }\n        while first < last, edgeWhitespace(UInt32(title[last - 1])) { last -= 1 }\n        guard first < last else { return false }\n\n        // Reject overlong, surrogate, out-of-range and incomplete UTF-8 before touching the frame.\n        var offset = first\n        var scalarCount: UInt8 = 0\n        while offset < last {\n            let lead = title[offset]\n            let width: Int\n            if lead < 0x80 { width = 1 }\n            else if lead >= 0xC2 && lead <= 0xDF { width = 2 }\n            else if lead >= 0xE0 && lead <= 0xEF { width = 3 }\n            else if lead >= 0xF0 && lead <= 0xF4 { width = 4 }\n            else { return false }\n            guard offset + width <= last else { return false }\n            if width > 1 {\n                let next = title[offset + 1]\n                if (lead == 0xE0 && next < 0xA0) || (lead == 0xED && next > 0x9F)\n                    || (lead == 0xF0 && next < 0x90) || (lead == 0xF4 && next > 0x8F) { return false }\n                for index in 1 ..< width {\n                    guard title[offset + index] & 0xC0 == 0x80 else { return false }\n                }\n            }\n            offset += width\n            scalarCount += 1\n        }\n        output[0] = UInt8(last - first)\n        output[1] = scalarCount\n        for index in 2 ..< outputSize { output[index] = 0 }\n        for index in first ..< last { output[2 + index - first] = title[index] }\n#endif\n        return true\n    }\n\n    // The compact projection trims only ASCII edge whitespace (HT through CR, plus SP).\n    private static func edgeWhitespace(_ value: UInt32) -> Bool {\n        value == 0x20 || (value >= 0x09 && value <= 0x0D)\n    }\n}\n",
+      "TitleHost.swift": "import Foundation\n\nprivate struct Case: Decodable {\n    let name: String\n    let input: Data\n    let accepts: Bool\n    let frame: Data\n}\n\nprivate struct Observation: Encodable {\n    let name: String\n    let accepted: Bool\n    let frame: Data\n    let fuel: UInt64?\n}\n\nprivate struct Receipt: Encodable {\n    let initial: Data\n    let events: [Observation]\n    let retiredAndReclaimed: Bool\n}\n\nprivate struct ReplayFailure: Error { let reason: String }\n\n@main private enum TitleHost {\n    static func main() throws {\n        let args = CommandLine.arguments\n        let cases = try JSONDecoder().decode([Case].self, from: Data(contentsOf: URL(fileURLWithPath: args[1])))\n        let observations: [Observation]\n        let initial: Data\n#if TITLE_OWNED_HOST\n        let path = OwnedTask(try Data(contentsOf: URL(fileURLWithPath: args[2])), measureComponents: false)\n        try path.open()\n        initial = try path.frame()\n        observations = try cases.map { test in\n            let accepted = try path.activate(Array(test.input))\n            let frame = try path.frame()\n            guard path.fuel > 0, path.fuel <= 1_000_000 else {\n                throw ReplayFailure(reason: \"\\(test.name): invalid owned-VM fuel\")\n            }\n            return try observe(test, accepted: accepted, frame: frame, fuel: path.fuel)\n        }\n        try path.closeAndCheckReclamation(initialFrame: initial)\n#else\n        var frame = Data(count: TitlePreview.outputSize)\n        initial = frame\n        observations = try cases.map { test in\n            let accepted = test.input.withUnsafeBytes { input in\n                frame.withUnsafeMutableBytes { TitlePreview.render(input, into: $0) }\n            }\n            return try observe(test, accepted: accepted, frame: frame, fuel: nil)\n        }\n#endif\n        guard initial == Data(count: 34) else { throw ReplayFailure(reason: \"dirty initial frame\") }\n#if TITLE_OWNED_HOST\n        let retiredAndReclaimed = true\n#else\n        let retiredAndReclaimed = false\n#endif\n        let data = try JSONEncoder().encode(Receipt(initial: initial, events: observations,\n                                                   retiredAndReclaimed: retiredAndReclaimed))\n        print(String(decoding: data, as: UTF8.self))\n    }\n\n    private static func observe(_ test: Case, accepted: Bool, frame: Data, fuel: UInt64?) throws -> Observation {\n        guard accepted == test.accepts, frame == test.frame else {\n            throw ReplayFailure(reason: \"\\(test.name): accepted=\\(accepted), frame=\\(frame.base64EncodedString())\")\n        }\n        return Observation(name: test.name, accepted: accepted, frame: frame, fuel: fuel)\n    }\n}\n",
+      "replay-title.py": "import base64\nfrom datetime import datetime, timezone\nimport importlib.util\nimport json\nimport os\nfrom pathlib import Path\nimport resource\nimport sys\n\ncampaign = Path(__file__).resolve().parent\nsource = campaign / \"source\"\nos.chdir(source)\nfeature = source / \"compiler/Fixtures/FeatureProbe/replay.py\"\nspec = importlib.util.spec_from_file_location(\"feature_replay\", feature)\nreplay = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(replay)\n\nresource.setrlimit(resource.RLIMIT_CORE, (0, 0))\nresource.setrlimit(resource.RLIMIT_FSIZE, (256 * 1024**2, 256 * 1024**2))\nbuild = campaign / \"build\"\nbuild.mkdir()\nrun = replay.Run(build)\npin = \"7d257e0d1beda17874fc0ce7d015d81bf640870a\"\ntree = \"5d13c046a6a3aed8cce7632578c19e0c48cf01ee\"\npreview = campaign / \"TitlePreview.swift\"\nhost = campaign / \"TitleHost.swift\"\nadapter = feature.with_name(\"CompactPreviewGuest.swift\")\nalternate_adapter = build / adapter.name\noriginal_adapter = adapter.read_text()\nneedle = \"private typealias Preview = FloatingPointPreview\"\nreplay.require(original_adapter.count(needle) == 1, \"adapter alias drift\")\nalternate_adapter.write_text(original_adapter.replace(needle, \"private typealias Preview = TitlePreview\"))\nreceipt = {\n    \"gate\": \"L03 §7.3\",\n    \"startedUTC\": datetime.now(timezone.utc).isoformat(),\n    \"publicRevision\": pin, \"publicTree\": tree,\n    \"scope\": \"Unsigned fixed-width synthetic FieldLog title-change preview on arm64 macOS. Guest UI V1 compact ABI, owned VM, table-memory-v3, 1 page, 1,000,000 fuel per event, zero host calls. ASCII edge whitespace domain (HT–CR and space); byte counts and Unicode scalar counts, with no normalization or grapheme counts. No installed FieldLog, signing, devices, or general guest Foundation/String qualification.\",\n    \"layout\": {\n        \"input\": \"action byte 1, title byte length, up to 32 title bytes with zero padding\",\n        \"frame\": \"trimmed title byte length, scalar count, exact trimmed bytes, zero padding to 34\",\n        \"initial\": \"34 zero bytes\",\n    },\n    \"pinnedReplay\": {str(path.relative_to(source)): replay.identity(path) for path in\n        [feature, adapter, replay.BENCHMARK / \"matched_task.py\", replay.BENCHMARK / \"MatchedTask.swift\",\n         replay.INSTALLED / \"run.py\", replay.INSTALLED / \"replay_abi.py\"]},\n    \"fixtureHashes\": {path.name: replay.identity(path) for path in\n        [preview, host, alternate_adapter, Path(__file__).resolve()]},\n}\ninitial = bytes(34)\ndef event(payload, action=1):\n    return bytes([action, len(payload)]) + payload.ljust(32, b\"\\0\")\n\ndef frame(raw_hex, scalar_count):\n    payload = bytes.fromhex(raw_hex)\n    return bytes([len(payload), scalar_count]) + payload.ljust(32, b\"\\0\")\n\ndecomposed = frame(\"43616665cc81\", 5)\narabic = frame(\"d985d8b1d8add8a8d8a7\", 5)\nemoji = frame(\"65cc8120f09f91a9e2808df09f92bb\", 6)\nshort = frame(\"f09fa7aa\", 1)\narabic_payload = bytes.fromhex(\"d985d8b1d8add8a8d8a7\")\nemoji_payload = bytes.fromhex(\"65cc8120f09f91a9e2808df09f92bb\")\n# Expected frame bytes and scalar counts are authored independently of either replay path.\nordered = [\n    (\"decomposed-accent\", event(b\" \\tCafe\\xcc\\x81\\r\\n\"), True, decomposed),\n    (\"bad-action\", event(b\"other\", 2), False, decomposed),\n    (\"short-envelope\", event(b\"other\")[:-1], False, decomposed),\n    (\"declared-length-over-capacity\", bytes([1, 33]) + bytes(32), False, decomposed),\n    (\"nonzero-padding\", event(b\"a\")[:-1] + b\"\\x01\", False, decomposed),\n    (\"arabic\", event(b\"\\n\" + arabic_payload + b\" \"), True, arabic),\n    (\"empty-title\", event(b\"\"), False, arabic),\n    (\"blank-title\", event(b\" \\t\\r\\n \"), False, arabic),\n    (\"orphan-continuation\", event(b\"A\\x80\"), False, arabic),\n    (\"overlong-encoding\", event(b\"\\xc0\\xaf\"), False, arabic),\n    (\"utf16-surrogate\", event(b\"\\xed\\xa0\\x80\"), False, arabic),\n    (\"above-unicode-maximum\", event(b\"\\xf4\\x90\\x80\\x80\"), False, arabic),\n    (\"bad-continuation\", event(b\"\\xe2\\x28\\xa1\"), False, arabic),\n    (\"accent-and-emoji-zwj\", event(b\"  \" + emoji_payload + b\"\\t\"), True, emoji),\n    (\"truncated-four-byte-scalar\", event(b\"\\xf0\\x9f\\xa7\"), False, emoji),\n    (\"emoji-after-refusal\", event(b\"\\t\\xf0\\x9f\\xa7\\xaa \"), True, short),\n]\nb64 = lambda data: base64.b64encode(data).decode()\ncases = build / \"events.json\"\ncases.write_text(json.dumps([dict(name=name, input=b64(data), accepts=accept, frame=b64(expected))\n                             for name, data, accept, expected in ordered]))\nreceipt[\"events\"] = [dict(name=name, inputHex=data.hex(), expectedFrameHex=expected.hex(), accepts=accept)\n                     for name, data, accept, expected in ordered]\ncall = run.command\nnative_options = (\"-O\", \"-swift-version\", \"6\", \"-parse-as-library\", \"-module-cache-path\", build / \"native-modules\")\nguest_options = (\"-module-cache-path\", build / \"guest-modules\")\n\ndef observe(label, *argv, owned=False):\n    output = json.loads(call(label, *argv)[0])\n    replay.require(output[\"retiredAndReclaimed\"] is owned and output[\"initial\"] == b64(initial),\n                   f\"{label}: initial frame or retirement\")\n    replay.require(len(output[\"events\"]) == len(ordered), f\"{label}: event count\")\n    fuels = {}\n    actual_frames = {}\n    for actual, (name, _, accepts, expected) in zip(output[\"events\"], ordered, strict=True):\n        fuel = actual.pop(\"fuel\", None)\n        replay.require(actual == dict(name=name, accepted=accepts, frame=b64(expected)),\n                       f\"{label}: event {name} changed from its exact oracle\")\n        actual_frames[name] = base64.b64decode(actual[\"frame\"], validate=True).hex()\n        replay.require(0 < fuel <= 1_000_000 if owned else fuel is None, f\"{label}: invalid fuel\")\n        if owned:\n            fuels[name] = fuel\n    result = dict(exactFramesAndDecisions=True, initialFrameHex=initial.hex(),\n                  accepted=sum(row[2] for row in ordered), refused=sum(not row[2] for row in ordered),\n                  retiredAndReclaimed=owned, observedFramesHex=actual_frames)\n    if owned:\n        result[\"fuelPerEvent\"] = fuels\n    receipt[label] = result\n\ndef run_campaign():\n    commands = {\n        \"macOS\": (\"/usr/bin/sw_vers\",),\n        \"nativeSwift\": (\"/usr/bin/swiftc\", \"--version\"),\n        \"guestSwift\": (run.swift / \"swiftc\", \"--version\"),\n        \"linker\": (run.swift / \"wasm-ld\", \"--version\"),\n        \"rustc\": (run.rust / \"rustc\", \"--version\"),\n        \"cargo\": (run.rust / \"cargo\", \"--version\"),\n    }\n    receipt[\"tools\"] = {name: call(name, *argv)[0].strip() for name, argv in commands.items()}\n    replay.require(\"6.3.3\" in receipt[\"tools\"][\"guestSwift\"], \"incorrect guest toolchain\")\n    for target, flag in ((\"foundation\", \"TITLE_FOUNDATION\"), (\"stdlib-string\", \"TITLE_STRING\")):\n        binary = build / (\"native-\" + target)\n        call(target + \"-native-build\", \"/usr/bin/swiftc\", *native_options, \"-D\", flag, host, preview,\n             \"-o\", binary, bound=30)\n        observe(target + \"-native\", binary, cases)\n\n    # Deliberately compile both the exact Foundation path and the equivalent\n    # standard-library String/Unicode path, so import failure cannot mask String.\n    diagnostics = receipt[\"embeddedAttempts\"] = {}\n    candidates = []\n    for target, flag, expected_error in (\n        (\"foundation\", \"TITLE_FOUNDATION\", \"no such module 'Foundation'\"),\n        (\"stdlib-string\", \"TITLE_STRING\", \"unavailable\"),\n    ):\n        variant = target + \"-guest\"\n        command = (replay.stock_allocator_guest_command(run, receipt) if target == \"stdlib-string\"\n                   else lambda *args: call(*args, bound=35))\n        try:\n            wasm = replay.build_compact_guest(command, run.swift, build, variant, [preview, alternate_adapter],\n                                              flags=(*guest_options, \"-D\", flag))\n        except ValueError as error:\n            label = variant + \"-swift\"\n            stderr = build / (label + \".err\")\n            if (run.active is not None or not run.commands or run.commands[-1][\"label\"] != label\n                    or run.commands[-1][\"exit\"] != 1 or not stderr.is_file() or \"stop=None\" not in str(error)):\n                raise\n            detail = stderr.read_text()\n            diagnostics[target] = dict(compiled=False, exit=1, diagnostic=detail.replace(str(campaign), \"$CAMPAIGN\"),\n                                       objectEmitted=(build / (variant + \".o\")).exists())\n            print(f\"{target} guest compiler refused: {detail.splitlines()[0]}\", flush=True)\n            replay.require(expected_error in detail and not diagnostics[target][\"objectEmitted\"],\n                           f\"{target}: unexpected compiler diagnosis: {error}\")\n        else:\n            diagnostics[target] = dict(compiled=True, artifact=replay.identity(wasm))\n            print(f\"{target} guest object compiled and linked\", flush=True)\n            candidates.append((target, wasm))\n    if not candidates:\n        wasm = replay.build_compact_guest(lambda *args: call(*args, bound=35), run.swift, build,\n                                          \"byte-title\", [preview, alternate_adapter], flags=guest_options)\n        candidates.append((\"byte-title\", wasm))\n\n    owned_sources = [host, *replay.compact_host_sources()[1:]]\n    archive = replay.build_compact_host(run, owned_sources, fixture_flags=(\"-D\", \"TITLE_OWNED_HOST\"))\n    receipt[\"vmArchive\"] = replay.identity(archive)\n    receipt[\"hostExecutable\"] = replay.identity(build / \"compact-host\")\n    for target, wasm in candidates:\n        descriptors = replay.replay_abi.check_descriptors(wasm.read_bytes())\n        receipt.setdefault(\"guestArtifacts\", {})[target] = dict(\n            **replay.identity(wasm), imports=descriptors[\"imports\"], memories=descriptors[\"memories\"],\n            startFunction=descriptors[\"startFunction\"], exports=descriptors[\"exports\"])\n        observe(target + \"-owned-vm\", build / \"compact-host\", cases, wasm, owned=True)\n    receipt[\"result\"] = (\"passed-scoped-byte-fallback\" if candidates[0][0] == \"byte-title\"\n                         else \"passed-scoped-guest-string\")\n\ntry:\n    run_campaign()\nexcept Exception as error:\n    receipt[\"result\"] = \"incomplete\"\n    receipt[\"failure\"] = repr(error)\n    raise\nfinally:\n    receipt[\"commands\"] = run.commands\n    receipt[\"custody\"] = dict(directReapedAndGroupsObservedAbsent=len(run.commands), unknown=run.active,\n                              peakBuildBytes=run.peak_scratch, buildLimitBytes=replay.SCRATCH_LIMIT)\n    receipt[\"finishedUTC\"] = datetime.now(timezone.utc).isoformat()\n    (campaign / \"result.json\").write_text(json.dumps(receipt, ensure_ascii=False, indent=2) + \"\\n\")\n"
+    }
+  }
+}
