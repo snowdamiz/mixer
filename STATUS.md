@@ -1204,6 +1204,16 @@ Python modes. The historical Source141 and Source127 restores and
 Pair25 inputs retain their prior bytes and modes.
 [ELF check](verification/receipts/android-stock-libz-elf-8e8d75c3.json) · [Archive checks](verification/receipts/android-stock-libz-source141-06e7202a.json) · [Combined admission](verification/receipts/android-stock-libz-combined-admission-8e8d75c3.json)
 
+Hosted Engine passed all nine jobs on `7799110750`. Its 157-input
+Source141 receipt matched the zlib source digest, all six Java and D8
+consumers produced byte-identical DEX, and both scratch roots were
+removed. The earlier `f1bf257b2d` Engine run ended with eight passing
+jobs and a generated-Java job failure. The final integration step
+has no terminal log or artifact, so its cause and custody are
+unverified. Phoenix and Identity passed at that revision.
+[Passing Engine run](https://github.com/snowdamiz/mixer/actions/runs/44958276169) ·
+[Earlier Java job](https://github.com/snowdamiz/mixer/actions/runs/44957321744/job/137008196141)
+
 The signed camera and queue APK passed two separate clean API 36 installs.
 A missing session, wrong workspace session, and selected sibling project
 made zero HTTP requests. Cancel preserved the first 65,536 server-staged
