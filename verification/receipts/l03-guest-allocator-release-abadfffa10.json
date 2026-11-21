@@ -1,0 +1,319 @@
+{
+  "scope": "W07/L03 \u00a77.3 ordinary guest-local allocation/release diagnostic",
+  "observedUTC": "2026-11-21T14:26:10.391475+00:00",
+  "recordedUTC": "2026-11-21T14:27:02.693726+00:00",
+  "status": "setup-failed-runtime-unrun",
+  "source": {
+    "commit": "abadfffa100c61b724e4f021d294b0e1377fb00b",
+    "tree": "6d78a4c5d1abb6c301f8621e702c6224b279ccdf",
+    "vmTree": "ec1ddb74b7c6c2eabd91d1f60ed243ffc69ce6f4"
+  },
+  "priorReviewedReceipt": {
+    "name": "l03-swift-sdk-allocator-abadfffa10.json",
+    "sha256": "4d3d9806019581f6f2e332fab0d2d03fb75eff76f9cbb76ea14fb5bd1bcd8347"
+  },
+  "experimentDirectory": "verification/local/l03-guest-allocator-6e7bf7ef",
+  "attempts": [
+    {
+      "name": "attempt-1",
+      "localRecordSHA256": "ebe36f576b3bc7c11b720b506bc6c677e46811bb4bd3efbb2e9858cdcc6b7cfe",
+      "failure": "guest-compile exit 1, stop=None\n$EXPERIMENT/guest.c:4:10: fatal error: 'errno.h' file not found\n    4 | #include <errno.h>\n      |          ^~~~~~~~~\n1 error generated.",
+      "firstFailedCommand": {
+        "label": "guest-compile",
+        "argv": [
+          "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/clang",
+          "--target=wasm32-unknown-wasi",
+          "--sysroot=$USER_HOME/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1/WASI.sdk",
+          "-std=c11",
+          "-Oz",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-fno-stack-protector",
+          "-mno-bulk-memory",
+          "-ffunction-sections",
+          "-fdata-sections",
+          "-c",
+          "$USER_HOME/.t3/worktrees/mixer/t3-6e7bf7ef/verification/local/l03-guest-allocator-6e7bf7ef/guest.c",
+          "-o",
+          "$RUN/guest.o"
+        ],
+        "exit": 1
+      },
+      "custody": {
+        "reapedWithGroupAbsent": 13,
+        "unknown": null,
+        "peakScratchBytes": 1177,
+        "scratchByteCeiling": 268435456,
+        "perFileByteCeiling": 134217728,
+        "campaignDeadlineSeconds": 240,
+        "scratchRemoved": true
+      },
+      "inputs": {
+        "allocator_control.h": {
+          "bytes": 972,
+          "sha256": "851f3061d7257cf20deaa17687947ba3ddc6675553526ad2429f46346f301de9"
+        },
+        "guest.c": {
+          "bytes": 4044,
+          "sha256": "93ff3562fce60deb082ede67c3d0069dc0661d5ecb596f3424f0c370b186c6b7"
+        },
+        "host.c": {
+          "bytes": 7833,
+          "sha256": "fd84746b242b23aaae47d83ad5dcf6b3458423985591c18d7976caeb9127bf47"
+        },
+        "run.py": {
+          "bytes": 8522,
+          "sha256": "60690ecd604a3ba5616e32aba66d96d5673a257c8be1dd8dd40c72bd57da4b71"
+        }
+      }
+    },
+    {
+      "name": "attempt-2",
+      "localRecordSHA256": "c24dc9211da46d0845b9642a4e8d057450773d41531fe8792910acd9a6db8edc",
+      "failure": "host-compile exit 1, stop=None\n$EXPERIMENT/host.c:54:24: error: comparison of integers of different signs: 'int64_t' (aka 'long long') and 'unsigned long' [-Werror,-Wsign-compare]\n   54 |           report.value <= page_bytes - sizeof(struct Control), \"startup header address\");\n      |           ~~~~~~~~~~~~ ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n1 error generated.",
+      "firstFailedCommand": {
+        "label": "host-compile",
+        "argv": [
+          "/usr/bin/clang",
+          "-std=c11",
+          "-O2",
+          "-Wall",
+          "-Wextra",
+          "-Werror",
+          "-fmodules-cache-path=$RUN/clang-modules",
+          "-I",
+          "$REPO/vm/include",
+          "$USER_HOME/.t3/worktrees/mixer/t3-6e7bf7ef/verification/local/l03-guest-allocator-6e7bf7ef/host.c",
+          "$RUN/rust/release/libmixer_vm.a",
+          "-o",
+          "$RUN/host"
+        ],
+        "exit": 1
+      },
+      "custody": {
+        "reapedWithGroupAbsent": 17,
+        "unknown": null,
+        "peakScratchBytes": 42744376,
+        "scratchByteCeiling": 268435456,
+        "perFileByteCeiling": 134217728,
+        "campaignDeadlineSeconds": 240,
+        "scratchRemoved": true
+      },
+      "inputs": {
+        "allocator_control.h": {
+          "bytes": 972,
+          "sha256": "851f3061d7257cf20deaa17687947ba3ddc6675553526ad2429f46346f301de9"
+        },
+        "guest.c": {
+          "bytes": 4044,
+          "sha256": "93ff3562fce60deb082ede67c3d0069dc0661d5ecb596f3424f0c370b186c6b7"
+        },
+        "host.c": {
+          "bytes": 7833,
+          "sha256": "fd84746b242b23aaae47d83ad5dcf6b3458423985591c18d7976caeb9127bf47"
+        },
+        "run.py": {
+          "bytes": 8554,
+          "sha256": "acf8188bff4b5dcba6fa523b0df20a3a8c153db758d4fc4685ae01148cf11f31"
+        }
+      }
+    }
+  ],
+  "tools": {
+    "python": "3.14.8",
+    "architecture": "arm64",
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "guestClang": "Apple clang version 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin",
+    "guestSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "guestLinker": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "hostClang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)"
+  },
+  "dependencyIdentities": {
+    "WASI.sdk/lib/wasm32-wasip1/libc.a": {
+      "bytes": 1040606,
+      "sha256": "42d929e52aaeac6c4ed56946cd3e92e40574322bc43af529c19cfbf67893b352"
+    },
+    "WASI.sdk/include/wasm32-wasip1/__errno_values.h": {
+      "bytes": 2975,
+      "sha256": "87dedbaff433fe74c68e17437c0192081401c9cf8f6430fde3449948c9b78598"
+    },
+    "WASI.sdk/include/wasm32-wasip1/wasi/api.h": {
+      "bytes": 56969,
+      "sha256": "8cf2859277ea2fc984780a00048686955805fd8a00c7be1d8f916105becf0174"
+    },
+    "compiler/experiments/fieldlog-guest-benchmark/matched_task.py": {
+      "bytes": 17964,
+      "sha256": "2d8137f209570e64e30d417f2d832680eccb541a96c4749cdcfb0b32e2bfe365"
+    },
+    "compiler/experiments/fieldlog-reactor/support.py": {
+      "bytes": 6293,
+      "sha256": "45c77827d72c9850ff44e6258eede32b65161ab8ef0df6d3c295c870cd605e52"
+    },
+    "compiler/experiments/profile-budget/analyze.py": {
+      "bytes": 11127,
+      "sha256": "bf73a629f071c63ddef05549a81705347f049c3fdf15d424702823ef5ba60ccb"
+    },
+    "compiler/experiments/fieldlog-installed-guest/replay_abi.py": {
+      "bytes": 4935,
+      "sha256": "96ec1f79559e0742fab2589bc2d852ba07e6463372af8e7f9aea8f0cc98793c0"
+    }
+  },
+  "intendedProfile": {
+    "abi": "Guest UI V1",
+    "vm": "table-memory-v3",
+    "memoryPages": 1,
+    "hostCallsPerTurn": 0,
+    "fuelPerTurn": 1000000,
+    "stackBytes": 16384
+  },
+  "intendedRequest": {
+    "sizeBytes": 4096,
+    "alignmentBytes": 64,
+    "fillAttemptCeiling": 24,
+    "released": "middle block",
+    "canaryOffsets": [
+      0,
+      2048,
+      4095
+    ],
+    "eventBytes": [
+      1,
+      2,
+      3
+    ]
+  },
+  "linkedWasmStaticObservation": {
+    "descriptor": {
+      "authorization": false,
+      "scope": "bounded scalar descriptor inventory; no executable validation",
+      "typeCount": 7,
+      "functionCount": 18,
+      "startFunction": null,
+      "imports": [],
+      "exports": [
+        {
+          "name": "memory",
+          "kind": "memory",
+          "index": 0
+        },
+        {
+          "name": "mixer_guest_ui_start_v1",
+          "kind": "function",
+          "index": 15,
+          "typeIndex": 0,
+          "signature": {
+            "parameters": [],
+            "results": [
+              "i32"
+            ]
+          }
+        },
+        {
+          "name": "mixer_guest_ui_event_v1",
+          "kind": "function",
+          "index": 16,
+          "typeIndex": 1,
+          "signature": {
+            "parameters": [
+              "i32"
+            ],
+            "results": [
+              "i32"
+            ]
+          }
+        },
+        {
+          "name": "mixer_guest_capability_ready_v1",
+          "kind": "function",
+          "index": 17,
+          "typeIndex": 3,
+          "signature": {
+            "parameters": [],
+            "results": []
+          }
+        }
+      ],
+      "memories": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    "memoryInstructionSites": [
+      "108: 3f 00        \tmemory.size\t0",
+      "474: 3f 00        \tmemory.size\t0",
+      "2d7c: 3f 00        \tmemory.size\t0",
+      "2d9c: 40 00        \tmemory.grow\t0"
+    ],
+    "linkMapAllocatorRows": [
+      "-     1e77        b         $USER_HOME/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1/WASI.sdk/lib/wasm32-wasip1/libc.a(dlmalloc.o):(free)",
+      "-     2b41       7d         $USER_HOME/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1/WASI.sdk/lib/wasm32-wasip1/libc.a(dlmalloc.o):(posix_memalign)",
+      "-     2d71       4f         $USER_HOME/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1/WASI.sdk/lib/wasm32-wasip1/libc.a(sbrk.o):(sbrk)"
+    ],
+    "hashes": {
+      "guest.o": {
+        "bytes": 8643,
+        "sha256": "53d2ea647a12f3a8bb540844df38e4dff57ffb6cf515af54eddf8153bc14902e"
+      },
+      "guest.wasm": {
+        "bytes": 11777,
+        "sha256": "69dd48134feb37a8a8da7d1df884cd1f60989350209f03c3437d803453409e2f"
+      },
+      "guest.map": {
+        "bytes": 6564,
+        "sha256": "e659bcaea97ee9a6ff7a2492878f7da492a07dc929adda6749dea01fb8dc9e0b"
+      },
+      "guest.why": {
+        "bytes": 2632,
+        "sha256": "6b31888cd9465120b6145cd93dbea5871338e78d22fb4570b97b86c4fc6cb8d7"
+      }
+    }
+  },
+  "vmBuild": {
+    "command": {
+      "label": "vm-build",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--lib",
+        "--offline",
+        "--locked",
+        "--release",
+        "--jobs",
+        "1",
+        "--features",
+        "experimental-capability-native",
+        "--manifest-path",
+        "$REPO/vm/Cargo.toml",
+        "--target-dir",
+        "$RUN/rust"
+      ],
+      "exit": 0
+    },
+    "exit": 0,
+    "archiveSHA256": null,
+    "note": "The runner hashes the VM archive after host compilation, which failed."
+  },
+  "runtime": {
+    "guestUiV1ValidatorInvoked": false,
+    "eventInvocations": 0,
+    "allocationCount": null,
+    "enomemObserved": null,
+    "retryResult": null,
+    "canariesVerified": null,
+    "fuelUsed": null,
+    "runtimePageCount": null,
+    "staleHandleRefusal": null,
+    "freshSessionReset": null
+  },
+  "cleanup": {
+    "disposableWorktreeRemovedAndUnregistered": true,
+    "attemptScratchRemoved": true,
+    "observedCommandsReapedWithGroupsAbsent": 30,
+    "retained": "Original diagnostic sources and two compact local attempt records in the experiment directory."
+  }
+}

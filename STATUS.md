@@ -778,6 +778,20 @@ Independent review checked the selector, archive admission, link order,
 and receipt. The support matrix now records the two scoped guest fixtures.
 [Maintained allocator replay](verification/receipts/l03-swift-stock-wasi-allocator-replay.json)
 
+A separate allocator control passed in two installed Guest UI V1
+sessions. Nine 4,096-byte allocations aligned to 64 bytes succeeded.
+The tenth returned WASI `ENOMEM`. Freeing a middle block let a same-size
+retry reuse its address, with the survivor and replacement canaries
+intact. Drain freed all live blocks. Every turn stayed at one page and
+zero host calls, with 6,785 fuel at most. The stale handles were refused,
+and a fresh generation started with identical bytes. Independent
+review confirmed the pinned source and reconstructed the recorded
+observations. The author recorded 22 closed command groups and scratch
+removal. The initial SDK header and host compilation failures occurred
+before runtime. The captured runner is historical while its outcome
+checks and receipt publication are corrected.
+[Allocation recovery receipt](verification/receipts/l03-guest-allocator-release-followup-abadfffa10.json) · [Initial setup failures](verification/receipts/l03-guest-allocator-release-abadfffa10.json)
+
 A compact Swift event trapped at function 3, byte 514 in the owned VM.
 The matching line table resolved that position to `SwiftEventGuest.swift:32:9`
 and LLVM agreed. Stripped and mismatched inputs preserved the raw trap
