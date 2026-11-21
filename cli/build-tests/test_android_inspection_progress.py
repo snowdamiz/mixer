@@ -145,34 +145,53 @@ class InspectionProgressTests(unittest.TestCase):
         (self.dist / 'a').write_bytes(b'abc')
         rd, wr = os.pipe()
         partial = []
-        original = self.m.InspectionPhases.mark
+        original_report = self.m.InspectionProgress.report
 
-        def mark(sink, phase, state, progress=None):
-            original(sink, phase, state, progress)
-            if state == 'progress' and not partial:
+        def read_gate():
+            return os.read(rd, 1)
+
+        def report(progress, signum, frame):
+            self.assertIs(frame.f_code, read_gate.__code__)
+            original_report(progress, signum, frame)
+            try:
                 partial.extend(self.rows())
+            finally:
                 os.write(wr, b'G')
 
         def blocked(count):
             if count == 1:
-                self.assertEqual(os.read(rd, 1), b'G')
+                handler = signal.getsignal(signal.SIGALRM)
+                self.assertIs(getattr(handler, '__func__', None), report)
+                self.assertNotIn(signal.SIGALRM, signal.pthread_sigmask(signal.SIG_BLOCK, set()))
+                # The one-shot alarm cannot reenter the snapshot while the pipe is blocked.
+                signal.setitimer(signal.ITIMER_REAL, .05)
+                self.assertEqual(read_gate(), b'G')
 
         meter = ReadMeter(self.m, blocked)
         try:
-            with patch.object(self.m.InspectionProgress, 'INTERVAL_SECONDS', .02), \
-                    patch.object(self.m.InspectionPhases, 'mark', mark), \
+            with patch.object(self.m.InspectionProgress, 'INTERVAL_SECONDS', 60), \
+                    patch.object(self.m.InspectionProgress, 'report', report), \
                     patch.object(self.m.os, 'fdopen', meter.open):
                 self.run_tree()
         finally:
             os.close(rd)
             os.close(wr)
         self.assertEqual([r['state'] for r in partial], ['begin', 'progress'])
-        c = partial[-1]['hash_progress']
-        self.assertEqual((c['operation'], c['read_bytes'], c['read_calls'], c['files_completed']),
-                         ('read', 0, 1, 0))
-        self.assertGreaterEqual(c['wall_ns'], 15_000_000)
-        self.assertEqual(self.rows()[:2], partial)
-        self.assertEqual(self.rows()[-1]['hash_progress']['read_bytes'], 3)
+        rows = self.rows()
+        self.assertEqual([r['state'] for r in rows], ['begin', 'progress', 'end'])
+        self.assertEqual(rows[:2], partial)
+        self.assertLess(rows[0]['monotonic_ns'], rows[1]['monotonic_ns'])
+        self.assertLess(rows[1]['monotonic_ns'], rows[2]['monotonic_ns'])
+        counters = ('operation', 'read_bytes', 'read_calls', 'file_open_calls', 'files_completed',
+                    'directories', 'entries_completed', 'stat_calls', 'fstat_calls', 'cache_lookups',
+                    'cache_hits')
+        self.assertEqual([tuple(row['hash_progress'][key] for key in counters) for row in rows], [
+            ('start', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+            ('read', 0, 1, 1, 0, 1, 0, 1, 1, 1, 0),
+            ('file_complete', 3, 2, 1, 1, 1, 1, 2, 2, 1, 0),
+        ])
+        self.assertGreaterEqual(partial[-1]['hash_progress']['wall_ns'], 45_000_000)
+        self.assertEqual((meter.reads, meter.bytes), (2, 3))
 
     def test_error_partial_counters_and_original_exception(self):
         self.fixture()
