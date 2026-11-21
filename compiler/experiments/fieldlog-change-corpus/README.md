@@ -82,9 +82,16 @@ Existing signed FieldLog proof uses separately prepared compact task variants. I
 
 The [signed editor replay](signed-editor/replay.py) starts from the exact historical F05 capture. It verifies an ephemeral Ed25519 release manifest and assignment with Mixer’s v3 verifier, then opens the authenticated guest in the owned ABI2 VM. The editor profile uses the existing FeatureDocumentV3 and text event codecs within the ABI2 control header and bounds. Its opt-in exchange is patched into a private SDK projection. The profile fingerprint binds that projection and host code to the local trust root.
 
-The editor fixture is written in C and embeds the historical Swift UI frame. Compiling the editor behavior from FieldLog Swift source remains open. The guest handles text changes, cancel, and Save. Save sends one scoped capability request to the historical FieldLog WorkspaceRepository. The host selects the project and validates the submitted fields. The guest leaves the editor after the repository acknowledges the commit. The multiline control adds the later vertical axis property to the historical title field and exercises a Unicode newline round trip through that same repository.
+The editor fixture is written in C and embeds the historical Swift UI frame. The guest handles text changes, cancel, and Save. Save sends one scoped capability request to the historical FieldLog WorkspaceRepository. The host selects the project and validates the submitted fields. The guest leaves the editor after the repository acknowledges the commit. The multiline control adds the later vertical axis property to the historical title field and exercises a Unicode newline round trip through that same repository.
 
 The host opens the verified payload directly. Selecting this profile from the installed signed recovery store and mounting it through the FieldLog UI remain unverified. The host receipts do not change the two-target OTA counts or qualify F06’s Apple field renderer.
+
+A separate unsigned Embedded Swift replay compiles the historical F05 and F06
+title reduction and compares Edit, Cancel, and one short-title Save in the
+owned VM. The host commits the title emitted by the guest and checks the
+task and its linked outbox entry on disk after reopening the repository.
+Signed installation of that Swift guest remains open.
+[Compact Swift editor replay](../fieldlog-embedded-editor/README.md)
 
 ```sh
 python3 compiler/experiments/fieldlog-change-corpus/signed-editor/replay.py \
