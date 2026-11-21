@@ -115,6 +115,8 @@ def main():
     parser.add_argument('name', help='Unused directory name under verification/local')
     parser.add_argument('--source-revision', default=PIN,
                         help='Exact checkout containing the diagnostic fixture. Engine inputs must still match the v79 pin.')
+    parser.add_argument('--developer-dir', type=Path,
+                        help='Xcode developer directory for the host Swift compiler and dwarfdump.')
     parser.add_argument('--toolchain', type=Path, default=Path.home() /
                         'Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin')
     parser.add_argument('--cargo', type=Path, default=Path.home() /
@@ -133,6 +135,8 @@ def main():
     env.update(TMPDIR=str(out / 'tmp'), CARGO_HOME=str(out / 'cargo-home'),
                PATH=str(args.cargo.parent) + ':/usr/bin:/bin:/usr/sbin:/sbin',
                GIT_NO_REPLACE_OBJECTS='1', GIT_NO_LAZY_FETCH='1')
+    if args.developer_dir is not None:
+        env['DEVELOPER_DIR'] = str(args.developer_dir.absolute())
     commands = []
     recorder = CommandRecorder(out / 'logs', commands, ROOT)
     receipt = {'status': 'incomplete', 'scope': 'local macOS owned VM, compact Swift UI v1 event',
@@ -146,6 +150,7 @@ def main():
 
     def check_pin(label):
         run('pin-' + label, '/usr/bin/git', 'diff', '--quiet', PIN, '--', *PINNED)
+        run('pin-index-' + label, '/usr/bin/git', 'diff', '--cached', '--quiet', PIN, '--', *PINNED)
         require(not run('untracked-' + label, '/usr/bin/git', 'ls-files', '--others', '--', *PINNED),
                 'unpinned file under an owning input path')
         if args.source_revision != PIN:
@@ -153,6 +158,8 @@ def main():
                           '--', *fixture_paths).splitlines()
             require(set(tracked) == set(fixture_paths), 'diagnostic fixture files must be tracked')
             run('fixture-pin-' + label, '/usr/bin/git', 'diff', '--quiet',
+                args.source_revision, '--', *fixture_paths)
+            run('fixture-index-' + label, '/usr/bin/git', 'diff', '--cached', '--quiet',
                 args.source_revision, '--', *fixture_paths)
 
     try:
@@ -165,6 +172,9 @@ def main():
 
         stage = 'toolchain'
         toolchain = args.toolchain
+        if args.developer_dir is not None:
+            receipt['developerDir'] = env['DEVELOPER_DIR']
+            receipt['xcode'] = run('xcode', '/usr/bin/xcodebuild', '-version').strip()
         receipt['versions'] = {label: run(label, executable, *flags).strip() for label, executable, flags in (
             ('host', '/usr/bin/sw_vers', ()), ('host-swift', '/usr/bin/swiftc', ('--version',)),
             ('guest-swift', toolchain / 'swiftc', ('--version',)), ('wasm-ld', toolchain / 'wasm-ld', ('--version',)),
