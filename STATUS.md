@@ -166,9 +166,13 @@ correction has a local composition at `dda816101e`. A fresh replay
 re-signed for that exact source and VM archive. It confirmed provisional
 health until presentation, all five inert response outcomes, and the V1
 Commit, W09, and ordinary milestone controls. All 30 recorded groups closed.
-The successor Source141 binding remains open.
+The Source141 successor keeps 155 source inputs and the historical
+fingerprint and archives intact. Both workflow projections admitted the
+binding, and the normal and optimized sparse checks passed 16 tests each
+on the local composition.
 [Corrected V3 receipt](verification/receipts/fieldlog-f10-v3-observed-admission-macos.json) ·
-[Exact composed replay](verification/receipts/fieldlog-f10-v3-root-dda81610.json)
+[Exact composed replay](verification/receipts/fieldlog-f10-v3-root-dda81610.json) ·
+[Source141 binding](verification/receipts/source141-private-f10-dda81610.json)
 
 The app-owned storage guide exercises the public installed storage adapter.
 The signed host fixture committed one scoped write, refused an out-of-scope
@@ -811,9 +815,16 @@ grant with two request slots and a 2 MiB reservation. Independent review
 verified the linked JNI fingerprint, VM source provenance, APK and
 embedded signatures, alignment, and compiler roster. The different
 development certificate requires a clean isolated Android API 36 or later
-installation. The device hold remains active. The matched Apple Simulator
-bundle build and installed behavior remain open.
+installation. The device hold remains active.
 [Corrected Android reseal](verification/receipts/fieldlog-d2-pair25-android-reseal-6bc461f4.json)
+
+The matching arm64 iOS Simulator bundle now builds from the same Mixer
+pin `6bc461f4fc`. The 15 Apple app-owned Swift inputs match the historical
+roster, and six are byte-identical across both current compiler rosters.
+The bundle carries a development-signed Commit guest and the corrected
+linked capability fingerprint. Its executable is OS-unsigned. Static
+review and installed behavior remain open.
+[Matching Apple build](verification/receipts/fieldlog-d2-pair25-apple-simulator-build-6bc461f4.json)
 
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
 
