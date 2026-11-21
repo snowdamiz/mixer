@@ -255,6 +255,52 @@ class FakeCommandBoundary:
             raise AssertionError('fake boundary patch restoration failed')
 
 
+class InspectionReceiptPolicyControls(unittest.TestCase):
+    def test_create_admits_only_exact_version_and_full_inspection_policies(self):
+        with tempfile.TemporaryDirectory(prefix='inspection-policy-') as directory:
+            tmp = Path(directory)
+            context = tmp / 'mixer-command-receipts-00000000-0000-4000-8000-000000000001'
+            context.mkdir(mode=0o700)
+            cli = tmp / 'mixer'
+            driver = cli.parent / 'MixerCLI_MixerBuild.bundle/Resources/android-build.py'
+            record = {'label': 'debug-create', 'argv': [str(cli)],
+                      'inner_tmp_identity': M.private_directory(tmp)}
+
+            def receipt(pid, command, name, runtime, start):
+                return dict.fromkeys(M.INNER_FACTS, True) | {
+                    'schema': 'mixer.owned-command.2', 'state': 'TERMINAL',
+                    'uncertainty': None, 'pid': pid, 'ownedPGID': pid, 'ownedSession': pid,
+                    'runtimeStartedNS': start, 'cleanupStartedNS': start + 1,
+                    'terminalNS': start + 2, 'generatedBytes': 0, 'stdoutBytes': 0,
+                    'stderrBytes': 0, 'aggregateLimit': 8 << 30, 'aggregatePreviouslyGenerated': 0,
+                    'exitCode': 0, 'groupKillSent': False, 'outputTruncated': False,
+                    'retainedInputDirectories': [], 'directory': None, 'command': command,
+                    'policy': {'name': name, 'runtimeSeconds': runtime, 'cleanupSeconds': 60,
+                               'generatedOutputBytes': 64 << 20},
+                }
+
+            version = receipt(41, ['swift', '--version'], 'local-tool-inspection', 30, 100)
+            inspect = receipt(42, ['python3', str(driver), 'inspect'],
+                              'local-full-android-toolchain-inspection', 300, 200)
+            paths = []
+            for index, value in enumerate((version, inspect), start=1):
+                folder = context / f'command-00000000-0000-4000-8000-{index:012d}'
+                folder.mkdir(mode=0o700)
+                path = folder / 'receipt.json'
+                M.save(path, value)
+                paths.append(path)
+
+            required = ('version', 'inspect')
+            retained = M.retain_inner(record, tmp, required, successful=True)
+            self.assertEqual([item['receipt'] for item in retained], [version, inspect])
+            for path, value, wrong_runtime in ((paths[0], version, 300), (paths[1], inspect, 180)):
+                changed = value | {'policy': value['policy'] | {'runtimeSeconds': wrong_runtime}}
+                M.save(path, changed)
+                with self.assertRaisesRegex(RuntimeError, 'Wrong typed inner policy'):
+                    M.retain_inner(record, tmp, required, successful=True)
+                M.save(path, value)
+
+
 class RunnerControls(unittest.TestCase):
     def setUp(self):
         self.root = Path(tempfile.mkdtemp(prefix='generated-java-python-controls-')).resolve(strict=True)

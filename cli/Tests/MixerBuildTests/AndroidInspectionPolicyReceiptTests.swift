@@ -51,10 +51,11 @@ private final class InspectionSchedule: OwnedCommandControl {
             #expect(argv.count == 3 && argv[0] == "python3" && argv[2] == "inspect")
             #expect(argv[1].hasSuffix("/Resources/android-build.py"))
             #expect(policy.name == "local-full-android-toolchain-inspection")
-            #expect(policy.runtimeSeconds == 180 && policy.cleanupSeconds == 60 && policy.generatedOutputBytes == 64 << 20)
+            #expect(policy.runtimeSeconds == 300 && policy.cleanupSeconds == 60 && policy.generatedOutputBytes == 64 << 20)
             let schedule = InspectionSchedule(); schedule.output = Data(inventory.utf8)
+            schedule.exitsAt = 251
             let result = try schedule.run(argv, policy)
-            #expect(schedule.second >= 32 && !schedule.killed)
+            #expect(schedule.second == 251 && !schedule.killed)
             #expect(schedule.receipts.last?.terminalCustody == true)
             return result
         }
@@ -78,9 +79,11 @@ private final class InspectionSchedule: OwnedCommandControl {
         }
     }
     @Test func fullPolicyStillStopsLateAndOversizeOutput() throws {
-        let late = InspectionSchedule(); late.output = Data(inventory.utf8); late.exitsAt = 183
+        let late = InspectionSchedule(); late.output = Data(inventory.utf8); late.exitsAt = 302
         do { _ = try AndroidProject.inspectToolchain(run: late.run); Issue.record("late must stop") }
         catch let error as MixerFailure { #expect(error.code == "process.runtime-deadline") }
+        #expect(late.second == 301 && late.killed)
+        #expect(late.receipts.last?.stopReason == "runtime-deadline")
         #expect(late.receipts.last?.terminalCustody == true)
         let huge = InspectionSchedule(); huge.output = Data(repeating: 65, count: (64 << 20) + 1)
         do { _ = try AndroidProject.inspectToolchain(run: huge.run); Issue.record("oversize must stop") }

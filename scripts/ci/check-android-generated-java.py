@@ -195,7 +195,7 @@ INNER_FACTS = ('released', 'directChildReaped', 'stdoutEOF', 'stderrEOF',
 INNER_POLICIES = {
     'version': {'name': 'local-tool-inspection', 'runtimeSeconds': 30,
                 'cleanupSeconds': 60, 'generatedOutputBytes': 64 << 20},
-    'inspect': {'name': 'local-full-android-toolchain-inspection', 'runtimeSeconds': 180,
+    'inspect': {'name': 'local-full-android-toolchain-inspection', 'runtimeSeconds': 300,
                 'cleanupSeconds': 60, 'generatedOutputBytes': 64 << 20},
 }
 
