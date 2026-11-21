@@ -225,6 +225,12 @@ all nine modes and both additional scope controls on local Swift 6.3.3.
 Hosted compilation of the corrected fixture remains open.
 [Fixture comparison](verification/receipts/hosted-swift-62-signed-fixture-byte-assembly.json)
 
+The exact fingerprint run finished with eight passing jobs. The Swift Host
+and aggregate, VM, Services, and Intel six-consumer cross-compiles passed.
+The sole failure was the Swift 6.2.4 fixture compilation in Swift Capability
+Native. The newer fixture-only run is verifying that correction.
+[Terminal fingerprint run](verification/receipts/hosted-v82-fingerprint-ci-terminal-6bc461f4.json)
+
 The corrected signed guest displays Commit refused when the repository
 declines a write. The macOS replay preserved workspace and outbox bytes and
 joined the host owner after Done. The matching development APK passed
