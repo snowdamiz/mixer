@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "scope": "Read-only baseline for the generated capability fingerprint drift on the published FieldLog runtime composition.",
+  "revision": "dbb9275d58e1a2824c35870767551d2d9c8588bb",
+  "tree": "458a25821e237b7cbdcae99a6adfa39d1a0d5104",
+  "hosted": {
+    "run": 44896372388,
+    "attempt": 1,
+    "swiftHost": {
+      "job": 136822794652,
+      "step": "Generated capability schema and host lifecycle",
+      "failure": "Generated output drift: capabilities/schema/hashes.json"
+    },
+    "capabilityNative": {
+      "job": 136822794425,
+      "step": "Installed capability material and exact native preimage",
+      "failure": "native preimage differs from generated identity; no files changed"
+    }
+  },
+  "localBaseline": {
+    "python": "Python 3.14.8",
+    "checks": [
+      {
+        "command": [
+          "python3",
+          "-B",
+          "capabilities/tools/generate.py",
+          "--check"
+        ],
+        "exitCode": 1
+      },
+      {
+        "command": [
+          "python3",
+          "-B",
+          "verification/capability-installed-material/test_native_preimage.py",
+          "-v"
+        ],
+        "exitCode": 1,
+        "passed": 1,
+        "assertionFailures": 1,
+        "errors": 1
+      }
+    ],
+    "checkedIdentitySHA256": "29ab6ba4a86990bc99d4f510fc005a17d84426d8c893d36f5061f17c46786adf",
+    "checkedInputs": 17,
+    "reconstructedIdentitySHA256": "5d467c65cf58917ab499840226bb5ae577fbae3cd063577985555141d131e92a",
+    "currentInputs": 18,
+    "unchangedContractPreimage": true,
+    "changedInputs": {
+      "sdk/Sources/MixerCapabilities/Host.swift": {
+        "previousSHA256": "e49591ca89c1ce7b14178a062cfe22dd016066d4e9e51383e498734f665aa4bb",
+        "currentSHA256": "bf68cbfd87d563382061d6605dd0568aeaecfb244ffc1bcb11060d0d08b64b25"
+      },
+      "sdk/Sources/MixerCapabilities/InstalledCapabilityAdapters.swift": {
+        "previousSHA256": "91506a10f42c233d412e448323254ea50c06b6c861b8775a84ad07d3c44d258d",
+        "currentSHA256": "142b320c38860dd41ae12bbdae673202f39509a30cefd2473bd3ea1818c83c14"
+      },
+      "sdk/Sources/MixerCapabilities/InstalledGuestUICommitContinuation.swift": {
+        "previousSHA256": null,
+        "currentSHA256": "63e79b7c51f36850d8b4fe25756139093490d2a5d796109cfa6e7ee1db41974d"
+      }
+    },
+    "matchedPublishedGitBytes": true
+  },
+  "limits": [
+    "The local generator, independent exporter, and installed material Python controls diagnose the drift. The baseline check made no source changes.",
+    "The stored digest is used by linked identity admission. Refreshing it requires matching material, test data, and source archive binding.",
+    "This preliminary receipt covers the two failed steps. It does not attest to the outcome of the remaining hosted jobs."
+  ]
+}

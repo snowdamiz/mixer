@@ -169,6 +169,14 @@ descendant custody is unverified.
 [Stock CLI composition](verification/receipts/fieldlog-commit-v82-stock-cli-composition.json) ·
 [Signed host results](verification/receipts/fieldlog-v81-signed-runtime-composition.json)
 
+On published `dbb9275d58`, Swift Host and Swift Capability Native failed
+their generated identity and native preimage checks. The checked fingerprint
+describes 17 inputs. The two changed SDK capability files and the added
+Commit continuation yield a different fingerprint across 18 inputs.
+The capability schema preimage is unchanged. The generated identity,
+linked admission, and archived source binding need a coordinated refresh.
+[Hosted failure and exact preimage comparison](verification/receipts/hosted-v82-followup-native-identity-drift-dbb9275d.json)
+
 The corrected signed guest displays Commit refused when the repository
 declines a write. The macOS replay preserved workspace and outbox bytes and
 joined the host owner after Done. The matching development APK passed
