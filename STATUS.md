@@ -740,6 +740,16 @@ receipt pins, and compile arguments for the current and earlier modes.
 [First composed replay](verification/receipts/l03-swift-enum-typed-throws-composed-2c3cf5e0.json) ·
 [Reproducibility receipt](verification/receipts/l03-swift-enum-typed-throws-reproducibility-160fb742.json)
 
+The native Swift escaping-closure probe read its capture across repeated
+turns. Exact frames showed deinitialization on replacement and explicit
+release, and late invocation kept the release frame unchanged. The exact
+reviewed source emitted an Embedded Swift object in each capture mode.
+The import-free Wasm linker reported undefined `posix_memalign` and
+`free`. No guest session ran. The original and exact-source receipts
+record 28 and 14 terminal command groups, respectively, with scratch
+removed. L03 remains open.
+[Exact closure replay](verification/receipts/l03-swift-escaping-closure-final-object-0ed34547.json)
+
 A compact Swift event trapped at function 3, byte 514 in the owned VM.
 The matching line table resolved that position to `SwiftEventGuest.swift:32:9`
 and LLVM agreed. Stripped and mismatched inputs preserved the raw trap

@@ -2,6 +2,7 @@
   "checks": {
     "native": {"title": "FeatureProbe", "anchor": "native-featureprobe", "scope": "native"},
     "sdk": {"title": "SDK controls", "anchor": "native-sdk-controls", "scope": "native"},
+    "escapingClosure": {"title": "Swift escaping closure replay", "anchor": "swift-escaping-closure-replay", "scope": "native"},
     "compact": {"title": "Owned VM replay", "anchor": "compact-owned-vm-replay", "scope": "owned"},
     "floating": {"title": "Swift floating-point replay", "anchor": "swift-floating-point-replay", "scope": "owned"},
     "associated": {"title": "Swift associated-type replay", "anchor": "swift-associated-type-replay", "scope": "owned"},
@@ -35,7 +36,7 @@
     {"feature": "Foundation locale APIs", "label": null, "scope": "Locale selection, locale-sensitive formatting and collation need API-specific controls."},
     {"feature": "Cancellation — native FeatureStore effects", "label": "native supported", "scope": "The macOS FeatureStore delivers the current replacement and suppresses results from three effects joined after replacement, explicit cancellation, or stop. Swift guest Task cancellation remains unqualified.", "positive": ["sdk"], "negative": ["sdk"], "related": ["ownedCancellation"]},
     {"feature": "Actor isolation", "label": null, "scope": "The SDK effect control uses a native actor gate and MainActor store. Swift isolation boundaries and guest actor runtime coverage remain open.", "related": ["sdk"]},
-    {"feature": "Escaping closure capture lifetimes", "label": null, "scope": "Capture release and guest identity and lifetime need direct coverage.", "related": ["sdk"]},
+    {"feature": "Escaping closure capture lifetimes", "label": "native supported", "scope": "A stored closure reads its capture across turns on arm64 macOS. Exact frames show object deinitialization on replacement and explicit release. Late invocation preserves the release frame. Embedded Swift emits objects for both variants; the import-free Wasm linker refuses unresolved posix_memalign and free. Guest execution remains unqualified.", "positive": ["escapingClosure"], "negative": ["escapingClosure"]},
     {"feature": "Host services through fixed capability imports", "label": "host bridge required", "scope": "The opt-in capability VM fixtures execute four typed enqueue routes. Unapproved import names and generic dispatch are refused. Each platform service needs its own approved adapter and behavioral qualification.", "positive": ["capability"], "negative": ["capability"]},
     {"feature": "Guest threads requiring shared WebAssembly memory", "label": "unsupported", "scope": "The installed Guest UI v1 validate and create calls refuse the shared-memory flag on a known-good, unshared task guest. The result is limited to the guest admission boundary.", "positive": ["compact"], "negative": ["compact"]},
     {"feature": "Unsafe pointers and C interop", "label": null, "scope": "Native-only by default under §7.3. The compact replay uses fixed pointer and C ABI boundaries. Arbitrary pointer or C interoperation remains unqualified.", "related": ["compact"]},

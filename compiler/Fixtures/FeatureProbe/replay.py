@@ -149,7 +149,7 @@ def observe_preview(run, host, wasm, input_file, label, names, expected, refusal
     fuel = row.pop("guestFuel")
     guest = label.endswith("-guest")
     retirement = dict(closed=guest)
-    if label in ("fixed-builder-guest", "enum-throws-guest"):
+    if label in ("fixed-builder-guest", "enum-throws-guest", "closure-guest"):
         retirement["reclaimedRegistrySlot"] = True
     require(row == retirement, f"{label}: unexpected close: {row}")
     require((len(fuel) == len(expected) - 1 and all(0 < turn <= 1_000_000 for turn in fuel))
@@ -163,7 +163,7 @@ def compact_host_sources():
     return [
         *(HERE / f"{name}.swift" for name in
           ("CompactHost", "FloatingPoint", "AssociatedTypes", "PropertyWrapper", "ResultBuilder",
-           "FixedSlotResultBuilder", "EnumTypedThrows")),
+           "FixedSlotResultBuilder", "EnumTypedThrows", "EscapingClosure")),
         BENCHMARK / "MatchedTask.swift",
         INSTALLED / "TaskCompletion.swift",
         *(runtime / f"{name}.swift" for name in ("Types", "Failure", "GuestDebugLines")),
@@ -176,14 +176,14 @@ def vm_release_flags(run):
             "--target-dir", run.scratch / "rust"]
 
 
-def build_compact_host(run, sources):
+def build_compact_host(run, sources, *, fixture_flags=()):
     out = run.scratch
     run.command("vm-build", run.rust / "cargo", "build", "--lib", *vm_release_flags(run), bound=100)
     archive = out / "rust/release/libmixer_vm.a"
     header = ROOT / "vm/include/mixer_vm_guest_ui.h"
     (out / "module.modulemap").write_text(f'module CMixerVMCapability {{ header "{header}" export * }}\n')
     run.command("host-build", "/usr/bin/swiftc", "-O", "-whole-module-optimization", "-swift-version", "6",
-                "-D", "SWIFT_SUPPORT_MATRIX", "-parse-as-library", "-module-cache-path",
+                "-D", "SWIFT_SUPPORT_MATRIX", *fixture_flags, "-parse-as-library", "-module-cache-path",
                 out / "native-modules", "-I", out, *sources, archive, "-o", out / "compact-host", bound=35)
     return archive
 
@@ -217,10 +217,38 @@ def enum_typed_throws_campaign(run, result):
     focused_preview_campaign(
         run, result, cases, mode="enum-throws", source="EnumTypedThrows", define="ENUM_TYPED_THROWS_GUEST",
         scope="One Foundation-free action enum and a concrete typed throw/catch on arm64 macOS",
+        module_name="MixerEnumTypedThrowProbe",
     )
 
 
-def focused_preview_campaign(run, result, cases, *, mode, source, define, scope):
+def escaping_closure_campaign(run, result, *, value_only):
+    cases = [
+        # Frame bytes: selected kind, invocation value, deinit count, last released kind.
+        ("store-title", bytes((1, 42)), bytes((1, 0, 0, 0))),
+        ("invoke-title", bytes((3, 3)), bytes((1, 45, 0, 0))),
+        ("invoke-title-again", bytes((3, 5)), bytes((1, 47, 0, 0))),
+        ("replace-with-inspection", bytes((2, 70)), bytes((2, 0, 1, 1))),
+        ("invoke-inspection", bytes((3, 4)), bytes((2, 66, 1, 1))),
+        ("release-inspection", bytes((4, 0)), bytes((0, 0, 2, 2))),
+        ("refuse-invocation-after-release", bytes((3, 1)), None),
+        ("release-empty-slot", bytes((4, 0)), bytes((0, 0, 2, 2))),
+    ]
+    fixture_flags = ()
+    capture = "capturing a selected value in an object"
+    if value_only:
+        cases = [(name, event, frame[:2] + bytes(2) if frame is not None else None)
+                 for name, event, frame in cases]
+        fixture_flags = ("-D", "ESCAPING_CLOSURE_VALUE_ONLY")
+        capture = "capturing a selected value directly"
+    focused_preview_campaign(
+        run, result, cases, mode="closure", source="EscapingClosure", define="ESCAPING_CLOSURE_GUEST",
+        scope=f"One escaping inspection closure {capture} on arm64 macOS",
+        module_name="MixerEscapingClosureProbe", fixture_flags=fixture_flags,
+    )
+
+
+def focused_preview_campaign(run, result, cases, *, mode, source, define, scope,
+                             module_name=None, fixture_flags=()):
     names = ["initial", *(name for name, _, frame in cases if frame is not None)]
     frames = [frame for _, _, frame in cases if frame is not None]
     expected = [bytes(len(frames[0])), *frames]
@@ -251,17 +279,16 @@ def focused_preview_campaign(run, result, cases, *, mode, source, define, scope)
         "rustc": (run.rust / "rustc", "--version"),
         "cargo": (run.rust / "cargo", "--version"),
     }.items()}
-    archive = build_compact_host(run, sources)
+    archive = build_compact_host(run, sources, fixture_flags=fixture_flags)
     result["vmArchive"] = identity(archive)
     result["hostExecutable"] = identity(host)
     result["native"] = observe_preview(
         run, host, run.scratch / f"{mode}.wasm", input_file, f"{mode}-native", names, expected, refusal_frame)
-    object_via_stdout = mode == "enum-throws"
-    module_name = ("-module-name", "MixerEnumTypedThrowProbe") if object_via_stdout else ()
+    module_flags = ("-module-name", module_name) if module_name else ()
     wasm = build_compact_guest(
         lambda *args: run.command(*args, bound=35), run.swift, run.scratch, mode, [fixture, adapter],
-        flags=("-D", define, "-module-cache-path", run.scratch / "guest-modules", *module_name),
-        object_via_stdout=object_via_stdout)
+        flags=("-D", define, *fixture_flags, "-module-cache-path", run.scratch / "guest-modules", *module_flags),
+        object_via_stdout=module_name is not None)
     result["wasm"] = identity(wasm)
     descriptors = replay_abi.check_descriptors(wasm.read_bytes())
     result["guestDescriptors"] = {key: descriptors[key] for key in ("imports", "memories", "startFunction")}
@@ -406,6 +433,9 @@ def main():
     focused.add_argument("--result-builder", action="store_true", help="run the dynamic-loop builder replay")
     focused.add_argument("--fixed-slot-result-builder", action="store_true", help="run the fixed-slot builder replay")
     focused.add_argument("--enum-typed-throws", action="store_true", help="run the enum payload and typed throws replay")
+    focused.add_argument("--escaping-closure", action="store_true", help="run the escaping closure capture replay")
+    focused.add_argument("--escaping-closure-value-only", action="store_true",
+                         help="run the escaping closure without a captured object")
     args = parser.parse_args()
     require((os.uname().sysname, os.uname().machine) == ("Darwin", "arm64"), "requires arm64 macOS")
     require(Path.cwd() == ROOT, "run from the Mixer checkout root")
@@ -413,16 +443,21 @@ def main():
     resource.setrlimit(resource.RLIMIT_FSIZE, (256 * 1024**2, 256 * 1024**2))
     local = ROOT / "verification/local"
     local.mkdir(exist_ok=True)
+    closure = args.escaping_closure or args.escaping_closure_value_only
     prefix = "w07-enum-throws-" if args.enum_typed_throws else "l03-swift-profile-"
+    if closure:
+        prefix = "w07-escaping-closure-"
     scratch = Path(tempfile.mkdtemp(prefix=prefix, dir=local))
     run = Run(scratch)
     failed = False
     try:
-        if args.result_builder or args.fixed_slot_result_builder or args.enum_typed_throws:
+        if args.result_builder or args.fixed_slot_result_builder or args.enum_typed_throws or closure:
             result = {}
             try:
                 if args.enum_typed_throws:
                     enum_typed_throws_campaign(run, result)
+                elif closure:
+                    escaping_closure_campaign(run, result, value_only=args.escaping_closure_value_only)
                 else:
                     result_builder_campaign(run, result, fixed=args.fixed_slot_result_builder)
             except ValueError as error:

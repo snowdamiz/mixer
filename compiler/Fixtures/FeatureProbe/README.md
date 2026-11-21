@@ -177,6 +177,27 @@ imports, and refusal of unknown imports or a generic dispatcher. These test
 the VM capability contract. A feature that needs a particular platform
 service still needs a typed adapter and evidence for that service.
 
+## Swift escaping closure replay
+
+On arm64 macOS, run the compact probe with the same Swift and WASI tools as
+the enum replay. The first command captures a reference object. The
+second captures the value directly.
+
+```sh
+python3 -B compiler/Fixtures/FeatureProbe/replay.py --escaping-closure
+python3 -B compiler/Fixtures/FeatureProbe/replay.py --escaping-closure-value-only
+```
+
+Native Swift reads the stored capture across turns, replaces it, and
+releases it. Exact frames record title deinitialization on replacement
+and inspection deinitialization on release in the object case. A later
+invocation leaves the release frame unchanged. Embedded Swift emits
+objects for both variants. The import-free Wasm link fails with undefined
+`posix_memalign` and `free`. Guest admission, execution, and stale-handle
+behavior remain unverified for this probe.
+[Initial replay](../../../verification/receipts/l03-swift-escaping-closure-1ef43cbb.json) ·
+[Exact object-capture replay](../../../verification/receipts/l03-swift-escaping-closure-final-object-0ed34547.json)
+
 ## Native SDK controls
 
 Run on arm64 macOS 26 or later with Swift 6.2 or later and a local
