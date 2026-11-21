@@ -203,6 +203,13 @@ checks. CI kept the private editor and F10 disabled. Intel passed all
 six Java cross-compiles. Phoenix and Identity did not trigger.
 [Signed editor terminal CI receipt](verification/receipts/hosted-signed-editor-source141-ci-terminal-1ef43cbb.json)
 
+The published closure and restore checkpoint `abfefec8e9` passed all
+nine Owned Engine jobs. Source141 matched the 157-input digest in both
+preflights and postflight. The ordinary signed V1, W09, and Commit
+regressions passed. Intel passed six Java cross-compiles. The opt-in
+allocator replay retains its separate local runtime receipt.
+[Closure and restore terminal CI receipt](verification/receipts/hosted-closure-and-restore-ci-terminal-abfefec8.json)
+
 The six-action private V3 candidate `790d0b2253` delivered Open, Next,
 Tasks, reopen, Previous, and Entries through the signed guest. Its two
 pages displayed 26 real pending records from three scoped reads. The
