@@ -74,6 +74,8 @@ const targetFields = [
   ["channel", "channel"],
 ] as const satisfies readonly (readonly [string, keyof ReleaseHeadTarget])[];
 const targetKeys = targetFields.map(([, key]) => key);
+const promotionView = "promotion-group";
+const promotionQuerySize = targetFields.length + 3;
 
 function requireValid(value: boolean): asserts value {
   if (!value) throw new TypeError("Invalid release head");
@@ -99,19 +101,28 @@ export function snapshotReleaseHeadTarget(value: unknown): ReleaseHeadTarget {
 
 export type ReleaseHeadLocation =
   | { readonly kind: "missing" | "invalid" }
-  | { readonly kind: "target"; readonly target: ReleaseHeadTarget };
+  | { readonly kind: "target"; readonly target: ReleaseHeadTarget }
+  | { readonly kind: "promotion"; readonly publication: PromotionPublication };
 
 export function parseReleaseHeadSearch(search: string): ReleaseHeadLocation {
   if (search === "") return { kind: "missing" };
   const query = new URLSearchParams(search);
   // Count raw segments too: URLSearchParams skips empty segments.
-  if (query.size !== targetFields.length || search.split("&").length !== targetFields.length) return { kind: "invalid" };
+  const size = query.size;
+  if ((size !== targetFields.length && size !== promotionQuerySize) ||
+      search.split("&", promotionQuerySize + 1).length !== size) return { kind: "invalid" };
   try {
     const target = snapshotReleaseHeadTarget(Object.fromEntries(targetFields.map(([param, key]) => [key, query.get(param)])));
-    return { kind: "target", target };
+    if (size === targetFields.length) return { kind: "target", target };
+    const sequence = query.get("sequence");
+    const manifestSha256 = query.get("manifest_sha256");
+    if (query.get("view") === promotionView && isReleaseSequence(sequence) && isSha256(manifestSha256)) {
+      return { kind: "promotion", publication: { target, sequence, manifestSha256 } };
+    }
   } catch {
     return { kind: "invalid" };
   }
+  return { kind: "invalid" };
 }
 
 export function releaseHeadQuery(target: ReleaseHeadTarget): string {
@@ -171,7 +182,7 @@ export function parseReleaseHeadDetails(value: unknown, expected: ReleaseHeadTar
 export function promotionGroupQuery(publication: PromotionPublication): string {
   const { target, sequence, manifestSha256 } = publication;
   requireValid(isReleaseSequence(sequence) && isSha256(manifestSha256));
-  return releaseHeadQuery(target) + "&view=promotion-group&sequence=" + sequence +
+  return releaseHeadQuery(target) + "&view=" + promotionView + "&sequence=" + sequence +
     "&manifest_sha256=" + manifestSha256;
 }
 

@@ -1,6 +1,7 @@
 import { A } from "@solidjs/router";
 import { For, Show } from "solid-js";
 import type { Accessor } from "solid-js";
+import { promotionGroupQuery } from "../domain/release-head.js";
 import type { PromotionReceipt, PublishedRelease } from "../domain/release-head.js";
 import type { ReleaseHeadState } from "../state/release-head-binding.js";
 import "./release-head-page.css";
@@ -12,6 +13,9 @@ const statusCopy = {
   "session-unavailable": "Console session unavailable.",
   "scope-mismatch": "This release target is outside your selected workspace.",
   loading: "Loading release head…",
+  "promotion-loading": "Loading promotion group…",
+  "promotion-unavailable": "Promotion record unavailable.",
+  "historical-promotion": "Environment promotion",
   denied: "You cannot access this release target.",
   unavailable: "Release head unavailable.",
   empty: "No release has been published to this target.",
@@ -44,23 +48,30 @@ export function ReleaseHeadPage(props: {
   readonly onRetrySession?: () => void;
 }) {
   const kind = () => props.state().kind;
-  const head = () => {
+  const target = () => {
     const state = props.state();
-    return state.kind === "empty" || state.kind === "published" ? state : undefined;
+    return "target" in state ? state.target : undefined;
   };
   const published = () => {
-    const state = head();
-    return state?.kind === "published" ? state.release : undefined;
+    const state = props.state();
+    return state.kind === "published" ? state.release : undefined;
   };
 
   const group = () => {
-    const state = head();
-    return state?.kind === "published" ? state.promotionGroup : null;
+    const state = props.state();
+    return "promotionGroup" in state ? state.promotionGroup : null;
   };
 
   const committedGroup = () => {
     const promotion = group();
     return promotion?.kind === "committed" ? promotion : undefined;
+  };
+
+  const promotionLink = () => {
+    const state = props.state();
+    if (state.kind === "published" && state.promotionGroup?.kind === "committed") {
+      return "/releases?" + promotionGroupQuery(state.promotionGroup[state.target.platform]);
+    }
   };
 
   return <section aria-labelledby="release-head-heading">
@@ -73,7 +84,7 @@ export function ReleaseHeadPage(props: {
       <Show when={kind() === "session-unavailable" || kind() === "unauthenticated"}>
         <button type="button" class="workspace-text-button" onClick={() => props.onRetrySession?.()}>Check session</button>
       </Show>
-      <Show when={head()?.target}>{target => <dl class="release-head-fields" aria-label="Release target">
+      <Show when={target()}>{target => <dl class="release-head-fields" aria-label="Release target">
         <div><dt>Organization ID</dt><dd><code>{target().organizationId}</code></dd></div>
         <div><dt>Project ID</dt><dd><code>{target().projectId}</code></dd></div>
         <div><dt>Application ID</dt><dd><code>{target().applicationId}</code></dd></div>
@@ -115,6 +126,7 @@ export function ReleaseHeadPage(props: {
           <PromotionPublicationItem receipt={committed().ios} />
           <PromotionPublicationItem receipt={committed().android} />
         </ul>}</Show>
+        <Show when={promotionLink()}>{href => <p><A href={href()}>Open promotion record</A></p>}</Show>
       </section>}</Show>
     </div>
   </section>;

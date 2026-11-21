@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "kind": "Local ordinary console promotion history",
+  "observedUTC": "2026-11-21T08:01:00Z",
+  "source": {
+    "base": "66e63f1e598028703dbc1f16dd7d8a571465de86",
+    "testedTreeBeforeReceipt": "6d94e4e8e7889665dfdf4f26637f886471a98a56"
+  },
+  "host": {
+    "macOS": "27.0.1",
+    "arch": "arm64",
+    "node": "22.23.3",
+    "vite": "8.3.5",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "bandit": "1.14.1",
+    "postgresql": "17.11",
+    "python": "3.14.8"
+  },
+  "checks": [
+    {
+      "command": "cd console && fnm exec --using=22.23.3 npm test",
+      "result": "313 passed. Focused Solid UI tests covered both link selectors, loading and denial states, malformed selectors, mismatched successful bodies, stale URL and session replies, and workspace changes."
+    },
+    {
+      "command": "cd console && fnm exec --using=22.23.3 npm run build",
+      "result": "TypeScript and the production Vite build passed."
+    },
+    {
+      "command": "hosted/scripts/replay-local-stage-promotion-browser.sh",
+      "result": "7 passed. Disposable PostgreSQL and the ordinary Bandit release and session routes exercised signed promotion, successor publications, exact group lookups and authorization."
+    }
+  ],
+  "liveBrowser": {
+    "setup": "An owned Acid incognito tab loaded the production Vite bundle from a loopback reverse proxy. The proxy forwarded browser cookie GETs to real Bandit in the disposable PostgreSQL fixture. A temporary copy of the existing signed-promotion ExUnit test provided two bounded checkpoints and installed cookies issued by the existing fixture login. Two one-test fixture runs exited 0.",
+    "beforeSuccessors": "Both legacy target pages showed Environment promotion and both receipts at Current head. Each exposed its own exact link. Clicking the iOS link issued an additional promotion-group GET and opened the record.",
+    "afterSuccessors": {
+      "ios": {
+        "historicalSequence": "3",
+        "manifestSha256": "1644d91a8412e30ba94289ec29c6d46f640050ae2428c58b6e02c6bdb8732da6",
+        "displayedStatus": "Head advanced to 4"
+      },
+      "android": {
+        "historicalSequence": "12",
+        "manifestSha256": "55d4910d15675d87a9466a14e0ab63349e729826e77cd3fdb6df55d0bf8124d6",
+        "displayedStatus": "Head advanced to 13"
+      },
+      "observations": [
+        "Reloading the saved iOS URL and opening the saved Android URL with a newly issued owner session each made one exact promotion-group GET (200) and rendered the same two original receipts.",
+        "Both legacy URLs returned details-v2 (200) for their successor publishes, iOS 4 and Android 13, with no promotion group.",
+        "A leading-zero sequence caused no release read. An unknown manifest and an authenticated other-tenant session each got 404 with no receipt DOM. The signed-out route prompted for sign-in and made no release read."
+      ]
+    },
+    "limitations": "A signed-out control in the first proxy run forwarded an empty Cookie header and got 400 from the session endpoint. The corrected proxy reached the sign-in state. On the second run one repeated legacy iOS details-v2 read returned 503 and displayed the unavailable state. Both legacy successor reads passed in the first run, and both historical reopens passed in the second."
+  },
+  "cleanup": "Closed the owned tab. Both instrumented fixture runs stopped PostgreSQL and confirmed reusable PostgreSQL, Bandit and proxy ports. Removed owned fixture scratch, diagnostic copy, dependencies, caches and build outputs.",
+  "scope": "Local console and live loopback fixture only. Hosted v79 binding and deployment, gate acceptance and device qualification were outside this slice."
+}
