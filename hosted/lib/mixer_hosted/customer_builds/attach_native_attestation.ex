@@ -17,7 +17,14 @@ defmodule MixerHosted.CustomerBuilds.AttachNativeAttestation do
   }
 
   alias MixerHosted.Builds.NativeDevelopmentAttestation.ExpectedBuild
-  alias MixerHosted.CustomerBuilds.{AttestationRepo, AttestationSchema, Selection, Snapshot}
+
+  alias MixerHosted.CustomerBuilds.{
+    AttestationRepo,
+    AttestationSchema,
+    LocalAttestation,
+    Selection,
+    Snapshot
+  }
 
   @action "build.attest"
   @config :native_development_attestation
@@ -71,6 +78,19 @@ defmodule MixerHosted.CustomerBuilds.AttachNativeAttestation do
   def run(_, _, _), do: {:error, :invalid_request}
 
   defp trust do
+    case LocalAttestation.configuration() do
+      {:ok, config} ->
+        config
+
+      _ ->
+        if Process.whereis(MixerHosted.Supervisor) == nil and
+             Application.fetch_env(:mixer_hosted, :startup) == :error,
+           do: fixture_trust(),
+           else: {:error, :authorization_unavailable}
+    end
+  end
+
+  defp fixture_trust do
     case Application.get_env(:mixer_hosted, @config) do
       %{origin: origin, public_spki_der: <<_::352>>} = config when is_binary(origin) -> config
       _ -> {:error, :authorization_unavailable}

@@ -15,7 +15,8 @@ defmodule MixerHosted.RuntimeConfig do
                 build_cancel: false,
                 local_release_jobs: false,
                 native: nil,
-                artifact_upload: nil
+                artifact_upload: nil,
+                native_attestation: nil
               ]
 
   @queues [

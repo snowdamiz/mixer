@@ -1,6 +1,7 @@
 defmodule MixerHosted.BrowserAuth.RuntimeConfigTest do
   use ExUnit.Case, async: true
   alias MixerHosted.BrowserAuth.{Config, ConfigurationDigest, Custody, RuntimeConfig, Vault}
+  alias MixerHosted.CustomerBuilds.LocalAttestation
   alias MixerHosted.Identity.Manifest
   alias MixerHosted.RuntimeConfig, as: HostedConfig
 
@@ -139,6 +140,37 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfigTest do
     assert construct(%{hosted() | build_operation_intent: :durable_intent_v1}) == @error
     assert construct(Map.delete(hosted(), :build_operation_intent)) == @error
     assert construct(Map.put(hosted(), :unrecognized_processor_field, :builds_v1)) == @error
+  end
+
+  test "configured browser startup accounts for the optional attestation writer" do
+    hosted =
+      ordinary_env()
+      |> Map.merge(%{
+        "MIXER_PROCESSOR_PROFILE" => "builds_v1",
+        "MIXER_NATIVE_RETAINED_ROOT" => "/owned/native-state"
+      })
+      |> HostedConfig.load!()
+
+    {key, _} = :crypto.generate_key(:eddsa, :ed25519)
+    spki = <<0x302A300506032B6570032100::96, key::binary>>
+
+    provisioned =
+      LocalAttestation.configure!(
+        %{
+          "MIXER_LOCAL_NATIVE_ATTESTATION_PASSWORD" => "attestation-fixture-password",
+          "MIXER_LOCAL_NATIVE_ATTESTATION_PUBLIC_SPKI_BASE64" => Base.encode64(spki)
+        },
+        hosted,
+        :disabled
+      )
+
+    assert {:ok, original} = construct(hosted)
+    assert construct(provisioned) == {:ok, original}
+
+    assert construct(%{provisioned | database_connection_bound: hosted.database_connection_bound}) ==
+             @error
+
+    assert construct(%{provisioned | native_attestation: %{}}) == @error
   end
 
   test "build cancellation composes only with a configured build-create browser profile" do

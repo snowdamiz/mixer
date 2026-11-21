@@ -8,6 +8,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
   """
   alias MixerHosted.BrowserAuth.{Config, ConfigurationDigest, Custody, Vault}
   alias MixerHosted.CustomerArtifacts.LocalUpload
+  alias MixerHosted.CustomerBuilds.LocalAttestation
   alias MixerHosted.RuntimeConfig, as: HostedConfig
 
   @enforce_keys [
@@ -24,7 +25,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
 
   @error {:error, :session_unavailable}
   @hosted_keys ~w(role repo oban endpoint database_connection_bound identity_startup create_repo
-    processor_profile build_operation_intent build_cancel local_release_jobs native artifact_upload)a
+    processor_profile build_operation_intent build_cancel local_release_jobs native artifact_upload native_attestation)a
   @repo_keys ~w(hostname port database username password pool_size pool_count timeout
     connect_timeout queue_target queue_interval show_sensitive_data_on_connection_error ssl)a
   @ssl_keys ~w(verify cacerts server_name_indication customize_hostname_check)a
@@ -186,12 +187,13 @@ defmodule MixerHosted.BrowserAuth.RuntimeConfig do
   defp create_connections(%HostedConfig{create_repo: nil}), do: 0
   defp create_connections(%HostedConfig{}), do: 2
 
-  defp additional_connections(%HostedConfig{artifact_upload: nil} = hosted),
-    do: create_connections(hosted)
-
-  defp additional_connections(%HostedConfig{artifact_upload: upload} = hosted)
-       when is_struct(upload, LocalUpload),
-       do: create_connections(hosted) + 1
+  defp additional_connections(
+         %HostedConfig{artifact_upload: upload, native_attestation: attestation} = hosted
+       )
+       when (is_nil(upload) or is_struct(upload, LocalUpload)) and
+              (is_nil(attestation) or is_struct(attestation, LocalAttestation)) do
+    create_connections(hosted) + if(upload, do: 1, else: 0) + if(attestation, do: 1, else: 0)
+  end
 
   defp create_repo?(%HostedConfig{create_repo: nil}), do: true
 

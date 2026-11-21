@@ -4,6 +4,7 @@ defmodule MixerHosted.Application do
   @behaviour Supervisor
   alias MixerHosted.BrowserAuth.Installation
   alias MixerHosted.CustomerArtifacts.{LocalUpload, UploadRepo}
+  alias MixerHosted.CustomerBuilds.{AttestationRepo, LocalAttestation}
   alias MixerHosted.Identity.StartupConfig
   alias MixerHosted.Releases.{PublicDelivery, WriterRepo}
   alias MixerHosted.RuntimeConfig
@@ -55,6 +56,7 @@ defmodule MixerHosted.Application do
         {profile, queue} = RuntimeConfig.processor_queue(hosted.processor_profile)
         true = hosted.create_repo == nil
         true = hosted.local_release_jobs == false
+        true = hosted.native_attestation == nil
         true = hosted.repo[:username] == profile.role()
 
         {admission, :after_connect, admission_args} =
@@ -101,12 +103,14 @@ defmodule MixerHosted.Application do
         endpoint = Application.get_env(:mixer_hosted, MixerHostedWeb.Endpoint, [])
         artifact_children = LocalUpload.children(hosted, installation, endpoint)
         release_children = WriterRepo.children(endpoint) ++ PublicDelivery.children(endpoint)
+        attestation_children = LocalAttestation.children(hosted, installation, endpoint)
 
         base ++
           identity_children ++
           browser_children ++
           artifact_children ++
           release_children ++
+          attestation_children ++
           [MixerHostedWeb.Endpoint]
 
       _ ->
@@ -150,6 +154,8 @@ defmodule MixerHosted.Application do
     restart_keys = [
       WriterRepo,
       UploadRepo,
+      AttestationRepo,
+      :native_development_attestation,
       :startup,
       :role,
       :identity_startup,

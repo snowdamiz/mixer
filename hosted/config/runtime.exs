@@ -9,6 +9,7 @@ if config_env() != :test do
   settings = MixerHosted.RuntimeConfig.load!(env)
   release = MixerHosted.Releases.RuntimeProvisioning.load!(env, settings)
   settings = MixerHosted.CustomerArtifacts.LocalUpload.configure!(env, settings, release)
+  settings = MixerHosted.CustomerBuilds.LocalAttestation.configure!(env, settings, release)
   installation = MixerHosted.BrowserAuth.Installation.load!(env, settings)
   config :mixer_hosted, :startup, {settings, installation}
 

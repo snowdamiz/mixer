@@ -86,3 +86,27 @@ named `mixer_native_attestation_fixture`. Set `MIXER_ATTESTATION_TEST_SOCKET` to
 the socket directory's absolute path without symlink components. The test creates
 the restricted reader and writer roles and uses an ephemeral key. From `hosted`,
 run `mix test test/mixer_hosted/builds/native_attestation_attachment_test.exs`.
+
+### Configure the local Phoenix attachment writer
+
+Apply the opt-in migration in `hosted/priv/local_native_attestation` as the
+non-login relation owner. Use a dedicated `mixer_native_attestation_writer`
+login without role memberships or direct access to the protected tables.
+Grant `USAGE` on the `public` schema and grant the writer execution on the
+attachment function as the function owner.
+
+```sql
+GRANT EXECUTE ON FUNCTION public.mixer_native_development_attestation_v1(
+    text, text, text, text, jsonb, text, text, text, text, bytea
+) TO mixer_native_attestation_writer;
+```
+
+Set `MIXER_LOCAL_NATIVE_ATTESTATION_PASSWORD` to the writer's database password.
+Set `MIXER_LOCAL_NATIVE_ATTESTATION_PUBLIC_SPKI_BASE64` to the canonical base64 of
+the signer's 44-byte Ed25519 public SPKI DER. Keep the signing key with the signer.
+
+Start the API with `MIXER_PROCESSOR_PROFILE=builds_v1`, the existing
+`MIXER_NATIVE_RETAINED_ROOT`, and the IPv4 loopback HTTP listener. Use
+`http://127.0.0.1:<port>` as the signer's origin, with the API's
+`MIXER_HTTP_PORT`. The attachment writer adds one verified TLS connection to
+the API's database. Both attachment variables are required to enable the writer.

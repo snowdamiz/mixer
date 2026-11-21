@@ -83,6 +83,9 @@ defmodule MixerHosted.Builds.NativeDevelopmentAttestation do
     end
   end
 
+  @doc false
+  def valid_public_spki?(value), do: match?({:ok, _}, ed25519_public_key(value))
+
   defp checked_build(
          %ExpectedBuild{
            origin: origin,

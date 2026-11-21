@@ -76,6 +76,10 @@ defmodule MixerHosted.CustomerArtifacts.LocalUpload do
   end
 end
 
+defmodule MixerHosted.CustomerBuilds.LocalAttestation do
+  def children(%{native_attestation: nil}, _, _), do: []
+end
+
 inputs = [
   "hosted/lib/mixer_hosted/application.ex",
   "hosted/lib/mixer_hosted/builds/operation_intent_schema.ex",
@@ -500,7 +504,8 @@ IO.puts(
         "Endpoint.config_change",
         "PublicDelivery.children",
         "WriterRepo.children",
-        "LocalUpload.children"
+        "LocalUpload.children",
+        "LocalAttestation.children"
       ],
       database_admission_proved: false,
       all_owned_names_absent: true,
