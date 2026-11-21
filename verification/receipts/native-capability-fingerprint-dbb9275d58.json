@@ -1,0 +1,218 @@
+{
+  "schema": 1,
+  "observedUTC": "2026-11-21T11:16:37+00:00",
+  "scope": "Exact published source drift and local macOS debug link. The delivery adds this receipt to the tested tree.",
+  "publishedBaseline": {
+    "revision": "dbb9275d58e1a2824c35870767551d2d9c8588bb",
+    "tree": "458a25821e237b7cbdcae99a6adfa39d1a0d5104",
+    "hostedRun": "44896372388",
+    "swiftHostJob": "136822794652",
+    "swiftCapabilityNativeJob": "136822794425"
+  },
+  "testedCandidate": {
+    "revision": "2910c2164646332a259febb31c4d8b856bd53383",
+    "tree": "f13ee3cdca0fdac0bd85c0fed334814dd5b09a07"
+  },
+  "tools": {
+    "macOS": "27.0.1 26A434",
+    "xcode": "Xcode 27.2 Build version 27B52",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1) Target: arm64-apple-macosx27.0.0",
+    "git": "git version 2.56.0",
+    "python": "Python 3.14.8",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)"
+  },
+  "projections": {
+    "swift-host": {
+      "rules": 45,
+      "rulesSHA256": "cbf16b85647117dd2c7edb0e40f55801078bbb0c44722313ad80bb5badf59bf1",
+      "materializedTrackedFiles": 6642
+    },
+    "swift-capability-native": {
+      "rules": 60,
+      "rulesSHA256": "8d5e7f2237b2d5d2d33565c8a9af244358ef73001879ad1a158e1bb83485bc5f",
+      "materializedTrackedFiles": 441
+    },
+    "android-generated-java": {
+      "rules": 32,
+      "rulesSHA256": "8f6fd75d457540dc4463f36a4d313be7af22a55512eb2babddf2c544b877da47",
+      "materializedTrackedFiles": 1375
+    }
+  },
+  "fingerprint": {
+    "previous": "29ab6ba4a86990bc99d4f510fc005a17d84426d8c893d36f5061f17c46786adf",
+    "generatedAndIndependentlyReadBack": "5d467c65cf58917ab499840226bb5ae577fbae3cd063577985555141d131e92a",
+    "preimageSourceCount": 18,
+    "previousPreimageSourceCount": 17,
+    "preimageBytes": 2552,
+    "finalLF": false,
+    "contractAndCapabilityHashes": {
+      "capabilities": {
+        "network.http.v1": "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3",
+        "storage.keyValue.v1": "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"
+      },
+      "contractSHA256": "ca53c3c2ea1d8f08020468cc5d458d86542e0806d6494840557e591342f1154e"
+    }
+  },
+  "baselineCommands": {
+    "python3 -B capabilities/tools/generate.py --check": {
+      "exit": 1,
+      "diagnostic": "Generated output drift: capabilities/schema/hashes.json",
+      "projections": [
+        "swift-host",
+        "swift-capability-native"
+      ]
+    },
+    "python3 -B capabilities/tools/export-native-preimage.py --output $SCRATCH/baseline-preimage.json": {
+      "exit": 1,
+      "diagnostic": "native preimage differs from generated identity; no files changed",
+      "wroteOutput": false
+    },
+    "python3 -B verification/capability-installed-material/test_native_preimage.py -v": {
+      "exit": 1,
+      "exactPreimage": "ERROR from child generator --check",
+      "normalizationExclusionsMutation": "PASS",
+      "protectedOutputLocation": "FAIL before refusal check because native preimage differs",
+      "outputSHA256": "d174b7ae48735d04a4de5e2a136faf3a062c4135f127ee7ee8e796c71e2b02d0"
+    }
+  },
+  "candidateCommands": {
+    "python3 -B capabilities/tools/generate.py --check": "PASS in swift-host and via independent exporter in swift-capability-native",
+    "python3 -B capabilities/tools/export-native-preimage.py --check --output $SCRATCH/candidate-preimage.json": "PASS with byte-identical fixture",
+    "python3 -B verification/capability-installed-material/test_native_preimage.py -v": {
+      "passed": 3,
+      "failed": 0,
+      "outputSHA256": "c44a2a73061d97281934d930498c510112cbd4d16bf9efac6f332ad5a7c03c2b"
+    },
+    "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed": {
+      "passedModes": [
+        "normal",
+        "optimized"
+      ],
+      "projections": [
+        "swift-host",
+        "android-generated-java"
+      ],
+      "outputSHA256": "ea4a62a94acc7babfb4c9962e8bc7b49ddce47f84f8fe1ed8eed76dfff0f98ed"
+    },
+    "python3 -I -B -S [-O] verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v": {
+      "projection": "android-generated-java",
+      "passedNormal": 16,
+      "passedOptimized": 16,
+      "failed": 0
+    }
+  },
+  "archive": {
+    "source_inputs": 155,
+    "source_input_changes": [
+      "sdk/Sources/MixerCapabilities/GeneratedIdentity.swift"
+    ],
+    "installed_rows": 910,
+    "installed_manifest_overlap": [
+      "sdk/Sources/MixerCapabilities/GeneratedIdentity.swift",
+      "verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py"
+    ],
+    "pair25_profile_counts": [
+      26,
+      27
+    ],
+    "pair25_inputs_byte_and_size_verified": 53,
+    "pair25_input_changes": [],
+    "hosted_v82_manifest_row_counts": [
+      15,
+      571
+    ],
+    "hosted_v82_manifest_overlap": [],
+    "sealed_predecessors_exact": 3,
+    "prior_seal_members": 248,
+    "candidate_seal_members": 251,
+    "archive_negative_controls": {
+      "predecessor_identity_installed": "RuntimeError: Owning bytes differ: sdk/Sources/MixerCapabilities/GeneratedIdentity.swift",
+      "predecessor_mode_changed": "RuntimeError: Native fingerprint owner bytes or mode differ: sdk/Sources/MixerCapabilities/GeneratedIdentity.swift",
+      "predecessor_manifest_changed": "RuntimeError: Owning bytes differ: native-fingerprint-predecessor-bytes/current-source-inputs.json"
+    },
+    "priorSourceSHA256": "4b8c4127ae07a0a980c95d4d0937f80e290caf3cb39e9ee5112190e9f0630f2c",
+    "candidateSourceSHA256": "70107ea77590add389199189bf363abf42f551df2859cd79cbd1b09d3fc170ac",
+    "candidateSealSHA256": "6457359a45c97d44db338892bd588400ceec7042f35a143e81432ce89ecf5a02",
+    "restoredFilesByteAndModeIdenticalToPublishedBaseline": {
+      "Source141": 890,
+      "Source127": 845
+    }
+  },
+  "linkedHost": {
+    "buildArgv": [
+      "python3",
+      "-B",
+      "experimental-capability-runtime/build-vm.py",
+      "--revision",
+      "dbb9275d58e1a2824c35870767551d2d9c8588bb",
+      "--target",
+      "host",
+      "--output",
+      "$SCRATCH/capability-vm",
+      "--rustc",
+      "<rustup which rustc>"
+    ],
+    "vmSourceRevision": "dbb9275d58e1a2824c35870767551d2d9c8588bb",
+    "vmExportInputs": 178,
+    "vmSourceSHA256": "026fd5bc784fcad27c5dd0d38cc04e43da78c68296f069797cbffd2c606fb762",
+    "changedVMInputs": [],
+    "archiveSHA256": "e70950b03a8ca001f1a71d026cd1302c45e33e082396e6ec89d95cbb66468c2b",
+    "builderCommandsClosed": 9,
+    "linkedArchiveSymbol": "mixer_vm_capability_guest_ui_validate_deferred_v1",
+    "testArgv": [
+      "swift",
+      "test",
+      "--package-path",
+      "capability-activation",
+      "--scratch-path",
+      "$SCRATCH/swift-build",
+      "--cache-path",
+      "$SCRATCH/swift-cache",
+      "--config-path",
+      "$SCRATCH/swift-config",
+      "--security-path",
+      "$SCRATCH/swift-security",
+      "--force-resolved-versions",
+      "-Xcc",
+      "-I$SCRATCH/capability-vm/include",
+      "-Xlinker",
+      "-L$SCRATCH/capability-vm/lib",
+      "-Xswiftc",
+      "-warnings-as-errors",
+      "--filter",
+      "InstalledMaterialTests/|GuestUISignedRuntimeTests/(testSignedCommitFactsReadUsesAcceptedEventOnceAndRetiresWithOwner|testSignedCommitFactsReadDeniesReadyWrongActionAndMalformedEvent|testInstalledApplicationStorageGrantDenialAndColdReadback|testSignedEventCommitsStorageBeforeGuestShowsSaved|testSignedEventWithoutGrantReportsUnavailableWithoutStorage)$|DeferredSignedGrantTests/testDeferredStartupRequiresBoundInstalledMaterialAndEffectiveSignedGrant$"
+    ],
+    "outputSHA256": "d9271e792c15e0c819738516d35221b564f74c45706bf87301cb7ebb03021c95",
+    "exit": 0,
+    "passed": 22,
+    "failed": 0,
+    "skippedSelected": 0,
+    "installedMaterialPassed": 16,
+    "signedPassed": [
+      "DeferredSignedGrantTests/testDeferredStartupRequiresBoundInstalledMaterialAndEffectiveSignedGrant",
+      "GuestUISignedRuntimeTests/testInstalledApplicationStorageGrantDenialAndColdReadback",
+      "GuestUISignedRuntimeTests/testSignedCommitFactsReadDeniesReadyWrongActionAndMalformedEvent",
+      "GuestUISignedRuntimeTests/testSignedCommitFactsReadUsesAcceptedEventOnceAndRetiresWithOwner",
+      "GuestUISignedRuntimeTests/testSignedEventCommitsStorageBeforeGuestShowsSaved",
+      "GuestUISignedRuntimeTests/testSignedEventWithoutGrantReportsUnavailableWithoutStorage"
+    ]
+  },
+  "frozenFieldLog": {
+    "androidCurrentABIRecipeRevision": "b144c2c2042a4499365d1186f46d43fba1832143",
+    "androidProvenanceProducerRevision": "37e351f5ea58662ce71a85b9a740187a95f5608e",
+    "androidTaskReorderRevision": "71e6ffa51e857d5a1eda3f74c26941996ed275de",
+    "allThreePinnedMetadataDigests": "29ab6ba4a86990bc99d4f510fc005a17d84426d8c893d36f5061f17c46786adf",
+    "impact": "The older exact-pin Android lane keeps its original binary and release identity. A build with the corrected linked native fingerprint needs a matching rebuilt installed identity and fresh signed release and assignment bindings. Existing signing keys need no change."
+  },
+  "scopeLimits": [
+    "Full hosted workflows and Android six-consumer binaries were not run.",
+    "No release, TSAN, loopback release replay, frontend, emulator, simulator or physical-device runs.",
+    "No push, signing material or gate changes. F10 V3 and Android lanes were untouched."
+  ],
+  "custody": {
+    "newUNKNOWN": [],
+    "linkedTestChildReapedAndGroupAbsent": true,
+    "scratch": "Task-owned scratch removed after delivery."
+  }
+}

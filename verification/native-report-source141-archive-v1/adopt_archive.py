@@ -416,6 +416,10 @@ FIELDLOG_COMMIT_REPLACEMENTS = FIELDLOG_COMMIT_SOURCE_REPLACEMENTS | {
     SIGNED_APPLE_OVERFLOW_TEST, SPARSE_CHECKOUT_TEST,
 }
 FIELDLOG_COMMIT_SOURCE_CHANGES = FIELDLOG_COMMIT_SOURCE_REPLACEMENTS | {FIELDLOG_COMMIT_SOURCE_ADDITION}
+NATIVE_FINGERPRINT_PREFIX = 'native-fingerprint-predecessor-bytes/'
+NATIVE_FINGERPRINT_SOURCE_PREIMAGE = NATIVE_FINGERPRINT_PREFIX + SOURCE_INPUTS_MANIFEST
+NATIVE_FINGERPRINT_SOURCE_SHA256 = '70107ea77590add389199189bf363abf42f551df2859cd79cbd1b09d3fc170ac'
+NATIVE_FINGERPRINT_CHANGES = {CAPABILITY_IDENTITY, SPARSE_CHECKOUT_TEST}
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, STANDARDS_REPLAY_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
@@ -465,6 +469,9 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
 } | {
     FIELDLOG_COMMIT_PREIMAGE_MANIFEST,
     *(FIELDLOG_COMMIT_PREFIX + name for name in FIELDLOG_COMMIT_REPLACEMENTS),
+} | {
+    NATIVE_FINGERPRINT_SOURCE_PREIMAGE,
+    *(NATIVE_FINGERPRINT_PREFIX + name for name in NATIVE_FINGERPRINT_CHANGES),
 } | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
 } | {
@@ -601,7 +608,7 @@ def install_inputs():
                              'android_retained_output_correction_transition',
                              'managed_android_retained_transition', 'pair25_transition', 'swift_version_transition',
                              'cli_nonregular_input_test_transition', 'signed_apple_overflow_test_transition',
-                             'w09_signed_apple_test_transition', 'fieldlog_commit_transition',
+                             'w09_signed_apple_test_transition', 'fieldlog_commit_transition', 'native_fingerprint_transition',
                              'sparse_checkout_test_transition', 'release_rest_v3_transition', 'stock_promotion_transition',
                              'hosted_v71_transition', 'hosted_v72_transition', 'hosted_v73_transition',
                              'hosted_v74_transition', 'hosted_v76_transition', 'hosted_v77_transition',
@@ -1680,11 +1687,38 @@ def install_inputs():
                     'FieldLog Commit source preimage differs: ' + name)
             expected_source[name] = change['after']
         installed[name] = change['after']
-    require(current == expected_source and len(current) == 155 and
-            previous.digest(current) == fieldlog['sourceAfter'] == FIELDLOG_COMMIT_SOURCE_SHA256 and
-            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
-                                  'sha256': FIELDLOG_COMMIT_SOURCE_SHA256},
+    fieldlog_source_path = HERE / NATIVE_FINGERPRINT_SOURCE_PREIMAGE
+    fieldlog_source = previous.load(fieldlog_source_path)
+    require(fieldlog_source == expected_source and len(fieldlog_source) == 155 and
+            previous.digest(fieldlog_source) == fieldlog['sourceAfter'] == FIELDLOG_COMMIT_SOURCE_SHA256 and
+            stat.S_IMODE(fieldlog_source_path.lstat().st_mode) == 0o644,
             'FieldLog Commit source transition differs')
+
+    fingerprint = binding['native_fingerprint_transition']
+    require(set(fingerprint) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            fingerprint['sourceBefore'] == FIELDLOG_COMMIT_SOURCE_SHA256 and
+            set(fingerprint['changes']) == NATIVE_FINGERPRINT_CHANGES and
+            expected_source.keys() & NATIVE_FINGERPRINT_CHANGES == {CAPABILITY_IDENTITY},
+            'Native fingerprint change roster differs')
+    for name, change in fingerprint['changes'].items():
+        path = HERE / NATIVE_FINGERPRINT_PREFIX / name
+        raw = read_predecessor_member(path)
+        require(set(change) == {'before', 'after', 'mode'} and change['before'] != change['after'] and
+                change['before'] == previous.row(raw) == installed[name] and
+                change['mode'] == stat.S_IMODE(path.lstat().st_mode) ==
+                stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'Native fingerprint owner bytes or mode differ: ' + name)
+        installed[name] = change['after']
+        preimages.setdefault(name, (raw, change['mode']))
+    identity_change = fingerprint['changes'][CAPABILITY_IDENTITY]
+    require(identity_change['before'] == expected_source[CAPABILITY_IDENTITY],
+            'Native fingerprint source preimage differs')
+    expected_source[CAPABILITY_IDENTITY] = identity_change['after']
+    require(current == expected_source and len(current) == len(fieldlog_source) and
+            previous.digest(current) == fingerprint['sourceAfter'] == NATIVE_FINGERPRINT_SOURCE_SHA256 and
+            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
+                                  'sha256': NATIVE_FINGERPRINT_SOURCE_SHA256},
+            'Native fingerprint source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in release['changes'].items():
@@ -1790,6 +1824,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_fieldlog_commit_sha256': binding['native_fingerprint_transition']['sourceBefore'],
             'predecessor_v82_source154_sha256': binding['fieldlog_commit_transition']['sourceBefore'],
             'predecessor_swiftpm_migration_sha256': binding['swiftpm_migration_transition']['sourceBefore'],
             'predecessor_receipt_directory_sha256': binding['receipt_directory_transition']['sourceBefore'],
