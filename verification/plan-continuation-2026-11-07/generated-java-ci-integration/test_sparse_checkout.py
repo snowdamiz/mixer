@@ -109,7 +109,7 @@ def admission_paths(root=None, binding=None):
                     'release_rest_v3_transition', 'stock_promotion_transition',
                     'hosted_v71_transition', 'hosted_v72_transition', 'hosted_v73_transition',
                     'android_inspection_deadline_transition', 'receipt_directory_transition',
-                    'swiftpm_migration_transition'):
+                    'swiftpm_migration_transition', 'fieldlog_commit_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -475,7 +475,10 @@ class SparseControls(unittest.TestCase):
             migration = binding['swiftpm_migration_transition']
             self.assertEqual(migration['sourceBefore'], receipt['sourceAfter'])
             self.assertEqual(observed['predecessor_swiftpm_migration_sha256'], migration['sourceBefore'])
-            self.assertEqual(observed['source_sha256'], migration['sourceAfter'])
+            fieldlog = binding['fieldlog_commit_transition']
+            self.assertEqual(fieldlog['sourceBefore'], migration['sourceAfter'])
+            self.assertEqual(observed['predecessor_v82_source154_sha256'], fieldlog['sourceBefore'])
+            self.assertEqual(observed['source_sha256'], fieldlog['sourceAfter'])
             self.assertEqual(observed['source_sha256'], binding['source']['sha256'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']
@@ -493,7 +496,7 @@ class SparseControls(unittest.TestCase):
                     self.assertIn(diagnostic.encode(), failed.stderr)
             changes = {**binding['changes'], **binding['capability_transition']['changes'],
                        **pair24['changes'], **binding['local_store_transition']['changes'],
-                       **inspector['changes'], **release['changes'], **migration['changes']}
+                       **inspector['changes'], **release['changes'], **migration['changes'], **fieldlog['changes']}
             additions = sorted(name for name, change in changes.items() if change['before'] is None)
             self.assertTrue(additions)
             for name in additions:

@@ -402,6 +402,20 @@ SWIFTPM_MIGRATION_SOURCE_REPLACEMENTS = {
 }
 SWIFTPM_MIGRATION_REPLACEMENTS = SWIFTPM_MIGRATION_SOURCE_REPLACEMENTS | {SPARSE_CHECKOUT_TEST}
 SWIFTPM_MIGRATION_SOURCE_CHANGES = SWIFTPM_MIGRATION_SOURCE_REPLACEMENTS | {SWIFTPM_MIGRATION_SOURCE_ADDITION}
+FIELDLOG_COMMIT_PREFIX = 'fieldlog-commit-v82-predecessor-bytes/'
+FIELDLOG_COMMIT_PREIMAGE_MANIFEST = FIELDLOG_COMMIT_PREFIX + SOURCE_INPUTS_MANIFEST
+FIELDLOG_COMMIT_SOURCE_SHA256 = '4b8c4127ae07a0a980c95d4d0937f80e290caf3cb39e9ee5112190e9f0630f2c'
+FIELDLOG_COMMIT_SOURCE_REPLACEMENTS = {
+    'sdk/Sources/MixerCapabilities/Host.swift',
+    'sdk/Sources/MixerCapabilities/InstalledCapabilityAdapters.swift',
+    'sdk/Sources/MixerGuest/GuestUIExchangeCore.swift',
+    'sdk/Sources/MixerGuest/GuestUIProtocolV1.swift',
+}
+FIELDLOG_COMMIT_SOURCE_ADDITION = 'sdk/Sources/MixerCapabilities/InstalledGuestUICommitContinuation.swift'
+FIELDLOG_COMMIT_REPLACEMENTS = FIELDLOG_COMMIT_SOURCE_REPLACEMENTS | {
+    SIGNED_APPLE_OVERFLOW_TEST, SPARSE_CHECKOUT_TEST,
+}
+FIELDLOG_COMMIT_SOURCE_CHANGES = FIELDLOG_COMMIT_SOURCE_REPLACEMENTS | {FIELDLOG_COMMIT_SOURCE_ADDITION}
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, STANDARDS_REPLAY_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
@@ -448,6 +462,9 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
 } | {
     SWIFTPM_MIGRATION_PREIMAGE_MANIFEST,
     *(SWIFTPM_MIGRATION_PREFIX + name for name in SWIFTPM_MIGRATION_REPLACEMENTS),
+} | {
+    FIELDLOG_COMMIT_PREIMAGE_MANIFEST,
+    *(FIELDLOG_COMMIT_PREFIX + name for name in FIELDLOG_COMMIT_REPLACEMENTS),
 } | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
 } | {
@@ -584,7 +601,7 @@ def install_inputs():
                              'android_retained_output_correction_transition',
                              'managed_android_retained_transition', 'pair25_transition', 'swift_version_transition',
                              'cli_nonregular_input_test_transition', 'signed_apple_overflow_test_transition',
-                             'w09_signed_apple_test_transition',
+                             'w09_signed_apple_test_transition', 'fieldlog_commit_transition',
                              'sparse_checkout_test_transition', 'release_rest_v3_transition', 'stock_promotion_transition',
                              'hosted_v71_transition', 'hosted_v72_transition', 'hosted_v73_transition',
                              'hosted_v74_transition', 'hosted_v76_transition', 'hosted_v77_transition',
@@ -1630,11 +1647,44 @@ def install_inputs():
                     'SwiftPM migration source preimage differs: ' + name)
             expected_source[name] = change['after']
         installed[name] = change['after']
-    require(current == expected_source and len(current) == 154 and
-            previous.digest(current) == migration['sourceAfter'] == SWIFTPM_MIGRATION_SOURCE_SHA256 and
-            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
-                                  'sha256': SWIFTPM_MIGRATION_SOURCE_SHA256},
+    fieldlog = binding['fieldlog_commit_transition']
+    fieldlog_preimage = HERE / FIELDLOG_COMMIT_PREIMAGE_MANIFEST
+    v82_source = previous.load(fieldlog_preimage)
+    require(v82_source == expected_source and len(v82_source) == 154 and
+            previous.digest(v82_source) == migration['sourceAfter'] == SWIFTPM_MIGRATION_SOURCE_SHA256 and
+            stat.S_IMODE(fieldlog_preimage.lstat().st_mode) == 0o644,
             'SwiftPM migration source transition differs')
+
+    fieldlog_changes = FIELDLOG_COMMIT_REPLACEMENTS | {FIELDLOG_COMMIT_SOURCE_ADDITION}
+    require(set(fieldlog) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            fieldlog['sourceBefore'] == migration['sourceAfter'] and
+            set(fieldlog['changes']) == fieldlog_changes and
+            set(current) & fieldlog_changes == FIELDLOG_COMMIT_SOURCE_CHANGES and
+            FIELDLOG_COMMIT_SOURCE_ADDITION not in installed and
+            FIELDLOG_COMMIT_SOURCE_ADDITION not in expected_source,
+            'FieldLog Commit change roster differs')
+    for name, change in fieldlog['changes'].items():
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == installed.get(name) and change['before'] != change['after'] and
+                change['mode'] == stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'Installed FieldLog Commit owner row or mode differs: ' + name)
+        if name in FIELDLOG_COMMIT_REPLACEMENTS:
+            path = HERE / FIELDLOG_COMMIT_PREFIX / name
+            raw = read_predecessor_member(path)
+            require(previous.row(raw) == change['before'] and
+                    stat.S_IMODE(path.lstat().st_mode) == change['mode'],
+                    'FieldLog Commit predecessor bytes or mode differ: ' + name)
+            preimages.setdefault(name, (raw, change['mode']))
+        if name in FIELDLOG_COMMIT_SOURCE_CHANGES:
+            require(expected_source.get(name) == change['before'],
+                    'FieldLog Commit source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        installed[name] = change['after']
+    require(current == expected_source and len(current) == 155 and
+            previous.digest(current) == fieldlog['sourceAfter'] == FIELDLOG_COMMIT_SOURCE_SHA256 and
+            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
+                                  'sha256': FIELDLOG_COMMIT_SOURCE_SHA256},
+            'FieldLog Commit source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in release['changes'].items():
@@ -1740,6 +1790,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_v82_source154_sha256': binding['fieldlog_commit_transition']['sourceBefore'],
             'predecessor_swiftpm_migration_sha256': binding['swiftpm_migration_transition']['sourceBefore'],
             'predecessor_receipt_directory_sha256': binding['receipt_directory_transition']['sourceBefore'],
             'predecessor_stock_promotion_sha256': binding['stock_promotion_transition']['sourceBefore'],
