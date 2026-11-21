@@ -108,7 +108,7 @@ def admission_paths(root=None, binding=None):
                     'release_inspector_transition', 'icu_notice_transition', 'halt_cli_transition',
                     'release_rest_v3_transition', 'stock_promotion_transition',
                     'hosted_v71_transition', 'hosted_v72_transition', 'hosted_v73_transition',
-                    'android_inspection_deadline_transition'):
+                    'android_inspection_deadline_transition', 'receipt_directory_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -468,7 +468,10 @@ class SparseControls(unittest.TestCase):
             self.assertEqual(observed['predecessor_stock_promotion_sha256'], stock['sourceBefore'])
             inspection = binding['android_inspection_deadline_transition']
             self.assertEqual(inspection['sourceBefore'], stock['sourceAfter'])
-            self.assertEqual(observed['source_sha256'], inspection['sourceAfter'])
+            receipt = binding['receipt_directory_transition']
+            self.assertEqual(inspection['sourceAfter'], receipt['sourceBefore'])
+            self.assertEqual(observed['predecessor_receipt_directory_sha256'], receipt['sourceBefore'])
+            self.assertEqual(observed['source_sha256'], receipt['sourceAfter'])
             self.assertEqual(observed['source_sha256'], binding['source']['sha256'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']

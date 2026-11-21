@@ -373,6 +373,12 @@ ANDROID_INSPECTION_DEADLINE_CHANGES = ANDROID_INSPECTION_DEADLINE_SOURCE_CHANGES
     'cli/Tests/MixerBuildTests/AndroidInspectionPolicyReceiptTests.swift',
     'scripts/ci/tests/test_android_generated_java_runner.py',
 }
+RECEIPT_DIRECTORY_PREFIX = 'receipt-directory-predecessor-bytes/'
+RECEIPT_DIRECTORY_SOURCE_PREIMAGE = RECEIPT_DIRECTORY_PREFIX + SOURCE_INPUTS_MANIFEST
+RECEIPT_DIRECTORY_SOURCE_SHA256 = '41bdce444c0ea2f65a8c2d6c202818d4f4599498d5fd2a82894a66edc4df99c8'
+RECEIPT_DIRECTORY_SOURCE = 'cli/Sources/MixerBuild/POSIXCommandControl.swift'
+RECEIPT_DIRECTORY_TEST = 'cli/Tests/MixerBuildTests/OwnedCommandControlTests.swift'
+RECEIPT_DIRECTORY_CHANGES = {RECEIPT_DIRECTORY_SOURCE, RECEIPT_DIRECTORY_TEST, SPARSE_CHECKOUT_TEST}
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, STANDARDS_REPLAY_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
@@ -407,6 +413,9 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
 } | {
     ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE,
     *(ANDROID_INSPECTION_DEADLINE_PREFIX + name for name in ANDROID_INSPECTION_DEADLINE_CHANGES),
+} | {
+    RECEIPT_DIRECTORY_SOURCE_PREIMAGE,
+    *(RECEIPT_DIRECTORY_PREFIX + name for name in RECEIPT_DIRECTORY_CHANGES),
 } | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
 } | {
@@ -546,7 +555,7 @@ def install_inputs():
                              'sparse_checkout_test_transition', 'release_rest_v3_transition', 'stock_promotion_transition',
                              'hosted_v71_transition', 'hosted_v72_transition', 'hosted_v73_transition',
                              'hosted_v74_transition',
-                             'android_inspection_deadline_transition',
+                             'android_inspection_deadline_transition', 'receipt_directory_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -1499,11 +1508,38 @@ def install_inputs():
             expected_source[name] = change['after']
         installed[name] = change['after']
         preimages.setdefault(name, (raw, change['mode']))
-    require(current == expected_source and len(current) == len(inspection_source_before) == 153 and
-            previous.digest(current) == inspection['sourceAfter'] == ANDROID_INSPECTION_DEADLINE_SOURCE_SHA256 and
-            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
-                                  'sha256': ANDROID_INSPECTION_DEADLINE_SOURCE_SHA256},
+    receipt_source_path = HERE / RECEIPT_DIRECTORY_SOURCE_PREIMAGE
+    receipt_source_before = previous.load(receipt_source_path)
+    require(receipt_source_before == expected_source and len(receipt_source_before) == len(inspection_source_before) == 153 and
+            previous.digest(receipt_source_before) == inspection['sourceAfter'] == ANDROID_INSPECTION_DEADLINE_SOURCE_SHA256 and
+            stat.S_IMODE(receipt_source_path.lstat().st_mode) == 0o644,
             'Android inspection deadline source transition differs')
+
+    receipt = binding['receipt_directory_transition']
+    require(set(receipt) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            receipt['sourceBefore'] == inspection['sourceAfter'] and
+            set(receipt['changes']) == RECEIPT_DIRECTORY_CHANGES and
+            current.keys() & RECEIPT_DIRECTORY_CHANGES == {RECEIPT_DIRECTORY_SOURCE},
+            'Receipt directory change roster differs')
+    for name, change in receipt['changes'].items():
+        path = HERE / RECEIPT_DIRECTORY_PREFIX / name
+        raw = read_predecessor_member(path)
+        require(set(change) == {'before', 'after', 'mode'} and change['before'] != change['after'] and
+                change['before'] == previous.row(raw) == installed[name] and
+                change['mode'] == stat.S_IMODE(path.lstat().st_mode) ==
+                stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'Receipt directory owner bytes or mode differ: ' + name)
+        installed[name] = change['after']
+        preimages.setdefault(name, (raw, change['mode']))
+    producer = receipt['changes'][RECEIPT_DIRECTORY_SOURCE]
+    require(producer['before'] == expected_source[RECEIPT_DIRECTORY_SOURCE],
+            'Receipt directory source preimage differs')
+    expected_source[RECEIPT_DIRECTORY_SOURCE] = producer['after']
+    require(current == expected_source and len(current) == 153 and
+            previous.digest(current) == receipt['sourceAfter'] == RECEIPT_DIRECTORY_SOURCE_SHA256 and
+            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
+                                  'sha256': RECEIPT_DIRECTORY_SOURCE_SHA256},
+            'Receipt directory source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in release['changes'].items():
@@ -1609,6 +1645,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_receipt_directory_sha256': binding['receipt_directory_transition']['sourceBefore'],
             'predecessor_stock_promotion_sha256': binding['stock_promotion_transition']['sourceBefore'],
             'predecessor_release_rest_v3_sha256': binding['release_rest_v3_transition']['sourceBefore'],
             'predecessor_swift_version_sha256': binding['swift_version_transition']['sourceBefore'],
