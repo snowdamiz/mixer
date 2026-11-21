@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "observed_at_utc": "2026-11-21T03:07:20+00:00",
+  "scope": "W12 local iOS Simulator development attestation writer startup and HTTP attachment",
+  "base": "7a9b6516b3504505ac157cafc55f57360c19c463",
+  "tested_source": "d679ab8d46bcc53dea26559fb6c530caf2839450",
+  "tested_tree": "4b1c07e73fa4a1c77fceda73cdfdda96d90804c3",
+  "tools": {
+    "elixir": "1.20.4",
+    "otp": 29,
+    "postgres": "17.11",
+    "go": "1.26.4 arm64 darwin"
+  },
+  "focused_postgres": {
+    "command": "mix test --warnings-as-errors --seed 0 with MIXER_ATTESTATION_TEST_SOCKET and MIXER_ATTESTATION_TEST_GO_SIGNER",
+    "test_paths_from_hosted": [
+      "test/mixer_hosted/customer_builds/local_attestation_test.exs",
+      "test/mixer_hosted/browser_auth/runtime_config_test.exs",
+      "test/mixer_hosted/builds/native_attestation_attachment_test.exs",
+      "test/mixer_hosted/builds/native_development_attestation_test.exs",
+      "test/mixer_hosted/builds/retained_native_attestation_test.exs",
+      "test/mixer_hosted/customer_artifacts/local_upload_test.exs"
+    ],
+    "passed": 62,
+    "skipped": 0,
+    "http_envelope_sha256": "fae05e01639b734bf0abe14feff11999e17596ad0961648aadcad4e35c5a5bf3",
+    "http_envelope_bytes": 1285,
+    "http_scope": "Synthetic identity and V2 envelope through the ordinary Phoenix HTTP route, active local writer and PostgreSQL. The Go signer fixture covers signature production and domain attachment separately.",
+    "log_sha256": "4a8d95a07d7496a35f4e3868b32f2a1d7529616faa2b82b4e7f9354996b03731",
+    "documented_grant_control": {
+      "passed": 62,
+      "log_sha256": "17c6f12264ba9ef1c3a8c7a205f14fe92392b78386c76fdfb60846340212b363",
+      "setup": "Replaced only writer provisioning in a temporary copy of the disposable SQL fixture with the exact README grants. Restored tracked fixture bytes after the test."
+    }
+  },
+  "startup": {
+    "standalone_tests": {
+      "check-configured-startup": 15,
+      "check-startup-secrets": 8,
+      "check-provider-trust-config": 12
+    },
+    "loopback_boot": "Merged ordinary Phoenix config and runtime config. For the disposable PostgreSQL cluster only, used an alternate local port and private test CA. Both normal Repo and dedicated attestation Repo read session_user over verified TLS. Actual Bandit loopback liveness returned HTTP 200. The configured Ed25519 public key and origin appeared only with the ordinary supervised pool and effective listener live.",
+    "config_drift": "The exact pre-fix startup returned trust after injecting either shadowing application env key. The corrected boot returned authorization_unavailable after each conflicting key and again returned the enrolled trust when that conflict was removed. Each config change returned restart_required.",
+    "corrected_boot_log_sha256": "e6bab4ba504082e25f7f9200b7c23c960359221ed41baf75c25f9d6005c566fd"
+  },
+  "discriminator": "On the v72 parent and before the HTTP fixture correction, the opt-in legacy reader called read immediately after starting the pool and returned authorization_unavailable before Go ran. A test-only SELECT session_user checkout barrier resolved the failure. The composed HTTP commit includes that readiness check.",
+  "cleanup": "All owned disposable PostgreSQL clusters stopped and removed their socket/scratch. The TLS boot confirmed both loopback ports were reusable. The in-test JWKS fixture reported zero active sockets and closure of its sole accepted connection.",
+  "limits": [
+    "The HTTP route uses local synthetic authorization and retained products. Stock signer POST, a live managed native worker, devices and release qualification remain outside this run.",
+    "The composed source remains local pending hosted source admission. This receipt does not change L05 or W12."
+  ]
+}
