@@ -65,6 +65,14 @@ rollback checks cover separate development fixtures. The ordinary FieldLog
 mobile OTA workflow is still open. See the
 [current status](../../STATUS.md#november-18-local-verification).
 
+## Build the iOS export outside the source checkout
+
+[Export the ordinary FieldLog iOS app](fieldlog-ios-export.md) with Mixer v80.
+The replay relocates the export, removes its preparation checkout, and builds
+with stock Xcode and pinned local package inputs. The resulting app has the
+original FieldLog bundle identity. Simulator installation and launch are
+separate checks.
+
 ## Build the v74 export in independent Android CI
 
 Run this replay on an Apple silicon Mac with Python 3.12 or later and the

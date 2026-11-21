@@ -54,6 +54,15 @@ setup and port-reuse holds remain active. W15 and L08 remain open.
 [Installed launch receipt](verification/receipts/fieldlog-independent-export-android-launch-v74.json) ·
 [Replay](docs/guides/fieldlog.md#build-the-v74-export-in-independent-android-ci)
 
+The ordinary FieldLog iOS app also built from a relocated v80 export.
+Stock Xcode built the unsigned arm64 Simulator app after the preparation
+checkout and CLI were removed. All 187 exported files and four lockfiles
+matched before and after the build. The bundle retained `dev.mixer.fieldlog`.
+Independent review verified the exact inventory and guide. Installation
+and launch remain open.
+[iOS export guide](docs/guides/fieldlog-ios-export.md) ·
+[iOS export receipt](verification/receipts/fieldlog-ios-independent-export-v80.json)
+
 ## November 21 hosted v76 verification
 
 Identity Network and Intel Android passed at `32cd2c54b6`. Intel verified both

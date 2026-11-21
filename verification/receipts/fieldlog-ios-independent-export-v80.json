@@ -1,0 +1,459 @@
+{
+  "schema": "mixer.local-development-evidence.v1",
+  "scope": "L08/W15, product plan §16.3 and §22.2.15. Separate public FieldLog iOS app, local relocated source export and unsigned generic Simulator build only.",
+  "status": "passed",
+  "recordedAtUTC": "2026-11-21T09:08:28.244659+00:00",
+  "sources": {
+    "mixer": {
+      "url": "https://github.com/snowdamiz/mixer",
+      "revision": "5f4277e12e4872df43483307ec607a65e87dbae1",
+      "tree": "19980da47ccc682b84c15c1e77e81eb5b02a2a5d",
+      "archiveSHA256": "fc5353489169f62d846419944751ffcc398ebb7c040fc5f81d0b30db5030a9a3",
+      "archivedPaths": [
+        "cli",
+        "sdk",
+        "updates",
+        "runtime-identity"
+      ],
+      "cliSHA256": "ee73c41e7d9e89fdb1813c421c0b5005bea57c77a49fe419036b354d63657a9b",
+      "cliPackageLockSHA256": "de4bd6f84bfa554faf519a52f6c5fb9a051761ded30ae5fee4440b5e88118855"
+    },
+    "fieldlog": {
+      "url": "https://github.com/snowdamiz/fieldlog",
+      "revision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+      "tree": "1b62520f35c7e57a01b568291078686574f627c4",
+      "archiveSHA256": "75d2ce2663ade805ca40831b17a460c248e88c62a7689d5a671182bbf0ed7840"
+    }
+  },
+  "tools": {
+    "architecture": "arm64",
+    "macOS": "27.0.1 (26A434)",
+    "xcode": [
+      "Xcode 27.2",
+      "Build version 27B52"
+    ],
+    "swift": [
+      "swift-driver version: 1.168.6 Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+      "Target: arm64-apple-macosx27.0.0"
+    ],
+    "mixer": "0.1.0-dev",
+    "git": "git version 2.54.0 (Apple Git-157)",
+    "python": "3.14.8"
+  },
+  "preparation": {
+    "method": "Copy only mixer.yml, mixer.lock and Generated/MixerSDK from mixer create. Replace only the root manifest's SDK dependency and SDK product package identity. Seed both app SwiftPM locks from the bundled SDK.",
+    "lockResolution": "Stock SwiftPM and Xcode resolved the seeded lock without altering its bytes. The guide rerun used the identical seed directly.",
+    "originalXcodeProjectUnchanged": true,
+    "originalAppResources": "The app target has an empty resource build phase. The five original verification PNGs remained byte-identical in the export."
+  },
+  "stockExport": "Exported source and pinned SDK; digest 94169192e15bf4ba0429624c80c6f7eae64716062162ceed4f6273c04aa98593",
+  "sourceEvidence": {
+    "originalAppInventory": {
+      "files": 90,
+      "sha256": "8c0608228afaecd771ae9714bfb8a1da9ac9df88ebb24845b7870656af6327da"
+    },
+    "changedAppPaths": {
+      "Package.resolved": {
+        "originalSHA256": "a0d8fe5b0e6be15fecb7c4ac112a66cf13458ad9c97a58b6fdff3b06d61430da",
+        "preparedSHA256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab"
+      },
+      "Package.swift": {
+        "originalSHA256": "fbb47af281fa5f56b4aba6abad751f2a6c586a3235a4bedeb9caa0730eae8989",
+        "preparedSHA256": "fcaaa61bd44e812f34510992c58399312fcb4816703af18ec5e20d51a2da48c3"
+      },
+      "ios/FieldLog.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved": {
+        "originalSHA256": "2647857f32bcda5bc29991c9031cc055f00701a66ed841f9aefa31bb7a366b1b",
+        "preparedSHA256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab"
+      }
+    },
+    "originalAssets": {
+      "verification/mixer-core-consumer/screenshots/01-empty-offline-workspace.png": "3dd30bb01633d0734a79b7b5d43440684323eb88075de3d8fd94e6260ee620c7",
+      "verification/mixer-core-consumer/screenshots/02-checklist-completed-and-reordered.png": "023b5ae4d4acc9bbd4e58562e4a08dc7f79c38a00058eb0fb9f3448add9f9668",
+      "verification/mixer-core-consumer/screenshots/03-restored-lossless-draft.png": "cf6424a7deb4ac9afc36a8e901463c126ea234da304db072e5449b166730f88b",
+      "verification/mixer-core-consumer/screenshots/04-native-report-share-sheet.png": "a05a7186f32a81e1098ddefe2b236b7486ffade4a32691afa012fccf2040336c",
+      "verification/mixer-core-consumer/screenshots/05-local-pending-changes-not-sent.png": "dc75805d35012b3b6619483dd28fb29604627bdb82be146ef4c1ebb060f85a3f"
+    },
+    "bundledSDK": {
+      "files": 95,
+      "sha256": "7338a77441b95367c3a86b6e87057c37e8cbffae853c914e236ae85bd6982fae",
+      "mixerLockSdkDigest": "8233754e5a5aa9185e51526072742e9305bac9c12b2bc6bb27d015465c8b38b8"
+    },
+    "sourceBeforeExport": {
+      "files": 187,
+      "sha256": "c362216f0971053cf3d35250bbb390b9d7d9d2c3efa321ba920e3024555d1acf"
+    },
+    "locksBeforeExport": {
+      "Generated/MixerSDK/Package.resolved": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+      "Package.resolved": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+      "ios/FieldLog.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+      "mixer.lock": "34bdad182893345ec44d4505edc83f9a9fbaaa1249e667e4a1f8a07d3dae1309"
+    },
+    "locksAfterRelocation": {
+      "Generated/MixerSDK/Package.resolved": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+      "Package.resolved": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+      "ios/FieldLog.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+      "mixer.lock": "34bdad182893345ec44d4505edc83f9a9fbaaa1249e667e4a1f8a07d3dae1309"
+    },
+    "sourceAfterRelocation": {
+      "files": 187,
+      "sha256": "c362216f0971053cf3d35250bbb390b9d7d9d2c3efa321ba920e3024555d1acf"
+    },
+    "nestedMixerCommands": [
+      {
+        "command": [
+          "swift",
+          "--version"
+        ],
+        "exit": 0,
+        "receiptSHA256": "bd82c1724ed59843410542a3044f409ce6ca8e42f0f1d8d64a9c907c128a74b1",
+        "terminal": true
+      },
+      {
+        "command": [
+          "swift",
+          "--version"
+        ],
+        "exit": 0,
+        "receiptSHA256": "deb775df2ac2417f91490a2d3ba7bd55c084c8ed97540c6fa041333587c0046a",
+        "terminal": true
+      },
+      {
+        "command": [
+          "swift",
+          "--version"
+        ],
+        "exit": 0,
+        "receiptSHA256": "335a496b619b86afee8419ae5b1253449c0cf9985742255f96e554aa9820b7be",
+        "terminal": true
+      }
+    ],
+    "preparationRemovedBeforeBuild": true,
+    "locksAfterBuild": {
+      "Generated/MixerSDK/Package.resolved": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+      "Package.resolved": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+      "ios/FieldLog.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+      "mixer.lock": "34bdad182893345ec44d4505edc83f9a9fbaaa1249e667e4a1f8a07d3dae1309"
+    },
+    "sourceAfterBuild": {
+      "files": 187,
+      "sha256": "c362216f0971053cf3d35250bbb390b9d7d9d2c3efa321ba920e3024555d1acf"
+    }
+  },
+  "inventoryHashMethod": "SHA-256 of Python json.dumps(sorted-key map of relative path to [SHA-256, size, executable bits]); equality checks compare the full maps.",
+  "build": {
+    "configuration": "Debug",
+    "destination": "generic/platform=iOS Simulator",
+    "sdk": "iphonesimulator27.2",
+    "freshToolState": true,
+    "strictLockResolution": true,
+    "gitTransport": "File only during preparation and build. The public package URLs mapped to the two verified local bare mirrors.",
+    "mixerCLIAndSourceCheckoutAbsent": true,
+    "hostedControlPlaneUsed": false,
+    "deviceOperations": 0,
+    "warnings": [
+      "MixerApple UIKit deprecations",
+      "AppIntents metadata skipped because the framework is unused"
+    ]
+  },
+  "bundle": {
+    "product": "ci/derived/Build/Products/Debug-iphonesimulator/FieldLog.app",
+    "info": {
+      "CFBundleIdentifier": "dev.mixer.fieldlog",
+      "CFBundleExecutable": "FieldLog",
+      "CFBundleDisplayName": "FieldLog",
+      "CFBundlePackageType": "APPL",
+      "CFBundleShortVersionString": "0.1.0",
+      "CFBundleVersion": "1",
+      "DTSDKName": "iphonesimulator27.2",
+      "DTSDKBuild": "24B8118",
+      "MinimumOSVersion": "26.0"
+    },
+    "binaryArchitecture": "arm64",
+    "binaryPlatform": "IOSSIMULATOR",
+    "bundleSigning": "Disabled; no sealed resources, team or provisioning profile. The linker ad hoc signs arm64 Mach-O files.",
+    "bundleFiles": {
+      "FieldLog": {
+        "sha256": "1790060fb7c971d2aec1363a918f018af435d2180d2e0710baa51cd89a45466c",
+        "bytes": 40136
+      },
+      "FieldLog.debug.dylib": {
+        "sha256": "a67a03d5630256f2c71efc0df4b24de01fb42c736d82eabfdbd5ff15f68a5988",
+        "bytes": 5876360
+      },
+      "Info.plist": {
+        "sha256": "b3490b3cbbc3fd3740f53638ebf805618f91b7917ccbfe1af08b1dd6ff4a1941",
+        "bytes": 920
+      },
+      "PkgInfo": {
+        "sha256": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0",
+        "bytes": 8
+      },
+      "__preview.dylib": {
+        "sha256": "02b2487701eb4afa6075b7d2b94d6e7a29f8886e54150c24d3f9e9f3a6e91f1e",
+        "bytes": 16760
+      }
+    },
+    "compiledOriginalAppSources": [
+      "Sources/FieldLogFeatures/TaskEditor.swift",
+      "Sources/FieldLogFeatures/TaskEditorAppleFieldsHost.swift",
+      "Sources/FieldLogFeatures/TaskEditorPresentation.swift",
+      "Sources/FieldLogModels/Workspace.swift",
+      "Sources/FieldLogStorage/WorkspaceRepository.swift",
+      "ios/FieldLog/EntryEditor.swift",
+      "ios/FieldLog/FieldLogApp.swift",
+      "ios/FieldLog/ProjectDetail.swift",
+      "ios/FieldLog/WorkspaceModel.swift",
+      "ios/FieldLog/WorkspaceView.swift"
+    ],
+    "linkedFieldLogSymbols": [
+      "FieldLog.FieldLogApp.body.getter",
+      "FieldLog.WorkspaceView.body.getter",
+      "FieldLog.EntryEditor.body.getter",
+      "FieldLogStorage.WorkspaceRepository.exportReport",
+      "FieldLogStorage.WorkspaceRepository.addPhoto",
+      "FieldLogFeatures.TaskEditorAppleFieldsHost"
+    ],
+    "linkedFieldLogStrings": [
+      "OFFLINE WORKSPACE",
+      "Draft saved on this device. You can return to it later.",
+      "Share report"
+    ],
+    "resolvedDependencyCheckouts": {
+      "swift-asn1": {
+        "url": "https://github.com/apple/swift-asn1.git",
+        "revision": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+        "version": "1.7.3",
+        "tree": "e7ed2e8c1483426c349b678e7d10940509f9d39c"
+      },
+      "swift-crypto": {
+        "url": "https://github.com/apple/swift-crypto.git",
+        "revision": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+        "version": "5.0.3",
+        "tree": "841fdfd88fed694e6532a3200a91b0f85595c340"
+      }
+    }
+  },
+  "commands": {
+    "swift-asn1-clone": {
+      "pgid": 90154,
+      "exit": 0,
+      "seconds": 0.63,
+      "groupAbsent": true,
+      "outputSHA256": "9ea0fdd9c488a7c62b77ee4c43a82638ea71b483b1aef73fd6c62d56c1f31f23"
+    },
+    "swift-asn1-object": {
+      "pgid": 90179,
+      "exit": 0,
+      "seconds": 0.02,
+      "groupAbsent": true,
+      "outputSHA256": "285583a575e778af2833fbfbd2adcf36611d562ad47ad8e49d301c4fc935def3"
+    },
+    "swift-crypto-clone": {
+      "pgid": 90153,
+      "exit": 0,
+      "seconds": 1.16,
+      "groupAbsent": true,
+      "outputSHA256": "e90591726cea959212d2c003439a07015db7591b29b4dca20c2fc7d33624a409"
+    },
+    "swift-crypto-object": {
+      "pgid": 90196,
+      "exit": 0,
+      "seconds": 0.01,
+      "groupAbsent": true,
+      "outputSHA256": "62bf3092775405fa50f614ad5a43ee0b9b840be4e3defbf4f23f4cd24ce2f6a6"
+    },
+    "mixer-cli-build": {
+      "pgid": 90198,
+      "exit": 0,
+      "seconds": 13.83,
+      "groupAbsent": true,
+      "outputSHA256": "61d33d19217c8a52c189cf52ce358b0c0c63d64a5e590b6d62e55b63c10cdf2f"
+    },
+    "xcode-version": {
+      "pgid": 98713,
+      "exit": 0,
+      "seconds": 0.14,
+      "groupAbsent": true,
+      "outputSHA256": "67c5b47bcf0e788aecae2f9b3af345813bdf7fe736faefb9666a7f4b2bf27ba7"
+    },
+    "swift-version": {
+      "pgid": 98714,
+      "exit": 0,
+      "seconds": 0.13,
+      "groupAbsent": true,
+      "outputSHA256": "448e3f9c46706640fe62ea0140ecfccbb330baba2076b2916c0423af9642ee06"
+    },
+    "mixer-version": {
+      "pgid": 98715,
+      "exit": 0,
+      "seconds": 0.24,
+      "groupAbsent": true,
+      "outputSHA256": "a20b4c3429c462fa57d53a7eeda9b23bc5af97b9d89be33cac3928074d556495"
+    },
+    "mixer-create-metadata": {
+      "pgid": 98716,
+      "exit": 0,
+      "seconds": 0.21,
+      "groupAbsent": true,
+      "outputSHA256": "5069f9af8466c9d82f8bb8e4ccb5c6d9c6952cea0d7ee48b08a342c93d200812",
+      "argv": [
+        "$work/prep/cli-build/debug/mixer",
+        "create",
+        "FieldLog",
+        "--platform",
+        "ios",
+        "--application",
+        "dev.mixer.fieldlog",
+        "--directory",
+        "$work/prep/export-metadata",
+        "--sdk-path",
+        "$work/prep/mixer/sdk"
+      ],
+      "cwd": "$work/prep"
+    },
+    "fieldlog-swiftpm-resolve": {
+      "pgid": 98718,
+      "exit": 0,
+      "seconds": 3.19,
+      "groupAbsent": true,
+      "outputSHA256": "48a27999becec24c7efe76197b3de30a8f00ff0a08abbcea948a54dcd17aeb58",
+      "argv": [
+        "/usr/bin/swift",
+        "package",
+        "--package-path",
+        "$work/prep/fieldlog",
+        "--scratch-path",
+        "$work/prep/resolve/swift-build",
+        "--cache-path",
+        "$work/prep/resolve/swift-cache",
+        "--config-path",
+        "$work/prep/resolve/swift-config",
+        "--security-path",
+        "$work/prep/resolve/swift-security",
+        "--manifest-cache",
+        "local",
+        "--disable-dependency-cache",
+        "resolve"
+      ],
+      "cwd": "$work/prep/fieldlog"
+    },
+    "fieldlog-xcode-resolve": {
+      "pgid": 99095,
+      "exit": 0,
+      "seconds": 6.47,
+      "groupAbsent": true,
+      "outputSHA256": "067e878c3fa9a7e01878ba47b22cee653d3ad5a752f748e096deb38fd9c2c4fd",
+      "argv": [
+        "/usr/bin/xcodebuild",
+        "-project",
+        "$work/prep/fieldlog/ios/FieldLog.xcodeproj",
+        "-scheme",
+        "FieldLog",
+        "-configuration",
+        "Debug",
+        "-sdk",
+        "iphonesimulator27.2",
+        "-destination",
+        "generic/platform=iOS Simulator",
+        "-derivedDataPath",
+        "$work/prep/resolve/derived",
+        "-clonedSourcePackagesDirPath",
+        "$work/prep/resolve/packages",
+        "-packageCachePath",
+        "$work/prep/resolve/package-cache",
+        "-disablePackageRepositoryCache",
+        "-scmProvider",
+        "system",
+        "-jobs",
+        "4",
+        "CODE_SIGNING_ALLOWED=NO",
+        "CODE_SIGNING_REQUIRED=NO",
+        "ARCHS=arm64",
+        "-resolvePackageDependencies"
+      ],
+      "cwd": "$work/prep/fieldlog"
+    },
+    "mixer-export": {
+      "pgid": 99398,
+      "exit": 0,
+      "seconds": 0.43,
+      "groupAbsent": true,
+      "outputSHA256": "d67bf47be7e17c16748958892fa2c9e9ffd8df8bf5008ab368adad70ea1589fb",
+      "argv": [
+        "$work/prep/cli-build/debug/mixer",
+        "export",
+        "$work/export-staging",
+        "--directory",
+        "$work/prep/fieldlog"
+      ],
+      "cwd": "$work/prep/fieldlog"
+    },
+    "relocated-fieldlog-build": {
+      "pgid": 99433,
+      "exit": 0,
+      "seconds": 16.72,
+      "groupAbsent": true,
+      "outputSHA256": "cb857d9b83d69733d251e9370bfe21503ec3613c24719588ffb4ec2cf21a1d46",
+      "argv": [
+        "/usr/bin/xcodebuild",
+        "-project",
+        "$work/relocated/FieldLog/ios/FieldLog.xcodeproj",
+        "-scheme",
+        "FieldLog",
+        "-configuration",
+        "Debug",
+        "-sdk",
+        "iphonesimulator27.2",
+        "-destination",
+        "generic/platform=iOS Simulator",
+        "-derivedDataPath",
+        "$work/ci/derived",
+        "-clonedSourcePackagesDirPath",
+        "$work/ci/packages",
+        "-packageCachePath",
+        "$work/ci/package-cache",
+        "-disablePackageRepositoryCache",
+        "-scmProvider",
+        "system",
+        "-jobs",
+        "4",
+        "CODE_SIGNING_ALLOWED=NO",
+        "CODE_SIGNING_REQUIRED=NO",
+        "ARCHS=arm64",
+        "-onlyUsePackageVersionsFromResolvedFile",
+        "-disableAutomaticPackageResolution",
+        "build"
+      ],
+      "cwd": "$work/relocated/FieldLog"
+    },
+    "guide-replay": {
+      "pgid": 7300,
+      "exit": 0,
+      "seconds": 46.13,
+      "groupAbsent": true,
+      "outputSHA256": "4c1c330d642b19261799c8f0d51bc3c0ca56ba944416683bcbe662907ac44105"
+    }
+  },
+  "guideReplay": {
+    "path": "docs/guides/fieldlog-ios-export.md",
+    "guideSHA256": "b8985c79c03b004a41f87f1c75dca627105dcd3ce3f0d85b3dc77f713d7ea882",
+    "passed": true,
+    "separateFreshBuild": true,
+    "filesCompared": 187,
+    "inventorySHA256": "3d28de8e48de2bd480f49aa4a8d864a383d7281c228a88036b4eb2307e65c707"
+  },
+  "limits": [
+    "Bundle namespace inspected on disk. No Simulator install or launch, frontend or physical device.",
+    "No hosted CI run, store submission, published package qualification, credential use or gate assessment.",
+    "Source and build evidence only. No runtime behavior inferred from linked symbols or strings."
+  ],
+  "cleanup": {
+    "preparationRootsAbsentBeforeBuild": true,
+    "ownedCommandCustodyResolved": true,
+    "historicalHoldsAccessed": false,
+    "scratchRemoved": [
+      "verification/local/fieldlog-ios-export.XdDy1hAi",
+      "verification/local/fieldlog-ios-relocated-v80.5McNDGh8"
+    ]
+  }
+}
