@@ -94,6 +94,16 @@ and generic rollback after the CAS. The corrected fence reported indeterminate
 in both cases and preserved certain conflict and pre-CAS unavailable.
 [COMMIT acknowledgement controls](verification/receipts/l05-delivery-fence-commit-ack-20261120.json)
 
+## November 21 stock attestation privacy
+
+The stock loopback API attached a synthetic V2 envelope, returned the original
+result on exact replay, and refused a read-only bearer and a cross-tenant
+request. PostgreSQL showed one matching row. The BEAM, Bandit, and PostgreSQL
+captures contained their positive controls and zero matches for 48 synthetic
+markers. The observed handler inventories had no registered exporter. Both
+owned groups closed and scratch was removed. L07 remains open.
+[Attestation privacy receipt](verification/receipts/l07-native-attestation-stock-log-6b9b826c.json)
+
 ## November 20 local development attestation attachment
 
 The stock Go signer signed a retained iOS Simulator build completion, then
