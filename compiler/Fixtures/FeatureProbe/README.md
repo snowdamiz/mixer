@@ -248,6 +248,17 @@ The growth fixture checks the exact allocation that grows memory,
 pre-growth canaries, `ENOMEM` at its ceiling, reuse, and retirement.
 [Reviewed growth receipt](../../../verification/receipts/l03-guest-allocator-growth-strict-41a05264.json)
 
+## Swift checklist macro replay
+
+The [maintained macro replay](../../experiments/w07-checklist-macro/README.md)
+uses the same freestanding macro call and helper in native Swift and
+Embedded Wasm. The owned VM validates the unsigned guest and compares
+six frames, including recovery after refused input. The separate
+missing-plugin control reports the original macro call site before
+producing an object.
+[Original evidence](../../../verification/receipts/w07-l03-checklist-macro-98ef1420.json) ·
+[Reviewed runner correction](../../../verification/receipts/w07-l03-checklist-macro-custody-41a05264.json)
+
 ## Swift actor isolation replay
 
 Use Swift 6.3.3 on arm64 macOS with Xcode 26.6 installed at

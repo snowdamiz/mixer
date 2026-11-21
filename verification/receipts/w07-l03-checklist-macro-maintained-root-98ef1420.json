@@ -1,0 +1,867 @@
+{
+  "status": "pass",
+  "revision": "98ef14202e14661dcc3532f37068aae20ddb70cc",
+  "tree": "c5517ea0fad548ef4fc4afa013cb9a823afdb0ba",
+  "vmTree": "ec1ddb74b7c6c2eabd91d1f60ed243ffc69ce6f4",
+  "utcStarted": "2026-11-21T16:14:11Z",
+  "commands": [
+    {
+      "label": "pinned-trees",
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "$REPO",
+        "rev-parse",
+        "98ef14202e14661dcc3532f37068aae20ddb70cc^{tree}",
+        "98ef14202e14661dcc3532f37068aae20ddb70cc:vm"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 16853,
+      "exit": 0
+    },
+    {
+      "label": "public-ancestry",
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "$REPO",
+        "for-each-ref",
+        "--contains",
+        "98ef14202e14661dcc3532f37068aae20ddb70cc",
+        "refs/remotes/origin/main"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 16861,
+      "exit": 0
+    },
+    {
+      "label": "source-projection",
+      "argv": [
+        "/usr/bin/git",
+        "-C",
+        "$REPO",
+        "archive",
+        "-o",
+        "$RUN/pinned.tar",
+        "98ef14202e14661dcc3532f37068aae20ddb70cc",
+        "vm/Cargo.toml",
+        "vm/Cargo.lock",
+        "vm/src",
+        "vm/include",
+        "vm/examples/taskeditor_owned_command.rs",
+        "compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift",
+        "compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift",
+        "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift",
+        "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift",
+        "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift",
+        "compiler/experiments/fieldlog-installed-guest/replay_abi.py",
+        "compiler/experiments/fieldlog-reactor/support.py",
+        "compiler/experiments/profile-budget/analyze.py",
+        "compiler/qualification_support.py"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 16862,
+      "exit": 0
+    },
+    {
+      "label": "macos-sdk",
+      "argv": [
+        "/usr/bin/xcrun",
+        "--no-cache",
+        "--sdk",
+        "macosx",
+        "--show-sdk-path"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 16878,
+      "exit": 0
+    },
+    {
+      "label": "macos",
+      "argv": [
+        "/usr/bin/sw_vers"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 16957,
+      "exit": 0
+    },
+    {
+      "label": "xcode",
+      "argv": [
+        "/usr/bin/xcodebuild",
+        "-version"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 16958,
+      "exit": 0
+    },
+    {
+      "label": "swift",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "--version"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 16959,
+      "exit": 0
+    },
+    {
+      "label": "lld",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--version"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 16964,
+      "exit": 0
+    },
+    {
+      "label": "rustc",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--version",
+        "--verbose"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 16965,
+      "exit": 0
+    },
+    {
+      "label": "cargo",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "--version",
+        "--verbose"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 16973,
+      "exit": 0
+    },
+    {
+      "label": "macro-library",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-parse-as-library",
+        "-swift-version",
+        "6",
+        "-whole-module-optimization",
+        "-target",
+        "arm64-apple-macosx26.0",
+        "-sdk",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-module-cache-path",
+        "$RUN/host-modules",
+        "-O",
+        "-module-name",
+        "MixerChecklistMacros",
+        "-I",
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host",
+        "-L",
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host",
+        "-Xlinker",
+        "-rpath",
+        "-Xlinker",
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host",
+        "-emit-library",
+        "$FIXTURE/ChecklistMacro.swift",
+        "-o",
+        "$RUN/plugin/libMixerChecklistMacros.dylib"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 16982,
+      "exit": 0
+    },
+    {
+      "label": "plugin-dependencies",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-objdump",
+        "--macho",
+        "--dylibs-used",
+        "$RUN/plugin/libMixerChecklistMacros.dylib"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 17350,
+      "exit": 0
+    },
+    {
+      "label": "embedded-missing-plugin",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-parse-as-library",
+        "-swift-version",
+        "6",
+        "-whole-module-optimization",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-Osize",
+        "-Xfrontend",
+        "-disable-stack-protector",
+        "-module-cache-path",
+        "$RUN/guest-modules",
+        "-emit-object",
+        "$FIXTURE/Checklist.swift",
+        "$FIXTURE/ChecklistCount.swift",
+        "$FIXTURE/Guest.swift",
+        "-o",
+        "$RUN/missing.o"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 17353,
+      "exit": 1,
+      "stderr": "$FIXTURE/Checklist.swift:2:7: warning: external macro implementation type 'MixerChecklistMacros.ChecklistCountMacro' could not be found for macro 'checklistCount'; plugin for module 'MixerChecklistMacros' not found\n 1 | @freestanding(expression)\n 2 | macro checklistCount(_ mask: UInt8) -> UInt8 =\n   |       `- warning: external macro implementation type 'MixerChecklistMacros.ChecklistCountMacro' could not be found for macro 'checklistCount'; plugin for module 'MixerChecklistMacros' not found\n 3 |     #externalMacro(module: \"MixerChecklistMacros\", type: \"ChecklistCountMacro\")\n 4 | \n\n$FIXTURE/Checklist.swift:13:17: error: external macro implementation type 'MixerChecklistMacros.ChecklistCountMacro' could not be found for macro 'checklistCount'; plugin for module 'MixerChecklistMacros' not found\n 1 | @freestanding(expression)\n 2 | macro checklistCount(_ mask: UInt8) -> UInt8 =\n   |       `- note: 'checklistCount' declared here\n 3 |     #externalMacro(module: \"MixerChecklistMacros\", type: \"ChecklistCountMacro\")\n 4 | \n   :\n11 |         let mask = input[1]\n12 |         guard mask <= 7 else { return false }\n13 |         count = #checklistCount(mask)\n   |                 `- error: external macro implementation type 'MixerChecklistMacros.ChecklistCountMacro' could not be found for macro 'checklistCount'; plugin for module 'MixerChecklistMacros' not found\n14 |         revision += 1\n15 |         return true"
+    },
+    {
+      "label": "embedded-expand-compile",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-parse-as-library",
+        "-swift-version",
+        "6",
+        "-whole-module-optimization",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-Osize",
+        "-Xfrontend",
+        "-disable-stack-protector",
+        "-module-cache-path",
+        "$RUN/guest-modules",
+        "-external-plugin-path",
+        "$RUN/plugin#$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift-plugin-server",
+        "-Xfrontend",
+        "-dump-macro-expansions",
+        "-emit-object",
+        "$FIXTURE/Checklist.swift",
+        "$FIXTURE/ChecklistCount.swift",
+        "$FIXTURE/Guest.swift",
+        "-o",
+        "$RUN/guest.o"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 17371,
+      "exit": 0,
+      "stderr": "@__swiftmacro_5guest0020Checklistswift_odAJdfMX12_16_14checklistCountfMf_.swift\n------------------------------\nboundedChecklistCount(mask)\n------------------------------"
+    },
+    {
+      "label": "vm-build",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--offline",
+        "--locked",
+        "--release",
+        "--jobs",
+        "1",
+        "--features",
+        "experimental-capability-native",
+        "--lib",
+        "--manifest-path",
+        "$RUN/mixer/vm/Cargo.toml",
+        "--target-dir",
+        "$RUN/rust"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 17391,
+      "exit": 0,
+      "stderr": "Compiling mixer-vm v0.1.0 ($RUN/mixer/vm)\n    Finished `release` profile [optimized] target(s) in 3.01s"
+    },
+    {
+      "label": "native-expand-build",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-parse-as-library",
+        "-swift-version",
+        "6",
+        "-whole-module-optimization",
+        "-target",
+        "arm64-apple-macosx26.0",
+        "-sdk",
+        "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-module-cache-path",
+        "$RUN/host-modules",
+        "-external-plugin-path",
+        "$RUN/plugin#$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift-plugin-server",
+        "-Xfrontend",
+        "-dump-macro-expansions",
+        "-O",
+        "-D",
+        "SWIFT_SUPPORT_MATRIX",
+        "-I",
+        "$RUN",
+        "$FIXTURE/Checklist.swift",
+        "$FIXTURE/ChecklistCount.swift",
+        "$FIXTURE/Host.swift",
+        "$RUN/mixer/compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift",
+        "$RUN/mixer/compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift",
+        "$RUN/mixer/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift",
+        "$RUN/mixer/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift",
+        "$RUN/mixer/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift",
+        "$RUN/rust/release/libmixer_vm.a",
+        "-o",
+        "$RUN/native"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 17517,
+      "exit": 0,
+      "stderr": "@__swiftmacro_6native0020Checklistswift_odAJdfMX12_16_14checklistCountfMf_.swift\n------------------------------\nboundedChecklistCount(mask)\n------------------------------"
+    },
+    {
+      "label": "native-run",
+      "argv": [
+        "$RUN/native"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 22378,
+      "exit": 0
+    },
+    {
+      "label": "guest-object-symbols",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-nm",
+        "--demangle",
+        "$RUN/guest.o"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 22507,
+      "exit": 0
+    },
+    {
+      "label": "wasm-link",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--no-entry",
+        "--gc-sections",
+        "--strip-all",
+        "-z",
+        "stack-size=16384",
+        "--max-memory=65536",
+        "--export=mixer_guest_ui_start_v1",
+        "--export=mixer_guest_ui_event_v1",
+        "--export=mixer_guest_capability_ready_v1",
+        "$RUN/guest.o",
+        "-o",
+        "$RUN/guest.wasm"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 22589,
+      "exit": 0
+    },
+    {
+      "label": "strict-session-replay",
+      "argv": [
+        "$RUN/native",
+        "$RUN/guest.wasm"
+      ],
+      "custody": "direct-child-reaped/group-absent",
+      "pidPgid": 22704,
+      "exit": 0
+    }
+  ],
+  "limits": {
+    "allocatedScratchCeilingBytes": 3221225472,
+    "sampledGuardBytes": 1073741824,
+    "maxIndividualFileBytes": 268435456,
+    "campaignSeconds": 230,
+    "guest": "table-memory-v3 / experimental-capability-native",
+    "memoryPages": 1,
+    "fuelPerTurn": 1000000,
+    "hostCallsPerTurn": 0
+  },
+  "scope": "One unsigned synthetic Guest UI V1 fixture and two-byte replay input. Runtime evidence covers the strict validator, owned VM session and exact frames. Product UI event codec, signing, apps, devices, migration analyzer and wider macro support are outside scope.",
+  "freeBeforeBytes": 31636025344,
+  "scratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/w07-checklist-macro-l50xkl1g",
+  "projectedArchive": {
+    "sha256": "b50019d20639ba6d4b89ae6d2c649f7b7b7e482fb9dd1f90e2396c6621042463",
+    "bytes": 19210240
+  },
+  "pinnedHarnessInputs": {
+    "compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift": {
+      "sha256": "7706eb6827072168637a90ecbfc7b73b78f85b059367d9ec0d706cb02462d248",
+      "bytes": 9964
+    },
+    "compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift": {
+      "sha256": "617b60024af1accef044dd148360fcf889648594783057c7234b335b468071d7",
+      "bytes": 4093
+    },
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift": {
+      "sha256": "508f0e5ef4b5439f6eaf0d3ff404bcc17034dce337cbb4886932b9826b483b62",
+      "bytes": 5876
+    },
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift": {
+      "sha256": "25fda0bc8aa630afbfab7b53d0a05ddadee31e560f7cee37daf60c8fa24bcc63",
+      "bytes": 14710
+    },
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift": {
+      "sha256": "37182a6b3da620e07730647526ca644f5e85e4e55c661cb785973516d277fde7",
+      "bytes": 13825
+    },
+    "compiler/experiments/fieldlog-installed-guest/replay_abi.py": {
+      "sha256": "96ec1f79559e0742fab2589bc2d852ba07e6463372af8e7f9aea8f0cc98793c0",
+      "bytes": 4935
+    },
+    "compiler/experiments/fieldlog-reactor/support.py": {
+      "sha256": "45c77827d72c9850ff44e6258eede32b65161ab8ef0df6d3c295c870cd605e52",
+      "bytes": 6293
+    },
+    "compiler/experiments/profile-budget/analyze.py": {
+      "sha256": "bf73a629f071c63ddef05549a81705347f049c3fdf15d424702823ef5ba60ccb",
+      "bytes": 11127
+    },
+    "compiler/qualification_support.py": {
+      "sha256": "af6a4ea7e22bd67a4b60f14058e834ca1442eb37414f03b71796434b8a98d16b",
+      "bytes": 9458
+    }
+  },
+  "fixture": {
+    "Checklist.swift": {
+      "sha256": "7e9c7b668fbd1997bbb52ca40ac43a0411e5fcabe4d5ef3962ed224cc68b97b1",
+      "bytes": 1397
+    },
+    "ChecklistCount.swift": {
+      "sha256": "62794c2d44b400a84f49b89bc0c68d4ffe3965c3c1a87f24afeb0bcfa10cdc37",
+      "bytes": 127
+    },
+    "ChecklistMacro.swift": {
+      "sha256": "b55eb09371fd46eea92b75b5f18eb859207731e8fb4bb9f49c7a1e02f3d381a5",
+      "bytes": 532
+    },
+    "Guest.swift": {
+      "sha256": "9d52eac3cf7b5ba96caa2a6937f0e257bea01132b2105b447535cc0f00ebc793",
+      "bytes": 1712
+    },
+    "Host.swift": {
+      "sha256": "b1b162cf4155fa3d1421aefd989f06b2525a9667ce96eee4bf0b724e9d4c5838",
+      "bytes": 2826
+    },
+    "replay.py": {
+      "sha256": "3a0a078146148ae3cb2594104048b44141b120e7c6887f2a49091779dbb5af40",
+      "bytes": 17514
+    }
+  },
+  "versions": {
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "xcode": "Xcode 26.6\nBuild version 17F113",
+    "swift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "lld": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)\nrelease: 1.99.0\ncommit-hash: 5f94df4789f005f9a352888e8355ffc645b7ed0e\ncommit-date: 2026-08-27\nhost: aarch64-apple-darwin\nlibgit2: 1.9.6 (sys:0.21.0 vendored)\nlibcurl: 8.7.1 (sys:0.4.90+curl-8.21.0 system ssl:(SecureTransport) LibreSSL/3.3.6)\nssl: OpenSSL 3.6.3 9 Jun 2026\nos: Mac OS 27.0.1 [64-bit]"
+  },
+  "toolchainInputs": {
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc": {
+      "sha256": "3d13e20b1504d7d30038fcd2201b9d0a8ead5c09eea752a5da223453b3ae0c6f",
+      "bytes": 230464
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift-frontend": {
+      "sha256": "1ed6c28434801b1abb053e283cbc7e16d8e73ff12deb2ae3a539790afafbb3f5",
+      "bytes": 341733312
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld": {
+      "sha256": "9015cfad802c83aef7e24c1415ae4485f4ff5926837148f91ffa8a4b0dabbd97",
+      "bytes": 174305600
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-nm": {
+      "sha256": "38feb6567fe9cfbb3dce65f0ac4acea476a7de2c252a31a55384b1ec792950b3",
+      "bytes": 42662016
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift-plugin-server": {
+      "sha256": "64e1e487c32bf91573166667bb76c7c43a6aa970b5c82483694467ccd876ac19",
+      "bytes": 137920
+    },
+    "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc": {
+      "sha256": "dd6f58440b3418aa9157ae3f05d71eecff741ca41bc4eec120e7e8f2d933b9a0",
+      "bytes": 413480
+    },
+    "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo": {
+      "sha256": "fc7aa5077deca8abc0651f329e8ec1d968f520e996a93b428f9935014362b382",
+      "bytes": 32181448
+    },
+    "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk/SDKSettings.json": {
+      "sha256": "f8d005f09381389167f9e0aeaa169bc9e7dff162ef22ca2fd8e98df7ff1acafe",
+      "bytes": 7774
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/embedded/Swift.swiftmodule/wasm32-unknown-none-wasm.swiftmodule": {
+      "sha256": "d776a639deba8b93324dc252969e1b16c7a867bdcd0d5c1e3035fc9a8068d637",
+      "bytes": 21023820
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/libSwiftBasicFormat.dylib": {
+      "sha256": "7a58ca7ee327c9e8b10eef11cfedabd3e72abae6f7a985ec50dbe6e2b1c7e520",
+      "bytes": 412608
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/libSwiftCompilerPluginMessageHandling.dylib": {
+      "sha256": "597aec6791ebc8d10ba2227dbe489edea34a71f02a2c7c24a559c0ddaf1c514a",
+      "bytes": 1827040
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/libSwiftDiagnostics.dylib": {
+      "sha256": "2c0adfd35524daec5cc4c3045f07746b39bcbbcf3cd8f5d195e084fbd97f534b",
+      "bytes": 494160
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/libSwiftIDEUtils.dylib": {
+      "sha256": "337641b4ba8b1398358eab91ccbfd0055272b56e74f3dde9afba0b4d1af096d5",
+      "bytes": 423744
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/libSwiftIfConfig.dylib": {
+      "sha256": "7c562c98129f7d0f3f112ab598d88fd3dd59b6f0eb5cc19d7c5de07ec7117555",
+      "bytes": 865440
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib": {
+      "sha256": "ec727e103d57a375d5945d0562629fbac7fd951997fe19da28296229c2219d3d",
+      "bytes": 175232
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/libSwiftLibraryPluginProvider.dylib": {
+      "sha256": "39fb39f875926dead130da57fb2eab3f1e4862900374e5a8cac9a6078493dd4d",
+      "bytes": 222832
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/libSwiftOperators.dylib": {
+      "sha256": "28381bcd84fc6b9dfa6060ddb1be09d1bd83cb8e888181be57c8771781abb84b",
+      "bytes": 536688
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/libSwiftParser.dylib": {
+      "sha256": "18087beb60a8b8ccc661c27b9734fe2d783227c2d21818a598fb533dfd1fa6c2",
+      "bytes": 4871888
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/libSwiftParserDiagnostics.dylib": {
+      "sha256": "2b3d028924953970406157da9e84587bf8b773facb0c9702da6dbc3e1c64a5e3",
+      "bytes": 2121216
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/libSwiftRefactor.dylib": {
+      "sha256": "6aa279f4273c99713e80f2593d036b17e23ca5f4bca3fccdfa403cc37c09e429",
+      "bytes": 1125184
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/libSwiftSyntax.dylib": {
+      "sha256": "3535b3cdb9c25a8bf90420c0aedfcd0beecc41f4dad6b03285f889e4b601bb42",
+      "bytes": 27542704
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/libSwiftSyntaxBuilder.dylib": {
+      "sha256": "6074426d7d6fe664f03dc22dea30d90780cc642f98c9a9c5b1934c947c6c8983",
+      "bytes": 2126304
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/libSwiftSyntaxMacroExpansion.dylib": {
+      "sha256": "b8b78455e81139ffe27e041830aac325b60f9cc390e3685eba8e162de6f7d4cf",
+      "bytes": 871200
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/libSwiftSyntaxMacros.dylib": {
+      "sha256": "b0311cd41acae8ef3545c11c7a6938ae0a38d6bfe6581a642a6c830fc6d6d3ad",
+      "bytes": 354896
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/lib_InternalSwiftScan.dylib": {
+      "sha256": "0ab87e67d7e14d8ef15aac0c1abcf5edc5113f138c60117fc74be5f305ec93fa",
+      "bytes": 332529648
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftBasicFormat.swiftmodule/arm64-apple-macos.private.swiftinterface": {
+      "sha256": "03acb4fc965f791e0e6c4b159af965439b444e391341ce7363557099a6beef7e",
+      "bytes": 2669
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftBasicFormat.swiftmodule/arm64-apple-macos.swiftinterface": {
+      "sha256": "d520161bde03e13cdedee86c5051253190fe502c82dd19fdc5fd8eb3c9fd69de",
+      "bytes": 2652
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftCompilerPluginMessageHandling.swiftmodule/arm64-apple-macos.private.swiftinterface": {
+      "sha256": "f5f8db31c7122343f04301f0575bdf27a9d4049ec2c1609117752600929169c5",
+      "bytes": 17544
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftCompilerPluginMessageHandling.swiftmodule/arm64-apple-macos.swiftinterface": {
+      "sha256": "a99bede875e903cc0a516a69a157838a7c8e717b81746d12a57d0f2e24b897eb",
+      "bytes": 541
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftDiagnostics.swiftmodule/arm64-apple-macos.private.swiftinterface": {
+      "sha256": "3c4ddfd831fc80b990890d433f7a2acbb7be7419481297ec49cd0ccfb305e872",
+      "bytes": 9234
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftDiagnostics.swiftmodule/arm64-apple-macos.swiftinterface": {
+      "sha256": "fcc4536e67bd89ed8da64dc9fd9bcee90b927d20c2a2b8bfbeef20b20a4c3c00",
+      "bytes": 8141
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftIDEUtils.swiftmodule/arm64-apple-macos.private.swiftinterface": {
+      "sha256": "69e1a3c4e61371d52b084109bb5f142b4250141d090525694a8d72099388e92f",
+      "bytes": 9339
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftIDEUtils.swiftmodule/arm64-apple-macos.swiftinterface": {
+      "sha256": "ae78af96ab11a62a26df90c1eecefe4f1e5976911dca39198dcfb31d64fff411",
+      "bytes": 3982
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftIfConfig.swiftmodule/arm64-apple-macos.private.swiftinterface": {
+      "sha256": "8904bbfe8bf344efa08cb8acd630b0a89ba70e35e99f0501686d8c110e2656e9",
+      "bytes": 10424
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftIfConfig.swiftmodule/arm64-apple-macos.swiftinterface": {
+      "sha256": "6e41488edba3afe13f25246ef475af27359648a5139f426cb87c57f916e9d9e3",
+      "bytes": 9548
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftLibraryPluginProvider.swiftmodule/arm64-apple-macos.private.swiftinterface": {
+      "sha256": "d3dfdba9c4696f0137c55ec680f79d4a93ee2d901c3643507f4d2b2b1f7dc981",
+      "bytes": 1269
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftLibraryPluginProvider.swiftmodule/arm64-apple-macos.swiftinterface": {
+      "sha256": "09433242bac66c568a362b8593034203a239e0f3c884a9b579e13fc1c3ab24d4",
+      "bytes": 559
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftOperators.swiftmodule/arm64-apple-macos.private.swiftinterface": {
+      "sha256": "9cf91df4b08664737adcfd5088f8ad2b90fad84a56e1abab56c2d552c342a34c",
+      "bytes": 6885
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftOperators.swiftmodule/arm64-apple-macos.swiftinterface": {
+      "sha256": "88a362ff47061061c0f0f5a20dd4863cf1a8df326d45088e0db474a0e7c8c9e5",
+      "bytes": 6677
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftParser.swiftmodule/arm64-apple-macos.private.swiftinterface": {
+      "sha256": "ebf929cb92a969f57e6b680c420ea35559975e654042de355a798e12e86617ad",
+      "bytes": 105033
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftParser.swiftmodule/arm64-apple-macos.swiftinterface": {
+      "sha256": "7355be6b845f305538c949853eb03f9c2db621199dc66f8a7bbc3b63e219709e",
+      "bytes": 9319
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftParserDiagnostics.swiftmodule/arm64-apple-macos.private.swiftinterface": {
+      "sha256": "a66e80b1f2b55a2728398ac6adbf585a1d4f9ceab6a938cb9293612857f34cb2",
+      "bytes": 32400
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftParserDiagnostics.swiftmodule/arm64-apple-macos.swiftinterface": {
+      "sha256": "4666e177fbce683a99e46e0ab9758f13d030ff290faa149120b436edd1c8d2c7",
+      "bytes": 31552
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftRefactor.swiftmodule/arm64-apple-macos.private.swiftinterface": {
+      "sha256": "ee922628efa58e88e949de3e3ea6f3bd6c72dca9afbe15760d59d5cf18115e4f",
+      "bytes": 20782
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftRefactor.swiftmodule/arm64-apple-macos.swiftinterface": {
+      "sha256": "724cdc51dd6e6dc1d3f3d231e9f0bd632b5e0fb43e3e482c14e99b63b70d2590",
+      "bytes": 7617
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftSyntax.swiftmodule/arm64-apple-macos.private.swiftinterface": {
+      "sha256": "af703f5ebabea8687d4cea4e09ebbea2e8a8c2aa0209f8a3006506f3267fbb7d",
+      "bytes": 1580033
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftSyntax.swiftmodule/arm64-apple-macos.swiftinterface": {
+      "sha256": "7d9ada2de5ed73ca5bb1a4ad67748c7e878c8ca0aaf098ffb5b54cfab7f85bb9",
+      "bytes": 991096
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftSyntaxBuilder.swiftmodule/arm64-apple-macos.private.swiftinterface": {
+      "sha256": "df0b704827c8b92a767d2671d567d8aa50c7222b4705e0b7ed8b6419a245071b",
+      "bytes": 141036
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftSyntaxBuilder.swiftmodule/arm64-apple-macos.swiftinterface": {
+      "sha256": "6d8f95ade20175ba42155ff5e098cbdcdf89f4f86dc34be768c1d6230774e78f",
+      "bytes": 135113
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftSyntaxMacroExpansion.swiftmodule/arm64-apple-macos.private.swiftinterface": {
+      "sha256": "5506207cc0fe7b3a0696e9e7e60c2a4bd494b3663b7c31b3daf86f7d86b7c9eb",
+      "bytes": 10231
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftSyntaxMacroExpansion.swiftmodule/arm64-apple-macos.swiftinterface": {
+      "sha256": "f8695805a19030dc82197f1e34017db7376d349947245ed98594b027f97cbe52",
+      "bytes": 9376
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftSyntaxMacros.swiftmodule/arm64-apple-macos.private.swiftinterface": {
+      "sha256": "f4fba8e7f40a261254dca01dd815bd1456b14914e5cf1ea9e90c5aa64e2594e8",
+      "bytes": 9480
+    },
+    "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/lib/swift/host/SwiftSyntaxMacros.swiftmodule/arm64-apple-macos.swiftinterface": {
+      "sha256": "3b279237b97fde5da6477e5a0358c18f737e8b7ca95ca552b111f536a68efdc4",
+      "bytes": 9107
+    }
+  },
+  "pluginLibrary": {
+    "sha256": "d5b629175707ea96f15a9b3166e246b3509458f8c8d8db4c925df84cc9f479b6",
+    "bytes": 58768
+  },
+  "pluginMachODependencies": [
+    "\t$RUN/plugin/libMixerChecklistMacros.dylib (compatibility version 0.0.0, current version 0.0.0)",
+    "\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)",
+    "\t/usr/lib/swift/libswiftCore.dylib (compatibility version 1.0.0, current version 0.0.0)",
+    "\t@rpath/libSwiftParser.dylib (compatibility version 0.0.0, current version 0.0.0)",
+    "\t@rpath/libSwiftSyntax.dylib (compatibility version 0.0.0, current version 0.0.0)",
+    "\t@rpath/libSwiftSyntaxBuilder.dylib (compatibility version 0.0.0, current version 0.0.0)",
+    "\t@rpath/libSwiftSyntaxMacros.dylib (compatibility version 0.0.0, current version 0.0.0)"
+  ],
+  "missingPlugin": {
+    "file": "Checklist.swift",
+    "line": 13,
+    "column": 17,
+    "diagnostic": "Checklist.swift:13:17: error: external macro implementation type 'MixerChecklistMacros.ChecklistCountMacro' could not be found for macro 'checklistCount'; plugin for module 'MixerChecklistMacros' not found"
+  },
+  "vmStaticLibrary": {
+    "sha256": "6a9ef08edafb9a3f9c35d3a98197584987a3b70cb429fddba6e1c562a927b822",
+    "bytes": 19316872
+  },
+  "nativeExecutable": {
+    "sha256": "fa5c7c8b1f676ef43042b39ec47523494cdec726fb9ddf78298ced0c285ca24f",
+    "bytes": 2013304
+  },
+  "nativeOnlyReplay": {
+    "native": [
+      {
+        "frame": "{\"schemaVersion\":1,\"revision\":1,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"0 of 3 complete\"},\"children\":[],\"actions\":[]}]}}"
+      },
+      {
+        "inputHex": "0105",
+        "frame": "{\"schemaVersion\":1,\"revision\":2,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"2 of 3 complete\"},\"children\":[],\"actions\":[]}]}}",
+        "accepted": true
+      },
+      {
+        "accepted": false,
+        "frame": "{\"schemaVersion\":1,\"revision\":2,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"2 of 3 complete\"},\"children\":[],\"actions\":[]}]}}",
+        "inputHex": "0208"
+      },
+      {
+        "accepted": false,
+        "inputHex": "02",
+        "frame": "{\"schemaVersion\":1,\"revision\":2,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"2 of 3 complete\"},\"children\":[],\"actions\":[]}]}}"
+      },
+      {
+        "inputHex": "0207",
+        "accepted": true,
+        "frame": "{\"schemaVersion\":1,\"revision\":3,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"3 of 3 complete\"},\"children\":[],\"actions\":[]}]}}"
+      },
+      {
+        "frame": "{\"schemaVersion\":1,\"revision\":4,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"0 of 3 complete\"},\"children\":[],\"actions\":[]}]}}",
+        "accepted": true,
+        "inputHex": "0300"
+      }
+    ]
+  },
+  "expansion": {
+    "expression": "boundedChecklistCount(mask)",
+    "bothCompilerDumps": true,
+    "invocation": "Checklist.swift:13:17"
+  },
+  "guestObject": {
+    "sha256": "3195aa696e3c1992b9be82f7cd652c088df059a0abb4bb19c043964488104b2b",
+    "bytes": 13477
+  },
+  "guestHelperSymbol": "00000001 T $e5guest21boundedChecklistCountys5UInt8VADF",
+  "linkedWasm": {
+    "sha256": "3d60bb3b3f14bb6b4cf92be8e4a4fdeec0fcf0c265eb455f2f0bdfa4b49bf2ce",
+    "bytes": 1268
+  },
+  "wasmAbi": {
+    "authorization": false,
+    "scope": "bounded scalar descriptor inventory; no executable validation",
+    "typeCount": 8,
+    "functionCount": 9,
+    "startFunction": null,
+    "imports": [],
+    "exports": [
+      {
+        "name": "memory",
+        "kind": "memory",
+        "index": 0
+      },
+      {
+        "name": "mixer_guest_ui_start_v1",
+        "kind": "function",
+        "index": 3,
+        "typeIndex": 3,
+        "signature": {
+          "parameters": [],
+          "results": [
+            "i32"
+          ]
+        }
+      },
+      {
+        "name": "mixer_guest_ui_event_v1",
+        "kind": "function",
+        "index": 5,
+        "typeIndex": 5,
+        "signature": {
+          "parameters": [
+            "i32"
+          ],
+          "results": [
+            "i32"
+          ]
+        }
+      },
+      {
+        "name": "mixer_guest_capability_ready_v1",
+        "kind": "function",
+        "index": 7,
+        "typeIndex": 6,
+        "signature": {
+          "parameters": [],
+          "results": []
+        }
+      }
+    ],
+    "memories": [
+      {
+        "minimum": 1,
+        "maximum": 1
+      }
+    ]
+  },
+  "strictSessionReplay": {
+    "guest": [
+      {
+        "frame": "{\"schemaVersion\":1,\"revision\":1,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"0 of 3 complete\"},\"children\":[],\"actions\":[]}]}}"
+      },
+      {
+        "frame": "{\"schemaVersion\":1,\"revision\":2,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"2 of 3 complete\"},\"children\":[],\"actions\":[]}]}}",
+        "inputHex": "0105",
+        "accepted": true,
+        "fuel": 5130
+      },
+      {
+        "inputHex": "0208",
+        "frame": "{\"schemaVersion\":1,\"revision\":2,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"2 of 3 complete\"},\"children\":[],\"actions\":[]}]}}",
+        "accepted": false,
+        "fuel": 33
+      },
+      {
+        "inputHex": "02",
+        "frame": "{\"schemaVersion\":1,\"revision\":2,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"2 of 3 complete\"},\"children\":[],\"actions\":[]}]}}",
+        "accepted": false,
+        "fuel": 15
+      },
+      {
+        "inputHex": "0207",
+        "frame": "{\"schemaVersion\":1,\"revision\":3,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"3 of 3 complete\"},\"children\":[],\"actions\":[]}]}}",
+        "accepted": true,
+        "fuel": 5130
+      },
+      {
+        "inputHex": "0300",
+        "frame": "{\"schemaVersion\":1,\"revision\":4,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"0 of 3 complete\"},\"children\":[],\"actions\":[]}]}}",
+        "accepted": true,
+        "fuel": 5130
+      }
+    ],
+    "guestClosedAndStaleHandleRefused": true,
+    "guestRegistrySlotReclaimed": true,
+    "native": [
+      {
+        "frame": "{\"schemaVersion\":1,\"revision\":1,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"0 of 3 complete\"},\"children\":[],\"actions\":[]}]}}"
+      },
+      {
+        "accepted": true,
+        "inputHex": "0105",
+        "frame": "{\"schemaVersion\":1,\"revision\":2,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"2 of 3 complete\"},\"children\":[],\"actions\":[]}]}}"
+      },
+      {
+        "accepted": false,
+        "inputHex": "0208",
+        "frame": "{\"schemaVersion\":1,\"revision\":2,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"2 of 3 complete\"},\"children\":[],\"actions\":[]}]}}"
+      },
+      {
+        "frame": "{\"schemaVersion\":1,\"revision\":2,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"2 of 3 complete\"},\"children\":[],\"actions\":[]}]}}",
+        "inputHex": "02",
+        "accepted": false
+      },
+      {
+        "accepted": true,
+        "inputHex": "0207",
+        "frame": "{\"schemaVersion\":1,\"revision\":3,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"3 of 3 complete\"},\"children\":[],\"actions\":[]}]}}"
+      },
+      {
+        "accepted": true,
+        "inputHex": "0300",
+        "frame": "{\"schemaVersion\":1,\"revision\":4,\"root\":{\"id\":\"checklist\",\"kind\":\"vStack\",\"properties\":{},\"actions\":[],\"children\":[{\"id\":\"count\",\"kind\":\"text\",\"properties\":{\"text\":\"0 of 3 complete\"},\"children\":[],\"actions\":[]}]}}"
+      }
+    ]
+  },
+  "cleanup": "owned scratch removed with no unresolved command custody",
+  "sampledPeakAllocatedBytes": 166342656
+}

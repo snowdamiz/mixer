@@ -896,6 +896,17 @@ explicitly. Both guest compilations stopped before object emission.
 Independent review matched the receipts, scope, and existing selectors.
 [Actor boundary replay](verification/receipts/l03-swift-actor-isolation-5aafc1a7.json)
 
+Swift 6.3.3 expanded the same synthetic checklist macro in native and
+Embedded Swift. The 1,268-byte guest ran through the strict Guest UI V1
+session with zero imports and one fixed page. All six frames matched,
+both refusals preserved the prior frame, and retirement reclaimed the
+slot. The missing-plugin control diagnosed the original call site
+before object emission. Independent review verified the replay custody
+fix, and a fresh root replay confirmed closure for all 20 command groups
+and removed owned scratch. Rebuilt Wasm bytes differ across these runs.
+[Macro replay](verification/receipts/w07-l03-checklist-macro-maintained-root-98ef1420.json) ·
+[Runner correction](verification/receipts/w07-l03-checklist-macro-custody-41a05264.json)
+
 A compact Swift event trapped at function 3, byte 514 in the owned VM.
 The matching line table resolved that position to `SwiftEventGuest.swift:32:9`
 and LLVM agreed. Stripped and mismatched inputs preserved the raw trap
