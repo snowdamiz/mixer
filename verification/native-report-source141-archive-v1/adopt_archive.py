@@ -360,6 +360,8 @@ HOSTED_V72_CHANGES = {VERIFY_WORKFLOW, SPARSE_CHECKOUT_TEST}
 HOSTED_V73_PREFIX = 'hosted-v73-predecessor-bytes/'
 HOSTED_V73_NEW_OWNERS = {'.github/workflows/hosted.yml', '.github/workflows/identity-network.yml'}
 HOSTED_V73_CHANGES = HOSTED_V72_CHANGES | HOSTED_V73_NEW_OWNERS
+HOSTED_V74_PREFIX = 'hosted-v74-predecessor-bytes/'
+HOSTED_V74_CHANGES = HOSTED_V73_NEW_OWNERS | {VERIFY_WORKFLOW}
 ANDROID_INSPECTION_DEADLINE_PREFIX = 'android-inspection-deadline-predecessor-bytes/'
 ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE = ANDROID_INSPECTION_DEADLINE_PREFIX + SOURCE_INPUTS_MANIFEST
 ANDROID_INSPECTION_DEADLINE_SOURCE_SHA256 = '2a9d99e0dea712c70d7be383958e67cd040577565c847861b89c0fc598ba4fcd'
@@ -400,6 +402,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     HOSTED_V72_PREFIX + name for name in HOSTED_V72_CHANGES
 } | {
     HOSTED_V73_PREFIX + name for name in HOSTED_V73_CHANGES
+} | {
+    HOSTED_V74_PREFIX + name for name in HOSTED_V74_CHANGES
 } | {
     ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE,
     *(ANDROID_INSPECTION_DEADLINE_PREFIX + name for name in ANDROID_INSPECTION_DEADLINE_CHANGES),
@@ -541,6 +545,7 @@ def install_inputs():
                              'cli_nonregular_input_test_transition', 'signed_apple_overflow_test_transition',
                              'sparse_checkout_test_transition', 'release_rest_v3_transition', 'stock_promotion_transition',
                              'hosted_v71_transition', 'hosted_v72_transition', 'hosted_v73_transition',
+                             'hosted_v74_transition',
                              'android_inspection_deadline_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
@@ -1459,6 +1464,21 @@ def install_inputs():
                 'Installed hosted v73 owner mode differs: ' + name)
         installed[name] = change['after']
         preimages.setdefault(name, (raw, 0o644))
+
+    v74 = binding['hosted_v74_transition']
+    require(set(v74) == {'changes'} and set(v74['changes']) == HOSTED_V74_CHANGES and
+            current.keys().isdisjoint(HOSTED_V74_CHANGES) and HOSTED_V74_CHANGES <= installed.keys(),
+            'Hosted v74 archive change roster differs')
+    for name, change in v74['changes'].items():
+        path = HERE / HOSTED_V74_PREFIX / name
+        raw = read_predecessor_member(path)
+        require(set(change) == {'before', 'after'} and change['before'] != change['after'] and
+                change['before'] == previous.row(raw) == installed[name] and
+                stat.S_IMODE(path.lstat().st_mode) == 0o644,
+                'Hosted v74 predecessor chain bytes or mode differ: ' + name)
+        require(stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'Installed hosted v74 owner mode differs: ' + name)
+        installed[name] = change['after']
 
     inspection = binding['android_inspection_deadline_transition']
     require(set(inspection) == {'sourceBefore', 'sourceAfter', 'changes'} and
