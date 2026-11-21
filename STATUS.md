@@ -264,6 +264,15 @@ allocation bytes. All 16 session slots opened and closed afterward.
 This control covers one pinned seed. Continuous fuzz qualification
 remains open. [Mutation replay](verification/receipts/l03-guest-ui-v1-export-mutation-7a9b6516.json)
 
+The arm64 macOS Guest UI V1 C test admitted an original one-page guest and
+executed three host-written events. Two `br_table` entries and the default
+selected distinct frames through little-endian `i32.load16_u` reads. The
+default read used the last two bytes of the page. Each event used 24 of 64
+fuel and made zero host calls. The host matched all three frame documents,
+closed each session, and confirmed all 16 mixed registry slots were reusable.
+The test covers the native ABI. Signed activation and presentation remain
+outside this receipt. [Guest UI V1 execution](verification/receipts/l03-guest-ui-v1-execution-v77.json)
+
 The compiler qualification recorder now preserves the cleanup error and
 observed log sizes when custody is unknown. All 14 compiler support
 tests passed in normal and optimized Python. The earlier hold for PID

@@ -1,0 +1,323 @@
+{
+  "schema_version": 1,
+  "work": "L03, W08, product plan 10.4",
+  "status": "passed_scoped_host_control",
+  "base_revision": "03e50d05d2f56de83ff6b5d90593e29a8e4baaf7",
+  "base_tree": "de681738a6ea84fd329a30482e32cf0e386eac3a",
+  "tested_vm_tree": "1682169a33d05bd96c7f9fd433d556107bbb7a66",
+  "scope": "Guest UI V1 admission, followed by startup, event dispatch, raw frame reads, and retirement through the installed experimental capability C ABI on arm64 macOS. Signed activation, Swift presentation, mobile and standards-profile qualification remain open.",
+  "environment": {
+    "host": "macOS 27.0.1 arm64",
+    "sdk": "MacOSX27.2.sdk",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "python": "3.14.8",
+    "rust_target": "aarch64-apple-darwin",
+    "variables_in_command_records": {
+      "CHECKOUT": "/Users/andreyyurlov/.t3/worktrees/mixer/l03-w08-v77-positive",
+      "SCRATCH": "/Users/andreyyurlov/.t3/worktrees/mixer/l03-w08-v77-positive/verification/local/l03-w08-v77-positive",
+      "RUST_BIN": "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin",
+      "SDK": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.2.sdk",
+      "CLANG": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang"
+    },
+    "cargo_regression_environment": {
+      "RUSTC": "$RUST_BIN/rustc",
+      "CARGO_HOME": "$SCRATCH/regressions/cargo-home",
+      "CARGO_TARGET_DIR": "$SCRATCH/regressions/target",
+      "TMPDIR": "$SCRATCH/regressions/tmp"
+    }
+  },
+  "artifacts": {
+    "client_source": {
+      "path": "experimental-capability-runtime/build-tests/guest_ui.c",
+      "git_blob": "0771b8a161b9a9e54e08db6405c7b138c4874d6f",
+      "bytes": 14158,
+      "sha256": "015cc085674f0eef33886abb0b663efb06b4d0562c84aad50a4afadf94a047fe"
+    },
+    "selection_wasm": {
+      "bytes": 1134,
+      "sha256": "a065d2cb3d109a38ae85e0a92a8f78f141d7147cb772b62a274d88de1a842440"
+    },
+    "linked_c_test": {
+      "bytes": 1829736,
+      "sha256": "670616717b3fb9b0e3fe72ac27458fbb48d114e0dd555f70cfbe0c85015ed404"
+    },
+    "installed_archive": {
+      "bytes": 19309136,
+      "sha256": "bc6b286fdd17507acf073846283dc7e9f32c3a7de8d98ac2c3d6ce35a23e4f74"
+    },
+    "installed_headers": {
+      "mixer_vm.h": {
+        "bytes": 6436,
+        "sha256": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd"
+      },
+      "mixer_vm_capability.h": {
+        "bytes": 6873,
+        "sha256": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6"
+      },
+      "mixer_vm_guest_ui.h": {
+        "bytes": 1985,
+        "sha256": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5"
+      }
+    },
+    "builder_sha256": "cbae2f5f02b1d8a468a331a71f31e9c4fad1957d16142db0d4e3d0ad2e6fa010",
+    "frozen_source_manifest_sha256": "ae7628b22926ed845c1715bfedccf8bede0e214bf795de5407fabd36af81d88b",
+    "frozen_source_archive_sha256": "db9b37ceccfa8c7a11189006e483ef3ad3cbc3df28aee17803f89e7822fde593"
+  },
+  "execution": {
+    "admission_symbol": "mixer_vm_capability_guest_ui_validate_v1",
+    "admission": {
+      "status": 0,
+      "fuel_used": 0,
+      "host_calls_used": 0
+    },
+    "limits": {
+      "fuel_per_turn": 64,
+      "memory_pages": 1,
+      "operand_stack": 16,
+      "call_depth": 1,
+      "host_calls": 0,
+      "capability_limits": "default"
+    },
+    "oracle": "The C caller maps each literal event to a separate expected offset and complete document. It reads the control header and exact frame bytes through the session API.",
+    "startups": 3,
+    "startup_frame_revision": 1,
+    "event_frame_revision": 2,
+    "cases": [
+      {
+        "event_digit": 0,
+        "event_bytes": 114,
+        "branch": "entry 0",
+        "effective_load_address": 65527,
+        "frame_offset": 2083,
+        "frame_label": "Zero",
+        "frame_sha256": "9e1c595bb820a5d004f7740b3d70d8c3ebf8fdf1383c6e95d15da13579477ef4",
+        "startup_fuel": 2,
+        "event_fuel": 24,
+        "host_calls": 0
+      },
+      {
+        "event_digit": 1,
+        "event_bytes": 114,
+        "branch": "entry 1",
+        "effective_load_address": 65530,
+        "frame_offset": 3141,
+        "frame_label": "One!",
+        "frame_sha256": "b1fb0acfd9e1a82ab6d3304989d0dd7484807edc18cb6561a02d1914e3a5f1a9",
+        "startup_fuel": 2,
+        "event_fuel": 24,
+        "host_calls": 0
+      },
+      {
+        "event_digit": 9,
+        "event_bytes": 114,
+        "branch": "default",
+        "effective_load_address": 65534,
+        "frame_offset": 4199,
+        "frame_label": "Else",
+        "frame_sha256": "322779964f98050a1ff58263f81e32dd5739359edfd7e2db48979af3653a721b",
+        "startup_fuel": 2,
+        "event_fuel": 24,
+        "host_calls": 0
+      }
+    ],
+    "retirement": {
+      "successful_closes": 3,
+      "stale_reads_refused": 3,
+      "status": 3,
+      "code": "invalid_arguments",
+      "mixed_registry_slots_reused": 16
+    }
+  },
+  "regressions": {
+    "c_checks": {
+      "guest_ui_existing_smoke": 42,
+      "mixed_registry": 52,
+      "capability_smoke": 27
+    },
+    "rust_results_per_profile": {
+      "capability_ffi_public": 4,
+      "experimental_guest_ui_allocations": 2,
+      "experimental_guest_ui_validation": 5,
+      "table_memory": 17,
+      "interpreter_exact_selectors": 4
+    },
+    "rust_profiles": [
+      "debug",
+      "release"
+    ],
+    "cargo_replay": {
+      "argv_prefix": [
+        "$RUST_BIN/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "$CHECKOUT/vm/Cargo.toml",
+        "--no-default-features",
+        "--features",
+        "experimental-capability-native"
+      ],
+      "suite_args_before_profile_flags": [
+        "--test",
+        "experimental_guest_ui_allocations",
+        "--test",
+        "experimental_guest_ui_validation",
+        "--test",
+        "capability_ffi_public",
+        "--test",
+        "table_memory"
+      ],
+      "suite_args_after_profile_flags": [
+        "--",
+        "--nocapture"
+      ],
+      "exact_args_before_profile_flags": [
+        "--test",
+        "interpreter"
+      ],
+      "exact_args_after_profile_flags": [
+        "--",
+        "--exact",
+        "$SELECTOR"
+      ],
+      "exact_selectors": [
+        "br_table_default_and_index",
+        "v3_br_table_requires_common_arity_and_a_matching_operand",
+        "memory_load_store_and_data",
+        "narrow_load_sign_extends"
+      ],
+      "profile_flags": {
+        "debug": [],
+        "release": [
+          "--release"
+        ]
+      }
+    }
+  },
+  "custody": {
+    "runner": "vm/verification/standards-replay/commands.py",
+    "runner_git_blob": "daeb692e8b2f6a34f6de0b462a75458f70a4d837",
+    "pass_commands": [
+      {"name": "archive-build", "argv": ["/opt/homebrew/opt/python@3.14/bin/python3.14", "-B", "$CHECKOUT/experimental-capability-runtime/build-vm.py", "--revision", "03e50d05d2f56de83ff6b5d90593e29a8e4baaf7", "--target", "host", "--output", "$SCRATCH/install", "--rustc", "$RUST_BIN/rustc"], "cwd": "$CHECKOUT", "expected_exit_code": 0, "timeout_seconds": 220, "output_cap_bytes": 524288, "pid": 56904, "pgid": 56904, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "06063b33fdcbcf761da64b846b73245a9df9f37ca66fa73cb16cd3a723667fe8", "output_bytes": 441, "elapsed_seconds": 6.171749},
+      {"name": "clang-path", "argv": ["xcrun", "--sdk", "macosx", "--find", "clang"], "cwd": "$SCRATCH/c-abi-pass", "expected_exit_code": 0, "timeout_seconds": 30, "output_cap_bytes": 524288, "pid": 67301, "pgid": 67301, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "083060ae79a9cc17bc69cb6166b1e16396c638b533de036324d8c6d49b77af24", "output_bytes": 93, "elapsed_seconds": 0.008516},
+      {"name": "sdk-path", "argv": ["xcrun", "--sdk", "macosx", "--show-sdk-path"], "cwd": "$SCRATCH/c-abi-pass", "expected_exit_code": 0, "timeout_seconds": 30, "output_cap_bytes": 524288, "pid": 67302, "pgid": 67302, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "65cc3834fc060b76c3d4c52bf08769c606fd42a29b02f205d9b7b791aa56be56", "output_bytes": 99, "elapsed_seconds": 0.005783},
+      {"name": "clang-version", "argv": ["$CLANG", "--version"], "cwd": "$SCRATCH/c-abi-pass", "expected_exit_code": 0, "timeout_seconds": 30, "output_cap_bytes": 524288, "pid": 67303, "pgid": 67303, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "b8a2569d699eec50baaf1719096d0801d16fb28fbcb2df7ffd0a07cd26d9fd47", "output_bytes": 200, "elapsed_seconds": 0.007514},
+      {"name": "guest-ui-link", "argv": ["$CLANG", "-isysroot", "$SDK", "-std=c11", "-Wall", "-Wextra", "-Werror", "-mmacosx-version-min=14.0", "-I$SCRATCH/install/include", "$CHECKOUT/experimental-capability-runtime/build-tests/guest_ui.c", "$SCRATCH/install/lib/libmixer_vm_capability_experimental.a", "-lpthread", "-ldl", "-lm", "-o", "$SCRATCH/c-abi-pass/guest-ui"], "cwd": "$SCRATCH/c-abi-pass", "expected_exit_code": 0, "timeout_seconds": 30, "output_cap_bytes": 524288, "pid": 67304, "pgid": 67304, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "output_bytes": 0, "elapsed_seconds": 0.072047},
+      {"name": "guest-ui-run", "argv": ["$SCRATCH/c-abi-pass/guest-ui", "$SCRATCH/c-abi-pass/selection.wasm"], "cwd": "$SCRATCH/c-abi-pass", "expected_exit_code": 0, "timeout_seconds": 30, "output_cap_bytes": 524288, "pid": 67307, "pgid": 67307, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "870f03d504f64174212b005478d45e38394f251da44037e35ac5559466696365", "output_bytes": 882, "elapsed_seconds": 0.065082},
+      {"name": "mixed-registry-link", "argv": ["$CLANG", "-isysroot", "$SDK", "-std=c11", "-Wall", "-Wextra", "-Werror", "-mmacosx-version-min=14.0", "-I$SCRATCH/install/include", "$CHECKOUT/experimental-capability-runtime/build-tests/mixed_registry.c", "$SCRATCH/install/lib/libmixer_vm_capability_experimental.a", "-lpthread", "-ldl", "-lm", "-o", "$SCRATCH/c-abi-pass/mixed-registry"], "cwd": "$SCRATCH/c-abi-pass", "expected_exit_code": 0, "timeout_seconds": 30, "output_cap_bytes": 524288, "pid": 67308, "pgid": 67308, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "output_bytes": 0, "elapsed_seconds": 0.049639},
+      {"name": "mixed-registry-run", "argv": ["$SCRATCH/c-abi-pass/mixed-registry"], "cwd": "$SCRATCH/c-abi-pass", "expected_exit_code": 0, "timeout_seconds": 30, "output_cap_bytes": 524288, "pid": 67311, "pgid": 67311, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "09e8be3751978da81c87fe19af999d320555a4f1fbed8d514e5ab5736e5f8a6d", "output_bytes": 89, "elapsed_seconds": 0.069912},
+      {"name": "capability-smoke-link", "argv": ["$CLANG", "-isysroot", "$SDK", "-std=c11", "-Wall", "-Wextra", "-Werror", "-mmacosx-version-min=14.0", "-I$SCRATCH/install/include", "$SCRATCH/install/source/vm/tests/capability_ffi_smoke.c", "$SCRATCH/install/lib/libmixer_vm_capability_experimental.a", "-lpthread", "-ldl", "-lm", "-o", "$SCRATCH/c-abi-pass/capability-smoke"], "cwd": "$SCRATCH/c-abi-pass", "expected_exit_code": 0, "timeout_seconds": 30, "output_cap_bytes": 524288, "pid": 67312, "pgid": 67312, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "output_bytes": 0, "elapsed_seconds": 0.050137},
+      {"name": "capability-smoke-run", "argv": ["$SCRATCH/c-abi-pass/capability-smoke"], "cwd": "$SCRATCH/c-abi-pass", "expected_exit_code": 0, "timeout_seconds": 30, "output_cap_bytes": 524288, "pid": 67315, "pgid": 67315, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "a12db8a9736d3c5231ada76b5c9e51c69b90aca5dd19b7efe4cb02a2080d150f", "output_bytes": 107, "elapsed_seconds": 0.07116},
+      {"name": "debug", "cwd": "/", "expected_exit_code": 0, "timeout_seconds": 100, "output_cap_bytes": 524288, "pid": 58064, "pgid": 58064, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "29be369aba33cb3b4f2100623e03699dd44ea89a6d40d305c23cdea61c005028", "output_bytes": 5107, "elapsed_seconds": 1.581583},
+      {"name": "release", "cwd": "/", "expected_exit_code": 0, "timeout_seconds": 100, "output_cap_bytes": 524288, "pid": 58138, "pgid": 58138, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "ab4d7c536b2c80f8fb232d42bec8561f7eb1a9ceb852a826b95e127c59237a4d", "output_bytes": 5104, "elapsed_seconds": 1.98778},
+      {"name": "debug-br_table_default_and_index", "cwd": "/", "expected_exit_code": 0, "timeout_seconds": 60, "output_cap_bytes": 524288, "pid": 71357, "pgid": 71357, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "1fb778a2a8fbdfe12df8fbb55983536ee539056a135b72285bf3ea0ac164a102", "output_bytes": 515, "elapsed_seconds": 0.902483},
+      {"name": "debug-v3_br_table_requires_common_arity_and_a_matching_operand", "cwd": "/", "expected_exit_code": 0, "timeout_seconds": 60, "output_cap_bytes": 524288, "pid": 71373, "pgid": 71373, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "632f105954fb51e25eae9e1a214b9b65470fdfba984e7d7075aa911e4041a1ac", "output_bytes": 450, "elapsed_seconds": 0.015276},
+      {"name": "debug-memory_load_store_and_data", "cwd": "/", "expected_exit_code": 0, "timeout_seconds": 60, "output_cap_bytes": 524288, "pid": 71375, "pgid": 71375, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "399f2b45960bc44eb94db3db7099563f527192c6944069a7a30447f9828aba07", "output_bytes": 420, "elapsed_seconds": 0.016493},
+      {"name": "debug-narrow_load_sign_extends", "cwd": "/", "expected_exit_code": 0, "timeout_seconds": 60, "output_cap_bytes": 524288, "pid": 71377, "pgid": 71377, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "f97883ea8ebdac3d79d481d61dd0ffcb393365395ed7e916066acbfe654dff24", "output_bytes": 418, "elapsed_seconds": 0.017019},
+      {"name": "release-br_table_default_and_index", "cwd": "/", "expected_exit_code": 0, "timeout_seconds": 60, "output_cap_bytes": 524288, "pid": 71379, "pgid": 71379, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "4f837ce7b12af841082089d452e4adfec84198e0fb1e081338b478e0e87b39df", "output_bytes": 506, "elapsed_seconds": 0.908159},
+      {"name": "release-v3_br_table_requires_common_arity_and_a_matching_operand", "cwd": "/", "expected_exit_code": 0, "timeout_seconds": 60, "output_cap_bytes": 524288, "pid": 71393, "pgid": 71393, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "57954e9b8ff22cbfdcd605c233270d88d74e6a6d7a8f90dc3ac3cd29d4d04d77", "output_bytes": 441, "elapsed_seconds": 0.016734},
+      {"name": "release-memory_load_store_and_data", "cwd": "/", "expected_exit_code": 0, "timeout_seconds": 60, "output_cap_bytes": 524288, "pid": 71395, "pgid": 71395, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "35a30c736c91e7977ea6616710ecfb3da5e3f0cc345d412d93f2bdbab40e4576", "output_bytes": 411, "elapsed_seconds": 0.01604},
+      {"name": "release-narrow_load_sign_extends", "cwd": "/", "expected_exit_code": 0, "timeout_seconds": 60, "output_cap_bytes": 524288, "pid": 71397, "pgid": 71397, "output_eof": true, "exit_code": 0, "custody": "child reaped and group absent", "output_sha256": "3431cfaa951704efe422f42803753e419845ef57b913c5100207836b604db404", "output_bytes": 409, "elapsed_seconds": 0.016516}
+    ],
+    "installer_inner_commands": [
+      {"name": "rust-sysroot", "argv": ["$RUST_BIN/rustc", "--print", "sysroot"], "cwd": "/", "exit_code": 0, "problem": null, "elapsed_host_development_seconds": 0.026902, "log": "rust-sysroot.log", "sha256": "b22adee5ac5a93ade5d52f11392360e1c1a95ef2add2bd03365e896e8f1688e1"},
+      {"name": "rustc-version", "argv": ["$RUST_BIN/rustc", "-Vv"], "cwd": "/", "exit_code": 0, "problem": null, "elapsed_host_development_seconds": 0.025128, "log": "rustc-version.log", "sha256": "352d6857968e80a6357a926ac685b9b07f77c479aaafde33e73a53945e802909"},
+      {"name": "cargo-version", "argv": ["$RUST_BIN/cargo", "-V"], "cwd": "/", "exit_code": 0, "problem": null, "elapsed_host_development_seconds": 0.010463, "log": "cargo-version.log", "sha256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"},
+      {"name": "llvm-nm-version", "argv": ["/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/llvm-nm", "--version"], "cwd": "/", "exit_code": 0, "problem": null, "elapsed_host_development_seconds": 0.020226, "log": "llvm-nm-version.log", "sha256": "b9b121c361180ea1d23e5c1aed2830e2374b8317378fc0fc2f01ce758ee4cf7b"},
+      {"name": "apple-sdk", "argv": ["xcrun", "--sdk", "macosx", "--show-sdk-path"], "cwd": "/", "exit_code": 0, "problem": null, "elapsed_host_development_seconds": 0.007933, "log": "apple-sdk.log", "sha256": "65cc3834fc060b76c3d4c52bf08769c606fd42a29b02f205d9b7b791aa56be56"},
+      {"name": "apple-clang-path", "argv": ["xcrun", "--find", "clang"], "cwd": "/", "exit_code": 0, "problem": null, "elapsed_host_development_seconds": 0.007188, "log": "apple-clang-path.log", "sha256": "083060ae79a9cc17bc69cb6166b1e16396c638b533de036324d8c6d49b77af24"},
+      {"name": "apple-linker-version", "argv": ["$CLANG", "--version"], "cwd": "/", "exit_code": 0, "problem": null, "elapsed_host_development_seconds": 0.005972, "log": "apple-linker-version.log", "sha256": "b8a2569d699eec50baaf1719096d0801d16fb28fbcb2df7ffd0a07cd26d9fd47"},
+      {"name": "cargo-build", "argv": ["$RUST_BIN/cargo", "build", "--locked", "--offline", "--release", "--lib", "--no-default-features", "--features", "experimental-capability-native", "--manifest-path", "$SCRATCH/install/source/vm/Cargo.toml"], "cwd": "/", "exit_code": 0, "problem": null, "elapsed_host_development_seconds": 1.01174, "log": "cargo-build.log", "sha256": "d7d81bf98e1c4efd98cfa4e4e9026c5ae9fd9c97e9a56dc8d0e4ae5673c63bfd"},
+      {"name": "archive-symbols", "argv": ["/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/lib/rustlib/aarch64-apple-darwin/bin/llvm-nm", "--extern-only", "--defined-only", "$SCRATCH/install/cargo-target/release/libmixer_vm.a"], "cwd": "/", "exit_code": 0, "problem": null, "elapsed_host_development_seconds": 0.05931, "log": "archive-symbols.log", "sha256": "fd4f64ac0888bbe68cb3f2903bd531137d309a5929ae51c6d33055c6dc7f6e11"}
+    ],
+    "failed_attempts": [
+      {
+        "attempt": "c-abi",
+        "diagnosis": "Admission assertion failed. The next attempt captured the validator report.",
+        "fixture": {
+          "bytes": 1133,
+          "sha256": "909c21121c349f2b07c707230a765c0183bf5f84b854ae6dd27dd067ca13270c"
+        },
+        "client_run": {
+          "name": "guest-ui-run",
+          "argv": [
+            "$SCRATCH/c-abi/guest-ui",
+            "$SCRATCH/c-abi/selection.wasm"
+          ],
+          "cwd": "$SCRATCH/c-abi",
+          "expected_exit_code": 0,
+          "timeout_seconds": 30,
+          "output_cap_bytes": 524288,
+          "pid": 64742,
+          "pgid": 64742,
+          "output_eof": true,
+          "exit_code": -6,
+          "custody": "child reaped and group absent",
+          "output_sha256": "a2615a1502e52ac498e11c7cc37eea76bbd6558289ad6e435724aba5c66b2082",
+          "output_bytes": 160,
+          "elapsed_seconds": 0.062506
+        },
+        "output_tail": "Assertion failed: (mixer_vm_capability_guest_ui_validate_v1(w.data, w.size, &vm, NULL, &report) == 0), function selection_execution, file guest_ui.c, line 187."
+      },
+      {
+        "attempt": "c-abi-diagnostic",
+        "diagnosis": "The fixture omitted its zero local-declaration count. The validator rejected function 1 at offset 136 with unsupported.",
+        "fixture": {
+          "bytes": 1133,
+          "sha256": "909c21121c349f2b07c707230a765c0183bf5f84b854ae6dd27dd067ca13270c"
+        },
+        "client_run": {
+          "name": "guest-ui-run",
+          "argv": [
+            "$SCRATCH/c-abi-diagnostic/guest-ui",
+            "$SCRATCH/c-abi-diagnostic/selection.wasm"
+          ],
+          "cwd": "$SCRATCH/c-abi-diagnostic",
+          "expected_exit_code": 0,
+          "timeout_seconds": 30,
+          "output_cap_bytes": 524288,
+          "pid": 66494,
+          "pgid": 66494,
+          "output_eof": true,
+          "exit_code": -6,
+          "custody": "child reaped and group absent",
+          "output_sha256": "ad1acd1f5ce8d1882bd58b071cd8c794f7a472373a721397a078c7f48e1acf8b",
+          "output_bytes": 209,
+          "elapsed_seconds": 0.06454
+        },
+        "output_tail": "Selection guest validation: status=1 code=unsupported function=1 offset=136 value type is outside the selected profile\nAssertion failed: (status == 0), function selection_execution, file guest_ui.c, line 191."
+      },
+      {
+        "attempt": "c-abi-final",
+        "diagnosis": "The first indexed event returned and its frame matched. The stale read returned status 3. The test expected the wrong machine code.",
+        "fixture": {
+          "bytes": 1134,
+          "sha256": "a065d2cb3d109a38ae85e0a92a8f78f141d7147cb772b62a274d88de1a842440"
+        },
+        "client_run": {
+          "name": "guest-ui-run",
+          "argv": [
+            "$SCRATCH/c-abi-final/guest-ui",
+            "$SCRATCH/c-abi-final/selection.wasm"
+          ],
+          "cwd": "$SCRATCH/c-abi-final",
+          "expected_exit_code": 0,
+          "timeout_seconds": 30,
+          "output_cap_bytes": 524288,
+          "pid": 66810,
+          "pgid": 66810,
+          "output_eof": true,
+          "exit_code": -6,
+          "custody": "child reaped and group absent",
+          "output_sha256": "b738f8783f8eb5ceffe905b3e98da6ab802cffdc408fe1c6f4b7958183e4dab9",
+          "output_bytes": 376,
+          "elapsed_seconds": 0.061644
+        },
+        "output_tail": "Assertion failed: (strcmp((const char *)report.code, \"invalid_session\") == 0), function selection_execution, file guest_ui.c, line 231.\nGuest UI V1 selection: digit=0 bytes=114 offset=2083 startup_fuel=2 event_fuel=24 host_calls=0\nGuest UI V1 frame: {\"schemaVersion\":1,\"revision\":2,\"root\":{\"id\":\"status\",\"kind\":\"text\",\"properties\":{\"text\":\"Zero\"},\"children\":[],\"actions\":[]}}"
+      }
+    ],
+    "cleanup": "The private installation, executable and fixture copies, Cargo targets and homes, and logs were removed after terminal custody."
+  }
+}
