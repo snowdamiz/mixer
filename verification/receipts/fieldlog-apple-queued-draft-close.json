@@ -1,0 +1,355 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "observedUTC": "2026-11-21T09:50:13+00:00",
+  "scope": "macOS host build and replay of production FieldLog model callbacks, disk repository and signed guest. Host compile does not exercise SwiftUI presentation or an installed application.",
+  "source": {
+    "reviewedMixerCommit": "21df0dd0f07641ef58409e6f2eb929e3ad58b7bd",
+    "runtimeCommit": "d0653028707889c768e881d4a24fb0e06ba80226",
+    "runtimeSubtrees": {
+      "vm": "d92bb09472d2aa448e6162541726daca8711fbd0",
+      "sdk": "d074d73bab03cf405e4d575897bf208981445320",
+      "experimental-capability-runtime": "68965c6c28b74cdbc83d8df0907eed8e68285f4e",
+      "capability-activation": "45930ab9829b00d9cc8fbadc889484c0f09833af",
+      "updates": "ec6b73179f8e0d4882761e157977502a12e32421",
+      "runtime-identity": "2217de7c6108f38ff14bc711ccc0e17a80f15c6b"
+    },
+    "fieldlogPublicCommit": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "fieldlogPublicTree": "1b62520f35c7e57a01b568291078686574f627c4",
+    "fieldlogReviewedTree": "515684732fb55e9e48e15e55651f7931fd72b8e6",
+    "fieldlogFixedTree": "380e764598c31181d16ef2fbb91c95bf95693375",
+    "fieldlogChangedPath": "ios/FieldLog/WorkspaceModel.swift",
+    "fieldlogFixedWorkspaceModelBlob": "ef7093a45f81a22c1f214ebcf59997e7e015d755",
+    "patchPath": "tests/integration/fieldlog-entry-save/apple-editor/fieldlog-apple-editor-queued-close.patch",
+    "patchSHA256": "7d3caa5a3af5ddb90bfc9073a75d95d75d56291a8d0738429c2cbe860dddd6c0",
+    "patchVerification": "Applying the patch to a fresh Git index seeded with the reviewed tree produced the fixed tree.",
+    "Replay.swiftSHA256": "6b870fee216c737031ae6b39608de579220fe82a02ea85cb580de66849bb6b96",
+    "swiftCryptoCommit": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+    "swiftASN1Commit": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2"
+  },
+  "tools": {
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "architecture": "arm64",
+    "xcode": "Xcode 27.2\nBuild version 27B52",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "embeddedSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "python": "Python 3.14.8",
+    "git": "git version 2.56.0"
+  },
+  "controlDesign": {
+    "queuedOrdinaryClose": "Seed A as the published and durable restoration. Queue open B and select B with the ordinary On device callbacks. Hold B at before_write and assert the model and disk still show A. Dismiss through draftEditorSheet.wrappedValue and release the write. Compare the full cold workspace with A's baseline plus exactly two revisions and cleared restoration.",
+    "ordinaryCloseNewerSelection": "Keep A's editor while the queued restoration of B is held at before_write. Dismiss A through its current binding, select B, and replay A's stale callback. B must remain visible. Cold reopen must preserve B and increment only for B's open.",
+    "guardlessMutation": "In scratch, remove the transactional draft-ID comparison and its unused capture from the fixed model. Rebuild and run ordinaryCloseNewerSelection. The original FieldLog candidate sources passed this control with the comparison present.",
+    "signed": "Drive the signed guest and the production finishDraftEditorAfterGuest callback, followed by the binding setter from the prior presentation. Reopen the disk repository and compare workspace state and bytes. Separate signed authority fixtures exercise duplicate and changed puts and a put before facts poll."
+  },
+  "outputs": {
+    "reviewedQueuedCloseExpectedFailure": [
+      "queuedOrdinaryClose: Unexpected cold restoration: revision=2 expected=3 cleared=false otherSelected=true"
+    ],
+    "reviewedSettledClose": [
+      "case=ordinaryClose revision=1->2 restorationCleared=true newerSelectionPreserved=false coldReopen=true"
+    ],
+    "reviewedNewerSelection": [
+      "case=ordinaryCloseNewerSelection revision=1->2 restorationCleared=false newerSelectionPreserved=true coldReopen=true"
+    ],
+    "guardlessNewerSelectionExpectedFailure": [
+      "ordinaryCloseNewerSelection: Unexpected cold restoration: revision=3 expected=2 cleared=true otherSelected=false"
+    ],
+    "fixedAll": [
+      "attachControls=wrong-selection,unsaved-editor,wrong-bundle denied=true",
+      "case=success frame=Committed once revision=2->3 newEntrySaved=1 ordinaryEditorDismissed=true retired=true coldReopen=true",
+      "case=blank frame=Entry title can't be empty. revision=2->2 newEntrySaved=0 ordinaryEditorDismissed=false retired=true coldReopen=true",
+      "nativeFallback=ordinary-save entrySaved=1 coldReopen=true",
+      "case=stale frame=Selected draft unavailable. revision=2->3 newEntrySaved=0 ordinaryEditorDismissed=false retired=true coldReopen=true",
+      "case=revoked frame=Selected draft unavailable. revision=2->2 newEntrySaved=0 ordinaryEditorDismissed=false retired=true coldReopen=true",
+      "case=declined frame=Commit refused revision=2->2 newEntrySaved=0 ordinaryEditorDismissed=false retired=true coldReopen=true",
+      "case=doneBeforeCommit frame=none revision=2->2 newEntrySaved=0 ordinaryEditorDismissed=false retired=true coldReopen=true",
+      "optionalRevision=2->3 editorRevision=3 retired=true",
+      "case=bothProvisioned frame=Committed once revision=3->4 newEntrySaved=1 ordinaryEditorDismissed=true retired=true coldReopen=true",
+      "optionalRevision=1->2 editorRevision=2 retired=true",
+      "case=optionalUnapplied retained=true revision=2 selectionPreserved=true",
+      "legacyInnerBytesUnchanged=true ordinaryEditorDismissed=false ordinaryBytesUnchanged=true revision=2->2 restorationPreserved=true frame=none",
+      "case=legacyDone frame=none revision=2->2 newEntrySaved=0 ordinaryEditorDismissed=false retired=true coldReopen=true",
+      "legacyInnerBytesUnchanged=true ordinaryEditorDismissed=true ordinaryBytesUnchanged=true revision=2->2 restorationPreserved=true frame=Committed once",
+      "case=legacyRetry frame=Committed once revision=2->2 newEntrySaved=0 ordinaryEditorDismissed=true retired=true coldReopen=true",
+      "case=joinedDone frame=none revision=2->3 newEntrySaved=1 ordinaryEditorDismissed=true retired=true coldReopen=true",
+      "case=joinedDoneSelectionChanged frame=none revision=2->4 newEntrySaved=1 ordinaryEditorDismissed=false retired=true coldReopen=true",
+      "legacyInnerBytesUnchanged=true ordinaryEditorDismissed=true ordinaryBytesUnchanged=true revision=2->2 restorationPreserved=true frame=Committed once",
+      "case=legacyExplicitRetry frame=Committed once revision=2->2 newEntrySaved=0 ordinaryEditorDismissed=true retired=true coldReopen=true",
+      "legacyInnerBytesUnchanged=true ordinaryEditorDismissed=false ordinaryBytesUnchanged=true revision=2->2 restorationPreserved=true frame=Commit refused",
+      "case=legacyOptionalConflict frame=Commit refused revision=2->2 newEntrySaved=0 ordinaryEditorDismissed=false retired=true coldReopen=true",
+      "legacyInnerBytesUnchanged=true ordinaryEditorDismissed=false ordinaryBytesUnchanged=true revision=2->2 restorationPreserved=true frame=Commit refused",
+      "case=legacyBooleanConflict frame=Commit refused revision=2->2 newEntrySaved=0 ordinaryEditorDismissed=false retired=true coldReopen=true",
+      "case=ordinaryClose revision=1->2 restorationCleared=true newerSelectionPreserved=false coldReopen=true",
+      "case=queuedOrdinaryClose revision=1->3 restorationCleared=true newerSelectionPreserved=false coldReopen=true",
+      "case=ordinaryCloseNewerSelection revision=1->2 restorationCleared=false newerSelectionPreserved=true coldReopen=true",
+      "legacyInnerBytesUnchanged=true ordinaryEditorDismissed=false ordinaryBytesUnchanged=true revision=2->2 restorationPreserved=true frame=Committed once",
+      "case=selectionChangedAfterRetirement frame=Committed once revision=2->2 newEntrySaved=0 ordinaryEditorDismissed=false retired=true coldReopen=true",
+      "actionControls=wrong-action,wrong-node,wrong-revision,wrong-event,wrong-value denied=true",
+      "case=wrongAction frame=none revision=2->2 newEntrySaved=0 ordinaryEditorDismissed=false retired=true coldReopen=true"
+    ],
+    "fixedAuthorityReplay": [
+      "case=authorityReplay frame=Committed once revision=2->3 newEntrySaved=1 ordinaryEditorDismissed=true retired=true coldReopen=true"
+    ],
+    "fixedAuthorityNoPoll": [
+      "case=authorityNoPoll frame=Commit refused revision=2->2 newEntrySaved=0 ordinaryEditorDismissed=false retired=true coldReopen=true"
+    ]
+  },
+  "artifactsSHA256": {
+    "macOSVM": "c9170102fab4d7897bf2d8d4ce0ed5940fae35a1b5e5e5a0f5b8125b8d36be14",
+    "vmSourceRoster": "3cb81be9cab08468a228f9bb071573efa7d053e068c5d89fffba24dfded8dc3d",
+    "linkedSourceRoster": "e64b66784b65c03dc0507ab35adf59d85be2ec1538e17c7cae84ce335ab519ce",
+    "reviewedReplay": "aaa2cacb371c2675543c75af3f498fae3c55f281d0e55cdd852fe90d83ca22ae",
+    "fixedReplay": "3d2ae4c946f4ecc07fead91d52a50b84a575f2f98365d5c3ba585bca2f4557f0",
+    "guardlessReplay": "84bdf99da7ecaac3c2f0a1d0c61fb3b6697dcad9d1da15457100da08a83643df",
+    "guests": {
+      "baseline.wasm": "5e9238155b494d12321d5684c8336dd3904392e25c1e899ea8f46e182f2d86f3",
+      "corrected.wasm": "c498ae88d269db5903854fabfcc5868dc0f43894276ccb91b01cc9f68fed80a0",
+      "entry-commit-multiple.wasm": "f7d217303ac5c79451e06f966d214d54beb608aa0149392bd8aae0b2cbed5e4b",
+      "entry-commit-unconsumed.wasm": "803398142d151c6a79c2320d793543172c01506304a79947f13b04bb1167d35f",
+      "entry-commit.wasm": "5034b675a2a615da45b54463b899528e995a186b18bfde25153b54e856e6ca22",
+      "optional.wasm": "32a02aa143d9d3beb8c06110a713f4ff7188ba766d35617513119a311f14bdaa"
+    },
+    "signedIdentities": {
+      "commit": "1b17d3d6db056e75f5b1d4834317ecd19b038baaae59c9988dbba4a7a6852140",
+      "multiple": "f007a586eae60b13261787904a3b66bc9b76cca227771a0b0a700634664b5edd",
+      "no-poll": "a8adc0e380867b11511f2f19449c13f861b8cf9af8cfecda30e96014cd16a5bb",
+      "tools": "3aa6fb4becc36f27029f460e59168c92798d3c56baec3848e23d22093f99ae01"
+    }
+  },
+  "buildRecipe": {
+    "hostInputs": "Follow the Apple editor README. The reviewed and fixed builds both used the production binding, without FIELDLOG_DISMISSAL_BASELINE. The fixed replay binary was copied before replacing the source symlink with the scratch guardless mutation.",
+    "hostCommand": "SWIFTCI_USE_LOCAL_DEPS=1 TMPDIR=\"$WORK/tmp\" CLANG_MODULE_CACHE_PATH=\"$WORK/swift-module-cache\" /usr/bin/swift build --package-path \"$WORK/host-package\" --scratch-path \"$WORK/swift-host\" --cache-path \"$WORK/host-cache\" --config-path \"$WORK/host-config\" --security-path \"$WORK/host-security\" --disable-dependency-cache --disable-index-store --build-system native --jobs 5 -Xswiftc -enable-testing -Xswiftc -gnone -Xcc -g0 -Xcc \"-I$WORK/mixer/vm/include\" -Xlinker \"-L$WORK/lib\"",
+    "firstCargoAttempt": "The command could not locate rustc on PATH. The exact toolchain rustc and rustdoc paths fixed the invocation. The archive matched the prior v80 composition receipt byte for byte."
+  },
+  "commands": {
+    "asn1-fetch": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 90,
+      "pid": 36112,
+      "pgid": 36112,
+      "exit": 0,
+      "groupAbsent": true,
+      "elapsedSeconds": 0.238,
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "command": "/bin/bash -o pipefail -c 'curl -fLsS --max-time 60 https://codeload.github.com/apple/swift-asn1/tar.gz/3b6410f7dee09eb33cdd26260c5fd47fda19b0e2 | tar --strip-components=1 -xf - -C \"$1\"' _ $WORK/swift-asn1"
+    },
+    "build-fixed-tree": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 120,
+      "pid": 56267,
+      "pgid": 56267,
+      "exit": 0,
+      "groupAbsent": true,
+      "elapsedSeconds": 8.214,
+      "outputSHA256": "8eeef0d213238f213a50c51cf2e8c076db5ba905c18077e93665186f97ee5ac4",
+      "command": "/bin/bash $WORK/build-host.sh $WORK"
+    },
+    "build-reviewed-tree": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 360,
+      "pid": 45873,
+      "pgid": 45873,
+      "exit": 0,
+      "groupAbsent": true,
+      "elapsedSeconds": 14.759,
+      "outputSHA256": "02fecefb2dc08b903e6465d639c950713c23efe070e4101ede0f64354c999ce5",
+      "command": "/bin/bash $WORK/build-host.sh $WORK"
+    },
+    "build-without-transaction-guard": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 120,
+      "pid": 57810,
+      "pgid": 57810,
+      "exit": 0,
+      "groupAbsent": true,
+      "elapsedSeconds": 4.984,
+      "outputSHA256": "613f3011a3f9d0ef98cbd2c0fd7d9bd9962ba9e8ad25015e9810c39734808ea6",
+      "command": "/bin/bash $WORK/build-host.sh $WORK"
+    },
+    "candidate-all": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 80,
+      "pid": 57808,
+      "pgid": 57808,
+      "exit": 0,
+      "groupAbsent": true,
+      "elapsedSeconds": 1.102,
+      "outputSHA256": "2dd158fbd0e9568eced407e3b28698e9d0bde43c2219e2397c8e9d30eb432ed2",
+      "command": "$WORK/Replay-fixed run $WORK/material/commit $WORK/candidate-all all $WORK/material/tools"
+    },
+    "candidate-multiple": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 30,
+      "pid": 57807,
+      "pgid": 57807,
+      "exit": 0,
+      "groupAbsent": true,
+      "elapsedSeconds": 0.14,
+      "outputSHA256": "9ea1dbcc00d2dab852dd91649a25bd175a59609cedc94612ae77809370f4648f",
+      "command": "$WORK/Replay-fixed run $WORK/material/multiple $WORK/candidate-multiple authorityReplay"
+    },
+    "candidate-no-poll": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 30,
+      "pid": 57809,
+      "pgid": 57809,
+      "exit": 0,
+      "groupAbsent": true,
+      "elapsedSeconds": 0.088,
+      "outputSHA256": "d440e468a5e607f8a78e608ab2a535071a8ff53c10edbb3d417db35f090f74e3",
+      "command": "$WORK/Replay-fixed run $WORK/material/no-poll $WORK/candidate-no-poll authorityNoPoll"
+    },
+    "cargo-host-exact": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 300,
+      "pid": 37189,
+      "pgid": 37189,
+      "exit": 0,
+      "groupAbsent": true,
+      "elapsedSeconds": 1.274,
+      "outputSHA256": "c7f25f2839ee77edb800aabdf8573dd5282eaf9fddbdf6971b4c9219245245cc",
+      "command": "env TMPDIR=$WORK/tmp RUSTC=/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc RUSTDOC=/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustdoc rustup run 1.99.0 cargo build --manifest-path $WORK/mixer/vm/Cargo.toml --offline --locked --release --features experimental-capability-native --lib --target-dir $WORK/cargo-host"
+    },
+    "cargo-host": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 240,
+      "pid": 36116,
+      "pgid": 36116,
+      "exit": 101,
+      "groupAbsent": true,
+      "elapsedSeconds": 0.078,
+      "outputSHA256": "235382520425c4841a699c405e75ba1b581db26e68d7ff626656e0302cd25dec",
+      "command": "env TMPDIR=$WORK/tmp rustup run 1.99.0 cargo build --manifest-path $WORK/mixer/vm/Cargo.toml --offline --locked --release --features experimental-capability-native --lib --target-dir $WORK/cargo-host"
+    },
+    "crypto-fetch": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 90,
+      "pid": 36113,
+      "pgid": 36113,
+      "exit": 0,
+      "groupAbsent": true,
+      "elapsedSeconds": 1.182,
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "command": "/bin/bash -o pipefail -c 'curl -fLsS --max-time 60 https://codeload.github.com/apple/swift-crypto/tar.gz/c2cbadd7263439d8015189668f96ff5b5be565ce | tar --strip-components=1 -xf - -C \"$1\"' _ $WORK/swift-crypto"
+    },
+    "fieldlog-fetch": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 90,
+      "pid": 36111,
+      "pgid": 36111,
+      "exit": 0,
+      "groupAbsent": true,
+      "elapsedSeconds": 0.464,
+      "outputSHA256": "bce5e5db34cfc89b26caf728c42a21a025e9d7e2cde0a4b696f539e6b4e19b27",
+      "command": "env GIT_TERMINAL_PROMPT=0 git -c credential.helper= -C $WORK/fieldlog fetch --no-tags --depth=1 https://github.com/snowdamiz/fieldlog.git 552559d2d3278abb9b1aa7dcf0288102c09a202b"
+    },
+    "guests": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 90,
+      "pid": 36117,
+      "pgid": 36117,
+      "exit": 0,
+      "groupAbsent": true,
+      "elapsedSeconds": 3.525,
+      "outputSHA256": "c8935e4dd5ea69a9b24016d340ae963c31e77bbbf647ed6984a1d16fb9519604",
+      "command": "env TMPDIR=$WORK/tmp FIELDLOG_SWIFT_BIN=/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin /bin/bash tests/integration/fieldlog-entry-save/apple-editor/build-guests.sh $WORK/guests"
+    },
+    "reviewed-ordinaryClose": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 25,
+      "pid": 49200,
+      "pgid": 49200,
+      "exit": 0,
+      "groupAbsent": true,
+      "elapsedSeconds": 0.235,
+      "outputSHA256": "c47b003e26b6f6673cca4aa6b55321226c9781aefca6c71e89166d4308131fed",
+      "command": "$WORK/swift-host/debug/Replay run $WORK/unused-material $WORK/reviewed-ordinaryClose ordinaryClose"
+    },
+    "reviewed-ordinaryCloseNewerSelection": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 25,
+      "pid": 49198,
+      "pgid": 49198,
+      "exit": 0,
+      "groupAbsent": true,
+      "elapsedSeconds": 0.2,
+      "outputSHA256": "ba2a4618b65b8d7eeb68b8fb554bf8cea02c476bd20fb276e448656c2a5a1dfa",
+      "command": "$WORK/swift-host/debug/Replay run $WORK/unused-material $WORK/reviewed-ordinaryCloseNewerSelection ordinaryCloseNewerSelection"
+    },
+    "reviewed-queuedOrdinaryClose": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 25,
+      "pid": 49199,
+      "pgid": 49199,
+      "exit": 1,
+      "groupAbsent": true,
+      "elapsedSeconds": 0.253,
+      "outputSHA256": "430e58254760c3530034e14c7a3e6b271c58f2bdc9a387ae40f6e7c71c1a03d1",
+      "command": "$WORK/swift-host/debug/Replay run $WORK/unused-material $WORK/reviewed-queuedOrdinaryClose queuedOrdinaryClose"
+    },
+    "sign-commit": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 25,
+      "pid": 57456,
+      "pgid": 57456,
+      "exit": 0,
+      "groupAbsent": true,
+      "elapsedSeconds": 0.221,
+      "outputSHA256": "fa730426d1e9def175b5aea7b282f4ec4ca740cdd94f0c43275a165274afc804",
+      "command": "$WORK/Replay-fixed sign $WORK/mixer/capability-activation/Tests/MixerCapabilityActivationTests/Fixtures $WORK/guests/entry-commit.wasm $WORK/material/commit c9170102fab4d7897bf2d8d4ce0ed5940fae35a1b5e5e5a0f5b8125b8d36be14 3cb81be9cab08468a228f9bb071573efa7d053e068c5d89fffba24dfded8dc3d e64b66784b65c03dc0507ab35adf59d85be2ec1538e17c7cae84ce335ab519ce d0653028707889c768e881d4a24fb0e06ba80226 $MIXER/tests/integration/fieldlog-entry-save/apple-editor/host-signing-metadata.json"
+    },
+    "sign-multiple": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 25,
+      "pid": 57454,
+      "pgid": 57454,
+      "exit": 0,
+      "groupAbsent": true,
+      "elapsedSeconds": 0.232,
+      "outputSHA256": "51292fe372309750e13d316918e61025dd6ea082e58c14dcbb4453192c426a06",
+      "command": "$WORK/Replay-fixed sign-authority $WORK/mixer/capability-activation/Tests/MixerCapabilityActivationTests/Fixtures $WORK/guests/entry-commit-multiple.wasm $WORK/material/multiple c9170102fab4d7897bf2d8d4ce0ed5940fae35a1b5e5e5a0f5b8125b8d36be14 3cb81be9cab08468a228f9bb071573efa7d053e068c5d89fffba24dfded8dc3d e64b66784b65c03dc0507ab35adf59d85be2ec1538e17c7cae84ce335ab519ce d0653028707889c768e881d4a24fb0e06ba80226 $MIXER/tests/integration/fieldlog-entry-save/apple-editor/host-signing-metadata.json"
+    },
+    "sign-no-poll": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 25,
+      "pid": 57455,
+      "pgid": 57455,
+      "exit": 0,
+      "groupAbsent": true,
+      "elapsedSeconds": 0.225,
+      "outputSHA256": "de993304a5b11edb27614e86c174b22e5ab371cdb57936d7a430a90eef2fb98a",
+      "command": "$WORK/Replay-fixed sign-authority $WORK/mixer/capability-activation/Tests/MixerCapabilityActivationTests/Fixtures $WORK/guests/entry-commit-unconsumed.wasm $WORK/material/no-poll c9170102fab4d7897bf2d8d4ce0ed5940fae35a1b5e5e5a0f5b8125b8d36be14 3cb81be9cab08468a228f9bb071573efa7d053e068c5d89fffba24dfded8dc3d e64b66784b65c03dc0507ab35adf59d85be2ec1538e17c7cae84ce335ab519ce d0653028707889c768e881d4a24fb0e06ba80226 $MIXER/tests/integration/fieldlog-entry-save/apple-editor/host-signing-metadata.json"
+    },
+    "sign-tools": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 25,
+      "pid": 57457,
+      "pgid": 57457,
+      "exit": 0,
+      "groupAbsent": true,
+      "elapsedSeconds": 0.225,
+      "outputSHA256": "638fa59fb093b27c34b771fe24abba4baaf2219da34606850fd302d865e9265a",
+      "command": "$WORK/Replay-fixed sign-tools $WORK/mixer/capability-activation/Tests/MixerCapabilityActivationTests/Fixtures $WORK/guests $WORK/material/tools c9170102fab4d7897bf2d8d4ce0ed5940fae35a1b5e5e5a0f5b8125b8d36be14 3cb81be9cab08468a228f9bb071573efa7d053e068c5d89fffba24dfded8dc3d e64b66784b65c03dc0507ab35adf59d85be2ec1538e17c7cae84ce335ab519ce d0653028707889c768e881d4a24fb0e06ba80226 $MIXER/tests/integration/fieldlog-entry-save/apple-editor/host-signing-metadata.json"
+    },
+    "unguarded-ordinaryCloseNewerSelection": {
+      "cwd": "$MIXER",
+      "deadlineSeconds": 25,
+      "pid": 61381,
+      "pgid": 61381,
+      "exit": 1,
+      "groupAbsent": true,
+      "elapsedSeconds": 0.153,
+      "outputSHA256": "07a4b0a64ceb3f0c7d77f1f2466ea5e95901c49b96eb1c91f216b7970456f19e",
+      "command": "$WORK/swift-host/debug/Replay run $WORK/unused-material $WORK/unguarded-newer ordinaryCloseNewerSelection"
+    }
+  },
+  "genericIPhoneOS": "Skipped the separate iPhoneOS archive and compile. This receipt covers the changed WorkspaceModel in the host replay.",
+  "cleanup": {
+    "ownedScratch": "verification/local/apple-queued-draft-close.payVBpo8",
+    "allRecordedCommandGroupsAbsent": true,
+    "removed": true
+  }
+}

@@ -19,7 +19,8 @@ private struct ReplayFailure: Error, CustomStringConvertible {
         case success, blank, stale, revoked, declined, doneBeforeCommit
         case bothProvisioned, optionalUnapplied, legacyDone, legacyRetry, joinedDone, joinedDoneSelectionChanged
         case legacyExplicitRetry, legacyOptionalConflict, legacyBooleanConflict
-        case ordinaryClose, selectionChangedAfterRetirement, wrongAction
+        case ordinaryClose, queuedOrdinaryClose, ordinaryCloseNewerSelection
+        case selectionChangedAfterRetirement, wrongAction
         case authorityReplay, authorityNoPoll
 
         var needsTools: Bool { self == .bothProvisioned || self == .optionalUnapplied }
@@ -35,6 +36,9 @@ private struct ReplayFailure: Error, CustomStringConvertible {
         var isLegacyConflict: Bool { self == .legacyOptionalConflict || self == .legacyBooleanConflict }
         var needsAuthorityMaterial: Bool { self == .authorityReplay || self == .authorityNoPoll }
         var joinsAdmittedWrite: Bool { self == .joinedDone || self == .joinedDoneSelectionChanged }
+        var closesOrdinaryEditor: Bool {
+            self == .ordinaryClose || self == .queuedOrdinaryClose || self == .ordinaryCloseNewerSelection
+        }
 
         var frame: String? {
             switch self {
@@ -44,7 +48,8 @@ private struct ReplayFailure: Error, CustomStringConvertible {
             case .stale, .revoked: "Selected draft unavailable."
             case .declined, .authorityNoPoll: "Commit refused"
             case .doneBeforeCommit, .optionalUnapplied, .legacyDone, .joinedDone, .joinedDoneSelectionChanged,
-                 .legacyOptionalConflict, .legacyBooleanConflict, .ordinaryClose, .wrongAction: nil
+                 .legacyOptionalConflict, .legacyBooleanConflict, .ordinaryClose, .queuedOrdinaryClose,
+                 .ordinaryCloseNewerSelection, .wrongAction: nil
             }
         }
     }
@@ -144,7 +149,7 @@ private struct ReplayFailure: Error, CustomStringConvertible {
             seeded = try await repository.readCommittedSnapshot()
         } else {
             repository = initial
-            if !scenario.needsTools && scenario != .ordinaryClose {
+            if !scenario.needsTools && !scenario.closesOrdinaryEditor {
                 let selection = try await repository.selectSavedDraft(projectID: project, draftID: draft.id)
                 seeded = try await repository.updateSelectedDraftFollowUp(selection, expectedRevision: 1) { $0 = true }
             }
@@ -153,18 +158,50 @@ private struct ReplayFailure: Error, CustomStringConvertible {
         await model.open()
         model.selectDraftEditor(draft)
         let closeEditor = ordinarySheetDismissal(model)
-        if scenario == .ordinaryClose {
-            closeEditor()
+        if scenario.closesOrdinaryEditor {
+            let closingQueuedOpen = scenario == .queuedOrdinaryClose
+            let preservingNewerSelection = scenario == .ordinaryCloseNewerSelection
+            if closingQueuedOpen || preservingNewerSelection {
+                #if FIELDLOG_DISMISSAL_BASELINE
+                throw ReplayFailure("Queued close controls require the production draft editor binding")
+                #else
+                let initialBytes = try Data(contentsOf: snapshotPath)
+                holdAdmittedWrite.withLock { $0 = true }
+                defer { barrier.release.signal() }
+                model.openDraft(other.id)
+                if closingQueuedOpen { model.selectDraftEditor(other) }
+                let dismiss = ordinarySheetDismissal(model)
+                try await eventually("The queued open did not reach the disk write") { barrier.count == 1 }
+                let heldBytes = try Data(contentsOf: snapshotPath)
+                try check(model.workspace == seeded && heldBytes == initialBytes,
+                          "The queued open was published or persisted before dismissal")
+                dismiss()
+                try check(model.draftEditor == nil, "The binding setter did not dismiss its editor")
+                if preservingNewerSelection {
+                    // The queued open wins durably. Install its editor before a repeat callback from the old sheet.
+                    model.selectDraftEditor(other)
+                    dismiss()
+                    try check(model.draftEditor?.draft.id == other.id, "A stale dismissal closed the newer editor")
+                }
+                #endif
+            } else {
+                closeEditor()
+            }
             await model.flush()
             await repository.close()
             let cold = try WorkspaceRepository(directory: root)
             let reopened = try await cold.readCommittedSnapshot()
             await cold.close()
             var expected = seeded
-            expected.revision += 1
-            expected.restoration.openDraftID = nil
-            try check(reopened == expected, "Ordinary dismissal did not clear exactly its own restoration")
-            print("case=ordinaryClose revision=\(seeded.revision)->\(reopened.revision) restorationCleared=true coldReopen=true")
+            expected.revision += closingQueuedOpen ? 2 : 1
+            expected.restoration.openDraftID = preservingNewerSelection ? other.id : nil
+            try check(reopened == expected && model.saveError == nil,
+                      "Unexpected cold restoration: revision=\(reopened.revision) expected=\(expected.revision) "
+                          + "cleared=\(reopened.restoration.openDraftID == nil) "
+                          + "otherSelected=\(reopened.restoration.openDraftID == other.id)")
+            print("case=\(scenario.rawValue) revision=\(seeded.revision)->\(reopened.revision) "
+                + "restorationCleared=\(reopened.restoration.openDraftID == nil) "
+                + "newerSelectionPreserved=\(preservingNewerSelection) coldReopen=true")
             return
         }
         var editorDraft = draft

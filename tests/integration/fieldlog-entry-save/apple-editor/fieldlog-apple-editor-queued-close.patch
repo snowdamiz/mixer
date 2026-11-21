@@ -1,0 +1,13 @@
+diff --git a/ios/FieldLog/WorkspaceModel.swift b/ios/FieldLog/WorkspaceModel.swift
+index cffb75b110b7732160b483965c2962456caef2d6..ef7093a45f81a22c1f214ebcf59997e7e015d755 100644
+--- a/ios/FieldLog/WorkspaceModel.swift
++++ b/ios/FieldLog/WorkspaceModel.swift
+@@ -142,7 +142,7 @@ import SwiftUI
+       guard value == nil, let presented, self.draftEditor?.id == presented.id else { return }
+       self.selectDraftEditor(nil)
+       let draftID = presented.draft.id
+-      guard self.workspace?.restoration.openDraftID == draftID else { return }
++      // A pending open can change restoration before this clear runs.
+       self.enqueue {
+         guard $0.restoration.openDraftID == draftID else { throw DraftAlreadyClosed() }
+         $0.restoration.openDraftID = nil

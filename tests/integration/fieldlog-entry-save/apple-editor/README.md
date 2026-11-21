@@ -32,8 +32,10 @@ Check each result with `git -C "$WORK/fieldlog" write-tree`.
 Create `$WORK/baseline/` and export the baseline with
 `git -C "$WORK/fieldlog" checkout-index --prefix="$WORK/baseline/" -a`.
 Apply [`fieldlog-apple-editor-dismissal.patch`](fieldlog-apple-editor-dismissal.patch)
-in FieldLog. Verify the candidate tree is
+in FieldLog. Verify the reviewed dismissal tree is
 `515684732fb55e9e48e15e55651f7931fd72b8e6`.
+Apply [`fieldlog-apple-editor-queued-close.patch`](fieldlog-apple-editor-queued-close.patch)
+and verify the candidate tree is `380e764598c31181d16ef2fbb91c95bf95693375`.
 
 ## Build the replay
 
@@ -148,6 +150,20 @@ adds one entry and one outbox event. The cancellation cases cover a held write
 and selection changes before and after guest retirement. The checks use the
 signed guest and a disk repository on macOS.
 
+The `queuedOrdinaryClose` control holds an open at the repository's
+`before_write` hook. It dismisses the editor through the binding while the
+model still publishes the previous draft. Cold reopen must show an empty
+restoration ID after exactly two writes. To reproduce the regression, build
+the same replay without `FIELDLOG_DISMISSAL_BASELINE`, linking
+`WorkspaceModel.swift` from tree `515684732fb55e9e48e15e55651f7931fd72b8e6`.
+With a fresh disk root, `queuedOrdinaryClose` fails because the queued open
+persists the dismissed draft. The control does not load signed material.
+
+`ordinaryCloseNewerSelection` holds the open of a different draft ahead of
+the old editor's close. A repeat callback must leave the newer editor visible,
+and cold reopen must retain the newer draft ID with only the open's revision.
+Both controls run as part of `all`.
+
 ## Compile the generic iPhoneOS target
 
 Build the same VM with `SDKROOT=$(xcrun --sdk iphoneos --show-sdk-path)`,
@@ -173,5 +189,8 @@ The generic build compiles both SwiftUI sheets. The replay exercises the
 ordinary editor callbacks through their model and binding. Installed UI
 execution requires its own evidence.
 
-For the tested source trees, commands, and observed results, see the
-[v80 composition receipt](../../../../verification/receipts/fieldlog-v80-signed-commit-59144ad9.json).
+The original generic compile used the reviewed dismissal tree.
+[v80 composition receipt](../../../../verification/receipts/fieldlog-v80-signed-commit-59144ad9.json)
+
+The queued-close correction was verified through the bounded macOS host replay.
+[Queued-close receipt](../../../../verification/receipts/fieldlog-apple-queued-draft-close.json)
