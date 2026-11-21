@@ -67,10 +67,54 @@ private func validateSharedMemory(_ module: Data) throws -> [String: Refusal] {
     }
 }
 
+private struct NativePreview: TaskPath {
+    private var result = Data(count: FloatingPointPreview.outputSize)
+
+    func frame() -> Data { result }
+
+    mutating func activate(_ bytes: [UInt8]) -> Bool {
+        bytes.withUnsafeBytes { input in
+            result.withUnsafeMutableBytes { FloatingPointPreview.render(input, into: $0) }
+        }
+    }
+}
+
+private struct PreviewObservation: Encodable {
+    let frames: [Data]
+    let truncatedRefusedWithoutPublication: Bool
+    let guestFuel: [UInt64]
+    let closed: Bool
+}
+
+private func exercisePreview(
+    _ path: inout some TaskPath, inputs: Data
+) throws -> PreviewObservation {
+    let width = FloatingPointPreview.inputSize
+    try check(!inputs.isEmpty && inputs.count <= 8 * width && inputs.count.isMultiple(of: width),
+              "invalid floating-point case file")
+    var frames = [try path.frame()]
+    var guestFuel: [UInt64] = []
+    let owned = path as? OwnedTask
+    for offset in stride(from: 0, to: inputs.count, by: width) {
+        let accepted = try path.activate(Array(inputs[offset ..< offset + width]))
+        try check(accepted, "valid floating-point input refused at offset \(offset)")
+        frames.append(try path.frame())
+        if let owned { guestFuel.append(owned.fuel) }
+    }
+    let refused = try !path.activate(Array(inputs.prefix(width - 1)))
+    let unchanged = try path.frame() == frames.last
+    try check(refused && unchanged, "truncated floating-point input changed the result")
+    try owned?.close()
+    return PreviewObservation(frames: frames, truncatedRefusedWithoutPublication: refused,
+                              guestFuel: guestFuel, closed: owned != nil)
+}
+
 @main private enum CompactHost {
     static func main() throws {
         let args = CommandLine.arguments
-        try check(args.count == 3, "expected a mode and Wasm path")
+        try check(args.count >= 3, "expected a mode and Wasm path")
+        let floating = args[1] == "floating-native" || args[1] == "floating-guest"
+        try check(args.count == (floating ? 4 : 3), "unexpected replay arguments")
         let encoder = JSONEncoder()
         let result: Data
         switch args[1] {
@@ -85,6 +129,15 @@ private func validateSharedMemory(_ module: Data) throws -> [String: Refusal] {
             })
         case "shared-memory":
             result = try encoder.encode(validateSharedMemory(Data(contentsOf: URL(fileURLWithPath: args[2]))))
+        case "floating-native":
+            var preview = NativePreview()
+            let inputs = try Data(contentsOf: URL(fileURLWithPath: args[3]))
+            result = try encoder.encode(exercisePreview(&preview, inputs: inputs))
+        case "floating-guest":
+            var preview = OwnedTask(try Data(contentsOf: URL(fileURLWithPath: args[2])), measureComponents: false)
+            let inputs = try Data(contentsOf: URL(fileURLWithPath: args[3]))
+            try preview.open()
+            result = try encoder.encode(exercisePreview(&preview, inputs: inputs))
         default:
             throw CheckFailed(reason: "unknown mode")
         }

@@ -3,6 +3,7 @@
     "native": {"title": "FeatureProbe", "anchor": "native-featureprobe", "scope": "native"},
     "sdk": {"title": "SDK controls", "anchor": "native-sdk-controls", "scope": "native"},
     "compact": {"title": "Owned VM replay", "anchor": "compact-owned-vm-replay", "scope": "owned"},
+    "floating": {"title": "Swift floating-point replay", "anchor": "swift-floating-point-replay", "scope": "owned"},
     "capability": {"title": "VM controls", "anchor": "owned-vm-capability-and-validation-controls", "scope": "owned"},
     "ownedCancellation": {"title": "Owned VM cancellation control", "anchor": "owned-vm-cancellation-and-retirement", "scope": "owned"},
     "model": {"title": "Node model oracle", "anchor": "development-only-fieldlog-model-oracle", "scope": "development"}
@@ -21,7 +22,7 @@
     {"feature": "Foundation.JSONDecoder.decode", "label": "native supported", "scope": "Decodes the selected Codable records. A string in a Bool field raises the exact typed error. Owned-guest Foundation remains unqualified.", "positive": ["native"], "negative": ["native"], "related": ["model"]},
     {"feature": "Unicode strings and UTF-8", "label": "native supported", "scope": "Exact emoji, Arabic and decomposed-accent bytes through native Codable. The macOS SDK guest event codec checks exact Unicode wire values and the SDK JSON guard rejects unpaired surrogates. Guest Swift String semantics remain unqualified.", "positive": ["native", "sdk"], "negative": ["sdk"], "related": ["model"]},
     {"feature": "Foundation.String.trimmingCharacters(in:) with CharacterSet.whitespacesAndNewlines", "label": "native supported", "scope": "The native probe accepts nonblank titles and refuses a spaces-only title with its typed validation error. Other character sets and guest Foundation remain unqualified.", "positive": ["native"], "negative": ["native"]},
-    {"feature": "Swift floating-point behavior", "label": null, "scope": "Native/guest parity for Swift-emitted Float or Double operations still needs coverage at the language level."},
+    {"feature": "Swift floating-point behavior", "label": "guest supported", "scope": "Installed Guest UI v1 on arm64 macOS matches native Swift for Float and Double addition, subtraction, multiplication, division, less-than, and equality to zero. Seven runtime inputs cover finite fractions, precision boundaries, subnormal products, and signed zero. The fixture refuses a truncated input without changing the result.", "positive": ["floating"], "negative": ["floating"]},
     {"feature": "Foundation.Date.init(timeIntervalSince1970:)", "label": null, "scope": "The FieldLog corpus uses a fixed timestamp in its model. Swift guest date semantics remain unqualified.", "related": ["model"]},
     {"feature": "Foundation locale APIs", "label": null, "scope": "Locale selection, locale-sensitive formatting and collation need API-specific controls."},
     {"feature": "Cancellation — native FeatureStore effects", "label": "native supported", "scope": "The macOS FeatureStore delivers the current replacement and suppresses results from three effects joined after replacement, explicit cancellation, or stop. Swift guest Task cancellation remains unqualified.", "positive": ["sdk"], "negative": ["sdk"], "related": ["ownedCancellation"]},

@@ -9,6 +9,7 @@ from pathlib import Path
 import re
 import resource
 import shutil
+import struct
 import sys
 import tempfile
 
@@ -40,6 +41,62 @@ def shared_memory_control(module):
     raise ValueError("missing memory section")
 
 
+def floating_point_control(run, host, wasm):
+    def same(name, operands, results):
+        return name, (operands, results), (operands, results)
+
+    # Expected results are exact literals. The two precision-boundary cases
+    # straddle the last consecutive integer in the respective formats.
+    cases = [
+        same("fractional", (1.5, 0.5), (2, 1, 0.75, 3, 0)),
+        same("ordered", (0.5, 2), (2.5, -1.5, 1, 0.25, 1)),
+        ("below-precision-boundary",
+         ((16_777_215, 1), (16_777_216, 16_777_214, 16_777_215, 16_777_215, 0)),
+         ((9_007_199_254_740_991, 1), (9_007_199_254_740_992, 9_007_199_254_740_990,
+                                     9_007_199_254_740_991, 9_007_199_254_740_991, 0))),
+        ("at-precision-boundary",
+         ((16_777_216, 1), (16_777_216, 16_777_215, 16_777_216, 16_777_216, 0)),
+         ((9_007_199_254_740_992, 1), (9_007_199_254_740_992, 9_007_199_254_740_991,
+                                     9_007_199_254_740_992, 9_007_199_254_740_992, 0))),
+        ("smallest-normal",
+         ((2.0**-126, 0.5), (0.5, -0.5, 2.0**-127, 2.0**-125, 1)),
+         ((2.0**-1022, 0.5), (0.5, -0.5, 2.0**-1023, 2.0**-1021, 1))),
+        same("positive-zero", (0.0, 2), (2, -2, 0.0, 0.0, 3)),
+        same("negative-zero", (-0.0, 2), (2, -2, -0.0, -0.0, 3)),
+    ]
+    expected = [bytes(56)]
+    operands = {}
+    for name, (f32_input, f32_output), (f64_input, f64_output) in cases:
+        operands[name] = struct.pack("<2f2d", *f32_input, *f64_input)
+        expected.append(struct.pack("<4f4d2I", *f32_output[:4], *f64_output[:4],
+                                    f32_output[4], f64_output[4]))
+    input_file = run.scratch / "floating-inputs"
+    input_file.write_bytes(b"".join(operands.values()))
+    observations = {}
+    names = ["initial", *operands]
+    for mode in ("native", "guest"):
+        row = strict_json(run.command(f"floating-{mode}", host, f"floating-{mode}", wasm, input_file)[0])
+        frames = [base64.b64decode(frame, validate=True) for frame in row.pop("frames")]
+        require(len(frames) == len(expected), f"{mode}: missing floating-point frames")
+        for name, actual, target in zip(names, frames, expected):
+            require(actual == target, f"{mode}: {name} expected {target.hex()}, got {actual.hex()}")
+        fuel = row.pop("guestFuel")
+        require(row == dict(truncatedRefusedWithoutPublication=True, closed=mode == "guest"),
+                f"{mode}: unexpected floating-point refusal or close: {row}")
+        require((len(fuel) == len(cases) and all(0 < turn <= 1_000_000 for turn in fuel))
+                if mode == "guest" else not fuel, f"{mode}: unexpected floating-point fuel: {fuel}")
+        observations[mode] = dict(**row, guestFuel=fuel, framesHex=dict(zip(names, (frame.hex() for frame in frames))))
+    require(observations["native"]["framesHex"] == observations["guest"]["framesHex"],
+            "floating-point frame bytes differ between native Swift and the owned VM")
+    return dict(
+        inputFile=identity(input_file),
+        inputsHex={name: value.hex() for name, value in operands.items()},
+        inputLayout="little-endian Float pair, then Double pair",
+        frameLayout="four Float results, four Double results (+, -, *, /), then two UInt32 flags (< bit 0, == zero bit 1)",
+        truncatedInputBytes=23, **observations,
+    )
+
+
 def campaign(run):
     call = run.command
     out = run.scratch
@@ -50,20 +107,23 @@ def campaign(run):
     model = INSTALLED / "TaskCompletion.swift"
     adapter = INSTALLED / "InstalledGuest.swift"
     prior = ROOT / "verification/receipts/l03-d3-task-review-event-trap-7b61fe1c.json"
-    host = [HERE / "CompactHost.swift", BENCHMARK / "MatchedTask.swift", model, *runtime_sources]
+    floating = HERE / "FloatingPoint.swift"
+    host = [HERE / "CompactHost.swift", floating, BENCHMARK / "MatchedTask.swift", model, *runtime_sources]
     native = HERE / "Sources/FeatureProbe/main.swift"
     version_commands = {
         "macOS": ("/usr/bin/sw_vers",),
         "nativeSwift": ("/usr/bin/swiftc", "--version"),
         "guestSwift": (run.swift / "swiftc", "--version"),
         "linker": (run.swift / "wasm-ld", "--version"),
+        "objdump": (run.swift / "llvm-objdump", "--version"),
         "rustc": (run.rust / "rustc", "--version"),
         "cargo": (run.rust / "cargo", "--version"),
     }
     versions = {key: call(key, *command)[0].strip() for key, command in version_commands.items()}
+    versions["objdump"] = versions["objdump"].split("\n\n", 1)[0]
     vm = ROOT / "vm"
     vm_files = call("vm-sources", "/usr/bin/git", "ls-files", "-z", "--",
-                    "vm/Cargo.toml", "vm/Cargo.lock", "vm/src", "vm/include", "vm/tests")[0].split("\0")
+                    "vm/Cargo.toml", "vm/Cargo.lock", "vm/src", "vm/include", "vm/tests", "vm/examples")[0].split("\0")
     inputs = [HERE / "replay.py", BENCHMARK / "matched_task.py", INSTALLED / "run.py",
               INSTALLED / "replay_abi.py", EXPERIMENTS / "fieldlog-reactor/support.py",
               EXPERIMENTS / "profile-budget/analyze.py", ROOT / "compiler/qualification_support.py",
@@ -83,6 +143,10 @@ def campaign(run):
                                                         out / "guest-modules"))
     module = wasm.read_bytes()
     descriptor = replay_abi.check_descriptors(module)
+    floating_wasm = build_compact_guest(
+        lambda *args: call(*args, bound=35), run.swift, out, "floating", [floating],
+        flags=("-D", "FLOATING_POINT_GUEST", "-module-cache-path", out / "guest-modules"))
+    replay_abi.check_descriptors(floating_wasm.read_bytes())
     refusals = replay_abi.negative_controls(module, descriptor)
     mutated, flag_offset = shared_memory_control(module)
     rejected_wasm = out / "task-shared-memory.wasm"
@@ -113,6 +177,11 @@ def campaign(run):
         observations[mode] = row
     require(frames["guest"] == frames["native"], "FieldLog paths returned different bytes")
 
+    floating_point = floating_point_control(run, out / "compact-host", floating_wasm)
+    disassembly = call("floating-disassembly", run.swift / "llvm-objdump", "--disassemble", floating_wasm)[0]
+    instructions = sorted(set(re.findall(r"\bf(?:32|64)\.(?:add|sub|mul|div|lt|eq)\b", disassembly)))
+    require(len(instructions) == 12, f"missing floating-point instructions in the executed module: {instructions}")
+
     boundary = strict_json(call("shared-memory", out / "compact-host", "shared-memory", rejected_wasm)[0])
     expected_refusal = dict(status=1, code="unsupported",
                             message="shared/memory64 memory is unsupported", offset=flag_offset + 1)
@@ -136,6 +205,11 @@ def campaign(run):
                        for path in [Path(__file__), native, adapter, *host]},
         toolVersions={**versions, "python": sys.version.split()[0], "architecture": os.uname().machine},
         nativeFeatureProbe=feature, taskCompletion=dict(**observations, frameSHA256=expected),
+        floatingPointPreview=dict(
+            installedABI="Guest UI v1", vmProfile="table-memory-v3",
+            memoryPages=1, fuelPerTurn=1_000_000, hostCallsPerTurn=0,
+            wasm=identity(floating_wasm), hostExecutable=identity(out / "compact-host"),
+            instructions=instructions, **floating_point),
         compactWasm=identity(wasm), vmArchive=identity(archive),
         descriptorGuardRefusals=sorted(refusals),
         sharedMemoryControl=dict(**identity(rejected_wasm), changedByteOffset=flag_offset,

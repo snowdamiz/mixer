@@ -42,6 +42,25 @@ Descriptor-only controls run separately. The compact profile uses one 64 KiB
 page, 1,000,000 fuel per turn, and zero host calls for FieldLog. This replay
 uses unsigned host fixtures.
 
+## Swift floating-point replay
+
+Run the compact owned-VM replay above to compare the task measurement preview
+in native Swift and the installed Guest UI v1 ABI. The ABI selects
+`table-memory-v3`. The host reads seven inputs from a file and sends the
+operand bytes through the guest event buffer.
+
+The replay checks exact result bits for Float and Double addition, subtraction,
+multiplication, and division. It checks less-than and equality to zero.
+The cases cover fractional values, rounding at 2^24 and 2^53, the smallest
+normal values with subnormal products, and both signs of zero. Both paths
+refuse a 23-byte input without publishing a new result. The guest closes and
+rejects its stale session handle.
+
+The fixture exchanges binary data through the compact ABI. Coverage is limited
+to the seven finite inputs on arm64 macOS. The receipt records the input bytes,
+both outputs, and the instructions in the Swift-emitted guest.
+[Floating-point replay receipt](../../../verification/receipts/swift-floating-point-preview-6f4fdee12e.json)
+
 ## Owned VM capability and validation controls
 
 The compact replay executes the suites below using Rust 1.99.0. To run them
