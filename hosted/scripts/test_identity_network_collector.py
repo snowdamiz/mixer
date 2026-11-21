@@ -2281,6 +2281,102 @@ class BudgetAndCommandControls(unittest.TestCase):
 
 
 
+class GitProductBatchControls(unittest.TestCase):
+    BATCH = ["git", "--no-replace-objects", "cat-file", "--batch"]
+    HEAD = ["git", "--no-replace-objects", "rev-parse", "HEAD"]
+    PRODUCT = {"hosted/c": b"", "hosted/b": b"\x00\ntext", "hosted/a": b"x" * 14}
+
+    def make_subject(self, directory, *, overflow_path=None):
+        requests = []
+
+        def git(argv, timeout, input_bytes):
+            if argv == self.HEAD:
+                return 0, (subject.sha + "\n").encode(), b""
+            self.assertEqual(self.BATCH, argv)
+            self.assertEqual(15, timeout)
+            paths = []
+            for line in input_bytes.decode().splitlines():
+                sha, path = line.split(":", 1)
+                self.assertEqual(subject.sha, sha)
+                paths.append(path)
+            requests.append(paths)
+            if overflow_path in paths:
+                return 0, b"x" * (8_388_608 + 1), b""
+            output = bytearray()
+            for path in paths:
+                body = self.PRODUCT[path]
+                output.extend(f"{'a' * 40} blob {len(body)}\n".encode())
+                output.extend(body + b"\n")
+            return 0, bytes(output), b""
+
+        subject = CollectorMethodWiringControls().make_collector(directory, git)
+        return subject, requests
+
+    def test_ordered_framing_and_exact_fit_preserve_single_batch(self):
+        # Response frames occupy 64, 55 and 49 bytes, including both LFs.
+        manifest = {path: collector._file_row(body) for path, body in self.PRODUCT.items()}
+        paths = sorted(self.PRODUCT)
+        for cap, expected in ((168, [paths]), (119, [paths[:2], paths[2:]])):
+            with self.subTest(cap=cap), tempfile.TemporaryDirectory() as directory:
+                subject, requests = self.make_subject(directory)
+                with mock.patch.object(collector, "MAX_COMMAND_BYTES", cap):
+                    product = subject.git_product_blobs(manifest)
+                self.assertEqual(self.PRODUCT, product)
+                self.assertEqual(paths, list(product))
+                self.assertEqual(expected, requests)
+                for log in (subject.output / "logs").glob("*.json"):
+                    row = json.loads(log.read_text())
+                    self.assertLessEqual(row["stdin_bytes"], cap)
+                    self.assertLessEqual(row["stdout_bytes"], cap)
+                    self.assertTrue(row["stdout_complete"])
+
+    def test_oversize_pinned_member_refuses_before_reading_any_product(self):
+        with tempfile.TemporaryDirectory() as directory:
+            subject, requests = self.make_subject(directory)
+            manifest = {
+                "hosted/a": collector._file_row(self.PRODUCT["hosted/a"]),
+                "hosted/c": {"bytes": collector.MAX_COMMAND_BYTES, "sha256": "0" * 64},
+            }
+            with self.assertRaisesRegex(collector.CollectorError, "product blob exceeds git command byte cap: hosted/c"):
+                subject.git_product_blobs(manifest)
+            self.assertEqual([], requests)
+            self.assertEqual(0, subject.command_number)
+
+    def test_invalid_product_pin_refuses_before_batching(self):
+        manifest = dict(collector.WORKSPACE_MANIFEST)
+        path = min(manifest)
+        manifest[path] = {**manifest[path], "bytes": manifest[path]["bytes"] + 1}
+        with tempfile.TemporaryDirectory() as directory:
+            subject, requests = self.make_subject(directory)
+            with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
+                    mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
+                    mock.patch.object(collector, "WORKSPACE_MANIFEST", manifest):
+                with self.assertRaisesRegex(collector.CollectorError, "workspace source digest"):
+                    subject.collect()
+            self.assertEqual([], requests)
+            self.assertEqual(1, subject.command_number)
+
+    def test_incomplete_batch_stops_collection_before_docker_without_retry(self):
+        manifest = {path: collector._file_row(body) for path, body in self.PRODUCT.items()}
+        with tempfile.TemporaryDirectory() as directory:
+            subject, requests = self.make_subject(directory, overflow_path="hosted/b")
+            with mock.patch.dict("os.environ", {"GITHUB_ACTIONS": "true", "RUNNER_OS": "Linux", "RUNNER_ARCH": "X64"}, clear=True), \
+                    mock.patch.object(collector.os, "uname", return_value=collector.os.uname_result(("Linux", "control", "0", "0", "x86_64"))), \
+                    mock.patch.object(collector, "WORKSPACE_MANIFEST", manifest), \
+                    mock.patch.object(collector, "WORKSPACE_SOURCE_COUNT", len(manifest)), \
+                    mock.patch.object(collector, "WORKSPACE_SOURCE_DIGEST", canonical_digest(manifest)), \
+                    mock.patch.object(collector, "MAX_COMMAND_BYTES", 100):
+                self.assertEqual(1, subject.run())
+            self.assertEqual([["hosted/a"], ["hosted/b"]], requests)
+            failed = json.loads((subject.output / "logs/0003.json").read_text())
+            self.assertTrue(failed["overflow"])
+            self.assertFalse(failed["stdout_complete"])
+            self.assertFalse(failed["timed_out"])
+            self.assertEqual("command timeout/output incomplete", subject.state["primary_failure"]["message"])
+            self.assertEqual([], subject.registry.records)
+            self.assertFalse((subject.output / "product-source-manifest.json").exists())
+
+
 class CurrentSourceSelectionControls(unittest.TestCase):
     DIGEST = "07bb7b5d7b518f487e4981dc4aa0e911f16c99a5bbbf96ea0bdc204d9455ccd9"
     SELECTION = "14868be39631a86c79f4ba7b6bfb9386c6d80062ef4d0ddebbf55aea833afc96"

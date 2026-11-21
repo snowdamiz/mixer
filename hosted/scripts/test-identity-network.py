@@ -5855,6 +5855,32 @@ class Collector:
         require(cursor == len(raw), "extra git blobs")
         return result
 
+    def git_product_blobs(self, manifest):
+        batches, batch = [], []
+        request_bytes = response_bytes = 0
+        for path, row in sorted(manifest.items()):
+            size = row["bytes"]
+            request_size = len(f"{self.sha}:{path}\n".encode())
+            # Git emits a SHA-1, " blob ", the decimal size and LF, then the blob and LF.
+            response_size = 40 + len(b" blob \n\n") + len(str(size)) + size
+            require(max(request_size, response_size) <= MAX_COMMAND_BYTES,
+                    "product blob exceeds git command byte cap: " + path)
+            if (request_bytes + request_size > MAX_COMMAND_BYTES
+                    or response_bytes + response_size > MAX_COMMAND_BYTES):
+                batches.append(batch)
+                batch = []
+                request_bytes = response_bytes = 0
+            batch.append(path)
+            request_bytes += request_size
+            response_bytes += response_size
+        if batch:
+            batches.append(batch)
+
+        product = {}
+        for batch in batches:
+            product.update(self.git_blobs(batch))
+        return product
+
     def inspect(self, owned, cleanup=False):
         require(owned.state == "owned", "sticky owned identity loss; no retry")
         try:
@@ -6087,7 +6113,7 @@ class Collector:
         head, _, _ = self.command(["git", "--no-replace-objects", "rev-parse", "HEAD"])
         require(head.decode().strip() == self.sha, "checkout delivery revision mismatch")
         validate_workspace_source_manifest(WORKSPACE_MANIFEST)
-        product = self.git_blobs(sorted(WORKSPACE_MANIFEST))
+        product = self.git_product_blobs(WORKSPACE_MANIFEST)
         observed = {path: {"bytes": len(body), "sha256": hashlib.sha256(body).hexdigest()} for path, body in product.items()}
         validate_workspace_source_manifest(observed)  # All static product/lock checks precede create/pull.
         self.state["source"] = {"delivery_revision": self.sha, "frozen_product_commit": PRODUCT_COMMIT, "product_files": len(observed), "product_tree_digest_sha256": canonical_digest(observed), "lock_sha256": observed["hosted/mix.lock"]["sha256"]}
