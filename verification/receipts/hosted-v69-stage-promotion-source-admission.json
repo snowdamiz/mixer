@@ -1,0 +1,201 @@
+{
+  "cleanup": "Owned sparse projections and restoration scratch removed.",
+  "cli_archive": {
+    "refusal_controls": [
+      "v69 predecessor executable bit",
+      "installed workflow executable bit",
+      "pre-REST v68 substituted for REST-integrated v68",
+      "v67 and original pre-REST v68 predecessor executable bits"
+    ],
+    "restore_inventory_compared_to": "verification/receipts/release-rest-v3-ci-source-admission-v68.json",
+    "restores": {
+      "127": {
+        "admission_sha256": "0cb67b2e09ed90b78498eefb0d9735d1b5425dd8d711f4b5072b00a914002519",
+        "files": 845,
+        "path_mode_blob_sha256": "37ed72c05b97f15973dd08a06afeafadf4db64048bbbaed326a35eee37d6ca54",
+        "tests_passed_per_mode": 20,
+        "verify_workflow": "c059b5581c25c8982fe484d92c0c8a28e004e8c0"
+      },
+      "141": {
+        "admission_sha256": "a4ec769dd76cb68de04a24d86247d41fa408683afc536e4e01ff7443ebcc5e4e",
+        "files": 890,
+        "path_mode_blob_sha256": "7c61c17913414de0c4189783d324ebce1a73ffbdb2387c9a24b847a26406c29f",
+        "tests_passed_per_mode": 3,
+        "verify_workflow": "547a859cdbcab75ca1384dd871fda07f52bce72a"
+      }
+    },
+    "source": {
+      "count": 153,
+      "manifest": "current-source-inputs.json",
+      "sha256": "70364ee9ba56577fdc2eaf40ca64d2682557d71c24771db6d71650094ae92645"
+    },
+    "unchanged_admission_stdout_matches_real_v68_checkout": {
+      "normal": "629e4dd223c06cee3127f93ba3b516cc89acf9be66ed1b0c648716c7f21bcd90",
+      "optimized": "629e4dd223c06cee3127f93ba3b516cc89acf9be66ed1b0c648716c7f21bcd90"
+    },
+    "verify_workflows": {
+      "v67": {
+        "blob": "90fcab67a5a712f7c947bde25cca8d5e7fb25e9f",
+        "mode": "100644"
+      },
+      "v68": {
+        "blob": "1bab4b5aba92cdcc7068c6adc289a2cf06bd4fea",
+        "mode": "100644"
+      },
+      "v68_rest": {
+        "blob": "b1d8f19fec3065098d7f15be6daac190c7fe5334",
+        "mode": "100644"
+      },
+      "v69": {
+        "blob": "714cc6bbc5df11a6e2f012b91a32e5487b7a372e",
+        "mode": "100644"
+      }
+    }
+  },
+  "commands": {
+    "android_sparse": "python3.13 -I -B -S [-O] verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v",
+    "checkout": "git sparse-checkout set --no-cone --stdin; git checkout --detach <source_commit>",
+    "cli_archive": "python3.13 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+    "cli_restore": "python3.13 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py {prepare-source141,prepare-predecessor} --out <fresh-directory>",
+    "collector": "python3.13 -B [-O] hosted/scripts/test_identity_network_collector.py -v <collector_targets>",
+    "collector_targets": [
+      "WorkspaceSourceCutoverControls",
+      "WorkflowSparseSourceControls",
+      "FormatAmendmentControls",
+      "CatalogJoinSourceControls",
+      "PendingSessionV28Controls.test_current_source_check_rejects_each_corruption_without_touching_originals",
+      "BillingReconciliationV29Controls.test_current_source_checks_corrupt_full16_before_dispatch",
+      "BillingReconciliationV29Controls.test_collector_admits_workspace_then_refuses_v29_metadata_before_docker"
+    ],
+    "fixture_shell_parse": "bash -n on each exact replay script",
+    "generated_rest": "python3.13 -B [-O] cli/release-tools/generate_release_rest_v3.py --check --check-router",
+    "hosted": "python3.13 -B [-O] hosted/scripts/test-identity-network.py --check-source",
+    "python_modes": [
+      "normal",
+      "-O"
+    ],
+    "restored_tests": [
+      "verification/sdk-feature-ui-source141-v1/test_source141.py",
+      "verification/native-report-source127-v1/test_source127.py"
+    ]
+  },
+  "hosted": {
+    "exact_changed_paths": [
+      "docs/operations/local-signed-release-delivery.md",
+      "docs/operations/provision-local-release-jobs.sql",
+      "hosted/lib/mixer_hosted/authorization.ex",
+      "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex",
+      "hosted/lib/mixer_hosted/releases.ex",
+      "hosted/lib/mixer_hosted/releases/browser_head.ex",
+      "hosted/lib/mixer_hosted/releases/environment_promotion/command.ex",
+      "hosted/lib/mixer_hosted/releases/environment_promotion/direction.ex",
+      "hosted/lib/mixer_hosted/releases/environment_promotion/storage.ex",
+      "hosted/lib/mixer_hosted/releases/environment_promotion/verifier.ex",
+      "hosted/lib/mixer_hosted/releases/public_delivery.ex",
+      "hosted/lib/mixer_hosted/releases/runtime_provisioning.ex",
+      "hosted/lib/mixer_hosted_web/public_release_controller.ex",
+      "hosted/priv/local_release_jobs/20261120000014_add_local_release_jobs.exs",
+      "hosted/priv/local_release_target_registry/20261120000015_add_local_release_target_registry.exs",
+      "hosted/priv/local_stage_promotion/20261120000016_add_local_stage_promotion.exs",
+      "hosted/scripts/replay-local-release-target-registry.md",
+      "hosted/scripts/replay-local-release-target-registry.sh",
+      "hosted/scripts/replay-local-stage-promotion.sh",
+      "hosted/test/mixer_hosted/releases/browser_publication_test.exs",
+      "hosted/test/mixer_hosted/releases/configured_release_replay_test.exs",
+      "hosted/test/mixer_hosted/releases/environment_promotion/postgres_test.exs",
+      "hosted/test/mixer_hosted/releases/environment_promotion/verifier_test.exs",
+      "hosted/test/mixer_hosted/releases/runtime_provisioning_test.exs",
+      "hosted/test/support/stage_promotion_signing_fixture.ex"
+    ],
+    "executable_fixture_mode": "100755 on both new replay scripts, verified on the sparse checkout",
+    "identity": "hosted-stage-promotion-and-target-registry-source-v69",
+    "manifest_sha256": "4f43b839587a848f6ba519705c91cfc4f697ad89dd4d4c806edd1c985d74ed0f",
+    "ordinary_migrations": 27,
+    "paths_added": 12,
+    "paths_replaced": 13,
+    "refusal_controls": [
+      "Tampered queue migration bytes, predecessor bytes or predecessor mode",
+      "Missing or changed active source and historical preimages",
+      "Unreviewed ordinary, queue, registry or stage promotion migration files",
+      "Lost replay fixture executable bit and changed migration file mode",
+      "Collector rejects both real active and historical metadata drift before Docker"
+    ],
+    "reviewed_opt_in": {
+      "local_release_jobs_opt_in_migration": "hosted/priv/local_release_jobs/20261120000014_add_local_release_jobs.exs",
+      "local_release_target_registry_opt_in_migration": "hosted/priv/local_release_target_registry/20261120000015_add_local_release_target_registry.exs",
+      "local_stage_promotion_opt_in_migration": "hosted/priv/local_stage_promotion/20261120000016_add_local_stage_promotion.exs"
+    },
+    "round_trip_path_mode_blob_sha256": {
+      "66->67": "1ee880a9283c346e6a845ef83226767fa762c96f03eff39c2c5030448be148a3",
+      "67->66": "1a77bce8e00de735c92d7a4daf823e7de77d320b0ff1112802645e13fea7218b",
+      "67->68": "3bda5bd61ab1d97624f27ee4d67be5e6ee90c41ba626ef44798a2a907d604dba",
+      "68->67": "1ee880a9283c346e6a845ef83226767fa762c96f03eff39c2c5030448be148a3",
+      "68->69": "5b1cf8a1ad5f45a9940ec907fe10367aa49cda69abd5a24ed2fd03c3a2d111ff",
+      "69": "5b1cf8a1ad5f45a9940ec907fe10367aa49cda69abd5a24ed2fd03c3a2d111ff",
+      "69->68": "3bda5bd61ab1d97624f27ee4d67be5e6ee90c41ba626ef44798a2a907d604dba"
+    },
+    "runtime_or_GA_accepted": false,
+    "selection_sha256": "966231403f08fa93100dfe3a9575d482c4ee60d261206d35474dcb9be7738bb5",
+    "source_count": 495,
+    "source_digest_sha256": "fec4099b875b64d2aa2ab66364ac6d7f9d56a0ae3499ee7a96427ebe920b83cc"
+  },
+  "limits": "Local source and archive controls. Product runtime evidence belongs to the reviewed anchor and root replay. No hosted CI, Docker, deployment or release qualification ran.",
+  "observed_at_utc": "2026-11-21T01:25:10+00:00",
+  "projections": {
+    "android-generated-java": {
+      "admission_stdout_sha256": "629e4dd223c06cee3127f93ba3b516cc89acf9be66ed1b0c648716c7f21bcd90",
+      "checkout_files": 1299,
+      "checkout_path_mode_blob_sha256": "1916d43c330867d4680c49feb5468e434f340ea30a3fc53cfa5b5f8da1ff9fa1",
+      "rules": 30,
+      "rules_sha256": "222eb9d951c7321a3d34ba6a74bbe30882e54e12b05d48d75e982d68e35d3b0e",
+      "sparse_controls_passed_per_mode": 16
+    },
+    "identity-network": {
+      "admission_stdout_sha256": "d9263fe8c206bbd8a05f5bf24514c85076a72dea9ac07b3f2a2a121d4058f251",
+      "checkout_files": 1238,
+      "checkout_path_mode_blob_sha256": "5c2f233775c93c718651b2f64e0de54010c4ca5f40ad7e736fd60f618d48093a",
+      "collector_controls_passed_per_mode": 22,
+      "rules": 270,
+      "rules_sha256": "13a01e09e84719138d1c2afc50003ac4c7da6e4c889a6d55973d8911e6ca7c6b"
+    },
+    "phoenix": {
+      "admission_stdout_sha256": "d9263fe8c206bbd8a05f5bf24514c85076a72dea9ac07b3f2a2a121d4058f251",
+      "checkout_files": 1057,
+      "checkout_path_mode_blob_sha256": "2e1772de2c3a65b243e8ad432576cd894f96d504b27bc98e27b89485a89fc4e2",
+      "rules": 265,
+      "rules_sha256": "46cd71856be1fbc5a100f6654c94af9f121e6177b4e0f33909d6fa14af0bd4bc"
+    },
+    "services": {
+      "admission_stdout_sha256": "d9263fe8c206bbd8a05f5bf24514c85076a72dea9ac07b3f2a2a121d4058f251",
+      "checkout_files": 1404,
+      "checkout_path_mode_blob_sha256": "fc185ce4403b6c41c78f663f5fef39530e537a0672198325ad98a02d3087b34b",
+      "collector_controls_passed_per_mode": 22,
+      "rules": 270,
+      "rules_sha256": "988f5ef275c028fd4620bed81c33e69f8aa2f378df9ad3155837c16b73320a5d"
+    },
+    "swift-host": {
+      "admission_stdout_sha256": "629e4dd223c06cee3127f93ba3b516cc89acf9be66ed1b0c648716c7f21bcd90",
+      "checkout_files": 6466,
+      "checkout_path_mode_blob_sha256": "f0cbcf70636e8ed27ec1b78fef27a9782bce13474abcafb2a92ddf3da0cbdda1",
+      "generated_rest_check": [
+        "Checked cli/Sources/MixerBuild/GeneratedReleaseRESTV3.swift",
+        "Matched 6 Phoenix router source declarations"
+      ],
+      "rules": 45,
+      "rules_sha256": "cbf16b85647117dd2c7edb0e40f55801078bbb0c44722313ad80bb5badf59bf1"
+    }
+  },
+  "revisions": {
+    "product_anchor": "e5b3a977c1091166bf9d82d5bf3da86e663b2625",
+    "published_parent": "7fb2ec8b38c7ebdfd7b4b241113500b0cdcb9130",
+    "source_commit": "683bc16dbeae38df974b8c17c516cb0d0327d5c7",
+    "source_tree": "ef9b7b2d130be3368bc51a04844169b41df46850"
+  },
+  "schema": 1,
+  "scope": "Local hosted v69 and CLI archive source admission for the release target registry, queue and internal stage promotion service",
+  "tools": {
+    "git": "git version 2.56.0",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "python": "3.13.16"
+  }
+}
