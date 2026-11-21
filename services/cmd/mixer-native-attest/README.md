@@ -1,17 +1,18 @@
 # Local native build attestation
 
 Build with `CGO_ENABLED=1 go build ./cmd/mixer-native-attest` from `services`.
-Run both commands on macOS with the key and state on local APFS with ownership
-enabled. Use an operator-controlled parent directory for each path. The signer
-and verifier refuse extended ACLs and fail if they cannot check ACL metadata.
+Run the commands on macOS with the key and state on local APFS with ownership
+enabled. Use an operator-controlled parent directory for each path. The commands
+refuse extended ACLs and fail if they cannot check ACL metadata.
 Review the key and state paths with `ls -lde` before use. Keep the state directory
 at mode 0700 and the private key at mode 0600.
 
 Configure the local Phoenix instance with `MIXER_HTTP_BIND=127.0.0.1` and a fixed
 `MIXER_HTTP_PORT`, such as 4000. Set `origin` to that exact HTTP origin.
 Keep the port, database, artifact storage, attestation state, and pinned public
-key across restarts. Pass a current Mixer browser session token on stdin. Provide
-the eight fields of the build selection as a URL query string.
+key across restarts. For `sign` and `verify`, pass a current Mixer browser
+session token on stdin. Provide the eight fields of the build selection as a URL
+query string.
 
 Verification checks the signed origin before sending the session token. If the
 service comes back on a different port, restart the same Phoenix instance on its
@@ -60,13 +61,49 @@ same envelope will fail attachment, even if all three products match byte for
 byte.
 
 `verify` still accepts historical v1 envelopes with their original signature
-domain and fields. V1 envelopes lack a signed operation ID, so the hosted
-attachment API refuses them. Keep existing v1 files for verification.
+domain and fields. Keep existing v1 files for verification.
 
 This process assumes a trusted local loopback Phoenix server and an
 operator-owned state directory. The proof establishes temporal separation for
 these local worker processes. Running a signer alongside an untrusted worker
 under the same OS account would require an additional key-custody boundary.
+
+### Attach a retained V2 attestation
+
+Start the [local Phoenix attachment writer](#configure-the-local-phoenix-attachment-writer).
+Use the same origin, selection, and state as `sign`. Pass the already enrolled
+public SPKI PEM so the CLI can verify the signature, key ID, and exact build
+selection before sending the credential. The CLI also checks that the requested
+origin matches the signed origin.
+
+Pass a human bearer access token on stdin. Phoenix requires the
+`mixer.build.attest` scope and a current owner, administrator, or developer
+role for the selected build. Phoenix checks the enrolled public key and the
+settled worker operation when it processes the request.
+
+```sh
+mixer-native-attest attach -origin "$origin" -selection "$selection" \
+  -state "$attestation_store" -key "$trusted_public_pem" < "$bearer_token_file"
+```
+
+Only `attach` sends the retained file to Phoenix. It reads the envelope from
+private state and sends its exact bytes as `application/json` with
+`Content-Length`. It uses a single Bearer-authenticated request to the IPv4
+loopback origin without cookies, proxies, or redirects.
+
+```text
+POST /v3/orgs/<org>/projects/<project>/apps/<app>/builds/<build>/ios/native-development-attestation
+```
+
+The URL query contains only `source_sha256`, `toolchain_lock_sha256`, and
+`build_definition_sha256`, each as 64 lowercase hexadecimal characters.
+
+- HTTP 201 prints `attached`. HTTP 200 prints `duplicate`. Both exit successfully.
+- Errors exit with status 1. Known Phoenix errors show the HTTP status and error
+  code, such as `409 immutable_conflict` or `503 authorization_unavailable`.
+- A transport error or unexpected response leaves the result unconfirmed. After
+  checking the local service, you can explicitly run `attach` again with the
+  same envelope. The command never retries on its own.
 
 On macOS, run the concurrent publication check from the repository root.
 Two signer processes race on the same synthetic build and state directory.

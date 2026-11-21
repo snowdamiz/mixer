@@ -10,6 +10,15 @@ import (
 	"testing"
 )
 
+func fixtureSelection() selection {
+	return selection{
+		OrganizationID: "local-org", ProjectID: "local-project", ApplicationID: "local-app",
+		BuildID: "local-build", Platform: "ios",
+		SourceSHA256: strings.Repeat("1", 64), ToolchainLockSHA256: strings.Repeat("2", 64),
+		BuildDefinitionSHA256: strings.Repeat("3", 64),
+	}
+}
+
 func TestReadArtifactRejectsSameSizeCorruption(t *testing.T) {
 	const original = "expected native bytes"
 	const corrupt = "Expected native bytes"

@@ -27,20 +27,11 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	if len(os.Args) > 1 && (os.Args[1] == "sign" || os.Args[1] == "verify") {
+	if len(os.Args) > 1 && (os.Args[1] == "sign" || os.Args[1] == "verify" || os.Args[1] == "attach") {
 		main()
 		os.Exit(0)
 	}
 	os.Exit(m.Run())
-}
-
-func fixtureSelection() selection {
-	return selection{
-		OrganizationID: "local-org", ProjectID: "local-project", ApplicationID: "local-app",
-		BuildID: "local-build", Platform: "ios",
-		SourceSHA256: strings.Repeat("1", 64), ToolchainLockSHA256: strings.Repeat("2", 64),
-		BuildDefinitionSHA256: strings.Repeat("3", 64),
-	}
 }
 
 func runAttestation(action, origin, query, state, key, token string) (string, error) {
@@ -72,7 +63,7 @@ func TestFixedOriginAndACLs(t *testing.T) {
 		t.Fatal(err)
 	}
 	privatePath, publicPath := writeDevelopmentKeys(t, dir)
-	first := newBuildFixture(t, sel, session, "127.0.0.1:0", nil)
+	first := newBuildFixture(t, sel, session, "127.0.0.1:0", nil, nil)
 	cmd := func(action, origin, query, key, token string) (string, error) {
 		return runAttestation(action, origin, query, state, key, token)
 	}
@@ -105,14 +96,14 @@ func TestFixedOriginAndACLs(t *testing.T) {
 	}
 	refuse("build already attested", "sign", first.origin, query, privatePath, session)
 	first.close()
-	restarted := newBuildFixture(t, sel, newSession, strings.TrimPrefix(first.origin, "http://"), nil)
+	restarted := newBuildFixture(t, sel, newSession, strings.TrimPrefix(first.origin, "http://"), nil, nil)
 	refuse("HTTP 401", "verify", restarted.origin, query, publicPath, session)
 	got, err := cmd("verify", restarted.origin, query, publicPath, newSession)
 	if err != nil || got != name || restarted.requests.Load() != 5 {
 		t.Fatalf("verification after restart failed: %v, %q, %d requests", err, got, restarted.requests.Load())
 	}
 
-	other := newBuildFixture(t, sel, newSession, "127.0.0.1:0", nil)
+	other := newBuildFixture(t, sel, newSession, "127.0.0.1:0", nil, nil)
 	refuse("requires the signed Phoenix origin "+strconv.Quote(first.origin),
 		"verify", other.origin, query, publicPath, newSession)
 	if other.requests.Load() != 0 {
@@ -121,15 +112,21 @@ func TestFixedOriginAndACLs(t *testing.T) {
 	setACL(t, state, 0700, "everyone allow list,search,add_file,delete_child")
 	refuse("unsafe attestation directory ACL: extended ACL present",
 		"verify", restarted.origin, query, publicPath, newSession)
+	refuse("unsafe attestation directory ACL: extended ACL present",
+		"attach", restarted.origin, query, publicPath, newSession)
 	clearACL(t, state)
 	setACL(t, publicPath, 0600, "everyone allow write")
 	refuse("unsafe local development key ACL: extended ACL present",
 		"verify", restarted.origin, query, publicPath, newSession)
+	refuse("unsafe local development key ACL: extended ACL present",
+		"attach", restarted.origin, query, publicPath, newSession)
 	clearACL(t, publicPath)
 	path := filepath.Join(state, name)
 	setACL(t, path, 0400, "everyone allow write")
 	refuse("unsafe attestation file ACL: extended ACL present",
 		"verify", restarted.origin, query, publicPath, newSession)
+	refuse("unsafe attestation file ACL: extended ACL present",
+		"attach", restarted.origin, query, publicPath, newSession)
 	clearACL(t, path)
 	if restarted.requests.Load() != 5 {
 		t.Fatal("verification contacted service with unsafe local files")
@@ -168,7 +165,7 @@ func TestConcurrentAttestationsPublishOneEnvelope(t *testing.T) {
 		case <-ctx.Done():
 			return false
 		}
-	})
+	}, nil)
 
 	type result struct {
 		output, publicKey string
@@ -228,7 +225,7 @@ func TestCompletedOperationRequiredAndLegacyVerification(t *testing.T) {
 		t.Fatal(err)
 	}
 	privatePath, publicPath := writeDevelopmentKeys(t, dir)
-	fixture := newBuildFixture(t, sel, session, "127.0.0.1:0", nil)
+	fixture := newBuildFixture(t, sel, session, "127.0.0.1:0", nil, nil)
 	call := func(action, key string) (string, error) {
 		return runAttestation(action, fixture.origin, sel.query().Encode(), state, key, session)
 	}
@@ -288,6 +285,11 @@ func TestCompletedOperationRequiredAndLegacyVerification(t *testing.T) {
 		if output, err := call("verify", publicPath); err != nil || output != name {
 			t.Fatalf("historical verification failed: %v, %q", err, output)
 		}
+	}
+	requests := fixture.requests.Load()
+	if output, err := call("attach", publicPath); err == nil || output != "attachment requires a V2 attestation" ||
+		fixture.requests.Load() != requests {
+		t.Fatalf("expected offline V1 attach refusal: %v, %q", err, output)
 	}
 }
 
@@ -355,7 +357,7 @@ type buildFixture struct {
 }
 
 func newBuildFixture(t *testing.T, sel selection, token, address string,
-	beforeDetail func(context.Context) bool) *buildFixture {
+	beforeDetail func(context.Context) bool, attach http.HandlerFunc) *buildFixture {
 	t.Helper()
 	fixture := new(buildFixture)
 	fixture.operation.Store(strings.Repeat("5", 64))
@@ -393,6 +395,10 @@ func newBuildFixture(t *testing.T, sel selection, token, address string,
 	}
 	add("resource_inventory", inv)
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if attach != nil && r.Method == http.MethodPost {
+			attach(w, r)
+			return
+		}
 		fixture.requests.Add(1)
 		cookie, err := r.Cookie("__Host-mixer-session")
 		if err != nil || cookie.Value != token {

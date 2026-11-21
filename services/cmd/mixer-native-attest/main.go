@@ -1,4 +1,4 @@
-// mixer-native-attest is an operator-run, loopback-only development signer and verifier.
+// mixer-native-attest signs, verifies, and attaches local development attestations.
 package main
 
 import (
@@ -49,15 +49,15 @@ func main() {
 }
 
 func run(args []string, stdin io.Reader) (string, error) {
-	if len(args) == 0 || (args[0] != "sign" && args[0] != "verify") {
-		return "", errors.New("usage: mixer-native-attest sign|verify -origin ORIGIN -selection QUERY -state DIR -key PEM")
+	if len(args) == 0 || (args[0] != "sign" && args[0] != "verify" && args[0] != "attach") {
+		return "", errors.New("usage: mixer-native-attest sign|verify|attach -origin ORIGIN -selection QUERY -state DIR -key PEM")
 	}
-	sign := args[0] == "sign"
-	flags := flag.NewFlagSet(args[0], flag.ContinueOnError)
+	command := args[0]
+	flags := flag.NewFlagSet(command, flag.ContinueOnError)
 	origin := flags.String("origin", "", "trusted local Phoenix origin")
 	raw := flags.String("selection", "", "exact build selection query")
 	state := flags.String("state", "", "mode 0700 attestation directory")
-	key := flags.String("key", "", "private PKCS#8 PEM for sign, pinned public SPKI PEM for verify")
+	key := flags.String("key", "", "private PKCS#8 PEM for sign, pinned public SPKI PEM for verify or attach")
 	if err := flags.Parse(args[1:]); err != nil {
 		return "", err
 	}
@@ -68,16 +68,15 @@ func run(args []string, stdin io.Reader) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	token, err := io.ReadAll(io.LimitReader(stdin, 46))
+	readToken := readSessionToken
+	if command == "attach" {
+		readToken = readAttachToken
+	}
+	token, err := readToken(stdin)
 	if err != nil {
-		return "", errors.New("cannot read session token from stdin")
+		return "", err
 	}
-	session := strings.TrimSuffix(string(token), "\n")
-	decoded, err := base64.RawURLEncoding.Strict().DecodeString(session)
-	if err != nil || len(decoded) != 32 || len(session) != 43 {
-		return "", errors.New("expected a Mixer session token on stdin")
-	}
-	s, err := newSource(*origin, session)
+	s, err := newSource(*origin, token)
 	if err != nil {
 		return "", err
 	}
@@ -103,7 +102,10 @@ func run(args []string, stdin io.Reader) (string, error) {
 	// the request's pins. The store is scoped to this local trust context.
 	scope := strings.Join([]string{sel.OrganizationID, sel.ProjectID, sel.ApplicationID, sel.Platform, sel.BuildID}, "\x00")
 	name := sum([]byte(scope)) + ".json"
-	if !sign {
+	switch command {
+	case "attach":
+		return attach(s, sel, root, name, *key)
+	case "verify":
 		return name, verify(s, sel, root, name, *key)
 	}
 	if _, err := root.Lstat(name); !errors.Is(err, os.ErrNotExist) {
@@ -131,8 +133,21 @@ func run(args []string, stdin io.Reader) (string, error) {
 	return name, publish(root, dir, name, envelope)
 }
 
+func readSessionToken(stdin io.Reader) (string, error) {
+	token, err := io.ReadAll(io.LimitReader(stdin, 46))
+	if err != nil {
+		return "", errors.New("cannot read session token from stdin")
+	}
+	session := strings.TrimSuffix(string(token), "\n")
+	decoded, err := base64.RawURLEncoding.Strict().DecodeString(session)
+	if err != nil || len(decoded) != 32 || len(session) != 43 {
+		return "", errors.New("expected a Mixer session token on stdin")
+	}
+	return session, nil
+}
+
 func verify(s source, sel selection, root *os.Root, name, key string) error {
-	envelope, err := readAttestation(root, name)
+	envelope, _, err := readAttestation(root, name)
 	if err != nil {
 		return err
 	}
@@ -140,18 +155,9 @@ func verify(s source, sel selection, root *os.Root, name, key string) error {
 	if err != nil {
 		return err
 	}
-	var signed statement
-	if err := json.Unmarshal(envelope.Statement, &signed); err != nil {
-		return errors.New("invalid attestation statement")
-	}
-	if signed.Profile != legacyProfile && signed.Profile != completionProfile {
-		return errors.New("unsupported attestation profile")
-	}
-	if !ed25519.Verify(public, append([]byte(signed.Profile+"\x00"), envelope.Statement...), envelope.Signature) {
-		return errors.New("attestation signature failed")
-	}
-	if signed.Origin != s.origin {
-		return fmt.Errorf("attestation requires the signed Phoenix origin %q (restart with its fixed MIXER_HTTP_PORT)", signed.Origin)
+	signed, err := verifyLocalBinding(envelope, public, s.origin)
+	if err != nil {
+		return err
 	}
 	p, subjects, err := s.observe(sel, signed.Profile)
 	if err != nil {
@@ -167,29 +173,48 @@ func verify(s source, sel selection, root *os.Root, name, key string) error {
 	return nil
 }
 
-func readAttestation(root *os.Root, name string) (attestation, error) {
+func verifyLocalBinding(envelope attestation, public ed25519.PublicKey, origin string) (statement, error) {
+	var signed statement
+	if err := json.Unmarshal(envelope.Statement, &signed); err != nil {
+		return statement{}, errors.New("invalid attestation statement")
+	}
+	if signed.Profile != legacyProfile && signed.Profile != completionProfile {
+		return statement{}, errors.New("unsupported attestation profile")
+	}
+	if !ed25519.Verify(public, append([]byte(signed.Profile+"\x00"), envelope.Statement...), envelope.Signature) {
+		return statement{}, errors.New("attestation signature failed")
+	}
+	if signed.Origin != origin {
+		return statement{}, fmt.Errorf("attestation requires the signed Phoenix origin %q (restart with its fixed MIXER_HTTP_PORT)", signed.Origin)
+	}
+	return signed, nil
+}
+
+const maxAttestationSize = 16_384
+
+func readAttestation(root *os.Root, name string) (attestation, []byte, error) {
 	file, err := root.OpenFile(name, os.O_RDONLY|syscall.O_NONBLOCK|syscall.O_NOFOLLOW, 0)
 	if err != nil {
-		return attestation{}, err
+		return attestation{}, nil, err
 	}
 	defer file.Close()
 	info, err := file.Stat()
 	if err != nil || !info.Mode().IsRegular() || info.Mode().Perm() != 0400 || !owned(info) {
-		return attestation{}, errors.New("invalid attestation file")
+		return attestation{}, nil, errors.New("invalid attestation file")
 	}
 	if err := requireNoACL(file); err != nil {
-		return attestation{}, fmt.Errorf("unsafe attestation file ACL: %w", err)
+		return attestation{}, nil, fmt.Errorf("unsafe attestation file ACL: %w", err)
 	}
-	data, err := io.ReadAll(io.LimitReader(file, 16385))
+	data, err := io.ReadAll(io.LimitReader(file, maxAttestationSize+1))
 	var envelope attestation
-	if err != nil || len(data) > 16384 || json.Unmarshal(data, &envelope) != nil {
-		return attestation{}, errors.New("invalid native attestation")
+	if err != nil || len(data) > maxAttestationSize || json.Unmarshal(data, &envelope) != nil {
+		return attestation{}, nil, errors.New("invalid native attestation")
 	}
 	canonical, err := json.Marshal(envelope)
 	if err != nil || !bytes.Equal(data, canonical) {
-		return attestation{}, errors.New("invalid native attestation")
+		return attestation{}, nil, errors.New("invalid native attestation")
 	}
-	return envelope, nil
+	return envelope, data, nil
 }
 
 func sum(data []byte) string {
