@@ -103,3 +103,21 @@ hdiutil detach "$replay_root/volume" &&
 
 The [adoption replay receipt](../../../verification/receipts/l03-d3-taskcompletion-pinned-replay-00aa86d3.json)
 records a fresh session with this setup and its cleanup.
+
+## Measure the signed draft-validation response bodies
+
+Run this from the Mixer checkout root with the exact `delivery-android`
+packet used by the [installed Workerd replay](../../../verification/receipts/l08-android-installed-workerd-outage-d3b23e0d.json).
+The script uses the retained signed manifests, assignments, and Wasm files.
+
+```sh
+python3 -B compiler/experiments/fieldlog-guest-benchmark/measure_release_wire.py \
+  /path/to/delivery-android
+```
+
+Both Go and Workerd response bodies must match the recorded HTTP 200
+byte counts and SHA-256 hashes before measurement. The receipt counts
+offer and artifact bodies without headers or framing and reports their
+separately gzipped sizes at level 9. Gzip runs offline. The installed
+replay used the identity-encoded bodies.
+[Byte measurement](../../../verification/receipts/l03-fieldlog-draft-validation-release-wire-a1d3cefb.json)
