@@ -1087,7 +1087,12 @@ in the receipt. Apple installed pagination remains pending.
 The API 36 emulator's Camera2 activity resolved the standard image
 capture intent. Its software back camera reached native image review
 after the shutter tap. The emulator and private ADB closed. FieldLog's
-capture, cancel, and save still need an installed replay. [Provider check](verification/receipts/fieldlog-android-api36-camera-provider-probe.json)
+capture candidate then reached native image review twice from the ordinary
+editor and Cancel preserved the workspace and all seven photos. Camera2
+failed to open FieldLog’s output descriptor on Done, and the eighth
+photo was never written. Both disposable emulators and their private ADB
+servers closed, and all ports rebound. The capture candidate needs an
+output correction and a fresh installed save. [Provider check](verification/receipts/fieldlog-android-api36-camera-provider-probe.json) · [Installed failure](verification/receipts/fieldlog-android-camera2-capture-refusal-29135a2f.json)
 
 ## November 21 Apple signed draft validation host replay
 
