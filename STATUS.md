@@ -266,6 +266,13 @@ Phoenix and Identity Network passed.
 [Group replay](verification/receipts/console-exact-stage-promotion-group.json) ·
 [Root verification](verification/receipts/console-promotion-group-root-v79.json)
 
+The v78 Services job admitted all 555 sources. Its normal collector test
+then reached the six-minute process alarm during a predecessor control.
+The optimized collector and Go race suite did not start. The separate
+Identity job passed all 316 tests in 244.383 seconds. Descendant custody
+for the interrupted Services worker remains unverified.
+[Services timeout](verification/receipts/hosted-v78-services-collector-alarm-814c7218.json)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,
