@@ -1,0 +1,96 @@
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index 6dff111785301d04ff7b202ac0ebe96d075c4773..fff498c0ed3308074a772b10e796e3db0fb97e52 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -365,15 +365,16 @@ private enum WorkspaceEdit: Sendable {
+                 default: break
+                 }
+             }
+-            for (index, task) in workspace.tasks(for: projectID).enumerated() {
++            for task in workspace.tasks(for: projectID) {
+                 let key = "task." + task.id.uuidString.lowercased()
+                 guard action.actionID == action.nodeID else { continue }
+                 if action.nodeID == key + ".complete" { try begin(.complete(task.id), focus: task.id); return }
+                 if action.nodeID == key + ".up" || action.nodeID == key + ".down" {
+-                    var ids = workspace.tasks(for: projectID).map(\.id)
+-                    let destination = index + (action.nodeID == key + ".up" ? -1 : 1)
+-                    guard ids.indices.contains(destination) else { throw PublicHostError.action }
+-                    ids.swapAt(index, destination); try begin(.order(projectID, ids), focus: task.id); return
++                    let offset = action.nodeID == key + ".up" ? -1 : 1
++                    guard let order = try? workspace.taskOrder(moving: task.id, by: offset) else {
++                        throw PublicHostError.action
++                    }
++                    try begin(.order(order.projectID, order.ids), focus: task.id); return
+                 }
+             }
+         }
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift b/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift
+index 2ab526ceeb7e73507b46b3c1d9729f4b40b8aa17..40ef6f27dd831af74f196a278efb182bc547b219 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift
+@@ -285,6 +285,19 @@ public struct Workspace: Codable, Equatable, Sendable {
+     tasks[i].updatedAt = now
+     try enqueue(.taskSaved, id, now: now)
+   }
++  public func taskOrder(moving id: UUID, by offset: Int) throws -> (projectID: UUID, ids: [UUID]) {
++    guard let task = tasks.first(where: { $0.id == id }) else {
++      throw FieldLogError.missingRecord
++    }
++    var ids = tasks(for: task.projectID).map(\.id)
++    guard let index = ids.firstIndex(of: id) else { throw FieldLogError.missingRecord }
++    let (destination, overflow) = index.addingReportingOverflow(offset)
++    guard !overflow, ids.indices.contains(destination) else {
++      throw FieldLogError.validation("This task cannot move farther.")
++    }
++    ids.swapAt(index, destination)
++    return (task.projectID, ids)
++  }
+   public mutating func reorderTasks(projectID: UUID, ids: [UUID], now: Date = Date()) throws {
+     let current = tasks(for: projectID)
+     guard ids.count == current.count, Set(ids) == Set(current.map(\.id)) else {
+diff --git a/Sources/FieldLogModels/Workspace.swift b/Sources/FieldLogModels/Workspace.swift
+index 2ab526ceeb7e73507b46b3c1d9729f4b40b8aa17..40ef6f27dd831af74f196a278efb182bc547b219 100644
+--- a/Sources/FieldLogModels/Workspace.swift
++++ b/Sources/FieldLogModels/Workspace.swift
+@@ -285,6 +285,19 @@ public struct Workspace: Codable, Equatable, Sendable {
+     tasks[i].updatedAt = now
+     try enqueue(.taskSaved, id, now: now)
+   }
++  public func taskOrder(moving id: UUID, by offset: Int) throws -> (projectID: UUID, ids: [UUID]) {
++    guard let task = tasks.first(where: { $0.id == id }) else {
++      throw FieldLogError.missingRecord
++    }
++    var ids = tasks(for: task.projectID).map(\.id)
++    guard let index = ids.firstIndex(of: id) else { throw FieldLogError.missingRecord }
++    let (destination, overflow) = index.addingReportingOverflow(offset)
++    guard !overflow, ids.indices.contains(destination) else {
++      throw FieldLogError.validation("This task cannot move farther.")
++    }
++    ids.swapAt(index, destination)
++    return (task.projectID, ids)
++  }
+   public mutating func reorderTasks(projectID: UUID, ids: [UUID], now: Date = Date()) throws {
+     let current = tasks(for: projectID)
+     guard ids.count == current.count, Set(ids) == Set(current.map(\.id)) else {
+diff --git a/ios/FieldLog/WorkspaceModel.swift b/ios/FieldLog/WorkspaceModel.swift
+index ef7093a45f81a22c1f214ebcf59997e7e015d755..08462026fdd41d6f51d0a0568ad2075dc52fd966 100644
+--- a/ios/FieldLog/WorkspaceModel.swift
++++ b/ios/FieldLog/WorkspaceModel.swift
+@@ -110,15 +110,8 @@ import SwiftUI
+   }
+   func moveTask(_ id: UUID, offset: Int) {
+     enqueue { state in
+-      guard let task = state.tasks.first(where: { $0.id == id }) else {
+-        throw FieldLogError.missingRecord
+-      }
+-      var ids = state.tasks(for: task.projectID).map(\.id)
+-      guard let index = ids.firstIndex(of: id), ids.indices.contains(index + offset) else {
+-        throw FieldLogError.validation("This task cannot move farther.")
+-      }
+-      ids.swapAt(index, index + offset)
+-      try state.reorderTasks(projectID: task.projectID, ids: ids)
++      let order = try state.taskOrder(moving: id, by: offset)
++      try state.reorderTasks(projectID: order.projectID, ids: order.ids)
+     }
+   }
+   func restoreProject(_ id: UUID?) {

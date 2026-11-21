@@ -1,0 +1,267 @@
+diff --git a/AndroidChecklistRevisionTests.swift b/AndroidChecklistRevisionTests.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..5a8f3caf125ad2d2330a5228e4c94c56457352b3
+--- /dev/null
++++ b/AndroidChecklistRevisionTests.swift
+@@ -0,0 +1,68 @@
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++import MixerUI
++import XCTest
++@testable import FieldLogAndroid
++
++final class AndroidChecklistRevisionTests: XCTestCase {
++  @MainActor func testChecklistRevisionAndDisk() async throws {
++    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let repository = try WorkspaceRepository(directory: directory.appendingPathComponent("FieldLog"))
++    let baseline = try await seedChecklist(repository)
++    await repository.close()
++
++    let surface = R109Surface()
++    let app = try await open(directory, surface)
++    let owner = try XCTUnwrap(surface.owner)
++    let project = baseline.projects[0].id
++    var order = baseline.tasks(for: project).map(\.id)
++    let target = order[19]
++    let key = "task." + target.uuidString.lowercased()
++    let outdated = try event(app, key + ".down")
++
++    try send(app, key + ".down")
++    try await app.settle()
++    order.swapAt(19, 20)
++    func rendered(_ id: String) -> UINode? { fieldLogNode(id, in: app.presentation.snapshot.document.root) }
++    XCTAssertEqual(rendered("tasks.position")?.properties["text"]?.string, "Page 2 of 2 · Tasks 21–22 of 22")
++    XCTAssertEqual(rendered(key + ".complete")?.properties["accessibilityIdentifier"]?.string, key + ".complete")
++    let current = try event(app, key + ".complete")
++    let beforeCompletion = try Data(contentsOf: file(directory))
++    let frames = surface.frames.count
++    XCTAssertThrowsError(try app.send(owner: owner, originalEnvelope: JSONEncoder().encode(outdated)))
++    XCTAssertThrowsError(try app.send(owner: UUID(), originalEnvelope: JSONEncoder().encode(current)))
++    try send(app, "tasks.previous")
++    let firstKey = "task." + order[0].uuidString.lowercased()
++    XCTAssertThrowsError(try send(app, firstKey + ".up"))
++    try await app.settle()
++    XCTAssertEqual(surface.frames.count, frames + 1)
++    XCTAssertEqual(try Data(contentsOf: file(directory)), beforeCompletion)
++    try send(app, "tasks.next")
++    try send(app, key + ".complete")
++    try await app.settle()
++
++    let committed = try disk(directory)
++    XCTAssertEqual(app.presentation.workspace, committed)
++    try assertChecklistChange(baseline, committed, order: order, target: target,
++                              kinds: [.taskOrderChanged, .taskSaved])
++    let currentUI = try event(app, key + ".complete")
++    let newer = try await app.presentation.repository.transact { $0.restoration.selectedProjectID = project }
++    let newerBytes = try Data(contentsOf: file(directory))
++    // The current UI generation and owner still admit the event. Only the durable revision is stale.
++    try app.send(owner: owner, originalEnvelope: JSONEncoder().encode(currentUI))
++    try await app.settle()
++    XCTAssertTrue(try text(app).contains(FieldLogError.staleRevision.localizedDescription))
++    XCTAssertEqual(try Data(contentsOf: file(directory)), newerBytes)
++    XCTAssertEqual(try disk(directory), newer)
++    XCTAssertEqual(app.presentation.workspace, committed)
++    await app.close()
++    XCTAssertNil(surface.owner)
++    let cold = try await open(directory)
++    XCTAssertEqual(cold.presentation.workspace, newer)
++    XCTAssertEqual(try Data(contentsOf: file(directory)), newerBytes)
++    await cold.close()
++    print("CHECKLIST_ANDROID_PASS: page crossing and accessibility, one completion, wrong owner, stale UI and repository revisions, invalid move, exact outbox and cold reopen")
++  }
++}
+diff --git a/AppleChecklistReplay.swift b/AppleChecklistReplay.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..25bf1527527db8000c2f059b49f7958c693e29b0
+--- /dev/null
++++ b/AppleChecklistReplay.swift
+@@ -0,0 +1,58 @@
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++
++@main struct AppleChecklistReplay {
++  @MainActor static func main() async throws {
++    let directory = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
++    let path = directory.appendingPathComponent("workspace.json")
++    let repository = try WorkspaceRepository(directory: directory)
++    let baseline = try await seedChecklist(repository)
++    let model = WorkspaceModel(repository: repository)
++    await model.open()
++    let project = baseline.projects[0].id
++    var order = baseline.tasks(for: project).map(\.id)
++    let target = order[18]
++    order.swapAt(18, 19)
++    model.reorder(projectID: project, ids: order)
++    model.moveTask(target, offset: 1)
++    model.toggleTask(target)
++    try requireChecklist(model.pendingSaves == 3 && model.workspace == baseline, "all actions queued before first commit")
++    order.swapAt(19, 20)
++    await model.flush()
++    let committed = try await repository.readCommittedSnapshot()
++    try requireChecklist(model.pendingSaves == 0 && model.saveError == nil && model.workspace == committed,
++                         "published committed snapshot after queue drains")
++    try assertChecklistChange(baseline, committed, order: order, target: target,
++                              kinds: [.taskOrderChanged, .taskOrderChanged, .taskSaved])
++
++    let bytes = try Data(contentsOf: path)
++    model.moveTask(order[0], offset: -1)
++    await model.flush()
++    try requireChecklist(model.saveError == "This task cannot move farther." && Data(contentsOf: path) == bytes,
++                         "invalid move produced no write")
++    model.reorder(projectID: project, ids: Array(order.dropLast()) + [baseline.tasks(for: baseline.projects[1].id)[0].id])
++    await model.flush()
++    try requireChecklist(model.saveError == "Task order must include each task exactly once." &&
++                         Data(contentsOf: path) == bytes, "invalid drag order produced no write")
++
++    // Emulate external replacement at the repository's durable-snapshot boundary.
++    var external = committed
++    external.revision += 1
++    external.restoration.selectedProjectID = project
++    let externalBytes = try JSONEncoder().encode(external)
++    try externalBytes.write(to: path, options: .atomic)
++    model.toggleTask(target)
++    await model.flush()
++    try requireChecklist(model.saveError == FieldLogError.staleRevision.localizedDescription &&
++                         Data(contentsOf: path) == externalBytes && model.workspace == committed,
++                         "stale disk replacement rejected without a write or publication")
++    await repository.close()
++    let reopened = try WorkspaceRepository(directory: directory)
++    let cold = try await reopened.readCommittedSnapshot()
++    try requireChecklist(cold == external && Data(contentsOf: path) == externalBytes,
++                         "cold reopen and exact durable bytes")
++    await reopened.close()
++    print("CHECKLIST_APPLE_PASS: queued drag, execution-time move across rows 20/21, one completion, invalid moves, stale disk, exact outbox and cold reopen")
++  }
++}
+diff --git a/ApplePackage.swift b/ApplePackage.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..91238a9b0c7a05b8d7fdcd9a1fcc0b69b6da5258
+--- /dev/null
++++ b/ApplePackage.swift
+@@ -0,0 +1,22 @@
++// swift-tools-version: 6.2
++import PackageDescription
++
++let package = Package(
++  name: "FieldLogChecklistHost",
++  platforms: [.macOS(.v14)],
++  dependencies: [
++    .package(name: "fieldlog", path: "../fieldlog"),
++    .package(path: "../../mixer/capability-activation"),
++    .package(path: "../../mixer/sdk")
++  ],
++  targets: [
++    .executableTarget(
++      name: "ChecklistHost",
++      dependencies: [
++        .product(name: "FieldLogModels", package: "fieldlog"),
++        .product(name: "FieldLogStorage", package: "fieldlog"),
++        .product(name: "FieldLogEntrySaving", package: "fieldlog"),
++        .product(name: "MixerCapabilityActivation", package: "capability-activation"),
++        .product(name: "MixerCapabilities", package: "sdk")
++      ])
++  ])
+diff --git a/ChecklistDiskFixture.swift b/ChecklistDiskFixture.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..47416ae89785ac9e60c99ac746155b1d27822ef8
+--- /dev/null
++++ b/ChecklistDiskFixture.swift
+@@ -0,0 +1,71 @@
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++
++let fixtureDate = Date(timeIntervalSince1970: 1_700_000_000)
++
++private func fixtureID(_ value: Int) -> UUID {
++  UUID(uuidString: String(format: "13572468-1234-1234-1234-%012d", value))!
++}
++
++func seedChecklist(_ repository: WorkspaceRepository) async throws -> Workspace {
++  try await repository.transact { workspace in
++    let project = try workspace.createProject(id: fixtureID(1), title: "Checklist", site: "", now: fixtureDate)
++    let other = try workspace.createProject(id: fixtureID(2), title: "Other project", site: "", now: fixtureDate)
++    workspace.tasks = (0..<22).map { index in
++      WorkTask(id: fixtureID(10 + index), projectID: project, title: "Inspect \(index + 1)",
++               responsible: " Jo 日本語 ", position: index, updatedAt: fixtureDate)
++    }
++    workspace.tasks.append(WorkTask(id: fixtureID(3), projectID: other, title: "Other task",
++                                    completed: true, updatedAt: fixtureDate))
++    let followUpValues: [Bool?] = [nil, false, true]
++    for (index, value) in followUpValues.enumerated() {
++      var draft = EntryDraft(id: fixtureID(40 + index), projectID: index == 0 ? project : other,
++                             title: "Open note \(index)", occurredAt: fixtureDate, updatedAt: fixtureDate)
++      draft.followUpRequired = value
++      workspace.drafts.append(draft)
++    }
++    workspace.restoration.openDraftID = workspace.drafts[1].id
++  }
++}
++
++struct ChecklistProofFailure: Error { let label: String }
++
++func requireChecklist(_ ok: @autoclosure () throws -> Bool, _ label: String) throws {
++  if try !ok() { throw ChecklistProofFailure(label: label) }
++}
++
++func assertChecklistChange(_ before: Workspace, _ after: Workspace, order: [UUID],
++                           target: UUID, kinds: [PendingChange.Kind]) throws {
++  let project = before.projects[0].id
++  let changes = Array(after.outbox.dropFirst(before.outbox.count))
++  let expectedIDs = kinds.map { $0 == .taskSaved ? target : project }
++  try requireChecklist(after.outbox.starts(with: before.outbox), "unchanged outbox prefix")
++  try requireChecklist(changes.map(\.kind) == kinds && changes.map(\.recordID) == expectedIDs,
++                       "exact outbox kinds and record IDs")
++  try requireChecklist(changes.count == kinds.count && Set(after.outbox.map(\.id)).count == after.outbox.count,
++                       "exact outbox count and unique IDs")
++  try requireChecklist(changes.map(\.revision) == kinds.indices.map { before.revision + 1 + UInt64($0) },
++                       "one revision per mutation")
++  try requireChecklist(after.revision == before.revision + UInt64(kinds.count), "exact workspace revision")
++  let updated = after.tasks(for: project)
++  try requireChecklist(updated.map(\.id) == order && updated.map(\.position) == Array(order.indices),
++                       "exact persisted task order and positions")
++  try requireChecklist(updated.filter(\.completed).map(\.id) == [target], "exactly one completion")
++  let originalTasks = Dictionary(uniqueKeysWithValues: before.tasks(for: project).map { ($0.id, $0) })
++  for task in updated {
++    var expected = originalTasks[task.id]!
++    expected.position = order.firstIndex(of: task.id)!
++    expected.completed = task.id == target
++    let lastEdit = changes.last { $0.kind == .taskOrderChanged || $0.recordID == task.id }
++    expected.updatedAt = lastEdit!.createdAt
++    try requireChecklist(task == expected, "only intended task fields changed, with matching outbox timestamp")
++  }
++  try requireChecklist(after.tasks(for: before.projects[1].id) == before.tasks(for: before.projects[1].id),
++                       "unrelated project checklist preserved")
++  try requireChecklist(after.projects == before.projects && after.drafts == before.drafts &&
++                       after.restoration == before.restoration && after.entries == before.entries &&
++                       after.attachments == before.attachments && after.id == before.id &&
++                       after.createdAt == before.createdAt && after.schema == before.schema,
++                       "optional draft values, restoration, and non-checklist data preserved")
++}
+diff --git a/prepare-host.sh b/prepare-host.sh
+new file mode 100644
+index 0000000000000000000000000000000000000000..2a0959731c9405c238b0840f87cb3abe8b58efd1
+--- /dev/null
++++ b/prepare-host.sh
+@@ -0,0 +1,18 @@
++#!/bin/bash
++set -euo pipefail
++test "$#" = 2
++work="$(cd "$1" && pwd -P)"
++route="$2"
++case "$route" in
++  baseline|candidate-host) ;;
++  *) exit 64 ;;
++esac
++replay="$(cd "$(dirname "$0")" && pwd -P)"
++product="$work/$route"
++runner="$work/$route-apple/runner"
++mkdir -p "$runner/Sources/ChecklistHost"
++sed "s#path: \"../fieldlog\"#path: \"../../$route\"#" "$replay/ApplePackage.swift" > "$runner/Package.swift"
++cp "$replay"/{AppleChecklistReplay,ChecklistDiskFixture}.swift "$runner/Sources/ChecklistHost/"
++cp "$product"/ios/FieldLog/{WorkspaceModel,SelectedDraftGuestBinding}.swift "$runner/Sources/ChecklistHost/"
++cp "$product"/Integrations/InstalledGuest/FieldLogDraftStorage.swift "$runner/Sources/ChecklistHost/"
++cp "$replay"/{AndroidChecklistRevisionTests,ChecklistDiskFixture}.swift "$product/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/"

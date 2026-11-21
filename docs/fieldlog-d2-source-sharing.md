@@ -144,6 +144,25 @@ shared numerator gives 1,289 of 5,084 physical lines (25.4%). Both
 figures measure source overlap. Installed behavior remains unverified.
 [Compiler input comparison](../verification/receipts/fieldlog-d2-combined-85e6fbe3-compiler-inputs.json)
 
+## Shared checklist moves
+
+FieldLog `64841ade77` uses `Workspace.taskOrder(moving:by:)` for
+directional checklist moves on both targets. Apple resolves the move
+inside its queued repository transaction and keeps drag ordering.
+Android resolves it from the admitted presentation and verifies the
+repository revision before saving. The moved task stays actionable
+when it crosses the page boundary.
+[Exact move patch](../verification/receipts/fieldlog-d2-checklist-move-source.patch)
+
+The paired host replay checked completion, moves across rows 20–21,
+stale and invalid action refusal, exact outbox changes, and cold reopen.
+Both ordinary arm64 builds linked the shared model. Across those build
+rosters, shared source rose from 1,513 to 1,526 physical lines and total
+distinct source fell from 3,293 to 3,287. These rosters exclude the
+additional signed Android package targets in the preceding comparison.
+[Host and build receipt](../verification/receipts/fieldlog-d2-checklist-move.json) ·
+[Compiler inputs](../verification/receipts/fieldlog-d2-checklist-move-compiler-inputs.json)
+
 ## Reproduce the source measurement
 
 From the Mixer repository on a Mac with Git, Python, and SwiftPM, run the following in Bash. The commands use the receipt, the public FieldLog pin, and the four overlays. They evaluate package metadata without building either app or resolving SDK dependencies.
