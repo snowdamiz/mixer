@@ -325,6 +325,7 @@ jobs:
         run: |
           swift --version
           python3 scripts/ci/check-sdk-package.py
+          python3 -B cli/release-tools/generate_release_rest_v3.py --check --check-router
           swift test
           swift test --package-path updates
           MIXER_CLI_HOST_ROOT="$RUNNER_TEMP/cli-host-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}"

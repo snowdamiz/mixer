@@ -13,7 +13,7 @@ package enum LocalUpdateRelease {
         let sequence: UInt64
         let rolloutBasisPoints: UInt64
         let delivery: String
-        var health: [String: UInt64]?
+        var health: ReleaseRESTV3.Health?
 
         enum CodingKeys: String, CodingKey {
             case status, action, sequence, delivery, health
@@ -30,17 +30,19 @@ package enum LocalUpdateRelease {
               token.utf8.allSatisfy({ (33...126).contains($0) }) else {
             throw MixerFailure("update.credential", "Set MIXER_RELEASE_TOKEN to the scoped local publisher bearer token.")
         }
-        let (signedAssignment, assignment) = try signedDocument(options.assignment, field: "assignment")
+        let signedAssignment = try ReleaseRESTV3.SignedAssignment(
+            read(options.assignment, maximum: ReleaseRESTV3.signedDocumentMaximumBytes))
+        let assignment = signedAssignment.value
         guard let scope = assignment["scope"]?.object,
               scope["organization"]?.text == options.organization, scope["project"]?.text == options.project else {
             throw MixerFailure("update.scope", "The signed assignment must match --organization and --project.")
         }
-        guard let channel = assignment["channel"]?.text, validID(channel),
-              let artifact = assignment["artifact_sha256"]?.text, validDigest(artifact),
+        guard let channel = assignment["channel"]?.text, ReleaseV3Wire.validID(channel),
+              let artifact = assignment["artifact_sha256"]?.text, ReleaseV3Wire.validDigest(artifact),
               let sequence = assignment["sequence"]?.uint, sequence > 0,
               let rollout = assignment["rollout_basis_points"]?.uint, rollout <= 10_000,
-              let runtime = assignment["runtime"]?.text, validDigest(runtime),
-              let releaseID = assignment["release_id"]?.text, validID(releaseID) else {
+              let runtime = assignment["runtime"]?.text, ReleaseV3Wire.validDigest(runtime),
+              let releaseID = assignment["release_id"]?.text, ReleaseV3Wire.validID(releaseID) else {
             throw MixerFailure("update.assignment", "The signed v3 assignment lacks valid release coordinates.")
         }
         guard options.channel.map({ $0 == channel }) ?? true,
@@ -49,8 +51,7 @@ package enum LocalUpdateRelease {
             throw MixerFailure("update.intent", "The signed assignment must match the requested channel, rollout and artifact.")
         }
 
-        let base = "/v3/orgs/\(options.organization)/projects/\(options.project)"
-        let assignmentBody = Data("{\"signed_assignment\":".utf8) + signedAssignment + Data("}".utf8)
+        let project = ReleaseRESTV3.Project(organizationID: options.organization, projectID: options.project)
         let configuration = URLSessionConfiguration.ephemeral
         configuration.urlCache = nil
         configuration.urlCredentialStorage = nil
@@ -68,23 +69,21 @@ package enum LocalUpdateRelease {
 
         if action == .publish {
             let candidate = fileURL(options.target)
-            let (signedManifest, manifest) = try signedDocument(
-                candidate.appendingPathComponent("signed-manifest.json"), field: "manifest")
+            let signedManifest = try ReleaseRESTV3.SignedManifest(
+                read(candidate.appendingPathComponent("signed-manifest.json"),
+                     maximum: ReleaseRESTV3.signedDocumentMaximumBytes))
+            let manifest = signedManifest.value
             guard manifest["scope"] == assignment["scope"], manifest["runtime"]?.text == runtime,
                   manifest["release_id"]?.text == releaseID,
                   try SourceDigest.sha256(CanonicalValue.object(manifest).canonicalCBOR()) == artifact else {
                 throw MixerFailure("update.intent", "The signed manifest must match the assignment's artifact, scope, runtime and release.")
             }
             let payload = try read(candidate.appendingPathComponent("payload.wasm"), maximum: 4 * 1_048_576)
-            let uploadBody = Data("{\"signed_manifest\":".utf8) + signedManifest
-                + Data(",\"payload\":\"".utf8) + payload.base64EncodedData() + Data("\"}".utf8)
-            let upload: ArtifactResponse = try await client.send(
-                "PUT", base + "/artifacts/" + artifact, stage: "upload", body: uploadBody, statuses: [200, 201])
-            guard upload.artifactSHA256 == artifact, upload.immutable == true else { throw invalidResponse("upload") }
-            let validation: ArtifactResponse = try await client.send(
-                "POST", base + "/releases/validate", stage: "validate",
-                body: JSONFile.data(["artifact_sha256": artifact]))
-            guard validation.artifactSHA256 == artifact, validation.protocolValid == true else { throw invalidResponse("validate") }
+            let upload = try await client.send(ReleaseRESTV3.upload(
+                project, manifestSHA256: artifact, body: .init(signedManifest: signedManifest, payload: payload)))
+            guard upload.artifactSHA256 == artifact, upload.immutable else { throw invalidResponse("upload") }
+            let validation = try await client.send(ReleaseRESTV3.validate(project, body: .init(artifactSHA256: artifact)))
+            guard validation.artifactSHA256 == artifact, validation.protocolValid else { throw invalidResponse("validate") }
         }
 
         if let file = options.health {
@@ -92,29 +91,32 @@ package enum LocalUpdateRelease {
                 throw MixerFailure("update.intent", "Halt requires a signed zero-percent assignment.")
             }
             let bytes = try read(file, maximum: 4096)
-            guard let sample = try? StrictJSON.decode([String: UInt64].self, from: bytes, maximumBytes: 4096),
-                  Set(sample.keys) == ["sequence", "activated", "pending", "adverse_signals"],
-                  let observed = sample["sequence"], observed > 0, observed < sequence,
-                  let adverse = sample["adverse_signals"], adverse > 0 else {
+            guard let sample = try? StrictJSON.decode(ReleaseRESTV3.Health.self, from: bytes, maximumBytes: 4096),
+                  sample.sequence > 0, sample.sequence < sequence, sample.adverseSignals > 0 else {
                 throw MixerFailure("update.health", "Supply a health sample for an earlier positive sequence with activated, pending and positive adverse_signals counts.")
             }
-            let body = Data("{\"health\":".utf8) + (try JSONFile.data(sample))
-                + Data(",\"signed_assignment\":".utf8) + signedAssignment + Data("}".utf8)
-            let response: CanonicalValue = try await client.send(
-                "POST", base + "/channels/" + channel + "/halt", stage: "halt", body: body)
-            let expected: CanonicalValue = .object([
-                "scope": .object(scope), "runtime": .text(runtime), "channel": .text(channel),
-                "artifact_sha256": .text(artifact), "halt_sequence": .uint(sequence),
-                "health": .object(sample.mapValues(CanonicalValue.uint)),
-            ])
-            guard response == expected else { throw invalidResponse("halt") }
+            let response = try await client.send(ReleaseRESTV3.halt(
+                project, channel: channel, body: .init(health: sample, signedAssignment: signedAssignment)))
+            guard response.scope == scope, response.runtime == runtime, response.channel == channel,
+                  response.artifactSHA256 == artifact, response.haltSequence == sequence,
+                  response.health == sample else { throw invalidResponse("halt") }
             return Receipt(action: action, artifactSHA256: artifact, sequence: sequence,
                            rolloutBasisPoints: rollout, delivery: "local_only", health: sample)
         }
 
-        let result: ChannelResponse = try await client.send(
-            "POST", base + "/channels/" + channel + "/" + action.rawValue,
-            stage: action.rawValue, body: assignmentBody, reason: options.reason)
+        let body = ReleaseRESTV3.AssignmentRequest(signedAssignment: signedAssignment)
+        let result: ReleaseRESTV3.ChannelResponse
+        switch action {
+        case .publish:
+            result = try await client.send(ReleaseRESTV3.publish(project, channel: channel, body: body))
+        case .promote:
+            result = try await client.send(ReleaseRESTV3.promote(project, channel: channel, body: body))
+        case .rollback:
+            guard let reason = options.reason else { throw invalidArguments(action) }
+            result = try await client.send(ReleaseRESTV3.rollback(project, channel: channel, body: body, reason: reason))
+        case .halt:
+            throw invalidArguments(action)
+        }
         guard result.artifactSHA256 == artifact, result.sequence == sequence,
               result.rolloutBasisPoints == rollout, result.delivery == "local_only" else {
             throw invalidResponse(action.rawValue)
@@ -143,7 +145,7 @@ package enum LocalUpdateRelease {
             }
             let required = common.union(specific)
             let allowed = required.union(["--channel"])
-            let usage = MixerFailure("update.arguments", "Run mixer help for the local update \(action.rawValue) syntax.")
+            let usage = invalidArguments(action)
             guard let target = arguments.first, !target.isEmpty, !target.hasPrefix("--"),
                   arguments.count % 2 == 1 else { throw usage }
             var values: [String: String] = [:]
@@ -155,17 +157,17 @@ package enum LocalUpdateRelease {
                 values[name] = value
             }
             guard required.isSubset(of: values.keys),
-                  let org = values["--organization"], validID(org),
-                  let project = values["--project"], validID(project),
+                  let org = values["--organization"], ReleaseV3Wire.validID(org),
+                  let project = values["--project"], ReleaseV3Wire.validID(project),
                   let assignment = values["--assignment"],
-                  action == .publish || validDigest(target) else { throw usage }
+                  action == .publish || ReleaseV3Wire.validDigest(target) else { throw usage }
             self.target = target
             organization = org
             self.project = project
             self.assignment = fileURL(assignment)
             health = values["--health"].map(fileURL)
             channel = values["--channel"]
-            if let channel, !validID(channel) { throw usage }
+            if let channel, !ReleaseV3Wire.validID(channel) { throw usage }
             if let percent = values["--rollout"] {
                 guard percent.utf8.allSatisfy({ (48...57).contains($0) }),
                       let value = UInt64(percent), (1...100).contains(value) else { throw usage }
@@ -183,50 +185,14 @@ package enum LocalUpdateRelease {
         }
     }
 
-    private struct ArtifactResponse: Decodable {
-        let artifactSHA256: String
-        let immutable: Bool?
-        let protocolValid: Bool?
-
-        enum CodingKeys: String, CodingKey {
-            case artifactSHA256 = "artifact_sha256"
-            case immutable
-            case protocolValid = "protocol_valid"
-        }
-    }
-
-    private struct ChannelResponse: Decodable {
-        let artifactSHA256: String
-        let sequence: UInt64
-        let rolloutBasisPoints: UInt64
-        let delivery: String
-
-        enum CodingKeys: String, CodingKey {
-            case artifactSHA256 = "artifact_sha256"
-            case sequence, delivery
-            case rolloutBasisPoints = "rollout_basis_points"
-        }
-    }
-
     private struct Client {
         let session: URLSession
         let origin: URL
         let token: String
 
-        func send<T: Decodable>(_ method: String, _ path: String, stage: String, body: Data,
-                                statuses: Set<Int> = [200], reason: String? = nil) async throws -> T {
-            let url = origin.appending(path: path)
-            var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
-            request.httpMethod = method
-            request.httpBody = body
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
-            request.setValue(reason, forHTTPHeaderField: "X-Mixer-Reason")
-
-            // The origin deduplicates exact method, path and body in the tenant.
-            // Include the reason here because the origin reads it from a header.
-            let intent = Data("mixer-local-release-v3\u{0}\(method)\u{0}\(path)\u{0}\(reason ?? "")\u{0}".utf8)
-            request.setValue(SourceDigest.sha256(intent + body), forHTTPHeaderField: "Idempotency-Key")
+        func send<T>(_ operation: ReleaseV3Operation<T>) async throws -> T {
+            let stage = operation.stage
+            let request = operation.urlRequest(origin: origin, token: token)
 
             let response: URLResponse
             let stream: URLSession.AsyncBytes
@@ -235,9 +201,9 @@ package enum LocalUpdateRelease {
             } catch {
                 throw transportFailure(stage)
             }
-            let maximum = 4096
-            guard let http = response as? HTTPURLResponse, http.url == url,
-                  http.mimeType == "application/json", http.expectedContentLength <= maximum else {
+            let maximum = ReleaseRESTV3.responseMaximumBytes
+            guard let http = response as? HTTPURLResponse, http.url == request.url,
+                  http.mimeType == ReleaseRESTV3.mediaType, http.expectedContentLength <= maximum else {
                 throw invalidResponse(stage)
             }
             var data = Data()
@@ -251,12 +217,12 @@ package enum LocalUpdateRelease {
             }
             guard data.count <= maximum else { throw invalidResponse(stage) }
 
-            guard statuses.contains(http.statusCode) else {
+            guard operation.statuses.contains(http.statusCode) else {
                 let error = try? StrictJSON.decode(ServiceError.self, from: data, maximumBytes: maximum)
                 let detail = error.map { " (\($0.error.code.rawValue))" } ?? ""
                 throw MixerFailure("update.\(stage).rejected", "Local v3 origin returned HTTP \(http.statusCode)\(detail).")
             }
-            guard let value = try? StrictJSON.decode(T.self, from: data, maximumBytes: maximum) else {
+            guard let value = try? operation.decodeSuccess(data) else {
                 throw invalidResponse(stage)
             }
             return value
@@ -277,20 +243,6 @@ package enum LocalUpdateRelease {
             case assignment_rejected, invalid_promotion, invalid_rollback, idempotency_conflict
             case storage_unavailable, local_capacity, rate_limit, concurrency_limit, not_found
         }
-    }
-
-    private static func signedDocument(_ url: URL, field: String) throws -> (Data, [String: CanonicalValue]) {
-        let maximum = 65_536
-        let bytes = try read(url, maximum: maximum)
-        guard let document = try? StrictJSON.decode(CanonicalValue.self, from: bytes, maximumBytes: maximum),
-              let envelope = document.object, Set(envelope.keys) == [field, "signature"],
-              let value = envelope[field]?.object, value["schema"]?.uint == 3,
-              let signature = envelope["signature"]?.text,
-              let decoded = Data(base64Encoded: signature), decoded.count == 64,
-              decoded.base64EncodedString() == signature else {
-            throw MixerFailure("update.signed-input", "Expected a bounded v3 signed \(field) JSON document.")
-        }
-        return (bytes, value)
     }
 
     private static func read(_ url: URL, maximum: Int) throws -> Data {
@@ -314,14 +266,8 @@ package enum LocalUpdateRelease {
             .standardizedFileURL
     }
 
-    private static func validID(_ value: String) -> Bool {
-        (1...128).contains(value.utf8.count) && value != "." && value != ".." &&
-            value.utf8.allSatisfy { (48...57).contains($0) || (65...90).contains($0) ||
-                (97...122).contains($0) || $0 == 45 || $0 == 46 || $0 == 95 }
-    }
-
-    private static func validDigest(_ value: String) -> Bool {
-        value.utf8.count == 64 && value.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) }
+    private static func invalidArguments(_ action: Action) -> MixerFailure {
+        MixerFailure("update.arguments", "Run mixer help for the local update \(action.rawValue) syntax.")
     }
 
     private static func invalidResponse(_ stage: String) -> MixerFailure {
