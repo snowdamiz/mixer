@@ -1073,6 +1073,11 @@ were removed. Prior setup and hierarchy-label failures are preserved
 in the receipt. Apple installed pagination remains pending.
 [Installed replay](verification/receipts/fieldlog-android-project-picker-installed-ad6c8dba.json) · [Reviewed Android patch](verification/receipts/fieldlog-android-project-picker-ad6c8dba.patch)
 
+The API 36 emulator's Camera2 activity resolved the standard image
+capture intent. Its software back camera reached native image review
+after the shutter tap. The emulator and private ADB closed. FieldLog's
+capture, cancel, and save still need an installed replay. [Provider check](verification/receipts/fieldlog-android-api36-camera-provider-probe.json)
+
 ## November 21 Apple signed draft validation host replay
 
 On macOS, the Apple selected-draft owner and stock VM checked a
@@ -1175,6 +1180,12 @@ raw hashes and byte counts of all ten GitHub archives matched for
 each run. The six Intel Java consumers reproduced their DEX bytes,
 and the 13 bootstrap and 79 integration process groups reached
 terminal custody in each run. [Hosted evidence](verification/receipts/hosted-engine-fe713fa-d89c742e-terminal.json)
+
+The Swift host job on `b7ead55c26` failed two five-second waits for
+scripted store requests to start. Both neighboring Swift host jobs
+passed with the same CLI, SDK, and workflow bytes. The failed run's
+archive records terminal custody for 140 owned commands and 60 store
+children. The cause is under investigation. [Failure evidence](verification/receipts/hosted-engine-b7ead55c-swift-store-start-timeouts.json)
 
 ## November 20 generated release REST client
 
