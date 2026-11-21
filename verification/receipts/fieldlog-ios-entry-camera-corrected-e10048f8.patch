@@ -1,0 +1,1009 @@
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift b/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
+index 71e7ed86f27e510ed2895da95787fe5d8735f7a6..11854a16269c780070e9afd1e68946a34b718a1e 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
+@@ -148,0 +149,12 @@ public actor WorkspaceRepository {
++  ) throws -> Workspace {
++    try transact(expectedRevision: expectedRevision, publish: { next, file in
++      do { try Self.write(next, to: file, fault: fault) } catch {
++        unavailable = true
++        throw error
++      }
++    }, mutation)
++  }
++
++  private func transact(
++    expectedRevision: UInt64? = nil, publish: (Workspace, URL) throws -> Void,
++    _ mutation: (inout Workspace) throws -> Void
+@@ -171,4 +183 @@ public actor WorkspaceRepository {
+-    do { try Self.write(next, to: file, fault: fault) } catch {
+-      unavailable = true
+-      throw error
+-    }
++    try publish(next, file)
+@@ -229,0 +239,42 @@ public actor WorkspaceRepository {
++  #if canImport(Darwin)
++  /// Admit the current editor at the start of publication, after snapshot preflight.
++  public func addPhoto(
++    jpeg: Data, to draftID: UUID, now: Date = Date(),
++    admit: @Sendable () throws -> Void
++  ) throws -> Workspace {
++    guard (3...6_291_456).contains(jpeg.count), jpeg.starts(with: [0xff, 0xd8, 0xff]) else {
++      throw FieldLogError.validation("Choose a JPEG photo up to 6 MiB.")
++    }
++    let attachment = Attachment(id: UUID(), byteCount: jpeg.count, createdAt: now)
++    let folder = directory.appendingPathComponent("photos", isDirectory: true)
++    let photo = folder.appendingPathComponent(attachment.filename)
++    return try transact(publish: { next, snapshot in
++      let encoded = try Self.encode(next)
++      try admit()
++      var createdPhoto = false
++      var publishedSnapshot = false
++      do {
++        try FileManager.default.createDirectory(
++          at: folder, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
++        try Self.atomic(jpeg, to: photo, fault: fault, createOnly: true) { createdPhoto = true }
++        try Self.atomic(encoded, to: snapshot, fault: fault) { publishedSnapshot = true }
++      } catch {
++        if publishedSnapshot {
++          // The new snapshot may reference the photo even if directory sync failed.
++          unavailable = true
++        } else if createdPhoto, unlink(photo.path) != 0 {
++          throw FieldLogError.storage(
++            "The photo was not attached and its file could not be removed: \(error.localizedDescription)")
++        }
++        throw error
++      }
++    }) { next in
++      guard let index = next.drafts.firstIndex(where: { $0.id == draftID }),
++        next.drafts[index].attachmentIDs.count < 8
++      else { throw FieldLogError.validation("An entry can contain up to eight photos.") }
++      next.attachments.append(attachment)
++      next.drafts[index].attachmentIDs.append(attachment.id)
++      next.drafts[index].updatedAt = now
++    }
++  }
++  #endif
+@@ -320,0 +372,3 @@ public actor WorkspaceRepository {
++    try atomic(encode(workspace), to: file, fault: fault)
++  }
++  private static func encode(_ workspace: Workspace) throws -> Data {
+@@ -328 +382 @@ public actor WorkspaceRepository {
+-    try atomic(data, to: file, fault: fault)
++    return data
+@@ -330 +384,4 @@ public actor WorkspaceRepository {
+-  private static func atomic(_ data: Data, to file: URL, fault: Fault?) throws {
++  private static func atomic(
++    _ data: Data, to file: URL, fault: Fault?, createOnly: Bool = false,
++    didPublish: () -> Void = {}
++  ) throws {
+@@ -350 +407,2 @@ public actor WorkspaceRepository {
+-    guard rename(temporary.path, file.path) == 0 else {
++    let result = createOnly ? link(temporary.path, file.path) : rename(temporary.path, file.path)
++    guard result == 0 else {
+@@ -353,0 +412,2 @@ public actor WorkspaceRepository {
++    didPublish()
++    if createOnly { try FileManager.default.removeItem(at: temporary) }
+diff --git a/Sources/FieldLogStorage/WorkspaceRepository.swift b/Sources/FieldLogStorage/WorkspaceRepository.swift
+index 71e7ed86f27e510ed2895da95787fe5d8735f7a6..11854a16269c780070e9afd1e68946a34b718a1e 100644
+--- a/Sources/FieldLogStorage/WorkspaceRepository.swift
++++ b/Sources/FieldLogStorage/WorkspaceRepository.swift
+@@ -148,0 +149,12 @@ public actor WorkspaceRepository {
++  ) throws -> Workspace {
++    try transact(expectedRevision: expectedRevision, publish: { next, file in
++      do { try Self.write(next, to: file, fault: fault) } catch {
++        unavailable = true
++        throw error
++      }
++    }, mutation)
++  }
++
++  private func transact(
++    expectedRevision: UInt64? = nil, publish: (Workspace, URL) throws -> Void,
++    _ mutation: (inout Workspace) throws -> Void
+@@ -171,4 +183 @@ public actor WorkspaceRepository {
+-    do { try Self.write(next, to: file, fault: fault) } catch {
+-      unavailable = true
+-      throw error
+-    }
++    try publish(next, file)
+@@ -229,0 +239,42 @@ public actor WorkspaceRepository {
++  #if canImport(Darwin)
++  /// Admit the current editor at the start of publication, after snapshot preflight.
++  public func addPhoto(
++    jpeg: Data, to draftID: UUID, now: Date = Date(),
++    admit: @Sendable () throws -> Void
++  ) throws -> Workspace {
++    guard (3...6_291_456).contains(jpeg.count), jpeg.starts(with: [0xff, 0xd8, 0xff]) else {
++      throw FieldLogError.validation("Choose a JPEG photo up to 6 MiB.")
++    }
++    let attachment = Attachment(id: UUID(), byteCount: jpeg.count, createdAt: now)
++    let folder = directory.appendingPathComponent("photos", isDirectory: true)
++    let photo = folder.appendingPathComponent(attachment.filename)
++    return try transact(publish: { next, snapshot in
++      let encoded = try Self.encode(next)
++      try admit()
++      var createdPhoto = false
++      var publishedSnapshot = false
++      do {
++        try FileManager.default.createDirectory(
++          at: folder, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
++        try Self.atomic(jpeg, to: photo, fault: fault, createOnly: true) { createdPhoto = true }
++        try Self.atomic(encoded, to: snapshot, fault: fault) { publishedSnapshot = true }
++      } catch {
++        if publishedSnapshot {
++          // The new snapshot may reference the photo even if directory sync failed.
++          unavailable = true
++        } else if createdPhoto, unlink(photo.path) != 0 {
++          throw FieldLogError.storage(
++            "The photo was not attached and its file could not be removed: \(error.localizedDescription)")
++        }
++        throw error
++      }
++    }) { next in
++      guard let index = next.drafts.firstIndex(where: { $0.id == draftID }),
++        next.drafts[index].attachmentIDs.count < 8
++      else { throw FieldLogError.validation("An entry can contain up to eight photos.") }
++      next.attachments.append(attachment)
++      next.drafts[index].attachmentIDs.append(attachment.id)
++      next.drafts[index].updatedAt = now
++    }
++  }
++  #endif
+@@ -320,0 +372,3 @@ public actor WorkspaceRepository {
++    try atomic(encode(workspace), to: file, fault: fault)
++  }
++  private static func encode(_ workspace: Workspace) throws -> Data {
+@@ -328 +382 @@ public actor WorkspaceRepository {
+-    try atomic(data, to: file, fault: fault)
++    return data
+@@ -330 +384,4 @@ public actor WorkspaceRepository {
+-  private static func atomic(_ data: Data, to file: URL, fault: Fault?) throws {
++  private static func atomic(
++    _ data: Data, to file: URL, fault: Fault?, createOnly: Bool = false,
++    didPublish: () -> Void = {}
++  ) throws {
+@@ -350 +407,2 @@ public actor WorkspaceRepository {
+-    guard rename(temporary.path, file.path) == 0 else {
++    let result = createOnly ? link(temporary.path, file.path) : rename(temporary.path, file.path)
++    guard result == 0 else {
+@@ -353,0 +412,2 @@ public actor WorkspaceRepository {
++    didPublish()
++    if createOnly { try FileManager.default.removeItem(at: temporary) }
+diff --git a/ios/FieldLog.xcodeproj/project.pbxproj b/ios/FieldLog.xcodeproj/project.pbxproj
+index c956863a6720701ae25800c1d056ae841447c695..dd7f7e9a3116ae73d038fe36ff9edfa60669659c 100644
+--- a/ios/FieldLog.xcodeproj/project.pbxproj
++++ b/ios/FieldLog.xcodeproj/project.pbxproj
+@@ -24,0 +25,2 @@
++  C00000000000000000000018 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntryPhotoContent.swift; sourceTree = "<group>"; };
++  C00000000000000000000019 = { isa = PBXBuildFile; fileRef = C00000000000000000000018; };
+@@ -32 +34 @@
+-  A00000000000000000000008 = { isa = PBXGroup; path = FieldLog; children = (A00000000000000000000030,A00000000000000000000031,A00000000000000000000032,A00000000000000000000033,A00000000000000000000034, C00000000000000000000004, C00000000000000000000006, C00000000000000000000008, C00000000000000000000010, C00000000000000000000016); sourceTree = "<group>"; };
++  A00000000000000000000008 = { isa = PBXGroup; path = FieldLog; children = (A00000000000000000000030,A00000000000000000000031,A00000000000000000000032,A00000000000000000000033,A00000000000000000000034, C00000000000000000000004, C00000000000000000000006, C00000000000000000000008, C00000000000000000000010, C00000000000000000000016, C00000000000000000000018); sourceTree = "<group>"; };
+@@ -35 +37 @@
+-  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040,A00000000000000000000041,A00000000000000000000042,A00000000000000000000043,A00000000000000000000044, C00000000000000000000005, C00000000000000000000007, C00000000000000000000009); runOnlyForDeploymentPostprocessing = 0; };
++  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040,A00000000000000000000041,A00000000000000000000042,A00000000000000000000043,A00000000000000000000044, C00000000000000000000005, C00000000000000000000007, C00000000000000000000009, C00000000000000000000019); runOnlyForDeploymentPostprocessing = 0; };
+@@ -38,2 +40,2 @@
+-  A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Debug; };
+-  A00000000000000000000015 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-O"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Release; };
++  A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_NSCameraUsageDescription = "FieldLog uses the camera to take photos you choose to attach to field notes."; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Debug; };
++  A00000000000000000000015 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_NSCameraUsageDescription = "FieldLog uses the camera to take photos you choose to attach to field notes."; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-O"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Release; };
+diff --git a/ios/FieldLog/EntryEditor.swift b/ios/FieldLog/EntryEditor.swift
+index bcb1176e0b69f55eea94288614542300994e86b1..36887c413a8cc07c23b2b637935bf157ce591a20 100644
+--- a/ios/FieldLog/EntryEditor.swift
++++ b/ios/FieldLog/EntryEditor.swift
+@@ -0,0 +1 @@
++import AVFoundation
+@@ -6,0 +8 @@ import SwiftUI
++import UIKit
+@@ -12,0 +15 @@ struct EntryEditor: View {
++  let editorSelection: DraftEditorSelection
+@@ -17,0 +21,6 @@ struct EntryEditor: View {
++  @State private var requestingCamera = false
++  @State private var camera: EntryCameraPicker.Presentation?
++  @State private var cameraOutcome: EntryCameraPicker.Outcome?
++  private var photoBusy: Bool {
++    attaching || requestingCamera || camera != nil || cameraOutcome != nil
++  }
+@@ -37,0 +47 @@ struct EntryEditor: View {
++              .disabled(photoBusy || committing)
+@@ -49 +59,6 @@ struct EntryEditor: View {
+-          }.disabled(attaching || !photos.canSelect)
++          }.disabled(photoBusy || committing || !photos.canSelect)
++          if EntryCameraPicker.isAvailable {
++            Button("Take photo", systemImage: "camera") { requestCamera() }
++              .disabled(photoBusy || committing || !photos.canSelect)
++              .accessibilityIdentifier("take-entry-photo")
++          }
+@@ -54 +69 @@ struct EntryEditor: View {
+-          Text("Selected images are resized and saved locally. They have not been uploaded.")
++          Text("Photos are resized and saved locally. They have not been uploaded.")
+@@ -80 +95 @@ struct EntryEditor: View {
+-            checkingSavedDraft || committing || attaching || model.pendingSaves > 0
++            checkingSavedDraft || committing || photoBusy || model.pendingSaves > 0
+@@ -87 +102 @@ struct EntryEditor: View {
+-                checkingSavedDraft || committing || attaching || model.pendingSaves > 0
++                checkingSavedDraft || committing || photoBusy || model.pendingSaves > 0
+@@ -101 +116 @@ struct EntryEditor: View {
+-              || attaching
++              || photoBusy
+@@ -110 +125 @@ struct EntryEditor: View {
+-            .disabled(committing || attaching)
++            .disabled(committing || photoBusy)
+@@ -123,0 +139,7 @@ struct EntryEditor: View {
++    .fullScreenCover(item: $camera, onDismiss: finishCamera) { request in
++      EntryCameraPicker(picker: request.picker) { outcome in
++        guard camera?.id == request.id else { return }
++        cameraOutcome = outcome
++        camera = nil
++      }
++    }
+@@ -125 +147 @@ struct EntryEditor: View {
+-      model.pendingSaves > 0 || model.unsavedDrafts[draft.id] != nil || attaching || committing
++      model.pendingSaves > 0 || model.unsavedDrafts[draft.id] != nil || photoBusy || committing
+@@ -130,13 +152,10 @@ struct EntryEditor: View {
+-      attaching = true
+-      Task {
+-        do {
+-          guard let picked = try await item.loadTransferable(type: SelectedPhoto.self) else {
+-            throw FieldLogError.validation("This photo couldn't be opened.")
+-          }
+-          defer { try? FileManager.default.removeItem(at: picked.file) }
+-          let jpeg = try Self.resizedJPEG(picked.file)
+-          let ids = try await model.addPhoto(jpeg, draftID: draft.id)
+-          draft.attachmentIDs = ids
+-          selection = nil
+-        } catch { photoError = error.localizedDescription }
+-        attaching = false
++      selection = nil
++      guard canStartPhoto else { return }
++      attachPhoto {
++        guard let picked = try await item.loadTransferable(type: SelectedPhoto.self) else {
++          throw FieldLogError.validation("This photo couldn't be opened.")
++        }
++        defer { try? FileManager.default.removeItem(at: picked.file) }
++        try Task.checkCancellation()
++        guard model.canAttachPhoto(to: editorSelection) else { throw CancellationError() }
++        return try await EntryPhotoContent.resizedJPEG(file: picked.file)
+@@ -170,13 +189,135 @@ struct EntryEditor: View {
+-  private static func resizedJPEG(_ file: URL) throws -> Data {
+-    guard let source = CGImageSourceCreateWithURL(file as CFURL, nil),
+-      let image = CGImageSourceCreateThumbnailAtIndex(
+-        source, 0,
+-        [
+-          kCGImageSourceCreateThumbnailFromImageAlways: true,
+-          kCGImageSourceCreateThumbnailWithTransform: true,
+-          kCGImageSourceThumbnailMaxPixelSize: 1600,
+-        ] as CFDictionary), let data = UIImage(cgImage: image).jpegData(compressionQuality: 0.82),
+-      data.count <= 6_291_456
+-    else {
+-      throw FieldLogError.validation(
+-        "This image couldn't be resized within the supported photo limit.")
++  private var canStartPhoto: Bool {
++    !photoBusy && !committing && installedGuest == nil && model.canAttachPhoto(to: editorSelection)
++  }
++
++  private func requestCamera() {
++    guard canStartPhoto, EntryCameraPicker.isAvailable else { return }
++    requestingCamera = true
++    Task {
++      defer { requestingCamera = false }
++      let granted: Bool
++      switch AVCaptureDevice.authorizationStatus(for: .video) {
++      case .authorized: granted = true
++      case .notDetermined: granted = await AVCaptureDevice.requestAccess(for: .video)
++      case .denied, .restricted: granted = false
++      @unknown default: granted = false
++      }
++      guard model.canAttachPhoto(to: editorSelection) else { return }
++      guard granted else {
++        photoError = "Camera access is unavailable. Check Settings or choose an existing photo."
++        return
++      }
++      guard let request = EntryCameraPicker.makePresentation() else {
++        photoError = "The camera is unavailable. You can still choose an existing photo."
++        return
++      }
++      camera = request
++    }
++  }
++
++  private func finishCamera() {
++    let outcome = cameraOutcome
++    cameraOutcome = nil
++    guard canStartPhoto, let outcome else { return }
++    switch outcome {
++    case .cancelled:
++      return
++    case .unreadable:
++      photoError = "This photo couldn't be opened."
++    case .captured(let image, let orientation):
++      attachPhoto {
++        try await EntryPhotoContent.resizedJPEG(capture: image, orientation: orientation)
++      }
++    }
++  }
++
++  private func attachPhoto(_ load: @escaping @MainActor () async throws -> Data) {
++    attaching = true
++    Task {
++      defer { attaching = false }
++      do {
++        guard model.canAttachPhoto(to: editorSelection) else { return }
++        let jpeg = try await load()
++        let ids = try await model.addPhoto(jpeg, to: editorSelection)
++        if model.draftEditor?.id == editorSelection.id { draft.attachmentIDs = ids }
++      } catch is CancellationError {
++      } catch {
++        if model.draftEditor?.id == editorSelection.id { photoError = error.localizedDescription }
++      }
++    }
++  }
++}
++
++private struct EntryCameraPicker: UIViewControllerRepresentable {
++  struct Presentation: Identifiable {
++    let id = UUID()
++    let picker: UIImagePickerController
++  }
++
++  enum Outcome {
++    case cancelled
++    case unreadable
++    case captured(CGImage, CGImagePropertyOrientation)
++  }
++
++  let picker: UIImagePickerController
++  let onFinish: (Outcome) -> Void
++
++  static var isAvailable: Bool {
++    UIImagePickerController.isSourceTypeAvailable(.camera)
++      && UIImagePickerController.availableMediaTypes(for: .camera)?.contains(UTType.image.identifier) == true
++  }
++
++  static func makePresentation() -> Presentation? {
++    guard isAvailable else { return nil }
++    let picker = UIImagePickerController()
++    picker.sourceType = .camera
++    picker.mediaTypes = [UTType.image.identifier]
++    picker.cameraCaptureMode = .photo
++    return Presentation(picker: picker)
++  }
++
++  func makeUIViewController(context: Context) -> UIImagePickerController {
++    picker.delegate = context.coordinator
++    return picker
++  }
++
++  func updateUIViewController(_ picker: UIImagePickerController, context: Context) {}
++
++  func makeCoordinator() -> Coordinator { Coordinator(onFinish: onFinish) }
++
++  @MainActor
++  final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
++    let onFinish: (Outcome) -> Void
++
++    init(onFinish: @escaping (Outcome) -> Void) {
++      self.onFinish = onFinish
++    }
++
++    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
++      onFinish(.cancelled)
++    }
++
++    func imagePickerController(
++      _ picker: UIImagePickerController,
++      didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
++    ) {
++      guard let image = info[.originalImage] as? UIImage, let pixels = image.cgImage else {
++        onFinish(.unreadable)
++        return
++      }
++      let orientation: CGImagePropertyOrientation
++      switch image.imageOrientation {
++      case .up: orientation = .up
++      case .upMirrored: orientation = .upMirrored
++      case .down: orientation = .down
++      case .downMirrored: orientation = .downMirrored
++      case .left: orientation = .left
++      case .leftMirrored: orientation = .leftMirrored
++      case .right: orientation = .right
++      case .rightMirrored: orientation = .rightMirrored
++      @unknown default:
++        onFinish(.unreadable)
++        return
++      }
++      onFinish(.captured(pixels, orientation))
+@@ -184 +324,0 @@ struct EntryEditor: View {
+-    return data
+@@ -192,4 +332 @@ private struct SelectedPhoto: Transferable, Sendable {
+-      let attrs = try FileManager.default.attributesOfItem(atPath: received.file.path)
+-      guard let bytes = attrs[.size] as? NSNumber, bytes.intValue > 0,
+-        bytes.intValue <= 32 * 1024 * 1024
+-      else { throw FieldLogError.validation("Choose an image smaller than 32 MiB.") }
++      try EntryPhotoContent.validateFileSize(received.file)
+diff --git a/ios/FieldLog/EntryPhotoContent.swift b/ios/FieldLog/EntryPhotoContent.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..ee0665d8cbaccd508eee277d753654fcd12310be
+--- /dev/null
++++ b/ios/FieldLog/EntryPhotoContent.swift
+@@ -0,0 +1,99 @@
++import CoreGraphics
++import FieldLogModels
++import Foundation
++import ImageIO
++import UniformTypeIdentifiers
++
++enum EntryPhotoContent {
++  private static let maximumDimension = 1600
++  private static let maximumJPEGBytes = 6 * 1024 * 1024
++  private static let resizeFailure = FieldLogError.validation(
++    "This image couldn't be resized within the supported photo limit.")
++
++  static func validateFileSize(_ file: URL) throws {
++    let attributes = try FileManager.default.attributesOfItem(atPath: file.path)
++    guard let bytes = (attributes[.size] as? NSNumber)?.int64Value,
++      (1...(32 * 1024 * 1024)).contains(bytes)
++    else { throw FieldLogError.validation("Choose an image up to 32 MiB.") }
++  }
++
++  @concurrent static func resizedJPEG(file: URL) async throws -> Data {
++    try Task.checkCancellation()
++    try validateFileSize(file)
++    guard let source = CGImageSourceCreateWithURL(file as CFURL, nil),
++      let image = CGImageSourceCreateThumbnailAtIndex(
++        source, 0,
++        [
++          kCGImageSourceCreateThumbnailFromImageAlways: true,
++          kCGImageSourceCreateThumbnailWithTransform: true,
++          kCGImageSourceThumbnailMaxPixelSize: maximumDimension,
++        ] as CFDictionary)
++    else { throw resizeFailure }
++    return try encodeJPEG(image)
++  }
++
++  @concurrent static func resizedJPEG(
++    capture: CGImage, orientation: CGImagePropertyOrientation
++  ) async throws -> Data {
++    try Task.checkCancellation()
++    let scale = min(1, Double(maximumDimension) / Double(max(capture.width, capture.height)))
++    let width = max(1, Int((Double(capture.width) * scale).rounded()))
++    let height = max(1, Int((Double(capture.height) * scale).rounded()))
++    let w = CGFloat(width)
++    let h = CGFloat(height)
++    let transform: CGAffineTransform
++    let swapsAxes: Bool
++    switch orientation {
++    case .up:
++      transform = .identity
++      swapsAxes = false
++    case .upMirrored:
++      transform = CGAffineTransform(a: -1, b: 0, c: 0, d: 1, tx: w, ty: 0)
++      swapsAxes = false
++    case .down:
++      transform = CGAffineTransform(a: -1, b: 0, c: 0, d: -1, tx: w, ty: h)
++      swapsAxes = false
++    case .downMirrored:
++      transform = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: h)
++      swapsAxes = false
++    case .leftMirrored:
++      transform = CGAffineTransform(a: 0, b: -1, c: -1, d: 0, tx: h, ty: w)
++      swapsAxes = true
++    case .right:
++      transform = CGAffineTransform(a: 0, b: -1, c: 1, d: 0, tx: 0, ty: w)
++      swapsAxes = true
++    case .rightMirrored:
++      transform = CGAffineTransform(a: 0, b: 1, c: 1, d: 0, tx: 0, ty: 0)
++      swapsAxes = true
++    case .left:
++      transform = CGAffineTransform(a: 0, b: 1, c: -1, d: 0, tx: h, ty: 0)
++      swapsAxes = true
++    @unknown default:
++      throw resizeFailure
++    }
++    guard let context = CGContext(
++      data: nil, width: swapsAxes ? height : width, height: swapsAxes ? width : height,
++      bitsPerComponent: 8, bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(),
++      bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)
++    else { throw resizeFailure }
++    context.interpolationQuality = .high
++    context.concatenate(transform)
++    context.draw(capture, in: CGRect(x: 0, y: 0, width: w, height: h))
++    guard let resized = context.makeImage() else { throw resizeFailure }
++    return try encodeJPEG(resized)
++  }
++
++  private static func encodeJPEG(_ image: CGImage) throws -> Data {
++    try Task.checkCancellation()
++    let output = NSMutableData()
++    guard let destination = CGImageDestinationCreateWithData(
++      output, UTType.jpeg.identifier as CFString, 1, nil)
++    else { throw resizeFailure }
++    CGImageDestinationAddImage(
++      destination, image, [kCGImageDestinationLossyCompressionQuality: 0.82] as CFDictionary)
++    guard CGImageDestinationFinalize(destination), output.length <= maximumJPEGBytes else {
++      throw resizeFailure
++    }
++    return output as Data
++  }
++}
+diff --git a/ios/FieldLog/SelectedDraftGuestBinding.swift b/ios/FieldLog/SelectedDraftGuestBinding.swift
+index 9288234fd27fb308a80e47fa95c4df1290c32ad6..e518344d6bf41e4821247a5c7934929928240927 100644
+--- a/ios/FieldLog/SelectedDraftGuestBinding.swift
++++ b/ios/FieldLog/SelectedDraftGuestBinding.swift
+@@ -8 +8 @@ import os
+-struct DraftEditorSelection: Identifiable {
++struct DraftEditorSelection: Identifiable, Sendable {
+@@ -10,0 +11,10 @@ struct DraftEditorSelection: Identifiable {
++  private let photoAdmission = OSAllocatedUnfairLock(initialState: true)
++
++  func retirePhotoAdmission() { photoAdmission.withLock { $0 = false } }
++
++  func admitPhoto() throws {
++    try photoAdmission.withLock {
++      try Task.checkCancellation()
++      guard $0 else { throw CancellationError() }
++    }
++  }
+diff --git a/ios/FieldLog/WorkspaceModel.swift b/ios/FieldLog/WorkspaceModel.swift
+index 04f0a3c8896a8d18df2b8487ae81c480d1794bb6..39f2c27d6c2167ca3ff0dfe3890c3d12a4fed85d 100644
+--- a/ios/FieldLog/WorkspaceModel.swift
++++ b/ios/FieldLog/WorkspaceModel.swift
+@@ -128,0 +129 @@ import SwiftUI
++    draftEditor?.retirePhotoAdmission()
+@@ -250,5 +251,33 @@ import SwiftUI
+-  func addPhoto(_ jpeg: Data, draftID: UUID) async throws -> [UUID] {
+-    await flush()
+-    guard let repository else { throw FieldLogError.missingRecord }
+-    workspace = try await repository.addPhoto(jpeg: jpeg, to: draftID)
+-    return workspace?.drafts.first(where: { $0.id == draftID })?.attachmentIDs ?? []
++  func canAttachPhoto(to selection: DraftEditorSelection) -> Bool {
++    guard draftEditor?.id == selection.id,
++      let draft = workspace?.drafts.first(where: { $0.id == selection.draft.id })
++    else { return false }
++    return EntryEditorPhotos(ids: draft.attachmentIDs).canSelect
++  }
++  func addPhoto(_ jpeg: Data, to selection: DraftEditorSelection) async throws -> [UUID] {
++    while pendingSaves > 0 {
++      try Task.checkCancellation()
++      await flush()
++    }
++    try Task.checkCancellation()
++    guard draftEditor?.id == selection.id else { throw CancellationError() }
++    guard let repository, canAttachPhoto(to: selection) else {
++      throw FieldLogError.validation("An entry can contain up to eight photos.")
++    }
++    if unsavedDrafts[selection.draft.id] != nil {
++      let message = saveError ?? "Save the draft before attaching a photo."
++      saveError = message
++      throw FieldLogError.storage(message)
++    }
++    do {
++      let saved = try await repository.addPhoto(
++        jpeg: jpeg, to: selection.draft.id, admit: selection.admitPhoto)
++      if saved.revision >= (workspace?.revision ?? 0) { workspace = saved }
++      if unsavedDrafts.isEmpty { saveError = nil }
++    } catch is CancellationError {
++      throw CancellationError()
++    } catch {
++      saveError = error.localizedDescription
++      throw error
++    }
++    return workspace?.drafts.first(where: { $0.id == selection.draft.id })?.attachmentIDs ?? []
+diff --git a/ios/FieldLog/WorkspaceView.swift b/ios/FieldLog/WorkspaceView.swift
+index ed40917aea8ebecb3873fcb4ff9ed8f83819fa9d..7fec46b95b518c34db8a4b925bef97d81fa4c388 100644
+--- a/ios/FieldLog/WorkspaceView.swift
++++ b/ios/FieldLog/WorkspaceView.swift
+@@ -69 +69,3 @@ struct WorkspaceView: View {
+-      EntryEditor(draft: selection.draft, onGuestClose: model.finishDraftEditorAfterGuest)
++      EntryEditor(
++        draft: selection.draft, editorSelection: selection,
++        onGuestClose: model.finishDraftEditorAfterGuest)
+@@ -314 +316 @@ private struct SettingsView: View {
+-          "This baseline sends no analytics or user content. Photo library selection is handled by the system picker. Reports are shared only when you choose a destination in the system share sheet."
++          "This baseline sends no analytics or user content. FieldLog uses the camera when you take an entry photo. Photo library selection is handled by the system picker. Reports are shared only when you choose a destination in the system share sheet."
+diff --git a/ios/FieldLogTests/EntryPhotoAcquisitionTests.swift b/ios/FieldLogTests/EntryPhotoAcquisitionTests.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..4c87446fa322f4fb3e5b87c9a4d3fd34810ba6cd
+--- /dev/null
++++ b/ios/FieldLogTests/EntryPhotoAcquisitionTests.swift
+@@ -0,0 +1,399 @@
++import CoreGraphics
++import Dispatch
++import FieldLogEntrySaving
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++import ImageIO
++import os
++import Testing
++import UniformTypeIdentifiers
++@testable import FieldLogCameraOwner
++
++@MainActor
++struct EntryPhotoAcquisitionTests {
++  @Test func resizedCameraAndPickerContentReachTheSelectedDraftAndStopAtEight() async throws {
++    let directory = try makeDirectory()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let repository = try WorkspaceRepository(directory: directory)
++    let model = WorkspaceModel(repository: repository)
++    await model.open()
++    let createdProject = await model.createProject(title: "Owner", site: "Test site")
++    let projectID = try #require(createdProject)
++    let createdDraft = await model.newDraft(projectID: projectID)
++    let draft = try #require(createdDraft)
++    model.selectDraftEditor(draft)
++    let selection = try #require(model.draftEditor)
++
++    let pixels = try imagePixels()
++    let cameraJPEG = try await EntryPhotoContent.resizedJPEG(capture: pixels, orientation: .right)
++    let chosenFile = directory.appendingPathComponent("chosen.jpg")
++    try imageData(pixels, orientation: .right).write(to: chosenFile)
++    let chosenJPEG = try await EntryPhotoContent.resizedJPEG(file: chosenFile)
++    try FileManager.default.removeItem(at: chosenFile)
++    let source = try #require(CGImageSourceCreateWithData(cameraJPEG as CFData, nil))
++    let image = try #require(CGImageSourceCreateImageAtIndex(source, 0, nil))
++    #expect(image.width == 800)
++    #expect(image.height == 1600)
++
++    var edited = draft
++    edited.note = "Keep the queued field note alongside the photo."
++    model.scheduleDraft(edited)
++    let firstIDs = try await model.addPhoto(cameraJPEG, to: selection)
++    #expect(firstIDs.count == 1)
++    for _ in 1..<EntryEditorPhotos.limit {
++      _ = try await model.addPhoto(chosenJPEG, to: selection)
++    }
++    let full = try await repository.readCommittedSnapshot()
++    #expect(!model.canAttachPhoto(to: selection))
++    #expect(model.editorPhotos(for: draft).ids.count == EntryEditorPhotos.limit)
++    await #expect(throws: FieldLogError.self) {
++      try await model.addPhoto(cameraJPEG, to: selection)
++    }
++    let unchanged = try await repository.readCommittedSnapshot()
++    #expect(unchanged == full)
++    await repository.close()
++
++    let reopened = try WorkspaceRepository(directory: directory)
++    let saved = try await reopened.readCommittedSnapshot()
++    let restored = try #require(saved.drafts.first(where: { $0.id == draft.id }))
++    #expect(restored.note == edited.note)
++    #expect(restored.attachmentIDs.count == EntryEditorPhotos.limit)
++    #expect(saved.restoration.openDraftID == draft.id)
++    let photoURL = try await reopened.photoURL(try #require(firstIDs.first))
++    #expect(try Data(contentsOf: photoURL) == cameraJPEG)
++    let photoFiles = try FileManager.default.contentsOfDirectory(
++      atPath: directory.appendingPathComponent("photos").path)
++    #expect(photoFiles.count == EntryEditorPhotos.limit)
++    await reopened.close()
++  }
++
++  @Test func cancellationAndRetiredSelectionLeaveBothDraftsAndPhotoStorageUntouched() async throws {
++    let directory = try makeDirectory()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let repository = try WorkspaceRepository(directory: directory)
++    let model = WorkspaceModel(repository: repository)
++    await model.open()
++    let createdProject = await model.createProject(title: "Owner", site: "Test site")
++    let projectID = try #require(createdProject)
++    let firstDraft = await model.newDraft(projectID: projectID)
++    let otherDraft = await model.newDraft(projectID: projectID)
++    let first = try #require(firstDraft)
++    let other = try #require(otherDraft)
++    model.selectDraftEditor(first)
++    let oldSelection = try #require(model.draftEditor)
++    let jpeg = try await EntryPhotoContent.resizedJPEG(capture: imagePixels(), orientation: .up)
++    let initial = try await repository.readCommittedSnapshot()
++
++    model.selectDraftEditor(other)
++    #expect(!model.canAttachPhoto(to: oldSelection))
++    await #expect(throws: CancellationError.self) {
++      try await model.addPhoto(jpeg, to: oldSelection)
++    }
++    model.selectDraftEditor(first)
++    let newSelection = try #require(model.draftEditor)
++    #expect(model.canAttachPhoto(to: newSelection))
++    #expect(!model.canAttachPhoto(to: oldSelection))
++    await #expect(throws: CancellationError.self) {
++      try await model.addPhoto(jpeg, to: oldSelection)
++    }
++
++    let cancelled = Task {
++      withUnsafeCurrentTask { $0?.cancel() }
++      return try await model.addPhoto(jpeg, to: newSelection)
++    }
++    await #expect(throws: CancellationError.self) { try await cancelled.value }
++    let unchanged = try await repository.readCommittedSnapshot()
++    #expect(unchanged == initial)
++    #expect(!FileManager.default.fileExists(atPath: directory.appendingPathComponent("photos").path))
++    await repository.close()
++  }
++
++  @Test func failedDraftSaveKeepsDirtyNoteAndDoesNotCreateAPhoto() async throws {
++    let directory = try makeDirectory()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let fault = PhotoFault()
++    let (repository, model, selection) = try await openEditor(in: directory, fault: fault)
++    let jpeg = try await EntryPhotoContent.resizedJPEG(capture: imagePixels(), orientation: .up)
++    let first = try await model.addPhoto(jpeg, to: selection)
++    let original = try await repository.readCommittedSnapshot()
++
++    var edited = selection.draft
++    edited.note = "Keep this note available for retry."
++    fault.fail("before_rename")
++    model.scheduleDraft(edited)
++    await #expect(throws: (any Error).self) { try await model.addPhoto(jpeg, to: selection) }
++    #expect(model.unsavedDrafts[edited.id]?.note == edited.note)
++    #expect(model.saveError != nil)
++    #expect(try photoFiles(in: directory).count == 1)
++    await repository.close()
++
++    let reopened = try WorkspaceRepository(directory: directory)
++    #expect(try await reopened.readCommittedSnapshot() == original)
++    let url = try await reopened.photoURL(try #require(first.first))
++    #expect(try Data(contentsOf: url) == jpeg)
++    await reopened.close()
++  }
++
++  @Test func anUnrelatedSuccessfulSaveDoesNotClearTheSelectedDraftFailure() async throws {
++    let directory = try makeDirectory()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let (repository, model, selection) = try await openEditor(in: directory, fault: PhotoFault())
++    let jpeg = try await EntryPhotoContent.resizedJPEG(capture: imagePixels(), orientation: .up)
++    var edited = selection.draft
++    edited.title = String(repeating: "x", count: 161)
++    model.scheduleDraft(edited)
++    _ = try #require(await model.createProject(title: "Independent project", site: "Test site"))
++    let snapshot = try await repository.readCommittedSnapshot()
++
++    await #expect(throws: FieldLogError.self) { try await model.addPhoto(jpeg, to: selection) }
++    #expect(model.unsavedDrafts[edited.id]?.title == edited.title)
++    #expect(model.saveError != nil)
++    #expect(try await repository.readCommittedSnapshot() == snapshot)
++    #expect(try photoFiles(in: directory).isEmpty)
++
++    edited.title = "Retry preserves these edits"
++    model.scheduleDraft(edited)
++    let attached = try await model.addPhoto(jpeg, to: selection)
++    #expect(attached.count == 1)
++    let saved = try await repository.readCommittedSnapshot()
++    #expect(saved.drafts.first(where: { $0.id == edited.id })?.title == edited.title)
++    #expect(model.unsavedDrafts[edited.id] == nil)
++    await repository.close()
++  }
++
++  @Test(arguments: ["before_rename", "after_rename"])
++  func snapshotRefusalOnlyRemovesTheNewPhotoBeforePublication(phase: String) async throws {
++    let directory = try makeDirectory()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let fault = PhotoFault()
++    let (repository, model, selection) = try await openEditor(in: directory, fault: fault)
++    let jpeg = try await EntryPhotoContent.resizedJPEG(capture: imagePixels(), orientation: .up)
++    let first = try await model.addPhoto(jpeg, to: selection)
++    let unrelated = try #require(await model.newDraft(projectID: selection.draft.projectID))
++    let original = try await repository.readCommittedSnapshot()
++
++    fault.fail(phase, after: 1)
++    await #expect(throws: (any Error).self) { try await model.addPhoto(jpeg, to: selection) }
++    #expect(model.saveError != nil)
++    await repository.close()
++
++    let reopened = try WorkspaceRepository(directory: directory)
++    let snapshot = try await reopened.readCommittedSnapshot()
++    if phase == "before_rename" {
++      #expect(snapshot == original)
++      #expect(try photoFiles(in: directory).count == 1)
++    } else {
++      #expect(snapshot.revision == original.revision + 1)
++      #expect(snapshot.attachments.count == 2)
++      #expect(try photoFiles(in: directory).count == 2)
++      for attachment in snapshot.attachments {
++        let url = try await reopened.photoURL(attachment.id)
++        #expect(try Data(contentsOf: url) == jpeg)
++      }
++    }
++    #expect(snapshot.drafts.first(where: { $0.id == unrelated.id }) ==
++      original.drafts.first(where: { $0.id == unrelated.id }))
++    let url = try await reopened.photoURL(try #require(first.first))
++    #expect(try Data(contentsOf: url) == jpeg)
++    await reopened.close()
++  }
++
++  @Test func photoFileRefusalPreservesTheSnapshot() async throws {
++    let directory = try makeDirectory()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let fault = PhotoFault()
++    let (repository, model, selection) = try await openEditor(in: directory, fault: fault)
++    let jpeg = try await EntryPhotoContent.resizedJPEG(capture: imagePixels(), orientation: .up)
++    let original = try await repository.readCommittedSnapshot()
++    fault.fail("after_rename")
++    await #expect(throws: (any Error).self) { try await model.addPhoto(jpeg, to: selection) }
++    #expect(model.saveError != nil)
++    #expect(try await repository.readCommittedSnapshot() == original)
++    #expect(try photoFiles(in: directory).isEmpty)
++    let retry = try await model.addPhoto(jpeg, to: selection)
++    #expect(retry.count == 1)
++    await repository.close()
++  }
++
++  @Test func queuedAttachmentCannotWriteAfterSameDraftReopens() async throws {
++    let directory = try makeDirectory()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let fault = PhotoFault()
++    let (repository, model, selection) = try await openEditor(in: directory, fault: fault)
++    let jpeg = try await EntryPhotoContent.resizedJPEG(capture: imagePixels(), orientation: .up)
++    let (blocked, reached) = AsyncStream<Void>.makeStream()
++    let release = DispatchSemaphore(value: 0)
++    fault.onNextRename {
++      reached.yield()
++      guard release.wait(timeout: .now() + 5) == .success else { throw PhotoFault.Refusal() }
++    }
++    let backlog = Task { try await repository.transact { _ in } }
++    var iterator = blocked.makeAsyncIterator()
++    _ = await iterator.next()
++    let (started, entered) = AsyncStream<Void>.makeStream()
++    let pending = Task {
++      entered.yield()
++      return try await model.addPhoto(jpeg, to: selection)
++    }
++    var starts = started.makeAsyncIterator()
++    _ = await starts.next()
++    await Task.yield()
++    model.selectDraftEditor(nil)
++    model.selectDraftEditor(selection.draft)
++    let reopened = try #require(model.draftEditor)
++    #expect(reopened.id != selection.id)
++    release.signal()
++    let expected = try await backlog.value
++    await #expect(throws: CancellationError.self) { try await pending.value }
++    #expect(try await repository.readCommittedSnapshot() == expected)
++    #expect(try photoFiles(in: directory).isEmpty)
++    let valid = try await model.addPhoto(jpeg, to: reopened)
++    #expect(valid.count == 1)
++    await repository.close()
++  }
++
++  @Test func pickerRefusesInvalidAndOversizedFiles() async throws {
++    let directory = try makeDirectory()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let file = directory.appendingPathComponent("chosen.jpg")
++    try Data("not an image".utf8).write(to: file)
++    await #expect(throws: FieldLogError.self) { try await EntryPhotoContent.resizedJPEG(file: file) }
++
++    try imageData(imagePixels(), orientation: .up).write(to: file)
++    let handle = try FileHandle(forWritingTo: file)
++    try handle.truncate(atOffset: 32 * 1024 * 1024 + 1)
++    try handle.close()
++    await #expect(throws: FieldLogError.self) { try await EntryPhotoContent.resizedJPEG(file: file) }
++  }
++
++  @Test(arguments: [
++    CGImagePropertyOrientation.up, .upMirrored, .down, .downMirrored,
++    .leftMirrored, .right, .rightMirrored, .left,
++  ])
++  func cameraPixelsMatchPickerOrientation(orientation: CGImagePropertyOrientation) async throws {
++    let directory = try makeDirectory()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let pixels = try imagePixels()
++    let camera = try await EntryPhotoContent.resizedJPEG(capture: pixels, orientation: orientation)
++    let file = directory.appendingPathComponent("chosen.jpg")
++    try imageData(pixels, orientation: orientation).write(to: file)
++    let picker = try await EntryPhotoContent.resizedJPEG(file: file)
++
++    let cameraImage = try decoded(camera)
++    let pickerImage = try decoded(picker)
++    #expect(max(cameraImage.width, cameraImage.height) == 1600)
++    #expect(cameraImage.width == pickerImage.width)
++    #expect(cameraImage.height == pickerImage.height)
++    #expect(camera.count <= 6 * 1024 * 1024)
++    let corners = try cornerColors(cameraImage)
++    #expect(Set(corners).count == 4)
++    #expect(try corners == cornerColors(pickerImage))
++  }
++
++  private func decoded(_ jpeg: Data) throws -> CGImage {
++    let source = try #require(CGImageSourceCreateWithData(jpeg as CFData, nil))
++    return try #require(CGImageSourceCreateImageAtIndex(source, 0, nil))
++  }
++
++  private func cornerColors(_ image: CGImage) throws -> [UInt8] {
++    var samples = [UInt8](repeating: 0, count: 16)
++    try samples.withUnsafeMutableBytes { buffer in
++      let context = try #require(CGContext(
++        data: buffer.baseAddress, width: 2, height: 2, bitsPerComponent: 8, bytesPerRow: 8,
++        space: CGColorSpaceCreateDeviceRGB(),
++        bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue))
++      context.interpolationQuality = .none
++      context.draw(image, in: CGRect(x: 0, y: 0, width: 2, height: 2))
++    }
++    return stride(from: 0, to: samples.count, by: 4).map { index in
++      (samples[index] > 127 ? 4 : 0) |
++        (samples[index + 1] > 127 ? 2 : 0) |
++        (samples[index + 2] > 127 ? 1 : 0)
++    }
++  }
++
++  private func openEditor(in directory: URL, fault: PhotoFault) async throws
++    -> (WorkspaceRepository, WorkspaceModel, DraftEditorSelection)
++  {
++    let repository = try WorkspaceRepository(directory: directory, fault: fault.call)
++    let model = WorkspaceModel(repository: repository)
++    await model.open()
++    let project = try #require(await model.createProject(title: "Owner", site: "Test site"))
++    let draft = try #require(await model.newDraft(projectID: project))
++    model.selectDraftEditor(draft)
++    return (repository, model, try #require(model.draftEditor))
++  }
++
++  private func photoFiles(in directory: URL) throws -> [String] {
++    let folder = directory.appendingPathComponent("photos")
++    guard FileManager.default.fileExists(atPath: folder.path) else { return [] }
++    return try FileManager.default.contentsOfDirectory(atPath: folder.path)
++  }
++
++  private final class PhotoFault: Sendable {
++    struct Refusal: LocalizedError {
++      var errorDescription: String? { "Injected storage refusal." }
++    }
++
++    private struct Trigger: Sendable {
++      let phase: String
++      var skip: Int
++      let action: @Sendable () throws -> Void
++    }
++
++    private let trigger = OSAllocatedUnfairLock<Trigger?>(initialState: nil)
++
++    func fail(_ phase: String, after skip: Int = 0) {
++      trigger.withLock { $0 = Trigger(phase: phase, skip: skip) { throw Refusal() } }
++    }
++
++    func onNextRename(_ action: @escaping @Sendable () throws -> Void) {
++      trigger.withLock { $0 = Trigger(phase: "before_rename", skip: 0, action: action) }
++    }
++
++    func call(_ phase: String) throws {
++      let action = trigger.withLock { armed -> (@Sendable () throws -> Void)? in
++        guard var current = armed, current.phase == phase else { return nil }
++        guard current.skip == 0 else {
++          current.skip -= 1
++          armed = current
++          return nil
++        }
++        armed = nil
++        return current.action
++      }
++      try action?()
++    }
++  }
++
++  private func makeDirectory() throws -> URL {
++    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
++    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
++    return directory
++  }
++
++  private func imagePixels() throws -> CGImage {
++    let context = try #require(CGContext(
++      data: nil, width: 2000, height: 1000, bitsPerComponent: 8, bytesPerRow: 0,
++      space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue))
++    context.setFillColor(red: 1, green: 0, blue: 0, alpha: 1)
++    context.fill(CGRect(x: 0, y: 0, width: 1000, height: 500))
++    context.setFillColor(red: 0, green: 1, blue: 0, alpha: 1)
++    context.fill(CGRect(x: 1000, y: 0, width: 1000, height: 500))
++    context.setFillColor(red: 0, green: 0, blue: 1, alpha: 1)
++    context.fill(CGRect(x: 0, y: 500, width: 1000, height: 500))
++    context.setFillColor(red: 1, green: 1, blue: 0, alpha: 1)
++    context.fill(CGRect(x: 1000, y: 500, width: 1000, height: 500))
++    return try #require(context.makeImage())
++  }
++
++  private func imageData(_ image: CGImage, orientation: CGImagePropertyOrientation) throws -> Data {
++    let output = NSMutableData()
++    let destination = try #require(
++      CGImageDestinationCreateWithData(output, UTType.jpeg.identifier as CFString, 1, nil))
++    CGImageDestinationAddImage(destination, image, [kCGImagePropertyOrientation: orientation.rawValue] as CFDictionary)
++    try #require(CGImageDestinationFinalize(destination))
++    return output as Data
++  }
++}

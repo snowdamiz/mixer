@@ -1105,6 +1105,21 @@ closed, all three ports rebound, and the disposable emulator and
 scratch were removed. The emulator used the software rear camera.
 [Installed replay](verification/receipts/fieldlog-android-camera-installed-api36-26bbde4a.json) · [Exact patch](verification/receipts/fieldlog-android-camera-corrected-26bbde4a.patch) · [Build receipt](verification/receipts/fieldlog-android-camera-output-api36-successor.json)
 
+## November 21 Apple entry photo capture
+
+The reviewed correction resizes camera and library photos off the UI
+actor before JPEG encoding. The owner requires the selected draft's
+queued save to succeed. The repository checks the exact selection before
+publication. A known pre-publication failure removes the JPEG created
+by that attempt. A failure after snapshot rename preserves the JPEG and
+requires reopening the repository. Nine focused host tests, five legacy
+storage tests, and the generic arm64 iPhoneOS build passed. The source
+composes with the installed Android camera patch. The Android queue
+continues to call the existing revision-checked transaction.
+UIKit capture, permission prompts, and combined Android runtime checks
+remain pending.
+[Source composition](verification/receipts/fieldlog-ios-entry-camera-composition-e10048f8.json) · [Exact patch](verification/receipts/fieldlog-ios-entry-camera-corrected-e10048f8.patch) · [Build and test receipt](verification/receipts/fieldlog-ios-camera-corrected-15fa8e9b.json)
+
 ## November 21 current FieldLog Android queue
 
 The Pair25 queue port ran the ordinary On device screen on macOS with
