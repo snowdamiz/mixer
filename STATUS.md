@@ -33,6 +33,13 @@ v66 and v65 byte-for-byte with their original modes. Dual-platform environment
 promotion and delivery through a control-plane database outage remain open.
 [Source binding](verification/receipts/hosted-source-binding-v67-0f191753.json)
 
+Hosted v68 adds the release processor to the three standalone startup
+compile rosters. All 35 startup controls passed locally. The collector
+fixtures now restore each adjacent predecessor. All 316 tests passed in
+both Python modes in real Identity and Verify services sparse checkouts.
+The 483-path v68 selection restores exact v67 and v66 bytes and modes.
+[Startup controls](verification/receipts/hosted-v67-startup-roster-29aeb806.json) · [Source binding](verification/receipts/hosted-source-binding-v68-29aeb806.json) · [Collector replay](verification/receipts/hosted-v68-collector-ci-repair-89e9be3f.json)
+
 ## November 19 local verification
 
 The combined FieldLog iOS and Android storage patches passed 30 host checks across the compatible rollback and successor writers. An independent replay passed all 30 checks and 10 additional controls. The four writers refused newly introduced draft and entry ID overlaps, preserved edits to existing pairs, and recovered a complete snapshot after a write fault. [Composed storage receipt](verification/receipts/fieldlog-l08-cross-platform-draft-overlap-20261119.json)
