@@ -1331,12 +1331,17 @@ platform rendering, and broader parity remain open.
 
 The signed editor candidate `eae2a13aef` passed an author-run headless macOS
 replay for both FieldLog pins, including title edits, Cancel, and one durable
-Save per pin. Independent review is in progress. Swift Host and Android
-generated Java sparse preflights passed the published 155-input Source141
-binding in ordinary and optimized Python. Both projections rejected the
-unbound candidate at `GuestUIEditorV2.swift`. Integration requires a
-successor binding for the reviewed source. All 16 preflight command groups
-closed and scratch was removed.
+Save per pin. Review requested two lifecycle corrections. The presenter
+needs exclusive ownership by one runtime. When a Saving frame is rejected,
+the owner must complete its presentation claim before retirement. One V1
+input-readiness assertion failed on the first combined run and passed on
+repeat. The cause remains unresolved.
+
+Swift Host and Android generated Java sparse preflights passed the published
+155-input Source141 binding in ordinary and optimized Python. Both projections
+rejected the unbound candidate at `GuestUIEditorV2.swift`. A successor must
+bind the corrected source and preserve predecessor restoration. All 16
+preflight command groups closed and scratch was removed.
 [Source141 preflight](verification/receipts/fieldlog-signed-editor-source141-preflight-eae2a13a.json)
 
 The L07 terminal restart attempt used a CLI that predates the current closure acknowledgement. The worker declined shutdown, leaving compiler custody unknown. Three separate no-compiler controls passed. [Worker custody receipt](verification/receipts/l07-worker-terminal-restart-hold-41a05264.json)
