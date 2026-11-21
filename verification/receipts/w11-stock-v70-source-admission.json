@@ -1,0 +1,284 @@
+{
+  "cleanup": "Owned sparse projections, restorations, and first-attempt collector scratch removed. The final Git branch retains source and receipt.",
+  "cli": {
+    "active_sha256": "94579736cbdf9205800b3fa8290bbf46899f679d556a9ea84edcf6ac9a380676",
+    "seal_members": 193,
+    "seal_sha256": "5484b3b0418172373abe027f89ae4cb5b6e7784fb9106858d94227b208336e0f",
+    "source_count": 153,
+    "v69_sha256": "70364ee9ba56577fdc2eaf40ca64d2682557d71c24771db6d71650094ae92645",
+    "v70_to_v69_path_mode_blob_sha256": "0fdf1231c4e16f19832253fa3084b6121f98e481229ca7b458d827488e4bd413"
+  },
+  "commands": {
+    "android_controls": "python3.13 -I -B -S [-O] verification/plan-continuation-2026-11-07/generated-java-ci-integration/{test_bootstrap,test_sparse_checkout}.py -v",
+    "cli_admission": "python3.13 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+    "collector_controls": {
+      "command": "python3.13 -B [-O] hosted/scripts/test_identity_network_collector.py -v",
+      "identity_network_targets": [
+        "WorkspaceSourceCutoverControls",
+        "WorkflowSparseSourceControls",
+        "FormatAmendmentControls",
+        "CatalogJoinSourceControls",
+        "PendingSessionV28Controls.test_current_source_check_rejects_each_corruption_without_touching_originals",
+        "BillingReconciliationV29Controls.test_current_source_checks_corrupt_full16_before_dispatch",
+        "BillingReconciliationV29Controls.test_collector_admits_workspace_then_refuses_v29_metadata_before_docker"
+      ],
+      "services_targets": [
+        "WorkflowSparseSourceControls"
+      ]
+    },
+    "generated_routes": "python3.13 -B [-O] cli/release-tools/generate_release_rest_v3.py --check --check-router",
+    "historical_restorations": "python3.13 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py {prepare-source141,prepare-predecessor} --out <fresh directory>",
+    "hosted_admission": "python3.13 -B [-O] hosted/scripts/test-identity-network.py --check-source",
+    "inventory": "SHA-256 of sorted UTF-8 path + NUL + Git mode + NUL + Git blob + LF per row",
+    "projection": "git sparse-checkout set --no-cone --stdin; git checkout --detach <staged-tree commit> using exact job rules",
+    "python_modes": [
+      "normal",
+      "-O"
+    ]
+  },
+  "exact_product_and_receipt_paths": 21,
+  "hosted": {
+    "v68_files": 483,
+    "v69_files": 495,
+    "v69_to_v68_path_mode_blob_sha256": "3bda5bd61ab1d97624f27ee4d67be5e6ee90c41ba626ef44798a2a907d604dba",
+    "v70_digest_sha256": "02ff0f362650d63f55d573f0230102e52fcc64a1b0ef7f78564859ed22fbec2f",
+    "v70_files": 496,
+    "v70_path_mode_blob_sha256": "1f65d810a03df3edad493db2be0874732ca34cd6b53acbc14da729caea113e19",
+    "v70_selection_sha256": "b29b1ccecd339ca4beb672fedf760db03eadec239b59f6000c55598eb9c21ad0",
+    "v70_to_v69_path_mode_blob_sha256": "5b1cf8a1ad5f45a9940ec907fe10367aa49cda69abd5a24ed2fd03c3a2d111ff"
+  },
+  "notices": {
+    "blob": "b375dc11b2430e9883cb6eb2773d85cb1c8c7113",
+    "mode": "100644"
+  },
+  "observed_at_utc": "2026-11-21T02:02:33+00:00",
+  "observed_recovery": [
+    "Initial collector verification exceeded the local wrapper deadline. The stopped collector scratch was removed.",
+    "The first complete collector run found missing v69 fixture coverage in mocked metadata and historical product restoration. Both helpers were corrected before final verification."
+  ],
+  "projections": {
+    "android-generated-java": {
+      "archive_stdout_sha256": "d9acbb72df6dbf0fad49976b89086d092af3557b7495f0240f9d56f339588291",
+      "controls": {
+        "test_bootstrap": [
+          {
+            "case_lines_sha256": "4a59507c77b1632d9b994cf229aae8660862d637ffc587d69a9eb78cab67c656",
+            "tests_passed": 45
+          },
+          {
+            "case_lines_sha256": "4a59507c77b1632d9b994cf229aae8660862d637ffc587d69a9eb78cab67c656",
+            "tests_passed": 45
+          }
+        ],
+        "test_sparse_checkout": [
+          {
+            "case_lines_sha256": "9841b5c25aa4b540f87cfe8b95cec24dcf64b8482b27c1bcb40e9693d2949c3e",
+            "tests_passed": 16
+          },
+          {
+            "case_lines_sha256": "9841b5c25aa4b540f87cfe8b95cec24dcf64b8482b27c1bcb40e9693d2949c3e",
+            "tests_passed": 16
+          }
+        ]
+      },
+      "files": 1312,
+      "history": {
+        "127": {
+          "normal": {
+            "admission_sha256": "0cb67b2e09ed90b78498eefb0d9735d1b5425dd8d711f4b5072b00a914002519",
+            "case_lines_sha256": "586e32fff4a06b3243026e11b633fdb9c7e4adddcbacc60470be89747e33c8de",
+            "files": 845,
+            "path_mode_blob_sha256": "37ed72c05b97f15973dd08a06afeafadf4db64048bbbaed326a35eee37d6ca54",
+            "tests_passed": 20
+          },
+          "optimized": {
+            "admission_sha256": "0cb67b2e09ed90b78498eefb0d9735d1b5425dd8d711f4b5072b00a914002519",
+            "case_lines_sha256": "586e32fff4a06b3243026e11b633fdb9c7e4adddcbacc60470be89747e33c8de",
+            "files": 845,
+            "path_mode_blob_sha256": "37ed72c05b97f15973dd08a06afeafadf4db64048bbbaed326a35eee37d6ca54",
+            "tests_passed": 20
+          }
+        },
+        "141": {
+          "normal": {
+            "admission_sha256": "a4ec769dd76cb68de04a24d86247d41fa408683afc536e4e01ff7443ebcc5e4e",
+            "case_lines_sha256": "4c4e79ce1dd21cd90e5f3dbe5172b31b61b101e1f31bfaa6b33ca85f2f235f3e",
+            "files": 890,
+            "path_mode_blob_sha256": "7c61c17913414de0c4189783d324ebce1a73ffbdb2387c9a24b847a26406c29f",
+            "tests_passed": 3
+          },
+          "optimized": {
+            "admission_sha256": "a4ec769dd76cb68de04a24d86247d41fa408683afc536e4e01ff7443ebcc5e4e",
+            "case_lines_sha256": "4c4e79ce1dd21cd90e5f3dbe5172b31b61b101e1f31bfaa6b33ca85f2f235f3e",
+            "files": 890,
+            "path_mode_blob_sha256": "7c61c17913414de0c4189783d324ebce1a73ffbdb2387c9a24b847a26406c29f",
+            "tests_passed": 3
+          }
+        }
+      },
+      "mode_refusals": [
+        "verification/native-report-source141-archive-v1/stock-promotion-predecessor-bytes/.github/workflows/verify.yml",
+        "verification/native-report-source141-archive-v1/stock-promotion-predecessor-bytes/current-source-inputs.json",
+        "contracts/release-rest-v3.json",
+        "THIRD_PARTY.yml"
+      ],
+      "path_mode_blob_sha256": "d702abf5de0be34e162441a91a700d8d2aaa5797fe69c2206696ced0141833c7",
+      "rules": 32,
+      "rules_sha256": "8f6fd75d457540dc4463f36a4d313be7af22a55512eb2babddf2c544b877da47",
+      "v69_inverse_readmission_sha256": "629e4dd223c06cee3127f93ba3b516cc89acf9be66ed1b0c648716c7f21bcd90",
+      "workflow": "verify.yml"
+    },
+    "identity-network": {
+      "admission": {
+        "lines": [
+          "{\"identity\": \"hosted-configured-stock-stage-promotion-source-v70\", \"runtime_or_GA_accepted\": false, \"selection_sha256\": \"b29b1ccecd339ca4beb672fedf760db03eadec239b59f6000c55598eb9c21ad0\", \"source_count\": 496, \"source_digest_sha256\": \"02ff0f362650d63f55d573f0230102e52fcc64a1b0ef7f78564859ed22fbec2f\"}"
+        ],
+        "stdout_sha256_both_modes": "7b4b548c7c3d0f975f711f3d5698c21406cb0c53e4ad5877c704e3bb9166715b"
+      },
+      "collector_controls": [
+        {
+          "case_lines_sha256": "6cb073ee8bc1183a973f333d761bdff7f279da9d02709dbb74a06dc3cdfddb64",
+          "tests_passed": 22
+        },
+        {
+          "case_lines_sha256": "6cb073ee8bc1183a973f333d761bdff7f279da9d02709dbb74a06dc3cdfddb64",
+          "tests_passed": 22
+        }
+      ],
+      "files": 1251,
+      "path_mode_blob_sha256": "224b705f63afac767dd7b70a061daf06acfa930f3873177dfb55536a41aba570",
+      "rules": 273,
+      "rules_sha256": "b171d4ef859116f789484558633025057e8db91a4ee0885d01f940f50c1c8307",
+      "workflow": "identity-network.yml"
+    },
+    "phoenix": {
+      "admission": {
+        "lines": [
+          "{\"identity\": \"hosted-configured-stock-stage-promotion-source-v70\", \"runtime_or_GA_accepted\": false, \"selection_sha256\": \"b29b1ccecd339ca4beb672fedf760db03eadec239b59f6000c55598eb9c21ad0\", \"source_count\": 496, \"source_digest_sha256\": \"02ff0f362650d63f55d573f0230102e52fcc64a1b0ef7f78564859ed22fbec2f\"}"
+        ],
+        "stdout_sha256_both_modes": "7b4b548c7c3d0f975f711f3d5698c21406cb0c53e4ad5877c704e3bb9166715b"
+      },
+      "files": 1070,
+      "path_mode_blob_sha256": "416c37ce6238b646716b6606e0b05a2d96c00c1f46f9eaccc85c36d46c192fb0",
+      "preimage_refusals": [
+        "v70 bytes and mode",
+        "v69 bytes and mode"
+      ],
+      "rules": 268,
+      "rules_sha256": "4da6f5a8cb1e1dbeeb15c20717ce98b5765c9b8320270721a1431d77b9bd375c",
+      "v69_inverse_readmission_sha256": "d9263fe8c206bbd8a05f5bf24514c85076a72dea9ac07b3f2a2a121d4058f251",
+      "workflow": "hosted.yml"
+    },
+    "services": {
+      "admission": {
+        "lines": [
+          "{\"identity\": \"hosted-configured-stock-stage-promotion-source-v70\", \"runtime_or_GA_accepted\": false, \"selection_sha256\": \"b29b1ccecd339ca4beb672fedf760db03eadec239b59f6000c55598eb9c21ad0\", \"source_count\": 496, \"source_digest_sha256\": \"02ff0f362650d63f55d573f0230102e52fcc64a1b0ef7f78564859ed22fbec2f\"}"
+        ],
+        "stdout_sha256_both_modes": "7b4b548c7c3d0f975f711f3d5698c21406cb0c53e4ad5877c704e3bb9166715b"
+      },
+      "collector_controls": [
+        {
+          "case_lines_sha256": "e4245be6e81822adca1ca29233d060340c1e6b0fc93e75e069e19dedcab7d866",
+          "tests_passed": 8
+        },
+        {
+          "case_lines_sha256": "e4245be6e81822adca1ca29233d060340c1e6b0fc93e75e069e19dedcab7d866",
+          "tests_passed": 8
+        }
+      ],
+      "files": 1417,
+      "path_mode_blob_sha256": "507df9d55e21b9e18433e37f539aa2acbeab7e9dfead964f7cdb020f2a67a4b9",
+      "rules": 273,
+      "rules_sha256": "25536d3620fb5ee0619ab26ec54c740a4cdcbf35f8cd65612bc410b1486602ca",
+      "workflow": "verify.yml"
+    },
+    "swift-host": {
+      "archive_stdout_sha256": "d9acbb72df6dbf0fad49976b89086d092af3557b7495f0240f9d56f339588291",
+      "files": 6484,
+      "path_mode_blob_sha256": "9451e38e98bb7c20f27c7f66cc3f11e12f2ccd8b1940b4bf024d82269a0ca1c9",
+      "route_check": {
+        "lines": [
+          "Checked cli/Sources/MixerBuild/GeneratedReleaseRESTV3.swift",
+          "Matched 7 Phoenix router source declarations"
+        ],
+        "stdout_sha256_both_modes": "1895633553eacae21c55b0a331eeca9ed16207c2834c089ed76861de5a4621a0"
+      },
+      "rules": 45,
+      "rules_sha256": "cbf16b85647117dd2c7edb0e40f55801078bbb0c44722313ad80bb5badf59bf1",
+      "workflow": "verify.yml"
+    }
+  },
+  "revisions": {
+    "carried_commits": [
+      {
+        "local": "cf12954e258a351dd0bda352d46e144c0f565c39",
+        "original": "a8e8960fa7bc2e8f44c2a8f4092bbe5adea478a9"
+      },
+      {
+        "local": "09fda0e97bb24c7caada1b33327ec823ab74f04a",
+        "original": "cf4b63730d01223b9ffdad977cfa4066bb238d55"
+      },
+      {
+        "local": "30b6c13580eaf9c55a8b449decdccaeb3f6a5cbe",
+        "original": "eca2ddd6f481933fd93ecd3435d8896e8795684c"
+      },
+      {
+        "local": "166c9f0b4713e871c4891d65523555a2fb2c5982",
+        "original": "0c2baf22b53d4bca1d63763111708644ef7cef87"
+      },
+      {
+        "local": "31797c5ae6a0fd8d6c77c49bd217488124733223",
+        "original": "783d107b1134fd42811063e095d6baee11c7eee1"
+      },
+      {
+        "local": "b8915b7a9b1fa984616a1c2f10165eb569c8bca1",
+        "original": "f4d43f4e03e132abc6e2f56a8c7f2b63005c10c0"
+      },
+      {
+        "local": "186fc51b9a7e654db7edf026b2516d011194d4c3",
+        "original": "edc2313d0ef98e538c879bb7c4a779c7297e18f7"
+      },
+      {
+        "local": "b083afaa1fd07a510ffaa66d1774bde94bd43c82",
+        "original": "302b3ac1de89799027fe86d90ef9ee7580f1ffc8"
+      },
+      {
+        "local": "9af9c8e33471ac51b5eb12a5248b7c0c4bf5de0e",
+        "original": "f1b0a4e8aab5c4669c4f97b34ed1892842927121"
+      }
+    ],
+    "composed_v69": "2f289ba23ae7e44bc5c6e8bff6e47d23d794e04e",
+    "stock_composite": "f1b0a4e8aab5c4669c4f97b34ed1892842927121",
+    "stock_delta_carried": "9af9c8e33471ac51b5eb12a5248b7c0c4bf5de0e",
+    "v70_source_commit": "e018d7f41ca4a713fc41b3e616801e5886824661",
+    "verified_core": "af8c40c650c9b007140b36590ac7813bde7bd151",
+    "verified_staged_tree": "1bd604c290f369d8265c8c56092899548039ac80"
+  },
+  "schema": 1,
+  "scope": "Local staged source and archive admission. Runtime evidence inherited from the pinned root wire receipt. Public CI owned by root.",
+  "staged_inverse_and_trigger_checks": {
+    "normal_optimized_identical": true,
+    "phoenix_and_identity_network": "Push and pull request path filters include v70 archive inputs.",
+    "retention": {
+      "bytes": 959882069,
+      "files": 49918
+    },
+    "scope_result_sha256": "4454fe811282ccc86bd99c52067c5edef8bda10ee1e9087ce5187ff9d752d88e"
+  },
+  "tools": {
+    "git": "git version 2.56.0",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "python": "3.13.16"
+  },
+  "wire": {
+    "cli_tree": "8e311e4a086c492cdb6af7bc8039f931083f41f1",
+    "hosted_tree": "d48e675ec428b069f7a27596f6d52a98d2a795f0",
+    "hosted_verification_only_differences": [
+      "hosted/scripts/test-identity-network.py",
+      "hosted/scripts/test_identity_network_collector.py"
+    ],
+    "path": "verification/receipts/w11-stock-stage-promotion-configured-302b3ac1.json",
+    "sha256": "9c2a8ee356f4b447b8a58bb4a7751b114dca801d9c51fa28efc152f54c67739d",
+    "source": "302b3ac1de89799027fe86d90ef9ee7580f1ffc8"
+  }
+}
