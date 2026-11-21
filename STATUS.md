@@ -1191,8 +1191,10 @@ Android checks the admitted revision and moves focus to the task's
 destination page after commit. Both host routes and arm64 builds passed.
 Independent review reproduced cold disk readback and stale and
 invalid refusals. The matching ordinary build rosters gained 13 shared
-lines and lost six total distinct lines. Native UI and signed runtime
-remain unverified for this patch.
+lines and lost six unshared lines. Shared physical source rose from
+1,513 of 4,806 to 1,526 of 4,813 lines. These source counts include
+conditional code. Native UI and signed runtime remain unverified for
+this patch.
 [Move source](verification/receipts/fieldlog-d2-checklist-move-source.patch) ·
 [Host and build receipt](verification/receipts/fieldlog-d2-checklist-move.json) ·
 [Compiler inputs](verification/receipts/fieldlog-d2-checklist-move-compiler-inputs.json)

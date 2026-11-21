@@ -156,10 +156,26 @@ when it crosses the page boundary.
 
 The paired host replay checked completion, moves across rows 20–21,
 stale and invalid action refusal, exact outbox changes, and cold reopen.
-Both ordinary arm64 builds linked the shared model. Across those build
-rosters, shared source rose from 1,513 to 1,526 physical lines and total
-distinct source fell from 3,293 to 3,287. These rosters exclude the
-additional signed Android package targets in the preceding comparison.
+Both ordinary arm64 builds linked the shared model. Each roster pair
+contains 21 distinct app-owned Swift inputs, eight of them byte-identical
+across targets. The unshared portion fell from 3,293 to 3,287 lines as
+shared source gained 13 lines.
+
+| Responsibility | Baseline shared / total lines | Candidate shared / total lines |
+| --- | ---: | ---: |
+| UI | 452 / 1,470 | 452 / 1,470 |
+| Logic and host entry | 1,061 / 2,037 | 1,074 / 2,043 |
+| Mixed | 0 / 1,299 | 0 / 1,300 |
+| All measured inputs | 1,513 / 4,806 | 1,526 / 4,813 |
+
+The physical share rises from 31.5% to 31.7% in these
+ordinary-build rosters. They exclude the additional signed Android
+package targets in the preceding comparison. Android lists the
+246-line, SwiftUI-only `TaskEditorAppleFieldsHost.swift` in its compiler
+inputs with the file body disabled. Excluding that file and the 49
+Android-only repository lines from the candidate's shared count gives
+1,231 of 4,813 lines (25.6%). This adjustment covers the identified
+conditional source. Native behavior remains a separate check.
 [Host and build receipt](../verification/receipts/fieldlog-d2-checklist-move.json) ·
 [Compiler inputs](../verification/receipts/fieldlog-d2-checklist-move-compiler-inputs.json)
 
