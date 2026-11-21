@@ -1227,8 +1227,17 @@ Source141 still pinned the predecessor StoreReconciliationTests.swift
 bytes in its inherited CLI inputs. Both hosted admission checks refused
 the new bytes. The same 45-pattern sparse checkout reproduced this locally
 in normal and optimized Python. The predecessor admitted all 157 inputs
-in both modes. The reversible archive correction is pending.
+in both modes. The same mismatch stopped Intel at its 45-test bootstrap
+step, before its six consumers ran.
 [Admission failure](verification/receipts/hosted-engine-c18b3060-swift-store-source-admission.json)
+
+The reversible archive now admits both corrected Swift tests and their
+new helper. Both actual non-cone selections admit the same 157 Java
+inputs in each Python mode. Historical restore matches all 890 Source141
+and 845 Source127 files by bytes and mode. The independent replay passed
+the 45 bootstrap and 16 sparse controls in both modes. Hosted Swift
+6.2.4 has yet to run the corrected tests.
+[Archive checks](verification/receipts/source141-store-reconciliation-admission-c18b3060.json) · [Independent replay](verification/receipts/source141-store-reconciliation-admission-c18b3060-root.json)
 
 ## November 20 generated release REST client
 

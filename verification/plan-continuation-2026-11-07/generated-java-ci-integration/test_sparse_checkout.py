@@ -112,7 +112,7 @@ def admission_paths(root=None, binding=None):
                     'android_inspection_deadline_transition', 'receipt_directory_transition',
                     'swiftpm_migration_transition', 'fieldlog_commit_transition',
                     'native_fingerprint_transition', 'private_f10_transition',
-                    'fieldlog_signed_editor_transition'):
+                    'fieldlog_signed_editor_transition', 'store_reconciliation_fixture_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -509,7 +509,8 @@ class SparseControls(unittest.TestCase):
             changes = {**binding['changes'], **binding['capability_transition']['changes'],
                        **pair24['changes'], **binding['local_store_transition']['changes'],
                        **inspector['changes'], **release['changes'], **migration['changes'],
-                       **fieldlog['changes'], **editor['changes']}
+                       **fieldlog['changes'], **editor['changes'],
+                       **binding['store_reconciliation_fixture_transition']['changes']}
             additions = sorted(name for name, change in changes.items() if change['before'] is None)
             self.assertTrue(additions)
             for name in additions:

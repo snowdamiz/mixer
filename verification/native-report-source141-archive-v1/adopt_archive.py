@@ -322,6 +322,12 @@ CLI_NONREGULAR_INPUT_TEST_PREIMAGE = 'cli-nonregular-input-test-predecessor-byte
 SIGNED_APPLE_OVERFLOW_TEST = 'capability-activation/Tests/MixerCapabilityActivationTests/GuestUISignedRuntimeTests.swift'
 SIGNED_APPLE_OVERFLOW_TEST_PREIMAGE = 'signed-apple-overflow-test-predecessor-bytes/' + SIGNED_APPLE_OVERFLOW_TEST
 W09_SIGNED_APPLE_TEST_PREIMAGE = 'w09-signed-apple-test-predecessor-bytes/' + SIGNED_APPLE_OVERFLOW_TEST
+STORE_RECONCILIATION_TEST_PREFIX = 'store-reconciliation-fixture-predecessor-bytes/'
+STORE_RECONCILIATION_TESTS = {
+    'cli/Tests/MixerBuildTests/StoreReconciliationTests.swift',
+    'cli/Tests/MixerBuildTests/StoreTestingReconciliationTests.swift',
+}
+STORE_RECONCILIATION_HELPER = 'cli/Tests/MixerBuildTests/StoreReconciliationRequestHold.swift'
 SPARSE_CHECKOUT_TEST = JAVA + 'test_sparse_checkout.py'
 SPARSE_CHECKOUT_TEST_PREIMAGE = 'sparse-checkout-test-predecessor-bytes/' + SPARSE_CHECKOUT_TEST
 HALT_CLI_PREFIX = 'halt-cli-predecessor-bytes/'
@@ -472,7 +478,9 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     HOSTED_V43_WORKFLOW, HOSTED_V44_WORKFLOW, HOSTED_V45_WORKFLOW, HOSTED_V46_WORKFLOW, HOSTED_V47_WORKFLOW, HOSTED_V48_WORKFLOW, HOSTED_V49_WORKFLOW, HOSTED_V50_WORKFLOW, HOSTED_V51_WORKFLOW, HOSTED_V52_WORKFLOW, HOSTED_V53_WORKFLOW, HOSTED_V54_WORKFLOW, HOSTED_V55_WORKFLOW, HOSTED_V56_WORKFLOW, HOSTED_V57_WORKFLOW,
     HOSTED_V58_WORKFLOW, HOSTED_V59_WORKFLOW, HOSTED_V60_WORKFLOW, HOSTED_V61_WORKFLOW, HOSTED_V62_WORKFLOW, HOSTED_V63_WORKFLOW, HOSTED_V64_WORKFLOW, HOSTED_V65_WORKFLOW, HOSTED_V66_WORKFLOW, HOSTED_V67_WORKFLOW, HOSTED_V68_WORKFLOW, HOSTED_V69_WORKFLOW, GUEST_CUTOFF_PREIMAGE, WORKER_SWIFT_PROBE_PREIMAGE, CLI_NONREGULAR_INPUT_TEST_PREIMAGE,
     SIGNED_APPLE_OVERFLOW_TEST_PREIMAGE, W09_SIGNED_APPLE_TEST_PREIMAGE, SPARSE_CHECKOUT_TEST_PREIMAGE,
-} | {STORE_PLATFORM_IDENTITY_PREFIX + name for name in STORE_PLATFORM_IDENTITY_INPUTS} | {
+} | {STORE_RECONCILIATION_TEST_PREFIX + name for name in STORE_RECONCILIATION_TESTS} | {
+    STORE_PLATFORM_IDENTITY_PREFIX + name for name in STORE_PLATFORM_IDENTITY_INPUTS
+} | {
     ANDROID_OUTPUT_PREFIX + name for name in ANDROID_OUTPUT_CHANGES
 } | {
     ANDROID_OUTPUT_CORRECTION_PREFIX + name
@@ -678,6 +686,7 @@ def install_inputs():
                              'hosted_v86_transition', 'hosted_v87_transition', 'pair25_rust_notices',
                              'android_inspection_deadline_transition', 'receipt_directory_transition',
                              'receipt_parent_url_test_transition', 'swiftpm_migration_transition',
+                             'store_reconciliation_fixture_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -1895,7 +1904,28 @@ def install_inputs():
     # Source141 restoration already has an earlier inventory preimage.
     installed['THIRD_PARTY.yml'] = notices['after']
 
+    store_fixture = binding['store_reconciliation_fixture_transition']
+    fixture_paths = STORE_RECONCILIATION_TESTS | {STORE_RECONCILIATION_HELPER, SPARSE_CHECKOUT_TEST}
+    require(set(store_fixture) == {'changes'} and set(store_fixture['changes']) == fixture_paths and
+            fixture_paths.isdisjoint(current) and STORE_RECONCILIATION_HELPER not in historical,
+            'Store reconciliation fixture roster differs')
+    for name, change in store_fixture['changes'].items():
+        require(set(change) == {'before', 'after', 'mode'} and change['mode'] == 0o644 and
+                (change['before'] is None) == (name == STORE_RECONCILIATION_HELPER) and
+                change['before'] == installed.get(name) and change['before'] != change['after'],
+                'Store reconciliation fixture owner row differs: ' + name)
+        # The sparse-checkout control already has an earlier Source141 preimage.
+        if name in STORE_RECONCILIATION_TESTS:
+            path = HERE / STORE_RECONCILIATION_TEST_PREFIX / name
+            raw = read_predecessor_member(path)
+            require(previous.row(raw) == change['before'] and stat.S_IMODE(path.lstat().st_mode) == change['mode'],
+                    'Store reconciliation fixture predecessor bytes or mode differ: ' + name)
+            preimages.setdefault(name, (raw, change['mode']))
+        installed[name] = change['after']
     previous.check_rows(ROOT, installed)
+    for name, change in store_fixture['changes'].items():
+        require(stat.S_IMODE((ROOT / name).lstat().st_mode) == change['mode'],
+                'Installed store reconciliation fixture owner mode differs: ' + name)
     for name, change in release['changes'].items():
         require(stat.S_IMODE((ROOT / name).lstat().st_mode) == change['mode'],
                 'Installed signed release REST v3 owner mode differs: ' + name)
