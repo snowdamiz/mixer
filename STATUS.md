@@ -190,6 +190,18 @@ markers. The observed handler inventories had no registered exporter. Both
 owned groups closed and scratch was removed. L07 remains open.
 [Attestation privacy receipt](verification/receipts/l07-native-attestation-stock-log-6b9b826c.json)
 
+## November 21 private source-map retention
+
+The opt-in local operator retains the bytes bound to a signed publication.
+It applies the earlier retention or owner authorization cutoff to transfer
+and publication, rejects inherited output access, and leaves public OTA
+responses byte-identical. The v81-composed macOS replay passed 21 focused
+controls and the signed PostgreSQL fixture. The captured logs contained
+zero synthetic payload markers. The disposable database closed and its
+port rebound. Hosted v82 source admission is underway, and L07 remains open.
+[Operator guide](hosted/scripts/private-source-map-retention.md) ·
+[Composed verification](verification/receipts/l07-private-source-map-v81-composition.json)
+
 ## November 21 attestation readiness
 
 The ordinary application-registration and native-attestation fixtures now use
