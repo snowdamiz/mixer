@@ -351,6 +351,26 @@ The historical scratch and exact three ports were left untouched.
 [Fresh launch and custody receipt](verification/receipts/fieldlog-entry-editor-fresh-api36-launch-hold.json) ·
 [Group absence receipt](verification/receipts/fieldlog-entry-editor-api36-pgid-75289-resolution.json)
 
+The reviewed `e39a5ea393` FieldLog APK installed on a clean arm64 API 36
+emulator. The installed launcher matched the manifest's application ID and
+fully qualified activity. The ordinary editor showed the unsaved title, and
+force-stop and cold launch preserved the original workspace bytes. After
+closing the keyboard, Save added exactly one task and one linked
+`taskSaved` record. The queue showed the task first and viewing it left
+disk unchanged. Cold launch preserved the task and outbox.
+
+From Entries, Save draft persisted one draft without an outbox append.
+Opening the signed sequence-1 dialog and choosing Done preserved that draft
+byte for byte. Reopening and choosing Commit showed **Committed once**,
+replaced the draft with the matching entry, and added exactly one
+`entrySaved` record. Done dismissed the dialog. A third cold launch
+preserved the exact committed bytes and the earlier task. Input used
+ADB-generated key events. Unicode through the system keyboard and internal
+guest-owner retirement telemetry remain outside this run. Both service groups
+and all 113 commands reached terminal custody, and the three ports rebound
+before the disposable AVD was removed.
+[Installed editor and signed Commit receipt](verification/receipts/fieldlog-e39a5ea3-api36-ordinary-signed-entry-commit.json)
+
 ## November 20 local release delivery outage and recovery
 
 A committed Phoenix release reached local Workerd through the private historical
