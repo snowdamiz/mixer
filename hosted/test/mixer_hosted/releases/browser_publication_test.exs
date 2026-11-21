@@ -173,6 +173,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     seed_target!(source.ios.enrollment.target)
     provision_release_jobs!()
     provision_stage_promotion!()
+    provision_stage_promotion_read!()
 
     for value <- [source.android, destination.ios, destination.android],
         do: seed_head!(value.enrollment.target)
@@ -340,6 +341,8 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     for value <- Map.values(destination) do
       target = value.enrollment.target
 
+      assert_status(c, owner, target, 404, promotion_view(value))
+
       assert read!(c, owner, target, :details_v2) == %{
                "kind" => "empty",
                "target" => string_keys(Target.wire(target))
@@ -442,6 +445,8 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
           do: assert_status(c, owner, wrong, 404, :details_v2)
     end
 
+    assert_promotion_groups!(c, owner, other, destination, source.ios, request, response_payload)
+
     variant = source.ios
     target = variant.enrollment.target
     assert_details_privileges!(target)
@@ -477,6 +482,150 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
              expanded = read!(c, owner, target, :details_v2)
 
     assert read!(c, owner, target, :details) == expanded
+  end
+
+  defp assert_promotion_groups!(c, owner, other, destination, source, request, response_payload) do
+    ios = destination.ios
+    android = destination.android
+    ios_target = ios.enrollment.target
+    android_target = android.enrollment.target
+    ios_view = promotion_view(ios)
+    android_view = promotion_view(android)
+
+    expected = %{
+      "kind" => "committed",
+      "ios" => browser_promotion_receipt(ios),
+      "android" => browser_promotion_receipt(android)
+    }
+
+    # A valid read-only browser identity can see both receipts. An active
+    # owner of the other seeded organization cannot read this destination.
+    assert %{status: 200, body: body} = http(c, "/console-api/v1/orgs", other)
+    assert %{"organizations" => [%{"id" => "org-b"}]} = Jason.decode!(body)
+    DB.q!(Admin, "UPDATE public.mixer_authz_memberships SET role='viewer' WHERE id='member-a'")
+    viewer = login(c, :no_build_scope)
+    assert read!(c, viewer, ios_target, ios_view) == expected
+    assert read!(c, viewer, android_target, android_view) == expected
+    DB.q!(Admin, "UPDATE public.mixer_authz_memberships SET role='owner' WHERE id='member-a'")
+    assert_status(c, other, ios_target, 404, ios_view)
+    assert_status(c, other, android_target, 404, android_view)
+    assert http(c, path(ios_target, ios_view), []).status == 401
+
+    {:promotion_group, sequence, digest} = ios_view
+
+    for invalid <- [
+          path(ios_target) <> "&view=promotion-group&sequence=#{sequence}",
+          path(ios_target, :details_v2) <> "&sequence=#{sequence}&manifest_sha256=#{digest}",
+          path(ios_target, ios_view) <> "&sequence=#{sequence}",
+          path(ios_target, {:promotion_group, "0#{sequence}", digest}),
+          path(ios_target, {:promotion_group, @max_sequence + 1, digest})
+        ] do
+      assert http(c, invalid, owner).status == 400
+    end
+
+    assert_status(
+      c,
+      owner,
+      ios_target,
+      404,
+      {:promotion_group, sequence, String.duplicate("0", 64)}
+    )
+
+    assert_status(c, owner, source.enrollment.target, 404, promotion_view(source))
+
+    set_browser_environment!("staging", false)
+    assert %{"kind" => "published"} = read!(c, owner, source.enrollment.target, :details_v2)
+    assert_status(c, owner, ios_target, 404, ios_view)
+    assert_status(c, owner, android_target, 404, android_view)
+    set_browser_environment!("staging", true)
+
+    set_browser_environment!("development", false)
+    assert_status(c, owner, source.enrollment.target, 404, :details_v2)
+    assert read!(c, owner, ios_target, ios_view) == expected
+    set_browser_environment!("development", true)
+
+    next_android = put_in(android.assignment["sequence"], 13)
+    publish_successor!(c, owner, next_android)
+
+    assert %{"release" => %{"sequence" => "13", "details" => %{"action" => "publish"}}} =
+             read!(c, owner, android_target, :details_v2)
+
+    assert_status(c, owner, android_target, 404, promotion_view(next_android))
+
+    historical = put_in(expected["android"]["headSequence"], "13")
+    assert read!(c, owner, ios_target, ios_view) == historical
+    assert read!(c, owner, android_target, android_view) == historical
+
+    next_ios = put_in(ios.assignment["sequence"], 4)
+    publish_successor!(c, owner, next_ios)
+    historical = put_in(historical["ios"]["headSequence"], "4")
+    assert read!(c, owner, ios_target, ios_view) == historical
+    assert read!(c, owner, android_target, android_view) == historical
+
+    assert %{status: 200, body: replay} =
+             request.(promotion_body(spaced_assignment(ios), spaced_assignment(android)))
+
+    assert Jason.decode!(replay) == response_payload
+  end
+
+  defp set_browser_environment!(environment, active) do
+    assert %{num_rows: 1} =
+             DB.q!(
+               Admin,
+               """
+               UPDATE public.mixer_authz_environments SET active=$1
+               WHERE (organization_id,project_id,application_id,id)=('org-a','project-a','fieldlog',$2)
+               """,
+               [active, environment]
+             )
+  end
+
+  defp publish_successor!(c, owner, variant) do
+    target = variant.enrollment.target
+    token = access_token!(c, owner)
+    cli_base = "/v3/orgs/org-a/projects/project-a"
+    digest = publication(variant).artifact_sha256
+    # CLI operations use the configured default target.
+    original = Application.fetch_env!(:mixer_hosted, :local_release_target)
+    Application.put_env(:mixer_hosted, :local_release_target, Map.from_struct(variant.enrollment))
+
+    try do
+      assert %{status: 200} =
+               cli_post(
+                 c,
+                 token,
+                 cli_base <> "/releases/validate",
+                 "validate-destination-" <> target.platform,
+                 Jason.encode!(%{artifact_sha256: digest})
+               )
+
+      assert %{status: 200} =
+               cli_post(
+                 c,
+                 token,
+                 cli_base <> "/channels/#{target.channel}/publish",
+                 "successor-" <> target.platform,
+                 ~s({"signed_assignment":#{spaced_assignment(variant)}})
+               )
+    after
+      Application.put_env(:mixer_hosted, :local_release_target, original)
+    end
+  end
+
+  defp promotion_view(variant) do
+    signed = publication(variant)
+    {:promotion_group, signed.sequence, signed.artifact_sha256}
+  end
+
+  defp browser_promotion_receipt(variant) do
+    {:promotion_group, sequence, digest} = promotion_view(variant)
+
+    %{
+      "target" => string_keys(Target.wire(variant.enrollment.target)),
+      "sequence" => Integer.to_string(sequence),
+      "manifestSha256" => digest,
+      "headSequence" => Integer.to_string(sequence)
+    }
   end
 
   test "publishes the verified upload once and reads the exact tenant-scoped browser head" do
@@ -1565,6 +1714,34 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     end
   end
 
+  defp provision_stage_promotion_read! do
+    version = 20_261_120_000_021
+    module = MixerHosted.Repo.Migrations.AddLocalStagePromotionRead
+    file = "priv/local_stage_promotion_read/#{version}_add_local_stage_promotion_read.exs"
+    unless Code.ensure_loaded?(module), do: Code.require_file(file)
+    assert :ok = Ecto.Migrator.up(Migration, version, module, log: false)
+
+    signature =
+      "public.mixer_stage_promotion_receipts(text,text,text,text,text,text,text,numeric,text)"
+
+    DB.q!(Admin, "GRANT EXECUTE ON FUNCTION #{signature} TO browser_ordinary")
+
+    assert [[true, false, false, true, true, true]] =
+             DB.q!(
+               Admin,
+               """
+               SELECT has_function_privilege('browser_ordinary',p.oid,'EXECUTE'),
+                      has_function_privilege('browser_lifecycle',p.oid,'EXECUTE'),
+                      has_function_privilege('browser_writer',p.oid,'EXECUTE'),
+                      p.prosecdef AND p.provolatile='s' AND p.proconfig=ARRAY['search_path=pg_catalog'],
+                      p.proowner='browser_schema_owner'::regrole,
+                      NOT EXISTS (SELECT 1 FROM aclexplode(p.proacl) a WHERE a.grantee=0)
+               FROM pg_proc p WHERE p.oid=$1::text::regprocedure
+               """,
+               [signature]
+             ).rows
+  end
+
   defp seed_stage_direction!(direction) do
     DB.q!(Admin, """
     GRANT INSERT (action) ON public.mixer_release_publications TO browser_ordinary
@@ -2298,6 +2475,9 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
   defp view_query(:summary), do: ""
   defp view_query(:details), do: "&view=details"
   defp view_query(:details_v2), do: "&view=details-v2"
+
+  defp view_query({:promotion_group, sequence, digest}),
+    do: "&view=promotion-group&sequence=#{sequence}&manifest_sha256=#{digest}"
 
   defp string_keys(map), do: Map.new(map, fn {key, value} -> {Atom.to_string(key), value} end)
 end

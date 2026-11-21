@@ -102,7 +102,15 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
 
   @doc "Private console read through the current active browser session."
   def read_release_head(raw_headers, target, view \\ :summary)
+
+  def read_release_head(raw_headers, target, view)
       when view in [:summary, :details, :details_v2] do
+    with {:ok, target} <- MixerHosted.Releases.Target.new(target) do
+      read_private(raw_headers, {:release_head, target, view})
+    end
+  end
+
+  def read_release_head(raw_headers, target, {:promotion_group, _, _} = view) do
     with {:ok, target} <- MixerHosted.Releases.Target.new(target) do
       read_private(raw_headers, {:release_head, target, view})
     end

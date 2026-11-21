@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "kind": "Local exact destination promotion-group browser read",
+  "observedUTC": "2026-11-21T07:28:46Z",
+  "source": {
+    "basePublicV77": "03e50d05d2f56de83ff6b5d90593e29a8e4baaf7",
+    "baseConsoleCandidate": "c28d8196237ff2a147994ce9a157c0679472779b",
+    "testedTreeBeforeReceipt": "b45cd283509efe9ae3a891a2228dea2edb321047"
+  },
+  "host": {
+    "macOS": "27.0.1",
+    "arch": "arm64",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "postgresql": "17.11",
+    "node": "22.23.3",
+    "vite": "8.3.5",
+    "bandit": "1.14.1",
+    "python": "3.14.8"
+  },
+  "verification": {
+    "hosted": {
+      "command": "hosted/scripts/replay-local-stage-promotion-browser.sh",
+      "result": "7 passed, exit 0",
+      "observations": [
+        "The signed promotion over Bandit commits both destinations and one binding. Both exact destination selectors return the same two receipts through the ordinary browser cookie path.",
+        "The original sequences remain iOS 3 and Android 12 after separately publishing Android 13 and iOS 4. Historical lookups return the advanced head sequences. The Android 13 publication has no promotion group.",
+        "A viewer with mixer.workspace.read sees both receipts. An authenticated org-b owner receives 404 for both org-a selectors. Deactivating the destination denies both lookups. Deactivating the source denies its own head, while the destination group remains identical and destination-only.",
+        "A missing cookie returns 401. Invalid or unbounded selectors return 400. Well-formed misses return 404. Legacy browser responses and the signed promotion retry were compared.",
+        "The function owner, stable execution, fixed search path and grants matched the tested contract. The restricted ordinary API login has EXECUTE. The lifecycle and helper roles and PUBLIC lack EXECUTE. Migration admission checks FORCE RLS on all three relations.",
+        "A PostgreSQL 18 version stub returned exit 2 before cluster creation."
+      ]
+    },
+    "stagePromotion": {
+      "command": "MIXER_STAGE_PROMOTION_QUEUE=1 hosted/scripts/replay-local-stage-promotion.sh",
+      "result": "19 passed, exit 0 on isolated rerun",
+      "priorAttempt": "The first queue-enabled run passed 18 of 19. Its existing head-lock observer did not observe the writer wait. The isolated rerun passed that control and the queue rollback control."
+    },
+    "console": {
+      "commands": [
+        "fnm exec --using=22.23.3 npm test",
+        "fnm exec --using=22.23.3 npm run build"
+      ],
+      "workingDirectory": "console",
+      "result": "310 tests passed and the production Vite build passed"
+    },
+    "browser": {
+      "setup": "An owned Acid incognito tab loaded the production Vite bundle. A loopback proxy forwarded the browser's ordinary cookie GETs to the same Bandit and PostgreSQL fixture while a temporary test copy paused at committed checkpoints.",
+      "observations": [
+        {
+          "anchor": "ios",
+          "kind": "current",
+          "groupHttp": 200,
+          "sequence": "3",
+          "rows": [
+            "iOS\nSequence 3 · Current head\nManifest 1644d91a8412e30ba94289ec29c6d46f640050ae2428c58b6e02c6bdb8732da6",
+            "Android\nSequence 12 · Current head\nManifest 55d4910d15675d87a9466a14e0ab63349e729826e77cd3fdb6df55d0bf8124d6"
+          ]
+        },
+        {
+          "anchor": "android",
+          "kind": "current",
+          "groupHttp": 200,
+          "sequence": "12",
+          "rows": [
+            "iOS\nSequence 3 · Current head\nManifest 1644d91a8412e30ba94289ec29c6d46f640050ae2428c58b6e02c6bdb8732da6",
+            "Android\nSequence 12 · Current head\nManifest 55d4910d15675d87a9466a14e0ab63349e729826e77cd3fdb6df55d0bf8124d6"
+          ]
+        },
+        {
+          "anchor": "ios",
+          "kind": "after_android_successor",
+          "sequence": "3",
+          "ledgerAction": "Environment promotion",
+          "requests": [
+            {
+              "http": 200,
+              "sequence": null,
+              "view": "details-v2"
+            },
+            {
+              "http": 200,
+              "sequence": "3",
+              "view": "promotion-group"
+            }
+          ],
+          "rows": [
+            "iOS\nSequence 3 · Current head\nManifest 1644d91a8412e30ba94289ec29c6d46f640050ae2428c58b6e02c6bdb8732da6",
+            "Android\nSequence 12 · Head advanced to 13\nManifest 55d4910d15675d87a9466a14e0ab63349e729826e77cd3fdb6df55d0bf8124d6"
+          ]
+        },
+        {
+          "anchor": "android",
+          "kind": "after_android_successor",
+          "sequence": "13",
+          "ledgerAction": "Publish",
+          "requests": [
+            {
+              "http": 200,
+              "sequence": null,
+              "view": "details-v2"
+            }
+          ],
+          "rows": []
+        }
+      ],
+      "limitation": "The selected diagnostic assertions passed. The temporary filename caused an ExUnit discovery warning and exit 1 under warnings-as-errors. The committed, uninstrumented Bandit/PostgreSQL replay exited 0."
+    },
+    "independentReview": "One source-only review found a missing PostgreSQL major preflight. The runner now requires PostgreSQL 16 or 17. The reviewer reported no product defect."
+  },
+  "cleanup": {
+    "ownedBrowserTabClosed": true,
+    "ownedProxyAndPostgresStopped": true,
+    "liveBanditAndProxyPortsReusable": true,
+    "fixtureScratchAndTaskBuildOutputsRemoved": true
+  },
+  "scope": "Local signed promotion, console and PostgreSQL only. Gate acceptance, hosted deployment, stock CLI binary replay and device testing remain outside this slice."
+}

@@ -546,39 +546,81 @@ test("Releases waits for a session and displays only the committed head from an 
   } finally { f.close(); }
 });
 
-test("Releases distinguishes environment promotion on each exact platform from rollout expansion", { timeout: 5000 }, async () => {
+test("Releases projects the exact committed promotion pair and each head position", { timeout: 5000 }, async () => {
   const f = fixture(undefined, "/releases");
   try {
     await admitReleaseSession(f);
-    const cases = [
-      { platform: "ios", environment: "staging", sequence: "3", action: "stage_promote", label: "Environment promotion" },
-      { platform: "android", environment: "staging", sequence: "12", action: "stage_promote", label: "Environment promotion" },
-      { platform: "ios", environment: "development", sequence: "8", action: "promote", label: "Rollout expansion" },
-    ];
-    const fields = () => Object.fromEntries(walk(f.container)
-      .filter(node => node.nodeName === "DT")
-      .map(node => [node.textContent, node.nextSibling.textContent]));
-    for (const [index, { platform, environment, sequence, action, label }] of cases.entries()) {
-      const target = { ...releaseTarget, platform, environmentId: environment, runtimeFingerprint: String(index + 1).repeat(64) };
-      const query = releaseQuery(target.channel).replace("platform=ios", `platform=${platform}`)
-        .replace("environment_id=prod", `environment_id=${environment}`)
+    const ios = { ...releaseTarget, environmentId: "staging", runtimeFingerprint: "1".repeat(64) };
+    const android = { ...ios, platform: "android", runtimeFingerprint: "2".repeat(64) };
+    const group = {
+      kind: "committed",
+      ios: { target: ios, sequence: "3", headSequence: "3", manifestSha256: "d".repeat(64) },
+      android: { target: android, sequence: "12", headSequence: "13", manifestSha256: "e".repeat(64) },
+    };
+
+    for (const receipt of [group.ios, group.android]) {
+      const { target, sequence, manifestSha256 } = receipt;
+      const query = releaseQuery(target.channel).replace("platform=ios", `platform=${target.platform}`)
+        .replace("environment_id=prod", "environment_id=staging")
         .replace(releaseTarget.runtimeFingerprint, target.runtimeFingerprint);
       go(f, "/releases?" + query);
       await flush();
-      const request = releaseCalls(f)[index];
-      assert.equal(request.path, "/console-api/v1/release-head?" + query + "&view=details-v2");
-      const details = { ...publishedRelease.details, sourceCommit: String(index + 1).repeat(40), action };
-      request.resolve(json({ kind: "published", target, release: { ...publishedRelease, sequence, details } }));
+      const path = "/console-api/v1/release-head?" + query;
+      const read = releaseCalls(f).at(-1);
+      assert.equal(read.path, path + "&view=details-v2");
+      read.resolve(json({ kind: "published", target, release: {
+        ...publishedRelease, sequence, manifestSha256, details: { ...publishedRelease.details, action: "stage_promote" },
+      } }));
       await flush();
-      const displayed = fields();
-      assert.equal(displayed.Platform, platform);
-      assert.equal(displayed["Environment ID"], environment);
-      assert.equal(displayed.Sequence, sequence);
-      assert.equal(displayed["Source commit"], details.sourceCommit);
-      assert.equal(displayed["Ledger action"], label);
-      assert.equal(displayed["Promotion group status"], action === "stage_promote" ? "Unavailable" : undefined);
+      assert.match(f.text(), /Environment promotion.*Loading promotion group/);
+      const groupRead = releaseCalls(f).at(-1);
+      assert.equal(groupRead.path, path + `&view=promotion-group&sequence=${sequence}&manifest_sha256=${manifestSha256}`);
+      assert.equal(groupRead.method, "GET");
+      assert.equal(groupRead.credentials, "same-origin");
+      groupRead.resolve(json(group));
+      await flush();
+      const promotion = walk(f.container).find(node => node.getAttribute("aria-labelledby") === "promotion-group-heading");
+      assert.match(promotion.textContent, /iOSSequence 3 · Current head/);
+      assert.match(promotion.textContent, /AndroidSequence 12 · Head advanced to 13/);
+      assert.ok(promotion.textContent.includes(group.ios.manifestSha256));
+      assert.ok(promotion.textContent.includes(group.android.manifestSha256));
     }
-    assert.equal(releaseCalls(f).length, cases.length);
+
+    go(f, releaseRoute("beta"));
+    await flush();
+    releaseCalls(f).at(-1).resolve(publish("beta", {
+      ...publishedRelease, details: { ...publishedRelease.details, action: "promote" },
+    }));
+    await flush();
+    assert.match(f.text(), /Rollout expansion/);
+    assert.doesNotMatch(f.text(), /Promotion group|Head advanced/);
+    assert.equal(releaseCalls(f).length, 5);
+  } finally { f.close(); }
+});
+
+test("Releases hides an unavailable promotion pair and discards a superseded group read", { timeout: 5000 }, async () => {
+  const f = fixture(undefined, releaseRoute("beta"));
+  try {
+    await admitReleaseSession(f);
+    const release = { ...publishedRelease, details: { ...publishedRelease.details, action: "stage_promote" } };
+    const denied = new Response(null, { status: 404 });
+    releaseCalls(f).at(-1).resolve(publish("beta", release));
+    await flush();
+    releaseCalls(f).at(-1).resolve(denied);
+    await flush();
+    assert.match(f.text(), /Environment promotion.*Promotion groupUnavailable/);
+    assert.doesNotMatch(f.text(), /Head advanced|Current head/);
+
+    go(f, releaseRoute("stable"));
+    await flush();
+    releaseCalls(f).at(-1).resolve(publish("stable", release));
+    await flush();
+    const stale = releaseCalls(f).at(-1);
+    f.controller.revalidate();
+    assert.equal(stale.signal.aborted, true);
+    stale.resolve(json({ kind: "committed" }));
+    await flush();
+    assert.doesNotMatch(f.text(), /Promotion group|committed-release/);
   } finally { f.close(); }
 });
 

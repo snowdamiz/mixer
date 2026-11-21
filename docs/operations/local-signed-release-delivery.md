@@ -318,6 +318,32 @@ omit the flag or set it to `false`, and restart the API.
    A successful response reports both destination publications. The service
    advances both heads and records one binding in the same transaction.
 
+## Enable promotion receipts in the console
+
+Apply opt-in migration `20261120000021` from
+`hosted/priv/local_stage_promotion_read` as the restricted ledger owner after
+`20261120000016`. Grant the ordinary API login execute access as the
+administrator. Use the login provisioned as writer for both
+destination heads.
+
+```sql
+GRANT EXECUTE ON FUNCTION
+  public.mixer_stage_promotion_receipts(text,text,text,text,text,text,text,numeric,text)
+  TO :"browser_runtime";
+```
+
+The console requests `view=promotion-group` on the release-head endpoint with
+the destination target, `sequence`, and `manifest_sha256`. Either platform's
+exact committed publication selects both destination receipts. Each receipt
+reports its original publication sequence and the head sequence observed in the
+same database statement. A denied or unavailable group appears as
+**Unavailable** on the release page.
+
+Replay the cookie-authenticated Bandit and PostgreSQL tests from the checkout
+with `hosted/scripts/replay-local-stage-promotion-browser.sh`. Install the
+locked hosted dependencies first with `mix deps.get` in `hosted`. Put PostgreSQL
+16 or 17 on `PATH`. The script starts and removes its own loopback-only cluster.
+
 ## Halt a rollout after an adverse signal
 
 Run the stock `mixer update halt` command with the current artifact digest, a

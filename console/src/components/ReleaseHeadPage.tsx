@@ -1,7 +1,7 @@
 import { A } from "@solidjs/router";
 import { For, Show } from "solid-js";
 import type { Accessor } from "solid-js";
-import type { PublishedRelease } from "../domain/release-head.js";
+import type { PromotionReceipt, PublishedRelease } from "../domain/release-head.js";
 import type { ReleaseHeadState } from "../state/release-head-binding.js";
 import "./release-head-page.css";
 
@@ -26,6 +26,19 @@ const actionCopy = {
   halt: "Halt",
 } satisfies Record<PublishedRelease["details"]["action"], string>;
 
+function PromotionPublicationItem(props: { readonly receipt: PromotionReceipt }) {
+  const receipt = () => props.receipt;
+  const headStatus = () => {
+    const head = receipt().head;
+    return head.kind === "current" ? "Current head" : "Head advanced to " + head.sequence;
+  };
+  return <li>
+    <strong>{receipt().target.platform === "ios" ? "iOS" : "Android"}</strong>
+    <div>Sequence <code>{receipt().sequence}</code> · {headStatus()}</div>
+    <div>Manifest <code>{receipt().manifestSha256}</code></div>
+  </li>;
+}
+
 export function ReleaseHeadPage(props: {
   readonly state: Accessor<ReleaseHeadState>;
   readonly onRetrySession?: () => void;
@@ -38,6 +51,16 @@ export function ReleaseHeadPage(props: {
   const published = () => {
     const state = head();
     return state?.kind === "published" ? state.release : undefined;
+  };
+
+  const group = () => {
+    const state = head();
+    return state?.kind === "published" ? state.promotionGroup : null;
+  };
+
+  const committedGroup = () => {
+    const promotion = group();
+    return promotion?.kind === "committed" ? promotion : undefined;
   };
 
   return <section aria-labelledby="release-head-heading">
@@ -70,9 +93,6 @@ export function ReleaseHeadPage(props: {
         <div><dt>Artifact signing key ID</dt><dd><code>{release().details.artifactKeyId}</code></dd></div>
         <div><dt>Assignment signing key ID</dt><dd><code>{release().details.assignmentKeyId}</code></dd></div>
         <div><dt>Ledger action</dt><dd>{actionCopy[release().details.action]}</dd></div>
-        <Show when={release().details.action === "stage_promote"}>
-          <div><dt>Promotion group status</dt><dd>Unavailable</dd></div>
-        </Show>
         <div><dt>Runtime admission</dt><dd>Compatibility checked when this head was committed.</dd></div>
         <div><dt>Manifest capabilities</dt><dd>
           <Show when={release().details.capabilities.length > 0} fallback="None declared">
@@ -87,6 +107,15 @@ export function ReleaseHeadPage(props: {
           </Show>
         </dd></div>
       </dl>}</Show>
+      <Show when={group()}>{promotion => <section class="release-head-promotion" aria-labelledby="promotion-group-heading">
+        <h3 id="promotion-group-heading">Promotion group</h3>
+        <Show when={committedGroup()} fallback={
+          <p role="status">{promotion().kind === "loading" ? "Loading promotion group…" : "Unavailable"}</p>
+        }>{committed => <ul class="release-head-capabilities">
+          <PromotionPublicationItem receipt={committed().ios} />
+          <PromotionPublicationItem receipt={committed().android} />
+        </ul>}</Show>
+      </section>}</Show>
     </div>
   </section>;
 }

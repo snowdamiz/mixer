@@ -13,24 +13,32 @@ defmodule MixerHosted.Releases.BrowserHead do
       identity,
       "release.read",
       target.scope,
-      fn _ -> read_current(repo, target, view) end,
+      fn _ -> read_view(repo, target, view) end,
       repo
     )
   end
 
-  defp read_current(repo, target, view) do
-    scope = target.scope
+  defp read_view(repo, target, {:promotion_group, sequence, digest}) do
+    sql = "SELECT * FROM public.mixer_stage_promotion_receipts($1,$2,$3,$4,$5,$6,$7,$8,$9)"
+    params = target_params(target) ++ [Decimal.new(sequence), digest]
 
-    rows =
-      Session.query!(repo, query(view), [
-        scope.organization_id,
-        scope.project_id,
-        scope.application_id,
-        scope.environment_id,
-        target.platform,
-        target.runtime_sha256,
-        target.channel
-      ]).rows
+    case Session.query!(repo, sql, params).rows do
+      [first, second] ->
+        with {:ok, ios} <- receipt([first, second], target, "ios"),
+             {:ok, android} <- receipt([first, second], target, "android") do
+          {:ok, %{kind: "committed", ios: ios, android: android}}
+        end
+
+      [] ->
+        {:error, :not_found}
+
+      _ ->
+        {:error, :storage_unavailable}
+    end
+  end
+
+  defp read_view(repo, target, view) do
+    rows = Session.query!(repo, query(view), target_params(target)).rows
 
     case {view, rows} do
       {_, []} ->
@@ -52,6 +60,38 @@ defmodule MixerHosted.Releases.BrowserHead do
           payload_digest,
           {view, rest}
         )
+
+      _ ->
+        {:error, :storage_unavailable}
+    end
+  end
+
+  defp target_params(target) do
+    scope = target.scope
+
+    [
+      scope.organization_id,
+      scope.project_id,
+      scope.application_id,
+      scope.environment_id,
+      target.platform,
+      target.runtime_sha256,
+      target.channel
+    ]
+  end
+
+  defp receipt(rows, target, platform) do
+    case Enum.find(rows, &match?([^platform | _], &1)) do
+      [^platform, runtime, channel, %Decimal{} = sequence, digest, %Decimal{} = head] ->
+        receipt_target = %{target | platform: platform, runtime_sha256: runtime, channel: channel}
+
+        {:ok,
+         %{
+           target: Target.wire(receipt_target),
+           sequence: sequence |> Decimal.to_integer() |> Integer.to_string(),
+           manifestSha256: digest,
+           headSequence: head |> Decimal.to_integer() |> Integer.to_string()
+         }}
 
       _ ->
         {:error, :storage_unavailable}

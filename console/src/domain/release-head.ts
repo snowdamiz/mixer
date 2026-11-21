@@ -22,6 +22,21 @@ export interface PublishedRelease {
   readonly details: ReleaseHeadDetails;
 }
 
+export type PromotionPublication = Pick<PublishedRelease, "sequence" | "manifestSha256"> & {
+  readonly target: ReleaseHeadTarget;
+};
+
+export type PromotionReceipt = PromotionPublication & {
+  readonly head: { readonly kind: "current" } |
+    { readonly kind: "advanced"; readonly sequence: ReleaseSequence };
+};
+
+export interface PromotionGroup {
+  readonly kind: "committed";
+  readonly ios: PromotionReceipt;
+  readonly android: PromotionReceipt;
+}
+
 const manifestPermissions = {
   "network.http.v1": "network.https",
   "storage.keyValue.v1": "storage.appPrivate",
@@ -151,4 +166,37 @@ export function parseReleaseHeadDetails(value: unknown, expected: ReleaseHeadTar
     kind: "published", target,
     release: Object.freeze({ releaseId, sequence, rolloutBasisPoints, manifestSha256, payloadSha256, details: parseDetails(details) }),
   });
+}
+
+export function promotionGroupQuery(publication: PromotionPublication): string {
+  const { target, sequence, manifestSha256 } = publication;
+  requireValid(isReleaseSequence(sequence) && isSha256(manifestSha256));
+  return releaseHeadQuery(target) + "&view=promotion-group&sequence=" + sequence +
+    "&manifest_sha256=" + manifestSha256;
+}
+
+export function parsePromotionGroup(value: unknown, selected: PromotionPublication): PromotionGroup {
+  requireValid(catalogRecord(value, ["kind", "ios", "android"]) && value.kind === "committed");
+  const expected = selected.target;
+
+  function receipt(input: unknown, platform: ReleaseHeadTarget["platform"]): PromotionReceipt {
+    requireValid(catalogRecord(input, ["target", "sequence", "manifestSha256", "headSequence"]));
+    const { sequence, manifestSha256, headSequence } = input;
+    const target = snapshotReleaseHeadTarget(input.target);
+    requireValid(target.platform === platform &&
+      target.organizationId === expected.organizationId && target.projectId === expected.projectId &&
+      target.applicationId === expected.applicationId && target.environmentId === expected.environmentId &&
+      isReleaseSequence(sequence) && isSha256(manifestSha256) && isReleaseSequence(headSequence) &&
+      BigInt(headSequence) >= BigInt(sequence));
+    const head: PromotionReceipt["head"] = headSequence === sequence ? { kind: "current" } :
+      { kind: "advanced", sequence: headSequence };
+    return Object.freeze({ target, sequence, manifestSha256, head: Object.freeze(head) });
+  }
+
+  const ios = receipt(value.ios, "ios");
+  const android = receipt(value.android, "android");
+  const anchor = expected.platform === "ios" ? ios : android;
+  requireValid(targetKeys.every(key => anchor.target[key] === expected[key]) &&
+    anchor.sequence === selected.sequence && anchor.manifestSha256 === selected.manifestSha256);
+  return Object.freeze({ kind: "committed", ios, android });
 }

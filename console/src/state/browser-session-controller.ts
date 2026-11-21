@@ -18,7 +18,7 @@ import type { WorkspaceClient, WorkspacePageRequest } from "../api/workspace-cli
 import type { WorkspaceSession } from "./workspace-controller.js";
 import { createCookieReleaseHeadClient } from "../api/cookie-release-head-client.js";
 import type { ReleaseHeadClient } from "../api/cookie-release-head-client.js";
-import type { ReleaseHeadTarget } from "../domain/release-head.js";
+import type { PromotionPublication, ReleaseHeadTarget } from "../domain/release-head.js";
 import { createCookieBuildClient } from "../api/cookie-build-client.js";
 import type { CookieBuildClient } from "../api/cookie-build-client.js";
 import { createCookieBuildCatalogClient } from "../api/cookie-build-catalog-client.js";
@@ -172,6 +172,8 @@ export function createBrowserSessionController(options: BrowserSessionClientOpti
     });
     const rawReleaseHead = createCookieReleaseHeadClient(settings);
     const releaseHead: ReleaseHeadClient = Object.freeze({
+      readPromotionGroup: (publication: PromotionPublication, signal?: AbortSignal) =>
+        delegate(value, owned => rawReleaseHead.readPromotionGroup(publication, owned), signal),
       readDetails: (target: ReleaseHeadTarget, signal?: AbortSignal) =>
         delegate(value, owned => rawReleaseHead.readDetails(target, owned), signal),
     });
