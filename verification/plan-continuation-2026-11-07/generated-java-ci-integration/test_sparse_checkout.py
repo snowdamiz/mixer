@@ -112,7 +112,8 @@ def admission_paths(root=None, binding=None):
                     'android_inspection_deadline_transition', 'receipt_directory_transition',
                     'swiftpm_migration_transition', 'fieldlog_commit_transition',
                     'native_fingerprint_transition', 'private_f10_transition',
-                    'fieldlog_signed_editor_transition', 'store_reconciliation_fixture_transition'):
+                    'fieldlog_signed_editor_transition', 'store_reconciliation_fixture_transition',
+                    'android_stock_libz_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -490,7 +491,10 @@ class SparseControls(unittest.TestCase):
             editor = binding['fieldlog_signed_editor_transition']
             self.assertEqual(editor['sourceBefore'], private_f10['sourceAfter'])
             self.assertEqual(observed['predecessor_private_f10_sha256'], editor['sourceBefore'])
-            self.assertEqual(observed['source_sha256'], editor['sourceAfter'])
+            libz = binding['android_stock_libz_transition']
+            self.assertEqual(editor['sourceAfter'], libz['sourceBefore'])
+            self.assertEqual(observed['predecessor_android_stock_libz_sha256'], libz['sourceBefore'])
+            self.assertEqual(observed['source_sha256'], libz['sourceAfter'])
             self.assertEqual(observed['source_sha256'], binding['source']['sha256'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']
@@ -552,6 +556,24 @@ class SparseControls(unittest.TestCase):
             self.assertEqual(failed.returncode, 1)
             self.assertIn(b'Signed FieldLog editor predecessor bytes or mode differ', failed.stderr)
             editor_preimage.chmod(0o644)
+            driver = Path('cli/Sources/MixerBuild/Resources/android-build.py')
+            installed_driver = repo / driver
+            driver_before = repo / SOURCE_BINDING.parent / 'android-stock-libz-predecessor-bytes' / driver
+            installed_bytes = installed_driver.read_bytes()
+            installed_driver.write_bytes(driver_before.read_bytes())
+            try:
+                failed = command(python + [str(adopter), 'verify', '--workflow-installed'])
+                self.assertEqual(failed.returncode, 1)
+                self.assertIn(('Owning bytes differ: ' + driver.as_posix()).encode(), failed.stderr)
+            finally:
+                installed_driver.write_bytes(installed_bytes)
+            driver_before.chmod(0o755)
+            try:
+                failed = command(python + [str(adopter), 'verify', '--workflow-installed'])
+                self.assertEqual(failed.returncode, 1)
+                self.assertIn(b'Android stock libz predecessor bytes or mode differ', failed.stderr)
+            finally:
+                driver_before.chmod(0o644)
             restored = base / 'source141'
             command(python + [str(adopter), 'prepare-source141', '--out', str(restored)], check=True)
             progress = Path('cli/build-tests/test_android_inspection_progress.py')

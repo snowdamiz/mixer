@@ -3280,7 +3280,8 @@ class CurrentCLISelectionControls(unittest.TestCase):
             self.assertEqual(0, collector.main(["--check-source"]))
         observed = json.loads(output.getvalue())
         self.assertEqual(expected["source_count"], observed["source_count"])
-        self.assertEqual(expected["source_digest_sha256"], observed["source_digest_sha256"])
+        self.assertEqual(expected["source_digest_sha256"], observed["predecessor_source_digest_sha256"])
+        self.assertEqual(WorkflowSparseSourceControls.DIGEST, observed["source_digest_sha256"])
         self.assertEqual(WorkspaceSourceCutoverControls.PIN, observed["selection_sha256"])
         self.assertFalse(observed["runtime_or_GA_accepted"])
 
@@ -3295,7 +3296,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
     PIN = '94ba99aadc2c8e1a7eb90ab0f42da7de67b6fab0a8319a514396cf3d05042e1f'
-    DIGEST = '2b8753167ad97a3a408cfaa526fbc8bbd3e5f854219077acef7e7c809a717bda'
+    DIGEST = '6567a06d11425e01ac4e2ada393df0f0eefa418ef270e83e51d09122461bf690'
     COUNT = 572
 
     def patterns(self, workflow, job):
@@ -5345,6 +5346,12 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
         self.assertIs(selection["conditional_on_independent_successor_review"], True)
 
         product = {path: (root / path).read_bytes() for path in manifest}
+        collector.validate_workspace_source_manifest(
+            {path: collector._file_row(data) for path, data in product.items()})
+        driver = collector.WORKSPACE_ANDROID_DRIVER
+        stock_line = b"    system = {'libc.so', 'libdl.so', 'libm.so', 'liblog.so', 'libandroid.so', 'libz.so'}\n"
+        self.assertEqual(1, product[driver].count(stock_line))
+        product[driver] = product[driver].replace(stock_line, stock_line.replace(b", 'libz.so'", b""), 1)
         self.assertEqual(manifest, {path: collector._file_row(data) for path, data in product.items()})
         v71_base = collector.WORKSPACE_V71_SOURCE_BASE
         v71_selection, v71_manifest = collector.validate_workspace_v71_metadata(

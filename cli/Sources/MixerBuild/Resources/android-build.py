@@ -1021,7 +1021,7 @@ def build(root, retained_output=None):
     jni_debug = ['-g', '-Wl,--build-id=sha1'] if retained_output is not None else []
     run([NDK / 'bin/aarch64-linux-android28-clang', '-shared', '-fPIC', '-O2', '-Wall', '-Wextra', '-Werror', '-I', adapter / 'bridge', jni, '-L', bin_path, '-lAppAndroid', '-Wl,--no-undefined', '-Wl,-z,max-page-size=16384', *jni_debug, '-o', libdir / jni_library])
     shutil.copy2(engine, libdir / engine.name)
-    system = {'libc.so', 'libdl.so', 'libm.so', 'liblog.so', 'libandroid.so'}
+    system = {'libc.so', 'libdl.so', 'libm.so', 'liblog.so', 'libandroid.so', 'libz.so'}
     pending = list(libdir.glob('*.so'))
     dependencies = {}
     runtime_sources = set()

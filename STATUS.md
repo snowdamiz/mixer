@@ -1132,6 +1132,16 @@ sampler attempts have separate custody holds. The resolver and manifest
 refusals are reproduced. Installed queue acceptance remains pending.
 [Host replay](verification/receipts/fieldlog-android-queue-pair25-host.json) · [Scoped holds](verification/receipts/fieldlog-android-queue-pair25-custody-holds.json)
 
+The stock Android builder recognizes the NDK's system `libz.so`.
+The corrected collector resolves the real Swift Android runtime
+closure and omits `libz.so` from the staged libraries. The NDK API 28
+stub exports the five zlib symbols the closure imports. An unavailable
+non-system library still fails. The exact source admissions pass in the
+Swift, Intel, Phoenix, Identity, and Services sparse checkouts in both
+Python modes. The historical Source141 and Source127 restores and
+Pair25 inputs retain their prior bytes and modes.
+[ELF check](verification/receipts/android-stock-libz-elf-8e8d75c3.json) · [Archive checks](verification/receipts/android-stock-libz-source141-06e7202a.json) · [Combined admission](verification/receipts/android-stock-libz-combined-admission-8e8d75c3.json)
+
 ## November 21 Apple signed draft validation host replay
 
 On macOS, the Apple selected-draft owner and stock VM checked a
@@ -1263,7 +1273,10 @@ new helper. Both actual non-cone selections admit the same 157 Java
 inputs in each Python mode. Historical restore matches all 890 Source141
 and 845 Source127 files by bytes and mode. The independent replay passed
 the 45 bootstrap and 16 sparse controls in both modes. Hosted Swift
-6.2.4 has yet to run the corrected tests.
+6.2.4 then passed both corrected tests and all 137 CLI tests. All nine
+hosted jobs passed, including all six Intel consumers. The two
+APK-dependent Swift tests skipped for missing fixtures.
+[Hosted receipt](verification/receipts/hosted-engine-8e8d75c3-store-reconciliation-terminal.json)
 [Archive checks](verification/receipts/source141-store-reconciliation-admission-c18b3060.json) · [Independent replay](verification/receipts/source141-store-reconciliation-admission-c18b3060-root.json)
 
 ## November 20 generated release REST client

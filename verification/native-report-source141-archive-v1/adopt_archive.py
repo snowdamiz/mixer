@@ -198,7 +198,10 @@ RELEASE_INSPECTOR_CHANGES = RELEASE_INSPECTOR_SOURCE_CHANGES | {
 }
 ICU_NOTICE_PREFIX = 'icu-notice-predecessor-bytes/'
 ICU_NOTICE_PREDECESSOR_SHA256 = '31af762a2f092df7da8fffa5f367e250f2646c9ac18d4a4e75f1b22a01caa579'
-ICU_NOTICE_DRIVER = 'cli/Sources/MixerBuild/Resources/android-build.py'
+ANDROID_BUILD_DRIVER = 'cli/Sources/MixerBuild/Resources/android-build.py'
+ICU_NOTICE_DRIVER = ANDROID_BUILD_DRIVER
+ANDROID_STOCK_LIBZ_PREFIX = 'android-stock-libz-predecessor-bytes/'
+ANDROID_STOCK_LIBZ_SOURCE_SHA256 = 'b6bf09b7fee6fef44019fd28e7ec6aa3b1ca39e223e1c96abd52a70093b2212c'
 ICU_NOTICE_TEST = 'cli/build-tests/test_android_runtime_notices.py'
 ICU_NOTICE_CHANGES = {
     ICU_NOTICE_DRIVER, ICU_NOTICE_TEST, 'THIRD_PARTY.yml', JAVA + 'test_sparse_checkout.py',
@@ -478,7 +481,9 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     HOSTED_V43_WORKFLOW, HOSTED_V44_WORKFLOW, HOSTED_V45_WORKFLOW, HOSTED_V46_WORKFLOW, HOSTED_V47_WORKFLOW, HOSTED_V48_WORKFLOW, HOSTED_V49_WORKFLOW, HOSTED_V50_WORKFLOW, HOSTED_V51_WORKFLOW, HOSTED_V52_WORKFLOW, HOSTED_V53_WORKFLOW, HOSTED_V54_WORKFLOW, HOSTED_V55_WORKFLOW, HOSTED_V56_WORKFLOW, HOSTED_V57_WORKFLOW,
     HOSTED_V58_WORKFLOW, HOSTED_V59_WORKFLOW, HOSTED_V60_WORKFLOW, HOSTED_V61_WORKFLOW, HOSTED_V62_WORKFLOW, HOSTED_V63_WORKFLOW, HOSTED_V64_WORKFLOW, HOSTED_V65_WORKFLOW, HOSTED_V66_WORKFLOW, HOSTED_V67_WORKFLOW, HOSTED_V68_WORKFLOW, HOSTED_V69_WORKFLOW, GUEST_CUTOFF_PREIMAGE, WORKER_SWIFT_PROBE_PREIMAGE, CLI_NONREGULAR_INPUT_TEST_PREIMAGE,
     SIGNED_APPLE_OVERFLOW_TEST_PREIMAGE, W09_SIGNED_APPLE_TEST_PREIMAGE, SPARSE_CHECKOUT_TEST_PREIMAGE,
-} | {STORE_RECONCILIATION_TEST_PREFIX + name for name in STORE_RECONCILIATION_TESTS} | {
+} | {ANDROID_STOCK_LIBZ_PREFIX + name for name in (ANDROID_BUILD_DRIVER, SPARSE_CHECKOUT_TEST)} | {
+    STORE_RECONCILIATION_TEST_PREFIX + name for name in STORE_RECONCILIATION_TESTS
+} | {
     STORE_PLATFORM_IDENTITY_PREFIX + name for name in STORE_PLATFORM_IDENTITY_INPUTS
 } | {
     ANDROID_OUTPUT_PREFIX + name for name in ANDROID_OUTPUT_CHANGES
@@ -686,7 +691,7 @@ def install_inputs():
                              'hosted_v86_transition', 'hosted_v87_transition', 'pair25_rust_notices',
                              'android_inspection_deadline_transition', 'receipt_directory_transition',
                              'receipt_parent_url_test_transition', 'swiftpm_migration_transition',
-                             'store_reconciliation_fixture_transition',
+                             'store_reconciliation_fixture_transition', 'android_stock_libz_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -1886,10 +1891,8 @@ def install_inputs():
                     'Signed FieldLog editor source preimage differs: ' + name)
             expected_source[name] = change['after']
         installed[name] = change['after']
-    require(current == expected_source and len(current) == 157 and
-            previous.digest(current) == editor['sourceAfter'] == FIELDLOG_EDITOR_SOURCE_SHA256 and
-            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
-                                  'sha256': FIELDLOG_EDITOR_SOURCE_SHA256},
+    require(len(expected_source) == 157 and
+            previous.digest(expected_source) == editor['sourceAfter'] == FIELDLOG_EDITOR_SOURCE_SHA256,
             'Signed FieldLog editor source transition differs')
 
     notices = binding['pair25_rust_notices']
@@ -1922,6 +1925,36 @@ def install_inputs():
                     'Store reconciliation fixture predecessor bytes or mode differ: ' + name)
             preimages.setdefault(name, (raw, change['mode']))
         installed[name] = change['after']
+
+    libz = binding['android_stock_libz_transition']
+    libz_paths = {ANDROID_BUILD_DRIVER, SPARSE_CHECKOUT_TEST}
+    require(set(libz) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            libz['sourceBefore'] == editor['sourceAfter'] and
+            set(libz['changes']) == libz_paths and libz_paths <= preimages.keys() and
+            libz_paths & expected_source.keys() == {ANDROID_BUILD_DRIVER},
+            'Android stock libz transition roster differs')
+    for name, change in libz['changes'].items():
+        path = HERE / ANDROID_STOCK_LIBZ_PREFIX / name
+        raw = read_predecessor_member(path)
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == installed[name] == previous.row(raw) and
+                change['before'] != change['after'] and
+                change['mode'] == stat.S_IMODE(path.lstat().st_mode) == 0o644,
+                'Android stock libz predecessor bytes or mode differ: ' + name)
+        require(stat.S_IMODE((ROOT / name).lstat().st_mode) == change['mode'],
+                'Installed Android stock libz owner mode differs: ' + name)
+        # The earlier Source141 preimage remains the restoration input.
+        installed[name] = change['after']
+    driver_change = libz['changes'][ANDROID_BUILD_DRIVER]
+    require(expected_source[ANDROID_BUILD_DRIVER] == driver_change['before'],
+            'Android stock libz source preimage differs')
+    expected_source[ANDROID_BUILD_DRIVER] = driver_change['after']
+    require(current == expected_source and
+            previous.digest(current) == libz['sourceAfter'] == ANDROID_STOCK_LIBZ_SOURCE_SHA256 and
+            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
+                                  'sha256': ANDROID_STOCK_LIBZ_SOURCE_SHA256},
+            'Android stock libz source transition differs')
+
     previous.check_rows(ROOT, installed)
     for name, change in store_fixture['changes'].items():
         require(stat.S_IMODE((ROOT / name).lstat().st_mode) == change['mode'],
@@ -2031,6 +2064,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_android_stock_libz_sha256': binding['android_stock_libz_transition']['sourceBefore'],
             'predecessor_private_f10_sha256': binding['fieldlog_signed_editor_transition']['sourceBefore'],
             'predecessor_native_fingerprint_sha256': binding['private_f10_transition']['sourceBefore'],
             'predecessor_fieldlog_commit_sha256': binding['native_fingerprint_transition']['sourceBefore'],

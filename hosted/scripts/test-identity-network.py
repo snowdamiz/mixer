@@ -3236,7 +3236,15 @@ WORKSPACE_V86_MANIFEST_SHA256 = 'd4da8a286ed82200e9cbc65d4e15f8e172251616e84aebc
 
 WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v87/'
 WORKSPACE_SELECTION_SHA256 = '94ba99aadc2c8e1a7eb90ab0f42da7de67b6fab0a8319a514396cf3d05042e1f'
-WORKSPACE_SOURCE_DIGEST = '2b8753167ad97a3a408cfaa526fbc8bbd3e5f854219077acef7e7c809a717bda'
+WORKSPACE_V87_SOURCE_DIGEST = '2b8753167ad97a3a408cfaa526fbc8bbd3e5f854219077acef7e7c809a717bda'
+WORKSPACE_SOURCE_DIGEST = '6567a06d11425e01ac4e2ada393df0f0eefa418ef270e83e51d09122461bf690'
+WORKSPACE_ANDROID_DRIVER = 'cli/Sources/MixerBuild/Resources/android-build.py'
+WORKSPACE_ANDROID_DRIVER_BEFORE = {
+    'bytes': 87595, 'sha256': '2e162fe2c557d7352050f8d096121570181e5a1952820c09479346ac86fb7236',
+}
+WORKSPACE_ANDROID_DRIVER_AFTER = {
+    'bytes': 87606, 'sha256': '71c7f4d634e68535041721923b743d7c49bbe5090de4494797fa642dddf6dd99',
+}
 WORKSPACE_SOURCE_COUNT = 572
 WORKSPACE_APPLICATION_MANIFEST = WORKSPACE_SOURCE_BASE + 'application-manifest.json'
 WORKSPACE_PHOENIX_DEPENDENCY_PATHS = frozenset((
@@ -3281,7 +3289,7 @@ WORKSPACE_IOS_CUSTODY_PATHS = {
     'hosted/test/mixer_hosted/builds/native_development_dispatch_test.exs',
 }
 WORKSPACE_LINUX_RUNNER_PATHS = {
-    'cli/Sources/MixerBuild/Resources/android-build.py',
+    WORKSPACE_ANDROID_DRIVER,
     'hosted/priv/development/linux_android_artifact_importer.py',
     'hosted/priv/development/linux_android_docker_adapter.py',
     'hosted/priv/development/linux_android_pair25_layout.py',
@@ -4988,7 +4996,7 @@ def validate_workspace_v86_metadata(metadata):
 def validate_workspace_source_metadata(metadata):
     selection, manifest = _validate_workspace_metadata(
         metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
-        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V86_MANIFEST, {
+        WORKSPACE_SOURCE_COUNT, WORKSPACE_V87_SOURCE_DIGEST, WORKSPACE_V86_MANIFEST, {
             'source_count': WORKSPACE_V86_SOURCE_COUNT,
             'source_digest_sha256': WORKSPACE_V86_SOURCE_DIGEST,
             'selection_sha256': WORKSPACE_V86_SELECTION_SHA256,
@@ -5060,6 +5068,14 @@ def workspace_preimage_rows(selection, base=WORKSPACE_SOURCE_BASE):
 def validate_workspace_preimages(preimages, rows):
     require({path: _file_row(data) for path, data in preimages.items()} == rows,
             'workspace source preimages differ')
+
+
+def workspace_installed_manifest(v87_manifest):
+    require(v87_manifest.get(WORKSPACE_ANDROID_DRIVER) == WORKSPACE_ANDROID_DRIVER_BEFORE,
+            'workspace Android stock driver predecessor differs')
+    installed = {**v87_manifest, WORKSPACE_ANDROID_DRIVER: WORKSPACE_ANDROID_DRIVER_AFTER}
+    require(canonical_digest(installed) == WORKSPACE_SOURCE_DIGEST, 'workspace installed source digest')
+    return installed
 
 
 def validate_workspace_source_manifest(manifest):
@@ -5331,6 +5347,7 @@ def check_workspace_source(root):
     validate_workspace_preimages({path: (root / path).read_bytes() for path in rows}, rows)
     observed = {path: _file_row((root / path).read_bytes()) for path in manifest}
     validate_workspace_source_manifest(observed)
+    require(observed == workspace_installed_manifest(manifest), 'workspace source differs from installed v87 successor')
     reviewed = json.loads((root / 'hosted/test/support/reviewed_migrations.json').read_bytes())
     directory = root / 'hosted/priv/repo/migrations'
     require(sorted(path.name for path in directory.iterdir()) == reviewed == selection['reviewed_migrations'],
@@ -5371,7 +5388,9 @@ def check_workspace_source(root):
                 'installed opt-in ' + directory.name + ' migration inventory mismatch')
     return {'identity': selection['identity'], 'source_count': len(observed),
             'source_digest_sha256': WORKSPACE_SOURCE_DIGEST,
-            'selection_sha256': WORKSPACE_SELECTION_SHA256, 'runtime_or_GA_accepted': False}
+            'selection_sha256': WORKSPACE_SELECTION_SHA256,
+            'predecessor_source_digest_sha256': WORKSPACE_V87_SOURCE_DIGEST,
+            'runtime_or_GA_accepted': False}
 
 
 def validate_source_unchanged(before, after):
@@ -6913,7 +6932,8 @@ class Collector:
         metadata.update(v82_preimages)
         exact_product_paths = (WORKSPACE_DELIVERY_STARTUP_PATHS |
                                {WORKSPACE_POST_COMMIT_EXPIRY_TEST} |
-                               WORKSPACE_V86_EXACT_PATHS | WORKSPACE_SOURCE_EXACT_PATHS)
+                               WORKSPACE_V86_EXACT_PATHS | WORKSPACE_SOURCE_EXACT_PATHS |
+                               {WORKSPACE_ANDROID_DRIVER})
         exact_packet_paths = set()
         for base, application_path, validate, predecessor in (
             (WORKSPACE_V83_SOURCE_BASE, WORKSPACE_V83_APPLICATION_MANIFEST,
@@ -6940,7 +6960,7 @@ class Collector:
             metadata.update(preimages)
         workspace_metadata = self.git_blobs([WORKSPACE_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         workspace_selection, workspace_manifest = validate_workspace_source_metadata(workspace_metadata)
-        validate_workspace_source_manifest(workspace_manifest)
+        validate_workspace_source_manifest(workspace_installed_manifest(workspace_manifest))
         application = self.git_blobs([WORKSPACE_APPLICATION_MANIFEST])
         rows, _ = workspace_application_preimages(
             workspace_selection, workspace_manifest, application[WORKSPACE_APPLICATION_MANIFEST],
@@ -6957,7 +6977,9 @@ class Collector:
         metadata.update(workspace_metadata)
         metadata.update(application)
         metadata.update(preimages)
-        self.state["source"].update(current_source_selection_sha256=WORKSPACE_SELECTION_SHA256, current_source_digest_sha256=WORKSPACE_SOURCE_DIGEST)
+        self.state["source"].update(current_source_selection_sha256=WORKSPACE_SELECTION_SHA256,
+                                    current_source_digest_sha256=WORKSPACE_SOURCE_DIGEST,
+                                    predecessor_source_digest_sha256=WORKSPACE_V87_SOURCE_DIGEST)
         self.prerequisites = amendment["prerequisites"]
         self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET, execution_amendment_sha256=EXECUTION_SHA256, execution_amendment_packet_sha256=EXECUTION_PACKET)
         self.state["source"].update(predecessor_product_files=177, predecessor_product_tree_digest_sha256=FROZEN_PRODUCT_DIGEST, fixture_amendment_sha256=FIXTURE_SHA256, fixture_amendment_packet_sha256=FIXTURE_PACKET, fixture_review_packet_sha256=FIXTURE_REVIEW_PACKET, fixture_preformat_source_digest_sha256=FIXTURE_SOURCE_DIGEST, format_amendment_sha256=FORMAT_SHA256, format_amendment_packet_sha256=FORMAT_PACKET)
@@ -7800,7 +7822,9 @@ WORKSPACE_V85_SELECTION, WORKSPACE_V85_MANIFEST = validate_workspace_v85_metadat
     workspace_source_metadata(_source_root, WORKSPACE_V85_SOURCE_BASE))
 WORKSPACE_V86_SELECTION, WORKSPACE_V86_MANIFEST = validate_workspace_v86_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V86_SOURCE_BASE))
-_, WORKSPACE_MANIFEST = validate_workspace_source_metadata(workspace_source_metadata(_source_root, WORKSPACE_SOURCE_BASE))
+_, WORKSPACE_V87_MANIFEST = validate_workspace_source_metadata(
+    workspace_source_metadata(_source_root, WORKSPACE_SOURCE_BASE))
+WORKSPACE_MANIFEST = workspace_installed_manifest(WORKSPACE_V87_MANIFEST)
 
 if __name__ == '__main__':
     try:
