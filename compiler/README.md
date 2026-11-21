@@ -14,28 +14,44 @@ test suite checks the generated file for drift.
 
 ## Read a Swift location from a guest trap
 
-On arm64 macOS, run the compact event diagnostic with the Swift 6.3.3
-release toolchain and Cargo 1.99.0. The command uses a fresh name under
-`verification/local`. Use `--toolchain` and `--cargo` if the tools are
-installed outside the defaults shown by `--help`.
+On arm64 macOS, use the Swift 6.3.3 release toolchain, Rust 1.99.0, and
+Xcode 27.2 (27B52). Check out
+`426ad7980482434f1b0ea4263f15c876e5e9fbfd` in a fresh Mixer worktree.
+The replay checks this fixture revision and independently checks its engine
+inputs against the audited v79 source. Use a new name under
+`verification/local/`. See `--help` if the tools use different paths.
 
 ```sh
-python3 -B compiler/experiments/swift-event-diagnostic/replay.py swift-event-location
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+export PATH="$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain/usr/bin:$PATH"
+revision=$(git rev-parse HEAD)
+name=signed-event-fixture
+proof="$PWD/verification/local/$name"
+python3 -B compiler/experiments/swift-event-diagnostic/replay.py "$name" \
+  --source-revision "$revision"
+
+mkdir -m 700 "$proof/lib"
+cp "$proof/rust/release/libmixer_vm.a" "$proof/lib/libmixer_vm_capability_experimental.a"
+MIXER_SIGNED_SWIFT_DIAGNOSTIC_MODULES="$proof" \
+  swift test --package-path capability-activation \
+  --scratch-path "$proof/swift-build" --cache-path "$proof/swift-cache" \
+  --config-path "$proof/swift-config" --security-path "$proof/swift-security" \
+  --force-resolved-versions --disable-index-store --no-parallel --disable-swift-testing \
+  -Xcc "-I$PWD/vm/include" -Xlinker "-L$proof/lib" \
+  --filter GuestUISignedBranchTests
 ```
 
-The owned VM reports a function index and absolute Wasm offset for the
-fixture's event trap. The probe compares the entire Wasm before reading its
-DWARF line table. For the matching fixture, its resolver and LLVM identify
-`SwiftEventGuest.swift:32:9`. Stripped and mismatched artifacts report the
-same trap coordinates without a Swift location. This is a development
-fixture. Production symbolication and debugger transport remain open.
-[Replay receipt](../verification/receipts/w15-l03-v79-swift-event-diagnostic.json)
-
-The [signed installed replay](../verification/receipts/w15-l03-signed-installed-swift-event-diagnostic.json)
-routes the failing event from an offscreen macOS view. Read the typed failure
-from the terminal diagnostic snapshot. The source location is present for the
-matching signed Wasm with line metadata and absent for a separately signed
-stripped build. Both variants retain the same raw trap coordinates.
+Stop if the first command fails or its receipt reports unresolved custody.
+A successful standalone replay resolves the fixture trap to
+`SwiftEventGuest.swift:32:9`. The signed suite then routes the event from
+the ordinary offscreen macOS presentation. Both signed variants report
+function 3 and absolute Wasm offset 514. Only the variant with matching line
+metadata reports the Swift location. The test uses fixture signing keys.
+This covers one developer diagnostic. Production symbolication and debugger
+transport remain open.
+[Standalone receipt](../verification/receipts/w15-l03-v79-swift-event-diagnostic.json) ·
+[Signed receipt](../verification/receipts/w15-l03-signed-installed-swift-event-diagnostic.json) ·
+[Recipe verification](../verification/receipts/w15-signed-swift-public-recipe.json)
 
 `Fixtures/FieldLogCorpus/main.swift` exercises the actual models imported from an
 immutable revision of the separate FieldLog repository: 1,000 tasks, 50% progress,
