@@ -943,6 +943,13 @@ shutdown and owned scratch removal.
 [v84 source binding](verification/receipts/l07-hosted-source-v84-866c3e80.json) ·
 [Root admission](verification/receipts/l07-hosted-source-v84-root-admission.json)
 
+The exact v84 push passed all 11 jobs across Phoenix, Identity Network,
+and Owned Engine. Both isolated identity methods passed. Intel
+cross-compiled six generated Java consumers with matching DEX bytes.
+Its receipts record terminal custody for 13 bootstrap and 79
+integration commands and removal of both owned scratch roots.
+[Hosted v84 terminal receipt](verification/receipts/hosted-v84-terminal-3c9f6ece.json)
+
 The v83 post-COMMIT assertion failed because its token expired 8 ms
 before the first evidence query. PostgreSQL acknowledged ROLLBACK.
 The corrected test requires a typed COMMIT acknowledgment before the
