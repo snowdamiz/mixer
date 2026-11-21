@@ -1028,14 +1028,16 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
   end
 
   @tag :private_source_map
-  @tag :tmp_dir
   @tag timeout: 90_000
-  test "the local operator retains exact bytes for current owners of a signed publication",
-       %{tmp_dir: dir} = ctx do
+  test "the local operator retains exact bytes for current owners of a signed publication", ctx do
+    {tmp_dir, 0} = System.cmd("realpath", [System.tmp_dir!()])
+    template = Path.join(String.trim_trailing(tmp_dir, "\n"), "mixer-private-source-map.XXXXXXXX")
+    {dir, 0} = System.cmd("mktemp", ["-d", template])
+    dir = String.trim_trailing(dir, "\n")
+    on_exit(fn -> File.rm_rf!(dir) end)
+
     marker = "mixer-disposable-private-source-marker"
     map = " {\"sources\":[\"" <> marker <> "\"]}\n"
-    File.chmod!(dir, 0o700)
-    on_exit(fn -> File.rm_rf!(dir) end)
     input = Path.join(dir, "input")
     output = Path.join(dir, "output")
     File.write!(input, map)

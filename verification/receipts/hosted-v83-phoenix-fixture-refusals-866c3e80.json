@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "scope": "Exact v83 hosted Phoenix terminal failures read from the verified primary artifact.",
+  "revision": "866c3e80a656d66f7abf78db72fed407415f8554",
+  "tree": "adcf3c1f3b35520200f25703413fa71b50bc486a",
+  "run": {
+    "id": 44932358554,
+    "job": 136931539365,
+    "conclusion": "failure",
+    "completedUTC": "2026-11-21T18:01:39Z"
+  },
+  "verifiedArtifact": {
+    "id": 14718760519,
+    "bytes": 2071086,
+    "sha256": "1cea292e7d399f6ad2d3362cb4b04a800e8619be7d9712d153d352f07fa039f3",
+    "member": "_temp/phoenix-foundation/tests.log"
+  },
+  "foundation": {
+    "passed": 1028,
+    "failed": 2,
+    "skipped": 32,
+    "elapsedSeconds": 333.6
+  },
+  "failures": [
+    {
+      "path": "hosted/test/customer_build_read_test.exs",
+      "selectorLine": 818,
+      "test": "post-COMMIT late publication fails closed after definite SQL acknowledgment",
+      "expected": "{:error, :authorization_unavailable}",
+      "observed": "{:error, :not_found}",
+      "scope": "The failing assertion alone cannot establish which phase first rejected the read. The fixture uses a one-second token expiry and the post-COMMIT telemetry callback sleeps for 1100 ms."
+    },
+    {
+      "path": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+      "selectorLine": 1033,
+      "assertionLine": 1203,
+      "test": "the local operator retains exact bytes for current owners of a signed publication",
+      "expected": "retain_until and exit 0",
+      "observed": "output_unavailable and exit 1",
+      "scope": "The same authorized export refused on earlier hosted revisions. The generic error leaves the exact Linux stage unproven."
+    }
+  ],
+  "identityNetwork": {
+    "id": 44932358495,
+    "conclusion": "success",
+    "completedUTC": "2026-11-21T17:56:44Z"
+  }
+}

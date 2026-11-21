@@ -916,10 +916,29 @@ collector tests. The optimized suite passed 320 before its existing
 360-second alarm, and the remaining three passed in a focused run.
 A fresh optimized run then passed all 323 tests in one process within
 the original alarm. Source141 still selects 157 inputs, and all 16 Android
-sparse controls passed in both modes. Exact hosted execution remains pending.
+sparse controls passed in both modes.
 [Source binding](verification/receipts/d6-hosted-source-v83-binding.json) ·
 [Root admission](verification/receipts/d6-hosted-source-v83-root-admission.json) ·
 [Optimized replay](verification/receipts/d6-hosted-source-v83-optimized-rerun.json)
+
+The exact hosted v83 push passed Owned Engine and Identity Network.
+Services passed all 323 collector tests in each Python mode. Phoenix
+passed the delivery startup and health-halt restart regressions. The
+signed source-map export returned the same Linux refusal as v82. A
+separate post-COMMIT read test returned `:not_found` before reaching
+its configured delay. Both failures remain recorded.
+[Hosted terminal receipt](verification/receipts/hosted-v83-terminal-866c3e80.json)
+
+The v84 test fixture creates a private directory under canonical OS
+scratch for the signed owner export. Focused macOS checks verified the
+exact export bytes and cleanup after success and assertion failure.
+The reviewed source packet binds the one changed test and restores v83
+and v82. All three sparse workflows admitted 572 inputs, while
+Source141 and Pair25 preserved their existing input sets. Hosted Linux
+verification remains pending.
+[Fixture verification](verification/receipts/l07-source-map-fixture-os-scratch-857e4b4a.json) ·
+[v84 source binding](verification/receipts/l07-hosted-source-v84-866c3e80.json) ·
+[Root admission](verification/receipts/l07-hosted-source-v84-root-admission.json)
 
 ## November 20 generated release REST client
 

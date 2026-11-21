@@ -372,6 +372,7 @@ HOSTED_V81_PREFIX = 'hosted-v81-predecessor-bytes/'
 HOSTED_V82_PREFIX = 'hosted-v82-predecessor-bytes/'
 ANDROID_SPARSE_TIMEOUT_WORKFLOW = 'android-sparse-timeout-predecessor-bytes/' + VERIFY_WORKFLOW
 HOSTED_V83_PREFIX = 'hosted-v83-predecessor-bytes/'
+HOSTED_V84_PREFIX = 'hosted-v84-predecessor-bytes/'
 ANDROID_INSPECTION_DEADLINE_PREFIX = 'android-inspection-deadline-predecessor-bytes/'
 ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE = ANDROID_INSPECTION_DEADLINE_PREFIX + SOURCE_INPUTS_MANIFEST
 ANDROID_INSPECTION_DEADLINE_SOURCE_SHA256 = '2a9d99e0dea712c70d7be383958e67cd040577565c847861b89c0fc598ba4fcd'
@@ -499,6 +500,7 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
 } | {
     ANDROID_SPARSE_TIMEOUT_WORKFLOW,
     *(HOSTED_V83_PREFIX + name for name in HOSTED_V74_CHANGES),
+    *(HOSTED_V84_PREFIX + name for name in HOSTED_V74_CHANGES),
     ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE,
     *(ANDROID_INSPECTION_DEADLINE_PREFIX + name for name in ANDROID_INSPECTION_DEADLINE_CHANGES),
 } | {
@@ -662,7 +664,8 @@ def install_inputs():
                              'hosted_v71_transition', 'hosted_v72_transition', 'hosted_v73_transition',
                              'hosted_v74_transition', 'hosted_v76_transition', 'hosted_v77_transition',
                              'hosted_v78_transition', 'hosted_v79_transition', 'hosted_v80_transition', 'hosted_v81_transition',
-                             'hosted_v82_transition', 'android_sparse_timeout_workflow', 'hosted_v83_transition',
+                             'hosted_v82_transition', 'android_sparse_timeout_workflow',
+                             'hosted_v83_transition', 'hosted_v84_transition',
                              'android_inspection_deadline_transition', 'receipt_directory_transition',
                              'receipt_parent_url_test_transition', 'swiftpm_migration_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
@@ -1640,19 +1643,20 @@ def install_inputs():
             'Android sparse timeout workflow predecessor bytes or owner mode differ')
     installed[VERIFY_WORKFLOW] = sparse_timeout['after']
 
-    v83 = binding['hosted_v83_transition']
-    require(set(v83) == {'changes'} and set(v83['changes']) == HOSTED_V74_CHANGES and
-            current.keys().isdisjoint(HOSTED_V74_CHANGES) and HOSTED_V74_CHANGES <= installed.keys(),
-            'Hosted v83 archive change roster differs')
-    for name, change in v83['changes'].items():
-        path = HERE / HOSTED_V83_PREFIX / name
-        raw = read_predecessor_member(path)
-        require(set(change) == {'before', 'after', 'mode'} and change['before'] != change['after'] and
-                change['before'] == previous.row(raw) == installed[name] and
-                change['mode'] == stat.S_IMODE(path.lstat().st_mode) ==
-                stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
-                'Hosted v83 predecessor chain bytes or mode differ: ' + name)
-        installed[name] = change['after']
+    for version, prefix in ((83, HOSTED_V83_PREFIX), (84, HOSTED_V84_PREFIX)):
+        transition = binding[f'hosted_v{version}_transition']
+        require(set(transition) == {'changes'} and set(transition['changes']) == HOSTED_V74_CHANGES and
+                current.keys().isdisjoint(HOSTED_V74_CHANGES) and HOSTED_V74_CHANGES <= installed.keys(),
+                f'Hosted v{version} archive change roster differs')
+        for name, change in transition['changes'].items():
+            path = HERE / prefix / name
+            raw = read_predecessor_member(path)
+            require(set(change) == {'before', 'after', 'mode'} and change['before'] != change['after'] and
+                    change['before'] == previous.row(raw) == installed[name] and
+                    change['mode'] == stat.S_IMODE(path.lstat().st_mode) ==
+                    stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                    f'Hosted v{version} predecessor chain bytes or mode differ: ' + name)
+            installed[name] = change['after']
 
     inspection = binding['android_inspection_deadline_transition']
     require(set(inspection) == {'sourceBefore', 'sourceAfter', 'changes'} and

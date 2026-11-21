@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "status": "focused macOS pass",
+  "observedOn": "2026-11-21",
+  "scope": "One test fixture hunk. Allocate a private directory with mktemp beneath the realpath of System.tmp_dir! and register ExUnit on_exit cleanup before writing fixture data.",
+  "inputs": {
+    "publicRevision": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+    "publicTree": "faf0902a82ffc7acb2ddde9c6dca24002f959c3d",
+    "hostedTree": "d1a5102765ed15e084945608b1d80bb99c6da9d4",
+    "protocolTestdataTree": "1a8717b190ebc87d62510f3689319f6caf3ae83c",
+    "projectionCommand": "git archive 857e4b4aa7a32cda368257b2be1a63e77106bed8 hosted services/protocol/testdata",
+    "projectionSHA256": "403b6db54b646d94b6f25d10001f268fc7485a4355e846379e48c8c8ba631cbd",
+    "fixturePath": "hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "baseFixtureBlob": "042e11b05ee1942b7957618a958a3b153de5cfb9",
+    "baseFixtureSHA256": "242e3984e3bce2133f50cec707edf22312bb81d4a9463f0e92976c3118932f9b",
+    "patchedFixtureSHA256": "668cd52f3efe3899703d13fee4baadd38165174e17e04597bb13828e07405f54",
+    "mixLockSHA256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+    "patchPath": "verification/receipts/l07-source-map-fixture-os-scratch-857e4b4a.patch",
+    "patchSHA256": "391fc5b2a53da777faa17d1f730ed17554b10936ce0c47b6e7ef42b24291c8b3"
+  },
+  "antecedents": {
+    "failedLinuxRevision": "dbb9275d58e1a2824c35870767551d2d9c8588bb",
+    "failedLinuxReceipt": "verification/receipts/hosted-v82-followup-phoenix-dbb9275d.json",
+    "historicalMacReceipt": "verification/receipts/l07-local-private-source-map-transfer-custody.json",
+    "observation": "The pinned public fixture blob matches the dbb9275d fixture. Its first authorized export failed on hosted Linux with output_unavailable. The earlier macOS run passed after moving to an ACL-free checkout. Both antecedent receipts are preserved."
+  },
+  "environment": {
+    "host": "macOS 27.0.1 (26A434), arm64",
+    "mix": "1.20.4, OTP 29, ERTS 17.1",
+    "postgres": "Homebrew PostgreSQL 17.11 at /opt/homebrew/Cellar/postgresql@17/17.11/bin",
+    "environment": {"MIX_ENV": "test", "HEX_OFFLINE": "1", "ERL_FLAGS": "+S 4:4"},
+    "checkoutAncestorMode": "0775 (nonsticky)",
+    "postgresAuthentication": {
+      "scramVerifiersAndWrongPasswordRejectionObservedFor": ["mixer_fixture", "http_artifact_fixture_admin", "http_artifact_runtime"],
+      "trustLimitedToFixtureDatabaseOnLoopbackFor": ["http_release_writer", "mixer_release_delivery"],
+      "reason": "The unchanged focused fixture creates these two roles without passwords and uses the disposable workflow's trust authentication for them."
+    }
+  },
+  "checks": {
+    "commandsWithExitZero": [
+      "git apply --check <patch>",
+      "git apply <patch>",
+      "mix deps.get --check-locked",
+      "mix format --check-formatted test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+      "mix compile --warnings-as-errors",
+      "MIXER_ARTIFACT_HTTP_TEST_PORT=<owned-port> mix test --warnings-as-errors test/mixer_hosted_web/customer_artifact_http_integration_test.exs --only private_source_map --seed 0 --trace"
+    ],
+    "exunit": {
+      "test": "the local operator retains exact bytes for current owners of a signed publication",
+      "result": "1 passed, 12 excluded",
+      "elapsedSeconds": 36.03,
+      "stdoutSHA256": "3d93372fcab39c95e444dc26875328e93f60c770234701a7467385b06f18d2ca",
+      "tlsPeerClosures": 20,
+      "activeTlsPeersAfterTest": 0
+    },
+    "observedExport": {
+      "fixtureDirectoriesObserved": 1,
+      "canonicalUnderOsScratch": true,
+      "directoryMode": "0700",
+      "outputMode": "0600",
+      "directoryAndOutputOwnedByRunner": true,
+      "outputBytes": 56,
+      "outputMatchesInput": true,
+      "outputSHA256": "a476353559935a8b565445f9156faedbe9e605619b06f3e4fd68cae7f8439911",
+      "markerAndHexAbsentFromExUnitAndPostgresLogs": true,
+      "directoryAbsentAfterExUnit": true
+    },
+    "failureCleanupControl": {
+      "method": "Use the exact allocation and on_exit lines from the applied hunk in a separate ExUnit test, write a sentinel in the allocated directory, then deliberately fail an assertion.",
+      "expectedExitObserved": 2,
+      "stdoutSHA256": "27bbcefa8ca682798b44974a176f4bc27684370d736e4c92b3e5eeee1bb4de82",
+      "allocatedDirectoryRemoved": true,
+      "siblingDirectoryPreserved": true
+    }
+  },
+  "cleanup": {
+    "postgresExit": 0,
+    "postgresProcessGroupAbsent": true,
+    "postgresPortReusable": true,
+    "ownedScratchRemoved": true,
+    "elapsedSeconds": 62.06,
+    "setupCorrections": 0
+  },
+  "limits": [
+    "Hosted Linux and the full hosted suite remain pending for root's composed workflow. The cause of the historical Linux refusal remains undetermined.",
+    "Failure cleanup exercises a normal ExUnit assertion failure. Forced VM or host loss was outside the campaign.",
+    "Root owns v83 composition and delivery. The patch changes only the focused fixture and leaves publication authority, ACL refusal, and existing assertions intact."
+  ]
+}
