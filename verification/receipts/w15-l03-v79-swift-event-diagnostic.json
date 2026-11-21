@@ -1,0 +1,616 @@
+{
+  "attempt1": {
+    "failure": {
+      "error": "alternate executable sections differ",
+      "stage": "compact Wasm build and identity"
+    },
+    "onlyDifferingStandardSection": {
+      "alternateSHA256": "df375af0a6869a9807fc1cc34b4ab6961033ebddd844f7c399f66e19c913b341",
+      "id": 11,
+      "matchedSHA256": "10bbfc340e3f8613c495a33eaba1b1f1da16c9bb59e91a209f332bfd84100f17",
+      "name": "data"
+    },
+    "terminalSuccessfulCommands": 19,
+    "vmExecution": false,
+    "wasm": {
+      "alternate": {
+        "bytes": 2741,
+        "sha256": "aa393b6fbd5f8b656c6eb96bcefd22df441a9a73d1d36bbde04246ac1cc2e648"
+      },
+      "matched": {
+        "bytes": 2741,
+        "sha256": "335c46806394e67de48f46d57fb4e9a9dbf9c689640ef272453d8368acd7d49b"
+      },
+      "stripped": {
+        "bytes": 1267,
+        "sha256": "ff20d73a45e81081442ad79799a0e3a3cfdee5d5b364f68bd75c82945dd5fc07"
+      }
+    }
+  },
+  "attempt2": {
+    "commands": {
+      "alternate-line-table": {
+        "argv": [
+          "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-objcopy",
+          "--wildcard",
+          "--remove-section=.debug_*",
+          "--keep-section=.debug_line",
+          "--remove-section=name",
+          "--remove-section=producers",
+          "$SCRATCH/alternate-linked.wasm",
+          "$SCRATCH/alternate.wasm"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "toolSHA256": "455a3c8f48f2c08621b3f7c31f241551c94493267257bbb9db5372132e6a4318"
+      },
+      "alternate-link": {
+        "argv": [
+          "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+          "--no-entry",
+          "--gc-sections",
+          "-z",
+          "stack-size=16384",
+          "--max-memory=65536",
+          "--export=mixer_guest_ui_start_v1",
+          "--export=mixer_guest_ui_event_v1",
+          "--export=mixer_guest_capability_ready_v1",
+          "$SCRATCH/alternate.o",
+          "-o",
+          "$SCRATCH/alternate-linked.wasm"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "toolSHA256": "9015cfad802c83aef7e24c1415ae4485f4ff5926837148f91ffa8a4b0dabbd97"
+      },
+      "alternate-swift": {
+        "argv": [
+          "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+          "-target",
+          "wasm32-unknown-none-wasm",
+          "-enable-experimental-feature",
+          "Embedded",
+          "-whole-module-optimization",
+          "-Osize",
+          "-parse-as-library",
+          "-gline-tables-only",
+          "-debug-prefix-map",
+          "$CHECKOUT=.",
+          "-debug-prefix-map",
+          "$USER_HOME=/toolchain",
+          "-Xfrontend",
+          "-disable-stack-protector",
+          "-D",
+          "ALTERNATE_LINE",
+          "-emit-object",
+          "$CHECKOUT/compiler/experiments/swift-event-diagnostic/SwiftEventGuest.swift",
+          "-o",
+          "$SCRATCH/alternate.o"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "toolSHA256": "3d13e20b1504d7d30038fcd2201b9d0a8ead5c09eea752a5da223453b3ae0c6f"
+      },
+      "cargo": {
+        "argv": [
+          "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "--version"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566",
+        "toolSHA256": "fc7aa5077deca8abc0651f329e8ec1d968f520e996a93b428f9935014362b382"
+      },
+      "disassembly": {
+        "argv": [
+          "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-objdump",
+          "-d",
+          "$SCRATCH/matched.wasm"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "6b095fc75dba73a5e5c2a6a105ce390b6b669b4332c478d6992622b0e63a7e5b",
+        "toolSHA256": "47ceb4e3477a2dd569ca032dd9f5c3af05ccc01e7ac302de2727b362ba49c94f"
+      },
+      "guest-swift": {
+        "argv": [
+          "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+          "--version"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "f7c8e3e54412f67bf6632e8c6744533677d8d65acd8ce3004b0f3b9806e8aa48",
+        "toolSHA256": "3d13e20b1504d7d30038fcd2201b9d0a8ead5c09eea752a5da223453b3ae0c6f"
+      },
+      "host": {
+        "argv": [
+          "/usr/bin/sw_vers"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "4ef10a0fc370704ea84699cf3851e51488598c5f1ab35cb572eb6b96278a8e5c",
+        "toolSHA256": "b822969762f22f30bfdd9139e5188949ddbc75b5f0c8e58788d7bb88b3c11e25"
+      },
+      "host-swift": {
+        "argv": [
+          "/usr/bin/swiftc",
+          "--version"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "bbc8b176d3c74d4c5a7fd00b40280f98168e116d5272273bfe8e71407625540e",
+        "stdoutSHA256": "4b59da256292ae42e3f04ef6d06ea3e139678613a3cd3d0dc37a6757c0bd290a",
+        "toolSHA256": "34129c71a01a74f7f3b2443521519b2e5447553fa187f5fcafaaf8c42cc192e2"
+      },
+      "line-table": {
+        "argv": [
+          "/usr/bin/dwarfdump",
+          "--debug-line",
+          "$SCRATCH/matched.wasm"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "b3e64ab030bfbbb68c1b4b2e27ab5cb52a622f2847be1316deb3374faf0b49bc",
+        "toolSHA256": "34129c71a01a74f7f3b2443521519b2e5447553fa187f5fcafaaf8c42cc192e2"
+      },
+      "llvm-dwarfdump": {
+        "argv": [
+          "/usr/bin/dwarfdump",
+          "--version"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "98a8cb159fc66404cabfafb722a0db184379451d8a161cb5ff2a3e342114c67d",
+        "toolSHA256": "34129c71a01a74f7f3b2443521519b2e5447553fa187f5fcafaaf8c42cc192e2"
+      },
+      "llvm-objcopy": {
+        "argv": [
+          "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-objcopy",
+          "--version"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "a18e7e502b697e2368faad969c374f13f294dedf56972cf12889cc34f417cceb",
+        "toolSHA256": "455a3c8f48f2c08621b3f7c31f241551c94493267257bbb9db5372132e6a4318"
+      },
+      "llvm-objdump": {
+        "argv": [
+          "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-objdump",
+          "--version"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "28a5e815e079478654cae3c64d9ade18acbf6b898e297be11683a8f6480dc7d1",
+        "toolSHA256": "47ceb4e3477a2dd569ca032dd9f5c3af05ccc01e7ac302de2727b362ba49c94f"
+      },
+      "matched-line-table": {
+        "argv": [
+          "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-objcopy",
+          "--wildcard",
+          "--remove-section=.debug_*",
+          "--keep-section=.debug_line",
+          "--remove-section=name",
+          "--remove-section=producers",
+          "$SCRATCH/matched-linked.wasm",
+          "$SCRATCH/matched.wasm"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "toolSHA256": "455a3c8f48f2c08621b3f7c31f241551c94493267257bbb9db5372132e6a4318"
+      },
+      "matched-link": {
+        "argv": [
+          "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+          "--no-entry",
+          "--gc-sections",
+          "-z",
+          "stack-size=16384",
+          "--max-memory=65536",
+          "--export=mixer_guest_ui_start_v1",
+          "--export=mixer_guest_ui_event_v1",
+          "--export=mixer_guest_capability_ready_v1",
+          "$SCRATCH/matched.o",
+          "-o",
+          "$SCRATCH/matched-linked.wasm"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "toolSHA256": "9015cfad802c83aef7e24c1415ae4485f4ff5926837148f91ffa8a4b0dabbd97"
+      },
+      "matched-swift": {
+        "argv": [
+          "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+          "-target",
+          "wasm32-unknown-none-wasm",
+          "-enable-experimental-feature",
+          "Embedded",
+          "-whole-module-optimization",
+          "-Osize",
+          "-parse-as-library",
+          "-gline-tables-only",
+          "-debug-prefix-map",
+          "$CHECKOUT=.",
+          "-debug-prefix-map",
+          "$USER_HOME=/toolchain",
+          "-Xfrontend",
+          "-disable-stack-protector",
+          "-emit-object",
+          "$CHECKOUT/compiler/experiments/swift-event-diagnostic/SwiftEventGuest.swift",
+          "-o",
+          "$SCRATCH/matched.o"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "toolSHA256": "3d13e20b1504d7d30038fcd2201b9d0a8ead5c09eea752a5da223453b3ae0c6f"
+      },
+      "ownership-and-events": {
+        "argv": [
+          "$SCRATCH/probe",
+          "$SCRATCH/matched.wasm",
+          "$SCRATCH/stripped.wasm",
+          "$SCRATCH/alternate.wasm",
+          "$SCRATCH/wrong-table.wasm"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "515afe4ccfb3eaa3d50d001a6eb521a786b2ff25c5c7f3c3c2cb9f5a43568525",
+        "toolSHA256": "432749a9443f59fc4d039dd90aee9ccc5a65859d78c8b5a521f9e5ef7275509d"
+      },
+      "pin-after": {
+        "argv": [
+          "/usr/bin/git",
+          "diff",
+          "--quiet",
+          "34a165c8783e9868c7c1eb655a88f472445ca190",
+          "--",
+          "vm/Cargo.toml",
+          "vm/Cargo.lock",
+          "vm/src",
+          "vm/include",
+          "compiler/qualification_support.py",
+          "compiler/experiments/fieldlog-installed-guest",
+          "compiler/experiments/fieldlog-reactor/support.py",
+          "compiler/experiments/profile-budget/analyze.py",
+          "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "toolSHA256": "34129c71a01a74f7f3b2443521519b2e5447553fa187f5fcafaaf8c42cc192e2"
+      },
+      "pin-before": {
+        "argv": [
+          "/usr/bin/git",
+          "diff",
+          "--quiet",
+          "34a165c8783e9868c7c1eb655a88f472445ca190",
+          "--",
+          "vm/Cargo.toml",
+          "vm/Cargo.lock",
+          "vm/src",
+          "vm/include",
+          "compiler/qualification_support.py",
+          "compiler/experiments/fieldlog-installed-guest",
+          "compiler/experiments/fieldlog-reactor/support.py",
+          "compiler/experiments/profile-budget/analyze.py",
+          "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "toolSHA256": "34129c71a01a74f7f3b2443521519b2e5447553fa187f5fcafaaf8c42cc192e2"
+      },
+      "probe-build": {
+        "argv": [
+          "/usr/bin/swiftc",
+          "-swift-version",
+          "6",
+          "-O",
+          "-whole-module-optimization",
+          "-parse-as-library",
+          "-module-cache-path",
+          "$SCRATCH/swift-modules",
+          "-I",
+          "$SCRATCH",
+          "$CHECKOUT/compiler/experiments/swift-event-diagnostic/OwnedEventProbe.swift",
+          "$CHECKOUT/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift",
+          "$CHECKOUT/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift",
+          "$CHECKOUT/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift",
+          "$SCRATCH/rust/release/libmixer_vm.a",
+          "-o",
+          "$SCRATCH/probe"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "toolSHA256": "34129c71a01a74f7f3b2443521519b2e5447553fa187f5fcafaaf8c42cc192e2"
+      },
+      "revision": {
+        "argv": [
+          "/usr/bin/git",
+          "rev-parse",
+          "HEAD"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "dcc778d2146fd1fd060996d9b82a7e31fe03bc42240f0e919008533b66169911",
+        "toolSHA256": "34129c71a01a74f7f3b2443521519b2e5447553fa187f5fcafaaf8c42cc192e2"
+      },
+      "rustc": {
+        "argv": [
+          "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+          "--version"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "8dc912acd5bfeafc70b01b1d2a2afb0844afa02f5dba2f1ae8d5c212d005afb6",
+        "toolSHA256": "dd6f58440b3418aa9157ae3f05d71eecff741ca41bc4eec120e7e8f2d933b9a0"
+      },
+      "strip": {
+        "argv": [
+          "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-objcopy",
+          "--remove-section=.debug_line",
+          "$SCRATCH/matched.wasm",
+          "$SCRATCH/stripped.wasm"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "toolSHA256": "455a3c8f48f2c08621b3f7c31f241551c94493267257bbb9db5372132e6a4318"
+      },
+      "tree": {
+        "argv": [
+          "/usr/bin/git",
+          "rev-parse",
+          "HEAD^{tree}"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "80c74f6ef815b4f37a6c99121ca607cced1ef42ffba22647aca03624f1703882",
+        "toolSHA256": "34129c71a01a74f7f3b2443521519b2e5447553fa187f5fcafaaf8c42cc192e2"
+      },
+      "untracked-after": {
+        "argv": [
+          "/usr/bin/git",
+          "ls-files",
+          "--others",
+          "--",
+          "vm/Cargo.toml",
+          "vm/Cargo.lock",
+          "vm/src",
+          "vm/include",
+          "compiler/qualification_support.py",
+          "compiler/experiments/fieldlog-installed-guest",
+          "compiler/experiments/fieldlog-reactor/support.py",
+          "compiler/experiments/profile-budget/analyze.py",
+          "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "toolSHA256": "34129c71a01a74f7f3b2443521519b2e5447553fa187f5fcafaaf8c42cc192e2"
+      },
+      "untracked-before": {
+        "argv": [
+          "/usr/bin/git",
+          "ls-files",
+          "--others",
+          "--",
+          "vm/Cargo.toml",
+          "vm/Cargo.lock",
+          "vm/src",
+          "vm/include",
+          "compiler/qualification_support.py",
+          "compiler/experiments/fieldlog-installed-guest",
+          "compiler/experiments/fieldlog-reactor/support.py",
+          "compiler/experiments/profile-budget/analyze.py",
+          "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "toolSHA256": "34129c71a01a74f7f3b2443521519b2e5447553fa187f5fcafaaf8c42cc192e2"
+      },
+      "vm-build": {
+        "argv": [
+          "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "build",
+          "--offline",
+          "--locked",
+          "--release",
+          "--lib",
+          "--features",
+          "experimental-capability-native",
+          "--manifest-path",
+          "$CHECKOUT/vm/Cargo.toml",
+          "--target-dir",
+          "$SCRATCH/rust"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "8e2970497ef1f847ac00796b09dd77ee0a1966930eb1bc619a74b14c110f81bf",
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "toolSHA256": "fc7aa5077deca8abc0651f329e8ec1d968f520e996a93b428f9935014362b382"
+      },
+      "wasm-ld": {
+        "argv": [
+          "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+          "--version"
+        ],
+        "custody": "TERMINAL",
+        "exit": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutSHA256": "a8f48fbaeac52309a1e49d809387ff429ebd5800894c3b536ef50f8d16bef9ef",
+        "toolSHA256": "9015cfad802c83aef7e24c1415ae4485f4ff5926837148f91ffa8a4b0dabbd97"
+      }
+    },
+    "diagnostic": {
+      "absoluteWasmOffset": 514,
+      "codeRelativeOffset": 313,
+      "column": 9,
+      "file": "compiler/experiments/swift-event-diagnostic/SwiftEventGuest.swift",
+      "functionIndex": 3,
+      "instruction": "unreachable",
+      "line": 32
+    },
+    "hostProbe": {
+      "bytes": 1982296,
+      "sha256": "432749a9443f59fc4d039dd90aee9ccc5a65859d78c8b5a521f9e5ef7275509d"
+    },
+    "lineTableSHA256": {
+      "alternate": "36ac0097db31e36f605fa13c1c634ba8de32d45321d93a75c96bef4a8c35ad94",
+      "matched": "50ed534dc880baec87755c0cdfdc32d1307949b59baf4d3e0a6f2200ff1c8501",
+      "wrongTable": "36ac0097db31e36f605fa13c1c634ba8de32d45321d93a75c96bef4a8c35ad94"
+    },
+    "sameExecutableSectionsAsMatched": [
+      "stripped",
+      "wrongTable"
+    ],
+    "sameNativeObservationInAllFourSessions": {
+      "absoluteOffset": 514,
+      "closedHandleStatus": 3,
+      "code": "unreachable",
+      "eventResults": [
+        0,
+        1
+      ],
+      "fuelUsed": 4517,
+      "functionIndex": 3,
+      "initialDocument": {
+        "revision": 1,
+        "root": {
+          "actions": [
+            {
+              "event": "activate",
+              "id": "validate"
+            }
+          ],
+          "children": [],
+          "id": "button",
+          "kind": "button",
+          "properties": {
+            "label": "Validate"
+          }
+        },
+        "schemaVersion": 1
+      },
+      "nativeStatus": 2
+    },
+    "sourceControls": {
+      "alternate": {
+        "metadataIdentityMatched": true,
+        "source": {
+          "column": 9,
+          "file": "SwiftEventGuest.swift",
+          "line": 30
+        }
+      },
+      "matched": {
+        "metadataIdentityMatched": true,
+        "source": {
+          "column": 9,
+          "file": "SwiftEventGuest.swift",
+          "line": 32
+        }
+      },
+      "stripped": {
+        "metadataIdentityMatched": true,
+        "source": null
+      },
+      "wrongTable": {
+        "metadataIdentityMatched": false,
+        "source": null
+      }
+    },
+    "sourceVerification": "The pinned Swift resolver consumed the native report for the exact executed module. LLVM confirmed the unreachable instruction at the absolute offset and the compile-root-relative DWARF row at the code-relative offset.",
+    "vmArchive": {
+      "bytes": 19309144,
+      "sha256": "0beb9fbab5f2d1f718482391a43ecb57a3e76f6e3e0d31a0676b87b7a1852116"
+    },
+    "wasm": {
+      "alternate": {
+        "bytes": 2741,
+        "sha256": "4ee83239f440115fdbb564a8ed0f5fbd5883dfdc525497f34c3c30a0a407fd4c"
+      },
+      "matched": {
+        "bytes": 2741,
+        "sha256": "b9ed6e0647278199e6c61db5271abc313ddd646c3c393e3729a4d9143bbc795a"
+      },
+      "stripped": {
+        "bytes": 1267,
+        "sha256": "486f4ef85e530170b7d051900872630f8cd1ef4092f51aa6a696b1e3b4867d6d"
+      },
+      "wrongTable": {
+        "bytes": 2741,
+        "sha256": "98104d496c88a819264803c2c1d4987cd2799be61c1e8b2a3c1d5a5ced279a25"
+      }
+    },
+    "wrongTableConstruction": "Original executable Wasm plus only the separately compiled alternate .debug_line. Its donor resolves the same VM coordinate to line 30 when paired with its own execution."
+  },
+  "baseRevision": "34a165c8783e9868c7c1eb655a88f472445ca190",
+  "baseTree": "e93521711902a4eda1145b0e59701e76dd95d252",
+  "cleanup": {
+    "removedScratchDirectories": [
+      "verification/local/v79-swift-event-01",
+      "verification/local/v79-swift-event-02"
+    ],
+    "staleHandleRejectedAfterClose": 4,
+    "terminalRecordedCommands": 46
+  },
+  "diagnosticInputs": {
+    "compiler/experiments/swift-event-diagnostic/OwnedEventProbe.swift": "16aa66801fac3c2f5c707652fc9b9e7dccf782f30fd91a60285fd119f024ca42",
+    "compiler/experiments/swift-event-diagnostic/SwiftEventGuest.swift": "4da587daad025d9bfd79c8dc3f242f0502e2fbb554e1733feb7828cf34f8c458",
+    "compiler/experiments/swift-event-diagnostic/replay.py": "29a9c9ba474a7e7cb566df6e60bb24eafe4b26414c2952c15fe57f7ed6fa9307"
+  },
+  "replay": [
+    "python3",
+    "-B",
+    "compiler/experiments/swift-event-diagnostic/replay.py",
+    "v79-new-run"
+  ],
+  "replayEnvironment": "Fresh output under verification/local. Locked offline Cargo, local Embedded Swift and Apple Swift, one 64 KiB guest page, zero host calls, and existing capability limits.",
+  "scope": "W15/L03 local macOS host diagnostic on one self-authored compact Swift UI v1 fixture",
+  "status": "passed",
+  "versions": {
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "guest-swift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "host": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "host-swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "llvm-dwarfdump": "Apple LLVM version 21.0.0\n  Optimized build.",
+    "llvm-objcopy": "llvm-objcopy, compatible with GNU objcopy\nLLVM (http://llvm.org/):\n  LLVM version 21.0.0\n  Optimized build.",
+    "llvm-objdump": "LLVM (http://llvm.org/):\n  LLVM version 21.0.0\n  Optimized build.\n\n\n  Registered Targets:\n    aarch64    - AArch64 (little endian)\n    aarch64_32 - AArch64 (little endian ILP32)\n    aarch64_be - AArch64 (big endian)\n    arm        - ARM\n    arm64      - ARM64 (little endian)\n    arm64_32   - ARM64 (little endian ILP32)\n    armeb      - ARM (big endian)\n    avr        - Atmel AVR Microcontroller\n    bpf        - BPF (host endian)\n    bpfeb      - BPF (big endian)\n    bpfel      - BPF (little endian)\n    mips       - MIPS (32-bit big endian)\n    mips64     - MIPS (64-bit big endian)\n    mips64el   - MIPS (64-bit little endian)\n    mipsel     - MIPS (32-bit little endian)\n    ppc32      - PowerPC 32\n    ppc32le    - PowerPC 32 LE\n    ppc64      - PowerPC 64\n    ppc64le    - PowerPC 64 LE\n    riscv32    - 32-bit RISC-V\n    riscv64    - 64-bit RISC-V\n    systemz    - SystemZ\n    thumb      - Thumb\n    thumbeb    - Thumb (big endian)\n    wasm32     - WebAssembly 32-bit\n    wasm64     - WebAssembly 64-bit\n    x86        - 32-bit X86: Pentium-Pro and above\n    x86-64     - 64-bit X86: EM64T and AMD64",
+    "python": "3.14.8",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "wasm-ld": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)"
+  }
+}
