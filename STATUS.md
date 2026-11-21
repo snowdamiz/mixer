@@ -225,6 +225,15 @@ regressions passed. Intel passed six Java cross-compiles. The opt-in
 allocator replay retains its separate local runtime receipt.
 [Closure and restore terminal CI receipt](verification/receipts/hosted-closure-and-restore-ci-terminal-abfefec8.json)
 
+The published FieldLog build checkpoint `5fd075d6df` passed all nine
+Owned Engine jobs. Source141 matched the 157-input digest. Swift passed
+ordinary signed V1, W09, and Commit, and Intel passed six Java
+cross-compiles with all 100 reviewed command groups closed. Independent
+review verified the ten archive digests. Phoenix and Identity did not
+trigger. The local allocator and FieldLog runtime evidence retain their
+separate scope.
+[Matched-build terminal CI receipt](verification/receipts/hosted-fieldlog-allocator-ci-terminal-5fd075d6.json)
+
 The six-action private V3 candidate `790d0b2253` delivered Open, Next,
 Tasks, reopen, Previous, and Entries through the signed guest. Its two
 pages displayed 26 real pending records from three scoped reads. The
