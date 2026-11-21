@@ -37,9 +37,7 @@ defmodule MixerHosted.CustomerBuilds.LocalAttestation do
         installation,
         endpoint
       ) do
-    unless endpoint_matches?(endpoint, provision.port) and
-             Application.fetch_env(:mixer_hosted, AttestationRepo) == :error and
-             Application.fetch_env(:mixer_hosted, :native_development_attestation) == :error do
+    unless endpoint_matches?(endpoint, provision.port) and no_conflicting_settings?() do
       raise ArgumentError, "conflicting local native attestation configuration"
     end
 
@@ -64,6 +62,7 @@ defmodule MixerHosted.CustomerBuilds.LocalAttestation do
 
         if Process.whereis(AttestationRepo) &&
              endpoint_matches?(endpoint, port) &&
+             no_conflicting_settings?() &&
              match?({:ok, {{127, 0, 0, 1}, ^port}}, Endpoint.server_info(:http)) do
           {:ok, Map.take(provision, [:origin, :public_spki_der])}
         else
@@ -122,6 +121,11 @@ defmodule MixerHosted.CustomerBuilds.LocalAttestation do
   end
 
   defp decode_spki!(_), do: invalid!(@public_key)
+
+  defp no_conflicting_settings? do
+    Application.fetch_env(:mixer_hosted, AttestationRepo) == :error and
+      Application.fetch_env(:mixer_hosted, :native_development_attestation) == :error
+  end
 
   defp endpoint_matches?(endpoint, port),
     do:

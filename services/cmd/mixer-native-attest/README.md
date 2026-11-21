@@ -90,12 +90,40 @@ run `mix test test/mixer_hosted/builds/native_attestation_attachment_test.exs`.
 ### Configure the local Phoenix attachment writer
 
 Apply the opt-in migration in `hosted/priv/local_native_attestation` as the
-non-login relation owner. Use a dedicated `mixer_native_attestation_writer`
-login without role memberships or direct access to the protected tables.
-Grant `USAGE` on the `public` schema and grant the writer execution on the
-attachment function as the function owner.
+non-login relation owner. Create the `mixer_native_attestation_writer` login with
+`NOINHERIT`, `NOSUPERUSER`, and `NOBYPASSRLS`. Grant the writer access to the
+authorization tables and lock functions below. Keep row-level security enabled
+and give the writer no role memberships or direct access to build or
+attestation tables. Apply the grants as the respective object owners without
+grant option.
 
 ```sql
+GRANT USAGE ON SCHEMA public TO mixer_native_attestation_writer;
+
+GRANT SELECT ON
+    public.mixer_authz_profiles,
+    public.mixer_authz_principals,
+    public.mixer_authz_bindings,
+    public.mixer_authz_families,
+    public.mixer_authz_credentials,
+    public.mixer_authz_organizations,
+    public.mixer_authz_projects,
+    public.mixer_authz_applications,
+    public.mixer_authz_environments,
+    public.mixer_authz_organization_heads,
+    public.mixer_authz_project_heads,
+    public.mixer_authz_memberships
+TO mixer_native_attestation_writer;
+
+GRANT EXECUTE ON FUNCTION
+    public.mixer_authz_lock_profiles(),
+    public.mixer_authz_lock_principals(),
+    public.mixer_authz_lock_families(),
+    public.mixer_authz_lock_credentials(),
+    public.mixer_authz_lock_organization_heads(),
+    public.mixer_authz_lock_project_heads()
+TO mixer_native_attestation_writer;
+
 GRANT EXECUTE ON FUNCTION public.mixer_native_development_attestation_v1(
     text, text, text, text, jsonb, text, text, text, text, bytea
 ) TO mixer_native_attestation_writer;
