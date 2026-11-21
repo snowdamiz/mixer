@@ -42,6 +42,21 @@ The 483-path v68 selection restores exact v67 and v66 bytes and modes.
 
 All three GitHub workflows passed on the exact v68 repair. [Hosted CI](verification/receipts/hosted-v68-main-ci-ed6ea631.json)
 
+## November 20 local environment promotion
+
+Hosted v69 adds exact target enrollment and commits both platform
+publications, one promotion binding, and both queue jobs in one database
+transaction. A deferred failure leaves the destination heads and queue
+unchanged. The 495-path source selection restores the previous 483-path
+selection with its original bytes and modes. [Authority replay](verification/receipts/w11-stage-promotion-authority-e5b3a977.json) · [v69 source admission](verification/receipts/w11-stage-core-v69-composed.json)
+
+Hosted v70 connects the generated stock Swift command to the ordinary
+loopback Phoenix endpoint. The runtime loader resolves all four enrolled
+targets. The stock CLI promoted and replayed both exact signed assignments
+against the PostgreSQL fixture. All 26 selected hosted checks and five
+Swift contract checks passed. The installed app and database-outage
+delivery proofs remain open. [Stock replay](verification/receipts/w11-stock-stage-promotion-configured-302b3ac1.json) · [v70 source admission](verification/receipts/w11-stock-v70-source-admission.json)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,
