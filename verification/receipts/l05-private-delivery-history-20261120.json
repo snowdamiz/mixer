@@ -1,0 +1,50 @@
+{
+  "scope": "Section 13.3 bounded historical artifact admission in the private Phoenix delivery export",
+  "observed_at_utc": "2026-11-21T02:08:29Z",
+  "base_commit": "f15844240c564be9f11c99333da2fe98040cb2d6",
+  "source_commit": "d392f8a220c2c1feaa9f7ea90a21a4cf19a3d031",
+  "source_tree": "41c0a0500f2ff7e5e1e20d170f97a6c2587968b1",
+  "worker_contract_reference": "161b70d6a0",
+  "environment": {
+    "host": "macOS 27.0.1 (Darwin 27.0.0 arm64)",
+    "elixir": "1.20.4",
+    "erlang_otp": "29",
+    "phoenix": "1.8.16",
+    "postgresql": "17.11",
+    "postgresql_endpoint": "127.0.0.1:5432 (disposable TLS cluster)",
+    "phoenix_health_endpoint": "http://127.0.0.1:47301/health/live",
+    "entry_point": "MixerHosted.Releases.DeliveryExport.current/1"
+  },
+  "runs_from_hosted": [
+    {
+      "command": "sh scripts/replay-local-release-target-registry.sh export",
+      "seed": 993469,
+      "result": "1 passed, 2 mode-specific skips, exit 0. The Phoenix health check and the restricted TLS reader check passed."
+    },
+    {
+      "command": "sh scripts/replay-local-release-target-registry.sh queue-first",
+      "seed": 758257,
+      "result": "1 passed, 2 mode-specific skips, exit 0."
+    },
+    {
+      "command": "sh scripts/replay-local-release-target-registry.sh registry-first",
+      "seed": 769822,
+      "result": "1 passed, 2 mode-specific skips, exit 0. Ecto emitted the existing out-of-order migration warning."
+    },
+    {
+      "command": "HEX_OFFLINE=1 MIX_ENV=test mix test --warnings-as-errors test/mixer_hosted/protocol/assignment_v3_test.exs test/mixer_hosted/protocol/artifact_admission_test.exs test/mixer_hosted/releases/runtime_provisioning_test.exs",
+      "seed": 704029,
+      "result": "26 passed, exit 0."
+    }
+  ],
+  "observed": [
+    "The snapshot function required its explicit reader grant. The new projection ran without a direct grant to the legacy head function. The delivery login lacked direct SELECT on the ledger and SELECT or INSERT on the enrollment registry.",
+    "While a second publication was uncommitted on a separate connection, the export returned the first committed head and its exact artifact alone. After commit it returned both exact artifact envelopes and their hashes. A subsequent signed publication and promotion retained the previously admitted digests without duplication.",
+    "A staged artifact, a zero-rollout-only artifact, an unenrolled tenant, and artifacts published to another enrolled channel sharing the same scope, runtime, and signing roots stayed outside the allowlist.",
+    "The full window selected the latest 32 of 33 committed positive publications. Repeating the newest digest at publication 34 yielded 31 distinct artifacts. The next oldest entry stayed outside the allowlist.",
+    "Historical expiry, revocation, or a wrong public key under the historical signing key ID omitted the affected artifact. The deadline advanced to the earliest remaining required expiry. Invalid assignment authority and expired current artifact authority rejected the positive head.",
+    "A signed halt suppressed the offer. It retained trusted previous artifacts and omitted those whose artifact key had expired. With all artifact roots expired, the halt still exported its signed assignment and assignment-root deadline. Revoking the halt signer rejected the export."
+  ],
+  "cleanup": "All three runners stopped their PostgreSQL clusters and removed their fixture scratch. The final IPv4 bind and listen probes confirmed that ports 5432 and 47301 were reusable.",
+  "remaining": "Lease issuance and fencing, pointer and external writer integration, and serving an issued snapshot through a database outage remain open."
+}

@@ -19,13 +19,23 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
   }
 
   alias MixerHosted.Protocol.{ArtifactAdmission, ArtifactCBOR}
-  alias MixerHosted.Releases.{DeliveryRepo, Target, WriterRepo}
+
+  alias MixerHosted.Releases.{
+    DeliveryExport,
+    DeliveryPublishFence,
+    DeliveryRepo,
+    Target,
+    WriterRepo
+  }
+
   alias MixerHosted.Test.ConfiguredReleaseReplayRepo, as: FixtureRepo
   alias MixerHosted.Test.FieldLogReleasePacket
   alias MixerHostedWeb.LocalReleaseController
 
   @mode System.get_env("MIXER_RELEASE_FIXTURE_MODE")
   @fieldlog? @mode in ["fieldlog", "fieldlog-control"]
+  @fence? @mode == "delivery-publish-fence"
+  @multi_target? @mode in ["target-registry", "delivery-export"] or @fence?
   @stock_scopes "mixer.artifact.upload mixer.release.publish"
   @rollback_reason "Restore the signed FieldLog calculation baseline"
   @vector Path.expand("../../../../services/protocol/testdata/signed-release-v3.json", __DIR__)
@@ -43,6 +53,10 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
   @coordinates ~w(organization_id project_id application_id environment_id platform runtime_sha256 channel)
   @columns Enum.join(@coordinates, ",")
   @bindings "$1,$2,$3,$4,$5,$6,$7"
+  @export_reader "public.mixer_release_delivery_export(text,text,text,text,text,text,text)"
+  @snapshot_reader "public.mixer_release_delivery_snapshot(text,text,text,text,text,text,text)"
+  @publish_fence "public.mixer_release_delivery_lock_current(text,text,text,text,text,text,text)"
+  @max_sequence 18_446_744_073_709_551_615
 
   @tag skip:
          @mode not in ["linux", "startup-only", "stock-cli", "stock-cli-startup"] and
@@ -596,6 +610,548 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     IO.puts("Historical HTTP envelope SHA-256 #{sha256(first.envelope)}")
   end
 
+  @tag skip: @mode != "delivery-export" and not @fence?
+  @tag timeout: 60_000
+  test "private export retains bounded trusted history across a head change, promotion and halt" do
+    vector = @vector |> File.read!() |> Jason.decode!()
+    scope = vector["host"]["scope"]
+    {document, artifact_key} = signed_scope(vector, scope)
+    {history_document, history_key} = signed_scope(vector, scope)
+    {android_document, android_key} = signed_scope(vector, %{scope | "platform" => "android"})
+    {other_document, other_key} = signed_scope(vector, %{scope | "organization" => "org-b"})
+    now = System.system_time(:second)
+    history_expiry = now + 300
+    artifact_expiry = now + 600
+    assignment_expiry = now + 1_200
+    [artifact_root] = document["roots"]
+    artifact_root = %{artifact_root | "not_after_unix" => artifact_expiry}
+
+    history_root = %{
+      hd(history_document["roots"])
+      | "key_id" => "export-history",
+        "not_after_unix" => history_expiry
+    }
+
+    {public, assignment_key} = :crypto.generate_key(:eddsa, :ed25519)
+
+    assignment_root = %{
+      artifact_root
+      | "key_id" => "export-assignment",
+        "artifact" => false,
+        "public_key" => Base.encode64(public),
+        "not_after_unix" => assignment_expiry
+    }
+
+    document = %{document | "roots" => [artifact_root, assignment_root, history_root]}
+    canary_document = %{document | "channel" => "canary"}
+
+    load_runtime!(document, vector["signed_assignment"]["assignment"], nil, nil, %{
+      "MIXER_LOCAL_RELEASE_TARGET_REGISTRY" =>
+        Jason.encode!([android_document, other_document, canary_document])
+    })
+
+    %{target: target, roots: [artifact_root, assignment_root, history_root]} =
+      config = Application.fetch_env!(:mixer_hosted, :local_release_target)
+
+    delivery = Application.fetch_env!(:mixer_hosted, :local_release_delivery)
+
+    {android, android_config} =
+      Enum.find(delivery.registry, fn {t, _} -> t.platform == "android" end)
+
+    {other, other_config} =
+      Enum.find(delivery.registry, fn {t, _} -> t.scope.organization_id == "org-b" end)
+
+    canary = %{target | channel: "canary"}
+    canary_config = Map.fetch!(delivery.registry, canary)
+
+    provision!(target)
+
+    with_repo("mixer_replay_admin", fn ->
+      sql!("GRANT CREATE ON DATABASE postgres TO mixer_replay_owner")
+    end)
+
+    with_ledger_owner(fn ->
+      for {dir, file} <- [
+            {"local_release_target_registry",
+             "20261120000015_add_local_release_target_registry.exs"},
+            {"local_release_delivery_export",
+             "20261120000017_add_local_release_delivery_export.exs"},
+            {"local_release_delivery_snapshot",
+             "20261120000018_add_local_release_delivery_snapshot.exs"}
+          ] do
+        assert :ok = migrate(:up, migration(dir, file))
+      end
+
+      assert [[false, false, false, false]] =
+               sql!("""
+               SELECT has_function_privilege('#{@reader}','#{@export_reader}','EXECUTE'),
+                      has_function_privilege('#{@writer}','#{@export_reader}','EXECUTE'),
+                      has_function_privilege('#{@reader}','#{@snapshot_reader}','EXECUTE'),
+                      has_function_privilege('#{@writer}','#{@snapshot_reader}','EXECUTE')
+               """).rows
+
+      sql!("GRANT EXECUTE ON FUNCTION #{@snapshot_reader} TO #{@reader}")
+    end)
+
+    provision_registry!(target, android, other)
+
+    with_repo("mixer_replay_admin", fn -> seed_head!(canary) end)
+    enroll!(canary)
+
+    initial = signed_release(vector, %{config | roots: [history_root]}, history_key, 7)
+    intermediate = signed_release(vector, config, artifact_key, 8)
+
+    zero_offer =
+      vector
+      |> signed_release(config, artifact_key, 9)
+      |> resign_export(assignment_root, assignment_key, 9, 0)
+
+    current = signed_release(vector, config, artifact_key, @max_sequence - 2)
+    staged = signed_release(vector, config, artifact_key, 100)
+    cross = signed_release(vector, other_config, other_key, current.sequence)
+
+    inconsistent =
+      vector
+      |> signed_release(android_config, android_key, current.sequence)
+      |> resign_export(hd(android_config.roots), android_key, current.sequence, 42)
+
+    owner = fixture_identity()
+    other_owner = fixture_identity("other-subject", "other-credential")
+    stage!(config, initial.digest, initial.envelope, owner, "export-initial")
+    stage!(config, intermediate.digest, intermediate.envelope, owner, "export-intermediate")
+    stage!(config, zero_offer.digest, zero_offer.envelope, owner, "export-zero-offer")
+    stage!(config, current.digest, current.envelope, owner, "export-current")
+    stage!(config, staged.digest, staged.envelope, owner, "export-staged-only")
+    stage!(other_config, cross.digest, cross.envelope, other_owner, "export-cross")
+
+    stage!(
+      android_config,
+      inconsistent.digest,
+      inconsistent.envelope,
+      owner,
+      "export-inconsistent"
+    )
+
+    publish_fixture!(other, cross, other_owner, "other-owner")
+
+    current = resign_export(current, assignment_root, assignment_key, current.sequence, 7_319)
+
+    with_registry_http!(fn _ ->
+      assert {:error, :not_found} = DeliveryExport.current(android)
+      assert {:error, :not_found} = DeliveryExport.current(other)
+      assert {:error, :not_found} = DeliveryExport.current(%{target | channel: "wrong"})
+      assert {:error, :not_found} = DeliveryExport.current(target)
+
+      # The lower-level SQL fixture records 10000 for an assignment signed for 42.
+      publish_fixture!(android, inconsistent, owner, @principal, @android_writer)
+      assert {:error, :rejected} = DeliveryExport.current(android)
+
+      publish_fixture!(target, initial, owner, @principal, @writer, fn ->
+        assert {:error, :not_found} = DeliveryExport.current(target)
+      end)
+
+      initial_artifact = export_artifact(initial)
+      intermediate_artifact = export_artifact(intermediate)
+      current_artifact = export_artifact(current)
+
+      assert {:ok, %{head: %{sequence: "7"}, artifacts: [^initial_artifact]} = prior_export} =
+               DeliveryExport.current(target)
+
+      publish_fixture!(target, intermediate, owner, @principal, @writer, fn ->
+        assert {:ok, %{head: %{sequence: "7"}, artifacts: [^initial_artifact]}} =
+                 DeliveryExport.current(target)
+      end)
+
+      assert {:ok,
+              %{head: %{sequence: "8"}, artifacts: [^intermediate_artifact, ^initial_artifact]}} =
+               DeliveryExport.current(target)
+
+      publish_and_replay!(target, zero_offer, owner)
+
+      assert {:ok,
+              %{
+                head: %{sequence: "9", enabled: false},
+                artifact: nil,
+                artifacts: [^intermediate_artifact, ^initial_artifact]
+              }} = DeliveryExport.current(target)
+
+      assert_history_window!(vector, canary_config, artifact_key, owner)
+      publish_and_replay!(target, current, owner)
+
+      assert {:ok, export} = DeliveryExport.current(target)
+      assert export.target == wire_target(target)
+
+      assert export.head == %{
+               sequence: Integer.to_string(current.sequence),
+               assignment_sha256: sha256(current.signed),
+               artifact_sha256: current.digest,
+               rollout_basis_points: 7_319,
+               enabled: true
+             }
+
+      assert export.assignment_bytes == current.signed
+
+      assert export.artifact == current_artifact
+      assert export.artifacts == [current_artifact, intermediate_artifact, initial_artifact]
+      assert export.valid_until_unix == history_expiry
+
+      if @fence?,
+        do: assert_publish_fence!(target, android, other, export, prior_export, delivery)
+
+      promotion =
+        current
+        |> resign_export(assignment_root, assignment_key, @max_sequence - 1, 9_000)
+        |> Map.merge(%{sequence: @max_sequence - 1, action: :promote})
+
+      publish_and_replay!(target, promotion, owner)
+
+      assert {:ok, promoted} = DeliveryExport.current(target)
+      assert promoted.head.sequence == Integer.to_string(@max_sequence - 1)
+      assert promoted.head.rollout_basis_points == 9_000
+      assert promoted.assignment_bytes == promotion.signed
+      assert promoted.artifact == current_artifact
+      assert promoted.artifacts == export.artifacts
+      assert promoted.valid_until_unix == history_expiry
+
+      for inactive <- [
+            %{history_root | "not_after_unix" => now},
+            %{history_root | "revoked" => true},
+            %{history_root | "public_key" => artifact_root["public_key"]}
+          ] do
+        Application.put_env(:mixer_hosted, :local_release_delivery, %{
+          delivery
+          | roots: [artifact_root, assignment_root, inactive]
+        })
+
+        assert {:ok, filtered} = DeliveryExport.current(target)
+        assert filtered.artifacts == [current_artifact, intermediate_artifact]
+        assert filtered.valid_until_unix == artifact_expiry
+
+        if @fence?, do: assert_fence_refused!(target, promoted, :rejected)
+      end
+
+      for inactive <- [
+            %{assignment_root | "not_before_unix" => now + 600},
+            %{assignment_root | "not_after_unix" => now},
+            %{assignment_root | "revoked" => true}
+          ] do
+        Application.put_env(:mixer_hosted, :local_release_delivery, %{
+          delivery
+          | roots: [artifact_root, inactive, history_root]
+        })
+
+        assert {:error, :rejected} = DeliveryExport.current(target)
+        if @fence?, do: assert_fence_refused!(target, promoted, :rejected)
+      end
+
+      roots = [%{artifact_root | "not_after_unix" => now}, assignment_root, history_root]
+      Application.put_env(:mixer_hosted, :local_release_delivery, %{delivery | roots: roots})
+      Application.put_env(:mixer_hosted, :local_release_target, %{config | roots: roots})
+      assert {:error, :rejected} = DeliveryExport.current(target)
+
+      halt = resign_export(promotion, assignment_root, assignment_key, @max_sequence, 0)
+
+      health = %{
+        "sequence" => promotion.sequence,
+        "activated" => 3,
+        "pending" => 2,
+        "adverse_signals" => 1
+      }
+
+      route = {scope["organization"], scope["project"], target.channel}
+
+      assert {:ok, %{sequence: @max_sequence}} =
+               Releases.cli(
+                 owner,
+                 route,
+                 {:halt, halt.signed, health},
+                 "export-halt",
+                 sha256(halt.signed),
+                 "Halt the incomplete rollout"
+               )
+
+      assert {:ok, stopped} = DeliveryExport.current(target)
+      assert stopped.target == export.target
+      assert stopped.assignment_bytes == halt.signed
+      assert stopped.artifact == nil
+      assert stopped.artifacts == [initial_artifact]
+      assert stopped.valid_until_unix == history_expiry
+
+      if @fence? do
+        assert_fence_refused!(target, promoted, :rejected)
+
+        assert {:ok, :applied} =
+                 DeliveryPublishFence.with_current(target, stopped, fn window ->
+                   assert window.valid_until_unix == history_expiry
+                   :applied
+                 end)
+      end
+
+      assert stopped.head == %{
+               sequence: Integer.to_string(@max_sequence),
+               assignment_sha256: sha256(halt.signed),
+               artifact_sha256: current.digest,
+               rollout_basis_points: 0,
+               enabled: false
+             }
+
+      Application.put_env(:mixer_hosted, :local_release_delivery, delivery)
+      assert {:ok, trusted_halt} = DeliveryExport.current(target)
+      assert trusted_halt.artifact == nil
+      assert trusted_halt.artifacts == export.artifacts
+
+      expired_history = %{history_root | "not_after_unix" => now}
+      roots = [hd(roots), assignment_root, expired_history]
+      Application.put_env(:mixer_hosted, :local_release_delivery, %{delivery | roots: roots})
+
+      assert {:ok, %{artifacts: [], valid_until_unix: ^assignment_expiry}} =
+               DeliveryExport.current(target)
+
+      roots = [hd(roots), %{assignment_root | "revoked" => true}, expired_history]
+      Application.put_env(:mixer_hosted, :local_release_delivery, %{delivery | roots: roots})
+      assert {:error, :rejected} = DeliveryExport.current(target)
+
+      if @fence? do
+        assert_fence_refused!(target, trusted_halt, :rejected)
+        Application.put_env(:mixer_hosted, :local_release_delivery, delivery)
+        assert_fence_database_loss!(target, trusted_halt)
+      end
+    end)
+  end
+
+  defp assert_publish_fence!(target, android, other, export, prior, delivery) do
+    assert {:ok, ^export} = DeliveryExport.current(target)
+    assert_fence_refused!(target, export, :unavailable)
+
+    with_ledger_owner(fn ->
+      assert :ok =
+               migrate(
+                 :up,
+                 migration(
+                   "local_release_delivery_export",
+                   "20261120000019_add_local_release_delivery_publish_fence.exs"
+                 )
+               )
+
+      assert [[false, false, false, false, false]] =
+               sql!("""
+               SELECT has_function_privilege('#{@reader}','#{@publish_fence}','EXECUTE'),
+                      has_function_privilege('#{@writer}','#{@publish_fence}','EXECUTE'),
+                      has_table_privilege('#{@reader}','public.mixer_release_heads','SELECT'),
+                      has_table_privilege('#{@reader}','public.mixer_release_heads','UPDATE'),
+                      has_table_privilege('#{@reader}','public.mixer_release_delivery_enrollments','UPDATE')
+               """).rows
+
+      assert_fence_refused!(target, export, :unavailable)
+      sql!("GRANT EXECUTE ON FUNCTION #{@publish_fence} TO #{@reader}")
+    end)
+
+    assert {:ok, ^export} = DeliveryExport.current(target)
+    assert_fence_refused!(target, prior, :rejected)
+
+    assert_fence_refused!(
+      target,
+      %{export | valid_until_unix: export.valid_until_unix + 1},
+      :rejected
+    )
+
+    assert_fence_refused!(other, export, :not_found)
+    assert_fence_refused!(%{target | channel: "wrong"}, export, :not_found)
+
+    assert {:error, :unavailable} = DeliveryExport.current_in_transaction(target)
+
+    assert {:ok, :checked} =
+             DeliveryRepo.transaction(fn ->
+               assert {:error, :unavailable} = DeliveryExport.current(target)
+               assert_fence_refused!(target, export, :unavailable)
+               :checked
+             end)
+
+    heads = "public.mixer_release_heads"
+    enrollments = "public.mixer_release_delivery_enrollments"
+
+    with_repo("mixer_replay_admin", fn ->
+      for table <- [heads, enrollments] do
+        assert {:ok, :checked} =
+                 FixtureRepo.transaction(fn ->
+                   assert %{num_rows: 1} = fixture_lock!(table, target)
+                   assert_fence_refused!(target, export, :busy)
+                   :checked
+                 end)
+      end
+
+      {:ok, pointer} = Agent.start_link(fn -> nil end)
+
+      try do
+        cas = fn window ->
+          assert window.valid_until_unix == export.valid_until_unix
+          assert System.monotonic_time(:millisecond) < window.deadline_monotonic_ms
+
+          for table <- [heads, enrollments] do
+            assert {:error, %Postgrex.Error{postgres: %{code: :lock_not_available}}} =
+                     Ecto.Adapters.SQL.query(
+                       FixtureRepo,
+                       fixture_lock_query(table),
+                       coordinates(target),
+                       log: false
+                     )
+
+            assert %{num_rows: 1} = fixture_lock!(table, android)
+          end
+
+          Agent.get_and_update(pointer, fn
+            nil -> {:applied, export.head}
+            current -> {:conflict, current}
+          end)
+        end
+
+        assert {:ok, :applied} = DeliveryPublishFence.with_current(target, export, cas)
+        assert {:error, :conflict} = DeliveryPublishFence.with_current(target, export, cas)
+        assert Agent.get(pointer, & &1) == export.head
+      after
+        Agent.stop(pointer)
+      end
+
+      caller = self()
+
+      assert {:error, :indeterminate} =
+               DeliveryPublishFence.with_current(target, export, fn _ ->
+                 send(caller, {:stalled_cas, self()})
+
+                 receive do
+                   :finish -> :applied
+                 end
+               end)
+
+      assert_received {:stalled_cas, pid}
+      refute Process.alive?(pid)
+      assert %{num_rows: 1} = fixture_lock!(heads, target)
+      assert %{num_rows: 1} = fixture_lock!(enrollments, target)
+
+      assert %{num_rows: 1} =
+               sql!(
+                 "DELETE FROM #{enrollments} WHERE (#{@columns}) = (#{@bindings})",
+                 coordinates(target)
+               )
+
+      assert_fence_refused!(target, export, :not_found)
+    end)
+
+    enroll!(target)
+
+    try do
+      assert {:error, :indeterminate} =
+               DeliveryPublishFence.with_current(target, export, fn _ ->
+                 roots = Enum.map(delivery.roots, &Map.put(&1, "revoked", true))
+
+                 Application.put_env(:mixer_hosted, :local_release_delivery, %{
+                   delivery
+                   | roots: roots
+                 })
+
+                 :applied
+               end)
+
+      assert_fence_refused!(target, export, :rejected)
+    after
+      Application.put_env(:mixer_hosted, :local_release_delivery, delivery)
+    end
+  end
+
+  defp assert_fence_database_loss!(target, export) do
+    with_repo("mixer_replay_admin", fn ->
+      assert {:error, :indeterminate} =
+               DeliveryPublishFence.with_current(target, export, fn _ ->
+                 assert [[true]] =
+                          sql!("""
+                          SELECT pg_terminate_backend(pid, 250)
+                          FROM pg_stat_activity
+                          WHERE usename='#{@reader}' AND state='idle in transaction'
+                          """).rows
+
+                 :applied
+               end)
+    end)
+
+    # The runner owns this cluster and still owns its filesystem cleanup.
+    assert {_, 0} =
+             System.cmd(
+               "pg_ctl",
+               ["-D", Path.join(scratch(), "db"), "-w", "-t", "10", "-m", "fast", "stop"],
+               stderr_to_stdout: true
+             )
+
+    assert_fence_refused!(target, export, :unavailable)
+  end
+
+  defp assert_fence_refused!(target, export, reason) do
+    caller = self()
+    marker = make_ref()
+
+    assert {:error, ^reason} =
+             DeliveryPublishFence.with_current(target, export, fn _ ->
+               send(caller, marker)
+               :applied
+             end)
+
+    refute_received ^marker
+  end
+
+  defp fixture_lock!(table, target), do: sql!(fixture_lock_query(table), coordinates(target))
+
+  defp fixture_lock_query(table) do
+    "SELECT 1 FROM #{table} WHERE (#{@columns}) = (#{@bindings}) FOR UPDATE NOWAIT"
+  end
+
+  defp assert_history_window!(vector, config, key, owner) do
+    releases =
+      for sequence <- 1..33 do
+        release = signed_release(vector, config, key, sequence)
+        stage!(config, release.digest, release.envelope, owner, "export-canary-#{sequence}")
+        publish_fixture!(config.target, release, owner, @principal)
+        release
+      end
+
+    [latest | older] = Enum.reverse(releases)
+    expected = Enum.map([latest | Enum.take(older, 31)], &export_artifact/1)
+
+    assert {:ok, %{head: %{sequence: "33"}, artifacts: ^expected}} =
+             DeliveryExport.current(config.target)
+
+    repeated =
+      latest
+      |> resign_export(hd(config.roots), key, 34, 10_000)
+      |> Map.put(:sequence, 34)
+
+    publish_fixture!(config.target, repeated, owner, @principal)
+
+    deduplicated = Enum.take(expected, 31)
+
+    assert {:ok, %{head: %{sequence: "34"}, artifacts: ^deduplicated}} =
+             DeliveryExport.current(config.target)
+  end
+
+  defp export_artifact(release) do
+    %{
+      manifest_sha256: release.digest,
+      envelope_sha256: sha256(release.envelope),
+      envelope_bytes: release.envelope
+    }
+  end
+
+  defp resign_export(release, root, key, sequence, rollout) do
+    %{"assignment" => assignment} = Jason.decode!(release.signed)
+
+    assignment = %{
+      assignment
+      | "key_id" => root["key_id"],
+        "sequence" => sequence,
+        "rollout_basis_points" => rollout
+    }
+
+    %{release | signed: Jason.encode!(sign_fixture("assignment", "assignment", assignment, key))}
+  end
+
   defp publish_and_replay!(target, release, identity, writer \\ @writer) do
     assert [[^writer, true]] =
              WriterRepo.query!("""
@@ -876,7 +1432,14 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
     )
   end
 
-  defp publish_fixture!(target, release, identity, principal, writer \\ @writer) do
+  defp publish_fixture!(
+         target,
+         release,
+         identity,
+         principal,
+         writer \\ @writer,
+         before_commit \\ fn -> :ok end
+       ) do
     with_repo(writer, fn ->
       assert {:ok, :published} =
                Authorization.with_authorized_transaction(
@@ -924,6 +1487,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
                               args ++ [sequence]
                             )
 
+                   before_commit.()
                    {:ok, :published}
                  end,
                  FixtureRepo
@@ -982,6 +1546,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
       vector["signed_assignment"]["assignment"]
       | "scope" => root["scope"],
         "key_id" => root["key_id"],
+        "channel" => config.target.channel,
         "sequence" => sequence,
         "release_id" => manifest["release_id"],
         "artifact_sha256" => digest,
@@ -1605,7 +2170,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
 
   defp provision!(target) do
     with_repo("mixer_replay_admin", fn ->
-      if @mode == "target-registry" do
+      if @multi_target? do
         sql!(
           "CREATE ROLE #{@android_writer} LOGIN NOINHERIT PASSWORD 'synthetic-replay-android-writer'"
         )
@@ -1829,7 +2394,7 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
   end
 
   defp grant! do
-    writers = if @mode == "target-registry", do: "#{@writer}, #{@android_writer}", else: @writer
+    writers = if @multi_target?, do: "#{@writer}, #{@android_writer}", else: @writer
     sql!("GRANT USAGE ON SCHEMA public TO #{writers}, #{@reader}, #{@stage}")
 
     for table <-

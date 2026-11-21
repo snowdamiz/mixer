@@ -4,9 +4,12 @@ set -eu
 [ "$(id -u)" -ne 0 ] || { echo 'Use an unprivileged fixture user.' >&2; exit 2; }
 cd "$(dirname "$0")/.."
 order=${1:-queue-first}
+mode=target-registry
 case "$order" in
   queue-first|registry-first) ;;
-  *) echo 'Expected queue-first or registry-first.' >&2; exit 2 ;;
+  export) mode=delivery-export ;;
+  publish-fence) mode=delivery-publish-fence ;;
+  *) echo 'Expected queue-first, registry-first, export, or publish-fence.' >&2; exit 2 ;;
 esac
 umask 077
 scratch=$(mktemp -d /tmp/mixer-target-registry.XXXXXX)
@@ -58,6 +61,6 @@ if ! pg_ctl -D "$pgdata" -l "$scratch/postgres.log" -w -t 15 start; then
 fi
 
 env -i PATH="$PATH" HOME="$HOME" TMPDIR="$scratch" MIX_ENV=test HEX_OFFLINE=1 \
-  MIXER_RELEASE_FIXTURE_MODE=target-registry MIXER_RELEASE_FIXTURE_SCRATCH="$scratch" \
+  MIXER_RELEASE_FIXTURE_MODE="$mode" MIXER_RELEASE_FIXTURE_SCRATCH="$scratch" \
   MIXER_RELEASE_QUEUE_ORDER="$order" \
   mix test --warnings-as-errors --trace test/mixer_hosted/releases/configured_release_replay_test.exs

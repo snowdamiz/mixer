@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "status": "passed_scoped_local_delivery_origin",
+  "finishedAtUTC": "2026-11-21T00:47:08.293513+00:00",
+  "productPlan": [
+    "13.3",
+    "W11",
+    "L05"
+  ],
+  "localGatesPassed": [],
+  "source": {
+    "publicBase": "1bf567bd70b34237d1bf98b6e0a6e5b6c06df23d",
+    "testedTreeBeforeEvidence": "2556064f57171a911dcaddd480f8bc81b1979c07",
+    "testedOriginSubtree": "26177d5631207fae15d4dfe68dc0861ee2b128c2",
+    "controllerLockBlob": "18130052317655afaec36a15d9c933bbab794262",
+    "syntheticFixtureSigner": {
+      "path": "tests/integration/public-update/fixture_test.go",
+      "blob": "616f7d6f6c689509b8ca66babcb6f554cddb55f0"
+    },
+    "v3ContractBlob": "3ff57b728bfe463bcecdf184f63c3c3d383a6c13"
+  },
+  "commands": [
+    "npm ci --ignore-scripts --no-audit --no-fund --prefix hosted-worker-controller",
+    "fnm exec --using=22.23.3 node hosted-worker-controller/node_modules/typescript/bin/tsc -p release-delivery-origin",
+    "MIXER_DELIVERY_PG_BIN=/opt/homebrew/opt/postgresql@17/bin fnm exec --using=22.23.3 node release-delivery-origin/test/run.mjs"
+  ],
+  "tools": {
+    "host": "macOS 27.0.1 arm64",
+    "npmInstall": "11.20.0, lockfile-only dependencies and install scripts disabled",
+    "nodeReplay": "v22.23.3",
+    "typeScript": "5.9.3",
+    "miniflare": "4.20260730.0",
+    "workerd": "1.20260730.1",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "go": "go1.26.4 darwin/arm64"
+  },
+  "scope": [
+    "Public GETs used ordinary IPv4 loopback HTTP to a single owned workerd. Persistent local R2 emulation supplied the public storage namespace.",
+    "The retained signed synthetic publication came from an explicit disposable PostgreSQL fixture table seeded by the existing Go fixture signer. The private test service binding ran the TypeScript writer. Only the Worker storage namespace was reachable from the public GET path.",
+    "The disposable fixture PostgreSQL process shut down completely and a fresh psql connection failed while workerd remained available. The same offer and artifact bytes were observed before and after shutdown. The lease was 6500 ms.",
+    "Halt, cohort changes, CAS and revocation were separate controlled snapshot applications using the fixture writer. Phoenix publication and export, production R2 or CDN, and broader gate acceptance remain pending."
+  ],
+  "checks": {
+    "outage": {
+      "upstreamReadBefore": true,
+      "upstreamConnectionFailedAfter": true,
+      "assignmentSequence": "1",
+      "offerBytes": 717,
+      "offerSha256": "58d1907b74939710ede5837166bfcb8268ad933beb584e47865d8f88a022ab7e",
+      "artifactBytes": 1731,
+      "artifactEnvelopeSha256": "ec514b1003ee632ebb3ce1ff2ec4e665992625843aded95e636466a9050b7835",
+      "artifactManifestSha256": "1e9f684f1b5f1a5a14ee1fd43d61ce49835c026dd921b037872a95ae5cabc65a",
+      "exactBeforeAfter": true,
+      "tenantMismatch": {
+        "offer": 204,
+        "artifact": 404
+      }
+    },
+    "expiryOffline": {
+      "offer": 204,
+      "artifact": 404
+    },
+    "snapshot": {
+      "missingArtifactRejected": true,
+      "stagedArtifactInvisible": true,
+      "exactReplayUnchanged": true,
+      "leaseMaximumEnforced": true,
+      "olderSequenceRejected": true,
+      "mismatchedAssignmentRejected": true,
+      "invalidStageRejected": true,
+      "immutableArtifactOverwriteRejected": true,
+      "cohort": {
+        "beforeExpansion": 204,
+        "afterExpansion": 200,
+        "outside": 204
+      },
+      "haltSequence": "5",
+      "haltOffer": 204,
+      "haltArtifact": 200,
+      "resumeOffer": 200,
+      "revocation": {
+        "offer": 204,
+        "artifact": 404,
+        "sameSequenceReopenRejected": true,
+        "stalePointerETagRejected": true,
+        "concurrentApplyResults": [
+          "\"applied\"",
+          "\"retry\""
+        ]
+      }
+    }
+  },
+  "ownedCommands": {
+    "fixture-signer-build": {
+      "pid": 89558,
+      "code": 0,
+      "signal": null,
+      "groupAbsent": true
+    },
+    "fixture-signer": {
+      "pid": 94847,
+      "code": 0,
+      "signal": null,
+      "groupAbsent": true
+    },
+    "postgres-version": {
+      "pid": 94928,
+      "code": 0,
+      "signal": null,
+      "groupAbsent": true
+    },
+    "initdb": {
+      "pid": 94938,
+      "code": 0,
+      "signal": null,
+      "groupAbsent": true
+    },
+    "db-ready-1": {
+      "pid": 95740,
+      "code": 2,
+      "signal": null,
+      "groupAbsent": true
+    },
+    "db-ready-2": {
+      "pid": 95806,
+      "code": 0,
+      "signal": null,
+      "groupAbsent": true
+    },
+    "fixture-select": {
+      "pid": 95836,
+      "code": 0,
+      "signal": null,
+      "groupAbsent": true
+    },
+    "postgres": {
+      "pid": 95736,
+      "code": 0,
+      "signal": null,
+      "groupAbsent": true
+    },
+    "db-offline": {
+      "pid": 96825,
+      "code": 2,
+      "signal": null,
+      "groupAbsent": true
+    }
+  },
+  "closure": {
+    "postgresChildrenAbsent": [
+      95763,
+      95764,
+      95767,
+      95770,
+      95771
+    ],
+    "workerd": [
+      {
+        "pid": 95918,
+        "code": null,
+        "signal": "SIGKILL",
+        "exactPidAbsent": true
+      }
+    ],
+    "scratchRemoved": true,
+    "earlierSetupHold": {
+      "path": "/tmp/mixer-w11-delivery-N9z4ja",
+      "reason": "The earlier replay failed during ES module parsing before readiness. Its old cleanup observer could not determine workerd identity or collect terminal evidence. The exact scratch is preserved. Its disposable PostgreSQL was reaped and its group was absent."
+    }
+  }
+}

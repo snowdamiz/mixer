@@ -1,0 +1,64 @@
+{
+  "scope": "Section 13.3 Elixir publish authority and disposable PostgreSQL fixture",
+  "observed_at_utc": "2026-11-21T02:20:01Z",
+  "base_commit": "f15844240c564be9f11c99333da2fe98040cb2d6",
+  "source_commit": "7671fbad0977b953fc903f45f86564c8a98416ff",
+  "source_tree": "4841ec6685e51978062fc75e593d66abe5c0536b",
+  "environment": {
+    "host": "Darwin 27.0.0 arm64",
+    "elixir": "1.20.4",
+    "erlang_otp": "29",
+    "phoenix": "1.8.16",
+    "postgresql": "17.11, TLS on owned 127.0.0.1:5432",
+    "phoenix_listener": "owned 127.0.0.1:47301"
+  },
+  "runs_from_hosted": [
+    {
+      "command": "sh scripts/replay-local-release-target-registry.sh publish-fence",
+      "seed": 263430,
+      "result": "1 passed, 2 mode-specific skips, exit 0. The induced backend and cluster disconnects emitted the expected Postgrex connection errors."
+    },
+    {
+      "command": "sh scripts/replay-local-release-target-registry.sh export",
+      "seed": 193748,
+      "result": "1 passed, 2 mode-specific skips, exit 0. The original unlocked export replay ran without migration 000019."
+    },
+    {
+      "command": "HEX_OFFLINE=1 MIX_ENV=test mix test --warnings-as-errors test/mixer_hosted/protocol/assignment_v3_test.exs test/mixer_hosted/protocol/artifact_admission_test.exs",
+      "seed": 356475,
+      "result": "15 passed, exit 0."
+    }
+  ],
+  "observed": [
+    "The reader could prepare an unlocked export while the callback was refused with migration 000019 absent or ungranted. Explicit function EXECUTE left direct head and enrollment access restricted.",
+    "The fence refused an old signed head, a changed validity bound, a wrong channel, an unenrolled tenant, nested checkout, enrollment deletion, and inactive, expired or revoked signing roots without executing the callback.",
+    "An independent PostgreSQL session could acquire neither the exact head nor enrollment write lock during CAS. The Android target's rows remained independently lockable. Pre-existing locks on either authority row refused CAS without invocation.",
+    "The local pointer CAS applied once. A subsequent CAS that observed the identical current pointer returned conflict, and the fence returned conflict. A signed halt was separately accepted under its current assignment root.",
+    "A stalled callback returned indeterminate and its task exited with both locks released. An observed trust configuration change or terminated reader backend during CAS prevented a positive reply. Stopping the owned cluster refused a new callback.",
+    "Both replay runs stopped the owned PostgreSQL cluster, removed fixture scratch and released the PostgreSQL and Phoenix loopback ports."
+  ],
+  "corrected_attempt": "An earlier fixture sequenced enrollment refusal immediately after terminating the only reader backend and observed connection-unavailable while the pool reconnected. The accepted replay moved the disconnect controls after the independent authority checks.",
+  "limits": [
+    "PostgreSQL 17 or later is required for the server-side transaction timeout. The fixture used an in-memory compare-and-swap with a real PostgreSQL authority transaction.",
+    "Trust provisioning is a startup snapshot. Drain publishers before replacing its roots. The fence refuses observed changes during CAS. An Application env change reverted between reads cannot be observed.",
+    "A timeout or lost database connection can leave the external pointer outcome unknown. Transport-specific CAS deadline enforcement, reconciliation and the Worker replay remain outside this receipt."
+  ],
+  "history_composition": {
+    "history_commit": "e436fd1e8cbff4ae5bbc6301cfc622a903486878",
+    "source_commit": "76f67a0f13c09c5bf8e8aa2ef35a5258382f3b59",
+    "source_tree": "cf24ad532c490a92c1689dfe503102e9b530199e",
+    "runs_from_hosted": [
+      {
+        "command": "sh scripts/replay-local-release-target-registry.sh publish-fence",
+        "seed": 323996,
+        "result": "1 passed, 2 mode-specific skips, exit 0."
+      },
+      {
+        "command": "sh scripts/replay-local-release-target-registry.sh export",
+        "seed": 688831,
+        "result": "1 passed, 2 mode-specific skips, exit 0."
+      }
+    ],
+    "observed": "The in-transaction reread compared the complete historical projection through migration 000018. Revoking or expiring a history-only root, or replacing its key, changed the artifact list and validity bound without a head move and refused the old projection without invoking CAS. The signed halt retained its eligible historical artifact under the locked fence."
+  }
+}

@@ -97,9 +97,10 @@ defmodule MixerHosted.Releases.PublicDelivery do
     end
   end
 
-  defp select(%{target: target} = config, target), do: {:ok, config}
-  defp select(%{registry: registry}, target), do: Map.fetch(registry, target)
-  defp select(_, _), do: :error
+  @doc false
+  def select(%{target: target} = config, target), do: {:ok, config}
+  def select(%{registry: registry}, target), do: Map.fetch(registry, target)
+  def select(_, _), do: :error
 
   defp offer_signed(
          config,

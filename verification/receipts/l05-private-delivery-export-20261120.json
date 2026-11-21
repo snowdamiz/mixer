@@ -1,0 +1,57 @@
+{
+  "scope": "Section 13.3 private projection from the local Phoenix and PostgreSQL release ledger",
+  "observed_at_utc": "2026-11-21T01:38:37Z",
+  "base_commit": "e5b3a977c1091166bf9d82d5bf3da86e663b2625",
+  "source_commit": "6b94b486ce8705000a54fd41b24b862d4b314c89",
+  "source_tree": "154aedaa8c41787cefe1c73aa6205aebc2c275ed",
+  "worker_contract_reference": "161b70d6a0",
+  "environment": {
+    "host": "Darwin 27.0.0 arm64",
+    "elixir": "1.20.4",
+    "erlang_otp": "29",
+    "phoenix": "1.8.16",
+    "postgresql": "17.11",
+    "postgresql_endpoint": "127.0.0.1:5432 (owned TLS cluster)",
+    "phoenix_health_endpoint": "http://127.0.0.1:47301/health/live",
+    "elixir_entry_point": "MixerHosted.Releases.DeliveryExport.current/1",
+    "sql_entry_point": "public.mixer_release_delivery_export(text,text,text,text,text,text,text)"
+  },
+  "runs_from_hosted": [
+    {
+      "command": "sh scripts/replay-local-release-target-registry.sh export",
+      "seed": 365970,
+      "result": "1 passed, 2 mode-specific skips, exit 0. The Phoenix health check passed, DeliveryRepo used the restricted TLS login, and the runner stopped PostgreSQL and removed owned fixture scratch."
+    },
+    {
+      "command": "sh scripts/replay-local-release-target-registry.sh queue-first",
+      "seed": 434793,
+      "result": "1 passed, 2 mode-specific skips, exit 0. The runner stopped PostgreSQL and removed owned fixture scratch."
+    },
+    {
+      "command": "sh scripts/replay-local-release-target-registry.sh registry-first",
+      "seed": 885379,
+      "result": "1 passed, 2 mode-specific skips, exit 0. Ecto emitted the existing out-of-order migration warning. The runner stopped PostgreSQL and removed owned fixture scratch."
+    },
+    {
+      "command": "HEX_OFFLINE=1 MIX_ENV=test mix test --warnings-as-errors test/mixer_hosted/protocol/assignment_v3_test.exs test/mixer_hosted/protocol/artifact_admission_test.exs",
+      "seed": 340087,
+      "result": "15 passed, exit 0."
+    }
+  ],
+  "observed": [
+    "The export function was inaccessible to reader and writer before the explicit reader grant. The reader and writer had no direct enrollment INSERT grant, and the reader had no ledger SELECT grant.",
+    "The exact enabled target returned the committed Phoenix CLI publication at sequence 18446744073709551614, signed rollout 7319, full assignment and artifact bytes and their wire hashes, the canonical manifest coordinate, and the earlier artifact-root deadline.",
+    "A wrong channel, a configured cross-tenant head with no SQL enrollment, an empty enrolled head, a staged-only artifact, and an uncommitted head all yielded no projection.",
+    "A signed rollout and ledger rollout disagreement, a future, expired, or revoked assignment root, and an expired artifact root on a positive rollout each caused refusal.",
+    "The committed Phoenix halt at sequence 18446744073709551615 kept its exact zero-rollout assignment and current assignment-root deadline with no artifact bytes, even with the historical artifact root expired. Revoking the halt signer caused refusal."
+  ],
+  "corrected_fixture_attempts": [
+    "A function-level SET form failed with SQLSTATE 42501 under the restricted migration owner. The accepted function reuses the existing reader's local RLS context and restoration pattern.",
+    "The signed-rollout mismatch fixture initially lacked the existing test-only Android writer privileges. The accepted replay reuses the registry fixture grants for its isolated cluster."
+  ],
+  "remaining": [
+    "Historical artifact admission for clients already holding previous assignments",
+    "Lease clock and expiry cap, authority fencing, and R2 writer composition",
+    "Worker runtime integration and delivery while PostgreSQL is unavailable"
+  ]
+}

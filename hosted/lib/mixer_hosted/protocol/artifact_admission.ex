@@ -26,15 +26,21 @@ defmodule MixerHosted.Protocol.ArtifactAdmission do
     defstruct @enforce_keys
   end
 
-  def admit(bytes, host, roots, now)
-      when is_binary(bytes) and byte_size(bytes) <= @envelope_limit do
+  def admit(bytes, host, roots, now) do
+    with {:ok, %{signed_manifest_bytes: signed_bytes, payload: payload}} <- decode_envelope(bytes),
+         {:ok, data} <- admit_signed(signed_bytes, payload, host, roots, now) do
+      {:ok, struct!(Checked, Map.put(data, :envelope_bytes, bytes))}
+    end
+  end
+
+  @doc false
+  def decode_envelope(bytes) when is_binary(bytes) and byte_size(bytes) <= @envelope_limit do
     with {:ok, spans, _} <- ArtifactJSON.preflight(bytes, @envelope_limit),
          {:ok, signed_bytes} <- signed_span(bytes, spans),
          {:ok, envelope, _, _} <- ArtifactJSON.decode(bytes, @envelope_limit),
          true <- ArtifactV3Policy.exact?(envelope, ~w(signed_manifest payload)),
-         {:ok, payload} <- base64(envelope["payload"], 1, @payload_limit),
-         {:ok, data} <- admit_signed(signed_bytes, payload, host, roots, now) do
-      {:ok, struct!(Checked, Map.put(data, :envelope_bytes, bytes))}
+         {:ok, payload} <- base64(envelope["payload"], 1, @payload_limit) do
+      {:ok, %{signed_manifest_bytes: signed_bytes, payload: payload}}
     else
       false -> {:error, :envelope_shape}
       {:error, reason} -> {:error, reason}
@@ -42,7 +48,7 @@ defmodule MixerHosted.Protocol.ArtifactAdmission do
     end
   end
 
-  def admit(_, _, _, _), do: {:error, :envelope_limit}
+  def decode_envelope(_), do: {:error, :envelope_limit}
 
   @doc "Checks an exact standalone signed document and raw payload; returns data, never an upload Checked record."
   def admit_signed(signed_bytes, payload, host, roots, now)

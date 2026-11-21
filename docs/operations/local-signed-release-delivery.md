@@ -373,6 +373,56 @@ row means the job is available for one more attempt. An empty result means
 the job was ineligible for this operation. Check the job state and the
 projection after the processor runs.
 
+## Enable the private delivery export
+
+Start from the [exact target registry setup](../../hosted/scripts/replay-local-release-target-registry.md).
+Apply `20261120000017` from `hosted/priv/local_release_delivery_export` as
+the restricted relation owner. As the same owner, apply `20261120000018`
+from `hosted/priv/local_release_delivery_snapshot`. Grant the delivery login
+execute permission on the snapshot function.
+
+```sql
+GRANT EXECUTE ON FUNCTION
+  public.mixer_release_delivery_snapshot(text,text,text,text,text,text,text)
+  TO mixer_release_delivery;
+```
+
+`MixerHosted.Releases.DeliveryExport.current/1` takes the exact configured
+`Target` from inside Phoenix. A single PostgreSQL statement reads the enrolled
+head and its publication history. The result contains the stored signed
+assignment, the Worker target and head fields, and `artifact` for a positive
+head. A signed halt returns zero rollout and `artifact: nil`.
+
+Use `artifacts` for the snapshot allowlist. The export considers at most the
+32 most recent committed positive-rollout publications for all seven target
+coordinates, ordered by descending sequence at or below the observed head.
+A positive head takes one position in that window. Zero-rollout rows, including
+halts, take none. Within the window the export keeps the newest occurrence of
+each canonical manifest digest. The export skips entries that fail current
+v3 artifact trust, compatibility, or stored hash checks. Duplicates and
+rejected entries leave unused positions. Once a publication falls outside
+the window, its digest is eligible only if it also occurs inside the window.
+
+Each admitted artifact contains the canonical manifest digest, exact envelope
+digest, and exact envelope bytes. The list starts with the positive head when
+present, then follows descending publication sequence. Artifacts from the
+prior positive rollout can remain eligible after a halt.
+
+`valid_until_unix` is the earliest exclusive expiry among the roots used to
+verify the head and all admitted artifacts. `nil` means those roots have no
+configured expiry. The lease writer must apply the short lease cap and fence
+the read against head, enrollment, and trust changes before updating the
+pointer. Serving an issued snapshot during a database outage requires the
+separate delivery runtime.
+
+Run the live Phoenix and PostgreSQL replay with the locked dependencies
+available and loopback ports 5432 and 47301 free.
+
+```sh
+cd hosted
+sh scripts/replay-local-release-target-registry.sh export
+```
+
 ## Replay with a disposable signed fixture
 
 Run the configuration and effective-listener checks from `hosted/`.
