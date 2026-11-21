@@ -209,6 +209,16 @@ stopped at the Foundation import, and the installed owned VM rejected the
 full WASI module at its size check before any session started. Installed
 editor parity remains open. [EntryEditor boundary](verification/receipts/fieldlog-entry-editor-blank-commit-v74.json)
 
+The v74 host replay compiled the same FieldLog save decision into native Swift
+and a signed Embedded Swift Guest UI V1. A blank restored draft launched no
+save effect. Malformed date text kept **Check entry** available, and correcting
+the date restored eligibility through the same action and selection lease.
+Switching drafts revoked the old lease. The reopened workspace and attachment
+bytes matched, and all three owners retired. The installed guest's durable
+Commit and mobile execution remain open.
+[Shared decision](verification/receipts/fieldlog-entry-save-decision-v74.json) ·
+[Date recovery](verification/receipts/fieldlog-entry-save-invalid-date-v74.json)
+
 The hosted v74 Android job stopped at debug export when its observer
 rejected an inner receipt directory. The job retained the exact scratch
 and recorded unresolved custody. [Hosted hold](verification/receipts/hosted-v74-android-debug-export-custody-hold-44863139576.json)
