@@ -296,6 +296,14 @@ same 558 hosted paths under the original six-minute collector limit, left
 the sparse source unchanged, and removed owned scratch.
 [Services replay](verification/receipts/hosted-v79-services-collector-final.json)
 
+All three hosted v79 workflows passed at `34a165c878`. Phoenix ran 1,027
+tests with 32 skips and verified the unchanged 435-file archive. Identity
+Network passed both configured production-path methods. Services ran all 317
+checks in each Python mode in about 205 seconds, then passed Go module
+verification, vet, and race tests. Owned Engine passed all nine jobs, including
+both creates and six Intel Android Java consumers.
+[Hosted v79 receipt](verification/receipts/hosted-v79-terminal-34a165c8.json)
+
 Hosted v80 pins the four reviewed console files and the author receipt for
 saved promotion links. The author reopened the same iOS sequence 3 and
 Android sequence 12 records after both release heads advanced. Root passed
