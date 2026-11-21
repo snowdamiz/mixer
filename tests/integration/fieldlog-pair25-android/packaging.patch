@@ -1,0 +1,821 @@
+diff --git a/Integrations/GeneratedReport/scripts/build-android.py b/Integrations/GeneratedReport/scripts/build-android.py
+index dedbbea..f20a796 100644
+--- a/Integrations/GeneratedReport/scripts/build-android.py
++++ b/Integrations/GeneratedReport/scripts/build-android.py
+@@ -3,0 +4 @@ import argparse
++import hashlib
+@@ -15,0 +17,14 @@ LOCAL_MIXER_PIN = "5dea19db36610e312b51918b384364ba590b6ef8"
++PAIR25_RESEALED_REVISION = "857e4b4aa7a32cda368257b2be1a63e77106bed8"
++PAIR25_RESEALED_FINGERPRINT = "5d467c65cf58917ab499840226bb5ae577fbae3cd063577985555141d131e92a"
++PAIR25_PINS = {
++    PAIR25_RESEALED_REVISION: "faf0902a82ffc7acb2ddde9c6dca24002f959c3d",
++}
++PAIR25_PROFILE = {
++    "id": "mixer.android-source-pair.25",
++    "sdk_compatibility_sha256": "0d030f8bba31045d58ddf1b2def3a5541efc1a15295d93e565405b77965861d8",
++    "adapter_compatibility_sha256": "2262a2c8945476c98a98fd809a26f124181b2104337a71b10595af3bc9f19531",
++    "default_descriptor": {
++        "bytes": 9587,
++        "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3",
++    },
++}
+@@ -69,0 +85,37 @@ def install_app_inputs(output, files, modules):
++def admit_sdk(sdk, adapter):
++    def git(*command):
++        return subprocess.check_output(
++            ["git", "--no-optional-locks", "-C", str(sdk), *command],
++            text=True, timeout=15).strip()
++
++    revision = git("rev-parse", "HEAD")
++    if (revision not in {PIN, LOCAL_MIXER_PIN, *PAIR25_PINS}
++            or git("rev-parse", "--show-toplevel") != str(sdk)
++            or git("status", "--porcelain", "--untracked-files=all")):
++        pins = ", ".join((PIN, LOCAL_MIXER_PIN, *PAIR25_PINS))
++        raise ValueError(f"SDK must be a clean checkout at a supported revision: {pins}")
++    if revision not in PAIR25_PINS:
++        return False
++    if git("rev-parse", "HEAD^{tree}") != PAIR25_PINS[revision] or adapter != sdk / "native/android":
++        raise ValueError("Pair25 requires the pinned public Mixer tree and its own Android adapter")
++    return revision
++
++
++def verify_pair25_projection(project, sdk, revision=None):
++    lock = json.loads((project / "mixer.lock").read_bytes())
++    if lock.get("android", {}).get("profile") != PAIR25_PROFILE:
++        raise ValueError("Generated Android lock differs from the pinned Pair25 profile")
++    expected = PAIR25_PROFILE["default_descriptor"]
++    descriptor = (project / "Generated/MixerAndroid/app/assets/MixerAppearanceV2/descriptor.json").read_bytes()
++    if len(descriptor) != expected["bytes"] or hashlib.sha256(descriptor).hexdigest() != expected["sha256"]:
++        raise ValueError("Generated appearance descriptor differs from the pinned Pair25 input")
++    if (project / "Generated/MixerSDK/Package.resolved").read_bytes() != (sdk / "sdk/Package.resolved").read_bytes():
++        raise ValueError("Generated Swift dependency lock differs from the pinned SDK")
++    if revision == PAIR25_RESEALED_REVISION:
++        source = Path("Sources/MixerCapabilities/GeneratedIdentity.swift")
++        expected = (sdk / "sdk" / source).read_bytes()
++        if (PAIR25_RESEALED_FINGERPRINT.encode() not in expected
++                or (project / "Generated/MixerSDK" / source).read_bytes() != expected):
++            raise ValueError("Generated Swift native capability identity differs from the pinned Pair25 SDK")
++
++
+@@ -94,8 +146,4 @@ def main():
+-    for command, expected in ((["rev-parse", "HEAD"], {PIN, LOCAL_MIXER_PIN}),
+-                              (["rev-parse", "--show-toplevel"], {str(sdk)}),
+-                              (["status", "--porcelain"], {""})):
+-        observed = subprocess.check_output(
+-            ["git", "--no-optional-locks", "-C", str(sdk), *command],
+-            text=True, timeout=15).strip()
+-        if observed not in expected:
+-            parser.error(f"SDK must be a clean checkout at {PIN} or {LOCAL_MIXER_PIN}")
++    try:
++        pair25 = admit_sdk(sdk, adapter)
++    except ValueError as error:
++        parser.error(str(error))
+@@ -142,0 +191,8 @@ def main():
++    if pair25 == PAIR25_RESEALED_REVISION:
++        run("version", [mixer, "version"])
++        if json.loads((logs / "version.log").read_bytes()) != {"status": "ok", "detail": "0.1.0-dev"}:
++            raise ValueError("Unexpected Mixer CLI version for the published Pair25 checkout")
++        run("native-preimage", [sys.executable, "-B", sdk / "capabilities/tools/export-native-preimage.py", "--check"])
++        preimage = json.loads((logs / "native-preimage.log").read_bytes())
++        if (preimage["nativeImplementationSHA256"], preimage["sources"]) != (PAIR25_RESEALED_FINGERPRINT, 18):
++            raise ValueError("Unexpected generated native capability fingerprint or source count")
+@@ -146,0 +203,4 @@ def main():
++    if pair25:
++        if admit_sdk(sdk, adapter) != pair25:
++            raise ValueError("Pair25 SDK revision changed during project creation")
++        verify_pair25_projection(output, sdk, pair25)
+diff --git a/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py b/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
+index 73442c4..d225d6a 100644
+--- a/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
++++ b/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
+@@ -86,0 +87,12 @@ def run(env, *args):
++SIGNER_PASSWORD = "FIELDLOG_LOCAL_APK_PASSWORD"
++
++
++def local_development_signer(work, java_home, env):
++    key = work / "development.p12"
++    signing = env | {SIGNER_PASSWORD: os.urandom(24).hex()}
++    run(signing, java_home / "bin/keytool", "-genkeypair", "-storetype", "PKCS12", "-keystore", key,
++        "-alias", "fieldlog-local", "-storepass:env", SIGNER_PASSWORD, "-keypass:env", SIGNER_PASSWORD,
++        "-keyalg", "EC", "-groupname", "secp256r1", "-validity", "30", "-dname", "CN=FieldLog Local Development")
++    return key, signing
++
++
+@@ -180,7 +192,9 @@ def build(args):
+-        key = work / "development.p12"
+-        password = "FIELDLOG_LOCAL_APK_PASSWORD"
+-        signing = env | {password: os.urandom(24).hex()}
+-        run(signing, args.java_home / "bin/keytool", "-genkeypair", "-storetype", "PKCS12", "-keystore", key,
+-            "-alias", "fieldlog-local", "-storepass:env", password, "-keypass:env", password,
+-            "-keyalg", "EC", "-groupname", "secp256r1", "-validity", "30", "-dname", "CN=FieldLog Local Development")
+-        run(signing, tools / "apksigner", "sign", "--ks", key, "--ks-pass", f"env:{password}",
++        key = args.development_keystore
++        if key is None:
++            key, signing = local_development_signer(work, args.java_home, env)
++        else:
++            if key.is_symlink() or not key.is_file() or SIGNER_PASSWORD not in env:
++                raise ValueError("Expected a private development keystore and local password environment")
++            signing = env
++        run(signing, tools / "apksigner", "sign", "--ks", key, "--ks-key-alias", "fieldlog-local",
++            "--ks-pass", f"env:{SIGNER_PASSWORD}",
+@@ -221,0 +236,2 @@ def main():
++    parser.add_argument("--development-keystore", type=Path,
++                        help="Ephemeral development signer whose certificate is bound before sealing")
+diff --git a/Integrations/GeneratedReport/scripts/pair25/SealEntryCommit.swift b/Integrations/GeneratedReport/scripts/pair25/SealEntryCommit.swift
+new file mode 100644
+index 0000000..4b1fc59
+--- /dev/null
++++ b/Integrations/GeneratedReport/scripts/pair25/SealEntryCommit.swift
+@@ -0,0 +1,152 @@
++import CryptoKit
++import Foundation
++import MixerCapabilities
++import MixerRuntimeIdentity
++import MixerUpdates
++
++@main
++struct SealEntryCommit {
++    static func main() throws {
++        let arguments = Array(CommandLine.arguments.dropFirst())
++        if arguments.count == 2, arguments[0] == "verify" {
++            try verify(URL(fileURLWithPath: arguments[1]))
++            return
++        }
++        guard arguments.count == 5, arguments[0] == "seal" else {
++            throw UpdateError("fieldlog.arguments", "Expected seal REFERENCE BINDING GUEST INSTALLED or verify INSTALLED")
++        }
++        let reference = URL(fileURLWithPath: arguments[1])
++        let binding = URL(fileURLWithPath: arguments[2])
++        let guest = URL(fileURLWithPath: arguments[3])
++        let installed = URL(fileURLWithPath: arguments[4])
++        try seal(reference: reference, binding: binding, guest: guest, installed: installed)
++        try verify(installed)
++    }
++
++    private static func seal(reference: URL, binding: URL, guest: URL, installed: URL) throws {
++        let template = reference.appendingPathComponent("Installed")
++        let prior = try CapabilityRuntimeIdentity(json: read(template, "identity.json"))
++        let scope = prior.installedRuntime.scope
++        let value = try object(Data(contentsOf: binding))
++        guard scope == UpdateScope(organization: "mixer-local", project: "fieldlog", app: "fieldlog",
++                                  environment: "development", platform: "android"),
++              var identity = prior.descriptor.object, var build = identity["build"]?.object,
++              var limits = identity["capability_execution"]?.object,
++              case let .array(dependencies)? = identity["dependencies"],
++              case let .array(capabilities)? = identity["capabilities"], capabilities.count == 1,
++              var storage = capabilities.first?.object, storage["id"] == .text("storage.keyValue.v1"),
++              let buildBinding = value["build"]?.object, let engineBinding = value["engine"]?.object,
++              var engine = identity["engine"]?.object,
++              let compiler = value["toolchain"]?.object,
++              let revision = engineBinding["version"]?.text,
++              var manifest = try object(read(reference, "baseline.manifest.json"))["manifest"]?.object,
++              case let .array(grants)? = manifest["capability_grants"]?.object?["entries"],
++              grants == [try StrictJSON.decode(CanonicalValue.self, from: read(template, "storage-grant.json"))]
++        else { throw UpdateError("fieldlog.binding", "Invalid Android entry Commit fixture inputs") }
++
++        let encoder = JSONEncoder()
++        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
++        let secret = Curve25519.Signing.PrivateKey()
++        let keyID = "fieldlog-android-entry-commit-local"
++        let roots = [TrustRoot(keyID: keyID, publicKey: secret.publicKey.rawRepresentation,
++            scope: scope, artifact: true, assignment: true, notBeforeUnix: 1)]
++        let rootsBytes = try encoder.encode(roots)
++        build.merge(buildBinding) { _, new in new }
++        // Describe the exact linked SDK for this development packet.
++        let nativeIdentity = CanonicalValue.text(CapabilityNativeIdentity.sha256)
++        build["generated_bridge_sha256"] = nativeIdentity
++        storage["native_sha256"] = nativeIdentity
++        identity["capabilities"] = .array([.object(storage)])
++        build["trust_roots_sha256"] = .text(ReleaseVerifier.sha256(rootsBytes))
++        limits["maximum_requests"] = .uint(2)
++        limits["reservation_bytes"] = .uint(2_097_152)
++        identity["build"] = .object(build)
++        engine.merge(engineBinding) { _, new in new }
++        identity["engine"] = .object(engine)
++        identity["toolchain"] = .object(compiler)
++        identity["capability_execution"] = .object(limits)
++        identity["dependencies"] = .array(dependencies.filter {
++            $0.object?["id"]?.text != "mixer.guest-ui-deferred-startup-v1"
++        })
++        let identityBytes = try encoder.encode(CanonicalValue.object(identity))
++        let runtime = try CapabilityRuntimeIdentity(json: identityBytes).installedRuntime
++
++        let payload = try Data(contentsOf: guest)
++        guard !payload.isEmpty, payload.count <= 8192 else {
++            throw UpdateError("fieldlog.payload", "Expected the bounded single-put entry Commit guest")
++        }
++        let now = UInt64(Date().timeIntervalSince1970)
++        let release = "fieldlog-android-entry-commit"
++        let size = CanonicalValue.uint(UInt64(payload.count))
++        manifest["release_id"] = .text(release)
++        manifest["source_commit"] = .text(revision)
++        manifest["provenance_id"] = .text("fieldlog-android-local-" + String(runtime.runtime.prefix(24)))
++        manifest["runtime"] = .text(runtime.runtime)
++        manifest["capability_hashes"] = .object(runtime.capabilityHashes.mapValues(CanonicalValue.text))
++        manifest["payload_sha256"] = .text(ReleaseVerifier.sha256(payload))
++        manifest["compressed_bytes"] = size
++        manifest["expanded_bytes"] = size
++        manifest["key_id"] = .text(keyID)
++        manifest["created_at_unix"] = .uint(now)
++
++        func signed(_ body: CanonicalValue, field: String, domain: String) throws -> Data {
++            let signature = try secret.signature(for: Data("mixer.\(domain).v3\0".utf8) + body.canonicalCBOR())
++            return try encoder.encode(CanonicalValue.object([
++                field: body, "signature": .text(signature.base64EncodedString()),
++            ]))
++        }
++        let manifestValue = CanonicalValue.object(manifest)
++        let scopeValue = try StrictJSON.decode(CanonicalValue.self, from: encoder.encode(scope))
++        let assignment = CanonicalValue.object([
++            "schema": .uint(3), "scope": scopeValue, "channel": .text("beta"), "cohort": .text("sha256-v1"),
++            "rollout_basis_points": .uint(10_000), "sequence": .uint(1), "release_id": .text(release),
++            "artifact_sha256": .text(ReleaseVerifier.sha256(try manifestValue.canonicalCBOR())),
++            "runtime": .text(runtime.runtime), "key_id": .text(keyID), "created_at_unix": .uint(now),
++        ])
++        let files = try [
++            "identity.json": identityBytes, "roots.json": rootsBytes,
++            "bridge.json": read(template, "bridge.json"), "port.txt": read(template, "port.txt"),
++            "storage.json": read(template, "storage.json"), "storage-grant.json": read(template, "storage-grant.json"),
++            "entry-commit-v1.txt": Data("fieldlog-entry-commit-v1\n".utf8),
++            "entry-commit.wasm": payload,
++            "entry-commit.manifest.json": signed(manifestValue, field: "manifest", domain: "artifact"),
++            "entry-commit.assignment.json": signed(assignment, field: "assignment", domain: "assignment"),
++        ]
++        for (name, bytes) in files {
++            try bytes.write(to: installed.appendingPathComponent(name), options: .withoutOverwriting)
++        }
++    }
++
++    private static func verify(_ installed: URL) throws {
++        let identity = try CapabilityRuntimeIdentity(json: read(installed, "identity.json"))
++        let runtime = identity.installedRuntime
++        let rootsBytes = try read(installed, "roots.json")
++        guard identity.capabilityExecution.maximumRequests == 2,
++              identity.capabilityExecution.reservationBytes == 2_097_152,
++              identity.capabilities.count == 1,
++              identity.capabilities.first?.nativeSHA256 == CapabilityNativeIdentity.sha256,
++              identity.descriptor.object?["build"]?.object?["generated_bridge_sha256"] == .text(CapabilityNativeIdentity.sha256),
++              identity.descriptor.object?["build"]?.object?["trust_roots_sha256"] == .text(ReleaseVerifier.sha256(rootsBytes))
++        else { throw UpdateError("fieldlog.policy", "Unexpected capability limits or trust roots") }
++
++        let roots = try StrictJSON.decode([TrustRoot].self, from: rootsBytes)
++        let verifier = try ReleaseVerifierV3(host: runtime, roots: roots)
++        let now = UInt64(Date().timeIntervalSince1970)
++        let artifact = try verifier.verifyArtifact(signedManifest: read(installed, "entry-commit.manifest.json"),
++            payload: read(installed, "entry-commit.wasm"), now: now)
++        _ = try verifier.verifyAssignment(signedAssignment: read(installed, "entry-commit.assignment.json"),
++            artifact: artifact, channel: "beta", installation: "fieldlog-android-local", lastSequence: 0, now: now)
++        print(runtime.runtime)
++    }
++
++    private static func object(_ bytes: Data) throws -> [String: CanonicalValue] {
++        guard let result = try StrictJSON.decode(CanonicalValue.self, from: bytes).object else {
++            throw UpdateError("fieldlog.object", "Expected a JSON object")
++        }
++        return result
++    }
++
++    private static func read(_ directory: URL, _ name: String) throws -> Data {
++        try Data(contentsOf: directory.appendingPathComponent(name))
++    }
++}
+diff --git a/Integrations/GeneratedReport/scripts/pair25/SealPackage.swift b/Integrations/GeneratedReport/scripts/pair25/SealPackage.swift
+new file mode 100644
+index 0000000..ac67786
+--- /dev/null
++++ b/Integrations/GeneratedReport/scripts/pair25/SealPackage.swift
+@@ -0,0 +1,20 @@
++// swift-tools-version: 6.2
++import PackageDescription
++
++let package = Package(
++    name: "FieldLogEntryCommitSeal",
++    platforms: [.macOS(.v14)],
++    dependencies: [
++        .package(path: "../mixer/updates"),
++        .package(path: "../mixer/sdk"),
++        .package(path: "../mixer/runtime-identity"),
++    ],
++    targets: [
++        .executableTarget(name: "FieldLogEntryCommitSeal", dependencies: [
++            .product(name: "MixerUpdates", package: "updates"),
++            .product(name: "MixerCapabilities", package: "sdk"),
++            .product(name: "MixerRuntimeIdentity", package: "runtime-identity"),
++        ]),
++    ],
++    swiftLanguageModes: [.v6]
++)
+diff --git a/Integrations/GeneratedReport/scripts/pair25/build-payload.zsh b/Integrations/GeneratedReport/scripts/pair25/build-payload.zsh
+new file mode 100644
+index 0000000..cee57c0
+--- /dev/null
++++ b/Integrations/GeneratedReport/scripts/pair25/build-payload.zsh
+@@ -0,0 +1,56 @@
++#!/bin/zsh
++# Build the FieldLog entry Commit fixture using the pinned public Pair25 checkout.
++set -eu
++if (( $# != 2 )); then
++    print -u2 'Usage: build-payload.zsh WORK PREPARED_PROJECT'
++    exit 2
++fi
++work=${1:A}
++project=${2:A}
++cd "$work"
++recipe="$work/mixer/tests/integration/fieldlog-saved-draft/android/recipe"
++source "$recipe/offline-swiftpm.zsh"
++export TMPDIR="$work/tmp"
++export DEVELOPER_DIR=${FIELDLOG_XCODE:-/Applications/Xcode_26.6.app/Contents/Developer}
++export SDKROOT="$DEVELOPER_DIR/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk"
++export CLANG_MODULE_CACHE_PATH="$work/android-clang-cache"
++export SWIFTPM_MODULECACHE_OVERRIDE="$work/android-module-cache"
++sdk=${ANDROID_HOME:-/opt/homebrew/share/android-commandlinetools}
++ndk="$sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/bin"
++swift="${MIXER_SWIFT:-$HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift}"
++
++generated="$work/fieldlog/Integrations/GeneratedReport"
++app="$generated/Platforms/Android"
++binding="$work/mixer/native/android/signed-guest-ui/binding/include"
++transport="$work/mixer/native/android/signed-guest-ui/transport"
++host="$work/mixer/verification/android-binding-stage4/host-bridge"
++engine="$work/android-engine"
++python3 -B "${0:A:h}/verify-pair25.py" "$work" "$project"
++mkdir android-package jni
++mkdir -p android-package/Sources/FieldLogAndroid
++cp "$recipe/Package.swift" "$recipe/Package.resolved" android-package/
++cmp "$work/mixer/sdk/Package.resolved" "$project/Generated/MixerSDK/Package.resolved"
++diff -qr "$work/mixer/sdk/Sources" "$project/Generated/MixerSDK/Sources"
++for module in FieldLogModels FieldLogStorage FieldLogFeatures; do
++    ln -s "$generated/Sources/$module" "android-package/Sources/$module"
++done
++ln -s "$work/fieldlog/Integrations/InstalledGuest" android-package/Sources/FieldLogInstalledGuest
++for source in NativeEntry.swift PublicFactory.swift SignedChecklist.swift SignedEntryCommit.swift; do
++    ln -s "$generated/Sources/FieldLogAndroid/$source" "android-package/Sources/FieldLogAndroid/$source"
++done
++
++objects=()
++for source in "$transport/transport.c" "$transport/platform_android.c" "$app/Bridge/PublicBridge.c" "$app/Bridge/ChecklistBridge.c"; do
++    object="$work/jni/${source:t:r}.o"
++    "$ndk/aarch64-linux-android28-clang" -fPIC -std=gnu11 -Wall -Wextra -Werror -I"$binding" -I"$host" -c "$source" -o "$object"
++    objects+=(-Xlinker "$object")
++done
++"$swift" build --package-path "$work/android-package" --scratch-path "$work/android-build" \
++    --cache-path "$work/android-cache" --config-path "$work/android-config" --security-path "$work/android-security" \
++    --disable-dependency-cache --disable-prefetching --skip-update --force-resolved-versions \
++    --swift-sdk aarch64-unknown-linux-android28 --jobs 8 --disable-index-store --build-system native --verbose \
++    --product mixer_public_android_jni -Xswiftc -DFIELDLOG_SIGNED_CHECKLIST -Xswiftc -DFIELDLOG_ENTRY_COMMIT_FIXTURE \
++    -Xswiftc -gnone -Xcc -g0 -Xcc "-I$app/Bridge" -Xcc "-I$engine/include" -Xcc "-I$binding" -Xcc "-I$host" \
++    -Xlinker "-L$engine/lib" "${objects[@]}" -Xlinker -landroid -Xlinker -llog -Xlinker -z -Xlinker defs \
++    -Xlinker -z -Xlinker max-page-size=16384
++cp "$work/android-build/aarch64-unknown-linux-android28/debug/libmixer_public_android_jni.so" "$work/jni/"
+diff --git a/Integrations/GeneratedReport/scripts/pair25/build-products.py b/Integrations/GeneratedReport/scripts/pair25/build-products.py
+new file mode 100644
+index 0000000..e94e8ff
+--- /dev/null
++++ b/Integrations/GeneratedReport/scripts/pair25/build-products.py
+@@ -0,0 +1,127 @@
++#!/usr/bin/env python3
++"""Build and identify the FieldLog Java or native Pair25 fixture products."""
++import argparse
++import hashlib
++import json
++import os
++from pathlib import Path
++import runpy
++import subprocess
++
++HERE = Path(__file__).resolve().parent
++PAIR25 = runpy.run_path(str(HERE / "verify-pair25.py"))
++ADMISSION = PAIR25["admission"]
++RECIPE = "tests/integration/fieldlog-saved-draft/android/recipe"
++ANDROID_PACKAGE = "Integrations/GeneratedReport/Platforms/Android"
++ABI = "aarch64-unknown-linux-android28"
++VM_ARCHIVE = "android-engine/lib/libmixer_vm_capability_experimental.a"
++PRODUCTS = {
++    "java": (
++        "java/dex/classes.dex", "java/manifest.apk", "java/AndroidManifest.xml",
++        "java/jni/dev_fieldlog_generatedr90_androidhost_PublicActivity_ChecklistPanel.h",
++    ),
++    "jni": (
++        "jni/libmixer_public_android_jni.so", "jni/PublicBridge.o", "jni/ChecklistBridge.o",
++        "jni/transport.o", "jni/platform_android.o", "android-package/Package.swift", "android-package/Package.resolved",
++    ),
++}
++
++
++def digest(path):
++    if not path.is_file() or path.is_symlink():
++        raise ValueError(f"Expected a regular build input: {path}")
++    with path.open("rb") as stream:
++        return hashlib.file_digest(stream, "sha256").hexdigest()
++
++
++def git(root, *arguments):
++    return subprocess.check_output(
++        ["git", "--no-optional-locks", "-C", root, *arguments], text=True, timeout=15).strip()
++
++
++def generated_java(work, project):
++    path = "app/src/dev/mixer/android"
++    generated = project / "Generated/MixerAndroid" / path
++    pinned = work / "mixer/native/android" / path
++    exclusions = {"MixerActivity.java", "AdapterInstrumentation.java",
++                  "AppearanceDescriptorV1.java", "AppearanceResolutionV1.java"}
++    expected = {source.name: digest(source) for source in pinned.glob("*.java") if source.name not in exclusions}
++    actual = {source.name: digest(source) for source in generated.glob("*.java") if source.name != "MixerActivity.java"}
++    if actual != expected:
++        raise ValueError("Prepared public-host Java sources differ from the pinned Pair25 adapter")
++    return actual
++
++
++def build_inputs(kind, work, project):
++    revision = PAIR25["verify"](work, project)
++    fieldlog = work / "fieldlog"
++    if (HERE != fieldlog / "Integrations/GeneratedReport/scripts/pair25"
++            or git(fieldlog, "diff", "--name-only")
++            or git(fieldlog, "ls-files", "--others", "--exclude-standard")):
++        raise ValueError("Build from the staged FieldLog tree without working-copy changes")
++    inputs = {
++        "mixerRevision": revision, "mixerTree": ADMISSION["PAIR25_PINS"][revision],
++        "fieldLogTree": git(fieldlog, "write-tree"), "projectLockSHA256": digest(project / "mixer.lock"),
++    }
++    if revision == ADMISSION["PAIR25_RESEALED_REVISION"]:
++        inputs["capabilityFingerprint"] = ADMISSION["PAIR25_RESEALED_FINGERPRINT"]
++    if kind == "java":
++        inputs["generatedJavaSHA256"] = generated_java(work, project)
++        # The maintained recipe compiles every Java file in the app-owned host directory.
++        java = ANDROID_PACKAGE + "/Java/dev/fieldlog/generatedr90/androidhost"
++        tracked = git(fieldlog, "ls-files", "--", java).splitlines()
++        actual = sorted(path.relative_to(fieldlog).as_posix() for path in (fieldlog / java).glob("*.java"))
++        if actual != tracked:
++            raise ValueError("Unexpected FieldLog Java inputs")
++    else:
++        receipt = json.loads((work / "android-engine/receipt.json").read_bytes())
++        sha = digest(work / VM_ARCHIVE)
++        if (receipt["source_revision"] != inputs["mixerRevision"]
++                or receipt["rust_target"] != "aarch64-linux-android" or receipt["library"]["sha256"] != sha):
++            raise ValueError("Android VM archive differs from the pinned producer receipt")
++        inputs["vmArchiveSHA256"] = sha
++    return inputs
++
++
++def outputs(kind, work):
++    return {name: digest(work / name) for name in PRODUCTS[kind]}
++
++
++def receipt_path(kind, work):
++    return work / kind / "pair25-product.json"
++
++
++def verify_products(work, project):
++    result = {}
++    for kind in PRODUCTS:
++        receipt = json.loads(receipt_path(kind, work).read_bytes())
++        if receipt != {"inputs": build_inputs(kind, work, project), "outputs": outputs(kind, work)}:
++            raise ValueError(f"Pair25 {kind} products differ from their build receipt")
++        result[kind] = digest(receipt_path(kind, work))
++    return result
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("kind", choices=PRODUCTS)
++    parser.add_argument("work", type=Path)
++    parser.add_argument("project", type=Path)
++    args = parser.parse_args()
++    kind, work, project = args.kind, args.work.resolve(strict=True), args.project.resolve(strict=True)
++    inputs = build_inputs(kind, work, project)
++    if (work / kind).exists() or (kind == "jni" and (work / "android-build").exists()):
++        raise ValueError("Pair25 requires a fresh producer output and build cache")
++    if kind == "java":
++        command = [work / "mixer" / RECIPE / "build-java.zsh", work / "fieldlog", project, work / "java"]
++    else:
++        command = [HERE / "build-payload.zsh", work, project]
++    subprocess.run(["/bin/zsh", "-f", *command], cwd=work, env=os.environ, check=True)
++    if build_inputs(kind, work, project) != inputs:
++        raise ValueError("Pair25 inputs changed during the build")
++    with receipt_path(kind, work).open("x") as stream:
++        json.dump({"inputs": inputs, "outputs": outputs(kind, work)}, stream, indent=2, sort_keys=True)
++        stream.write("\n")
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py b/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py
+new file mode 100644
+index 0000000..7187432
+--- /dev/null
++++ b/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py
+@@ -0,0 +1,280 @@
++#!/usr/bin/env python3
++"""Seal the local FieldLog entry Commit fixture from the Pair25 Android build products."""
++import argparse
++import hashlib
++import json
++import os
++from pathlib import Path
++import re
++import runpy
++import subprocess
++import sys
++import tempfile
++import zipfile
++
++HERE = Path(__file__).resolve().parent
++PRODUCERS = runpy.run_path(str(HERE / "build-products.py"))
++ADMISSION = PRODUCERS["ADMISSION"]
++APP_ID = "dev.fieldlog.generatedr90"
++ASSETS = "assets/ChecklistRelease/"
++APPEARANCE = "assets/MixerAppearanceV2/descriptor.json"
++JNI = "libmixer_public_android_jni.so"
++PAYLOAD_BYTES = 7606
++PAYLOAD_SHA256 = "ec233c0a998e12543e306e9bc051fe7eb779bc78e592e443a5867645c540e4e4"
++REFERENCE_PINS = {
++    "Installed/bridge.json": "6f05eb3fa8780ee6102d181b0710765214e51168b1429c52dd10dfd1b96873e5",
++    "Installed/identity.json": "c50ed73f0cac8637072145126be747b85afa866f29702980a01600191209a1d4",
++    "Installed/port.txt": "7fca5d6fb48cc8ce3d27ffb4d179bef3cf6f24a59e1dabddfc1f7964e15ee5b3",
++    "Installed/storage-grant.json": "f630fb1bca6042918d6c29b88027dd8c8da28771599469aee06ff3cd5a3789be",
++    "Installed/storage.json": "a5946bce4d20c315896cac254404f5fd2910b39e7982ba53744592d5d6e84f67",
++    "baseline.manifest.json": "981c4b7dc99c9c8d292ca16b969090edfa1433a702a9a183f41cc7461edaf536",
++}
++
++
++def digest(path):
++    with path.open("rb") as stream:
++        return hashlib.file_digest(stream, "sha256").hexdigest()
++
++
++def hash_bytes(data):
++    return hashlib.sha256(data).hexdigest()
++
++
++def encoded(value):
++    return json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
++
++
++def require(condition, message):
++    if not condition:
++        raise ValueError(message)
++
++
++def capture(*command, env=None):
++    return subprocess.check_output(command, env=env, text=True, stderr=subprocess.STDOUT, timeout=90).strip()
++
++
++def read_zip(path):
++    with zipfile.ZipFile(path) as archive:
++        names = archive.namelist()
++        require(len(set(names)) == len(names), f"Duplicate ZIP entry in {path.name}")
++        return {name: hash_bytes(archive.read(name)) for name in names}
++
++
++def write_json(path, value):
++    path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
++
++
++def assemble(work, project, destination, stage):
++    receipts = PRODUCERS["verify_products"](work, project)
++    fieldlog = work / "fieldlog"
++    mixer = work / "mixer"
++    fieldlog_tree = PRODUCERS["git"](fieldlog, "write-tree")
++    origin = mixer / "tests/integration/fieldlog-saved-draft/android/reference"
++    for name, expected in REFERENCE_PINS.items():
++        require(digest(origin / name) == expected, f"Historical template checksum differs: {name}")
++
++    sdk = Path(os.environ.get("ANDROID_HOME", "/opt/homebrew/share/android-commandlinetools"))
++    jdk = Path(os.environ.get("MIXER_JDK", "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home"))
++    swift_sdk_search = Path(os.environ.get("MIXER_SWIFT_SDKS_PATH", str(Path.home() / "Library/org.swift.swiftpm/swift-sdks")))
++    swift_sdk = swift_sdk_search / "swift-6.3.3-RELEASE_android.artifactbundle/swift-android"
++    compiler = Path(os.environ.get("MIXER_SWIFT", str(Path.home() /
++        "Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift"))).with_name("swift-frontend")
++    tools = sdk / "build-tools/36.0.0"
++    ndk = sdk / "ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/bin"
++    env = os.environ | {"JAVA_HOME": str(jdk), "LC_ALL": "C"}
++    java, native = work / "java", work / "jni"
++    manifest, dex, jni = java / "manifest.apk", java / "dex/classes.dex", native / JNI
++    vm = work / "android-engine/lib/libmixer_vm_capability_experimental.a"
++    engine = json.loads((work / "android-engine/receipt.json").read_bytes())
++    revision = PRODUCERS["PAIR25"]["verify"](work, project)
++    require(engine["source_revision"] == revision and engine["target_selector"] == "android"
++            and engine["rust_target"] == "aarch64-linux-android" and engine["library"]["sha256"] == digest(vm),
++            "VM must be the Android archive from the exact Pair25 revision")
++
++    guest_path = "tests/integration/fieldlog-entry-save/apple-editor/build-guests.sh"
++    guest_output = stage / "guests"
++    tool_bin = Path(env.get("FIELDLOG_SWIFT_BIN", str(compiler.parent)))
++    capture("/bin/bash", mixer / guest_path, guest_output, env=env | {"FIELDLOG_SWIFT_BIN": str(tool_bin)})
++    guest = guest_output / "entry-commit.wasm"
++    second_guest_output = stage / "guest-replay" / "other"
++    second_guest_output.parent.mkdir()
++    capture("/bin/bash", mixer / guest_path, second_guest_output,
++            env=env | {"FIELDLOG_SWIFT_BIN": str(tool_bin)})
++    require((guest.stat().st_size, digest(guest)) == (PAYLOAD_BYTES, PAYLOAD_SHA256)
++            and guest.read_bytes() == (second_guest_output / guest.name).read_bytes(),
++            "Entry Commit differs from the published reproducible Wasm payload")
++    fingerprint = ADMISSION["PAIR25_RESEALED_FINGERPRINT"]
++    preimage = stage / "native-preimage.json"
++    log = json.loads(capture(sys.executable, "-B", mixer / "capabilities/tools/export-native-preimage.py",
++                             "--check", "--output", preimage))
++    require((log["sources"], log["nativeImplementationSHA256"], digest(preimage)) == (18, fingerprint, fingerprint),
++            "Native preimage differs from the published Pair25 checkout")
++    source_archive = work / "android-engine/source.tar"
++    require(digest(source_archive) == engine["source_archive_sha256"],
++            "VM source archive differs from the pinned producer receipt")
++    header = java / "jni/dev_fieldlog_generatedr90_androidhost_PublicActivity_ChecklistPanel.h"
++    declared = set(re.findall(r"JNICALL (Java_\w+)", header.read_text()))
++    symbols = {line.split()[-1] for line in capture(ndk / "llvm-nm", "--dynamic", "--defined-only", jni).splitlines()}
++    require(len(declared) == 5 and declared <= symbols and {"JNI_OnLoad", "mxis_guest_ui_witness"} <= symbols,
++            "Checklist JNI declarations or ordinary-load exports differ from the linked ELF")
++
++    descriptor = project / "Generated/MixerAndroid/app" / APPEARANCE
++    project_lock = project / "mixer.lock"
++    manifest_entries = read_zip(manifest)
++    app = HERE.parents[1]
++    recipe = mixer / "tests/integration/fieldlog-saved-draft/android/recipe"
++    settings = work / "android-package/Package.swift"
++    packager = app / "scripts/build-signed-checklist-android.py"
++    linked = {
++        "FieldLogTree": fieldlog_tree,
++        "MixerCommit": revision,
++        "MixerTree": ADMISSION["PAIR25_PINS"][revision],
++        "mixer.lock": digest(project_lock),
++        "nativeProducerReceiptsSHA256": receipts,
++        "descriptor.json": digest(descriptor),
++        "FieldLogSwiftPackage.swift": digest(settings),
++        "FieldLogSwiftPackage.resolved": digest(work / "android-package/Package.resolved"),
++        "bytecode/classes.dex": digest(dex),
++        "manifest.apk": digest(manifest),
++        "manifestEntries": manifest_entries,
++        "native/" + JNI: digest(jni),
++        "native/vm.a": digest(vm),
++        "native/vm-source.tar": digest(source_archive),
++        "native/capability-source-preimage": digest(preimage),
++        "guest/entry-commit.wasm": digest(guest),
++        "guest/build-guests.sh": digest(mixer / guest_path),
++        "guest/embedded-swiftc": digest((tool_bin / "swiftc").resolve(strict=True)),
++        "guest/wasm-ld": digest((tool_bin / "wasm-ld").resolve(strict=True)),
++        "recipe/build-java.zsh": digest(recipe / "build-java.zsh"),
++        "recipe/manifest.py": digest(recipe / "manifest.py"),
++        "recipe/packager": digest(packager),
++        "policy/compiledManifestSource.xml": digest(java / "AndroidManifest.xml"),
++        "policy/checklist_network.xml": digest(app / "Platforms/Android/res/xml/checklist_network.xml"),
++    }
++    for name in ("PublicBridge.o", "ChecklistBridge.o", "transport.o", "platform_android.o"):
++        linked["native/" + name] = digest(native / name)
++
++    require(fingerprint.encode() in jni.read_bytes(), "Linked JNI lacks the published native capability identity")
++    signing = runpy.run_path(str(packager))
++    key, env = signing["local_development_signer"](stage, jdk, env)
++    certificate = subprocess.check_output([
++        jdk / "bin/keytool", "-exportcert", "-keystore", key, "-alias", "fieldlog-local",
++        "-storepass:env", signing["SIGNER_PASSWORD"],
++    ], env=env, timeout=30)
++    linked["apkSignerCertificateSHA256"] = hash_bytes(certificate)
++    linked["nativeCapabilityFingerprint"] = fingerprint
++    entry = Path(guest_path).parent.parent
++    draft = entry.parent / "fieldlog-saved-draft/guest"
++    linked["guestSourceSHA256"] = {
++        path.as_posix(): digest(mixer / path)
++        for path in (entry / "Guest.swift", entry / "EntrySaveDecision.swift",
++                     draft / "CapabilityImports.c", draft / "TaskWire.swift")
++    }
++    linked["installedLeafSHA256"] = {
++        Path(name).name: checksum for name, checksum in REFERENCE_PINS.items()
++        if name.startswith("Installed/") and name != "Installed/identity.json"
++    }
++    linked["installedLeafSHA256"]["entry-commit-v1.txt"] = hash_bytes(b"fieldlog-entry-commit-v1\n")
++    linked["installedLeafSHA256"]["entry-commit.wasm"] = linked["guest/entry-commit.wasm"]
++    apk_signing_args = ["--development-keystore", key]
++
++    fallback = capture("git", "-C", fieldlog, "ls-tree", "-r", fieldlog_tree,
++                       "Integrations/GeneratedReport/Platforms/Android",
++                       "Integrations/GeneratedReport/Sources", "Integrations/InstalledGuest")
++    binding = {
++        "engine": {"version": revision, "source_sha256": engine["source_manifest_sha256"], "artifact_sha256": digest(vm)},
++        "build": {
++            "settings_sha256": digest(settings),
++            "link_inputs_sha256": hash_bytes(encoded(linked)),
++            "native_fallback_sha256": hash_bytes((fallback + "\n").encode()),
++            "permissions_sha256": manifest_entries["AndroidManifest.xml"],
++            "entitlements_sha256": hash_bytes(b"{}"),
++            "resource_policy_sha256": digest(origin / "Installed/bridge.json"),
++        },
++        "toolchain": {
++            "compiler_version": capture(compiler, "-version").splitlines()[0],
++            "compiler_sha256": digest(compiler), "sdk_version": "android28",
++            "sdk_sha256": digest(swift_sdk.parent / "info.json"),
++            "build_tools_sha256": digest(tools / "aapt2"),
++        },
++    }
++
++    sealer = work / "seal-work/build/out/Products/Debug/FieldLogEntryCommitSeal"
++    apk_name = "FieldLog-Pair25-entry-commit-development-arm64.apk"
++    installed = stage / "Installed"
++    installed.mkdir()
++    binding_path = stage / "binding.json"
++    write_json(binding_path, binding)
++    runtime = capture(sealer, "seal", origin, binding_path, guest, installed)
++    identity = json.loads((installed / "identity.json").read_bytes())
++    require(identity["application"]["bundle_id"] == APP_ID, "Identity and ordinary Android app ID differ")
++    for section, fields in binding.items():
++        require(all(identity[section][key] == expected for key, expected in fields.items()),
++                f"Sealed identity lost its {section} binding")
++    pins = {path.name: digest(path) for path in installed.iterdir()}
++    require(identity["capabilities"][0]["native_sha256"] == fingerprint
++            and identity["build"]["generated_bridge_sha256"] == fingerprint,
++            "Installed identity differs from the published native capability fingerprint")
++    require(all(pins.get(name) == checksum for name, checksum in linked["installedLeafSHA256"].items()),
++            "Installed leaf materials differ from the runtime binding")
++    pin_path = stage / "installed.sha256.json"
++    write_json(pin_path, pins)
++    apk = stage / apk_name
++    capture(sys.executable, "-B", packager, "--mixer-project", project, "--manifest-apk", manifest,
++            "--dex", dex, "--jni-library", jni, "--installed-checklist", installed, "--checklist-sha256", pin_path,
++            "--android-sdk", sdk, "--swift-android-sdk", swift_sdk, "--java-home", jdk, "--output", apk,
++            *apk_signing_args, env=env)
++    signatures = capture(tools / "apksigner", "verify", "--verbose", "--print-certs", "-Werr", apk, env=env)
++    certs = re.findall(r"^Signer #\d+ certificate SHA-256 digest: ([0-9a-f]{64})$", signatures, re.MULTILINE)
++    require(certs == [linked["apkSignerCertificateSHA256"]],
++            "Final APK signer certificate differs from the sealed runtime binding")
++    capture(tools / "zipalign", "-c", "-P", "16", "4", apk, env=env)
++    badging = capture(tools / "aapt2", "dump", "badging", apk, env=env)
++    members = read_zip(apk)
++    expected = manifest_entries | {"classes.dex": linked["bytecode/classes.dex"],
++                "lib/arm64-v8a/" + JNI: linked["native/" + JNI], APPEARANCE: linked["descriptor.json"]}
++    expected.update({ASSETS + name: checksum for name, checksum in pins.items()})
++    require(all(members.get(name) == checksum for name, checksum in expected.items()),
++            "Signed APK payload differs from the sealed build and installed material")
++    readback = stage / "readback"
++    readback.mkdir()
++    with zipfile.ZipFile(apk) as archive:
++        for name in pins:
++            (readback / name).write_bytes(archive.read(ASSETS + name))
++    require(capture(sealer, "verify", readback) == runtime, "Packaged release has a different runtime")
++    require(PRODUCERS["verify_products"](work, project) == receipts,
++            "Pair25 source or build outputs changed during sealing")
++    write_json(destination / "apk-evidence.json", {
++        "qualification": "development build evidence only; installed verification pending",
++        "payloadReproduction": {"bytes": PAYLOAD_BYTES, "sha256": PAYLOAD_SHA256, "distinctOutputDirectories": 2},
++        "mixerProfile": ADMISSION["PAIR25_PROFILE"], "linkInputs": linked, "identityBinding": binding,
++        "runtimeFingerprint": runtime, "nativeCapabilityFingerprint": identity["capabilities"][0]["native_sha256"],
++        "capabilityExecution": identity["capability_execution"], "installedAssetsSHA256": pins,
++        "apkMembersSHA256": members, "apkSHA256": digest(apk), "apkBytes": apk.stat().st_size,
++        "badging": badging.splitlines(), "signatures": signatures.splitlines(), "alignmentKiB": 16,
++        "checklistJNI": sorted(declared),
++    })
++    os.link(apk, destination / apk_name)
++    print(runtime)
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    for name in ("work", "project", "output"):
++        parser.add_argument(name, type=Path)
++    args = parser.parse_args()
++    work, project, destination = (path.resolve() for path in (args.work, args.project, args.output))
++    os.umask(0o077)
++    PRODUCERS["PAIR25"]["verify_checkout"](work)
++    destination.mkdir()
++    with tempfile.TemporaryDirectory(prefix=".seal-", dir=destination) as stage:
++        assemble(work, project, destination, Path(stage))
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except subprocess.CalledProcessError as error:
++        sys.exit(f"{error}\n{error.stdout}")
++    except (OSError, ValueError, subprocess.TimeoutExpired, zipfile.BadZipFile) as error:
++        sys.exit(str(error))
+diff --git a/Integrations/GeneratedReport/scripts/pair25/verify-pair25.py b/Integrations/GeneratedReport/scripts/pair25/verify-pair25.py
+new file mode 100644
+index 0000000..7c6674d
+--- /dev/null
++++ b/Integrations/GeneratedReport/scripts/pair25/verify-pair25.py
+@@ -0,0 +1,27 @@
++"""Require the exact public Pair25 checkout and prepared FieldLog projection."""
++from pathlib import Path
++import runpy
++import subprocess
++import sys
++
++admission = runpy.run_path(str(Path(__file__).resolve().parents[1] / "build-android.py"))
++
++
++def verify_checkout(work):
++    sdk = work / "mixer"
++    revision = subprocess.check_output(
++        ["git", "--no-optional-locks", "-C", sdk, "rev-parse", "HEAD"],
++        text=True, timeout=15).strip()
++    if revision != admission["PAIR25_RESEALED_REVISION"]:
++        raise ValueError("Entry Commit packaging requires the exact published Pair25 revision")
++    return admission["admit_sdk"](sdk, sdk / "native/android")
++
++
++def verify(work, project):
++    revision = verify_checkout(work)
++    admission["verify_pair25_projection"](project, work / "mixer", revision)
++    return revision
++
++
++if __name__ == "__main__":
++    verify(*(Path(argument).resolve(strict=True) for argument in sys.argv[1:]))

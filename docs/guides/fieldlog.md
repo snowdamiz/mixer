@@ -73,6 +73,14 @@ with stock Xcode and pinned local package inputs. The resulting app has the
 original FieldLog bundle identity. Simulator installation and launch are
 separate checks.
 
+## Build the current FieldLog Android app
+
+Use the pinned Pair25 recipe to reconstruct the reviewed FieldLog source,
+prepare the ordinary Android project, and build a relocated export. The
+development signing steps rebuild the Entry Commit guest and check its
+payload against the exact published bytes.
+[Pair25 Android recipe](../../tests/integration/fieldlog-pair25-android/README.md)
+
 ## Build the v74 export in independent Android CI
 
 Run this replay on an Apple silicon Mac with Python 3.12 or later and the

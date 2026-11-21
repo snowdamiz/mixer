@@ -103,6 +103,18 @@ removed, including the emulator whose first group observation failed.
 [Installed Android receipt](verification/receipts/fieldlog-e39a5ea3-857e4b4a-api36-offline-report-commit.json) ·
 [Earlier attempts](verification/receipts/fieldlog-e39a5ea3-857e4b4a-offline-setup-attempts.json)
 
+The current Pair25 guide reconstructs the FieldLog product and packaging
+trees from public pins. The stock CLI prepared, exported, and validated
+the Android app, then built the arm64 APK with the original preparation
+path absent. All 174 source files retained their hashes. The separate
+development signing replay built Java and JNI from a moved projection,
+verified the reproducible Entry Commit payload, and checked a fresh APK
+signature and both guest signatures. These newly built APKs passed
+static readback.
+[Pair25 recipe](tests/integration/fieldlog-pair25-android/README.md) ·
+[Stock Android export](verification/receipts/fieldlog-e39a5ea3-pair25-relocated-android-export.json) ·
+[Signed clean-source build](verification/receipts/fieldlog-e39a5ea3-pair25-signed-clean-source.json)
+
 ## November 21 hosted v76 verification
 
 Identity Network and Intel Android passed at `32cd2c54b6`. Intel verified both
