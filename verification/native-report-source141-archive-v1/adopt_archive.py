@@ -384,6 +384,20 @@ RECEIPT_DIRECTORY_SOURCE = 'cli/Sources/MixerBuild/POSIXCommandControl.swift'
 RECEIPT_DIRECTORY_TEST = 'cli/Tests/MixerBuildTests/OwnedCommandControlTests.swift'
 RECEIPT_DIRECTORY_CHANGES = {RECEIPT_DIRECTORY_SOURCE, RECEIPT_DIRECTORY_TEST, SPARSE_CHECKOUT_TEST}
 RECEIPT_PARENT_URL_TEST_PREIMAGE = 'receipt-parent-url-test-predecessor-bytes/' + RECEIPT_DIRECTORY_TEST
+SWIFTPM_MIGRATION_PREFIX = 'swiftpm-migration-predecessor-bytes/'
+SWIFTPM_MIGRATION_PREIMAGE_MANIFEST = SWIFTPM_MIGRATION_PREFIX + SOURCE_INPUTS_MANIFEST
+SWIFTPM_MIGRATION_SOURCE_SHA256 = '4ade7b53f4363ad18b5db19530737ad3b1021e71b33121124632322484b73505'
+SWIFTPM_MIGRATION_SOURCE_ADDITION = 'cli/Sources/MixerBuild/MigrationSwiftPackage.swift'
+SWIFTPM_MIGRATION_ADDITIONS = {
+    SWIFTPM_MIGRATION_SOURCE_ADDITION,
+    'cli/Tests/MixerBuildTests/MigrationSwiftPackageTests.swift',
+}
+SWIFTPM_MIGRATION_SOURCE_REPLACEMENTS = {
+    'cli/Sources/MixerBuild/MigrationInspector.swift',
+    PUBLIC_UPDATE_MAIN,
+}
+SWIFTPM_MIGRATION_REPLACEMENTS = SWIFTPM_MIGRATION_SOURCE_REPLACEMENTS | {SPARSE_CHECKOUT_TEST}
+SWIFTPM_MIGRATION_SOURCE_CHANGES = SWIFTPM_MIGRATION_SOURCE_REPLACEMENTS | {SWIFTPM_MIGRATION_SOURCE_ADDITION}
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, STANDARDS_REPLAY_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
@@ -425,6 +439,9 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     RECEIPT_DIRECTORY_SOURCE_PREIMAGE,
     *(RECEIPT_DIRECTORY_PREFIX + name for name in RECEIPT_DIRECTORY_CHANGES),
     RECEIPT_PARENT_URL_TEST_PREIMAGE,
+} | {
+    SWIFTPM_MIGRATION_PREIMAGE_MANIFEST,
+    *(SWIFTPM_MIGRATION_PREFIX + name for name in SWIFTPM_MIGRATION_REPLACEMENTS),
 } | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
 } | {
@@ -566,7 +583,7 @@ def install_inputs():
                              'hosted_v74_transition', 'hosted_v76_transition', 'hosted_v77_transition',
                              'hosted_v78_transition', 'hosted_v79_transition',
                              'android_inspection_deadline_transition', 'receipt_directory_transition',
-                             'receipt_parent_url_test_transition',
+                             'receipt_parent_url_test_transition', 'swiftpm_migration_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -1550,10 +1567,11 @@ def install_inputs():
     require(producer['before'] == expected_source[RECEIPT_DIRECTORY_SOURCE],
             'Receipt directory source preimage differs')
     expected_source[RECEIPT_DIRECTORY_SOURCE] = producer['after']
-    require(current == expected_source and len(current) == 153 and
-            previous.digest(current) == receipt['sourceAfter'] == RECEIPT_DIRECTORY_SOURCE_SHA256 and
-            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
-                                  'sha256': RECEIPT_DIRECTORY_SOURCE_SHA256},
+    migration_source_path = HERE / SWIFTPM_MIGRATION_PREIMAGE_MANIFEST
+    migration_source_before = previous.load(migration_source_path)
+    require(migration_source_before == expected_source and len(migration_source_before) == 153 and
+            previous.digest(migration_source_before) == receipt['sourceAfter'] == RECEIPT_DIRECTORY_SOURCE_SHA256 and
+            stat.S_IMODE(migration_source_path.lstat().st_mode) == 0o644,
             'Receipt directory source transition differs')
 
     fixture = binding['receipt_parent_url_test_transition']
@@ -1567,6 +1585,38 @@ def install_inputs():
             stat.S_IMODE((ROOT / RECEIPT_DIRECTORY_TEST).lstat().st_mode) == 0o644,
             'Receipt parent URL test predecessor bytes or mode differ')
     installed[RECEIPT_DIRECTORY_TEST] = fixture['after']
+
+    migration = binding['swiftpm_migration_transition']
+    migration_changes = SWIFTPM_MIGRATION_REPLACEMENTS | SWIFTPM_MIGRATION_ADDITIONS
+    require(set(migration) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            migration['sourceBefore'] == receipt['sourceAfter'] and
+            set(migration['changes']) == migration_changes and
+            current.keys() & migration_changes == SWIFTPM_MIGRATION_SOURCE_CHANGES,
+            'SwiftPM migration change roster differs')
+    for name, change in migration['changes'].items():
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == installed.get(name) and change['before'] != change['after'] and
+                change['mode'] == stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'Installed SwiftPM migration owner row or mode differs: ' + name)
+        if name in SWIFTPM_MIGRATION_ADDITIONS:
+            require(name not in installed, 'SwiftPM migration addition already owned: ' + name)
+        else:
+            path = HERE / SWIFTPM_MIGRATION_PREFIX / name
+            raw = read_predecessor_member(path)
+            require(previous.row(raw) == change['before'] and
+                    stat.S_IMODE(path.lstat().st_mode) == change['mode'],
+                    'SwiftPM migration predecessor bytes or mode differ: ' + name)
+            preimages.setdefault(name, (raw, change['mode']))
+        if name in SWIFTPM_MIGRATION_SOURCE_CHANGES:
+            require(expected_source.get(name) == change['before'],
+                    'SwiftPM migration source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        installed[name] = change['after']
+    require(current == expected_source and len(current) == 154 and
+            previous.digest(current) == migration['sourceAfter'] == SWIFTPM_MIGRATION_SOURCE_SHA256 and
+            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
+                                  'sha256': SWIFTPM_MIGRATION_SOURCE_SHA256},
+            'SwiftPM migration source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in release['changes'].items():
@@ -1672,6 +1722,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_swiftpm_migration_sha256': binding['swiftpm_migration_transition']['sourceBefore'],
             'predecessor_receipt_directory_sha256': binding['receipt_directory_transition']['sourceBefore'],
             'predecessor_stock_promotion_sha256': binding['stock_promotion_transition']['sourceBefore'],
             'predecessor_release_rest_v3_sha256': binding['release_rest_v3_transition']['sourceBefore'],

@@ -108,7 +108,8 @@ def admission_paths(root=None, binding=None):
                     'release_inspector_transition', 'icu_notice_transition', 'halt_cli_transition',
                     'release_rest_v3_transition', 'stock_promotion_transition',
                     'hosted_v71_transition', 'hosted_v72_transition', 'hosted_v73_transition',
-                    'android_inspection_deadline_transition', 'receipt_directory_transition'):
+                    'android_inspection_deadline_transition', 'receipt_directory_transition',
+                    'swiftpm_migration_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -471,7 +472,10 @@ class SparseControls(unittest.TestCase):
             receipt = binding['receipt_directory_transition']
             self.assertEqual(inspection['sourceAfter'], receipt['sourceBefore'])
             self.assertEqual(observed['predecessor_receipt_directory_sha256'], receipt['sourceBefore'])
-            self.assertEqual(observed['source_sha256'], receipt['sourceAfter'])
+            migration = binding['swiftpm_migration_transition']
+            self.assertEqual(migration['sourceBefore'], receipt['sourceAfter'])
+            self.assertEqual(observed['predecessor_swiftpm_migration_sha256'], migration['sourceBefore'])
+            self.assertEqual(observed['source_sha256'], migration['sourceAfter'])
             self.assertEqual(observed['source_sha256'], binding['source']['sha256'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']
@@ -489,7 +493,7 @@ class SparseControls(unittest.TestCase):
                     self.assertIn(diagnostic.encode(), failed.stderr)
             changes = {**binding['changes'], **binding['capability_transition']['changes'],
                        **pair24['changes'], **binding['local_store_transition']['changes'],
-                       **inspector['changes'], **release['changes']}
+                       **inspector['changes'], **release['changes'], **migration['changes']}
             additions = sorted(name for name, change in changes.items() if change['before'] is None)
             self.assertTrue(additions)
             for name in additions:
