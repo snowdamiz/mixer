@@ -29,12 +29,13 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
   }
 
   alias MixerHosted.Test.ConfiguredReleaseReplayRepo, as: FixtureRepo
-  alias MixerHosted.Test.FieldLogReleasePacket
+  alias MixerHosted.Test.{DeliveryOriginReplay, FieldLogReleasePacket}
   alias MixerHostedWeb.LocalReleaseController
 
   @mode System.get_env("MIXER_RELEASE_FIXTURE_MODE")
   @fieldlog? @mode in ["fieldlog", "fieldlog-control"]
   @fence? @mode == "delivery-publish-fence"
+  @cross_runtime? @mode == "delivery-cross-runtime"
   @multi_target? @mode in ["target-registry", "delivery-export"] or @fence?
   @stock_scopes "mixer.artifact.upload mixer.release.publish"
   @rollback_reason "Restore the signed FieldLog calculation baseline"
@@ -917,6 +918,127 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
         assert_fence_database_loss!(target, trusted_halt)
       end
     end)
+  end
+
+  @tag skip: not @cross_runtime?
+  @tag timeout: 65_000
+  test "committed Phoenix publications issue bounded leases through the local Workerd origin" do
+    vector = @vector |> File.read!() |> Jason.decode!()
+    {document, key} = signed_scope(vector, vector["host"]["scope"])
+    [root] = document["roots"]
+    expiry = System.system_time(:second) + 120
+    root = %{root | "not_after_unix" => expiry}
+
+    load_runtime!(
+      %{document | "roots" => [root]},
+      vector["signed_assignment"]["assignment"],
+      nil,
+      nil
+    )
+
+    %{target: target} = config = Application.fetch_env!(:mixer_hosted, :local_release_target)
+    provision!(target)
+
+    with_repo("mixer_replay_admin", fn ->
+      sql!("GRANT CREATE ON DATABASE postgres TO mixer_replay_owner")
+    end)
+
+    with_ledger_owner(fn ->
+      for {dir, file} <- [
+            {"local_release_target_registry",
+             "20261120000015_add_local_release_target_registry.exs"},
+            {"local_release_delivery_export",
+             "20261120000017_add_local_release_delivery_export.exs"},
+            {"local_release_delivery_snapshot",
+             "20261120000018_add_local_release_delivery_snapshot.exs"},
+            {"local_release_delivery_export",
+             "20261120000019_add_local_release_delivery_publish_fence.exs"}
+          ] do
+        assert :ok = migrate(:up, migration(dir, file))
+      end
+
+      sql!("GRANT EXECUTE ON FUNCTION #{@snapshot_reader}, #{@publish_fence} TO #{@reader}")
+    end)
+
+    enroll!(target)
+    prior = signed_release(vector, config, key, 7)
+    active = signed_release(vector, config, key, 8)
+    staged = signed_release(vector, config, key, 10)
+    halt = resign_export(active, root, key, 9, 0)
+    identity = fixture_identity()
+
+    for release <- [prior, active, staged] do
+      stage!(
+        config,
+        release.digest,
+        release.envelope,
+        identity,
+        "origin-stage-#{release.sequence}"
+      )
+    end
+
+    with_registry_http!(fn client ->
+      assert {:error, :not_found} = DeliveryExport.current(target)
+      publish_and_replay!(target, prior, identity)
+      publish_and_replay!(target, active, identity)
+      assert_offer!(client, target, active, artifact_path(target, active.digest))
+      assert expected = %{historical: export_artifact(prior), active: export_artifact(active)}
+
+      assert {:ok, %{artifacts: [current, historical], valid_until_unix: ^expiry}} =
+               DeliveryExport.current(target)
+
+      assert current == expected.active and historical == expected.historical
+
+      fixture = %{
+        target: wire_target(target),
+        active: origin_input(active),
+        historical: origin_input(prior),
+        staged_digest: staged.digest,
+        halt_assignment: Base.encode64(halt.signed),
+        valid_until_unix: expiry
+      }
+
+      halt! = fn ->
+        scope = target.scope
+        route = {scope.organization_id, scope.project_id, target.channel}
+        health = %{"sequence" => 8, "activated" => 3, "pending" => 2, "adverse_signals" => 1}
+
+        assert {:ok, %{sequence: 9, signed_assignment_bytes: signed}} =
+                 Releases.cli(
+                   identity,
+                   route,
+                   {:halt, halt.signed, health},
+                   "origin-halt",
+                   sha256(halt.signed),
+                   "Halt the local delivery replay"
+                 )
+
+        assert signed == halt.signed
+        assert %{status: 204} = http(client, offer_path(target), [])
+      end
+
+      lock_probe! = fn locked ->
+        with_repo("mixer_replay_admin", fn ->
+          for table <- ["public.mixer_release_heads", "public.mixer_release_delivery_enrollments"] do
+            assert {:error, %Postgrex.Error{postgres: %{code: :lock_not_available}}} =
+                     Ecto.Adapters.SQL.query(
+                       FixtureRepo,
+                       fixture_lock_query(table),
+                       coordinates(locked), log: false)
+          end
+        end)
+      end
+
+      DeliveryOriginReplay.run!(scratch(), target, fixture, halt!, lock_probe!)
+    end)
+  end
+
+  defp origin_input(release) do
+    %{
+      digest: release.digest,
+      envelope: Base.encode64(release.envelope),
+      assignment: Base.encode64(release.signed)
+    }
   end
 
   defp assert_publish_fence!(target, android, other, export, prior, delivery) do

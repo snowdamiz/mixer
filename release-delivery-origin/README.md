@@ -89,7 +89,46 @@ the next revision within the authorized update.
   authorization lease. CDN cache configuration and a production lease duration
   require separate qualification.
 
-## Local replay
+## Replay committed Phoenix releases in Workerd
+
+Run the opt-in fixture from a full checkout as an unprivileged user. Put
+PostgreSQL 17.11, OpenSSL, Go 1.26, Elixir 1.20.4 with OTP 29, Node 22.23.3,
+and npm 10.9.9 on `PATH`. Free IPv4 loopback ports 5432 and 47301 for this run.
+The fixture allocates its own Workerd port and creates a short private scratch
+directory for PostgreSQL, its test CA, the Unix socket, and local R2 data.
+
+```sh
+(cd hosted && MIX_ENV=test mix deps.get --only test)
+(cd hosted-worker-controller && npm ci --ignore-scripts --no-audit --no-fund)
+sh hosted/scripts/replay-local-release-target-registry.sh cross-runtime
+```
+
+To use a separate Node dependency directory, set `MIXER_DELIVERY_TOOLCHAIN`
+to the absolute path containing the controller's two package files and its
+locked install. Keep the Mix sources visible at `hosted/deps` for the compile-time
+database manifest. The replay builds the Go PostgreSQL probe with the locked
+module dependencies and verifies the server CA, server version, and reader role.
+
+Phoenix commits the signed assignments in PostgreSQL. The Workerd publisher
+reads the current export and stages only its hash-checked allowlist through the
+local R2 binding. A private Unix socket carries the export and a one-use grant
+while PostgreSQL holds the enrollment and head locks. Workerd charges the
+grant's round trip against its remaining time and checks the permit directly
+before the conditional pointer write. The fixture invokes the writer by
+in-process Miniflare RPC. Both Worker HTTP entry points refuse writes.
+
+The `MIXER_DELIVERY_REPLAY` line records the byte hashes and pointer states.
+Expect the exact current offer and both current and historical artifacts
+before and during the outage, followed by 204 and 404 at expiry. The replay
+also checks that the outage cannot renew the lease, a late permit cannot
+write, and a lost acknowledgement is reconciled against the exact R2
+pointer. It restarts the owned database, commits a signed halt, and refuses
+both stale authority and a stale pointer ETag. A cleanup failure reports the
+retained path and known process identities. This is loopback evidence for
+Workerd's local R2 implementation. Cloud R2 and CDN behavior require later
+qualification.
+
+## Replay the standalone Worker controls
 
 Run from the repository root with Go and the PostgreSQL tools available. Set
 `MIXER_DELIVERY_PG_BIN` if the tools are outside `PATH`. Use the Node and npm
