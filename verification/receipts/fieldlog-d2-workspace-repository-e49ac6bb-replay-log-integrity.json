@@ -1,0 +1,103 @@
+{
+  "schema": "mixer.local.fieldlog.workspace-repository-sharing.replay-log-integrity.v1",
+  "recordedUTC": "2026-11-21T14:43:30.549513+00:00",
+  "candidateTree": "e49ac6bb8229ab3cf8bb23e1176de6babd708054",
+  "predecessorRecord": {
+    "path": "verification/receipts/fieldlog-d2-workspace-repository-e49ac6bb-replay-custody.json",
+    "sha256": "67426a1733df52ae0d120af5e449b8462d0721cb2499882bce62d85e9e233ea8"
+  },
+  "originalRecord": {
+    "path": "verification/receipts/fieldlog-d2-workspace-repository-e49ac6bb.json",
+    "sha256": "1cc20b0181664265aafa3e1af2c7efa9cd486e6a64401a7dd5cae1bc85d0d738"
+  },
+  "productPatchSHA256": "2b1def386fd47405e9eee8b70b47f2b49149c0bedd65080f5630235bada7da56",
+  "afterimagesSHA256": "3095df79231934da4191ea8637bade3ecca527245319470f353b410ca3e632ff",
+  "predecessorSourceArchive": "historical-runner/67b1a0bc/",
+  "predecessorSHA256": {
+    "replay.py": "5414c1366127cf9d808d3e9ebce49cbf0f1b214852989ecbaa923311cf75529c",
+    "run.py": "67b1a0bce44f9f5b8bc8ce8808c44970a8f94d5b1826d351512a0215595b6a2c",
+    "test_cleanup.py": "a3794999463e8adaa68bdf962a2c0616f6b2115a07fb3b73ff3c328cfe177e56"
+  },
+  "activeSHA256": {
+    "replay.py": "5414c1366127cf9d808d3e9ebce49cbf0f1b214852989ecbaa923311cf75529c",
+    "run.py": "f22746a727c0ea0fa7cc6df0e682c1156073f32ca68d76e23dc9b3f60887320c",
+    "test_cleanup.py": "a98655ad3a850dfd1da2a61c83c4ca41c60f933c25c059a0444e3f5b9fbbe5d1"
+  },
+  "observations": {
+    "before": {
+      "failedAssertions": 3,
+      "logSHA256": "055293ef246528096bd7c8a90eb5f8e2145bfc07997d8e3529c9f106b922621b",
+      "unreadableLog": "Real mode 000 denied a direct read with errno 13. The ledger still accepted the receipt.",
+      "truncatedLog": "The ledger accepted the receipt after the nonempty log was reduced to zero bytes.",
+      "truncatedPinLog": "The top-level parser raised JSONDecodeError and finally removed scratch."
+    },
+    "after": {
+      "python": "3.14.8",
+      "passedControls": [
+        "test_corrupt_receipt",
+        "test_extra_receipt_rejected",
+        "test_identity_write_failure_keeps_pending",
+        "test_interrupted_launch_even_if_pending_receipt_disappears",
+        "test_log_stat_and_digest_errors_refuse_reporting_and_cleanup",
+        "test_missing_receipt_after_terminal_observation",
+        "test_partial_receipt_set_cannot_cover_two_commands",
+        "test_pending_write_failure_prevents_launch_and_cleanup",
+        "test_positively_empty_campaign_can_clean",
+        "test_real_terminal_command_and_complete_set_can_clean",
+        "test_scan_eacces",
+        "test_scan_io_error",
+        "test_terminal_write_failure_keeps_running_receipt",
+        "test_top_level_interrupt_retains_pending_attempt",
+        "test_top_level_replay_receipt_write_failure_retains_scratch",
+        "test_top_level_routes_every_helper_through_one_ledger",
+        "test_top_level_truncated_pin_log_preserves_parse_failure_evidence",
+        "test_truncated_log_refuses_reporting_and_cleanup",
+        "test_unreadable_log_refuses_reporting_and_cleanup",
+        "test_valid_json_with_invalid_custody_state"
+      ],
+      "unreadableLog": "Checked receipts propagated real EACCES and cleanup retained scratch.",
+      "truncatedLog": "Checked receipts rejected the digest mismatch and cleanup retained the log and receipt.",
+      "truncatedPinLog": "JSONDecodeError propagated after three mocked launches. Finally retained the truncated pin log and its terminal receipt. The aggregate receipt was absent.",
+      "statAndDigestErrors": "An injected EIO from either fstat or file_digest refused reporting and retained scratch.",
+      "positive": {
+        "argv": [
+          "/usr/bin/true"
+        ],
+        "pid": 30847,
+        "pgid": 30847,
+        "exit": 0,
+        "childReaped": true,
+        "groupAbsent": true,
+        "logClosed": true,
+        "scratchRemoved": true
+      },
+      "historicalReproductions": 2,
+      "realPayloadsLaunchedByFaultControls": 0,
+      "controlGroups": {
+        "current-controls": {
+          "pid": 30842,
+          "pgid": 30842,
+          "exit": 0,
+          "deadlineSeconds": 15,
+          "seconds": 0.92,
+          "childReaped": true,
+          "groupAbsent": true,
+          "logClosed": true,
+          "logSHA256": "395f73a95feea45bc110f6db44821165c4f6b83e550426d74f5cf26086ccbe16"
+        },
+        "historical-controls": {
+          "pid": 30881,
+          "pgid": 30881,
+          "exit": 0,
+          "deadlineSeconds": 15,
+          "seconds": 0.46,
+          "childReaped": true,
+          "groupAbsent": true,
+          "logClosed": true,
+          "logSHA256": "140b7883809b7d97fec299d9dfb12748c5ce4c03a00008ec6337adcdb56519fc"
+        }
+      }
+    }
+  },
+  "scope": "Log verification in checked_receipts only. Prior launch and receipt checks retained. No product replay, builds, devices, pushes or gate edits."
+}

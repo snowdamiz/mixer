@@ -1079,11 +1079,20 @@ including cold reopen, durable task and draft writes, refused precommit,
 and recovery after a rename error. The Android arm64 Swift library and
 unsigned generic iPhoneOS app linked. Independent review confirmed the
 four-file patch and reconstructed both disk traces from the afterimages.
-The receipt supports 59 distinct terminal groups. A separate cleanup
-finding keeps the captured runner historical while its correction is
-underway. Installed behavior and the whole-app sharing target remain open.
+The historical receipt supports 59 distinct terminal groups. The
+earlier total of 60 included a separate artifact-retention check.
+Installed behavior and the whole-app sharing target remain open.
 [Repository source](verification/receipts/fieldlog-d2-workspace-repository-e49ac6bb-patch.patch) · [Verification receipt](verification/receipts/fieldlog-d2-workspace-repository-e49ac6bb.json) ·
 [Disk afterimages](verification/receipts/fieldlog-d2-workspace-repository-e49ac6bb-afterimages.json)
+
+The maintained repository replay verified each command's terminal
+receipt and readable log digest. All 20 cleanup controls passed. A fresh
+host run matched the historical disk afterimages byte for byte, completed
+the standalone export link, closed all 19 command groups, and removed
+scratch. Its native build scope was the host. The original arm64 Android
+and iPhoneOS build evidence stays in the separate product receipt.
+[Maintained host replay](verification/receipts/fieldlog-d2-workspace-repository-e49ac6bb-maintained-host.json) ·
+[Log integrity controls](verification/receipts/fieldlog-d2-workspace-repository-e49ac6bb-replay-log-integrity.json)
 
 FieldLog tree `85e6fbe362` shares the checklist row projection across
 ordinary SwiftUI `ProjectDetail` and Android `PublicFactory`. Both
