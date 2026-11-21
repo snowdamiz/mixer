@@ -100,8 +100,8 @@ predecessor. [Release REST contract](contracts/release-rest-v3.md) · [Source ad
 
 ## November 20 Swift language support matrix
 
-The generated Swift support matrix maps 14 scoped claims to executable
-controls. Ten rows remain unqualified. Native Swift and the owned guest
+The generated Swift support matrix maps 15 scoped claims to executable
+controls. Nine rows remain unqualified. Native Swift and the owned guest
 produced the same four FieldLog frames and refused six malformed events
 without changing state. The owned validator and session constructor refused
 shared memory before admitting a guest session.
@@ -116,6 +116,13 @@ and comparisons matched native result bits through the installed Guest UI v1
 VM. The guest rejected a short input without changing its result and retired
 with a stale-handle refusal. The two recorded builds emitted different Wasm
 hashes and the same observed instructions and ordered frames. [Producer replay](verification/receipts/swift-floating-point-preview-6f4fdee12e.json) · [Integration replay](verification/receipts/l03-swift-floating-point-integration-b463c00d.json)
+
+Native Swift and installed Guest UI v1 produced byte-identical results
+for four runtime inputs to the shared associated-type function on arm64
+macOS. The concrete specializations extract `Int16` and `UInt16` readings.
+Both paths preserved the last result after a truncated event. The guest
+closed and refused its stale handle. Existential dispatch remains open.
+[Associated-type replay](verification/receipts/l03-swift-associated-types-v73.json)
 
 The maintained WebAssembly Core replay reproduced ten exact returns, three
 traps, and six invalid-module refusals on arm64 macOS. The Rust CLI and the
