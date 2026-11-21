@@ -1650,6 +1650,13 @@ The replacement development APK passed the archive integrity check and retained 
 
 The exact rebuilt FieldLog APK contained all four selected Swift, NDK and ICU notices. The complete archive and both Python test modes passed five checks each. [Runtime notice receipt](verification/receipts/fieldlog-rebuilt-runtime-notices-41a05264.json)
 
+The reviewed `85e6fbe362` Pair25 development APK also passed the
+complete archive check and all five runtime notice tests in each
+Python mode. The packaged Swift, two NDK, and ICU notices matched
+the expected bytes. The ICU library matched the installed toolchain
+and the pinned digest. Independent ICU publisher provenance remains
+open. [Combined APK notice readback](verification/receipts/fieldlog-d2-combined-85e6fbe3-android-runtime-notices.json)
+
 An instrumented iOS 27 run rendered the signed calculation baseline on the saved task and committed health. The first hydration wake took 5.031 ms elapsed and 1.697 ms thread CPU. The readback kept revision 9 and 11 outbox rows. The Simulator was removed. The external inventory matched after resuming. The earlier effects deadline remains unexplained. [iOS timing receipt](verification/receipts/fieldlog-ios-calculation-baseline-diagnostic-41a05264.json)
 
 The shared localhost origin served sequences 1–5 to the original iOS packet and the rebuilt Android packet. All 43 host controls passed, and both interrupted 2,048-byte prefixes matched across restart. Native verification and the separate Android 240-byte title deadline remain open. [Shared-origin host replay](verification/receipts/fieldlog-rebuilt-shared-origin-host-41a05264.json)
