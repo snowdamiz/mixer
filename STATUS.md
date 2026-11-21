@@ -244,6 +244,15 @@ materialized-checkout test as the largest contributor to the slowdown.
 Source141, signed Swift, VM, and Services checks passed.
 [Builder and export terminal CI receipt](verification/receipts/hosted-fieldlog-builder-ci-terminal-98ef1420.json)
 
+The subsequent checkpoint `c00f33e747` passed eight of nine jobs. Both
+Intel sparse suites passed and the step succeeded. The later bootstrap
+stopped after 20.206 seconds when the Swift Android SDK download returned
+`curl` status 28. No consumer build began. All nine recorded bootstrap
+commands reached terminal custody, and the receipt records scratch removal.
+The other jobs passed, and independent review verified all eight uploaded
+archive digests.
+[Macro checkpoint terminal CI receipt](verification/receipts/owned-engine-c00f33e7-terminal-ci.json)
+
 The six-action private V3 candidate `790d0b2253` delivered Open, Next,
 Tasks, reopen, Previous, and Entries through the signed guest. Its two
 pages displayed 26 real pending records from three scoped reads. The
