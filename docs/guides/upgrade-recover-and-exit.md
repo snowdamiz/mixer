@@ -181,3 +181,6 @@ in the export. The public replay built this APK while the original project,
 the SDK checkouts, and the Mixer CLI builds were unavailable. It also reopened
 a saved FieldLog workspace through the app's storage code on the host. See the
 [upgrade, recovery, and exit replay](../../verification/receipts/l08-public-upgrade-02002272.json).
+
+To run this build from the maintained FieldLog source with the v74 SDK,
+follow the [independent Android CI replay](fieldlog.md#build-the-v74-export-in-independent-android-ci).

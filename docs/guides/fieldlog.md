@@ -65,6 +65,33 @@ rollback checks cover separate development fixtures. The ordinary FieldLog
 mobile OTA workflow is still open. See the
 [current status](../../STATUS.md#november-18-local-verification).
 
+## Build the v74 export in independent Android CI
+
+Run this replay on an Apple silicon Mac with Python 3.12 or later and the
+toolchain variables from [Build for Android](../../README.md#build-for-android).
+Use Xcode 26.6 for `DEVELOPER_DIR` and Xcode 27.2 for the host CLI builds.
+The replay fetches the pinned FieldLog and Pair23 checkouts and the locked
+SwiftPM dependencies. The local Mixer checkout needs the v74 commit.
+
+```sh
+	mkdir -p verification/local
+	python3 -B tests/integration/fieldlog-independent-export/replay.py \
+		--host-developer-dir /Applications/Xcode.app/Contents/Developer \
+		--receipt verification/local/my-fieldlog-v74-export.json
+```
+
+Use a new path for `--receipt`. The replay applies the four patches above,
+prepares FieldLog with the Pair23 recipe, and upgrades the project with the
+CLI from v74 (`44aecbeb6a82a4a93321cff6a8ab86c5aa421900`). It keeps FieldLog's
+platform lock and compares app-owned files before and after export.
+
+The replay moves the export to a fresh `Build/CI` directory and removes the
+preparation tree. The bundled Android driver then builds the unsigned APK
+with a fresh home, caches, and output directory. The receipt captures the
+source and lock hashes, APK checks, and scratch cleanup. This is the Android
+build step of product plan §16.3. The installed launch is a separate step.
+[Verified build receipt](../../verification/receipts/fieldlog-independent-export-v74.json)
+
 ## Replay offline sync and the photo queue
 
 - [FieldLog offline sync replay](../../tests/integration/fieldlog-entry-sync/README.md).

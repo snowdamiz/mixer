@@ -1,0 +1,784 @@
+{
+  "schema": "mixer.local-development-evidence.v1",
+  "scope": "FieldLog \u00a716.3/W15 independent Android export build only",
+  "recordedAtUTC": "2026-11-21T04:18:08.741915+00:00",
+  "status": "passed",
+  "sources": {
+    "fieldlog": {
+      "revision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+      "tree": "1b62520f35c7e57a01b568291078686574f627c4",
+      "patchedTree": "ae412e340186be869795561ed8f4f5905317b867"
+    },
+    "pair23": {
+      "revision": "735ecec14e10e2dfed1e58a122c3fab08e569bef",
+      "tree": "a0e67ee25300ff94979496b4e66bd54ce6cca7ee",
+      "cliSHA256": "3e5c6e8480a48e388a45b3fc7d84a5b7b1ccd60a35252cc79e0d5364703e6b04",
+      "cliLockSHA256": "de4bd6f84bfa554faf519a52f6c5fb9a051761ded30ae5fee4440b5e88118855"
+    },
+    "v74": {
+      "revision": "44aecbeb6a82a4a93321cff6a8ab86c5aa421900",
+      "tree": "4ac68f788cc806672eede50a842cb153c7199496",
+      "cliSHA256": "a9eb17c08687094d636ed345bf978f0f7dbff3e6dd0b4b3057e98a46c8cdf123",
+      "cliLockSHA256": "de4bd6f84bfa554faf519a52f6c5fb9a051761ded30ae5fee4440b5e88118855"
+    }
+  },
+  "patches": {
+    "public-build.patch": "8a09fb83471392e16c836aa3a95a8b02d841525e2cea2ea857415e0484006749",
+    "draft-fields.patch": "c118068f49e67f5d4fff24a549df515ca137167d94daaeda8ce5b6cf99818212",
+    "photo-return.patch": "1683452af3df6ff07ad33fc47b4619a5dfd90fe2eec63b2e587d9eb25076563f",
+    "report-return.patch": "af4a337aa5cdd950f1a9f41aeb8f6a0c05b225dd6a66b5e178a614c7e1db95ca"
+  },
+  "commands": {
+    "host-swift": {
+      "argv": [
+        "/usr/bin/swift",
+        "--version"
+      ],
+      "cwd": "$work/Prepare",
+      "pgid": 40511,
+      "exit": 0,
+      "seconds": 0.67,
+      "groupAbsent": true,
+      "outputSHA256": "448e3f9c46706640fe62ea0140ecfccbb330baba2076b2916c0423af9642ee06"
+    },
+    "android-xcode": {
+      "argv": [
+        "xcodebuild",
+        "-version"
+      ],
+      "cwd": "$work/Build/CI",
+      "pgid": 40545,
+      "exit": 0,
+      "seconds": 0.13,
+      "groupAbsent": true,
+      "outputSHA256": "18730ed2ae28a2c9cf0c2d5db549033a4f07089331391a7133b7b32187454fa9"
+    },
+    "fieldlog-clone": {
+      "argv": [
+        "git",
+        "clone",
+        "--depth=1",
+        "--filter=blob:none",
+        "--no-checkout",
+        "--no-tags",
+        "https://github.com/snowdamiz/fieldlog.git",
+        "$work/Prepare/fieldlog"
+      ],
+      "cwd": "$work/Prepare",
+      "pgid": 40549,
+      "exit": 0,
+      "seconds": 0.28,
+      "groupAbsent": true,
+      "outputSHA256": "f42f365b810d37530acafa93eec4b9073677333d7110d4c690642376050fe9a3"
+    },
+    "fieldlog-fetch": {
+      "argv": [
+        "git",
+        "fetch",
+        "--depth=1",
+        "--no-tags",
+        "origin",
+        "552559d2d3278abb9b1aa7dcf0288102c09a202b"
+      ],
+      "cwd": "$work/Prepare/fieldlog",
+      "pgid": 40558,
+      "exit": 0,
+      "seconds": 0.18,
+      "groupAbsent": true,
+      "outputSHA256": "bce5e5db34cfc89b26caf728c42a21a025e9d7e2cde0a4b696f539e6b4e19b27"
+    },
+    "fieldlog-checkout": {
+      "argv": [
+        "git",
+        "checkout",
+        "--detach",
+        "552559d2d3278abb9b1aa7dcf0288102c09a202b"
+      ],
+      "cwd": "$work/Prepare/fieldlog",
+      "pgid": 40566,
+      "exit": 0,
+      "seconds": 0.56,
+      "groupAbsent": true,
+      "outputSHA256": "fbbd2fb2e542ff1366d5a78f0a53558c95192f466a1dccb8a5372e67a1ebd8f5"
+    },
+    "fieldlog-identity": {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "cwd": "$work/Prepare/fieldlog",
+      "pgid": 40582,
+      "exit": 0,
+      "seconds": 0.02,
+      "groupAbsent": true,
+      "outputSHA256": "c347590d659a71568e34f53dbb9d3d30bade77c36da9bfd549f212b55ea48d70"
+    },
+    "read-public-build.patch": {
+      "argv": [
+        "git",
+        "show",
+        "44aecbeb6a82a4a93321cff6a8ab86c5aa421900:verification/fieldlog-pair23/public-build.patch"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-15e394fa",
+      "pgid": 40583,
+      "exit": 0,
+      "seconds": 0.02,
+      "groupAbsent": true,
+      "outputSHA256": "8a09fb83471392e16c836aa3a95a8b02d841525e2cea2ea857415e0484006749"
+    },
+    "apply-public-build.patch": {
+      "argv": [
+        "git",
+        "apply",
+        "--index",
+        "$work/Prepare/public-build.patch"
+      ],
+      "cwd": "$work/Prepare/fieldlog",
+      "pgid": 40585,
+      "exit": 0,
+      "seconds": 0.04,
+      "groupAbsent": true,
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "read-draft-fields.patch": {
+      "argv": [
+        "git",
+        "show",
+        "44aecbeb6a82a4a93321cff6a8ab86c5aa421900:verification/fieldlog-pair23/draft-fields.patch"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-15e394fa",
+      "pgid": 40587,
+      "exit": 0,
+      "seconds": 0.02,
+      "groupAbsent": true,
+      "outputSHA256": "c118068f49e67f5d4fff24a549df515ca137167d94daaeda8ce5b6cf99818212"
+    },
+    "apply-draft-fields.patch": {
+      "argv": [
+        "git",
+        "apply",
+        "--index",
+        "$work/Prepare/draft-fields.patch"
+      ],
+      "cwd": "$work/Prepare/fieldlog",
+      "pgid": 40589,
+      "exit": 0,
+      "seconds": 0.03,
+      "groupAbsent": true,
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "read-photo-return.patch": {
+      "argv": [
+        "git",
+        "show",
+        "44aecbeb6a82a4a93321cff6a8ab86c5aa421900:verification/fieldlog-pair23/photo-return.patch"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-15e394fa",
+      "pgid": 40591,
+      "exit": 0,
+      "seconds": 0.02,
+      "groupAbsent": true,
+      "outputSHA256": "1683452af3df6ff07ad33fc47b4619a5dfd90fe2eec63b2e587d9eb25076563f"
+    },
+    "apply-photo-return.patch": {
+      "argv": [
+        "git",
+        "apply",
+        "--index",
+        "$work/Prepare/photo-return.patch"
+      ],
+      "cwd": "$work/Prepare/fieldlog",
+      "pgid": 40592,
+      "exit": 0,
+      "seconds": 0.04,
+      "groupAbsent": true,
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "read-report-return.patch": {
+      "argv": [
+        "git",
+        "show",
+        "44aecbeb6a82a4a93321cff6a8ab86c5aa421900:verification/fieldlog-pair23/report-return.patch"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-15e394fa",
+      "pgid": 40594,
+      "exit": 0,
+      "seconds": 0.02,
+      "groupAbsent": true,
+      "outputSHA256": "af4a337aa5cdd950f1a9f41aeb8f6a0c05b225dd6a66b5e178a614c7e1db95ca"
+    },
+    "apply-report-return.patch": {
+      "argv": [
+        "git",
+        "apply",
+        "--index",
+        "$work/Prepare/report-return.patch"
+      ],
+      "cwd": "$work/Prepare/fieldlog",
+      "pgid": 40596,
+      "exit": 0,
+      "seconds": 0.04,
+      "groupAbsent": true,
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "fieldlog-patched-tree": {
+      "argv": [
+        "git",
+        "write-tree"
+      ],
+      "cwd": "$work/Prepare/fieldlog",
+      "pgid": 40597,
+      "exit": 0,
+      "seconds": 0.03,
+      "groupAbsent": true,
+      "outputSHA256": "462d6bd65318b546d473de16ef629bc0d3d78ad68b3105f7987cee157111ac2c"
+    },
+    "pair23-clone": {
+      "argv": [
+        "git",
+        "clone",
+        "--depth=1",
+        "--filter=blob:none",
+        "--no-checkout",
+        "--no-tags",
+        "https://github.com/snowdamiz/mixer.git",
+        "$work/Prepare/pair23"
+      ],
+      "cwd": "$work/Prepare",
+      "pgid": 40599,
+      "exit": 0,
+      "seconds": 0.45,
+      "groupAbsent": true,
+      "outputSHA256": "be98c47f02678a66c467be2bbb546a05c4f1288ead7441f1b20f0cd99b5a1b88"
+    },
+    "pair23-fetch": {
+      "argv": [
+        "git",
+        "fetch",
+        "--depth=1",
+        "--no-tags",
+        "origin",
+        "735ecec14e10e2dfed1e58a122c3fab08e569bef"
+      ],
+      "cwd": "$work/Prepare/pair23",
+      "pgid": 40608,
+      "exit": 0,
+      "seconds": 0.29,
+      "groupAbsent": true,
+      "outputSHA256": "42fd34f8c75de6731bf73ad1dd68598354f022b27b2ba9ceff92a8795119c4b2"
+    },
+    "pair23-sparse": {
+      "argv": [
+        "git",
+        "sparse-checkout",
+        "set",
+        "cli",
+        "sdk",
+        "updates",
+        "runtime-identity",
+        "native/android"
+      ],
+      "cwd": "$work/Prepare/pair23",
+      "pgid": 40618,
+      "exit": 0,
+      "seconds": 0.02,
+      "groupAbsent": true,
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "pair23-checkout": {
+      "argv": [
+        "git",
+        "checkout",
+        "--detach",
+        "735ecec14e10e2dfed1e58a122c3fab08e569bef"
+      ],
+      "cwd": "$work/Prepare/pair23",
+      "pgid": 40620,
+      "exit": 0,
+      "seconds": 0.92,
+      "groupAbsent": true,
+      "outputSHA256": "c72fdb9d8960a7c79e51dbaf4b279575fb49c26595d08c41184318394c447f4a"
+    },
+    "pair23-identity": {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD",
+        "HEAD^{tree}"
+      ],
+      "cwd": "$work/Prepare/pair23",
+      "pgid": 40641,
+      "exit": 0,
+      "seconds": 0.02,
+      "groupAbsent": true,
+      "outputSHA256": "35edd810e522fcb66919f5f5734cdf7dff79b2e3beb5825049955986eb6e8b78"
+    },
+    "v74-identity": {
+      "argv": [
+        "git",
+        "rev-parse",
+        "44aecbeb6a82a4a93321cff6a8ab86c5aa421900^{tree}"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-15e394fa",
+      "pgid": 40643,
+      "exit": 0,
+      "seconds": 0.02,
+      "groupAbsent": true,
+      "outputSHA256": "96c2c2b55f12d42b0e321ab554171739833cd1390f1460c42ba5cd0f20d190aa"
+    },
+    "v74-archive": {
+      "argv": [
+        "git",
+        "archive",
+        "--format=tar",
+        "-o",
+        "$work/Prepare/v74.tar",
+        "44aecbeb6a82a4a93321cff6a8ab86c5aa421900",
+        "cli",
+        "sdk",
+        "updates",
+        "runtime-identity",
+        "native/android"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-15e394fa",
+      "pgid": 40644,
+      "exit": 0,
+      "seconds": 0.23,
+      "groupAbsent": true,
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "v74-unpack": {
+      "argv": [
+        "tar",
+        "-xf",
+        "$work/Prepare/v74.tar",
+        "-C",
+        "$work/Prepare/v74"
+      ],
+      "cwd": "$work/Prepare",
+      "pgid": 40647,
+      "exit": 0,
+      "seconds": 0.12,
+      "groupAbsent": true,
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "pair23-build": {
+      "argv": [
+        "/usr/bin/swift",
+        "build",
+        "--package-path",
+        "$work/Prepare/pair23/cli",
+        "--scratch-path",
+        "$work/Prepare/pair23-build",
+        "--cache-path",
+        "$work/Prepare/pair23-build/cache",
+        "--config-path",
+        "$work/Prepare/pair23-build/config",
+        "--security-path",
+        "$work/Prepare/pair23-build/security",
+        "--manifest-cache",
+        "local",
+        "--disable-dependency-cache",
+        "--only-use-versions-from-resolved-file",
+        "--product",
+        "mixer"
+      ],
+      "cwd": "$work/Prepare",
+      "pgid": 40650,
+      "exit": 0,
+      "seconds": 21.95,
+      "groupAbsent": true,
+      "outputSHA256": "ee3e655ce62f6a25716fa354b8bed9c64ff1895a7c6bc524b2fccba7b5c36bde"
+    },
+    "pair23-bin-path": {
+      "argv": [
+        "/usr/bin/swift",
+        "build",
+        "--package-path",
+        "$work/Prepare/pair23/cli",
+        "--scratch-path",
+        "$work/Prepare/pair23-build",
+        "--cache-path",
+        "$work/Prepare/pair23-build/cache",
+        "--config-path",
+        "$work/Prepare/pair23-build/config",
+        "--security-path",
+        "$work/Prepare/pair23-build/security",
+        "--manifest-cache",
+        "local",
+        "--disable-dependency-cache",
+        "--only-use-versions-from-resolved-file",
+        "--show-bin-path"
+      ],
+      "cwd": "$work/Prepare",
+      "pgid": 42050,
+      "exit": 0,
+      "seconds": 0.88,
+      "groupAbsent": true,
+      "outputSHA256": "6a45e351a6cd9a2a4c7f3ced1e2160ae0ae584f527d509af3c19a861ed58a5fa"
+    },
+    "v74-build": {
+      "argv": [
+        "/usr/bin/swift",
+        "build",
+        "--package-path",
+        "$work/Prepare/v74/cli",
+        "--scratch-path",
+        "$work/Prepare/v74-build",
+        "--cache-path",
+        "$work/Prepare/v74-build/cache",
+        "--config-path",
+        "$work/Prepare/v74-build/config",
+        "--security-path",
+        "$work/Prepare/v74-build/security",
+        "--manifest-cache",
+        "local",
+        "--disable-dependency-cache",
+        "--only-use-versions-from-resolved-file",
+        "--product",
+        "mixer"
+      ],
+      "cwd": "$work/Prepare",
+      "pgid": 42156,
+      "exit": 0,
+      "seconds": 21.7,
+      "groupAbsent": true,
+      "outputSHA256": "5c0c1267493e0d48e837158635832e923b9e0359a6fc4f38171a17abc676b406"
+    },
+    "v74-bin-path": {
+      "argv": [
+        "/usr/bin/swift",
+        "build",
+        "--package-path",
+        "$work/Prepare/v74/cli",
+        "--scratch-path",
+        "$work/Prepare/v74-build",
+        "--cache-path",
+        "$work/Prepare/v74-build/cache",
+        "--config-path",
+        "$work/Prepare/v74-build/config",
+        "--security-path",
+        "$work/Prepare/v74-build/security",
+        "--manifest-cache",
+        "local",
+        "--disable-dependency-cache",
+        "--only-use-versions-from-resolved-file",
+        "--show-bin-path"
+      ],
+      "cwd": "$work/Prepare",
+      "pgid": 42955,
+      "exit": 0,
+      "seconds": 0.97,
+      "groupAbsent": true,
+      "outputSHA256": "93b22772bb7ec54e48c2722ccf9a84dc7d1aa9e3ba23fcc5b79909f4d61de89a"
+    },
+    "fieldlog-prepare": {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "$work/Prepare/fieldlog/Integrations/GeneratedReport/scripts/build-android.py",
+        "--mixer",
+        "$work/Prepare/pair23-build/out/Products/Debug/mixer",
+        "--sdk-checkout",
+        "$work/Prepare/pair23",
+        "--android-adapter-path",
+        "$work/Prepare/pair23/native/android",
+        "--output",
+        "$work/Prepare/FieldLog-pair23",
+        "--prepare-only"
+      ],
+      "cwd": "$work/Prepare",
+      "pgid": 42980,
+      "exit": 0,
+      "seconds": 14.82,
+      "groupAbsent": true,
+      "recipeCreate": {
+        "sha256": "e3291fbf2c1b985cb37b57b7099fa55bbed56b1a39406780fddbf178fba923b2",
+        "exit": 0
+      },
+      "nested": [
+        {
+          "command": "python3",
+          "exit": 0,
+          "receiptSHA256": "9f0edd21f8af7ebfb2697c254dc4205c2bc4922fe4f38ed5e2245765ef479d2b"
+        },
+        {
+          "command": "swift",
+          "exit": 0,
+          "receiptSHA256": "28cf1b476684c5c0e3184325af27e52620b36d10b3c7a7496c29aea62a8d6fff"
+        }
+      ],
+      "outputSHA256": "5493a24791590fa3557df6d7c4539788bc330ff2ed3259b9b1f3ecf4a875b423"
+    },
+    "v74-upgrade": {
+      "argv": [
+        "$work/Prepare/v74-build/out/Products/Debug/mixer",
+        "upgrade",
+        "$work/Prepare/FieldLog-v74",
+        "--directory",
+        "$work/Prepare/FieldLog-pair23",
+        "--sdk-path",
+        "$work/Prepare/v74/sdk",
+        "--android-adapter-path",
+        "$work/Prepare/v74/native/android"
+      ],
+      "cwd": "$work/Prepare",
+      "pgid": 43639,
+      "exit": 0,
+      "seconds": 15.92,
+      "groupAbsent": true,
+      "nested": [
+        {
+          "command": "python3",
+          "exit": 0,
+          "receiptSHA256": "220803d01fbbbd9d98fa851ebe0d6c1da71126428898e19d88070c3757fec135"
+        },
+        {
+          "command": "swift",
+          "exit": 0,
+          "receiptSHA256": "d81a4a307844a340239ed79ef8d8b9d21dca86b23bba5773430bff1759de4a5f"
+        },
+        {
+          "command": "swift",
+          "exit": 0,
+          "receiptSHA256": "69cab659d3ff7c95fad1bc0dc512970242739c04583082a9d53c4bd4b0b7534f"
+        },
+        {
+          "command": "swift",
+          "exit": 0,
+          "receiptSHA256": "d3af9d2785a72db6c89c37f949c201055143a65fa156a6a0376be9d389b05c98"
+        }
+      ],
+      "outputSHA256": "c3e47ba8c5982887b375cadc1420a05f4bdc3544802b0262fa6190bebdbed161"
+    },
+    "v74-export": {
+      "argv": [
+        "$work/Prepare/v74-build/out/Products/Debug/mixer",
+        "export",
+        "$work/Prepare/Export",
+        "--directory",
+        "$work/Prepare/FieldLog-v74"
+      ],
+      "cwd": "$work/Prepare",
+      "pgid": 44350,
+      "exit": 0,
+      "seconds": 0.83,
+      "groupAbsent": true,
+      "nested": [
+        {
+          "command": "swift",
+          "exit": 0,
+          "receiptSHA256": "0b2b4c2a2370c80923ee5db4d4a5420301c216479aec0545981d562866773d44"
+        },
+        {
+          "command": "swift",
+          "exit": 0,
+          "receiptSHA256": "60d300516c147d22a4b87597c95b5206acfc397804a3627e23707fff99d28df8"
+        }
+      ],
+      "outputSHA256": "1d0dd1d82dbf7dd0b568f36b491110f51cfab451eeb935a9c4f7c76a3c87e5d5"
+    },
+    "independent-build": {
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "Generated/MixerAndroid/android-build.py",
+        "build",
+        "$work/Build/CI/FieldLogGenerated"
+      ],
+      "cwd": "$work/Build/CI/FieldLogGenerated",
+      "pgid": 44405,
+      "exit": 0,
+      "seconds": 72.22,
+      "groupAbsent": true,
+      "outputSHA256": "bbd75e728ea7d3d3eee8cb988ae90032f97ff1def145a515a682fdd544d2cb81"
+    },
+    "apk-alignment": {
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/zipalign",
+        "-c",
+        "-P",
+        "16",
+        "4",
+        "$work/Build/CI/FieldLogGenerated/.mixer/android-build/FieldLogGenerated-unsigned.apk"
+      ],
+      "cwd": "$work/Build/CI/FieldLogGenerated",
+      "pgid": 56416,
+      "exit": 0,
+      "seconds": 0.02,
+      "groupAbsent": true,
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "apk-badging": {
+      "argv": [
+        "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/aapt2",
+        "dump",
+        "badging",
+        "$work/Build/CI/FieldLogGenerated/.mixer/android-build/FieldLogGenerated-unsigned.apk"
+      ],
+      "cwd": "$work/Build/CI/FieldLogGenerated",
+      "pgid": 56417,
+      "exit": 0,
+      "seconds": 0.02,
+      "groupAbsent": true,
+      "outputSHA256": "aba3a0203e86fa69a3914fdb4cc2716335af278953f0e101b1bc96b8e33243fa"
+    }
+  },
+  "environment": {
+    "os": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "python": "3.14.8",
+    "hostSwift": "swift-driver version: 1.168.6 Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "androidXcode": "Xcode 26.6\nBuild version 17F113",
+    "androidToolchain": {
+      "schema": 1,
+      "sdk_id": "aarch64-unknown-linux-android28",
+      "abi": "arm64-v8a",
+      "min_api": 28,
+      "target_api": 37,
+      "swift_version": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+      "javac_version": "javac 25.0.4.1",
+      "java_version": "openjdk 25.0.4.1 2026-08-18\nOpenJDK Runtime Environment Homebrew (build 25.0.4.1)\nOpenJDK 64-Bit Server VM Homebrew (build 25.0.4.1, mixed mode, sharing)",
+      "python_version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+      "tools": {
+        "python": {
+          "path": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+          "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+        },
+        "swift": {
+          "path": "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift",
+          "sha256": "3d13e20b1504d7d30038fcd2201b9d0a8ead5c09eea752a5da223453b3ae0c6f"
+        },
+        "clang": {
+          "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android28-clang",
+          "sha256": "c0e2e0373d192a8f9339e3148b2c56d41f60286ea5ff6ed3920c767be8090857"
+        },
+        "readelf": {
+          "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-readelf",
+          "sha256": "27ac07f3157f415817a263843824577d7283871fb6e9b280afbc9e8badf6d1d5"
+        },
+        "nm": {
+          "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-nm",
+          "sha256": "0ada73281ce97f8eec87cc3b3ad5f98e774721aca06120606fc5249b412b0d3a"
+        },
+        "java": {
+          "path": "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home/bin/java",
+          "sha256": "9ef6c1a939343ac850811551a8b88d4b877630ab2c94ac38c541e25ccc8cf0a5"
+        },
+        "javac": {
+          "path": "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home/bin/javac",
+          "sha256": "e9fb09ca9cb259a164a32c9055931a865943d25c66800996183c86e527ca0688"
+        },
+        "d8": {
+          "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/d8",
+          "sha256": "b773a721be3d4988dea9660815a9e441b76100e5b0f5c72b5893cfadadc76c6f"
+        },
+        "aapt2": {
+          "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/aapt2",
+          "sha256": "13a206c0b022ba3b92f21b6f142f3a4b2d0f3bb1ac0bddfa820ee2c6b00c4c99"
+        },
+        "zipalign": {
+          "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/zipalign",
+          "sha256": "6d99a9d16c7116850414910b04cffd5ba3aaff86db7a6346179d678abe6d25d1"
+        },
+        "dexdump": {
+          "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/dexdump",
+          "sha256": "0328e326271bcb69350eb32ffc8053eb1e9de9cc245641a78ce322e5c4855c31"
+        }
+      },
+      "metadata": {
+        "ndk": {
+          "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/source.properties",
+          "sha256": "fb5eec1ca5dac09442109cf79e9ce49faecd8b312dbc997e88903a394e14994a"
+        },
+        "platform": {
+          "path": "/opt/homebrew/share/android-commandlinetools/platforms/android-37.0/source.properties",
+          "sha256": "fa89029fc0cee414cb5e44a37cd3033771217eeecb5086577bb6d9b1b03b5b5f"
+        },
+        "build_tools": {
+          "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0/source.properties",
+          "sha256": "fbd87c8567afbc6dc78e140097fcde234f4a61fa7065e85081d43e442ccd3d24"
+        },
+        "jdk": {
+          "path": "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home/release",
+          "sha256": "243ad32301f0103033f6e398d229018dedd145b5a6534ebca3efefb9e77c743c"
+        },
+        "swift_sdk": {
+          "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-sdk.json",
+          "sha256": "e81f3f2142bce0a795cdec567ad24434db3a7b02c288eb2eef2041d2066111dc"
+        },
+        "swift_toolset": {
+          "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-toolset.json",
+          "sha256": "0f9e3a784a4e60bf4c816460dae0ed64e0a723167af111fc05bac8a010b0e065"
+        }
+      },
+      "distributions": {
+        "swift_toolchain": {
+          "path": "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain",
+          "sha256": "0d79dcd75ec7e2e8467f6572f049f25adde933d6d1a35b64a222079f61752051"
+        },
+        "swift_android_sdk": {
+          "path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle",
+          "sha256": "cef2cc34f476b2d209de6fc66acacfa5b34ec737acf3fa4f00de16f26c3eabeb"
+        },
+        "android_platform": {
+          "path": "/opt/homebrew/share/android-commandlinetools/platforms/android-37.0",
+          "sha256": "6a89d699d8cbf8eec88d55bf6fcc79c57bba757695dd955d3f869c5e6ad5597a"
+        },
+        "android_build_tools": {
+          "path": "/opt/homebrew/share/android-commandlinetools/build-tools/37.0.0",
+          "sha256": "aa9272b16e099a091cbced96ebb162debfd4ce0520bfb4756bc9ea2a011338f1"
+        },
+        "jdk": {
+          "path": "/opt/homebrew/Cellar/openjdk@25/25.0.4.1/libexec/openjdk.jdk/Contents/Home",
+          "sha256": "6c95d1cd868f04ffb6647890cc558d8fe00a6f5ade4d4562d659ada7687dde10"
+        }
+      },
+      "sdk_search_path": "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks"
+    }
+  },
+  "deviceOperations": 0,
+  "export": {
+    "entries": 216,
+    "treeSHA256": "cdb05ba10cdfe5a8314c932234f4674c8333ffba6ce8f230ceeb01f5059ecdf5",
+    "appTreeSHA256": "2a38bebe244c18b80af68d92519d48c298b03f5c359b0758f9e1c873b2d82350",
+    "mixerLockSHA256": "0c318915dfb044c6e12b8e2a542762b8391cb5429cff016fec85d5673faeade7",
+    "platformLockSHA256": "abf619c18799ea2dbb169494bcb928b47c95d2cc5e70e433328f6380ae035e80",
+    "sdkPackageLockSHA256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+    "driverSHA256": "98dba189e05b6d3a445b714e492487ac7d163ddf94be035e1124a3fc070aa7b9",
+    "profile": {
+      "adapter_compatibility_sha256": "2262a2c8945476c98a98fd809a26f124181b2104337a71b10595af3bc9f19531",
+      "default_descriptor": {
+        "bytes": 9587,
+        "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
+      },
+      "id": "mixer.android-source-pair.25",
+      "sdk_compatibility_sha256": "0d030f8bba31045d58ddf1b2def3a5541efc1a15295d93e565405b77965861d8"
+    },
+    "relocatedTo": "Build/CI/FieldLogGenerated",
+    "preparationTreeRemovedBeforeBuild": true,
+    "priorBuildOutput": false
+  },
+  "artifact": {
+    "sha256": "378dceca963dd0f20b7278bd46afe08b0c190b4469f9c3f1027e43e030d5c1a1",
+    "bytes": 28877445,
+    "unsigned": true,
+    "badging": [
+      "package: name='dev.fieldlog.generatedr90' versionCode='1' versionName='0.1.0' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'",
+      "minSdkVersion:'36'",
+      "targetSdkVersion:'37'",
+      "launchable-activity: name='dev.fieldlog.generatedr90.androidhost.PublicActivity'  label='' icon=''",
+      "native-code: 'arm64-v8a'"
+    ],
+    "apkEntries": 26,
+    "arm64ELFLibraries": 18,
+    "apkAlignmentKiB": 16,
+    "buildReceiptSHA256": "fee3ee5672dcf4b0a407d8cfbd645cfe5b62763ab90e09e9b205452ae4da96af",
+    "driverSourceTreeSHA256": "c2fd61e860c7872977cc7ed04e93f1a72e7bd660c2e49e9f891333910d465fb5",
+    "completedToolCommands": 50,
+    "sourceAndLocksUnchanged": true
+  },
+  "cleanup": {
+    "commandCustodyResolved": true,
+    "scratchRemoved": true
+  }
+}

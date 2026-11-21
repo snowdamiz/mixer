@@ -13,6 +13,17 @@ Use the tracked results to assess L01–L08 and rerun any check that needs fresh
 evidence from a clean checkout. Paths to disposable run files are historical
 references. See [the worktree verification policy](mixer-product-plan.md#worktree-local-verification).
 
+## November 20 independent FieldLog Android export
+
+Maintained FieldLog source upgraded to public v74 (`44aecbeb6a82a`) and built
+an unsigned arm64 APK from a fresh, relocated `Build/CI` export. The bundled
+Android driver built after the preparation tree was removed. The source and
+dependency locks matched before and after the build. APK inspection confirmed
+the FieldLog launcher, API 36 minimum, API 37 target, and 16 KiB alignment.
+The build scratch was removed. The installed launch for §16.3 and W15 remains
+pending. [Build receipt](verification/receipts/fieldlog-independent-export-v74.json) ·
+[Replay](docs/guides/fieldlog.md#build-the-v74-export-in-independent-android-ci)
+
 ## November 20 hosted v73 verification
 
 All three v73 hosted workflows passed. The Phoenix fixture kept its
