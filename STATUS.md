@@ -311,7 +311,7 @@ predecessor. [Release REST contract](contracts/release-rest-v3.md) · [Source ad
 
 ## November 20 Swift language support matrix
 
-The generated Swift support matrix maps 16 scoped claims to executable
+The generated Swift support matrix maps 18 scoped claims to executable
 controls. Eight rows remain unqualified. Native Swift and the owned guest
 produced the same four FieldLog frames and refused six malformed events
 without changing state. The owned validator and session constructor refused
@@ -343,6 +343,15 @@ startup. An independent arm64 macOS run matched the frames using rebuilt
 host and Wasm bytes with different hashes. The cause of that variation
 remains unverified.
 [Property-wrapper replay](verification/receipts/l03-swift-property-wrapper-v77.json)
+
+A synthetic fixed-slot Swift result builder produced matching native and
+installed guest frames for zero through three children on arm64 macOS.
+Both paths refused four children and retained the previous frame. Closing
+and reopening the guest reclaimed the slot with a fresh generation.
+The separate dynamic-loop builder passed natively and failed guest linking
+on the array allocator imports. Independent replay confirmed both scopes.
+[Fixed-slot replay](verification/receipts/l03-swift-fixed-slot-result-builder.json) ·
+[Dynamic-loop boundary](verification/receipts/l03-swift-result-builder-v78.json)
 
 The maintained WebAssembly Core replay reproduced ten exact returns, three
 traps, and six invalid-module refusals on arm64 macOS. The Rust CLI and the
