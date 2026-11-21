@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Replay the public Swift language controls on arm64 macOS without a device."""
 
+import argparse
 import base64
 from datetime import datetime, timezone
 import json
@@ -123,25 +124,11 @@ def replay_preview(run, host, wasm, name, operands, expected, *, refused_input=N
         refusal_frame = expected[-2]
         events.insert(-1, invalid)
     input_file.write_bytes(b"".join(events))
-    observations = {}
     names = ["initial", *operands]
-    for mode in ("native", "guest"):
-        label = f"{name}-{mode}"
-        row = strict_json(run.command(label, host, label, wasm, input_file)[0])
-        frames = [base64.b64decode(frame, validate=True) for frame in row.pop("frames")]
-        require(len(frames) == len(expected), f"{label}: missing frames")
-        for case, actual, target in zip(names, frames, expected, strict=True):
-            require(actual == target, f"{label}: {case} expected {target.hex()}, got {actual.hex()}")
-        refused = base64.b64decode(row.pop("refusedFrame"), validate=True)
-        require(refused == refusal_frame, f"{label}: refusal changed the previous frame")
-        fuel = row.pop("guestFuel")
-        require(row == dict(closed=mode == "guest"), f"{label}: unexpected close: {row}")
-        require((len(fuel) == len(operands) and all(0 < turn <= 1_000_000 for turn in fuel))
-                if mode == "guest" else not fuel, f"{label}: unexpected fuel: {fuel}")
-        observations[mode] = dict(**row, guestFuel=fuel, refusedFrameHex=refused.hex(),
-                                 framesHex=dict(zip(names, (frame.hex() for frame in frames), strict=True)))
-    require(observations["native"]["framesHex"] == observations["guest"]["framesHex"],
-            f"{name}: frame bytes differ between native Swift and the owned VM")
+    observations = {
+        mode: observe_preview(run, host, wasm, input_file, f"{name}-{mode}", names, expected, refusal_frame)
+        for mode in ("native", "guest")
+    }
     return dict(
         inputFile=identity(input_file),
         inputOrderHex=[event.hex() for event in events],
@@ -151,13 +138,105 @@ def replay_preview(run, host, wasm, name, operands, expected, *, refused_input=N
     )
 
 
+def observe_preview(run, host, wasm, input_file, label, names, expected, refusal_frame):
+    row = strict_json(run.command(label, host, label, wasm, input_file)[0])
+    frames = [base64.b64decode(frame, validate=True) for frame in row.pop("frames")]
+    require(len(frames) == len(expected), f"{label}: missing frames")
+    for case, actual, target in zip(names, frames, expected, strict=True):
+        require(actual == target, f"{label}: {case} expected {target.hex()}, got {actual.hex()}")
+    refused = base64.b64decode(row.pop("refusedFrame"), validate=True)
+    require(refused == refusal_frame, f"{label}: refusal changed the previous frame")
+    fuel = row.pop("guestFuel")
+    guest = label.endswith("-guest")
+    require(row == dict(closed=guest), f"{label}: unexpected close: {row}")
+    require((len(fuel) == len(expected) - 1 and all(0 < turn <= 1_000_000 for turn in fuel))
+            if guest else not fuel, f"{label}: unexpected fuel: {fuel}")
+    return dict(**row, guestFuel=fuel, refusedFrameHex=refused.hex(),
+                framesHex=dict(zip(names, (frame.hex() for frame in frames), strict=True)))
+
+
+def compact_host_sources():
+    runtime = ROOT / "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime"
+    return [
+        *(HERE / f"{name}.swift" for name in
+          ("CompactHost", "FloatingPoint", "AssociatedTypes", "PropertyWrapper", "ResultBuilder")),
+        BENCHMARK / "MatchedTask.swift",
+        INSTALLED / "TaskCompletion.swift",
+        *(runtime / f"{name}.swift" for name in ("Types", "Failure", "GuestDebugLines")),
+    ]
+
+
+def vm_release_flags(run):
+    return ["--offline", "--locked", "--release", "--jobs", "1", "--features",
+            "experimental-capability-native", "--manifest-path", ROOT / "vm/Cargo.toml",
+            "--target-dir", run.scratch / "rust"]
+
+
+def build_compact_host(run, sources):
+    out = run.scratch
+    run.command("vm-build", run.rust / "cargo", "build", "--lib", *vm_release_flags(run), bound=100)
+    archive = out / "rust/release/libmixer_vm.a"
+    header = ROOT / "vm/include/mixer_vm_guest_ui.h"
+    (out / "module.modulemap").write_text(f'module CMixerVMCapability {{ header "{header}" export * }}\n')
+    run.command("host-build", "/usr/bin/swiftc", "-O", "-whole-module-optimization", "-swift-version", "6",
+                "-D", "SWIFT_SUPPORT_MATRIX", "-parse-as-library", "-module-cache-path",
+                out / "native-modules", "-I", out, *sources, archive, "-o", out / "compact-host", bound=35)
+    return archive
+
+
+def result_builder_campaign(run, result):
+    cases = [
+        ("ordinary-two", b"\x00\x01\x02", b".12\x00"),
+        ("priority-three", b"\x01\x04\x03", b"!456"),
+        ("refused-four", b"\x01\x04\x04", None),
+        ("ordinary-empty-after-refusal", b"\x00\x09\x00", b".\x00\x00\x00"),
+    ]
+    names = ["initial", *(name for name, _, frame in cases if frame is not None)]
+    expected = [bytes(4), *(frame for _, _, frame in cases if frame is not None)]
+    input_file = run.scratch / "builder-inputs"
+    input_file.write_bytes(b"".join(event for _, event, _ in cases))
+    host = run.scratch / "compact-host"
+    wasm = run.scratch / "builder.wasm"
+    builder = HERE / "ResultBuilder.swift"
+    adapter = HERE / "CompactPreviewGuest.swift"
+    sources = compact_host_sources()
+    result.update(
+        observedUTC=datetime.now(timezone.utc).isoformat(),
+        revision=run.command("revision", "/usr/bin/git", "rev-parse", "HEAD")[0].strip(),
+        tree=run.command("tree", "/usr/bin/git", "rev-parse", "HEAD^{tree}")[0].strip(),
+        vmTree=run.command("vm-tree", "/usr/bin/git", "rev-parse", "HEAD:vm")[0].strip(),
+        scope="Synthetic Foundation-free menu builder on arm64 macOS",
+        guestTarget=dict(abi="Guest UI V1", profile="table-memory-v3", memoryPages=1,
+                         fuelPerTurn=1_000_000, hostCallsPerTurn=0),
+        sources={str(path.relative_to(ROOT)): identity(path) for path in [Path(__file__), adapter, *sources]},
+        events=[dict(case=name, inputHex=event.hex(), accepts=frame is not None)
+                for name, event, frame in cases],
+    )
+    result["tools"] = {label: run.command(label, *argv)[0].strip() for label, argv in {
+        "macOS": ("/usr/bin/sw_vers",),
+        "nativeSwift": ("/usr/bin/swiftc", "--version"),
+        "guestSwift": (run.swift / "swiftc", "--version"),
+        "linker": (run.swift / "wasm-ld", "--version"),
+        "rustc": (run.rust / "rustc", "--version"),
+        "cargo": (run.rust / "cargo", "--version"),
+    }.items()}
+    archive = build_compact_host(run, sources)
+    result["vmArchive"] = identity(archive)
+    result["hostExecutable"] = identity(host)
+    result["native"] = observe_preview(run, host, wasm, input_file, "builder-native", names, expected, b"!456")
+    build_compact_guest(lambda *args: run.command(*args, bound=35), run.swift,
+                        run.scratch, "builder", [builder, adapter],
+                        flags=("-D", "RESULT_BUILDER_GUEST", "-module-cache-path", run.scratch / "guest-modules"))
+    result["wasm"] = identity(wasm)
+    replay_abi.check_descriptors(wasm.read_bytes())
+    result["guest"] = observe_preview(run, host, wasm, input_file, "builder-guest", names, expected, b"!456")
+
+
 def campaign(run):
     call = run.command
     out = run.scratch
     revision = call("revision", "/usr/bin/git", "rev-parse", "HEAD")[0].strip()
     tree = call("tree", "/usr/bin/git", "rev-parse", "HEAD^{tree}")[0].strip()
-    runtime = ROOT / "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime"
-    runtime_sources = [runtime / f"{name}.swift" for name in ("Types", "Failure", "GuestDebugLines")]
     model = INSTALLED / "TaskCompletion.swift"
     adapter = INSTALLED / "InstalledGuest.swift"
     prior = ROOT / "verification/receipts/l03-d3-task-review-event-trap-7b61fe1c.json"
@@ -165,8 +244,7 @@ def campaign(run):
     associated = HERE / "AssociatedTypes.swift"
     wrapper = HERE / "PropertyWrapper.swift"
     preview_guest = HERE / "CompactPreviewGuest.swift"
-    host = [HERE / "CompactHost.swift", floating, associated, wrapper,
-            BENCHMARK / "MatchedTask.swift", model, *runtime_sources]
+    host = compact_host_sources()
     native = HERE / "Sources/FeatureProbe/main.swift"
     version_commands = {
         "macOS": ("/usr/bin/sw_vers",),
@@ -218,17 +296,8 @@ def campaign(run):
     rejected_wasm.write_bytes(mutated)
 
     cargo = [run.rust / "cargo"]
-    cargo_flags = ["--offline", "--locked", "--release", "--jobs", "1", "--features",
-                   "experimental-capability-native", "--manifest-path", vm / "Cargo.toml",
-                   "--target-dir", out / "rust"]
-    call("vm-build", *cargo, "build", "--lib", *cargo_flags, bound=100)
-    archive = out / "rust/release/libmixer_vm.a"
-    (out / "module.modulemap").write_text(
-        f'module CMixerVMCapability {{ header "{vm}/include/mixer_vm_guest_ui.h" export * }}\n'
-    )
-    call("host-build", "/usr/bin/swiftc", "-O", "-whole-module-optimization", "-swift-version", "6",
-         "-D", "SWIFT_SUPPORT_MATRIX", "-parse-as-library", "-module-cache-path", out / "native-modules",
-         "-I", out, *host, archive, "-o", out / "compact-host", bound=35)
+    cargo_flags = vm_release_flags(run)
+    archive = build_compact_host(run, host)
 
     observations = {}
     frames = {}
@@ -294,6 +363,9 @@ def campaign(run):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--result-builder", action="store_true", help="run the focused synthetic builder replay")
+    args = parser.parse_args()
     require((os.uname().sysname, os.uname().machine) == ("Darwin", "arm64"), "requires arm64 macOS")
     require(Path.cwd() == ROOT, "run from the Mixer checkout root")
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
@@ -302,8 +374,18 @@ def main():
     local.mkdir(exist_ok=True)
     scratch = Path(tempfile.mkdtemp(prefix="l03-swift-profile-", dir=local))
     run = Run(scratch)
+    failed = False
     try:
-        result = campaign(run)
+        if args.result_builder:
+            result = {}
+            try:
+                result_builder_campaign(run, result)
+            except ValueError as error:
+                result["failure"] = str(error)
+                failed = True
+            result["commands"] = run.commands
+        else:
+            result = campaign(run)
     finally:
         if run.active is not None:
             raise RuntimeError(f"UNKNOWN custody for {run.active}; preserve {scratch}")
@@ -312,7 +394,8 @@ def main():
                              observedPeakScratchBytes=run.peak_scratch, scratchLimitBytes=SCRATCH_LIMIT,
                              scratchRemoved=not scratch.exists())
     print(json.dumps(result, indent=2))
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

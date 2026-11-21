@@ -1,0 +1,263 @@
+{
+  "schemaVersion": 1,
+  "work": "W07 / L03, product plan 7.3",
+  "result": "native_pass_guest_blocked_at_link",
+  "replay": "python3 -B compiler/Fixtures/FeatureProbe/replay.py --result-builder",
+  "observedUTC": "2026-11-21T08:20:39.261163+00:00",
+  "revision": "814c7218c088a16b7218e75ba0e197162401d167",
+  "tree": "f4444270428cf2d8b0b4dd2e9abee91347b161be",
+  "vmTree": "1682169a33d05bd96c7f9fd433d556107bbb7a66",
+  "scope": "Synthetic Foundation-free menu builder on arm64 macOS",
+  "guestTarget": {
+    "abi": "Guest UI V1",
+    "profile": "table-memory-v3",
+    "memoryPages": 1,
+    "fuelPerTurn": 1000000,
+    "hostCallsPerTurn": 0
+  },
+  "sources": {
+    "compiler/Fixtures/FeatureProbe/replay.py": {
+      "bytes": 20752,
+      "sha256": "5bff74e5bba1e0ff7670dbe3bbbec5a9e4b2384fedcacad7fec5b40316fd7bfe"
+    },
+    "compiler/Fixtures/FeatureProbe/CompactPreviewGuest.swift": {
+      "bytes": 2069,
+      "sha256": "cedc727ac9d107ddeba8309f8e6099b3041bea1fce61e4cd2074834548c7d5a9"
+    },
+    "compiler/Fixtures/FeatureProbe/CompactHost.swift": {
+      "bytes": 8883,
+      "sha256": "4a639e25413478ab9774c830a704b7ff423b6914a56b35ae8ae8465ee3502ad2"
+    },
+    "compiler/Fixtures/FeatureProbe/FloatingPoint.swift": {
+      "bytes": 2044,
+      "sha256": "c4c37afa526d197d4d7814f4c6955d57492d4530a7f6fddfe213e105ecf29e90"
+    },
+    "compiler/Fixtures/FeatureProbe/AssociatedTypes.swift": {
+      "bytes": 1791,
+      "sha256": "ce0f8eb8d7d376159e50c6ec385a927a6f11eac1cf3a5de0f210c69d905a0a3d"
+    },
+    "compiler/Fixtures/FeatureProbe/PropertyWrapper.swift": {
+      "bytes": 1108,
+      "sha256": "472da4e3283880b85ca6e702e6f132a7186d1ab3820996badaca9a6fd6935597"
+    },
+    "compiler/Fixtures/FeatureProbe/ResultBuilder.swift": {
+      "bytes": 1924,
+      "sha256": "637610895d77d8f50791485cf8217916326cf12c71c22953222a99e2dab2e8d8"
+    },
+    "compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift": {
+      "bytes": 9308,
+      "sha256": "e2539a9ff78652d4b0087a63bad89172cd09aacb5457185e513f204ba1cc8b31"
+    },
+    "compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift": {
+      "bytes": 4093,
+      "sha256": "617b60024af1accef044dd148360fcf889648594783057c7234b335b468071d7"
+    },
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift": {
+      "bytes": 5876,
+      "sha256": "508f0e5ef4b5439f6eaf0d3ff404bcc17034dce337cbb4886932b9826b483b62"
+    },
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift": {
+      "bytes": 14710,
+      "sha256": "25fda0bc8aa630afbfab7b53d0a05ddadee31e560f7cee37daf60c8fa24bcc63"
+    },
+    "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift": {
+      "bytes": 13825,
+      "sha256": "37182a6b3da620e07730647526ca644f5e85e4e55c661cb785973516d277fde7"
+    }
+  },
+  "events": [
+    {
+      "case": "ordinary-two",
+      "inputHex": "000102",
+      "accepts": true
+    },
+    {
+      "case": "priority-three",
+      "inputHex": "010403",
+      "accepts": true
+    },
+    {
+      "case": "refused-four",
+      "inputHex": "010404",
+      "accepts": false
+    },
+    {
+      "case": "ordinary-empty-after-refusal",
+      "inputHex": "000900",
+      "accepts": true
+    }
+  ],
+  "tools": {
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "nativeSwift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "guestSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "linker": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)"
+  },
+  "vmArchive": {
+    "bytes": 19309144,
+    "sha256": "0beb9fbab5f2d1f718482391a43ecb57a3e76f6e3e0d31a0676b87b7a1852116"
+  },
+  "hostExecutable": {
+    "bytes": 2036464,
+    "sha256": "f8d601c29ed74347eff2b59067a7d3ea3bb5ab3207bfd1efd3c5aa892831e8fa"
+  },
+  "native": {
+    "closed": false,
+    "guestFuel": [],
+    "refusedFrameHex": "21343536",
+    "framesHex": {
+      "initial": "00000000",
+      "ordinary-two": "2e313200",
+      "priority-three": "21343536",
+      "ordinary-empty-after-refusal": "2e000000"
+    }
+  },
+  "commands": [
+    {
+      "label": "vm-build",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--lib",
+        "--offline",
+        "--locked",
+        "--release",
+        "--jobs",
+        "1",
+        "--features",
+        "experimental-capability-native",
+        "--manifest-path",
+        "$REPO/vm/Cargo.toml",
+        "--target-dir",
+        "$RUN/rust"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "host-build",
+      "argv": [
+        "/usr/bin/swiftc",
+        "-O",
+        "-whole-module-optimization",
+        "-swift-version",
+        "6",
+        "-D",
+        "SWIFT_SUPPORT_MATRIX",
+        "-parse-as-library",
+        "-module-cache-path",
+        "$RUN/native-modules",
+        "-I",
+        "$RUN",
+        "$REPO/compiler/Fixtures/FeatureProbe/CompactHost.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/FloatingPoint.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/AssociatedTypes.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/PropertyWrapper.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/ResultBuilder.swift",
+        "$REPO/compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift",
+        "$REPO/compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift",
+        "$RUN/rust/release/libmixer_vm.a",
+        "-o",
+        "$RUN/compact-host"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "builder-native",
+      "argv": [
+        "$RUN/compact-host",
+        "builder-native",
+        "$RUN/builder.wasm",
+        "$RUN/builder-inputs"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "builder-swift",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-whole-module-optimization",
+        "-Osize",
+        "-parse-as-library",
+        "-Xfrontend",
+        "-disable-stack-protector",
+        "-D",
+        "RESULT_BUILDER_GUEST",
+        "-module-cache-path",
+        "$RUN/guest-modules",
+        "-emit-object",
+        "$REPO/compiler/Fixtures/FeatureProbe/ResultBuilder.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/CompactPreviewGuest.swift",
+        "-o",
+        "$RUN/builder.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "builder-link",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--no-entry",
+        "--gc-sections",
+        "--strip-all",
+        "-z",
+        "stack-size=16384",
+        "--max-memory=65536",
+        "--export=mixer_guest_ui_start_v1",
+        "--export=mixer_guest_ui_event_v1",
+        "--export=mixer_guest_capability_ready_v1",
+        "$RUN/builder.o",
+        "-o",
+        "$RUN/builder.wasm"
+      ],
+      "exit": 1
+    }
+  ],
+  "custody": {
+    "directReapedAndGroupsObservedAbsent": 14,
+    "unknown": 0,
+    "observedPeakScratchBytes": 75220337,
+    "scratchLimitBytes": 3221225472,
+    "scratchRemoved": true
+  },
+  "guestLinkFailure": {
+    "diagnostics": [
+      "wasm-ld: error: $RUN/builder.o: undefined symbol: posix_memalign",
+      "wasm-ld: error: $RUN/builder.o: undefined symbol: free"
+    ],
+    "admissionReached": false,
+    "frameParityObserved": false,
+    "rejectionObserved": false,
+    "retirementObserved": false
+  },
+  "existingCompactReplay": {
+    "command": "python3 -B compiler/Fixtures/FeatureProbe/replay.py",
+    "sourceManifestSHA256": "99ea15bf446ef6866b59f4fad20bab944470599436dbf69ccb7533f3e9ce2cb0",
+    "nativeFeatureProbe": "passed",
+    "installedGuestUIV1Controls": [
+      "FieldLog task completion",
+      "floating point",
+      "associated types",
+      "property wrapper"
+    ],
+    "vmTestResults": {
+      "experimental_guest_ui_validation": 5,
+      "experimental_capability_guest": 27
+    },
+    "custody": {
+      "directReapedAndGroupsObservedAbsent": 34,
+      "unknown": 0,
+      "observedPeakScratchBytes": 79226562,
+      "scratchLimitBytes": 3221225472,
+      "scratchRemoved": true
+    }
+  }
+}

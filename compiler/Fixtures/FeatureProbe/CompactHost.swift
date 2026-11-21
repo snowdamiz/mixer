@@ -134,7 +134,7 @@ private func exercisePreview(
         try check(args.count >= 3, "expected a mode and Wasm path")
         let mode = args[1]
         let preview = ["floating-native", "floating-guest", "associated-native", "associated-guest",
-                       "wrapper-native", "wrapper-guest"].contains(mode)
+                       "wrapper-native", "wrapper-guest", "builder-native", "builder-guest"].contains(mode)
         try check(args.count == (preview ? 4 : 3), "unexpected replay arguments")
         let encoder = JSONEncoder()
         let result: Data
@@ -166,19 +166,25 @@ private func exercisePreview(
             let inputs = try Data(contentsOf: URL(fileURLWithPath: args[3]))
             result = try encoder.encode(exercisePreview(
                 &path, inputs: inputs, width: PropertyWrapperPreview.inputSize, refusePenultimateEvent: true))
-        case "floating-guest", "associated-guest", "wrapper-guest":
-            let wrapper = mode == "wrapper-guest"
+        case "builder-native":
+            var path = NativePreview(outputSize: ResultBuilderPreview.outputSize, render: ResultBuilderPreview.render)
+            let inputs = try Data(contentsOf: URL(fileURLWithPath: args[3]))
+            result = try encoder.encode(exercisePreview(
+                &path, inputs: inputs, width: ResultBuilderPreview.inputSize, refusePenultimateEvent: true))
+        case "floating-guest", "associated-guest", "wrapper-guest", "builder-guest":
             let width: Int
             switch mode {
             case "floating-guest": width = FloatingPointPreview.inputSize
             case "associated-guest": width = AssociatedTypesPreview.inputSize
+            case "builder-guest": width = ResultBuilderPreview.inputSize
             default: width = PropertyWrapperPreview.inputSize
             }
             var path = OwnedTask(try Data(contentsOf: URL(fileURLWithPath: args[2])), measureComponents: false)
             let inputs = try Data(contentsOf: URL(fileURLWithPath: args[3]))
             try path.open()
             result = try encoder.encode(exercisePreview(
-                &path, inputs: inputs, width: width, refusePenultimateEvent: wrapper))
+                &path, inputs: inputs, width: width,
+                refusePenultimateEvent: mode == "wrapper-guest" || mode == "builder-guest"))
         default:
             throw CheckFailed(reason: "unknown mode")
         }

@@ -3,6 +3,8 @@ private typealias Preview = PropertyWrapperPreview
 private nonisolated(unsafe) var preview = Preview()
 #elseif ASSOCIATED_TYPES_GUEST
 private typealias Preview = AssociatedTypesPreview
+#elseif RESULT_BUILDER_GUEST
+private typealias Preview = ResultBuilderPreview
 #else
 private typealias Preview = FloatingPointPreview
 #endif
