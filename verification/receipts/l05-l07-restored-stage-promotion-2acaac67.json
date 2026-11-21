@@ -1,0 +1,634 @@
+{
+  "status": "pass",
+  "scope": "L05/L07 disposable local restore follow-up at the specified published revision. Full application HTTP promotion on a freshly restored target.",
+  "previousEvidence": "verification/receipts/l05-l07-v80-stage-promotion-restore.json",
+  "sourceRevision": "2acaac67605c369ff1667e3ccc3eb56d376e536e",
+  "sourceTree": "d995f414d76ee7ec709594521e071618dd088dda",
+  "sourceProjection": {
+    "gitArchiveSHA256": "a68b49524e30df958fc514f5aac0d7cc177d2bbd8933b30fa69b15654fcb55ce",
+    "paths": [
+      "hosted",
+      "services/protocol/testdata",
+      "docs/operations",
+      "scripts/restore-local-authz-expiry.sql",
+      "tests/integration/phoenix-release-restore/restore-artifact-key.sql"
+    ],
+    "executedFilesSHA256": {
+      "hosted/mix.lock": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+      "hosted/test/mixer_hosted/releases/browser_publication_test.exs": "5204a8e54f7d641cb0406b325d5c13553a6c72448f30fe04d411a920e61aa704",
+      "hosted/test/support/ordinary_browser_startup_fixture.ex": "66fd996bf2cf08f662f88c2c7899cf158f1e3020d6abe28924dacbceb053ff6a",
+      "hosted/test/support/stage_promotion_signing_fixture.ex": "7133a59e800a53feafd011f1b061534dcaf29c851c2855ccced7f5563a1910ef",
+      "hosted/priv/local_stage_promotion_read/20261120000021_add_local_stage_promotion_read.exs": "09a71f35e7e36e7abc6461d2bba145c9f1b4a8ab0ea50034997dc56299d11cec"
+    },
+    "temporaryFixtureChanges": "Added one selected positive test to BrowserPublicationTest, and made the startup fixture retain the source database, skip target creation and provisioning, and record bound ports. No product source changes."
+  },
+  "environment": {
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "python": "3.14.8",
+    "host": "Darwin arm64"
+  },
+  "applicationBoundary": {
+    "request": "POST /v3/orgs/org-a/projects/project-a/apps/fieldlog/release-promotions/dev-to-stage",
+    "path": "Phoenix/Bandit, configured access-token verification, LocalReleaseController, Releases.promote_staged_environment/6, WriterRepo authorization and PostgreSQL transaction",
+    "issuer": "Synthetic fixture OIDC and JWKS on loopback, fresh sessions in both runs.",
+    "signing": "Maintained StagePromotionSigningFixture, ephemeral Ed25519 keys shared only through the owned scratch bundle.",
+    "databaseLogin": {
+      "currentUser": "browser_ordinary",
+      "sessionUser": "browser_ordinary",
+      "superuser": false,
+      "bypassRLS": false
+    },
+    "configuration": {
+      "MIX_ENV": "test",
+      "HEX_OFFLINE": "1",
+      "localReleaseJobs": true,
+      "queueConsumerStarted": false,
+      "optInPromotionReadMigration": 20261120000021,
+      "database": "browser_ordinary_installation_r1422",
+      "postgres": "TCP 127.0.0.1 only, owned trust-auth fixture clusters"
+    },
+    "targetProvisioning": "Password-free database roles restored first. Target fixture booted without running migrations, granting SQL privileges, or reseeding.",
+    "sourceSetup": "Staged eight signed artifacts through CustomerArtifacts.upload_at, published development 7/9, promoted staging 3/12, then published development 8/10 through ordinary HTTP for the new restored promotion."
+  },
+  "commands": {
+    "dependencySetup": [
+      [
+        "mix",
+        "deps.get",
+        "--check-locked"
+      ],
+      [
+        "mix",
+        "compile",
+        "--warnings-as-errors"
+      ]
+    ],
+    "sourceAndRestore": {
+      "source-http-test": [
+        "mix",
+        "test",
+        "--warnings-as-errors",
+        "--trace",
+        "--no-color",
+        "--seed",
+        "0",
+        "--timeout",
+        "90000",
+        "test/mixer_hosted/releases/browser_publication_test.exs:488"
+      ],
+      "source-dump": [
+        "pg_dump",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "53360",
+        "-U",
+        "mixer_fixture",
+        "-w",
+        "-Fc",
+        "-f",
+        "<run>/release.dump",
+        "browser_ordinary_installation_r1422"
+      ],
+      "source-dump-roles": [
+        "pg_dumpall",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "53360",
+        "-U",
+        "mixer_fixture",
+        "-w",
+        "--roles-only",
+        "--no-role-passwords",
+        "--no-comments",
+        "-f",
+        "<run>/roles.sql"
+      ],
+      "target-pg-restore": [
+        "pg_restore",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "53471",
+        "-U",
+        "mixer_fixture",
+        "-w",
+        "--exit-on-error",
+        "--create",
+        "-d",
+        "postgres",
+        "<run>/release.dump"
+      ],
+      "target-repair-restore-local-authz-expiry": [
+        "psql",
+        "-X",
+        "-qAt",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "53471",
+        "-U",
+        "mixer_fixture",
+        "-w",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-d",
+        "browser_ordinary_installation_r1422",
+        "-f",
+        "<projection>/scripts/restore-local-authz-expiry.sql"
+      ],
+      "target-repair-restore-artifact-key": [
+        "psql",
+        "-X",
+        "-qAt",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "53471",
+        "-U",
+        "mixer_fixture",
+        "-w",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-d",
+        "browser_ordinary_installation_r1422",
+        "-f",
+        "<projection>/tests/integration/phoenix-release-restore/restore-artifact-key.sql"
+      ],
+      "target-http-test": [
+        "mix",
+        "test",
+        "--warnings-as-errors",
+        "--trace",
+        "--no-color",
+        "--seed",
+        "0",
+        "--timeout",
+        "90000",
+        "test/mixer_hosted/releases/browser_publication_test.exs:488"
+      ]
+    },
+    "hashes": {
+      "targetStateBefore": "84c7b8eb3fac2891cd1ea5e661dcb1ef8f7816384da89296a2053282ba302125",
+      "targetStateAfterAppExit": "44b1f033be2be6d81f68749180a85840e45a1cc37ff6878202ad5e8da8f973af"
+    }
+  },
+  "restore": {
+    "sourceSystemId": "7710598588546355940",
+    "sourceQuiescedReadOnlyWithNoOtherClients": true,
+    "dumpSHA256": "357fd31f8e12ed4799d0bc7019a2a1b6f97302b500d34869cbab3f58d7024595",
+    "passwordFreeRolesSHA256": "09648971cc87a86e7e293c0bd205afcf850099444a53b7a909dc749854288f14",
+    "ledgerSnapshotSHA256": "9ddb3e7640c6635efc160dae0f876c5a23bc4b9089604dd86fb6eb207d0aea1b",
+    "targetSystemId": "7710598621804090356",
+    "databaseAbsentBeforeRestore": true,
+    "pgRestoreInvocations": 1,
+    "rolesAndMembershipEqual": true,
+    "checkRepairs": [
+      {
+        "path": "scripts/restore-local-authz-expiry.sql",
+        "sha256": "1012536ad091cfd43d8e06f627dc05b2d3a7316af56a58f8e6c8dfa29eb552ad",
+        "changedDefinitions": [
+          "mixer_authz_credentials_check",
+          "mixer_authz_families_check"
+        ]
+      },
+      {
+        "path": "tests/integration/phoenix-release-restore/restore-artifact-key.sql",
+        "sha256": "6fe21ea57ff4a24e410193848beeeca2c6e7c5e994ea472bc0d8c81c207f9f0c",
+        "changedDefinitions": [
+          "mixer_customer_idempotency_key_check"
+        ]
+      }
+    ],
+    "stageAppendPolicy": {
+      "prettyAndMetadataEqual": true,
+      "rawDeparseEqual": false,
+      "sourceRawSHA256": "f846a5afdcf29849e7b6a32a2d0fff50bdfcc4cb3e27d4ebff35baf1b21c87b6",
+      "targetRawSHA256": "cb2b25da85c582c0101357db6863b660b9d3d80ffe8db87c6140aedc4d6c410b",
+      "edited": false
+    },
+    "sourceAndTargetSnapshotEqual": {
+      "jobs": 6,
+      "audit": 8,
+      "heads": 4,
+      "bindings": 1,
+      "artifacts": 8,
+      "directions": 1,
+      "migrations": 18,
+      "enrollments": 4,
+      "publications": 6,
+      "artifact_heads": 1,
+      "local_requests": 4,
+      "materializations": 0,
+      "artifact_idempotency": 8
+    }
+  },
+  "sourceBaseline": {
+    "testOutput": [
+      "* test commits a new paired promotion on the restored ordinary database (4351.3ms) [L#488]",
+      "Result: 1 passed, 7 excluded"
+    ],
+    "testOutputSHA256": "e1e0d946c93c188e4bc58683560c542c267ab4fe6895e5bdaec8614402f438a2",
+    "status": 200,
+    "releaseIdOnBothTargets": "fixture-release-v3",
+    "sourceCommitOnBothTargets": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "receipt": {
+      "android": {
+        "artifact_sha256": "55d4910d15675d87a9466a14e0ab63349e729826e77cd3fdb6df55d0bf8124d6",
+        "rollout_basis_points": 10000,
+        "sequence": 12
+      },
+      "delivery": "local_only",
+      "ios": {
+        "artifact_sha256": "1644d91a8412e30ba94289ec29c6d46f640050ae2428c58b6e02c6bdb8732da6",
+        "rollout_basis_points": 10000,
+        "sequence": 3
+      }
+    },
+    "requestBodySHA256": "9ef7f0c787cf3b90eacfc74e521f7079808ddb4ae9115500c57a5bcbf2e88868",
+    "exactRetry": {
+      "httpStatus": 200,
+      "bodyByteEqual": true,
+      "ledgerAndQueueStateEqual": true
+    }
+  },
+  "restoredWrite": {
+    "testOutput": [
+      "* test commits a new paired promotion on the restored ordinary database (2181.7ms) [L#488]",
+      "Result: 1 passed, 7 excluded"
+    ],
+    "testOutputSHA256": "3815baa8589d4af3706d302ba4a61ab1f45937992a8f32ed3c02916ea6c22fdb",
+    "status": 200,
+    "releaseIdOnBothTargets": "fixture-restored-successor",
+    "sourceCommitOnBothTargets": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "receipt": {
+      "android": {
+        "artifact_sha256": "e43914b4388df89f6fa163f55c5fcb1ad77134c6e3d02e08c8c38ab92ec4f528",
+        "rollout_basis_points": 10000,
+        "sequence": 13
+      },
+      "delivery": "local_only",
+      "ios": {
+        "artifact_sha256": "d3ce8cc6e7322476caebf3b94c87f995997ffb23bf99da4491113cf6349bb2fb",
+        "rollout_basis_points": 10000,
+        "sequence": 4
+      }
+    },
+    "requestBodySHA256": "d8292ce772143730721b217ac0337c6470d9ce094cbe7770239f72cd30d25e7a",
+    "exactRetry": {
+      "httpStatus": 200,
+      "bodyByteEqual": true,
+      "ledgerAndQueueStateEqual": true
+    },
+    "promotionBinding": {
+      "application_id": "fieldlog",
+      "destination_android_artifact_sha256": "e43914b4388df89f6fa163f55c5fcb1ad77134c6e3d02e08c8c38ab92ec4f528",
+      "destination_android_channel": "candidate",
+      "destination_android_platform": "android",
+      "destination_android_runtime_sha256": "3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432",
+      "destination_android_sequence": 13,
+      "destination_environment_id": "staging",
+      "destination_ios_artifact_sha256": "d3ce8cc6e7322476caebf3b94c87f995997ffb23bf99da4491113cf6349bb2fb",
+      "destination_ios_channel": "candidate",
+      "destination_ios_platform": "ios",
+      "destination_ios_runtime_sha256": "01bd70712d3e3d4644e5e906cefae9373e937c1c06aa9e10cf7f86ec6d5e7fb7",
+      "destination_ios_sequence": 4,
+      "direction_id": "dev-to-stage",
+      "idempotency_key": "restore-successor-pair",
+      "organization_id": "org-a",
+      "principal_id": "person-1",
+      "project_id": "project-a",
+      "reason": "Publish the local development release",
+      "recorded_at": "2026-11-21T12:20:43.543196+00:00",
+      "request_sha256": "151d95b2025125a1c60cf17e48942e3f058de7f714ece02fc7a5f1e6f0d33b40",
+      "source_android_artifact_sha256": "aa15e0f2d94a81fbf219c703adee16291226fa7b8d586a34589eecb4a8c12232",
+      "source_android_channel": "internal",
+      "source_android_platform": "android",
+      "source_android_runtime_sha256": "57cf096e5ae1012d4f977c8cde1e30d8fe26fd392d27f40ac3acf5179cb98c50",
+      "source_android_sequence": 10,
+      "source_environment_id": "development",
+      "source_ios_artifact_sha256": "28faffb3a16f2b649f8db25324d9236b316834a400deb5f78a36b5878d0f22e3",
+      "source_ios_channel": "internal",
+      "source_ios_platform": "ios",
+      "source_ios_runtime_sha256": "2184c5aa3e8c2b757f2a6a5a6c0d554d273a51acb38178a44f0c12d5515b702c",
+      "source_ios_sequence": 8,
+      "writer_role": "browser_ordinary"
+    },
+    "destinationPublications": [
+      {
+        "action": "stage_promote",
+        "application_id": "fieldlog",
+        "artifact_sha256": "e43914b4388df89f6fa163f55c5fcb1ad77134c6e3d02e08c8c38ab92ec4f528",
+        "channel": "candidate",
+        "environment_id": "staging",
+        "health_activated": null,
+        "health_adverse_signals": null,
+        "health_pending": null,
+        "idempotency_key": "restore-successor-pair",
+        "organization_id": "org-a",
+        "platform": "android",
+        "previous_sequence": 12,
+        "principal_id": "person-1",
+        "project_id": "project-a",
+        "reason": "Publish the local development release",
+        "recorded_at": "2026-11-21T12:20:43.504859+00:00",
+        "release_jobs_xact_id": "1422",
+        "rollout_basis_points": 10000,
+        "runtime_sha256": "3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432",
+        "sequence": 13
+      },
+      {
+        "action": "stage_promote",
+        "application_id": "fieldlog",
+        "artifact_sha256": "d3ce8cc6e7322476caebf3b94c87f995997ffb23bf99da4491113cf6349bb2fb",
+        "channel": "candidate",
+        "environment_id": "staging",
+        "health_activated": null,
+        "health_adverse_signals": null,
+        "health_pending": null,
+        "idempotency_key": "restore-successor-pair",
+        "organization_id": "org-a",
+        "platform": "ios",
+        "previous_sequence": 3,
+        "principal_id": "person-1",
+        "project_id": "project-a",
+        "reason": "Publish the local development release",
+        "recorded_at": "2026-11-21T12:20:43.531217+00:00",
+        "release_jobs_xact_id": "1422",
+        "rollout_basis_points": 10000,
+        "runtime_sha256": "01bd70712d3e3d4644e5e906cefae9373e937c1c06aa9e10cf7f86ec6d5e7fb7",
+        "sequence": 4
+      }
+    ],
+    "promotionGroupReadFromBothAnchors": {
+      "android": {
+        "headSequence": "13",
+        "manifestSha256": "e43914b4388df89f6fa163f55c5fcb1ad77134c6e3d02e08c8c38ab92ec4f528",
+        "sequence": "13",
+        "target": {
+          "applicationId": "fieldlog",
+          "channel": "candidate",
+          "environmentId": "staging",
+          "organizationId": "org-a",
+          "platform": "android",
+          "projectId": "project-a",
+          "runtimeFingerprint": "3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432"
+        }
+      },
+      "ios": {
+        "headSequence": "4",
+        "manifestSha256": "d3ce8cc6e7322476caebf3b94c87f995997ffb23bf99da4491113cf6349bb2fb",
+        "sequence": "4",
+        "target": {
+          "applicationId": "fieldlog",
+          "channel": "candidate",
+          "environmentId": "staging",
+          "organizationId": "org-a",
+          "platform": "ios",
+          "projectId": "project-a",
+          "runtimeFingerprint": "01bd70712d3e3d4644e5e906cefae9373e937c1c06aa9e10cf7f86ec6d5e7fb7"
+        }
+      },
+      "kind": "committed"
+    },
+    "priorPromotionGroupReadFromBothHistoricalAnchors": true,
+    "wrongTenantReadStatusOnBothNewAnchors": 404,
+    "queue": {
+      "newTotal": 2,
+      "contract": "One committed Oban Materialize job per destination publication.",
+      "entries": [
+        {
+          "id": 7,
+          "queue": "releases",
+          "worker": "MixerHosted.Releases.ReleaseJobs.Materialize",
+          "state": "available",
+          "attempt": 0,
+          "args": {
+            "application_id": "fieldlog",
+            "channel": "candidate",
+            "environment_id": "staging",
+            "organization_id": "org-a",
+            "platform": "android",
+            "project_id": "project-a",
+            "runtime_sha256": "3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432",
+            "sequence": "13",
+            "version": 1
+          }
+        },
+        {
+          "id": 8,
+          "queue": "releases",
+          "worker": "MixerHosted.Releases.ReleaseJobs.Materialize",
+          "state": "available",
+          "attempt": 0,
+          "args": {
+            "application_id": "fieldlog",
+            "channel": "candidate",
+            "environment_id": "staging",
+            "organization_id": "org-a",
+            "platform": "ios",
+            "project_id": "project-a",
+            "runtime_sha256": "01bd70712d3e3d4644e5e906cefae9373e937c1c06aa9e10cf7f86ec6d5e7fb7",
+            "sequence": "4",
+            "version": 1
+          }
+        }
+      ]
+    },
+    "ledgerInterpretation": "Both stage_promote publication rows carry the principal, reason and idempotency key. One paired binding references both source and both destination rows and their exact artifact digests. The artifact-upload audit chain already existed at restore and was preserved byte for byte."
+  },
+  "independentPostExitReadback": {
+    "tables": {
+      "jobs": {
+        "before": 6,
+        "after": 8
+      },
+      "audit": {
+        "before": 8,
+        "after": 8
+      },
+      "heads": {
+        "before": 4,
+        "after": 4
+      },
+      "bindings": {
+        "before": 1,
+        "after": 2
+      },
+      "artifacts": {
+        "before": 8,
+        "after": 8
+      },
+      "directions": {
+        "before": 1,
+        "after": 1
+      },
+      "migrations": {
+        "before": 18,
+        "after": 18
+      },
+      "enrollments": {
+        "before": 4,
+        "after": 4
+      },
+      "publications": {
+        "before": 6,
+        "after": 8
+      },
+      "artifact_heads": {
+        "before": 1,
+        "after": 1
+      },
+      "local_requests": {
+        "before": 4,
+        "after": 4
+      },
+      "materializations": {
+        "before": 0,
+        "after": 0
+      },
+      "artifact_idempotency": {
+        "before": 8,
+        "after": 8
+      }
+    },
+    "oldRowsPreserved": true,
+    "stagingHeads": [
+      {
+        "channel": "candidate",
+        "platform": "android",
+        "sequence": 13,
+        "project_id": "project-a",
+        "writer_role": "browser_ordinary",
+        "application_id": "fieldlog",
+        "environment_id": "staging",
+        "runtime_sha256": "3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432",
+        "organization_id": "org-a"
+      },
+      {
+        "channel": "candidate",
+        "platform": "ios",
+        "sequence": 4,
+        "project_id": "project-a",
+        "writer_role": "browser_ordinary",
+        "application_id": "fieldlog",
+        "environment_id": "staging",
+        "runtime_sha256": "01bd70712d3e3d4644e5e906cefae9373e937c1c06aa9e10cf7f86ec6d5e7fb7",
+        "organization_id": "org-a"
+      }
+    ],
+    "stagedArtifactUploadAuditUnchanged": true
+  },
+  "cleanup": {
+    "control": {
+      "postgresPIDPGID": 4052,
+      "exit": 0,
+      "groupAbsent": true,
+      "loopbackPortRebound": 52819
+    },
+    "fixtureSetupFailure": {
+      "cause": "Order-sensitive fixture assertion on the writer keyword list after app startup. Corrected to check each field before a fresh run.",
+      "httpTestExit": 2,
+      "httpTestOutputSHA256": "3f8950bf7b006acd5f5d5bd705c8756a3df7ce60bdd74a280a3d49ff4163249e",
+      "cleanup": [
+        {
+          "listener": "source-jwks",
+          "port": 53306,
+          "rebound": true
+        },
+        {
+          "listener": "source-provider",
+          "port": 53309,
+          "rebound": true
+        },
+        {
+          "listener": "source-bandit",
+          "port": 53316,
+          "rebound": true
+        },
+        {
+          "cluster": "source",
+          "pidPgid": 23741,
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "listener": "source-postgres",
+          "port": 53288,
+          "rebound": true
+        }
+      ]
+    },
+    "successfulRun": [
+      {
+        "listener": "source-jwks",
+        "port": 53387,
+        "rebound": true
+      },
+      {
+        "listener": "source-provider",
+        "port": 53390,
+        "rebound": true
+      },
+      {
+        "listener": "source-bandit",
+        "port": 53397,
+        "rebound": true
+      },
+      {
+        "cluster": "source",
+        "pidPgid": 26333,
+        "exit": 0,
+        "groupAbsent": true
+      },
+      {
+        "listener": "source-postgres",
+        "port": 53360,
+        "rebound": true
+      },
+      {
+        "listener": "target-jwks",
+        "port": 53497,
+        "rebound": true
+      },
+      {
+        "listener": "target-provider",
+        "port": 53498,
+        "rebound": true
+      },
+      {
+        "listener": "target-bandit",
+        "port": 53504,
+        "rebound": true
+      },
+      {
+        "cluster": "target",
+        "pidPgid": 29716,
+        "exit": 0,
+        "groupAbsent": true
+      },
+      {
+        "listener": "target-postgres",
+        "port": 53471,
+        "rebound": true
+      }
+    ],
+    "appGroups": {
+      "source": {
+        "pidPgid": 26765,
+        "exit": 0,
+        "groupAbsent": true
+      },
+      "target": {
+        "pidPgid": 29798,
+        "exit": 0,
+        "groupAbsent": true
+      }
+    },
+    "successfulRunShortCommandGroupsAbsent": 32,
+    "scratchRemovedAfterCustodyAndRebind": "/private/tmp/mixer-restored-write-DvLJiD"
+  },
+  "limitations": "Fixture-scoped positive restore/write proof. Queue durability is measured with consumers idle. The prior COMMIT-failure experiment is historical. Test TLS/OIDC is fixture-owned and all runtime connections were local. No external provider, queue drain, delivery to devices, or launch qualification was tested."
+}

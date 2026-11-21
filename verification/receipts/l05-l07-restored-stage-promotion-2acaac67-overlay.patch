@@ -1,0 +1,667 @@
+diff --git a/hosted/test/mixer_hosted/releases/browser_publication_test.exs b/hosted/test/mixer_hosted/releases/browser_publication_test.exs
+--- a/hosted/test/mixer_hosted/releases/browser_publication_test.exs
++++ b/hosted/test/mixer_hosted/releases/browser_publication_test.exs
+@@ -485,4 +485,302 @@
+   end
+ 
++  @tag capture_log: true
++  test "commits a new paired promotion on the restored ordinary database" do
++    phase = System.fetch_env!("MIXER_RESTORED_WRITE_PHASE")
++    bundle = System.fetch_env!("MIXER_RESTORED_WRITE_BUNDLE")
++    c = prepare_release_fixture!("restored-write")
++
++    if phase == "source" do
++      provision!()
++      provision_delivery!()
++      provision_cli!()
++      provision_actions!()
++      provision_halt_audit!()
++      provision_details!()
++    end
++
++    {source, destination, successor_source, successor} =
++      if phase == "source" do
++        v = vector()
++
++        source = %{
++          ios: variant(v, "ios", "development", "internal", 7),
++          android: variant(v, "android", "development", "internal", 9)
++        }
++
++        destination = %{
++          ios: variant(v, "ios", "staging", "candidate", 3),
++          android: variant(v, "android", "staging", "candidate", 12)
++        }
++
++        next = fn variants ->
++          Map.new(variants, fn {platform, value} ->
++            release =
++              value
++              |> update_in([:manifest, "release_id"], fn _ -> "fixture-restored-successor" end)
++              |> update_in([:manifest, "source_commit"], fn _ -> String.duplicate("b", 40) end)
++              |> update_in([:assignment, "sequence"], &(&1 + 1))
++              |> MixerHosted.Test.StagePromotionSigningFixture.with_payload(
++                value.payload <> "-successor"
++              )
++
++            {platform, release}
++          end)
++        end
++
++        values = {source, destination, next.(source), next.(destination)}
++        File.write!(bundle, :erlang.term_to_binary(values), [:exclusive])
++        values
++      else
++        assert phase == "target"
++        :erlang.binary_to_term(File.read!(bundle))
++      end
++
++    direction = %Direction{
++      source: Map.new(source, fn {platform, value} -> {platform, value.enrollment} end),
++      destination: Map.new(destination, fn {platform, value} -> {platform, value.enrollment} end)
++    }
++
++    if phase == "source" do
++      seed_target!(source.ios.enrollment.target)
++      provision_release_jobs!()
++      provision_stage_promotion!()
++      provision_stage_promotion_read!()
++
++      for value <- [source.android, destination.ios, destination.android],
++          do: seed_head!(value.enrollment.target)
++      seed_stage_direction!(direction)
++    end
++
++    c = put_in(c.hosted.local_release_jobs, true)
++
++    env = %{
++      "MIXER_LOCAL_RELEASE_CONFIG" => Jason.encode!(release_provisioning(source.ios.enrollment)),
++      "MIXER_LOCAL_RELEASE_TARGET_REGISTRY" =>
++        Jason.encode!(
++          Enum.map([source.android, destination.ios, destination.android], fn value ->
++            release_provisioning(value.enrollment)
++          end)
++        ),
++      "MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD" => "fixture-stage-delivery",
++      "MIXER_LOCAL_RELEASE_WRITER_ENABLED" => "true",
++      "MIXER_LOCAL_STAGE_PROMOTION_DIRECTIONS" =>
++        Jason.encode!([
++          %{
++            direction_id: @promotion_direction,
++            source:
++              Map.new(direction.source, fn {platform, entry} ->
++                {platform, Target.wire(entry.target)}
++              end),
++            destination:
++              Map.new(direction.destination, fn {platform, entry} ->
++                {platform, Target.wire(entry.target)}
++              end)
++          }
++        ])
++    }
++
++    {default, _delivery} = provisioning = RuntimeProvisioning.load!(env, c.hosted)
++    writer = RuntimeProvisioning.writer_options!(env, c.hosted, provisioning)
++    directions = RuntimeProvisioning.stage_promotion_directions!(env, provisioning, writer)
++    assert directions == %{@promotion_direction => direction}
++
++    replace_config!(WriterRepo, writer)
++    replace_config!(:local_release_target, default)
++    replace_config!(:local_stage_promotion_directions, directions)
++    c = start!(c)
++    assert %{phase: :storage_ready} = RuntimeOwner.status()
++
++    assert "browser_ordinary_installation_r1422" == Keyword.fetch!(writer, :database)
++    assert "browser_ordinary" == Keyword.fetch!(writer, :username)
++
++    assert [["browser_ordinary", "browser_ordinary", false, false]] =
++             Ecto.Adapters.SQL.query!(WriterRepo, """
++             SELECT current_user::text, session_user::text, rolsuper, rolbypassrls
++             FROM pg_roles WHERE rolname=current_user
++             """, []).rows
++
++    owner = login(c)
++    token = access_token!(c, owner)
++    key = if phase == "source", do: "restore-baseline-pair", else: "restore-successor-pair"
++
++    if phase == "source" do
++      uploader = upload_identity!(c, login(c, :artifact_uploader))
++
++      for {label, group} <- [
++            {"old-development", source}, {"old-staging", destination},
++            {"new-development", successor_source}, {"new-staging", successor}
++          ], {platform, value} <- group do
++        signed = publication(value)
++
++        envelope = Jason.encode!(%{
++          signed_manifest: Jason.Fragment.new(signed.evidence.signed_manifest_bytes),
++          payload: Base.encode64(signed.evidence.payload)
++        })
++
++        assert {:ok, %{status: 201}} =
++                 upload!(c, uploader, Map.from_struct(value.enrollment), signed.artifact_sha256,
++                   envelope, "#{label}-#{platform}")
++      end
++
++      for {platform, value} <- source do
++        signed = publication(value)
++        config = Map.from_struct(value.enrollment)
++        Application.put_env(:mixer_hosted, :local_release_target, config)
++
++        assert {:ok, %{sequence: sequence}} =
++                 RuntimeOwner.publish_release(owner, config.target,
++                   signed.evidence.signed_assignment_bytes, "baseline-#{platform}", @reason)
++
++        assert sequence == signed.sequence
++      end
++
++      Application.put_env(:mixer_hosted, :local_release_target, default)
++    end
++
++    {from, to} = if phase == "source", do: {source, destination}, else: {successor_source, successor}
++    body = Jason.encode!(%{
++      source_ios_sequence: publication(from.ios).sequence,
++      source_android_sequence: publication(from.android).sequence,
++      ios_signed_assignment: Jason.Fragment.new(spaced_assignment(to.ios)),
++      android_signed_assignment: Jason.Fragment.new(spaced_assignment(to.android))
++    })
++
++    before = restore_write_state()
++    if phase == "target" do
++      assert length(before["binding"]) == 1
++      assert length(before["history"]) == 6
++      assert length(before["jobs"]) == 6
++      assert length(before["artifact_audit"]) == 8
++    end
++
++    request = fn -> promotion_post(c, token, @promotion_path, body, [{"x-mixer-reason", @reason}], key) end
++    response = request.()
++    assert response.status == 200
++    expected = %{
++      "delivery" => "local_only",
++      "ios" => promotion_receipt(to.ios),
++      "android" => promotion_receipt(to.android)
++    }
++    assert Jason.decode!(response.body) == expected
++    assert response_header(response, "cache-control") == ["no-store"]
++
++    committed = restore_write_state()
++    added = fn bucket ->
++      assert before[bucket] -- committed[bucket] == []
++      committed[bucket] -- before[bucket]
++    end
++
++    assert [binding] = added.("binding")
++    assert binding["direction_id"] == @promotion_direction
++    assert binding["idempotency_key"] == key
++    assert binding["principal_id"] == "person-1"
++    assert binding["writer_role"] == "browser_ordinary"
++    assert binding["reason"] == @reason
++    for {field, expected} <- [
++          {"organization_id", "org-a"}, {"project_id", "project-a"}, {"application_id", "fieldlog"},
++          {"source_environment_id", "development"}, {"destination_environment_id", "staging"}
++        ], do: assert(binding[field] == expected)
++
++    assert length(added.("history")) == 2
++    assert length(added.("jobs")) == 2
++    assert added.("artifact_audit") == []
++    assert added.("artifacts") == []
++
++    for platform <- [:android, :ios] do
++      platform_name = Atom.to_string(platform)
++      value = to[platform]
++      signed = publication(value)
++      previous = if phase == "source", do: nil, else: publication(destination[platform]).sequence
++      source_signed = publication(from[platform])
++      target = value.enrollment.target
++      filter = Map.new(Target.filter(target), fn {field, item} -> {Atom.to_string(field), item} end)
++      assert [row] = Enum.filter(added.("history"), &(&1["platform"] == platform_name))
++      assert Map.take(row, Map.keys(filter)) == filter
++      assert row["sequence"] == signed.sequence
++      assert row["previous_sequence"] == previous
++      assert row["artifact_sha256"] == signed.artifact_sha256
++      assert row["action"] == "stage_promote"
++      assert row["principal_id"] == "person-1"
++      assert row["reason"] == @reason
++      assert row["idempotency_key"] == key
++      assert binding["source_#{platform}_sequence"] == source_signed.sequence
++      assert binding["source_#{platform}_artifact_sha256"] == source_signed.artifact_sha256
++      assert binding["destination_#{platform}_sequence"] == signed.sequence
++      assert binding["destination_#{platform}_artifact_sha256"] == signed.artifact_sha256
++      assert [job] = Enum.filter(added.("jobs"), &(&1["args"]["platform"] == platform_name))
++      assert job["args"] == Map.merge(filter, %{"version" => 1, "sequence" => Integer.to_string(signed.sequence)})
++      assert [job["queue"], job["worker"], job["state"], job["attempt"]] ==
++               ["releases", "MixerHosted.Releases.ReleaseJobs.Materialize", "available", 0]
++
++      assert %{"kind" => "published", "release" => release, "target" => wire} =
++               read!(c, owner, target, :details_v2)
++      assert wire == string_keys(Target.wire(target))
++      assert release["sequence"] == Integer.to_string(signed.sequence)
++      assert release["releaseId"] == value.manifest["release_id"]
++      assert release["manifestSha256"] == signed.artifact_sha256
++      assert release["details"]["action"] == "stage_promote"
++      assert release["details"]["sourceCommit"] == value.manifest["source_commit"]
++    end
++
++    group = %{
++      "kind" => "committed",
++      "ios" => browser_promotion_receipt(to.ios),
++      "android" => browser_promotion_receipt(to.android)
++    }
++    for value <- Map.values(to),
++      do: assert(read!(c, owner, value.enrollment.target, promotion_view(value)) == group)
++
++    retry = request.()
++    assert retry.status == 200
++    assert retry.body == response.body
++    assert restore_write_state() == committed
++
++    if phase == "source" do
++      for value <- Map.values(successor_source), do: publish_successor!(c, owner, value)
++    else
++      old_group = %{
++        "kind" => "committed",
++        "ios" => put_in(browser_promotion_receipt(destination.ios)["headSequence"], "4"),
++        "android" => put_in(browser_promotion_receipt(destination.android)["headSequence"], "13")
++      }
++      for value <- Map.values(destination),
++        do: assert(read!(c, owner, value.enrollment.target, promotion_view(value)) == old_group)
++
++      other = login(c, :other_tenant)
++      for value <- Map.values(to),
++        do: assert_status(c, other, value.enrollment.target, 404, promotion_view(value))
++    end
++
++    evidence = %{
++      phase: phase, status: response.status, receipt: expected, exact_retry_body: true,
++      retry_state_equal: true, binding: binding, publications: added.("history"),
++      jobs: added.("jobs"), group: group, previous_rows_preserved: true,
++      previous_group_read: phase == "target", other_tenant_status: if(phase == "target", do: 404),
++      writer: "browser_ordinary",
++      request_body_sha256: MixerHosted.Test.StagePromotionSigningFixture.digest(body)
++    }
++    File.write!(System.fetch_env!("MIXER_RESTORED_WRITE_RESULT"), Jason.encode!(evidence), [:exclusive])
++  end
++
++  defp restore_write_state do
++    Map.new([
++      {"binding", "public.mixer_stage_promotion_bindings", "true"},
++      {"history", "public.mixer_release_publications", "true"},
++      {"jobs", "mixer_release_jobs.oban_jobs", "true"},
++      {"artifact_audit", "public.mixer_customer_audit_events", "true"},
++      {"artifacts", "public.mixer_customer_artifacts", "true"},
++      {"heads", "public.mixer_release_heads", "true"}
++    ], fn {key, table, where} ->
++      [[rows]] = DB.q!(Admin, """
++      SELECT COALESCE(jsonb_agg(j ORDER BY j::text), '[]') FROM (
++        SELECT to_jsonb(t) - 'signed_assignment_bytes' - 'payload_bytes' - 'signed_manifest_bytes' AS j
++        FROM #{table} t WHERE #{where}
++      ) q
++      """).rows
++      {key, rows}
++    end)
++  end
++
+   defp assert_promotion_groups!(c, owner, other, destination, source, request, response_payload) do
+     ios = destination.ios
+diff --git a/hosted/test/support/ordinary_browser_startup_fixture.ex b/hosted/test/support/ordinary_browser_startup_fixture.ex
+--- a/hosted/test/support/ordinary_browser_startup_fixture.ex
++++ b/hosted/test/support/ordinary_browser_startup_fixture.ex
+@@ -124,4 +124,5 @@
+     assert {:ok, _} = result
+     {:ok, {_, port}} = MixerHostedWeb.Endpoint.server_info(:http)
++    record_restore_port("bandit", port)
+     Map.merge(c, %{http_port: port, root: root})
+   end
+@@ -207,32 +208,38 @@
+     refuse_names!(@all_names)
+     prepare_evidence!(create, evidence_name)
+-    conn = F.connection!("browser_admin", "postgres")
+-
+-    try do
+-      Postgrex.query!(
+-        conn,
+-        "CREATE DATABASE browser_ordinary_installation_r1422 OWNER browser_schema_owner",
+-        []
+-      )
+-    after
+-      GenServer.stop(conn)
+-    end
+-
+-    on_exit(fn ->
++    promotion_restore = System.get_env("MIXER_RESTORED_WRITE_PHASE")
++
++    unless promotion_restore == "target" do
+       conn = F.connection!("browser_admin", "postgres")
+ 
+       try do
+-        Postgrex.query!(conn, "SET statement_timeout='15s'", [])
+-
+         Postgrex.query!(
+           conn,
+-          "DROP DATABASE browser_ordinary_installation_r1422 WITH (FORCE)",
+-          [],
+-          timeout: 20_000
++          "CREATE DATABASE browser_ordinary_installation_r1422 OWNER browser_schema_owner",
++          []
+         )
+       after
+         GenServer.stop(conn)
+       end
+-    end)
++    end
++
++    if is_nil(promotion_restore) do
++      on_exit(fn ->
++        conn = F.connection!("browser_admin", "postgres")
++
++        try do
++          Postgrex.query!(conn, "SET statement_timeout='15s'", [])
++
++          Postgrex.query!(
++            conn,
++            "DROP DATABASE browser_ordinary_installation_r1422 WITH (FORCE)",
++            [],
++            timeout: 20_000
++          )
++        after
++          GenServer.stop(conn)
++        end
++      end)
++    end
+ 
+     for app <- [:ecto_sql, :postgrex, :jason, :jose, :mint, :ssl, :bandit],
+@@ -269,46 +276,49 @@
+     )
+ 
+-    F.install!()
+-    F.q!(Admin, "GRANT USAGE ON SCHEMA public TO browser_ordinary")
+-    F.q!(Admin, "GRANT SELECT ON ALL TABLES IN SCHEMA public TO browser_ordinary")
+-
+-    for helper <- ~w(profiles principals families credentials organization_heads project_heads),
+-        do:
+-          F.q!(
+-            Admin,
+-            "GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO browser_ordinary"
+-          )
+-
+-    for table <- ~w(sessions session_vault oidc_attempts session_events),
+-        do: F.q!(Admin, "REVOKE SELECT ON public.mixer_browser_#{table} FROM browser_ordinary")
+-
+-    for sql <- ActivationPreparationSchema.statements(), do: F.q!(Migration, sql)
+-    F.provision!()
+-    conn = F.connection!("browser_admin")
+-
+-    for sql <-
+-          ActivationPreparationSchema.provisioning_statements(
+-            "browser_writer",
+-            "browser_lifecycle",
+-            "browser_schema_owner"
+-          ),
+-        do: Postgrex.query!(conn, sql, [])
+-
+-    GenServer.stop(conn)
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_profiles VALUES('humans',1,'https://issuer.fixture.invalid','console','human',true,1)"
+-    )
+-
+-    F.q!(Admin, "INSERT INTO public.mixer_authz_principals VALUES('person-1','human',true,0,1)")
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_bindings VALUES('humans',1,'subject-1','human','person-1',true,1)"
+-    )
++    unless promotion_restore == "target" do
++      F.install!()
++      F.q!(Admin, "GRANT USAGE ON SCHEMA public TO browser_ordinary")
++      F.q!(Admin, "GRANT SELECT ON ALL TABLES IN SCHEMA public TO browser_ordinary")
++
++      for helper <- ~w(profiles principals families credentials organization_heads project_heads),
++          do:
++            F.q!(
++              Admin,
++              "GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO browser_ordinary"
++            )
++
++      for table <- ~w(sessions session_vault oidc_attempts session_events),
++          do: F.q!(Admin, "REVOKE SELECT ON public.mixer_browser_#{table} FROM browser_ordinary")
++
++      for sql <- ActivationPreparationSchema.statements(), do: F.q!(Migration, sql)
++      F.provision!()
++      conn = F.connection!("browser_admin")
++
++      for sql <-
++            ActivationPreparationSchema.provisioning_statements(
++              "browser_writer",
++              "browser_lifecycle",
++              "browser_schema_owner"
++            ),
++          do: Postgrex.query!(conn, sql, [])
++
++      GenServer.stop(conn)
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_profiles VALUES('humans',1,'https://issuer.fixture.invalid','console','human',true,1)"
++      )
++
++      F.q!(Admin, "INSERT INTO public.mixer_authz_principals VALUES('person-1','human',true,0,1)")
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_bindings VALUES('humans',1,'subject-1','human','person-1',true,1)"
++      )
++    end
+ 
+     fixture = start_supervised!(TLSFixture)
+     auth = GenServer.call(fixture, :authority)
++    record_restore_port("jwks", auth.port)
+     key = JOSE.JWK.generate_key({:rsa, 2048})
+     wrong = JOSE.JWK.generate_key({:rsa, 2048})
+@@ -445,35 +455,37 @@
+     }
+ 
+-    for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.statements(), do: F.q!(Migration, sql)
+-    conn = F.connection!("browser_admin")
+-
+-    for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.provisioning_statements(),
+-        do: Postgrex.query!(conn, sql, [])
+-
+-    GenServer.stop(conn)
+-
+-    unless Code.ensure_loaded?(MixerHosted.Repo.Migrations.AddBuildJournals),
+-      do: Code.require_file("priv/repo/migrations/20261025000000_add_build_journals.exs")
+-
+-    :ok =
+-      Ecto.Migrator.up(
++    unless promotion_restore == "target" do
++      for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.statements(), do: F.q!(Migration, sql)
++      conn = F.connection!("browser_admin")
++
++      for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.provisioning_statements(),
++          do: Postgrex.query!(conn, sql, [])
++
++      GenServer.stop(conn)
++
++      unless Code.ensure_loaded?(MixerHosted.Repo.Migrations.AddBuildJournals),
++        do: Code.require_file("priv/repo/migrations/20261025000000_add_build_journals.exs")
++
++      :ok =
++        Ecto.Migrator.up(
++          Migration,
++          20_261_025_000_000,
++          MixerHosted.Repo.Migrations.AddBuildJournals,
++          log: false
++        )
++
++      :ok = Ecto.Migrator.up(Migration, 1, R1026.ObanMigration, log: false)
++      F.q!(Migration, MixerHosted.CustomerBuilds.Schema.ddl())
++
++      F.q!(
+         Migration,
+-        20_261_025_000_000,
+-        MixerHosted.Repo.Migrations.AddBuildJournals,
+-        log: false
+-      )
+-
+-    :ok = Ecto.Migrator.up(Migration, 1, R1026.ObanMigration, log: false)
+-    F.q!(Migration, MixerHosted.CustomerBuilds.Schema.ddl())
+-
+-    F.q!(
+-      Migration,
+-      "REVOKE ALL ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) FROM PUBLIC"
+-    )
+-
+-    F.q!(
+-      Migration,
+-      "GRANT EXECUTE ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) TO browser_ordinary"
+-    )
++        "REVOKE ALL ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) FROM PUBLIC"
++      )
++
++      F.q!(
++        Migration,
++        "GRANT EXECUTE ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) TO browser_ordinary"
++      )
++    end
+ 
+     now = System.system_time(:second)
+@@ -481,63 +493,65 @@
+     provider = start_supervised!({R686.Provider, %{key: key, wrong_key: wrong, config: config}})
+ 
+-    {:ok, :ok} =
+-      Migration.transaction(fn ->
+-        Enum.each(MixerHosted.CustomerArtifacts.Schema.statements(), &F.q!(Migration, &1))
+-      end)
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES('org-a',true,'Visible'),('org-b',true,'Hidden')"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a','project-a',true,'Project A'),('org-b','project-b',true,'Project B')"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_applications VALUES('org-a','project-a','fieldlog',true)"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_memberships VALUES('member-a','person-1','org-a',NULL,'all_projects','viewer',true,0,NULL,1)"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_organization_heads SELECT id,1 FROM public.mixer_authz_organizations"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_project_heads SELECT organization_id,id,1 FROM public.mixer_authz_projects"
+-    )
+-
+-    for n <- 0..51 do
+-      id = "r604-" <> String.pad_leading(Integer.to_string(n), 2, "0")
++    unless promotion_restore == "target" do
++      {:ok, :ok} =
++        Migration.transaction(fn ->
++          Enum.each(MixerHosted.CustomerArtifacts.Schema.statements(), &F.q!(Migration, &1))
++        end)
+ 
+       F.q!(
+         Admin,
+-        "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES($1,true,$1)",
+-        [id]
+-      )
+-
+-      F.q!(Admin, "INSERT INTO public.mixer_authz_organization_heads VALUES($1,1)", [id])
++        "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES('org-a',true,'Visible'),('org-b',true,'Hidden')"
++      )
+ 
+       F.q!(
+         Admin,
+-        "INSERT INTO public.mixer_authz_memberships VALUES($1,'person-1',$2,NULL,'all_projects','viewer',true,0,NULL,1)",
+-        ["member-" <> id, id]
++        "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a','project-a',true,'Project A'),('org-b','project-b',true,'Project B')"
+       )
+ 
+       F.q!(
+         Admin,
+-        "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a',$1,true,$1)",
+-        [id]
+-      )
+-
+-      F.q!(Admin, "INSERT INTO public.mixer_authz_project_heads VALUES('org-a',$1,1)", [id])
++        "INSERT INTO public.mixer_authz_applications VALUES('org-a','project-a','fieldlog',true)"
++      )
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_memberships VALUES('member-a','person-1','org-a',NULL,'all_projects','viewer',true,0,NULL,1)"
++      )
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_organization_heads SELECT id,1 FROM public.mixer_authz_organizations"
++      )
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_project_heads SELECT organization_id,id,1 FROM public.mixer_authz_projects"
++      )
++
++      for n <- 0..51 do
++        id = "r604-" <> String.pad_leading(Integer.to_string(n), 2, "0")
++
++        F.q!(
++          Admin,
++          "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES($1,true,$1)",
++          [id]
++        )
++
++        F.q!(Admin, "INSERT INTO public.mixer_authz_organization_heads VALUES($1,1)", [id])
++
++        F.q!(
++          Admin,
++          "INSERT INTO public.mixer_authz_memberships VALUES($1,'person-1',$2,NULL,'all_projects','viewer',true,0,NULL,1)",
++          ["member-" <> id, id]
++        )
++
++        F.q!(
++          Admin,
++          "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a',$1,true,$1)",
++          [id]
++        )
++
++        F.q!(Admin, "INSERT INTO public.mixer_authz_project_heads VALUES('org-a',$1,1)", [id])
++      end
+     end
+ 
+@@ -558,6 +572,9 @@
+ 
+     {:ok, {_, provider_port}} = ThousandIsland.listener_info(authorization)
+-
+-    for sql <- MixerHosted.CustomerBuildCatalog.Schema.private_statements(), do: F.q!(Admin, sql)
++    record_restore_port("provider", provider_port)
++
++    unless promotion_restore == "target" do
++      for sql <- MixerHosted.CustomerBuildCatalog.Schema.private_statements(), do: F.q!(Admin, sql)
++    end
+ 
+     base = MixerHosted.RuntimeConfig.load!(MixerHosted.Identity.StartupFixture.foundation_env())
+@@ -599,4 +616,9 @@
+       }
+     }
++  end
++
++  defp record_restore_port(name, port) do
++    if path = System.get_env("MIXER_RESTORED_WRITE_PORTS"),
++      do: File.write!(path, "#{name} #{port}\n", [:append, :sync])
+   end
+ 

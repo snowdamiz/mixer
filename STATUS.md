@@ -579,6 +579,20 @@ reuse was unverified.
 [Historical evidence](verification/receipts/l05-l07-v80-stage-promotion-restore.json) ·
 [Replay retirement](verification/receipts/l05-l07-v80-stage-promotion-restore-replay-retirement.json)
 
+At `2acaac676`, a fresh restored PostgreSQL 17.11 cluster accepted a
+normal signed two-platform promotion through Phoenix. Staging advanced from
+3 to 4 on iOS and from 12 to 13 on Android. Post-exit SQL readback found
+two artifact-bound publications, one paired promotion record, and one new
+durable queue job per platform. The exact retry returned the same HTTP 200
+bytes without adding rows or jobs. Both earlier selectors kept their
+original receipts. The fixture used synthetic signing and loopback services
+with queue consumers idle. The author verified terminal closure and rebound
+all eight recorded listener ports before removing scratch. L05 and L07
+remain running.
+[Runtime receipt](verification/receipts/l05-l07-restored-stage-promotion-2acaac67.json) ·
+[Executed test overlay](verification/receipts/l05-l07-restored-stage-promotion-2acaac67-overlay.patch) ·
+[Historical command record](verification/receipts/l05-l07-restored-stage-promotion-2acaac67-commands.md)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,
