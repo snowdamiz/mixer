@@ -990,7 +990,7 @@ signatures, and 16 KiB alignment across all 19 arm64 libraries. The
 separate Entry Commit fixture remains bundled. Independent review matched
 all 78 retained file hashes and verified both development signatures.
 The packaged JNI calls the shared title-field implementation from the
-ordinary form. The matched Apple build and installed behavior remain open.
+ordinary form. Installed behavior remains open.
 [Shared-editor APK receipt](verification/receipts/fieldlog-d2-pair25-shared-editor-eb08569c.json)
 
 The first matched iPhoneOS build stopped before FieldLog compilation. Its
@@ -998,6 +998,19 @@ scratch guard counted a sparse Xcode cache at 37 GiB apparent size. The
 scratch occupied 149 MiB on disk when the run closed and was removed.
 The follow-up uses allocated disk blocks for the same 4 GiB limit.
 [Initial Apple build receipt](verification/receipts/fieldlog-d2-shared-task-presentation-eb08569c-iphoneos-guard-failure.json)
+
+The corrected generic arm64 iPhoneOS build linked ordinary FieldLog with
+OS signing disabled. It peaked at 462 MiB allocated. Static readback
+verified the separate development-signed Entry Commit resources added
+after linking. Both target builds used Mixer `6bc461f4fc` and FieldLog
+product tree `eb08569c13b5`. The Android tree adds eight recipe files.
+All 15 Apple and 14 Android compiler inputs match their source blobs.
+Six are byte-identical across the two targets, accounting for **954 of
+5,367 distinct physical lines (17.8%)**. One shared file is UI and five
+are logic. The 90% source-sharing target remains unmet on the measured
+inputs. Installed behavior remains open.
+[Corrected Apple build](verification/receipts/fieldlog-d2-shared-task-presentation-eb08569c-iphoneos-corrected.json) ·
+[Matched compiler inputs](verification/receipts/fieldlog-d2-matched-compiler-inputs-eb08569c.json)
 
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
 

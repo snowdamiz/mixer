@@ -57,12 +57,34 @@ requested compile returns a nonzero status and preserves its logs.
 On success the runner removes its work directory after publishing the
 receipt. If it reports unresolved custody, preserve the reported path.
 
-The paired SDK built an Android arm64 development APK from this tree.
-The build linked 14 app-owned Swift inputs. The author verified the APK
-signature, linked identity, and alignment. Installed verification remains
-pending. [APK build receipt](../verification/receipts/fieldlog-d2-pair25-shared-editor-eb08569c.json)
-The historical counts above describe the earlier exports. The 90%
-whole-app assessment still needs a matched application baseline.
+## Matched compiler inputs
+
+Both builds used Mixer `6bc461f4fc` and FieldLog product tree
+`eb08569c13b5`. The Android packing tree adds eight recipe changes.
+Independent APK readback verified the ordinary Android launcher, the
+linked capability identity, and the call to the shared title field.
+Xcode 27.2 linked the ordinary generic arm64 iPhoneOS target with OS
+signing disabled. Its separate development-signed Entry Commit material
+was added after linking and checked statically.
+[Android build](../verification/receipts/fieldlog-d2-pair25-shared-editor-eb08569c.json) ·
+[iPhoneOS build](../verification/receipts/fieldlog-d2-shared-task-presentation-eb08569c-iphoneos-corrected.json)
+
+The observed rosters contain 15 Apple and 14 Android app-owned Swift
+inputs. Comparing their exact bytes gives the following counts.
+
+| Responsibility | Shared files | Shared bytes | Shared physical lines |
+| --- | ---: | ---: | ---: |
+| UI | 1 / 6 | 8,621 / 53,737 | 185 / 1,254 |
+| Logic and host entry | 5 / 15 | 32,885 / 123,548 | 769 / 2,813 |
+| Mixed | 0 / 2 | 0 / 79,958 | 0 / 1,300 |
+| All measured inputs | 6 / 23 | 41,506 / 257,243 | 954 / 5,367 |
+
+The shared UI input is `TaskEditorPresentation.swift`. The five shared
+logic inputs are `EntryEditor.swift`, `EntrySaveDecision.swift`,
+`FieldLogDraftStorage.swift`, `TaskEditor.swift`, and `Workspace.swift`.
+The overall share is 17.8% by physical lines, below the 90% goal.
+Installed behavior and native accessibility remain unverified for this
+pair. [Matched compiler input receipt](../verification/receipts/fieldlog-d2-matched-compiler-inputs-eb08569c.json)
 
 ## Reproduce the source measurement
 
