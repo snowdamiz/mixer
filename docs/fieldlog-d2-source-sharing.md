@@ -105,6 +105,21 @@ leave installed behavior open. The matched counts above cover the earlier
 task presentation tree.
 [Repository verification](../verification/receipts/fieldlog-d2-workspace-repository-e49ac6bb.json)
 
+## Shared checklist rows
+
+FieldLog `85e6fbe362` uses the same row projection in the ordinary
+SwiftUI project screen and Android checklist. The projection supplies
+the task and its move eligibility in the full project order. Android
+applies its page boundary afterward. The platform routes preserve
+their row identity and accessibility labels.
+[Exact checklist patch](../verification/receipts/fieldlog-d2-checklist-row-85e6fbe3-patch.patch)
+
+Both package paths compiled and passed the disk-backed host replay.
+Android exercised moves in both directions across rows 20 and 21.
+Apple verification covered the existing model handlers and linked
+SwiftUI call site. Native presentation and interaction remain open.
+[Checklist build and replay receipt](../verification/receipts/fieldlog-d2-checklist-row-85e6fbe3.json)
+
 ## Reproduce the source measurement
 
 From the Mixer repository on a Mac with Git, Python, and SwiftPM, run the following in Bash. The commands use the receipt, the public FieldLog pin, and the four overlays. They evaluate package metadata without building either app or resolving SDK dependencies.

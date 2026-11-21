@@ -1,0 +1,362 @@
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index fe4ada51ddc198d2eb78439f7073125befc67761..6dff111785301d04ff7b202ac0ebe96d075c4773 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -937,7 +937,7 @@ private enum WorkspaceEdit: Sendable {
+     private nonisolated static func document(_ state: TaskEditorState, workspace: Workspace, project: UUID, queue: Bool, taskPage: Int, queuePage: Int, busy: Bool, feedback: String?, failure: String?, revision: UInt64, entries: Bool = false, entry: EntryEditorState? = nil, entryPage: Int = 0, draftPage: Int = 0, dateInput: String? = nil, photoPending: Bool = false, photoMessage: String? = nil, photoBusy: Bool = false, reportPending: Bool = false, reportMessage: String? = nil) -> UIDocument {
+         if entries && !queue, let entry { return entryDocument(entry, workspace: workspace, project: project, entryPage: entryPage, draftPage: draftPage, revision: revision, dateInput: dateInput, photoPending: photoPending, photoMessage: photoMessage, photoBusy: photoBusy) }
+         let inactive = state.saving || busy
+-        let tasks = workspace.tasks(for: project)
++        let tasks = ChecklistRow.rows(in: workspace, projectID: project)
+         let taskPage = page(taskPage, count: tasks.count), queuePage = page(queuePage, count: workspace.outbox.count)
+         let taskStart = taskPage * pageSize, queueStart = queuePage * pageSize
+         return MixerUI.Navigation("task.screen", title: queue ? "On device" : "FieldLog") {
+@@ -986,10 +986,9 @@ private enum WorkspaceEdit: Sendable {
+                         MixerUI.Button("tasks.previous", "Previous", action: "tasks.previous").accessibilityIdentifier("tasks.previous").disabled(inactive || taskPage == 0)
+                         MixerUI.Button("tasks.next", "Next", action: "tasks.next").accessibilityIdentifier("tasks.next").disabled(inactive || taskStart + pageSize >= tasks.count)
+                         if tasks.isEmpty { MixerUI.Text("tasks.empty", "Add a task to start your checklist.") }
+-                        for index in taskStart..<min(taskStart + pageSize, tasks.count) {
+-                            let task = tasks[index]
++                        for task in tasks.dropFirst(taskStart).prefix(pageSize) {
+                             let key = "task." + task.id.uuidString.lowercased()
+-                            MixerUI.Text(key + ".title", "\(index + 1). " + task.title + (task.completed ? " · Completed" : " · Not completed"))
++                            MixerUI.Text(key + ".title", "\(task.number). " + task.title + (task.completed ? " · Completed" : " · Not completed"))
+                             if !task.responsible.isEmpty { MixerUI.Text(key + ".responsible", task.responsible) }
+                             #if FIELDLOG_SIGNED_CHECKLIST
+                             if tasks.count != 1 {
+@@ -998,9 +997,9 @@ private enum WorkspaceEdit: Sendable {
+                             #else
+                             MixerUI.Button(key + ".complete", (task.completed ? "Reopen: " : "Complete: ") + task.title, action: key + ".complete").accessibilityIdentifier(key + ".complete").disabled(inactive)
+                             #endif
+-                            if tasks.count > 1 {
+-                                MixerUI.Button(key + ".up", "Move up: " + task.title, action: key + ".up").accessibilityIdentifier(key + ".up").disabled(inactive || index == 0)
+-                                MixerUI.Button(key + ".down", "Move down: " + task.title, action: key + ".down").accessibilityIdentifier(key + ".down").disabled(inactive || index == tasks.count - 1)
++                            if task.canMoveUp || task.canMoveDown {
++                                MixerUI.Button(key + ".up", "Move up: " + task.title, action: key + ".up").accessibilityIdentifier(key + ".up").disabled(inactive || !task.canMoveUp)
++                                MixerUI.Button(key + ".down", "Move down: " + task.title, action: key + ".down").accessibilityIdentifier(key + ".down").disabled(inactive || !task.canMoveDown)
+                             }
+                         }
+                     }
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogFeatures/ChecklistRow.swift b/Integrations/GeneratedReport/Sources/FieldLogFeatures/ChecklistRow.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..77ae01e3ed3cd129af7e7090e28afa41355649a6
+--- /dev/null
++++ b/Integrations/GeneratedReport/Sources/FieldLogFeatures/ChecklistRow.swift
+@@ -0,0 +1,21 @@
++import FieldLogModels
++import Foundation
++
++public struct ChecklistRow: Identifiable, Equatable, Sendable {
++  public let id: UUID
++  public let title: String
++  public let responsible: String
++  public let completed: Bool
++  public let number: Int
++  public let canMoveUp: Bool
++  public let canMoveDown: Bool
++
++  public static func rows(in workspace: Workspace, projectID: UUID) -> [Self] {
++    let tasks = workspace.tasks(for: projectID)
++    return tasks.enumerated().map { index, task in
++      Self(
++        id: task.id, title: task.title, responsible: task.responsible, completed: task.completed,
++        number: index + 1, canMoveUp: index > 0, canMoveDown: index + 1 < tasks.count)
++    }
++  }
++}
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/ChecklistRowRoutingTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/ChecklistRowRoutingTests.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..9b357e2ba92da46a8e1f20aea490e279421facbf
+--- /dev/null
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/ChecklistRowRoutingTests.swift
+@@ -0,0 +1,129 @@
++import Foundation
++import XCTest
++import FieldLogAndroid
++import FieldLogModels
++import FieldLogStorage
++import MixerUI
++
++final class ChecklistRowRoutingTests: XCTestCase {
++    @MainActor func testChecklistRowsThroughPublicHost() async throws {
++        for count in [1, 3, 22] {
++            try await exerciseChecklist(count: count)
++        }
++    }
++
++    @MainActor private func exerciseChecklist(count: Int) async throws {
++        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
++        defer { try? FileManager.default.removeItem(at: directory) }
++        let repository = try WorkspaceRepository(directory: directory.appendingPathComponent("FieldLog"))
++        let baseline = try await repository.transact { workspace in
++            let project = try workspace.createProject(title: "Checklist", site: "")
++            let foreign = try workspace.createProject(title: "Other project", site: "")
++            for number in 1...count {
++                try workspace.saveTask(projectID: project, title: "Inspect \(number)", responsible: "  Jo 日本語  ")
++            }
++            try workspace.saveTask(projectID: foreign, title: "Other task", responsible: "")
++        }
++        await repository.close()
++        let project = try XCTUnwrap(baseline.projects.first?.id)
++        let tasks = baseline.tasks(for: project)
++        let surface = R109Surface()
++        let app = try await open(directory, surface)
++        let owner = try XCTUnwrap(surface.owner)
++        let movingIndex = count > 20 ? 19 : 0
++        let moving = tasks[movingIndex]
++
++        func key(_ task: WorkTask) -> String { "task." + task.id.uuidString.lowercased() }
++
++        func node(_ id: String) throws -> UINode? {
++            let frame = try XCTUnwrap(surface.frames.last)
++            let packet = try XCTUnwrap(JSONSerialization.jsonObject(with: frame.packet) as? [String: Any])
++            let document = try UIDocument.decode(
++                JSONSerialization.data(withJSONObject: XCTUnwrap(packet["document"])),
++                validator: UIValidator(supportedTextFieldAxes: surface.profile.capabilities.textFieldAxes,
++                                       textValuePolicy: surface.profile.textValuePolicy))
++            return fieldLogNode(id, in: document.root)
++        }
++
++        func disabled(_ id: String, equals expected: Bool) throws {
++            let button = try XCTUnwrap(node(id))
++            XCTAssertEqual(button.properties["disabled"]?.bool, expected)
++            XCTAssertEqual(button.properties["accessibilityIdentifier"]?.string, id)
++            XCTAssertEqual(button.actions, [UIActionBinding(id: id, event: .activate)])
++        }
++
++        func refusedWithoutWrite(_ deliver: () throws -> Void) async throws {
++            let before = try Data(contentsOf: file(directory))
++            let frames = surface.frames.count
++            XCTAssertThrowsError(try deliver())
++            try await app.settle()
++            XCTAssertEqual(try Data(contentsOf: file(directory)), before)
++            XCTAssertEqual(surface.frames.count, frames)
++        }
++
++        let movingKey = key(moving)
++        let initialTitle = "\(movingIndex + 1). \(moving.title) · Not completed"
++        XCTAssertEqual(try node(movingKey + ".title")?.properties["text"]?.string, initialTitle)
++        XCTAssertEqual(try node(movingKey + ".responsible")?.properties["text"]?.string, moving.responsible)
++        try disabled(movingKey + ".complete", equals: false)
++        let stale = try event(app, movingKey + ".complete")
++        try send(app, movingKey + ".complete")
++        try await app.settle()
++        XCTAssertEqual(app.presentation.workspace.tasks(for: project).filter(\.completed).map(\.id), [moving.id])
++        XCTAssertEqual(try node(movingKey + ".complete")?.properties["label"]?.string, "Reopen: " + moving.title)
++        try await refusedWithoutWrite {
++            try app.send(owner: owner, originalEnvelope: JSONEncoder().encode(stale))
++        }
++
++        if count == 1 {
++            XCTAssertNil(try node(movingKey + ".up"))
++            XCTAssertNil(try node(movingKey + ".down"))
++        } else {
++            let first = key(tasks[0]), last = key(tasks[count - 1])
++            try disabled(first + ".up", equals: true)
++            try await refusedWithoutWrite { try send(app, first + ".up") }
++            try disabled(movingKey + ".down", equals: false)
++            try send(app, movingKey + ".down")
++            try await app.settle()
++            var swapped = tasks.map(\.id)
++            swapped.swapAt(movingIndex, movingIndex + 1)
++            XCTAssertEqual(app.presentation.workspace.tasks(for: project).map(\.id), swapped)
++            XCTAssertEqual(try node(movingKey + ".title")?.properties["text"]?.string,
++                           "\(movingIndex + 2). \(moving.title) · Completed")
++            if count > 20 {
++                XCTAssertEqual(try node("tasks.position")?.properties["text"]?.string, "Page 2 of 2 · Tasks 21–22 of 22")
++            }
++            try disabled(last + ".down", equals: true)
++            try await refusedWithoutWrite { try send(app, last + ".down") }
++            try disabled(movingKey + ".up", equals: false)
++            try send(app, movingKey + ".up")
++            try await app.settle()
++            XCTAssertEqual(app.presentation.workspace.tasks(for: project).map(\.id), tasks.map(\.id))
++            if count > 20 {
++                XCTAssertEqual(try node("tasks.position")?.properties["text"]?.string, "Page 1 of 2 · Tasks 1–20 of 22")
++                let beforePageTurn = try Data(contentsOf: file(directory))
++                try send(app, "tasks.next")
++                try disabled(key(tasks[20]) + ".up", equals: false)
++                try send(app, "tasks.previous")
++                XCTAssertEqual(try Data(contentsOf: file(directory)), beforePageTurn)
++            }
++        }
++
++        let committed = app.presentation.workspace
++        let changes = Array(committed.outbox.dropFirst(baseline.outbox.count))
++        let kinds: [PendingChange.Kind] = count == 1 ? [.taskSaved] : [.taskSaved, .taskOrderChanged, .taskOrderChanged]
++        XCTAssertEqual(changes.map(\.kind), kinds)
++        XCTAssertEqual(changes.map(\.recordID), count == 1 ? [moving.id] : [moving.id, project, project])
++        XCTAssertEqual(committed.revision, baseline.revision + UInt64(kinds.count))
++        XCTAssertEqual(committed.tasks.filter { $0.projectID != project }, baseline.tasks.filter { $0.projectID != project })
++        let bytes = try Data(contentsOf: file(directory))
++        XCTAssertEqual(try disk(directory), committed)
++        await app.close()
++        XCTAssertNil(surface.owner)
++        let reopened = try await open(directory)
++        XCTAssertEqual(reopened.presentation.workspace, committed)
++        XCTAssertEqual(try Data(contentsOf: file(directory)), bytes)
++        await reopened.close()
++        print("Checklist host PASS with \(count) tasks. Cold full snapshot and bytes match.")
++    }
++}
+diff --git a/Package.swift b/Package.swift
+index f1f370e32ba15d9663605f506da2a035bf381137..5009c1b79fd5887d1a60da73f8b73cd8baafc584 100644
+--- a/Package.swift
++++ b/Package.swift
+@@ -14,7 +14,7 @@ let package = Package(
+             name: "FieldLogEntrySaving",
+             dependencies: ["FieldLogModels", .product(name: "MixerCore", package: "sdk")],
+             path: "Integrations/GeneratedReport/Sources/FieldLogFeatures",
+-            exclude: ["EntryEditorAppleHost.swift", "TaskEditor.swift", "TaskEditorAppleFieldsHost.swift", "TaskEditorPresentation.swift"],
++            exclude: ["ChecklistRow.swift", "EntryEditorAppleHost.swift", "TaskEditor.swift", "TaskEditorAppleFieldsHost.swift", "TaskEditorPresentation.swift"],
+             sources: ["EntryEditor.swift", "EntrySaveDecision.swift"]
+         ),
+         .testTarget(name: "FieldLogTests", dependencies: ["FieldLogModels", "FieldLogStorage", "FieldLogFeatures", .product(name: "MixerUI", package: "sdk"), .product(name: "MixerApple", package: "sdk", condition: .when(platforms: [.iOS, .macOS]))])
+diff --git a/Sources/FieldLogFeatures/ChecklistRow.swift b/Sources/FieldLogFeatures/ChecklistRow.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..77ae01e3ed3cd129af7e7090e28afa41355649a6
+--- /dev/null
++++ b/Sources/FieldLogFeatures/ChecklistRow.swift
+@@ -0,0 +1,21 @@
++import FieldLogModels
++import Foundation
++
++public struct ChecklistRow: Identifiable, Equatable, Sendable {
++  public let id: UUID
++  public let title: String
++  public let responsible: String
++  public let completed: Bool
++  public let number: Int
++  public let canMoveUp: Bool
++  public let canMoveDown: Bool
++
++  public static func rows(in workspace: Workspace, projectID: UUID) -> [Self] {
++    let tasks = workspace.tasks(for: projectID)
++    return tasks.enumerated().map { index, task in
++      Self(
++        id: task.id, title: task.title, responsible: task.responsible, completed: task.completed,
++        number: index + 1, canMoveUp: index > 0, canMoveDown: index + 1 < tasks.count)
++    }
++  }
++}
+diff --git a/Tests/FieldLogTests/ChecklistRowTests.swift b/Tests/FieldLogTests/ChecklistRowTests.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..ff887141df5f80ad1f4aeea3a851f36d2e10e0d8
+--- /dev/null
++++ b/Tests/FieldLogTests/ChecklistRowTests.swift
+@@ -0,0 +1,37 @@
++import FieldLogFeatures
++import FieldLogModels
++import Foundation
++import Testing
++
++@Test func checklistRowsPreserveProjectOrderAndExposeGlobalMoveEligibility() throws {
++  let project = Project(title: "Checklist")
++  let other = Project(title: "Another checklist")
++  let firstID = try #require(UUID(uuidString: "00000000-0000-0000-0000-000000000001"))
++  let secondID = try #require(UUID(uuidString: "00000000-0000-0000-0000-000000000002"))
++  let first = WorkTask(
++    id: firstID, projectID: project.id, title: "Same title", responsible: "  日本語  ",
++    completed: true, position: 3)
++  let second = WorkTask(id: secondID, projectID: project.id, title: "Same title", position: 3)
++  let last = WorkTask(projectID: project.id, title: "Later", position: 9)
++  let foreign = WorkTask(projectID: other.id, title: "Other", completed: true)
++  var workspace = Workspace()
++  workspace.projects = [project, other]
++  workspace.tasks = [last, second, foreign, first]
++  try workspace.validate()
++
++  let rows = ChecklistRow.rows(in: workspace, projectID: project.id)
++  #expect(rows.map(\.id) == [first.id, second.id, last.id])
++  #expect(rows.map(\.title) == ["Same title", "Same title", "Later"])
++  #expect(rows.map(\.responsible) == ["  日本語  ", "", ""])
++  #expect(rows.map(\.completed) == [true, false, false])
++  #expect(rows.map(\.number) == [1, 2, 3])
++  #expect(rows.map(\.canMoveUp) == [false, true, true])
++  #expect(rows.map(\.canMoveDown) == [true, true, false])
++
++  let otherRows = ChecklistRow.rows(in: workspace, projectID: other.id)
++  #expect(otherRows.count == 1)
++  let lone = try #require(otherRows.first)
++  #expect(lone.id == foreign.id)
++  #expect(lone.number == 1 && lone.completed && !lone.canMoveUp && !lone.canMoveDown)
++  #expect(ChecklistRow.rows(in: workspace, projectID: UUID()).isEmpty)
++}
+diff --git a/ios/FieldLog/ProjectDetail.swift b/ios/FieldLog/ProjectDetail.swift
+index 181fa999e9711666e5f93fc723948d9be3ec55d8..bc40581e61a519438f3e04d3560e9a591a530300 100644
+--- a/ios/FieldLog/ProjectDetail.swift
++++ b/ios/FieldLog/ProjectDetail.swift
+@@ -18,25 +18,27 @@ struct ProjectDetail: View {
+       if let workspace = model.workspace,
+         let project = workspace.projects.first(where: { $0.id == projectID })
+       {
++        let checklist = ChecklistRow.rows(in: workspace, projectID: projectID)
++        let completed = checklist.filter(\.completed).count
+         List {
+           Section {
+             VStack(alignment: .leading, spacing: 12) {
+               if !project.site.isEmpty {
+                 Label(project.site, systemImage: "mappin.and.ellipse").foregroundStyle(.secondary)
+               }
+-              let tasks = workspace.tasks(for: projectID)
+               HStack {
+                 Text("Project progress").font(.subheadline)
+                 Spacer()
+-                Text("\(tasks.filter(\.completed).count) of \(tasks.count)").font(
++                Text("\(completed) of \(checklist.count)").font(
+                   .subheadline.monospacedDigit()
+                 ).foregroundStyle(.secondary)
+               }
+-              ProgressView(value: workspace.progress(for: projectID)).tint(FieldStyle.green)
++              ProgressView(value: checklist.isEmpty ? 0 : Double(completed) / Double(checklist.count))
++                .tint(FieldStyle.green)
+             }.padding(.vertical, 6)
+           }
+           Section {
+-            ForEach(workspace.tasks(for: projectID)) { task in
++            ForEach(checklist) { task in
+               HStack(alignment: .top) {
+                 Button {
+                   model.toggleTask(task.id)
+@@ -56,20 +58,16 @@ struct ProjectDetail: View {
+                   "\(task.title), \(task.completed ? "completed":"not completed")"
+                 ).accessibilityHint("Double tap to \(task.completed ? "reopen":"complete") task")
+                   .frame(maxWidth: .infinity, alignment: .leading)
+-                if workspace.tasks(for: projectID).count > 1 {
++                if task.canMoveUp || task.canMoveDown {
+                   Menu {
+-                    if let index = workspace.tasks(for: projectID).firstIndex(where: {
+-                      $0.id == task.id
+-                    }) {
+-                      if index > 0 {
+-                        Button("Move up", systemImage: "arrow.up") {
+-                          model.moveTask(task.id, offset: -1)
+-                        }
++                    if task.canMoveUp {
++                      Button("Move up", systemImage: "arrow.up") {
++                        model.moveTask(task.id, offset: -1)
+                       }
+-                      if index < workspace.tasks(for: projectID).count - 1 {
+-                        Button("Move down", systemImage: "arrow.down") {
+-                          model.moveTask(task.id, offset: 1)
+-                        }
++                    }
++                    if task.canMoveDown {
++                      Button("Move down", systemImage: "arrow.down") {
++                        model.moveTask(task.id, offset: 1)
+                       }
+                     }
+                   } label: {
+@@ -80,9 +78,9 @@ struct ProjectDetail: View {
+               }
+             }
+             .onMove { source, destination in
+-              var tasks = workspace.tasks(for: projectID)
+-              tasks.move(fromOffsets: source, toOffset: destination)
+-              model.reorder(projectID: projectID, ids: tasks.map(\.id))
++              var ids = checklist.map(\.id)
++              ids.move(fromOffsets: source, toOffset: destination)
++              model.reorder(projectID: projectID, ids: ids)
+             }
+             Button("Add task", systemImage: "plus") { addingTask = true }
+           } header: {
