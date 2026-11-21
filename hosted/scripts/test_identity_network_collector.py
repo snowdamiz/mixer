@@ -3237,28 +3237,60 @@ class WorkflowSparseSourceControls(unittest.TestCase):
                     self.assertTrue(source.is_file(), relative)
                     shutil.copy2(source, destination)
 
-    def check_real_main(self, sparse):
-        import contextlib
+    def sparse_subject(self, path):
         import uuid
-        path = sparse / "hosted/scripts/test-identity-network.py"
+
+        source = path.read_bytes()
+        previous = getattr(self, "_sparse_import", None)
+        if previous is not None:
+            previous_path, previous_source, inputs, subject = previous
+            if path == previous_path and source == previous_source:
+                try:
+                    if all(input_path.read_bytes() == body for input_path, body in inputs.items()):
+                        return subject
+                except FileNotFoundError:
+                    pass  # Let the cold import report the missing input.
+
         name = "identity_sparse_control_" + uuid.uuid4().hex
         spec = importlib.util.spec_from_file_location(name, path)
-        spec.loader.source_to_code = _v26_sparse_fixture_code
         subject = importlib.util.module_from_spec(spec)
+        inputs = {}
+        read_bytes = Path.read_bytes
+
+        def read_import_input(input_path):
+            body = read_bytes(input_path)
+            inputs[input_path] = body
+            return body
+
         sys.modules[name] = subject
         try:
-            spec.loader.exec_module(subject)
-            output = io.StringIO()
-            with contextlib.redirect_stdout(output):
-                self.assertEqual(0, subject.main(["--check-source"]))
-            observed = json.loads(output.getvalue())
-            self.assertEqual(self.COUNT, observed["source_count"])
-            self.assertEqual(self.DIGEST, observed["source_digest_sha256"])
-            self.assertEqual(self.PIN, observed["selection_sha256"])
-            self.assertFalse(observed["runtime_or_GA_accepted"])
-            return observed
+            with mock.patch.object(Path, "read_bytes", read_import_input):
+                exec(_v26_sparse_fixture_code(source, str(path)), subject.__dict__)
         finally:
             sys.modules.pop(name, None)
+        self._sparse_import = path, source, inputs, subject
+        return subject
+
+    def check_real_main(self, sparse):
+        import contextlib
+
+        # Import rebuilds the historical manifests. Reuse that setup only when
+        # the collector and every import input still have the same exact bytes.
+        # The entry point always runs against this projection's live filesystem.
+        subject = self.sparse_subject(sparse / "hosted/scripts/test-identity-network.py")
+        output = io.StringIO()
+        sys.modules[subject.__name__] = subject
+        try:
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(0, subject.main(["--check-source"]))
+        finally:
+            sys.modules.pop(subject.__name__, None)
+        observed = json.loads(output.getvalue())
+        self.assertEqual(self.COUNT, observed["source_count"])
+        self.assertEqual(self.DIGEST, observed["source_digest_sha256"])
+        self.assertEqual(self.PIN, observed["selection_sha256"])
+        self.assertFalse(observed["runtime_or_GA_accepted"])
+        return observed
 
     def project_consumer(self, workflow_path, job):
         root = COLLECTOR_PATH.resolve().parents[2]
@@ -3394,13 +3426,6 @@ class OwnedEvidenceSourceControls(unittest.TestCase):
 
 
 class HostedCompilerSourceControls(unittest.TestCase):
-    patterns = WorkflowSparseSourceControls.patterns
-    materialize = WorkflowSparseSourceControls.materialize
-    check_real_main = WorkflowSparseSourceControls.check_real_main
-    FAMILY = WorkflowSparseSourceControls.FAMILY
-    PIN = WorkflowSparseSourceControls.PIN
-    DIGEST = WorkflowSparseSourceControls.DIGEST
-    # Inherited sparse controls run on the live successor as well.
     def test_exact_v12_four_additions_and_inverse(self):
         root = COLLECTOR_PATH.resolve().parents[2]
         metadata = {collector.HOSTED_COMPILER_SOURCE_BASE + name: (root / collector.HOSTED_COMPILER_SOURCE_BASE / name).read_bytes() for name in ("selection.json", "selected-source-manifest.json")}
@@ -3425,14 +3450,15 @@ class HostedCompilerSourceControls(unittest.TestCase):
 
     def test_v12_missing_module_refuses_actual_source_cli(self):
         root = COLLECTOR_PATH.resolve().parents[2]
-        patterns = self.patterns((root / ".github/workflows/identity-network.yml").read_text(), "identity-network")
+        helper = WorkflowSparseSourceControls()
+        patterns = helper.patterns((root / ".github/workflows/identity-network.yml").read_text(), "identity-network")
         for path in collector.HOSTED_COMPILER_INPUTS:
             with self.subTest(path=path), tempfile.TemporaryDirectory(prefix="identity-controls-") as directory:
                 sparse = Path(directory)
-                self.materialize(root, sparse, patterns)
+                helper.materialize(root, sparse, patterns)
                 (sparse / path).unlink()
                 with self.assertRaises(FileNotFoundError):
-                    self.check_real_main(sparse)
+                    helper.check_real_main(sparse)
 
     def test_v12_missing_changed_extra_metadata_refuse(self):
         root = COLLECTOR_PATH.resolve().parents[2]
@@ -5312,6 +5338,24 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                 with self.assertRaisesRegex(collector.CollectorError, "workspace application manifest byte pin"):
                     collector.check_workspace_source(stage)
                 staged_application.write_bytes(original_application)
+
+            # The fault matrix reruns the workspace checker on real files. A
+            # byte-identical document only needs the strict JSON parser once.
+            # Decode a fresh value each time so no validation can mutate a
+            # later case's input.
+            parse_strict_json = collector._restricted_processor_json
+            validated_json = set()
+
+            def parse_drift_fixture(body):
+                if type(body) is not bytes:
+                    return parse_strict_json(body)
+                if body in validated_json:
+                    return json.loads(body)
+                value = parse_strict_json(body)
+                validated_json.add(body)
+                return value
+
+            self.enterContext(mock.patch.object(collector, "_restricted_processor_json", parse_drift_fixture))
             v34_selection, _ = collector.validate_workspace_v34_metadata(
                 collector.workspace_source_metadata(stage, collector.WORKSPACE_V34_SOURCE_BASE))
             v35_selection, _ = collector.validate_workspace_v35_metadata(
