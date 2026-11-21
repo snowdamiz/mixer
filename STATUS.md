@@ -634,6 +634,15 @@ Separate store checks on the same source passed 34 compiled submission controls 
 
 Two traced Chrome controls returned HTTP 200 for the first organization read after both cold sign-in and renewed sign-in. Each first request was observed without a retry. The complete trace showed successful lifecycle and directory transactions with the owner in `storage_ready`. The controls submitted no builds. The original post-build HTTP 503 remains unexplained. [Renewal trace receipt](verification/receipts/l06-renewal-directory-trace-fef67b64.json)
 
+On v79, a real managed unsigned Xcode build reached `native_succeeded`.
+A fresh OAuth login then returned HTTP 200 on the first ordinary session,
+organization, project, application, and exact build reads. Each request used
+one attempt. RuntimeOwner stayed `storage_ready`, and no SQL exception was
+observed. All 64 recorded commands closed and all five ports were reusable.
+The historical 503 did not recur. This loopback control used browser cookies
+without driving a frontend or forcing the old cookie to expire.
+[Post-build renewal receipt](verification/receipts/l05-v79-post-build-browser-renewal.json)
+
 Native build completion now verifies each retained artifact with reads of at most 64 KiB. A 16 MiB storage control returned the same bytes and passed eight refusal checks on both revisions. Hosted source v45 admits the exact verifier, and its 59 focused Elixir tests passed. Authenticated HTTP streaming and the Android worker remain open. [Bounded verification receipt](verification/receipts/hosted-bounded-retained-verification-v45.json)
 
 On public Mixer `a5398fad7c`, the ordinary console completed one free iOS Starter build, signed in again, and showed the retained compiler log. All three authenticated downloads matched the native worker's sizes and SHA-256 hashes. Workspace export and exit returned HTTP 200. The unrelated tenant's first session, organization, project, and application reads after exit all returned HTTP 200 with unchanged scoped data. PostgreSQL confirmed the owner tombstone, retained journal, and released capacity. Billing stayed unchanged through the build. Exit updated only the owner's lifecycle mirror, and the fixture used no payment service or credentials. The supplemental expired owner build read returned HTTP 503. The browser run stopped before checking a renewed former-owner session. L05 and L06 remain running. [Rendered Starter receipt](verification/receipts/l06-starter-console-ca-a5398fa-20261119.json)
