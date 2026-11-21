@@ -85,6 +85,17 @@ Default scheduling did not run. The diagnostic's retained scratch and
 unconfirmed descendants remain under its UNKNOWN custody record.
 [Exact hosted diagnostic](verification/receipts/swift-cli-host-serial-crash-44876481949.json)
 
+The corrected receipt test constructs encoded file URLs. The normal local
+CLI suite passed on Xcode 27.2 with 132 Swift Testing passes and 32 XCTest
+passes plus one skip. The five outer commands and all 200 recorded fixture
+commands confirmed terminal custody, and the owned scratch was removed.
+The installed CLI archive verifies the corrected test and restores the
+predecessor bytes. Its 153-source digest and the hosted v77 selection
+still match their pins. A supplemental Android runner test left an
+unconfirmed child and retained its exact scratch under HOLD.
+[Local CLI replay](verification/receipts/swift-cli-receipt-fixture-full-host-v77.json) ·
+[Archive verification](verification/receipts/installed-cli-source141-owned-command-test-r1.json)
+
 ## November 20 local release delivery outage and recovery
 
 A committed Phoenix release reached local Workerd through the private historical
