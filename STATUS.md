@@ -280,7 +280,7 @@ then reached the six-minute process alarm during a predecessor control.
 The optimized collector and Go race suite did not start. The separate
 Identity job passed all 316 tests in 244.383 seconds. Descendant custody
 for the interrupted Services worker remains unverified.
-[Services timeout](verification/receipts/hosted-v78-services-collector-alarm-814c7218.json)
+[Services timeout](verification/receipts/hosted-v78-services-collector-alarm-814c7218.json) Replaying the exact v78 Go module on arm64 macOS passed module verification, vet, and the full race suite.
 
 ## November 20 generated release REST client
 
