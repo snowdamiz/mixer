@@ -4,18 +4,21 @@
 import argparse
 from collections import Counter
 from datetime import datetime, timezone
+import hashlib
 import json
 import os
 from pathlib import Path
 import platform
+import pwd
 import re
 import shutil
 import signal
 import sys
+import tarfile
 import tempfile
 
 sys.dont_write_bytecode = True
-from commands import Commands, digest
+from commands import Commands, digest, preserve, publish_json
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
@@ -28,7 +31,9 @@ WABT_URL = (
 WABT_HASH = "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
 PROFILE = "mixer-table-memory-v3"
 FEATURE = "experimental-capability-native"
-SOURCES = ["vm/src", "vm/include", "vm/Cargo.toml", "vm/Cargo.lock", "vm/build.rs"]
+MAX_EXPORT_BYTES = 32 * 1024 * 1024
+CARGO_CWD = Path("/")
+CLIENT = "verification/standards-replay/client.c"
 HEADERS = (
     "mixer_vm.h", "mixer_vm_capability.h", "mixer_vm_guest_ui.h",
     "mixer_vm_guest_ui_deferred.h",
@@ -243,7 +248,7 @@ def invoke(commands, label, core, client, wasm, row):
     return {"core": core_report, "installed_c": reports}
 
 
-def copy_install(scratch, release):
+def copy_install(scratch, release, source):
     include = scratch / "install/include"
     lib = scratch / "install/lib"
     include.mkdir(parents=True)
@@ -251,36 +256,118 @@ def copy_install(scratch, release):
     archive = lib / "libmixer_vm_capability_experimental.a"
     shutil.copyfile(release / "libmixer_vm.a", archive)
     for header in HEADERS:
-        shutil.copyfile(ROOT / "vm/include" / header, include / header)
+        shutil.copyfile(source / "include" / header, include / header)
     return include, archive
 
 
-def replay(commands, scratch, rust, record):
-    git = ["/usr/bin/git", "--no-replace-objects", "-C", ROOT]
-    revision, tree = commands.run("revision", [*git, "rev-parse", "HEAD", "HEAD:vm"]).decode().split()
+def export_vm(commands, root, scratch, record):
+    git = ["/usr/bin/git", "--no-replace-objects", "-C", root]
+    revision = commands.run("revision", [*git, "rev-parse", "HEAD^{commit}"]).decode().strip()
+    tree = commands.run("vm-tree", [*git, "rev-parse", f"{revision}:vm"]).decode().strip()
     record.update(source_revision=revision, vm_tree=tree)
-    require(not commands.run("vm-diff", [*git, "diff", "HEAD", "--name-only", "--", *SOURCES]),
-            "VM source differs from the committed revision")
-    require(not commands.run("vm-untracked", [*git, "ls-files", "--others", "--", *SOURCES]),
-            "VM source includes untracked files")
+    listing = commands.run("vm-blobs", [*git, "ls-tree", "-rz", tree])
+    expected = {}
+    for entry in listing.rstrip(b"\0").split(b"\0"):
+        metadata, name = entry.decode().split("\t", 1)
+        mode, kind, blob = metadata.split()
+        path = Path(name)
+        require(kind == "blob" and mode in ("100644", "100755") and not path.is_absolute()
+                and ".." not in path.parts and str(path) == name and path.parts,
+                f"unsupported VM tree entry {name}")
+        expected[name] = blob, mode
 
+    archive = scratch / "vm.tar"
+    commands.run("export-vm", [*git, "archive", "--format=tar", "--output", archive, tree])
+    require(archive.stat().st_size <= MAX_EXPORT_BYTES, "VM export exceeds byte cap")
+    source = scratch / "vm"
+    source.mkdir()
+    observed = set()
+    with tarfile.open(archive, mode="r:") as bundle:
+        for member in bundle:
+            if member.isdir():
+                continue
+            name = member.name
+            require(member.isfile() and name in expected and name not in observed
+                    and 0 <= member.size <= MAX_EXPORT_BYTES, f"unexpected VM archive entry {name}")
+            blob, mode = expected[name]
+            with bundle.extractfile(member) as stream:
+                data = stream.read()
+            header = f"blob {len(data)}\0".encode()
+            require(hashlib.sha1(header + data).hexdigest() == blob,
+                    f"VM archive blob mismatch: {name}")
+            path = source / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("xb") as stream:
+                stream.write(data)
+            path.chmod(int(mode[-3:], 8))
+            observed.add(name)
+    require(observed == expected.keys(), "VM archive omitted committed files")
+    record["vm_export_files"] = len(observed)
+    return source, {source / name for name in observed}
+
+
+def require_absent(path, description):
+    try:
+        path.lstat()
+    except FileNotFoundError:
+        return
+    raise RuntimeError(f"unexpected {description}: {path}")
+
+
+def guard_cargo(source, cwd, cargo_home):
+    config_directories = [cargo_home, *(directory / ".cargo" for directory in (cwd, *cwd.parents))]
+    for directory in config_directories:
+        for filename in ("config", "config.toml"):
+            require_absent(directory / filename, "Cargo configuration")
+    for directory in source.parents:
+        require_absent(directory / "Cargo.toml", "Cargo ancestor manifest")
+
+
+def build_vm(commands, source, files, rust, record):
+    cargo_home = Path(commands.env["CARGO_HOME"])
+    manifest = source / "Cargo.toml"
+    cargo = [rust / "cargo", "--locked", "--offline"]
+    guard_cargo(source, CARGO_CWD, cargo_home)
+    metadata = json.loads(commands.run(
+        "cargo-metadata", [*cargo, "metadata", "--no-deps", "--format-version", "1",
+                           "--manifest-path", manifest], cwd=CARGO_CWD,
+    ))
+    packages = metadata["packages"]
+    require(Path(metadata["workspace_root"]) == source and len(packages) == 1,
+            "Cargo resolved an unexpected workspace")
+    package = packages[0]
+    require(Path(package["manifest_path"]) == manifest and not package["dependencies"]
+            and all(Path(target["src_path"]) in files for target in package["targets"]),
+            "Cargo resolved inputs outside the committed VM package")
+    record["cargo_targets"] = [
+        {"kind": target["kind"], "path": str(Path(target["src_path"]).relative_to(source))}
+        for target in package["targets"]
+    ]
+    guard_cargo(source, CARGO_CWD, cargo_home)
+    commands.run("build", [*cargo, "build", "--release", "--lib", "--bin", "mixer-vm",
+                           "--no-default-features", "--features", FEATURE, "--manifest-path", manifest],
+                 cwd=CARGO_CWD, timeout=90)
+    guard_cargo(source, CARGO_CWD, cargo_home)
+
+
+def replay(commands, scratch, rust, record):
+    source, files = export_vm(commands, ROOT, scratch, record)
+    guard_cargo(source, CARGO_CWD, Path(commands.env["CARGO_HOME"]))
     record["tools"] = {
         "python": sys.version.split()[0],
         "macos": commands.run("macos", ["/usr/bin/sw_vers"]).decode().strip(),
-        "cargo": commands.run("cargo-version", [rust / "cargo", "--version"]).decode().strip(),
+        "cargo": commands.run("cargo-version", [rust / "cargo", "--version"], cwd=CARGO_CWD).decode().strip(),
         "rustc": commands.run("rustc-version", [rust / "rustc", "--version"]).decode().strip(),
         "clang": commands.run("clang-version", ["/usr/bin/clang", "--version"]).decode().strip(),
         "curl": commands.run("curl-version", ["/usr/bin/curl", "--version"]).decode().splitlines()[0],
     }
-    commands.run("build", [rust / "cargo", "build", "--locked", "--offline", "--release",
-                           "--lib", "--bin", "mixer-vm", "--no-default-features", "--features",
-                           FEATURE, "--manifest-path", ROOT / "vm/Cargo.toml"], timeout=90)
+    build_vm(commands, source, files, rust, record)
     release = scratch / "target/release"
     core = release / "mixer-vm"
-    include, archive = copy_install(scratch, release)
+    include, archive = copy_install(scratch, release, source)
     client = scratch / "client"
     commands.run("link-client", ["/usr/bin/clang", "-std=c11", "-Wall", "-Wextra", "-Werror",
-                                 "-I", include, HERE / "client.c", archive, "-o", client])
+                                 "-I", include, source / CLIENT, archive, "-o", client])
     record["artifacts_sha256"] = {
         path.name: digest(path.read_bytes()) for path in (core, archive, client, *include.iterdir())
     }
@@ -328,8 +415,25 @@ def replay(commands, scratch, rust, record):
             record["cases"].append(case)
 
 
-def interrupted(signum, _frame):
-    raise KeyboardInterrupt(f"signal {signum}")
+def finish(scratch, receipt, record):
+    try:
+        publish_json(receipt, record)
+    except BaseException as error:
+        preserve(scratch, "receipt-unpublished.json", {
+            **record, "receipt_publication_error": str(error),
+        })
+        print(f"receipt publication failed for {receipt}: {error}", file=sys.stderr)
+        return 74
+    try:
+        shutil.rmtree(scratch)
+    except OSError as error:
+        print(f"scratch cleanup failed for {scratch}: {error}", file=sys.stderr)
+        return 1
+    print(f"{record['status']} {receipt}")
+    if record["status"] != "passed_scoped_replay":
+        print(record["error"], file=sys.stderr)
+        return 1
+    return 0
 
 
 def main():
@@ -343,23 +447,29 @@ def main():
     for name in ("cargo", "rustc"):
         if not os.access(rust / name, os.X_OK):
             parser.error(f"missing executable {rust / name}")
-    receipt = args.receipt.resolve()
-    if receipt.exists() or not receipt.parent.is_dir():
+    receipt = args.receipt.absolute()
+    if os.path.lexists(receipt) or not receipt.parent.is_dir():
         parser.error("--receipt must name a new file in an existing directory")
 
-    local = ROOT / "verification/local"
-    local.mkdir(exist_ok=True)
-    scratch = Path(tempfile.mkdtemp(prefix="vm-standards-", dir=local))
-    if receipt.is_relative_to(scratch):
-        parser.error("--receipt must be outside the new work directory")
-    signal.signal(signal.SIGTERM, interrupted)
+    home = Path(pwd.getpwuid(os.getuid()).pw_dir).resolve(strict=True)
+    scratch = Path(tempfile.mkdtemp(prefix=".mixer-vm-standards-", dir=home))
+    env = {
+        "HOME": str(scratch / "home"), "PATH": f"{rust}:/usr/bin:/bin:/usr/sbin:/sbin",
+        "RUSTC": str(rust / "rustc"), "CARGO_HOME": str(scratch / "cargo-home"),
+        "CARGO_TARGET_DIR": str(scratch / "target"), "TMPDIR": str(scratch / "tmp"),
+        "MACOSX_DEPLOYMENT_TARGET": "14.0", "LANG": "C", "LC_ALL": "C",
+        "GIT_NO_LAZY_FETCH": "1", "GIT_OPTIONAL_LOCKS": "0", "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_ATTR_NOSYSTEM": "1",
+    }
+    commands = Commands(scratch, env)
+    signal.signal(signal.SIGINT, commands.interrupt)
+    signal.signal(signal.SIGTERM, commands.interrupt)
     record = {
         "status": "incomplete",
         "started_utc": datetime.now(timezone.utc).isoformat(),
         "runner_argv": sys.argv,
-        "runner_sha256": {p.name: digest(p.read_bytes()) for p in
-                          (HERE / "replay.py", HERE / "commands.py", HERE / "client.c")},
         "scratch": str(scratch),
+        "scratch_cleanup": "after durable receipt publication and terminal process custody",
         "spec_revision": SPEC,
         "wabt_release": {"url": WABT_URL, "sha256": WABT_HASH},
         "profile": PROFILE,
@@ -368,37 +478,20 @@ def main():
         "guest_ui_v1": "admission refusal only for unchanged upstream modules",
         "fixtures": {}, "modules": [], "cases": [],
     }
-    env = {
-        "HOME": os.environ["HOME"], "PATH": f"{rust}:/usr/bin:/bin:/usr/sbin:/sbin",
-        "RUSTC": str(rust / "rustc"), "CARGO_HOME": str(scratch / "cargo-home"),
-        "CARGO_TARGET_DIR": str(scratch / "target"), "TMPDIR": str(scratch / "tmp"),
-        "MACOSX_DEPLOYMENT_TARGET": "14.0", "LANG": "C", "LC_ALL": "C",
-        "GIT_NO_LAZY_FETCH": "1", "GIT_OPTIONAL_LOCKS": "0",
-    }
-    (scratch / "tmp").mkdir()
-    commands = Commands(scratch, scratch, env)
-    record["command_environment"] = {key: value for key, value in env.items() if key != "HOME"}
+    record["command_environment"] = env
     try:
+        for name in ("home", "cargo-home", "tmp"):
+            (scratch / name).mkdir()
+        record["runner_sha256"] = {p.name: digest(p.read_bytes()) for p in
+                                   (HERE / "replay.py", HERE / "commands.py")}
         replay(commands, scratch, rust, record)
+        commands.check_interrupt()
         record["status"] = "passed_scoped_replay"
     except (Exception, KeyboardInterrupt) as error:
         record["error"] = str(error)
-    finally:
-        record["commands"] = commands.rows
-        record["assertion_counts"] = dict(Counter(case["upstream"]["type"] for case in record["cases"]))
-        try:
-            shutil.rmtree(scratch)
-            record["scratch_removed"] = True
-        except OSError as error:
-            record.update(status="cleanup_failed", scratch_removed=False, cleanup_error=str(error))
-        with receipt.open("x", encoding="utf-8") as stream:
-            json.dump(record, stream, indent=2)
-            stream.write("\n")
-    print(f"{record['status']} {receipt}")
-    if record["status"] != "passed_scoped_replay":
-        print(record.get("error", record.get("cleanup_error")), file=sys.stderr)
-        return 1
-    return 0
+    record["commands"] = commands.rows
+    record["assertion_counts"] = dict(Counter(case["upstream"]["type"] for case in record["cases"]))
+    return finish(scratch, receipt, record)
 
 
 if __name__ == "__main__":

@@ -10,9 +10,15 @@ python3 vm/verification/standards-replay/replay.py \
   --receipt verification/receipts/l03-standards-replay-local.json
 ```
 
-The script builds the committed VM source offline in fresh scratch. It stages
-the release archive and public headers in the experimental capability install
-layout, then links a C client directly against that archive. It downloads the
+The script resolves `HEAD` to a commit once, exports its entire `vm` tree into a
+private directory under the local account's home, and verifies the archived files
+against the committed Git blob IDs. It builds offline against that export with a
+fresh Cargo home and `/` as Cargo's working directory. It refuses Cargo config
+files in those lookup locations and workspace manifests above the export. Cargo
+metadata must resolve the exported package and every target, including examples,
+inside the verified tree. The script stages the release archive and exported public
+headers in the experimental capability install layout, then links the exported
+C client directly against that archive. It downloads the
 pinned WABT release and five WebAssembly Core WAST files over HTTPS and checks
 their SHA-256 hashes. [WABT release](https://github.com/WebAssembly/wabt/releases/tag/1.0.37) ·
 [WebAssembly test sources](https://github.com/WebAssembly/spec/tree/05ca4182176763112561ae20153975c12bd689e4/test/core)
@@ -41,8 +47,17 @@ UI V1 body type check. This replay covers a fixed subset on the macOS host.
 Stateful WAST sequences, Guest UI V1 application execution, and W08/L03 gate
 qualification are outside its evidence.
 
-The JSON receipt records the source revision, VM tree, exact fixture and module
-hashes, commands, assertion outcomes, and process custody. Normal completion
-and known failures remove the runner's fresh scratch. An unknown process group
-stops the runner with exit 74 and leaves `HOLD.json` in the exact scratch
-directory. Preserve that directory and group.
+The JSON receipt records the source revision, VM tree, Cargo targets, exact
+fixture and module hashes, commands, assertion outcomes, and process custody.
+The runner removes scratch after terminal custody and durable receipt
+publication. A destination collision or publication error exits 74 and retains
+scratch, including the command logs and a fallback receipt when it can be
+written. Unknown process custody exits 74 and retains scratch and its
+`HOLD.json` when the filesystem accepts the write. The runner prints the
+retained path in either case.
+
+Run the inert controls without downloading fixtures or compiling the VM.
+
+```sh
+python3 vm/verification/standards-replay/test_replay.py -v
+```

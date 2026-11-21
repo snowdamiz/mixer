@@ -6,6 +6,7 @@ import os
 import select
 import signal
 import subprocess
+import tempfile
 import time
 
 
@@ -13,8 +14,29 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def write_json(path, value):
-    path.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
+def publish_json(path, value):
+    """Publish a fully written, synced JSON file without replacing a destination."""
+    directory = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        with tempfile.NamedTemporaryFile(dir=path.parent, prefix=".replay-", mode="w",
+                                         encoding="utf-8") as stream:
+            json.dump(value, stream, indent=2)
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+            os.link(stream.name, path, follow_symlinks=False)
+        os.fsync(directory)
+    finally:
+        os.close(directory)
+
+
+def preserve(scratch, filename, evidence):
+    try:
+        publish_json(scratch / filename, evidence)
+    except BaseException as error:
+        os.write(2, f"Could not persist {filename}: {error}\n".encode())
+    finally:
+        os.write(2, f"Preserve replay scratch {scratch}\n".encode())
 
 
 class OwnedChild(subprocess.Popen):
@@ -24,66 +46,89 @@ class OwnedChild(subprocess.Popen):
 
 
 class Commands:
-    def __init__(self, scratch, cwd, env):
+    def __init__(self, scratch, env):
         self.scratch = scratch
-        self.cwd = cwd
         self.env = env
         self.rows = []
         self.deadline = time.monotonic() + 240
+        self.cancel_signal = None
 
-    def hold(self, row, error):
-        row.update(custody="unknown", error=str(error))
+    def interrupt(self, signum, _frame):
+        # Signal handlers must not unwind launch, timeout settlement, or publication.
+        self.cancel_signal = signum
+
+    def check_interrupt(self):
+        if self.cancel_signal is not None:
+            raise InterruptedError(f"signal {self.cancel_signal}")
+
+    def hold(self, row, error, raw):
+        row.setdefault("custody", "unknown")
+        row.update(error=str(error), output_sha256=digest(raw), output_bytes=len(raw))
         try:
-            write_json(self.scratch / "HOLD.json", {
-                "scratch": str(self.scratch),
-                "command": row,
-                "prior_commands": self.rows,
-            })
-        finally:
             try:
-                os.write(2, f"Unknown process custody. Preserve {self.scratch}\n".encode())
+                (self.scratch / f"{row['name']}.log").write_bytes(raw)
+            except OSError as log_error:
+                row["log_error"] = str(log_error)
             finally:
-                os._exit(74)
+                preserve(self.scratch, "HOLD.json", {
+                    "scratch": str(self.scratch), "command": row, "prior_commands": self.rows,
+                })
+        finally:
+            os._exit(74)
 
-    def run(self, name, argv, *, timeout=30, expected=0, maximum=512 * 1024):
+    def run(self, name, argv, *, cwd=None, timeout=30, expected=0, maximum=512 * 1024):
+        self.check_interrupt()
         if len(self.rows) >= 256 or time.monotonic() >= self.deadline:
             raise RuntimeError("command count or campaign deadline exceeded")
+        cwd = cwd or self.scratch
         argv = list(map(str, argv))
         start = time.monotonic()
         deadline = min(start + timeout, self.deadline)
         row = {
-            "name": name, "argv": argv, "expected_exit_code": expected,
+            "name": name, "argv": argv, "cwd": str(cwd), "expected_exit_code": expected,
             "timeout_seconds": timeout, "output_cap_bytes": maximum,
         }
         output = bytearray()
         problem = None
         try:
             child = OwnedChild(
-                argv, cwd=self.cwd, env=self.env, stdout=subprocess.PIPE,
+                argv, cwd=cwd, env=self.env, stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT, start_new_session=True,
             )
             row.update(pid=child.pid, pgid=child.pid)
-            while True:
-                remaining = deadline - time.monotonic()
-                if remaining <= 0 or not select.select([child.stdout], [], [], remaining)[0]:
-                    raise subprocess.TimeoutExpired(argv, timeout)
-                data = os.read(child.stdout.fileno(), min(65536, maximum + 1 - len(output)))
-                if not data:
-                    row["output_eof"] = True
-                    break
-                output.extend(data)
-                if len(output) > maximum:
-                    problem = "output limit exceeded"
-                    break
-            if not problem:
-                child.wait(timeout=max(0, deadline - time.monotonic()))
-        except subprocess.TimeoutExpired:
-            problem = "deadline exceeded"
-        except BaseException as error:
-            self.hold(row, error)
+            try:
+                while True:
+                    self.check_interrupt()
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise subprocess.TimeoutExpired(argv, timeout)
+                    if not select.select([child.stdout], [], [], min(remaining, 0.2))[0]:
+                        continue
+                    data = os.read(child.stdout.fileno(), min(65536, maximum + 1 - len(output)))
+                    if not data:
+                        row["output_eof"] = True
+                        break
+                    output.extend(data)
+                    if len(output) > maximum:
+                        problem = "output limit exceeded"
+                        break
+                while not problem:
+                    self.check_interrupt()
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise subprocess.TimeoutExpired(argv, timeout)
+                    try:
+                        child.wait(timeout=min(remaining, 0.2))
+                        break
+                    except subprocess.TimeoutExpired:
+                        continue
+            except subprocess.TimeoutExpired:
+                problem = "deadline exceeded"
+            except InterruptedError as error:
+                problem = str(error)
 
-        try:
-            if problem and child.poll() is None:
+            if problem:
+                # Keep the group leader unreaped until after signalling its owned group.
                 try:
                     os.killpg(child.pid, signal.SIGKILL)
                 except ProcessLookupError:
@@ -96,16 +141,19 @@ class Commands:
             except ProcessLookupError:
                 row["custody"] = "child reaped and group absent"
             else:
-                self.hold(row, "group still present after direct child reap")
-        except BaseException as error:
-            self.hold(row, error)
+                raise RuntimeError("group still present after direct child reap")
 
-        raw = bytes(output[:maximum])
-        row.update(output_sha256=digest(raw), output_bytes=len(raw),
-                   elapsed_seconds=round(time.monotonic() - start, 6))
+            raw = bytes(output[:maximum])
+            row.update(output_sha256=digest(raw), output_bytes=len(raw),
+                       elapsed_seconds=round(time.monotonic() - start, 6))
+            (self.scratch / f"{name}.log").write_bytes(raw)
+        except BaseException as error:
+            if problem:
+                row["problem"] = problem
+            self.hold(row, error, bytes(output[:maximum]))
+
         self.rows.append(row)
-        write_json(self.scratch / "commands.json", self.rows)
-        (self.scratch / f"{name}.log").write_bytes(raw)
+        self.check_interrupt()
         if problem or child.returncode != expected:
             raise RuntimeError(
                 f"{name}: {problem or f'exit {child.returncode}, expected {expected}'}\n"
