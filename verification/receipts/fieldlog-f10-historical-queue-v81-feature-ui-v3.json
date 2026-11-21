@@ -1,0 +1,182 @@
+{
+  "schema": 1,
+  "id": "fieldlog-f10-historical-queue-v81-feature-ui-v3",
+  "observedUTC": "2026-11-21T10:29:16.416916+00:00",
+  "status": "V3_HEADLESS_ROUTE_OBSERVED_XCTEST_NON_GREEN_INSTALLED_F10_OPEN",
+  "scope": "One executable XCTest on arm64 macOS. Unchanged public v81 SDK, existing F10 queue projection, exact FieldLog models and disk repository, and a test driver serving page data and simulating ready turns. MixerUIHost owned the render snapshots. No Wasm, signed installation, native display acknowledgement, frontend, devices, or application runtime composition ran.",
+  "inputs": {
+    "mixerPublicCommit": "abb32b835c79b0d13189dcf78dff50a5db29a12b",
+    "mixerPublicTree": "3efa3f41546affb13e5842e3b811917774fe2767",
+    "fieldlogCommit": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "fieldlogTree": "1b62520f35c7e57a01b568291078686574f627c4",
+    "f10IntroducingCommit": "c6562ba80b992016c0c963cf4c67a59f1f605fd0",
+    "f10Parent": "00c8fe0400bc9a06242371ce7b02cd440f64f31e",
+    "historicalSourceBlob": "73b481f6d58e46d71175ae805004ddd9ee39bd81",
+    "historicalExcerptsVerified": [
+      [
+        250,
+        258
+      ],
+      [
+        758,
+        793
+      ]
+    ],
+    "exactFieldLogBlobs": {
+      "Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift": "91615788bea186663fbb8a23231e304802366f8a",
+      "Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift": "c3aa7a10eae986efa52c1bdfb28d3c4c61bc8153"
+    },
+    "queueProjectionSHA256": "2cdb5814407aab0942263bd8fda93af32c9c7e15cf71eb577b92ebf10cc1ef92",
+    "reusedSeedScopedStorageAndAssertionsSHA256": "7470d5dfa735e946bf0033a206a931d777d5650ed204bd269d4fef70916bc9fa",
+    "testSourceSHA256": "98df5ea787871b6b1083f295e7a54e7043775f076243c4a968eeb7aef3eef785",
+    "scratchPackageManifestSHA256": "8499fa66099a408db3bb37ab5df0202745d02c8a82a8bcaa15443a2da793fa12",
+    "packageResolvedSHA256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+    "commandRecorderSHA256": "af6a4ea7e22bd67a4b60f14058e834ca1442eb37414f03b71796434b8a98d16b"
+  },
+  "toolchain": {
+    "os": "macOS 27.0.1 (26A434)",
+    "swift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1), arm64-apple-macosx27.0.0",
+    "macOSSDK": "27.2",
+    "git": "2.56.0"
+  },
+  "verification": {
+    "command": [
+      "/usr/bin/swift",
+      "test",
+      "--package-path",
+      "<scratch>/sdk",
+      "--scratch-path",
+      "<scratch>/build",
+      "--cache-path",
+      "<scratch>/cache",
+      "--config-path",
+      "<scratch>/config",
+      "--security-path",
+      "<scratch>/security",
+      "--disable-prefetching",
+      "--skip-update",
+      "--force-resolved-versions",
+      "--jobs",
+      "8",
+      "--filter",
+      "HistoricalQueueV3Tests/testHistoricalQueueExchangeAndRenderOwnership"
+    ],
+    "timeoutSecondsPerCommand": 240,
+    "environment": {
+      "FIELDLOG_F10_RUN": "<scratch>/run",
+      "TMPDIR": "<scratch>/tmp/"
+    },
+    "preparationFailure": "The first command failed during test compilation because the async fixture seed method lacked explicit MainActor isolation. Only the scratch test was corrected. No test body ran in that command.",
+    "campaignCommands": [
+      {
+        "name": "v3-headless",
+        "exitCode": 1,
+        "elapsedSeconds": 18.103,
+        "pgid": 91706,
+        "terminalCustody": "TERMINAL",
+        "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSHA256": "e725672bae377177a0d0ca52328e83b09e8600814fceaf7b8affd544c7e7d4b7"
+      },
+      {
+        "name": "v3-headless-probe",
+        "exitCode": 1,
+        "elapsedSeconds": 9.009,
+        "pgid": 96331,
+        "terminalCustody": "TERMINAL",
+        "stdoutSHA256": "d4b25d1eee7a5ad46ef7273691098f5d1d312f890a1cefdea6ee8d20becf2aa4",
+        "stderrSHA256": "e71987f12af158217cee93cb22da45205e352149879c6adfefe77ddd984a5db0"
+      }
+    ],
+    "executedTests": 1,
+    "failures": 1,
+    "soleFailure": "The fresh V1 control mistakenly asserted displayedRevision == 1 after event/document stopped the exchange. Actual nil is expected: GuestUIExchangeCore.stopContents clears displayed and snapshot derives displayedRevision from it. The event/document assertion and failure snapshot assertion both passed. The log line claiming the prior revision was retained is inaccurate. No second test execution was made.",
+    "review": "Reviewed both command results, the single XCTest diagnostic, every observed frame and action, the exact stop-state source, and the three public installed selection/validation call sites against the pinned tree."
+  },
+  "observations": {
+    "frames": [
+      {
+        "revision": 1,
+        "root": "vStack",
+        "pendingRows": 0
+      },
+      {
+        "revision": 2,
+        "root": "navigation",
+        "pendingRows": 20
+      },
+      {
+        "revision": 3,
+        "root": "navigation",
+        "pendingRows": 20
+      },
+      {
+        "revision": 4,
+        "root": "navigation",
+        "pendingRows": 6
+      },
+      {
+        "revision": 5,
+        "root": "vStack",
+        "pendingRows": 0
+      },
+      {
+        "revision": 6,
+        "root": "navigation",
+        "pendingRows": 6
+      },
+      {
+        "revision": 7,
+        "root": "navigation",
+        "pendingRows": 6
+      },
+      {
+        "revision": 8,
+        "root": "navigation",
+        "pendingRows": 20
+      },
+      {
+        "revision": 9,
+        "root": "vStack",
+        "pendingRows": 0
+      }
+    ],
+    "actions": [
+      "workspace.queue",
+      "queue.next",
+      "workspace.back",
+      "workspace.queue",
+      "queue.previous",
+      "workspace.entries"
+    ],
+    "acceptedAndDelivered": 6,
+    "terminalEvents": 0,
+    "queueTopology": "task.screen navigation -> task.form list -> queue.summary and queue.changes sections. Ordered pending IDs and exact labels matched the original repository projection. Tasks and Entries were the existing F10 fixture boundaries, with Entries a handoff.",
+    "controls": "Disabled page edges, stale revision, and a retired node identity were refused. Back and reopen restored the exact page-2 tree with a newly issued node identity. All frame tickets were observed and consumed at the render-model boundary.",
+    "repository": {
+      "namespace": "material_test",
+      "readKeys": [
+        "queue-0",
+        "queue-1",
+        "queue-0"
+      ],
+      "writeAttempts": 0,
+      "reopenedRevision": 1,
+      "pending": 26,
+      "diskBytesEqual": true,
+      "diskSHA256BeforeAndAfter": "6539a802873481068f069ddd4bdf1452787d96ade032242179ae0d9113fa53e6"
+    }
+  },
+  "installedBoundary": {
+    "signedV1Receipt": "verification/receipts/fieldlog-f10-signed-pending-queue-v80.json",
+    "signedV1Result": "Compact route delivered six events. Historical queue-open reached event/document after hydration and accepted input. Both signed owners retired.",
+    "publicV81Selection": "CapabilityInstalledExecutionMode.requireGuestUI requires mixer_guest_ui_start_v1 and version-1 mixer.guest-ui-event-v1 / mixer.guest-ui-native-header-v1 dependencies. CapabilityColdStartWorker creates GuestUIExchangeV1. NativeCapabilitySession.validateGuestUI selects the normal or deferred V1 validator. This was source-reviewed, not an installed execution.",
+    "missing": "An official signed runtime identity and version selection that bind the FeatureDocumentV3/MUI3 and V3 event contract to the verifier, installed worker, VM validator/turn ABI, and scoped storage hydration. The signed V1 tuple is protocol 3 / guest ABI 2 / UI schema 1; its guest exports V1 start/event/hydrate and capability-ready, with capability storage imports. The development V3 reactor instead requires exact WASI imports, memory/table, _initialize, and V3 start/event/ready. No official signed V3 F10 tuple or bridge was found at v81.",
+    "existingRunners": [
+      "Public v81 signed-editor replay is an F05-only private exchange patch on V1 capability entry points.",
+      "Private 1d3e65600a5bb05770d94d26dff81d3f3df1cc9e installed coordinator experiment is outside v81 ancestry and behind MIXER_SIGNED_FEATURE_V3_PROBE. The profile requires no grants or application storage and its adapter exposes only the first frame.",
+      "Public v81 NativeSwiftFeatureBackend is an explicit development reactor backend. Its presence does not select a signed installed route."
+    ],
+    "firstFailure": "Installed signed V1 event/document is the preserved executable failure. The headless V3 document/exchange/render-model path reached the end of the route. Public v81 installed selection is the first missing V3 integration component by source inspection."
+  },
+  "cleanup": "Both task-owned Swift command groups reached terminal custody. Removed the owned scratch tree, including the workspace, one-off driver, source projection, dependencies, caches, and raw logs."
+}

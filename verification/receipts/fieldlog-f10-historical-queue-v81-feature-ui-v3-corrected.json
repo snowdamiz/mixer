@@ -1,0 +1,168 @@
+{
+  "schema": 1,
+  "id": "fieldlog-f10-historical-queue-v81-feature-ui-v3-corrected",
+  "status": "PASS_HEADLESS_XCTEST",
+  "observedUTC": "2026-11-21T10:37:44.102897+00:00",
+  "scope": "One macOS arm64 XCTest. Uses the exact v81 GuestUIExchangeV3, FeatureDocumentV3, V3 event codec, MixerUIHost render snapshots, and deferred-startup GuestUIExchangeV1. The native host driver serves FieldLog page reads and supplies ready turns in-process. Signed installation, Wasm, native display acknowledgement, frontends, devices, and application composition are outside the run.",
+  "baseline": {
+    "checkpoint": "b24e123c176a6abcb022804d26a3ed13ce1c663c",
+    "receipt": "verification/receipts/fieldlog-f10-historical-queue-v81-feature-ui-v3.json",
+    "receiptSHA256": "953f2c6e8fbd456fb42b5abe702e800a97caf7b830a3864fe101bbf41dfb0751",
+    "preservedResult": "1 test, 1 failure. V1 event/document stopped the exchange and cleared its displayed revision; the previous test expected 1.",
+    "fixtureProvenance": "The checkpoint kept the receipt and test-source digest. The maintained repro reconstructs the route from the pinned projection, original signed fixture seed, and baseline observations."
+  },
+  "inputs": {
+    "mixerCommit": "abb32b835c79b0d13189dcf78dff50a5db29a12b",
+    "mixerTree": "3efa3f41546affb13e5842e3b811917774fe2767",
+    "sdkTree": "d453a5db4ad431d71c2a82b6a880ff6195855612",
+    "fieldlogCommit": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "fieldlogTree": "1b62520f35c7e57a01b568291078686574f627c4",
+    "f10IntroducingCommit": "c6562ba80b992016c0c963cf4c67a59f1f605fd0",
+    "f10Parent": "00c8fe0400bc9a06242371ce7b02cd440f64f31e",
+    "anchors": [
+      {
+        "path": "Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift",
+        "beforeBlob": null,
+        "afterBlob": "73b481f6d58e46d71175ae805004ddd9ee39bd81",
+        "afterLines": [
+          250,
+          258
+        ],
+        "afterLinesSHA256": "877ed4893e639b7cca1181cbbc66f4122f74778b7fbbbc6eca2e26b4202bfcdf"
+      },
+      {
+        "path": "Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift",
+        "beforeBlob": null,
+        "afterBlob": "73b481f6d58e46d71175ae805004ddd9ee39bd81",
+        "afterLines": [
+          758,
+          793
+        ],
+        "afterLinesSHA256": "4668bbff9c60877cc72257e00d17f7ed4e1ba809cafc7097edbdbfb3a1fa730b"
+      }
+    ],
+    "fieldlogBlobs": {
+      "FieldLogModels/Workspace.swift": "91615788bea186663fbb8a23231e304802366f8a",
+      "FieldLogStorage/WorkspaceRepository.swift": "c3aa7a10eae986efa52c1bdfb28d3c4c61bc8153"
+    },
+    "installedSourceBlobs": {
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityInstalledExecutionMode.swift": "b6525beaaad91f2d950d1363f0392f816ddd4708",
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift": "2d06b230f4a288bd16642697ff66f0af97791ad1",
+      "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Native.swift": "aa27680721aafb5dc8cbcfb0e318d5916db4782a",
+      "sdk/Sources/MixerGuest/GuestUIExchangeCodec.swift": "ccf679d3d05a8e80a65f82b77e0cbfadc3ae1088",
+      "sdk/Sources/MixerGuest/GuestUIExchangeCore.swift": "b2367260e6c0d24f336797e2aed9d6b102c91009"
+    },
+    "sha256": {
+      "HistoricalQueueV3Tests.swift": "d569190e64a579ce1a4644b518532af43897a831f235b6668c9b55d3a8511abd",
+      "QueueProjection.swift": "2cdb5814407aab0942263bd8fda93af32c9c7e15cf71eb577b92ebf10cc1ef92",
+      "Package.swift": "1d127af01f48a6b158b270c13ddfad01c29ac96b0c713c8934f8e4355a127926",
+      "Package.resolved": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+      "replay-headless-v81.py": "01d85bbd6cf52be0de4340dbddd95a8b8effaff25e02223c3299b6857bddc9db"
+    },
+    "commandRecorderSHA256": "af6a4ea7e22bd67a4b60f14058e834ca1442eb37414f03b71796434b8a98d16b"
+  },
+  "toolchain": {
+    "os": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "macOSSDK": "27.2",
+    "git": "git version 2.56.0"
+  },
+  "replay": "python3 -B compiler/experiments/fieldlog-change-corpus/pending-queue/replay-headless-v81.py",
+  "fixture": "compiler/experiments/fieldlog-change-corpus/pending-queue/HistoricalQueueV3Tests.swift",
+  "verification": {
+    "command": [
+      "/usr/bin/swift",
+      "test",
+      "--package-path",
+      "<scratch>/sdk",
+      "--scratch-path",
+      "<scratch>/build",
+      "--cache-path",
+      "<scratch>/cache",
+      "--config-path",
+      "<scratch>/config",
+      "--security-path",
+      "<scratch>/security",
+      "--disable-prefetching",
+      "--skip-update",
+      "--force-resolved-versions",
+      "--jobs",
+      "8",
+      "--filter",
+      "HistoricalQueueV3Tests/testHistoricalQueueExchangeAndRenderOwnership"
+    ],
+    "timeoutSeconds": 240,
+    "environment": {
+      "FIELDLOG_F10_RUN": "<scratch>/run",
+      "TMPDIR": "<scratch>/tmp/"
+    },
+    "exitCode": 0,
+    "executedTests": 1,
+    "failures": 0,
+    "elapsedSeconds": 34.394,
+    "stdoutSHA256": "34f330448b37cda73402d5a53a55ae635ec95ffe7f069041481a59a7592dc70e",
+    "stderrSHA256": "ac7d4db6ebdf34cb9c6c93e49e8bc767e5a84d4b1c4fc5dbf98832ddcc1426c3",
+    "terminalCustody": "TERMINAL"
+  },
+  "observations": {
+    "xctest": "Executed 1 test, with 0 failures (0 unexpected) in 0.033 (0.034) seconds",
+    "frames": [
+      "frame=1 root=vStack pendingRows=0",
+      "frame=2 root=navigation pendingRows=20",
+      "frame=3 root=navigation pendingRows=20",
+      "frame=4 root=navigation pendingRows=6",
+      "frame=5 root=vStack pendingRows=0",
+      "frame=6 root=navigation pendingRows=6",
+      "frame=7 root=navigation pendingRows=6",
+      "frame=8 root=navigation pendingRows=20",
+      "frame=9 root=vStack pendingRows=0"
+    ],
+    "actions": [
+      "workspace.queue",
+      "queue.next",
+      "workspace.back",
+      "workspace.queue",
+      "queue.previous",
+      "workspace.entries"
+    ],
+    "v3Events": {
+      "accepted": 6,
+      "delivered": 6,
+      "terminal": 0
+    },
+    "queue": "task.screen navigation → task.form list → queue.summary and queue.changes sections. Ordered IDs and exact UTF-8 labels matched 26 records across 20- and 6-row pages.",
+    "renderOwnership": "All nine render-model tickets were observed and consumed. Disabled edges, a stale revision, and a retired identity were refused. Reopening restored the exact page-two tree with a new node identity.",
+    "repository": {
+      "namespace": "material_test",
+      "readKeys": [
+        "queue-0",
+        "queue-1",
+        "queue-0"
+      ],
+      "writeAttemptsAfterSeeding": 0,
+      "reopenedRevision": 1,
+      "reopenedPending": 26,
+      "reopenedWorkspaceEqual": true,
+      "beforeAndAfterBytesEqual": true,
+      "beforeAndAfterSHA256": "c2b59e460659814fbc6ecedea6e0a601cd28897027f804094719660ac995ace6"
+    },
+    "v1Control": {
+      "displayedRevisionBeforeStop": 1,
+      "failure": "event/document",
+      "displayedRevisionAfterStop": null,
+      "pendingPresentationReceiptAfterStop": null,
+      "terminalEvent": "terminal(turnBegan: true)",
+      "postStopInput": "closed"
+    }
+  },
+  "installedBoundary": {
+    "existingSignedV1Evidence": "abb32b835c79b0d13189dcf78dff50a5db29a12b:verification/receipts/fieldlog-f10-signed-pending-queue-v80.json",
+    "sourceReadback": "Pinned requireGuestUI admits the V1 startup export and V1 contract/header identities. The cold-start worker constructs GuestUIExchangeV1, and NativeCapabilitySession selects the normal or deferred V1 VM validator. Production runtime files were untouched.",
+    "missingExecutableComponent": "A signed-installed V3 smoke XCTest that selects V3 from a verified runtime identity, boots the V3 VM guest, hydrates material_test/queue-0, and drives workspace.queue to an observed navigation/list/section frame."
+  },
+  "cleanup": {
+    "ownedSubprocessGroupsTerminal": 35,
+    "scratchRemoved": true,
+    "rawLogsRetainedAsHashes": true
+  }
+}

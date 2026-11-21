@@ -136,6 +136,14 @@ workspace bytes. V1 still refuses the exact historical navigation layout.
 The offscreen macOS result leaves F10 and the two-target OTA count open.
 [F10 replay](verification/receipts/fieldlog-f10-signed-pending-queue-v80.json)
 
+The reviewed headless V3 replay delivered the six historical actions from
+decoded events and scoped page bytes. All 26 records kept their navigation,
+list, and section hierarchy, and returning from Tasks restored page two.
+The repository reopened byte-for-byte unchanged after three reads and
+zero writes. V1 refused the navigation frame and cleared the display.
+Signed V3 installation and the native display path remain open.
+[Headless route verification](verification/receipts/fieldlog-f10-historical-queue-v81-feature-ui-v3-review-fix.json)
+
 The app-owned storage guide exercises the public installed storage adapter.
 The signed host fixture committed one scoped write, refused an out-of-scope
 write before repository entry, and read the saved bytes through a fresh

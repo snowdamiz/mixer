@@ -46,6 +46,21 @@ requires the historical app route and signed OTA verification on both
 local targets. Rebuilt Wasm hashes can vary with the scratch path.
 [Signed F10 receipt](../../../verification/receipts/fieldlog-f10-signed-pending-queue-v80.json)
 
+The private `FeatureUIV3` exchange replays the historical hierarchy in the
+headless render model. The decoded action and the current scoped page drive
+the transition. The v81 replay delivers six actions across nine frames and
+reopens the exact workspace bytes after three reads and zero writes. The
+installed V1 control refuses the navigation document and clears its frame.
+
+```sh
+python3 -B compiler/experiments/fieldlog-change-corpus/pending-queue/replay-headless-v81.py
+```
+
+The runner uses the pinned v81 Mixer and FieldLog source. Use `--fieldlog`
+to supply a local Git checkout containing the pinned FieldLog history.
+Signed V3 installation and the native display path remain open.
+[Headless V3 replay](../../../verification/receipts/fieldlog-f10-historical-queue-v81-feature-ui-v3-review-fix.json)
+
 ## First unsupported case
 
 - **F01 is the earliest source-only gap.** The historical change applies `.scrollDismissesKeyboard(.interactively)` at `ios/FieldLog/EntryEditor.swift:68`. The signed Guest UI V1 route has no corresponding guest operation. No device or signed payload was run for it.
