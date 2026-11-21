@@ -1529,6 +1529,23 @@ commands. Seven earlier command holds remain preserved.
 [Reviewed producer receipt](verification/receipts/fieldlog-d2-ordinary-screens-e39a5ea3.json) ·
 [Initial holds](verification/receipts/fieldlog-d2-ordinary-screens-e39a5ea3-initial-holds.json)
 
+FieldLog candidate `00406fe735` shares the ordered photo roster and
+picker capacity in the ordinary Apple and Android entry editors. Both
+arm64 targets linked the projection. The matched production compiler
+inputs grow from 1,380 to 1,392 shared physical Swift lines.
+
+The source-bound Android macOS replay passed 22 baseline and 23
+candidate tests in separate workspaces. Both preserved the Unicode
+draft, date, category, and eight ordered photo references on reopen.
+The picker was enabled at seven and disabled at eight, and refused
+inputs preserved disk bytes. This replay resolves the source
+attribution gap in the earlier Android logs. The platform picker,
+installed candidate UI, and signed guest execution remain unverified
+for this tree.
+[Product patch](verification/receipts/fieldlog-d2-entry-editor-photos-e39a5ea3.patch) ·
+[Apple host and native build receipt](verification/receipts/fieldlog-d2-entry-editor-photos-e39a5ea3.json) ·
+[Source-bound Android host receipt](verification/receipts/fieldlog-d2-entry-editor-photos-android-host-00406fe7.json)
+
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
 
 A free owner created one build through Phoenix, restricted Oban, and the loopback worker. The worker's inert exit-23 fixture settled the build and released capacity. Organization exit was refused before settlement and succeeded afterwards. The former owner lost access while tenant B retained its export and created another project. [Settled build and organization exit](verification/receipts/l06-settled-exit-65c89e08.json)
