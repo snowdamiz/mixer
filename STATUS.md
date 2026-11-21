@@ -1076,6 +1076,12 @@ acknowledged display through the attachment API. The iPhoneOS arm64
 XCTest product built. Installed Simulator execution remains pending.
 [Host and generic build receipt](verification/receipts/fieldlog-ios-222-stock-vm-host-d89c742e.json)
 
+The same test then built for generic arm64 iOS Simulator. The archived
+app, XCTest runner, and plug-in matched their executable hashes. The
+run configuration selects only the title correction test, and both
+releases were signed for the Simulator runtime identity. Install and
+execution remain pending. [Simulator build](verification/receipts/fieldlog-ios-222-simulator-build-d89c742e.json)
+
 ## November 21 Android saved-draft validation
 
 One fresh FieldLog Pair24 development install on Android API 36 saved
@@ -1154,6 +1160,12 @@ All nine Owned Engine jobs passed on the Rust notice binding.
 Both Python modes admitted the same Source141 and Pair25 inputs, and
 all six Intel Java and D8 builds returned identical DEX bytes.
 [Hosted notice binding receipt](verification/receipts/hosted-pair25-rust-notice-95b9b959-terminal.json)
+
+Engine passed all nine jobs on `fe713fa71a` and `d89c742e9d`. The
+raw hashes and byte counts of all ten GitHub archives matched for
+each run. The six Intel Java consumers reproduced their DEX bytes,
+and the 13 bootstrap and 79 integration process groups reached
+terminal custody in each run. [Hosted evidence](verification/receipts/hosted-engine-fe713fa-d89c742e-terminal.json)
 
 ## November 20 generated release REST client
 
