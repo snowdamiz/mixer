@@ -223,6 +223,14 @@ against the PostgreSQL fixture. All 26 selected hosted checks and five
 Swift contract checks passed. The installed app and database-outage
 delivery proofs remain open. [Stock replay](verification/receipts/w11-stock-stage-promotion-configured-302b3ac1.json) · [v70 source admission](verification/receipts/w11-stock-v70-source-admission.json)
 
+The authenticated console now labels an environment promotion separately
+from a rollout expansion. The live PostgreSQL replay committed and displayed
+the staging iOS head at sequence 3 and Android at sequence 12. The existing
+summary and detail views retain their response behavior. The console reads
+each exact target independently, so it reports the promotion group as
+unavailable. Independent review passed the parser, focused console tests,
+and production build. [Console promotion replay](verification/receipts/console-staged-release-head-v77.json)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,
