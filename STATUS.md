@@ -159,11 +159,13 @@ The reviewed FieldLog Commit runtime now has a local v82 stock SDK
 binding. The CLI archive validates 155 inputs and reconstructs the
 previous 154-input roster and its predecessors. The combined stock CLI
 built and reported the exact AppKit dependency cause from an independent
-SwiftPM description. The ten signed macOS tests passed on the same reviewed
-runtime and test bytes. Installed mobile verification remains open. An
+SwiftPM description. Both exact native sparse projections passed in each
+Python mode. The ten signed macOS tests passed on the same reviewed runtime
+and test bytes. Installed mobile verification remains open. An
 earlier timed-out Intel attempt retains its exact scratch because
 descendant custody is unverified.
 [Source141 binding](verification/receipts/fieldlog-commit-v82-source141.json) ·
+[Composed native admission](verification/receipts/fieldlog-commit-v82-composed-native-admission.json) ·
 [Stock CLI composition](verification/receipts/fieldlog-commit-v82-stock-cli-composition.json) ·
 [Signed host results](verification/receipts/fieldlog-v81-signed-runtime-composition.json)
 
