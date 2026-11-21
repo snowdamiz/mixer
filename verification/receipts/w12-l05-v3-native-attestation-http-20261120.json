@@ -1,0 +1,87 @@
+{
+  "scope": "W12/L05 ordinary loopback Phoenix v3 human bearer attachment of local iOS Simulator development V2 attestations",
+  "recorded_at_utc": "2026-11-21T02:59:17Z",
+  "source_base": "b3569ddf166f0e1857ff4a03f8d6d1753902e68a",
+  "tested_git_tree_excluding_this_receipt": "434432f799caee03042c1db8c3b781183bb02e2f",
+  "environment": {
+    "host": "macOS 27.0.1 (26A434), arm64",
+    "elixir": "1.20.4",
+    "erlang": "29, ERTS 17.1",
+    "phoenix": "1.8.16",
+    "bandit": "1.14.1",
+    "ecto_sql": "3.14.0",
+    "postgrex": "0.22.4",
+    "postgresql": "17.11 (Homebrew)",
+    "go": "1.26.4"
+  },
+  "caller": {
+    "method": "POST",
+    "origin": "http://127.0.0.1:<MIXER_HTTP_PORT>",
+    "path": "/v3/orgs/<organization_id>/projects/<project_id>/apps/<application_id>/builds/<build_id>/ios/native-development-attestation",
+    "query_fields_exactly_once": [
+      "source_sha256",
+      "toolchain_lock_sha256",
+      "build_definition_sha256"
+    ],
+    "query_values": "64 lowercase hexadecimal characters per field",
+    "authorization": "Human bearer with mixer.build.attest and a current write-capable membership for the selected project or organization",
+    "body": "Unchanged V2 envelope file bytes, 1 to 16384 bytes, with exact application/json and a single canonical Content-Length. Send without Content-Encoding or Transfer-Encoding.",
+    "responses": {
+      "201": "status attached",
+      "200": "status duplicate",
+      "409": "conflict or immutable_conflict",
+      "503": "authorization_unavailable with Retry-After: 1"
+    }
+  },
+  "verification": [
+    {
+      "cwd": "hosted",
+      "command": "HEX_OFFLINE=1 MIX_ENV=test mix deps.get --check-locked",
+      "result": "Exit 0 using locked packages"
+    },
+    {
+      "cwd": ".",
+      "command": "CGO_ENABLED=1 GOPROXY=off GOSUMDB=off GOCACHE=<owned-go-cache> go -C services build -o <owned-signer> ./cmd/mixer-native-attest",
+      "result": "Exit 0"
+    },
+    {
+      "cwd": "hosted",
+      "command": "mix format --check-formatted lib/mixer_hosted_web/{router,native_development_attestation_controller}.ex lib/mixer_hosted_web/plugs/customer_build_request.ex test/mixer_hosted/builds/native_attestation_attachment_test.exs && MIX_ENV=test mix compile --warnings-as-errors",
+      "result": "Exit 0"
+    },
+    {
+      "cwd": "hosted",
+      "command": "TMPDIR=<owned-scratch> MIXER_ATTESTATION_TEST_SOCKET=<private-canonical-Unix-socket> MIXER_ATTESTATION_TEST_GO_SIGNER=<owned-signer> mix test --warnings-as-errors --seed 0 --trace test/mixer_hosted/builds/{native_attestation_attachment,retained_native_attestation,native_development_attestation,native_development_dispatch,journal,lifecycle}_test.exs test/mixer_hosted/{authorization/policy,identity/access_token_verifier,customer_builds/local_attestation}_test.exs",
+      "result": "126 passed, including the ordinary Phoenix HTTP case, the Go signer case with a test-only PostgreSQL session_user readiness barrier, and V1 verifier regression checks"
+    },
+    {
+      "cwd": "hosted",
+      "command": "TMPDIR=<owned-scratch> R1026_PG_PORT=<owned-loopback-port> R1026_EVIDENCE=<read-file> R1072_TRANSACTION_EVIDENCE=<transaction-file> mix test --warnings-as-errors --seed 0 test/customer_build_read_test.exs",
+      "result": "10 passed on a recreated fixture database. An earlier invocation supplied directories where the test expects file paths and passed 8 of 10. The existing fixture reported its migration ordering warning on both runs."
+    }
+  ],
+  "observations": [
+    "The ordinary MixerHosted application served the real v3 router over loopback. The configured verifier authenticated signed synthetic JWTs using TLSFixture JWKS, and the API startup owned the single dedicated writer pool. PostgreSQL recorded one writer connection with the feature enabled and zero on an ordinary feature-off restart.",
+    "The test received 401 for a missing bearer, 403 for the read-only scope, 404 for a foreign tenant and a wrong pinned source, 400 for Android selection, and 415 for a parameterized JSON media type. A validly signed prior operation on an otherwise identical replacement returned 422. Malformed bytes at exactly 16384 bytes reached envelope validation and returned 422. A 16385-byte body returned 413.",
+    "Attach returned 201 and its exact retry returned 200. A newly pinned signer presenting a different valid envelope after restart received 409 immutable_conflict. Feature-off restart with the original authenticated request returned 503. The build journal and revision remained equal to the original snapshot.",
+    "The test compared the stored envelope byte for byte. A separate psql query confirmed one attachment across the local and foreign selections for the test build ID and independently computed the stored SHA-256 in PostgreSQL."
+  ],
+  "observed_postgresql_row": {
+    "build_record_id": "2382897f-e884-4cfc-b535-bd76fc4ec87c",
+    "organization_id": "org-a",
+    "project_id": "project",
+    "application_id": "app",
+    "build_id": "build-f7d16adb1c7bfcce",
+    "platform": "ios",
+    "journal_revision": 5,
+    "attempt": 2,
+    "worker_operation_id": "19ac094f5630223c08974e933086db0eb50aebf8ec721eba25d6c2df29d02d62",
+    "native_binding_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+    "signer_key_sha256": "97a1ad31f2a8c3c1ce6a2c685f8292a6e022f27b11c9702f5084425a11a6b097",
+    "signing_origin": "http://127.0.0.1:63092",
+    "envelope_bytes": 1285,
+    "envelope_sha256": "14ebc3104d591a5d6e2a8c17b550f8e03e36746ce8807284294644ebca74fbb8"
+  },
+  "cleanup": "Both owned PostgreSQL clusters stopped via pg_ctl. Their postmaster PID files and Unix sockets were absent. Loopback ports 61992, 63092 and 63670 refused connections and were bindable. The JWKS fixture reported one accepted and closed connection and zero active sockets. Owned external scratch, signer binary, test products and checkout-local build/dependency directories were removed.",
+  "limitations": "Synthetic identities, keys, retained products and build journal. The attestation integration used a disposable private Unix socket for the database and a synthetic loopback TLS JWKS source for bearer verification. The ordinary HTTP case used the maintained Elixir V2 fixture envelope. The Go signer case exercised the existing read fixture and direct attachment. Stock signer POST integration, root composed-source admission and simulator, device, deployment and release qualification remain outside this receipt."
+}

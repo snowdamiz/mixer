@@ -5,6 +5,15 @@ defmodule MixerHostedWeb.Router do
     plug(MixerHostedWeb.Plugs.BearerIdentity)
   end
 
+  pipeline :native_attestation_transport do
+    # Close on early rejection, including authentication errors, so Bandit
+    # does not drain an unread body at its larger default limit.
+    plug(:close_attestation_connection)
+  end
+
+  defp close_attestation_connection(conn, _),
+    do: Plug.Conn.put_resp_header(conn, "connection", "close")
+
   # This only reports process liveness. It neither queries PostgreSQL nor claims
   # that auth, workers, migrations, delivery, or a production service are ready.
   get("/health/live", MixerHostedWeb.HealthController, :live)
@@ -45,6 +54,16 @@ defmodule MixerHostedWeb.Router do
     )
 
     get("/projects", MixerHostedWeb.CustomerWorkspaceController, :projects)
+  end
+
+  scope "/v3/orgs/:organization_id/projects/:project_id" do
+    pipe_through([:native_attestation_transport, :customer_identity])
+
+    post(
+      "/apps/:application_id/builds/:build_id/:platform/native-development-attestation",
+      MixerHostedWeb.NativeDevelopmentAttestationController,
+      :attach
+    )
   end
 
   scope "/v3/orgs/:organization_id/projects/:project_id" do

@@ -4,10 +4,14 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
   alias MixerHosted.Builds.{Dispatch, Journal, Lifecycle, RetainedNativeArtifacts}
   alias MixerHosted.Builds.Lifecycle.ArtifactRef
   alias MixerHosted.CustomerBuilds
-  alias MixerHosted.CustomerBuilds.{AttestationRepo, AttestationSchema, Schema}
+  alias MixerHosted.CustomerBuilds.{AttestationRepo, AttestationSchema, LocalAttestation, Schema}
+  alias MixerHosted.Identity.{KeyOwnerSupervisor, TLSFixture}
   alias MixerHosted.Repo
   alias MixerHosted.Identity.VerifiedIdentity
   alias MixerHosted.Repo.Migrations
+  alias MixerHosted.RuntimeConfig
+  alias MixerHosted.Test.OrdinaryBrowserStartupFixture, as: Wire
+  alias MixerHostedWeb.Endpoint
 
   defmodule Admin do
     use Ecto.Repo, otp_app: :mixer_hosted, adapter: Ecto.Adapters.Postgres
@@ -102,6 +106,7 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
     sql("GRANT USAGE ON SCHEMA public TO #{@writer},attestation_fixture_reader")
 
     for {version, module, name} <- [
+          {20_261_024_000_000, Migrations.AddOban, "add_oban"},
           {20_261_025_000_000, Migrations.AddBuildJournals, "add_build_journals"},
           {20_261_025_000_001, Migrations.AddBuildAdmission, "add_build_admission"},
           {20_261_025_000_003, Migrations.AddCustomerAuthorization, "add_customer_authorization"},
@@ -138,22 +143,25 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
       )
     end
 
-    start_supervised!({AttestationRepo, opts ++ [username: @writer]})
     seed_identity!()
     %{socket: socket, repo_opts: opts}
   end
 
-  setup %{socket: socket, test: test} do
+  setup %{socket: socket, test: test, repo_opts: opts} = context do
     build = "build-" <> String.slice(sha(Atom.to_string(test)), 0, 16)
     run_id = Base.encode16(:crypto.strong_rand_bytes(8), case: :lower)
     root = Path.join(socket, build <> "-" <> run_id)
     File.mkdir!(root)
     on_exit(fn -> File.rm_rf!(root) end)
     File.chmod!(root, 0o700)
-    put_config(:native_development_dispatch, %{retained_root: root})
-
     {spki, key} = keypair()
-    put_config(:native_development_attestation, %{origin: @origin, public_spki_der: spki})
+
+    unless context[:ordinary_http] do
+      start_supervised!({AttestationRepo, opts ++ [username: @writer]})
+      assert_login!(AttestationRepo, @writer)
+      put_config(:native_development_dispatch, %{retained_root: root})
+      put_config(:native_development_attestation, %{origin: @origin, public_spki_der: spki})
+    end
 
     selection = %{
       organization_id: "org-a",
@@ -193,6 +201,7 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
     b = completed!(c.selection, retry: true)
     retain!(c.root, b.operation, b.products)
     start_supervised!({Repo, c.repo_opts ++ [username: @reader]})
+    assert_login!(Repo, @reader)
     identity = %{c.identity | scopes: ["mixer.build.read"]}
 
     assert {:ok, %{state: "native_succeeded", artifacts: [_, _, _]} = legacy_detail} =
@@ -261,6 +270,304 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
     assert {:ok, :attached} = attach(c, signed)
     assert {:ok, :duplicate} = attach(c, signed)
     assert stored(b) == [[5, 2, b.operation, @binding, sha(c.spki), origin, signed]]
+  end
+
+  @tag :ordinary_http
+  test "ordinary v3 human HTTP attaches the exact current V2 envelope once", c do
+    port = http_port!()
+    origin = "http://127.0.0.1:#{port}"
+    jwt = start_bearer_fixture!(c.identity)
+
+    prior = completed!(c.selection, retry: true)
+    stale = envelope(c, prior, origin: origin)
+    remove_build!(prior)
+    b = completed!(c.selection, retry: true)
+    assert prior.operation != b.operation
+    assert prior.journal == b.journal
+    retain!(c.root, b.operation, b.products)
+
+    tenant = completed!(%{c.selection | organization_id: "org-b"}, retry: true)
+    retain!(c.root, tenant.operation, tenant.products)
+    signed = envelope(c, b, origin: origin)
+    token = bearer(jwt, c.identity, "mixer.build.attest")
+
+    start_http_api!(c, port, c.spki)
+
+    assert {:ok, %{origin: ^origin, public_spki_der: spki}} = LocalAttestation.configuration()
+    assert spki == c.spki
+    assert_login!(AttestationRepo, @writer)
+    assert writer_count() == 1
+
+    assert_http(401, "unauthenticated", post(port, c.selection, signed, nil))
+
+    assert_http(
+      403,
+      "permission_denied",
+      post(port, c.selection, signed, bearer(jwt, c.identity, "mixer.build.read"))
+    )
+
+    assert_http(
+      404,
+      "not_found",
+      post(port, tenant.selection, envelope(c, tenant, origin: origin), token)
+    )
+
+    assert_http(
+      404,
+      "not_found",
+      post(port, %{c.selection | source_sha256: String.duplicate("0", 64)}, signed, token)
+    )
+
+    assert_http(
+      400,
+      "invalid_request",
+      post(port, %{c.selection | platform: "android"}, signed, token)
+    )
+
+    assert_http(
+      415,
+      "unsupported_media_type",
+      post(port, c.selection, signed, token, "application/json; charset=utf-8")
+    )
+
+    assert_http(422, "artifact_invalid", post(port, c.selection, stale, token))
+
+    assert_http(
+      422,
+      "artifact_invalid",
+      post(port, c.selection, :binary.copy(" ", 16_384), token)
+    )
+
+    assert_http(
+      413,
+      "payload_too_large",
+      post(port, c.selection, :binary.copy(" ", 16_385), token)
+    )
+
+    assert stored(prior) == []
+    assert stored(tenant) == []
+    assert stored(b) == []
+    assert_http(201, "attached", post(port, c.selection, signed, token))
+    assert_http(200, "duplicate", post(port, c.selection, signed, token))
+
+    stop_http_api!(port)
+    {new_spki, new_key} = keypair()
+    start_http_api!(c, port, new_spki)
+    assert_login!(AttestationRepo, @writer)
+    changed = envelope(%{c | spki: new_spki, key: new_key}, b, origin: origin)
+    assert_http(409, "immutable_conflict", post(port, c.selection, changed, token))
+
+    stop_http_api!(port)
+    start_http_api!(c, port, nil)
+    assert LocalAttestation.configuration() == :disabled
+    assert Process.whereis(AttestationRepo) == nil
+    assert writer_count() == 0
+    assert_http(503, "authorization_unavailable", post(port, c.selection, signed, token))
+
+    assert stored(b) == [[5, 2, b.operation, @binding, sha(c.spki), origin, signed]]
+    assert stored(tenant) == []
+
+    assert sql("SELECT revision,journal FROM public.mixer_builds WHERE id=$1", [b.id]).rows ==
+             [[5, b.journal]]
+
+    [[row_id, digest, size]] =
+      sql(
+        "SELECT build_record_id::text,encode(sha256(envelope),'hex'),octet_length(envelope) FROM #{@table} WHERE build_record_id=$1",
+        [b.id]
+      ).rows
+
+    assert row_id == Ecto.UUID.load!(b.id)
+    assert digest == sha(signed)
+    assert size == byte_size(signed)
+    stop_http_api!(port)
+
+    IO.puts(
+      "W12_L05_ATTESTATION_HTTP " <>
+        Jason.encode!(%{
+          build_record_id: row_id,
+          worker_operation_id: b.operation,
+          envelope_sha256: digest,
+          envelope_bytes: size,
+          http_port: port
+        })
+    )
+  end
+
+  defp start_bearer_fixture!(identity) do
+    fixture = start_supervised!(TLSFixture)
+    authority = GenServer.call(fixture, :authority)
+    key = JOSE.JWK.generate_key({:rsa, 2048})
+
+    public =
+      key
+      |> JOSE.JWK.to_public()
+      |> JOSE.JWK.to_map()
+      |> elem(1)
+      |> Map.merge(%{"kid" => "attestation-http-fixture", "alg" => "RS256", "use" => "sig"})
+
+    TLSFixture.configure(fixture, {:body, Jason.encode!(%{"keys" => [public]})})
+
+    profile =
+      identity
+      |> Map.take([:profile_id, :profile_version, :issuer, :client_id, :identity_class])
+      |> Map.merge(%{audience: "mixer-attestation-http-fixture", enabled: true})
+
+    entry = %{
+      profile: profile,
+      jwks_endpoint: %{host: "jwks.fixture.invalid", port: 443, path: "/keys"},
+      transport: :hosted_https
+    }
+
+    opts = [
+      manifest: [entry],
+      generation: 1,
+      binding: identity.profile_id,
+      ca_roots: [authority.ca],
+      resolvers: [{{127, 0, 0, 1}, 9}],
+      fixture: Map.take(authority, [:ip, :port])
+    ]
+
+    start_supervised!(%{
+      id: KeyOwnerSupervisor,
+      start: {KeyOwnerSupervisor, :start_fixture, [opts]}
+    })
+
+    key
+  end
+
+  defp bearer(key, identity, scope) do
+    claims = %{
+      "iss" => identity.issuer,
+      "aud" => "mixer-attestation-http-fixture",
+      "sub" => identity.subject,
+      "client_id" => identity.client_id,
+      "iat" => identity.issued_at,
+      "exp" => identity.expires_at,
+      "jti" => identity.credential_ref,
+      "scope" => scope
+    }
+
+    JOSE.JWS.sign(key, Jason.encode!(claims), %{
+      "alg" => "RS256",
+      "typ" => "at+jwt",
+      "kid" => "attestation-http-fixture"
+    })
+    |> JOSE.JWS.compact()
+    |> elem(1)
+  end
+
+  defp start_http_api!(c, port, spki) do
+    env = %{
+      "MIXER_HOSTED_ROLE" => "api",
+      "MIXER_PROCESSOR_PROFILE" => "builds_v1",
+      "MIXER_DATABASE_HOST" => "db.fixture.invalid",
+      "MIXER_DATABASE_NAME" => @database,
+      "MIXER_DATABASE_USER" => @reader,
+      "MIXER_DATABASE_PASSWORD" => "synthetic-reader",
+      "MIXER_SECRET_KEY_BASE" => String.duplicate("synthetic-http-fixture-", 4),
+      "MIXER_NATIVE_RETAINED_ROOT" => c.root,
+      "MIXER_HTTP_PORT" => Integer.to_string(port)
+    }
+
+    writer_env =
+      if spki,
+        do: %{
+          "MIXER_LOCAL_NATIVE_ATTESTATION_PASSWORD" => "synthetic-writer",
+          "MIXER_LOCAL_NATIVE_ATTESTATION_PUBLIC_SPKI_BASE64" => Base.encode64(spki)
+        },
+        else: %{}
+
+    hosted = RuntimeConfig.load!(env)
+
+    repo =
+      hosted.repo
+      |> Keyword.drop([:hostname, :port])
+      |> Keyword.merge(c.repo_opts)
+      |> Keyword.put(:ssl, false)
+
+    hosted = LocalAttestation.configure!(writer_env, %{hosted | repo: repo}, :disabled)
+    endpoint = Keyword.merge(Application.fetch_env!(:mixer_hosted, Endpoint), hosted.endpoint)
+
+    for {name, value} <- [
+          {:startup, {hosted, :disabled}},
+          {:role, hosted.role},
+          {:identity_startup, hosted.identity_startup},
+          {Repo, hosted.repo},
+          {Oban, hosted.oban},
+          {Endpoint, endpoint}
+        ],
+        do: put_config(name, value)
+
+    on_exit(fn ->
+      if Process.whereis(MixerHosted.Supervisor), do: stop_http_api!(port)
+    end)
+
+    assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
+    assert Endpoint.server_info(:http) == {:ok, {{127, 0, 0, 1}, port}}
+  end
+
+  defp stop_http_api!(port) do
+    assert :ok = Application.stop(:mixer_hosted)
+    assert Process.whereis(AttestationRepo) == nil
+    assert {:error, :econnrefused} = :gen_tcp.connect({127, 0, 0, 1}, port, [], 1_000)
+  end
+
+  defp http_port! do
+    {:ok, reservation} = :gen_tcp.listen(0, ip: {127, 0, 0, 1})
+    {:ok, port} = :inet.port(reservation)
+    :ok = :gen_tcp.close(reservation)
+    port
+  end
+
+  defp post(port, selection, bytes, token, media \\ "application/json") do
+    s = selection
+
+    path =
+      "/v3/orgs/#{s.organization_id}/projects/#{s.project_id}/apps/#{s.application_id}/builds/#{s.build_id}/#{s.platform}/native-development-attestation"
+
+    query =
+      URI.encode_query(
+        Map.take(s, [:source_sha256, :toolchain_lock_sha256, :build_definition_sha256])
+      )
+
+    headers = [{"content-type", media}, {"content-length", Integer.to_string(byte_size(bytes))}]
+    headers = if token, do: [{"authorization", "Bearer " <> token} | headers], else: headers
+    Wire.http(%{http_port: port}, path <> "?" <> query, headers, "POST", bytes)
+  end
+
+  defp assert_http(status, value, result) do
+    assert result.status == status
+    assert Wire.response_header(result, "cache-control") == ["no-store"]
+    assert Wire.response_header(result, "content-type") == ["application/json; charset=utf-8"]
+    body = Jason.decode!(result.body)
+    if status == 503, do: assert(Wire.response_header(result, "retry-after") == ["1"])
+
+    case status do
+      success when success in [200, 201] ->
+        assert body == %{"status" => value}
+
+      401 ->
+        assert %{"error" => %{"code" => ^value}} = body
+        assert Wire.response_header(result, "www-authenticate") == ["Bearer"]
+
+      _ ->
+        assert body == %{"error" => %{"code" => value}}
+    end
+  end
+
+  defp assert_login!(repo, role) do
+    assert %{rows: [[^role]]} =
+             Ecto.Adapters.SQL.query!(repo, "SELECT session_user", [], log: false)
+  end
+
+  defp writer_count do
+    [[count]] =
+      sql("SELECT count(*) FROM pg_stat_activity WHERE datname=$1 AND usename=$2", [
+        @database,
+        @writer
+      ]).rows
+
+    count
   end
 
   defp write_private_file!(path, content) do
@@ -431,12 +738,7 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
 
     after_snapshot_commit(
       fn ->
-        sql("DELETE FROM public.mixer_build_coordinator_leases WHERE build_record_id=$1", [
-          original.id
-        ])
-
-        sql("DELETE FROM public.mixer_build_reservations WHERE build_record_id=$1", [original.id])
-        sql("DELETE FROM public.mixer_builds WHERE id=$1", [original.id])
+        remove_build!(original)
         replacement = completed!(c.selection)
         retain!(c.root, replacement.operation, replacement.products)
         Process.put({__MODULE__, :replacement}, replacement)
@@ -464,6 +766,12 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
     assert stored(replacement) == [
              [2, 1, replacement.operation, @binding, sha(c.spki), @origin, fresh]
            ]
+  end
+
+  defp remove_build!(build) do
+    sql("DELETE FROM public.mixer_build_coordinator_leases WHERE build_record_id=$1", [build.id])
+    sql("DELETE FROM public.mixer_build_reservations WHERE build_record_id=$1", [build.id])
+    sql("DELETE FROM public.mixer_builds WHERE id=$1", [build.id])
   end
 
   test "losing the write context after SQL inserts rolls back the entire attachment", c do

@@ -6,13 +6,8 @@ defmodule MixerHostedWeb.Plugs.CustomerBuildRequest do
   @route ~w(organization_id project_id application_id build_id platform)
   def parse(conn) do
     with true <- conn.method == "GET",
-         true <- is_map(conn.path_params),
-         true <- Enum.sort(Map.keys(conn.path_params)) == Enum.sort(@route),
          true <- headers?(conn.req_headers),
-         {:ok, filters} <- query(conn.query_string),
-         raw = Map.merge(conn.path_params, filters),
-         atom_keys = Map.new(raw, fn {k, v} -> {key(k), v} end),
-         {:ok, selection} <- Selection.new(atom_keys),
+         {:ok, selection} <- selection(conn.path_params, conn.query_string),
          true <- conn.request_path == path(selection),
          {:ok, "", next} <- read_body(conn, length: 1, read_length: 1, read_timeout: 1000) do
       {:ok, selection, next}
@@ -22,6 +17,20 @@ defmodule MixerHostedWeb.Plugs.CustomerBuildRequest do
   rescue
     _ -> {:error, :invalid_request}
   end
+
+  def selection(path_params, query_string) when is_map(path_params) do
+    with true <- Enum.sort(Map.keys(path_params)) == Enum.sort(@route),
+         {:ok, filters} <- query(query_string) do
+      path_params
+      |> Map.merge(filters)
+      |> Map.new(fn {k, v} -> {key(k), v} end)
+      |> Selection.new()
+    else
+      _ -> {:error, :invalid_request}
+    end
+  end
+
+  def selection(_, _), do: {:error, :invalid_request}
 
   def path(s),
     do:
