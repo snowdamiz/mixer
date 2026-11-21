@@ -104,6 +104,16 @@ markers. The observed handler inventories had no registered exporter. Both
 owned groups closed and scratch was removed. L07 remains open.
 [Attestation privacy receipt](verification/receipts/l07-native-attestation-stock-log-6b9b826c.json)
 
+## November 21 attestation readiness
+
+The ordinary application-registration and native-attestation fixtures now use
+separate evidence directories. The original order reproduces the v76
+`:eexist` failure, and both corrected tests pass together. Browser startup and
+writer admission also verify the two exact owner row policies and require
+effective SELECT and INSERT independently. Revoking either grant closed both
+admission paths before a write. Restoring the grants let the stock signer
+attach and replay with one row. [Readiness receipt](verification/receipts/l05-native-attestation-owner-admission-v77.json)
+
 ## November 20 local development attestation attachment
 
 The stock Go signer signed a retained iOS Simulator build completion, then
