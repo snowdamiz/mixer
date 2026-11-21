@@ -1,0 +1,64 @@
+{
+  "source": "e5b3a977c1091166bf9d82d5bf3da86e663b2625",
+  "hosted_tree": "46e6204e8ac60c291ed0917023e68e935f03bffc",
+  "tool_versions": {
+    "PostgreSQL": "17.11",
+    "Elixir": "1.20.4",
+    "OTP": "29"
+  },
+  "verification": [
+    {
+      "command": "MIXER_STAGE_PROMOTION_QUEUE=1 sh hosted/scripts/replay-local-stage-promotion.sh",
+      "passed": 19
+    },
+    {
+      "command": "sh hosted/scripts/replay-local-stage-promotion.sh",
+      "passed": 18,
+      "skipped": 1
+    },
+    {
+      "command": "python3 -B hosted/scripts/test-local.py --output <fresh-output> --only-additional-tests --additional-test hosted/test/mixer_hosted/releases/browser_publication_test.exs --test-timeout 150",
+      "passed": 6,
+      "retained_fixture_source_tree_sha256": "d0fc3ab680a6f562416d4533219f7438ae91fc7c4bd020075fb4f11dc42226a6"
+    }
+  ],
+  "authority_checks": [
+    "Authenticated ordinary Phoenix browser sessions and release-head reads admit the exact stage principal foreign key and refuse disabled RI triggers.",
+    "Both exact source publications must have eligible actions at database binding insertion.",
+    "The final authorization checkpoint refuses signing expiry for fresh promotions and exact historical retries.",
+    "Both destination heads, the binding and both queue jobs commit together. A second insert or deferred commit failure exposes none of them.",
+    "The ordinary browser and CLI queue fixture drains committed release jobs with customer HTTP idle."
+  ],
+  "source_files_sha256": {
+    "docs/operations/local-signed-release-delivery.md": "c1c32fbcbaab6e2244fe46ead8dc105a60846cc6db4aa27847eda4f698142fb7",
+    "docs/operations/provision-local-release-jobs.sql": "9fe18c6f53958b96213ad044e8b4be6ac0352ba59a65ec10f89476f83e119ae2",
+    "hosted/lib/mixer_hosted/authorization.ex": "2d09967e37864fe541062bcf367e030f3d676771f2697556d39df901d9ce47c0",
+    "hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex": "61323facf57b3d0f262fac17d5bc10b16734b11a9b0a9af434b9e9b3eddf5a11",
+    "hosted/lib/mixer_hosted/releases.ex": "26c073dce3e88f561aa81b554c127db1c61498aa92193db3b891bf7350441f7d",
+    "hosted/lib/mixer_hosted/releases/browser_head.ex": "5bfd4f9e09150d3aabb610cc66bb34779d37df902b665482007a72d23193e18e",
+    "hosted/lib/mixer_hosted/releases/environment_promotion/command.ex": "21834f290d8c7987103631c5d477172710f1cb01579ade11951524a7454be08a",
+    "hosted/lib/mixer_hosted/releases/environment_promotion/direction.ex": "64190409dcfdf2ff2990c642cce4a450acf94e4370605392d92fbc7218e97564",
+    "hosted/lib/mixer_hosted/releases/environment_promotion/storage.ex": "3ebeecbe0837b96ae144bc5bbb745a941e5d2085feec3093acb13c270fbf7ab7",
+    "hosted/lib/mixer_hosted/releases/environment_promotion/verifier.ex": "5e4e1e5e214397e3ddd65c91019a296eb5087348782e23b712f14eed16e7c2c6",
+    "hosted/lib/mixer_hosted/releases/public_delivery.ex": "34b1f1dd3b909642c313f210939b81575d99e6314558b5e0887f59c61c4c161b",
+    "hosted/lib/mixer_hosted/releases/runtime_provisioning.ex": "77ab0139a1e3231f182418012aa6c2ea4fe84fabc9a9eb224efa847825bff379",
+    "hosted/lib/mixer_hosted_web/public_release_controller.ex": "7d442ccc3130ddb54823d41e616a792a5aedf2487db0cdc8e196cac6c4be8c59",
+    "hosted/priv/local_release_jobs/20261120000014_add_local_release_jobs.exs": "18699ec8d3bb540b52b545df914f54fb4715f3cea18c15636221e859d51c5bb4",
+    "hosted/priv/local_release_target_registry/20261120000015_add_local_release_target_registry.exs": "634af567d9a938604ced9cfe1aacc26ec7c7000b6c2bd71021e6e1414d4c6338",
+    "hosted/priv/local_stage_promotion/20261120000016_add_local_stage_promotion.exs": "d221709a49b14a2293c5cbc32dad5ac5b43090f5f21bfbf33b72f2218c14a880",
+    "hosted/scripts/replay-local-release-target-registry.md": "956317f566b889d853ae44b1a893f333397491cdea47a21cecf1a80bd2b1e4ea",
+    "hosted/scripts/replay-local-release-target-registry.sh": "4ad0f98d5c071167f67c910b4757569199125af0cccdd6602bc7636ab533bb13",
+    "hosted/scripts/replay-local-stage-promotion.sh": "34e51a2f80172a3f8d708ab793d68090e5d017b5baa112bb5a8f98058dee42ef",
+    "hosted/test/mixer_hosted/releases/browser_publication_test.exs": "1d3e60a7de2058700b8b1a62eb70118761ca137bad27bfeed6e37f6411e3c300",
+    "hosted/test/mixer_hosted/releases/configured_release_replay_test.exs": "398b13b31a1840fa7c82074fa84f7e19b3d68d07ac713c3b568c6b983067cea3",
+    "hosted/test/mixer_hosted/releases/environment_promotion/postgres_test.exs": "7b51194913fd45df0cc70049f33ffa67b3eb17ae546ed913723ee48b9dab3472",
+    "hosted/test/mixer_hosted/releases/environment_promotion/verifier_test.exs": "c49f8a2596acb97392f2fad2ad41f3986ffdb5cd9f7485a4d2e31b9173142ed8",
+    "hosted/test/mixer_hosted/releases/runtime_provisioning_test.exs": "4556fd20fbcdf215d2f87be71253ecb084443bd59f828f4b6b485f289dc4526b",
+    "hosted/test/support/stage_promotion_signing_fixture.ex": "7133a59e800a53feafd011f1b061534dcaf29c851c2855ccced7f5563a1910ef"
+  },
+  "cleanup": {
+    "postgres_stopped_all_runs": true,
+    "postgres_scratch_removed_all_runs": true
+  },
+  "scope": "Scoped PostgreSQL and ordinary Phoenix fixture tests. The composed stage service has no ordinary HTTP write route or generated CLI stage operation yet. Source admission, hosted CI, and gate qualification remain open."
+}
