@@ -56,11 +56,11 @@ defmodule MixerHostedWeb.Router do
     get("/projects", MixerHostedWeb.CustomerWorkspaceController, :projects)
   end
 
-  scope "/v3/orgs/:organization_id/projects/:project_id" do
+  scope "/v3/orgs/:organization_id/projects/:project_id/apps/:application_id/builds/:build_id" do
     pipe_through([:native_attestation_transport, :customer_identity])
 
     post(
-      "/apps/:application_id/builds/:build_id/:platform/native-development-attestation",
+      "/:platform/native-development-attestation",
       MixerHostedWeb.NativeDevelopmentAttestationController,
       :attach
     )
