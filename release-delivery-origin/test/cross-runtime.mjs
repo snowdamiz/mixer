@@ -95,10 +95,8 @@ async function portReusable(port) {
   await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
 }
 
-function startPhoenix() {
-  const child = spawn("mix", [
-    "test", "--warnings-as-errors", "--trace", "test/mixer_hosted/releases/configured_release_replay_test.exs",
-  ], {cwd: join(root, "hosted"), detached: true, stdio: ["ignore", "pipe", "pipe"]});
+function launch(name, executable, args, cwd) {
+  const child = spawn(executable, args, {cwd, detached: true, stdio: ["ignore", "pipe", "pipe"]});
   let output = "";
   for (const stream of [child.stdout, child.stderr]) {
     stream.on("data", chunk => { output = (output + chunk).slice(-32_768); });
@@ -109,30 +107,38 @@ function startPhoenix() {
     child.once("close", (code, signal) => { settled = {code, signal}; resolve(settled); });
   });
   return {
+    pid: child.pid,
     get terminal() { return settled; },
     get output() { return output; },
-    async close(normal) {
+    async close(signal) {
       const pid = child.pid;
       if (!pid) return {pid, ...await terminal};
-      if (!normal && !settled && !absent(-pid)) process.kill(-pid, "SIGTERM");
-      const result = await deadline(terminal, 8000, "phoenix_close");
-      await until(() => absent(pid) && absent(-pid), 2500);
+      if (signal && !settled) child.kill(signal);
+      const result = await deadline(terminal, 8000, name + "_close");
+      await until(() => {
+        const rows = processRows();
+        return !rows.some(row => row.pid === pid || row.group === pid);
+      }, 2500);
       return {pid, ...result, exactPidAbsent: true, groupAbsent: true};
     },
   };
 }
 
+function processRows() {
+  const table = spawnSync("/bin/ps", ["-axo", "pid=,ppid=,pgid=,comm="], {
+    encoding: "utf8", timeout: 3000, maxBuffer: 8 * 1024 * 1024,
+  });
+  assert.equal(table.status, 0, "process observation failed");
+  return table.stdout.trim().split("\n").map(line => {
+    const match = /^(\d+)\s+(\d+)\s+(\d+)\s+(.+)$/.exec(line.trim());
+    assert(match, "process identity unavailable");
+    return {pid: Number(match[1]), parentPid: Number(match[2]), group: Number(match[3]), command: match[4]};
+  }).filter(row => row.pid !== table.pid);
+}
+
 function observeWorkerd(phase, custody) {
   custody.observe(phase, () => {
-    const table = spawnSync("/bin/ps", ["-axo", "pid=,ppid=,comm="], {
-      encoding: "utf8", timeout: 3000, maxBuffer: 8 * 1024 * 1024,
-    });
-    assert.equal(table.status, 0, "process observation failed");
-    const processes = table.stdout.trim().split("\n").map(line => {
-      const match = /^(\d+)\s+(\d+)\s+(.+)$/.exec(line.trim());
-      assert(match, "process identity unavailable");
-      return {pid: Number(match[1]), parentPid: Number(match[2]), command: match[3]};
-    }).filter(row => row.pid !== table.pid);
+    const processes = processRows();
     const identity = selectOwnedWorkerd({
       ownerPid: process.pid, executable: workerd.default, platform: process.platform, processes,
     });
@@ -149,8 +155,9 @@ childProcess.spawn = function captureWorkerd(program, args, options) {
   return originalSpawn.call(this, program, args, options);
 };
 
-const authority = startPhoenix();
-let databasePid;
+let database;
+let databaseClosing;
+let authority;
 let runtime;
 let publicURL;
 let ipc;
@@ -160,8 +167,41 @@ let fenceCalls = 0;
 let fixtureDone = false;
 let fixtureReady = false;
 
+async function startDatabase() {
+  assert(!database, "owned database already started");
+  databaseClosing = undefined;
+  database = launch("postgres", "postgres", ["-D", join(scratch, "db")], scratch);
+  await until(() => {
+    assert(!database.terminal, database.output);
+    const ready = spawnSync("pg_isready", ["-h", scratch, "-p", "5432", "-t", "1"], {timeout: 1500});
+    assert(!ready.error, ready.error?.message);
+    return ready.status === 0;
+  }, 7000);
+  assert.equal(await postmaster(), database.pid);
+}
+
+function closeDatabase() {
+  assert(database, "missing owned database");
+  databaseClosing ??= database.close("SIGINT").then(closed => {
+    database = undefined;
+    return closed;
+  });
+  return databaseClosing;
+}
+
+async function stopDatabase() {
+  const owned = database;
+  const closed = await closeDatabase();
+  assert.equal(closed.code, 0, owned.output);
+  assert.equal(postgres("down"), "connection_refused");
+  return closed;
+}
+
 try {
-  databasePid = await postmaster();
+  await startDatabase();
+  authority = launch("phoenix", "mix", [
+    "test", "--warnings-as-errors", "--trace", "test/mixer_hosted/releases/configured_release_replay_test.exs",
+  ], join(root, "hosted"));
   await until(async () => {
     assert(!authority.terminal, authority.output);
     return access(join(scratch, "authority.ready")).then(() => true, () => false);
@@ -294,11 +334,8 @@ try {
 
   await assertVisible();
   const {assignment: _, ...priorAuthority} = await rpc("read", {target});
-  assert.equal(await rpc("stop"), "stopped");
-  receipt.checks.database.outage = postgres("down");
-  assert(absent(databasePid), "first postmaster still exists");
-  receipt.closure.outagePostmaster = {pid: databasePid, absent: true};
-  databasePid = undefined;
+  receipt.closure.outagePostmaster = await stopDatabase();
+  receipt.checks.database.outage = "connection_refused";
   assert(Date.now() < initial.snapshot.expires_at_ms);
   await assertVisible();
   assert(Date.now() < initial.snapshot.expires_at_ms, "before-expiry reads overran lease");
@@ -319,8 +356,7 @@ try {
     cachedFenceUnavailable: true, expiredOffer: 204, expiredArtifacts: [404, 404],
   };
 
-  assert.equal(await rpc("start"), "started");
-  databasePid = await postmaster();
+  await startDatabase();
   receipt.checks.database.recovered = postgres("up");
   await until(async () => (await rpc("read", {target})) !== null, 6000);
 
@@ -363,11 +399,7 @@ try {
   assert.deepEqual(await read(download(historical.digest), 200), historicalBytes);
   await read(download(staged), 404);
   receipt.checks.halt = {staleAuthorityRefused: true, staleEtagRefused: true, offer: 204, pointer: halted};
-  assert.equal(await rpc("stop"), "stopped");
-  assert.equal(postgres("down"), "connection_refused");
-  assert(absent(databasePid), "recovered postmaster still exists");
-  receipt.closure.recoveredPostmaster = {pid: databasePid, absent: true};
-  databasePid = undefined;
+  receipt.closure.recoveredPostmaster = await stopDatabase();
   assert.equal(await rpc("done"), "done");
   fixtureDone = true;
   receipt.status = "passed";
@@ -377,10 +409,14 @@ try {
   ipc?.close();
   const cleanup = await Promise.allSettled([
     (async () => {
+      if (database) receipt.closure.postmaster = await closeDatabase();
+    })(),
+    (async () => {
+      if (!authority) return;
       if (fixtureReady && !fixtureDone && !authority.terminal) {
         fixtureDone = await rpc("done").then(value => value === "done", () => false);
       }
-      receipt.closure.phoenix = await authority.close(fixtureDone);
+      receipt.closure.phoenix = await authority.close(fixtureDone ? undefined : "SIGTERM");
       if (receipt.status === "passed") {
         assert.equal(receipt.closure.phoenix.code, 0, authority.output);
         const summary = /Result: 1 passed, 3 skipped/.exec(authority.output);
@@ -406,13 +442,15 @@ try {
   const unknown = cleanup.filter(result => result.status === "rejected");
   if (unknown.length) {
     receipt.status = "failed";
-    receipt.closure.hold = {scratch, databasePid, workerd: custody.receipt,
+    receipt.closure.hold = {scratch, databasePid: database?.pid, phoenixPid: authority?.pid, workerd: custody.receipt,
       errors: unknown.map(result => String(result.reason).slice(0, 500))};
     process.exitCode = 74;
   } else if (receipt.status !== "passed") {
     process.exitCode = 1;
   }
-  if (receipt.status !== "passed") process.stderr.write(authority.output);
+  if (receipt.status !== "passed") {
+    process.stderr.write((authority?.output ?? "") + (database?.output ?? ""));
+  }
   process.stdout.write("MIXER_DELIVERY_REPLAY " + JSON.stringify(receipt) + "\n", () => {
     if (unknown.length) process.exit(74);
   });

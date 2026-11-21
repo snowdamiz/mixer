@@ -19,14 +19,14 @@ pgdata="$scratch/db"
 finish() {
   result=$?
   trap - EXIT
+  if [ "$result" -eq 74 ]; then
+    echo "Replay custody unresolved. Preserved $scratch." >&2
+    exit 74
+  fi
   if [ -f "$pgdata/postmaster.pid" ] &&
      ! pg_ctl -D "$pgdata" -w -t 15 -m fast stop; then
     echo "PostgreSQL shutdown unconfirmed. Preserved $scratch." >&2
     exit 1
-  fi
-  if [ "$result" -eq 74 ]; then
-    echo "Replay custody unresolved. Preserved $scratch." >&2
-    exit 74
   fi
   rm -rf -- "$scratch"
   [ ! -e "$scratch" ]
@@ -79,17 +79,18 @@ cat >"$pgdata/pg_hba.conf" <<CONFIG
 local all mixer_replay_admin,mixer_replay_writer,mixer_replay_android_writer,mixer_replay_stage trust
 hostssl postgres mixer_replay_writer,mixer_replay_android_writer,mixer_release_delivery,mixer_release_processor 127.0.0.1/32 scram-sha-256
 CONFIG
-if ! pg_ctl -D "$pgdata" -l "$scratch/postgres.log" -w -t 15 start; then
-  cat "$scratch/postgres.log" >&2
-  exit 1
-fi
-
 if [ "$mode" = delivery-cross-runtime ]; then
-  env -i PATH="$PATH" HOME="$HOME" TMPDIR="$scratch" MIX_ENV=test HEX_OFFLINE=1 \
+  trap 'exit 74' INT TERM
+  env -i PATH="$PATH" HOME="$HOME" TMPDIR="$scratch" LC_ALL=C MIX_ENV=test HEX_OFFLINE=1 \
     MIX_DEPS_PATH="${MIX_DEPS_PATH:-$PWD/deps}" MIX_BUILD_PATH="${MIX_BUILD_PATH:-$PWD/_build/test}" \
     MIXER_RELEASE_FIXTURE_MODE="$mode" MIXER_RELEASE_FIXTURE_SCRATCH="$scratch" \
     node "$root/release-delivery-origin/test/cross-runtime.mjs" "$scratch" "$toolchain"
   exit
+fi
+
+if ! pg_ctl -D "$pgdata" -l "$scratch/postgres.log" -w -t 15 start; then
+  cat "$scratch/postgres.log" >&2
+  exit 1
 fi
 
 env -i PATH="$PATH" HOME="$HOME" TMPDIR="$scratch" MIX_ENV=test HEX_OFFLINE=1 \

@@ -142,19 +142,6 @@ defmodule MixerHosted.Test.DeliveryOriginReplay do
     export
   end
 
-  defp handle(%{"op" => "stop"}, socket, _, _, _, _, export) do
-    pg_ctl!(["-m", "fast", "stop"])
-    reply!(socket, "stopped")
-    export
-  end
-
-  defp handle(%{"op" => "start"}, socket, _, _, _, _, export) do
-    scratch = System.fetch_env!("MIXER_RELEASE_FIXTURE_SCRATCH")
-    pg_ctl!(["-l", Path.join(scratch, "postgres.log"), "start"])
-    reply!(socket, "started")
-    export
-  end
-
   defp handle(%{"op" => "halt"}, socket, _, _, halt, _, export) do
     halt.()
     reply!(socket, "halted")
@@ -195,11 +182,6 @@ defmodule MixerHosted.Test.DeliveryOriginReplay do
 
   defp remaining_ms(window),
     do: max(0, window.deadline_monotonic_ms - System.monotonic_time(:millisecond))
-
-  defp pg_ctl!(args) do
-    data = Path.join(System.fetch_env!("MIXER_RELEASE_FIXTURE_SCRATCH"), "db")
-    {_, 0} = System.cmd("pg_ctl", ["-D", data, "-w", "-t", "10" | args], stderr_to_stdout: true)
-  end
 
   defp reply!(socket, value), do: :ok = reply(socket, value)
   defp reply(socket, value), do: :gen_tcp.send(socket, [Jason.encode_to_iodata!(value), "\n"])
