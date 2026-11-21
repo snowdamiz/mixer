@@ -61,6 +61,21 @@ to the seven finite inputs on arm64 macOS. The receipt records the input bytes,
 both outputs, and the instructions in the Swift-emitted guest.
 [Floating-point replay receipt](../../../verification/receipts/swift-floating-point-preview-6f4fdee12e.json)
 
+## Swift associated-type replay
+
+Run the compact owned-VM replay above. The input file selects signed readings
+or a wrapping counter for each pair of 16-bit values. The generic
+`readingChange` function extracts two values of `Format.Reading` and passes
+them to the same format's change operation. The two concrete formats use
+`Int16` and `UInt16`.
+
+Native Swift and installed Guest UI v1 must return the same exact
+little-endian `Int32` bytes for all four events. Both paths refuse a
+four-byte truncation of the five-byte event and preserve the last result.
+Closing the guest session makes the old handle invalid. This covers
+statically specialized generic calls on arm64 macOS.
+[Associated-type replay receipt](../../../verification/receipts/l03-swift-associated-types-v73.json)
+
 ## Owned VM capability and validation controls
 
 The compact replay executes the suites below using Rust 1.99.0. To run them
