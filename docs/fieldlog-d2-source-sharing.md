@@ -120,6 +120,30 @@ Apple verification covered the existing model handlers and linked
 SwiftUI call site. Native presentation and interaction remain open.
 [Checklist build and replay receipt](../verification/receipts/fieldlog-d2-checklist-row-85e6fbe3.json)
 
+## Combined compiler inputs
+
+FieldLog `85e6fbe362` built for generic arm64 iPhoneOS and as a Pair25
+Android development APK on the same Mixer revision, `6bc461f4fc`.
+The Android packaging recipe changes eight script files. The 16 Apple
+and 15 Android app-owned Swift inputs match the same FieldLog product tree.
+[Apple build](../verification/receipts/fieldlog-d2-combined-85e6fbe3-iphoneos.json) ·
+[Android package](../verification/receipts/fieldlog-d2-pair25-combined-85e6fbe3.json)
+
+| Responsibility | Shared files | Shared bytes | Shared physical lines |
+| --- | ---: | ---: | ---: |
+| UI | 2 / 7 | 9,311 / 54,262 | 206 / 1,273 |
+| Logic and host entry | 6 / 14 | 48,353 / 111,201 | 1,132 / 2,512 |
+| Mixed | 0 / 2 | 0 / 79,940 | 0 / 1,299 |
+| All measured inputs | 8 / 23 | 57,664 / 245,403 | 1,338 / 5,084 |
+
+Shared physical lines rose from 17.8% to 26.3%, below the 90% goal.
+`ChecklistRow.swift` and `WorkspaceRepository.swift` account for the
+two newly shared inputs. The byte-identical repository files include
+49 Android-only photo code lines. Excluding those lines from the
+shared numerator gives 1,289 of 5,084 physical lines (25.4%). Both
+figures measure source overlap. Installed behavior remains unverified.
+[Compiler input comparison](../verification/receipts/fieldlog-d2-combined-85e6fbe3-compiler-inputs.json)
+
 ## Reproduce the source measurement
 
 From the Mixer repository on a Mac with Git, Python, and SwiftPM, run the following in Bash. The commands use the receipt, the public FieldLog pin, and the four overlays. They evaluate package metadata without building either app or resolving SDK dependencies.

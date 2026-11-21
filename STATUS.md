@@ -1121,6 +1121,18 @@ scratch. Rendered UI, accessibility interaction, and installed runtime
 remain open.
 [Checklist patch](verification/receipts/fieldlog-d2-checklist-row-85e6fbe3-patch.patch) · [Verification receipt](verification/receipts/fieldlog-d2-checklist-row-85e6fbe3.json)
 
+The combined FieldLog tree `85e6fbe362` built as an unsigned generic
+arm64 iPhoneOS app and a signed arm64 Android development APK on the
+same Mixer pin, `6bc461f4fc`. Both artifacts passed independent static
+review, including their separate development-signed Entry Commit material.
+The actual compiler rosters share 8 of 23 distinct app-owned Swift
+inputs and 1,338 of 5,084 physical lines (26.3%). The 49 Android-only
+photo lines are included in that physical count. The 90% goal and
+installed behavior remain open.
+[Apple build](verification/receipts/fieldlog-d2-combined-85e6fbe3-iphoneos.json) ·
+[Android package](verification/receipts/fieldlog-d2-pair25-combined-85e6fbe3.json) ·
+[Source comparison](verification/receipts/fieldlog-d2-combined-85e6fbe3-compiler-inputs.json)
+
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
 
 A free owner created one build through Phoenix, restricted Oban, and the loopback worker. The worker's inert exit-23 fixture settled the build and released capacity. Organization exit was refused before settlement and succeeded afterwards. The former owner lost access while tenant B retained its export and created another project. [Settled build and organization exit](verification/receipts/l06-settled-exit-65c89e08.json)
