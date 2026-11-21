@@ -174,6 +174,15 @@ on the local composition.
 [Exact composed replay](verification/receipts/fieldlog-f10-v3-root-dda81610.json) ·
 [Source141 binding](verification/receipts/source141-private-f10-dda81610.json)
 
+The six-action private V3 candidate `790d0b2253` delivered Open, Next,
+Tasks, reopen, Previous, and Entries through the signed guest. Its two
+pages displayed 26 real pending records from three scoped reads. The
+workspace reopened byte-for-byte, with zero writes. Pagination kept the
+previous page visible and input busy until the matching found response.
+Entries stopped at the historical handoff. All 34 replay groups closed.
+Independent review is underway. Native display and installed OTA remain open.
+[Six-action replay](verification/receipts/fieldlog-f10-v3-signed-six-actions-2acaac67.json)
+
 The app-owned storage guide exercises the public installed storage adapter.
 The signed host fixture committed one scoped write, refused an out-of-scope
 write before repository entry, and read the saved bytes through a fresh
