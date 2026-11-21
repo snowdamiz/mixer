@@ -99,6 +99,12 @@ and shut down disposable test instances after evidence collection, including
 failed runs. Record cleanup; preserve other projects' active instances and their
 data. The user explicitly requested cleanup of unused simulators.
 
+The user authorizes checking disposable FieldLog emulator process groups and
+retiring them without further confirmation when the exact launch ownership is
+verified. Record the positive ownership and terminal observations. This is
+specific to disposable FieldLog emulator groups. Preserve unrelated instances,
+user data, and separately held scratch or ports.
+
 Before frontend-dependent Simulator tests, verify macOS Accessibility access
 before creating or booting a device. On this macOS 27 host the pane is named
 Device Control and Data Access; the requesting helpers are attributed to
