@@ -9,9 +9,31 @@ defmodule MixerHosted.BrowserAuth.Protocol do
   alias MixerHosted.BrowserAuth.Config
   @cookie "__Host-mixer-session"
   @query_keys ~w(state iss code error error_description error_uri)
+  @promotion_state_prefix "mPr1_"
 
   @doc "Generates 256 bits using OTP's CSPRNG; there is no caller-supplied random source."
   def random_token, do: :crypto.strong_rand_bytes(32) |> Base.url_encode64(padding: false)
+
+  @doc "Marks only promotion login attempts while retaining 226 random bits and the existing state format."
+  def random_state(:promotion_group) do
+    <<_::binary-size(5), suffix::binary>> = random_token()
+    @promotion_state_prefix <> suffix
+  end
+
+  def random_state(:workspace) do
+    case random_token() do
+      @promotion_state_prefix <> _ -> random_state(:workspace)
+      state -> state
+    end
+  end
+
+  @doc "A domain-separated correlation value that does not grant session or callback authority."
+  def promotion_resume_marker(@promotion_state_prefix <> _ = state) do
+    :crypto.hash(:sha256, "mixer.console.promotion-resume.v1:" <> state)
+    |> Base.url_encode64(padding: false)
+  end
+
+  def promotion_resume_marker(_), do: nil
 
   @doc "Accepts exactly canonical unpadded Base64URL encoding of 32 bytes."
   def token?(value) when is_binary(value) and byte_size(value) == 43 do

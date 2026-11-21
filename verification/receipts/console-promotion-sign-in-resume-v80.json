@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "scope": "Local W14/L05 signed-out immutable promotion-link continuation, captured in an isolated v80 export.",
+  "observedUTC": "2026-11-21T09:30:01+00:00",
+  "baseRevision": "5f4277e12e4872df43483307ec607a65e87dbae1",
+  "baseTree": "19980da47ccc682b84c15c1e77e81eb5b02a2a5d",
+  "testedSourceTree": "bc68a9ef9cfb6125578f996c372210d02660fca6",
+  "tools": {
+    "nodeConsole": "22.23.3",
+    "nodeChromeDriver": "26.13.1",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "postgres": "17.11",
+    "chrome": "155.0.8059.82"
+  },
+  "checks": [
+    {
+      "command": "console: fnm exec --using=22.23.3 npm test",
+      "result": "319 passed. Existing author, selector, workspace-selection, and stale-response tests ran alongside one-shot and actual Solid sign-in tests.",
+      "stdoutSha256": "d1297cf9392f0290b51cec50592ff9d52f579c5e73f4c34d88479e97818382e3"
+    },
+    {
+      "command": "console: fnm exec --using=22.23.3 npm run build",
+      "result": "TypeScript and production Vite passed.",
+      "bundleSha256": "f6944ac32cc2188a24a3d8f6a7e612428dff46882d8a3df200c9be25e22b18ae"
+    },
+    {
+      "command": "hosted: MIX_ENV=test mix compile --warnings-as-errors",
+      "result": "Hosted compiled. The locked plug_crypto dependency emitted a Mix xref deprecation warning."
+    },
+    {
+      "command": "hosted: scripts/replay-local-stage-promotion-browser.sh with browser_login_json_http_test.exs, protocol_test.exs, and config_test.exs added to its Mix invocation",
+      "result": "56 passed with disposable PostgreSQL and real fixture HTTP. The initial invocation omitted the shared ConfigTest helper and failed; the corrected invocation loaded it and reused the same candidate application source.",
+      "stdoutSha256": "80b035be0019ccf4fe804edddd882667c28ea16c69a32f3fdbba1b1b6bd9b809"
+    },
+    {
+      "command": "hosted: scripts/replay-local-stage-promotion-browser.sh filtered to browser_publication_test.exs:146; node run-browser.mjs with the owned fixture certificate SPKI and two ephemeral TLS listener ports",
+      "result": "One selected Phoenix fixture passed. The production console served over loopback TLS used real Bandit/HTTP, PostgreSQL and the fixture OIDC provider. Git source for the existing release test was instrumented only in the disposable export to expose fixture ports and the public promotion selector after both successor publications.",
+      "fixtureStdoutSha256": "f29384f397c36a85c60889b3b1aa2bb41a3e813b3f5e82254c2fbd30b0a11cbd",
+      "browserStdoutSha256": "f7ed3046361b5df3adb379e0a0d996beae9cd842823a9ad5d3ce81298bc37ca3"
+    }
+  ],
+  "browser": {
+    "recipient": "Fresh browser context opened the exact Android selector while signed out. One UI click completed real synthetic OAuth in the same tab. The restored query issued the exact authorized promotion-group GET and rendered both original receipts.",
+    "ios": {
+      "sequence": "3",
+      "headSequence": "4",
+      "manifestSha256": "1644d91a8412e30ba94289ec29c6d46f640050ae2428c58b6e02c6bdb8732da6"
+    },
+    "android": {
+      "sequence": "12",
+      "headSequence": "13",
+      "manifestSha256": "55d4910d15675d87a9466a14e0ab63349e729826e77cd3fdb6df55d0bf8124d6"
+    },
+    "controls": [
+      "The selector and non-credential correlation slot was consumed before the exact page loaded.",
+      "Reopening the used completion fragment remained in Workspace and made no promotion read.",
+      "An unrelated login in a separate fresh browser context got the normal /workspace callback and made no promotion read."
+    ],
+    "limitations": [
+      "Acid preview refused the synthetic CA on both attempts with ERR_CERT_AUTHORITY_INVALID. An isolated headless Chromium profile pinned only the synthetic certificate and mapped the configured fixture hostnames to loopback.",
+      "One background workspace organization-list GET returned 503 in the browser run. The authorized promotion-group GET returned 200 and rendered both exact receipts."
+    ]
+  },
+  "cleanup": "Chrome exited, its direct child was reaped, its process group was absent, and its fresh profile was removed. The owned PostgreSQL cluster stopped and its listening port was reusable. The Bandit, synthetic OIDC and three proxy listening ports were reusable after teardown.",
+  "admission": "Source admission and gate decisions remain with root."
+}

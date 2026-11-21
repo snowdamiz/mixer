@@ -284,22 +284,25 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
   end
 
   @doc "Begins only a private preauthentication OIDC attempt; no route or authenticated session is installed."
-  def begin_login(cookie, raw_headers, return_route, metadata) do
+  def begin_login(cookie, raw_headers, return_route, metadata, intent \\ :workspace) do
     deadline = System.monotonic_time(:millisecond) + 5000
     wall = System.system_time(:second)
 
-    with true <- metadata?(metadata) and return_route === :workspace and Protocol.token?(cookie),
+    with true <-
+           metadata?(metadata) and return_route === :workspace and
+             intent in [:workspace, :promotion_group] and Protocol.token?(cookie),
          {:ok, ^cookie} <- Protocol.parse_session_cookie(raw_headers),
          {:ok, lease} <- reserve(deadline, wall) do
       execute(lease, fn ->
         input = %PreauthDraft.Load{lease: lease, cookie_digest: :crypto.hash(:sha256, cookie)}
 
         with {:ok, %StoredSnapshot{} = source} <- Store.discover_begin(input),
-             {:ok, draft} <- prepare_begin(lease, raw_headers, source),
+             {:ok, draft} <- prepare_begin(lease, raw_headers, source, intent),
              {:ok, _snapshot} <- Store.begin_login(draft, metadata) do
           finish_receipt(lease, draft.attempt_context.expires_at, %PreauthDraft.Authorization{
             url: draft.url,
-            expires_at: draft.attempt_context.expires_at
+            expires_at: draft.attempt_context.expires_at,
+            promotion_resume: Protocol.promotion_resume_marker(draft.state)
           })
         else
           {:error, %Store.Failure{}} = error -> error
@@ -343,7 +346,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
     _, _ -> Store.failure(:admission, :not_started)
   end
 
-  defp prepare_begin(lease, raw_headers, source) do
+  defp prepare_begin(lease, raw_headers, source, intent) do
     runtime = lease.runtime
     config = runtime.browser_config
     envelope = source.session_envelope
@@ -360,7 +363,7 @@ defmodule MixerHosted.BrowserAuth.RuntimeOwner do
            Vault.open(runtime.custody.key, envelope.context, envelope.sealed),
          :ok <- Protocol.verify_csrf(config, raw_headers, csrf),
          true <- System.system_time(:second) < expires do
-      state = Protocol.random_token()
+      state = Protocol.random_state(intent)
       nonce = Protocol.random_token()
       verifier = Protocol.random_token()
       c = envelope.context

@@ -3,6 +3,7 @@ defmodule MixerHostedWeb.BrowserLoginHTTP do
   @behaviour Plug
   import Plug.Conn
   alias MixerHosted.BrowserAuth.{CallbackLifecycle, PreauthDraft, Protocol, RuntimeOwner}
+  @promotion_resume_header "x-mixer-promotion-resume"
 
   def init([]), do: []
   def init(:ordinary), do: :ordinary
@@ -42,17 +43,19 @@ defmodule MixerHostedWeb.BrowserLoginHTTP do
       {"POST", "/auth/login"} ->
         with true <- conn.query_string == "",
              {:ok, representation} <- representation(conn),
+             {:ok, intent} <- login_intent(conn, representation),
              {:ok, cookie} when is_binary(cookie) <-
                Protocol.parse_session_cookie(conn.req_headers),
              {:ok, conn} <- empty_body(conn),
-             {:ok, %PreauthDraft.Authorization{url: url, expires_at: expires}} <-
-               RuntimeOwner.begin_login(cookie, conn.req_headers, :workspace, metadata()),
+             {:ok, %PreauthDraft.Authorization{url: url, expires_at: expires} = authorization} <-
+               RuntimeOwner.begin_login(cookie, conn.req_headers, :workspace, metadata(), intent),
              true <- expires > System.system_time(:second) do
           case representation do
             :json ->
               conn
               |> delete_resp_header("location")
               |> put_resp_header("referrer-policy", "no-referrer")
+              |> put_promotion_resume(authorization.promotion_resume)
               |> json(200, %{authorization_url: url, expires_at: expires})
 
             :redirect ->
@@ -65,10 +68,10 @@ defmodule MixerHostedWeb.BrowserLoginHTTP do
       {"GET", "/auth/callback"} ->
         with {:ok, _} <- Protocol.parse_session_cookie(conn.req_headers),
              {:ok, conn} <- empty_body(conn),
-             {:ok, %CallbackLifecycle.Result{cookie: cookie, expires_at: expires}} <-
+             {:ok, %CallbackLifecycle.Result{cookie: cookie, expires_at: expires} = result} <-
                RuntimeOwner.callback(conn.req_headers, conn.query_string),
              {:ok, value} <- cookie(cookie, expires, 900) do
-          conn |> put_resp_header("set-cookie", value) |> redirect("/workspace")
+          conn |> put_resp_header("set-cookie", value) |> redirect(callback_landing(result))
         else
           _ -> error(conn, 503)
         end
@@ -90,6 +93,24 @@ defmodule MixerHostedWeb.BrowserLoginHTTP do
       _ -> :error
     end
   end
+
+  defp login_intent(conn, representation) do
+    case get_req_header(conn, @promotion_resume_header) do
+      [] -> {:ok, :workspace}
+      ["promotion-group"] when representation == :json -> {:ok, :promotion_group}
+      _ -> :error
+    end
+  end
+
+  defp put_promotion_resume(conn, nil), do: conn
+
+  defp put_promotion_resume(conn, marker),
+    do: put_resp_header(conn, @promotion_resume_header, marker)
+
+  defp callback_landing(%CallbackLifecycle.Result{promotion_resume: nil}), do: "/workspace"
+
+  defp callback_landing(%CallbackLifecycle.Result{promotion_resume: marker}),
+    do: "/workspace#promotion-resume=" <> marker
 
   defp bootstrap(conn) do
     with {:ok, %PreauthDraft.Preauth{cookie: cookie, csrf: csrf, expires_at: expires}} <-

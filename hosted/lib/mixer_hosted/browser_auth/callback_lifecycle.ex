@@ -46,7 +46,7 @@ defmodule MixerHosted.BrowserAuth.CallbackLifecycle do
     @moduledoc "Token-free private callback result, published only after confirmed COMMIT."
     @derive {Inspect, only: []}
     @enforce_keys [:cookie, :csrf, :generation, :expires_at]
-    defstruct @enforce_keys
+    defstruct @enforce_keys ++ [:promotion_resume]
   end
 
   defmodule Fence do
@@ -93,9 +93,10 @@ defmodule MixerHosted.BrowserAuth.CallbackLifecycle do
         expires_at: min(source.attempt["expires_at"], System.system_time(:second) + 5)
       }
 
-      case Store.lifecycle(lease, {:claim, claim}) do
-        {:ok, _} -> complete(claim, callback.outcome)
-        error -> error
+      with {:ok, _} <- Store.lifecycle(lease, {:claim, claim}),
+           {:ok, %Result{} = value, fence} <- complete(claim, callback.outcome) do
+        {:ok, %{value | promotion_resume: Protocol.promotion_resume_marker(callback.state)},
+         fence}
       end
     else
       {:error, %Store.Failure{}} = error -> error

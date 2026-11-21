@@ -2,6 +2,7 @@ import { render } from "solid-js/web";
 import { SignInBoundary } from "./components/SignIn.js";
 import App from "./App.js";
 import { createBrowserSessionBinding } from "./state/browser-session-binding.js";
+import { applyPromotionResume } from "./state/promotion-resume.js";
 import "./styles.css";
 
 const container = document.getElementById("app");
@@ -15,4 +16,5 @@ function ConsoleRoot() {
   return <SignInBoundary session={binding.workspaceSession} invalidate={binding.invalidate}><App workspaceSession={binding.workspaceSession()} onRetrySession={binding.revalidate} /></SignInBoundary>;
 }
 
+applyPromotionResume(window);
 render(() => <ConsoleRoot />, container);

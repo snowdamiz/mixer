@@ -14,9 +14,13 @@ execFileSync(process.execPath, [join(root, "node_modules/typescript/bin/tsc"), "
 writeFileSync(join(output, "package.json"), '{"type":"module"}');
 const { createBrowserLoginClient, BrowserLoginError } = await import(pathToFileURL(join(output, "api/browser-login-client.js")));
 const { createSignInAction } = await import(pathToFileURL(join(output, "state/sign-in-action.js")));
+const { consumePromotionResume, promotionToResume, savePromotionResume } =
+  await import(pathToFileURL(join(output, "state/promotion-resume.js")));
 const csrf = "A".repeat(43);
 const url = "https://issuer.fixture.invalid/authorize?state=private";
-const wire = () => ({ authorization_url: url, expires_at: Math.floor(Date.now() / 1000) + 60 });
+const expiresAt = Math.floor(Date.now() / 1000) + 60;
+const wire = () => ({ authorization_url: url, expires_at: expiresAt });
+const login = { url, expiresAt };
 const response = (text = JSON.stringify(wire()), headers = {}) => new Response(text, { headers: {
   "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "referrer-policy": "no-referrer", ...headers } });
 const metadata = () => new Response(JSON.stringify({ state: "unauthenticated", csrf_token: csrf }), { headers: { "content-type": "application/json", "cache-control": "no-store" } });
@@ -30,7 +34,7 @@ test("fresh metadata then fixed empty POST, trusted JSON URL and exact browser p
   const client = createBrowserLoginClient({ fetch: async (path, init) => {
     calls.push({ path, init }); return path === "/auth/session" ? metadata() : response();
   } });
-  assert.equal(await client.begin(signal()), url);
+  assert.deepEqual(await client.begin(signal()), login);
   assert.deepEqual(calls.map(c => c.path), ["/auth/session", "/auth/login"]);
   const post = calls[1].init;
   assert.deepEqual({ ...post, signal: undefined }, { method: "POST", credentials: "same-origin", headers: { accept: "application/json", "x-mixer-csrf": csrf }, cache: "no-store", redirect: "error", referrerPolicy: "no-referrer", signal: undefined });
@@ -80,9 +84,113 @@ test("pending suppresses double click, failures retry fresh, cancellation and di
     const action = createSignInAction({ allowed: () => true, foreground: () => foreground, invalidate: () => invalidations++, navigate: value => navigations.push(value), changed: value => states.push(value), client: { begin: async () => { requests++; return pending.promise; } } });
     const work = action.start(); await action.start(); assert.equal(requests, 1); assert.equal(invalidations, 1); assert.equal(states.at(-1).kind, "starting");
     if (stop === "hidden") foreground = false; else action[stop]();
-    pending.resolve(url); await work; assert.deepEqual(navigations, []);
+    pending.resolve(login); await work; assert.deepEqual(navigations, []);
   }
   let attempts = 0; const states = [], nav = [];
-  const action = createSignInAction({ allowed: () => true, foreground: () => true, invalidate() {}, changed: state => states.push(state), navigate: value => nav.push(value), client: { begin: async () => { if (++attempts === 1) throw Error("private"); return url; } } });
+  const action = createSignInAction({ allowed: () => true, foreground: () => true, invalidate() {}, changed: state => states.push(state), navigate: value => nav.push(value), client: { begin: async () => { if (++attempts === 1) throw Error("private"); return login; } } });
   await action.start(); assert.equal(states.at(-1).kind, "unavailable"); await action.start(); assert.equal(attempts, 2); assert.deepEqual(nav, [url]);
+});
+
+const marker = "R".repeat(42) + "A";
+const markerHeader = "x-mixer-promotion-resume";
+const promotionSearch = "?organization_id=org&project_id=p&application_id=app&environment_id=prod&platform=android&runtime_fingerprint=" +
+  "a".repeat(64) + "&channel=candidate&view=promotion-group&sequence=12&manifest_sha256=" + "b".repeat(64);
+const releases = { pathname: "/releases", search: promotionSearch, hash: "" };
+const landing = { pathname: "/workspace", search: "", hash: "#promotion-resume=" + marker };
+function storage() {
+  const records = new Map();
+  return {
+    records,
+    getItem: key => records.get(key) ?? null,
+    removeItem: key => records.delete(key),
+    setItem: (key, value) => records.set(key, value),
+  };
+}
+
+test("only the fixed promotion intent requests and admits a canonical attempt marker", async () => {
+  const requests = [];
+  for (const [intent, header, expected] of [
+    ["promotion-group", marker, { ...login, promotionResume: marker }],
+    ["promotion-group", marker + ", " + marker, login],
+    ["promotion-group", "A".repeat(42) + "B", login],
+    [undefined, marker, login],
+  ]) {
+    const client = createBrowserLoginClient({ fetch: async (path, init) => {
+      requests.push({ path, headers: init.headers });
+      return path === "/auth/session" ? metadata() : response(undefined, { [markerHeader]: header });
+    } });
+    assert.deepEqual(await client.begin(signal(), intent), expected);
+    assert.equal(requests.at(-1).headers[markerHeader], intent);
+    assert.deepEqual(requests.at(-2), { path: "/auth/session", headers: { accept: "application/json" } });
+  }
+});
+
+test("only the canonical exact release record is eligible to resume", () => {
+  const publication = promotionToResume(releases);
+  assert.equal(publication?.target.platform, "android");
+  assert.equal(publication?.sequence, "12");
+  for (const route of [
+    { ...releases, pathname: "/workspace" }, { ...releases, pathname: "/releases/" },
+    { ...releases, hash: "#unrelated" },
+    { ...releases, search: promotionSearch.split("&view=")[0] },
+    { ...releases, search: promotionSearch + "&return_to=https://fixture.invalid" },
+    { ...releases, search: promotionSearch.replace("sequence=12", "sequence=012") },
+    { ...releases, search: promotionSearch.replace("sequence=12", "sequence=%312") },
+    { ...releases, search: promotionSearch + "&%73equence=12" },
+  ]) assert.equal(promotionToResume(route), undefined, JSON.stringify(route));
+});
+
+test("a matching callback consumes one bounded tab slot and yields the exact originating selector", () => {
+  const initiating = storage(), otherTab = storage(), now = 1_000;
+  const publication = promotionToResume(releases);
+  savePromotionResume(initiating, publication, marker, now + 60, now);
+  assert.deepEqual([...initiating.records.values()], [`1060|${marker}|${promotionSearch}`]);
+  assert.equal(consumePromotionResume(landing, () => otherTab, now), "/workspace");
+  assert.equal(consumePromotionResume(landing, () => initiating, now), "/releases" + promotionSearch);
+  assert.equal(initiating.records.size, 0);
+  assert.equal(consumePromotionResume(landing, () => initiating, now), "/workspace");
+});
+
+test("wrong attempts, stale or tampered entries, unrelated loads and blocked storage cannot restore a record", () => {
+  const publication = promotionToResume(releases);
+  const now = 1_000;
+  for (const [route, expiry, changed, expected] of [
+    [{ ...landing, hash: "#promotion-resume=" + "Z".repeat(42) + "A" }, 1060, null, "/workspace"],
+    [landing, 1000, null, "/workspace"],
+    [landing, 1301, null, "/workspace"],
+    [landing, 1060, "//fixture.invalid/", "/workspace"],
+    [landing, 1060, promotionSearch + "&sequence=12", "/workspace"],
+    [{ ...landing, hash: "" }, 1060, null, undefined],
+    [{ ...landing, pathname: "/releases" }, 1060, null, undefined],
+  ]) {
+    const slot = storage();
+    savePromotionResume(slot, publication, marker, expiry, now);
+    if (changed !== null) {
+      const [key] = slot.records.keys();
+      slot.records.set(key, `${expiry}|${marker}|${changed}`);
+    }
+    assert.equal(consumePromotionResume(route, () => slot, now), expected);
+    assert.equal(slot.records.size, 0);
+  }
+  assert.equal(consumePromotionResume(landing, () => { throw Error("storage disabled"); }, now), "/workspace");
+});
+
+test("a superseded promotion action cannot arm a pending selector and retry captures the next click", async () => {
+  const pending = deferred(), navigations = [], intents = [];
+  const action = createSignInAction({
+    allowed: () => true, foreground: () => true, invalidate() {}, changed() {},
+    navigate: (url, promotion) => navigations.push({ url, promotion }),
+    client: { begin: async (signal, intent) => {
+      intents.push({ signal, intent });
+      return intents.length === 1 ? pending.promise : login;
+    } },
+  });
+  const work = action.start(promotionToResume(releases));
+  action.cancelPromotion();
+  assert.equal(intents[0].signal.aborted, true);
+  await action.start();
+  pending.resolve({ ...login, promotionResume: marker });
+  await work;
+  assert.deepEqual(intents.map(({ intent }) => intent), ["promotion-group", undefined]);
+  assert.deepEqual(navigations, [{ url, promotion: undefined }]);
 });

@@ -45,7 +45,7 @@ defmodule MixerHosted.BrowserAuth.PreauthDraft do
     @moduledoc "Private begin-login URL only; this never proves an authenticated identity."
     @derive {Inspect, only: []}
     @enforce_keys [:url, :expires_at]
-    defstruct @enforce_keys
+    defstruct @enforce_keys ++ [:promotion_resume]
   end
 
   defmodule Publication do

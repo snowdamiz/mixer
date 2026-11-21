@@ -51,7 +51,7 @@ const window=new TestNode(0,"window");window.document=document;window.location=n
 const originals=new Map(["document","window","Node"].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
 Object.assign(globalThis,{document,window,Node:TestNode});
 after(()=>{for(const [key,descriptor]of originals)descriptor?Object.defineProperty(globalThis,key,descriptor):delete globalThis[key];});
-const {mount}=await import(pathToFileURL(join(output,"application-ui.js")));
+const {mount,applyPromotionResume}=await import(pathToFileURL(join(output,"application-ui.js")));
 function walk(node){return [node,...node.childNodes.flatMap(walk)];}
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 const json=value=>new Response(JSON.stringify(value),{headers:{"content-type":"application/json","cache-control":"no-store"}});
@@ -59,12 +59,18 @@ const scope={organizationId:"org",projectId:"p"};
 const dto=(change={})=>({...scope,applicationId:"app",buildId:"b-ios",platform:"ios",sourceSha256:"a".repeat(64),toolchainLockSha256:"b".repeat(64),buildDefinitionSha256:"c".repeat(64),revision:2,state:"queued",attempt:1,maxAttempts:3,failureCode:null,workerCompletionPending:false,...change});
 const apps=(ids=["app","empty"],nextCursor=null,projectId="p")=>({...scope,projectId,applications:ids.map(applicationId=>({applicationId})),nextCursor});
 const catalog=(rows=[dto(),dto({buildId:"c-android",platform:"android",state:"running",workerCompletionPending:true})],applicationId="app",nextCursor=null)=>({...scope,applicationId,builds:rows,nextCursor});
-function fixture(profile, initialPath){const calls=[],waiting=[];let index=0;const fetch=(url,options)=>{
+function fixture(profile, initialPath, withSignIn){const calls=[],waiting=[];let index=0;const fetch=(url,options)=>{
   if (url === "/console-api/v1/workspace-admin" && JSON.parse(options.body).operation === "usage") {
     return Promise.resolve(json({ organization_id: "org", plan: "free", active_projects: 2, project_limit: 3,
       held_builds: 0, build_limit: 2, builds: 0, can_administer: false }));
   }
-  return new Promise((resolve,reject)=>{const call={path:String(url),...options,resolve,reject};calls.push(call);waiting.shift()?.(call);});};const container=document.createElement("div");document.appendChild(container);const app=mount(container,fetch,profile,initialPath);return {...app,container,calls,async request(expected, method = "GET"){const call=calls[index++]??await new Promise(resolve=>waiting.push(resolve));assert.equal(call.path,expected);assert.equal(call.method,method);assert.equal(call.credentials,"same-origin");return call;},text:()=>container.textContent,click(text,tag="BUTTON"){const node=walk(container).find(n=>n.nodeName===tag&&n.textContent.includes(text));assert(node,"missing "+tag+" "+text);node.click();return node;},close(){app.dispose();container.remove();}};}
+  return new Promise((resolve,reject)=>{const call={path:String(url),...options,resolve,reject};calls.push(call);waiting.shift()?.(call);});};const container=document.createElement("div");document.appendChild(container);const previousFetch=globalThis.fetch;
+  let app;
+  try {
+    if(withSignIn)globalThis.fetch=fetch;
+    app=mount(container,fetch,profile,initialPath,withSignIn);
+  } finally { globalThis.fetch=previousFetch; }
+  return {...app,container,calls,async request(expected, method = "GET"){const call=calls[index++]??await new Promise(resolve=>waiting.push(resolve));assert.equal(call.path,expected);assert.equal(call.method,method);assert.equal(call.credentials,"same-origin");return call;},text:()=>container.textContent,click(text,tag="BUTTON"){const node=walk(container).find(n=>n.nodeName===tag&&n.textContent.includes(text));assert(node,"missing "+tag+" "+text);node.click();return node;},close(){app.dispose();container.remove();}};}
 async function admitted(f, organizations = [{id:"org",display_name:"Test studio",organization_roles:["owner"]}]){
   const call = await f.request("/auth/session");
   call.resolve(json({state:"authenticated",generation:"A".repeat(43),csrf_token:"A".repeat(43),expires_at:Math.floor(Date.now()/1000)+60}));
@@ -670,6 +676,80 @@ test("Releases opens an exact historical promotion with a fresh session and no h
     assert.equal(releaseStatus(f), "Sign in to view this release.");
     assert.equal(promotionSection(f), undefined);
   } finally { f.close(); }
+});
+
+test("Sign in from a shared record restores it once and renders both receipts through the live session client", { timeout: 5000 }, async () => {
+  const receipt = promotionPair.android;
+  const path = promotionRoute(receipt);
+  const marker = "R".repeat(42) + "A";
+  const provider = "https://issuer.fixture.invalid/authorize";
+  const origin = document.baseURI;
+  const pending = new Map(), navigations = [];
+  const oldLocation = window.location, oldHistory = window.history;
+  const slot = {
+    setItem: (key, value) => pending.set(key, value),
+    getItem: key => pending.get(key) ?? null,
+    removeItem: key => pending.delete(key),
+  };
+  window.sessionStorage = slot;
+  window.location = Object.assign(new URL(path, origin), { assign: url => navigations.push(url) });
+  window.history = { ...oldHistory, replaceState(state, title, url) { window.location = new URL(url, origin); } };
+  document.visibilityState = "visible";
+  let f = fixture(undefined, path, true);
+  try {
+    const unauthenticated = () => json({ state: "unauthenticated", csrf_token: "A".repeat(43) });
+    (await f.request("/auth/session")).resolve(unauthenticated());
+    await flush();
+    assert.match(f.text(), /Sign in to view this release/);
+    assert.deepEqual(releaseCalls(f), []);
+
+    f.click("Sign in");
+    (await f.request("/auth/session")).resolve(unauthenticated());
+    const post = await f.request("/auth/login", "POST");
+    assert.equal(post.headers["x-mixer-promotion-resume"], "promotion-group");
+    assert.equal(post.body, undefined);
+    const expiresAt = Math.floor(Date.now() / 1000) + 60;
+    post.resolve(new Response(JSON.stringify({ authorization_url: provider, expires_at: expiresAt }), {
+      headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store",
+        "referrer-policy": "no-referrer", "x-mixer-promotion-resume": marker },
+    }));
+    await flush();
+    assert.deepEqual(navigations, [provider]);
+    assert.deepEqual([...pending.values()], [expiresAt + "|" + marker + "|" + new URL(path, origin).search]);
+    assert.deepEqual(releaseCalls(f), []);
+    f.close();
+
+    window.location = new URL("/workspace#promotion-resume=" + marker, origin);
+    applyPromotionResume(window);
+    assert.equal(window.location.href, new URL(path, origin).href);
+    assert.equal(pending.size, 0);
+
+    f = fixture(undefined, window.location.pathname + window.location.search, true);
+    assert.deepEqual(releaseCalls(f), []);
+    await admitReleaseSession(f);
+    const [read] = releaseCalls(f);
+    assert.equal(read.path, promotionEndpoint(receipt));
+    assert.equal(read.method, "GET");
+    assert.equal(read.credentials, "same-origin");
+    read.resolve(json({ ...promotionPair, ios: { ...promotionPair.ios, headSequence: "4" } }));
+    await flush();
+    const { textContent } = promotionSection(f);
+    assert.match(textContent, /iOSSequence 3 · Head advanced to 4/);
+    assert.match(textContent, /AndroidSequence 12 · Head advanced to 13/);
+    assert.ok(textContent.includes(promotionPair.ios.manifestSha256));
+    assert.ok(textContent.includes(receipt.manifestSha256));
+    assert.equal(releaseCalls(f).length, 1);
+
+    window.location = new URL("/workspace#promotion-resume=" + marker, origin);
+    applyPromotionResume(window);
+    assert.equal(window.location.href, new URL("/workspace", origin).href);
+  } finally {
+    f.close();
+    window.location = oldLocation;
+    window.history = oldHistory;
+    delete window.sessionStorage;
+    delete document.visibilityState;
+  }
 });
 
 test("Releases fences pending history reads across selectors and session generations", { timeout: 5000 }, async () => {

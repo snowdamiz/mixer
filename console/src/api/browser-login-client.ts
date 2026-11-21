@@ -1,12 +1,17 @@
 import { createBrowserSessionClient } from "./browser-session-client.js";
+import { isPromotionResumeMarker } from "../state/promotion-resume.js";
+import type { PromotionResumeMarker } from "../state/promotion-resume.js";
 
 export class BrowserLoginError extends Error {
   constructor() { super("Sign in is unavailable. Try again."); this.name = "BrowserLoginError"; }
 }
 const fail = (): never => { throw new BrowserLoginError(); };
+const resumeHeader = "x-mixer-promotion-resume";
+
+type BrowserLogin = { readonly url: string; readonly expiresAt: number; readonly promotionResume?: PromotionResumeMarker };
 
 /** Two scalar fields, with duplicate detection before JSON projection. */
-function authorization(text: string): string {
+function authorization(text: string): BrowserLogin {
   const match = /^\s*\{\s*"(authorization_url|expires_at)"\s*:\s*("(?:[^"\\\x00-\x1f]|\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}))*"|[1-9][0-9]*)\s*,\s*"(authorization_url|expires_at)"\s*:\s*("(?:[^"\\\x00-\x1f]|\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}))*"|[1-9][0-9]*)\s*\}\s*$/u.exec(text);
   if (!match || match[1] === match[3]) return fail();
   const value: unknown = JSON.parse(text);
@@ -17,7 +22,7 @@ function authorization(text: string): string {
   const parsed = new URL(url);
   if (parsed.protocol !== "https:" || !parsed.hostname || parsed.username || parsed.password || parsed.hash ||
     url.includes("#") || /[\s\u0000-\u001f\u007f]/u.test(url)) return fail();
-  return parsed.href;
+  return { url: parsed.href, expiresAt: expires };
 }
 
 /** The action alone owns fresh CSRF; the read-only session controller never sees it. */
@@ -25,7 +30,7 @@ export function createBrowserLoginClient(options: { readonly fetch?: typeof glob
   const fetchRequest = options.fetch ?? globalThis.fetch;
   const timeoutMs = options.timeoutMs ?? 15000;
   if (typeof fetchRequest !== "function" || !Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 15000) return fail();
-  return Object.freeze({ async begin(signal: AbortSignal): Promise<string> {
+  return Object.freeze({ async begin(signal: AbortSignal, intent?: "promotion-group"): Promise<BrowserLogin> {
     const controller = new AbortController();
     const deadline = performance.now() + timeoutMs;
     const check = () => { if (signal.aborted || controller.signal.aborted || performance.now() >= deadline) return fail(); };
@@ -43,8 +48,10 @@ export function createBrowserLoginClient(options: { readonly fetch?: typeof glob
       const metadata = await createBrowserSessionClient({ fetch: fetchRequest, timeoutMs }).read(controller.signal);
       check();
       if (metadata.state !== "unauthenticated") return fail();
+      const headers: Record<string, string> = { accept: "application/json", "x-mixer-csrf": metadata.csrf_token };
+      if (intent === "promotion-group") headers[resumeHeader] = intent;
       const response = await fetchRequest("/auth/login", { method: "POST", credentials: "same-origin",
-        headers: { accept: "application/json", "x-mixer-csrf": metadata.csrf_token },
+        headers,
         cache: "no-store", redirect: "error", referrerPolicy: "no-referrer", signal: controller.signal });
       if (controller.signal.aborted || signal.aborted) { void response.body?.cancel().catch(() => undefined); return fail(); }
       check();
@@ -69,7 +76,11 @@ export function createBrowserLoginClient(options: { readonly fetch?: typeof glob
       const bytes = new Uint8Array(size); let offset = 0;
       for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
       const result = authorization(new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes));
-      check(); return result;
+      const marker = response.headers.get(resumeHeader);
+      check();
+      return intent === "promotion-group" && isPromotionResumeMarker(marker)
+        ? { ...result, promotionResume: marker }
+        : result;
     };
     try { return await Promise.race([perform(), stopped]); }
     catch { return fail(); }

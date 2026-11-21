@@ -106,6 +106,59 @@ defmodule MixerHosted.BrowserAuth.BrowserLoginJSONHTTPTest do
     leases_clean()
   end
 
+  test "strict promotion opt-in correlates only the completed OAuth attempt", c do
+    p = bootstrap_http(c)
+    hs = headers(p.cookie) ++ [{"origin", c.config.public_origin}, {"x-mixer-csrf", p.csrf}]
+    header = {"x-mixer-promotion-resume", "promotion-group"}
+    json_headers = hs ++ [{"accept", "application/json"}]
+
+    for invalid <- [
+          hs ++ [header],
+          json_headers ++ [header, header],
+          json_headers ++ [{"x-mixer-promotion-resume", "/releases"}],
+          json_headers ++ [{"x-mixer-promotion-resume", "promotion-group, workspace"}]
+        ] do
+      result = http(c, "/auth/login", invalid, "POST")
+      assert result.status == 503
+      assert response_header(result, "x-mixer-promotion-resume") == []
+    end
+
+    login = http(c, "/auth/login", json_headers ++ [header], "POST")
+    assert login.status == 200
+    [marker] = response_header(login, "x-mixer-promotion-resume")
+    assert Protocol.token?(marker)
+    url = login.body |> Jason.decode!() |> Map.fetch!("authorization_url") |> URI.parse()
+    state = URI.decode_query(url.query)["state"]
+    refute marker == state
+    refute login.body =~ marker
+
+    provider = http(%{http_port: c.provider_port}, "/authorize?" <> url.query, [])
+    assert provider.status == 302
+    [location] = response_header(provider, "location")
+    callback = "/auth/callback?" <> URI.parse(location).query
+
+    unrelated = bootstrap_http(c)
+    denied = http(c, callback, headers(unrelated.cookie))
+    assert denied.status == 503
+    assert response_header(denied, "location") == []
+
+    successful = http(c, callback, headers(p.cookie))
+    assert successful.status == 303
+    assert response_header(successful, "location") == ["/workspace#promotion-resume=" <> marker]
+    assert response_header(successful, "referrer-policy") == ["no-referrer"]
+    assert response_cookie(successful) != p.cookie
+
+    replay = http(c, callback, headers(p.cookie))
+    assert replay.status == 503
+    assert response_header(replay, "location") == []
+
+    ordinary = begin_http(c, unrelated)
+    ordinary_response = http(c, "/auth/callback?" <> ordinary.query, ordinary.headers)
+    assert ordinary_response.status == 303
+    assert response_header(ordinary_response, "location") == ["/workspace"]
+    leases_clean()
+  end
+
   test "raw HTTP duplicates bodies origins arbitrary inputs and aliases fail closed", c do
     p = bootstrap_http(c)
     h = headers(p.cookie)
