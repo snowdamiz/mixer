@@ -1,0 +1,744 @@
+{
+  "status": "passed_scoped_macos_host",
+  "observedUTC": "2026-11-21T20:55:42.004175+00:00",
+  "scope": "Maintained default FeatureProbe replay on arm64 macOS. Native Swift and real Embedded Swift Wasm via the owned Guest UI v1 C ABI, table-memory-v3, one 64 KiB page, 1,000,000 fuel and zero host calls per turn. Coverage is limited to these unsigned fixtures, the tested admission refusals and the two named VM suites at the exact public pin.",
+  "publicRevision": "d89c742e9d6a7b6277830f201a350ccc0e7d7096",
+  "publicTree": "3e62f01a1a2f405bc04f195da5ad38737404f4ca",
+  "publicCommitURL": "https://github.com/snowdamiz/mixer/commit/d89c742e9d6a7b6277830f201a350ccc0e7d7096",
+  "vmTree": "ec1ddb74b7c6c2eabd91d1f60ed243ffc69ce6f4",
+  "replayBlob": "53f4ca1d186d494e154b65bb3ce4801c6007ecce",
+  "sourceManifestSHA256": "91c03cd3ecdc1ff271d425da8df35e66046f2f7e8f04371f4313db50ef3296e3",
+  "checkout": "Fresh detached sparse checkout with isolated Git metadata and local Git object alternates. GitHub commit API independently returned the same commit and root tree. The checkout was clean before and after the unmodified replay.",
+  "attempts": 1,
+  "campaignDeadlineSeconds": 240,
+  "commandBoundsSeconds": {
+    "default": 15,
+    "swiftBuildOrGuestLink": 35,
+    "vmBuild": 100,
+    "eachVmTestSuite": 75
+  },
+  "toolVersions": {
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "nativeSwift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "guestSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "linker": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "objdump": "LLVM (http://llvm.org/):\n  LLVM version 21.0.0\n  Optimized build.",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "python": "3.14.8",
+    "architecture": "arm64",
+    "xcode": "Xcode 27.2 (27B52)",
+    "checkoutGit": "2.56.0",
+    "replayGit": "git version 2.54.0 (Apple Git-157)"
+  },
+  "replayStdoutSHA256": "1a4b62053e529005b44e1015a112877e1226e1fae64a364f501a306e1590269b",
+  "replayStderrBytes": 0,
+  "outerProcess": {
+    "argv": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "-B",
+      "compiler/Fixtures/FeatureProbe/replay.py"
+    ],
+    "pid": 38264,
+    "pgid": 38264,
+    "directExit": 0,
+    "groupAfterReap": "absent",
+    "elapsedSeconds": 12.147,
+    "replayScratchEntriesRemaining": []
+  },
+  "innerCustody": {
+    "directReapedAndGroupsObservedAbsent": 34,
+    "unknown": 0,
+    "observedPeakScratchBytes": 79327050,
+    "scratchLimitBytes": 3221225472,
+    "scratchRemoved": true
+  },
+  "nativeFeatureProbe": {
+    "status": "passed",
+    "completionBasisPoints": 5000,
+    "codableRoundTrip": true,
+    "unicodePreserved": true,
+    "emptyTitleRejected": true,
+    "wrongFieldTypeRejected": true,
+    "nonfiniteRejected": true
+  },
+  "taskCompletion": {
+    "native": {
+      "closed": false,
+      "mismatchedRefusals": 3,
+      "truncatedRefusals": 3
+    },
+    "guest": {
+      "mismatchedRefusals": 3,
+      "truncatedRefusals": 3,
+      "closed": true
+    },
+    "frameSHA256": [
+      "cba98fab9e4bed642f3b0ce41506d7a98eb2bebe37528ce1805821ac2bc49833",
+      "0d04a715c3a5fb3aae1fad401801ead8d555944960daa5f8becfc71b72460eae",
+      "d6fa309e765b4ddf5e8ee08dfdee4339ef4d5deb2f8b16e18ea591d0ee07715c",
+      "9f9839813937d389aeef9af99de5ee771c334ec97f92da084018d72ccabc7851"
+    ],
+    "referenceReceipt": "verification/receipts/l03-d3-task-review-event-trap-7b61fe1c.json",
+    "nativeAndGuestFramesByteIdentical": true,
+    "malformedEventsPreservedCurrentFrame": true,
+    "compactWasm": {
+      "bytes": 2790,
+      "sha256": "188b91fd3d9e13eb4379e904fe5d93159f87d6bcd66886c7993ea093812a7716"
+    }
+  },
+  "previews": {
+    "floatingPointPreview": {
+      "acceptedEvents": 7,
+      "inputsHex": {
+        "fractional": "0000c03f0000003f000000000000f83f000000000000e03f",
+        "ordered": "0000003f00000040000000000000e03f0000000000000040",
+        "below-precision-boundary": "ffff7f4b0000803fffffffffffff3f43000000000000f03f",
+        "at-precision-boundary": "0000804b0000803f0000000000004043000000000000f03f",
+        "smallest-normal": "000080000000003f0000000000001000000000000000e03f",
+        "positive-zero": "000000000000004000000000000000000000000000000040",
+        "negative-zero": "000000800000004000000000000000800000000000000040"
+      },
+      "inputOrderHex": [
+        "0000c03f0000003f000000000000f83f000000000000e03f",
+        "0000003f00000040000000000000e03f0000000000000040",
+        "ffff7f4b0000803fffffffffffff3f43000000000000f03f",
+        "0000804b0000803f0000000000004043000000000000f03f",
+        "000080000000003f0000000000001000000000000000e03f",
+        "000000000000004000000000000000000000000000000040",
+        "000000800000004000000000000000800000000000000040"
+      ],
+      "nativeAndGuestFramesHex": {
+        "initial": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "fractional": "000000400000803f0000403f000040400000000000000040000000000000f03f000000000000e83f00000000000008400000000000000000",
+        "ordered": "000020400000c0bf0000803f0000803e0000000000000440000000000000f8bf000000000000f03f000000000000d03f0100000001000000",
+        "below-precision-boundary": "0000804bfeff7f4bffff7f4bffff7f4b0000000000004043feffffffffff3f43ffffffffffff3f43ffffffffffff3f430000000000000000",
+        "at-precision-boundary": "0000804bffff7f4b0000804b0000804b0000000000004043ffffffffffff3f43000000000000404300000000000040430000000000000000",
+        "smallest-normal": "0000003f000000bf0000400000000001000000000000e03f000000000000e0bf000000000000080000000000000020000100000001000000",
+        "positive-zero": "00000040000000c00000000000000000000000000000004000000000000000c0000000000000000000000000000000000300000003000000",
+        "negative-zero": "00000040000000c00000008000000080000000000000004000000000000000c0000000000000008000000000000000800300000003000000"
+      },
+      "nativeAndGuestRefusedInputHex": "0000c03f0000003f000000000000f83f000000000000e0",
+      "nativeAndGuestFrameAfterRefusalHex": "00000040000000c00000008000000080000000000000004000000000000000c0000000000000008000000000000000800300000003000000",
+      "guestFuel": [
+        147,
+        147,
+        147,
+        147,
+        147,
+        147,
+        147
+      ],
+      "guestClosed": true,
+      "wasm": {
+        "bytes": 715,
+        "sha256": "76d15d3d60b07bba96ca0280ecce20747577eb1469fce3b9688685606a94be23"
+      },
+      "instructions": [
+        "f32.add",
+        "f32.div",
+        "f32.eq",
+        "f32.lt",
+        "f32.mul",
+        "f32.sub",
+        "f64.add",
+        "f64.div",
+        "f64.eq",
+        "f64.lt",
+        "f64.mul",
+        "f64.sub"
+      ]
+    },
+    "associatedTypesPreview": {
+      "acceptedEvents": 4,
+      "inputsHex": {
+        "signed-decrease": "0004000100",
+        "counter-wrap": "0104000100",
+        "signed-boundary": "00ff7f0080",
+        "counter-increase": "0164006900"
+      },
+      "inputOrderHex": [
+        "0004000100",
+        "0104000100",
+        "00ff7f0080",
+        "0164006900"
+      ],
+      "nativeAndGuestFramesHex": {
+        "initial": "00000000",
+        "signed-decrease": "fdffffff",
+        "counter-wrap": "fdff0000",
+        "signed-boundary": "0100ffff",
+        "counter-increase": "05000000"
+      },
+      "nativeAndGuestRefusedInputHex": "00040001",
+      "nativeAndGuestFrameAfterRefusalHex": "05000000",
+      "guestFuel": [
+        71,
+        73,
+        71,
+        73
+      ],
+      "guestClosed": true,
+      "wasm": {
+        "bytes": 503,
+        "sha256": "a663d4da7b35ddc61e6ba97d846987afcc166c85b2e6f3e2882c0c6f8704b7f3"
+      }
+    },
+    "propertyWrapperPreview": {
+      "acceptedEvents": 4,
+      "inputsHex": {
+        "set": "f000",
+        "clamp": "e204",
+        "same-bounded-value": "b004",
+        "update-after-refusal": "e001"
+      },
+      "inputOrderHex": [
+        "f000",
+        "e204",
+        "b004",
+        "ffff",
+        "e001"
+      ],
+      "nativeAndGuestFramesHex": {
+        "initial": "0000000000000000",
+        "set": "f000000001000000",
+        "clamp": "e803000002000000",
+        "same-bounded-value": "e803000002000000",
+        "update-after-refusal": "e001000003000000"
+      },
+      "nativeAndGuestRefusedInputHex": "ffff",
+      "nativeAndGuestFrameAfterRefusalHex": "e803000002000000",
+      "guestFuel": [
+        86,
+        86,
+        76,
+        86
+      ],
+      "guestClosed": true,
+      "wasm": {
+        "bytes": 528,
+        "sha256": "26ec50f34be366501c4542a306ef6adaaed33e6d19791b6133a573d97be462bc"
+      }
+    }
+  },
+  "descriptorGuardRefusals": [
+    "differentMaximum",
+    "differentMinimum",
+    "extraFunctionExport",
+    "extraMemory",
+    "extraMemoryExport",
+    "importedFunction",
+    "missingMemory",
+    "missingMemoryExport",
+    "renamedMemoryExport",
+    "sharedMemory",
+    "startSection",
+    "unboundedMemory",
+    "wrongFunctionSignature",
+    "wrongMemoryExportIndex"
+  ],
+  "sharedMemoryControl": {
+    "bytes": 2790,
+    "sha256": "948d281712063afd9d13548c652be664ae07925f854e677d2f4d144f5b50bcb0",
+    "changedByteOffset": 110,
+    "sessionHandlePublished": false,
+    "construction": {
+      "code": "unsupported",
+      "status": 1,
+      "offset": 111,
+      "message": "shared/memory64 memory is unsupported"
+    },
+    "validation": {
+      "message": "shared/memory64 memory is unsupported",
+      "offset": 111,
+      "code": "unsupported",
+      "status": 1
+    },
+    "zeroFuelAndHostCallsAsserted": true
+  },
+  "vmTestResults": {
+    "experimental_guest_ui_validation": "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "experimental_capability_guest": "test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+  },
+  "commands": [
+    {
+      "label": "revision",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "tree",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "HEAD^{tree}"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "macOS",
+      "argv": [
+        "/usr/bin/sw_vers"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "nativeSwift",
+      "argv": [
+        "/usr/bin/swiftc",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "guestSwift",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "linker",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "objdump",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-objdump",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "rustc",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "cargo",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "vm-sources",
+      "argv": [
+        "/usr/bin/git",
+        "ls-files",
+        "-z",
+        "--",
+        "vm/Cargo.toml",
+        "vm/Cargo.lock",
+        "vm/src",
+        "vm/include",
+        "vm/tests",
+        "vm/examples"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "native-feature-build",
+      "argv": [
+        "/usr/bin/swiftc",
+        "-O",
+        "-swift-version",
+        "6",
+        "-module-cache-path",
+        "$RUN/native-modules",
+        "$REPO/compiler/Fixtures/FeatureProbe/Sources/FeatureProbe/main.swift",
+        "-o",
+        "$RUN/feature-probe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "native-feature",
+      "argv": [
+        "$RUN/feature-probe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "task-review-swift",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-whole-module-optimization",
+        "-Osize",
+        "-parse-as-library",
+        "-Xfrontend",
+        "-disable-stack-protector",
+        "-D",
+        "REQUIRE_REVIEW",
+        "-module-cache-path",
+        "$RUN/guest-modules",
+        "-emit-object",
+        "$REPO/compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift",
+        "$REPO/compiler/experiments/fieldlog-installed-guest/InstalledGuest.swift",
+        "-o",
+        "$RUN/task-review.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "task-review-link",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--no-entry",
+        "--gc-sections",
+        "--strip-all",
+        "-z",
+        "stack-size=16384",
+        "--max-memory=65536",
+        "--export=mixer_guest_ui_start_v1",
+        "--export=mixer_guest_ui_event_v1",
+        "--export=mixer_guest_capability_ready_v1",
+        "$RUN/task-review.o",
+        "-o",
+        "$RUN/task-review.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "floating-swift",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-whole-module-optimization",
+        "-Osize",
+        "-parse-as-library",
+        "-Xfrontend",
+        "-disable-stack-protector",
+        "-module-cache-path",
+        "$RUN/guest-modules",
+        "-emit-object",
+        "$REPO/compiler/Fixtures/FeatureProbe/FloatingPoint.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/CompactPreviewGuest.swift",
+        "-o",
+        "$RUN/floating.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "floating-link",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--no-entry",
+        "--gc-sections",
+        "--strip-all",
+        "-z",
+        "stack-size=16384",
+        "--max-memory=65536",
+        "--export=mixer_guest_ui_start_v1",
+        "--export=mixer_guest_ui_event_v1",
+        "--export=mixer_guest_capability_ready_v1",
+        "$RUN/floating.o",
+        "-o",
+        "$RUN/floating.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "associated-swift",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-whole-module-optimization",
+        "-Osize",
+        "-parse-as-library",
+        "-Xfrontend",
+        "-disable-stack-protector",
+        "-D",
+        "ASSOCIATED_TYPES_GUEST",
+        "-module-cache-path",
+        "$RUN/guest-modules",
+        "-emit-object",
+        "$REPO/compiler/Fixtures/FeatureProbe/AssociatedTypes.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/CompactPreviewGuest.swift",
+        "-o",
+        "$RUN/associated.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "associated-link",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--no-entry",
+        "--gc-sections",
+        "--strip-all",
+        "-z",
+        "stack-size=16384",
+        "--max-memory=65536",
+        "--export=mixer_guest_ui_start_v1",
+        "--export=mixer_guest_ui_event_v1",
+        "--export=mixer_guest_capability_ready_v1",
+        "$RUN/associated.o",
+        "-o",
+        "$RUN/associated.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "wrapper-swift",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-whole-module-optimization",
+        "-Osize",
+        "-parse-as-library",
+        "-Xfrontend",
+        "-disable-stack-protector",
+        "-D",
+        "PROPERTY_WRAPPER_GUEST",
+        "-module-cache-path",
+        "$RUN/guest-modules",
+        "-emit-object",
+        "$REPO/compiler/Fixtures/FeatureProbe/PropertyWrapper.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/CompactPreviewGuest.swift",
+        "-o",
+        "$RUN/wrapper.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "wrapper-link",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--no-entry",
+        "--gc-sections",
+        "--strip-all",
+        "-z",
+        "stack-size=16384",
+        "--max-memory=65536",
+        "--export=mixer_guest_ui_start_v1",
+        "--export=mixer_guest_ui_event_v1",
+        "--export=mixer_guest_capability_ready_v1",
+        "$RUN/wrapper.o",
+        "-o",
+        "$RUN/wrapper.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "vm-build",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--lib",
+        "--offline",
+        "--locked",
+        "--release",
+        "--jobs",
+        "1",
+        "--features",
+        "experimental-capability-native",
+        "--manifest-path",
+        "$REPO/vm/Cargo.toml",
+        "--target-dir",
+        "$RUN/rust"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "host-build",
+      "argv": [
+        "/usr/bin/swiftc",
+        "-O",
+        "-whole-module-optimization",
+        "-swift-version",
+        "6",
+        "-D",
+        "SWIFT_SUPPORT_MATRIX",
+        "-parse-as-library",
+        "-module-cache-path",
+        "$RUN/native-modules",
+        "-I",
+        "$RUN",
+        "$REPO/compiler/Fixtures/FeatureProbe/CompactHost.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/FloatingPoint.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/AssociatedTypes.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/PropertyWrapper.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/ResultBuilder.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/FixedSlotResultBuilder.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/EnumTypedThrows.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/EscapingClosure.swift",
+        "$REPO/compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift",
+        "$REPO/compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift",
+        "$RUN/rust/release/libmixer_vm.a",
+        "-o",
+        "$RUN/compact-host"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "compact-native",
+      "argv": [
+        "$RUN/compact-host",
+        "native",
+        "$RUN/task-review.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "compact-guest",
+      "argv": [
+        "$RUN/compact-host",
+        "guest",
+        "$RUN/task-review.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "floating-native",
+      "argv": [
+        "$RUN/compact-host",
+        "floating-native",
+        "$RUN/floating.wasm",
+        "$RUN/floating-inputs"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "floating-guest",
+      "argv": [
+        "$RUN/compact-host",
+        "floating-guest",
+        "$RUN/floating.wasm",
+        "$RUN/floating-inputs"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "associated-native",
+      "argv": [
+        "$RUN/compact-host",
+        "associated-native",
+        "$RUN/associated.wasm",
+        "$RUN/associated-inputs"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "associated-guest",
+      "argv": [
+        "$RUN/compact-host",
+        "associated-guest",
+        "$RUN/associated.wasm",
+        "$RUN/associated-inputs"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "wrapper-native",
+      "argv": [
+        "$RUN/compact-host",
+        "wrapper-native",
+        "$RUN/wrapper.wasm",
+        "$RUN/wrapper-inputs"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "wrapper-guest",
+      "argv": [
+        "$RUN/compact-host",
+        "wrapper-guest",
+        "$RUN/wrapper.wasm",
+        "$RUN/wrapper-inputs"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "floating-disassembly",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-objdump",
+        "--disassemble",
+        "$RUN/floating.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "shared-memory",
+      "argv": [
+        "$RUN/compact-host",
+        "shared-memory",
+        "$RUN/task-shared-memory.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "experimental_guest_ui_validation",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--test",
+        "experimental_guest_ui_validation",
+        "--offline",
+        "--locked",
+        "--release",
+        "--jobs",
+        "1",
+        "--features",
+        "experimental-capability-native",
+        "--manifest-path",
+        "$REPO/vm/Cargo.toml",
+        "--target-dir",
+        "$RUN/rust"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "experimental_capability_guest",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--test",
+        "experimental_capability_guest",
+        "--offline",
+        "--locked",
+        "--release",
+        "--jobs",
+        "1",
+        "--features",
+        "experimental-capability-native",
+        "--manifest-path",
+        "$REPO/vm/Cargo.toml",
+        "--target-dir",
+        "$RUN/rust"
+      ],
+      "exit": 0
+    }
+  ],
+  "disposableNamespace": "/tmp/mixer-featureprobe-d89c-ar3ZclPU",
+  "disposableNamespaceRemoved": true
+}
