@@ -259,8 +259,13 @@ settings. A reversible Source141 successor seals the prior workflow bytes.
 Independent review verified both workflow sparse projections, both Python
 modes, exact predecessor restoration, and tamper refusals. The composed
 checkout also passed all 16 sparse controls per mode and admitted the same
-157 source inputs. Hosted confirmation is pending.
+157 source inputs. The exact `d7ab346ec8` push passed all nine hosted jobs.
+The Intel SDK download succeeded, all six consumers cross-compiled, and
+their DEX hashes matched. The job refused all 12 tamper cases before
+staging and recorded terminal custody for 13 bootstrap and 79 integration
+commands. The earlier timeout and download failure retain separate receipts.
 [Timeout and Source141 verification](verification/receipts/android-sparse-checkout-timeout-c00f33e7.json)
+[Exact hosted run](verification/receipts/owned-engine-d7ab346e-terminal-ci.json)
 
 The six-action private V3 candidate `790d0b2253` delivered Open, Next,
 Tasks, reopen, Previous, and Entries through the signed guest. Its two
@@ -817,6 +822,21 @@ fresh-process offline recovery open. All 74 recorded groups closed and 14
 listeners could rebind.
 [Readiness diagnostic](verification/receipts/d6-l04-l05-swift-restored-phoenix-5fd075d6-delivery-readiness.json) ·
 [Test-only observation patch](verification/receipts/d6-l04-l05-swift-restored-phoenix-5fd075d6-delivery-readiness.patch)
+
+The initial delivery admission candidate `2ade050cce` passed a full
+macOS headless Swift restore replay. The first ordinary post-restart
+offer returned HTTP 200 without a warm-up or retry. The Swift owner
+accepted rollback sequence 3 and refused its exact replay. After the API
+stopped, a fresh offline process reopened the same artifact, retained
+all three signed candidate receipts and payloads, and recorded fresh
+health. The fixture recorded 71 terminal command groups and nine
+listener rebinds before scratch removal.
+
+Independent review reproduced a separate existing health-halt restart
+test failure. The admission child spec persisted after a successful
+startup. The stalled-checkout test also left its callback waiting after
+repo shutdown. The candidate remains pending correction and integration.
+[Candidate restored Swift replay](verification/receipts/d6-l04-l05-swift-restored-phoenix-2ade050c.json)
 
 ## November 20 generated release REST client
 
