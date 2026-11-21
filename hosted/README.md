@@ -94,6 +94,79 @@ root must be a canonical absolute path. A loopback `builds_v1` API can set
 `MIXER_NATIVE_RETAINED_ROOT` for downloads without the worker settings. Omit
 these settings to leave native dispatch and retained native downloads disabled.
 
+#### Run a reusable iOS worker on macOS
+
+Add an `ios_custodian` object to the private native worker JSON. Set `version`
+to the integer `2`, `authority_id` to a stable 64-character lowercase hex ID
+for this ledger, and `runtime_sha256` to the pinned runtime digest map. The
+worker also uses the existing `worker_id`, `tenant`, `registration`, and
+`policy` to bind the ledger. Keep those values and the custody settings fixed
+across listener restarts and build operations. Keep the token in the private
+configuration file.
+
+Set `worker_python` to the absolute path of the Python executable for both
+roles. To inspect the digest map from your trusted checkout, run the following
+from the repository root. Compare it with the approved runtime before setting
+`runtime_sha256`.
+
+```sh
+custody_entry="$PWD/hosted/priv/development/ios_build_custody.py"
+"$worker_python" -IBS - "$custody_entry" <<'PY'
+import json
+import runpy
+import sys
+
+runtime = runpy.run_path(sys.argv[1])
+print(json.dumps(runtime["runtime_image"]()[1], sort_keys=True))
+PY
+```
+
+Set `worker_config` to the private JSON path and `worker_state` to the
+canonical absolute path of the private retained root. The worker creates the
+state directory with mode `0700` if needed. Its parent must already exist.
+Calculate the SHA-256 of the exact JSON bytes. Start the listener in one
+service and wait for it to listen on its configured loopback port.
+
+```sh
+worker_config_sha=$(shasum -a 256 "$worker_config" | cut -d ' ' -f 1)
+"$worker_python" -IBS "$custody_entry" worker \
+  "$worker_config" "$worker_config_sha" "$worker_state"
+```
+
+Start the supervisor in a separate service under the same local user. Use
+the same configuration file, digest, state path, and Python executable.
+
+```sh
+"$worker_python" -IBS "$custody_entry" supervisor \
+  "$worker_config" "$worker_config_sha" "$worker_state"
+```
+
+Keep the supervisor running when you replace the listener. Each operation
+has one admission plan and one claim. For a released CLI, the supervisor
+records closure after reaping the CLI, observing group absence, and validating
+the CLI's acknowledgment and nested receipts. The listener uses a current
+authenticated request for the same operation to validate and settle that proof.
+Until then, the ledger retains capacity for that operation. The same config
+can read its retained artifacts after later builds.
+
+Send `SIGTERM` or `SIGINT` to drain the supervisor. It finishes handling the
+current claim before exit. To cancel a build, send the authenticated worker
+stop request. Exit 3 means another supervisor holds the ledger lock. Exit 74
+means the supervisor could not establish authority or custody. Preserve the
+ledger and retained paths when a claim lacks terminal proof. A replacement
+supervisor refuses to take over that claim, including after the CLI exits.
+
+For the legacy single-operation configuration, use the existing
+`operation_id` and `runtime_sha256` fields with the `worker` and `observe`
+roles. Keep the legacy configuration, its pinned runtime, and the retained root
+to read legacy artifacts.
+Before switching to reusable mode, positively verify closure of every legacy
+operation and shut down the legacy worker. Then set `worker_state` to a new
+private retained root. A legacy operation with unproven closure still occupies
+worker capacity.
+
+#### Enable build cancellation
+
 To enable cancellation, install the SQL emitted by
 `mix run --no-start priv/unselected_build_cancel/print_install_sql.exs` as
 `browser_schema_owner` after provisioning the existing restricted build-create

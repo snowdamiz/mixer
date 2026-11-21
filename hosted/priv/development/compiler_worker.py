@@ -6,6 +6,7 @@ No source is resolved from a request path, URL, input id or job argument.
 """
 import ast
 import concurrent.futures
+from contextlib import ExitStack
 import fcntl
 import hashlib
 import hmac
@@ -33,18 +34,25 @@ class Worker:
         self.config = config
         self.state = Path(state)
         self.state.mkdir(parents=True, exist_ok=True)
-        self.lock = (self.state / "writer.lock").open("ab")
-        fcntl.flock(self.lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        self.db = sqlite3.connect(self.state / "operations.sqlite")
-        self.db.execute("PRAGMA synchronous=FULL")
-        self.db.execute("CREATE TABLE IF NOT EXISTS operations (id TEXT PRIMARY KEY, value TEXT NOT NULL)")
+        with ExitStack() as startup:
+            self.lock = startup.enter_context((self.state / "writer.lock").open("ab"))
+            fcntl.flock(self.lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            self.db = sqlite3.connect(self.state / "operations.sqlite")
+            startup.callback(self.db.close)
+            self.db.execute("PRAGMA synchronous=FULL")
+            with self.db:
+                self.db.execute("BEGIN IMMEDIATE")
+                self.db.execute("CREATE TABLE IF NOT EXISTS operations (id TEXT PRIMARY KEY, value TEXT NOT NULL)")
+                self.initialize_ledger()
+            self.future = None
+            self.active = None
+            self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+            startup.pop_all()
+
+    def initialize_ledger(self):
         # Independent iOS custody recovers only rows bound to its configuration.
         self.db.execute("""UPDATE operations SET value=json_set(value,'$.status','uncertain')
             WHERE json_extract(value,'$.status')='running' AND json_type(value,'$.ios_custody') IS NULL""")
-        self.db.commit()
-        self.future = None
-        self.active = None
-        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
     def close(self):
         if self.future is not None:
@@ -58,8 +66,11 @@ class Worker:
         return json.loads(value[0]) if value else None
 
     def save(self, operation, value):
-        self.db.execute("INSERT INTO operations VALUES(?,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value", (operation, literal(value)))
+        self.write_operation(operation, value)
         self.db.commit()
+
+    def write_operation(self, operation, value):
+        self.db.execute("INSERT INTO operations VALUES(?,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value", (operation, literal(value)))
 
     def blob(self, data):
         sha = digest(data)

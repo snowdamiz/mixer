@@ -1,15 +1,17 @@
-"""Private macOS custody owner for a single registered iOS worker operation.
+"""Private macOS custody for an operator-registered iOS worker.
 
-Run worker and observe as separate commands under the local operator. Only observe
-parents the CLI. The socket worker and observer share the private SQLite ledger.
+Run the worker and the reusable supervisor (or legacy observer) independently.
+Only the custody owner parents the CLI. Both roles share the private SQLite ledger.
 """
 
 from contextlib import ExitStack, closing
+import fcntl
 import hashlib
 import json
 import os
 from pathlib import Path
 import re
+import signal
 import socket
 import sqlite3
 import stat
@@ -17,6 +19,7 @@ import subprocess
 import sys
 import time
 from types import ModuleType
+from typing import NamedTuple
 
 SOURCE = ("compiler_worker", "starter_package_closure", "native_artifact_worker")
 ENTRY = "ios_build_custody"
@@ -24,6 +27,7 @@ PIN_LIMIT = 8 * 1024 * 1024
 POLL_SECONDS = 0.05
 ADMISSION_SECONDS = 60
 INERT_REAP_SECONDS = 5
+REUSABLE_VERSION = 2
 INERT_LAUNCHER = r"""
 import os
 import sys
@@ -42,6 +46,17 @@ if time.time_ns() // 1_000_000 >= int(sys.argv[2]):
 os.execv(argv[0], argv)
 """
 _runtime = None
+
+
+class Claim(NamedTuple):
+    operation: str
+    plan_sha256: str
+    guard: str
+    parent_pid: int
+
+
+def is_sha256(value):
+    return type(value) is str and re.fullmatch(r"[0-9a-f]{64}", value) is not None
 
 
 def runtime_image():
@@ -173,37 +188,100 @@ def classify(code, receipts, *, stop_requested):
     return "build_failed"
 
 
+def check_ledger_mode(db, custody):
+    # The listener holds the writer lock and startup transaction. Check mode
+    # before pinning authority or recovering any operation.
+    tables = {name for name, in db.execute("""SELECT name FROM sqlite_schema WHERE type='table'
+        AND name IN ('ios_supervisor_authority','ios_custody_plans')""")}
+    reusable = custody is not None and custody.reusable
+    if not tables:
+        scope = "$.ios_custody" if reusable else "$.ios_custody.version"
+        require(db.execute("""SELECT 1 FROM operations
+            WHERE json_type(value,?) IS NOT NULL LIMIT 1""", (scope,)).fetchone() is None)
+        return
+    require(reusable and tables == {"ios_supervisor_authority", "ios_custody_plans"})
+    custody.check_authority(db)
+    require(db.execute("""SELECT 1 FROM operations
+        WHERE json_type(value,'$.ios_custody') IS NOT NULL
+          AND (json_type(value,'$.ios_custody.version') IS NOT 'integer'
+               OR json_extract(value,'$.ios_custody.version') IS NOT ?
+               OR json_extract(value,'$.ios_custody.configuration') IS NOT ?)
+        LIMIT 1""", (REUSABLE_VERSION, custody.configuration)).fetchone() is None)
+
+
 class IOSCustody:
     def __init__(self, config):
         from compiler_worker import Refusal, digest, literal
 
         options = config["ios_custodian"]
-        self.operation = options["operation_id"]
-        if (set(options) != {"operation_id", "runtime_sha256"}
-                or _runtime is None or options["runtime_sha256"] != _runtime
+        self.reusable = type(options.get("version")) is int and options["version"] == REUSABLE_VERSION
+        self.operation = options.get("operation_id")
+        if self.reusable:
+            valid = (set(options) == {"version", "authority_id", "runtime_sha256"}
+                     and is_sha256(options["authority_id"])
+                     and type(config["worker_id"]) is str and bool(config["worker_id"]))
+        else:
+            valid = (set(options) == {"operation_id", "runtime_sha256"} and is_sha256(self.operation))
+        if (not valid or _runtime is None or options["runtime_sha256"] != _runtime
                 or config["registration"]["spec"]["platform"] != "ios"
-                or "linux_runner" in config
-                or type(self.operation) is not str or len(self.operation) != 64
-                or any(c not in "0123456789abcdef" for c in self.operation)):
+                or "linux_runner" in config):
             raise Refusal("unavailable")
         self.registration = config["registration"]
-        self.configuration = digest(literal({key: config[key] for key in
-                                    ("tenant", "registration", "policy", "ios_custodian")}).encode())
+        authority = {key: config[key] for key in ("tenant", "registration", "policy", "ios_custodian")}
+        if self.reusable:
+            authority["worker_id"] = config["worker_id"]
+        self.configuration = digest(literal(authority).encode())
 
     def initialize(self, db):
-        with db:
-            db.execute("""CREATE TABLE IF NOT EXISTS ios_custody_claims (
-                operation TEXT PRIMARY KEY, plan_sha256 TEXT NOT NULL, guard TEXT NOT NULL,
-                parent_pid INTEGER NOT NULL, launch TEXT, terminal TEXT,
-                uncertain INTEGER NOT NULL DEFAULT 0) WITHOUT ROWID""")
+        db.execute("""CREATE TABLE IF NOT EXISTS ios_custody_claims (
+            operation TEXT PRIMARY KEY, plan_sha256 TEXT NOT NULL, guard TEXT NOT NULL,
+            parent_pid INTEGER NOT NULL, launch TEXT, terminal TEXT,
+            uncertain INTEGER NOT NULL DEFAULT 0) WITHOUT ROWID""")
+        if self.reusable:
+            db.execute("""CREATE TABLE IF NOT EXISTS ios_supervisor_authority (
+                singleton INTEGER PRIMARY KEY CHECK (singleton=1), configuration TEXT NOT NULL)""")
+            db.execute("""CREATE TABLE IF NOT EXISTS ios_custody_plans (
+                operation TEXT PRIMARY KEY, plan TEXT NOT NULL) WITHOUT ROWID""")
+            db.execute("INSERT OR IGNORE INTO ios_supervisor_authority VALUES (1,?)",
+                       (self.configuration,))
+            self.check_authority(db)
             db.execute("""UPDATE operations SET value=json_set(value,'$.status','uncertain')
-                WHERE id=? AND json_extract(value,'$.status')='running'
+                WHERE json_extract(value,'$.status')='running'
+                  AND json_extract(value,'$.ios_custody.version')=?
                   AND json_extract(value,'$.ios_custody.configuration')=?""",
-                       (self.operation, self.configuration))
+                       (REUSABLE_VERSION, self.configuration))
+            return
+        db.execute("""UPDATE operations SET value=json_set(value,'$.status','uncertain')
+            WHERE id=? AND json_extract(value,'$.status')='running'
+              AND json_extract(value,'$.ios_custody.configuration')=?""",
+                   (self.operation, self.configuration))
+
+    def check_authority(self, db):
+        require(db.execute("SELECT configuration FROM ios_supervisor_authority WHERE singleton=1")
+                .fetchone() == (self.configuration,))
+
+    def matches(self, operation, row):
+        intent = row["ios_custody"]
+        if intent["configuration"] != self.configuration:
+            return False
+        if self.reusable:
+            return type(intent.get("version")) is int and intent["version"] == REUSABLE_VERSION
+        return operation == self.operation
 
     def submit(self, worker, operation, row, recipe):
-        from compiler_worker import Refusal
+        from compiler_worker import Refusal, digest, literal
 
+        if self.reusable:
+            plan = literal({"operation_id": operation, "binding": row["binding"], "recipe": recipe,
+                            "configuration": self.configuration, "guard": row["guard"]})
+            row.update(status="running", starts=1, ios_custody={
+                "version": REUSABLE_VERSION, "configuration": self.configuration,
+                "plan_sha256": digest(plan.encode()),
+            })
+            with worker.db:
+                worker.db.execute("INSERT INTO ios_custody_plans VALUES (?,?)", (operation, plan))
+                worker.write_operation(operation, row)
+            return
         if operation != self.operation:
             raise Refusal("unavailable")
         # The current request guard may advance later. This snapshot never changes.
@@ -212,11 +290,18 @@ class IOSCustody:
         })
         worker.save(operation, row)
 
-    def plan(self, row):
+    def plan(self, db, operation, row):
         from compiler_worker import digest, literal
 
+        require(row is not None and row["starts"] == 1 and self.matches(operation, row))
         intent = row["ios_custody"]
-        require(row["starts"] == 1 and intent["configuration"] == self.configuration)
+        if self.reusable:
+            found = db.execute("SELECT plan FROM ios_custody_plans WHERE operation=?", (operation,)).fetchone()
+            require(found is not None and digest(found[0].encode()) == intent["plan_sha256"])
+            plan = json.loads(found[0])
+            require(plan["operation_id"] == operation and plan["configuration"] == self.configuration
+                    and literal(plan["binding"]) == literal(row["binding"]))
+            return plan, intent["plan_sha256"]
         return intent, digest(literal({"operation_id": self.operation, "binding": row["binding"],
                                        "intent": intent}).encode())
 
@@ -236,50 +321,83 @@ class IOSCustody:
     def observe(self, state):
         import native_artifact_worker as native
 
+        require(not self.reusable)
         private_directory(state)
         database = state / "operations.sqlite"
         with closing(sqlite3.connect(database.as_uri() + "?mode=rw", uri=True)) as db:
             db.execute("PRAGMA synchronous=FULL")
-            try:
-                return self.supervise(native, db, state)
-            except (OSError, sqlite3.Error, ValueError, TypeError, KeyError, native.Refusal):
-                # A failed observer cannot re-enter the process path. Its own
-                # claim remains occupied for manual custody resolution.
-                with db:
-                    db.execute("""UPDATE ios_custody_claims SET uncertain=1
-                        WHERE operation=? AND parent_pid=? AND terminal IS NULL""",
-                               (self.operation, os.getpid()))
-                raise
-
-    def supervise(self, native, db, state):
-        operation = self.operation
-        until = time.monotonic() + ADMISSION_SECONDS
-        while time.monotonic() < until:
-            row = load_row(db, operation)
-            if row and "ios_custody" in row:
-                break
-            if row and row["status"] != "absent":
-                return False
-            time.sleep(POLL_SECONDS)
-        else:
+            until = time.monotonic() + ADMISSION_SECONDS
+            while time.monotonic() < until:
+                row = load_row(db, self.operation)
+                if row and "ios_custody" in row:
+                    return self.claim_and_run(native, db, state, self.operation)
+                if row and row["status"] != "absent":
+                    break
+                time.sleep(POLL_SECONDS)
             return False
 
-        parent_pid = os.getpid()
+    def supervise(self, state, stopping):
+        import native_artifact_worker as native
+
+        require(self.reusable)
+        private_directory(state)
+        flags = os.O_WRONLY | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC
+        with os.fdopen(os.open(state / "ios-supervisor.lock", flags, 0o600), "wb") as lock:
+            info = os.fstat(lock.fileno())
+            require(info.st_mode == stat.S_IFREG | 0o600 and info.st_uid == os.getuid()
+                    and info.st_nlink == 1)
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                return False
+            database = state / "operations.sqlite"
+            with closing(sqlite3.connect(database.as_uri() + "?mode=rw", uri=True)) as db:
+                db.execute("PRAGMA synchronous=FULL")
+                self.check_authority(db)
+                while not stopping():
+                    # No restart owns a prior claim's waitpid or launch rights.
+                    require(db.execute("""SELECT 1 FROM ios_custody_claims
+                        JOIN ios_custody_plans USING (operation)
+                        WHERE terminal IS NULL LIMIT 1""").fetchone() is None)
+                    pending = db.execute("""SELECT operation FROM ios_custody_plans
+                        LEFT JOIN ios_custody_claims USING (operation)
+                        WHERE ios_custody_claims.operation IS NULL LIMIT 1""").fetchone()
+                    if pending is None:
+                        time.sleep(POLL_SECONDS)
+                    else:
+                        self.claim_and_run(native, db, state, pending[0])
+        return True
+
+    def claim_and_run(self, native, db, state, operation):
         with db:
             db.execute("BEGIN IMMEDIATE")
+            if self.reusable:
+                self.check_authority(db)
             row = load_row(db, operation)
-            intent, sha = self.plan(row)
-            guard = native.literal(intent["guard"])
+            intent, sha = self.plan(db, operation, row)
+            ownership = Claim(operation, sha, native.literal(intent["guard"]), os.getpid())
             inserted = db.execute("""INSERT INTO ios_custody_claims
                 (operation, plan_sha256, guard, parent_pid) VALUES (?,?,?,?)
-                ON CONFLICT DO NOTHING""", (operation, sha, guard, parent_pid))
+                ON CONFLICT DO NOTHING""", ownership)
             if inserted.rowcount != 1:
                 return False
             refusal = self.launch_refusal(row, intent)
             if refusal:
-                self.record_terminal(native, db, {"not_started": refusal})
+                self.record_terminal(native, db, ownership, {"not_started": refusal})
                 return True
 
+        try:
+            return self.run_claim(native, db, state, ownership, intent, row["binding"]["deadline_ms"])
+        except (OSError, sqlite3.Error, ValueError, TypeError, KeyError, native.Refusal):
+            # This owner may mark its claim uncertain but never relinquish it.
+            with db:
+                db.execute("""UPDATE ios_custody_claims SET uncertain=1
+                    WHERE operation=? AND plan_sha256=? AND guard=? AND parent_pid=? AND terminal IS NULL""",
+                           ownership)
+            raise
+
+    def run_claim(self, native, db, state, ownership, intent, operation_deadline):
+        operation, sha, guard, parent_pid = ownership
         recipe = intent["recipe"]
         output = state / operation
         cli = Path(recipe["argv"][0])
@@ -294,22 +412,22 @@ class IOSCustody:
                 stderr = logs.enter_context((output / "stderr").open("xb"))
             except (OSError, native.Refusal):
                 with db:
-                    self.record_terminal(native, db, {"not_started": "preparation_failed"})
+                    self.record_terminal(native, db, ownership, {"not_started": "preparation_failed"})
                 return True
 
             with db:
                 db.execute("BEGIN IMMEDIATE")
                 row = load_row(db, operation)
-                require(self.plan(row)[1] == sha)
+                require(self.plan(db, operation, row)[1] == sha)
                 refusal = self.launch_refusal(row, intent)
                 if refusal:
-                    self.record_terminal(native, db, {"not_started": refusal})
+                    self.record_terminal(native, db, ownership, {"not_started": refusal})
                     return True
 
             control, child = socket.socketpair()
             proc = None
             released = False
-            admission_end = min(row["binding"]["deadline_ms"], intent["guard"]["expires_at"])
+            admission_end = min(operation_deadline, intent["guard"]["expires_at"])
             with control, child:
                 try:
                     launcher = [str(Path(sys.executable).resolve(strict=True)), "-IBS", "-c", INERT_LAUNCHER,
@@ -326,17 +444,20 @@ class IOSCustody:
                         changed = db.execute("""UPDATE ios_custody_claims SET launch=? WHERE operation=?
                             AND plan_sha256=? AND guard=? AND parent_pid=?
                             AND launch IS NULL AND terminal IS NULL AND uncertain=0""",
-                                             (recorded, operation, sha, guard, parent_pid))
+                                             (recorded, *ownership))
                         require(changed.rowcount == 1)
 
                     # Serialize the one-shot release with durable guard and stop writes.
                     with db:
                         db.execute("BEGIN IMMEDIATE")
                         row = load_row(db, operation)
-                        require(self.plan(row)[1] == sha)
+                        require(self.plan(db, operation, row)[1] == sha)
                         claim = db.execute("""SELECT plan_sha256, guard, parent_pid, launch, terminal, uncertain
                             FROM ios_custody_claims WHERE operation=?""", (operation,)).fetchone()
                         require(claim == (sha, guard, parent_pid, recorded, None, 0))
+                        if self.reusable:
+                            self.check_authority(db)
+                            require(os.getpgid(pid) == os.getsid(pid) == pid)
                         refusal = self.launch_refusal(row, intent)
                         if not refusal and native.file_stamp(cli.lstat()) != cli_stamp:
                             refusal = "preparation_failed"
@@ -346,7 +467,7 @@ class IOSCustody:
                             refusal = "admission_expired"
                         if not refusal:
                             deadline = runtime_start + min(recipe["timeout_seconds"],
-                                                           (row["binding"]["deadline_ms"] - now) / 1000)
+                                                           (operation_deadline - now) / 1000)
                             require(control.send(b"\x01") == 1)
                             released = True
                 finally:
@@ -355,7 +476,7 @@ class IOSCustody:
                             control.close()  # EOF leaves the launcher inert.
                     finally:
                         if proc is not None:
-                            code = self.reap(proc, db, tmp if released else None,
+                            code = self.reap(proc, db, operation, tmp if released else None,
                                              deadline if released else time.monotonic() + INERT_REAP_SECONDS)
 
                 if released:
@@ -373,16 +494,16 @@ class IOSCustody:
         if refusal:
             require(code == 0)
             with db:
-                self.record_terminal(native, db, {"not_started": refusal, "inert": outer})
+                self.record_terminal(native, db, ownership, {"not_started": refusal, "inert": outer})
             return True
 
         nested, proof = nested_closure(native, tmp, self.registration["files"])
         outcome = classify(code, nested[1], stop_requested=load_row(db, operation).get("tombstone") is True)
         with db:
-            self.record_terminal(native, db, {"outer": outer, "nested": proof, "outcome": outcome})
+            self.record_terminal(native, db, ownership, {"outer": outer, "nested": proof, "outcome": outcome})
         return True
 
-    def reap(self, proc, db, tmp, deadline):
+    def reap(self, proc, db, operation, tmp, deadline):
         track_stop = tmp is not None
         stop_error = None
         while True:
@@ -396,7 +517,7 @@ class IOSCustody:
             require(time.monotonic() < deadline)
             if track_stop:
                 try:
-                    row = load_row(db, self.operation)
+                    row = load_row(db, operation)
                     if row is None:
                         raise ValueError("Operation missing while tracking stop")
                     if row.get("tombstone"):
@@ -409,9 +530,10 @@ class IOSCustody:
                     track_stop = False
             time.sleep(POLL_SECONDS)
 
-    def record_terminal(self, native, db, terminal):
+    def record_terminal(self, native, db, ownership, terminal):
         changed = db.execute("""UPDATE ios_custody_claims SET terminal=?
-            WHERE operation=? AND terminal IS NULL""", (native.literal(terminal), self.operation))
+            WHERE operation=? AND plan_sha256=? AND guard=? AND parent_pid=?
+              AND terminal IS NULL AND uncertain=0""", (native.literal(terminal), *ownership))
         require(changed.rowcount == 1)
 
     def reconcile(self, worker, operation, row):
@@ -422,7 +544,8 @@ class IOSCustody:
         if claim is None or (claim[4] is None and not claim[5]):
             return
         try:
-            result = self.terminal_result(native, worker.state / operation, row, claim[:5])
+            require(not claim[5])
+            result = self.terminal_result(native, worker.db, operation, worker.state / operation, row, claim[:5])
         except (OSError, ValueError, KeyError, TypeError, native.Refusal):
             row["status"] = "uncertain"
             worker.save(operation, row)
@@ -436,6 +559,10 @@ class IOSCustody:
                                             idempotent=True)
             except (OSError, ValueError, native.Refusal):
                 pass
+        # All operation writes are serialized by the listener. Recheck the
+        # authenticated lease after artifact verification and log publication.
+        if self.reusable and row["guard"]["expires_at"] <= native.now_ms():
+            raise native.Refusal("stale")
         artifacts = result.pop("artifacts", None)
         manifest_sha = result.pop("manifest_sha256", None)
         row.update(status="closed", closure=result)
@@ -443,9 +570,9 @@ class IOSCustody:
             row.update(status="native_ready", artifacts=artifacts, manifest_sha256=manifest_sha)
         worker.save(operation, row)
 
-    def terminal_result(self, native, output, row, claim):
+    def terminal_result(self, native, db, operation, output, row, claim):
         sha, guard, parent_pid, launch, terminal = claim
-        intent, expected = self.plan(row)
+        intent, expected = self.plan(db, operation, row)
         require(sha == expected and guard == native.literal(intent["guard"]) and parent_pid > 1)
         terminal = json.loads(terminal)
         if "not_started" in terminal:
@@ -497,9 +624,21 @@ def main(argv):
     if action == "worker":
         native.serve(config, state)
         return 0
-    if action == "observe":
+    if action in ("observe", "supervisor"):
         try:
-            return 0 if IOSCustody(config).observe(Path(state)) else 3
+            custody = IOSCustody(config)
+            if action == "observe":
+                return 0 if custody.observe(Path(state)) else 3
+
+            stopping = False
+
+            def stop(signum, frame):
+                nonlocal stopping
+                stopping = True
+
+            signal.signal(signal.SIGINT, stop)
+            signal.signal(signal.SIGTERM, stop)
+            return 0 if custody.supervise(Path(state), lambda: stopping) else 3
         except (OSError, sqlite3.Error, ValueError, TypeError, KeyError, native.Refusal):
             return 74
     raise ValueError("Invalid iOS custody role")

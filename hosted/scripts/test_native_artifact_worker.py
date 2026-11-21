@@ -1904,8 +1904,9 @@ pid = child.pid
 
 store.mkdir()
 artifacts = []
+suffix = ":second" if tmp.parent.name == "b" * 64 else ""
 for kind in ("unsigned_native_binary", "debug_symbols", "resource_inventory"):
-    data = kind.encode()
+    data = (kind + suffix).encode()
     path = store / sha(data)
     path.write_bytes(data)
     path.chmod(0o400)
@@ -1967,7 +1968,7 @@ class IOSCustodySocketTest(unittest.TestCase):
         self.children = []
         self.addCleanup(self.cleanup_fixture)
         self.entry = Path(ios_build_custody.__file__)
-        self.python = [sys.executable, "-IB"] + (["-O"] if sys.flags.optimize else [])
+        self.python = [sys.executable, "-IBS"] + (["-O"] if sys.flags.optimize else [])
 
     def prepare(self, mode="success"):
         source = self.root / "source"
@@ -2007,10 +2008,11 @@ class IOSCustodySocketTest(unittest.TestCase):
                                        owner_id="original", expires_at=now_ms() + 25_000))
         self.fresh = dict(self.request, guard=dict(self.request["guard"], epoch=2, owner_id="replacement"))
 
-    def launch(self, name, action, config=None, wrapper=None):
-        config_path = self.root / (name + ".json")
-        data = literal(config or self.config).encode()
-        config_path.write_bytes(data)
+    def launch(self, name, action, config=None, wrapper=None, *, config_path=None):
+        if config_path is None:
+            config_path = self.root / (name + ".json")
+            config_path.write_bytes(literal(config or self.config).encode())
+        data = config_path.read_bytes()
         args = [action, str(config_path), digest(data), str(self.state)]
         entry = [str(self.entry)] if wrapper is None else ["-c", wrapper, str(self.entry)]
         with (self.root / (name + ".log")).open("xb") as log:
@@ -2019,7 +2021,7 @@ class IOSCustodySocketTest(unittest.TestCase):
         self.children.append((proc, action))
         return proc
 
-    def inject_observer(self, injection):
+    def inject_observer(self, injection, *, action="observe", config_path=None):
         wrapper = """
 import importlib.util, sys
 from pathlib import Path
@@ -2037,7 +2039,8 @@ def instrument(config):
 module.bootstrap = instrument
 raise SystemExit(module.main(sys.argv[2:]))
 """
-        return self.launch("observer", "observe", wrapper="INJECTION = " + repr(injection) + wrapper)
+        return self.launch("observer", action, wrapper="INJECTION = " + repr(injection) + wrapper,
+                           config_path=config_path)
 
     def listen(self, name="worker", config=None, request=None):
         with socket.socket() as listener:
@@ -2080,17 +2083,23 @@ raise SystemExit(module.main(sys.argv[2:]))
 
     def cleanup_fixture(self):
         (self.root / "release-preparation").touch()
-        if self.tmp.is_dir():
-            for name in ("release-nested", "release-cli"):
-                (self.tmp / name).touch()
+        scratch = [self.tmp, self.state / ("b" * 64) / "tmp"]
+        for directory in scratch:
+            if directory.is_dir():
+                for name in ("release-nested", "release-cli"):
+                    (directory / name).touch()
         for proc, action in self.children:
-            if proc.returncode is None and action == "worker":
-                os.kill(proc.pid, signal.SIGKILL)
+            if proc.returncode is None:
+                if action == "worker":
+                    os.kill(proc.pid, signal.SIGKILL)
+                if action == "supervisor":
+                    os.kill(proc.pid, signal.SIGTERM)
             self.collect(proc, seconds=28)
-        for name in ("fixture-cli-pid", "fixture-nested-pid"):
-            path = self.tmp / name
-            if path.is_file():
-                self.assertTrue(native_artifact_worker.group_absent(int(path.read_text())))
+        for directory in scratch:
+            for name in ("fixture-cli-pid", "fixture-nested-pid"):
+                path = directory / name
+                if path.is_file():
+                    self.assertTrue(native_artifact_worker.group_absent(int(path.read_text())))
         for name in ("inert-pid", "constructor-pid"):
             marker = self.root / name
             if marker.is_file():
@@ -2098,17 +2107,35 @@ raise SystemExit(module.main(sys.argv[2:]))
                 self.wait_for("owned child group absence", lambda: native_artifact_worker.group_absent(pid))
         shutil.rmtree(self.root)
 
-    def ledger(self, query):
+    def ledger(self, query, operation=None):
         database = self.state / "operations.sqlite"
         with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True)) as db:
-            return db.execute(query, (self.operation,)).fetchone()
+            return db.execute(query, (operation or self.operation,)).fetchone()
 
     def row(self):
         return json.loads(self.ledger("SELECT value FROM operations WHERE id=?")[0])
 
-    def claim(self):
+    @contextmanager
+    def open_ledger(self, config):
+        pins = self.config["ios_custodian"]["runtime_sha256"]
+        with patch.object(ios_build_custody, "_runtime", pins):
+            worker = NativeWorker(config, str(self.state))
+        try:
+            yield worker
+        finally:
+            worker.close()
+
+    def assert_incompatible_ledger(self, config):
+        database = self.state / "operations.sqlite"
+        before = database.read_bytes()
+        with self.assertRaisesRegex(Refusal, "^uncertain$"):
+            with self.open_ledger(config):
+                pass
+        self.assertEqual(before, database.read_bytes())
+
+    def claim(self, operation=None):
         return self.ledger("""SELECT guard, parent_pid, launch, terminal, uncertain
-                              FROM ios_custody_claims WHERE operation=?""")
+                              FROM ios_custody_claims WHERE operation=?""", operation)
 
     def held(self, address, request):
         self.assertEqual({"error": "uncertain"}, self.call(address, "query", request))
@@ -2124,6 +2151,316 @@ raise SystemExit(module.main(sys.argv[2:]))
         data = (self.state / "blobs" / sha).read_bytes()
         self.assertEqual(sha, digest(data))
         return json.loads(data)["closure"]
+
+    def reusable_config(self, mode="success"):
+        self.prepare(mode)
+        options = self.config["ios_custodian"]
+        del options["operation_id"]
+        options.update(version=2, authority_id="c" * 64)
+        with socket.socket() as listener:
+            listener.bind(("127.0.0.1", 0))
+            self.address = listener.getsockname()
+        self.config["port"] = self.address[1]
+        self.config_path = self.root / "reusable.json"
+        self.config_path.write_text(literal(self.config))
+
+    def test_legacy_ready_artifacts_survive_reusable_startup_refusal(self):
+        self.prepare()
+        worker, self.address = self.listen()
+        self.admit(self.request)
+        observer = self.launch("observer", "observe")
+        self.wait_for("staged artifact manifest", (self.output / "native" / "native-build.json").is_file)
+        for name in ("release-nested", "release-cli"):
+            (self.tmp / name).touch()
+        self.collect(observer, 0)
+        artifacts = self.read_artifacts(self.fresh)
+        self.assertEqual("native_ready", self.row()["status"])
+        self.assertEqual({"status": "closed"}, self.call(self.address, "shutdown"))
+        self.collect(worker, 0)
+
+        legacy = json.loads((self.root / "worker.json").read_bytes())
+        options = dict(version=2, authority_id="c" * 64,
+                       runtime_sha256=legacy["ios_custodian"]["runtime_sha256"])
+        self.assert_incompatible_ledger(dict(legacy, ios_custodian=options))
+        with self.open_ledger(legacy) as reopened:
+            self.assertEqual(artifacts, reopened.request("artifacts", self.fresh))
+
+    def test_reusable_authority_refuses_incompatible_modes_before_any_claim(self):
+        self.reusable_config()
+        with self.open_ledger(self.config):
+            pass
+        pins = self.config["ios_custodian"]["runtime_sha256"]
+        legacy = dict(self.config, ios_custodian=dict(operation_id=self.operation, runtime_sha256=pins))
+        unscoped = {key: value for key, value in self.config.items() if key != "ios_custodian"}
+        changed = dict(self.config, ios_custodian=dict(self.config["ios_custodian"], authority_id="d" * 64))
+        for mode, config in (("legacy", legacy), ("unscoped", unscoped), ("different authority", changed)):
+            with self.subTest(mode=mode):
+                self.assert_incompatible_ledger(config)
+        with self.open_ledger(self.config):
+            pass
+
+    def test_unscoped_uncertain_row_still_holds_capacity_in_reusable_mode(self):
+        self.reusable_config()
+        unscoped = {key: value for key, value in self.config.items() if key != "ios_custodian"}
+        with self.open_ledger(unscoped) as worker:
+            worker.request("query", self.request)
+            row = dict(worker.load(self.operation), status="running", starts=1)
+            worker.save(self.operation, row)
+        with patch.object(ios_build_custody, "_runtime", self.config["ios_custodian"]["runtime_sha256"]):
+            worker = NativeWorker(self.config, str(self.state))
+        # This inert row models a restart with an unrecovered in-process build.
+        self.addCleanup(native_artifact_worker.Worker.close, worker)
+        self.assertEqual(dict(row, status="uncertain"), self.row())
+        with patch.object(worker, "verify", return_value={}):
+            with self.assertRaisesRegex(Refusal, "^unavailable$"):
+                worker.request("ensure_started", self.second_request())
+        with self.assertRaisesRegex(Refusal, "^uncertain$"):
+            worker.close()
+        self.assertIsNone(self.claim(self.second_request()["operation_id"]))
+
+    def reusable_listener(self, name, request):
+        proc = self.launch(name, "worker", config_path=self.config_path)
+
+        def ready():
+            try:
+                return self.call(self.address, "query", request)
+            except ConnectionRefusedError:
+                return None
+
+        return proc, self.wait_for("reusable worker socket", ready)
+
+    def second_request(self):
+        return dict(self.fresh, operation_id="b" * 64,
+                    spec=dict(self.fresh["spec"], build_id="build-two"),
+                    ref=dict(self.fresh["ref"], build_id="build-two"),
+                    guard=dict(self.fresh["guard"], record_id="record-two"))
+
+    def admit(self, request):
+        self.assertEqual({"status": "running"}, self.call(self.address, "ensure_started", request))
+
+    def launched(self, supervisor, request):
+        operation = request["operation_id"]
+        claim = self.wait_for("durable launch", lambda: (row := self.claim(operation)) and row[2] and row)
+        self.assertEqual(supervisor.pid, claim[1])
+        self.assertEqual(request["guard"], json.loads(claim[0]))
+        outer = json.loads(claim[2])
+        self.assertEqual(dict.fromkeys(("pid", "pgid", "sid"), outer["pid"]), outer)
+        tmp = self.state / operation / "tmp"
+        nested_pid = self.wait_for("nested compiler PID",
+                                   lambda: (tmp / "fixture-nested-pid").read_text()
+                                   if (tmp / "fixture-nested-pid").is_file() else "")
+        return tmp, claim, outer["pid"], int(nested_pid)
+
+    def terminal(self, request):
+        return self.wait_for("terminal claim", lambda: (row := self.claim(request["operation_id"])) and row[3])
+
+    def assert_refuses_b(self, request):
+        self.assertEqual({"error": "unavailable"}, self.call(self.address, "ensure_started", request))
+        operation = request["operation_id"]
+        row, = self.ledger("SELECT value FROM operations WHERE id=?", operation)
+        self.assertEqual(0, json.loads(row)["starts"])
+        self.assertIsNone(self.ledger("SELECT plan FROM ios_custody_plans WHERE operation=?", operation))
+        self.assertIsNone(self.claim(operation))
+
+    def read_artifacts(self, request):
+        operation = request["operation_id"]
+        suffix = ":second" if operation == "b" * 64 else ""
+        payloads = {kind: (kind + suffix).encode() for kind in KINDS}
+        artifacts = self.call(self.address, "artifacts", request)
+        self.assertEqual({"status": "native_ready", "artifacts": [
+            {"kind": kind, "sha256": digest(data), "sizeBytes": len(data)} for kind, data in payloads.items()
+        ]}, artifacts)
+        store = self.state / operation / "native"
+        row, = self.ledger("SELECT value FROM operations WHERE id=?", operation)
+        self.assertEqual(json.loads(row)["manifest_sha256"], digest((store / "native-build.json").read_bytes()))
+        for descriptor in artifacts["artifacts"]:
+            sha = descriptor["sha256"]
+            self.assertEqual(sha, digest((store / sha).read_bytes()))
+        return artifacts
+
+    def test_reusable_supervisor_recovers_a_then_builds_b_on_same_configuration(self):
+        self.reusable_config()
+        config_bytes = self.config_path.read_bytes()
+        worker, _ = self.reusable_listener("worker", self.request)
+        supervisor = self.launch("supervisor", "supervisor", config_path=self.config_path)
+        self.admit(self.request)
+        tmp, claim, outer, nested = self.launched(supervisor, self.request)
+        original_plan, = self.ledger("SELECT plan FROM ios_custody_plans WHERE operation=?")
+        original_ref = self.row()["ios_custody"]
+        self.assertEqual(digest(original_plan.encode()), original_ref["plan_sha256"])
+        claim_digest, = self.ledger("SELECT plan_sha256 FROM ios_custody_claims WHERE operation=?")
+        self.assertEqual(original_ref["plan_sha256"], claim_digest)
+        self.assertEqual({
+            "operation_id": self.operation, "binding": self.row()["binding"],
+            "guard": self.request["guard"], "configuration": original_ref["configuration"],
+            "recipe": json.loads(Path(self.config["registration"]["recipe"]).read_bytes()),
+        }, json.loads(original_plan))
+        self.admit(self.request)
+        self.collect(self.launch("duplicate", "supervisor", config_path=self.config_path), 3)
+        self.assertEqual(claim, self.claim())
+
+        os.kill(worker.pid, signal.SIGKILL)
+        self.collect(worker, -signal.SIGKILL)
+        replacement, reply = self.reusable_listener("replacement", self.fresh)
+        self.assertEqual({"error": "uncertain"}, reply)
+        self.assertEqual({"error": "stale"}, self.call(self.address, "query", self.request))
+        self.assertEqual(nested, os.getpgid(nested))
+        second = self.second_request()
+        self.assert_refuses_b(second)
+        (tmp / "release-nested").touch()
+        self.wait_for("nested acknowledgement", (tmp / "cli-closed").is_file)
+        self.assertTrue(native_artifact_worker.group_absent(nested))
+        self.assertEqual(outer, os.getpgid(outer))
+        self.assertEqual(claim, self.claim())
+        self.assert_refuses_b(second)
+
+        (tmp / "release-cli").touch()
+        self.terminal(self.request)
+        self.assertTrue(native_artifact_worker.group_absent(outer))
+        self.assert_refuses_b(second)  # Only A's fresh guard can settle A's plan.
+        artifacts = self.read_artifacts(self.fresh)
+        self.assertEqual("succeeded", self.row()["closure"]["ios_outcome"])
+        self.admit(second)
+        tmp_b, _, outer_b, nested_b = self.launched(supervisor, second)
+        for name in ("release-nested", "release-cli"):
+            (tmp_b / name).touch()
+        self.terminal(second)
+        self.assertTrue(native_artifact_worker.group_absent(nested_b))
+        self.assertTrue(native_artifact_worker.group_absent(outer_b))
+        self.assertNotEqual(artifacts, self.read_artifacts(second))
+        self.assertEqual(artifacts, self.read_artifacts(self.fresh))
+        self.assertEqual((original_plan,), self.ledger("SELECT plan FROM ios_custody_plans WHERE operation=?"))
+        self.assertEqual(original_ref, self.row()["ios_custody"])
+        self.assertEqual(1, self.row()["starts"])
+        self.assertEqual(config_bytes, self.config_path.read_bytes())
+        self.assertEqual({"status": "closed"}, self.call(self.address, "shutdown"))
+        self.collect(replacement, 0)
+        os.kill(supervisor.pid, signal.SIGTERM)
+        self.collect(supervisor, 0)
+
+        legacy = dict(self.config, ios_custodian=dict(
+            operation_id=self.operation, runtime_sha256=self.config["ios_custodian"]["runtime_sha256"]))
+        self.assert_incompatible_ledger(legacy)
+        restarted, _ = self.reusable_listener("clean-restart", self.fresh)
+        self.assertEqual(artifacts, self.read_artifacts(self.fresh))
+        self.read_artifacts(second)
+        self.assertEqual({"status": "closed"}, self.call(self.address, "shutdown"))
+        self.collect(restarted, 0)
+
+    def test_reusable_missing_ack_retains_claim_and_refuses_b_after_restart(self):
+        self.reusable_config("no-ack")
+        worker, _ = self.reusable_listener("worker", self.request)
+        supervisor = self.launch("supervisor", "supervisor", config_path=self.config_path)
+        self.admit(self.request)
+        tmp, claim, outer, nested = self.launched(supervisor, self.request)
+        os.kill(worker.pid, signal.SIGKILL)
+        self.collect(worker, -signal.SIGKILL)
+        _, reply = self.reusable_listener("replacement", self.fresh)
+        self.assertEqual({"error": "uncertain"}, reply)
+        second = self.second_request()
+        self.assert_refuses_b(second)
+
+        for name in ("release-nested", "release-cli"):
+            (tmp / name).touch()
+        self.collect(supervisor, 74)
+        self.assertTrue(native_artifact_worker.group_absent(nested))
+        self.assertTrue(native_artifact_worker.group_absent(outer))
+        self.assertFalse((tmp / "cli-closed").exists())
+        self.assertEqual((*claim[:3], None, 1), self.claim())
+        self.assertEqual({"error": "uncertain"}, self.call(self.address, "query", self.fresh))
+        self.assertEqual({"error": "unavailable"}, self.call(self.address, "artifacts", self.fresh))
+        self.assert_refuses_b(second)
+        self.collect(self.launch("restarted-supervisor", "supervisor", config_path=self.config_path), 74)
+        self.assertEqual((*claim[:3], None, 1), self.claim())
+        self.assert_refuses_b(second)
+        self.assertEqual({"status": "closed"}, self.call(self.address, "shutdown"))
+
+    def test_reusable_restarted_supervisor_refuses_claim_without_terminal_write(self):
+        self.reusable_config("preflight")
+        self.reusable_listener("worker", self.request)
+        self.admit(self.request)
+        supervisor = self.inject_observer("""
+def exit_before_recording_terminal(self, native, db, ownership, terminal):
+    if not (terminal["outer"]["direct_child_reaped"] and terminal["outer"]["group_absent"]
+            and terminal["nested"]["receipt_root"] and terminal["outcome"] == "preflight_failed"):
+        raise ValueError("Closure was not proved before the test interruption")
+    raise SystemExit(75)
+module.IOSCustody.record_terminal = exit_before_recording_terminal
+""", action="supervisor", config_path=self.config_path)
+        self.collect(supervisor, 75)
+        claim = self.claim()
+        self.assertEqual((None, 0), claim[3:])
+        self.assertTrue((self.tmp / "cli-closed").is_file())
+        self.assertTrue(native_artifact_worker.group_absent(json.loads(claim[2])["pid"]))
+        self.collect(self.launch("restarted-supervisor", "supervisor", config_path=self.config_path), 74)
+        self.assertEqual(claim, self.claim())
+        self.assert_refuses_b(self.second_request())
+        self.assertEqual({"status": "closed"}, self.call(self.address, "shutdown"))
+
+    def reusable_release_fence(self, action, request, reason, final_status):
+        self.reusable_listener("worker", self.request)
+        self.admit(self.request)
+        supervisor = self.inject_observer("""
+import time
+spawn = native.OwnedBuildProcess
+def pause(*args, **kwargs):
+    proc = spawn(*args, **kwargs)
+    Path("constructor-pid").write_text(str(proc.pid))
+    until = time.monotonic() + 5
+    while not Path("release-preparation").is_file() and time.monotonic() < until:
+        time.sleep(.005)
+    return proc
+native.OwnedBuildProcess = pause
+""", action="supervisor", config_path=self.config_path)
+        self.wait_for("inert constructor", (self.root / "constructor-pid").is_file)
+        self.assertEqual((None, None, 0), self.claim()[2:])
+        expected = {"error": "uncertain"} if action == "stop" else {"status": "running"}
+        self.assertEqual(expected, self.call(self.address, action, request))
+        (self.root / "release-preparation").touch()
+        self.terminal(self.request)
+        self.assert_inert_closure(self.call(self.address, "query", self.fresh), final_status, reason)
+        self.assertEqual({"status": "closed"}, self.call(self.address, "shutdown"))
+        os.kill(supervisor.pid, signal.SIGTERM)
+        self.collect(supervisor, 0)
+
+    def test_reusable_stop_fences_inert_release(self):
+        self.reusable_config("preflight")
+        self.reusable_release_fence("stop", self.request, "stopped_before_launch", "stopped")
+
+    def test_reusable_changed_guard_fences_inert_release(self):
+        self.reusable_config("preflight")
+        self.reusable_release_fence("query", self.fresh, "guard_changed", "preflight_failed")
+
+    def test_reusable_roles_and_pinned_ledger_authority(self):
+        self.reusable_config("preflight")
+        self.reusable_listener("worker", self.request)
+        self.admit(self.request)
+        self.collect(self.launch("wrong-role", "observe", config_path=self.config_path), 74)
+        for key in ("authority_id", "worker_id"):
+            options = self.config["ios_custodian"]
+            if key == "authority_id":
+                config = dict(self.config, ios_custodian=dict(options, authority_id="d" * 64))
+            else:
+                config = dict(self.config, worker_id="other")
+            self.collect(self.launch("wrong-" + key, "supervisor", config), 74)
+            self.assertIsNone(self.claim())
+        self.assertFalse(self.output.exists())
+        self.assertEqual({"status": "closed"}, self.call(self.address, "shutdown"))
+        changed = dict(self.config, ios_custodian=dict(self.config["ios_custodian"], authority_id="d" * 64))
+        self.collect(self.launch("wrong-worker", "worker", changed), 1)
+        # The original authority can close an admitted plan after a listener
+        # restart, but the admission-interrupted plan cannot launch.
+        _, reply = self.reusable_listener("replacement", self.fresh)
+        self.assertEqual({"error": "uncertain"}, reply)
+        supervisor = self.launch("supervisor", "supervisor", config_path=self.config_path)
+        self.terminal(self.request)
+        failed = self.call(self.address, "query", self.fresh)
+        self.assertEqual("preflight_failed", failed["status"])
+        self.assertEqual({"not_started": "guard_changed"}, self.diagnostic(failed)["ios_custody"])
+        self.assertFalse(self.output.exists())
+        self.assertEqual({"status": "closed"}, self.call(self.address, "shutdown"))
+        os.kill(supervisor.pid, signal.SIGTERM)
+        self.collect(supervisor, 0)
 
     def test_fresh_guard_reconciles_after_ack_and_positive_reap(self):
         self.prepare()
@@ -2454,8 +2791,13 @@ os.waitpid = observe_reap
         self.assertEqual({"status": "closed"}, self.call(address, "shutdown"))
         later = dict(self.fresh, operation_id="b" * 64)
         options = dict(self.config["ios_custodian"], operation_id=later["operation_id"])
-        _, rearmed = self.listen("rearmed", dict(self.config, ios_custodian=options), later)
+        worker, rearmed = self.listen("rearmed", dict(self.config, ios_custodian=options), later)
         self.assertEqual({"error": "unavailable"}, self.call(rearmed, "ensure_started", later))
+        self.assertEqual({"status": "closed"}, self.call(rearmed, "shutdown"))
+        self.collect(worker, 0)
+
+        options = dict(version=2, authority_id="c" * 64, runtime_sha256=options["runtime_sha256"])
+        self.assert_incompatible_ledger(dict(self.config, ios_custodian=options))
 
     def test_ordinary_preflight_failure_has_ack_and_parent_closure(self):
         self.prepare("preflight")

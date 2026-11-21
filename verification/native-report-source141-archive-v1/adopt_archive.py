@@ -376,6 +376,7 @@ HOSTED_V84_PREFIX = 'hosted-v84-predecessor-bytes/'
 HOSTED_V85_PREFIX = 'hosted-v85-predecessor-bytes/'
 HOSTED_V86_PREFIX = 'hosted-v86-predecessor-bytes/'
 HOSTED_V86_CHANGES = HOSTED_V74_CHANGES | {'THIRD_PARTY.yml'}
+HOSTED_V87_PREFIX = 'hosted-v87-predecessor-bytes/'
 ANDROID_INSPECTION_DEADLINE_PREFIX = 'android-inspection-deadline-predecessor-bytes/'
 ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE = ANDROID_INSPECTION_DEADLINE_PREFIX + SOURCE_INPUTS_MANIFEST
 ANDROID_INSPECTION_DEADLINE_SOURCE_SHA256 = '2a9d99e0dea712c70d7be383958e67cd040577565c847861b89c0fc598ba4fcd'
@@ -506,6 +507,7 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     *(HOSTED_V84_PREFIX + name for name in HOSTED_V74_CHANGES),
     *(HOSTED_V85_PREFIX + name for name in HOSTED_V74_CHANGES),
     *(HOSTED_V86_PREFIX + name for name in HOSTED_V86_CHANGES),
+    *(HOSTED_V87_PREFIX + name for name in HOSTED_V74_CHANGES),
     ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE,
     *(ANDROID_INSPECTION_DEADLINE_PREFIX + name for name in ANDROID_INSPECTION_DEADLINE_CHANGES),
 } | {
@@ -671,7 +673,7 @@ def install_inputs():
                              'hosted_v78_transition', 'hosted_v79_transition', 'hosted_v80_transition', 'hosted_v81_transition',
                              'hosted_v82_transition', 'android_sparse_timeout_workflow',
                              'hosted_v83_transition', 'hosted_v84_transition', 'hosted_v85_transition',
-                             'hosted_v86_transition',
+                             'hosted_v86_transition', 'hosted_v87_transition',
                              'android_inspection_deadline_transition', 'receipt_directory_transition',
                              'receipt_parent_url_test_transition', 'swiftpm_migration_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
@@ -1654,6 +1656,7 @@ def install_inputs():
         (84, HOSTED_V84_PREFIX, HOSTED_V74_CHANGES),
         (85, HOSTED_V85_PREFIX, HOSTED_V74_CHANGES),
         (86, HOSTED_V86_PREFIX, HOSTED_V86_CHANGES),
+        (87, HOSTED_V87_PREFIX, HOSTED_V74_CHANGES),
     ):
         transition = binding[f'hosted_v{version}_transition']
         require(set(transition) == {'changes'} and set(transition['changes']) == changes and

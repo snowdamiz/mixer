@@ -1,0 +1,73 @@
+{
+  "scope": "Inert macOS native artifact worker fixtures and real SQLite only.",
+  "recorded_utc": "2026-11-21T19:39:22+00:00",
+  "base_revision": "1e2de0130d001ef9ada0001b59f9ae8b7f67b72a",
+  "input_patch_sha256": "492d69ba63f4338879712f1ed938df87c4560d2385f07c47016b77df543cde40",
+  "patch": "verification/local/l07-ios-supervisor-compat/l07-ios-worker-reusable-supervisor-compat-1e2de013.patch",
+  "patch_sha256": "d2c7e8c94adc37343c21324173b96e9b3675a9c7f1a5b0ffda08db1293081bef",
+  "patch_validation": "Base index blobs matched the pinned public revision. Forward cached and reverse working-tree apply checks, git diff --check, and byte-for-byte diff comparison passed.",
+  "environment": {
+    "os": "Darwin",
+    "architecture": "arm64",
+    "python": "3.14.8",
+    "sqlite": "3.53.4",
+    "git": "2.56.0"
+  },
+  "runtime_source_sha256": {
+    "compiler_worker": "656e976d1000142bfa0ff2738e392e375dceef65133845c7ed324b7134eef06e",
+    "ios_build_custody": "540c0ec384f4abe0e3d9d972450a41d30d028f5a60314b37dc8d1239945c1d06",
+    "native_artifact_worker": "cda01bdfb28a4d2001aeb93a138237ff8eaf93a35707c73d88851710db24bf63",
+    "starter_package_closure": "b3164d0dfa8210ce26bb5a0f4b21f5ce063d90f5040522ee4d41f61a9960941d"
+  },
+  "before_fix": {
+    "command": "python3 -B -m unittest -v with the three focused regression methods",
+    "tests": 3,
+    "failed_methods": 2,
+    "missing_refusals": [
+      "legacy-ready ledger to reusable",
+      "reusable authority to legacy",
+      "reusable authority to unscoped"
+    ],
+    "output": "AssertionError: Refusal not raised. The unscoped uncertainty control passed."
+  },
+  "runs": [
+    {
+      "mode": "normal",
+      "command": "python3 -B hosted/scripts/test_native_artifact_worker.py -v",
+      "exit_code": 0,
+      "discovered": 55,
+      "passed": 54,
+      "failed": 0,
+      "skipped": 1,
+      "elapsed_seconds": 22.303,
+      "summary": "Ran 55 tests in 22.303s. OK (skipped=1)."
+    },
+    {
+      "mode": "optimized",
+      "command": "python3 -O -B hosted/scripts/test_native_artifact_worker.py -v",
+      "exit_code": 0,
+      "discovered": 55,
+      "passed": 54,
+      "failed": 0,
+      "skipped": 1,
+      "elapsed_seconds": 23.496,
+      "summary": "Ran 55 tests in 23.496s. OK (skipped=1)."
+    }
+  ],
+  "skip_reason": "The Linux Pair25 integration fixture requires an operator-retained bundle. MIXER_PAIR25_BUNDLE was unset for inert-only testing.",
+  "coverage": [
+    "Legacy A reached native_ready. Reusable startup refused with identical SQLite bytes. Exact legacy configuration reopened and returned the same artifacts.",
+    "Reusable authority refused legacy, unscoped, and changed-authority startup before any claim. A reusable ledger with settled claims also refused legacy startup.",
+    "Reusable A and B settled through the inert supervisor and both artifacts remained readable after a clean listener restart.",
+    "An unscoped interrupted row became uncertain and continued to block capacity and normal shutdown."
+  ],
+  "initial_full_suite_attempt": "Both modes hit ModuleNotFoundError for an omitted sibling test helper. The helper was added from the pinned base and both full runs passed with the expected skip.",
+  "cleanup": {
+    "removed_external_fixture_root": "/tmp/mixl07.158IhRQQ",
+    "removed_in_workspace_scratch": "verification/local/l07-ios-supervisor-compat/stage",
+    "retained": [
+      "exact patch",
+      "this compact receipt"
+    ]
+  }
+}

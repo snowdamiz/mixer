@@ -731,10 +731,16 @@ class NativeWorker(Worker):
 
             self.ios_custody = IOSCustody(config)
         super().__init__(config, state)
-        if self.ios_custody is not None:
-            self.ios_custody.initialize(self.db)
         self.linux_runner = linux_runner
         self.launch = None
+
+    def initialize_ledger(self):
+        from ios_build_custody import check_ledger_mode
+
+        check_ledger_mode(self.db, self.ios_custody)
+        super().initialize_ledger()
+        if self.ios_custody is not None:
+            self.ios_custody.initialize(self.db)
         self.db.execute("CREATE TABLE IF NOT EXISTS request_nonces (nonce BLOB PRIMARY KEY) WITHOUT ROWID")
 
     def consume_nonce(self, nonce):
@@ -1009,8 +1015,7 @@ class NativeWorker(Worker):
             raise Refusal("unavailable")
         previous = self.load(operation)
         if previous is not None and "ios_custody" in previous:
-            if (self.ios_custody is None or operation != self.ios_custody.operation
-                    or previous["ios_custody"]["configuration"] != self.ios_custody.configuration):
+            if self.ios_custody is None or not self.ios_custody.matches(operation, previous):
                 raise Refusal("uncertain")
         runner = self.linux_runner
         registered_for_runner = (runner is not None and request["spec"]["platform"] == "android"
@@ -1139,7 +1144,12 @@ def serve(config, state, *, linux_runner=None):
             self.server.closed = close
             self.wfile.write((literal(reply) + "\n").encode())
 
-    with socketserver.TCPServer(("127.0.0.1", config["port"]), Handler) as server:
+    class Server(socketserver.TCPServer):
+        # A replacement listener uses the same pinned loopback port even
+        # when connections from the previous listener are in TIME_WAIT.
+        allow_reuse_address = worker.ios_custody is not None and worker.ios_custody.reusable
+
+    with Server(("127.0.0.1", config["port"]), Handler) as server:
         server.timeout = 0.1
         server.closed = False
         while not server.closed:

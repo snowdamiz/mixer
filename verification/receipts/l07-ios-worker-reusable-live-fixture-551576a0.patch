@@ -1,0 +1,1066 @@
+diff --git a/tests/integration/l07-ios-active-custody/README-reusable.md b/tests/integration/l07-ios-active-custody/README-reusable.md
+new file mode 100644
+index 0000000000..0e3da18a5b
+--- /dev/null
++++ b/tests/integration/l07-ios-active-custody/README-reusable.md
+@@ -0,0 +1,101 @@
++# Reusable iOS custody acceptance fixture
++
++This overlay targets public commit `551576a03a4ef4f4b081e6191ce0a02c5947c679`
++and product patch SHA-256
++`d2c7e8c94adc37343c21324173b96e9b3675a9c7f1a5b0ffda08db1293081bef`.
++Apply the fixture overlay to a dedicated checkout at that commit. Pass the
++product patch separately. The runner verifies the public tree and the patch's
++five preimages and postimages before applying fixture-only changes to its
++disposable source copy.
++
++```sh
++base=551576a03a4ef4f4b081e6191ce0a02c5947c679
++# Set native_checkout to a fresh path and fixture_overlay to the delivered patch.
++git --no-replace-objects worktree add --detach "$native_checkout" "$base"
++cd "$native_checkout"
++git apply --check "$fixture_overlay"
++git apply "$fixture_overlay"
++
++product_patch=/Users/andreyyurlov/.t3/worktrees/mixer/t3-e555d928/verification/local/l07-ios-supervisor-compat/l07-ios-worker-reusable-supervisor-compat-1e2de013.patch
++mkdir -p verification/local
++fixture=tests/integration/l07-ios-active-custody
++python3 -B -W error::SyntaxWarning -W error::ResourceWarning -m unittest discover \
++  -s "$fixture" -p test_reusable.py -v
++python3 -B "$fixture/reusable.py" --check-fixture --product-patch "$product_patch" \
++  --receipt verification/local/l07-reusable-fixture-check.json
++```
++
++The fixture check verifies the exact product patch and parses the composed
++Elixir sources. It starts no listener, compiler, database, or device.
++
++## Admit a pinned Starter stage
++
++Use the original fixture's pinned arm64 Mach-O CLI and iOS Starter export.
++Reuse a positively closed stage if its exact receipt, CLI, and export are
++available. For a fresh stage, the checkout needs these Git objects:
++
++- Restore launcher `57f3ed4f17b80f15fc6d646b14c6dbfa05bd7eea`
++- Starter CLI `201ead70ff68bfe18de24c0642f518701459e0a4`
++- Starter SDK `fad0d0b3e65fd3be3b49675601693e5d91999fbe`
++
++The fresh stage builds Swift dependencies and exports Starter. It does not run
++a fixture build POST or a Starter Xcode build.
++
++```sh
++python3 -B tests/integration/hosted-expiry-restore/replay-starter.py --stage-only
++# Set stage_receipt to the absolute result.json path printed after PASS_STAGE.
++stage_dir="${stage_receipt%/*}"
++stage_sha256="$(shasum -a 256 < "$stage_receipt" | cut -d ' ' -f 1)"
++starter_cli="$(python3 -B -c 'import json,sys; print(json.load(open(sys.argv[1]))["commands"]["starter-export"]["argv"][0])' "$stage_receipt")"
++
++python3 -B "$fixture/reusable.py" --preflight-only --product-patch "$product_patch" \
++  --stage-receipt "$stage_receipt" --stage-sha256 "$stage_sha256" \
++  --cli "$starter_cli" --export "$stage_dir/starter/exported" \
++  --receipt verification/local/l07-reusable-starter-preflight.json
++```
++
++## Run the live acceptance
++
++Use macOS arm64, Python 3.14, the selected Xcode 27.2 build 27B52, PostgreSQL
++17, Elixir 1.20.4 on OTP 29, and Hex 2.5.1 with the 21 locked dependency archives
++and registry prewarmed. Override the defaults with `--pg-bin`, `--hex-cache`,
++and `--mix-archives` when needed. Scratch needs a canonical path with trusted
++ancestors. Both builds target the generic iOS Simulator SDK with signing
++disabled. They require no booted device.
++
++```sh
++python3 -B "$fixture/reusable.py" --live --product-patch "$product_patch" \
++  --stage-receipt "$stage_receipt" --stage-sha256 "$stage_sha256" \
++  --cli "$starter_cli" --export "$stage_dir/starter/exported" \
++  --receipt verification/local/l07-reusable-live.json
++```
++
++The runner starts an isolated SCRAM PostgreSQL 17 cluster and the stock
++restricted Phoenix API and Oban processor under fixture-specific credentials.
++The fixture seeds one scoped Starter input to exercise build creation and
++custody. It issues two signed-in create requests with distinct idempotency
++keys. Both operations use one registration, one read-only configuration, one
++ledger and authority, one loopback listener address, and the same independent
++supervisor. The fixture pauses between operations to verify each build's
++binding before dispatch.
++
++The runner requires a live owned Xcode receipt and exact process identities
++before it kills the original listener PID. It immediately rebinds the same
++loopback port via the documented worker entry point. It requires inclusive
++receipt timing around the signal, the original supervisor's terminal CLI proof,
++the exact Swift and Xcode receipts, and A's later Oban guard and one terminal
++journal entry and capacity release. It then verifies three authenticated
++downloads and authenticated logs for both A and B, and rechecks A's SQLite row,
++claim, journal, and download hashes after B.
++
++Each scenario allows 45 seconds for a witnessed Xcode launch, 430 seconds for
++terminal native custody, and 30 seconds for settlement. A run can fail if it
++misses the Xcode RUNNING receipt, the port cannot rebind within eight seconds,
++or archived artifacts exceed the existing fixture's 128 MiB download limit.
++Only A's listener is interrupted. A missing acknowledgment or another
++unverified terminal chain leaves native custody unresolved. Preserve the
++reported private scratch and command identities on exit 74. Never retry or
++operate on that chain based on the listener or supervisor's direct exit. For a
++closed failure, the runner reports private service diagnostics and port-reuse
++observations. A successful run checks port reuse and removes its live scratch.
++The operator owns the dedicated checkout and any separately prepared stage.
+diff --git a/tests/integration/l07-ios-active-custody/reusable.py b/tests/integration/l07-ios-active-custody/reusable.py
+new file mode 100644
+index 0000000000..5614c9129a
+--- /dev/null
++++ b/tests/integration/l07-ios-active-custody/reusable.py
+@@ -0,0 +1,597 @@
++#!/usr/bin/env python3
++"""Recover one real iOS Starter build, then build again under the same authority."""
++
++import argparse
++from contextlib import ExitStack, closing
++import errno
++import json
++import os
++from pathlib import Path
++import re
++import runpy
++import secrets
++import shutil
++import signal
++import sqlite3
++import sys
++import tarfile
++import tempfile
++import time
++
++import live
++from reusable_fixture import (
++    API, BASE, BASE_TREE, HERE, HOSTED_TREE, PAIR, PG_ROLES, PREPARE, PRODUCT_SHA256,
++    SOURCE_PATHS, check_private_ancestors, compose, git_blob, product_preimages, require,
++    seed_roles, sha, stage_hex,
++)
++from run import REPO, environment
++from v74 import command, owned_runner
++
++RECORD = re.compile(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}")
++OPERATION = re.compile(r"[0-9a-f]{64}")
++
++
++def ledger_entry(database, operation):
++    with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True, timeout=1)) as db:
++        db.execute("BEGIN")
++        authority = db.execute("SELECT configuration FROM ios_supervisor_authority").fetchall()
++        sizes = {name: db.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
++                 for name, table in (("operations", "operations"), ("claims", "ios_custody_claims"),
++                                     ("plans", "ios_custody_plans"))}
++        row = db.execute("SELECT value FROM operations WHERE id=?", (operation,)).fetchone()
++        plan = db.execute("SELECT plan FROM ios_custody_plans WHERE operation=?", (operation,)).fetchone()
++        claim = db.execute("""SELECT parent_pid, launch, terminal, uncertain, plan_sha256, guard
++                                FROM ios_custody_claims WHERE operation=?""", (operation,)).fetchone()
++        return dict(authority=[entry[0] for entry in authority], sizes=sizes,
++                    row=json.loads(row[0]) if row else None, plan=plan[0] if plan else None,
++                    claim=claim)
++
++
++def checked_entry(entry, configuration, operation, binding, supervisor_pid, start_id, count):
++    row, raw_plan, claim = (entry[key] for key in ("row", "plan", "claim"))
++    require(entry["authority"] == [configuration] and entry["sizes"] ==
++            {"operations": count, "claims": count, "plans": count},
++            "authority or reusable operation roster changed")
++    require(row is not None and raw_plan is not None and claim is not None,
++            "missing durable row, plan or claim")
++    parent, launch, terminal, uncertain, plan_digest, raw_guard = claim
++    plan = json.loads(raw_plan)
++    selected = {key: binding[key] for key in ("spec", "ref", "deadline_ms")}
++    guard = json.loads(raw_guard)
++    require(row["starts"] == 1 and row["binding"] == selected and not row.get("tombstone")
++            and row["ios_custody"] == dict(version=2, configuration=configuration, plan_sha256=plan_digest)
++            and plan_digest == sha(raw_plan.encode())
++            and set(plan) == {"operation_id", "binding", "recipe", "configuration", "guard"}
++            and (plan["operation_id"], plan["binding"], plan["configuration"], plan["guard"]) ==
++                (operation, selected, configuration, guard)
++            and parent == supervisor_pid and uncertain == 0
++            and guard["revision"] == 1 and guard["owner_id"].startswith(f"oban:{start_id}:"),
++            "plan, claim, original guard or held operation changed")
++    launch = json.loads(launch) if launch else None
++    if launch is not None:
++        pid = launch["pid"]
++        require(type(pid) is int and pid > 1 and launch == dict(pid=pid, sid=pid, pgid=pid),
++                "invalid owned CLI identity")
++    return row, launch, json.loads(terminal) if terminal else None, guard
++
++
++def scoped_snapshot(sql, record):
++    require(RECORD.fullmatch(record) is not None, "invalid build record ID")
++    return json.loads(sql(f"""SELECT json_build_object(
++      'record', (SELECT json_agg(json_build_array(id, revision)) FROM mixer_builds WHERE id='{record}'),
++      'jobs', (SELECT json_agg(json_build_array(args->>'kind', state::text) ORDER BY id)
++                 FROM oban_jobs WHERE args->>'build_record_id'='{record}'),
++      'capacity', (SELECT json_agg(json_build_array(build_record_id, attempt, worker_fence, held, terminal_event_id))
++                   FROM mixer_build_reservations WHERE build_record_id='{record}'),
++      'leases', (SELECT json_agg(json_build_array(build_record_id, owner_id, expires_at))
++                 FROM mixer_build_coordinator_leases WHERE build_record_id='{record}'),
++      'operations', (SELECT json_agg(json_build_array(operation_id, record_id, deadline_ms, admission_state,
++                       journal_revision, lease_epoch, owner_id))
++                     FROM mixer_build_operation_admissions WHERE record_id='{record}')
++    )"""))
++
++
++def write_exclusive(path, data):
++    with path.open("x") as stream:
++        stream.write(data)
++
++
++def require_session(pid):
++    require(type(pid) is int and pid > 1 and os.getpgid(pid) == os.getsid(pid) == pid,
++            f"expected an exact live owned session for PID {pid}")
++
++
++def observe_build(kit, result, scenario, binding, state, supervisor, processor, configuration,
++                  start_id, count, snapshot, cut_listener=None):
++    import native_artifact_worker as native
++
++    operation = binding["operation_id"]
++    output = state / operation
++    database = state / "operations.sqlite"
++    wait = kit["wait"]
++    check = lambda: checked_entry(ledger_entry(database, operation), configuration, operation,
++                                  binding, supervisor.pid, start_id, count)
++    result["stage"] = f"{scenario}-running-native-claim"
++
++    def running():
++        entry = ledger_entry(database, operation)
++        require(entry["authority"] == [configuration], "ledger authority changed before launch")
++        if entry["claim"] is None:
++            return None
++        row, launch, terminal, guard = checked_entry(
++            entry, configuration, operation, binding, supervisor.pid, start_id, count)
++        require(terminal is None and row["status"] == "running", "claim failed before native launch")
++        if launch is None:
++            return None
++        witness = live.running_xcode(output, native)
++        return (row, launch, guard, witness) if witness else None
++
++    row, launch, issued_guard, witness = wait(running, live.CLAIM_SECONDS, supervisor, interval=0.02)
++    probe, (path, active, active_sha) = witness
++    xcode_pid = active["pid"]
++    require(len({supervisor.pid, launch["pid"], xcode_pid, probe[1]["pid"]}) == 4,
++            "compiler, supervisor and probe identities overlapped")
++    require_session(launch["pid"])
++    require_session(xcode_pid)
++    admission = kit["running_admission"](snapshot(), binding)
++    evidence = result["builds"][scenario]
++    evidence["running"] = dict(cli=launch, xcodePID=xcode_pid, runningSHA256=active_sha,
++                              xcodeArgv=active["command"], swiftProbeSHA256=probe[2],
++                              planSHA256=row["ios_custody"]["plan_sha256"], issuedGuard=issued_guard,
++                              admission=admission, supervisorPID=supervisor.pid)
++    observed_ns = active["runtimeStartedNS"]
++    minimum_epoch = issued_guard["epoch"]
++    if cut_listener is not None:
++        require(live.running_xcode(output, native) == witness, "Xcode receipt changed before the cut")
++        observed_ns, before_reopen_guard = cut_listener(launch, xcode_pid, check)
++        minimum_epoch = max(issued_guard["epoch"], before_reopen_guard["epoch"]) + 1
++
++    def terminal_claim():
++        _, current, terminal, guard = check()
++        require(current == launch and guard == issued_guard, "claim launch or issued guard changed")
++        return terminal
++
++    result["stage"] = f"{scenario}-terminal-native-custody"
++    terminal = wait(terminal_claim, live.RECIPE_SECONDS + 10, supervisor)
++    require(set(terminal) == {"outer", "nested", "outcome"}, "claim has no launched CLI terminal proof")
++    outer = terminal["outer"]
++    require(outer == dict(launch, parent_pid=supervisor.pid, exit=outer["exit"],
++                          direct_child_reaped=True, group_absent=True, descriptors_closed=True),
++            "supervisor terminal proof does not close the original CLI")
++    nested, digest = live.terminal_xcode(output / "tmp", witness, terminal["nested"], native, observed_ns)
++    result["nativeCustodyPending"] = None
++    evidence["terminal"] = dict(claim=terminal, xcodeReceiptSHA256=digest, xcodeExit=nested["exitCode"])
++    require(terminal["outcome"] == "succeeded" and outer["exit"] == nested["exitCode"] == 0
++            and nested.get("stopReason") is None
++            and not os.path.lexists(output / "tmp/cancel-requested")
++            and supervisor.poll() is None and processor.poll() is None,
++            "real unsigned Starter build did not reach normal closure")
++    result["xcodeInvocations"] += 1
++
++    def original():
++        current, current_launch, proof, guard = check()
++        require((current_launch, proof, guard) == (launch, terminal, issued_guard),
++                "settlement changed the original claim or issued guard")
++        return current, proof
++
++    return original, terminal, probe, nested, digest, minimum_epoch
++
++
++def drive(root, kit, args, result, recipe):
++    spec, registration, policy = recipe
++    pg = args.pg_bin
++    env = environment(root)
++    env.pop("PAIR25_CANCEL")
++    env["ERL_FLAGS"] = "+S 4:4"
++    hosted = root / "hosted"
++    result["stage"] = "locked-hosted-compile"
++    kit["compile_hosted"](root, hosted, env, result["commands"])
++
++    state = root / "worker"
++    state.mkdir(mode=0o700)
++    database = state / "operations.sqlite"
++    db_port, worker_port, api_port = [kit["port"]() for _ in range(3)]
++    ports = result["ports"] = [db_port, worker_port, api_port]
++    require(len(set(ports)) == 3, "fixture ports collided")
++    env.update(MIXER_BROWSER_STORAGE_PORT=str(db_port), L07_API_PORT=str(api_port),
++               MIXER_BROWSER_CATALOG_FIXTURE_ROOT=str(root / "catalog"))
++    (root / "catalog").mkdir()
++
++    passwords = {role: secrets.token_hex(32) for role in PG_ROLES}
++    password_file = root / "pg-password"
++    write_exclusive(password_file, passwords["fixture_admin"] + "\n")
++    write_exclusive(root / "pg-bootstrap.sql", seed_roles(root, passwords))
++    result["stage"] = "scram-postgres"
++    command(root, kit, result, "initdb", [pg / "initdb", "-D", root / "pg", "-U", "fixture_admin",
++            "--locale=C", "--encoding=UTF8", "--auth=scram-sha-256", "--pwfile", password_file,
++            "--no-sync"], env, timeout=18)
++    db_env = dict(env, PGPASSWORD=passwords["fixture_admin"], PGREQUIREAUTH="scram-sha-256",
++                  PGCONNECT_TIMEOUT="3", PGOPTIONS="-c statement_timeout=4000")
++    psql = [pg / "psql", "-XqAtw", "-v", "ON_ERROR_STOP=1", "-h", kit["HOST"],
++            "-p", str(db_port), "-U", "fixture_admin"]
++    sql_index = 0
++
++    def sql(statement, database_name=kit["DB"]):
++        nonlocal sql_index
++        sql_index += 1
++        return command(root, kit, result, f"sql-{sql_index:03}",
++                       [*psql, "-d", database_name, "-c", statement], db_env, timeout=7).read_text().strip()
++
++    def jobs(record=None):
++        if record is not None:
++            require(RECORD.fullmatch(record) is not None, "invalid build record filter")
++        where = f"WHERE args->>'build_record_id'='{record}'" if record else ""
++        return json.loads(sql(f"""SELECT COALESCE(json_agg(json_build_array(id, args->>'kind', state::text)
++                               ORDER BY id), '[]'::json) FROM oban_jobs {where}"""))
++
++    def ready(name, child, seconds):
++        path = root / name
++        return kit["wait"](lambda: kit["read"](path) if path.is_file() else None, seconds, child)
++
++    def mark(name):
++        (root / name).touch(exist_ok=False)
++
++    def refresh(label):
++        mark("api.refresh." + label)
++        return ready("api.session." + label, api, 12)
++
++    with ExitStack() as services:
++        postgres = services.enter_context(kit["owned"](
++            root, "postgres", [pg / "postgres", "-D", root / "pg", "-h", kit["HOST"], "-p", str(db_port),
++             "-k", "", "-c", "jit=off", "-c", "password_encryption=scram-sha-256"], root,
++            env, result["commands"], stop=signal.SIGINT))
++        kit["wait"](lambda: "ready to accept connections" in (root / "postgres.log").read_text(), 12, postgres)
++        require(sql("SHOW data_directory", "postgres") == str(root / "pg")
++                and sql("SELECT bool_and(auth_method='scram-sha-256' AND error IS NULL) FROM pg_hba_file_rules",
++                        "postgres") == "t", "PostgreSQL does not serve the private SCRAM-only cluster")
++        command(root, kit, result, "seed-roles", [*psql, "-d", "postgres", "-f", root / "pg-bootstrap.sql"],
++                db_env, timeout=8)
++
++        api_env = env | {"L07_PG_" + role: passwords[role] for role in PG_ROLES if role != "fixture_admin"}
++        api = services.enter_context(kit["owned"](
++            root, "api", ["mix", "test", "--no-compile", "--only", "l07_reusable", API],
++            hosted, api_env, result["commands"], stop=lambda: mark("api.done")))
++        auth = ready("api.ready", api, 65)
++        require(auth["port"] == api_port and auth["restricted_roles"] == ["browser_ordinary", "mixer_build_create"],
++                "API did not start with the restricted roles and fixed loopback port")
++        ports.extend((auth["issuer"], auth["jwks"]))
++        require(len(set(ports)) == len(ports), "fixture service ports collided")
++        roles = ",".join(f"'{role}'" for role in PG_ROLES)
++        scram = sql(f"""SELECT count(*)={len(PG_ROLES)}
++                       AND bool_and(rolpassword LIKE 'SCRAM-SHA-256$%')
++                       FROM pg_authid WHERE rolname IN ({roles})""")
++        require(scram == "t" and jobs() == [], "SCRAM roles or initial Oban queue differ")
++        result["database"] = {"scramOnly": True, "credentialRoles": list(PG_ROLES),
++                              "browserRoles": auth["restricted_roles"], "port": db_port}
++
++        tenant = auth["build"]["organization_id"]
++        spec = dict(spec, **{key: auth["build"][key] for key in kit["SPEC_FIELDS"]})
++        require(auth["build"]["source_sha256"] == spec["source"]["sha256"]
++                and all(auth["build"][key] == spec[key] for key in
++                        ("toolchain_lock_sha256", "build_definition_sha256")),
++                "signed-in fixture did not select the pinned iOS Starter")
++
++        code = hosted / "priv/development"
++        sys.path.insert(0, str(code))
++        import ios_build_custody
++        from compiler_worker import literal
++
++        worker_id, token = "l07-reusable-ios-worker", secrets.token_hex(32)
++        _, runtime = ios_build_custody.runtime_image()
++        config = dict(worker_id=worker_id, token=token, tenant=tenant, port=worker_port,
++                      registration=dict(registration, spec=spec), policy=policy, ios_custodian=dict(
++                          version=2, authority_id=secrets.token_hex(32), runtime_sha256=runtime))
++        config_path = root / "worker.json"
++        config_sha = kit["write"](config_path, config)
++        config_path.chmod(0o400)
++        config_stat = config_path.stat()
++        configuration = sha(literal({key: config[key] for key in
++                                      ("worker_id", "tenant", "registration", "policy", "ios_custodian")}).encode())
++        result["worker"] = dict(configurationSHA256=config_sha, authoritySHA256=configuration,
++                                authorityID=config["ios_custodian"]["authority_id"], port=worker_port,
++                                runtimeSHA256=runtime)
++
++        def same_config():
++            current = config_path.stat()
++            require((current.st_dev, current.st_ino, current.st_mode) ==
++                    (config_stat.st_dev, config_stat.st_ino, config_stat.st_mode), "worker config was replaced")
++            require(live.file_sha(config_path) == config_sha, "worker config bytes changed")
++
++        def launch(label, role, stop, exit_codes=(0,)):
++            same_config()
++            return services.enter_context(kit["owned"](
++                root, label, [sys.executable, "-IBS", code / "ios_build_custody.py",
++                              role, config_path, config_sha, state], root, env, result["commands"],
++                stop=stop, exit_codes=exit_codes))
++
++        def shutdown():
++            require(kit["wire"](config, "shutdown") == {"status": "closed"},
++                    "authenticated worker shutdown was refused")
++
++        first = launch("worker-original", "worker", shutdown, (0, -signal.SIGKILL))
++        kit["wait"](lambda: kit["listening"](worker_port) and database.is_file(), 8, first)
++        ledger = database.stat()
++        supervisor = launch("supervisor", "supervisor", signal.SIGTERM)
++        kit["wait"](lambda: (state / "ios-supervisor.lock").is_file(), 8, supervisor)
++
++        processor_env = dict(
++            env, MIXER_HOSTED_ROLE="processor", MIXER_PROCESSOR_PROFILE="builds_v1",
++            MIXER_BUILD_OPERATION_INTENT="durable_intent_v1", MIXER_DATABASE_HOST=kit["HOST"],
++            MIXER_DATABASE_NAME=kit["DB"], MIXER_DATABASE_USER="mixer_build_processor",
++            MIXER_DATABASE_PASSWORD=passwords["mixer_build_processor"], MIXER_DATABASE_POOL_SIZE="2",
++            MIXER_QUEUE_BUILDS_CONCURRENCY="1", MIXER_BUILD_DISPATCH="native_development_v1",
++            MIXER_NATIVE_RETAINED_ROOT=str(state), MIXER_NATIVE_WORKER_PORT=str(worker_port),
++            MIXER_NATIVE_WORKER_ID=worker_id, MIXER_NATIVE_WORKER_TOKEN=token)
++        processor = services.enter_context(kit["owned"](
++            root, "processor", ["mix", "run", "--no-start", "--no-compile", root / PAIR / "processor.exs"],
++            hosted, processor_env, result["commands"], stop=lambda: mark("processor.done")))
++        result["processorAdmission"] = ready("processor.ready", processor, 20)
++        require(result["processorAdmission"] == {"role": "mixer_build_processor", "paused": True},
++                "processor did not admit the restricted paused role")
++
++        def cut_listener(cli, xcode_pid, check):
++            result["stage"] = "a-cold-listener-replacement"
++            row, current_launch, terminal, _ = check()
++            require(current_launch == cli and terminal is None and row["status"] == "running"
++                    and first.poll() is None and supervisor.poll() is None,
++                    "listener or active original claim changed before the cut")
++            require(len({first.pid, supervisor.pid, cli["pid"], xcode_pid}) == 4, "overlapping process roles")
++            for pid in (first.pid, cli["pid"], xcode_pid):
++                require_session(pid)
++            os.kill(first.pid, signal.SIGKILL)
++            cut = time.clock_gettime_ns(time.CLOCK_MONOTONIC)
++            live.reap_owned_child(first, kit["wait"])
++            require(first.returncode == -signal.SIGKILL and kit["group_absent"](first.pid)
++                    and kit["connect_errno"](worker_port) == errno.ECONNREFUSED, "cut did not close the old listener")
++            result["listenerCut"] = dict(pid=first.pid, signalNS=cut, exit=first.returncode,
++                                         directChildReaped=True, groupAbsent=True, port=worker_port)
++            offline_row, _, _, _ = check()
++            offline_guard = offline_row["guard"]
++            replacement = launch("worker-replacement", "worker", shutdown)
++            kit["wait"](lambda: kit["listening"](worker_port), 8, replacement)
++            current = database.stat()
++            require((current.st_dev, current.st_ino) == (ledger.st_dev, ledger.st_ino)
++                    and replacement.pid not in (first.pid, supervisor.pid) and supervisor.poll() is None,
++                    "replacement changed the ledger inode or supervisor")
++            result["listenerReplacement"] = dict(pid=replacement.pid, port=worker_port,
++                                                  sameLedgerInode=True, supervisorPID=supervisor.pid,
++                                                  guardBeforeReopen=offline_guard)
++            return cut, offline_guard
++
++        def build(label, session, count, cut=None):
++            result["stage"] = f"{label}-authenticated-create"
++            result["buildPOSTs"] += 1
++            status, _, raw = kit["http"](session, kit["BUILD"], cookie=session["cookie"], body=auth["build"],
++                                         idempotency_key="l07-reusable-" + label)
++            require(status == 201, f"{label} authenticated build create returned HTTP {status}")
++            created = json.loads(raw)
++            scope = created["selection"]
++            require(created["state"] == "queued" and created["outcome"] == "applied"
++                    and {k: v for k, v in scope.items() if k != "build_id"} ==
++                        {k: v for k, v in auth["build"].items() if k != "source_input_id"},
++                    "build creation changed the shared registration")
++            suffix = "" if label == "a" else ".b"
++            selection = root / ("build.selection" + suffix)
++            pending = selection.with_name(selection.name + ".tmp")
++            kit["write"](pending, scope)
++            pending.rename(selection)
++            binding = ready("build.binding" + suffix, processor, 10)
++            record = binding["record_id"]
++
++            operation = binding["operation_id"]
++            ref = {key: scope[key] for key in (*kit["SPEC_FIELDS"], "build_id")} | {"attempt": 1, "fence": 1}
++            require(RECORD.fullmatch(record) and OPERATION.fullmatch(operation)
++                    and binding["spec"] == dict(spec, build_id=scope["build_id"]) and binding["ref"] == ref,
++                    "ordinary coordinator produced an unexpected worker binding")
++            if label == "b":
++                a = result["builds"]["a"]
++                require(all(x != y for x, y in ((record, a["binding"]["record_id"]),
++                        (operation, a["binding"]["operation_id"]), (scope["build_id"], a["scope"]["build_id"]))),
++                        "B reused A's build identity")
++            current_jobs = jobs(record)
++            require([item[1:] for item in current_jobs] ==
++                    [["created", "completed"], ["start", "available"]],
++                    "dispatch ran before the original build binding was observed")
++            created_id, start_id = (item[0] for item in current_jobs)
++            evidence = result["builds"][label] = dict(scope=scope, binding=binding, createHTTP=201,
++                                                      originalObanJobs=dict(created=created_id, start=start_id))
++            snapshot = lambda: scoped_snapshot(sql, record)
++            result["nativeCustodyPending"] = {"operation": operation, "supervisorPID": supervisor.pid,
++                                               "ledger": str(database)}
++            mark("processor.run" + suffix)
++            original, terminal, probe, nested, digest, epoch = observe_build(
++                kit, result, label, binding, state, supervisor, processor, configuration,
++                start_id, count, snapshot, cut)
++            evidence.update({key: result[key] for key in ("compilerSourceSHA256", "cliSHA256")})
++            live.prove_released(kit, evidence, state / operation, spec, binding, session, scope, processor,
++                               snapshot, lambda: jobs(record), sql_for_record(sql, record),
++                               original, terminal, probe[1]["pid"], probe[2], nested, digest, epoch,
++                               refresh=lambda: refresh(label + "-readback"))
++            same_config()
++            return scope, binding, terminal, probe, nested, digest, epoch
++
++        a = build("a", auth, 1, cut_listener)
++        a_scope, a_binding, a_terminal, a_probe, a_nested, a_digest, a_epoch = a
++        a_operation, a_record = (a_binding[key] for key in ("operation_id", "record_id"))
++        a_before = ledger_entry(database, a_operation)
++        a_db = scoped_snapshot(sql, a_record)
++        mark("processor.pause-b")
++        require(ready("processor.b-paused", processor, 10) == result["processorAdmission"],
++                "same processor did not pause for B's admission")
++        _, b, *_ = build("b", auth | refresh("b-create"), 2)
++        a_after = ledger_entry(database, a_operation)
++        require(a_after == a_before | {"sizes": {"operations": 2, "claims": 2, "plans": 2}}
++                and scoped_snapshot(sql, a_record) == a_db, "B changed A's settled row or claim")
++        require([item[1:] for item in jobs()] == [[k, "completed"] for k in ("created", "start", "completed")] * 2,
++                "expected exactly two ordered, independently settled Oban attempts")
++        result["stage"] = "a-authenticated-readback-after-b"
++        a_start = result["builds"]["a"]["originalObanJobs"]["start"]
++
++        def settled_a():
++            row, _, terminal, _ = checked_entry(ledger_entry(database, a_operation), configuration, a_operation,
++                                                 a_binding, supervisor.pid, a_start, 2)
++            return row, terminal
++
++        reread = result["aAfterB"] = dict(result["builds"]["a"])
++        live.prove_released(kit, reread, state / a_operation, spec, a_binding, auth, a_scope, processor,
++                           lambda: scoped_snapshot(sql, a_record), lambda: jobs(a_record),
++                           sql_for_record(sql, a_record), settled_a, a_terminal, a_probe[1]["pid"],
++                           a_probe[2], a_nested, a_digest, a_epoch, refresh=lambda: refresh("a-after-b"))
++        require(reread["settled"] == result["builds"]["a"]["settled"]
++                and reread["downloadObservations"] == result["builds"]["a"]["downloadObservations"]
++                and ledger_entry(database, a_operation) == a_after, "A readback changed after B")
++        result["builds"]["b"]["operationDistinct"] = b["operation_id"] != a_operation
++        result["aAfterB"]["sameSettledRecord"] = True
++        same_config()
++    result["stage"] = "both-settled-and-services-closed"
++
++
++def sql_for_record(sql, record):
++    require(RECORD.fullmatch(record) is not None, "invalid journal record ID")
++
++    def journal(statement):
++        require(statement == "SELECT json_agg(journal->'events') FROM mixer_builds",
++                "unexpected journal readback query")
++        return sql(statement + f" WHERE id='{record}'")
++
++    return journal
++
++
++def prepare(root, source_repo, patch, result):
++    # The input checkout only supplies Git objects and this fixture's pinned
++    # harness modules. All writes and subprocess output stay in the new root.
++    bootstrap_kit = runpy.run_path(str(REPO / PAIR / "run.py"))
++    preserve_names = {"worker-original", "worker-replacement", "supervisor"}
++
++    def preserve(name):
++        return name in preserve_names and result.get("nativeCustodyPending") is not None
++
++    bootstrap_kit["owned"] = owned_runner(bootstrap_kit, preserve=preserve)
++    env = environment(root)
++    git = ["git", "--no-replace-objects", "--no-lazy-fetch", "-C", source_repo]
++    pin = command(root, bootstrap_kit, result, "source-tree",
++                  [*git, "rev-parse", f"{BASE}^{{tree}}", f"{BASE}:hosted"], env, timeout=8)
++    require(pin.read_text().splitlines() == [BASE_TREE, HOSTED_TREE], "exact public base tree differs")
++    archive = command(root, bootstrap_kit, result, "source-archive",
++                      [*git, "archive", BASE, *SOURCE_PATHS], env, timeout=25)
++    with tarfile.open(archive) as stream:
++        stream.extractall(root, filter="data")
++    archive.unlink()
++    images = product_preimages(patch, root)
++    local_patch = root / "product.patch"
++    shutil.copyfile(patch, local_patch)
++    require(live.file_sha(local_patch) == PRODUCT_SHA256, "product patch changed during staging")
++    command(root, bootstrap_kit, result, "product-apply",
++            ["git", "apply", "--whitespace=nowarn", local_patch],
++            env | {"GIT_CEILING_DIRECTORIES": str(root.parent)}, timeout=10)
++    require(all(git_blob(root / path) == after for path, after in images), "product postimage differs")
++    result["productBlobs"] = dict(images)
++    kit = compose(root)
++    kit["owned"] = kit["compile_hosted"].__globals__["owned"] = owned_runner(kit, preserve=preserve)
++    return kit
++
++
++def check_fixture(root, kit, result):
++    env = environment(root)
++    env["ERL_FLAGS"] = "+S 2:2"
++    paths = [root / "hosted" / API, root / PAIR / "processor.exs",
++             root / "hosted/test/support/ordinary_browser_startup_fixture.ex",
++             root / "hosted/test/support/browser_storage_fixture.ex",
++             root / "hosted/test/support/browser_login_provider_fixture.ex"]
++    check = "Enum.each(System.argv(), fn path -> Code.string_to_quoted!(File.read!(path), file: path) end)"
++    command(root, kit, result, "elixir-fixture-syntax", ["elixir", "-e", check, "--", *paths], env, timeout=12)
++    result["composedFixtureSHA256"] = {str(path.relative_to(root)): live.file_sha(path) for path in paths}
++    result["stage"] = "fixture-composed-and-parsed"
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--repo", type=Path, default=REPO, help="repository supplying pinned public Git objects")
++    parser.add_argument("--product-patch", type=Path, required=True)
++    parser.add_argument("--receipt", type=Path, required=True)
++    parser.add_argument("--scratch-parent", type=Path, default=REPO / "verification/local")
++    parser.add_argument("--hex-cache", type=Path, default=Path.home() / ".hex")
++    parser.add_argument("--mix-archives", type=Path, default=Path.home() / ".mix/archives")
++    parser.add_argument("--pg-bin", type=Path, default=Path("/opt/homebrew/opt/postgresql@17/bin"))
++    mode = parser.add_mutually_exclusive_group(required=True)
++    mode.add_argument("--check-fixture", action="store_true")
++    mode.add_argument("--preflight-only", action="store_true")
++    mode.add_argument("--live", action="store_true", help="run two real unsigned generic iOS Simulator builds")
++    parser.add_argument("--stage-receipt", type=Path)
++    parser.add_argument("--stage-sha256")
++    parser.add_argument("--cli", type=Path)
++    parser.add_argument("--export", type=Path)
++    args = parser.parse_args()
++    stage_inputs = (args.stage_receipt, args.stage_sha256, args.cli, args.export)
++    if args.receipt.exists() or args.receipt.is_symlink():
++        parser.error("use a new receipt path")
++    if args.check_fixture and any(stage_inputs):
++        parser.error("fixture composition does not use staged Starter inputs")
++    if not args.check_fixture and (not all(stage_inputs) or not OPERATION.fullmatch(args.stage_sha256)
++                                   or sys.platform != "darwin"):
++        parser.error("live and preflight modes require macOS, the staged receipt, its SHA-256, CLI and export")
++
++    os.umask(0o077)
++    parent = args.scratch_parent.absolute()
++    check_private_ancestors(parent.parent)
++    parent.mkdir(mode=0o700, exist_ok=True)
++    check_private_ancestors(parent)
++    root = Path(tempfile.mkdtemp(prefix="l07-reusable-owned-", dir=parent))
++    (root / "custody.jsonl").touch()
++    result = dict(base=BASE, baseTree=BASE_TREE, hostedTree=HOSTED_TREE, productSHA256=PRODUCT_SHA256,
++                  overlaySHA256={name: live.file_sha(HERE / name) for name in (
++                      "reusable.py", "reusable_fixture.py", "reusable-api.exs", "v74.py")},
++                  python=sys.version.split()[0], live=args.live, buildPOSTs=0, xcodeInvocations=0,
++                  nativeCustodyPending=None, commands={}, builds={}, scratch=str(root), stage="exact-source",
++                  command=[sys.executable, "-B", *sys.argv], passed=False)
++    kit = None
++    try:
++        kit = prepare(root, args.repo.resolve(strict=True), args.product_patch.resolve(strict=True), result)
++        if args.check_fixture:
++            check_fixture(root, kit, result)
++        else:
++            result["stage"] = "starter-input-admission"
++            recipe = live.stage_recipe(root, kit, args, result, PREPARE)
++            if args.live:
++                result["mixLockSHA256"] = stage_hex(root, args.hex_cache, args.mix_archives)
++                drive(root, kit, args, result, recipe)
++            else:
++                result["stage"] = "starter-inputs-admitted"
++        result["passed"] = True
++    except BaseException as error:
++        result["failure"] = {"type": type(error).__name__, "message": str(error)}
++
++    unknown = [name for name, receipt in result["commands"].items() if not receipt["groupAbsent"]]
++    supervisor = result["commands"].get("supervisor", {})
++    if supervisor.get("exit") == 74:
++        unknown.append("supervisor reported uncertain custody")
++    if result["nativeCustodyPending"] is not None:
++        unknown.append("native claim has no verified terminal chain")
++    if unknown:
++        result.update(passed=False, scratchRemoved=False, custodyHold={"root": str(root), "unresolved": unknown})
++        write_exclusive(root / "HOLD.json", json.dumps(result, sort_keys=True, indent=2) + "\n")
++    else:
++        try:
++            if kit is not None and result.get("ports"):
++                kit["verify_port_reuse"](result["ports"], result)
++        except OSError as error:
++            result.update(passed=False, cleanupFailure=str(error))
++        if not result["passed"]:
++            result["closedFailureLogs"] = {}
++            for name in ("deps", "compile", "initdb", "postgres", "api", "processor", "supervisor",
++                         "worker-original", "worker-replacement"):
++                log = root / (name + ".log")
++                if log.is_file():
++                    result["closedFailureLogs"][name] = str(log)
++        if result.get("closedFailureLogs"):
++            result["scratchRemoved"] = False
++        else:
++            shutil.rmtree(root)
++            result["scratchRemoved"] = True
++    write_exclusive(args.receipt, json.dumps(result, sort_keys=True, indent=2) + "\n")
++    print(f"{'PASS' if result['passed'] else 'FAILED'} {result['stage']} {args.receipt}", flush=True)
++    return 0 if result["passed"] else 74 if unknown else 1
++
++
++if __name__ == "__main__":
++    sys.exit(main())
+diff --git a/tests/integration/l07-ios-active-custody/reusable_fixture.py b/tests/integration/l07-ios-active-custody/reusable_fixture.py
+new file mode 100644
+index 0000000000..06503ee653
+--- /dev/null
++++ b/tests/integration/l07-ios-active-custody/reusable_fixture.py
+@@ -0,0 +1,168 @@
++"""Compose and verify the disposable fixture without building application sources."""
++
++import hashlib
++import os
++import re
++import runpy
++import shutil
++import stat
++from pathlib import Path
++
++from v74 import replace
++
++BASE = "551576a03a4ef4f4b081e6191ce0a02c5947c679"
++BASE_TREE = "17349941b5ca190c9597dbdd9bec259b93b0e918"
++HOSTED_TREE = "209558d5a8bb80ee695d9a26b5652a00dc19e0cd"
++PRODUCT_SHA256 = "d2c7e8c94adc37343c21324173b96e9b3675a9c7f1a5b0ffda08db1293081bef"
++PAIR = "tests/integration/l05-pair25-http"
++HERE = Path(__file__).resolve().parent
++API = "test/mixer_hosted/browser_auth/local_starter_http_sql_spec.exs"
++REGISTRATION = "tests/integration/free-project-starter/registration-runner.py"
++PREPARE = "tests/integration/free-project-starter/prepare-starter.py"
++SOURCE_PATHS = ("hosted", PAIR, REGISTRATION, PREPARE)
++BROWSER_ROLES = ("browser_admin", "browser_lifecycle", "browser_ordinary", "mixer_build_create")
++PG_ROLES = ("fixture_admin", *BROWSER_ROLES, "mixer_build_processor")
++
++
++def require(condition, detail):
++    if not condition:
++        raise RuntimeError(detail)
++
++
++def sha(data):
++    return hashlib.sha256(data).hexdigest()
++
++
++def product_preimages(patch, root):
++    raw = patch.read_bytes()
++    require(sha(raw) == PRODUCT_SHA256, "supplied product patch digest differs")
++    files = []
++    for block in raw.split(b"diff --git ")[1:]:
++        match = re.match(rb"a/(hosted/[^\n ]+) b/\1\nindex ([0-9a-f]{40})\.\.([0-9a-f]{40}) ", block)
++        require(match is not None, "unexpected product patch file")
++        path, before, after = (part.decode() for part in match.groups())
++        require(git_blob(root / path) == before, f"product preimage differs: {path}")
++        files.append((path, after))
++    require(len(files) == len({path for path, _ in files}) == 5, "product patch roster differs")
++    return files
++
++
++def git_blob(path):
++    data = path.read_bytes()
++    return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
++
++
++def compose(root):
++    pair = root / PAIR
++    kit_path = pair / "run.py"
++    replace(kit_path,
++            "empty_post=False, burst=None):",
++            'empty_post=False, burst=None, idempotency_key="pair25-one-build"):')
++    replace(kit_path, '"Idempotency-Key": "pair25-one-build"', '"Idempotency-Key": idempotency_key')
++    kit = runpy.run_path(str(kit_path))
++
++    api_case = pair / "api-case.exs"
++    source = api_case.read_text()
++    helper = source[source.index("defp pair25_publish!("):]
++    require(helper.count("defp pair25_processor!(") == 1, "scoped processor fixture differs")
++    api_case.write_text((HERE / "reusable-api.exs").read_text() + "\n" + helper)
++    replace(api_case, "WHERE platform='android'", "WHERE platform='ios'")
++    replace(api_case, "  for sql <- ProcessorProfile.operation_intent_statements",
++            r"""  password = System.fetch_env!("L07_PG_mixer_build_processor")
++  assert password =~ ~r/\A[0-9a-f]{64}\z/
++  DB.q!(Admin, "ALTER ROLE mixer_build_processor PASSWORD '#{password}'")
++
++  for sql <- ProcessorProfile.operation_intent_statements""")
++    replace(api_case, '  |> then(fn c ->\n    if System.get_env("PAIR25_CANCEL")',
++            """  |> put_in([:hosted, Access.key(:endpoint)],
++    Keyword.put(c.hosted.endpoint, :http, ip: {127, 0, 0, 1},
++      port: String.to_integer(System.fetch_env!("L07_API_PORT")), http_2_options: [enabled: false]))
++  |> then(fn c ->
++    if System.get_env("PAIR25_CANCEL")""")
++    # Evaluate the reused helper against just the modified fixture test case.
++    kit["fixtures"](root / "hosted")
++    api = root / "hosted" / API
++    replace(api, 'Keyword.put(c.hosted.repo, :username, "mixer_build_create")',
++            'Keyword.merge(c.hosted.repo, username: "mixer_build_create",\n'
++            '        password: System.fetch_env!("L07_PG_mixer_build_create"))')
++
++    support = root / "hosted/test/support"
++    startup = support / "ordinary_browser_startup_fixture.ex"
++    replace(startup, '      pool_size: 2,\n      log: false',
++            '      pool_size: 2,\n      password: System.fetch_env!("L07_PG_browser_admin"),\n      log: false')
++    replace(startup, '      |> Keyword.put(:username, "browser_ordinary")',
++            '      |> Keyword.put(:username, "browser_ordinary")\n'
++            '      |> Keyword.put(:password, System.fetch_env!("L07_PG_browser_ordinary"))')
++    replace(startup, 'password: "synthetic",', 'password: System.fetch_env!("L07_PG_browser_lifecycle"),')
++    replace(startup, """        Postgrex.query!(
++          conn,
++          "DROP DATABASE browser_ordinary_installation_r1422 WITH (FORCE)",
++          [],
++          timeout: 20_000
++        )""", """        # The isolated process runner owns this cluster's cleanup.
++        :ok""")
++    for path in (startup, support / "browser_storage_fixture.ex"):
++        replace(path, '        username: role,',
++                '        username: role,\n        password: System.fetch_env!("L07_PG_" <> role),')
++
++    processor = pair / "processor.exs"
++    replace(processor, '%{"platform" => "android"}', '%{"platform" => "ios"}')
++    replace(processor, '%{platform: :android}', '%{platform: :ios}')
++    replace(processor, "try do\n  :ok =", "pause = fn ready ->\n  :ok =")
++    replace(processor, '  publish.("processor.ready", %{role: settings.repo[:username], paused: true})',
++            '  publish.(ready, %{role: settings.repo[:username], paused: true})\nend\n\ntry do\n  pause.("processor.ready")')
++    replace(processor, '  if command.("build.selection") == :go do\n    scope = path.("build.selection")',
++            '  for suffix <- ["", ".b"], command.("build.selection" <> suffix) == :go do\n'
++            '    scope = path.("build.selection" <> suffix)')
++    replace(processor, '''    %{rows: [["created", "completed", 1], ["start", "available", 0]]} =
++      Repo.query!("SELECT args->>'kind', state::text, attempt FROM oban_jobs ORDER BY id")''',
++            '''    %{rows: [["created", "completed", 1], ["start", "available", 0]]} =
++      Repo.query!("SELECT args->>'kind', state::text, attempt FROM oban_jobs
++        WHERE args->>'build_record_id'=$1 ORDER BY id", [record])''')
++    replace(processor, 'publish.("build.binding",', 'publish.("build.binding" <> suffix,')
++    replace(processor, '''    if command.("processor.run") == :go do
++      :ok = Oban.resume_queue(queue: :builds, local_only: true)
++      :done = command.("processor.done")
++    end''',
++            '''    if command.("processor.run" <> suffix) == :go do
++      :ok = Oban.resume_queue(queue: :builds, local_only: true)
++      if suffix == "" do
++        if command.("processor.pause-b") == :go, do: pause.("processor.b-paused")
++      else
++        :done = command.("processor.done")
++      end
++    end''')
++    return kit
++
++
++def seed_roles(root, passwords):
++    require(set(passwords) == set(PG_ROLES)
++            and len(set(passwords.values())) == len(PG_ROLES)
++            and all(re.fullmatch(r"[0-9a-f]{64}", item) for item in passwords.values()),
++            "fixture requires a distinct private hex credential for each login role")
++    roles = runpy.run_path(str(root / REGISTRATION))["ROLES"]
++    for role in BROWSER_ROLES:
++        roles += f"ALTER ROLE {role} PASSWORD '{passwords[role]}';\n"
++    return roles
++
++
++def stage_hex(root, cache, archives):
++    lock = (root / "hosted/mix.lock").read_bytes()
++    entries = re.findall(rb'\{:hex, :(\w+), "([^"]+)"', lock)
++    require(len(entries) == 21, "unexpected pinned Hex dependency roster")
++    hex_home = root / "hex"
++    tars = hex_home / "packages/hexpm"
++    tars.mkdir(parents=True)
++    shutil.copyfile(cache / "cache.ets", hex_home / "cache.ets")
++    for name, version in entries:
++        filename = f"{name.decode()}-{version.decode()}.tar"
++        shutil.copyfile(cache / "packages/hexpm" / filename, tars / filename)
++    shutil.copytree(archives / "hex-2.5.1", root / "mix/archives/hex-2.5.1")
++    return sha(lock)
++
++
++def check_private_ancestors(path):
++    for directory in (path, *path.parents):
++        info = directory.lstat()
++        require(stat.S_ISDIR(info.st_mode) and info.st_uid in (0, os.getuid())
++                and not info.st_mode & 0o022, f"untrusted scratch ancestor: {directory}")
+diff --git a/tests/integration/l07-ios-active-custody/reusable-api.exs b/tests/integration/l07-ios-active-custody/reusable-api.exs
+new file mode 100644
+index 0000000000..6b3c8ab778
+--- /dev/null
++++ b/tests/integration/l07-ios-active-custody/reusable-api.exs
+@@ -0,0 +1,66 @@
++# Included in the disposable copy of the stock signed-in HTTP test.
++@tag :l07_reusable
++@tag timeout: 1_270_000
++test "serve two authenticated requests under one iOS registration", c do
++  owner = login(c)
++  org = create(c, owner, "/console-api/v1/orgs", %{display_name: "L07 custody"})
++  scope = register_app(c, owner, org, "L07 custody")
++  pins = pair25_path("inputs.json") |> File.read!() |> Jason.decode!()
++  source = pins["source_tree_sha256"]
++  input = "l07-reusable-" <> source
++
++  assert %{num_rows: 1} =
++    DB.q!(Migration, """
++    INSERT INTO public.mixer_customer_build_inputs
++      (organization_id,project_id,application_id,platform,input_id,source_kind,
++       source_reference,source_sha256,toolchain_lock_sha256,build_definition_sha256,
++       max_attempts,timeout_ms,retry_backoff_ms)
++    VALUES ($1,$2,$3,'ios',$4,'revision',$5,$6,$7,$8,1,600000,0)
++    """, [scope.organization_id, scope.project_id, scope.application_id, input,
++          "starter-" <> source, source, pins["linux_lock_sha256"], pins["recipe_sha256"]])
++
++  build = Map.merge(scope, %{
++    platform: "ios", source_input_id: input, source_sha256: source,
++    toolchain_lock_sha256: pins["linux_lock_sha256"],
++    build_definition_sha256: pins["recipe_sha256"]
++  })
++
++  assert RuntimeOwner.status().phase == :storage_ready
++  assert c.hosted.oban[:queues] == false
++  for {repo, role} <- [
++    {MixerHosted.Repo, "browser_ordinary"},
++    {CreateRepo, "mixer_build_create"}
++  ] do
++    assert %{rows: [[^role, false, false]]} =
++      DB.q!(repo, "SELECT session_user::text, rolsuper, rolbypassrls FROM pg_roles WHERE rolname=session_user")
++  end
++
++  {cookie, csrf} = login(c)
++  pair25_publish!("api.ready", %{
++    port: c.http_port, issuer: c.provider_port, jwks: GenServer.call(c.fixture, :authority).port,
++    origin: c.config.public_origin, build: build, cookie: cookie, csrf: csrf,
++    restricted_roles: ["browser_ordinary", "mixer_build_create"]
++  })
++
++  reusable_wait!(c, ["a-readback", "b-create", "b-readback", "a-after-b"],
++    System.monotonic_time(:millisecond) + 1_245_000)
++end
++
++defp reusable_wait!(c, refreshes, deadline) do
++  assert System.monotonic_time(:millisecond) < deadline
++
++  cond do
++    File.regular?(pair25_path("api.done")) ->
++      :ok
++
++    refreshes != [] and File.regular?(pair25_path("api.refresh." <> hd(refreshes))) ->
++      [label | rest] = refreshes
++      {cookie, csrf} = login(c)
++      pair25_publish!("api.session." <> label, %{cookie: cookie, csrf: csrf})
++      reusable_wait!(c, rest, deadline)
++
++    true ->
++      Process.sleep(50)
++      reusable_wait!(c, refreshes, deadline)
++  end
++end
+diff --git a/tests/integration/l07-ios-active-custody/test_reusable.py b/tests/integration/l07-ios-active-custody/test_reusable.py
+new file mode 100644
+index 0000000000..d8fd89512d
+--- /dev/null
++++ b/tests/integration/l07-ios-active-custody/test_reusable.py
+@@ -0,0 +1,80 @@
++"""Inert checks for the scoped evidence reader and reusable fixture admission."""
++
++import copy
++import json
++import unittest
++from unittest.mock import Mock
++
++from reusable import checked_entry, scoped_snapshot, sql_for_record
++from reusable_fixture import PG_ROLES, seed_roles, sha
++
++
++class ReusableFixtureTests(unittest.TestCase):
++    def setUp(self):
++        self.operation = "a" * 64
++        self.authority = "b" * 64
++        self.record = "ed63c507-caf9-4b0e-9f0b-7c40d088b5a3"
++        self.guard = {"revision": 1, "owner_id": "oban:17:original", "epoch": 1}
++        self.binding = {"spec": {"build_id": "separate"}, "ref": {"attempt": 1}, "deadline_ms": 300}
++        self.plan = json.dumps({"operation_id": self.operation, "binding": self.binding, "recipe": {},
++                                "configuration": self.authority, "guard": self.guard})
++        self.plan_digest = sha(self.plan.encode())
++        self.entry = {
++            "authority": [self.authority],
++            "sizes": {"operations": 2, "claims": 2, "plans": 2},
++            "plan": self.plan,
++            "claim": (123, '{"pid":124,"pgid":124,"sid":124}', None, 0,
++                      self.plan_digest, json.dumps(self.guard)),
++            "row": {"binding": self.binding, "starts": 1, "ios_custody":
++                    {"version": 2, "configuration": self.authority, "plan_sha256": self.plan_digest}},
++        }
++
++    def check(self, entry):
++        return checked_entry(entry, self.authority, self.operation, self.binding, 123, 17, 2)
++
++    def test_accept_original_durable_claim_but_distinguish_absent_terminal_proof(self):
++        _, launch, terminal, issued = self.check(self.entry)
++        self.assertEqual(launch, {"pid": 124, "sid": 124, "pgid": 124})
++        self.assertIsNone(terminal)
++        self.assertEqual(issued, self.guard)
++
++    def test_refuse_uncertain_claim_even_when_terminal_column_is_present(self):
++        original = self.entry["claim"]
++        self.entry["claim"] = (*original[:2], '{"outcome":"succeeded"}', 1, *original[4:])
++        with self.assertRaisesRegex(RuntimeError, "claim"):
++            self.check(self.entry)
++
++    def test_refuse_authority_changed_plan_or_an_extra_operation(self):
++        for field, replacement in {
++            "authority": ["c" * 64],
++            "plan": self.plan.replace("separate", "other"),
++            "sizes": {"operations": 3, "claims": 2, "plans": 2},
++        }.items():
++            with self.subTest(field=field):
++                changed = copy.deepcopy(self.entry)
++                changed[field] = replacement
++                with self.assertRaises(RuntimeError):
++                    self.check(changed)
++
++    def test_readbacks_are_scoped_to_exact_record(self):
++        sql = Mock(return_value="{}")
++        scoped_snapshot(sql, self.record)
++        self.assertEqual(sql.call_args.args[0].count(self.record), 5)
++        sql_for_record(sql, self.record)("SELECT json_agg(journal->'events') FROM mixer_builds")
++        self.assertTrue(sql.call_args.args[0].endswith("WHERE id='" + self.record + "'"))
++        sql.reset_mock()
++        with self.assertRaises(RuntimeError):
++            scoped_snapshot(sql, "untrusted")
++        with self.assertRaises(RuntimeError):
++            sql_for_record(sql, self.record)("SELECT 1")
++        sql.assert_not_called()
++
++    def test_fixtures_refuse_a_shared_or_malformed_role_password(self):
++        with self.assertRaisesRegex(RuntimeError, "distinct private hex"):
++            seed_roles(None, dict.fromkeys(PG_ROLES, "a" * 64))
++        with self.assertRaisesRegex(RuntimeError, "distinct private hex"):
++            seed_roles(None, {role: str(index) for index, role in enumerate(PG_ROLES)})
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/tests/integration/l07-ios-active-custody/v74.py b/tests/integration/l07-ios-active-custody/v74.py
+index 06997e0733..0e5208db0f 100644
+--- a/tests/integration/l07-ios-active-custody/v74.py
++++ b/tests/integration/l07-ios-active-custody/v74.py
+@@ -99,7 +99,7 @@ class OwnedProcess(subprocess.Popen):
+         return self.returncode
+
+
+-def owned_runner(kit):
++def owned_runner(kit, *, preserve=None):
+     require = kit["require"]
+
+     @contextmanager
+@@ -124,8 +124,9 @@ def owned_runner(kit):
+                 wrapper = receipts.get("attest-settled")
+                 preserve_service = name in ("api", "postgres") and wrapper is not None and (
+                     not wrapper["groupAbsent"] or os.path.lexists(root / "HOLD.json"))
++                preserve_service = preserve_service or (preserve is not None and preserve(name))
+                 if preserve_service:
+-                    receipt["preservedForWrapper"] = True
++                    receipt["preservedForWrapper" if name in ("api", "postgres") else "preservedForNativeCustody"] = True
+                 # Leave the exact timed-out command and services it may still need alone.
+                 if not own_timeout and not preserve_service:
+                     try:

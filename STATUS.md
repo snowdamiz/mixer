@@ -993,6 +993,40 @@ Source141 and Source127 restoration passed. The full local collector
 runs reached their time limits. The exact hosted run remains pending.
 [Combined source binding](verification/receipts/hosted-phoenix-v86-pair25-integration.json)
 
+## November 21 reusable iOS build worker recovery
+
+One loopback Phoenix API, restricted Oban processor, and SCRAM PostgreSQL
+fixture started a real unsigned Starter Xcode build. The listener was
+replaced while that build was active. The independent supervisor retained
+custody, and the replacement settled the original job under a fresh guard.
+The same configuration, listener port, supervisor, and ledger admitted
+and settled a second build. Both builds had one start and one capacity
+release. The owner downloaded all three artifacts for each build and
+re-read the first build after the second. Its artifact hashes matched.
+All 52 command groups closed, all five ports were reusable, and live
+scratch was removed. Both builds targeted the generic iOS Simulator
+SDK. No Simulator device booted.
+[Live receipt](verification/receipts/l07-ios-worker-reusable-live-551576a0.json) ·
+[Exact fixture overlay](verification/receipts/l07-ios-worker-reusable-live-fixture-551576a0.patch)
+
+The independent inert check passed 54 tests with one fixture-dependent
+skip in each Python mode. The v87 binding restored v86 through v82 and
+preserved the 157 Source141 inputs and 53 Pair25 inputs. Hosted execution
+of v87 remains pending.
+[Worker correction](verification/receipts/l07-ios-worker-reusable-supervisor-compat-1e2de013.json) ·
+[Source binding](verification/receipts/hosted-source-v87-composition.json)
+
+## November 21 public Swift feature replay
+
+On v86, the owned Guest UI V1 runtime matched four native TaskCompletion
+frames and refused six malformed inputs per arm while preserving the
+prior frame. Floating-point, associated-type, and property-wrapper
+controls matched. Both shared-memory admission routes refused the
+fixture without publishing a session. The two Rust suites passed all
+32 focused tests, and all 34 command groups closed. This is macOS host
+evidence. The installed iOS TaskCompletion comparison remains open.
+[Replay receipt](verification/receipts/l03-swift-profile-v86-551576a0.json)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,
