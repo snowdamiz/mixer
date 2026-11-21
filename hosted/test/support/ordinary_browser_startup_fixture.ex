@@ -159,6 +159,36 @@ defmodule MixerHosted.Test.OrdinaryBrowserStartupFixture do
     migrate_workspace!(Admin, 20_261_118_000_011, Migrations.AddWorkspaceApplicationRegistration)
   end
 
+  def provision_build_create! do
+    F.q!(Admin, "GRANT USAGE ON SCHEMA public TO mixer_build_create")
+
+    tables =
+      ~w(profiles principals bindings families credentials organizations projects applications environments organization_heads project_heads memberships)
+
+    relations = Enum.map_join(tables, ",", &("public.mixer_authz_" <> &1))
+    F.q!(Admin, "GRANT SELECT ON " <> relations <> " TO mixer_build_create")
+
+    for helper <- ~w(profiles principals families credentials organization_heads project_heads),
+        do:
+          F.q!(
+            Admin,
+            "GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO mixer_build_create"
+          )
+
+    for sql <-
+          MixerHosted.CustomerBuilds.CreateSchema.statements() ++
+            MixerHosted.BrowserAuth.ActiveCreateSchema.statements(),
+        do: F.q!(Migration, sql)
+
+    signature =
+      "public.mixer_browser_create_active_load(bytea,bytea,bigint,public.mixer_browser_access_evidence)"
+
+    F.q!(Admin, "GRANT CREATE ON SCHEMA public TO browser_writer")
+    F.q!(Admin, "ALTER FUNCTION #{signature} OWNER TO browser_writer")
+    F.q!(Admin, "REVOKE CREATE ON SCHEMA public FROM browser_writer")
+    F.q!(Admin, "GRANT EXECUTE ON FUNCTION #{signature} TO mixer_build_create")
+  end
+
   defp migrate_workspace!(repo, version, module) do
     unless Code.ensure_loaded?(module) do
       [path] = Path.wildcard("priv/repo/migrations/#{version}_*.exs")

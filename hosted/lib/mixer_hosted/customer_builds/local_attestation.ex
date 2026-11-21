@@ -2,13 +2,13 @@ defmodule MixerHosted.CustomerBuilds.LocalAttestation do
   @moduledoc false
   alias MixerHosted.BrowserAuth.Installation
   alias MixerHosted.Builds.NativeDevelopmentAttestation
-  alias MixerHosted.CustomerBuilds.AttestationRepo
+  alias MixerHosted.CustomerBuilds.{AttestationRepo, AttestationSchema}
   alias MixerHosted.RuntimeConfig
   alias MixerHostedWeb.Endpoint
 
   @password "MIXER_LOCAL_NATIVE_ATTESTATION_PASSWORD"
   @public_key "MIXER_LOCAL_NATIVE_ATTESTATION_PUBLIC_SPKI_BASE64"
-  @login "mixer_native_attestation_writer"
+  @login AttestationSchema.writer()
 
   @derive {Inspect, only: [:origin]}
   @enforce_keys [:repo, :origin, :port, :public_spki_der]
@@ -74,6 +74,21 @@ defmodule MixerHosted.CustomerBuilds.LocalAttestation do
 
       :error ->
         {:error, :authorization_unavailable}
+    end
+  end
+
+  # Browser storage is admitted before the writer pool and endpoint start.
+  def browser_catalog_enabled?(nil), do: false
+
+  def browser_catalog_enabled?(runtime) do
+    with {:ok,
+          {%RuntimeConfig{role: :api, native_attestation: %__MODULE__{} = provision},
+           %Installation{runtime: ^runtime}}} <- MixerHosted.Application.startup(),
+         true <- provision.repo[:username] === @login do
+      endpoint_matches?(Application.get_env(:mixer_hosted, Endpoint, []), provision.port) and
+        no_conflicting_settings?()
+    else
+      _ -> false
     end
   end
 

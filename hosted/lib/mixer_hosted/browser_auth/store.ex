@@ -188,14 +188,16 @@ defmodule MixerHosted.BrowserAuth.Store do
           LifecycleRepo,
           runtime.expected_roles,
           deadline,
-          runtime.workspace_catalog
+          runtime.workspace_catalog,
+          runtime
         )
       else
         RelationCatalog.check_build_catalog_surface!(
           LifecycleRepo,
           runtime.expected_roles,
           deadline,
-          runtime.workspace_catalog
+          runtime.workspace_catalog,
+          runtime
         )
       end
 

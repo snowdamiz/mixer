@@ -5,6 +5,7 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
   This function is not a storage/readiness/owner admission receipt.
   """
   alias MixerHosted.BrowserAuth.{RelationManifest, WorkspaceCatalog}
+  alias MixerHosted.CustomerBuilds.{AttestationSchema, LocalAttestation}
 
   @release_principal_sources ~w(
     mixer_release_publications mixer_release_cli_requests mixer_stage_promotion_bindings
@@ -46,16 +47,25 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
         repo,
         expected_roles,
         original_monotonic_deadline_ms,
-        workspace \\ :legacy
+        workspace \\ :legacy,
+        runtime \\ nil
       ),
       do:
-        check!(repo, expected_roles, original_monotonic_deadline_ms, :build_catalog_v3, workspace)
+        check!(
+          repo,
+          expected_roles,
+          original_monotonic_deadline_ms,
+          :build_catalog_v3,
+          workspace,
+          runtime
+        )
 
   def check_create_catalog_surface!(
         repo,
         expected_roles,
         original_monotonic_deadline_ms,
-        workspace \\ :legacy
+        workspace \\ :legacy,
+        runtime \\ nil
       ),
       do:
         check!(
@@ -63,10 +73,18 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
           expected_roles,
           original_monotonic_deadline_ms,
           :build_create_catalog_v4,
-          workspace
+          workspace,
+          runtime
         )
 
-  defp check!(repo, expected_roles, original_monotonic_deadline_ms, profile, workspace) do
+  defp check!(
+         repo,
+         expected_roles,
+         original_monotonic_deadline_ms,
+         profile,
+         workspace,
+         runtime \\ nil
+       ) do
     try do
       check_roles!(expected_roles)
       deadline = original_monotonic_deadline_ms
@@ -89,6 +107,14 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
         end
 
       {extra_acl, state} = catalog_acl!(state, profile, role_oids)
+
+      {attestation_acl, state} =
+        attestation_acl!(
+          state,
+          role_oids,
+          context.major,
+          LocalAttestation.browser_catalog_enabled?(runtime)
+        )
 
       {workspace_acl, workspace_policies} =
         case workspace do
@@ -117,7 +143,7 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
           manifest,
           role_oids,
           context.major,
-          extra_acl ++ workspace_acl
+          extra_acl ++ workspace_acl ++ attestation_acl
         )
 
       {_, state} = forbidden!(state, ids, role_oids, context.major)
@@ -1171,6 +1197,107 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
   defp table_tokens(16), do: ~w(SELECT INSERT UPDATE DELETE TRUNCATE REFERENCES TRIGGER)
   defp table_tokens(17), do: ~w(SELECT INSERT UPDATE DELETE TRUNCATE REFERENCES TRIGGER MAINTAIN)
   defp apps(roles), do: [roles.lifecycle_login, roles.writer, roles.ordinary_runtime_login]
+
+  defp attestation_acl!(state, _, _, false), do: {[], state}
+
+  defp attestation_acl!(state, roles, major, true) do
+    {relations, authz_locks, entry} = AttestationSchema.writer_grant_objects()
+    functions = [entry | authz_locks]
+    deny_table = table_tokens(major) |> List.delete("SELECT") |> Enum.join(",")
+
+    # Shared dependencies cover explicit grants, ownership, and defaults across databases.
+    # Effective privilege checks also catch privileges acquired through PUBLIC.
+    {[%{"oid" => oid}], state} =
+      fetch!(
+        state,
+        """
+        WITH objects(classid, oid, owner, privilege, acl, exclusive) AS (
+          SELECT 'pg_catalog.pg_class'::pg_catalog.regclass, c.oid, c.relowner, 'SELECT', c.relacl, false
+          FROM pg_catalog.unnest($2::pg_catalog.text[]) spec(entry)
+          JOIN pg_catalog.pg_class c ON c.oid=pg_catalog.to_regclass(spec.entry)
+          WHERE c.relowner=$4::pg_catalog.oid AND c.relkind='r'
+            AND c.relrowsecurity AND c.relforcerowsecurity
+          UNION ALL
+          SELECT 'pg_catalog.pg_proc'::pg_catalog.regclass, p.oid, p.proowner, 'EXECUTE', p.proacl,
+            spec.entry=$7
+          FROM pg_catalog.unnest($3::pg_catalog.text[]) spec(entry)
+          JOIN pg_catalog.pg_proc p ON p.oid=pg_catalog.to_regprocedure(spec.entry)
+          WHERE p.proowner=$4::pg_catalog.oid AND p.prokind='f' AND p.prosecdef
+            AND p.proconfig=ARRAY['search_path=pg_catalog']::pg_catalog.text[]
+          UNION ALL
+          SELECT 'pg_catalog.pg_namespace'::pg_catalog.regclass, n.oid, n.nspowner, 'USAGE', n.nspacl, false
+          FROM pg_catalog.pg_namespace n WHERE n.nspname='public'
+        )
+        SELECT r.oid::pg_catalog.int8 AS oid
+        FROM pg_catalog.pg_roles r, pg_catalog.pg_database db
+        WHERE r.rolname=$1 AND db.datname=pg_catalog.current_database() AND r.rolcanlogin
+          AND NOT (r.rolsuper OR r.rolbypassrls OR r.rolcreatedb OR r.rolcreaterole
+            OR r.rolreplication OR r.rolinherit)
+          AND r.rolvaliduntil IS NULL AND r.rolconnlimit=-1 AND r.rolconfig IS NULL
+          AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_auth_members m WHERE r.oid IN(m.member,m.roleid))
+          AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_db_role_setting s WHERE s.setrole=r.oid)
+          AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_database d
+            WHERE pg_catalog.has_database_privilege(r.oid,d.oid,'CREATE'))
+          AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_namespace n
+            WHERE pg_catalog.has_schema_privilege(r.oid,n.oid,'CREATE') OR
+              (n.nspname NOT IN ('public','information_schema')
+                AND pg_catalog.left(n.nspname::pg_catalog.text,3)<>'pg_'
+                AND pg_catalog.has_schema_privilege(r.oid,n.oid,'USAGE')))
+          AND (SELECT count(*) FROM objects)=$5
+          AND NOT EXISTS(SELECT 1 FROM objects o
+            WHERE NOT #{acl_ok("o.acl")} OR
+              (SELECT count(*) FROM pg_catalog.aclexplode(o.acl) a WHERE a.grantee=r.oid)<>1 OR
+              NOT EXISTS(SELECT 1 FROM pg_catalog.aclexplode(o.acl) a
+                WHERE a.grantee=r.oid AND a.grantor=o.owner AND a.privilege_type=o.privilege
+                  AND NOT a.is_grantable) OR
+              EXISTS(SELECT 1 FROM pg_catalog.aclexplode(o.acl) a
+                WHERE (o.privilege<>'USAGE' AND a.grantee=0) OR
+                  (o.exclusive AND (a.grantee NOT IN (o.owner,r.oid) OR a.grantor<>o.owner
+                    OR a.privilege_type<>o.privilege OR a.is_grantable))))
+          AND NOT EXISTS(SELECT 1 FROM objects o
+            JOIN pg_catalog.pg_attribute c ON c.attrelid=o.oid
+            CROSS JOIN LATERAL pg_catalog.aclexplode(c.attacl) a
+            WHERE o.privilege='SELECT' AND a.grantee=0)
+          AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_shdepend d
+            WHERE d.refclassid='pg_catalog.pg_authid'::pg_catalog.regclass AND d.refobjid=r.oid
+              AND NOT (d.dbid=db.oid AND d.deptype='a' AND d.objsubid=0 AND EXISTS(
+                SELECT 1 FROM objects o WHERE o.classid=d.classid AND o.oid=d.objid)))
+          AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_class c
+            JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+            WHERE n.nspname<>'information_schema' AND pg_catalog.left(n.nspname::pg_catalog.text,3)<>'pg_'
+              AND CASE WHEN c.relkind='S' THEN pg_catalog.has_sequence_privilege(r.oid,c.oid,'SELECT,UPDATE,USAGE')
+                WHEN c.relkind IN('r','p','v','m','f') THEN
+                  pg_catalog.has_table_privilege(r.oid,c.oid,$6)
+                  OR pg_catalog.has_any_column_privilege(r.oid,c.oid,'INSERT,UPDATE,REFERENCES')
+                  OR (pg_catalog.has_any_column_privilege(r.oid,c.oid,'SELECT') AND NOT EXISTS(
+                    SELECT 1 FROM objects o WHERE o.privilege='SELECT' AND o.oid=c.oid))
+                ELSE false END)
+          AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_proc p
+            JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace
+            WHERE n.nspname<>'information_schema' AND pg_catalog.left(n.nspname::pg_catalog.text,3)<>'pg_'
+              AND p.prosecdef AND pg_catalog.has_function_privilege(r.oid,p.oid,'EXECUTE')
+              AND NOT EXISTS(SELECT 1 FROM objects o WHERE o.privilege='EXECUTE' AND o.oid=p.oid))
+        LIMIT 2
+        """,
+        [
+          AttestationSchema.writer(),
+          relations,
+          functions,
+          roles.relation_owner,
+          length(relations) + length(functions) + 1,
+          deny_table,
+          entry
+        ],
+        [{"oid", :oid}],
+        1,
+        1
+      )
+
+    demand(oid > 0 and oid not in Map.values(roles))
+
+    protected = Enum.filter(relations, &(&1 in RelationManifest.names()))
+    {Enum.map(protected, &acl_row(&1, nil, oid, roles.relation_owner, "SELECT")), state}
+  end
 
   defp uploader_acl!(state, roles) do
     {[%{"oid" => oid}], state} =

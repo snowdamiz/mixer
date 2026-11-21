@@ -7,6 +7,16 @@ defmodule MixerHosted.CustomerBuilds.AttestationSchema do
   @table "public.mixer_native_development_attestations"
   @name "mixer_native_development_attestation_v1"
   @entry "public.#{@name}(text,text,text,text,jsonb,text,text,text,text,bytea)"
+  @authz_tables ~w(profiles principals bindings families credentials organizations projects
+                  applications environments organization_heads project_heads memberships)
+  @authz_locks ~w(profiles principals families credentials organization_heads project_heads)
+
+  def writer, do: @writer
+
+  def writer_grant_objects do
+    {Enum.map(@authz_tables, &"public.mixer_authz_#{&1}"),
+     Enum.map(@authz_locks, &"public.mixer_authz_lock_#{&1}()"), @entry}
+  end
 
   defp body do
     """

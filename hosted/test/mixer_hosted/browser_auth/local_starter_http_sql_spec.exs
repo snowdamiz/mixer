@@ -49,7 +49,7 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
 
     DB.q!(Migration, SupportSchema.grant_statement("browser_ordinary"))
     migrate(Admin, 20_261_118_000_011)
-    install_create_surface()
+    provision_build_create!()
 
     [path] = Path.wildcard("priv/local_source_selection/20261118000012_*.exs")
     [{module, _}] = Code.require_file(path)
@@ -1266,36 +1266,6 @@ defmodule MixerHosted.BrowserAuth.LocalStarterHTTPSQLTest do
     [path] = Path.wildcard("priv/repo/migrations/#{version}_*.exs")
     [{module, _}] = Code.require_file(path)
     assert :ok = Ecto.Migrator.up(repo, version, module, log: false)
-  end
-
-  defp install_create_surface do
-    DB.q!(Admin, "GRANT USAGE ON SCHEMA public TO mixer_build_create")
-
-    tables =
-      ~w(profiles principals bindings families credentials organizations projects applications environments organization_heads project_heads memberships)
-
-    relations = Enum.map_join(tables, ",", &("public.mixer_authz_" <> &1))
-    DB.q!(Admin, "GRANT SELECT ON " <> relations <> " TO mixer_build_create")
-
-    for helper <- ~w(profiles principals families credentials organization_heads project_heads),
-        do:
-          DB.q!(
-            Admin,
-            "GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO mixer_build_create"
-          )
-
-    for sql <-
-          MixerHosted.CustomerBuilds.CreateSchema.statements() ++
-            MixerHosted.BrowserAuth.ActiveCreateSchema.statements(),
-        do: DB.q!(Migration, sql)
-
-    signature =
-      "public.mixer_browser_create_active_load(bytea,bytea,bigint,public.mixer_browser_access_evidence)"
-
-    DB.q!(Admin, "GRANT CREATE ON SCHEMA public TO browser_writer")
-    DB.q!(Admin, "ALTER FUNCTION #{signature} OWNER TO browser_writer")
-    DB.q!(Admin, "REVOKE CREATE ON SCHEMA public FROM browser_writer")
-    DB.q!(Admin, "GRANT EXECUTE ON FUNCTION #{signature} TO mixer_build_create")
   end
 
   defp login(c) do
