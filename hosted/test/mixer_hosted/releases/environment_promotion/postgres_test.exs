@@ -165,6 +165,160 @@ defmodule MixerHosted.Releases.EnvironmentPromotion.PostgresTest do
     }
   end
 
+  test "restricted binding INSERT refuses a rollback source with exact existing keys", f do
+    assert {:ok, _} = promote(f)
+    [[binding]] = admin("SELECT to_jsonb(b) FROM #{@binding} b").rows
+
+    assert {:ok, :ok} =
+             Admin.transaction(fn ->
+               admin("""
+               INSERT INTO #{@publications} (
+                 organization_id,project_id,application_id,environment_id,platform,runtime_sha256,
+                 channel,sequence,previous_sequence,artifact_sha256,signed_assignment_bytes,
+                 rollout_basis_points,idempotency_key,reason,principal_id,action
+               )
+               SELECT organization_id,project_id,application_id,environment_id,platform,runtime_sha256,
+                      channel,sequence+100,sequence,artifact_sha256,signed_assignment_bytes,
+                      rollout_basis_points,'rollback-fixture',reason,principal_id,'rollback'
+               FROM #{@publications}
+               WHERE environment_id='development' AND platform='ios' AND sequence=7
+               """)
+
+               assert %{num_rows: 1} =
+                        admin(
+                          """
+                          UPDATE #{@heads} SET sequence=107
+                          WHERE (organization_id,project_id,application_id,environment_id,platform,runtime_sha256,channel)
+                            = ($1,$2,$3,$4,$5,$6,$7)
+                          """,
+                          coordinates(f.source.ios.enrollment.target)
+                        )
+
+               :ok
+             end)
+
+    admin("TRUNCATE #{@binding}")
+
+    columns = """
+    direction_id,writer_role,organization_id,project_id,application_id,
+    source_environment_id,destination_environment_id,
+    source_ios_runtime_sha256,source_ios_channel,source_android_runtime_sha256,source_android_channel,
+    destination_ios_runtime_sha256,destination_ios_channel,
+    destination_android_runtime_sha256,destination_android_channel,
+    idempotency_key,request_sha256,principal_id,reason,
+    source_ios_sequence,source_ios_artifact_sha256,source_android_sequence,source_android_artifact_sha256,
+    destination_ios_sequence,destination_ios_artifact_sha256,
+    destination_android_sequence,destination_android_artifact_sha256
+    """
+
+    assert {:error, :permission_denied} =
+             Authorization.with_authorized_transaction(
+               identity(),
+               "release.publish",
+               f.destination.ios.enrollment.target.scope,
+               fn _ ->
+                 assert [[@writer, @writer, false, false]] =
+                          sql(Writer, """
+                          SELECT current_user::text,session_user::text,rolsuper,rolbypassrls
+                          FROM pg_roles WHERE rolname=current_user
+                          """).rows
+
+                 assert {:error, %Postgrex.Error{postgres: %{code: :insufficient_privilege}}} =
+                          Ecto.Adapters.SQL.query(
+                            Writer,
+                            """
+                            INSERT INTO #{@binding} (#{columns})
+                            SELECT #{columns} FROM jsonb_populate_record(NULL::#{@binding}, $1)
+                            """,
+                            [Map.put(binding, "source_ios_sequence", 107)]
+                          )
+
+                 {:error, :permission_denied}
+               end,
+               Writer
+             )
+
+    assert [[5, 0]] == counts()
+  end
+
+  test "an expiring source artifact root rolls back both appends at final authority", f do
+    assert {:error, :assignment_rejected} =
+             with_final_checkpoint_expiry(f.direction, :source, :ios, "artifact", fn ->
+               promote(f)
+             end)
+
+    assert_empty_destination()
+    assert {:ok, _} = promote(f)
+  end
+
+  test "an expiring destination assignment root refuses exact retry at final authority", f do
+    assert {:ok, first} = promote(f)
+
+    assert {:error, :assignment_rejected} =
+             with_final_checkpoint_expiry(f.direction, :destination, :android, "assignment", fn ->
+               promote(f)
+             end)
+
+    assert destination_heads() == [["android", "12"], ["ios", "3"]]
+    assert [[4, 1]] == counts()
+    assert {:ok, ^first} = promote(f)
+  end
+
+  defp with_final_checkpoint_expiry(direction, side, platform, role, operation) do
+    expiry = System.system_time(:second) + 2
+    previous = Application.fetch_env(:mixer_hosted, :local_stage_promotion_directions)
+    test_pid = self()
+    handler = make_ref()
+    count = {handler, :admit_queries}
+
+    direction =
+      update_in(direction, [Access.key!(side), platform, Access.key!(:roots)], fn roots ->
+        Enum.map(roots, fn root ->
+          if root[role], do: %{root | "not_after_unix" => expiry}, else: root
+        end)
+      end)
+
+    Application.put_env(:mixer_hosted, :local_stage_promotion_directions, %{
+      @direction => direction
+    })
+
+    query_event = Writer.config() |> Keyword.fetch!(:telemetry_prefix) |> Kernel.++([:query])
+
+    :ok =
+      :telemetry.attach(
+        handler,
+        query_event,
+        fn _, _, %{query: query}, _ ->
+          if self() == test_pid do
+            cond do
+              String.contains?(query, "FROM public.mixer_stage_promotion_admit($1)") ->
+                Process.put(count, Process.get(count, 0) + 1)
+
+              String.starts_with?(query, "SELECT pg_catalog.pg_backend_pid()") and
+                  Process.get(count) == 2 ->
+                Process.put(count, :observed)
+                send(test_pid, {handler, :checkpoint})
+                Process.sleep(max(0, expiry * 1_000 - System.system_time(:millisecond) + 10))
+
+              true ->
+                :ok
+            end
+          end
+        end,
+        nil
+      )
+
+    try do
+      result = operation.()
+      assert_received {^handler, :checkpoint}
+      result
+    after
+      :telemetry.detach(handler)
+      Process.delete(count)
+      restore_env(:local_stage_promotion_directions, previous)
+    end
+  end
+
   test "commits both stages and exact replay ignores later head advances", f do
     assert {:ok, %{ios: %{sequence: 3}, android: %{sequence: 12}} = first} = promote(f)
     assert destination_heads() == [["android", "12"], ["ios", "3"]]
