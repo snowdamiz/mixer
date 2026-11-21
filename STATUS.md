@@ -1011,6 +1011,16 @@ development certificates and a fresh install in one disposable API 36
 emulator.
 [Installed exit receipt](verification/receipts/fieldlog-e39a5ea3-relocated-android-workspace-readback.json)
 
+## November 21 FieldLog release-origin restart
+
+The stock loopback Go service delivered the exact Pair24 sequence-1
+offer and artifact. Its port refused connections after shutdown. A fresh
+process reopened the same store and served identical bytes, then delivered
+the signed sequence-2 correction. Each publication added one audit event
+and outbox row. Exact retries did not write. Both origin groups closed,
+the port was reusable, and scratch was removed. The installed app
+outage journey remains pending. [Host replay](verification/receipts/l08-android-release-outage-host-d89c742e9d.json)
+
 ## November 21 installed Android update refusals
 
 The Pair24 Android API 36 replay exercised 15 stages on one development

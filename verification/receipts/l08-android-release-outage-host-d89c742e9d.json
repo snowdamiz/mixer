@@ -1,0 +1,289 @@
+{
+  "automaticReplay": {
+    "ownedGroupsAbsentAndPortsReusable": true,
+    "port": 49181,
+    "sequence1WireSHA256": "7b03080627b2fdb827d965ade545fd4a414489fab69890c392c02b30678e81ce",
+    "sequence2WireSHA256": "b5a2a3c58a9eb856bf50c627ce00cc4820b8bab52264e1ab2156767e6b64fa48",
+    "status": "passed_host"
+  },
+  "buildCommand": "GOTOOLCHAIN=local GOPROXY=off GOCACHE=$build_dir/cache GOTMPDIR=$build_dir/tmp go -C \"$build_dir/services\" build -mod=readonly -trimpath -buildvcs=false -o \"$build_dir/mixer-service\" ./cmd/mixer-service",
+  "buildSourceCommand": "git archive d89c742e9d6a7b6277830f201a350ccc0e7d7096 services | tar -xf - -C \"$build_dir\"",
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "verification/local/l08-android-outage-host/replay.py",
+    "--scratch",
+    "verification/local/l08-android-outage-host",
+    "--service",
+    "verification/local/l08-android-outage-host/build.FwsRhl/mixer-service",
+    "--packet",
+    "/Users/andreyyurlov/.t3/worktrees/mixer/t3-90cc37bb/verification/local/fieldlog-android-227-228.NYOiIu3m",
+    "--receipt",
+    "verification/local/l08-android-outage-host/paused-receipt.json",
+    "--port",
+    "49398",
+    "--seconds",
+    "20",
+    "--pause"
+  ],
+  "deviceEvidence": "pending root-owned Android run",
+  "disposableStore": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-379a28fd/verification/local/l08-android-outage-host/run-4cfjuocp/store",
+  "executionEnvironment": "macOS 27.0.1 arm64, real Go process and disposable local file store on IPv4 loopback",
+  "independentPausedReplay": {
+    "BASELINE": {
+      "artifactHTTP": 200,
+      "offerHTTP": 200,
+      "wireHashesMatch": true
+    },
+    "CLOSED": {
+      "connectErrno": 61
+    },
+    "CORRECTED": {
+      "artifactHTTP": 200,
+      "offerHTTP": 200,
+      "wireHashesMatch": true
+    },
+    "OUTAGE": {
+      "connectErrno": 61
+    },
+    "RESTARTED_BASELINE": {
+      "artifactHTTP": 200,
+      "offerHTTP": 200,
+      "wireHashesMatch": true
+    },
+    "outageSecondsBeforeProbe": 0.35
+  },
+  "inputs": {
+    "apkSHA256": "60542e51513cec9ec6e0c061ac3a80db668490e2056ab6a7e29225365924c726",
+    "fieldLogSource": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "guestPort": 18762,
+    "installation": "7ccc7fce-0662-4281-9f91-de4efa18a4e3",
+    "packetReceiptSHA256": "2b7273d9cf93fe5a1e10d5f2f337c36059a3ba077329e7d3199db1876230ba7c",
+    "protocol": 3,
+    "publicPacketMixer": "95b9b9596e6939e1daf610d13e0b3ad78a930f98",
+    "rootsSHA256": "f207443b351cd2c4477ba3719dcc58bcabb212a595c86bfe3b18319f1e021ac0",
+    "runtime": "7027fcb3a5af73841c29f7d8ca4c512b610e461b0e7156537cb623841f1b1e30",
+    "scope": {
+      "app": "fieldlog",
+      "environment": "development",
+      "organization": "mixer-local",
+      "platform": "android",
+      "project": "fieldlog"
+    }
+  },
+  "mutations": [
+    {
+      "eventHash": "5419482b7f0107ddd843cbc8cf49c1cb3bc7dd63d549f8d12a9eb2c81fff35d3",
+      "eventID": 1,
+      "exactRetryNoWrite": true,
+      "key": "upload-1",
+      "outboxID": 1,
+      "requestID": "c5bc480aaa52814eb8b12c6303ccb82b",
+      "status": 201
+    },
+    {
+      "eventHash": "6b713e0c276453c11854db5bcd3cf3a1763232258f13e8ce14b4be3abac4851d",
+      "eventID": 2,
+      "exactRetryNoWrite": true,
+      "key": "validate-1",
+      "outboxID": 2,
+      "requestID": "4e05d5451ede570c88284ce68af64370",
+      "status": 200
+    },
+    {
+      "channelChange": {
+        "channel": "beta",
+        "current": {
+          "artifact_sha256": "964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff",
+          "rollout_basis_points": 10000,
+          "sequence": 1
+        },
+        "runtime": "7027fcb3a5af73841c29f7d8ca4c512b610e461b0e7156537cb623841f1b1e30",
+        "scope": {
+          "app": "fieldlog",
+          "environment": "development",
+          "organization": "mixer-local",
+          "platform": "android",
+          "project": "fieldlog"
+        }
+      },
+      "eventHash": "4d5e388ca72d311253d64c2d3496affa217dff57ca89cf4f5645f25c5904db73",
+      "eventID": 3,
+      "exactRetryNoWrite": true,
+      "key": "publish-1",
+      "outboxID": 3,
+      "requestID": "a6386ffee23230dbfd660956cb4eaca6",
+      "status": 200
+    },
+    {
+      "eventHash": "bf31f51a9d751820295da87fcb115f6475a1389a4edf08ceb2c3536180345eb9",
+      "eventID": 4,
+      "exactRetryNoWrite": true,
+      "key": "upload-2",
+      "outboxID": 4,
+      "requestID": "f6fa9dceb33681ab6b6292e725d0d47f",
+      "status": 201
+    },
+    {
+      "eventHash": "bd0d24c9cb518ce2b66806e75cd5dc8229f366bf1d22d7fdf1d66e36c736c7ac",
+      "eventID": 5,
+      "exactRetryNoWrite": true,
+      "key": "validate-2",
+      "outboxID": 5,
+      "requestID": "2daf118ef22b1440048486f4134e1584",
+      "status": 200
+    },
+    {
+      "channelChange": {
+        "channel": "beta",
+        "current": {
+          "artifact_sha256": "66bafc9348ee9db1777ceb42bdcc4d5e83c8670af2edaf450c7da804158104c9",
+          "rollout_basis_points": 10000,
+          "sequence": 2
+        },
+        "previous": {
+          "artifact_sha256": "964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff",
+          "rollout_basis_points": 10000,
+          "sequence": 1
+        },
+        "runtime": "7027fcb3a5af73841c29f7d8ca4c512b610e461b0e7156537cb623841f1b1e30",
+        "scope": {
+          "app": "fieldlog",
+          "environment": "development",
+          "organization": "mixer-local",
+          "platform": "android",
+          "project": "fieldlog"
+        }
+      },
+      "eventHash": "50e5a62969ffbf4d31c35f517043c8e37dbf284df9d19d90d488398f05c596de",
+      "eventID": 6,
+      "exactRetryNoWrite": true,
+      "key": "publish-2",
+      "outboxID": 6,
+      "requestID": "9ea1285acdf5168a5bebc9867bd9c66b",
+      "status": 200
+    }
+  ],
+  "offerPath": "/v3/updates?organization=mixer-local&project=fieldlog&app=fieldlog&environment=development&platform=android&runtime=7027fcb3a5af73841c29f7d8ca4c512b610e461b0e7156537cb623841f1b1e30&channel=beta&installation=7ccc7fce-0662-4281-9f91-de4efa18a4e3",
+  "origin": "http://127.0.0.1:49398",
+  "originBinarySHA256": "0430c5f98c7daafb671aac5600f01bd6c8ce9b421f7b104914bab529eb943bc2",
+  "originPlatform": [
+    "GOARCH=arm64",
+    "GOOS=darwin"
+  ],
+  "originToolchain": "go1.26.4",
+  "ownerPID": 22507,
+  "payment": "omitted",
+  "phases": [
+    {
+      "artifactBodyBytes": 8722,
+      "artifactBodySHA256": "8c52ff247cfa20e59ea797de1be414c0dc2c4bb8657e6a0caa1a036c497abb78",
+      "artifactPath": "/v3/artifacts/964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff?organization=mixer-local&project=fieldlog",
+      "artifactRequestID": "919f3ad02e5c69cc9dffa022c761a57b",
+      "artifactSHA256": "964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff",
+      "artifactTransferEncoding": "chunked",
+      "assignmentSHA256": "93ef9638e7f9d0ce94a143a3d7f1b39953177472b01b72c31626864cb55a401c",
+      "manifestSHA256": "12b9e0078c8e8e12d9bbb8638c2ec0774b248e86f172ae1cd4bdb940488d59e4",
+      "offerBodySHA256": "7b03080627b2fdb827d965ade545fd4a414489fab69890c392c02b30678e81ce",
+      "offerRequestID": "39d7524488a272d87284a611843757a7",
+      "payloadBytes": 5450,
+      "payloadSHA256": "a92944f065b6e4b42c9945baa917d57863e70d1c08b062dc151b6cf9a0e6e16c",
+      "phase": "BASELINE",
+      "pid": 22579,
+      "port": 49398,
+      "releaseID": "fieldlog-draft-baseline",
+      "sequence": 1,
+      "storeSHA256": "cd95a78e6e13e54163f23220f58d04481479e1e5bb27fc8b91fc9a2e834b4d5e"
+    },
+    {
+      "oldPID": 22579,
+      "phase": "OUTAGE",
+      "port": 49398,
+      "storeSHA256": "cd95a78e6e13e54163f23220f58d04481479e1e5bb27fc8b91fc9a2e834b4d5e",
+      "tcp": "ECONNREFUSED"
+    },
+    {
+      "artifactBodyBytes": 8722,
+      "artifactBodySHA256": "8c52ff247cfa20e59ea797de1be414c0dc2c4bb8657e6a0caa1a036c497abb78",
+      "artifactPath": "/v3/artifacts/964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff?organization=mixer-local&project=fieldlog",
+      "artifactRequestID": "8529091cf0001e4180b42d6c4b03e1c4",
+      "artifactSHA256": "964f6934ef76f91030e598e54779aba44a9cf591a4d2969c7accf799885718ff",
+      "artifactTransferEncoding": "chunked",
+      "assignmentSHA256": "93ef9638e7f9d0ce94a143a3d7f1b39953177472b01b72c31626864cb55a401c",
+      "durableRetryExact": true,
+      "manifestSHA256": "12b9e0078c8e8e12d9bbb8638c2ec0774b248e86f172ae1cd4bdb940488d59e4",
+      "offerBodySHA256": "7b03080627b2fdb827d965ade545fd4a414489fab69890c392c02b30678e81ce",
+      "offerRequestID": "d11e6ae366d152d231f25946ff5bd869",
+      "payloadBytes": 5450,
+      "payloadSHA256": "a92944f065b6e4b42c9945baa917d57863e70d1c08b062dc151b6cf9a0e6e16c",
+      "phase": "RESTARTED_BASELINE",
+      "pid": 22589,
+      "port": 49398,
+      "releaseID": "fieldlog-draft-baseline",
+      "sequence": 1,
+      "storeSHA256": "cd95a78e6e13e54163f23220f58d04481479e1e5bb27fc8b91fc9a2e834b4d5e"
+    },
+    {
+      "artifactBodyBytes": 8723,
+      "artifactBodySHA256": "d7e1192c9085f26e05cc55f9bb35686e6380c6a5fc0861b044c243aeda800476",
+      "artifactPath": "/v3/artifacts/66bafc9348ee9db1777ceb42bdcc4d5e83c8670af2edaf450c7da804158104c9?organization=mixer-local&project=fieldlog",
+      "artifactRequestID": "48b04be45b13be05d5ac895c7f6fe961",
+      "artifactSHA256": "66bafc9348ee9db1777ceb42bdcc4d5e83c8670af2edaf450c7da804158104c9",
+      "artifactTransferEncoding": "chunked",
+      "assignmentSHA256": "60554908e4fa81b0112ec10e02dd7877d1ca63a8736173e516df789f9eadc198",
+      "manifestSHA256": "23babaa737211d35cf9601bb90cf27c4e7da4a91487efc873625b2d5326de284",
+      "offerBodySHA256": "b5a2a3c58a9eb856bf50c627ce00cc4820b8bab52264e1ab2156767e6b64fa48",
+      "offerRequestID": "039a4f5f3850fdc5f9da72c9050bf6fb",
+      "payloadBytes": 5450,
+      "payloadSHA256": "d2a110cf68b0f99709a514272e98bef49223b1ed9471fbaeade3b4c1e398252c",
+      "phase": "CORRECTED",
+      "pid": 22589,
+      "port": 49398,
+      "releaseID": "fieldlog-draft-corrected",
+      "sequence": 2,
+      "storeSHA256": "667b97e603dbef6820491c2be01bca381dc24b68659964b95148b8eda99ff35e"
+    },
+    {
+      "lastPID": 22589,
+      "phase": "CLOSED",
+      "port": 49398,
+      "portRebound": true,
+      "tcp": "ECONNREFUSED"
+    }
+  ],
+  "processes": [
+    {
+      "connectErrno": 61,
+      "exitCode": 0,
+      "groupAbsent": true,
+      "healthRequestID": "2b0f685ccfbcd712269d8be89d6807c6",
+      "pgid": 22579,
+      "pid": 22579,
+      "portRebound": true,
+      "reaped": true,
+      "signal": "SIGTERM"
+    },
+    {
+      "connectErrno": 61,
+      "exitCode": 0,
+      "groupAbsent": true,
+      "healthRequestID": "1b72b3f15dbdeadb8f4648008f083763",
+      "pgid": 22589,
+      "pid": 22589,
+      "portRebound": true,
+      "reaped": true,
+      "signal": "SIGTERM"
+    }
+  ],
+  "publicMixer": "d89c742e9d6a7b6277830f201a350ccc0e7d7096",
+  "publicMixerTree": "3e62f01a1a2f405bc04f195da5ad38737404f4ca",
+  "python": "3.14.8",
+  "recordedUTC": "2026-11-21T21:05:56.154364+00:00",
+  "replaySHA256": "6d77c8783465f0ce0a0ea886388300ec172547688ba895fcd275da97f47e7cfa",
+  "reviewer": "l08-android-outage-replay",
+  "scenario": "L08 \u00a722.2.14 Android release outage, host half",
+  "schema": 1,
+  "scratchRemoved": true,
+  "seconds": 0.665,
+  "servicesTree": "3088ff98513c3b9be8890c500deb5989c21412dc",
+  "status": "passed_host"
+}
