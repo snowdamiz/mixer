@@ -724,6 +724,27 @@ logging failure after launch could prevent its custody check. Client
 activation, L05, and L07 remain open.
 [Rollback receipt](verification/receipts/d6-l05-l07-restored-stock-rollback-9efad204.json) · [Executed fixture overlay](verification/receipts/d6-l05-l07-restored-stock-rollback-9efad204-overlay.patch)
 
+The separate Swift updater run at `5fd075d6df` activated signed sequences 1
+and 2 from Phoenix and rejected exact replays with unchanged recovery files.
+The first restored rollback returned HTTP 422 before baseline validation.
+After validation was added, the rollback returned HTTP 503 because the
+ordinary writer lacked the fixture's `INSERT(action)` column grant.
+[Initial run](verification/receipts/d6-l04-l05-swift-restored-phoenix-5fd075d6.json) ·
+[Validated run](verification/receipts/d6-l04-l05-swift-restored-phoenix-5fd075d6-corrected.json)
+
+With the documented grant present before the dump, the distinct SCRAM
+restore retained forced row-level security and the grant. The stock CLI
+committed sequence 3, its exact retry preserved the SQL snapshot, and the
+restricted worker created one matching projection. The restarted API's
+first offer returned HTTP 503. Later read-only SQL under the delivery role
+returned the exact signed assignment and baseline artifact. The HTTP
+cause, sequence-3 Swift activation, and fresh-process offline recovery
+remain open. The run recorded 56 closed groups, ten listener rebinds, and
+scratch removal. Static verification matched the source manifest and all
+ten overlay files.
+[Grant and delivery observations](verification/receipts/d6-l04-l05-swift-restored-phoenix-5fd075d6-action-grant.json) ·
+[Historical fixture overlay](verification/receipts/d6-l04-l05-swift-restored-phoenix-5fd075d6.patch)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,

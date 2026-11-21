@@ -1,0 +1,1563 @@
+diff --git a/capability-activation/Tests/MixerCapabilityActivationTests/CapabilityColdStartRuntimeTests.swift b/capability-activation/Tests/MixerCapabilityActivationTests/CapabilityColdStartRuntimeTests.swift
+--- a/capability-activation/Tests/MixerCapabilityActivationTests/CapabilityColdStartRuntimeTests.swift
++++ b/capability-activation/Tests/MixerCapabilityActivationTests/CapabilityColdStartRuntimeTests.swift
+@@ -49,19 +49,28 @@
+     let root: URL
+     let execution: InstalledCapabilityExecution
+     let key: Curve25519.Signing.PrivateKey
++    let roots: Data
+     var configuration: CapabilityColdStartConfiguration {
+         .init(directory: root.appendingPathComponent("recovery"), channel: "beta", installation: "cold-start", observationSeconds: 1)
+     }
+-    init(root: URL) throws {
++    init(root: URL, scope override: UpdateScope? = nil) throws {
+         self.root = root
+         key = try .init(rawRepresentation: Data(repeating: 0x53, count: 32))
+         func resource(_ name: String) throws -> Data {
+             try Data(contentsOf: Bundle.module.url(forResource: name, withExtension: nil, subdirectory: "Fixtures")!)
+         }
+-        let scope = UpdateScope(organization: "material-test", project: "material-test", app: "material-test", environment: "development", platform: "ios")
+-        let roots = try JSONEncoder().encode([TrustRoot(keyID: "cold-start-test", publicKey: key.publicKey.rawRepresentation,
+-            scope: scope, artifact: true, assignment: true, notBeforeUnix: 1, notAfterUnix: 2000)])
++        let scope = override ?? UpdateScope(organization: "material-test", project: "material-test", app: "material-test", environment: "development", platform: "ios")
++        let encoder = JSONEncoder()
++        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
++        roots = try encoder.encode([TrustRoot(keyID: "cold-start-test", publicKey: key.publicKey.rawRepresentation,
++            scope: scope, artifact: true, assignment: true, notBeforeUnix: 1, notAfterUnix: override == nil ? 2000 : 0)])
+         var identity = try JSONSerialization.jsonObject(with: resource("identity.json")) as! [String: Any]
++        if let override {
++            identity["application"] = [
++                "organization": override.organization, "project": override.project, "app": override.app,
++                "environment": override.environment, "bundle_id": "com.example.fieldlog",
++            ]
++        }
+         var build = identity["build"] as! [String: Any]
+         build["trust_roots_sha256"] = ReleaseVerifier.sha256(roots); identity["build"] = build
+         let materials: [CapabilityMaterialFile] = [
+@@ -73,7 +82,7 @@
+         execution = try InstalledCapabilityExecution(identityJSON: JSONSerialization.data(withJSONObject: identity, options: [.sortedKeys, .withoutEscapingSlashes]),
+             materials: materials, trustRootsJSON: roots, privateContainer: root)
+     }
+-    func documents(_ bytes: Data, sequence: UInt64 = 1, startupMilliseconds: UInt64 = 60_000, storage: Bool = false) throws -> (Data, Data) {
++    func documents(_ bytes: Data, sequence: UInt64 = 1, startupMilliseconds: UInt64 = 60_000, storage: Bool = false, createdAt: UInt64 = 100) throws -> (Data, Data) {
+         let host = execution.installed.identity.installedRuntime, s = host.scope
+         let scope = CanonicalValue.object(["organization": .text(s.organization), "project": .text(s.project), "app": .text(s.app), "environment": .text(s.environment), "platform": .text(s.platform)])
+         let entries: [CanonicalValue] = storage ? [.object(["capability_id": .text(CapabilitySchemas.storageID), "schema_sha256": .text(CapabilitySchemas.storageSHA256),
+@@ -85,19 +94,21 @@
+             "payload_sha256": .text(ReleaseVerifier.sha256(bytes)), "compressed_bytes": .uint(UInt64(bytes.count)), "expanded_bytes": .uint(UInt64(bytes.count)),
+             "compression": .text("none"), "asset_hashes": .object([:]), "source_map_sha256": .text(String(repeating: "6", count: 64)),
+             "limits": .object(["memory_bytes": .uint(65_536), "fuel": .uint(100_000), "startup_milliseconds": .uint(startupMilliseconds)]),
+-            "key_id": .text("cold-start-test"), "created_at_unix": .uint(100), "capability_grants": .object(["schema": .uint(1),
++            "key_id": .text("cold-start-test"), "created_at_unix": .uint(createdAt), "capability_grants": .object(["schema": .uint(1),
+                 "schema_sha256": .text(VerifiedCapabilityGrantsV3.descriptorSHA256), "entries": .array(entries)])])
+         let assignment = CanonicalValue.object(["schema": .uint(3), "scope": scope, "channel": .text("beta"), "cohort": .text("sha256-v1"),
+             "rollout_basis_points": .uint(10_000), "sequence": .uint(sequence), "release_id": .text("cold-start"),
+-            "artifact_sha256": .text(ReleaseVerifier.sha256(try manifest.canonicalCBOR())), "runtime": .text(host.runtime), "key_id": .text("cold-start-test"), "created_at_unix": .uint(100)])
++            "artifact_sha256": .text(ReleaseVerifier.sha256(try manifest.canonicalCBOR())), "runtime": .text(host.runtime), "key_id": .text("cold-start-test"), "created_at_unix": .uint(createdAt)])
+         func signed(_ value: CanonicalValue, assignment: Bool) throws -> Data {
+             let prefix = assignment ? "mixer.assignment.v3\0" : "mixer.artifact.v3\0"
+             let signature = try key.signature(for: Data(prefix.utf8) + value.canonicalCBOR())
+-            return try JSONEncoder().encode(CanonicalValue.object([assignment ? "assignment" : "manifest": value, "signature": .text(signature.base64EncodedString())]))
++            let encoder = JSONEncoder()
++            encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
++            return try encoder.encode(CanonicalValue.object([assignment ? "assignment" : "manifest": value, "signature": .text(signature.base64EncodedString())]))
+         }
+         return (try signed(manifest, assignment: false) + Data(" \n".utf8), try signed(assignment, assignment: true) + Data("\t".utf8))
+     }
+-    static func wasm(trap: Bool = false) -> Data {
++    static func wasm(trap: Bool = false, successor: Bool = false) -> Data {
+         func u(_ value: Int) -> [UInt8] {
+             var n = value, result: [UInt8] = []
+             repeat { let b = UInt8(n & 127); n >>= 7; result.append(b | (n == 0 ? 0 : 128)) } while n != 0
+@@ -105,7 +116,7 @@
+         }
+         func name(_ text: String) -> [UInt8] { u(text.utf8.count) + Array(text.utf8) }
+         func section(_ id: UInt8, _ contents: [UInt8]) -> [UInt8] { [id] + u(contents.count) + contents }
+-        let startup: [UInt8] = trap ? [0,0,0x0b] : [0,0x0b]
++        let startup: [UInt8] = trap ? [0,0,0x0b] : (successor ? [0,1,0x0b] : [0,0x0b])
+         var exports: [UInt8] = [2]; exports += name("startup"); exports += [0,0]
+         exports += name("mixer_guest_capability_ready_v1"); exports += [0,1]
+         var bytes: [UInt8] = [0,97,115,109,1,0,0,0]
+diff --git a/capability-activation/Tests/MixerCapabilityActivationTests/RestoredPhoenixReleaseTests.swift b/capability-activation/Tests/MixerCapabilityActivationTests/RestoredPhoenixReleaseTests.swift
+new file mode 100644
+--- /dev/null
++++ b/capability-activation/Tests/MixerCapabilityActivationTests/RestoredPhoenixReleaseTests.swift
+@@ -0,0 +1,237 @@
++import Foundation
++import MixerUpdates
++import XCTest
++@testable import MixerCapabilityActivation
++
++final class RestoredPhoenixReleaseTests: XCTestCase, @unchecked Sendable {
++    private let scope = UpdateScope(organization: "org-a", project: "project-a",
++                                    app: "fieldlog", environment: "development", platform: "ios")
++    private let installation = "swift-restore-ios"
++
++    private func environment(_ name: String) throws -> String {
++        try XCTUnwrap(ProcessInfo.processInfo.environment["MIXER_SWIFT_RESTORE_" + name])
++    }
++
++    private func fixture() throws -> ColdStartFixture {
++        guard let root = ProcessInfo.processInfo.environment["MIXER_SWIFT_RESTORE_ROOT"] else {
++            throw XCTSkip("Requires the owned restored-Phoenix fixture")
++        }
++        return try ColdStartFixture(root: URL(fileURLWithPath: root), scope: scope)
++    }
++
++    func testPrepare() throws {
++        let fixture = try fixture()
++        let encoder = JSONEncoder()
++        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
++        let host = fixture.execution.installed.identity.installedRuntime
++        let stamp = UInt64(Date().timeIntervalSince1970)
++        var setups: [[String: Any]] = []
++        var originalManifest = ""
++        for sequence in UInt64(1)...3 {
++            let payload = ColdStartFixture.wasm(successor: sequence == 2)
++            let documents = try fixture.documents(payload, sequence: sequence, createdAt: stamp)
++            // Release API stores the JSON value bytes, excluding surrounding whitespace.
++            let signedManifest = String(decoding: documents.0, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
++            if sequence == 1 { originalManifest = signedManifest }
++            let manifest = sequence == 3 ? originalManifest : signedManifest
++            let assignment = String(decoding: documents.1, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
++            let envelope = "{\"signed_manifest\":\(manifest),\"payload\":\"\(payload.base64EncodedString())\"}"
++            let digest = try XCTUnwrap(StrictJSON.decode(CanonicalValue.self, from: Data(assignment.utf8))
++                .object?["assignment"]?.object?["artifact_sha256"]?.text)
++            setups.append(["sequence": sequence, "manifest": manifest, "assignment": assignment,
++                           "envelope": envelope, "payload": payload.base64EncodedString(), "digest": digest])
++        }
++        XCTAssertEqual(setups[0]["envelope"] as? String, setups[2]["envelope"] as? String)
++        XCTAssertNotEqual(setups[0]["digest"] as? String, setups[1]["digest"] as? String)
++        let packet: [String: Any] = [
++            "installation": installation, "releases": setups,
++            "config": ["host": try JSONSerialization.jsonObject(with: encoder.encode(host)),
++                       "roots": try JSONSerialization.jsonObject(with: fixture.roots), "channel": "beta"],
++        ]
++        try JSONSerialization.data(withJSONObject: packet, options: [.sortedKeys, .withoutEscapingSlashes])
++            .write(to: fixture.root.appendingPathComponent("packet.json"), options: .withoutOverwriting)
++    }
++
++    private struct Document: Decodable {
++        let sequence: UInt64
++        let manifest: String
++        let assignment: String
++        let envelope: String
++        let payload: Data
++        let digest: String
++    }
++
++    private struct Packet: Decodable { let releases: [Document] }
++
++    private func documents(_ fixture: ColdStartFixture) throws -> [Document] {
++        try JSONDecoder().decode(Packet.self, from: Data(contentsOf: fixture.root.appendingPathComponent("packet.json"))).releases
++    }
++
++    private func configure(_ fixture: ColdStartFixture) -> CapabilityColdStartConfiguration {
++        .init(directory: fixture.configuration.directory, channel: "beta", installation: installation,
++              observationSeconds: 1, requiredMilestones: ["feature_started"])
++    }
++
++    private struct Reply: Decodable {
++        let artifact_url: String
++    }
++
++    private func fetch(_ expected: Document, fixture: ColdStartFixture, port: UInt16) async throws -> (Data, Data, Data) {
++        let host = fixture.execution.installed.identity.installedRuntime
++        let origin = "http://127.0.0.1:\(port)"
++        let config = URLSessionConfiguration.ephemeral
++        config.timeoutIntervalForRequest = 3
++        config.timeoutIntervalForResource = 4
++        config.connectionProxyDictionary = [:]
++        let session = URLSession(configuration: config)
++        defer { session.invalidateAndCancel() }
++
++        func get(_ route: String) async throws -> Data {
++            let url = try XCTUnwrap(URL(string: origin + route))
++            let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
++            let (data, response) = try await session.data(for: request)
++            let http = try XCTUnwrap(response as? HTTPURLResponse)
++            guard response.url == url, http.statusCode == 200, data.count <= 65_536,
++                  http.value(forHTTPHeaderField: "Cache-Control") == "no-store" else {
++                throw UpdateError("fixture.http", "Unexpected response for \(route), status \(http.statusCode)")
++            }
++            return data
++        }
++
++        let query = "organization=\(scope.organization)&project=\(scope.project)&app=\(scope.app)" +
++            "&environment=\(scope.environment)&platform=\(scope.platform)&runtime=\(host.runtime)&channel=beta"
++        let offer = try await get("/v3/updates?\(query)&installation=\(installation)")
++        let route = try JSONDecoder().decode(Reply.self, from: offer).artifact_url
++        let url = try XCTUnwrap(URLComponents(string: route))
++        let expectedQuery = [URLQueryItem(name: "organization", value: scope.organization),
++                             URLQueryItem(name: "project", value: scope.project)]
++        guard url.scheme == nil, url.host == nil, url.fragment == nil, url.queryItems == expectedQuery,
++              url.path == "/v3/artifacts/\(expected.digest)" else {
++            throw UpdateError("fixture.scope", "Unexpected scoped artifact URL \(route)")
++        }
++        let encodedRoute = try XCTUnwrap(String(data: JSONEncoder().encode(route), encoding: .utf8))
++            .replacingOccurrences(of: "\\/", with: "/")
++        let prefix = Data("{\"signed_assignment\":".utf8)
++        let suffix = Data(",\"artifact_url\":\(encodedRoute)}".utf8)
++        XCTAssertEqual(offer, prefix + Data(expected.assignment.utf8) + suffix)
++        let assignment = Data(offer.dropFirst(prefix.count).dropLast(suffix.count))
++        let artifact = try await get(route)
++        XCTAssertEqual(artifact, Data(expected.envelope.utf8))
++        let fields = try XCTUnwrap(StrictJSON.decode(CanonicalValue.self, from: artifact).object)
++        let payload = try XCTUnwrap(Data(base64Encoded: try XCTUnwrap(fields["payload"]?.text)))
++        let manifest = Data(artifact.dropFirst("{\"signed_manifest\":".utf8.count)
++            .dropLast(",\"payload\":\"\(expected.payload.base64EncodedString())\"}".utf8.count))
++        XCTAssertEqual(manifest, Data(expected.manifest.utf8))
++        XCTAssertEqual(payload, expected.payload)
++        return (manifest, assignment, payload)
++    }
++
++    private func state(_ fixture: ColdStartFixture) throws -> CapabilityRecoveryState {
++        try StrictJSON.decode(CapabilityRecoveryState.self,
++                              from: Data(contentsOf: fixture.configuration.directory.appendingPathComponent("state.json")))
++    }
++
++    private func inventory(_ fixture: ColdStartFixture) throws -> [String: String] {
++        let dir = fixture.configuration.directory
++        return try Dictionary(uniqueKeysWithValues: FileManager.default.contentsOfDirectory(atPath: dir.path).map { name in
++            let path = dir.appendingPathComponent(name)
++            let attrs = try FileManager.default.attributesOfItem(atPath: path.path)
++            let hash = ReleaseVerifier.sha256(try Data(contentsOf: path))
++            return (name, "\(hash):\(attrs[.systemFileNumber]!):\(attrs[.modificationDate]!)")
++        })
++    }
++
++    private func validate(_ fixture: ColdStartFixture, _ expected: Document) throws -> CapabilityRecoveryCandidate {
++        let state = try state(fixture)
++        let healthy = try XCTUnwrap(state.healthy)
++        let selected = try XCTUnwrap(state.candidates[healthy.candidateID])
++        XCTAssertEqual(state.acceptedSequence, expected.sequence)
++        XCTAssertEqual(state.candidates.values.filter { $0.sequence == expected.sequence }.count, 1)
++        XCTAssertEqual(selected.artifactSHA256, expected.digest)
++        XCTAssertEqual(selected.sequence, expected.sequence)
++        XCTAssertEqual(selected.signedAssignment, Data(expected.assignment.utf8))
++        XCTAssertEqual(selected.signedManifest, Data(expected.manifest.utf8))
++        let bytes = try Data(contentsOf: fixture.configuration.directory.appendingPathComponent(selected.payloadSHA256 + ".payload"))
++        XCTAssertEqual(bytes, expected.payload)
++        XCTAssertNil(state.pending)
++        return selected
++    }
++
++    private func activate(_ owner: CapabilityColdStartRuntime, candidate: String) async throws {
++        let result = try await owner.start()
++        XCTAssertEqual(result.candidateID, candidate)
++        XCTAssertEqual(result.phase, .provisionalGuest)
++        XCTAssertTrue(result.effectsMayHaveOpened)
++        XCTAssertNil(result.firstBridgeFailure)
++        let deadline = ContinuousClock.now + .seconds(5)
++        while true {
++            do { try await owner.reportMilestone("feature_started"); break }
++            catch let error as UpdateError where error.code == "capability.runtime.busy" {
++                guard ContinuousClock.now < deadline else { throw error }
++                try await Task.sleep(for: .milliseconds(10))
++            }
++        }
++        while await owner.recoverySnapshot().activation.phase != .healthyGuest {
++            guard ContinuousClock.now < deadline else { throw UpdateError("fixture.health", "Headless health did not commit") }
++            try await Task.sleep(for: .milliseconds(20))
++        }
++    }
++
++    private func withOwner(_ fixture: ColdStartFixture, _ body: (CapabilityColdStartRuntime) async throws -> Void) async throws {
++        let slots = CapabilityAttemptReservation.occupiedSlots
++        let owner = try await CapabilityColdStartRuntime.open(configuration: configure(fixture), execution: fixture.execution)
++        let result: Result<Void, Error>
++        do { try await body(owner); result = .success(()) }
++        catch { result = .failure(error) }
++        await owner.close()
++        let deadline = ContinuousClock.now + .seconds(5)
++        while CapabilityAttemptReservation.occupiedSlots != slots {
++            guard ContinuousClock.now < deadline else { throw UpdateError("fixture.retirement", "Owner retained capacity") }
++            try await Task.sleep(for: .milliseconds(20))
++        }
++        try result.get()
++    }
++
++    func testOnline() async throws {
++        let fixture = try fixture()
++        let sequence = try XCTUnwrap(Int(environment("SEQUENCE")))
++        let port = try XCTUnwrap(UInt16(environment("PORT")))
++        let expected = try documents(fixture)[sequence - 1]
++        try await withOwner(fixture) { owner in
++            let before = await owner.recoverySnapshot()
++            XCTAssertEqual(before.acceptedSequence, expected.sequence - 1)
++            let (manifest, assignment, payload) = try await fetch(expected, fixture: fixture, port: port)
++            try await owner.beginDownload(signedManifest: manifest, signedAssignment: assignment)
++            try await owner.appendDownload(payload, atOffset: 0)
++            try await owner.finishDownload()
++            let staged = await owner.recoverySnapshot()
++            let candidate = try XCTUnwrap(staged.staged)
++            let files = try inventory(fixture)
++            let repeated = try await fetch(expected, fixture: fixture, port: port)
++            do {
++                try await owner.beginDownload(signedManifest: repeated.0, signedAssignment: repeated.1)
++                XCTFail("An already accepted sequence reserved a download again")
++            } catch let error as UpdateError {
++                XCTAssertEqual(error.code, "v3.assignment.replay")
++            }
++            XCTAssertEqual(try inventory(fixture), files)
++            try await activate(owner, candidate: candidate)
++        }
++        let selected = try validate(fixture, expected)
++        print("RESTORE online sequence=\(sequence) artifact=\(selected.artifactSHA256) candidate=\(selected.candidateID) payload=\(selected.payloadSHA256) assignment=\(ReleaseVerifier.sha256(selected.signedAssignment)) manifest=\(ReleaseVerifier.sha256(selected.signedManifest)) replayWrites=0 vm=healthyGuest")
++    }
++
++    func testOffline() async throws {
++        let fixture = try fixture()
++        let expected = try documents(fixture)[2]
++        let candidate = try validate(fixture, expected)
++        try await withOwner(fixture) { owner in
++            let snapshot = await owner.recoverySnapshot()
++            XCTAssertEqual(snapshot.acceptedSequence, 3)
++            XCTAssertEqual(snapshot.healthy, candidate.candidateID)
++            try await activate(owner, candidate: candidate.candidateID)
++        }
++        _ = try validate(fixture, expected)
++        print("RESTORE offline sequence=3 candidate=\(candidate.candidateID) artifact=\(candidate.artifactSHA256) vm=healthyGuest")
++    }
++}
+diff --git a/hosted/test/mixer_hosted/releases/browser_publication_test.exs b/hosted/test/mixer_hosted/releases/browser_publication_test.exs
+--- a/hosted/test/mixer_hosted/releases/browser_publication_test.exs
++++ b/hosted/test/mixer_hosted/releases/browser_publication_test.exs
+@@ -33,6 +33,232 @@
+   @promotion_direction "dev-to-stage"
+   @promotion_path "/v3/orgs/org-a/projects/project-a/apps/fieldlog/release-promotions/" <>
+                     @promotion_direction
++
++  @tag :swift_restore
++  @tag skip: is_nil(System.get_env("MIXER_SWIFT_RESTORE_ROOT"))
++  @tag timeout: 85_000
++  test "publishes the Swift baseline and successor on one owned iOS target" do
++    c = prepare_release_fixture!("swift-ios-source")
++    provision!()
++    provision_delivery!()
++    provision_cli!()
++    provision_actions!()
++    provision_halt_audit!()
++    provision_details!()
++
++    packet = swift_restore_packet!()
++    configuration = packet["config"]
++    [baseline, successor, _rollback] = packet["releases"]
++    c = put_in(c.hosted.local_release_jobs, true)
++    %{target: target} = config = swift_restore_config!(c, configuration)
++    seed_target!(target)
++    provision_release_jobs!()
++
++    for role <- ~w(mixer_release_delivery mixer_release_processor) do
++      DB.q!(Admin, "ALTER ROLE #{role} PASSWORD '#{DB.rollback_password(role)}'")
++    end
++
++    api = start!(c)
++    assert %{phase: :storage_ready} = RuntimeOwner.status()
++    owner = login(api)
++    uploader = upload_identity!(api, login(api, :artifact_uploader))
++
++    for %{"sequence" => sequence, "digest" => digest, "assignment" => signed} = release <-
++          [baseline, successor] do
++      assert {:ok, %{status: 201}} =
++               upload!(
++                 api,
++                 uploader,
++                 config,
++                 digest,
++                 release["envelope"],
++                 "swift-ios-upload-#{sequence}"
++               )
++
++      assert {:ok, %{sequence: ^sequence}} =
++               RuntimeOwner.publish_release(
++                 owner,
++                 target,
++                 signed,
++                 "swift-ios-publish-#{sequence}",
++                 @reason
++               )
++
++      swift_restore_rendezvous!("online-#{sequence}", %{port: api.http_port})
++    end
++
++    assert swift_restore_ledger!() == [
++             ["1", baseline["digest"], "publish", baseline["assignment"]],
++             ["2", successor["digest"], "publish", successor["assignment"]]
++           ]
++
++    assert :ok = Application.stop(:mixer_hosted)
++  end
++
++  @tag :swift_restore
++  @tag skip: is_nil(System.get_env("MIXER_SWIFT_RESTORE_ROOT"))
++  @tag timeout: 85_000
++  test "commits one stock rollback then serves the original release from restarted Phoenix" do
++    c = prepare_release_fixture!("swift-ios-restored")
++    packet = swift_restore_packet!()
++    [baseline, successor, rollback] = packet["releases"]
++    assert rollback["digest"] == baseline["digest"]
++
++    before = swift_restore_ledger!()
++
++    assert before == [
++             ["1", baseline["digest"], "publish", baseline["assignment"]],
++             ["2", successor["digest"], "publish", successor["assignment"]]
++           ]
++
++    c = put_in(c.hosted.local_release_jobs, true)
++    config = swift_restore_config!(c, packet["config"])
++    api = start!(c)
++    assert %{phase: :storage_ready} = RuntimeOwner.status()
++    offer_path = delivery_path(config.target, packet["installation"])
++    path = delivered_artifact_path(successor["digest"])
++    assert_delivery(api, offer_path, path, successor["assignment"], successor["envelope"], config)
++
++    token = access_token!(api, login(api))
++    validation = Jason.encode!(%{artifact_sha256: baseline["digest"]})
++
++    assert %{status: 200} =
++             cli_post(
++               api,
++               token,
++               "/v3/orgs/org-a/projects/project-a/releases/validate",
++               "swift-ios-validate-restored-baseline",
++               validation
++             )
++
++    swift_restore_rendezvous!("stock-rollback", %{port: api.http_port, token: token})
++
++    assert swift_restore_ledger!() ==
++             before ++ [["3", baseline["digest"], "rollback", rollback["assignment"]]]
++
++    assert [["3", "2"]] =
++             DB.q!(
++               Admin,
++               "SELECT sequence::text, previous_sequence::text FROM public.mixer_release_publications WHERE action='rollback'"
++             ).rows
++
++    assert [["available", 0]] =
++             DB.q!(
++               Admin,
++               "SELECT state, attempt FROM mixer_release_jobs.oban_jobs WHERE args->>'sequence'='3'"
++             ).rows
++
++    assert :ok = Application.stop(:mixer_hosted)
++
++    processor =
++      MixerHosted.Identity.StartupFixture.foundation_env()
++      |> Map.merge(%{
++        "MIXER_HOSTED_ROLE" => "processor",
++        "MIXER_PROCESSOR_PROFILE" => "releases_v1",
++        "MIXER_DATABASE_USER" => "mixer_release_processor"
++      })
++      |> Map.delete("MIXER_SECRET_KEY_BASE")
++      |> MixerHosted.RuntimeConfig.load!()
++
++    conn = Keyword.take(c.hosted.repo, [:hostname, :port, :database, :ssl])
++
++    repo =
++      Keyword.merge(
++        processor.repo,
++        conn ++ [password: DB.rollback_password("mixer_release_processor")]
++      )
++
++    configure!(%{c | hosted: %{processor | repo: repo}}, :disabled)
++    assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
++    assert [["mixer_release_processor"]] = DB.q!(MixerHosted.Repo, "SELECT session_user").rows
++    refute Process.whereis(MixerHostedWeb.Endpoint)
++
++    await_release_jobs!(
++      List.duplicate(["completed"], 3),
++      System.monotonic_time(:millisecond) + 15_000
++    )
++
++    assert :ok = Application.stop(:mixer_hosted)
++
++    digest = baseline["digest"]
++    signed = rollback["assignment"]
++
++    assert [[^digest, ^signed, "rollback", "completed", 1]] =
++             DB.q!(Admin, """
++             SELECT material.artifact_sha256, material.signed_assignment_bytes, material.action, job.state, job.attempt
++             FROM mixer_release_jobs.offer_materializations material
++             JOIN mixer_release_jobs.oban_jobs job ON (job.args->>'sequence') = material.sequence::text
++             WHERE material.sequence=3
++             """).rows
++
++    restarted = start!(c)
++    refute restarted.root == api.root
++    path = delivered_artifact_path(digest)
++
++    {offer, envelope} =
++      assert_delivery(restarted, offer_path, path, signed, baseline["envelope"], config)
++
++    swift_restore_rendezvous!("online-3", %{
++      port: restarted.http_port,
++      offer_sha256: Base.encode16(:crypto.hash(:sha256, offer), case: :lower),
++      artifact_wire_sha256: Base.encode16(:crypto.hash(:sha256, envelope), case: :lower)
++    })
++
++    assert :ok = Application.stop(:mixer_hosted)
++  end
++
++  defp swift_restore_packet! do
++    swift_restore_path("packet.json") |> File.read!() |> Jason.decode!()
++  end
++
++  defp swift_restore_path(name),
++    do: Path.join(System.fetch_env!("MIXER_SWIFT_RESTORE_ROOT"), name)
++
++  defp swift_restore_rendezvous!(name, payload) do
++    output = swift_restore_path(name <> ".ready")
++    File.write!(output <> ".tmp", Jason.encode!(payload), [:exclusive])
++    File.rename!(output <> ".tmp", output)
++
++    swift_restore_wait!(
++      swift_restore_path(name <> ".done"),
++      System.monotonic_time(:millisecond) + 22_000
++    )
++  end
++
++  defp swift_restore_wait!(path, deadline) do
++    cond do
++      File.exists?(path) ->
++        :ok
++
++      System.monotonic_time(:millisecond) >= deadline ->
++        flunk("Client rendezvous expired for " <> Path.basename(path))
++
++      true ->
++        Process.sleep(25)
++        swift_restore_wait!(path, deadline)
++    end
++  end
++
++  defp swift_restore_config!(c, configuration) do
++    env = %{
++      "MIXER_LOCAL_RELEASE_CONFIG" => Jason.encode!(configuration),
++      "MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD" => DB.rollback_password("mixer_release_delivery"),
++      "MIXER_LOCAL_RELEASE_WRITER_ENABLED" => "true"
++    }
++
++    {target, delivery} = provisioning = RuntimeProvisioning.load!(env, c.hosted)
++    replace_config!(WriterRepo, RuntimeProvisioning.writer_options!(env, c.hosted, provisioning))
++    replace_config!(:local_release_target, target)
++    replace_config!(:local_release_delivery, delivery)
++    target
++  end
++
++  defp swift_restore_ledger! do
++    DB.q!(Admin, """
++    SELECT sequence::text, artifact_sha256, action, signed_assignment_bytes
++    FROM public.mixer_release_publications ORDER BY sequence
++    """).rows
++  end
+ 
+   test "public delivery refuses a second listener in the effective endpoint settings" do
+     hosted =
+@@ -1884,16 +2110,18 @@
+ 
+     DB.q!(Admin, "CREATE ROLE mixer_release_delivery LOGIN NOINHERIT")
+ 
+-    on_exit(fn ->
+-      conn = DB.connection!("browser_admin")
+-
+-      try do
+-        Postgrex.query!(conn, "DROP OWNED BY mixer_release_delivery", [])
+-        Postgrex.query!(conn, "DROP ROLE mixer_release_delivery", [])
+-      after
+-        GenServer.stop(conn)
+-      end
+-    end)
++    if System.get_env("MIXER_ROLLBACK_PHASE") != "source" do
++      on_exit(fn ->
++        conn = DB.connection!("browser_admin")
++
++        try do
++          Postgrex.query!(conn, "DROP OWNED BY mixer_release_delivery", [])
++          Postgrex.query!(conn, "DROP ROLE mixer_release_delivery", [])
++        after
++          GenServer.stop(conn)
++        end
++      end)
++    end
+ 
+     DB.q!(Admin, "GRANT USAGE ON SCHEMA public TO mixer_release_delivery")
+ 
+@@ -1919,16 +2147,18 @@
+ 
+     database = Admin.config() |> Keyword.fetch!(:database)
+ 
+-    on_exit(fn ->
+-      conn = DB.connection!("browser_admin", database)
+-
+-      try do
+-        Postgrex.query!(conn, "DROP OWNED BY mixer_release_processor", [])
+-        Postgrex.query!(conn, "DROP ROLE mixer_release_processor", [])
+-      after
+-        GenServer.stop(conn)
+-      end
+-    end)
++    if System.get_env("MIXER_ROLLBACK_PHASE") != "source" do
++      on_exit(fn ->
++        conn = DB.connection!("browser_admin", database)
++
++        try do
++          Postgrex.query!(conn, "DROP OWNED BY mixer_release_processor", [])
++          Postgrex.query!(conn, "DROP ROLE mixer_release_processor", [])
++        after
++          GenServer.stop(conn)
++        end
++      end)
++    end
+ 
+     assert release_jobs_sql!("provision-local-release-jobs.sql") == ""
+   end
+@@ -2337,7 +2567,19 @@
+         )
+       end
+ 
+-      settings = Keyword.merge(c.hosted.repo, username: "release_fixture_uploader", pool_size: 1)
++      password = DB.rollback_password("release_fixture_uploader")
++
++      if password do
++        DB.q!(Admin, "ALTER ROLE release_fixture_uploader PASSWORD '#{password}'")
++      end
++
++      settings =
++        Keyword.merge(c.hosted.repo,
++          username: "release_fixture_uploader",
++          password: password,
++          pool_size: 1
++        )
++
+       start_supervised!({Uploader, settings})
+       DB.q!(Uploader, "SELECT 1")
+ 
+diff --git a/hosted/test/support/browser_storage_fixture.ex b/hosted/test/support/browser_storage_fixture.ex
+--- a/hosted/test/support/browser_storage_fixture.ex
++++ b/hosted/test/support/browser_storage_fixture.ex
+@@ -59,6 +59,7 @@
+         hostname: "127.0.0.1",
+         port: port(),
+         username: role,
++        password: System.get_env("MIXER_ROLLBACK_PASSWORD_" <> role),
+         database: "browser_storage",
+         ssl: false,
+         backoff_type: :stop
+diff --git a/hosted/test/support/ordinary_browser_startup_fixture.ex b/hosted/test/support/ordinary_browser_startup_fixture.ex
+--- a/hosted/test/support/ordinary_browser_startup_fixture.ex
++++ b/hosted/test/support/ordinary_browser_startup_fixture.ex
+@@ -123,6 +123,11 @@
+ 
+     assert {:ok, _} = result
+     {:ok, {_, port}} = MixerHostedWeb.Endpoint.server_info(:http)
++
++    if path = System.get_env("MIXER_ROLLBACK_LISTENERS") do
++      File.write!(path, "bandit #{port}\n", [:append])
++    end
++
+     Map.merge(c, %{http_port: port, root: root})
+   end
+ 
+@@ -206,34 +211,49 @@
+   def prepare!(create \\ false, evidence_name \\ nil) do
+     refuse_names!(@all_names)
+     prepare_evidence!(create, evidence_name)
+-    conn = F.connection!("browser_admin", "postgres")
+-
+-    try do
++
++    if System.get_env("MIXER_ROLLBACK_PHASE") == nil do
++      conn = F.connection!("browser_admin", "postgres")
++
++      try do
++        Postgrex.query!(
++          conn,
++          "CREATE DATABASE browser_ordinary_installation_r1422 OWNER browser_schema_owner",
++          []
++        )
++      after
++        GenServer.stop(conn)
++      end
++
++      on_exit(fn ->
++        conn = F.connection!("browser_admin", "postgres")
++
++        try do
++          Postgrex.query!(conn, "SET statement_timeout='15s'", [])
++
++          Postgrex.query!(
++            conn,
++            "DROP DATABASE browser_ordinary_installation_r1422 WITH (FORCE)",
++            [],
++            timeout: 20_000
++          )
++        after
++          GenServer.stop(conn)
++        end
++      end)
++    end
++
++    if System.get_env("MIXER_ROLLBACK_PHASE") == "source" do
++      conn = F.connection!("browser_admin", "postgres")
++
+       Postgrex.query!(
+         conn,
+         "CREATE DATABASE browser_ordinary_installation_r1422 OWNER browser_schema_owner",
+         []
+       )
+-    after
++
+       GenServer.stop(conn)
+     end
+-
+-    on_exit(fn ->
+-      conn = F.connection!("browser_admin", "postgres")
+-
+-      try do
+-        Postgrex.query!(conn, "SET statement_timeout='15s'", [])
+-
+-        Postgrex.query!(
+-          conn,
+-          "DROP DATABASE browser_ordinary_installation_r1422 WITH (FORCE)",
+-          [],
+-          timeout: 20_000
+-        )
+-      after
+-        GenServer.stop(conn)
+-      end
+-    end)
+ 
+     for app <- [:ecto_sql, :postgrex, :jason, :jose, :mint, :ssl, :bandit],
+         do: Application.ensure_all_started(app)
+@@ -255,58 +275,68 @@
+       end
+     end)
+ 
+-    Application.put_env(:browser_storage_fixture, Admin, settings ++ [username: "browser_admin"])
+-
+-    start_supervised!({Admin, settings ++ [username: "browser_admin"]})
++    Application.put_env(
++      :browser_storage_fixture,
++      Admin,
++      settings ++ [username: "browser_admin", password: F.rollback_password("browser_admin")]
++    )
++
++    start_supervised!(
++      {Admin,
++       settings ++ [username: "browser_admin", password: F.rollback_password("browser_admin")]}
++    )
+ 
+     start_supervised!(
+       {Migration,
+        settings ++
+          [
+            username: "browser_admin",
++           password: F.rollback_password("browser_admin"),
+            after_connect: fn c -> Postgrex.query!(c, "SET ROLE browser_schema_owner", []) end
+          ]}
+     )
+ 
+-    F.install!()
+-    F.q!(Admin, "GRANT USAGE ON SCHEMA public TO browser_ordinary")
+-    F.q!(Admin, "GRANT SELECT ON ALL TABLES IN SCHEMA public TO browser_ordinary")
+-
+-    for helper <- ~w(profiles principals families credentials organization_heads project_heads),
+-        do:
+-          F.q!(
+-            Admin,
+-            "GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO browser_ordinary"
+-          )
+-
+-    for table <- ~w(sessions session_vault oidc_attempts session_events),
+-        do: F.q!(Admin, "REVOKE SELECT ON public.mixer_browser_#{table} FROM browser_ordinary")
+-
+-    for sql <- ActivationPreparationSchema.statements(), do: F.q!(Migration, sql)
+-    F.provision!()
+-    conn = F.connection!("browser_admin")
+-
+-    for sql <-
+-          ActivationPreparationSchema.provisioning_statements(
+-            "browser_writer",
+-            "browser_lifecycle",
+-            "browser_schema_owner"
+-          ),
+-        do: Postgrex.query!(conn, sql, [])
+-
+-    GenServer.stop(conn)
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_profiles VALUES('humans',1,'https://issuer.fixture.invalid','console','human',true,1)"
+-    )
+-
+-    F.q!(Admin, "INSERT INTO public.mixer_authz_principals VALUES('person-1','human',true,0,1)")
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_bindings VALUES('humans',1,'subject-1','human','person-1',true,1)"
+-    )
++    if System.get_env("MIXER_ROLLBACK_PHASE") != "restore" do
++      F.install!()
++      F.q!(Admin, "GRANT USAGE ON SCHEMA public TO browser_ordinary")
++      F.q!(Admin, "GRANT SELECT ON ALL TABLES IN SCHEMA public TO browser_ordinary")
++
++      for helper <- ~w(profiles principals families credentials organization_heads project_heads),
++          do:
++            F.q!(
++              Admin,
++              "GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO browser_ordinary"
++            )
++
++      for table <- ~w(sessions session_vault oidc_attempts session_events),
++          do: F.q!(Admin, "REVOKE SELECT ON public.mixer_browser_#{table} FROM browser_ordinary")
++
++      for sql <- ActivationPreparationSchema.statements(), do: F.q!(Migration, sql)
++      F.provision!()
++      conn = F.connection!("browser_admin")
++
++      for sql <-
++            ActivationPreparationSchema.provisioning_statements(
++              "browser_writer",
++              "browser_lifecycle",
++              "browser_schema_owner"
++            ),
++          do: Postgrex.query!(conn, sql, [])
++
++      GenServer.stop(conn)
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_profiles VALUES('humans',1,'https://issuer.fixture.invalid','console','human',true,1)"
++      )
++
++      F.q!(Admin, "INSERT INTO public.mixer_authz_principals VALUES('person-1','human',true,0,1)")
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_bindings VALUES('humans',1,'subject-1','human','person-1',true,1)"
++      )
++    end
+ 
+     fixture = start_supervised!(TLSFixture)
+     auth = GenServer.call(fixture, :authority)
+@@ -409,6 +439,7 @@
+     ordinary =
+       settings
+       |> Keyword.put(:username, "browser_ordinary")
++      |> Keyword.put(:password, F.rollback_password("browser_ordinary"))
+       |> Keyword.put(:pool_size, if(create == :workspace_builds, do: 4, else: 1))
+       |> Keyword.put(:ssl, false)
+ 
+@@ -417,7 +448,7 @@
+       port: F.port(),
+       database: "browser_ordinary_installation_r1422",
+       username: "browser_lifecycle",
+-      password: "synthetic",
++      password: F.rollback_password("browser_lifecycle") || "synthetic",
+       pool_size: 2,
+       pool_count: 1,
+       timeout: 5000,
+@@ -444,101 +475,105 @@
+       custody: custody
+     }
+ 
+-    for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.statements(), do: F.q!(Migration, sql)
+-    conn = F.connection!("browser_admin")
+-
+-    for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.provisioning_statements(),
+-        do: Postgrex.query!(conn, sql, [])
+-
+-    GenServer.stop(conn)
+-
+-    unless Code.ensure_loaded?(MixerHosted.Repo.Migrations.AddBuildJournals),
+-      do: Code.require_file("priv/repo/migrations/20261025000000_add_build_journals.exs")
+-
+-    :ok =
+-      Ecto.Migrator.up(
++    if System.get_env("MIXER_ROLLBACK_PHASE") != "restore" do
++      for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.statements(), do: F.q!(Migration, sql)
++      conn = F.connection!("browser_admin")
++
++      for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.provisioning_statements(),
++          do: Postgrex.query!(conn, sql, [])
++
++      GenServer.stop(conn)
++
++      unless Code.ensure_loaded?(MixerHosted.Repo.Migrations.AddBuildJournals),
++        do: Code.require_file("priv/repo/migrations/20261025000000_add_build_journals.exs")
++
++      :ok =
++        Ecto.Migrator.up(
++          Migration,
++          20_261_025_000_000,
++          MixerHosted.Repo.Migrations.AddBuildJournals,
++          log: false
++        )
++
++      :ok = Ecto.Migrator.up(Migration, 1, R1026.ObanMigration, log: false)
++      F.q!(Migration, MixerHosted.CustomerBuilds.Schema.ddl())
++
++      F.q!(
+         Migration,
+-        20_261_025_000_000,
+-        MixerHosted.Repo.Migrations.AddBuildJournals,
+-        log: false
+-      )
+-
+-    :ok = Ecto.Migrator.up(Migration, 1, R1026.ObanMigration, log: false)
+-    F.q!(Migration, MixerHosted.CustomerBuilds.Schema.ddl())
+-
+-    F.q!(
+-      Migration,
+-      "REVOKE ALL ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) FROM PUBLIC"
+-    )
+-
+-    F.q!(
+-      Migration,
+-      "GRANT EXECUTE ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) TO browser_ordinary"
+-    )
++        "REVOKE ALL ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) FROM PUBLIC"
++      )
++
++      F.q!(
++        Migration,
++        "GRANT EXECUTE ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) TO browser_ordinary"
++      )
++    end
+ 
+     now = System.system_time(:second)
+     {:ok, snapshot} = TrustSnapshot.new(profile, jwks, now, now + 300)
+     provider = start_supervised!({R686.Provider, %{key: key, wrong_key: wrong, config: config}})
+ 
+-    {:ok, :ok} =
+-      Migration.transaction(fn ->
+-        Enum.each(MixerHosted.CustomerArtifacts.Schema.statements(), &F.q!(Migration, &1))
+-      end)
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES('org-a',true,'Visible'),('org-b',true,'Hidden')"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a','project-a',true,'Project A'),('org-b','project-b',true,'Project B')"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_applications VALUES('org-a','project-a','fieldlog',true)"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_memberships VALUES('member-a','person-1','org-a',NULL,'all_projects','viewer',true,0,NULL,1)"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_organization_heads SELECT id,1 FROM public.mixer_authz_organizations"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_project_heads SELECT organization_id,id,1 FROM public.mixer_authz_projects"
+-    )
+-
+-    for n <- 0..51 do
+-      id = "r604-" <> String.pad_leading(Integer.to_string(n), 2, "0")
++    if System.get_env("MIXER_ROLLBACK_PHASE") != "restore" do
++      {:ok, :ok} =
++        Migration.transaction(fn ->
++          Enum.each(MixerHosted.CustomerArtifacts.Schema.statements(), &F.q!(Migration, &1))
++        end)
+ 
+       F.q!(
+         Admin,
+-        "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES($1,true,$1)",
+-        [id]
+-      )
+-
+-      F.q!(Admin, "INSERT INTO public.mixer_authz_organization_heads VALUES($1,1)", [id])
++        "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES('org-a',true,'Visible'),('org-b',true,'Hidden')"
++      )
+ 
+       F.q!(
+         Admin,
+-        "INSERT INTO public.mixer_authz_memberships VALUES($1,'person-1',$2,NULL,'all_projects','viewer',true,0,NULL,1)",
+-        ["member-" <> id, id]
++        "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a','project-a',true,'Project A'),('org-b','project-b',true,'Project B')"
+       )
+ 
+       F.q!(
+         Admin,
+-        "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a',$1,true,$1)",
+-        [id]
+-      )
+-
+-      F.q!(Admin, "INSERT INTO public.mixer_authz_project_heads VALUES('org-a',$1,1)", [id])
++        "INSERT INTO public.mixer_authz_applications VALUES('org-a','project-a','fieldlog',true)"
++      )
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_memberships VALUES('member-a','person-1','org-a',NULL,'all_projects','viewer',true,0,NULL,1)"
++      )
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_organization_heads SELECT id,1 FROM public.mixer_authz_organizations"
++      )
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_project_heads SELECT organization_id,id,1 FROM public.mixer_authz_projects"
++      )
++
++      for n <- 0..51 do
++        id = "r604-" <> String.pad_leading(Integer.to_string(n), 2, "0")
++
++        F.q!(
++          Admin,
++          "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES($1,true,$1)",
++          [id]
++        )
++
++        F.q!(Admin, "INSERT INTO public.mixer_authz_organization_heads VALUES($1,1)", [id])
++
++        F.q!(
++          Admin,
++          "INSERT INTO public.mixer_authz_memberships VALUES($1,'person-1',$2,NULL,'all_projects','viewer',true,0,NULL,1)",
++          ["member-" <> id, id]
++        )
++
++        F.q!(
++          Admin,
++          "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a',$1,true,$1)",
++          [id]
++        )
++
++        F.q!(Admin, "INSERT INTO public.mixer_authz_project_heads VALUES('org-a',$1,1)", [id])
++      end
+     end
+ 
+     authorization =
+@@ -558,7 +593,14 @@
+ 
+     {:ok, {_, provider_port}} = ThousandIsland.listener_info(authorization)
+ 
+-    for sql <- MixerHosted.CustomerBuildCatalog.Schema.private_statements(), do: F.q!(Admin, sql)
++    if path = System.get_env("MIXER_ROLLBACK_LISTENERS") do
++      File.write!(path, "jwks #{auth.port}\nprovider #{provider_port}\n", [:append])
++    end
++
++    if System.get_env("MIXER_ROLLBACK_PHASE") != "restore" do
++      for sql <- MixerHosted.CustomerBuildCatalog.Schema.private_statements(),
++          do: F.q!(Admin, sql)
++    end
+ 
+     base = MixerHosted.RuntimeConfig.load!(MixerHosted.Identity.StartupFixture.foundation_env())
+ 
+@@ -891,6 +933,7 @@
+         hostname: "127.0.0.1",
+         port: port(),
+         username: role,
++        password: rollback_password(role),
+         database: database,
+         ssl: false,
+         backoff_type: :stop
+@@ -902,6 +945,8 @@
+     Postgrex.query!(conn, "SET idle_in_transaction_session_timeout='5s'", [])
+     conn
+   end
++
++  def rollback_password(role), do: System.get_env("MIXER_ROLLBACK_PASSWORD_" <> role)
+ 
+   def provision! do
+     conn = connection!("browser_admin")
+diff --git a/tests/integration/swift-restored-phoenix/REPLAY.md b/tests/integration/swift-restored-phoenix/REPLAY.md
+new file mode 100644
+--- /dev/null
++++ b/tests/integration/swift-restored-phoenix/REPLAY.md
+@@ -0,0 +1,51 @@
++# Swift client against restored Phoenix rollback
++
++This fixture is for public Mixer revision
++`5fd075d6df49ccf2b2e4699a7bc2e59c7b3fd2e8`. It builds and runs on macOS
++with Xcode, Swift, a Rust toolchain, Elixir 1.20.4 and PostgreSQL 17. The
++iOS runtime identity is synthetic. It needs neither a device nor account
++credentials. All service listeners bind to IPv4 loopback. The browser
++fixture provides a test issuer and OAuth bearer for the stock CLI.
++
++The checked-in receipt records the verified portion through restored
++Phoenix's sequence-2 delivery. The restored-target validation call in
++this patch was added after the bounded run. The rollback, worker, restarted
++Phoenix fetch and offline selection still need executable verification.
++
++From the Mixer checkout, prepare one new owned scratch directory and apply the
++patch to the pinned source export.
++
++```sh
++umask 077
++mkdir -p verification/local
++run=$(mktemp -d "$PWD/verification/local/swift-restored-ios.XXXXXXXX")
++mkdir -p "$run"/{tree,tmp,mix,hex,cargo,swift-cache/repositories,logs,lib}
++git archive 5fd075d6df49ccf2b2e4699a7bc2e59c7b3fd2e8 \
++  hosted cli sdk runtime-identity updates experimental-capability-runtime \
++  capability-activation vm docs scripts/restore-local-authz-expiry.sql \
++  services/protocol/testdata tests/integration/phoenix-release-restore |
++  tar -xf - -C "$run/tree"
++patch -d "$run/tree" -p1 < verification/receipts/d6-l04-l05-swift-restored-phoenix-5fd075d6.patch
++cp "$run/tree/tests/integration/swift-restored-phoenix/"*.py "$run/"
++```
++
++Populate the private caches from already available locked public dependencies.
++These commands use APFS clones for the cached Cargo, Hex and SwiftPM files.
++The launcher expects Homebrew's PostgreSQL 17 and the local stable Rustup toolchain
++at the paths in `supervise.py`.
++
++```sh
++cp -cR ~/.mix/archives "$run/mix/"
++cp -cR ~/.hex/packages "$run/hex/"
++cp ~/.hex/cache.ets "$run/hex/"
++cp -cR ~/.cargo/registry "$run/cargo/"
++cp -cR ~/.swiftpm/cache/repositories/{swift-crypto-7e0614ea,swift-asn1-7065ad2c} "$run/swift-cache/repositories/"
++python3 -B "$run/prebuild.py"
++python3 -B "$run/activation-build.py"
++python3 -B "$run/campaign.py"
++```
++
++Read `terminal.jsonl`, `rebinds.jsonl`, `postgres.jsonl` and `client.jsonl`
++for the result. The launcher records exact process groups and signals only
++a launched group when its direct child exceeds the command deadline. Preserve
++the exact namespace of any unresolved `HOLD.jsonl` entry.
+diff --git a/tests/integration/swift-restored-phoenix/activation-build.py b/tests/integration/swift-restored-phoenix/activation-build.py
+new file mode 100644
+--- /dev/null
++++ b/tests/integration/swift-restored-phoenix/activation-build.py
+@@ -0,0 +1,7 @@
++import os
++from supervise import ROOT, TREE, run
++os.umask(0o077)
++run("activation-build", "swift", "build", "--build-tests", "--package-path", "capability-activation",
++    "--scratch-path", ROOT / "activation", "--cache-path", ROOT / "swift-cache", "--config-path", ROOT / "swift-config",
++    "--security-path", ROOT / "swift-security", "--manifest-cache", "local", "--force-resolved-versions", "--jobs", "8",
++    "-Xcc", "-I", "-Xcc", TREE / "vm/include", "-Xlinker", "-L", "-Xlinker", ROOT / "lib", seconds=240)
+diff --git a/tests/integration/swift-restored-phoenix/campaign.py b/tests/integration/swift-restored-phoenix/campaign.py
+new file mode 100644
+--- /dev/null
++++ b/tests/integration/swift-restored-phoenix/campaign.py
+@@ -0,0 +1,268 @@
++import errno
++import hashlib
++import json
++import os
++from pathlib import Path
++import secrets
++import signal
++import socket
++import time
++
++from supervise import ROOT, TREE, PG, Owned, port, record, run
++
++DB = "browser_ordinary_installation_r1422"
++ADMIN = "swift_restore_bootstrap"
++ROLES = (
++    ADMIN, "browser_admin", "browser_lifecycle", "browser_ordinary",
++    "mixer_release_delivery", "mixer_release_processor", "release_fixture_uploader",
++)
++HOSTED = TREE / "hosted"
++TEST = Path("test/mixer_hosted/releases/browser_publication_test.exs")
++FIXTURE = ROOT / "fixture"
++ENV = {"MIXER_SWIFT_RESTORE_ROOT": str(FIXTURE)}
++REASON = "Restore the signed Swift iOS baseline"
++SQLSTATE = """
++SELECT target.platform, target.runtime_sha256, target.sequence
++FROM public.mixer_release_heads target ORDER BY 1,2;
++SELECT sequence, action, artifact_sha256, encode(signed_assignment_bytes,'hex')
++FROM public.mixer_release_publications ORDER BY sequence;
++SELECT manifest_sha256, payload_sha256, encode(envelope_bytes,'hex'), encode(payload,'hex')
++FROM public.mixer_customer_artifacts ORDER BY manifest_sha256;
++SELECT args->>'sequence', state, attempt
++FROM mixer_release_jobs.oban_jobs ORDER BY 1;
++"""
++
++
++def require(condition, reason):
++    if not condition:
++        raise RuntimeError(reason)
++
++
++def sha(data):
++    return hashlib.sha256(data).hexdigest()
++
++
++def listeners_closed(phase, entries):
++    for name, number in entries:
++        with socket.socket() as probe:
++            probe.settimeout(1)
++            require(probe.connect_ex(("127.0.0.1", number)) == errno.ECONNREFUSED,
++                    f"{phase} {name} {number} still accepts TCP")
++        with socket.socket() as listener:
++            listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
++            listener.bind(("127.0.0.1", number))
++            listener.listen(1)
++        record("rebinds.jsonl", {"phase": phase, "service": name, "port": number, "refused": True, "rebound": True})
++
++
++class Cluster:
++    def __init__(self, phase):
++        self.phase = phase
++        self.directory = ROOT / phase
++        self.directory.mkdir()
++        self.data = self.directory / "data"
++        self.port = port()
++        self.child = None
++        self.passwords = {role: secrets.token_hex(24) for role in ROLES}
++        self.pgpass = self.directory / "pgpass"
++        self.pgpass.write_text("".join(f"127.0.0.1:{self.port}:*:{r}:{p}\n" for r, p in self.passwords.items()))
++        self.env = {"PGPASSFILE": str(self.pgpass), "PGCONNECT_TIMEOUT": "4"}
++        self.conn = ["-h", "127.0.0.1", "-p", str(self.port), "-U", ADMIN, "-w"]
++
++    def run(self, name, *args, **options):
++        return run(self.phase + "-" + name, *args, env=self.env, **options)
++
++    def sql(self, name, data=None, *, database=DB, path=None):
++        args = [PG / "psql", *self.conn, "-XqAt", "-v", "ON_ERROR_STOP=1", "-d", database]
++        if path is not None:
++            args.extend(["-f", path])
++        else:
++            data = data.encode()
++        return self.run(name, *args, data=data).strip().decode()
++
++    def start(self):
++        secret = self.directory / "init-password"
++        secret.write_text(self.passwords[ADMIN] + "\n")
++        try:
++            self.run("init", PG / "initdb", "-D", self.data, "-U", ADMIN,
++                     "--auth-local=reject", "--auth-host=scram-sha-256", "--pwfile", secret,
++                     "--locale=C", "--encoding=UTF8", "--no-sync")
++        finally:
++            secret.unlink()
++        (self.data / "pg_hba.conf").write_text(
++            "local all all reject\nhost all all 127.0.0.1/32 scram-sha-256\n"
++            "host all all 0.0.0.0/0 reject\nhost all all ::/0 reject\n"
++        )
++        self.child = Owned(self.phase + "-postgres", [
++            PG / "postgres", "-D", self.data, "-h", "127.0.0.1", "-p", self.port, "-k", "",
++            "-c", "password_encryption=scram-sha-256", "-c", "max_connections=32",
++            "-c", "log_min_error_statement=panic", "-c", "timezone=UTC",
++        ], env=self.env)
++        deadline = time.monotonic() + 12
++        while time.monotonic() < deadline and self.child.process.poll() is None:
++            try:
++                state = (self.data / "postmaster.pid").read_text().splitlines()
++                if len(state) >= 8 and (state[0], state[3], state[7].strip()) == (
++                        str(self.child.pid), str(self.port), "ready"):
++                    break
++            except FileNotFoundError:
++                pass
++            time.sleep(.05)
++        else:
++            raise RuntimeError(f"{self.phase} postgres readiness expired")
++        system = self.sql("identity", "SELECT system_identifier FROM pg_control_system()", database="postgres")
++        rules = self.sql("auth-rules", "SELECT type,coalesce(address,'-'),auth_method FROM pg_hba_file_rules", database="postgres")
++        require(rules.splitlines() == ["local|-|reject", "host|127.0.0.1|scram-sha-256",
++                                       "host|0.0.0.0|reject", "host|::|reject"], f"Unexpected HBA {rules}")
++        run(self.phase + "-wrong-password", PG / "psql", *self.conn, "-XqAt", "-d", "postgres",
++            "-c", "SELECT 1", env=self.env | {"PGPASSWORD": secrets.token_hex(24)}, expected=2)
++        require("password authentication failed" in (ROOT / "logs" / (self.phase + "-wrong-password.stderr")).read_text(),
++                "Unexpected wrong-password control")
++        return {"systemIdentifier": system, "wrongPasswordRefused": True, "authRules": rules.splitlines()}
++
++    def set_passwords(self, roles):
++        self.sql("set-role-passwords", "".join(f"ALTER ROLE {r} PASSWORD '{self.passwords[r]}';\n" for r in roles),
++                 database="postgres")
++
++    def verify_scram(self):
++        rows = self.sql("scram-verifiers", """
++          SELECT rolname FROM pg_authid WHERE rolpassword LIKE 'SCRAM-SHA-256$%' ORDER BY rolname
++          """, database="postgres").splitlines()
++        require(rows == sorted(set(ROLES) - {"release_fixture_uploader"}), f"Unexpected SCRAM role set {rows}")
++        return rows
++
++    def fixture(self, fragment, handshakes):
++        lines = (HOSTED / TEST).read_text().splitlines()
++        line = next(i for i, source in enumerate(lines, 1) if f'test "{fragment}' in source)
++        catalog = self.directory / "catalog"
++        catalog.mkdir()
++        listener_file = self.directory / "listeners"
++        child = Owned(self.phase + "-phoenix", [
++            "mix", "test", "--warnings-as-errors", "--trace", "--no-color", "--seed", "0",
++            f"{TEST}:{line}",
++        ], cwd=HOSTED, env=self.env | ENV | {
++            "MIX_ENV": "test", "HEX_OFFLINE": "1", "MIXER_BROWSER_STORAGE_PORT": str(self.port),
++            "MIXER_BROWSER_CATALOG_FIXTURE_ROOT": str(catalog),
++            "MIXER_ROLLBACK_PHASE": self.phase, "MIXER_ROLLBACK_LISTENERS": str(listener_file),
++        } | {"MIXER_ROLLBACK_PASSWORD_" + role: key for role, key in self.passwords.items()})
++        try:
++            for name in handshakes:
++                ready = FIXTURE / (name + ".ready")
++                deadline = time.monotonic() + 35
++                while not ready.exists():
++                    require(child.process.poll() is None and time.monotonic() < deadline,
++                            f"{self.phase} Phoenix failed before rendezvous {name}")
++                    time.sleep(.025)
++                data = json.loads(ready.read_bytes())
++                ready.unlink()
++                if name == "stock-rollback":
++                    self.rollback(data)
++                else:
++                    sequence = name.split("-")[1]
++                    receipt = swift(name, "testOnline", PORT=str(data["port"]), SEQUENCE=sequence)
++                    record("client.jsonl", {"phase": name, "observed": receipt, "delivery": data})
++                (FIXTURE / (name + ".done")).touch(exist_ok=False)
++        finally:
++            try:
++                output = child.finish(26)
++                require("Result: 1 passed" in output.decode(), f"missing ExUnit receipt for {self.phase}")
++            finally:
++                if listener_file.exists() and not (ROOT / "HOLD.jsonl").exists():
++                    pairs = [line.split() for line in listener_file.read_text().splitlines()]
++                    listeners_closed(self.phase, [(name, int(number)) for name, number in pairs])
++
++    def rollback(self, data):
++        packet = json.loads((FIXTURE / "packet.json").read_bytes())
++        release = packet["releases"][2]
++        file = FIXTURE / "rollback.json"
++        file.write_text(release["assignment"])
++        cli = ROOT / "cli/debug/mixer"
++        output = run("stock-rollback", cli, "update", "rollback", release["digest"],
++                     "--reason", REASON, "--channel", "beta", "--organization", "org-a",
++                     "--project", "project-a", "--assignment", file, seconds=15,
++                     env={"MIXER_RELEASE_ORIGIN": f"http://127.0.0.1:{data['port']}",
++                          "MIXER_RELEASE_TOKEN": data["token"]})
++        facts = json.loads(output)
++        require(facts == {"status": "ok", "action": "rollback", "artifact_sha256": release["digest"],
++                          "sequence": 3, "rollout_basis_points": 10000, "delivery": "local_only"},
++                f"Unexpected stock CLI rollback output {facts}")
++        record("client.jsonl", {"phase": "stock-rollback", "cli": facts, "stdoutSha256": sha(output)})
++
++    def close(self):
++        if self.child is None:
++            return
++        self.child.finish(15, stop=signal.SIGINT)
++        require(not (self.data / "postmaster.pid").exists(), f"{self.phase} pidfile remains")
++        listeners_closed(self.phase, [("postgres", self.port)])
++
++
++def swift(name, method, **values):
++    output = run("swift-" + name, XCTEST, "-XCTest", f"MixerCapabilityActivationTests.RestoredPhoenixReleaseTests/{method}",
++                 BUNDLE, seconds=14, env=ENV | {"MIXER_SWIFT_RESTORE_" + key: value for key, value in values.items()})
++    log = (ROOT / "logs" / ("swift-" + name + ".stderr")).read_text()
++    lines = (output.decode() + "\n" + log).splitlines()
++    require(any("Executed 1 test, with 0 failures" in line and "skipped" not in line for line in lines),
++            f"Expected one executed Swift test for {method}")
++    return [line for line in lines if line.startswith("RESTORE ")]
++
++
++def exercise():
++    FIXTURE.mkdir(exist_ok=True)
++    swift("prepare", "testPrepare")
++    dump = ROOT / "source.dump"
++    source = Cluster("source")
++    try:
++        source_facts = source.start()
++        source.sql("bootstrap", """
++            CREATE ROLE browser_admin LOGIN SUPERUSER;
++            CREATE ROLE browser_schema_owner NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;
++            CREATE ROLE browser_writer NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;
++            CREATE ROLE browser_lifecycle LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;
++            CREATE ROLE browser_ordinary LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;
++            CREATE ROLE mixer_customer_build_catalog_definer_v1 NOLOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT;
++            CREATE DATABASE browser_storage OWNER browser_schema_owner;
++        """, database="postgres")
++        source.set_passwords(["browser_admin", "browser_lifecycle", "browser_ordinary"])
++        source.fixture("publishes the Swift baseline", ["online-1", "online-2"])
++        source_facts["scramRoles"] = source.verify_scram()
++        frozen = source.sql("frozen-state", SQLSTATE)
++        require(source.sql("idle", "SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND pid <> pg_backend_pid()") == "0",
++                "source cluster retained fixture sessions")
++        roles = source.run("dump-roles", PG / "pg_dumpall", *source.conn, "--roles-only", "--no-role-passwords")
++        source.run("dump", PG / "pg_dump", *source.conn, "--format=custom", "--create", "--file", dump, DB)
++    finally:
++        source.close()
++
++    restored = Cluster("restore")
++    try:
++        restored_facts = restored.start()
++        require(source_facts["systemIdentifier"] != restored_facts["systemIdentifier"], "duplicate PostgreSQL cluster")
++        creation = f"CREATE ROLE {ADMIN};\n"
++        require(roles.decode().count(creation) == 1, "Missing unique bootstrap role creation")
++        restored.sql("roles", roles.decode().replace(creation, ""), database="postgres")
++        restored.set_passwords(r for r in ROLES if r not in [ADMIN, "release_fixture_uploader"])
++        restored_facts["scramRoles"] = restored.verify_scram()
++        restored.run("load", PG / "pg_restore", *restored.conn, "--exit-on-error", "--create",
++                     "--dbname", "postgres", dump)
++        for name, path in [
++            ("repair-authz", "scripts/restore-local-authz-expiry.sql"),
++            ("repair-artifact-key", "tests/integration/phoenix-release-restore/restore-artifact-key.sql"),
++        ]:
++            restored.sql(name, path=TREE / path)
++        require(restored.sql("restored-state", SQLSTATE) == frozen, "Restore changed committed state")
++        record("postgres.jsonl", {"source": source_facts, "restore": restored_facts,
++            "dumpSha256": sha(dump.read_bytes()), "frozenAndRestoredStateSha256": sha(frozen.encode()),
++            "sourceSessionsAfterShutdown": 0})
++        restored.fixture("commits one stock rollback", ["stock-rollback", "online-3"])
++    finally:
++        restored.close()
++
++    observed = swift("offline", "testOffline")
++    record("client.jsonl", {"phase": "offline", "observed": observed})
++
++
++if __name__ == "__main__":
++    os.umask(0o077)
++    XCTEST = run("xctest-path", "/usr/bin/xcrun", "--find", "xctest").decode().strip()
++    BUNDLE, = (ROOT / "activation/out/Products/Debug").glob("MixerCapabilityActivationTests.xctest")
++    exercise()
+diff --git a/tests/integration/swift-restored-phoenix/prebuild.py b/tests/integration/swift-restored-phoenix/prebuild.py
+new file mode 100644
+--- /dev/null
++++ b/tests/integration/swift-restored-phoenix/prebuild.py
+@@ -0,0 +1,33 @@
++from concurrent.futures import ThreadPoolExecutor
++from pathlib import Path
++from supervise import ROOT, TREE, run
++import os
++
++os.umask(0o077)
++swift = ["--cache-path", ROOT / "swift-cache", "--config-path", ROOT / "swift-config",
++    "--security-path", ROOT / "swift-security", "--manifest-cache", "local", "--force-resolved-versions",
++    "--jobs", "6"]
++
++def cli():
++    run("cli-build", "swift", "build", "--package-path", "cli", "--product", "mixer",
++        "--scratch-path", ROOT / "cli", *swift, seconds=240)
++
++def hosted():
++    env = {"MIX_ENV": "test", "HEX_OFFLINE": "1"}
++    run("hex-deps", "mix", "deps.get", "--check-locked", cwd=TREE / "hosted", env=env, seconds=100)
++    run("hosted-compile", "mix", "compile", "--warnings-as-errors", cwd=TREE / "hosted", env=env, seconds=160)
++
++def vm():
++    run("vm-build", "cargo", "build", "-j", "6", "--offline", "--locked", "--manifest-path", "vm/Cargo.toml",
++        "--release", "--features", "experimental-capability-native", "--lib", seconds=240)
++    (ROOT / "lib/libmixer_vm_capability_experimental.a").symlink_to(ROOT / "vm/release/libmixer_vm.a")
++
++with ThreadPoolExecutor(max_workers=3) as pool:
++    jobs = [pool.submit(step) for step in (cli, hosted, vm)]
++    for job in jobs:
++        try:
++            job.result()
++        except Exception as error:
++            print(error, flush=True)
++    if any(job.exception() for job in jobs):
++        raise SystemExit(1)
+diff --git a/tests/integration/swift-restored-phoenix/supervise.py b/tests/integration/swift-restored-phoenix/supervise.py
+new file mode 100644
+--- /dev/null
++++ b/tests/integration/swift-restored-phoenix/supervise.py
+@@ -0,0 +1,99 @@
++import json
++import os
++from pathlib import Path
++import signal
++import socket
++import subprocess
++import time
++
++ROOT = Path(__file__).resolve().parent
++TREE = ROOT / "tree"
++HOME = Path.home()
++PG = Path("/opt/homebrew/opt/postgresql@17/bin")
++ENV = {
++    "PATH": f"{PG}:{HOME}/.rustup/toolchains/stable-aarch64-apple-darwin/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin",
++    "HOME": str(ROOT / "home"), "TMPDIR": str(ROOT / "tmp"), "LANG": "en_US.UTF-8",
++    "MIX_HOME": str(ROOT / "mix"), "HEX_HOME": str(ROOT / "hex"),
++    "CARGO_HOME": str(ROOT / "cargo"), "CARGO_TARGET_DIR": str(ROOT / "vm"),
++    "CLANG_MODULE_CACHE_PATH": str(ROOT / "clang-cache"),
++    "SWIFTPM_MODULECACHE_OVERRIDE": str(ROOT / "swift-module"),
++    "ERL_FLAGS": "+S 4:4 +SDcpu 2 +SDio 2",
++}
++(ROOT / "home").mkdir(exist_ok=True)
++
++
++def record(file, entry):
++    fd = os.open(ROOT / file, os.O_CREAT | os.O_WRONLY | os.O_APPEND, 0o600)
++    with os.fdopen(fd, "a") as output:
++        output.write(json.dumps(entry) + "\n")
++        output.flush()
++        os.fsync(output.fileno())
++
++
++def absent(pgid):
++    try:
++        os.killpg(pgid, 0)
++    except ProcessLookupError:
++        return True
++    return False
++
++
++class Owned:
++    def __init__(self, name, argv, *, cwd=TREE, env=None, data=None):
++        self.name = name
++        self.argv = list(map(str, argv))
++        self.out = ROOT / "logs" / (name + ".stdout")
++        self.err = ROOT / "logs" / (name + ".stderr")
++        self.started = time.monotonic()
++        with self.out.open("xb") as stdout, self.err.open("xb") as stderr:
++            self.process = subprocess.Popen(self.argv, cwd=cwd, env=ENV | (env or {}),
++                stdin=subprocess.PIPE, stdout=stdout, stderr=stderr, start_new_session=True)
++        self.pid = self.process.pid
++        self.receipt = {"name": name, "argv": self.argv, "pidPgid": self.pid}
++        record("launch.jsonl", self.receipt)
++        if data is not None:
++            self.process.stdin.write(data)
++        self.process.stdin.close()
++
++    def finish(self, seconds, *, stop=None, expected=0):
++        try:
++            if stop is not None and self.process.poll() is None:
++                self.process.send_signal(stop)
++            try:
++                code = self.process.wait(timeout=seconds)
++            except subprocess.TimeoutExpired:
++                os.killpg(self.pid, signal.SIGTERM)
++                try:
++                    self.process.wait(timeout=5)
++                except subprocess.TimeoutExpired:
++                    os.killpg(self.pid, signal.SIGKILL)
++                    self.process.wait(timeout=5)
++                raise
++        finally:
++            try:
++                deadline = time.monotonic() + 3
++                while self.process.returncode is not None and not absent(self.pid):
++                    if time.monotonic() >= deadline:
++                        raise RuntimeError("owned process group still present")
++                    time.sleep(.025)
++                if self.process.returncode is None:
++                    raise RuntimeError("direct child unreaped")
++            except BaseException as error:
++                record("HOLD.jsonl", self.receipt | {"reason": repr(error)})
++                raise
++            else:
++                record("terminal.jsonl", self.receipt | {"exit": self.process.returncode,
++                    "groupAbsent": True, "seconds": round(time.monotonic() - self.started, 3)})
++        if code != expected:
++            raise RuntimeError(f"{self.name} exit {code}; read {self.err} and {self.out}")
++        return self.out.read_bytes()
++
++
++def run(name, *argv, seconds=30, expected=0, **kwargs):
++    return Owned(name, argv, **kwargs).finish(seconds, expected=expected)
++
++
++def port(number=0):
++    with socket.socket() as listener:
++        listener.bind(("127.0.0.1", number))
++        return listener.getsockname()[1]
