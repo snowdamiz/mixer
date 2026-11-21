@@ -532,6 +532,71 @@ defmodule MixerHosted.CustomerBuildInputsHTTPSQLTest do
   end
 end
 
+defmodule MixerHosted.CustomerBuildAttestationCompletionHTTPSQLTest do
+  use MixerHosted.CustomerBuildInputsFixture, create: true
+
+  test "attestation completion uses the authenticated iOS operation without changing legacy detail",
+       c do
+    alias MixerHosted.Builds.{Dispatch, Journal, Lifecycle}
+
+    {cookie, csrf} = login(c)
+    seed_input("fieldlog", "ios", "attestation-input")
+    [input] = Jason.decode!(http(c, list_path(), headers(cookie)).body)["inputs"]
+    created = post(c, cookie, csrf, "attestation-build", create_body(input))
+    assert created.status == 201
+    selection = Jason.decode!(created.body)["selection"]
+    query = URI.encode_query(selection)
+    url = "/console-api/v1/build-attestation-completion?" <> query
+    assert http(c, url, []).status == 401
+    assert http(c, url, headers(cookie)).status == 404
+
+    [[id, queued]] = F.q!(Admin, "SELECT id::text,journal FROM mixer_builds").rows
+    {:ok, build} = Journal.restore(queued)
+    {:ok, ref} = Lifecycle.worker_ref(build)
+    started_at = build.observed_at + 1
+
+    {:ok, running, _, :applied} =
+      Journal.append(queued, "attest-start", %{type: :start, ref: ref}, started_at)
+
+    artifacts =
+      for kind <- Lifecycle.native_artifact_kinds() do
+        %Lifecycle.ArtifactRef{kind: kind, sha256: String.duplicate("d", 64), size_bytes: 1}
+      end
+
+    result = %{outcome: :native_succeeded, artifacts: artifacts}
+
+    {:ok, finished, _, :applied} =
+      Journal.append(
+        running,
+        "attest-done",
+        %{type: :completed, ref: ref, result: result},
+        started_at + 1
+      )
+
+    F.q!(Admin, "UPDATE mixer_builds SET journal=$1,revision=$2", [
+      finished,
+      length(finished["events"])
+    ])
+
+    response = http(c, url, headers(cookie))
+    assert response.status == 200, response.body
+    assert response_header(response, "cache-control") == ["no-store"]
+
+    assert %{"build" => %{"workerOperationId" => operation} = completion} =
+             Jason.decode!(response.body)
+
+    assert operation == Dispatch.operation_id(id, ref)
+
+    legacy = http(c, "/console-api/v1/builds?" <> query, headers(cookie))
+    assert legacy.status == 200
+    assert Jason.decode!(legacy.body) == %{"build" => Map.delete(completion, "workerOperationId")}
+
+    F.q!(Admin, "UPDATE mixer_authz_memberships SET active=false WHERE id='member-a'")
+    assert http(c, url, headers(cookie)).status == 404
+    leases_clean()
+  end
+end
+
 defmodule MixerHosted.CustomerBuildLogsHTTPSQLTest do
   use MixerHosted.CustomerBuildInputsFixture, create: true, retained_logs: true
 

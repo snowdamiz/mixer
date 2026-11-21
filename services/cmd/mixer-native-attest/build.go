@@ -16,11 +16,12 @@ import (
 )
 
 const (
-	detailPath   = "/console-api/v1/builds"
-	artifactPath = "/console-api/v1/build-artifacts/"
-	metadataMax  = 8 << 20
-	artifactMax  = 256 << 20
-	archiveMagic = "MXNATIVE1\n"
+	detailPath     = "/console-api/v1/builds"
+	completionPath = "/console-api/v1/build-attestation-completion"
+	artifactPath   = "/console-api/v1/build-artifacts/"
+	metadataMax    = 8 << 20
+	artifactMax    = 256 << 20
+	archiveMagic   = "MXNATIVE1\n"
 )
 
 var (
@@ -84,6 +85,7 @@ type observedBuild struct {
 	CompletionPending *bool  `json:"workerCompletionPending"`
 	Revision          int    `json:"revision"`
 	Attempt           int    `json:"attempt"`
+	WorkerOperationID string `json:"workerOperationId,omitempty"`
 	Artifacts         []struct {
 		artifact
 		DownloadPath string `json:"downloadPath"`
@@ -91,9 +93,10 @@ type observedBuild struct {
 }
 
 type provenance struct {
-	Revision      int    `json:"journalRevision"`
-	Attempt       int    `json:"attempt"`
-	BindingSHA256 string `json:"nativeBindingSha256"`
+	Revision          int    `json:"journalRevision"`
+	Attempt           int    `json:"attempt"`
+	BindingSHA256     string `json:"nativeBindingSha256"`
+	WorkerOperationID string `json:"workerOperationId,omitempty"`
 }
 
 type source struct {
@@ -137,8 +140,8 @@ func (s source) get(path, mediaType string, selection selection) (*http.Response
 	return response, nil
 }
 
-func (s source) detail(sel selection) (observedBuild, error) {
-	response, err := s.get(detailPath, "application/json; charset=utf-8", sel)
+func (s source) detail(sel selection, path string) (observedBuild, error) {
+	response, err := s.get(path, "application/json; charset=utf-8", sel)
 	if err != nil {
 		return observedBuild{}, err
 	}
@@ -166,10 +169,21 @@ type inventory struct {
 	BindingSHA256 string   `json:"bindingSHA256"`
 }
 
-func (s source) observe(sel selection) (provenance, []artifact, error) {
-	b, err := s.detail(sel)
+func (s source) observe(sel selection, profile string) (provenance, []artifact, error) {
+	path := completionPath
+	if profile == legacyProfile {
+		path = detailPath
+	}
+	b, err := s.detail(sel, path)
 	if err != nil {
 		return provenance{}, nil, err
+	}
+	var operation string
+	if profile == completionProfile {
+		operation = b.WorkerOperationID
+		if !digestPattern.MatchString(operation) {
+			return provenance{}, nil, errors.New("detail does not identify the completed worker operation")
+		}
 	}
 	kinds := [...]string{"unsigned_native_binary", "debug_symbols", "resource_inventory"}
 	subjects := make([]artifact, len(kinds))
@@ -222,7 +236,7 @@ func (s source) observe(sel selection) (provenance, []artifact, error) {
 		inv.ParentSymbols != subjects[1] || inv.BindingSHA256 != bindings[0] || bindings[0] != bindings[1] {
 		return provenance{}, nil, errors.New("native products have inconsistent provenance")
 	}
-	return provenance{b.Revision, b.Attempt, inv.BindingSHA256}, subjects, nil
+	return provenance{b.Revision, b.Attempt, inv.BindingSHA256, operation}, subjects, nil
 }
 
 func (s source) readArtifact(sel selection, d artifact, readMetadata func(io.Reader) error) error {

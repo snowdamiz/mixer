@@ -1,10 +1,11 @@
 defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
   use ExUnit.Case, async: false
 
-  alias MixerHosted.Builds.{Dispatch, Journal, Lifecycle}
+  alias MixerHosted.Builds.{Dispatch, Journal, Lifecycle, RetainedNativeArtifacts}
   alias MixerHosted.Builds.Lifecycle.ArtifactRef
   alias MixerHosted.CustomerBuilds
-  alias MixerHosted.CustomerBuilds.{AttestationRepo, AttestationSchema}
+  alias MixerHosted.CustomerBuilds.{AttestationRepo, AttestationSchema, Schema}
+  alias MixerHosted.Repo
   alias MixerHosted.Identity.VerifiedIdentity
   alias MixerHosted.Repo.Migrations
 
@@ -16,12 +17,52 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
     use Ecto.Repo, otp_app: :mixer_hosted, adapter: Ecto.Adapters.Postgres
   end
 
+  defmodule SignerFixture do
+    import Plug.Conn
+
+    def init(opts), do: opts
+
+    def call(conn, %{token: token, identity: identity}) do
+      conn = fetch_cookies(conn)
+
+      with "GET" <- conn.method,
+           ^token <- conn.req_cookies["__Host-mixer-session"],
+           {:ok, selection} <- MixerHostedWeb.BrowserBuildRequest.parse(conn.query_string),
+           {:ok, media, body} <- read(conn.request_path, identity, selection) do
+        conn
+        |> put_resp_header("cache-control", "no-store")
+        |> put_resp_header("content-type", media)
+        |> send_resp(200, body)
+      else
+        _ -> send_resp(conn, 404, "")
+      end
+    end
+
+    defp read("/console-api/v1/build-attestation-completion", identity, selection) do
+      with {:ok, dto} <- CustomerBuilds.read(identity, selection, :attestation_completion) do
+        {:ok, "application/json; charset=utf-8", Jason.encode!(%{build: dto})}
+      end
+    end
+
+    defp read("/console-api/v1/build-artifacts/" <> kind, identity, selection) do
+      with {:ok, {:retained_native, operation, artifact}} <-
+             CustomerBuilds.read(identity, selection, kind),
+           {:ok, bytes} <- RetainedNativeArtifacts.read(operation, artifact) do
+        {:ok, "application/octet-stream", bytes}
+      end
+    end
+
+    defp read(_, _, _), do: {:error, :not_found}
+  end
+
   @socket "MIXER_ATTESTATION_TEST_SOCKET"
   if !System.get_env(@socket),
     do: @moduletag(skip: "requires the disposable W12 PostgreSQL fixture")
 
   @moduletag :native_attestation_db
   @writer "mixer_native_attestation_writer"
+  @reader "attestation_fixture_reader"
+  @go_signer "MIXER_ATTESTATION_TEST_GO_SIGNER"
   @admin "mixer_attestation_fixture_admin"
   @database "mixer_native_attestation_fixture"
   @origin "http://127.0.0.1:59709"
@@ -66,7 +107,7 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
           {20_261_025_000_003, Migrations.AddCustomerAuthorization, "add_customer_authorization"},
           {20_261_025_000_004, Migrations.AddAuthorizationStateRevisions,
            "add_authorization_state_revisions"},
-          {20_261_120_000_017, Migrations.AddNativeDevelopmentAttestations,
+          {20_261_120_000_020, Migrations.AddNativeDevelopmentAttestations,
            "add_native_development_attestations"}
         ] do
       paths = Path.wildcard("priv/**/#{version}_#{name}.exs")
@@ -81,18 +122,25 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
 
     sql(AttestationSchema.fixture_grant_statement())
 
+    read_entry = "public.mixer_customer_build_read_v1(#{Schema.signature()})"
+    Ecto.Adapters.SQL.query!(Migration, Schema.ddl(), [], log: false)
+    sql("REVOKE EXECUTE ON FUNCTION #{read_entry} FROM PUBLIC")
+    sql("GRANT EXECUTE ON FUNCTION #{read_entry} TO #{@reader}")
+
     for table <-
           ~w(profiles principals bindings families credentials organizations projects applications environments organization_heads project_heads memberships) do
-      sql("GRANT SELECT ON public.mixer_authz_#{table} TO #{@writer}")
+      sql("GRANT SELECT ON public.mixer_authz_#{table} TO #{@writer},#{@reader}")
     end
 
     for helper <- ~w(profiles principals families credentials organization_heads project_heads) do
-      sql("GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO #{@writer}")
+      sql(
+        "GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO #{@writer},#{@reader}"
+      )
     end
 
     start_supervised!({AttestationRepo, opts ++ [username: @writer]})
     seed_identity!()
-    %{socket: socket}
+    %{socket: socket, repo_opts: opts}
   end
 
   setup %{socket: socket, test: test} do
@@ -137,6 +185,89 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
 
     assert sql("SELECT revision,journal FROM public.mixer_builds WHERE id=$1", [b.id]).rows ==
              [[5, b.journal]]
+  end
+
+  unless System.get_env(@go_signer), do: @tag(skip: "requires the compiled Go signer")
+
+  test "Go signs the authorized worker operation and PostgreSQL attachment verifies it", c do
+    b = completed!(c.selection, retry: true)
+    retain!(c.root, b.operation, b.products)
+    start_supervised!({Repo, c.repo_opts ++ [username: @reader]})
+    identity = %{c.identity | scopes: ["mixer.build.read"]}
+
+    assert {:ok, %{state: "native_succeeded", artifacts: [_, _, _]} = legacy_detail} =
+             CustomerBuilds.read(identity, c.selection)
+
+    refute Map.has_key?(legacy_detail, :workerOperationId)
+
+    token = Base.url_encode64(:crypto.strong_rand_bytes(32), padding: false)
+    plug = {SignerFixture, %{token: token, identity: identity}}
+
+    listener =
+      start_supervised!({Bandit, plug: plug, ip: {127, 0, 0, 1}, port: 0, startup_log: false})
+
+    {:ok, {{127, 0, 0, 1}, port}} = ThousandIsland.listener_info(listener)
+    origin = "http://127.0.0.1:#{port}"
+
+    Application.put_env(:mixer_hosted, :native_development_attestation, %{
+      origin: origin,
+      public_spki_der: c.spki
+    })
+
+    session_path = Path.join(c.root, "session")
+    key_path = Path.join(c.root, "test-key.pem")
+    write_private_file!(session_path, token <> "\n")
+    der = Base.decode16!("302E020100300506032B657004220420") <> c.key
+
+    write_private_file!(
+      key_path,
+      :public_key.pem_encode([{:PrivateKeyInfo, der, :not_encrypted}])
+    )
+
+    {output, 0} =
+      System.cmd(
+        "/bin/sh",
+        [
+          "-c",
+          ~s(input=$1; shift; exec "$@" < "$input"),
+          "fixture",
+          session_path,
+          System.fetch_env!(@go_signer),
+          "sign",
+          "-origin",
+          origin,
+          "-selection",
+          URI.encode_query(c.selection),
+          "-state",
+          c.root,
+          "-key",
+          key_path
+        ],
+        stderr_to_stdout: true
+      )
+
+    name = String.trim(output)
+    assert Path.basename(name) == name
+    signed = File.read!(Path.join(c.root, name))
+
+    assert %{
+             "statement" => %{
+               "profile" => "mixer.native-build.ios-simulator.development.v2",
+               "provenance" => %{"workerOperationId" => operation}
+             }
+           } = Jason.decode!(signed)
+
+    assert operation == b.operation
+    assert {:ok, :attached} = attach(c, signed)
+    assert {:ok, :duplicate} = attach(c, signed)
+    assert stored(b) == [[5, 2, b.operation, @binding, sha(c.spki), origin, signed]]
+  end
+
+  defp write_private_file!(path, content) do
+    File.open!(path, [:write, :exclusive], fn file ->
+      File.chmod!(path, 0o600)
+      IO.binwrite(file, content)
+    end)
   end
 
   test "read/create scope, expired credential, viewer and foreign tenants cannot attach", c do
@@ -185,6 +316,9 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
           envelope(c, b, origin: "http://127.0.0.1:59710"),
           envelope(c, b, revision: 3),
           envelope(c, b, attempt: 2),
+          envelope(c, b, operation: sha("different operation")),
+          envelope(c, b, operation: nil),
+          envelope(c, b, version: 1),
           envelope(c, b, artifacts: Enum.reverse(b.artifacts))
         ] do
       assert {:error, :artifact_invalid} = attach(c, invalid)
@@ -303,17 +437,33 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
 
         sql("DELETE FROM public.mixer_build_reservations WHERE build_record_id=$1", [original.id])
         sql("DELETE FROM public.mixer_builds WHERE id=$1", [original.id])
-        Process.put({__MODULE__, :replacement}, completed!(c.selection))
+        replacement = completed!(c.selection)
+        retain!(c.root, replacement.operation, replacement.products)
+        Process.put({__MODULE__, :replacement}, replacement)
       end,
       fn -> assert {:error, :conflict} = attach(c, signed) end
     )
 
     replacement = Process.delete({__MODULE__, :replacement})
     assert replacement.operation != original.operation
-    assert envelope(c, replacement) == signed
+    assert replacement.artifacts == original.artifacts
+    assert replacement.products == original.products
+    assert replacement.journal == original.journal
+    assert envelope(c, replacement, version: 1) == envelope(c, original, version: 1)
     assert stored(original) == []
     assert stored(replacement) == []
+
     assert {:error, :artifact_invalid} = attach(c, signed)
+    assert {:error, :artifact_invalid} = attach(c, envelope(c, original, version: 1))
+    assert stored(replacement) == []
+
+    fresh = envelope(c, replacement)
+    assert {:ok, :attached} = attach(c, fresh)
+    assert {:ok, :duplicate} = attach(c, fresh)
+
+    assert stored(replacement) == [
+             [2, 1, replacement.operation, @binding, sha(c.spki), @origin, fresh]
+           ]
   end
 
   test "losing the write context after SQL inserts rolls back the entire attachment", c do
@@ -373,14 +523,59 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
              log: false
            ).rows == [[nil]]
 
-    sql("GRANT EXECUTE ON FUNCTION #{@entry} TO attestation_fixture_reader")
+    signed = envelope(c, b)
+
+    for role <- [@reader, "PUBLIC"] do
+      sql("GRANT EXECUTE ON FUNCTION #{@entry} TO #{role}")
+
+      try do
+        assert executes?(@writer)
+        assert executes?(@reader)
+        assert {:error, :authorization_unavailable} = attach(c, signed)
+        assert stored(b) == []
+      after
+        sql("REVOKE EXECUTE ON FUNCTION #{@entry} FROM #{role}")
+      end
+    end
+
+    sql("REVOKE EXECUTE ON FUNCTION #{@entry} FROM #{@writer}")
 
     try do
-      assert {:error, :authorization_unavailable} = attach(c, envelope(c, b))
+      refute executes?(@writer)
+      assert {:error, :authorization_unavailable} = attach(c, signed)
       assert stored(b) == []
     after
-      sql("REVOKE EXECUTE ON FUNCTION #{@entry} FROM attestation_fixture_reader")
+      sql(AttestationSchema.fixture_grant_statement())
     end
+
+    [[definition]] = sql("SELECT pg_get_functiondef($1::text::regprocedure)", [@entry]).rows
+
+    assert {:ok, _} =
+             Migration.transaction(fn ->
+               for statement <- ["DROP FUNCTION #{@entry}", definition] do
+                 Ecto.Adapters.SQL.query!(Migration, statement, [], log: false)
+               end
+             end)
+
+    try do
+      assert [[true]] =
+               sql("SELECT proacl IS NULL FROM pg_proc WHERE oid=$1::text::regprocedure", [@entry]).rows
+
+      assert executes?(@writer)
+      assert executes?(@reader)
+      assert {:error, :authorization_unavailable} = attach(c, signed)
+      assert stored(b) == []
+    after
+      sql("REVOKE EXECUTE ON FUNCTION #{@entry} FROM PUBLIC")
+      sql(AttestationSchema.fixture_grant_statement())
+    end
+
+    assert {:ok, :attached} = attach(c, signed)
+  end
+
+  defp executes?(role) do
+    [[result]] = sql("SELECT has_function_privilege($1,$2,'EXECUTE')", [role, @entry]).rows
+    result
   end
 
   defp completed!(s, opts \\ []) do
@@ -515,7 +710,21 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
 
   defp envelope(c, b, opts \\ []) do
     s = b.selection
-    profile = "mixer.native-build.ios-simulator.development.v1"
+    version = Keyword.get(opts, :version, 2)
+    profile = "mixer.native-build.ios-simulator.development.v#{version}"
+
+    provenance = [
+      journalRevision: Keyword.get(opts, :revision, b.revision),
+      attempt: Keyword.get(opts, :attempt, b.attempt),
+      nativeBindingSha256: @binding
+    ]
+
+    operation = Keyword.get(opts, :operation, b.operation)
+
+    provenance =
+      if version == 2 and is_binary(operation),
+        do: provenance ++ [workerOperationId: operation],
+        else: provenance
 
     statement =
       Jason.OrderedObject.new(
@@ -533,12 +742,7 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
             toolchainLockSha256: s.toolchain_lock_sha256,
             buildDefinitionSha256: s.build_definition_sha256
           ),
-        provenance:
-          Jason.OrderedObject.new(
-            journalRevision: Keyword.get(opts, :revision, b.revision),
-            attempt: Keyword.get(opts, :attempt, b.attempt),
-            nativeBindingSha256: @binding
-          ),
+        provenance: Jason.OrderedObject.new(provenance),
         subjects:
           Enum.map(Keyword.get(opts, :artifacts, b.artifacts), fn a ->
             Jason.OrderedObject.new(

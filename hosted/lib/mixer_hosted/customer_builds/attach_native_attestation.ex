@@ -29,7 +29,8 @@ defmodule MixerHosted.CustomerBuilds.AttachNativeAttestation do
     with {:ok, %Selection{platform: "ios"} = selection} <- Selection.new(input),
          %{origin: origin, public_spki_der: spki} = trust <- trust(),
          {:ok, snapshot} <- transaction(identity, selection, [nil, nil, nil, nil, nil, nil]),
-         {:ok, operation, expected} <- completion(snapshot, selection, origin),
+         {:ok, %ExpectedBuild{worker_operation_id: operation} = expected} <-
+           completion(snapshot, selection, origin),
          {:ok, binding} <-
            RetainedNativeArtifacts.verify_ios_development(operation, expected.artifacts),
          :ok <-
@@ -141,7 +142,7 @@ defmodule MixerHosted.CustomerBuilds.AttachNativeAttestation do
          } <-
            Map.get(build.events, event_id),
          true <- build.artifacts === artifacts do
-      {:ok, Dispatch.operation_id(id, ref),
+      {:ok,
        %ExpectedBuild{
          origin: origin,
          selection: selection,
@@ -149,6 +150,7 @@ defmodule MixerHosted.CustomerBuilds.AttachNativeAttestation do
          worker_completion_pending: false,
          journal_revision: record.revision,
          attempt: attempt,
+         worker_operation_id: Dispatch.operation_id(id, ref),
          native_binding_sha256: nil,
          artifacts: artifacts
        }}

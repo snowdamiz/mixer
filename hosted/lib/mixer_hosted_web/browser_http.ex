@@ -6,6 +6,7 @@ defmodule MixerHostedWeb.BrowserHTTP do
   import Plug.Conn
 
   @paths ~w(/auth/session /console-api/v1/orgs /console-api/v1/projects /console-api/v1/workspace-admin /console-api/v1/support-requests /console-api/v1/builds /console-api/v1/applications /console-api/v1/build-catalog /console-api/v1/build-inputs /console-api/v1/source-starters)
+  @attestation_completion_path "/console-api/v1/build-attestation-completion"
   @logs_path "/console-api/v1/build-logs"
   @release_head_path "/console-api/v1/release-head"
   @cancel_path "/console-api/v1/builds/cancel"
@@ -13,7 +14,8 @@ defmodule MixerHostedWeb.BrowserHTTP do
                       do: "/console-api/v1/build-artifacts/" <> kind
   def owns_path?(path),
     do:
-      path in [@cancel_path, @logs_path, @release_head_path] or path in @paths or
+      path in [@cancel_path, @logs_path, @release_head_path, @attestation_completion_path] or
+        path in @paths or
         path in @artifact_paths
 
   def init([]), do: []
@@ -233,9 +235,11 @@ defmodule MixerHostedWeb.BrowserHTTP do
   end
 
   defp dispatch(%{request_path: path} = conn)
-       when path in ["/console-api/v1/builds", @logs_path] or path in @artifact_paths do
+       when path in ["/console-api/v1/builds", @logs_path, @attestation_completion_path] or
+              path in @artifact_paths do
     kind =
       case path do
+        @attestation_completion_path -> :attestation_completion
         @logs_path -> :logs
         "/console-api/v1/build-artifacts/" <> kind -> kind
         _ -> nil

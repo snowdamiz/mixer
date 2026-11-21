@@ -32,12 +32,13 @@ mixer-native-attest verify -origin "$origin" -selection "$selection" \
 
 The result is a JSON envelope with `statement` and a base64 `signature`.
 Ed25519 signs the UTF-8 profile string
-`mixer.native-build.ios-simulator.development.v1`, a NUL byte, and the exact
+`mixer.native-build.ios-simulator.development.v2`, a NUL byte, and the exact
 compact JSON bytes of `statement` as stored in the envelope. The statement
-includes the local origin, the SHA-256 of the trusted public SPKI DER, the full
-build selection, the journal revision and attempt, the shared native capture
-binding hash, and the kind, byte count, and SHA-256 of each of the three
-products. The signer independently hashes each authenticated download and
+includes the local origin, the SHA-256 of the trusted public SPKI DER, and the
+full build selection. Its provenance contains the journal revision, attempt,
+native capture binding hash, and `workerOperationId` from the authorized
+`GET /console-api/v1/build-attestation-completion` response. Each of the three
+subjects records its kind, byte count, and SHA-256. The signer independently hashes each authenticated download and
 matches the inventory's two parent identities and both native archive headers.
 The verifier checks the signature with the pinned public key, repeats those
 reads against the caller's expected selection, and compares the reconstructed
@@ -52,14 +53,15 @@ publication has one winner when signers race. Keep the directory intact across
 invocations. If publication returns an I/O error after the file appears,
 verify the existing attestation before deciding how to recover.
 
-The current read API already supplies every input required by this slice.
-Any endpoint that later records the result should treat the envelope as
-untrusted input, obtain the authoritative build selection and current bytes
-under its own authorization, and verify under a separately configured
-development trust key before linking it to that exact journal revision and
-attempt. The worker's full compile report and standalone SLSA statement are
-outside the current authenticated download contract. The provenance here binds
-the public build pins and retained native capture binding.
+The hosted attachment API checks the v2 statement against the settled worker
+operation and the retained product bytes under that operation. It uses its own
+authorization and pinned development public key. Replace the operation and the
+same envelope will fail attachment, even if all three products match byte for
+byte.
+
+`verify` still accepts historical v1 envelopes with their original signature
+domain and fields. V1 envelopes lack a signed operation ID, so the hosted
+attachment API refuses them. Keep existing v1 files for verification.
 
 This process assumes a trusted local loopback Phoenix server and an
 operator-owned state directory. The proof establishes temporal separation for
@@ -75,3 +77,12 @@ confirms the other key is refused before HTTP.
 CGO_ENABLED=1 go -C services test -race ./cmd/mixer-native-attest \
   -run '^TestConcurrentAttestationsPublishOneEnvelope$'
 ```
+
+To run the Go-to-PostgreSQL attachment test, build the signer and set
+`MIXER_ATTESTATION_TEST_GO_SIGNER` to its absolute path. Use a fresh disposable
+PostgreSQL cluster with a private Unix socket directory, TCP disabled, a
+bootstrap role named `mixer_attestation_fixture_admin`, and an empty database
+named `mixer_native_attestation_fixture`. Set `MIXER_ATTESTATION_TEST_SOCKET` to
+the socket directory's absolute path without symlink components. The test creates
+the restricted reader and writer roles and uses an ephemeral key. From `hosted`,
+run `mix test test/mixer_hosted/builds/native_attestation_attachment_test.exs`.

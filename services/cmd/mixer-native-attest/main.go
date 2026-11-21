@@ -20,8 +20,10 @@ import (
 	"syscall"
 )
 
-const profile = "mixer.native-build.ios-simulator.development.v1"
-const domain = profile + "\x00"
+const (
+	legacyProfile     = "mixer.native-build.ios-simulator.development.v1"
+	completionProfile = "mixer.native-build.ios-simulator.development.v2"
+)
 
 type statement struct {
 	Profile    string     `json:"profile"`
@@ -108,7 +110,7 @@ func run(args []string, stdin io.Reader) (string, error) {
 		return "", errors.New("build already attested or state unavailable")
 	}
 	// Observe the authenticated build before opening the signing key.
-	p, subjects, err := s.observe(sel)
+	p, subjects, err := s.observe(sel, completionProfile)
 	if err != nil {
 		return "", err
 	}
@@ -117,11 +119,11 @@ func run(args []string, stdin io.Reader) (string, error) {
 		return "", err
 	}
 	defer clear(private)
-	payload, err := json.Marshal(statement{profile, s.origin, sum(der), sel, p, subjects})
+	payload, err := json.Marshal(statement{completionProfile, s.origin, sum(der), sel, p, subjects})
 	if err != nil {
 		return "", err
 	}
-	message := append([]byte(domain), payload...)
+	message := append([]byte(completionProfile+"\x00"), payload...)
 	envelope, err := json.Marshal(attestation{payload, ed25519.Sign(private, message)})
 	if err != nil {
 		return "", err
@@ -138,21 +140,24 @@ func verify(s source, sel selection, root *os.Root, name, key string) error {
 	if err != nil {
 		return err
 	}
-	if !ed25519.Verify(public, append([]byte(domain), envelope.Statement...), envelope.Signature) {
-		return errors.New("attestation signature failed")
-	}
 	var signed statement
 	if err := json.Unmarshal(envelope.Statement, &signed); err != nil {
 		return errors.New("invalid attestation statement")
 	}
+	if signed.Profile != legacyProfile && signed.Profile != completionProfile {
+		return errors.New("unsupported attestation profile")
+	}
+	if !ed25519.Verify(public, append([]byte(signed.Profile+"\x00"), envelope.Statement...), envelope.Signature) {
+		return errors.New("attestation signature failed")
+	}
 	if signed.Origin != s.origin {
 		return fmt.Errorf("attestation requires the signed Phoenix origin %q (restart with its fixed MIXER_HTTP_PORT)", signed.Origin)
 	}
-	p, subjects, err := s.observe(sel)
+	p, subjects, err := s.observe(sel, signed.Profile)
 	if err != nil {
 		return err
 	}
-	payload, err := json.Marshal(statement{profile, s.origin, sum(der), sel, p, subjects})
+	payload, err := json.Marshal(statement{signed.Profile, s.origin, sum(der), sel, p, subjects})
 	if err != nil {
 		return err
 	}

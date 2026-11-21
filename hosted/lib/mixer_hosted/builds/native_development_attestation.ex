@@ -8,8 +8,8 @@ defmodule MixerHosted.Builds.NativeDevelopmentAttestation do
   alias MixerHosted.CustomerBuilds.Selection
   alias MixerHosted.Protocol.ArtifactJSON
 
-  @profile "mixer.native-build.ios-simulator.development.v1"
-  @domain @profile <> <<0>>
+  @legacy_profile "mixer.native-build.ios-simulator.development.v1"
+  @completion_profile "mixer.native-build.ios-simulator.development.v2"
   @envelope_limit 16_384
   @inventory_limit 8 * 1024 * 1024
   @max_int64 9_223_372_036_854_775_807
@@ -25,7 +25,9 @@ defmodule MixerHosted.Builds.NativeDevelopmentAttestation do
     committed journal, and artifact references and shared capture binding
     established from retained native products. Obtain all fields independently
     of the envelope. The caller owns authority, retained-byte checks, and
-    keeping this snapshot current through any later attachment.
+    keeping this snapshot current through any later attachment. Set
+    `worker_operation_id` for completion-bound verification. A nil operation
+    verifies only historical v1 evidence and cannot authorize an attachment.
     """
 
     alias MixerHosted.Builds.Lifecycle.ArtifactRef
@@ -40,7 +42,7 @@ defmodule MixerHosted.Builds.NativeDevelopmentAttestation do
       :native_binding_sha256,
       :artifacts
     ]
-    defstruct @enforce_keys
+    defstruct @enforce_keys ++ [worker_operation_id: nil]
 
     @type t :: %__MODULE__{
             origin: String.t(),
@@ -49,6 +51,7 @@ defmodule MixerHosted.Builds.NativeDevelopmentAttestation do
             worker_completion_pending: false,
             journal_revision: pos_integer(),
             attempt: pos_integer(),
+            worker_operation_id: String.t() | nil,
             native_binding_sha256: String.t(),
             artifacts: [%ArtifactRef{}]
           }
@@ -70,10 +73,11 @@ defmodule MixerHosted.Builds.NativeDevelopmentAttestation do
     with {:ok, expected} <- checked_build(expected_build),
          {:ok, public_key} <- ed25519_public_key(enrolled_public_spki_der),
          {:ok, statement, signature} <- decode_envelope(envelope),
-         :ok <- verify_signature(statement, signature, public_key) do
+         profile = profile(expected),
+         :ok <- verify_signature(profile, statement, signature, public_key) do
       key_id = Base.encode16(:crypto.hash(:sha256, enrolled_public_spki_der), case: :lower)
 
-      if statement == expected_statement(expected, key_id),
+      if statement == expected_statement(expected, profile, key_id),
         do: :ok,
         else: {:error, :build_binding_mismatch}
     end
@@ -87,6 +91,7 @@ defmodule MixerHosted.Builds.NativeDevelopmentAttestation do
            worker_completion_pending: false,
            journal_revision: revision,
            attempt: attempt,
+           worker_operation_id: operation,
            native_binding_sha256: binding,
            artifacts: [_, _, %Lifecycle.ArtifactRef{size_bytes: inventory_size}] = artifacts
          } = expected
@@ -95,6 +100,7 @@ defmodule MixerHosted.Builds.NativeDevelopmentAttestation do
               is_integer(attempt) and attempt in 1..@max_int64 do
     with true <- loopback_origin?(origin),
          {:ok, _} <- Selection.new(selection),
+         true <- is_nil(operation) or Selection.digest?(operation),
          true <- Selection.digest?(binding),
          true <- Lifecycle.native_artifacts?(artifacts),
          true <- inventory_size <= @inventory_limit do
@@ -135,19 +141,24 @@ defmodule MixerHosted.Builds.NativeDevelopmentAttestation do
     end
   end
 
-  defp verify_signature(statement, signature, public_key) do
-    if :crypto.verify(:eddsa, :none, @domain <> statement, signature, [public_key, :ed25519]),
+  defp profile(%ExpectedBuild{worker_operation_id: nil}), do: @legacy_profile
+  defp profile(%ExpectedBuild{}), do: @completion_profile
+
+  defp verify_signature(profile, statement, signature, public_key) do
+    message = profile <> <<0>> <> statement
+
+    if :crypto.verify(:eddsa, :none, message, signature, [public_key, :ed25519]),
       do: :ok,
       else: {:error, :invalid_signature}
   end
 
   # Go marshals structs in declaration order. The validated ASCII values in
   # this profile need no JSON escapes in either encoder.
-  defp expected_statement(expected, key_id) do
+  defp expected_statement(expected, profile, key_id) do
     s = expected.selection
 
     Jason.OrderedObject.new(
-      profile: @profile,
+      profile: profile,
       origin: expected.origin,
       keyId: key_id,
       selection:
@@ -161,12 +172,7 @@ defmodule MixerHosted.Builds.NativeDevelopmentAttestation do
           toolchainLockSha256: s.toolchain_lock_sha256,
           buildDefinitionSha256: s.build_definition_sha256
         ),
-      provenance:
-        Jason.OrderedObject.new(
-          journalRevision: expected.journal_revision,
-          attempt: expected.attempt,
-          nativeBindingSha256: expected.native_binding_sha256
-        ),
+      provenance: provenance(expected),
       subjects:
         Enum.map(expected.artifacts, fn artifact ->
           Jason.OrderedObject.new(
@@ -177,5 +183,21 @@ defmodule MixerHosted.Builds.NativeDevelopmentAttestation do
         end)
     )
     |> Jason.encode!()
+  end
+
+  defp provenance(expected) do
+    fields = [
+      journalRevision: expected.journal_revision,
+      attempt: expected.attempt,
+      nativeBindingSha256: expected.native_binding_sha256
+    ]
+
+    fields =
+      case expected.worker_operation_id do
+        nil -> fields
+        operation -> fields ++ [workerOperationId: operation]
+      end
+
+    Jason.OrderedObject.new(fields)
   end
 end

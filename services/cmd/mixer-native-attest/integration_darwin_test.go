@@ -219,6 +219,78 @@ func TestConcurrentAttestationsPublishOneEnvelope(t *testing.T) {
 	}
 }
 
+func TestCompletedOperationRequiredAndLegacyVerification(t *testing.T) {
+	sel := fixtureSelection()
+	session := base64.RawURLEncoding.EncodeToString(make([]byte, 32))
+	dir := t.TempDir()
+	state := filepath.Join(dir, "state")
+	if err := os.Mkdir(state, 0700); err != nil {
+		t.Fatal(err)
+	}
+	privatePath, publicPath := writeDevelopmentKeys(t, dir)
+	fixture := newBuildFixture(t, sel, session, "127.0.0.1:0", nil)
+	call := func(action, key string) (string, error) {
+		return runAttestation(action, fixture.origin, sel.query().Encode(), state, key, session)
+	}
+	for _, operation := range []string{"", strings.Repeat("A", 64)} {
+		fixture.operation.Store(operation)
+		if output, err := call("sign", privatePath); err == nil ||
+			output != "detail does not identify the completed worker operation" {
+			t.Fatalf("signed without a valid operation: %v, %q", err, output)
+		}
+	}
+	if fixture.requests.Load() != 2 {
+		t.Fatal("read artifacts before validating the completed operation")
+	}
+
+	fixture.operation.Store(strings.Repeat("5", 64))
+	name, err := call("sign", privatePath)
+	if err != nil {
+		t.Fatalf("sign: %v, %q", err, name)
+	}
+	fixture.operation.Store(strings.Repeat("6", 64))
+	if output, err := call("verify", publicPath); err == nil || output != "attestation current build binding failed" {
+		t.Fatalf("verified replacement operation with identical artifacts: %v, %q", err, output)
+	}
+
+	// Build a historical envelope with a test key and verify it against an old API.
+	fixture.operation.Store("")
+	source, err := newSource(fixture.origin, session)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, subjects, err := source.observe(sel, legacyProfile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	private, _, der, err := readKey(privatePath, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer clear(private)
+	payload, err := json.Marshal(statement{legacyProfile, fixture.origin, sum(der), sel, p, subjects})
+	if err != nil {
+		t.Fatal(err)
+	}
+	legacy, err := json.Marshal(attestation{payload, ed25519.Sign(private, append([]byte(legacyProfile+"\x00"), payload...))})
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(state, name)
+	if err := os.Remove(path); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, legacy, 0400); err != nil {
+		t.Fatal(err)
+	}
+	for _, operation := range []string{"", strings.Repeat("6", 64)} {
+		fixture.operation.Store(operation)
+		if output, err := call("verify", publicPath); err != nil || output != name {
+			t.Fatalf("historical verification failed: %v, %q", err, output)
+		}
+	}
+}
+
 func writeDevelopmentKeys(t *testing.T, dir string) (string, string) {
 	t.Helper()
 	public, private, err := ed25519.GenerateKey(nil)
@@ -275,16 +347,18 @@ func clearACL(t *testing.T, path string) {
 }
 
 type buildFixture struct {
-	origin   string
-	close    func()
-	requests atomic.Int32
-	corrupt  atomic.Bool
+	operation atomic.Value
+	origin    string
+	close     func()
+	requests  atomic.Int32
+	corrupt   atomic.Bool
 }
 
 func newBuildFixture(t *testing.T, sel selection, token, address string,
 	beforeDetail func(context.Context) bool) *buildFixture {
 	t.Helper()
 	fixture := new(buildFixture)
+	fixture.operation.Store(strings.Repeat("5", 64))
 	binding := strings.Repeat("4", 64)
 	complete := false
 	build := observedBuild{selection: sel, State: "native_succeeded",
@@ -318,11 +392,6 @@ func newBuildFixture(t *testing.T, sel selection, token, address string,
 		t.Fatal(err)
 	}
 	add("resource_inventory", inv)
-	body, err := json.Marshal(map[string]any{"build": build})
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fixture.requests.Add(1)
 		cookie, err := r.Cookie("__Host-mixer-session")
@@ -334,9 +403,20 @@ func newBuildFixture(t *testing.T, sel selection, token, address string,
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		data, contentType := body, "application/json; charset=utf-8"
-		if r.URL.Path == detailPath {
+		var data []byte
+		contentType := "application/json; charset=utf-8"
+		if r.URL.Path == detailPath || r.URL.Path == completionPath {
 			if beforeDetail != nil && !beforeDetail(r.Context()) {
+				return
+			}
+			current := build
+			if r.URL.Path == completionPath {
+				current.WorkerOperationID = fixture.operation.Load().(string)
+			}
+			data, err = json.Marshal(map[string]any{"build": current})
+			if err != nil {
+				t.Error(err)
+				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 		} else {

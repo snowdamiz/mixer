@@ -75,6 +75,21 @@ defmodule MixerHosted.CustomerBuilds.Snapshot do
     {:ok, Map.put(dto, :artifacts, descriptors)}
   end
 
+  defp result(
+         dto,
+         record,
+         %{state: :native_succeeded} = build,
+         %Selection{platform: "ios"} = selection,
+         :attestation_completion
+       ) do
+    with {:ok, operation} <- native_operation(record, build),
+         {:ok, detail} <- result(dto, record, build, selection, nil) do
+      {:ok, Map.put(detail, :workerOperationId, operation)}
+    end
+  end
+
+  defp result(_, _, _, _, :attestation_completion), do: {:error, :not_found}
+
   defp result(dto, _, _, _, nil), do: {:ok, dto}
 
   defp result(dto, record, %{state: state} = build, _, :logs)
@@ -89,15 +104,24 @@ defmodule MixerHosted.CustomerBuilds.Snapshot do
   end
 
   defp result(_, record, %{state: :native_succeeded} = build, _, kind) do
-    with {:ok, id} <- Ecto.UUID.cast(record.id),
-         %{worker_ref: ref} <- Enum.find(build.history, &(&1.attempt == build.attempt)),
+    with {:ok, operation} <- native_operation(record, build),
          %Lifecycle.ArtifactRef{} = artifact <-
            Enum.find(build.artifacts, &(Atom.to_string(&1.kind) == kind)) do
-      {:ok, {:retained_native, Dispatch.operation_id(id, ref), artifact}}
+      {:ok, {:retained_native, operation, artifact}}
     else
       _ -> {:error, :not_found}
     end
   end
 
   defp result(_, _, _, _, _), do: {:error, :not_found}
+
+  defp native_operation(record, build) do
+    with {:ok, id} <- Ecto.UUID.cast(record.id),
+         %{worker_ref: %Lifecycle.WorkerRef{} = ref} <-
+           Enum.find(build.history, &(&1.attempt == build.attempt)) do
+      {:ok, Dispatch.operation_id(id, ref)}
+    else
+      _ -> {:error, :not_found}
+    end
+  end
 end

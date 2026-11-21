@@ -31,7 +31,8 @@ defmodule MixerHostedWeb.BrowserBuildDispatcher do
 
   def dispatch(_, _, _, _), do: {:error, :invalid_request}
 
-  defp read(identity, selection, nil), do: CustomerBuilds.read(identity, selection)
+  defp read(identity, selection, kind) when kind in [nil, :attestation_completion],
+    do: CustomerBuilds.read(identity, selection, kind)
 
   defp read(identity, selection, :logs) do
     with {:ok, {:retained_logs, operation, build} = locator} <-

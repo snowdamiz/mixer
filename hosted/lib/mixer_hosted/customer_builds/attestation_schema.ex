@@ -118,8 +118,13 @@ defmodule MixerHosted.CustomerBuilds.AttestationSchema do
           AND p.prolang=(SELECT oid FROM pg_language WHERE lanname='plpgsql')
           AND NOT (o.rolcanlogin OR o.rolsuper OR o.rolbypassrls)
           AND has_function_privilege(w.oid,p.oid,'EXECUTE')
-          AND NOT EXISTS (
+          AND EXISTS (
             SELECT 1 FROM aclexplode(p.proacl) a
+            WHERE a.grantee=w.oid AND a.grantor=p.proowner
+              AND a.privilege_type='EXECUTE' AND NOT a.is_grantable
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM aclexplode(COALESCE(p.proacl, acldefault('f',p.proowner))) a
             WHERE a.grantor<>p.proowner OR a.grantee NOT IN (p.proowner,w.oid)
               OR a.privilege_type<>'EXECUTE' OR a.is_grantable
           )

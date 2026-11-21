@@ -1,0 +1,60 @@
+{
+  "scope": "W12/L05 local iOS development attestation operation binding and PostgreSQL function admission",
+  "recorded_at_utc": "2026-11-21T02:17:30Z",
+  "source_base": "716a3f3ac4cfd42485c5e7a6f112234fdc6492f1",
+  "environment": {
+    "host": "macOS 27.0.1 (26A434), arm64",
+    "go": "1.26.4",
+    "elixir": "1.20.4",
+    "erlang": "29, ERTS 17.1",
+    "postgresql": "17.11 (Homebrew)",
+    "ecto_sql": "3.14.0",
+    "postgrex": "0.22.4"
+  },
+  "verification": [
+    {
+      "cwd": ".",
+      "command": "CGO_ENABLED=1 go -C services test -race -v -count=1 ./cmd/mixer-native-attest",
+      "result": "5 passed, including v2 missing or invalid operation refusal, refusal after replacement, concurrent publication, and v1 verification through the legacy read."
+    },
+    {
+      "cwd": ".",
+      "command": "CGO_ENABLED=1 go -C services build -o <owned-signer-path> ./cmd/mixer-native-attest",
+      "result": "Exit 0. This binary produced the envelope in the Elixir attachment suite."
+    },
+    {
+      "cwd": "hosted",
+      "command": "MIXER_ATTESTATION_TEST_SOCKET=<canonical private socket directory> MIXER_ATTESTATION_TEST_GO_SIGNER=<owned-signer-path> mix test test/mixer_hosted/builds/{native_attestation_attachment,retained_native_attestation,native_development_attestation,native_development_dispatch,journal,lifecycle}_test.exs test/mixer_hosted/{authorization/policy,identity/access_token_verifier}_test.exs --seed 0",
+      "result": "121 passed, including 10 restricted PostgreSQL attachment tests and the retained Go v1 envelope."
+    },
+    {
+      "cwd": "hosted",
+      "command": "MIXER_BROWSER_STORAGE_PORT=<owned-port> MIXER_BROWSER_CATALOG_FIXTURE_ROOT=<owned-proof-directory> mix test --seed 0 test/mixer_hosted/browser_auth/customer_build_inputs_http_sql_test.exs:538",
+      "result": "2 passed, 3 excluded. The new completion-route test and the existing create/read fixture ran through real loopback browser sessions and PostgreSQL."
+    },
+    {
+      "cwd": "hosted",
+      "command": "R1026_PG_PORT=<owned-port> R1026_EVIDENCE=<owned-output> R1072_TRANSACTION_EVIDENCE=<owned-output> mix test --seed 0 test/customer_build_read_test.exs",
+      "result": "10 passed during the read compatibility check. The final route test above also compared the original detail response field for field."
+    },
+    {
+      "cwd": "hosted",
+      "command": "mix format --check-formatted <changed Elixir files> && MIX_ENV=test mix compile --warnings-as-errors",
+      "result": "Exit 0."
+    }
+  ],
+  "observations": [
+    "The Go signer read the exact second-attempt worker operation through a loopback fixture backed by the restricted CustomerBuilds read path. The Elixir attachment API verified the Go envelope, stored its exact bytes and operation ID, and returned duplicate on replay.",
+    "A new build record under the same selection had the same journal, revision, attempt and all three retained products byte for byte. The original v2 envelope lost its in-flight snapshot and also failed on a fresh submission. A v1 envelope could be verified for historical use but could not attach. Only the v2 envelope for the replacement operation attached and replayed.",
+    "Function admission refused an explicit nonwriter grant, an explicit PUBLIC grant, a revoked writer grant, and a recreated function with NULL proacl. The default ACL gave both restricted logins effective EXECUTE without a dedicated writer grant. Restoring the explicit writer grant and revoking PUBLIC restored attachment. Tests also verified the writer lacked direct build, reservation, lease and attachment relation privileges.",
+    "Concurrent identical submissions stored one attachment. An injected transaction context loss after INSERT rolled it back. The normal browser detail kept its closed response shape while the dedicated completion read returned the exact operation after authentication and refused access after membership revocation.",
+    "The initial attachment run used the macOS /tmp symlink and failed retained-path checks. The canonical /private/tmp retry passed. The read regression was rerun after supplying the fixture's transaction evidence variable."
+  ],
+  "cleanup": "All three owned PostgreSQL clusters stopped. Their postmaster PID files and sockets were absent, and the two TCP fixture ports no longer accepted connections.",
+  "limitations": "Journals, products, browser identity and signing keys were synthetic and disposable. This receipt covers local read, signing and attachment, with no deploy, device or live credential qualification. L05 remains running and W12 remains in progress.",
+  "migration": {
+    "path": "hosted/priv/local_native_attestation/20261120000020_add_native_development_attestations.exs",
+    "installed_version": 20261120000020,
+    "result": "The final run installed 20261120000020 in a recreated database. A direct public.schema_migrations query found only 20261120000020 within versions 20261120000017 and higher. The renumber avoids the delivery history and fencing migrations in versions 000017 through 000019."
+  }
+}
