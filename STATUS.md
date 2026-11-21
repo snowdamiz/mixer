@@ -1104,6 +1104,16 @@ and removed owned scratch. Rebuilt Wasm bytes differ across these runs.
 [Macro replay](verification/receipts/w07-l03-checklist-macro-maintained-root-98ef1420.json) ·
 [Runner correction](verification/receipts/w07-l03-checklist-macro-custody-41a05264.json)
 
+Swift 6.3.3 selected two checklist formatter conformances through a
+protocol existential on macOS. Embedded Swift refused the same fixture at
+its source location before emitting an object. A static variant replays
+the same events in Guest UI V1, matches all nine native frames, and
+refuses the retired handle after close. The canonical runner passed
+seven focused controls, three publication regressions, and the owned VM
+replay. All 26 nested command groups closed.
+[Checklist formatter fixture](compiler/experiments/checklist-existential/README.md) ·
+[Canonical replay](verification/receipts/w07-l03-checklist-existential-canonical.json)
+
 The Entry Commit guest's 16 varying bytes came from Swift's
 `.swift_modhash` segment. Changing the absolute object output path changed
 that segment, and relinking the same object preserved the Wasm bytes. The

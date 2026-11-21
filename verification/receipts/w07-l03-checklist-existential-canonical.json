@@ -1,0 +1,421 @@
+{
+  "scope": "Single unsigned synthetic Swift formatter. Compact raw frames, 1/1 memory pages, no imports, zero host-call budget and 1,000,000 fuel per turn. macOS host and owned Mixer VM only.",
+  "publishedCommit": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+  "revision": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+  "tree": "faf0902a82ffc7acb2ddde9c6dca24002f959c3d",
+  "vmTree": "ec1ddb74b7c6c2eabd91d1f60ed243ffc69ce6f4",
+  "fixture": {
+    "ChecklistFormatter.swift": {
+      "bytes": 1700,
+      "sha256": "1a6febde3c5da9486fe9aab16296c7d166ce8b675edaf6c9b31aed67b9ba57ce"
+    },
+    "Host.swift": {
+      "bytes": 2779,
+      "sha256": "daf77f30160ee5e627e753275b1ec59f44e3194c9854cbd9475cbef8cff6f591"
+    },
+    "replay.py": {
+      "bytes": 25912,
+      "sha256": "cf584d5b968a662da9c99cfc8c8c8ce262509c3f3ec3734ae343cfd78af4f8d8"
+    }
+  },
+  "artifacts": {
+    "specialized.o": {
+      "bytes": 12000,
+      "sha256": "4a80823c159160dae2c1938e97795e51d6d2bd82403dc3c1d391e5f66de7d9bd"
+    },
+    "specialized.wasm": {
+      "bytes": 604,
+      "sha256": "3869f25b9b3c811f04a0423cab6cfcbc7d3176491d0df90ca7b44ebfe377a8c9"
+    },
+    "native-existential.sil": {
+      "bytes": 48061,
+      "sha256": "b55757e0bc438e0ba9c444471ba11ea0c7b08fd57e7278f4c4f7905fc7d4c733"
+    },
+    "libmixer_vm.a": {
+      "bytes": 19316872,
+      "sha256": "6a9ef08edafb9a3f9c35d3a98197584987a3b70cb429fddba6e1c562a927b822"
+    },
+    "module.modulemap": {
+      "bytes": 140,
+      "sha256": "5a7054718ded2934bd0f83dd1d892f63b0fad13713efe22d86c4ea8729e91157"
+    },
+    "host-existential": {
+      "bytes": 2004608,
+      "sha256": "d594dec34b4ff7654b2949050208ec77791f74bae6d86b9d748aef4e4ee4c4a8"
+    },
+    "host-specialized": {
+      "bytes": 2002800,
+      "sha256": "761c174e36e1c5d96f3947ae9217362e3849fcbf45567a812b0d85ea77a85ad4"
+    }
+  },
+  "embedded": {
+    "existential": {
+      "objectExistedBefore": false,
+      "wasmExistedBefore": false,
+      "compileExit": 1,
+      "originalStderr": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/compiler/experiments/checklist-existential/ChecklistFormatter.swift:47:32: error: cannot use a value of protocol type 'any ChecklistFormatter' in embedded Swift [#EmbeddedRestrictions]\n45 |     @inline(never)\n46 |     private static func selectedFormatter(for style: UInt8) -> any ChecklistFormatter {\n47 |         if style == 0 { return DoneFormatter() }\n   |                                `- error: cannot use a value of protocol type 'any ChecklistFormatter' in embedded Swift [#EmbeddedRestrictions]\n48 |         return LeftFormatter()\n49 |     }\n\n[#EmbeddedRestrictions]: <https://docs.swift.org/compiler/documentation/diagnostics/embedded-restrictions>\n",
+      "linkInvoked": false,
+      "objectExistsAfter": false,
+      "wasmExistsAfter": false
+    },
+    "specialized": {
+      "objectExistedBefore": false,
+      "wasmExistedBefore": false,
+      "compileExit": 0,
+      "linkInvoked": true,
+      "descriptors": {
+        "authorization": false,
+        "scope": "bounded scalar descriptor inventory; no executable validation",
+        "typeCount": 8,
+        "functionCount": 8,
+        "startFunction": null,
+        "imports": [],
+        "exports": [
+          {
+            "name": "memory",
+            "kind": "memory",
+            "index": 0
+          },
+          {
+            "name": "mixer_guest_ui_start_v1",
+            "kind": "function",
+            "index": 2,
+            "typeIndex": 2,
+            "signature": {
+              "parameters": [],
+              "results": [
+                "i32"
+              ]
+            }
+          },
+          {
+            "name": "mixer_guest_ui_event_v1",
+            "kind": "function",
+            "index": 4,
+            "typeIndex": 4,
+            "signature": {
+              "parameters": [
+                "i32"
+              ],
+              "results": [
+                "i32"
+              ]
+            }
+          },
+          {
+            "name": "mixer_guest_capability_ready_v1",
+            "kind": "function",
+            "index": 6,
+            "typeIndex": 6,
+            "signature": {
+              "parameters": [],
+              "results": []
+            }
+          }
+        ],
+        "memories": [
+          {
+            "minimum": 1,
+            "maximum": 1
+          }
+        ]
+      },
+      "objectExistsAfter": true,
+      "wasmExistsAfter": true
+    }
+  },
+  "readbacks": {
+    "native-existential": [
+      {
+        "name": "initial",
+        "frameHex": "00000000"
+      },
+      {
+        "accepted": true,
+        "inputHex": "0005",
+        "frameHex": "44322f33",
+        "name": "done"
+      },
+      {
+        "name": "left",
+        "accepted": true,
+        "frameHex": "4c312f33",
+        "inputHex": "0105"
+      },
+      {
+        "accepted": false,
+        "name": "unknown-style",
+        "inputHex": "0205",
+        "frameHex": "4c312f33"
+      },
+      {
+        "inputHex": "0108",
+        "accepted": false,
+        "name": "out-of-range-mask",
+        "frameHex": "4c312f33"
+      },
+      {
+        "name": "truncated",
+        "inputHex": "01",
+        "frameHex": "4c312f33",
+        "accepted": false
+      },
+      {
+        "frameHex": "4c312f33",
+        "name": "oversized",
+        "inputHex": "000500",
+        "accepted": false
+      },
+      {
+        "accepted": true,
+        "inputHex": "0000",
+        "frameHex": "44302f33",
+        "name": "done-empty"
+      },
+      {
+        "name": "left-all-done",
+        "inputHex": "0107",
+        "accepted": true,
+        "frameHex": "4c302f33"
+      }
+    ],
+    "native-specialized": [
+      {
+        "frameHex": "00000000",
+        "name": "initial"
+      },
+      {
+        "name": "done",
+        "accepted": true,
+        "frameHex": "44322f33",
+        "inputHex": "0005"
+      },
+      {
+        "inputHex": "0105",
+        "frameHex": "4c312f33",
+        "accepted": true,
+        "name": "left"
+      },
+      {
+        "name": "unknown-style",
+        "accepted": false,
+        "inputHex": "0205",
+        "frameHex": "4c312f33"
+      },
+      {
+        "name": "out-of-range-mask",
+        "frameHex": "4c312f33",
+        "inputHex": "0108",
+        "accepted": false
+      },
+      {
+        "inputHex": "01",
+        "accepted": false,
+        "frameHex": "4c312f33",
+        "name": "truncated"
+      },
+      {
+        "accepted": false,
+        "frameHex": "4c312f33",
+        "name": "oversized",
+        "inputHex": "000500"
+      },
+      {
+        "frameHex": "44302f33",
+        "inputHex": "0000",
+        "accepted": true,
+        "name": "done-empty"
+      },
+      {
+        "inputHex": "0107",
+        "accepted": true,
+        "name": "left-all-done",
+        "frameHex": "4c302f33"
+      }
+    ],
+    "guest-specialized": [
+      {
+        "frameHex": "00000000",
+        "name": "initial"
+      },
+      {
+        "frameHex": "44322f33",
+        "inputHex": "0005",
+        "accepted": true,
+        "name": "done",
+        "fuel": 109
+      },
+      {
+        "frameHex": "4c312f33",
+        "inputHex": "0105",
+        "accepted": true,
+        "name": "left",
+        "fuel": 109
+      },
+      {
+        "frameHex": "4c312f33",
+        "inputHex": "0205",
+        "accepted": false,
+        "name": "unknown-style",
+        "fuel": 54
+      },
+      {
+        "frameHex": "4c312f33",
+        "inputHex": "0108",
+        "accepted": false,
+        "name": "out-of-range-mask",
+        "fuel": 60
+      },
+      {
+        "frameHex": "4c312f33",
+        "inputHex": "01",
+        "accepted": false,
+        "name": "truncated",
+        "fuel": 14
+      },
+      {
+        "frameHex": "4c312f33",
+        "inputHex": "000500",
+        "accepted": false,
+        "name": "oversized",
+        "fuel": 14
+      },
+      {
+        "frameHex": "44302f33",
+        "inputHex": "0000",
+        "accepted": true,
+        "name": "done-empty",
+        "fuel": 109
+      },
+      {
+        "frameHex": "4c302f33",
+        "inputHex": "0107",
+        "accepted": true,
+        "name": "left-all-done",
+        "fuel": 109
+      }
+    ]
+  },
+  "guestClosedStaleHandleRefusedAndSlotReclaimed": [
+    "specialized"
+  ],
+  "cleanup": {
+    "scratch": "/private/tmp/mixer-w07-l03-maintained-0727059bec1512fc",
+    "state": "removed",
+    "removed": true,
+    "unknown": null
+  },
+  "schema": 1,
+  "authorReceipt": "verification/receipts/w07-l03-checklist-existential-publication-fix-857e4b4.json",
+  "authorReceiptSHA256": "4ace2b97ce3016da80e54c61688cc4cba546ff41a648cfcc568762d01d580bf9",
+  "ownedReplaySHA256": "c81aab69f2ed9ffc5ce7ce5df10522c2f49553147f4c3638bed9779e707b104b",
+  "outerCommands": [
+    {
+      "name": "maintained-controls",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-I",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/compiler/experiments/checklist-existential/controls.py",
+        "-v"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "resolvedPath": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+        "bytes": 34640,
+        "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 8904,
+      "pgid": 8904,
+      "elapsedSeconds": 0.563,
+      "stdout": {
+        "path": "maintained-controls.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "maintained-controls.stderr",
+        "bytes": 1159,
+        "sha256": "a2be8c36dddef2698111b6f31ac78fd6e3bb0f94c389ceccc6472804a0e4bb35"
+      }
+    },
+    {
+      "name": "publication-regressions",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-I",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/compiler/experiments/checklist-existential/regression_controls.py",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/compiler/experiments/checklist-existential/replay.py",
+        "corrected"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "resolvedPath": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+        "bytes": 34640,
+        "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 8914,
+      "pgid": 8914,
+      "elapsedSeconds": 0.099,
+      "stdout": {
+        "path": "publication-regressions.stdout",
+        "bytes": 766,
+        "sha256": "e9b1c189524a214fab7eba86dbdeb65ad6ded1e4a902ee044f47a0cc7d560778"
+      },
+      "stderr": {
+        "path": "publication-regressions.stderr",
+        "bytes": 292,
+        "sha256": "1b7ce16f0b3f1f0ae6afb85748b2003f73732f5860213de49d2b3831c5150829"
+      }
+    },
+    {
+      "name": "owned-replay",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-I",
+        "-B",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/compiler/experiments/checklist-existential/replay.py",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/checklist-existential-canonical-pycvzr_x/replay.json",
+        "--repo",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "resolvedPath": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+        "bytes": 34640,
+        "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 8916,
+      "pgid": 8916,
+      "elapsedSeconds": 21.419,
+      "stdout": {
+        "path": "owned-replay.stdout",
+        "bytes": 180,
+        "sha256": "810d8b50186737c24b6d0951899ed96b02cd000adf64efebbcafe18fb4e086b2"
+      },
+      "stderr": {
+        "path": "owned-replay.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "terminalReplayCommands": 26,
+  "maintainedInertControlsPassed": 7,
+  "publicationRegressionsPassed": 3,
+  "wrapperScratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/checklist-existential-canonical-pycvzr_x",
+  "wrapperScratchRemoved": true
+}
