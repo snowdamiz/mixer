@@ -88,6 +88,36 @@ queue insertion with the consumers stopped.
 [Queue configuration](local-signed-release-delivery.md#enable-the-release-worker-queue) ·
 [Artifact request-key CHECK repair](../../tests/integration/phoenix-release-restore/restore-artifact-key.sql)
 
+## Check release worker and delivery
+
+Use the restored grants and the same database as the restored API. For a
+disposable loopback fixture, set fresh role-specific PostgreSQL credentials
+and require SCRAM. If the restored catalog shows a missing table ACL, compare
+the effective privileges with the source before changing grants. PostgreSQL
+can represent an explicit owner default as a null ACL after restore.
+
+1. Start a separate process with `MIXER_HOSTED_ROLE=processor`,
+   `MIXER_PROCESSOR_PROFILE=releases_v1`, and
+   `MIXER_DATABASE_USER=mixer_release_processor`. Use its restored credentials.
+2. Wait for the `releases` queue to settle. Match each staging publication's
+   target and sequence to one completed job in `mixer_release_jobs.oban_jobs`
+   and one row in `mixer_release_jobs.offer_materializations`.
+3. Stop the processor and restart the API against the restored database.
+   Use the registered staging target and the `mixer_release_delivery` role.
+   Request `GET /v3/updates` for its exact runtime, channel, and installation,
+   and fetch the returned artifact URL. Check HTTP 200, the signed assignment
+   sequence, and the manifest and payload digests against the publication.
+   Repeat for the other platform.
+4. Compare the jobs, projections, and release records after the reads with
+   the values after the queue settled. Expect the same rows and counts.
+
+The local fixture used PostgreSQL 17.11 and completed eight jobs on their
+first attempt. Both staging targets served exact committed bytes after the
+API restart. The captured fixture patches document the historical run.
+[Restore and delivery receipt](../../verification/receipts/l05-l07-restored-release-worker-scram-55b4d634.json) ·
+[Processor settings and queue readback](local-signed-release-delivery.md#enable-the-release-worker-queue) ·
+[API delivery configuration](local-signed-release-delivery.md#start-the-ordinary-api)
+
 ## Reproduce the CHECK repair
 
 Use the PostgreSQL 17 client and server tools from the same installation.

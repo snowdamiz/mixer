@@ -624,10 +624,15 @@ HTTP 200 for their signed offers and artifacts. The signed assignments,
 manifests, and payloads matched the committed records. Exact retry and
 readback left the compared rows and jobs unchanged. The author confirmed
 all owned groups closed, rebound ten listeners, and removed scratch.
-L05 and L07 remain running.
+Independent review passed the restore, worker, and delivery result. The
+captured runner is historical. Inert controls found that a timeout can leave
+a child unreaped and that interruption during PostgreSQL launch can leave
+the child unregistered. Operational verification uses the stock service
+commands in the restore guide. L05 and L07 remain running.
 [Restore and delivery receipt](verification/receipts/l05-l07-restored-release-worker-scram-55b4d634.json) ·
-[SCRAM test overlay](verification/receipts/l05-l07-restored-release-worker-scram-55b4d634-delta.patch) ·
-[ACL continuation](verification/receipts/l05-l07-restored-release-worker-scram-55b4d634-acl-continuation.patch)
+[Historical SCRAM test patch](verification/receipts/l05-l07-restored-release-worker-scram-55b4d634-delta.patch) ·
+[Historical ACL continuation](verification/receipts/l05-l07-restored-release-worker-scram-55b4d634-acl-continuation.patch) ·
+[Restore operator checks](docs/operations/restore-local-hosted.md#check-release-worker-and-delivery)
 
 ## November 20 generated release REST client
 
