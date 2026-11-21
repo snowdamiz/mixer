@@ -94,7 +94,8 @@ defmodule MixerHostedWeb.LocalReleaseController do
 
     if ArtifactV3Policy.id?(app) and ArtifactV3Policy.id?(direction) and
          conn.scheme == :http and (Endpoint.config(:http) || [])[:ip] == {127, 0, 0, 1} and
-         Endpoint.config(:https) in [nil, false] do
+         Endpoint.config(:https) in [nil, false] and
+         match?({:ok, {{127, 0, 0, 1}, _port}}, Endpoint.server_info(:http)) do
       {:ok, "/apps/" <> app <> "/release-promotions/" <> direction,
        {org, project, app, direction}}
     else
