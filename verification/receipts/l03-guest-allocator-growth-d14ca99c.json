@@ -1,0 +1,1048 @@
+{
+  "scope": "L03/W07 \u00a77.3 arm64 macOS host diagnostic through the installed Guest UI V1 C ABI",
+  "observedUTC": "2026-11-21T15:02:07.791149+00:00",
+  "source": {
+    "commit": "4f9eb3449cb7671b2e83222a28c85696c1741a59",
+    "tree": "0fa4d9532bd879c555a82b66121dce8959d6b685",
+    "vmTree": "ec1ddb74b7c6c2eabd91d1f60ed243ffc69ce6f4"
+  },
+  "hostPolicy": {
+    "vmProfile": "table-memory-v3",
+    "initialPages": 1,
+    "maximumPages": 2,
+    "fuelPerTurn": 1000000,
+    "hostCallsPerTurn": 0,
+    "turnCeilingMilliseconds": 50,
+    "operandStack": 4096,
+    "callDepth": 64,
+    "guestStackBytes": 16384
+  },
+  "allocation": {
+    "sizeBytes": 4096,
+    "alignmentBytes": 64,
+    "fillAttemptCeiling": 32,
+    "canaryOffsets": [
+      0,
+      2048,
+      4095
+    ],
+    "release": "middle block"
+  },
+  "experimentInputs": {
+    "run.py": {
+      "bytes": 13939,
+      "sha256": "16c11f5c459ce8196e04519012d60844ddcb6c79341aa5754520c93b73cfb679"
+    },
+    "allocator-growth.diff": {
+      "bytes": 5466,
+      "sha256": "8ca45ed076d85eb0677184e77c1ba09c71dacfa442f3fac7c2ba2891e6f84276"
+    }
+  },
+  "onePageControl": {
+    "review": "verification/receipts/l03-guest-allocator-release-strict-abadfffa10.json",
+    "reviewIdentity": {
+      "bytes": 19399,
+      "sha256": "9e48d90b3fb47b3411afdf5acaa6708811130dd4fb5be3c30a41c564228275a5"
+    },
+    "source": {
+      "allocator_control.h": {
+        "bytes": 972,
+        "sha256": "851f3061d7257cf20deaa17687947ba3ddc6675553526ad2429f46346f301de9"
+      },
+      "guest.c": {
+        "bytes": 4044,
+        "sha256": "93ff3562fce60deb082ede67c3d0069dc0661d5ecb596f3424f0c370b186c6b7"
+      },
+      "host.c": {
+        "bytes": 6991,
+        "sha256": "01e0391af4404ebc2e54487293628c2730fbb4dc2e444183ef439f8bb1214c3f"
+      },
+      "host_expectation.h": {
+        "bytes": 1606,
+        "sha256": "ba88b2a555586f5c1be56310fdf6a6003090ddfd8763227cd33292e9ce0e58c4"
+      },
+      "run.py": {
+        "bytes": 14249,
+        "sha256": "3292013474cd07a98b3158e9941b68d0e4883befc6893fa076039b72bc8aa894"
+      },
+      "host_controls.c": {
+        "bytes": 1749,
+        "sha256": "a028f96cf0ad39d66e9e0cf7e687f70d6a4a208fd449dd258e3ff7ae429690d3"
+      },
+      "test_controls.py": {
+        "bytes": 6410,
+        "sha256": "96971b56eba869461382a09da76bac62c777c41a900952d40386e19a82aedda5"
+      }
+    },
+    "module": {
+      "bytes": 11777,
+      "sha256": "69dd48134feb37a8a8da7d1df884cd1f60989350209f03c3437d803453409e2f"
+    },
+    "descriptor": {
+      "authorization": false,
+      "scope": "bounded scalar descriptor inventory; no executable validation",
+      "typeCount": 7,
+      "functionCount": 18,
+      "startFunction": null,
+      "imports": [],
+      "exports": [
+        {
+          "name": "memory",
+          "kind": "memory",
+          "index": 0
+        },
+        {
+          "name": "mixer_guest_ui_start_v1",
+          "kind": "function",
+          "index": 15,
+          "typeIndex": 0,
+          "signature": {
+            "parameters": [],
+            "results": [
+              "i32"
+            ]
+          }
+        },
+        {
+          "name": "mixer_guest_ui_event_v1",
+          "kind": "function",
+          "index": 16,
+          "typeIndex": 1,
+          "signature": {
+            "parameters": [
+              "i32"
+            ],
+            "results": [
+              "i32"
+            ]
+          }
+        },
+        {
+          "name": "mixer_guest_capability_ready_v1",
+          "kind": "function",
+          "index": 17,
+          "typeIndex": 3,
+          "signature": {
+            "parameters": [],
+            "results": []
+          }
+        }
+      ],
+      "memories": [
+        {
+          "minimum": 1,
+          "maximum": 1
+        }
+      ]
+    },
+    "observations": [
+      {
+        "guestUiV1ValidationStatus": 0
+      },
+      {
+        "phase": 0,
+        "pages": 1,
+        "fuel": 36,
+        "hostCalls": 0,
+        "enomem": 48,
+        "fillAttempts": 0,
+        "fillResult": 4294967295,
+        "retryResult": 4294967295,
+        "live": 0,
+        "checkedBeforeRelease": 0,
+        "survivorsChecked": 0,
+        "replacementChecked": 0,
+        "sameAddress": 0,
+        "freed": 0
+      },
+      {
+        "phase": 1,
+        "pages": 1,
+        "fuel": 6785,
+        "hostCalls": 0,
+        "enomem": 48,
+        "fillAttempts": 10,
+        "fillResult": 48,
+        "retryResult": 4294967295,
+        "live": 9,
+        "checkedBeforeRelease": 0,
+        "survivorsChecked": 0,
+        "replacementChecked": 0,
+        "sameAddress": 0,
+        "freed": 0
+      },
+      {
+        "phase": 2,
+        "pages": 1,
+        "fuel": 4535,
+        "hostCalls": 0,
+        "enomem": 48,
+        "fillAttempts": 10,
+        "fillResult": 48,
+        "retryResult": 0,
+        "live": 9,
+        "checkedBeforeRelease": 9,
+        "survivorsChecked": 8,
+        "replacementChecked": 1,
+        "sameAddress": 1,
+        "freed": 1
+      },
+      {
+        "phase": 3,
+        "pages": 1,
+        "fuel": 4553,
+        "hostCalls": 0,
+        "enomem": 48,
+        "fillAttempts": 10,
+        "fillResult": 48,
+        "retryResult": 0,
+        "live": 0,
+        "checkedBeforeRelease": 9,
+        "survivorsChecked": 8,
+        "replacementChecked": 1,
+        "sameAddress": 1,
+        "freed": 10
+      },
+      {
+        "closeStatus": 0,
+        "retiredStartupStatus": 3
+      },
+      {
+        "sameRegistrySlot": true,
+        "newGeneration": true,
+        "retiredAfterReopenStatus": 3,
+        "identicalFreshFrame": true
+      },
+      {
+        "phase": 0,
+        "pages": 1,
+        "fuel": 36,
+        "hostCalls": 0,
+        "enomem": 48,
+        "fillAttempts": 0,
+        "fillResult": 4294967295,
+        "retryResult": 4294967295,
+        "live": 0,
+        "checkedBeforeRelease": 0,
+        "survivorsChecked": 0,
+        "replacementChecked": 0,
+        "sameAddress": 0,
+        "freed": 0
+      },
+      {
+        "phase": 1,
+        "pages": 1,
+        "fuel": 6785,
+        "hostCalls": 0,
+        "enomem": 48,
+        "fillAttempts": 10,
+        "fillResult": 48,
+        "retryResult": 4294967295,
+        "live": 9,
+        "checkedBeforeRelease": 0,
+        "survivorsChecked": 0,
+        "replacementChecked": 0,
+        "sameAddress": 0,
+        "freed": 0
+      },
+      {
+        "phase": 2,
+        "pages": 1,
+        "fuel": 4535,
+        "hostCalls": 0,
+        "enomem": 48,
+        "fillAttempts": 10,
+        "fillResult": 48,
+        "retryResult": 0,
+        "live": 9,
+        "checkedBeforeRelease": 9,
+        "survivorsChecked": 8,
+        "replacementChecked": 1,
+        "sameAddress": 1,
+        "freed": 1
+      },
+      {
+        "phase": 3,
+        "pages": 1,
+        "fuel": 4553,
+        "hostCalls": 0,
+        "enomem": 48,
+        "fillAttempts": 10,
+        "fillResult": 48,
+        "retryResult": 0,
+        "live": 0,
+        "checkedBeforeRelease": 9,
+        "survivorsChecked": 8,
+        "replacementChecked": 1,
+        "sameAddress": 1,
+        "freed": 10
+      },
+      {
+        "closeStatus": 0,
+        "retiredStartupStatus": 3
+      }
+    ],
+    "inertControls": {
+      "host": "host refused wrong count, failed retry and different-address retry",
+      "runner": "test_exact_outcome (__main__.OutcomeControls.test_exact_outcome) ... ok\ntest_independently_agreeing_wrong_vm_digest (__main__.OutcomeControls.test_independently_agreeing_wrong_vm_digest) ... ok\ntest_retry_different_address_in_both_sessions (__main__.OutcomeControls.test_retry_different_address_in_both_sessions) ... ok\ntest_retry_enomem_in_both_sessions (__main__.OutcomeControls.test_retry_enomem_in_both_sessions) ... ok\ntest_wrong_count_in_both_sessions (__main__.OutcomeControls.test_wrong_count_in_both_sessions) ... ok\ntest_closed_publication_cleans_scratch (__main__.OutputControls.test_closed_publication_cleans_scratch) ... ok\ntest_dangling_symlink_refused_before_launch (__main__.OutputControls.test_dangling_symlink_refused_before_launch) ... ok\ntest_existing_file_refused_before_launch (__main__.OutputControls.test_existing_file_refused_before_launch) ... ok\ntest_incomplete_terminal_observation_preserves_scratch (__main__.OutputControls.test_incomplete_terminal_observation_preserves_scratch) ... ok\ntest_late_output_preserves_original_and_scratch (__main__.OutputControls.test_late_output_preserves_original_and_scratch) ... ok\ntest_uncertain_publication_preserves_scratch (__main__.OutputControls.test_uncertain_publication_preserves_scratch) ... ok\n\n----------------------------------------------------------------------\nRan 11 tests in 0.082s\n\nOK"
+    }
+  },
+  "tools": {
+    "python": "3.14.8",
+    "architecture": "arm64",
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "guestClang": "Apple clang version 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin",
+    "guestSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "guestLinker": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "hostClang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)"
+  },
+  "dependencies": {
+    "WASI.sdk/lib/wasm32-wasip1/libc.a": {
+      "bytes": 1040606,
+      "sha256": "42d929e52aaeac6c4ed56946cd3e92e40574322bc43af529c19cfbf67893b352"
+    },
+    "WASI.sdk/include/wasm32-wasip1/__errno_values.h": {
+      "bytes": 2975,
+      "sha256": "87dedbaff433fe74c68e17437c0192081401c9cf8f6430fde3449948c9b78598"
+    },
+    "WASI.sdk/include/wasm32-wasip1/wasi/api.h": {
+      "bytes": 56969,
+      "sha256": "8cf2859277ea2fc984780a00048686955805fd8a00c7be1d8f916105becf0174"
+    },
+    "compiler/experiments/fieldlog-guest-benchmark/matched_task.py": {
+      "bytes": 17964,
+      "sha256": "2d8137f209570e64e30d417f2d832680eccb541a96c4749cdcfb0b32e2bfe365"
+    },
+    "compiler/experiments/fieldlog-reactor/support.py": {
+      "bytes": 6293,
+      "sha256": "45c77827d72c9850ff44e6258eede32b65161ab8ef0df6d3c295c870cd605e52"
+    },
+    "compiler/experiments/profile-budget/analyze.py": {
+      "bytes": 11127,
+      "sha256": "bf73a629f071c63ddef05549a81705347f049c3fdf15d424702823ef5ba60ccb"
+    },
+    "compiler/experiments/fieldlog-installed-guest/replay_abi.py": {
+      "bytes": 4935,
+      "sha256": "96ec1f79559e0742fab2589bc2d852ba07e6463372af8e7f9aea8f0cc98793c0"
+    }
+  },
+  "vmArchiveVerification": {
+    "verifiedSHA256": "6a9ef08edafb9a3f9c35d3a98197584987a3b70cb429fddba6e1c562a927b822",
+    "requiredReviewedSHA256": "6a9ef08edafb9a3f9c35d3a98197584987a3b70cb429fddba6e1c562a927b822"
+  },
+  "growthSources": {
+    "allocator_control.h": {
+      "bytes": 1086,
+      "sha256": "c3fd99496482de1b90d30b5e98604073b075ae6392ad7718ddf022eef764bed1"
+    },
+    "guest.c": {
+      "bytes": 4825,
+      "sha256": "ae56c74555611e5c1f384cf3a6c389c9e5b5fb130576ebd5300e11f495cdf708"
+    },
+    "host.c": {
+      "bytes": 6784,
+      "sha256": "2252da963ac9b728a29cfd93da44ed0003a8bcbfcf1c6d3ce51f0101055d4368"
+    }
+  },
+  "growthDescriptor": {
+    "authorization": false,
+    "scope": "bounded scalar descriptor inventory; no executable validation",
+    "typeCount": 7,
+    "functionCount": 18,
+    "startFunction": null,
+    "imports": [],
+    "exports": [
+      {
+        "name": "memory",
+        "kind": "memory",
+        "index": 0
+      },
+      {
+        "name": "mixer_guest_ui_start_v1",
+        "kind": "function",
+        "index": 15,
+        "typeIndex": 0,
+        "signature": {
+          "parameters": [],
+          "results": [
+            "i32"
+          ]
+        }
+      },
+      {
+        "name": "mixer_guest_ui_event_v1",
+        "kind": "function",
+        "index": 16,
+        "typeIndex": 1,
+        "signature": {
+          "parameters": [
+            "i32"
+          ],
+          "results": [
+            "i32"
+          ]
+        }
+      },
+      {
+        "name": "mixer_guest_capability_ready_v1",
+        "kind": "function",
+        "index": 17,
+        "typeIndex": 3,
+        "signature": {
+          "parameters": [],
+          "results": []
+        }
+      }
+    ],
+    "memories": [
+      {
+        "minimum": 1,
+        "maximum": 2
+      }
+    ]
+  },
+  "growthLinkedAllocator": [
+    "-     1f34        b         $USER_HOME/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1/WASI.sdk/lib/wasm32-wasip1/libc.a(dlmalloc.o):(free)",
+    "-     2bfe       7d         $USER_HOME/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1/WASI.sdk/lib/wasm32-wasip1/libc.a(dlmalloc.o):(posix_memalign)",
+    "-     2e2e       4f         $USER_HOME/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1/WASI.sdk/lib/wasm32-wasip1/libc.a(sbrk.o):(sbrk)"
+  ],
+  "growthArtifacts": {
+    "growth.o": {
+      "bytes": 8940,
+      "sha256": "c345be33d77b55a56b98534c3d2ac3dff125a79e246fad0ecfa5481ea76e1ba4"
+    },
+    "growth.wasm": {
+      "bytes": 11966,
+      "sha256": "91cd5933f93bf637928f569b3eb69619296e3f035f5310e5d6876db028b8cc00"
+    },
+    "growth.map": {
+      "bytes": 6604,
+      "sha256": "49895f9e36c30732efa120ba9a1892bcb7023aff4b87b25010d44db965d6137b"
+    },
+    "growth-host": {
+      "bytes": 1812744,
+      "sha256": "ad44f2ddeae4124d6d1383cd1d6941cc2700880642f9be1f03cae4ca9cf14e03"
+    }
+  },
+  "growthPreinvokeVmSHA256": "6a9ef08edafb9a3f9c35d3a98197584987a3b70cb429fddba6e1c562a927b822",
+  "growthObservedStdout": "{\"guestUiV1ValidationStatus\":0}\n{\"phase\":0,\"pages\":1,\"fuel\":36,\"hostCalls\":0,\"enomem\":48,\"fillAttempts\":0,\"fillResult\":4294967295,\"retryResult\":4294967295,\"live\":0,\"checkedBeforeRelease\":0,\"survivorsChecked\":0,\"replacementChecked\":0,\"sameAddress\":0,\"freed\":0,\"growthAttempt\":0,\"growthCanaries\":0,\"highestBlockEnd\":0}\n{\"phase\":1,\"pages\":2,\"fuel\":20233,\"hostCalls\":0,\"enomem\":48,\"fillAttempts\":26,\"fillResult\":48,\"retryResult\":4294967295,\"live\":25,\"checkedBeforeRelease\":0,\"survivorsChecked\":0,\"replacementChecked\":0,\"sameAddress\":0,\"freed\":0,\"growthAttempt\":10,\"growthCanaries\":9,\"highestBlockEnd\":128320}\n{\"phase\":2,\"pages\":2,\"fuel\":10950,\"hostCalls\":0,\"enomem\":48,\"fillAttempts\":26,\"fillResult\":48,\"retryResult\":0,\"live\":25,\"checkedBeforeRelease\":25,\"survivorsChecked\":24,\"replacementChecked\":1,\"sameAddress\":1,\"freed\":1,\"growthAttempt\":10,\"growthCanaries\":9,\"highestBlockEnd\":128320}\n{\"phase\":3,\"pages\":2,\"fuel\":12527,\"hostCalls\":0,\"enomem\":48,\"fillAttempts\":26,\"fillResult\":48,\"retryResult\":0,\"live\":0,\"checkedBeforeRelease\":25,\"survivorsChecked\":24,\"replacementChecked\":1,\"sameAddress\":1,\"freed\":26,\"growthAttempt\":10,\"growthCanaries\":9,\"highestBlockEnd\":128320}\n{\"closeStatus\":0,\"retiredStartupStatus\":3}\n{\"sameRegistrySlot\":true,\"newGeneration\":true,\"retiredAfterReopenStatus\":3,\"identicalFreshFrame\":true}\n{\"phase\":0,\"pages\":1,\"fuel\":36,\"hostCalls\":0,\"enomem\":48,\"fillAttempts\":0,\"fillResult\":4294967295,\"retryResult\":4294967295,\"live\":0,\"checkedBeforeRelease\":0,\"survivorsChecked\":0,\"replacementChecked\":0,\"sameAddress\":0,\"freed\":0,\"growthAttempt\":0,\"growthCanaries\":0,\"highestBlockEnd\":0}\n{\"phase\":1,\"pages\":2,\"fuel\":20233,\"hostCalls\":0,\"enomem\":48,\"fillAttempts\":26,\"fillResult\":48,\"retryResult\":4294967295,\"live\":25,\"checkedBeforeRelease\":0,\"survivorsChecked\":0,\"replacementChecked\":0,\"sameAddress\":0,\"freed\":0,\"growthAttempt\":10,\"growthCanaries\":9,\"highestBlockEnd\":128320}\n{\"phase\":2,\"pages\":2,\"fuel\":10950,\"hostCalls\":0,\"enomem\":48,\"fillAttempts\":26,\"fillResult\":48,\"retryResult\":0,\"live\":25,\"checkedBeforeRelease\":25,\"survivorsChecked\":24,\"replacementChecked\":1,\"sameAddress\":1,\"freed\":1,\"growthAttempt\":10,\"growthCanaries\":9,\"highestBlockEnd\":128320}\n{\"phase\":3,\"pages\":2,\"fuel\":12527,\"hostCalls\":0,\"enomem\":48,\"fillAttempts\":26,\"fillResult\":48,\"retryResult\":0,\"live\":0,\"checkedBeforeRelease\":25,\"survivorsChecked\":24,\"replacementChecked\":1,\"sameAddress\":1,\"freed\":26,\"growthAttempt\":10,\"growthCanaries\":9,\"highestBlockEnd\":128320}\n{\"closeStatus\":0,\"retiredStartupStatus\":3}\n",
+  "growthObservations": [
+    {
+      "guestUiV1ValidationStatus": 0
+    },
+    {
+      "phase": 0,
+      "pages": 1,
+      "fuel": 36,
+      "hostCalls": 0,
+      "enomem": 48,
+      "fillAttempts": 0,
+      "fillResult": 4294967295,
+      "retryResult": 4294967295,
+      "live": 0,
+      "checkedBeforeRelease": 0,
+      "survivorsChecked": 0,
+      "replacementChecked": 0,
+      "sameAddress": 0,
+      "freed": 0,
+      "growthAttempt": 0,
+      "growthCanaries": 0,
+      "highestBlockEnd": 0
+    },
+    {
+      "phase": 1,
+      "pages": 2,
+      "fuel": 20233,
+      "hostCalls": 0,
+      "enomem": 48,
+      "fillAttempts": 26,
+      "fillResult": 48,
+      "retryResult": 4294967295,
+      "live": 25,
+      "checkedBeforeRelease": 0,
+      "survivorsChecked": 0,
+      "replacementChecked": 0,
+      "sameAddress": 0,
+      "freed": 0,
+      "growthAttempt": 10,
+      "growthCanaries": 9,
+      "highestBlockEnd": 128320
+    },
+    {
+      "phase": 2,
+      "pages": 2,
+      "fuel": 10950,
+      "hostCalls": 0,
+      "enomem": 48,
+      "fillAttempts": 26,
+      "fillResult": 48,
+      "retryResult": 0,
+      "live": 25,
+      "checkedBeforeRelease": 25,
+      "survivorsChecked": 24,
+      "replacementChecked": 1,
+      "sameAddress": 1,
+      "freed": 1,
+      "growthAttempt": 10,
+      "growthCanaries": 9,
+      "highestBlockEnd": 128320
+    },
+    {
+      "phase": 3,
+      "pages": 2,
+      "fuel": 12527,
+      "hostCalls": 0,
+      "enomem": 48,
+      "fillAttempts": 26,
+      "fillResult": 48,
+      "retryResult": 0,
+      "live": 0,
+      "checkedBeforeRelease": 25,
+      "survivorsChecked": 24,
+      "replacementChecked": 1,
+      "sameAddress": 1,
+      "freed": 26,
+      "growthAttempt": 10,
+      "growthCanaries": 9,
+      "highestBlockEnd": 128320
+    },
+    {
+      "closeStatus": 0,
+      "retiredStartupStatus": 3
+    },
+    {
+      "sameRegistrySlot": true,
+      "newGeneration": true,
+      "retiredAfterReopenStatus": 3,
+      "identicalFreshFrame": true
+    },
+    {
+      "phase": 0,
+      "pages": 1,
+      "fuel": 36,
+      "hostCalls": 0,
+      "enomem": 48,
+      "fillAttempts": 0,
+      "fillResult": 4294967295,
+      "retryResult": 4294967295,
+      "live": 0,
+      "checkedBeforeRelease": 0,
+      "survivorsChecked": 0,
+      "replacementChecked": 0,
+      "sameAddress": 0,
+      "freed": 0,
+      "growthAttempt": 0,
+      "growthCanaries": 0,
+      "highestBlockEnd": 0
+    },
+    {
+      "phase": 1,
+      "pages": 2,
+      "fuel": 20233,
+      "hostCalls": 0,
+      "enomem": 48,
+      "fillAttempts": 26,
+      "fillResult": 48,
+      "retryResult": 4294967295,
+      "live": 25,
+      "checkedBeforeRelease": 0,
+      "survivorsChecked": 0,
+      "replacementChecked": 0,
+      "sameAddress": 0,
+      "freed": 0,
+      "growthAttempt": 10,
+      "growthCanaries": 9,
+      "highestBlockEnd": 128320
+    },
+    {
+      "phase": 2,
+      "pages": 2,
+      "fuel": 10950,
+      "hostCalls": 0,
+      "enomem": 48,
+      "fillAttempts": 26,
+      "fillResult": 48,
+      "retryResult": 0,
+      "live": 25,
+      "checkedBeforeRelease": 25,
+      "survivorsChecked": 24,
+      "replacementChecked": 1,
+      "sameAddress": 1,
+      "freed": 1,
+      "growthAttempt": 10,
+      "growthCanaries": 9,
+      "highestBlockEnd": 128320
+    },
+    {
+      "phase": 3,
+      "pages": 2,
+      "fuel": 12527,
+      "hostCalls": 0,
+      "enomem": 48,
+      "fillAttempts": 26,
+      "fillResult": 48,
+      "retryResult": 0,
+      "live": 0,
+      "checkedBeforeRelease": 25,
+      "survivorsChecked": 24,
+      "replacementChecked": 1,
+      "sameAddress": 1,
+      "freed": 26,
+      "growthAttempt": 10,
+      "growthCanaries": 9,
+      "highestBlockEnd": 128320
+    },
+    {
+      "closeStatus": 0,
+      "retiredStartupStatus": 3
+    }
+  ],
+  "status": "observed_growth_at_cap_with_recovery",
+  "commands": [
+    {
+      "label": "commit",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "tree",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "HEAD^{tree}"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "vmTree",
+      "argv": [
+        "/usr/bin/git",
+        "rev-parse",
+        "HEAD:vm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source-before",
+      "argv": [
+        "/usr/bin/git",
+        "diff",
+        "--exit-code",
+        "HEAD",
+        "--",
+        "vm",
+        "compiler/experiments/fieldlog-guest-benchmark/matched_task.py",
+        "compiler/experiments/fieldlog-reactor/support.py",
+        "compiler/experiments/profile-budget/analyze.py",
+        "compiler/experiments/fieldlog-installed-guest/replay_abi.py"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "untracked-before",
+      "argv": [
+        "/usr/bin/git",
+        "ls-files",
+        "--others",
+        "--",
+        "vm",
+        "compiler/experiments/fieldlog-guest-benchmark/matched_task.py",
+        "compiler/experiments/fieldlog-reactor/support.py",
+        "compiler/experiments/profile-budget/analyze.py",
+        "compiler/experiments/fieldlog-installed-guest/replay_abi.py"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "host-controls-build",
+      "argv": [
+        "/usr/bin/clang",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "$BASELINE/host_controls.c",
+        "-o",
+        "$RUN/host-controls"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "host-controls",
+      "argv": [
+        "$RUN/host-controls"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "runner-controls",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "$BASELINE/test_controls.py",
+        "--verbose"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "host-compile",
+      "argv": [
+        "/usr/bin/clang",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fmodules-cache-path=$RUN/clang-modules",
+        "-I",
+        "$REPO/vm/include",
+        "-c",
+        "$BASELINE/host.c",
+        "-o",
+        "$RUN/host.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "macOS",
+      "argv": [
+        "/usr/bin/sw_vers"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "guestClang",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/clang",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "guestSwift",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "guestLinker",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "hostClang",
+      "argv": [
+        "/usr/bin/clang",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "cargo",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "rustc",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc",
+        "--version"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "guest-compile",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/clang",
+        "--target=wasm32-unknown-wasip1",
+        "--sysroot=$USER_HOME/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1/WASI.sdk",
+        "-isystem",
+        "$USER_HOME/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1/WASI.sdk/include/wasm32-wasip1",
+        "-std=c11",
+        "-Oz",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fno-stack-protector",
+        "-mno-bulk-memory",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-c",
+        "$BASELINE/guest.c",
+        "-o",
+        "$RUN/guest.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "guest-link",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--no-entry",
+        "--gc-sections",
+        "--strip-all",
+        "-z",
+        "stack-size=16384",
+        "--initial-memory=65536",
+        "--max-memory=65536",
+        "--export=mixer_guest_ui_start_v1",
+        "--export=mixer_guest_ui_event_v1",
+        "--export=mixer_guest_capability_ready_v1",
+        "$RUN/guest.o",
+        "$USER_HOME/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1/WASI.sdk/lib/wasm32-wasip1/libc.a",
+        "--why-extract=$RUN/guest.why",
+        "--Map=$RUN/guest.map",
+        "-o",
+        "$RUN/guest.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "guest-disassembly",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/llvm-objdump",
+        "-d",
+        "$RUN/guest.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "vm-build",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--lib",
+        "--offline",
+        "--locked",
+        "--release",
+        "--jobs",
+        "1",
+        "--features",
+        "experimental-capability-native",
+        "--manifest-path",
+        "$REPO/vm/Cargo.toml",
+        "--target-dir",
+        "$RUN/rust"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "vm-sha256",
+      "argv": [
+        "/usr/bin/shasum",
+        "-a",
+        "256",
+        "$RUN/rust/release/libmixer_vm.a"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "host-link",
+      "argv": [
+        "/usr/bin/clang",
+        "$RUN/host.o",
+        "$RUN/rust/release/libmixer_vm.a",
+        "-o",
+        "$RUN/host"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "owned-ui-run",
+      "argv": [
+        "$RUN/host",
+        "$RUN/guest.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source-after",
+      "argv": [
+        "/usr/bin/git",
+        "diff",
+        "--exit-code",
+        "HEAD",
+        "--",
+        "vm",
+        "compiler/experiments/fieldlog-guest-benchmark/matched_task.py",
+        "compiler/experiments/fieldlog-reactor/support.py",
+        "compiler/experiments/profile-budget/analyze.py",
+        "compiler/experiments/fieldlog-installed-guest/replay_abi.py"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "untracked-after",
+      "argv": [
+        "/usr/bin/git",
+        "ls-files",
+        "--others",
+        "--",
+        "vm",
+        "compiler/experiments/fieldlog-guest-benchmark/matched_task.py",
+        "compiler/experiments/fieldlog-reactor/support.py",
+        "compiler/experiments/profile-budget/analyze.py",
+        "compiler/experiments/fieldlog-installed-guest/replay_abi.py"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "growth-apply-source-diff",
+      "argv": [
+        "/usr/bin/patch",
+        "-s",
+        "-F",
+        "0",
+        "-p1",
+        "-d",
+        "$RUN/growth-sources",
+        "-i",
+        "$EXPERIMENT/allocator-growth.diff"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "growth-guest-compile",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/clang",
+        "--target=wasm32-unknown-wasip1",
+        "--sysroot=$USER_HOME/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1/WASI.sdk",
+        "-isystem",
+        "$USER_HOME/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1/WASI.sdk/include/wasm32-wasip1",
+        "-std=c11",
+        "-Oz",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fno-stack-protector",
+        "-mno-bulk-memory",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-c",
+        "$RUN/growth-sources/guest.c",
+        "-o",
+        "$RUN/growth.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "growth-guest-link",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--no-entry",
+        "--gc-sections",
+        "--strip-all",
+        "-z",
+        "stack-size=16384",
+        "--initial-memory=65536",
+        "--max-memory=131072",
+        "--export=mixer_guest_ui_start_v1",
+        "--export=mixer_guest_ui_event_v1",
+        "--export=mixer_guest_capability_ready_v1",
+        "$RUN/growth.o",
+        "$USER_HOME/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1/WASI.sdk/lib/wasm32-wasip1/libc.a",
+        "--Map=$RUN/growth.map",
+        "-o",
+        "$RUN/growth.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "growth-host-link",
+      "argv": [
+        "/usr/bin/clang",
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fmodules-cache-path=$RUN/clang-modules",
+        "-I",
+        "$REPO/vm/include",
+        "$RUN/growth-sources/host.c",
+        "$RUN/rust/release/libmixer_vm.a",
+        "-o",
+        "$RUN/growth-host"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "growth-preinvoke-vm-sha256",
+      "argv": [
+        "/usr/bin/shasum",
+        "-a",
+        "256",
+        "$RUN/rust/release/libmixer_vm.a"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "growth-ui-run",
+      "argv": [
+        "$RUN/growth-host",
+        "$RUN/growth.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "all-source-after",
+      "argv": [
+        "/usr/bin/git",
+        "diff",
+        "--exit-code",
+        "HEAD",
+        "--",
+        "vm",
+        "compiler/experiments/guest-local-allocation-control",
+        "verification/receipts/l03-guest-allocator-release-strict-abadfffa10.json",
+        "compiler/qualification_support.py",
+        "compiler/experiments/fieldlog-guest-benchmark/matched_task.py",
+        "compiler/experiments/fieldlog-reactor/support.py",
+        "compiler/experiments/profile-budget/analyze.py",
+        "compiler/experiments/fieldlog-installed-guest/replay_abi.py"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "all-untracked-after",
+      "argv": [
+        "/usr/bin/git",
+        "ls-files",
+        "--others",
+        "--",
+        "vm",
+        "compiler/experiments/guest-local-allocation-control",
+        "verification/receipts/l03-guest-allocator-release-strict-abadfffa10.json",
+        "compiler/qualification_support.py",
+        "compiler/experiments/fieldlog-guest-benchmark/matched_task.py",
+        "compiler/experiments/fieldlog-reactor/support.py",
+        "compiler/experiments/profile-budget/analyze.py",
+        "compiler/experiments/fieldlog-installed-guest/replay_abi.py"
+      ],
+      "exit": 0
+    }
+  ],
+  "custody": {
+    "reapedWithGroupAbsent": 33,
+    "unknown": null,
+    "peakScratchBytes": 46483066,
+    "scratchByteCeiling": 268435456,
+    "perFileByteCeiling": 134217728,
+    "campaignDeadlineSeconds": 240,
+    "scratchPolicy": "Remove only after the receipt is published and synced."
+  }
+}

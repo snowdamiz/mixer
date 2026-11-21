@@ -812,6 +812,20 @@ guest Wasm, and runtime stdout digests. All 25 command groups closed.
 The disposable checkout and scratch were removed.
 [Maintained allocator replay readback](verification/receipts/l03-guest-allocator-release-maintained-root-abadfffa10.json)
 
+The paired allocator diagnostic reproduced the fixed-page control and
+grew a separate Guest UI V1 guest from one page to two. Allocation 10
+preserved all nine existing canaries. Attempt 26 returned `ENOMEM`
+with 25 live blocks. The guest reused the freed address and drained
+all blocks. Both sessions had zero host calls and refused retired handles.
+Independent review confirmed the strict runner requires these outcomes
+and verifies its helpers before loading them. The author recorded 36
+closed command groups for the corrected replay. A fresh root replay
+matched both Wasm digests, the exact VM archive, and the growth stdout.
+All 36 command groups closed again and scratch was removed.
+[Initial growth run](verification/receipts/l03-guest-allocator-growth-d14ca99c.json) ·
+[Strict paired replay](verification/receipts/l03-guest-allocator-growth-strict-41a05264.json) ·
+[Independent replay](verification/receipts/l03-guest-allocator-growth-maintained-root.json)
+
 A compact Swift event trapped at function 3, byte 514 in the owned VM.
 The matching line table resolved that position to `SwiftEventGuest.swift:32:9`
 and LLVM agreed. Stripped and mismatched inputs preserved the raw trap

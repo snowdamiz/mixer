@@ -226,6 +226,14 @@ A fresh generation starts clean and repeats the result. Both retired handles
 are refused.
 [Independent replay receipt](../../../verification/receipts/l03-guest-allocator-release-maintained-root-abadfffa10.json)
 
+## Configured guest memory growth
+
+Run the [paired allocation replay](../../experiments/guest-allocator-growth-control/README.md)
+to compare the reviewed fixed-page fixture and a one-to-two-page guest.
+The growth fixture checks the exact allocation that grows memory,
+pre-growth canaries, `ENOMEM` at its ceiling, reuse, and retirement.
+[Reviewed growth receipt](../../../verification/receipts/l03-guest-allocator-growth-strict-41a05264.json)
+
 ## Native SDK controls
 
 Run on arm64 macOS 26 or later with Swift 6.2 or later and a local
