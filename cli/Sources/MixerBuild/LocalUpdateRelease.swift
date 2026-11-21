@@ -22,14 +22,83 @@ package enum LocalUpdateRelease {
         }
     }
 
+    package struct StageReceipt: Encodable {
+        struct Variant: Encodable {
+            let sequence: UInt64
+            let artifactSHA256: String
+            let rolloutBasisPoints: UInt64
+
+            enum CodingKeys: String, CodingKey {
+                case sequence
+                case artifactSHA256 = "artifact_sha256"
+                case rolloutBasisPoints = "rollout_basis_points"
+            }
+
+            func matches(_ response: ReleaseRESTV3.StagePromotionVariant) -> Bool {
+                sequence == response.sequence && artifactSHA256 == response.artifactSHA256 &&
+                    rolloutBasisPoints == response.rolloutBasisPoints
+            }
+        }
+
+        let status = "ok"
+        let action = "promote-environment"
+        let directionID: String
+        let ios: Variant
+        let android: Variant
+        let delivery: String
+
+        enum CodingKeys: String, CodingKey {
+            case status, action, ios, android, delivery
+            case directionID = "direction_id"
+        }
+    }
+
+    package static func promoteEnvironment(arguments: [String]) async throws -> StageReceipt {
+        let required: Set<String> = [
+            "--organization", "--project", "--application", "--reason",
+            "--source-ios-sequence", "--source-android-sequence", "--ios-assignment", "--android-assignment",
+        ]
+        let usage = MixerFailure("update.arguments", "Run mixer help for the local update promote-environment syntax.")
+        let (direction, values) = try optionValues(arguments, allowed: required, required: required, usage: usage)
+        guard ReleaseV3Wire.validID(direction),
+              let org = values["--organization"], ReleaseV3Wire.validID(org),
+              let projectID = values["--project"], ReleaseV3Wire.validID(projectID),
+              let app = values["--application"], ReleaseV3Wire.validID(app),
+              let iosSequence = positiveSequence(values["--source-ios-sequence"]),
+              let androidSequence = positiveSequence(values["--source-android-sequence"]),
+              let iosPath = values["--ios-assignment"], let androidPath = values["--android-assignment"],
+              let reason = values["--reason"] else { throw usage }
+        guard validReason(reason) else {
+            throw MixerFailure("update.reason", "Supply a promotion reason of 1–512 printable ASCII bytes without surrounding spaces.")
+        }
+        let project = ReleaseRESTV3.Project(organizationID: org, projectID: projectID)
+        let client = try makeClient()
+        defer { client.session.invalidateAndCancel() }
+        let ios = try ReleaseRESTV3.SignedAssignment(
+            read(fileURL(iosPath), maximum: ReleaseRESTV3.signedDocumentMaximumBytes))
+        let android = try ReleaseRESTV3.SignedAssignment(
+            read(fileURL(androidPath), maximum: ReleaseRESTV3.signedDocumentMaximumBytes))
+        let iosIntent = try stageVariant(ios, platform: "ios", project: project, app: app)
+        let androidIntent = try stageVariant(android, platform: "android", project: project, app: app)
+        guard ios.value["scope"]?.object?["environment"] == android.value["scope"]?.object?["environment"],
+              ios.value["release_id"] == android.value["release_id"] else {
+            throw MixerFailure("update.intent", "Both assignments must name the same destination environment and release.")
+        }
+        let operation = try ReleaseRESTV3.stagePromote(
+            project, applicationID: app, directionID: direction,
+            body: .init(sourceIosSequence: iosSequence, sourceAndroidSequence: androidSequence,
+                        iosSignedAssignment: ios, androidSignedAssignment: android),
+            reason: reason)
+        let response = try await client.send(operation)
+        guard response.delivery == "local_only", iosIntent.matches(response.ios),
+              androidIntent.matches(response.android) else { throw invalidResponse(operation.stage) }
+        return StageReceipt(directionID: direction, ios: iosIntent, android: androidIntent, delivery: response.delivery)
+    }
+
     package static func run(_ action: Action, arguments: [String]) async throws -> Receipt {
         let options = try Options(action, arguments)
-        let environment = ProcessInfo.processInfo.environment
-        let origin = try localOrigin(environment["MIXER_RELEASE_ORIGIN"])
-        guard let token = environment["MIXER_RELEASE_TOKEN"], !token.isEmpty, token.utf8.count <= 4089,
-              token.utf8.allSatisfy({ (33...126).contains($0) }) else {
-            throw MixerFailure("update.credential", "Set MIXER_RELEASE_TOKEN to the scoped local publisher bearer token.")
-        }
+        let client = try makeClient()
+        defer { client.session.invalidateAndCancel() }
         let signedAssignment = try ReleaseRESTV3.SignedAssignment(
             read(options.assignment, maximum: ReleaseRESTV3.signedDocumentMaximumBytes))
         let assignment = signedAssignment.value
@@ -52,20 +121,6 @@ package enum LocalUpdateRelease {
         }
 
         let project = ReleaseRESTV3.Project(organizationID: options.organization, projectID: options.project)
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.urlCache = nil
-        configuration.urlCredentialStorage = nil
-        configuration.httpShouldSetCookies = false
-        configuration.timeoutIntervalForRequest = 30
-        configuration.timeoutIntervalForResource = 30
-        configuration.waitsForConnectivity = false
-        configuration.connectionProxyDictionary = [
-            "HTTPEnable": 0, "HTTPSEnable": 0, "SOCKSEnable": 0, "ProxyAutoConfigEnable": 0,
-            "ProxyAutoDiscoveryEnable": 0,
-        ]
-        let session = URLSession(configuration: configuration, delegate: StoreRedirectRefusal(), delegateQueue: nil)
-        defer { session.invalidateAndCancel() }
-        let client = Client(session: session, origin: origin, token: token)
 
         if action == .publish {
             let candidate = fileURL(options.target)
@@ -144,20 +199,10 @@ package enum LocalUpdateRelease {
             case .halt: ["--health", "--channel"]
             }
             let required = common.union(specific)
-            let allowed = required.union(["--channel"])
             let usage = invalidArguments(action)
-            guard let target = arguments.first, !target.isEmpty, !target.hasPrefix("--"),
-                  arguments.count % 2 == 1 else { throw usage }
-            var values: [String: String] = [:]
-            for index in stride(from: 1, to: arguments.count, by: 2) {
-                let name = arguments[index]
-                let value = arguments[index + 1]
-                guard allowed.contains(name), values[name] == nil, !value.isEmpty,
-                      name == "--reason" || !value.hasPrefix("--") else { throw usage }
-                values[name] = value
-            }
-            guard required.isSubset(of: values.keys),
-                  let org = values["--organization"], ReleaseV3Wire.validID(org),
+            let (target, values) = try optionValues(
+                arguments, allowed: required.union(["--channel"]), required: required, usage: usage)
+            guard let org = values["--organization"], ReleaseV3Wire.validID(org),
                   let project = values["--project"], ReleaseV3Wire.validID(project),
                   let assignment = values["--assignment"],
                   action == .publish || ReleaseV3Wire.validDigest(target) else { throw usage }
@@ -176,13 +221,77 @@ package enum LocalUpdateRelease {
                 rollout = nil
             }
             reason = values["--reason"]
-            if let reason {
-                guard reason.utf8.count <= 512, reason.first != " ", reason.last != " ",
-                      reason.utf8.allSatisfy({ (32...126).contains($0) }) else {
-                    throw MixerFailure("update.reason", "Supply a rollback reason of 1–512 printable ASCII bytes without surrounding spaces.")
-                }
+            if let reason, !validReason(reason) {
+                throw MixerFailure("update.reason", "Supply a rollback reason of 1–512 printable ASCII bytes without surrounding spaces.")
             }
         }
+    }
+
+    private static func optionValues(
+        _ arguments: [String], allowed: Set<String>, required: Set<String>, usage: MixerFailure
+    ) throws -> (String, [String: String]) {
+        guard let target = arguments.first, !target.isEmpty, !target.hasPrefix("--"),
+              arguments.count % 2 == 1 else { throw usage }
+        var values: [String: String] = [:]
+        for index in stride(from: 1, to: arguments.count, by: 2) {
+            let name = arguments[index]
+            let value = arguments[index + 1]
+            guard allowed.contains(name), values[name] == nil, !value.isEmpty,
+                  name == "--reason" || !value.hasPrefix("--") else { throw usage }
+            values[name] = value
+        }
+        guard required.isSubset(of: values.keys) else { throw usage }
+        return (target, values)
+    }
+
+    private static func positiveSequence(_ text: String?) -> UInt64? {
+        guard let text, text.utf8.allSatisfy({ (48...57).contains($0) }),
+              let value = UInt64(text), value > 0 else { return nil }
+        return value
+    }
+
+    private static func validReason(_ reason: String) -> Bool {
+        (1...512).contains(reason.utf8.count) && reason.first != " " && reason.last != " " &&
+            reason.utf8.allSatisfy { (32...126).contains($0) }
+    }
+
+    private static func stageVariant(
+        _ signed: ReleaseRESTV3.SignedAssignment, platform: String, project: ReleaseRESTV3.Project, app: String
+    ) throws -> StageReceipt.Variant {
+        let assignment = signed.value
+        guard let scope = assignment["scope"]?.object,
+              scope["organization"]?.text == project.organizationID, scope["project"]?.text == project.projectID,
+              scope["app"]?.text == app, scope["platform"]?.text == platform,
+              let environment = scope["environment"]?.text, ReleaseV3Wire.validID(environment),
+              let release = assignment["release_id"]?.text, ReleaseV3Wire.validID(release),
+              let artifact = assignment["artifact_sha256"]?.text, ReleaseV3Wire.validDigest(artifact),
+              let sequence = assignment["sequence"]?.uint, sequence > 0,
+              let rollout = assignment["rollout_basis_points"]?.uint, rollout <= 10_000 else {
+            throw MixerFailure("update.assignment", "The signed \(platform) assignment must match the requested organization, project and application.")
+        }
+        return StageReceipt.Variant(sequence: sequence, artifactSHA256: artifact, rolloutBasisPoints: rollout)
+    }
+
+    private static func makeClient() throws -> Client {
+        let environment = ProcessInfo.processInfo.environment
+        let origin = try localOrigin(environment["MIXER_RELEASE_ORIGIN"])
+        guard let token = environment["MIXER_RELEASE_TOKEN"], !token.isEmpty, token.utf8.count <= 4089,
+              token.utf8.allSatisfy({ (33...126).contains($0) }) else {
+            throw MixerFailure("update.credential", "Set MIXER_RELEASE_TOKEN to the scoped local publisher bearer token.")
+        }
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.urlCache = nil
+        configuration.urlCredentialStorage = nil
+        configuration.httpShouldSetCookies = false
+        configuration.timeoutIntervalForRequest = 30
+        configuration.timeoutIntervalForResource = 30
+        configuration.waitsForConnectivity = false
+        configuration.connectionProxyDictionary = [
+            "HTTPEnable": 0, "HTTPSEnable": 0, "SOCKSEnable": 0, "ProxyAutoConfigEnable": 0,
+            "ProxyAutoDiscoveryEnable": 0,
+        ]
+        let session = URLSession(configuration: configuration, delegate: StoreRedirectRefusal(), delegateQueue: nil)
+        return Client(session: session, origin: origin, token: token)
     }
 
     private struct Client {

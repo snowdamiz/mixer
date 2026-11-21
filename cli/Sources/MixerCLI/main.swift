@@ -63,6 +63,9 @@ mixer 0.1.0-dev — owned Swift mobile platform (development preview)
     --organization ORG --project PROJECT --assignment FILE
   mixer update promote ARTIFACT_SHA256 --rollout PERCENT [--channel NAME]
     --organization ORG --project PROJECT --assignment FILE
+  mixer update promote-environment DIRECTION --organization ORG --project PROJECT --application APP
+    --source-ios-sequence N --source-android-sequence N --ios-assignment FILE --android-assignment FILE
+    --reason REASON
   mixer update rollback ARTIFACT_SHA256 --reason REASON [--channel NAME]
     --organization ORG --project PROJECT --assignment FILE
   mixer update halt ARTIFACT_SHA256 --channel NAME --health SAMPLE
@@ -105,6 +108,10 @@ do {
         let report = try LocalUpdateValidation.verify(arguments: Array(raw.dropFirst(2)), verifier: verifier, vm: vm)
         try output(report)
         exit(report.status == "local-candidate-verified" ? 0 : report.status == "executable-rejected" ? 2 : 1)
+    }
+    if raw.starts(with: ["update", "promote-environment"]) {
+        try await output(LocalUpdateRelease.promoteEnvironment(arguments: Array(raw.dropFirst(2))))
+        exit(0)
     }
     if raw.count >= 2, raw[0] == "update", let action = LocalUpdateRelease.Action(rawValue: raw[1]) {
         try await output(LocalUpdateRelease.run(action, arguments: Array(raw.dropFirst(2))))

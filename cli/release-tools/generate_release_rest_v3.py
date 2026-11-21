@@ -68,6 +68,8 @@ def request_lines(name, schema, envelopes, records):
                 value = f'{property_name}.base64EncodedData() + Data("\\\"".utf8)'
             elif field_type in records:
                 value = f"(try JSONFile.data({property_name}))"
+            elif field_type == "uint64":
+                value = f"Data(String({property_name}).utf8)"
             else:
                 raise ValueError(f"unsupported raw JSON member type: {field_type}")
             operator = "            " if index == 0 else "                + "
@@ -99,7 +101,7 @@ def operation_lines(name, operation, parameters):
     swift_path = path_expression(path, parameters)
     statuses = ", ".join(map(str, operation["success"]))
     return [
-        f"    static func {name}({', '.join(arguments)})",
+        f"    static func {swift_name(name)}({', '.join(arguments)})",
         f"        throws -> ReleaseV3Operation<{operation['response']}> {{",
         "        ReleaseV3Operation(",
         f"            stage: {quoted(name)}, method: {quoted(operation['method'])},",

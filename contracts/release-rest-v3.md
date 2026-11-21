@@ -1,7 +1,8 @@
 # Signed release REST v3
 
 [release-rest-v3.json](release-rest-v3.json) defines the signed v3 mutation
-routes shared by Phoenix and the Go development reference. The request and
+routes in Phoenix. The Go development reference implements the artifact and
+single-channel operations. The request and
 response fields are JSON keys. [release-v3.json](release-v3.json) defines the
 signed manifest, assignment, and scope inside those messages. Path identifiers
 use 1–128 ASCII letters, digits, hyphens, periods, or underscores, excluding
@@ -9,7 +10,7 @@ use 1–128 ASCII letters, digits, hyphens, periods, or underscores, excluding
 
 Send `Content-Type: application/json`, a scoped `Authorization: Bearer` token,
 and an `Idempotency-Key` on every request. The CLI always sends
-`X-Mixer-Reason` for rollback and only accepts a loopback HTTP origin. It
+`X-Mixer-Reason` for rollback and stage promotion and only accepts a loopback HTTP origin. It
 refuses redirects, cookies, and configured proxies. Upload uses a padded
 standard Base64 payload. Sequence, rollout and health values are unsigned
 64-bit integers written as JSON integer literals. Successful halt receipts
@@ -40,6 +41,14 @@ messages and leaves retry decisions to the caller. Server authorization,
 validation, and rollout rules still apply. In particular, use a strictly
 increasing rollout for promotion across both implementations.
 
+Use `mixer update promote-environment` for an enrolled Phoenix direction. Pass
+the two committed source sequence numbers and the signed destination
+assignments with the organization, project, application, and reason. Both
+signed assignments refer to already staged destination artifacts. The command
+sends their original signed bytes and emits both committed destination receipts.
+Retry with the same arguments and files if the connection closes before the
+receipt arrives.
+
 Run these commands from the repository root.
 
 ```sh
@@ -48,7 +57,7 @@ python3 -B cli/release-tools/generate_release_rest_v3.py --check --check-router
 swift test --package-path cli --filter ReleaseRESTV3Tests
 ```
 
-The generator's router check compares the six scoped mutation declarations in
+The generator's router check compares the scoped mutation declarations in
 the Phoenix source. Swift builds compile the
 checked-in generated file. The Go stock-CLI
 [loopback replay](../tests/integration/public-update/README.md) exercises the

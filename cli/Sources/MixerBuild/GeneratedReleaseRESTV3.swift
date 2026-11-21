@@ -67,6 +67,21 @@ enum ReleaseRESTV3 {
         }
     }
 
+    struct StagePromotionRequest {
+        let sourceIosSequence: UInt64
+        let sourceAndroidSequence: UInt64
+        let iosSignedAssignment: SignedAssignment
+        let androidSignedAssignment: SignedAssignment
+
+        func encodeBody() throws -> Data {
+            Data("{\"source_ios_sequence\":".utf8) + Data(String(sourceIosSequence).utf8)
+                + Data(",\"source_android_sequence\":".utf8) + Data(String(sourceAndroidSequence).utf8)
+                + Data(",\"ios_signed_assignment\":".utf8) + iosSignedAssignment.bytes
+                + Data(",\"android_signed_assignment\":".utf8) + androidSignedAssignment.bytes
+                + Data("}".utf8)
+        }
+    }
+
     struct Health: Codable, Equatable {
         let sequence: UInt64
         let activated: UInt64
@@ -157,6 +172,46 @@ enum ReleaseRESTV3 {
         }
     }
 
+    struct StagePromotionVariant: Decodable {
+        let sequence: UInt64
+        let artifactSHA256: String
+        let rolloutBasisPoints: UInt64
+
+        private enum CodingKeys: String, CodingKey {
+            case sequence
+            case artifactSHA256 = "artifact_sha256"
+            case rolloutBasisPoints = "rollout_basis_points"
+        }
+
+        init(from decoder: any Decoder) throws {
+            try ReleaseV3Wire.requireFields(["sequence", "artifact_sha256", "rollout_basis_points"], from: decoder)
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            sequence = try values.decode(UInt64.self, forKey: .sequence)
+            artifactSHA256 = try values.decode(String.self, forKey: .artifactSHA256)
+            rolloutBasisPoints = try values.decode(UInt64.self, forKey: .rolloutBasisPoints)
+        }
+    }
+
+    struct StagePromotionResponse: Decodable {
+        let ios: StagePromotionVariant
+        let android: StagePromotionVariant
+        let delivery: String
+
+        private enum CodingKeys: String, CodingKey {
+            case ios
+            case android
+            case delivery
+        }
+
+        init(from decoder: any Decoder) throws {
+            try ReleaseV3Wire.requireFields(["ios", "android", "delivery"], from: decoder)
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            ios = try values.decode(StagePromotionVariant.self, forKey: .ios)
+            android = try values.decode(StagePromotionVariant.self, forKey: .android)
+            delivery = try values.decode(String.self, forKey: .delivery)
+        }
+    }
+
     static func upload(_ project: Project, manifestSHA256: String, body: UploadRequest)
         throws -> ReleaseV3Operation<UploadResponse> {
         ReleaseV3Operation(
@@ -187,6 +242,14 @@ enum ReleaseRESTV3 {
             stage: "promote", method: "POST",
             path: try project.path() + "/channels/\(try ReleaseV3Wire.checkedID(channel))/promote",
             body: try body.encodeBody(), statuses: [200], reason: nil)
+    }
+
+    static func stagePromote(_ project: Project, applicationID: String, directionID: String, body: StagePromotionRequest, reason: String)
+        throws -> ReleaseV3Operation<StagePromotionResponse> {
+        ReleaseV3Operation(
+            stage: "stage_promote", method: "POST",
+            path: try project.path() + "/apps/\(try ReleaseV3Wire.checkedID(applicationID))/release-promotions/\(try ReleaseV3Wire.checkedID(directionID))",
+            body: try body.encodeBody(), statuses: [200], reason: reason)
     }
 
     static func rollback(_ project: Project, channel: String, body: AssignmentRequest, reason: String)

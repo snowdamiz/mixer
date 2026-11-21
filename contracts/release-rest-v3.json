@@ -4,13 +4,15 @@
   "mediaType": "application/json",
   "signedDocumentMaximumBytes": 65536,
   "cliResponseMaximumBytes": 4096,
-  "serverBodyMaximumBytes": {"upload": 6291456, "other": 131072},
+  "serverBodyMaximumBytes": {"upload": 6291456, "stage_promote": 163840, "other": 131072},
   "basePath": "/v3/orgs/{organization_id}/projects/{project_id}",
   "pathParameters": {
     "organization_id": "identifier",
     "project_id": "identifier",
     "manifest_sha256": "digest",
-    "channel": "identifier"
+    "channel": "identifier",
+    "application_id": "identifier",
+    "direction_id": "identifier"
   },
   "operations": {
     "upload": {
@@ -43,6 +45,15 @@
       "request": "AssignmentRequest",
       "response": "ChannelResponse",
       "success": [200],
+      "phoenixController": "LocalReleaseController"
+    },
+    "stage_promote": {
+      "method": "POST",
+      "path": "/apps/{application_id}/release-promotions/{direction_id}",
+      "request": "StagePromotionRequest",
+      "response": "StagePromotionResponse",
+      "success": [200],
+      "cliReasonRequired": true,
       "phoenixController": "LocalReleaseController"
     },
     "rollback": {
@@ -83,6 +94,15 @@
     "HaltRequest": {
       "encoding": "raw-json-members",
       "fields": {"health": "Health", "signed_assignment": "SignedAssignment"}
+    },
+    "StagePromotionRequest": {
+      "encoding": "raw-json-members",
+      "fields": {
+        "source_ios_sequence": "uint64",
+        "source_android_sequence": "uint64",
+        "ios_signed_assignment": "SignedAssignment",
+        "android_signed_assignment": "SignedAssignment"
+      }
     }
   },
   "records": {
@@ -107,6 +127,14 @@
     "HaltResponse": {
       "closed": true,
       "fields": {"scope": "signed-scope", "runtime": "string", "channel": "string", "artifact_sha256": "string", "halt_sequence": "uint64", "health": "Health"}
+    },
+    "StagePromotionVariant": {
+      "closed": true,
+      "fields": {"sequence": "uint64", "artifact_sha256": "string", "rollout_basis_points": "uint64"}
+    },
+    "StagePromotionResponse": {
+      "closed": true,
+      "fields": {"ios": "StagePromotionVariant", "android": "StagePromotionVariant", "delivery": "string"}
     }
   }
 }

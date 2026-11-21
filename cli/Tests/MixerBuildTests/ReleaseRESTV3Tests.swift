@@ -92,6 +92,40 @@ import Testing
         }
     }
 
+    @Test func stagePromotionKeepsBothSignedInputsAndFullWidthSequences() throws {
+        let iosJSON = signedJSON("assignment", value: #"{"schema":3,"sequence":18446744073709551615}"#)
+        let androidJSON = signedJSON("assignment", value: #"{"sequence":9007199254740993,"schema":3}"#)
+        let request = try ReleaseRESTV3.StagePromotionRequest(
+            sourceIosSequence: .max, sourceAndroidSequence: 9_007_199_254_740_993,
+            iosSignedAssignment: .init(Data(iosJSON.utf8)),
+            androidSignedAssignment: .init(Data(androidJSON.utf8)))
+        let operation = try ReleaseRESTV3.stagePromote(
+            project, applicationID: "fieldlog", directionID: "beta-to-prod", body: request, reason: "Reviewed")
+        try verifyRequest(
+            operation, method: "POST", suffix: "/apps/fieldlog/release-promotions/beta-to-prod",
+            body: "{\"source_ios_sequence\":\(maximum),\"source_android_sequence\":9007199254740993," +
+                "\"ios_signed_assignment\":\(iosJSON),\"android_signed_assignment\":\(androidJSON)}",
+            reason: "Reviewed")
+        #expect(throws: (any Error).self) {
+            try ReleaseRESTV3.stagePromote(project, applicationID: "fieldlog", directionID: "../other",
+                                          body: request, reason: "Reviewed")
+        }
+
+        let variant = "{\"sequence\":\(maximum),\"artifact_sha256\":\"\(digest)\",\"rollout_basis_points\":1}"
+        let receipt = "{\"ios\":\(variant),\"android\":\(variant),\"delivery\":\"local_only\"}"
+        let response = try operation.decodeSuccess(Data(receipt.utf8))
+        #expect(response.ios.sequence == UInt64.max)
+        #expect(response.android.artifactSHA256 == digest)
+        #expect(response.delivery == "local_only")
+        for invalid in [receipt.replacingOccurrences(of: maximum, with: "18446744073709551616"),
+                        receipt.replacingOccurrences(of: maximum, with: "1e1"),
+                        receipt.replacingOccurrences(of: "rollout_basis_points", with: "unexpected")] {
+            #expect(throws: (any Error).self) {
+                try operation.decodeSuccess(Data(invalid.utf8))
+            }
+        }
+    }
+
     @Test func typedResponsesPreserveFullWidthAndFieldPolicies() throws {
         let signed = try ReleaseRESTV3.SignedAssignment(Data(signedJSON("assignment").utf8))
         let publish = try ReleaseRESTV3.publish(project, channel: "dev", body: .init(signedAssignment: signed))
