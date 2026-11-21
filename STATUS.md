@@ -198,9 +198,12 @@ and publication, rejects inherited output access, and leaves public OTA
 responses byte-identical. The v81-composed macOS replay passed 21 focused
 controls and the signed PostgreSQL fixture. The captured logs contained
 zero synthetic payload markers. The disposable database closed and its
-port rebound. Hosted v82 source admission is underway, and L07 remains open.
+port rebound. Hosted v82 binds 571 source inputs, including the opt-in
+migration. The full collector passed 317 tests in each Python mode under
+the original 360-second alarm. L07 remains open.
 [Operator guide](hosted/scripts/private-source-map-retention.md) ·
-[Composed verification](verification/receipts/l07-private-source-map-v81-composition.json)
+[Composed verification](verification/receipts/l07-private-source-map-v81-composition.json) ·
+[v82 source admission](verification/receipts/hosted-v82-private-source-map-retention-source-admission.json)
 
 ## November 21 attestation readiness
 
@@ -399,11 +402,15 @@ Android stopped at the predecessor Source141 test binding, before the
 two Android creates and six Java consumers. Phoenix stopped while
 registering the browser trace because its targets predated the sign-in
 intent. The corrected macOS fixture observed both current targets and
-passed all 12 selected tests with the CI Node drivers. The Source141
-repair is underway. These failures do not establish the cause of the
-earlier organization-list 503.
+passed all 12 selected tests with the CI Node drivers. The combined v82
+and W09 Source141 binding passed both exact native sparse projections,
+including all 45 bootstrap and 16 sparse controls per Python mode. The
+154 CLI inputs and the restored Source141 and Source127 archives matched
+their pinned identities. The cause of the earlier organization-list
+503 remains open.
 [Terminal CI receipt](verification/receipts/hosted-v81-terminal-abb32b83.json) ·
-[Trace repair](verification/receipts/hosted-v81-phoenix-trace-arity.json)
+[Trace repair](verification/receipts/hosted-v81-phoenix-trace-arity.json) ·
+[Combined admission](verification/receipts/hosted-v82-combined-source-and-native-admission.json)
 
 The v80 restore fixture observed PostgreSQL reject the injected queue
 operation at COMMIT with SQLSTATE `PZ080`. The failed request preserved
