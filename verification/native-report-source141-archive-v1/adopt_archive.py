@@ -338,6 +338,20 @@ RELEASE_REST_V3_ADDITIONS = RELEASE_REST_V3_SOURCE_ADDITIONS | {
 }
 RELEASE_REST_V3_REPLACEMENTS = {PUBLIC_UPDATE_SOURCE, VERIFY_WORKFLOW, SPARSE_CHECKOUT_TEST}
 RELEASE_REST_V3_SOURCE_CHANGES = RELEASE_REST_V3_SOURCE_ADDITIONS | {PUBLIC_UPDATE_SOURCE}
+STOCK_PROMOTION_PREFIX = 'stock-promotion-predecessor-bytes/'
+SOURCE_INPUTS_MANIFEST = 'current-source-inputs.json'
+STOCK_PROMOTION_PREIMAGE_MANIFEST = STOCK_PROMOTION_PREFIX + SOURCE_INPUTS_MANIFEST
+STOCK_PROMOTION_SOURCE_CHANGES = HALT_CLI_SOURCE_CHANGES | {
+    'cli/Sources/MixerBuild/GeneratedReleaseRESTV3.swift',
+}
+STOCK_PROMOTION_CHANGES = STOCK_PROMOTION_SOURCE_CHANGES | {
+    VERIFY_WORKFLOW,
+    SPARSE_CHECKOUT_TEST,
+    'cli/Tests/MixerBuildTests/ReleaseRESTV3Tests.swift',
+    'cli/release-tools/generate_release_rest_v3.py',
+    'contracts/release-rest-v3.json',
+    'contracts/release-rest-v3.md',
+}
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, STANDARDS_REPLAY_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
@@ -359,6 +373,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
 } | {
     RELEASE_REST_V3_PREFIX + name for name in RELEASE_REST_V3_REPLACEMENTS
+} | {
+    STOCK_PROMOTION_PREIMAGE_MANIFEST, *(STOCK_PROMOTION_PREFIX + name for name in STOCK_PROMOTION_CHANGES),
 } | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
 } | {
@@ -495,7 +511,7 @@ def install_inputs():
                              'android_retained_output_correction_transition',
                              'managed_android_retained_transition', 'pair25_transition', 'swift_version_transition',
                              'cli_nonregular_input_test_transition', 'signed_apple_overflow_test_transition',
-                             'sparse_checkout_test_transition', 'release_rest_v3_transition',
+                             'sparse_checkout_test_transition', 'release_rest_v3_transition', 'stock_promotion_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -504,7 +520,7 @@ def install_inputs():
             set(binding['changes']) == CHANGES, 'Archive binding or change roster differs')
 
     original = ROOT / PREVIOUS
-    current = previous.load(HERE / 'current-source-inputs.json')
+    current = previous.load(HERE / SOURCE_INPUTS_MANIFEST)
     historical_source = previous.load(original / 'current-source-inputs.json')
     historical_binding = previous.load(original / 'binding.json')
     historical = previous.load(original / 'historical-inputs.json')
@@ -1318,9 +1334,12 @@ def install_inputs():
                     'Signed release REST v3 source preimage differs: ' + name)
             expected_source[name] = change['after']
         installed[name] = change['after']
-    require(current == expected_source and len(current) == 153 and binding['source'] == {
-        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': release['sourceAfter'],
-    } and previous.digest(current) == release['sourceAfter'], 'Signed release REST v3 source transition differs')
+    release_source_path = HERE / STOCK_PROMOTION_PREIMAGE_MANIFEST
+    release_source = previous.load(release_source_path)
+    require(release_source == expected_source and len(release_source) == 153 and
+            previous.digest(release_source) == release['sourceAfter'] and
+            stat.S_IMODE(release_source_path.lstat().st_mode) == 0o644,
+            'Signed release REST v3 source transition differs')
 
     hosted_v69 = binding['hosted_v69_workflow']
     workflow_preimage = HERE / HOSTED_V69_WORKFLOW
@@ -1331,6 +1350,33 @@ def install_inputs():
             stat.S_IMODE(workflow_preimage.lstat().st_mode) == 0o644,
             'Hosted v69 workflow preimage or mode differs')
     installed[VERIFY_WORKFLOW] = hosted_v69['after']
+
+    stock = binding['stock_promotion_transition']
+    require(set(stock) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            stock['sourceBefore'] == release['sourceAfter'] and
+            set(stock['changes']) == STOCK_PROMOTION_CHANGES,
+            'Stock promotion predecessor or change roster differs')
+    for name, change in stock['changes'].items():
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] != change['after'] and
+                type(change['mode']) is int and change['mode'] == 0o644 and
+                (name not in installed or installed[name] == change['before']),
+                'Stock promotion predecessor row differs: ' + name)
+        path = HERE / STOCK_PROMOTION_PREFIX / name
+        raw = read_predecessor_member(path)
+        require(previous.row(raw) == change['before'] and
+                stat.S_IMODE(path.lstat().st_mode) == change['mode'],
+                'Stock promotion predecessor bytes or mode differ: ' + name)
+        if name in STOCK_PROMOTION_SOURCE_CHANGES:
+            require(expected_source[name] == change['before'],
+                    'Stock promotion source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        installed[name] = change['after']
+        require(stat.S_IMODE((ROOT / name).lstat().st_mode) == change['mode'],
+                'Installed stock promotion owner mode differs: ' + name)
+    require(current == expected_source and len(current) == len(release_source) and binding['source'] == {
+        'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST, 'sha256': stock['sourceAfter'],
+    } and previous.digest(current) == stock['sourceAfter'], 'Stock promotion source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in release['changes'].items():
@@ -1436,6 +1482,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_stock_promotion_sha256': binding['stock_promotion_transition']['sourceBefore'],
             'predecessor_release_rest_v3_sha256': binding['release_rest_v3_transition']['sourceBefore'],
             'predecessor_swift_version_sha256': binding['swift_version_transition']['sourceBefore'],
             'predecessor_pair24_source151_sha256': binding['pair25_transition']['sourceBefore'],

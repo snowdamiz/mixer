@@ -106,7 +106,7 @@ def admission_paths(root=None, binding=None):
         for key in ('capability_transition', 'upgrade_transition', 'pair24_transition',
                     'cancel_cli_transition', 'local_store_transition',
                     'release_inspector_transition', 'icu_notice_transition', 'halt_cli_transition',
-                    'release_rest_v3_transition'):
+                    'release_rest_v3_transition', 'stock_promotion_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -461,6 +461,10 @@ class SparseControls(unittest.TestCase):
             release = binding['release_rest_v3_transition']
             self.assertEqual(release['sourceBefore'], binding['swift_version_transition']['sourceAfter'])
             self.assertEqual(observed['predecessor_release_rest_v3_sha256'], release['sourceBefore'])
+            stock = binding['stock_promotion_transition']
+            self.assertEqual(stock['sourceBefore'], release['sourceAfter'])
+            self.assertEqual(observed['predecessor_stock_promotion_sha256'], stock['sourceBefore'])
+            self.assertEqual(observed['source_sha256'], stock['sourceAfter'])
             self.assertEqual(observed['source_sha256'], binding['source']['sha256'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']

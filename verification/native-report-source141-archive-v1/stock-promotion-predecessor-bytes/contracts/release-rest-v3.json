@@ -1,0 +1,112 @@
+{
+  "version": 3,
+  "signedProtocol": "release-v3.json",
+  "mediaType": "application/json",
+  "signedDocumentMaximumBytes": 65536,
+  "cliResponseMaximumBytes": 4096,
+  "serverBodyMaximumBytes": {"upload": 6291456, "other": 131072},
+  "basePath": "/v3/orgs/{organization_id}/projects/{project_id}",
+  "pathParameters": {
+    "organization_id": "identifier",
+    "project_id": "identifier",
+    "manifest_sha256": "digest",
+    "channel": "identifier"
+  },
+  "operations": {
+    "upload": {
+      "method": "PUT",
+      "path": "/artifacts/{manifest_sha256}",
+      "request": "UploadRequest",
+      "response": "UploadResponse",
+      "success": [200, 201],
+      "phoenixController": "CustomerArtifactController"
+    },
+    "validate": {
+      "method": "POST",
+      "path": "/releases/validate",
+      "request": "ValidateRequest",
+      "response": "ValidateResponse",
+      "success": [200],
+      "phoenixController": "LocalReleaseController"
+    },
+    "publish": {
+      "method": "POST",
+      "path": "/channels/{channel}/publish",
+      "request": "AssignmentRequest",
+      "response": "ChannelResponse",
+      "success": [200],
+      "phoenixController": "LocalReleaseController"
+    },
+    "promote": {
+      "method": "POST",
+      "path": "/channels/{channel}/promote",
+      "request": "AssignmentRequest",
+      "response": "ChannelResponse",
+      "success": [200],
+      "phoenixController": "LocalReleaseController"
+    },
+    "rollback": {
+      "method": "POST",
+      "path": "/channels/{channel}/rollback",
+      "request": "AssignmentRequest",
+      "response": "ChannelResponse",
+      "success": [200],
+      "cliReasonRequired": true,
+      "phoenixController": "LocalReleaseController"
+    },
+    "halt": {
+      "method": "POST",
+      "path": "/channels/{channel}/halt",
+      "request": "HaltRequest",
+      "response": "HaltResponse",
+      "success": [200],
+      "phoenixController": "LocalReleaseController"
+    }
+  },
+  "signedEnvelopes": {
+    "SignedManifest": "manifest",
+    "SignedAssignment": "assignment"
+  },
+  "requests": {
+    "UploadRequest": {
+      "encoding": "raw-json-members",
+      "fields": {"signed_manifest": "SignedManifest", "payload": "base64"}
+    },
+    "ValidateRequest": {
+      "encoding": "json-file",
+      "fields": {"artifact_sha256": "string"}
+    },
+    "AssignmentRequest": {
+      "encoding": "raw-json-members",
+      "fields": {"signed_assignment": "SignedAssignment"}
+    },
+    "HaltRequest": {
+      "encoding": "raw-json-members",
+      "fields": {"health": "Health", "signed_assignment": "SignedAssignment"}
+    }
+  },
+  "records": {
+    "Health": {
+      "closed": true,
+      "fields": {"sequence": "uint64", "activated": "uint64", "pending": "uint64", "adverse_signals": "uint64"}
+    }
+  },
+  "responses": {
+    "UploadResponse": {
+      "fields": {"artifact_sha256": "string", "immutable": "bool"},
+      "optionalFields": {"protocol_valid": "bool"}
+    },
+    "ValidateResponse": {
+      "fields": {"artifact_sha256": "string", "protocol_valid": "bool"},
+      "optionalFields": {"immutable": "bool"},
+      "informationalFields": {"compiler_eligibility_verified": "bool", "policy_approved": "bool", "mobile_qualified": "bool"}
+    },
+    "ChannelResponse": {
+      "fields": {"artifact_sha256": "string", "sequence": "uint64", "rollout_basis_points": "uint64", "delivery": "string"}
+    },
+    "HaltResponse": {
+      "closed": true,
+      "fields": {"scope": "signed-scope", "runtime": "string", "channel": "string", "artifact_sha256": "string", "halt_sequence": "uint64", "health": "Health"}
+    }
+  }
+}
