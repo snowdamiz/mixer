@@ -357,6 +357,20 @@ HOSTED_V71_PREFIX = 'hosted-v71-predecessor-bytes/'
 HOSTED_V71_CHANGES = {VERIFY_WORKFLOW, SPARSE_CHECKOUT_TEST, INSPECTION_PROGRESS_TEST}
 HOSTED_V72_PREFIX = 'hosted-v72-predecessor-bytes/'
 HOSTED_V72_CHANGES = {VERIFY_WORKFLOW, SPARSE_CHECKOUT_TEST}
+HOSTED_V73_PREFIX = 'hosted-v73-predecessor-bytes/'
+HOSTED_V73_NEW_OWNERS = {'.github/workflows/hosted.yml', '.github/workflows/identity-network.yml'}
+HOSTED_V73_CHANGES = HOSTED_V72_CHANGES | HOSTED_V73_NEW_OWNERS
+ANDROID_INSPECTION_DEADLINE_PREFIX = 'android-inspection-deadline-predecessor-bytes/'
+ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE = ANDROID_INSPECTION_DEADLINE_PREFIX + SOURCE_INPUTS_MANIFEST
+ANDROID_INSPECTION_DEADLINE_SOURCE_SHA256 = '2a9d99e0dea712c70d7be383958e67cd040577565c847861b89c0fc598ba4fcd'
+ANDROID_INSPECTION_DEADLINE_SOURCE_CHANGES = {
+    'cli/Sources/MixerBuild/OwnedCommand.swift',
+    'scripts/ci/check-android-generated-java.py',
+}
+ANDROID_INSPECTION_DEADLINE_CHANGES = ANDROID_INSPECTION_DEADLINE_SOURCE_CHANGES | {
+    'cli/Tests/MixerBuildTests/AndroidInspectionPolicyReceiptTests.swift',
+    'scripts/ci/tests/test_android_generated_java_runner.py',
+}
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, STANDARDS_REPLAY_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
@@ -384,6 +398,11 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     HOSTED_V71_PREFIX + name for name in HOSTED_V71_CHANGES
 } | {
     HOSTED_V72_PREFIX + name for name in HOSTED_V72_CHANGES
+} | {
+    HOSTED_V73_PREFIX + name for name in HOSTED_V73_CHANGES
+} | {
+    ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE,
+    *(ANDROID_INSPECTION_DEADLINE_PREFIX + name for name in ANDROID_INSPECTION_DEADLINE_CHANGES),
 } | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
 } | {
@@ -521,7 +540,8 @@ def install_inputs():
                              'managed_android_retained_transition', 'pair25_transition', 'swift_version_transition',
                              'cli_nonregular_input_test_transition', 'signed_apple_overflow_test_transition',
                              'sparse_checkout_test_transition', 'release_rest_v3_transition', 'stock_promotion_transition',
-                             'hosted_v71_transition', 'hosted_v72_transition',
+                             'hosted_v71_transition', 'hosted_v72_transition', 'hosted_v73_transition',
+                             'android_inspection_deadline_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -1384,9 +1404,12 @@ def install_inputs():
         installed[name] = change['after']
         require(stat.S_IMODE((ROOT / name).lstat().st_mode) == change['mode'],
                 'Installed stock promotion owner mode differs: ' + name)
-    require(current == expected_source and len(current) == len(release_source) and binding['source'] == {
-        'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST, 'sha256': stock['sourceAfter'],
-    } and previous.digest(current) == stock['sourceAfter'], 'Stock promotion source transition differs')
+    inspection_source_path = HERE / ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE
+    inspection_source_before = previous.load(inspection_source_path)
+    require(inspection_source_before == expected_source and len(inspection_source_before) == len(release_source) and
+            previous.digest(inspection_source_before) == stock['sourceAfter'] and
+            stat.S_IMODE(inspection_source_path.lstat().st_mode) == 0o644,
+            'Stock promotion source transition differs')
 
     v71 = binding['hosted_v71_transition']
     require(set(v71) == {'changes'} and set(v71['changes']) == HOSTED_V71_CHANGES and
@@ -1417,6 +1440,50 @@ def install_inputs():
                 'Installed hosted v72 owner mode differs: ' + name)
         installed[name] = change['after']
         preimages.setdefault(name, (raw, 0o644))
+
+    v73 = binding['hosted_v73_transition']
+    require(set(v73) == {'changes'} and set(v73['changes']) == HOSTED_V73_CHANGES and
+            current.keys().isdisjoint(HOSTED_V73_CHANGES) and
+            installed.keys() & HOSTED_V73_CHANGES == HOSTED_V72_CHANGES,
+            'Hosted v73 archive change roster differs')
+    for name, change in v73['changes'].items():
+        path = HERE / HOSTED_V73_PREFIX / name
+        raw = read_predecessor_member(path)
+        require(set(change) == {'before', 'after'} and change['before'] != change['after'] and
+                change['before'] == previous.row(raw) and
+                stat.S_IMODE(path.lstat().st_mode) == 0o644,
+                'Hosted v73 predecessor bytes or mode differ: ' + name)
+        if name in installed:
+            require(change['before'] == installed[name], 'Hosted v73 predecessor chain differs: ' + name)
+        require(stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'Installed hosted v73 owner mode differs: ' + name)
+        installed[name] = change['after']
+        preimages.setdefault(name, (raw, 0o644))
+
+    inspection = binding['android_inspection_deadline_transition']
+    require(set(inspection) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            inspection['sourceBefore'] == stock['sourceAfter'] and
+            set(inspection['changes']) == ANDROID_INSPECTION_DEADLINE_CHANGES and
+            current.keys() & ANDROID_INSPECTION_DEADLINE_CHANGES == ANDROID_INSPECTION_DEADLINE_SOURCE_CHANGES,
+            'Android inspection deadline change roster differs')
+    for name, change in inspection['changes'].items():
+        path = HERE / ANDROID_INSPECTION_DEADLINE_PREFIX / name
+        raw = read_predecessor_member(path)
+        require(set(change) == {'before', 'after', 'mode'} and change['before'] != change['after'] and
+                change['before'] == previous.row(raw) == installed[name] and
+                change['mode'] == stat.S_IMODE(path.lstat().st_mode) ==
+                stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'Android inspection deadline owner bytes or mode differ: ' + name)
+        if name in ANDROID_INSPECTION_DEADLINE_SOURCE_CHANGES:
+            require(change['before'] == expected_source[name], 'Android inspection deadline source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        installed[name] = change['after']
+        preimages.setdefault(name, (raw, change['mode']))
+    require(current == expected_source and len(current) == len(inspection_source_before) == 153 and
+            previous.digest(current) == inspection['sourceAfter'] == ANDROID_INSPECTION_DEADLINE_SOURCE_SHA256 and
+            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
+                                  'sha256': ANDROID_INSPECTION_DEADLINE_SOURCE_SHA256},
+            'Android inspection deadline source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in release['changes'].items():
