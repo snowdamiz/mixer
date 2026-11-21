@@ -1,0 +1,122 @@
+diff --git a/ios/FieldLog/WorkspaceView.swift b/ios/FieldLog/WorkspaceView.swift
+index 6e23ce477e67248b99e287f9ea65dba6d728c07f..ed40917aea8ebecb3873fcb4ff9ed8f83819fa9d 100644
+--- a/ios/FieldLog/WorkspaceView.swift
++++ b/ios/FieldLog/WorkspaceView.swift
+@@ -75,8 +75,53 @@ private struct ProjectList: View {
+   let workspace: Workspace
+   let testing: Bool
+   let onAdd: () -> Void
+-  @State private var search = ""
++  @State private var pagination = ProjectListPagination()
+   var body: some View {
++    let page = pagination.page(in: workspace)
++    ScrollViewReader { scroll in
++      projectList(page)
++        .onChange(of: page.index) { _, _ in
++          scroll.scrollTo("project-list-top", anchor: .top)
++        }
++    }
++    .navigationTitle("FieldLog")
++    .searchable(text: $pagination.search, prompt: "Search projects or sites")
++    .onChange(of: page.lastIndex) { _, lastIndex in
++      pagination.clamp(to: lastIndex)
++    }
++    .safeAreaInset(edge: .bottom, spacing: 0) {
++      if page.count > 0 {
++        VStack(spacing: 6) {
++          Text(
++            "Showing \(page.projects.startIndex + 1) to \(page.projects.endIndex) of \(page.count) matching projects"
++          )
++          .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
++          .accessibilityIdentifier("project-page-range")
++          if page.lastIndex > 0 {
++            HStack {
++              Button("Previous page", systemImage: "chevron.left") {
++                pagination.index = page.index - 1
++              }.disabled(page.index == 0)
++              Spacer()
++              Button("Next page", systemImage: "chevron.right") {
++                pagination.index = page.index + 1
++              }.disabled(page.index == page.lastIndex)
++            }
++          }
++        }
++        .frame(maxWidth: .infinity)
++        .padding(.horizontal).padding(.vertical, 8)
++        .background(FieldStyle.paper)
++      }
++    }
++    .toolbar {
++      ToolbarItem(placement: .topBarTrailing) {
++        Button("New project", systemImage: "plus", action: onAdd)
++      }
++    }
++  }
++
++  private func projectList(_ page: ProjectListPagination.Page) -> some View {
+     List {
+       Section {
+         VStack(alignment: .leading, spacing: 12) {
+@@ -90,7 +135,7 @@ private struct ProjectList: View {
+           Text("A clear record\nof the work.").font(.largeTitle.weight(.semibold))
+           Text("Projects, checklists and field notes. Saved on this device.").font(.subheadline)
+             .foregroundStyle(.secondary)
+-        }.padding(.vertical, 12)
++        }.padding(.vertical, 12).id("project-list-top")
+       }.listRowBackground(Color.clear).listRowSeparator(.hidden)
+       if workspace.projects.isEmpty {
+         Section {
+@@ -107,7 +152,7 @@ private struct ProjectList: View {
+         }
+       } else {
+         Section("\(workspace.projects.count) PROJECT\(workspace.projects.count==1 ? "":"S")") {
+-          ForEach(workspace.matchingProjects(search)) { project in
++          ForEach(page.projects) { project in
+             NavigationLink(value: project.id) {
+               VStack(alignment: .leading, spacing: 9) {
+                 Text(project.title).font(.headline)
+@@ -127,17 +172,35 @@ private struct ProjectList: View {
+               }.padding(.vertical, 6)
+             }
+           }
+-          if workspace.matchingProjects(search).isEmpty {
+-            ContentUnavailableView.search(text: search)
++          if page.count == 0 {
++            ContentUnavailableView.search(text: pagination.search)
+           }
+         }
+       }
+-    }.scrollContentBackground(.hidden).background(FieldStyle.paper).navigationTitle("FieldLog")
+-      .searchable(text: $search, prompt: "Search projects or sites")
+-      .toolbar {
+-        ToolbarItem(placement: .topBarTrailing) {
+-          Button("New project", systemImage: "plus", action: onAdd)
+-        }
+-      }
++    }.scrollContentBackground(.hidden).background(FieldStyle.paper)
++  }
++}
++
++private struct ProjectListPagination {
++  typealias Page = (projects: ArraySlice<Project>, count: Int, index: Int, lastIndex: Int)
++
++  private static let pageSize = 20
++  var index = 0
++  var search = "" {
++    didSet {
++      if search != oldValue { index = 0 }
++    }
++  }
++
++  mutating func clamp(to lastIndex: Int) {
++    index = min(index, lastIndex)
++  }
++
++  func page(in workspace: Workspace) -> Page {
++    let matches = workspace.matchingProjects(search)
++    let lastIndex = max(0, matches.count - 1) / Self.pageSize
++    let index = min(self.index, lastIndex)
++    let start = index * Self.pageSize
++    return (matches[start..<min(start + Self.pageSize, matches.count)], matches.count, index, lastIndex)
+   }
+ }

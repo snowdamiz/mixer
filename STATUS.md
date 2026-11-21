@@ -1011,6 +1011,35 @@ development certificates and a fresh install in one disposable API 36
 emulator.
 [Installed exit receipt](verification/receipts/fieldlog-e39a5ea3-relocated-android-workspace-readback.json)
 
+## November 21 installed Android update refusals
+
+The Pair24 Android API 36 replay exercised 15 stages on one development
+install. FieldLog kept sequence 1 healthy after offers for a different
+app, environment, or runtime and after the size, truncation, malformed
+envelope, replay, and altered digest cases. The accepted sequence
+advanced to 9 and 11 for two payload refusals while sequence 1 stayed
+healthy. A valid sequence 12 activated later and reopened offline.
+Every stage preserved the saved draft, workspace, outbox, and JPEG.
+The checker matched the installed journal and all 24 loopback exchanges.
+All 474 command groups closed, the four fixture ports were reusable,
+and scratch was removed. The corresponding iOS scenarios remain open.
+[Installed matrix](verification/receipts/fieldlog-android-227-228-installed-95b9b959.json) ·
+[Fixture inputs](verification/receipts/fieldlog-android-227-228-inputs-95b9b959.json) ·
+[Fixture delta](verification/receipts/fieldlog-android-227-228-fixture-95b9b959.patch)
+
+## November 21 Apple project pagination
+
+The Apple project list shows 20 matching projects per page. It resets
+to the first page on a search edit and clamps the page if the result
+set shrinks. The generic arm64 iOS build passed. An independent macOS
+control checked a 24-project fixture, title and site search, page ranges,
+UUID navigation, and preservation of restoration state and the outbox.
+Installed UI and accessibility checks remain open. The separate Android
+project picker is under correction after its native renderer review.
+[Apple patch](verification/receipts/fieldlog-apple-project-pagination-00406fe7.patch) ·
+[Build receipt](verification/receipts/fieldlog-apple-project-pagination-00406fe7.json) ·
+[Host projection check](verification/receipts/fieldlog-apple-project-pagination-host-review-00406fe7.json)
+
 ## November 21 Android saved-draft validation
 
 One fresh FieldLog Pair24 development install on Android API 36 saved
@@ -1084,6 +1113,11 @@ and the disposable scratch was removed.
 [Source integration](verification/receipts/fieldlog-pair25-rust-notice-source-integration-v87.json) ·
 [Development APK build](verification/receipts/fieldlog-pair25-rust-notice-apk-00406fe7.json) ·
 [Independent APK readback](verification/receipts/fieldlog-pair25-rust-notice-apk-readback-00406fe7.json)
+
+All nine Owned Engine jobs passed on the Rust notice binding.
+Both Python modes admitted the same Source141 and Pair25 inputs, and
+all six Intel Java and D8 builds returned identical DEX bytes.
+[Hosted notice binding receipt](verification/receipts/hosted-pair25-rust-notice-95b9b959-terminal.json)
 
 ## November 20 generated release REST client
 
