@@ -180,7 +180,9 @@ pages displayed 26 real pending records from three scoped reads. The
 workspace reopened byte-for-byte, with zero writes. Pagination kept the
 previous page visible and input busy until the matching found response.
 Entries stopped at the historical handoff. All 34 replay groups closed.
-Independent review is underway. Native display and installed OTA remain open.
+Review found that a paging read expiring during admission could leave input
+busy after the mailbox acknowledged its cancellation. A correction and
+boundary replay are underway. Native display and installed OTA remain open.
 [Six-action replay](verification/receipts/fieldlog-f10-v3-signed-six-actions-2acaac67.json)
 
 The app-owned storage guide exercises the public installed storage adapter.
