@@ -1,0 +1,38 @@
+{
+  "source": "eca2ddd6f481933fd93ecd3435d8896e8795684c",
+  "cli_tree": "8e311e4a086c492cdb6af7bc8039f931083f41f1",
+  "hosted_tree": "dc62f09f9e2095e203d9702482c92a5cc9dc0f5e",
+  "platform": "arm64 macOS, Swift 6.4.2, Elixir 1.20.4/OTP 29, PostgreSQL 17.11",
+  "stock_cli_sha256": "30ec00dea60eb048bdc96df781617dec8d5a35941f25d71be704efc89d7155ac",
+  "signed_assignment_sha256": {
+    "ios": "dab5fd02dd8c5c56a154021e7b1a910c69a4468ee962dea745d173d23be9b913",
+    "android": "5d32c1ad299aa417b51ec6b381bdaab79b0141bf22c582c0c5199840a77eea21"
+  },
+  "replay": [
+    {
+      "command": "python3 -B cli/release-tools/generate_release_rest_v3.py --check --check-router",
+      "matched_routes": 7
+    },
+    {
+      "command": "swift test --package-path cli --disable-automatic-resolution --skip-update --filter ReleaseRESTV3Tests",
+      "passed": 5
+    },
+    {
+      "command": "MIXER_TEST_RELEASE_CLI=<stock mixer> MIXER_TEST_RELEASE_CANDIDATE=<owned directory> python3 -B hosted/scripts/test-local.py --output <fresh output> --only-additional-tests --additional-test hosted/test/mixer_hosted/releases/browser_publication_test.exs --test-timeout 150",
+      "passed": 7
+    }
+  ],
+  "ordinary_browser_fixture_source_sha256": "80c063ef2898df0222bae72cb973eb8b373a6f08bd716f91fe12d4ab91783acd",
+  "observed": [
+    "A forced commit failure exposed zero stage heads, publications, bindings, or release jobs.",
+    "The stock CLI then committed both destinations and returned the exact two receipts.",
+    "A second identical stock command matched the two receipts and the direct HTTP replay returned no-store.",
+    "The database retained both signed assignment spans byte-for-byte and contained one immutable binding and two destination jobs.",
+    "Changing signed JSON under the committed key produced an idempotency conflict."
+  ],
+  "fixture_cleanup": {
+    "postgres_stopped": true,
+    "scratch_removed": true
+  },
+  "scope": "Local stock CLI to the ordinary authenticated Phoenix listener backed by a disposable PostgreSQL fixture. Test code supplies the previously negotiated direction. Effective listener hardening, environment-based direction provisioning, and combined source seal are subsequent work."
+}
