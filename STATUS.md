@@ -639,6 +639,15 @@ The exact reviewed FieldLog writer preserved the saved follow-up flag during a s
 
 The signed FieldLog host kept the follow-up flag through an ordinary draft save while the rollback guest was active. The save advanced revision 3 to 4 and preserved record identity, JPEG bytes, the outbox prefix, and the restored draft. A fresh process reopened revision 4 with the re-upgraded guest from the installed cache. Mobile verification remains open. [Signed rollback receipt](verification/receipts/fieldlog-l08-signed-rollback-ordinary-save-20261119.json)
 
+The newer signed Commit composition on `dbb9275d58` also passed the
+optional-field rollback save on macOS. The older guest stayed healthy
+while the ordinary editor saved from its stale draft copy. Revision 4
+retained follow-up, the unrelated draft, JPEG, and outbox. A fresh process
+resumed the rollback guest from disk and re-upgraded without writing again.
+The replay uses a headless presentation witness and the current native
+writer. Installed mobile and service delivery remain open.
+[Current rollback save](verification/receipts/fieldlog-signed-rollback-ordinary-save-dbb9275d.json)
+
 The local release origin gave one Android installation its own signed offer for each of two recorded runtime fingerprints. Both offers and artifacts survived restart byte for byte. The origin and Swift verifier refused cross-runtime delivery, and an unknown runtime received no offer. The original APKs were unavailable, so the replay used their pinned descriptors. Native binary replacement remains open. [Android runtime cohort receipt](verification/receipts/fieldlog-android-runtime-cohort-offers-501eca8a.json)
 
 A same-signer Android FieldLog pair now has two distinct linked engine revisions and runtime identities. Both APKs passed signature, alignment, and package-version readback. The repeated host replay selected each signed offer and refused cross-runtime delivery across restart. Android in-place replacement and workspace continuity remain open. [Engine cohort pair](verification/receipts/fieldlog-android-engine-cohort-pair-20261119.json)

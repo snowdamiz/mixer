@@ -20,11 +20,17 @@ export PATH="$rust_bin:$PATH" GIT_ALLOW_PROTOCOL=file GIT_NO_LAZY_FETCH=1 SWIFTC
 mkdir -p "$mixer/verification/local"
 work="$(mktemp -d "$mixer/verification/local/fieldlog-signed-rollback-save.XXXXXXXX")"
 cleanup() {
+    if [[ "$1" -ne 0 ]]; then
+        printf 'Replay did not complete. Scratch retained at %s\n' "$work" >&2
+        return
+    fi
     rm -rf -- "$work"
     [[ ! -e "$work" ]]
     echo 'scratchRemoved=true'
 }
-trap cleanup EXIT
+trap 'cleanup "$?"' EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 export TMPDIR="$work/tmp" CLANG_MODULE_CACHE_PATH="$work/clang-cache"
 mkdir "$TMPDIR" "$work"/{recipe,mixer,swift-crypto,swift-asn1,lib,material}
 sources="$work/host-package/Sources/Replay"

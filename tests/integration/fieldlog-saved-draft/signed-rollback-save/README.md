@@ -20,8 +20,9 @@ tests/integration/fieldlog-saved-draft/signed-rollback-save/run.sh \
 Set `FIELDLOG_SWIFT_BIN` or `FIELDLOG_RUST_BIN` if your toolchains use other paths.
 The runner exports Mixer `dbb9275d58e1a2824c35870767551d2d9c8588bb` and checks
 each FieldLog patch step against the Apple editor recipe. It builds the candidate
-tree `380e764598c31181d16ef2fbb91c95bf95693375` and removes its private
-workspace on exit. In the pinned Mixer revision, the recipe is at
+tree `380e764598c31181d16ef2fbb91c95bf95693375`. Successful runs remove
+their private workspace. On failure or interruption, the runner prints and
+retains the scratch path for diagnosis. In the pinned Mixer revision, see
 `tests/integration/fieldlog-entry-save/apple-editor/README.md`.
 
 The signer creates an in-memory development key and reuses the exact signed
@@ -44,3 +45,8 @@ The headless fixture acknowledges the owner's actual presentation ticket and
 routes the optional action through the presentation handler. Both observations
 use test witnesses. Device UI, installed native-binary downgrade, and unknown
 schemas remain outside the replay's scope.
+
+The [recorded run](../../../../verification/receipts/fieldlog-signed-rollback-ordinary-save-dbb9275d.json) used the
+fixture bytes in `f9035a42e5`. Shell controls for the current runner
+confirmed scratch retention after failure, SIGINT, and SIGTERM and
+scratch removal after success.
