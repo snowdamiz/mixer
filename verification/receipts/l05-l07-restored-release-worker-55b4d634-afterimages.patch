@@ -1,0 +1,880 @@
+diff --git a/hosted/test/mixer_hosted/releases/browser_publication_test.exs b/hosted/test/mixer_hosted/releases/browser_publication_test.exs
+--- a/hosted/test/mixer_hosted/releases/browser_publication_test.exs
++++ b/hosted/test/mixer_hosted/releases/browser_publication_test.exs
+@@ -549,6 +549,7 @@
+
+       for value <- [source.android, destination.ios, destination.android],
+           do: seed_head!(value.enrollment.target)
++
+       seed_stage_direction!(direction)
+     end
+
+@@ -580,7 +581,7 @@
+         ])
+     }
+
+-    {default, _delivery} = provisioning = RuntimeProvisioning.load!(env, c.hosted)
++    {default, delivery} = provisioning = RuntimeProvisioning.load!(env, c.hosted)
+     writer = RuntimeProvisioning.writer_options!(env, c.hosted, provisioning)
+     directions = RuntimeProvisioning.stage_promotion_directions!(env, provisioning, writer)
+     assert directions == %{@promotion_direction => direction}
+@@ -588,6 +589,8 @@
+     replace_config!(WriterRepo, writer)
+     replace_config!(:local_release_target, default)
+     replace_config!(:local_stage_promotion_directions, directions)
++    if phase == "target", do: replace_config!(:local_release_delivery, delivery)
++
+     c = start!(c)
+     assert %{phase: :storage_ready} = RuntimeOwner.status()
+
+@@ -595,10 +598,14 @@
+     assert "browser_ordinary" == Keyword.fetch!(writer, :username)
+
+     assert [["browser_ordinary", "browser_ordinary", false, false]] =
+-             Ecto.Adapters.SQL.query!(WriterRepo, """
+-             SELECT current_user::text, session_user::text, rolsuper, rolbypassrls
+-             FROM pg_roles WHERE rolname=current_user
+-             """, []).rows
++             Ecto.Adapters.SQL.query!(
++               WriterRepo,
++               """
++               SELECT current_user::text, session_user::text, rolsuper, rolbypassrls
++               FROM pg_roles WHERE rolname=current_user
++               """,
++               []
++             ).rows
+
+     owner = login(c)
+     token = access_token!(c, owner)
+@@ -608,19 +615,29 @@
+       uploader = upload_identity!(c, login(c, :artifact_uploader))
+
+       for {label, group} <- [
+-            {"old-development", source}, {"old-staging", destination},
+-            {"new-development", successor_source}, {"new-staging", successor}
+-          ], {platform, value} <- group do
++            {"old-development", source},
++            {"old-staging", destination},
++            {"new-development", successor_source},
++            {"new-staging", successor}
++          ],
++          {platform, value} <- group do
+         signed = publication(value)
+
+-        envelope = Jason.encode!(%{
+-          signed_manifest: Jason.Fragment.new(signed.evidence.signed_manifest_bytes),
+-          payload: Base.encode64(signed.evidence.payload)
+-        })
++        envelope =
++          Jason.encode!(%{
++            signed_manifest: Jason.Fragment.new(signed.evidence.signed_manifest_bytes),
++            payload: Base.encode64(signed.evidence.payload)
++          })
+
+         assert {:ok, %{status: 201}} =
+-                 upload!(c, uploader, Map.from_struct(value.enrollment), signed.artifact_sha256,
+-                   envelope, "#{label}-#{platform}")
++                 upload!(
++                   c,
++                   uploader,
++                   Map.from_struct(value.enrollment),
++                   signed.artifact_sha256,
++                   envelope,
++                   "#{label}-#{platform}"
++                 )
+       end
+
+       for {platform, value} <- source do
+@@ -629,8 +646,13 @@
+         Application.put_env(:mixer_hosted, :local_release_target, config)
+
+         assert {:ok, %{sequence: sequence}} =
+-                 RuntimeOwner.publish_release(owner, config.target,
+-                   signed.evidence.signed_assignment_bytes, "baseline-#{platform}", @reason)
++                 RuntimeOwner.publish_release(
++                   owner,
++                   config.target,
++                   signed.evidence.signed_assignment_bytes,
++                   "baseline-#{platform}",
++                   @reason
++                 )
+
+         assert sequence == signed.sequence
+       end
+@@ -638,15 +660,19 @@
+       Application.put_env(:mixer_hosted, :local_release_target, default)
+     end
+
+-    {from, to} = if phase == "source", do: {source, destination}, else: {successor_source, successor}
+-    body = Jason.encode!(%{
+-      source_ios_sequence: publication(from.ios).sequence,
+-      source_android_sequence: publication(from.android).sequence,
+-      ios_signed_assignment: Jason.Fragment.new(spaced_assignment(to.ios)),
+-      android_signed_assignment: Jason.Fragment.new(spaced_assignment(to.android))
+-    })
++    {from, to} =
++      if phase == "source", do: {source, destination}, else: {successor_source, successor}
++
++    body =
++      Jason.encode!(%{
++        source_ios_sequence: publication(from.ios).sequence,
++        source_android_sequence: publication(from.android).sequence,
++        ios_signed_assignment: Jason.Fragment.new(spaced_assignment(to.ios)),
++        android_signed_assignment: Jason.Fragment.new(spaced_assignment(to.android))
++      })
+
+     before = restore_write_state()
++
+     if phase == "target" do
+       assert length(before["binding"]) == 1
+       assert length(before["history"]) == 6
+@@ -654,18 +680,24 @@
+       assert length(before["artifact_audit"]) == 8
+     end
+
+-    request = fn -> promotion_post(c, token, @promotion_path, body, [{"x-mixer-reason", @reason}], key) end
++    request = fn ->
++      promotion_post(c, token, @promotion_path, body, [{"x-mixer-reason", @reason}], key)
++    end
++
+     response = request.()
+     assert response.status == 200
++
+     expected = %{
+       "delivery" => "local_only",
+       "ios" => promotion_receipt(to.ios),
+       "android" => promotion_receipt(to.android)
+     }
++
+     assert Jason.decode!(response.body) == expected
+     assert response_header(response, "cache-control") == ["no-store"]
+
+     committed = restore_write_state()
++
+     added = fn bucket ->
+       assert before[bucket] -- committed[bucket] == []
+       committed[bucket] -- before[bucket]
+@@ -677,10 +709,15 @@
+     assert binding["principal_id"] == "person-1"
+     assert binding["writer_role"] == "browser_ordinary"
+     assert binding["reason"] == @reason
++
+     for {field, expected} <- [
+-          {"organization_id", "org-a"}, {"project_id", "project-a"}, {"application_id", "fieldlog"},
+-          {"source_environment_id", "development"}, {"destination_environment_id", "staging"}
+-        ], do: assert(binding[field] == expected)
++          {"organization_id", "org-a"},
++          {"project_id", "project-a"},
++          {"application_id", "fieldlog"},
++          {"source_environment_id", "development"},
++          {"destination_environment_id", "staging"}
++        ],
++        do: assert(binding[field] == expected)
+
+     assert length(added.("history")) == 2
+     assert length(added.("jobs")) == 2
+@@ -694,7 +731,10 @@
+       previous = if phase == "source", do: nil, else: publication(destination[platform]).sequence
+       source_signed = publication(from[platform])
+       target = value.enrollment.target
+-      filter = Map.new(Target.filter(target), fn {field, item} -> {Atom.to_string(field), item} end)
++
++      filter =
++        Map.new(Target.filter(target), fn {field, item} -> {Atom.to_string(field), item} end)
++
+       assert [row] = Enum.filter(added.("history"), &(&1["platform"] == platform_name))
+       assert Map.take(row, Map.keys(filter)) == filter
+       assert row["sequence"] == signed.sequence
+@@ -709,12 +749,19 @@
+       assert binding["destination_#{platform}_sequence"] == signed.sequence
+       assert binding["destination_#{platform}_artifact_sha256"] == signed.artifact_sha256
+       assert [job] = Enum.filter(added.("jobs"), &(&1["args"]["platform"] == platform_name))
+-      assert job["args"] == Map.merge(filter, %{"version" => 1, "sequence" => Integer.to_string(signed.sequence)})
++
++      assert job["args"] ==
++               Map.merge(filter, %{
++                 "version" => 1,
++                 "sequence" => Integer.to_string(signed.sequence)
++               })
++
+       assert [job["queue"], job["worker"], job["state"], job["attempt"]] ==
+                ["releases", "MixerHosted.Releases.ReleaseJobs.Materialize", "available", 0]
+
+       assert %{"kind" => "published", "release" => release, "target" => wire} =
+                read!(c, owner, target, :details_v2)
++
+       assert wire == string_keys(Target.wire(target))
+       assert release["sequence"] == Integer.to_string(signed.sequence)
+       assert release["releaseId"] == value.manifest["release_id"]
+@@ -728,8 +775,9 @@
+       "ios" => browser_promotion_receipt(to.ios),
+       "android" => browser_promotion_receipt(to.android)
+     }
++
+     for value <- Map.values(to),
+-      do: assert(read!(c, owner, value.enrollment.target, promotion_view(value)) == group)
++        do: assert(read!(c, owner, value.enrollment.target, promotion_view(value)) == group)
+
+     retry = request.()
+     assert retry.status == 200
+@@ -744,42 +792,270 @@
+         "ios" => put_in(browser_promotion_receipt(destination.ios)["headSequence"], "4"),
+         "android" => put_in(browser_promotion_receipt(destination.android)["headSequence"], "13")
+       }
++
+       for value <- Map.values(destination),
+-        do: assert(read!(c, owner, value.enrollment.target, promotion_view(value)) == old_group)
++          do: assert(read!(c, owner, value.enrollment.target, promotion_view(value)) == old_group)
+
+       other = login(c, :other_tenant)
++
+       for value <- Map.values(to),
+-        do: assert_status(c, other, value.enrollment.target, 404, promotion_view(value))
++          do: assert_status(c, other, value.enrollment.target, 404, promotion_view(value))
+     end
+
+     evidence = %{
+-      phase: phase, status: response.status, receipt: expected, exact_retry_body: true,
+-      retry_state_equal: true, binding: binding, publications: added.("history"),
+-      jobs: added.("jobs"), group: group, previous_rows_preserved: true,
+-      previous_group_read: phase == "target", other_tenant_status: if(phase == "target", do: 404),
++      phase: phase,
++      status: response.status,
++      receipt: expected,
++      exact_retry_body: true,
++      retry_state_equal: true,
++      binding: binding,
++      publications: added.("history"),
++      jobs: added.("jobs"),
++      group: group,
++      previous_rows_preserved: true,
++      previous_group_read: phase == "target",
++      other_tenant_status: if(phase == "target", do: 404),
+       writer: "browser_ordinary",
+       request_body_sha256: MixerHosted.Test.StagePromotionSigningFixture.digest(body)
+     }
+-    File.write!(System.fetch_env!("MIXER_RESTORED_WRITE_RESULT"), Jason.encode!(evidence), [:exclusive])
++
++    write_restore_evidence!("RESULT", evidence)
++
++    if phase == "target" do
++      assert :ok = Application.stop(:mixer_hosted)
++      processed = process_restored_release_jobs!(c, evidence.jobs)
++
++      write_restore_evidence!("PROCESSOR", processed)
++      restarted = start!(c)
++      assert %{phase: :storage_ready} = RuntimeOwner.status()
++
++      assert [["mixer_release_delivery", "mixer_release_delivery", false, false, true]] =
++               DB.q!(DeliveryRepo, """
++               SELECT current_user::text, session_user::text, rolsuper, rolbypassrls,
++                      inet_server_addr() IS NULL
++               FROM pg_roles WHERE rolname=current_user
++               """).rows
++
++      deliveries =
++        Map.new(to, fn {platform, value} ->
++          other = if platform == :ios, do: to.android, else: to.ios
++          {platform, verify_restored_delivery!(restarted, value, other)}
++        end)
++
++      assert release_processor_rows!() == processed.rows
++      assert Map.drop(restore_write_state(), ["jobs"]) == Map.drop(committed, ["jobs"])
++
++      write_restore_evidence!("DELIVERY", %{
++        reader: "mixer_release_delivery",
++        private_unix_socket: true,
++        platforms: deliveries,
++        unchanged_jobs_and_projections_after_reads: true,
++        unchanged_release_ledger: true
++      })
++    end
++  end
++
++  defp process_restored_release_jobs!(c, committed_jobs) do
++    assert [[0]] =
++             DB.q!(Admin, "SELECT count(*) FROM mixer_release_jobs.offer_materializations").rows
++
++    processor =
++      MixerHosted.Identity.StartupFixture.foundation_env()
++      |> Map.merge(%{
++        "MIXER_HOSTED_ROLE" => "processor",
++        "MIXER_PROCESSOR_PROFILE" => "releases_v1",
++        "MIXER_DATABASE_USER" => "mixer_release_processor"
++      })
++      |> Map.delete("MIXER_SECRET_KEY_BASE")
++      |> MixerHosted.RuntimeConfig.load!()
++
++    connection = Keyword.take(c.hosted.repo, [:hostname, :socket_dir, :port, :database, :ssl])
++    processor = %{processor | repo: Keyword.merge(processor.repo, connection)}
++    configure!(%{c | hosted: processor}, :disabled)
++    assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
++
++    try do
++      refute Process.whereis(MixerHostedWeb.Endpoint)
++      refute Process.whereis(WriterRepo)
++      refute Process.whereis(DeliveryRepo)
++      assert %{queue: "releases", limit: _} = Oban.check_queue(queue: :releases)
++
++      assert [["mixer_release_processor", "mixer_release_processor", false, false, true]] =
++               DB.q!(MixerHosted.Repo, """
++               SELECT current_user::text, session_user::text, rolsuper, rolbypassrls,
++                      inet_server_addr() IS NULL
++               FROM pg_roles WHERE rolname=current_user
++               """).rows
++
++      await_release_jobs!(
++        List.duplicate(["completed"], 8),
++        System.monotonic_time(:millisecond) + 20_000
++      )
++
++      rows = release_processor_rows!()
++      assert length(rows) == 8
++
++      assert [[8]] =
++               DB.q!(Admin, "SELECT count(*) FROM mixer_release_jobs.offer_materializations").rows
++
++      for row <- rows do
++        assert row["state"] == "completed"
++        assert row["attempt"] == 1
++        assert row["queue"] == "releases"
++        assert row["worker"] == "MixerHosted.Releases.ReleaseJobs.Materialize"
++        assert row["exact_publication"]
++      end
++
++      for job <- committed_jobs do
++        assert [row] = Enum.filter(rows, &(&1["job_id"] == job["id"]))
++        assert row["args"] == job["args"]
++        assert row["action"] == "stage_promote"
++      end
++
++      %{
++        role: "mixer_release_processor",
++        profile: processor.processor_profile,
++        queue: "releases",
++        engine: "Oban.Engines.Basic",
++        private_unix_socket: true,
++        projections_before: 0,
++        projections_after: length(rows),
++        rows: rows
++      }
++    after
++      assert :ok = Application.stop(:mixer_hosted)
++    end
++  end
++
++  defp release_processor_rows! do
++    DB.q!(Admin, """
++    SELECT jsonb_build_object(
++      'job_id', j.id, 'args', j.args, 'queue', j.queue, 'worker', j.worker,
++      'state', j.state, 'attempt', j.attempt, 'action', m.action,
++      'artifact_sha256', m.artifact_sha256, 'rollout_basis_points', m.rollout_basis_points,
++      'assignment_wire_sha256', encode(sha256(m.signed_assignment_bytes), 'hex'),
++      'exact_publication', m.signed_assignment_bytes = p.signed_assignment_bytes
++        AND m.artifact_sha256 = p.artifact_sha256
++        AND m.rollout_basis_points = p.rollout_basis_points AND m.action = p.action)
++    FROM mixer_release_jobs.offer_materializations m
++    JOIN public.mixer_release_publications p USING
++      (organization_id,project_id,application_id,environment_id,platform,runtime_sha256,channel,sequence)
++    JOIN mixer_release_jobs.oban_jobs j ON j.args = jsonb_build_object(
++      'organization_id', m.organization_id, 'project_id', m.project_id,
++      'application_id', m.application_id, 'environment_id', m.environment_id,
++      'platform', m.platform, 'runtime_sha256', m.runtime_sha256, 'channel', m.channel,
++      'sequence', m.sequence::text, 'version', 1)
++    ORDER BY j.id
++    """).rows
++    |> Enum.map(fn [row] -> row end)
++  end
++
++  defp verify_restored_delivery!(c, value, other) do
++    alias MixerHosted.Test.StagePromotionSigningFixture, as: Signing
++
++    signed = publication(value)
++    target = value.enrollment.target
++
++    coordinates =
++      Target.signed_scope(target)
++      |> Map.merge(%{
++        "runtime" => target.runtime_sha256,
++        "channel" => target.channel
++      })
++
++    offer_path = delivery_path(target, "restored-worker-fixture")
++    base = "/v3/artifacts/#{signed.artifact_sha256}?"
++    artifact_path = base <> URI.encode_query(coordinates)
++
++    envelope =
++      Jason.encode!(%{
++        signed_manifest: Jason.Fragment.new(signed.evidence.signed_manifest_bytes),
++        payload: Base.encode64(value.payload)
++      })
++
++    {offer, artifact} =
++      assert_delivery(
++        c,
++        offer_path,
++        artifact_path,
++        spaced_assignment(value),
++        envelope,
++        value.enrollment
++      )
++
++    assert {:ok, %{manifest_sha256: manifest_digest, payload_sha256: payload_digest}} =
++             ArtifactAdmission.admit(
++               artifact,
++               value.enrollment.host,
++               value.enrollment.roots,
++               System.system_time(:second)
++             )
++
++    assert manifest_digest == signed.artifact_sha256
++    assert payload_digest == Signing.digest(value.payload)
++    wrong_tenant = Map.put(coordinates, "organization", "org-b")
++
++    cross_platform =
++      coordinates
++      |> Map.put("platform", other.enrollment.target.platform)
++      |> Map.put("runtime", other.enrollment.target.runtime_sha256)
++
++    assert %{status: 404} = http(c, base <> URI.encode_query(wrong_tenant), [])
++    assert %{status: 404} = http(c, base <> URI.encode_query(cross_platform), [])
++    assert_no_offer(c, delivery_path(%{target | channel: "other"}, "restored-worker-fixture"))
++
++    # Preserve the exact signed-manifest fragment's hash separately from the envelope.
++    assert length(:binary.matches(artifact, signed.evidence.signed_manifest_bytes)) == 1
++
++    %{
++      target: coordinates,
++      sequence: signed.sequence,
++      installation: "restored-worker-fixture",
++      offer_path: offer_path,
++      artifact_path: artifact_path,
++      offer_http: 200,
++      artifact_http: 200,
++      signed_assignment_sha256: Signing.digest(spaced_assignment(value)),
++      offer_wire_sha256: Signing.digest(offer),
++      signed_manifest_wire_sha256: Signing.digest(signed.evidence.signed_manifest_bytes),
++      canonical_manifest_sha256: manifest_digest,
++      artifact_wire_sha256: Signing.digest(artifact),
++      artifact_wire_bytes: byte_size(artifact),
++      payload_sha256: payload_digest,
++      payload_bytes: byte_size(value.payload),
++      other_tenant_artifact_http: 404,
++      other_platform_artifact_http: 404,
++      other_channel_offer_http: 204
++    }
++  end
++
++  defp write_restore_evidence!(name, evidence) do
++    path = System.fetch_env!("MIXER_RESTORED_WRITE_#{name}")
++    File.write!(path, Jason.encode!(evidence), [:exclusive, :sync])
+   end
+
+   defp restore_write_state do
+-    Map.new([
+-      {"binding", "public.mixer_stage_promotion_bindings", "true"},
+-      {"history", "public.mixer_release_publications", "true"},
+-      {"jobs", "mixer_release_jobs.oban_jobs", "true"},
+-      {"artifact_audit", "public.mixer_customer_audit_events", "true"},
+-      {"artifacts", "public.mixer_customer_artifacts", "true"},
+-      {"heads", "public.mixer_release_heads", "true"}
+-    ], fn {key, table, where} ->
+-      [[rows]] = DB.q!(Admin, """
+-      SELECT COALESCE(jsonb_agg(j ORDER BY j::text), '[]') FROM (
+-        SELECT to_jsonb(t) - 'signed_assignment_bytes' - 'payload_bytes' - 'signed_manifest_bytes' AS j
+-        FROM #{table} t WHERE #{where}
+-      ) q
+-      """).rows
+-      {key, rows}
+-    end)
++    Map.new(
++      [
++        {"binding", "public.mixer_stage_promotion_bindings", "true"},
++        {"history", "public.mixer_release_publications", "true"},
++        {"jobs", "mixer_release_jobs.oban_jobs", "true"},
++        {"artifact_audit", "public.mixer_customer_audit_events", "true"},
++        {"artifacts", "public.mixer_customer_artifacts", "true"},
++        {"heads", "public.mixer_release_heads", "true"}
++      ],
++      fn {key, table, where} ->
++        [[rows]] =
++          DB.q!(Admin, """
++          SELECT COALESCE(jsonb_agg(j ORDER BY j::text), '[]') FROM (
++            SELECT to_jsonb(t) - 'signed_assignment_bytes' - 'payload_bytes' - 'signed_manifest_bytes' AS j
++            FROM #{table} t WHERE #{where}
++          ) q
++          """).rows
++
++        {key, rows}
++      end
++    )
+   end
+
+   defp assert_promotion_groups!(c, owner, other, destination, source, request, response_payload) do
+@@ -2243,7 +2519,7 @@
+           "-At",
+           "-w",
+           "-h",
+-          "127.0.0.1",
++          System.get_env("MIXER_RESTORED_WRITE_SOCKET", "127.0.0.1"),
+           "-p",
+           to_string(DB.port()),
+           "-U",
+diff --git a/hosted/test/support/ordinary_browser_startup_fixture.ex b/hosted/test/support/ordinary_browser_startup_fixture.ex
+--- a/hosted/test/support/ordinary_browser_startup_fixture.ex
++++ b/hosted/test/support/ordinary_browser_startup_fixture.ex
+@@ -247,6 +247,7 @@
+
+     settings = [
+       hostname: "127.0.0.1",
++      socket_dir: System.get_env("MIXER_RESTORED_WRITE_SOCKET"),
+       port: F.port(),
+       database: "browser_ordinary_installation_r1422",
+       pool_size: 2,
+@@ -424,6 +425,7 @@
+
+     life = [
+       hostname: "127.0.0.1",
++      socket_dir: System.get_env("MIXER_RESTORED_WRITE_SOCKET"),
+       port: F.port(),
+       database: "browser_ordinary_installation_r1422",
+       username: "browser_lifecycle",
+@@ -574,7 +576,8 @@
+     record_restore_port("provider", provider_port)
+
+     unless promotion_restore == "target" do
+-      for sql <- MixerHosted.CustomerBuildCatalog.Schema.private_statements(), do: F.q!(Admin, sql)
++      for sql <- MixerHosted.CustomerBuildCatalog.Schema.private_statements(),
++          do: F.q!(Admin, sql)
+     end
+
+     base = MixerHosted.RuntimeConfig.load!(MixerHosted.Identity.StartupFixture.foundation_env())
+@@ -911,6 +914,7 @@
+     {:ok, conn} =
+       Postgrex.start_link(
+         hostname: "127.0.0.1",
++        socket_dir: System.get_env("MIXER_RESTORED_WRITE_SOCKET"),
+         port: port(),
+         username: role,
+         database: database,
+diff --git a/replay-restored-worker.py b/replay-restored-worker.py
+new file mode 100644
+--- /dev/null
++++ b/replay-restored-worker.py
+@@ -0,0 +1,281 @@
++#!/usr/bin/env python3
++"""Run the paired-release restore test in an already prepared private projection."""
++
++import hashlib
++import json
++import os
++from pathlib import Path
++import platform
++import signal
++import socket
++import subprocess
++import sys
++import time
++
++
++def digest(data):
++    return hashlib.sha256(data).hexdigest()
++
++
++def group_absent(pid):
++    try:
++        os.killpg(pid, 0)
++    except ProcessLookupError:
++        return True
++    except PermissionError:
++        return False
++    return False
++
++
++def main(root):
++    hosted = root / "hosted"
++    artifact_repair = root / "tests/integration/phoenix-release-restore/restore-artifact-key.sql"
++    database = "browser_ordinary_installation_r1422"
++    revisions = hosted / "test/mixer_hosted/releases/browser_publication_test.exs"
++    test_line = next(number for number, line in enumerate(revisions.read_text().splitlines(), 1)
++                     if 'test "commits a new paired promotion on the restored ordinary database"' in line)
++    roles_sql = """
++CREATE ROLE browser_admin LOGIN SUPERUSER;
++CREATE ROLE browser_schema_owner NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;
++CREATE ROLE browser_writer NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;
++CREATE ROLE browser_lifecycle LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;
++CREATE ROLE browser_ordinary LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;
++CREATE ROLE mixer_customer_build_catalog_definer_v1 NOLOGIN NOSUPERUSER NOBYPASSRLS
++  NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT;
++CREATE DATABASE browser_storage OWNER browser_schema_owner;
++"""
++    report = {"status": "failed", "commands": [], "clusters": {}, "rebinds": []}
++    active = {}
++    env = {key: value for key, value in os.environ.items() if not key.startswith("PG")}
++    env.update(MIX_ENV="test", HEX_OFFLINE="1", ERL_FLAGS="+S 6:6", TMPDIR=str(root))
++    deadline = time.monotonic() + 615
++    started = time.monotonic()
++
++    def check(condition, message):
++        if not condition:
++            raise RuntimeError(message)
++
++    def step(name, argv, *, timeout=20, data=None, extra=None, cwd=root):
++        log_path = root / (name + ".log")
++        error_path = root / (name + ".stderr")
++        evidence = {"name": name, "argv": [str(a).replace(str(root), "<scratch>") for a in argv]}
++        report["commands"].append(evidence)
++        with log_path.open("xb") as log, error_path.open("xb") as error:
++            stdin = root / (name + ".stdin")
++            stdin.write_bytes(data or b"")
++            with stdin.open("rb") as source:
++                evidence["groupAbsent"] = False
++                child = subprocess.Popen(argv, cwd=cwd, env=env | (extra or {}), start_new_session=True,
++                                         stdin=source, stdout=log, stderr=error)
++                evidence["pidPgid"] = child.pid
++                evidence["exit"] = child.wait(timeout=max(0.1, min(timeout, deadline - time.monotonic())))
++                evidence["groupAbsent"] = group_absent(child.pid)
++
++        check(evidence["groupAbsent"], f"{name}: command group absence unconfirmed")
++        raw = log_path.read_bytes()
++        error = error_path.read_bytes()
++        evidence.update(stdoutSha256=digest(raw), stderrSha256=digest(error))
++        if evidence["exit"] != 0:
++            evidence["failureTail"] = (raw + b"\n" + error).decode(errors="replace").splitlines()[-38:]
++            raise RuntimeError(f"{name}: exit {evidence['exit']}")
++        return raw
++
++    def psql(phase, name, database, *, sql=None, file=None):
++        sock = root / phase / "socket"
++        argv = ["psql", "-X", "-qAt", "-w", "-h", str(sock), "-p", "5432",
++                "-U", "mixer_fixture", "-d", database, "-v", "ON_ERROR_STOP=1"]
++        if file is not None:
++            argv += ["-f", str(file)]
++        return step(f"{phase}-{name}", argv, data=sql.encode() if sql else None)
++
++    def verify_rebind(phase, kind, target):
++        family = socket.AF_UNIX if kind == "postgres" else socket.AF_INET
++        record = {"phase": phase, "listener": kind,
++                  "address": str(target).replace(str(root), "<scratch>"), "rebound": False}
++        report["rebinds"].append(record)
++        with socket.socket(family) as server:
++            if family == socket.AF_INET:
++                server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
++            server.bind(target)
++            server.listen(1)
++            record["rebound"] = True
++        if family == socket.AF_UNIX:
++            Path(target).unlink()
++
++    def cluster(phase):
++        directory = root / phase
++        directory.mkdir(mode=0o700)
++        sock = directory / "socket"
++        sock.mkdir(mode=0o700)
++        pgdata = directory / "pgdata"
++        step(phase + "-initdb", ["initdb", "-D", str(pgdata), "-U", "mixer_fixture",
++                                "--auth-local=trust", "--auth-host=scram-sha-256",
++                                "--no-locale", "-E", "UTF8"])
++        # Only the private directory is reachable. Retain explicit host rejection in pg_hba as well.
++        (pgdata / "pg_hba.conf").write_text("local all all trust\nhost all all all reject\n")
++        argv = ["postgres", "-D", str(pgdata), "-h", "", "-p", "5432", "-k", str(sock),
++                "-c", "unix_socket_permissions=0700", "-c", "timezone=UTC", "-c", "max_connections=32"]
++        entry = {"argv": [a.replace(str(root), "<scratch>") for a in argv],
++                 "groupAbsent": False, "socketDirectoryMode": oct(sock.stat().st_mode & 0o777)}
++        report["clusters"][phase] = entry
++        with (directory / "postgres.log").open("xb") as log:
++            server = subprocess.Popen(argv, env=env, start_new_session=True,
++                                      stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT)
++        entry["pidPgid"] = server.pid
++        active[phase] = server
++        socket_path = sock / ".s.PGSQL.5432"
++        ready = time.monotonic() + 10
++        while not socket_path.exists() and server.poll() is None and time.monotonic() < ready:
++            time.sleep(0.025)
++        check(socket_path.exists(), phase + " PostgreSQL socket failed to appear")
++        output = psql(phase, "identity", "postgres", sql="""
++SELECT system_identifier FROM pg_control_system();
++SELECT inet_server_addr() IS NULL AND current_setting('listen_addresses') = '';
++""").decode().splitlines()
++        check(len(output) == 2 and output[1] == "t", "unexpected PostgreSQL listener")
++        entry.update(systemId=output[0], unixSocketOnly=True)
++
++    def stop(phase):
++        server = active[phase]
++        entry = report["clusters"][phase]
++        if server.poll() is None:
++            server.send_signal(signal.SIGINT)  # PostgreSQL fast shutdown requests backend exit.
++        entry["exit"] = server.wait(timeout=15)
++        entry["groupAbsent"] = group_absent(server.pid)
++        check(entry["groupAbsent"], f"{phase} PostgreSQL group absence unconfirmed")
++        del active[phase]
++        if entry.get("unixSocketOnly"):
++            verify_rebind(phase, "postgres", str(root / phase / "socket" / ".s.PGSQL.5432"))
++        check(entry["exit"] == 0, f"{phase} PostgreSQL exited {entry['exit']}")
++
++    def fixture(phase):
++        directory = root / phase
++        catalog = directory / "catalog"
++        catalog.mkdir()
++        ports = directory / "ports"
++        extra = {
++            "MIXER_BROWSER_STORAGE_PORT": "5432",
++            "MIXER_BROWSER_CATALOG_FIXTURE_ROOT": str(catalog),
++            "MIXER_RESTORED_WRITE_SOCKET": str(directory / "socket"),
++            "MIXER_RESTORED_WRITE_PHASE": phase,
++            "MIXER_RESTORED_WRITE_BUNDLE": str(root / "signer-bundle"),
++            "MIXER_RESTORED_WRITE_PORTS": str(ports),
++            **{f"MIXER_RESTORED_WRITE_{name.upper()}": str(directory / (name + ".json"))
++               for name in ("result", "processor", "delivery")},
++        }
++        try:
++            raw = step(f"{phase}-http-test",
++                       ["mix", "test", "--warnings-as-errors", "--trace", "--no-color", "--seed", "0",
++                        "--timeout", "90000", f"{revisions.relative_to(hosted)}:{test_line}"],
++                       timeout=130, extra=extra, cwd=hosted)
++            report[phase + "ExUnit"] = raw.decode().splitlines()[-6:]
++        finally:
++            if report["commands"][-1].get("groupAbsent") and ports.exists():
++                for line in ports.read_text().splitlines():
++                    kind, port = line.split()
++                    verify_rebind(phase, kind, ("127.0.0.1", int(port)))
++            for key in ("result", "processor", "delivery"):
++                path = directory / (key + ".json")
++                if path.exists():
++                    report[phase + "_" + key] = json.loads(path.read_text())
++
++    def snapshot(phase):
++        relations = (
++            "public.schema_migrations", "public.mixer_release_heads",
++            "public.mixer_release_publications", "public.mixer_stage_promotion_bindings",
++            "public.mixer_stage_promotion_directions", "public.mixer_release_delivery_enrollments",
++            "public.mixer_customer_artifacts", "mixer_release_jobs.oban_jobs",
++            "mixer_release_jobs.offer_materializations",
++        )
++        # Hash each row independently, then compare the stable set of row hashes per table.
++        return psql(phase, "snapshot", database, sql="\n".join(
++            f"SELECT '{table}', count(*), md5(coalesce(string_agg(d,'|' ORDER BY d), '')) "
++            f"FROM (SELECT md5(to_jsonb(t)::text) AS d FROM {table} t) s;"
++            for table in relations))
++
++    try:
++        report["tools"] = {
++            "host": f"{platform.system()} {platform.machine()}",
++            "python": platform.python_version(),
++            **{command: step(command + "-version", [command, "--version"]).decode().strip()
++               for command in ("mix", "postgres", "pg_dump", "pg_restore")}
++        }
++        step("compile", ["mix", "compile", "--warnings-as-errors"], timeout=140, cwd=hosted)
++        cluster("source")
++        psql("source", "bootstrap-roles", "postgres", sql=roles_sql)
++        fixture("source")
++        psql("source", "freeze", "postgres",
++             sql="ALTER SYSTEM SET default_transaction_read_only=on;\nSELECT pg_reload_conf();\n")
++        source_socket = str(root / "source" / "socket")
++        read_only = psql("source", "read-only", database, sql="SHOW default_transaction_read_only;").strip()
++        check(read_only == b"on", "source database did not freeze")
++        source_snapshot = snapshot("source")
++        dump = root / "release.dump"
++        roles = root / "roles.sql"
++        login = ["-h", source_socket, "-p", "5432", "-U", "mixer_fixture", "-w"]
++        step("source-dump", ["pg_dump", *login, "-Fc", "-f", str(dump), database])
++        step("source-dump-roles", ["pg_dumpall", *login, "--roles-only", "--no-role-passwords",
++                                    "--no-comments", "-f", str(roles)])
++        report["backup"] = {"dumpSha256": digest(dump.read_bytes()),
++                            "passwordFreeRolesSha256": digest(roles.read_bytes()),
++                            "sourceSnapshotSha256": digest(source_snapshot)}
++        stop("source")
++
++        cluster("target")
++        check(report["clusters"]["source"]["systemId"] != report["clusters"]["target"]["systemId"],
++              "restore did not create a distinct PostgreSQL cluster")
++        absent_sql = f"SELECT NOT EXISTS (SELECT FROM pg_database WHERE datname='{database}');"
++        check(psql("target", "db-absent", "postgres", sql=absent_sql).strip() == b"t",
++              "destination database already present")
++        psql("target", "restore-roles", "postgres", file=roles)
++        dest_socket = str(root / "target" / "socket")
++        step("target-restore", ["pg_restore", "-h", dest_socket, "-p", "5432", "-U",
++                                "mixer_fixture", "-w", "--exit-on-error", "--create", "-d", "postgres",
++                                str(dump)])
++        psql("target", "repair-authz-checks", database, file=root / "scripts/restore-local-authz-expiry.sql")
++        psql("target", "repair-artifact-check", database, file=artifact_repair)
++        dest_snapshot = snapshot("target")
++        report["backup"]["targetSnapshotSha256"] = digest(dest_snapshot)
++        report["backup"]["snapshotsEqual"] = source_snapshot == dest_snapshot
++        report["backup"]["counts"] = {
++            row.split("|")[0]: int(row.split("|")[1]) for row in dest_snapshot.decode().splitlines()
++        }
++        check(source_snapshot == dest_snapshot, "restored pre-promotion ledger differs from backup")
++        fixture("target")
++
++        processor = report["target_processor"]
++        for item in report["target_delivery"]["platforms"].values():
++            jobs = [row for row in processor["rows"] if row["args"]["platform"] == item["target"]["platform"]
++                    and row["args"]["environment_id"] == item["target"]["environment"]
++                    and row["args"]["sequence"] == str(item["sequence"])]
++            check(len(jobs) == 1 and jobs[0]["assignment_wire_sha256"] == item["signed_assignment_sha256"]
++                  and jobs[0]["artifact_sha256"] == item["canonical_manifest_sha256"],
++                  "served assignment/artifact differs from projection")
++            item["jobId"] = jobs[0]["job_id"]
++        report["status"] = "pass"
++    except (Exception, KeyboardInterrupt) as error:
++        report["failure"] = f"{type(error).__name__}: {error}"
++    finally:
++        unknown = any(not command.get("groupAbsent") for command in report["commands"])
++        if not unknown:
++            for phase in tuple(active):
++                try:
++                    stop(phase)
++                except (Exception, KeyboardInterrupt) as error:
++                    report["cleanupFailure"] = f"{type(error).__name__}: {error}"
++                    break
++        report["scratchRemovable"] = (
++            not unknown and not active and "cleanupFailure" not in report
++            and all(listener["rebound"] for listener in report["rebinds"])
++        )
++        report["durationSeconds"] = round(time.monotonic() - started, 2)
++        (root / "campaign.json").write_text(json.dumps(report, indent=2) + "\n")
++        print(json.dumps({key: report[key] for key in ("status", "failure", "cleanupFailure",
++                                                       "scratchRemovable", "durationSeconds")
++                          if key in report}))
++    return 0 if report["status"] == "pass" and report["scratchRemovable"] else 1
++
++
++if __name__ == "__main__":
++    os.umask(0o077)
++    sys.exit(main(Path(sys.argv[1]).resolve(strict=True)))
+diff --git a/lifecycle-option-control.exs b/lifecycle-option-control.exs
+new file mode 100644
+--- /dev/null
++++ b/lifecycle-option-control.exs
+@@ -0,0 +1,30 @@
++alias MixerHosted.BrowserAuth.LifecycleRepo
++
++options = [
++  hostname: "127.0.0.1",
++  port: 5432,
++  database: "fixture_only",
++  username: "browser_lifecycle",
++  password: "synthetic-not-used",
++  pool_size: 2,
++  pool_count: 1,
++  timeout: 5000,
++  connect_timeout: 5000,
++  queue: false,
++  show_sensitive_data_on_connection_error: false,
++  ssl: false
++]
++
++try do
++  LifecycleRepo.init(:supervisor, Keyword.put(options, :socket_dir, "/unused"))
++  raise "unexpected acceptance of :socket_dir"
++rescue
++  error in ArgumentError ->
++    true = Exception.message(error) == "browser lifecycle pool unavailable"
++    IO.puts("Same fixture configuration + socket_dir: rejected by LifecycleRepo.init")
++end
++
++{:ok, accepted} = LifecycleRepo.init(:supervisor, options)
++false = Keyword.fetch!(accepted, :log)
++IO.puts("Hostname/port/password-shaped fixture configuration: accepted by LifecycleRepo.init")
++IO.puts("No application, listener, database connection or worker started")

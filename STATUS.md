@@ -596,6 +596,16 @@ running.
 [Executed test overlay](verification/receipts/l05-l07-restored-stage-promotion-2acaac67-overlay.patch) ·
 [Historical command record](verification/receipts/l05-l07-restored-stage-promotion-2acaac67-commands.md)
 
+The first restored release-worker replay stopped at source Phoenix startup.
+PostgreSQL opened on a private Unix socket, and `LifecycleRepo` rejected the
+fixture's `socket_dir` option before connecting. A separate executable
+control confirmed that the pool admits the existing hostname, port, and
+password options. All owned groups closed and three listeners could rebind.
+The next fixture uses SCRAM authentication on IPv4 loopback. Restore, queue
+drain, and signed delivery remain open for this replay.
+[Startup failure and option control](verification/receipts/l05-l07-restored-release-worker-55b4d634.json) ·
+[Historical test afterimages](verification/receipts/l05-l07-restored-release-worker-55b4d634-afterimages.patch)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,

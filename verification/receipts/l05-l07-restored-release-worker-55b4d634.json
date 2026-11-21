@@ -1,0 +1,304 @@
+{
+  "status": "blocked",
+  "scope": "One bounded local L05/L07 attempt to replay a paired signed staging promotion on a fresh PostgreSQL restore, then use the restricted real Oban processor and Phoenix release delivery routes. No native build, stock CLI rebuild, proxy, deployment, device, or GA qualification.",
+  "sourceRevision": "55b4d634d3051ebc44771485c0494c8caab9077a",
+  "sourceTree": "5f4254b355f8073b22f49d9ae12da0d2898e9b05",
+  "projection": {
+    "paths": [
+      "hosted",
+      "services/protocol/testdata",
+      "docs/operations",
+      "scripts/restore-local-authz-expiry.sql",
+      "tests/integration/phoenix-release-restore/restore-artifact-key.sql"
+    ],
+    "gitArchiveSha256": "b315f08c39e282ae5714786495bec20cb0ce1af6946b49d06df6400731956c20",
+    "firstPatchFromPinnedCommit": "verification/receipts/l05-l07-restored-stage-promotion-2acaac67-overlay.patch",
+    "firstPatchSha256": "561a207359b52f125666a350e327246e8948f9759689c1e2bd45d4a6374f4791",
+    "secondPatch": "verification/receipts/l05-l07-restored-release-worker-55b4d634-afterimages.patch",
+    "secondPatchSha256": "c1cd203f747287fe985a5e7a294fe58b9b496c44ddc7462d100061c0c5edeb85",
+    "afterimagesSha256": {
+      "hosted/test/mixer_hosted/releases/browser_publication_test.exs": "cf648d933e7c585e39b2cf802fb52027e7987ed092ccb359cbef8e5bf485d400",
+      "hosted/test/support/ordinary_browser_startup_fixture.ex": "93169ab5b508c1378b69bced6998497049fa1e428cdf2cb6326b25c06b47f2ee",
+      "replay-restored-worker.py": "80638af70d7fbb90556f777f27d2e26f6e2630f3f972efd3aadaf76c33088982",
+      "lifecycle-option-control.exs": "ecbead4dde7cec211bc75b8b6083660d5e19ae25b8019c8e194c6709adb42feb"
+    },
+    "afterimagesVerifiedByIndependentPatchApplicationAndByteComparison": true,
+    "mixLockSha256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454"
+  },
+  "tools": {
+    "host": "Darwin arm64",
+    "python": "3.14.8",
+    "mix": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:6:6] [ds:6:6:10] [async-threads:1] [jit] [dtrace]\n\nMix 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "pg_dump": "pg_dump (PostgreSQL) 17.11 (Homebrew)",
+    "pg_restore": "pg_restore (PostgreSQL) 17.11 (Homebrew)"
+  },
+  "dependencySetup": {
+    "cwd": "<scratch>/hosted",
+    "argv": [
+      [
+        "mix",
+        "deps.get",
+        "--check-locked"
+      ],
+      [
+        "mix",
+        "deps.compile"
+      ]
+    ],
+    "environment": {
+      "MIX_ENV": "test",
+      "HEX_OFFLINE": "1",
+      "ERL_FLAGS": "+S 6:6"
+    },
+    "logSha256": "683bd2c991ba51a2996edca962f38ede6286131976e0304526fa197a574e0ed1",
+    "pid": 20692,
+    "exit": 0,
+    "groupAbsent": true
+  },
+  "boundedAttempt": {
+    "durationSeconds": 5.88,
+    "argv": [
+      "python3",
+      "-B",
+      "replay-restored-worker.py",
+      "<scratch>"
+    ],
+    "commands": [
+      {
+        "name": "mix-version",
+        "argv": [
+          "mix",
+          "--version"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 41951,
+        "exit": 0,
+        "stdoutSha256": "f95830f421fe134a64566dcc31627a1b6b6610d5e6dfe60f46568906e35ae717",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "postgres-version",
+        "argv": [
+          "postgres",
+          "--version"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 41989,
+        "exit": 0,
+        "stdoutSha256": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "pg_dump-version",
+        "argv": [
+          "pg_dump",
+          "--version"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 41990,
+        "exit": 0,
+        "stdoutSha256": "c5dfee9db4cb4cd25a66631a3eb071bd20fd61fd9bca7f893ed553c147f48635",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "pg_restore-version",
+        "argv": [
+          "pg_restore",
+          "--version"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 41991,
+        "exit": 0,
+        "stdoutSha256": "56de7cd80d5d5bedf469d348cb58c69be5f8915a299015d4294b31d383f962fc",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "compile",
+        "argv": [
+          "mix",
+          "compile",
+          "--warnings-as-errors"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 41992,
+        "exit": 0,
+        "stdoutSha256": "349176693b49ff9924ccab34fc8cb77a1c0532eaf681e15aae954d6df5ba5210",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "source-initdb",
+        "argv": [
+          "initdb",
+          "-D",
+          "<scratch>/source/pgdata",
+          "-U",
+          "mixer_fixture",
+          "--auth-local=trust",
+          "--auth-host=scram-sha-256",
+          "--no-locale",
+          "-E",
+          "UTF8"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 42207,
+        "exit": 0,
+        "stdoutSha256": "611ff3563244fd6e942e243b18db7fa757382ee6f26c09eddac77f0df92d691b",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "source-identity",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-w",
+          "-h",
+          "<scratch>/source/socket",
+          "-p",
+          "5432",
+          "-U",
+          "mixer_fixture",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 42224,
+        "exit": 0,
+        "stdoutSha256": "55ba83cb60c5a23d07ae441377555d2f587aec8586ed01f7a8142084b03da506",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "source-bootstrap-roles",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-w",
+          "-h",
+          "<scratch>/source/socket",
+          "-p",
+          "5432",
+          "-U",
+          "mixer_fixture",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 42226,
+        "exit": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "source-http-test",
+        "argv": [
+          "mix",
+          "test",
+          "--warnings-as-errors",
+          "--trace",
+          "--no-color",
+          "--seed",
+          "0",
+          "--timeout",
+          "90000",
+          "test/mixer_hosted/releases/browser_publication_test.exs:488"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 42228,
+        "exit": 2,
+        "stdoutSha256": "445bd3cd610e7a6d0cf5921614d7a337f3ac3343c402432b8fb40acde1410284",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "source": {
+      "argv": [
+        "postgres",
+        "-D",
+        "<scratch>/source/pgdata",
+        "-h",
+        "",
+        "-p",
+        "5432",
+        "-k",
+        "<scratch>/source/socket",
+        "-c",
+        "unix_socket_permissions=0700",
+        "-c",
+        "timezone=UTC",
+        "-c",
+        "max_connections=32"
+      ],
+      "groupAbsent": true,
+      "socketDirectoryMode": "0o700",
+      "pidPgid": 42217,
+      "systemId": "7710604702626972901",
+      "unixSocketOnly": true,
+      "exit": 0
+    },
+    "failure": "The source API application exited before Bandit bound its application listener. BrowserAuth.Supervisor could not start MixerHosted.BrowserAuth.LifecycleRepo. The callback raised ArgumentError: browser lifecycle pool unavailable at lib/mixer_hosted/browser_auth/lifecycle_repo.ex:16.",
+    "result": "0/1 passed, 7 excluded",
+    "targetRestoreStarted": false,
+    "signedPromotionSent": false,
+    "processorStarted": false,
+    "publicDeliveryRequested": false
+  },
+  "diagnostic": {
+    "finding": "At this revision LifecycleRepo.init(:supervisor, ...) rejects the test-only :socket_dir key through an explicit allowed-key check. The private Unix-only PostgreSQL instance started successfully and setup reached API startup. The failure is at connection configuration admission, before LifecycleRepo can connect.",
+    "dbFreeControl": {
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "<scratch>/lifecycle-option-control.exs"
+      ],
+      "groupAbsent": true,
+      "pidPgid": 46437,
+      "exit": 0,
+      "output": [
+        "Same fixture configuration + socket_dir: rejected by LifecycleRepo.init",
+        "Hostname/port/password-shaped fixture configuration: accepted by LifecycleRepo.init",
+        "No application, listener, database connection or worker started"
+      ],
+      "stdoutSha256": "c91e6caebee795e65f9e84be82358c4a1495c318fdda1fe06c4501db87eb1514"
+    },
+    "nextExecutableRequirement": "Keep LifecycleRepo's existing hostname, port, and password options and use SCRAM-authenticated PostgreSQL on a fresh IPv4 loopback port. Supply disposable, role-specific credentials for browser_admin, browser_ordinary, browser_lifecycle, the source uploader, mixer_release_delivery, and mixer_release_processor. Restore the password-free role list and set the target's synthetic login passwords separately. Retain the restored grants and use the normal processor admission. Do not add :socket_dir to LifecycleRepo or run trust-authenticated TCP.",
+    "supportedTransportEndToEndVerified": false
+  },
+  "replay": {
+    "purpose": "Reproduces the failed socket replay and its no-service option control. The restore, drain, and HTTP assertions past the failed startup are unexecuted.",
+    "preparation": "Export projection.paths with git archive at sourceRevision into a fresh mode-0700 scratch directory. Apply firstPatchFromPinnedCommit, then secondPatch, using git apply in that directory. Use the dependencySetup environment and commands.",
+    "failureReplay": "From scratch run python3 -B replay-restored-worker.py <scratch>. The script retains campaign.json for inspection and does not delete scratch.",
+    "admissionControl": "From scratch/hosted run MIX_ENV=test HEX_OFFLINE=1 mix run --no-start ../lifecycle-option-control.exs."
+  },
+  "cleanup": {
+    "observedListenerRebinds": [
+      {
+        "phase": "source",
+        "listener": "jwks",
+        "address": "('127.0.0.1', 55764)",
+        "rebound": true
+      },
+      {
+        "phase": "source",
+        "listener": "provider",
+        "address": "('127.0.0.1', 55765)",
+        "rebound": true
+      },
+      {
+        "phase": "source",
+        "listener": "postgres",
+        "address": "<scratch>/source/socket/.s.PGSQL.5432",
+        "rebound": true
+      }
+    ],
+    "allObservedOwnedCommandAndDatabaseGroupsAbsent": true,
+    "scratchPath": "/private/tmp/mixer-restored-worker.G4gWFaG9",
+    "scratchKiBBeforeRemovalIncludingAfterimageVerification": 119996,
+    "scratchRemoved": true
+  }
+}
