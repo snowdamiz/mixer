@@ -372,9 +372,14 @@ record after ordinary sign-in. The rendered fixture returned iOS receipt 3
 and Android receipt 12 with heads at 4 and 13. A background organization-list
 request returned HTTP 503 while the exact promotion request returned 200.
 The cause of the 503 remains open. The composed console passed all 319 tests
-and its production build. Hosted source admission is in progress.
+and its production build. Hosted v81 admits 561 exact sources and restores
+the v80 and v79 source and workflow bytes. The full collector passed all
+317 tests in each Python mode in 173.1 seconds against the unchanged
+360-second alarm. Both owned checkouts and scratch were removed.
 [Browser receipt](verification/receipts/console-promotion-sign-in-resume-v80.json) ·
-[Composition receipt](verification/receipts/console-promotion-sign-in-composition-v81.json)
+[Composition receipt](verification/receipts/console-promotion-sign-in-composition-v81.json) ·
+[Source admission](verification/receipts/hosted-v81-console-promotion-sign-in-resume-source-admission.json) ·
+[Collector replay](verification/receipts/hosted-v81-services-collector-final.json)
 
 ## November 20 generated release REST client
 
