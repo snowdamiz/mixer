@@ -8,7 +8,7 @@ defmodule MixerHosted.Releases.PublicDelivery do
   installed by the optional local release delivery migration.
   """
   alias MixerHosted.Protocol.{ArtifactAdmission, ArtifactCBOR, ArtifactV3Policy, AssignmentV3}
-  alias MixerHosted.Releases.{DeliveryRepo, Target}
+  alias MixerHosted.Releases.{DeliveryAdmission, DeliveryRepo, Target}
 
   @key :local_release_delivery
   @role "mixer_release_delivery"
@@ -23,7 +23,7 @@ defmodule MixerHosted.Releases.PublicDelivery do
         if endpoint[:http][:ip] != {127, 0, 0, 1} or endpoint[:https] != nil,
           do: raise(ArgumentError, "local release delivery requires a loopback HTTP listener")
 
-        [{DeliveryRepo, options}]
+        [{DeliveryRepo, options}, {DeliveryAdmission, @role}]
 
       {:error, :invalid_provisioning} ->
         raise ArgumentError, "invalid local release delivery provisioning"

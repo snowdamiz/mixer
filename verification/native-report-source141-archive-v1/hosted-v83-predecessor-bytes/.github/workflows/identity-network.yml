@@ -1,0 +1,819 @@
+name: Isolated identity network checks
+
+on:
+  push:
+    paths:
+      - 'hosted/**'
+      - 'verification/identity-network-current-source-v74/**'
+      - 'verification/identity-network-current-source-v76/**'
+      - 'verification/identity-network-current-source-v77/**'
+      - 'verification/identity-network-current-source-v78/**'
+      - 'verification/identity-network-current-source-v79/**'
+      - 'verification/identity-network-current-source-v80/**'
+      - 'verification/identity-network-current-source-v81/**'
+      - 'verification/identity-network-current-source-v82/**'
+      - 'verification/receipts/console-exact-stage-promotion-group.json'
+      - 'verification/receipts/console-promotion-history.json'
+      - 'verification/receipts/console-promotion-sign-in-resume-v80.json'
+      - 'verification/receipts/l07-local-private-source-map-transfer-custody.json'
+      - 'verification/receipts/l07-private-source-map-v81-composition.json'
+      - 'tests/integration/l07-ios-active-custody/**'
+      - 'tests/integration/l05-pair25-http/run.py'
+      - 'contracts/release-v3.json'
+      - 'hosted-worker-controller/package.json'
+      - 'hosted-worker-controller/package-lock.json'
+      - 'hosted-worker-controller/test/owned-workerd-identity.mjs'
+      - 'release-delivery-origin/**'
+      - 'services/cmd/mixer-native-attest/**'
+      - 'services/internal/deliveryreplay/main.go'
+      - 'cli/Sources/MixerBuild/Resources/android-build.py'
+      - 'tests/integration/managed-android-local-linux-pair25/**'
+      - 'tests/integration/l07-hosted-privacy/http_protocol_probe.exs'
+      - 'docs/operations/local-signed-release-delivery.md'
+      - 'docs/operations/provision-local-release-reader.sql'
+      - 'docs/operations/provision-local-release-jobs.sql'
+      - 'docs/operations/retry-local-release-job.sql'
+      - 'docs/operations/provision-local-artifact-uploader.sql'
+      - 'tests/integration/l07-hosted-privacy/README.md'
+      - 'tests/integration/l07-hosted-privacy/privacy_http_test.exs'
+      - 'tests/integration/l07-hosted-privacy/run.py'
+      - 'console/src/state/browser-session-controller.ts'
+      - 'console/src/state/workspace-controller.ts'
+      - 'console/src/api/cookie-build-catalog-client.ts'
+      - 'console/src/domain/build-catalog.ts'
+      - '.github/workflows/identity-network.yml'
+      - 'docs/hosted-identity-production-network-ci-contract.md'
+      - 'verification/identity-production-network-contract/**'
+      - 'verification/identity-network-image-amendment-v1/**'
+      - 'verification/identity-network-image-amendment-v2/**'
+      - 'verification/identity-network-fixture-amendment-v1/**'
+      - 'verification/identity-network-fixture-amendment-v2/**'
+      - 'verification/identity-network-current-source-v1/**'
+      - 'verification/identity-network-current-source-v2/**'
+      - 'verification/identity-network-current-source-v3/**'
+      - 'verification/identity-network-current-source-v4/**'
+      - 'verification/identity-network-current-source-v5/**'
+      - 'verification/identity-network-current-source-v6/**'
+      - 'verification/identity-network-current-source-v15/selection.json'
+      - 'verification/identity-network-current-source-v16/selection.json'
+      - 'verification/identity-network-current-source-v17/selection.json'
+      - 'verification/identity-network-current-source-v18/selection.json'
+      - 'verification/identity-network-current-source-v15/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v16/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v17/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v18/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v19/selection.json'
+      - 'verification/identity-network-current-source-v19/selected-source-manifest.json'
+      - 'console/src/components/ApplicationBuildPage.tsx'
+      - 'console/src/components/BuildLogs.tsx'
+      - 'console/src/components/CancelBuildForm.tsx'
+      - 'console/src/state/build-selection-controller.ts'
+      - 'console/tests/application-build-page.test.mjs'
+      - 'console/tests/application-build-page-runtime.tsx'
+      - 'console/tests/build-selection-controller.test.mjs'
+      - 'verification/identity-network-current-source-v20/selection.json'
+      - 'verification/identity-network-current-source-v20/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v21/selection.json'
+      - 'verification/identity-network-current-source-v21/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v22/selection.json'
+      - 'verification/identity-network-current-source-v22/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v23/selection.json'
+      - 'verification/identity-network-current-source-v23/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v24/selection.json'
+      - 'verification/identity-network-current-source-v25/selection.json'
+      - 'verification/identity-network-current-source-v26/selection.json'
+      - 'verification/identity-network-current-source-v27/selection.json'
+      - 'verification/identity-network-current-source-v28/selection.json'
+      - 'verification/identity-network-current-source-v29/selection.json'
+      - 'verification/identity-network-current-source-v31/selection.json'
+      - 'verification/identity-network-current-source-v32/selection.json'
+      - 'verification/identity-network-current-source-v33/selection.json'
+      - 'verification/identity-network-current-source-v34/selection.json'
+      - 'verification/identity-network-current-source-v35/selection.json'
+      - 'verification/identity-network-current-source-v36/selection.json'
+      - 'verification/identity-network-current-source-v37/selection.json'
+      - 'verification/identity-network-current-source-v38/selection.json'
+      - 'verification/identity-network-current-source-v39/selection.json'
+      - 'verification/identity-network-current-source-v40/selection.json'
+      - 'verification/identity-network-current-source-v41/selection.json'
+      - 'verification/identity-network-current-source-v42/selection.json'
+      - 'verification/identity-network-current-source-v43/selection.json'
+      - 'verification/identity-network-current-source-v44/selection.json'
+      - 'verification/identity-network-current-source-v45/selection.json'
+      - 'verification/identity-network-current-source-v46/selection.json'
+      - 'verification/identity-network-current-source-v47/selection.json'
+      - 'verification/identity-network-current-source-v48/selection.json'
+      - 'verification/identity-network-current-source-v49/selection.json'
+      - 'verification/identity-network-current-source-v50/selection.json'
+      - 'verification/identity-network-current-source-v51/selection.json'
+      - 'verification/identity-network-current-source-v52/selection.json'
+      - 'verification/identity-network-current-source-v53/selection.json'
+      - 'verification/identity-network-current-source-v54/selection.json'
+      - 'verification/identity-network-current-source-v55/selection.json'
+      - 'verification/identity-network-current-source-v56/selection.json'
+      - 'verification/identity-network-current-source-v57/selection.json'
+      - 'verification/identity-network-current-source-v58/selection.json'
+      - 'verification/identity-network-current-source-v59/selection.json'
+      - 'verification/identity-network-current-source-v60/selection.json'
+      - 'verification/identity-network-current-source-v61/selection.json'
+      - 'verification/identity-network-current-source-v62/selection.json'
+      - 'verification/identity-network-current-source-v63/selection.json'
+      - 'verification/identity-network-current-source-v64/selection.json'
+      - 'verification/identity-network-current-source-v24/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v25/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v26/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v27/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v28/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v29/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v31/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v32/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v33/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v34/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v35/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v36/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v37/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v38/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v39/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v40/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v41/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v42/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v43/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v44/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v45/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v46/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v47/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v48/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v49/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v50/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v51/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v52/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v53/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v54/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v55/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v56/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v57/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v58/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v59/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v60/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v61/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v62/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v63/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v64/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v29/preimages/**'
+      - 'verification/identity-network-current-source-v31/preimages/**'
+      - 'verification/identity-network-current-source-v32/preimages/**'
+      - 'verification/identity-network-current-source-v33/preimages/**'
+      - 'verification/identity-network-current-source-v34/preimages/**'
+      - 'verification/identity-network-current-source-v35/preimages/**'
+      - 'verification/identity-network-current-source-v36/preimages/**'
+      - 'verification/identity-network-current-source-v37/preimages/**'
+      - 'verification/identity-network-current-source-v38/preimages/**'
+      - 'verification/identity-network-current-source-v39/preimages/**'
+      - 'verification/identity-network-current-source-v40/preimages/**'
+      - 'verification/identity-network-current-source-v41/preimages/**'
+      - 'verification/identity-network-current-source-v42/preimages/**'
+      - 'verification/identity-network-current-source-v43/preimages/**'
+      - 'verification/identity-network-current-source-v44/preimages/**'
+      - 'verification/identity-network-current-source-v45/preimages/**'
+      - 'verification/identity-network-current-source-v46/preimages/**'
+      - 'verification/identity-network-current-source-v47/preimages/**'
+      - 'verification/identity-network-current-source-v48/preimages/**'
+      - 'verification/identity-network-current-source-v49/preimages/**'
+      - 'verification/identity-network-current-source-v50/preimages/**'
+      - 'verification/identity-network-current-source-v51/preimages/**'
+      - 'verification/identity-network-current-source-v52/preimages/**'
+      - 'verification/identity-network-current-source-v53/preimages/**'
+      - 'verification/identity-network-current-source-v54/preimages/**'
+      - 'verification/identity-network-current-source-v55/preimages/**'
+      - 'verification/identity-network-current-source-v56/preimages/**'
+      - 'verification/identity-network-current-source-v57/preimages/**'
+      - 'verification/identity-network-current-source-v58/preimages/**'
+      - 'verification/identity-network-current-source-v59/preimages/**'
+      - 'verification/identity-network-current-source-v60/preimages/**'
+      - 'verification/identity-network-current-source-v61/preimages/**'
+      - 'verification/identity-network-current-source-v62/preimages/**'
+      - 'verification/identity-network-current-source-v63/preimages/**'
+      - 'verification/identity-network-current-source-v64/preimages/**'
+      - 'console/src/App.tsx'
+      - 'console/src/api/cookie-release-head-client.ts'
+      - 'console/src/components/ReleaseHeadPage.tsx'
+      - 'console/src/components/release-head-page.css'
+      - 'console/src/domain/release-head.ts'
+      - 'console/src/state/release-head-binding.ts'
+      - 'console/src/main.tsx'
+      - 'console/src/styles.css'
+      - 'console/src/api/browser-login-client.ts'
+      - 'console/src/state/sign-in-action.ts'
+      - 'console/src/state/promotion-resume.ts'
+      - 'console/src/components/SignIn.tsx'
+      - 'console/tests/browser-login.test.mjs'
+      - 'verification/identity-network-current-source-v*/**'
+      - 'console/src/api/cookie-workspace-create-client.ts'
+      - 'console/src/api/cookie-workspace-support-client.ts'
+      - 'console/src/api/cookie-workspace-post.ts'
+      - 'console/src/api/cookie-workspace-admin-client.ts'
+      - 'console/src/api/workspace-transport.ts'
+      - 'console/src/components/WorkspaceCreateForm.tsx'
+      - 'console/src/components/WorkspaceDirectory.tsx'
+      - 'console/src/components/WorkspacePage.tsx'
+      - 'console/src/components/WorkspaceSupport.tsx'
+      - 'console/src/components/WorkspaceAdministration.tsx'
+      - 'console/src/components/workspace-directory.css'
+      - 'console/src/domain/workspace-directory.ts'
+      - 'console/src/state/browser-session-binding.ts'
+      - 'console/src/state/workspace-binding.ts'
+      - 'console/src/state/workspace-context.tsx'
+      - 'console/src/state/workspace-creation.ts'
+      - 'console/tests/browser-session-binding-runner.mjs'
+      - 'console/tests/workspace-binding-runner.mjs'
+      - 'console/tests/workspace-binding.test.mjs'
+  pull_request:
+    paths:
+      - 'hosted/**'
+      - 'verification/identity-network-current-source-v74/**'
+      - 'verification/identity-network-current-source-v76/**'
+      - 'verification/identity-network-current-source-v77/**'
+      - 'verification/identity-network-current-source-v78/**'
+      - 'verification/identity-network-current-source-v79/**'
+      - 'verification/identity-network-current-source-v80/**'
+      - 'verification/identity-network-current-source-v81/**'
+      - 'verification/identity-network-current-source-v82/**'
+      - 'verification/receipts/console-exact-stage-promotion-group.json'
+      - 'verification/receipts/console-promotion-history.json'
+      - 'verification/receipts/console-promotion-sign-in-resume-v80.json'
+      - 'verification/receipts/l07-local-private-source-map-transfer-custody.json'
+      - 'verification/receipts/l07-private-source-map-v81-composition.json'
+      - 'tests/integration/l07-ios-active-custody/**'
+      - 'tests/integration/l05-pair25-http/run.py'
+      - 'contracts/release-v3.json'
+      - 'hosted-worker-controller/package.json'
+      - 'hosted-worker-controller/package-lock.json'
+      - 'hosted-worker-controller/test/owned-workerd-identity.mjs'
+      - 'release-delivery-origin/**'
+      - 'services/cmd/mixer-native-attest/**'
+      - 'services/internal/deliveryreplay/main.go'
+      - 'cli/Sources/MixerBuild/Resources/android-build.py'
+      - 'tests/integration/managed-android-local-linux-pair25/**'
+      - 'tests/integration/l07-hosted-privacy/http_protocol_probe.exs'
+      - 'docs/operations/local-signed-release-delivery.md'
+      - 'docs/operations/provision-local-release-reader.sql'
+      - 'docs/operations/provision-local-release-jobs.sql'
+      - 'docs/operations/retry-local-release-job.sql'
+      - 'docs/operations/provision-local-artifact-uploader.sql'
+      - 'tests/integration/l07-hosted-privacy/README.md'
+      - 'tests/integration/l07-hosted-privacy/privacy_http_test.exs'
+      - 'tests/integration/l07-hosted-privacy/run.py'
+      - 'console/src/state/browser-session-controller.ts'
+      - 'console/src/state/workspace-controller.ts'
+      - 'console/src/api/cookie-build-catalog-client.ts'
+      - 'console/src/domain/build-catalog.ts'
+      - '.github/workflows/identity-network.yml'
+      - 'docs/hosted-identity-production-network-ci-contract.md'
+      - 'verification/identity-production-network-contract/**'
+      - 'verification/identity-network-image-amendment-v1/**'
+      - 'verification/identity-network-image-amendment-v2/**'
+      - 'verification/identity-network-fixture-amendment-v1/**'
+      - 'verification/identity-network-fixture-amendment-v2/**'
+      - 'verification/identity-network-current-source-v1/**'
+      - 'verification/identity-network-current-source-v2/**'
+      - 'verification/identity-network-current-source-v3/**'
+      - 'verification/identity-network-current-source-v4/**'
+      - 'verification/identity-network-current-source-v5/**'
+      - 'verification/identity-network-current-source-v6/**'
+      - 'verification/identity-network-current-source-v15/selection.json'
+      - 'verification/identity-network-current-source-v16/selection.json'
+      - 'verification/identity-network-current-source-v17/selection.json'
+      - 'verification/identity-network-current-source-v18/selection.json'
+      - 'verification/identity-network-current-source-v15/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v16/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v17/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v18/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v19/selection.json'
+      - 'verification/identity-network-current-source-v19/selected-source-manifest.json'
+      - 'console/src/components/ApplicationBuildPage.tsx'
+      - 'console/src/components/BuildLogs.tsx'
+      - 'console/src/components/CancelBuildForm.tsx'
+      - 'console/src/state/build-selection-controller.ts'
+      - 'console/tests/application-build-page.test.mjs'
+      - 'console/tests/application-build-page-runtime.tsx'
+      - 'console/tests/build-selection-controller.test.mjs'
+      - 'verification/identity-network-current-source-v20/selection.json'
+      - 'verification/identity-network-current-source-v20/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v21/selection.json'
+      - 'verification/identity-network-current-source-v21/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v22/selection.json'
+      - 'verification/identity-network-current-source-v22/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v23/selection.json'
+      - 'verification/identity-network-current-source-v23/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v24/selection.json'
+      - 'verification/identity-network-current-source-v25/selection.json'
+      - 'verification/identity-network-current-source-v26/selection.json'
+      - 'verification/identity-network-current-source-v27/selection.json'
+      - 'verification/identity-network-current-source-v28/selection.json'
+      - 'verification/identity-network-current-source-v29/selection.json'
+      - 'verification/identity-network-current-source-v31/selection.json'
+      - 'verification/identity-network-current-source-v32/selection.json'
+      - 'verification/identity-network-current-source-v33/selection.json'
+      - 'verification/identity-network-current-source-v34/selection.json'
+      - 'verification/identity-network-current-source-v35/selection.json'
+      - 'verification/identity-network-current-source-v36/selection.json'
+      - 'verification/identity-network-current-source-v37/selection.json'
+      - 'verification/identity-network-current-source-v38/selection.json'
+      - 'verification/identity-network-current-source-v39/selection.json'
+      - 'verification/identity-network-current-source-v40/selection.json'
+      - 'verification/identity-network-current-source-v41/selection.json'
+      - 'verification/identity-network-current-source-v42/selection.json'
+      - 'verification/identity-network-current-source-v43/selection.json'
+      - 'verification/identity-network-current-source-v44/selection.json'
+      - 'verification/identity-network-current-source-v45/selection.json'
+      - 'verification/identity-network-current-source-v46/selection.json'
+      - 'verification/identity-network-current-source-v47/selection.json'
+      - 'verification/identity-network-current-source-v48/selection.json'
+      - 'verification/identity-network-current-source-v49/selection.json'
+      - 'verification/identity-network-current-source-v50/selection.json'
+      - 'verification/identity-network-current-source-v51/selection.json'
+      - 'verification/identity-network-current-source-v52/selection.json'
+      - 'verification/identity-network-current-source-v53/selection.json'
+      - 'verification/identity-network-current-source-v54/selection.json'
+      - 'verification/identity-network-current-source-v55/selection.json'
+      - 'verification/identity-network-current-source-v56/selection.json'
+      - 'verification/identity-network-current-source-v57/selection.json'
+      - 'verification/identity-network-current-source-v58/selection.json'
+      - 'verification/identity-network-current-source-v59/selection.json'
+      - 'verification/identity-network-current-source-v60/selection.json'
+      - 'verification/identity-network-current-source-v61/selection.json'
+      - 'verification/identity-network-current-source-v62/selection.json'
+      - 'verification/identity-network-current-source-v63/selection.json'
+      - 'verification/identity-network-current-source-v64/selection.json'
+      - 'verification/identity-network-current-source-v24/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v25/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v26/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v27/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v28/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v29/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v31/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v32/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v33/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v34/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v35/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v36/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v37/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v38/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v39/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v40/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v41/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v42/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v43/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v44/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v45/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v46/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v47/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v48/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v49/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v50/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v51/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v52/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v53/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v54/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v55/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v56/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v57/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v58/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v59/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v60/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v61/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v62/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v63/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v64/selected-source-manifest.json'
+      - 'verification/identity-network-current-source-v29/preimages/**'
+      - 'verification/identity-network-current-source-v31/preimages/**'
+      - 'verification/identity-network-current-source-v32/preimages/**'
+      - 'verification/identity-network-current-source-v33/preimages/**'
+      - 'verification/identity-network-current-source-v34/preimages/**'
+      - 'verification/identity-network-current-source-v35/preimages/**'
+      - 'verification/identity-network-current-source-v36/preimages/**'
+      - 'verification/identity-network-current-source-v37/preimages/**'
+      - 'verification/identity-network-current-source-v38/preimages/**'
+      - 'verification/identity-network-current-source-v39/preimages/**'
+      - 'verification/identity-network-current-source-v40/preimages/**'
+      - 'verification/identity-network-current-source-v41/preimages/**'
+      - 'verification/identity-network-current-source-v42/preimages/**'
+      - 'verification/identity-network-current-source-v43/preimages/**'
+      - 'verification/identity-network-current-source-v44/preimages/**'
+      - 'verification/identity-network-current-source-v45/preimages/**'
+      - 'verification/identity-network-current-source-v46/preimages/**'
+      - 'verification/identity-network-current-source-v47/preimages/**'
+      - 'verification/identity-network-current-source-v48/preimages/**'
+      - 'verification/identity-network-current-source-v49/preimages/**'
+      - 'verification/identity-network-current-source-v50/preimages/**'
+      - 'verification/identity-network-current-source-v51/preimages/**'
+      - 'verification/identity-network-current-source-v52/preimages/**'
+      - 'verification/identity-network-current-source-v53/preimages/**'
+      - 'verification/identity-network-current-source-v54/preimages/**'
+      - 'verification/identity-network-current-source-v55/preimages/**'
+      - 'verification/identity-network-current-source-v56/preimages/**'
+      - 'verification/identity-network-current-source-v57/preimages/**'
+      - 'verification/identity-network-current-source-v58/preimages/**'
+      - 'verification/identity-network-current-source-v59/preimages/**'
+      - 'verification/identity-network-current-source-v60/preimages/**'
+      - 'verification/identity-network-current-source-v61/preimages/**'
+      - 'verification/identity-network-current-source-v62/preimages/**'
+      - 'verification/identity-network-current-source-v63/preimages/**'
+      - 'verification/identity-network-current-source-v64/preimages/**'
+      - 'console/src/App.tsx'
+      - 'console/src/api/cookie-release-head-client.ts'
+      - 'console/src/components/ReleaseHeadPage.tsx'
+      - 'console/src/components/release-head-page.css'
+      - 'console/src/domain/release-head.ts'
+      - 'console/src/state/release-head-binding.ts'
+      - 'console/src/main.tsx'
+      - 'console/src/styles.css'
+      - 'console/src/api/browser-login-client.ts'
+      - 'console/src/state/sign-in-action.ts'
+      - 'console/src/state/promotion-resume.ts'
+      - 'console/src/components/SignIn.tsx'
+      - 'console/tests/browser-login.test.mjs'
+      - 'verification/identity-network-current-source-v*/**'
+      - 'console/src/api/cookie-workspace-create-client.ts'
+      - 'console/src/api/cookie-workspace-support-client.ts'
+      - 'console/src/api/cookie-workspace-post.ts'
+      - 'console/src/api/cookie-workspace-admin-client.ts'
+      - 'console/src/api/workspace-transport.ts'
+      - 'console/src/components/WorkspaceCreateForm.tsx'
+      - 'console/src/components/WorkspaceDirectory.tsx'
+      - 'console/src/components/WorkspacePage.tsx'
+      - 'console/src/components/WorkspaceSupport.tsx'
+      - 'console/src/components/WorkspaceAdministration.tsx'
+      - 'console/src/components/workspace-directory.css'
+      - 'console/src/domain/workspace-directory.ts'
+      - 'console/src/state/browser-session-binding.ts'
+      - 'console/src/state/workspace-binding.ts'
+      - 'console/src/state/workspace-context.tsx'
+      - 'console/src/state/workspace-creation.ts'
+      - 'console/tests/browser-session-binding-runner.mjs'
+      - 'console/tests/workspace-binding-runner.mjs'
+      - 'console/tests/workspace-binding.test.mjs'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: identity-network-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  identity-network:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout the finite qualification inputs
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /hosted/**
+            /cli/Sources/MixerBuild/Resources/android-build.py
+            /tests/integration/managed-android-local-linux-pair25/
+            /tests/integration/l07-ios-active-custody/
+            /tests/integration/l05-pair25-http/run.py
+            /tests/integration/l07-hosted-privacy/http_protocol_probe.exs
+            /docs/operations/local-signed-release-delivery.md
+            /verification/receipts/console-exact-stage-promotion-group.json
+            /verification/receipts/console-promotion-history.json
+            /verification/receipts/console-promotion-sign-in-resume-v80.json
+            /verification/receipts/l07-local-private-source-map-transfer-custody.json
+            /verification/receipts/l07-private-source-map-v81-composition.json
+            /contracts/release-v3.json
+            /hosted-worker-controller/package.json
+            /hosted-worker-controller/package-lock.json
+            /hosted-worker-controller/test/owned-workerd-identity.mjs
+            /release-delivery-origin/
+            /services/cmd/mixer-native-attest/
+            /services/internal/deliveryreplay/main.go
+            /docs/operations/provision-local-release-reader.sql
+            /docs/operations/provision-local-release-jobs.sql
+            /docs/operations/retry-local-release-job.sql
+            /docs/operations/provision-local-artifact-uploader.sql
+            /tests/integration/l07-hosted-privacy/README.md
+            /tests/integration/l07-hosted-privacy/privacy_http_test.exs
+            /tests/integration/l07-hosted-privacy/run.py
+            /console/tests/cookie-build-client.test.mjs
+            /console/src/api/cookie-build-client.ts
+            /console/src/domain/build-read.ts
+            /console/tsconfig.json
+            /console/src/domain/workspace-directory.ts
+            /console/src/domain/build-overview.ts
+            /console/src/api/workspace-transport.ts
+            /console/src/api/workspace-client.ts
+            /console/src/api/cookie-workspace-client.ts
+            /console/src/api/browser-session-client.ts
+            /console/package.json
+            /console/src/state/browser-session-controller.ts
+            /console/src/state/workspace-controller.ts
+            /console/src/api/cookie-workspace-create-client.ts
+            /console/src/api/cookie-workspace-support-client.ts
+            /console/src/api/cookie-workspace-post.ts
+            /console/src/api/cookie-application-registration-client.ts
+            /console/src/api/cookie-source-starter-client.ts
+            /console/src/api/cookie-workspace-admin-client.ts
+            /console/src/components/WorkspaceCreateForm.tsx
+            /console/src/components/RegisterApplicationForm.tsx
+            /console/src/components/SelectSourceStarter.tsx
+            /console/src/state/workspace-creation.ts
+            /console/tests/browser-session-binding-runner.mjs
+            /console/tests/workspace-binding-runner.mjs
+            /console/tests/workspace-binding.test.mjs
+            /console/src/api/cookie-build-catalog-client.ts
+            /console/src/domain/build-catalog.ts
+            /console/src/App.tsx
+            /console/src/api/cookie-release-head-client.ts
+            /console/src/components/ReleaseHeadPage.tsx
+            /console/src/components/release-head-page.css
+            /console/src/domain/release-head.ts
+            /console/src/state/release-head-binding.ts
+            /console/src/main.tsx
+            /console/src/styles.css
+            /console/src/api/browser-login-client.ts
+            /console/src/state/sign-in-action.ts
+            /console/src/state/promotion-resume.ts
+            /console/src/components/SignIn.tsx
+            /console/tests/browser-login.test.mjs
+            /.github/workflows/hosted.yml
+            /AGENTS.md
+            /THIRD_PARTY.yml
+            /docs/hosted-browser-auth-protocol.md
+            /docs/hosted-browser-session-storage.md
+            /services/protocol/testdata/signed-release-v3.json
+            /services/protocol/testdata/release-v3-cases.json
+            /console/package-lock.json
+            /verification/hosted-browser-auth-protocol/run.py
+            /verification/hosted-customer-workspace-http-integration/node-client-driver.mjs
+            /verification/hosted-customer-artifact-event/golden_event.hex
+            /verification/hosted-customer-artifact-event/golden_hashes.txt
+            /.github/workflows/identity-network.yml
+            /.github/workflows/verify.yml
+            /docs/hosted-identity-production-network-ci-contract.md
+            /verification/identity-production-network-contract/**
+            /verification/identity-network-image-amendment-v1/metadata/**
+            /verification/identity-network-image-amendment-v2/metadata/**
+            /verification/identity-network-fixture-amendment-v1/metadata/**
+            /verification/identity-network-fixture-amendment-v2/metadata/**
+            /verification/identity-network-current-source-v1/**
+            /verification/identity-network-current-source-v2/**
+            /verification/identity-network-current-source-v3/**
+            /verification/identity-network-current-source-v4/**
+            /verification/identity-network-current-source-v5/**
+            /verification/identity-network-current-source-v6/**
+            /verification/identity-network-current-source-v7/**
+            /verification/identity-network-current-source-v8/**
+            /verification/identity-network-current-source-v9/**
+            /verification/identity-network-current-source-v10/**
+            /verification/identity-network-current-source-v11/selection.json
+            /verification/identity-network-current-source-v11/selected-source-manifest.json
+            /verification/identity-network-current-source-v12/selection.json
+            /verification/identity-network-current-source-v12/selected-source-manifest.json
+            /verification/identity-network-current-source-v13/selection.json
+            /verification/identity-network-current-source-v13/selected-source-manifest.json
+            /verification/identity-network-current-source-v14/selection.json
+            /verification/identity-network-current-source-v14/selected-source-manifest.json
+            /verification/identity-network-current-source-v15/selection.json
+            /verification/identity-network-current-source-v16/selection.json
+            /verification/identity-network-current-source-v17/selection.json
+            /verification/identity-network-current-source-v18/selection.json
+            /verification/identity-network-current-source-v15/selected-source-manifest.json
+            /verification/identity-network-current-source-v16/selected-source-manifest.json
+            /verification/identity-network-current-source-v17/selected-source-manifest.json
+            /verification/identity-network-current-source-v18/selected-source-manifest.json
+            /verification/identity-network-current-source-v19/selection.json
+            /verification/identity-network-current-source-v19/selected-source-manifest.json
+            /console/src/components/ApplicationBuildPage.tsx
+            /console/src/components/CancelBuildForm.tsx
+            /console/src/state/build-selection-controller.ts
+            /console/tests/application-build-page.test.mjs
+            /console/tests/build-selection-controller.test.mjs
+            /verification/identity-network-current-source-v20/selection.json
+            /verification/identity-network-current-source-v20/selected-source-manifest.json
+            /verification/identity-network-current-source-v21/selection.json
+            /verification/identity-network-current-source-v21/selected-source-manifest.json
+            /verification/identity-network-current-source-v22/selection.json
+            /verification/identity-network-current-source-v22/selected-source-manifest.json
+            /verification/identity-network-current-source-v23/selection.json
+            /verification/identity-network-current-source-v23/selected-source-manifest.json
+            /verification/identity-network-current-source-v24/selection.json
+            /verification/identity-network-current-source-v25/selection.json
+            /verification/identity-network-current-source-v26/selection.json
+            /verification/identity-network-current-source-v27/selection.json
+            /verification/identity-network-current-source-v28/selection.json
+            /verification/identity-network-current-source-v29/selection.json
+            /verification/identity-network-current-source-v31/selection.json
+            /verification/identity-network-current-source-v32/selection.json
+            /verification/identity-network-current-source-v33/selection.json
+            /verification/identity-network-current-source-v34/selection.json
+            /verification/identity-network-current-source-v35/selection.json
+            /verification/identity-network-current-source-v36/selection.json
+            /verification/identity-network-current-source-v37/selection.json
+            /verification/identity-network-current-source-v38/selection.json
+            /verification/identity-network-current-source-v39/selection.json
+            /verification/identity-network-current-source-v40/selection.json
+            /verification/identity-network-current-source-v41/selection.json
+            /verification/identity-network-current-source-v42/selection.json
+            /verification/identity-network-current-source-v43/selection.json
+            /verification/identity-network-current-source-v44/selection.json
+            /verification/identity-network-current-source-v45/selection.json
+            /verification/identity-network-current-source-v46/selection.json
+            /verification/identity-network-current-source-v47/selection.json
+            /verification/identity-network-current-source-v48/selection.json
+            /verification/identity-network-current-source-v49/selection.json
+            /verification/identity-network-current-source-v50/selection.json
+            /verification/identity-network-current-source-v51/selection.json
+            /verification/identity-network-current-source-v52/selection.json
+            /verification/identity-network-current-source-v53/selection.json
+            /verification/identity-network-current-source-v54/selection.json
+            /verification/identity-network-current-source-v55/selection.json
+            /verification/identity-network-current-source-v56/selection.json
+            /verification/identity-network-current-source-v57/selection.json
+            /verification/identity-network-current-source-v58/selection.json
+            /verification/identity-network-current-source-v59/selection.json
+            /verification/identity-network-current-source-v60/selection.json
+            /verification/identity-network-current-source-v61/selection.json
+            /verification/identity-network-current-source-v62/selection.json
+            /verification/identity-network-current-source-v63/selection.json
+            /verification/identity-network-current-source-v64/selection.json
+            /verification/identity-network-current-source-v65/selection.json
+            /verification/identity-network-current-source-v66/selection.json
+            /verification/identity-network-current-source-v67/selection.json
+            /verification/identity-network-current-source-v68/selection.json
+            /verification/identity-network-current-source-v69/selection.json
+            /verification/identity-network-current-source-v70/selection.json
+            /verification/identity-network-current-source-v71/selection.json
+            /verification/identity-network-current-source-v72/selection.json
+            /verification/identity-network-current-source-v73/selection.json
+            /verification/identity-network-current-source-v74/selection.json
+            /verification/identity-network-current-source-v76/selection.json
+            /verification/identity-network-current-source-v77/selection.json
+            /verification/identity-network-current-source-v78/selection.json
+            /verification/identity-network-current-source-v79/selection.json
+            /verification/identity-network-current-source-v80/selection.json
+            /verification/identity-network-current-source-v81/selection.json
+            /verification/identity-network-current-source-v82/selection.json
+            /verification/identity-network-current-source-v24/selected-source-manifest.json
+            /verification/identity-network-current-source-v25/selected-source-manifest.json
+            /verification/identity-network-current-source-v26/selected-source-manifest.json
+            /verification/identity-network-current-source-v27/selected-source-manifest.json
+            /verification/identity-network-current-source-v28/selected-source-manifest.json
+            /verification/identity-network-current-source-v29/selected-source-manifest.json
+            /verification/identity-network-current-source-v31/selected-source-manifest.json
+            /verification/identity-network-current-source-v32/selected-source-manifest.json
+            /verification/identity-network-current-source-v33/selected-source-manifest.json
+            /verification/identity-network-current-source-v34/selected-source-manifest.json
+            /verification/identity-network-current-source-v35/selected-source-manifest.json
+            /verification/identity-network-current-source-v36/selected-source-manifest.json
+            /verification/identity-network-current-source-v37/selected-source-manifest.json
+            /verification/identity-network-current-source-v38/selected-source-manifest.json
+            /verification/identity-network-current-source-v39/selected-source-manifest.json
+            /verification/identity-network-current-source-v40/selected-source-manifest.json
+            /verification/identity-network-current-source-v41/selected-source-manifest.json
+            /verification/identity-network-current-source-v42/selected-source-manifest.json
+            /verification/identity-network-current-source-v43/selected-source-manifest.json
+            /verification/identity-network-current-source-v44/selected-source-manifest.json
+            /verification/identity-network-current-source-v45/selected-source-manifest.json
+            /verification/identity-network-current-source-v46/selected-source-manifest.json
+            /verification/identity-network-current-source-v47/selected-source-manifest.json
+            /verification/identity-network-current-source-v48/selected-source-manifest.json
+            /verification/identity-network-current-source-v49/selected-source-manifest.json
+            /verification/identity-network-current-source-v50/selected-source-manifest.json
+            /verification/identity-network-current-source-v51/selected-source-manifest.json
+            /verification/identity-network-current-source-v52/selected-source-manifest.json
+            /verification/identity-network-current-source-v53/selected-source-manifest.json
+            /verification/identity-network-current-source-v54/selected-source-manifest.json
+            /verification/identity-network-current-source-v55/selected-source-manifest.json
+            /verification/identity-network-current-source-v56/selected-source-manifest.json
+            /verification/identity-network-current-source-v57/selected-source-manifest.json
+            /verification/identity-network-current-source-v58/selected-source-manifest.json
+            /verification/identity-network-current-source-v59/selected-source-manifest.json
+            /verification/identity-network-current-source-v60/selected-source-manifest.json
+            /verification/identity-network-current-source-v61/selected-source-manifest.json
+            /verification/identity-network-current-source-v62/selected-source-manifest.json
+            /verification/identity-network-current-source-v63/selected-source-manifest.json
+            /verification/identity-network-current-source-v64/selected-source-manifest.json
+            /verification/identity-network-current-source-v65/selected-source-manifest.json
+            /verification/identity-network-current-source-v66/selected-source-manifest.json
+            /verification/identity-network-current-source-v67/selected-source-manifest.json
+            /verification/identity-network-current-source-v68/selected-source-manifest.json
+            /verification/identity-network-current-source-v69/selected-source-manifest.json
+            /verification/identity-network-current-source-v70/selected-source-manifest.json
+            /verification/identity-network-current-source-v71/selected-source-manifest.json
+            /verification/identity-network-current-source-v72/selected-source-manifest.json
+            /verification/identity-network-current-source-v73/selected-source-manifest.json
+            /verification/identity-network-current-source-v74/selected-source-manifest.json
+            /verification/identity-network-current-source-v76/selected-source-manifest.json
+            /verification/identity-network-current-source-v77/selected-source-manifest.json
+            /verification/identity-network-current-source-v78/selected-source-manifest.json
+            /verification/identity-network-current-source-v79/selected-source-manifest.json
+            /verification/identity-network-current-source-v80/selected-source-manifest.json
+            /verification/identity-network-current-source-v81/selected-source-manifest.json
+            /verification/identity-network-current-source-v82/selected-source-manifest.json
+            /verification/identity-network-current-source-v78/application-manifest.json
+            /verification/identity-network-current-source-v79/application-manifest.json
+            /verification/identity-network-current-source-v80/application-manifest.json
+            /verification/identity-network-current-source-v81/application-manifest.json
+            /verification/identity-network-current-source-v82/application-manifest.json
+            /verification/identity-network-current-source-v76/application-manifest.json
+            /verification/identity-network-current-source-v29/preimages/
+            /verification/identity-network-current-source-v31/preimages/
+            /verification/identity-network-current-source-v32/preimages/
+            /verification/identity-network-current-source-v33/preimages/
+            /verification/identity-network-current-source-v34/preimages/
+            /verification/identity-network-current-source-v35/preimages/
+            /verification/identity-network-current-source-v36/preimages/
+            /verification/identity-network-current-source-v37/preimages/
+            /verification/identity-network-current-source-v38/preimages/
+            /verification/identity-network-current-source-v39/preimages/
+            /verification/identity-network-current-source-v40/preimages/
+            /verification/identity-network-current-source-v41/preimages/
+            /verification/identity-network-current-source-v42/preimages/
+            /verification/identity-network-current-source-v43/preimages/
+            /verification/identity-network-current-source-v44/preimages/
+            /verification/identity-network-current-source-v45/preimages/
+            /verification/identity-network-current-source-v46/preimages/
+            /verification/identity-network-current-source-v47/preimages/
+            /verification/identity-network-current-source-v48/preimages/
+            /verification/identity-network-current-source-v49/preimages/
+            /verification/identity-network-current-source-v50/preimages/
+            /verification/identity-network-current-source-v51/preimages/
+            /verification/identity-network-current-source-v52/preimages/
+            /verification/identity-network-current-source-v53/preimages/
+            /verification/identity-network-current-source-v54/preimages/
+            /verification/identity-network-current-source-v55/preimages/
+            /verification/identity-network-current-source-v56/preimages/
+            /verification/identity-network-current-source-v57/preimages/
+            /verification/identity-network-current-source-v58/preimages/
+            /verification/identity-network-current-source-v59/preimages/
+            /verification/identity-network-current-source-v60/preimages/
+            /verification/identity-network-current-source-v61/preimages/
+            /verification/identity-network-current-source-v62/preimages/
+            /verification/identity-network-current-source-v63/preimages/
+            /verification/identity-network-current-source-v64/preimages/
+            /verification/identity-network-current-source-v65/preimages/
+            /verification/identity-network-current-source-v66/preimages/
+            /verification/identity-network-current-source-v67/preimages/
+            /verification/identity-network-current-source-v68/preimages/
+            /verification/identity-network-current-source-v69/preimages/
+            /verification/identity-network-current-source-v70/preimages/
+            /verification/identity-network-current-source-v71/preimages/
+            /verification/identity-network-current-source-v72/preimages/
+            /verification/identity-network-current-source-v73/preimages/
+            /verification/identity-network-current-source-v74/preimages/
+            /verification/identity-network-current-source-v76/preimages/
+            /verification/identity-network-current-source-v77/preimages/
+            /verification/identity-network-current-source-v78/preimages/
+            /verification/identity-network-current-source-v79/preimages/
+            /verification/identity-network-current-source-v80/preimages/
+            /verification/identity-network-current-source-v81/preimages/
+            /verification/identity-network-current-source-v82/preimages/
+            /console/src/api/build-submission.ts
+            /console/src/brand.css
+            /console/src/build-submission-test-runtime.tsx
+            /console/src/build-submission.test.mjs
+            /console/src/components/BuildCreation.tsx
+            /console/src/components/BuildLogs.tsx
+            /console/src/components/BuildOverview.tsx
+            /console/src/components/ReleaseChecks.tsx
+            /console/src/components/WorkspaceDirectory.tsx
+            /console/src/components/WorkspacePage.tsx
+            /console/src/components/WorkspaceSupport.tsx
+            /console/src/components/WorkspaceAdministration.tsx
+            /console/src/components/application-build-page.css
+            /console/src/components/build-overview.css
+            /console/src/components/workspace-directory.css
+            /console/src/domain/build-submission.ts
+            /console/src/domain/release-check-summary.ts
+            /console/src/preview/BuildOverviewPreview.tsx
+            /console/src/preview/ReleaseChecksPreview.tsx
+            /console/src/reselection-regression.test.mjs
+            /console/src/state/browser-session-binding.ts
+            /console/src/state/build-selection-binding.ts
+            /console/src/state/workspace-binding.ts
+            /console/src/state/workspace-context.tsx
+            /console/tests/application-build-page-runtime.tsx
+            /console/tests/helpers/build-selection-compiled.mjs
+            /console/vite.config.ts
+      - name: Admit the explicitly selected current hosted source
+        run: python3 -B hosted/scripts/test-identity-network.py --check-source
+      - name: Check collector fault decisions without Docker
+        run: python3 -B hosted/scripts/test_identity_network_collector.py
+      - name: Run the two production-path network methods
+        run: python3 -B hosted/scripts/test-identity-network.py --sha "$GITHUB_SHA" --output "$GITHUB_WORKSPACE/identity-network-evidence"
+      - name: Finalize exact owned resources and retain failures
+        if: always()
+        run: python3 -B hosted/scripts/test-identity-network.py --finalize "$GITHUB_WORKSPACE/identity-network-evidence"
+      - name: Retain qualification evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: identity-production-network-${{ github.sha }}-${{ github.run_attempt }}
+          path: identity-network-evidence/**
+          if-no-files-found: error
+          retention-days: 14

@@ -78,6 +78,31 @@ their pinned inputs. Installed behavior remains unverified.
 [Relocated export receipt](verification/receipts/fieldlog-d2-combined-85e6fbe3-relocated-ios-export.json) ·
 [Offline VM build](verification/receipts/l08-fieldlog-ios-vm-empty-cargo-home-6bc461f4.json)
 
+## November 21 matching FieldLog development artifacts
+
+The reviewed ordinary FieldLog tree `e39a5ea393` built for both platforms.
+The Android development APK uses Mixer `857e4b4aa7` and contains the
+reproducible Entry Commit payload. Static review verified all 41 APK
+members, the ordinary launcher, the v3 certificate, all 19 aligned
+arm64 libraries, and both guest signatures. Its development certificate
+requires a clean install. The Apple bundle uses Mixer `6bc461f4fc` and
+its own signed development payload. Static review verified all 19
+FieldLog compiler inputs, the linked capability VM, and both guest
+signatures. Installed Apple behavior remains pending.
+[Matched artifact review](verification/receipts/fieldlog-e39a5ea3-matched-development-artifacts.json)
+
+The exact Android APK ran on disposable API 36 arm64 emulators with
+airplane mode enabled and no default network. The ordinary editor saved
+a task and a draft, and signed Entry Commit persisted the draft once with
+one linked outbox entry. A cold launch preserved the workspace bytes.
+The Android system chooser delivered a 276-byte report with both saved
+records. The separate local reader's digest matched both sender copies.
+A focused task-only run verified the report bytes, Back to FieldLog,
+and unchanged workspace bytes. Owned groups closed and scratch was
+removed, including the emulator whose first group observation failed.
+[Installed Android receipt](verification/receipts/fieldlog-e39a5ea3-857e4b4a-api36-offline-report-commit.json) ·
+[Earlier attempts](verification/receipts/fieldlog-e39a5ea3-857e4b4a-offline-setup-attempts.json)
+
 ## November 21 hosted v76 verification
 
 Identity Network and Intel Android passed at `32cd2c54b6`. Intel verified both
@@ -266,6 +291,14 @@ staging and recorded terminal custody for 13 bootstrap and 79 integration
 commands. The earlier timeout and download failure retain separate receipts.
 [Timeout and Source141 verification](verification/receipts/android-sparse-checkout-timeout-c00f33e7.json)
 [Exact hosted run](verification/receipts/owned-engine-d7ab346e-terminal-ci.json)
+
+The subsequent reproducible Entry Commit checkpoint `857e4b4aa7` passed
+all nine Owned Engine jobs. Intel compiled all six variants and produced
+DEX identical to the prior run. All 100 Intel bootstrap, integration,
+and nested command receipts recorded terminal custody. Independent
+review verified all ten uploaded archive digests. Hosted selections
+remained at 157 Source141 and 571 Services inputs.
+[Terminal CI receipt](verification/receipts/owned-engine-857e4b4a-terminal-ci.json)
 
 The six-action private V3 candidate `790d0b2253` delivered Open, Next,
 Tasks, reopen, Previous, and Entries through the signed guest. Its two
@@ -859,10 +892,20 @@ A full replay using the corrected production files passed signed sequences
 worker each produced one durable result. The first ordinary offer after
 restart returned HTTP 200, and a fresh offline Swift process recovered the
 same sequence-3 candidate after the API closed. The run recorded 73 closed
-command groups and nine listener rebinds. The current source selection and
-publication work remains in progress.
+command groups and nine listener rebinds.
 [Startup regression receipt](verification/receipts/d6-delivery-startup-correction-2ade050c.json) ·
 [Corrected Swift restore receipt](verification/receipts/d6-l04-l05-swift-restored-phoenix-corrected-6e9ed4e6.json)
+
+Hosted v83 binds the corrected startup to 572 source inputs. Independent
+review admitted the three real workflow sparse checkouts in normal and
+optimized Python and restored the prior hosted selection and Source141
+and Source127 byte-for-byte, including file modes. Root passed 323 normal
+collector tests. The optimized suite passed 320 before its existing
+360-second alarm, and the remaining three passed in a focused run.
+Source141 still selects 157 inputs, and all 16 Android sparse controls
+passed in both modes. Exact hosted execution remains pending.
+[Source binding](verification/receipts/d6-hosted-source-v83-binding.json) ·
+[Root admission](verification/receipts/d6-hosted-source-v83-root-admission.json)
 
 ## November 20 generated release REST client
 

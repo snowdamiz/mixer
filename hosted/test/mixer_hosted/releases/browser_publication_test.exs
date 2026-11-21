@@ -21,7 +21,15 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
   alias MixerHosted.Releases.BrowserPublicationTest.Uploader
   alias MixerHosted.Releases.EnvironmentPromotion.Direction
   alias MixerHosted.Releases.ReleaseJobs.ProcessorAdmission
-  alias MixerHosted.Releases.{DeliveryRepo, RuntimeProvisioning, Target, WriterRepo}
+
+  alias MixerHosted.Releases.{
+    DeliveryAdmission,
+    DeliveryRepo,
+    RuntimeProvisioning,
+    Target,
+    WriterRepo
+  }
+
   alias MixerHosted.Test.OrdinaryBrowserStartupFixture.Database, as: DB
   alias MixerHosted.Test.StockReleaseCLI
 
@@ -1198,16 +1206,16 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     assert :ok = Application.stop(:mixer_hosted)
     refute Process.whereis(DeliveryRepo)
     refute Process.whereis(WriterRepo)
+    unless jobs?, do: assert_delivery_startup_refused(delivery, offer_path)
     assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
 
     try do
       {:ok, {_, port}} = MixerHostedWeb.Endpoint.server_info(:http)
       restarted = %{c | http_port: port}
-      assert [[1]] = DB.q!(DeliveryRepo, "SELECT 1").rows
+      assert_delivery(restarted, offer_path, second_path, signed_second, second_envelope, config)
       assert_retry_checkpoint_stops_at_cutoff()
       assert_browser_read_refusal_preserves_owner(restarted, owner)
       assert_browser_reads_wait_for_checkout(restarted, owner, target, second_sequence)
-      assert_delivery(restarted, offer_path, second_path, signed_second, second_envelope, config)
       assert http(restarted, first_path, []).body == first_envelope
       assert_no_offer(restarted, delivery_path(target, "excluded-installation"))
 
@@ -1664,6 +1672,94 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
              )
 
     {offer.body, artifact.body}
+  end
+
+  defp assert_delivery_startup_refused(delivery, offer_path) do
+    endpoint = Application.fetch_env!(:mixer_hosted, MixerHostedWeb.Endpoint)
+    {:ok, socket} = :gen_tcp.listen(0, ip: {127, 0, 0, 1}, active: false)
+    {:ok, port} = :inet.port(socket)
+    :ok = :gen_tcp.close(socket)
+
+    startup = Application.fetch_env!(:mixer_hosted, :startup)
+    {hosted, installation} = startup
+    fixed_endpoint = put_in(endpoint[:http][:port], port)
+    observer = self()
+    gate = make_ref()
+
+    options =
+      Keyword.put(delivery.repo, :after_connect, fn _connection ->
+        send(observer, {gate, self()})
+
+        receive do
+          ^gate -> :ok
+        after
+          10_000 -> raise "test delivery checkout remained blocked"
+        end
+      end)
+
+    Application.put_env(:mixer_hosted, :local_release_delivery, %{delivery | repo: options})
+    Application.put_env(:mixer_hosted, MixerHostedWeb.Endpoint, fixed_endpoint)
+
+    Application.put_env(
+      :mixer_hosted,
+      :startup,
+      {%{hosted | endpoint: fixed_endpoint}, installation}
+    )
+
+    try do
+      started = System.monotonic_time(:millisecond)
+      boot = Task.async(fn -> Application.ensure_all_started(:mixer_hosted) end)
+      assert_receive {^gate, callback}, 5_000
+      callback_monitor = Process.monitor(callback)
+
+      try do
+        during_startup = delivery_listener(port)
+
+        # A completed PostgreSQL login alone does not make the pool usable.
+        assert {:ok, result} = Task.yield(boot, 6_500)
+        assert System.monotonic_time(:millisecond) - started <= 6_500
+
+        case result do
+          {:ok, _} ->
+            offer = http(%{http_port: port}, offer_path, [])
+            unavailable = offer.body == ~s({"error":{"code":"storage_unavailable"}})
+
+            flunk(
+              "endpoint accepted a first offer before delivery checkout, HTTP #{offer.status}, storage_unavailable=#{unavailable}"
+            )
+
+          {:error, {:mixer_hosted, {reason, {MixerHosted.Application, :start, _}}}} ->
+            assert reason ==
+                     {:shutdown,
+                      {:failed_to_start_child, DeliveryAdmission,
+                       :local_release_delivery_admission_refused}}
+        end
+
+        assert during_startup == :econnrefused
+        assert delivery_listener(port) == :econnrefused
+        refute Process.whereis(MixerHostedWeb.Endpoint)
+        refute Process.whereis(DeliveryRepo)
+      after
+        send(callback, gate)
+        assert_receive {:DOWN, ^callback_monitor, :process, ^callback, :normal}, 1_000
+      end
+    after
+      if Process.whereis(MixerHosted.Supervisor), do: Application.stop(:mixer_hosted)
+      Application.put_env(:mixer_hosted, :startup, startup)
+      Application.put_env(:mixer_hosted, MixerHostedWeb.Endpoint, endpoint)
+      Application.put_env(:mixer_hosted, :local_release_delivery, delivery)
+    end
+  end
+
+  defp delivery_listener(port) do
+    case :gen_tcp.connect({127, 0, 0, 1}, port, [active: false], 500) do
+      {:ok, socket} ->
+        :ok = :gen_tcp.close(socket)
+        :listening
+
+      {:error, reason} ->
+        reason
+    end
   end
 
   defp assert_no_offer(c, path) do

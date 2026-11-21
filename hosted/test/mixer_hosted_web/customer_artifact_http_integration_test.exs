@@ -2253,8 +2253,10 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
     )
 
     on_exit(fn -> Application.delete_env(:mixer_hosted, env) end)
-    assert [child] = PublicDelivery.children(http: [ip: {127, 0, 0, 1}])
-    start_supervised!(child)
+
+    for child <- PublicDelivery.children(http: [ip: {127, 0, 0, 1}]) do
+      start_supervised!(child)
+    end
 
     assert [[^login]] =
              Ecto.Adapters.SQL.query!(DeliveryRepo, "SELECT current_user", [], log: false).rows
