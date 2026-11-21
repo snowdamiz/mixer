@@ -1141,8 +1141,8 @@ at 65,536 bytes. Both recovered a lost acknowledgment with one remote
 event, a byte-identical JPEG, and the unrelated local records intact.
 The queue stayed offline without a matching project session. The
 successful run closed its owned groups and removed scratch. Two earlier
-sampler attempts have separate custody holds. The resolver and manifest
-refusals are reproduced. Installed queue acceptance remains pending.
+sampler attempts have separate custody holds. The host replay reproduced
+the stock resolver and manifest refusals.
 [Host replay](verification/receipts/fieldlog-android-queue-pair25-host.json) · [Scoped holds](verification/receipts/fieldlog-android-queue-pair25-custody-holds.json)
 
 The stock Android builder recognizes the NDK's system `libz.so`.
