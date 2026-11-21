@@ -103,6 +103,30 @@ class APKHandoffTests(unittest.TestCase):
         self.assertFalse(self.apk.exists())
         self.assertIn("same filesystem", receipt["failure"])
 
+    def test_replaced_build_scratch_is_not_removed_or_reported_clean(self):
+        def replaced_build(run):
+            self.original = run.scratch.with_suffix(".original")
+            run.scratch.rename(self.original)
+            run.scratch.mkdir()
+            self.marker = run.scratch / "keep"
+            self.marker.write_bytes(b"replacement")
+            raise RuntimeError("mocked build stopped")
+
+        with (
+            patch.object(replay, "REPO", self.root),
+            patch.object(replay.Replay, "execute", replaced_build),
+            patch.object(sys, "argv", ["replay.py", "--receipt", str(self.receipt)]),
+            contextlib.redirect_stdout(io.StringIO()),
+            contextlib.redirect_stderr(io.StringIO()),
+        ):
+            result = replay.main()
+        self.assertEqual(result, 1)
+        self.assertEqual(self.marker.read_bytes(), b"replacement")
+        self.assertTrue(self.original.is_dir())
+        receipt = json.loads(self.receipt.read_bytes())
+        self.assertFalse(receipt["cleanup"]["scratchRemoved"])
+        self.assertIn("path no longer names", receipt["cleanup"]["error"])
+
     def test_existing_path_refuses_before_build(self):
         self.apk.symlink_to(self.root / "absent")
         with (

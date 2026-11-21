@@ -70,8 +70,9 @@ def group_absent(pgid):
 
 
 class Replay:
-    def __init__(self, scratch, args, receipt):
+    def __init__(self, scratch, directory, args, receipt):
         self.scratch = scratch
+        self.directory = directory
         self.args = args
         self.receipt = receipt
         self.hold = False
@@ -248,7 +249,7 @@ class Replay:
         }
         destination = build_ci / "FieldLogGenerated"
         export.rename(destination)
-        shutil.rmtree(prep)
+        shutil.rmtree(prep.name, dir_fd=self.directory)
         require(not prep.exists() and not (destination / ".mixer").exists() and shutil.which("mixer", path=ci["PATH"]) is None,
                 "Original inputs, Mixer CLI, or build output reachable in the CI replay")
         self.receipt["export"].update(relocatedTo="Build/CI/FieldLogGenerated", preparationTreeRemovedBeforeBuild=True, priorBuildOutput=False)
@@ -320,6 +321,24 @@ def publish_apk(apk, destination, expected_sha256):
         os.close(directory)
 
 
+def remove_scratch(scratch, directory):
+    identity = os.fstat(directory)
+
+    def require_original_path():
+        require(os.path.samestat(identity, scratch.lstat()),
+                "Build scratch path no longer names the opened directory")
+
+    require_original_path()
+    for name in os.listdir(directory):
+        item = os.stat(name, dir_fd=directory, follow_symlinks=False)
+        if stat.S_ISDIR(item.st_mode):
+            shutil.rmtree(name, dir_fd=directory)
+        else:
+            os.unlink(name, dir_fd=directory)
+    require_original_path()
+    scratch.rmdir()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--receipt", type=Path, required=True, help="New path for the compact JSON receipt")
@@ -343,7 +362,8 @@ def main():
         root = REPO / "verification/local"
         root.mkdir(exist_ok=True)
         scratch = Path(tempfile.mkdtemp(prefix="fieldlog-v74-export.", dir=root)).resolve()
-        replay = Replay(scratch, args, receipt)
+        directory = os.open(scratch, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        replay = Replay(scratch, directory, args, receipt)
         print(f"Build scratch: {scratch}", flush=True)
         try:
             apk = replay.execute()
@@ -356,11 +376,19 @@ def main():
             receipt["failure"] = str(error).replace(str(scratch), "$work")
             print(error, file=sys.stderr)
         finally:
-            if not replay.hold:
-                shutil.rmtree(scratch)
-            receipt["cleanup"] = {"commandCustodyResolved": not replay.hold, "scratchRemoved": not scratch.exists()}
-            if replay.hold:
-                receipt["cleanup"]["retainedScratch"] = str(scratch)
+            cleanup = receipt["cleanup"] = {"commandCustodyResolved": not replay.hold, "scratchRemoved": False}
+            try:
+                if replay.hold:
+                    cleanup["retainedScratch"] = str(scratch)
+                else:
+                    remove_scratch(scratch, directory)
+                    cleanup["scratchRemoved"] = True
+            except (OSError, RuntimeError) as error:
+                cleanup["error"] = str(error)
+                receipt["status"] = "blocked"
+                print(error, file=sys.stderr)
+            finally:
+                os.close(directory)
             json.dump(receipt, destination, indent=2)
             destination.write("\n")
     return 0 if receipt["status"] == "passed" and receipt["cleanup"]["scratchRemoved"] else 1
