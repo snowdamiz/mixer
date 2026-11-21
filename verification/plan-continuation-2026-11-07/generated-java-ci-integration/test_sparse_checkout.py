@@ -106,7 +106,7 @@ def admission_paths(root=None, binding=None):
         for key in ('capability_transition', 'upgrade_transition', 'pair24_transition',
                     'cancel_cli_transition', 'local_store_transition',
                     'release_inspector_transition', 'icu_notice_transition', 'halt_cli_transition',
-                    'release_rest_v3_transition', 'stock_promotion_transition'):
+                    'release_rest_v3_transition', 'stock_promotion_transition', 'hosted_v71_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -497,6 +497,9 @@ class SparseControls(unittest.TestCase):
                     input=('\n'.join(patterns) + '\n').encode(), check=True)
             restored = base / 'source141'
             command(python + [str(adopter), 'prepare-source141', '--out', str(restored)], check=True)
+            progress = Path('cli/build-tests/test_android_inspection_progress.py')
+            preimage = SOURCE_BINDING.parent / 'hosted-v71-predecessor-bytes' / progress
+            self.assertEqual((restored / progress).read_bytes(), (repo / preimage).read_bytes())
             for name in additions:
                 self.assertFalse((restored / name).exists(), name)
 

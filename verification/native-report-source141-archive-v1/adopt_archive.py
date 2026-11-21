@@ -352,6 +352,9 @@ STOCK_PROMOTION_CHANGES = STOCK_PROMOTION_SOURCE_CHANGES | {
     'contracts/release-rest-v3.json',
     'contracts/release-rest-v3.md',
 }
+INSPECTION_PROGRESS_TEST = 'cli/build-tests/test_android_inspection_progress.py'
+HOSTED_V71_PREFIX = 'hosted-v71-predecessor-bytes/'
+HOSTED_V71_CHANGES = {VERIFY_WORKFLOW, SPARSE_CHECKOUT_TEST, INSPECTION_PROGRESS_TEST}
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, STANDARDS_REPLAY_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
@@ -375,6 +378,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     RELEASE_REST_V3_PREFIX + name for name in RELEASE_REST_V3_REPLACEMENTS
 } | {
     STOCK_PROMOTION_PREIMAGE_MANIFEST, *(STOCK_PROMOTION_PREFIX + name for name in STOCK_PROMOTION_CHANGES),
+} | {
+    HOSTED_V71_PREFIX + name for name in HOSTED_V71_CHANGES
 } | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
 } | {
@@ -512,6 +517,7 @@ def install_inputs():
                              'managed_android_retained_transition', 'pair25_transition', 'swift_version_transition',
                              'cli_nonregular_input_test_transition', 'signed_apple_overflow_test_transition',
                              'sparse_checkout_test_transition', 'release_rest_v3_transition', 'stock_promotion_transition',
+                             'hosted_v71_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -1377,6 +1383,21 @@ def install_inputs():
     require(current == expected_source and len(current) == len(release_source) and binding['source'] == {
         'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST, 'sha256': stock['sourceAfter'],
     } and previous.digest(current) == stock['sourceAfter'], 'Stock promotion source transition differs')
+
+    v71 = binding['hosted_v71_transition']
+    require(set(v71) == {'changes'} and set(v71['changes']) == HOSTED_V71_CHANGES and
+            current.keys().isdisjoint(HOSTED_V71_CHANGES), 'Hosted v71 archive change roster differs')
+    for name, change in v71['changes'].items():
+        path = HERE / HOSTED_V71_PREFIX / name
+        raw = read_predecessor_member(path)
+        require(set(change) == {'before', 'after'} and change['before'] != change['after'] and
+                change['before'] == installed[name] == previous.row(raw) and
+                stat.S_IMODE(path.lstat().st_mode) == 0o644,
+                'Hosted v71 predecessor bytes or mode differ: ' + name)
+        require(stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'Installed hosted v71 owner mode differs: ' + name)
+        installed[name] = change['after']
+        preimages.setdefault(name, (raw, 0o644))
 
     previous.check_rows(ROOT, installed)
     for name, change in release['changes'].items():
