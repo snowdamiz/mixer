@@ -392,6 +392,8 @@ walks through the full FieldLog Android example.
 - [Upgrade, recover, and exit](docs/guides/upgrade-recover-and-exit.md) covers
   SDK upgrades, recovery from an interrupted edit, installed upgrades, and
   Android builds without the Mixer CLI.
+- [Add a Mixer screen to a UIKit app](docs/guides/uikit-migration.md)
+  keeps UIKit navigation and renders one screen from the shared feature.
 - [FieldLog fixtures and replays](docs/guides/fieldlog.md) reproduces the
   FieldLog Android export, lifecycle fixes, offline sync, and photo queue.
 - [Produce and inspect a local FieldLog update](cli/release-tools/README.md)
