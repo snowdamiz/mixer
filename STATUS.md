@@ -131,6 +131,14 @@ separate attachment database suite was skipped by this runner.
 [Sparse replay](verification/receipts/hosted-v77-owner-privilege-source-admission.json) ·
 [Local Phoenix replay](verification/receipts/hosted-v77-local-phoenix-composition.json)
 
+Hosted Phoenix passed 1,027 tests with 32 skipped, including the concurrent
+build replay and the attestation browser catalog fixture. The final source
+comparison passed and PostgreSQL stopped. Hosted Identity Network passed all
+316 collector checks and both production-path methods, with successful owned
+resource finalization.
+[Phoenix job](https://github.com/snowdamiz/mixer/actions/runs/44876481915/job/136762184228) ·
+[Identity Network job](https://github.com/snowdamiz/mixer/actions/runs/44876482058/job/136762184762)
+
 ## November 20 local development attestation attachment
 
 The stock Go signer signed a retained iOS Simulator build completion, then
