@@ -585,10 +585,13 @@ normal signed two-platform promotion through Phoenix. Staging advanced from
 two artifact-bound publications, one paired promotion record, and one new
 durable queue job per platform. The exact retry returned the same HTTP 200
 bytes without adding rows or jobs. Both earlier selectors kept their
-original receipts. The fixture used synthetic signing and loopback services
-with queue consumers idle. The author verified terminal closure and rebound
-all eight recorded listener ports before removing scratch. L05 and L07
-remain running.
+original receipts. The SQL comparison covers the selected ledger values.
+Independent review matched the executed fixture hashes and confirmed the
+normal signed endpoint, restored role, and append and retry assertions.
+The runtime receipt covers synthetic signing and loopback services with
+queue consumers idle. The author verified terminal closure and rebound all
+eight recorded listener ports before removing scratch. L05 and L07 remain
+running.
 [Runtime receipt](verification/receipts/l05-l07-restored-stage-promotion-2acaac67.json) ·
 [Executed test overlay](verification/receipts/l05-l07-restored-stage-promotion-2acaac67-overlay.patch) ·
 [Historical command record](verification/receipts/l05-l07-restored-stage-promotion-2acaac67-commands.md)
