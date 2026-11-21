@@ -1,0 +1,36 @@
+{
+  "scope": "W12/L05 retained iOS simulator development products for the pure detached attestation verifier",
+  "recorded_at_utc": "2026-11-21T01:10:23Z",
+  "source_base": "61ec9b0fa48755d6b770230b5d02c8de836a2d0c",
+  "source_base_tree": "73a59e2ba65b1c723f3243e31ab7a38a2fbd5df2",
+  "environment": {
+    "host": "macOS 27.0.1 (26A434), arm64",
+    "elixir": "1.20.4",
+    "erlang": "29, ERTS 17.1",
+    "jason": "1.4.5"
+  },
+  "source_sha256": {
+    "hosted/lib/mixer_hosted/builds/retained_native_artifacts.ex": "a7d41282c251c3abe76ea14174a68c7534f26dda840723a542b53fea9da6078e",
+    "hosted/test/mixer_hosted/builds/retained_native_attestation_test.exs": "25b2735115071780b6e3e173e4772fd4be2db04ca4648e6bfb3c1cf42b98025b",
+    "hosted/test/mixer_hosted/builds/fixtures/native_development_attestation_v1.json": "e56a5ceeb69976bcf293687c3df5c44bcb4848af3b654c4b783819dec0bbd72e"
+  },
+  "verification": [
+    {
+      "cwd": "hosted",
+      "command": "mix test --seed 0 test/mixer_hosted/builds/retained_native_attestation_test.exs test/mixer_hosted/builds/native_development_attestation_test.exs test/mixer_hosted/builds/native_development_dispatch_test.exs test/mixer_hosted/builds/journal_test.exs test/mixer_hosted/builds/lifecycle_test.exs test/mixer_hosted/protocol/artifact_admission_test.exs",
+      "output": "Result: 71 passed, including seven retained-product tests."
+    },
+    {
+      "cwd": "hosted",
+      "command": "mix format --check-formatted lib/mixer_hosted/builds/retained_native_artifacts.ex test/mixer_hosted/builds/retained_native_attestation_test.exs",
+      "output": "Exit 0."
+    }
+  ],
+  "observations": [
+    "The verifier read exact reproductions of the existing synthetic Go signer products from a private retained operation tree. The unchanged Go-signed envelope verified under its public SPKI using the returned capture digest and the verified references.",
+    "Refusal covered missing products in the selected operation with exact bytes present elsewhere, mixed captures, reordered and incomplete references, wrong parent triples, duplicate keys, malformed headers, metadata size limits and corruption or length mismatch in each product.",
+    "The same-valued floating-point parent length initially passed the new comparison. The control failed before strict equality and passed after it."
+  ],
+  "next_boundary": "The future attachment caller supplies the completed operation ID and ordered references from the same authorized committed journal snapshot to RetainedNativeArtifacts.verify_ios_development/2. It passes the returned capture digest and those references to NativeDevelopmentAttestation.ExpectedBuild, verifies the envelope with the enrolled public SPKI and fences the snapshot through any later persistence.",
+  "limitations": "Local synthetic retained-store and detached-envelope composition only. Hosted admission, attachment persistence, and release qualification remain outside this receipt."
+}

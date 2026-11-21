@@ -10,6 +10,8 @@ defmodule MixerHosted.Builds.RetainedNativeArtifacts do
   @native_kinds Lifecycle.native_artifact_kinds()
   @kinds Enum.map(@native_kinds, &Atom.to_string/1)
   @chunk_bytes 64 * 1024
+  @ios_archive_magic "MXNATIVE1\n"
+  @ios_metadata_limit 8 * 1024 * 1024
 
   def kinds, do: @kinds
 
@@ -20,6 +22,39 @@ defmodule MixerHosted.Builds.RetainedNativeArtifacts do
          Enum.all?(artifacts, &verified?(operation_id, platform, &1)),
        do: :ok,
        else: {:error, :uncertain}
+  end
+
+  @doc """
+  Establishes the shared capture digest for the exact retained iOS simulator
+  development products of one completed operation.
+
+  The caller supplies the operation ID and ordered artifact references from the
+  same authorized, committed completion. Pass the returned digest and those
+  references to `NativeDevelopmentAttestation.ExpectedBuild`. The caller owns
+  authorization and keeping the completion current through any attachment.
+  """
+  @spec verify_ios_development(binary(), [%ArtifactRef{}]) ::
+          {:ok, String.t()} | {:error, :invalid_retained_products}
+  def verify_ios_development(operation_id, artifacts) do
+    with true <- Lifecycle.native_artifacts?(:ios, artifacts),
+         [app, symbols, inventory] <- artifacts,
+         true <- inventory.size_bytes <= @ios_metadata_limit,
+         {:ok, binding} <- archive_binding(operation_id, app),
+         {:ok, ^binding} <- archive_binding(operation_id, symbols),
+         {:ok, bytes} <- read(operation_id, :ios, inventory),
+         {:ok,
+          %{
+            "version" => 1,
+            "kind" => "resource_inventory",
+            "bindingSHA256" => ^binding,
+            "parentApp" => parent_app,
+            "parentSymbols" => parent_symbols
+          }} <- metadata(bytes),
+         true <- parent_ref?(parent_app, app) and parent_ref?(parent_symbols, symbols) do
+      {:ok, binding}
+    else
+      _ -> {:error, :invalid_retained_products}
+    end
   end
 
   def read(operation_id, artifact), do: read(operation_id, :ios, artifact)
@@ -39,6 +74,47 @@ defmodule MixerHosted.Builds.RetainedNativeArtifacts do
   end
 
   def read(_, _, _), do: {:error, :storage_unavailable}
+
+  defp archive_binding(operation_id, artifact) do
+    kind = Atom.to_string(artifact.kind)
+
+    with {:ok, <<@ios_archive_magic, size::64, rest::binary>>} <-
+           read(operation_id, :ios, artifact),
+         true <- size in 1..@ios_metadata_limit and size <= byte_size(rest),
+         {:ok, %{"version" => 1, "kind" => ^kind, "binding" => binding}} <-
+           metadata(binary_part(rest, 0, size)),
+         true <- hex?(binding) do
+      {:ok, binding}
+    else
+      _ -> :error
+    end
+  end
+
+  # Producer metadata can contain up to 10,000 entries. Decode within the byte
+  # limit and require unambiguous keys in each object used for binding.
+  defp metadata(bytes) do
+    case Jason.decode(bytes, objects: :ordered_objects, strings: :copy) do
+      {:ok, object} -> unique_object(object)
+      _ -> :error
+    end
+  end
+
+  defp unique_object(%Jason.OrderedObject{values: pairs}) do
+    fields = Map.new(pairs)
+    if map_size(fields) == length(pairs), do: {:ok, fields}, else: :error
+  end
+
+  defp unique_object(_), do: :error
+
+  defp parent_ref?(object, artifact) do
+    unique_object(object) ===
+      {:ok,
+       %{
+         "kind" => Atom.to_string(artifact.kind),
+         "sha256" => artifact.sha256,
+         "sizeBytes" => artifact.size_bytes
+       }}
+  end
 
   defp verified?(operation_id, platform, artifact) do
     cap = Lifecycle.native_artifact_max_bytes(platform, artifact.kind)
