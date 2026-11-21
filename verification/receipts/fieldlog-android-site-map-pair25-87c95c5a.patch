@@ -1,0 +1,1228 @@
+diff --git a/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml b/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
+index 2f9bda70076034f4e7e7273bcc97681368505ae2..3de263c1d616eec7b88941e00768ec7902cc06a9 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
++++ b/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
+@@ -1,0 +2,2 @@
++  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
++  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c b/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
+index 9fef336dc2b37ecdb163d28e28700d02a917e15c..a7fe3d595711d627a47c6afcd51dc0186fa76c00 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
+@@ -10 +10,2 @@ extern int32_t mixer_public_android_poll(int64_t);
+-typedef struct Context { int64_t id; jobject receiver; uint8_t *directory; intptr_t directory_n; int busy, failed; struct Context *next; } Context;
++enum SiteMapRecovery { MAP_ACTIVE, MAP_REPLY_PENDING, MAP_READY_TO_CLOSE, MAP_CLOSE_PENDING, MAP_CLOSE_FAILED };
++typedef struct Context { int64_t id; jobject receiver; uint8_t *directory; intptr_t directory_n; int busy, failed; enum SiteMapRecovery map_recovery; struct Context *next; } Context;
+@@ -153,0 +155,4 @@ static jint refresh_queue_host(JNIEnv *e,jclass ignored,jlong id) {
++static void dispose_context(JNIEnv *e, Context *c) {
++    Context **link=&contexts; while(*link!=c) link=&(*link)->next;
++    *link=c->next; (*e)->DeleteGlobalRef(e,c->receiver); free(c->directory); free(c);
++}
+@@ -157,2 +162 @@ static jint close_host(JNIEnv *e,jclass ignored,jlong id) {
+-    Context **link=&contexts; while(*link!=c) link=&(*link)->next;
+-    *link=c->next; (*e)->DeleteGlobalRef(e,c->receiver); free(c->directory); free(c); return 0;
++    dispose_context(e, c); return 0;
+@@ -173,0 +178,77 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm,void *reserved) {
++
++/* App-owned map service. The generated public V4 registration is unchanged. */
++extern int32_t fieldlog_android_site_map_submit(int64_t, const uint8_t *, int32_t,
++        const uint8_t *, intptr_t, double, double, double);
++enum SiteMapResult { MAP_OK, MAP_REFUSED, MAP_UNCERTAIN };
++
++static int poll_map_reply(JNIEnv *e, Context *c, int limit) {
++    pump_env = e;
++    int status = 0;
++    for (int attempt = 0; attempt < limit && status == 0; attempt++)
++        status = mixer_public_android_poll(c->id);
++    pump_env = NULL;
++    return status;
++}
++
++JNIEXPORT jint JNICALL Java_dev_fieldlog_generatedr90_androidhost_PublicBridge_siteMapNative(
++        JNIEnv *e, jclass ignored, jlong id, jbyteArray token, jint operation, jbyteArray data,
++        jdouble latitude, jdouble longitude, jdouble accuracy) {
++    (void)ignored;
++    Context *c = find(id);
++    if (!c || c->busy || c->failed || pump_env || !token || !data ||
++        (*e)->GetArrayLength(e, token) != 36 || operation < 0 || operation > 4) return 1;
++    jsize count = (*e)->GetArrayLength(e, data);
++    if (count > 1048576 || (operation == 0 ? count <= 0 : count != 0)) return 1;
++    jbyte token_bytes[36];
++    (*e)->GetByteArrayRegion(e, token, 0, 36, token_bytes);
++    if ((*e)->ExceptionCheck(e)) return 1;
++    jbyte *asset = count ? (*e)->GetByteArrayElements(e, data, NULL) : NULL;
++    if (count && !asset) return 1;
++    c->busy = 1;
++    int submitted = fieldlog_android_site_map_submit(id, (const uint8_t *)token_bytes, operation,
++        (const uint8_t *)asset, count, latitude, longitude, accuracy);
++    if (asset) (*e)->ReleaseByteArrayElements(e, data, asset, JNI_ABORT);
++    int status = submitted == 0 ? poll_map_reply(e, c, 1000) : -1;
++    c->busy = 0;
++    if (status == 1) return MAP_OK;
++    // A pin transaction can commit before the scene or its reply reaches Java.
++    if (submitted != 0 || (status == 2 && operation != 2 && operation != 3)) return MAP_REFUSED;
++    c->failed = 1;
++    c->map_recovery = status == 2 || status == 4 ? MAP_READY_TO_CLOSE : MAP_REPLY_PENDING;
++    return MAP_UNCERTAIN;
++}
++
++/* Only map-owned failures can use this path. Drain without resubmitting the map command,
++   then retire the workspace before Android starts a fresh Activity. */
++static int restart_site_map(JNIEnv *e, Context *c) {
++    if (!c || c->busy || pump_env || !c->failed || c->map_recovery == MAP_ACTIVE
++        || c->map_recovery == MAP_CLOSE_FAILED) return MAP_REFUSED;
++    c->busy = 1;
++    int result = MAP_UNCERTAIN;
++    if (c->map_recovery == MAP_REPLY_PENDING) {
++        int status = poll_map_reply(e, c, 20);
++        if (status == 1 || status == 2 || status == 4) c->map_recovery = MAP_READY_TO_CLOSE;
++        else if (status != 0) c->map_recovery = MAP_CLOSE_FAILED;
++    }
++    if (c->map_recovery == MAP_READY_TO_CLOSE) {
++        if (mixer_public_android_submit(c->id, 2, NULL, 0, NULL, 0, NULL, 0, NULL, 0, surface) == 0)
++            c->map_recovery = MAP_CLOSE_PENDING;
++        else
++            c->map_recovery = MAP_CLOSE_FAILED;
++    }
++    if (c->map_recovery == MAP_CLOSE_PENDING) {
++        int status = poll_map_reply(e, c, 20);
++        if (status == 1) result = MAP_OK;
++        else if (status != 0) c->map_recovery = MAP_CLOSE_FAILED;
++    }
++    if (c->map_recovery == MAP_CLOSE_FAILED) result = MAP_REFUSED;
++    c->busy = 0;
++    if (result == MAP_OK) dispose_context(e, c);
++    return result;
++}
++
++JNIEXPORT jint JNICALL Java_dev_fieldlog_generatedr90_androidhost_PublicBridge_restartSiteMapNative(
++        JNIEnv *e, jclass ignored, jlong id) {
++    (void)ignored;
++    return restart_site_map(e, find(id));
++}
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+index b7331f5f83bd73f523e01d3c3e5646ac26ce3e2d..736d23db5114aca5c9295e5a72b569662ef0972d 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -48 +48,6 @@ public final class PublicActivity extends Activity {
+-    private FrameLayout root;
++    private FrameLayout root, content;
++    private SiteMapPanel siteMap;
++    private SiteMapOverlay siteMapOverlay;
++    private final android.window.OnBackInvokedCallback mapBack = () -> {
++        if (siteMap != null) siteMap.close();
++    };
+@@ -480 +485 @@ public final class PublicActivity extends Activity {
+-        FrameLayout content = new FrameLayout(this);
++        content = new FrameLayout(this);
+@@ -522 +527 @@ public final class PublicActivity extends Activity {
+-        return queuedPhotoLaunch != null || pendingPhoto != null || pendingReport != null || reportCompletion != null;
++        return siteMap != null || queuedPhotoLaunch != null || pendingPhoto != null || pendingReport != null || reportCompletion != null;
+@@ -564,0 +570 @@ public final class PublicActivity extends Activity {
++        if (siteMap != null) return;
+@@ -583,0 +590 @@ public final class PublicActivity extends Activity {
++    private boolean queueRefreshPending;
+@@ -585,0 +593,9 @@ public final class PublicActivity extends Activity {
++        queueRefreshPending = true;
++        postQueueRefreshIfReady();
++    }
++    private boolean canRefreshQueue() {
++        return queueRefreshPending && siteMap == null && resumed && !destroyed && !failed
++            && !isFinishing() && context > 0;
++    }
++    private void postQueueRefreshIfReady() {
++        if (!canRefreshQueue()) return;
+@@ -590 +606 @@ public final class PublicActivity extends Activity {
+-        if (destroyed || failed || context <= 0) return;
++        if (!canRefreshQueue()) return;
+@@ -595,0 +612 @@ public final class PublicActivity extends Activity {
++        queueRefreshPending = false;
+@@ -653,2 +670,13 @@ public final class PublicActivity extends Activity {
+-                case 1: surface.install(new AndroidUINativeSurface.Frame(token, packet, descriptor)); break;
+-                case 2: invalidateEvents(); abandonPhoto(); surface.revoke(token); owner = null; break;
++                case 1:
++                    surface.install(new AndroidUINativeSurface.Frame(token, packet, descriptor));
++                    if (siteMap != null) {
++                        // A late return can install while restart is still draining the old workspace.
++                        if (siteMap.recoveryRequired()) surface.gateInput();
++                        else if (!siteMap.closing()) retireSiteMap();
++                    }
++                    break;
++                case 2:
++                    if (siteMap == null || !siteMap.recoveryRequired()) retireSiteMap();
++                    invalidateEvents(); abandonPhoto(); surface.revoke(token); owner = null; break;
++                case 3: return openSiteMap(capturedContext, token);
++                case 4: return siteMap != null && siteMap.update(token, packet) ? 0 : 1;
+@@ -658 +686,66 @@ public final class PublicActivity extends Activity {
+-        } catch (RuntimeException error) { android.util.Log.e("MixerAndroidHost", "Native surface operation failed: " + operation, error); fail(); return 1; }
++        } catch (RuntimeException error) {
++            android.util.Log.e("MixerAndroidHost", "Native surface operation failed: " + operation, error);
++            // A return or revoke failure during recovery must leave the recovery controls usable.
++            if (siteMap == null || (!siteMap.recoveryRequired() && (operation != 1 || !siteMap.closing()))) fail();
++            return 1;
++        }
++    }
++    private int openSiteMap(long capturedContext, byte[] token) {
++        if (failed || destroyed || isFinishing() || !resumed || !root.hasWindowFocus()
++                || checklist != null || checklistBlockedByService() || owner == null || token.length != 36
++                || !surface.isCurrent()) return 1;
++        SiteMapPanel panel = new SiteMapPanel(this, capturedContext, token);
++        if (!handler.post(() -> { if (siteMap == panel) panel.load(); })) return 1;
++        siteMap = panel;
++        surface.gateInput();
++        siteMapOverlay = new SiteMapOverlay(content, panel);
++        var keyboard = getSystemService(android.view.inputmethod.InputMethodManager.class);
++        if (keyboard != null) keyboard.hideSoftInputFromWindow(root.getWindowToken(), 0);
++        getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
++            android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT, mapBack);
++        panel.requestApplyInsets();
++        return 0;
++    }
++    boolean siteMapForeground(SiteMapPanel panel) {
++        return siteMap == panel && !failed && !destroyed && !isFinishing() && resumed && panel.hasWindowFocus();
++    }
++    @SuppressWarnings("deprecation")
++    int requestSiteMapPermission(SiteMapPanel panel, String[] permissions) {
++        if (!siteMapForeground(panel) || nextExternalCode > 65534) throw new IllegalStateException("Site map unavailable");
++        int code = nextExternalCode++;
++        requestPermissions(permissions, code);
++        return code;
++    }
++    @SuppressWarnings("deprecation")
++    @Override public void onRequestPermissionsResult(int code, String[] permissions, int[] grants) {
++        super.onRequestPermissionsResult(code, permissions, grants);
++        if (siteMap != null) siteMap.permissionResult(code);
++    }
++    boolean closeSiteMap(SiteMapPanel panel) {
++        if (siteMap != panel || !surface.isCurrent()) return false;
++        retireSiteMap();
++        postQueueRefreshIfReady();
++        return true;
++    }
++    int restartSiteMap(SiteMapPanel panel) {
++        if (siteMap != panel || !panel.recoveryRequired() || !siteMapForeground(panel)
++                || workspaceOwner != this || context <= 0) return PublicBridge.MAP_REFUSED;
++        invalidateEvents();
++        int result = PublicBridge.restartSiteMap(context);
++        if (result == PublicBridge.MAP_OK) {
++            context = 0;
++            closeSurface();
++            recreate();
++        }
++        return result;
++    }
++    private void retireSiteMap() {
++        SiteMapPanel panel = siteMap;
++        if (panel == null) return;
++        siteMap = null;
++        getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(mapBack);
++        panel.retire();
++        if (siteMapOverlay != null) {
++            siteMapOverlay.dismiss(!failed && !destroyed && !isFinishing());
++            siteMapOverlay = null;
++        }
+@@ -661,0 +755 @@ public final class PublicActivity extends Activity {
++        retireSiteMap();
+@@ -670,0 +765 @@ public final class PublicActivity extends Activity {
++        if (siteMap != null) siteMap.foregroundChanged();
+@@ -671,0 +767 @@ public final class PublicActivity extends Activity {
++        postQueueRefreshIfReady();
+@@ -678,0 +775 @@ public final class PublicActivity extends Activity {
++            if (siteMap != null) handler.post(() -> { if (siteMap != null) siteMap.foregroundChanged(); });
+@@ -685,0 +783 @@ public final class PublicActivity extends Activity {
++        if (siteMap != null) siteMap.pause();
+@@ -689 +787,5 @@ public final class PublicActivity extends Activity {
+-    @Override public void onStop() { if (surface != null) surface.onStop(); super.onStop(); }
++    @Override public void onStop() {
++        if (siteMap != null) siteMap.stop();
++        if (surface != null) surface.onStop();
++        super.onStop();
++    }
+@@ -695,0 +798,2 @@ public final class PublicActivity extends Activity {
++        boolean recoveringMap = siteMap != null && siteMap.recoveryRequired();
++        retireSiteMap();
+@@ -705,0 +810 @@ public final class PublicActivity extends Activity {
++        if (recoveringMap && context > 0 && PublicBridge.restartSiteMap(context) == PublicBridge.MAP_OK) context = 0;
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
+index 6030780fa729edb01958b2b640ea5f560d5dd1c4..b6e63e677ed04d5e1c71d3b5c6cf17a0532241bf 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
+@@ -38,0 +39,15 @@ public final class PublicBridge {
++    static int siteMap(long context, byte[] token, int operation, byte[] data,
++            double latitude, double longitude, double accuracy) {
++        requireMain();
++        return siteMapNative(context, token, operation, data, latitude, longitude, accuracy);
++    }
++    static final int MAP_OK = 0, MAP_REFUSED = 1, MAP_UNCERTAIN = 2;
++    static int restartSiteMap(long context) {
++        requireMain();
++        return restartSiteMapNative(context);
++    }
++    private static native int restartSiteMapNative(long context);
++
++    private static native int siteMapNative(long context, byte[] token, int operation, byte[] data,
++            double latitude, double longitude, double accuracy);
++
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/SiteMapOverlay.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/SiteMapOverlay.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..aa08c539d31885ac6137afd044ed1efda2ce6fb7
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/SiteMapOverlay.java
+@@ -0,0 +1,59 @@
++package dev.fieldlog.generatedr90.androidhost;
++
++import android.view.MotionEvent;
++import android.view.View;
++import android.view.ViewGroup;
++import android.widget.FrameLayout;
++import java.util.ArrayList;
++
++/** In-window modal layer. The V4 root keeps its attachment, visibility and layout. */
++final class SiteMapOverlay extends FrameLayout {
++    private record Background(View view, int accessibility, int focusable, int descendantFocusability) {
++        Background(View view) {
++            this(view, view.getImportantForAccessibility(), view.getFocusable(),
++                view instanceof ViewGroup group ? group.getDescendantFocusability() : 0);
++        }
++
++        void block() {
++            view.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
++            if (view instanceof ViewGroup group) group.setDescendantFocusability(FOCUS_BLOCK_DESCENDANTS);
++            view.setFocusable(View.NOT_FOCUSABLE);
++        }
++
++        void restore() {
++            view.setFocusable(focusable);
++            if (view instanceof ViewGroup group) group.setDescendantFocusability(descendantFocusability);
++            view.setImportantForAccessibility(accessibility);
++        }
++    }
++
++    private final FrameLayout host;
++    private final View previousFocus;
++    private final ArrayList<Background> background = new ArrayList<>();
++
++    SiteMapOverlay(FrameLayout host, View panel) {
++        super(host.getContext());
++        this.host = host;
++        previousFocus = host.findFocus();
++        for (int index = 0; index < host.getChildCount(); index++) {
++            background.add(new Background(host.getChildAt(index)));
++        }
++        // The full-screen panel is opaque. Its container catches unhandled pointer events.
++        addView(panel, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
++        host.addView(this, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
++        for (Background child : background) child.block();
++        if (previousFocus != null && previousFocus.isFocused()) previousFocus.clearFocus();
++        panel.requestFocus();
++    }
++
++    void dismiss(boolean restoreFocus) {
++        host.removeView(this);
++        for (Background child : background) child.restore();
++        if (restoreFocus && previousFocus != null && previousFocus.isAttachedToWindow()
++                && previousFocus.isShown()) previousFocus.requestFocus();
++    }
++
++    @Override public boolean onTouchEvent(MotionEvent event) { return true; }
++    @Override public boolean onHoverEvent(MotionEvent event) { return true; }
++    @Override public boolean onGenericMotionEvent(MotionEvent event) { return true; }
++}
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/SiteMapPanel.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/SiteMapPanel.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..72fd24c03607753d821e41201825a23d0934cc71
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/SiteMapPanel.java
+@@ -0,0 +1,574 @@
++package dev.fieldlog.generatedr90.androidhost;
++
++import android.Manifest;
++import android.content.Context;
++import android.content.Intent;
++import android.net.Uri;
++import android.provider.Settings;
++import android.content.pm.PackageManager;
++import android.graphics.Canvas;
++import android.graphics.Color;
++import android.graphics.Paint;
++import android.graphics.Path;
++import android.location.Location;
++import android.location.LocationManager;
++import android.location.LocationRequest;
++import android.os.CancellationSignal;
++import android.os.Handler;
++import android.os.Looper;
++import android.text.InputType;
++import android.view.View;
++import android.view.WindowInsets;
++import android.view.inputmethod.InputMethodManager;
++import android.widget.Button;
++import android.widget.EditText;
++import android.widget.LinearLayout;
++import android.widget.ScrollView;
++import android.widget.TextView;
++import java.io.IOException;
++import java.io.InputStream;
++import java.nio.ByteBuffer;
++import java.nio.ByteOrder;
++import java.util.Arrays;
++import java.util.Locale;
++
++final class SiteMapPanel extends ScrollView {
++    private static final int LOAD = 0, FIX = 1, SET = 2, CLEAR = 3, CLOSE = 4;
++    private static final int MAX_ASSET_BYTES = 1_048_576;
++    private static final long FIX_WINDOW_MS = 12_000;
++    private static final String COARSE = Manifest.permission.ACCESS_COARSE_LOCATION;
++    private static final String FINE = Manifest.permission.ACCESS_FINE_LOCATION;
++    private static final byte[] EMPTY = new byte[0];
++    private static final int LAND = 0xffe9e8db, INK = 0xff26362e, PIN = 0xffa32929, FIX_DOT = 0xff145bc0;
++    private final PublicActivity activity;
++    private final long context;
++    private final byte[] token;
++    private final Handler handler = new Handler(Looper.getMainLooper());
++    private final MapCanvas map;
++    private final TextView mapStatus, locationStatus, pinStatus;
++    private final EditText latitude, longitude;
++    private final Button back, locate, setPin, clearPin, restart, appSettings;
++    private Scene base;
++    private int permissionCode;
++    private boolean permittedResult;
++    private CancellationSignal sampling;
++    private boolean retired, recoveryRequired, closing;
++
++    SiteMapPanel(PublicActivity activity, long context, byte[] token) {
++        super(activity);
++        this.activity = activity;
++        this.context = context;
++        this.token = token.clone();
++        setFillViewport(true);
++        setBackgroundColor(0xfff8faf6);
++        setAccessibilityPaneTitle("Site map");
++        setSaveFromParentEnabled(false);
++        LinearLayout contents = new LinearLayout(activity);
++        contents.setOrientation(LinearLayout.VERTICAL);
++        contents.setFocusableInTouchMode(true);
++        addView(contents, new ScrollView.LayoutParams(-1, -2));
++        setOnApplyWindowInsetsListener((view, insets) -> {
++            var margins = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout()
++                | WindowInsets.Type.ime());
++            contents.setPadding(margins.left + dp(16), margins.top + dp(8),
++                margins.right + dp(16), margins.bottom + dp(12));
++            return insets;
++        });
++        TextView title = text(contents, "Site map");
++        title.setTextSize(24);
++        title.setAccessibilityHeading(true);
++        back = button(contents, "Back to project", this::close);
++        map = new MapCanvas(activity);
++        contents.addView(map, new LinearLayout.LayoutParams(-1, -2));
++        mapStatus = text(contents, "Loading offline map…");
++        text(contents, "Made with Natural Earth");
++        locationStatus = text(contents, "");
++        locationStatus.setAccessibilityLiveRegion(ACCESSIBILITY_LIVE_REGION_POLITE);
++        locate = button(contents, "Show current position", this::locationControl);
++        TextView heading = text(contents, "Saved site pin");
++        heading.setAccessibilityHeading(true);
++        latitude = coordinate(contents, "Site latitude", "−90 to 90");
++        longitude = coordinate(contents, "Site longitude", "−180 to 180");
++        setPin = button(contents, "Set site pin", this::setPin);
++        clearPin = button(contents, "Clear site pin", () -> editPin(CLEAR, 0, 0));
++        pinStatus = text(contents, "");
++        pinStatus.setAccessibilityLiveRegion(ACCESSIBILITY_LIVE_REGION_POLITE);
++        restart = button(contents, "Restart FieldLog", this::restart);
++        appSettings = button(contents, "Open FieldLog app settings", this::openAppSettings);
++        appSettings.setVisibility(GONE);
++        updateControls();
++        contents.requestFocus();
++    }
++
++    void load() {
++        if (retired) return;
++        try (InputStream input = activity.getAssets().open("SiteMap/natural-earth-50m.flg")) {
++            byte[] geography = input.readNBytes(MAX_ASSET_BYTES + 1);
++            if (geography.length <= MAX_ASSET_BYTES && send(LOAD, geography, 0, 0, 0) == PublicBridge.MAP_OK && base != null) return;
++        } catch (IOException unavailable) {
++            // The ordinary project is still accessible if the packaged map cannot open.
++        }
++        if (!recoveryRequired) mapStatus.setText("Offline map unavailable.");
++    }
++
++    boolean update(byte[] captured, byte[] packet) {
++        if (retired || recoveryRequired || !Arrays.equals(token, captured)) return false;
++        Scene scene;
++        try { scene = Scene.decode(packet); }
++        catch (IllegalArgumentException invalid) { return false; }
++        if (!deliveringFix) {
++            base = scene;
++            latitude.setText(scene.site ? decimal(scene.latitude) : "");
++            longitude.setText(scene.site ? decimal(scene.longitude) : "");
++        }
++        display(scene);
++        updateControls();
++        return true;
++    }
++
++    private boolean deliveringFix;
++    private void display(Scene scene) {
++        map.show(scene);
++        mapStatus.setText(scene.site ? "Saved site pin shown in red." : scene.centered
++            ? "No saved site pin. Map centered on your current position."
++            : "No saved site pin. Enter site coordinates to center the map.");
++    }
++
++    private void locationControl() {
++        if (sampling != null || permissionCode != 0 || permittedResult) {
++            cancelSampling();
++            permissionCode = 0;
++            permittedResult = false;
++            locationStatus.setText("Location request cancelled.");
++            updateControls();
++            return;
++        }
++        if (base == null || !activity.siteMapForeground(this)) return;
++        display(base);
++        if (has(COARSE) || has(FINE)) {
++            startSampling();
++        } else {
++            try {
++                permissionCode = activity.requestSiteMapPermission(this, new String[]{FINE, COARSE});
++                locationStatus.setText("Waiting for location permission…");
++            } catch (RuntimeException unavailable) {
++                permissionCode = 0;
++                locationStatus.setText("Location permission unavailable.");
++            }
++            updateControls();
++        }
++    }
++
++    boolean permissionResult(int code) {
++        if (permissionCode == 0 || permissionCode != code || retired) return false;
++        permissionCode = 0;
++        permittedResult = has(COARSE) || has(FINE);
++        if (!permittedResult) locationStatus.setText("Location permission denied.");
++        foregroundChanged();
++        updateControls();
++        return true;
++    }
++
++    void foregroundChanged() {
++        if (permittedResult && activity.siteMapForeground(this)) {
++            permittedResult = false;
++            startSampling();
++        }
++    }
++
++    private boolean has(String permission) {
++        return activity.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED;
++    }
++
++    private void startSampling() {
++        LocationManager manager = activity.getSystemService(LocationManager.class);
++        if (manager == null) {
++            locationStatus.setText("Current position unavailable.");
++            updateControls();
++            return;
++        }
++        CancellationSignal request = new CancellationSignal();
++        try {
++            String provider = LocationManager.GPS_PROVIDER;
++            if (!manager.isLocationEnabled() || !manager.isProviderEnabled(provider)) {
++                locationStatus.setText("Device location is off or GPS is unavailable.");
++                updateControls();
++                return;
++            }
++            sampling = request;
++            locationStatus.setText("Finding current position…");
++            updateControls();
++            var settings = new LocationRequest.Builder(0).setDurationMillis(FIX_WINDOW_MS).build();
++            manager.getCurrentLocation(provider, settings, request, activity.getMainExecutor(),
++                location -> acceptFix(request, location));
++            if (!handler.postDelayed(deadline, FIX_WINDOW_MS + 1_000)) acceptFix(request, null);
++        } catch (SecurityException denied) {
++            acceptFixOrFailure(request, "Location permission unavailable.");
++        } catch (IllegalArgumentException | IllegalStateException unavailable) {
++            acceptFixOrFailure(request, "Current position unavailable.");
++        }
++    }
++
++    private final Runnable deadline = () -> acceptFix(sampling, null);
++
++    private void acceptFixOrFailure(CancellationSignal request, String message) {
++        if (sampling == request) cancelSampling();
++        locationStatus.setText(message);
++        updateControls();
++    }
++
++    private void acceptFix(CancellationSignal request, Location location) {
++        if (request == null || sampling != request) return;
++        cancelSampling();
++        if (!activity.siteMapForeground(this)) {
++            locationStatus.setText("");
++            updateControls();
++            return;
++        }
++        deliveringFix = true;
++        try {
++            double accuracy = location != null && location.hasAccuracy() ? location.getAccuracy() : -1;
++            int result = location == null ? PublicBridge.MAP_REFUSED
++                : send(FIX, EMPTY, location.getLatitude(), location.getLongitude(), accuracy);
++            if (result == PublicBridge.MAP_OK && map.scene != null) {
++                locationStatus.setText(locationSummary(map.scene, location.getLatitude(), location.getLongitude(), accuracy));
++            } else {
++                locationStatus.setText("No current position available.");
++            }
++        } finally {
++            deliveringFix = false;
++            updateControls();
++        }
++    }
++
++    static String locationSummary(Scene scene, double latitude, double longitude, double accuracy) {
++        StringBuilder summary = new StringBuilder(scene.fix
++            ? "Current position shown in blue." : "Current position is outside this map.");
++        if (scene.site) {
++            double pinLat = Math.toRadians(scene.latitude / 10_000_000.0);
++            double fixLat = Math.toRadians(latitude);
++            double deltaLon = Math.toRadians(Math.IEEEremainder(longitude - scene.longitude / 10_000_000.0, 360));
++            double east = Math.sin(deltaLon) * Math.cos(fixLat);
++            double north = Math.cos(pinLat) * Math.sin(fixLat)
++                - Math.sin(pinLat) * Math.cos(fixLat) * Math.cos(deltaLon);
++            if (Math.hypot(east, north) < 1e-9) {
++                double dot = Math.sin(pinLat) * Math.sin(fixLat)
++                    + Math.cos(pinLat) * Math.cos(fixLat) * Math.cos(deltaLon);
++                summary.append(dot > 0 ? " At the saved pin." : " Direction from the saved pin is unavailable.");
++            } else {
++                String[] directions = {"North", "Northeast", "East", "Southeast", "South", "Southwest", "West", "Northwest"};
++                int sector = (int) Math.round(Math.atan2(east, north) / (Math.PI / 4));
++                summary.append(' ').append(directions[Math.floorMod(sector, directions.length)])
++                    .append(" of the saved pin.");
++            }
++        }
++        if (accuracy >= 0) {
++            summary.append(String.format(Locale.ROOT, " Accuracy ±%.1f meters.", accuracy));
++        }
++        return summary.toString();
++    }
++
++    private void cancelSampling() {
++        handler.removeCallbacks(deadline);
++        CancellationSignal previous = sampling;
++        sampling = null;
++        if (previous != null) previous.cancel();
++    }
++
++    private void setPin() {
++        try {
++            double lat = parseCoordinate(latitude), lon = parseCoordinate(longitude);
++            if (!(lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)) throw new NumberFormatException();
++            editPin(SET, lat, lon);
++        } catch (NumberFormatException invalid) {
++            pinStatus.setText("Enter latitude from −90 to 90 and longitude from −180 to 180.");
++        }
++    }
++
++    private static double parseCoordinate(EditText field) {
++        String value = field.getText().toString().trim().replace(',', '.').replace('−', '-');
++        if (value.length() > 24 || !value.matches("[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)")) {
++            throw new NumberFormatException();
++        }
++        return Double.parseDouble(value);
++    }
++
++    private void editPin(int operation, double lat, double lon) {
++        if (base == null || !activity.siteMapForeground(this)) return;
++        cancelSampling();
++        permissionCode = 0;
++        permittedResult = false;
++        display(base);
++        locationStatus.setText("");
++        hideKeyboard();
++        int result = send(operation, EMPTY, lat, lon, 0);
++        if (result == PublicBridge.MAP_OK) {
++            pinStatus.setText(operation == SET ? "Site pin saved on this device." : "Site pin cleared.");
++        } else if (result == PublicBridge.MAP_REFUSED) {
++            pinStatus.setText("The site pin change was refused.");
++        }
++        updateControls();
++    }
++
++    void pause() {
++        cancelSampling();
++        if (base != null && !recoveryRequired) display(base);
++        if (permissionCode == 0 && !permittedResult) locationStatus.setText("");
++        updateControls();
++    }
++
++    void stop() {
++        permissionCode = 0;
++        permittedResult = false;
++        pause();
++    }
++
++    void retire() {
++        retired = true;
++        stop();
++        base = null;
++        map.show(null);
++    }
++
++    void close() {
++        if (retired || recoveryRequired || closing || !activity.siteMapForeground(this)) return;
++        closing = true;
++        try {
++            hideKeyboard();
++            int result = send(CLOSE, EMPTY, 0, 0, 0);
++            if (result == PublicBridge.MAP_OK && activity.closeSiteMap(this)) return;
++            if (result == PublicBridge.MAP_REFUSED) {
++                pinStatus.setText("The project could not reopen. Try Back to project again.");
++            } else if (result == PublicBridge.MAP_OK) {
++                requireRecovery(CLOSE);
++            }
++        } finally {
++            closing = false;
++        }
++    }
++
++    boolean closing() { return closing; }
++    boolean recoveryRequired() { return recoveryRequired; }
++
++    private void restart() {
++        if (!recoveryRequired || !activity.siteMapForeground(this)) return;
++        int result = activity.restartSiteMap(this);
++        if (result == PublicBridge.MAP_UNCERTAIN) {
++            pinStatus.setText("The previous workspace is still open. Tap Restart FieldLog again or use app settings.");
++            appSettings.setVisibility(VISIBLE);
++        } else if (result == PublicBridge.MAP_REFUSED) {
++            pinStatus.setText("Open app settings, tap Force stop, then launch FieldLog and open Site map to check the saved pin.");
++            restart.setEnabled(false);
++            appSettings.setVisibility(VISIBLE);
++        }
++    }
++
++    private void openAppSettings() {
++        if (!recoveryRequired || !activity.siteMapForeground(this)) return;
++        pinStatus.setText("In app settings, tap Force stop, then launch FieldLog and open Site map to check the saved pin.");
++        activity.startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
++            Uri.fromParts("package", activity.getPackageName(), null)));
++    }
++
++    private void hideKeyboard() {
++        InputMethodManager keyboard = activity.getSystemService(InputMethodManager.class);
++        if (keyboard != null) keyboard.hideSoftInputFromWindow(getWindowToken(), 0);
++        latitude.clearFocus();
++        longitude.clearFocus();
++    }
++
++    private int send(int operation, byte[] bytes, double lat, double lon, double accuracy) {
++        if (recoveryRequired) return PublicBridge.MAP_UNCERTAIN;
++        int result = PublicBridge.siteMap(context, token, operation, bytes, lat, lon, accuracy);
++        if (result == PublicBridge.MAP_UNCERTAIN) requireRecovery(operation);
++        return result;
++    }
++
++    private void requireRecovery(int operation) {
++        recoveryRequired = true;
++        cancelSampling();
++        permissionCode = 0;
++        permittedResult = false;
++        map.show(null);
++        mapStatus.setText("The saved map is unavailable until FieldLog restarts.");
++        pinStatus.setText(operation == SET || operation == CLEAR
++            ? "The site pin save outcome is unknown. Restart FieldLog, then open Site map to check the saved pin."
++            : "Restart FieldLog to reopen the project.");
++        updateControls();
++    }
++
++    private void updateControls() {
++        boolean pending = sampling != null || permissionCode != 0 || permittedResult;
++        boolean available = base != null && !retired && !recoveryRequired;
++        back.setEnabled(!recoveryRequired);
++        restart.setVisibility(recoveryRequired ? VISIBLE : GONE);
++        locate.setEnabled(available);
++        locate.setText(pending ? "Cancel location request" : "Show current position");
++        latitude.setEnabled(available);
++        longitude.setEnabled(available);
++        setPin.setEnabled(available);
++        clearPin.setEnabled(available && base.site);
++    }
++
++    private static String decimal(int e7) { return String.format(Locale.ROOT, "%.7f", e7 / 10_000_000.0); }
++    private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
++
++    private TextView text(LinearLayout parent, String text) {
++        TextView view = new TextView(activity);
++        view.setText(text);
++        view.setTextColor(INK);
++        parent.addView(view);
++        return view;
++    }
++
++    private Button button(LinearLayout parent, String label, Runnable action) {
++        Button view = new Button(activity);
++        view.setAllCaps(false);
++        view.setText(label);
++        view.setOnClickListener(ignored -> action.run());
++        parent.addView(view);
++        return view;
++    }
++
++    private EditText coordinate(LinearLayout parent, String label, String hint) {
++        EditText view = new EditText(activity);
++        view.setId(View.generateViewId());
++        text(parent, label).setLabelFor(view.getId());
++        view.setHint(hint);
++        view.setSingleLine();
++        view.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED
++            | InputType.TYPE_NUMBER_FLAG_DECIMAL);
++        view.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(24)});
++        parent.addView(view, new LinearLayout.LayoutParams(-1, -2));
++        return view;
++    }
++
++    static final class Scene {
++        private static final int HEADER = 40, SEGMENT = 17;
++        final boolean site, centered, fix, accuracy;
++        final int latitude, longitude, scale;
++        final float scaleFraction, x, y, radius;
++        final byte[] layers;
++        final float[] lines;
++
++        private Scene(ByteBuffer data) {
++            if (data.remaining() < HEADER || data.getInt() != 0x314d4c46) throw invalid();
++            int flags = data.getInt();
++            site = (flags & 1) != 0;
++            centered = (flags & 2) != 0;
++            fix = (flags & 4) != 0;
++            accuracy = (flags & 8) != 0;
++            latitude = data.getInt();
++            longitude = data.getInt();
++            scale = data.getInt();
++            scaleFraction = unit(data.getFloat());
++            x = unit(data.getFloat());
++            y = unit(data.getFloat());
++            radius = data.getFloat();
++            int count = data.getInt();
++            if ((flags & ~15) != 0 || ((fix || site) && !centered) || (accuracy && !fix)
++                    || !(radius >= 0 && radius <= 1003) || (!accuracy && radius != 0)
++                    || (!fix && (x != 0 || y != 0)) || (!site && (latitude != 0 || longitude != 0))
++                    || latitude < -900_000_000 || latitude > 900_000_000
++                    || longitude < -1_800_000_000 || longitude >= 1_800_000_000
++                    || (centered ? scale <= 0 || scaleFraction <= 0 : scale != 0 || scaleFraction != 0 || count != 0)
++                    || count < 0 || count > 24_000 || data.remaining() != count * SEGMENT) throw invalid();
++            layers = new byte[count];
++            lines = new float[count * 4];
++            for (int index = 0; index < count; index++) {
++                byte layer = data.get();
++                if (layer < 1 || layer > 3) throw invalid();
++                layers[index] = layer;
++                for (int word = 0; word < 4; word++) lines[index * 4 + word] = unit(data.getFloat());
++            }
++        }
++
++        static Scene decode(byte[] packet) { return new Scene(ByteBuffer.wrap(packet).order(ByteOrder.LITTLE_ENDIAN)); }
++        private static IllegalArgumentException invalid() { return new IllegalArgumentException("Invalid site map scene"); }
++        private static float unit(float value) {
++            if (!(value >= 0 && value <= 1)) throw invalid();
++            return value;
++        }
++    }
++
++    private final class MapCanvas extends View {
++        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
++        private final Path[] paths = {new Path(), new Path(), new Path()};
++        private Scene scene;
++
++        MapCanvas(Context context) {
++            super(context);
++            setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
++            show(null);
++        }
++
++        @Override protected void onMeasure(int widthSpec, int heightSpec) {
++            int width = MeasureSpec.getSize(widthSpec);
++            setMeasuredDimension(width, resolveSize(Math.min(width, dp(360)), heightSpec));
++        }
++
++        void show(Scene value) {
++            scene = value;
++            if (value != null && value.centered) {
++                String markers = (value.site ? "Saved site pin" : "No saved site pin")
++                    + (value.fix ? ", current position" : "");
++                setContentDescription("Offline site map. " + markers + ". Scale " + value.scale / 1000 + " kilometers.");
++            } else {
++                setContentDescription("Offline site map. No position shown.");
++            }
++            invalidate();
++        }
++
++        @Override protected void onDraw(Canvas canvas) {
++            super.onDraw(canvas);
++            float size = Math.min(getWidth(), getHeight());
++            float left = (getWidth() - size) / 2;
++            canvas.save();
++            canvas.translate(left, 0);
++            canvas.clipRect(0, 0, size, size);
++            canvas.drawColor(LAND);
++            Scene value = scene;
++            if (value != null && value.centered) drawScene(canvas, value, size);
++            canvas.restore();
++        }
++
++        private void drawScene(Canvas canvas, Scene value, float size) {
++            for (Path path : paths) path.rewind();
++            for (int index = 0; index < value.layers.length; index++) {
++                Path path = paths[value.layers[index] - 1];
++                int offset = index * 4;
++                path.moveTo(value.lines[offset] * size, value.lines[offset + 1] * size);
++                path.lineTo(value.lines[offset + 2] * size, value.lines[offset + 3] * size);
++            }
++            paint.setStyle(Paint.Style.STROKE);
++            paint.setStrokeWidth(dp(1));
++            paint.setColor(0xff426454);
++            canvas.drawPath(paths[0], paint);
++            paint.setColor(0xff227491);
++            canvas.drawPath(paths[1], paint);
++            canvas.drawPath(paths[2], paint);
++            paint.setStyle(Paint.Style.FILL);
++            if (value.accuracy) {
++                paint.setColor(0x29145bc0);
++                canvas.drawCircle(value.x * size, value.y * size, value.radius * size, paint);
++            }
++            if (value.site) marker(canvas, PIN, size / 2, size / 2, dp(9));
++            if (value.fix) marker(canvas, FIX_DOT, value.x * size, value.y * size, dp(5));
++            paint.setColor(INK);
++            paint.setStrokeWidth(dp(2));
++            paint.setTextSize(dp(12));
++            int pad = dp(12);
++            float bar = size - pad;
++            canvas.drawText(value.scale / 1000 + " km", pad, bar - dp(5), paint);
++            canvas.drawLine(pad, bar, pad + value.scaleFraction * size, bar, paint);
++            canvas.drawText("N", size - 2 * pad, 2 * pad, paint);
++        }
++
++        private void marker(Canvas canvas, int color, float x, float y, int radius) {
++            paint.setColor(Color.WHITE);
++            canvas.drawCircle(x, y, radius + dp(2), paint);
++            paint.setColor(color);
++            canvas.drawCircle(x, y, radius, paint);
++        }
++    }
++}
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+index d586389f239b18d1bbbc18c525d8e1d622cfc430..41d7733145a644eaf60fb223fa6b55ad9838d86a 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+@@ -1,0 +2 @@ import Foundation
++import FieldLogModels
+@@ -11,0 +13,2 @@ private typealias SurfaceCall = @convention(c) @Sendable (Int64, Int32, UnsafePo
++    var siteMapReturnFailed = false
++    private(set) var revocationSucceeded = false
+@@ -23,0 +27,7 @@ private typealias SurfaceCall = @convention(c) @Sendable (Int64, Int32, UnsafePo
++    func siteMap(_ operation: Int32, token: UUID, data: Data = Data()) -> Bool {
++        let token = Data(token.uuidString.utf8)
++        return token.withUnsafeBytes { t in data.withUnsafeBytes { d in
++            callback(context, operation, t.bindMemory(to: UInt8.self).baseAddress, t.count,
++                d.bindMemory(to: UInt8.self).baseAddress, d.count, nil, 0) == 0
++        } }
++    }
+@@ -33,0 +44 @@ private typealias SurfaceCall = @convention(c) @Sendable (Int64, Int32, UnsafePo
++        revocationSucceeded = !failure
+@@ -107,0 +119,19 @@ private let replies = Replies()
++    static func siteMap(_ context: Int64, token: UUID, command: AndroidSiteMapCommand) async -> Int32 {
++        guard let (app, surface) = values[context], !surface.failure else { return 2 }
++        do {
++            guard let data = try await app.presentation.siteMap(token, command: command) else {
++                do {
++                    try app.presentation.publishSiteMapReturn()
++                    try await app.settle()
++                    return 1
++                } catch {
++                    surface.siteMapReturnFailed = true
++                    return 4
++                }
++            }
++            return surface.siteMap(4, token: token, data: data) ? 1 : 2
++        } catch {
++            return 2
++        }
++    }
++
+@@ -128,0 +159,3 @@ private let replies = Replies()
++                if let request = application.presentation.takeSiteMapRequest(), !surface.siteMap(3, token: request) {
++                    _ = try? await application.presentation.siteMap(request, command: .close)
++                }
+@@ -135 +168,2 @@ private let replies = Replies()
+-                guard !surface.failure else { throw PublicHostError.surface }
++                guard !surface.failure || (surface.siteMapReturnFailed && surface.revocationSucceeded)
++                else { throw PublicHostError.surface }
+@@ -208,0 +243,36 @@ public func fieldlogAndroidReportSubmit(_ context: Int64, _ token: UnsafePointer
++
++// Separate app-owned map ABI. Commands and lifetimes stay outside the public V4 event wire.
++@_cdecl("fieldlog_android_site_map_submit")
++public func fieldlogAndroidSiteMapSubmit(_ context: Int64, _ token: UnsafePointer<UInt8>?,
++    _ operation: Int32, _ bytes: UnsafePointer<UInt8>?, _ count: Int,
++    _ latitude: Double, _ longitude: Double, _ accuracy: Double) -> Int32 {
++    guard context > 0, let token,
++          let text = String(data: Data(bytes: token, count: 36), encoding: .utf8),
++          let id = UUID(uuidString: text), id.uuidString == text,
++          (0...SiteMapGeography.maximumBytes).contains(count),
++          (operation == 0 ? count > 0 && bytes != nil : count == 0)
++    else { return 1 }
++
++    let command: AndroidSiteMapCommand
++    switch operation {
++    case 0:
++        guard let bytes else { return 1 }
++        command = .load(Data(bytes: bytes, count: count))
++    case 1, 2:
++        guard let coordinate = SiteCoordinate(latitude: latitude, longitude: longitude) else { return 1 }
++        if operation == 1 {
++            guard let fix = SiteMapFix(coordinate: coordinate, accuracyMeters: accuracy == -1 ? nil : accuracy) else { return 1 }
++            command = .showFix(fix)
++        } else {
++            command = .setPin(coordinate)
++        }
++    case 3: command = .clearPin
++    case 4: command = .close
++    default: return 1
++    }
++    guard replies.reserve(context) else { return 1 }
++    Task { @MainActor in
++        replies.complete(context, await Applications.siteMap(context, token: id, command: command))
++    }
++    return 0
++}
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index f28252f16490342c8e16d60712cea9a27ab5be70..b9a93f9347b9777b4f502b51a95739014abcc077 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -12,0 +13,56 @@ import MixerCapabilities
++@MainActor final class AndroidSiteMapRoute {
++    let id = UUID()
++    let projectID: UUID
++    let frameRevision: UInt64
++    var workspaceRevision: UInt64
++    var pin: SiteCoordinate?
++    var geography: SiteMapGeography?
++
++    init(project: Project, frameRevision: UInt64, workspaceRevision: UInt64) {
++        projectID = project.id
++        self.frameRevision = frameRevision
++        self.workspaceRevision = workspaceRevision
++        pin = project.siteCoordinate
++    }
++
++    /// Little-endian FLM1. Only the saved pin is serialized as a coordinate;
++    /// foreground location is represented by normalized drawing primitives.
++    func packet(site: SiteCoordinate?, fix: SiteMapFix? = nil) throws -> Data {
++        guard let geography else { throw PublicHostError.action }
++        let scene = try SiteMapScene.project(site: site, fix: fix, geography: geography)
++        var data = Data("FLM1".utf8)
++        func word(_ value: UInt32) {
++            var encoded = value.littleEndian
++            withUnsafeBytes(of: &encoded) { data.append(contentsOf: $0) }
++        }
++        func number(_ value: Double) { word(Float(value).bitPattern) }
++        let marker = scene?.fix
++        word((site == nil ? 0 : 1) | (scene == nil ? 0 : 2) | (marker == nil ? 0 : 4)
++            | (marker?.accuracyRadius == nil ? 0 : 8))
++        word(UInt32(bitPattern: site?.latitudeE7 ?? 0))
++        word(UInt32(bitPattern: site?.longitudeE7 ?? 0))
++        word(UInt32(scene?.scale.meters ?? 0))
++        number(scene?.scale.fractionOfWidth ?? 0)
++        number(marker?.point.x ?? 0)
++        number(marker?.point.y ?? 0)
++        number(marker?.accuracyRadius ?? 0)
++        word(UInt32(scene?.segments.count ?? 0))
++        for segment in scene?.segments ?? [] {
++            data.append(segment.layer.rawValue)
++            number(segment.from.x)
++            number(segment.from.y)
++            number(segment.to.x)
++            number(segment.to.y)
++        }
++        return data
++    }
++}
++
++enum AndroidSiteMapCommand {
++    case load(Data)
++    case showFix(SiteMapFix)
++    case setPin(SiteCoordinate)
++    case clearPin
++    case close
++}
++
+@@ -167,0 +224,2 @@ private struct QueueSyncView {
++    private var siteMapRoute: AndroidSiteMapRoute?
++    private var siteMapRequested = false
+@@ -409,0 +468,4 @@ private struct QueueSyncView {
++            if action.nodeID == "workspace.siteMap", action.actionID == "workspace.siteMap" {
++                try beginSiteMap()
++                return
++            }
+@@ -595,0 +658,71 @@ private struct QueueSyncView {
++    private func beginSiteMap() throws {
++        guard !showingEntries, !showingQueue, !reportSharePending, photoRequest == nil,
++              (workspace.restoration.selectedProjectID ?? workspace.projects.first?.id) == projectID,
++              let selected = workspace.projects.first(where: { $0.id == projectID })
++        else { throw PublicHostError.action }
++        (reconciler, snapshot) = try render(state, feedback: changeFeedback, failure: changeFailure)
++        publish()
++        siteMapRoute = AndroidSiteMapRoute(project: selected, frameRevision: snapshot.document.revision,
++            workspaceRevision: workspace.revision)
++        siteMapRequested = true
++    }
++
++    func takeSiteMapRequest() -> UUID? {
++        guard siteMapRequested else { return nil }
++        siteMapRequested = false
++        return siteMapRoute?.id
++    }
++
++    func siteMap(_ id: UUID, command: AndroidSiteMapCommand) async throws -> Data? {
++        guard let route = siteMapRoute, route.id == id, !closed, !changingWorkspace,
++              route.projectID == projectID, route.frameRevision == snapshot.document.revision
++        else { throw PublicHostError.action }
++        if case .close = command {
++            siteMapRoute = nil
++            return nil
++        }
++        guard route.workspaceRevision == workspace.revision,
++              (workspace.restoration.selectedProjectID ?? workspace.projects.first?.id) == route.projectID
++        else { throw PublicHostError.action }
++        switch command {
++        case .load(let data):
++            guard route.geography == nil else { throw PublicHostError.action }
++            route.geography = try SiteMapGeography(data: data)
++            return try route.packet(site: route.pin)
++        case .showFix(let fix):
++            return try route.packet(site: route.pin, fix: fix)
++        case .setPin(let pin):
++            return try await saveSitePin(pin, route: route)
++        case .clearPin:
++            return try await saveSitePin(nil, route: route)
++        case .close:
++            return nil
++        }
++    }
++
++    func publishSiteMapReturn() throws {
++        (reconciler, snapshot) = try render(state, feedback: changeFeedback, failure: changeFailure)
++        publish()
++    }
++
++    private func saveSitePin(_ pin: SiteCoordinate?, route: AndroidSiteMapRoute) async throws -> Data {
++        guard route.geography != nil else { throw PublicHostError.action }
++        let project = route.projectID, expected = route.pin, revision = route.workspaceRevision
++        let packet = try route.packet(site: pin)
++        changingWorkspace = true
++        defer { changingWorkspace = false }
++        if pin == expected {
++            guard try await repository.readCommittedSnapshot() == workspace,
++                  !closed, siteMapRoute === route else { throw PublicHostError.action }
++            return packet
++        }
++        let saved = try await repository.transact(expectedRevision: revision) {
++            try $0.setSiteCoordinate(projectID: project, expected: expected, to: pin)
++        }
++        workspace = saved
++        guard !closed, siteMapRoute === route else { throw PublicHostError.action }
++        route.pin = pin
++        route.workspaceRevision = saved.revision
++        return packet
++    }
++
+@@ -927 +1060,2 @@ private struct QueueSyncView {
+-        let canOpenSignedCommit = !inactive && !photoPending && !reportPending && drafts.contains { $0.id == state.draft.id }
++        let showsSignedCommit = state.committed == nil && !photoBusy && !photoPending && !reportPending &&
++            drafts.contains { $0.id == state.draft.id }
+@@ -960 +1094,2 @@ private struct QueueSyncView {
+-                    if canOpenSignedCommit {
++                    // The focused V4 field handoff requires stable sibling identities in the saving frame.
++                    if showsSignedCommit {
+@@ -962 +1097 @@ private struct QueueSyncView {
+-                            .accessibilityIdentifier("entry-open-signed-commit")
++                            .accessibilityIdentifier("entry-open-signed-commit").disabled(state.saving)
+@@ -1206,0 +1342,2 @@ private struct QueueSyncView {
++        siteMapRoute = nil
++        siteMapRequested = false
+@@ -1216,0 +1354 @@ private struct QueueSyncView {
++        siteMapRoute = nil
+@@ -1235,0 +1374 @@ private struct QueueSyncView {
++        siteMapRoute = nil
+@@ -1336,0 +1476,2 @@ private struct QueueSyncView {
++                            MixerUI.Button("workspace.siteMap", "Site map", action: "workspace.siteMap")
++                                .accessibilityIdentifier("workspace-site-map").disabled(inactive || reportPending)
+diff --git a/Integrations/GeneratedReport/scripts/build-android.py b/Integrations/GeneratedReport/scripts/build-android.py
+index 7a1d31519378cf56b6b018eeda9d8c7620c1c633..234fd81a8297b494b857983deaa6986e9d6ea315 100644
+--- a/Integrations/GeneratedReport/scripts/build-android.py
++++ b/Integrations/GeneratedReport/scripts/build-android.py
+@@ -44 +44 @@ def app_inputs():
+-              for name in ("PublicBridge.java", "PublicActivity.java", "CapturePhotoProvider.java")]
++              for name in ("PublicBridge.java", "PublicActivity.java", "CapturePhotoProvider.java", "SiteMapPanel.java", "SiteMapOverlay.java")]
+@@ -47,0 +48,2 @@ def app_inputs():
++    files += [(APP.parents[1] / "Assets/SiteMap" / name, Path("Platforms/Android/SiteMap") / name)
++              for name in ("natural-earth-50m.flg", "README.md")]
+diff --git a/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py b/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
+index b58b7b8f298545a90f243f007e18d1d55f36b72a..66f63bb5a1ae8834bb8a4ea45a0d88b2cdc19dbb 100644
+--- a/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
++++ b/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
+@@ -67,0 +68,21 @@ def appearance_asset(project):
++def site_map_assets(project):
++    directory = project / "Platforms/Android/SiteMap"
++    if not os.path.lexists(directory):
++        return {}
++    if directory.is_symlink() or not directory.is_dir():
++        raise ValueError("Expected an immutable SiteMap asset directory")
++    pins = {
++        "natural-earth-50m.flg": (860_633, "1c4a6e6add0fa4d3b7628a59d9bc2cde8782dad9fe4d135985fa153e12514379"),
++        "README.md": (4_416, "7d72b9362b1d357635a6af735d452e1d01bf4aec2d5d9e3142958ce4b35fc1b9"),
++    }
++    if {child.name for child in directory.iterdir()} != pins.keys():
++        raise ValueError("Unexpected SiteMap assets")
++    result = {}
++    for name, (size, digest) in pins.items():
++        data = read_bounded(directory / name, size)
++        if len(data) != size or hashlib.sha256(data).hexdigest() != digest:
++            raise ValueError("SiteMap asset differs from its pinned source")
++        result["assets/SiteMap/" + name] = data
++    return result
++
++
+@@ -214,0 +236 @@ def build(args):
++    assets.update(site_map_assets(args.mixer_project))
+diff --git a/Integrations/GeneratedReport/scripts/pair25/manifest.py b/Integrations/GeneratedReport/scripts/pair25/manifest.py
+index 1209d4bbe192c94e58b324d917c911b56a9bc19d..aaf1587597eb50127b86b9c80c6cb23d2c1d446f 100644
+--- a/Integrations/GeneratedReport/scripts/pair25/manifest.py
++++ b/Integrations/GeneratedReport/scripts/pair25/manifest.py
+@@ -17 +17,6 @@ def transform(source, destination):
+-    internet = {f"{{{ANDROID}}}name": "android.permission.INTERNET"}
++    expected = {
++        "android.permission.INTERNET",
++        "android.permission.ACCESS_COARSE_LOCATION",
++        "android.permission.ACCESS_FINE_LOCATION",
++    }
++    permission_name = f"{{{ANDROID}}}name"
+@@ -24,2 +29,3 @@ def transform(source, destination):
+-            or len(permissions) > 1
+-            or any(node.tag != "uses-permission" or node.attrib != internet
++            or len(permissions) != len(expected)
++            or {node.get(permission_name) for node in permissions} != expected
++            or any(node.tag != "uses-permission" or set(node.attrib) != {permission_name}
+@@ -30,2 +35,0 @@ def transform(source, destination):
+-    if not permissions:
+-        root.insert(list(root).index(application), ET.Element("uses-permission", internet))
+diff --git a/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py b/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py
+index a781c245e9ce3fba55a99ea1985ae427e71dd9bf..ec7f7e2c5e9fd0d2382425d63cd6e11fb3df0e30 100644
+--- a/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py
++++ b/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py
+@@ -161,0 +162,3 @@ def assemble(work, project, destination, stage, rust_notice, log):
++    site_map = PRODUCERS["PACKAGING"]["site_map_assets"](project)
++    require(len(site_map) == 2, "Missing FieldLog site map and provenance")
++    site_map_sha = {name: hash_bytes(data) for name, data in site_map.items()}
+@@ -175,0 +179 @@ def assemble(work, project, destination, stage, rust_notice, log):
++        "siteMapAssets": site_map_sha,
+@@ -273 +277 @@ def assemble(work, project, destination, stage, rust_notice, log):
+-    expected = manifest_entries | {"classes.dex": linked["bytecode/classes.dex"],
++    expected = manifest_entries | site_map_sha | {"classes.dex": linked["bytecode/classes.dex"],

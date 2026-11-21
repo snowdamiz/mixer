@@ -1,0 +1,217 @@
+{
+  "schema": 1,
+  "result": "PASS_SCOPED",
+  "scope": "L02 Site Map, ordinary camera cancellation and queue readback in the combined API 36 development APK",
+  "apkSHA256": "f08f99a41cb97fc66b878daf03383432f932a2ea1e4587ad79284e5e858f6f79",
+  "apkV3CertificateSHA256": "66700a56b2da28dfacb26d4415c7653519ede4d1a650bae02c563c99996fe49b",
+  "buildReceipt": "verification/receipts/fieldlog-android-site-map-pair25-87c95c5a-build.json",
+  "source": {
+    "initialCameraQueuePackaging": "4253108febe34561b3bd187e3c9bfce79fef1ac4",
+    "sharedPatch": "verification/receipts/fieldlog-site-map-shared-26bbde4a.patch",
+    "baseAfterSharedPatch": "7cd973bacc11fab5bbd45efcd0a797912c8b6b80",
+    "reviewedProductTree": "52b8f2f36269b2f7185e5b87c7280aecd123d862",
+    "packagingTree": "87c95c5af8212adfc1c01f926c7755fd2c69e5b1",
+    "normalizedDelta": "verification/receipts/fieldlog-android-site-map-pair25-87c95c5a.patch",
+    "normalizedDeltaSHA256": "fccd104d5908ffe56034ad473190b235864b434b89942aa80e5f95cf114ca0fc",
+    "applyOption": "--unidiff-zero",
+    "exactForwardAndInverse": true,
+    "terminalCommands": 22,
+    "scratchRemoved": true,
+    "p1AuthorReceiptSHA256": "958872c81fc2d2aa93fe754343bfc65d6ac158a8ed88e3efdeb4a22f3b083e46"
+  },
+  "baselineFailure": "verification/receipts/fieldlog-android-site-map-api36-f2184a4c.json",
+  "observations": [
+    "The compressed accessibility hierarchy exposes the map controls and omits the covered dashboard labels.",
+    "Back before and after saving a pin, after hiding the keyboard with Android Back, and after returning from the background restored the dashboard in the same process.",
+    "The location system prompt denied access once and granted a later request. The injected fix produced direction and accuracy text and left workspace bytes unchanged. Backgrounding and reopen discarded the fix.",
+    "Pin set and clear each advanced the revision once. Cold reopen retained the saved pin and unrelated workspace objects.",
+    "Ordinary Camera2 opened after map dismissal, and cancellation preserved the workspace. The local queue then showed the existing pending count."
+  ],
+  "limits": [
+    "An uncompressed UIAutomator hierarchy includes covered dashboard nodes. The first automation attempt used that hierarchy for the accessibility check. The passing replay used a compressed dump with positive map-control witnesses.",
+    "Host callback tests cover the timed-out close and queue refresh controls. The installed run exercised normal map dismissal, permission and GPS behavior.",
+    "GPS was emulated. TalkBack, approximate permission, full camera capture, and gestures were outside this run."
+  ],
+  "attempts": [
+    {
+      "status": "FAILED",
+      "startedUTC": "2026-11-21T23:46:22.097532+00:00",
+      "apkSHA256": "f08f99a41cb97fc66b878daf03383432f932a2ea1e4587ad79284e5e858f6f79",
+      "fixtureSHA256": "be5e07a904050f6c72625d27b427488690526fadf088dcdef6ea3dee764c4e0f",
+      "runnerSHA256": "9913950b4f2a7f0ef067cf0e9233548dd430fd21f54df174408d45c5d742afeb",
+      "scratch": "/private/tmp/mixer-fieldlog-map-combined.o1yj2shl",
+      "screens": {
+        "no-pin": {
+          "hierarchySHA256": "02957a46300add2882e7c4e632d4972174a7fa69c37b2ed66a346e02ce075676",
+          "screenshotSHA256": "15302ddcbd8e1ebc97e22fb47e9e4b791b5d0c1f71a1b999f9f65749ff31162b"
+        }
+      },
+      "name": "android-site-map-combined-attempt-1",
+      "device": {
+        "ro.boot.qemu.avd_name": "mixer_picker_o1yj2shl",
+        "ro.build.version.sdk": "36",
+        "ro.product.cpu.abi": "arm64-v8a",
+        "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+      },
+      "firstPID": 2398,
+      "stage": "warm Back without pin mutation",
+      "error": "RuntimeError: Underlying dashboard is exposed during map display",
+      "services": [
+        {
+          "name": "emulator",
+          "argv": [
+            "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+            "-avd",
+            "mixer_picker_o1yj2shl",
+            "-ports",
+            "26042,26043",
+            "-no-window",
+            "-no-audio",
+            "-no-snapshot",
+            "-gpu",
+            "swiftshader_indirect",
+            "-no-boot-anim",
+            "-skin",
+            "1080x2400",
+            "-partition-size",
+            "3072"
+          ],
+          "pid": 55886,
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "name": "adb",
+          "argv": [
+            "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+            "-L",
+            "tcp:localhost:26044",
+            "server",
+            "nodaemon"
+          ],
+          "pid": 55885,
+          "exit": -15,
+          "groupAbsent": true
+        }
+      ],
+      "portsRebound": [
+        26042,
+        26043,
+        26044
+      ],
+      "scratchRemoved": true,
+      "terminalCommands": 69,
+      "commandLogSHA256": "176166e7ac4ea191db80ef01aa02e7381fa78ed97ae477d3df688985b11d5eb6",
+      "rawSHA256": "0afcf199d4867fbd1abf2ee629e8d7d063ea1bebdf38fd7520b0dc5d3a759280",
+      "lastHierarchySHA256": "02957a46300add2882e7c4e632d4972174a7fa69c37b2ed66a346e02ce075676"
+    },
+    {
+      "status": "PASS",
+      "startedUTC": "2026-11-21T23:48:24.126617+00:00",
+      "apkSHA256": "f08f99a41cb97fc66b878daf03383432f932a2ea1e4587ad79284e5e858f6f79",
+      "fixtureSHA256": "be5e07a904050f6c72625d27b427488690526fadf088dcdef6ea3dee764c4e0f",
+      "runnerSHA256": "20c3e7f58f11883ee15aeea68b6d3d26fd31bac52a2d1acccac60f529d898469",
+      "scratch": "/private/tmp/mixer-fieldlog-map-combined.l3tkaccg",
+      "screens": {
+        "no-pin": {
+          "hierarchySHA256": "02957a46300add2882e7c4e632d4972174a7fa69c37b2ed66a346e02ce075676",
+          "screenshotSHA256": "0dba5a0114ef1d92905fe61f7b5772587f25d53dbafc537252c143807f91e30a"
+        },
+        "back-without-write": {
+          "hierarchySHA256": "afb4193d0df4214efc831cfa89b458432716b5f109843445c5665a531f612a00"
+        },
+        "system-back-after-ime": {
+          "hierarchySHA256": "afb4193d0df4214efc831cfa89b458432716b5f109843445c5665a531f612a00"
+        },
+        "back-after-pin-save": {
+          "hierarchySHA256": "afb4193d0df4214efc831cfa89b458432716b5f109843445c5665a531f612a00"
+        },
+        "pinned": {
+          "hierarchySHA256": "711e3f1869feea342bcd568cd0844ae5f816279af296c74c8501ef6aff3cae64",
+          "screenshotSHA256": "a4d8f6fc8f8cf328f8d1752d1521e945dd2be1a217c3b34c0c2821195ba9dfd9"
+        },
+        "gps": {
+          "hierarchySHA256": "582fbd919968823fa83de607dc8cf428c7c0f611b9ffe724850d64d568b25892",
+          "screenshotSHA256": "071bfb848919c722ab6117301ac7aecc66a83c2ccf2623d515573d9899a31c80"
+        },
+        "back-after-pause": {
+          "hierarchySHA256": "afb4193d0df4214efc831cfa89b458432716b5f109843445c5665a531f612a00"
+        }
+      },
+      "name": "android-site-map-combined-attempt-2",
+      "device": {
+        "ro.boot.qemu.avd_name": "mixer_picker_l3tkaccg",
+        "ro.build.version.sdk": "36",
+        "ro.product.cpu.abi": "arm64-v8a",
+        "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+      },
+      "firstPID": 2336,
+      "mapAccessibilitySHA256": "cb714c54b8889138b92108abeb9b71eefdaeb63e47ee9842e08f833fb5b98fe3",
+      "saved": {
+        "revision": 53,
+        "workspaceSHA256": "3fb1f56f9449fa592fb78403006ce45899a3a801707c36ee28ed8e5763894546",
+        "siteCoordinate": {
+          "latitudeE7": 378000000,
+          "longitudeE7": -1224500000
+        }
+      },
+      "deniedHierarchySHA256": "8787ed347f931b9034cc7e67a7dbad8d6d66debd2a82b1cdbda38396ed95a6c4",
+      "allowedHierarchySHA256": "4751410004157c47fb653d09b62b8b7636f4f14c6c9d890f2ff374dbcbc93c27",
+      "gpsSummary": "Current position shown in blue. Northeast of the saved pin. Accuracy \u00b15.0 meters.",
+      "coldPID": 3546,
+      "cleared": {
+        "revision": 54,
+        "workspaceSHA256": "ca1443def041199c6dd0b1c6e8754f02e6aa674099f438859ab6edf1fa479a18"
+      },
+      "cameraShutterHierarchySHA256": "1d3e2a408626902aef116e3df049121f18166973592093eb132e955a42405384",
+      "queueHierarchySHA256": "47a9064e9535e578dff92ae35f8a90f26282a607c618d7463916b62665b78d3c",
+      "services": [
+        {
+          "name": "emulator",
+          "argv": [
+            "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+            "-avd",
+            "mixer_picker_l3tkaccg",
+            "-ports",
+            "26042,26043",
+            "-no-window",
+            "-no-audio",
+            "-no-snapshot",
+            "-gpu",
+            "swiftshader_indirect",
+            "-no-boot-anim",
+            "-skin",
+            "1080x2400",
+            "-partition-size",
+            "3072"
+          ],
+          "pid": 73198,
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "name": "adb",
+          "argv": [
+            "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+            "-L",
+            "tcp:localhost:26044",
+            "server",
+            "nodaemon"
+          ],
+          "pid": 73197,
+          "exit": -15,
+          "groupAbsent": true
+        }
+      ],
+      "portsRebound": [
+        26042,
+        26043,
+        26044
+      ],
+      "scratchRemoved": true,
+      "terminalCommands": 238,
+      "commandLogSHA256": "9bbd4eed7b10227efb43dd9bda6a620e3cd3e3fe978ac5865d7479e1f1b0018d",
+      "rawSHA256": "983ef6e4f0fe57cc01be127f6670a8d2dbd821cb7ad5f9fe244f3e91ed34b69a"
+    }
+  ]
+}

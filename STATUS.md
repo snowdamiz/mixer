@@ -1167,6 +1167,16 @@ both a manually saved pin and a preseeded one. Restart restored the
 dashboard. All five runs closed their private groups and removed
 scratch. [Installed Android map](verification/receipts/fieldlog-android-site-map-api36-f2184a4c.json)
 
+The corrected combined Pair25 APK keeps the dashboard live behind
+the Site Map. Warm Back returned to the same process before and after
+saving a pin, with the keyboard dismissed and after backgrounding.
+The accessibility-filtered hierarchy isolated the map controls.
+The granted GPS fix reported direction and accuracy and left disk
+bytes unchanged. Cold reopen kept the saved pin, and clearing it
+advanced the revision once. Camera cancellation and queue readback
+worked after dismissal. Both owned attempts removed scratch.
+[Installed map and exact source delta](verification/receipts/fieldlog-android-site-map-pair25-87c95c5a-installed.json)
+
 The reviewed iOS Site Map queues project restoration in navigation
 order and checks the active map session during pin publication.
 The review reproduced a late save from the earlier implementation.
