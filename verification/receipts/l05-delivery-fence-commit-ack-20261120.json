@@ -1,0 +1,45 @@
+{
+  "base_commit": "969e009a64e795ea41339d56886e38d6e6cd8015",
+  "base_tree": "776be76ad59c73a43ae1f232acafcc642aedbdfe",
+  "scope": "Pinned fence and read-only Ecto Repo, real PostgreSQL and real shared row lock, inert selection, verified projection and external CAS.",
+  "environment": {
+    "elixir": "1.20.4",
+    "erlang_otp": "29",
+    "postgresql": "17.11",
+    "ecto": "3.14.3",
+    "ecto_sql": "3.14.0",
+    "db_connection": "2.10.2",
+    "postgrex": "0.22.4",
+    "host": "Darwin 27.0.0 arm64",
+    "python": "3.14.8"
+  },
+  "reproduce_from_artifact_directory": [
+    "HEX_OFFLINE=1 MIX_ENV=test mix deps.get",
+    "HEX_OFFLINE=1 MIX_ENV=test mix deps.compile",
+    "HEX_OFFLINE=1 MIX_ENV=test mix compile",
+    "HEX_OFFLINE=1 MIX_ENV=test mix format --check-formatted candidate/delivery_publish_fence.ex",
+    "python3 control.py baseline",
+    "python3 control.py candidate"
+  ],
+  "observations": {
+    "commit_ack_loss": "Final SELECT returned ReadyForQuery:T. PostgreSQL returned CommandComplete COMMIT and ReadyForQuery:I. The proxy withheld both and closed the client socket. DBConnection raised DBConnection.ConnectionError. The pointer advanced once. Baseline reported unavailable. Patch reported indeterminate.",
+    "generic_rollback": "The proxy replaced ReadyForQuery:T after the final SELECT with ReadyForQuery:E. Postgrex issued ROLLBACK and DBConnection returned {:error, :rollback}. The pointer advanced once. Baseline reported unavailable. Patch reported indeterminate.",
+    "controls": "Normal acknowledgement applied. Lock contention was busy. Missing lock function and lost BEGIN acknowledgement were unavailable. All three pre-CAS controls skipped CAS. Certain conflict stayed conflict, including when the rollback acknowledgement was dropped.",
+    "verification": "All eight patched cases passed. Each case reacquired the row with FOR UPDATE NOWAIT and checked for leaked caller state. Elixir formatting passed. git apply --whitespace=error on the exact base file matched the tested code byte for byte.",
+    "cleanup": "Both disposable PostgreSQL clusters shut down with exit 0 and the socket removed. The fixture processes and their proxy listeners closed. Database and build scratch was removed."
+  },
+  "limitations": "Generic rollback used an injected protocol status. COMMIT acknowledgement was emitted by real PostgreSQL. The cross-runtime replay was outside the focused control.",
+  "observed_at_utc": "2026-11-21T02:36:07.626984+00:00",
+  "sha256": {
+    "baseline/delivery_publish_fence.ex": "7067db1fea79ea1c86e6f981443e5bd2c5b91624f9be256a825f3f1ce08dd888",
+    "baseline/delivery_repo.ex": "57fce256931a86683a3e14b7f888d6766140531474d79103de4674914e8d717e",
+    "baseline.txt": "cdc184bb62945244fa863ad4bb85fa09f191924fa3ce3484326e493014524fef",
+    "candidate/delivery_publish_fence.ex": "62521de797a9c1ed60861fce59d78ba27d412f75d243b0c7d99ab326e1298fb4",
+    "candidate.txt": "cfc123fdb50c50a68df89900a0c0881f991d2874e176328967324c4e85444c7e",
+    "control.exs": "8dc29af37796db97855929ad44c898e2866347bdd5b42d720014f6faba8d8d64",
+    "control.py": "7053187deac65f24939472572a156847dd01bb412598de11103b874828014715",
+    "delivery-publish-fence.patch": "0c492248ae1c031e4033b9a0d243b6d065eb44751525d1dfe58c2e3146d1712f",
+    "mix.exs": "92f1260fdcb15ea22ac21754c7f2586b957b57537f74f95115512ddbd3025f37",
+    "mix.lock": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454"
+  }
+}
