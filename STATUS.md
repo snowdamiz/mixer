@@ -287,6 +287,15 @@ Identity job passed all 316 tests in 244.383 seconds. Descendant custody
 for the interrupted Services worker remains unverified.
 [Services timeout](verification/receipts/hosted-v78-services-collector-alarm-814c7218.json) Replaying the exact v78 Go module on arm64 macOS passed module verification, vet, and the full race suite.
 
+The v79 Services collector reuses imports only for the same resolved sparse
+checkout and matching import inputs. An independent regression reproduced
+the wrong-checkout reuse on the parent and verified the correction. All 317
+checks passed locally in 167.0 seconds in normal mode and
+269.5 seconds with optimization. Both runs admitted the
+same 558 hosted paths under the original six-minute collector limit, left
+the sparse source unchanged, and removed owned scratch.
+[Services replay](verification/receipts/hosted-v79-services-collector-final.json)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,
