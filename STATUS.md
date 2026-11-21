@@ -1211,6 +1211,14 @@ with 59 real CLI children confirmed closed. The original hosted trigger
 remains unknown. Hosted validation of the correction is pending.
 [Author replay](verification/receipts/store-reconciliation-host-fixture-7d257e0d.json) · [Independent replay](verification/receipts/store-reconciliation-host-fixture-independent-7d257e0d.json)
 
+Hosted Swift at `c18b3060f8` stopped before running the test correction.
+Source141 still pinned the predecessor StoreReconciliationTests.swift
+bytes in its inherited CLI inputs. Both hosted admission checks refused
+the new bytes. The same 45-pattern sparse checkout reproduced this locally
+in normal and optimized Python. The predecessor admitted all 157 inputs
+in both modes. The reversible archive correction is pending.
+[Admission failure](verification/receipts/hosted-engine-c18b3060-swift-store-source-admission.json)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,
