@@ -807,9 +807,12 @@ Mixer revision. Installed behavior remains open.
 The corrected `6bc461f4fc` Android build resealed the actual JNI, DEX,
 manifest, and installed resources. All 41 package members and both native
 identity fields matched readback. Its development guest uses a storage-only
-grant with two request slots and a 2 MiB reservation. The exact package
-review and matched Apple Simulator bundle build are underway. Installed
-behavior remains open.
+grant with two request slots and a 2 MiB reservation. Independent review
+verified the linked JNI fingerprint, VM source provenance, APK and
+embedded signatures, alignment, and compiler roster. The different
+development certificate requires a clean isolated Android API 36 or later
+installation. The device hold remains active. The matched Apple Simulator
+bundle build and installed behavior remain open.
 [Corrected Android reseal](verification/receipts/fieldlog-d2-pair25-android-reseal-6bc461f4.json)
 
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
