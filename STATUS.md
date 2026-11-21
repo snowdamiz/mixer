@@ -30,6 +30,17 @@ and generic rollback after the CAS. The corrected fence reported indeterminate
 in both cases and preserved certain conflict and pre-CAS unavailable.
 [COMMIT acknowledgement controls](verification/receipts/l05-delivery-fence-commit-ack-20261120.json)
 
+## November 20 local development attestation attachment
+
+The stock Go signer signed a retained iOS Simulator build completion, then
+submitted the exact V2 envelope twice to ordinary loopback Phoenix. The
+API returned attached and duplicate, and PostgreSQL kept one byte-exact
+attachment to the settled worker operation. The API starts a separate
+restricted TLS pool for the optional writer. The composed host replay
+passed 159 focused tests and the Workerd outage replay. The signer used
+synthetic retained products and identities.
+[Composition receipt](verification/receipts/l05-w11-w12-composed-v74-5a3c6dd0.json)
+
 ## November 20 signed release queue
 
 The opt-in Phoenix queue commits a signed publication, the release head, and
