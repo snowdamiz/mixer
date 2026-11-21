@@ -31,7 +31,7 @@ REPO = HERE.parents[2]
 PIN = "ffbd472419c4fd5bb3bf32735738155a9caa9cc8"
 RECOVERY_PIN = "11b9cb43e3d90de5580efda9b9e2e3a47e387be3"
 STARTER_PIN = "f6577616a8394ca1104f2ba8c430d7ac124ea095"
-BROWSER_PIN = "26000a3fa85a96e5e1e13df221528ac7df8b9add"
+BROWSER_PIN = "1e2de0130d001ef9ada0001b59f9ae8b7f67b72a"
 INERT_LOCK = b"inert Linux lock\n"
 INERT_DRIVER_LOG = {"exitCode": 0, "stdoutBytes": 320, "stderrBytes": 80, "outputTruncated": False}
 HOST = "127.0.0.1"
@@ -321,13 +321,18 @@ def fixtures(source):
 
     provider = source / "test/support/browser_login_provider_fixture.ex"
     raw = provider.read_text()
-    require(raw.count('"sub" => "subject-1"') == 2 and raw.count("  def handle_call(:count") == 1,
-            "stock signed issuer fixture differs")
-    raw = raw.replace('"sub" => "subject-1"', '"sub" => Map.get(s, :pair25_subject, "subject-1")')
-    raw = raw.replace("  def handle_call(:count", """  def handle_call({:pair25_subject, subject}, _, s) when subject in ["subject-1", "subject-2"],
+    require(raw.count("  def handle_call(:count") == 1, "stock signed issuer fixture differs")
+    if 'subject = if s.mode == :other_tenant, do: "subject-2", else: "subject-1"' in raw:
+        subject_handler = """  def handle_call({:pair25_subject, subject}, _, s) when subject in ["subject-1", "subject-2"],
+    do: {:reply, :ok, %{s | mode: (if subject == "subject-2", do: :other_tenant, else: :ok)}}
+"""
+    else:
+        require(raw.count('"sub" => "subject-1"') == 2, "stock signed issuer subjects differ")
+        raw = raw.replace('"sub" => "subject-1"', '"sub" => Map.get(s, :pair25_subject, "subject-1")')
+        subject_handler = """  def handle_call({:pair25_subject, subject}, _, s) when subject in ["subject-1", "subject-2"],
     do: {:reply, :ok, Map.put(s, :pair25_subject, subject)}
-
-  def handle_call(:count""")
+"""
+    raw = raw.replace("  def handle_call(:count", subject_handler + "\n  def handle_call(:count")
     provider.write_text(raw)
 
 
@@ -872,10 +877,10 @@ def verify_port_reuse(ports, result):
     result["portsReusable"] = ports
 
 
-def browser_run(root, args, dist, auth, api, sql, worker_port, ports, result):
-    import browser
+def browser_run(root, args, auth, api, sql, worker_port, evidence, bridge_port, url):
+    from browser import smoke
 
-    selection = result["browser"]
+    selection = evidence.receipt
     expected = auth["build"]
     require(sql("SELECT count(*) FROM mixer_customer_build_inputs") == "0"
             and sql("SELECT count(*) FROM mixer_managed_linux_pair25_starters") == "1",
@@ -883,25 +888,24 @@ def browser_run(root, args, dist, auth, api, sql, worker_port, ports, result):
     selection.update(verifiedInputsBefore=0, registeredStarters=1, workerListeningBefore=False,
                      createAttempts=0, http=[])
     queue = args.browser != "select"
-    evidence = browser.BrowserEvidence(expected, selection)
-    with browser.bridge(dist, auth, evidence, queue) as (bridge_port, url):
-        require(bridge_port not in ports, "browser listener collision")
-        ports.append(bridge_port)
-        if args.browser == "smoke":
-            browser.smoke(bridge_port, url, evidence.scope)
-            selection["finish"] = "http-smoke"
-        else:
-            handoff = root / "browser.private.json"
-            done = root / "browser.done"
-            window = selection["windowSeconds"]
-            write(handoff, {"url": url, "finishFile": str(done), "starterId": auth["starter"]["id"],
-                            "scope": evidence.scope, "seconds": window})
-            print(f"Pair25 private browser handoff file {handoff}", flush=True)
-            try:
-                wait(done.is_file, window, api, interval=0.2)
-                selection["finish"] = "operator"
-            except TimeoutError:
-                selection["finish"] = "deadline"
+    if args.browser == "smoke":
+        smoke(bridge_port, url, evidence.scope)
+        selection["finish"] = "http-smoke"
+    else:
+        handoff = root / "browser.private.json"
+        done = root / "browser.done"
+        window = selection["windowSeconds"]
+        data = {"url": url, "finishFile": str(done), "starterId": auth["starter"]["id"],
+                "scope": evidence.scope, "seconds": window}
+        if args.complete:
+            data["terminalFile"] = str(root / "browser.terminal.private.json")
+        write(handoff, data)
+        print(f"Pair25 private browser handoff file {handoff}", flush=True)
+        try:
+            wait(done.is_file, window, api, interval=0.2)
+            selection["finish"] = "operator"
+        except TimeoutError:
+            selection["finish"] = "deadline"
 
     snapshot = json.loads(sql(SQL_STATE))
     rows = json.loads(sql("""
@@ -962,6 +966,26 @@ def browser_run(root, args, dist, auth, api, sql, worker_port, ports, result):
                      queuedBuild=evidence.queued | {"record_id": record["id"], "revision": 0},
                      queuedJobID=job_id, jobs=snapshot["jobs"])
     return evidence.queued, record["id"], job_id
+
+
+def browser_readback(root, args, api, evidence, bridge_port, url, sessions, result):
+    from browser import terminal_smoke
+
+    detail = result["terminalBuild"]
+    evidence.begin_terminal(sessions["owner"], detail, result["logs"], result["downloads"])
+    if args.browser == "smoke":
+        terminal_smoke(bridge_port, url, evidence)
+        wait(evidence.terminal_complete, 2, api)
+    else:
+        done = root / "browser.terminal.done"
+        window = min(args.seconds, 90)
+        handoff = root / "browser.terminal.private.json"
+        pending = root / "browser.terminal.tmp"
+        write(pending, {"url": url, "finishFile": str(done), "buildId": detail["buildId"], "seconds": window})
+        pending.rename(handoff)
+        print(f"Pair25 private terminal browser handoff file {handoff}", flush=True)
+        wait(lambda: done.is_file() and evidence.terminal_complete(), window, api, interval=0.2)
+    evidence.receipt["terminal"]["finish"] = "http-smoke" if args.browser == "smoke" else "operator"
 
 
 def drive(root, args, env, result):
@@ -1077,13 +1101,21 @@ def drive(root, args, env, result):
                 result["processorAdmission"] = ready("processor.ready", processor)
                 require(result["processorAdmission"] == {"role": rolename, "paused": True}, "restricted pause differs")
             if args.browser:
+                import browser
+
                 if args.complete:
                     require(all(value is None for value in observed_db().values()) and processor.poll() is None,
                             "restricted processor must be ready against an empty queue before opening the bridge")
                     result["browser"]["processorReadyBeforeExposure"] = True
                 billing_key = "billingAfterQueue" if args.complete else "billingAfterReadback"
                 try:
-                    queued = browser_run(root, args, dist, auth, api, sql, worker_port, ports, result)
+                    evidence = browser.BrowserEvidence(auth["build"], result["browser"])
+                    bridge_port, queue_url, terminal_url = dispatch.enter_context(
+                        browser.bridge(dist, auth, evidence, args.browser != "select"),
+                    )
+                    require(bridge_port not in ports, "browser listener collision")
+                    ports.append(bridge_port)
+                    queued = browser_run(root, args, auth, api, sql, worker_port, evidence, bridge_port, queue_url)
                 finally:
                     result[billing_key] = billing_state()
                 require(result["billingBeforeBuild"] == result[billing_key], "browser flow changed billing state")
@@ -1582,6 +1614,8 @@ def drive(root, args, env, result):
                     final_detail = read_recovery_detail(auth, scope, sessions, recovery, "finalOwnerRead")
                     require(verify_recovery_detail(final_detail, scope) == "native_succeeded",
                             "native success changed after artifact and log readback")
+                if args.browser:
+                    browser_readback(root, args, api, evidence, bridge_port, terminal_url, sessions, result)
             if args.worker_crash:
                 recovery["outcome"] = "cancelled" if result["cancellationExercised"] else "native_succeeded"
             result["billingAfterReadback"] = billing_state()
@@ -1686,6 +1720,8 @@ def main():
         env["PAIR25_SELECT_STARTER"] = "1"
     if args.browser:
         env["PAIR25_BROWSER"] = args.browser
+    if args.complete:
+        env["PAIR25_BROWSER_COMPLETE"] = "1"
     try:
         require(len(os.fsencode(root / "r/runner.sock")) < 103, "scratch path exceeds Unix socket budget")
         drive(root, args, env, result)

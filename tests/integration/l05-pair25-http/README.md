@@ -67,7 +67,7 @@ input using the approved stage.
 ### Loopback browser
 
 The browser mode archives the ordinary hosted and console sources from
-`26000a3fa85a96e5e1e13df221528ac7df8b9add`. Have that commit locally and put
+`1e2de0130d001ef9ada0001b59f9ae8b7f67b72a`. Have that commit locally and put
 Node 22.18+ and npm on `PATH` in addition to the hosted prerequisites above.
 The mode bundles the stock console with Vite's `local-workspace-builds` mode.
 It installs from a private copy of the locked npm tarballs already present in
@@ -121,41 +121,79 @@ Rendered UI and browser-originated actions require the interactive run above.
 
 ### Complete the queued browser build
 
-Add `--complete` to start the restricted processor and confirm it is paused
-against an empty queue before opening the bridge. The browser submits one build
-while the processor stays paused. After the bridge closes, the explicit drain
-requires the original Oban `created` job to be available with zero attempts.
-The receipt ties the completed job to that same ID. Terminal detail and
-download routes must match the original build scope and source pins. Owner,
-outsider, and anonymous reads must return HTTP 200, 404, and 401 respectively
-for detail, logs, and all three downloads. Billing snapshots must match before
-submission, after queueing, and after terminal readback.
+Add `--complete` to start the restricted processor paused against an empty
+queue. The first `finishFile` releases the original Oban `created` job after
+the fixture verifies one queued record and zero job attempts. The bridge stays
+on the same loopback port through processing and terminal readback.
+
+Fresh owner, outsider, and anonymous reads must return HTTP 200, 404, and 401
+respectively for detail, logs, and all three downloads. The bridge checks the
+same selection and terminal revision. It streams only the Android APK, debug
+symbols, and resource inventory for that build, preserving the attachment
+headers and recording the byte count and SHA-256. Billing snapshots must match
+before submission, after queueing, and after terminal readback.
 
 For an inert replay, run the HTTP smoke through completion. The stock runner
-protocol returns synthetic artifacts and known log counters.
+protocol returns synthetic artifacts and known log counters. A focused
+loopback test covers streaming beyond the general API cap.
 
 ```sh
 mkdir -p verification/local
+python3 -B tests/integration/l05-pair25-http/test_browser.py -v
 python3 -B tests/integration/l05-pair25-http/run.py --browser smoke --complete \
   --seconds 45 --scratch "$HOME/.t3/userdata" \
   --receipt verification/local/pair25-browser-complete-inert.json
 ```
 
-For a live replay, prepare a fresh operator stage and daemon as described in
-[One real run](#one-real-run).
+For one real replay, run the fixture on a local host with the dedicated Linux
+Docker daemon and approved Pair25 Noble stage. The pinned `linux/arm64`
+container needs the host's x86-64 compatibility support for the staged
+Android tools. Match the stage projection and input digests to the
+November 20 receipt below. Use the prerequisites in [One real run](#one-real-run).
+
+Set `PAIR25_OPERATOR` to the absolute operator JSON path, `PAIR25_SCRATCH` to a
+short, private scratch parent, and `PAIR25_PG_BIN` to the PostgreSQL 17 binary
+directory. Set `HEX_HOME` to a populated private cache. Use an isolated browser
+profile that can reach the fixture's `localhost`. Set a fresh
+`PAIR25_RECEIPT` path outside the launcher scratch.
 
 ```sh
-mkdir -p verification/local
-python3 -B tests/integration/l05-pair25-http/run.py --browser queue --complete \
-  --seconds 900 --scratch "$HOME/.t3/userdata" --operator /absolute/path/pair25-operator.json \
-  --receipt verification/local/pair25-browser-complete-live.json
+python3 -Bu tests/integration/l05-pair25-http/run.py --browser queue --complete \
+  --seconds 900 --pg-bin "${PAIR25_PG_BIN:?}" --scratch "${PAIR25_SCRATCH:?}" \
+  --operator "${PAIR25_OPERATOR:?}" --receipt "${PAIR25_RECEIPT:?}"
 ```
 
-Follow the four browser steps above. Touch the private `finishFile` after
-capturing the queued build ID. With `--seconds 900`, you have 300 seconds to
-finish the browser steps and a separate 900 seconds for settlement. Once the
-bridge closes, the launcher dispatches the build and uses fresh authenticated
-API sessions to verify the logs and downloads.
+1. Follow the four browser steps above. Save the rendered confirmation and
+   queued build ID, then touch the first `finishFile`. Keep the build tab open.
+   Submit promptly after opening the one-use session URL.
+2. Wait for the launcher to publish the initial handoff's `terminalFile` path.
+   Open the terminal JSON's one-use `url` in a second tab in the same browser
+   profile. The redirect sets a fresh ordinary owner cookie on the same origin.
+   Keep both URLs and the handoff files private.
+3. Return to the original tab. If it lost the workspace selection, open
+   **Pair25 project** and **example.source.app** from the terminal tab.
+   Select the row for the saved build ID. Click **Refresh build** and verify
+   **Succeeded** for that ID. Click **View build logs** and check both
+   rendered exit-zero events.
+4. Click **Unsigned APK**, **Debug symbols**, and **Resource inventory**.
+   Save the rendered build and logs. Record the names, sizes, and SHA-256
+   digests of the three saved files. Touch the **terminal** `finishFile`
+   once all three files have finished downloading.
+5. Match the saved build ID, sizes, and digests to `browser.terminal` in the
+   final receipt. Check the download names against `downloads`. Verify
+   service closure, reusable ports, and scratch cleanup. Close the owned
+   browser and retire its private profile and download directory.
+
+`--seconds 900` allows up to 300 seconds for queue handoff, a separate 900
+seconds for settlement, and 90 seconds for browser terminal readback after
+the second handoff. An HTTP receipt records traffic on the bridge. Capture
+browser evidence separately to establish what the console rendered.
+
+The [November 20 run receipt](../../../verification/receipts/l05-pair25-browser-real-build-20261120.json)
+records the historical browser-to-queue and fresh HTTP terminal result.
+Its active fixture files are pinned by the receipt to
+`a727c46766c1d04e1ce1160430601f4baea01d0e`, which archived the older
+`26000a3fa85a96e5e1e13df221528ac7df8b9add` hosted and console trees.
 
 If offline Hex reports a missing registry entry, warm a disposable copy
 before starting the fixture. Substitute your configured Hex cache path for
@@ -165,7 +203,10 @@ before starting the fixture. Substitute your configured Hex cache path for
 prep=$(mktemp -d "$HOME/.t3/userdata/p25-hex.XXXXXXXX")
 mkdir "$prep/hex" "$prep/source"
 cp -R "$HOME/.hex/packages" "$HOME/.hex/cache.bin" "$prep/hex/"
-git archive 26000a3fa85a96e5e1e13df221528ac7df8b9add hosted | tar -x -C "$prep/source"
+if [ -f "$HOME/.hex/cache.ets" ]; then
+  cp "$HOME/.hex/cache.ets" "$prep/hex/"
+fi
+git archive 1e2de0130d001ef9ada0001b59f9ae8b7f67b72a hosted | tar -x -C "$prep/source"
 (
   cd "$prep/source/hosted" &&
   env -u HEX_OFFLINE MIX_ENV=test HEX_HOME="$prep/hex" HEX_HTTP_TIMEOUT=8 \

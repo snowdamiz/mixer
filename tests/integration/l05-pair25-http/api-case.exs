@@ -1,6 +1,6 @@
 # Included in the pinned LocalStarterHTTPSQLTest module by run.py. Reuse its private HTTP helpers.
 @tag :pair25_http
-@tag timeout: 1_300_000
+@tag timeout: 1_420_000
 test "serve one ordinary Android build for the Pair25 fixture", c do
   owner = login(c)
   org = create(c, owner, "/console-api/v1/orgs", %{display_name: "Pair25 owner"})
@@ -44,7 +44,8 @@ test "serve one ordinary Android build for the Pair25 fixture", c do
     csrf: csrf
   })
 
-  pair25_wait!(c, false, System.monotonic_time(:millisecond) + 1_240_000)
+  budget = if System.get_env("PAIR25_BROWSER_COMPLETE") == "1", do: 1_360_000, else: 1_240_000
+  pair25_wait!(c, false, System.monotonic_time(:millisecond) + budget)
 end
 
 defp pair25_seed_input!(scope, pins, reference) do
