@@ -13,6 +13,15 @@ Use the tracked results to assess L01–L08 and rerun any check that needs fresh
 evidence from a clean checkout. Paths to disposable run files are historical
 references. See [the worktree verification policy](mixer-product-plan.md#worktree-local-verification).
 
+## November 20 hosted v73 verification
+
+All three v73 hosted workflows passed. The Phoenix fixture kept its
+attestation scratch outside the source tree and passed the final source
+comparison. The macOS Intel job verified the 300-second Android policy
+for both creates. All six generated Java consumers compiled, and the
+command groups and owned scratch closed. The VM job ran the Guest UI v1
+export-name mutation control in debug and release. [CI receipt](verification/receipts/hosted-v73-ci-6235f51c.json)
+
 ## November 20 local release delivery outage and recovery
 
 A committed Phoenix release reached local Workerd through the private historical
