@@ -220,6 +220,14 @@ on v82, exceeding the existing 8 MiB per-command limit. The finalizer
 verified cleanup. A bounded batching correction is underway.
 [Exact overflow evidence](verification/receipts/hosted-v82-identity-source-batch-overflow.json)
 
+Published v82 Owned Engine passed all nine jobs. Both Swift Host source
+checks matched the 154-input archive, and Intel compiled all six Java
+consumers with terminal receipts. Services passed all 317 collector
+tests in each Python mode and the Go checks. Phoenix passed the 12
+private-login and 10 ordinary catalog cases before the source-map suite
+failure. The two Identity Network methods remain unverified on v82.
+[Exact hosted results](verification/receipts/hosted-v82-terminal-e1202816.json)
+
 ## November 21 attestation readiness
 
 The ordinary application-registration and native-attestation fixtures now use
