@@ -190,6 +190,12 @@ The next compiler and FieldLog evidence checkpoint `e99446de27` also passed
 all nine Owned Engine jobs. That push triggered only Owned Engine checks.
 [Terminal FieldLog evidence CI receipt](verification/receipts/hosted-fieldlog-evidence-ci-terminal-e99446de.json)
 
+All nine Owned Engine jobs passed on published `9efad204c5`. Source141
+matched all 155 inputs before and after the Swift Host run. Signed Commit
+and W09 passed with private F10 disabled. Intel passed all six Java
+cross-compiles. Phoenix and Identity did not trigger on this revision.
+[Restore and Swift reproducibility CI receipt](verification/receipts/hosted-restore-swift-reproducibility-ci-terminal-9efad204.json)
+
 The six-action private V3 candidate `790d0b2253` delivered Open, Next,
 Tasks, reopen, Previous, and Entries through the signed guest. Its two
 pages displayed 26 real pending records from three scoped reads. The
