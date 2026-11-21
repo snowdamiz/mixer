@@ -181,6 +181,11 @@ Intel passed all six Java cross-compiles. The opt-in replay remains
 separate local evidence.
 [Published F10 CI receipt](verification/receipts/hosted-private-f10-ci-terminal-2acaac67.json)
 
+All nine Owned Engine jobs passed on published `55b4d634d3`, including
+Swift Host, the Swift aggregate, and Android generated Java. The push
+triggered only Owned Engine checks.
+[Terminal CI receipt](verification/receipts/hosted-restore-evidence-ci-terminal-55b4d634.json)
+
 The six-action private V3 candidate `790d0b2253` delivered Open, Next,
 Tasks, reopen, Previous, and Entries through the signed guest. Its two
 pages displayed 26 real pending records from three scoped reads. The
