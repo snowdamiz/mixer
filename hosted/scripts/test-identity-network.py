@@ -3110,12 +3110,20 @@ WORKSPACE_V67_SOURCE_DIGEST = '90b033d9bcf376efe1eec8da34099a60016f80d2ea405ff2b
 WORKSPACE_V67_SOURCE_COUNT = 483
 WORKSPACE_V67_MANIFEST_SHA256 = '87ad0a2d78580c80829e29d0b6ee331f01f9187bbb9b4d254d60e5f65406a933'
 
-WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v68/'
-WORKSPACE_SELECTION_SHA256 = '19b07c3457af3ab7a0686af2ead7f03159075c501737ba300819c09ead3c2419'
-WORKSPACE_SOURCE_DIGEST = '77cc88ee6af724a713d86d5a79d81e4817b6456623e74523785f48c913a267f7'
-WORKSPACE_SOURCE_COUNT = 483
+WORKSPACE_V68_SOURCE_BASE = 'verification/identity-network-current-source-v68/'
+WORKSPACE_V68_SELECTION_SHA256 = '19b07c3457af3ab7a0686af2ead7f03159075c501737ba300819c09ead3c2419'
+WORKSPACE_V68_SOURCE_DIGEST = '77cc88ee6af724a713d86d5a79d81e4817b6456623e74523785f48c913a267f7'
+WORKSPACE_V68_SOURCE_COUNT = 483
+WORKSPACE_V68_MANIFEST_SHA256 = '6abe296c58121f46fb4e9bafe38b2c0ec4cb8fb8890c7a073f8443855f66d83c'
+
+WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v69/'
+WORKSPACE_SELECTION_SHA256 = '966231403f08fa93100dfe3a9575d482c4ee60d261206d35474dcb9be7738bb5'
+WORKSPACE_SOURCE_DIGEST = 'fec4099b875b64d2aa2ab66364ac6d7f9d56a0ae3499ee7a96427ebe920b83cc'
+WORKSPACE_SOURCE_COUNT = 495
 WORKSPACE_RELEASE_HEAD_DETAILS_MIGRATION = 'hosted/priv/repo/migrations/20261120000013_add_local_release_head_details.exs'
 WORKSPACE_EXECUTABLES = {
+    'hosted/scripts/replay-local-release-target-registry.sh',
+    'hosted/scripts/replay-local-stage-promotion.sh',
     'hosted/priv/unselected_browser_active_read/apply-active-read-upgrade.sh',
     'hosted/scripts/replay-configured-release.sh',
     'tests/integration/managed-android-local-linux-pair25/prepare-toolchain.sh',
@@ -3157,6 +3165,12 @@ WORKSPACE_LOCAL_RELEASE_DELIVERY_MIGRATION = (
 )
 WORKSPACE_LOCAL_RELEASE_JOBS_MIGRATION = (
     'hosted/priv/local_release_jobs/20261120000014_add_local_release_jobs.exs'
+)
+WORKSPACE_LOCAL_RELEASE_TARGET_REGISTRY_MIGRATION = (
+    'hosted/priv/local_release_target_registry/20261120000015_add_local_release_target_registry.exs'
+)
+WORKSPACE_LOCAL_STAGE_PROMOTION_MIGRATION = (
+    'hosted/priv/local_stage_promotion/20261120000016_add_local_stage_promotion.exs'
 )
 STARTER_PACKAGE_CLOSURE_SOURCE = 'hosted/priv/development/starter_package_closure.py'
 
@@ -4203,10 +4217,10 @@ def validate_workspace_v67_metadata(metadata):
     return selection, manifest
 
 
-def validate_workspace_source_metadata(metadata):
+def validate_workspace_v68_metadata(metadata):
     selection, manifest = _validate_workspace_metadata(
-        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
-        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V67_MANIFEST, {
+        metadata, WORKSPACE_V68_SOURCE_BASE, WORKSPACE_V68_SELECTION_SHA256,
+        WORKSPACE_V68_SOURCE_COUNT, WORKSPACE_V68_SOURCE_DIGEST, WORKSPACE_V67_MANIFEST, {
             'source_count': WORKSPACE_V67_SOURCE_COUNT,
             'source_digest_sha256': WORKSPACE_V67_SOURCE_DIGEST,
             'selection_sha256': WORKSPACE_V67_SELECTION_SHA256,
@@ -4223,6 +4237,72 @@ def validate_workspace_source_metadata(metadata):
             selection['schema'] == 1 and selection['deployment'] is False and
             selection['financial_effects'] is False and selection['runtime_or_GA_accepted'] is False,
             'standalone startup controls source scope')
+    return selection, manifest
+
+
+def validate_workspace_source_metadata(metadata):
+    selection, manifest = _validate_workspace_metadata(
+        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
+        WORKSPACE_SOURCE_COUNT, WORKSPACE_SOURCE_DIGEST, WORKSPACE_V68_MANIFEST, {
+            'source_count': WORKSPACE_V68_SOURCE_COUNT,
+            'source_digest_sha256': WORKSPACE_V68_SOURCE_DIGEST,
+            'selection_sha256': WORKSPACE_V68_SELECTION_SHA256,
+            'manifest_sha256': WORKSPACE_V68_MANIFEST_SHA256,
+        }, migration_count=27)
+    additions = {
+        'hosted/lib/mixer_hosted/releases/environment_promotion/command.ex',
+        'hosted/lib/mixer_hosted/releases/environment_promotion/direction.ex',
+        'hosted/lib/mixer_hosted/releases/environment_promotion/storage.ex',
+        'hosted/lib/mixer_hosted/releases/environment_promotion/verifier.ex',
+        WORKSPACE_LOCAL_RELEASE_TARGET_REGISTRY_MIGRATION,
+        WORKSPACE_LOCAL_STAGE_PROMOTION_MIGRATION,
+        'hosted/scripts/replay-local-release-target-registry.md',
+        'hosted/scripts/replay-local-release-target-registry.sh',
+        'hosted/scripts/replay-local-stage-promotion.sh',
+        'hosted/test/mixer_hosted/releases/environment_promotion/postgres_test.exs',
+        'hosted/test/mixer_hosted/releases/environment_promotion/verifier_test.exs',
+        'hosted/test/support/stage_promotion_signing_fixture.ex',
+    }
+    require(manifest.keys() - WORKSPACE_V68_MANIFEST.keys() == additions and
+            set(selection['exact_delta']) == additions | {
+        'docs/operations/local-signed-release-delivery.md',
+        'docs/operations/provision-local-release-jobs.sql',
+        'hosted/lib/mixer_hosted/authorization.ex',
+        'hosted/lib/mixer_hosted/browser_auth/relation_catalog.ex',
+        'hosted/lib/mixer_hosted/releases.ex',
+        'hosted/lib/mixer_hosted/releases/browser_head.ex',
+        'hosted/lib/mixer_hosted/releases/public_delivery.ex',
+        'hosted/lib/mixer_hosted/releases/runtime_provisioning.ex',
+        'hosted/lib/mixer_hosted_web/public_release_controller.ex',
+        WORKSPACE_LOCAL_RELEASE_JOBS_MIGRATION,
+        'hosted/test/mixer_hosted/releases/browser_publication_test.exs',
+        'hosted/test/mixer_hosted/releases/configured_release_replay_test.exs',
+        'hosted/test/mixer_hosted/releases/runtime_provisioning_test.exs',
+    }, 'target registry and stage promotion source paths')
+    require(all(manifest[path] == pin for path, pin in WORKSPACE_V68_MANIFEST.items()
+                if path.startswith('hosted/priv/repo/migrations/')),
+            'target registry and stage promotion ordinary migration inventory')
+    require(selection['local_release_jobs_opt_in_migration'] == WORKSPACE_LOCAL_RELEASE_JOBS_MIGRATION and
+            selection['local_release_target_registry_opt_in_migration'] == WORKSPACE_LOCAL_RELEASE_TARGET_REGISTRY_MIGRATION and
+            selection['local_stage_promotion_opt_in_migration'] == WORKSPACE_LOCAL_STAGE_PROMOTION_MIGRATION and
+            manifest[WORKSPACE_LOCAL_RELEASE_JOBS_MIGRATION] !=
+            WORKSPACE_V68_MANIFEST[WORKSPACE_LOCAL_RELEASE_JOBS_MIGRATION],
+            'target registry and stage promotion opt-in migration inventory')
+    for key, migration in (
+        ('opt_in_migration', WORKSPACE_LOCAL_SOURCE_MIGRATION),
+        ('android_opt_in_migration', WORKSPACE_ANDROID_SOURCE_MIGRATION),
+        ('managed_linux_opt_in_migration', WORKSPACE_MANAGED_LINUX_SOURCE_MIGRATION),
+        ('local_release_delivery_opt_in_migration', WORKSPACE_LOCAL_RELEASE_DELIVERY_MIGRATION),
+    ):
+        require(selection[key] == migration and manifest[migration] == WORKSPACE_V68_MANIFEST[migration],
+                'target registry and stage promotion predecessor opt-in migration inventory')
+    require(selection['identity'] == 'hosted-stage-promotion-and-target-registry-source-v69' and
+            selection['product_anchor'] == 'e5b3a977c1091166bf9d82d5bf3da86e663b2625' and
+            selection['public_parent'] == '7fb2ec8b38c7ebdfd7b4b241113500b0cdcb9130' and
+            selection['conditional_on_independent_successor_review'] is True and
+            selection['schema'] == 1 and selection['deployment'] is False and
+            selection['financial_effects'] is False and selection['runtime_or_GA_accepted'] is False,
+            'target registry and stage promotion source scope')
     return selection, manifest
 
 
@@ -4383,9 +4463,12 @@ def check_workspace_source(root):
     v67_selection, _ = validate_workspace_v67_metadata(
         workspace_source_metadata(root, WORKSPACE_V67_SOURCE_BASE))
     v67_rows = workspace_preimage_rows(v67_selection, WORKSPACE_V67_SOURCE_BASE)
+    v68_selection, _ = validate_workspace_v68_metadata(
+        workspace_source_metadata(root, WORKSPACE_V68_SOURCE_BASE))
+    v68_rows = workspace_preimage_rows(v68_selection, WORKSPACE_V68_SOURCE_BASE)
     selection, manifest = validate_workspace_source_metadata(workspace_source_metadata(root, WORKSPACE_SOURCE_BASE))
     rows = workspace_preimage_rows(selection)
-    for path in (*manifest, *v65_rows, *v66_rows, *v67_rows, *rows):
+    for path in (*manifest, *v65_rows, *v66_rows, *v67_rows, *v68_rows, *rows):
         mode = (root / path).lstat().st_mode
         expected = 0o755 if path in WORKSPACE_EXECUTABLES else 0o644
         require(stat.S_ISREG(mode) and stat.S_IMODE(mode) == expected,
@@ -4393,6 +4476,7 @@ def check_workspace_source(root):
     validate_workspace_preimages({path: (root / path).read_bytes() for path in v65_rows}, v65_rows)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in v66_rows}, v66_rows)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in v67_rows}, v67_rows)
+    validate_workspace_preimages({path: (root / path).read_bytes() for path in v68_rows}, v68_rows)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in rows}, rows)
     observed = {path: _file_row((root / path).read_bytes()) for path in manifest}
     validate_workspace_source_manifest(observed)
@@ -4415,6 +4499,13 @@ def check_workspace_source(root):
     release_jobs_opt_in = PurePosixPath(WORKSPACE_LOCAL_RELEASE_JOBS_MIGRATION)
     require(sorted(path.name for path in (root / release_jobs_opt_in.parent).iterdir()) == [release_jobs_opt_in.name],
             'installed opt-in local release jobs migration inventory mismatch')
+    for migration, label in (
+        (WORKSPACE_LOCAL_RELEASE_TARGET_REGISTRY_MIGRATION, 'local release target registry'),
+        (WORKSPACE_LOCAL_STAGE_PROMOTION_MIGRATION, 'local stage promotion'),
+    ):
+        opt_in = PurePosixPath(migration)
+        require(sorted(path.name for path in (root / opt_in.parent).iterdir()) == [opt_in.name],
+                'installed opt-in ' + label + ' migration inventory mismatch')
     return {'identity': selection['identity'], 'source_count': len(observed),
             'source_digest_sha256': WORKSPACE_SOURCE_DIGEST,
             'selection_sha256': WORKSPACE_SELECTION_SHA256, 'runtime_or_GA_accepted': False}
@@ -5795,6 +5886,14 @@ class Collector:
         validate_workspace_preimages(v67_preimages, v67_rows)
         metadata.update(v67_metadata)
         metadata.update(v67_preimages)
+        v68_metadata = self.git_blobs(
+            [WORKSPACE_V68_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
+        v68_selection, _ = validate_workspace_v68_metadata(v68_metadata)
+        v68_rows = workspace_preimage_rows(v68_selection, WORKSPACE_V68_SOURCE_BASE)
+        v68_preimages = self.git_blobs(sorted(v68_rows))
+        validate_workspace_preimages(v68_preimages, v68_rows)
+        metadata.update(v68_metadata)
+        metadata.update(v68_preimages)
         workspace_metadata = self.git_blobs([WORKSPACE_SOURCE_BASE + name for name in ('selection.json', 'selected-source-manifest.json')])
         workspace_selection, workspace_manifest = validate_workspace_source_metadata(workspace_metadata)
         validate_workspace_source_manifest(workspace_manifest)
@@ -6610,6 +6709,8 @@ _, WORKSPACE_V66_MANIFEST = validate_workspace_v66_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V66_SOURCE_BASE))
 _, WORKSPACE_V67_MANIFEST = validate_workspace_v67_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V67_SOURCE_BASE))
+_, WORKSPACE_V68_MANIFEST = validate_workspace_v68_metadata(
+    workspace_source_metadata(_source_root, WORKSPACE_V68_SOURCE_BASE))
 _, WORKSPACE_MANIFEST = validate_workspace_source_metadata(workspace_source_metadata(_source_root, WORKSPACE_SOURCE_BASE))
 
 if __name__ == '__main__':
