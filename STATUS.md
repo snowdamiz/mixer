@@ -830,8 +830,11 @@ The matching arm64 iOS Simulator bundle now builds from the same Mixer
 pin `6bc461f4fc`. The 15 Apple app-owned Swift inputs match the historical
 roster, and six are byte-identical across both current compiler rosters.
 The bundle carries a development-signed Commit guest and the corrected
-linked capability fingerprint. Its executable is OS-unsigned. Static
-review and installed behavior remain open.
+linked capability fingerprint. Independent static review verified both
+development signatures, the linked identity, executable, and resource
+loader. The executable has a linker ad hoc signature. The app bundle has
+no OS resource seal or provisioning profile. Simulator installation and
+the signed Commit flow remain open under the existing hold.
 [Matching Apple build](verification/receipts/fieldlog-d2-pair25-apple-simulator-build-6bc461f4.json)
 
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
