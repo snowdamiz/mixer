@@ -1,0 +1,74 @@
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index 4c0528c..fe4ada5 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -1,6 +1,6 @@
+ import Foundation
+ import FieldLogModels
+-import FieldLogFeatures
++@_spi(FieldLogAndroidHost) import FieldLogFeatures
+ import FieldLogStorage
+ import MixerCore
+ import MixerUI
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogFeatures/TaskEditorPresentation.swift b/Integrations/GeneratedReport/Sources/FieldLogFeatures/TaskEditorPresentation.swift
+index af27220..58f1269 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogFeatures/TaskEditorPresentation.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogFeatures/TaskEditorPresentation.swift
+@@ -29,7 +29,7 @@ public enum TaskEditorPresentationError: Error, Equatable, Sendable {
+   private let editor: TaskEditor
+   // Staged native batches need the exact reducer text, even when two strings
+   // compare equal under Unicode canonical equivalence.
+-  package var state: TaskEditorState { editor.state }
++  @_spi(FieldLogAndroidHost) public var state: TaskEditorState { editor.state }
+   private var reconciler: UIReconciler
+   private var observation: UUID?
+   private var observers: [UUID: Observer] = [:]
+@@ -84,7 +84,7 @@ public enum TaskEditorPresentationError: Error, Equatable, Sendable {
+   // The checklist routes the entire batch against one installed revision before
+   // staging a replacement presentation. Save can become a reducer no-op after
+   // a title edit in that batch, even though the captured Save was enabled.
+-  package func applyEdit(_ action: RoutedUIAction) throws {
++  @_spi(FieldLogAndroidHost) public func applyEdit(_ action: RoutedUIAction) throws {
+     guard !closed && snapshot.outcome == .editing else { throw TaskEditorPresentationError.closed }
+     switch (action.nodeID, action.actionID, action.event, action.value) {
+     case ("task.title", "task.title.change", .textChange, .string(let value)):
+@@ -145,7 +145,7 @@ public enum TaskEditorPresentationError: Error, Equatable, Sendable {
+     }
+   }
+ 
+-  package nonisolated static func titleField(_ value: String, disabled: Bool) -> some MixerView {
++  @_spi(FieldLogAndroidHost) public nonisolated static func titleField(_ value: String, disabled: Bool) -> some MixerView {
+     MixerUI.TextField("task.title", "What needs to happen?", value: value,
+       action: "task.title.change", axis: .vertical).accessibilityIdentifier("task-title").disabled(disabled)
+   }
+diff --git a/Sources/FieldLogFeatures/TaskEditorPresentation.swift b/Sources/FieldLogFeatures/TaskEditorPresentation.swift
+index af27220..58f1269 100644
+--- a/Sources/FieldLogFeatures/TaskEditorPresentation.swift
++++ b/Sources/FieldLogFeatures/TaskEditorPresentation.swift
+@@ -29,7 +29,7 @@ public enum TaskEditorPresentationError: Error, Equatable, Sendable {
+   private let editor: TaskEditor
+   // Staged native batches need the exact reducer text, even when two strings
+   // compare equal under Unicode canonical equivalence.
+-  package var state: TaskEditorState { editor.state }
++  @_spi(FieldLogAndroidHost) public var state: TaskEditorState { editor.state }
+   private var reconciler: UIReconciler
+   private var observation: UUID?
+   private var observers: [UUID: Observer] = [:]
+@@ -84,7 +84,7 @@ public enum TaskEditorPresentationError: Error, Equatable, Sendable {
+   // The checklist routes the entire batch against one installed revision before
+   // staging a replacement presentation. Save can become a reducer no-op after
+   // a title edit in that batch, even though the captured Save was enabled.
+-  package func applyEdit(_ action: RoutedUIAction) throws {
++  @_spi(FieldLogAndroidHost) public func applyEdit(_ action: RoutedUIAction) throws {
+     guard !closed && snapshot.outcome == .editing else { throw TaskEditorPresentationError.closed }
+     switch (action.nodeID, action.actionID, action.event, action.value) {
+     case ("task.title", "task.title.change", .textChange, .string(let value)):
+@@ -145,7 +145,7 @@ public enum TaskEditorPresentationError: Error, Equatable, Sendable {
+     }
+   }
+ 
+-  package nonisolated static func titleField(_ value: String, disabled: Bool) -> some MixerView {
++  @_spi(FieldLogAndroidHost) public nonisolated static func titleField(_ value: String, disabled: Bool) -> some MixerView {
+     MixerUI.TextField("task.title", "What needs to happen?", value: value,
+       action: "task.title.change", axis: .vertical).accessibilityIdentifier("task-title").disabled(disabled)
+   }

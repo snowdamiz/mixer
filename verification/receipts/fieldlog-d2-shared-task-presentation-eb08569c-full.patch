@@ -1,0 +1,213 @@
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index 1484618..fe4ada5 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -1,6 +1,6 @@
+ import Foundation
+ import FieldLogModels
+-import FieldLogFeatures
++@_spi(FieldLogAndroidHost) import FieldLogFeatures
+ import FieldLogStorage
+ import MixerCore
+ import MixerUI
+@@ -122,7 +122,7 @@ private enum WorkspaceEdit: Sendable {
+     public var state: TaskEditorState { editor.state }
+     let repository: WorkspaceRepository
+     private let projectID: UUID
+-    private var editor: TaskEditor
++    private var editor: TaskEditorPresentation
+     private var editorObservation: UUID?
+     private var reconciler: UIReconciler
+     private var publishedState = TaskEditorState()
+@@ -216,7 +216,7 @@ private enum WorkspaceEdit: Sendable {
+                 }
+             }
+             guard let project = workspace.projects.first else { throw PublicHostError.storage }
+-            let editor = try TaskEditor(save: { _, _ in .failed("Unadmitted save") })
++            let editor = try TaskEditorPresentation(save: { _, _ in .failed("Unadmitted save") })
+             var reconciler = UIReconciler(validator: UIValidator(supportedTextFieldAxes: AndroidUIProfile.measuredMultilineLongNotesV4.capabilities.textFieldAxes, textValuePolicy: AndroidUIProfile.measuredMultilineLongNotesV4.textValuePolicy))
+             try reconciler.apply(Self.document(editor.state, workspace: workspace, project: project.id, queue: false, taskPage: 0, queuePage: 0, busy: false, feedback: nil, failure: nil, revision: 1))
+             self.repository = repository; self.workspace = workspace; self.projectID = project.id
+@@ -765,7 +765,7 @@ private enum WorkspaceEdit: Sendable {
+     private func replaceEditor(newTask: Bool, actions: [RoutedUIAction]) throws {
+         let admission = SaveAdmission()
+         let repository = self.repository, projectID = self.projectID, revision = workspace.revision
+-        let candidate = try TaskEditor(save: { [weak self] title, responsible in
++        let candidate = try TaskEditorPresentation(save: { [weak self] title, responsible in
+             guard await admission.accepted, let preflight = await admission.preflight else { return .failed("Unadmitted save") }
+             do {
+                 let saved = try await repository.transact(expectedRevision: revision) { next in
+@@ -777,15 +777,11 @@ private enum WorkspaceEdit: Sendable {
+             } catch { return .failed(error.localizedDescription) }
+         })
+         do {
+-            if !newTask { try candidate.changeTitle(state.title); try candidate.changeResponsible(state.responsible) }
+-            for action in actions {
+-                switch (action.nodeID, action.event, action.value) {
+-                case ("task.title", .textChange, .string(let text)): try candidate.changeTitle(text)
+-                case ("task.responsible", .textChange, .string(let text)): try candidate.changeResponsible(text)
+-                case ("task.save", .activate, .null): try candidate.submit()
+-                default: throw PublicHostError.action
+-                }
++            if !newTask {
++                try candidate.send(nodeID: "task.title", event: .textChange, value: .string(state.title))
++                try candidate.send(nodeID: "task.responsible", event: .textChange, value: .string(state.responsible))
+             }
++            for action in actions { try candidate.applyEdit(action) }
+             let (nextReconciler, next) = try render(candidate.state, feedback: nil, failure: nil)
+             let stagedState = candidate.state, queuePage = self.queuePage
+             admission.preflight = { workspace in
+@@ -798,7 +794,7 @@ private enum WorkspaceEdit: Sendable {
+             try editor.close()
+             editor = candidate; reconciler = nextReconciler; snapshot = next; publishedState = candidate.state
+             changeFailure = nil; changeFeedback = nil
+-            editorObservation = candidate.observe { [weak self] state in self?.changed(state) }
++            editorObservation = candidate.observe { [weak self] form in self?.changed(form.state) }
+             admission.accepted = true
+             publish()
+         } catch { try? candidate.close(); throw error }
+@@ -971,7 +967,7 @@ private enum WorkspaceEdit: Sendable {
+                         MixerUI.Button("workspace.queue", "On device · \(workspace.outbox.count) pending changes · Not sent", action: "workspace.queue").accessibilityIdentifier("workspace-on-device").disabled(inactive)
+                     }
+                     MixerUI.Section("task.fields", title: "New task") {
+-                        MixerUI.TextField("task.title", "What needs to happen?", value: state.title, action: "task.title.change", axis: .vertical).accessibilityIdentifier("task-title").disabled(inactive || state.saved)
++                        TaskEditorPresentation.titleField(state.title, disabled: inactive || state.saved)
+                         MixerUI.TextField("task.responsible", "Responsible person (optional)", value: state.responsible, action: "task.responsible.change").accessibilityIdentifier("task-responsible").disabled(inactive || state.saved)
+                         MixerUI.Button("task.save", state.saved ? "Saved" : state.saving ? "Saving…" : "Save", action: "task.save").accessibilityIdentifier("task-save").disabled(!state.canSubmit || busy)
+                         if state.saved {
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogFeatures/TaskEditorPresentation.swift b/Integrations/GeneratedReport/Sources/FieldLogFeatures/TaskEditorPresentation.swift
+index 2988fb7..58f1269 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogFeatures/TaskEditorPresentation.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogFeatures/TaskEditorPresentation.swift
+@@ -27,6 +27,9 @@ public enum TaskEditorPresentationError: Error, Equatable, Sendable {
+   public typealias Observer = @MainActor @Sendable (TaskEditorPresentationSnapshot) -> Void
+   public private(set) var snapshot: TaskEditorPresentationSnapshot
+   private let editor: TaskEditor
++  // Staged native batches need the exact reducer text, even when two strings
++  // compare equal under Unicode canonical equivalence.
++  @_spi(FieldLogAndroidHost) public var state: TaskEditorState { editor.state }
+   private var reconciler: UIReconciler
+   private var observation: UUID?
+   private var observers: [UUID: Observer] = [:]
+@@ -69,6 +72,20 @@ public enum TaskEditorPresentationError: Error, Equatable, Sendable {
+     guard !closed && snapshot.outcome == .editing else { throw TaskEditorPresentationError.closed }
+     guard snapshot.renderingFailure == nil else { throw TaskEditorPresentationError.unavailable }
+     let action = try snapshot.render.route(event)
++    if (action.nodeID, action.actionID, action.event, action.value) == ("task.cancel", "task.cancel", .activate, .null) {
++      var navigation = snapshot.navigation
++      navigation.popToRoot()
++      publish(editor.state, navigation: navigation, outcome: .cancelled)
++    } else {
++      try applyEdit(action)
++    }
++  }
++
++  // The checklist routes the entire batch against one installed revision before
++  // staging a replacement presentation. Save can become a reducer no-op after
++  // a title edit in that batch, even though the captured Save was enabled.
++  @_spi(FieldLogAndroidHost) public func applyEdit(_ action: RoutedUIAction) throws {
++    guard !closed && snapshot.outcome == .editing else { throw TaskEditorPresentationError.closed }
+     switch (action.nodeID, action.actionID, action.event, action.value) {
+     case ("task.title", "task.title.change", .textChange, .string(let value)):
+       try editor.changeTitle(value)
+@@ -76,10 +93,6 @@ public enum TaskEditorPresentationError: Error, Equatable, Sendable {
+       try editor.changeResponsible(value)
+     case ("task.save", "task.save", .activate, .null):
+       try editor.submit()
+-    case ("task.cancel", "task.cancel", .activate, .null):
+-      var navigation = snapshot.navigation
+-      navigation.popToRoot()
+-      publish(editor.state, navigation: navigation, outcome: .cancelled)
+     default: throw TaskEditorPresentationError.invalidAction
+     }
+   }
+@@ -132,6 +145,11 @@ public enum TaskEditorPresentationError: Error, Equatable, Sendable {
+     }
+   }
+ 
++  @_spi(FieldLogAndroidHost) public nonisolated static func titleField(_ value: String, disabled: Bool) -> some MixerView {
++    MixerUI.TextField("task.title", "What needs to happen?", value: value,
++      action: "task.title.change", axis: .vertical).accessibilityIdentifier("task-title").disabled(disabled)
++  }
++
+   private static func document(_ state: TaskEditorState, outcome: TaskEditorOutcome,
+     revision: UInt64) -> UIDocument
+   {
+@@ -139,8 +157,7 @@ public enum TaskEditorPresentationError: Error, Equatable, Sendable {
+     return MixerUI.Navigation("task.screen", title: "New task") {
+       MixerUI.List("task.form") {
+         MixerUI.Section("task.fields", title: "Task") {
+-          MixerUI.TextField("task.title", "What needs to happen?", value: state.title,
+-            action: "task.title.change", axis: .vertical).accessibilityIdentifier("task-title").disabled(inactive)
++          titleField(state.title, disabled: inactive)
+           MixerUI.TextField("task.responsible", "Responsible person (optional)",
+             value: state.responsible, action: "task.responsible.change").disabled(inactive)
+         }
+diff --git a/Sources/FieldLogFeatures/TaskEditorPresentation.swift b/Sources/FieldLogFeatures/TaskEditorPresentation.swift
+index 2988fb7..58f1269 100644
+--- a/Sources/FieldLogFeatures/TaskEditorPresentation.swift
++++ b/Sources/FieldLogFeatures/TaskEditorPresentation.swift
+@@ -27,6 +27,9 @@ public enum TaskEditorPresentationError: Error, Equatable, Sendable {
+   public typealias Observer = @MainActor @Sendable (TaskEditorPresentationSnapshot) -> Void
+   public private(set) var snapshot: TaskEditorPresentationSnapshot
+   private let editor: TaskEditor
++  // Staged native batches need the exact reducer text, even when two strings
++  // compare equal under Unicode canonical equivalence.
++  @_spi(FieldLogAndroidHost) public var state: TaskEditorState { editor.state }
+   private var reconciler: UIReconciler
+   private var observation: UUID?
+   private var observers: [UUID: Observer] = [:]
+@@ -69,6 +72,20 @@ public enum TaskEditorPresentationError: Error, Equatable, Sendable {
+     guard !closed && snapshot.outcome == .editing else { throw TaskEditorPresentationError.closed }
+     guard snapshot.renderingFailure == nil else { throw TaskEditorPresentationError.unavailable }
+     let action = try snapshot.render.route(event)
++    if (action.nodeID, action.actionID, action.event, action.value) == ("task.cancel", "task.cancel", .activate, .null) {
++      var navigation = snapshot.navigation
++      navigation.popToRoot()
++      publish(editor.state, navigation: navigation, outcome: .cancelled)
++    } else {
++      try applyEdit(action)
++    }
++  }
++
++  // The checklist routes the entire batch against one installed revision before
++  // staging a replacement presentation. Save can become a reducer no-op after
++  // a title edit in that batch, even though the captured Save was enabled.
++  @_spi(FieldLogAndroidHost) public func applyEdit(_ action: RoutedUIAction) throws {
++    guard !closed && snapshot.outcome == .editing else { throw TaskEditorPresentationError.closed }
+     switch (action.nodeID, action.actionID, action.event, action.value) {
+     case ("task.title", "task.title.change", .textChange, .string(let value)):
+       try editor.changeTitle(value)
+@@ -76,10 +93,6 @@ public enum TaskEditorPresentationError: Error, Equatable, Sendable {
+       try editor.changeResponsible(value)
+     case ("task.save", "task.save", .activate, .null):
+       try editor.submit()
+-    case ("task.cancel", "task.cancel", .activate, .null):
+-      var navigation = snapshot.navigation
+-      navigation.popToRoot()
+-      publish(editor.state, navigation: navigation, outcome: .cancelled)
+     default: throw TaskEditorPresentationError.invalidAction
+     }
+   }
+@@ -132,6 +145,11 @@ public enum TaskEditorPresentationError: Error, Equatable, Sendable {
+     }
+   }
+ 
++  @_spi(FieldLogAndroidHost) public nonisolated static func titleField(_ value: String, disabled: Bool) -> some MixerView {
++    MixerUI.TextField("task.title", "What needs to happen?", value: value,
++      action: "task.title.change", axis: .vertical).accessibilityIdentifier("task-title").disabled(disabled)
++  }
++
+   private static func document(_ state: TaskEditorState, outcome: TaskEditorOutcome,
+     revision: UInt64) -> UIDocument
+   {
+@@ -139,8 +157,7 @@ public enum TaskEditorPresentationError: Error, Equatable, Sendable {
+     return MixerUI.Navigation("task.screen", title: "New task") {
+       MixerUI.List("task.form") {
+         MixerUI.Section("task.fields", title: "Task") {
+-          MixerUI.TextField("task.title", "What needs to happen?", value: state.title,
+-            action: "task.title.change", axis: .vertical).accessibilityIdentifier("task-title").disabled(inactive)
++          titleField(state.title, disabled: inactive)
+           MixerUI.TextField("task.responsible", "Responsible person (optional)",
+             value: state.responsible, action: "task.responsible.change").disabled(inactive)
+         }

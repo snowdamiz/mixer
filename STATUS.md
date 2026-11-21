@@ -946,6 +946,16 @@ no OS resource seal or provisioning profile. Simulator installation and
 the signed Commit flow remain open under the existing hold.
 [Matching Apple build](verification/receipts/fieldlog-d2-pair25-apple-simulator-build-6bc461f4.json)
 
+FieldLog tree `eb08569c13b5` uses the shared `TaskEditorPresentation` in
+the ordinary Android checklist. The reviewed correction exposes three
+editor operations through a FieldLog-specific SPI across the production
+SwiftPM package split. Baseline and candidate macOS replays verified
+unsaved discard, stale-action refusal, and exactly one task and linked
+outbox record after Save and cold reopen. The candidate also linked arm64
+`libAppAndroid.so` for API 28 with Swift 6.3.3 after an Xcode 27.2 frontend
+crash. APK assembly and installed behavior for this tree remain pending.
+[Shared task presentation receipt](verification/receipts/fieldlog-d2-shared-task-presentation-eb08569c.json)
+
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
 
 A free owner created one build through Phoenix, restricted Oban, and the loopback worker. The worker's inert exit-23 fixture settled the build and released capacity. Organization exit was refused before settlement and succeeded afterwards. The former owner lost access while tenant B retained its export and created another project. [Settled build and organization exit](verification/receipts/l06-settled-exit-65c89e08.json)

@@ -19,6 +19,29 @@ The ordinary iOS `FieldLog.app` uses public FieldLog `552559d2` and the v80 SDK.
 
 The prior iOS receipt covers a generic Simulator build. The Android launch receipt covers development-signed startup on an API 36 emulator. Its producer receipt hash differs from the compact v74 build receipt, and the pinned records lack a signed-to-unsigned APK hash binding. The earlier task-conflict audit covers a different patched workflow. The 90% whole-app goal remains unassessed because these app targets lack a matched revision and feature baseline. [Android launch](https://github.com/snowdamiz/mixer/blob/e1202816e8bb5bbeb3583c0d458918923b895426/verification/receipts/fieldlog-independent-export-android-launch-v74.json), [Task-conflict audit](https://github.com/snowdamiz/mixer/blob/e1202816e8bb5bbeb3583c0d458918923b895426/verification/receipts/fieldlog-d2-task-conflict-source-sharing-20261119.json)
 
+## Shared task presentation in the ordinary Android editor
+
+FieldLog tree `eb08569c13b5f65e25edd0dfde1fe70fc8278ece` uses
+`TaskEditorPresentation` to build the inline title field and dispatch
+title and responsible edits and Save from the ordinary Android checklist.
+The app retains its action IDs, accessibility metadata, and discard on
+close. The shared Android SPI crosses the production SwiftPM package
+boundary. The two copies of the presentation source remain byte-identical.
+[Full patch against FieldLog tree `380e7645`](../verification/receipts/fieldlog-d2-shared-task-presentation-eb08569c-full.patch)
+
+The original candidate failed to compile across the production package
+split. The corrected candidate and baseline passed the macOS host replay
+through `PublicAndroidApplication` and the disk-backed repository. Discard
+preserved the workspace bytes. Save persisted one task and one linked
+`taskSaved` record through cold reopen. The corrected package also linked
+an arm64 Android Swift library for API 28 with Swift 6.3.3 and Xcode 26.6.
+The earlier Swift frontend crash under Xcode 27.2 remains recorded.
+[Build and host receipt](../verification/receipts/fieldlog-d2-shared-task-presentation-eb08569c.json) · [Xcode 27.2 failure receipt](../verification/receipts/fieldlog-d2-shared-task-presentation-eb08569c-xcode27-failure.json)
+
+APK packaging and installed verification for this tree remain pending.
+The historical counts above describe the earlier exports. The 90%
+whole-app assessment still needs a matched application baseline.
+
 ## Reproduce the source measurement
 
 From the Mixer repository on a Mac with Git, Python, and SwiftPM, run the following in Bash. The commands use the receipt, the public FieldLog pin, and the four overlays. They evaluate package metadata without building either app or resolving SDK dependencies.
