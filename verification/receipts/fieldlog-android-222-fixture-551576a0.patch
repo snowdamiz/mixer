@@ -1,0 +1,411 @@
+--- a/SHA256SUMS
++++ b/SHA256SUMS
+@@ -1,4 +1,4 @@
+-bc34730c6829b7c21cbf79686216e669af4c66c98671cbc62397c408463b286c  VerifyDelivery.swift
++fddf136eae1f4472bacb1d5962a7e176029ea1b94b19f2173e3998367a789e70  VerifyDelivery.swift
+ 528551a733face2802a5b2d7e6b078de92e828c1f7acec6814915ce26cce0e54  android-app-composition.patch
+ 4ea4c46c411b38e7615c76c72d60ae9d4d2bcd50c45f3d71659423f1fee8684c  android-first-frame-trace.patch
+ 95c7505493b6729b64a530ac382717f48c427dde39d7ad5330d1827f1bf10ee3  android-pending-drawable.patch
+@@ -9,21 +9,21 @@
+ f5450c4dee1b42a7136f9bbb7fc9db371df571bdb31b9b1b7386b1e3e10f0677  diagnostic-pins.json
+ aafc420efac2f9a1ede303c4c2574a170c0410da7716c46ce9ed19bf78f1d512  fieldlog-android-storage-owner.patch
+ 0797e591fa8b5431364d90dffb8dc472447805989bbec9eaf452c8c3bb6c2343  fieldlog-press-trace.patch
+-6081b94709f666595b4b75dcd8b8e6cf39edb0daea31b78020727f347d276568  finalize-packet.py
+-de60a5975c73a6c49270c030c6d71620e5b9569f471cda2759486ec042223c44  finish-rebuild.zsh
++601ec1c68ce816d9774ef14d097d25f9653907a5d5240629ef0b23b9e44ce5d4  finalize-packet.py
++6b5a2c8394f31f1bfdc1747399678db2ff729861095f92da21b73e841770ec25  finish-rebuild.zsh
+ 61e9479711b0ffa5c695c5d9e00f7f426f15773b9928916914b44450e03bad18  guest-preflight.c
+ 67ba4b3583011660590c8e1e429fb4b580df31e3e44c38eb1b524849acbf9663  mixer-press-trace.patch
+ 2bdb096cd2396ee8fd4ee3c5de93b34468ea72a53ba996052ba7d69833ab7d61  pair24-mixer.lock
+-6a41b0d0382161b5b875ce973859a288b3181cc55811622f019a7316e934fe31  prepare.sha256
++1d066646c7f5bdb337af980059f66754c362f56464c1f9cf44acc1d8271ec172  prepare.sha256
+ 8f4ddaa14f6f447bdfea9d73fb03a594909bc48f3746abf59019df4238022430  rebuild.zsh
+ 26f9db8151d30a5103bcf0d5ca85b093c3b2c00eae1b81f4651af0cfe193771c  recipe/EditorBindingProof.swift
+ 012e229a00cb38b7d8845643ef1bd8795f3c3e6de2717b22c82bb37d493da1bc  recipe/Package.resolved
+ dcc1343ce969a698efd624d2e11ecd72f4a04afd6b8867b045da9f2ad6700fb9  recipe/Package.swift
+ b8ab438018292ed128e512473e1f775962079c6b7ca1a24f200e0f40afeb7795  recipe/ReplayPackage.swift
+-cc100dbe96d93cfc6f6218580ee702d4d741128bbfd174bd42fc7616a35d293e  recipe/ReplayPacket.swift
+-599ecad1e472d6f1239712d8eb0a33bdc6d285ce3d2d4b5fca3cb0e21179f397  recipe/SealDraftScenario.swift
++6ca2bfc39d9fc0e6609ec1f4bb47285b4a54eeac0095c29ca3f4e9b0a1fac175  recipe/ReplayPacket.swift
++45397be9627e1c1be7a3f1b7587a705901c60a0624c0df77e6243bb32bd17244  recipe/SealDraftScenario.swift
+ 390c7a40c99576d7a85f5105919eeee6577ca10c7d779c7f6b76b8136409e1dd  recipe/build-app.zsh
+-a5d72c9fcb2d67b16a1b6413a4ec12ac399573c283e6e93c90a62565f0af094a  recipe/build-guests.zsh
++591b39085532293b642cf300d7cd0cade6fb5821cc551c4a87e21f668702c838  recipe/build-guests.zsh
+ c63e643958d0981499f498465c98e2649c74d50441181bb9ecb7beeb5a32b332  recipe/build-input.zsh
+ ffce7f239780acee52abe79034cf0f4c117146b6162ae25caf8a63906f65ef0d  recipe/build-java.zsh
+ 3ba22dfc3640ede9f13aeb3cd6c92caab331c8f0b0f780b653648dda14eb4b03  recipe/build-payload.zsh
+@@ -34,7 +34,7 @@
+ 80dd9995544b3380d59214e1a8abb215f1d19e71997e4e776c68a44a2bc42beb  recipe/guest/TaskWire.swift
+ f21db0ca1197cb5bcc89805a822fc8b4149e6678eb4572a4ab3c00e0bdd6e61d  recipe/manifest.py
+ 7bff59c60b72dcb5fe58867412990f555b023ae0a391bb736947538250bac5b8  recipe/offline-swiftpm.zsh
+-c58c5ba37b81fbafc3640002a94ecc11fb64676db7114a50bdccce1bfdb26b1f  recipe/origin.py
++13a7b76116bef59f3c8f08d0d32afad4b0ce699d50380013f8393e8064cba785  recipe/origin.py
+ a249cc1dc89824e5dec6774bd6cbb468f2346b1934940745715a92ed19f9db60  recipe/package.zsh
+ bc734f158975f3b496163e295a01ea64138c98d164fd7c5e1e5b456647183000  recipe/replay-packet.zsh
+ e66aa9e5fb3d67cb285409dac8d65b00ecef9764fb0c35ea1f6045fc2271d682  recipe/run-host-proof.zsh
+--- a/VerifyDelivery.swift
++++ b/VerifyDelivery.swift
+@@ -39,7 +39,7 @@
+         guard UUID(uuidString: installation)?.uuidString.lowercased() == installation else {
+             throw UpdateError("fieldlog.installation", "Expected a canonical host replay installation UUID")
+         }
+-        let variants = ["baseline", "optional", "baseline", "optional"]
++        let variants = ["baseline", "corrected"]
+         var artifactDigests = [String]()
+         for (index, variant) in variants.enumerated() {
+             let sequence = UInt64(index + 1)
+@@ -77,11 +77,10 @@
+             artifactDigests.append(artifact.artifactSHA256)
+             print("\(sequence) \(variant) \(artifact.artifactSHA256)")
+         }
+-        guard artifactDigests[0] == artifactDigests[2], artifactDigests[1] == artifactDigests[3],
+-              artifactDigests[0] != artifactDigests[1] else {
+-            throw UpdateError("fieldlog.rollback", "Wrong baseline and optional digests")
++        guard Set(artifactDigests).count == variants.count else {
++            throw UpdateError("fieldlog.correction", "Expected distinct baseline and correction artifacts")
+         }
+-        print("PASS four v3 assignments, previous runtime and stale sequence rejected at \(utc)")
++        print("PASS two v3 assignments, previous runtime and stale sequence rejected at \(utc)")
+     }
+
+     static func expectDenial(_ expected: String, _ operation: () throws -> Void) throws {
+--- a/finalize-packet.py
++++ b/finalize-packet.py
+@@ -75,6 +75,7 @@
+     fresh_files = capture["linkFiles"]
+     first_frame_changes = set(diagnostic["firstFrameSourceSHA256"]) | {
+         "payload/bridge/DraftPressTrace.o", "payload/libmixer_public_android_jni.so",
++        "payload/recipe/SealDraftScenario.swift",
+     }
+     source["comparisons"] = {
+         "priorRendererLink": compare_inventory(fresh_files, renderer_capture["linkFiles"],
+@@ -188,7 +189,12 @@
+                 "environment": "development", "platform": "android",
+             }, "Delivery key is reused or outside the FieldLog development scope")
+     guest_bytes = {}
+-    for variant, expected in prior_renderer["manifest"].items():
++    variants = ("baseline", "corrected")
++    reference_manifests = {
++        variant: prior_renderer["manifest"]["baseline"] | {"release_id": f"fieldlog-draft-{variant}"}
++        for variant in variants
++    }
++    for variant, expected in reference_manifests.items():
+         manifest = load(delivery / f"{variant}.manifest.json")["manifest"]
+         built_guest = work / f"guests/{variant}.wasm"
+         packet_guest = delivery / f"{variant}.wasm"
+@@ -207,11 +213,11 @@
+     require(new_identity["capability_execution"]["turn_milliseconds"] == 50,
+             "The selected-draft VM turn must retain its reviewed 50 ms limit")
+     results = (logs / "verify-delivery.log").read_text().splitlines()
+-    batches = [results[index:index + 5] for index in range(0, len(results), 5)]
+-    require(len(batches) == 6 and all(len(batch) == 5 and batch[4].startswith("PASS four v3 assignments,")
++    batches = [results[index:index + 3] for index in range(0, len(results), 3)]
++    require(len(batches) == 6 and all(len(batch) == 3 and batch[2].startswith("PASS two v3 assignments,")
+                                     for batch in batches), "Missing signed delivery readback")
+     assignments = []
+-    for sequence, variant in enumerate(("baseline", "optional", "baseline", "optional"), 1):
++    for sequence, variant in enumerate(variants, 1):
+         path = delivery / f"sequence-{sequence}.assignment.json"
+         assignment = load(path)["assignment"]
+         payload = delivery / f"{variant}.wasm"
+@@ -238,9 +244,9 @@
+                                          for item in assignments]
+             and all(chapter["installation"] == replay_installation for chapter in replay)
+             and replay[-1]["status"] == "passed" and replay[-1]["nativeWriterCount"] == 1
+-            and replay[-1]["ownersRetired"] == 5 and replay[-1]["liveAllocations"] == 0
++            and replay[-1]["ownersRetired"] == 2 and replay[-1]["liveAllocations"] == 0
+             and all(replay[-1][key] is True for key in (
+-                "coldRollbackReadback", "coldRepositoryReadback", "wrongDraftKeyRejected", "detachedLeaseRejected")),
++                "ordinaryWhitespaceTitleSave", "coldRepositoryReadback", "wrongDraftKeyRejected", "detachedLeaseRejected")),
+             "Installed host-runtime readback did not replay this packet as one installation and writer")
+     require((logs / "press-trace-host.log").read_text().startswith("PASS "),
+             "Missing host diagnostic control")
+@@ -268,7 +274,7 @@
+                      jniElfLoadAlignments=[int(row[-1], 16) for row in loads])
+     receipt = {
+         "status": "private_opt_in_diagnostic_apk_ready_for_root_replay",
+-        "scenario": "L08 §22.2.4", "source": source, "toolchain": tools, "apk": apk_facts,
++        "scenario": "L08 §22.2.2", "source": source, "toolchain": tools, "apk": apk_facts,
+         "runtime": host["runtime"], "clock": clock,
+         "delivery": {"runtime": host["runtime"], "assignments": assignments, "trustRootSHA256": root_sha,
+                      "previousRuntimesRejected": [pins["reviewed"]["runtime"], pins["previousRuntime"], diagnostic["priorRootRuntime"], prior_diagnostic["runtime"], prior_storage["runtime"], prior_renderer["runtime"]],
+@@ -277,9 +283,9 @@
+                          "hostInstallation": replay_installation,
+                          "freshAndroidInstallRequired": True,
+                          "installedInstallation": None,
+-                         "sequences": [1, 2, 3, 4],
++                         "sequences": [1, 2],
+                      },
+-                     "signedLimits": {variant: manifest["limits"] for variant, manifest in prior_renderer["manifest"].items()},
++                     "signedLimits": {variant: manifest["limits"] for variant, manifest in reference_manifests.items()},
+                      "runtimeDeadlines": {"startupMs": new_identity["execution"]["startup_ms"],
+                                           "capabilityTimeoutMs": new_identity["capability_execution"]["timeout_milliseconds"],
+                                           "capabilityTurnMs": new_identity["capability_execution"]["turn_milliseconds"]},
+--- a/finish-rebuild.zsh
++++ b/finish-rebuild.zsh
+@@ -22,7 +22,7 @@
+ test ! -e "$work/logs/native.log"
+ test ! -e "$packet/FieldLog-selected-draft-dev-arm64.apk"
+ test -s "$work/guests/baseline.wasm"
+-test -s "$work/guests/optional.wasm"
++test -s "$work/guests/corrected.wasm"
+ test -s "$work/java/dex/classes.dex"
+ export TMPDIR="$work/tmp/"
+
+@@ -47,7 +47,7 @@
+ run guest-preflight-compile /usr/bin/clang -std=c11 -Wall -Wextra -Werror     -I "$work/host-engine/include" "$source_dir/guest-preflight.c"     "$work/host-engine/lib/libmixer_vm_capability_experimental.a" -o "$work/guest-preflight"
+ (
+     cd "$work"
+-    run guest-preflight ./guest-preflight guests/baseline.wasm guests/optional.wasm
++    run guest-preflight ./guest-preflight guests/baseline.wasm guests/corrected.wasm
+ )
+
+ run seal /bin/zsh -f "$recipe/package.zsh" "$work" "$source_dir/reference" "$packet" --seal-only
+--- a/prepare.sha256
++++ b/prepare.sha256
+@@ -13,13 +13,13 @@
+ 390c7a40c99576d7a85f5105919eeee6577ca10c7d779c7f6b76b8136409e1dd  recipe/build-app.zsh
+ 9b5e8d2c540fcdda9679c71e7fc4830eac0d72e537436de059ae8a4cc17e04a0  recipe/environment.zsh
+ 7bff59c60b72dcb5fe58867412990f555b023ae0a391bb736947538250bac5b8  recipe/offline-swiftpm.zsh
+-a5d72c9fcb2d67b16a1b6413a4ec12ac399573c283e6e93c90a62565f0af094a  recipe/build-guests.zsh
++591b39085532293b642cf300d7cd0cade6fb5821cc551c4a87e21f668702c838  recipe/build-guests.zsh
+ ffce7f239780acee52abe79034cf0f4c117146b6162ae25caf8a63906f65ef0d  recipe/build-java.zsh
+ ef4c83e3f84793391fc9603fbbdae85686bc31afe6972e250478565999fa1239  recipe/build-sealer.zsh
+ e66aa9e5fb3d67cb285409dac8d65b00ecef9764fb0c35ea1f6045fc2271d682  recipe/run-host-proof.zsh
+ f21db0ca1197cb5bcc89805a822fc8b4149e6678eb4572a4ab3c00e0bdd6e61d  recipe/manifest.py
+ 26f9db8151d30a5103bcf0d5ca85b093c3b2c00eae1b81f4651af0cfe193771c  recipe/EditorBindingProof.swift
+-599ecad1e472d6f1239712d8eb0a33bdc6d285ce3d2d4b5fca3cb0e21179f397  recipe/SealDraftScenario.swift
++45397be9627e1c1be7a3f1b7587a705901c60a0624c0df77e6243bb32bd17244  recipe/SealDraftScenario.swift
+ 6c8b96d5607a5f31260014b365b005120b01cef5c27d645ad7cd333afd3ea7b7  recipe/guest/CapabilityImports.c
+ a9313c4ab5f98448fcdc0a3d42ec833409c3fdbd47a61e19af3780cc85fba268  recipe/guest/Guest.swift
+ 80dd9995544b3380d59214e1a8abb215f1d19e71997e4e776c68a44a2bc42beb  recipe/guest/TaskWire.swift
+--- a/recipe/ReplayPacket.swift
++++ b/recipe/ReplayPacket.swift
+@@ -69,33 +69,34 @@
+         try await editor.reloadChecklist()
+         try send(editor, "workspace.entries")
+         try send(editor, "draft." + selected.uuidString.lowercased())
++        let whitespaceTitle = "   "
++        try send(editor, "entry.\(selected.uuidString.lowercased()).title", .textChange, .string(whitespaceTitle))
++        try send(editor, "entry.saveDraft")
++        try await editor.waitForSave()
++        let saved = try await repository.readCommittedSnapshot()
++        let savedDraft = try value(saved.drafts.first { $0.id == selected }, "ordinary saved draft")
++        try check(savedDraft.title == whitespaceTitle && savedDraft.attachmentIDs == draft.attachmentIDs &&
++                  saved.outbox == seeded.outbox && (try Data(contentsOf: photo)) == photoBytes,
++                  "Ordinary editor did not save the exact title and linked photo")
++        let savedBytes = try Data(contentsOf: workspaceFile)
+         try check(mxish_start() == 0, "Host presentation transport failed")
+
+-        let chapters: [(UInt64, String, Bool, Bool?)] = [
+-            (1, "baseline", true, nil), (2, "optional", true, true),
+-            (3, "baseline", true, true), (3, "baseline", false, true),
+-            (4, "optional", true, false),
+-        ]
++        let chapters: [(UInt64, String)] = [(1, "baseline"), (2, "corrected")]
+         var previousCandidate: String?
+         var candidates: Set<String> = []
+         let selectedKey = KVGetArguments(namespace: "fieldlog-task-v1", key: "selected-draft")
+         let otherDraftKey = KVGetArguments(namespace: "fieldlog-task-v1", key: other.uuidString.lowercased())
+-        var coldRollbackReadback = false
+-        for (sequence, variant, stage, expectedFlag) in chapters {
++        for (sequence, variant) in chapters {
+             let before = try await repository.readCommittedSnapshot()
+             let beforeBytes = try Data(contentsOf: workspaceFile)
+-            let beforeDraftIndex = try value(before.drafts.firstIndex { $0.id == selected }, "selected draft index")
+-            let beforeFlag = before.drafts[beforeDraftIndex].followUpRequired
+             let selectedLease = try await editor.attachSignedDraft()
+             try await requireDenied { _ = try await selectedLease.get(otherDraftKey) }
+             let lease = StorageReads(selectedLease)
+             let owner = try await startOwner(delivery: delivery, directory: directory, installation: installation, storage: lease)
+             do {
+                 let payload = try read(delivery, "\(variant).wasm")
+-                if stage {
+-                    try await owner.stage(manifest: read(delivery, "\(variant).manifest.json"),
+-                                          assignment: read(delivery, "sequence-\(sequence).assignment.json"), bytes: payload)
+-                }
++                try await owner.stage(manifest: read(delivery, "\(variant).manifest.json"),
++                                      assignment: read(delivery, "sequence-\(sequence).assignment.json"), bytes: payload)
+                 let start = try await owner.start()
+                 let candidate = try value(start.candidateID, "provisional candidate")
+                 try check(start.phase == .provisionalGuest, "Sequence \(sequence) did not start provisionally")
+@@ -104,7 +105,7 @@
+                     mxfield_recorded_probe(facade) > 0 || owner.recoverySnapshot().activation.terminalCause != nil
+                 }
+                 let first = try frame(facade)
+-                try check(first == expectedFrame(variant, started: false, flag: beforeFlag), "Wrong first frame \(first)")
++                try check(first == expectedFrame(variant, started: false), "Wrong first frame \(first)")
+                 try check(try Data(contentsOf: workspaceFile) == beforeBytes && owner.recoverySnapshot().activation.phase == .provisionalGuest,
+                           "First frame rewrote the draft or committed health before the witness")
+                 try check(await lease.counts == [1, 0, 0], "Hydration must issue one selected-draft read")
+@@ -114,12 +115,8 @@
+                 }
+                 let state = owner.recoverySnapshot()
+                 try check(state.healthy == candidate && state.acceptedSequence == sequence, "Durable candidate or sequence mismatch")
+-                if stage {
+-                    try check(candidates.insert(candidate).inserted && state.previousHealthy == previousCandidate,
+-                              "Assignment did not create the expected durable successor")
+-                } else {
+-                    try check(candidate == previousCandidate, "Offline startup did not reuse the cached rollback")
+-                }
++                try check(candidates.insert(candidate).inserted && state.previousHealthy == previousCandidate,
++                          "Assignment did not create the expected durable successor")
+                 previousCandidate = candidate
+
+                 let previousProbe = mxfield_recorded_probe(facade)
+@@ -129,75 +126,48 @@
+                 }
+                 try check(mxfield_recorded_probe(facade) > previousProbe, "Sequence \(sequence) stopped before rendering a successor")
+                 let afterFrame = try frame(facade)
+-                try check(afterFrame == expectedFrame(variant, started: true, flag: expectedFlag), "Wrong action frame \(afterFrame)")
++                try check(afterFrame == expectedFrame(variant, started: true), "Wrong action frame \(afterFrame)")
+                 try check(mxish_call_entry(facade, 10) == 0, "Successor witness refused")
+                 let calls = await lease.counts
+-                try check(calls == (variant == "optional" ? [2, 1, 0] : [2, 0, 0]), "Wrong read/write counts \(calls)")
+-                var expected = before
+-                if variant == "optional" {
+-                    expected.drafts[beforeDraftIndex].followUpRequired = expectedFlag
+-                    expected.revision += 1
+-                }
++                try check(calls == [2, 0, 0], "Check saved draft must be read-only: \(calls)")
+                 let after = try await repository.readCommittedSnapshot()
+-                try check(after == expected, "Signed action changed the wrong FieldLog data")
+-                if variant == "baseline" {
+-                    try check(try Data(contentsOf: workspaceFile) == beforeBytes, "Read-only check rewrote the workspace")
+-                }
++                try check(before == saved && after == saved && beforeBytes == savedBytes &&
++                          (try Data(contentsOf: workspaceFile)) == savedBytes,
++                          "Read-only check changed the workspace or outbox")
+                 try check(try Data(contentsOf: photo) == photoBytes, "Signed action modified JPEG data")
+                 try printJSON([
+-                    "sequence": sequence, "variant": variant, "staged": stage, "installation": installation,
++                    "sequence": sequence, "variant": variant, "staged": true, "installation": installation,
+                     "candidate": candidate, "beforeRevision": before.revision, "afterRevision": after.revision,
+                     "payloadSHA256": hash(payload), "workspaceSHA256": hash(try Data(contentsOf: workspaceFile)),
+-                    "storedFollowUp": expectedFlag as Any? ?? NSNull(), "getPutDelete": calls,
++                    "getPutDelete": calls, "title": whitespaceTitle,
+                     "firstFrame": first, "actionFrame": afterFrame,
+                 ])
+             } catch {
+                 let terminal = owner.recoverySnapshot().activation
+                 let retired = await owner.close()
+-                throw ReplayError(description: "Sequence \(sequence), staged=\(stage), retired=\(retired), activation=\(terminal): \(error)")
++                throw ReplayError(description: "Sequence \(sequence), retired=\(retired), activation=\(terminal): \(error)")
+             }
+             let retired = await owner.close()
+             try check(retired && mxish_live_allocations() == 0, "Guest owner did not retire")
+             editor.detachSignedDraft()
+             try await requireDenied { _ = try await selectedLease.get(selectedKey) }
+             try await editor.reloadChecklist()
+-            if sequence == 3 && stage {
+-                let before = try await repository.readCommittedSnapshot()
+-                try send(editor, "entry.\(selected.uuidString.lowercased()).note", .textChange, .string("Offline revised note"))
+-                try send(editor, "entry.saveDraft")
+-                try await editor.waitForSave()
+-                let after = try await repository.readCommittedSnapshot()
+-                try check(after.revision == before.revision + 1 && after.outbox == before.outbox &&
+-                          after.drafts.first { $0.id == selected }?.note == "Offline revised note" &&
+-                          after.drafts.first { $0.id == selected }?.followUpRequired == true &&
+-                          after.drafts.first { $0.id == other } == before.drafts.first { $0.id == other },
+-                          "Ordinary offline save changed another draft or lost the optional field")
+-            }
+-            if sequence == 3 && !stage {
+-                // Read the persisted snapshot without opening a second writer.
+-                let disk = try JSONDecoder().decode(Workspace.self, from: Data(contentsOf: workspaceFile))
+-                try disk.validate()
+-                let savedDraft = try value(disk.drafts.first { $0.id == selected }, "cold rollback draft")
+-                try check(try await repository.readCommittedSnapshot() == disk &&
+-                          savedDraft.note == "Offline revised note" && savedDraft.followUpRequired == true,
+-                          "Cold rollback readback lost the saved note or optional flag")
+-                coldRollbackReadback = true
+-            }
+         }
+         let final = try await repository.readCommittedSnapshot()
+         await editor.close()
+         let reopened = try WorkspaceRepository(directory: directory.appendingPathComponent("workspace"))
+         let cold = try await reopened.readCommittedSnapshot()
+         await reopened.close()
+-        let coldDraft = try value(cold.drafts.first { $0.id == selected }, "cold re-upgrade draft")
+-        try check(cold == final && coldDraft.note == "Offline revised note" && coldDraft.followUpRequired == false,
+-                  "Cold reopen lost the saved note or re-upgraded flag")
++        let coldDraft = try value(cold.drafts.first { $0.id == selected }, "cold selected draft")
++        try check(cold == final && cold == saved && coldDraft == savedDraft &&
++                  (try Data(contentsOf: workspaceFile)) == savedBytes && (try Data(contentsOf: photo)) == photoBytes,
++                  "Cold reopen lost the exact title, linked photo or outbox")
+         try check(mxish_destructors() == UInt64(chapters.count), "Wrong guest destruction count")
+         try printJSON(["status": "passed", "installation": installation, "nativeWriterCount": 1,
+                        "ownersRetired": mxish_destructors(), "liveAllocations": mxish_live_allocations(),
+                        "draftID": selected.uuidString, "otherDraftID": other.uuidString,
+                        "jpegSHA256": hash(photoBytes), "outboxCount": final.outbox.count,
+-                       "ordinaryOfflineSave": true, "cachedRollback": true, "coldRollbackReadback": coldRollbackReadback,
++                       "ordinaryWhitespaceTitleSave": true, "workspaceSHA256": hash(savedBytes),
+                        "coldRepositoryReadback": true, "wrongDraftKeyRejected": true, "detachedLeaseRejected": true])
+     }
+
+@@ -237,12 +207,9 @@
+         }
+     }
+
+-    private static func expectedFrame(_ variant: String, started: Bool, flag: Bool?) -> [String] {
+-        if variant == "baseline" {
+-            return [started ? "Ready to save entry" : "Saved draft loaded", "JPEG linked", "Check saved draft"]
+-        }
+-        let status = flag.map { $0 ? "Follow-up required" : "Follow-up not required" } ?? "Follow-up unset"
+-        return ["Ready to save entry", "JPEG linked", status, flag == true ? "Clear follow-up requirement" : "Mark follow-up required"]
++    private static func expectedFrame(_ variant: String, started: Bool) -> [String] {
++        let validation = variant == "baseline" ? "Ready to save entry" : "Entry title is required"
++        return [started ? validation : "Saved draft loaded", "JPEG linked", "Check saved draft"]
+     }
+
+     private static func eventually(_ failure: String, _ predicate: () -> Bool) async throws {
+--- a/recipe/SealDraftScenario.swift
++++ b/recipe/SealDraftScenario.swift
+@@ -62,7 +62,7 @@
+
+         let now = UInt64(Date().timeIntervalSince1970)
+         var artifacts: [String: VerifiedArtifactV3] = [:]
+-        for variant in ["baseline", "optional"] {
++        for variant in ["baseline", "corrected"] {
+             let payload = try read(guests, "\(variant).wasm")
+             guard !payload.isEmpty, payload.count <= 8192 else {
+                 throw UpdateError("fieldlog.payload", "Payload exceeds Android delivery bounds")
+@@ -84,7 +84,7 @@
+             try write(payload, delivery, "\(variant).wasm")
+         }
+
+-        for (index, variant) in ["baseline", "optional", "baseline", "optional"].enumerated() {
++        for (index, variant) in ["baseline", "corrected"].enumerated() {
+             guard let artifact = artifacts[variant] else { throw UpdateError("fieldlog.artifact", "Missing release") }
+             let sequence = UInt64(index + 1)
+             let assignment: [String: CanonicalValue] = [
+--- a/recipe/build-guests.zsh
++++ b/recipe/build-guests.zsh
+@@ -6,8 +6,8 @@
+ out="$work/guests"
+ mkdir "$out"
+ "$guest/clang" --target=wasm32-unknown-none -ffreestanding -Oz     -c "$src/CapabilityImports.c" -o "$out/imports.o"
+-for variant in baseline optional; do
+-    if [[ "$variant" == baseline ]]; then define=BASELINE; else define=OPTIONAL_FIELD; fi
++for variant in baseline corrected; do
++    if [[ "$variant" == baseline ]]; then define=BASELINE; else define=CORRECTED; fi
+     "$guest/swiftc" -target wasm32-unknown-none-wasm         -enable-experimental-feature Embedded -enable-experimental-feature Extern         -whole-module-optimization -Osize -parse-as-library -Xfrontend -disable-stack-protector         -D "$define" -emit-object "$src/Guest.swift" "$src/TaskWire.swift" -o "$out/$variant.o"
+     "$guest/wasm-ld" --no-entry --gc-sections --strip-all -z stack-size=16384 --max-memory=65536         --export=mixer_guest_ui_start_v1 --export=mixer_guest_ui_event_v1 --export=mixer_guest_ui_hydrate_v1         --export=mixer_guest_capability_ready_v1 "$out/$variant.o" "$out/imports.o" -o "$out/$variant.wasm"
+ done
+--- a/recipe/origin.py
++++ b/recipe/origin.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""Serve the four sealed Android development assignments from an owned loopback port."""
++"""Serve the two sealed Android development assignments from an owned loopback port."""
+ import argparse
+ import base64
+ from hashlib import sha256
+@@ -34,7 +34,7 @@
+     match |= {"channel": "beta", "runtime": host["runtime"]}
+     packages = {}
+     assignments = {}
+-    for seq, variant in enumerate(("baseline", "optional", "baseline", "optional"), 1):
++    for seq, variant in enumerate(("baseline", "corrected"), 1):
+         assignment = json.loads((delivery / f"sequence-{seq}.assignment.json").read_bytes())
+         manifest = json.loads((delivery / f"{variant}.manifest.json").read_bytes())
+         wasm = (delivery / f"{variant}.wasm").read_bytes()

@@ -1,0 +1,395 @@
+{
+  "baseCommit": "9c0cc7cd3788280dc1449245abf10100b822407a",
+  "commit": "551576a03a4ef4f4b081e6191ce0a02c5947c679",
+  "exit": 2,
+  "externalEgress": "No external service used. No packet capture or general egress proof.",
+  "fixtureOverlay": "Expose and exclude the stock application registration test helper in the archive. Add the privacy ExUnit test and use the existing second provider mode. Its endpoint keeps the corrected runtime HTTP options and uses only an ephemeral loopback address. The lifecycle test fixture reads the ephemeral SCRAM password from its environment. The TLS fixture uses relative OpenSSL leaf-signing paths.",
+  "fixtureSHA256": {
+    "privacy_http_test.exs": "a6f468cca810597aeb077b6b1343c313a8f3c9ad42b687337a0840d2e2e43b73",
+    "run.py": "745ac20b6456f585364f5d7d537342142a2e173e1b740f58833084875927fbe3"
+  },
+  "followupPatchAppliesAfterOriginalOverlay": true,
+  "followupPatchSHA256": "7af0a57b3c9a9713553921133ceea5c649ba9b869bed1f9347050efbe1cf0380",
+  "hostedTree": "209558d5a8bb80ee695d9a26b5652a00dc19e0cd",
+  "lockSHA256": "0526954f8ac64d241a7d6e1471a2f09d28668e06c7692cd5da3aa3a3afd29522",
+  "originalOverlaySHA256": "3f98c077578eaa96d97362b12bd2aa39a854cf1944166d494e5b250ee4d17d0e",
+  "perFileLimitBytes": 33554432,
+  "phoenixPackageSHA256": "21fd4d6a33c6af4e86b95156a49815a59140c2ba4ef8cf19565dbb7be881633e",
+  "preparation": {
+    "compile": {
+      "command": [
+        "mix",
+        "compile"
+      ],
+      "exit": 0
+    },
+    "deps": {
+      "command": [
+        "mix",
+        "deps.get",
+        "--check-locked"
+      ],
+      "exit": 0
+    }
+  },
+  "profiles": [
+    {
+      "checks": {
+        "absentRoutes": 8,
+        "crossTenantBuild": [
+          404,
+          404
+        ],
+        "crossTenantExport": [
+          404,
+          404
+        ],
+        "crossTenantLogs": [
+          404,
+          404
+        ],
+        "downloads": {
+          "debug_symbols": {
+            "otherTenant": 404,
+            "owner": 503
+          },
+          "resource_inventory": {
+            "otherTenant": 404,
+            "owner": 503
+          },
+          "unsigned_native_binary": {
+            "otherTenant": 404,
+            "owner": 503
+          }
+        },
+        "malformedProjection": [],
+        "malformedQuery": [
+          400,
+          400
+        ],
+        "missingBuildScope": 403,
+        "ownBuild": [
+          200,
+          200
+        ],
+        "ownExport": [
+          200,
+          200
+        ],
+        "ownLogs": [
+          404,
+          404
+        ],
+        "ownOrganizationList": [
+          200,
+          200
+        ],
+        "ownSupport": [
+          201,
+          201
+        ],
+        "rejectedBearer": 401,
+        "tenants": 2
+      },
+      "databaseDropped": true,
+      "eventsWithMarkers": {
+        "bandit.request.start": 32,
+        "bandit.request.stop": 32,
+        "mixer_hosted.repo.query": 6,
+        "phoenix.error_rendered": 4
+      },
+      "exit": 0,
+      "http2Enabled": false,
+      "mixGroupObservedAbsent": true,
+      "mixProcessGroup": 18338,
+      "mode": "ordinary",
+      "observedEvents": {
+        "bandit.request.start": 36,
+        "bandit.request.stop": 36,
+        "mixer_hosted.customer_builds.transaction": 28,
+        "mixer_hosted.repo.query": 1516,
+        "phoenix.error_rendered": 8
+      },
+      "persistedLogs": {
+        "loggerStdoutStderr": {
+          "bytes": 14079,
+          "controlSeen": true,
+          "markerHits": [],
+          "sha256": "6301079d38433fa937b9a43b88127bccab2079b2384c6ba8803190569baf0ea9"
+        },
+        "postgresStderr": {
+          "bytes": 2354,
+          "controlSeen": true,
+          "markerHits": [],
+          "sha256": "72e4ea9ca24abf887338150214b98dd20b345c6dda2bbade229545a44fb8c1ed"
+        }
+      },
+      "postgresAuthentication": {
+        "hbaRulesAllSCRAM": true,
+        "loginVerifiersSCRAM": 5,
+        "wrongPasswordExit": 2
+      },
+      "postgresGroupObservedAbsent": true,
+      "postgresProcessGroup": 18317,
+      "postgresSettings": {
+        "log_destination": "stderr",
+        "log_min_error_statement": "error",
+        "log_parameter_max_length_on_error": "0",
+        "log_statement": "none",
+        "logging_collector": "off"
+      },
+      "privilegedMetadata": "adverse",
+      "profileScratchRemoved": true,
+      "reusableLoopbackPorts": {
+        "authorization": 54920,
+        "jwks": 54916,
+        "phoenix": 54934,
+        "postgres": 54896
+      },
+      "stockLogger": {
+        "handlers": {
+          "default": {
+            "level": "all",
+            "module": "logger_std_h",
+            "sink": "standard_io"
+          },
+          "ssl_handler": {
+            "domain": "otp.ssl",
+            "level": "debug",
+            "module": "logger_std_h",
+            "sink": "standard_io"
+          }
+        },
+        "primaryLevel": "warning"
+      },
+      "stockTelemetry": {
+        "after": {
+          "mixer_hosted.browser_auth.store.transaction": "MixerHosted.BrowserAuth.Store.transaction_event/4",
+          "mixer_hosted.customer_builds.transaction": "MixerHosted.CustomerBuilds.Context.transaction_event/4",
+          "phoenix.channel_handled_in": "Phoenix.Logger.phoenix_channel_handled_in/4",
+          "phoenix.channel_joined": "Phoenix.Logger.phoenix_channel_joined/4",
+          "phoenix.endpoint.start": "Phoenix.Logger.phoenix_endpoint_start/4",
+          "phoenix.endpoint.stop": "Phoenix.Logger.phoenix_endpoint_stop/4",
+          "phoenix.error_rendered": "Phoenix.Logger.phoenix_error_rendered/4",
+          "phoenix.router_dispatch.start": "Phoenix.Logger.phoenix_router_dispatch_start/4",
+          "phoenix.socket_connected": "Phoenix.Logger.phoenix_socket_connected/4",
+          "phoenix.socket_drain": "Phoenix.Logger.phoenix_socket_drain/4"
+        },
+        "before": {
+          "mixer_hosted.browser_auth.store.transaction": "MixerHosted.BrowserAuth.Store.transaction_event/4",
+          "phoenix.channel_handled_in": "Phoenix.Logger.phoenix_channel_handled_in/4",
+          "phoenix.channel_joined": "Phoenix.Logger.phoenix_channel_joined/4",
+          "phoenix.endpoint.start": "Phoenix.Logger.phoenix_endpoint_start/4",
+          "phoenix.endpoint.stop": "Phoenix.Logger.phoenix_endpoint_stop/4",
+          "phoenix.error_rendered": "Phoenix.Logger.phoenix_error_rendered/4",
+          "phoenix.router_dispatch.start": "Phoenix.Logger.phoenix_router_dispatch_start/4",
+          "phoenix.socket_connected": "Phoenix.Logger.phoenix_socket_connected/4",
+          "phoenix.socket_drain": "Phoenix.Logger.phoenix_socket_drain/4"
+        }
+      }
+    },
+    {
+      "checks": {
+        "absentRoutes": 8,
+        "crossTenantBuild": [
+          404,
+          404
+        ],
+        "crossTenantExport": [
+          404,
+          404
+        ],
+        "crossTenantLogs": [
+          404,
+          404
+        ],
+        "downloads": {
+          "debug_symbols": {
+            "otherTenant": 404,
+            "owner": 200
+          },
+          "resource_inventory": {
+            "otherTenant": 404,
+            "owner": 200
+          },
+          "unsigned_native_binary": {
+            "otherTenant": 404,
+            "owner": 200
+          }
+        },
+        "malformedProjection": [
+          503,
+          503
+        ],
+        "malformedQuery": [
+          400,
+          400
+        ],
+        "missingBuildScope": 403,
+        "ownBuild": [
+          200,
+          200
+        ],
+        "ownExport": [
+          200,
+          200
+        ],
+        "ownLogs": [
+          200,
+          200
+        ],
+        "ownOrganizationList": [
+          200,
+          200
+        ],
+        "ownSupport": [
+          201,
+          201
+        ],
+        "rejectedBearer": 401,
+        "tenants": 2
+      },
+      "databaseDropped": true,
+      "eventsWithMarkers": {
+        "bandit.request.start": 34,
+        "bandit.request.stop": 34,
+        "mixer_hosted.repo.query": 6,
+        "phoenix.error_rendered": 4
+      },
+      "exit": 0,
+      "http2Enabled": false,
+      "mixGroupObservedAbsent": true,
+      "mixProcessGroup": 18692,
+      "mode": "retained",
+      "observedEvents": {
+        "bandit.request.start": 38,
+        "bandit.request.stop": 38,
+        "mixer_hosted.customer_builds.transaction": 42,
+        "mixer_hosted.repo.query": 1796,
+        "phoenix.error_rendered": 8
+      },
+      "persistedLogs": {
+        "loggerStdoutStderr": {
+          "bytes": 14642,
+          "controlSeen": true,
+          "markerHits": [],
+          "sha256": "693b0b422d69c035480390347a4b57db8f4cbee2cbe436d4d855558a162ca783"
+        },
+        "postgresStderr": {
+          "bytes": 2354,
+          "controlSeen": true,
+          "markerHits": [],
+          "sha256": "53df9cfc1358653bca2c3e267e92cd2fe8fb074dd98fef170fa9f67e1630630a"
+        }
+      },
+      "postgresAuthentication": {
+        "hbaRulesAllSCRAM": true,
+        "loginVerifiersSCRAM": 5,
+        "wrongPasswordExit": 2
+      },
+      "postgresGroupObservedAbsent": true,
+      "postgresProcessGroup": 18667,
+      "postgresSettings": {
+        "log_destination": "stderr",
+        "log_min_error_statement": "error",
+        "log_parameter_max_length_on_error": "0",
+        "log_statement": "none",
+        "logging_collector": "off"
+      },
+      "privilegedMetadata": "adverse",
+      "profileScratchRemoved": true,
+      "reusableLoopbackPorts": {
+        "authorization": 55051,
+        "jwks": 55048,
+        "phoenix": 55065,
+        "postgres": 55026
+      },
+      "stockLogger": {
+        "handlers": {
+          "default": {
+            "level": "all",
+            "module": "logger_std_h",
+            "sink": "standard_io"
+          },
+          "ssl_handler": {
+            "domain": "otp.ssl",
+            "level": "debug",
+            "module": "logger_std_h",
+            "sink": "standard_io"
+          }
+        },
+        "primaryLevel": "warning"
+      },
+      "stockTelemetry": {
+        "after": {
+          "mixer_hosted.browser_auth.store.transaction": "MixerHosted.BrowserAuth.Store.transaction_event/4",
+          "mixer_hosted.customer_builds.transaction": "MixerHosted.CustomerBuilds.Context.transaction_event/4",
+          "phoenix.channel_handled_in": "Phoenix.Logger.phoenix_channel_handled_in/4",
+          "phoenix.channel_joined": "Phoenix.Logger.phoenix_channel_joined/4",
+          "phoenix.endpoint.start": "Phoenix.Logger.phoenix_endpoint_start/4",
+          "phoenix.endpoint.stop": "Phoenix.Logger.phoenix_endpoint_stop/4",
+          "phoenix.error_rendered": "Phoenix.Logger.phoenix_error_rendered/4",
+          "phoenix.router_dispatch.start": "Phoenix.Logger.phoenix_router_dispatch_start/4",
+          "phoenix.socket_connected": "Phoenix.Logger.phoenix_socket_connected/4",
+          "phoenix.socket_drain": "Phoenix.Logger.phoenix_socket_drain/4"
+        },
+        "before": {
+          "mixer_hosted.browser_auth.store.transaction": "MixerHosted.BrowserAuth.Store.transaction_event/4",
+          "phoenix.channel_handled_in": "Phoenix.Logger.phoenix_channel_handled_in/4",
+          "phoenix.channel_joined": "Phoenix.Logger.phoenix_channel_joined/4",
+          "phoenix.endpoint.start": "Phoenix.Logger.phoenix_endpoint_start/4",
+          "phoenix.endpoint.stop": "Phoenix.Logger.phoenix_endpoint_stop/4",
+          "phoenix.error_rendered": "Phoenix.Logger.phoenix_error_rendered/4",
+          "phoenix.router_dispatch.start": "Phoenix.Logger.phoenix_router_dispatch_start/4",
+          "phoenix.socket_connected": "Phoenix.Logger.phoenix_socket_connected/4",
+          "phoenix.socket_drain": "Phoenix.Logger.phoenix_socket_drain/4"
+        }
+      }
+    }
+  ],
+  "replayCommand": [
+    "python3",
+    "-OB",
+    "tests/integration/l07-hosted-privacy/run.py",
+    "--hex-cache",
+    "<read-only pinned Hex cache>",
+    "--receipt",
+    "<new JSON destination>",
+    "--require-clean-telemetry"
+  ],
+  "requireCleanTelemetry": true,
+  "scratchCeilingBytes": 1342177280,
+  "scratchPeakSampleBytes": 116477952,
+  "scratchRemoved": true,
+  "scratchStopThresholdBytes": 1073741824,
+  "startedAtUTC": "2026-11-21T20:05:28.818219+00:00",
+  "startupDiagnostic": {
+    "deepLayoutOriginalReplay": {
+      "combinedAppLogBytes": 1500,
+      "ordinaryMixExit": 2,
+      "postgresOnlyListener": true,
+      "retainedProfileRan": false,
+      "runnerExit": 1,
+      "scratchRemoved": true,
+      "startedAtUTC": "2026-11-21T20:03:59.074369+00:00"
+    },
+    "error": "File name too long",
+    "fixedReplayReusedDeepLayout": true,
+    "fixture": "MixerHosted.Identity.TLSFixture",
+    "isolatedOpenSSLControl": {
+      "absolutePathExit": 1,
+      "caPathBytes": 311,
+      "relativeCAPathExit": 0
+    },
+    "operation": "OpenSSL x509 leaf certificate signing"
+  },
+  "tools": {
+    "git": "git version 2.56.0",
+    "mix": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit] [dtrace]\n\nMix 1.20.4 (compiled with Erlang/OTP 29)",
+    "openssl": "OpenSSL 4.1.0 23 Oct 2026 (Library: OpenSSL 4.1.0 23 Oct 2026)",
+    "os": "Darwin 27.0.0 arm64",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "python": "3.14.8"
+  },
+  "tree": "17349941b5ca190c9597dbdd9bec259b93b0e918"
+}

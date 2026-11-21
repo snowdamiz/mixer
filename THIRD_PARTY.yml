@@ -83,6 +83,28 @@ dependencies:
     license: MIT-OR-Apache-2.0
     purpose: owned-interpreter-compilation
     distribution: toolchain-external-standard-library-linked
+    fieldlog_pair25_android:
+      rust_release: "1.99.0"
+      rust_commit: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4
+      target: aarch64-linux-android
+      linked_rust_components:
+        - std
+        - core
+        - alloc
+        - panic_unwind
+        - vendored-backtrace
+        - Unicode-tables
+        - addr2line-0.27.1
+        - gimli-0.34.0
+        - object-0.39.1
+        - rustc-demangle-0.1.28
+        - miniz_oxide-0.9.1
+        - adler2-2.0.1
+        - libc-0.2.189
+        - compiler_builtins-0.1.160
+        - LLVM-compiler-rt
+      android_apk_notice: third-party-notices/Rust-1.99.0-Android-NOTICES.txt
+      notice_sources: tests/integration/fieldlog-pair25-android/rust-runtime-notices/sources.json
     owner: runtime
   - name: Go compiler and standard library
     origin: https://go.dev
@@ -110,6 +132,11 @@ dependencies:
     android_apk_notices:
       - third-party-notices/Android-NDK-NOTICE.txt
       - third-party-notices/Android-NDK-NOTICE.toolchain.txt
+    fieldlog_pair25_android:
+      linked_component: Android-NDK-libunwind
+      candidate_ndks: [r27b-27.1.12297006, r27d-27.3.13750724]
+      archive_attribution: exact-linked-copy-unresolved-for-retained-development-apks
+      additional_component_notice: third-party-notices/Rust-1.99.0-Android-NOTICES.txt
     owner: android
   - name: Swift Foundation ICU for Android
     origin: https://github.com/swiftlang/swift-foundation-icu/tree/e29ee41079d35eae68d98a7479864a19f2928d84

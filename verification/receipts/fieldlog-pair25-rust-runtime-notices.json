@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "scope": "Pair25 FieldLog Entry Commit development APK notice composition and non-signing packaging controls",
+  "publicMixerBase": "1e2de0130d001ef9ada0001b59f9ae8b7f67b72a",
+  "publicMixerTree": "6218549dff3d59b06251d10b20e257f13f565140",
+  "pair25SDKCommit": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+  "pair25SDKTree": "faf0902a82ffc7acb2ddde9c6dca24002f959c3d",
+  "fieldLogSourceReconstruction": {
+    "inputCommit": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "ordinaryTree": "e39a5ea393076ca3f64b00648bf86f350ccf03dd",
+    "historicalPackagingTree": "4b4e864a02a358568baf68cb1f1fa16a54209df4",
+    "noticeSuccessorTree": "9316839780cf3b90ce52cd87aba9e714b14940a3",
+    "observed": "All ordinary patch and historical packaging pins matched. Applied the successor delta with git apply --index. The resulting index matched the worktree and there were zero untracked files.",
+    "future00406fe7": "Successor integration is documented. This campaign reconstructed the public Pair25 recipe only."
+  },
+  "rust": {
+    "release": "1.99.0",
+    "commit": "b940084d7eb6a299eb4bfeb8e34901bc051e7ac4",
+    "llvmVersion": "23.1.1",
+    "rustTarget": "aarch64-linux-android",
+    "observation": "Installed rustc -Vv matched the notice pin and the installed Rust Android target contained the audited runtime rlibs."
+  },
+  "ndkLibunwind": {
+    "retainedLinkedArchive": "unresolved between NDK r27b and Swift SDK NDK r27d",
+    "bothClangVersionsReportedAndroidLLVMCommit": "d8003a456d14a3deb8054cdaa529ffbf02d9b262",
+    "bothClangSourceInfoFilesReportedLLVMBase": "3c92011b600bdf70424e2547594dd461fe411a41",
+    "bothInstalledNoticeToolchainSHA256": "cbe3237be53c0a819f8df6aac5358fdee848eee3b6571b4e2ca20767ebd7465e",
+    "bothSourceLicenseTextsSHA256": "b5efebcaca80879234098e52d1725e6d9eb8fb96a19fce625d39184b705f7b6d"
+  },
+  "upstreamTextVerification": {
+    "byteIdenticalOriginalTexts": 27,
+    "distinctSlices": 20,
+    "crateArchivesMatchedRustLibraryCargoLock": 7,
+    "checkedSourcePins": "tests/integration/fieldlog-pair25-android/rust-runtime-notices/sources.json"
+  },
+  "inputSHA256": {
+    "THIRD_PARTY.yml": "dc3377e8f8bc3711471f3202025d0cd98c7e9781d1613d72159cf0970e851d08",
+    "tests/integration/fieldlog-pair25-android/rust-runtime-notices/.gitattributes": "ad268f20a0447cfcae5dde2f24bb142406b83bd76b232f6b5f433d207eb965c0",
+    "tests/integration/fieldlog-pair25-android/rust-runtime-notices/README.md": "de51b3e53e3d785e641ea6a9318d68db36a69aae2e5262e2f2551df690f80750",
+    "tests/integration/fieldlog-pair25-android/rust-runtime-notices/Rust-1.99.0-Android-NOTICES.txt": "ec638e32442c7064e69af7814b3ac41db61eff5f7f2842e5f35f0db314f1c0c5",
+    "tests/integration/fieldlog-pair25-android/rust-runtime-notices/fieldlog-packaging.patch": "9f3001559ee1ebd133b8cf67fb2662be332d20d8d7bb19df30f4e1383aca1434",
+    "tests/integration/fieldlog-pair25-android/rust-runtime-notices/sources.json": "a6c1bd95d6d08d350778f0dac0a9cfb70bda350d6ff265ad99189540c9bc322a",
+    "tests/integration/fieldlog-pair25-android/rust-runtime-notices/test-packaging.py": "b92791cfa89603f80d9767bf67c56346e41c1eef4c0176a4c426b7fcf6363738"
+  },
+  "zipTests": {
+    "command": [
+      "python3",
+      "-B",
+      "tests/integration/fieldlog-pair25-android/rust-runtime-notices/test-packaging.py",
+      "--mixer",
+      "$MIXER_REPO",
+      "--android-sdk",
+      "$ANDROID_HOME",
+      "--swift-sdk",
+      "$MIXER_ANDROID_ARTIFACT_PATH"
+    ],
+    "environment": {
+      "os": "Darwin arm64",
+      "python": "3.14.8",
+      "git": "2.56.0"
+    },
+    "exitCode": 0,
+    "observed": "7 tests passed. Production ZIP assembly and unsigned and signed-mode readbacks kept the exact five notices. Missing, stale and duplicate ZIP entries were rejected. Missing or stale input notices and mismatched Rust toolchain metadata were rejected.",
+    "limitations": "Native inputs, keys, alignment, badging and Android signing tools were stubbed. The signed-mode ZIP was a synthetic unsigned ZIP with a META-INF test member."
+  },
+  "stagedRetentionPolicy": {
+    "command": "python3 -B scripts/check-verification-artifacts.py",
+    "observed": "Passed against the exact public base with the successor patch staged in an isolated index."
+  },
+  "sourceMap": {
+    "historicalManifestSHA256Field": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "verifiedPreimage": "{}",
+    "change": "None. The existing field binds the guest source-map bytes. Runtime notices are bound in link_inputs_sha256."
+  },
+  "preservedHistoricalAPKSHA256": [
+    "5abf637a88b6909418b5db07bc0f9dc0ec5cd3bc4d0326d01663537b957bced6",
+    "4e0bb491f3991cd7a955be57780dff8fd67e5a72651f44cc2aa9e262748d2fed"
+  ],
+  "excluded": [
+    "Full SDK or APK build",
+    "actual APK signing or signature verification",
+    "installation",
+    "device work",
+    "cloud",
+    "publication",
+    "gate changes",
+    "held resources"
+  ]
+}

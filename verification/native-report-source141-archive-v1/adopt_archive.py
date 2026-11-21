@@ -377,6 +377,7 @@ HOSTED_V85_PREFIX = 'hosted-v85-predecessor-bytes/'
 HOSTED_V86_PREFIX = 'hosted-v86-predecessor-bytes/'
 HOSTED_V86_CHANGES = HOSTED_V74_CHANGES | {'THIRD_PARTY.yml'}
 HOSTED_V87_PREFIX = 'hosted-v87-predecessor-bytes/'
+PAIR25_RUST_NOTICES_PREIMAGE = 'pair25-rust-notices-predecessor-bytes/THIRD_PARTY.yml'
 ANDROID_INSPECTION_DEADLINE_PREFIX = 'android-inspection-deadline-predecessor-bytes/'
 ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE = ANDROID_INSPECTION_DEADLINE_PREFIX + SOURCE_INPUTS_MANIFEST
 ANDROID_INSPECTION_DEADLINE_SOURCE_SHA256 = '2a9d99e0dea712c70d7be383958e67cd040577565c847861b89c0fc598ba4fcd'
@@ -508,6 +509,7 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     *(HOSTED_V85_PREFIX + name for name in HOSTED_V74_CHANGES),
     *(HOSTED_V86_PREFIX + name for name in HOSTED_V86_CHANGES),
     *(HOSTED_V87_PREFIX + name for name in HOSTED_V74_CHANGES),
+    PAIR25_RUST_NOTICES_PREIMAGE,
     ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE,
     *(ANDROID_INSPECTION_DEADLINE_PREFIX + name for name in ANDROID_INSPECTION_DEADLINE_CHANGES),
 } | {
@@ -673,7 +675,7 @@ def install_inputs():
                              'hosted_v78_transition', 'hosted_v79_transition', 'hosted_v80_transition', 'hosted_v81_transition',
                              'hosted_v82_transition', 'android_sparse_timeout_workflow',
                              'hosted_v83_transition', 'hosted_v84_transition', 'hosted_v85_transition',
-                             'hosted_v86_transition', 'hosted_v87_transition',
+                             'hosted_v86_transition', 'hosted_v87_transition', 'pair25_rust_notices',
                              'android_inspection_deadline_transition', 'receipt_directory_transition',
                              'receipt_parent_url_test_transition', 'swiftpm_migration_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
@@ -1880,6 +1882,18 @@ def install_inputs():
             binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
                                   'sha256': FIELDLOG_EDITOR_SOURCE_SHA256},
             'Signed FieldLog editor source transition differs')
+
+    notices = binding['pair25_rust_notices']
+    notice_preimage = HERE / PAIR25_RUST_NOTICES_PREIMAGE
+    before = read_predecessor_member(notice_preimage)
+    require(set(notices) == {'before', 'after'} and
+            installed['THIRD_PARTY.yml'] == previous.row(before) == notices['before'] and
+            notices['before'] != notices['after'] and
+            stat.S_IMODE(notice_preimage.lstat().st_mode) ==
+            stat.S_IMODE((ROOT / 'THIRD_PARTY.yml').lstat().st_mode) == 0o644,
+            'Pair25 Rust notice preimage or mode differs')
+    # Source141 restoration already has an earlier inventory preimage.
+    installed['THIRD_PARTY.yml'] = notices['after']
 
     previous.check_rows(ROOT, installed)
     for name, change in release['changes'].items():

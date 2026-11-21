@@ -993,6 +993,22 @@ Source141 and Source127 restoration passed. The full local collector
 runs reached their time limits. The exact hosted run remains pending.
 [Combined source binding](verification/receipts/hosted-phoenix-v86-pair25-integration.json)
 
+## November 21 Android saved-draft validation
+
+One fresh FieldLog Pair24 development install on Android API 36 saved
+a three-space title and a DocumentsUI JPEG through the ordinary editor.
+Signed sequence 1 showed “Ready to save entry”. Sequence 2 showed
+“Entry title is required” after the same Check saved draft action.
+The workspace, draft ID, revision, outbox and JPEG stayed unchanged
+through both checks and an offline cold launch. The signed journal
+retained sequence 2 on the same installation. The installed APK hash
+matched before and after. All 197 command groups closed, the four
+private ports could be rebound, and the disposable emulator scratch
+was removed. This covers Android §22.2.2. The iOS scenario remains open.
+[Installed replay](verification/receipts/fieldlog-android-222-installed-551576a0.json) ·
+[Build inputs](verification/receipts/fieldlog-android-222-inputs-551576a0.json) ·
+[Fixture delta](verification/receipts/fieldlog-android-222-fixture-551576a0.patch)
+
 ## November 21 reusable iOS build worker recovery
 
 One loopback Phoenix API, restricted Oban processor, and SCRAM PostgreSQL
@@ -1026,6 +1042,22 @@ fixture without publishing a session. The two Rust suites passed all
 32 focused tests, and all 34 command groups closed. This is macOS host
 evidence. The installed iOS TaskCompletion comparison remains open.
 [Replay receipt](verification/receipts/l03-swift-profile-v86-551576a0.json)
+
+## November 21 FieldLog Rust notices
+
+The amended Pair25 recipe binds all five notices and the exact VM
+receipt before Java and JNI production, then checks them again before
+sealing and signing. A clean development APK build from FieldLog
+`00406fe7` passed static readback. Independent checks matched all 42
+members, verified 16 KiB ZIP and ELF alignment for all 19 arm64
+libraries, and verified both signed guest envelopes. The final driver
+search order resolves libunwind to the Swift SDK's NDK r27d archive.
+No linker archive-member trace was emitted. The independent source review
+records four historical receipt hashes that differ from the staged bytes.
+This APK has static evidence only.
+[Source integration](verification/receipts/fieldlog-pair25-rust-notice-source-integration-v87.json) ·
+[Development APK build](verification/receipts/fieldlog-pair25-rust-notice-apk-00406fe7.json) ·
+[Independent APK readback](verification/receipts/fieldlog-pair25-rust-notice-apk-readback-00406fe7.json)
 
 ## November 20 generated release REST client
 
@@ -1674,6 +1706,16 @@ Three local development signer runs lost the acknowledgment after publishing one
 The ordinary Phoenix backend disables HTTP/2 because Bandit 1.14.1 can log request data in its HTTP/2 warnings. A normal loopback health GET returned HTTP/1.1 200 before and after the change. HTTP/2 returned 200 before the change and was refused afterward. Both listeners closed and their ports were reusable. [Backend transport receipt](verification/receipts/l07-hosted-http1-privacy-20261120.json)
 
 The maintained two-tenant privacy replay passed access controls and stock log checks with native retention disabled and enabled. A privileged in-process subscriber still received sensitive metadata from Bandit, Phoenix, and Ecto. The replay kept that finding visible in strict mode. App telemetry, external egress, and attachment and source-map retention remain open. [Privacy replay](verification/receipts/l07-hosted-privacy-replay-20261120.json) · [Original adverse observation](verification/receipts/l07-hosted-privacy-original-adverse-20261120.json)
+
+The exact Phoenix 1.8.17 tree repeated both privacy profiles under
+SCRAM PostgreSQL. Tenant access and refusal checks passed, and stock
+Logger and PostgreSQL logs showed their controls without private
+markers. The deliberately attached privileged subscriber observed
+markers in 74 ordinary-profile events and 78 retained-profile events.
+Strict mode exited 2. The fixture's TLS signer needed relative paths
+under deep scratch. Both profiles closed their command groups, removed
+their databases and scratch, and released all eight listener ports.
+[Current privacy replay](verification/receipts/l07-hosted-privacy-v86-551576a0-test.json)
 
 The unchanged FieldLog updater ran in two macOS processes under an Android-scoped development identity. The owned observer saw four bodyless loopback GETs and found no workspace or JPEG markers, cookies, or bearer credentials. A complete signed offer activated sequence 1. After an artifact HTTP 503, a new process recovered the same candidate and preserved the workspace and JPEG. The sandbox denied a second loopback destination, and both owned ports closed. [Updater privacy receipt](verification/receipts/l07-fieldlog-updater-loopback-b144c2c-20261120.json)
 

@@ -1,0 +1,582 @@
+diff --git a/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py b/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
+index d225d6ac87caf1959e192eb6f74ae6506551a34c..b58b7b8f298545a90f243f007e18d1d55f36b72a 100644
+--- a/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
++++ b/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
+@@ -1,12 +1,12 @@
+ #!/usr/bin/env python3
+ """Assemble and verify the FieldLog signed-checklist development APK."""
+ import argparse
++import ast
+ import hashlib
+ import json
+ import os
+ from pathlib import Path
+ import re
+-import runpy
+ import stat
+ import subprocess
+ import sys
+@@ -32,6 +32,14 @@ ENTRY_COMMIT_LIMITS = {
+ }
+ MANIFEST_MEMBERS = {"AndroidManifest.xml", "res/xml/checklist_network.xml", "resources.arsc"}
+ NATIVE_PREFIX = "lib/arm64-v8a/"
++PAIR25_RUST_NOTICE = "third-party-notices/Rust-1.99.0-Android-NOTICES.txt"
++PAIR25_RUST_NOTICE_SHA256 = "ec638e32442c7064e69af7814b3ac41db61eff5f7f2842e5f35f0db314f1c0c5"
++PAIR25_PLATFORM_NOTICE_SHA256 = {
++    "third-party-notices/Android-NDK-NOTICE.toolchain.txt": "cbe3237be53c0a819f8df6aac5358fdee848eee3b6571b4e2ca20767ebd7465e",
++    "third-party-notices/Android-NDK-NOTICE.txt": "4d5224d1c0b54ffa88b0dc0088191638fdbb7227835095dfb98f7f66b416a323",
++    "third-party-notices/Apple-ICU-76.1-LICENSE.txt": "92841ff27a1b2d1030b00e0958af4d1f70353ff42c5dad7041f1950e909ccc5e",
++    "third-party-notices/Swift-SDK-LICENSE.txt": "770af8291f708538d8ff885a0bbc4e045cd700531741c4f99528d435c14d7f55",
++}
+ 
+ 
+ def read_bounded(path, limit):
+@@ -123,23 +131,59 @@ def native_libraries(engine, ndk, swift_sdk, env):
+     return libraries
+ 
+ 
+-def runtime_notices(project, libraries, ndk, swift_sdk):
+-    # Reuse the notice bound to the ICU payload by the generated Mixer builder.
+-    swift_license = swift_sdk / "swift-resources/usr/share/swift/LICENSE.txt"
+-    paths = {"Swift-SDK-LICENSE.txt": swift_license}
+-    if "libc++_shared.so" in libraries:
+-        paths.update({"Android-NDK-NOTICE.txt": ndk.parents[3] / "NOTICE",
+-                      "Android-NDK-NOTICE.toolchain.txt": ndk.parents[3] / "NOTICE.toolchain"})
++def platform_notice_bytes(project, ndk, swift_sdk, *, include_ndk, include_icu):
++    paths = {"Swift-SDK-LICENSE.txt": swift_sdk / "swift-resources/usr/share/swift/LICENSE.txt"}
++    if include_ndk:
++        paths.update({"Android-NDK-NOTICE.txt": ndk / "NOTICE",
++                      "Android-NDK-NOTICE.toolchain.txt": ndk / "NOTICE.toolchain"})
+     notices = {f"third-party-notices/{name}": read_bounded(path, 2 * 1024 * 1024)
+                for name, path in paths.items()}
+-    if icu := libraries.get("lib_FoundationICU.so"):
+-        mixer = runpy.run_path(str(project / "Generated/MixerAndroid/android-build.py"))
+-        if hashlib.sha256(icu.read_bytes()).hexdigest() != "41171d3eed0f99b2057b9b528c14a4ad27d07f1e102d106facfcd0db8faf2a4a":
+-            raise ValueError("Foundation ICU has no verified notice binding")
+-        notices["third-party-notices/Apple-ICU-76.1-LICENSE.txt"] = mixer["APPLE_ICU_LICENSE"].encode("utf-8")
++    if include_icu:
++        driver = project / "Generated/MixerAndroid/android-build.py"
++        data = read_bounded(driver, 2 * 1024 * 1024)
++        try:
++            source = ast.parse(data, filename=str(driver))
++        except SyntaxError as error:
++            raise ValueError("Invalid generated Mixer Android builder") from error
++        assignments = [node.value for node in source.body if isinstance(node, ast.Assign)
++                       and any(isinstance(target, ast.Name) and target.id == "APPLE_ICU_LICENSE"
++                               for target in node.targets)]
++        if len(assignments) != 1:
++            raise ValueError("Expected one Foundation ICU license literal in the generated Mixer builder")
++        notice = ast.literal_eval(assignments[0])
++        if not isinstance(notice, str):
++            raise ValueError("Expected a Foundation ICU license string")
++        notices["third-party-notices/Apple-ICU-76.1-LICENSE.txt"] = notice.encode("utf-8")
+     return notices
+ 
+ 
++def runtime_notices(project, libraries, ndk, swift_sdk):
++    icu = libraries.get("lib_FoundationICU.so")
++    if icu is not None:
++        with icu.open("rb") as stream:
++            if hashlib.file_digest(stream, "sha256").hexdigest() != "41171d3eed0f99b2057b9b528c14a4ad27d07f1e102d106facfcd0db8faf2a4a":
++                raise ValueError("Foundation ICU has no verified notice binding")
++    return platform_notice_bytes(project, ndk.parents[3], swift_sdk,
++                                 include_ndk="libc++_shared.so" in libraries, include_icu=icu is not None)
++
++
++def add_pair25_rust_notice(notices, path):
++    if notice_hashes(notices) != PAIR25_PLATFORM_NOTICE_SHA256:
++        raise ValueError("Pair25 Swift, NDK or ICU notices differ from the pinned inventory")
++    return notices | {PAIR25_RUST_NOTICE: read_pair25_rust_notice(path)}
++
++
++def notice_hashes(notices):
++    return {name: hashlib.sha256(data).hexdigest() for name, data in notices.items()}
++
++
++def read_pair25_rust_notice(path):
++    data = read_bounded(path, 2 * 1024 * 1024)
++    if hashlib.sha256(data).hexdigest() != PAIR25_RUST_NOTICE_SHA256:
++        raise ValueError("Pair25 Rust runtime notice differs from its SHA-256 pin")
++    return data
++
++
+ def verify_image(path, assets, libraries, notices, signed=False):
+     with zipfile.ZipFile(path) as apk:
+         names = apk.namelist()
+@@ -152,7 +196,7 @@ def verify_image(path, assets, libraries, notices, signed=False):
+                 if stream.read(len(data) + 1) != data:
+                     raise ValueError(f"APK asset differs from its admitted input: {name}")
+         for name, data in notices.items():
+-            if apk.read(name) != data:
++            if name not in names or apk.read(name) != data:
+                 raise ValueError(f"APK runtime notice differs from its input: {name}")
+         native_names = {NATIVE_PREFIX + name for name in libraries}
+         payload_names = {name for name in names if not signed or not name.startswith("META-INF/")}
+@@ -173,6 +217,9 @@ def build(args):
+     ndk = args.android_sdk / "ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64"
+     libraries = native_libraries(args.jni_library, ndk, args.swift_android_sdk, env)
+     notices = runtime_notices(args.mixer_project, libraries, ndk, args.swift_android_sdk)
++    rust_notice = getattr(args, "pair25_rust_notice", None)
++    if rust_notice is not None:
++        notices = add_pair25_rust_notice(notices, rust_notice)
+     with tempfile.TemporaryDirectory(prefix="fieldlog-apk-", dir=output.parent) as scratch:
+         work = Path(scratch)
+         unsigned, aligned, signed = (work / name for name in ("unsigned.apk", "aligned.apk", "signed.apk"))
+@@ -233,6 +280,8 @@ def main():
+     }
+     for name, help_text in paths.items():
+         parser.add_argument("--" + name, required=True, type=Path, help=help_text)
++    parser.add_argument("--pair25-rust-notice", type=Path,
++                        help="Pinned Rust runtime notice for the Pair25 Entry Commit development fixture")
+     parser.add_argument("--development-keystore", type=Path,
+                         help="Ephemeral development signer whose certificate is bound before sealing")
+     try:
+diff --git a/Integrations/GeneratedReport/scripts/pair25/build-products.py b/Integrations/GeneratedReport/scripts/pair25/build-products.py
+index e94e8ff623d9be7eb79dae8a800b586fd3e01ea3..be16fa63ead2a8673d003feae6ad508353d19a1f 100644
+--- a/Integrations/GeneratedReport/scripts/pair25/build-products.py
++++ b/Integrations/GeneratedReport/scripts/pair25/build-products.py
+@@ -6,15 +6,24 @@ import json
+ import os
+ from pathlib import Path
+ import runpy
++import stat
+ import subprocess
+ 
+ HERE = Path(__file__).resolve().parent
+ PAIR25 = runpy.run_path(str(HERE / "verify-pair25.py"))
+ ADMISSION = PAIR25["admission"]
++PACKAGER = HERE.parent / "build-signed-checklist-android.py"
++PACKAGING = runpy.run_path(str(PACKAGER))
+ RECIPE = "tests/integration/fieldlog-saved-draft/android/recipe"
+ ANDROID_PACKAGE = "Integrations/GeneratedReport/Platforms/Android"
+ ABI = "aarch64-unknown-linux-android28"
+ VM_ARCHIVE = "android-engine/lib/libmixer_vm_capability_experimental.a"
++NOTICE_SNAPSHOT = "pair25-notice-inputs.json"
++RUST_VERSION_FIELDS = {
++    "release: 1.99.0",
++    "commit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4",
++    "LLVM version: 23.1.1",
++}
+ PRODUCTS = {
+     "java": (
+         "java/dex/classes.dex", "java/manifest.apk", "java/AndroidManifest.xml",
+@@ -34,6 +43,24 @@ def digest(path):
+         return hashlib.file_digest(stream, "sha256").hexdigest()
+ 
+ 
++def digest_vm_archive(path):
++    # Match the pinned VM producer's archive ceiling.
++    limit = 512 * 1024 * 1024
++    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
++    with os.fdopen(fd, "rb") as stream:
++        info = os.fstat(stream.fileno())
++        if not stat.S_ISREG(info.st_mode) or not 0 < info.st_size <= limit:
++            raise ValueError(f"Expected a bounded, regular VM archive: {path}")
++        sha = hashlib.sha256()
++        remaining = limit
++        while chunk := stream.read(min(1024 * 1024, remaining + 1)):
++            remaining -= len(chunk)
++            if remaining < 0:
++                raise ValueError(f"VM archive exceeds the producer limit: {path}")
++            sha.update(chunk)
++    return sha.hexdigest()
++
++
+ def git(root, *arguments):
+     return subprocess.check_output(
+         ["git", "--no-optional-locks", "-C", root, *arguments], text=True, timeout=15).strip()
+@@ -52,14 +79,68 @@ def generated_java(work, project):
+     return actual
+ 
+ 
+-def build_inputs(kind, work, project):
++def sdk_paths():
++    sdk = Path(os.environ.get("ANDROID_HOME", "/opt/homebrew/share/android-commandlinetools"))
++    registry = Path(os.environ.get("MIXER_SWIFT_SDKS_PATH", str(Path.home() / "Library/org.swift.swiftpm/swift-sdks")))
++    return sdk, registry / "swift-6.3.3-RELEASE_android.artifactbundle/swift-android"
++
++
++def require_notice_toolchain(engine):
++    version = engine.get("rustc")
++    prefixes = ("release: ", "commit-hash: ", "LLVM version: ")
++    fields = [line for line in version.splitlines() if line.startswith(prefixes)] if isinstance(version, str) else []
++    if len(fields) != len(RUST_VERSION_FIELDS) or set(fields) != RUST_VERSION_FIELDS:
++        raise ValueError("Pair25 Rust runtime notice requires the pinned Rust 1.99.0 toolchain in the Android VM receipt")
++
++
++def notice_inputs(work, project, rust_notice, revision):
++    sdk, swift_sdk = sdk_paths()
++    notices = PACKAGING["platform_notice_bytes"](project, sdk / "ndk/27.1.12297006", swift_sdk,
++                                                include_ndk=True, include_icu=True)
++    notices = PACKAGING["add_pair25_rust_notice"](notices, rust_notice)
++    receipt = PACKAGING["read_bounded"](work / "android-engine/receipt.json", 2 * 1024 * 1024)
++    engine = json.loads(receipt)
++    if not isinstance(engine, dict) or not isinstance(engine.get("library"), dict):
++        raise ValueError("Invalid Android VM producer receipt")
++    require_notice_toolchain(engine)
++    archive_sha = digest_vm_archive(work / VM_ARCHIVE)
++    if (engine.get("source_revision") != revision or engine.get("target_selector") != "android"
++            or engine.get("rust_target") != "aarch64-linux-android" or engine["library"].get("sha256") != archive_sha):
++        raise ValueError("VM must be the Android archive from the exact Pair25 revision")
++    return {
++        "vmReceiptSHA256": hashlib.sha256(receipt).hexdigest(),
++        "runtimeNoticesSHA256": PACKAGING["notice_hashes"](notices),
++    }, engine, archive_sha
++
++
++def verify_notice_snapshot(work, project, rust_notice, revision):
++    snapshot = json.loads(PACKAGING["read_bounded"](work / NOTICE_SNAPSHOT, 4096))
++    current, engine, archive_sha = notice_inputs(work, project, rust_notice, revision)
++    if current != snapshot:
++        raise ValueError("Pair25 notice or VM receipt bytes differ from preflight")
++    return current, engine, archive_sha
++
++
++def preflight(work, project, rust_notice):
++    if any(os.path.lexists(work / kind) for kind in PRODUCTS):
++        raise ValueError("Pair25 notice preflight must precede both producers")
++    revision = PAIR25["verify"](work, project)
++    snapshot, _, _ = notice_inputs(work, project, rust_notice, revision)
++    with (work / NOTICE_SNAPSHOT).open("x") as stream:
++        json.dump(snapshot, stream, indent=2, sort_keys=True)
++        stream.write("\n")
++
++
++def build_inputs(kind, work, project, rust_notice):
+     revision = PAIR25["verify"](work, project)
+     fieldlog = work / "fieldlog"
+     if (HERE != fieldlog / "Integrations/GeneratedReport/scripts/pair25"
+             or git(fieldlog, "diff", "--name-only")
+             or git(fieldlog, "ls-files", "--others", "--exclude-standard")):
+         raise ValueError("Build from the staged FieldLog tree without working-copy changes")
++    snapshot, _, archive_sha = verify_notice_snapshot(work, project, rust_notice, revision)
+     inputs = {
++        "noticeSnapshot": snapshot,
+         "mixerRevision": revision, "mixerTree": ADMISSION["PAIR25_PINS"][revision],
+         "fieldLogTree": git(fieldlog, "write-tree"), "projectLockSHA256": digest(project / "mixer.lock"),
+     }
+@@ -74,12 +155,7 @@ def build_inputs(kind, work, project):
+         if actual != tracked:
+             raise ValueError("Unexpected FieldLog Java inputs")
+     else:
+-        receipt = json.loads((work / "android-engine/receipt.json").read_bytes())
+-        sha = digest(work / VM_ARCHIVE)
+-        if (receipt["source_revision"] != inputs["mixerRevision"]
+-                or receipt["rust_target"] != "aarch64-linux-android" or receipt["library"]["sha256"] != sha):
+-            raise ValueError("Android VM archive differs from the pinned producer receipt")
+-        inputs["vmArchiveSHA256"] = sha
++        inputs["vmArchiveSHA256"] = archive_sha
+     return inputs
+ 
+ 
+@@ -91,24 +167,32 @@ def receipt_path(kind, work):
+     return work / kind / "pair25-product.json"
+ 
+ 
+-def verify_products(work, project):
++def verify_products(work, project, rust_notice, snapshot):
+     result = {}
+     for kind in PRODUCTS:
+-        receipt = json.loads(receipt_path(kind, work).read_bytes())
+-        if receipt != {"inputs": build_inputs(kind, work, project), "outputs": outputs(kind, work)}:
++        data = PACKAGING["read_bounded"](receipt_path(kind, work), 128 * 1024)
++        inputs = build_inputs(kind, work, project, rust_notice)
++        if inputs["noticeSnapshot"] != snapshot:
++            raise ValueError("Pair25 notice snapshot changed during packaging")
++        if json.loads(data) != {"inputs": inputs, "outputs": outputs(kind, work)}:
+             raise ValueError(f"Pair25 {kind} products differ from their build receipt")
+-        result[kind] = digest(receipt_path(kind, work))
++        result[kind] = hashlib.sha256(data).hexdigest()
+     return result
+ 
+ 
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+-    parser.add_argument("kind", choices=PRODUCTS)
++    parser.add_argument("kind", choices=("preflight", *PRODUCTS))
+     parser.add_argument("work", type=Path)
+     parser.add_argument("project", type=Path)
++    parser.add_argument("--rust-notice", type=Path, required=True)
+     args = parser.parse_args()
+     kind, work, project = args.kind, args.work.resolve(strict=True), args.project.resolve(strict=True)
+-    inputs = build_inputs(kind, work, project)
++    rust_notice = args.rust_notice.absolute()
++    if kind == "preflight":
++        preflight(work, project, rust_notice)
++        return
++    inputs = build_inputs(kind, work, project, rust_notice)
+     if (work / kind).exists() or (kind == "jni" and (work / "android-build").exists()):
+         raise ValueError("Pair25 requires a fresh producer output and build cache")
+     if kind == "java":
+@@ -116,7 +200,7 @@ def main():
+     else:
+         command = [HERE / "build-payload.zsh", work, project]
+     subprocess.run(["/bin/zsh", "-f", *command], cwd=work, env=os.environ, check=True)
+-    if build_inputs(kind, work, project) != inputs:
++    if build_inputs(kind, work, project, rust_notice) != inputs:
+         raise ValueError("Pair25 inputs changed during the build")
+     with receipt_path(kind, work).open("x") as stream:
+         json.dump({"inputs": inputs, "outputs": outputs(kind, work)}, stream, indent=2, sort_keys=True)
+diff --git a/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py b/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py
+index 71874326537a05f6877ac20f8cd26d71a386dc9e..012f602eac811657a38dc629b04b6f28806cfdaa 100644
+--- a/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py
++++ b/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py
+@@ -64,8 +64,51 @@ def write_json(path, value):
+     path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
+ 
+ 
+-def assemble(work, project, destination, stage):
+-    receipts = PRODUCERS["verify_products"](work, project)
++def publish(stage, destination, apk, evidence):
++    sidecar = stage / "apk-evidence.json"
++    with sidecar.open("x") as stream:
++        json.dump(evidence, stream, indent=2, sort_keys=True)
++        stream.write("\n")
++    published = destination / sidecar.name
++    os.link(sidecar, published)
++    try:
++        os.link(apk, destination / apk.name)
++    except OSError:
++        try:
++            if os.path.samestat(sidecar.stat(), published.lstat()):
++                published.unlink()
++        except FileNotFoundError:
++            pass
++        raise
++
++
++def assemble(work, project, destination, stage, rust_notice, log):
++    apk_name = "FieldLog-Pair25-entry-commit-development-arm64.apk"
++    for name in ("apk-evidence.json", apk_name):
++        if os.path.lexists(destination / name):
++            raise FileExistsError(destination / name)
++
++    revision = PRODUCERS["PAIR25"]["verify"](work, project)
++    snapshot, engine, vm_sha = PRODUCERS["verify_notice_snapshot"](work, project, rust_notice, revision)
++    receipts = PRODUCERS["verify_products"](work, project, rust_notice, snapshot)
++
++    def verify_inputs():
++        require(PRODUCERS["verify_products"](work, project, rust_notice, snapshot) == receipts,
++                "Pair25 source or build outputs changed during sealing")
++
++    def run(*command, env=None):
++        print(f"Run {command[0]} {command[1]}", file=log, flush=True)
++        try:
++            output = capture(*command, env=env)
++        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
++            output = error.stdout or ""
++            if isinstance(output, bytes):
++                output = output.decode(errors="replace")
++            print(output, file=log, flush=True)
++            raise
++        print(output, file=log, flush=True)
++        return output
++
+     fieldlog = work / "fieldlog"
+     mixer = work / "mixer"
+     fieldlog_tree = PRODUCERS["git"](fieldlog, "write-tree")
+@@ -73,10 +116,8 @@ def assemble(work, project, destination, stage):
+     for name, expected in REFERENCE_PINS.items():
+         require(digest(origin / name) == expected, f"Historical template checksum differs: {name}")
+ 
+-    sdk = Path(os.environ.get("ANDROID_HOME", "/opt/homebrew/share/android-commandlinetools"))
++    sdk, swift_sdk = PRODUCERS["sdk_paths"]()
+     jdk = Path(os.environ.get("MIXER_JDK", "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home"))
+-    swift_sdk_search = Path(os.environ.get("MIXER_SWIFT_SDKS_PATH", str(Path.home() / "Library/org.swift.swiftpm/swift-sdks")))
+-    swift_sdk = swift_sdk_search / "swift-6.3.3-RELEASE_android.artifactbundle/swift-android"
+     compiler = Path(os.environ.get("MIXER_SWIFT", str(Path.home() /
+         "Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift"))).with_name("swift-frontend")
+     tools = sdk / "build-tools/36.0.0"
+@@ -84,37 +125,34 @@ def assemble(work, project, destination, stage):
+     env = os.environ | {"JAVA_HOME": str(jdk), "LC_ALL": "C"}
+     java, native = work / "java", work / "jni"
+     manifest, dex, jni = java / "manifest.apk", java / "dex/classes.dex", native / JNI
+-    vm = work / "android-engine/lib/libmixer_vm_capability_experimental.a"
+-    engine = json.loads((work / "android-engine/receipt.json").read_bytes())
+-    revision = PRODUCERS["PAIR25"]["verify"](work, project)
+-    require(engine["source_revision"] == revision and engine["target_selector"] == "android"
+-            and engine["rust_target"] == "aarch64-linux-android" and engine["library"]["sha256"] == digest(vm),
+-            "VM must be the Android archive from the exact Pair25 revision")
++    packager = PRODUCERS["PACKAGER"]
++    signing = PRODUCERS["PACKAGING"]
++    source_archive = work / "android-engine/source.tar"
++    source_archive_sha = digest(source_archive)
++    require(source_archive_sha == engine["source_archive_sha256"],
++            "VM source archive differs from the pinned producer receipt")
+ 
+     guest_path = "tests/integration/fieldlog-entry-save/apple-editor/build-guests.sh"
+     guest_output = stage / "guests"
+     tool_bin = Path(env.get("FIELDLOG_SWIFT_BIN", str(compiler.parent)))
+-    capture("/bin/bash", mixer / guest_path, guest_output, env=env | {"FIELDLOG_SWIFT_BIN": str(tool_bin)})
++    run("/bin/bash", mixer / guest_path, guest_output, env=env | {"FIELDLOG_SWIFT_BIN": str(tool_bin)})
+     guest = guest_output / "entry-commit.wasm"
+     second_guest_output = stage / "guest-replay" / "other"
+     second_guest_output.parent.mkdir()
+-    capture("/bin/bash", mixer / guest_path, second_guest_output,
++    run("/bin/bash", mixer / guest_path, second_guest_output,
+             env=env | {"FIELDLOG_SWIFT_BIN": str(tool_bin)})
+     require((guest.stat().st_size, digest(guest)) == (PAYLOAD_BYTES, PAYLOAD_SHA256)
+             and guest.read_bytes() == (second_guest_output / guest.name).read_bytes(),
+             "Entry Commit differs from the published reproducible Wasm payload")
+     fingerprint = ADMISSION["PAIR25_RESEALED_FINGERPRINT"]
+     preimage = stage / "native-preimage.json"
+-    log = json.loads(capture(sys.executable, "-B", mixer / "capabilities/tools/export-native-preimage.py",
++    preimage_result = json.loads(run(sys.executable, "-B", mixer / "capabilities/tools/export-native-preimage.py",
+                              "--check", "--output", preimage))
+-    require((log["sources"], log["nativeImplementationSHA256"], digest(preimage)) == (18, fingerprint, fingerprint),
++    require((preimage_result["sources"], preimage_result["nativeImplementationSHA256"], digest(preimage)) == (18, fingerprint, fingerprint),
+             "Native preimage differs from the published Pair25 checkout")
+-    source_archive = work / "android-engine/source.tar"
+-    require(digest(source_archive) == engine["source_archive_sha256"],
+-            "VM source archive differs from the pinned producer receipt")
+     header = java / "jni/dev_fieldlog_generatedr90_androidhost_PublicActivity_ChecklistPanel.h"
+     declared = set(re.findall(r"JNICALL (Java_\w+)", header.read_text()))
+-    symbols = {line.split()[-1] for line in capture(ndk / "llvm-nm", "--dynamic", "--defined-only", jni).splitlines()}
++    symbols = {line.split()[-1] for line in run(ndk / "llvm-nm", "--dynamic", "--defined-only", jni).splitlines()}
+     require(len(declared) == 5 and declared <= symbols and {"JNI_OnLoad", "mxis_guest_ui_witness"} <= symbols,
+             "Checklist JNI declarations or ordinary-load exports differ from the linked ELF")
+ 
+@@ -124,7 +162,6 @@ def assemble(work, project, destination, stage):
+     app = HERE.parents[1]
+     recipe = mixer / "tests/integration/fieldlog-saved-draft/android/recipe"
+     settings = work / "android-package/Package.swift"
+-    packager = app / "scripts/build-signed-checklist-android.py"
+     linked = {
+         "FieldLogTree": fieldlog_tree,
+         "MixerCommit": revision,
+@@ -138,8 +175,10 @@ def assemble(work, project, destination, stage):
+         "manifest.apk": digest(manifest),
+         "manifestEntries": manifest_entries,
+         "native/" + JNI: digest(jni),
+-        "native/vm.a": digest(vm),
+-        "native/vm-source.tar": digest(source_archive),
++        "native/vm.a": vm_sha,
++        "native/vm-receipt.json": snapshot["vmReceiptSHA256"],
++        "runtimeNoticesSHA256": snapshot["runtimeNoticesSHA256"],
++        "native/vm-source.tar": source_archive_sha,
+         "native/capability-source-preimage": digest(preimage),
+         "guest/entry-commit.wasm": digest(guest),
+         "guest/build-guests.sh": digest(mixer / guest_path),
+@@ -155,7 +194,7 @@ def assemble(work, project, destination, stage):
+         linked["native/" + name] = digest(native / name)
+ 
+     require(fingerprint.encode() in jni.read_bytes(), "Linked JNI lacks the published native capability identity")
+-    signing = runpy.run_path(str(packager))
++    verify_inputs()
+     key, env = signing["local_development_signer"](stage, jdk, env)
+     certificate = subprocess.check_output([
+         jdk / "bin/keytool", "-exportcert", "-keystore", key, "-alias", "fieldlog-local",
+@@ -176,13 +215,13 @@ def assemble(work, project, destination, stage):
+     }
+     linked["installedLeafSHA256"]["entry-commit-v1.txt"] = hash_bytes(b"fieldlog-entry-commit-v1\n")
+     linked["installedLeafSHA256"]["entry-commit.wasm"] = linked["guest/entry-commit.wasm"]
+-    apk_signing_args = ["--development-keystore", key]
++    apk_signing_args = ["--development-keystore", key, "--pair25-rust-notice", rust_notice]
+ 
+-    fallback = capture("git", "-C", fieldlog, "ls-tree", "-r", fieldlog_tree,
++    fallback = run("git", "-C", fieldlog, "ls-tree", "-r", fieldlog_tree,
+                        "Integrations/GeneratedReport/Platforms/Android",
+                        "Integrations/GeneratedReport/Sources", "Integrations/InstalledGuest")
+     binding = {
+-        "engine": {"version": revision, "source_sha256": engine["source_manifest_sha256"], "artifact_sha256": digest(vm)},
++        "engine": {"version": revision, "source_sha256": engine["source_manifest_sha256"], "artifact_sha256": vm_sha},
+         "build": {
+             "settings_sha256": digest(settings),
+             "link_inputs_sha256": hash_bytes(encoded(linked)),
+@@ -192,7 +231,7 @@ def assemble(work, project, destination, stage):
+             "resource_policy_sha256": digest(origin / "Installed/bridge.json"),
+         },
+         "toolchain": {
+-            "compiler_version": capture(compiler, "-version").splitlines()[0],
++            "compiler_version": run(compiler, "-version").splitlines()[0],
+             "compiler_sha256": digest(compiler), "sdk_version": "android28",
+             "sdk_sha256": digest(swift_sdk.parent / "info.json"),
+             "build_tools_sha256": digest(tools / "aapt2"),
+@@ -200,12 +239,12 @@ def assemble(work, project, destination, stage):
+     }
+ 
+     sealer = work / "seal-work/build/out/Products/Debug/FieldLogEntryCommitSeal"
+-    apk_name = "FieldLog-Pair25-entry-commit-development-arm64.apk"
+     installed = stage / "Installed"
+     installed.mkdir()
+     binding_path = stage / "binding.json"
+     write_json(binding_path, binding)
+-    runtime = capture(sealer, "seal", origin, binding_path, guest, installed)
++    verify_inputs()
++    runtime = run(sealer, "seal", origin, binding_path, guest, installed)
+     identity = json.loads((installed / "identity.json").read_bytes())
+     require(identity["application"]["bundle_id"] == APP_ID, "Identity and ordinary Android app ID differ")
+     for section, fields in binding.items():
+@@ -220,20 +259,22 @@ def assemble(work, project, destination, stage):
+     pin_path = stage / "installed.sha256.json"
+     write_json(pin_path, pins)
+     apk = stage / apk_name
+-    capture(sys.executable, "-B", packager, "--mixer-project", project, "--manifest-apk", manifest,
++    verify_inputs()
++    run(sys.executable, "-B", packager, "--mixer-project", project, "--manifest-apk", manifest,
+             "--dex", dex, "--jni-library", jni, "--installed-checklist", installed, "--checklist-sha256", pin_path,
+             "--android-sdk", sdk, "--swift-android-sdk", swift_sdk, "--java-home", jdk, "--output", apk,
+             *apk_signing_args, env=env)
+-    signatures = capture(tools / "apksigner", "verify", "--verbose", "--print-certs", "-Werr", apk, env=env)
++    signatures = run(tools / "apksigner", "verify", "--verbose", "--print-certs", "-Werr", apk, env=env)
+     certs = re.findall(r"^Signer #\d+ certificate SHA-256 digest: ([0-9a-f]{64})$", signatures, re.MULTILINE)
+     require(certs == [linked["apkSignerCertificateSHA256"]],
+             "Final APK signer certificate differs from the sealed runtime binding")
+-    capture(tools / "zipalign", "-c", "-P", "16", "4", apk, env=env)
+-    badging = capture(tools / "aapt2", "dump", "badging", apk, env=env)
++    run(tools / "zipalign", "-c", "-P", "16", "4", apk, env=env)
++    badging = run(tools / "aapt2", "dump", "badging", apk, env=env)
+     members = read_zip(apk)
+     expected = manifest_entries | {"classes.dex": linked["bytecode/classes.dex"],
+                 "lib/arm64-v8a/" + JNI: linked["native/" + JNI], APPEARANCE: linked["descriptor.json"]}
+     expected.update({ASSETS + name: checksum for name, checksum in pins.items()})
++    expected.update(linked["runtimeNoticesSHA256"])
+     require(all(members.get(name) == checksum for name, checksum in expected.items()),
+             "Signed APK payload differs from the sealed build and installed material")
+     readback = stage / "readback"
+@@ -241,10 +282,9 @@ def assemble(work, project, destination, stage):
+     with zipfile.ZipFile(apk) as archive:
+         for name in pins:
+             (readback / name).write_bytes(archive.read(ASSETS + name))
+-    require(capture(sealer, "verify", readback) == runtime, "Packaged release has a different runtime")
+-    require(PRODUCERS["verify_products"](work, project) == receipts,
+-            "Pair25 source or build outputs changed during sealing")
+-    write_json(destination / "apk-evidence.json", {
++    require(run(sealer, "verify", readback) == runtime, "Packaged release has a different runtime")
++    verify_inputs()
++    publish(stage, destination, apk, {
+         "qualification": "development build evidence only; installed verification pending",
+         "payloadReproduction": {"bytes": PAYLOAD_BYTES, "sha256": PAYLOAD_SHA256, "distinctOutputDirectories": 2},
+         "mixerProfile": ADMISSION["PAIR25_PROFILE"], "linkInputs": linked, "identityBinding": binding,
+@@ -254,7 +294,6 @@ def assemble(work, project, destination, stage):
+         "badging": badging.splitlines(), "signatures": signatures.splitlines(), "alignmentKiB": 16,
+         "checklistJNI": sorted(declared),
+     })
+-    os.link(apk, destination / apk_name)
+     print(runtime)
+ 
+ 
+@@ -262,13 +301,20 @@ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     for name in ("work", "project", "output"):
+         parser.add_argument(name, type=Path)
++    parser.add_argument("--rust-notice", type=Path, required=True)
+     args = parser.parse_args()
+-    work, project, destination = (path.resolve() for path in (args.work, args.project, args.output))
++    work, project = (path.resolve(strict=True) for path in (args.work, args.project))
++    destination = args.output.absolute()
+     os.umask(0o077)
+     PRODUCERS["PAIR25"]["verify_checkout"](work)
+     destination.mkdir()
+-    with tempfile.TemporaryDirectory(prefix=".seal-", dir=destination) as stage:
+-        assemble(work, project, destination, Path(stage))
++    with (destination / "package.log").open("x") as log:
++        try:
++            with tempfile.TemporaryDirectory(prefix=".seal-", dir=destination) as stage:
++                assemble(work, project, destination, Path(stage), args.rust_notice.absolute(), log)
++        except (OSError, ValueError, subprocess.SubprocessError, zipfile.BadZipFile) as error:
++            print(f"Packaging failed: {error}", file=log)
++            raise
+ 
+ 
+ if __name__ == "__main__":
