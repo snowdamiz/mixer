@@ -21,7 +21,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
   alias MixerHosted.Releases.BrowserPublicationTest.Uploader
   alias MixerHosted.Releases.EnvironmentPromotion.Direction
   alias MixerHosted.Releases.ReleaseJobs.ProcessorAdmission
-  alias MixerHosted.Releases.{DeliveryRepo, Target, WriterRepo}
+  alias MixerHosted.Releases.{DeliveryRepo, RuntimeProvisioning, Target, WriterRepo}
   alias MixerHosted.Test.OrdinaryBrowserStartupFixture.Database, as: DB
   alias MixerHosted.Test.StockReleaseCLI
 
@@ -176,12 +176,43 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     for value <- [source.android, destination.ios, destination.android],
         do: seed_head!(value.enrollment.target)
 
-    seed_stage_direction!(direction)
-    replace_config!(WriterRepo, c.hosted.repo)
-    replace_config!(:local_release_target, Map.from_struct(source.ios.enrollment))
-    replace_config!(:local_stage_promotion_directions, %{})
-
     c = put_in(c.hosted.local_release_jobs, true)
+
+    env = %{
+      "MIXER_LOCAL_RELEASE_CONFIG" => Jason.encode!(release_provisioning(source.ios.enrollment)),
+      "MIXER_LOCAL_RELEASE_TARGET_REGISTRY" =>
+        Jason.encode!(
+          Enum.map([source.android, destination.ios, destination.android], fn value ->
+            release_provisioning(value.enrollment)
+          end)
+        ),
+      "MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD" => "fixture-stage-delivery",
+      "MIXER_LOCAL_RELEASE_WRITER_ENABLED" => "true",
+      "MIXER_LOCAL_STAGE_PROMOTION_DIRECTIONS" =>
+        Jason.encode!([
+          %{
+            direction_id: @promotion_direction,
+            source:
+              Map.new(direction.source, fn {platform, entry} ->
+                {platform, Target.wire(entry.target)}
+              end),
+            destination:
+              Map.new(direction.destination, fn {platform, entry} ->
+                {platform, Target.wire(entry.target)}
+              end)
+          }
+        ])
+    }
+
+    {default, _delivery} = provisioning = RuntimeProvisioning.load!(env, c.hosted)
+    writer = RuntimeProvisioning.writer_options!(env, c.hosted, provisioning)
+    directions = RuntimeProvisioning.stage_promotion_directions!(env, provisioning, writer)
+    assert directions == %{@promotion_direction => direction}
+
+    seed_stage_direction!(direction)
+    replace_config!(WriterRepo, writer)
+    replace_config!(:local_release_target, default)
+    replace_config!(:local_stage_promotion_directions, directions)
     c = start!(c)
     assert %{phase: :storage_ready} = RuntimeOwner.status()
 
@@ -229,6 +260,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
       assert sequence == signed.sequence
     end
 
+    Application.put_env(:mixer_hosted, :local_release_target, default)
     ios = spaced_assignment(destination.ios)
     android = spaced_assignment(destination.android)
     body = promotion_body(ios, android)
@@ -252,11 +284,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
 
     unauthorized = &promotion_post(c, &1, @promotion_path, body)
 
-    assert request.(body).status == 404
-
-    Application.put_env(:mixer_hosted, :local_stage_promotion_directions, %{
-      @promotion_direction => direction
-    })
+    assert promotion_post(c, token, @promotion_path <> "-unenrolled", body).status == 404
 
     assert unauthorized.(nil).status == 401
     assert unauthorized.(no_publish_scope).status == 403
@@ -1550,6 +1578,18 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
       "artifact_sha256" => publication(variant).artifact_sha256,
       "rollout_basis_points" => variant.assignment["rollout_basis_points"],
       "sequence" => variant.assignment["sequence"]
+    }
+  end
+
+  defp release_provisioning(enrollment) do
+    %{
+      host: enrollment.host,
+      channel: enrollment.target.channel,
+      roots:
+        Enum.map(
+          enrollment.roots,
+          &Map.update!(&1, "public_key", fn key -> Base.encode64(key) end)
+        )
     }
   end
 
