@@ -48,58 +48,70 @@ defmodule MixerHosted.Releases.DeliveryPublishFence do
           {:ok, :applied} | {:error, atom()}
   def with_current(%Target{} = target, expected, cas)
       when is_map(expected) and is_function(cas, 1) do
-    with {:ok, config} <- PublicDelivery.configuration(),
-         {:ok, _} <- PublicDelivery.select(config, target),
-         false <- DeliveryRepo.checked_out?() do
-      deadline = System.monotonic_time(:millisecond) + @db_options[:timeout]
+    cas_state = make_ref()
 
-      result =
-        DeliveryRepo.transaction(
-          fn ->
-            case locked_cas(target, expected, config, deadline, cas) do
-              {:ok, applied} -> applied
-              {:error, reason} -> DeliveryRepo.rollback(reason)
-            end
-          end,
-          @db_options
-        )
-
-      case result do
-        {:ok, {window, verified_at}} ->
-          if current?(config, window, verified_at),
-            do: {:ok, :applied},
-            else: {:error, :indeterminate}
-
-        {:error, :rollback} ->
-          {:error, :unavailable}
-
-        {:error, _} = error ->
-          error
+    try do
+      with {:ok, config} <- PublicDelivery.configuration(),
+           {:ok, _} <- PublicDelivery.select(config, target),
+           false <- DeliveryRepo.checked_out?() do
+        transact(target, expected, config, cas, cas_state)
+      else
+        :error -> {:error, :not_found}
+        _ -> {:error, :unavailable}
       end
-    else
-      :error -> {:error, :not_found}
-      _ -> {:error, :unavailable}
-    end
-  rescue
-    DBConnection.ConnectionError ->
-      {:error, :unavailable}
+    rescue
+      DBConnection.ConnectionError ->
+        transaction_failure(cas_state)
 
-    error in RuntimeError ->
-      if Process.whereis(DeliveryRepo),
-        do: reraise(error, __STACKTRACE__),
-        else: {:error, :unavailable}
+      error in RuntimeError ->
+        if Process.whereis(DeliveryRepo),
+          do: reraise(error, __STACKTRACE__),
+          else: transaction_failure(cas_state)
+    after
+      Process.delete(cas_state)
+    end
   end
 
   def with_current(_, _, _), do: {:error, :rejected}
 
-  defp locked_cas(target, expected, config, deadline, cas) do
+  defp transact(target, expected, config, cas, cas_state) do
+    deadline = System.monotonic_time(:millisecond) + @db_options[:timeout]
+
+    result =
+      DeliveryRepo.transaction(
+        fn ->
+          case locked_cas(target, expected, config, deadline, cas, cas_state) do
+            {:ok, applied} -> applied
+            {:error, reason} -> DeliveryRepo.rollback(reason)
+          end
+        end,
+        @db_options
+      )
+
+    case result do
+      {:ok, {window, verified_at}} ->
+        if current?(config, window, verified_at),
+          do: {:ok, :applied},
+          else: {:error, :indeterminate}
+
+      {:error, :rollback} ->
+        transaction_failure(cas_state)
+
+      {:error, _} = error ->
+        error
+    end
+  end
+
+  defp transaction_failure(cas_state), do: {:error, Process.get(cas_state, :unavailable)}
+
+  defp locked_cas(target, expected, config, deadline, cas, cas_state) do
     with {:ok, _} <- SQL.query(DeliveryRepo, @limits, [], @db_options),
          :ok <- lock_current(target),
          now = System.system_time(:millisecond),
          {:ok, ^expected} <- DeliveryExport.current_in_transaction(target),
          {:ok, ^config} <- PublicDelivery.configuration(),
          {:ok, window} <- callback_window(expected.valid_until_unix, now, deadline),
-         :applied <- run_cas(cas, window) do
+         :applied <- run_cas(cas, window, cas_state) do
       with true <- current?(config, window, now),
            {:ok, _} <- SQL.query(DeliveryRepo, "SELECT 1", [], @db_options) do
         {:ok, {window, now}}
@@ -157,7 +169,10 @@ defmodule MixerHosted.Releases.DeliveryPublishFence do
       PublicDelivery.configuration() == {:ok, config}
   end
 
-  defp run_cas(cas, window) do
+  defp run_cas(cas, window, cas_state) do
+    # The transaction can fail after its body returns and the pointer CAS may already have run.
+    Process.put(cas_state, :indeterminate)
+
     task =
       Task.async(fn ->
         try do
@@ -170,8 +185,15 @@ defmodule MixerHosted.Releases.DeliveryPublishFence do
     remaining = max(0, window.deadline_monotonic_ms - System.monotonic_time(:millisecond))
 
     case Task.yield(task, remaining) || Task.shutdown(task, :brutal_kill) do
-      {:ok, result} when result in [:applied, :conflict] -> result
-      _ -> :indeterminate
+      {:ok, :conflict} ->
+        Process.put(cas_state, :conflict)
+        :conflict
+
+      {:ok, :applied} ->
+        :applied
+
+      _ ->
+        :indeterminate
     end
   end
 end
