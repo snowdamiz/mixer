@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "work": "W08/L03 signed Guest UI V1 branch selection",
+  "status": "passed_scoped_host_control",
+  "base_revision": "814c7218c088a16b7218e75ba0e197162401d167",
+  "base_tree": "f4444270428cf2d8b0b4dd2e9abee91347b161be",
+  "vm_tree": "1682169a33d05bd96c7f9fd433d556107bbb7a66",
+  "tested_fixture_overlay_tree": "31b147ac556fe56e3debea52240d091ef2421491",
+  "fixture": "capability-activation/Tests/MixerCapabilityActivationTests/GuestUISignedBranchTests.swift",
+  "fixture_sha256": "867bf02d46eef342ef8e1aa656fbb9c1ec167e8eddea674a79410838e721a06a",
+  "scope": "Public signed Guest UI V1 ingress, actual installed VM, admitted host action, validated offscreen macOS presentation model and owner retirement.",
+  "c_abi_predecessor": "ee5e1c3522cf used raw frames already in the UI V1 document shape. The separate hand-authored signed payload preserves that shape and branch/load oracle, places its header at offset 7, and exercises Swift signed admission and presentation.",
+  "tools": {
+    "host": "macOS 27.0.1 (26A434), arm64",
+    "xcode": "27.2 (27B52), macOS SDK 27.2",
+    "swift": "6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "python": "3.14.8",
+    "swift_crypto_revision": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+    "swift_asn1_revision": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2"
+  },
+  "installed_vm": {
+    "command": "python3 experimental-capability-runtime/build-vm.py --revision 814c7218c088a16b7218e75ba0e197162401d167 --target host --output $RUN/installed --rustc <Rust 1.99.0 rustc path>",
+    "feature": "experimental-capability-native",
+    "target": "aarch64-apple-darwin",
+    "builder_sha256": "cbae2f5f02b1d8a468a331a71f31e9c4fad1957d16142db0d4e3d0ad2e6fa010",
+    "source_manifest_sha256": "ae7628b22926ed845c1715bfedccf8bede0e214bf795de5407fabd36af81d88b",
+    "source_archive_sha256": "db9b37ceccfa8c7a11189006e483ef3ad3cbc3df28aee17803f89e7822fde593",
+    "archive_sha256": "bc6b286fdd17507acf073846283dc7e9f32c3a7de8d98ac2c3d6ce35a23e4f74",
+    "archive_bytes": 19309136,
+    "guest_ui_header_sha256": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+    "linked_xctest_sha256": "40a9a6a7c5f485186b914d555d0a8127a181e1b874c083a0aaa1ee8fcfab2310",
+    "defined_symbols_observed": [
+      "mixer_vm_capability_guest_ui_validate_v1",
+      "mixer_vm_capability_session_create_v1",
+      "mixer_vm_capability_session_invoke_v1",
+      "mixer_vm_capability_session_read_v1",
+      "mixer_vm_capability_session_write_v1",
+      "mixer_vm_capability_session_close_v1"
+    ]
+  },
+  "signed_fixture": {
+    "payload_bytes": 1134,
+    "payload_sha256": "1a9e28ac4cc60c31d95636c63f3f6be0d7b33c7b08d953fd8e1aa897390f4b98",
+    "trust": "GuestUISignedFixture test root and release-v3 signatures",
+    "capability_grants": [],
+    "manifest_limits": {
+      "memory_bytes": 65536,
+      "fuel": 100000,
+      "startup_milliseconds": 60000
+    },
+    "event": "The render host routes a revision-1 activate action. The attached presentation handler submits it, the guest delivers sequence 1 exactly once, and the model presents exactly two frames per positive owner.",
+    "oracle": "Exact UIDocument equality. Each result is schema 1, revision 2, root text node status with exactly the selected text property, empty children and empty actions.",
+    "observed": [
+      {
+        "selector": "0",
+        "branch": "entry 0",
+        "load_address": 65527,
+        "revision": 2,
+        "text": "Zero",
+        "delivered_sequence": 1
+      },
+      {
+        "selector": "1",
+        "branch": "entry 1",
+        "load_address": 65530,
+        "revision": 2,
+        "text": "One!",
+        "delivered_sequence": 1
+      },
+      {
+        "selector": "9",
+        "branch": "default",
+        "load_address": 65534,
+        "revision": 2,
+        "text": "Else",
+        "delivered_sequence": 1
+      }
+    ],
+    "refusal": {
+      "input": "Same-length contract-valid variant with a different default label uploaded against the signed manifest for the original payload",
+      "error": "v3.payload.integrity",
+      "startup_phase": "nativeFallback",
+      "presentation_state": "waiting",
+      "staged_candidate": null,
+      "render_host": null,
+      "input_enabled": false,
+      "effects_may_have_opened": false
+    }
+  },
+  "swift_test": {
+    "argv": [
+      "/usr/bin/xcrun",
+      "swift",
+      "test",
+      "--package-path",
+      "$RUN/source/capability-activation",
+      "--scratch-path",
+      "$RUN/build",
+      "--cache-path",
+      "$RUN/cache",
+      "--config-path",
+      "$RUN/config",
+      "--security-path",
+      "$RUN/security",
+      "--disable-dependency-cache",
+      "--force-resolved-versions",
+      "--disable-index-store",
+      "--jobs",
+      "8",
+      "--no-parallel",
+      "--disable-swift-testing",
+      "-Xcc",
+      "-I$RUN/installed/include",
+      "-Xlinker",
+      "-L$RUN/installed/lib",
+      "--filter",
+      "<filter>"
+    ],
+    "filter": "GuestUISignedBranchTests|GuestUISignedRuntimeTests.testPublicUIFacadeUsesSignedIngressWithoutCallerClockOrMilestone|GuestUISignedRuntimeTests.testWrongSignedPayloadFailsWithoutStagingOrEffects",
+    "timeout_seconds_per_run": 540,
+    "results": [
+      {
+        "run": "first",
+        "exit": 0,
+        "passed": 4,
+        "elapsed_seconds": 32.734,
+        "owned_group_absent": true
+      },
+      {
+        "run": "final",
+        "exit": 0,
+        "passed": 4,
+        "elapsed_seconds": 12.649,
+        "owned_group_absent": true
+      }
+    ],
+    "final_log_sha256": "2380124cebc1a1be2e3ca3d6a0c6ca85bd17029871925b77d936621157b11858"
+  },
+  "cleanup": {
+    "per_run": "All four fixture owners retired and closed with cleanupPending false and reservation slots 0 -> 0. The presentations stopped with no render host or enabled input. All four logged temporary roots were verified absent after each run.",
+    "scratch": "Owned temporary projection, build outputs, logs, caches, and alternate index removed after verification retention check."
+  }
+}

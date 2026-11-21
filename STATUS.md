@@ -366,6 +366,14 @@ closed each session, and confirmed all 16 mixed registry slots were reusable.
 The test covers the native ABI. Signed activation and presentation remain
 outside this receipt. [Guest UI V1 execution](verification/receipts/l03-guest-ui-v1-execution-v77.json)
 
+A separately signed guest used the same branch selectors through installed
+Guest UI V1 and offscreen macOS presentation. Host events 0, 1, and 9
+produced the expected decoded revision-2 documents. A same-length payload
+mismatch returned an integrity error and the cold owner showed native
+fallback with input disabled. Four focused tests passed independently, and
+all four owners retired and released their reservations. Device coverage
+remains open. [Signed presentation replay](verification/receipts/l03-guest-ui-v1-signed-branch-v78.json)
+
 The compiler qualification recorder now preserves the cleanup error and
 observed log sizes when custody is unknown. All 14 compiler support
 tests passed in normal and optimized Python. The earlier hold for PID
