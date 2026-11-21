@@ -1120,6 +1120,19 @@ UIKit capture, permission prompts, and combined Android runtime checks
 remain pending.
 [Source composition](verification/receipts/fieldlog-ios-entry-camera-composition-e10048f8.json) · [Exact patch](verification/receipts/fieldlog-ios-entry-camera-corrected-e10048f8.patch) · [Build and test receipt](verification/receipts/fieldlog-ios-camera-corrected-15fa8e9b.json)
 
+## November 21 FieldLog site-map model
+
+The shared model saves an optional project pin and keeps a foreground
+position in the map session. Both FieldLog model copies match. The
+independent host replay verified save, clear, cold reopen, and stale
+write refusals. Legacy workspaces opened with the same bytes. A separate
+rebuild reproduced the bundled Natural Earth linework byte for byte.
+Native map UI and foreground permission tests remain pending. The Apple
+integration must wait for the committed selected project before allowing
+a pin write. The review observed a source race between the navigation
+state and the queued restoration write.
+[Shared patch](verification/receipts/fieldlog-site-map-shared-26bbde4a.patch) · [Producer receipt](verification/receipts/fieldlog-site-map-shared-26bbde4a.json) · [Independent review](verification/receipts/fieldlog-site-map-shared-review-23150c6a.json)
+
 ## November 21 current FieldLog Android queue
 
 The Pair25 queue port ran the ordinary On device screen on macOS with
