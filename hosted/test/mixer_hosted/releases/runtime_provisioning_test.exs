@@ -211,6 +211,24 @@ defmodule MixerHosted.Releases.RuntimeProvisioningTest do
     end
   end
 
+  test "source maps require an explicit local writer opt-in in runtime configuration", ctx do
+    flag = "MIXER_LOCAL_SOURCE_MAP_RETENTION_ENABLED"
+    enabled = Map.merge(ctx.env, %{@writer_enabled => "true", flag => "true"})
+    assert read_runtime!(@base)[:local_source_map_retention] == false
+    assert read_runtime!(enabled)[:local_source_map_retention] == true
+
+    for invalid <- [Map.delete(enabled, @writer_enabled), Map.put(enabled, flag, "yes")] do
+      assert_raise ArgumentError, "invalid or missing hosted setting: " <> flag, fn ->
+        read_runtime!(invalid)
+      end
+    end
+
+    assert_raise ArgumentError, "invalid or missing hosted setting: " <> flag, fn ->
+      public = %{ctx.hosted | endpoint: [http: [ip: {0, 0, 0, 0}]]}
+      RuntimeProvisioning.source_map_retention!(enabled, public, ctx.hosted.repo)
+    end
+  end
+
   describe "local stage promotion directions" do
     setup ctx do
       source_ios = ctx.document

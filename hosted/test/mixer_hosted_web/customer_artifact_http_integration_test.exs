@@ -59,7 +59,8 @@ defmodule MixerHosted.CustomerArtifactHTTPFixture do
   def artifact(
         repo,
         payload \\ "HTTP integration protocol payload, not executable guest code.",
-        {public, private} \\ :crypto.generate_key(:eddsa, :ed25519)
+        {public, private} \\ :crypto.generate_key(:eddsa, :ed25519),
+        source_map \\ "http map"
       ) do
     scope = %{
       "organization" => "org-a",
@@ -95,7 +96,7 @@ defmodule MixerHosted.CustomerArtifactHTTPFixture do
       "expanded_bytes" => byte_size(payload),
       "compression" => "none",
       "asset_hashes" => %{},
-      "source_map_sha256" => sha("http map"),
+      "source_map_sha256" => sha(source_map),
       "limits" => limits,
       "key_id" => "http-artifact-key",
       "created_at_unix" => now()
@@ -372,7 +373,8 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
       endpoint_supervisor: endpoint_supervisor,
       key: key,
       tls_fixture: fixture,
-      pg_settings: settings
+      pg_settings: settings,
+      operator_identity_options: Keyword.drop(opts, [:name, :worker_supervisor])
     }
   end
 
@@ -478,7 +480,14 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
       assert header(response, "cache-control") == ["no-store"]
       assert [request_id] = header(response, "x-request-id")
       assert byte_size(request_id) in 20..200
-      public_response = if body == "", do: nil, else: Jason.decode!(body)
+
+      public_response =
+        if body != "" and
+             Enum.any?(
+               header(response, "content-type"),
+               &String.starts_with?(&1, "application/json")
+             ),
+           do: Jason.decode!(body)
 
       F.record(%{
         label: label,
@@ -1016,6 +1025,443 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
              F.sql(
                "SELECT signed_assignment_bytes FROM public.mixer_release_publications WHERE sequence=1"
              ).rows
+  end
+
+  @tag :private_source_map
+  @tag :tmp_dir
+  @tag timeout: 90_000
+  test "the local operator retains exact bytes for current owners of a signed publication",
+       %{tmp_dir: dir} = ctx do
+    marker = "mixer-disposable-private-source-marker"
+    map = " {\"sources\":[\"" <> marker <> "\"]}\n"
+    File.chmod!(dir, 0o700)
+    on_exit(fn -> File.rm_rf!(dir) end)
+    input = Path.join(dir, "input")
+    output = Path.join(dir, "output")
+    File.write!(input, map)
+
+    {checked, config} =
+      F.artifact(
+        Runtime,
+        <<0, 97, 115, 109, 1, 0, 0, 0>>,
+        :crypto.generate_key(:eddsa, :ed25519),
+        map
+      )
+
+    {publisher, draft, private} = release_fixture!(ctx, checked, config, :delivery)
+    migrate_release_actions!()
+    grant_release_action!()
+    start_release_delivery!(ctx.pg_settings)
+    provision_source_map_retention!()
+    F.sql("ALTER ROLE http_release_writer SET log_parameter_max_length = 0")
+    F.sql("ALTER ROLE http_release_writer SET log_parameter_max_length_on_error = 0")
+    F.sql("ALTER ROLE http_release_writer SET log_error_verbosity = 'terse'")
+
+    digest = checked.manifest_sha256
+    runtime = draft["runtime"]
+    base = "/v3/orgs/org-a/projects/project-a"
+    read = ["read", "1", digest, output]
+    retain = fn deadline -> ["retain", "1", digest, input, to_string(deadline)] end
+    operator = fn args -> source_map_command(publisher, marker, args) end
+
+    events = [:recv, :async_recv, :send, :send_error]
+    handler = {__MODULE__, :source_map_http_observation}
+    test = self()
+
+    :ok =
+      :telemetry.attach_many(
+        handler,
+        Enum.map(events, &[:thousand_island, :connection, &1]),
+        fn event, measurements, metadata, _ ->
+          send(test, {:observed_http, List.last(event)})
+
+          if private_marker?(measurements, metadata, marker),
+            do: send(test, :map_on_http)
+        end,
+        nil
+      )
+
+    on_exit(fn -> :telemetry.detach(handler) end)
+
+    map_path =
+      base <>
+        "/apps/fieldlog/environments/development/platforms/ios/runtimes/" <>
+        runtime <> "/channels/dev/releases/1/source-map/" <> digest
+
+    signed = sign_assignment(%{draft | "rollout_basis_points" => 10_000}, private)
+
+    offer_path =
+      "/v3/updates?" <>
+        URI.encode_query(
+          Map.merge(draft["scope"], %{
+            "runtime" => runtime,
+            "channel" => "dev",
+            "installation" => "source-map-test"
+          })
+        )
+
+    artifact_path = "/v3/artifacts/" <> digest <> "?organization=org-a&project=project-a"
+
+    stage_release!(publisher, checked)
+    assert {"not_found\n", 1} = operator.(retain.(F.now() + 120))
+    assert %{status: 200} = release_request(publisher, base <> "/channels/dev/publish", signed)
+
+    url = String.to_charlist("http://127.0.0.1:#{publisher.port}" <> map_path)
+    headers = [{~c"authorization", String.to_charlist("Bearer " <> publisher.token)}]
+
+    for {method, request} <- [
+          {:get, {url, headers}},
+          {:put, {url, headers, ~c"application/octet-stream", ""}}
+        ] do
+      assert :error =
+               Phoenix.Router.route_info(
+                 MixerHostedWeb.Router,
+                 String.upcase(to_string(method)),
+                 map_path,
+                 "localhost"
+               )
+
+      assert {:ok, {{_, 404, _}, _, _}} = :httpc.request(method, request, [timeout: 4_000], [])
+    end
+
+    assert %{status: 200, body: offer} =
+             request(publisher, "public offer before retention", "GET", offer_path, "", [],
+               token: nil
+             )
+
+    assert %{status: 200, body: original} =
+             request(publisher, "public artifact before retention", "GET", artifact_path, "", [],
+               token: nil
+             )
+
+    assert original ==
+             ~s({"signed_manifest":#{checked.signed_manifest_bytes},"payload":"#{Base.encode64(checked.payload)}"})
+
+    assert {"disabled\n", 1} = source_map_command(publisher, marker, read, false)
+    assert {"unauthenticated\n", 1} = source_map_command(%{publisher | token: nil}, marker, read)
+    assert {"permission_denied\n", 1} = source_map_command(ctx, marker, read)
+    assert {"not_found\n", 1} = operator.(List.replace_at(read, 1, "2"))
+    assert {"not_found\n", 1} = operator.(List.replace_at(read, 2, F.sha("other artifact")))
+    refute File.exists?(output)
+
+    File.write!(input, map <> " ")
+    assert {"invalid_request\n", 1} = operator.(retain.(F.now() + 120))
+    File.write!(input, map)
+    assert {"invalid_request\n", 1} = operator.(retain.(F.now() - 1))
+
+    F.sql("ALTER ROLE http_release_writer SET log_parameter_max_length = -1")
+    assert {"storage_unavailable\n", 1} = operator.(retain.(F.now() + 120))
+    F.sql("ALTER ROLE http_release_writer SET log_parameter_max_length = 0")
+    F.sql("ALTER ROLE http_release_writer SET log_error_verbosity = 'default'")
+    assert {"storage_unavailable\n", 1} = operator.(retain.(F.now() + 120))
+    F.sql("ALTER ROLE http_release_writer SET log_error_verbosity = 'terse'")
+    assert [[0]] = F.sql("SELECT count(*) FROM public.mixer_release_source_maps").rows
+
+    deadline = F.now() + 20
+    success = {"retain_until=#{deadline}\n", 0}
+    assert ^success = operator.(retain.(deadline))
+    assert ^success = operator.(retain.(deadline))
+    assert {"conflict\n", 1} = operator.(retain.(deadline + 600))
+
+    assert [[^deadline, "person", ^digest, map_digest]] =
+             F.sql("""
+             SELECT retain_until, retained_by, artifact_sha256, encode(sha256(map_bytes), 'hex')
+             FROM public.mixer_release_source_maps
+             """).rows
+
+    assert map_digest == F.sha(map)
+
+    F.sql(
+      "UPDATE public.mixer_authz_memberships SET role='release_manager',revision=revision+1 WHERE id='member'"
+    )
+
+    assert {"permission_denied\n", 1} = operator.(read)
+    assert {"permission_denied\n", 1} = operator.(retain.(deadline))
+    refute File.exists?(output)
+
+    F.sql(
+      "UPDATE public.mixer_authz_memberships SET role='owner',revision=revision+1 WHERE id='member'"
+    )
+
+    assert [[false, false, false, false]] =
+             F.sql("""
+             SELECT has_table_privilege('mixer_release_delivery','public.mixer_release_source_maps','SELECT'),
+                    has_table_privilege('http_artifact_runtime','public.mixer_release_source_maps','SELECT'),
+                    has_table_privilege('http_release_writer','public.mixer_release_source_maps','UPDATE'),
+                    has_table_privilege('http_release_writer','public.mixer_release_source_maps','DELETE')
+             """).rows
+
+    assert {"0\n", 0} = purge_maps(ctx)
+
+    grant_deadline = deadline - 1
+
+    F.sql(
+      "UPDATE public.mixer_authz_memberships SET expires_at=$1,revision=revision+1 WHERE id='member'",
+      [grant_deadline]
+    )
+
+    assert ^success = source_map_command(publisher, marker, read, true, grant_deadline)
+
+    F.sql(
+      "UPDATE public.mixer_authz_memberships SET expires_at=NULL,revision=revision+1 WHERE id='member'"
+    )
+
+    if File.read!(output) != map, do: flunk("source-map read changed the signed bytes")
+    assert Bitwise.band(File.stat!(output).mode, 0o777) == 0o600
+    assert {"output_unavailable\n", 1} = operator.(read)
+    if File.read!(output) != map, do: flunk("the read overwrote its destination")
+
+    if :os.type() == {:unix, :darwin} do
+      acl_dir = Path.join(dir, "inherited-acl")
+      File.mkdir!(acl_dir)
+      File.chmod!(acl_dir, 0o700)
+
+      {"", 0} =
+        System.cmd("/bin/chmod", ["+a", "everyone allow read,file_inherit,only_inherit", acl_dir])
+
+      probe = Path.join(acl_dir, "empty-probe")
+      File.touch!(probe)
+      File.chmod!(probe, 0o600)
+      {listing, 0} = System.cmd("/bin/ls", ["-le", probe])
+      assert Bitwise.band(File.stat!(acl_dir).mode, 0o777) == 0o700
+      assert Bitwise.band(File.stat!(probe).mode, 0o777) == 0o600
+      assert File.stat!(probe).size == 0
+      assert Regex.match?(~r/everyone .*inherited.*read/, listing)
+      File.rm!(probe)
+
+      refused = Path.join(acl_dir, "refused")
+      assert {"output_unavailable\n", 1} = operator.(List.replace_at(read, 3, refused))
+      assert File.ls!(acl_dir) == []
+    end
+
+    Process.sleep(max(0, deadline * 1000 - System.system_time(:millisecond)))
+    expired_read = List.replace_at(read, 3, Path.join(dir, "expired"))
+    assert {"not_found\n", 1} = operator.(expired_read)
+    refute File.exists?(List.last(expired_read))
+    assert {"not_found\n", 1} = operator.(retain.(F.now() + 120))
+
+    assert {:ok, :ok} =
+             Admin.transaction(fn ->
+               F.sql("LOCK TABLE public.mixer_release_source_maps IN ACCESS EXCLUSIVE MODE")
+               started = System.monotonic_time(:millisecond)
+               assert {message, 3} = purge_maps(ctx)
+               assert String.contains?(message, "55P03")
+               assert System.monotonic_time(:millisecond) - started < 4_000
+
+               assert [[true]] =
+                        F.sql(
+                          "SELECT map_bytes IS NOT NULL FROM public.mixer_release_source_maps"
+                        ).rows
+
+               :ok
+             end)
+
+    assert {"1\n", 0} = purge_maps(ctx)
+    assert {"0\n", 0} = purge_maps(ctx)
+
+    assert [[^deadline, nil]] =
+             F.sql("SELECT retain_until, map_bytes FROM public.mixer_release_source_maps").rows
+
+    assert {"not_found\n", 1} = operator.(retain.(F.now() + 120))
+
+    assert %{status: 200, body: ^offer} =
+             request(publisher, "unchanged public offer", "GET", offer_path, "", [], token: nil)
+
+    assert %{status: 200, body: ^original} =
+             request(publisher, "unchanged public artifact", "GET", artifact_path, "", [],
+               token: nil
+             )
+
+    assert_received {:observed_http, :async_recv}
+    assert_received {:observed_http, :send}
+    refute_received :map_on_http
+  end
+
+  defp private_marker?(measurements, metadata, marker) do
+    data = :erlang.term_to_binary({measurements, metadata})
+    pieces = Map.get(measurements, :data, [])
+
+    :binary.match(data, marker) != :nomatch or
+      :binary.match(IO.iodata_to_binary(pieces), marker) != :nomatch
+  end
+
+  defp source_map_command(ctx, marker, args, enabled \\ true, expected_valid_until \\ nil) do
+    %{target: target, host: host, roots: roots} =
+      Application.fetch_env!(:mixer_hosted, :local_release_target)
+
+    config = %{
+      host: host,
+      channel: target.channel,
+      roots: Enum.map(roots, &Map.update!(&1, "public_key", fn key -> Base.encode64(key) end))
+    }
+
+    env = [
+      {"MIX_ENV", "test"},
+      {"MIXER_HOSTED_ROLE", "api"},
+      {"MIXER_IDENTITY_MODE", "disabled"},
+      {"MIXER_IDENTITY_CONFIG", nil},
+      {"MIXER_DATABASE_HOST", "127.0.0.1"},
+      {"MIXER_DATABASE_NAME", ctx.pg_settings[:database]},
+      {"MIXER_DATABASE_USER", "http_release_writer"},
+      {"MIXER_DATABASE_PASSWORD", "unused-disposable-trust-fixture"},
+      {"MIXER_SECRET_KEY_BASE", String.duplicate("private-map-fixture-", 4)},
+      {"MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD", "unused-disposable-reader-fixture"},
+      {"MIXER_LOCAL_RELEASE_CONFIG", Jason.encode!(config)},
+      {"MIXER_LOCAL_RELEASE_WRITER_ENABLED", "true"},
+      {"MIXER_LOCAL_SOURCE_MAP_RETENTION_ENABLED", to_string(enabled)},
+      {"MIXER_RELEASE_TOKEN", ctx.token}
+    ]
+
+    {roots, options} = Keyword.pop!(ctx.operator_identity_options, :ca_roots)
+    encoded_roots = Enum.map(roots, &Base.encode64/1)
+
+    bootstrap =
+      quote do
+        settings = Config.Reader.read!("config/runtime.exs", env: :dev)[:mixer_hosted]
+        {hosted, :disabled} = Keyword.fetch!(settings, :startup)
+
+        # Connect the normal operator to this test's disposable database and TLS JWKS authority.
+        identity = %MixerHosted.Identity.StartupConfig{
+          mode: :configured,
+          owner_options:
+            Keyword.put(
+              unquote(Macro.escape(options)),
+              :ca_roots,
+              Enum.map(unquote(encoded_roots), &Base.decode64!/1)
+            )
+        }
+
+        installation = %MixerHosted.BrowserAuth.Installation{
+          runtime: nil,
+          provider: {:fixture, nil, nil, nil}
+        }
+
+        repo =
+          Keyword.merge(Keyword.fetch!(settings, MixerHosted.Releases.WriterRepo),
+            port: unquote(ctx.pg_settings[:port]),
+            ssl: false,
+            telemetry_prefix: [:source_map_operator_repo]
+          )
+
+        settings =
+          Keyword.merge(settings,
+            startup: {%{hosted | identity_startup: identity}, installation}
+          )
+          |> Keyword.put(MixerHosted.Releases.WriterRepo, repo)
+
+        Application.put_all_env(mixer_hosted: settings)
+        {:ok, _} = Application.ensure_all_started(:telemetry)
+        Logger.configure(level: :warning)
+
+        :ok =
+          :telemetry.attach(
+            "private-map-listener-observation",
+            [:thousand_island, :listener, :start],
+            fn _, _, _, _ -> IO.puts(:stderr, "unexpected HTTP listener") end,
+            nil
+          )
+
+        :ok =
+          :telemetry.attach(
+            "private-map-observation",
+            [:source_map_operator_repo, :query],
+            fn _, measurements, metadata, _ ->
+              if String.contains?(metadata.query, "mixer_release_source_maps") or
+                   :binary.match(
+                     :erlang.term_to_binary({measurements, metadata}),
+                     unquote(marker)
+                   ) !=
+                     :nomatch do
+                IO.puts(:stderr, "unexpected private query telemetry")
+              end
+            end,
+            nil
+          )
+      end
+
+    mix = [
+      "run",
+      "--no-start",
+      "--no-compile",
+      "--eval",
+      Macro.to_string(bootstrap),
+      "--require",
+      "scripts/private-source-map.exs",
+      "--"
+    ]
+
+    {command, argv} =
+      case args do
+        ["read" | _] ->
+          driver = ~S'''
+          import json, runpy, sys
+          operator = runpy.run_path("priv/local_source_map_retention/private_output.py")
+          expected = json.loads(sys.argv[2])
+          if expected is not None:
+              publish = operator["publish"]
+              def check_cutoff(path, payload, deadline, valid_until):
+                  if valid_until != expected:
+                      raise RuntimeError("publisher did not receive the owner grant cutoff")
+                  return publish(path, payload, deadline, valid_until)
+              operator["main"].__globals__["publish"] = check_cutoff
+          sys.exit(operator["main"](sys.argv[3:], ("mix", *json.loads(sys.argv[1]))))
+          '''
+
+          {"python3",
+           [
+             "-I",
+             "-S",
+             "-B",
+             "-c",
+             driver,
+             Jason.encode!(mix),
+             Jason.encode!(expected_valid_until)
+             | args
+           ]}
+
+        _ ->
+          {"mix", mix ++ args}
+      end
+
+    {output, status} = System.cmd(command, argv, env: env, stderr_to_stdout: true)
+
+    if :binary.match(output, marker) != :nomatch, do: flunk("operator printed the private map")
+    {output, status}
+  end
+
+  defp purge_maps(ctx) do
+    System.cmd(
+      "psql",
+      ~w(-X -w -qAt -h 127.0.0.1 -U http_artifact_fixture_admin -d mixer_customer_artifact_http
+        -v ON_ERROR_STOP=1 -v VERBOSITY=verbose -p) ++
+        [
+          to_string(ctx.pg_settings[:port]),
+          "-f",
+          "priv/local_source_map_retention/purge_expired.sql"
+        ],
+      env: [{"PGSSLMODE", "disable"}],
+      stderr_to_stdout: true
+    )
+  end
+
+  defp provision_source_map_retention! do
+    path = "priv/local_source_map_retention/20261120000022_add_local_source_map_retention.exs"
+    version = 20_261_120_000_022
+    module = MixerHosted.Repo.Migrations.AddLocalSourceMapRetention
+    Code.require_file(path)
+    assert :ok = Ecto.Migrator.up(Migration, version, module, log: false)
+
+    F.sql("GRANT SELECT, INSERT ON public.mixer_release_source_maps TO http_release_writer")
+
+    F.sql("""
+    GRANT EXECUTE ON FUNCTION public.mixer_release_source_map_allowed(text,text,text,text,text,text,text,numeric,text)
+    TO http_release_writer
+    """)
+
+    on_exit(fn ->
+      F.sql("TRUNCATE public.mixer_release_source_maps")
+      assert :ok = Ecto.Migrator.down(Migration, version, module, log: false)
+    end)
   end
 
   test "signed promotion and rollback use the locked head and replay immutable results", ctx do
@@ -1892,13 +2338,12 @@ defmodule MixerHostedWeb.CustomerArtifactHTTPIntegrationTest do
            "add_local_release_cli_requests"}
         ] do
       if version == 20_261_120_000_004 and delivery == :delivery do
-        assert :ok =
-                 Ecto.Migrator.up(
-                   Migration,
-                   20_261_120_000_003,
-                   MixerHosted.Repo.Migrations.AddLocalReleaseDelivery,
-                   log: false
-                 )
+        assert Ecto.Migrator.up(
+                 Migration,
+                 20_261_120_000_003,
+                 MixerHosted.Repo.Migrations.AddLocalReleaseDelivery,
+                 log: false
+               ) in [:ok, :already_up]
       end
 
       unless Code.ensure_loaded?(module),

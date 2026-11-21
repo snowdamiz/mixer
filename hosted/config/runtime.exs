@@ -29,6 +29,10 @@ if config_env() != :test do
   end
 
   config :mixer_hosted,
+         :local_source_map_retention,
+         MixerHosted.Releases.RuntimeProvisioning.source_map_retention!(env, settings, writer)
+
+  config :mixer_hosted,
          :local_stage_promotion_directions,
          MixerHosted.Releases.RuntimeProvisioning.stage_promotion_directions!(
            env,

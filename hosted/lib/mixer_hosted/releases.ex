@@ -822,6 +822,38 @@ defmodule MixerHosted.Releases do
     end
   end
 
+  @doc false
+  def published_source_map_digest(repo, target, sequence, digest, now) do
+    check_writer!(repo)
+    WriterCatalog.check_artifact!(repo)
+    filter = Target.filter(target) ++ [sequence: Decimal.new(sequence), artifact_sha256: digest]
+
+    with {:ok, config} <- configured_target(target),
+         %Publication{} = published <-
+           repo.one(from(p in Publication, where: ^filter, where: p.action == "publish")),
+         {:ok, artifact} <- stored_artifact(repo, target, digest),
+         {:ok, signed} <- AssignmentV3.decode_signed(published.signed_assignment_bytes),
+         last =
+           if(published.previous_sequence,
+             do: Decimal.to_integer(published.previous_sequence),
+             else: 0
+           ),
+         {:ok, ^signed} <- verify(signed, artifact, config, target, last, now),
+         %{
+           "sequence" => ^sequence,
+           "artifact_sha256" => ^digest,
+           "rollout_basis_points" => rollout
+         }
+         when rollout == published.rollout_basis_points <- signed.assignment,
+         {:ok, %{"source_map_sha256" => map_digest}, _, _} <-
+           ArtifactAdmission.decode_signed_manifest(artifact.signed_manifest_bytes),
+         {:ok, ^config} <- configured_target(target) do
+      {:ok, map_digest}
+    else
+      _ -> {:error, :not_found}
+    end
+  end
+
   defp configured_target(target) do
     case Application.fetch_env(:mixer_hosted, :local_release_target) do
       {:ok, %{target: ^target, host: host, roots: roots} = config} when map_size(config) == 3 ->

@@ -12,6 +12,7 @@ defmodule MixerHosted.Releases.RuntimeProvisioning do
   @directions "MIXER_LOCAL_STAGE_PROMOTION_DIRECTIONS"
   @password "MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD"
   @writer_enabled "MIXER_LOCAL_RELEASE_WRITER_ENABLED"
+  @source_maps_enabled "MIXER_LOCAL_SOURCE_MAP_RETENTION_ENABLED"
   @reader "mixer_release_delivery"
   @max_config_bytes 65_536
   @max_additional_targets 32
@@ -49,6 +50,22 @@ defmodule MixerHosted.Releases.RuntimeProvisioning do
 
       _ ->
         invalid!(@writer_enabled)
+    end
+  end
+
+  @doc false
+  def source_map_retention!(env, %HostedConfig{role: role, endpoint: endpoint}, writer) do
+    case Map.get(env, @source_maps_enabled, "false") do
+      "false" ->
+        false
+
+      "true" when role == :api and is_list(writer) ->
+        if endpoint[:http][:ip] == {127, 0, 0, 1} and endpoint[:https] in [nil, false],
+          do: true,
+          else: invalid!(@source_maps_enabled)
+
+      _ ->
+        invalid!(@source_maps_enabled)
     end
   end
 

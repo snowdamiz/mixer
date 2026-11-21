@@ -1,0 +1,43 @@
+{
+  "observed_on": "2026-11-21",
+  "base_revision": "84ad3998de635e37f5f59896630548f5191c1be4",
+  "tested_hosted_git_tree": "e44e73d9b075fd200df1684f371fc24be11922ba",
+  "scope": "Private local source-map transfer, publication and Mix authorization custody with synthetic inputs.",
+  "environment": {
+    "host": "macOS 27.0.1 (26A434), arm64, local APFS",
+    "mix": "1.20.4",
+    "otp": "29, ERTS 17.1, unix_essio",
+    "python": "3.14.8",
+    "postgresql": "17.11"
+  },
+  "regression": {
+    "command": "python3 -B -m unittest discover -v -s test/python -p test_private_source_map_output.py",
+    "result": "21 passed",
+    "observations": [
+      "The actual Elixir entry script filled a constrained Unix socket with part of a synthetic map. The owning BEAM process was suspended while the peer drained those bytes. The test observed a writable notification queued before allowing the writer to resume after the earlier grant cutoff. The peer then received EOF with zero additional bytes.",
+      "The receiver refused expired, misordered and oversized headers before requesting the body. The receiver and publisher also refused expiry during receipt and publication permission.",
+      "Directed SIGINT before authorization response, during Popen handle handoff and after successful direct-child reap returned 130 with group absence observed. Injected EPERM during group observation returned 2 with the Mix PID and direct-child reap state and blocked publication."
+    ]
+  },
+  "signed_postgresql": {
+    "command": "MIX_ENV=test mix test test/mixer_hosted_web/customer_artifact_http_integration_test.exs --only private_source_map --seed 0",
+    "result": "1 passed, 12 excluded in an ACL-free temporary APFS checkout",
+    "observations": [
+      "The signed owner fixture observed the earlier owner-grant cutoff at the publisher and the unchanged stored retention timestamp on success. The export matched the signed map bytes. Existing owner, signature, no-clobber, ACL, expiry and purge checks passed.",
+      "The first run from the normal checkout refused output because a home-directory ancestor had an ACL. The corrected run used a fresh ACL-free path and the same output ACL checks.",
+      "The marker and its hex form were absent from PostgreSQL and Mix logs. The TLS fixture recorded 20 peer closures and zero active connections. PostgreSQL exited 0 with its group gone, the port could be rebound, and the disposable checkout and PostgreSQL scratch were removed."
+    ]
+  },
+  "source_checks": [
+    "MIX_ENV=test mix deps.get --check-locked",
+    "MIX_ENV=test mix compile --warnings-as-errors",
+    "MIX_ENV=test mix format --check-formatted lib/mixer_hosted/releases/source_maps.ex scripts/private-source-map.exs test/mixer_hosted_web/customer_artifact_http_integration_test.exs",
+    "git diff --cached --check",
+    "python3 -B scripts/check-verification-artifacts.py"
+  ],
+  "limits": [
+    "The launch control delayed delivery of a real handle to the foreground. It did not exercise a stuck OS spawn.",
+    "Custody observations cover the isolated Mix process group. Detached descendants, forced foreground termination, Linux and host loss were outside these runs.",
+    "Expiry checks occur in userspace before send attempts and rename authorization. Descheduling between a check and a syscall remains possible. Buffered bytes and an authorized rename can complete later. Clock sampling and elapsed time follow the host and runtime clocks."
+  ]
+}
