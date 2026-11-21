@@ -324,11 +324,19 @@ The full collector exposed two historical corruption fixtures that skipped v79
 while restoring v78. After correcting that hop, all 317 tests passed locally
 in 146.8 seconds in normal Python and 152.1 seconds with optimization.
 Both exact sparse runs admitted 559 source inputs, preserved their checkouts,
-and closed their owned scratch. Hosted v80 CI remains pending.
+and closed their owned scratch.
 [Corrected Services replay](verification/receipts/hosted-v80-services-collector-final.json)
 [Source admission](verification/receipts/hosted-v80-console-promotion-history-source-admission.json) ·
 [Console composition](verification/receipts/console-promotion-history-v80-composition.json) ·
 [Phoenix fixture replay](verification/receipts/console-promotion-v80-composed-phoenix.json)
+
+All three hosted v80 workflows passed at `5f4277e12e`. Phoenix passed 1,027
+tests with 32 skips and compared all 435 archived inputs. Identity Network
+passed both methods and verified removal of the three owned containers.
+Services passed 317 tests in each Python mode and passed Go module, vet, and
+race checks. Owned Engine passed all nine jobs, including both creates and
+all six Intel Android consumers.
+[Hosted v80 receipt](verification/receipts/hosted-v80-terminal-5f4277e1.json)
 
 ## November 20 generated release REST client
 
