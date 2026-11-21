@@ -1,0 +1,341 @@
+diff --git a/replay-restored-worker.py b/replay-restored-worker.py
+--- a/replay-restored-worker.py
++++ b/replay-restored-worker.py
+@@ -6,6 +6,7 @@
+ import os
+ from pathlib import Path
+ import platform
++import re
+ import secrets
+ import signal
+ import socket
+@@ -28,7 +29,7 @@
+     return False
+
+
+-def main(root):
++def main(root, continue_restored=False):
+     hosted = root / "hosted"
+     artifact_repair = root / "tests/integration/phoenix-release-restore/restore-artifact-key.sql"
+     database = "browser_ordinary_installation_r1422"
+@@ -57,7 +58,10 @@
+                 for role in (*provisioned_logins, "mixer_fixture", "release_fixture_uploader")}
+         for phase in ("source", "target")
+     }
+-    (root / "custody.jsonl").touch(exist_ok=False)
++    results = root / "continuation" if continue_restored else root
++    if continue_restored:
++        results.mkdir(mode=0o700)
++    (results / "custody.jsonl").touch(exist_ok=False)
+     env = {key: value for key, value in os.environ.items() if not key.startswith(("PG", "MIXER_"))}
+     env.update(MIX_ENV="test", HEX_OFFLINE="1", ERL_FLAGS="+S 6:6", TMPDIR=str(root), LC_ALL="C", PGCONNECT_TIMEOUT="3")
+     deadline = time.monotonic() + 615
+@@ -68,7 +72,7 @@
+             raise RuntimeError(message)
+
+     def custody(event, **record):
+-        with (root / "custody.jsonl").open("a") as journal:
++        with (results / "custody.jsonl").open("a") as journal:
+             journal.write(json.dumps({"event": event, **record}) + "\n")
+             journal.flush()
+             os.fsync(journal.fileno())
+@@ -76,12 +80,12 @@
+     custody("launcher", pid=os.getpid(), pgid=os.getpgrp(), root=str(root))
+
+     def step(name, argv, *, timeout=20, data=None, extra=None, cwd=root, expect=0):
+-        log_path = root / (name + ".log")
+-        error_path = root / (name + ".stderr")
++        log_path = results / (name + ".log")
++        error_path = results / (name + ".stderr")
+         evidence = {"name": name, "argv": [str(a).replace(str(root), "<scratch>") for a in argv]}
+         report["commands"].append(evidence)
+         with log_path.open("xb") as log, error_path.open("xb") as error:
+-            stdin = root / (name + ".stdin")
++            stdin = results / (name + ".stdin")
+             stdin.write_bytes(data or b"")
+             with stdin.open("rb") as source:
+                 evidence["groupAbsent"] = False
+@@ -151,6 +155,11 @@
+             reservation.bind(("127.0.0.1", 0))
+             ports[phase] = reservation.getsockname()[1]
+         check(phase == "source" or ports["source"] != ports["target"], "fixture ports reused")
++        start_database(phase)
++
++    def start_database(phase):
++        directory = root / phase
++        pgdata = directory / "pgdata"
+         argv = ["postgres", "-D", str(pgdata), "-h", "127.0.0.1", "-p", str(ports[phase]),
+                 "-k", "", "-c", "password_encryption=scram-sha-256",
+                 "-c", "log_min_error_statement=panic", "-c", "timezone=UTC",
+@@ -158,8 +167,9 @@
+         entry = {"argv": [a.replace(str(root), "<scratch>") for a in argv], "groupAbsent": False,
+                  "listenAddress": "127.0.0.1", "listenPort": ports[phase]}
+         report["clusters"][phase] = entry
+-        log_path = directory / "postgres.log"
+-        empty = directory / "postgres.stdin"
++        output = results if continue_restored else directory
++        log_path = output / "postgres.log"
++        empty = output / "postgres.stdin"
+         empty.touch(exist_ok=False)
+         with log_path.open("xb") as log, empty.open("rb") as source:
+             custody("launching", name=phase + "-postgres", argv=entry["argv"], log=str(log_path))
+@@ -188,7 +198,7 @@
+         negative = phase + "-wrong-password"
+         step(negative, ["psql", "-X", "-qAt", *login(phase), "-d", "postgres", "-c", "SELECT 1"],
+              extra={"PGPASSWORD": "intentionally-invalid-fixture-password"}, expect=2)
+-        check(b"password authentication failed" in (root / (negative + ".stderr")).read_bytes(),
++        check(b"password authentication failed" in (results / (negative + ".stderr")).read_bytes(),
+               "wrong-password probe did not observe SCRAM refusal")
+         entry.update(systemId=output[0], authentication=output[2:], wrongPasswordRefused=True)
+
+@@ -266,8 +276,12 @@
+             f"FROM (SELECT md5(to_jsonb(t)::text) AS d FROM {table} t) s;"
+             for table in relations))
+
+-    def privileges(phase):
+-        return psql(phase, "privileges", database, sql="""
++    def privileges(phase, owner_only_defaults=()):
++        extra_relations = "FALSE"
++        if owner_only_defaults:
++            entries = ",".join(f"('{schema}','{table}')" for schema, table in owner_only_defaults)
++            extra_relations = f"(n.nspname,c.relname) IN ({entries})"
++        return psql(phase, "privileges", database, sql=f"""
+ SELECT rolname, rolsuper, rolinherit, rolcreaterole, rolcreatedb,
+        rolcanlogin, rolreplication, rolbypassrls
+ FROM pg_roles WHERE rolname LIKE 'browser_%' OR rolname IN
+@@ -275,9 +289,13 @@
+    'mixer_customer_build_catalog_definer_v1') ORDER BY rolname;
+ SELECT pg_get_userbyid(roleid), pg_get_userbyid(member), admin_option, inherit_option, set_option
+ FROM pg_auth_members ORDER BY 1, 2, 3, 4, 5;
+-SELECT n.nspname, c.relname, pg_get_userbyid(c.relowner), (ARRAY(SELECT a::text FROM unnest(c.relacl) a ORDER BY a::text))::text
++SELECT n.nspname, c.relname, pg_get_userbyid(c.relowner),
++       (ARRAY(SELECT a::text
++              FROM unnest(coalesce(c.relacl, acldefault('r',c.relowner))) a
++              ORDER BY a::text))::text
+ FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+-WHERE n.nspname IN ('public','mixer_release_jobs') AND c.relacl IS NOT NULL ORDER BY 1, 2;
++WHERE n.nspname IN ('public','mixer_release_jobs')
++  AND (c.relacl IS NOT NULL OR {extra_relations}) ORDER BY 1, 2;
+ SELECT n.nspname, c.relname, x.attname,
+        (ARRAY(SELECT a::text FROM unnest(x.attacl) a ORDER BY a::text))::text
+ FROM pg_attribute x JOIN pg_class c ON c.oid=x.attrelid
+@@ -293,77 +311,133 @@
+ """)
+
+     try:
+-        report["tools"] = {
+-            "host": f"{platform.system()} {platform.machine()}",
+-            "python": platform.python_version(),
+-            **{command: step(command + "-version", [command, "--version"]).decode().strip()
+-               for command in ("mix", "postgres", "pg_dump", "pg_restore")}
+-        }
+-        step("deps-get", ["mix", "deps.get", "--check-locked"], timeout=120, cwd=hosted)
+-        step("deps-compile", ["mix", "deps.compile"], timeout=140, cwd=hosted)
+-        step("compile", ["mix", "compile", "--warnings-as-errors"], timeout=140, cwd=hosted)
+-        cluster("source")
+-        roles_sql += """
+-CREATE ROLE mixer_release_delivery LOGIN NOINHERIT;
+-CREATE ROLE mixer_release_processor LOGIN NOINHERIT NOSUPERUSER
+-  NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
+-CREATE ROLE release_fixture_uploader LOGIN NOINHERIT;
+-"""
+-        psql("source", "bootstrap-roles", "postgres", sql=roles_sql + set_login_passwords(
+-            "source", (*provisioned_logins, "release_fixture_uploader")))
+-        fixture("source")
+-        check(not report.get("nestedCommandUncertain"), "source provisioning custody unconfirmed")
+-        psql("source", "retire-uploader", "postgres", sql="DROP ROLE release_fixture_uploader;")
+-        psql("source", "freeze", "postgres",
+-             sql="ALTER SYSTEM SET default_transaction_read_only=on;\nSELECT pg_reload_conf();\nSELECT pg_sleep(0.1);\n")
+-        read_only = psql("source", "read-only", database, sql="SHOW default_transaction_read_only;").strip()
+-        check(read_only == b"on", "source database did not freeze")
+-        source_snapshot = snapshot("source")
+-        source_privileges = privileges("source")
+-        dump = root / "release.dump"
+-        roles = root / "roles.sql"
+-        step("source-dump", ["pg_dump", *login("source"), "-Fc", "-f", str(dump), database],
+-             extra=password_env("source"))
+-        step("source-dump-roles", ["pg_dumpall", *login("source"), "--roles-only", "--no-role-passwords",
+-                                    "--no-comments", "-f", str(roles)], extra=password_env("source"))
+-        report["backup"] = {"dumpSha256": digest(dump.read_bytes()),
+-                            "passwordFreeRolesSha256": digest(roles.read_bytes()),
+-                            "sourceSnapshotSha256": digest(source_snapshot),
+-                            "sourcePrivilegesSha256": digest(source_privileges)}
+-        stop("source")
+-
+-        cluster("target")
+-        check(report["clusters"]["source"]["systemId"] != report["clusters"]["target"]["systemId"],
+-              "restore did not create a distinct PostgreSQL cluster")
+-        absent_sql = f"SELECT NOT EXISTS (SELECT FROM pg_database WHERE datname='{database}');"
+-        check(psql("target", "db-absent", "postgres", sql=absent_sql).strip() == b"t",
+-              "destination database already present")
+-        # initdb has already created the bootstrap login. Retain all ALTERs and memberships.
+-        original_roles = roles.read_bytes()
+-        bootstrap = b"CREATE ROLE mixer_fixture;\n"
+-        check(original_roles.count(bootstrap) == 1 and b" PASSWORD " not in original_roles,
+-              "unexpected password-free role dump")
+-        restore_roles = root / "restore-roles.sql"
+-        restore_roles.write_bytes(original_roles.replace(bootstrap, b"", 1))
+-        report["backup"]["restoredRoleSqlSha256"] = digest(restore_roles.read_bytes())
+-        psql("target", "restore-roles", "postgres", file=restore_roles)
+-        psql("target", "set-login-passwords", "postgres",
+-             sql=set_login_passwords("target", provisioned_logins))
+-        step("target-restore", ["pg_restore", *login("target"), "--exit-on-error", "--create",
+-                                "-d", "postgres", str(dump)], extra=password_env("target"))
+-        psql("target", "repair-authz-checks", database, file=root / "scripts/restore-local-authz-expiry.sql")
+-        psql("target", "repair-artifact-check", database, file=artifact_repair)
+-        dest_snapshot = snapshot("target")
+-        report["backup"]["targetSnapshotSha256"] = digest(dest_snapshot)
+-        report["backup"]["snapshotsEqual"] = source_snapshot == dest_snapshot
+-        report["backup"]["counts"] = {
+-            row.split("|")[0]: int(row.split("|")[1]) for row in dest_snapshot.decode().splitlines()
+-        }
+-        check(source_snapshot == dest_snapshot, "restored pre-promotion ledger differs from backup")
+-        dest_privileges = privileges("target")
+-        report["backup"]["targetPrivilegesSha256"] = digest(dest_privileges)
+-        report["backup"]["roleMembershipsAndAclEqual"] = source_privileges == dest_privileges
+-        check(source_privileges == dest_privileges, "restored roles, memberships or ACLs differ")
++        if continue_restored:
++            earlier = json.loads((root / "campaign.json").read_bytes())
++            check(earlier["failure"] == "RuntimeError: restored roles, memberships or ACLs differ"
++                  and earlier["scratchRemovable"] and earlier["backup"]["snapshotsEqual"]
++                  and earlier["clusters"]["source"]["groupAbsent"]
++                  and earlier["clusters"]["target"]["groupAbsent"]
++                  and "target_result" not in earlier,
++                  "earlier run lacks closed pre-application restore")
++            report["tools"] = earlier["tools"]
++            report["backup"] = earlier["backup"].copy()
++            report["source_result"] = earlier["source_result"]
++            report["sourceExUnit"] = earlier["sourceExUnit"]
++            source_acl = (root / "source-privileges.log").read_bytes()
++            raw_target_acl = (root / "target-privileges.log").read_bytes()
++            check(digest(source_acl) == earlier["backup"]["sourcePrivilegesSha256"]
++                  and digest(raw_target_acl) == earlier["backup"]["targetPrivilegesSha256"],
++                  "earlier ACL evidence digest mismatch")
++            owner_defaults = (
++                ("mixer_release_jobs", "offer_materializations"),
++                ("public", "mixer_customer_artifact_heads"),
++                ("public", "mixer_customer_artifacts"),
++                ("public", "mixer_customer_audit_events"),
++                ("public", "mixer_customer_idempotency"),
++                ("public", "mixer_release_delivery_enrollments"),
++                ("public", "mixer_stage_promotion_directions"),
++            )
++            removed = {
++                f"{schema}|{table}|browser_schema_owner|"
++                "{browser_schema_owner=arwdDxtm/browser_schema_owner}".encode()
++                for schema, table in owner_defaults
++            }
++            check(set(source_acl.splitlines()) - set(raw_target_acl.splitlines()) == removed
++                  and set(raw_target_acl.splitlines()) <= set(source_acl.splitlines()),
++                  "earlier diff includes a change beyond owner-only ACL representation")
++
++            # The target's disposable credentials were persisted only to its own inputs.
++            passwords["target"]["mixer_fixture"] = (root / "target" / "bootstrap-password").read_text().strip()
++            saved_sql = (root / "target-set-login-passwords.stdin").read_text()
++            matches = re.findall(r"ALTER ROLE (\w+) PASSWORD '([0-9a-f]{48})';", saved_sql)
++            check(len(matches) == len(provisioned_logins)
++                  and {role for role, _ in matches} == set(provisioned_logins), "target passwords unavailable")
++            passwords["target"].update(matches)
++            original_target = earlier["clusters"]["target"]
++            ports["target"] = original_target["listenPort"]
++            start_database("target")
++            check(report["clusters"]["target"]["systemId"] == original_target["systemId"],
++                  "continuation connected to a different PostgreSQL cluster")
++            verify = snapshot("target")
++            check(digest(verify) == earlier["backup"]["targetSnapshotSha256"],
++                  "restored rows changed before continuation")
++            effective_acl = privileges("target", owner_defaults)
++            report["backup"]["effectiveTargetPrivilegesSha256"] = digest(effective_acl)
++            report["backup"]["effectiveRolesMembershipsAndAclEqual"] = source_acl == effective_acl
++            report["backup"]["ownerOnlyAclRepresentationDifferences"] = [list(pair) for pair in owner_defaults]
++            check(source_acl == effective_acl, "restored effective roles, memberships or ACLs differ")
++        else:
++            report["tools"] = {
++                "host": f"{platform.system()} {platform.machine()}",
++                "python": platform.python_version(),
++                **{command: step(command + "-version", [command, "--version"]).decode().strip()
++                   for command in ("mix", "postgres", "pg_dump", "pg_restore")}
++            }
++            step("deps-get", ["mix", "deps.get", "--check-locked"], timeout=120, cwd=hosted)
++            step("deps-compile", ["mix", "deps.compile"], timeout=140, cwd=hosted)
++            step("compile", ["mix", "compile", "--warnings-as-errors"], timeout=140, cwd=hosted)
++            cluster("source")
++            roles_sql += """
++    CREATE ROLE mixer_release_delivery LOGIN NOINHERIT;
++    CREATE ROLE mixer_release_processor LOGIN NOINHERIT NOSUPERUSER
++      NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
++    CREATE ROLE release_fixture_uploader LOGIN NOINHERIT;
++    """
++            psql("source", "bootstrap-roles", "postgres", sql=roles_sql + set_login_passwords(
++                "source", (*provisioned_logins, "release_fixture_uploader")))
++            fixture("source")
++            check(not report.get("nestedCommandUncertain"), "source provisioning custody unconfirmed")
++            psql("source", "retire-uploader", "postgres", sql="DROP ROLE release_fixture_uploader;")
++            psql("source", "freeze", "postgres",
++                 sql="ALTER SYSTEM SET default_transaction_read_only=on;\nSELECT pg_reload_conf();\nSELECT pg_sleep(0.1);\n")
++            read_only = psql("source", "read-only", database, sql="SHOW default_transaction_read_only;").strip()
++            check(read_only == b"on", "source database did not freeze")
++            source_snapshot = snapshot("source")
++            source_privileges = privileges("source")
++            dump = root / "release.dump"
++            roles = root / "roles.sql"
++            step("source-dump", ["pg_dump", *login("source"), "-Fc", "-f", str(dump), database],
++                 extra=password_env("source"))
++            step("source-dump-roles", ["pg_dumpall", *login("source"), "--roles-only", "--no-role-passwords",
++                                        "--no-comments", "-f", str(roles)], extra=password_env("source"))
++            report["backup"] = {"dumpSha256": digest(dump.read_bytes()),
++                                "passwordFreeRolesSha256": digest(roles.read_bytes()),
++                                "sourceSnapshotSha256": digest(source_snapshot),
++                                "sourcePrivilegesSha256": digest(source_privileges)}
++            stop("source")
++
++            cluster("target")
++            check(report["clusters"]["source"]["systemId"] != report["clusters"]["target"]["systemId"],
++                  "restore did not create a distinct PostgreSQL cluster")
++            absent_sql = f"SELECT NOT EXISTS (SELECT FROM pg_database WHERE datname='{database}');"
++            check(psql("target", "db-absent", "postgres", sql=absent_sql).strip() == b"t",
++                  "destination database already present")
++            # initdb has already created the bootstrap login. Retain all ALTERs and memberships.
++            original_roles = roles.read_bytes()
++            bootstrap = b"CREATE ROLE mixer_fixture;\n"
++            check(original_roles.count(bootstrap) == 1 and b" PASSWORD " not in original_roles,
++                  "unexpected password-free role dump")
++            restore_roles = root / "restore-roles.sql"
++            restore_roles.write_bytes(original_roles.replace(bootstrap, b"", 1))
++            report["backup"]["restoredRoleSqlSha256"] = digest(restore_roles.read_bytes())
++            psql("target", "restore-roles", "postgres", file=restore_roles)
++            psql("target", "set-login-passwords", "postgres",
++                 sql=set_login_passwords("target", provisioned_logins))
++            step("target-restore", ["pg_restore", *login("target"), "--exit-on-error", "--create",
++                                    "-d", "postgres", str(dump)], extra=password_env("target"))
++            psql("target", "repair-authz-checks", database, file=root / "scripts/restore-local-authz-expiry.sql")
++            psql("target", "repair-artifact-check", database, file=artifact_repair)
++            dest_snapshot = snapshot("target")
++            report["backup"]["targetSnapshotSha256"] = digest(dest_snapshot)
++            report["backup"]["snapshotsEqual"] = source_snapshot == dest_snapshot
++            report["backup"]["counts"] = {
++                row.split("|")[0]: int(row.split("|")[1]) for row in dest_snapshot.decode().splitlines()
++            }
++            check(source_snapshot == dest_snapshot, "restored pre-promotion ledger differs from backup")
++            dest_privileges = privileges("target")
++            report["backup"]["targetPrivilegesSha256"] = digest(dest_privileges)
++            report["backup"]["roleMembershipsAndAclEqual"] = source_privileges == dest_privileges
++            check(source_privileges == dest_privileges, "restored roles, memberships or ACLs differ")
+         fixture("target")
+
+         processor = report["target_processor"]
+@@ -394,7 +468,7 @@
+             and all(listener["rebound"] for listener in report["rebinds"])
+         )
+         report["durationSeconds"] = round(time.monotonic() - started, 2)
+-        with (root / "campaign.json").open("x") as evidence:
++        with (results / "campaign.json").open("x") as evidence:
+             evidence.write(json.dumps(report, indent=2) + "\n")
+             evidence.flush()
+             os.fsync(evidence.fileno())
+@@ -409,4 +483,4 @@
+
+ if __name__ == "__main__":
+     os.umask(0o077)
+-    sys.exit(main(Path(sys.argv[1]).resolve(strict=True)))
++    sys.exit(main(Path(sys.argv[1]).resolve(strict=True), sys.argv[2:] == ["--continue-restored"]))

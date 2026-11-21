@@ -1,0 +1,1364 @@
+{
+  "status": "pass",
+  "scope": "Local L05/L07 paired signed staging promotion, SCRAM PostgreSQL restore, restricted real Oban release processor, and Phoenix/Bandit public delivery. Synthetic local OIDC and release signer. No native build, stock CLI rebuild, external proxy, device, production, or GA qualification.",
+  "sourceRevision": "55b4d634d3051ebc44771485c0494c8caab9077a",
+  "sourceTree": "5f4254b355f8073b22f49d9ae12da0d2898e9b05",
+  "tools": {
+    "host": "Darwin arm64",
+    "python": "3.14.8",
+    "mix": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:6:6] [ds:6:6:10] [async-threads:1] [jit] [dtrace]\n\nMix 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "pg_dump": "pg_dump (PostgreSQL) 17.11 (Homebrew)",
+    "pg_restore": "pg_restore (PostgreSQL) 17.11 (Homebrew)"
+  },
+  "projection": {
+    "gitArchiveSha256": "b315f08c39e282ae5714786495bec20cb0ce1af6946b49d06df6400731956c20",
+    "paths": [
+      "hosted",
+      "services/protocol/testdata",
+      "docs/operations",
+      "scripts/restore-local-authz-expiry.sql",
+      "tests/integration/phoenix-release-restore/restore-artifact-key.sql"
+    ],
+    "patchesInOrder": [
+      {
+        "fromPinnedRevision": "verification/receipts/l05-l07-restored-stage-promotion-2acaac67-overlay.patch",
+        "sha256": "561a207359b52f125666a350e327246e8948f9759689c1e2bd45d4a6374f4791"
+      },
+      {
+        "path": "verification/receipts/l05-l07-restored-release-worker-55b4d634-afterimages.patch",
+        "sha256": "c1cd203f747287fe985a5e7a294fe58b9b496c44ddc7462d100061c0c5edeb85"
+      },
+      {
+        "path": "verification/receipts/l05-l07-restored-release-worker-scram-55b4d634-delta.patch",
+        "sha256": "49242f63f64156979d41af37bcb97a23c69e13983f4a948384817e16020160a2"
+      },
+      {
+        "path": "verification/receipts/l05-l07-restored-release-worker-scram-55b4d634-acl-continuation.patch",
+        "sha256": "69fb0ceee433bebfcbefc41dbac292acfc493fd5df38db750664fcd649b44fa2"
+      }
+    ],
+    "verifiedByIndependentPatchApplicationAndByteComparison": true,
+    "productionPoolContractChanged": false,
+    "priorSocketReceiptUnchangedSha256": "047650aac4c1c78d663d79c8e903b39eb53c72e44783988d19d55e6e49660df1",
+    "pinnedCheckRepairsSha256": {
+      "scripts/restore-local-authz-expiry.sql": "1012536ad091cfd43d8e06f627dc05b2d3a7316af56a58f8e6c8dfa29eb552ad",
+      "tests/integration/phoenix-release-restore/restore-artifact-key.sql": "6fe21ea57ff4a24e410193848beeeca2c6e7c5e994ea472bc0d8c81c207f9f0c"
+    },
+    "firstScramRunnerSha256": "eececf0b93b4ee9e52f9711f32e7808c2729a49af71cb53e1b9a7bd3690bd7a9",
+    "continuationAfterimagesSha256": {
+      "hosted/test/mixer_hosted/releases/browser_publication_test.exs": "295be725516d018e4cf85d88e130e45b6e4408bfb8fefd4b82919250f6c5136b",
+      "hosted/test/support/ordinary_browser_startup_fixture.ex": "19d1922c0c6e5315c99830d2501ed370c96e563c3edc4fb4a477ac4670bfe4f7",
+      "replay-restored-worker.py": "ca7010a232302f55cf5387d3b1ee16fafcdaece4c0fdf899ae5b6da9d55204d7"
+    }
+  },
+  "commands": {
+    "runnerStart": [
+      "python3",
+      "-B",
+      "replay-restored-worker.py",
+      "<scratch>"
+    ],
+    "runnerResume": [
+      "python3",
+      "-B",
+      "replay-restored-worker.py",
+      "<scratch>",
+      "--continue-restored"
+    ],
+    "env": {
+      "MIX_ENV": "test",
+      "HEX_OFFLINE": "1",
+      "ERL_FLAGS": "+S 6:6"
+    },
+    "sourceAndRestore": [
+      {
+        "name": "mix-version",
+        "argv": [
+          "mix",
+          "--version"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 81138,
+        "exit": 0,
+        "stdoutSha256": "f95830f421fe134a64566dcc31627a1b6b6610d5e6dfe60f46568906e35ae717",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "postgres-version",
+        "argv": [
+          "postgres",
+          "--version"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 81200,
+        "exit": 0,
+        "stdoutSha256": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "pg_dump-version",
+        "argv": [
+          "pg_dump",
+          "--version"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 81209,
+        "exit": 0,
+        "stdoutSha256": "c5dfee9db4cb4cd25a66631a3eb071bd20fd61fd9bca7f893ed553c147f48635",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "pg_restore-version",
+        "argv": [
+          "pg_restore",
+          "--version"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 81212,
+        "exit": 0,
+        "stdoutSha256": "56de7cd80d5d5bedf469d348cb58c69be5f8915a299015d4294b31d383f962fc",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "deps-get",
+        "argv": [
+          "mix",
+          "deps.get",
+          "--check-locked"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 81213,
+        "exit": 0,
+        "stdoutSha256": "4838df171d1f84f5ee636028ff6a6ea9ff3ba35adeb81eca9ef85f3e0c2ed013",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "deps-compile",
+        "argv": [
+          "mix",
+          "deps.compile"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 81293,
+        "exit": 0,
+        "stdoutSha256": "2a51695e7785df868471ba2a1d7d0f02c60b53199a54a65cae78cff720e602a5",
+        "stderrSha256": "79d9da2d35209d5a838063b212747bc1b6d64f41b27a90d95e54fa73e1c18678"
+      },
+      {
+        "name": "compile",
+        "argv": [
+          "mix",
+          "compile",
+          "--warnings-as-errors"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 86524,
+        "exit": 0,
+        "stdoutSha256": "349176693b49ff9924ccab34fc8cb77a1c0532eaf681e15aae954d6df5ba5210",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "source-initdb",
+        "argv": [
+          "initdb",
+          "-D",
+          "<scratch>/source/pgdata",
+          "-U",
+          "mixer_fixture",
+          "--auth-local=scram-sha-256",
+          "--auth-host=scram-sha-256",
+          "--pwfile",
+          "<scratch>/source/bootstrap-password",
+          "--no-locale",
+          "-E",
+          "UTF8"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 86954,
+        "exit": 0,
+        "stdoutSha256": "094a8ffc3cfb73525ffbd74e0014f940f6510b4f7449886f97accfc56150608e",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "source-identity",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56599",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 87046,
+        "exit": 0,
+        "stdoutSha256": "73a7e8cb717bc1bdaf6bc78eacb2981a3fb4fb6bb13a3f0b7cc5d043e09c8a61",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "source-wrong-password",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56599",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "postgres",
+          "-c",
+          "SELECT 1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 87052,
+        "exit": 2,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "32377794a33b4cf5bfcdcaeb57c11ea660008d21c62faba1b467d9df78c35410"
+      },
+      {
+        "name": "source-bootstrap-roles",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56599",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 87060,
+        "exit": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "source-http-test",
+        "argv": [
+          "mix",
+          "test",
+          "--warnings-as-errors",
+          "--trace",
+          "--no-color",
+          "--seed",
+          "0",
+          "--timeout",
+          "90000",
+          "test/mixer_hosted/releases/browser_publication_test.exs:488"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 87089,
+        "exit": 0,
+        "stdoutSha256": "4d0d174995449036fa0f868b53f666227e4c2902899b529608ccf6c4c8cdc6b8",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "source-retire-uploader",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56599",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92847,
+        "exit": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "source-freeze",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56599",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92849,
+        "exit": 0,
+        "stdoutSha256": "7d673a14a860061d83fb0e5ffb71dd98b03423c70357389d3b33c939ae6f74eb",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "source-read-only",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56599",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "browser_ordinary_installation_r1422",
+          "-v",
+          "ON_ERROR_STOP=1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92851,
+        "exit": 0,
+        "stdoutSha256": "b6ac5bc39377e44ee783dff946f6703a994f5eb31a438e69dc0735b40060d2e8",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "source-snapshot",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56599",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "browser_ordinary_installation_r1422",
+          "-v",
+          "ON_ERROR_STOP=1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92856,
+        "exit": 0,
+        "stdoutSha256": "4ce26717b98a6bc47f8efacad81295d31eb75a1016be075ec059d7ecf0b93bdc",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "source-privileges",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56599",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "browser_ordinary_installation_r1422",
+          "-v",
+          "ON_ERROR_STOP=1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92861,
+        "exit": 0,
+        "stdoutSha256": "c9bf9a59e8ec22d4f5b50e44ed7d9612c52c61b78238da79133d2a8e71cc58d0",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "source-dump",
+        "argv": [
+          "pg_dump",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56599",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-Fc",
+          "-f",
+          "<scratch>/release.dump",
+          "browser_ordinary_installation_r1422"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92865,
+        "exit": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "source-dump-roles",
+        "argv": [
+          "pg_dumpall",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56599",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "--roles-only",
+          "--no-role-passwords",
+          "--no-comments",
+          "-f",
+          "<scratch>/roles.sql"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92868,
+        "exit": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "target-initdb",
+        "argv": [
+          "initdb",
+          "-D",
+          "<scratch>/target/pgdata",
+          "-U",
+          "mixer_fixture",
+          "--auth-local=scram-sha-256",
+          "--auth-host=scram-sha-256",
+          "--pwfile",
+          "<scratch>/target/bootstrap-password",
+          "--no-locale",
+          "-E",
+          "UTF8"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92880,
+        "exit": 0,
+        "stdoutSha256": "92bffa5a237842887188d5607ea7af0217f3622508f5cd0a482000c517bc16b7",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "target-identity",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56729",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92908,
+        "exit": 0,
+        "stdoutSha256": "ae8dde46a62a8c3a2111a59c8d75f93266a09aad5a7b55da1211d76324539acf",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "target-wrong-password",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56729",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "postgres",
+          "-c",
+          "SELECT 1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92920,
+        "exit": 2,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "2f31d78f0c550f97b4824e6483518c5fc1ca9536e88c83ef2786f5330468d5e7"
+      },
+      {
+        "name": "target-db-absent",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56729",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92922,
+        "exit": 0,
+        "stdoutSha256": "fe8edeeb98cc6d3b93cf2d57000254b84bd9eba34b4df7ce4b87db8b937b7703",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "target-restore-roles",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56729",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-f",
+          "<scratch>/restore-roles.sql"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92924,
+        "exit": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "target-set-login-passwords",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56729",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92926,
+        "exit": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "target-restore",
+        "argv": [
+          "pg_restore",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56729",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "--exit-on-error",
+          "--create",
+          "-d",
+          "postgres",
+          "<scratch>/release.dump"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92928,
+        "exit": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "target-repair-authz-checks",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56729",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "browser_ordinary_installation_r1422",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-f",
+          "<scratch>/scripts/restore-local-authz-expiry.sql"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92938,
+        "exit": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "target-repair-artifact-check",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56729",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "browser_ordinary_installation_r1422",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-f",
+          "<scratch>/tests/integration/phoenix-release-restore/restore-artifact-key.sql"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92940,
+        "exit": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "target-snapshot",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56729",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "browser_ordinary_installation_r1422",
+          "-v",
+          "ON_ERROR_STOP=1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92942,
+        "exit": 0,
+        "stdoutSha256": "4ce26717b98a6bc47f8efacad81295d31eb75a1016be075ec059d7ecf0b93bdc",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "target-privileges",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56729",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "browser_ordinary_installation_r1422",
+          "-v",
+          "ON_ERROR_STOP=1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 92944,
+        "exit": 0,
+        "stdoutSha256": "f60108ae866be244aac13fbf6afad53cde3ca59e93e897c8c7b44dde0381bebc",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "sameTargetContinuation": [
+      {
+        "name": "target-identity",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56729",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "postgres",
+          "-v",
+          "ON_ERROR_STOP=1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 1605,
+        "exit": 0,
+        "stdoutSha256": "ae8dde46a62a8c3a2111a59c8d75f93266a09aad5a7b55da1211d76324539acf",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "target-wrong-password",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56729",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "postgres",
+          "-c",
+          "SELECT 1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 1607,
+        "exit": 2,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "2f31d78f0c550f97b4824e6483518c5fc1ca9536e88c83ef2786f5330468d5e7"
+      },
+      {
+        "name": "target-snapshot",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56729",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "browser_ordinary_installation_r1422",
+          "-v",
+          "ON_ERROR_STOP=1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 1609,
+        "exit": 0,
+        "stdoutSha256": "4ce26717b98a6bc47f8efacad81295d31eb75a1016be075ec059d7ecf0b93bdc",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "target-privileges",
+        "argv": [
+          "psql",
+          "-X",
+          "-qAt",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56729",
+          "-U",
+          "mixer_fixture",
+          "-w",
+          "-d",
+          "browser_ordinary_installation_r1422",
+          "-v",
+          "ON_ERROR_STOP=1"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 1611,
+        "exit": 0,
+        "stdoutSha256": "c9bf9a59e8ec22d4f5b50e44ed7d9612c52c61b78238da79133d2a8e71cc58d0",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "target-http-test",
+        "argv": [
+          "mix",
+          "test",
+          "--warnings-as-errors",
+          "--trace",
+          "--no-color",
+          "--seed",
+          "0",
+          "--timeout",
+          "90000",
+          "test/mixer_hosted/releases/browser_publication_test.exs:488"
+        ],
+        "groupAbsent": true,
+        "pidPgid": 1613,
+        "exit": 0,
+        "stdoutSha256": "f8f490f38076fe9cd29acfbcd60ab0fca819725b3bb2f0863c08ba85b374acfc",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "nestedSourceProvision": [
+      "psql launch provision-local-release-jobs.sql",
+      "psql returned 0"
+    ],
+    "replayInstructions": "Export the listed paths at sourceRevision to fresh private scratch. Apply the first three patches in order and run runnerStart. This records the closed raw-ACL mismatch on PostgreSQL 17.11. Apply the fourth patch and run runnerResume in the same scratch to check effective privileges and test the restored API, Oban and delivery. Preserve the journals and scratch on unclear custody."
+  },
+  "sourcePromotion": {
+    "path": "/v3/orgs/org-a/projects/project-a/apps/fieldlog/release-promotions/dev-to-stage",
+    "status": 200,
+    "receipt": {
+      "android": {
+        "artifact_sha256": "55d4910d15675d87a9466a14e0ab63349e729826e77cd3fdb6df55d0bf8124d6",
+        "rollout_basis_points": 10000,
+        "sequence": 12
+      },
+      "delivery": "local_only",
+      "ios": {
+        "artifact_sha256": "1644d91a8412e30ba94289ec29c6d46f640050ae2428c58b6e02c6bdb8732da6",
+        "rollout_basis_points": 10000,
+        "sequence": 3
+      }
+    },
+    "request_body_sha256": "8c3b8b78629918f8631c0e88a38487414e41bf8147bf5abd68fe4cdc2efc5912",
+    "exact_retry_body": true,
+    "retry_state_equal": true,
+    "writer": "browser_ordinary",
+    "exUnit": [
+      "",
+      "  * test commits a new paired promotion on the restored ordinary database (14577.3ms) [L#488]",
+      "",
+      "Finished in 17.3 seconds (0.00s async, 17.3s sync)",
+      "",
+      "Result: 1 passed, 7 excluded"
+    ]
+  },
+  "restore": {
+    "dumpSha256": "435ae97932f8cbc559b4a30f96abe77728ae54a781254862f3a7697d8e544f22",
+    "passwordFreeRolesSha256": "ce7a5e45d8c682ac243bff035ab70ffe8989d13ff3bc52f6bef71308dd225c17",
+    "sourceSnapshotSha256": "4ce26717b98a6bc47f8efacad81295d31eb75a1016be075ec059d7ecf0b93bdc",
+    "sourcePrivilegesSha256": "c9bf9a59e8ec22d4f5b50e44ed7d9612c52c61b78238da79133d2a8e71cc58d0",
+    "restoredRoleSqlSha256": "0a45b7cc8aec364a40fa66b14b7458a651ece12562ce33f2a9950d21b02f515b",
+    "targetSnapshotSha256": "4ce26717b98a6bc47f8efacad81295d31eb75a1016be075ec059d7ecf0b93bdc",
+    "snapshotsEqual": true,
+    "counts": {
+      "public.schema_migrations": 18,
+      "public.mixer_release_heads": 4,
+      "public.mixer_release_publications": 6,
+      "public.mixer_stage_promotion_bindings": 1,
+      "public.mixer_stage_promotion_directions": 1,
+      "public.mixer_release_delivery_enrollments": 4,
+      "public.mixer_customer_artifacts": 8,
+      "public.mixer_customer_audit_events": 8,
+      "public.mixer_customer_artifact_heads": 1,
+      "public.mixer_customer_idempotency": 8,
+      "public.mixer_authz_principals": 2,
+      "public.mixer_authz_bindings": 2,
+      "public.mixer_authz_memberships": 54,
+      "public.mixer_authz_families": 2,
+      "public.mixer_authz_credentials": 2,
+      "mixer_release_jobs.oban_jobs": 6,
+      "mixer_release_jobs.offer_materializations": 0
+    },
+    "targetPrivilegesSha256": "f60108ae866be244aac13fbf6afad53cde3ca59e93e897c8c7b44dde0381bebc",
+    "roleMembershipsAndAclEqual": false,
+    "effectiveTargetPrivilegesSha256": "c9bf9a59e8ec22d4f5b50e44ed7d9612c52c61b78238da79133d2a8e71cc58d0",
+    "effectiveRolesMembershipsAndAclEqual": true,
+    "ownerOnlyAclRepresentationDifferences": [
+      [
+        "mixer_release_jobs",
+        "offer_materializations"
+      ],
+      [
+        "public",
+        "mixer_customer_artifact_heads"
+      ],
+      [
+        "public",
+        "mixer_customer_artifacts"
+      ],
+      [
+        "public",
+        "mixer_customer_audit_events"
+      ],
+      [
+        "public",
+        "mixer_customer_idempotency"
+      ],
+      [
+        "public",
+        "mixer_release_delivery_enrollments"
+      ],
+      [
+        "public",
+        "mixer_stage_promotion_directions"
+      ]
+    ],
+    "sourceQuiescedReadOnly": true,
+    "pgRestoreInvocations": 1,
+    "targetDatabaseAbsentBeforeRestore": true,
+    "authentication": "Both clusters bound only to IPv4 loopback and rejected the wrong password. Role-specific disposable passwords were distinct per cluster. Restored SQL contained no passwords. Only the bootstrap role declaration already installed by initdb was omitted. Target test passwords were set separately.",
+    "aclObservation": "The initial comparison stopped on seven explicit owner-only table ACLs represented as NULL on restore. PostgreSQL acldefault produced effective target privileges matching the source. The continuation confirmed the same target system identifier and frozen snapshot. No grants or policies were edited to pass this comparison."
+  },
+  "restoredPromotion": {
+    "path": "/v3/orgs/org-a/projects/project-a/apps/fieldlog/release-promotions/dev-to-stage",
+    "status": 200,
+    "receipt": {
+      "android": {
+        "artifact_sha256": "e43914b4388df89f6fa163f55c5fcb1ad77134c6e3d02e08c8c38ab92ec4f528",
+        "rollout_basis_points": 10000,
+        "sequence": 13
+      },
+      "delivery": "local_only",
+      "ios": {
+        "artifact_sha256": "d3ce8cc6e7322476caebf3b94c87f995997ffb23bf99da4491113cf6349bb2fb",
+        "rollout_basis_points": 10000,
+        "sequence": 4
+      }
+    },
+    "request_body_sha256": "1b0fbc68e7179b8d30c255e9abdfd13057149c5ea5ea63a4939aac9690601237",
+    "exact_retry_body": true,
+    "retry_state_equal": true,
+    "writer": "browser_ordinary",
+    "exUnit": [
+      "",
+      "  * test commits a new paired promotion on the restored ordinary database (4333.1ms) [L#488]",
+      "",
+      "Finished in 5.9 seconds (0.00s async, 5.9s sync)",
+      "",
+      "Result: 1 passed, 7 excluded"
+    ],
+    "previousPromotionRead": true,
+    "otherTenantPromotionReceiptHttp": 404
+  },
+  "processor": {
+    "profile": "releases_v1",
+    "queue": "releases",
+    "engine": "Oban.Engines.Basic",
+    "role": "mixer_release_processor",
+    "ipv4_loopback": true,
+    "projections_before": 0,
+    "projections_after": 8,
+    "allEightJobsCompletedOnAttemptOne": true,
+    "oneExactProjectionPerPublication": true,
+    "checkedDatabaseCurrentAndSessionUser": "mixer_release_processor",
+    "checkedDatabaseSuperuserAndBypassRls": [
+      false,
+      false
+    ]
+  },
+  "delivery": {
+    "apiRestartedAfterProcessorStop": true,
+    "routes": [
+      "GET /v3/updates",
+      "GET /v3/artifacts/:digest"
+    ],
+    "reader": "mixer_release_delivery",
+    "platforms": {
+      "android": {
+        "delivery": {
+          "target": {
+            "app": "fieldlog",
+            "channel": "candidate",
+            "environment": "staging",
+            "organization": "org-a",
+            "platform": "android",
+            "project": "project-a",
+            "runtime": "3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432"
+          },
+          "installation": "restored-worker-fixture",
+          "sequence": 13,
+          "offer_path": "/v3/updates?app=fieldlog&channel=candidate&environment=staging&installation=restored-worker-fixture&organization=org-a&platform=android&project=project-a&runtime=3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432",
+          "artifact_path": "/v3/artifacts/e43914b4388df89f6fa163f55c5fcb1ad77134c6e3d02e08c8c38ab92ec4f528?app=fieldlog&channel=candidate&environment=staging&organization=org-a&platform=android&project=project-a&runtime=3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432",
+          "payload_sha256": "1369a487fef29bcd6c919c69756b3e05d6355b1e5d4ffa3ab94006f2d8e044a8",
+          "offer_http": 200,
+          "artifact_http": 200,
+          "signed_assignment_sha256": "8b253e40a1b570ce4c3de6694c4fe58ca29f384058d1e35f192f3284bd68a859",
+          "offer_wire_sha256": "532dc14a8afa706a3328a443d5b5d19138aa0af201cc19ba5a1693756dc0f03e",
+          "signed_manifest_wire_sha256": "ee701cda1d286735afaf918a0955f75f59cafdc177ea84d3642ab305b67e3af5",
+          "canonical_manifest_sha256": "e43914b4388df89f6fa163f55c5fcb1ad77134c6e3d02e08c8c38ab92ec4f528",
+          "artifact_wire_sha256": "0c2ef3d726ea9b2d136799ea4f917057eb7e1e845fb997d759f0660421939169",
+          "artifact_wire_bytes": 1902,
+          "payload_bytes": 78,
+          "other_tenant_artifact_http": 404,
+          "other_platform_artifact_http": 404,
+          "other_channel_offer_http": 204,
+          "jobId": 7
+        },
+        "materialization": {
+          "action": "stage_promote",
+          "args": {
+            "application_id": "fieldlog",
+            "channel": "candidate",
+            "environment_id": "staging",
+            "organization_id": "org-a",
+            "platform": "android",
+            "project_id": "project-a",
+            "runtime_sha256": "3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432",
+            "sequence": "13",
+            "version": 1
+          },
+          "artifact_sha256": "e43914b4388df89f6fa163f55c5fcb1ad77134c6e3d02e08c8c38ab92ec4f528",
+          "assignment_wire_sha256": "8b253e40a1b570ce4c3de6694c4fe58ca29f384058d1e35f192f3284bd68a859",
+          "attempt": 1,
+          "exact_publication": true,
+          "job_id": 7,
+          "queue": "releases",
+          "rollout_basis_points": 10000,
+          "state": "completed",
+          "worker": "MixerHosted.Releases.ReleaseJobs.Materialize"
+        },
+        "jobOnCommit": {
+          "id": 7,
+          "state": "available",
+          "attempt": 0,
+          "queue": "releases",
+          "worker": "MixerHosted.Releases.ReleaseJobs.Materialize",
+          "args": {
+            "application_id": "fieldlog",
+            "channel": "candidate",
+            "environment_id": "staging",
+            "organization_id": "org-a",
+            "platform": "android",
+            "project_id": "project-a",
+            "runtime_sha256": "3c787d89b627c55112580226bf36ae1b676037b77542a6f0b03b990d5656a432",
+            "sequence": "13",
+            "version": 1
+          }
+        },
+        "publication": {
+          "sequence": 13,
+          "previous_sequence": 12,
+          "release_jobs_xact_id": "1448",
+          "idempotency_key": "restore-successor-pair",
+          "action": "stage_promote",
+          "artifact_sha256": "e43914b4388df89f6fa163f55c5fcb1ad77134c6e3d02e08c8c38ab92ec4f528",
+          "rollout_basis_points": 10000,
+          "principal_id": "person-1"
+        }
+      },
+      "ios": {
+        "delivery": {
+          "target": {
+            "app": "fieldlog",
+            "channel": "candidate",
+            "environment": "staging",
+            "organization": "org-a",
+            "platform": "ios",
+            "project": "project-a",
+            "runtime": "01bd70712d3e3d4644e5e906cefae9373e937c1c06aa9e10cf7f86ec6d5e7fb7"
+          },
+          "installation": "restored-worker-fixture",
+          "sequence": 4,
+          "offer_path": "/v3/updates?app=fieldlog&channel=candidate&environment=staging&installation=restored-worker-fixture&organization=org-a&platform=ios&project=project-a&runtime=01bd70712d3e3d4644e5e906cefae9373e937c1c06aa9e10cf7f86ec6d5e7fb7",
+          "artifact_path": "/v3/artifacts/d3ce8cc6e7322476caebf3b94c87f995997ffb23bf99da4491113cf6349bb2fb?app=fieldlog&channel=candidate&environment=staging&organization=org-a&platform=ios&project=project-a&runtime=01bd70712d3e3d4644e5e906cefae9373e937c1c06aa9e10cf7f86ec6d5e7fb7",
+          "payload_sha256": "d832624acef977273d3996bff4bd172fa1e62afd23c5f33d0b4ae2b8e25afd21",
+          "offer_http": 200,
+          "artifact_http": 200,
+          "signed_assignment_sha256": "7ba50e5e624de76728d814541497476e31ff60528e755a62b07173f217c08d14",
+          "offer_wire_sha256": "14f1cac9c19c4194f82cf8c7b675b819d68c5d3968a463d403aa59722b4174ca",
+          "signed_manifest_wire_sha256": "d651088ce6567aae2f48a4f22bf2d880e232e14feaf74e4012be053c1d5a6a77",
+          "canonical_manifest_sha256": "d3ce8cc6e7322476caebf3b94c87f995997ffb23bf99da4491113cf6349bb2fb",
+          "artifact_wire_sha256": "017d7b9d7ad63d5abd5a3019c3437912667a78145639b85860aca6f3b3e58d6c",
+          "artifact_wire_bytes": 1890,
+          "payload_bytes": 74,
+          "other_tenant_artifact_http": 404,
+          "other_platform_artifact_http": 404,
+          "other_channel_offer_http": 204,
+          "jobId": 8
+        },
+        "materialization": {
+          "action": "stage_promote",
+          "args": {
+            "application_id": "fieldlog",
+            "channel": "candidate",
+            "environment_id": "staging",
+            "organization_id": "org-a",
+            "platform": "ios",
+            "project_id": "project-a",
+            "runtime_sha256": "01bd70712d3e3d4644e5e906cefae9373e937c1c06aa9e10cf7f86ec6d5e7fb7",
+            "sequence": "4",
+            "version": 1
+          },
+          "artifact_sha256": "d3ce8cc6e7322476caebf3b94c87f995997ffb23bf99da4491113cf6349bb2fb",
+          "assignment_wire_sha256": "7ba50e5e624de76728d814541497476e31ff60528e755a62b07173f217c08d14",
+          "attempt": 1,
+          "exact_publication": true,
+          "job_id": 8,
+          "queue": "releases",
+          "rollout_basis_points": 10000,
+          "state": "completed",
+          "worker": "MixerHosted.Releases.ReleaseJobs.Materialize"
+        },
+        "jobOnCommit": {
+          "id": 8,
+          "state": "available",
+          "attempt": 0,
+          "queue": "releases",
+          "worker": "MixerHosted.Releases.ReleaseJobs.Materialize",
+          "args": {
+            "application_id": "fieldlog",
+            "channel": "candidate",
+            "environment_id": "staging",
+            "organization_id": "org-a",
+            "platform": "ios",
+            "project_id": "project-a",
+            "runtime_sha256": "01bd70712d3e3d4644e5e906cefae9373e937c1c06aa9e10cf7f86ec6d5e7fb7",
+            "sequence": "4",
+            "version": 1
+          }
+        },
+        "publication": {
+          "sequence": 4,
+          "previous_sequence": 3,
+          "release_jobs_xact_id": "1448",
+          "idempotency_key": "restore-successor-pair",
+          "action": "stage_promote",
+          "artifact_sha256": "d3ce8cc6e7322476caebf3b94c87f995997ffb23bf99da4491113cf6349bb2fb",
+          "rollout_basis_points": 10000,
+          "principal_id": "person-1"
+        }
+      }
+    },
+    "signedAssignmentManifestAndPayloadVerified": true,
+    "unchangedJobsAndProjectionsAfterReads": true,
+    "unchangedReleaseLedgerAfterReads": true
+  },
+  "cleanup": {
+    "firstDurationSeconds": 61.4,
+    "sameTargetContinuationSeconds": 7.12,
+    "initialCustody": {
+      "sha256": "75cc353b0b9b7077b575bfb8e2d2b595f498e84b96dbf08232dae745af9478cd",
+      "runnerPid": 81132,
+      "runnerPgid": 81132,
+      "ownedProcessGroupsAbsent": 32
+    },
+    "continuationCustody": {
+      "sha256": "4a598708843c596cb356d147a44a4ecc1a1d0a4afcd7b18ade1d9142615cdaba",
+      "runnerPid": 1593,
+      "runnerPgid": 1593,
+      "ownedProcessGroupsAbsent": 6
+    },
+    "postgresClusters": [
+      {
+        "argv": [
+          "postgres",
+          "-D",
+          "<scratch>/source/pgdata",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56599",
+          "-k",
+          "",
+          "-c",
+          "password_encryption=scram-sha-256",
+          "-c",
+          "log_min_error_statement=panic",
+          "-c",
+          "timezone=UTC",
+          "-c",
+          "max_connections=32"
+        ],
+        "groupAbsent": true,
+        "listenAddress": "127.0.0.1",
+        "listenPort": 56599,
+        "pidPgid": 87039,
+        "systemId": "7710606782691296188",
+        "authentication": [
+          "local|-|reject",
+          "host|127.0.0.1|scram-sha-256",
+          "host|all|reject"
+        ],
+        "wrongPasswordRefused": true,
+        "exit": 0
+      },
+      {
+        "argv": [
+          "postgres",
+          "-D",
+          "<scratch>/target/pgdata",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56729",
+          "-k",
+          "",
+          "-c",
+          "password_encryption=scram-sha-256",
+          "-c",
+          "log_min_error_statement=panic",
+          "-c",
+          "timezone=UTC",
+          "-c",
+          "max_connections=32"
+        ],
+        "groupAbsent": true,
+        "listenAddress": "127.0.0.1",
+        "listenPort": 56729,
+        "pidPgid": 92897,
+        "systemId": "7710606874091485910",
+        "authentication": [
+          "local|-|reject",
+          "host|127.0.0.1|scram-sha-256",
+          "host|all|reject"
+        ],
+        "wrongPasswordRefused": true,
+        "exit": 0
+      },
+      {
+        "argv": [
+          "postgres",
+          "-D",
+          "<scratch>/target/pgdata",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "56729",
+          "-k",
+          "",
+          "-c",
+          "password_encryption=scram-sha-256",
+          "-c",
+          "log_min_error_statement=panic",
+          "-c",
+          "timezone=UTC",
+          "-c",
+          "max_connections=32"
+        ],
+        "groupAbsent": true,
+        "listenAddress": "127.0.0.1",
+        "listenPort": 56729,
+        "pidPgid": 1598,
+        "systemId": "7710606874091485910",
+        "authentication": [
+          "local|-|reject",
+          "host|127.0.0.1|scram-sha-256",
+          "host|all|reject"
+        ],
+        "wrongPasswordRefused": true,
+        "exit": 0
+      }
+    ],
+    "listenerRebinds": [
+      {
+        "phase": "source",
+        "listener": "jwks",
+        "address": [
+          "127.0.0.1",
+          56625
+        ],
+        "rebound": true
+      },
+      {
+        "phase": "source",
+        "listener": "provider",
+        "address": [
+          "127.0.0.1",
+          56633
+        ],
+        "rebound": true
+      },
+      {
+        "phase": "source",
+        "listener": "bandit",
+        "address": [
+          "127.0.0.1",
+          56642
+        ],
+        "rebound": true
+      },
+      {
+        "phase": "source",
+        "listener": "postgres",
+        "address": [
+          "127.0.0.1",
+          56599
+        ],
+        "rebound": true
+      },
+      {
+        "phase": "target",
+        "listener": "postgres",
+        "address": [
+          "127.0.0.1",
+          56729
+        ],
+        "rebound": true
+      },
+      {
+        "phase": "target",
+        "listener": "jwks",
+        "address": [
+          "127.0.0.1",
+          56918
+        ],
+        "rebound": true
+      },
+      {
+        "phase": "target",
+        "listener": "provider",
+        "address": [
+          "127.0.0.1",
+          56919
+        ],
+        "rebound": true
+      },
+      {
+        "phase": "target",
+        "listener": "bandit",
+        "address": [
+          "127.0.0.1",
+          56926
+        ],
+        "rebound": true
+      },
+      {
+        "phase": "target",
+        "listener": "bandit",
+        "address": [
+          "127.0.0.1",
+          56988
+        ],
+        "rebound": true
+      },
+      {
+        "phase": "target",
+        "listener": "postgres",
+        "address": [
+          "127.0.0.1",
+          56729
+        ],
+        "rebound": true
+      }
+    ],
+    "scratchPath": "/private/tmp/mixer-restored-scram.m3nyW4kV",
+    "scratchKiBBeforeRemoval": 188584,
+    "scratchRemoved": true
+  }
+}

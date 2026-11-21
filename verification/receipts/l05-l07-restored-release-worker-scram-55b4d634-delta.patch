@@ -1,0 +1,659 @@
+diff --git a/hosted/test/mixer_hosted/releases/browser_publication_test.exs b/hosted/test/mixer_hosted/releases/browser_publication_test.exs
+--- a/hosted/test/mixer_hosted/releases/browser_publication_test.exs
++++ b/hosted/test/mixer_hosted/releases/browser_publication_test.exs
+@@ -563,7 +563,7 @@
+             release_provisioning(value.enrollment)
+           end)
+         ),
+-      "MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD" => "fixture-stage-delivery",
++      "MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD" => DB.fixture_password("mixer_release_delivery"),
+       "MIXER_LOCAL_RELEASE_WRITER_ENABLED" => "true",
+       "MIXER_LOCAL_STAGE_PROMOTION_DIRECTIONS" =>
+         Jason.encode!([
+@@ -832,7 +832,7 @@
+       assert [["mixer_release_delivery", "mixer_release_delivery", false, false, true]] =
+                DB.q!(DeliveryRepo, """
+                SELECT current_user::text, session_user::text, rolsuper, rolbypassrls,
+-                      inet_server_addr() IS NULL
++                      inet_server_addr() = '127.0.0.1'::inet
+                FROM pg_roles WHERE rolname=current_user
+                """).rows
+
+@@ -847,7 +847,7 @@
+
+       write_restore_evidence!("DELIVERY", %{
+         reader: "mixer_release_delivery",
+-        private_unix_socket: true,
++        ipv4_loopback: true,
+         platforms: deliveries,
+         unchanged_jobs_and_projections_after_reads: true,
+         unchanged_release_ledger: true
+@@ -864,12 +864,13 @@
+       |> Map.merge(%{
+         "MIXER_HOSTED_ROLE" => "processor",
+         "MIXER_PROCESSOR_PROFILE" => "releases_v1",
+-        "MIXER_DATABASE_USER" => "mixer_release_processor"
++        "MIXER_DATABASE_USER" => "mixer_release_processor",
++        "MIXER_DATABASE_PASSWORD" => DB.fixture_password("mixer_release_processor")
+       })
+       |> Map.delete("MIXER_SECRET_KEY_BASE")
+       |> MixerHosted.RuntimeConfig.load!()
+
+-    connection = Keyword.take(c.hosted.repo, [:hostname, :socket_dir, :port, :database, :ssl])
++    connection = Keyword.take(c.hosted.repo, [:hostname, :port, :database, :ssl])
+     processor = %{processor | repo: Keyword.merge(processor.repo, connection)}
+     configure!(%{c | hosted: processor}, :disabled)
+     assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
+@@ -883,7 +884,7 @@
+       assert [["mixer_release_processor", "mixer_release_processor", false, false, true]] =
+                DB.q!(MixerHosted.Repo, """
+                SELECT current_user::text, session_user::text, rolsuper, rolbypassrls,
+-                      inet_server_addr() IS NULL
++                      inet_server_addr() = '127.0.0.1'::inet
+                FROM pg_roles WHERE rolname=current_user
+                """).rows
+
+@@ -917,7 +918,7 @@
+         profile: processor.processor_profile,
+         queue: "releases",
+         engine: "Oban.Engines.Basic",
+-        private_unix_socket: true,
++        ipv4_loopback: true,
+         projections_before: 0,
+         projections_after: length(rows),
+         rows: rows
+@@ -2456,18 +2457,20 @@
+
+     assert :ok = Ecto.Migrator.up(Migration, version, module, log: false)
+
+-    DB.q!(Admin, "CREATE ROLE mixer_release_delivery LOGIN NOINHERIT")
+-
+-    on_exit(fn ->
+-      conn = DB.connection!("browser_admin")
+-
+-      try do
+-        Postgrex.query!(conn, "DROP OWNED BY mixer_release_delivery", [])
+-        Postgrex.query!(conn, "DROP ROLE mixer_release_delivery", [])
+-      after
+-        GenServer.stop(conn)
+-      end
+-    end)
++    unless DB.fixture_password("mixer_release_delivery") do
++      DB.q!(Admin, "CREATE ROLE mixer_release_delivery LOGIN NOINHERIT")
++
++      on_exit(fn ->
++        conn = DB.connection!("browser_admin")
++
++        try do
++          Postgrex.query!(conn, "DROP OWNED BY mixer_release_delivery", [])
++          Postgrex.query!(conn, "DROP ROLE mixer_release_delivery", [])
++        after
++          GenServer.stop(conn)
++        end
++      end)
++    end
+
+     DB.q!(Admin, "GRANT USAGE ON SCHEMA public TO mixer_release_delivery")
+
+@@ -2493,22 +2496,27 @@
+
+     database = Admin.config() |> Keyword.fetch!(:database)
+
+-    on_exit(fn ->
+-      conn = DB.connection!("browser_admin", database)
+-
+-      try do
+-        Postgrex.query!(conn, "DROP OWNED BY mixer_release_processor", [])
+-        Postgrex.query!(conn, "DROP ROLE mixer_release_processor", [])
+-      after
+-        GenServer.stop(conn)
+-      end
+-    end)
++    unless DB.fixture_password("mixer_release_processor") do
++      on_exit(fn ->
++        conn = DB.connection!("browser_admin", database)
++
++        try do
++          Postgrex.query!(conn, "DROP OWNED BY mixer_release_processor", [])
++          Postgrex.query!(conn, "DROP ROLE mixer_release_processor", [])
++        after
++          GenServer.stop(conn)
++        end
++      end)
++    end
+
+     assert release_jobs_sql!("provision-local-release-jobs.sql") == ""
+   end
+
+   defp release_jobs_sql!(name, options \\ []) do
+     database = Admin.config() |> Keyword.fetch!(:database)
++
++    custody = System.get_env("MIXER_RESTORED_WRITE_PROVISION_CUSTODY")
++    if custody, do: File.write!(custody, "psql launch #{name}\n", [:append, :sync])
+
+     {output, status} =
+       System.cmd(
+@@ -2519,7 +2527,7 @@
+           "-At",
+           "-w",
+           "-h",
+-          System.get_env("MIXER_RESTORED_WRITE_SOCKET", "127.0.0.1"),
++          "127.0.0.1",
+           "-p",
+           to_string(DB.port()),
+           "-U",
+@@ -2527,9 +2535,13 @@
+           "-d",
+           database
+         ] ++ options ++ ["-f", "../docs/operations/#{name}"],
+-        stderr_to_stdout: true
++        stderr_to_stdout: true,
++        env: [
++          {"PGPASSWORD", DB.fixture_password("browser_admin") || System.get_env("PGPASSWORD")}
++        ]
+       )
+
++    if custody, do: File.write!(custody, "psql returned #{status}\n", [:append, :sync])
+     assert status == 0, output
+     String.trim(output)
+   end
+@@ -2871,7 +2883,8 @@
+   end
+
+   defp with_uploader!(c, config, operation) do
+-    DB.q!(Admin, "CREATE ROLE release_fixture_uploader LOGIN NOINHERIT")
++    password = DB.fixture_password("release_fixture_uploader")
++    unless password, do: DB.q!(Admin, "CREATE ROLE release_fixture_uploader LOGIN NOINHERIT")
+
+     try do
+       DB.q!(Admin, "GRANT USAGE ON SCHEMA public TO release_fixture_uploader")
+@@ -2911,7 +2924,13 @@
+         )
+       end
+
+-      settings = Keyword.merge(c.hosted.repo, username: "release_fixture_uploader", pool_size: 1)
++      settings =
++        Keyword.merge(c.hosted.repo,
++          username: "release_fixture_uploader",
++          password: password || c.hosted.repo[:password],
++          pool_size: 1
++        )
++
+       start_supervised!({Uploader, settings})
+       DB.q!(Uploader, "SELECT 1")
+
+@@ -2924,7 +2943,7 @@
+     after
+       if Process.whereis(Uploader), do: stop_supervised!(Uploader)
+       DB.q!(Admin, "DROP OWNED BY release_fixture_uploader")
+-      DB.q!(Admin, "DROP ROLE release_fixture_uploader")
++      unless password, do: DB.q!(Admin, "DROP ROLE release_fixture_uploader")
+     end
+   end
+
+diff --git a/hosted/test/support/ordinary_browser_startup_fixture.ex b/hosted/test/support/ordinary_browser_startup_fixture.ex
+--- a/hosted/test/support/ordinary_browser_startup_fixture.ex
++++ b/hosted/test/support/ordinary_browser_startup_fixture.ex
+@@ -247,9 +247,9 @@
+
+     settings = [
+       hostname: "127.0.0.1",
+-      socket_dir: System.get_env("MIXER_RESTORED_WRITE_SOCKET"),
+       port: F.port(),
+       database: "browser_ordinary_installation_r1422",
++      password: F.fixture_password("browser_admin"),
+       pool_size: 2,
+       log: false
+     ]
+@@ -420,16 +420,16 @@
+     ordinary =
+       settings
+       |> Keyword.put(:username, "browser_ordinary")
++      |> Keyword.put(:password, F.fixture_password("browser_ordinary"))
+       |> Keyword.put(:pool_size, if(create == :workspace_builds, do: 4, else: 1))
+       |> Keyword.put(:ssl, false)
+
+     life = [
+       hostname: "127.0.0.1",
+-      socket_dir: System.get_env("MIXER_RESTORED_WRITE_SOCKET"),
+       port: F.port(),
+       database: "browser_ordinary_installation_r1422",
+       username: "browser_lifecycle",
+-      password: "synthetic",
++      password: F.fixture_password("browser_lifecycle") || "synthetic",
+       pool_size: 2,
+       pool_count: 1,
+       timeout: 5000,
+@@ -914,9 +914,9 @@
+     {:ok, conn} =
+       Postgrex.start_link(
+         hostname: "127.0.0.1",
+-        socket_dir: System.get_env("MIXER_RESTORED_WRITE_SOCKET"),
+         port: port(),
+         username: role,
++        password: fixture_password(role),
+         database: database,
+         ssl: false,
+         backoff_type: :stop
+@@ -928,6 +928,8 @@
+     Postgrex.query!(conn, "SET idle_in_transaction_session_timeout='5s'", [])
+     conn
+   end
++
++  def fixture_password(role), do: System.get_env("MIXER_RESTORED_SCRAM_" <> String.upcase(role))
+
+   def provision! do
+     conn = connection!("browser_admin")
+diff --git a/replay-restored-worker.py b/replay-restored-worker.py
+--- a/replay-restored-worker.py
++++ b/replay-restored-worker.py
+@@ -6,6 +6,7 @@
+ import os
+ from pathlib import Path
+ import platform
++import secrets
+ import signal
+ import socket
+ import subprocess
+@@ -46,8 +47,19 @@
+ """
+     report = {"status": "failed", "commands": [], "clusters": {}, "rebinds": []}
+     active = {}
+-    env = {key: value for key, value in os.environ.items() if not key.startswith("PG")}
+-    env.update(MIX_ENV="test", HEX_OFFLINE="1", ERL_FLAGS="+S 6:6", TMPDIR=str(root))
++    ports = {}
++    provisioned_logins = (
++        "browser_admin", "browser_lifecycle", "browser_ordinary",
++        "mixer_release_delivery", "mixer_release_processor",
++    )
++    passwords = {
++        phase: {role: secrets.token_hex(24)
++                for role in (*provisioned_logins, "mixer_fixture", "release_fixture_uploader")}
++        for phase in ("source", "target")
++    }
++    (root / "custody.jsonl").touch(exist_ok=False)
++    env = {key: value for key, value in os.environ.items() if not key.startswith(("PG", "MIXER_"))}
++    env.update(MIX_ENV="test", HEX_OFFLINE="1", ERL_FLAGS="+S 6:6", TMPDIR=str(root), LC_ALL="C", PGCONNECT_TIMEOUT="3")
+     deadline = time.monotonic() + 615
+     started = time.monotonic()
+
+@@ -55,7 +67,15 @@
+         if not condition:
+             raise RuntimeError(message)
+
+-    def step(name, argv, *, timeout=20, data=None, extra=None, cwd=root):
++    def custody(event, **record):
++        with (root / "custody.jsonl").open("a") as journal:
++            journal.write(json.dumps({"event": event, **record}) + "\n")
++            journal.flush()
++            os.fsync(journal.fileno())
++
++    custody("launcher", pid=os.getpid(), pgid=os.getpgrp(), root=str(root))
++
++    def step(name, argv, *, timeout=20, data=None, extra=None, cwd=root, expect=0):
+         log_path = root / (name + ".log")
+         error_path = root / (name + ".stderr")
+         evidence = {"name": name, "argv": [str(a).replace(str(root), "<scratch>") for a in argv]}
+@@ -65,75 +85,112 @@
+             stdin.write_bytes(data or b"")
+             with stdin.open("rb") as source:
+                 evidence["groupAbsent"] = False
++                custody("launching", name=name, argv=evidence["argv"], cwd=str(cwd))
+                 child = subprocess.Popen(argv, cwd=cwd, env=env | (extra or {}), start_new_session=True,
+                                          stdin=source, stdout=log, stderr=error)
+                 evidence["pidPgid"] = child.pid
++                custody("launched", name=name, pidPgid=child.pid)
+                 evidence["exit"] = child.wait(timeout=max(0.1, min(timeout, deadline - time.monotonic())))
+                 evidence["groupAbsent"] = group_absent(child.pid)
++                custody("observed-exit", name=name, pidPgid=child.pid,
++                        exit=evidence["exit"], groupAbsent=evidence["groupAbsent"])
+
+         check(evidence["groupAbsent"], f"{name}: command group absence unconfirmed")
+         raw = log_path.read_bytes()
+         error = error_path.read_bytes()
+         evidence.update(stdoutSha256=digest(raw), stderrSha256=digest(error))
+-        if evidence["exit"] != 0:
+-            evidence["failureTail"] = (raw + b"\n" + error).decode(errors="replace").splitlines()[-38:]
++        if evidence["exit"] != expect:
++            detail = (raw + b"\n" + error).decode(errors="replace")
++            for phase_passwords in passwords.values():
++                for password in phase_passwords.values():
++                    detail = detail.replace(password, "<fixture secret>")
++            evidence["failureTail"] = detail.splitlines()[-60:]
+             raise RuntimeError(f"{name}: exit {evidence['exit']}")
+         return raw
+
++    def login(phase):
++        return ["-h", "127.0.0.1", "-p", str(ports[phase]), "-U", "mixer_fixture", "-w"]
++
++    def password_env(phase):
++        return {"PGPASSWORD": passwords[phase]["mixer_fixture"]}
++
+     def psql(phase, name, database, *, sql=None, file=None):
+-        sock = root / phase / "socket"
+-        argv = ["psql", "-X", "-qAt", "-w", "-h", str(sock), "-p", "5432",
+-                "-U", "mixer_fixture", "-d", database, "-v", "ON_ERROR_STOP=1"]
++        argv = ["psql", "-X", "-qAt", *login(phase), "-d", database, "-v", "ON_ERROR_STOP=1"]
+         if file is not None:
+             argv += ["-f", str(file)]
+-        return step(f"{phase}-{name}", argv, data=sql.encode() if sql else None)
++        return step(f"{phase}-{name}", argv, data=sql.encode() if sql else None,
++                    extra=password_env(phase))
++
++    def set_login_passwords(phase, logins):
++        return "".join(f"ALTER ROLE {role} PASSWORD '{passwords[phase][role]}';\n"
++                       for role in logins)
+
+     def verify_rebind(phase, kind, target):
+-        family = socket.AF_UNIX if kind == "postgres" else socket.AF_INET
+-        record = {"phase": phase, "listener": kind,
+-                  "address": str(target).replace(str(root), "<scratch>"), "rebound": False}
++        record = {"phase": phase, "listener": kind, "address": list(target), "rebound": False}
+         report["rebinds"].append(record)
+-        with socket.socket(family) as server:
+-            if family == socket.AF_INET:
+-                server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
++        with socket.socket(socket.AF_INET) as server:
++            server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+             server.bind(target)
+             server.listen(1)
+             record["rebound"] = True
+-        if family == socket.AF_UNIX:
+-            Path(target).unlink()
++        custody("listener-rebound", **record)
+
+     def cluster(phase):
+         directory = root / phase
+         directory.mkdir(mode=0o700)
+-        sock = directory / "socket"
+-        sock.mkdir(mode=0o700)
+         pgdata = directory / "pgdata"
++        pwfile = directory / "bootstrap-password"
++        pwfile.write_text(passwords[phase]["mixer_fixture"] + "\n")
+         step(phase + "-initdb", ["initdb", "-D", str(pgdata), "-U", "mixer_fixture",
+-                                "--auth-local=trust", "--auth-host=scram-sha-256",
+-                                "--no-locale", "-E", "UTF8"])
+-        # Only the private directory is reachable. Retain explicit host rejection in pg_hba as well.
+-        (pgdata / "pg_hba.conf").write_text("local all all trust\nhost all all all reject\n")
+-        argv = ["postgres", "-D", str(pgdata), "-h", "", "-p", "5432", "-k", str(sock),
+-                "-c", "unix_socket_permissions=0700", "-c", "timezone=UTC", "-c", "max_connections=32"]
+-        entry = {"argv": [a.replace(str(root), "<scratch>") for a in argv],
+-                 "groupAbsent": False, "socketDirectoryMode": oct(sock.stat().st_mode & 0o777)}
++                                "--auth-local=scram-sha-256", "--auth-host=scram-sha-256",
++                                "--pwfile", str(pwfile), "--no-locale", "-E", "UTF8"])
++        (pgdata / "pg_hba.conf").write_text(
++            "local all all reject\nhost all all 127.0.0.1/32 scram-sha-256\n"
++            "host all all all reject\n")
++        with socket.socket(socket.AF_INET) as reservation:
++            reservation.bind(("127.0.0.1", 0))
++            ports[phase] = reservation.getsockname()[1]
++        check(phase == "source" or ports["source"] != ports["target"], "fixture ports reused")
++        argv = ["postgres", "-D", str(pgdata), "-h", "127.0.0.1", "-p", str(ports[phase]),
++                "-k", "", "-c", "password_encryption=scram-sha-256",
++                "-c", "log_min_error_statement=panic", "-c", "timezone=UTC",
++                "-c", "max_connections=32"]
++        entry = {"argv": [a.replace(str(root), "<scratch>") for a in argv], "groupAbsent": False,
++                 "listenAddress": "127.0.0.1", "listenPort": ports[phase]}
+         report["clusters"][phase] = entry
+-        with (directory / "postgres.log").open("xb") as log:
++        log_path = directory / "postgres.log"
++        empty = directory / "postgres.stdin"
++        empty.touch(exist_ok=False)
++        with log_path.open("xb") as log, empty.open("rb") as source:
++            custody("launching", name=phase + "-postgres", argv=entry["argv"], log=str(log_path))
+             server = subprocess.Popen(argv, env=env, start_new_session=True,
+-                                      stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT)
+-        entry["pidPgid"] = server.pid
+-        active[phase] = server
+-        socket_path = sock / ".s.PGSQL.5432"
++                                      stdin=source, stdout=log, stderr=subprocess.STDOUT)
++            entry["pidPgid"] = server.pid
++            active[phase] = server
++            custody("launched", name=phase + "-postgres", pidPgid=server.pid)
+         ready = time.monotonic() + 10
+-        while not socket_path.exists() and server.poll() is None and time.monotonic() < ready:
++        while server.poll() is None and time.monotonic() < ready:
++            if b"database system is ready to accept connections" in log_path.read_bytes():
++                break
+             time.sleep(0.025)
+-        check(socket_path.exists(), phase + " PostgreSQL socket failed to appear")
++        else:
++            raise RuntimeError(phase + " PostgreSQL did not report ready")
+         output = psql(phase, "identity", "postgres", sql="""
+ SELECT system_identifier FROM pg_control_system();
+-SELECT inet_server_addr() IS NULL AND current_setting('listen_addresses') = '';
++SELECT inet_server_addr() = '127.0.0.1'::inet
++  AND current_setting('listen_addresses') = '127.0.0.1'
++  AND current_setting('unix_socket_directories') = ''
++  AND current_setting('password_encryption') = 'scram-sha-256';
++SELECT type, coalesce(address,'-'), auth_method FROM pg_hba_file_rules ORDER BY line_number;
+ """).decode().splitlines()
+-        check(len(output) == 2 and output[1] == "t", "unexpected PostgreSQL listener")
+-        entry.update(systemId=output[0], unixSocketOnly=True)
++        check(output[1:] == ["t", "local|-|reject", "host|127.0.0.1|scram-sha-256", "host|all|reject"],
++              "unexpected PostgreSQL listener or authentication")
++        negative = phase + "-wrong-password"
++        step(negative, ["psql", "-X", "-qAt", *login(phase), "-d", "postgres", "-c", "SELECT 1"],
++             extra={"PGPASSWORD": "intentionally-invalid-fixture-password"}, expect=2)
++        check(b"password authentication failed" in (root / (negative + ".stderr")).read_bytes(),
++              "wrong-password probe did not observe SCRAM refusal")
++        entry.update(systemId=output[0], authentication=output[2:], wrongPasswordRefused=True)
+
+     def stop(phase):
+         server = active[phase]
+@@ -142,24 +199,27 @@
+             server.send_signal(signal.SIGINT)  # PostgreSQL fast shutdown requests backend exit.
+         entry["exit"] = server.wait(timeout=15)
+         entry["groupAbsent"] = group_absent(server.pid)
++        custody("observed-exit", name=phase + "-postgres", pidPgid=server.pid,
++                exit=entry["exit"], groupAbsent=entry["groupAbsent"])
+         check(entry["groupAbsent"], f"{phase} PostgreSQL group absence unconfirmed")
+         del active[phase]
+-        if entry.get("unixSocketOnly"):
+-            verify_rebind(phase, "postgres", str(root / phase / "socket" / ".s.PGSQL.5432"))
++        verify_rebind(phase, "postgres", ("127.0.0.1", ports[phase]))
+         check(entry["exit"] == 0, f"{phase} PostgreSQL exited {entry['exit']}")
+
+     def fixture(phase):
+         directory = root / phase
+         catalog = directory / "catalog"
+         catalog.mkdir()
+-        ports = directory / "ports"
++        listener_file = directory / "ports"
+         extra = {
+-            "MIXER_BROWSER_STORAGE_PORT": "5432",
++            "MIXER_BROWSER_STORAGE_PORT": str(ports[phase]),
+             "MIXER_BROWSER_CATALOG_FIXTURE_ROOT": str(catalog),
+-            "MIXER_RESTORED_WRITE_SOCKET": str(directory / "socket"),
++            "MIXER_RESTORED_WRITE_PROVISION_CUSTODY": str(directory / "provision-custody"),
++            **{f"MIXER_RESTORED_SCRAM_{role.upper()}": password
++               for role, password in passwords[phase].items() if role != "mixer_fixture"},
+             "MIXER_RESTORED_WRITE_PHASE": phase,
+             "MIXER_RESTORED_WRITE_BUNDLE": str(root / "signer-bundle"),
+-            "MIXER_RESTORED_WRITE_PORTS": str(ports),
++            "MIXER_RESTORED_WRITE_PORTS": str(listener_file),
+             **{f"MIXER_RESTORED_WRITE_{name.upper()}": str(directory / (name + ".json"))
+                for name in ("result", "processor", "delivery")},
+         }
+@@ -170,8 +230,17 @@
+                        timeout=130, extra=extra, cwd=hosted)
+             report[phase + "ExUnit"] = raw.decode().splitlines()[-6:]
+         finally:
+-            if report["commands"][-1].get("groupAbsent") and ports.exists():
+-                for line in ports.read_text().splitlines():
++            if not report["commands"][-1].get("groupAbsent"):
++                report["nestedCommandUncertain"] = True
++                raise RuntimeError(f"{phase} HTTP process custody unconfirmed")
++            provision = directory / "provision-custody"
++            if provision.exists():
++                lines = provision.read_text().splitlines()
++                report["nestedProvision"] = lines
++                report["nestedCommandUncertain"] = lines != [
++                    "psql launch provision-local-release-jobs.sql", "psql returned 0"]
++            if listener_file.exists():
++                for line in listener_file.read_text().splitlines():
+                     kind, port = line.split()
+                     verify_rebind(phase, kind, ("127.0.0.1", int(port)))
+             for key in ("result", "processor", "delivery"):
+@@ -184,7 +253,11 @@
+             "public.schema_migrations", "public.mixer_release_heads",
+             "public.mixer_release_publications", "public.mixer_stage_promotion_bindings",
+             "public.mixer_stage_promotion_directions", "public.mixer_release_delivery_enrollments",
+-            "public.mixer_customer_artifacts", "mixer_release_jobs.oban_jobs",
++            "public.mixer_customer_artifacts", "public.mixer_customer_audit_events",
++            "public.mixer_customer_artifact_heads", "public.mixer_customer_idempotency",
++            "public.mixer_authz_principals", "public.mixer_authz_bindings",
++            "public.mixer_authz_memberships", "public.mixer_authz_families",
++            "public.mixer_authz_credentials", "mixer_release_jobs.oban_jobs",
+             "mixer_release_jobs.offer_materializations",
+         )
+         # Hash each row independently, then compare the stable set of row hashes per table.
+@@ -193,6 +266,32 @@
+             f"FROM (SELECT md5(to_jsonb(t)::text) AS d FROM {table} t) s;"
+             for table in relations))
+
++    def privileges(phase):
++        return psql(phase, "privileges", database, sql="""
++SELECT rolname, rolsuper, rolinherit, rolcreaterole, rolcreatedb,
++       rolcanlogin, rolreplication, rolbypassrls
++FROM pg_roles WHERE rolname LIKE 'browser_%' OR rolname IN
++  ('mixer_fixture','mixer_release_processor','mixer_release_delivery',
++   'mixer_customer_build_catalog_definer_v1') ORDER BY rolname;
++SELECT pg_get_userbyid(roleid), pg_get_userbyid(member), admin_option, inherit_option, set_option
++FROM pg_auth_members ORDER BY 1, 2, 3, 4, 5;
++SELECT n.nspname, c.relname, pg_get_userbyid(c.relowner), (ARRAY(SELECT a::text FROM unnest(c.relacl) a ORDER BY a::text))::text
++FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
++WHERE n.nspname IN ('public','mixer_release_jobs') AND c.relacl IS NOT NULL ORDER BY 1, 2;
++SELECT n.nspname, c.relname, x.attname,
++       (ARRAY(SELECT a::text FROM unnest(x.attacl) a ORDER BY a::text))::text
++FROM pg_attribute x JOIN pg_class c ON c.oid=x.attrelid
++JOIN pg_namespace n ON n.oid=c.relnamespace
++WHERE n.nspname IN ('public','mixer_release_jobs') AND x.attacl IS NOT NULL ORDER BY 1, 2, 3;
++SELECT n.nspname, p.proname, pg_get_function_identity_arguments(p.oid), pg_get_userbyid(p.proowner),
++       (ARRAY(SELECT a::text FROM unnest(p.proacl) a ORDER BY a::text))::text
++FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
++WHERE n.nspname IN ('public','mixer_release_jobs') AND p.proacl IS NOT NULL ORDER BY 1, 2, 3;
++SELECT nspname, pg_get_userbyid(nspowner),
++       (ARRAY(SELECT a::text FROM unnest(nspacl) a ORDER BY a::text))::text FROM pg_namespace
++WHERE nspname IN ('public','mixer_release_jobs') ORDER BY nspname;
++""")
++
+     try:
+         report["tools"] = {
+             "host": f"{platform.system()} {platform.machine()}",
+@@ -200,25 +299,37 @@
+             **{command: step(command + "-version", [command, "--version"]).decode().strip()
+                for command in ("mix", "postgres", "pg_dump", "pg_restore")}
+         }
++        step("deps-get", ["mix", "deps.get", "--check-locked"], timeout=120, cwd=hosted)
++        step("deps-compile", ["mix", "deps.compile"], timeout=140, cwd=hosted)
+         step("compile", ["mix", "compile", "--warnings-as-errors"], timeout=140, cwd=hosted)
+         cluster("source")
+-        psql("source", "bootstrap-roles", "postgres", sql=roles_sql)
++        roles_sql += """
++CREATE ROLE mixer_release_delivery LOGIN NOINHERIT;
++CREATE ROLE mixer_release_processor LOGIN NOINHERIT NOSUPERUSER
++  NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
++CREATE ROLE release_fixture_uploader LOGIN NOINHERIT;
++"""
++        psql("source", "bootstrap-roles", "postgres", sql=roles_sql + set_login_passwords(
++            "source", (*provisioned_logins, "release_fixture_uploader")))
+         fixture("source")
++        check(not report.get("nestedCommandUncertain"), "source provisioning custody unconfirmed")
++        psql("source", "retire-uploader", "postgres", sql="DROP ROLE release_fixture_uploader;")
+         psql("source", "freeze", "postgres",
+-             sql="ALTER SYSTEM SET default_transaction_read_only=on;\nSELECT pg_reload_conf();\n")
+-        source_socket = str(root / "source" / "socket")
++             sql="ALTER SYSTEM SET default_transaction_read_only=on;\nSELECT pg_reload_conf();\nSELECT pg_sleep(0.1);\n")
+         read_only = psql("source", "read-only", database, sql="SHOW default_transaction_read_only;").strip()
+         check(read_only == b"on", "source database did not freeze")
+         source_snapshot = snapshot("source")
++        source_privileges = privileges("source")
+         dump = root / "release.dump"
+         roles = root / "roles.sql"
+-        login = ["-h", source_socket, "-p", "5432", "-U", "mixer_fixture", "-w"]
+-        step("source-dump", ["pg_dump", *login, "-Fc", "-f", str(dump), database])
+-        step("source-dump-roles", ["pg_dumpall", *login, "--roles-only", "--no-role-passwords",
+-                                    "--no-comments", "-f", str(roles)])
++        step("source-dump", ["pg_dump", *login("source"), "-Fc", "-f", str(dump), database],
++             extra=password_env("source"))
++        step("source-dump-roles", ["pg_dumpall", *login("source"), "--roles-only", "--no-role-passwords",
++                                    "--no-comments", "-f", str(roles)], extra=password_env("source"))
+         report["backup"] = {"dumpSha256": digest(dump.read_bytes()),
+                             "passwordFreeRolesSha256": digest(roles.read_bytes()),
+-                            "sourceSnapshotSha256": digest(source_snapshot)}
++                            "sourceSnapshotSha256": digest(source_snapshot),
++                            "sourcePrivilegesSha256": digest(source_privileges)}
+         stop("source")
+
+         cluster("target")
+@@ -227,11 +338,19 @@
+         absent_sql = f"SELECT NOT EXISTS (SELECT FROM pg_database WHERE datname='{database}');"
+         check(psql("target", "db-absent", "postgres", sql=absent_sql).strip() == b"t",
+               "destination database already present")
+-        psql("target", "restore-roles", "postgres", file=roles)
+-        dest_socket = str(root / "target" / "socket")
+-        step("target-restore", ["pg_restore", "-h", dest_socket, "-p", "5432", "-U",
+-                                "mixer_fixture", "-w", "--exit-on-error", "--create", "-d", "postgres",
+-                                str(dump)])
++        # initdb has already created the bootstrap login. Retain all ALTERs and memberships.
++        original_roles = roles.read_bytes()
++        bootstrap = b"CREATE ROLE mixer_fixture;\n"
++        check(original_roles.count(bootstrap) == 1 and b" PASSWORD " not in original_roles,
++              "unexpected password-free role dump")
++        restore_roles = root / "restore-roles.sql"
++        restore_roles.write_bytes(original_roles.replace(bootstrap, b"", 1))
++        report["backup"]["restoredRoleSqlSha256"] = digest(restore_roles.read_bytes())
++        psql("target", "restore-roles", "postgres", file=restore_roles)
++        psql("target", "set-login-passwords", "postgres",
++             sql=set_login_passwords("target", provisioned_logins))
++        step("target-restore", ["pg_restore", *login("target"), "--exit-on-error", "--create",
++                                "-d", "postgres", str(dump)], extra=password_env("target"))
+         psql("target", "repair-authz-checks", database, file=root / "scripts/restore-local-authz-expiry.sql")
+         psql("target", "repair-artifact-check", database, file=artifact_repair)
+         dest_snapshot = snapshot("target")
+@@ -241,6 +360,10 @@
+             row.split("|")[0]: int(row.split("|")[1]) for row in dest_snapshot.decode().splitlines()
+         }
+         check(source_snapshot == dest_snapshot, "restored pre-promotion ledger differs from backup")
++        dest_privileges = privileges("target")
++        report["backup"]["targetPrivilegesSha256"] = digest(dest_privileges)
++        report["backup"]["roleMembershipsAndAclEqual"] = source_privileges == dest_privileges
++        check(source_privileges == dest_privileges, "restored roles, memberships or ACLs differ")
+         fixture("target")
+
+         processor = report["target_processor"]
+@@ -256,7 +379,8 @@
+     except (Exception, KeyboardInterrupt) as error:
+         report["failure"] = f"{type(error).__name__}: {error}"
+     finally:
+-        unknown = any(not command.get("groupAbsent") for command in report["commands"])
++        unknown = (bool(report.get("nestedCommandUncertain"))
++                   or any(not command.get("groupAbsent") for command in report["commands"]))
+         if not unknown:
+             for phase in tuple(active):
+                 try:
+@@ -266,14 +390,21 @@
+                     break
+         report["scratchRemovable"] = (
+             not unknown and not active and "cleanupFailure" not in report
++            and all(cluster["groupAbsent"] for cluster in report["clusters"].values())
+             and all(listener["rebound"] for listener in report["rebinds"])
+         )
+         report["durationSeconds"] = round(time.monotonic() - started, 2)
+-        (root / "campaign.json").write_text(json.dumps(report, indent=2) + "\n")
++        with (root / "campaign.json").open("x") as evidence:
++            evidence.write(json.dumps(report, indent=2) + "\n")
++            evidence.flush()
++            os.fsync(evidence.fileno())
++        custody("launcher-terminal", status=report["status"], scratchRemovable=report["scratchRemovable"])
+         print(json.dumps({key: report[key] for key in ("status", "failure", "cleanupFailure",
+                                                        "scratchRemovable", "durationSeconds")
+                           if key in report}))
+-    return 0 if report["status"] == "pass" and report["scratchRemovable"] else 1
++    if not report["scratchRemovable"]:
++        return 74
++    return 0 if report["status"] == "pass" else 1
+
+
+ if __name__ == "__main__":

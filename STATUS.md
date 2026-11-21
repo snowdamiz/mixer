@@ -611,6 +611,24 @@ drain, and signed delivery remain open for this replay.
 [Startup failure and option control](verification/receipts/l05-l07-restored-release-worker-55b4d634.json) ·
 [Historical test afterimages](verification/receipts/l05-l07-restored-release-worker-55b4d634-afterimages.patch)
 
+The SCRAM follow-up restored the database into a distinct cluster and
+accepted a signed promotion to iOS sequence 4 and Android sequence 13.
+The initial ACL comparison stopped on seven owner-only table ACLs that
+PostgreSQL restored as defaults. The effective privileges matched, so
+the replay continued on the same cluster with the restored grants.
+
+The restricted Oban release processor completed all eight jobs on their
+first attempt and created one projection per publication. After the
+processor stopped and Phoenix restarted, both staging targets returned
+HTTP 200 for their signed offers and artifacts. The signed assignments,
+manifests, and payloads matched the committed records. Exact retry and
+readback left the compared rows and jobs unchanged. The author confirmed
+all owned groups closed, rebound ten listeners, and removed scratch.
+L05 and L07 remain running.
+[Restore and delivery receipt](verification/receipts/l05-l07-restored-release-worker-scram-55b4d634.json) ·
+[SCRAM test overlay](verification/receipts/l05-l07-restored-release-worker-scram-55b4d634-delta.patch) ·
+[ACL continuation](verification/receipts/l05-l07-restored-release-worker-scram-55b4d634-acl-continuation.patch)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,
