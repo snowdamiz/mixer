@@ -707,7 +707,8 @@ Wasm data section. With a fixed Swift object output argument, two fresh
 replays emitted byte-identical Wasm and preserved the matching frames,
 fuel, and close behavior. The default replay passed 32 VM tests and the
 fixed-slot builder passed its replay. All observed command groups closed
-and scratch was removed.
+and scratch was removed. Independent review matched the tested source,
+receipt pins, and compile arguments for the current and earlier modes.
 [First composed replay](verification/receipts/l03-swift-enum-typed-throws-composed-2c3cf5e0.json) ·
 [Reproducibility receipt](verification/receipts/l03-swift-enum-typed-throws-reproducibility-160fb742.json)
 
