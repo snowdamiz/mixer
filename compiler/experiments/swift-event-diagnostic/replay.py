@@ -113,6 +113,8 @@ def check_observations(rows, parsed, wasm, disassembly, line_dump):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('name', help='Unused directory name under verification/local')
+    parser.add_argument('--source-revision', default=PIN,
+                        help='Exact checkout containing the diagnostic fixture. Engine inputs must still match the v79 pin.')
     parser.add_argument('--toolchain', type=Path, default=Path.home() /
                         'Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin')
     parser.add_argument('--cargo', type=Path, default=Path.home() /
@@ -120,6 +122,8 @@ def main():
     args = parser.parse_args()
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,63}', args.name) or args.name in ('.', '..'):
         parser.error('name must be a bounded path component')
+    if not re.fullmatch(r'[0-9a-f]{40}', args.source_revision):
+        parser.error('source revision must be a full lowercase Git commit hash')
     out = ROOT / 'verification/local' / args.name
     out.parent.mkdir(parents=True, exist_ok=True)
     out.mkdir()
@@ -134,6 +138,8 @@ def main():
     receipt = {'status': 'incomplete', 'scope': 'local macOS owned VM, compact Swift UI v1 event',
                'commands': commands}
     stage = 'source pin'
+    sources = [GUEST, PROBE, Path(__file__).resolve()]
+    fixture_paths = tuple(str(path.relative_to(ROOT)) for path in sources)
 
     def run(name, *argv, timeout=35):
         return recorder.run(name, argv, env=env, timeout=timeout)
@@ -142,13 +148,19 @@ def main():
         run('pin-' + label, '/usr/bin/git', 'diff', '--quiet', PIN, '--', *PINNED)
         require(not run('untracked-' + label, '/usr/bin/git', 'ls-files', '--others', '--', *PINNED),
                 'unpinned file under an owning input path')
+        if args.source_revision != PIN:
+            tracked = run('fixture-tracked-' + label, '/usr/bin/git', 'ls-files',
+                          '--', *fixture_paths).splitlines()
+            require(set(tracked) == set(fixture_paths), 'diagnostic fixture files must be tracked')
+            run('fixture-pin-' + label, '/usr/bin/git', 'diff', '--quiet',
+                args.source_revision, '--', *fixture_paths)
 
     try:
         receipt['baseRevision'] = run('revision', '/usr/bin/git', 'rev-parse', 'HEAD').strip()
-        require(receipt['baseRevision'] == PIN, 'expected exact public v79 checkout')
+        require(receipt['baseRevision'] == args.source_revision, 'checkout does not match source revision')
         receipt['baseTree'] = run('tree', '/usr/bin/git', 'rev-parse', 'HEAD^{tree}').strip()
+        receipt['engineInputRevision'] = PIN
         check_pin('before')
-        sources = [GUEST, PROBE, Path(__file__).resolve()]
         receipt['diagnosticInputs'] = {str(path.relative_to(ROOT)): digest(path) for path in sources}
 
         stage = 'toolchain'
