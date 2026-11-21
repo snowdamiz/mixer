@@ -365,3 +365,22 @@ sources in the producer receipt. The independent replay reconstructed those
 sources and used a separate UTF-8 and ASCII-trim oracle for all 16 events.
 [Producer and replay recipe](../../../verification/receipts/l03-swift-string-title-7d257e0d.json) ·
 [Independent replay](../../../verification/receipts/l03-swift-string-title-independent-7d257e0d.json)
+
+## Foundation project search replay
+
+Use Swift 6.3.3 and Xcode 26.6 on arm64 macOS. Reconstruct FieldLog tree
+`26bbde4aae443e77452761022ee344b075077431` and supply its
+`Sources/FieldLogModels/Workspace.swift` to the replay. The installed
+Android model copy has the same bytes. [Product patch](../../../verification/receipts/fieldlog-android-camera-corrected-26bbde4a.patch)
+
+```sh
+python3 -I -B compiler/experiments/fieldlog-project-search/replay.py \
+  /path/to/FieldLog/Sources/FieldLogModels/Workspace.swift NEW_RECEIPT.json
+```
+
+The fixture calls `Workspace.matchingProjects` with case, accent, Arabic,
+blank, and no-match inputs. It verifies the expected order and stable
+project IDs after decoding the saved workspace. Every search preserves the
+workspace bytes. The Embedded target reports the missing Foundation
+module at the import and emits no object. The Foundation-free control emits
+a Wasm object. [Replay receipt](../../../verification/receipts/l03-fieldlog-project-search-8e8d75c3.json)

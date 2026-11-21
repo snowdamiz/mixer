@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "status": "PASS",
+  "scope": "L03 §7.3 FieldLog project search on arm64 macOS",
+  "mixerRevision": "8e8d75c3368d2b8153bc3f86c5c281cda11d31e2",
+  "mixerTree": "31903bfa0d00d5b60a994c95818d4519ddbb5e46",
+  "fieldLog": {
+    "productTree": "26bbde4aae443e77452761022ee344b075077431",
+    "sources": [
+      "Sources/FieldLogModels/Workspace.swift",
+      "Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift"
+    ],
+    "sha256": "a6c08ae0aa83400aef8c8a6cc045415cf7a9075367d81001bd5e3f505fbc5c21",
+    "search": "q.isEmpty || $0.title.localizedStandardContains(q) || $0.site.localizedStandardContains(q)"
+  },
+  "toolchain": {
+    "swift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "xcode": "Xcode 26.6\nBuild version 17F113",
+    "nativeTarget": "arm64-apple-macosx26.0",
+    "embeddedTarget": "wasm32-unknown-none-wasm",
+    "swiftDriver": {
+      "bytes": 230464,
+      "sha256": "3d13e20b1504d7d30038fcd2201b9d0a8ead5c09eea752a5da223453b3ae0c6f"
+    },
+    "swiftFrontend": {
+      "bytes": 341733312,
+      "sha256": "1ed6c28434801b1abb053e283cbc7e16d8e73ff12deb2ae3a539790afafbb3f5"
+    },
+    "nativeSDKSettings": {
+      "bytes": 7774,
+      "sha256": "f8d005f09381389167f9e0aeaa169bc9e7dff162ef22ca2fd8e98df7ff1acafe"
+    },
+    "embeddedSwiftModule": {
+      "bytes": 21023820,
+      "sha256": "d776a639deba8b93324dc252969e1b16c7a867bdcd0d5c1e3035fc9a8068d637"
+    }
+  },
+  "fixture": {
+    "bytes": 1637,
+    "sha256": "fec5196e096a8bb76c7f27e17de98a1d45fb0b1667e2e519536ac7e465d51d17"
+  },
+  "runnerSHA256": "0025cc8d6896a5a3fee9ac96566c89027aff5f3c83d8b2e0573210711a1320b7",
+  "readback": [
+    {
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "expectedAndObserved": "Café Service|Inspection\nCafé Service\nالورشة\n\nالورشة|Café Service|Remote|Inspection\nInspection\n"
+    },
+    {
+      "indices": [
+        3,
+        5,
+        0,
+        5,
+        2,
+        4,
+        1
+      ],
+      "expectedAndObserved": "\nInspection\nCafé Service|Inspection\nInspection\nالورشة\nالورشة|Café Service|Remote|Inspection\nCafé Service\n"
+    }
+  ],
+  "embedded": {
+    "embedded-project-search": {
+      "exit": 1,
+      "objectEmitted": false,
+      "wasmEmitted": false,
+      "diagnostic": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/project-search-az_ux3t_/Workspace.swift:1:8: error: no such module 'Foundation'\n  1 | import Foundation\n    |        `- error: no such module 'Foundation'\n  2 | \n  3 | public enum FieldLogError: Error, LocalizedError, Equatable, Sendable {\n\n<unknown>:0: note: did you forget to set an SDK using -sdk or SDKROOT?\n<unknown>:0: note: use \"xcrun swiftc\" to select the default macOS SDK installed with Xcode\n"
+    },
+    "embedded-control": {
+      "exit": 0,
+      "objectEmitted": true,
+      "wasmEmitted": false,
+      "object": {
+        "bytes": 5671,
+        "sha256": "79e0eeefc221b84d658153a66b537f51ea93e3a886771e743db7021439cd89f4"
+      }
+    }
+  },
+  "closedCommands": {
+    "sourceAndRunner": 4,
+    "innerReplay": 9
+  },
+  "rawReceipts": {
+    "sourceAndRunnerSHA256": "c5b13f415d337ae60876c0fdcfaec1b29578f03f9afeda27ce6bdde23c219db6",
+    "innerReplaySHA256": "7c127b4b2fbdd8a400969a596f3fbed75503697814b532116f157e3aca41e92b"
+  },
+  "scratch": {
+    "outer": "/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/mixer-project-search-input-qu2kiaqf",
+    "inner": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/project-search-az_ux3t_",
+    "removed": true
+  },
+  "recoveredSetup": [
+    "The historical public workspace and the current composed workspace differ. Both current targets matched each other byte for byte. The original mismatch stopped before compilation.",
+    "The first wrapper sandbox set HOME before the child discovered the installed toolchain. The replay received the actual toolchain locator on the next run.",
+    "The first Embedded positive control lacked its companion Cases.swift file. The actual FieldLog native readbacks and Foundation diagnostic already passed. The final replay included both control files."
+  ],
+  "limits": [
+    "arm64 macOS native search, UTF-8 queries and Embedded compilation only. Installed mobile locale behavior and guest Foundation are pending."
+  ],
+  "recoveredScratchRemoved": true
+}
