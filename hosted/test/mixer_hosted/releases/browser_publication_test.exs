@@ -103,13 +103,65 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
                  fn -> MixerHosted.Application.children({hosted, :disabled}) end
   end
 
+  test "authenticated browser HTTP reads a release head with stage promotion installed" do
+    c = prepare_release_fixture!("browser-publication-with-stage-promotion")
+    provision!()
+    provision_delivery!()
+    provision_cli!()
+    provision_actions!()
+    provision_halt_audit!()
+    provision_details!()
+
+    for {dir, name, module} <- [
+          {"local_release_target_registry", "20261120000015_add_local_release_target_registry",
+           MixerHosted.Repo.Migrations.AddLocalReleaseTargetRegistry},
+          {"local_stage_promotion", "20261120000016_add_local_stage_promotion",
+           MixerHosted.Repo.Migrations.AddLocalStagePromotion}
+        ] do
+      unless Code.ensure_loaded?(module), do: Code.require_file("priv/#{dir}/#{name}.exs")
+      [version, _] = String.split(name, "_", parts: 2)
+      assert :ok = Ecto.Migrator.up(Migration, String.to_integer(version), module, log: false)
+    end
+
+    variant =
+      MixerHosted.Test.StagePromotionSigningFixture.variant(
+        MixerHosted.Test.StagePromotionSigningFixture.vector(),
+        "ios",
+        "development",
+        "internal",
+        7
+      )
+
+    target = variant.enrollment.target
+    replace_config!(:local_release_target, Map.from_struct(variant.enrollment))
+    seed_target!(target)
+    c = start!(c)
+    assert %{phase: :storage_ready} = RuntimeOwner.status()
+    owner = login(c)
+    other = login(c, :other_tenant)
+
+    assert %{"kind" => "empty", "target" => wire} = read!(c, owner, target)
+    assert wire == string_keys(Target.wire(target))
+    assert_status(c, other, target, 404)
+
+    DB.q!(Admin, "ALTER TABLE public.mixer_stage_promotion_bindings DISABLE TRIGGER ALL")
+    response = http(c, path(target), owner)
+    assert response.status == 503
+    assert %{"error" => %{"code" => "authorization_unavailable"}} = Jason.decode!(response.body)
+  end
+
   test "publishes the verified upload once and reads the exact tenant-scoped browser head" do
     c = prepare_release_fixture!("browser-publication")
     provision!()
     provision_actions!()
     provision_halt_audit!()
     provision_details!()
-    assert [[nil]] = DB.q!(Admin, "SELECT to_regclass('public.mixer_release_cli_requests')").rows
+
+    assert [[nil, nil]] =
+             DB.q!(Admin, """
+             SELECT to_regclass('public.mixer_release_cli_requests'),
+                    to_regclass('public.mixer_stage_promotion_bindings')
+             """).rows
 
     fixture = @fixtures |> Path.join("signed-release-v3.json") |> File.read!() |> Jason.decode!()
 

@@ -6,7 +6,9 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
   """
   alias MixerHosted.BrowserAuth.{RelationManifest, WorkspaceCatalog}
 
-  @release_principal_sources ~w(mixer_release_publications mixer_release_cli_requests)
+  @release_principal_sources ~w(
+    mixer_release_publications mixer_release_cli_requests mixer_stage_promotion_bindings
+  )
   @uploader_relations ~w(
     public.mixer_authz_bindings
     public.mixer_authz_credentials
@@ -605,6 +607,8 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
 
   # Each installed release table adds an exact edge and four RI triggers.
   defp release_foreign_keys!(state, roles) do
+    max_sources = length(@release_principal_sources)
+
     {rows, state} =
       fetch!(
         state,
@@ -614,11 +618,11 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
           AND c.relowner=$1::pg_catalog.oid AS restricted
         FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
         WHERE n.nspname='public' AND c.relname::pg_catalog.text=ANY($2::pg_catalog.text[])
-        LIMIT 3
+        LIMIT #{max_sources + 1}
         """,
         [roles.relation_owner, @release_principal_sources],
         [{"name", {:text, 63}}, {"restricted", :bool}],
-        2,
+        max_sources,
         nil
       )
 

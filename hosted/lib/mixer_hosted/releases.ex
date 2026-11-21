@@ -195,10 +195,11 @@ defmodule MixerHosted.Releases do
          {:ok, rows} <-
            stage_write(repo, destinations, route, verified, fresh, binding, metadata),
          {:ok, ^direction} <- stage_direction(request.id),
-         {:ok, ^route} <- Storage.admit(repo, request.id, direction),
-         now = Context.checkpoint!(context, repo, @action, scope).checked_at,
-         :ok <- stage_reverify(command, direction, sequences, fresh.checked_at, now) do
-      {:ok, %{ios: result(rows.ios), android: result(rows.android)}}
+         {:ok, ^route} <- Storage.admit(repo, request.id, direction) do
+      {start, expiry} = verified.validity_window
+
+      {:ok, %{ios: result(rows.ios), android: result(rows.android)},
+       {:valid_during, start, expiry}}
     else
       false -> {:error, :release_not_found}
       {:ok, _} -> {:error, :authorization_unavailable}
@@ -222,12 +223,6 @@ defmodule MixerHosted.Releases do
       {:error, {_, :destination, :assignment_replay}} -> {:error, :conflict}
       {:error, _} -> {:error, :assignment_rejected}
     end
-  end
-
-  defp stage_reverify(_, _, _, now, now), do: :ok
-
-  defp stage_reverify(command, direction, sequences, _, now) do
-    with {:ok, _} <- stage_verify(command, direction, sequences, now), do: :ok
   end
 
   defp stage_destination_artifacts(repo, verified) do

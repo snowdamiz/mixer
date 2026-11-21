@@ -73,6 +73,35 @@ defmodule MixerHosted.Releases.EnvironmentPromotion.VerifierTest do
     assert verified.ios.source.evidence.payload != verified.android.source.evidence.payload
   end
 
+  test "binds the intersection of the artifact and assignment root windows", f do
+    now = f.checkpoint.now
+
+    for constrained_side <- [:source, :destination],
+        constrained_platform <- [:ios, :android],
+        constrained_role <- ["artifact", "assignment"] do
+      direction =
+        update_in(
+          f.direction,
+          [Access.key!(constrained_side), constrained_platform, Access.key!(:roots)],
+          fn roots ->
+            Enum.map(roots, fn root ->
+              if root[constrained_role] do
+                %{root | "not_before_unix" => now, "not_after_unix" => now + 1}
+              else
+                %{root | "not_before_unix" => now - 1, "not_after_unix" => 0}
+              end
+            end)
+          end
+        )
+
+      assert {:ok, %{validity_window: {^now, expiry}}} = verify(%{f | direction: direction})
+      assert expiry == now + 1
+
+      assert {:error, {^constrained_platform, ^constrained_side, _}} =
+               verify(%{f | direction: direction, checkpoint: %{f.checkpoint | now: expiry}})
+    end
+  end
+
   test "requires both platform entries and an exact target, host and root policy for each side",
        f do
     missing = Map.delete(f.command.destination, :android)

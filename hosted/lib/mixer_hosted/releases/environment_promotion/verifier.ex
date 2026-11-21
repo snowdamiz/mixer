@@ -27,11 +27,14 @@ defmodule MixerHosted.Releases.EnvironmentPromotion.Verifier do
   @type evidence :: %{
           target: Target.t(),
           evidence: Evidence.t(),
-          assignment: AssignmentV3.Signed.t()
+          assignment: AssignmentV3.Signed.t(),
+          validity_window: validity_window()
         }
+  @type validity_window :: {AssignmentV3.uint64(), AssignmentV3.uint64() | nil}
   @type result :: %{
           source_commit: String.t(),
           release_id: String.t(),
+          validity_window: validity_window(),
           ios: %{source: evidence(), destination: evidence()},
           android: %{source: evidence(), destination: evidence()}
         }
@@ -58,7 +61,19 @@ defmodule MixerHosted.Releases.EnvironmentPromotion.Verifier do
          {:ok, android, android_group} <-
            verify_platform(:android, command, direction, sequences.android, now),
          :ok <- require_match(group, android_group, :release_group_mismatch) do
-      {:ok, %{source_commit: commit, release_id: release_id, ios: ios, android: android}}
+      window =
+        [ios.source, ios.destination, android.source, android.destination]
+        |> Enum.map(& &1.validity_window)
+        |> intersect_windows()
+
+      {:ok,
+       %{
+         source_commit: commit,
+         release_id: release_id,
+         ios: ios,
+         android: android,
+         validity_window: window
+       }}
     end
   end
 
@@ -188,11 +203,31 @@ defmodule MixerHosted.Releases.EnvironmentPromotion.Verifier do
              now: now
            }),
          {:ok, manifest, _, _} <- ArtifactAdmission.decode_signed_manifest(manifest_bytes) do
-      {:ok, %{target: target, evidence: evidence, assignment: signed}, manifest}
+      # Successful verification selected these unique roots from the same enrollment.
+      windows =
+        for key <- [signed.assignment["key_id"], manifest["key_id"]] do
+          root = Enum.find(roots, &(&1["key_id"] == key))
+          expiry = root["not_after_unix"]
+          {root["not_before_unix"], if(expiry == 0, do: nil, else: expiry)}
+        end
+
+      {:ok,
+       %{
+         target: target,
+         evidence: evidence,
+         assignment: signed,
+         validity_window: intersect_windows(windows)
+       }, manifest}
     end
   end
 
   defp verify_evidence(_, _, _, _), do: {:error, :invalid_evidence}
+
+  defp intersect_windows(windows) do
+    start = windows |> Enum.map(&elem(&1, 0)) |> Enum.max()
+    expiries = for {_, expiry} <- windows, expiry != nil, do: expiry
+    {start, Enum.min(expiries, fn -> nil end)}
+  end
 
   defp release_content(manifest) do
     # The native fingerprint includes application.environment. Each runtime

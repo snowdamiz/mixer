@@ -244,7 +244,16 @@ defmodule MixerHosted.Repo.Migrations.AddLocalStagePromotion do
     execute("""
     CREATE POLICY stage_binding_append ON #{@bindings} FOR INSERT WITH CHECK (
       #{visible} AND principal_id=current_setting('mixer.authz.principal_id',true)
-      AND EXISTS (SELECT 1 FROM #{@admit}(direction_id)) AND #{publications}
+      AND (
+        SELECT count(*) FROM #{@source}(mixer_stage_promotion_bindings.direction_id,
+          mixer_stage_promotion_bindings.source_ios_sequence,
+          mixer_stage_promotion_bindings.source_android_sequence) s
+        WHERE (s.platform,s.sequence,s.artifact_sha256) IN (
+          ('ios',mixer_stage_promotion_bindings.source_ios_sequence,
+                 mixer_stage_promotion_bindings.source_ios_artifact_sha256),
+          ('android',mixer_stage_promotion_bindings.source_android_sequence,
+                     mixer_stage_promotion_bindings.source_android_artifact_sha256))
+      ) = 2 AND #{publications}
     )
     """)
 

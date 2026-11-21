@@ -3,7 +3,10 @@ defmodule MixerHosted.Authorization do
   Owns the fresh customer authorization and local SQL transaction.
 
   The callback must return `{:ok, value}` or `{:error, bounded_reason}` and may
-  perform only synchronous local SQL. External effects cannot be rolled back.
+  perform only synchronous local SQL. A release publication may return
+  `{:ok, value, {:valid_during, start, expiry}}` to bind commit to an inclusive
+  start and exclusive expiry in Unix seconds. Use `nil` for unbounded expiry.
+  External effects cannot be rolled back.
   A pure Policy.Decision is never accepted as domain authority. The optional Repo
   argument is trusted server configuration, never request data. No HTTP route
   activates this seam and no caller-supplied clock is accepted.
@@ -100,14 +103,12 @@ defmodule MixerHosted.Authorization do
 
                  case callback.(context) do
                    {:ok, value} ->
-                     # The last successful checkpoint is immediately before
-                     # returning to Ecto's commit. No user callback follows it.
-                     Context.checkpoint!(context, repo, action, scope)
+                     commit_value!(context, repo, action, scope, value, {0, nil})
 
-                     if action == "build.create",
-                       do: MixerHosted.BrowserAuth.ActiveCreate.check_current!(context)
-
-                     {:ok, value}
+                   {:ok, value, {:valid_during, start, expiry}}
+                   when action == "release.publish" and is_integer(start) and start >= 0 and
+                          (is_nil(expiry) or (is_integer(expiry) and expiry > start)) ->
+                     commit_value!(context, repo, action, scope, value, {start, expiry})
 
                    {:error, reason} when reason in @errors ->
                      repo.rollback(reason)
@@ -134,6 +135,19 @@ defmodule MixerHosted.Authorization do
     _ -> {:error, :authorization_unavailable}
   catch
     _, _ -> {:error, :authorization_unavailable}
+  end
+
+  defp commit_value!(context, repo, action, scope, value, {start, expiry}) do
+    # Use the same fresh authority checkpoint for domain validity and the SQL commit.
+    %{checked_at: now} = Context.checkpoint!(context, repo, action, scope)
+
+    if now < start or (expiry != nil and now >= expiry),
+      do: repo.rollback(:assignment_rejected)
+
+    if action == "build.create",
+      do: MixerHosted.BrowserAuth.ActiveCreate.check_current!(context)
+
+    {:ok, value}
   end
 
   defp evaluate!(repo, identity, action, target, evidence, now) do
