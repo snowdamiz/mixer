@@ -224,13 +224,14 @@ def run_command(work, name, argv, *, seconds, cwd=None, env, secret=None):
                         custody["stage"] = "observe-group-absence"
                         if group_absent(pid):
                             custody["groupAbsent"] = True
-                            return None
+                            return None if time.monotonic() < until else "timeout"
                         time.sleep(max(0, min(0.02, until - time.monotonic())))
                 return "timeout"
 
             stop = collect(deadline)
             if stop:
                 custody["stop"] = stop
+            if stop and not custody["groupAbsent"]:
                 require("pgid" in custody, "owned command session exceeded its budget")
                 require(not custody["directChildReaped"], "owned group closure exceeded its budget")
                 exec_confirmed = custody["execPipeEOF"]
@@ -249,21 +250,21 @@ def run_command(work, name, argv, *, seconds, cwd=None, env, secret=None):
                 except OSError as denied:
                     custody["signalOutcome"] = "denied" if isinstance(denied, PermissionError) else "error"
                     raise
-                require(collect(time.monotonic() + COMMAND_CLEANUP_SECONDS, stopping=True) is None,
-                        "owned command closure exceeded its cleanup budget")
+                collect(time.monotonic() + COMMAND_CLEANUP_SECONDS, stopping=True)
+                require(custody["groupAbsent"], "owned command closure exceeded its cleanup budget")
                 if not exec_confirmed:
                     custody["stage"] = "await-exec"
                     unresolved = TimeoutError("owned command exec exceeded its budget")
-                elif name == "go-build":
-                    # An interrupted compiler driver supplies no closure for
-                    # any tool it launched outside this process group.
-                    custody["stage"] = "observe-go-descendants"
-                    unresolved = RuntimeError("interrupted Go build has no descendant closure")
             elif custody["exit"] < 0:
                 # An unsolicited signal could have closed the launch pipe
                 # before exec. A normal close-on-exec EOF is insufficient here.
                 custody["stage"] = "await-exec"
                 unresolved = RuntimeError("signal left exact command launch unconfirmed")
+            if (unresolved is None and name == "go-build"
+                    and (custody["signalAttempted"] or custody["exit"] != 0)):
+                # Failed or interrupted Go builds can leave tools outside the driver group.
+                custody["stage"] = "observe-go-descendants"
+                unresolved = RuntimeError("Go build has no descendant closure")
         custody["descriptorsClosed"] = True
         if unresolved is not None:
             raise unresolved

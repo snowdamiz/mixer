@@ -1,7 +1,8 @@
 """Inert admission and process controls. No product services or native tools."""
 
 import base64
-from contextlib import closing
+from contextlib import closing, redirect_stderr
+import io
 import json
 import os
 from pathlib import Path
@@ -456,6 +457,23 @@ sys.stdout.buffer.write(b"x" * {step.COMMAND_LOG_LIMIT})
         self.assertEqual((receipt["custody"], receipt["exit"], receipt["stop"], receipt["signalOutcome"]),
                          ("TERMINAL", -signal.SIGKILL, "timeout", "sent"))
 
+    def test_late_group_absence_refuses_timeout_but_records_terminal(self):
+        group_absent = step.group_absent
+        started = time.monotonic()
+
+        def delayed_observation(pid):
+            absent = group_absent(pid)
+            if absent:
+                time.sleep(max(0, started + 1.34 - time.monotonic()))
+            return absent
+
+        with patch.object(step, "group_absent", side_effect=delayed_observation):
+            with self.assertRaisesRegex(RuntimeError, "exceeded its budget"):
+                self.command(seconds=1)
+        receipt = self.assert_terminal()
+        self.assertEqual((receipt["exit"], receipt["stop"], receipt["signalAttempted"]),
+                         (0, "timeout", False))
+
     def test_interrupted_go_group_does_not_prove_nested_closure(self):
         with self.assertRaises(step.CustodyUnknown):
             self.command("import time; time.sleep(8)", seconds=1, name="go-build")
@@ -464,6 +482,37 @@ sys.stdout.buffer.write(b"x" * {step.COMMAND_LOG_LIMIT})
                          ("UNKNOWN", "observe-go-descendants", "timeout"))
         self.assertTrue(receipt["directChildReaped"] and receipt["groupAbsent"])
         self.assertFalse((self.work / "commands/go-build/result.json").exists())
+
+    def test_nonzero_go_exit_preserves_root_hold_and_cli_exit_74(self):
+        argv = ["attest_settled.py", "--run-root", str(self.work.parent),
+                "--api-port", "18431", "--pg-port", "18432",
+                "--settlement-sha256", "0" * 64, "--enrolled-spki-sha256", "1" * 64]
+        for name in ("session", "bearer", "private-key", "public-key"):
+            argv.extend(("--" + name, str(self.work.parent / name)))
+        self.addCleanup(os.umask, os.umask(0o077))
+        with (patch.object(sys, "argv", argv),
+              patch.object(step, "prove", side_effect=lambda args: self.command(
+                  "raise SystemExit(7)", name="go-build")),
+              redirect_stderr(io.StringIO()) as stderr):
+            self.assertEqual(step.main(), 74)
+        self.assertIn(f"Preserve {self.work.parent}", stderr.getvalue())
+        receipt = json.loads(self.hold.read_bytes())
+        self.assertEqual((receipt["custody"], receipt["stage"], receipt["exit"], receipt["signalAttempted"]),
+                         ("UNKNOWN", "observe-go-descendants", 7, False))
+        self.assertTrue(all(receipt[field] for field in
+                            ("execPipeEOF", "directChildReaped", "groupAbsent", "descriptorsClosed",
+                             "stdoutEOF", "stderrEOF")))
+        self.assertFalse((self.work / "commands/go-build/result.json").exists())
+
+    def test_zero_go_exit_still_records_terminal(self):
+        self.logs = self.work / "commands/go-build"
+        self.assertEqual(self.command("print('built')", name="go-build"), b"built\n")
+        self.assertEqual(self.assert_terminal()["exit"], 0)
+
+    def test_nonzero_other_tool_still_records_terminal(self):
+        with self.assertRaisesRegex(RuntimeError, "control failed or exceeded its budget"):
+            self.command("raise SystemExit(7)")
+        self.assertEqual(self.assert_terminal()["exit"], 7)
 
 
 if __name__ == "__main__":
