@@ -311,7 +311,12 @@ Android sequence 12 records after both release heads advanced. Root passed
 checkouts passed focused controls with and without Python optimization.
 Exact source and workflow preimages recover v79 and v78. The installed CLI
 still validates 154 inputs, and the ordinary migration inventory remains at 27.
-Full collector and hosted CI results are pending.
+The full collector exposed two historical corruption fixtures that skipped v79
+while restoring v78. After correcting that hop, all 317 tests passed locally
+in 146.8 seconds in normal Python and 152.1 seconds with optimization.
+Both exact sparse runs admitted 559 source inputs, preserved their checkouts,
+and closed their owned scratch. Hosted v80 CI remains pending.
+[Corrected Services replay](verification/receipts/hosted-v80-services-collector-final.json)
 [Source admission](verification/receipts/hosted-v80-console-promotion-history-source-admission.json) ·
 [Console composition](verification/receipts/console-promotion-history-v80-composition.json) ·
 [Phoenix fixture replay](verification/receipts/console-promotion-v80-composed-phoenix.json)
