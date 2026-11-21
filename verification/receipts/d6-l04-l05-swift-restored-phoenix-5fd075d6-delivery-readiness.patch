@@ -1,0 +1,16 @@
+--- a/hosted/test/mixer_hosted/releases/browser_publication_test.exs
++++ b/hosted/test/mixer_hosted/releases/browser_publication_test.exs
+@@ -223,6 +223,13 @@
+     end
+ 
+     first = observe_first_offer(restarted, "full-restarted", offer_path)
++
++    if first.status != 200 do
++      metrics = await_delivery_checkout(restarted, System.monotonic_time(:millisecond) + 3_000)
++      record_delivery("full-restarted-after-failure-ready", metrics)
++      assert_delivery_identity_and_query(restarted, "full-restarted-after-failure", config, rollback)
++    end
++
+     assert first.status == 200
+     path = delivered_artifact_path(digest)
+ 

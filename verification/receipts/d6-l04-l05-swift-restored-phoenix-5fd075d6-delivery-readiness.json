@@ -1,0 +1,492 @@
+{
+  "decision": "PARTIAL",
+  "scope": "Host-only synthetic L04/L05 at pinned public Mixer source. One signed cold-start probe and one fresh full restore; no HTTP retry after the first restarted Seq3 offer.",
+  "source": {
+    "revision": "5fd075d6df49ccf2b2e4699a7bc2e59c7b3fd2e8",
+    "tree": "cd97459588e38831152c4d8bee47af1229071e8e",
+    "manifestSha256": "9465cab1770a61d71f94dfec5532f306faeb0170646163fb7ff3baa2aa2dbc08",
+    "verifiedBlobs": 2560
+  },
+  "comparison": {
+    "acceptedRevision": "9efad204c56b69b40dd43f12ec6225c1dae4335d",
+    "hostedTreeDiffEmpty": true,
+    "acceptedOfferOrdering": "Started ordinary API, checked RuntimeOwner and ordinary Repo, logged in, read authenticated head and saved promotion, then offered through configured registry; checked DeliveryRepo role afterwards.",
+    "failingOfferOrdering": "Started ordinary API and requested the default-target offer immediately after endpoint return.",
+    "collapsedSources": "PublicDelivery.configuration only checks registered DeliveryRepo, rows disables checkout queueing and maps all adapter errors to storage_unavailable. PublicDelivery.offer also maps unexpected row shapes to storage_unavailable; selected signed-row verification failures give no_offer. PublicReleaseController returns 503 for storage_unavailable.",
+    "matchedActualBranch": "Ecto offer telemetry reported a DBConnection checkout failure before SQL execution on the first restarted full-path HTTP call."
+  },
+  "priorReceipts": [
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-47a1acb2/verification/receipts/d6-l04-l05-swift-restored-phoenix-5fd075d6.json",
+      "sha256BeforeAndAfter": "6a377d8b8ea7e08f8e42e7f704f646ace18da2c148352954ff65506bc808da1c",
+      "outcome": "422 not_validated"
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-c1a57231/verification/receipts/d6-l04-l05-swift-restored-phoenix-5fd075d6-corrected.json",
+      "sha256BeforeAndAfter": "133514b7ca4a41576802bcc1e86a926527190ce5da67cc935fd306313d66c93e",
+      "outcome": "503 missing INSERT(action)"
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-9fed5082/verification/receipts/d6-l04-l05-swift-restored-phoenix-5fd075d6-action-grant.json",
+      "sha256BeforeAndAfter": "c2c1477f78a7b5a8543fd5686a4815aa6cb170aee905729c2390ca246cca8718",
+      "outcome": "503 first restarted offer"
+    },
+    {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5138e709/verification/receipts/d6-l05-l07-restored-stock-rollback-9efad204.json",
+      "sha256BeforeAndAfter": "a0c4f78c542b309ae248867661d75a480985f578e8df34a55d42c23866136229",
+      "outcome": "accepted stock restore"
+    }
+  ],
+  "tools": {
+    "python": "Python 3.14.8",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "mix": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:2:2:2] [async-threads:1] [jit] [dtrace]\n\nMix 1.20.4 (compiled with Erlang/OTP 29)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "xcode": "Xcode 27.2\nBuild version 27B52"
+  },
+  "probe": {
+    "probe-cluster": {
+      "port": 54764,
+      "systemIdentifier": "7710663074124524940",
+      "auth": [
+        "local|-|reject",
+        "host|127.0.0.1|scram-sha-256",
+        "host|0.0.0.0|reject",
+        "host|::|reject"
+      ],
+      "wrongPasswordRefused": true
+    },
+    "probe-scram": {
+      "roles": [
+        "browser_admin",
+        "browser_lifecycle",
+        "browser_ordinary",
+        "mixer_release_delivery",
+        "mixer_release_processor",
+        "swift_restore_bootstrap"
+      ]
+    },
+    "probe-packet": {
+      "install": "swift-restore-ios",
+      "releases": [
+        {
+          "sequence": 1,
+          "artifact": "fdd6e01c50e050240312b950d203ae36aa847e82659940d94e9fbd8a7a19c0c1",
+          "assignmentSha256": "aea1754517ade2f54919fa32a8dca4e340234aae2c896ca2d966a4d4a77f9397",
+          "manifestSha256": "12abcaec0abb766cad17f8156b4454789642f3bfa9fd242c9e3e1685f522caf6",
+          "envelopeSha256": "1fe9914b065507242c4e50a7477f74907ccd02b4210edfc53b3ee9360f766c9a"
+        },
+        {
+          "sequence": 2,
+          "artifact": "0661c6fe23e039c18b6ee42842993ae32fe36078f72d4e39ad817ca3a38c328a",
+          "assignmentSha256": "211401e374383066103e2a91d481d9521a71fe961597dd594b4b559aba787409",
+          "manifestSha256": "75e707e2a361d0f25c012f2c979e661c76e027729f278558420e7e31e41bb646",
+          "envelopeSha256": "b219bc2c389694dbe28ba277187f47143a8cea804f9d034ae81616bbdb7691cc"
+        },
+        {
+          "sequence": 3,
+          "artifact": "fdd6e01c50e050240312b950d203ae36aa847e82659940d94e9fbd8a7a19c0c1",
+          "assignmentSha256": "a0fdb2c57829f45a08a743734ff26ae32fff7868bd3caad0bd3ccd6dd7438988",
+          "manifestSha256": "12abcaec0abb766cad17f8156b4454789642f3bfa9fd242c9e3e1685f522caf6",
+          "envelopeSha256": "1fe9914b065507242c4e50a7477f74907ccd02b4210edfc53b3ee9360f766c9a"
+        }
+      ]
+    },
+    "probe-exunit": {
+      "passed": 1
+    },
+    "probe-http-and-sql": {
+      "records": {
+        "before-restart-first-http": {
+          "status": 200,
+          "storage_unavailable": false,
+          "body_sha256": "3a7a6fc361ad0dd9bc530adc7de84c5eacf3b71f2e1521ae16d37b6b12d4cb24",
+          "no_store": true,
+          "request_us": 9349
+        },
+        "before-restart-first-query": {
+          "outcome": {
+            "reason": {
+              "type": "ok",
+              "row_count": 1
+            },
+            "executed": true
+          },
+          "elapsed_from_endpoint_return_us": 8837
+        },
+        "before-restart-role-and-sql": {
+          "role": "mixer_release_delivery",
+          "sequence": 2,
+          "restricted": true,
+          "matched_database": true,
+          "matched_port": true,
+          "assignment_sha256": "211401e374383066103e2a91d481d9521a71fe961597dd594b4b559aba787409",
+          "manifest_sha256": "75e707e2a361d0f25c012f2c979e661c76e027729f278558420e7e31e41bb646",
+          "payload_sha256": "f232b9ada16698665d7abd4e3121df0e170473a927bd808102c5a5a364cd3bd5",
+          "after_first_http": true,
+          "exact_fixture_bytes": true
+        },
+        "probe-restarted-first-http": {
+          "status": 200,
+          "storage_unavailable": false,
+          "body_sha256": "3a7a6fc361ad0dd9bc530adc7de84c5eacf3b71f2e1521ae16d37b6b12d4cb24",
+          "no_store": true,
+          "request_us": 6127
+        },
+        "probe-restarted-first-query": {
+          "outcome": {
+            "reason": {
+              "type": "ok",
+              "row_count": 1
+            },
+            "executed": true
+          },
+          "elapsed_from_endpoint_return_us": 5611
+        },
+        "probe-restarted-ready": {
+          "waiting": 0,
+          "elapsed_from_endpoint_return_us": 6982,
+          "ready": 1
+        },
+        "probe-restarted-role-and-sql": {
+          "role": "mixer_release_delivery",
+          "sequence": 2,
+          "restricted": true,
+          "matched_database": true,
+          "matched_port": true,
+          "assignment_sha256": "211401e374383066103e2a91d481d9521a71fe961597dd594b4b559aba787409",
+          "manifest_sha256": "75e707e2a361d0f25c012f2c979e661c76e027729f278558420e7e31e41bb646",
+          "payload_sha256": "f232b9ada16698665d7abd4e3121df0e170473a927bd808102c5a5a364cd3bd5",
+          "after_first_http": true,
+          "exact_fixture_bytes": true
+        }
+      }
+    },
+    "discriminator": {
+      "status": 200,
+      "coldCheckoutReproduced": false,
+      "fullPassivePoolReadiness": false,
+      "probeDatabase": "7710663074124524940"
+    }
+  },
+  "full": {
+    "full-packet": {
+      "install": "swift-restore-ios",
+      "releases": [
+        {
+          "sequence": 1,
+          "artifact": "9a083aa09fb80edc73bee2af9386cc14c04ae9a59483255c129b3255161a4ae5",
+          "assignmentSha256": "aace116a45a6e2268b440c6847e769c524e4e0621d6b989add63d79f14280d0e",
+          "manifestSha256": "ebdd7ccbca8402e4ee68450e0dfc662a3bb8290bc10e128b6d85c0c357e0bd0e",
+          "envelopeSha256": "8e187f86c37a6a1c89ab689bee5c53443c731eb2e9efa807c252b917862cdc20"
+        },
+        {
+          "sequence": 2,
+          "artifact": "9b5d2ef6ff836586cd65e5b46fc09dc01af9ab86ced37cd3be2b813428927a0c",
+          "assignmentSha256": "e6d18137d5c27764a818e7e7b88dfc18555657c0b44e9aae23278bcca9673b9b",
+          "manifestSha256": "e5851c6f185ed55f3c921e6c0b0b3a664ed63b86e33797b4954726d11134ff40",
+          "envelopeSha256": "ac5ce0a99c6e67271b5e6a81c4d878717d97de31919e02a9c622300d96021f5c"
+        },
+        {
+          "sequence": 3,
+          "artifact": "9a083aa09fb80edc73bee2af9386cc14c04ae9a59483255c129b3255161a4ae5",
+          "assignmentSha256": "b01b87b3dd9becd6e2c6aa95ac21ae9c0c1bd5407f4cae617cf286323ea14d6d",
+          "manifestSha256": "ebdd7ccbca8402e4ee68450e0dfc662a3bb8290bc10e128b6d85c0c357e0bd0e",
+          "envelopeSha256": "8e187f86c37a6a1c89ab689bee5c53443c731eb2e9efa807c252b917862cdc20"
+        }
+      ]
+    },
+    "source-cluster": {
+      "port": 54994,
+      "systemIdentifier": "7710663209984850028",
+      "auth": [
+        "local|-|reject",
+        "host|127.0.0.1|scram-sha-256",
+        "host|0.0.0.0|reject",
+        "host|::|reject"
+      ],
+      "wrongPasswordRefused": true
+    },
+    "source-scram": {
+      "roles": [
+        "browser_admin",
+        "browser_lifecycle",
+        "browser_ordinary",
+        "mixer_release_delivery",
+        "mixer_release_processor",
+        "swift_restore_bootstrap"
+      ]
+    },
+    "source-exunit": {
+      "passed": 1
+    },
+    "online-1": {
+      "client": {
+        "sequence": "1",
+        "artifact": "9a083aa09fb80edc73bee2af9386cc14c04ae9a59483255c129b3255161a4ae5",
+        "candidate": "66978938cfdfbe4d4f74214fd0d21f0cb24a15e9f46cae62ee84f61dcfc7f5cd",
+        "payload": "2527fc0b0485bc3ef35f9062a215d2f7726a726084cd241f37539ea5c77241f6",
+        "assignment": "aace116a45a6e2268b440c6847e769c524e4e0621d6b989add63d79f14280d0e",
+        "manifest": "ebdd7ccbca8402e4ee68450e0dfc662a3bb8290bc10e128b6d85c0c357e0bd0e",
+        "replayWrites": "0",
+        "vm": "healthyGuest"
+      },
+      "wire": {
+        "port": 55035
+      }
+    },
+    "online-2": {
+      "client": {
+        "sequence": "2",
+        "artifact": "9b5d2ef6ff836586cd65e5b46fc09dc01af9ab86ced37cd3be2b813428927a0c",
+        "candidate": "263508ed0f3e4890d4871fd3eb4d8424d3d701df404c1bb521361836b864ef0b",
+        "payload": "f232b9ada16698665d7abd4e3121df0e170473a927bd808102c5a5a364cd3bd5",
+        "assignment": "e6d18137d5c27764a818e7e7b88dfc18555657c0b44e9aae23278bcca9673b9b",
+        "manifest": "e5851c6f185ed55f3c921e6c0b0b3a664ed63b86e33797b4954726d11134ff40",
+        "replayWrites": "0",
+        "vm": "healthyGuest"
+      },
+      "wire": {
+        "port": 55035
+      }
+    },
+    "fixture-grant": {
+      "sql": "GRANT INSERT (action) ON public.mixer_release_publications TO browser_ordinary",
+      "invokedAs": "browser_schema_owner",
+      "before": {
+        "forcedRLS": true,
+        "owner": "browser_schema_owner",
+        "tableInsert": false,
+        "actionInsert": false,
+        "columns": [
+          "application_id",
+          "artifact_sha256",
+          "channel",
+          "environment_id",
+          "idempotency_key",
+          "organization_id",
+          "platform",
+          "previous_sequence",
+          "principal_id",
+          "project_id",
+          "reason",
+          "rollout_basis_points",
+          "runtime_sha256",
+          "sequence",
+          "signed_assignment_bytes"
+        ],
+        "delete": false,
+        "update": false,
+        "restrictedRole": true
+      },
+      "after": {
+        "forcedRLS": true,
+        "owner": "browser_schema_owner",
+        "tableInsert": false,
+        "actionInsert": true,
+        "columns": [
+          "action",
+          "application_id",
+          "artifact_sha256",
+          "channel",
+          "environment_id",
+          "idempotency_key",
+          "organization_id",
+          "platform",
+          "previous_sequence",
+          "principal_id",
+          "project_id",
+          "reason",
+          "rollout_basis_points",
+          "runtime_sha256",
+          "sequence",
+          "signed_assignment_bytes"
+        ],
+        "delete": false,
+        "update": false,
+        "restrictedRole": true
+      }
+    },
+    "source-dump": {
+      "dumpSha256": "46110c231ba9e2ced607bd5ca7c67f9ba7efde2d9c0223f1a12d4fd108f2737f",
+      "sourceStateSha256": "0826adbd576cf33bd8ad2220dbb89b6fdbeebc1ef26c506ee07f362e678e2abf",
+      "actionAclInDump": true,
+      "sourceSessions": 0
+    },
+    "restore-cluster": {
+      "port": 55100,
+      "systemIdentifier": "7710663250497386877",
+      "auth": [
+        "local|-|reject",
+        "host|127.0.0.1|scram-sha-256",
+        "host|0.0.0.0|reject",
+        "host|::|reject"
+      ],
+      "wrongPasswordRefused": true
+    },
+    "restore-scram": {
+      "roles": [
+        "browser_admin",
+        "browser_lifecycle",
+        "browser_ordinary",
+        "mixer_release_delivery",
+        "mixer_release_processor",
+        "swift_restore_bootstrap"
+      ]
+    },
+    "restore-state": {
+      "sourceStateEqualsRestored": true,
+      "restoredAclMatches": true,
+      "noDestinationGrant": true
+    },
+    "stock-cli": {
+      "sha256": "ab5e2dcafda15bf9243a4ead7bf0c6e0dcdcaf4b48d259363f5bca2bc19021e0"
+    },
+    "stock-rollback-and-replay": {
+      "result": {
+        "status": "ok",
+        "action": "rollback",
+        "artifact_sha256": "9a083aa09fb80edc73bee2af9386cc14c04ae9a59483255c129b3255161a4ae5",
+        "sequence": 3,
+        "rollout_basis_points": 10000,
+        "delivery": "local_only"
+      },
+      "snapshotSha256": "2900d0708fc4d0b569fbc6ce13cd8c3f7fa0bb5ac70fe70004f574277565b6ff",
+      "outputSha256": "b4f7d386e8171684f15c01a9812ba9ae249da0b0e99086d5fe0e230c90aa3d38",
+      "counts": {
+        "publications": 3,
+        "rollbackRequests": 1,
+        "jobs": [
+          {
+            "state": "available",
+            "attempt": 0
+          }
+        ]
+      },
+      "exactReplay": true,
+      "baselineValidationHttp": 200
+    }
+  },
+  "worker": {
+    "profile": "releases_v1",
+    "role": "mixer_release_processor",
+    "endpointAbsent": true,
+    "jobsCompleted": 3,
+    "sequence3JoinedRows": 1,
+    "attempt": 1,
+    "baselineDigestAndExactSignedAssignment": true,
+    "evidence": "Executed restore test reached first HTTP after asserting the processor role, endpoint absence, three completed jobs and exactly one matching seq3 job/materialization row."
+  },
+  "firstUnmodifiedRestartedOffer": {
+    "status": 503,
+    "storage_unavailable": true,
+    "body_sha256": "9ee22523a4233ceb59cf562586e551afc10ee3fb3db0150307d624a24f65dd35",
+    "no_store": true,
+    "request_us": 646
+  },
+  "firstOfferQueryTelemetry": {
+    "outcome": {
+      "reason": {
+        "reason": "queue_disabled_no_available_connection",
+        "type": "DBConnection.ConnectionError"
+      },
+      "executed": false
+    },
+    "elapsed_from_endpoint_return_us": 469
+  },
+  "laterDiagnosticOnly": {
+    "pool": {
+      "waiting": 0,
+      "elapsed_from_endpoint_return_us": 1172,
+      "ready": 1
+    },
+    "roleAndExactOfferSql": {
+      "role": "mixer_release_delivery",
+      "sequence": 3,
+      "restricted": true,
+      "matched_database": true,
+      "matched_port": true,
+      "assignment_sha256": "b01b87b3dd9becd6e2c6aa95ac21ae9c0c1bd5407f4cae617cf286323ea14d6d",
+      "manifest_sha256": "ebdd7ccbca8402e4ee68450e0dfc662a3bb8290bc10e128b6d85c0c357e0bd0e",
+      "payload_sha256": "2527fc0b0485bc3ef35f9062a215d2f7726a726084cd241f37539ea5c77241f6",
+      "after_first_http": true,
+      "exact_fixture_bytes": true
+    },
+    "httpRetry": false
+  },
+  "failure": {
+    "assertion": "first.status == 200",
+    "actual": 503,
+    "testLine": 233,
+    "exunitExit": 2
+  },
+  "recoveryStateAfterFailure": {
+    "sequence": 2,
+    "privateDirectories": true,
+    "privateRegularFiles": true,
+    "pending": false,
+    "payloadFilenamesMatchDigests": true,
+    "stateSha256": "b293a49e2057aa43b351e71ffa00bdb7c4943e890dc45c7e65d7fa5e0cc0cb82",
+    "freshOfflineXCTestRan": false
+  },
+  "open": [
+    "Successful restarted sequence-3 offer and artifact over HTTP",
+    "Swift sequence-3 activation and rejection of its exact replay",
+    "Fresh offline Swift process recovering the sequence-3 baseline"
+  ],
+  "methodDetails": [
+    "The test-only observer stores status and digest before checking sanitized Ecto result metadata. It neither runs a warm-up query on the new pool nor changes the stock endpoint, SQL, permissions, pool options or product source.",
+    "On the stable pre-restart probe, the role and exact query ran before the sampled offer despite the helper's after_first_http flag. All restarted first requests preceded their identity/readiness SQL diagnostics.",
+    "After the probe, the restored test gained same-pool diagnostic SQL on first HTTP failure. Both hosted test file versions are preserved. The source publication test body is byte-identical between them, and the edit was made as its source-only ExUnit launch began."
+  ],
+  "budget": {
+    "executableElapsedSeconds": 176.093,
+    "limitSeconds": 900,
+    "allocatedLimitBytes": 4294967296,
+    "sampledAllocatedPeakBytes": 1602453504,
+    "allocationLimitBytes": 4294967296,
+    "deadlineSeconds": 900,
+    "preparationGuard": "First build session stopped after all builders returned 0 because the guard took max(allocated, apparent bytes). That mixed transient sample was 40502439948 bytes. Post-build allocated scratch was 1128128 KiB. The live campaign continued within the original time budget using allocated blocks; allocation at the initial mixed peak was not separately recorded."
+  },
+  "custody": {
+    "directChildReapedGroupAbsentAndOutputEof": 74,
+    "listenerRefusalAndRebinds": 14,
+    "unknownHolds": 0,
+    "processGroupScope": "Observations cover owned groups and their output streams. A detached descendant that closes both streams is outside this observation.",
+    "proof": "verification/local/d6-offer-readiness-5fd075d6-afterimages/terminal-custody.json",
+    "scratchPath": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-07f36470/verification/local/d6-offer-readiness-5fd075d6-run",
+    "scratchRemoved": true
+  },
+  "authority": {
+    "syntheticOnly": true,
+    "payments": false,
+    "device": false,
+    "deployment": false,
+    "hostedRetry": false,
+    "gatesChanged": false,
+    "push": false
+  },
+  "afterimages": {
+    "path": "verification/local/d6-offer-readiness-5fd075d6-afterimages",
+    "sha256": {
+      "README.md": "fdbf6f6db32e6fd5434028e74de3661247975e7b9f84b76509b5d0bca52a6358",
+      "antecedent.patch": "76c886c6d5126fad9e99309b5cae2e7a7cf46fed243b53dabaff519b71779f74",
+      "campaign.py": "b3c8173eab3f2a89f7d14a9dcc2567daefce5fcbedc4c3e1cbbb33ced7dd428a",
+      "compose.py": "e24c44670fd7d9736e72262338777a5dd8dda865d62aa5d8bf39f26b8ee97527",
+      "custody.py": "55d7721b19f18a249c76d24b123cab5a417b278d3599756cac0b0578b2b4a7bf",
+      "executed-test-sources/capability-activation/Tests/MixerCapabilityActivationTests/CapabilityColdStartRuntimeTests.swift": "fbacdda6dd8abebd7024eb11024d6c324705731aa76685a41b5a27c6750cf10e",
+      "executed-test-sources/capability-activation/Tests/MixerCapabilityActivationTests/RestoredPhoenixReleaseTests.swift": "775a10cd809962b612537d33ffee3942074822696c8086ce921e513e56a40263",
+      "executed-test-sources/hosted/test/mixer_hosted/releases/browser_publication_test.exs": "58cec704d7602afc837ba1e79b7fadcd48e0ab3b194551a2e1bc0ab363e859f3",
+      "executed-test-sources/hosted/test/support/browser_storage_fixture.ex": "ef3b6b6cab4ba0b7b59fbf784f5f78af004a854c6c77370d9860377242ad9364",
+      "executed-test-sources/hosted/test/support/ordinary_browser_startup_fixture.ex": "3c820e12f74f21c5b9f09b44b598621a9ce2e027e28fe23516170dfb6f729b41",
+      "finalize.py": "9b2a6b965a089fd574dacdd0b0a635620ee1c62c3f63eedbcab82513f1fbbb82",
+      "full-test-postfailure-observation.patch": "89f2aa3b18f17d759b71d79ca2a7373a62f1681663190d1832fe8c7a26c37481",
+      "initial-campaign.py": "957fdb0a87b806f78369de913ca68545cad349523991f597c65cc659520b1e13",
+      "offer-support.exs": "baee64604d9e4f5f47690fc91934e3960212894956a6cca03ffd2325a9865f31",
+      "probe-compiled-test-source.exs": "6005127f56a902e733d6bec02dfdcec5b24bae242d3f590a8e8f7560a9cb222c",
+      "resume.py": "479394f2662e339fd0cb6ccbc6470876d3de1cfc9a744f39613d85547210d30e",
+      "terminal-custody.json": "fa0878e23c7370ad78482a64d8b77209a6cda850fedcee0903574b6569d18133"
+    }
+  }
+}

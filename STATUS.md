@@ -767,6 +767,18 @@ ten overlay files.
 [Grant and delivery observations](verification/receipts/d6-l04-l05-swift-restored-phoenix-5fd075d6-action-grant.json) ·
 [Historical fixture overlay](verification/receipts/d6-l04-l05-swift-restored-phoenix-5fd075d6.patch)
 
+A fresh instrumented follow-up reproduced the first HTTP 503 after the
+restored API restarted. The delivery pool had no available connection and
+queueing was disabled. PostgreSQL never received the query. The same pool
+reported a ready connection about 1.2 ms after startup returned. The
+subsequent read-only diagnostic matched the exact sequence-3 assignment and
+payload under the restricted delivery role. The campaign sent no HTTP retry.
+The Swift workspace retained sequence 2, leaving sequence-3 activation and
+fresh-process offline recovery open. All 74 recorded groups closed and 14
+listeners could rebind.
+[Readiness diagnostic](verification/receipts/d6-l04-l05-swift-restored-phoenix-5fd075d6-delivery-readiness.json) ·
+[Test-only observation patch](verification/receipts/d6-l04-l05-swift-restored-phoenix-5fd075d6-delivery-readiness.patch)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,
