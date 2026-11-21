@@ -20,9 +20,12 @@ is showing. The guest checks the current editor draft with a fresh read after
 each activation. The versioned key carries nine bytes in big-endian order.
 The first two 32-bit words carry the title and note UTF-8 byte counts,
 saturated at `UInt32.max`. Bits 0 through 5 of the last byte carry project
-match, commit, blank title, title NUL, note NUL and finite date respectively.
-The lease exposes only the facts read. The guest drops the
-action if the read is stale, denied or malformed.
+match, commit, blank title, title NUL, note NUL and valid date respectively.
+Malformed date text for the selected draft clears the date bit, even when the
+editor retains a finite parsed date. The guest keeps **Check entry** available
+so the same lease can read the correction. The lease exposes only the facts
+read. The guest drops the action if the read is stale or denied, or if the
+facts packet is malformed.
 
 Run with host Swift, Python 3, Rust and Embedded Swift 6.3.3 on arm64 macOS.
 The runner fetches the pinned FieldLog source and public Swift dependencies
@@ -38,8 +41,9 @@ tests/integration/fieldlog-entry-save/run.sh
 The replay checks the native reducer and staged, signed Guest UI V1 owner
 through the maintained host transport. It verifies Foundation's U+200B and
 U+FEFF behavior, raw UTF-8 boundaries, mixed-invalid precedence, malformed
-facts, stale input and selection, explicit owner retirement, and a cold
-repository reopen with exact workspace and attachment bytes. The native
+date correction through the same action and lease, malformed facts, stale
+input and selection, explicit owner retirement, and a cold repository reopen
+with exact workspace and attachment bytes. The native
 positive control observes effect admission and the guest positive control
 observes eligibility. Durable guest Commit and its replay/outbox and joined
 retirement behavior require the next integration unit.

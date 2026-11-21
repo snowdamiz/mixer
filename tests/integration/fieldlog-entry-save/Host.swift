@@ -280,6 +280,7 @@ actor DecisionReads: InstalledApplicationStorageServing {
                         try await tap(facade, expected: [expected ?? eligible, "Check entry"])
                         print("liveCase=\(label) decision=\(expected ?? eligible)")
                     }
+                    try await checkDateCorrection(editor, facade: facade)
                 } else {
                     if chapter == "stale" {
                         try send(editor, "draft." + otherDraft.uuidString.lowercased())
@@ -291,7 +292,7 @@ actor DecisionReads: InstalledApplicationStorageServing {
                 let calls = await reads.calls
                 let sizes = await reads.packetSizes
                 let expectedSizes = chapter == "stale" ? 1 : calls[0]
-                try check(calls == [chapter == "decision" ? 1 + cases.count : 2, 0, 0]
+                try check(calls == [chapter == "decision" ? 1 + cases.count + 3 : 2, 0, 0]
                           && sizes == Array(repeating: 9, count: expectedSizes), "Bad capability accounting: \(calls), \(sizes)")
                 try check(try await repository.readCommittedSnapshot() == original, "Repository state changed")
                 try check(try Data(contentsOf: workspaceFile) == raw && fileIdentity(workspaceFile) == identity
@@ -317,6 +318,39 @@ actor DecisionReads: InstalledApplicationStorageServing {
         try check(try Data(contentsOf: workspaceFile) == raw, "Cold reopen bytes differed")
         let hash = SHA256.hash(data: raw).map { String(format: "%02x", $0) }.joined()
         print("reopen=exact workspaceSHA256=\(hash) outbox=\(readback.outbox.count) entries=\(readback.entries.count) ownersRetired=3 liveAllocations=0")
+    }
+
+    private static func checkDateCorrection(_ editor: ProjectPresentation, facade: UInt64) async throws {
+        let title = "Inspection"
+        let malformedDate = "2025-02-29T14:30:00+05:30"
+        let correctedDate = "2024-02-29T14:30:00+05:30"
+        let dateStatus = "Enter a complete valid date and time with Z or a known ±HH:MM offset, and at most 3 fractional digits. Save is blocked; your input is retained."
+        try send(editor, field("title"), .textChange, .string(title))
+        try send(editor, field("date"), .textChange, .string(malformedDate))
+        let invalid = editor.snapshot
+        let fields = invalid.document.root.children.flatMap(\.children).flatMap(\.children)
+        try check(fields.first { $0.id == "entry.date.error" }?.properties["text"] == .string(dateStatus)
+                  && fields.first { $0.id == field("date") }?.properties["value"] == .string(malformedDate),
+                  "Native editor lost the date error or the malformed input")
+        do {
+            _ = try invalid.route(envelope(invalid, "entry.commit", .activate, .null))
+            throw TrialError("Native Commit was enabled with malformed date text")
+        } catch UIRoutingError.disabledNode {}
+        try await tap(facade, expected: [invalidDate, "Check entry"])
+        print("liveCase=malformed date decision=\(invalidDate)")
+
+        try send(editor, field("title"), .textChange, .string(originalTitle))
+        try await tap(facade, expected: [required, "Check entry"])
+        print("liveCase=malformed date and blank title decision=\(required)")
+
+        try send(editor, field("title"), .textChange, .string(title))
+        try send(editor, field("date"), .textChange, .string(correctedDate))
+        let corrected = editor.snapshot
+        try check(corrected.identity(for: "entry.date.error") == nil
+                  && corrected.route(envelope(corrected, "entry.commit", .activate, .null)).actionID == "entry.commit",
+                  "Native editor did not clear the date error and enable Commit")
+        try await tap(facade, expected: [eligible, "Check entry"])
+        print("liveCase=corrected date decision=\(eligible) sameOwnerAndLease=true")
     }
 
     private static func makeJPEG() throws -> Data {

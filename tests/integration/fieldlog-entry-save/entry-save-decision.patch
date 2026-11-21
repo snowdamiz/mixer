@@ -1,8 +1,8 @@
 diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
-index 48ae044..cf854d6 100644
+index 48ae044..d7a5810 100644
 --- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
 +++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
-@@ -236,6 +236,23 @@ private enum WorkspaceEdit: Sendable {
+@@ -236,6 +236,25 @@ private enum WorkspaceEdit: Sendable {
          return try await signedDraftBinding.attach(repository: repository, projectID: projectID, draftID: draftID)
      }
 
@@ -12,11 +12,13 @@ index 48ae044..cf854d6 100644
 +        return try await signedDraftBinding.attach(repository: repository, projectID: projectID, draftID: draftID,
 +                                                    entrySaveFacts: { [weak self] revision in
 +            guard let self, self.savedDraftSelection == draftID, self.workspace.revision == revision,
-+                  let draft = self.entryState?.draft,
-+                  self.entryDateInput.map({ EntryDateText.parse($0.text) != nil }) ?? true else {
++                  let draft = self.entryState?.draft else {
 +                throw CapabilityFailure.permissionDenied
 +            }
-+            let facts = EntrySaveIntent(projectID: self.projectID, draft: draft, kind: .commit).decisionFacts
++            let dateText = self.entryDateInput.flatMap { $0.draftID == draftID ? $0.text : nil }
++            let dateInputIsValid = dateText.map { EntryDateText.parse($0) != nil } ?? true
++            let facts = EntrySaveIntent(projectID: self.projectID, draft: draft, kind: .commit)
++                .decisionFacts(dateInputIsValid: dateInputIsValid)
 +            var packet = withUnsafeBytes(of: facts.counts.bigEndian) { Data($0) }
 +            packet.append(facts.flags)
 +            return packet
@@ -27,21 +29,21 @@ index 48ae044..cf854d6 100644
      #endif
      func reloadChecklist() async throws {
 diff --git a/Integrations/GeneratedReport/Sources/FieldLogFeatures/EntryEditor.swift b/Integrations/GeneratedReport/Sources/FieldLogFeatures/EntryEditor.swift
-index c968b76..29d8a64 100644
+index c968b76..604142d 100644
 --- a/Integrations/GeneratedReport/Sources/FieldLogFeatures/EntryEditor.swift
 +++ b/Integrations/GeneratedReport/Sources/FieldLogFeatures/EntryEditor.swift
 @@ -13,12 +13,22 @@ public struct EntrySaveIntent: Sendable {
      self.projectID = projectID; self.draft = draft; self.kind = kind; self.now = now
    }
 
-+  public var decisionFacts: EntrySaveDecision.Facts {
++  public func decisionFacts(dateInputIsValid: Bool = true) -> EntrySaveDecision.Facts {
 +    .init(projectMatches: draft.projectID == projectID, commit: kind == .commit,
 +      titleBytes: UInt32(clamping: draft.title.utf8.count),
 +      titleBlank: draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
 +      titleHasNUL: draft.title.utf8.contains(0),
 +      noteBytes: UInt32(clamping: draft.note.utf8.count),
 +      noteHasNUL: draft.note.utf8.contains(0),
-+      dateIsFinite: draft.occurredAt.timeIntervalSinceReferenceDate.isFinite)
++      dateIsFinite: dateInputIsValid && draft.occurredAt.timeIntervalSinceReferenceDate.isFinite)
 +  }
 +
    public func validate() throws {
@@ -50,7 +52,7 @@ index c968b76..29d8a64 100644
 -    try Workspace.text(draft.note, label: "Note", maximum: 100000)
 -    guard draft.occurredAt.timeIntervalSinceReferenceDate.isFinite else {
 -      throw FieldLogError.validation("Choose a valid entry date.")
-+    let decision = decisionFacts.decision
++    let decision = decisionFacts().decision
 +    switch decision {
 +    case .eligible: return
 +    case .wrongProject: throw FieldLogError.missingRecord
