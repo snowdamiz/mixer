@@ -1,8 +1,8 @@
 defmodule MixerHosted.Releases do
   @moduledoc """
-  Local v3 publication ledger for a single provisioned target.
+  Local v3 publication ledger and opt-in environment promotion.
 
-  Both publication entry points verify the retained signed bytes inside a
+  Publication entry points verify the retained signed bytes inside a
   fresh authorization transaction with the provisioned head locked.
   """
 
@@ -24,7 +24,12 @@ defmodule MixerHosted.Releases do
     WriterRepo
   }
 
+  alias MixerHosted.Releases.EnvironmentPromotion.{Command, Direction, Storage, Verifier}
+  alias MixerHosted.Releases.EnvironmentPromotion.Command.Evidence
+  alias MixerHosted.Releases.EnvironmentPromotion.Direction.Enrollment
+
   @action "release.publish"
+  @stage_platforms [:android, :ios]
   @value_fields [:artifact_sha256, :signed_assignment_bytes, :rollout_basis_points]
 
   @type result :: %{
@@ -71,6 +76,255 @@ defmodule MixerHosted.Releases do
   end
 
   def publish(_, _, _, _, _), do: {:error, :invalid_request}
+
+  @doc """
+  Promotes two committed source publications through an operator-provisioned direction.
+
+  The selector contains one source sequence per platform. Destination evidence
+  must match the exact bytes of each already staged destination artifact. The
+  direction (including hosts and roots) comes from
+  `:local_stage_promotion_directions` and must match the enabled SQL route.
+  """
+  def promote_environment(
+        identity,
+        direction_id,
+        source_sequences,
+        destination,
+        key,
+        reason,
+        repo \\ WriterRepo
+      ) do
+    with true <- ArtifactV3Policy.id?(direction_id) and valid_metadata?(key, reason),
+         true <- stage_sequences?(source_sequences) and stage_evidence?(destination),
+         {:ok, direction} <- stage_direction(direction_id) do
+      scope = direction.destination.ios.target.scope
+
+      request = %{
+        id: direction_id,
+        source: source_sequences,
+        destination: destination,
+        key: key,
+        reason: reason
+      }
+
+      Authorization.with_authorized_transaction(
+        identity,
+        @action,
+        scope,
+        &stage_locked(&1, repo, direction, request),
+        repo
+      )
+    else
+      false -> {:error, :invalid_request}
+      {:error, _} = error -> error
+    end
+  end
+
+  defp stage_sequences?(%{ios: ios, android: android} = sequences) when map_size(sequences) == 2,
+    do: Enum.all?([ios, android], &(ArtifactV3Policy.uint?(&1) and &1 > 0))
+
+  defp stage_sequences?(_), do: false
+
+  defp stage_evidence?(%{ios: %Evidence{}, android: %Evidence{}} = evidence)
+       when map_size(evidence) == 2,
+       do: true
+
+  defp stage_evidence?(_), do: false
+
+  defp stage_direction(id) do
+    configured = Application.get_env(:mixer_hosted, :local_stage_promotion_directions, %{})
+
+    with %{^id => %Direction{source: source, destination: destination} = direction} <- configured,
+         {:ok, source_scope} <- stage_target_pair(source),
+         {:ok, dest_scope} <- stage_target_pair(destination),
+         true <- source_scope.environment_id != dest_scope.environment_id,
+         true <- %{source_scope | environment_id: dest_scope.environment_id} === dest_scope do
+      {:ok, direction}
+    else
+      _ -> {:error, :invalid_promotion}
+    end
+  end
+
+  defp stage_target_pair(
+         %{
+           ios: %Enrollment{target: %Target{platform: "ios", scope: scope} = ios},
+           android: %Enrollment{target: %Target{platform: "android", scope: scope} = android}
+         } = pair
+       )
+       when map_size(pair) == 2 do
+    with {:ok, ^ios} <- Target.new(ios), {:ok, ^android} <- Target.new(android), do: {:ok, scope}
+  end
+
+  defp stage_target_pair(_), do: :error
+
+  defp stage_locked(context, repo, direction, request) do
+    check_writer!(repo)
+    Storage.check!(repo)
+
+    # Both targets share the bound Scope. Their primary keys differ first by
+    # platform, so Android then iOS is a consistent lock order for every route.
+    destinations =
+      Map.new(@stage_platforms, fn platform ->
+        target = direction.destination[platform].target
+        filter = Target.filter(target)
+        head = repo.one(from(h in Head, where: ^filter, lock: "FOR UPDATE"))
+        {platform, %{target: target, filter: filter, head: head}}
+      end)
+
+    scope = direction.destination.ios.target.scope
+    fresh = Context.checkpoint!(context, repo, @action, scope)
+    principal = fresh.principal.id
+    WriterCatalog.check_artifact!(repo)
+
+    with true <- Enum.all?(destinations, fn {_, destination} -> destination.head != nil end),
+         {:ok, ^direction} <- stage_direction(request.id),
+         {:ok, route} <- Storage.admit(repo, request.id, direction),
+         {:ok, source} <- Storage.source(repo, request.id, request.source),
+         command = %Command{source: source, destination: request.destination},
+         binding = Storage.binding(repo, request.id, request.key),
+         sequences = stage_previous_sequences(destinations, binding),
+         {:ok, verified} <- stage_verify(command, direction, sequences, fresh.checked_at),
+         :ok <- stage_destination_artifacts(repo, verified),
+         fingerprint = stage_fingerprint(route, command, principal, request),
+         metadata = %{
+           key: request.key,
+           reason: request.reason,
+           principal: principal,
+           fingerprint: fingerprint
+         },
+         {:ok, rows} <-
+           stage_write(repo, destinations, route, verified, fresh, binding, metadata),
+         {:ok, ^direction} <- stage_direction(request.id),
+         {:ok, ^route} <- Storage.admit(repo, request.id, direction),
+         now = Context.checkpoint!(context, repo, @action, scope).checked_at,
+         :ok <- stage_reverify(command, direction, sequences, fresh.checked_at, now) do
+      {:ok, %{ios: result(rows.ios), android: result(rows.android)}}
+    else
+      false -> {:error, :release_not_found}
+      {:ok, _} -> {:error, :authorization_unavailable}
+      {:error, _} = error -> error
+    end
+  end
+
+  defp stage_previous_sequences(destinations, nil) do
+    Map.new(destinations, fn {platform, %{head: head}} ->
+      {platform, if(head.sequence, do: Decimal.to_integer(head.sequence), else: 0)}
+    end)
+  end
+
+  # A receipt identifies completed appends. The current head is irrelevant to
+  # the signed sequences on replay, but current trust and authority still apply.
+  defp stage_previous_sequences(_, _binding), do: %{ios: 0, android: 0}
+
+  defp stage_verify(command, direction, sequences, now) do
+    case Verifier.verify(command, direction, %{now: now, destination_last_sequences: sequences}) do
+      {:ok, _} = verified -> verified
+      {:error, {_, :destination, :assignment_replay}} -> {:error, :conflict}
+      {:error, _} -> {:error, :assignment_rejected}
+    end
+  end
+
+  defp stage_reverify(_, _, _, now, now), do: :ok
+
+  defp stage_reverify(command, direction, sequences, _, now) do
+    with {:ok, _} <- stage_verify(command, direction, sequences, now), do: :ok
+  end
+
+  defp stage_destination_artifacts(repo, verified) do
+    Enum.reduce_while(@stage_platforms, :ok, fn platform, :ok ->
+      %{target: target, evidence: evidence, assignment: signed} = verified[platform].destination
+
+      case stored_artifact(repo, target, signed.assignment["artifact_sha256"]) do
+        {:ok, %{signed_manifest_bytes: manifest, payload: payload}}
+        when manifest === evidence.signed_manifest_bytes and payload === evidence.payload ->
+          {:cont, :ok}
+
+        {:ok, _} ->
+          {:halt, {:error, :artifact_invalid}}
+
+        {:error, _} = error ->
+          {:halt, error}
+      end
+    end)
+  end
+
+  defp stage_fingerprint(route, command, principal, request) do
+    evidence =
+      Enum.flat_map(@stage_platforms, fn platform ->
+        source = command.source[platform]
+
+        [Integer.to_string(source.sequence), source.artifact_sha256] ++
+          stage_evidence_bytes(source.evidence) ++
+          stage_evidence_bytes(command.destination[platform])
+      end)
+
+    # Length framing retains the original JSON spelling and raw payload without
+    # tying persisted retries to a runtime-specific serialization format.
+    fields =
+      ["mixer.stage-promotion.v1" | route] ++ [principal, request.key, request.reason] ++ evidence
+
+    fields |> Enum.map(fn bytes -> [<<byte_size(bytes)::64>>, bytes] end) |> Storage.sha256()
+  end
+
+  defp stage_evidence_bytes(evidence),
+    do: [evidence.signed_manifest_bytes, evidence.signed_assignment_bytes, evidence.payload]
+
+  defp stage_write(
+         repo,
+         destinations,
+         _route,
+         _verified,
+         _fresh,
+         %{fingerprint: fingerprint, principal: principal, sequences: sequences},
+         %{fingerprint: fingerprint, principal: principal}
+       ) do
+    rows =
+      Map.new(destinations, fn {platform, %{filter: filter}} ->
+        {platform, Storage.publication(repo, filter, sequences[platform])}
+      end)
+
+    {:ok, rows}
+  end
+
+  defp stage_write(repo, destinations, route, verified, fresh, nil, metadata) do
+    with :ok <- stage_keys_available(repo, destinations, metadata.key),
+         {:ok, android} <-
+           stage_append(repo, destinations.android, verified.android, fresh, metadata),
+         {:ok, ios} <- stage_append(repo, destinations.ios, verified.ios, fresh, metadata),
+         :ok <- Storage.insert!(repo, route, verified, metadata) do
+      {:ok, %{ios: ios, android: android}}
+    end
+  end
+
+  defp stage_write(_, _, _, _, _, _, _), do: {:error, :idempotency_conflict}
+
+  defp stage_keys_available(repo, destinations, key) do
+    Enum.reduce_while(@stage_platforms, :ok, fn platform, :ok ->
+      filter = destinations[platform].filter
+      by_key = [{:idempotency_key, key} | filter]
+
+      with :ok <- browser_key_available(repo, filter, key),
+           false <- repo.exists?(from(p in Publication, where: ^by_key)) do
+        {:cont, :ok}
+      else
+        _ -> {:halt, {:error, :idempotency_conflict}}
+      end
+    end)
+  end
+
+  defp stage_append(repo, %{head: head, filter: filter}, verified, fresh, metadata) do
+    values =
+      publication_values(
+        verified.destination.assignment,
+        fresh,
+        metadata.key,
+        metadata.reason,
+        :stage_promote,
+        nil
+      )
+
+    append(repo, head, Map.new(filter), values)
+  end
 
   @doc false
   def cli(identity, {org, project, channel}, command, key, request_hash, reason) do

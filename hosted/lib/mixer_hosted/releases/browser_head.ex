@@ -114,6 +114,10 @@ defmodule MixerHosted.Releases.BrowserHead do
 
   defp details({:summary, []}, _, _), do: {:ok, %{}}
 
+  # The browser displays both kinds of promotion using its existing action.
+  defp details({:details, ["stage_promote", signed, canonical]}, assignment, payload_digest),
+    do: details({:details, ["promote", signed, canonical]}, assignment, payload_digest)
+
   defp details({:details, [action, signed, canonical]}, assignment, payload_digest)
        when action in ~w(publish promote rollback halt) do
     %{
