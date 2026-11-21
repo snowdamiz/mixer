@@ -1777,6 +1777,14 @@ under deep scratch. Both profiles closed their command groups, removed
 their databases and scratch, and released all eight listener ports.
 [Current privacy replay](verification/receipts/l07-hosted-privacy-v86-551576a0-test.json)
 
+The hosted runtime, configuration, lock, and replay fixture match those
+tested bytes at `d89c742e9d`. The stock startup inventory contains
+Phoenix Logger and Mixer transaction receipt callbacks. An attached
+subscriber still sees private framework metadata. The local operations
+guide specifies how to keep raw events inside the process. Installed iOS
+privacy remains open. [Source and scope review](verification/receipts/l07-hosted-privacy-boundary-d89c742e.json) ·
+[Operational boundary](docs/operations/security-boundaries.md#local-hosted-telemetry)
+
 The unchanged FieldLog updater ran in two macOS processes under an Android-scoped development identity. The owned observer saw four bodyless loopback GETs and found no workspace or JPEG markers, cookies, or bearer credentials. A complete signed offer activated sequence 1. After an artifact HTTP 503, a new process recovered the same candidate and preserved the workspace and JPEG. The sandbox denied a second loopback destination, and both owned ports closed. [Updater privacy receipt](verification/receipts/l07-fieldlog-updater-loopback-b144c2c-20261120.json)
 
 One installed Android fixture completed a signed sequence-1 update and reopened the same healthy candidate in a new process after an artifact HTTP 503. The private origin saw four bodyless GETs and no credential headers. The verifier found none of the 21 synthetic workspace markers in those requests or 483 entries from the two app-process logs. Airplane mode and unreachable default routes limited the fixture to its owned reverse mapping. The workspace stayed byte-identical, all four ports were reusable, and raw logs and device data were removed. OS diagnostics and privileged BEAM metadata remain open. [Installed Android updater privacy](verification/receipts/l07-fieldlog-android-updater-native-20261120.json)

@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "status": "stock_sink_evidence_and_unresolved_privileged_metadata",
+  "reviewedCommit": "d89c742e9d6a7b6277830f201a350ccc0e7d7096",
+  "reviewedTree": "3e62f01a1a2f405bc04f195da5ad38737404f4ca",
+  "liveReplayCommit": "551576a03a4ef4f4b081e6191ce0a02c5947c679",
+  "liveReplayReceipt": {
+    "path": "verification/receipts/l07-hosted-privacy-v86-551576a0-test.json",
+    "sha256": "cab99fafb90a69543c3a454063f6e0b4713745ffe1bd60a557fd5732e06a3c1d",
+    "strictTelemetryExit": 2
+  },
+  "unchangedPaths": {
+    "hosted/config": "089ff508c0db75322c8c39fb39eed62922d0b301",
+    "hosted/lib": "2307656d0b88aabaf57cce07c5ccf2d85ff67141",
+    "hosted/mix.exs": "f5d9d07bda3ba9ed127f5650e815ca91486816ea",
+    "hosted/mix.lock": "8ec53f2ed93a77d501d772c34f14aec6d57e247e",
+    "tests/integration/l07-hosted-privacy": "864dbf01efba105a2d7a72a318140fb224c8188f"
+  },
+  "profiles": {
+    "ordinary": {
+      "markerBearingEventsByName": {
+        "bandit.request.start": 32,
+        "bandit.request.stop": 32,
+        "mixer_hosted.repo.query": 6,
+        "phoenix.error_rendered": 4
+      },
+      "ordinaryTelemetryCallbacksBeforeHTTP": {
+        "mixer_hosted.browser_auth.store.transaction": "MixerHosted.BrowserAuth.Store.transaction_event/4",
+        "phoenix.channel_handled_in": "Phoenix.Logger.phoenix_channel_handled_in/4",
+        "phoenix.channel_joined": "Phoenix.Logger.phoenix_channel_joined/4",
+        "phoenix.endpoint.start": "Phoenix.Logger.phoenix_endpoint_start/4",
+        "phoenix.endpoint.stop": "Phoenix.Logger.phoenix_endpoint_stop/4",
+        "phoenix.error_rendered": "Phoenix.Logger.phoenix_error_rendered/4",
+        "phoenix.router_dispatch.start": "Phoenix.Logger.phoenix_router_dispatch_start/4",
+        "phoenix.socket_connected": "Phoenix.Logger.phoenix_socket_connected/4",
+        "phoenix.socket_drain": "Phoenix.Logger.phoenix_socket_drain/4"
+      },
+      "ordinaryTelemetryCallbacksAfterHTTP": {
+        "mixer_hosted.browser_auth.store.transaction": "MixerHosted.BrowserAuth.Store.transaction_event/4",
+        "mixer_hosted.customer_builds.transaction": "MixerHosted.CustomerBuilds.Context.transaction_event/4",
+        "phoenix.channel_handled_in": "Phoenix.Logger.phoenix_channel_handled_in/4",
+        "phoenix.channel_joined": "Phoenix.Logger.phoenix_channel_joined/4",
+        "phoenix.endpoint.start": "Phoenix.Logger.phoenix_endpoint_start/4",
+        "phoenix.endpoint.stop": "Phoenix.Logger.phoenix_endpoint_stop/4",
+        "phoenix.error_rendered": "Phoenix.Logger.phoenix_error_rendered/4",
+        "phoenix.router_dispatch.start": "Phoenix.Logger.phoenix_router_dispatch_start/4",
+        "phoenix.socket_connected": "Phoenix.Logger.phoenix_socket_connected/4",
+        "phoenix.socket_drain": "Phoenix.Logger.phoenix_socket_drain/4"
+      },
+      "stockLogPositiveControlsAndZeroMarkerHits": true,
+      "databaseAndProcessesClosed": true
+    },
+    "retained": {
+      "markerBearingEventsByName": {
+        "bandit.request.start": 34,
+        "bandit.request.stop": 34,
+        "mixer_hosted.repo.query": 6,
+        "phoenix.error_rendered": 4
+      },
+      "ordinaryTelemetryCallbacksBeforeHTTP": {
+        "mixer_hosted.browser_auth.store.transaction": "MixerHosted.BrowserAuth.Store.transaction_event/4",
+        "phoenix.channel_handled_in": "Phoenix.Logger.phoenix_channel_handled_in/4",
+        "phoenix.channel_joined": "Phoenix.Logger.phoenix_channel_joined/4",
+        "phoenix.endpoint.start": "Phoenix.Logger.phoenix_endpoint_start/4",
+        "phoenix.endpoint.stop": "Phoenix.Logger.phoenix_endpoint_stop/4",
+        "phoenix.error_rendered": "Phoenix.Logger.phoenix_error_rendered/4",
+        "phoenix.router_dispatch.start": "Phoenix.Logger.phoenix_router_dispatch_start/4",
+        "phoenix.socket_connected": "Phoenix.Logger.phoenix_socket_connected/4",
+        "phoenix.socket_drain": "Phoenix.Logger.phoenix_socket_drain/4"
+      },
+      "ordinaryTelemetryCallbacksAfterHTTP": {
+        "mixer_hosted.browser_auth.store.transaction": "MixerHosted.BrowserAuth.Store.transaction_event/4",
+        "mixer_hosted.customer_builds.transaction": "MixerHosted.CustomerBuilds.Context.transaction_event/4",
+        "phoenix.channel_handled_in": "Phoenix.Logger.phoenix_channel_handled_in/4",
+        "phoenix.channel_joined": "Phoenix.Logger.phoenix_channel_joined/4",
+        "phoenix.endpoint.start": "Phoenix.Logger.phoenix_endpoint_start/4",
+        "phoenix.endpoint.stop": "Phoenix.Logger.phoenix_endpoint_stop/4",
+        "phoenix.error_rendered": "Phoenix.Logger.phoenix_error_rendered/4",
+        "phoenix.router_dispatch.start": "Phoenix.Logger.phoenix_router_dispatch_start/4",
+        "phoenix.socket_connected": "Phoenix.Logger.phoenix_socket_connected/4",
+        "phoenix.socket_drain": "Phoenix.Logger.phoenix_socket_drain/4"
+      },
+      "stockLogPositiveControlsAndZeroMarkerHits": true,
+      "databaseAndProcessesClosed": true
+    }
+  },
+  "boundary": [
+    "The tested stock startup registered no external telemetry exporter. Source review found no supported settings for forwarding raw telemetry.",
+    "Bandit request events carry Plug.Conn. Phoenix error-rendered events carry Plug.Conn and error details. Ecto SQL query metadata can include query results.",
+    "Mixer's internal transaction receipt callbacks are used for authorization and settlement checks.",
+    "Treat raw framework telemetry as privileged process data. The supported local setup keeps it inside the process."
+  ],
+  "replayLimitation": "No external service used. No packet capture or general egress proof.",
+  "reviewExecution": "Source and retained evidence inspection. No live replay at the reviewed commit.",
+  "open": [
+    "Privileged metadata minimization",
+    "Installed iOS request and log verification",
+    "Proxy and deployment egress"
+  ]
+}
