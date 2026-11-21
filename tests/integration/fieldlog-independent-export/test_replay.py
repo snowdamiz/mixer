@@ -4,6 +4,8 @@ import contextlib
 import hashlib
 import io
 import json
+import os
+import stat
 from pathlib import Path
 import sys
 import tempfile
@@ -71,6 +73,38 @@ class APKHandoffTests(unittest.TestCase):
         self.assertEqual(self.apk.read_bytes(), b"existing output")
         self.assertEqual(set(path.name for path in self.root.iterdir()),
                          {"fieldlog.apk", "receipt.json", "verification"})
+
+    def test_link_uses_verified_private_staging_directory(self):
+        source = self.root / "unsigned.apk"
+        source.write_bytes(self.data)
+        real_link = os.link
+
+        def link(old, new, *, src_dir_fd=None, **kwargs):
+            if src_dir_fd is None:
+                # Model a directory writer substituting the public staging name.
+                Path(old).unlink()
+                Path(old).write_bytes(b"different bytes")
+                real_link(old, new, **kwargs)
+                return
+
+            self.assertEqual(stat.S_IMODE(os.fstat(src_dir_fd).st_mode), 0o700)
+            staged = next(self.root.glob(".fieldlog-apk-*"))
+            moved = staged.with_suffix(".moved")
+            staged.rename(moved)
+            staged.mkdir()
+            (staged / old).write_bytes(b"different bytes")
+            try:
+                real_link(old, new, src_dir_fd=src_dir_fd, **kwargs)
+            finally:
+                (staged / old).unlink()
+                staged.rmdir()
+                moved.rename(staged)
+
+        with patch.object(replay.os, "link", side_effect=link):
+            replay.publish_apk(source, self.apk, hashlib.sha256(self.data).hexdigest())
+        self.assertEqual(self.apk.read_bytes(), self.data)
+        self.assertEqual(sorted(path.name for path in self.root.iterdir()),
+                         ["fieldlog.apk", "unsigned.apk", "verification"])
 
     def test_existing_path_refuses_before_build(self):
         self.apk.symlink_to(self.root / "absent")

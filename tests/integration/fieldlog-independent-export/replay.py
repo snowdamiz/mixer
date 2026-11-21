@@ -10,6 +10,7 @@ from pathlib import Path
 import platform
 import shutil
 import signal
+import stat
 import subprocess
 import sys
 import tempfile
@@ -300,14 +301,25 @@ class Replay:
 
 
 def publish_apk(apk, destination, expected_sha256):
-    with tempfile.NamedTemporaryFile(dir=destination.parent, prefix=".fieldlog-apk-") as prepared:
-        with apk.open("rb") as source:
-            shutil.copyfileobj(source, prepared)
-        prepared.flush()
-        require(digest(Path(prepared.name)) == expected_sha256, "APK handoff SHA-256 differs from the verified build")
-        os.fsync(prepared.fileno())
-        # Publish the complete file only if the destination is still free.
-        os.link(prepared.name, destination)
+    with tempfile.TemporaryDirectory(dir=destination.parent, prefix=".fieldlog-apk-") as staging:
+        directory = os.open(staging, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            info = os.fstat(directory)
+            require(info.st_uid == os.geteuid() and stat.S_IMODE(info.st_mode) == 0o700,
+                    "APK staging directory is not private")
+            name = "verified.apk"
+            file = os.open(name, os.O_RDWR | os.O_CREAT | os.O_EXCL, 0o600, dir_fd=directory)
+            with os.fdopen(file, "w+b") as prepared, apk.open("rb") as source:
+                shutil.copyfileobj(source, prepared)
+                prepared.flush()
+                prepared.seek(0)
+                actual_sha256 = hashlib.file_digest(prepared, "sha256").hexdigest()
+                require(actual_sha256 == expected_sha256, "APK handoff SHA-256 differs from the verified build")
+                os.fsync(file)
+                # The source is inside the open private directory. Link preserves a competing destination.
+                os.link(name, destination, src_dir_fd=directory, follow_symlinks=False)
+        finally:
+            os.close(directory)
 
 
 def main():
