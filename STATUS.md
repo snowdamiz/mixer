@@ -147,6 +147,18 @@ the selection. The guide retains scratch when retirement is unconfirmed.
 
 ## November 21 FieldLog signed entry Commit
 
+The reviewed FieldLog Commit runtime now has a local v82 stock SDK
+binding. The CLI archive validates 155 inputs and reconstructs the
+previous 154-input roster and its predecessors. The combined stock CLI
+built and reported the exact AppKit dependency cause from an independent
+SwiftPM description. The ten signed macOS tests passed on the same reviewed
+runtime and test bytes. Installed mobile verification remains open. An
+earlier timed-out Intel attempt retains its exact scratch because
+descendant custody is unverified.
+[Source141 binding](verification/receipts/fieldlog-commit-v82-source141.json) ·
+[Stock CLI composition](verification/receipts/fieldlog-commit-v82-stock-cli-composition.json) ·
+[Signed host results](verification/receipts/fieldlog-v81-signed-runtime-composition.json)
+
 The corrected signed guest displays Commit refused when the repository
 declines a write. The macOS replay preserved workspace and outbox bytes and
 joined the host owner after Done. The matching development APK passed
@@ -217,8 +229,11 @@ before creating any containers or running either network method. The
 exact request and a complete local readback matched all 571 pinned blobs.
 The framed response grew from 8,382,516 bytes on v81 to 8,501,053 bytes
 on v82, exceeding the existing 8 MiB per-command limit. The finalizer
-verified cleanup. A bounded batching correction is underway.
-[Exact overflow evidence](verification/receipts/hosted-v82-identity-source-batch-overflow.json)
+verified cleanup. The corrected collector reproduced every framed byte in
+two bounded reads. The exact composed Services run passed all 321
+collector tests in each Python mode. Hosted execution is pending.
+[Exact overflow evidence](verification/receipts/hosted-v82-identity-source-batch-overflow.json) ·
+[Batching verification](verification/receipts/hosted-v82-batched-services-collector.json)
 
 Published v82 Owned Engine passed all nine jobs. Both Swift Host source
 checks matched the 154-input archive, and Intel compiled all six Java
