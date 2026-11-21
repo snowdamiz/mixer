@@ -355,12 +355,22 @@ def main():
             parser.error("--apk-output and --receipt require distinct paths")
         args.apk_output = output
 
+    root = REPO / "verification/local"
+    try:
+        for parent in (REPO, root.parent, root):
+            if parent == root:
+                root.mkdir(mode=0o700, exist_ok=True)
+            identity = parent.lstat()
+            require(stat.S_ISDIR(identity.st_mode) and identity.st_uid == os.geteuid()
+                    and not identity.st_mode & 0o022,
+                    f"Expected an owner-controlled build scratch directory: {parent}")
+    except (OSError, RuntimeError) as error:
+        parser.error(str(error))
+
     with args.receipt.open("x") as destination:
         receipt = {"schema": "mixer.local-development-evidence.v1", "scope": "FieldLog §16.3/W15 independent Android export build only",
                    "recordedAtUTC": datetime.now(timezone.utc).isoformat(), "status": "blocked", "sources": {}, "patches": {},
                    "commands": {}, "environment": {"os": platform.platform(), "python": sys.version.split()[0]}, "deviceOperations": 0}
-        root = REPO / "verification/local"
-        root.mkdir(exist_ok=True)
         scratch = Path(tempfile.mkdtemp(prefix="fieldlog-v74-export.", dir=root)).resolve()
         directory = os.open(scratch, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
         replay = Replay(scratch, directory, args, receipt)

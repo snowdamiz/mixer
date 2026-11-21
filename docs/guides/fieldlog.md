@@ -72,6 +72,7 @@ toolchain variables from [Build for Android](../../README.md#build-for-android).
 Use Xcode 26.6 for `DEVELOPER_DIR` and Xcode 27.2 for the host CLI builds.
 The replay fetches the pinned FieldLog and Pair23 checkouts and the locked
 SwiftPM dependencies. The local Mixer checkout needs the v74 commit.
+Run it from a checkout whose owner controls writes to `verification/local`.
 
 ```sh
 	mkdir -p verification/local

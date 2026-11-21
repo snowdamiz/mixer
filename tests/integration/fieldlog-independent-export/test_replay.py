@@ -127,6 +127,26 @@ class APKHandoffTests(unittest.TestCase):
         self.assertFalse(receipt["cleanup"]["scratchRemoved"])
         self.assertIn("path no longer names", receipt["cleanup"]["error"])
 
+    def test_other_users_cannot_write_the_build_scratch_parent(self):
+        shared = self.root / "verification/local"
+        shared.mkdir()
+        shared.chmod(0o777)
+        marker = shared / "keep"
+        marker.write_bytes(b"existing data")
+        with (
+            patch.object(replay, "REPO", self.root),
+            patch.object(replay.Replay, "execute") as execute,
+            patch.object(sys, "argv", ["replay.py", "--receipt", str(self.receipt)]),
+            contextlib.redirect_stderr(io.StringIO()) as errors,
+            self.assertRaises(SystemExit) as raised,
+        ):
+            replay.main()
+        self.assertEqual(raised.exception.code, 2)
+        self.assertIn("owner-controlled build scratch", errors.getvalue())
+        execute.assert_not_called()
+        self.assertFalse(self.receipt.exists())
+        self.assertEqual(marker.read_bytes(), b"existing data")
+
     def test_existing_path_refuses_before_build(self):
         self.apk.symlink_to(self.root / "absent")
         with (
