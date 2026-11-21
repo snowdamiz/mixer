@@ -10,7 +10,8 @@ import sys
 import time
 
 BASE = "44aecbeb6a82a4a93321cff6a8ab86c5aa421900"
-HOSTED_TREE = "95674693f5d293d210e5fe76d3d72d91e47207fc"
+CATALOG_REVISION = "2fa5d18c7d7eed4b8687d2d6159fae8606636431"
+CATALOG_HOSTED_TREE = "5f45ec34fa5a3ffa75c878eaeed00d0887171b50"
 # Published Ed25519 test vector public key, used only for the zero-build preflight.
 PREFLIGHT_SPKI = bytes.fromhex(
     "302a300506032b6570032100d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
@@ -27,10 +28,10 @@ def replace(path, old, new, *, count=1):
 def compose(root, here, pair):
     api = root / pair / "api-case.exs"
     replace(api, "  {cookie, csrf} = login(c)\n\n  pair25_publish!",
-            "  {cookie, csrf} = login(c)\n  password = v74_writer!()\n"
+            "  {cookie, csrf} = login(c)\n"
             "  v74_check_browser!(c, cookie)\n\n  pair25_publish!")
     replace(api, "  pair25_wait!(c, false, System.monotonic_time(:millisecond) + 1_240_000)",
-            "  v74_wait!(c, scope, build, password, System.monotonic_time(:millisecond) + 1_240_000)")
+            "  v74_wait!(c, scope, build, System.monotonic_time(:millisecond) + 1_240_000)")
     with api.open("a") as stream:
         stream.write("\n" + (here / "v74-api.exs").read_text())
 

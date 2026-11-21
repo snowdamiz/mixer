@@ -31,13 +31,13 @@ end
 
 defp v74_check_browser!(c, cookie) do
   response = http(c, "/auth/session", headers(cookie))
-  pair25_publish!("v74.writer-grants", %{
+  pair25_publish!("v74.browser-before-writer", %{
     retainedSessionHTTP: response.status,
     authenticated: response.status == 200 and Jason.decode!(response.body)["state"] == "authenticated"
   })
 end
 
-defp v74_wait!(c, scope, build, password, deadline) do
+defp v74_wait!(c, scope, build, deadline) do
   assert System.monotonic_time(:millisecond) < deadline
 
   cond do
@@ -45,26 +45,32 @@ defp v74_wait!(c, scope, build, password, deadline) do
       :ok
 
     File.regular?(pair25_path("v74.enroll")) and not File.regular?(pair25_path("v74.attestation-ready")) ->
-      v74_enroll!(c, scope, build, password)
-      v74_wait!(c, scope, build, password, deadline)
+      v74_enroll!(c, scope, build)
+      v74_wait!(c, scope, build, deadline)
 
     File.regular?(pair25_path("v74.refresh")) and not File.regular?(pair25_path("v74.readback-auth")) ->
       {cookie, csrf} = login(c)
       pair25_publish!("v74.readback-auth", %{cookie: cookie, csrf: csrf})
-      v74_wait!(c, scope, build, password, deadline)
+      v74_wait!(c, scope, build, deadline)
 
     true ->
       Process.sleep(50)
-      v74_wait!(c, scope, build, password, deadline)
+      v74_wait!(c, scope, build, deadline)
   end
 end
 
-defp v74_enroll!(c, scope, build, password) do
+defp v74_enroll!(c, scope, build) do
   alias MixerHosted.CustomerBuilds.{AttestationRepo, LocalAttestation}
   alias MixerHostedWeb.Endpoint
 
   spki = File.read!(pair25_path("v74.enroll"))
   port = c.http_port
+  assert :ok = Application.stop(:mixer_hosted)
+  assert Process.whereis(MixerHosted.Supervisor) == nil
+  assert {:error, :econnrefused} = :gen_tcp.connect({127, 0, 0, 1}, port, [], 1_000)
+
+  # The browser catalog admits writer grants only on the attestation-enabled listener.
+  password = v74_writer!()
   hosted = LocalAttestation.configure!(
     %{
       "MIXER_LOCAL_NATIVE_ATTESTATION_PASSWORD" => password,
@@ -74,9 +80,6 @@ defp v74_enroll!(c, scope, build, password) do
     :disabled
   )
 
-  assert :ok = Application.stop(:mixer_hosted)
-  assert Process.whereis(MixerHosted.Supervisor) == nil
-  assert {:error, :econnrefused} = :gen_tcp.connect({127, 0, 0, 1}, port, [], 1_000)
   c = start!(%{c | hosted: hosted})
   assert {:ok, {{127, 0, 0, 1}, ^port}} = Endpoint.server_info(:http)
   browser_storage_ready = RuntimeOwner.status().phase == :storage_ready

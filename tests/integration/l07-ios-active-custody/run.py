@@ -63,7 +63,9 @@ def git(*args):
 
 def provision(root, cache, archives, result, *, live=False, preflight=False, v74=False):
     if v74:
-        from v74 import BASE as revision, HOSTED_TREE as expected
+        from v74 import CATALOG_REVISION as revision, CATALOG_HOSTED_TREE as expected
+
+        result["runtimeHostedRevision"] = revision
     else:
         revision, expected = (ADOPTED, V55_TREE) if live else (BASE, HOSTED_TREE)
     git_flags = ("--no-replace-objects",) if v74 else ()
@@ -319,10 +321,9 @@ def drive(root, kit, env, pg, result, live_recipe=None, *, operator=None, v74_pr
                                            else ("port", "issuer", "jwks")))
         require(len(ports) == len(set(ports)), "fixture ports collided")
         if operator is not None:
-            grant_probe = result["writerGrantBrowserProbe"] = ready("v74.writer-grants", api, 4)
-            if not v74_preflight:
-                require(grant_probe == {"retainedSessionHTTP": 200, "authenticated": True},
-                        "v74 writer grants are incompatible with ordinary browser admission")
+            browser_probe = result["beforeWriterBrowserProbe"] = ready("v74.browser-before-writer", api, 4)
+            require(browser_probe == {"retainedSessionHTTP": 200, "authenticated": True},
+                    "ordinary browser session unavailable before attaching the writer")
         owner = auth["cookie"]
         worker_id, token = "l07-native-worker", secrets.token_hex(32)
         processor_env = dict(
