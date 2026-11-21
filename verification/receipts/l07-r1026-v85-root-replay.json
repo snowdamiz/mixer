@@ -1,0 +1,587 @@
+{
+  "schema": 1,
+  "scope": "Exact v85 source admission plus candidate-only R1026 assertion on disposable loopback PostgreSQL with SCRAM. No diagnostic overlay.",
+  "candidateRevision": "56976e6e6b3c434f0f496b0d5c1ffae85ef53048",
+  "candidateTree": "7d1d557a56ff7feaf14b369d954873047dacb911",
+  "testSHA256": "c5eae116a8b2d36e3ff4304b71293bd3d6f34113c02b80229e1ea5686a417c82",
+  "hostedArchiveSHA256": "1114a2e4ea2a6c92ba7d259fb2bbd92778fd23abcb4c82f81966d389916b04e8",
+  "sourceSelection": {
+    "identity": "hosted-customer-build-post-commit-expiry-fixture-source-v85",
+    "runtime_or_GA_accepted": false,
+    "selection_sha256": "93be889e956e42c1cf11d4dcaa9efe64e8f19dbe14e216b2aaf8df0bfbea3fa1",
+    "source_count": 572,
+    "source_digest_sha256": "a6744ae0338a3588d7fe1c6f1f87174c1784d7fa6beba3482322ba5ded8d975d"
+  },
+  "reviewedComposition": "verification/receipts/l07-r1026-v85-composition.json",
+  "reviewedCompositionSHA256": "dddd7c7515f1faad6c3fb5fa7386376ac06dbf17ad8faca4c727990a3c3c2aa0",
+  "testResult": {
+    "passed": 1,
+    "excluded": 9,
+    "actualMixExit": 0,
+    "focus": "test/customer_build_read_test.exs:818",
+    "runtimeSCRAMObserved": true,
+    "sameDatabaseBackend": 55348,
+    "normalReadBeforeCommitUTC": "2026-11-21T18:40:24.266000+00:00",
+    "shortExpiryReadCommitUTC": "2026-11-21T18:40:24.281000+00:00",
+    "shortExpiryUTC": "2026-11-21T18:40:27+00:00",
+    "normalReadAfterCommitUTC": "2026-11-21T18:40:27.021000+00:00",
+    "lateResponse": "{:error, :authorization_unavailable}"
+  },
+  "wrapperCorrection": "My wrapper expected ten excluded tests. ExUnit reported one pass and nine exclusions, then exited zero. A read-only check of the retained trace and SQL log confirmed the exact selected case and its three commits without another test run.",
+  "toolVersions": {
+    "mix": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:15:15] [ds:15:15:10] [async-threads:1] [jit] [dtrace]\n\nMix 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)"
+  },
+  "sourceAndArchiveCommands": [
+    {
+      "name": "source-normal",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "hosted/scripts/test-identity-network.py",
+        "--check-source"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "resolvedPath": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+        "bytes": 34640,
+        "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 52584,
+      "pgid": 52584,
+      "elapsedSeconds": 0.525,
+      "stdout": {
+        "path": "source-normal.stdout",
+        "bytes": 310,
+        "sha256": "d3caf2adc69bf0d4fb1dcd904bf7567b14c8f5260f93ef174eaf7432dc908bf4"
+      },
+      "stderr": {
+        "path": "source-normal.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "collector-normal",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "hosted/scripts/test_identity_network_collector.py",
+        "CurrentCLISelectionControls.test_actual_main_preflight_uses_independently_pinned_active_selection",
+        "WorkspaceSourceCutoverControls.test_exact_workspace_git_tree_refuses_extra_or_nonregular_member",
+        "WorkspaceSourceCutoverControls.test_active_product_members_validate_transfer_and_prepared_archive",
+        "BillingReconciliationV29Controls.test_collector_admits_workspace_then_refuses_v29_metadata_before_docker"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "resolvedPath": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+        "bytes": 34640,
+        "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 53658,
+      "pgid": 53658,
+      "elapsedSeconds": 1.617,
+      "stdout": {
+        "path": "collector-normal.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "collector-normal.stderr",
+        "bytes": 841,
+        "sha256": "31a9eb21d10d05e2537bd218d45ed4781a999efd276b66598155bbc9d1d3119d"
+      }
+    },
+    {
+      "name": "archive-normal",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-I",
+        "-S",
+        "verification/native-report-source141-archive-v1/adopt_archive.py",
+        "verify",
+        "--workflow-installed"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "resolvedPath": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+        "bytes": 34640,
+        "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 55176,
+      "pgid": 55176,
+      "elapsedSeconds": 0.758,
+      "stdout": {
+        "path": "archive-normal.stdout",
+        "bytes": 3912,
+        "sha256": "ddc9d694eedcc3255799f79415826caab2b3635f8ad8b6fa9fa7049ed3eaae5c"
+      },
+      "stderr": {
+        "path": "archive-normal.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "source-optimized",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-O",
+        "-B",
+        "hosted/scripts/test-identity-network.py",
+        "--check-source"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "resolvedPath": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+        "bytes": 34640,
+        "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 55195,
+      "pgid": 55195,
+      "elapsedSeconds": 0.308,
+      "stdout": {
+        "path": "source-optimized.stdout",
+        "bytes": 310,
+        "sha256": "d3caf2adc69bf0d4fb1dcd904bf7567b14c8f5260f93ef174eaf7432dc908bf4"
+      },
+      "stderr": {
+        "path": "source-optimized.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "collector-optimized",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-O",
+        "-B",
+        "hosted/scripts/test_identity_network_collector.py",
+        "CurrentCLISelectionControls.test_actual_main_preflight_uses_independently_pinned_active_selection",
+        "WorkspaceSourceCutoverControls.test_exact_workspace_git_tree_refuses_extra_or_nonregular_member",
+        "WorkspaceSourceCutoverControls.test_active_product_members_validate_transfer_and_prepared_archive",
+        "BillingReconciliationV29Controls.test_collector_admits_workspace_then_refuses_v29_metadata_before_docker"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "resolvedPath": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+        "bytes": 34640,
+        "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 55239,
+      "pgid": 55239,
+      "elapsedSeconds": 1.528,
+      "stdout": {
+        "path": "collector-optimized.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "collector-optimized.stderr",
+        "bytes": 841,
+        "sha256": "d7248333d045fe06049f241f2b46076ce5171a6bd63a45ccb61932cadfa99581"
+      }
+    },
+    {
+      "name": "archive-optimized",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-O",
+        "-B",
+        "-I",
+        "-S",
+        "verification/native-report-source141-archive-v1/adopt_archive.py",
+        "verify",
+        "--workflow-installed"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "resolvedPath": "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+        "bytes": 34640,
+        "sha256": "e401ac7a95cda75dee34a0cfe1e4faf0a6df1a501cf67887f177fb78cd4eb60a"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 55242,
+      "pgid": 55242,
+      "elapsedSeconds": 0.6,
+      "stdout": {
+        "path": "archive-optimized.stdout",
+        "bytes": 3912,
+        "sha256": "ddc9d694eedcc3255799f79415826caab2b3635f8ad8b6fa9fa7049ed3eaae5c"
+      },
+      "stderr": {
+        "path": "archive-optimized.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "candidateOnlyCommands": [
+    {
+      "name": "hosted-archive",
+      "command": [
+        "/opt/homebrew/bin/git",
+        "archive",
+        "--output",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/v85-r1026-candidate-only-b58mnrhg/hosted.tar",
+        "56976e6e6b3c434f0f496b0d5c1ffae85ef53048",
+        "hosted"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/bin/git",
+        "resolvedPath": "/opt/homebrew/Cellar/git/2.56.0/bin/git",
+        "bytes": 3758960,
+        "sha256": "92229f2456a49561ac5d614bbed775224e2fc32a8eca22ac41aeb3ce47d7899c"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 52829,
+      "pgid": 52829,
+      "elapsedSeconds": 0.263,
+      "stdout": {
+        "path": "hosted-archive.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "hosted-archive.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "mix-version",
+      "command": [
+        "/opt/homebrew/bin/mix",
+        "--version"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/bin/mix",
+        "resolvedPath": "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/mix",
+        "bytes": 169,
+        "sha256": "0a48d65a9980f2b923bba597e0ebdde3049e3271089ffffb9265d5cf7954b659"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 53631,
+      "pgid": 53631,
+      "elapsedSeconds": 0.419,
+      "stdout": {
+        "path": "mix-version.stdout",
+        "bytes": 145,
+        "sha256": "bc34b129dd989393fed8f2bedf43c844a721626fc44c7e4ce7b70bc2441df63b"
+      },
+      "stderr": {
+        "path": "mix-version.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "postgres-version",
+      "command": [
+        "/opt/homebrew/opt/postgresql@17/bin/postgres",
+        "--version"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/postgresql@17/bin/postgres",
+        "resolvedPath": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/postgres",
+        "bytes": 8813760,
+        "sha256": "9d1930da02e11e446b42f9d79cf2e6bce307a6decb6a089591f8726d0f49b6f2"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 54396,
+      "pgid": 54396,
+      "elapsedSeconds": 0.031,
+      "stdout": {
+        "path": "postgres-version.stdout",
+        "bytes": 39,
+        "sha256": "1fb2f20d9f998fb585cf5edb1878e8381f2e78c75597c8a18a19e50178f621b2"
+      },
+      "stderr": {
+        "path": "postgres-version.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "locked-hex-dependencies",
+      "command": [
+        "/opt/homebrew/bin/mix",
+        "deps.get",
+        "--check-locked"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/bin/mix",
+        "resolvedPath": "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/mix",
+        "bytes": 169,
+        "sha256": "0a48d65a9980f2b923bba597e0ebdde3049e3271089ffffb9265d5cf7954b659"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 54463,
+      "pgid": 54463,
+      "elapsedSeconds": 1.135,
+      "stdout": {
+        "path": "locked-hex-dependencies.stdout",
+        "bytes": 1336,
+        "sha256": "b024e1904717415d5939ebe667bc8321b8686aa2f2a8bdc7631f3226a54845d3"
+      },
+      "stderr": {
+        "path": "locked-hex-dependencies.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "focused-format",
+      "command": [
+        "/opt/homebrew/bin/mix",
+        "format",
+        "--check-formatted",
+        "test/customer_build_read_test.exs"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/bin/mix",
+        "resolvedPath": "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/mix",
+        "bytes": 169,
+        "sha256": "0a48d65a9980f2b923bba597e0ebdde3049e3271089ffffb9265d5cf7954b659"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 55139,
+      "pgid": 55139,
+      "elapsedSeconds": 0.239,
+      "stdout": {
+        "path": "focused-format.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "focused-format.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "initdb",
+      "command": [
+        "/opt/homebrew/opt/postgresql@17/bin/initdb",
+        "-D",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/v85-r1026-candidate-only-b58mnrhg/data",
+        "-U",
+        "mixer_fixture",
+        "--pwfile=/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/v85-r1026-candidate-only-b58mnrhg/fixture-password",
+        "--auth-local=scram-sha-256",
+        "--auth-host=scram-sha-256",
+        "--no-locale",
+        "-E",
+        "UTF8"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/postgresql@17/bin/initdb",
+        "resolvedPath": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/initdb",
+        "bytes": 197152,
+        "sha256": "0b6e460ed82fabebd4d42bdf85ebbf7ff1922ebad20ef349930a9b0fd2bfffb6"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 55178,
+      "pgid": 55178,
+      "elapsedSeconds": 0.431,
+      "stdout": {
+        "path": "initdb.stdout",
+        "bytes": 1127,
+        "sha256": "fee9de322be05352cf8c2b6cbd8d28882dba39407d53bdf5c55b304c05408bf5"
+      },
+      "stderr": {
+        "path": "initdb.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "fixture-roles",
+      "command": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "55883",
+        "-U",
+        "mixer_fixture",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-d",
+        "postgres",
+        "-f",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/v85-r1026-candidate-only-b58mnrhg/provision.sql"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "resolvedPath": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+        "bytes": 715520,
+        "sha256": "489412cf78f2745d95a5cf5778b6d2731406e98529ff32964007140135011557"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 55197,
+      "pgid": 55197,
+      "elapsedSeconds": 0.075,
+      "stdout": {
+        "path": "fixture-roles.stdout",
+        "bytes": 63,
+        "sha256": "6656b461d3ce311fbbb98d95769a69ce452f89f80f75640f99b4867be6bc0419"
+      },
+      "stderr": {
+        "path": "fixture-roles.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "fixture-grants",
+      "command": [
+        "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "-X",
+        "-h",
+        "127.0.0.1",
+        "-p",
+        "55883",
+        "-U",
+        "mixer_fixture",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-d",
+        "mixer_customer_build_read",
+        "-c",
+        "REVOKE CREATE ON SCHEMA public FROM PUBLIC; ALTER SCHEMA public OWNER TO r1026_owner; GRANT USAGE ON SCHEMA public TO r1026_runtime;"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/opt/postgresql@17/bin/psql",
+        "resolvedPath": "/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql",
+        "bytes": 715520,
+        "sha256": "489412cf78f2745d95a5cf5778b6d2731406e98529ff32964007140135011557"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 55199,
+      "pgid": 55199,
+      "elapsedSeconds": 0.049,
+      "stdout": {
+        "path": "fixture-grants.stdout",
+        "bytes": 26,
+        "sha256": "d4fcb02d3b55cbe32968ccb84af358a75f2d16cb89f04f303dd6b0a355a8bdec"
+      },
+      "stderr": {
+        "path": "fixture-grants.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "candidate-only-exunit",
+      "command": [
+        "/opt/homebrew/bin/mix",
+        "test",
+        "test/customer_build_read_test.exs:818",
+        "--seed",
+        "0",
+        "--trace"
+      ],
+      "executable": {
+        "path": "/opt/homebrew/bin/mix",
+        "resolvedPath": "/opt/homebrew/Cellar/elixir/1.20.4/lib/elixir/bin/mix",
+        "bytes": 169,
+        "sha256": "0a48d65a9980f2b923bba597e0ebdde3049e3271089ffffb9265d5cf7954b659"
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "outputLimitExceeded": false,
+      "terminalCustody": "TERMINAL",
+      "pid": 55201,
+      "pgid": 55201,
+      "elapsedSeconds": 14.476,
+      "stdout": {
+        "path": "candidate-only-exunit.stdout",
+        "bytes": 5724,
+        "sha256": "f02a7590a2e3ea0a486e1c459cd4333a5e8eaf64d45c99693a629a712d91c24b"
+      },
+      "stderr": {
+        "path": "candidate-only-exunit.stderr",
+        "bytes": 606,
+        "sha256": "79d9da2d35209d5a838063b212747bc1b6d64f41b27a90d95e54fa73e1c18678"
+      }
+    }
+  ],
+  "postgres": {
+    "argv": [
+      "/opt/homebrew/opt/postgresql@17/bin/postgres",
+      "-D",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/v85-r1026-candidate-only-b58mnrhg/data",
+      "-h",
+      "127.0.0.1",
+      "-p",
+      "55883",
+      "-c",
+      "unix_socket_directories=",
+      "-c",
+      "log_connections=on",
+      "-c",
+      "log_line_prefix=%m [%p] %u %d "
+    ],
+    "pid": 55188,
+    "custody": "TERMINAL",
+    "exitCode": 0
+  },
+  "portRebound": true,
+  "postgresLogSHA256": "9fdbd722ed18d95bab107905d7a5548bdb41d39511cec115d9c59c4592568517",
+  "scratch": [
+    "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/v85-r1026-candidate-only-b58mnrhg",
+    "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/v85-root-source-lej0l44g"
+  ],
+  "scratchRemoved": true
+}

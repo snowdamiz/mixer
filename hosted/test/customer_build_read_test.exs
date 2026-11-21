@@ -816,28 +816,57 @@ defmodule R1026.CustomerBuildReadTest do
   end
 
   test "post-COMMIT late publication fails closed after definite SQL acknowledgment" do
-    handler = {__MODULE__, :late_commit}
+    selection = selection()
+    assert {:ok, %{state: "queued"}} = MixerHosted.CustomerBuilds.read(identity(), selection)
+
+    owner = self()
+    handler = make_ref()
+    # Leave at least two full seconds for SQL admission with integer-second expiry.
+    expires_at = System.system_time(:second) + 3
+    expires_at_ms = System.convert_time_unit(expires_at, :second, :millisecond)
 
     :ok =
       :telemetry.attach(
         handler,
         [:mixer_hosted, :customer_builds, :transaction],
-        fn _, _, m, _ ->
-          if m.query == "commit", do: Process.sleep(1100)
+        fn
+          _,
+          _,
+          %{
+            repo: MixerHosted.Repo,
+            type: :ecto_sql_query,
+            query: "commit",
+            options: [build_read: {^owner, _}],
+            result: {:ok, %Postgrex.Result{command: :commit, connection_id: backend}}
+          },
+          _
+          when self() == owner and is_integer(backend) and backend > 0 ->
+            acknowledged_at = System.system_time(:millisecond)
+            wait_ms = expires_at_ms - acknowledged_at
+            Process.sleep(min(max(wait_ms, 0), 3_000))
+            send(owner, {handler, acknowledged_at, System.system_time(:millisecond)})
+
+          _, _, _, _ ->
+            :ok
         end,
         nil
       )
 
     try do
-      assert {:error, :authorization_unavailable} =
-               MixerHosted.CustomerBuilds.read(
-                 identity(%{expires_at: System.system_time(:second) + 1}),
-                 selection()
-               )
+      started_at = System.monotonic_time(:millisecond)
+      result = MixerHosted.CustomerBuilds.read(identity(%{expires_at: expires_at}), selection)
+      elapsed_ms = System.monotonic_time(:millisecond) - started_at
+
+      assert_received {^handler, acknowledged_at, resumed_at}
+      assert acknowledged_at < expires_at_ms
+      assert resumed_at >= expires_at_ms
+      # Exclude the transaction deadline as the reason publication failed.
+      assert elapsed_ms < 5_000
+      assert result == {:error, :authorization_unavailable}
     after
       :telemetry.detach(handler)
     end
 
-    assert {:ok, %{state: "queued"}} = MixerHosted.CustomerBuilds.read(identity(), selection())
+    assert {:ok, %{state: "queued"}} = MixerHosted.CustomerBuilds.read(identity(), selection)
   end
 end

@@ -1,0 +1,519 @@
+{
+  "schema": 1,
+  "slice": "L07 hosted R1026 post-COMMIT expiry fixture",
+  "status": "focused_local_pass",
+  "source": {
+    "published_sha": "866c3e80a656d66f7abf78db72fed407415f8554",
+    "git_tree": "adcf3c1f3b35520200f25703413fa71b50bc486a",
+    "hosted_git_tree": "d3dba42304a0dba5a639fc140841e711229f35a4",
+    "hosted_archive_sha256": "a224e56976c7a409975eca2beb9744e4024e9d44a9d8c329ca09271290cf4324",
+    "verified_other_hosted_files_byte_identical": 439,
+    "lock_sha256": "030a742e29e47fd9a2791d471cffdb6fe70c5f3831d41f688249c4c02f103454",
+    "delivery_test_path": "hosted/test/customer_build_read_test.exs",
+    "published_test_git_blob": "bd4e558794562f84d6d00da5b9b5497238fd926d",
+    "candidate_test_git_blob": "71668b6658d0d6c40b2985c7cb22813f13a11345",
+    "candidate_test_sha256": "c5eae116a8b2d36e3ff4304b71293bd3d6f34113c02b80229e1ea5686a417c82",
+    "diagnostic_only_early_probe_sha256": "e249734861f408b4e57e72c28053fe5f207749a59f5c973875e805e7cdec112e",
+    "executed_combined_test_sha256": "ae87ea6334f6a18dfe01b2eff0ca5239f15e6e0b520b908e1092003143a7f86d"
+  },
+  "historical_failure": {
+    "job": 136931539365,
+    "run": 44932358554,
+    "artifact": 14718760519,
+    "artifact_sha256": "1cea292e7d399f6ad2d3362cb4b04a800e8619be7d9712d153d352f07fa039f3",
+    "artifact_receipt_path": "_temp/phoenix-foundation/receipt.json",
+    "artifact_receipt_sha256": "e90a81b0767326b0ffad171da4b7b24457b61d5f08f36a06fc9b14595221eb95",
+    "artifact_receipt_status": "failed",
+    "artifact_source_tree_sha256": "c84f2236698da1b4545b66938ba8ee7fa60d9a046753eea2c59843bf334115a5",
+    "artifact_source_archive_sha256": "a75982e912309286b3715724c931a2d0449e13609ddace473a67d5468181ad5b",
+    "artifact_tests_log_sha256": "64ee2b19630b305bbcc1b4303dd0bc91c1e1c91d69082439d649daf89e177148",
+    "artifact_postgres_log_sha256": "8e97e0c9179b4b0e13873af91788f8152b210494a9729124c73b374d3737fa76",
+    "artifact_transactions_log_sha256": "6636838bf4e53c98baee5cc160c67ab86626b8a0dcccf9b2c5d39e229b4caf92",
+    "failure_lines": [
+      "1) test post-COMMIT late publication fails closed after definite SQL acknowledgment (R1026.CustomerBuildReadTest)",
+      "test/customer_build_read_test.exs:818",
+      "match (=) failed",
+      "code:  assert {:error, :authorization_unavailable} =",
+      "MixerHosted.CustomerBuilds.read(",
+      "identity(%{expires_at: System.system_time(:second) + 1}),",
+      "selection()",
+      ")",
+      "left:  {:error, :authorization_unavailable}",
+      "right: {:error, :not_found}",
+      "stacktrace:",
+      "test/customer_build_read_test.exs:832: (test)"
+    ],
+    "transaction_marker": "976190d4ec36b7264230476a10e86bbe91054a04fb8bbb3ab3c97629dbfed6ee",
+    "transaction_telemetry": [
+      {
+        "event": "begin",
+        "acknowledged_command": "begin",
+        "backend": 7698,
+        "ms_after_begin": 0,
+        "ms_before_deadline": 5000
+      },
+      {
+        "event": "binding",
+        "backend": 7698,
+        "ms_after_begin": 10,
+        "ms_before_deadline": 4990
+      },
+      {
+        "event": "rollback",
+        "acknowledged_command": "rollback",
+        "backend": 7698,
+        "ms_after_begin": 23,
+        "ms_before_deadline": 4977
+      }
+    ],
+    "sql_token_expiry_epoch_seconds": 1795283774,
+    "sql_token_expiry_utc": "2026-11-21T17:56:14.000+00:00",
+    "sql_statements": [
+      {
+        "utc": "2026-11-21T17:56:14.008+00:00",
+        "command": "SELECT public.mixer_customer_build_read_v1($1,$2,$3,$4,$5)"
+      },
+      {
+        "utc": "2026-11-21T17:56:14.019+00:00",
+        "command": "ROLLBACK"
+      }
+    ]
+  },
+  "diagnosis": {
+    "policy_request": "An expired identity at request admission returns :unauthenticated (customer_builds/policy.ex:8-22).",
+    "sql_evidence": "After acquiring its locks, SQL compares token_expires_at with floor(epoch(clock_timestamp())). The first evidence query started 8 ms past expiry and had no row to publish (customer_builds/schema.ex:41,76,90).",
+    "rollback": "NULL evidence rolls back with :not_found and Context forwards that reason (customer_builds/context.ex:52-54,128-143). The server acknowledged ROLLBACK for this transaction.",
+    "late_publication": "A definite same-backend COMMIT reaches the publication liveness check. There the expired token fails Policy.live? and Context returns :authorization_unavailable (customer_builds/context.ex:46-50,63-66,157-173,244-255; policy.ex:53)."
+  },
+  "local_campaign": {
+    "host": "Darwin arm64",
+    "elixir_and_mix": "1.20.4",
+    "erlang_otp": "29",
+    "erts": "17.1",
+    "postgresql": "17.11",
+    "dependencies": "Hex offline, mix deps.get --check-locked",
+    "setup_corrections": 1,
+    "first_setup": "Formatter rejected whitespace in the test and temporary probe before ExUnit. PostgreSQL exited 0 with group absent. Binding the cleanup socket after a failed connect on the same macOS socket returned EINVAL. Separate sockets then confirmed refusal and reusable port before the corrected setup.",
+    "format_passed": true,
+    "focused_result": "2 passed, 9 excluded",
+    "tests_stdout_sha256": "7582a16d48be10078ee7ae97f78eb111ecfde49c7b4de1d04ddfb2e1b9c6c3df",
+    "postgres_log_sha256": "3967781b66a91149fd65ab48bbe79b293399aef81b5c1f7e7060dc8ef67fe5c3",
+    "transaction_log_sha256": "48ee28ef5806cb04b21732d87d11d4ba4da3eed8ec55a8082fc7d39da350c294",
+    "post_commit_expiry": {
+      "runtime_backend": 28484,
+      "scram_authentication_observed": true,
+      "token_expiry_epoch_seconds": 1795284996,
+      "token_expiry_utc": "2026-11-21T18:16:36.000+00:00",
+      "test_control_sql": [
+        {
+          "utc": "2026-11-21T18:16:33.298+00:00",
+          "command": "BEGIN"
+        },
+        {
+          "utc": "2026-11-21T18:16:33.308+00:00",
+          "command": "SELECT public.mixer_customer_build_read_v1($1,$2,$3,$4,$5)"
+        },
+        {
+          "utc": "2026-11-21T18:16:33.313+00:00",
+          "command": "SELECT public.mixer_customer_build_read_v1($1,$2,$3,$4,$5)"
+        },
+        {
+          "utc": "2026-11-21T18:16:33.319+00:00",
+          "command": "COMMIT"
+        }
+      ],
+      "transaction_telemetry": [
+        {
+          "event": "begin",
+          "acknowledged_command": "begin",
+          "backend": 28484,
+          "ms_after_begin": 0,
+          "ms_before_deadline": 5000
+        },
+        {
+          "event": "binding",
+          "backend": 28484,
+          "ms_after_begin": 9,
+          "ms_before_deadline": 4991
+        },
+        {
+          "event": "commit",
+          "acknowledged_command": "commit",
+          "backend": 28484,
+          "ms_after_begin": 21,
+          "ms_before_deadline": 4979
+        }
+      ],
+      "fresh_read_before_and_after": "queued",
+      "normal_read_after_expiry_began_utc": "2026-11-21T18:16:36.001+00:00",
+      "result": "{:error, :authorization_unavailable}",
+      "assertions": [
+        "The typed COMMIT event belongs to the issuing process and occurs while the token is live.",
+        "The synchronous observer resumes at or beyond that exact expiry and the read returns under 5000 ms.",
+        "A new valid identity reads the same queued build after detaching the handler."
+      ]
+    },
+    "pre_commit_expiry_diagnostic_only": {
+      "runtime_backend": 28552,
+      "scram_authentication_observed": true,
+      "token_expiry_epoch_seconds": 1795284999,
+      "token_expiry_utc": "2026-11-21T18:16:39.000+00:00",
+      "test_control_sql": [
+        {
+          "utc": "2026-11-21T18:16:36.073+00:00",
+          "command": "BEGIN"
+        },
+        {
+          "utc": "2026-11-21T18:16:39.006+00:00",
+          "command": "SELECT public.mixer_customer_build_read_v1($1,$2,$3,$4,$5)"
+        },
+        {
+          "utc": "2026-11-21T18:16:39.013+00:00",
+          "command": "ROLLBACK"
+        }
+      ],
+      "transaction_telemetry": [
+        {
+          "event": "begin",
+          "acknowledged_command": "begin",
+          "backend": 28552,
+          "ms_after_begin": 0,
+          "ms_before_deadline": 4999
+        },
+        {
+          "event": "binding",
+          "backend": 28552,
+          "ms_after_begin": 7,
+          "ms_before_deadline": 4992
+        },
+        {
+          "event": "rollback",
+          "acknowledged_command": "rollback",
+          "backend": 28552,
+          "ms_after_begin": 2940,
+          "ms_before_deadline": 2059
+        }
+      ],
+      "fresh_read_before_and_after": "queued",
+      "normal_read_after_expiry_began_utc": "2026-11-21T18:16:39.015+00:00",
+      "result": "{:error, :not_found}",
+      "injection": "Wait for token expiry in the issuing process after SELECT set_config returned the exact token expiry, before the first build evidence query.",
+      "assertions": [
+        "The token was live when SQL acknowledged the expiry setting.",
+        "The synchronous observer resumed at or beyond the expiry before build evidence ran.",
+        "The same backend acknowledged BEGIN and ROLLBACK. No COMMIT evidence was accepted."
+      ]
+    }
+  },
+  "custody": {
+    "scratch_namespace": "verification/local/l07-r1026-postcommit-64sc9w2p",
+    "command_launch": "Each listed command got its own POSIX session, regular-file stdout and stderr, and closed launcher descriptors. PGPASSWORD and provisioning stdin contents were ephemeral and omitted.",
+    "all_direct_children_reaped": true,
+    "all_original_groups_absent_via_killpg_zero_ESRCH": true,
+    "postgres_cleanup": [
+      {
+        "name": "postgres",
+        "port": 51001,
+        "connection": "ECONNREFUSED",
+        "port_rebind": true,
+        "pidfile_absent": true
+      },
+      {
+        "name": "postgres-recovery",
+        "port": 51142,
+        "connection": "ECONNREFUSED",
+        "port_rebind": true,
+        "pidfile_absent": true
+      }
+    ],
+    "unknown_holds_created": false,
+    "commands": [
+      {
+        "name": "download-historical-artifact",
+        "argv": [
+          "gh",
+          "api",
+          "repos/snowdamiz/mixer/actions/artifacts/14718760519/zip"
+        ],
+        "cwd": "$CHECKOUT",
+        "pid": 9002,
+        "pgid": 9002,
+        "exit": 0
+      },
+      {
+        "name": "mix-version",
+        "argv": [
+          "mix",
+          "--version"
+        ],
+        "cwd": "$CHECKOUT",
+        "pid": 24213,
+        "pgid": 24213,
+        "exit": 0
+      },
+      {
+        "name": "postgres-version",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/postgres",
+          "--version"
+        ],
+        "cwd": "$CHECKOUT",
+        "pid": 24253,
+        "pgid": 24253,
+        "exit": 0
+      },
+      {
+        "name": "published-hosted-archive",
+        "argv": [
+          "git",
+          "archive",
+          "--output=$CAMPAIGN/published-hosted.tar",
+          "866c3e80a656d66f7abf78db72fed407415f8554",
+          "hosted"
+        ],
+        "cwd": "$CHECKOUT",
+        "pid": 24254,
+        "pgid": 24254,
+        "exit": 0
+      },
+      {
+        "name": "mix-locked-deps",
+        "argv": [
+          "mix",
+          "deps.get",
+          "--check-locked"
+        ],
+        "cwd": "$CAMPAIGN/hosted",
+        "pid": 24255,
+        "pgid": 24255,
+        "exit": 0
+      },
+      {
+        "name": "mix-compile",
+        "argv": [
+          "mix",
+          "compile"
+        ],
+        "cwd": "$CAMPAIGN/hosted",
+        "pid": 24293,
+        "pgid": 24293,
+        "exit": 0
+      },
+      {
+        "name": "initdb",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/initdb",
+          "-D",
+          "$CAMPAIGN/data",
+          "-U",
+          "mixer_fixture",
+          "--pwfile=$CAMPAIGN/fixture-password",
+          "--auth-local=scram-sha-256",
+          "--auth-host=scram-sha-256",
+          "--no-locale",
+          "-E",
+          "UTF8"
+        ],
+        "cwd": "$CHECKOUT",
+        "pid": 24384,
+        "pgid": 24384,
+        "exit": 0
+      },
+      {
+        "name": "postgres",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/postgres",
+          "-D",
+          "$CAMPAIGN/data",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "51001",
+          "-c",
+          "unix_socket_directories=",
+          "-c",
+          "log_connections=on",
+          "-c",
+          "log_line_prefix=%m [%p] %u %d "
+        ],
+        "cwd": "$CHECKOUT",
+        "pid": 24394,
+        "pgid": 24394,
+        "exit": 0
+      },
+      {
+        "name": "fixture-roles",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/psql",
+          "-X",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "51001",
+          "-U",
+          "mixer_fixture",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-d",
+          "postgres"
+        ],
+        "cwd": "$CHECKOUT",
+        "pid": 24404,
+        "pgid": 24404,
+        "exit": 0
+      },
+      {
+        "name": "fixture-grants",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/psql",
+          "-X",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "51001",
+          "-U",
+          "mixer_fixture",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-d",
+          "mixer_customer_build_read",
+          "-c",
+          "REVOKE CREATE ON SCHEMA public FROM PUBLIC; ALTER SCHEMA public OWNER TO r1026_owner; GRANT USAGE ON SCHEMA public TO r1026_runtime;"
+        ],
+        "cwd": "$CHECKOUT",
+        "pid": 24406,
+        "pgid": 24406,
+        "exit": 0
+      },
+      {
+        "name": "focused-format",
+        "argv": [
+          "mix",
+          "format",
+          "--check-formatted",
+          "$CAMPAIGN/hosted/test/customer_build_read_test.exs"
+        ],
+        "cwd": "$CAMPAIGN/hosted",
+        "pid": 24410,
+        "pgid": 24410,
+        "exit": 1
+      },
+      {
+        "name": "initdb-recovery",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/initdb",
+          "-D",
+          "$CAMPAIGN/data-recovery",
+          "-U",
+          "mixer_fixture",
+          "--pwfile=$CAMPAIGN/fixture-password",
+          "--auth-local=scram-sha-256",
+          "--auth-host=scram-sha-256",
+          "--no-locale",
+          "-E",
+          "UTF8"
+        ],
+        "cwd": "$CHECKOUT",
+        "pid": 28145,
+        "pgid": 28145,
+        "exit": 0
+      },
+      {
+        "name": "postgres-recovery",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/postgres",
+          "-D",
+          "$CAMPAIGN/data-recovery",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "51142",
+          "-c",
+          "unix_socket_directories=",
+          "-c",
+          "log_connections=on",
+          "-c",
+          "log_line_prefix=%m [%p] %u %d "
+        ],
+        "cwd": "$CHECKOUT",
+        "pid": 28354,
+        "pgid": 28354,
+        "exit": 0
+      },
+      {
+        "name": "fixture-roles-recovery",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/psql",
+          "-X",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "51142",
+          "-U",
+          "mixer_fixture",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-d",
+          "postgres"
+        ],
+        "cwd": "$CHECKOUT",
+        "pid": 28362,
+        "pgid": 28362,
+        "exit": 0
+      },
+      {
+        "name": "fixture-grants-recovery",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/psql",
+          "-X",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "51142",
+          "-U",
+          "mixer_fixture",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-d",
+          "mixer_customer_build_read",
+          "-c",
+          "REVOKE CREATE ON SCHEMA public FROM PUBLIC; ALTER SCHEMA public OWNER TO r1026_owner; GRANT USAGE ON SCHEMA public TO r1026_runtime;"
+        ],
+        "cwd": "$CHECKOUT",
+        "pid": 28364,
+        "pgid": 28364,
+        "exit": 0
+      },
+      {
+        "name": "focused-format-recovery",
+        "argv": [
+          "mix",
+          "format",
+          "--check-formatted",
+          "$CAMPAIGN/hosted/test/customer_build_read_test.exs"
+        ],
+        "cwd": "$CAMPAIGN/hosted",
+        "pid": 28366,
+        "pgid": 28366,
+        "exit": 0
+      },
+      {
+        "name": "focused-test-recovery",
+        "argv": [
+          "mix",
+          "test",
+          "test/customer_build_read_test.exs:818",
+          "test/customer_build_read_test.exs:873",
+          "--seed",
+          "0",
+          "--trace"
+        ],
+        "cwd": "$CAMPAIGN/hosted",
+        "pid": 28414,
+        "pgid": 28414,
+        "exit": 0
+      }
+    ]
+  },
+  "scope": "Test-only correction. The diagnostic composition used its own archive and SCRAM loopback cluster. No product gates, production source, v84 source-map fixture composition, uploads or CI reruns."
+}

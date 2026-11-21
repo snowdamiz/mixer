@@ -943,6 +943,18 @@ shutdown and owned scratch removal.
 [v84 source binding](verification/receipts/l07-hosted-source-v84-866c3e80.json) ·
 [Root admission](verification/receipts/l07-hosted-source-v84-root-admission.json)
 
+The v83 post-COMMIT assertion failed because its token expired 8 ms
+before the first evidence query. PostgreSQL acknowledged ROLLBACK.
+The corrected test requires a typed COMMIT acknowledgment before the
+token expires and checks the response after crossing the expiry.
+The v85 candidate-only run used disposable SCRAM PostgreSQL. The same
+runtime backend committed the fresh read, the short-lived read before
+expiry, and another fresh read after expiry. ExUnit passed the selected
+case. Source admission matched 572 inputs in both Python modes.
+[Original timing diagnosis](verification/receipts/l07-r1026-postcommit-expiry.json) ·
+[Reversible v85 binding](verification/receipts/l07-r1026-v85-composition.json) ·
+[Candidate-only replay](verification/receipts/l07-r1026-v85-root-replay.json)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,
