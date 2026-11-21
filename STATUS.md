@@ -1745,6 +1745,18 @@ An owned Chrome profile drove the compiled console against stock Phoenix and Pos
 
 The Pair25 browser completion fixture now pauses restricted Oban before opening the bridge. A fresh Chrome profile selected the approved Android Starter and one browser POST returned 201. Chrome and PostgreSQL agreed on the queued build ID, and the processor drained the original job at attempt zero. The same build reached native success at revision 2 in a dedicated Linux VM, with one worker and runner start and one capacity release. Fresh owner API reads returned two log events and three digest-matched downloads. The unrelated tenant received 404 and anonymous callers received 401. Billing matched before queueing, after queueing, and after readback. Eleven command groups and Chrome closed, all six fixture ports and the Chrome debug port were reusable, and the exact VM and scratch were removed. Browser observation ended at queue confirmation. [Real browser-submitted build](verification/receipts/l05-pair25-browser-real-build-20261120.json)
 
+The v85 console reopened the exact Android build submitted earlier by
+Chrome. It displayed **Succeeded** at revision 2, rendered both terminal
+log events, and downloaded the unsigned APK, debug symbols, and resource
+inventory. Their SHA-256 values matched the worker, the authenticated API,
+and the bridge. The owner reads returned 200, the other tenant received
+404, and anonymous callers received 401. The run used one browser POST,
+one worker and runner start, and one capacity release. Billing matched
+at all three checkpoints. Eleven fixture groups and both disposable
+Chrome instances closed, all nine ports could rebind, and the owned
+Docker daemon, Linux VM, and scratch were removed.
+[Rendered terminal replay](verification/receipts/l05-pair25-browser-rendered-terminal-1e2de013.json)
+
 An isolated Phoenix and PostgreSQL replay committed signed v3 sequences 7 and 8 for one provisioned target. The browser head and public updater agreed on both. The updater refused staged artifacts, and committed bytes remained available after Phoenix restarted. The independent review led to a startup check that refuses an extra HTTPS listener and workflow triggers for the release UI fixture. Hosted v57 binds the corrected source. [Signed release replay](verification/receipts/local-signed-release-v56-composition-20261120.json) · [Listener checks](verification/receipts/l05-release-delivery-effective-listener-20261120.json) · [Hosted v57 binding](verification/receipts/hosted-source-binding-v57-20261120.json)
 
 Normal Phoenix startup now accepts one opt-in release target and its public trust roots. A dedicated reader using PostgreSQL TLS served a committed offer and artifact. The ordinary browser publisher and stock CLI validate and publish routes used the same release head and restricted writer login in a separate shared-database replay. All 40 selected tests passed, including browser admission with the CLI migration absent and present, listener refusal, and idempotency conflicts in both directions. [Startup provisioning](docs/operations/local-signed-release-delivery.md) · [Startup receipt](verification/receipts/l05-local-release-runtime-v57-20261120.json) · [CLI authority receipt](verification/receipts/local-v3-cli-publication-review-fixes-20261120.json)
