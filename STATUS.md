@@ -1329,6 +1329,16 @@ assertions, including the existing Edit and Cancel trace. Signed installation,
 platform rendering, and broader parity remain open.
 [Save replay](verification/receipts/fieldlog-f05-embedded-editor-save-2acaac67.json)
 
+The signed editor candidate `eae2a13aef` passed an author-run headless macOS
+replay for both FieldLog pins, including title edits, Cancel, and one durable
+Save per pin. Independent review is in progress. Swift Host and Android
+generated Java sparse preflights passed the published 155-input Source141
+binding in ordinary and optimized Python. Both projections rejected the
+unbound candidate at `GuestUIEditorV2.swift`. Integration requires a
+successor binding for the reviewed source. All 16 preflight command groups
+closed and scratch was removed.
+[Source141 preflight](verification/receipts/fieldlog-signed-editor-source141-preflight-eae2a13a.json)
+
 The L07 terminal restart attempt used a CLI that predates the current closure acknowledgement. The worker declined shutdown, leaving compiler custody unknown. Three separate no-compiler controls passed. [Worker custody receipt](verification/receipts/l07-worker-terminal-restart-hold-41a05264.json)
 
 A restricted Oban build reached one durable worker start. The test stopped its owned worker before compiler spawn. Restart on the same journal observed uncertainty with no second start. The owner replayed the original build, tenant B received 404, and the coordinator retained capacity after lease expiry. Post-spawn closure and artifact readback remain open. [Worker recovery receipt](verification/receipts/l07-worker-recovery-07a536f3.json)
