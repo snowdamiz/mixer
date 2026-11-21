@@ -1,0 +1,707 @@
+{
+  "scope": "W07/L03 §7.3. Exact staged object and direct-value closure fixtures; add only the pinned standard WASI guest libc.a to the maintained compact link.",
+  "observedUTC": "2026-11-21T14:15:35.730847+00:00",
+  "stagedSourceTree": "0ed345475d6215c344a40258e8451498e36f7139",
+  "source": {
+    "commit": "abadfffa100c61b724e4f021d294b0e1377fb00b",
+    "tree": "6d78a4c5d1abb6c301f8621e702c6224b279ccdf",
+    "vmTree": "ec1ddb74b7c6c2eabd91d1f60ed243ffc69ce6f4",
+    "identicalStagedFixturesAndHarness": {
+      "compiler/Fixtures/FeatureProbe/CompactHost.swift": {
+        "bytes": 11140,
+        "sha256": "3d0df89db6a4660b2589915f89a9c718841d5ffd2ecfdab05a7537abc3deb5d3"
+      },
+      "compiler/Fixtures/FeatureProbe/CompactPreviewGuest.swift": {
+        "bytes": 2489,
+        "sha256": "eb27f4baeaa5ebf8c4d0db3554918ab6b5ccff56d10b8d1484ab1f17d4bc957d"
+      },
+      "compiler/Fixtures/FeatureProbe/EscapingClosure.swift": {
+        "bytes": 2402,
+        "sha256": "60affedc258b7241a3998961ecf5aafdb3bfe8dffc73efb1853bed7d4ed17109"
+      },
+      "compiler/Fixtures/FeatureProbe/replay.py": {
+        "bytes": 25280,
+        "sha256": "72b81c8a2e5a8f0238bbdfeee4267629d4d94c214928e3551ef025e4d3a25f3e"
+      }
+    }
+  },
+  "profile": {
+    "abi": "Guest UI V1",
+    "profile": "table-memory-v3",
+    "minimumPages": 1,
+    "maximumPages": 1,
+    "fuelPerTurn": 1000000,
+    "hostCallsPerTurn": 0
+  },
+  "result": "Both stock-libc modules passed compact descriptor checks and the shipped owned VM validation and session replay.",
+  "tools": {
+    "python": "3.14.8",
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "nativeSwift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "guestSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "linker": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)"
+  },
+  "sdk": {
+    "artifactId": "swift-6.3.3-RELEASE_wasm-embedded",
+    "bundleVariant": {
+      "type": "swiftSDK",
+      "variants": [
+        {
+          "path": "swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1/embedded-swift-sdk.json"
+        }
+      ],
+      "version": "0.0.1"
+    },
+    "targetTriples": {
+      "wasm32-unknown-wasip1": {
+        "sdkRootPath": "WASI.sdk",
+        "swiftResourcesPath": "swift.xctoolchain/usr/lib/swift",
+        "swiftStaticResourcesPath": "swift.xctoolchain/usr/lib/swift_static",
+        "toolsetPaths": [
+          "embedded-toolset.json"
+        ]
+      }
+    },
+    "archive": {
+      "path": "$USER_HOME/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1/WASI.sdk/lib/wasm32-wasip1/libc.a",
+      "bytes": 1040606,
+      "sha256": "42d929e52aaeac6c4ed56946cd3e92e40574322bc43af529c19cfbf67893b352"
+    },
+    "extractionTraceForBoth": [
+      [
+        "<fixture>.o",
+        "libc.a(dlmalloc.o)",
+        "free"
+      ],
+      [
+        "libc.a(dlmalloc.o)",
+        "libc.a(errno.o)",
+        "errno"
+      ],
+      [
+        "libc.a(sbrk.o)",
+        "libc.a(abort.o)",
+        "abort"
+      ],
+      [
+        "libc.a(dlmalloc.o)",
+        "libc.a(sbrk.o)",
+        "sbrk"
+      ],
+      [
+        "libc.a(__wasilibc_real.o)",
+        "libc.a(strlen.o)",
+        "strlen"
+      ],
+      [
+        "libc.a(_Exit.o)",
+        "libc.a(__wasilibc_real.o)",
+        "__wasi_proc_exit"
+      ],
+      [
+        "libc.a(exit.o)",
+        "libc.a(_Exit.o)",
+        "_Exit"
+      ],
+      [
+        "<internal>",
+        "libc.a(exit.o)",
+        "__wasm_call_dtors"
+      ]
+    ],
+    "extractionTraceColumns": [
+      "reference",
+      "extracted",
+      "symbol"
+    ],
+    "retainedArchiveMembersForBoth": [
+      "abort.o",
+      "dlmalloc.o",
+      "errno.o",
+      "exit.o",
+      "sbrk.o"
+    ],
+    "extractedMemberEvidence": {
+      "_Exit.o": {
+        "object": {
+          "bytes": 489,
+          "sha256": "82a33e6209f7ac46a657409da12d755b9f8e94f1810888dc6fbeb67834524ec3"
+        },
+        "undefined": [
+          "__indirect_function_table",
+          "__wasi_proc_exit"
+        ],
+        "selectedDefinitions": [
+          "00000001 T _Exit"
+        ]
+      },
+      "__wasilibc_real.o": {
+        "object": {
+          "bytes": 6907,
+          "sha256": "c6fd69d681b45f7f3fe47c1062ac16d2323e9b85719566c964d44942d48a67a3"
+        },
+        "undefined": [
+          "__imported_wasi_snapshot_preview1_proc_exit",
+          "strlen"
+        ],
+        "selectedDefinitions": [
+          "0000036b T __wasi_proc_exit"
+        ],
+        "undefinedCount": 46,
+        "undefinedScope": "Dependencies relevant to archive extraction and the process-exit path."
+      },
+      "abort.o": {
+        "object": {
+          "bytes": 385,
+          "sha256": "13d4737c1ab9fae06a7660b39fe4f5963b6836b5d750a6bf0761a085625c25fa"
+        },
+        "undefined": [],
+        "selectedDefinitions": [
+          "00000001 T abort"
+        ]
+      },
+      "dlmalloc.o": {
+        "object": {
+          "bytes": 14478,
+          "sha256": "c2134e3158237926b9b04b73a32c2a2f9a530da8b9aa94a3b42a691e0e38b5fc"
+        },
+        "undefined": [
+          "__heap_base",
+          "__heap_end",
+          "__indirect_function_table",
+          "__stack_pointer",
+          "errno",
+          "sbrk"
+        ],
+        "selectedDefinitions": [
+          "0000193f T free",
+          "00000001 T malloc",
+          "00002aed T posix_memalign"
+        ]
+      },
+      "errno.o": {
+        "object": {
+          "bytes": 413,
+          "sha256": "a1662d22042a25fabca7b8b601e16e104b8a603a7f98511a357fca882475dea8"
+        },
+        "undefined": [],
+        "selectedDefinitions": []
+      },
+      "exit.o": {
+        "object": {
+          "bytes": 580,
+          "sha256": "ec58318f3e2226ba0e6a6ca3b12f8140c4c0f1c4bfd9d0123ee7cc5142b772c5"
+        },
+        "undefined": [
+          "_Exit",
+          "__indirect_function_table"
+        ],
+        "selectedDefinitions": []
+      },
+      "sbrk.o": {
+        "object": {
+          "bytes": 525,
+          "sha256": "2024919ba2285c5d58d63079c31b1f356863558083ebc2a8ceccfee03228a5cd"
+        },
+        "undefined": [
+          "abort",
+          "errno"
+        ],
+        "selectedDefinitions": [
+          "00000001 T sbrk"
+        ]
+      },
+      "strlen.o": {
+        "object": {
+          "bytes": 593,
+          "sha256": "60fef25e8880b33d783703a026cc3e7955e736bdc0d273a6eb8d015f36661231"
+        },
+        "undefined": [],
+        "selectedDefinitions": []
+      }
+    },
+    "sbrkMemoryInstructions": [
+      "9: 3f 00        \tmemory.size\t0",
+      "29: 40 00        \tmemory.grow\t0"
+    ],
+    "wasiDependency": "_Exit.o, __wasilibc_real.o and strlen.o appeared in archive extraction. No contribution from them remains in the final maps, and neither final import section contains proc_exit or any other import."
+  },
+  "vmArchive": {
+    "bytes": 19316872,
+    "sha256": "6a9ef08edafb9a3f9c35d3a98197584987a3b70cb429fddba6e1c562a927b822"
+  },
+  "ordinaryEvents": [
+    {
+      "case": "store-title",
+      "inputHex": "012a",
+      "accepts": true
+    },
+    {
+      "case": "invoke-title",
+      "inputHex": "0303",
+      "accepts": true
+    },
+    {
+      "case": "invoke-title-again",
+      "inputHex": "0305",
+      "accepts": true
+    },
+    {
+      "case": "replace-with-inspection",
+      "inputHex": "0246",
+      "accepts": true
+    },
+    {
+      "case": "invoke-inspection",
+      "inputHex": "0304",
+      "accepts": true
+    },
+    {
+      "case": "release-inspection",
+      "inputHex": "0400",
+      "accepts": true
+    },
+    {
+      "case": "refuse-invocation-after-release",
+      "inputHex": "0301",
+      "accepts": false
+    },
+    {
+      "case": "release-empty-slot",
+      "inputHex": "0400",
+      "accepts": true
+    }
+  ],
+  "twoReplacementReleaseCycles": {
+    "inputHex": "012a0246040001090211040003010400",
+    "eventWidthBytes": 2,
+    "refusedEventIndexZeroBased": 6,
+    "scope": "Same existing eight-event native and VM runner with two normal store/replace/release cycles."
+  },
+  "fixtures": {
+    "object": {
+      "object": {
+        "bytes": 14518,
+        "sha256": "c6822d975f09b0485ef3b5b7dacbcdf822dc89fee7f00b2fc6939a3ab99ee9ff"
+      },
+      "baselineLink": {
+        "exit": 1,
+        "stderr": "wasm-ld: error: $RUN/object.o: undefined symbol: free\nwasm-ld: error: $RUN/object.o: undefined symbol: posix_memalign\n",
+        "wasmProduced": false
+      },
+      "sdkLinkExit": 0,
+      "mapSymbolRows": [
+        "-     1e4f        b         libc.a(dlmalloc.o):(free)",
+        "-     2b19       7d         libc.a(dlmalloc.o):(posix_memalign)",
+        "-     2d45        4         libc.a(abort.o):(abort)",
+        "-     2d49       4f         libc.a(sbrk.o):(sbrk)",
+        "-     2d9b        f         libc.a(exit.o):(__wasm_call_dtors)"
+      ],
+      "wasm": {
+        "bytes": 11763,
+        "sha256": "bf22135a1b6f851de31a5e1c787da816d4be4a0bfb5fd072492d83c424b5fadd",
+        "imports": [],
+        "exports": [
+          {
+            "name": "memory",
+            "kind": "memory",
+            "index": 0
+          },
+          {
+            "name": "mixer_guest_ui_start_v1",
+            "kind": "function",
+            "index": 26,
+            "typeIndex": 7,
+            "signature": {
+              "parameters": [],
+              "results": [
+                "i32"
+              ]
+            }
+          },
+          {
+            "name": "mixer_guest_ui_event_v1",
+            "kind": "function",
+            "index": 27,
+            "typeIndex": 9,
+            "signature": {
+              "parameters": [
+                "i32"
+              ],
+              "results": [
+                "i32"
+              ]
+            }
+          },
+          {
+            "name": "mixer_guest_capability_ready_v1",
+            "kind": "function",
+            "index": 28,
+            "typeIndex": 10,
+            "signature": {
+              "parameters": [],
+              "results": []
+            }
+          }
+        ],
+        "startFunction": null,
+        "memories": [
+          {
+            "minimum": 1,
+            "maximum": 1
+          }
+        ],
+        "memoryGrowInstructions": [
+          "2d74: 40 00        \tmemory.grow\t0"
+        ]
+      },
+      "ownedAdmission": "owned validation, startup, events and retirement passed",
+      "hostExecutable": {
+        "bytes": 2059776,
+        "sha256": "3adfceadca940d90bdf82226f36528f50f248ef6173244db43695d0b7493f3fb"
+      },
+      "ordinaryReplay": {
+        "identicalNativeAndGuestFramesHex": {
+          "initial": "00000000",
+          "store-title": "01000000",
+          "invoke-title": "012d0000",
+          "invoke-title-again": "012f0000",
+          "replace-with-inspection": "02000101",
+          "invoke-inspection": "02420101",
+          "release-inspection": "00000202",
+          "release-empty-slot": "00000202"
+        },
+        "identicalRefusedFrameHex": "00000202",
+        "guestAcceptedTurnFuel": [
+          1071,
+          191,
+          191,
+          729,
+          191,
+          331,
+          129
+        ],
+        "guestRetirement": {
+          "closed": true,
+          "staleHandleRefused": true,
+          "registrySlotReopenedWithNewGenerationAndCleanFrame": true
+        }
+      },
+      "twoReplacementReleaseCycles": {
+        "identicalNativeAndGuestFramesHex": {
+          "initial": "00000000",
+          "store-1": "01000000",
+          "replace-1": "02000101",
+          "release-1": "00000202",
+          "store-2": "01000202",
+          "replace-2": "02000301",
+          "release-2": "00000402",
+          "release-empty-slot": "00000402"
+        },
+        "identicalRefusedFrameHex": "00000402",
+        "guestAcceptedTurnFuel": [
+          1071,
+          729,
+          331,
+          543,
+          729,
+          331,
+          129
+        ],
+        "guestRetirement": {
+          "closed": true,
+          "staleHandleRefused": true,
+          "registrySlotReopenedWithNewGenerationAndCleanFrame": true
+        }
+      }
+    },
+    "value": {
+      "object": {
+        "bytes": 13239,
+        "sha256": "35854ecadd43edc7d1e4060d2eef34b88f130b8596ad43a05d0ed08d6711bc18"
+      },
+      "baselineLink": {
+        "exit": 1,
+        "stderr": "wasm-ld: error: $RUN/value.o: undefined symbol: posix_memalign\nwasm-ld: error: $RUN/value.o: undefined symbol: free\n",
+        "wasmProduced": false
+      },
+      "sdkLinkExit": 0,
+      "mapSymbolRows": [
+        "-     1ddf        b         libc.a(dlmalloc.o):(free)",
+        "-     2aa9       7d         libc.a(dlmalloc.o):(posix_memalign)",
+        "-     2cd5        4         libc.a(abort.o):(abort)",
+        "-     2cd9       4f         libc.a(sbrk.o):(sbrk)",
+        "-     2d2b        f         libc.a(exit.o):(__wasm_call_dtors)"
+      ],
+      "wasm": {
+        "bytes": 11643,
+        "sha256": "8b76f8e662a4253ad83984eb2e0616af54016be3c79e8e12ac496bf39dd554a1",
+        "imports": [],
+        "exports": [
+          {
+            "name": "memory",
+            "kind": "memory",
+            "index": 0
+          },
+          {
+            "name": "mixer_guest_ui_start_v1",
+            "kind": "function",
+            "index": 24,
+            "typeIndex": 6,
+            "signature": {
+              "parameters": [],
+              "results": [
+                "i32"
+              ]
+            }
+          },
+          {
+            "name": "mixer_guest_ui_event_v1",
+            "kind": "function",
+            "index": 25,
+            "typeIndex": 8,
+            "signature": {
+              "parameters": [
+                "i32"
+              ],
+              "results": [
+                "i32"
+              ]
+            }
+          },
+          {
+            "name": "mixer_guest_capability_ready_v1",
+            "kind": "function",
+            "index": 26,
+            "typeIndex": 9,
+            "signature": {
+              "parameters": [],
+              "results": []
+            }
+          }
+        ],
+        "startFunction": null,
+        "memories": [
+          {
+            "minimum": 1,
+            "maximum": 1
+          }
+        ],
+        "memoryGrowInstructions": [
+          "2d04: 40 00        \tmemory.grow\t0"
+        ]
+      },
+      "ownedAdmission": "owned validation, startup, events and retirement passed",
+      "hostExecutable": {
+        "bytes": 2057696,
+        "sha256": "ffd61f933f1a7d0580140e166e72a7c3c2ee562d2c09f1cfac4227399c18c787"
+      },
+      "ordinaryReplay": {
+        "identicalNativeAndGuestFramesHex": {
+          "initial": "00000000",
+          "store-title": "01000000",
+          "invoke-title": "012d0000",
+          "invoke-title-again": "012f0000",
+          "replace-with-inspection": "02000000",
+          "invoke-inspection": "02420000",
+          "release-inspection": "00000000",
+          "release-empty-slot": "00000000"
+        },
+        "identicalRefusedFrameHex": "00000000",
+        "guestAcceptedTurnFuel": [
+          1068,
+          186,
+          186,
+          698,
+          186,
+          298,
+          124
+        ],
+        "guestRetirement": {
+          "closed": true,
+          "staleHandleRefused": true,
+          "registrySlotReopenedWithNewGenerationAndCleanFrame": true
+        }
+      },
+      "twoReplacementReleaseCycles": {
+        "identicalNativeAndGuestFramesHex": {
+          "initial": "00000000",
+          "store-1": "01000000",
+          "replace-1": "02000000",
+          "release-1": "00000000",
+          "store-2": "01000000",
+          "replace-2": "02000000",
+          "release-2": "00000000",
+          "release-empty-slot": "00000000"
+        },
+        "identicalRefusedFrameHex": "00000000",
+        "guestAcceptedTurnFuel": [
+          1068,
+          698,
+          298,
+          540,
+          698,
+          298,
+          124
+        ],
+        "guestRetirement": {
+          "closed": true,
+          "staleHandleRefused": true,
+          "registrySlotReopenedWithNewGenerationAndCleanFrame": true
+        }
+      }
+    }
+  },
+  "limits": [
+    "Both modules contain memory.grow in the stock sbrk implementation. Successful replays ran with one initial and one maximum page. No successful memory growth, exhaustion recovery, or allocator block reuse was measured.",
+    "The object-capture replay recorded four deinitializations over two cycles. The value-capture fixture has no deinitializer observation. Both separately demonstrated VM registry-slot reclamation.",
+    "Unsigned arm64 macOS host fixture evidence for two concrete closure forms only."
+  ],
+  "initialSetupFailure": {
+    "cause": "The initial sparse worktree omitted vm/examples/taskeditor_owned_command.rs, which Cargo requires to parse the manifest.",
+    "vmBuildCommands": [
+      {
+        "label": "object-replay-vm-build",
+        "argv": [
+          "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "build",
+          "--lib",
+          "--offline",
+          "--locked",
+          "--release",
+          "--jobs",
+          "1",
+          "--features",
+          "experimental-capability-native",
+          "--manifest-path",
+          "$REPO/vm/Cargo.toml",
+          "--target-dir",
+          "$RUN/rust"
+        ],
+        "exit": 101
+      },
+      {
+        "label": "value-replay-vm-build",
+        "argv": [
+          "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "build",
+          "--lib",
+          "--offline",
+          "--locked",
+          "--release",
+          "--jobs",
+          "1",
+          "--features",
+          "experimental-capability-native",
+          "--manifest-path",
+          "$REPO/vm/Cargo.toml",
+          "--target-dir",
+          "$RUN/rust"
+        ],
+        "exit": 101
+      }
+    ],
+    "diagnostic": "object-replay-vm-build exit 101, stop=None\nerror: Cargo.toml: can't find `taskeditor_owned_command` example at `examples/taskeditor_owned_command.rs` or `examples/taskeditor_owned_command/main.rs`. Please specify example.path if you want to use a non-default path.\nerror: could not parse `mixer-vm` (manifest) due to 1 previous error\n",
+    "recovery": "Materialized the exact pinned example with git sparse-checkout add, then repeated the same library experiment. Both linked Wasm SHA-256 digests matched their first-run digests.",
+    "custody": {
+      "commandsReapedAndGroupsAbsent": 51,
+      "unknown": null,
+      "peakRunBytes": 640736,
+      "runByteCeiling": 2147483648,
+      "runScratchRemoved": true
+    }
+  },
+  "pathAliases": {
+    "$USER_HOME": "Host account home, outside the isolated command environment.",
+    "$REPO": "Owned sparse worktree rooted at the recorded commit.",
+    "$RUN": "Fresh owned command scratch.",
+    "$SDK_LIBC": "$USER_HOME/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_wasm.artifactbundle/swift-6.3.3-RELEASE_wasm/wasm32-unknown-wasip1/WASI.sdk/lib/wasm32-wasip1/libc.a",
+    "$SWIFT63_BIN": "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin",
+    "$RUST99_BIN": "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin"
+  },
+  "commandEnvironment": {
+    "HOME": "$RUN/home",
+    "TMPDIR": "$RUN/tmp",
+    "CARGO_HOME": "$RUN/cargo",
+    "PATH": "$RUST99_BIN:/usr/bin:/bin:/usr/sbin:/sbin",
+    "LANG": "C",
+    "SWIFT_BACKTRACE": "enable=no",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "custody": {
+    "commandsReapedAndGroupsAbsent": 62,
+    "unknown": null,
+    "peakRunBytes": 75821908,
+    "runByteCeiling": 2147483648,
+    "runScratchRemoved": true,
+    "campaignDeadlineSeconds": 240,
+    "worktreeAllocationKiB": 19492,
+    "externalScratchRemoved": true
+  },
+  "commands": [
+    {"label": "commit", "exit": 0, "argv": ["/usr/bin/git", "rev-parse", "HEAD"]},
+    {"label": "tree", "exit": 0, "argv": ["/usr/bin/git", "rev-parse", "HEAD^{tree}"]},
+    {"label": "vmTree", "exit": 0, "argv": ["/usr/bin/git", "rev-parse", "HEAD:vm"]},
+    {"label": "verify-staged-inputs", "exit": 0, "argv": ["/usr/bin/git", "diff", "--exit-code", "HEAD", "0ed345475d6215c344a40258e8451498e36f7139", "--", "compiler/Fixtures/FeatureProbe/CompactHost.swift", "compiler/Fixtures/FeatureProbe/CompactPreviewGuest.swift", "compiler/Fixtures/FeatureProbe/EscapingClosure.swift", "compiler/Fixtures/FeatureProbe/replay.py", "compiler/qualification_support.py", "compiler/experiments/fieldlog-guest-benchmark", "compiler/experiments/fieldlog-installed-guest", "compiler/experiments/fieldlog-reactor", "compiler/experiments/profile-budget", "experimental-capability-runtime/Sources", "vm"]},
+    {"label": "macOS", "exit": 0, "argv": ["/usr/bin/sw_vers"]},
+    {"label": "guestSwift", "exit": 0, "argv": ["$SWIFT63_BIN/swiftc", "--version"]},
+    {"label": "linker", "exit": 0, "argv": ["$SWIFT63_BIN/wasm-ld", "--version"]},
+    {"label": "object-swift", "exit": 0, "argv": ["/bin/sh", "-c", "output=$1\nshift\nexec \"$@\" > \"$output\"", "capture-object", "$RUN/object.o", "$SWIFT63_BIN/swiftc", "-target", "wasm32-unknown-none-wasm", "-enable-experimental-feature", "Embedded", "-whole-module-optimization", "-Osize", "-parse-as-library", "-Xfrontend", "-disable-stack-protector", "-D", "ESCAPING_CLOSURE_GUEST", "-module-cache-path", "$RUN/guest-modules", "-module-name", "MixerEscapingClosureProbe", "-emit-object", "$REPO/compiler/Fixtures/FeatureProbe/EscapingClosure.swift", "$REPO/compiler/Fixtures/FeatureProbe/CompactPreviewGuest.swift", "-o", "-"]},
+    {"label": "object-link", "exit": 1, "argv": ["$SWIFT63_BIN/wasm-ld", "--no-entry", "--gc-sections", "--strip-all", "-z", "stack-size=16384", "--max-memory=65536", "--export=mixer_guest_ui_start_v1", "--export=mixer_guest_ui_event_v1", "--export=mixer_guest_capability_ready_v1", "$RUN/object.o", "-o", "$RUN/object.wasm"]},
+    {"label": "object-link-sdk", "exit": 0, "argv": ["$SWIFT63_BIN/wasm-ld", "--no-entry", "--gc-sections", "--strip-all", "-z", "stack-size=16384", "--max-memory=65536", "--export=mixer_guest_ui_start_v1", "--export=mixer_guest_ui_event_v1", "--export=mixer_guest_capability_ready_v1", "$RUN/object.o", "$SDK_LIBC", "--why-extract=$RUN/object.why", "--Map=$RUN/object.map", "-o", "$RUN/object.wasm"]},
+    {"label": "object-disassembly", "exit": 0, "argv": ["$SWIFT63_BIN/llvm-objdump", "-d", "$RUN/object.wasm"]},
+    {"label": "value-swift", "exit": 0, "argv": ["/bin/sh", "-c", "output=$1\nshift\nexec \"$@\" > \"$output\"", "capture-object", "$RUN/value.o", "$SWIFT63_BIN/swiftc", "-target", "wasm32-unknown-none-wasm", "-enable-experimental-feature", "Embedded", "-whole-module-optimization", "-Osize", "-parse-as-library", "-Xfrontend", "-disable-stack-protector", "-D", "ESCAPING_CLOSURE_GUEST", "-D", "ESCAPING_CLOSURE_VALUE_ONLY", "-module-cache-path", "$RUN/guest-modules", "-module-name", "MixerEscapingClosureProbe", "-emit-object", "$REPO/compiler/Fixtures/FeatureProbe/EscapingClosure.swift", "$REPO/compiler/Fixtures/FeatureProbe/CompactPreviewGuest.swift", "-o", "-"]},
+    {"label": "value-link", "exit": 1, "argv": ["$SWIFT63_BIN/wasm-ld", "--no-entry", "--gc-sections", "--strip-all", "-z", "stack-size=16384", "--max-memory=65536", "--export=mixer_guest_ui_start_v1", "--export=mixer_guest_ui_event_v1", "--export=mixer_guest_capability_ready_v1", "$RUN/value.o", "-o", "$RUN/value.wasm"]},
+    {"label": "value-link-sdk", "exit": 0, "argv": ["$SWIFT63_BIN/wasm-ld", "--no-entry", "--gc-sections", "--strip-all", "-z", "stack-size=16384", "--max-memory=65536", "--export=mixer_guest_ui_start_v1", "--export=mixer_guest_ui_event_v1", "--export=mixer_guest_capability_ready_v1", "$RUN/value.o", "$SDK_LIBC", "--why-extract=$RUN/value.why", "--Map=$RUN/value.map", "-o", "$RUN/value.wasm"]},
+    {"label": "value-disassembly", "exit": 0, "argv": ["$SWIFT63_BIN/llvm-objdump", "-d", "$RUN/value.wasm"]},
+    {"label": "extract-_Exit.o", "exit": 0, "argv": ["/bin/sh", "-c", "output=$1\nshift\nexec \"$@\" > \"$output\"", "capture-member", "$RUN/_Exit.o", "$SWIFT63_BIN/llvm-ar", "p", "$SDK_LIBC", "_Exit.o"]},
+    {"label": "symbols-_Exit.o", "exit": 0, "argv": ["$SWIFT63_BIN/llvm-nm", "$RUN/_Exit.o"]},
+    {"label": "extract-__wasilibc_real.o", "exit": 0, "argv": ["/bin/sh", "-c", "output=$1\nshift\nexec \"$@\" > \"$output\"", "capture-member", "$RUN/__wasilibc_real.o", "$SWIFT63_BIN/llvm-ar", "p", "$SDK_LIBC", "__wasilibc_real.o"]},
+    {"label": "symbols-__wasilibc_real.o", "exit": 0, "argv": ["$SWIFT63_BIN/llvm-nm", "$RUN/__wasilibc_real.o"]},
+    {"label": "extract-abort.o", "exit": 0, "argv": ["/bin/sh", "-c", "output=$1\nshift\nexec \"$@\" > \"$output\"", "capture-member", "$RUN/abort.o", "$SWIFT63_BIN/llvm-ar", "p", "$SDK_LIBC", "abort.o"]},
+    {"label": "symbols-abort.o", "exit": 0, "argv": ["$SWIFT63_BIN/llvm-nm", "$RUN/abort.o"]},
+    {"label": "extract-dlmalloc.o", "exit": 0, "argv": ["/bin/sh", "-c", "output=$1\nshift\nexec \"$@\" > \"$output\"", "capture-member", "$RUN/dlmalloc.o", "$SWIFT63_BIN/llvm-ar", "p", "$SDK_LIBC", "dlmalloc.o"]},
+    {"label": "symbols-dlmalloc.o", "exit": 0, "argv": ["$SWIFT63_BIN/llvm-nm", "$RUN/dlmalloc.o"]},
+    {"label": "extract-errno.o", "exit": 0, "argv": ["/bin/sh", "-c", "output=$1\nshift\nexec \"$@\" > \"$output\"", "capture-member", "$RUN/errno.o", "$SWIFT63_BIN/llvm-ar", "p", "$SDK_LIBC", "errno.o"]},
+    {"label": "symbols-errno.o", "exit": 0, "argv": ["$SWIFT63_BIN/llvm-nm", "$RUN/errno.o"]},
+    {"label": "extract-exit.o", "exit": 0, "argv": ["/bin/sh", "-c", "output=$1\nshift\nexec \"$@\" > \"$output\"", "capture-member", "$RUN/exit.o", "$SWIFT63_BIN/llvm-ar", "p", "$SDK_LIBC", "exit.o"]},
+    {"label": "symbols-exit.o", "exit": 0, "argv": ["$SWIFT63_BIN/llvm-nm", "$RUN/exit.o"]},
+    {"label": "extract-sbrk.o", "exit": 0, "argv": ["/bin/sh", "-c", "output=$1\nshift\nexec \"$@\" > \"$output\"", "capture-member", "$RUN/sbrk.o", "$SWIFT63_BIN/llvm-ar", "p", "$SDK_LIBC", "sbrk.o"]},
+    {"label": "symbols-sbrk.o", "exit": 0, "argv": ["$SWIFT63_BIN/llvm-nm", "$RUN/sbrk.o"]},
+    {"label": "extract-strlen.o", "exit": 0, "argv": ["/bin/sh", "-c", "output=$1\nshift\nexec \"$@\" > \"$output\"", "capture-member", "$RUN/strlen.o", "$SWIFT63_BIN/llvm-ar", "p", "$SDK_LIBC", "strlen.o"]},
+    {"label": "symbols-strlen.o", "exit": 0, "argv": ["$SWIFT63_BIN/llvm-nm", "$RUN/strlen.o"]},
+    {"label": "sbrk-disassembly", "exit": 0, "argv": ["$SWIFT63_BIN/llvm-objdump", "-d", "$RUN/sbrk.o"]},
+    {"label": "object-replay-revision", "exit": 0, "argv": ["/usr/bin/git", "rev-parse", "HEAD"]},
+    {"label": "object-replay-tree", "exit": 0, "argv": ["/usr/bin/git", "rev-parse", "HEAD^{tree}"]},
+    {"label": "object-replay-vm-tree", "exit": 0, "argv": ["/usr/bin/git", "rev-parse", "HEAD:vm"]},
+    {"label": "object-replay-macOS", "exit": 0, "argv": ["/usr/bin/sw_vers"]},
+    {"label": "object-replay-nativeSwift", "exit": 0, "argv": ["/usr/bin/swiftc", "--version"]},
+    {"label": "object-replay-guestSwift", "exit": 0, "argv": ["$SWIFT63_BIN/swiftc", "--version"]},
+    {"label": "object-replay-linker", "exit": 0, "argv": ["$SWIFT63_BIN/wasm-ld", "--version"]},
+    {"label": "object-replay-rustc", "exit": 0, "argv": ["$RUST99_BIN/rustc", "--version"]},
+    {"label": "object-replay-cargo", "exit": 0, "argv": ["$RUST99_BIN/cargo", "--version"]},
+    {"label": "object-replay-vm-build", "exit": 0, "argv": ["$RUST99_BIN/cargo", "build", "--lib", "--offline", "--locked", "--release", "--jobs", "1", "--features", "experimental-capability-native", "--manifest-path", "$REPO/vm/Cargo.toml", "--target-dir", "$RUN/rust"]},
+    {"label": "object-replay-host-build", "exit": 0, "argv": ["/usr/bin/swiftc", "-O", "-whole-module-optimization", "-swift-version", "6", "-D", "SWIFT_SUPPORT_MATRIX", "-parse-as-library", "-module-cache-path", "$RUN/native-modules", "-I", "$RUN", "$REPO/compiler/Fixtures/FeatureProbe/CompactHost.swift", "$REPO/compiler/Fixtures/FeatureProbe/FloatingPoint.swift", "$REPO/compiler/Fixtures/FeatureProbe/AssociatedTypes.swift", "$REPO/compiler/Fixtures/FeatureProbe/PropertyWrapper.swift", "$REPO/compiler/Fixtures/FeatureProbe/ResultBuilder.swift", "$REPO/compiler/Fixtures/FeatureProbe/FixedSlotResultBuilder.swift", "$REPO/compiler/Fixtures/FeatureProbe/EnumTypedThrows.swift", "$REPO/compiler/Fixtures/FeatureProbe/EscapingClosure.swift", "$REPO/compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift", "$REPO/compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift", "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift", "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift", "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift", "$RUN/rust/release/libmixer_vm.a", "-o", "$RUN/compact-host"]},
+    {"label": "object-replay-closure-native", "exit": 0, "argv": ["$RUN/compact-host", "closure-native", "$RUN/closure.wasm", "$RUN/closure-inputs"]},
+    {"label": "object-replay-closure-guest", "exit": 0, "argv": ["$RUN/compact-host", "closure-guest", "$RUN/object.wasm", "$RUN/closure-inputs"]},
+    {"label": "object-cycles-closure-native", "exit": 0, "argv": ["$RUN/compact-host", "closure-native", "$RUN/object.wasm", "$RUN/object-replacement-release.inputs"]},
+    {"label": "object-cycles-closure-guest", "exit": 0, "argv": ["$RUN/compact-host", "closure-guest", "$RUN/object.wasm", "$RUN/object-replacement-release.inputs"]},
+    {"label": "value-replay-revision", "exit": 0, "argv": ["/usr/bin/git", "rev-parse", "HEAD"]},
+    {"label": "value-replay-tree", "exit": 0, "argv": ["/usr/bin/git", "rev-parse", "HEAD^{tree}"]},
+    {"label": "value-replay-vm-tree", "exit": 0, "argv": ["/usr/bin/git", "rev-parse", "HEAD:vm"]},
+    {"label": "value-replay-macOS", "exit": 0, "argv": ["/usr/bin/sw_vers"]},
+    {"label": "value-replay-nativeSwift", "exit": 0, "argv": ["/usr/bin/swiftc", "--version"]},
+    {"label": "value-replay-guestSwift", "exit": 0, "argv": ["$SWIFT63_BIN/swiftc", "--version"]},
+    {"label": "value-replay-linker", "exit": 0, "argv": ["$SWIFT63_BIN/wasm-ld", "--version"]},
+    {"label": "value-replay-rustc", "exit": 0, "argv": ["$RUST99_BIN/rustc", "--version"]},
+    {"label": "value-replay-cargo", "exit": 0, "argv": ["$RUST99_BIN/cargo", "--version"]},
+    {"label": "value-replay-vm-build", "exit": 0, "argv": ["$RUST99_BIN/cargo", "build", "--lib", "--offline", "--locked", "--release", "--jobs", "1", "--features", "experimental-capability-native", "--manifest-path", "$REPO/vm/Cargo.toml", "--target-dir", "$RUN/rust"]},
+    {"label": "value-replay-host-build", "exit": 0, "argv": ["/usr/bin/swiftc", "-O", "-whole-module-optimization", "-swift-version", "6", "-D", "SWIFT_SUPPORT_MATRIX", "-D", "ESCAPING_CLOSURE_VALUE_ONLY", "-parse-as-library", "-module-cache-path", "$RUN/native-modules", "-I", "$RUN", "$REPO/compiler/Fixtures/FeatureProbe/CompactHost.swift", "$REPO/compiler/Fixtures/FeatureProbe/FloatingPoint.swift", "$REPO/compiler/Fixtures/FeatureProbe/AssociatedTypes.swift", "$REPO/compiler/Fixtures/FeatureProbe/PropertyWrapper.swift", "$REPO/compiler/Fixtures/FeatureProbe/ResultBuilder.swift", "$REPO/compiler/Fixtures/FeatureProbe/FixedSlotResultBuilder.swift", "$REPO/compiler/Fixtures/FeatureProbe/EnumTypedThrows.swift", "$REPO/compiler/Fixtures/FeatureProbe/EscapingClosure.swift", "$REPO/compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift", "$REPO/compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift", "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift", "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift", "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift", "$RUN/rust/release/libmixer_vm.a", "-o", "$RUN/compact-host"]},
+    {"label": "value-replay-closure-native", "exit": 0, "argv": ["$RUN/compact-host", "closure-native", "$RUN/closure.wasm", "$RUN/closure-inputs"]},
+    {"label": "value-replay-closure-guest", "exit": 0, "argv": ["$RUN/compact-host", "closure-guest", "$RUN/value.wasm", "$RUN/closure-inputs"]},
+    {"label": "value-cycles-closure-native", "exit": 0, "argv": ["$RUN/compact-host", "closure-native", "$RUN/value.wasm", "$RUN/value-replacement-release.inputs"]},
+    {"label": "value-cycles-closure-guest", "exit": 0, "argv": ["$RUN/compact-host", "closure-guest", "$RUN/value.wasm", "$RUN/value-replacement-release.inputs"]}
+  ]
+}

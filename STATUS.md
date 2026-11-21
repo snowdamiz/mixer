@@ -750,6 +750,19 @@ record 28 and 14 terminal command groups, respectively, with scratch
 removed. L03 remains open.
 [Exact closure replay](verification/receipts/l03-swift-escaping-closure-final-object-0ed34547.json)
 
+An opt-in link with the pinned Swift 6.3.3 WASI `libc.a` supplied
+`posix_memalign` and `free` from `dlmalloc.o`. Both closure fixtures
+retained zero imports and memory fixed at one page. The shipped Guest UI V1
+VM matched their native frames, including a refused invocation and two
+replacement and release cycles. The object variant observed four
+deinitializations across those cycles. The highest accepted turn used
+1,071 of 1,000,000 fuel. Retirement refused stale handles and a fresh
+session opened with a clean frame. Independent review checked the
+archive, fixture, and VM pins. Runtime readback comes from the experiment
+receipt. Default linking still refuses both symbols. Heap exhaustion
+and block reuse remain open.
+[Stock SDK allocator experiment](verification/receipts/l03-swift-sdk-allocator-abadfffa10.json)
+
 A compact Swift event trapped at function 3, byte 514 in the owned VM.
 The matching line table resolved that position to `SwiftEventGuest.swift:32:9`
 and LLVM agreed. Stripped and mismatched inputs preserved the raw trap
