@@ -1,0 +1,877 @@
+diff --git a/Integrations/GeneratedReport/Package.swift b/Integrations/GeneratedReport/Package.swift
+index c16e49967e443b5bbdf5493be65c3aeca07a1c59..0f0f51511a75b0559f7f15b14f8fa9737ead8888 100644
+--- a/Integrations/GeneratedReport/Package.swift
++++ b/Integrations/GeneratedReport/Package.swift
+@@ -13 +13 @@ let package = Package(
+-    dependencies: [mixer],
++    dependencies: [mixer, .package(url: "https://github.com/apple/swift-crypto.git", exact: "5.0.3")],
+@@ -16 +16 @@ let package = Package(
+-        .target(name: "FieldLogStorage", dependencies: ["FieldLogModels"], swiftSettings: [.define("FIELDLOG_MERGED_DRAFT_PHOTOS")]),
++        .target(name: "FieldLogStorage", dependencies: ["FieldLogModels", .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [.android]))], swiftSettings: [.define("FIELDLOG_MERGED_DRAFT_PHOTOS")]),
+diff --git a/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml b/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
+index 3513cbae5a1773ad4ffdd593ef223aabfd7cc239..2f9bda70076034f4e7e7273bcc97681368505ae2 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
++++ b/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
+@@ -2,0 +3 @@
++  <uses-permission android:name="android.permission.INTERNET" />
+diff --git a/Integrations/GeneratedReport/Platforms/Android/ApplicationPackage.swift b/Integrations/GeneratedReport/Platforms/Android/ApplicationPackage.swift
+index 3657399a5b7b2cf6483ea53d45ae2fdafca350b2..c97153ad41cb367a30c627aa4bb841c240832299 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/ApplicationPackage.swift
++++ b/Integrations/GeneratedReport/Platforms/Android/ApplicationPackage.swift
+@@ -6 +6 @@ let package = Package(
+-    dependencies: [.package(path: "Generated/MixerSDK")],
++    dependencies: [.package(path: "Generated/MixerSDK"), .package(url: "https://github.com/apple/swift-crypto.git", exact: "5.0.3")],
+@@ -10 +10 @@ let package = Package(
+-        .target(name: "FieldLogStorage", dependencies: ["FieldLogModels"], swiftSettings: [.define("FIELDLOG_MERGED_DRAFT_PHOTOS")]),
++        .target(name: "FieldLogStorage", dependencies: ["FieldLogModels", .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [.android]))], swiftSettings: [.define("FIELDLOG_MERGED_DRAFT_PHOTOS")]),
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c b/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
+index a28741535a78f90849fb6a11ff6b57ab8678a95e..9fef336dc2b37ecdb163d28e28700d02a917e15c 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
+@@ -43 +43 @@ static int execute(JNIEnv *e,Context *c,int op,const uint8_t *profile,intptr_t p
+-        result=status==1?0:(op==1&&status==3?2:1);
++        result=status==1?0:((op==1||op==4)&&status==3?2:1);
+@@ -149,0 +150,4 @@ static jint refresh_host(JNIEnv *e,jclass ignored,jlong id) {
++static jint refresh_queue_host(JNIEnv *e,jclass ignored,jlong id) {
++    (void)ignored;
++    return execute(e,find(id),4,NULL,0,NULL,0,NULL,0);
++}
+@@ -165,2 +169,3 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm,void *reserved) {
+-        {"refreshNative","(J)I",(void*)refresh_host}};
+-    jint status=(*e)->RegisterNatives(e,type,methods,6); (*e)->DeleteLocalRef(e,type);
++        {"refreshNative","(J)I",(void*)refresh_host},
++        {"refreshQueueNative","(J)I",(void*)refresh_queue_host}};
++    jint status=(*e)->RegisterNatives(e,type,methods,7); (*e)->DeleteLocalRef(e,type);
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+index ddf7e76dae9f2fb31c3a9cf40df0b577d41d7d58..b7331f5f83bd73f523e01d3c3e5646ac26ce3e2d 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -583,0 +584,18 @@ public final class PublicActivity extends Activity {
++    private final Runnable queueRefresh = this::refreshQueue;
++    private void scheduleQueueRefresh() {
++        handler.removeCallbacks(queueRefresh);
++        if (!handler.postDelayed(queueRefresh, 100)) fail();
++    }
++    private void refreshQueue() {
++        if (destroyed || failed || context <= 0) return;
++        // Deliver events captured from the current frame before replacing it.
++        if (!events.isEmpty()) {
++            scheduleQueueRefresh();
++            return;
++        }
++        switch (PublicBridge.refreshQueue(context)) {
++            case 0: break;
++            case 2: scheduleQueueRefresh(); break;
++            default: fail();
++        }
++    }
+@@ -612 +630,2 @@ public final class PublicActivity extends Activity {
+-            } else if (result != 0) fail();
++            } else if (result == 0) scheduleQueueRefresh();
++            else fail();
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
+index a43d58c7738fe7203141855b5b66a63af8cc8859..6030780fa729edb01958b2b640ea5f560d5dd1c4 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
+@@ -26,0 +27,2 @@ public final class PublicBridge {
++    static int refreshQueue(long context) { requireMain(); return refreshQueueNative(context); }
++    private static native int refreshQueueNative(long context);
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+index c932edb8570e36936e93d9e69fbbe287076a31fc..d586389f239b18d1bbbc18c525d8e1d622cfc430 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+@@ -140,0 +141,3 @@ private let replies = Replies()
++            case 4:
++                guard let (application, surface) = values[id], !surface.failure else { throw PublicHostError.context }
++                return try application.refreshQueueSend() ? 3 : 1
+@@ -160,2 +163,2 @@ public func publicAndroidSubmit(_ context: Int64, _ operation: Int32,
+-    guard context > 0, (0...3).contains(operation), (0...64).contains(profileCount),
+-          (operation != 3 || (profileCount == 0 && ownerCount == 0 && eventCount == 0)),
++    guard context > 0, (0...4).contains(operation), (0...64).contains(profileCount),
++          (operation < 3 || (profileCount == 0 && ownerCount == 0 && eventCount == 0)),
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index 736ca0370e911e84466fc80d51e1e79ad2adfa5a..f28252f16490342c8e16d60712cea9a27ab5be70 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -126,0 +127,34 @@ private struct ProjectPicker {
++private struct QueueSyncConfiguration: Decodable {
++    let port: UInt16
++    let workspaceID: UUID
++    let projectID: UUID
++    let token: String
++
++    static func read(from directory: URL) -> Self? {
++        let url = directory.appendingPathComponent("entry-sync.local.json")
++        guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
++              attributes[.type] as? FileAttributeType == .typeRegular,
++              let handle = try? FileHandle(forReadingFrom: url) else { return nil }
++        defer { try? handle.close() }
++        guard let data = try? handle.read(upToCount: 4097), data.count <= 4096 else { return nil }
++        return try? JSONDecoder().decode(Self.self, from: data)
++    }
++
++    func client(workspace: UUID, project: UUID) -> EntrySyncClient? {
++        guard workspace == workspaceID, project == projectID else { return nil }
++        return try? EntrySyncClient(port: port, workspaceID: workspace, projectID: project, token: token)
++    }
++}
++
++private struct QueueSyncView {
++    var enabled = false
++    var transfer: Transfer?
++    var message: String?
++
++    struct Transfer {
++        let event: UUID
++        var progress: EntrySyncClient.PhotoProgress?
++        var cancelling = false
++    }
++}
++
+@@ -140,0 +175,4 @@ private struct ProjectPicker {
++    private let syncConfiguration: QueueSyncConfiguration?
++    private var queueSync = QueueSyncView()
++    private var queueSend: Task<Void, Never>?
++    private var queueNeedsRefresh = false
+@@ -216,2 +254,3 @@ private struct ProjectPicker {
+-        let repository = try WorkspaceRepository(directory: directory.appendingPathComponent("FieldLog", isDirectory: true))
+-        try await self.init(repository: repository)
++        let folder = directory.appendingPathComponent("FieldLog", isDirectory: true)
++        let repository = try WorkspaceRepository(directory: folder)
++        try await self.init(repository: repository, syncConfiguration: QueueSyncConfiguration.read(from: folder))
+@@ -220 +259,5 @@ private struct ProjectPicker {
+-    init(repository: WorkspaceRepository) async throws {
++    convenience init(repository: WorkspaceRepository) async throws {
++        try await self.init(repository: repository, syncConfiguration: nil)
++    }
++
++    private init(repository: WorkspaceRepository, syncConfiguration: QueueSyncConfiguration?) async throws {
+@@ -234,0 +278 @@ private struct ProjectPicker {
++            self.syncConfiguration = syncConfiguration
+@@ -347,0 +392,13 @@ private struct ProjectPicker {
++            if showingQueue, action.nodeID == action.actionID {
++                if action.nodeID.hasPrefix("queue.send.") {
++                    guard let event = UUID(uuidString: String(action.nodeID.dropFirst("queue.send.".count))) else {
++                        throw PublicHostError.action
++                    }
++                    try beginQueueSend(event)
++                    return
++                }
++                if action.nodeID.hasPrefix("queue.cancel.") {
++                    try cancelQueueSend()
++                    return
++                }
++            }
+@@ -525,0 +583 @@ private struct ProjectPicker {
++            queueSync = QueueSyncView()
+@@ -880 +938 @@ private struct ProjectPicker {
+-                    MixerUI.Button("workspace.queue", "On device · \(workspace.outbox.count) pending changes · Not sent", action: "workspace.queue").accessibilityIdentifier("workspace-on-device").disabled(state.saving)
++                    MixerUI.Button("workspace.queue", "On device · \(workspace.outbox.count) pending changes", action: "workspace.queue").accessibilityIdentifier("workspace-on-device").disabled(state.saving)
+@@ -967,0 +1026,64 @@ private struct ProjectPicker {
++    private func beginQueueSend(_ event: UUID) throws {
++        guard let client = syncConfiguration?.client(workspace: workspace.id, project: projectID),
++              queueSend == nil, queueSync.transfer == nil,
++              let item = workspace.outbox.first(where: { $0.id == event }),
++              Self.syncEntry(for: item, workspace: workspace, project: projectID)?.attachmentIDs.count == 1
++        else { throw PublicHostError.action }
++
++        queueSync.transfer = .init(event: event)
++        queueSync.message = nil
++        queueNeedsRefresh = true
++        _ = try refreshQueueSend()
++        queueSend = Task { @MainActor [self] in
++            let message: String
++            do {
++                try await client.send(eventID: event, from: repository) { [weak self] progress in
++                    await self?.updateQueueProgress(progress)
++                }
++                message = "Entry and JPEG confirmed"
++            } catch is CancellationError {
++                message = "Send cancelled. The entry is still queued."
++            } catch {
++                message = "Send not confirmed. Resume to check the saved photo and try again."
++            }
++            // Only the selected outbox event may have changed in the shared repository.
++            workspace = await repository.snapshot()
++            queueSync.transfer = nil
++            queueSync.message = message
++            queueNeedsRefresh = true
++            queueSend = nil
++        }
++    }
++
++    private func updateQueueProgress(_ progress: EntrySyncClient.PhotoProgress) {
++        guard queueSync.transfer?.cancelling == false else { return }
++        queueSync.transfer?.progress = progress
++        queueNeedsRefresh = true
++    }
++
++    private func cancelQueueSend() throws {
++        if let queueSend, queueSync.transfer?.cancelling == false {
++            queueSync.transfer?.cancelling = true
++            queueSend.cancel()
++            queueNeedsRefresh = true
++        }
++        // A rendered Cancel may arrive just after the terminal update was staged.
++        _ = try refreshQueueSend()
++    }
++
++    // The native surface can receive frames only during a main-thread bridge call.
++    func refreshQueueSend() throws -> Bool {
++        guard !closed else { throw PublicHostError.closed }
++        if queueNeedsRefresh {
++            (reconciler, snapshot) = try render(state, feedback: changeFeedback, failure: changeFailure)
++            queueNeedsRefresh = false
++            publish()
++        }
++        return queueSend != nil
++    }
++
++    private nonisolated static func syncEntry(for item: PendingChange, workspace: Workspace, project: UUID) -> LogEntry? {
++        guard item.kind == .entrySaved else { return nil }
++        return workspace.entries.first { $0.id == item.recordID && $0.projectID == project }
++    }
++
+@@ -1071 +1193,4 @@ private struct ProjectPicker {
+-        let document = Self.document(state, workspace: workspace ?? self.workspace, project: projectID, queue: queue ?? showingQueue, taskPage: taskPage ?? self.taskPage, queuePage: queuePage ?? self.queuePage, busy: busy ?? changingWorkspace, feedback: feedback, failure: failure, revision: snapshot.document.revision + 1, entries: entries ?? showingEntries, entry: renderedEntry, entryPage: entryPage ?? self.entryPage, draftPage: draftPage ?? self.draftPage, dateInput: entry != nil ? dateInput : entryDateInput.flatMap { $0.draftID == entryState?.draft.id ? $0.text : nil }, photoPending: photoRequest != nil, photoMessage: photoMessage, photoBusy: photoApplying, reportPending: reportPreparing || reportRequest != nil, reportMessage: reportMessage)
++        let renderedWorkspace = workspace ?? self.workspace
++        var sync = queueSync
++        sync.enabled = syncConfiguration?.client(workspace: renderedWorkspace.id, project: projectID) != nil
++        let document = Self.document(state, workspace: renderedWorkspace, project: projectID, queue: queue ?? showingQueue, taskPage: taskPage ?? self.taskPage, queuePage: queuePage ?? self.queuePage, busy: busy ?? changingWorkspace, feedback: feedback, failure: failure, revision: snapshot.document.revision + 1, entries: entries ?? showingEntries, entry: renderedEntry, entryPage: entryPage ?? self.entryPage, draftPage: draftPage ?? self.draftPage, dateInput: entry != nil ? dateInput : entryDateInput.flatMap { $0.draftID == entryState?.draft.id ? $0.text : nil }, photoPending: photoRequest != nil, photoMessage: photoMessage, photoBusy: photoApplying, reportPending: reportPreparing || reportRequest != nil, reportMessage: reportMessage, queueSync: sync)
+@@ -1111,0 +1237,2 @@ private struct ProjectPicker {
++        queueSend?.cancel()
++        await queueSend?.value
+@@ -1150 +1277 @@ private struct ProjectPicker {
+-    private nonisolated static func document(_ state: TaskEditorState, workspace: Workspace, project: UUID, queue: Bool, taskPage: Int, queuePage: Int, busy: Bool, feedback: String?, failure: String?, revision: UInt64, entries: Bool = false, entry: EntryEditorState? = nil, entryPage: Int = 0, draftPage: Int = 0, dateInput: String? = nil, photoPending: Bool = false, photoMessage: String? = nil, photoBusy: Bool = false, reportPending: Bool = false, reportMessage: String? = nil) -> UIDocument {
++    private nonisolated static func document(_ state: TaskEditorState, workspace: Workspace, project: UUID, queue: Bool, taskPage: Int, queuePage: Int, busy: Bool, feedback: String?, failure: String?, revision: UInt64, entries: Bool = false, entry: EntryEditorState? = nil, entryPage: Int = 0, draftPage: Int = 0, dateInput: String? = nil, photoPending: Bool = false, photoMessage: String? = nil, photoBusy: Bool = false, reportPending: Bool = false, reportMessage: String? = nil, queueSync: QueueSyncView = .init()) -> UIDocument {
+@@ -1164,0 +1292 @@ private struct ProjectPicker {
++                    let transferring = queueSync.transfer != nil
+@@ -1166 +1294,4 @@ private struct ProjectPicker {
+-                        MixerUI.Text("queue.explanation", "Your records are saved locally. Cloud sync isn't connected. Nothing in this queue has been sent to a server.")
++                        MixerUI.Text("queue.explanation", queueSync.enabled
++                            ? "Records are saved on this device. Send eligible entries to the local development backend."
++                            : "Records are saved on this device. Sending is unavailable for this project.")
++                        if let message = queueSync.message { MixerUI.Text("queue.sync.status", message) }
+@@ -1168,3 +1299,3 @@ private struct ProjectPicker {
+-                            .accessibilityIdentifier("workspace-projects").disabled(!canBrowseProjects)
+-                        MixerUI.Button("workspace.back", "Tasks", action: "workspace.back").accessibilityIdentifier("workspace-tasks")
+-                        MixerUI.Button("workspace.entries", "Entries", action: "workspace.entries").accessibilityIdentifier("workspace-entries")
++                            .accessibilityIdentifier("workspace-projects").disabled(!canBrowseProjects || transferring)
++                        MixerUI.Button("workspace.back", "Tasks", action: "workspace.back").accessibilityIdentifier("workspace-tasks").disabled(transferring)
++                        MixerUI.Button("workspace.entries", "Entries", action: "workspace.entries").accessibilityIdentifier("workspace-entries").disabled(transferring)
+@@ -1174,2 +1305,2 @@ private struct ProjectPicker {
+-                        MixerUI.Button("queue.previous", "Previous", action: "queue.previous").accessibilityIdentifier("queue.previous").disabled(inactive || queuePage == 0)
+-                        MixerUI.Button("queue.next", "Next", action: "queue.next").accessibilityIdentifier("queue.next").disabled(inactive || queueStart + pageSize >= pending.count)
++                        MixerUI.Button("queue.previous", "Previous", action: "queue.previous").accessibilityIdentifier("queue.previous").disabled(inactive || transferring || queuePage == 0)
++                        MixerUI.Button("queue.next", "Next", action: "queue.next").accessibilityIdentifier("queue.next").disabled(inactive || transferring || queueStart + pageSize >= pending.count)
+@@ -1180 +1311,13 @@ private struct ProjectPicker {
+-                            MixerUI.Text("pending." + item.id.uuidString.lowercased(), label + detail + " — Saved on device · Not sent")
++                            let key = item.id.uuidString.lowercased()
++                            if let transfer = queueSync.transfer, transfer.event == item.id {
++                                let progress = transfer.progress.map { "\($0.acceptedBytes) of \($0.totalBytes) bytes confirmed" } ?? "Preparing to send"
++                                MixerUI.Text("pending." + key, label + " — " + progress)
++                                MixerUI.Button("queue.cancel." + key, "Cancel send", action: "queue.cancel." + key)
++                                    .disabled(transfer.cancelling)
++                            } else {
++                                MixerUI.Text("pending." + key, label + detail + " — Saved on device")
++                                if queueSync.enabled && Self.syncEntry(for: item, workspace: workspace, project: project)?.attachmentIDs.count == 1 {
++                                    MixerUI.Button("queue.send." + key, "Send entry", action: "queue.send." + key)
++                                        .disabled(inactive || transferring)
++                                }
++                            }
+@@ -1200 +1343 @@ private struct ProjectPicker {
+-                        MixerUI.Button("workspace.queue", "On device · \(workspace.outbox.count) pending changes · Not sent", action: "workspace.queue").accessibilityIdentifier("workspace-on-device").disabled(inactive)
++                        MixerUI.Button("workspace.queue", "On device · \(workspace.outbox.count) pending changes", action: "workspace.queue").accessibilityIdentifier("workspace-on-device").disabled(inactive)
+@@ -1289,0 +1433,7 @@ private struct ProjectPicker {
++    func refreshQueueSend() throws -> Bool {
++        if let failure = delivery.failure { throw failure }
++        let active = try presentation.refreshQueueSend()
++        try host.deliverLatest()
++        return active
++    }
++
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogStorage/EntrySyncClient.swift b/Integrations/GeneratedReport/Sources/FieldLogStorage/EntrySyncClient.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..4d0923a0b7c32d9e16aeefee772bf8c5c5e1427c
+--- /dev/null
++++ b/Integrations/GeneratedReport/Sources/FieldLogStorage/EntrySyncClient.swift
+@@ -0,0 +1,388 @@
++#if canImport(CryptoKit)
++  import CryptoKit
++#else
++  import Crypto
++#endif
++import FieldLogModels
++import Foundation
++
++#if canImport(FoundationNetworking)
++  import FoundationNetworking
++#endif
++
++/// Development transport for a provisioned loopback FieldLog backend. The caller
++/// owns the session token and explicitly selects the workspace, project and event.
++public struct EntrySyncClient: Sendable {
++  public enum Outcome: Equatable, Sendable {
++    case uploaded
++    case reconciled
++  }
++
++  /// Bytes acknowledged by the backend for this send's selected JPEG.
++  public struct PhotoProgress: Equatable, Sendable {
++    public let acceptedBytes: Int
++    public let totalBytes: Int
++  }
++
++  public enum Failure: Error, LocalizedError, Equatable {
++    case invalidConfiguration
++    case wrongScope
++    case requiresOnePhoto
++    case rejected(Int)
++    case invalidProgress
++    case invalidReceipt
++
++    public var errorDescription: String? {
++      switch self {
++      case .invalidConfiguration: "A local backend port and session token are required."
++      case .wrongScope: "This change belongs to a different workspace or project."
++      case .requiresOnePhoto: "This sync endpoint accepts entries with exactly one JPEG."
++      case .rejected(let status): "The server rejected the change (HTTP \(status))."
++      case .invalidProgress: "The backend did not confirm the saved photo prefix."
++      case .invalidReceipt: "The backend did not confirm this entry and photo."
++      }
++    }
++  }
++
++  private let port: UInt16
++  private let workspaceID: UUID
++  private let projectID: UUID
++  private let token: String
++  private static let chunkBytes = 32_768
++
++  public init(port: UInt16, workspaceID: UUID, projectID: UUID, token: String) throws {
++    guard port > 0, (32...128).contains(token.utf8.count),
++      token.utf8.allSatisfy({
++        (48...57).contains($0) || (65...90).contains($0) || (97...122).contains($0)
++          || $0 == 45 || $0 == 95
++      })
++    else { throw Failure.invalidConfiguration }
++
++    self.port = port
++    self.workspaceID = workspaceID
++    self.projectID = projectID
++    self.token = token
++  }
++
++  @discardableResult public func send(
++    eventID: UUID, from repository: WorkspaceRepository
++  ) async throws -> Outcome {
++    try await send(eventID: eventID, from: repository, onProgress: { _ in })
++  }
++
++  /// Cancelling before local acknowledgment stops the send and leaves the event pending.
++  /// A later send of the same event verifies the server's durable prefix and resumes.
++  @discardableResult public func send(
++    eventID: UUID, from repository: WorkspaceRepository,
++    onProgress: @Sendable (PhotoProgress) async -> Void
++  ) async throws -> Outcome {
++    try Task.checkCancellation()
++    let payload = try await repository.prepareEntryUpload(
++      workspaceID: workspaceID, projectID: projectID, eventID: eventID)
++    let workspace = workspaceID.uuidString.lowercased()
++    let project = projectID.uuidString.lowercased()
++    let url = URL(
++      string: "http://127.0.0.1:\(port)/v1/workspaces/\(workspace)/projects/\(project)/entries/\(payload.event.idempotencyKey)"
++    )!
++    let configuration = URLSessionConfiguration.ephemeral
++    configuration.urlCredentialStorage = nil
++    configuration.httpCookieStorage = nil
++    configuration.httpShouldSetCookies = false
++    configuration.urlCache = nil
++    configuration.connectionProxyDictionary = [
++      "HTTPEnable": false, "HTTPSEnable": false, "ProxyAutoConfigEnable": false,
++      "ProxyAutoDiscoveryEnable": false, "SOCKSEnable": false,
++    ]
++    configuration.timeoutIntervalForRequest = 5
++    configuration.timeoutIntervalForResource = 15
++    #if os(Android)
++      // FoundationNetworking uses libcurl. An inherited proxy can override the
++      // session dictionary, so fail closed before constructing a bearer request.
++      guard !ProcessInfo.processInfo.environment.keys.contains(where: {
++        ["http_proxy", "https_proxy", "all_proxy"].contains($0.lowercased())
++      }) else { throw Failure.invalidConfiguration }
++    #endif
++
++    let expected = EntryUploadReceipt(
++      eventID: eventID, workspaceID: workspaceID, projectID: projectID, entryID: payload.entry.id,
++      photoID: payload.photo.id)
++    let jpeg = payload.photo.jpeg
++    let chunkSHA256s = stride(from: 0, to: jpeg.count, by: Self.chunkBytes).map { start in
++      Self.hex(SHA256.hash(data: jpeg[start..<min(start + Self.chunkBytes, jpeg.count)]))
++    }
++    let manifest = EntryUploadManifest(
++      event: payload.event, entry: payload.entry,
++      photo: .init(
++        id: payload.photo.id, byteCount: jpeg.count, sha256: Self.hex(SHA256.hash(data: jpeg)),
++        chunkSHA256s: chunkSHA256s))
++    let photoURL = url.appendingPathComponent("photo")
++    let initial = try await post(manifest, to: photoURL, using: configuration, accepting: [200])
++    let initialProgress = try progress(in: initial.body, for: expected, photo: manifest.photo)
++    var offset = initialProgress.offset
++    guard offset == jpeg.count || offset.isMultiple(of: Self.chunkBytes) else {
++      throw Failure.invalidProgress
++    }
++    var prefix = SHA256()
++    prefix.update(data: jpeg.prefix(offset))
++    guard Self.hex(prefix.finalize()) == initialProgress.prefixSHA256 else {
++      throw Failure.invalidProgress
++    }
++    await onProgress(.init(acceptedBytes: offset, totalBytes: jpeg.count))
++
++    let chunksURL = photoURL.appendingPathComponent("chunks")
++    while offset < jpeg.count {
++      try Task.checkCancellation()
++      let nextOffset = min(offset + Self.chunkBytes, jpeg.count)
++      let bytes = jpeg[offset..<nextOffset]
++      let chunk = PhotoChunk(
++        photoID: manifest.photo.id, sha256: manifest.photo.sha256, offset: offset,
++        chunk: bytes, chunkSHA256: chunkSHA256s[offset / Self.chunkBytes])
++      let response = try await post(chunk, to: chunksURL, using: configuration, accepting: [200])
++      let accepted = try progress(in: response.body, for: expected, photo: manifest.photo)
++      prefix.update(data: bytes)
++      guard accepted.offset == nextOffset, accepted.prefixSHA256 == Self.hex(prefix.finalize()) else {
++        throw Failure.invalidProgress
++      }
++      offset = nextOffset
++      await onProgress(.init(acceptedBytes: offset, totalBytes: jpeg.count))
++    }
++
++    let final = try await post(
++      manifest, to: url, using: configuration, accepting: [200, 201], invalidResponse: .invalidReceipt)
++    guard (try? JSONDecoder().decode(EntryUploadReceipt.self, from: final.body)) == expected else {
++      throw Failure.invalidReceipt
++    }
++    try await repository.acknowledgeEntryUpload(payload, workspaceID: workspaceID)
++    return final.status == 201 ? .uploaded : .reconciled
++  }
++
++  private func post(
++    _ payload: some Encodable, to url: URL, using configuration: URLSessionConfiguration, accepting statuses: [Int],
++    invalidResponse: Failure = .invalidProgress
++  ) async throws -> (status: Int, body: Data) {
++    try Task.checkCancellation()
++    let encoder = JSONEncoder()
++    encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
++    var request = URLRequest(url: url)
++    request.httpMethod = "POST"
++    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
++    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
++    request.setValue("identity", forHTTPHeaderField: "Accept-Encoding")
++    request.httpBody = try encoder.encode(payload)
++
++    let delegate = LoopbackResponse(accepting: statuses, invalidResponse: invalidResponse)
++    let session = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
++    defer { session.finishTasksAndInvalidate() }
++    do {
++      let response = try await withTaskCancellationHandler {
++        try await withCheckedThrowingContinuation { continuation in
++          delegate.start(request, in: session, returningTo: continuation)
++        }
++      } onCancel: {
++        delegate.cancel()
++      }
++      try Task.checkCancellation()
++      return response
++    } catch {
++      try Task.checkCancellation()
++      throw error
++    }
++  }
++
++  private func progress(
++    in body: Data, for expected: EntryUploadReceipt, photo: EntryUploadManifest.Photo
++  ) throws -> PhotoUploadReceipt {
++    guard (try? JSONDecoder().decode(EntryUploadReceipt.self, from: body)) == expected,
++      let progress = try? JSONDecoder().decode(PhotoUploadReceipt.self, from: body),
++      progress.byteCount == photo.byteCount, progress.sha256 == photo.sha256,
++      (0...photo.byteCount).contains(progress.offset)
++    else { throw Failure.invalidProgress }
++    return progress
++  }
++
++  private static func hex(_ digest: SHA256.Digest) -> String {
++    digest.map { String(format: "%02x", $0) }.joined()
++  }
++}
++
++struct EntryUpload: Sendable {
++  struct Photo: Sendable {
++    let id: UUID
++    let jpeg: Data
++  }
++
++  let event: PendingChange
++  let entry: LogEntry
++  let photo: Photo
++}
++
++private struct EntryUploadManifest: Encodable {
++  struct Photo: Encodable {
++    let id: UUID
++    let byteCount: Int
++    let sha256: String
++    let chunkSHA256s: [String]
++  }
++
++  let event: PendingChange
++  let entry: LogEntry
++  let photo: Photo
++}
++
++private struct PhotoChunk: Encodable {
++  let photoID: UUID
++  let sha256: String
++  let offset: Int
++  let chunk: Data
++  let chunkSHA256: String
++}
++
++private struct PhotoUploadReceipt: Decodable {
++  let byteCount: Int
++  let sha256: String
++  let offset: Int
++  let prefixSHA256: String
++}
++
++private struct EntryUploadReceipt: Decodable, Equatable {
++  let eventID: UUID
++  let workspaceID: UUID
++  let projectID: UUID
++  let entryID: UUID
++  let photoID: UUID
++}
++
++// URLSession.bytes(for:) is unavailable in the Android Swift SDK. Keep the
++// same bounded response read using a serial URLSession delegate on both hosts.
++private final class LoopbackResponse: NSObject, URLSessionDataDelegate, @unchecked Sendable {
++  private static let limit = 2048
++  private let accepting: [Int]
++  private let invalidResponse: EntrySyncClient.Failure
++  private let lock = NSLock()
++  private var task: URLSessionDataTask?
++  private var continuation: CheckedContinuation<(Int, Data), Error>?
++  private var cancelled = false
++
++  // Only the session's serial delegate queue touches the response.
++  private var response: HTTPURLResponse?
++  private var body = Data()
++  private var failure: EntrySyncClient.Failure?
++
++  init(accepting: [Int], invalidResponse: EntrySyncClient.Failure) {
++    self.accepting = accepting
++    self.invalidResponse = invalidResponse
++  }
++
++  func start(_ request: URLRequest, in session: URLSession,
++    returningTo continuation: CheckedContinuation<(Int, Data), Error>) {
++    let started = lock.withLock {
++      guard !cancelled else { return false }
++      let task = session.dataTask(with: request)
++      self.task = task
++      self.continuation = continuation
++      task.resume()
++      return true
++    }
++    if !started { continuation.resume(throwing: CancellationError()) }
++  }
++
++  func cancel() {
++    let task = lock.withLock {
++      cancelled = true
++      return self.task
++    }
++    task?.cancel()
++  }
++
++  func urlSession(
++    _ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
++    newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void
++  ) {
++    completionHandler(nil)
++  }
++
++  func urlSession(
++    _ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
++    completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void
++  ) {
++    guard let http = response as? HTTPURLResponse, http.expectedContentLength <= Self.limit else {
++      failure = invalidResponse
++      completionHandler(.cancel)
++      return
++    }
++    guard accepting.contains(http.statusCode) else {
++      failure = .rejected(http.statusCode)
++      completionHandler(.cancel)
++      return
++    }
++    self.response = http
++    completionHandler(.allow)
++  }
++
++  func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
++    guard data.count <= Self.limit - body.count else {
++      failure = invalidResponse
++      dataTask.cancel()
++      return
++    }
++    body.append(data)
++  }
++
++  func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
++    let continuation = lock.withLock {
++      self.task = nil
++      let continuation = self.continuation
++      self.continuation = nil
++      return continuation
++    }
++    if let failure {
++      continuation?.resume(throwing: failure)
++    } else if let error {
++      continuation?.resume(throwing: error)
++    } else if let response,
++      response.expectedContentLength < 0 || response.expectedContentLength == Int64(body.count) {
++      continuation?.resume(returning: (response.statusCode, body))
++    } else {
++      continuation?.resume(throwing: URLError(.networkConnectionLost))
++    }
++  }
++}
++
++extension WorkspaceRepository {
++  func prepareEntryUpload(workspaceID: UUID, projectID: UUID, eventID: UUID) throws -> EntryUpload {
++    let workspace = try readCommittedSnapshot()
++    guard workspace.id == workspaceID,
++      (workspace.restoration.selectedProjectID ?? workspace.projects.first?.id) == projectID
++    else { throw EntrySyncClient.Failure.wrongScope }
++    guard let event = workspace.outbox.first(where: { $0.id == eventID && $0.kind == .entrySaved }),
++      let entry = workspace.entries.first(where: { $0.id == event.recordID })
++    else { throw FieldLogError.missingRecord }
++    guard entry.projectID == projectID else { throw EntrySyncClient.Failure.wrongScope }
++    guard entry.attachmentIDs.count == 1, let photoID = entry.attachmentIDs.first else {
++      throw EntrySyncClient.Failure.requiresOnePhoto
++    }
++    guard let attachment = workspace.attachments.first(where: { $0.id == photoID }) else {
++      throw FieldLogError.missingRecord
++    }
++    let jpeg = try Data(contentsOf: photoURL(photoID))
++    guard jpeg.count == attachment.byteCount, jpeg.starts(with: [0xff, 0xd8, 0xff]) else {
++      throw FieldLogError.storage("This photo is damaged. Its record has been preserved.")
++    }
++    return EntryUpload(event: event, entry: entry, photo: .init(id: photoID, jpeg: jpeg))
++  }
++
++  func acknowledgeEntryUpload(_ upload: EntryUpload, workspaceID: UUID) throws {
++    try Task.checkCancellation()
++    let workspace = try readCommittedSnapshot()
++    guard workspace.id == workspaceID else { throw EntrySyncClient.Failure.wrongScope }
++    // A concurrent retry can already have retired this exact event.
++    guard let pending = workspace.outbox.first(where: { $0.id == upload.event.id }) else { return }
++    guard pending == upload.event, workspace.entries.contains(upload.entry) else {
++      throw FieldLogError.staleRevision
++    }
++    try transact(expectedRevision: workspace.revision) { next in
++      try Task.checkCancellation()
++      next.outbox.removeAll { $0.id == upload.event.id }
++    }
++  }
++}
+diff --git a/Integrations/GeneratedReport/THIRD_PARTY.yml b/Integrations/GeneratedReport/THIRD_PARTY.yml
+index 6fcd886c72eefb0e94c269d6a914ec907c1b8dfe..b46962e48505748f00f86faca1a18bef21d4e99b 100644
+--- a/Integrations/GeneratedReport/THIRD_PARTY.yml
++++ b/Integrations/GeneratedReport/THIRD_PARTY.yml
+@@ -37,0 +38,6 @@ external_packages:
++  - name: Swift Crypto
++    origin: https://github.com/apple/swift-crypto.git
++    version: 5.0.3
++    license: Apache-2.0
++    purpose: SHA-256 for the opt-in Android loopback queue transport
++    distribution_mode: Swift Package Manager source dependency for Android
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryPresentationTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryPresentationTests.swift
+index f2d0c7d998b45670c360c4096fbac2a7fc53e23f..13309815ef1d8c8026b0a9ad471e7a1feafba02f 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryPresentationTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/EntryPresentationTests.swift
+@@ -38 +38 @@ final class EntryPresentationTests: XCTestCase {
+-        XCTAssertTrue(try text(app).contains("Not sent"))
++        XCTAssertTrue(try text(app).contains("Saved on device"))
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
+index 6c32516b6ae81f9385785b9f9d873680635d93a5..fd7e41502eb2cb41f971f3036e8739f399f1351f 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
+@@ -316 +316 @@ final class FieldLogGeneratedHostTests: XCTestCase {
+-        XCTAssertTrue(queue.contains("Not sent"))
++        XCTAssertTrue(queue.contains("Saved on device"))
+@@ -319 +319 @@ final class FieldLogGeneratedHostTests: XCTestCase {
+-        XCTAssertTrue(queue.contains("Cloud sync isn't connected"))
++        XCTAssertTrue(queue.contains("Sending is unavailable for this project."))
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift
+index 85b0b36817cc2425ff9a77032863dfd255d60c7c..1b2effd1e7a3298ba43f6caa07797257eb525158 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogPaginationTests.swift
+@@ -98 +98 @@ func disk(_ directory: URL) throws -> Workspace { try JSONDecoder().decode(Works
+-    try check(q.contains("Not sent") && q.contains("Nothing in this queue has been sent to a server.") && q.contains("Pending changes (5)"), "real unsent queue")
++    try check(q.contains("Saved on device") && q.contains("Sending is unavailable for this project.") && q.contains("Pending changes (5)"), "real unsent queue")
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PaginationContractTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PaginationContractTests.swift
+index 6af8970ec7bb50b0344ce19518aac34d6eda356d..aaf665f8bf38eda4b3057af898ff9ac79b3de6cb 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PaginationContractTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PaginationContractTests.swift
+@@ -109 +109 @@ final class PaginationContractTests: XCTestCase {
+-        XCTAssertTrue(try text(app).contains("Not sent"))
++        XCTAssertTrue(try text(app).contains("Saved on device"))
+diff --git a/Integrations/GeneratedReport/scripts/pair25/PayloadPackage.swift b/Integrations/GeneratedReport/scripts/pair25/PayloadPackage.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..accaff536df3b54a0d90886df0f640c0f79d8718
+--- /dev/null
++++ b/Integrations/GeneratedReport/scripts/pair25/PayloadPackage.swift
+@@ -0,0 +1,26 @@
++// swift-tools-version: 6.2
++import PackageDescription
++let package = Package(name: "FieldLogPublicAndroid",
++    products: [.library(name: "mixer_public_android_jni", type: .dynamic, targets: ["FieldLogAndroid"])],
++    dependencies: [
++        .package(url: "https://github.com/apple/swift-crypto.git", exact: "5.0.3"),
++        .package(path: "../mixer/sdk"), .package(path: "../mixer/capability-activation"),
++        .package(path: "../mixer/runtime-identity"), .package(path: "../mixer/updates"),
++    ],
++    targets: [
++        .target(name: "FieldLogModels"),
++        .target(name: "FieldLogStorage", dependencies: ["FieldLogModels",
++            .product(name: "Crypto", package: "swift-crypto")]),
++        .target(name: "FieldLogFeatures", dependencies: ["FieldLogModels",
++            .product(name: "MixerCore", package: "sdk"), .product(name: "MixerUI", package: "sdk")],
++            exclude: ["TaskEditorAppleFieldsHost.swift", "EntryEditorAppleHost.swift"]),
++        .target(name: "FieldLogInstalledGuest", dependencies: ["FieldLogModels", "FieldLogStorage",
++            .product(name: "MixerCapabilities", package: "sdk"),
++            .product(name: "MixerCapabilityActivation", package: "capability-activation"),
++            .product(name: "MixerRuntimeIdentity", package: "runtime-identity"),
++            .product(name: "MixerUpdates", package: "updates")]),
++        .target(name: "FieldLogAndroid", dependencies: ["FieldLogModels", "FieldLogStorage", "FieldLogFeatures",
++            "FieldLogInstalledGuest", .product(name: "MixerAndroid", package: "sdk"),
++            .product(name: "MixerCore", package: "sdk"), .product(name: "MixerUI", package: "sdk"),
++            .product(name: "MixerCapabilities", package: "sdk")]),
++    ], swiftLanguageModes: [.v6])
+diff --git a/Integrations/GeneratedReport/scripts/pair25/build-java.zsh b/Integrations/GeneratedReport/scripts/pair25/build-java.zsh
+new file mode 100644
+index 0000000000000000000000000000000000000000..13aa9a570df6bb568b0ffa16c5a961bafb6b9cc0
+--- /dev/null
++++ b/Integrations/GeneratedReport/scripts/pair25/build-java.zsh
+@@ -0,0 +1,28 @@
++#!/bin/zsh
++set -eu
++if (( $# != 3 )); then
++    print -u2 'Usage: build-java.zsh FIELDLOG_CHECKOUT PUBLIC_V4_PROJECT OUTPUT'
++    exit 2
++fi
++recipe=${0:A:h}
++app=${1:A}/Integrations/GeneratedReport/Platforms/Android
++adapter=${2:A}/Generated/MixerAndroid/app/src/dev/mixer/android
++payload=${3:A}
++sdk=${ANDROID_HOME:-/opt/homebrew/share/android-commandlinetools}
++tools="$sdk/build-tools/36.0.0"
++jar="$sdk/platforms/android-37.0/android.jar"
++export JAVA_HOME=${MIXER_JDK:-/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home}
++mkdir "$payload"
++mkdir "$payload/classes" "$payload/dex" "$payload/jni"
++native=()
++for source in "$adapter/"*.java; do
++    case "${source:t}" in MixerActivity.java|AdapterInstrumentation.java) continue;; esac
++    native+=("$source")
++done
++"$JAVA_HOME/bin/javac" --release 17 -Xlint:all,-options -Werror -classpath "$jar" -h "$payload/jni" -d "$payload"/classes \
++    "${native[@]}" "$app"/Java/dev/fieldlog/generatedr90/androidhost/*.java
++"$JAVA_HOME/bin/jar" --create --file "$payload"/classes.jar -C "$payload"/classes .
++"$tools/d8" --min-api 36 --lib "$jar" --output "$payload"/dex "$payload"/classes.jar
++python3 -B "$recipe/manifest.py" "$app/AndroidManifest.xml" "$payload"/AndroidManifest.xml
++"$tools/aapt2" compile -o "$payload"/network.zip "$app/res/xml/checklist_network.xml"
++"$tools/aapt2" link -I "$jar" --manifest "$payload"/AndroidManifest.xml -o "$payload"/manifest.apk "$payload"/network.zip
+diff --git a/Integrations/GeneratedReport/scripts/pair25/build-payload.zsh b/Integrations/GeneratedReport/scripts/pair25/build-payload.zsh
+index cee57c0e39c0a291ec3ab0d28baee2c549a34b9a..2cf97244a0820d55dd3f06395a5081d8df7b27fa 100644
+--- a/Integrations/GeneratedReport/scripts/pair25/build-payload.zsh
++++ b/Integrations/GeneratedReport/scripts/pair25/build-payload.zsh
+@@ -31 +31,2 @@ mkdir -p android-package/Sources/FieldLogAndroid
+-cp "$recipe/Package.swift" "$recipe/Package.resolved" android-package/
++cp "${0:A:h}/PayloadPackage.swift" android-package/Package.swift
++cp "$recipe/Package.resolved" android-package/
+diff --git a/Integrations/GeneratedReport/scripts/pair25/build-products.py b/Integrations/GeneratedReport/scripts/pair25/build-products.py
+index be16fa63ead2a8673d003feae6ad508353d19a1f..642aa5ebb83b9b9f10d232c96922550ac3e53cf0 100644
+--- a/Integrations/GeneratedReport/scripts/pair25/build-products.py
++++ b/Integrations/GeneratedReport/scripts/pair25/build-products.py
+@@ -17 +16,0 @@ PACKAGING = runpy.run_path(str(PACKAGER))
+-RECIPE = "tests/integration/fieldlog-saved-draft/android/recipe"
+@@ -150,0 +150,2 @@ def build_inputs(kind, work, project, rust_notice):
++        inputs["javaRecipeSHA256"] = {name: digest(HERE / name)
++                                      for name in ("build-java.zsh", "manifest.py")}
+@@ -158,0 +160,2 @@ def build_inputs(kind, work, project, rust_notice):
++        inputs["jniRecipeSHA256"] = {name: digest(HERE / name)
++                                     for name in ("build-payload.zsh", "PayloadPackage.swift")}
+@@ -199 +202 @@ def main():
+-        command = [work / "mixer" / RECIPE / "build-java.zsh", work / "fieldlog", project, work / "java"]
++        command = [HERE / "build-java.zsh", work / "fieldlog", project, work / "java"]
+diff --git a/Integrations/GeneratedReport/scripts/pair25/manifest.py b/Integrations/GeneratedReport/scripts/pair25/manifest.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..1209d4bbe192c94e58b324d917c911b56a9bc19d
+--- /dev/null
++++ b/Integrations/GeneratedReport/scripts/pair25/manifest.py
+@@ -0,0 +1,43 @@
++#!/usr/bin/env python3
++"""Apply the signed FieldLog fixture's loopback-only Android network policy."""
++from pathlib import Path
++import sys
++import xml.etree.ElementTree as ET
++
++ANDROID = "http://schemas.android.com/apk/res/android"
++ET.register_namespace("android", ANDROID)
++
++
++def transform(source, destination):
++    manifest = ET.parse(source)
++    root = manifest.getroot()
++    applications = root.findall("application")
++    policy = f"{{{ANDROID}}}networkSecurityConfig"
++    cleartext = f"{{{ANDROID}}}usesCleartextTraffic"
++    internet = {f"{{{ANDROID}}}name": "android.permission.INTERNET"}
++    permissions = [
++        child for child in root
++        if child.tag.rsplit("}", 1)[-1].startswith(("uses-permission", "permission"))
++    ]
++    if (root.tag != "manifest" or len(applications) != 1
++            or any(key in applications[0].attrib for key in (policy, cleartext))
++            or len(permissions) > 1
++            or any(node.tag != "uses-permission" or node.attrib != internet
++                   or list(node) or (node.text or "").strip() for node in permissions)):
++        raise ValueError("Unexpected ordinary Android manifest")
++
++    application = applications[0]
++    if not permissions:
++        root.insert(list(root).index(application), ET.Element("uses-permission", internet))
++    application.set(policy, "@xml/checklist_network")
++    application.set(f"{{{ANDROID}}}label", "FieldLog")
++    with destination.open("xb") as stream:
++        ET.indent(manifest, space="  ")
++        manifest.write(stream, encoding="utf-8", xml_declaration=True)
++
++
++if __name__ == "__main__":
++    try:
++        transform(*map(Path, sys.argv[1:]))
++    except ValueError as error:
++        sys.exit(str(error))
+diff --git a/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py b/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py
+index 012f602eac811657a38dc629b04b6f28806cfdaa..a781c245e9ce3fba55a99ea1985ae427e71dd9bf 100644
+--- a/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py
++++ b/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py
+@@ -163 +162,0 @@ def assemble(work, project, destination, stage, rust_notice, log):
+-    recipe = mixer / "tests/integration/fieldlog-saved-draft/android/recipe"
+@@ -187,2 +186,2 @@ def assemble(work, project, destination, stage, rust_notice, log):
+-        "recipe/build-java.zsh": digest(recipe / "build-java.zsh"),
+-        "recipe/manifest.py": digest(recipe / "manifest.py"),
++        "recipe/build-java.zsh": digest(HERE / "build-java.zsh"),
++        "recipe/manifest.py": digest(HERE / "manifest.py"),

@@ -1155,6 +1155,19 @@ Python modes. The historical Source141 and Source127 restores and
 Pair25 inputs retain their prior bytes and modes.
 [ELF check](verification/receipts/android-stock-libz-elf-8e8d75c3.json) · [Archive checks](verification/receipts/android-stock-libz-source141-06e7202a.json) · [Combined admission](verification/receipts/android-stock-libz-combined-admission-8e8d75c3.json)
 
+The signed camera and queue APK passed two separate clean API 36 installs.
+A missing session, wrong workspace session, and selected sibling project
+made zero HTTP requests. Cancel preserved the first 65,536 server-staged
+bytes. Resume committed one remote event and one byte-identical JPEG.
+The lost acknowledgment kept the local event queued. The next attempt
+read the complete offset and retired only that outbox item without sending
+another chunk. One workspace revision changed. Cold reopens preserved
+both local photos and the sibling record.
+The same APK bytes passed Camera2 Cancel, Done, the eight-photo limit,
+and cold reopen. Both emulators and their private ADB servers closed.
+The queue reverse mapping was removed and all owned ports rebound.
+[Installed checks](verification/receipts/fieldlog-android-camera-queue-installed-api36-cb54a33d.json) · [Exact patch](verification/receipts/fieldlog-android-queue-from-camera-cb54a33d.patch) · [Build receipt](verification/receipts/fieldlog-android-camera-queue-pair25-local.json)
+
 ## November 21 Apple signed draft validation host replay
 
 On macOS, the Apple selected-draft owner and stock VM checked a
