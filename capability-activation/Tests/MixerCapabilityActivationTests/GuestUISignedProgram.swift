@@ -58,13 +58,28 @@ enum GuestUISignedProgram {
             return out
         }
         func enqueue(_ offset: Int, _ length: Int, token: Int) -> [UInt8] {
-            i(offset) + i(length) + i(token) + [0x10, 0, 0x1a]
+            var out: [UInt8] = i(offset)
+            out += i(length)
+            out += i(token)
+            out += [0x10, 0, 0x1a]
+            return out
         }
         func poll(_ token: Int) -> [UInt8] {
-            i(token) + [0x29, 0, 0] + i(10000) + i(2048) + i(160) + [0x10, 1]
+            var out: [UInt8] = i(token)
+            out += [0x29, 0, 0]
+            out += i(10000)
+            out += i(2048)
+            out += i(160)
+            out += [0x10, 1]
+            return out
         }
         func checkCompletion(_ bytes: Data) -> [UInt8] {
-            i(160) + [0x28, 0, 0] + i(bytes.count) + [0x47, 0x04, 0x40, 0x00, 0x0b] + check(10000, bytes)
+            var out: [UInt8] = i(160)
+            out += [0x28, 0, 0]
+            out += i(bytes.count)
+            out += [0x47, 0x04, 0x40, 0x00, 0x0b]
+            out += check(10000, bytes)
+            return out
         }
         func frame(_ revision: Int, _ status: String, localizedStatus: String) -> Data {
             guard mode == .localizedChecklist else { return document(revision, status) }
