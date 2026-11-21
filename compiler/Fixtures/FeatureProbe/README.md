@@ -213,6 +213,19 @@ exact native and guest frames, refusal, and session retirement. This unsigned
 replay covers the two closure fixtures on arm64 macOS.
 [Stock WASI allocator replay receipt](../../../verification/receipts/l03-swift-stock-wasi-allocator-replay.json)
 
+## Fixed-page guest allocation recovery
+
+Run the [maintained allocation replay](../../experiments/guest-local-allocation-control/README.md)
+with the pinned Swift 6.3.3 WASI archive and VM build on arm64 macOS.
+The unsigned Guest UI V1 fixture uses one 64 KiB page and makes zero host calls.
+
+The tenth aligned 4,096-byte allocation returns WASI `ENOMEM`. Freeing a
+middle block lets the allocator return the same address on retry. The guest
+checks the survivor and replacement canaries and then frees every block.
+A fresh generation starts clean and repeats the result. Both retired handles
+are refused.
+[Independent replay receipt](../../../verification/receipts/l03-guest-allocator-release-maintained-root-abadfffa10.json)
+
 ## Native SDK controls
 
 Run on arm64 macOS 26 or later with Swift 6.2 or later and a local
