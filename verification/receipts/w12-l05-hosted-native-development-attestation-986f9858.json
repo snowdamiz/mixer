@@ -1,0 +1,56 @@
+{
+  "scope": "W12/L05 hosted detached iOS simulator development attestation verifier",
+  "recorded_at_utc": "2026-11-21T00:53:00Z",
+  "source_base": "7fb2ec8b38c7ebdfd7b4b241113500b0cdcb9130",
+  "environment": {
+    "host": "macOS 27.0.1 (26A434), arm64",
+    "go": "1.26.4, darwin/arm64, CGO enabled",
+    "elixir": "1.20.4",
+    "erlang": "29, ERTS 17.1",
+    "openssl": "4.1.0",
+    "jason": "1.4.5"
+  },
+  "fixture": {
+    "path": "hosted/test/mixer_hosted/builds/fixtures/native_development_attestation_v1.json",
+    "sha256": "e56a5ceeb69976bcf293687c3df5c44bcb4848af3b654c4b783819dec0bbd72e",
+    "provenance": "A temporary Go test used newBuildFixture, writeDevelopmentKeys and runAttestation from integration_darwin_test.go at the source base. The existing Go executable entry point ran sign and verify in separate subprocesses against a new synthetic IPv4 loopback build fixture. Each subprocess read the exact build detail and all three synthetic products. The captured file is the unchanged signer output.",
+    "readback": "Both Go subprocesses exited successfully, performed eight authorized fixture reads in total, and left the same envelope bytes at the retained path.",
+    "controls": "The temporary Go test also signed the same statement with a different domain and signed two statement variants with the v1 domain, one with an equivalent JSON escape and one with a different public-key fingerprint. Only public SPKI values, signatures and the detached envelope are in the checkout. The ephemeral keys, state and listener were fixture-owned and cleaned up by the Go test."
+  },
+  "verification": [
+    {
+      "command": "CGO_ENABLED=1 go test -mod=readonly -count=1 -timeout=45s -v ./cmd/mixer-native-attest -run '^TestHostedNativeVerifierSyntheticEnvelope$'",
+      "cwd": "services",
+      "output": "The temporary fixture test passed. Go sign and verify both passed."
+    },
+    {
+      "command": "CGO_ENABLED=1 go test -mod=readonly -count=1 -timeout=45s -v ./cmd/mixer-native-attest",
+      "cwd": "services",
+      "output": "Four existing Go signer tests passed after removal of the temporary fixture test."
+    },
+    {
+      "command": "mix test --seed 0 test/mixer_hosted/builds/native_development_attestation_test.exs test/mixer_hosted/builds/journal_test.exs test/mixer_hosted/builds/lifecycle_test.exs test/mixer_hosted/protocol/artifact_admission_test.exs",
+      "cwd": "hosted",
+      "output": "Result: 55 passed, including all 8 native development attestation tests"
+    },
+    {
+      "command": "mix format --check-formatted lib/mixer_hosted/builds/native_development_attestation.ex test/mixer_hosted/builds/native_development_attestation_test.exs",
+      "cwd": "hosted",
+      "output": "exit 0"
+    }
+  ],
+  "source_sha256": {
+    "hosted/lib/mixer_hosted/builds/native_development_attestation.ex": "9387aa5d50dfdb03aa70572da5e811c8af067dd3bedb493cd1228bf02c88fb52",
+    "hosted/test/mixer_hosted/builds/native_development_attestation_test.exs": "78ea86ee7485e76657ac7184c10c909ea8087a7d576a868a9740995519dcbde5"
+  },
+  "contract": [
+    "The verifier takes original envelope bytes, an independently authorized ExpectedBuild, and a separately enrolled Ed25519 public SPKI DER.",
+    "The caller supplies the configured origin, the completed committed journal selection/revision/attempt, and artifact references and shared capture binding established under server authority.",
+    "A successful call is development build evidence. A future attachment caller must establish and fence that authority through persistence."
+  ],
+  "limitations": [
+    "Synthetic HTTP producer for Go interop and local ExUnit for Phoenix component behavior.",
+    "Hosted API admission, retained-byte lookup composition, Oban signing-request dispatch and durable ledger attachment remain pending.",
+    "No OTA, device, deployment, payment, or release qualification."
+  ]
+}
