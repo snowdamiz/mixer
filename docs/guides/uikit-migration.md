@@ -1,9 +1,9 @@
 # Add a Mixer screen to a UIKit app
 
 Keep your app delegate, UIKit navigation, and data store. Move one screen at
-a time. Link the `MixerApple` product from your pinned Mixer SDK and push a
-`UIHostingController` whose root is `MixerNativeView`. Your UIKit controller
-can read its existing state and pass a document to that view. [Apple's hosting controller documentation](https://developer.apple.com/documentation/swiftui/uihostingcontroller)
+a time. The Mixer v80 SDK requires iOS 26.0 or later. Link `MixerApple` and
+push a `UIHostingController` whose root is `MixerNativeView`. The UIKit
+controller reads its existing state and projects a document for that view. [Apple's hosting controller documentation](https://developer.apple.com/documentation/swiftui/uihostingcontroller)
 
 This example keeps an inspection switch in UIKit and moves the progress
 screen to Mixer. Each time the user opens progress, the app projects its
@@ -12,20 +12,32 @@ current switch value and validates the resulting document through
 
 ## Prepare a buildable example
 
-Use the `mixer` CLI and `sdk/` from the same pinned checkout. Select Xcode for
-both creation and build so they use the same Swift version. Set `sdk` to the
-absolute path of the pinned checkout's `sdk/` directory.
+Use Mixer v80 `5f4277e12e4872df43483307ec607a65e87dbae1` and Xcode 27.2
+(build `27B52`). Keep the same Xcode selected for `create`, `test`, and
+`build`. Creation records the Swift identity and the later commands check it.
 
 ```sh
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+export PATH="$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain/usr/bin:$PATH"
+xcodebuild -version
+
 work=$(mktemp -d)
+work=$(cd "$work" && pwd -P)
+git clone https://github.com/snowdamiz/mixer.git "$work/mixer"
+git -C "$work/mixer" switch --detach 5f4277e12e4872df43483307ec607a65e87dbae1
+swift build --package-path "$work/mixer/cli" --scratch-path "$work/cli-build" --product mixer
+bin=$(swift build --package-path "$work/mixer/cli" --scratch-path "$work/cli-build" --show-bin-path)
+mixer="$bin/mixer"
 project="$work/UIKitNotebook"
-mixer create UIKitNotebook --platform ios --application dev.example.uikitnotebook \
-  --directory "$project" --sdk-path "$sdk"
+"$mixer" create UIKitNotebook --platform ios --application dev.example.uikitnotebook \
+  --directory "$project" --sdk-path "$work/mixer/sdk"
 ```
 
 Replace the sample's `Platforms/iOS/UIKitNotebookApp.swift` with the code
-below. In an existing UIKit app, keep its entry point and use the
-progress action in the controller that already owns the state.
+below. In an existing UIKit target, also link the sample's `AppFeatures`
+product to use `ProjectFeature`, or replace that call with your own
+`MixerUI.UIDocument` projector. Keep your existing entry point and add the
+progress action to the controller that already owns the state.
 
 ```swift
 import AppFeatures
@@ -119,9 +131,9 @@ final class NotebookViewController: UIViewController {
 ## Verify the native build
 
 ```sh
-mixer import "$project/Platforms/iOS"
-mixer test --platform host --directory "$project"
-mixer build --platform ios --directory "$project"
+"$mixer" import "$project/Platforms/iOS"
+"$mixer" test --platform host --directory "$project"
+"$mixer" build --platform ios --directory "$project"
 ```
 
 The import report classifies UIKit as platform-specific. Keep UIKit imports
