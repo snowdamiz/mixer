@@ -393,6 +393,18 @@ the v80 and v79 source and workflow bytes. The full collector passed all
 [Source admission](verification/receipts/hosted-v81-console-promotion-sign-in-resume-source-admission.json) ·
 [Collector replay](verification/receipts/hosted-v81-services-collector-final.json)
 
+Published v81 passed Identity Network and the Services job. The hosted
+activation job passed the W09 signed storage test. Swift Host and Intel
+Android stopped at the predecessor Source141 test binding, before the
+two Android creates and six Java consumers. Phoenix stopped while
+registering the browser trace because its targets predated the sign-in
+intent. The corrected macOS fixture observed both current targets and
+passed all 12 selected tests with the CI Node drivers. The Source141
+repair is underway. These failures do not establish the cause of the
+earlier organization-list 503.
+[Terminal CI receipt](verification/receipts/hosted-v81-terminal-abb32b83.json) ·
+[Trace repair](verification/receipts/hosted-v81-phoenix-trace-arity.json)
+
 The v80 restore fixture observed PostgreSQL reject the injected queue
 operation at COMMIT with SQLSTATE `PZ080`. The failed request preserved
 the scoped ledger. Retrying the same request succeeded. After a restore
