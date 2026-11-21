@@ -7,6 +7,10 @@ end
 defmodule MixerHosted.Releases.BrowserPublicationTest do
   use ExUnit.Case, async: false
   import MixerHosted.Test.OrdinaryBrowserStartupFixture
+
+  import MixerHosted.Test.StagePromotionSigningFixture,
+    only: [variant: 5, vector: 0, publication: 1]
+
   alias MixerHosted.Audit.CustomerArtifactEvent
   alias MixerHosted.Authorization.Scope
   alias MixerHosted.BrowserAuth.{LifecycleRepo, RuntimeOwner, Store, StoredSnapshot, Vault}
@@ -15,6 +19,7 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
   alias MixerHosted.Identity.{ConfiguredVerifier, KeyOwner}
   alias MixerHosted.Protocol.{ArtifactAdmission, ArtifactCBOR, AssignmentV3}
   alias MixerHosted.Releases.BrowserPublicationTest.Uploader
+  alias MixerHosted.Releases.EnvironmentPromotion.Direction
   alias MixerHosted.Releases.ReleaseJobs.ProcessorAdmission
   alias MixerHosted.Releases.{DeliveryRepo, Target, WriterRepo}
   alias MixerHosted.Test.OrdinaryBrowserStartupFixture.Database, as: DB
@@ -25,6 +30,9 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
   @tenant %{organization_id: "org-a", project_id: "project-a"}
   @fixtures Path.expand("../../../../services/protocol/testdata", __DIR__)
   @max_sequence 18_446_744_073_709_551_615
+  @promotion_direction "dev-to-stage"
+  @promotion_path "/v3/orgs/org-a/projects/project-a/apps/fieldlog/release-promotions/" <>
+                    @promotion_direction
 
   test "public delivery refuses a second listener in the effective endpoint settings" do
     hosted =
@@ -112,25 +120,9 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     provision_halt_audit!()
     provision_details!()
 
-    for {dir, name, module} <- [
-          {"local_release_target_registry", "20261120000015_add_local_release_target_registry",
-           MixerHosted.Repo.Migrations.AddLocalReleaseTargetRegistry},
-          {"local_stage_promotion", "20261120000016_add_local_stage_promotion",
-           MixerHosted.Repo.Migrations.AddLocalStagePromotion}
-        ] do
-      unless Code.ensure_loaded?(module), do: Code.require_file("priv/#{dir}/#{name}.exs")
-      [version, _] = String.split(name, "_", parts: 2)
-      assert :ok = Ecto.Migrator.up(Migration, String.to_integer(version), module, log: false)
-    end
+    provision_stage_promotion!()
 
-    variant =
-      MixerHosted.Test.StagePromotionSigningFixture.variant(
-        MixerHosted.Test.StagePromotionSigningFixture.vector(),
-        "ios",
-        "development",
-        "internal",
-        7
-      )
+    variant = variant(vector(), "ios", "development", "internal", 7)
 
     target = variant.enrollment.target
     replace_config!(:local_release_target, Map.from_struct(variant.enrollment))
@@ -148,6 +140,195 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     response = http(c, path(target), owner)
     assert response.status == 503
     assert %{"error" => %{"code" => "authorization_unavailable"}} = Jason.decode!(response.body)
+  end
+
+  @tag capture_log: true
+  test "authenticates and atomically promotes both staged destinations over loopback HTTP" do
+    c = prepare_release_fixture!("http-stage-promotion")
+    provision!()
+    provision_delivery!()
+    provision_cli!()
+    provision_actions!()
+    provision_halt_audit!()
+    provision_details!()
+
+    vector = vector()
+
+    source = %{
+      ios: variant(vector, "ios", "development", "internal", 7),
+      android: variant(vector, "android", "development", "internal", 9)
+    }
+
+    destination = %{
+      ios: variant(vector, "ios", "staging", "candidate", 3),
+      android: variant(vector, "android", "staging", "candidate", 12)
+    }
+
+    direction = %Direction{
+      source: Map.new(source, fn {platform, value} -> {platform, value.enrollment} end),
+      destination: Map.new(destination, fn {platform, value} -> {platform, value.enrollment} end)
+    }
+
+    seed_target!(source.ios.enrollment.target)
+    provision_release_jobs!()
+    provision_stage_promotion!()
+
+    for value <- [source.android, destination.ios, destination.android],
+        do: seed_head!(value.enrollment.target)
+
+    seed_stage_direction!(direction)
+    replace_config!(WriterRepo, c.hosted.repo)
+    replace_config!(:local_release_target, Map.from_struct(source.ios.enrollment))
+    replace_config!(:local_stage_promotion_directions, %{})
+
+    c = put_in(c.hosted.local_release_jobs, true)
+    c = start!(c)
+    assert %{phase: :storage_ready} = RuntimeOwner.status()
+
+    owner = login(c)
+    upload_identity = upload_identity!(c, login(c, :artifact_uploader))
+    no_publish_scope = access_token!(c, login(c, :no_build_scope))
+    other_tenant = access_token!(c, login(c, :other_tenant))
+    token = access_token!(c, owner)
+
+    for {name, value} <- [
+          {"source-ios", source.ios},
+          {"source-android", source.android},
+          {"destination-ios", destination.ios},
+          {"destination-android", destination.android}
+        ] do
+      staged = publication(value)
+      evidence = staged.evidence
+
+      envelope =
+        Jason.encode!(%{
+          signed_manifest: Jason.Fragment.new(evidence.signed_manifest_bytes),
+          payload: Base.encode64(evidence.payload)
+        })
+
+      config = Map.from_struct(value.enrollment)
+
+      assert {:ok, %{status: 201}} =
+               upload!(c, upload_identity, config, staged.artifact_sha256, envelope, name)
+    end
+
+    for {platform, value} <- source do
+      signed = publication(value)
+      config = Map.from_struct(value.enrollment)
+      Application.put_env(:mixer_hosted, :local_release_target, config)
+
+      assert {:ok, %{sequence: sequence}} =
+               RuntimeOwner.publish_release(
+                 owner,
+                 config.target,
+                 signed.evidence.signed_assignment_bytes,
+                 "source-" <> Atom.to_string(platform),
+                 @reason
+               )
+
+      assert sequence == signed.sequence
+    end
+
+    ios = spaced_assignment(destination.ios)
+    android = spaced_assignment(destination.android)
+    body = promotion_body(ios, android)
+    request = &promotion_post(c, token, @promotion_path, &1)
+    unauthorized = &promotion_post(c, &1, @promotion_path, body)
+
+    assert request.(body).status == 404
+
+    Application.put_env(:mixer_hosted, :local_stage_promotion_directions, %{
+      @promotion_direction => direction
+    })
+
+    assert unauthorized.(nil).status == 401
+    assert unauthorized.(no_publish_scope).status == 403
+    assert unauthorized.(other_tenant).status == 404
+
+    for {part, wrong} <- [
+          {"org-a", "org-b"},
+          {"project-a", "project-b"},
+          {"fieldlog", "other-app"}
+        ] do
+      path = String.replace(@promotion_path, part, wrong)
+      assert promotion_post(c, token, path, body).status == 404
+    end
+
+    assert promotion_post(c, token, @promotion_path <> "?ignored=1", body).status == 404
+    assert promotion_post(c, token, @promotion_path, body, []).status == 400
+
+    assert promotion_post(c, token, @promotion_path, body, [
+             {"x-mixer-reason", @reason},
+             {"x-mixer-reason", @reason}
+           ]).status == 400
+
+    for invalid_body <- [
+          promotion_body(ios, android, "0"),
+          promotion_body(ios, android, ~s("7")),
+          promotion_body(ios, android, "7.0"),
+          promotion_body(ios, android, Integer.to_string(@max_sequence + 1)),
+          promotion_body(ios, android, "7", ~s(,"payload":"unrequested")),
+          promotion_body(ios, android, "7", ~s(,"source_ios_sequence":7)),
+          promotion_body(ios, android, "7", ~S(,"source_ios_sequenc\u0065":7)),
+          promotion_body(
+            String.replace_prefix(ios, "{", "{" <> String.duplicate(" ", 65_536)),
+            android
+          )
+        ] do
+      assert request.(invalid_body).status == 400
+    end
+
+    assert request.(body <> String.duplicate(" ", 160 * 1024)).status == 413
+    assert request.(promotion_body(ios, android, Integer.to_string(@max_sequence))).status == 404
+    assert request.(promotion_body(ios, "{}")).status == 409
+    assert request.(promotion_body(ios, ios)).status == 409
+
+    unstaged =
+      destination.android
+      |> MixerHosted.Test.StagePromotionSigningFixture.with_payload("different staged digest")
+      |> spaced_assignment()
+
+    assert request.(promotion_body(ios, unstaged)).status == 404
+    assert_empty_stage_promotion!()
+
+    assert_failed_job_commit!(fn ->
+      assert request.(body).status == 503
+      assert_empty_stage_promotion!()
+    end)
+
+    response = retry_release_write(fn -> request.(body) end, 2)
+    assert response.status == 200
+    assert response_header(response, "cache-control") == ["no-store"]
+    response_payload = Jason.decode!(response.body)
+
+    assert response_payload == %{
+             "ios" => promotion_receipt(destination.ios),
+             "android" => promotion_receipt(destination.android),
+             "delivery" => "local_only"
+           }
+
+    assert %{status: 200, body: replay} = request.(body)
+    assert Jason.decode!(replay) == response_payload
+
+    changed = String.replace_prefix(ios, "{", "{ ")
+    assert %{status: 409, body: conflict} = request.(promotion_body(changed, android))
+    assert %{"error" => %{"code" => "idempotency_conflict"}} = Jason.decode!(conflict)
+
+    assert [
+             ["android", ^android, @reason, "stage_promote"],
+             ["ios", ^ios, @reason, "stage_promote"]
+           ] =
+             DB.q!(Admin, """
+             SELECT platform,signed_assignment_bytes,reason,action
+             FROM public.mixer_release_publications
+             WHERE environment_id='staging' ORDER BY platform
+             """).rows
+
+    assert [[1, 2]] =
+             DB.q!(Admin, """
+             SELECT (SELECT count(*) FROM public.mixer_stage_promotion_bindings),
+                    (SELECT count(*) FROM mixer_release_jobs.oban_jobs WHERE args->>'environment_id'='staging')
+             """).rows
   end
 
   test "publishes the verified upload once and reads the exact tenant-scoped browser head" do
@@ -1223,6 +1404,130 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
     %{field => document, "signature" => Base.encode64(signature)}
   end
 
+  defp provision_stage_promotion! do
+    for {dir, name, module} <- [
+          {"local_release_target_registry", "20261120000015_add_local_release_target_registry",
+           MixerHosted.Repo.Migrations.AddLocalReleaseTargetRegistry},
+          {"local_stage_promotion", "20261120000016_add_local_stage_promotion",
+           MixerHosted.Repo.Migrations.AddLocalStagePromotion}
+        ] do
+      unless Code.ensure_loaded?(module), do: Code.require_file("priv/#{dir}/#{name}.exs")
+      [version, _] = String.split(name, "_", parts: 2)
+      assert :ok = Ecto.Migrator.up(Migration, String.to_integer(version), module, log: false)
+    end
+  end
+
+  defp seed_stage_direction!(direction) do
+    DB.q!(Admin, """
+    GRANT INSERT (action) ON public.mixer_release_publications TO browser_ordinary
+    """)
+
+    DB.q!(Admin, """
+    GRANT SELECT, INSERT (
+      direction_id,writer_role,organization_id,project_id,application_id,
+      source_environment_id,destination_environment_id,
+      source_ios_runtime_sha256,source_ios_channel,source_android_runtime_sha256,source_android_channel,
+      destination_ios_runtime_sha256,destination_ios_channel,destination_android_runtime_sha256,destination_android_channel,
+      idempotency_key,request_sha256,principal_id,reason,
+      source_ios_sequence,source_ios_artifact_sha256,source_android_sequence,source_android_artifact_sha256,
+      destination_ios_sequence,destination_ios_artifact_sha256,
+      destination_android_sequence,destination_android_artifact_sha256
+    ) ON public.mixer_stage_promotion_bindings TO browser_ordinary
+    """)
+
+    DB.q!(Admin, """
+    GRANT EXECUTE ON FUNCTION
+      public.mixer_stage_promotion_admit(text),
+      public.mixer_stage_promotion_source(text,numeric,numeric) TO browser_ordinary
+    """)
+
+    targets =
+      for side <- [:source, :destination],
+          platform <- [:ios, :android],
+          do: Map.fetch!(direction, side)[platform].target
+
+    for target <- targets do
+      DB.q!(
+        Admin,
+        """
+        INSERT INTO public.mixer_release_delivery_enrollments
+          (reader_role,organization_id,project_id,application_id,environment_id,
+           platform,runtime_sha256,channel)
+        VALUES ('mixer_release_delivery','org-a','project-a','fieldlog',$1,$2,$3,$4)
+        """,
+        [target.scope.environment_id, target.platform, target.runtime_sha256, target.channel]
+      )
+    end
+
+    DB.q!(
+      Admin,
+      """
+      INSERT INTO public.mixer_stage_promotion_directions (
+        direction_id,writer_role,organization_id,project_id,application_id,
+        source_environment_id,destination_environment_id,
+        source_ios_runtime_sha256,source_ios_channel,source_android_runtime_sha256,source_android_channel,
+        destination_ios_runtime_sha256,destination_ios_channel,destination_android_runtime_sha256,destination_android_channel
+      ) VALUES ($1,'browser_ordinary','org-a','project-a','fieldlog','development','staging',
+                $2,'internal',$3,'internal',$4,'candidate',$5,'candidate')
+      """,
+      [@promotion_direction | Enum.map(targets, & &1.runtime_sha256)]
+    )
+  end
+
+  defp assert_empty_stage_promotion! do
+    assert [[0, 0, 0, 0]] =
+             DB.q!(Admin, """
+             SELECT (SELECT count(*) FROM public.mixer_release_heads
+                     WHERE environment_id='staging' AND sequence IS NOT NULL),
+                    (SELECT count(*) FROM public.mixer_release_publications WHERE environment_id='staging'),
+                    (SELECT count(*) FROM public.mixer_stage_promotion_bindings),
+                    (SELECT count(*) FROM mixer_release_jobs.oban_jobs WHERE args->>'environment_id'='staging')
+             """).rows
+  end
+
+  defp spaced_assignment(variant) do
+    variant
+    |> publication()
+    |> Map.fetch!(:evidence)
+    |> Map.fetch!(:signed_assignment_bytes)
+    |> Jason.decode!()
+    |> Jason.encode!(pretty: true)
+  end
+
+  defp promotion_body(ios, android, source_ios_sequence \\ "7", extra \\ "") do
+    ~s({"source_android_sequence":9,"ios_signed_assignment":) <>
+      ios <>
+      ~s(,"source_ios_sequence":) <>
+      source_ios_sequence <>
+      ~s(,"android_signed_assignment":) <> android <> extra <> "}"
+  end
+
+  defp promotion_receipt(variant) do
+    %{
+      "artifact_sha256" => publication(variant).artifact_sha256,
+      "rollout_basis_points" => variant.assignment["rollout_basis_points"],
+      "sequence" => variant.assignment["sequence"]
+    }
+  end
+
+  defp promotion_post(c, token, path, bytes, metadata \\ [{"x-mixer-reason", @reason}]) do
+    authorization = if token, do: [{"authorization", "Bearer " <> token}], else: []
+
+    http(
+      c,
+      path,
+      authorization ++
+        metadata ++
+        [
+          {"content-type", "application/json"},
+          {"idempotency-key", "http-promote"},
+          {"content-length", Integer.to_string(byte_size(bytes))}
+        ],
+      "POST",
+      bytes
+    )
+  end
+
   defp provision_delivery! do
     version = 20_261_120_000_003
     module = MixerHosted.Repo.Migrations.AddLocalReleaseDelivery
@@ -1729,15 +2034,24 @@ defmodule MixerHosted.Releases.BrowserPublicationTest do
       [genesis]
     )
 
+    seed_head!(target)
+  end
+
+  defp seed_head!(target) do
     assert %{num_rows: 1} =
              DB.q!(
                Migration,
                """
                INSERT INTO public.mixer_release_heads
                  (organization_id,project_id,application_id,environment_id,platform,runtime_sha256,channel,writer_role)
-               VALUES ('org-a','project-a','fieldlog','development',$1,$2,$3,'browser_ordinary')
+               VALUES ('org-a','project-a','fieldlog',$1,$2,$3,$4,'browser_ordinary')
                """,
-               [target.platform, target.runtime_sha256, target.channel]
+               [
+                 target.scope.environment_id,
+                 target.platform,
+                 target.runtime_sha256,
+                 target.channel
+               ]
              )
   end
 

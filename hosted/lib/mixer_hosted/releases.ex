@@ -94,8 +94,55 @@ defmodule MixerHosted.Releases do
         reason,
         repo \\ WriterRepo
       ) do
+    if stage_evidence?(destination) do
+      promote_stage(
+        identity,
+        direction_id,
+        source_sequences,
+        {:provided, destination},
+        key,
+        reason,
+        repo
+      )
+    else
+      {:error, :invalid_request}
+    end
+  end
+
+  @doc false
+  def promote_staged_environment(
+        identity,
+        {org, project, app, direction_id},
+        source_sequences,
+        %{ios: ios, android: android} = assignments,
+        key,
+        reason
+      )
+      when map_size(assignments) == 2 and is_binary(ios) and is_binary(android) do
+    with true <- Process.whereis(WriterRepo) != nil,
+         {:ok, _} = result <-
+           promote_stage(
+             identity,
+             direction_id,
+             source_sequences,
+             {:staged, {org, project, app}, assignments},
+             key,
+             reason,
+             WriterRepo
+           ) do
+      result
+    else
+      false -> {:error, :release_not_found}
+      {:error, :invalid_promotion} -> {:error, :release_not_found}
+      {:error, _} = error -> error
+    end
+  end
+
+  def promote_staged_environment(_, _, _, _, _, _), do: {:error, :invalid_request}
+
+  defp promote_stage(identity, direction_id, source_sequences, destination, key, reason, repo) do
     with true <- ArtifactV3Policy.id?(direction_id) and valid_metadata?(key, reason),
-         true <- stage_sequences?(source_sequences) and stage_evidence?(destination),
+         true <- stage_sequences?(source_sequences),
          {:ok, direction} <- stage_direction(direction_id) do
       scope = direction.destination.ios.target.scope
 
@@ -111,7 +158,11 @@ defmodule MixerHosted.Releases do
         identity,
         @action,
         scope,
-        &stage_locked(&1, repo, direction, request),
+        fn context ->
+          with :ok <- stage_url_scope(destination, scope) do
+            stage_locked(context, repo, direction, request)
+          end
+        end,
         repo
       )
     else
@@ -157,6 +208,16 @@ defmodule MixerHosted.Releases do
 
   defp stage_target_pair(_), do: :error
 
+  defp stage_url_scope({:provided, _}, _scope), do: :ok
+
+  defp stage_url_scope({:staged, scope, _}, %{
+         organization_id: org,
+         project_id: project,
+         application_id: app
+       }) do
+    if scope == {org, project, app}, do: :ok, else: {:error, :release_not_found}
+  end
+
   defp stage_locked(context, repo, direction, request) do
     check_writer!(repo)
     Storage.check!(repo)
@@ -180,11 +241,12 @@ defmodule MixerHosted.Releases do
          {:ok, ^direction} <- stage_direction(request.id),
          {:ok, route} <- Storage.admit(repo, request.id, direction),
          {:ok, source} <- Storage.source(repo, request.id, request.source),
-         command = %Command{source: source, destination: request.destination},
+         {:ok, destination} <- stage_destination(repo, destinations, request.destination),
+         command = %Command{source: source, destination: destination},
          binding = Storage.binding(repo, request.id, request.key),
          sequences = stage_previous_sequences(destinations, binding),
          {:ok, verified} <- stage_verify(command, direction, sequences, fresh.checked_at),
-         :ok <- stage_destination_artifacts(repo, verified),
+         :ok <- stage_destination_artifacts(repo, verified, request.destination),
          fingerprint = stage_fingerprint(route, command, principal, request),
          metadata = %{
            key: request.key,
@@ -225,7 +287,43 @@ defmodule MixerHosted.Releases do
     end
   end
 
-  defp stage_destination_artifacts(repo, verified) do
+  defp stage_destination(_, _, {:provided, evidence}), do: {:ok, evidence}
+
+  defp stage_destination(repo, destinations, {:staged, _, assignments}) do
+    Enum.reduce_while(@stage_platforms, {:ok, %{}}, fn platform, {:ok, evidence} ->
+      target = destinations[platform].target
+
+      case stage_stored_evidence(repo, target, assignments[platform]) do
+        {:ok, staged} -> {:cont, {:ok, Map.put(evidence, platform, staged)}}
+        {:error, _} = error -> {:halt, error}
+      end
+    end)
+  end
+
+  defp stage_stored_evidence(repo, target, bytes) do
+    scope = Target.signed_scope(target)
+    %{channel: channel, runtime_sha256: runtime} = target
+
+    # The decoded digest selects staged bytes within the bound target. The
+    # promotion verifier authenticates and binds the assignment before writing.
+    with {:ok, %{assignment: assignment}} <- AssignmentV3.decode_signed(bytes),
+         %{
+           "scope" => ^scope,
+           "runtime" => ^runtime,
+           "channel" => ^channel,
+           "artifact_sha256" => digest
+         } <- assignment,
+         {:ok, artifact} <- stored_artifact(repo, target, digest) do
+      {:ok, struct!(Evidence, Map.put(artifact, :signed_assignment_bytes, bytes))}
+    else
+      {:error, reason} = error when reason in [:not_found, :storage_unavailable] -> error
+      _ -> {:error, :assignment_rejected}
+    end
+  end
+
+  defp stage_destination_artifacts(_, _, {:staged, _, _}), do: :ok
+
+  defp stage_destination_artifacts(repo, verified, {:provided, _}) do
     Enum.reduce_while(@stage_platforms, :ok, fn platform, :ok ->
       %{target: target, evidence: evidence, assignment: signed} = verified[platform].destination
 

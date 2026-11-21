@@ -225,17 +225,14 @@ defmodule MixerHostedWeb.Plugs.CustomerArtifactRequest do
   defp media([], operation) when operation in [:read, :audit], do: :ok
   defp media(_, _), do: {:error, :content_type}
 
-  defp mutation_headers(conn, :upload) do
+  defp mutation_headers(conn, operation) when operation in [:upload, :stage_promote] do
     with [key] <- get_req_header(conn, "idempotency-key"),
          true <- identifier?(key) do
       case get_req_header(conn, "x-mixer-reason") do
-        [] ->
+        headers when operation == :upload and headers in [[], [""]] ->
           {:ok, key, "local development operation"}
 
-        [""] ->
-          {:ok, key, "local development operation"}
-
-        [reason] when is_binary(reason) and byte_size(reason) <= 512 ->
+        [reason] when is_binary(reason) and byte_size(reason) in 1..512 ->
           if String.valid?(reason), do: {:ok, key, reason}, else: {:error, :invalid_reason}
 
         _ ->
@@ -249,10 +246,11 @@ defmodule MixerHostedWeb.Plugs.CustomerArtifactRequest do
   defp mutation_headers(_, _), do: {:ok, nil, ""}
 
   @doc false
-  def read_json_mutation(conn, maximum) do
+  def read_json_mutation(conn, maximum, operation \\ :upload)
+      when operation in [:upload, :stage_promote] do
     with :ok <- encoding(get_req_header(conn, "content-encoding")),
          :ok <- media(get_req_header(conn, "content-type"), :upload),
-         {:ok, key, reason} <- mutation_headers(conn, :upload),
+         {:ok, key, reason} <- mutation_headers(conn, operation),
          {:ok, bytes, conn} <- body(conn, maximum, {System, :monotonic_time, [:millisecond]}) do
       {:ok, key, reason, bytes, conn}
     end

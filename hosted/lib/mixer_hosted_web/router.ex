@@ -50,6 +50,13 @@ defmodule MixerHostedWeb.Router do
   scope "/v3/orgs/:organization_id/projects/:project_id" do
     pipe_through(:customer_identity)
     post("/releases/validate", MixerHostedWeb.LocalReleaseController, :validate)
+
+    post(
+      "/apps/:application_id/release-promotions/:direction_id",
+      MixerHostedWeb.LocalReleaseController,
+      :stage_promote
+    )
+
     post("/channels/:channel/publish", MixerHostedWeb.LocalReleaseController, :publish)
     post("/channels/:channel/promote", MixerHostedWeb.LocalReleaseController, :promote)
     post("/channels/:channel/rollback", MixerHostedWeb.LocalReleaseController, :rollback)
