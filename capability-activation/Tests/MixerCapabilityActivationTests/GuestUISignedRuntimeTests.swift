@@ -3,7 +3,7 @@ import Foundation
 import XCTest
 import MixerUpdates
 import MixerUI
-import MixerCapabilities
+@_spi(InstalledApplicationStorage) import MixerCapabilities
 @_spi(GuestUIV1) import MixerGuest
 @testable import MixerCapabilityActivation
 #if os(macOS)
@@ -36,6 +36,27 @@ private actor SignedApplicationRepository: InstalledApplicationStorageServing {
     }
 
     func close() async { await store.close() }
+}
+
+private actor SignedCommitFactsProbe: InstalledApplicationStorageServing {
+    private(set) var events: [InstalledGuestUICommitEvent] = []
+    private(set) var ordinaryReads: [KVGetArguments] = []
+
+    func read(_ event: InstalledGuestUICommitEvent) -> KVGetResponse {
+        events.append(event)
+        return .init(found: true, valueBase64: "AQ==")
+    }
+    func get(_ arguments: KVGetArguments) throws -> KVGetResponse {
+        ordinaryReads.append(arguments)
+        guard arguments == .init(namespace: "material_test", key: "trigger") else { throw CapabilityFailure.permissionDenied }
+        return .init(found: true, valueBase64: "AQ==")
+    }
+    func put(_ arguments: KVPutArguments, maximumTotalBytes: Int, maximumEntries: Int) throws -> KVMutationResponse {
+        throw CapabilityFailure.permissionDenied
+    }
+    func delete(_ arguments: KVDeleteArguments) throws -> KVMutationResponse {
+        throw CapabilityFailure.permissionDenied
+    }
 }
 
 private actor SignedRuntimeRetirement {
@@ -113,8 +134,15 @@ final class GuestUISignedRuntimeTests: XCTestCase, @unchecked Sendable {
         }
         return root
     }
-    private func fixture() throws -> GuestUISignedFixture {
-        try GuestUISignedFixture(root: fixtureRoot())
+    private func fixture(commitProbe: SignedCommitFactsProbe? = nil,
+                         commitAction: String = "sample.save") throws -> GuestUISignedFixture {
+        let facts = commitProbe.map { probe in
+            InstalledGuestUICommitFacts(arguments: .init(namespace: "material_test", key: "facts"),
+                                        nodeID: "save", actionID: commitAction) { event in
+                await probe.read(event)
+            }
+        }
+        return try GuestUISignedFixture(root: fixtureRoot(), storageService: commitProbe, commitFacts: facts)
     }
     private func open(_ f: GuestUISignedFixture) async throws -> CapabilityGuestUIRuntime {
         try await CapabilityGuestUIRuntime.openOwned(configuration:f.configuration, installed:f.execution.installed,
@@ -267,21 +295,24 @@ final class GuestUISignedRuntimeTests: XCTestCase, @unchecked Sendable {
             try await close(runtime,baseline:before)
         }
     }
-    private func activateSave(_ runtime: CapabilityGuestUIRuntime) async throws {
+    @discardableResult
+    private func activateSave(_ runtime: CapabilityGuestUIRuntime) async throws -> @MainActor @Sendable () -> Void {
         try await eventually("First frame missing before input") {
             await MainActor.run { runtime.presentation.state == .displaying(revision:1) }
         }
-        try await MainActor.run {
+        return try await MainActor.run {
             let model = runtime.presentation
             let attachment = try XCTUnwrap(model.claimNativeAttachment())
             let host = try XCTUnwrap(model.renderHost), identity = try XCTUnwrap(host.snapshot.identity(for:"save"))
             let action = try host.route(UIEventEnvelope(revision:1,identity:identity,event:.activate))
             XCTAssertTrue(model.inputEnabled)
             let before = model.lifecycleObservation
-            model.actionHandler(host:host,attachment:attachment)(action)
+            let handle = model.actionHandler(host:host,attachment:attachment)
+            handle(action)
             let after = model.lifecycleObservation
             print("LIFECYCLE input beforeTurn=\(String(describing:before?.guestTurnInFlight)) acceptedBefore=\(String(describing:before?.counters.acceptedEvents)) acceptedAfter=\(String(describing:after?.counters.acceptedEvents)) eventAfter=\(String(describing:after?.eventOutstanding)) stopAfter=\(String(describing:after?.stop))")
             XCTAssertFalse(model.inputEnabled)
+            return { handle(action) }
         }
     }
     func testSignedEventCommitsStorageBeforeGuestShowsSaved() async throws {
@@ -299,6 +330,78 @@ final class GuestUISignedRuntimeTests: XCTestCase, @unchecked Sendable {
             let reader = try AppPrivateKeyValueStore(directory:f.root.appendingPathComponent("material_test"),namespaces:["material_test"])
             let stored = try await reader.get(.init(namespace:"material_test",key:"binary")); await reader.close()
             XCTAssertTrue(stored.found); XCTAssertEqual(stored.valueBase64,"AAH+/w==")
+        }
+    }
+    func testSignedCommitFactsReadUsesAcceptedEventOnceAndRetiresWithOwner() async throws {
+        let probe = SignedCommitFactsProbe()
+        let f = try fixture(commitProbe: probe)
+        let baseline = CapabilityAttemptReservation.occupiedSlots
+        try await withRuntime(f) { runtime in
+            try await stage(f, runtime, mode: .commitFacts)
+            _ = try await runtime.start()
+            try await eventually("First signed frame missing") {
+                await MainActor.run { runtime.presentation.state == .displaying(revision: 1) }
+            }
+            let initialEvents = await probe.events
+            XCTAssertTrue(initialEvents.isEmpty)
+            let generation = try await MainActor.run { try XCTUnwrap(runtime.presentation.lifecycleObservation?.generation) }
+            let replay = try await activateSave(runtime)
+            try await eventually("Guest did not consume the authorized read and duplicate denial") {
+                await MainActor.run { runtime.presentation.state == .displaying(revision: 4) }
+            }
+            let delivered = await MainActor.run {
+                replay() // This handler was bound to the now-stale displayed frame.
+                XCTAssertEqual(runtime.presentation.lifecycleObservation?.counters.acceptedEvents, 1)
+                return runtime.presentation.lastEventResult
+            }
+            let events = await probe.events
+            XCTAssertEqual(events.count, 1)
+            let event = try XCTUnwrap(events.first)
+            XCTAssertEqual(event.generation, generation)
+            XCTAssertEqual(event.sequence, 1)
+            XCTAssertEqual(event.sequence, delivered?.sequence)
+            XCTAssertEqual(delivered?.outcome, .delivered)
+            XCTAssertGreaterThan(event.turnSerial, 1)
+            XCTAssertEqual(event.displayedRevision, 1)
+            XCTAssertEqual(event.nodeID, "save")
+            XCTAssertEqual(event.actionID, "sample.save")
+            XCTAssertTrue(event.isLive)
+            let ordinary = await probe.ordinaryReads
+            XCTAssertTrue(ordinary.isEmpty)
+            try await close(runtime, baseline: baseline)
+            XCTAssertFalse(event.isLive)
+            await replay()
+            let afterRetirement = await probe.events
+            XCTAssertEqual(afterRetirement.count, 1)
+        }
+    }
+
+    func testSignedCommitFactsReadDeniesReadyWrongActionAndMalformedEvent() async throws {
+        for (mode, action) in [(GuestUISignedProgram.Mode.readyCommitFacts, "sample.save"),
+                               (.commitFacts, "sample.other"), (.invalidCommitFacts, "sample.save")] {
+            let probe = SignedCommitFactsProbe()
+            let f = try fixture(commitProbe: probe, commitAction: action)
+            try await withRuntime(f) { runtime in
+                try await stage(f, runtime, mode: mode)
+                _ = try await runtime.start()
+                try await activateSave(runtime)
+                if mode == .invalidCommitFacts {
+                    try await eventually("Malformed signed event did not stop") {
+                        await runtime.recoverySnapshot().activation.firstUIProtocolFailure?.failure.phase == .event
+                    }
+                    let failure = await runtime.recoverySnapshot().activation.firstUIProtocolFailure?.failure
+                    XCTAssertEqual(failure?.code, .document)
+                } else {
+                    let revision: UInt64 = mode == .readyCommitFacts ? 4 : 3
+                    try await eventually("Guest did not consume the scoped read denial") {
+                        await MainActor.run { runtime.presentation.state == .displaying(revision: revision) }
+                    }
+                }
+            }
+            let events = await probe.events
+            let ordinary = await probe.ordinaryReads
+            XCTAssertTrue(events.isEmpty)
+            XCTAssertEqual(ordinary, mode == .readyCommitFacts ? [.init(namespace: "material_test", key: "trigger")] : [])
         }
     }
     #if os(macOS)

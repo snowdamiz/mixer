@@ -46,11 +46,21 @@ final class GuestUIIssuerV1: Sendable {}
 @_spi(GuestUIV1) public enum GuestUITurnKindV1: Sendable {
     case startup, event(sequence: UInt64, bytes: Data), ready
 }
+@_spi(GuestUIV1) public struct GuestUIEventSelectionV1: Sendable {
+    public let revision: UInt64
+    public let nodeID: String
+    public let actionID: String
+
+    init(_ action: RoutedUIAction) {
+        revision = action.revision; nodeID = action.nodeID; actionID = action.actionID
+    }
+}
 @_spi(GuestUIV1) public struct GuestUITurnClaimV1: Sendable {
     let issuer: GuestUIIssuerV1
     public let generation: UInt64
     public let serial: UInt64
     public let kind: GuestUITurnKindV1
+    public let eventSelection: GuestUIEventSelectionV1?
 }
 @_spi(GuestUIV1) public struct GuestUIFrameV1: Sendable {
     let issuer: GuestUIIssuerV1

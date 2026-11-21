@@ -120,12 +120,19 @@ public actor CapabilityHost {
                                didExit: @escaping @Sendable () -> Void) throws {
         try acceptObserved(bytes, noLaterThan: deadline, deliver: deliver, didExit: didExit)
     }
+    @_spi(InstalledApplicationStorage)
+    public func submitObserved(_ bytes: Data, noLaterThan deadline: ContinuousClock.Instant,
+                               commitEvent: InstalledGuestUICommitEvent?, deliver: @escaping Delivery,
+                               didExit: @escaping @Sendable () -> Void) throws {
+        try acceptObserved(bytes, noLaterThan: deadline, commitEvent: commitEvent, deliver: deliver, didExit: didExit)
+    }
     private func acceptObserved(_ bytes: Data, noLaterThan deadline: ContinuousClock.Instant?,
+                                commitEvent: InstalledGuestUICommitEvent? = nil,
                                 deliver: @escaping Delivery,
                                 didExit: @escaping @Sendable () -> Void) throws {
         guard !closed, installedAdapters != nil else { throw CapabilityWireError.invalid("observed host unavailable") }
         guard case .call(let call) = try CapabilityCodec.decodeInbound(bytes) else { throw CapabilityWireError.invalid("observed call required") }
-        try accept(call, noLaterThan: deadline, deliver: deliver, didExit: didExit)
+        try accept(call, noLaterThan: deadline, commitEvent: commitEvent, deliver: deliver, didExit: didExit)
     }
     #endif
     deinit { for slot in slots { slot.work?.cancel(); slot.timer?.cancel() } }
@@ -153,12 +160,13 @@ public actor CapabilityHost {
         }
     }
     private func accept(_ call: CapabilityCall, noLaterThan cap: ContinuousClock.Instant? = nil,
+                        commitEvent: InstalledGuestUICommitEvent? = nil,
                         deliver: @escaping Delivery, didExit: (@Sendable () -> Void)?) throws {
         let index = try index(call.identity)
         guard slots[index].reserved, slots[index].call == nil else { throw CapabilityWireError.invalid("duplicate call") }
         slots[index].reserved = false; slots[index].call = call; slots[index].delivery = deliver
         let http = self.http, storage = self.storage
-        let invoke: @Sendable () async throws -> CapabilityResult
+        let invoke: @Sendable (ContinuousClock.Instant) async throws -> CapabilityResult
         let returned: @Sendable () -> Void
         #if !os(WASI)
         let lease = installedAdapters.map { _ in CapabilityExitLease { [weak self] lease in
@@ -167,14 +175,16 @@ public actor CapabilityHost {
         } }
         slots[index].exitLease = lease
         if let installedAdapters, let lease {
-            invoke = { try await installedAdapters.invoke(call.operation, lease: lease) }
+            invoke = { deadline in
+                try await installedAdapters.invoke(call.operation, lease: lease, deadline: deadline, commitEvent: commitEvent)
+            }
             returned = { lease.invocationReturned() }
         } else {
-            invoke = { try Task.checkCancellation(); return try await GeneratedCapabilityDispatch.invoke(call.operation, http: http, storage: storage) }
+            invoke = { _ in try Task.checkCancellation(); return try await GeneratedCapabilityDispatch.invoke(call.operation, http: http, storage: storage) }
             returned = {}
         }
         #else
-        invoke = { try Task.checkCancellation(); return try await GeneratedCapabilityDispatch.invoke(call.operation, http: http, storage: storage) }
+        invoke = { _ in try Task.checkCancellation(); return try await GeneratedCapabilityDispatch.invoke(call.operation, http: http, storage: storage) }
         returned = {}
         #endif
         guard policy.permits(call.operation) else {
@@ -201,7 +211,7 @@ public actor CapabilityHost {
                     #endif
                     throw CapabilityFailure.deadlineExceeded
                 }
-                let result = try await invoke()
+                let result = try await invoke(deadline)
                 if case .http(let response) = result, (300...399).contains(response.status) { throw CapabilityFailure.redirectDenied }
                 // Reuse the same strict result path for native callbacks.
                 _ = try CapabilityCodec.encodeCompletion(CapabilityCompletion(call: call, outcome: .success(result)))

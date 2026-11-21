@@ -1,9 +1,9 @@
 import Foundation
 import Crypto
-import MixerCapabilities
+@_spi(InstalledApplicationStorage) import MixerCapabilities
 import MixerRuntimeIdentity
 import MixerUpdates
-@testable import MixerCapabilityActivation
+@_spi(InstalledApplicationStorage) @testable import MixerCapabilityActivation
 
 // TESTONLY signer and installed fixture material; no production trust roots.
 // This exercises the real signed ingress, not linked build graph attestation.
@@ -15,7 +15,8 @@ struct GuestUISignedFixture {
         .init(directory: root.appendingPathComponent("recovery"), channel: "beta", installation: "guest-ui-signed", observationSeconds: 1)
     }
     init(root: URL, storageService: (any InstalledApplicationStorageServing)? = nil, deferredStartup: Bool = false,
-         boundNamespace: String = "material_test", boundFingerprint: String? = nil) throws {
+         boundNamespace: String = "material_test", boundFingerprint: String? = nil,
+         commitFacts: InstalledGuestUICommitFacts? = nil) throws {
         self.root = root
         key = try .init(rawRepresentation: Data(repeating: 0x53, count: 32))
         func resource(_ name: String) throws -> Data {
@@ -46,7 +47,8 @@ struct GuestUISignedFixture {
         let identityJSON = try JSONSerialization.data(withJSONObject: identity, options: [.sortedKeys, .withoutEscapingSlashes])
         let storage = try storageService.map {
             InstalledApplicationStorage(runtimeFingerprint: try boundFingerprint ?? CapabilityRuntimeIdentity(json: identityJSON).fingerprint,
-                                        namespace: boundNamespace, service: $0, allowsDeferredGuestUIStartup: deferredStartup)
+                                        namespace: boundNamespace, service: $0, allowsDeferredGuestUIStartup: deferredStartup,
+                                        guestUICommitFacts: commitFacts)
         }
         execution = try InstalledCapabilityExecution(identityJSON: identityJSON,
             materials: materials, trustRootsJSON: roots, privateContainer: root, applicationStorage: storage)

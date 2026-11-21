@@ -1,6 +1,6 @@
 import Foundation
 import Dispatch
-import MixerCapabilities
+@_spi(InstalledApplicationStorage) import MixerCapabilities
 @_spi(GuestUIV1) import MixerGuest
 
 final class Locked<Value>: @unchecked Sendable {
@@ -43,6 +43,7 @@ final class NativeTicket: @unchecked Sendable {
         var admissionStarted = false
         var encodedResult: Data?
         var containsHydrationSnapshot = false
+        var containsCommitFacts = false
         var envelopeWaiter: CheckedContinuation<Data, any Error>?
         var legacyBytes = 0
         var accepted: Bool?
@@ -63,9 +64,12 @@ final class NativeTicket: @unchecked Sendable {
     }
     let token: UInt64
     let operation: GuestCapabilityOperationV1
+    let commitEvent: InstalledGuestUICommitEvent?
     let state = Locked(State())
     var index: Int { Int(UInt32(truncatingIfNeeded: token) - 1) }
-    init(token: UInt64, operation: GuestCapabilityOperationV1) { self.token = token; self.operation = operation }
+    init(token: UInt64, operation: GuestCapabilityOperationV1, commitEvent: InstalledGuestUICommitEvent?) {
+        self.token = token; self.operation = operation; self.commitEvent = commitEvent
+    }
 }
 
 enum ExperimentalQueues {
@@ -102,15 +106,19 @@ final class NativeExitOwner: @unchecked Sendable {
     private var effectsOpen = false
     private var readyHint = false
     private var drainHint = false
+    private var pendingCommitEvent: InstalledGuestUICommitEvent?
+    private var postedCommitFacts: NativeTicket?
+    private var pendingCommitWrite: NativeTicket?
     private var cursor = 0
     private var rateTokens: Double
     private var rateTime = ContinuousClock.now
 
     init(native: NativeCapabilitySession, host: CapabilityHost, configuration: ExperimentalCapabilityConfiguration,
-         permit: ConstructionPermit, lifecycle: AdapterCloseCore? = nil, exchange: GuestUIExchangeV1? = nil) {
+         permit: ConstructionPermit, lifecycle: AdapterCloseCore? = nil, exchange: GuestUIExchangeV1? = nil,
+         commitFacts: InstalledGuestUICommitFacts? = nil) {
         self.native = native; self.host = host; self.configuration = configuration
         self.permit = permit; self.lifecycle = lifecycle; rateTokens = Double(configuration.dispatchBurst)
-        guestUI = exchange.map(GuestUITurns.init)
+        guestUI = exchange.map { GuestUITurns(exchange: $0, commitFacts: commitFacts) }
     }
     func start() {
         let source = DispatchSource.makeUserDataAddSource(queue: ExperimentalQueues.guest)
@@ -347,6 +355,7 @@ final class NativeExitOwner: @unchecked Sendable {
         let cutoff = beginning.advanced(by: .milliseconds(Int64(configuration.batchMilliseconds)))
         var turns = 0
         if guestUI?.stopped == true { stop() }
+        if closed { guestUI?.invalidateActiveCommit(); clearCommitDelivery() }
         let command = control.withLock { state in let c = state.command; state.command = nil; return c }
         if let command {
             let before = status.turns; command()
@@ -363,7 +372,12 @@ final class NativeExitOwner: @unchecked Sendable {
                     if guestUI?.stopped == true { stop() }
                     if closed { break }
                     switch try native.take() {
-                    case .none: drainHint = false; break
+                    case .none:
+                        drainHint = false
+                        pendingCommitEvent = nil
+                        pendingCommitWrite?.commitEvent?.invalidateCommit()
+                        pendingCommitWrite = nil
+                        break
                     case .cancel(let token, let operation):
                         guard let ticket = control.withLock({ $0.tickets[Int(UInt32(truncatingIfNeeded: token) - 1)] }),
                               ticket.token == token, ticket.operation == operation else { throw ExperimentalCapabilityError("unmapped_cancel") }
@@ -372,13 +386,18 @@ final class NativeExitOwner: @unchecked Sendable {
                         cancelIfNeeded(ticket)
                         continue
                     case .call(let token, let operation, let arguments):
-                        let ticket = NativeTicket(token: token, operation: operation)
+                        let attribution = Result { try takeCommitEvent(token: token, operation: operation, arguments: arguments) }
+                        let ticket = NativeTicket(token: token, operation: operation, commitEvent: try? attribution.get())
                         let installed = control.withLock { state -> Int in
                             if let old = state.tickets[ticket.index], !old.state.withLock({ $0.acknowledged && !$0.workerRunning }) { return -1 }
                             state.tickets[ticket.index] = ticket; state.status.acceptedCalls &+= 1
                             return state.status.closed ? 0 : 1
                         }
                         if installed < 0 { stop("native_ticket_reuse", quarantined: true) }
+                        else if case .failure(let error) = attribution {
+                            local(ticket, outcome: nil)
+                            if !closedRejection(error) { fail(error) }
+                        }
                         else if installed != 1 || !effectsOpen { local(ticket, outcome: .failure(.unavailable)) }
                         else if guestUI?.acceptsHydrationOperation(isRead: operation == .storageGet) == false {
                             local(ticket, outcome: .failure(.permissionDenied))
@@ -402,9 +421,20 @@ final class NativeExitOwner: @unchecked Sendable {
                     if let guestUI {
                         // Drain requests emitted by the hydration turn before taking
                         // the first user event, which opens ordinary admission.
-                        if guestUI.publishedHydration && drainHint { break }
-                        guard let didInvoke = try guestUI.next(native, ready: readyHint) else { break }
-                        if !didInvoke { readyHint = false; break }
+                        // An opted-in owner also needs a proven empty mailbox
+                        // between turns, even when this pump's budget expires.
+                        if drainHint && (guestUI.publishedHydration || guestUI.commitFacts != nil) { break }
+                        guard let result = try guestUI.next(native, ready: readyHint) else { break }
+                        if case .idle = result { readyHint = false; break }
+                        switch result {
+                        case .event(let event):
+                            clearCommitDelivery()
+                            pendingCommitEvent = event
+                        case .ready:
+                            pendingCommitWrite = postedCommitFacts
+                            postedCommitFacts = nil
+                        case .idle, .hydration: break
+                        }
                     } else if !(try native.wake()) { readyHint = false; break }
                     readyHint = true
                     drainHint = true // A successful wake can publish new calls.
@@ -469,6 +499,28 @@ final class NativeExitOwner: @unchecked Sendable {
                 if let lifecycle { lifecycle.nativeDidDrain() } else { permit.release() }
             }
         } else { armTimer(guestUI != nil || active || readyHint || drainHint) }
+    }
+    private func clearCommitDelivery() {
+        postedCommitFacts?.commitEvent?.invalidateCommit()
+        postedCommitFacts = nil
+        pendingCommitWrite?.commitEvent?.invalidateCommit()
+        pendingCommitWrite = nil
+    }
+    private func takeCommitEvent(token: UInt64, operation: GuestCapabilityOperationV1,
+                                 arguments: Data) throws -> InstalledGuestUICommitEvent? {
+        if let pendingCommitWrite, let event = pendingCommitWrite.commitEvent,
+           let command = guestUI?.commitFacts?.commitArguments, operation == .storagePut,
+           case .put(let request)? = try? GuestCapabilityTransportCodecV1.decodeArguments(arguments, operation: operation),
+           request == command, try native.admitCommitRequest(token: token, factsToken: pendingCommitWrite.token),
+           event.didConsumeFacts() {
+            self.pendingCommitWrite = nil
+            return event
+        }
+        guard let pendingCommitEvent, let facts = guestUI?.commitFacts, operation == .storageGet,
+              case .get(let request)? = try? GuestCapabilityTransportCodecV1.decodeArguments(arguments, operation: operation),
+              request == facts.arguments, try native.admitCommitRequest(token: token) else { return nil }
+        self.pendingCommitEvent = nil
+        return pendingCommitEvent
     }
     private static func nanoseconds(_ elapsed: Duration) -> UInt64 {
         let value = elapsed.components
@@ -590,6 +642,9 @@ final class NativeExitOwner: @unchecked Sendable {
                         if guestUI?.awaitingInitialDocument == true, case .success(.get(let response)) = outcome {
                             state.containsHydrationSnapshot = response.found
                         }
+                        if ticket.commitEvent != nil, case .success(.get(let response)) = outcome {
+                            state.containsCommitFacts = response.found
+                        }
                     }
                 } catch { fail(error); return }
             }
@@ -599,6 +654,9 @@ final class NativeExitOwner: @unchecked Sendable {
                 do {
                     let delivered = try native.post(token: ticket.token, operation: ticket.operation, data: bytes)
                     if delivered && snapshot.containsHydrationSnapshot { guestUI?.didPostHydrationSnapshot() }
+                    if delivered && snapshot.containsCommitFacts, ticket.commitEvent?.didPostFacts() == true {
+                        postedCommitFacts = ticket
+                    }
                 }
                 catch {
                     let e = error as? ExperimentalCapabilityError
@@ -606,11 +664,15 @@ final class NativeExitOwner: @unchecked Sendable {
                         fail(error)
                     }
                 }
+                if ticket.operation == .storageGet && postedCommitFacts !== ticket {
+                    ticket.commitEvent?.invalidateCommit()
+                }
                 ticket.state.withLock { $0.encodedResult = nil; $0.resultHandled = true }; readyHint = true
             } else if snapshot.exitObserved, let deadline = snapshot.deadline, ContinuousClock.now >= deadline {
                 guard ContinuousClock.now < cutoff else { return }
                 do {
                     if try native.remaining(token: ticket.token, operation: ticket.operation, timeout: configuration.timeoutMilliseconds) == 0 {
+                        if ticket.operation == .storageGet { ticket.commitEvent?.invalidateCommit() }
                         ticket.state.withLock { $0.resultHandled = true }; readyHint = true
                     }
                 } catch { if !closedRejection(error) { fail(error) } }
@@ -620,7 +682,9 @@ final class NativeExitOwner: @unchecked Sendable {
         let canAck = ticket.state.withLock { state in
             state.resultHandled && (state.exitObserved || state.localExit) && state.accepted != nil && !state.workerRunning && !state.acknowledged && !state.ackFailed
         }
-        if canAck {
+        // Keep the facts lease until the validated ready turn. The put's
+        // own native ticket then carries the enqueue-time source token.
+        if canAck && (closed || postedCommitFacts !== ticket) {
             guard ContinuousClock.now < cutoff else { return }
             do {
                 try native.ack(token: ticket.token, operation: ticket.operation)
@@ -669,7 +733,7 @@ final class NativeExitOwner: @unchecked Sendable {
             // This shared-guard checkpoint is the UI effect admission point.
             // A later stop cannot promise rollback of this admitted request.
             try guestUI?.requireEffectAdmission()
-            try await host.submitObserved(bytes, noLaterThan: deadline,
+            try await host.submitObserved(bytes, noLaterThan: deadline, commitEvent: ticket.commitEvent,
                 deliver: { [self] in delivery($0, ticket: ticket) }, didExit: { [self] in exited(ticket) })
             ticket.state.withLock { $0.accepted = true }
         } catch {

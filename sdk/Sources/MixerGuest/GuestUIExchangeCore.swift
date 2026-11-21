@@ -30,11 +30,11 @@ final class GuestUIExchangeCore: @unchecked Sendable {
         static let finishNativeInputReadiness = Notices(rawValue: 16)
     }
     private enum Event {
-        case preparing(UInt64), queued(UInt64, Data), running(UInt64)
+        case preparing(UInt64), queued(UInt64, Data, GuestUIEventSelectionV1), running(UInt64)
         case result(GuestUIEventResultV1)
         var sequence: UInt64 {
             switch self {
-            case .preparing(let n), .queued(let n, _), .running(let n): n
+            case .preparing(let n), .queued(let n, _, _), .running(let n): n
             case .result(let result): result.sequence
             }
         }
@@ -136,7 +136,8 @@ final class GuestUIExchangeCore: @unchecked Sendable {
                 protocolStop(error, &s, &notices); throw error
             }
             s.turnSerial += 1
-            let claim = GuestUITurnClaimV1(issuer: issuer, generation: generation, serial: s.turnSerial, kind: .startup)
+            let claim = GuestUITurnClaimV1(issuer: issuer, generation: generation, serial: s.turnSerial,
+                                           kind: .startup, eventSelection: nil)
             s.turn = claim; return claim
         }
     }
@@ -146,17 +147,22 @@ final class GuestUIExchangeCore: @unchecked Sendable {
             guard s.started else { throw GuestUIControlRejectionV1.busy }
             guard s.turn == nil else { return nil }
             let kind: GuestUITurnKindV1
+            let selection: GuestUIEventSelectionV1?
             switch s.event {
             case .preparing?, .running?: return nil
-            case .queued(let sequence, let bytes)?: kind = .event(sequence: sequence, bytes: bytes)
-            default: guard ready else { return nil }; kind = .ready
+            case .queued(let sequence, let bytes, let target)?:
+                kind = .event(sequence: sequence, bytes: bytes); selection = target
+            default:
+                guard ready else { return nil }
+                kind = .ready; selection = nil
             }
             guard s.turnSerial < .max else {
                 let error = GuestUIProtocolFailureV1(phase: .wake, code: .sequenceExhausted)
                 protocolStop(error, &s, &notices); throw error
             }
             s.turnSerial += 1
-            let claim = GuestUITurnClaimV1(issuer: issuer, generation: generation, serial: s.turnSerial, kind: kind)
+            let claim = GuestUITurnClaimV1(issuer: issuer, generation: generation, serial: s.turnSerial,
+                                           kind: kind, eventSelection: selection)
             if case .event(let sequence, _) = kind { s.event = .running(sequence) }
             s.turn = claim; return claim
         }
@@ -335,7 +341,7 @@ final class GuestUIExchangeCore: @unchecked Sendable {
         }
         return .offered(mutate { s, notices in
             guard s.stop == nil, case .preparing(let current)? = s.event, current == sequence else { return .closed }
-            s.event = .queued(sequence, bytes); s.eventSequence = sequence
+            s.event = .queued(sequence, bytes, GuestUIEventSelectionV1(action)); s.eventSequence = sequence
             bump(&s.counters.acceptedEvents); s.counters.maximumEventBytes = max(s.counters.maximumEventBytes, UInt64(bytes.count))
             s.refresh = true; notices.insert(.delivery); return .accepted(sequence: sequence)
         })

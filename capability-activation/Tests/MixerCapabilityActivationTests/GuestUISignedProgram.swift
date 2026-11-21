@@ -1,11 +1,16 @@
 import Foundation
+import MixerCapabilities
 
 /// Original core-Wasm binary for signed activation tests, independent of VM
-/// fixture builders. One native button submits an actual app-private put. A
-/// distinct Saving frame precedes Saved, which requires the exact committed
-/// success packet. This is a narrow test program, not a Swift guest compiler.
+/// fixture builders. One native button submits app-private storage work. The
+/// output frames depend on the exact completion packets the guest observes.
 enum GuestUISignedProgram {
-    enum Mode { case valid, invalidHeader, invalidEventDocument, invalidWakeDocument, missingEvent, localizedChecklist }
+    enum Mode {
+        case valid, invalidHeader, invalidEventDocument, invalidWakeDocument, missingEvent, localizedChecklist
+        case commitFacts, invalidCommitFacts, readyCommitFacts
+
+        var readsFacts: Bool { self == .commitFacts || self == .invalidCommitFacts || self == .readyCommitFacts }
+    }
     static let event = Data(#"{"actionID":"sample.save","event":"activate","nodeID":"save","revision":1,"schemaVersion":1,"sequence":1,"value":null}"#.utf8)
     static func document(_ revision: Int, _ status: String) -> Data {
         Data("{\"schemaVersion\":1,\"revision\":\(revision),\"root\":{\"id\":\"root\",\"kind\":\"vStack\",\"properties\":{},\"children\":[{\"id\":\"status\",\"kind\":\"text\",\"properties\":{\"text\":\"\(status)\"},\"children\":[],\"actions\":[]},{\"id\":\"save\",\"kind\":\"button\",\"properties\":{\"label\":\"Save sample\"},\"children\":[],\"actions\":[{\"id\":\"sample.save\",\"event\":\"activate\"}]}],\"actions\":[]}}".utf8)
@@ -52,6 +57,15 @@ enum GuestUISignedProgram {
             }
             return out
         }
+        func enqueue(_ offset: Int, _ length: Int, token: Int) -> [UInt8] {
+            i(offset) + i(length) + i(token) + [0x10, 0, 0x1a]
+        }
+        func poll(_ token: Int) -> [UInt8] {
+            i(token) + [0x29, 0, 0] + i(10000) + i(2048) + i(160) + [0x10, 1]
+        }
+        func checkCompletion(_ bytes: Data) -> [UInt8] {
+            i(160) + [0x28, 0, 0] + i(bytes.count) + [0x47, 0x04, 0x40, 0x00, 0x0b] + check(10000, bytes)
+        }
         func frame(_ revision: Int, _ status: String, localizedStatus: String) -> Data {
             guard mode == .localizedChecklist else { return document(revision, status) }
             return Data("""
@@ -66,35 +80,38 @@ enum GuestUISignedProgram {
         let saving = frame(2, "Saving sample", localizedStatus: "جارٍ الحفظ")
         let saved = frame(3, "Saved sample", localizedStatus: "اكتمل الفحص")
         let denied = frame(3, "Save unavailable", localizedStatus: "تعذر الحفظ")
+        let checkedFacts = document(4, "Unattributed facts denied")
         let event = mode == .localizedChecklist
             ? Data(#"{"actionID":"task.toggle","event":"activate","nodeID":"toggle","revision":1,"schemaVersion":1,"sequence":1,"value":null}"#.utf8)
             : Self.event
-        let request = Data(#"{"namespace":"\#(storageNamespace)","key":"binary","valueBase64":"AAH+/w=="}"#.utf8)
-        let committed = Data(#"{"abi":1,"capability":"storage.keyValue.v1","operation":"put","outcome":{"kind":"success","value":{"committed":true}},"schemaHash":"4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"}"#.utf8)
+        let facts = Data(#"{"namespace":"material_test","key":"facts"}"#.utf8)
+        let request = if mode == .readyCommitFacts { Data(#"{"namespace":"material_test","key":"trigger"}"#.utf8) }
+            else if mode.readsFacts { facts }
+            else { Data(#"{"namespace":"\#(storageNamespace)","key":"binary","valueBase64":"AAH+/w=="}"#.utf8) }
+        let committed = mode.readsFacts
+            ? try! GuestCapabilityTransportCodecV1.encodeCompletion(.success(.get(.init(found: true, valueBase64: "AQ=="))), operation: .storageGet)
+            : Data(#"{"abi":1,"capability":"storage.keyValue.v1","operation":"put","outcome":{"kind":"success","value":{"committed":true}},"schemaHash":"4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"}"#.utf8)
+        let deniedFacts = try! GuestCapabilityTransportCodecV1.encodeCompletion(.failure(.permissionDenied), operation: .storageGet)
         let expected = expectedDenial ?? committed
         var eventBody: [UInt8] = [0x20,0]
         eventBody += i(event.count)
         eventBody += [0x47,0x04,0x40,0x00,0x0b]
         eventBody += check(4096,event)
-        eventBody += i(9000)
-        eventBody += i(request.count)
-        eventBody += i(128)
-        eventBody += [0x10,0,0x1a]
-        eventBody += store(15,mode == .invalidEventDocument ? 8192 : 2048)
-        eventBody += store(19,mode == .invalidEventDocument ? 2 : saving.count)
+        eventBody += enqueue(9000, request.count, token: 128)
+        if mode == .commitFacts { eventBody += enqueue(9200, facts.count, token: 136) }
+        let invalidEvent = mode == .invalidEventDocument || mode == .invalidCommitFacts
+        eventBody += store(15,invalidEvent ? 8192 : 2048)
+        eventBody += store(19,invalidEvent ? 2 : saving.count)
         eventBody += i(0)
         eventBody += [0x0b]
-        var wake: [UInt8] = i(128)
-        wake += [0x29,0,0]
-        wake += i(10000)
-        wake += i(2048)
-        wake += i(160)
-        wake += [0x10,1,0x45,0x04,0x40]
+        var wake = poll(128)
+        wake += [0x45,0x04,0x40]
         wake += i(160)
         wake += [0x28,0,0]
         wake += i(expected.count)
         wake += [0x46,0x04,0x40]
         wake += check(10000,expected)
+        if mode == .readyCommitFacts { wake += enqueue(9200, facts.count, token: 136) }
         if expectedDenial != nil {
             wake += store(15,3500)
             wake += store(19,denied.count)
@@ -109,14 +126,23 @@ enum GuestUISignedProgram {
             wake += store(15,3500)
             wake += store(19,denied.count)
         }
-        wake += [0x0b,0x0b,0x0b]
+        wake += [0x0b,0x0b]
+        if mode == .commitFacts || mode == .readyCommitFacts {
+            // Wait for the success frame, then verify the second read's denial.
+            wake += i(15) + [0x28,0,0] + i(3000) + [0x46,0x04,0x40]
+            wake += poll(136) + [0x45,0x04,0x40]
+            wake += checkCompletion(deniedFacts)
+            wake += store(15, 8550) + store(19, checkedFacts.count)
+            wake += [0x0b,0x0b]
+        }
+        wake += [0x0b]
         var types: [UInt8] = [5]
         types += [0x60,3,0x7f,0x7f,0x7f,1,0x7f]
         types += [0x60,4,0x7e,0x7f,0x7f,0x7f,1,0x7f]
         types += [0x60,0,1,0x7f,0x60,1,0x7f,1,0x7f,0x60,0,0]
         var imports: [UInt8] = [2]
         imports += text("mixer.capability.v1")
-        imports += text("storage_put")
+        imports += text(mode.readsFacts ? "storage_get" : "storage_put")
         imports += [0,0]
         imports += text("mixer.capability.v1")
         imports += text("poll")
@@ -131,8 +157,14 @@ enum GuestUISignedProgram {
         exports += text("mixer_guest_capability_ready_v1")
         exports += [0,4]
         var code: [UInt8] = [3]
-        var startup: [UInt8] = i(7)
-        startup += [0x0b]
+        var startup: [UInt8] = []
+        if mode.readsFacts {
+            let unavailable = try! GuestCapabilityTransportCodecV1.encodeCompletion(.failure(.unavailable), operation: .storageGet)
+            startup += enqueue(9200, facts.count, token: 144)
+            startup += poll(144) + [0x04, 0x40, 0x00, 0x0b]
+            startup += checkCompletion(unavailable)
+        }
+        startup += i(7) + [0x0b]
         for body in [startup,eventBody,wake] {
             code += u(body.count+1)
             code += [0]
@@ -142,8 +174,10 @@ enum GuestUISignedProgram {
         for v: UInt32 in [mode == .invalidHeader ? 0 : 0x3155494d,32,1024,UInt32(ready.count),4096,4096,0,0] {
             for shift in stride(from:0,to:32,by:8) { header.append(UInt8(truncatingIfNeeded:v >> shift)) }
         }
-        var data: [UInt8] = [7]
-        for (offset,bytes) in [(7,Data(header)),(1024,ready),(2048,saving),(3000,saved),(3500,denied),(8192,Data("[]".utf8)),(9000,request)] {
+        var segments = [(7,Data(header)),(1024,ready),(2048,saving),(3000,saved),(3500,denied),(8192,Data("[]".utf8)),(9000,request)]
+        if mode.readsFacts { segments += [(8550,checkedFacts),(9200,facts)] }
+        var data = u(segments.count)
+        for (offset,bytes) in segments {
             data += [0]
             data += i(offset)
             data += [0x0b]

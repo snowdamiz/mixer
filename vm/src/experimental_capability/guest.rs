@@ -54,6 +54,10 @@ impl Mailbox {
             Some(Terminal::Failure(FailureCode::Unavailable))
         };
         let bits = ((state.slots[index].generation as u64) << 32) | (index as u64 + 1);
+        let commit = match (operation, state.polled_commit_facts) {
+            (Operation::Put, Some(facts_token)) => CommitRequest::Write { facts_token },
+            _ => CommitRequest::Ordinary,
+        };
         state.slots[index].request = Some(Request {
             operation,
             turn: turn.sequence,
@@ -67,6 +71,7 @@ impl Mailbox {
             cancel_pending: false,
             terminal,
             consumed: false,
+            commit,
         });
         state.reserved_bytes = reserved;
         token_output.copy_from_slice(&bits.to_le_bytes());
@@ -120,10 +125,15 @@ impl Mailbox {
         )?;
         memory[output.start..output.start + required].copy_from_slice(bytes);
         memory[length].copy_from_slice(&(required as u32).to_le_bytes());
+        let polled_commit_facts = request.commit == CommitRequest::Facts
+            && matches!(request.terminal, Some(Terminal::Payload(_)));
         request.consumed = true;
         request.terminal = None;
         if !request.dispatched || request.native_done {
             state.release(index);
+        }
+        if polled_commit_facts && state.active_turn.is_some() {
+            state.polled_commit_facts = Some(bits);
         }
         Ok(0)
     }

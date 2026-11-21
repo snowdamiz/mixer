@@ -1,0 +1,871 @@
+diff --git a/Package.swift b/Package.swift
+index 072b7be9626de4c38ab4bff95967f0e502ab3956..f1f370e32ba15d9663605f506da2a035bf381137 100644
+--- a/Package.swift
++++ b/Package.swift
+@@ -4,12 +4,19 @@ import PackageDescription
+ let package = Package(
+     name: "FieldLog",
+     platforms: [.iOS("26.0"), .macOS(.v14)],
+-    products: [.library(name: "FieldLogModels", targets: ["FieldLogModels"]), .library(name: "FieldLogStorage", targets: ["FieldLogStorage"]), .library(name: "FieldLogFeatures", targets: ["FieldLogFeatures"])],
+-    dependencies: [.package(url: "https://github.com/snowdamiz/mixer.git", revision: "56ff14c925168284761c5aca4f0bd4129cf3c995")],
++    products: [.library(name: "FieldLogModels", targets: ["FieldLogModels"]), .library(name: "FieldLogStorage", targets: ["FieldLogStorage"]), .library(name: "FieldLogFeatures", targets: ["FieldLogFeatures"]), .library(name: "FieldLogEntrySaving", targets: ["FieldLogEntrySaving"])],
++    dependencies: [.package(path: "../mixer/sdk")],
+     targets: [
+         .target(name: "FieldLogModels"),
+         .target(name: "FieldLogStorage", dependencies: ["FieldLogModels"]),
+-        .target(name: "FieldLogFeatures", dependencies: ["FieldLogModels", .product(name: "MixerCore", package: "mixer"), .product(name: "MixerUI", package: "mixer"), .product(name: "MixerApple", package: "mixer", condition: .when(platforms: [.iOS, .macOS]))]),
+-        .testTarget(name: "FieldLogTests", dependencies: ["FieldLogModels", "FieldLogStorage", "FieldLogFeatures", .product(name: "MixerUI", package: "mixer"), .product(name: "MixerApple", package: "mixer", condition: .when(platforms: [.iOS, .macOS]))])
++        .target(name: "FieldLogFeatures", dependencies: ["FieldLogModels", .product(name: "MixerCore", package: "sdk"), .product(name: "MixerUI", package: "sdk"), .product(name: "MixerApple", package: "sdk", condition: .when(platforms: [.iOS, .macOS]))]),
++        .target(
++            name: "FieldLogEntrySaving",
++            dependencies: ["FieldLogModels", .product(name: "MixerCore", package: "sdk")],
++            path: "Integrations/GeneratedReport/Sources/FieldLogFeatures",
++            exclude: ["EntryEditorAppleHost.swift", "TaskEditor.swift", "TaskEditorAppleFieldsHost.swift", "TaskEditorPresentation.swift"],
++            sources: ["EntryEditor.swift", "EntrySaveDecision.swift"]
++        ),
++        .testTarget(name: "FieldLogTests", dependencies: ["FieldLogModels", "FieldLogStorage", "FieldLogFeatures", .product(name: "MixerUI", package: "sdk"), .product(name: "MixerApple", package: "sdk", condition: .when(platforms: [.iOS, .macOS]))])
+     ]
+ )
+diff --git a/ios/FieldLog.xcodeproj/project.pbxproj b/ios/FieldLog.xcodeproj/project.pbxproj
+index 72e6363744c0553ef4ec7c4ea3978112b4bdf326..c956863a6720701ae25800c1d056ae841447c695 100644
+--- a/ios/FieldLog.xcodeproj/project.pbxproj
++++ b/ios/FieldLog.xcodeproj/project.pbxproj
+@@ -5,19 +5,36 @@
+  classes = {};
+  objectVersion = 60;
+  objects = {
+-  A00000000000000000000001 = { isa = PBXProject; attributes = { LastUpgradeCheck = 2700; }; buildConfigurationList = A00000000000000000000002; compatibilityVersion = "Xcode 15.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base); mainGroup = A00000000000000000000003; productRefGroup = A00000000000000000000004; projectDirPath = ""; projectRoot = ""; targets = (A00000000000000000000005, B00000000000000000000001); packageReferences = (A00000000000000000000020); };
++  C00000000000000000000001 = { isa = XCLocalSwiftPackageReference; relativePath = "../../mixer/capability-activation"; };
++  C00000000000000000000002 = { isa = XCSwiftPackageProductDependency; package = C00000000000000000000001; productName = MixerCapabilityActivation; };
++  C00000000000000000000003 = { isa = PBXBuildFile; productRef = C00000000000000000000002; };
++  C00000000000000000000004 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedDraftGuestBinding.swift; sourceTree = "<group>"; };
++  C00000000000000000000005 = { isa = PBXBuildFile; fileRef = C00000000000000000000004; };
++  C00000000000000000000006 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledDraftGuest.swift; sourceTree = "<group>"; };
++  C00000000000000000000007 = { isa = PBXBuildFile; fileRef = C00000000000000000000006; };
++  C00000000000000000000008 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "../../Integrations/InstalledGuest/FieldLogDraftStorage.swift"; sourceTree = "<group>"; };
++  C00000000000000000000009 = { isa = PBXBuildFile; fileRef = C00000000000000000000008; };
++  C00000000000000000000010 = { isa = PBXFileReference; lastKnownFileType = folder; path = InstalledDraft; sourceTree = "<group>"; };
++  C00000000000000000000011 = { isa = PBXBuildFile; fileRef = C00000000000000000000010; };
++  C00000000000000000000012 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FieldLogSignedDraftTests.swift; sourceTree = "<group>"; };
++  C00000000000000000000013 = { isa = PBXBuildFile; fileRef = C00000000000000000000012; };
++  C00000000000000000000014 = { isa = XCSwiftPackageProductDependency; package = A00000000000000000000020; productName = FieldLogEntrySaving; };
++  C00000000000000000000015 = { isa = PBXBuildFile; productRef = C00000000000000000000014; };
++  C00000000000000000000016 = { isa = PBXFileReference; lastKnownFileType = folder; path = InstalledEntryCommit; sourceTree = "<group>"; };
++  C00000000000000000000017 = { isa = PBXBuildFile; fileRef = C00000000000000000000016; };
++  A00000000000000000000001 = { isa = PBXProject; attributes = { LastUpgradeCheck = 2700; }; buildConfigurationList = A00000000000000000000002; compatibilityVersion = "Xcode 15.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base); mainGroup = A00000000000000000000003; productRefGroup = A00000000000000000000004; projectDirPath = ""; projectRoot = ""; targets = (A00000000000000000000005, B00000000000000000000001); packageReferences = (A00000000000000000000020, C00000000000000000000001); };
+   A00000000000000000000002 = { isa = XCConfigurationList; buildConfigurations = (A00000000000000000000006, A00000000000000000000007); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+   A00000000000000000000003 = { isa = PBXGroup; children = (A00000000000000000000008, B00000000000000000000002, A00000000000000000000004); sourceTree = "<group>"; };
+   A00000000000000000000004 = { isa = PBXGroup; name = Products; children = (A00000000000000000000009, B00000000000000000000003); sourceTree = "<group>"; };
+-  A00000000000000000000005 = { isa = PBXNativeTarget; buildConfigurationList = A00000000000000000000010; buildPhases = (A00000000000000000000011, A00000000000000000000012, A00000000000000000000013); buildRules = (); dependencies = (); name = FieldLog; productName = FieldLog; productReference = A00000000000000000000009; productType = "com.apple.product-type.application"; packageProductDependencies = (A00000000000000000000022, A00000000000000000000023, A00000000000000000000026); };
++  A00000000000000000000005 = { isa = PBXNativeTarget; buildConfigurationList = A00000000000000000000010; buildPhases = (A00000000000000000000011, A00000000000000000000012, A00000000000000000000013); buildRules = (); dependencies = (); name = FieldLog; productName = FieldLog; productReference = A00000000000000000000009; productType = "com.apple.product-type.application"; packageProductDependencies = (A00000000000000000000022, A00000000000000000000023, A00000000000000000000026, C00000000000000000000002, C00000000000000000000014); };
+   A00000000000000000000006 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 26.0; SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; ONLY_ACTIVE_ARCH = YES; }; name = Debug; };
+   A00000000000000000000007 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 26.0; SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; }; name = Release; };
+-  A00000000000000000000008 = { isa = PBXGroup; path = FieldLog; children = (A00000000000000000000030,A00000000000000000000031,A00000000000000000000032,A00000000000000000000033,A00000000000000000000034); sourceTree = "<group>"; };
++  A00000000000000000000008 = { isa = PBXGroup; path = FieldLog; children = (A00000000000000000000030,A00000000000000000000031,A00000000000000000000032,A00000000000000000000033,A00000000000000000000034, C00000000000000000000004, C00000000000000000000006, C00000000000000000000008, C00000000000000000000010, C00000000000000000000016); sourceTree = "<group>"; };
+   A00000000000000000000009 = { isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FieldLog.app; sourceTree = BUILT_PRODUCTS_DIR; };
+   A00000000000000000000010 = { isa = XCConfigurationList; buildConfigurations = (A00000000000000000000014, A00000000000000000000015); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+-  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040,A00000000000000000000041,A00000000000000000000042,A00000000000000000000043,A00000000000000000000044); runOnlyForDeploymentPostprocessing = 0; };
+-  A00000000000000000000012 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000024,A00000000000000000000025,A00000000000000000000027); runOnlyForDeploymentPostprocessing = 0; };
+-  A00000000000000000000013 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
++  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040,A00000000000000000000041,A00000000000000000000042,A00000000000000000000043,A00000000000000000000044, C00000000000000000000005, C00000000000000000000007, C00000000000000000000009); runOnlyForDeploymentPostprocessing = 0; };
++  A00000000000000000000012 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000024,A00000000000000000000025,A00000000000000000000027, C00000000000000000000003, C00000000000000000000015); runOnlyForDeploymentPostprocessing = 0; };
++  A00000000000000000000013 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (C00000000000000000000011, C00000000000000000000017); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Debug; };
+   A00000000000000000000015 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-O"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Release; };
+   A00000000000000000000020 = { isa = XCLocalSwiftPackageReference; relativePath = ".."; };
+@@ -39,10 +56,10 @@
+   A00000000000000000000044 = { isa = PBXBuildFile; fileRef = A00000000000000000000034; };
+ 
+   B00000000000000000000001 = { isa = PBXNativeTarget; buildConfigurationList = B00000000000000000000004; buildPhases = (B00000000000000000000005,B00000000000000000000006,B00000000000000000000007); buildRules = (); dependencies = (B00000000000000000000008); name = FieldLogUITests; productName = FieldLogUITests; productReference = B00000000000000000000003; productType = "com.apple.product-type.bundle.ui-testing"; };
+-  B00000000000000000000002 = { isa = PBXGroup; path = FieldLogUITests; children = (B00000000000000000000009); sourceTree = "<group>"; };
++  B00000000000000000000002 = { isa = PBXGroup; path = FieldLogUITests; children = (B00000000000000000000009, C00000000000000000000012); sourceTree = "<group>"; };
+   B00000000000000000000003 = { isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FieldLogUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+   B00000000000000000000004 = { isa = XCConfigurationList; buildConfigurations = (B00000000000000000000010,B00000000000000000000011); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+-  B00000000000000000000005 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B00000000000000000000012); runOnlyForDeploymentPostprocessing = 0; };
++  B00000000000000000000005 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B00000000000000000000012, C00000000000000000000013); runOnlyForDeploymentPostprocessing = 0; };
+   B00000000000000000000006 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+   B00000000000000000000007 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+   B00000000000000000000008 = { isa = PBXTargetDependency; target = A00000000000000000000005; targetProxy = B00000000000000000000013; };
+diff --git a/ios/FieldLog/EntryEditor.swift b/ios/FieldLog/EntryEditor.swift
+index 5f0b06f40aca8fbb38916774e2d465f8c23fbf4b..71e6884659c15d63a82e60a70f6ef050b9b60b5b 100644
+--- a/ios/FieldLog/EntryEditor.swift
++++ b/ios/FieldLog/EntryEditor.swift
+@@ -10,6 +10,8 @@ struct EntryEditor: View {
+   @Environment(\.dismiss) private var dismiss
+   @State var draft: EntryDraft
+   @State private var selection: PhotosPickerItem?
++  @State private var installedGuest: InstalledDraftGuest.Kind?
++  @State private var signedCommitCompleted = false
+   @State private var attaching = false
+   @State private var committing = false
+   @State private var checkingSavedDraft = false
+@@ -27,6 +29,12 @@ struct EntryEditor: View {
+           }
+           DatePicker("Date", selection: $draft.occurredAt)
+         }
++        if InstalledDraftGuest.Kind.draftTools.materials != nil {
++          Section {
++            Button("Open installed draft tools") { installedGuest = .draftTools }
++              .accessibilityIdentifier("open-installed-draft")
++          }
++        }
+         Section("NOTE") {
+           TextEditor(text: $draft.note).frame(minHeight: 180).accessibilityLabel("Field note")
+             .accessibilityIdentifier("entry-note")
+@@ -70,6 +78,13 @@ struct EntryEditor: View {
+               || model.unsavedDrafts[draft.id] != nil
+           )
+           .accessibilityIdentifier("check-saved-draft")
++          if InstalledDraftGuest.Kind.entryCommit.materials != nil {
++            Button("Open signed entry commit") { installedGuest = .entryCommit }
++              .disabled(
++                checkingSavedDraft || committing || attaching || model.pendingSaves > 0
++                  || model.unsavedDrafts[draft.id] != nil)
++              .accessibilityIdentifier("open-signed-entry-commit")
++          }
+           Button {
+             committing = true
+             Task {
+@@ -93,6 +108,15 @@ struct EntryEditor: View {
+         }
+       }
+     }
++    .sheet(item: $installedGuest, onDismiss: {
++      if signedCommitCompleted { dismiss() }
++    }) { kind in
++      if let materials = kind.materials {
++        InstalledDraftGuestView(draft: draft, kind: kind, materials: materials) {
++          signedCommitCompleted = true
++        }
++      }
++    }
+     .interactiveDismissDisabled(
+       model.pendingSaves > 0 || model.unsavedDrafts[draft.id] != nil || attaching || committing
+     )
+diff --git a/ios/FieldLog/InstalledDraft/README.txt b/ios/FieldLog/InstalledDraft/README.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..a974b95113811f8e5ac695d1650158d227cfbe72
+--- /dev/null
++++ b/ios/FieldLog/InstalledDraft/README.txt
+@@ -0,0 +1 @@
++Provision the signed selected-draft tools fixture here to expose it in FieldLog.
+diff --git a/ios/FieldLog/InstalledDraftGuest.swift b/ios/FieldLog/InstalledDraftGuest.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..0777497216deb7c111ae8efa75e20d2fbab955fe
+--- /dev/null
++++ b/ios/FieldLog/InstalledDraftGuest.swift
+@@ -0,0 +1,241 @@
++import FieldLogModels
++import Foundation
++@_spi(InstalledApplicationStorage) import MixerCapabilities
++@_spi(InstalledApplicationStorage) import MixerCapabilityActivation
++import MixerRuntimeIdentity
++import SwiftUI
++
++enum InstalledDraftGuest {
++  enum Kind: String, Identifiable {
++    case draftTools = "InstalledDraft"
++    case entryCommit = "InstalledEntryCommit"
++
++    var id: String { rawValue }
++    var title: String { self == .entryCommit ? "Signed entry commit" : "Installed draft tools" }
++
++    var materials: URL? {
++      guard let directory = Bundle.main.resourceURL?.appendingPathComponent(rawValue),
++        FileManager.default.fileExists(atPath: directory.appendingPathComponent("identity.json").path)
++      else { return nil }
++      return directory
++    }
++  }
++
++  static let variants = ["baseline", "corrected", "optional", "corrected", "optional"]
++
++  static func sequence(isTestWorkspace: Bool) throws -> Int? {
++    #if DEBUG
++      let arguments = ProcessInfo.processInfo.arguments
++      if isTestWorkspace, let marker = arguments.firstIndex(of: "--fieldlog-draft-assignment") {
++        let index = marker + 1
++        guard arguments.indices.contains(index), let sequence = Int(arguments[index]),
++          (1...variants.count).contains(sequence)
++        else { throw FieldLogError.validation("Invalid local draft assignment.") }
++        return sequence
++      }
++    #endif
++    return nil
++  }
++
++  @MainActor static func open(
++    materials: URL, workspaceDirectory: URL, storage: SelectedDraftGuestAccess, bundleID: String?
++  ) async throws -> CapabilityGuestUIRuntime {
++    let identityBytes = try read("identity.json", in: materials)
++    let identity = try CapabilityRuntimeIdentity(json: identityBytes)
++    #if targetEnvironment(simulator) || os(macOS)
++      let environment = "simulator"
++    #else
++      let environment = "device"
++    #endif
++    guard identity.descriptor.object?["application"]?.object?["bundle_id"]?.text
++        == bundleID,
++      identity.descriptor.object?["platform"]?.object?["environment"]?.text == environment,
++      identity.installedRuntime.scope.platform == "ios"
++    else { throw CapabilityFailure.permissionDenied }
++
++    let commit = storage.commit
++    var roles: [(String, CapabilityMaterialFile.Role)] = [
++      ("bridge.json", .bridgePolicy),
++      ("storage.json", .configuration(capabilityID: CapabilitySchemas.storageID)),
++      ("storage-grant.json", .installedGrant(capabilityID: CapabilitySchemas.storageID)),
++    ]
++    if commit == nil {
++      roles += [
++        ("http.json", .configuration(capabilityID: CapabilitySchemas.httpID)),
++        ("http-grant.json", .installedGrant(capabilityID: CapabilitySchemas.httpID)),
++      ]
++    }
++    let execution = try InstalledCapabilityExecution(
++      identityJSON: identityBytes,
++      materials: roles.map { .init(role: $0.1, bytes: try read($0.0, in: materials)) },
++      trustRootsJSON: read("roots.json", in: materials), privateContainer: workspaceDirectory,
++      applicationStorage: .init(
++        runtimeFingerprint: identity.fingerprint, namespace: FieldLogDraftStorage.namespace,
++        service: storage, allowsDeferredGuestUIStartup: commit == nil,
++        guestUICommitFacts: commit?.continuation))
++    return try await CapabilityGuestUIRuntime.open(
++      configuration: .init(
++        directory: workspaceDirectory.appendingPathComponent(
++          commit == nil ? "installed-draft-recovery" : "installed-entry-commit-recovery"),
++        channel: "beta", installation: "fieldlog-ios-local", observationSeconds: 1),
++      execution: execution)
++  }
++
++  static func stage(
++    _ sequence: Int, kind: Kind = .draftTools, in materials: URL, on owner: CapabilityGuestUIRuntime
++  ) async throws {
++    guard (kind == .entryCommit ? sequence == 1 : (1...variants.count).contains(sequence)) else {
++      throw CapabilityFailure.permissionDenied
++    }
++    let expected = UInt64(sequence)
++    let snapshot = await owner.recoverySnapshot()
++    if snapshot.acceptedSequence == expected, snapshot.downloading == nil { return }
++    guard snapshot.acceptedSequence == expected || snapshot.acceptedSequence == expected - 1
++    else { throw FieldLogError.validation("Local draft assignment is out of order.") }
++    let variant = kind == .entryCommit ? "entry-commit" : variants[sequence - 1]
++    let assignment = kind == .entryCommit ? "entry-commit.assignment.json" : "sequence-\(sequence).assignment.json"
++    if snapshot.acceptedSequence < expected {
++      try await owner.beginDownload(
++        signedManifest: read("\(variant).manifest.json", in: materials),
++        signedAssignment: read(assignment, in: materials))
++    }
++    let payload = try read("\(variant).wasm", in: materials, maximum: 4_194_304)
++    let offset = try await owner.downloadOffset()
++    guard offset <= UInt64(payload.count) else { throw CapabilityFailure.invalidResponse }
++    var position = Int(offset)
++    while position < payload.count {
++      let end = min(payload.count, position + 1_048_576)
++      try await owner.appendDownload(Data(payload[position..<end]), atOffset: UInt64(position))
++      position = end
++    }
++    try await owner.finishDownload()
++  }
++
++  private static func read(_ name: String, in directory: URL, maximum: Int = 65_536) throws -> Data {
++    let file = try FileHandle(forReadingFrom: directory.appendingPathComponent(name))
++    defer { try? file.close() }
++    guard let bytes = try file.read(upToCount: maximum + 1), !bytes.isEmpty, bytes.count <= maximum
++    else { throw CapabilityFailure.invalidResponse }
++    return bytes
++  }
++}
++
++#if os(iOS)
++struct InstalledDraftGuestView: View {
++  @EnvironmentObject private var model: WorkspaceModel
++  @Environment(\.dismiss) private var dismiss
++  @State private var access: SelectedDraftGuestAccess?
++  @State private var owner: CapabilityGuestUIRuntime?
++  @State private var running: Task<Void, Never>?
++  @State private var closing = false
++  @State private var completion: WorkspaceModel.DraftGuestClose?
++  @State private var status = "Opening installed draft tools"
++  let draft: EntryDraft
++  let kind: InstalledDraftGuest.Kind
++  let materials: URL
++  let onCommit: () -> Void
++
++  var body: some View {
++    NavigationStack {
++      VStack(spacing: 12) {
++        Text(status).accessibilityIdentifier("installed-draft-status")
++        if let owner { MixerGuestScreen(presentation: owner.presentation) }
++      }
++      .padding()
++      .navigationTitle(kind.title)
++      .navigationBarTitleDisplayMode(.inline)
++      .toolbar {
++        ToolbarItem(placement: .cancellationAction) {
++          Button(closeTitle, action: requestClose)
++          .disabled(closing)
++          .accessibilityIdentifier(kind == .entryCommit ? "close-entry-commit" : "close-installed-draft")
++        }
++      }
++    }
++    .interactiveDismissDisabled()
++    .task {
++      let work = Task { await run() }
++      running = work
++      if closing { work.cancel() }
++      await withTaskCancellationHandler {
++        await work.value
++      } onCancel: { work.cancel() }
++    }
++    .onDisappear { access?.revoke() }
++  }
++
++  private var closeTitle: String {
++    if completion == .retirementPending { return "Retry closing" }
++    return kind == .entryCommit ? "Done" : "Close"
++  }
++
++  private func requestClose() {
++    closing = true
++    if completion == .retirementPending {
++      completion = nil
++      running = Task { await retire() }
++      return
++    }
++    access?.revoke()
++    running?.cancel()
++    finishIfRequested()
++  }
++
++  private func finishIfRequested() {
++    guard closing, let completion, completion != .retirementPending else { return }
++    if completion == .committed { onCommit() }
++    dismiss()
++  }
++
++  private func run() async {
++    do {
++      try Task.checkCancellation()
++      guard let directory = model.workspaceDirectory else { throw FieldLogError.missingRecord }
++      let attached = switch kind {
++        case .draftTools: try await model.attachDraftGuest(projectID: draft.projectID, draftID: draft.id)
++        case .entryCommit: try await model.attachDraftCommit(draft)
++      }
++      access = attached
++      try Task.checkCancellation()
++      let runtime = try await InstalledDraftGuest.open(
++        materials: materials, workspaceDirectory: directory, storage: attached,
++        bundleID: Bundle.main.bundleIdentifier)
++      owner = runtime
++      let sequence = kind == .entryCommit ? 1 : try InstalledDraftGuest.sequence(isTestWorkspace: model.isTestWorkspace)
++      if let sequence { try await InstalledDraftGuest.stage(sequence, kind: kind, in: materials, on: runtime) }
++      try Task.checkCancellation()
++      _ = try await runtime.start()
++      while !Task.isCancelled {
++        let snapshot = await runtime.recoverySnapshot()
++        if snapshot.activation.phase == .healthyGuest {
++          let ready = kind == .entryCommit ? "Signed entry commit ready" : "Installed draft ready · \(snapshot.acceptedSequence)"
++          if status != ready { status = ready }
++        } else if [.nativeFallback, .recoveryRequired, .closed].contains(snapshot.activation.phase) {
++          status = "Installed draft tools unavailable"
++          break
++        }
++        try await Task.sleep(for: .milliseconds(100))
++      }
++    } catch {
++      if !Task.isCancelled { status = "Installed draft tools unavailable" }
++    }
++    await retire()
++  }
++
++  private func retire() async {
++    if let access {
++      completion = await model.finishDraftGuest(access, owner: owner)
++    } else {
++      completion = .closed
++    }
++    if completion == .retirementPending {
++      closing = false
++      status = "Installed draft tools are still closing."
++      return
++    }
++    access = nil
++    owner = nil
++    finishIfRequested()
++  }
++}
++#endif
+diff --git a/ios/FieldLog/InstalledEntryCommit/README.txt b/ios/FieldLog/InstalledEntryCommit/README.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..a28f53be5dbb1f1012e0f9470f1bc6ddef404761
+--- /dev/null
++++ b/ios/FieldLog/InstalledEntryCommit/README.txt
+@@ -0,0 +1,2 @@
++Local development fixture. The signed Commit action is available when the
++installed runtime identity and signed assignment are provisioned here.
+diff --git a/ios/FieldLog/SelectedDraftGuestBinding.swift b/ios/FieldLog/SelectedDraftGuestBinding.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..9ceca8b49397576859264e04659e917dd0dd10b3
+--- /dev/null
++++ b/ios/FieldLog/SelectedDraftGuestBinding.swift
+@@ -0,0 +1,184 @@
++import FieldLogEntrySaving
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++import os
++@_spi(InstalledApplicationStorage) import MixerCapabilities
++
++@MainActor final class SelectedDraftGuestBinding {
++  private struct Selection: Equatable {
++    let projectID: UUID
++    let draftID: UUID
++    let generation = UUID()
++  }
++
++  private var selection: Selection?
++  private var access: SelectedDraftGuestAccess?
++
++  func select(_ draft: EntryDraft?) {
++    access?.revoke()
++    access = nil
++    selection = draft.map { Selection(projectID: $0.projectID, draftID: $0.id) }
++  }
++
++  func attach(
++    repository: WorkspaceRepository, projectID: UUID, draftID: UUID
++  ) async throws -> SelectedDraftGuestAccess {
++    guard let selection, selection.projectID == projectID, selection.draftID == draftID,
++      access == nil
++    else { throw CapabilityFailure.permissionDenied }
++    let storage = try await FieldLogDraftStorage(
++      repository: repository, projectID: projectID, draftID: draftID)
++    try Task.checkCancellation()
++    guard self.selection == selection, access == nil else { throw CapabilityFailure.permissionDenied }
++    let attached = SelectedDraftGuestAccess(storage: storage)
++    access = attached
++    return attached
++  }
++
++  func attachCommit(
++    repository: WorkspaceRepository, draft: EntryDraft, expectedRevision: UInt64
++  ) async throws -> SelectedDraftGuestAccess {
++    guard let selection, selection.projectID == draft.projectID, selection.draftID == draft.id,
++      access == nil
++    else { throw CapabilityFailure.permissionDenied }
++    let snapshot = try await repository.readCommittedSnapshot()
++    try Task.checkCancellation()
++    guard self.selection == selection, access == nil, snapshot.revision == expectedRevision,
++      snapshot.restoration.openDraftID == draft.id,
++      let saved = snapshot.drafts.first(where: { $0.id == draft.id && $0.projectID == draft.projectID }),
++      saved.title.utf8.elementsEqual(draft.title.utf8), saved.note.utf8.elementsEqual(draft.note.utf8),
++      saved.category == draft.category, saved.occurredAt == draft.occurredAt
++    else { throw CapabilityFailure.permissionDenied }
++    let attached = SelectedDraftGuestAccess(commit: .init(
++      repository: repository, sourceRevision: expectedRevision,
++      intent: .init(projectID: saved.projectID, draft: saved, kind: .commit)))
++    access = attached
++    return attached
++  }
++
++  @discardableResult func detach(_ attached: SelectedDraftGuestAccess) -> Bool {
++    attached.revoke()
++    guard access === attached else { return false }
++    access = nil
++    return true
++  }
++}
++
++@MainActor final class SelectedDraftGuestAccess: InstalledApplicationStorageServing {
++  private var storage: FieldLogDraftStorage?
++  let commit: SelectedDraftEntryCommit?
++  private var pending: [UUID: () -> Void] = [:]
++
++  init(storage: FieldLogDraftStorage) {
++    self.storage = storage
++    commit = nil
++  }
++
++  init(commit: SelectedDraftEntryCommit) { self.commit = commit }
++
++  func revoke() {
++    commit?.revoke()
++    storage = nil
++    for cancel in pending.values { cancel() }
++    pending.removeAll()
++  }
++
++  func get(_ arguments: KVGetArguments) async throws -> KVGetResponse {
++    try await perform { try await $0.get(arguments) }
++  }
++
++  func put(
++    _ arguments: KVPutArguments, maximumTotalBytes: Int, maximumEntries: Int
++  ) async throws -> KVMutationResponse {
++    try await perform {
++      try await $0.put(arguments, maximumTotalBytes: maximumTotalBytes, maximumEntries: maximumEntries)
++    }
++  }
++
++  func delete(_ arguments: KVDeleteArguments) async throws -> KVMutationResponse {
++    try await perform { try await $0.delete(arguments) }
++  }
++
++  private func perform<Result: Sendable>(
++    _ operation: @escaping @Sendable (FieldLogDraftStorage) async throws -> Result
++  ) async throws -> Result {
++    guard let storage else { throw CapabilityFailure.permissionDenied }
++    try Task.checkCancellation()
++    let id = UUID()
++    let work = Task { try await operation(storage) }
++    pending[id] = { work.cancel() }
++    defer { pending.removeValue(forKey: id) }
++    let result = try await withTaskCancellationHandler {
++      try await work.value
++    } onCancel: {
++      work.cancel()
++    }
++    try Task.checkCancellation()
++    guard self.storage != nil else { throw CapabilityFailure.permissionDenied }
++    return result
++  }
++}
++
++final class SelectedDraftEntryCommit: Sendable {
++  private let repository: WorkspaceRepository
++  private let sourceRevision: UInt64
++  private let intent: EntrySaveIntent
++  private let active = OSAllocatedUnfairLock(initialState: true)
++
++  init(repository: WorkspaceRepository, sourceRevision: UInt64, intent: EntrySaveIntent) {
++    self.repository = repository
++    self.sourceRevision = sourceRevision
++    self.intent = intent
++  }
++
++  func revoke() { active.withLock { $0 = false } }
++
++  var continuation: InstalledGuestUICommitFacts {
++    .init(
++      arguments: .init(namespace: FieldLogDraftStorage.namespace, key: "entry-save-decision-v1"),
++      nodeID: "toggle", actionID: "entry.commit",
++      commitArguments: .init(
++        namespace: FieldLogDraftStorage.namespace, key: "entry-commit-v1", valueBase64: "AQ==")
++    ) { [self] event in
++      let snapshot = try await repository.readCommittedSnapshot()
++      guard snapshot.revision == sourceRevision, isSelected(in: snapshot),
++        event.isLive, active.withLock({ $0 })
++      else { throw CapabilityFailure.permissionDenied }
++      let facts = intent.decisionFacts()
++      var bytes = withUnsafeBytes(of: facts.counts.bigEndian) { Data($0) }
++      bytes.append(facts.flags)
++      let response = KVGetResponse(found: true, valueBase64: bytes.base64EncodedString())
++      guard facts.decision == .eligible else { return .init(response: response) }
++      return .init(response: response) { permit in try await self.commit(permit) }
++    }
++  }
++
++  func committedEntry(in snapshot: Workspace) -> Bool {
++    if case .committed? = try? intent.result(in: snapshot) { return true }
++    return false
++  }
++
++  private func isSelected(in snapshot: Workspace) -> Bool {
++    snapshot.restoration.openDraftID == intent.draft.id &&
++      snapshot.drafts.contains { $0.id == intent.draft.id && $0.projectID == intent.projectID }
++  }
++
++  private func commit(_ permit: InstalledGuestUICommitPermit) async throws -> KVMutationResponse {
++    do {
++      let saved = try await repository.transact(expectedRevision: sourceRevision) { [self] next in
++        guard isSelected(in: next) else { throw CapabilityFailure.permissionDenied }
++        try active.withLock {
++          guard $0 else { throw CapabilityFailure.permissionDenied }
++          try permit.consume()
++          $0 = false
++        }
++        try intent.apply(to: &next)
++      }
++      guard committedEntry(in: saved) else { throw CapabilityFailure.invalidResponse }
++      return .init(committed: true)
++    } catch FieldLogError.staleRevision {
++      throw CapabilityFailure.permissionDenied
++    }
++  }
++}
+diff --git a/ios/FieldLog/WorkspaceModel.swift b/ios/FieldLog/WorkspaceModel.swift
+index 500a5f56ef5a78322d55c30fa08729bc25480f5c..b9eedff33a4f4581cde49cef21540c59abd7a281 100644
+--- a/ios/FieldLog/WorkspaceModel.swift
++++ b/ios/FieldLog/WorkspaceModel.swift
+@@ -1,5 +1,6 @@
+ import FieldLogModels
+ import FieldLogStorage
++import MixerCapabilityActivation
+ import SwiftUI
+ 
+ @MainActor final class WorkspaceModel: ObservableObject {
+@@ -11,6 +12,8 @@ import SwiftUI
+   @Published private(set) var unsavedDrafts: [UUID: EntryDraft] = [:]
+   @Published private(set) var isTestWorkspace = false
+   private var repository: WorkspaceRepository?
++  private let draftGuestBinding = SelectedDraftGuestBinding()
++  private(set) var workspaceDirectory: URL?
+   private var saveChain: Task<Bool, Never>?
+   private var opened = false
+ 
+@@ -47,9 +50,10 @@ import SwiftUI
+             "UI-test workspaces require a Debug build. No workspace was opened.")
+         #endif
+       }
+-      let repository = try WorkspaceRepository(
+-        directory: support.appendingPathComponent(workspaceFolder, isDirectory: true))
++      let directory = support.appendingPathComponent(workspaceFolder, isDirectory: true)
++      let repository = try WorkspaceRepository(directory: directory)
+       self.repository = repository
++      workspaceDirectory = directory
+       workspace = await repository.snapshot()
+       openError = nil
+     } catch { openError = error.localizedDescription }
+@@ -122,7 +126,58 @@ import SwiftUI
+     return await keepDraft(draft, open: true) ? draft : nil
+   }
+   func openDraft(_ id: UUID) { enqueue { $0.restoration.openDraftID = id } }
++  func selectDraftEditor(_ draft: EntryDraft?) { draftGuestBinding.select(draft) }
++
++  func attachDraftGuest(projectID: UUID, draftID: UUID) async throws -> SelectedDraftGuestAccess {
++    guard let repository else { throw FieldLogError.missingRecord }
++    return try await draftGuestBinding.attach(
++      repository: repository, projectID: projectID, draftID: draftID)
++  }
++
++  func attachDraftCommit(_ draft: EntryDraft) async throws -> SelectedDraftGuestAccess {
++    guard let repository, let workspace, pendingSaves == 0, unsavedDrafts[draft.id] == nil else {
++      throw FieldLogError.missingRecord
++    }
++    return try await draftGuestBinding.attachCommit(
++      repository: repository, draft: draft, expectedRevision: workspace.revision)
++  }
++
++  enum DraftGuestClose { case closed, committed, workspaceUnavailable, retirementPending }
++
++  func finishDraftGuest(
++    _ access: SelectedDraftGuestAccess, owner: CapabilityGuestUIRuntime?
++  ) async -> DraftGuestClose {
++    access.revoke()
++    if let owner {
++      // The presentation cancels its task on Done. Join concrete retirement
++      // independently of that cancellation before publishing the snapshot.
++      let retired = await Task {
++        await owner.close()
++        let deadline = ContinuousClock.now + .seconds(5)
++        while true {
++          let snapshot = await owner.recoverySnapshot()
++          if snapshot.closed, !snapshot.activation.cleanupPending { return true }
++          if ContinuousClock.now >= deadline { return false }
++          try? await Task.sleep(for: .milliseconds(10))
++        }
++      }.value
++      guard retired else { return .retirementPending }
++    }
++    guard draftGuestBinding.detach(access), let commit = access.commit, let repository else {
++      return .closed
++    }
++    do {
++      let saved = try await repository.readCommittedSnapshot()
++      workspace = saved
++      return commit.committedEntry(in: saved) ? .committed : .closed
++    } catch {
++      saveError = "Reopen FieldLog to check whether the entry was saved."
++      return .workspaceUnavailable
++    }
++  }
++
+   func closeDraft() {
++    selectDraftEditor(nil)
+     guard workspace?.restoration.openDraftID != nil else { return }
+     enqueue { $0.restoration.openDraftID = nil }
+   }
+diff --git a/ios/FieldLog/WorkspaceView.swift b/ios/FieldLog/WorkspaceView.swift
+index a5e2950efc88bdbe378e613550162e4c8ff930e9..01572d04036885604c9ecc3ef2a856c34f4f1c05 100644
+--- a/ios/FieldLog/WorkspaceView.swift
++++ b/ios/FieldLog/WorkspaceView.swift
+@@ -26,7 +26,7 @@ struct WorkspaceView: View {
+               workspace: workspace, testing: model.isTestWorkspace, onAdd: { addingProject = true }
+             )
+             .navigationDestination(for: UUID.self) { id in
+-              ProjectDetail(projectID: id, onEdit: { editingDraft = $0 })
++              ProjectDetail(projectID: id, onEdit: editDraft)
+             }
+           }.tabItem { Label("Projects", systemImage: "square.stack.3d.up") }
+           NavigationStack {
+@@ -34,7 +34,7 @@ struct WorkspaceView: View {
+               workspace: workspace,
+               onEdit: { draft in
+                 model.openDraft(draft.id)
+-                editingDraft = draft
++                editDraft(draft)
+               })
+           }.tabItem { Label("On device", systemImage: "internaldrive") }
+           NavigationStack { SettingsView() }.tabItem { Label("Settings", systemImage: "gearshape") }
+@@ -44,7 +44,7 @@ struct WorkspaceView: View {
+           restored = true
+           if let id = workspace.restoration.selectedProjectID { projectPath = [id] }
+           if let id = workspace.restoration.openDraftID {
+-            editingDraft = workspace.drafts.first { $0.id == id }
++            editDraft(workspace.drafts.first { $0.id == id })
+           }
+         }
+         .onChange(of: projectPath) { _, path in model.restoreProject(path.last) }
+@@ -65,10 +65,17 @@ struct WorkspaceView: View {
+         return false
+       }
+     }
+-    .sheet(item: $editingDraft, onDismiss: { model.closeDraft() }) { draft in
++    .sheet(item: Binding(get: { editingDraft }, set: editDraft), onDismiss: {
++      if editingDraft == nil { model.closeDraft() }
++    }) { draft in
+       EntryEditor(draft: draft)
+     }
+   }
++
++  private func editDraft(_ draft: EntryDraft?) {
++    model.selectDraftEditor(draft)
++    editingDraft = draft
++  }
+ }
+ 
+ private struct ProjectList: View {
+diff --git a/ios/FieldLogUITests/FieldLogSignedDraftTests.swift b/ios/FieldLogUITests/FieldLogSignedDraftTests.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..c797b6db05be213be0ca7724a19528b1443c6bb6
+--- /dev/null
++++ b/ios/FieldLogUITests/FieldLogSignedDraftTests.swift
+@@ -0,0 +1,127 @@
++import XCTest
++
++@MainActor final class FieldLogSignedDraftTests: XCTestCase {
++  func testSignedOptionalFieldSurvivesRollbackAndOrdinarySave() {
++    continueAfterFailure = false
++    let app = XCUIApplication()
++    let workspace = UUID().uuidString
++    let attachment = XCTAttachment(string: workspace)
++    attachment.name = "fieldlog-test-workspace-id"
++    attachment.lifetime = .keepAlways
++    add(attachment)
++
++    launch(app, workspace: workspace, sequence: nil)
++    XCTAssertTrue(app.staticTexts["test-workspace-badge"].waitForExistence(timeout: 15))
++    app.buttons["create-first-project"].tap()
++    let projectName = app.textFields["project-name"]
++    XCTAssertTrue(projectName.waitForExistence(timeout: 10))
++    projectName.tap()
++    projectName.typeText("Signed draft inspection")
++    app.buttons["save-project"].tap()
++    XCTAssertTrue(app.navigationBars["Signed draft inspection"].waitForExistence(timeout: 10))
++    createDraft("Pump seal", app)
++    createDraft("Other draft", app)
++
++    let note = "Seal rechecked during rollback."
++    for sequence in 1...5 {
++      launch(app, workspace: workspace, sequence: sequence)
++      XCTAssertTrue(app.navigationBars["Signed draft inspection"].waitForExistence(timeout: 15))
++      openDraft("Pump seal", app)
++      XCTAssertEqual(title(in: app).value as? String, "Pump seal")
++      openGuest(app, sequence)
++      if sequence == 3 {
++        let mark = app.buttons["Mark follow-up required"]
++        XCTAssertTrue(app.staticTexts["Follow-up unset"].waitForExistence(timeout: 10))
++        XCTAssertTrue(mark.waitForExistence(timeout: 10))
++        mark.tap()
++        XCTAssertTrue(app.staticTexts["Follow-up required"].waitForExistence(timeout: 10))
++      } else if sequence == 5 {
++        XCTAssertTrue(app.staticTexts["Follow-up required"].waitForExistence(timeout: 10))
++      } else {
++        XCTAssertTrue(app.staticTexts["Saved draft loaded"].waitForExistence(timeout: 10))
++        let check = app.buttons["Check saved draft"]
++        XCTAssertTrue(check.waitForExistence(timeout: 10))
++        check.tap()
++        XCTAssertTrue(app.staticTexts["Ready to save entry"].waitForExistence(timeout: 10))
++        XCTAssertFalse(app.buttons["Mark follow-up required"].exists)
++        XCTAssertFalse(app.buttons["Clear follow-up requirement"].exists)
++      }
++      closeGuest(app)
++      if sequence == 4 {
++        let field = app.textViews["entry-note"]
++        reveal(field, app)
++        field.tap()
++        field.typeText(note)
++      }
++      app.buttons["Done"].tap()
++      XCTAssertTrue(app.navigationBars["Signed draft inspection"].waitForExistence(timeout: 10))
++    }
++
++    launch(app, workspace: workspace, sequence: nil)
++    XCTAssertTrue(app.navigationBars["Signed draft inspection"].waitForExistence(timeout: 15))
++    openDraft("Other draft", app)
++    openGuest(app, 5)
++    XCTAssertTrue(app.staticTexts["Follow-up unset"].waitForExistence(timeout: 10))
++    closeGuest(app)
++    app.buttons["Done"].tap()
++    openDraft("Pump seal", app)
++    XCTAssertEqual(app.textViews["entry-note"].value as? String, note)
++    openGuest(app, 5)
++    XCTAssertTrue(app.staticTexts["Follow-up required"].waitForExistence(timeout: 10))
++    closeGuest(app)
++    app.terminate()
++  }
++
++  private func launch(_ app: XCUIApplication, workspace: String, sequence: Int?) {
++    if app.state != .notRunning { app.terminate() }
++    app.launchArguments = ["--fieldlog-ui-workspace", workspace]
++    if let sequence { app.launchArguments += ["--fieldlog-draft-assignment", String(sequence)] }
++    app.launch()
++  }
++
++  private func openGuest(_ app: XCUIApplication, _ sequence: Int) {
++    let button = app.buttons["open-installed-draft"]
++    reveal(button, app)
++    button.tap()
++    let status = app.staticTexts["installed-draft-status"]
++    let ready = NSPredicate(format: "label == %@", "Installed draft ready · \(sequence)")
++    expectation(for: ready, evaluatedWith: status)
++    waitForExpectations(timeout: 20)
++  }
++
++  private func closeGuest(_ app: XCUIApplication) {
++    app.buttons["close-installed-draft"].tap()
++    XCTAssertTrue(app.navigationBars["Field note"].waitForExistence(timeout: 10))
++  }
++
++  private func createDraft(_ name: String, _ app: XCUIApplication) {
++    let add = app.buttons["add-entry"]
++    reveal(add, app)
++    add.tap()
++    let field = title(in: app)
++    XCTAssertTrue(field.waitForExistence(timeout: 10))
++    field.tap()
++    field.typeText(name)
++    app.buttons["Done"].tap()
++    XCTAssertTrue(app.navigationBars["Signed draft inspection"].waitForExistence(timeout: 10))
++  }
++
++  private func openDraft(_ name: String, _ app: XCUIApplication) {
++    let draft = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", name)).firstMatch
++    reveal(draft, app)
++    draft.tap()
++    XCTAssertTrue(app.navigationBars["Field note"].waitForExistence(timeout: 10))
++  }
++
++  private func title(in app: XCUIApplication) -> XCUIElement {
++    app.textFields["entry-title"].exists ? app.textFields["entry-title"] : app.textViews["entry-title"]
++  }
++
++  private func reveal(_ element: XCUIElement, _ app: XCUIApplication) {
++    for _ in 0..<8 {
++      if element.isHittable { return }
++      app.swipeUp()
++    }
++    XCTAssertTrue(element.isHittable)
++  }
++}

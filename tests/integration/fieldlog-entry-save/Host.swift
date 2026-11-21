@@ -6,8 +6,8 @@ import FieldLogInstalledGuest
 import FieldLogModels
 import FieldLogStorage
 import Foundation
-@_spi(AndroidGuestUIV1) import MixerCapabilityActivation
-import MixerCapabilities
+@_spi(AndroidGuestUIV1) @_spi(InstalledApplicationStorage) import MixerCapabilityActivation
+@_spi(InstalledApplicationStorage) import MixerCapabilities
 import MixerRuntimeIdentity
 import MixerUI
 import os
@@ -40,13 +40,15 @@ enum Trial {
         try Data(contentsOf: directory.appendingPathComponent(name))
     }
 
-    static func open(directory: URL, assets: URL, storage: DecisionReads) async throws -> CapabilityGuestUIAndroidRuntime {
+    static func open(directory: URL, assets: URL, storage: any InstalledApplicationStorageServing,
+                     commitFacts: InstalledGuestUICommitFacts? = nil) async throws -> CapabilityGuestUIAndroidRuntime {
         let identity = try read(assets, "identity.json")
         let execution = try InstalledCapabilityExecution(identityJSON: identity, materials: materials.map { name, role in
             try .init(role: role, bytes: read(assets, name))
         }, trustRootsJSON: read(assets, "roots.json"), privateContainer: directory,
            applicationStorage: .init(runtimeFingerprint: CapabilityRuntimeIdentity(json: identity).fingerprint,
-               namespace: FieldLogDraftStorage.namespace, service: storage, allowsDeferredGuestUIStartup: true))
+               namespace: FieldLogDraftStorage.namespace, service: storage, allowsDeferredGuestUIStartup: commitFacts == nil,
+               guestUICommitFacts: commitFacts))
         return try await CapabilityGuestUIAndroidRuntime.open(configuration: .init(
             directory: directory.appendingPathComponent("recovery"), channel: channel,
             installation: "fieldlog-entry-decision-local", observationSeconds: 1), execution: execution)
@@ -118,13 +120,29 @@ actor DecisionReads: InstalledApplicationStorageServing {
     static func main() async {
         do {
             let args = CommandLine.arguments
+            #if FIELDLOG_ENTRY_COMMIT_HOST_TEST
+            if args.count == 8, args[1] == "sign-editor" {
+                try AndroidEditorReplay.sign(fixtures: url(args[2]), guests: url(args[3]), material: url(args[4]),
+                    archive: args[5], binary: args[6], sourceCommit: args[7])
+                return
+            }
+            if args.count == 4, args[1] == "run-editor" {
+                try await AndroidEditorReplay.run(material: url(args[2]), directory: url(args[3]))
+                return
+            }
+            #endif
             if args.count == 7, args[1] == "sign" {
                 try signReleases(fixtures: url(args[2]), guests: url(args[3]), output: url(args[4]),
                                  archive: args[5], binary: args[6])
+            } else if args.count == 7, args[1] == "sign-commit" {
+                try DurableCommit.sign(fixtures: url(args[2]), guests: url(args[3]), output: url(args[4]),
+                                       archive: args[5], binary: args[6])
             } else if args.count == 4, args[1] == "run" {
                 try await replay(assets: url(args[2]), directory: url(args[3]))
+            } else if args.count == 4, args[1] == "run-commit" {
+                try await DurableCommit.replay(assets: url(args[2]), directory: url(args[3]))
             } else {
-                throw TrialError("Expected sign <fixtures> <guest> <output> <VM hash> <host hash> or run <assets> <directory>")
+                throw TrialError("Expected sign or sign-commit with fixture inputs, or run or run-commit with assets and a private directory")
             }
         } catch {
             FileHandle.standardError.write(Data("\(error)\n".utf8))
@@ -134,7 +152,7 @@ actor DecisionReads: InstalledApplicationStorageServing {
 
     private static func url(_ path: String) -> URL { URL(fileURLWithPath: path, isDirectory: true) }
 
-    private static func check(_ condition: Bool, _ message: String) throws {
+    static func check(_ condition: Bool, _ message: String) throws {
         guard condition else { throw TrialError(message) }
     }
 
@@ -145,7 +163,7 @@ actor DecisionReads: InstalledApplicationStorageServing {
         } catch CapabilityFailure.permissionDenied {}
     }
 
-    private static func eventually(_ message: String, _ condition: () -> Bool) async throws {
+    static func eventually(_ message: String, _ condition: () -> Bool) async throws {
         let deadline = ContinuousClock.now + .seconds(5)
         while !condition() {
             try check(ContinuousClock.now < deadline, message)
@@ -386,7 +404,7 @@ actor DecisionReads: InstalledApplicationStorageServing {
         return .init(revision: snapshot.document.revision, identity: identity, event: event, value: value)
     }
 
-    private static func frame(_ facade: UInt64) throws -> [String] {
+    static func frame(_ facade: UInt64) throws -> [String] {
         var bytes = [UInt8](repeating: 0, count: 4096)
         let count = mxfield_host_packet(facade, mxfield_recorded_probe(facade), &bytes, UInt32(bytes.count))
         guard count > 0, count <= bytes.count,
@@ -400,11 +418,11 @@ actor DecisionReads: InstalledApplicationStorageServing {
         }
     }
 
-    private static func witness(_ facade: UInt64, command: UInt32) async throws {
+    static func witness(_ facade: UInt64, command: UInt32) async throws {
         try await eventually("Witness \(command) was refused") { mxish_call_entry(facade, command) == 0 }
     }
 
-    private static func tap(_ facade: UInt64, expected: [String]) async throws {
+    static func tap(_ facade: UInt64, expected: [String]) async throws {
         let previous = mxfield_recorded_probe(facade)
         let oldInput = mxish_last_id(facade, 2)
         try await witness(facade, command: 11)

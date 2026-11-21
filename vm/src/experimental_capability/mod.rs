@@ -176,6 +176,7 @@ struct State {
     closed: bool,
     active_turn: Option<u64>,
     last_turn: u64,
+    polled_commit_facts: Option<u64>,
     reserved_bytes: usize,
     slots: [Slot; MAX_REQUESTS],
 }
@@ -197,6 +198,13 @@ struct Request {
     cancel_pending: bool,
     terminal: Option<Terminal>,
     consumed: bool,
+    commit: CommitRequest,
+}
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum CommitRequest {
+    Ordinary,
+    Facts,
+    Write { facts_token: u64 },
 }
 enum Terminal {
     Payload(Vec<u8>),
@@ -254,6 +262,7 @@ impl State {
             closed: false,
             active_turn: None,
             last_turn: 0,
+            polled_commit_facts: None,
             reserved_bytes: 0,
             slots: std::array::from_fn(|_| Slot {
                 generation: 1,
@@ -311,6 +320,7 @@ impl State {
     fn close(&mut self, owner: u64) -> CloseReport {
         self.closed = true;
         self.active_turn = None;
+        self.polled_commit_facts = None;
         let mut report = CloseReport {
             cancellations: [None; MAX_REQUESTS],
         };
@@ -411,6 +421,7 @@ impl Mailbox {
             }
         }
         state.active_turn = None;
+        state.polled_commit_facts = None;
         Ok(None)
     }
     /// Budget/slot/range checks precede the only fallible payload allocation.
@@ -470,6 +481,7 @@ impl Mailbox {
             cancel_pending: false,
             terminal,
             consumed: false,
+            commit: CommitRequest::Ordinary,
         });
         state.reserved_bytes = reserved;
         Ok(RequestId {
@@ -577,6 +589,33 @@ impl Mailbox {
         }
         request.terminal = Some(Terminal::Payload(bytes));
         Ok(())
+    }
+    /// Only a request from the just-completed native turn can carry the
+    /// host's admitted action. Zero selects the exact facts read; a nonzero
+    /// token checks a write's source recorded at guest enqueue.
+    pub(crate) fn commit_request(
+        &self,
+        lease: &NativeLease,
+        facts_token: u64,
+    ) -> Result<bool, Error> {
+        let mut state = self.lock()?;
+        state.live()?;
+        let index = state.lease_index(self.owner, lease)?;
+        let last_turn = state.last_turn;
+        let turn_active = state.active_turn.is_some();
+        let request = state.slots[index].request.as_mut().unwrap();
+        if turn_active || request.turn != last_turn || request.consumed || request.native_done {
+            return Ok(false);
+        }
+        if facts_token == 0
+            && request.operation == Operation::Get
+            && request.commit == CommitRequest::Ordinary
+            && request.terminal.is_none()
+        {
+            request.commit = CommitRequest::Facts;
+            return Ok(true);
+        }
+        Ok(facts_token != 0 && request.commit == CommitRequest::Write { facts_token })
     }
     /// Actual adapter exit is independent of completion. An early ack is
     /// accepted, blocks future post, and retains pending delivery until its

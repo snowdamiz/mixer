@@ -240,7 +240,8 @@ private actor CapabilityConcreteSetup {
             let createdGroup: OwnedCapabilityAdapterGroup
             if let policy = storagePolicy, let binding, policy.namespaces == [binding.namespace] {
                 let adapter = InstalledApplicationStorageAdapter(service: binding.service,
-                    maximumTotalBytes: policy.maximumTotalBytes, maximumEntries: policy.maximumEntries)
+                    maximumTotalBytes: policy.maximumTotalBytes, maximumEntries: policy.maximumEntries,
+                    guestUICommitFacts: binding.guestUICommitFacts)
                 createdGroup = OwnedCapabilityAdapterGroup(http: http, applicationStorage: adapter,
                     terminal: control.signals, retirement: control.retirement)
             } else {

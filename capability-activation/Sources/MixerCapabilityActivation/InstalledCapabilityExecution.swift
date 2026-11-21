@@ -1,5 +1,5 @@
 import Foundation
-import MixerCapabilities
+@_spi(InstalledApplicationStorage) import MixerCapabilities
 import MixerRuntimeIdentity
 import MixerUpdates
 
@@ -23,13 +23,22 @@ public struct InstalledApplicationStorage: Sendable {
     public let namespace: String
     let service: any InstalledApplicationStorageServing
     let allowsDeferredGuestUIStartup: Bool
+    let guestUICommitFacts: InstalledGuestUICommitFacts?
 
     public init(runtimeFingerprint: String, namespace: String, service: any InstalledApplicationStorageServing,
                 allowsDeferredGuestUIStartup: Bool = false) {
+        self.init(runtimeFingerprint: runtimeFingerprint, namespace: namespace, service: service,
+                  allowsDeferredGuestUIStartup: allowsDeferredGuestUIStartup, guestUICommitFacts: nil)
+    }
+
+    @_spi(InstalledApplicationStorage)
+    public init(runtimeFingerprint: String, namespace: String, service: any InstalledApplicationStorageServing,
+                allowsDeferredGuestUIStartup: Bool = false, guestUICommitFacts: InstalledGuestUICommitFacts?) {
         self.runtimeFingerprint = runtimeFingerprint
         self.namespace = namespace
         self.service = service
         self.allowsDeferredGuestUIStartup = allowsDeferredGuestUIStartup
+        self.guestUICommitFacts = guestUICommitFacts
     }
 }
 
@@ -95,6 +104,18 @@ public struct InstalledCapabilityExecution: Sendable {
                   storageGrant?.permissions == ["storage.appPrivate"],
                   storageGrant?.namespaces == [applicationStorage.namespace] else {
                 throw materialError("application_storage")
+            }
+            if let facts = applicationStorage.guestUICommitFacts {
+                guard facts.arguments.namespace == applicationStorage.namespace,
+                      (facts.commitArguments?.namespace ?? applicationStorage.namespace) == applicationStorage.namespace,
+                      identity.installedRuntime.scope.environment == "development",
+                      identity.execution.startupExport == CapabilityInstalledExecutionMode.startup else {
+                    throw materialError("application_storage")
+                }
+                guard facts.supportsTransport(maximumRequests: identity.capabilityExecution.maximumRequests,
+                                              reservationBytes: identity.capabilityExecution.reservationBytes) else {
+                    throw materialError("application_storage_commit_limits")
+                }
             }
         }
         let rootsBytes = MaterialRules.snapshot(trustRootsJSON)

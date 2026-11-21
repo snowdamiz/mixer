@@ -123,6 +123,19 @@ pub unsafe extern "C" fn mixer_vm_capability_session_wake_v1(
 ) -> u32 {
     unsafe { api::wake(&CapabilityRegistry, handle, did, out) }
 }
+/// Private host attribution for a dispatched Commit read or write.
+/// # Safety
+/// Output pointers obey the same contract as the native wake function.
+#[no_mangle]
+pub unsafe extern "C" fn mixer_private_guest_ui_commit_request_v1(
+    handle: u64,
+    token: u64,
+    facts_token: u64,
+    accepted: *mut u32,
+    out: *mut MixerVmReport,
+) -> u32 {
+    unsafe { api::commit_request(&CapabilityRegistry, handle, token, facts_token, accepted, out) }
+}
 /// # Safety
 /// Every pointer obeys the complete storage and lifetime contract in mixer_vm_capability.h.
 #[no_mangle]

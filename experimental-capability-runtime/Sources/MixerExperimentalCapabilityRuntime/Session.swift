@@ -1,5 +1,5 @@
 import Foundation
-import MixerCapabilities
+@_spi(InstalledApplicationStorage) import MixerCapabilities
 @_spi(GuestUIV1) import MixerGuest
 
 /// A synchronous construction reservation. Pending and native-draining owners
@@ -118,6 +118,11 @@ public final class ExperimentalCapabilityConstruction: @unchecked Sendable {
         guard let input else { return .failure(CancellationError(),nil,false) }
         var host: CapabilityHost?
         do {
+            if let facts = input.adapters.guestUICommitFacts,
+               !facts.supportsTransport(maximumRequests: input.configuration.maximumRequests,
+                                        reservationBytes: input.configuration.reservationBytes) {
+                throw ExperimentalCapabilityError("application_storage_commit_limits", operation: .construction)
+            }
             if let exchange = input.exchange {
                 try GuestUITurns.requireLive(exchange)
                 try NativeCapabilitySession.validateGuestUI(module: input.module, configuration: input.configuration,
@@ -129,7 +134,8 @@ public final class ExperimentalCapabilityConstruction: @unchecked Sendable {
             host = createdHost
             let native = try NativeCapabilitySession(module: input.module, startup: input.startup, configuration: input.configuration)
             lifecycle?.expectsNative()
-            return .success(NativeExitOwner(native: native, host: createdHost, configuration: input.configuration, permit: permit, lifecycle: lifecycle, exchange: input.exchange))
+            return .success(NativeExitOwner(native: native, host: createdHost, configuration: input.configuration,
+                permit: permit, lifecycle: lifecycle, exchange: input.exchange, commitFacts: input.adapters.guestUICommitFacts))
         } catch let failure as GuestUIProtocolFailureV1 {
             input.exchange?.recordProtocolFailure(failure)
             return .failure(failure,host,false)

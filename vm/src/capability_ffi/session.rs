@@ -263,6 +263,24 @@ impl CapabilitySession {
         guard.disarm();
         result
     }
+    pub(crate) fn commit_request(&self, token: u64, facts_token: u64) -> Result<bool, Failure> {
+        self.ensure_live()?;
+        let mut ledger = self.ledger()?;
+        let op = if facts_token == 0 {
+            mb::Operation::Get
+        } else {
+            mb::Operation::Put
+        };
+        let entry = self.ticket(&mut ledger, token, operation(op))?;
+        if entry.acknowledged {
+            return Err(Failure::api("commit request lease already acknowledged"));
+        }
+        entry
+            .lease
+            .commit_request(facts_token)
+            .map_err(|e| self.mailbox_error(e))
+    }
+
     pub(crate) fn ack_exit(
         &self,
         token: u64,

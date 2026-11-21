@@ -1,4 +1,5 @@
 import Foundation
+@_spi(InstalledApplicationStorage) import MixerCapabilities
 @_spi(GuestUIV1) import MixerGuest
 
 /// Owned numeric descriptors only. All reads and turns stay on the existing
@@ -38,6 +39,7 @@ struct GuestUIControlHeader {
 
 final class GuestUITurns: @unchecked Sendable {
     let exchange: GuestUIExchangeV1
+    let commitFacts: InstalledGuestUICommitFacts?
     private var headerOffset: UInt32?
     private var eventOffset: UInt32?
     private var eventCapacity: UInt32?
@@ -46,6 +48,7 @@ final class GuestUITurns: @unchecked Sendable {
     private var startupCutoff: UInt64?
     private var didTakeHydrationRead = false
     private var postedHydrationSnapshot = false
+    private var activeCommitEvent: InstalledGuestUICommitEvent?
     private(set) var nativeTurns: UInt64 = 0
 
     var awaitingInitialDocument: Bool { initialDocument == .pendingHook || initialDocument == .awaitingRead }
@@ -71,13 +74,19 @@ final class GuestUITurns: @unchecked Sendable {
             throw GuestUIProtocolFailureV1(phase: .startup, code: .startupDeadline)
         }
     }
-    init(exchange: GuestUIExchangeV1) { self.exchange = exchange }
+    init(exchange: GuestUIExchangeV1, commitFacts: InstalledGuestUICommitFacts?) {
+        self.exchange = exchange; self.commitFacts = commitFacts
+    }
     static func requireLive(_ exchange: GuestUIExchangeV1) throws {
         try exchange.requireCommitEntry(generation: exchange.snapshot().generation)
     }
     var stopped: Bool { exchange.snapshot().stop != nil }
     func requireEffectAdmission() throws {
         try exchange.requireEffectAdmission(generation: exchange.snapshot().generation)
+    }
+    func invalidateActiveCommit() {
+        activeCommitEvent?.invalidateCommit()
+        activeCommitEvent = nil
     }
     func startup(_ native: NativeCapabilitySession) throws {
         let claim = try exchange.claimStartup()
@@ -89,9 +98,14 @@ final class GuestUITurns: @unchecked Sendable {
         headerOffset = offset
         try harvest(native, claim: claim, phase: .startup, initial: true, allowsEmptyDocument: exchange.allowsDeferredStartup)
     }
-    /// nil is no available claim; false means a claimed native ready check did
-    /// not execute guest code. Both leave turn accounting unchanged.
-    func next(_ native: NativeCapabilitySession, ready: Bool) throws -> Bool? {
+    enum NextTurn {
+        case idle
+        case hydration
+        case event(InstalledGuestUICommitEvent?)
+        case ready
+    }
+    /// A missing claim and an idle native ready check leave turn accounting unchanged.
+    func next(_ native: NativeCapabilitySession, ready: Bool) throws -> NextTurn? {
         if initialDocument == .pendingHook {
             guard exchange.snapshot().effectsConfirmed else { return nil }
             try requireInitialDocumentDeadline()
@@ -103,13 +117,14 @@ final class GuestUITurns: @unchecked Sendable {
             }
             initialDocument = .awaitingRead
             try harvest(native, claim: claim, phase: .startup, allowsEmptyDocument: true, requiresEmptyDocument: true)
-            return true
+            return .hydration
         }
         guard let claim = try exchange.claimNextTurn(ready: ready && !publishedHydration) else { return nil }
         switch claim.kind {
         case .startup:
             throw GuestUIProtocolFailureV1(phase: .startup, code: .startupResult)
-        case .event(_, let bytes):
+        case .event(let sequence, let bytes):
+            invalidateActiveCommit()
             guard let eventOffset, let eventCapacity, bytes.count <= Int(eventCapacity) else {
                 throw GuestUIProtocolFailureV1(phase: .event, code: .eventEncoding)
             }
@@ -120,15 +135,24 @@ final class GuestUITurns: @unchecked Sendable {
             if nativeTurns < .max { nativeTurns += 1 }
             guard result.value == .i32(0) else { throw GuestUIProtocolFailureV1(phase: .event, code: .eventResult) }
             try harvest(native, claim: claim, phase: .event)
-            return true
+            guard let commitFacts, let action = claim.eventSelection,
+                  action.nodeID == commitFacts.nodeID, action.actionID == commitFacts.actionID else { return .event(nil) }
+            let generation = claim.generation
+            let event = InstalledGuestUICommitEvent(generation: generation, sequence: sequence, turnSerial: claim.serial,
+                displayedRevision: action.revision, nodeID: action.nodeID, actionID: action.actionID) { [weak exchange] in
+                    guard let exchange else { return false }
+                    return (try? exchange.requireEffectAdmission(generation: generation)) != nil
+                }
+            if commitFacts.commitArguments != nil { activeCommitEvent = event }
+            return .event(event)
         case .ready:
             guard try native.wake() else {
                 try exchange.finishReadyWithoutInvocation(claim)
-                return false
+                return .idle
             }
             if nativeTurns < .max { nativeTurns += 1 }
             try harvest(native, claim: claim, phase: .wake)
-            return true
+            return .ready
         }
     }
     private func harvest(_ native: NativeCapabilitySession, claim: GuestUITurnClaimV1,

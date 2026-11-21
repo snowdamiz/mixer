@@ -1,0 +1,765 @@
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c b/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
+index aa90808..c8dc2a9 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
+@@ -38,7 +38,9 @@ static int execute(JNIEnv *e,Context *c,int op,const uint8_t *profile,intptr_t p
+     if(result==0) {
+         pump_env=e; int status=0;
+         for(int i=0;i<1000&&status==0;i++) status=mixer_public_android_poll(c->id);
+-        pump_env=NULL; result=status==1?0:1;
++        pump_env=NULL;
++        /* Status 3 is an app-owned editor request after a successful event batch. */
++        result=status==1?0:(op==1&&status==3?2:1);
+         if(status==0) c->failed=1; /* Unknown queued work: retain, never retry. */
+     }
+     c->busy=0; return result;
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+index 3a0fafc..9628fe4 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -44,6 +44,7 @@ public final class PublicActivity extends Activity {
+     private final Handler handler = new Handler(Looper.getMainLooper());
+     private FrameLayout root;
+     private ChecklistPanel checklist;
++    private boolean entryCommitFixture;
+     private boolean checklistRefreshPending;
+     private void checklistClosed(ChecklistPanel holder) {
+         if (checklist != holder) return;
+@@ -393,7 +394,20 @@ public final class PublicActivity extends Activity {
+         root = new FrameLayout(this);
+         content.addView(root, new FrameLayout.LayoutParams(-1, -1));
+         setContentView(content);
+-        try (InputStream material = getAssets().open("ChecklistRelease/identity.json")) {
++        byte[] marker = "fieldlog-entry-commit-v1\n".getBytes(StandardCharsets.UTF_8);
++        try (InputStream asset = getAssets().open("ChecklistRelease/entry-commit-v1.txt")) {
++            byte[] bytes = new byte[marker.length];
++            int offset = 0;
++            while (offset < bytes.length) {
++                int count = asset.read(bytes, offset, bytes.length - offset);
++                if (count <= 0) break;
++                offset += count;
++            }
++            entryCommitFixture = offset == bytes.length && Arrays.equals(bytes, marker) && asset.read() == -1;
++        } catch (IOException absent) {
++            // The existing checklist packages carry no entry commit marker.
++        }
++        if (!entryCommitFixture) try (InputStream material = getAssets().open("ChecklistRelease/identity.json")) {
+             if (material.read() < 0) throw new IOException("empty checklist identity");
+             android.widget.Button open = new android.widget.Button(this);
+             open.setText("Open signed draft check");
+@@ -406,16 +420,16 @@ public final class PublicActivity extends Activity {
+         configureSystemBarAppearance();
+         if (!handler.post(this::openWhenReady)) throw new IllegalStateException("host queue unavailable");
+     }
+-    private void openChecklist() {
++    private boolean openChecklist() {
+         if (checklist != null || checklistRefreshPending || context <= 0 || failed || destroyed || isFinishing()
+-                || !resumed || !root.hasWindowFocus() || checklistBlockedByService()) return;
++                || !resumed || !root.hasWindowFocus() || checklistBlockedByService()) return false;
+         if (!events.isEmpty()) drainEvents();
+-        if (failed || checklistBlockedByService()) return;
++        if (failed || checklist != null || checklistBlockedByService()) return false;
+         ChecklistPanel panel = new ChecklistPanel(this, context);
+-        if (panel.open()) {
+-            checklist = panel;
+-            surface.gateInput();
+-        }
++        if (!panel.open()) return false;
++        checklist = panel;
++        surface.gateInput();
++        return true;
+     }
+     private boolean checklistBlockedByService() {
+         return photoLaunchQueued || pendingPhoto != null || pendingReport != null || reportCompletion != null;
+@@ -502,7 +516,13 @@ public final class PublicActivity extends Activity {
+             batch[offset++] = ']';
+             if (offset != batch.length) { fail(); return; }
+             invalidateEvents();
+-            if (PublicBridge.event(first.context, first.owner, batch) != 0) fail();
++            int result = PublicBridge.event(first.context, first.owner, batch);
++            if (result == 2) {
++                if (!entryCommitFixture || !openChecklist()) {
++                    if (PublicBridge.refreshChecklist(first.context) != 0) fail();
++                    else android.widget.Toast.makeText(this, "Signed entry commit fixture unavailable", android.widget.Toast.LENGTH_SHORT).show();
++                }
++            } else if (result != 0) fail();
+             // Only the ensuing validated surface.install reopens native input.
+         } catch (RuntimeException error) {
+             fail(); throw error;
+@@ -614,7 +634,7 @@ public final class PublicActivity extends Activity {
+             this.activity = activity;
+             this.context = context;
+             dialog = new Dialog(activity);
+-            dialog.setTitle("Signed draft check");
++            dialog.setTitle(activity.entryCommitFixture ? "Signed entry commit" : "Signed draft check");
+             dialog.setCancelable(false);
+             LinearLayout contents = new LinearLayout(activity);
+             contents.setOrientation(LinearLayout.VERTICAL);
+@@ -632,7 +652,7 @@ public final class PublicActivity extends Activity {
+             done.setOnClickListener(view -> close(() -> {}));
+             contents.addView(result);
+             contents.addView(guest);
+-            contents.addView(update);
++            if (!activity.entryCommitFixture) contents.addView(update);
+             contents.addView(done);
+             dialog.setContentView(contents);
+         }
+@@ -669,9 +689,13 @@ public final class PublicActivity extends Activity {
+         }
+ 
+         private File installedMaterial() throws IOException {
+-            File directory = new File(activity.getFilesDir(), "checklist-installed");
++            File directory = new File(activity.getFilesDir(), activity.entryCommitFixture ? "entry-commit-installed" : "checklist-installed");
+             if (!directory.exists() && !directory.mkdir()) throw new IOException("directory");
+-            for (String name : new String[]{"identity.json", "roots.json", "storage.json", "storage-grant.json", "bridge.json", "port.txt"}) {
++            String[] names = activity.entryCommitFixture
++                ? new String[]{"identity.json", "roots.json", "storage.json", "storage-grant.json", "bridge.json", "port.txt",
++                               "entry-commit-v1.txt", "entry-commit.manifest.json", "entry-commit.assignment.json", "entry-commit.wasm"}
++                : new String[]{"identity.json", "roots.json", "storage.json", "storage-grant.json", "bridge.json", "port.txt"};
++            for (String name : names) {
+                 try (java.io.InputStream asset = activity.getAssets().open("ChecklistRelease/" + name)) {
+                     Files.copy(asset, new File(directory, name).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                 }
+@@ -686,7 +710,7 @@ public final class PublicActivity extends Activity {
+             done.setEnabled(false);
+             if (current != null) current.action.setEnabled(false);
+             try {
+-                File materials = action == 1 ? installedMaterial() : new File(activity.getFilesDir(), "checklist-installed");
++                File materials = action == 1 ? installedMaterial() : activity.getFilesDir();
+                 if (!cycle(action, context, activity.getFilesDir().getCanonicalPath(), materials.getCanonicalPath(),
+                     installation(), activity.getPackageName())) throw new IOException("checklist operation");
+                 awaitingReply = true;
+@@ -755,6 +779,7 @@ public final class PublicActivity extends Activity {
+             try {
+                 JSONObject frame = new JSONObject(new String(packet, StandardCharsets.UTF_8));
+                 JSONObject root = frame.getJSONObject("root");
++                if (activity.entryCommitFixture) return applyEntryCommit(frame, root, facade, attachment, input, probe);
+                 require(frame.getInt("schemaVersion") == 1 && frame.getLong("revision") > 0
+                     && "fieldlog-draft".equals(root.getString("id")) && "vStack".equals(root.getString("kind"))
+                     && root.getJSONObject("properties").length() == 0 && root.getJSONArray("actions").length() == 0);
+@@ -788,6 +813,35 @@ public final class PublicActivity extends Activity {
+             }
+         }
+ 
++        private boolean applyEntryCommit(JSONObject frame, JSONObject root, long facade, long attachment,
++                long input, long probe) throws JSONException {
++            require(frame.getInt("schemaVersion") == 1 && frame.getLong("revision") > 0
++                && "fieldlog-entry-save".equals(root.getString("id")) && "vStack".equals(root.getString("kind"))
++                && root.getJSONObject("properties").length() == 0 && root.getJSONArray("actions").length() == 0);
++            JSONArray nodes = root.getJSONArray("children");
++            require(nodes.length() == 1 || nodes.length() == 2);
++            JSONObject decision = nodes.getJSONObject(0);
++            require("decision".equals(decision.getString("id")) && "text".equals(decision.getString("kind"))
++                && decision.getJSONArray("children").length() == 0 && decision.getJSONArray("actions").length() == 0
++                && decision.getJSONObject("properties").length() == 1);
++            GuestFrame next = new GuestFrame(facade, attachment, input, probe);
++            TextView text = new TextView(activity);
++            text.setText(decision.getJSONObject("properties").getString("text"));
++            text.setTextSize(18);
++            next.addView(text);
++            if (nodes.length() == 2) {
++                JSONObject button = nodes.getJSONObject(1);
++                JSONArray commands = button.getJSONArray("actions");
++                require("toggle".equals(button.getString("id")) && "button".equals(button.getString("kind"))
++                    && button.getJSONArray("children").length() == 0 && button.getJSONObject("properties").length() == 1
++                    && commands.length() == 1 && "entry.commit".equals(commands.getJSONObject(0).getString("id"))
++                    && "activate".equals(commands.getJSONObject(0).getString("event")));
++                next.action.setText(button.getJSONObject("properties").getString("label"));
++                next.addView(next.action);
++            }
++            return replaceGuest(next);
++        }
++
+         private static void require(boolean condition) throws JSONException {
+             if (!condition) throw new JSONException("Unsupported FieldLog presentation");
+         }
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+index ca5ceed..380ee96 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+@@ -121,6 +121,9 @@ private let replies = Replies()
+                     try application.send(owner: token, originalEnvelope: event)
+                 }
+                 try await application.settle()
++                #if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++                if application.presentation.takeSignedEntryCommitRequest() { return 3 }
++                #endif
+             case 2:
+                 guard let (application, surface) = values[id] else { throw PublicHostError.context }
+                 await application.close()
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index d7a5810..1484618 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -133,6 +133,36 @@ private enum WorkspaceEdit: Sendable {
+     #if FIELDLOG_SIGNED_CHECKLIST
+     private let signedDraftBinding = SelectedDraftBinding()
+     #endif
++    #if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++    private enum EntryCommitRequest {
++        case requested(SignedEntryCommit), dispatched(SignedEntryCommit), attached(SignedEntryCommit)
++
++        var binding: SignedEntryCommit {
++            switch self {
++            case .requested(let value), .dispatched(let value), .attached(let value): return value
++            }
++        }
++    }
++    private var signedEntryCommit: EntryCommitRequest?
++    private var entrySourceRevision: UInt64
++
++    func takeSignedEntryCommitRequest() -> Bool {
++        guard case .requested(let binding) = signedEntryCommit else { return false }
++        signedEntryCommit = .dispatched(binding)
++        return true
++    }
++
++    func attachSignedEntryCommit() throws -> SignedEntryCommit {
++        guard case .dispatched(let binding) = signedEntryCommit else { throw PublicHostError.action }
++        signedEntryCommit = .attached(binding)
++        return binding
++    }
++
++    func detachSignedEntryCommit() {
++        signedEntryCommit?.binding.revoke()
++        signedEntryCommit = nil
++    }
++    #endif
+     private var entryEditor: EntryEditor?
+     private var entryObservation: UUID?
+     private var entryDateInput: (draftID: UUID, text: String)?
+@@ -190,6 +220,9 @@ private enum WorkspaceEdit: Sendable {
+             var reconciler = UIReconciler(validator: UIValidator(supportedTextFieldAxes: AndroidUIProfile.measuredMultilineLongNotesV4.capabilities.textFieldAxes, textValuePolicy: AndroidUIProfile.measuredMultilineLongNotesV4.textValuePolicy))
+             try reconciler.apply(Self.document(editor.state, workspace: workspace, project: project.id, queue: false, taskPage: 0, queuePage: 0, busy: false, feedback: nil, failure: nil, revision: 1))
+             self.repository = repository; self.workspace = workspace; self.projectID = project.id
++            #if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++            self.entrySourceRevision = workspace.revision
++            #endif
+             self.editor = editor; self.reconciler = reconciler; self.snapshot = try reconciler.currentSnapshot()
+             _ = try Self.appPacket(snapshot)
+             if let id = workspace.restoration.openDraftID,
+@@ -261,6 +294,15 @@ private enum WorkspaceEdit: Sendable {
+         try await waitForSave()
+         let saved = try await repository.readCommittedSnapshot()
+         guard !closed else { throw PublicHostError.closed }
++        #if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++        if showingEntries, !showingQueue, let entryEditor, entryEditor.state.committed == nil,
++           let savedEntry = saved.entries.first(where: { $0.id == entryEditor.state.draft.id && $0.projectID == projectID }) {
++            workspace = saved
++            try entryEditor.reconcileCommitted(savedEntry)
++            if let renderingFailure { throw renderingFailure }
++            return
++        }
++        #endif
+         let (next, frame) = try render(state, workspace: saved, feedback: changeFeedback, failure: changeFailure)
+         workspace = saved
+         reconciler = next
+@@ -513,7 +555,16 @@ private enum WorkspaceEdit: Sendable {
+             case ("entry.saveDraft", "entry.saveDraft", .activate, .null),
+                  ("entry.commit", "entry.commit", .activate, .null):
+                 guard index == actions.count - 1 else { throw PublicHostError.action }
+-            default: throw PublicHostError.action
++            default:
++                #if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++                guard action.nodeID == SignedEntryCommit.editorAction, action.actionID == action.nodeID,
++                      action.event == .activate, action.value == .null, index == actions.count - 1,
++                      savedDraftSelection == draftID, photoRequest == nil, !reportSharePending else {
++                    throw PublicHostError.action
++                }
++                #else
++                throw PublicHostError.action
++                #endif
+             }
+         }
+         try replaceEntry(draft: current.draft, actions: actions)
+@@ -537,6 +588,11 @@ private enum WorkspaceEdit: Sendable {
+         }
+         let admission = SaveAdmission(), repository = self.repository
+         let expected = workspace.revision, project = projectID
++        #if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++        // A reload may advance the workspace while retaining local editor text.
++        // Only a fresh selection or a successful native save rebases that text.
++        let sourceRevision = actions.isEmpty ? expected : entrySourceRevision
++        #endif
+         let candidate = try EntryEditor(projectID: project, draft: draft) { [weak self] intent in
+             guard await admission.accepted, let preflight = await admission.preflight else { return .failed("Unadmitted save") }
+             do {
+@@ -564,6 +620,9 @@ private enum WorkspaceEdit: Sendable {
+                 case ("entry.saveDraft", .activate, .null): try candidate.saveDraft()
+                 case ("entry.commit", .activate, .null): try candidate.commitDraft()
+                 case (let id, .activate, .null):
++                    #if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++                    if id == SignedEntryCommit.editorAction { continue }
++                    #endif
+                     guard let category = EntryCategory.allCases.first(where: { id == "entry.category." + $0.rawValue }) else { throw PublicHostError.action }
+                     try candidate.changeCategory(category)
+                 default: throw PublicHostError.action
+@@ -572,23 +631,39 @@ private enum WorkspaceEdit: Sendable {
+             let (r, s) = try render(state, queue: false, entries: true, entry: candidate.state, dateInput: dateText, feedback: nil, failure: nil)
+             let staged = candidate.state, task = state, taskPage = self.taskPage, queuePage = self.queuePage, stagedDateText = dateText
+             let entryPage = self.entryPage, draftPage = self.draftPage
+-            admission.preflight = { next in
++            let preflight: @Sendable (Workspace) throws -> Void = { next in
+                 try Self.preflightEntry(next, state: staged, task: task, project: project,
+                     taskPage: taskPage, queuePage: queuePage, entryPage: entryPage, draftPage: draftPage, reconciler: r, dateInput: stagedDateText)
+             }
++            admission.preflight = preflight
+             if let entryObservation { entryEditor?.removeObserver(entryObservation) }
+             try entryEditor?.close()
+             entryEditor = candidate; entryDateInput = dateText.map { (candidate.state.draft.id, $0) }; showingQueue = false; showingEntries = true
++            #if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++            entrySourceRevision = sourceRevision
++            #endif
+             reconciler = r; snapshot = s
+             publishedEntryState = candidate.state
+             entryObservation = candidate.observe { [weak self] _ in self?.entryChanged() }
+             admission.accepted = true; publish()
++            #if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++            if actions.last?.actionID == SignedEntryCommit.editorAction {
++                signedEntryCommit = .requested(.init(repository: repository, sourceRevision: sourceRevision,
++                    intent: .init(projectID: project, draft: candidate.state.draft, kind: .commit),
++                    dateInputIsValid: dateText.map { EntryDateText.parse($0) != nil } ?? true, preflight: preflight))
++            }
++            #endif
+         } catch {
+             (photoRequest, photoDelivered, photoReserved, photoMessage) = priorPhoto
+             try? candidate.close(); throw error
+         }
+     }
+-    private func entryWorkspace(_ saved: Workspace) { workspace = saved }
++    private func entryWorkspace(_ saved: Workspace) {
++        workspace = saved
++        #if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++        entrySourceRevision = saved.revision
++        #endif
++    }
+     private func entryChanged() {
+         guard !closed, entryState != publishedEntryState else { return }
+         do {
+@@ -632,6 +707,9 @@ private enum WorkspaceEdit: Sendable {
+         let ep = page(entryPage, count: entries.count), dp = page(draftPage, count: drafts.count)
+         let dateValid = dateInput == nil || EntryDateText.parse(dateInput!) != nil
+         let canCommit = (try? EntrySaveIntent(projectID: project, draft: state.draft, kind: .commit).validate()) != nil
++        #if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++        let canOpenSignedCommit = !inactive && !photoPending && !reportPending && drafts.contains { $0.id == state.draft.id }
++        #endif
+         return MixerUI.Navigation("entry.screen", title: "Entries") {
+             MixerUI.List("entry.form") {
+                 MixerUI.Section("entry.navigation") {
+@@ -656,7 +734,13 @@ private enum WorkspaceEdit: Sendable {
+                     }
+                     MixerUI.Button("entry.saveDraft", state.saving ? "Saving…" : "Save draft", action: "entry.saveDraft").accessibilityIdentifier("entry-save-draft").disabled(inactive || !dateValid)
+                     MixerUI.Button("entry.commit", state.committed != nil ? "Saved on device" : "Commit entry", action: "entry.commit").accessibilityIdentifier("entry-commit").disabled(inactive || !canCommit || !dateValid)
+-                    if state.savedDraft != nil { MixerUI.Text("entry.draftSaved", "Draft saved on device. Save again to keep later edits.") }
++                    #if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++                    if canOpenSignedCommit {
++                        MixerUI.Button(SignedEntryCommit.editorAction, "Open signed entry commit", action: SignedEntryCommit.editorAction)
++                            .accessibilityIdentifier("entry-open-signed-commit")
++                    }
++                    #endif
++                    if state.savedDraft != nil && state.committed == nil { MixerUI.Text("entry.draftSaved", "Draft saved on device. Save again to keep later edits.") }
+                     if let failure = state.failure { MixerUI.Text("entry.failure", String(decoding: failure.utf8.prefix(4000), as: UTF8.self)) }
+                 }
+                 MixerUI.Section("entry.drafts", title: "Saved drafts") {
+@@ -780,6 +864,9 @@ private enum WorkspaceEdit: Sendable {
+         return (next, result)
+     }
+     private func publish() {
++        #if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++        detachSignedEntryCommit()
++        #endif
+         #if FIELDLOG_SIGNED_CHECKLIST
+         signedDraftBinding.select(projectID: projectID, draftID: savedDraftSelection)
+         #endif
+@@ -788,6 +875,9 @@ private enum WorkspaceEdit: Sendable {
+     private func closeAfterRenderingFailure(_ error: any Error) {
+         renderingFailure = error
+         closed = true
++        #if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++        detachSignedEntryCommit()
++        #endif
+         #if FIELDLOG_SIGNED_CHECKLIST
+         signedDraftBinding.select(projectID: projectID, draftID: nil)
+         #endif
+@@ -797,6 +887,9 @@ private enum WorkspaceEdit: Sendable {
+         if let renderingFailure { throw renderingFailure }
+     }
+     public func close() async {
++        #if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++        detachSignedEntryCommit()
++        #endif
+         #if FIELDLOG_SIGNED_CHECKLIST
+         signedDraftBinding.select(projectID: projectID, draftID: nil)
+         #endif
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
+index 7f1a0db..0a91d15 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift
+@@ -36,6 +36,9 @@ private let checklistReply = ChecklistReply()
+         context = id
+         let presentation = checklistPresentation(id)
+         presentation?.detachSignedDraft()
++        #if FIELDLOG_ENTRY_COMMIT_FIXTURE
++        if action == 2 { presentation?.detachSignedEntryCommit() }
++        #endif
+         if let guest, !(await guest.close()) {
+             checklistReply.set("Checklist retirement pending")
+             return
+@@ -49,10 +52,21 @@ private let checklistReply = ChecklistReply()
+         }
+         do {
+             guard let presentation else { throw PublicHostError.context }
+-            let storage = try await presentation.attachSignedDraft()
+-            let opened = try await FieldLogSignedTask.open(storage: storage,
+-                material: material, directory: root.appendingPathComponent("signed-checklist"),
+-                bundleID: bundleID, installation: installation)
++            let opened: FieldLogSignedTask
++            #if FIELDLOG_ENTRY_COMMIT_FIXTURE
++            let marker = material.appendingPathComponent("entry-commit-v1.txt")
++            if FileManager.default.fileExists(atPath: marker.path) {
++                opened = try await presentation.openSignedEntryCommit(material: material,
++                    directory: root.appendingPathComponent("signed-entry-commit"),
++                    bundleID: bundleID, installation: installation)
++            } else {
++                opened = try await openChecklist(presentation, root: root, material: material,
++                                                 bundleID: bundleID, installation: installation)
++            }
++            #else
++            opened = try await openChecklist(presentation, root: root, material: material,
++                                             bundleID: bundleID, installation: installation)
++            #endif
+             guest = opened
+             let delivery = try await opened.start()
+             let deadline = ContinuousClock.now + .seconds(12)
+@@ -68,9 +82,19 @@ private let checklistReply = ChecklistReply()
+             checklistReply.set("The signed checklist could not be displayed")
+         } catch {
+             presentation?.detachSignedDraft()
+-            checklistReply.set("Select a saved draft and publish a compatible release")
++            #if FIELDLOG_ENTRY_COMMIT_FIXTURE
++            presentation?.detachSignedEntryCommit()
++            #endif
++            checklistReply.set("Could not open the signed release for this draft")
+         }
+     }
++
++    private static func openChecklist(_ presentation: ProjectPresentation, root: URL, material: URL,
++        bundleID: String, installation: UUID) async throws -> FieldLogSignedTask {
++        let storage = try await presentation.attachSignedDraft()
++        return try await FieldLogSignedTask.open(storage: storage, material: material,
++            directory: root.appendingPathComponent("signed-checklist"), bundleID: bundleID, installation: installation)
++    }
+ }
+ 
+ @_cdecl("fieldlog_checklist_submit")
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedEntryCommit.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedEntryCommit.swift
+new file mode 100644
+index 0000000..4380bce
+--- /dev/null
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedEntryCommit.swift
+@@ -0,0 +1,91 @@
++#if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++import FieldLogFeatures
++@_spi(FieldLogEntryCommitFixture) import FieldLogInstalledGuest
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++@_spi(InstalledApplicationStorage) import MixerCapabilities
++
++extension ProjectPresentation {
++    func openSignedEntryCommit(material: URL, directory: URL, bundleID: String,
++                               installation: UUID) async throws -> FieldLogSignedTask {
++        let binding = try attachSignedEntryCommit()
++        return try await FieldLogSignedTask.openEntryCommit(storage: binding, material: material, directory: directory,
++            bundleID: bundleID, installation: installation, facts: binding.continuation)
++    }
++}
++
++/// The native editor owns the intent. Only its accepted guest action can
++/// release it, and the transaction admits it before a selection can change.
++final class SignedEntryCommit: InstalledApplicationStorageServing, @unchecked Sendable {
++    static let editorAction = "entry.openSignedCommit"
++    static let guestAction = "entry.commit"
++    static let guestNode = "toggle"
++
++    private let repository: WorkspaceRepository
++    private let sourceRevision: UInt64
++    private let intent: EntrySaveIntent
++    private let facts: EntrySaveDecision.Facts
++    private let preflight: @Sendable (Workspace) throws -> Void
++    private let lock = NSLock()
++    private var active = true
++
++    init(repository: WorkspaceRepository, sourceRevision: UInt64, intent: EntrySaveIntent, dateInputIsValid: Bool,
++         preflight: @escaping @Sendable (Workspace) throws -> Void) {
++        self.repository = repository
++        self.sourceRevision = sourceRevision
++        self.intent = intent
++        self.facts = intent.decisionFacts(dateInputIsValid: dateInputIsValid)
++        self.preflight = preflight
++    }
++
++    func revoke() { lock.withLock { active = false } }
++
++    @MainActor var continuation: InstalledGuestUICommitFacts {
++        .init(arguments: .init(namespace: FieldLogDraftStorage.namespace, key: SelectedDraftBinding.entrySaveDecisionKey),
++              nodeID: Self.guestNode, actionID: Self.guestAction,
++              commitArguments: .init(namespace: FieldLogDraftStorage.namespace, key: "entry-commit-v1", valueBase64: "AQ==")) {
++            [self] event in
++            guard event.isLive, lock.withLock({ active }) else { throw CapabilityFailure.permissionDenied }
++            let snapshot = try await repository.readCommittedSnapshot()
++            guard snapshot.revision == sourceRevision, hasSelectedDraft(in: snapshot),
++                  event.isLive, lock.withLock({ active }) else { throw CapabilityFailure.permissionDenied }
++            var bytes = withUnsafeBytes(of: facts.counts.bigEndian) { Data($0) }
++            bytes.append(facts.flags)
++            let response = KVGetResponse(found: true, valueBase64: bytes.base64EncodedString())
++            guard facts.decision == .eligible else { return .init(response: response) }
++            try intent.validate()
++            return .init(response: response) { permit in try await self.commit(permit) }
++        }
++    }
++
++    private func hasSelectedDraft(in workspace: Workspace) -> Bool {
++        workspace.drafts.contains { $0.id == intent.draft.id && $0.projectID == intent.projectID }
++    }
++
++    private func commit(_ permit: InstalledGuestUICommitPermit) async throws -> KVMutationResponse {
++        let saved: Workspace
++        do {
++            saved = try await repository.transact(expectedRevision: sourceRevision) { [self] next in
++                guard hasSelectedDraft(in: next) else { throw CapabilityFailure.permissionDenied }
++                try lock.withLock {
++                    guard active else { throw CapabilityFailure.permissionDenied }
++                    try permit.consume()
++                }
++                try intent.apply(to: &next)
++                try preflight(next)
++            }
++        } catch FieldLogError.staleRevision {
++            throw CapabilityFailure.permissionDenied
++        }
++        guard case .committed = try intent.result(in: saved) else { throw CapabilityFailure.invalidResponse }
++        return .init(committed: true)
++    }
++
++    func get(_ arguments: KVGetArguments) throws -> KVGetResponse { throw CapabilityFailure.permissionDenied }
++    func put(_ arguments: KVPutArguments, maximumTotalBytes: Int, maximumEntries: Int) throws -> KVMutationResponse {
++        throw CapabilityFailure.permissionDenied
++    }
++    func delete(_ arguments: KVDeleteArguments) throws -> KVMutationResponse { throw CapabilityFailure.permissionDenied }
++}
++#endif
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogFeatures/EntryEditor.swift b/Integrations/GeneratedReport/Sources/FieldLogFeatures/EntryEditor.swift
+index 604142d..830a710 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogFeatures/EntryEditor.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogFeatures/EntryEditor.swift
+@@ -114,7 +114,7 @@ public struct EntryEditorState: Equatable, Sendable {
+ @MainActor public final class EntryEditor {
+   private enum Action: Sendable {
+     case title(String), note(String), category(EntryCategory), date(Date)
+-    case save(EntrySaveIntent.Kind), completed(EntrySaveIntent, EntrySaveResult), cancel, close
++    case save(EntrySaveIntent.Kind), completed(EntrySaveIntent, EntrySaveResult), reconcile(LogEntry), cancel, close
+   }
+   private let store: FeatureStore<EntryEditorState, Action>
+   public var state: EntryEditorState { store.state }
+@@ -148,6 +148,13 @@ public struct EntryEditorState: Equatable, Sendable {
+           }
+           state.committed = entry; state.failure = nil
+         }
++      case .reconcile(let entry):
++        guard !state.saving, !state.closed, state.committed == nil else { return [] }
++        let intent = EntrySaveIntent(projectID: projectID, draft: state.draft, kind: .commit)
++        do { try intent.validateSuccess(.committed(entry)) } catch {
++          state.failure = error.localizedDescription; return []
++        }
++        state.committed = entry; state.failure = nil
+       case .save(let kind):
+         guard !state.saving && state.committed == nil && !state.closed else { return [] }
+         let intent = EntrySaveIntent(projectID: projectID, draft: state.draft, kind: kind)
+@@ -181,6 +188,7 @@ public struct EntryEditorState: Equatable, Sendable {
+   public func changeOccurredAt(_ value: Date) throws { try store.send(.date(value)) }
+   public func saveDraft() throws { try store.send(.save(.draft)) }
+   public func commitDraft() throws { try store.send(.save(.commit)) }
++  package func reconcileCommitted(_ entry: LogEntry) throws { try store.send(.reconcile(entry)) }
+   public func cancel() throws { try store.send(.cancel) }
+   /// Captures currently owned effects; start before cancel/close to drain that batch.
+   public func waitForSave() async { await store.awaitCurrentEffects() }
+diff --git a/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py b/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
+index e078d8c..73442c4 100644
+--- a/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
++++ b/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
+@@ -24,6 +24,12 @@ CHECKLIST_LIMITS = {
+     "storage-grant.json": 65_536,
+     "storage.json": 65_536,
+ }
++ENTRY_COMMIT_LIMITS = {
++    "entry-commit-v1.txt": 64,
++    "entry-commit.manifest.json": 65_536,
++    "entry-commit.assignment.json": 65_536,
++    "entry-commit.wasm": 8192,
++}
+ MANIFEST_MEMBERS = {"AndroidManifest.xml", "res/xml/checklist_network.xml", "resources.arsc"}
+ NATIVE_PREFIX = "lib/arm64-v8a/"
+ 
+@@ -52,14 +58,22 @@ def appearance_asset(project):
+ 
+ 
+ def checklist_assets(directory, lock):
+-    if directory.is_symlink() or {path.name for path in directory.iterdir()} != CHECKLIST_LIMITS.keys():
+-        raise ValueError("Expected exactly the six Installed checklist inputs")
++    if directory.is_symlink():
++        raise ValueError("Expected a real Installed directory")
++    limits = dict(CHECKLIST_LIMITS)
++    names = {path.name for path in directory.iterdir()}
++    if "entry-commit-v1.txt" in names:
++        limits.update(ENTRY_COMMIT_LIMITS)
++    if names != limits.keys():
++        raise ValueError("Expected exactly the Installed checklist or entry commit fixture inputs")
+     pins = json.loads(read_bounded(lock, 4096))
+-    if not isinstance(pins, dict) or pins.keys() != CHECKLIST_LIMITS.keys():
+-        raise ValueError("Checklist SHA-256 JSON must pin exactly the six Installed files")
++    if not isinstance(pins, dict) or pins.keys() != limits.keys():
++        raise ValueError("Checklist SHA-256 JSON must pin the complete Installed file set")
+     assets = {}
+-    for name, limit in CHECKLIST_LIMITS.items():
++    for name, limit in limits.items():
+         data = read_bounded(directory / name, limit)
++        if name == "entry-commit-v1.txt" and data != b"fieldlog-entry-commit-v1\n":
++            raise ValueError("Invalid entry commit fixture marker")
+         if hashlib.sha256(data).hexdigest() != pins[name]:
+             raise ValueError(f"Installed checklist input differs from its SHA-256 pin: {name}")
+         assets[f"assets/ChecklistRelease/{name}"] = data
+diff --git a/Integrations/InstalledGuest/SignedTask.swift b/Integrations/InstalledGuest/SignedTask.swift
+index 913b2e4..dd6590b 100644
+--- a/Integrations/InstalledGuest/SignedTask.swift
++++ b/Integrations/InstalledGuest/SignedTask.swift
+@@ -1,9 +1,9 @@
+ import FieldLogModels
+ import FieldLogStorage
+ import Foundation
+-import MixerCapabilities
+-#if os(Android)
+-@_spi(AndroidGuestUIV1) import MixerCapabilityActivation
++@_spi(InstalledApplicationStorage) import MixerCapabilities
++#if os(Android) || FIELDLOG_ENTRY_COMMIT_HOST_TEST
++@_spi(AndroidGuestUIV1) @_spi(InstalledApplicationStorage) import MixerCapabilityActivation
+ #else
+ import MixerCapabilityActivation
+ #endif
+@@ -11,13 +11,13 @@ import MixerRuntimeIdentity
+ import MixerUpdates
+ 
+ public struct FieldLogSignedTask: Sendable {
+-    #if os(Android)
++    #if os(Android) || FIELDLOG_ENTRY_COMMIT_HOST_TEST
+     private typealias Owner = CapabilityGuestUIAndroidRuntime
+     #else
+     public typealias Owner = CapabilityGuestUIRuntime
+     #endif
+ 
+-    #if os(Android)
++    #if os(Android) || FIELDLOG_ENTRY_COMMIT_HOST_TEST
+     private let owner: Owner
+     #else
+     public let owner: Owner
+@@ -26,9 +26,32 @@ public struct FieldLogSignedTask: Sendable {
+     private let installation: String
+     private let port: UInt16
+     private let directory: URL
++    private let entryCommitFixture: URL?
++
++    #if FIELDLOG_ENTRY_COMMIT_HOST_TEST
++    public var hostFacade: UInt64 { owner.facade }
++    #endif
+ 
+     public static func open(storage: any InstalledApplicationStorageServing, material: URL,
+                             directory: URL, bundleID: String, installation: UUID) async throws -> Self {
++        try await open(storage: storage, material: material, directory: directory, bundleID: bundleID,
++                       installation: installation, commitFacts: nil)
++    }
++
++    #if (os(Android) || FIELDLOG_ENTRY_COMMIT_HOST_TEST) && FIELDLOG_ENTRY_COMMIT_FIXTURE
++    @_spi(FieldLogEntryCommitFixture)
++    public static func openEntryCommit(storage: any InstalledApplicationStorageServing, material: URL,
++        directory: URL, bundleID: String, installation: UUID, facts: InstalledGuestUICommitFacts) async throws -> Self {
++        guard try read(material, "entry-commit-v1.txt", limit: 64) == Data("fieldlog-entry-commit-v1\n".utf8) else {
++            throw UpdateError("fieldlog.material", "Invalid installed entry commit fixture")
++        }
++        return try await open(storage: storage, material: material, directory: directory, bundleID: bundleID,
++                              installation: installation, commitFacts: facts)
++    }
++    #endif
++
++    private static func open(storage: any InstalledApplicationStorageServing, material: URL,
++        directory: URL, bundleID: String, installation: UUID, commitFacts: InstalledGuestUICommitFacts?) async throws -> Self {
+         let identityBytes = try read(material, "identity.json", limit: 131_072)
+         let identity = try CapabilityRuntimeIdentity(json: identityBytes)
+         let scope = identity.installedRuntime.scope
+@@ -48,24 +71,44 @@ public struct FieldLogSignedTask: Sendable {
+             .init(role: .installedGrant(capabilityID: storageID), bytes: read(material, "storage-grant.json")),
+         ]
+         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
++        let storageEmbedding: InstalledApplicationStorage
++        #if os(Android) || FIELDLOG_ENTRY_COMMIT_HOST_TEST
++        storageEmbedding = .init(runtimeFingerprint: identity.fingerprint, namespace: FieldLogDraftStorage.namespace,
++            service: storage, allowsDeferredGuestUIStartup: commitFacts == nil, guestUICommitFacts: commitFacts)
++        #else
++        storageEmbedding = .init(runtimeFingerprint: identity.fingerprint, namespace: FieldLogDraftStorage.namespace,
++            service: storage, allowsDeferredGuestUIStartup: true)
++        #endif
+         let execution = try InstalledCapabilityExecution(identityJSON: identityBytes, materials: materials,
+-            trustRootsJSON: read(material, "roots.json"), privateContainer: directory,
+-            applicationStorage: .init(runtimeFingerprint: identity.fingerprint, namespace: FieldLogDraftStorage.namespace,
+-                service: storage, allowsDeferredGuestUIStartup: true))
++            trustRootsJSON: read(material, "roots.json"), privateContainer: directory, applicationStorage: storageEmbedding)
+         let installation = installation.uuidString.lowercased()
+         let owner = try await Owner.open(configuration: .init(directory: directory.appendingPathComponent("recovery"),
+             channel: "beta", installation: installation, observationSeconds: 1), execution: execution)
+-        return Self(owner: owner, identity: identity, installation: installation, port: port, directory: directory)
++        return Self(owner: owner, identity: identity, installation: installation, port: port, directory: directory,
++                    entryCommitFixture: commitFacts == nil ? nil : material)
+     }
+ 
+     public func start() async throws -> String {
+         let previous = await recovery()
++        #if (os(Android) || FIELDLOG_ENTRY_COMMIT_HOST_TEST) && FIELDLOG_ENTRY_COMMIT_FIXTURE
++        if let directory = entryCommitFixture {
++            if previous.acceptedSequence == 0 {
++                try await owner.stage(manifest: Self.read(directory, "entry-commit.manifest.json"),
++                    assignment: Self.read(directory, "entry-commit.assignment.json"),
++                    bytes: Self.read(directory, "entry-commit.wasm", limit: 8192))
++            }
++            guard try await owner.start().candidateID != nil else {
++                throw UpdateError("fieldlog.release", "No installed entry commit release is available")
++            }
++            return "Signed entry commit"
++        }
++        #endif
+         var deliveryError: (any Error)?
+         do {
+             let delivery = FieldLogDelivery(port: port, host: identity.installedRuntime, installation: installation,
+                 partialFile: directory.appendingPathComponent("artifact.partial"))
+             if let package = try await delivery.fetch(after: previous.acceptedSequence) {
+-                #if os(Android)
++                #if os(Android) || FIELDLOG_ENTRY_COMMIT_HOST_TEST
+                 try await owner.stage(manifest: package.manifest, assignment: package.assignment, bytes: package.payload)
+                 #else
+                 try await owner.beginDownload(signedManifest: package.manifest, signedAssignment: package.assignment)
+@@ -88,7 +131,7 @@ public struct FieldLogSignedTask: Sendable {
+     }
+ 
+     public func recovery() async -> CapabilityGuestUIRecoverySnapshot {
+-        #if os(Android)
++        #if os(Android) || FIELDLOG_ENTRY_COMMIT_HOST_TEST
+         owner.recoverySnapshot()
+         #else
+         await owner.recoverySnapshot()
+@@ -96,7 +139,7 @@ public struct FieldLogSignedTask: Sendable {
+     }
+ 
+     public func close() async -> Bool {
+-        #if os(Android)
++        #if os(Android) || FIELDLOG_ENTRY_COMMIT_HOST_TEST
+         await owner.close()
+         #else
+         await owner.close()

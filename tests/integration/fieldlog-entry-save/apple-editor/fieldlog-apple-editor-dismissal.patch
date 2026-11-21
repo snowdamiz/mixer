@@ -1,0 +1,332 @@
+diff --git a/ios/FieldLog/EntryEditor.swift b/ios/FieldLog/EntryEditor.swift
+index 637b2e7a3781281192eb54ebcc9e94f358e4c64a..6327f306a681e9021798dd5a3f4b74e6efdd1cdf 100644
+--- a/ios/FieldLog/EntryEditor.swift
++++ b/ios/FieldLog/EntryEditor.swift
+@@ -9,9 +9,10 @@ struct EntryEditor: View {
+   @EnvironmentObject private var model: WorkspaceModel
+   @Environment(\.dismiss) private var dismiss
+   @State var draft: EntryDraft
++  let onGuestClose: (WorkspaceModel.DraftGuestClose) -> Void
+   @State private var selection: PhotosPickerItem?
+   @State private var installedGuest: InstalledDraftGuest.Kind?
+-  @State private var committedSelection: UUID?
++  @State private var guestClose: WorkspaceModel.DraftGuestClose?
+   @State private var attaching = false
+   @State private var committing = false
+   @State private var checkingSavedDraft = false
+@@ -109,13 +110,12 @@ struct EntryEditor: View {
+       }
+     }
+     .sheet(item: $installedGuest, onDismiss: {
+-      let selection = committedSelection
+-      committedSelection = nil
+-      if let selection, model.isDraftEditorSelected(selection) { dismiss() }
++      if let guestClose { onGuestClose(guestClose) }
++      guestClose = nil
+     }) { kind in
+       if let materials = kind.materials {
+-        InstalledDraftGuestView(draft: draft, kind: kind, materials: materials) { selection in
+-          committedSelection = selection
++        InstalledDraftGuestView(draft: draft, kind: kind, materials: materials) { close in
++          guestClose = close
+         }
+       }
+     }
+diff --git a/ios/FieldLog/InstalledDraftGuest.swift b/ios/FieldLog/InstalledDraftGuest.swift
+index 3b6a0802ecb112bce200f764291c90978d53b028..6bc5e5fb0da1a9f5b7d835c12dcb99805875f5e8 100644
+--- a/ios/FieldLog/InstalledDraftGuest.swift
++++ b/ios/FieldLog/InstalledDraftGuest.swift
+@@ -133,7 +133,7 @@ struct InstalledDraftGuestView: View {
+   let draft: EntryDraft
+   let kind: InstalledDraftGuest.Kind
+   let materials: URL
+-  let onCommit: (UUID) -> Void
++  let onClose: (WorkspaceModel.DraftGuestClose) -> Void
+ 
+   var body: some View {
+     NavigationStack {
+@@ -183,7 +183,7 @@ struct InstalledDraftGuestView: View {
+ 
+   private func finishIfRequested() {
+     guard closing, let completion, completion != .retirementPending else { return }
+-    if case .committed(let selection) = completion { onCommit(selection) }
++    onClose(completion)
+     dismiss()
+   }
+ 
+diff --git a/ios/FieldLog/SelectedDraftGuestBinding.swift b/ios/FieldLog/SelectedDraftGuestBinding.swift
+index d8896de3e55f69fc0724ad761a4fc88aebe06214..9288234fd27fb308a80e47fa95c4df1290c32ad6 100644
+--- a/ios/FieldLog/SelectedDraftGuestBinding.swift
++++ b/ios/FieldLog/SelectedDraftGuestBinding.swift
+@@ -5,32 +5,33 @@ import Foundation
+ import os
+ @_spi(InstalledApplicationStorage) import MixerCapabilities
+ 
+-@MainActor final class SelectedDraftGuestBinding {
+-  private struct Selection: Equatable {
+-    let projectID: UUID
+-    let draftID: UUID
+-    let generation = UUID()
+-  }
++struct DraftEditorSelection: Identifiable {
++  let draft: EntryDraft
++  let id = UUID()
++}
+ 
+-  private var selection: Selection?
++@MainActor final class SelectedDraftGuestBinding {
++  private var selection: DraftEditorSelection?
+   private var access: SelectedDraftGuestAccess?
+ 
+-  func select(_ draft: EntryDraft?) {
++  func select(_ selection: DraftEditorSelection?) {
+     access?.revoke()
+     access = nil
+-    selection = draft.map { Selection(projectID: $0.projectID, draftID: $0.id) }
++    self.selection = selection
+   }
+ 
+   func attach(
+     repository: WorkspaceRepository, projectID: UUID, draftID: UUID
+   ) async throws -> SelectedDraftGuestAccess {
+-    guard let selection, selection.projectID == projectID, selection.draftID == draftID,
++    guard let selection, selection.draft.projectID == projectID, selection.draft.id == draftID,
+       access == nil
+     else { throw CapabilityFailure.permissionDenied }
+     let storage = try await FieldLogDraftStorage(
+       repository: repository, projectID: projectID, draftID: draftID)
+     try Task.checkCancellation()
+-    guard self.selection == selection, access == nil else { throw CapabilityFailure.permissionDenied }
++    guard self.selection?.id == selection.id, access == nil else {
++      throw CapabilityFailure.permissionDenied
++    }
+     let attached = SelectedDraftGuestAccess(storage: storage)
+     access = attached
+     return attached
+@@ -39,12 +40,12 @@ import os
+   func attachCommit(
+     repository: WorkspaceRepository, draft: EntryDraft, expectedRevision: UInt64
+   ) async throws -> SelectedDraftGuestAccess {
+-    guard let selection, selection.projectID == draft.projectID, selection.draftID == draft.id,
++    guard let selection, selection.draft.projectID == draft.projectID, selection.draft.id == draft.id,
+       access == nil
+     else { throw CapabilityFailure.permissionDenied }
+     let snapshot = try await repository.readCommittedSnapshot()
+     try Task.checkCancellation()
+-    guard self.selection == selection, access == nil, snapshot.revision == expectedRevision,
++    guard self.selection?.id == selection.id, access == nil, snapshot.revision == expectedRevision,
+       snapshot.restoration.openDraftID == draft.id,
+       let saved = snapshot.drafts.first(where: { $0.id == draft.id && $0.projectID == draft.projectID }),
+       saved.title.utf8.elementsEqual(draft.title.utf8), saved.note.utf8.elementsEqual(draft.note.utf8),
+@@ -60,10 +61,8 @@ import os
+   @discardableResult func detach(_ attached: SelectedDraftGuestAccess) -> UUID? {
+     guard access === attached else { return nil }
+     access = nil
+-    return selection?.generation
++    return selection?.id
+   }
+-
+-  func isCurrent(_ generation: UUID) -> Bool { selection?.generation == generation }
+ }
+ 
+ @MainActor final class SelectedDraftGuestAccess: InstalledApplicationStorageServing {
+@@ -130,13 +129,13 @@ import os
+ }
+ 
+ @MainActor final class SelectedDraftEntryCommit {
+-  enum Outcome: Sendable {
+-    case saved(LogEntry)
+-    case alreadySaved(LogEntry)
++  enum Outcome: Equatable, Sendable {
++    case committedNow
++    case alreadyPresent
+   }
+ 
+   private enum Admission { case open, revoked, admitted }
+-  private struct ExistingEntry: Error { let entry: LogEntry }
++  private struct ExistingEntry: Error {}
+ 
+   private let repository: WorkspaceRepository
+   private let sourceRevision: UInt64
+@@ -206,19 +205,22 @@ import os
+           try permit.consume()
+           $0 = .admitted
+         }
+-        let hadEntry = next.entries.contains { $0.id == intent.draft.id }
++        let existing = next.entries.first { $0.id == intent.draft.id }
+         try intent.apply(to: &next)
+-        if hadEntry, case .committed(let entry) = try intent.result(in: next) {
+-          // Exit the transaction before a matching legacy retry increases the revision.
+-          throw ExistingEntry(entry: entry)
++        if let existing {
++          guard existing.followUpRequired == intent.draft.followUpRequired,
++            existing.attachmentIDs == intent.draft.attachmentIDs
++          else { throw CapabilityFailure.permissionDenied }
++          // Exit before the repository increments the revision of the legacy pair.
++          throw ExistingEntry()
+         }
+       }
+-      guard case .committed(let entry) = try intent.result(in: saved) else {
++      guard case .committed = try intent.result(in: saved) else {
+         throw CapabilityFailure.invalidResponse
+       }
+-      return .saved(entry)
+-    } catch let existing as ExistingEntry {
+-      return .alreadySaved(existing.entry)
++      return .committedNow
++    } catch is ExistingEntry {
++      return .alreadyPresent
+     } catch FieldLogError.staleRevision {
+       throw CapabilityFailure.permissionDenied
+     }
+diff --git a/ios/FieldLog/WorkspaceModel.swift b/ios/FieldLog/WorkspaceModel.swift
+index ce1268099f237206c3ac656c232c5412cf8c1fec..cffb75b110b7732160b483965c2962456caef2d6 100644
+--- a/ios/FieldLog/WorkspaceModel.swift
++++ b/ios/FieldLog/WorkspaceModel.swift
+@@ -11,11 +11,13 @@ import SwiftUI
+   @Published private(set) var pendingSaves = 0
+   @Published private(set) var unsavedDrafts: [UUID: EntryDraft] = [:]
+   @Published private(set) var isTestWorkspace = false
++  @Published private(set) var draftEditor: DraftEditorSelection?
+   private var repository: WorkspaceRepository?
+   private let draftGuestBinding = SelectedDraftGuestBinding()
+   private(set) var workspaceDirectory: URL?
+   private var saveChain: Task<Bool, Never>?
+   private var opened = false
++  private struct DraftAlreadyClosed: Error {}
+ 
+   init(repository: WorkspaceRepository? = nil) {
+     self.repository = repository
+@@ -79,6 +81,8 @@ import SwiftUI
+         completion?()
+         if unsavedDrafts.isEmpty { saveError = nil }
+         return true
++      } catch is DraftAlreadyClosed {
++        return true
+       } catch {
+         saveError = error.localizedDescription
+         return false
+@@ -126,8 +130,31 @@ import SwiftUI
+     return await keepDraft(draft, open: true) ? draft : nil
+   }
+   func openDraft(_ id: UUID) { enqueue { $0.restoration.openDraftID = id } }
+-  func selectDraftEditor(_ draft: EntryDraft?) { draftGuestBinding.select(draft) }
+-  func isDraftEditorSelected(_ generation: UUID) -> Bool { draftGuestBinding.isCurrent(generation) }
++  func selectDraftEditor(_ draft: EntryDraft?) {
++    let selection = draft.map { DraftEditorSelection(draft: $0) }
++    draftGuestBinding.select(selection)
++    draftEditor = selection
++  }
++
++  var draftEditorSheet: Binding<DraftEditorSelection?> {
++    let presented = draftEditor
++    return Binding(get: { self.draftEditor }, set: { value in
++      guard value == nil, let presented, self.draftEditor?.id == presented.id else { return }
++      self.selectDraftEditor(nil)
++      let draftID = presented.draft.id
++      guard self.workspace?.restoration.openDraftID == draftID else { return }
++      self.enqueue {
++        guard $0.restoration.openDraftID == draftID else { throw DraftAlreadyClosed() }
++        $0.restoration.openDraftID = nil
++      }
++    })
++  }
++
++  func finishDraftEditorAfterGuest(_ close: DraftGuestClose) {
++    guard case .commit(_, let selection) = close, draftEditor?.id == selection else { return }
++    // The signed transaction owns durable restoration, including a read-only replay.
++    selectDraftEditor(nil)
++  }
+ 
+   func attachDraftGuest(projectID: UUID, draftID: UUID) async throws -> SelectedDraftGuestAccess {
+     guard let repository else { throw FieldLogError.missingRecord }
+@@ -145,7 +172,7 @@ import SwiftUI
+ 
+   enum DraftGuestClose: Equatable {
+     case closed
+-    case committed(selection: UUID)
++    case commit(SelectedDraftEntryCommit.Outcome, selection: UUID)
+     case workspaceUnavailable
+     case retirementPending
+   }
+@@ -177,7 +204,8 @@ import SwiftUI
+       let saved = try await repository.readCommittedSnapshot()
+       guard let selection = draftGuestBinding.detach(access) else { return .closed }
+       if saved.revision >= (workspace?.revision ?? 0) { workspace = saved }
+-      return outcome == nil ? .closed : .committed(selection: selection)
++      guard let outcome else { return .closed }
++      return .commit(outcome, selection: selection)
+     } catch {
+       guard draftGuestBinding.detach(access) != nil else { return .closed }
+       saveError = "Reopen FieldLog to check whether the entry was saved."
+@@ -185,11 +213,6 @@ import SwiftUI
+     }
+   }
+ 
+-  func closeDraft() {
+-    selectDraftEditor(nil)
+-    guard workspace?.restoration.openDraftID != nil else { return }
+-    enqueue { $0.restoration.openDraftID = nil }
+-  }
+   private func queueDraft(_ input: EntryDraft, open: Bool = false, close: Bool = false) -> Task<
+     Bool, Never
+   > {
+diff --git a/ios/FieldLog/WorkspaceView.swift b/ios/FieldLog/WorkspaceView.swift
+index 01572d04036885604c9ecc3ef2a856c34f4f1c05..7d3be3c815679ac5110d30603c4314f2ce563670 100644
+--- a/ios/FieldLog/WorkspaceView.swift
++++ b/ios/FieldLog/WorkspaceView.swift
+@@ -5,7 +5,6 @@ struct WorkspaceView: View {
+   @EnvironmentObject private var model: WorkspaceModel
+   @State private var projectPath: [UUID] = []
+   @State private var addingProject = false
+-  @State private var editingDraft: EntryDraft?
+   @State private var restored = false
+   var body: some View {
+     Group {
+@@ -26,7 +25,7 @@ struct WorkspaceView: View {
+               workspace: workspace, testing: model.isTestWorkspace, onAdd: { addingProject = true }
+             )
+             .navigationDestination(for: UUID.self) { id in
+-              ProjectDetail(projectID: id, onEdit: editDraft)
++              ProjectDetail(projectID: id, onEdit: model.selectDraftEditor)
+             }
+           }.tabItem { Label("Projects", systemImage: "square.stack.3d.up") }
+           NavigationStack {
+@@ -34,7 +33,7 @@ struct WorkspaceView: View {
+               workspace: workspace,
+               onEdit: { draft in
+                 model.openDraft(draft.id)
+-                editDraft(draft)
++                model.selectDraftEditor(draft)
+               })
+           }.tabItem { Label("On device", systemImage: "internaldrive") }
+           NavigationStack { SettingsView() }.tabItem { Label("Settings", systemImage: "gearshape") }
+@@ -44,7 +43,7 @@ struct WorkspaceView: View {
+           restored = true
+           if let id = workspace.restoration.selectedProjectID { projectPath = [id] }
+           if let id = workspace.restoration.openDraftID {
+-            editDraft(workspace.drafts.first { $0.id == id })
++            model.selectDraftEditor(workspace.drafts.first { $0.id == id })
+           }
+         }
+         .onChange(of: projectPath) { _, path in model.restoreProject(path.last) }
+@@ -65,17 +64,10 @@ struct WorkspaceView: View {
+         return false
+       }
+     }
+-    .sheet(item: Binding(get: { editingDraft }, set: editDraft), onDismiss: {
+-      if editingDraft == nil { model.closeDraft() }
+-    }) { draft in
+-      EntryEditor(draft: draft)
++    .sheet(item: model.draftEditorSheet) { selection in
++      EntryEditor(draft: selection.draft, onGuestClose: model.finishDraftEditorAfterGuest)
+     }
+   }
+-
+-  private func editDraft(_ draft: EntryDraft?) {
+-    model.selectDraftEditor(draft)
+-    editingDraft = draft
+-  }
+ }
+ 
+ private struct ProjectList: View {

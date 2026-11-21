@@ -1,0 +1,264 @@
+diff --git a/ios/FieldLog/EntryEditor.swift b/ios/FieldLog/EntryEditor.swift
+index 71e6884659c15d63a82e60a70f6ef050b9b60b5b..637b2e7a3781281192eb54ebcc9e94f358e4c64a 100644
+--- a/ios/FieldLog/EntryEditor.swift
++++ b/ios/FieldLog/EntryEditor.swift
+@@ -11,7 +11,7 @@ struct EntryEditor: View {
+   @State var draft: EntryDraft
+   @State private var selection: PhotosPickerItem?
+   @State private var installedGuest: InstalledDraftGuest.Kind?
+-  @State private var signedCommitCompleted = false
++  @State private var committedSelection: UUID?
+   @State private var attaching = false
+   @State private var committing = false
+   @State private var checkingSavedDraft = false
+@@ -109,11 +109,13 @@ struct EntryEditor: View {
+       }
+     }
+     .sheet(item: $installedGuest, onDismiss: {
+-      if signedCommitCompleted { dismiss() }
++      let selection = committedSelection
++      committedSelection = nil
++      if let selection, model.isDraftEditorSelected(selection) { dismiss() }
+     }) { kind in
+       if let materials = kind.materials {
+-        InstalledDraftGuestView(draft: draft, kind: kind, materials: materials) {
+-          signedCommitCompleted = true
++        InstalledDraftGuestView(draft: draft, kind: kind, materials: materials) { selection in
++          committedSelection = selection
+         }
+       }
+     }
+diff --git a/ios/FieldLog/InstalledDraftGuest.swift b/ios/FieldLog/InstalledDraftGuest.swift
+index 0777497216deb7c111ae8efa75e20d2fbab955fe..3b6a0802ecb112bce200f764291c90978d53b028 100644
+--- a/ios/FieldLog/InstalledDraftGuest.swift
++++ b/ios/FieldLog/InstalledDraftGuest.swift
+@@ -133,7 +133,7 @@ struct InstalledDraftGuestView: View {
+   let draft: EntryDraft
+   let kind: InstalledDraftGuest.Kind
+   let materials: URL
+-  let onCommit: () -> Void
++  let onCommit: (UUID) -> Void
+ 
+   var body: some View {
+     NavigationStack {
+@@ -183,7 +183,7 @@ struct InstalledDraftGuestView: View {
+ 
+   private func finishIfRequested() {
+     guard closing, let completion, completion != .retirementPending else { return }
+-    if completion == .committed { onCommit() }
++    if case .committed(let selection) = completion { onCommit(selection) }
+     dismiss()
+   }
+ 
+diff --git a/ios/FieldLog/SelectedDraftGuestBinding.swift b/ios/FieldLog/SelectedDraftGuestBinding.swift
+index 9ceca8b49397576859264e04659e917dd0dd10b3..d8896de3e55f69fc0724ad761a4fc88aebe06214 100644
+--- a/ios/FieldLog/SelectedDraftGuestBinding.swift
++++ b/ios/FieldLog/SelectedDraftGuestBinding.swift
+@@ -57,18 +57,24 @@ import os
+     return attached
+   }
+ 
+-  @discardableResult func detach(_ attached: SelectedDraftGuestAccess) -> Bool {
+-    attached.revoke()
+-    guard access === attached else { return false }
++  @discardableResult func detach(_ attached: SelectedDraftGuestAccess) -> UUID? {
++    guard access === attached else { return nil }
+     access = nil
+-    return true
++    return selection?.generation
+   }
++
++  func isCurrent(_ generation: UUID) -> Bool { selection?.generation == generation }
+ }
+ 
+ @MainActor final class SelectedDraftGuestAccess: InstalledApplicationStorageServing {
+   private var storage: FieldLogDraftStorage?
+   let commit: SelectedDraftEntryCommit?
+-  private var pending: [UUID: () -> Void] = [:]
++  private struct StorageWork {
++    let cancel: () -> Void
++    let join: () async -> Void
++  }
++
++  private var pending: [UUID: StorageWork] = [:]
+ 
+   init(storage: FieldLogDraftStorage) {
+     self.storage = storage
+@@ -80,8 +86,11 @@ import os
+   func revoke() {
+     commit?.revoke()
+     storage = nil
+-    for cancel in pending.values { cancel() }
+-    pending.removeAll()
++    for work in pending.values { work.cancel() }
++  }
++
++  func joinStorage() async {
++    for work in pending.values { await work.join() }
+   }
+ 
+   func get(_ arguments: KVGetArguments) async throws -> KVGetResponse {
+@@ -107,7 +116,7 @@ import os
+     try Task.checkCancellation()
+     let id = UUID()
+     let work = Task { try await operation(storage) }
+-    pending[id] = { work.cancel() }
++    pending[id] = StorageWork(cancel: { work.cancel() }, join: { _ = await work.result })
+     defer { pending.removeValue(forKey: id) }
+     let result = try await withTaskCancellationHandler {
+       try await work.value
+@@ -120,11 +129,20 @@ import os
+   }
+ }
+ 
+-final class SelectedDraftEntryCommit: Sendable {
++@MainActor final class SelectedDraftEntryCommit {
++  enum Outcome: Sendable {
++    case saved(LogEntry)
++    case alreadySaved(LogEntry)
++  }
++
++  private enum Admission { case open, revoked, admitted }
++  private struct ExistingEntry: Error { let entry: LogEntry }
++
+   private let repository: WorkspaceRepository
+   private let sourceRevision: UInt64
+   private let intent: EntrySaveIntent
+-  private let active = OSAllocatedUnfairLock(initialState: true)
++  private let admission = OSAllocatedUnfairLock(initialState: Admission.open)
++  private var transaction: Task<Outcome, Error>?
+ 
+   init(repository: WorkspaceRepository, sourceRevision: UInt64, intent: EntrySaveIntent) {
+     self.repository = repository
+@@ -132,7 +150,11 @@ final class SelectedDraftEntryCommit: Sendable {
+     self.intent = intent
+   }
+ 
+-  func revoke() { active.withLock { $0 = false } }
++  func revoke() {
++    admission.withLock { if $0 == .open { $0 = .revoked } }
++  }
++
++  func outcome() async -> Outcome? { try? await transaction?.value }
+ 
+   var continuation: InstalledGuestUICommitFacts {
+     .init(
+@@ -143,7 +165,7 @@ final class SelectedDraftEntryCommit: Sendable {
+     ) { [self] event in
+       let snapshot = try await repository.readCommittedSnapshot()
+       guard snapshot.revision == sourceRevision, isSelected(in: snapshot),
+-        event.isLive, active.withLock({ $0 })
++        event.isLive, admission.withLock({ $0 == .open })
+       else { throw CapabilityFailure.permissionDenied }
+       let facts = intent.decisionFacts()
+       var bytes = withUnsafeBytes(of: facts.counts.bigEndian) { Data($0) }
+@@ -154,29 +176,49 @@ final class SelectedDraftEntryCommit: Sendable {
+     }
+   }
+ 
+-  func committedEntry(in snapshot: Workspace) -> Bool {
+-    if case .committed? = try? intent.result(in: snapshot) { return true }
+-    return false
+-  }
+-
+-  private func isSelected(in snapshot: Workspace) -> Bool {
++  private nonisolated func isSelected(in snapshot: Workspace) -> Bool {
+     snapshot.restoration.openDraftID == intent.draft.id &&
+       snapshot.drafts.contains { $0.id == intent.draft.id && $0.projectID == intent.projectID }
+   }
+ 
+   private func commit(_ permit: InstalledGuestUICommitPermit) async throws -> KVMutationResponse {
++    guard transaction == nil, admission.withLock({ $0 == .open }) else {
++      throw CapabilityFailure.permissionDenied
++    }
++    try Task.checkCancellation()
++    let work = Task { try await transact(permit) }
++    transaction = work
++    defer {
++      if admission.withLock({ $0 != .admitted }) { transaction = nil }
++    }
++    _ = try await withTaskCancellationHandler {
++      try await work.value
++    } onCancel: { work.cancel() }
++    return .init(committed: true)
++  }
++
++  private nonisolated func transact(_ permit: InstalledGuestUICommitPermit) async throws -> Outcome {
+     do {
+       let saved = try await repository.transact(expectedRevision: sourceRevision) { [self] next in
+         guard isSelected(in: next) else { throw CapabilityFailure.permissionDenied }
+-        try active.withLock {
+-          guard $0 else { throw CapabilityFailure.permissionDenied }
++        try admission.withLock {
++          guard $0 == .open else { throw CapabilityFailure.permissionDenied }
+           try permit.consume()
+-          $0 = false
++          $0 = .admitted
+         }
++        let hadEntry = next.entries.contains { $0.id == intent.draft.id }
+         try intent.apply(to: &next)
++        if hadEntry, case .committed(let entry) = try intent.result(in: next) {
++          // Exit the transaction before a matching legacy retry increases the revision.
++          throw ExistingEntry(entry: entry)
++        }
++      }
++      guard case .committed(let entry) = try intent.result(in: saved) else {
++        throw CapabilityFailure.invalidResponse
+       }
+-      guard committedEntry(in: saved) else { throw CapabilityFailure.invalidResponse }
+-      return .init(committed: true)
++      return .saved(entry)
++    } catch let existing as ExistingEntry {
++      return .alreadySaved(existing.entry)
+     } catch FieldLogError.staleRevision {
+       throw CapabilityFailure.permissionDenied
+     }
+diff --git a/ios/FieldLog/WorkspaceModel.swift b/ios/FieldLog/WorkspaceModel.swift
+index b9eedff33a4f4581cde49cef21540c59abd7a281..ce1268099f237206c3ac656c232c5412cf8c1fec 100644
+--- a/ios/FieldLog/WorkspaceModel.swift
++++ b/ios/FieldLog/WorkspaceModel.swift
+@@ -127,6 +127,7 @@ import SwiftUI
+   }
+   func openDraft(_ id: UUID) { enqueue { $0.restoration.openDraftID = id } }
+   func selectDraftEditor(_ draft: EntryDraft?) { draftGuestBinding.select(draft) }
++  func isDraftEditorSelected(_ generation: UUID) -> Bool { draftGuestBinding.isCurrent(generation) }
+ 
+   func attachDraftGuest(projectID: UUID, draftID: UUID) async throws -> SelectedDraftGuestAccess {
+     guard let repository else { throw FieldLogError.missingRecord }
+@@ -142,7 +143,12 @@ import SwiftUI
+       repository: repository, draft: draft, expectedRevision: workspace.revision)
+   }
+ 
+-  enum DraftGuestClose { case closed, committed, workspaceUnavailable, retirementPending }
++  enum DraftGuestClose: Equatable {
++    case closed
++    case committed(selection: UUID)
++    case workspaceUnavailable
++    case retirementPending
++  }
+ 
+   func finishDraftGuest(
+     _ access: SelectedDraftGuestAccess, owner: CapabilityGuestUIRuntime?
+@@ -163,14 +169,17 @@ import SwiftUI
+       }.value
+       guard retired else { return .retirementPending }
+     }
+-    guard draftGuestBinding.detach(access), let commit = access.commit, let repository else {
+-      return .closed
+-    }
++    await access.joinStorage()
++    let outcome = await access.commit?.outcome()
++    await flush()
+     do {
++      guard let repository else { throw FieldLogError.missingRecord }
+       let saved = try await repository.readCommittedSnapshot()
+-      workspace = saved
+-      return commit.committedEntry(in: saved) ? .committed : .closed
++      guard let selection = draftGuestBinding.detach(access) else { return .closed }
++      if saved.revision >= (workspace?.revision ?? 0) { workspace = saved }
++      return outcome == nil ? .closed : .committed(selection: selection)
+     } catch {
++      guard draftGuestBinding.detach(access) != nil else { return .closed }
+       saveError = "Reopen FieldLog to check whether the entry was saved."
+       return .workspaceUnavailable
+     }

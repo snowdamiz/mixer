@@ -473,6 +473,28 @@ pub(super) unsafe fn post<R: Registry>(
         })
     }
 }
+pub(super) unsafe fn commit_request<R: Registry>(
+    registry: &R,
+    handle: u64,
+    token: u64,
+    facts_token: u64,
+    accepted: *mut u32,
+    out: *mut MixerVmReport,
+) -> u32 {
+    if p::wake(accepted, out).is_err() {
+        return 3;
+    }
+    unsafe {
+        accepted.write_unaligned(0);
+        boundary(out, || {
+            let session = registry.get(handle, AccessMode::Live)?;
+            let mut guard = session.unwind_guard();
+            accepted.write_unaligned(u32::from(session.commit_request(token, facts_token)?));
+            guard.disarm();
+            Ok(MixerVmReport::default())
+        })
+    }
+}
 pub(super) unsafe fn ack_exit<R: Registry>(
     registry: &R,
     handle: u64,

@@ -62,6 +62,9 @@ pub struct DispatchLease {
     lease: mb::NativeLease,
 }
 impl DispatchLease {
+    pub(crate) fn commit_request(&self, facts_token: u64) -> Result<bool, mb::Error> {
+        self.shared.mailbox.commit_request(&self.lease, facts_token)
+    }
     /// Acknowledges only actual native cleanup; also usable after every port drops.
     pub fn ack_exit(&self) -> Result<(), mb::Error> {
         self.shared.mailbox.ack_exit(&self.lease)
@@ -711,6 +714,9 @@ mod tests {
         m
     }
     fn guest() -> CapabilityGuest {
+        guest_with_slots(1)
+    }
+    fn guest_with_slots(maximum_requests: usize) -> CapabilityGuest {
         let mut g = CapabilityGuest::new(
             &fixture(),
             Limits {
@@ -718,7 +724,7 @@ mod tests {
                 ..Limits::default()
             },
             mb::Limits {
-                maximum_requests: 1,
+                maximum_requests,
                 ..mb::Limits::default()
             },
             GuestLimits::default(),
@@ -743,6 +749,111 @@ mod tests {
             _ => panic!("expected lease"),
         }
     }
+    #[test]
+    fn commit_proof_requires_exact_successful_guest_poll_before_enqueue_in_same_turn() {
+        let mut g = guest_with_slots(8);
+        let port = g.native_port();
+        let ordinary_token = enqueue(&mut g);
+        let ordinary = lease(&port);
+        let failed_token = enqueue(&mut g);
+        let failed = lease(&port);
+        assert!(failed.commit_request(0).unwrap());
+        let facts_token = enqueue(&mut g);
+        let facts = lease(&port);
+        assert!(!ordinary.commit_request(0).unwrap()); // From an older native turn.
+        assert!(facts.commit_request(0).unwrap());
+        g.shared.mailbox.guest_cancel(failed_token).unwrap();
+        port.post_trusted(&ordinary, b"x").unwrap();
+        port.post_trusted(&facts, b"y").unwrap();
+
+        let mailbox = &g.shared.mailbox;
+        let enqueue_put = |turn, budget: &mut GuestBudget<'_>| {
+            let mut output = [0; 8];
+            assert_eq!(
+                mailbox
+                    .guest_enqueue(turn, mb::Operation::Put, b"z", &mut output, budget)
+                    .unwrap(),
+                0
+            );
+            u64::from_le_bytes(output)
+        };
+        let mut fuel = 10_000;
+        let mut memory = [0; 512];
+        let turn = mailbox.begin_turn().unwrap();
+        let imports = GuestImports {
+            shared: &g.shared,
+            turn,
+            deadline: Instant::now() + Duration::from_secs(1),
+        };
+        let mut budget = GuestBudget {
+            fuel: &mut fuel,
+            imports: &imports,
+            caller: 0,
+            offset: 0,
+        };
+        assert_eq!(
+            mailbox
+                .guest_poll(ordinary_token, &mut memory, 0..400, 400..404, &mut budget)
+                .unwrap(),
+            0
+        );
+        assert_eq!(
+            mailbox
+                .guest_poll(failed_token, &mut memory, 0..400, 400..404, &mut budget)
+                .unwrap(),
+            0
+        );
+        assert_eq!(
+            mailbox
+                .guest_poll(facts_token, &mut memory, 0..0, 400..404, &mut budget)
+                .unwrap(),
+            2
+        );
+        let before_poll = enqueue_put(turn, &mut budget);
+        assert_eq!(
+            mailbox
+                .guest_poll(facts_token, &mut memory, 0..400, 400..404, &mut budget)
+                .unwrap(),
+            0
+        );
+        let after_poll = enqueue_put(turn, &mut budget);
+        mailbox.finish_turn(turn, mb::TurnOutcome::Success).unwrap();
+
+        let NativeTake::Cancel { lease: cancelled } = port.take(&mut [0; 1]).unwrap() else {
+            panic!("expected the failed read's cancel");
+        };
+        assert_eq!(cancelled.token_bits(), failed_token);
+        cancelled.ack_exit().unwrap();
+        let before = lease(&port);
+        assert_eq!(before.token_bits(), before_poll);
+        assert!(!before.commit_request(facts_token).unwrap());
+        let after = lease(&port);
+        assert_eq!(after.token_bits(), after_poll);
+        assert!(after.commit_request(facts_token).unwrap());
+        assert!(!after.commit_request(ordinary_token).unwrap());
+
+        let turn = mailbox.begin_turn().unwrap();
+        let imports = GuestImports { turn, ..imports };
+        let mut budget = GuestBudget {
+            fuel: &mut fuel,
+            imports: &imports,
+            caller: 0,
+            offset: 0,
+        };
+        let later = enqueue_put(turn, &mut budget);
+        mailbox.finish_turn(turn, mb::TurnOutcome::Success).unwrap();
+        assert!(!after.commit_request(facts_token).unwrap()); // The admitted ready turn ended.
+        let later_write = lease(&port);
+        assert_eq!(later_write.token_bits(), later);
+        assert!(!later_write.commit_request(facts_token).unwrap());
+
+        port.close().unwrap();
+        for active in [ordinary, facts, before, after, later_write] {
+            active.ack_exit().unwrap();
+        }
+        assert_eq!(port.usage().unwrap().reserved_bytes, 0);
+    }
+
     #[test]
     fn privileged_decoded_module_cannot_bypass_public_instance_constructor() {
         let bytes = fixture();

@@ -171,6 +171,13 @@ final class NativeCapabilitySession: @unchecked Sendable {
         guard result.remaining_milliseconds == 0 else { throw ExperimentalCapabilityError("invalid_native_post", operation: .post) }
         return result.kind == 0
     }
+    func admitCommitRequest(token: UInt64, factsToken: UInt64 = 0) throws -> Bool {
+        var accepted: UInt32 = 0, report = MixerVmReport()
+        let status = mixer_private_guest_ui_commit_request_v1(handle, token, factsToken, &accepted, &report)
+        try check(status, report, operation: .take)
+        guard accepted <= 1 else { throw ExperimentalCapabilityError("invalid_commit_attribution", operation: .take) }
+        return accepted == 1
+    }
     func ack(token: UInt64, operation: GuestCapabilityOperationV1) throws {
         var result = MixerVmCapabilityResultV1(), report = MixerVmReport()
         try check(mixer_vm_capability_ack_exit_v1(handle, token, operation.rawValue, &result, &report), report, operation: .ackExit)
