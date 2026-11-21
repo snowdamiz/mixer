@@ -150,9 +150,11 @@ navigation and list frame with the first 20 IDs and exact UTF-8 labels.
 The attempt retired, zero writes were attempted, and cold reopen matched
 the workspace bytes. Wrong and mixed identities were refused. The smoke
 inherits the stale baseline capability fingerprint for installed admission.
-Independent review and fingerprint repair are underway. Native display,
-later pages, and the two-target signed OTA count remain open. An earlier
-replay scratch remains held because its process-group custody is unknown.
+Independent review found that caller-reported milestones could establish
+health before observed presentation and that the bridge lacked a successful
+hydration requirement. Corrections are underway. Native display, later
+pages, and the two-target signed OTA count remain open. An earlier replay
+scratch remains held because its process-group custody is unknown.
 [Candidate smoke receipt](verification/receipts/fieldlog-f10-macos-signed-smoke.json)
 
 The app-owned storage guide exercises the public installed storage adapter.
@@ -283,6 +285,14 @@ tests in each Python mode and the Go checks. Phoenix passed the 12
 private-login and 10 ordinary catalog cases before the source-map suite
 failure. The initial v82 Identity run stopped before either method.
 [Exact hosted results](verification/receipts/hosted-v82-terminal-e1202816.json)
+
+On follow-up `dbb9275d58`, Owned Engine finished with six successful jobs
+and three failures. The two Swift preflight failures came from the native
+fingerprint drift, and the Swift aggregate failed. Intel passed all six
+consumer builds, with byte-identical DEX. Services passed 321 collector
+tests per mode and all Go checks. Hosted signed FieldLog regressions did
+not run in the failed Swift jobs.
+[Owned Engine follow-up](verification/receipts/hosted-v82-followup-owned-engine-dbb9275d.json)
 
 ## November 21 attestation readiness
 
@@ -750,6 +760,14 @@ project creation. Six files match between the iOS compiler inputs and the
 Android signed build manifest. A real Android compile is still needed for a
 matched measurement and the whole-app sharing assessment.
 [Matched-target attempt](verification/receipts/fieldlog-d2-matched-targets-dbb9275d.json)
+
+The Pair25 recipe then built a signed development APK from FieldLog tree
+`e09018a23e3a` and preserved the observed Apple build closure. Actual Android
+compilation used 14 app-owned Swift files. Six files across the two targets
+were byte-identical, comprising 937 of 5,354 distinct source lines. The APK
+carries the old native capability fingerprint. A rebuild and reseal on an
+SDK with the corrected fingerprint, plus installed behavior, remain open.
+[Pair25 build evidence](verification/receipts/fieldlog-d2-pair25-android-build-dbb9275d.json)
 
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
 
