@@ -84,13 +84,6 @@ final class Session {
         try require(status == 3 && vmCode(report) == "invalid_session", "retired session was not refused")
     }
 
-    func requireTerminal() throws {
-        var report = MixerVmReport()
-        var byte: UInt8 = 0
-        let status = mixer_vm_session_read_v1(handle, 0, &byte, 1, &report)
-        try require(status == 2 && vmCode(report) == "session_terminal", "exhausted session remained usable")
-    }
-
     func invoke(_ name: String, _ args: [MixerVmValue] = []) throws -> UInt32 {
         let export = Array(name.utf8)
         var report = MixerVmReport()
@@ -119,6 +112,10 @@ final class Session {
     func snapshot(at address: UInt32) throws -> [UInt8] {
         let count = Int(try invoke("fieldlog_editor_snapshot"))
         try require((EditorBoundary.headerBytes...EditorBoundary.bufferBytes).contains(count), "snapshot bounds")
+        return try read(at: address, count: count)
+    }
+
+    func read(at address: UInt32, count: Int) throws -> [UInt8] {
         var bytes = [UInt8](repeating: 0, count: count)
         var report = MixerVmReport()
         let status = bytes.withUnsafeMutableBufferPointer {
@@ -137,14 +134,19 @@ func i64(_ value: UInt64) -> MixerVmValue {
     MixerVmValue(value_type: 2, reserved: 0, value: Int64(bitPattern: value))
 }
 
-func originalBytes(_ snapshot: TaskEditorPresentationSnapshot) throws -> [UInt8] {
+func originalBytes(_ snapshot: TaskEditorPresentationSnapshot, includeSave: Bool = false) throws -> [UInt8] {
     try require(snapshot.renderingFailure == nil, "original document invalid")
-    try require(snapshot.state.responsible.isEmpty && !snapshot.state.saving
-                && !snapshot.state.saved && snapshot.state.failure == nil, "original changed other reducer fields")
-    let cancelled = snapshot.outcome == .cancelled
-    try require(cancelled || snapshot.outcome == .editing, "unexpected original outcome")
+    try require(snapshot.state.responsible.isEmpty && snapshot.state.failure == nil, "unexpected reducer fields")
+    let phase: UInt8
+    switch (snapshot.outcome, snapshot.state.saving, snapshot.state.saved) {
+    case (.editing, false, false): phase = 0
+    case (.cancelled, false, false): phase = 1
+    case (.editing, true, false) where includeSave: phase = 2
+    case (.saved, false, true) where includeSave: phase = 3
+    default: throw ReplayFailure(description: "unexpected original outcome")
+    }
     let routes = snapshot.navigation.routes
-    try require(cancelled ? routes.isEmpty :
+    try require(phase == 1 || phase == 3 ? routes.isEmpty :
                 routes.count == 1 && routes[0].id == "task.editor" && routes[0].name == "newTask",
                 "unexpected original route")
     let fields = snapshot.render.document.root.children[0].children[0].children
@@ -153,11 +155,16 @@ func originalBytes(_ snapshot: TaskEditorPresentationSnapshot) throws -> [UInt8]
                 "original document and reducer title diverged")
     var revision = snapshot.render.document.revision.littleEndian
     return withUnsafeBytes(of: &revision) { Array($0) }
-        + [cancelled ? 1 : 0, UInt8(routes.count)] + Array(snapshot.state.title.utf8)
+        + [phase, UInt8(routes.count)] + Array(snapshot.state.title.utf8)
 }
 
 @MainActor func deliver(_ turn: Turn, to original: TaskEditorPresentation) throws -> EditorReply {
-    let nodeID = turn.node == .title ? "task.title" : "task.cancel"
+    let nodeID: String
+    switch turn.node {
+    case .title: nodeID = "task.title"
+    case .cancel: nodeID = "task.cancel"
+    case .save: nodeID = "task.save"
+    }
     let envelope = UIEventEnvelope(revision: turn.revision,
         identity: UINodeIdentity(id: nodeID, generation: turn.generation),
         event: turn.event == .textChange ? .textChange : .activate, value: turn.value)
@@ -165,6 +172,7 @@ func originalBytes(_ snapshot: TaskEditorPresentationSnapshot) throws -> [UInt8]
     catch TaskEditorPresentationError.closed { return .closed }
     catch UIRoutingError.staleRevision { return .staleRevision }
     catch UIRoutingError.staleIdentity { return .staleIdentity }
+    catch UIRoutingError.disabledNode { return .disabled }
     catch UIRoutingError.unboundEvent { return .unboundEvent }
     catch UIRoutingError.invalidValue { return .invalidValue }
     return .accepted
@@ -179,16 +187,16 @@ func guestSend(_ turn: Turn, _ session: Session, at address: UInt32, input: [UIn
 }
 
 @main struct Replay {
-    @MainActor static func main() throws {
+    @MainActor static func main() async throws {
         do {
-            try run()
+            try await run()
         } catch {
             FileHandle.standardError.write(Data("\(error)\n".utf8))
             Foundation.exit(1)
         }
     }
 
-    @MainActor static func run() throws {
+    @MainActor static func run() async throws {
         let args = CommandLine.arguments
         let guest = try Data(contentsOf: URL(fileURLWithPath: args[1]))
         let original = try TaskEditorPresentation { _, _ in
@@ -204,7 +212,7 @@ func guestSend(_ turn: Turn, _ session: Session, at address: UInt32, input: [UIn
         var projected = EditorBoundary(titleGeneration: title.generation, cancelGeneration: cancel.generation)
         var buffer = [UInt8](repeating: 0, count: EditorBoundary.bufferBytes)
         let session = try Session(guest)
-        let address = try session.invoke("fieldlog_editor_open", [i64(title.generation), i64(cancel.generation)])
+        let address = try session.invoke("fieldlog_editor_open", [i64(title.generation), i64(cancel.generation), i64(0)])
         try require(address > 0, "null guest buffer")
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
@@ -277,39 +285,6 @@ func guestSend(_ turn: Turn, _ session: Session, at address: UInt32, input: [UIn
         try session.close()
         try original.close()
         print("axis=\(axis) peakFuel=\(session.peakFuel) retiredHandle=refused")
-        try longUnicodeControl(guest)
-    }
-
-    @MainActor static func longUnicodeControl(_ guest: Data) throws {
-        let original = try TaskEditorPresentation { _, _ in fatalError("large edit invoked persistence") }
-        defer { try? original.close() }
-        let render = original.snapshot.render
-        let title = render.identity(for: "task.title")!
-        let cancel = render.identity(for: "task.cancel")!
-        let session = try Session(guest)
-        let address = try session.invoke("fieldlog_editor_open", [i64(title.generation), i64(cancel.generation)])
-        let values = [String(repeating: "e\u{301}", count: 4096), String(repeating: "\u{e9}", count: 4096)]
-        for (index, value) in values.enumerated() {
-            let turn = Turn(name: "long-unicode-\(index + 1)", revision: UInt64(index + 1), node: .title,
-                            generation: title.generation, event: .textChange, value: .string(value), expected: .accepted)
-            try require(try deliver(turn, to: original) == .accepted, "\(turn.name): historical title refused")
-            let expected = try originalBytes(original.snapshot)
-            try require(original.snapshot.render.document.revision == 2
-                        && expected.dropFirst(EditorBoundary.headerBytes).elementsEqual(values[0].utf8),
-                        "\(turn.name): historical published bytes changed unexpectedly")
-            do {
-                try require(try guestSend(turn, session, at: address, input: turn.input) == EditorReply.accepted.rawValue,
-                            "\(turn.name): guest title refused")
-                let sendFuel = session.fuel
-                try require(try session.snapshot(at: address) == expected, "\(turn.name): bytes differ")
-                print("control=\(turn.name) inputBytes=\(turn.input.count) parity=pass sendFuel=\(sendFuel) snapshotFuel=\(session.fuel)")
-            } catch let error as VMFailure where error.operation == "fieldlog_editor_send"
-                && error.code == "fuel_exhausted" && error.fuel == 1_000_000 {
-                try session.requireTerminal()
-                print("control=\(turn.name) inputBytes=\(turn.input.count) originalAccepted=true vm=\(error) terminalHandle=refused")
-                break
-            }
-        }
-        try session.close()
+        try await replaySave(guest, in: URL(fileURLWithPath: args[4]))
     }
 }

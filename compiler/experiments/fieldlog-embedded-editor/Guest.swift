@@ -4,8 +4,11 @@ nonisolated(unsafe) private let buffer = UnsafeMutablePointer<UInt8>.allocate(
 )
 
 @_cdecl("fieldlog_editor_open")
-public func openEditor(_ titleGeneration: UInt64, _ cancelGeneration: UInt64) -> UnsafeMutablePointer<UInt8> {
-    editor = EditorBoundary(titleGeneration: titleGeneration, cancelGeneration: cancelGeneration)
+public func openEditor(
+    _ titleGeneration: UInt64, _ cancelGeneration: UInt64, _ saveGeneration: UInt64
+) -> UnsafeMutablePointer<UInt8> {
+    editor = EditorBoundary(titleGeneration: titleGeneration, cancelGeneration: cancelGeneration,
+                            saveGeneration: saveGeneration)
     return buffer
 }
 
@@ -23,4 +26,14 @@ public func sendEditor(
 @_cdecl("fieldlog_editor_snapshot")
 public func editorSnapshot() -> Int {
     editor.snapshot(into: buffer)
+}
+
+@_cdecl("fieldlog_editor_take_save")
+public func takeEditorSave() -> Int {
+    editor.takeSave(into: buffer)
+}
+
+@_cdecl("fieldlog_editor_complete_save")
+public func completeEditorSave() -> UInt32 {
+    editor.completeSave().rawValue
 }

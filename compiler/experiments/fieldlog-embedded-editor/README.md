@@ -1,4 +1,4 @@
-# FieldLog title and cancel in Embedded Swift
+# Replay FieldLog Edit, Cancel, and Save in Embedded Swift
 
 This host replay advances L03 and the F05/F06 editor slice. It runs one unsigned
 Embedded Swift guest through the existing Mixer table-memory-v3 session API from
@@ -7,13 +7,11 @@ VM's default limits and the module declares a maximum of 64 memory pages.
 
 The host compiles the original F05 and F06 `TaskEditor` and
 `TaskEditorPresentation` with each release's pinned MixerCore and MixerUI.
-It takes the title and Cancel node generations from the original presentations.
-The Foundation-free editor compiles the historical title reducer case extracted
-from the verified Git blob. Extraction changes the state receiver to `self` and
-the empty-effect return to a void return. The same extracted code and boundary
-run in native Swift and as the guest. The boundary projects historical revision,
-generation and event checks, publication and cancellation onto just the title
-and Cancel controls.
+It takes the Title, Cancel, and Save node generations from the historical
+presentations. The guest compiles the title reducer and the successful Save
+state transitions extracted from the pinned editor. The Save projection
+admits an unpadded printable ASCII title up to 240 bytes with an empty
+responsibility label. The original editor keeps its full validation.
 
 For every turn, the harness compares the reply, revision, outcome, route count
 and title UTF-8 against the untouched historical presentation. It compares the
@@ -26,25 +24,34 @@ presentation.
 
 ## Observed results
 
-The 86,887-byte guest declares zero imports, two initial memory pages and a
-64-page maximum. All 12 turns matched in each historical version. The peak
-invocation cost for those turns was 23,467 fuel. The Unicode edit includes
-a newline, a combining accent and an emoji sequence. A canonically equivalent
+The 92,501-byte guest declares zero imports, two initial memory pages and a
+64-page maximum. The 12 Edit and Cancel turns matched the prior trace in
+both releases. The peak invocation cost for those turns was 23,478 fuel.
+The Unicode edit includes a newline, a combining accent and an emoji sequence. A canonically equivalent
 follow-up leaves the document and revision unchanged. Cancel clears the route
 and publishes the latest reducer spelling, including its exact UTF-8 bytes.
-The injected save closure traps if called. Both sessions closed and their old
-handles were refused.
+The Edit and Cancel replay uses a save closure that traps if called.
 
-The untouched editor fails Embedded Swift compilation at `import Foundation`.
-The isolated 12,288-byte decomposed edit passed and used 595,832 fuel to send.
-Submitting its 8,192-byte canonically equivalent spelling succeeded in both
-historical host editors. The guest hit `fuel_exhausted` at 1,000,000 and the VM
-refused subsequent access to that session. This bounds the projection's
-coverage even for input below the SDK's 16,384-byte limit.
+The Save replay submits `Inspect pump P-17` through the historical
+presentation's **Add** action and the guest's Save action. Both publish
+the saving state at revision 3 and the saved outcome with an empty route
+stack at revision 4. The Save action used 13,255 fuel in each guest session.
 
-The evidence covers local reducer state and the title event path. Full
-document exchange, Save, signed installation, and F06's platform renderer
-remain unqualified. L03 and L08 remain open.
+The owner consumes one typed guest request and calls the pinned
+`WorkspaceRepository.transact` with `Workspace.saveTask`. An owner success
+completes the guest Save. Each leg closes its repository and opens a fresh
+repository on the same directory in the same process. The reopened task and
+its linked `taskSaved` outbox record match across legs, with one repository
+revision added per Save. The VM refused access through each retired handle.
+
+The untouched editor still fails Embedded Swift compilation at
+`import Foundation`. The prior receipt records the separate
+`fuel_exhausted` result for the long canonically equivalent edit. The current
+replay covers unsigned host sessions and synthetic local data. Full document
+exchange, failed Save outcomes, signed installation, and F06's platform
+renderer remain unqualified. L03 and L08 remain open.
+[Edit and Cancel receipt](../../../verification/receipts/fieldlog-f05-f06-embedded-editor-2acaac67.json) and
+[Save and cold readback receipt](../../../verification/receipts/fieldlog-f05-embedded-editor-save-2acaac67.json).
 
 ## Replay
 

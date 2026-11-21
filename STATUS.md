@@ -1261,10 +1261,19 @@ A compact unsigned Embedded Swift editor now runs in the owned VM on
 historical editors and matches their observed state across 12 turns
 each. The 86,887-byte guest has zero imports and two initial memory
 pages. One longer equivalence case still exhausts the fixed fuel
-budget. Save, signed installation, platform rendering, and full parity
-remain open. Independent review confirmed the source identity, projected
-trace, and scope of the unsigned host proof.
+budget. Independent review confirmed the source identity, projected trace,
+and scope of the unsigned host proof.
 [Compact editor evidence](verification/receipts/fieldlog-f05-f06-embedded-editor-2acaac67.json)
+
+The follow-up replay saved `Inspect pump P-17` through each historical
+FieldLog editor and through the unsigned guest. The host committed the
+exact title from VM memory before completing Save in the guest. Each leg
+made one owner call. A fresh repository instance in the same process read
+the complete seed plus one revision, one task, and its linked `taskSaved`
+outbox entry. Independent review matched the source and verified the
+assertions, including the existing Edit and Cancel trace. Signed installation,
+platform rendering, and broader parity remain open.
+[Save replay](verification/receipts/fieldlog-f05-embedded-editor-save-2acaac67.json)
 
 The L07 terminal restart attempt used a CLI that predates the current closure acknowledgement. The worker declined shutdown, leaving compiler custody unknown. Three separate no-compiler controls passed. [Worker custody receipt](verification/receipts/l07-worker-terminal-restart-hold-41a05264.json)
 

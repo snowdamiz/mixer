@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare the historical FieldLog title/cancel transition in macOS Swift and Mixer VM."""
+"""Compare historical FieldLog Edit, Cancel and short-title Save in macOS Swift and Mixer VM."""
 
 import argparse
 import datetime
@@ -24,9 +24,11 @@ PUBLIC_TREE = "d995f414d76ee7ec709594521e071618dd088dda"
 VM_TREE = "ec1ddb74b7c6c2eabd91d1f60ed243ffc69ce6f4"
 EDITOR = "6ea3c41c0c50353ca56d1a62c1dfc9cced65dedf"
 MODEL = "91615788bea186663fbb8a23231e304802366f8a"
+STORAGE = "f5a99605351ad460d0cb44011db0d4889d6df7b0"
 FEATURE = "Sources/FieldLogFeatures/"
 MAX_WASM = 4 * 1024 * 1024
-EXPORTS = ("fieldlog_editor_open", "fieldlog_editor_send", "fieldlog_editor_snapshot")
+EXPORTS = ("fieldlog_editor_open", "fieldlog_editor_send", "fieldlog_editor_snapshot",
+           "fieldlog_editor_take_save", "fieldlog_editor_complete_save")
 HISTORY = {
     "F05": {
         "fieldlog": "70f3aa1d28f29e7c327a17fd46199480d41ca749",
@@ -207,11 +209,31 @@ def replay(args, campaign, receipt):
     case = editor.decode().split("      case .title(let title):\n", 1)[1].split("      case .responsible(", 1)[0]
     require(case == "        guard !state.saving && !state.saved else { return [] }\n"
                     "        state.title = title; state.failure = nil\n", "historical title case changed")
-    reduction = work / "TitleReduction.swift"
+    # The embedded boundary admits only titles for which the historical validation
+    # succeeds. Preserve the reducer's saving/saved transitions and capture the
+    # original effect arguments, handing off execution to the app owner.
+    source = editor.decode()
+    submit = source.split("      case .submit:\n", 1)[1].split("      case .completed(", 1)[0]
+    transition, separator, effect = submit.partition("        state.saving = true; state.failure = nil\n")
+    require(separator and transition.startswith("        guard state.canSubmit else { return [] }\n")
+            and effect == "        let title = state.title, responsible = state.responsible\n"
+                          '        return [.run(id: "task.save") { .completed(await save(title, responsible)) }]\n',
+            "historical submit case changed")
+    completed = source.split("      case .completed(let result):\n", 1)[1].split("        case .failed(", 1)[0]
+    completion = completed.replace("        switch result {\n        case .saved: ", "        ")
+    require(completion == "        guard state.saving else { return [] }\n"
+                          "        state.saving = false\n"
+                          "        state.saved = true; state.failure = nil\n", "historical completion case changed")
+    reduction = work / "EditorReduction.swift"
     reduction.write_text("extension TitleState {\n    mutating func changeTitle(_ title: String) {\n"
                          + case.replace("state.", "self.").replace("return []", "return")
+                         + "    }\n    mutating func beginSave() -> SaveTaskEffect {\n"
+                         + (separator + effect.split("        return ", 1)[0]).replace("state.", "self.")
+                         + "        return SaveTaskEffect(title: title, responsible: responsible)\n"
+                         + "    }\n    mutating func finishSave() {\n"
+                         + completion.replace("state.", "self.").replace("return []", "return")
                          + "    }\n}\n")
-    receipt["titleReductionSHA256"] = digest(reduction.read_bytes())
+    receipt["editorReductionSHA256"] = digest(reduction.read_bytes())
 
     guest = work / "editor.wasm"
     run("build-embedded", *flags, "-emit-object", HERE / "EditorBoundary.swift", reduction, HERE / "Guest.swift",
@@ -238,6 +260,7 @@ def replay(args, campaign, receipt):
         variant = work / label
         variant.mkdir()
         files = {**pins["files"], "Sources/FieldLogModels/Workspace.swift": MODEL,
+                 "Sources/FieldLogStorage/WorkspaceRepository.swift": STORAGE,
                  FEATURE + "TaskEditor.swift": EDITOR}
         row = {**pins, "files": {}, "beforeEditor": {"revision": before, "blob": EDITOR}}
         receipt["history"][label] = row
@@ -251,9 +274,10 @@ def replay(args, campaign, receipt):
         row["sdkArchiveSHA256"] = campaign.archive(f"{label}-archive-sdk", pins["sdk"], variant,
                                                   "sdk/Sources/MixerCore", "sdk/Sources/MixerUI")
         modules = []
-        for name in ("MixerCore", "MixerUI", "FieldLogModels"):
-            files = [variant / "Workspace.swift"] if name == "FieldLogModels" else sorted(
-                (variant / "sdk/Sources" / name).glob("*.swift"))
+        app_modules = {"FieldLogModels": "Workspace.swift", "FieldLogStorage": "WorkspaceRepository.swift"}
+        for name in ("MixerCore", "MixerUI", *app_modules):
+            files = ([variant / app_modules[name]] if name in app_modules else
+                     sorted((variant / "sdk/Sources" / name).glob("*.swift")))
             obj = variant / (name + ".o")
             run(f"{label}-build-{name}", args.host_swiftc, "-sdk", mac_sdk, "-swift-version", "6", "-whole-module-optimization",
                 "-parse-as-library", "-package-name", "Mixer", "-module-name", name, "-I", variant,
@@ -263,19 +287,20 @@ def replay(args, campaign, receipt):
         executable = variant / "oracle"
         run(f"{label}-build-oracle", args.host_swiftc, "-sdk", mac_sdk, "-swift-version", "6", "-parse-as-library", "-package-name", "FieldLog",
             "-I", variant, "-I", include, *modules, library, variant / "TaskEditor.swift",
-            variant / "TaskEditorPresentation.swift", HERE / "Replay.swift", HERE / "EditorBoundary.swift", reduction,
+            variant / "TaskEditorPresentation.swift", HERE / "Replay.swift", HERE / "SaveReplay.swift",
+            HERE / "EditorBoundary.swift", reduction,
             "-o", executable)
         trace = variant / "state-trace"
-        stdout = run(f"{label}-differential", executable, guest, pins["axis"], trace, timeout=20)
+        stdout = run(f"{label}-differential", executable, guest, pins["axis"], trace, variant / "save", timeout=20)
         row["trace"] = {"bytes": trace.stat().st_size, "sha256": digest(trace.read_bytes())}
         row["observations"] = stdout.splitlines()
     require(receipt["history"]["F05"]["trace"] == receipt["history"]["F06"]["trace"],
             "F05 and F06 shared reducer traces differ")
-    receipt["remainingGap"] = {
-        label: [line for line in row["observations"] if "fuel_exhausted" in line]
-        for label, row in receipt["history"].items()
+    receipt["knownLimit"] = {
+        "priorReceipt": "verification/receipts/fieldlog-f05-f06-embedded-editor-2acaac67.json",
+        "replayed": False,
     }
-    receipt["status"] = "PASS_BOUNDED_EDITOR_STATE_DIFFERENTIAL"
+    receipt["status"] = "PASS_BOUNDED_EDITOR_SAVE_AND_COLD_READBACK"
 
 
 def main():
@@ -294,7 +319,10 @@ def main():
     receipt = {
         "schema": 1, "status": "FAILED", "publicRevision": PUBLIC, "publicTree": PUBLIC_TREE, "vmTree": VM_TREE,
         "observedUTC": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        "scope": "Unsigned host-only F05/F06 title, event admission and cancel state parity via owned table-memory-v3.",
+        "scope": "Unsigned host-only F05/F06 title, Cancel and successful short-title Save via owned table-memory-v3.",
+        "saveScope": "One unpadded ASCII title with empty responsible per oracle and guest leg. "
+                     "Owner-only repository transaction against isolated synthetic local data. "
+                     "Cold readback reopens each repository from disk after close, in the same process.",
         "limits": {"moduleBytes": MAX_WASM, "memoryPages": 64, "fuelPerInvocation": 1_000_000},
         "sources": {p.name: digest(p.read_bytes()) for p in sorted(HERE.glob("*.swift"))}
                    | {"replay.py": digest(Path(__file__).read_bytes())},
