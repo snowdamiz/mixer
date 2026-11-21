@@ -1,0 +1,1177 @@
+--- a/source-tree/hosted/test/mixer_hosted/releases/browser_publication_test.exs
++++ b/source-tree/hosted/test/mixer_hosted/releases/browser_publication_test.exs
+@@ -33,6 +33,351 @@
+   @promotion_direction "dev-to-stage"
+   @promotion_path "/v3/orgs/org-a/projects/project-a/apps/fieldlog/release-promotions/" <>
+                     @promotion_direction
++
++  @rollback_reason "Restore the signed staging known-good release"
++  @rollback_cli_base "/v3/orgs/org-a/projects/project-a"
++
++  test "freezes a two-platform signed staging release and distinct successors for restore" do
++    c = prepare_release_fixture!("rollback-source")
++    provision!()
++    provision_delivery!()
++    provision_cli!()
++    provision_actions!()
++    provision_halt_audit!()
++    provision_details!()
++
++    v = vector()
++    source = %{
++      ios: variant(v, "ios", "development", "internal", 7),
++      android: variant(v, "android", "development", "internal", 9)
++    }
++    good = %{
++      ios: variant(v, "ios", "staging", "candidate", 3),
++      android: variant(v, "android", "staging", "candidate", 12)
++    }
++    direction = %Direction{
++      source: Map.new(source, fn {p, value} -> {p, value.enrollment} end),
++      destination: Map.new(good, fn {p, value} -> {p, value.enrollment} end)
++    }
++    seed_target!(source.ios.enrollment.target)
++    provision_release_jobs!()
++    provision_stage_promotion!()
++    provision_stage_promotion_read!()
++    for value <- [source.android, good.ios, good.android], do: seed_head!(value.enrollment.target)
++    seed_stage_direction!(direction)
++
++    for role <- ~w(mixer_release_delivery mixer_release_processor) do
++      DB.q!(Admin, "ALTER ROLE #{role} PASSWORD '#{DB.rollback_password(role)}'")
++    end
++
++    configs = Map.new(%{source_ios: source.ios, source_android: source.android,
++                        ios: good.ios, android: good.android}, fn {label, value} ->
++      {label, release_provisioning(value.enrollment)}
++    end)
++
++    directions = [%{
++      direction_id: @promotion_direction,
++      source: Map.new(direction.source, fn {p, x} -> {p, Target.wire(x.target)} end),
++      destination: Map.new(direction.destination, fn {p, x} -> {p, Target.wire(x.target)} end)
++    }]
++    c = rollback_api!(c, configs, :source_ios, directions)
++    owner = login(c)
++    token = access_token!(c, owner)
++    uploader = upload_identity!(c, login(c, :artifact_uploader))
++
++    for {name, value} <- [source_ios: source.ios, source_android: source.android,
++                          good_ios: good.ios, good_android: good.android] do
++      rollback_upload!(c, uploader, value, Atom.to_string(name))
++    end
++
++    default = Application.fetch_env!(:mixer_hosted, :local_release_target)
++    for {platform, value} <- source do
++      config = Map.from_struct(value.enrollment)
++      signed = publication(value)
++      Application.put_env(:mixer_hosted, :local_release_target, config)
++      assert {:ok, %{sequence: seq}} =
++        RuntimeOwner.publish_release(owner, config.target, signed.evidence.signed_assignment_bytes,
++          "rollback-source-#{platform}", @reason)
++      assert seq == signed.sequence
++    end
++    Application.put_env(:mixer_hosted, :local_release_target, default)
++
++    body = promotion_body(spaced_assignment(good.ios), spaced_assignment(good.android))
++    result = retry_release_write(fn ->
++      promotion_post(c, token, @promotion_path, body, [{"x-mixer-reason", @reason}], "saved-good-pair")
++    end, 1)
++    assert result.status == 200
++    assert Jason.decode!(result.body) == %{
++      "ios" => promotion_receipt(good.ios), "android" => promotion_receipt(good.android),
++      "delivery" => "local_only"
++    }
++
++    platforms = Map.new(good, fn {platform, original} ->
++      current =
++        original
++        |> MixerHosted.Test.StagePromotionSigningFixture.with_payload(original.payload <> "-successor")
++        |> put_in([:assignment, "sequence"], original.assignment["sequence"] + 1)
++
++      rollback = put_in(original.assignment["sequence"], original.assignment["sequence"] + 2)
++      rollback_upload!(c, uploader, current, "distinct-successor-#{platform}")
++      publish_successor!(c, owner, current)
++      artifact = publication(original)
++      assert artifact.artifact_sha256 != publication(current).artifact_sha256
++
++      {platform, %{
++        saved: browser_promotion_receipt(original),
++        original_digest: artifact.artifact_sha256,
++        current_digest: publication(current).artifact_sha256,
++        current_sequence: current.assignment["sequence"],
++        rollback_sequence: rollback.assignment["sequence"],
++        signed_rollback: exact_assignment(rollback),
++        manifest: String.trim(artifact.evidence.signed_manifest_bytes),
++        payload: Base.encode64(artifact.evidence.payload)
++      }}
++    end)
++
++    saved = Map.new(good, fn {platform, value} ->
++      {platform, read!(c, owner, value.enrollment.target, promotion_view(value))}
++    end)
++    assert saved.ios == saved.android
++    assert :ok = Application.stop(:mixer_hosted)
++    state = rollback_state!()
++    assert rollback_counts(state) == [4, 6, 1, 4, 6, 6, 0]
++    assert Enum.all?(state["jobs"], &(&1["state"] == "available" and &1["attempt"] == 0))
++    rollback_record!("frozen", %{configs: configs, directions: directions, platforms: platforms,
++                                 saved: saved.ios, state: state})
++  end
++
++  test "runs stock rollback twice per restored staging target and reads the exact settled release" do
++    c = prepare_release_fixture!("rollback-target")
++    data = Path.join(System.fetch_env!("MIXER_ROLLBACK_ROOT"), "frozen.json")
++           |> File.read!() |> Jason.decode!()
++    assert rollback_state!() == data["state"]
++    Enum.each(~w(ios android), fn platform ->
++      before_data = data["platforms"][platform]
++      api = rollback_api!(c, data["configs"], platform, data["directions"])
++      config = Application.fetch_env!(:mixer_hosted, :local_release_target)
++      assert config.target.platform == platform
++      owner = login(api)
++      old = read!(api, owner, config.target, :details_v2)["release"]
++      assert old["sequence"] == to_string(before_data["current_sequence"])
++      assert old["manifestSha256"] == before_data["current_digest"]
++      assert before_data["original_digest"] != old["manifestSha256"]
++      token = access_token!(api, owner)
++      validate = Jason.encode!(%{artifact_sha256: before_data["original_digest"]})
++      assert %{status: 200} =
++        cli_post(api, token, @rollback_cli_base <> "/releases/validate", "restored-good-#{platform}", validate)
++      input = Path.join(System.fetch_env!("MIXER_ROLLBACK_ROOT"), "rollback-#{platform}.json")
++      signed = before_data["signed_rollback"]
++      File.write!(input, signed)
++      cli = System.fetch_env!("MIXER_ROLLBACK_CLI")
++      command = ["update", "rollback", before_data["original_digest"], "--reason", @rollback_reason,
++                 "--channel", config.target.channel, "--organization", "org-a",
++                 "--project", "project-a", "--assignment", input]
++      env = [{"MIXER_RELEASE_ORIGIN", "http://127.0.0.1:#{api.http_port}"},
++             {"MIXER_RELEASE_TOKEN", token}]
++      prior = rollback_state!()
++      assert {result, 0} = System.cmd(cli, command, env: env, stderr_to_stdout: true)
++      committed = rollback_state!()
++      assert {^result, 0} = System.cmd(cli, command, env: env, stderr_to_stdout: true)
++      assert committed == rollback_state!()
++
++      expected = %{"action" => "rollback", "status" => "ok", "delivery" => "local_only",
++                   "artifact_sha256" => before_data["original_digest"],
++                   "sequence" => before_data["rollback_sequence"], "rollout_basis_points" => 10_000}
++      assert Jason.decode!(result) == expected
++      assert expected["sequence"] > before_data["current_sequence"]
++
++      path = @rollback_cli_base <> "/channels/#{config.target.channel}/rollback"
++      body = ~s({"signed_assignment":#{signed}})
++      key = rollback_hash(Enum.join(["mixer-local-release-v3", "POST", path, @rollback_reason, body], <<0>>))
++      request_hash = rollback_hash(Enum.join(["POST " <> path, @rollback_reason, body], <<0>>))
++      seq = expected["sequence"]
++
++      assert [[^key, ^request_hash, "person-1", ^signed, "rollback", previous, digest, job_id,
++                "available", 0, true]] = DB.q!(Admin, """
++        SELECT r.idempotency_key, r.request_sha256, r.principal_id, p.signed_assignment_bytes,
++               p.action, p.previous_sequence::text, p.artifact_sha256, j.id, j.state::text, j.attempt,
++               p.release_jobs_xact_id IS NOT NULL
++        FROM public.mixer_release_cli_requests r
++        JOIN public.mixer_release_publications p
++          USING (organization_id,project_id,application_id,environment_id,platform,runtime_sha256,channel,idempotency_key)
++        JOIN mixer_release_jobs.oban_jobs j ON j.args->>'environment_id'=p.environment_id
++          AND j.args->>'platform'=p.platform AND j.args->>'sequence'=p.sequence::text
++        WHERE p.environment_id='staging' AND p.platform=$1 AND p.sequence::text=$2
++        """, [platform, to_string(seq)]).rows
++      assert previous == to_string(before_data["current_sequence"])
++      assert digest == expected["artifact_sha256"]
++      assert rollback_counts(committed) == Enum.zip_with(rollback_counts(prior), [0,1,0,1,0,1,0], &+/2)
++      rollback_record!("commit-#{platform}", %{cli: expected, stdout_sha256: rollback_hash(result),
++        idempotency_key: key, exact_request_sha256: request_hash, body_sha256: rollback_hash(body),
++        signed_assignment_sha256: rollback_hash(signed), job_id: job_id, previous_sequence: previous,
++        replay_exact_stdout: true, replay_unchanged_state: true, on_commit_job: "available"})
++      assert :ok = Application.stop(:mixer_hosted)
++    end)
++
++    queued = rollback_state!()
++    assert rollback_counts(queued) == [4, 8, 1, 8, 6, 8, 0]
++    assert queued["bindings"] == data["state"]["bindings"]
++    assert queued["artifacts"] == data["state"]["artifacts"]
++    assert Enum.reject(queued["publications"], &(&1["action"] == "rollback")) ==
++      data["state"]["publications"]
++    assert Enum.all?(data["state"]["requests"], &(&1 in queued["requests"]))
++
++    processor = MixerHosted.Identity.StartupFixture.foundation_env()
++      |> Map.merge(%{"MIXER_HOSTED_ROLE" => "processor", "MIXER_PROCESSOR_PROFILE" => "releases_v1",
++        "MIXER_DATABASE_USER" => "mixer_release_processor"})
++      |> Map.delete("MIXER_SECRET_KEY_BASE")
++      |> MixerHosted.RuntimeConfig.load!()
++    conn = Keyword.take(c.hosted.repo, [:hostname, :port, :database, :ssl])
++    repo = Keyword.merge(processor.repo, conn ++ [password: DB.rollback_password("mixer_release_processor")])
++    configure!(%{c | hosted: %{processor | repo: repo}}, :disabled)
++    assert {:ok, _} = Application.ensure_all_started(:mixer_hosted)
++    assert [["mixer_release_processor"]] = DB.q!(MixerHosted.Repo, "SELECT session_user").rows
++    refute Process.whereis(MixerHostedWeb.Endpoint)
++    refute Process.whereis(WriterRepo)
++    refute Process.whereis(DeliveryRepo)
++    await_release_jobs!(List.duplicate(["completed"], 8), System.monotonic_time(:millisecond) + 15_000)
++    assert :ok = Application.stop(:mixer_hosted)
++
++    settled = rollback_state!()
++    assert rollback_counts(settled) == [4, 8, 1, 8, 6, 8, 8]
++    assert Enum.all?(settled["jobs"], &(&1["state"] == "completed" and &1["attempt"] == 1))
++    assert [[8]] = DB.q!(Admin, """
++      SELECT count(*) FROM mixer_release_jobs.offer_materializations m
++      JOIN public.mixer_release_publications p USING
++        (organization_id,project_id,application_id,environment_id,platform,runtime_sha256,channel,sequence)
++      JOIN mixer_release_jobs.oban_jobs j
++        ON ROW(j.args->>'organization_id',j.args->>'project_id',j.args->>'application_id',
++               j.args->>'environment_id',j.args->>'platform',j.args->>'runtime_sha256',j.args->>'channel',
++               j.args->>'sequence') =
++           ROW(p.organization_id,p.project_id,p.application_id,p.environment_id,p.platform,p.runtime_sha256,
++               p.channel,p.sequence::text)
++      WHERE (m.artifact_sha256,m.signed_assignment_bytes,m.rollout_basis_points,m.action) =
++            (p.artifact_sha256,p.signed_assignment_bytes,p.rollout_basis_points,p.action)
++        AND j.state='completed' AND j.attempt=1
++      """).rows
++    assert Map.drop(settled, ["jobs", "projections"]) == Map.drop(queued, ["jobs", "projections"])
++
++    api = rollback_api!(c, data["configs"], "source_ios", data["directions"])
++    reader = login(api, :no_build_scope)
++    configuration = Application.fetch_env!(:mixer_hosted, :local_release_delivery)
++    expected_saved = Enum.reduce(~w(ios android), data["saved"], fn platform, saved ->
++      put_in(saved[platform]["headSequence"], to_string(data["platforms"][platform]["rollback_sequence"]))
++    end)
++    deliveries = Map.new(~w(ios android), fn platform ->
++      expected = data["platforms"][platform]
++      {target, config} = Enum.find(configuration.registry, fn {target, _} ->
++        target.scope.environment_id == "staging" and target.platform == platform
++      end)
++      assert read!(api, reader, target, :details_v2)["release"] |> Map.take(
++        ~w(sequence manifestSha256 payloadSha256 rolloutBasisPoints details)
++      ) |> then(fn head ->
++        assert head["details"]["action"] == "rollback"
++        Map.delete(head, "details")
++      end) == %{"sequence" => to_string(expected["rollback_sequence"]),
++                "manifestSha256" => expected["original_digest"], "rolloutBasisPoints" => 10_000,
++                "payloadSha256" => rollback_hash(Base.decode64!(expected["payload"]))}
++
++      digest = expected["original_digest"]
++      saved = expected["saved"]
++      assert read!(api, reader, target, {:promotion_group, saved["sequence"], digest}) == expected_saved
++      offer_path = delivery_path(target, "restore-rollback-local")
++      scoped_query = Target.signed_scope(target)
++        |> Map.merge(%{"runtime" => target.runtime_sha256, "channel" => target.channel})
++        |> URI.encode_query()
++      artifact_path = "/v3/artifacts/#{digest}?#{scoped_query}"
++      envelope = ~s({"signed_manifest":#{expected["manifest"]},"payload":"#{expected["payload"]}"})
++      {offer, artifact} = assert_delivery(api, offer_path, artifact_path, expected["signed_rollback"],
++                                          envelope, config)
++      [[session_user]] = DB.q!(DeliveryRepo, "SELECT session_user").rows
++      assert session_user == "mixer_release_delivery"
++      {platform, %{head_http: 200, saved_promotion_http: 200, offer_http: 200, artifact_http: 200,
++        sequence: expected["rollback_sequence"], known_good_sequence: saved["sequence"],
++        artifact_path: artifact_path, offer_path: offer_path, offer_wire_sha256: rollback_hash(offer),
++        signed_manifest_sha256: rollback_hash(expected["manifest"]),
++        signed_assignment_sha256: rollback_hash(expected["signed_rollback"]),
++        manifest_sha256: digest, payload_sha256: rollback_hash(Base.decode64!(expected["payload"])),
++        artifact_wire_sha256: rollback_hash(artifact), artifact_wire_bytes: byte_size(artifact),
++        payload_bytes: byte_size(Base.decode64!(expected["payload"])), verified_signature: true}}
++    end)
++    assert rollback_state!() == settled
++    assert :ok = Application.stop(:mixer_hosted)
++    rollback_record!("settled", %{deliveries: deliveries, saved_original: data["saved"],
++      saved_after: expected_saved, unchanged_after_delivery: true,
++      unchanged_original_ledger_and_bindings: true, restored_snapshot_equal: true,
++      counts: rollback_counts(settled), processor_role: "mixer_release_processor",
++      release_state_sha256: rollback_hash(Jason.encode!(settled))})
++  end
++
++  defp rollback_hash(data), do: Base.encode16(:crypto.hash(:sha256, data), case: :lower)
++
++  defp exact_assignment(value) do
++    value |> publication() |> Map.fetch!(:evidence) |> Map.fetch!(:signed_assignment_bytes) |> String.trim()
++  end
++
++  defp rollback_upload!(c, identity, value, key) do
++    staged = publication(value)
++    evidence = staged.evidence
++    envelope =
++      ~s({"signed_manifest":#{String.trim(evidence.signed_manifest_bytes)},"payload":"#{Base.encode64(evidence.payload)}"})
++    assert {:ok, %{status: 201}} =
++      upload!(c, identity, Map.from_struct(value.enrollment), staged.artifact_sha256, envelope, key)
++  end
++
++  defp rollback_api!(c, configs, label, directions) do
++    c = put_in(c.hosted.local_release_jobs, true)
++    env = %{
++      "MIXER_LOCAL_RELEASE_CONFIG" => Jason.encode!(Map.fetch!(configs, label)),
++      "MIXER_LOCAL_RELEASE_TARGET_REGISTRY" => configs |> Map.delete(label) |> Map.values() |> Jason.encode!(),
++      "MIXER_LOCAL_RELEASE_DELIVERY_PASSWORD" => DB.rollback_password("mixer_release_delivery"),
++      "MIXER_LOCAL_RELEASE_WRITER_ENABLED" => "true",
++      "MIXER_LOCAL_STAGE_PROMOTION_DIRECTIONS" => Jason.encode!(directions)
++    }
++    {default, delivery} = provisioning = RuntimeProvisioning.load!(env, c.hosted)
++    writer = RuntimeProvisioning.writer_options!(env, c.hosted, provisioning)
++    parsed = RuntimeProvisioning.stage_promotion_directions!(env, provisioning, writer)
++    replace_config!(WriterRepo, writer)
++    replace_config!(:local_release_target, default)
++    replace_config!(:local_release_delivery, delivery)
++    replace_config!(:local_stage_promotion_directions, parsed)
++    api = start!(c)
++    assert %{phase: :storage_ready} = RuntimeOwner.status()
++    assert api.hosted.oban[:queues] == false
++    refute Enum.any?(System.get_env(), fn {key, _} ->
++      String.contains?(key, ["STRIPE", "BILLING", "PAYMENT"])
++    end)
++    assert [["browser_ordinary"]] = DB.q!(MixerHosted.Repo, "SELECT session_user").rows
++    api
++  end
++
++  defp rollback_state! do
++    tables = [
++      heads: "public.mixer_release_heads",
++      publications: "public.mixer_release_publications",
++      bindings: "public.mixer_stage_promotion_bindings",
++      requests: "public.mixer_release_cli_requests",
++      artifacts: "public.mixer_customer_artifacts",
++      jobs: "mixer_release_jobs.oban_jobs",
++      projections: "mixer_release_jobs.offer_materializations"
++    ]
++    Map.new(tables, fn {name, table} ->
++      [[encoded]] = DB.q!(Admin, """
++        SELECT COALESCE(jsonb_agg(row ORDER BY row), '[]'::jsonb)::text
++        FROM (SELECT to_jsonb(t) AS row FROM #{table} t) q
++        """).rows
++      {Atom.to_string(name), Jason.decode!(encoded)}
++    end)
++  end
++
++  defp rollback_counts(state) do
++    Enum.map(~w(heads publications bindings requests artifacts jobs projections),
++      &(state |> Map.fetch!(&1) |> length()))
++  end
++
++  defp rollback_record!(name, value) do
++    File.write!(Path.join(System.fetch_env!("MIXER_ROLLBACK_ROOT"), name <> ".json"), Jason.encode!(value))
++  end
+ 
+   test "public delivery refuses a second listener in the effective endpoint settings" do
+     hosted =
+@@ -1884,16 +2229,18 @@
+ 
+     DB.q!(Admin, "CREATE ROLE mixer_release_delivery LOGIN NOINHERIT")
+ 
+-    on_exit(fn ->
+-      conn = DB.connection!("browser_admin")
+-
+-      try do
+-        Postgrex.query!(conn, "DROP OWNED BY mixer_release_delivery", [])
+-        Postgrex.query!(conn, "DROP ROLE mixer_release_delivery", [])
+-      after
+-        GenServer.stop(conn)
+-      end
+-    end)
++    if System.get_env("MIXER_ROLLBACK_PHASE") != "source" do
++      on_exit(fn ->
++        conn = DB.connection!("browser_admin")
++
++        try do
++          Postgrex.query!(conn, "DROP OWNED BY mixer_release_delivery", [])
++          Postgrex.query!(conn, "DROP ROLE mixer_release_delivery", [])
++        after
++          GenServer.stop(conn)
++        end
++      end)
++    end
+ 
+     DB.q!(Admin, "GRANT USAGE ON SCHEMA public TO mixer_release_delivery")
+ 
+@@ -1919,16 +2266,18 @@
+ 
+     database = Admin.config() |> Keyword.fetch!(:database)
+ 
+-    on_exit(fn ->
+-      conn = DB.connection!("browser_admin", database)
+-
+-      try do
+-        Postgrex.query!(conn, "DROP OWNED BY mixer_release_processor", [])
+-        Postgrex.query!(conn, "DROP ROLE mixer_release_processor", [])
+-      after
+-        GenServer.stop(conn)
+-      end
+-    end)
++    if System.get_env("MIXER_ROLLBACK_PHASE") != "source" do
++      on_exit(fn ->
++        conn = DB.connection!("browser_admin", database)
++
++        try do
++          Postgrex.query!(conn, "DROP OWNED BY mixer_release_processor", [])
++          Postgrex.query!(conn, "DROP ROLE mixer_release_processor", [])
++        after
++          GenServer.stop(conn)
++        end
++      end)
++    end
+ 
+     assert release_jobs_sql!("provision-local-release-jobs.sql") == ""
+   end
+@@ -2337,7 +2686,14 @@
+         )
+       end
+ 
+-      settings = Keyword.merge(c.hosted.repo, username: "release_fixture_uploader", pool_size: 1)
++      password = DB.rollback_password("release_fixture_uploader")
++
++      if password do
++        DB.q!(Admin, "ALTER ROLE release_fixture_uploader PASSWORD '#{password}'")
++      end
++
++      settings = Keyword.merge(c.hosted.repo,
++        username: "release_fixture_uploader", password: password, pool_size: 1)
+       start_supervised!({Uploader, settings})
+       DB.q!(Uploader, "SELECT 1")
+ 
+--- a/source-tree/hosted/test/support/browser_storage_fixture.ex
++++ b/source-tree/hosted/test/support/browser_storage_fixture.ex
+@@ -59,6 +59,7 @@
+         hostname: "127.0.0.1",
+         port: port(),
+         username: role,
++        password: System.get_env("MIXER_ROLLBACK_PASSWORD_" <> role),
+         database: "browser_storage",
+         ssl: false,
+         backoff_type: :stop
+--- a/source-tree/hosted/test/support/ordinary_browser_startup_fixture.ex
++++ b/source-tree/hosted/test/support/ordinary_browser_startup_fixture.ex
+@@ -123,6 +123,10 @@
+ 
+     assert {:ok, _} = result
+     {:ok, {_, port}} = MixerHostedWeb.Endpoint.server_info(:http)
++
++    if path = System.get_env("MIXER_ROLLBACK_LISTENERS") do
++      File.write!(path, "bandit #{port}\n", [:append])
++    end
+     Map.merge(c, %{http_port: port, root: root})
+   end
+ 
+@@ -206,34 +210,43 @@
+   def prepare!(create \\ false, evidence_name \\ nil) do
+     refuse_names!(@all_names)
+     prepare_evidence!(create, evidence_name)
+-    conn = F.connection!("browser_admin", "postgres")
+-
+-    try do
+-      Postgrex.query!(
+-        conn,
+-        "CREATE DATABASE browser_ordinary_installation_r1422 OWNER browser_schema_owner",
+-        []
+-      )
+-    after
+-      GenServer.stop(conn)
+-    end
+-
+-    on_exit(fn ->
++    if System.get_env("MIXER_ROLLBACK_PHASE") == nil do
+       conn = F.connection!("browser_admin", "postgres")
+ 
+       try do
+-        Postgrex.query!(conn, "SET statement_timeout='15s'", [])
+-
+         Postgrex.query!(
+           conn,
+-          "DROP DATABASE browser_ordinary_installation_r1422 WITH (FORCE)",
+-          [],
+-          timeout: 20_000
++          "CREATE DATABASE browser_ordinary_installation_r1422 OWNER browser_schema_owner",
++          []
+         )
+       after
+         GenServer.stop(conn)
+       end
+-    end)
++
++      on_exit(fn ->
++        conn = F.connection!("browser_admin", "postgres")
++
++        try do
++          Postgrex.query!(conn, "SET statement_timeout='15s'", [])
++
++          Postgrex.query!(
++            conn,
++            "DROP DATABASE browser_ordinary_installation_r1422 WITH (FORCE)",
++            [],
++            timeout: 20_000
++          )
++        after
++          GenServer.stop(conn)
++        end
++      end)
++    end
++
++    if System.get_env("MIXER_ROLLBACK_PHASE") == "source" do
++      conn = F.connection!("browser_admin", "postgres")
++      Postgrex.query!(conn,
++        "CREATE DATABASE browser_ordinary_installation_r1422 OWNER browser_schema_owner", [])
++      GenServer.stop(conn)
++    end
+ 
+     for app <- [:ecto_sql, :postgrex, :jason, :jose, :mint, :ssl, :bandit],
+         do: Application.ensure_all_started(app)
+@@ -255,58 +268,61 @@
+       end
+     end)
+ 
+-    Application.put_env(:browser_storage_fixture, Admin, settings ++ [username: "browser_admin"])
+-
+-    start_supervised!({Admin, settings ++ [username: "browser_admin"]})
++    Application.put_env(:browser_storage_fixture, Admin, settings ++ [username: "browser_admin", password: F.rollback_password("browser_admin")])
++
++    start_supervised!({Admin, settings ++ [username: "browser_admin", password: F.rollback_password("browser_admin")]})
+ 
+     start_supervised!(
+       {Migration,
+        settings ++
+          [
+            username: "browser_admin",
++           password: F.rollback_password("browser_admin"),
+            after_connect: fn c -> Postgrex.query!(c, "SET ROLE browser_schema_owner", []) end
+          ]}
+     )
+ 
+-    F.install!()
+-    F.q!(Admin, "GRANT USAGE ON SCHEMA public TO browser_ordinary")
+-    F.q!(Admin, "GRANT SELECT ON ALL TABLES IN SCHEMA public TO browser_ordinary")
+-
+-    for helper <- ~w(profiles principals families credentials organization_heads project_heads),
+-        do:
+-          F.q!(
+-            Admin,
+-            "GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO browser_ordinary"
+-          )
+-
+-    for table <- ~w(sessions session_vault oidc_attempts session_events),
+-        do: F.q!(Admin, "REVOKE SELECT ON public.mixer_browser_#{table} FROM browser_ordinary")
+-
+-    for sql <- ActivationPreparationSchema.statements(), do: F.q!(Migration, sql)
+-    F.provision!()
+-    conn = F.connection!("browser_admin")
+-
+-    for sql <-
+-          ActivationPreparationSchema.provisioning_statements(
+-            "browser_writer",
+-            "browser_lifecycle",
+-            "browser_schema_owner"
+-          ),
+-        do: Postgrex.query!(conn, sql, [])
+-
+-    GenServer.stop(conn)
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_profiles VALUES('humans',1,'https://issuer.fixture.invalid','console','human',true,1)"
+-    )
+-
+-    F.q!(Admin, "INSERT INTO public.mixer_authz_principals VALUES('person-1','human',true,0,1)")
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_bindings VALUES('humans',1,'subject-1','human','person-1',true,1)"
+-    )
++    if System.get_env("MIXER_ROLLBACK_PHASE") != "restore" do
++      F.install!()
++      F.q!(Admin, "GRANT USAGE ON SCHEMA public TO browser_ordinary")
++      F.q!(Admin, "GRANT SELECT ON ALL TABLES IN SCHEMA public TO browser_ordinary")
++
++      for helper <- ~w(profiles principals families credentials organization_heads project_heads),
++          do:
++            F.q!(
++              Admin,
++              "GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO browser_ordinary"
++            )
++
++      for table <- ~w(sessions session_vault oidc_attempts session_events),
++          do: F.q!(Admin, "REVOKE SELECT ON public.mixer_browser_#{table} FROM browser_ordinary")
++
++      for sql <- ActivationPreparationSchema.statements(), do: F.q!(Migration, sql)
++      F.provision!()
++      conn = F.connection!("browser_admin")
++
++      for sql <-
++            ActivationPreparationSchema.provisioning_statements(
++              "browser_writer",
++              "browser_lifecycle",
++              "browser_schema_owner"
++            ),
++          do: Postgrex.query!(conn, sql, [])
++
++      GenServer.stop(conn)
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_profiles VALUES('humans',1,'https://issuer.fixture.invalid','console','human',true,1)"
++      )
++
++      F.q!(Admin, "INSERT INTO public.mixer_authz_principals VALUES('person-1','human',true,0,1)")
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_bindings VALUES('humans',1,'subject-1','human','person-1',true,1)"
++      )
++    end
+ 
+     fixture = start_supervised!(TLSFixture)
+     auth = GenServer.call(fixture, :authority)
+@@ -409,6 +425,7 @@
+     ordinary =
+       settings
+       |> Keyword.put(:username, "browser_ordinary")
++      |> Keyword.put(:password, F.rollback_password("browser_ordinary"))
+       |> Keyword.put(:pool_size, if(create == :workspace_builds, do: 4, else: 1))
+       |> Keyword.put(:ssl, false)
+ 
+@@ -417,7 +434,7 @@
+       port: F.port(),
+       database: "browser_ordinary_installation_r1422",
+       username: "browser_lifecycle",
+-      password: "synthetic",
++      password: F.rollback_password("browser_lifecycle") || "synthetic",
+       pool_size: 2,
+       pool_count: 1,
+       timeout: 5000,
+@@ -444,101 +461,105 @@
+       custody: custody
+     }
+ 
+-    for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.statements(), do: F.q!(Migration, sql)
+-    conn = F.connection!("browser_admin")
+-
+-    for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.provisioning_statements(),
+-        do: Postgrex.query!(conn, sql, [])
+-
+-    GenServer.stop(conn)
+-
+-    unless Code.ensure_loaded?(MixerHosted.Repo.Migrations.AddBuildJournals),
+-      do: Code.require_file("priv/repo/migrations/20261025000000_add_build_journals.exs")
+-
+-    :ok =
+-      Ecto.Migrator.up(
++    if System.get_env("MIXER_ROLLBACK_PHASE") != "restore" do
++      for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.statements(), do: F.q!(Migration, sql)
++      conn = F.connection!("browser_admin")
++
++      for sql <- MixerHosted.BrowserAuth.ActiveReadSchema.provisioning_statements(),
++          do: Postgrex.query!(conn, sql, [])
++
++      GenServer.stop(conn)
++
++      unless Code.ensure_loaded?(MixerHosted.Repo.Migrations.AddBuildJournals),
++        do: Code.require_file("priv/repo/migrations/20261025000000_add_build_journals.exs")
++
++      :ok =
++        Ecto.Migrator.up(
++          Migration,
++          20_261_025_000_000,
++          MixerHosted.Repo.Migrations.AddBuildJournals,
++          log: false
++        )
++
++      :ok = Ecto.Migrator.up(Migration, 1, R1026.ObanMigration, log: false)
++      F.q!(Migration, MixerHosted.CustomerBuilds.Schema.ddl())
++
++      F.q!(
+         Migration,
+-        20_261_025_000_000,
+-        MixerHosted.Repo.Migrations.AddBuildJournals,
+-        log: false
+-      )
+-
+-    :ok = Ecto.Migrator.up(Migration, 1, R1026.ObanMigration, log: false)
+-    F.q!(Migration, MixerHosted.CustomerBuilds.Schema.ddl())
+-
+-    F.q!(
+-      Migration,
+-      "REVOKE ALL ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) FROM PUBLIC"
+-    )
+-
+-    F.q!(
+-      Migration,
+-      "GRANT EXECUTE ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) TO browser_ordinary"
+-    )
++        "REVOKE ALL ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) FROM PUBLIC"
++      )
++
++      F.q!(
++        Migration,
++        "GRANT EXECUTE ON FUNCTION public.mixer_customer_build_read_v1(text,text,text,text,text) TO browser_ordinary"
++      )
++    end
+ 
+     now = System.system_time(:second)
+     {:ok, snapshot} = TrustSnapshot.new(profile, jwks, now, now + 300)
+     provider = start_supervised!({R686.Provider, %{key: key, wrong_key: wrong, config: config}})
+ 
+-    {:ok, :ok} =
+-      Migration.transaction(fn ->
+-        Enum.each(MixerHosted.CustomerArtifacts.Schema.statements(), &F.q!(Migration, &1))
+-      end)
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES('org-a',true,'Visible'),('org-b',true,'Hidden')"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a','project-a',true,'Project A'),('org-b','project-b',true,'Project B')"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_applications VALUES('org-a','project-a','fieldlog',true)"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_memberships VALUES('member-a','person-1','org-a',NULL,'all_projects','viewer',true,0,NULL,1)"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_organization_heads SELECT id,1 FROM public.mixer_authz_organizations"
+-    )
+-
+-    F.q!(
+-      Admin,
+-      "INSERT INTO public.mixer_authz_project_heads SELECT organization_id,id,1 FROM public.mixer_authz_projects"
+-    )
+-
+-    for n <- 0..51 do
+-      id = "r604-" <> String.pad_leading(Integer.to_string(n), 2, "0")
++    if System.get_env("MIXER_ROLLBACK_PHASE") != "restore" do
++      {:ok, :ok} =
++        Migration.transaction(fn ->
++          Enum.each(MixerHosted.CustomerArtifacts.Schema.statements(), &F.q!(Migration, &1))
++        end)
+ 
+       F.q!(
+         Admin,
+-        "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES($1,true,$1)",
+-        [id]
+-      )
+-
+-      F.q!(Admin, "INSERT INTO public.mixer_authz_organization_heads VALUES($1,1)", [id])
++        "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES('org-a',true,'Visible'),('org-b',true,'Hidden')"
++      )
+ 
+       F.q!(
+         Admin,
+-        "INSERT INTO public.mixer_authz_memberships VALUES($1,'person-1',$2,NULL,'all_projects','viewer',true,0,NULL,1)",
+-        ["member-" <> id, id]
++        "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a','project-a',true,'Project A'),('org-b','project-b',true,'Project B')"
+       )
+ 
+       F.q!(
+         Admin,
+-        "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a',$1,true,$1)",
+-        [id]
+-      )
+-
+-      F.q!(Admin, "INSERT INTO public.mixer_authz_project_heads VALUES('org-a',$1,1)", [id])
++        "INSERT INTO public.mixer_authz_applications VALUES('org-a','project-a','fieldlog',true)"
++      )
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_memberships VALUES('member-a','person-1','org-a',NULL,'all_projects','viewer',true,0,NULL,1)"
++      )
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_organization_heads SELECT id,1 FROM public.mixer_authz_organizations"
++      )
++
++      F.q!(
++        Admin,
++        "INSERT INTO public.mixer_authz_project_heads SELECT organization_id,id,1 FROM public.mixer_authz_projects"
++      )
++
++      for n <- 0..51 do
++        id = "r604-" <> String.pad_leading(Integer.to_string(n), 2, "0")
++
++        F.q!(
++          Admin,
++          "INSERT INTO public.mixer_authz_organizations(id,active,display_name) VALUES($1,true,$1)",
++          [id]
++        )
++
++        F.q!(Admin, "INSERT INTO public.mixer_authz_organization_heads VALUES($1,1)", [id])
++
++        F.q!(
++          Admin,
++          "INSERT INTO public.mixer_authz_memberships VALUES($1,'person-1',$2,NULL,'all_projects','viewer',true,0,NULL,1)",
++          ["member-" <> id, id]
++        )
++
++        F.q!(
++          Admin,
++          "INSERT INTO public.mixer_authz_projects(organization_id,id,active,display_name) VALUES('org-a',$1,true,$1)",
++          [id]
++        )
++
++        F.q!(Admin, "INSERT INTO public.mixer_authz_project_heads VALUES('org-a',$1,1)", [id])
++      end
+     end
+ 
+     authorization =
+@@ -558,7 +579,13 @@
+ 
+     {:ok, {_, provider_port}} = ThousandIsland.listener_info(authorization)
+ 
+-    for sql <- MixerHosted.CustomerBuildCatalog.Schema.private_statements(), do: F.q!(Admin, sql)
++    if path = System.get_env("MIXER_ROLLBACK_LISTENERS") do
++      File.write!(path, "jwks #{auth.port}\nprovider #{provider_port}\n", [:append])
++    end
++
++    if System.get_env("MIXER_ROLLBACK_PHASE") != "restore" do
++      for sql <- MixerHosted.CustomerBuildCatalog.Schema.private_statements(), do: F.q!(Admin, sql)
++    end
+ 
+     base = MixerHosted.RuntimeConfig.load!(MixerHosted.Identity.StartupFixture.foundation_env())
+ 
+@@ -891,6 +918,7 @@
+         hostname: "127.0.0.1",
+         port: port(),
+         username: role,
++        password: rollback_password(role),
+         database: database,
+         ssl: false,
+         backoff_type: :stop
+@@ -902,6 +930,8 @@
+     Postgrex.query!(conn, "SET idle_in_transaction_session_timeout='5s'", [])
+     conn
+   end
++
++  def rollback_password(role), do: System.get_env("MIXER_ROLLBACK_PASSWORD_" <> role)
+ 
+   def provision! do
+     conn = connection!("browser_admin")
+--- /dev/null
++++ b/owned.py
+@@ -0,0 +1,78 @@
++import hashlib
++import json
++import os
++from pathlib import Path
++import signal
++import socket
++import subprocess
++import time
++
++WORK = Path(__file__).resolve().parent
++TREE = WORK / "source-tree"
++PG = Path("/opt/homebrew/opt/postgresql@17/bin")
++ENV = {
++    "PATH": f"{PG}:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
++    "HOME": str(WORK), "TMPDIR": str(WORK / "tmp"),
++    "LC_ALL": "C", "MIX_ENV": "test", "HEX_OFFLINE": "1", "ERL_FLAGS": "+S 4:4",
++    "GIT_TERMINAL_PROMPT": "0", "GIT_ALLOW_PROTOCOL": "file",
++    "CLANG_MODULE_CACHE_PATH": str(WORK / "clang-cache"),
++}
++
++def digest(data):
++    return hashlib.sha256(data).hexdigest()
++
++def append(file, data):
++    with (WORK / file).open("a") as stream:
++        stream.write(json.dumps(data, sort_keys=True) + "\n")
++
++def group_absent(pid):
++    deadline = time.monotonic() + 4
++    while True:
++        try:
++            os.killpg(pid, 0)
++        except ProcessLookupError:
++            return True
++        except PermissionError:
++            return False
++        if time.monotonic() >= deadline:
++            return False
++        time.sleep(.05)
++
++def run(name, *command, cwd=WORK, env=None, data=b"", seconds=30, expected=0):
++    args = list(map(str, command))
++    with (WORK / (name + ".stdout")).open("wb") as out, (WORK / (name + ".stderr")).open("wb") as err:
++        child = subprocess.Popen(args, cwd=cwd, env=ENV | (env or {}), stdin=subprocess.PIPE,
++                                 stdout=out, stderr=err, start_new_session=True)
++        append("ownership.jsonl", {"name": name, "pidPgid": child.pid})
++        timeout = False
++        try:
++            child.communicate(input=data, timeout=seconds)
++        except subprocess.TimeoutExpired:
++            timeout = True
++            # No assumption about descendants on a timeout. Preserve and stop.
++    closed = not timeout and group_absent(child.pid)
++    fact = {"name": name, "argv": args, "pidPgid": child.pid, "exit": child.returncode,
++            "groupAbsent": closed, "timeout": timeout}
++    if not closed:
++        append("HOLD.jsonl", fact)
++        raise RuntimeError(f"{name} custody unconfirmed")
++    out = (WORK / (name + ".stdout")).read_bytes()
++    err = (WORK / (name + ".stderr")).read_bytes()
++    append("commands.jsonl", fact | {"stdoutSha256": digest(out), "stderrSha256": digest(err)})
++    if child.returncode != expected:
++        raise RuntimeError(f"{name} exit {child.returncode}; see owned logs")
++    return out
++
++def listener(port=0):
++    with socket.socket() as sock:
++        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
++        sock.bind(("127.0.0.1", port))
++        return sock.getsockname()[1]
++
++if __name__ == "__main__":
++    os.umask(0o077)
++    run("swift-version", "swift", "--version")
++    run("cli-build", "swift", "build", "--product", "mixer", "--jobs", "8",
++        "--cache-path", WORK / "swift-cache", "--manifest-cache", "local",
++        "--disable-index-store", "--skip-update", "--only-use-versions-from-resolved-file",
++        cwd=TREE / "cli", seconds=360)
+--- /dev/null
++++ b/replay.py
+@@ -0,0 +1,241 @@
++import json
++import os
++from pathlib import Path
++import secrets
++import signal
++import subprocess
++import time
++
++from owned import WORK, TREE, PG, ENV, append, digest, group_absent, listener, run
++
++DB = "browser_ordinary_installation_r1422"
++BOOT = "mixer_fixture"
++ROLES = {
++    "browser_admin", "browser_lifecycle", "browser_ordinary",
++    "mixer_release_delivery", "mixer_release_processor", "release_fixture_uploader", BOOT,
++}
++PASSWORDS = {role: secrets.token_hex(24) for role in sorted(ROLES)}
++HOST = "127.0.0.1"
++ROOT = WORK / "evidence"
++TEST = "test/mixer_hosted/releases/browser_publication_test.exs"
++REPAIR = "scripts/restore-local-authz-expiry.sql"
++KEY = "tests/integration/phoenix-release-restore/restore-artifact-key.sql"
++BOOTSTRAP = """
++CREATE ROLE browser_admin LOGIN SUPERUSER;
++CREATE ROLE browser_schema_owner NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;
++CREATE ROLE browser_writer NOLOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;
++CREATE ROLE browser_lifecycle LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;
++CREATE ROLE browser_ordinary LOGIN NOSUPERUSER NOBYPASSRLS NOINHERIT;
++CREATE ROLE mixer_customer_build_catalog_definer_v1 NOLOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT;
++CREATE DATABASE browser_storage OWNER browser_schema_owner;
++"""
++ACL = """
++SELECT c.relname || '|' || pg_get_userbyid(c.relowner) || '|' || c.relrowsecurity || '|' ||
++  c.relforcerowsecurity || '|' ||
++  COALESCE((SELECT string_agg(
++    concat_ws(':', CASE a.grantee WHEN 0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END,
++    pg_get_userbyid(a.grantor), a.privilege_type, a.is_grantable),
++    ',' ORDER BY a.grantee, a.grantor, a.privilege_type, a.is_grantable)
++    FROM aclexplode(COALESCE(c.relacl, acldefault(
++      CASE WHEN c.relkind='S' THEN 's' ELSE 'r' END::"char", c.relowner))) a), '')
++FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
++WHERE c.relkind IN ('r','S') AND n.nspname IN ('public','mixer_release_jobs')
++ORDER BY n.nspname,c.relname;
++"""
++# PostgreSQL role OIDs can differ after globals restore. Sort ACL entries by names.
++ACL = ACL.replace("a.grantee, a.grantor, a.privilege_type, a.is_grantable)",
++                  "CASE a.grantee WHEN 0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END, "
++                  "pg_get_userbyid(a.grantor), a.privilege_type, a.is_grantable)")
++ROLE_STATE = """
++SELECT rolname,rolsuper,rolinherit,rolcreaterole,rolcreatedb,rolcanlogin,rolreplication,rolbypassrls
++FROM pg_roles WHERE rolname NOT LIKE 'pg\_%' ORDER BY rolname;
++SELECT pg_get_userbyid(roleid),pg_get_userbyid(member),pg_get_userbyid(grantor),
++       admin_option,inherit_option,set_option FROM pg_auth_members ORDER BY 1,2,3;
++"""
++
++def require(condition, message):
++    if not condition:
++        raise RuntimeError(message)
++
++class Cluster:
++    def __init__(self, phase):
++        self.phase = phase
++        self.dir = WORK / phase
++        self.dir.mkdir()
++        self.pgdata = self.dir / "data"
++        self.port = listener()
++        self.child = None
++        self.pgpass = self.dir / "pgpass"
++        self.pgpass.write_text("".join(f"{HOST}:{self.port}:*:{r}:{p}\n" for r, p in PASSWORDS.items()))
++        self.pgpass.chmod(0o600)
++
++    @property
++    def env(self):
++        return {"PGPASSFILE": str(self.pgpass), "PGCONNECT_TIMEOUT": "4"}
++
++    def start(self):
++        password = self.dir / "bootstrap-password"
++        password.write_text(PASSWORDS[BOOT] + "\n")
++        run(self.phase + "-initdb", PG / "initdb", "-D", self.pgdata, "-U", BOOT,
++            "--auth-local=reject", "--auth-host=scram-sha-256", "--pwfile", password,
++            "--locale=C", "--encoding=UTF8", "--no-sync")
++        password.unlink()
++        (self.pgdata / "pg_hba.conf").write_text(
++            "local all all reject\n"
++            "host all all 127.0.0.1/32 scram-sha-256\n"
++            "host all all 0.0.0.0/0 reject\n"
++            "host all all ::/0 reject\n"
++        )
++        argv = list(map(str, [PG / "postgres", "-D", self.pgdata, "-h", HOST, "-p", self.port,
++                             "-k", "", "-c", "password_encryption=scram-sha-256",
++                             "-c", "log_min_error_statement=panic", "-c", "timezone=UTC",
++                             "-c", "max_connections=32"]))
++        with (self.dir / "postgres.log").open("wb") as log:
++            self.child = subprocess.Popen(argv, env=ENV, stdin=subprocess.PIPE,
++                                          stdout=log, stderr=subprocess.STDOUT,
++                                          start_new_session=True)
++        append("ownership.jsonl", {"name": f"{self.phase}-postgres", "pidPgid": self.child.pid})
++        deadline = time.monotonic() + 12
++        while self.child.poll() is None and time.monotonic() < deadline:
++            try:
++                pid = (self.pgdata / "postmaster.pid").read_text().splitlines()
++            except FileNotFoundError:
++                pid = []
++            if len(pid) >= 8 and pid[0] == str(self.child.pid) and pid[3] == str(self.port) and pid[7].strip() == "ready":
++                break
++            time.sleep(.05)
++        else:
++            raise RuntimeError("owned PostgreSQL startup did not reach readiness")
++        identifier = self.sql("identity", "SELECT system_identifier FROM pg_control_system()", "postgres")
++        auth = self.sql("auth", "SELECT type,coalesce(address,'-'),auth_method FROM pg_hba_file_rules", "postgres")
++        require("host|127.0.0.1|scram-sha-256" in auth, "unexpected DB authentication")
++        run(f"{self.phase}-wrong-password", PG / "psql", *self.conn, "-XqAt", "-d", "postgres",
++            "-c", "SELECT 1", env=self.env | {"PGPASSWORD": secrets.token_hex(24)}, expected=2)
++        wrong = (WORK / f"{self.phase}-wrong-password.stderr").read_text()
++        require("password authentication failed" in wrong, "wrong password control failed")
++        return {"systemIdentifier": identifier, "authentication": auth.splitlines(),
++                "wrongPasswordRefused": True, "port": self.port}
++
++    @property
++    def conn(self):
++        return ["-h", HOST, "-p", str(self.port), "-U", BOOT, "-w"]
++
++    def sql(self, name, statement, database=DB):
++        return run(f"{self.phase}-{name}", PG / "psql", *self.conn, "-XqAt", "-v",
++                   "ON_ERROR_STOP=1", "-d", database, data=statement.encode(), env=self.env).decode().strip()
++
++    def passwords(self, roles):
++        self.sql("passwords", "".join(
++            f"ALTER ROLE {r} PASSWORD '{PASSWORDS[r]}';\n" for r in roles), "postgres")
++
++    def fixture(self, line, name):
++        catalog = self.dir / "catalog"
++        catalog.mkdir()
++        ports = self.dir / "listeners"
++        out = run(f"{self.phase}-{name}", "mix", "test", "--warnings-as-errors", "--trace",
++                  "--no-color", "--seed", "0", "--timeout", "90000", f"{TEST}:{line}",
++                  cwd=TREE / "hosted", seconds=115, env=self.env | {
++                      "MIXER_BROWSER_STORAGE_PORT": str(self.port),
++                      "MIXER_BROWSER_CATALOG_FIXTURE_ROOT": str(catalog),
++                      "MIXER_ROLLBACK_PHASE": self.phase,
++                      "MIXER_ROLLBACK_LISTENERS": str(ports),
++                      "MIXER_ROLLBACK_ROOT": str(ROOT),
++                      "MIXER_ROLLBACK_CLI": str((TREE / "cli/.build/debug/mixer").resolve()),
++                  } | {"MIXER_ROLLBACK_PASSWORD_" + role: p for role, p in PASSWORDS.items()})
++        require("Result: 1 passed" in out.decode(), "fixture did not report one passing test")
++        return [tuple(line.split()) for line in ports.read_text().splitlines()]
++
++    def close(self):
++        if self.child is None:
++            return
++        try:
++            if self.child.poll() is None:
++                self.child.send_signal(signal.SIGINT)
++            self.child.wait(timeout=15)
++            self.child.stdin.close()
++            require(group_absent(self.child.pid), "PostgreSQL group did not close")
++            require(not (self.pgdata / "postmaster.pid").exists(), "PostgreSQL pidfile remains")
++        except BaseException:
++            append("HOLD.jsonl", {"name": f"{self.phase}-postgres", "pidPgid": self.child.pid})
++            raise
++        append("commands.jsonl", {"name": f"{self.phase}-postgres", "pidPgid": self.child.pid,
++                                  "exit": self.child.returncode, "groupAbsent": True})
++        owned_ports = [("postgres", str(self.port))]
++        if (self.dir / "listeners").exists() and not (WORK / "HOLD.jsonl").exists():
++            owned_ports += [tuple(row.split()) for row in (self.dir / "listeners").read_text().splitlines()]
++        for name, port in owned_ports:
++            listener(int(port))
++            append("rebinds.jsonl", {"phase": self.phase, "service": name, "port": int(port),
++                                    "rebound": True})
++        require(self.child.returncode == 0, "PostgreSQL did not exit cleanly")
++
++def exercise():
++    os.umask(0o077)
++    ROOT.mkdir()
++    ver = {}
++    for tool in ["postgres", "pg_dump", "pg_dumpall", "pg_restore", "psql", "mix"]:
++        ver[tool] = run(tool + "-version", tool, "--version").decode().strip()
++    require(all("17." in ver[t] for t in ("postgres", "pg_dump", "pg_dumpall", "pg_restore", "psql")),
++            "PostgreSQL tool major mismatch")
++    text = (TREE / "hosted" / TEST).read_text().splitlines()
++    def line(fragment):
++        return next(i for i, s in enumerate(text, 1) if f'test "{fragment}' in s)
++    source = Cluster("source")
++    try:
++        source_facts = source.start()
++        source.sql("bootstrap", BOOTSTRAP, "postgres")
++        source.passwords(["browser_admin", "browser_lifecycle", "browser_ordinary"])
++        source.fixture(line("freezes a two-platform"), "freeze")
++        acls = source.sql("effective-table-acls", ACL)
++        roles = source.sql("role-snapshot", ROLE_STATE)
++        active = source.sql("frozen", "SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND pid <> pg_backend_pid();")
++        require(active == "0", "source database has remaining client sessions")
++        roles_sql = run("source-dump-roles", PG / "pg_dumpall", *source.conn, "--roles-only",
++                        "--no-role-passwords", env=source.env)
++        require(roles_sql.count(b"CREATE ROLE mixer_fixture;\n") == 1, "unexpected fixture bootstrap DDL")
++        dump = WORK / "frozen.dump"
++        run("source-pg-dump", PG / "pg_dump", *source.conn, "--format=custom",
++            "--create", "--file", dump, DB, env=source.env, seconds=30)
++    finally:
++        source.close()
++    target = Cluster("restore")
++    try:
++        target_facts = target.start()
++        require(target_facts["systemIdentifier"] != source_facts["systemIdentifier"], "system identifiers match")
++        run("restore-roles", PG / "psql", *target.conn, "-XqAt", "-v", "ON_ERROR_STOP=1",
++            "-d", "postgres", env=target.env,
++            data=roles_sql.replace(b"CREATE ROLE mixer_fixture;\n", b""))
++        target.passwords(["browser_admin", "browser_lifecycle", "browser_ordinary",
++                          "mixer_release_delivery", "mixer_release_processor"])
++        run("restore-pg-restore", PG / "pg_restore", *target.conn, "--exit-on-error", "--create",
++            "--dbname", "postgres", dump, env=target.env, seconds=30)
++        for label, item in [("authz-repair", REPAIR), ("artifact-key-repair", KEY)]:
++            run("restore-" + label, PG / "psql", *target.conn, "-XqAt", "-v", "ON_ERROR_STOP=1",
++                "-d", DB, "-f", TREE / item, env=target.env)
++        require(target.sql("effective-table-acls", ACL) == acls, "effective table ACLs differ")
++        require(target.sql("role-snapshot", ROLE_STATE) == roles, "restored role properties differ")
++        require(target.sql("credential-mechanism", """
++            SELECT count(*) FROM pg_authid WHERE rolname IN ('mixer_release_processor',
++            'mixer_release_delivery','browser_ordinary','browser_lifecycle','browser_admin')
++            AND rolpassword LIKE 'SCRAM-SHA-256$%';
++        """, "postgres") == "5", "runtime credentials are not SCRAM")
++        target.fixture(line("runs stock rollback twice"), "rollback")
++    finally:
++        target.close()
++    details = {
++        "postgres": {"source": source_facts, "restore": target_facts,
++                     "effectiveTableAclRows": len(acls.splitlines()),
++                     "rolesAndMembershipsMatch": True, "fiveRestoredScramCredentials": True,
++                     "sourceFrozenClientConnections": 0, "dumpSha256": digest(dump.read_bytes()),
++                     "dumpBytes": dump.stat().st_size},
++        "tools": ver,
++        "countsOrder": ["heads", "publications", "promotionBindings", "cliRequests",
++                        "artifacts", "jobs", "projections"],
++        "frozenCounts": [4, 6, 1, 4, 6, 6, 0],
++        "fixture": {name: json.loads((ROOT / (name + ".json")).read_text())
++                    for name in ["commit-ios", "commit-android", "settled"]},
++    }
++    (WORK / "result.json").write_text(json.dumps(details, indent=2) + "\n")
++
++if __name__ == "__main__":
++    exercise()

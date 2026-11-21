@@ -118,6 +118,29 @@ API restart. The captured fixture patches document the historical run.
 [Processor settings and queue readback](local-signed-release-delivery.md#enable-the-release-worker-queue) ·
 [API delivery configuration](local-signed-release-delivery.md#start-the-ordinary-api)
 
+## Check rollback from the restored staging head
+
+After verifying successor delivery, use the stock rollback command for the
+API's configured default target. Use a new signed assignment that refers
+to the earlier known-good artifact at a sequence higher than the current
+head. Repeat the exact request with the same key and compare the CLI
+receipt and release rows. Restart with the other platform as the default
+target and repeat the check.
+[Rollback command](local-signed-release-delivery.md)
+
+After both queue jobs settle, verify one rollback projection per target.
+Restart API delivery and check the signed assignment, artifact manifest,
+and payload against the earlier known-good artifact for each platform.
+Reopen the saved promotion records and compare the measured ledger before
+and after readback.
+
+The recorded loopback campaign restored PostgreSQL 17.11, rolled iOS back
+at sequence 5 and Android at sequence 14, and verified delivery of the
+original artifacts. The overlay records the commands and assertions from
+that run. Its temporary driver remains historical because a logging
+failure could leave process custody unverified.
+[Rollback receipt](../../verification/receipts/d6-l05-l07-restored-stock-rollback-9efad204.json) · [Executed fixture overlay](../../verification/receipts/d6-l05-l07-restored-stock-rollback-9efad204-overlay.patch)
+
 ## Reproduce the CHECK repair
 
 Use the PostgreSQL 17 client and server tools from the same installation.

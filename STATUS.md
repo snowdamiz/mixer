@@ -644,6 +644,24 @@ commands in the restore guide. L05 and L07 remain running.
 [Historical ACL continuation](verification/receipts/l05-l07-restored-release-worker-scram-55b4d634-acl-continuation.patch) ·
 [Restore operator checks](docs/operations/restore-local-hosted.md#check-release-worker-and-delivery)
 
+The stock CLI rolled back both staging targets after a separate fresh
+SCRAM-authenticated PostgreSQL restore at `9efad204c5`. iOS advanced
+from 4 to 5 and Android from 13 to 14. Both assignments pointed back to
+their original artifacts. Exact signed retries returned byte-identical
+CLI receipts and added no rows or jobs. The restricted release worker
+completed one rollback job and one projection per target. After the API
+restarted, ordinary delivery verified both signed assignments, manifests,
+and payloads. The original promotion receipts stayed readable. Delivery
+reads preserved the measured state. The local fixture used synthetic
+identity and no billing dependency.
+
+Independent review matched the exact overlay and the ordinary CLI
+dispatch. The author recorded 35 supervised groups closed, 10 ports
+rebound, and scratch removed. The runner remains historical because a
+logging failure after launch could prevent its custody check. Client
+activation, L05, and L07 remain open.
+[Rollback receipt](verification/receipts/d6-l05-l07-restored-stock-rollback-9efad204.json) · [Executed fixture overlay](verification/receipts/d6-l05-l07-restored-stock-rollback-9efad204-overlay.patch)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,
