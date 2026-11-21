@@ -9,7 +9,7 @@ defmodule MixerHostedWeb.LocalReleaseControllerTest do
 
   @loopback {127, 0, 0, 1}
   @ipv6_loopback {0, 0, 0, 0, 0, 0, 0, 1}
-  @path "/v3/orgs/org-a/projects/project-a/apps/fieldlog/release-promotions/dev-to-stage"
+  @path "/v3/orgs/org-a/projects/project-a/apps/fieldlog/release-promotions"
 
   test "stage promotion rejects a listener bound to a different address" do
     start_endpoint!(true,
@@ -39,6 +39,14 @@ defmodule MixerHostedWeb.LocalReleaseControllerTest do
     assert %{"error" => %{"code" => "invalid_json"}} = Jason.decode!(body)
   end
 
+  test "stage promotion rejects dot segments as direction IDs" do
+    start_endpoint!(true)
+
+    for id <- [".", ".."] do
+      assert stage_promotion(id).status == 404
+    end
+  end
+
   defp start_endpoint!(server?, http_options \\ []) do
     assert {:ok, _} = Application.ensure_all_started(:bandit)
     original = Application.fetch_env!(:mixer_hosted, Endpoint)
@@ -55,7 +63,7 @@ defmodule MixerHostedWeb.LocalReleaseControllerTest do
     start_supervised!(Endpoint)
   end
 
-  defp stage_promotion do
+  defp stage_promotion(direction_id \\ "dev-to-stage") do
     identity = %VerifiedIdentity{
       profile_id: "profile",
       profile_version: 1,
@@ -70,13 +78,13 @@ defmodule MixerHostedWeb.LocalReleaseControllerTest do
     }
 
     request = %{
-      conn(:post, @path, "{}")
+      conn(:post, @path <> "/" <> direction_id, "{}")
       | remote_ip: @loopback,
         path_params: %{
           "organization_id" => "org-a",
           "project_id" => "project-a",
           "application_id" => "fieldlog",
-          "direction_id" => "dev-to-stage"
+          "direction_id" => direction_id
         }
     }
 

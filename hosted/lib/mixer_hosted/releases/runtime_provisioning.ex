@@ -81,7 +81,7 @@ defmodule MixerHosted.Releases.RuntimeProvisioning do
       Enum.reduce(documents, %{}, fn document, directions ->
         with true <- ArtifactV3Policy.exact?(document, ~w(direction_id source destination)),
              id = document["direction_id"],
-             true <- ArtifactV3Policy.id?(id) and not is_map_key(directions, id),
+             true <- Direction.id?(id) and not is_map_key(directions, id),
              {:ok, source, source_scope} <- direction_side(document["source"], targets),
              {:ok, destination, destination_scope} <-
                direction_side(document["destination"], targets),

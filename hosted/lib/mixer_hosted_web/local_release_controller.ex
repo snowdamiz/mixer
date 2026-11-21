@@ -5,6 +5,7 @@ defmodule MixerHostedWeb.LocalReleaseController do
   alias MixerHosted.Identity.VerifiedIdentity
   alias MixerHosted.Protocol.{ArtifactJSON, ArtifactV3Policy}
   alias MixerHosted.Releases
+  alias MixerHosted.Releases.EnvironmentPromotion.Direction
   alias MixerHostedWeb.Endpoint
   alias MixerHostedWeb.Plugs.CustomerArtifactRequest, as: Request
 
@@ -92,7 +93,7 @@ defmodule MixerHostedWeb.LocalReleaseController do
     app = conn.path_params["application_id"]
     direction = conn.path_params["direction_id"]
 
-    if ArtifactV3Policy.id?(app) and ArtifactV3Policy.id?(direction) and
+    if ArtifactV3Policy.id?(app) and Direction.id?(direction) and
          conn.scheme == :http and (Endpoint.config(:http) || [])[:ip] == {127, 0, 0, 1} and
          Endpoint.config(:https) in [nil, false] and
          match?({:ok, {{127, 0, 0, 1}, _port}}, Endpoint.server_info(:http)) do

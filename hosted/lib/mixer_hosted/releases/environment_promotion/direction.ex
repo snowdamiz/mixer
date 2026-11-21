@@ -7,6 +7,7 @@ defmodule MixerHosted.Releases.EnvironmentPromotion.Direction do
   target-scoped roots with raw Ed25519 public keys.
   """
 
+  alias MixerHosted.Protocol.ArtifactV3Policy
   alias MixerHosted.Releases.EnvironmentPromotion.Command
 
   defmodule Enrollment do
@@ -31,4 +32,7 @@ defmodule MixerHosted.Releases.EnvironmentPromotion.Direction do
           source: Command.platforms(Enrollment.t()),
           destination: Command.platforms(Enrollment.t())
         }
+
+  @doc false
+  def id?(id), do: ArtifactV3Policy.id?(id) and id not in [".", ".."]
 end

@@ -333,6 +333,16 @@ defmodule MixerHosted.Releases.RuntimeProvisioningTest do
       end
     end
 
+    test "normal runtime config rejects dot segments as direction IDs", ctx do
+      for id <- [".", ".."] do
+        assert_invalid_directions(
+          ctx,
+          ctx.promotion_env,
+          Jason.encode!([%{ctx.direction | "direction_id" => id}])
+        )
+      end
+    end
+
     test "requires four exact registered targets with both platforms in different stages", ctx do
       direction = ctx.direction
 
