@@ -38,6 +38,25 @@ an arm64 Android Swift library for API 28 with Swift 6.3.3 and Xcode 26.6.
 The earlier Swift frontend crash under Xcode 27.2 remains recorded.
 [Build and host receipt](../verification/receipts/fieldlog-d2-shared-task-presentation-eb08569c.json) · [Xcode 27.2 failure receipt](../verification/receipts/fieldlog-d2-shared-task-presentation-eb08569c-xcode27-failure.json)
 
+From a Mixer checkout containing `6bc461f4fc`, use the checked-in
+runner with macOS Xcode, Python 3.12 or later, and access to the three
+pinned source archives. Use a new scratch path and a new receipt path
+outside it. The runner reproduces the initial package-access errors
+and compares the baseline and corrected host observations.
+
+```sh
+area=$(mktemp -d)
+python3 -B tests/integration/fieldlog-task-presentation/replay.py \
+  "$PWD" "$area/work" --receipt "$area/receipt.json"
+```
+
+Pass `--android-swift`, `--android-sdks`, and `--android-developer-dir`
+with the Swift 6.3.3 toolchain, its Android SDK directory, and the Xcode
+26.6 developer directory to add the Android Swift compile. A failed
+requested compile returns a nonzero status and preserves its logs.
+On success the runner removes its work directory after publishing the
+receipt. If it reports unresolved custody, preserve the reported path.
+
 APK packaging and installed verification for this tree remain pending.
 The historical counts above describe the earlier exports. The 90%
 whole-app assessment still needs a matched application baseline.
