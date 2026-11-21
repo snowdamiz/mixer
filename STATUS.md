@@ -1094,6 +1094,17 @@ photo was never written. Both disposable emulators and their private ADB
 servers closed, and all ports rebound. The capture candidate needs an
 output correction and a fresh installed save. [Provider check](verification/receipts/fieldlog-android-api36-camera-provider-probe.json) · [Installed failure](verification/receipts/fieldlog-android-camera2-capture-refusal-29135a2f.json)
 
+The corrected development APK supplied a background Handler to the API
+36 camera output descriptor. On a fresh API 36 install, shutter and
+Cancel preserved all seven existing photos and workspace bytes. Shutter
+and Done persisted one 1,392 × 1,856 JPEG in the same draft, advanced
+its workspace revision once, and preserved the existing photos and
+outbox. Both acquisition controls disabled at eight photos. A fresh
+process reopened the exact draft and JPEG. All 156 recorded commands
+closed, all three ports rebound, and the disposable emulator and
+scratch were removed. The emulator used the software rear camera.
+[Installed replay](verification/receipts/fieldlog-android-camera-installed-api36-26bbde4a.json) · [Exact patch](verification/receipts/fieldlog-android-camera-corrected-26bbde4a.patch) · [Build receipt](verification/receipts/fieldlog-android-camera-output-api36-successor.json)
+
 ## November 21 Apple signed draft validation host replay
 
 On macOS, the Apple selected-draft owner and stock VM checked a

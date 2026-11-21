@@ -1,0 +1,190 @@
+{
+  "schema": 1,
+  "status": "passed_host_and_signed_apk_readback_pending_installed_camera2",
+  "observedUTC": "2026-11-21T22:02:42.110586+00:00",
+  "source": {
+    "fieldLogPublicCheckoutRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "pinnedPickerProductTree": "4be34dc138f68da58e3d376bc88e7d077efb7886",
+    "rejectedPackagingTree": "29135a2f5866e982b0abb3ed868543d6e1905da1",
+    "rejectedApkSHA256": "237735cac1cf02a3deb57bc31a1b51afc1e3ad1be252500d5a1c21c3a16b8ccd",
+    "rejectedSignerCertificateSHA256": "763b562d0f37d4d8f1cf73bae4fc29cf927380c44a774b4678013c5f8d739acd",
+    "sdkRevision": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+    "sdkTree": "faf0902a82ffc7acb2ddde9c6dca24002f959c3d",
+    "successorProductTree": "26bbde4aae443e77452761022ee344b075077431",
+    "successorPackagingTree": "1c77583a695635c7a2337b52a26d9a77147887af"
+  },
+  "failure": {
+    "observation": "Root observed Camera2 openOutputStream reach the provider and receive FileNotFoundException: Camera writer unavailable. The exception inside the catch was not captured.",
+    "api36Contract": "The public three-argument overload rejects a null Handler. The distinct internal four-argument implementation defaults null to a Handler on the main looper.",
+    "aospStorageManager": "https://raw.githubusercontent.com/aosp-mirror/platform_frameworks_base/android-16.0.0_r1/core/java/android/os/storage/StorageManager.java",
+    "aospCamera2": "https://android.googlesource.com/platform/packages/apps/Camera2/+/refs/tags/android-16.0.0_r1/src/com/android/camera/captureintent/state/StateSavingPicture.java"
+  },
+  "correction": "Supply a single lazily started per-provider background Handler, kept for late AppFuse releases. The existing one-shot write grant, bounded photo worker, capture retirement, 16 MiB memory cap and image decode, resize, write and reopen paths remain in place. Open failures report only the exception class.",
+  "controls": {
+    "api36JavacAndJavap": "Compiled both exact provider versions against API 36. Rejected caller passes null and successor caller passes the dedicated handler.",
+    "preSignJava": [
+      "PASS provider starts a dedicated HandlerThread and constructs a Handler on its looper",
+      "PASS actual openFile calls the API 36 public overload with the non-null worker handler",
+      "PASS proxy-open error reporting uses the exception type only",
+      "providerClassSHA256=1a34140e099a8fa63f5f893972721aca6a93cd423affd75442b0d8a5ab4abf0b",
+      "PASS camera writer uniqueness, bounded seek, exact bytes, cancel/dismiss revoke, empty output, overflow, and fresh successor"
+    ],
+    "swiftHost": [
+      "PASS pinned FieldLog Android Swift host suite and photo reopen controls",
+      "swiftHostTests=40, photoSelectionTests=10, failures=0",
+      "swiftHostLogSHA256=2b66b47f83008d7e84a31deec4e0730933bcffe2c4389bfa5f2646ee97d3f7ef"
+    ],
+    "patchReplay": "Both exact patches reproduced their respective successor trees. The nine archived camera feature source files matched the product tree byte for byte.",
+    "signedDex": "Read back APK classes.dex. The proxyHandler result register is the final argument of the write-only public StorageManager call. Exception logging uses the class name.",
+    "androidManifest": "Provider is unexported, with grant eligibility under /capture/. Camera intent grants write only. No camera or storage permission added.",
+    "signedPair25": "APK v3, ZIP 16 KiB alignment, native ELF alignment, dex/JNI and signed guest identity, SDK provenance and Wasm reproducibility all verified."
+  },
+  "apk": {
+    "path": "verification/local/fieldlog-camera-successor.5oQYBeJw/delivery/FieldLog-Pair25-entry-commit-development-arm64.apk",
+    "sha256": "f97f2e25b76a1fec2b61635014e34290e00d75c76acfc6e6b7f1f1b8a82097cd",
+    "bytes": 135650683,
+    "signerCertificateSHA256": "75db16773d880f4e1f92bc29a2a2bb44d9758b1176e8604c76b3e6660f12bcd8",
+    "architecture": "arm64-v8a",
+    "mode": "0600",
+    "minSDK": 36,
+    "targetSDK": 37
+  },
+  "checksumsSHA256": {
+    "verification/local/fieldlog-camera-successor.5oQYBeJw/delivery/CapturePhotoProvider.java": "191eca7099f7c1cee374829c5fc36c183a78a0a97041b5e0cee21a0348d37e33",
+    "verification/local/fieldlog-camera-successor.5oQYBeJw/delivery/FieldLog-Pair25-entry-commit-development-arm64.apk": "f97f2e25b76a1fec2b61635014e34290e00d75c76acfc6e6b7f1f1b8a82097cd",
+    "verification/local/fieldlog-camera-successor.5oQYBeJw/delivery/fieldlog-camera-output-fix.patch": "a6d085511d59441ab8746d13ae47d7dbac4f181a7567a7efd77d74bdb2d142fd",
+    "verification/local/fieldlog-camera-successor.5oQYBeJw/delivery/fieldlog-camera-pair25-fixed-from-picker.patch": "b1fdc33bcde7eaa5914505ee61f7b82e7172e9d2cf6c22f9b7c1dac172e0f541",
+    "verification/local/fieldlog-camera-successor.5oQYBeJw/delivery/fieldlog-camera-sources.zip": "0e6d9a810937824215896c2d4018bf12a63f3b9457c19e22fd75ac3bb0b32051",
+    "verification/local/fieldlog-camera-successor.5oQYBeJw/delivery/verification.json": "4c8be34663f35c9b8015b25e4ad3282a78559bd60542cdf9bb24467221b3b849",
+    "verification/local/fieldlog-camera-successor.5oQYBeJw/recipe/README.md": "d87c7ec0ecb0abbc5bf8cd4a3b714c315c554648a291e3ccb3e965a0df4f5012",
+    "verification/local/fieldlog-camera-successor.5oQYBeJw/recipe/build.sh": "0208e25fe8da69a4ae486503d51d33122fb7309c0c8882e86792c232f35a442a",
+    "verification/local/fieldlog-camera-successor.5oQYBeJw/recipe/camera-host.py": "a4008b3f450c801d9bd54d99d9db60c60b1664aa3823de74519c433dc7185809",
+    "verification/local/fieldlog-camera-successor.5oQYBeJw/recipe/fieldlog-android-camera-pair25-4be34dc1.json": "2639535fcb5616fcdab8c27a74298202b6c2f7d263c1745d1d9ea7247f7ecf33",
+    "verification/local/fieldlog-camera-successor.5oQYBeJw/recipe/fieldlog-android-camera-pair25-4be34dc1.patch": "401b61e0b0425334760cbf246a4f685c9e9e7fe282926566fb97231b0c679a15",
+    "verification/local/fieldlog-camera-successor.5oQYBeJw/recipe/fieldlog-camera-output-fix.patch": "a6d085511d59441ab8746d13ae47d7dbac4f181a7567a7efd77d74bdb2d142fd",
+    "verification/local/fieldlog-camera-successor.5oQYBeJw/recipe/run.py": "33646f72a4bb1daf274b7f7dc6b8bcda92d60987b97bc8aa54e05e74aab7b663",
+    "verification/local/fieldlog-camera-successor.5oQYBeJw/recipe/swift-host.py": "b7b64f269c01fb45156dce3aa45de9bd76c360f638a21d6c87e5835717308bc3",
+    "verification/local/fieldlog-camera-successor.5oQYBeJw/recipe/verify.py": "8fd33b6707db28c10e68ccf510e065c3a3ffb51c12403ad48c1a0f6f2aa8e6f8"
+  },
+  "tools": [
+    "Darwin arm64",
+    "git version 2.56.0",
+    "Python 3.14.8",
+    "Xcode 27.2",
+    "Build version 27B52",
+    "Xcode 26.6",
+    "Build version 17F113",
+    "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)",
+    "Target: arm64-apple-macosx28.0",
+    "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "binary: rustc",
+    "commit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4",
+    "commit-date: 2026-09-28",
+    "host: aarch64-apple-darwin",
+    "release: 1.99.0",
+    "LLVM version: 23.1.1",
+    "openjdk version \"25.0.4.1\" 2026-08-18",
+    "OpenJDK Runtime Environment Homebrew (build 25.0.4.1)",
+    "OpenJDK 64-Bit Server VM Homebrew (build 25.0.4.1, mixed mode, sharing)",
+    "Pkg.Desc = Android NDK",
+    "Pkg.Revision = 27.1.12297006",
+    "Pkg.BaseRevision = 27.1.12297006",
+    "Pkg.ReleaseName = r27b",
+    "Android Asset Packaging Tool (aapt) 2.20-13193326",
+    "D8 8.10.9-dev (build a7ad18a70460b799d0482e497c109a75bf7f91de from go/r8bot (luci-r8-custom-ci-archive-0-mt8s))"
+  ],
+  "campaign": {
+    "wallSeconds": 201.449,
+    "wallBudgetSeconds": 720,
+    "imageCapacityMiB": 3750,
+    "commands": [
+      {
+        "stage": "image-create",
+        "argv": [
+          "/usr/bin/hdiutil",
+          "create",
+          "-quiet",
+          "-size",
+          "3750m",
+          "-type",
+          "SPARSE",
+          "-fs",
+          "HFSX",
+          "-volname",
+          "FieldLogCameraBuild",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-94df9789/verification/local/fieldlog-camera-successor.5oQYBeJw/build.sparseimage"
+        ],
+        "pid": 9871,
+        "pgid": 9871,
+        "timedOut": false,
+        "exitCode": 0,
+        "directChildReaped": true,
+        "ownedGroupAbsent": true,
+        "wallSeconds": 1.032
+      },
+      {
+        "stage": "image-attach",
+        "argv": [
+          "/usr/bin/hdiutil",
+          "attach",
+          "-nobrowse",
+          "-noautoopen",
+          "-mountpoint",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-94df9789/verification/local/fieldlog-camera-successor.5oQYBeJw/volume",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-94df9789/verification/local/fieldlog-camera-successor.5oQYBeJw/build.sparseimage"
+        ],
+        "pid": 9919,
+        "pgid": 9919,
+        "timedOut": false,
+        "exitCode": 0,
+        "directChildReaped": true,
+        "ownedGroupAbsent": true,
+        "wallSeconds": 0.227
+      },
+      {
+        "stage": "build",
+        "argv": [
+          "/bin/bash",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-94df9789/verification/local/fieldlog-camera-successor.5oQYBeJw/recipe/build.sh",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-94df9789",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-94df9789/verification/local/fieldlog-camera-successor.5oQYBeJw/recipe/fieldlog-android-camera-pair25-4be34dc1.patch",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-94df9789/verification/local/fieldlog-camera-successor.5oQYBeJw/recipe/fieldlog-android-camera-pair25-4be34dc1.json",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-94df9789/verification/local/fieldlog-camera-successor.5oQYBeJw/volume/campaign"
+        ],
+        "pid": 9938,
+        "pgid": 9938,
+        "timedOut": false,
+        "exitCode": 0,
+        "directChildReaped": true,
+        "ownedGroupAbsent": true,
+        "wallSeconds": 199.474
+      },
+      {
+        "stage": "image-detach",
+        "argv": [
+          "/usr/bin/hdiutil",
+          "detach",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-94df9789/verification/local/fieldlog-camera-successor.5oQYBeJw/volume"
+        ],
+        "pid": 36675,
+        "pgid": 36675,
+        "timedOut": false,
+        "exitCode": 0,
+        "directChildReaped": true,
+        "ownedGroupAbsent": true,
+        "wallSeconds": 0.294
+      }
+    ],
+    "mountedImageDetachedAndDeleted": true,
+    "signingScratchRemoved": true,
+    "deviceOperations": 0,
+    "pushes": 0,
+    "auxiliaryScratchRemoved": true,
+    "retainedPaths": [
+      "verification/local/fieldlog-camera-successor.5oQYBeJw/delivery",
+      "verification/local/fieldlog-camera-successor.5oQYBeJw/recipe"
+    ],
+    "retentionCheck": "Verified using a temporary staged index."
+  },
+  "remaining": "Root owns installed API 36 Camera2 acceptance for shutter plus Done, shutter plus Cancel, attachment persistence and workspace preservation. The new development certificate differs from the rejected APK certificate."
+}

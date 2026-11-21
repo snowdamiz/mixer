@@ -1,0 +1,680 @@
+diff --git a/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml b/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
+index 1f59963bb5725a5256288fa32a593882646c9188..3513cbae5a1773ad4ffdd593ef223aabfd7cc239 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
++++ b/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
+@@ -4,0 +5,3 @@
++    <provider android:name="dev.fieldlog.generatedr90.androidhost.CapturePhotoProvider" android:authorities="dev.fieldlog.generatedr90.capture" android:exported="false">
++      <grant-uri-permission android:pathPrefix="/capture/" />
++    </provider>
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c b/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
+index c8dc2a959fde5b5a6de4336c922640e015f2d6a5..a28741535a78f90849fb6a11ff6b57ab8678a95e 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
+@@ -7 +7 @@ extern int32_t mixer_public_android_submit(int64_t,int32_t,const uint8_t*,intptr
+-typedef int32_t (*photo_callback)(int64_t,const uint8_t*,intptr_t);
++typedef int32_t (*photo_callback)(int64_t,int32_t,const uint8_t*,intptr_t);
+@@ -48,2 +48,3 @@ static int execute(JNIEnv *e,Context *c,int op,const uint8_t *profile,intptr_t p
+-static int32_t photo_request(int64_t id,const uint8_t *request,intptr_t count) {
+-    JNIEnv *e=pump_env; Context *c=find(id); if(!e||!c||!c->busy||count!=36) return 1;
++static int32_t photo_request(int64_t id,int32_t source,const uint8_t *request,intptr_t count) {
++    JNIEnv *e=pump_env; Context *c=find(id);
++    if(!e||!c||!c->busy||(source==-1 ? count!=0 : (source<0||source>1||count!=36||!request))) return 1;
+@@ -51 +52 @@ static int32_t photo_request(int64_t id,const uint8_t *request,intptr_t count) {
+-    jmethodID method=(*e)->GetMethodID(e,type,"photoRequest","(J[B)I");
++    jmethodID method=(*e)->GetMethodID(e,type,"photoRequest","(JI[B)I");
+@@ -53 +54 @@ static int32_t photo_request(int64_t id,const uint8_t *request,intptr_t count) {
+-    if(method&&token&&!(*e)->ExceptionCheck(e)) result=(*e)->CallIntMethod(e,c->receiver,method,(jlong)id,token);
++    if(method&&token&&!(*e)->ExceptionCheck(e)) result=(*e)->CallIntMethod(e,c->receiver,method,(jlong)id,(jint)source,token);
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/CapturePhotoProvider.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/CapturePhotoProvider.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..4d0d9c4c00d48d440740ead657324a94f80f3725
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/CapturePhotoProvider.java
+@@ -0,0 +1,141 @@
++package dev.fieldlog.generatedr90.androidhost;
++
++import android.content.ContentProvider;
++import android.content.ContentValues;
++import android.database.Cursor;
++import android.net.Uri;
++import android.os.Handler;
++import android.os.HandlerThread;
++import android.os.ParcelFileDescriptor;
++import android.os.ProxyFileDescriptorCallback;
++import android.os.storage.StorageManager;
++import android.system.ErrnoException;
++import android.system.OsConstants;
++import android.util.Log;
++import java.io.FileNotFoundException;
++import java.io.IOException;
++import java.util.Arrays;
++import java.util.UUID;
++
++/** A single, write-only camera destination. No temporary photo is written to disk. */
++public final class CapturePhotoProvider extends ContentProvider {
++    private static final String AUTHORITY = "dev.fieldlog.generatedr90.capture";
++    static final int MAX_BYTES = 16 * 1024 * 1024;
++    private static Capture active;
++    private Handler proxyHandler;
++
++    static final class Capture {
++        final Uri uri = new Uri.Builder().scheme("content").authority(AUTHORITY)
++                .appendPath("capture").appendPath(UUID.randomUUID().toString()).build();
++        private final Output output = new Output();
++    }
++
++    static synchronized Capture begin() {
++        if (active != null) throw new IllegalStateException("Camera output already active");
++        active = new Capture();
++        return active;
++    }
++
++    static synchronized byte[] retire(Capture capture, boolean accepted) throws IOException {
++        if (active != capture) throw new IOException("Stale camera output");
++        active = null;
++        return capture.output.finish(accepted);
++    }
++
++    private static synchronized Output claim(Uri uri, String mode) throws FileNotFoundException {
++        if (active == null || !active.uri.equals(uri) || !("w".equals(mode) || "wt".equals(mode))
++                || !active.output.claimWriter()) throw new FileNotFoundException("Camera output unavailable");
++        return active.output;
++    }
++
++    // The Android proxy can seek and rewrite existing bytes. Gaps and writes
++    // beyond the common source limit are rejected before allocating memory.
++    static final class Output {
++        private byte[] bytes = new byte[0];
++        private int size;
++        private boolean open = true, claimed, tooLarge;
++
++        synchronized boolean claimWriter() {
++            if (!open || claimed) return false;
++            claimed = true;
++            return true;
++        }
++
++        synchronized int size() throws IOException {
++            if (!open || !claimed) throw new IOException("Camera writer unavailable");
++            return size;
++        }
++
++        synchronized int write(long offset, int count, byte[] source) throws IOException {
++            size();
++            if (offset < 0 || count < 0 || count > source.length) throw new IOException("Invalid camera write");
++            if (offset > MAX_BYTES || count > MAX_BYTES - offset) {
++                tooLarge = true;
++                throw new IllegalArgumentException("Camera image size limit");
++            }
++            if (tooLarge || offset > size) throw new IOException("Invalid camera write");
++            if (count == 0) return 0;
++            int end = (int) offset + count;
++            if (end > bytes.length) {
++                int growth = Math.min(MAX_BYTES, Math.max(16_384, bytes.length * 2));
++                bytes = Arrays.copyOf(bytes, Math.max(end, growth));
++            }
++            System.arraycopy(source, 0, bytes, (int) offset, count);
++            size = Math.max(size, end);
++            return count;
++        }
++
++        synchronized byte[] finish(boolean accepted) throws IOException {
++            open = false;
++            byte[] written = bytes;
++            bytes = null;
++            if (!accepted) return null;
++            if (tooLarge) throw new IllegalArgumentException("Camera image size limit");
++            if (size == 0 || written == null) throw new IOException("Camera returned no image");
++            return size == written.length ? written : Arrays.copyOf(written, size);
++        }
++    }
++
++    @Override public boolean onCreate() { return true; }
++
++    private synchronized Handler proxyHandler() {
++        if (proxyHandler == null) {
++            // AppFuse can deliver release after the activity retires the URI.
++            // One looper for the provider lifetime services those late callbacks.
++            HandlerThread thread = new HandlerThread("FieldLog-camera-output");
++            thread.start();
++            proxyHandler = new Handler(thread.getLooper());
++        }
++        return proxyHandler;
++    }
++
++    @Override public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
++        Output output = claim(uri, mode);
++        try {
++            StorageManager storage = getContext().getSystemService(StorageManager.class);
++            return storage.openProxyFileDescriptor(ParcelFileDescriptor.MODE_WRITE_ONLY, new ProxyFileDescriptorCallback() {
++                @Override public long onGetSize() throws ErrnoException {
++                    try { return output.size(); }
++                    catch (IOException error) { throw new ErrnoException("camera size", OsConstants.EBADF); }
++                }
++                @Override public int onWrite(long offset, int count, byte[] data) throws ErrnoException {
++                    try { return output.write(offset, count, data); }
++                    catch (IllegalArgumentException error) { throw new ErrnoException("camera write", OsConstants.EFBIG); }
++                    catch (OutOfMemoryError error) { throw new ErrnoException("camera write", OsConstants.ENOMEM); }
++                    catch (IOException error) { throw new ErrnoException("camera write", OsConstants.EBADF); }
++                }
++                @Override public void onFsync() throws ErrnoException { onGetSize(); }
++                @Override public void onRelease() {}
++            }, proxyHandler());
++        } catch (IOException | RuntimeException error) {
++            Log.w("FieldLogPhoto", "Camera proxy open failed: " + error.getClass().getSimpleName());
++            throw new FileNotFoundException("Camera writer unavailable");
++        }
++    }
++
++    @Override public String getType(Uri uri) { return "image/jpeg"; }
++    @Override public Cursor query(Uri uri, String[] projection, String selection, String[] args, String sort) { return null; }
++    @Override public Uri insert(Uri uri, ContentValues values) { throw new UnsupportedOperationException(); }
++    @Override public int update(Uri uri, ContentValues values, String selection, String[] args) { throw new UnsupportedOperationException(); }
++    @Override public int delete(Uri uri, String selection, String[] args) { throw new UnsupportedOperationException(); }
++}
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+index 9628fe41d4fb2772b1a03449f268d94d4fb8bddb..ddf7e76dae9f2fb31c3a9cf40df0b577d41d7d58 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -2,0 +3,2 @@ import android.app.Activity;
++import android.content.ActivityNotFoundException;
++import android.content.ClipData;
+@@ -8,0 +11 @@ import android.os.CancellationSignal;
++import android.provider.MediaStore;
+@@ -254 +257,3 @@ public final class PublicActivity extends Activity {
+-    private boolean photoLaunchQueued, photoResultClaimed;
++    private Runnable queuedPhotoLaunch;
++    private boolean photoResultClaimed;
++    private CapturePhotoProvider.Capture cameraOutput;
+@@ -256 +261,4 @@ public final class PublicActivity extends Activity {
+-    private int photoCode, nextExternalCode = 100;
++    private int photoCode;
++    // Never reuse an external result code across Activity replacement or state restoration.
++    private static int nextExternalCode = 100;
++    private static final String EXTERNAL_CODE_STATE = "fieldlog.nextExternalCode";
+@@ -260 +268 @@ public final class PublicActivity extends Activity {
+-    private static final int PHOTO_SOURCE_MAX = 16 * 1024 * 1024, PHOTO_JPEG_MAX = 6 * 1024 * 1024;
++    private static final int PHOTO_SOURCE_MAX = CapturePhotoProvider.MAX_BYTES, PHOTO_JPEG_MAX = 6 * 1024 * 1024;
+@@ -278,3 +286,7 @@ public final class PublicActivity extends Activity {
+-    public int photoRequest(long capturedContext, byte[] request) {
+-        if (Looper.myLooper() != Looper.getMainLooper() || destroyed || failed || capturedContext != context ||
+-                photoLaunchQueued || request == null || request.length != 36) return 1;
++    public int photoRequest(long capturedContext, int source, byte[] request) {
++        if (Looper.myLooper() != Looper.getMainLooper() || destroyed || failed || capturedContext != context || request == null) return 1;
++        if (source == -1 && request.length == 0) {
++            abandonPhoto();
++            return 0;
++        }
++        if ((source != 0 && source != 1) || queuedPhotoLaunch != null || request.length != 36) return 1;
+@@ -282,6 +294,6 @@ public final class PublicActivity extends Activity {
+-        photoLaunchQueued = true;
+-        if (handler.post(() -> {
+-            photoLaunchQueued = false;
+-            launchPhoto(capturedContext, token);
+-        })) return 0;
+-        photoLaunchQueued = false;
++        queuedPhotoLaunch = () -> {
++            queuedPhotoLaunch = null;
++            launchPhoto(capturedContext, token, source == 1);
++        };
++        if (handler.post(queuedPhotoLaunch)) return 0;
++        queuedPhotoLaunch = null;
+@@ -291,2 +303,2 @@ public final class PublicActivity extends Activity {
+-    private void launchPhoto(long capturedContext, byte[] request) {
+-        if (destroyed || failed || capturedContext != context) return;
++    private void launchPhoto(long capturedContext, byte[] request, boolean camera) {
++        if (destroyed || failed || isFinishing() || capturedContext != context) return;
+@@ -298,5 +310,21 @@ public final class PublicActivity extends Activity {
+-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
+-                .setType("image/*").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+-        try { startActivityForResult(intent, photoCode); }
+-        catch (SecurityException error) { finishPhoto(capturedContext, request, 1, new byte[0]); }
+-        catch (RuntimeException error) { finishPhoto(capturedContext, request, 4, new byte[0]); }
++        try {
++            Intent intent;
++            if (camera) {
++                cameraOutput = CapturePhotoProvider.begin();
++                Uri uri = cameraOutput.uri;
++                intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE).putExtra(MediaStore.EXTRA_OUTPUT, uri);
++                intent.setClipData(ClipData.newRawUri("FieldLog camera output", uri));
++                intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
++                if (!handler.postDelayed(photoDeadline, 300_000)) throw new IllegalStateException("Camera deadline unavailable");
++            } else {
++                intent = new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
++                        .setType("image/*").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
++            }
++            startActivityForResult(intent, photoCode);
++        } catch (ActivityNotFoundException error) {
++            finishPhoto(capturedContext, request, 4, new byte[0]);
++        } catch (SecurityException error) {
++            finishPhoto(capturedContext, request, 1, new byte[0]);
++        } catch (RuntimeException | OutOfMemoryError error) {
++            finishPhoto(capturedContext, request, 4, new byte[0]);
++        }
+@@ -317,2 +345,16 @@ public final class PublicActivity extends Activity {
+-        final Uri uri = data == null ? null : data.getData();
+-        if (uri == null || !"content".equals(uri.getScheme())) { finishPhoto(capturedContext, request, 2, new byte[0]); return; }
++        handler.removeCallbacks(photoDeadline);
++        final Uri document;
++        final byte[] captured;
++        if (cameraOutput != null) {
++            // Only the URI issued to this request can supply camera bytes.
++            document = null;
++            try { captured = retireCameraOutput(true); }
++            catch (IllegalArgumentException error) { finishPhoto(capturedContext, request, 3, new byte[0]); return; }
++            catch (IOException | OutOfMemoryError error) { finishPhoto(capturedContext, request, 2, new byte[0]); return; }
++        } else {
++            captured = null;
++            document = data == null ? null : data.getData();
++            if (document == null || !"content".equals(document.getScheme())) {
++                finishPhoto(capturedContext, request, 2, new byte[0]); return;
++            }
++        }
+@@ -320,13 +362,48 @@ public final class PublicActivity extends Activity {
+-        photoThread = new Thread(() -> {
+-            int result = 2; byte[] jpeg = new byte[0]; Bitmap bitmap = null;
+-            try {
+-                LimitedBytes source = new LimitedBytes(PHOTO_SOURCE_MAX);
+-                // One provider open/read. Decode only the bounded owned copy.
+-                try (AssetFileDescriptor descriptor = getContentResolver().openAssetFileDescriptor(uri, "r", cancellation)) {
+-                    if (descriptor == null || descriptor.getLength() > PHOTO_SOURCE_MAX) throw new IllegalArgumentException("image size limit");
+-                    try (InputStream stream = descriptor.createInputStream()) {
+-                        photoStream = stream; byte[] buffer = new byte[16384]; int count;
+-                        while ((count = stream.read(buffer)) != -1) {
+-                            cancellation.throwIfCanceled(); source.write(buffer, 0, count);
+-                        }
+-                    } finally { photoStream = null; }
++        try {
++            photoThread = new Thread(() -> decodePhoto(capturedContext, request, document, captured, cancellation), "FieldLog-photo");
++            photoThread.start();
++            if (handler.postDelayed(photoDeadline, 30_000)) return;
++        } catch (RuntimeException | OutOfMemoryError error) {
++            // Settle even when a worker cannot start.
++        }
++        cancelPhotoWorker();
++        finishPhoto(capturedContext, request, 4, new byte[0]);
++    }
++    private void decodePhoto(long capturedContext, byte[] request, Uri document, byte[] captured, CancellationSignal cancellation) {
++        int result = 2; byte[] jpeg = new byte[0]; Bitmap bitmap = null;
++        try {
++            byte[] source = captured != null ? captured : readPhotoDocument(document, cancellation);
++            cancellation.throwIfCanceled();
++            bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(ByteBuffer.wrap(source)), (decoder, info, input) -> {
++                int width = info.getSize().getWidth(), height = info.getSize().getHeight();
++                if (width <= 0 || height <= 0 || width > 20000 || height > 20000 || (long)width * height > 100000000L)
++                    throw new IllegalArgumentException("image dimensions limit");
++                double scale = Math.min(1.0, 2048.0 / Math.max(width, height));
++                decoder.setTargetSize(Math.max(1, (int)(width * scale)), Math.max(1, (int)(height * scale)));
++                decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE);
++                decoder.setOnPartialImageListener(error -> false);
++            });
++            cancellation.throwIfCanceled();
++            LimitedBytes output = new LimitedBytes(PHOTO_JPEG_MAX);
++            if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 85, output)) throw new IOException("image encoding failed");
++            jpeg = output.toByteArray();
++            if (jpeg.length < 3 || jpeg.length > PHOTO_JPEG_MAX || (jpeg[0]&255)!=255 || (jpeg[1]&255)!=216 || (jpeg[2]&255)!=255)
++                throw new IOException("invalid JPEG output");
++            cancellation.throwIfCanceled(); result = 5;
++        } catch (SecurityException error) { result = 1; }
++        catch (IllegalArgumentException error) { result = 3; }
++        catch (IOException | RuntimeException | OutOfMemoryError error) { result = 2; }
++        finally { if (bitmap != null) bitmap.recycle(); }
++        // toByteArray() gave the worker sole ownership of this JPEG.
++        final int outcome = result; final byte[] ownedJPEG = result == 5 ? jpeg : new byte[0];
++        handler.post(() -> finishPhoto(capturedContext, request, outcome, ownedJPEG));
++    }
++    private byte[] readPhotoDocument(Uri uri, CancellationSignal cancellation) throws IOException {
++        LimitedBytes source = new LimitedBytes(PHOTO_SOURCE_MAX);
++        // One provider open/read. Decode only the bounded owned copy.
++        try (AssetFileDescriptor descriptor = getContentResolver().openAssetFileDescriptor(uri, "r", cancellation)) {
++            if (descriptor == null || descriptor.getLength() > PHOTO_SOURCE_MAX) throw new IllegalArgumentException("image size limit");
++            try (InputStream stream = descriptor.createInputStream()) {
++                photoStream = stream; byte[] buffer = new byte[16384]; int count;
++                while ((count = stream.read(buffer)) != -1) {
++                    cancellation.throwIfCanceled(); source.write(buffer, 0, count);
+@@ -334,26 +411,34 @@ public final class PublicActivity extends Activity {
+-                cancellation.throwIfCanceled();
+-                bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(ByteBuffer.wrap(source.toByteArray())), (decoder, info, input) -> {
+-                    int width = info.getSize().getWidth(), height = info.getSize().getHeight();
+-                    if (width <= 0 || height <= 0 || width > 20000 || height > 20000 || (long)width * height > 100000000L)
+-                        throw new IllegalArgumentException("image dimensions limit");
+-                    double scale = Math.min(1.0, 2048.0 / Math.max(width, height));
+-                    decoder.setTargetSize(Math.max(1, (int)(width * scale)), Math.max(1, (int)(height * scale)));
+-                    decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE);
+-                    decoder.setOnPartialImageListener(error -> false);
+-                });
+-                cancellation.throwIfCanceled();
+-                LimitedBytes output = new LimitedBytes(PHOTO_JPEG_MAX);
+-                if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 85, output)) throw new IOException("image encoding failed");
+-                jpeg = output.toByteArray();
+-                if (jpeg.length < 3 || jpeg.length > PHOTO_JPEG_MAX || (jpeg[0]&255)!=255 || (jpeg[1]&255)!=216 || (jpeg[2]&255)!=255)
+-                    throw new IOException("invalid JPEG output");
+-                cancellation.throwIfCanceled(); result = 5;
+-            } catch (SecurityException error) { result = 1; }
+-            catch (IllegalArgumentException error) { result = 3; }
+-            catch (IOException | RuntimeException error) { result = 2; }
+-            finally { if (bitmap != null) bitmap.recycle(); }
+-            final int outcome = result; final byte[] ownedJPEG = result == 5 ? jpeg.clone() : new byte[0];
+-            handler.post(() -> finishPhoto(capturedContext, request, outcome, ownedJPEG));
+-        }, "FieldLog-photo");
+-        photoThread.start();
+-        if (!handler.postDelayed(photoDeadline, 30000)) { cancelPhotoWorker(); finishPhoto(capturedContext, request, 4, new byte[0]); }
++            } finally { photoStream = null; }
++        }
++        return source.toByteArray();
++    }
++    private byte[] retireCameraOutput(boolean accepted) throws IOException {
++        CapturePhotoProvider.Capture capture = cameraOutput;
++        cameraOutput = null;
++        if (capture == null) return null;
++        try { return CapturePhotoProvider.retire(capture, accepted); }
++        finally {
++            try { revokeUriPermission(capture.uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION); }
++            catch (RuntimeException error) {
++                // The provider no longer admits opens or writes for this URI.
++                android.util.Log.e("FieldLogPhoto", "Camera URI grant revocation failed", error);
++            }
++        }
++    }
++    private void discardCameraOutput() {
++        try { retireCameraOutput(false); }
++        catch (IOException | RuntimeException error) {
++            android.util.Log.e("FieldLogPhoto", "Camera output retirement failed", error);
++        }
++    }
++    private void abandonPhoto() {
++        if (queuedPhotoLaunch != null) {
++            handler.removeCallbacks(queuedPhotoLaunch);
++            queuedPhotoLaunch = null;
++        }
++        if (pendingPhoto == null) return;
++        pendingPhoto = null;
++        photoCompletion = null;
++        handler.removeCallbacks(photoDeadline);
++        discardCameraOutput();
++        cancelPhotoWorker();
+@@ -370,0 +456 @@ public final class PublicActivity extends Activity {
++        discardCameraOutput();
+@@ -392,0 +479 @@ public final class PublicActivity extends Activity {
++        if (state != null) nextExternalCode = Math.max(nextExternalCode, state.getInt(EXTERNAL_CODE_STATE, 100));
+@@ -435 +522 @@ public final class PublicActivity extends Activity {
+-        return photoLaunchQueued || pendingPhoto != null || pendingReport != null || reportCompletion != null;
++        return queuedPhotoLaunch != null || pendingPhoto != null || pendingReport != null || reportCompletion != null;
+@@ -548 +635 @@ public final class PublicActivity extends Activity {
+-                case 2: invalidateEvents(); surface.revoke(token); owner = null; break;
++                case 2: invalidateEvents(); abandonPhoto(); surface.revoke(token); owner = null; break;
+@@ -557 +644 @@ public final class PublicActivity extends Activity {
+-        photoCompletion = null;
++        abandonPhoto();
+@@ -583,0 +671,4 @@ public final class PublicActivity extends Activity {
++    @Override protected void onSaveInstanceState(Bundle state) {
++        super.onSaveInstanceState(state);
++        state.putInt(EXTERNAL_CODE_STATE, nextExternalCode);
++    }
+@@ -590,4 +681 @@ public final class PublicActivity extends Activity {
+-        photoLaunchQueued = false;
+-        pendingPhoto = null;
+-        photoCompletion = null;
+-        cancelPhotoWorker();
++        abandonPhoto();
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+index 380ee96ad198c546b17c690df3c0a1d01302e082..c932edb8570e36936e93d9e69fbbe287076a31fc 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+@@ -6 +6 @@ import MixerAndroid
+-private typealias PhotoCall = @convention(c) @Sendable (Int64, UnsafePointer<UInt8>?, Int) -> Int32
++private typealias PhotoCall = @convention(c) @Sendable (Int64, Int32, UnsafePointer<UInt8>?, Int) -> Int32
+@@ -83 +83,4 @@ private let replies = Replies()
+-            guard let request = app.presentation.takePhotoRequest() else { return 1 }
++            guard let request = app.presentation.takePhotoRequest() else {
++                // A routed editor dismissal or cancellation clears the native capability.
++                return app.presentation.photoSelectionPending || callback(id, -1, nil, 0) == 0 ? 1 : 2
++            }
+@@ -85 +88,3 @@ private let replies = Replies()
+-            return data.withUnsafeBytes { callback(id, $0.bindMemory(to: UInt8.self).baseAddress, $0.count) == 0 ? 1 : 2 }
++            return data.withUnsafeBytes {
++                callback(id, request.source.rawValue, $0.bindMemory(to: UInt8.self).baseAddress, $0.count) == 0 ? 1 : 2
++            }
+@@ -179 +184 @@ public func fieldlogAndroidPhotoSubmit(_ context: Int64, _ request: UnsafePointe
+-    _ callback: @convention(c) @Sendable @escaping (Int64, UnsafePointer<UInt8>?, Int) -> Int32) -> Int32 {
++    _ callback: @convention(c) @Sendable @escaping (Int64, Int32, UnsafePointer<UInt8>?, Int) -> Int32) -> Int32 {
+@@ -190 +195 @@ public func fieldlogAndroidPhotoSubmit(_ context: Int64, _ request: UnsafePointe
+-// App attachment extension; original public UI submit and photo ABIs stay intact.
++// App attachment extension; public UI submit ABI stays intact.
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index 590a13ce7ea952478d228015d85e91671394774a..736ca0370e911e84466fc80d51e1e79ad2adfa5a 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -86,0 +87 @@ public struct PhotoSelectionRequest: Sendable, Equatable {
++    public let source: PhotoSelectionSource
+@@ -88,0 +90,11 @@ public struct PhotoSelectionRequest: Sendable, Equatable {
++public enum PhotoSelectionSource: Int32, Sendable {
++    case documents = 0, camera = 1
++
++    fileprivate init?(actionID: String) {
++        switch actionID {
++        case "entry.photo.select": self = .documents
++        case "entry.photo.capture": self = .camera
++        default: return nil
++        }
++    }
++}
+@@ -346 +358 @@ private struct ProjectPicker {
+-                if entryEditor == nil { try selectEntry(nil) } else { try navigateEntries(true) }; return
++                if entryEditor == nil { try selectEntry(nil) } else { try showEntryEditor() }; return
+@@ -348 +360 @@ private struct ProjectPicker {
+-            if action.nodeID == "workspace.tasks", action.actionID == "workspace.tasks" { try navigateEntries(false); return }
++            if action.nodeID == "workspace.tasks", action.actionID == "workspace.tasks" { try navigate(queue: false); return }
+@@ -607 +619,2 @@ private struct ProjectPicker {
+-        guard !closed, !photoReserved, let request = photoRequest, request.id == requestID else { return false }
++        guard !closed, showingEntries, !showingQueue, !photoReserved,
++              let request = photoRequest, request.id == requestID else { return false }
+@@ -631 +644,4 @@ private struct ProjectPicker {
+-                    case .unavailable: photoMessage = "Photo selection is unavailable. Your entry is unchanged."
++                    case .unavailable:
++                        photoMessage = request.source == .camera
++                            ? "Camera capture is unavailable. Your entry is unchanged."
++                            : "Photo selection is unavailable. Your entry is unchanged."
+@@ -663,3 +679,3 @@ private struct ProjectPicker {
+-    private func navigateEntries(_ entries: Bool) throws {
+-        let (r, s) = try render(state, queue: false, entries: entries, feedback: changeFeedback, failure: changeFailure)
+-        showingQueue = false; showingEntries = entries; reconciler = r; snapshot = s; publish()
++    private func showEntryEditor() throws {
++        let (r, s) = try render(state, queue: false, entries: true, feedback: changeFeedback, failure: changeFailure)
++        showingQueue = false; showingEntries = true; reconciler = r; snapshot = s; publish()
+@@ -667,0 +684,3 @@ private struct ProjectPicker {
++        try invalidatingPhoto { try replaceEntry(draft: draft, actions: []) }
++    }
++    private func invalidatingPhoto<T>(_ update: () throws -> T) throws -> T {
+@@ -670 +689 @@ private struct ProjectPicker {
+-        do { try replaceEntry(draft: draft, actions: []) }
++        do { return try update() }
+@@ -684 +703 @@ private struct ProjectPicker {
+-            case ("entry.photo.select", "entry.photo.select", .activate, .null):
++            case (let id, let actionID, .activate, .null) where id == actionID && PhotoSelectionSource(actionID: id) != nil:
+@@ -717 +736 @@ private struct ProjectPicker {
+-            if action.nodeID == "entry.saveDraft" || action.nodeID == "entry.commit" || action.nodeID == "entry.photo.select" {
++            if action.nodeID == "entry.saveDraft" || action.nodeID == "entry.commit" || PhotoSelectionSource(actionID: action.nodeID) != nil {
+@@ -742,0 +762 @@ private struct ProjectPicker {
++                let photoSource = PhotoSelectionSource(actionID: action.actionID)
+@@ -748 +768,2 @@ private struct ProjectPicker {
+-                case ("entry.photo.select", .activate, .null):
++                case (_, .activate, .null) where photoSource != nil:
++                    guard let source = photoSource else { throw PublicHostError.action }
+@@ -750 +771 @@ private struct ProjectPicker {
+-                    photoRequest = PhotoSelectionRequest(id: UUID(), draftID: candidate.state.draft.id, generation: photoGeneration)
++                    photoRequest = PhotoSelectionRequest(id: UUID(), draftID: candidate.state.draft.id, source: source, generation: photoGeneration)
+@@ -752 +773 @@ private struct ProjectPicker {
+-                    photoMessage = "Choosing photo… Cancel to keep editing without a photo."
++                    photoMessage = source == .camera ? "Opening camera…" : "Choosing photo… Cancel to keep editing without a photo."
+@@ -869,0 +891 @@ private struct ProjectPicker {
++                    MixerUI.Button("entry.photo.capture", "Capture photo", action: "entry.photo.capture").accessibilityIdentifier("entry-photo-capture").disabled(inactive || photoPending || !photos.canSelect)
+@@ -947 +969,3 @@ private struct ProjectPicker {
+-        let (nextReconciler, next) = try render(state, queue: queue, entries: queue ? showingEntries : false, feedback: changeFeedback, failure: changeFailure)
++        let (nextReconciler, next) = try invalidatingPhoto {
++            try render(state, queue: queue, entries: queue ? showingEntries : false, feedback: changeFeedback, failure: changeFailure)
++        }
+diff --git a/Integrations/GeneratedReport/Tests/CameraOutputJava/CameraOutputChecks.java b/Integrations/GeneratedReport/Tests/CameraOutputJava/CameraOutputChecks.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..029b4aea49ee79995f31d767be870dedef889914
+--- /dev/null
++++ b/Integrations/GeneratedReport/Tests/CameraOutputJava/CameraOutputChecks.java
+@@ -0,0 +1,56 @@
++package dev.fieldlog.generatedr90.androidhost;
++
++import java.io.IOException;
++import java.util.Arrays;
++
++public final class CameraOutputChecks {
++    interface Action { void run() throws IOException; }
++
++    private static void check(boolean condition, String description) {
++        if (!condition) throw new AssertionError(description);
++    }
++
++    private static void rejects(Class<? extends Exception> error, Action action) throws IOException {
++        try { action.run(); }
++        catch (Exception actual) {
++            if (error.isInstance(actual)) return;
++            throw new AssertionError(actual);
++        }
++        throw new AssertionError("Expected " + error.getSimpleName());
++    }
++
++    public static void main(String[] args) throws IOException {
++        var success = new CapturePhotoProvider.Output();
++        check(success.claimWriter() && !success.claimWriter(), "one writer per capture");
++        check(success.write(0, 3, new byte[] {1, 2, 3}) == 3, "initial write");
++        check(success.write(1, 2, new byte[] {4, 5}) == 2, "seekable rewrite");
++        rejects(IOException.class, () -> success.write(4, 1, new byte[] {6}));
++        check(Arrays.equals(success.finish(true), new byte[] {1, 4, 5}), "freeze exact bytes");
++        rejects(IOException.class, () -> success.write(0, 1, new byte[] {9}));
++        rejects(IOException.class, () -> success.finish(true));
++        check(!success.claimWriter(), "successful capture cannot reopen");
++
++        var cancelled = new CapturePhotoProvider.Output();
++        check(cancelled.claimWriter(), "admit cancelled writer");
++        cancelled.write(0, 1, new byte[] {7});
++        check(cancelled.finish(false) == null, "discard on cancellation or dismissal");
++        rejects(IOException.class, () -> cancelled.write(0, 1, new byte[] {8}));
++        rejects(IOException.class, () -> cancelled.finish(true));
++
++        var empty = new CapturePhotoProvider.Output();
++        rejects(IOException.class, () -> empty.finish(true));
++        check(!empty.claimWriter(), "empty result revoked");
++
++        var oversized = new CapturePhotoProvider.Output();
++        check(oversized.claimWriter(), "admit bounded writer");
++        byte[] exact = new byte[CapturePhotoProvider.MAX_BYTES];
++        check(oversized.write(0, exact.length, exact) == exact.length, "maximum write succeeds");
++        rejects(IllegalArgumentException.class, () -> oversized.write(exact.length, 1, new byte[] {1}));
++        rejects(IllegalArgumentException.class, () -> oversized.finish(true));
++        check(!oversized.claimWriter(), "oversized result revoked");
++        var successor = new CapturePhotoProvider.Output();
++        check(successor.claimWriter() && successor.size() == 0, "fresh output has no predecessor bytes");
++        check(successor.finish(false) == null, "successor cleaned up");
++        System.out.println("PASS camera writer uniqueness, bounded seek, exact bytes, cancel/dismiss revoke, empty output, overflow, and fresh successor");
++    }
++}
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PhotoSelectionTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PhotoSelectionTests.swift
+index 6ffcc9ade79a1a302972ae18c4a35281614e973d..54097d7871d0930fcac42c643262e0c356603628 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PhotoSelectionTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PhotoSelectionTests.swift
+@@ -34,0 +35,90 @@ final class PhotoSelectionTests: XCTestCase {
++    @MainActor func testCameraAndDocumentsShareOneRequestAndEightDurableSlots() async throws {
++        let dir = photoDir("camera-eight"), app = try await open(dir)
++        try send(app, "workspace.entries")
++        try send(app, "entry-title", .textChange, .string("Camera and documents"))
++        let draftID = try XCTUnwrap(app.presentation.entryState?.draft.id)
++        let cap = "entry.photo.capture", select = "entry.photo.select"
++        let initial = try Data(contentsOf: file(dir))
++        let both = [try event(app, cap), try event(app, select)]
++        try rejects("mixed sources in one batch") {
++            try app.sendBatch(owner: app.host.owner!, originalEnvelopes: JSONEncoder().encode(both))
++        }
++        XCTAssertNil(app.presentation.takePhotoRequest())
++        XCTAssertEqual(try Data(contentsOf: file(dir)), initial)
++
++        var photos: [Data] = []
++        for index in 0..<8 {
++            let camera = index.isMultiple(of: 2)
++            try send(app, camera ? cap : select)
++            let request = try XCTUnwrap(app.presentation.takePhotoRequest())
++            XCTAssertEqual(request.source, camera ? .camera : .documents)
++            XCTAssertEqual(request.draftID, draftID)
++            XCTAssertNil(app.presentation.takePhotoRequest())
++            try rejects("second source during one pending request") { try send(app, camera ? select : cap) }
++            let bytes = Data([0xff, 0xd8, 0xff, 0xe0, 0, 3, UInt8(index), 0xff, 0xd9])
++            let accepted = await app.presentation.completePhoto(requestID: request.id, result: .jpeg(bytes))
++            XCTAssertTrue(accepted)
++            photos.append(bytes)
++        }
++        let full = try Data(contentsOf: file(dir))
++        try rejects("ninth capture") { try send(app, cap) }
++        try rejects("ninth DocumentsUI selection") { try send(app, select) }
++        XCTAssertNil(app.presentation.takePhotoRequest())
++        XCTAssertEqual(try Data(contentsOf: file(dir)), full)
++        let stored = try XCTUnwrap(app.presentation.workspace.drafts.first)
++        XCTAssertEqual(stored.attachmentIDs.count, 8)
++        XCTAssertEqual(Set(stored.attachmentIDs).count, 8)
++        await app.close()
++
++        let reopened = try await open(dir)
++        XCTAssertEqual(reopened.presentation.entryState?.draft, stored)
++        for (id, expected) in zip(stored.attachmentIDs, photos) {
++            let attachment = try XCTUnwrap(reopened.presentation.workspace.attachments.first { $0.id == id })
++            let bytes = try Data(contentsOf: dir.appendingPathComponent("FieldLog/photos/" + attachment.filename))
++            XCTAssertEqual(bytes, expected)
++        }
++        let names = try FileManager.default.contentsOfDirectory(atPath: dir.appendingPathComponent("FieldLog/photos").path)
++        XCTAssertEqual(names.count, 8)
++        await reopened.close()
++    }
++
++    @MainActor func testCameraFailureAndEditorDismissalLeaveWorkspaceAndPhotosUntouched() async throws {
++        let dir = photoDir("camera-refusals"), app = try await open(dir)
++        try send(app, "workspace.entries")
++        try send(app, "entry-title", .textChange, .string("Retain the title"))
++        let before = try Data(contentsOf: file(dir))
++        try send(app, "entry-date", .textChange, .string("2024-02-"))
++        try rejects("capture with invalid draft date") { try send(app, "entry.photo.capture") }
++        XCTAssertNil(app.presentation.takePhotoRequest())
++        try send(app, "entry-date", .textChange, .string("2024-02-29T00:00:00Z"))
++        let draft = app.presentation.entryState?.draft
++
++        for failure: PhotoSelectionResult in [.cancelled, .failed(.unavailable), .failed(.denied), .failed(.invalid), .failed(.tooLarge)] {
++            try send(app, "entry.photo.capture")
++            let request = try XCTUnwrap(app.presentation.takePhotoRequest())
++            let accepted = await app.presentation.completePhoto(requestID: request.id, result: failure)
++            XCTAssertTrue(accepted)
++            XCTAssertFalse(app.presentation.photoSelectionPending)
++            XCTAssertEqual(app.presentation.entryState?.draft, draft)
++            if case .failed(.unavailable) = failure {
++                let status = fieldLogNode("entry.photo.status", in: app.presentation.snapshot.document.root)
++                XCTAssertEqual(status?.properties["text"]?.string, "Camera capture is unavailable. Your entry is unchanged.")
++            }
++            let late = await app.presentation.completePhoto(requestID: request.id, result: .jpeg(photoJPEG))
++            XCTAssertFalse(late)
++        }
++        for dismiss in ["entry.photo.cancel", "workspace.tasks", "workspace.queue", "entry.new"] {
++            try send(app, "entry.photo.capture")
++            let request = try XCTUnwrap(app.presentation.takePhotoRequest())
++            try send(app, dismiss)
++            XCTAssertFalse(app.presentation.photoSelectionPending)
++            let late = await app.presentation.completePhoto(requestID: request.id, result: .jpeg(photoJPEG))
++            XCTAssertFalse(late)
++            if dismiss == "workspace.queue" { try send(app, "workspace.back") }
++            if dismiss == "workspace.tasks" || dismiss == "workspace.queue" { try send(app, "workspace.entries") }
++        }
++        XCTAssertEqual(try Data(contentsOf: file(dir)), before)
++        XCTAssertFalse(FileManager.default.fileExists(atPath: dir.appendingPathComponent("FieldLog/photos").path))
++        await app.close()
++    }
++
+diff --git a/Integrations/GeneratedReport/scripts/build-android.py b/Integrations/GeneratedReport/scripts/build-android.py
+index dedbbea6a4ab4e4dabfa0deecc1b2a2619a9c7ca..a05cd3ee1f1e4f699b380398f47e4eb03faf5e64 100644
+--- a/Integrations/GeneratedReport/scripts/build-android.py
++++ b/Integrations/GeneratedReport/scripts/build-android.py
+@@ -29 +29 @@ def app_inputs():
+-              for name in ("PublicBridge.java", "PublicActivity.java")]
++              for name in ("PublicBridge.java", "PublicActivity.java", "CapturePhotoProvider.java")]
