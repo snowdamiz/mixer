@@ -104,14 +104,28 @@ starting digit, and zero to three children. Native Swift emits the exact
 four-byte frames for `.12`, `!456`, and `.` with zero padding. A four-child
 event is refused before rendering and preserves the `!456` frame.
 
-Embedded Swift 6.3.3 emits an object from the same builder source. With the
-existing import-free, one-page Guest UI V1 link settings, `wasm-ld` reports
-undefined `posix_memalign` and `free`. The builder's guest replay has yet to
-reach VM admission, frame comparison, refusal, or session retirement. This
-probe covers a synthetic menu. MixerUI keeps its separate native SDK control.
-The focused command prints the native observations and linker diagnostic
-before exiting 1 for the blocked guest replay.
+Embedded Swift 6.3.3 emits an object from the same builder source. The
+default one-page Guest UI V1 link reports undefined `posix_memalign` and
+`free`. The focused command prints the native observations and linker
+diagnostic before exiting 1.
 [Result-builder replay receipt](../../../verification/receipts/l03-swift-result-builder-v78.json)
+
+## Swift result builder with the stock WASI allocator
+
+With the Swift 6.3.3 WASI SDK installed, opt into the pinned allocator archive.
+
+```sh
+python3 -B compiler/Fixtures/FeatureProbe/replay.py --result-builder --stock-wasi-allocator
+```
+
+The replay reproduces the no-archive link failure, then links the same object
+with the verified `libc.a`. The unsigned guest runs through the Guest UI V1
+C ABI on arm64 macOS with zero imports, zero host calls, and one fixed 64 KiB
+page. Native and guest frames match for conditional and iterated children.
+The four-child refusal preserves the prior frame. The next valid event
+renders, and the guest reclaims its slot and rejects the retired handle.
+[Reviewed replay](../../../verification/receipts/l03-swift-result-builder-stock-wasi-allocator.json) ·
+[Repeat and existing modes](../../../verification/receipts/l03-swift-result-builder-stock-wasi-allocator-regressions.json)
 
 ## Swift fixed-slot result-builder replay
 

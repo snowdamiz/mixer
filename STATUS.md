@@ -773,17 +773,31 @@ deinitializations across those cycles. The highest accepted turn used
 1,071 of 1,000,000 fuel. Retirement refused stale handles and a fresh
 session opened with a clean frame. Independent review checked the
 archive, fixture, and VM pins. Runtime readback comes from the experiment
-receipt. Default linking still refuses both symbols. Heap exhaustion
-and block reuse remain open.
+receipt. Default linking still refuses both symbols. That closure experiment
+left heap exhaustion and block reuse unmeasured.
 [Stock SDK allocator experiment](verification/receipts/l03-swift-sdk-allocator-abadfffa10.json)
 
-The maintained closure-only `--stock-wasi-allocator` option reproduces
+The closure replay's `--stock-wasi-allocator` option reproduces
 the no-library refusal before linking with the pinned archive. Two fresh
 runs per fixture reproduced the object and Wasm hashes and matched native
 and owned VM frames. The default replay and all 32 VM tests passed.
 Independent review checked the selector, archive admission, link order,
 and receipt. The support matrix now records the two scoped guest fixtures.
 [Maintained allocator replay](verification/receipts/l03-swift-stock-wasi-allocator-replay.json)
+
+The dynamic result-builder replay also uses the pinned WASI allocator
+when explicitly selected. Two corrected runs produced identical
+12,559-byte Wasm. The unsigned one-page guest matched native frames,
+preserved the prior frame on a four-child refusal, and reclaimed its
+session slot. The highest accepted turn used 2,783 fuel. The initial
+frame comparison reached retirement, where the harness expected a
+closure-only receipt. The corrected harness requires both closure and
+slot reclamation. Default, fixed-slot, and closure regression modes
+passed. The ordinary dynamic builder still reports both unresolved
+allocator symbols without the archive.
+[Dynamic builder replay](verification/receipts/l03-swift-result-builder-stock-wasi-allocator.json) ·
+[Initial harness failure](verification/receipts/l03-swift-result-builder-stock-wasi-allocator-initial.json) ·
+[Regression results](verification/receipts/l03-swift-result-builder-stock-wasi-allocator-regressions.json)
 
 A separate allocator control passed in two installed Guest UI V1
 sessions. Nine 4,096-byte allocations aligned to 64 bytes succeeded.

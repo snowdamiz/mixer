@@ -221,7 +221,8 @@ private func exercisePreview(
             result = try encoder.encode(exercisePreview(
                 &path, inputs: inputs, width: width,
                 refusePenultimateEvent: mode != "floating-guest" && mode != "associated-guest",
-                checkReclamation: ["fixed-builder-guest", "enum-throws-guest", "closure-guest"].contains(mode)))
+                checkReclamation: ["builder-guest", "fixed-builder-guest", "enum-throws-guest", "closure-guest"]
+                    .contains(mode)))
         default:
             throw CheckFailed(reason: "unknown mode")
         }

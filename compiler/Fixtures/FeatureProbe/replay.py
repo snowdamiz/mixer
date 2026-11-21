@@ -152,7 +152,7 @@ def observe_preview(run, host, wasm, input_file, label, names, expected, refusal
     fuel = row.pop("guestFuel")
     guest = label.endswith("-guest")
     retirement = dict(closed=guest)
-    if label in ("fixed-builder-guest", "enum-throws-guest", "closure-guest"):
+    if label in ("builder-guest", "fixed-builder-guest", "enum-throws-guest", "closure-guest"):
         retirement["reclaimedRegistrySlot"] = True
     require(row == retirement, f"{label}: unexpected close: {row}")
     require((len(fuel) == len(expected) - 1 and all(0 < turn <= 1_000_000 for turn in fuel))
@@ -191,7 +191,7 @@ def build_compact_host(run, sources, *, fixture_flags=()):
     return archive
 
 
-def result_builder_campaign(run, result, *, fixed):
+def result_builder_campaign(run, result, *, fixed, stock_wasi_allocator=False):
     cases = [
         ("ordinary-two", b"\x00\x01\x02", b".12\x00"),
         ("priority-three", b"\x01\x04\x03", b"!456"),
@@ -207,6 +207,8 @@ def result_builder_campaign(run, result, *, fixed):
         define="FIXED_SLOT_RESULT_BUILDER_GUEST" if fixed else "RESULT_BUILDER_GUEST",
         scope=("Synthetic Foundation-free fixed-slot menu builder on arm64 macOS" if fixed else
                "Synthetic Foundation-free menu builder on arm64 macOS"),
+        module_name="MixerResultBuilderProbe" if stock_wasi_allocator else None,
+        guest_command=stock_allocator_guest_command(run, result) if stock_wasi_allocator else None,
     )
 
 
@@ -252,10 +254,10 @@ def stock_allocator_guest_command(run, result):
         _, diagnostic, _ = run.command(f"{label}-without-libc", *args, bound=35, expected=1)
         symbols = re.findall(r"undefined symbol: (\S+)", diagnostic)
         require(set(symbols) == {"free", "posix_memalign"} and not output.exists(),
-                f"unexpected no-library closure link diagnostic\n{diagnostic}")
+                f"unexpected no-library link diagnostic\n{diagnostic}")
         evidence["baselineRefusal"] = diagnostic.replace(str(run.scratch), "$RUN").strip()
         extraction = run.scratch / "libc-extraction.tsv"
-        link_map = run.scratch / "closure.map"
+        link_map = output.with_suffix(".map")
         run.command(label, *link_args, guest_object, archive, f"--why-extract={extraction}", f"--Map={link_map}",
                     output_flag, output, bound=35)
         evidence["archiveExtraction"] = extraction.read_text().replace(f"{run.scratch}/", "").splitlines()
@@ -485,11 +487,11 @@ def main():
     focused.add_argument("--escaping-closure-value-only", action="store_true",
                          help="run the escaping closure without a captured object")
     parser.add_argument("--stock-wasi-allocator", action="store_true",
-                        help="link the pinned Swift 6.3.3 WASI libc.a for a closure replay")
+                        help="link the pinned Swift 6.3.3 WASI libc.a for a dynamic builder or closure replay")
     args = parser.parse_args()
     closure = args.escaping_closure or args.escaping_closure_value_only
-    if args.stock_wasi_allocator and not closure:
-        parser.error("--stock-wasi-allocator requires --escaping-closure or --escaping-closure-value-only")
+    if args.stock_wasi_allocator and not (args.result_builder or closure):
+        parser.error("--stock-wasi-allocator requires --result-builder, --escaping-closure, or --escaping-closure-value-only")
     require((os.uname().sysname, os.uname().machine) == ("Darwin", "arm64"), "requires arm64 macOS")
     require(Path.cwd() == ROOT, "run from the Mixer checkout root")
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
@@ -512,7 +514,8 @@ def main():
                     escaping_closure_campaign(run, result, value_only=args.escaping_closure_value_only,
                                               stock_wasi_allocator=args.stock_wasi_allocator)
                 else:
-                    result_builder_campaign(run, result, fixed=args.fixed_slot_result_builder)
+                    result_builder_campaign(run, result, fixed=args.fixed_slot_result_builder,
+                                            stock_wasi_allocator=args.stock_wasi_allocator)
             except ValueError as error:
                 result["failure"] = str(error)
                 failed = True
