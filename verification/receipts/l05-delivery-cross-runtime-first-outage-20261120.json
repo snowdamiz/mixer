@@ -1,0 +1,147 @@
+{
+  "scope": "First cross-runtime proof through lease expiry, before the separate PostgreSQL recovery correction",
+  "source_commit": "2ca61a6c1a98a036ef59d145c9466310f53c1bdf",
+  "source_tree": "569f498e3f7826db79183c47e05f959940a2d566",
+  "observed_at_utc": "2026-11-21T02:43:04Z",
+  "command": "sh hosted/scripts/replay-local-release-target-registry.sh cross-runtime",
+  "runtime": {
+    "node": "v22.23.3",
+    "workerd": "1.20260730.1",
+    "miniflare": "4.20260730.0"
+  },
+  "checks": {
+    "database": {
+      "before": "17.11 verify-full mixer_release_delivery",
+      "outage": "connection_refused"
+    },
+    "outage": {
+      "offerSha256": "441abd062f8fb3ff9802a7e5bb79c6ea0a782a0f0d1b627b33e3379f10bfe616",
+      "assignmentSha256": "dd31cfcc5894d550ffe27a8e6fa6696308414391e3ac5ee8efe88e08e7b3464e",
+      "artifacts": [
+        {
+          "manifest_sha256": "c2de350a344d6fc0a7a15b56260a1f037b1b815cf8c13d4fd7271ea4e8f682e2",
+          "envelope_sha256": "b1b380f13b9e724764d93d5e5cdc18aca69991d2d093d6b0dfa00a78ec424c91"
+        },
+        {
+          "manifest_sha256": "89d430c1c0e8b9c75b022c2044bd5e8a5d7fe7fa3f7d07cb73094d6712932dfe",
+          "envelope_sha256": "ba6083eb113e7409f9b0964e2b870e8f3d48ce6fdcadedfc2c63046b591ba94c"
+        }
+      ],
+      "unrelatedDenied": true,
+      "stagedOnlyDenied": true,
+      "writerHttpDenied": true,
+      "initialPointer": {
+        "snapshot": {
+          "version": 1,
+          "target": {
+            "app": "fieldlog",
+            "channel": "beta",
+            "environment": "development",
+            "organization": "org-a",
+            "platform": "ios",
+            "project": "project-a",
+            "runtime": "4458cc1f9ff4357cad2e529d56de9c1e962679a3023ea72c8cb6c909d99bb888"
+          },
+          "revision": "1",
+          "issued_at_ms": 1795228976182,
+          "expires_at_ms": 1795228982682,
+          "head": {
+            "artifact_sha256": "c2de350a344d6fc0a7a15b56260a1f037b1b815cf8c13d4fd7271ea4e8f682e2",
+            "assignment_sha256": "dd31cfcc5894d550ffe27a8e6fa6696308414391e3ac5ee8efe88e08e7b3464e",
+            "enabled": true,
+            "rollout_basis_points": 10000,
+            "sequence": "8"
+          },
+          "artifacts": [
+            {
+              "envelope_sha256": "b1b380f13b9e724764d93d5e5cdc18aca69991d2d093d6b0dfa00a78ec424c91",
+              "manifest_sha256": "c2de350a344d6fc0a7a15b56260a1f037b1b815cf8c13d4fd7271ea4e8f682e2"
+            },
+            {
+              "envelope_sha256": "ba6083eb113e7409f9b0964e2b870e8f3d48ce6fdcadedfc2c63046b591ba94c",
+              "manifest_sha256": "89d430c1c0e8b9c75b022c2044bd5e8a5d7fe7fa3f7d07cb73094d6712932dfe"
+            }
+          ]
+        },
+        "hash": "cdacdef989ac200eebf0671746a2306aa741873b7cdfc3a21e6e19f72b83b98a",
+        "etag": "8e2a7829476dbdeb127abe93e8ef1044"
+      },
+      "freshReadUnavailable": true,
+      "cachedFenceUnavailable": true,
+      "expiredOffer": 204,
+      "expiredArtifacts": [
+        404,
+        404
+      ]
+    }
+  },
+  "run_outcome": "Exit 74. Restart invoked from the Elixir fixture did not become ready. No late, post-restart reconciliation, or signed halt check ran.",
+  "closure": {
+    "outagePostmaster": {
+      "pid": 23860,
+      "absent": true
+    },
+    "workerd": {
+      "launchAttempts": 1,
+      "pid": 24872,
+      "pgid": 24872,
+      "ready": "verified",
+      "beforeDispose": "verified",
+      "unexpectedChildren": null,
+      "disposed": true,
+      "close": {
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      "exactPidAbsent": true,
+      "groupAbsent": true
+    },
+    "hold": {
+      "scratch": "/private/tmp/mxd-run.HmmjuS",
+      "workerd": {
+        "launchAttempts": 1,
+        "pid": 24872,
+        "pgid": 24872,
+        "ready": "verified",
+        "beforeDispose": "verified",
+        "unexpectedChildren": null,
+        "disposed": true,
+        "close": {
+          "code": null,
+          "signal": "SIGKILL"
+        },
+        "exactPidAbsent": true,
+        "groupAbsent": true
+      },
+      "errors": [
+        "Error: kill EPERM"
+      ]
+    }
+  },
+  "earlier_transport_hold": {
+    "result": "Synchronous Miniflare RPC blocked the Node authority service. Direct Workerd closure and exact group absence were observed after root-owned signal recovery. Phoenix group absence observation returned EPERM. PostgreSQL stopped separately.",
+    "phoenix_pgid": 63105,
+    "closure": {
+      "scratch": "/private/tmp/mxd-run.WvVmTz",
+      "workerd": {
+        "launchAttempts": 1,
+        "pid": 65238,
+        "pgid": 65238,
+        "ready": "verified",
+        "beforeDispose": "unverified",
+        "unexpectedChildren": null,
+        "disposed": true,
+        "close": {
+          "code": null,
+          "signal": "SIGKILL"
+        },
+        "exactPidAbsent": true,
+        "groupAbsent": true
+      },
+      "errors": [
+        "Error: kill EPERM",
+        "AssertionError [ERR_ASSERTION]: unresolved workerd custody"
+      ]
+    }
+  }
+}
