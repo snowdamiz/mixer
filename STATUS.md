@@ -1105,6 +1105,18 @@ closed, all three ports rebound, and the disposable emulator and
 scratch were removed. The emulator used the software rear camera.
 [Installed replay](verification/receipts/fieldlog-android-camera-installed-api36-26bbde4a.json) · [Exact patch](verification/receipts/fieldlog-android-camera-corrected-26bbde4a.patch) · [Build receipt](verification/receipts/fieldlog-android-camera-output-api36-successor.json)
 
+## November 21 current FieldLog Android queue
+
+The Pair25 queue port ran the ordinary On device screen on macOS with
+loopback HTTP and SQLite. Cancel and owner close both resumed a photo
+at 65,536 bytes. Both recovered a lost acknowledgment with one remote
+event, a byte-identical JPEG, and the unrelated local records intact.
+The queue stayed offline without a matching project session. The
+successful run closed its owned groups and removed scratch. Two earlier
+sampler attempts have separate custody holds. The resolver and manifest
+refusals are reproduced. Installed queue acceptance remains pending.
+[Host replay](verification/receipts/fieldlog-android-queue-pair25-host.json) · [Scoped holds](verification/receipts/fieldlog-android-queue-pair25-custody-holds.json)
+
 ## November 21 Apple signed draft validation host replay
 
 On macOS, the Apple selected-draft owner and stock VM checked a
