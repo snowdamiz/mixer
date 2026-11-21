@@ -39,19 +39,24 @@ defmodule MixerHosted.Test.OrdinaryBrowserStartupFixture do
     end
   end
 
-  defp prepare_evidence!(profile) do
+  defp prepare_evidence!(profile, evidence_name) do
     prior =
       for key <- ~w(MIXER_BROWSER_CATALOG_FIXTURE_ROOT MIXER_BROWSER_CATALOG_EVIDENCE),
           do: {key, System.fetch_env(key)}
 
-    name =
+    default_name =
       case profile do
         :workspace_builds -> "ordinary-workspace-builds"
         :workspace_manage -> "ordinary-workspace-manage"
         _ -> "ordinary-r1422"
       end
 
-    root = Path.join(System.fetch_env!("MIXER_BROWSER_CATALOG_FIXTURE_ROOT"), name)
+    root =
+      Path.join(
+        System.fetch_env!("MIXER_BROWSER_CATALOG_FIXTURE_ROOT"),
+        evidence_name || default_name
+      )
+
     :ok = File.mkdir(root)
     File.mkdir!(Path.join(root, "proof"))
 
@@ -198,9 +203,9 @@ defmodule MixerHosted.Test.OrdinaryBrowserStartupFixture do
     assert :ok = Ecto.Migrator.up(repo, version, module, log: false)
   end
 
-  def prepare!(create \\ false) do
+  def prepare!(create \\ false, evidence_name \\ nil) do
     refuse_names!(@all_names)
-    prepare_evidence!(create)
+    prepare_evidence!(create, evidence_name)
     conn = F.connection!("browser_admin", "postgres")
 
     try do

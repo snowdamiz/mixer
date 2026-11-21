@@ -44,7 +44,7 @@ defmodule MixerHosted.BrowserAuth.OrdinaryNativeAttestationCatalogPGJoinTest do
       GenServer.stop(conn)
     end
 
-    c = prepare!(:workspace_builds)
+    c = prepare!(:workspace_builds, "ordinary-native-attestation-catalog")
     provision_workspace!()
     provision_build_create!()
 
