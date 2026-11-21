@@ -222,8 +222,10 @@ and Swift Capability Native passed all three native preimage controls.
 The latter then stopped while Swift 6.2.4 type-checked the signed guest
 test fixture. The fixture correction emits byte-identical Wasm for
 all nine modes and both additional scope controls on local Swift 6.3.3.
-Hosted compilation of the corrected fixture remains open.
-[Fixture comparison](verification/receipts/hosted-swift-62-signed-fixture-byte-assembly.json)
+The exact Swift 6.2.4 installed-material and preimage step passed on
+`55f3ccf17c`. The full workflow result and test breakdown remain pending.
+[Fixture comparison](verification/receipts/hosted-swift-62-signed-fixture-byte-assembly.json) ·
+[Hosted Swift capability job](https://github.com/snowdamiz/mixer/actions/runs/44899896358/job/136833383137)
 
 The exact fingerprint run finished with eight passing jobs. The Swift Host
 and aggregate, VM, Services, and Intel six-consumer cross-compiles passed.
