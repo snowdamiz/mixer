@@ -293,6 +293,59 @@ func TestCompletedOperationRequiredAndLegacyVerification(t *testing.T) {
 	}
 }
 
+func TestExpectedStatementRefusesReplacementBeforePublication(t *testing.T) {
+	sel := fixtureSelection()
+	session := base64.RawURLEncoding.EncodeToString(make([]byte, 32))
+	state := filepath.Join(t.TempDir(), "state")
+	if err := os.Mkdir(state, 0700); err != nil {
+		t.Fatal(err)
+	}
+	privatePath, publicPath := writeDevelopmentKeys(t, t.TempDir())
+	fixture := newBuildFixture(t, sel, session, "127.0.0.1:0", nil, nil)
+	s, err := newSource(fixture.origin, session)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, subjects, err := s.observe(sel, completionProfile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, der, err := readKey(publicPath, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := statement{completionProfile, fixture.origin, sum(der), sel, p, subjects}
+	raw, err := json.MarshalIndent(expected, "", "  ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	file := filepath.Join(t.TempDir(), "expected.json")
+	if err := os.WriteFile(file, raw, 0400); err != nil {
+		t.Fatal(err)
+	}
+	args := []string{"sign", "-origin", fixture.origin, "-selection", sel.query().Encode(),
+		"-state", state, "-expected-statement", file}
+	fixture.operation.Store(strings.Repeat("6", 64))
+	// A mismatching build must be refused even when the signing key cannot be opened.
+	_, err = run(append(args, "-key", privatePath+".missing"), strings.NewReader(session))
+	entries, readErr := os.ReadDir(state)
+	if err == nil || err.Error() != "observed build differs from expected attestation statement" ||
+		readErr != nil || len(entries) != 0 || fixture.requests.Load() != 8 {
+		t.Fatalf("replacement completion yielded err=%v, files=%v (read error %v), requests=%d",
+			err, entries, readErr, fixture.requests.Load())
+	}
+	fixture.operation.Store(p.WorkerOperationID)
+	name, err := run(append(args, "-key", privatePath), strings.NewReader(session))
+	if err != nil {
+		t.Fatalf("admitted completion did not sign: %v", err)
+	}
+	verified, err := run([]string{"verify", "-origin", fixture.origin, "-selection", sel.query().Encode(),
+		"-state", state, "-key", publicPath}, strings.NewReader(session))
+	if err != nil || verified != name {
+		t.Fatalf("default verification of the guarded signature failed: %q, %v", verified, err)
+	}
+}
+
 func writeDevelopmentKeys(t *testing.T, dir string) (string, string) {
 	t.Helper()
 	public, private, err := ed25519.GenerateKey(nil)

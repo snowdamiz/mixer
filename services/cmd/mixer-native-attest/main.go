@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 	"strings"
 	"syscall"
 )
@@ -58,6 +59,16 @@ func run(args []string, stdin io.Reader) (string, error) {
 	raw := flags.String("selection", "", "exact build selection query")
 	state := flags.String("state", "", "mode 0700 attestation directory")
 	key := flags.String("key", "", "private PKCS#8 PEM for sign, pinned public SPKI PEM for verify or attach")
+	var expectedPath string
+	if command == "sign" {
+		flags.Func("expected-statement", "optional private JSON file with the already admitted V2 statement", func(path string) error {
+			if path == "" || expectedPath != "" {
+				return errors.New("expected one nonempty statement path")
+			}
+			expectedPath = path
+			return nil
+		})
+	}
 	if err := flags.Parse(args[1:]); err != nil {
 		return "", err
 	}
@@ -111,17 +122,32 @@ func run(args []string, stdin io.Reader) (string, error) {
 	if _, err := root.Lstat(name); !errors.Is(err, os.ErrNotExist) {
 		return "", errors.New("build already attested or state unavailable")
 	}
+	var expected statement
+	if expectedPath != "" {
+		expected, err = readExpectedStatement(expectedPath)
+		if err != nil {
+			return "", err
+		}
+	}
 	// Observe the authenticated build before opening the signing key.
 	p, subjects, err := s.observe(sel, completionProfile)
 	if err != nil {
 		return "", err
+	}
+	if expectedPath != "" && (expected.Profile != completionProfile || expected.Origin != s.origin ||
+		expected.Selection != sel || expected.Provenance != p || !slices.Equal(expected.Subjects, subjects)) {
+		return "", errors.New("observed build differs from expected attestation statement")
 	}
 	private, _, der, err := readKey(*key, true)
 	if err != nil {
 		return "", err
 	}
 	defer clear(private)
-	payload, err := json.Marshal(statement{completionProfile, s.origin, sum(der), sel, p, subjects})
+	keyID := sum(der)
+	if expectedPath != "" && keyID != expected.KeyID {
+		return "", errors.New("signing key differs from expected attestation statement")
+	}
+	payload, err := json.Marshal(statement{completionProfile, s.origin, keyID, sel, p, subjects})
 	if err != nil {
 		return "", err
 	}
@@ -191,6 +217,34 @@ func verifyLocalBinding(envelope attestation, public ed25519.PublicKey, origin s
 }
 
 const maxAttestationSize = 16_384
+
+func readExpectedStatement(path string) (statement, error) {
+	var expected statement
+	file, err := os.OpenFile(path, os.O_RDONLY|syscall.O_NONBLOCK|syscall.O_NOFOLLOW, 0)
+	if err != nil {
+		return expected, errors.New("cannot open expected attestation statement")
+	}
+	defer file.Close()
+	info, err := file.Stat()
+	if err != nil || !info.Mode().IsRegular() || info.Mode().Perm() != 0400 || !owned(info) {
+		return expected, errors.New("expected attestation statement must be owned and mode 0400")
+	}
+	if err := requireNoACL(file); err != nil {
+		return expected, fmt.Errorf("unsafe expected attestation statement ACL: %w", err)
+	}
+	data, err := io.ReadAll(io.LimitReader(file, maxAttestationSize+1))
+	invalid := errors.New("invalid expected attestation statement")
+	if err != nil || len(data) > maxAttestationSize {
+		return expected, invalid
+	}
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	if decoder.Decode(&expected) != nil || decoder.Decode(new(json.RawMessage)) != io.EOF ||
+		!digestPattern.MatchString(expected.KeyID) {
+		return expected, invalid
+	}
+	return expected, nil
+}
 
 func readAttestation(root *os.Root, name string) (attestation, []byte, error) {
 	file, err := root.OpenFile(name, os.O_RDONLY|syscall.O_NONBLOCK|syscall.O_NOFOLLOW, 0)

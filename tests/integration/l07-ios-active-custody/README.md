@@ -78,7 +78,8 @@ Use a fresh private run root at mode 0700 with `pg/` and
   `liveCustodyPending` is false after positive closure.
 - `commands.worker` and `commands.processor` have `exit: 0` and
   `groupAbsent: true`. Use the final worker if the harness reopened it.
-  `liveClosure` carries `xcodeExit: 0` and the terminal `xcodeReceiptSHA256`.
+  Copy `liveClosure` from the live receipt, including the exact terminal
+  `claim`, `xcodeExit: 0`, and `xcodeReceiptSHA256`.
 - Copy the live `binding` with `record_id`, `operation_id`, `ref`, `spec`,
   and `deadline_ms`. Copy `settled.journal` with its start and completed
   rows, `settled.artifacts` with the three descriptors, and
@@ -107,17 +108,25 @@ python3 -B tests/integration/l07-ios-active-custody/attest_settled.py \
 
 The PostgreSQL readback uses the maintained fixture database and loopback
 administrator. Use `--pg-database`, `--pg-user`, or `--psql` to match the
-fresh fixture. The step checks the receipt against the real worker ledger and
-journal, then authenticates and hashes all three downloads before compiling
-the stock Go signer from v74 Git objects. The separate signer process reads
-the products again. The stock attach command submits the same envelope twice.
+fresh fixture. The step reads the exact operation and custody claim in one
+worker-ledger snapshot. It requires the successful v74 launch and terminal
+claim, the matching Swift and Xcode receipts, and the settled journal and
+products. It authenticates and hashes all three downloads before compiling the
+stock Go signer from the pinned successor Git tree using v74's module files.
+The wrapper passes the admitted statement to `sign -expected-statement`. The
+signer independently reads the products and checks that statement before
+signing. The stock attach command submits the same envelope twice.
 The step checks PostgreSQL after each response for one exact stored envelope and
 the unchanged journal. Save the JSON output with the root run's evidence.
 
-The step creates `attestation/` under the run root for the Go build and
-private envelope state. Root can clean it with the fresh run after observing
-terminal custody. If an attachment response is unconfirmed, use the existing
-envelope and the stock attach command to reconcile it after database readback.
+The step creates `attestation/` under the run root for the Go build, private
+envelope state, and per-command stdout, stderr, and custody receipts. All
+external commands have deadlines. A top-level `HOLD.json` remains if terminal
+custody is unconfirmed, and the wrapper exits 74 without starting another
+command. Preserve that run root and its logs. Root can clean a completed run
+after observing terminal custody. If an attachment response is unconfirmed
+and command custody closed, use the existing envelope and the stock attach
+command to reconcile it after database readback.
 
 ```sh
 python3 -B -W error::ResourceWarning -m unittest discover -v \

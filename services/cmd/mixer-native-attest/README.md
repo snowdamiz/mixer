@@ -47,6 +47,16 @@ statement to the signed bytes. The signed product is a
 detached native build attestation. No platform code signature or OTA release
 grant is represented by this format.
 
+When an operator has independently admitted a particular completion, pass
+`-expected-statement PATH` to `sign`. Supply one JSON object using the V2
+statement fields described above, including `keyId`, `selection`, `provenance`,
+and the ordered `subjects`. Keep the file in an operator-controlled directory
+with owner-read-only mode (0400) and no extended ACL. The input limit is 16 KiB.
+The signer compares its independently observed build with the expected
+statement before opening the key, then checks the public key digest before
+creating the signature. `verify` and `attach` use the retained envelope and
+their existing arguments.
+
 The state directory is the replay scope for one local trust context. The
 filename hashes the NUL-separated organization, project, application, platform,
 and build IDs. A second sign for that identity is refused. Atomic exclusive

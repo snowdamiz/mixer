@@ -3,7 +3,7 @@
 
 import argparse
 import base64
-from contextlib import closing
+from contextlib import ExitStack, closing
 import hashlib
 from http.client import HTTPConnection
 import io
@@ -11,17 +11,21 @@ import json
 import os
 from pathlib import Path
 import re
-import shutil
+import runpy
+import signal
 import sqlite3
 import stat
 import subprocess
+import sys
 import tarfile
+import time
 from urllib.parse import parse_qsl, urlencode, urlsplit
 
 from live import require
 
 BASE = "44aecbeb6a82a4a93321cff6a8ab86c5aa421900"
 REPO = Path(__file__).resolve().parents[3]
+SIGNER_TREE = "a55127f07cec85dfbf00d985e72e44c6c905d09a"
 IDS = ("organization_id", "project_id", "application_id", "build_id", "platform")
 PINS = ("source_sha256", "toolchain_lock_sha256", "build_definition_sha256")
 WIRE = ("organizationId", "projectId", "applicationId", "buildId", "platform",
@@ -31,6 +35,18 @@ PROFILE = "mixer.native-build.ios-simulator.development.v2"
 HEX = re.compile(r"[0-9a-f]{64}")
 ARCHIVE_LIMIT = 256 << 20
 INVENTORY_LIMIT = 8 << 20
+COMMAND_LOG_LIMIT = 4 << 20
+
+# Reuse the v74 process adapter and nested-receipt validators without starting a worker.
+sys.path.insert(0, str(REPO / "hosted/priv/development"))
+try:
+    import ios_build_custody as ios
+    import native_artifact_worker as native
+finally:
+    sys.path.pop(0)
+
+kit = runpy.run_path(str(REPO / "tests/integration/l05-pair25-http/run.py"))
+wait, group_absent = (kit[name] for name in ("wait", "group_absent"))
 
 
 def sha(data):
@@ -43,6 +59,122 @@ def private_path(path, mode=None):
             and (mode is None or info.st_mode == (stat.S_IFREG | mode)),
             "expected a canonical, operator-owned input path")
     return info
+
+
+class CustodyUnknown(RuntimeError):
+    pass
+
+
+class CommandOutputLimit(RuntimeError):
+    pass
+
+
+def save_record(path, value):
+    pending = path.with_suffix(".pending")
+    with pending.open("x") as stream:
+        json.dump(value, stream, indent=2)
+        stream.write("\n")
+        stream.flush()
+        os.fsync(stream.fileno())
+    pending.replace(path)
+    fd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
+def run_command(work, name, argv, *, seconds, cwd=None, env, secret=None):
+    """Run one trusted tool with private file logs and explicit group custody."""
+    hold = work.parent / "HOLD.json"
+    require(not os.path.lexists(hold), "prior command custody is unresolved")
+    logs = work / "commands" / name
+    logs.mkdir(parents=True, mode=0o700)
+    argv = list(map(str, argv))
+    custody = dict(command=name, argv=argv, cwd=str(cwd or work), seconds=seconds,
+                   custody="UNKNOWN", directChildReaped=False, groupAbsent=False,
+                   descriptorsClosed=False, signalAttempted=False, stage="launch", logs=str(logs))
+    stdout, stderr = logs / "stdout", logs / "stderr"
+    try:
+        with ExitStack() as descriptors:
+            out = descriptors.enter_context(stdout.open("xb"))
+            err = descriptors.enter_context(stderr.open("xb"))
+            stdin = subprocess.DEVNULL
+            if secret is not None:
+                # The token is passed once via an anonymous pipe and never reaches a log or receipt.
+                stdin, writer = os.pipe()
+                descriptors.callback(os.close, stdin)
+                try:
+                    os.set_blocking(writer, False)
+                    require(os.write(writer, secret) == len(secret), "incomplete token handoff")
+                finally:
+                    os.close(writer)
+            save_record(hold, custody)
+            started = time.monotonic()
+            child = native.OwnedBuildProcess(argv, cwd=cwd or work, env=env, stdin=stdin,
+                                             stdout=out, stderr=err, start_new_session=True)
+            require(type(child.pid) is int and child.pid > 1, "invalid owned process identity")
+            custody.update(pid=child.pid, pgid=child.pid, stage="reap-direct-child")
+            save_record(hold, custody)
+
+            def reap(*, check_output=False):
+                pid, status = os.waitpid(child.pid, os.WNOHANG)
+                if pid == child.pid:
+                    child.returncode = os.waitstatus_to_exitcode(status)
+                    custody.update(exit=child.returncode, directChildReaped=True)
+                    return True
+                require(pid == 0, "unexpected waitpid identity")
+                if check_output and max(os.fstat(out.fileno()).st_size,
+                                        os.fstat(err.fileno()).st_size) > COMMAND_LOG_LIMIT:
+                    raise CommandOutputLimit("command log limit exceeded")
+                return False
+
+            try:
+                wait(lambda: reap(check_output=True), seconds - (time.monotonic() - started))
+            except (TimeoutError, CommandOutputLimit) as error:
+                custody.update(stop="timeout" if isinstance(error, TimeoutError) else "output-limit",
+                               signal="SIGKILL", stage="stop-owned-group")
+                save_record(hold, custody)
+                custody["signalAttempted"] = True
+                try:
+                    os.killpg(child.pid, signal.SIGKILL)
+                    custody["signalOutcome"] = "sent"
+                except ProcessLookupError:
+                    custody["signalOutcome"] = "already-absent"
+                except OSError as denied:
+                    custody["signalOutcome"] = "denied" if isinstance(denied, PermissionError) else "error"
+                    raise
+                custody["stage"] = "reap-after-stop"
+                wait(reap, 3)
+            custody["stage"] = "observe-group-absence"
+            wait(lambda: group_absent(child.pid), 3)
+            custody["groupAbsent"] = True
+    except BaseException as error:
+        if os.path.lexists(hold):
+            retain_hold(hold, custody, error)
+        raise
+    custody.update(descriptorsClosed=True, stage="record-terminal")
+    try:
+        sizes = {path.name: path.stat().st_size for path in (stdout, stderr)}
+        custody.update(custody="TERMINAL", logBytes=sizes,
+                       outputLimitExceeded=max(sizes.values()) > COMMAND_LOG_LIMIT)
+        save_record(logs / "result.json", custody)
+        hold.unlink()
+    except BaseException as error:
+        retain_hold(hold, custody, error)
+    require(not custody.get("stop") and not custody["outputLimitExceeded"] and custody["exit"] == 0,
+            f"{name} failed or exceeded its budget. See {logs}")
+    return stdout.read_bytes()
+
+
+def retain_hold(hold, custody, error):
+    failure = CustodyUnknown(f"{custody['command']} custody unresolved. Preserve {hold.parent}")
+    custody.update(custody="UNKNOWN", errorType=type(error).__name__, error=str(error))
+    try:
+        save_record(hold, custody)
+    except OSError as persistence_error:
+        failure.add_note(f"Hold update failed: {persistence_error}")
+    raise failure from error
 
 
 def settlement(args):
@@ -102,22 +234,65 @@ def admit_worker(root, proof, operation, subjects):
     require(stat.S_ISREG(private_path(ledger).st_mode), "invalid fresh worker ledger")
     with closing(sqlite3.connect(ledger.as_uri() + "?mode=ro", uri=True, timeout=1)) as database:
         database.execute("BEGIN")
-        [(raw,)] = database.execute("SELECT value FROM operations WHERE id=?", (operation,)).fetchall()
-        row = json.loads(raw)
+        entry = database.execute("SELECT value FROM operations WHERE id=?", (operation,)).fetchone()
+        claim = database.execute("""SELECT plan_sha256, guard, parent_pid, launch, terminal, uncertain
+            FROM ios_custody_claims WHERE operation=?""", (operation,)).fetchone()
+    require(entry is not None and claim is not None and claim[-1] == 0
+            and claim[3] is not None and claim[4] is not None,
+            "exact worker custody claim has no positive terminal authority")
+    row = json.loads(entry[0])
     closure = row["closure"]
     selected = proof["binding"]
-    compiler = [item for item in closure["commands"] if item["command"] == "/usr/bin/xcodebuild"]
     require(row["binding"] == {key: selected[key] for key in ("spec", "ref", "deadline_ms")}
-            and row["status"] == "native_ready" and row["starts"] == 1 and not row.get("tombstone")
+            and row["status"] == "native_ready" and type(row["starts"]) is int and row["starts"] == 1
+            and not row.get("tombstone")
             and row["artifacts"] == subjects and row["manifest_sha256"] == proof["settled"]["manifestSHA256"]
-            and closure["closed"] is True and closure["exit"] == 0
-            and closure["cli_reaped"] is True and closure["cli_group_absent"] is True
-            and len(compiler) == 1 and compiler[0]["stop_reason"] is None
-            and compiler[0]["group_terminate_sent"] is False
-            and compiler[0]["receipt_sha256"] == proof["liveClosure"]["xcodeReceiptSHA256"],
+            and closure["closed"] is True and closure["started"] is True
+            and closure["cli_reaped"] is True and closure["cli_group_absent"] is True,
             "worker ledger differs from the closed compile")
 
-    manifest = root / "worker" / operation / "native/native-build.json"
+    plan, guard, parent, launch, terminal, _ = claim
+    intent = row["ios_custody"]
+    require(plan == sha(native.literal(dict(operation_id=operation, binding=row["binding"], intent=intent)).encode())
+            and guard == native.literal(intent["guard"]) and type(parent) is int and parent > 1,
+            "worker custody claim differs from the exact admitted plan")
+    try:
+        launch, terminal = json.loads(launch), json.loads(terminal)
+        pid = launch["pid"]
+        expected_launch = dict(pid=pid, pgid=pid, sid=pid)
+        expected_outer = dict(expected_launch, parent_pid=parent, exit=0, direct_child_reaped=True,
+                              group_absent=True, descriptors_closed=True)
+        require(type(pid) is int and pid > 1 and pid != parent
+                and native.literal(launch) == native.literal(expected_launch)
+                and native.literal(terminal["outer"]) == native.literal(expected_outer)
+                and set(terminal) == {"outer", "nested", "outcome"}
+                and terminal["outcome"] == closure["ios_outcome"] == "succeeded"
+                and native.literal(terminal) == native.literal(closure["ios_custody"])
+                == native.literal(proof["liveClosure"]["claim"])
+                and native.literal((pid, 0)) == native.literal((closure["pid"], closure["exit"])),
+                "worker custody claim differs from the settled outer receipt")
+        output = root / "worker" / operation
+        tmp = output / "tmp"
+        require(not os.path.lexists(tmp / "cancel-requested"), "worker custody claim was cancelled")
+        (_, receipts), nested = ios.nested_closure(native, tmp, intent["recipe"]["inputs"])
+        require(len(receipts) == 2 and receipts[0][0]["command"] == ["/usr/bin/swift", "--version"]
+                and terminal["nested"] == nested and ios.classify(0, receipts, stop_requested=False) == "succeeded",
+                "worker custody claim differs from the exact nested receipts")
+    except (native.Refusal, KeyError, TypeError, ValueError) as error:
+        raise RuntimeError("worker custody claim lacks the v74 terminal receipt contract") from error
+    compiler, compiler_sha = receipts[-1]
+    commands = [dict(command=item["command"][0], pid=item["pid"], receipt_sha256=digest,
+                     stop_reason=item.get("stopReason"), group_terminate_sent=item.get("groupTerminateSent", False))
+                for item, digest in receipts]
+    require(compiler["command"][0] == "/usr/bin/xcodebuild"
+            and compiler_sha == proof["liveClosure"]["xcodeReceiptSHA256"]
+            and compiler["directory"] == str(output / "project")
+            and receipts[0][0]["exitCode"] == 0 and receipts[0][0].get("stopReason") is None
+            and receipts[0][0]["terminalNS"] <= compiler["runtimeStartedNS"]
+            and native.literal(closure["commands"]) == native.literal(commands),
+            "worker custody claim differs from the settled Swift and Xcode receipts")
+
+    manifest = output / "native/native-build.json"
     require(stat.S_ISREG(private_path(manifest).st_mode), "invalid fresh native report")
     raw = manifest.read_bytes()
     require(sha(raw) == row["manifest_sha256"], "retained native report digest differs")
@@ -128,13 +303,13 @@ def admit_worker(root, proof, operation, subjects):
             and report["commandResult"]["exitCode"] == 0
             and binding["authoritativeSourceDigest"] == spec["source"]["sha256"]
             and binding["lockSHA256"] == spec["toolchain_lock_sha256"]
-            and command[0] == "/usr/bin/xcodebuild" and command[-1] == "build"
+            and command == compiler["command"] and command[-1] == "build"
             and command[command.index("-destination") + 1] == "generic/platform=iOS Simulator"
             and command[command.index("-sdk") + 1] == "iphonesimulator"
             and "CODE_SIGNING_ALLOWED=NO" in command, "expected an unsigned generic Simulator compile")
 
 
-def inspect_postgres(args, record):
+def inspect_postgres(args, work, record, label):
     # record has already been restricted to the canonical UUID grammar.
     statement = f"""
     SELECT json_build_object(
@@ -155,10 +330,10 @@ def inspect_postgres(args, record):
     """
     env = {"PGCONNECT_TIMEOUT": "3",
            "PGOPTIONS": "-c default_transaction_read_only=on -c statement_timeout=3000"}
-    output = subprocess.check_output(
+    output = run_command(work, label,
         [args.psql, "-XqAtw", "-v", "ON_ERROR_STOP=1", "-h", "127.0.0.1", "-p", str(args.pg_port),
          "-U", args.pg_user, "-d", args.pg_database, "-c", statement],
-        env=env, stdin=subprocess.DEVNULL, timeout=8,
+        env=env, seconds=8,
     )
     return json.loads(output)
 
@@ -204,24 +379,45 @@ def observe_products(port, query, scope, session, operation, subjects):
 
 
 def build_signer(work):
-    paths = ("services/go.mod", "services/go.sum", "services/cmd/mixer-native-attest")
-    archive = subprocess.check_output(
-        ["git", "--no-lazy-fetch", "--no-replace-objects", "archive", BASE, *paths],
-        cwd=REPO, stdin=subprocess.DEVNULL, timeout=10,
-    )
-    with tarfile.open(fileobj=io.BytesIO(archive)) as source:
-        source.extractall(work, filter="data")
     for name in ("home", "cache", "modules", "tmp", "state"):
         (work / name).mkdir(mode=0o700)
+    services = work / "services"
+    signer = services / "cmd/mixer-native-attest"
+    signer.mkdir(parents=True)
+    git = ["git", "--no-lazy-fetch", "--no-replace-objects"]
+    git_env = dict(PATH=os.environ["PATH"], HOME=str(work / "home"), TMPDIR=str(work / "tmp"),
+                   GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL=os.devnull, GIT_ATTR_NOSYSTEM="1")
+    for name in ("go.mod", "go.sum"):
+        data = run_command(work, name, [*git, "cat-file", "blob", f"{BASE}:services/{name}"],
+                           cwd=REPO, env=git_env, seconds=10)
+        (services / name).write_bytes(data)
+    archive = run_command(work, "stock-source", [*git, "archive", "--format=tar", SIGNER_TREE],
+                          cwd=REPO, env=git_env, seconds=10)
+    files = {}
+    with tarfile.open(fileobj=io.BytesIO(archive), mode="r:") as source:
+        for member in source:
+            require(member.isfile() and re.fullmatch(r"[A-Za-z0-9_.-]+", member.name)
+                    and member.name not in {".", ".."} and member.name not in files,
+                    "invalid stock signer Git archive entry")
+            with source.extractfile(member) as stream:
+                files[member.name] = stream.read()
+
+    def object_id(kind, data):
+        return hashlib.sha1(f"{kind} {len(data)}\0".encode() + data, usedforsecurity=False).digest()
+
+    tree = b"".join(b"100644 " + name.encode() + b"\0" + object_id("blob", files[name])
+                    for name in sorted(files))
+    require(object_id("tree", tree).hex() == SIGNER_TREE, "stock signer Git tree differs")
+    for name, data in files.items():
+        (signer / name).write_bytes(data)
     env = dict(PATH=os.environ["PATH"], HOME=str(work / "home"), CGO_ENABLED="1", CC="/usr/bin/clang",
                GOTOOLCHAIN="local", GOENV="off", GOWORK="off", GOPROXY="off", GOSUMDB="off",
                GOTELEMETRY="off", GOCACHE=str(work / "cache"), GOMODCACHE=str(work / "modules"),
                GOTMPDIR=str(work / "tmp"), TMPDIR=str(work / "tmp"))
     tool = work / "mixer-native-attest"
-    version = subprocess.check_output(["go", "version"], env=env, text=True).strip()
-    subprocess.run(["go", "-C", work / "services", "build", "-mod=readonly", "-buildvcs=false",
-                    "-trimpath", "-o", tool, "./cmd/mixer-native-attest"],
-                   check=True, env=env, stdin=subprocess.DEVNULL)
+    version = run_command(work, "go-version", ["go", "version"], env=env, seconds=10).decode().strip()
+    run_command(work, "go-build", ["go", "-C", services, "build", "-mod=readonly", "-buildvcs=false",
+                                   "-trimpath", "-o", tool, "./cmd/mixer-native-attest"], env=env, seconds=180)
     return tool, version
 
 
@@ -231,7 +427,8 @@ def prove(args):
     work = root / "attestation"
     require(not os.path.lexists(work), "expected fresh attestation state")
     admit_worker(root, proof, operation, subjects)
-    before = inspect_postgres(args, record)
+    work.mkdir(mode=0o700)
+    before = inspect_postgres(args, work, record, "psql-before")
     journal = before["journal"]
     require(before["dataDirectory"] == str(root / "pg")
             and before["scope"] == [scope[k] for k in IDS]
@@ -261,30 +458,36 @@ def prove(args):
     query = urlencode({key: scope[key] for key in (*IDS, *PINS)})
     origin = f"http://127.0.0.1:{args.api_port}"
     selection, binding = observe_products(args.api_port, query, scope, session, operation, subjects)
-    work.mkdir(mode=0o700)
+    expected = dict(profile=PROFILE, origin=origin, keyId=key_id, selection=selection,
+                    provenance=dict(journalRevision=2, attempt=1, nativeBindingSha256=binding,
+                                    workerOperationId=operation), subjects=subjects)
+    expected_path = work / "expected-statement.json"
+    with expected_path.open("x") as stream:
+        json.dump(expected, stream)
+        os.fchmod(stream.fileno(), 0o400)
     tool, go_version = build_signer(work)
     state = work / "state"
 
-    def call(action, key, token):
-        return subprocess.check_output(
-            [tool, action, "-origin", origin, "-selection", query, "-state", state, "-key", key],
-            input=(token + "\n").encode(), env={"PATH": "/usr/bin:/bin"}, timeout=135,
+    def call(label, action, key, token, *options, seconds):
+        return run_command(work, label,
+            [tool, action, "-origin", origin, "-selection", query, "-state", state, "-key", key, *options],
+            secret=(token + "\n").encode(), env={"PATH": "/usr/bin:/bin"}, seconds=seconds,
         ).decode().strip()
 
     filename = sha("\0".join(scope[k] for k in (*IDS[:3], "platform", "build_id")).encode()) + ".json"
-    require(call("sign", args.private_key, session) == filename, "unexpected signed envelope name")
+    require(call("sign", "sign", args.private_key, session, "-expected-statement", expected_path,
+                 seconds=135) == filename,
+            "unexpected signed envelope name")
     envelope = (state / filename).read_bytes()
-    statement = json.loads(envelope)["statement"]
-    require(statement == dict(profile=PROFILE, origin=origin, keyId=key_id, selection=selection,
-                              provenance=dict(journalRevision=2, attempt=1, nativeBindingSha256=binding,
-                                              workerOperationId=operation),
-                              subjects=subjects), "signed statement differs from the admitted completion")
+    require(json.loads(envelope)["statement"] == expected, "signed statement differs from the admitted completion")
     stored = before | {"attachments": [[2, 1, operation, binding, key_id, origin, envelope.hex()]]}
     for status in ("attached", "duplicate"):
-        require(call("attach", args.public_key, bearer) == status, f"expected {status} from ordinary Phoenix")
-        require(inspect_postgres(args, record) == stored and (state / filename).read_bytes() == envelope,
+        require(call("attach-" + status, "attach", args.public_key, bearer, seconds=45) == status,
+                f"expected {status} from ordinary Phoenix")
+        require(inspect_postgres(args, work, record, "psql-" + status) == stored
+                and (state / filename).read_bytes() == envelope,
                 "attachment bytes, cardinality, or settled build changed")
-    return dict(base=BASE, go=go_version, signerSHA256=sha(tool.read_bytes()), origin=origin,
+    return dict(base=BASE, go=go_version, signerTree=SIGNER_TREE, signerSHA256=sha(tool.read_bytes()), origin=origin,
                 settlementSHA256=args.settlement_sha256, recordId=record, workerOperationId=operation,
                 journalRevision=2, attempt=1, subjects=subjects, signerKeySHA256=key_id,
                 nativeBindingSHA256=binding, attachmentHTTP=[201, 200], persistedRows=1,
@@ -311,8 +514,13 @@ def main():
             or not all(HEX.fullmatch(value) for value in (args.settlement_sha256, args.enrolled_spki_sha256))):
         parser.error("expected distinct loopback fixture ports, a psql path, fixture identifiers and SHA-256 pins")
     os.umask(0o077)
-    print(json.dumps(prove(args), indent=2))
+    try:
+        print(json.dumps(prove(args), indent=2))
+    except CustodyUnknown as error:
+        print(error, file=sys.stderr)
+        return 74
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
