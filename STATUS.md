@@ -1050,6 +1050,20 @@ inputs. Installed behavior remains open.
 [Corrected Apple build](verification/receipts/fieldlog-d2-shared-task-presentation-eb08569c-iphoneos-corrected.json) ·
 [Matched compiler inputs](verification/receipts/fieldlog-d2-matched-compiler-inputs-eb08569c.json)
 
+FieldLog candidate `e49ac6bb82` uses the same repository source in both
+ordinary packages. Android retains its revision-checked merged-draft
+photo transaction. Apple retains its `addPhoto` route. Baseline and
+candidate matched at all 11 disk checkpoints in both package paths,
+including cold reopen, durable task and draft writes, refused precommit,
+and recovery after a rename error. The Android arm64 Swift library and
+unsigned generic iPhoneOS app linked. Independent review confirmed the
+four-file patch and reconstructed both disk traces from the afterimages.
+The receipt supports 59 distinct terminal groups. A separate cleanup
+finding keeps the captured runner historical while its correction is
+underway. Installed behavior and the whole-app sharing target remain open.
+[Repository source](verification/receipts/fieldlog-d2-workspace-repository-e49ac6bb-patch.patch) · [Verification receipt](verification/receipts/fieldlog-d2-workspace-repository-e49ac6bb.json) ·
+[Disk afterimages](verification/receipts/fieldlog-d2-workspace-repository-e49ac6bb-afterimages.json)
+
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
 
 A free owner created one build through Phoenix, restricted Oban, and the loopback worker. The worker's inert exit-23 fixture settled the build and released capacity. Organization exit was refused before settlement and succeeded afterwards. The former owner lost access while tenant B retained its export and created another project. [Settled build and organization exit](verification/receipts/l06-settled-exit-65c89e08.json)

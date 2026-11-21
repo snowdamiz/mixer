@@ -1,0 +1,156 @@
+diff --git a/Integrations/GeneratedReport/Package.swift b/Integrations/GeneratedReport/Package.swift
+index 774fc2e5be1d8dd1d5149c6714f53eaf41ee9122..c16e49967e443b5bbdf5493be65c3aeca07a1c59 100644
+--- a/Integrations/GeneratedReport/Package.swift
++++ b/Integrations/GeneratedReport/Package.swift
+@@ -13,7 +13,7 @@ let package = Package(
+     dependencies: [mixer],
+     targets: [
+         .target(name: "FieldLogModels"),
+-        .target(name: "FieldLogStorage", dependencies: ["FieldLogModels"]),
++        .target(name: "FieldLogStorage", dependencies: ["FieldLogModels"], swiftSettings: [.define("FIELDLOG_MERGED_DRAFT_PHOTOS")]),
+         .target(name: "FieldLogFeatures", dependencies: ["FieldLogModels", .product(name: "MixerCore", package: "mixer"), .product(name: "MixerUI", package: "mixer"), .product(name: "MixerApple", package: "mixer", condition: .when(platforms: [.iOS, .macOS]))]),
+         .target(name: "FieldLogAndroid", dependencies: ["FieldLogModels", "FieldLogStorage", "FieldLogFeatures", .product(name: "MixerCore", package: "mixer"), .product(name: "MixerUI", package: "mixer"), .product(name: "MixerAndroid", package: "mixer")]),
+         .testTarget(name: "FieldLogAndroidTests", dependencies: ["FieldLogAndroid", "FieldLogModels", "FieldLogStorage", .product(name: "MixerUI", package: "mixer"), .product(name: "MixerAndroid", package: "mixer")]),
+diff --git a/Integrations/GeneratedReport/Platforms/Android/ApplicationPackage.swift b/Integrations/GeneratedReport/Platforms/Android/ApplicationPackage.swift
+index 97de4e913140c6c70571c5168fc54d2d28576533..3657399a5b7b2cf6483ea53d45ae2fdafca350b2 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/ApplicationPackage.swift
++++ b/Integrations/GeneratedReport/Platforms/Android/ApplicationPackage.swift
+@@ -7,6 +7,6 @@ let package = Package(
+     targets: [
+         .target(name: "FieldLogModels"),
+         .target(name: "FieldLogFeatures", dependencies: ["FieldLogModels", .product(name: "MixerCore", package: "MixerSDK"), .product(name: "MixerUI", package: "MixerSDK")], exclude: ["TaskEditorAppleFieldsHost.swift", "EntryEditorAppleHost.swift"]),
+-        .target(name: "FieldLogStorage", dependencies: ["FieldLogModels"]),
++        .target(name: "FieldLogStorage", dependencies: ["FieldLogModels"], swiftSettings: [.define("FIELDLOG_MERGED_DRAFT_PHOTOS")]),
+     ]
+ )
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift b/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
+index ac31d3413342c3a3570244af5174acd096c0d4b4..71e7ed86f27e510ed2895da95787fe5d8735f7a6 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
+@@ -3,26 +3,29 @@ import Foundation
+ 
+ #if canImport(Darwin)
+   import Darwin
+-#elseif canImport(Glibc)
+-  import Glibc
+ #elseif canImport(Android)
+   import Android
++#elseif canImport(Glibc)
++  import Glibc
+ #endif
+ 
+ private func closeDescriptor(_ fd: Int32) {
+   #if canImport(Darwin)
+     _ = Darwin.close(fd)
+-  #elseif canImport(Glibc)
+-    _ = Glibc.close(fd)
+   #elseif canImport(Android)
+     _ = Android.close(fd)
++  #elseif canImport(Glibc)
++    _ = Glibc.close(fd)
+   #endif
+ }
+ 
+-/// One private on-device workspace. All state mutations and their pending
+-/// outbox records commit in a single fsynced atomic snapshot.
++#if os(Android) || FIELDLOG_MERGED_DRAFT_PHOTOS
+ private struct PhotoWriteError: Error { let primary: any Error }
++#endif
+ 
++// Keep this file byte-identical in both FieldLog storage targets so the export is standalone.
++/// One private on-device workspace. All state mutations and their pending
++/// outbox records commit in a single fsynced atomic snapshot.
+ public actor WorkspaceRepository {
+   public typealias Fault = @Sendable (String) throws -> Void
+   private let directory: URL
+@@ -224,6 +227,7 @@ public actor WorkspaceRepository {
+       next.drafts[i].updatedAt = now
+     }
+   }
++  #if os(Android) || FIELDLOG_MERGED_DRAFT_PHOTOS
+   /// Preflight the real merged draft and generated reference before creating a photo.
+   /// Photo bytes precede atomic snapshot publication; a failed snapshot may leave
+   /// an unreferenced photo. Never remove it after uncertain publication.
+@@ -272,6 +276,8 @@ public actor WorkspaceRepository {
+       throw failure.primary
+     }
+   }
++  #endif
++
+   public func photoURL(_ id: UUID) throws -> URL {
+     guard let record = workspace.attachments.first(where: { $0.id == id }),
+       record.filename == id.uuidString.lowercased() + ".jpg"
+diff --git a/Sources/FieldLogStorage/WorkspaceRepository.swift b/Sources/FieldLogStorage/WorkspaceRepository.swift
+index 7de54570abf38578a87c333875c6411e7ba43b2d..71e7ed86f27e510ed2895da95787fe5d8735f7a6 100644
+--- a/Sources/FieldLogStorage/WorkspaceRepository.swift
++++ b/Sources/FieldLogStorage/WorkspaceRepository.swift
+@@ -19,6 +19,11 @@ private func closeDescriptor(_ fd: Int32) {
+   #endif
+ }
+ 
++#if os(Android) || FIELDLOG_MERGED_DRAFT_PHOTOS
++private struct PhotoWriteError: Error { let primary: any Error }
++#endif
++
++// Keep this file byte-identical in both FieldLog storage targets so the export is standalone.
+ /// One private on-device workspace. All state mutations and their pending
+ /// outbox records commit in a single fsynced atomic snapshot.
+ public actor WorkspaceRepository {
+@@ -222,6 +227,57 @@ public actor WorkspaceRepository {
+       next.drafts[i].updatedAt = now
+     }
+   }
++  #if os(Android) || FIELDLOG_MERGED_DRAFT_PHOTOS
++  /// Preflight the real merged draft and generated reference before creating a photo.
++  /// Photo bytes precede atomic snapshot publication; a failed snapshot may leave
++  /// an unreferenced photo. Never remove it after uncertain publication.
++  public func attachPhoto(jpeg: Data, to draft: EntryDraft, expectedRevision: UInt64,
++    now: Date = Date(), precommit: @Sendable (Workspace) throws -> Void) throws -> Workspace {
++    guard (3...6_291_456).contains(jpeg.count), jpeg.starts(with: [0xff, 0xd8, 0xff]),
++      draft.occurredAt.timeIntervalSinceReferenceDate.isFinite else {
++      throw FieldLogError.validation("Choose a JPEG photo up to 6 MiB and a valid entry date.")
++    }
++    let attachment = Attachment(id: UUID(), byteCount: jpeg.count, createdAt: now)
++    let directory = self.directory, fault = self.fault
++    do { return try transact(expectedRevision: expectedRevision) { next in
++      guard !next.entries.contains(where: { $0.id == draft.id }),
++        next.drafts.first(where: { $0.id == draft.id }).map({ $0.projectID == draft.projectID }) ?? true else {
++        throw FieldLogError.missingRecord
++      }
++      try next.saveDraft(draft)
++      guard let index = next.drafts.firstIndex(where: { $0.id == draft.id }),
++        next.drafts[index].attachmentIDs.count < 8 else {
++        throw FieldLogError.validation("An entry can contain up to eight photos.")
++      }
++      next.attachments.append(attachment)
++      next.drafts[index].attachmentIDs.append(attachment.id)
++      next.drafts[index].updatedAt = now
++      next.restoration.selectedProjectID = draft.projectID
++      next.restoration.openDraftID = draft.id
++      var projected = next
++      projected.revision += 1
++      try projected.validate()
++      let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
++      guard try encoder.encode(projected).count <= Self.maximumSnapshotBytes else {
++        throw FieldLogError.storage("Workspace is full. Export your records before adding more.")
++      }
++      try precommit(next)
++      let folder = directory.appendingPathComponent("photos", isDirectory: true)
++      do {
++        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true,
++          attributes: [.posixPermissions: 0o700])
++        try Self.atomic(jpeg, to: folder.appendingPathComponent(attachment.filename), fault: fault)
++      } catch {
++        // Conservatively retain every file and the primary error after any IO.
++        throw PhotoWriteError(primary: error)
++      }
++    } } catch let failure as PhotoWriteError {
++      unavailable = true
++      throw failure.primary
++    }
++  }
++  #endif
++
+   public func photoURL(_ id: UUID) throws -> URL {
+     guard let record = workspace.attachments.first(where: { $0.id == id }),
+       record.filename == id.uuidString.lowercased() + ".jpg"

@@ -86,6 +86,25 @@ The overall share is 17.8% by physical lines, below the 90% goal.
 Installed behavior and native accessibility remain unverified for this
 pair. [Matched compiler input receipt](../verification/receipts/fieldlog-d2-matched-compiler-inputs-eb08569c.json)
 
+## Shared workspace repository
+
+The next FieldLog tree, `e49ac6bb8229ab3cf8bb23e1176de6babd708054`,
+uses byte-identical repository sources in the ordinary Apple and Android
+packages. Each export keeps its own buildable package root. The shared
+source retains existing snapshot, revision, attachment, outbox, and
+atomic write behavior. Apple uses its existing add-photo operation.
+The Android-only merged-draft photo operation remains guarded and does
+not count as common execution.
+[Exact patch against `eb08569c`](../verification/receipts/fieldlog-d2-workspace-repository-e49ac6bb-patch.patch)
+
+The host replay matched 11 baseline and candidate checkpoints for each
+package path. Independent review reconstructed both traces and verified
+the persisted record and attachment references. An Android arm64 library
+and unsigned iPhoneOS app linked. The reported compile and host evidence
+leave installed behavior open. The matched counts above cover the earlier
+task presentation tree.
+[Repository verification](../verification/receipts/fieldlog-d2-workspace-repository-e49ac6bb.json)
+
 ## Reproduce the source measurement
 
 From the Mixer repository on a Mac with Git, Python, and SwiftPM, run the following in Bash. The commands use the receipt, the public FieldLog pin, and the four overlays. They evaluate package metadata without building either app or resolving SDK dependencies.
