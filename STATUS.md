@@ -348,6 +348,25 @@ race checks. Owned Engine passed all nine jobs, including both creates and
 all six Intel Android consumers.
 [Hosted v80 receipt](verification/receipts/hosted-v80-terminal-5f4277e1.json)
 
+The published evidence follow-up at `9c21d3edb4` passed all nine Owned
+Engine jobs. Intel compiled all six Java consumers and recorded terminal
+custody for the two creates and their recorded commands. Hosted activation
+skipped the signed Swift trap case because the input modules were absent.
+The corrected local guide supplied the modules and passed all three signed
+tests with Xcode 27.2. It refuses a changed index and stops on an existing
+output path before it can reuse a prior archive.
+[Owned Engine receipt](verification/receipts/owned-engine-v80-evidence-9c21d3ed.json) ·
+[Swift recipe verification](verification/receipts/w15-signed-swift-public-recipe.json)
+
+The reviewed local promotion-link continuation resumes the canonical saved
+record after ordinary sign-in. The rendered fixture returned iOS receipt 3
+and Android receipt 12 with heads at 4 and 13. A background organization-list
+request returned HTTP 503 while the exact promotion request returned 200.
+The cause of the 503 remains open. The composed console passed all 319 tests
+and its production build. Hosted source admission is in progress.
+[Browser receipt](verification/receipts/console-promotion-sign-in-resume-v80.json) ·
+[Composition receipt](verification/receipts/console-promotion-sign-in-composition-v81.json)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,
