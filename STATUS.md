@@ -296,6 +296,17 @@ same 558 hosted paths under the original six-minute collector limit, left
 the sparse source unchanged, and removed owned scratch.
 [Services replay](verification/receipts/hosted-v79-services-collector-final.json)
 
+Hosted v80 pins the four reviewed console files and the author receipt for
+saved promotion links. The author reopened the same iOS sequence 3 and
+Android sequence 12 records after both release heads advanced. Root passed
+313 console tests and the production build. All five workflow sparse
+checkouts passed focused controls with and without Python optimization.
+Exact source and workflow preimages recover v79 and v78. The installed CLI
+still validates 154 inputs, and the ordinary migration inventory remains at 27.
+Full collector and hosted CI results are pending.
+[Source admission](verification/receipts/hosted-v80-console-promotion-history-source-admission.json) ·
+[Console composition](verification/receipts/console-promotion-history-v80-composition.json)
+
 ## November 20 generated release REST client
 
 The stock Swift CLI uses generated REST operations for upload, validate,
