@@ -1,0 +1,200 @@
+{
+  "schema": 1,
+  "observed_at_utc": "2026-11-21T01:43:25+00:00",
+  "scope": "Local source admission and archive reconciliation of the reviewed hosted stage core on the exact compiler and THIRD_PARTY base. Prior runtime receipt checked by Git identity and all 25 exact source hashes. No fresh runtime, native, hosted CI, or release qualification.",
+  "revisions": {
+    "base": "dccba748d5f0d86a6ccc0d2b1bd3b449fc1ec79d",
+    "reviewed_core": "2b7829e77cfd1f25495b776b31f7d5bc8fdbb637^..e5b3a977c1091166bf9d82d5bf3da86e663b2625",
+    "root_review": "af8c40c650c9b007140b36590ac7813bde7bd151",
+    "v69_source": "683bc16dbeae38df974b8c17c516cb0d0327d5c7",
+    "v69_receipt": "056eb5bd143fc565123ba753b93e2f3b8e881a48",
+    "verified_composition_before_receipt": "e0055eeb9aa16d7f4b32132c90f33b18e89feb8b",
+    "verified_tree_before_receipt": "594c8ea8b0cd6ffc7da97c9c689764bed5dcf6da"
+  },
+  "tools": {
+    "git": "git version 2.56.0",
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "python": "3.13.16"
+  },
+  "commands": {
+    "projection": "git sparse-checkout set --no-cone --stdin; git checkout --detach <candidate> in a new local repository per workflow job, using the exact non-cone rules from the committed workflow",
+    "mode": "Each Python entry point ran without optimization and with explicit -O.",
+    "cli_admission": "python3.13 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+    "hosted_admission": "python3.13 -B [-O] hosted/scripts/test-identity-network.py --check-source",
+    "restorations": [
+      "python3.13 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py {prepare-source141,prepare-predecessor} --out <fresh-directory>",
+      "python3.13 -I -B -S [-O] <restored owner> verify --workflow-installed",
+      "python3.13 -I -B -S [-O] <restored test_source141.py or test_source127.py> -v"
+    ],
+    "collector": "python3.13 -B [-O] hosted/scripts/test_identity_network_collector.py -v <collector_targets> (collector_targets from verification/receipts/hosted-v69-stage-promotion-source-admission.json)",
+    "bootstrap": "python3.13 -I -B -S [-O] verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py -v",
+    "sparse_controls": "python3.13 -I -B -S [-O] verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v",
+    "generated_rest": "python3.13 -B [-O] cli/release-tools/generate_release_rest_v3.py --check --check-router",
+    "fixture_shell_parse": "bash -n on each exact replay script",
+    "inventory": "SHA-256 of sorted UTF-8 path + NUL + Git mode + NUL + Git blob + LF per row.",
+    "staged_review": "git diff --cached --check; python3 scripts/check-verification-artifacts.py"
+  },
+  "archive": {
+    "tree_sha256": "eef76eb2c84603c991aec201cd096710b3ed348c55fd6f854f800e2a43bef7f7",
+    "sealed_members": 183,
+    "exact_preimages": {
+      "verification/native-report-source141-archive-v1/hosted-v69-predecessor-bytes/.github/workflows/verify.yml": {
+        "blob": "b1d8f19fec3065098d7f15be6daac190c7fe5334",
+        "mode": "100644"
+      },
+      "verification/native-report-source141-archive-v1/standards-replay-predecessor-bytes/THIRD_PARTY.yml": {
+        "blob": "3c375d42165e6ca25dbe0b0a64271eb087baf7f3",
+        "mode": "100644"
+      }
+    },
+    "installed_cli_source": {
+      "count": 153,
+      "manifest": "current-source-inputs.json",
+      "sha256": "70364ee9ba56577fdc2eaf40ca64d2682557d71c24771db6d71650094ae92645"
+    },
+    "restorations_both_modes": {
+      "127": {
+        "files": 845,
+        "native_gate": false,
+        "notices": {
+          "bytes": 31206,
+          "sha256": "ffab21cfdefa23641ec09d4acc95100d8522921812252aa3d07ede829b97d6b6"
+        },
+        "path_mode_blob_sha256": "37ed72c05b97f15973dd08a06afeafadf4db64048bbbaed326a35eee37d6ca54",
+        "source127": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7",
+        "workflow_blob": "c059b5581c25c8982fe484d92c0c8a28e004e8c0",
+        "admission_stdout_sha256_both_modes": "0cb67b2e09ed90b78498eefb0d9735d1b5425dd8d711f4b5072b00a914002519",
+        "tests_per_mode": 20
+      },
+      "141": {
+        "files": 890,
+        "notices": {
+          "bytes": 31282,
+          "sha256": "7f4c534faf01cc3add794b61b447ce44529f15626ffa740b6ec9fb98428a0311"
+        },
+        "path_mode_blob_sha256": "7c61c17913414de0c4189783d324ebce1a73ffbdb2387c9a24b847a26406c29f",
+        "source127": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7",
+        "source141": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab",
+        "workflow_blob": "547a859cdbcab75ca1384dd871fda07f52bce72a",
+        "admission_stdout_sha256_both_modes": "a4ec769dd76cb68de04a24d86247d41fa408683afc536e4e01ff7443ebcc5e4e",
+        "tests_per_mode": 3
+      }
+    },
+    "refusals_both_modes": {
+      "installed-notices-mode": {
+        "diagnostic": "Standards replay notice preimage or mode differs",
+        "exit": 1
+      },
+      "installed-workflow-mode": {
+        "diagnostic": "Installed archive owner mode differs: .github/workflows/verify.yml",
+        "exit": 1
+      },
+      "notices-preimage-mode": {
+        "diagnostic": "Standards replay notice preimage or mode differs",
+        "exit": 1
+      },
+      "v69preimage-mode": {
+        "diagnostic": "Hosted v69 workflow preimage or mode differs",
+        "exit": 1
+      },
+      "notice-preimage-bytes": {
+        "exit": 1,
+        "diagnostic": "Owning bytes differ: standards-replay-predecessor-bytes/THIRD_PARTY.yml"
+      },
+      "v69-preimage-bytes": {
+        "exit": 1,
+        "diagnostic": "Owning bytes differ: hosted-v69-predecessor-bytes/.github/workflows/verify.yml"
+      },
+      "stale-installed-notices": {
+        "exit": 1,
+        "diagnostic": "Owning bytes differ: THIRD_PARTY.yml"
+      },
+      "stale-installed-workflow": {
+        "exit": 1,
+        "diagnostic": "Owning bytes differ: .github/workflows/verify.yml"
+      }
+    },
+    "readmission_both_modes": true
+  },
+  "projections": {
+    "swift-host": {
+      "workflow": "verify.yml",
+      "files": 6473,
+      "path_mode_blob_sha256": "229f2cbce845592beac137c20647631fb9a97a1ea63bc22b522f99f1b56a6ad0",
+      "rules": 45,
+      "rules_sha256": "cbf16b85647117dd2c7edb0e40f55801078bbb0c44722313ad80bb5badf59bf1",
+      "admission_stdout_sha256_both_modes": "629e4dd223c06cee3127f93ba3b516cc89acf9be66ed1b0c648716c7f21bcd90",
+      "rest_generator_stdout_sha256_both_modes": "08a2897d5d462d43fe21a3247ff8b2acb3d2ef6982af3055fa65c6a9a57e5cfb"
+    },
+    "android-generated-java": {
+      "workflow": "verify.yml",
+      "files": 1300,
+      "path_mode_blob_sha256": "6a555ee78955c8b0063adf4f46dfb8594f10655f41276d9dea88aa12801819ad",
+      "rules": 30,
+      "rules_sha256": "222eb9d951c7321a3d34ba6a74bbe30882e54e12b05d48d75e982d68e35d3b0e",
+      "admission_stdout_sha256_both_modes": "629e4dd223c06cee3127f93ba3b516cc89acf9be66ed1b0c648716c7f21bcd90",
+      "test_bootstrap_tests_per_mode": 45,
+      "test_sparse_checkout_tests_per_mode": 16
+    },
+    "services": {
+      "workflow": "verify.yml",
+      "files": 1404,
+      "path_mode_blob_sha256": "8848939ab47cc5c192ccede5c3d64f942690046de07b42b9d60699b1444e6df3",
+      "rules": 270,
+      "rules_sha256": "988f5ef275c028fd4620bed81c33e69f8aa2f378df9ad3155837c16b73320a5d",
+      "admission_stdout_sha256_both_modes": "d9263fe8c206bbd8a05f5bf24514c85076a72dea9ac07b3f2a2a121d4058f251",
+      "collector_tests_per_mode": 22
+    },
+    "phoenix": {
+      "workflow": "hosted.yml",
+      "files": 1057,
+      "path_mode_blob_sha256": "24cd7827a2293f4c953cc3e8179f595700b59580738b95daaf522d616533c27d",
+      "rules": 265,
+      "rules_sha256": "46cd71856be1fbc5a100f6654c94af9f121e6177b4e0f33909d6fa14af0bd4bc",
+      "admission_stdout_sha256_both_modes": "d9263fe8c206bbd8a05f5bf24514c85076a72dea9ac07b3f2a2a121d4058f251"
+    },
+    "identity-network": {
+      "workflow": "identity-network.yml",
+      "files": 1238,
+      "path_mode_blob_sha256": "2ecd82dce8a5192f2b012098730ce59023834c171c8c156de5c8b36e14c78aa8",
+      "rules": 270,
+      "rules_sha256": "13a01e09e84719138d1c2afc50003ac4c7da6e4c889a6d55973d8911e6ca7c6b",
+      "admission_stdout_sha256_both_modes": "d9263fe8c206bbd8a05f5bf24514c85076a72dea9ac07b3f2a2a121d4058f251",
+      "collector_tests_per_mode": 22
+    }
+  },
+  "v69": {
+    "source_count": 495,
+    "source_digest_sha256": "fec4099b875b64d2aa2ab66364ac6d7f9d56a0ae3499ee7a96427ebe920b83cc",
+    "selection_sha256": "966231403f08fa93100dfe3a9575d482c4ee60d261206d35474dcb9be7738bb5",
+    "forward_paths": 495,
+    "matches_base_paths": 483,
+    "mode_blob_sha256": {
+      "66->67": "1ee880a9283c346e6a845ef83226767fa762c96f03eff39c2c5030448be148a3",
+      "67->66": "1a77bce8e00de735c92d7a4daf823e7de77d320b0ff1112802645e13fea7218b",
+      "67->68": "3bda5bd61ab1d97624f27ee4d67be5e6ee90c41ba626ef44798a2a907d604dba",
+      "68->67": "1ee880a9283c346e6a845ef83226767fa762c96f03eff39c2c5030448be148a3",
+      "68->69": "5b1cf8a1ad5f45a9940ec907fe10367aa49cda69abd5a24ed2fd03c3a2d111ff",
+      "69": "5b1cf8a1ad5f45a9940ec907fe10367aa49cda69abd5a24ed2fd03c3a2d111ff",
+      "69->68": "3bda5bd61ab1d97624f27ee4d67be5e6ee90c41ba626ef44798a2a907d604dba"
+    },
+    "recorded_v69_receipt_digests_match": true
+  },
+  "root_review_receipt_validation": {
+    "hosted_tree": "46e6204e8ac60c291ed0917023e68e935f03bffc",
+    "path": "verification/receipts/w11-stage-promotion-authority-e5b3a977.json",
+    "sha256": "7935e64db1ef293fec1a5d1fe6b1871c53656219400495f54a47b675a1e555e9",
+    "verified_source_files": 25
+  },
+  "no_drift": {
+    "base_to_candidate_paths": 54,
+    "reconciled_paths": [
+      "verification/native-report-source141-archive-v1/adopt_archive.py",
+      "verification/native-report-source141-archive-v1/binding.json",
+      "verification/native-report-source141-archive-v1/seal.json"
+    ],
+    "reviewed_runtime_and_receipt_paths": 29,
+    "source_and_receipt_paths_exact": 22
+  },
+  "cleanup": "Removed the five sparse checkouts, nested temporary directories and copied restorations after collecting evidence."
+}
