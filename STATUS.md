@@ -141,8 +141,19 @@ decoded events and scoped page bytes. All 26 records kept their navigation,
 list, and section hierarchy, and returning from Tasks restored page two.
 The repository reopened byte-for-byte unchanged after three reads and
 zero writes. V1 refused the navigation frame and cleared the display.
-Signed V3 installation and the native display path remain open.
 [Headless route verification](verification/receipts/fieldlog-f10-historical-queue-v81-feature-ui-v3-review-fix.json)
+
+The private macOS signed V3 candidate `6ba7034329` passed the first-page
+Pending Changes smoke through the installed owner, VM, and storage mailbox.
+One read hydrated the queue. The decoded action delivered the historical
+navigation and list frame with the first 20 IDs and exact UTF-8 labels.
+The attempt retired, zero writes were attempted, and cold reopen matched
+the workspace bytes. Wrong and mixed identities were refused. The smoke
+inherits the stale baseline capability fingerprint for installed admission.
+Independent review and fingerprint repair are underway. Native display,
+later pages, and the two-target signed OTA count remain open. An earlier
+replay scratch remains held because its process-group custody is unknown.
+[Candidate smoke receipt](verification/receipts/fieldlog-f10-macos-signed-smoke.json)
 
 The app-owned storage guide exercises the public installed storage adapter.
 The signed host fixture committed one scoped write, refused an out-of-scope
