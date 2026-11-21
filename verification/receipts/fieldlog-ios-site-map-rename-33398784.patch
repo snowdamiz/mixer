@@ -1,0 +1,1340 @@
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift b/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
+index 11854a16269c780070e9afd1e68946a34b718a1e..def237face8c379a54e26203998297f277f378d6 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift
+@@ -5,0 +6 @@ import Foundation
++  import os
+@@ -157,0 +159,38 @@ public actor WorkspaceRepository {
++  #if canImport(Darwin)
++  public final class SitePinLease: Sendable {
++    public struct Retired: Error {}
++    private let active = OSAllocatedUnfairLock(initialState: true)
++
++    public init() {}
++
++    public func retire() { active.withLock { $0 = false } }
++
++    public func requireActive() throws {
++      guard active.withLock({ $0 }) else { throw Retired() }
++    }
++
++    fileprivate func renameIfActive(from source: String, to destination: String) throws -> Int32 {
++      try active.withLock { active in
++        guard active else { throw Retired() }
++        return rename(source, destination)
++      }
++    }
++  }
++
++  public func transactSitePin(
++    expectedRevision: UInt64, lease: SitePinLease,
++    _ mutation: @Sendable (inout Workspace) throws -> Void
++  ) throws -> Workspace {
++    try transact(expectedRevision: expectedRevision, publish: { next, file in
++      do {
++        try Self.atomic(Self.encode(next), to: file, fault: fault, renameSitePin: lease.renameIfActive)
++      } catch let error as SitePinLease.Retired {
++        throw error
++      } catch {
++        unavailable = true
++        throw error
++      }
++    }, mutation)
++  }
++  #endif
++
+@@ -386 +425 @@ public actor WorkspaceRepository {
+-    didPublish: () -> Void = {}
++    didPublish: () -> Void = {}, renameSitePin: ((String, String) throws -> Int32)? = nil
+@@ -407 +446,8 @@ public actor WorkspaceRepository {
+-    let result = createOnly ? link(temporary.path, file.path) : rename(temporary.path, file.path)
++    let result: Int32
++    if createOnly {
++      result = link(temporary.path, file.path)
++    } else if let renameSitePin {
++      result = try renameSitePin(temporary.path, file.path)
++    } else {
++      result = rename(temporary.path, file.path)
++    }
+diff --git a/Sources/FieldLogStorage/WorkspaceRepository.swift b/Sources/FieldLogStorage/WorkspaceRepository.swift
+index 11854a16269c780070e9afd1e68946a34b718a1e..def237face8c379a54e26203998297f277f378d6 100644
+--- a/Sources/FieldLogStorage/WorkspaceRepository.swift
++++ b/Sources/FieldLogStorage/WorkspaceRepository.swift
+@@ -5,0 +6 @@ import Foundation
++  import os
+@@ -157,0 +159,38 @@ public actor WorkspaceRepository {
++  #if canImport(Darwin)
++  public final class SitePinLease: Sendable {
++    public struct Retired: Error {}
++    private let active = OSAllocatedUnfairLock(initialState: true)
++
++    public init() {}
++
++    public func retire() { active.withLock { $0 = false } }
++
++    public func requireActive() throws {
++      guard active.withLock({ $0 }) else { throw Retired() }
++    }
++
++    fileprivate func renameIfActive(from source: String, to destination: String) throws -> Int32 {
++      try active.withLock { active in
++        guard active else { throw Retired() }
++        return rename(source, destination)
++      }
++    }
++  }
++
++  public func transactSitePin(
++    expectedRevision: UInt64, lease: SitePinLease,
++    _ mutation: @Sendable (inout Workspace) throws -> Void
++  ) throws -> Workspace {
++    try transact(expectedRevision: expectedRevision, publish: { next, file in
++      do {
++        try Self.atomic(Self.encode(next), to: file, fault: fault, renameSitePin: lease.renameIfActive)
++      } catch let error as SitePinLease.Retired {
++        throw error
++      } catch {
++        unavailable = true
++        throw error
++      }
++    }, mutation)
++  }
++  #endif
++
+@@ -386 +425 @@ public actor WorkspaceRepository {
+-    didPublish: () -> Void = {}
++    didPublish: () -> Void = {}, renameSitePin: ((String, String) throws -> Int32)? = nil
+@@ -407 +446,8 @@ public actor WorkspaceRepository {
+-    let result = createOnly ? link(temporary.path, file.path) : rename(temporary.path, file.path)
++    let result: Int32
++    if createOnly {
++      result = link(temporary.path, file.path)
++    } else if let renameSitePin {
++      result = try renameSitePin(temporary.path, file.path)
++    } else {
++      result = rename(temporary.path, file.path)
++    }
+diff --git a/ios/FieldLog.xcodeproj/project.pbxproj b/ios/FieldLog.xcodeproj/project.pbxproj
+index dd7f7e9a3116ae73d038fe36ff9edfa60669659c..fbeb02b05f6174d260c6f73005617cf8a703f096 100644
+--- a/ios/FieldLog.xcodeproj/project.pbxproj
++++ b/ios/FieldLog.xcodeproj/project.pbxproj
+@@ -7,0 +8,8 @@
++  D00000000000000000000004 = { isa = PBXFileReference; lastKnownFileType = file; path = "../../Assets/SiteMap/natural-earth-50m.flg"; sourceTree = "<group>"; };
++  D00000000000000000000008 = { isa = PBXBuildFile; fileRef = D00000000000000000000004; };
++  D00000000000000000000003 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectSiteMap.swift; sourceTree = "<group>"; };
++  D00000000000000000000007 = { isa = PBXBuildFile; fileRef = D00000000000000000000003; };
++  D00000000000000000000002 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreSiteLocation.swift; sourceTree = "<group>"; };
++  D00000000000000000000006 = { isa = PBXBuildFile; fileRef = D00000000000000000000002; };
++  D00000000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiteMapLocation.swift; sourceTree = "<group>"; };
++  D00000000000000000000005 = { isa = PBXBuildFile; fileRef = D00000000000000000000001; };
+@@ -34 +42 @@
+-  A00000000000000000000008 = { isa = PBXGroup; path = FieldLog; children = (A00000000000000000000030,A00000000000000000000031,A00000000000000000000032,A00000000000000000000033,A00000000000000000000034, C00000000000000000000004, C00000000000000000000006, C00000000000000000000008, C00000000000000000000010, C00000000000000000000016, C00000000000000000000018); sourceTree = "<group>"; };
++  A00000000000000000000008 = { isa = PBXGroup; path = FieldLog; children = (A00000000000000000000030,A00000000000000000000031,A00000000000000000000032,A00000000000000000000033,A00000000000000000000034, C00000000000000000000004, C00000000000000000000006, C00000000000000000000008, C00000000000000000000010, C00000000000000000000016, C00000000000000000000018, D00000000000000000000001, D00000000000000000000002, D00000000000000000000003, D00000000000000000000004); sourceTree = "<group>"; };
+@@ -37 +45 @@
+-  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040,A00000000000000000000041,A00000000000000000000042,A00000000000000000000043,A00000000000000000000044, C00000000000000000000005, C00000000000000000000007, C00000000000000000000009, C00000000000000000000019); runOnlyForDeploymentPostprocessing = 0; };
++  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040,A00000000000000000000041,A00000000000000000000042,A00000000000000000000043,A00000000000000000000044, C00000000000000000000005, C00000000000000000000007, C00000000000000000000009, C00000000000000000000019, D00000000000000000000005, D00000000000000000000006, D00000000000000000000007); runOnlyForDeploymentPostprocessing = 0; };
+@@ -39,3 +47,3 @@
+-  A00000000000000000000013 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (C00000000000000000000011, C00000000000000000000017); runOnlyForDeploymentPostprocessing = 0; };
+-  A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_NSCameraUsageDescription = "FieldLog uses the camera to take photos you choose to attach to field notes."; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Debug; };
+-  A00000000000000000000015 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_NSCameraUsageDescription = "FieldLog uses the camera to take photos you choose to attach to field notes."; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-O"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Release; };
++  A00000000000000000000013 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (C00000000000000000000011, C00000000000000000000017, D00000000000000000000008); runOnlyForDeploymentPostprocessing = 0; };
++  A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "FieldLog uses your location to show your current position on the site map when you ask."; INFOPLIST_KEY_NSCameraUsageDescription = "FieldLog uses the camera to take photos you choose to attach to field notes."; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Debug; };
++  A00000000000000000000015 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "FieldLog uses your location to show your current position on the site map when you ask."; INFOPLIST_KEY_NSCameraUsageDescription = "FieldLog uses the camera to take photos you choose to attach to field notes."; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-O"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Release; };
+diff --git a/ios/FieldLog/CoreSiteLocation.swift b/ios/FieldLog/CoreSiteLocation.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..da006e79de3b6f52c92256a2419b2c9f93eff14f
+--- /dev/null
++++ b/ios/FieldLog/CoreSiteLocation.swift
+@@ -0,0 +1,51 @@
++import CoreLocation
++import FieldLogModels
++import Foundation
++
++@MainActor
++final class CoreSiteLocation: NSObject, SiteLocationDriver, @preconcurrency CLLocationManagerDelegate {
++  private let manager = CLLocationManager()
++  var onEvent: ((SiteMapLocation.Event) -> Void)?
++
++  override init() {
++    super.init()
++    manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
++    manager.delegate = self
++  }
++
++  var authorization: SiteMapLocation.Authorization {
++    switch manager.authorizationStatus {
++    case .notDetermined: .undetermined
++    case .authorizedWhenInUse, .authorizedAlways: .allowed
++    case .denied: .denied
++    case .restricted: .restricted
++    @unknown default: .restricted
++    }
++  }
++
++  func requestPermission() { manager.requestWhenInUseAuthorization() }
++  func requestLocation() { manager.requestLocation() }
++  func stop() {
++    manager.delegate = nil
++    manager.stopUpdatingLocation()
++  }
++
++  func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
++    onEvent?(.authorizationChanged)
++  }
++
++  func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
++    let fix = locations.last.flatMap { location -> SiteMapFix? in
++      guard abs(location.timestamp.timeIntervalSinceNow) <= 15,
++        let coordinate = SiteCoordinate(
++          latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
++      else { return nil }
++      return SiteMapFix(coordinate: coordinate, accuracyMeters: location.horizontalAccuracy)
++    }
++    onEvent?(.result(fix))
++  }
++
++  func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
++    onEvent?(.result(nil))
++  }
++}
+diff --git a/ios/FieldLog/ProjectDetail.swift b/ios/FieldLog/ProjectDetail.swift
+index f2dda688882d61d05e8d530a639e818128d1f248..671b0c16162650cbdad5ccca70678e3e888bd158 100644
+--- a/ios/FieldLog/ProjectDetail.swift
++++ b/ios/FieldLog/ProjectDetail.swift
+@@ -41,0 +42,4 @@ struct ProjectDetail: View {
++            NavigationLink(value: ProjectRoute.siteMap(projectID)) {
++              Label("Site map", systemImage: "map")
++            }
++            .accessibilityIdentifier("project-site-map")
+diff --git a/ios/FieldLog/ProjectSiteMap.swift b/ios/FieldLog/ProjectSiteMap.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..bdefb5a4df1e7836b9c5c1dcf087da36c82d8fa5
+--- /dev/null
++++ b/ios/FieldLog/ProjectSiteMap.swift
+@@ -0,0 +1,308 @@
++import FieldLogModels
++import SwiftUI
++
++struct ProjectSiteMap: View {
++  @EnvironmentObject private var model: WorkspaceModel
++  let projectID: UUID
++
++  var body: some View {
++    Group {
++      if let selection = model.sitePinEdit(projectID: projectID) {
++        ActiveProjectSiteMap(selection: selection)
++          .id(selection.session.id)
++      } else {
++        ContentUnavailableView("Site map unavailable", systemImage: "map",
++          description: Text("Open the project to view its site map."))
++      }
++    }
++    .navigationTitle("Site map")
++    .navigationBarTitleDisplayMode(.inline)
++  }
++}
++
++private struct ActiveProjectSiteMap: View {
++  @EnvironmentObject private var model: WorkspaceModel
++  @Environment(\.scenePhase) private var scenePhase
++  @Environment(\.locale) private var locale
++  @StateObject private var location = SiteMapLocation()
++  @State private var edit: SitePinEdit?
++  @State private var clearing: SitePinEdit?
++  @State private var latitude = ""
++  @State private var longitude = ""
++  @State private var saving = false
++  @State private var showSaveFailure = false
++  let selection: SitePinEdit
++
++  var body: some View {
++    Form {
++      Section {
++        OfflineSiteMap(site: selection.before, fix: location.status.fix, locale: locale).equatable()
++      }
++      Section("Site pin") {
++        if let edit {
++          TextField("Latitude", text: $latitude)
++            .keyboardType(.numbersAndPunctuation).autocorrectionDisabled()
++          TextField("Longitude", text: $longitude)
++            .keyboardType(.numbersAndPunctuation).autocorrectionDisabled()
++          Text("Enter latitude from −90 to 90 and longitude from −180 to 180 in decimal degrees.")
++            .font(.footnote).foregroundStyle(.secondary)
++          let coordinate = enteredCoordinate
++          Button("Save site pin") {
++            if let coordinate { save(edit, to: coordinate) }
++          }
++          .disabled(saving || coordinate == nil || coordinate == edit.before || scenePhase != .active)
++          Button("Cancel editing", role: .cancel) { cancelEdit() }.disabled(saving)
++        } else {
++          if let pin = selection.before {
++            LabeledContent("Latitude", value: coordinateText(pin.latitude, locale: locale))
++            LabeledContent("Longitude", value: coordinateText(pin.longitude, locale: locale))
++          }
++          Button(selection.before == nil ? "Set site pin" : "Edit site pin", systemImage: "mappin") {
++            beginEdit(selection)
++          }
++          .disabled(saving)
++          if selection.before != nil {
++            Button("Clear site pin", role: .destructive) { clearing = selection }
++              .disabled(saving || scenePhase != .active)
++          }
++        }
++      }
++      Section {
++        switch location.status {
++        case .askingPermission:
++          Text("Waiting for location permission…")
++        case .locating:
++          ProgressView("Finding your location…")
++        case .denied:
++          Text("Location permission is off. You can change it in Settings.")
++        case .restricted:
++          Text("Location access is restricted on this device.")
++        case .unavailable:
++          Text("A recent location is unavailable. Try again.")
++        case .located:
++          Button("Hide current location") { location.retire() }
++        case .idle:
++          EmptyView()
++        }
++        if location.status.inProgress {
++          Button("Cancel location request", role: .cancel) { location.retire() }
++        } else if location.status.fix == nil {
++          Button("Show my location", systemImage: "location", action: requestLocation)
++            .disabled(scenePhase != .active)
++        }
++      } header: {
++        Text("Current location")
++      } footer: {
++        Text("Your location appears temporarily on this map and is never saved.")
++      }
++    }
++    .onAppear { setActivity(scenePhase) }
++    .onDisappear { location.retire() }
++    .onChange(of: scenePhase) { _, phase in setActivity(phase) }
++    .onReceive(model.$siteMapSession) { session in
++      if session != selection.session { location.retire() }
++    }
++    .onReceive(model.$workspace) { workspace in
++      if SitePinEdit(workspace: workspace, session: selection.session) == nil { location.retire() }
++    }
++    .confirmationDialog("Clear the site pin?", isPresented: Binding(
++      get: { clearing != nil }, set: { if !$0 { clearing = nil } }
++    ), titleVisibility: .visible, presenting: clearing) { edit in
++      Button("Clear site pin", role: .destructive) { save(edit, to: nil) }
++    }
++    .alert("Site pin couldn't be saved", isPresented: $showSaveFailure) {
++      Button("OK", role: .cancel) {}
++    } message: {
++      Text("Reopen the editor to use the latest project state.")
++    }
++  }
++
++  private func setActivity(_ phase: ScenePhase) {
++    switch phase {
++    case .active: location.updateActivity(.active)
++    case .inactive: location.updateActivity(.inactive)
++    case .background: location.updateActivity(.background)
++    @unknown default: location.updateActivity(.background)
++    }
++  }
++
++  private func requestLocation() {
++    let selection = selection
++    location.request(
++      ownsRoute: { [weak model] in model?.stillShowsSiteMap(for: selection) == true },
++      isForeground: { UIApplication.shared.applicationState == .active },
++      makeDriver: { CoreSiteLocation() }
++    )
++  }
++
++  private func beginEdit(_ selection: SitePinEdit) {
++    edit = selection
++    let inputLocale = Locale(identifier: "en_US_POSIX")
++    latitude = selection.before.map { coordinateText($0.latitude, locale: inputLocale) } ?? ""
++    longitude = selection.before.map { coordinateText($0.longitude, locale: inputLocale) } ?? ""
++  }
++
++  private func cancelEdit() {
++    edit = nil
++    latitude = ""
++    longitude = ""
++  }
++
++  private func coordinateText(_ value: Double, locale: Locale) -> String {
++    value.formatted(.number.locale(locale).grouping(.never).precision(.fractionLength(0...7)))
++  }
++
++  private var enteredCoordinate: SiteCoordinate? {
++    func number(_ text: String) -> Double? {
++      let normalized = text.trimmingCharacters(in: .whitespacesAndNewlines)
++        .replacingOccurrences(of: locale.decimalSeparator ?? ".", with: ".")
++        .replacingOccurrences(of: "−", with: "-")
++      var decimal = ""
++      for character in normalized {
++        if "+-.".contains(character) {
++          decimal.append(character)
++        } else if character.unicodeScalars.first?.properties.numericType == .decimal,
++          let digit = character.wholeNumberValue
++        {
++          decimal.append(String(digit))
++        } else {
++          return nil
++        }
++      }
++      return Double(decimal)
++    }
++    guard let latitude = number(latitude), let longitude = number(longitude) else { return nil }
++    return SiteCoordinate(latitude: latitude, longitude: longitude)
++  }
++
++  private func save(_ edit: SitePinEdit, to coordinate: SiteCoordinate?) {
++    guard !saving, scenePhase == .active else { return }
++    saving = true
++    Task {
++      let saved = await model.saveSitePin(edit, to: coordinate)
++      saving = false
++      cancelEdit()
++      showSaveFailure = !saved
++    }
++  }
++}
++
++private struct OfflineSiteMap: View, Equatable {
++  let site: SiteCoordinate?
++  let fix: SiteMapFix?
++  let locale: Locale
++
++  private static let geography: SiteMapGeography? = {
++    guard let url = Bundle.main.url(forResource: "natural-earth-50m", withExtension: "flg"),
++      let file = try? FileHandle(forReadingFrom: url)
++    else { return nil }
++    defer { try? file.close() }
++    guard let data = try? file.read(upToCount: SiteMapGeography.maximumBytes + 1) else { return nil }
++    return try? SiteMapGeography(data: data)
++  }()
++
++  var body: some View {
++    if site == nil && fix == nil {
++      ContentUnavailableView("No site pin", systemImage: "mappin.slash",
++        description: Text("Set a site pin or show your current location to center the map."))
++    } else if let geography = Self.geography,
++      let scene = try? SiteMapScene.project(site: site, fix: fix, geography: geography)
++    {
++      VStack(alignment: .leading, spacing: 10) {
++        SiteMapCanvas(scene: scene)
++          .aspectRatio(1, contentMode: .fit)
++          .frame(maxWidth: 400)
++          .frame(maxWidth: .infinity)
++          .clipShape(.rect(cornerRadius: 12))
++          .accessibilityHidden(true)
++        if scene.site != nil {
++          Label("Saved site pin", systemImage: "diamond.fill").foregroundStyle(FieldStyle.green)
++        }
++        if let position = SiteMapLocation.position(in: scene, locale: locale) {
++          Label {
++            Text(position)
++              .fixedSize(horizontal: false, vertical: true)
++          } icon: {
++            Image(systemName: "circle.fill").foregroundStyle(.blue)
++          }
++          .font(.body)
++          .accessibilityIdentifier("site-map-current-location-position")
++        } else if fix != nil {
++          Text("Your current location is outside this map area.")
++        }
++        let distance = Measurement(value: Double(scene.scale.meters), unit: UnitLength.meters)
++        Text("Scale: \(distance.formatted(.measurement(width: .abbreviated, usage: .road)))")
++        Text("Made with Natural Earth").foregroundStyle(.secondary)
++      }
++      .font(.footnote)
++    } else {
++      ContentUnavailableView("Offline map unavailable", systemImage: "map")
++    }
++  }
++}
++
++private struct SiteMapCanvas: View {
++  let scene: SiteMapScene
++
++  var body: some View {
++    Canvas { context, size in
++      func point(_ point: SiteMapScene.Point) -> CGPoint {
++        CGPoint(x: point.x * size.width, y: point.y * size.height)
++      }
++      func circle(at point: CGPoint, radius: CGFloat) -> Path {
++        Path(ellipseIn: CGRect(x: point.x - radius, y: point.y - radius,
++          width: radius * 2, height: radius * 2))
++      }
++      var coastlines = Path()
++      var lakes = Path()
++      var rivers = Path()
++      for segment in scene.segments {
++        let a = point(segment.from)
++        let b = point(segment.to)
++        switch segment.layer {
++        case .coastline:
++          coastlines.move(to: a)
++          coastlines.addLine(to: b)
++        case .lake:
++          lakes.move(to: a)
++          lakes.addLine(to: b)
++        case .river:
++          rivers.move(to: a)
++          rivers.addLine(to: b)
++        }
++      }
++      context.stroke(coastlines, with: .color(.secondary), lineWidth: 1)
++      context.stroke(lakes, with: .color(.teal), lineWidth: 1)
++      context.stroke(rivers, with: .color(.teal), lineWidth: 1)
++      if let fix = scene.fix, let radius = fix.accuracyRadius {
++        let area = circle(at: point(fix.point), radius: radius * size.width)
++        context.fill(area, with: .color(.blue.opacity(0.14)))
++        context.stroke(area, with: .color(.blue.opacity(0.55)), lineWidth: 1)
++      }
++      if let site = scene.site {
++        let center = point(site)
++        let marker = Path { path in
++          path.move(to: CGPoint(x: center.x, y: center.y - 11))
++          path.addLine(to: CGPoint(x: center.x + 11, y: center.y))
++          path.addLine(to: CGPoint(x: center.x, y: center.y + 11))
++          path.addLine(to: CGPoint(x: center.x - 11, y: center.y))
++          path.closeSubpath()
++        }
++        context.fill(marker, with: .color(FieldStyle.green))
++        context.stroke(marker, with: .color(Color(uiColor: .systemBackground)), lineWidth: 2)
++      }
++      if let fix = scene.fix {
++        let marker = circle(at: point(fix.point), radius: 5)
++        context.fill(marker, with: .color(.blue))
++        context.stroke(marker, with: .color(Color(uiColor: .systemBackground)), lineWidth: 2)
++      }
++      let bar = Path { path in
++        path.move(to: CGPoint(x: 14, y: size.height - 14))
++        path.addLine(to: CGPoint(x: 14 + scene.scale.fractionOfWidth * size.width, y: size.height - 14))
++      }
++      context.stroke(bar, with: .color(Color(uiColor: .systemBackground)), lineWidth: 5)
++      context.stroke(bar, with: .color(.primary), lineWidth: 2)
++    }
++    .background(Color(uiColor: .tertiarySystemGroupedBackground))
++  }
++}
+diff --git a/ios/FieldLog/SiteMapLocation.swift b/ios/FieldLog/SiteMapLocation.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..0e5f3969af547e8b69ecf5593e87bee7f55c66f6
+--- /dev/null
++++ b/ios/FieldLog/SiteMapLocation.swift
+@@ -0,0 +1,162 @@
++import Combine
++import FieldLogModels
++import Foundation
++
++@MainActor
++protocol SiteLocationDriver: AnyObject {
++  var authorization: SiteMapLocation.Authorization { get }
++  var onEvent: ((SiteMapLocation.Event) -> Void)? { get set }
++  func requestPermission()
++  func requestLocation()
++  func stop()
++}
++
++@MainActor
++final class SiteMapLocation: ObservableObject {
++  enum Authorization: Equatable {
++    case undetermined, allowed, denied, restricted
++  }
++
++  enum Event {
++    case authorizationChanged
++    case result(SiteMapFix?)
++  }
++
++  enum Status: Equatable {
++    case idle, askingPermission, locating, denied, restricted, unavailable
++    case located(SiteMapFix)
++
++    var fix: SiteMapFix? {
++      guard case let .located(fix) = self else { return nil }
++      return fix
++    }
++
++    var inProgress: Bool { self == .askingPermission || self == .locating }
++  }
++
++  enum Activity {
++    case active, inactive, background
++  }
++
++  @Published private(set) var status = Status.idle
++  private var activity = Activity.inactive
++  private var requestID: UUID?
++  private var driver: (any SiteLocationDriver)?
++  private var ownsRoute: (() -> Bool)?
++  private var isForeground: (() -> Bool)?
++
++  static func position(in scene: SiteMapScene, locale: Locale) -> String? {
++    guard let fix = scene.fix?.point else { return nil }
++    guard let pin = scene.site else {
++      return String(localized: "Current location is at the center of the map.")
++    }
++    let east = fix.x - pin.x
++    let north = pin.y - fix.y
++    let meters = hypot(east, north) * Double(scene.scale.meters) / scene.scale.fractionOfWidth
++    guard meters >= 1 else { return String(localized: "Current location is near the saved site pin.") }
++
++    let directions = [
++      String(localized: "north"), String(localized: "northeast"),
++      String(localized: "east"), String(localized: "southeast"),
++      String(localized: "south"), String(localized: "southwest"),
++      String(localized: "west"), String(localized: "northwest"),
++    ]
++    let sector = Int((atan2(east, north) / (.pi / 4)).rounded())
++    let direction = directions[(sector + directions.count) % directions.count]
++    let distance = Measurement(value: meters, unit: UnitLength.meters)
++      .formatted(.measurement(width: .wide, usage: .road).locale(locale))
++    return String(localized: "Current location is about \(distance) \(direction) of the saved site pin.")
++  }
++
++  func updateActivity(_ activity: Activity) {
++    self.activity = activity
++    switch activity {
++    case .active:
++      if status == .askingPermission { advance() }
++    case .inactive:
++      // The system permission alert can temporarily make the scene inactive.
++      if status != .askingPermission { retire() }
++    case .background:
++      retire()
++    }
++  }
++
++  func request(
++    ownsRoute: @escaping () -> Bool,
++    isForeground: @escaping () -> Bool,
++    makeDriver: () -> any SiteLocationDriver
++  ) {
++    guard !status.inProgress, activity == .active, ownsRoute(), isForeground() else { return }
++    let requestID = UUID()
++    let driver = makeDriver()
++    self.requestID = requestID
++    self.driver = driver
++    self.ownsRoute = ownsRoute
++    self.isForeground = isForeground
++    status = .askingPermission
++    driver.onEvent = { [weak self] event in self?.receive(event, requestID: requestID) }
++    if driver.authorization == .undetermined {
++      driver.requestPermission()
++    } else {
++      advance()
++    }
++  }
++
++  func retire() {
++    finish(with: .idle)
++  }
++
++  private func advance() {
++    guard let driver else { return }
++    guard ownsRoute?() == true else {
++      retire()
++      return
++    }
++    switch driver.authorization {
++    case .undetermined:
++      if status == .locating { finish(with: .unavailable) }
++    case .allowed:
++      guard status == .askingPermission, activity == .active, isForeground?() == true else { return }
++      status = .locating
++      driver.requestLocation()
++    case .denied:
++      finish(with: .denied)
++    case .restricted:
++      finish(with: .restricted)
++    }
++  }
++
++  private func receive(_ event: Event, requestID: UUID) {
++    guard self.requestID == requestID, let driver else { return }
++    guard ownsRoute?() == true else {
++      retire()
++      return
++    }
++    switch event {
++    case .authorizationChanged:
++      advance()
++    case .result(let fix):
++      guard status == .locating else { return }
++      guard activity == .active, isForeground?() == true else {
++        retire()
++        return
++      }
++      guard driver.authorization == .allowed else {
++        advance()
++        return
++      }
++      finish(with: fix.map(Status.located) ?? .unavailable)
++    }
++  }
++
++  private func finish(with status: Status) {
++    let previous = driver
++    requestID = nil
++    driver = nil
++    ownsRoute = nil
++    isForeground = nil
++    previous?.onEvent = nil
++    previous?.stop()
++    if self.status != status { self.status = status }
++  }
++}
+diff --git a/ios/FieldLog/WorkspaceModel.swift b/ios/FieldLog/WorkspaceModel.swift
+index 39f2c27d6c2167ca3ff0dfe3890c3d12a4fed85d..11e8e83e3adec728d1035846256fcef405e28784 100644
+--- a/ios/FieldLog/WorkspaceModel.swift
++++ b/ios/FieldLog/WorkspaceModel.swift
+@@ -7,0 +8,29 @@ import SwiftUI
++struct SiteMapSession: Equatable, Sendable {
++  let id = UUID()
++  let workspaceID: UUID
++  let projectID: UUID
++  let lease = WorkspaceRepository.SitePinLease()
++
++  static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
++
++  func retire() { lease.retire() }
++}
++
++struct SitePinEdit: Equatable, Sendable {
++  let session: SiteMapSession
++  let revision: UInt64
++  let before: SiteCoordinate?
++
++  var projectID: UUID { session.projectID }
++
++  init?(workspace: Workspace?, session: SiteMapSession) {
++    guard let workspace, workspace.id == session.workspaceID,
++      workspace.restoration.selectedProjectID == session.projectID,
++      let project = workspace.projects.first(where: { $0.id == session.projectID })
++    else { return nil }
++    self.session = session
++    revision = workspace.revision
++    before = project.siteCoordinate
++  }
++}
++
+@@ -16,0 +46,2 @@ import SwiftUI
++  @Published private(set) var siteMapSession: SiteMapSession?
++  private var presentedProjectID: UUID?
+@@ -22 +53 @@ import SwiftUI
+-  private struct DraftAlreadyClosed: Error {}
++  private struct NoWorkspaceChange: Error {}
+@@ -73 +104,2 @@ import SwiftUI
+-    completion: (@MainActor () -> Void)? = nil
++    completion: (@MainActor () -> Void)? = nil,
++    sitePinEdit: SitePinEdit? = nil
+@@ -82 +114,6 @@ import SwiftUI
+-        workspace = try await repository.transact(operation)
++        if let sitePinEdit {
++          workspace = try await repository.transactSitePin(
++            expectedRevision: sitePinEdit.revision, lease: sitePinEdit.session.lease, operation)
++        } else {
++          workspace = try await repository.transact(operation)
++        }
+@@ -86 +123 @@ import SwiftUI
+-      } catch is DraftAlreadyClosed {
++      } catch is NoWorkspaceChange {
+@@ -87,0 +125,2 @@ import SwiftUI
++      } catch is WorkspaceRepository.SitePinLease.Retired {
++        return false
+@@ -120,2 +159,45 @@ import SwiftUI
+-    guard workspace?.restoration.selectedProjectID != id else { return }
+-    enqueue { $0.restoration.selectedProjectID = id }
++    if presentedProjectID != id {
++      presentedProjectID = id
++      showSiteMap(for: nil)
++    }
++    enqueue { workspace in
++      guard workspace.restoration.selectedProjectID != id else { throw NoWorkspaceChange() }
++      workspace.restoration.selectedProjectID = id
++    }
++  }
++
++  func showSiteMap(for projectID: UUID?) {
++    if let projectID, projectID == presentedProjectID, let workspaceID = workspace?.id {
++      if siteMapSession?.projectID == projectID, siteMapSession?.workspaceID == workspaceID {
++        return
++      }
++      siteMapSession?.retire()
++      siteMapSession = SiteMapSession(workspaceID: workspaceID, projectID: projectID)
++    } else if let siteMapSession {
++      siteMapSession.retire()
++      self.siteMapSession = nil
++    }
++  }
++
++  func sitePinEdit(projectID: UUID) -> SitePinEdit? {
++    guard let siteMapSession, siteMapSession.projectID == projectID else { return nil }
++    return SitePinEdit(workspace: workspace, session: siteMapSession)
++  }
++
++  func stillShowsSiteMap(for edit: SitePinEdit) -> Bool {
++    sitePinEdit(projectID: edit.projectID)?.session == edit.session
++  }
++
++  func saveSitePin(_ edit: SitePinEdit, to coordinate: SiteCoordinate?) async -> Bool {
++    guard stillShowsSiteMap(for: edit) else { return false }
++    return await enqueue(
++      { workspace in
++        guard workspace.id == edit.session.workspaceID,
++          workspace.restoration.selectedProjectID == edit.projectID
++        else { throw FieldLogError.staleRevision }
++        try workspace.setSiteCoordinate(projectID: edit.projectID, expected: edit.before, to: coordinate)
++        try edit.session.lease.requireActive()
++        guard edit.before != coordinate else { throw NoWorkspaceChange() }
++      },
++      sitePinEdit: edit
++    ).value
+@@ -143 +225 @@ import SwiftUI
+-        guard $0.restoration.openDraftID == draftID else { throw DraftAlreadyClosed() }
++        guard $0.restoration.openDraftID == draftID else { throw NoWorkspaceChange() }
+diff --git a/ios/FieldLog/WorkspaceView.swift b/ios/FieldLog/WorkspaceView.swift
+index 7fec46b95b518c34db8a4b925bef97d81fa4c388..c2f3c167a218258b9294c4fb01174c589d3ba80f 100644
+--- a/ios/FieldLog/WorkspaceView.swift
++++ b/ios/FieldLog/WorkspaceView.swift
+@@ -4,0 +5,11 @@ import SwiftUI
++enum ProjectRoute: Hashable {
++  case project(UUID)
++  case siteMap(UUID)
++
++  var projectID: UUID {
++    switch self {
++    case .project(let id), .siteMap(let id): id
++    }
++  }
++}
++
+@@ -5,0 +17 @@ struct WorkspaceView: View {
++  private enum Tab: Hashable { case projects, deviceQueue, settings }
+@@ -7 +19,2 @@ struct WorkspaceView: View {
+-  @State private var projectPath: [UUID] = []
++  @State private var projectPath: [ProjectRoute] = []
++  @State private var tab = Tab.projects
+@@ -23,2 +36,2 @@ struct WorkspaceView: View {
+-        TabView {
+-          NavigationStack(path: $projectPath) {
++        TabView(selection: tabSelection) {
++          NavigationStack(path: projectNavigation) {
+@@ -28,2 +41,7 @@ struct WorkspaceView: View {
+-            .navigationDestination(for: UUID.self) { id in
+-              ProjectDetail(projectID: id, onEdit: model.selectDraftEditor)
++            .navigationDestination(for: ProjectRoute.self) { route in
++              switch route {
++              case .project(let id):
++                ProjectDetail(projectID: id, onEdit: model.selectDraftEditor)
++              case .siteMap(let id):
++                ProjectSiteMap(projectID: id)
++              }
+@@ -31 +49,2 @@ struct WorkspaceView: View {
+-          }.tabItem { Label("Projects", systemImage: "square.stack.3d.up") }
++          }
++          .tabItem { Label("Projects", systemImage: "square.stack.3d.up") }.tag(Tab.projects)
+@@ -39,2 +58,4 @@ struct WorkspaceView: View {
+-          }.tabItem { Label("On device", systemImage: "internaldrive") }
+-          NavigationStack { SettingsView() }.tabItem { Label("Settings", systemImage: "gearshape") }
++          }
++          .tabItem { Label("On device", systemImage: "internaldrive") }.tag(Tab.deviceQueue)
++          NavigationStack { SettingsView() }
++            .tabItem { Label("Settings", systemImage: "gearshape") }.tag(Tab.settings)
+@@ -45 +66 @@ struct WorkspaceView: View {
+-          if let id = workspace.restoration.selectedProjectID { projectPath = [id] }
++          if let id = workspace.restoration.selectedProjectID { navigateProjects(to: [.project(id)]) }
+@@ -50 +70,0 @@ struct WorkspaceView: View {
+-        .onChange(of: projectPath) { _, path in model.restoreProject(path.last) }
+@@ -62 +82 @@ struct WorkspaceView: View {
+-          projectPath = [id]
++          navigateProjects(to: [.project(id)])
+@@ -73,0 +94,26 @@ struct WorkspaceView: View {
++
++  private var projectNavigation: Binding<[ProjectRoute]> {
++    Binding(get: { projectPath }, set: navigateProjects(to:))
++  }
++
++  private func navigateProjects(to path: [ProjectRoute]) {
++    let projectID = path.last?.projectID
++    if projectPath.last?.projectID != projectID { model.restoreProject(projectID) }
++    projectPath = path
++    updateSiteMapPresentation()
++  }
++
++  private var tabSelection: Binding<Tab> {
++    Binding(get: { tab }, set: { selection in
++      tab = selection
++      updateSiteMapPresentation()
++    })
++  }
++
++  private func updateSiteMapPresentation() {
++    if tab == .projects, case .siteMap(let id)? = projectPath.last {
++      model.showSiteMap(for: id)
++    } else {
++      model.showSiteMap(for: nil)
++    }
++  }
+@@ -158 +204 @@ private struct ProjectList: View {
+-            NavigationLink(value: project.id) {
++            NavigationLink(value: ProjectRoute.project(project.id)) {
+diff --git a/ios/FieldLogTests/SiteMapTests.swift b/ios/FieldLogTests/SiteMapTests.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..61fe017e905666d6e2488293090cff83cce9d732
+--- /dev/null
++++ b/ios/FieldLogTests/SiteMapTests.swift
+@@ -0,0 +1,449 @@
++import Dispatch
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++import os
++import Testing
++@testable import FieldLogCameraOwner
++
++@MainActor
++struct SiteMapTests {
++  @Test func manualPinUsesCommittedSelectionAndRevisionWithoutTouchingDraftsOrOutbox() async throws {
++    let directory = FileManager.default.temporaryDirectory
++      .appendingPathComponent("FieldLogSiteMap-\(UUID())", isDirectory: true)
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let repository = try WorkspaceRepository(directory: directory)
++    let model = WorkspaceModel(repository: repository)
++    await model.open()
++    let first = try #require(await model.createProject(title: "First", site: "North"))
++    let second = try #require(await model.createProject(title: "Second", site: "South"))
++    model.restoreProject(first)
++    await model.flush()
++    _ = try #require(await model.newDraft(projectID: first))
++    let file = directory.appendingPathComponent("workspace.json")
++    let beforeBytes = try Data(contentsOf: file)
++    let before = try await repository.readCommittedSnapshot()
++    model.showSiteMap(for: first)
++    let edit = try #require(model.sitePinEdit(projectID: first))
++    #expect(edit.before == nil)
++    #expect(model.sitePinEdit(projectID: second) == nil)
++    #expect(try Data(contentsOf: file) == beforeBytes)
++    #expect(await model.saveSitePin(edit, to: nil))
++    #expect(try Data(contentsOf: file) == beforeBytes)
++
++    let location = SiteMapLocation()
++    let driver = Driver(.allowed)
++    location.updateActivity(.active)
++    location.request(
++      ownsRoute: { model.stillShowsSiteMap(for: edit) },
++      isForeground: { true }, makeDriver: { driver })
++    let fix = try makeFix()
++    driver.emit(.result(fix))
++    #expect(location.status == .located(fix))
++    #expect(try Data(contentsOf: file) == beforeBytes)
++    location.retire()
++
++    let pin = try #require(SiteCoordinate(latitude: 40.7, longitude: -74))
++    #expect(await model.saveSitePin(edit, to: pin))
++    let withPin = try await repository.readCommittedSnapshot()
++    #expect(withPin.revision == before.revision + 1)
++    #expect(withPin.projects.first(where: { $0.id == first })?.siteCoordinate == pin)
++    #expect(withPin.projects.first(where: { $0.id == second })?.siteCoordinate == nil)
++    #expect(withPin.drafts == before.drafts)
++    #expect(withPin.outbox == before.outbox)
++    let current = try #require(model.sitePinEdit(projectID: first))
++    #expect(current.before == pin)
++    let currentBytes = try Data(contentsOf: file)
++    let newPin = try #require(SiteCoordinate(latitude: 41, longitude: -73))
++    #expect(!(await model.saveSitePin(edit, to: newPin)))
++    #expect(try Data(contentsOf: file) == currentBytes)
++
++    model.restoreProject(second)
++    #expect(!(await model.saveSitePin(current, to: nil)))
++    await model.flush()
++    let switched = try await repository.readCommittedSnapshot()
++    #expect(switched.revision == withPin.revision + 1)
++    #expect(switched.projects == withPin.projects)
++
++    model.restoreProject(first)
++    await model.flush()
++    model.showSiteMap(for: first)
++    let clear = try #require(model.sitePinEdit(projectID: first))
++    #expect(await model.saveSitePin(clear, to: nil))
++    let cleared = try await repository.readCommittedSnapshot()
++    #expect(cleared.revision == clear.revision + 1)
++    #expect(cleared.projects == before.projects)
++    #expect(cleared.drafts == before.drafts)
++    #expect(cleared.outbox == before.outbox)
++    #expect(!(try String(contentsOf: file, encoding: .utf8)).contains("siteCoordinate"))
++    await repository.close()
++    let reopened = try WorkspaceRepository(directory: directory)
++    #expect(try await reopened.readCommittedSnapshot() == cleared)
++    await reopened.close()
++  }
++
++  @Test func rapidOpenThenBackClearsRestorationBeforeColdReopen() async throws {
++    let (directory, repository, model, first, _) = try await openWorkspace()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    model.restoreProject(nil)
++    await model.flush()
++    let before = try await repository.readCommittedSnapshot()
++
++    model.restoreProject(first)
++    model.restoreProject(nil)
++    model.restoreProject(nil)
++    await model.flush()
++
++    let saved = try await repository.readCommittedSnapshot()
++    #expect(saved.restoration.selectedProjectID == nil)
++    #expect(saved.revision == before.revision + 2)
++    #expect(saved.projects == before.projects)
++    #expect(saved.drafts == before.drafts)
++    #expect(saved.outbox == before.outbox)
++    #expect(model.sitePinEdit(projectID: first) == nil)
++    await repository.close()
++    let reopened = try WorkspaceRepository(directory: directory)
++    #expect(try await reopened.readCommittedSnapshot().restoration.selectedProjectID == nil)
++    await reopened.close()
++  }
++
++  @Test func switchingProjectsImmediatelyRevokesOldMapAndRejectsLatePin() async throws {
++    let (directory, repository, model, first, second) = try await openWorkspace()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    model.showSiteMap(for: first)
++    let old = try #require(model.sitePinEdit(projectID: first))
++    let before = try await repository.readCommittedSnapshot()
++
++    model.restoreProject(second)
++    model.showSiteMap(for: second)
++    #expect(!model.stillShowsSiteMap(for: old))
++    #expect(model.sitePinEdit(projectID: first) == nil)
++    #expect(model.sitePinEdit(projectID: second) == nil)
++    #expect(!(await model.saveSitePin(old, to: try makeFix().coordinate)))
++    await model.flush()
++
++    let saved = try await repository.readCommittedSnapshot()
++    #expect(saved.restoration.selectedProjectID == second)
++    #expect(saved.revision == before.revision + 1)
++    #expect(saved.projects == before.projects)
++    #expect(saved.drafts == before.drafts)
++    #expect(saved.outbox == before.outbox)
++    #expect(model.sitePinEdit(projectID: second) != nil)
++    await repository.close()
++  }
++
++  @Test func reopeningSameMapRejectsOldPinAndLocationWithoutWritingWorkspace() async throws {
++    let (directory, repository, model, first, _) = try await openWorkspace()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    model.showSiteMap(for: first)
++    let old = try #require(model.sitePinEdit(projectID: first))
++    let before = try await repository.readCommittedSnapshot()
++    let file = directory.appendingPathComponent("workspace.json")
++    let bytes = try Data(contentsOf: file)
++    let location = SiteMapLocation()
++    let driver = Driver(.allowed)
++    location.updateActivity(.active)
++    location.request(
++      ownsRoute: { model.stillShowsSiteMap(for: old) }, isForeground: { true }, makeDriver: { driver })
++    let late = try #require(driver.onEvent)
++
++    model.showSiteMap(for: nil)
++    model.showSiteMap(for: first)
++    let fresh = try #require(model.sitePinEdit(projectID: first))
++    #expect(fresh.revision == old.revision)
++    #expect(fresh != old)
++    let fix = try makeFix()
++    late(.result(fix))
++    #expect(location.status == .idle)
++    #expect(!(await model.saveSitePin(old, to: fix.coordinate)))
++    #expect(try await repository.readCommittedSnapshot() == before)
++    #expect(try Data(contentsOf: file) == bytes)
++
++    #expect(await model.saveSitePin(fresh, to: fix.coordinate))
++    let after = try await repository.readCommittedSnapshot()
++    #expect(after.revision == before.revision + 1)
++    #expect(after.drafts == before.drafts)
++    #expect(after.outbox == before.outbox)
++    await repository.close()
++  }
++
++  @Test func queuedPinCannotWriteAfterSameMapReopens() async throws {
++    struct ReadOnly: Error {}
++    let (directory, repository, model, first, _) = try await openWorkspace()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    model.showSiteMap(for: first)
++    let old = try #require(model.sitePinEdit(projectID: first))
++    let before = try await repository.readCommittedSnapshot()
++    let file = directory.appendingPathComponent("workspace.json")
++    let bytes = try Data(contentsOf: file)
++    let coordinate = try makeFix().coordinate
++    let (blocked, reached) = AsyncStream<Void>.makeStream()
++    let release = DispatchSemaphore(value: 0)
++    let blocker = Task {
++      do {
++        try await repository.transact { _ in
++          reached.yield()
++          _ = release.wait(timeout: .now() + 5)
++          throw ReadOnly()
++        }
++      } catch is ReadOnly {}
++    }
++    var barrier = blocked.makeAsyncIterator()
++    _ = await barrier.next()
++    let (started, entered) = AsyncStream<Void>.makeStream()
++    let pending = Task {
++      entered.yield()
++      return await model.saveSitePin(old, to: coordinate)
++    }
++    var launch = started.makeAsyncIterator()
++    _ = await launch.next()
++    #expect(model.pendingSaves == 1)
++    model.showSiteMap(for: nil)
++    model.showSiteMap(for: first)
++    release.signal()
++
++    try await blocker.value
++    #expect(!(await pending.value))
++    #expect(try await repository.readCommittedSnapshot() == before)
++    #expect(try Data(contentsOf: file) == bytes)
++    await repository.close()
++  }
++
++  @Test(arguments: ["before_rename", "after_rename"])
++  func backOrdersAgainstSitePinRename(phase: String) async throws {
++    struct HookTimedOut: Error {}
++    let armed = OSAllocatedUnfairLock(initialState: false)
++    let (blocked, reached) = AsyncStream<Void>.makeStream()
++    let release = DispatchSemaphore(value: 0)
++    let (directory, repository, model, first, _) = try await openWorkspace { point in
++      guard point == phase, armed.withLock({ armed in
++        defer { armed = false }
++        return armed
++      }) else { return }
++      reached.yield()
++      guard release.wait(timeout: .now() + 10) == .success else { throw HookTimedOut() }
++    }
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let file = directory.appendingPathComponent("workspace.json")
++    let originalBytes = try Data(contentsOf: file)
++    let original = try await repository.readCommittedSnapshot()
++    let coordinate = try makeFix().coordinate
++    var withPin = original
++    try withPin.setSiteCoordinate(projectID: first, expected: nil, to: coordinate)
++    withPin.revision += 1
++    model.showSiteMap(for: first)
++    let edit = try #require(model.sitePinEdit(projectID: first))
++
++    armed.withLock { $0 = true }
++    let pending = Task { await model.saveSitePin(edit, to: coordinate) }
++    let deadline = Task {
++      try? await Task.sleep(for: .seconds(5))
++      reached.finish()
++    }
++    var barrier = blocked.makeAsyncIterator()
++    let hit: Void? = await barrier.next()
++    deadline.cancel()
++    #expect(hit != nil)
++    let publicationWon = phase == "after_rename"
++    model.restoreProject(nil)
++    #expect(!model.stillShowsSiteMap(for: edit))
++    #expect(model.pendingSaves == 2)
++    if publicationWon {
++      let published = try? JSONDecoder().decode(Workspace.self, from: Data(contentsOf: file))
++      #expect(published == withPin)
++    } else {
++      #expect((try? Data(contentsOf: file)) == originalBytes)
++    }
++    release.signal()
++
++    #expect(await pending.value == publicationWon)
++    await model.flush()
++    var expected = publicationWon ? withPin : original
++    expected.restoration.selectedProjectID = nil
++    expected.revision += 1
++    #expect(model.saveError == nil)
++    #expect(try await repository.readCommittedSnapshot() == expected)
++    await repository.close()
++    let reopened = try WorkspaceRepository(directory: directory)
++    #expect(try await reopened.readCommittedSnapshot() == expected)
++    await reopened.close()
++  }
++
++  @Test func mapPositionDescribesTheVisibleFixAndDisappearsOnRetirement() throws {
++    let geography = try SiteMapGeography(data: Data([
++      70, 76, 71, 49, 1, 0, 0, 0,
++      1, 2, 0, 0, 0,
++      0, 0, 0, 0, 0, 0, 0, 0,
++      0, 0, 0, 0, 1, 0, 0, 0,
++    ]))
++    let locale = Locale(identifier: "en_GB")
++    let pin = try #require(SiteCoordinate(latitude: 0, longitude: 179.99))
++    let acrossSeam = try #require(SiteCoordinate(latitude: 0.01, longitude: -179.99))
++    let fix = try #require(SiteMapFix(coordinate: acrossSeam, accuracyMeters: 80))
++    let owner = SiteMapLocation()
++    let driver = Driver(.allowed)
++    owner.updateActivity(.active)
++    owner.request(ownsRoute: { true }, isForeground: { true }, makeDriver: { driver })
++    driver.emit(.result(fix))
++
++    func scene(site: SiteCoordinate?) throws -> SiteMapScene {
++      let projected = try SiteMapScene.project(site: site, fix: owner.status.fix, geography: geography)
++      return try #require(projected)
++    }
++    let visible = try scene(site: pin)
++    let position = try #require(SiteMapLocation.position(in: visible, locale: locale))
++    let hasDistance = position.contains(where: \.isNumber)
++    #expect(position.contains("northeast of the saved site pin"))
++    #expect(hasDistance)
++
++    let centered = try scene(site: nil)
++    #expect(SiteMapLocation.position(in: centered, locale: locale)?.contains("center of the map") == true)
++    let distantPin = try #require(SiteCoordinate(latitude: 60, longitude: 90))
++    let offscreen = try scene(site: distantPin)
++    #expect(SiteMapLocation.position(in: offscreen, locale: locale) == nil)
++
++    owner.retire()
++    let hidden = try scene(site: pin)
++    #expect(SiteMapLocation.position(in: hidden, locale: locale) == nil)
++  }
++
++  private func openWorkspace(fault: WorkspaceRepository.Fault? = nil) async throws -> (
++    URL, WorkspaceRepository, WorkspaceModel, UUID, UUID
++  ) {
++    let directory = FileManager.default.temporaryDirectory
++      .appendingPathComponent("FieldLogSiteMap-\(UUID())", isDirectory: true)
++    let repository = try WorkspaceRepository(directory: directory, fault: fault)
++    let model = WorkspaceModel(repository: repository)
++    await model.open()
++    let first = try #require(await model.createProject(title: "First", site: "North"))
++    let second = try #require(await model.createProject(title: "Second", site: "South"))
++    model.restoreProject(first)
++    await model.flush()
++    _ = try #require(await model.newDraft(projectID: first))
++    return (directory, repository, model, first, second)
++  }
++
++  @Test func explicitPermissionWaitsForActiveSceneAndAcquiresOneFix() throws {
++    let owner = SiteMapLocation()
++    let driver = Driver(.undetermined)
++    owner.request(ownsRoute: { true }, isForeground: { true }, makeDriver: { driver })
++    #expect(driver.permissionRequests == 0)
++    owner.updateActivity(.active)
++    #expect(driver.permissionRequests == 0)
++    owner.request(ownsRoute: { true }, isForeground: { true }, makeDriver: { driver })
++    owner.request(ownsRoute: { true }, isForeground: { true }, makeDriver: { driver })
++    #expect(driver.permissionRequests == 1)
++    #expect(driver.locationRequests == 0)
++    owner.updateActivity(.inactive)
++    driver.authorization = .allowed
++    driver.emit(.authorizationChanged)
++    #expect(owner.status == .askingPermission)
++    #expect(driver.locationRequests == 0)
++    owner.updateActivity(.active)
++    driver.emit(.authorizationChanged)
++    #expect(driver.locationRequests == 1)
++    let callback = try #require(driver.onEvent)
++    let fix = try makeFix()
++    callback(.result(fix))
++    #expect(owner.status == .located(fix))
++    #expect(driver.stops == 1)
++    callback(.result(nil))
++    #expect(owner.status == .located(fix))
++    owner.updateActivity(.inactive)
++    #expect(owner.status == .idle)
++    owner.updateActivity(.active)
++    #expect(driver.locationRequests == 1)
++  }
++
++  @Test func oldCallbacksCannotReachReopenedProject() throws {
++    let owner = SiteMapLocation()
++    owner.updateActivity(.active)
++    let old = Driver(.allowed)
++    owner.request(ownsRoute: { true }, isForeground: { true }, makeDriver: { old })
++    let late = try #require(old.onEvent)
++    owner.retire()
++    #expect(old.stops == 1)
++
++    let new = Driver(.allowed)
++    owner.request(ownsRoute: { true }, isForeground: { true }, makeDriver: { new })
++    let fix = try makeFix()
++    late(.result(fix))
++    #expect(owner.status == .locating)
++    new.emit(.result(nil))
++    #expect(owner.status == .unavailable)
++    #expect(new.stops == 1)
++  }
++
++  @Test func authorityLossRejectsFixAndBackgroundDropsPendingPermission() throws {
++    let owner = SiteMapLocation()
++    owner.updateActivity(.active)
++    let route = Authority()
++    let fix = try makeFix()
++    for authorityLoss in [\Authority.ownsProject, \Authority.foreground] {
++      route[keyPath: authorityLoss] = true
++      let driver = Driver(.allowed)
++      owner.request(ownsRoute: { route.ownsProject }, isForeground: { route.foreground }, makeDriver: { driver })
++      #expect(driver.locationRequests == 1)
++      route[keyPath: authorityLoss] = false
++      driver.emit(.result(fix))
++      #expect(owner.status == .idle)
++      #expect(driver.stops == 1)
++      route[keyPath: authorityLoss] = true
++    }
++
++    let pending = Driver(.undetermined)
++    owner.request(ownsRoute: { true }, isForeground: { true }, makeDriver: { pending })
++    let late = try #require(pending.onEvent)
++    owner.updateActivity(.background)
++    pending.authorization = .allowed
++    late(.authorizationChanged)
++    owner.updateActivity(.active)
++    #expect(owner.status == .idle)
++    #expect(pending.locationRequests == 0)
++    #expect(pending.stops == 1)
++  }
++
++  @Test func deniedRestrictedAndRevokedPermissionNeverDeliverLocation() throws {
++    let owner = SiteMapLocation()
++    owner.updateActivity(.active)
++    let denied = Driver(.denied)
++    owner.request(ownsRoute: { true }, isForeground: { true }, makeDriver: { denied })
++    #expect(owner.status == .denied)
++    #expect(denied.permissionRequests == 0 && denied.locationRequests == 0)
++    let restricted = Driver(.restricted)
++    owner.request(ownsRoute: { true }, isForeground: { true }, makeDriver: { restricted })
++    #expect(owner.status == .restricted)
++    #expect(restricted.permissionRequests == 0 && restricted.locationRequests == 0)
++
++    let revoked = Driver(.allowed)
++    owner.request(ownsRoute: { true }, isForeground: { true }, makeDriver: { revoked })
++    revoked.authorization = .denied
++    revoked.emit(.result(try makeFix()))
++    #expect(owner.status == .denied)
++    #expect(revoked.stops == 1)
++  }
++
++  private func makeFix() throws -> SiteMapFix {
++    let coordinate = try #require(SiteCoordinate(latitude: 37.77, longitude: -122.42))
++    return try #require(SiteMapFix(coordinate: coordinate, accuracyMeters: 80))
++  }
++
++  private final class Authority {
++    var ownsProject = true
++    var foreground = true
++  }
++
++  private final class Driver: SiteLocationDriver {
++    var authorization: SiteMapLocation.Authorization
++    var onEvent: ((SiteMapLocation.Event) -> Void)?
++    var permissionRequests = 0
++    var locationRequests = 0
++    var stops = 0
++
++    init(_ authorization: SiteMapLocation.Authorization) { self.authorization = authorization }
++    func requestPermission() { permissionRequests += 1 }
++    func requestLocation() { locationRequests += 1 }
++    func stop() { stops += 1 }
++    func emit(_ event: SiteMapLocation.Event) { onEvent?(event) }
++  }
++}

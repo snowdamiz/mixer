@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "observedUTC": "2026-11-21T23:20:30.767700+00:00",
+  "status": "passed-host-rename-orderings",
+  "source": {
+    "fieldLogPublicRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "mixerPublicRevision": "6b4e756c67bbb7c1b1046f49efd7f9a0ab65c8d0",
+    "mixerPublicTree": "2d3981e7954a0723ef53d767624db480473bbd68",
+    "composedBaseTree": "33398784768c0794587c2d1f5528ec6aa2eb6669",
+    "reviewedCandidateTree": "c7b00376793f1f5e106794ea8fbb605d294cb690",
+    "reviewedPatchSHA256": "c41b5a604cd45c87d4958a4d656ae85b5a002b4b54853db581f5f0efc0e7b61b",
+    "reviewedReceiptSHA256": "f5e6caf1c2e98354f8394f61c080d9c5d10abc0323640e161bcbf44e26da01e8",
+    "successorTree": "7fdc4ab9b66049b4363286564e31889c42d5ba33",
+    "baseReconstruction": [
+      "Seed a disposable FieldLog index from picker tree 4be34dc138f68da58e3d376bc88e7d077efb7886. Its earlier public materialization recipe is in the supplied camera and Site Map receipts.",
+      "Apply with git apply --cached --unidiff-zero in this order: from public Mixer 6b4e756c67, verification/receipts/fieldlog-android-camera-corrected-26bbde4a.patch, fieldlog-ios-entry-camera-corrected-e10048f8.patch and fieldlog-site-map-shared-26bbde4a.patch. Assert write-tree after each step equals the corresponding tree below.",
+      "Apply the supplied corrected Site Map patch with git apply --cached --unidiff-zero to recover the exact reviewed candidate."
+    ],
+    "publicPatchAfterimages": [
+      "26bbde4aae443e77452761022ee344b075077431",
+      "05421b1091c2cca1db89463c23a27f9bed6f1f26",
+      "33398784768c0794587c2d1f5528ec6aa2eb6669"
+    ]
+  },
+  "delivery": {
+    "patch": "verification/receipts/fieldlog-ios-site-map-rename-33398784.patch",
+    "sha256": "53ef2d543346b0fb102382bd88dea4a53da23518c83c6aa323556c25cd53846c",
+    "bytes": 59162,
+    "apply": "git apply --cached --unidiff-zero <patch> with disposable FieldLog index at composedBaseTree",
+    "forwardAndReverseFreshIndexVerified": true,
+    "exactCandidateDelta": {
+      "command": "git diff --full-index --binary --no-ext-diff --no-renames c7b00376793f1f5e106794ea8fbb605d294cb690 7fdc4ab9b66049b4363286564e31889c42d5ba33",
+      "sha256": "61b1f60119b46740ebd92ae77395760b37f54d69a204ce288c1ec9a9b71a6d5d",
+      "forwardAndReverseFreshIndexVerified": true,
+      "blobs": {
+        "Sources/FieldLogStorage/WorkspaceRepository.swift": {
+          "before": "11854a16269c780070e9afd1e68946a34b718a1e",
+          "after": "def237face8c379a54e26203998297f277f378d6"
+        },
+        "Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift": {
+          "before": "11854a16269c780070e9afd1e68946a34b718a1e",
+          "after": "def237face8c379a54e26203998297f277f378d6"
+        },
+        "ios/FieldLog/WorkspaceModel.swift": {
+          "before": "1ab4b52b3ce3a1434f87cf6baae075e38a910f88",
+          "after": "11e8e83e3adec728d1035846256fcef405e28784"
+        },
+        "ios/FieldLogTests/SiteMapTests.swift": {
+          "before": "d4e5466ccba1dc9b172d835e5307fd4b0e8e3c51",
+          "after": "61fe017e905666d6e2488293090cff83cce9d732"
+        }
+      }
+    },
+    "unchangedFromReviewedCandidate": {
+      "ios/FieldLog/ProjectSiteMap.swift": "bdefb5a4df1e7836b9c5c1dcf087da36c82d8fa5",
+      "ios/FieldLog/WorkspaceView.swift": "c2f3c167a218258b9294c4fb01174c589d3ba80f"
+    }
+  },
+  "composition": [
+    "Both repositories are byte-identical. The Apple-only transactSitePin uses the existing private transaction driver. The public transact, private transaction driver, write and encode retain their prior implementation.",
+    "The private atomic helper adds an optional pin-only rename callback after didPublish. After encoding, temp creation, write, file sync, close and before_rename, the pin lease checks retirement and calls rename under the same lock. didPublish, after_rename, directory fsync and temporary cleanup run outside the lease.",
+    "A retirement veto unwinds the temporary write without marking the repository unavailable. Other pin publication failures preserve the normal transaction quarantine behavior.",
+    "The existing Apple addPhoto(admit:) still checks admission at publication entry and uses the baseline photo creation, publication marker and cleanup. Ordinary rename/link selection and Android addPhoto/attachPhoto and queue code retain their existing semantics.",
+    "WorkspaceModel keeps the early lease check and selects the pin entry point only for a SitePinEdit. The save chain, project restoration and accessible location row retain their existing behavior."
+  ],
+  "host": {
+    "git": "git version 2.56.0",
+    "swift": [
+      "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+      "Target: arm64-apple-macosx27.0.0"
+    ],
+    "rust": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "setup": [
+      "Materialize public Mixer sdk, vm, updates, runtime-identity, capability-activation and experimental-capability-runtime at 6b4e756c67 in scratch.",
+      "Archive swift-crypto c2cbadd7263439d8015189668f96ff5b5be565ce and swift-asn1 3b6410f7dee09eb33cdd26260c5fd47fda19b0e2 from existing local Git object caches. In scratch Mixer sdk and updates manifests change the swift-crypto URL dependency to ../../swift-crypto. SWIFTCI_USE_LOCAL_DEPS=1 selects the sibling swift-asn1.",
+      "Use the SiteMapHost manifest from .verification.host.scratchManifest in fieldlog-ios-site-map-33398784.json, excluding the explicit swift-asn1 URL line. Symlink the six sources and two test sources listed in that receipt into FieldLogCameraOwner and FieldLogCameraOwnerTests.",
+      "Use cargo build --manifest-path mixer/vm/Cargo.toml --offline --locked --features experimental-capability-native --lib --jobs 4 with an owned CARGO_TARGET_DIR. Copy or move debug/libmixer_vm.a to vm-host/libmixer_vm_capability_experimental.a."
+    ],
+    "runner": [
+      "#!/bin/bash",
+      "set -eu",
+      "work=\"$(cd \"$(dirname \"$0\")\" && pwd)\"",
+      "export TMPDIR=\"$work/tmp\"",
+      "export CFFIXED_USER_HOME=\"$work/home\"",
+      "export XDG_CACHE_HOME=\"$work/home/xdg\"",
+      "export CLANG_MODULE_CACHE_PATH=\"$work/clang-cache\"",
+      "export SWIFTCI_USE_LOCAL_DEPS=1",
+      "export GIT_ALLOW_PROTOCOL=file",
+      "exec swift test --package-path \"$work/SiteMapHost\" --scratch-path \"$work/host-build\" --cache-path \"$work/host-cache\" --config-path \"$work/host-config\" --security-path \"$work/host-security\" --disable-dependency-cache --manifest-cache local --disable-index-store -Xcc \"-I$work/mixer/vm/include\" -Xlinker \"-L$work/vm-host\" --jobs 6 \"$@\""
+    ],
+    "red": {
+      "command": "bash host.sh --filter backOrdersAgainstSitePinRename",
+      "input": "Exact reviewed tree plus only the successor SiteMapTests.swift blob. The product sources and both storage copies are the original candidate bytes.",
+      "exitCode": 1,
+      "observation": "Only before_rename failed. Back retired the map and the original bytes remained at the barrier, then the old save succeeded and changed both the live and cold committed snapshots.",
+      "sha256": "b023e76f667042f7d10c23255fc1d96c4ec9c069761e3c204266b931965921fe",
+      "output": [
+        "\u2718 Test backOrdersAgainstSitePinRename(phase:) recorded an issue with 1 argument phase \u2192 \"before_rename\" at SiteMapTests.swift:259:5: Expectation failed: await pending.value == publicationWon",
+        "\u2718 Test backOrdersAgainstSitePinRename(phase:) recorded an issue with 1 argument phase \u2192 \"before_rename\" at SiteMapTests.swift:265:5: Expectation failed: try await repository.readCommittedSnapshot() == expected",
+        "\u2718 Test backOrdersAgainstSitePinRename(phase:) recorded an issue with 1 argument phase \u2192 \"before_rename\" at SiteMapTests.swift:268:5: Expectation failed: try await reopened.readCommittedSnapshot() == expected",
+        "\u2718 Test backOrdersAgainstSitePinRename(phase:) with 2 test cases failed after 0.011 seconds with 3 issues."
+      ]
+    },
+    "green": {
+      "command": "bash host.sh",
+      "input": "7fdc4ab9b66049b4363286564e31889c42d5ba33",
+      "exitCode": 0,
+      "testsPassed": 20,
+      "siteMapTestsPassed": 11,
+      "cameraTestsPassed": 9,
+      "before_rename": "Back retired the lease while old bytes remained visible. The pin returned false. The queued Back published the sole revision increment, and a cold reopen showed only the cleared restoration.",
+      "after_rename": "The new pin was already present on disk when the hook paused. Back retired the lease before the hook was released. The pin returned true, then Back committed separately. The live and cold snapshots retained the pin and cleared restoration.",
+      "sha256": "7ce9d2480dce2b394611604ccbcd892fb412bd7fe3dcd79770df9cf7ef554226",
+      "output": [
+        "\u2714 Test backOrdersAgainstSitePinRename(phase:) with 2 test cases passed after 0.139 seconds.",
+        "\u2714 Test run with 20 tests in 2 suites passed after 0.148 seconds."
+      ]
+    },
+    "sharedHost": {
+      "command": "TMPDIR=<owned temp> bash fieldlog/Tests/SiteMapHost/run.sh",
+      "exitCode": 0,
+      "scope": "Native macOS compilation of each storage counterpart with -warnings-as-errors, including FIELDLOG_MERGED_DRAFT_PHOTOS for GeneratedReport. Matching disk and map readbacks.",
+      "sha256": "3f0001e27817d467447782efc43b30f092b07017b43217dfb370bfa91ed4c823",
+      "output": [
+        "Both FieldLog model copies and behavior readbacks match. Host scratch removed."
+      ]
+    },
+    "limits": "Host only. No simulator, physical device, Android runtime, signing, publication or gate changes. All dependencies came from local pinned inputs.",
+    "scratchAtEndKiB": 474656
+  },
+  "cleanup": {
+    "ownedScratch": "verification/local/site-map-rename.Lh0Ctsb6",
+    "verifiedRemoved": true
+  }
+}

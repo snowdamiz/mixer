@@ -1167,6 +1167,18 @@ both a manually saved pin and a preseeded one. Restart restored the
 dashboard. All five runs closed their private groups and removed
 scratch. [Installed Android map](verification/receipts/fieldlog-android-site-map-api36-f2184a4c.json)
 
+The reviewed iOS Site Map queues project restoration in navigation
+order and checks the active map session during pin publication.
+The review reproduced a late save from the earlier implementation.
+With the corrected lease, Back before rename preserved the old
+workspace bytes. Rename before Back preserved the pin through the
+queued restoration and a cold reopen. Location stays in the map
+session, and the position summary describes its relationship to the
+saved pin. All 20 macOS host tests passed. The final iPhoneOS build
+and installed UI, accessibility, and Core Location checks remain open.
+[Exact Apple map patch](verification/receipts/fieldlog-ios-site-map-rename-33398784.patch) ·
+[Host replay](verification/receipts/fieldlog-ios-site-map-rename-33398784.json)
+
 ## November 21 current FieldLog Android queue
 
 The Pair25 queue port ran the ordinary On device screen on macOS with
