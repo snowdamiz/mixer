@@ -3240,6 +3240,7 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     def sparse_subject(self, path):
         import uuid
 
+        path = path.resolve(strict=True)
         source = path.read_bytes()
         previous = getattr(self, "_sparse_import", None)
         if previous is not None:
@@ -3270,6 +3271,31 @@ class WorkflowSparseSourceControls(unittest.TestCase):
             sys.modules.pop(name, None)
         self._sparse_import = path, source, inputs, subject
         return subject
+
+    def test_sparse_import_uses_resolved_projection_identity(self):
+        with tempfile.TemporaryDirectory(prefix="identity-import-control-") as directory:
+            root = Path(directory)
+            source = (
+                "from pathlib import Path\n"
+                "marker = Path(__file__).with_name('marker').read_bytes()\n"
+            )
+            first, second = root / "first", root / "second"
+            for projection, marker in ((first, b"first"), (second, b"second")):
+                projection.mkdir()
+                (projection / "collector.py").write_text(source, encoding="utf-8")
+                (projection / "marker").write_bytes(marker)
+
+            selected = root / "selected"
+            selected.symlink_to(first, target_is_directory=True)
+            first_subject = self.sparse_subject(selected / "collector.py")
+            self.assertEqual(b"first", first_subject.marker)
+            self.assertIs(first_subject, self.sparse_subject(first / "collector.py"))
+
+            selected.unlink()
+            selected.symlink_to(second, target_is_directory=True)
+            second_subject = self.sparse_subject(selected / "collector.py")
+            self.assertEqual(b"second", second_subject.marker)
+            self.assertIs(second_subject, self.sparse_subject(second / "collector.py"))
 
     def check_real_main(self, sparse):
         import contextlib
