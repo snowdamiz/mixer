@@ -86,9 +86,17 @@ cmp "$source_project/$platform_lock" "$upgraded_project/$platform_lock"
 The upgrade writes the new SDK, Android adapter, and `mixer.lock` into a new
 copy. It keeps an existing `Platforms/Android/Package.resolved`. If the Android
 dependency pins conflict, follow your app's dependency migration for the target
-SDK. For an iOS-only project, omit `--android-adapter-path` and select
-`--platform ios` for the build. Reopen your saved data in the upgraded app
-before you switch to it.
+SDK.
+
+For an iOS-only project, omit `--android-adapter-path`. The stock
+`mixer build --platform ios` command builds the generated app under
+`Platforms/iOS`. Build the maintained FieldLog app from its app-owned
+`ios/FieldLog.xcodeproj`. `mixer upgrade` replaces the bundled SDK and
+updates `mixer.lock`. Update the separately bundled capability packages,
+package locks, VM headers, and VM archive for the same pin before rebuilding.
+Follow the maintained FieldLog export recipe for those inputs. Reopen your
+saved data in the upgraded app before switching to it.
+[Maintained FieldLog iOS build](fieldlog-ios-export.md#build-the-maintained-fieldlog-app-with-the-capability-vm)
 
 ## Exercise the Pair24 to Pair25 upgrade with a public V4 Starter
 

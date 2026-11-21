@@ -63,6 +63,19 @@ and launch remain open.
 [iOS export guide](docs/guides/fieldlog-ios-export.md) ·
 [iOS export receipt](verification/receipts/fieldlog-ios-independent-export-v80.json)
 
+The maintained FieldLog `85e6fbe362` export built a generic arm64 iOS
+Simulator app with stock Xcode after the preparation project, CLI, SDK,
+and caches were removed. The relocated bundle linked the real capability
+VM and both shared app sources. It carried the tracked guest placeholders.
+All 79 successful-run command groups closed. An earlier `git init`
+attempt retains its scratch hold after an unconfirmed group check.
+The corrected guide pins Rust, checks both export inventories and the
+VM symbol attribution, and distinguishes the generated iOS target from
+FieldLog's native project. The documentation checks passed without
+another Xcode run. Installed behavior remains unverified.
+[Maintained export guide](docs/guides/fieldlog-ios-export.md#build-the-maintained-fieldlog-app-with-the-capability-vm) ·
+[Relocated export receipt](verification/receipts/fieldlog-d2-combined-85e6fbe3-relocated-ios-export.json)
+
 ## November 21 hosted v76 verification
 
 Identity Network and Intel Android passed at `32cd2c54b6`. Intel verified both
