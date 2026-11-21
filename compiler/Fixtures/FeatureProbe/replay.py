@@ -148,7 +148,10 @@ def observe_preview(run, host, wasm, input_file, label, names, expected, refusal
     require(refused == refusal_frame, f"{label}: refusal changed the previous frame")
     fuel = row.pop("guestFuel")
     guest = label.endswith("-guest")
-    require(row == dict(closed=guest), f"{label}: unexpected close: {row}")
+    retirement = dict(closed=guest)
+    if label == "fixed-builder-guest":
+        retirement["reclaimedRegistrySlot"] = True
+    require(row == retirement, f"{label}: unexpected close: {row}")
     require((len(fuel) == len(expected) - 1 and all(0 < turn <= 1_000_000 for turn in fuel))
             if guest else not fuel, f"{label}: unexpected fuel: {fuel}")
     return dict(**row, guestFuel=fuel, refusedFrameHex=refused.hex(),
@@ -159,7 +162,8 @@ def compact_host_sources():
     runtime = ROOT / "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime"
     return [
         *(HERE / f"{name}.swift" for name in
-          ("CompactHost", "FloatingPoint", "AssociatedTypes", "PropertyWrapper", "ResultBuilder")),
+          ("CompactHost", "FloatingPoint", "AssociatedTypes", "PropertyWrapper", "ResultBuilder",
+           "FixedSlotResultBuilder")),
         BENCHMARK / "MatchedTask.swift",
         INSTALLED / "TaskCompletion.swift",
         *(runtime / f"{name}.swift" for name in ("Types", "Failure", "GuestDebugLines")),
@@ -184,20 +188,23 @@ def build_compact_host(run, sources):
     return archive
 
 
-def result_builder_campaign(run, result):
+def result_builder_campaign(run, result, *, fixed):
     cases = [
         ("ordinary-two", b"\x00\x01\x02", b".12\x00"),
         ("priority-three", b"\x01\x04\x03", b"!456"),
         ("refused-four", b"\x01\x04\x04", None),
         ("ordinary-empty-after-refusal", b"\x00\x09\x00", b".\x00\x00\x00"),
     ]
+    if fixed:
+        cases.insert(0, ("priority-one", b"\x01\x09\x01", b"!9\x00\x00"))
     names = ["initial", *(name for name, _, frame in cases if frame is not None)]
     expected = [bytes(4), *(frame for _, _, frame in cases if frame is not None)]
-    input_file = run.scratch / "builder-inputs"
+    mode = "fixed-builder" if fixed else "builder"
+    input_file = run.scratch / f"{mode}-inputs"
     input_file.write_bytes(b"".join(event for _, event, _ in cases))
     host = run.scratch / "compact-host"
-    wasm = run.scratch / "builder.wasm"
-    builder = HERE / "ResultBuilder.swift"
+    builder = HERE / ("FixedSlotResultBuilder.swift" if fixed else "ResultBuilder.swift")
+    define = "FIXED_SLOT_RESULT_BUILDER_GUEST" if fixed else "RESULT_BUILDER_GUEST"
     adapter = HERE / "CompactPreviewGuest.swift"
     sources = compact_host_sources()
     result.update(
@@ -205,7 +212,8 @@ def result_builder_campaign(run, result):
         revision=run.command("revision", "/usr/bin/git", "rev-parse", "HEAD")[0].strip(),
         tree=run.command("tree", "/usr/bin/git", "rev-parse", "HEAD^{tree}")[0].strip(),
         vmTree=run.command("vm-tree", "/usr/bin/git", "rev-parse", "HEAD:vm")[0].strip(),
-        scope="Synthetic Foundation-free menu builder on arm64 macOS",
+        scope=("Synthetic Foundation-free fixed-slot menu builder on arm64 macOS" if fixed else
+               "Synthetic Foundation-free menu builder on arm64 macOS"),
         guestTarget=dict(abi="Guest UI V1", profile="table-memory-v3", memoryPages=1,
                          fuelPerTurn=1_000_000, hostCallsPerTurn=0),
         sources={str(path.relative_to(ROOT)): identity(path) for path in [Path(__file__), adapter, *sources]},
@@ -223,13 +231,15 @@ def result_builder_campaign(run, result):
     archive = build_compact_host(run, sources)
     result["vmArchive"] = identity(archive)
     result["hostExecutable"] = identity(host)
-    result["native"] = observe_preview(run, host, wasm, input_file, "builder-native", names, expected, b"!456")
-    build_compact_guest(lambda *args: run.command(*args, bound=35), run.swift,
-                        run.scratch, "builder", [builder, adapter],
-                        flags=("-D", "RESULT_BUILDER_GUEST", "-module-cache-path", run.scratch / "guest-modules"))
+    result["native"] = observe_preview(
+        run, host, run.scratch / f"{mode}.wasm", input_file, f"{mode}-native", names, expected, b"!456")
+    wasm = build_compact_guest(
+        lambda *args: run.command(*args, bound=35), run.swift, run.scratch, mode, [builder, adapter],
+        flags=("-D", define, "-module-cache-path", run.scratch / "guest-modules"))
     result["wasm"] = identity(wasm)
-    replay_abi.check_descriptors(wasm.read_bytes())
-    result["guest"] = observe_preview(run, host, wasm, input_file, "builder-guest", names, expected, b"!456")
+    descriptors = replay_abi.check_descriptors(wasm.read_bytes())
+    result["guestDescriptors"] = {key: descriptors[key] for key in ("imports", "memories", "startFunction")}
+    result["guest"] = observe_preview(run, host, wasm, input_file, f"{mode}-guest", names, expected, b"!456")
 
 
 def campaign(run):
@@ -364,7 +374,9 @@ def campaign(run):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--result-builder", action="store_true", help="run the focused synthetic builder replay")
+    builder = parser.add_mutually_exclusive_group()
+    builder.add_argument("--result-builder", action="store_true", help="run the dynamic-loop builder replay")
+    builder.add_argument("--fixed-slot-result-builder", action="store_true", help="run the fixed-slot builder replay")
     args = parser.parse_args()
     require((os.uname().sysname, os.uname().machine) == ("Darwin", "arm64"), "requires arm64 macOS")
     require(Path.cwd() == ROOT, "run from the Mixer checkout root")
@@ -376,10 +388,10 @@ def main():
     run = Run(scratch)
     failed = False
     try:
-        if args.result_builder:
+        if args.result_builder or args.fixed_slot_result_builder:
             result = {}
             try:
-                result_builder_campaign(run, result)
+                result_builder_campaign(run, result, fixed=args.fixed_slot_result_builder)
             except ValueError as error:
                 result["failure"] = str(error)
                 failed = True

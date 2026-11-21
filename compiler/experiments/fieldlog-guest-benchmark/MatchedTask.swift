@@ -82,6 +82,21 @@ final class OwnedTask: TaskPath {
         handle = 0
     }
 
+#if SWIFT_SUPPORT_MATRIX
+    func closeAndCheckReclamation(initialFrame: Data) throws {
+        let retired = handle
+        try close()
+        try open()
+        try check(handle != retired && UInt32(truncatingIfNeeded: handle) == UInt32(truncatingIfNeeded: retired),
+                  "closed session's registry slot was not reclaimed")
+        let reopenedFrame = try frame()
+        try check(reopenedFrame == initialFrame, "reopened session inherited the retired frame")
+        try check(mixer_vm_capability_session_startup_v1(retired, &report) == 3,
+                  "stale generation admitted after slot reuse")
+        try close()
+    }
+#endif
+
     deinit {
         if handle != 0 { _ = mixer_vm_capability_session_close_v1(handle, &report) }
     }

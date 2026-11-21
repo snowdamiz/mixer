@@ -113,6 +113,25 @@ The focused command prints the native observations and linker diagnostic
 before exiting 1 for the blocked guest replay.
 [Result-builder replay receipt](../../../verification/receipts/l03-swift-result-builder-v78.json)
 
+## Swift fixed-slot result-builder replay
+
+```sh
+python3 -B compiler/Fixtures/FeatureProbe/replay.py --fixed-slot-result-builder
+```
+
+Native Swift and Embedded Swift compile the same `FixedSlotResultBuilder.swift`.
+The builder uses `buildEither` for the priority marker and `buildOptional`
+for each of three child slots. The three-byte event supplies the marker,
+starting digit, and child count. A fixed-arity `buildBlock` packs the four
+bytes into a `UInt32`.
+
+The replay compares all four child counts in native Swift and through the
+installed Guest UI V1 C ABI. Both paths preserve the `!456` frame when the
+event requests four children, then render the next valid event. The replay
+closes the guest session, reopens the same registry slot with a new generation
+and a zeroed frame, and checks that the old handle is still rejected.
+[Fixed-slot replay receipt](../../../verification/receipts/l03-swift-fixed-slot-result-builder.json)
+
 ## Owned VM capability and validation controls
 
 The compact replay executes the suites below using Rust 1.99.0. To run them

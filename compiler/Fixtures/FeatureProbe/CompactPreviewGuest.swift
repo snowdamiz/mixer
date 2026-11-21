@@ -5,6 +5,8 @@ private nonisolated(unsafe) var preview = Preview()
 private typealias Preview = AssociatedTypesPreview
 #elseif RESULT_BUILDER_GUEST
 private typealias Preview = ResultBuilderPreview
+#elseif FIXED_SLOT_RESULT_BUILDER_GUEST
+private typealias Preview = FixedSlotResultBuilderPreview
 #else
 private typealias Preview = FloatingPointPreview
 #endif

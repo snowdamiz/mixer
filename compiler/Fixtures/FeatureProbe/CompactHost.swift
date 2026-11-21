@@ -90,10 +90,12 @@ private struct PreviewObservation: Encodable {
     let refusedFrame: Data
     let guestFuel: [UInt64]
     let closed: Bool
+    let reclaimedRegistrySlot: Bool?
 }
 
 private func exercisePreview(
-    _ path: inout some TaskPath, inputs: Data, width: Int, refusePenultimateEvent: Bool = false
+    _ path: inout some TaskPath, inputs: Data, width: Int, refusePenultimateEvent: Bool = false,
+    checkReclamation: Bool = false
 ) throws -> PreviewObservation {
     let minimumEvents = refusePenultimateEvent ? 3 : 1
     try check(inputs.count >= minimumEvents * width && inputs.count <= 8 * width
@@ -107,7 +109,8 @@ private func exercisePreview(
         events.append((Array(inputs.prefix(width - 1)), false))
     }
 
-    var frames = [try path.frame()]
+    let initialFrame = try path.frame()
+    var frames = [initialFrame]
     var refusedFrame: Data?
     var guestFuel: [UInt64] = []
     let owned = path as? OwnedTask
@@ -124,8 +127,14 @@ private func exercisePreview(
         }
     }
     guard let refusedFrame else { throw CheckFailed(reason: "missing preview refusal") }
-    try owned?.close()
-    return PreviewObservation(frames: frames, refusedFrame: refusedFrame, guestFuel: guestFuel, closed: owned != nil)
+    if checkReclamation, let owned {
+        try owned.closeAndCheckReclamation(initialFrame: initialFrame)
+    } else {
+        try owned?.close()
+    }
+    return PreviewObservation(
+        frames: frames, refusedFrame: refusedFrame, guestFuel: guestFuel, closed: owned != nil,
+        reclaimedRegistrySlot: checkReclamation ? owned != nil : nil)
 }
 
 @main private enum CompactHost {
@@ -134,7 +143,8 @@ private func exercisePreview(
         try check(args.count >= 3, "expected a mode and Wasm path")
         let mode = args[1]
         let preview = ["floating-native", "floating-guest", "associated-native", "associated-guest",
-                       "wrapper-native", "wrapper-guest", "builder-native", "builder-guest"].contains(mode)
+                       "wrapper-native", "wrapper-guest", "builder-native", "builder-guest",
+                       "fixed-builder-native", "fixed-builder-guest"].contains(mode)
         try check(args.count == (preview ? 4 : 3), "unexpected replay arguments")
         let encoder = JSONEncoder()
         let result: Data
@@ -166,17 +176,23 @@ private func exercisePreview(
             let inputs = try Data(contentsOf: URL(fileURLWithPath: args[3]))
             result = try encoder.encode(exercisePreview(
                 &path, inputs: inputs, width: PropertyWrapperPreview.inputSize, refusePenultimateEvent: true))
-        case "builder-native":
-            var path = NativePreview(outputSize: ResultBuilderPreview.outputSize, render: ResultBuilderPreview.render)
+        case "builder-native", "fixed-builder-native":
+            let fixed = mode == "fixed-builder-native"
+            let width = fixed ? FixedSlotResultBuilderPreview.inputSize : ResultBuilderPreview.inputSize
+            var path = fixed
+                ? NativePreview(outputSize: FixedSlotResultBuilderPreview.outputSize,
+                                render: FixedSlotResultBuilderPreview.render)
+                : NativePreview(outputSize: ResultBuilderPreview.outputSize, render: ResultBuilderPreview.render)
             let inputs = try Data(contentsOf: URL(fileURLWithPath: args[3]))
             result = try encoder.encode(exercisePreview(
-                &path, inputs: inputs, width: ResultBuilderPreview.inputSize, refusePenultimateEvent: true))
-        case "floating-guest", "associated-guest", "wrapper-guest", "builder-guest":
+                &path, inputs: inputs, width: width, refusePenultimateEvent: true))
+        case "floating-guest", "associated-guest", "wrapper-guest", "builder-guest", "fixed-builder-guest":
             let width: Int
             switch mode {
             case "floating-guest": width = FloatingPointPreview.inputSize
             case "associated-guest": width = AssociatedTypesPreview.inputSize
             case "builder-guest": width = ResultBuilderPreview.inputSize
+            case "fixed-builder-guest": width = FixedSlotResultBuilderPreview.inputSize
             default: width = PropertyWrapperPreview.inputSize
             }
             var path = OwnedTask(try Data(contentsOf: URL(fileURLWithPath: args[2])), measureComponents: false)
@@ -184,7 +200,8 @@ private func exercisePreview(
             try path.open()
             result = try encoder.encode(exercisePreview(
                 &path, inputs: inputs, width: width,
-                refusePenultimateEvent: mode == "wrapper-guest" || mode == "builder-guest"))
+                refusePenultimateEvent: mode != "floating-guest" && mode != "associated-guest",
+                checkReclamation: mode == "fixed-builder-guest"))
         default:
             throw CheckFailed(reason: "unknown mode")
         }
