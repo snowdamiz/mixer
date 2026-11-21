@@ -1,5 +1,6 @@
 """Opt-in completion schedule for the independently supervised iOS worker."""
 
+from contextlib import contextmanager
 import errno
 import hashlib
 import json
@@ -48,6 +49,45 @@ def require(condition, detail):
 def file_sha(path):
     with path.open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def with_attestation_custody(kit):
+    from v74 import OwnedProcess
+
+    owned = kit["owned"]
+
+    @contextmanager
+    def supervise(root, name, argv, cwd, env, receipts, stop=None, *, exit_codes=(0,)):
+        if name != "attest-settled":
+            with owned(root, name, argv, cwd, env, receipts, stop, exit_codes=exit_codes) as process:
+                yield process
+            return
+
+        require(name not in receipts, "duplicate process label")
+        receipt = receipts[name] = {"argv": list(map(str, argv)), "groupAbsent": False}
+        output = root / (name + ".log")
+        kit["write"](root / (name + ".intent.json"), receipt)
+        with output.open("xb") as log:
+            process = OwnedProcess(argv, cwd=cwd, env=env, stdin=subprocess.DEVNULL,
+                                   stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+            receipt["pid"] = process.pid
+            kit["record_custody"](root, name, process, closed=False)
+            # The caller performs the only direct wait. A timeout unwinds with
+            # groupAbsent still false so the enclosing services stay untouched.
+            yield process
+        code = process.returncode
+        receipt.update(exit=code, directChildReaped=code is not None)
+        if code is None or code == 74 or os.path.lexists(root / "HOLD.json"):
+            raise kit["CustodyUnknown"]("attestation wrapper left nested custody unresolved")
+
+        kit["wait"](lambda: kit["group_absent"](process.pid), 4)
+        proof = dict(receipt, groupAbsent=True, logSHA256=file_sha(output))
+        kit["write"](root / (name + ".terminal.json"), proof)
+        kit["record_custody"](root, name, process, closed=True)
+        receipt.update(proof)
+        require(code in exit_codes, f"{name} exited {code}; inspect its fresh receipt")
+
+    return supervise
 
 
 def stage_recipe(root, kit, args, result, prepare):

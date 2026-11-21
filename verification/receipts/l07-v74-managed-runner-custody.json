@@ -1,0 +1,75 @@
+{
+  "baseCommit": "95a120bdd744cf1d8f62c25011c10a7a36aa385d",
+  "baseTree": "b5c078fb944be5f45b9ad391eec2e76345c24cb9",
+  "baseline": {
+    "afterEntryCorrection": "Nested HOLD with exit 0, 1 or 74 probed the wrapper group. Exit 74 without a marker probed all three groups. The outer timeout surfaced TimeoutExpired instead of exit 74.",
+    "command": [
+      "python3",
+      "-B",
+      "-W",
+      "error::ResourceWarning",
+      "-m",
+      "unittest",
+      "discover",
+      "-v",
+      "-s",
+      "tests/integration/l07-ios-active-custody",
+      "-p",
+      "test_runner.py"
+    ],
+    "pinnedEntry": "--v74-attest raised KeyError for the second PAIR25_CANCEL removal before dispatch."
+  },
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-W",
+        "error::ResourceWarning",
+        "-m",
+        "unittest",
+        "discover",
+        "-v",
+        "-s",
+        "tests/integration/l07-ios-active-custody"
+      ],
+      "exit": 0,
+      "output": "Ran 16 tests; OK."
+    },
+    {
+      "command": [
+        "python3",
+        "-OB",
+        "-W",
+        "error::ResourceWarning",
+        "-m",
+        "unittest",
+        "discover",
+        "-v",
+        "-s",
+        "tests/integration/l07-ios-active-custody"
+      ],
+      "exit": 0,
+      "output": "Ran 16 tests; OK."
+    }
+  ],
+  "environment": {
+    "python": "3.14.8",
+    "system": "Darwin 27.0.0 arm64"
+  },
+  "observations": {
+    "exit74WithoutRecord": "Both roots retained, with the parent receipt as the custody record and no synthesized nested HOLD.json.",
+    "historicalModes": "Default and v55 terminal scratch cleanup passed.",
+    "holdSideEffects": "No group probe, repeat wait, service shutdown, port reuse probe or terminal wrapper receipt.",
+    "nestedHold": "Exit 0, 1 or 74 retained both scratch roots and preserved the original HOLD.json bytes.",
+    "terminalClosure": "Wrapper exit, direct reap and group absence recorded, then both services closed, port checks ran and both roots were removed.",
+    "timeoutWithoutRecord": "Both roots retained even with group absence available from the process double. Observation stopped at the single timed-out wait."
+  },
+  "scope": "Inert process and port controls plus pinned receipt and wrapper unit tests. No real service, worker, signer, Xcode or device run.",
+  "sourceSHA256": {
+    "tests/integration/l07-ios-active-custody/live.py": "922991db77bbab753c18688590b9961195c299984a4cd8dc56e12e74ed56889a",
+    "tests/integration/l07-ios-active-custody/run.py": "c5d22a079e00d79d13afb63a1f7f7c5e1fb20721194e61ea2b9efe93d8ad5f09",
+    "tests/integration/l07-ios-active-custody/test_runner.py": "0a6e512af62f5e1c30a5d2bb1a2882b3e20f8eded9aabd74f54a135de4c32bc1"
+  },
+  "status": "passed-inert-runner-custody"
+}

@@ -790,16 +790,20 @@ def main():
         result["fixtureSHA256"] = kit["sha"](Path(__file__).read_bytes())
         live_recipe = None
         env = environment(root)
+        if args.v74_attest:
+            from live import with_attestation_custody
+
+            kit["owned"] = with_attestation_custody(kit)
         if v74:
             env["L07_V74_CREDENTIALS"] = str(operator / "credentials")
             if args.v74_preflight:
                 env["L07_V74_PREFLIGHT"] = "1"
+        if v74 or live:
             env.pop("PAIR25_CANCEL")
         if live:
             from live import stage_recipe
 
             result["stage"] = "live-stage-admission"
-            env.pop("PAIR25_CANCEL")
             live_recipe = stage_recipe(root, kit, args, result, PREPARE)
         if not args.preflight_only:
             drive(root, kit, env, args.pg_bin, result, live_recipe,
@@ -820,13 +824,18 @@ def main():
             unknown.append("original live CLI or Xcode closure unproven")
         if kit and isinstance(error, kit["CustodyUnknown"]) and not unknown:
             unknown.append("incomplete process ownership observation")
-        wrapper_hold = v74 and os.path.lexists(root / "HOLD.json")
+        wrapper = commands.get("attest-settled")
+        wrapper_hold = v74 and (
+            (wrapper is not None and not wrapper["groupAbsent"]) or os.path.lexists(root / "HOLD.json"))
         if wrapper_hold:
             unknown.append("unresolved attestation wrapper custody")
         if unknown:
             result["custodyHold"] = {"preserved": str(root), "unresolved": unknown}
             result["passed"] = False
-            if (live or v74) and not wrapper_hold:
+            if wrapper_hold:
+                # The wrapper owns HOLD.json and may still be writing it.
+                result["custodyHold"].update(operatorScratch=str(operator), nestedHoldPath=str(root / "HOLD.json"))
+            elif live or v74:
                 with (root / "HOLD.json").open("x") as hold:
                     json.dump(result, hold, indent=2)
         else:
@@ -843,12 +852,12 @@ def main():
                 if operator is not None:
                     shutil.rmtree(operator)
         if operator is not None:
-            result["operatorScratchRemoved"] = not operator.exists()
-        result["scratchRemoved"] = not root.exists()
+            result["operatorScratchRemoved"] = not wrapper_hold and not operator.exists()
+        result["scratchRemoved"] = not wrapper_hold and not root.exists()
         with args.receipt.open("x") as stream:
             json.dump(result, stream, indent=2, sort_keys=True)
             stream.write("\n")
-    if error is not None:
+    if error is not None and not wrapper_hold:
         raise error
     return 0 if result["passed"] else 74
 
