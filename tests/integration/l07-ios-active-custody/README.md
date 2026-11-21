@@ -60,3 +60,66 @@ authenticated downloads. See the recorded [live recovery receipt](../../../verif
 Remove only the stage directory created by your run once its command
 receipt and the replay receipt confirm closure. Preserve any scratch
 with a `HOLD.json` and use its custody record to locate the unresolved step.
+
+## Attach one fresh v74 Simulator build
+
+`attest_settled.py` is a separate, opt-in step for the operator of a fresh
+managed compile on `44aecbeb6a82a4a93321cff6a8ab86c5aa421900`. The recovery
+launcher above uses its pinned v55 overlay and removes its scratch at exit.
+Call this step from the fresh v74 harness after the worker and processor have
+closed and before the ordinary Phoenix server, PostgreSQL, and retained output
+are torn down. Supervise the step with the harness's owned command runner.
+
+Use a fresh private run root at mode 0700 with `pg/` and
+`worker/operations.sqlite` in the maintained layout. Write a mode-0600
+`settlement.json` in that root from the current run's observations:
+
+- `base` is the v74 commit. `xcodeInvocations` is 1 and
+  `liveCustodyPending` is false after positive closure.
+- `commands.worker` and `commands.processor` have `exit: 0` and
+  `groupAbsent: true`. Use the final worker if the harness reopened it.
+  `liveClosure` carries `xcodeExit: 0` and the terminal `xcodeReceiptSHA256`.
+- Copy the live `binding` with `record_id`, `operation_id`, `ref`, `spec`,
+  and `deadline_ms`. Copy `settled.journal` with its start and completed
+  rows, `settled.artifacts` with the three descriptors, and
+  `settled.manifestSHA256` from the same worker operation.
+
+Keep the synthetic operator's subject and project membership stable on
+this run. Supply a fresh browser session for completion and downloads and a
+fresh human bearer with `mixer.build.attest` for the same fixture operator.
+Keep both token files and the development key files at mode 0600 outside the
+build root. Create the Ed25519 key after worker and processor closure, as in the
+[prior local proof](../../../verification/receipts/l05-native-development-attestation-41a05264.json).
+Enroll its public SPKI on the
+ordinary Phoenix API using the [local attachment writer setup](../../../services/cmd/mixer-native-attest/README.md#configure-the-local-phoenix-attachment-writer).
+Preserve the fixed IPv4 loopback origin, current database, and retained directory
+if the API needs to restart for enrollment. The key files stay with the operator.
+Pass the SHA-256 of the enrolled SPKI DER and the SHA-256 of the fresh receipt.
+
+```sh
+python3 -B tests/integration/l07-ios-active-custody/attest_settled.py \
+  --run-root "$fresh_root" --settlement-sha256 "$settlement_sha256" \
+  --api-port "$api_port" --pg-port "$pg_port" \
+  --session "$session_file" --bearer "$bearer_file" \
+  --private-key "$development_private_pem" --public-key "$trusted_public_pem" \
+  --enrolled-spki-sha256 "$spki_der_sha256"
+```
+
+The PostgreSQL readback uses the maintained fixture database and loopback
+administrator. Use `--pg-database`, `--pg-user`, or `--psql` to match the
+fresh fixture. The step checks the receipt against the real worker ledger and
+journal, then authenticates and hashes all three downloads before compiling
+the stock Go signer from v74 Git objects. The separate signer process reads
+the products again. The stock attach command submits the same envelope twice.
+The step checks PostgreSQL after each response for one exact stored envelope and
+the unchanged journal. Save the JSON output with the root run's evidence.
+
+The step creates `attestation/` under the run root for the Go build and
+private envelope state. Root can clean it with the fresh run after observing
+terminal custody. If an attachment response is unconfirmed, use the existing
+envelope and the stock attach command to reconcile it after database readback.
+
+```sh
+python3 -B -W error::ResourceWarning -m unittest discover -v \
+  -s tests/integration/l07-ios-active-custody -p test_attest_settled.py
+```
