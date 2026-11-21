@@ -1,7 +1,7 @@
 defmodule MixerHosted.Test.DeliveryOriginReplay do
   @moduledoc false
 
-  alias MixerHosted.Releases.{DeliveryExport, DeliveryPublishFence}
+  alias MixerHosted.Releases.{DeliveryExport, DeliveryPublishFence, WriterRepo}
 
   @request_limit 16_384
   @artifact_limit 6 * 1024 * 1024
@@ -145,6 +145,20 @@ defmodule MixerHosted.Test.DeliveryOriginReplay do
   defp handle(%{"op" => "halt"}, socket, _, _, halt, _, export) do
     halt.()
     reply!(socket, "halted")
+    export
+  end
+
+  defp handle(%{"op" => "writer_ready"}, socket, _, _, _, _, export) do
+    result =
+      WriterRepo.query(
+        "SELECT session_user::text, ssl FROM pg_stat_ssl WHERE pid = pg_backend_pid()",
+        [],
+        queue: false,
+        timeout: 500,
+        log: false
+      )
+
+    reply!(socket, match?({:ok, %{rows: [["mixer_replay_writer", true]]}}, result))
     export
   end
 

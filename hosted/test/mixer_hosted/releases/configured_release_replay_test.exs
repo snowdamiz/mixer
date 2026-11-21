@@ -1024,7 +1024,9 @@ defmodule MixerHosted.Releases.ConfiguredReleaseReplayTest do
                      Ecto.Adapters.SQL.query(
                        FixtureRepo,
                        fixture_lock_query(table),
-                       coordinates(locked), log: false)
+                       coordinates(locked),
+                       log: false
+                     )
           end
         end)
       end

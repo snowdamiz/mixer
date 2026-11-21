@@ -379,6 +379,7 @@ try {
   await assertVisible();
   receipt.checks.recovery = {ambiguity: "indeterminate", reconciled: recovered, rootDeadlineCap: true};
 
+  await until(() => rpc("writer_ready"), 8000);
   phase = "stale";
   assert.deepEqual(await publish(120_000), {result: "stale", attempted: null});
   assert.deepEqual(await readPointer(), recovered);
