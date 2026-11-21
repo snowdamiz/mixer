@@ -377,12 +377,15 @@ final class GuestUISignedRuntimeTests: XCTestCase, @unchecked Sendable {
     }
 
     func testSignedCommitFactsReadDeniesReadyWrongActionAndMalformedEvent() async throws {
+        let denied = try GuestCapabilityTransportCodecV1.encodeCompletion(
+            .failure(.permissionDenied), operation: .storageGet)
         for (mode, action) in [(GuestUISignedProgram.Mode.readyCommitFacts, "sample.save"),
                                (.commitFacts, "sample.other"), (.invalidCommitFacts, "sample.save")] {
             let probe = SignedCommitFactsProbe()
             let f = try fixture(commitProbe: probe, commitAction: action)
+            let payload = mode == .commitFacts ? GuestUISignedProgram.build(mode, expectedDenial: denied) : nil
             try await withRuntime(f) { runtime in
-                try await stage(f, runtime, mode: mode)
+                try await stage(f, runtime, mode: mode, payload: payload)
                 _ = try await runtime.start()
                 try await activateSave(runtime)
                 if mode == .invalidCommitFacts {
