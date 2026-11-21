@@ -17,7 +17,7 @@ end
 defmodule MixerHosted.Releases.EnvironmentPromotion.PostgresTest do
   use ExUnit.Case, async: false
 
-  alias MixerHosted.{Authorization, Releases}
+  alias MixerHosted.{Authorization, Releases, RuntimeConfig}
   alias MixerHosted.CustomerArtifacts.{PostgresStorage, Schema}
   alias MixerHosted.Identity.VerifiedIdentity
   alias MixerHosted.Protocol.ArtifactAdmission
@@ -46,6 +46,7 @@ defmodule MixerHosted.Releases.EnvironmentPromotion.PostgresTest do
   @heads "public.mixer_release_heads"
   @enrollment "public.mixer_release_delivery_enrollments"
   @route "public.mixer_stage_promotion_directions"
+  @jobs "mixer_release_jobs.oban_jobs"
   @migrations [
     {"repo/migrations", "20261025000003_add_customer_authorization"},
     {"repo/migrations", "20261025000004_add_authorization_state_revisions"},
@@ -98,12 +99,15 @@ defmodule MixerHosted.Releases.EnvironmentPromotion.PostgresTest do
     start_supervised!({Uploader, [username: @uploader] ++ options})
 
     for {dir, name} <- @migrations do
-      [{module, _}] = Code.require_file(Path.join(["priv", dir, name <> ".exs"]))
-      [version, _] = String.split(name, "_", parts: 2)
-      assert :ok = Ecto.Migrator.up(Migration, String.to_integer(version), module, log: false)
+      if queue_enabled?() and dir == "local_release_target_registry",
+        do: migrate!("local_release_jobs", "20261120000014_add_local_release_jobs")
+
+      migrate!(dir, name)
     end
 
-    assert [[nil]] = admin("SELECT to_regclass('mixer_release_jobs.oban_jobs')").rows
+    assert [[queue_enabled?()]] ==
+             admin("SELECT to_regclass('mixer_release_jobs.oban_jobs') IS NOT NULL").rows
+
     assert :error = MixerHosted.Application.startup()
     grant!()
     seed_authorization!()
@@ -131,6 +135,14 @@ defmodule MixerHosted.Releases.EnvironmentPromotion.PostgresTest do
 
     for variant <- Map.values(source) ++ Map.values(destination), do: upload!(variant)
 
+    if queue_enabled?() do
+      for variant <- Map.values(source) ++ Map.values(destination),
+          do: enroll!(variant.enrollment.target)
+
+      provision_queue!(options)
+      start_queue_enabled_api!(options)
+    end
+
     %{source: source, destination: destination, direction: direction}
   end
 
@@ -139,6 +151,8 @@ defmodule MixerHosted.Releases.EnvironmentPromotion.PostgresTest do
     TRUNCATE #{@binding}, #{@enrollment}, #{@publications}, #{@heads},
              public.mixer_release_cli_requests
     """)
+
+    if queue_enabled?(), do: admin("TRUNCATE #{@jobs}")
 
     for variant <- Map.values(source) ++ Map.values(destination),
         do: enroll!(variant.enrollment.target)
@@ -154,6 +168,7 @@ defmodule MixerHosted.Releases.EnvironmentPromotion.PostgresTest do
   test "commits both stages and exact replay ignores later head advances", f do
     assert {:ok, %{ios: %{sequence: 3}, android: %{sequence: 12}} = first} = promote(f)
     assert destination_heads() == [["android", "12"], ["ios", "3"]]
+    assert_release_jobs([f.source, f.destination])
 
     expected_artifacts =
       for variants <- [f.source, f.destination],
@@ -204,15 +219,23 @@ defmodule MixerHosted.Releases.EnvironmentPromotion.PostgresTest do
 
     assert {:ok, ^first} = promote(f)
     assert [[4, 1]] == counts()
+    assert_release_jobs([f.source, f.destination])
 
     for variant <- Map.values(f.source) ++ Map.values(f.destination) do
-      advanced = put_in(variant.assignment["sequence"], 30)
-      assert {:ok, %{sequence: 30}} = publish(advanced, "advance")
+      assert {:ok, %{sequence: 30}} = publish(advance(variant), "advance")
     end
 
     assert {:ok, ^first} = promote(f)
     assert destination_heads() == [["android", "30"], ["ios", "30"]]
     assert [[8, 1]] == counts()
+
+    assert_release_jobs([
+      f.source,
+      f.destination,
+      advanced_variants(f.source),
+      advanced_variants(f.destination)
+    ])
+
     assert {:error, :conflict} = promote(f, "different-key")
     assert {:error, :idempotency_conflict} = promote(f, "promote", "Changed reason")
 
@@ -384,7 +407,8 @@ defmodule MixerHosted.Releases.EnvironmentPromotion.PostgresTest do
       """
       IF (SELECT count(*) FROM #{@heads} WHERE environment_id='staging'
             AND ((platform='android' AND sequence=12) OR (platform='ios' AND sequence=3))) = 2
-        AND EXISTS (SELECT 1 FROM #{@binding} WHERE idempotency_key='promote') THEN
+        AND EXISTS (SELECT 1 FROM #{@binding} WHERE idempotency_key='promote')
+        #{deferred_job_check()} THEN
         PERFORM nextval('public.stage_fixture_fault_seen');
       END IF;
       RAISE EXCEPTION 'fixture deferred stage commit failed';
@@ -398,6 +422,68 @@ defmodule MixerHosted.Releases.EnvironmentPromotion.PostgresTest do
     )
 
     assert {:ok, _} = promote(f)
+    assert_release_jobs([f.source, f.destination])
+  end
+
+  @tag skip: System.get_env("MIXER_STAGE_PROMOTION_QUEUE") != "1"
+  test "rolls back both advances when the second queue insert fails", f do
+    with_failure(
+      "BEFORE INSERT ON #{@jobs} FOR EACH ROW",
+      """
+      IF NEW.args->>'environment_id'='staging' AND NEW.args->>'platform'='ios' THEN
+        IF (SELECT count(id) FROM #{@jobs})=1 AND
+           (SELECT count(*) FROM #{@heads} WHERE environment_id='staging'
+             AND sequence IS NOT NULL)=2 THEN
+          PERFORM nextval('public.stage_fixture_fault_seen');
+        END IF;
+        RAISE EXCEPTION 'fixture second queue insert failed';
+      END IF;
+      RETURN NEW;
+      """,
+      @jobs,
+      fn ->
+        assert {:error, :authorization_unavailable} = promote(f)
+        assert [[true]] = admin("SELECT is_called FROM public.stage_fixture_fault_seen").rows
+        assert_empty_destination()
+      end
+    )
+
+    assert {:ok, _} = promote(f)
+    assert_release_jobs([f.source, f.destination])
+  end
+
+  defp deferred_job_check do
+    if queue_enabled?() do
+      "AND (SELECT count(id) FROM #{@jobs})=2"
+    else
+      ""
+    end
+  end
+
+  defp advance(variant), do: put_in(variant.assignment["sequence"], 30)
+
+  defp advanced_variants(variants),
+    do: Map.new(variants, fn {platform, v} -> {platform, advance(v)} end)
+
+  defp assert_release_jobs(groups) do
+    if queue_enabled?() do
+      expected =
+        for group <- groups, {_, variant} <- group do
+          keys = MixerHosted.Releases.Target.filter(variant.enrollment.target)
+
+          Map.new(keys, fn {k, v} -> {Atom.to_string(k), v} end)
+          |> Map.merge(%{"version" => 1, "sequence" => to_string(variant.assignment["sequence"])})
+        end
+
+      actual =
+        admin("SELECT queue,worker,state::text,attempt,args FROM #{@jobs}").rows
+
+      job = fn args ->
+        ["releases", "MixerHosted.Releases.ReleaseJobs.Materialize", "available", 0, args]
+      end
+
+      assert Enum.frequencies(actual) == Enum.frequencies(Enum.map(expected, job))
+    end
   end
 
   defp promote(f, key \\ "promote", reason \\ @reason, identity \\ identity()),
@@ -694,6 +780,76 @@ defmodule MixerHosted.Releases.EnvironmentPromotion.PostgresTest do
   defp assert_empty_destination do
     assert destination_heads() == [["android", nil], ["ios", nil]]
     assert [[2, 0]] == counts()
+
+    if queue_enabled?(),
+      do:
+        assert(
+          [[2, 0]] ==
+            admin("""
+            SELECT count(*),count(*) FILTER (WHERE args->>'environment_id'='staging') FROM #{@jobs}
+            """).rows
+        )
+  end
+
+  defp queue_enabled?, do: System.get_env("MIXER_STAGE_PROMOTION_QUEUE") == "1"
+
+  defp migrate!(dir, name) do
+    [{module, _}] = Code.require_file(Path.join(["priv", dir, name <> ".exs"]))
+    [version, _] = String.split(name, "_", parts: 2)
+    assert :ok = Ecto.Migrator.up(Migration, String.to_integer(version), module, log: false)
+  end
+
+  defp provision_queue!(options) do
+    assert {_, 0} =
+             System.cmd(
+               "psql",
+               [
+                 "-X",
+                 "-q",
+                 "-w",
+                 "-h",
+                 options[:socket_dir],
+                 "-U",
+                 "stage_fixture_admin",
+                 "-d",
+                 options[:database],
+                 "-f",
+                 "../docs/operations/provision-local-release-jobs.sql"
+               ],
+               stderr_to_stdout: true
+             )
+  end
+
+  defp start_queue_enabled_api!(options) do
+    config =
+      RuntimeConfig.load!(%{
+        "MIXER_HOSTED_ROLE" => "api",
+        "MIXER_DATABASE_HOST" => "db.example.test",
+        "MIXER_DATABASE_NAME" => options[:database],
+        "MIXER_DATABASE_USER" => @writer,
+        "MIXER_DATABASE_PASSWORD" => "local socket fixture",
+        "MIXER_LOCAL_RELEASE_JOBS_ENABLED" => "true",
+        "MIXER_SECRET_KEY_BASE" => String.duplicate("a", 64)
+      })
+
+    # The fixture API uses its disposable UNIX socket and does not open HTTP.
+    config = %{config | repo: [username: @writer] ++ options, endpoint: [server: false]}
+    startup = {config, :disabled}
+
+    configure(:role, config.role)
+    configure(:identity_startup, config.identity_startup)
+    configure(MixerHosted.Repo, config.repo)
+    configure(Oban, config.oban)
+    configure(MixerHostedWeb.Endpoint, config.endpoint)
+    configure(:startup, startup)
+
+    start_supervised!(%{
+      id: MixerHosted.Supervisor,
+      start: {MixerHosted.Application, :start, [:normal, []]},
+      type: :supervisor
+    })
+
+    assert {:ok, ^startup} = MixerHosted.Application.startup()
   end
 
   defp destination_heads,
