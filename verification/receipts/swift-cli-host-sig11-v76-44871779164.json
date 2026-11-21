@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "revision": "32cd2c54b6d397f178200b6d95a27125f5c2de24",
+  "tree": "362136b1113ee2ca8976387b461138d45a844daf",
+  "result": "HOSTED_SWIFT_TESTING_SIGSEGV_UNATTRIBUTED",
+  "hosted": {
+    "runnerImage": "macos-15-arm64 20261118.0550.1",
+    "host": "macOS 15.8.2 (24H232), arm64",
+    "xcode": "26.3 (17C529), macOS SDK 26.2",
+    "swift": "Apple Swift 6.2.4 (swiftlang-6.2.4.1.4 clang-1700.6.4.2), swift-driver 1.127.15",
+    "swiftSHA256": "9bbc29c4dca73682d62011992be2ecfebcaef681ad490018a48e6643ac5847b7",
+    "swiftTesting": "1501, arm64e-apple-macos14.0",
+    "command": "swift test --package-path cli -j 2",
+    "logCommand": "gh api --allow-escape-sequences repos/snowdamiz/mixer/actions/jobs/<job>/logs",
+    "v75": {
+      "revision": "e30ec4b7c59f737a01876dac8d49de844e6b787b",
+      "jobURL": "https://github.com/snowdamiz/mixer/actions/runs/44869279038/job/136739915948",
+      "logSHA256": "429365491c4605b5ca0626207ed2fe00759f5463add3b1ac4ce0989a3f52c364",
+      "logBytes": 413091,
+      "signalLine": 3136,
+      "signalReportedAt": "2026-11-21T05:14:39.5573680Z",
+      "swiftTestingStartLine": 3216,
+      "receiptTestStartLine": 3267,
+      "topLevelTestStarts": 80,
+      "parameterizedCaseStarts": 249
+    },
+    "v76": {
+      "jobURL": "https://github.com/snowdamiz/mixer/actions/runs/44871779164/job/136747684394",
+      "logSHA256": "e04183574f1eb0db1605e9f688e391390e5e7e5912003325bbc67ae5ffc4ac6e",
+      "logBytes": 413237,
+      "signalLine": 3132,
+      "signalReportedAt": "2026-11-21T05:46:23.9732840Z",
+      "swiftTestingStartLine": 3212,
+      "receiptTestStartLine": 3278,
+      "topLevelTestStarts": 77,
+      "parameterizedCaseStarts": 264,
+      "artifactURL": "https://github.com/snowdamiz/mixer/actions/runs/44871779164/artifacts/14694401975",
+      "artifactZipSHA256": "9e3da16ad73fff6a758c70aa925de12efdf9f67dc9f283a65122edca9c14950c",
+      "productCommandReceipts": {
+        "count": 129,
+        "terminalReapedBothEOFsDescriptorsClosedGroupAbsentReleased": 129,
+        "swiftVersionExit0": 84,
+        "pythonScriptExit1": 41,
+        "pythonInlineExit0": 2,
+        "falseExit1": 1,
+        "printfExit0": 1
+      },
+      "storeChildReceipts": 1,
+      "storeChild": "The XCTest public-report missing-request fixture returned its expected exit 1 with terminal custody.",
+      "suiteHoldRecorded": false,
+      "overallDescendantCustody": "Unobserved at the Swift Testing runner crash. The artifact covers the persisted children."
+    },
+    "bothJobs": {
+      "rootSwiftTestingPassed": 228,
+      "updateVerifierSwiftTestingPassed": 69,
+      "cliXCTestExecuted": 33,
+      "cliXCTestSkipped": 1,
+      "cliXCTestFailures": 0,
+      "cliSwiftTestingTerminalEventsObserved": 0,
+      "symbolicatedCrashReportsAvailable": 0,
+      "signal": 11
+    },
+    "comparison": "The CLI, local Swift dependencies, Android fixture source, toolchain/CLI preparation scripts and swift-host workflow block are identical at the two revisions. The log contains different subsets of concurrent starts. Both include ownedCommandControlSchedules. Neither log attributes the signal to a test, command or frame."
+  },
+  "localReplay": {
+    "host": "macOS 27.0.1 (26A434), arm64",
+    "toolchain": "Xcode 26.6 (17F113), macOS SDK 26.5, Apple Swift 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101), Swift Testing 1902",
+    "exactHostedToolchainInstalled": false,
+    "otherInstalledToolchainsChecked": "Xcode 27.2 with Swift 6.4.2, Command Line Tools Swift 6.3.3, user Swift 6.3.2 and Swift 6.3.3",
+    "source": "Exact v76 CLI and dependencies exported from Git into a private scratch checkout. Used the checked-in prepare-cli-host-tests.py and the real freshly built mixer executable.",
+    "commands": [
+      "SDKROOT=<Xcode_26.6 MacOSX26.5.sdk> swift build --package-path cli --scratch-path <build> --cache-path <cache> --config-path <config> --security-path <security> --force-resolved-versions -j 4 --product mixer",
+      "swift test --package-path cli --scratch-path <build> --cache-path <cache> --config-path <config> --security-path <security> --force-resolved-versions -j 2",
+      "swift test --package-path cli --scratch-path <build> --cache-path <cache> --config-path <config> --security-path <security> --force-resolved-versions -j 2 --skip-build"
+    ],
+    "boundsSeconds": {"build": 540, "eachTestInvocation": 300},
+    "setupCorrections": [
+      "The initial build selected the installed Command Line Tools macOS 27.0 SDK and failed at manifest compilation. Setting SDKROOT to the selected Xcode's macOS 26.5 SDK corrected the mismatch.",
+      "The first test invocation included SWIFT_BACKTRACE. This inserted privileged-executable warnings into child swift --version output, causing 42 Swift Testing issues. Its test binary was reused under a fresh fixture with SWIFT_BACKTRACE unset."
+    ],
+    "cleanReplay": {
+      "exit": 1,
+      "wallSeconds": 34.541,
+      "cliXCTestReported": "33 tests, 1 skipped, 33 failure assertions (14 unexpected). The scratch TMPDIR was below world-writable /private/tmp, which the native output ancestor gate rejects.",
+      "cliSwiftTestingPassed": 132,
+      "cliSwiftTestingSuites": 5,
+      "cliSwiftTestingParameterizedCaseStarts": 272,
+      "swiftTestingSeconds": 31.475,
+      "ownedCommandControlSchedulesPassed": true,
+      "signal11Observed": false,
+      "testBundleBinarySHA256": "aae571b699c7793ac9f23743d59b973156676f9b2e0282950d301e7f902f1a9c",
+      "logSHA256": "a193611349b5c393177c75cc7543676f976cdecb4c68c62e181dc20aa22ec923"
+    },
+    "custody": "All launched supervisor command leaders were reaped and their process groups were absent. The clean replay returned 140 terminal product-command receipts and 60 terminal store-child receipts. The instrumentation control returned 94 and 60 respectively. Neither fixture registered a hold. The eight exact external Foundation fixture paths identified in local output were absent at cleanup. The dedicated scratch was removed."
+  },
+  "decision": "No source fix supported. A full concurrent Swift Testing pass on newer Swift and macOS weakens a runtime-independent deterministic product crash hypothesis. The exact hosted runtime still needs an A/B test to separate scheduling dependence from a crash that also occurs serially, and a symbolicated crashing thread to attribute it.",
+  "nextDiagnostic": {
+    "name": "v76 Swift Testing 1501 serial versus default with crash capture",
+    "scope": "One fresh macos-15 arm64 job, checked out at the exact v76 revision, with Xcode 26.3 build 17C529 and verified Swift 6.2.4. Build CLI tests once and run only Swift Testing in two fresh fixture roots. No old attempt is resumed.",
+    "build": "swift build --package-path cli --scratch-path \"$diag/build\" -j 2 --build-tests",
+    "prepareEach": "python3 -I -B -S scripts/ci/prepare-cli-host-tests.py --toolchain-receipt \"$diag/apple-toolchain.json\" --output \"$diag/$mode-fixture\"",
+    "serial": "swift test --package-path cli --scratch-path \"$diag/build\" --skip-build -j 2 --disable-xctest --no-parallel --event-stream-output-path \"$diag/serial.ndjson\"",
+    "default": "swift test --package-path cli --scratch-path \"$diag/build\" --skip-build -j 2 --disable-xctest --event-stream-output-path \"$diag/default.ndjson\"",
+    "bounds": "One build, six minutes maximum. One serial and one default invocation, five minutes maximum each. Give CrashReporter up to 30 seconds to publish a new matching report. Stop on a hold or timeout. If serial reproduces SIGSEGV, the concurrent hosted failure already supplies the other side; stop on the serial crash and preserve its evidence.",
+    "capture": "Save toolchain/OS identities, each exit, stdout/stderr, NDJSON, test image UUID and dSYM, and any new swiftpm-testing-helper or MixerCLIPackageTests .ips record. Scope crash report collection to files created after the scenario started. Keep SWIFT_BACKTRACE unset because inherited diagnostics alter the compiler identity fixture.",
+    "interpretation": "A serial pass and default SIGSEGV establish scheduling dependence for these scenarios. A serial SIGSEGV shows suite-level parallelism is unnecessary for reproduction. Both passes leave the intermittent hosted failure unclassified. A symbolicated crashing thread is needed to distinguish Testing/fixture code from product code and Apple framework frames."
+  }
+}
