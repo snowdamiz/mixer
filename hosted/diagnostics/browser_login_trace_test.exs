@@ -3,9 +3,10 @@ defmodule MixerBrowserLoginTrace do
   @owner MixerHosted.BrowserAuth.RuntimeOwner
   @store MixerHosted.BrowserAuth.Store
   @proxy R932.PhaseCommitProxy
+  @begin_login {@owner, :begin_login, 5}
   @targets [
-    {@owner, :begin_login, 4},
-    {@owner, :prepare_begin, 3},
+    @begin_login,
+    {@owner, :prepare_begin, 4},
     {@owner, :publish, 2},
     {@owner, :finish_receipt, 3},
     {@store, :discover_begin, 1},
@@ -173,7 +174,7 @@ defmodule MixerBrowserLoginTrace do
             st
         end
 
-      st.armed and {m, f, length(args)} == {@owner, :begin_login, 4} ->
+      st.armed and {m, f, length(args)} == @begin_login ->
         st = %{st | active: MapSet.put(st.active, pid)}
         phase_call(st, key, t, args)
 
@@ -211,7 +212,7 @@ defmodule MixerBrowserLoginTrace do
         us = System.convert_time_unit(t - start, :native, :microsecond)
         st = emit(%{st | starts: starts}, {kind, pid, m, f, a, us, summary(value)})
 
-        if {m, f, a} == {@owner, :begin_login, 4},
+        if {m, f, a} == @begin_login,
           do: %{st | active: MapSet.delete(st.active, pid)},
           else: st
     end
