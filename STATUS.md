@@ -1196,7 +1196,15 @@ The Swift host job on `b7ead55c26` failed two five-second waits for
 scripted store requests to start. Both neighboring Swift host jobs
 passed with the same CLI, SDK, and workflow bytes. The failed run's
 archive records terminal custody for 140 owned commands and 60 store
-children. The cause is under investigation. [Failure evidence](verification/receipts/hosted-engine-b7ead55c-swift-store-start-timeouts.json)
+children. [Hosted failure](verification/receipts/hosted-engine-b7ead55c-swift-store-start-timeouts.json)
+
+An injected start delay reproduced both messages before either test sent
+its old request. The fixture now starts an owned thread and captures the
+held URLProtocol response, preserving the five-second limits and request
+ordering. All 44 focused tests passed independently on macOS Swift 6.4.2,
+with 59 real CLI children confirmed closed. The original hosted trigger
+remains unknown. Hosted validation of the correction is pending.
+[Author replay](verification/receipts/store-reconciliation-host-fixture-7d257e0d.json) · [Independent replay](verification/receipts/store-reconciliation-host-fixture-independent-7d257e0d.json)
 
 ## November 20 generated release REST client
 

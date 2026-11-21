@@ -11,12 +11,24 @@ private func testingPayload(internalState: Any = "READY_FOR_BETA_TESTING", exter
         "included": [["type": "apps", "id": "12345", "attributes": ["bundleId": "com.example.Store"]], ["type": "buildBetaDetails", "id": "beta-1", "attributes": ["internalBuildState": internalState, "externalBuildState": externalState], "relationships": ["build": ["data": ["type": "builds", "id": "build-1"]]]]]
     ])
 }
-private struct TestingReply: Sendable { var body: Data; var status = 200; var mime = "application/json"; var error: URLError?; var gate: TestingGate?; var length: Int? }
-private final class TestingGate: @unchecked Sendable { let started = DispatchSemaphore(value: 0); let release = DispatchSemaphore(value: 0) }
+private struct TestingReply: Sendable { var body: Data; var status = 200; var mime = "application/json"; var error: URLError?; var gate: StoreReconciliationRequestHold?; var length: Int? }
 private final class TestingScript: @unchecked Sendable {
     private let lock = NSLock(); private var replies: [TestingReply] = []; private var requests: [URLRequest] = []
-    func set(_ replies: [TestingReply]) { lock.lock(); defer { lock.unlock() }; self.replies = replies; requests = [] }
-    func take(_ request: URLRequest) -> TestingReply? { lock.lock(); defer { lock.unlock() }; requests.append(request); return replies.isEmpty ? nil : replies.removeFirst() }
+    private var retired = false
+    func retire() {
+        lock.lock()
+        defer { lock.unlock() }
+        retired = true
+        replies.removeAll()
+    }
+    func set(_ replies: [TestingReply]) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !retired else { return }
+        self.replies = replies
+        requests = []
+    }
+    func take(_ request: URLRequest) -> TestingReply? { lock.lock(); defer { lock.unlock() }; requests.append(request); return retired || replies.isEmpty ? nil : replies.removeFirst() }
     func trace() -> [URLRequest] { lock.lock(); defer { lock.unlock() }; return requests }
 }
 private final class TestingASC: URLProtocol, @unchecked Sendable {
@@ -25,9 +37,13 @@ private final class TestingASC: URLProtocol, @unchecked Sendable {
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
         guard let reply = Self.script.take(request) else { client?.urlProtocol(self, didFailWithError: URLError(.resourceUnavailable)); return }
-        if let gate = reply.gate { gate.started.signal(); DispatchQueue.global().async { [self] in
-            guard gate.release.wait(timeout: .now() + 5) == .success else { client?.urlProtocol(self, didFailWithError: URLError(.timedOut)); return }; respond(reply)
-        } } else { respond(reply) }
+        if let gate = reply.gate {
+            gate.hold { [weak self] error in
+                guard let self else { return }
+                if let error { client?.urlProtocol(self, didFailWithError: error) }
+                else { respond(reply) }
+            }
+        } else { respond(reply) }
     }
     private func respond(_ reply: TestingReply) {
         if let error = reply.error { client?.urlProtocol(self, didFailWithError: error); return }
@@ -64,12 +80,6 @@ private func mutatePayload(_ body: Data, _ change: (inout [String: Any]) -> Void
 private func processingPayload() throws -> Data {
     try mutatePayload(testingPayload()) { object in object["included"] = [(object["included"] as! [[String: Any]])[0]] }
 }
-private final class TestingResult: @unchecked Sendable {
-    private let lock = NSLock(); private var value: Result<StoreTestingReconciliationReport, Error>?
-    func set(_ value: Result<StoreTestingReconciliationReport, Error>) { lock.lock(); defer { lock.unlock() }; self.value = value }
-    func get() -> Result<StoreTestingReconciliationReport, Error>? { lock.lock(); defer { lock.unlock() }; return value }
-}
-
 @Suite(.serialized) struct StoreTestingReconciliationTests {
     @Test func exactSparseReadAndSeparateProviderReadiness() throws {
         try testingProject { root in
@@ -186,23 +196,23 @@ private final class TestingResult: @unchecked Sendable {
     }
     @Test func concurrentCredentialWriterFencesInflightNewFields() throws {
         for external in [false, true] { try testingProject { root in
-            let secret = "future-concurrent-secret", gate = TestingGate(), done = DispatchSemaphore(value: 0), box = TestingResult()
+            let secret = "future-concurrent-secret", gate = StoreReconciliationRequestHold()
             let body = try testingPayload(internalState: external ? "SAFE" : secret, externalState: external ? secret : "SAFE")
             TestingASC.script.set([.init(body: body, gate: gate), .init(body: Data(), status: 401)])
-            DispatchQueue.global().async { box.set(Result { try testingQuery(root) }); done.signal() }
-            guard gate.started.wait(timeout: .now() + 5) == .success else { gate.release.signal(); Issue.record("request did not start"); return }; defer { gate.release.signal() }
-            _ = try testingQuery(root, token: secret); gate.release.signal(); try #require(done.wait(timeout: .now() + 5) == .success)
-            let old = try #require(box.get()).get(); #expect(old.reconciliation.code == .redactedResponse && old.reconciliation.observation == nil)
+            let old = try gate.run(old: { try testingQuery(root) }, retireScript: TestingASC.script.retire) {
+                _ = try testingQuery(root, token: secret)
+            }
+            #expect(old.reconciliation.code == .redactedResponse && old.reconciliation.observation == nil)
         } }
     }
     @Test func mixedGenerationsDoNotRestoreStaleTestingAfterProcessingQuery() throws {
         try testingProject { root in
-            let gate = TestingGate(), done = DispatchSemaphore(value: 0), box = TestingResult(), body = try testingPayload()
+            let gate = StoreReconciliationRequestHold(), body = try testingPayload()
             TestingASC.script.set([.init(body: body, gate: gate), .init(body: try processingPayload())])
-            DispatchQueue.global().async { box.set(Result { try testingQuery(root) }); done.signal() }
-            guard gate.started.wait(timeout: .now() + 5) == .success else { gate.release.signal(); Issue.record("request did not start"); return }; defer { gate.release.signal() }
-            let newer = try processingQuery(root, token: testingToken); #expect(newer.observation?.generation == 2 && newer.status == "processing-succeeded")
-            gate.release.signal(); try #require(done.wait(timeout: .now() + 5) == .success); let older = try #require(box.get()).get()
+            let older = try gate.run(old: { try testingQuery(root) }, retireScript: TestingASC.script.retire) {
+                let newer = try processingQuery(root, token: testingToken)
+                #expect(newer.observation?.generation == 2 && newer.status == "processing-succeeded")
+            }
             #expect(older.reconciliation.query == "superseded" && older.internalReadiness == "unresolved" && older.reconciliation.observation?.providerValue.testing == nil)
         }
     }

@@ -12,24 +12,33 @@ private func payload(_ state: String = "PROCESSING", build: String = "build-1", 
     """.utf8)
 }
 
-private final class Gate: @unchecked Sendable {
-    let started = DispatchSemaphore(value: 0)
-    let release = DispatchSemaphore(value: 0)
-}
 private struct Reply: Sendable {
     var body: Data = payload()
     var status: Int = 200
     var headers: [String: String] = ["Content-Type": "application/json"]
     var error: URLError?
     var redirect = false
-    var gate: Gate?
+    var gate: StoreReconciliationRequestHold?
 }
 private final class Script: @unchecked Sendable {
     let lock = NSLock()
     var replies: [Reply] = []
     var trace: [URLRequest] = []
-    func set(_ replies: [Reply]) { lock.lock(); defer { lock.unlock() }; self.replies = replies; trace = [] }
-    func take(_ request: URLRequest) -> Reply? { lock.lock(); defer { lock.unlock() }; trace.append(request); return replies.isEmpty ? nil : replies.removeFirst() }
+    private var retired = false
+    func retire() {
+        lock.lock()
+        defer { lock.unlock() }
+        retired = true
+        replies.removeAll()
+    }
+    func set(_ replies: [Reply]) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !retired else { return }
+        self.replies = replies
+        trace = []
+    }
+    func take(_ request: URLRequest) -> Reply? { lock.lock(); defer { lock.unlock() }; trace.append(request); return retired || replies.isEmpty ? nil : replies.removeFirst() }
     func requests() -> [URLRequest] { lock.lock(); defer { lock.unlock() }; return trace }
 }
 private final class ScriptedASC: URLProtocol, @unchecked Sendable {
@@ -39,10 +48,10 @@ private final class ScriptedASC: URLProtocol, @unchecked Sendable {
     override func startLoading() {
         guard let reply = Self.script.take(request) else { client?.urlProtocol(self, didFailWithError: URLError(.resourceUnavailable)); return }
         if let gate = reply.gate {
-            gate.started.signal()
-            DispatchQueue.global().async { [self] in
-                guard gate.release.wait(timeout: .now() + 5) == .success else { client?.urlProtocol(self, didFailWithError: URLError(.timedOut)); return }
-                respond(reply)
+            gate.hold { [weak self] error in
+                guard let self else { return }
+                if let error { client?.urlProtocol(self, didFailWithError: error) }
+                else { respond(reply) }
             }
         } else { respond(reply) }
     }
@@ -159,18 +168,13 @@ private func assertReads(_ count: Int) throws {
     @Test func inFlightAndRotatedWritersCannotRestoreRecognizedCredential() throws {
         for inState in [false, true] {
             try project { root in
-                let futureToken = "newly-supplied-offline-token", gate = Gate(), done = DispatchSemaphore(value: 0)
-                let result = ResultBox()
+                let futureToken = "newly-supplied-offline-token", gate = StoreReconciliationRequestHold()
                 let body = payload(inState ? futureToken : "VALID", version: inState ? "42" : futureToken)
                 ScriptedASC.script.set([Reply(body: body, gate: gate), Reply(status: 401), Reply(body: body), Reply(body: payload("VALID", version: "43"))])
-                DispatchQueue.global().async { result.set(Result { try query(root) }); done.signal() }
-                guard gate.started.wait(timeout: .now() + 5) == .success else { gate.release.signal(); Issue.record("Old request did not start"); return }
-                defer { gate.release.signal() }
-                let rejected = try query(root, token: futureToken)
-                #expect(rejected.code == .authenticationRejected && rejected.observation == nil)
-                gate.release.signal()
-                #expect(done.wait(timeout: .now() + 5) == .success)
-                let old = try #require(result.get()).get()
+                let old = try gate.run(old: { try query(root) }, retireScript: ScriptedASC.script.retire) {
+                    let rejected = try query(root, token: futureToken)
+                    #expect(rejected.code == .authenticationRejected && rejected.observation == nil)
+                }
                 #expect(old.code == .redactedResponse && !old.observationUpdated && old.observation == nil)
                 let rotated = try query(root, token: "third-offline-token")
                 #expect(rotated.code == .redactedResponse && rotated.observation == nil)
@@ -187,18 +191,15 @@ private func assertReads(_ count: Int) throws {
     }
     @Test func invalidationRetainsGenerationOrderingAgainstOlderSafeWriter() throws {
         try project { root in
-            let futureToken = "newly-supplied-offline-token", gate = Gate(), done = DispatchSemaphore(value: 0)
-            let result = ResultBox()
+            let futureToken = "newly-supplied-offline-token", gate = StoreReconciliationRequestHold()
             ScriptedASC.script.set([Reply(body: payload("VALID")), Reply(body: payload("VALID", version: "old-safe"), gate: gate), Reply(body: payload("VALID", version: futureToken)), Reply(status: 401), Reply(body: payload("VALID", version: "new-safe"))])
             _ = try query(root)
-            DispatchQueue.global().async { result.set(Result { try query(root) }); done.signal() }
-            guard gate.started.wait(timeout: .now() + 5) == .success else { gate.release.signal(); Issue.record("Old request did not start"); return }
-            defer { gate.release.signal() }
-            #expect(try query(root).observation?.generation == 3)
-            #expect(try query(root, token: futureToken).observation == nil)
-            gate.release.signal()
-            #expect(done.wait(timeout: .now() + 5) == .success)
-            let old = try #require(result.get()).get()
+            let old = try gate.run(old: { try query(root) }, retireScript: ScriptedASC.script.retire) {
+                let reflected = try query(root)
+                #expect(reflected.observation?.generation == 3)
+                let rejected = try query(root, token: futureToken)
+                #expect(rejected.observation == nil)
+            }
             #expect(old.query == "superseded" && !old.observationUpdated && old.observation == nil)
             #expect(try query(root, token: "").observation == nil)
             let recovered = try query(root)
@@ -532,24 +533,21 @@ private func assertReads(_ count: Int) throws {
     }
     @Test func crossProcessCredentialRecognitionFencesOlderWriter() throws {
         try project { root in
-            let secret = "synthetic credential with spaces", gate = Gate(), done = DispatchSemaphore(value: 0), result = ResultBox()
+            let secret = "synthetic credential with spaces", gate = StoreReconciliationRequestHold()
             ScriptedASC.script.set([Reply(body: payload("VALID", version: secret), gate: gate)])
-            DispatchQueue.global().async { result.set(Result { try query(root) }); done.signal() }
-            guard gate.started.wait(timeout: .now() + 5) == .success else { gate.release.signal(); Issue.record("Old request did not start"); return }
-            defer { gate.release.signal() }
             let executable = try #require(ProcessInfo.processInfo.environment["MIXER_STORE_TEST_CLI"])
             let arguments = ["submit", "status", "--provider", "app-store-connect", "--build-id", "build-1", "--app-id", "12345", "--directory", root.path]
             var environment = ProcessInfo.processInfo.environment
             environment["MIXER_ASC_BEARER_TOKEN"] = secret
-            let child = try StoreCLIChild.run(executable, arguments, environment: environment)
-            #expect(child.0 == 1 && child.1.contains("store.credential-required"))
-            gate.release.signal()
-            try #require(done.wait(timeout: .now() + 5) == .success)
-            let older = try #require(result.get()).get()
+            let older = try gate.run(old: { try query(root) }, retireScript: ScriptedASC.script.retire) {
+                let child = try StoreCLIChild.run(executable, arguments, environment: environment)
+                #expect(child.0 == 1 && child.1.contains("store.credential-required"))
+                print("REVIEW crossProcess childExit=\(child.0)")
+            }
             #expect(older.code == .redactedResponse && older.observation == nil)
             #expect(try query(root, token: "").observation == nil)
             #expect(!String(decoding: try record(root), as: UTF8.self).contains(secret))
-            print("REVIEW crossProcess childExit=\(child.0) oldWriter=\(older.code?.rawValue ?? "nil") noReemission=true")
+            print("REVIEW crossProcess oldWriter=\(older.code?.rawValue ?? "nil") noReemission=true")
         }
     }
     @Test func processingStatesAndRepeatedInvocationPreserveVersionWithoutReadiness() throws {
@@ -628,18 +626,12 @@ private func assertReads(_ count: Int) throws {
     }
     @Test func olderConcurrentResponseCannotOverwriteNewerObservation() throws {
         try project { root in
-            let gate = Gate(), done = DispatchSemaphore(value: 0)
-            let result = ResultBox()
+            let gate = StoreReconciliationRequestHold()
             ScriptedASC.script.set([Reply(body: payload("PROCESSING"), gate: gate), Reply(body: payload("VALID", version: "43"))])
-            DispatchQueue.global().async {
-                result.set(Result { try query(root) }); done.signal()
+            let older = try gate.run(old: { try query(root) }, retireScript: ScriptedASC.script.retire) {
+                let newer = try query(root)
+                #expect(newer.status == "processing-succeeded")
             }
-            guard gate.started.wait(timeout: .now() + 5) == .success else { gate.release.signal(); Issue.record("Old request did not start"); return }
-            let newer = try query(root)
-            gate.release.signal()
-            #expect(done.wait(timeout: .now() + 5) == .success)
-            let older = try #require(result.get()).get()
-            #expect(newer.status == "processing-succeeded")
             #expect(older.query == "superseded" && !older.observationUpdated)
             #expect(older.observation?.version == "43")
             let persisted = String(decoding: try record(root), as: UTF8.self)

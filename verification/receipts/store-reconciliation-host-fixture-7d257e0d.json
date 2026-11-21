@@ -1,0 +1,466 @@
+{
+  "schema": 1,
+  "classification": "Test harness scheduling dependency reproduced. No product reconciliation defect observed. Hosted scheduling cause remains unproven.",
+  "base": {
+    "repository": "https://github.com/snowdamiz/mixer",
+    "ref_observed": "refs/heads/main",
+    "commit": "7d257e0d1beda17874fc0ce7d015d81bf640870a",
+    "tree": "5d13c046a6a3aed8cce7632578c19e0c48cf01ee",
+    "archive_paths": [
+      "cli",
+      "sdk",
+      "updates",
+      "runtime-identity"
+    ],
+    "input_trees_by_revision": {
+      "d89c742e9d6a7b6277830f201a350ccc0e7d7096": {
+        "cli": "8e4276dee720f574b579110b5958e5139069b78f",
+        "sdk": "da0a358a6984e198525ea76c7be7fd2af245e12e",
+        "updates": "dcbc7767552374b8dd77c76cbce7a912b735b18d",
+        "runtime-identity": "cae30cab1bc2d0a804f2d317a3fb33b18428dc67",
+        ".github/workflows": "534779e489745af37dbc98e7fced29232f104a2c"
+      },
+      "b7ead55c261bf39fc9a8c2e248049649842461f0": {
+        "cli": "8e4276dee720f574b579110b5958e5139069b78f",
+        "sdk": "da0a358a6984e198525ea76c7be7fd2af245e12e",
+        "updates": "dcbc7767552374b8dd77c76cbce7a912b735b18d",
+        "runtime-identity": "cae30cab1bc2d0a804f2d317a3fb33b18428dc67",
+        ".github/workflows": "534779e489745af37dbc98e7fced29232f104a2c"
+      },
+      "7d257e0d1beda17874fc0ce7d015d81bf640870a": {
+        "cli": "8e4276dee720f574b579110b5958e5139069b78f",
+        "sdk": "da0a358a6984e198525ea76c7be7fd2af245e12e",
+        "updates": "dcbc7767552374b8dd77c76cbce7a912b735b18d",
+        "runtime-identity": "cae30cab1bc2d0a804f2d317a3fb33b18428dc67",
+        ".github/workflows": "534779e489745af37dbc98e7fced29232f104a2c"
+      }
+    }
+  },
+  "hosted": {
+    "run": 44949592954,
+    "job": 136984360412,
+    "head": "b7ead55c261bf39fc9a8c2e248049649842461f0",
+    "url": "https://github.com/snowdamiz/mixer/actions/runs/44949592954/job/136984360412",
+    "xcode": "26.3 (17C529)",
+    "swift": "6.2.4",
+    "target": "arm64-apple-macosx15.0",
+    "sha256": "70dcbbd5db21469362bbf692a6249b39e84594962586504c0da7e867627dc7ff",
+    "excerpts": [
+      "swift-host\tSwift SDK, update verifier and CLI\t2026-11-21T21:20:17.2224490Z \u21b3 Old request did not start",
+      "swift-host\tSwift SDK, update verifier and CLI\t2026-11-21T21:20:17.2225790Z \u21b3 request did not start",
+      "swift-host\tSwift SDK, update verifier and CLI\t2026-11-21T21:20:17.2240280Z \u2718 Test concurrentCredentialWriterFencesInflightNewFields() failed after 5.413 seconds with 1 issue.",
+      "swift-host\tSwift SDK, update verifier and CLI\t2026-11-21T21:20:17.2241820Z \u2718 Test inFlightAndRotatedWritersCannotRestoreRecognizedCredential() failed after 5.845 seconds with 1 issue.",
+      "swift-host\tSwift SDK, update verifier and CLI\t2026-11-21T21:20:17.2365980Z \u2718 Test run with 137 tests in 5 suites failed after 86.995 seconds with 2 issues."
+    ]
+  },
+  "local": {
+    "swift": "swift-driver version: 1.168.6 Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "xcode": "Xcode 27.2\nBuild version 27B52",
+    "os": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "swift_crypto": "5.0.3",
+    "swift_asn1": "1.7.3",
+    "environment": {
+      "TMPDIR": "$SCRATCH/tmp",
+      "SWIFTPM_MODULECACHE_OVERRIDE": "$SCRATCH/modules",
+      "CLANG_MODULE_CACHE_PATH": "$SCRATCH/modules",
+      "MIXER_STORE_TEST_CLI": "$SCRATCH/build/out/Products/Debug/mixer",
+      "MIXER_STORE_CUSTODY_DIR": "$SCRATCH/<run>-custody",
+      "MIXER_SUITE_HOLD": "$SCRATCH/<run>-SUITE-HOLD.json"
+    }
+  },
+  "runs": {
+    "baseline": {
+      "argv": [
+        "swift",
+        "test",
+        "--package-path",
+        "$SCRATCH/source/cli",
+        "--scratch-path",
+        "$SCRATCH/build",
+        "--cache-path",
+        "$SCRATCH/cache",
+        "--config-path",
+        "$SCRATCH/config",
+        "--security-path",
+        "$SCRATCH/security",
+        "--disable-dependency-cache",
+        "--jobs",
+        "8",
+        "--skip-build",
+        "--filter",
+        "Store(Submission|Testing)ReconciliationTests"
+      ],
+      "exit": 0,
+      "sha256": "2669f0ac41ce5a4eadf2a8d4c9c99a6eacee66916f368c47ca5902bd17604e6d",
+      "excerpts": [
+        "\u2714 Test run with 44 tests in 2 suites passed after 13.084 seconds."
+      ]
+    },
+    "controlled_baseline": {
+      "argv": [
+        "swift",
+        "test",
+        "--package-path",
+        "$SCRATCH/source/cli",
+        "--scratch-path",
+        "$SCRATCH/build",
+        "--cache-path",
+        "$SCRATCH/cache",
+        "--config-path",
+        "$SCRATCH/config",
+        "--security-path",
+        "$SCRATCH/security",
+        "--disable-dependency-cache",
+        "--jobs",
+        "8",
+        "--filter",
+        "inFlightAndRotatedWritersCannotRestoreRecognizedCredential|concurrentCredentialWriterFencesInflightNewFields"
+      ],
+      "exit": 1,
+      "intervention": "For each of the two named real tests, replace the old-query global async enqueue with a fresh suspended serial dispatch queue. Resume the queue with global asyncAfter at 5250 ms. Log query entry and drain that queue after the original five-second gate produces its existing failure. Leave product, URLProtocol and test payloads unchanged.",
+      "sha256": "8f83d960707350efbcbd422ed802b73f55bdd9d82c74b3e4eb673974f05bf08c",
+      "excerpts": [
+        "CONTROL processing enqueued while query queue suspended",
+        "CONTROL testing enqueued while query queue suspended",
+        "\u21b3 Old request did not start",
+        "\u21b3 request did not start",
+        "CONTROL processing query closure entered after 5.599916083 s",
+        "CONTROL testing query closure entered after 5.599888584 s",
+        "CONTROL testing enqueued while query queue suspended",
+        "CONTROL processing enqueued while query queue suspended",
+        "\u21b3 request did not start",
+        "\u21b3 Old request did not start",
+        "CONTROL testing query closure entered after 5.598748292 s",
+        "CONTROL processing query closure entered after 5.597031084 s",
+        "\u2718 Test run with 2 tests in 2 suites failed after 11.277 seconds with 4 issues."
+      ]
+    },
+    "controlled_candidate_delayed_entry": {
+      "argv": [
+        "swift",
+        "test",
+        "--package-path",
+        "$SCRATCH/source/cli",
+        "--scratch-path",
+        "$SCRATCH/build",
+        "--cache-path",
+        "$SCRATCH/cache",
+        "--config-path",
+        "$SCRATCH/config",
+        "--security-path",
+        "$SCRATCH/security",
+        "--disable-dependency-cache",
+        "--jobs",
+        "8",
+        "--filter",
+        "inFlightAndRotatedWritersCannotRestoreRecognizedCredential|concurrentCredentialWriterFencesInflightNewFields"
+      ],
+      "exit": 1,
+      "environment": {
+        "MIXER_STORE_SCHEDULING_CONTROL": "delayed-entry"
+      },
+      "intervention": "Temporarily sleep 5.5 seconds at the entry of the dedicated worker, then log when cancelled admission skips the old query.",
+      "sha256": "a357c9033c2c62d6ad011643df9bb263199508c757ee8bf181329cd7bafcce03",
+      "excerpts": [
+        "CONTROL late worker skipped old query",
+        "\u2718 Test concurrentCredentialWriterFencesInflightNewFields() recorded an issue at StoreTestingReconciliationTests.swift:197:6: Caught error: Old reconciliation request did not reach URLProtocol within five seconds (worker never entered)",
+        "CONTROL late worker skipped old query",
+        "\u2718 Test inFlightAndRotatedWritersCannotRestoreRecognizedCredential() recorded an issue at StoreReconciliationTests.swift:168:6: Caught error: Old reconciliation request did not reach URLProtocol within five seconds (worker never entered)",
+        "\u2718 Test run with 2 tests in 2 suites failed after 5.513 seconds with 2 issues."
+      ]
+    },
+    "controlled_candidate_abort_while_held": {
+      "argv": [
+        "swift",
+        "test",
+        "--package-path",
+        "$SCRATCH/source/cli",
+        "--scratch-path",
+        "$SCRATCH/build",
+        "--cache-path",
+        "$SCRATCH/cache",
+        "--config-path",
+        "$SCRATCH/config",
+        "--security-path",
+        "$SCRATCH/security",
+        "--disable-dependency-cache",
+        "--jobs",
+        "8",
+        "--skip-build",
+        "--filter",
+        "inFlightAndRotatedWritersCannotRestoreRecognizedCredential|concurrentCredentialWriterFencesInflightNewFields"
+      ],
+      "exit": 1,
+      "environment": {
+        "MIXER_STORE_SCHEDULING_CONTROL": "abort-held-response"
+      },
+      "intervention": "Temporarily throw after URLProtocol captures the held response and before running the newer writer. Log old worker completion after cancellation.",
+      "sha256": "822a6be7a32982ff309ee0844a9a9fbf795cc94a29fd5c42359d93b8fa455fbd",
+      "excerpts": [
+        "CONTROL URLProtocol held response before injected throw",
+        "CONTROL URLProtocol held response before injected throw",
+        "CONTROL cancelled worker finished",
+        "CONTROL cancelled worker finished",
+        "\u2718 Test concurrentCredentialWriterFencesInflightNewFields() recorded an issue at StoreTestingReconciliationTests.swift:197:6: Caught error: CONTROL abort while response is held",
+        "\u2718 Test inFlightAndRotatedWritersCannotRestoreRecognizedCredential() recorded an issue at StoreReconciliationTests.swift:168:6: Caught error: CONTROL abort while response is held",
+        "\u2718 Test run with 2 tests in 2 suites failed after 0.021 seconds with 2 issues."
+      ]
+    },
+    "candidate": {
+      "argv": [
+        "swift",
+        "test",
+        "--package-path",
+        "$SCRATCH/source/cli",
+        "--scratch-path",
+        "$SCRATCH/build",
+        "--cache-path",
+        "$SCRATCH/cache",
+        "--config-path",
+        "$SCRATCH/config",
+        "--security-path",
+        "$SCRATCH/security",
+        "--disable-dependency-cache",
+        "--jobs",
+        "8",
+        "--filter",
+        "Store(Submission|Testing)ReconciliationTests"
+      ],
+      "exit": 0,
+      "sha256": "4e69529533f6411d6b852a4a348c50b2c37e04e0ed18ae449dd8154693b7826f",
+      "excerpts": [
+        "\u2714 Test run with 44 tests in 2 suites passed after 9.697 seconds."
+      ],
+      "gated_test_passes": [
+        "\u2714 Test inFlightAndRotatedWritersCannotRestoreRecognizedCredential() passed after 0.027 seconds.",
+        "\u2714 Test invalidationRetainsGenerationOrderingAgainstOlderSafeWriter() passed after 0.014 seconds.",
+        "\u2714 Test concurrentCredentialWriterFencesInflightNewFields() passed after 0.013 seconds.",
+        "\u2714 Test mixedGenerationsDoNotRestoreStaleTestingAfterProcessingQuery() passed after 0.005 seconds.",
+        "\u2714 Test crossProcessCredentialRecognitionFencesOlderWriter() passed after 0.023 seconds.",
+        "\u2714 Test olderConcurrentResponseCannotOverwriteNewerObservation() passed after 0.005 seconds."
+      ]
+    },
+    "candidate_targeted_repeats": [
+      {
+        "argv": [
+          "swift",
+          "test",
+          "--package-path",
+          "$SCRATCH/source/cli",
+          "--scratch-path",
+          "$SCRATCH/build",
+          "--cache-path",
+          "$SCRATCH/cache",
+          "--config-path",
+          "$SCRATCH/config",
+          "--security-path",
+          "$SCRATCH/security",
+          "--disable-dependency-cache",
+          "--jobs",
+          "8",
+          "--skip-build",
+          "--filter",
+          "inFlightAndRotatedWritersCannotRestoreRecognizedCredential|concurrentCredentialWriterFencesInflightNewFields"
+        ],
+        "exit": 0,
+        "sha256": "6e68d2e3ebef230a95d86904a39c58f2830f907a268248a818cc9fcf0e54e927",
+        "excerpts": [
+          "\u2714 Test run with 2 tests in 2 suites passed after 0.038 seconds."
+        ]
+      },
+      {
+        "argv": [
+          "swift",
+          "test",
+          "--package-path",
+          "$SCRATCH/source/cli",
+          "--scratch-path",
+          "$SCRATCH/build",
+          "--cache-path",
+          "$SCRATCH/cache",
+          "--config-path",
+          "$SCRATCH/config",
+          "--security-path",
+          "$SCRATCH/security",
+          "--disable-dependency-cache",
+          "--jobs",
+          "8",
+          "--skip-build",
+          "--filter",
+          "inFlightAndRotatedWritersCannotRestoreRecognizedCredential|concurrentCredentialWriterFencesInflightNewFields"
+        ],
+        "exit": 0,
+        "sha256": "88c26891e067f940fcb350a9f74af48e0ff038b37606b50b7e72008b8f2c7ef5",
+        "excerpts": [
+          "\u2714 Test run with 2 tests in 2 suites passed after 0.064 seconds."
+        ]
+      },
+      {
+        "argv": [
+          "swift",
+          "test",
+          "--package-path",
+          "$SCRATCH/source/cli",
+          "--scratch-path",
+          "$SCRATCH/build",
+          "--cache-path",
+          "$SCRATCH/cache",
+          "--config-path",
+          "$SCRATCH/config",
+          "--security-path",
+          "$SCRATCH/security",
+          "--disable-dependency-cache",
+          "--jobs",
+          "8",
+          "--skip-build",
+          "--filter",
+          "inFlightAndRotatedWritersCannotRestoreRecognizedCredential|concurrentCredentialWriterFencesInflightNewFields"
+        ],
+        "exit": 0,
+        "sha256": "30981e82af1307de4f361cf4d6aa24a07689eed294d779dd17308cbebcfceffc",
+        "excerpts": [
+          "\u2714 Test run with 2 tests in 2 suites passed after 0.053 seconds."
+        ]
+      },
+      {
+        "argv": [
+          "swift",
+          "test",
+          "--package-path",
+          "$SCRATCH/source/cli",
+          "--scratch-path",
+          "$SCRATCH/build",
+          "--cache-path",
+          "$SCRATCH/cache",
+          "--config-path",
+          "$SCRATCH/config",
+          "--security-path",
+          "$SCRATCH/security",
+          "--disable-dependency-cache",
+          "--jobs",
+          "8",
+          "--skip-build",
+          "--filter",
+          "inFlightAndRotatedWritersCannotRestoreRecognizedCredential|concurrentCredentialWriterFencesInflightNewFields"
+        ],
+        "exit": 0,
+        "sha256": "3c2d13271e7c92c632026ac9f8c5742c529b803fdd475a8621070ef846c65135",
+        "excerpts": [
+          "\u2714 Test run with 2 tests in 2 suites passed after 0.060 seconds."
+        ]
+      },
+      {
+        "argv": [
+          "swift",
+          "test",
+          "--package-path",
+          "$SCRATCH/source/cli",
+          "--scratch-path",
+          "$SCRATCH/build",
+          "--cache-path",
+          "$SCRATCH/cache",
+          "--config-path",
+          "$SCRATCH/config",
+          "--security-path",
+          "$SCRATCH/security",
+          "--disable-dependency-cache",
+          "--jobs",
+          "8",
+          "--skip-build",
+          "--filter",
+          "inFlightAndRotatedWritersCannotRestoreRecognizedCredential|concurrentCredentialWriterFencesInflightNewFields"
+        ],
+        "exit": 0,
+        "sha256": "c47b29affcd9739b40dba1a83fed78c687010f994d7dee1ddec85a7087f51926",
+        "excerpts": [
+          "\u2714 Test run with 2 tests in 2 suites passed after 0.074 seconds."
+        ]
+      },
+      {
+        "argv": [
+          "swift",
+          "test",
+          "--package-path",
+          "$SCRATCH/source/cli",
+          "--scratch-path",
+          "$SCRATCH/build",
+          "--cache-path",
+          "$SCRATCH/cache",
+          "--config-path",
+          "$SCRATCH/config",
+          "--security-path",
+          "$SCRATCH/security",
+          "--disable-dependency-cache",
+          "--jobs",
+          "8",
+          "--skip-build",
+          "--filter",
+          "inFlightAndRotatedWritersCannotRestoreRecognizedCredential|concurrentCredentialWriterFencesInflightNewFields"
+        ],
+        "exit": 0,
+        "sha256": "8e021bc97b3e1ac8f28e741024feda06a30d578c654b346af347ef51132bb1b2",
+        "excerpts": [
+          "\u2714 Test run with 2 tests in 2 suites passed after 0.077 seconds."
+        ]
+      }
+    ]
+  },
+  "patch": {
+    "path": "verification/local/store-reconciliation-host-fixture-7d257e0d/fixture.patch",
+    "sha256": "ef7a0adac1bbaca69339220feec8738161b5cc09e5c87eb2f0a1ecdb1412e9be",
+    "afterimage_git_blobs": {
+      "cli/Tests/MixerBuildTests/StoreReconciliationRequestHold.swift": "bd7267c15a8ae235d4e4e923ae69bfd7c4d77821",
+      "cli/Tests/MixerBuildTests/StoreReconciliationTests.swift": "f305ed22aee847f26e3fa62d292e09c9bb5e5e21",
+      "cli/Tests/MixerBuildTests/StoreTestingReconciliationTests.swift": "ed9fcee83477339afe96ac37f852aa8f21abbabe"
+    },
+    "diff_check": "passed",
+    "apply_check": "passed",
+    "reverse_apply_check_on_tested_source": "passed",
+    "scope": "Three CLI test files. No product changes. All six async-launch/response-hold callers now share the thread and URLProtocol gate. The five-second request-start, hold and join budgets remain. Cleanup retires the response, cancels unstarted work, and joins within five seconds. An unjoined worker permanently retires that suite's script."
+  },
+  "custody": {
+    "baseline": {
+      "terminal_receipts": 59,
+      "directChildReaped": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "ownedGroupAbsent": true,
+      "terminalCustody": true,
+      "hold": false
+    },
+    "candidate_first": {
+      "terminal_receipts": 59,
+      "directChildReaped": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "ownedGroupAbsent": true,
+      "terminalCustody": true,
+      "hold": false
+    },
+    "candidate_replay": {
+      "terminal_receipts": 59,
+      "directChildReaped": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "ownedGroupAbsent": true,
+      "terminalCustody": true,
+      "hold": false
+    },
+    "observed_scratch_kib": 418896,
+    "scratch_cap_bytes": 3221225472,
+    "owned_external_scratch_removed": true,
+    "scratch_path": "/tmp/mixer-store-host-J8UDi6Cu",
+    "swift_test_wrappers_collected": true
+  },
+  "limitations": [
+    "The original failures were not reproduced on the unmodified local checkout. Controlled delayed entry reproduces the failure signatures and proves that the fixture can fail before the product query starts. It does not show why either hosted worker missed the gate.",
+    "The local Apple SDK and Swift version differ from the hosted versions. No hosted candidate run or full CLI test run was performed."
+  ],
+  "verification_artifact_policy": {
+    "argv": [
+      "python3",
+      "scripts/check-verification-artifacts.py"
+    ],
+    "index": "private staged index"
+  }
+}
