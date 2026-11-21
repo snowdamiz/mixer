@@ -69,6 +69,16 @@ passed 159 focused tests and the Workerd outage replay. The signer used
 synthetic retained products and identities.
 [Composition receipt](verification/receipts/l05-w11-w12-composed-v74-5a3c6dd0.json)
 
+The November 21 managed replay completed one generic iOS Simulator-target
+Xcode build, with no Simulator boot. The restricted worker settled the original
+job and authenticated reads matched all three retained products. The
+attestation wrapper did not start because the runner passed integer port
+arguments to the launcher. The runner exited 74 and preserved both scratch
+roots and the Phoenix and PostgreSQL processes under custody hold. A focused
+control reproduced the launch failure and passed after both arguments were
+converted to decimal text. Managed attachment remains open.
+[Build and launch hold](verification/receipts/l05-managed-ios-attestation-wrapper-launch-hold-20261121.json)
+
 ## November 20 signed release queue
 
 The opt-in Phoenix queue commits a signed publication, the release head, and
