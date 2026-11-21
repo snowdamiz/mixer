@@ -981,6 +981,31 @@ defmodule MixerHosted.Builds.NativeAttestationAttachmentTest do
     assert {:ok, :ok} = admit.()
   end
 
+  for privilege <- ~w(SELECT INSERT) do
+    test "admission and attachment require the table owner's #{privilege} privilege", c do
+      privilege = unquote(privilege)
+      b = completed!(c.selection, retry: true)
+      retain!(c.root, b.operation, b.products)
+      signed = envelope(c, b)
+
+      sql("REVOKE #{privilege} ON #{@table} FROM attestation_fixture_owner")
+
+      try do
+        assert {:error, :authorization_unavailable} = attach(c, signed)
+        assert stored(b) == []
+
+        assert {:ok, {:error, :authorization_unavailable}} =
+                 AttestationRepo.transaction(fn -> AttestationSchema.admit!(AttestationRepo) end)
+      after
+        sql("GRANT #{privilege} ON #{@table} TO attestation_fixture_owner")
+      end
+
+      assert {:ok, :attached} = attach(c, signed)
+      assert {:ok, :duplicate} = attach(c, signed)
+      assert stored(b) == [[5, 2, b.operation, @binding, sha(c.spki), @origin, signed]]
+    end
+  end
+
   defp executes?(role) do
     [[result]] = sql("SELECT has_function_privilege($1,$2,'EXECUTE')", [role, @entry]).rows
     result

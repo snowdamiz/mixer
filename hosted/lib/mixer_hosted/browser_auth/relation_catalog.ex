@@ -1248,7 +1248,7 @@ defmodule MixerHosted.BrowserAuth.RelationCatalog do
             WHERE t.oid=pg_catalog.to_regclass('public.mixer_native_development_attestations')
               AND t.relowner=$4::pg_catalog.oid AND t.relkind='r'
               AND t.relrowsecurity AND t.relforcerowsecurity
-              AND #{AttestationSchema.owner_policy_roster_sql("t")})
+              AND #{AttestationSchema.owner_access_sql("t")})
           AND NOT EXISTS(SELECT 1 FROM objects o
             WHERE NOT #{acl_ok("o.acl")} OR
               (SELECT count(*) FROM pg_catalog.aclexplode(o.acl) a WHERE a.grantee=r.oid)<>1 OR

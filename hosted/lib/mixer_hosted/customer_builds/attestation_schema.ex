@@ -110,9 +110,11 @@ defmodule MixerHosted.CustomerBuilds.AttestationSchema do
 
   def fixture_grant_statement, do: "GRANT EXECUTE ON FUNCTION #{@entry} TO #{@writer}"
 
-  def owner_policy_roster_sql(relation) do
+  def owner_access_sql(relation) do
     """
-    (SELECT count(*)=2 AND count(*) FILTER (WHERE q.polpermissive
+    pg_catalog.has_table_privilege(#{relation}.relowner,#{relation}.oid,'SELECT')
+    AND pg_catalog.has_table_privilege(#{relation}.relowner,#{relation}.oid,'INSERT')
+    AND (SELECT count(*)=2 AND count(*) FILTER (WHERE q.polpermissive
         AND q.polroles=ARRAY[#{relation}.relowner]
         AND ((q.polname='attestation_owner_read' AND q.polcmd='r'
               AND pg_catalog.pg_get_expr(q.polqual,q.polrelid)='true' AND q.polwithcheck IS NULL)
@@ -151,7 +153,7 @@ defmodule MixerHosted.CustomerBuilds.AttestationSchema do
               OR a.privilege_type<>'EXECUTE' OR a.is_grantable
           )
           AND t.relowner=p.proowner AND t.relkind='r' AND t.relrowsecurity AND t.relforcerowsecurity
-          AND #{owner_policy_roster_sql("t")}
+          AND #{owner_access_sql("t")}
           AND NOT EXISTS (
             SELECT 1 FROM aclexplode(t.relacl) a WHERE a.grantee<>t.relowner
           )
