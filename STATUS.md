@@ -806,6 +806,12 @@ passed all 11 inert controls. The observed Wasm and runtime output
 digests match the historical pass.
 [Strict allocator receipt](verification/receipts/l03-guest-allocator-release-strict-abadfffa10.json)
 
+A fresh independent run used the checked-in replay command with a pinned
+sparse checkout. It reproduced both sessions and the exact VM archive,
+guest Wasm, and runtime stdout digests. All 25 command groups closed.
+The disposable checkout and scratch were removed.
+[Maintained allocator replay readback](verification/receipts/l03-guest-allocator-release-maintained-root-abadfffa10.json)
+
 A compact Swift event trapped at function 3, byte 514 in the owned VM.
 The matching line table resolved that position to `SwiftEventGuest.swift:32:9`
 and LLVM agreed. Stripped and mismatched inputs preserved the raw trap
