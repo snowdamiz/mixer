@@ -132,6 +132,29 @@ closes the guest session, reopens the same registry slot with a new generation
 and a zeroed frame, and checks that the old handle is still rejected.
 [Fixed-slot replay receipt](../../../verification/receipts/l03-swift-fixed-slot-result-builder.json)
 
+## Swift enum payload and typed throws replay
+
+```sh
+python3 -B compiler/Fixtures/FeatureProbe/replay.py --enum-typed-throws
+```
+
+Native Swift and Embedded Swift compile the same Foundation-free
+`EnumTypedThrows.swift`. Each three-byte runtime event selects either an item
+with quantity and unit price or a flat fee. The quote function uses
+`throws(QuoteRefusal)` and throws the calculated total when it exceeds 1,000.
+
+The replay compares eight-byte frames from native Swift and the installed
+Guest UI V1 C ABI. A flat fee of 12 and an item total of 1,000 succeed.
+The 1,100 refusal preserves the 1,000 frame byte-for-byte. The next valid
+event publishes 57 and the caught payload of 1,100 as two little-endian
+`UInt32` values. The guest closes, rejects its stale handle, and reopens the
+registry slot with a zeroed frame.
+
+Coverage is limited to this value-type action and concrete typed throw/catch
+on arm64 macOS. Untyped throwing, Foundation and signed or device execution
+remain unqualified by this replay.
+[Enum and typed throws replay receipt](../../../verification/receipts/l03-swift-enum-typed-throws.json)
+
 ## Owned VM capability and validation controls
 
 The compact replay executes the suites below using Rust 1.99.0. To run them

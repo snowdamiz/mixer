@@ -1,0 +1,286 @@
+{
+  "schemaVersion": 1,
+  "work": "W07 / L03, product plan 7.3",
+  "result": "passed",
+  "observedUTC": "2026-11-21T12:32:20.232812+00:00",
+  "replay": "python3 -B compiler/Fixtures/FeatureProbe/replay.py --enum-typed-throws",
+  "publicInput": {
+    "ref": "refs/heads/main",
+    "remote": "https://github.com/snowdamiz/mixer.git",
+    "commit": "2acaac67605c369ff1667e3ccc3eb56d376e536e",
+    "tree": "d995f414d76ee7ec709594521e071618dd088dda",
+    "vmTree": "ec1ddb74b7c6c2eabd91d1f60ed243ffc69ce6f4",
+    "observedWith": "git ls-remote origin refs/heads/main"
+  },
+  "candidateTreeBeforeReceipt": "ad401bc79254e9932dd39e0c0ccaef71e70dd596",
+  "replaySourceEditsSHA256": {
+    "compiler/Fixtures/FeatureProbe/replay.py": "225f4156682a14416d9174695a6fdec4d223bfeae2f39b827eecb37eaab428f2",
+    "compiler/Fixtures/FeatureProbe/CompactPreviewGuest.swift": "f8aeeafe15b4ddc8776a0917c789082ea22476f62eb208f9e354e1b462ce6755",
+    "compiler/Fixtures/FeatureProbe/CompactHost.swift": "01511c3c04037a1e1d008de5b1fc879420e23c131dd18df29ba5aa9fce543d1d",
+    "compiler/Fixtures/FeatureProbe/EnumTypedThrows.swift": "15f477e0a864faf96aaa6c8ada414109e699124d4b086d69d1a002e3a7d2bb64"
+  },
+  "tools": {
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "nativeSwift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "guestSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "linker": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "architecture": "arm64",
+    "python": "3.14.8"
+  },
+  "scope": "One Foundation-free action enum and a concrete typed throw/catch on arm64 macOS",
+  "unqualified": [
+    "untyped throwing",
+    "guest Foundation",
+    "signed activation",
+    "device execution"
+  ],
+  "guestTarget": {
+    "abi": "Guest UI V1",
+    "profile": "table-memory-v3",
+    "memoryPages": 1,
+    "fuelPerTurn": 1000000,
+    "hostCallsPerTurn": 0
+  },
+  "guestDescriptors": {
+    "imports": [],
+    "memories": [
+      {
+        "minimum": 1,
+        "maximum": 1
+      }
+    ],
+    "startFunction": null
+  },
+  "wasm": {
+    "bytes": 534,
+    "sha256": "9ef2faf3249f4a042e0596fc672958ccada8995777391636723c0604a70bf2c6"
+  },
+  "vmArchive": {
+    "bytes": 19316872,
+    "sha256": "6a9ef08edafb9a3f9c35d3a98197584987a3b70cb429fddba6e1c562a927b822"
+  },
+  "hostExecutable": {
+    "bytes": 2056480,
+    "sha256": "8551932d2d043c4fa21c424b1a765921eaaed432e4b559b49ae05fe0a6fb18e8"
+  },
+  "inputFileSHA256": "6993bba519f56ba8697012423e8cae397091415f0fed9d4ee88d8b698531b90d",
+  "events": [
+    {
+      "case": "flat-fee",
+      "inputHex": "010c00",
+      "accepts": true
+    },
+    {
+      "case": "item-at-limit",
+      "inputHex": "000a64",
+      "accepts": true
+    },
+    {
+      "case": "refused-over-limit",
+      "inputHex": "000b64",
+      "accepts": false
+    },
+    {
+      "case": "item-after-refusal",
+      "inputHex": "000313",
+      "accepts": true
+    }
+  ],
+  "frameLayout": "Two little-endian UInt32 words holding the quote and the caught total from the preceding refusal",
+  "native": {
+    "closed": false,
+    "guestFuel": [],
+    "refusedFrameHex": "e803000000000000",
+    "framesHex": {
+      "initial": "0000000000000000",
+      "flat-fee": "0c00000000000000",
+      "item-at-limit": "e803000000000000",
+      "item-after-refusal": "390000004c040000"
+    }
+  },
+  "guest": {
+    "reclaimedRegistrySlot": true,
+    "closed": true,
+    "guestFuel": [
+      75,
+      82,
+      82
+    ],
+    "refusedFrameHex": "e803000000000000",
+    "framesHex": {
+      "initial": "0000000000000000",
+      "flat-fee": "0c00000000000000",
+      "item-at-limit": "e803000000000000",
+      "item-after-refusal": "390000004c040000"
+    }
+  },
+  "guestRetirementChecks": [
+    "Close returns success",
+    "Startup on the stale handle returns 3",
+    "Reopen reuses the registry slot with a fresh generation and a zeroed frame",
+    "Startup on the retired generation still returns 3",
+    "The reopened session closes and its stale handle returns 3"
+  ],
+  "commands": [
+    {
+      "label": "vm-build",
+      "argv": [
+        "$USER_HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--lib",
+        "--offline",
+        "--locked",
+        "--release",
+        "--jobs",
+        "1",
+        "--features",
+        "experimental-capability-native",
+        "--manifest-path",
+        "$REPO/vm/Cargo.toml",
+        "--target-dir",
+        "$RUN/rust"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "host-build",
+      "argv": [
+        "/usr/bin/swiftc",
+        "-O",
+        "-whole-module-optimization",
+        "-swift-version",
+        "6",
+        "-D",
+        "SWIFT_SUPPORT_MATRIX",
+        "-parse-as-library",
+        "-module-cache-path",
+        "$RUN/native-modules",
+        "-I",
+        "$RUN",
+        "$REPO/compiler/Fixtures/FeatureProbe/CompactHost.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/FloatingPoint.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/AssociatedTypes.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/PropertyWrapper.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/ResultBuilder.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/FixedSlotResultBuilder.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/EnumTypedThrows.swift",
+        "$REPO/compiler/experiments/fieldlog-guest-benchmark/MatchedTask.swift",
+        "$REPO/compiler/experiments/fieldlog-installed-guest/TaskCompletion.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift",
+        "$REPO/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift",
+        "$RUN/rust/release/libmixer_vm.a",
+        "-o",
+        "$RUN/compact-host"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "enum-throws-native",
+      "argv": [
+        "$RUN/compact-host",
+        "enum-throws-native",
+        "$RUN/enum-throws.wasm",
+        "$RUN/enum-throws-inputs"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "enum-throws-swift",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+        "-target",
+        "wasm32-unknown-none-wasm",
+        "-enable-experimental-feature",
+        "Embedded",
+        "-whole-module-optimization",
+        "-Osize",
+        "-parse-as-library",
+        "-Xfrontend",
+        "-disable-stack-protector",
+        "-D",
+        "ENUM_TYPED_THROWS_GUEST",
+        "-module-cache-path",
+        "$RUN/guest-modules",
+        "-emit-object",
+        "$REPO/compiler/Fixtures/FeatureProbe/EnumTypedThrows.swift",
+        "$REPO/compiler/Fixtures/FeatureProbe/CompactPreviewGuest.swift",
+        "-o",
+        "$RUN/enum-throws.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "enum-throws-link",
+      "argv": [
+        "$USER_HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/wasm-ld",
+        "--no-entry",
+        "--gc-sections",
+        "--strip-all",
+        "-z",
+        "stack-size=16384",
+        "--max-memory=65536",
+        "--export=mixer_guest_ui_start_v1",
+        "--export=mixer_guest_ui_event_v1",
+        "--export=mixer_guest_capability_ready_v1",
+        "$RUN/enum-throws.o",
+        "-o",
+        "$RUN/enum-throws.wasm"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "enum-throws-guest",
+      "argv": [
+        "$RUN/compact-host",
+        "enum-throws-guest",
+        "$RUN/enum-throws.wasm",
+        "$RUN/enum-throws-inputs"
+      ],
+      "exit": 0
+    }
+  ],
+  "controls": [
+    {
+      "command": "python3 -B compiler/swift_support_matrix.py --check",
+      "exit": 0
+    },
+    {
+      "command": "python3 -B -m unittest discover -s compiler/tests -v",
+      "exit": 0,
+      "passed": 14
+    },
+    {
+      "command": "python3 -B compiler/Fixtures/FeatureProbe/replay.py --fixed-slot-result-builder",
+      "exit": 0
+    },
+    {
+      "command": "python3 -B compiler/Fixtures/FeatureProbe/replay.py --result-builder",
+      "exit": 1,
+      "expectedBoundary": "Embedded object built. Link reported undefined posix_memalign and free."
+    },
+    {
+      "command": "python3 -B compiler/Fixtures/FeatureProbe/replay.py",
+      "exit": 0,
+      "vmTestsPassed": {
+        "experimental_guest_ui_validation": 5,
+        "experimental_capability_guest": 27
+      },
+      "descriptorRefusals": 14
+    }
+  ],
+  "custody": {
+    "directReapedAndGroupsObservedAbsent": 15,
+    "unknown": 0,
+    "observedPeakScratchBytes": 75310832,
+    "scratchLimitBytes": 3221225472,
+    "scratchRemoved": true
+  },
+  "controlReplayCustody": {
+    "directReapedAndGroupsObservedAbsent": 63,
+    "unknown": 0,
+    "scratchRemoved": true
+  }
+}

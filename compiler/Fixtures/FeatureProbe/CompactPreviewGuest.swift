@@ -7,6 +7,9 @@ private typealias Preview = AssociatedTypesPreview
 private typealias Preview = ResultBuilderPreview
 #elseif FIXED_SLOT_RESULT_BUILDER_GUEST
 private typealias Preview = FixedSlotResultBuilderPreview
+#elseif ENUM_TYPED_THROWS_GUEST
+private typealias Preview = EnumTypedThrowsPreview
+private nonisolated(unsafe) var preview = Preview()
 #else
 private typealias Preview = FloatingPointPreview
 #endif
@@ -38,7 +41,7 @@ public func guestEvent(_ length: UInt32) -> UInt32 {
         let input = UnsafeRawBufferPointer(rebasing: buffer[eventStart ..< eventStart + Int(length)])
         let output = UnsafeMutableRawBufferPointer(
             rebasing: buffer[documentStart ..< documentStart + Preview.outputSize])
-#if PROPERTY_WRAPPER_GUEST
+#if PROPERTY_WRAPPER_GUEST || ENUM_TYPED_THROWS_GUEST
         return preview.render(input, into: output) ? 0 : 1
 #else
         return Preview.render(input, into: output) ? 0 : 1

@@ -653,6 +653,15 @@ on the array allocator imports. Independent replay confirmed both scopes.
 [Fixed-slot replay](verification/receipts/l03-swift-fixed-slot-result-builder.json) ·
 [Dynamic-loop boundary](verification/receipts/l03-swift-result-builder-v78.json)
 
+Native Swift and the installed Guest UI V1 VM on arm64 macOS emitted the
+same frames for one associated-value enum and typed throw and catch. A
+refusal carrying 1,100 preserved the previous frame for 1,000. The next
+valid event published 57 and the caught value. The guest rejected stale
+handles after closing and reused the slot with a fresh generation.
+Independent review matched the source pins, frame bytes, and support matrix.
+Signed activation and mobile execution remain open.
+[Typed-error replay](verification/receipts/l03-swift-enum-typed-throws.json)
+
 A compact Swift event trapped at function 3, byte 514 in the owned VM.
 The matching line table resolved that position to `SwiftEventGuest.swift:32:9`
 and LLVM agreed. Stripped and mismatched inputs preserved the raw trap

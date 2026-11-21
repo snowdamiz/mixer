@@ -144,7 +144,8 @@ private func exercisePreview(
         let mode = args[1]
         let preview = ["floating-native", "floating-guest", "associated-native", "associated-guest",
                        "wrapper-native", "wrapper-guest", "builder-native", "builder-guest",
-                       "fixed-builder-native", "fixed-builder-guest"].contains(mode)
+                       "fixed-builder-native", "fixed-builder-guest", "enum-throws-native",
+                       "enum-throws-guest"].contains(mode)
         try check(args.count == (preview ? 4 : 3), "unexpected replay arguments")
         let encoder = JSONEncoder()
         let result: Data
@@ -176,6 +177,14 @@ private func exercisePreview(
             let inputs = try Data(contentsOf: URL(fileURLWithPath: args[3]))
             result = try encoder.encode(exercisePreview(
                 &path, inputs: inputs, width: PropertyWrapperPreview.inputSize, refusePenultimateEvent: true))
+        case "enum-throws-native":
+            var state = EnumTypedThrowsPreview()
+            var path = NativePreview(outputSize: EnumTypedThrowsPreview.outputSize) { input, output in
+                state.render(input, into: output)
+            }
+            let inputs = try Data(contentsOf: URL(fileURLWithPath: args[3]))
+            result = try encoder.encode(exercisePreview(
+                &path, inputs: inputs, width: EnumTypedThrowsPreview.inputSize, refusePenultimateEvent: true))
         case "builder-native", "fixed-builder-native":
             let fixed = mode == "fixed-builder-native"
             let width = fixed ? FixedSlotResultBuilderPreview.inputSize : ResultBuilderPreview.inputSize
@@ -186,13 +195,15 @@ private func exercisePreview(
             let inputs = try Data(contentsOf: URL(fileURLWithPath: args[3]))
             result = try encoder.encode(exercisePreview(
                 &path, inputs: inputs, width: width, refusePenultimateEvent: true))
-        case "floating-guest", "associated-guest", "wrapper-guest", "builder-guest", "fixed-builder-guest":
+        case "floating-guest", "associated-guest", "wrapper-guest", "builder-guest", "fixed-builder-guest",
+             "enum-throws-guest":
             let width: Int
             switch mode {
             case "floating-guest": width = FloatingPointPreview.inputSize
             case "associated-guest": width = AssociatedTypesPreview.inputSize
             case "builder-guest": width = ResultBuilderPreview.inputSize
             case "fixed-builder-guest": width = FixedSlotResultBuilderPreview.inputSize
+            case "enum-throws-guest": width = EnumTypedThrowsPreview.inputSize
             default: width = PropertyWrapperPreview.inputSize
             }
             var path = OwnedTask(try Data(contentsOf: URL(fileURLWithPath: args[2])), measureComponents: false)
@@ -201,7 +212,7 @@ private func exercisePreview(
             result = try encoder.encode(exercisePreview(
                 &path, inputs: inputs, width: width,
                 refusePenultimateEvent: mode != "floating-guest" && mode != "associated-guest",
-                checkReclamation: mode == "fixed-builder-guest"))
+                checkReclamation: mode == "fixed-builder-guest" || mode == "enum-throws-guest"))
         default:
             throw CheckFailed(reason: "unknown mode")
         }
