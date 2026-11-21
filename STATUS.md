@@ -40,6 +40,34 @@ both Python modes in real Identity and Verify services sparse checkouts.
 The 483-path v68 selection restores exact v67 and v66 bytes and modes.
 [Startup controls](verification/receipts/hosted-v67-startup-roster-29aeb806.json) · [Source binding](verification/receipts/hosted-source-binding-v68-29aeb806.json) · [Collector replay](verification/receipts/hosted-v68-collector-ci-repair-89e9be3f.json)
 
+All three GitHub workflows passed on the exact v68 repair. [Hosted CI](verification/receipts/hosted-v68-main-ci-ed6ea631.json)
+
+## November 20 generated release REST client
+
+The stock Swift CLI uses generated REST operations for upload, validate,
+publish, promote, rollback, and halt. The maintained Phoenix and PostgreSQL
+fixtures exercised all six operations. They passed 16 tests with the
+separate opt-in TLS uploader case skipped. The Swift contract tests passed
+all four cases, including exact signed request bytes and full-width
+integers. [Phoenix replay](verification/receipts/l05-v3-generated-cli-phoenix-301b0daf.json)
+
+The Verify workflow checks the generated Swift and all six Phoenix routes.
+The archive admits both CLI projections and restores the exact v68
+predecessor. [Release REST contract](contracts/release-rest-v3.md) · [Source admission](verification/receipts/release-rest-v3-ci-source-admission-v68.json)
+
+## November 20 Swift language support matrix
+
+The generated Swift support matrix maps 13 scoped claims to executable
+controls. Eleven rows remain unqualified. Native Swift and the owned guest
+produced the same four FieldLog frames and refused six malformed events
+without changing state. The owned validator and session constructor refused
+shared memory before admitting a guest session.
+
+The macOS FeatureStore probe joined the replacement, replaced, cancelled,
+and stopped tasks before checking delivery. Only the replacement reached
+the reducer. Swift guest task cancellation and installed iOS TaskCompletion
+qualification remain open. [Swift language support](compiler/swift-language-support.md) · [Scoped host and VM replay](verification/receipts/l03-swift-language-support-b963585e.json) · [Completion control](verification/receipts/l03-swift-language-support-w07-correction.json)
+
 ## November 19 local verification
 
 The combined FieldLog iOS and Android storage patches passed 30 host checks across the compatible rollback and successor writers. An independent replay passed all 30 checks and 10 additional controls. The four writers refused newly introduced draft and entry ID overlaps, preserved edits to existing pairs, and recovered a complete snapshot after a write fault. [Composed storage receipt](verification/receipts/fieldlog-l08-cross-platform-draft-overlap-20261119.json)
