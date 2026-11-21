@@ -381,6 +381,7 @@ RECEIPT_DIRECTORY_SOURCE_SHA256 = '41bdce444c0ea2f65a8c2d6c202818d4f4599498d5fd2
 RECEIPT_DIRECTORY_SOURCE = 'cli/Sources/MixerBuild/POSIXCommandControl.swift'
 RECEIPT_DIRECTORY_TEST = 'cli/Tests/MixerBuildTests/OwnedCommandControlTests.swift'
 RECEIPT_DIRECTORY_CHANGES = {RECEIPT_DIRECTORY_SOURCE, RECEIPT_DIRECTORY_TEST, SPARSE_CHECKOUT_TEST}
+RECEIPT_PARENT_URL_TEST_PREIMAGE = 'receipt-parent-url-test-predecessor-bytes/' + RECEIPT_DIRECTORY_TEST
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, STANDARDS_REPLAY_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
@@ -420,6 +421,7 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
 } | {
     RECEIPT_DIRECTORY_SOURCE_PREIMAGE,
     *(RECEIPT_DIRECTORY_PREFIX + name for name in RECEIPT_DIRECTORY_CHANGES),
+    RECEIPT_PARENT_URL_TEST_PREIMAGE,
 } | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
 } | {
@@ -560,6 +562,7 @@ def install_inputs():
                              'hosted_v71_transition', 'hosted_v72_transition', 'hosted_v73_transition',
                              'hosted_v74_transition', 'hosted_v76_transition', 'hosted_v77_transition',
                              'android_inspection_deadline_transition', 'receipt_directory_transition',
+                             'receipt_parent_url_test_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -1546,6 +1549,18 @@ def install_inputs():
             binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
                                   'sha256': RECEIPT_DIRECTORY_SOURCE_SHA256},
             'Receipt directory source transition differs')
+
+    fixture = binding['receipt_parent_url_test_transition']
+    fixture_preimage = HERE / RECEIPT_PARENT_URL_TEST_PREIMAGE
+    raw = read_predecessor_member(fixture_preimage)
+    require(set(fixture) == {'before', 'after', 'mode'} and
+            RECEIPT_DIRECTORY_TEST not in current and
+            fixture['before'] == previous.row(raw) == installed[RECEIPT_DIRECTORY_TEST] and
+            fixture['before'] != fixture['after'] and
+            fixture['mode'] == stat.S_IMODE(fixture_preimage.lstat().st_mode) ==
+            stat.S_IMODE((ROOT / RECEIPT_DIRECTORY_TEST).lstat().st_mode) == 0o644,
+            'Receipt parent URL test predecessor bytes or mode differ')
+    installed[RECEIPT_DIRECTORY_TEST] = fixture['after']
 
     previous.check_rows(ROOT, installed)
     for name, change in release['changes'].items():
