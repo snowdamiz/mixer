@@ -1,0 +1,1980 @@
+{
+  "schema": 1,
+  "status": "pass",
+  "scope": "W07/L03 synthetic Date/locale fixture adoption and receipt publication. Arm64 macOS host and pinned Embedded Swift compiler.",
+  "baseCheckout": {
+    "revision": "58951594a866492be7ce204e93a9533f892b2550",
+    "tree": "f610b7745283d445727cf32e0ee3fd45427dd925"
+  },
+  "historicalReceipt": {
+    "path": "verification/receipts/w07-l03-foundation-date-1e2de013.json",
+    "bytes": 29300,
+    "sha256": "18e902999f462cc3b28619c1fd418387b0a71a6a8f8b5c61918695a8adf2d9e8"
+  },
+  "productPatch": {
+    "path": "verification/local/w07-foundation-date-maintained/product.patch",
+    "bytes": 27438,
+    "sha256": "5a5a9c54d9bd3b76f774834de75e19c9a753cf1e449da9597ad9eddfb861fb67"
+  },
+  "inertTests": {
+    "command": "python3 -I -B -m unittest discover -s compiler/experiments/foundation-date/tests -v",
+    "python": "3.14.8",
+    "source": {
+      "path": "compiler/experiments/foundation-date/tests/test_replay.py",
+      "bytes": 3744,
+      "sha256": "7ddeb2c16267317ee3728d776e0e5617b88d57d04236aaae715254b901f42bcf"
+    },
+    "passed": 4,
+    "subprocessPayloads": 0,
+    "baseline": {
+      "destinationReplacement": "Replay returned success after the replacement.",
+      "finalSerializationFailure": "The injected error propagated after diagnostics had been deleted.",
+      "finalSyncFailure": "The replay performed no final sync.",
+      "cleanupOrder": "The receipt still reported running when scratch removal began."
+    }
+  },
+  "exactReplay": {
+    "command": "python3 -I -B compiler/experiments/foundation-date/replay.py verification/local/w07-foundation-date-maintained/exact-replay.json",
+    "attempts": 1,
+    "exit": 0,
+    "scratchRemovalObserved": true,
+    "closedCommandGroups": 64,
+    "rawReceipt": {
+      "path": "verification/local/w07-foundation-date-maintained/exact-replay.json",
+      "bytes": 74012,
+      "sha256": "327afabb818868f05d17e9814fd3044dba822676310c8427dba59eba0c40b116"
+    },
+    "record": {
+      "schema": 1,
+      "status": "pass",
+      "scope": "W07/L03 §7.3 synthetic macOS and Embedded compiler check",
+      "startedUTC": "2026-11-21T19:10:43.836394+00:00",
+      "mixerRevision": "1e2de0130d001ef9ada0001b59f9ae8b7f67b72a",
+      "mixerTree": "6218549dff3d59b06251d10b20e257f13f565140",
+      "host": {
+        "machine": "arm64",
+        "macOS": "27.0.1",
+        "build": "26A434"
+      },
+      "limits": {
+        "wallSeconds": 600,
+        "allocatedScratchBytes": 2147483648,
+        "maxObservedAllocatedBytes": 87445504
+      },
+      "scratch": {
+        "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+        "cleanup": "after-receipt-publication"
+      },
+      "commands": [
+        {
+          "name": "mixer-public-commit",
+          "argv": [
+            "/usr/bin/curl",
+            "--fail",
+            "--silent",
+            "--show-error",
+            "--max-time",
+            "20",
+            "--max-filesize",
+            "1000000",
+            "https://api.github.com/repos/snowdamiz/mixer/git/commits/1e2de0130d001ef9ada0001b59f9ae8b7f67b72a"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42052,
+          "exit": 0,
+          "stdout": {
+            "bytes": 1350,
+            "sha256": "7a063a4296043abb220dbb2521bea7c1bc7a0e4a9e879819cdafb8f6346c798b"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "mixer-tree",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "rev-parse",
+            "1e2de0130d001ef9ada0001b59f9ae8b7f67b72a^{tree}"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42053,
+          "exit": 0,
+          "stdout": {
+            "bytes": 41,
+            "sha256": "88a0e590fbbe58b19900a778b424366a547bcf3cee8d86319cbfb965ba7776e0",
+            "text": "6218549dff3d59b06251d10b20e257f13f565140\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-recipe",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "show",
+            "1e2de0130d001ef9ada0001b59f9ae8b7f67b72a:verification/receipts/fieldlog-d2-combined-85e6fbe3-compiler-inputs.json"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42059,
+          "exit": 0,
+          "stdout": {
+            "bytes": 22194,
+            "sha256": "c4573305df2d6d0675d7ba0d6e37f8c42c525b483085f22ec7c0029e3c414e77"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "ordinary-recipe",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "show",
+            "1e2de0130d001ef9ada0001b59f9ae8b7f67b72a:verification/receipts/fieldlog-d2-ordinary-screens-e39a5ea3.json"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42060,
+          "exit": 0,
+          "stdout": {
+            "bytes": 5912,
+            "sha256": "979a6cc6d38a50b3bb60a1ac0c771514ec7630c683cb877e863976ebd19118fd"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-archive",
+          "argv": [
+            "/usr/bin/curl",
+            "--fail",
+            "--silent",
+            "--show-error",
+            "--location",
+            "--max-time",
+            "20",
+            "--max-filesize",
+            "20000000",
+            "https://codeload.github.com/snowdamiz/fieldlog/tar.gz/552559d2d3278abb9b1aa7dcf0288102c09a202b",
+            "-o",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog.tgz"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42061,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-extract",
+          "argv": [
+            "/usr/bin/tar",
+            "-xzf",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog.tgz",
+            "--strip-components",
+            "1",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42067,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-init",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "init",
+            "-q"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42071,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-add",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "-c",
+            "core.autocrlf=false",
+            "add",
+            "-f",
+            "--",
+            "."
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42075,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-base-tree",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "write-tree"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42080,
+          "exit": 0,
+          "stdout": {
+            "bytes": 41,
+            "sha256": "429825829b101153fbc0fa2668443c16bf382ee63e86879ac54742ffe8e0db77",
+            "text": "1b62520f35c7e57a01b568291078686574f627c4\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-00",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "show",
+            "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d:tests/integration/fieldlog-saved-draft/android/audited-patches/rollback-floor.patch"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42083,
+          "exit": 0,
+          "stdout": {
+            "bytes": 11359,
+            "sha256": "05a6ee7e057a3485387c18d964673a508f3e2a49c7e9d7f8315da1b95c36c9da"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-00-apply",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "apply",
+            "--index",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog-material-00.out"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42084,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-00-tree",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "write-tree"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42085,
+          "exit": 0,
+          "stdout": {
+            "bytes": 41,
+            "sha256": "6c816aa4a0feb6b5b3f4473df4bf9cace8b833630e7cc63142f7fe03333899fb",
+            "text": "b81afd281ab00dbd1dc06d7ce0605b7f360aada6\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-01",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "show",
+            "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d:tests/integration/fieldlog-saved-draft/android/audited-patches/optional-successor.patch"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42091,
+          "exit": 0,
+          "stdout": {
+            "bytes": 18837,
+            "sha256": "2596169364099a0f6f040e53ddd3e663b3040b8d6265b1a052125da21e917d44"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-01-apply",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "apply",
+            "--index",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog-material-01.out"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42092,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-01-tree",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "write-tree"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42094,
+          "exit": 0,
+          "stdout": {
+            "bytes": 41,
+            "sha256": "e47a4c10404fd1a794d154de722e84bc8b619328e9f24b889e40813fd5676800",
+            "text": "eed0ea9f778a0b570c7abd1effe94aec7aa11fbb\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-02",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "show",
+            "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d:tests/integration/fieldlog-saved-draft/android/android-app-composition.patch"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42097,
+          "exit": 0,
+          "stdout": {
+            "bytes": 159833,
+            "sha256": "528551a733face2802a5b2d7e6b078de92e828c1f7acec6814915ce26cce0e54"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-02-apply",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "apply",
+            "--index",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog-material-02.out"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42098,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-02-tree",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "write-tree"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42100,
+          "exit": 0,
+          "stdout": {
+            "bytes": 41,
+            "sha256": "1b0fdbd81007b76cc3cef5c6775ccb3fae68060828eb395ac35dc10d491c47e9",
+            "text": "3e456ac47f590b5749f465dad193d6551b9c1804\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-03",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "show",
+            "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d:tests/integration/fieldlog-entry-save/entry-save-decision.patch"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42106,
+          "exit": 0,
+          "stdout": {
+            "bytes": 7760,
+            "sha256": "9d2d95795e9ed3095a05e75c90a548aa5d9d855cea98adef94ff10571435a1d9"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-03-apply",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "apply",
+            "--index",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog-material-03.out"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42108,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-03-tree",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "write-tree"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42109,
+          "exit": 0,
+          "stdout": {
+            "bytes": 41,
+            "sha256": "35b0fcb0efaba353a330f6df7177777b1e2dfe168091397b896292fe28c5f8c9",
+            "text": "741c2b13e117b9589a58c88db86f940882653869\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-04",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "show",
+            "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d:tests/integration/fieldlog-entry-save/EntrySaveDecision.swift"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42110,
+          "exit": 0,
+          "stdout": {
+            "bytes": 2555,
+            "sha256": "979e09e7fd99dd2589bed87a5684afb67b0a7ca31b212e73c9eecf07efbfa0e8"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-04-add",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "add",
+            "--",
+            "Integrations/GeneratedReport/Sources/FieldLogFeatures/EntrySaveDecision.swift"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42112,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-05",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "show",
+            "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d:tests/integration/fieldlog-entry-save/android-editor/fieldlog-editor.patch"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42114,
+          "exit": 0,
+          "stdout": {
+            "bytes": 44800,
+            "sha256": "007572889f7aaa3e19b89250559545ec51d1943c9fe1ef29b73e2a4f9be3adb8"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-05-apply",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "apply",
+            "--index",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog-material-05.out"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42116,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-05-tree",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "write-tree"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42120,
+          "exit": 0,
+          "stdout": {
+            "bytes": 41,
+            "sha256": "e30bc4bc0e6374c21141149c86a3fddb4501a400b45907a7a062aa72aa7a7491",
+            "text": "e518fa0702a90ee5bd9e9f067de9fd9b0f09cc64\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-06",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "show",
+            "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d:tests/integration/fieldlog-entry-save/apple-editor/fieldlog-apple-editor.patch"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42121,
+          "exit": 0,
+          "stdout": {
+            "bytes": 46298,
+            "sha256": "d241fc62cbf88e0bea2ab7d4e82107eeba74e7d8023de4dbf8ff0b5d5cf9d98d"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-06-apply",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "apply",
+            "--index",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog-material-06.out"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42122,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-06-tree",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "write-tree"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42123,
+          "exit": 0,
+          "stdout": {
+            "bytes": 41,
+            "sha256": "08b61b8afea2457b62bf013703188dbdb78b6fba836dcd146872b575a8aa3136",
+            "text": "1534ac8af1bda5a76a81a7fc3c70cef26ae5e606\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-07",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "show",
+            "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d:tests/integration/fieldlog-entry-save/apple-editor/fieldlog-apple-editor-correction.patch"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42124,
+          "exit": 0,
+          "stdout": {
+            "bytes": 10730,
+            "sha256": "9e51539d620a33a71ba8c156fa4d79238c11b343298cf5fb31634e93f90eb7b1"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-07-apply",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "apply",
+            "--index",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog-material-07.out"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42127,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-07-tree",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "write-tree"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42131,
+          "exit": 0,
+          "stdout": {
+            "bytes": 41,
+            "sha256": "a0bbee1259a0f15cb2ebfa045d9223767e4a58e2472fee98f029a44f0a36b68a",
+            "text": "12986b06d22c8480cf0406c36698ae3ccb6c624f\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-08",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "show",
+            "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d:tests/integration/fieldlog-entry-save/apple-editor/fieldlog-apple-editor-dismissal.patch"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42133,
+          "exit": 0,
+          "stdout": {
+            "bytes": 14290,
+            "sha256": "02652808667992452da423b5424cbf6918f70017747bddb459a4acc27c6cbd99"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-08-apply",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "apply",
+            "--index",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog-material-08.out"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42134,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-08-tree",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "write-tree"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42135,
+          "exit": 0,
+          "stdout": {
+            "bytes": 41,
+            "sha256": "e01d04ed5b796eb1e81e81d17e7477c37519bde7d4687e0f1fa85d94f12635a7",
+            "text": "515684732fb55e9e48e15e55651f7931fd72b8e6\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-09",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "show",
+            "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d:tests/integration/fieldlog-entry-save/apple-editor/fieldlog-apple-editor-queued-close.patch"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42136,
+          "exit": 0,
+          "stdout": {
+            "bytes": 769,
+            "sha256": "7d3caa5a3af5ddb90bfc9073a75d95d75d56291a8d0738429c2cbe860dddd6c0"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-09-apply",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "apply",
+            "--index",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog-material-09.out"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42137,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-09-tree",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "write-tree"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42138,
+          "exit": 0,
+          "stdout": {
+            "bytes": 41,
+            "sha256": "ae30446b523c46596af92157773b63e72bc7e0dca5f602d8d1798df5b9df7dd5",
+            "text": "380e764598c31181d16ef2fbb91c95bf95693375\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-10",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "show",
+            "6e8780afce9367ba88470090abdeaf39de2f0a9a:verification/receipts/fieldlog-d2-shared-task-presentation-eb08569c-full.patch"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42140,
+          "exit": 0,
+          "stdout": {
+            "bytes": 13620,
+            "sha256": "ef2d937ec20fe48a3fe41062adc8e3636053aa530804fde31f8790c2658cb9aa"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-10-apply",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "apply",
+            "--index",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog-material-10.out"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42142,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-10-tree",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "write-tree"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42144,
+          "exit": 0,
+          "stdout": {
+            "bytes": 41,
+            "sha256": "31e7c4dbb808d1e8ffd981d6b66d5e3381359b7d9faff2c46e3fff5935fdf748",
+            "text": "eb08569c13b5f65e25edd0dfde1fe70fc8278ece\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-11",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "show",
+            "6e8780afce9367ba88470090abdeaf39de2f0a9a:verification/receipts/fieldlog-d2-workspace-repository-e49ac6bb-patch.patch"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42145,
+          "exit": 0,
+          "stdout": {
+            "bytes": 8459,
+            "sha256": "2b1def386fd47405e9eee8b70b47f2b49149c0bedd65080f5630235bada7da56"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-11-apply",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "apply",
+            "--index",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog-material-11.out"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42148,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-12",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "show",
+            "6e8780afce9367ba88470090abdeaf39de2f0a9a:verification/receipts/fieldlog-d2-checklist-row-85e6fbe3-patch.patch"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42151,
+          "exit": 0,
+          "stdout": {
+            "bytes": 21093,
+            "sha256": "b7d5d4b7aba76f8569bc2119fb504e30d1acad55230fda0b8559de4f065a5b09"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-12-apply",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "apply",
+            "--index",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog-material-12.out"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42152,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-13",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "show",
+            "1e2de0130d001ef9ada0001b59f9ae8b7f67b72a:verification/receipts/fieldlog-d2-checklist-move-source.patch"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42155,
+          "exit": 0,
+          "stdout": {
+            "bytes": 5512,
+            "sha256": "f171d71cbff6b8d94eca088957153eb51345f265aca08574525add20b3401db0"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-13-apply",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "apply",
+            "--index",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog-material-13.out"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42158,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-13-tree",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "write-tree"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42161,
+          "exit": 0,
+          "stdout": {
+            "bytes": 41,
+            "sha256": "4b6dbc3bd441c6d4293a7e69a3b88907e2b9ab447cbcba8b7421a431f9a9fd6e",
+            "text": "64841ade777bc507ce116f52f205f4283720f183\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-14",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026",
+            "show",
+            "1e2de0130d001ef9ada0001b59f9ae8b7f67b72a:verification/receipts/fieldlog-d2-ordinary-screens-e39a5ea3.patch"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42164,
+          "exit": 0,
+          "stdout": {
+            "bytes": 35844,
+            "sha256": "bcee976f3778ff4afe2f53a6b59d385c4b736a9930278218e83af75837464ce2"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-14-apply",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "apply",
+            "--index",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog-material-14.out"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42168,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "fieldlog-material-14-tree",
+          "argv": [
+            "/usr/bin/git",
+            "-C",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/fieldlog",
+            "write-tree"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42173,
+          "exit": 0,
+          "stdout": {
+            "bytes": 41,
+            "sha256": "2531ac34d342bf51fb855a8f8b2869447524a45dfd5fe99302d8f6dc3363e8d6",
+            "text": "e39a5ea393076ca3f64b00648bf86f350ccf03dd\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "macos-build",
+          "argv": [
+            "/usr/bin/sw_vers",
+            "-buildVersion"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42179,
+          "exit": 0,
+          "stdout": {
+            "bytes": 7,
+            "sha256": "83a02de12a419e9bd40d0b7c8c3bf118f4e379310a1e11ff7b481ac6b32f3a20",
+            "text": "26A434\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "swift-version",
+          "argv": [
+            "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+            "--version"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42182,
+          "exit": 0,
+          "stdout": {
+            "bytes": 79,
+            "sha256": "f7c8e3e54412f67bf6632e8c6744533677d8d65acd8ce3004b0f3b9806e8aa48",
+            "text": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "xcode-version",
+          "argv": [
+            "/usr/bin/xcodebuild",
+            "-version"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42210,
+          "exit": 0,
+          "stdout": {
+            "bytes": 32,
+            "sha256": "18730ed2ae28a2c9cf0c2d5db549033a4f07089331391a7133b7b32187454fa9",
+            "text": "Xcode 26.6\nBuild version 17F113\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "native-sdk",
+          "argv": [
+            "/usr/bin/xcrun",
+            "--no-cache",
+            "--sdk",
+            "macosx",
+            "--show-sdk-path"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42212,
+          "exit": 0,
+          "stdout": {
+            "bytes": 104,
+            "sha256": "0f808f2e6b513e3677dcb3492d4b0577b7f2680ca95d988f4ea653b04edc4a89",
+            "text": "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "foundation-free-embedded",
+          "argv": [
+            "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+            "-target",
+            "wasm32-unknown-none-wasm",
+            "-enable-experimental-feature",
+            "Embedded",
+            "-whole-module-optimization",
+            "-Osize",
+            "-parse-as-library",
+            "-Xfrontend",
+            "-disable-stack-protector",
+            "-swift-version",
+            "6",
+            "-module-cache-path",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/embedded-cache",
+            "-emit-object",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/compiler/experiments/foundation-date/Cases.swift",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/compiler/experiments/foundation-date/Control.swift",
+            "-o",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/foundation-free-embedded.o"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42281,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "epoch-build",
+          "argv": [
+            "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+            "-target",
+            "arm64-apple-macosx26.0",
+            "-sdk",
+            "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+            "-swift-version",
+            "6",
+            "-parse-as-library",
+            "-module-cache-path",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/native-cache",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/compiler/experiments/foundation-date/Cases.swift",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/compiler/experiments/foundation-date/Epoch.swift",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/compiler/experiments/foundation-date/EpochHost.swift",
+            "-o",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/epoch"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 90,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42285,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "epoch-ordered",
+          "argv": [
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/epoch",
+            "0",
+            "1",
+            "2",
+            "3"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42557,
+          "exit": 0,
+          "stdout": {
+            "bytes": 43,
+            "sha256": "b53b27118bc7950a4e7a0d07fab88a9f3a3ede5d5908f3b4fbad370a64e8fbae",
+            "text": "-978307200.5\n-978307200.0\n0.0\n725934600.25\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "epoch-reordered",
+          "argv": [
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/epoch",
+            "3",
+            "0",
+            "3",
+            "1",
+            "2"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42558,
+          "exit": 0,
+          "stdout": {
+            "bytes": 56,
+            "sha256": "d507283081599528b5a6f20ebd6f97ff0ad6af77d8b9c6d5427aeeba4c6eef38",
+            "text": "725934600.25\n-978307200.5\n725934600.25\n-978307200.0\n0.0\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "epoch-embedded",
+          "argv": [
+            "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+            "-target",
+            "wasm32-unknown-none-wasm",
+            "-enable-experimental-feature",
+            "Embedded",
+            "-whole-module-optimization",
+            "-Osize",
+            "-parse-as-library",
+            "-Xfrontend",
+            "-disable-stack-protector",
+            "-swift-version",
+            "6",
+            "-module-cache-path",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/embedded-cache",
+            "-emit-object",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/compiler/experiments/foundation-date/Cases.swift",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/compiler/experiments/foundation-date/Epoch.swift",
+            "-o",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/epoch-embedded.o"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42569,
+          "exit": 1,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 410,
+            "sha256": "0ca1639111d84c3e54f3640cfe47f74d619273c65a9e7256f83e2d7f87f0142d",
+            "text": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/compiler/experiments/foundation-date/Epoch.swift:1:8: error: no such module 'Foundation'\n1 | import Foundation\n  |        `- error: no such module 'Foundation'\n2 | \n3 | @_cdecl(\"epoch_readback\")\n\n<unknown>:0: note: did you forget to set an SDK using -sdk or SDKROOT?\n<unknown>:0: note: use \"xcrun swiftc\" to select the default macOS SDK installed with Xcode\n"
+          }
+        },
+        {
+          "name": "presentation-build",
+          "argv": [
+            "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+            "-target",
+            "arm64-apple-macosx26.0",
+            "-sdk",
+            "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+            "-swift-version",
+            "6",
+            "-parse-as-library",
+            "-module-cache-path",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/native-cache",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/compiler/experiments/foundation-date/Cases.swift",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/compiler/experiments/foundation-date/Presentation.swift",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/compiler/experiments/foundation-date/PresentationHost.swift",
+            "-o",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/presentation"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 90,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42572,
+          "exit": 0,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "presentation-ordered",
+          "argv": [
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/presentation",
+            "0",
+            "1",
+            "2",
+            "3"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 42978,
+          "exit": 0,
+          "stdout": {
+            "bytes": 27,
+            "sha256": "f53fdf83fd9e6363f57735ed00ecbb1e98b5601e2692a7d5cba8c43e0d0d963b",
+            "text": "Jan 1\n1 janv.\nDec 31\nMar 5\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "presentation-reordered",
+          "argv": [
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/presentation",
+            "3",
+            "0",
+            "3",
+            "1",
+            "2"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 43128,
+          "exit": 0,
+          "stdout": {
+            "bytes": 33,
+            "sha256": "1a98d17babe9c823959dc833f0dfdcc251111cda8af2184c95dfbae9dccb3b6e",
+            "text": "Mar 5\nJan 1\nMar 5\n1 janv.\nDec 31\n"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          }
+        },
+        {
+          "name": "presentation-embedded",
+          "argv": [
+            "/Users/andreyyurlov/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swiftc",
+            "-target",
+            "wasm32-unknown-none-wasm",
+            "-enable-experimental-feature",
+            "Embedded",
+            "-whole-module-optimization",
+            "-Osize",
+            "-parse-as-library",
+            "-Xfrontend",
+            "-disable-stack-protector",
+            "-swift-version",
+            "6",
+            "-module-cache-path",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/embedded-cache",
+            "-emit-object",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/compiler/experiments/foundation-date/Cases.swift",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/compiler/experiments/foundation-date/Presentation.swift",
+            "-o",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly/presentation-embedded.o"
+          ],
+          "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/verification/local/w07-foundation-date-maintained/foundation-date-gfz858ly",
+          "timeoutSeconds": 40,
+          "custody": "direct-child-reaped/group-absent (ESRCH)",
+          "pidPgid": 43199,
+          "exit": 1,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "text": ""
+          },
+          "stderr": {
+            "bytes": 456,
+            "sha256": "e59086c57eaff0bf3de332ae07bb0f94af89d49075c61c1042143b11e6136ecb",
+            "text": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/compiler/experiments/foundation-date/Presentation.swift:1:8: error: no such module 'Foundation'\n 1 | import Foundation\n   |        `- error: no such module 'Foundation'\n 2 | \n 3 | public func presentationReadback(_ index: Int32) -> String {\n\n<unknown>:0: note: did you forget to set an SDK using -sdk or SDKROOT?\n<unknown>:0: note: use \"xcrun swiftc\" to select the default macOS SDK installed with Xcode\n"
+          }
+        }
+      ],
+      "publicMixer": {
+        "revision": "1e2de0130d001ef9ada0001b59f9ae8b7f67b72a",
+        "tree": "6218549dff3d59b06251d10b20e257f13f565140",
+        "response": {
+          "bytes": 1350,
+          "sha256": "7a063a4296043abb220dbb2521bea7c1bc7a0e4a9e879819cdafb8f6346c798b"
+        }
+      },
+      "fieldLog": {
+        "publicRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+        "ordinaryTree": "e39a5ea393076ca3f64b00648bf86f350ccf03dd",
+        "patches": [
+          {
+            "path": "tests/integration/fieldlog-saved-draft/android/audited-patches/rollback-floor.patch",
+            "revision": "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d",
+            "sha256": "05a6ee7e057a3485387c18d964673a508f3e2a49c7e9d7f8315da1b95c36c9da"
+          },
+          {
+            "path": "tests/integration/fieldlog-saved-draft/android/audited-patches/optional-successor.patch",
+            "revision": "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d",
+            "sha256": "2596169364099a0f6f040e53ddd3e663b3040b8d6265b1a052125da21e917d44"
+          },
+          {
+            "path": "tests/integration/fieldlog-saved-draft/android/android-app-composition.patch",
+            "revision": "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d",
+            "sha256": "528551a733face2802a5b2d7e6b078de92e828c1f7acec6814915ce26cce0e54"
+          },
+          {
+            "path": "tests/integration/fieldlog-entry-save/entry-save-decision.patch",
+            "revision": "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d",
+            "sha256": "9d2d95795e9ed3095a05e75c90a548aa5d9d855cea98adef94ff10571435a1d9"
+          },
+          {
+            "path": "tests/integration/fieldlog-entry-save/EntrySaveDecision.swift",
+            "revision": "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d",
+            "sha256": "979e09e7fd99dd2589bed87a5684afb67b0a7ca31b212e73c9eecf07efbfa0e8"
+          },
+          {
+            "path": "tests/integration/fieldlog-entry-save/android-editor/fieldlog-editor.patch",
+            "revision": "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d",
+            "sha256": "007572889f7aaa3e19b89250559545ec51d1943c9fe1ef29b73e2a4f9be3adb8"
+          },
+          {
+            "path": "tests/integration/fieldlog-entry-save/apple-editor/fieldlog-apple-editor.patch",
+            "revision": "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d",
+            "sha256": "d241fc62cbf88e0bea2ab7d4e82107eeba74e7d8023de4dbf8ff0b5d5cf9d98d"
+          },
+          {
+            "path": "tests/integration/fieldlog-entry-save/apple-editor/fieldlog-apple-editor-correction.patch",
+            "revision": "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d",
+            "sha256": "9e51539d620a33a71ba8c156fa4d79238c11b343298cf5fb31634e93f90eb7b1"
+          },
+          {
+            "path": "tests/integration/fieldlog-entry-save/apple-editor/fieldlog-apple-editor-dismissal.patch",
+            "revision": "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d",
+            "sha256": "02652808667992452da423b5424cbf6918f70017747bddb459a4acc27c6cbd99"
+          },
+          {
+            "path": "tests/integration/fieldlog-entry-save/apple-editor/fieldlog-apple-editor-queued-close.patch",
+            "revision": "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d",
+            "sha256": "7d3caa5a3af5ddb90bfc9073a75d95d75d56291a8d0738429c2cbe860dddd6c0"
+          },
+          {
+            "path": "verification/receipts/fieldlog-d2-shared-task-presentation-eb08569c-full.patch",
+            "revision": "6e8780afce9367ba88470090abdeaf39de2f0a9a",
+            "sha256": "ef2d937ec20fe48a3fe41062adc8e3636053aa530804fde31f8790c2658cb9aa"
+          },
+          {
+            "path": "verification/receipts/fieldlog-d2-workspace-repository-e49ac6bb-patch.patch",
+            "revision": "6e8780afce9367ba88470090abdeaf39de2f0a9a",
+            "sha256": "2b1def386fd47405e9eee8b70b47f2b49149c0bedd65080f5630235bada7da56"
+          },
+          {
+            "path": "verification/receipts/fieldlog-d2-checklist-row-85e6fbe3-patch.patch",
+            "revision": "6e8780afce9367ba88470090abdeaf39de2f0a9a",
+            "sha256": "b7d5d4b7aba76f8569bc2119fb504e30d1acad55230fda0b8559de4f065a5b09"
+          },
+          {
+            "path": "verification/receipts/fieldlog-d2-checklist-move-source.patch",
+            "revision": "1e2de0130d001ef9ada0001b59f9ae8b7f67b72a",
+            "sha256": "f171d71cbff6b8d94eca088957153eb51345f265aca08574525add20b3401db0"
+          },
+          {
+            "path": "verification/receipts/fieldlog-d2-ordinary-screens-e39a5ea3.patch",
+            "revision": "1e2de0130d001ef9ada0001b59f9ae8b7f67b72a",
+            "sha256": "bcee976f3778ff4afe2f53a6b59d385c4b736a9930278218e83af75837464ce2"
+          }
+        ],
+        "publicArchive": {
+          "bytes": 1455731,
+          "sha256": "75d2ce2663ade805ca40831b17a460c248e88c62a7689d5a671182bbf0ed7840"
+        },
+        "verifiedTree": "e39a5ea393076ca3f64b00648bf86f350ccf03dd",
+        "callSite": {
+          "path": "ios/FieldLog/ProjectDetail.swift",
+          "line": 128,
+          "source": "Text(entry.occurredAt, format: .dateTime.month(.abbreviated).day()).font(",
+          "gitBlob": "f2dda688882d61d05e8d530a639e818128d1f248",
+          "bytes": 12457,
+          "sha256": "324351b80ba3598fb28dd9419c9769ec68444218e5f639de38f33fe60a736400"
+        }
+      },
+      "toolchain": {
+        "swift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+        "xcode": "Xcode 26.6\nBuild version 17F113",
+        "nativeTarget": "arm64-apple-macosx26.0",
+        "embeddedTarget": "wasm32-unknown-none-wasm",
+        "swiftDriver": {
+          "bytes": 230464,
+          "sha256": "3d13e20b1504d7d30038fcd2201b9d0a8ead5c09eea752a5da223453b3ae0c6f"
+        },
+        "swiftFrontend": {
+          "bytes": 341733312,
+          "sha256": "1ed6c28434801b1abb053e283cbc7e16d8e73ff12deb2ae3a539790afafbb3f5"
+        },
+        "nativeSDKSettings": {
+          "bytes": 7774,
+          "sha256": "f8d005f09381389167f9e0aeaa169bc9e7dff162ef22ca2fd8e98df7ff1acafe"
+        },
+        "embeddedSwiftModule": {
+          "bytes": 21023820,
+          "sha256": "d776a639deba8b93324dc252969e1b16c7a867bdcd0d5c1e3035fc9a8068d637"
+        }
+      },
+      "fixtures": {
+        "Cases.swift": {
+          "bytes": 617,
+          "sha256": "50f8f1c1311bb3f3020724af317282111e2ea725131ba3e77baebfe9dcc73bb7"
+        },
+        "Control.swift": {
+          "bytes": 450,
+          "sha256": "c70c4bd442bcab78c028c8e9861e4d342433cf1ca9b83ea9ad0fe4e9cc08823e"
+        },
+        "Epoch.swift": {
+          "bytes": 185,
+          "sha256": "c0a839eab0fc9e7805f7eb4da4c9bce9da8192a2b33bbad7db710454b4cb7435"
+        },
+        "EpochHost.swift": {
+          "bytes": 259,
+          "sha256": "52f49747f863b16e298ef7dc66246cf22b5c9db7561d33651b42bc284e89e625"
+        },
+        "Presentation.swift": {
+          "bytes": 499,
+          "sha256": "38fa39284943eeb1bbb0f5b05d756090efb488210013b1d41080b6efc76ea541"
+        },
+        "PresentationHost.swift": {
+          "bytes": 273,
+          "sha256": "ab62bb022e3a271cd88ca6471509d62be5a66e237f4111aa11d0cddb77305a42"
+        },
+        "replay.py": {
+          "bytes": 18330,
+          "sha256": "1880dd2f211a0f7033ee385b6d5027e59c4da8d21c48a821816e9bae5927c730"
+        }
+      },
+      "embedded": {
+        "foundation-free-embedded": {
+          "exit": 0,
+          "objectEmitted": true,
+          "wasmEmitted": false,
+          "object": {
+            "bytes": 5671,
+            "sha256": "b322c28d5f6d208cf4c99f8faf889042a3ec0828709b90c049be0ced6622abbe"
+          }
+        },
+        "epoch-embedded": {
+          "exit": 1,
+          "objectEmitted": false,
+          "wasmEmitted": false,
+          "diagnostic": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/compiler/experiments/foundation-date/Epoch.swift:1:8: error: no such module 'Foundation'\n1 | import Foundation\n  |        `- error: no such module 'Foundation'\n2 | \n3 | @_cdecl(\"epoch_readback\")\n\n<unknown>:0: note: did you forget to set an SDK using -sdk or SDKROOT?\n<unknown>:0: note: use \"xcrun swiftc\" to select the default macOS SDK installed with Xcode\n"
+        },
+        "presentation-embedded": {
+          "exit": 1,
+          "objectEmitted": false,
+          "wasmEmitted": false,
+          "diagnostic": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-35b5a026/compiler/experiments/foundation-date/Presentation.swift:1:8: error: no such module 'Foundation'\n 1 | import Foundation\n   |        `- error: no such module 'Foundation'\n 2 | \n 3 | public func presentationReadback(_ index: Int32) -> String {\n\n<unknown>:0: note: did you forget to set an SDK using -sdk or SDKROOT?\n<unknown>:0: note: use \"xcrun swiftc\" to select the default macOS SDK installed with Xcode\n"
+        }
+      },
+      "native": {
+        "epoch": {
+          "binary": {
+            "bytes": 55304,
+            "sha256": "e48910a4d56c47a9c314e101ab12a0e8196a61dfa47242989fa80ae683c2654c"
+          },
+          "readbacks": [
+            {
+              "indices": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "expectedAndObserved": "-978307200.5\n-978307200.0\n0.0\n725934600.25\n"
+            },
+            {
+              "indices": [
+                "3",
+                "0",
+                "3",
+                "1",
+                "2"
+              ],
+              "expectedAndObserved": "725934600.25\n-978307200.5\n725934600.25\n-978307200.0\n0.0\n"
+            }
+          ]
+        },
+        "presentation": {
+          "binary": {
+            "bytes": 58464,
+            "sha256": "23872e64b10fcee8fbfa0f2c0ce40e3e0a0d93743a1cc1990e6d3de2578c5be1"
+          },
+          "readbacks": [
+            {
+              "indices": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "expectedAndObserved": "Jan 1\n1 janv.\nDec 31\nMar 5\n"
+            },
+            {
+              "indices": [
+                "3",
+                "0",
+                "3",
+                "1",
+                "2"
+              ],
+              "expectedAndObserved": "Mar 5\nJan 1\nMar 5\n1 janv.\nDec 31\n"
+            }
+          ]
+        }
+      },
+      "elapsedSeconds": 29.112
+    }
+  },
+  "comparison": {
+    "pinnedRevisionsTreesAndToolchainMatch": true,
+    "allSixSwiftInputsMatch": true,
+    "allCommandExitsMatch": true,
+    "compilerAndReadbackArgvMatchWithCheckoutAndScratchPathsSubstituted": true,
+    "allNativeBinaryAndReadbackIdentitiesMatch": true,
+    "compileAndReadbackStdoutMatch": true,
+    "compilerStderrMatchesWithCheckoutPathSubstitutedInTwoRefusals": true,
+    "embeddedArtifactEmissionMatches": true,
+    "foundationFreeEmbeddedObject": {
+      "historical": {
+        "bytes": 5671,
+        "sha256": "ce0b01a5a7dac76d749308635db1bda5ae6b1f85c9325afbc5f32fcf2d9652c1"
+      },
+      "maintained": {
+        "bytes": 5671,
+        "sha256": "b322c28d5f6d208cf4c99f8faf889042a3ec0828709b90c049be0ced6622abbe"
+      },
+      "observation": "Both objects have the same byte count and satisfy the Wasm object control. The object digests differ."
+    }
+  },
+  "limitations": "Both Foundation cases stopped at module import before object emission. Guest validation and replay were unreached. No device, gate, or delivery work ran."
+}

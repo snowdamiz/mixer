@@ -319,3 +319,27 @@ Use the command and pinned inputs in the
 Its full Swift/WASI and native model observations cover that corpus. The
 Node execution, the owned inventory, and the owned artifact rejection each
 have their own scope.
+
+## Checklist formatter replay
+
+The [pinned checklist formatter experiment](../../experiments/checklist-existential/README.md)
+contains the commands for native existential dispatch, the source-located
+Embedded Swift refusal, and the static-dispatch replay in the owned VM.
+The [maintained receipt](../../../verification/receipts/w07-l03-checklist-existential-publication-fix-857e4b4.json)
+records the frame and custody results.
+
+## Foundation Date and format replay
+
+Use Swift 6.3.3 and Xcode 26.6 on arm64 macOS. Run from the Mixer checkout
+with its pinned source objects available. Use a fresh receipt path.
+
+```sh
+python3 -I -B compiler/experiments/foundation-date/replay.py NEW_RECEIPT.json
+python3 -I -B -m unittest discover -s compiler/experiments/foundation-date/tests -v
+```
+
+Both native probes verify ordered, reordered, and repeated inputs. The
+Embedded Wasm compiler refuses both Foundation imports before object
+emission. The Foundation-free control emits an object from the same input
+cases. The [maintained receipt](../../../verification/receipts/w07-l03-foundation-date-maintained.json)
+records the results and preserves the original run.
