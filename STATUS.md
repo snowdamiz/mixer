@@ -253,6 +253,15 @@ The other jobs passed, and independent review verified all eight uploaded
 archive digests.
 [Macro checkpoint terminal CI receipt](verification/receipts/owned-engine-c00f33e7-terminal-ci.json)
 
+The Intel sparse step now allows nine minutes. Both sparse suites, the
+six-consumer integration, and the 70-minute job cap retain their previous
+settings. A reversible Source141 successor seals the prior workflow bytes.
+Independent review verified both workflow sparse projections, both Python
+modes, exact predecessor restoration, and tamper refusals. The composed
+checkout also passed all 16 sparse controls per mode and admitted the same
+157 source inputs. Hosted confirmation is pending.
+[Timeout and Source141 verification](verification/receipts/android-sparse-checkout-timeout-c00f33e7.json)
+
 The six-action private V3 candidate `790d0b2253` delivered Open, Next,
 Tasks, reopen, Previous, and Entries through the signed guest. Its two
 pages displayed 26 real pending records from three scoped reads. The

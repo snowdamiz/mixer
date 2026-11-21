@@ -370,6 +370,7 @@ HOSTED_V79_PREFIX = 'hosted-v79-predecessor-bytes/'
 HOSTED_V80_PREFIX = 'hosted-v80-predecessor-bytes/'
 HOSTED_V81_PREFIX = 'hosted-v81-predecessor-bytes/'
 HOSTED_V82_PREFIX = 'hosted-v82-predecessor-bytes/'
+ANDROID_SPARSE_TIMEOUT_WORKFLOW = 'android-sparse-timeout-predecessor-bytes/' + VERIFY_WORKFLOW
 ANDROID_INSPECTION_DEADLINE_PREFIX = 'android-inspection-deadline-predecessor-bytes/'
 ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE = ANDROID_INSPECTION_DEADLINE_PREFIX + SOURCE_INPUTS_MANIFEST
 ANDROID_INSPECTION_DEADLINE_SOURCE_SHA256 = '2a9d99e0dea712c70d7be383958e67cd040577565c847861b89c0fc598ba4fcd'
@@ -495,6 +496,7 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
                                  HOSTED_V82_PREFIX)
     for name in HOSTED_V74_CHANGES
 } | {
+    ANDROID_SPARSE_TIMEOUT_WORKFLOW,
     ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE,
     *(ANDROID_INSPECTION_DEADLINE_PREFIX + name for name in ANDROID_INSPECTION_DEADLINE_CHANGES),
 } | {
@@ -658,7 +660,7 @@ def install_inputs():
                              'hosted_v71_transition', 'hosted_v72_transition', 'hosted_v73_transition',
                              'hosted_v74_transition', 'hosted_v76_transition', 'hosted_v77_transition',
                              'hosted_v78_transition', 'hosted_v79_transition', 'hosted_v80_transition', 'hosted_v81_transition',
-                             'hosted_v82_transition',
+                             'hosted_v82_transition', 'android_sparse_timeout_workflow',
                              'android_inspection_deadline_transition', 'receipt_directory_transition',
                              'receipt_parent_url_test_transition', 'swiftpm_migration_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
@@ -1624,6 +1626,17 @@ def install_inputs():
             require(stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
                     f'Installed hosted {version} owner mode differs: ' + name)
             installed[name] = change['after']
+
+    sparse_timeout = binding['android_sparse_timeout_workflow']
+    path = HERE / ANDROID_SPARSE_TIMEOUT_WORKFLOW
+    raw = read_predecessor_member(path)
+    require(set(sparse_timeout) == {'before', 'after', 'mode'} and
+            VERIFY_WORKFLOW not in current and sparse_timeout['before'] != sparse_timeout['after'] and
+            sparse_timeout['before'] == previous.row(raw) == installed[VERIFY_WORKFLOW] and
+            sparse_timeout['mode'] == stat.S_IMODE(path.lstat().st_mode) ==
+            stat.S_IMODE((ROOT / VERIFY_WORKFLOW).lstat().st_mode) == 0o644,
+            'Android sparse timeout workflow predecessor bytes or owner mode differ')
+    installed[VERIFY_WORKFLOW] = sparse_timeout['after']
 
     inspection = binding['android_inspection_deadline_transition']
     require(set(inspection) == {'sourceBefore', 'sourceAfter', 'changes'} and
