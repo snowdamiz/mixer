@@ -368,6 +368,7 @@ HOSTED_V78_PREFIX = 'hosted-v78-predecessor-bytes/'
 HOSTED_V79_PREFIX = 'hosted-v79-predecessor-bytes/'
 HOSTED_V80_PREFIX = 'hosted-v80-predecessor-bytes/'
 HOSTED_V81_PREFIX = 'hosted-v81-predecessor-bytes/'
+HOSTED_V82_PREFIX = 'hosted-v82-predecessor-bytes/'
 ANDROID_INSPECTION_DEADLINE_PREFIX = 'android-inspection-deadline-predecessor-bytes/'
 ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE = ANDROID_INSPECTION_DEADLINE_PREFIX + SOURCE_INPUTS_MANIFEST
 ANDROID_INSPECTION_DEADLINE_SOURCE_SHA256 = '2a9d99e0dea712c70d7be383958e67cd040577565c847861b89c0fc598ba4fcd'
@@ -433,7 +434,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     HOSTED_V74_PREFIX + name for name in HOSTED_V74_CHANGES
 } | {
     prefix + name for prefix in (HOSTED_V76_PREFIX, HOSTED_V77_PREFIX, HOSTED_V78_PREFIX,
-                                 HOSTED_V79_PREFIX, HOSTED_V80_PREFIX, HOSTED_V81_PREFIX)
+                                 HOSTED_V79_PREFIX, HOSTED_V80_PREFIX, HOSTED_V81_PREFIX,
+                                 HOSTED_V82_PREFIX)
     for name in HOSTED_V74_CHANGES
 } | {
     ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE,
@@ -585,6 +587,7 @@ def install_inputs():
                              'hosted_v71_transition', 'hosted_v72_transition', 'hosted_v73_transition',
                              'hosted_v74_transition', 'hosted_v76_transition', 'hosted_v77_transition',
                              'hosted_v78_transition', 'hosted_v79_transition', 'hosted_v80_transition', 'hosted_v81_transition',
+                             'hosted_v82_transition',
                              'android_inspection_deadline_transition', 'receipt_directory_transition',
                              'receipt_parent_url_test_transition', 'swiftpm_migration_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
@@ -1508,7 +1511,7 @@ def install_inputs():
     for version, prefix in (('v74', HOSTED_V74_PREFIX), ('v76', HOSTED_V76_PREFIX),
                             ('v77', HOSTED_V77_PREFIX), ('v78', HOSTED_V78_PREFIX),
                             ('v79', HOSTED_V79_PREFIX), ('v80', HOSTED_V80_PREFIX),
-                            ('v81', HOSTED_V81_PREFIX)):
+                            ('v81', HOSTED_V81_PREFIX), ('v82', HOSTED_V82_PREFIX)):
         hosted_transition = binding[f'hosted_{version}_transition']
         require(set(hosted_transition) == {'changes'} and
                 set(hosted_transition['changes']) == HOSTED_V74_CHANGES and
