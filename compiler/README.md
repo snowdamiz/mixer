@@ -16,19 +16,21 @@ test suite checks the generated file for drift.
 
 On arm64 macOS, use the Swift 6.3.3 release toolchain, Rust 1.99.0, and
 Xcode 27.2 (27B52). Check out
-`426ad7980482434f1b0ea4263f15c876e5e9fbfd` in a fresh Mixer worktree.
+`c809cf334cec72c20714ed040ddc01a1a1b7d0d3` in a fresh Mixer worktree.
 The replay checks this fixture revision and independently checks its engine
 inputs against the audited v79 source. Use a new name under
 `verification/local/`. See `--help` if the tools use different paths.
 
 ```sh
+(
+set -eu
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 export PATH="$DEVELOPER_DIR/Toolchains/XcodeDefault.xctoolchain/usr/bin:$PATH"
 revision=$(git rev-parse HEAD)
 name=signed-event-fixture
 proof="$PWD/verification/local/$name"
 python3 -B compiler/experiments/swift-event-diagnostic/replay.py "$name" \
-  --source-revision "$revision"
+  --source-revision "$revision" --developer-dir "$DEVELOPER_DIR"
 
 mkdir -m 700 "$proof/lib"
 cp "$proof/rust/release/libmixer_vm.a" "$proof/lib/libmixer_vm_capability_experimental.a"
@@ -39,9 +41,9 @@ MIXER_SIGNED_SWIFT_DIAGNOSTIC_MODULES="$proof" \
   --force-resolved-versions --disable-index-store --no-parallel --disable-swift-testing \
   -Xcc "-I$PWD/vm/include" -Xlinker "-L$proof/lib" \
   --filter GuestUISignedBranchTests
+)
 ```
 
-Stop if the first command fails or its receipt reports unresolved custody.
 A successful standalone replay resolves the fixture trap to
 `SwiftEventGuest.swift:32:9`. The signed suite then routes the event from
 the ordinary offscreen macOS presentation. Both signed variants report
