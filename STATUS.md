@@ -1146,6 +1146,17 @@ a pin write. The review observed a source race between the navigation
 state and the queued restoration write.
 [Shared patch](verification/receipts/fieldlog-site-map-shared-26bbde4a.patch) · [Producer receipt](verification/receipts/fieldlog-site-map-shared-26bbde4a.json) · [Independent review](verification/receipts/fieldlog-site-map-shared-review-23150c6a.json)
 
+The standalone Android map rendered offline on API 36. The manual
+pin save touched only the selected project and workspace revision.
+The system permission prompt handled denial and grant. Emulated GPS
+drew a separate blue marker, and backgrounding cleared the position
+status. The workspace stayed byte-identical through the location
+checks. A cold reopen retained the pin, and clearing it changed only
+the pin and revision. Back to project left an empty dashboard with
+both a manually saved pin and a preseeded one. Restart restored the
+dashboard. All five runs closed their private groups and removed
+scratch. [Installed Android map](verification/receipts/fieldlog-android-site-map-api36-f2184a4c.json)
+
 ## November 21 current FieldLog Android queue
 
 The Pair25 queue port ran the ordinary On device screen on macOS with
