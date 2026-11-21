@@ -196,6 +196,13 @@ and W09 passed with private F10 disabled. Intel passed all six Java
 cross-compiles. Phoenix and Identity did not trigger on this revision.
 [Restore and Swift reproducibility CI receipt](verification/receipts/hosted-restore-swift-reproducibility-ci-terminal-9efad204.json)
 
+All nine jobs passed on the published signed editor checkpoint
+`1ef43cbb7b`. Source141 matched the same 157 inputs in both preflights
+and postflight. Swift 6.2.4 passed ordinary V1, signed Commit, and W09
+checks. CI kept the private editor and F10 disabled. Intel passed all
+six Java cross-compiles. Phoenix and Identity did not trigger.
+[Signed editor terminal CI receipt](verification/receipts/hosted-signed-editor-source141-ci-terminal-1ef43cbb.json)
+
 The six-action private V3 candidate `790d0b2253` delivered Open, Next,
 Tasks, reopen, Previous, and Entries through the signed guest. Its two
 pages displayed 26 real pending records from three scoped reads. The
@@ -762,6 +769,14 @@ archive, fixture, and VM pins. Runtime readback comes from the experiment
 receipt. Default linking still refuses both symbols. Heap exhaustion
 and block reuse remain open.
 [Stock SDK allocator experiment](verification/receipts/l03-swift-sdk-allocator-abadfffa10.json)
+
+The maintained closure-only `--stock-wasi-allocator` option reproduces
+the no-library refusal before linking with the pinned archive. Two fresh
+runs per fixture reproduced the object and Wasm hashes and matched native
+and owned VM frames. The default replay and all 32 VM tests passed.
+Independent review checked the selector, archive admission, link order,
+and receipt. The support matrix now records the two scoped guest fixtures.
+[Maintained allocator replay](verification/receipts/l03-swift-stock-wasi-allocator-replay.json)
 
 A compact Swift event trapped at function 3, byte 514 in the owned VM.
 The matching line table resolved that position to `SwiftEventGuest.swift:32:9`
