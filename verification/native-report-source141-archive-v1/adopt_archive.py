@@ -325,6 +325,17 @@ HALT_CLI_PREFIX = 'halt-cli-predecessor-bytes/'
 SOURCE150_SHA256 = '4a202d6aa4f6b81884df32cd0fe67cc8ce9847e8d4ae2ebea8b2cf1d4711a6f8'
 HALT_CLI_SOURCE_CHANGES = {PUBLIC_UPDATE_MAIN, PUBLIC_UPDATE_SOURCE}
 HALT_CLI_CHANGES = HALT_CLI_SOURCE_CHANGES | {VERIFY_WORKFLOW, JAVA + 'test_sparse_checkout.py'}
+RELEASE_REST_V3_PREFIX = 'release-rest-v3-predecessor-bytes/'
+RELEASE_REST_V3_SOURCE_ADDITIONS = {
+    'cli/Sources/MixerBuild/GeneratedReleaseRESTV3.swift',
+    'cli/Sources/MixerBuild/ReleaseV3Wire.swift',
+}
+RELEASE_REST_V3_ADDITIONS = RELEASE_REST_V3_SOURCE_ADDITIONS | {
+    'cli/Tests/MixerBuildTests/ReleaseRESTV3Tests.swift',
+    'cli/release-tools/generate_release_rest_v3.py',
+}
+RELEASE_REST_V3_REPLACEMENTS = {PUBLIC_UPDATE_SOURCE, VERIFY_WORKFLOW, SPARSE_CHECKOUT_TEST}
+RELEASE_REST_V3_SOURCE_CHANGES = RELEASE_REST_V3_SOURCE_ADDITIONS | {PUBLIC_UPDATE_SOURCE}
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
@@ -344,6 +355,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     SWIFT_VERSION_PREFIX + name for name in SWIFT_VERSION_CHANGES
 } | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
+} | {
+    RELEASE_REST_V3_PREFIX + name for name in RELEASE_REST_V3_REPLACEMENTS
 } | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
 } | {
@@ -479,7 +492,7 @@ def install_inputs():
                              'android_retained_output_correction_transition',
                              'managed_android_retained_transition', 'pair25_transition', 'swift_version_transition',
                              'cli_nonregular_input_test_transition', 'signed_apple_overflow_test_transition',
-                             'sparse_checkout_test_transition',
+                             'sparse_checkout_test_transition', 'release_rest_v3_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow'} and
@@ -1230,9 +1243,9 @@ def install_inputs():
             require(expected_source[name] == change['before'], 'Swift version source preimage differs: ' + name)
             expected_source[name] = change['after']
         preimages.setdefault(name, (raw, 0o644))
-    require(current == expected_source and len(current) == 151 and binding['source'] == {
-        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': swift_version['sourceAfter'],
-    } and previous.digest(current) == swift_version['sourceAfter'], 'Swift version source transition differs')
+    require(len(expected_source) == 151 and
+            previous.digest(expected_source) == swift_version['sourceAfter'],
+            'Swift version source transition differs')
 
     cli_test = binding['cli_nonregular_input_test_transition']
     raw = read_predecessor_member(HERE / CLI_NONREGULAR_INPUT_TEST_PREIMAGE)
@@ -1266,7 +1279,38 @@ def install_inputs():
     installed[SPARSE_CHECKOUT_TEST] = sparse_test['after']
     preimages.setdefault(SPARSE_CHECKOUT_TEST, (raw, 0o644))
 
+    release = binding['release_rest_v3_transition']
+    require(set(release) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            release['sourceBefore'] == swift_version['sourceAfter'] and
+            set(release['changes']) == RELEASE_REST_V3_REPLACEMENTS | RELEASE_REST_V3_ADDITIONS,
+            'Signed release REST v3 predecessor or change roster differs')
+    for name, change in release['changes'].items():
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == installed.get(name) and change['before'] != change['after'] and
+                type(change['mode']) is int and change['mode'] == 0o644,
+                'Signed release REST v3 owner row differs: ' + name)
+        if name in RELEASE_REST_V3_REPLACEMENTS:
+            path = HERE / RELEASE_REST_V3_PREFIX / name
+            raw = read_predecessor_member(path)
+            require(previous.row(raw) == change['before'] and
+                    stat.S_IMODE(path.lstat().st_mode) == change['mode'],
+                    'Signed release REST v3 predecessor bytes or mode differ: ' + name)
+            preimages.setdefault(name, (raw, change['mode']))
+        else:
+            require(name not in installed, 'Signed release REST v3 addition already owned: ' + name)
+        if name in RELEASE_REST_V3_SOURCE_CHANGES:
+            require(expected_source.get(name) == change['before'],
+                    'Signed release REST v3 source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        installed[name] = change['after']
+    require(current == expected_source and len(current) == 153 and binding['source'] == {
+        'count': len(current), 'manifest': 'current-source-inputs.json', 'sha256': release['sourceAfter'],
+    } and previous.digest(current) == release['sourceAfter'], 'Signed release REST v3 source transition differs')
+
     previous.check_rows(ROOT, installed)
+    for name, change in release['changes'].items():
+        require(stat.S_IMODE((ROOT / name).lstat().st_mode) == change['mode'],
+                'Installed signed release REST v3 owner mode differs: ' + name)
     for name, change in halt['changes'].items():
         require(stat.S_IMODE((ROOT / name).lstat().st_mode) == change['mode'],
                 'Installed halt CLI owner mode differs: ' + name)
@@ -1367,6 +1411,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_release_rest_v3_sha256': binding['release_rest_v3_transition']['sourceBefore'],
             'predecessor_swift_version_sha256': binding['swift_version_transition']['sourceBefore'],
             'predecessor_pair24_source151_sha256': binding['pair25_transition']['sourceBefore'],
             'predecessor_managed_android_retained_sha256': binding['managed_android_retained_transition']['sourceBefore'],

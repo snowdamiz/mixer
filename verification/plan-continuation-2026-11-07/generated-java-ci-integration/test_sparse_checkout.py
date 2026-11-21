@@ -105,7 +105,8 @@ def admission_paths(root=None, binding=None):
         dependencies.update(relative(path).as_posix() for path in declaration['changes'])
         for key in ('capability_transition', 'upgrade_transition', 'pair24_transition',
                     'cancel_cli_transition', 'local_store_transition',
-                    'release_inspector_transition', 'icu_notice_transition', 'halt_cli_transition'):
+                    'release_inspector_transition', 'icu_notice_transition', 'halt_cli_transition',
+                    'release_rest_v3_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -457,6 +458,9 @@ class SparseControls(unittest.TestCase):
             self.assertEqual(halt['sourceBefore'], icu['sourceAfter'])
             self.assertEqual(observed['predecessor_apple_section_accessibility_sha256'],
                              halt['sourceAfter'])
+            release = binding['release_rest_v3_transition']
+            self.assertEqual(release['sourceBefore'], binding['swift_version_transition']['sourceAfter'])
+            self.assertEqual(observed['predecessor_release_rest_v3_sha256'], release['sourceBefore'])
             self.assertEqual(observed['source_sha256'], binding['source']['sha256'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']
@@ -474,7 +478,7 @@ class SparseControls(unittest.TestCase):
                     self.assertIn(diagnostic.encode(), failed.stderr)
             changes = {**binding['changes'], **binding['capability_transition']['changes'],
                        **pair24['changes'], **binding['local_store_transition']['changes'],
-                       **inspector['changes']}
+                       **inspector['changes'], **release['changes']}
             additions = sorted(name for name, change in changes.items() if change['before'] is None)
             self.assertTrue(additions)
             for name in additions:
