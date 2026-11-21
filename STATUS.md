@@ -241,16 +241,21 @@ The framed response grew from 8,382,516 bytes on v81 to 8,501,053 bytes
 on v82, exceeding the existing 8 MiB per-command limit. The finalizer
 verified cleanup. The corrected collector reproduced every framed byte in
 two bounded reads. The exact composed Services run passed all 321
-collector tests in each Python mode. Hosted execution is pending.
+collector tests in each Python mode. On the published follow-up
+`dbb9275d58`, both bounded reads completed and both isolated network
+methods passed without skips. The before and after manifests matched.
+The finalizer confirmed absence of all three owned containers and removal
+of owned scratch.
 [Exact overflow evidence](verification/receipts/hosted-v82-identity-source-batch-overflow.json) ·
-[Batching verification](verification/receipts/hosted-v82-batched-services-collector.json)
+[Batching verification](verification/receipts/hosted-v82-batched-services-collector.json) ·
+[Hosted follow-up](verification/receipts/hosted-v82-followup-identity-dbb9275d.json)
 
 Published v82 Owned Engine passed all nine jobs. Both Swift Host source
 checks matched the 154-input archive, and Intel compiled all six Java
 consumers with terminal receipts. Services passed all 317 collector
 tests in each Python mode and the Go checks. Phoenix passed the 12
 private-login and 10 ordinary catalog cases before the source-map suite
-failure. The two Identity Network methods remain unverified on v82.
+failure. The initial v82 Identity run stopped before either method.
 [Exact hosted results](verification/receipts/hosted-v82-terminal-e1202816.json)
 
 ## November 21 attestation readiness
