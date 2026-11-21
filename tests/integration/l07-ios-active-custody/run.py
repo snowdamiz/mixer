@@ -61,17 +61,21 @@ def git(*args):
     )
 
 
-def provision(root, cache, archives, result, *, live=False, preflight=False):
-    revision, expected = (ADOPTED, V55_TREE) if live else (BASE, HOSTED_TREE)
-    hosted_tree = git("rev-parse", f"{revision}:hosted").decode().strip()
+def provision(root, cache, archives, result, *, live=False, preflight=False, v74=False):
+    if v74:
+        from v74 import BASE as revision, HOSTED_TREE as expected
+    else:
+        revision, expected = (ADOPTED, V55_TREE) if live else (BASE, HOSTED_TREE)
+    git_flags = ("--no-replace-objects",) if v74 else ()
+    hosted_tree = git(*git_flags, "rev-parse", f"{revision}:hosted").decode().strip()
     if hosted_tree != expected:
         raise RuntimeError("pinned hosted tree differs")
     result["baseHostedTree"] = hosted_tree
     archive = root / "base.tar"
     with archive.open("xb") as stream:
         subprocess.run(
-            ["git", "--no-lazy-fetch", "archive", revision, "hosted", PAIR, REGISTRATION,
-             *([PREPARE] if live else [])],
+            ["git", "--no-lazy-fetch", *git_flags, "archive", revision, "hosted", PAIR, REGISTRATION,
+             *([PREPARE] if live or v74 else [])],
             cwd=REPO, check=True, stdout=stream, timeout=20,
         )
     with tarfile.open(archive) as stream:
@@ -85,7 +89,7 @@ def provision(root, cache, archives, result, *, live=False, preflight=False):
         if set(git("diff", "--name-only", ADOPTED, LIVE_OVERLAY).decode().splitlines()) != LIVE_OVERLAY_PINS.keys():
             raise RuntimeError("tested live overlay changed file roster differs")
     overlay = LIVE_OVERLAY if live else OVERLAY
-    for path in LIVE_OVERLAY_PINS if live else HOSTED_FILES:
+    for path in () if v74 else LIVE_OVERLAY_PINS if live else HOSTED_FILES:
         data = git("show", f"{overlay}:{path}")
         digest = kit["sha"](data)
         if live and digest != LIVE_OVERLAY_PINS[path]:
@@ -114,7 +118,14 @@ def provision(root, cache, archives, result, *, live=False, preflight=False):
                 raise RuntimeError(f"pinned fixture substitution differs in {name}: {old}")
             source = source.replace(old, new)
         path.write_text(source)
-    kit["fixtures"](root / "hosted")
+    if v74:
+        from v74 import compose, configure_hosted, owned_runner
+
+        compose(root, HERE, PAIR)
+        configure_hosted(root, PAIR, API_TEST)
+        kit["owned"] = kit["compile_hosted"].__globals__["owned"] = owned_runner(kit)
+    else:
+        kit["fixtures"](root / "hosted")
 
     hosted = root / "hosted"
     mix_lock = (hosted / "mix.lock").read_bytes()
@@ -202,7 +213,9 @@ def db_rows(database, operation, *, with_plan=False):
     return None
 
 
-def drive(root, kit, env, pg, result, live_recipe=None):
+def drive(root, kit, env, pg, result, live_recipe=None, *, operator=None, v74_preflight=False):
+    if operator is not None:
+        from v74 import command, enroll
     require, read, write, wait = (kit[name] for name in ("require", "read", "write", "wait"))
     owned, wire, http = (kit[name] for name in ("owned", "wire", "http"))
     host, db, commands = kit["HOST"], kit["DB"], result["commands"]
@@ -215,7 +228,11 @@ def drive(root, kit, env, pg, result, live_recipe=None):
         "python": sys.version.split()[0],
     }
     result["stage"] = "restricted-services"
-    spec, registration, policy = live_recipe or make_recipe(root, kit)
+    if v74_preflight:
+        write(root / "inputs.json", dict(source_tree_sha256="a" * 64,
+                                       linux_lock_sha256="b" * 64, recipe_sha256="c" * 64))
+    else:
+        spec, registration, policy = live_recipe or make_recipe(root, kit)
     code = hosted / "priv/development"
     sys.path.insert(0, str(code))
     import ios_build_custody
@@ -227,13 +244,27 @@ def drive(root, kit, env, pg, result, live_recipe=None):
     db_port, worker_port = kit["port"](), kit["port"]()
     require(db_port != worker_port, "fixture ports collided")
     ports = result["ports"] = [db_port, worker_port]
+    if operator is not None:
+        api_port = kit["port"]()
+        require(api_port not in ports, "fixture API port collided")
+        ports.append(api_port)
+        env["L07_V74_API_PORT"] = str(api_port)
     env.update(MIXER_BROWSER_STORAGE_PORT=str(db_port),
                MIXER_BROWSER_CATALOG_FIXTURE_ROOT=str(root / "catalog"))
     (root / "catalog").mkdir()
     psql = [pg / "psql", "-XqAtw", "-v", "ON_ERROR_STOP=1", "-h", host,
             "-p", str(db_port), "-U", "fixture_admin"]
 
+    sql_count = 0
+
     def sql(statement, database=db):
+        nonlocal sql_count
+        if operator is not None:
+            sql_count += 1
+            log = command(root, kit, result, f"sql-{sql_count:03}", [*psql, "-d", database, "-c", statement],
+                          env | {"PGCONNECT_TIMEOUT": "3", "PGOPTIONS": "-c statement_timeout=3000"},
+                          timeout=6)
+            return log.read_text().strip()
         return subprocess.check_output([*psql, "-d", database, "-c", statement], env=env,
                                        stderr=subprocess.STDOUT, timeout=3, text=True).strip()
 
@@ -264,6 +295,11 @@ def drive(root, kit, env, pg, result, live_recipe=None):
                root, env, commands) as process:
         process.wait(timeout=15)
 
+    if operator is not None:
+        hba = root / "pg/pg_hba.conf"
+        hba.write_text("host all mixer_native_attestation_writer 127.0.0.1/32 scram-sha-256\n"
+                       + hba.read_text())
+
     with ExitStack() as services:
         postgres = services.enter_context(owned(
             root, "postgres", [pg / "postgres", "-D", root / "pg", "-h", host, "-p", str(db_port),
@@ -277,8 +313,16 @@ def drive(root, kit, env, pg, result, live_recipe=None):
             hosted, env, commands, stop=lambda: mark(root / "api.done"),
         ))
         auth = ready("api.ready", api, 60)
-        ports.extend(auth[key] for key in ("port", "issuer", "jwks"))
+        if operator is not None:
+            require(auth["port"] == api_port, "fixture started on the wrong fixed port")
+        ports.extend(auth[key] for key in (("issuer", "jwks") if operator is not None
+                                           else ("port", "issuer", "jwks")))
         require(len(ports) == len(set(ports)), "fixture ports collided")
+        if operator is not None:
+            grant_probe = result["writerGrantBrowserProbe"] = ready("v74.writer-grants", api, 4)
+            if not v74_preflight:
+                require(grant_probe == {"retainedSessionHTTP": 200, "authenticated": True},
+                        "v74 writer grants are incompatible with ordinary browser admission")
         owner = auth["cookie"]
         worker_id, token = "l07-native-worker", secrets.token_hex(32)
         processor_env = dict(
@@ -290,7 +334,8 @@ def drive(root, kit, env, pg, result, live_recipe=None):
             MIXER_NATIVE_RETAINED_ROOT=str(state), MIXER_NATIVE_WORKER_PORT=str(worker_port),
             MIXER_NATIVE_WORKER_ID=worker_id, MIXER_NATIVE_WORKER_TOKEN=token,
         )
-        processor = services.enter_context(owned(
+        processors = services.enter_context(ExitStack()) if operator is not None else services
+        processor = processors.enter_context(owned(
             root, "processor", ["mix", "run", "--no-start", "--no-compile", root / PAIR / "processor.exs"],
             hosted, processor_env, commands, stop=lambda: mark(root / "processor.done"),
         ))
@@ -299,6 +344,18 @@ def drive(root, kit, env, pg, result, live_recipe=None):
                 "processor was not restricted and paused")
         require(jobs() is None and all(value is None for value in snapshot().values()),
                 "pre-create queue or custody was not empty")
+
+        if v74_preflight:
+            processors.close()
+            enroll(root, kit, env, pg, result, api, auth, operator, ready, preflight=True)
+            require(jobs() is None and all(value is None for value in snapshot().values()),
+                    "v74 preflight unexpectedly created a build or admitted a worker")
+            result["fixtureQueueEmpty"] = True
+            result["stage"] = "v74-stock-attachment-preflight"
+            require(result["writerAdmission"]["browserStorageReady"]
+                    and result["writerAdmission"]["freshBrowserSession"],
+                    "v74 writer grants are incompatible with ordinary browser admission")
+            return
 
         result["stage"] = "one-customer-build"
         result["buildPOSTs"] += 1
@@ -355,6 +412,34 @@ def drive(root, kit, env, pg, result, live_recipe=None):
 
         def shutdown():
             require(wire(config, "shutdown") == {"status": "closed"}, "authenticated worker shutdown refused")
+
+        if operator is not None:
+            from live import complete_ordinary
+
+            sdk_output = state / operation
+
+            def refresh():
+                mark(root / "v74.refresh")
+                return ready("v74.readback-auth", api, 12)
+
+            with ExitStack() as workers:
+                worker = launch(workers, "worker", "worker", stop=shutdown)
+                wait(lambda: kit["listening"](worker_port) and database.is_file(), 8, worker)
+                result["liveCustodyPending"] = True
+                result["liveCustodyPaths"] = {"ledger": str(database), "operation": str(sdk_output)}
+                result["xcodeInvocations"] = None
+                observer = launch(workers, "independent-parent", "observe")
+                mark(root / "processor.run")
+                complete_ordinary(
+                    kit, result, sdk_output, config_path, spec, binding, auth, scope,
+                    observer, processor, lambda: db_rows(database, operation, with_plan=True),
+                    snapshot, jobs, sql, refresh,
+                )
+            processors.close()
+            enroll(root, kit, env, pg, result, api, auth | {"wrapper": HERE / "attest_settled.py"},
+                   operator, ready, preflight=False)
+            result["stage"] = "v74-attested"
+            return
 
         if live_recipe:
             from live import complete_after_cut
@@ -646,7 +731,10 @@ def main():
     parser.add_argument("--hex-cache", type=Path, default=Path.home() / ".hex")
     parser.add_argument("--mix-archives", type=Path, default=Path.home() / ".mix/archives")
     parser.add_argument("--pg-bin", type=Path, default=Path("/opt/homebrew/opt/postgresql@17/bin"))
-    parser.add_argument("--live", action="store_true", help="root-owned real unsigned Xcode build")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--live", action="store_true", help="historical v55 owned-worker recovery build")
+    mode.add_argument("--v74-attest", action="store_true", help="one ordinary v74 build and local attachment")
+    mode.add_argument("--v74-preflight", action="store_true", help="v74 stock writer and authority without a build")
     parser.add_argument("--preflight-only", action="store_true", help="check the live inputs without services")
     parser.add_argument("--export", type=Path, help="already verified, staged Starter export")
     parser.add_argument("--cli", type=Path, help="canonical path of the staged retained-output CLI")
@@ -655,12 +743,16 @@ def main():
     args = parser.parse_args()
     if args.receipt.exists() or sys.platform != "darwin":
         parser.error("run on macOS and use a new receipt path")
-    if args.live and not all((args.export, args.cli, args.stage_receipt, args.stage_sha256)):
-        parser.error("--live requires --export, --cli, --stage-receipt and --stage-sha256")
+    live = args.live or args.v74_attest
+    v74 = args.v74_attest or args.v74_preflight
+    if live and not all((args.export, args.cli, args.stage_receipt, args.stage_sha256)):
+        parser.error("live build modes require --export, --cli, --stage-receipt and --stage-sha256")
     if args.stage_sha256 and not re.fullmatch(r"[0-9a-f]{64}", args.stage_sha256):
         parser.error("--stage-sha256 requires a lowercase SHA-256 hex digest")
-    if not args.live and any((args.export, args.cli, args.stage_receipt, args.stage_sha256, args.preflight_only)):
-        parser.error("staged inputs and --preflight-only require --live")
+    if not live and any((args.export, args.cli, args.stage_receipt, args.stage_sha256)):
+        parser.error("staged inputs require a live build mode")
+    if args.preflight_only and not args.live:
+        parser.error("--preflight-only requires historical --live; use --v74-preflight for v74")
 
     os.umask(0o077)
     scratch_parent = REPO / "verification/local"
@@ -681,22 +773,37 @@ def main():
     if args.live:
         result.update(base=ADOPTED, overlay=LIVE_OVERLAY, backend="v55 unsigned generic iOS Simulator build only")
         del result["inertTimeoutsSeconds"]
+    operator = None
     kit = None
     error = None
     try:
+        if v74:
+            from v74 import BASE as v74_pin
+
+            result.update(base=v74_pin, overlay=None, backend="ordinary v74 local attestation")
+            del result["inertTimeoutsSeconds"]
+            operator = Path(tempfile.mkdtemp(prefix="l07-v74-operator-", dir=scratch_parent))
+            result["operatorScratch"] = str(operator)
+            (operator / "credentials").mkdir(mode=0o700)
         kit = provision(root, args.hex_cache, args.mix_archives, result, live=args.live,
-                        preflight=args.preflight_only)
+                        preflight=args.preflight_only, v74=v74)
         result["fixtureSHA256"] = kit["sha"](Path(__file__).read_bytes())
         live_recipe = None
         env = environment(root)
-        if args.live:
+        if v74:
+            env["L07_V74_CREDENTIALS"] = str(operator / "credentials")
+            if args.v74_preflight:
+                env["L07_V74_PREFLIGHT"] = "1"
+            env.pop("PAIR25_CANCEL")
+        if live:
             from live import stage_recipe
 
             result["stage"] = "live-stage-admission"
             env.pop("PAIR25_CANCEL")
             live_recipe = stage_recipe(root, kit, args, result, PREPARE)
         if not args.preflight_only:
-            drive(root, kit, env, args.pg_bin, result, live_recipe)
+            drive(root, kit, env, args.pg_bin, result, live_recipe,
+                  operator=operator, v74_preflight=args.v74_preflight)
         else:
             result["stage"] = "live-inputs-admitted"
         result["passed"] = True
@@ -713,11 +820,15 @@ def main():
             unknown.append("original live CLI or Xcode closure unproven")
         if kit and isinstance(error, kit["CustodyUnknown"]) and not unknown:
             unknown.append("incomplete process ownership observation")
+        wrapper_hold = v74 and os.path.lexists(root / "HOLD.json")
+        if wrapper_hold:
+            unknown.append("unresolved attestation wrapper custody")
         if unknown:
             result["custodyHold"] = {"preserved": str(root), "unresolved": unknown}
             result["passed"] = False
-            if args.live:
-                (root / "HOLD.json").write_text(json.dumps(result, indent=2) + "\n")
+            if (live or v74) and not wrapper_hold:
+                with (root / "HOLD.json").open("x") as hold:
+                    json.dump(result, hold, indent=2)
         else:
             if kit and result.get("ports"):
                 try:
@@ -725,7 +836,14 @@ def main():
                 except OSError as cleanup_error:
                     result["portReuseFailure"] = str(cleanup_error)
                     result["passed"] = False
-            shutil.rmtree(root)
+            if result.get("attestationPending"):
+                result["retainedAfterAttestationFailure"] = [str(root), str(operator)]
+            else:
+                shutil.rmtree(root)
+                if operator is not None:
+                    shutil.rmtree(operator)
+        if operator is not None:
+            result["operatorScratchRemoved"] = not operator.exists()
         result["scratchRemoved"] = not root.exists()
         with args.receipt.open("x") as stream:
             json.dump(result, stream, indent=2, sort_keys=True)

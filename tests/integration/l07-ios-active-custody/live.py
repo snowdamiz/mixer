@@ -371,6 +371,88 @@ def complete_after_cut(kit, result, output, config_path, config_sha, spec, bindi
             and nested.get("stopReason") is None and not os.path.lexists(tmp / "cancel-requested"),
             "original unsigned Xcode invocation did not finish successfully without cancellation")
 
+    prove_released(kit, result, output, spec, binding, auth, scope, processor,
+                   snapshot, jobs, sql, original, terminal, probe[1]["pid"], probe[2],
+                   nested, digest, offline_guard["epoch"] + 1)
+
+
+def complete_ordinary(kit, result, output, config_path, spec, binding, auth, scope,
+                      observer, processor, claim_entry, snapshot, jobs, sql, refresh):
+    import ios_build_custody as custody
+    import native_artifact_worker as native
+
+    wait, sha = kit["wait"], kit["sha"]
+    selected = {key: binding[key] for key in ("spec", "ref", "deadline_ms")}
+    start_id = result["originalObanJobs"]["start"]
+    config = kit["read"](config_path)
+    authority = {key: config[key] for key in ("tenant", "registration", "policy", "ios_custodian")}
+    config_digest = sha(native.literal(authority).encode())
+    tmp = output / "tmp"
+
+    def closed_claim():
+        claim = claim_entry()
+        if claim is not None and claim[3] is not None:
+            return claim
+        if observer.poll() is not None:
+            claim = claim_entry()
+            require(claim is not None and claim[3] is not None,
+                    "ordinary observer exited without a terminal claim")
+            return claim
+
+    result["stage"] = "v74-ordinary-cli-and-xcode-closure"
+    claim = wait(closed_claim, RECIPE_SECONDS + CLAIM_SECONDS)
+    row, parent, launch, terminal, uncertain, counts, plan, issued = claim
+    pid = launch["pid"]
+    intent = row["ios_custody"]
+    require(type(pid) is int and pid > 1 and pid != observer.pid
+            and (parent, uncertain, counts) == (observer.pid, 0, [1, 1])
+            and launch == dict(pid=pid, pgid=pid, sid=pid)
+            and row["starts"] == 1 and row["binding"] == selected and not row.get("tombstone")
+            and issued == intent["guard"] and issued["owner_id"].startswith(f"oban:{start_id}:")
+            and intent["configuration"] == config_digest
+            and plan == sha(native.literal({"operation_id": binding["operation_id"], "binding": selected,
+                                           "intent": intent}).encode()),
+            "ordinary worker claim differs from the original operation and issued guard")
+    observer.wait(timeout=3)
+    require(observer.returncode == 0 and kit["group_absent"](observer.pid)
+            and terminal["outer"] == dict(launch, parent_pid=observer.pid, exit=0,
+                                          direct_child_reaped=True, group_absent=True,
+                                          descriptors_closed=True)
+            and terminal["outcome"] == "succeeded" and not os.path.lexists(tmp / "cancel-requested"),
+            "ordinary CLI observer did not positively close the original successful attempt")
+    (_, receipts), nested_proof = custody.nested_closure(native, tmp, config["registration"]["files"])
+    (probe, probe_sha), (nested, digest) = receipts
+    require(nested_proof == terminal["nested"]
+            and swift_probe_closed(probe, nested["runtimeStartedNS"])
+            and nested["command"] == xcode_argv(output / "project")
+            and nested["exitCode"] == 0 and nested.get("stopReason") is None
+            and not nested.get("groupTerminateSent") and not nested.get("groupKillSent")
+            and all(nested.get(key) is True for key in CLOSED_FACTS),
+            "ordinary Xcode closure differs from the single released build")
+    result.update(liveCustodyPending=False, xcodeInvocations=1,
+                  liveClosure=dict(claim=terminal, planSHA256=plan, issuedGuard=issued,
+                                   parentPID=parent, cli=launch, swiftReceiptSHA256=probe_sha,
+                                   xcodeReceiptSHA256=digest, xcodeExit=0))
+
+    def original():
+        current, *rest = claim_entry()
+        require(rest == list(claim[1:]) and current["starts"] == 1
+                and current["binding"] == selected and not current.get("tombstone"),
+                "ordinary build changed its original claim or binding")
+        return current, terminal
+
+    prove_released(kit, result, output, spec, binding, auth, scope, processor,
+                   snapshot, jobs, sql, original, terminal, probe["pid"], probe_sha,
+                   nested, digest, issued["epoch"], refresh=refresh)
+
+
+def prove_released(kit, result, output, spec, binding, auth, scope, processor, snapshot, jobs, sql,
+                   original, terminal, probe_pid, probe_sha, nested, digest, min_guard_epoch,
+                   *, refresh=None):
+    wait, sha, http = (kit[name] for name in ("wait", "sha", "http"))
+    record, operation = binding["record_id"], binding["operation_id"]
+    start_id = result["originalObanJobs"]["start"]
+    xcode_pid = nested["pid"]
     result["stage"] = "live-original-oban-settlement"
 
     def settled():
@@ -383,13 +465,13 @@ def complete_after_cut(kit, result, output, config_path, config_sha, spec, bindi
     versions = jobs()
     event = "coordinator:1:1:completed"
     require(final_claim == terminal and row["status"] == "native_ready"
-            and guard["owner_id"].startswith(f"oban:{start_id}:") and guard["epoch"] > offline_guard["epoch"]
+            and guard["owner_id"].startswith(f"oban:{start_id}:") and guard["epoch"] >= min_guard_epoch
             and guard["revision"] == 1 and closure["ios_custody"] == terminal
             and closure["ios_outcome"] == "succeeded" and closure["closed"] is True
             and closure["commands"] == [
                 {"command": command, "pid": pid, "receipt_sha256": receipt_sha, "stop_reason": None,
                  "group_terminate_sent": False}
-                for command, pid, receipt_sha in ((SWIFT_PROBE[0], probe[1]["pid"], probe[2]),
+                for command, pid, receipt_sha in ((SWIFT_PROBE[0], probe_pid, probe_sha),
                                                   (XCODE, xcode_pid, digest))]
             and final["record"] == [[record, 2]] and final["capacity"] == [[record, 1, 1, False, event]]
             and final["leases"] == [[record, None, None]]
@@ -418,10 +500,13 @@ def complete_after_cut(kit, result, output, config_path, config_sha, spec, bindi
             and report["binding"]["authoritativeSourceDigest"] == spec["source"]["sha256"]
             and report["binding"]["lockSHA256"] == spec["toolchain_lock_sha256"]
             and report["binding"]["cliExecutableSHA256"] == result["cliSHA256"]
-            and report["binding"]["command"] == item["command"],
+            and report["binding"]["command"] == nested["command"],
             "retained manifest differs from the staged export, CLI or Xcode command")
 
     result["stage"] = "live-terminal-owner-readback"
+    if refresh:
+        auth = auth | refresh()
+    owner = auth["cookie"]
     query = "?" + urlencode(scope)
     status, _, raw = http(auth, kit["BUILD"] + query, cookie=owner)
     detail = json.loads(raw)["build"]
