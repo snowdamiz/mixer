@@ -1174,10 +1174,13 @@ With the corrected lease, Back before rename preserved the old
 workspace bytes. Rename before Back preserved the pin through the
 queued restoration and a cold reopen. Location stays in the map
 session, and the position summary describes its relationship to the
-saved pin. All 20 macOS host tests passed. The final iPhoneOS build
-and installed UI, accessibility, and Core Location checks remain open.
+saved pin. All 20 macOS host tests passed. The final unsigned
+arm64 iPhoneOS build linked the pin publication path and verified
+the bundled geometry and both permission strings. Installed UI,
+accessibility, and Core Location checks remain open.
 [Exact Apple map patch](verification/receipts/fieldlog-ios-site-map-rename-33398784.patch) ·
-[Host replay](verification/receipts/fieldlog-ios-site-map-rename-33398784.json)
+[Host replay](verification/receipts/fieldlog-ios-site-map-rename-33398784.json) ·
+[iPhoneOS build](verification/receipts/fieldlog-ios-site-map-rename-7fdc4ab9-iphoneos.json)
 
 ## November 21 current FieldLog Android queue
 
@@ -1231,6 +1234,16 @@ app, XCTest runner, and plug-in matched their executable hashes. The
 run configuration selects only the title correction test, and both
 releases were signed for the Simulator runtime identity. Install and
 execution remain pending. [Simulator build](verification/receipts/fieldlog-ios-222-simulator-build-d89c742e.json)
+
+The signed Apple row-reorder case passed on the macOS owned VM.
+The sequence-2 Move up appended one task-order event. Signed rollback
+and an offline cold reopen kept the moved order, the same draft and
+JPEG, and the exact post-move workspace. An earlier replay committed
+the move and hit the 50 ms wake deadline before showing the next frame.
+The same signed inputs and deadline passed in the later run. The
+generic Simulator archive passed the three signature checks and the
+XCTest selector readback. Simulator execution remains pending.
+[Row-reorder witness](verification/receipts/l08-fieldlog-ios-signed-row-reorder-1032909c.json)
 
 ## November 21 Android saved-draft validation
 
