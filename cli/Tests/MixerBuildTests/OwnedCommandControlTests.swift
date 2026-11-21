@@ -270,11 +270,14 @@ enum OwnedCommandProof {
             https.host = "example.invalid"
             https.path = sandbox.appendingPathComponent("https-receipts").path
             guard let httpsURL = https.url else { throw ProofFailure(description: "invalid HTTPS test fixture") }
-            let nulURL = URL(fileURLWithPath: sandbox.appendingPathComponent("nul-receipts").path + "\u{0}suffix")
-            try require(nulURL.path(percentEncoded: false).utf8.contains(0), "NUL fixture must encode a NUL path byte")
-            guard let undecodableURL = URL(string: nulURL.absoluteString + "%FF") else {
-                throw ProofFailure(description: "invalid undecodable path test fixture")
+            let nulSpelling = sandbox.appendingPathComponent("nul-receipts").absoluteString + "%00suffix"
+            let undecodableSpelling = nulSpelling + "%FF"
+            guard let nulURL = URL(string: nulSpelling, encodingInvalidCharacters: false),
+                  let undecodableURL = URL(string: undecodableSpelling, encodingInvalidCharacters: false) else {
+                throw ProofFailure(description: "invalid NUL path test fixture")
             }
+            try require(nulURL.absoluteString == nulSpelling && undecodableURL.absoluteString == undecodableSpelling,
+                "NUL fixtures must preserve their percent-encoded spelling")
 
             for (name, parent) in [("HTTPS", httpsURL), ("NUL", nulURL), ("NUL with invalid UTF-8", undecodableURL)] {
                 do {
