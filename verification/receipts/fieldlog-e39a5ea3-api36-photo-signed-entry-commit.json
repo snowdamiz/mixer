@@ -1,0 +1,140 @@
+{
+  "schema": 1,
+  "decision": "PASS for native Android system photo selection, durable draft and signed Entry Commit",
+  "scope": "One clean owned arm64 API36 installation of the reviewed FieldLog development APK and one synthetic image.",
+  "recordedUTC": "2026-11-21T17:22:18.815565+00:00",
+  "material": {
+    "FieldLogTree": "e39a5ea393076ca3f64b00648bf86f350ccf03dd",
+    "MixerRevision": "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d",
+    "apkSHA256": "2105750eee7e398405b0c3a08a19a6aa692efb77afc038ae351f465f1ca127d7",
+    "apkBuildReceiptSHA256": "2988ba0f6bf9ce8d11b083eb8fe116ccf3ec4200b1f7523d6b7760bf3c0b6d13",
+    "launcher": "dev.fieldlog.generatedr90/dev.fieldlog.generatedr90.androidhost.PublicActivity",
+    "imageSeed": {
+      "seedName": "mixer-fieldlog-20849f3f09da.png",
+      "seedSHA256": "504996906f3b5d689ca8f17f8b7ef7fcd711c02aad96469f9d05affcc1f8da40",
+      "picker": "com.android.documentsui/.picker.PickActivity"
+    }
+  },
+  "device": {
+    "avd": "fieldlog_photo_20849f3f09da",
+    "api": "36",
+    "abi": "arm64-v8a"
+  },
+  "observed": {
+    "selectedSyntheticImageFromSystemDocumentsUI": true,
+    "photoAndPreviouslyUnsavedTitlePersistedInOneDraftRevision": true,
+    "attachmentUI": "Photo saved on device. Not uploaded.",
+    "coldDraftWorkspaceByteIdentical": true,
+    "entryCommitOutcome": "Committed once",
+    "signedSequence": 1,
+    "sameEntryIDAndAttachmentReference": true,
+    "extraEntrySavedRecords": 1,
+    "finalRevision": 3,
+    "finalWorkspaceColdBytesIdentical": true,
+    "storedJPEG": {
+      "sha256": "e5eac4f1a5acb41593eb9822ea1134d72aa2509e355b485259de12f61692cdcd",
+      "bytes": 854,
+      "dimensions": [
+        96,
+        96
+      ],
+      "draftReadCommand": "adb-055",
+      "coldReadback": "readback-digest",
+      "decodedJPEG": true
+    },
+    "readbackDriverCorrection": "The first JPEG command exited 0 and captured bytes. The text helper rejected decoding binary output as UTF-8. Raw byte verification and a separate device SHA-256 query established the preserved JPEG.",
+    "coldLaunchOutputs": [
+      "Starting: Intent { cmp=dev.fieldlog.generatedr90/.androidhost.PublicActivity }\nStatus: ok\nLaunchState: COLD\nActivity: dev.fieldlog.generatedr90/.androidhost.PublicActivity\nTotalTime: 366\nWaitTime: 373\nComplete\n",
+      "Starting: Intent { cmp=dev.fieldlog.generatedr90/.androidhost.PublicActivity }\nStatus: ok\nLaunchState: COLD\nActivity: dev.fieldlog.generatedr90/.androidhost.PublicActivity\nTotalTime: 409\nWaitTime: 412\nComplete\n"
+    ],
+    "workspaceReadback": [
+      {
+        "command": "adb-034",
+        "revision": 1,
+        "bytes": 534,
+        "sha256": "ae2d970ec11717b21c46be9b71b3a4e6185a4c75062e78b747902e32da29f357"
+      },
+      {
+        "command": "adb-053",
+        "revision": 2,
+        "bytes": 1012,
+        "sha256": "bf02b77ca7e389645775e37e16e005c8ee5f89d7112f3ad638dcb98d9f8dc975"
+      },
+      {
+        "command": "adb-054",
+        "revision": 2,
+        "bytes": 1012,
+        "sha256": "bf02b77ca7e389645775e37e16e005c8ee5f89d7112f3ad638dcb98d9f8dc975"
+      },
+      {
+        "command": "adb-058",
+        "revision": 2,
+        "bytes": 1012,
+        "sha256": "bf02b77ca7e389645775e37e16e005c8ee5f89d7112f3ad638dcb98d9f8dc975"
+      },
+      {
+        "command": "adb-072",
+        "revision": 3,
+        "bytes": 1116,
+        "sha256": "20ae7466796620e05975e95a3fd3c0a4f59099ca71120c66bc265c022fc385a1"
+      },
+      {
+        "command": "adb-078",
+        "revision": 3,
+        "bytes": 1116,
+        "sha256": "20ae7466796620e05975e95a3fd3c0a4f59099ca71120c66bc265c022fc385a1"
+      }
+    ]
+  },
+  "limits": [
+    "One actual system picker and one small image. This run did not exercise report sharing, picker cancellation, large image handling, physical hardware, platform cloud access, or Apple installed behavior."
+  ],
+  "custody": {
+    "terminalCommandGroups": 84,
+    "commandLogsVerified": true,
+    "services": [
+      {
+        "label": "private-adb",
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+          "-P",
+          "63639",
+          "--one-device",
+          "fieldlog_photo_20849f3f09da-no-usb",
+          "nodaemon",
+          "server"
+        ],
+        "pid": 34563,
+        "status": -15,
+        "custody": "TERMINAL"
+      },
+      {
+        "label": "emulator",
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+          "-avd",
+          "fieldlog_photo_20849f3f09da",
+          "-ports",
+          "63640,63641",
+          "-no-window",
+          "-no-audio",
+          "-no-snapshot",
+          "-gpu",
+          "swiftshader_indirect"
+        ],
+        "pid": 34564,
+        "status": 0,
+        "custody": "TERMINAL"
+      }
+    ],
+    "portsRebound": [
+      63639,
+      63640,
+      63641
+    ],
+    "controllerSHA256": "010e02e203f5267f3fe29ecdbf040cffc4aff2fa242c951ff79e47b86ccf6e28",
+    "liveReceiptSHA256": "8e1ea9575d0fdb4bf3942fadade72d690e136c90da0e56de1a128a33127a7582",
+    "scratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-photo-e39-api36-3evgfa_a",
+    "scratchRemoved": true
+  }
+}

@@ -1,0 +1,432 @@
+{
+  "status": "PASS \u2014 focused correction",
+  "recordedUtc": "2026-11-21T17:12:58.247934+00:00",
+  "baseCommit": "c00f33e74749a6184c059d511ebd07f6dce9be86",
+  "baseTree": "64c692a18ccb3a44f8cc6c0c60d823074ac6a568",
+  "originalProductCommit": "2ade050cce25b71b2d753e0158fa425717e83316",
+  "originalAuthorPatchSha256": "419a7742f5a90fcae16518a4bb28c0fb211f40c6d00e3e2831011c5de843af9e",
+  "correctedPatch": "verification/local/d6-startup-correction/product.patch",
+  "correctedPatchSha256": "20345cc591b52a3e7dfce113823f80882c5cd4891ceb4f4f2c7d7d032f412bb5",
+  "fullRepositoryTrees": {
+    "author": "4afa3ea1270b87746fbc8a7012aef599c95b2e26",
+    "corrected": "6e9ed4e6659d732fc22c3287a51daa77b91c45b0"
+  },
+  "correctionOnlyPaths": [
+    "hosted/lib/mixer_hosted/releases/delivery_admission.ex",
+    "hosted/test/mixer_hosted/releases/browser_publication_test.exs"
+  ],
+  "treeVerification": "Applied both patches to separate private indexes seeded with the full base tree. The author patch reconstructed the exact original product tree. The corrected tree matched the four tested product files before scratch overlays.",
+  "sourceExports": [
+    {
+      "revision": "c00f33e74749a6184c059d511ebd07f6dce9be86",
+      "verifiedBlobs": 456,
+      "manifestSha256": "2183be378e71d0aa2495a640e257cd0420a53fd6b5b7f20febe84000171d2ab2"
+    },
+    {
+      "revision": "2ade050cce25b71b2d753e0158fa425717e83316",
+      "verifiedBlobs": 457,
+      "manifestSha256": "95ee6691084c8abb4d27ec8c8a14244b7827be63abf1e68da457f4c065b7cda0"
+    }
+  ],
+  "runtime": {
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:2:2:2] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)"
+  },
+  "fixture": {
+    "database": "One new loopback-only synthetic cluster per case, with local and other addresses rejected and correct SCRAM credentials required",
+    "hba": [
+      "reject",
+      "scram-sha-256",
+      "reject",
+      "reject"
+    ],
+    "wrongPasswordRefusedEveryCase": true,
+    "overlays": "Test scratch only. Injected fresh SCRAM passwords into synthetic fixture roles. P3 diagnostic before run captured PID and released it from on_exit after observing survival. The after timing probe added assertions and output around the product callback cleanup. browser-clean repeated the corrected browser selector with SCRAM setup only.",
+    "scope": "Hosted Phoenix/ExUnit local fixtures. No stock CLI environment, native testing, plan gates or release qualification."
+  },
+  "originalRegressions": {
+    "P2": "Reproduced exit 2: Reason: bad child specification, got: :already_present on the second DeliveryAdmission start, customer_artifact_http_integration_test.exs:2088 and :2258.",
+    "P3": "Reproduced a live after_connect callback after both DeliveryRepo and the endpoint were absent. Diagnostic on_exit release reaped it with a normal DOWN.",
+    "authorBaseObservation": "Author handoff observed a first-offer HTTP 503 storage_unavailable before delivery checkout on c00f33e74749. The author owns that historical end-to-end run."
+  },
+  "timing": {
+    "configuredStartupQueryTimeoutMs": 5000,
+    "independentReviewObservedStartupRefusalMs": 5996,
+    "thisRunOriginalObservedStartupRefusalMs": 4065,
+    "thisRunCorrectedObservedStartupRefusalMs": 4074,
+    "note": "Wall-clock startup from ensure_all_started attempt to refusal, using default pool settings. Separate from DBConnection query timeout configuration."
+  },
+  "cases": {
+    "health-before": {
+      "argv": [
+        "mix",
+        "test",
+        "--warnings-as-errors",
+        "--trace",
+        "test/mixer_hosted_web/customer_artifact_http_integration_test.exs:1721"
+      ],
+      "outcome": "0/1 passed, 12 excluded",
+      "stdoutSha256": "275f0b7918f2f6f111ae02a2c188b1e6969481ea42420dc1d89480ae2c309c9f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": {
+        "pidPgid": 96906,
+        "exit": 2,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 2.7766
+      },
+      "regression": "DeliveryAdmission :already_present at lines 2088/2258",
+      "httpCleanup": {
+        "bandit_stopped": true,
+        "key_owner_stopped": true,
+        "jwks_workers_stopped": true,
+        "tls_fixture_stopped": true,
+        "ephemeral_tls_key_directory_removed": true,
+        "jwks_tls_request_count": null,
+        "bandit_port": 62079,
+        "tls_port": 62077,
+        "fixturePortsReusable": true
+      },
+      "remainingClientBackends": 0,
+      "postgresStopped": true,
+      "postgresPortReusable": true,
+      "dbPort": 62060,
+      "postgresTerminal": {
+        "pidPgid": 96891,
+        "exit": 0,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 3.0959
+      }
+    },
+    "browser-before": {
+      "argv": [
+        "mix",
+        "test",
+        "--warnings-as-errors",
+        "--trace",
+        "test/mixer_hosted/releases/browser_publication_test.exs:890"
+      ],
+      "outcome": "1 passed, 6 excluded",
+      "stdoutSha256": "ecacce229d4db75e22bc624db485456b2b74524027975b8194af6dca1c222ad7",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": {
+        "pidPgid": 97270,
+        "exit": 0,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 10.3178
+      },
+      "configuredQueryTimeoutMs": 5000,
+      "observedStartupRefusalMs": 4065,
+      "callbackAliveAfterRepoStopped": true,
+      "callbackDownAfterExplicitRelease": "normal",
+      "releaseAndDownAssertion": "diagnostic overlay",
+      "remainingClientBackends": 0,
+      "postgresStopped": true,
+      "postgresPortReusable": true,
+      "dbPort": 62180,
+      "postgresTerminal": {
+        "pidPgid": 97257,
+        "exit": 0,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 10.5294
+      }
+    },
+    "health-after": {
+      "argv": [
+        "mix",
+        "test",
+        "--warnings-as-errors",
+        "--trace",
+        "test/mixer_hosted_web/customer_artifact_http_integration_test.exs:1721"
+      ],
+      "outcome": "1 passed, 12 excluded",
+      "stdoutSha256": "d5bc710e9e8cb0b60ddff988735b064b36e97a60586f036fec7d1e742ef2b9d4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": {
+        "pidPgid": 8087,
+        "exit": 0,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 2.8588
+      },
+      "httpCleanup": {
+        "bandit_stopped": true,
+        "key_owner_stopped": true,
+        "jwks_workers_stopped": true,
+        "tls_fixture_stopped": true,
+        "ephemeral_tls_key_directory_removed": true,
+        "jwks_tls_request_count": null,
+        "bandit_port": 62448,
+        "tls_port": 62447,
+        "fixturePortsReusable": true
+      },
+      "remainingClientBackends": 0,
+      "postgresStopped": true,
+      "postgresPortReusable": true,
+      "dbPort": 62433,
+      "postgresTerminal": {
+        "pidPgid": 8072,
+        "exit": 0,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 3.1787
+      }
+    },
+    "browser-after": {
+      "argv": [
+        "mix",
+        "test",
+        "--warnings-as-errors",
+        "--trace",
+        "test/mixer_hosted/releases/browser_publication_test.exs:890"
+      ],
+      "outcome": "1 passed, 6 excluded",
+      "stdoutSha256": "515481693486c15a386a4794c48b587ca23281ddd9dc9fabca5611b485920f5c",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": {
+        "pidPgid": 8206,
+        "exit": 0,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 10.2801
+      },
+      "configuredQueryTimeoutMs": 5000,
+      "observedStartupRefusalMs": 4074,
+      "callbackAliveAfterRepoStopped": true,
+      "callbackDownAfterExplicitRelease": "normal",
+      "releaseAndDownAssertion": "corrected product",
+      "remainingClientBackends": 0,
+      "postgresStopped": true,
+      "postgresPortReusable": true,
+      "dbPort": 62545,
+      "postgresTerminal": {
+        "pidPgid": 8193,
+        "exit": 0,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 10.5385
+      }
+    },
+    "browser-clean": {
+      "argv": [
+        "mix",
+        "test",
+        "--warnings-as-errors",
+        "--trace",
+        "test/mixer_hosted/releases/browser_publication_test.exs:890"
+      ],
+      "outcome": "1 passed, 6 excluded",
+      "stdoutSha256": "b62890bf22c7a8ee892ca62bc5c7b5c598eda2875dc8d4cfe22df2e5d6f63e21",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": {
+        "pidPgid": 8602,
+        "exit": 0,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 11.3617
+      },
+      "remainingClientBackends": 0,
+      "postgresStopped": true,
+      "postgresPortReusable": true,
+      "dbPort": 62699,
+      "postgresTerminal": {
+        "pidPgid": 8580,
+        "exit": 0,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 11.7397
+      }
+    },
+    "worker": {
+      "argv": [
+        "mix",
+        "test",
+        "--warnings-as-errors",
+        "--trace",
+        "test/mixer_hosted/releases/browser_publication_test.exs:894"
+      ],
+      "outcome": "1 passed, 6 excluded",
+      "stdoutSha256": "5d5f0aa78216da1067dab510b84dc3996b9cd0e586989fb68f4a19c237088ff2",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": {
+        "pidPgid": 8879,
+        "exit": 0,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 15.147
+      },
+      "remainingClientBackends": 0,
+      "postgresStopped": true,
+      "postgresPortReusable": true,
+      "dbPort": 62852,
+      "postgresTerminal": {
+        "pidPgid": 8866,
+        "exit": 0,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 15.4363
+      }
+    },
+    "disabled": {
+      "argv": [
+        "mix",
+        "test",
+        "--warnings-as-errors",
+        "--trace",
+        "test/mixer_hosted/releases/browser_publication_test.exs:639"
+      ],
+      "outcome": "1 passed, 6 excluded",
+      "stdoutSha256": "6cfdbbeb955b5383d908d76a96c615994b890a9c8835a3e3b2225f3254ab420e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": {
+        "pidPgid": 9411,
+        "exit": 0,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 9.9353
+      },
+      "remainingClientBackends": 0,
+      "postgresStopped": true,
+      "postgresPortReusable": true,
+      "dbPort": 63056,
+      "postgresTerminal": {
+        "pidPgid": 9388,
+        "exit": 0,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 10.1682
+      }
+    }
+  },
+  "additionalControls": {
+    "corrected-format": {
+      "argv": [
+        "mix",
+        "format",
+        "--check-formatted",
+        "lib/mixer_hosted/releases/delivery_admission.ex",
+        "lib/mixer_hosted/releases/public_delivery.ex",
+        "test/mixer_hosted/releases/browser_publication_test.exs",
+        "test/mixer_hosted_web/customer_artifact_http_integration_test.exs"
+      ],
+      "outcome": "exited successfully",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": {
+        "pidPgid": 4556,
+        "exit": 0,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 0.4544
+      }
+    },
+    "corrected-compile": {
+      "argv": [
+        "mix",
+        "compile",
+        "--warnings-as-errors"
+      ],
+      "outcome": "exited successfully",
+      "stdoutSha256": "0b98d3259f9495a110b8bae47079ec4bb0f5fb9562cffd24034660bc3a78a144",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": {
+        "pidPgid": 4611,
+        "exit": 0,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 0.8071
+      }
+    },
+    "corrected-provisioning": {
+      "argv": [
+        "mix",
+        "test",
+        "--warnings-as-errors",
+        "test/mixer_hosted/releases/runtime_provisioning_test.exs"
+      ],
+      "outcome": "18 passed",
+      "stdoutSha256": "452e1822413e4e6bd555a256cda5aba26544d8ea589de3653a6c8cbb583e58e1",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": {
+        "pidPgid": 4659,
+        "exit": 0,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 0.5568
+      }
+    },
+    "corrected-listener-control": {
+      "argv": [
+        "mix",
+        "test",
+        "--warnings-as-errors",
+        "test/mixer_hosted/releases/browser_publication_test.exs:45"
+      ],
+      "outcome": "1 passed, 6 excluded",
+      "stdoutSha256": "bb0bc344157aa7575dec88955735f2c5279663ee041739ce7ce2499c2f74a3a0",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "terminal": {
+        "pidPgid": 4700,
+        "exit": 0,
+        "directChildReaped": true,
+        "groupAbsent": true,
+        "bothOutputEOF": true,
+        "timedOut": false,
+        "seconds": 1.9587
+      }
+    }
+  },
+  "preservedContracts": [
+    "DeliveryRepo and DeliveryAdmission start before Phoenix Endpoint.",
+    "Admission checks current_user and session_user against the configured restricted login and rejects elevated role attributes. Query logging remains disabled.",
+    "Public offer and artifact SQL remains queue:false and log:false. The corrected patch changes no repository definition, role provisioning or application supervision strategy."
+  ],
+  "cleanup": {
+    "ownedCommandsWithReapGroupAbsenceAndEof": 90,
+    "everyPostgresStoppedAndPortRebound": true,
+    "noClientBackendsAtTeardown": true,
+    "correctedCallbackDown": "normal",
+    "scratchKiBBeforeDeletion": 506420,
+    "budgetSeconds": 720,
+    "secondsAtReceiptPreparation": 310.214,
+    "diskBudgetGiB": 4,
+    "privateScratchRemoved": true
+  }
+}

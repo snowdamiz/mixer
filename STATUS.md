@@ -415,6 +415,16 @@ recorded terminal process groups and reusable ports before removing their
 scratch.
 [Installed Unicode note result](verification/receipts/fieldlog-e39a5ea3-api36-unicode-note-signed-commit.json)
 
+The same APK selected a synthetic PNG through Android DocumentsUI. Photo
+selection saved the previously unsaved title and one attachment in a single
+draft revision. A cold launch restored the complete draft. Signed Entry
+Commit kept the draft ID and attachment reference and appended one
+`entrySaved` record. A second cold launch preserved the workspace bytes and
+the JPEG's SHA-256. The 96 × 96 stored JPEG decoded successfully. The test
+recorded 84 terminal command groups, three listener rebinds, and removal of
+the disposable emulator scratch.
+[Installed photo and signed Commit receipt](verification/receipts/fieldlog-e39a5ea3-api36-photo-signed-entry-commit.json)
+
 ## November 20 local release delivery outage and recovery
 
 A committed Phoenix release reached local Workerd through the private historical
@@ -837,6 +847,22 @@ test failure. The admission child spec persisted after a successful
 startup. The stalled-checkout test also left its callback waiting after
 repo shutdown. The candidate remains pending correction and integration.
 [Candidate restored Swift replay](verification/receipts/d6-l04-l05-swift-restored-phoenix-2ade050c.json)
+
+The correction makes delivery admission temporary and the stalled test
+releases its connection callback and waits for a normal exit. Independent
+review passed the health-halt restart and browser publication selectors.
+The startup query's timeout option is 5,000 ms. The pool can affect the
+elapsed startup time. Ordinary requests still use fail-fast checkout.
+
+A full replay using the corrected production files passed signed sequences
+1, 2, and 3 with zero replay writes. Stock rollback and the restricted
+worker each produced one durable result. The first ordinary offer after
+restart returned HTTP 200, and a fresh offline Swift process recovered the
+same sequence-3 candidate after the API closed. The run recorded 73 closed
+command groups and nine listener rebinds. The current source selection and
+publication work remains in progress.
+[Startup regression receipt](verification/receipts/d6-delivery-startup-correction-2ade050c.json) ·
+[Corrected Swift restore receipt](verification/receipts/d6-l04-l05-swift-restored-phoenix-corrected-6e9ed4e6.json)
 
 ## November 20 generated release REST client
 
