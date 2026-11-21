@@ -234,10 +234,11 @@ all nine modes and both additional scope controls on local Swift 6.3.3.
 The exact Swift 6.2.4 capability job passed on `55f3ccf17c`. XCTest
 reported 142 passes, five skips, and zero failures. Signed W09 storage and
 retirement, one-use Commit, wrong-action and malformed-event denial,
-and the invalid-frame storage controls all ran and passed. The full
-workflow result remains pending.
+and the invalid-frame storage controls all ran and passed. All nine jobs
+passed, including Swift Host, the hosted VM, Services, and the six
+generated Java cross-compiles.
 [Fixture comparison](verification/receipts/hosted-swift-62-signed-fixture-byte-assembly.json) ·
-[Hosted Swift capability job](https://github.com/snowdamiz/mixer/actions/runs/44899896358/job/136833383137)
+[Terminal hosted verification](verification/receipts/hosted-swift-62-fixture-ci-terminal-55f3ccf1.json)
 
 The exact fingerprint run finished with eight passing jobs. The Swift Host
 and aggregate, VM, Services, and Intel six-consumer cross-compiles passed.
