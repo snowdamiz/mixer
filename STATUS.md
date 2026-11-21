@@ -708,6 +708,14 @@ remains unassessed.
 [Source-sharing report](docs/fieldlog-d2-source-sharing.md) ·
 [Measurement receipt](verification/receipts/fieldlog-d2-app-source-sharing-v82.json)
 
+The reviewed signed Commit FieldLog tree `380e764598` built as an unsigned
+arm64 iPhoneOS app against Mixer `dbb9275d58`. Xcode compiled 15 app-owned
+Swift inputs. The maintained Android recipe refused that SDK revision before
+project creation. Six files match between the iOS compiler inputs and the
+Android signed build manifest. A real Android compile is still needed for a
+matched measurement and the whole-app sharing assessment.
+[Matched-target attempt](verification/receipts/fieldlog-d2-matched-targets-dbb9275d.json)
+
 The store CLI now uses the platform-specific iOS bundle ID or Android package for status and fixture submission. The shared application ID still applies when the platform entry is absent. The original 13 loopback cases and 18 independent checks passed. The updated native archive accepts the corrected four-file source and refuses each obsolete file. [Store fixture and source verification](verification/receipts/l05-store-platform-identifiers-20261119.json)
 
 A free owner created one build through Phoenix, restricted Oban, and the loopback worker. The worker's inert exit-23 fixture settled the build and released capacity. Organization exit was refused before settlement and succeeded afterwards. The former owner lost access while tenant B retained its export and created another project. [Settled build and organization exit](verification/receipts/l06-settled-exit-65c89e08.json)
