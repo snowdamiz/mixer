@@ -72,7 +72,24 @@
         }
       ],
       "hostSelectors": [],
-      "scope": "Source inspection of the iOS row. Android checklist tests do not exercise this iOS change.",
+      "standaloneHostReplay": {
+        "runner": "compiler/experiments/fieldlog-change-corpus/f02/replay.py",
+        "receipt": "verification/receipts/fieldlog-f02-ordinary-ios-host-2acaac67.json",
+        "runnerCustodyReceipt": "verification/receipts/fieldlog-f02-runner-custody-2acaac67.json"
+      },
+      "historicalSimulatorEvidence": {
+        "commit": "32c063e748e48db391e878890edeb247a71d08d9",
+        "receiptPath": "verification/native-ui-simulator-2026-10-22.json",
+        "receiptBlob": "49f0babd6486d66664971082c28feed854014e8c",
+        "receiptSHA256": "2ccd60105f862f93829298827ecf968977fd24462186cc362dbccf8cddf3b370",
+        "recordedSourceTreeSHA256": "394c95953250f803c0ebb3acd0f177fd2ff985f4c81ec31b4a4e93ba64190c07",
+        "sourceTreeDigestReproduced": false,
+        "testPath": "ios/FieldLogUITests/FieldLogUITests.swift",
+        "testBlob": "b591f39b27e5d1afeff3b42f4e5f47f442673fec",
+        "testLines": [31, 40],
+        "scope": "The historical Debug simulator receipt reports a passing workflow in a dedicated UI-test workspace. The pinned XCTest taps Task options and Move down, then checks the visible row order using frame positions."
+      },
+      "scope": "The original Move down and Move up callback bodies pass through the pinned iOS WorkspaceModel and disk-backed repository on macOS. Each move preserves unrelated state, adds one project taskOrderChanged record, and survives a separate-process cold reopen. A boundary rejection leaves disk unchanged. The parent commit's existing onMove callback body also reorders and persists. The pinned historical Debug simulator run reports a Move down tap and visible reorder. Native Move up, drag and long-press gestures, accessibility qualification, pixel verification, and OTA remain open.",
       "inOTADenominator": true
     },
     {

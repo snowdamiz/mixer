@@ -12,13 +12,36 @@ Each manifest row pins an introducing commit and its first parent, paired blob I
 | --- | ---: |
 | Source-anchored product behaviors | 20 |
 | Practical OTA denominator | 17 |
-| Rows with selected passing macOS host controls | 17 |
-| Eligible rows with selected passing macOS host controls | 14 of 17 |
+| Rows with selected passing macOS host controls | 18 |
+| Eligible rows with selected passing macOS host controls | 15 of 17 |
 | Proven signed OTA on both targets | 0 of 17 eligible and 0 of 20 overall |
 
 The native exclusions are **F07** for shipping the Android launcher, manifest and native bridge, **F17** for adding the Android system document picker and native content-URI bridge, and **F19** for installing the native report provider, URI grant and OS chooser. **F18** stays eligible because the persisted draft and attachment-reference change can be evaluated with an already installed picker. **F01–F03** stay eligible despite originating in SwiftUI. The current route can be missing a UI operation without the requested behavior inherently requiring a new platform permission or capability.
 
 The 0/17 and 0/20 figures report achieved evidence. The pass/fail capability of unexecuted rows remains open. Patch size, on-device behavior, full Section 22 recovery and the two-target 80% threshold are unmeasured here. L08, G27 and G33 remain open.
+
+## F02 checklist row moves
+
+The separate F02 replay runs the historical Move down and Move up callback
+bodies through FieldLog's original `WorkspaceModel` and disk-backed
+`WorkspaceRepository`. Each action adds one project-scoped
+`taskOrderChanged` record. A fresh process reads the saved order after each
+move. An out-of-bounds move preserves the workspace file byte for byte.
+
+From the Mixer checkout root, run the fixture with a FieldLog checkout that
+contains the two F02 commits in the corpus.
+
+```sh
+python3 -B compiler/experiments/fieldlog-change-corpus/f02/replay.py \
+  --mixer . --fieldlog /absolute/path/to/fieldlog
+```
+
+FieldLog's historical Debug Simulator receipt reports a Move down tap and
+visible row-order check. The recorded source-tree digest remains
+unreproduced. Native Move up, gestures, accessibility, and signed OTA
+remain open.
+[Host replay receipt](../../../verification/receipts/fieldlog-f02-ordinary-ios-host-2acaac67.json) ·
+[Runner custody checks](../../../verification/receipts/fieldlog-f02-runner-custody-2acaac67.json)
 
 ## F10 signed Pending Changes host replay
 

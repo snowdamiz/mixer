@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "case": "F02",
+  "status": "PASS_INERT_CUSTODY",
+  "mixer": "2acaac67605c369ff1667e3ccc3eb56d376e536e",
+  "parent": "58951594a866492be7ce204e93a9533f892b2550",
+  "reviewedStagedTree": "6cabab51893a5a277e925c651406066ce02e5328",
+  "reviewedRunnerBlob": "252e245e4bdcbae118b0cfb48d9086f7081f66b3",
+  "reviewedRunnerSHA256": "41b797f1d95ef3c6d63ebe8df9e2a82733a011a2899c15f29123ade357045ad0",
+  "correctedRunnerSHA256": "a9e24012db3b3f9eb116f8a7b2665bb391095e14e97a137273345a282fd3ef1a",
+  "controlSHA256": "ccca76b2bb29001595b4539e01807636e9d035cbdace30bbcdff5d8b3a65e9df",
+  "python": "3.14.8",
+  "command": [
+    "python3",
+    "-B",
+    "compiler/experiments/fieldlog-change-corpus/f02/test_custody.py",
+    "-v"
+  ],
+  "reviewedRunner": {
+    "exit": 1,
+    "passedControls": 2,
+    "failedControl": "test_interrupted_launch_preserves_scratch_without_child_identity",
+    "observation": "The interrupted launch deleted the scratch sentinel before a child identity was available."
+  },
+  "correctedRunner": {
+    "exit": 0,
+    "passedControls": 3,
+    "observations": [
+      "Interrupted process handoff published unresolved custody with null PID and PGID and preserved the scratch sentinel.",
+      "A direct exit and complete pipe collection with a present group preserved the scratch sentinel.",
+      "An independent simulated group-absence observation allowed scratch removal."
+    ],
+    "realChildLaunches": 0,
+    "inertControlScratchRemoved": true
+  },
+  "preservedHostReplay": {
+    "receipt": "verification/receipts/fieldlog-f02-ordinary-ios-host-2acaac67.json",
+    "receiptSHA256": "2a54fdba0bc18894a27f80b8f402c16bf718efbca63f633548a9e4562160b8ca",
+    "probeSHA256": "2d1e7f0d5fa7e44ffbdcc820caadd623cd77eac65031751e0595f0d8c8d32566",
+    "hostBuildsRerun": false
+  }
+}
