@@ -207,10 +207,11 @@ python3 -B compiler/Fixtures/FeatureProbe/replay.py --escaping-closure-value-onl
 
 Each run checks the archive digest and reproduces the link refusal before
 linking the same object with `libc.a`. The replay requires zero imports, one
-64 KiB page, and the existing Guest UI V1 exports. The owned VM validates the
-guest and checks exact native and guest frames, refusal, and session
-retirement under the 1,000,000-fuel per-turn ceiling. This unsigned replay
-covers the two closure fixtures on arm64 macOS.
+64 KiB page, and the existing Guest UI V1 exports. The owned VM validates and
+runs the guest under the 1,000,000-fuel per-turn ceiling. The replay checks
+exact native and guest frames, refusal, and session retirement. This unsigned
+replay covers the two closure fixtures on arm64 macOS.
+[Stock WASI allocator replay receipt](../../../verification/receipts/l03-swift-stock-wasi-allocator-replay.json)
 
 ## Native SDK controls
 
