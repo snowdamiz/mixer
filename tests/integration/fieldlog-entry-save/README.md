@@ -95,3 +95,6 @@ The host replay injects a precommit fault at the real repository's
 displays only **Commit refused** and that the **Done** equivalent joins owner
 retirement and clears the host registration. A cold reopen checks the exact
 workspace bytes, original drafts, and outbox.
+
+For the corresponding ordinary Apple path, follow the
+[signed Commit and dismissal replay](apple-editor/README.md).
