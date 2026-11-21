@@ -76,8 +76,16 @@ attestation wrapper did not start because the runner passed integer port
 arguments to the launcher. The runner exited 74 and preserved both scratch
 roots and the Phoenix and PostgreSQL processes under custody hold. A focused
 control reproduced the launch failure and passed after both arguments were
-converted to decimal text. Managed attachment remains open.
+converted to decimal text.
 [Build and launch hold](verification/receipts/l05-managed-ios-attestation-wrapper-launch-hold-20261121.json)
+
+A fresh managed replay settled one build and used the stock Go signer to
+attach the V2 development envelope to that exact worker operation. Phoenix
+returned 201 and 200 on exact replay. PostgreSQL kept one byte-identical
+envelope, with an unchanged journal. All 36 outer command groups closed,
+all five ports were reusable, and both fresh scratch roots were removed.
+The earlier custody hold remains active. L05 and W12 remain open.
+[Managed stock attachment receipt](verification/receipts/l05-managed-ios-stock-attestation-20261121.json)
 
 ## November 20 signed release queue
 
