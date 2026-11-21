@@ -22,9 +22,12 @@ INSTALLED = EXPERIMENTS / "fieldlog-installed-guest"
 sys.path[:0] = [str(INSTALLED), str(BENCHMARK)]
 
 from matched_task import Run, SCRATCH_LIMIT, identity, require, sha
-from run import build_compact_guest, replay_abi
+from run import SDK_NAME, build_compact_guest, replay_abi
 from analyze import Reader
 from qualification_support import strict_json
+
+STOCK_WASI_LIBC_BYTES = 1_040_606
+STOCK_WASI_LIBC_SHA256 = "42d929e52aaeac6c4ed56946cd3e92e40574322bc43af529c19cfbf67893b352"
 
 
 def shared_memory_control(module):
@@ -221,7 +224,47 @@ def enum_typed_throws_campaign(run, result):
     )
 
 
-def escaping_closure_campaign(run, result, *, value_only):
+def stock_allocator_guest_command(run, result):
+    relative = (Path(".swiftpm/swift-sdks") / f"{SDK_NAME}.artifactbundle" / SDK_NAME /
+                "wasm32-unknown-wasip1/WASI.sdk/lib/wasm32-wasip1/libc.a")
+    installed = Path.home() / relative
+    try:
+        require(installed.is_file(), f"missing Swift 6.3.3 WASI archive at ~/{relative}")
+        with installed.open("rb") as stream:
+            data = stream.read(STOCK_WASI_LIBC_BYTES + 1)
+    except OSError as error:
+        raise ValueError(f"cannot read Swift 6.3.3 WASI archive at ~/{relative}: {error.strerror}") from error
+    require(len(data) == STOCK_WASI_LIBC_BYTES and sha(data) == STOCK_WASI_LIBC_SHA256,
+            f"Swift 6.3.3 WASI archive SHA-256 mismatch at ~/{relative}")
+    archive = run.scratch / "libc.a"
+    archive.write_bytes(data)
+    evidence = result["stockWasiAllocator"] = {
+        "sdkArchive": dict(path=f"~/{relative}", bytes=len(data), sha256=STOCK_WASI_LIBC_SHA256),
+    }
+
+    def command(label, *args):
+        if not label.endswith("-link"):
+            return run.command(label, *args, bound=35)
+
+        # The compact builder ends its link invocation with the object and -o output.
+        *link_args, guest_object, output_flag, output = args
+        evidence["guestObject"] = identity(guest_object)
+        _, diagnostic, _ = run.command(f"{label}-without-libc", *args, bound=35, expected=1)
+        symbols = re.findall(r"undefined symbol: (\S+)", diagnostic)
+        require(set(symbols) == {"free", "posix_memalign"} and not output.exists(),
+                f"unexpected no-library closure link diagnostic\n{diagnostic}")
+        evidence["baselineRefusal"] = diagnostic.replace(str(run.scratch), "$RUN").strip()
+        extraction = run.scratch / "libc-extraction.tsv"
+        link_map = run.scratch / "closure.map"
+        run.command(label, *link_args, guest_object, archive, f"--why-extract={extraction}", f"--Map={link_map}",
+                    output_flag, output, bound=35)
+        evidence["archiveExtraction"] = extraction.read_text().replace(f"{run.scratch}/", "").splitlines()
+        evidence["retainedArchiveMembers"] = sorted(set(re.findall(r"\blibc\.a\(([^)]+)\)", link_map.read_text())))
+
+    return command
+
+
+def escaping_closure_campaign(run, result, *, value_only, stock_wasi_allocator=False):
     cases = [
         # Frame bytes: selected kind, invocation value, deinit count, last released kind.
         ("store-title", bytes((1, 42)), bytes((1, 0, 0, 0))),
@@ -240,15 +283,17 @@ def escaping_closure_campaign(run, result, *, value_only):
                  for name, event, frame in cases]
         fixture_flags = ("-D", "ESCAPING_CLOSURE_VALUE_ONLY")
         capture = "capturing a selected value directly"
+    guest_command = stock_allocator_guest_command(run, result) if stock_wasi_allocator else None
     focused_preview_campaign(
         run, result, cases, mode="closure", source="EscapingClosure", define="ESCAPING_CLOSURE_GUEST",
         scope=f"One escaping inspection closure {capture} on arm64 macOS",
         module_name="MixerEscapingClosureProbe", fixture_flags=fixture_flags,
+        guest_command=guest_command,
     )
 
 
 def focused_preview_campaign(run, result, cases, *, mode, source, define, scope,
-                             module_name=None, fixture_flags=()):
+                             module_name=None, fixture_flags=(), guest_command=None):
     names = ["initial", *(name for name, _, frame in cases if frame is not None)]
     frames = [frame for _, _, frame in cases if frame is not None]
     expected = [bytes(len(frames[0])), *frames]
@@ -286,12 +331,15 @@ def focused_preview_campaign(run, result, cases, *, mode, source, define, scope,
         run, host, run.scratch / f"{mode}.wasm", input_file, f"{mode}-native", names, expected, refusal_frame)
     module_flags = ("-module-name", module_name) if module_name else ()
     wasm = build_compact_guest(
-        lambda *args: run.command(*args, bound=35), run.swift, run.scratch, mode, [fixture, adapter],
+        guest_command or (lambda *args: run.command(*args, bound=35)),
+        run.swift, run.scratch, mode, [fixture, adapter],
         flags=("-D", define, *fixture_flags, "-module-cache-path", run.scratch / "guest-modules", *module_flags),
         object_via_stdout=module_name is not None)
     result["wasm"] = identity(wasm)
     descriptors = replay_abi.check_descriptors(wasm.read_bytes())
     result["guestDescriptors"] = {key: descriptors[key] for key in ("imports", "memories", "startFunction")}
+    if guest_command is not None:
+        result["guestDescriptors"]["exports"] = descriptors["exports"]
     result["guest"] = observe_preview(run, host, wasm, input_file, f"{mode}-guest", names, expected, refusal_frame)
     for key in ("framesHex", "refusedFrameHex"):
         require(result["native"][key] == result["guest"][key], f"{mode}: native and guest differ in {key}")
@@ -436,14 +484,18 @@ def main():
     focused.add_argument("--escaping-closure", action="store_true", help="run the escaping closure capture replay")
     focused.add_argument("--escaping-closure-value-only", action="store_true",
                          help="run the escaping closure without a captured object")
+    parser.add_argument("--stock-wasi-allocator", action="store_true",
+                        help="link the pinned Swift 6.3.3 WASI libc.a for a closure replay")
     args = parser.parse_args()
+    closure = args.escaping_closure or args.escaping_closure_value_only
+    if args.stock_wasi_allocator and not closure:
+        parser.error("--stock-wasi-allocator requires --escaping-closure or --escaping-closure-value-only")
     require((os.uname().sysname, os.uname().machine) == ("Darwin", "arm64"), "requires arm64 macOS")
     require(Path.cwd() == ROOT, "run from the Mixer checkout root")
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     resource.setrlimit(resource.RLIMIT_FSIZE, (256 * 1024**2, 256 * 1024**2))
     local = ROOT / "verification/local"
     local.mkdir(exist_ok=True)
-    closure = args.escaping_closure or args.escaping_closure_value_only
     prefix = "w07-enum-throws-" if args.enum_typed_throws else "l03-swift-profile-"
     if closure:
         prefix = "w07-escaping-closure-"
@@ -457,7 +509,8 @@ def main():
                 if args.enum_typed_throws:
                     enum_typed_throws_campaign(run, result)
                 elif closure:
-                    escaping_closure_campaign(run, result, value_only=args.escaping_closure_value_only)
+                    escaping_closure_campaign(run, result, value_only=args.escaping_closure_value_only,
+                                              stock_wasi_allocator=args.stock_wasi_allocator)
                 else:
                     result_builder_campaign(run, result, fixed=args.fixed_slot_result_builder)
             except ValueError as error:

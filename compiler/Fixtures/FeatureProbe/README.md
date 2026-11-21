@@ -192,11 +192,25 @@ Native Swift reads the stored capture across turns, replaces it, and
 releases it. Exact frames record title deinitialization on replacement
 and inspection deinitialization on release in the object case. A later
 invocation leaves the release frame unchanged. Embedded Swift emits
-objects for both variants. The import-free Wasm link fails with undefined
-`posix_memalign` and `free`. Guest admission, execution, and stale-handle
-behavior remain unverified for this probe.
+objects for both variants. The default import-free Wasm link fails with
+undefined `posix_memalign` and `free`.
 [Initial replay](../../../verification/receipts/l03-swift-escaping-closure-1ef43cbb.json) ·
 [Exact object-capture replay](../../../verification/receipts/l03-swift-escaping-closure-final-object-0ed34547.json)
+
+With the Swift 6.3.3 WASM SDK installed under `~/.swiftpm/swift-sdks`, add
+`--stock-wasi-allocator` to replay either closure with the SDK's pinned `libc.a`.
+
+```sh
+python3 -B compiler/Fixtures/FeatureProbe/replay.py --escaping-closure --stock-wasi-allocator
+python3 -B compiler/Fixtures/FeatureProbe/replay.py --escaping-closure-value-only --stock-wasi-allocator
+```
+
+Each run checks the archive digest and reproduces the link refusal before
+linking the same object with `libc.a`. The replay requires zero imports, one
+64 KiB page, and the existing Guest UI V1 exports. The owned VM validates the
+guest and checks exact native and guest frames, refusal, and session
+retirement under the 1,000,000-fuel per-turn ceiling. This unsigned replay
+covers the two closure fixtures on arm64 macOS.
 
 ## Native SDK controls
 
