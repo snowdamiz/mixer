@@ -209,6 +209,7 @@ PHOENIX_CI_WORKFLOW = 'phoenix-ci-predecessor-bytes/' + VERIFY_WORKFLOW
 STARTER_PACKAGE_CLOSURE_WORKFLOW = 'starter-package-closure-predecessor-bytes/' + VERIFY_WORKFLOW
 HOSTED_V41_WORKFLOW = 'hosted-v41-predecessor-bytes/' + VERIFY_WORKFLOW
 HOSTED_V41_NOTICES = 'hosted-v41-predecessor-bytes/THIRD_PARTY.yml'
+STANDARDS_REPLAY_NOTICES = 'standards-replay-predecessor-bytes/THIRD_PARTY.yml'
 HOSTED_V42_WORKFLOW = 'hosted-v42-predecessor-bytes/' + VERIFY_WORKFLOW
 FIXTURE_RUST_PIN_WORKFLOW = 'fixture-rust-pin-predecessor-bytes/' + VERIFY_WORKFLOW
 HOSTED_V43_WORKFLOW = 'hosted-v43-predecessor-bytes/' + VERIFY_WORKFLOW
@@ -338,7 +339,7 @@ RELEASE_REST_V3_REPLACEMENTS = {PUBLIC_UPDATE_SOURCE, VERIFY_WORKFLOW, SPARSE_CH
 RELEASE_REST_V3_SOURCE_CHANGES = RELEASE_REST_V3_SOURCE_ADDITIONS | {PUBLIC_UPDATE_SOURCE}
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
-    HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
+    HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, STANDARDS_REPLAY_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
     HOSTED_V43_WORKFLOW, HOSTED_V44_WORKFLOW, HOSTED_V45_WORKFLOW, HOSTED_V46_WORKFLOW, HOSTED_V47_WORKFLOW, HOSTED_V48_WORKFLOW, HOSTED_V49_WORKFLOW, HOSTED_V50_WORKFLOW, HOSTED_V51_WORKFLOW, HOSTED_V52_WORKFLOW, HOSTED_V53_WORKFLOW, HOSTED_V54_WORKFLOW, HOSTED_V55_WORKFLOW, HOSTED_V56_WORKFLOW, HOSTED_V57_WORKFLOW,
     HOSTED_V58_WORKFLOW, HOSTED_V59_WORKFLOW, HOSTED_V60_WORKFLOW, HOSTED_V61_WORKFLOW, HOSTED_V62_WORKFLOW, HOSTED_V63_WORKFLOW, HOSTED_V64_WORKFLOW, HOSTED_V65_WORKFLOW, HOSTED_V66_WORKFLOW, HOSTED_V67_WORKFLOW, HOSTED_V68_WORKFLOW, GUEST_CUTOFF_PREIMAGE, WORKER_SWIFT_PROBE_PREIMAGE, CLI_NONREGULAR_INPUT_TEST_PREIMAGE,
     SIGNED_APPLE_OVERFLOW_TEST_PREIMAGE, SPARSE_CHECKOUT_TEST_PREIMAGE,
@@ -487,6 +488,7 @@ def install_inputs():
                              'application_registration_workflow', 'source_starter_selection_workflow',
                              'phoenix_ci_workflow', 'starter_package_closure_workflow',
                              'capability_identity_transition', 'guest_cutoff_transition', 'hosted_v41_workflow', 'hosted_v41_notices',
+                             'standards_replay_notices',
                              'hosted_v42_workflow', 'store_platform_identity_transition',
                              'worker_swift_probe_transition', 'android_retained_output_transition',
                              'android_retained_output_correction_transition',
@@ -1069,6 +1071,18 @@ def install_inputs():
             installed['THIRD_PARTY.yml'] == previous.row(before) == notices['before'] and
             notices['before'] != notices['after'], 'Hosted v41 notice preimage differs')
     preimages.setdefault('THIRD_PARTY.yml', (before, 0o644))
+    installed['THIRD_PARTY.yml'] = notices['after']
+
+    notices = binding['standards_replay_notices']
+    notice_preimage = HERE / STANDARDS_REPLAY_NOTICES
+    before = read_predecessor_member(notice_preimage)
+    require(set(notices) == {'before', 'after'} and
+            installed['THIRD_PARTY.yml'] == previous.row(before) == notices['before'] and
+            notices['before'] != notices['after'] and
+            stat.S_IMODE(notice_preimage.lstat().st_mode) ==
+            stat.S_IMODE((ROOT / 'THIRD_PARTY.yml').lstat().st_mode) == 0o644,
+            'Standards replay notice preimage or mode differs')
+    # Keep the earlier preimage in preimages for historical Source141 restoration.
     installed['THIRD_PARTY.yml'] = notices['after']
 
     apple = binding['apple_section_accessibility_transition']

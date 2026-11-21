@@ -1,0 +1,152 @@
+{
+  "archiveSealSha256": "b9268b9e183ea8bab90a41d11c958d0bb38593de6bace1e5c9249eb0051af2ea",
+  "baseRevision": "d3c8e2ee14495cb9d5f8a5525f012a84fda0bebe",
+  "commands": {
+    "admission": "python3 <flags> verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+    "androidControls": "python3 <flags> verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_{bootstrap,sparse_checkout}.py -v",
+    "flags": {
+      "optimized": "-I -B -S -O",
+      "standard": "-I -B -S"
+    },
+    "projection": "git sparse-checkout set --no-cone --stdin (exact job patterns from .github/workflows/verify.yml)",
+    "restoration": [
+      "adopt_archive.py prepare-source141 --out <fresh-output>",
+      "adopt_archive.py prepare-predecessor --out <fresh-output>",
+      "verify --workflow-installed on restored adopt_sdk.py and adopt_envelope.py",
+      "test_source141.py on restored Source141"
+    ]
+  },
+  "currentOwningSource": {
+    "count": 153,
+    "sha256": "70364ee9ba56577fdc2eaf40ca64d2682557d71c24771db6d71650094ae92645"
+  },
+  "failureReproducedOnBothBaseProjections": {
+    "diagnostic": "Owning bytes differ: THIRD_PARTY.yml",
+    "exit": 1
+  },
+  "historicalRestorationBothModes": {
+    "source127": {
+      "files": 845,
+      "notices": {
+        "bytes": 31206,
+        "sha256": "ffab21cfdefa23641ec09d4acc95100d8522921812252aa3d07ede829b97d6b6"
+      },
+      "sha256": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7"
+    },
+    "source141": {
+      "controlsPassedPerMode": 3,
+      "files": 890,
+      "notices": {
+        "bytes": 31282,
+        "sha256": "7f4c534faf01cc3add794b61b447ce44529f15626ffa740b6ec9fb98428a0311"
+      },
+      "sha256": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab"
+    }
+  },
+  "holdsReleased": false,
+  "hostedRuns": 0,
+  "nativeRuns": 0,
+  "noticePredecessorRevision": "7fb2ec8b38c7ebdfd7b4b241113500b0cdcb9130",
+  "notices": {
+    "installed": {
+      "bytes": 32988,
+      "sha256": "d1b490b5631d19b95c0f659b2cad58c62477ef28a7dffc2d2b2763d6bc23f869"
+    },
+    "mode": "0644",
+    "restoredPredecessor": {
+      "bytes": 32177,
+      "sha256": "057f64be09b51031ac270abc74caeb1d3c4764cadc120eac06424ec1736407ed"
+    }
+  },
+  "projections": [
+    {
+      "7fb2ec8NoticeAndArchiveRollback": "PASS",
+      "patternCount": 45,
+      "patternsSha256": "cbf16b85647117dd2c7edb0e40f55801078bbb0c44722313ad80bb5badf59bf1",
+      "postflightPythonDashB": "PASS",
+      "verifyInstalled": {
+        "optimized": "PASS",
+        "standard": "PASS"
+      },
+      "workflowJob": "swift-host"
+    },
+    {
+      "controls": {
+        "optimized": {
+          "bootstrapPolicy": {
+            "passed": 45,
+            "seconds": 26.621
+          },
+          "sparseCheckout": {
+            "passed": 16,
+            "seconds": 39.697
+          }
+        },
+        "standard": {
+          "bootstrapPolicy": {
+            "passed": 45,
+            "seconds": 30.334
+          },
+          "sparseCheckout": {
+            "passed": 16,
+            "seconds": 51.848
+          }
+        }
+      },
+      "patternCount": 30,
+      "patternsSha256": "222eb9d951c7321a3d34ba6a74bbe30882e54e12b05d48d75e982d68e35d3b0e",
+      "verifyInstalled": {
+        "optimized": "PASS",
+        "standard": "PASS"
+      },
+      "workflowJob": "android-generated-java"
+    }
+  ],
+  "reportedFailingActionsRun": "44849212472",
+  "schema": 1,
+  "scope": "Local installed-source admission and rollback in Git non-cone sparse worktrees using the pinned workflow job patterns.",
+  "sourceTreeBeforeReceipt": "1a02e2d275be6e1559d882c37429679e353fe4ee",
+  "swiftNegativeControlsBothModes": {
+    "changedSealedPreimage": {
+      "diagnostic": "RuntimeError: Owning bytes differ: standards-replay-predecessor-bytes/THIRD_PARTY.yml",
+      "exit": 1
+    },
+    "missingSealedPreimage": {
+      "diagnostic": "RuntimeError: Incomplete authority membership",
+      "exit": 1
+    },
+    "staleInstalledNotices": {
+      "diagnostic": "RuntimeError: Owning bytes differ: THIRD_PARTY.yml",
+      "exit": 1
+    },
+    "wrongInstalledNoticeMode": {
+      "diagnostic": "RuntimeError: Standards replay notice preimage or mode differs",
+      "exit": 1
+    }
+  },
+  "tools": [
+    "Darwin arm64",
+    "git version 2.56.0",
+    "Python 3.14.8"
+  ],
+  "unchangedAgainstBase": [
+    "THIRD_PARTY.yml",
+    "compiler/",
+    "vm/",
+    ".github/workflows/",
+    "hosted/",
+    "verification/sdk-feature-ui-source141-v1/",
+    "verification/native-report-source127-v1/"
+  ],
+  "v69Stage": {
+    "archiveThreeWayMergeConflicts": {
+      "adopt_archive.py": 0,
+      "binding.json": 0,
+      "seal.json": 3
+    },
+    "commonAncestor": "7fb2ec8b38c7ebdfd7b4b241113500b0cdcb9130",
+    "composedVerified": false,
+    "revision": "683bc16dbeae38df974b8c17c516cb0d0327d5c7",
+    "successor": "Keep both transitions and preimages, regenerate the seal over the merged owner bytes and roster, then rerun both projections and validate the v69 stage seal."
+  }
+}
