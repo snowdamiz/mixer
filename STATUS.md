@@ -96,6 +96,25 @@ unconfirmed child and retained its exact scratch under HOLD.
 [Local CLI replay](verification/receipts/swift-cli-receipt-fixture-full-host-v77.json) ·
 [Archive verification](verification/receipts/installed-cli-source141-owned-command-test-r1.json)
 
+All nine Owned Engine jobs passed on `9d6adeee8b`. On hosted Xcode 26.3
+and Swift 6.2.4, the corrected fixture passed under default scheduling
+along with all 132 Swift Testing tests. The later signed startup checks,
+generic iOS Simulator build, both Guest UI C clients, and all six Intel
+Android consumers passed.
+[Hosted verification](verification/receipts/owned-engine-ci-9d6adeee.json)
+
+## November 21 FieldLog signed entry Commit
+
+The corrected signed guest displays Commit refused when the repository
+declines a write. The macOS replay preserved workspace and outbox bytes and
+joined the host owner after Done. The matching development APK passed
+signature, alignment, and exact embedded payload checks. The first owned
+ADB setup stopped before emulator launch and closed. The second stopped
+before APK installation after the private ADB connection timed out.
+Emulator PID and PGID 44098 remain UNKNOWN and the exact scratch is held.
+[APK verification](verification/receipts/fieldlog-android-entry-commit-candidate-e1903e78.json) ·
+[Emulator startup hold](verification/receipts/fieldlog-entry-commit-api36-startup-hold.json)
+
 ## November 20 local release delivery outage and recovery
 
 A committed Phoenix release reached local Workerd through the private historical
