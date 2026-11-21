@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "status": "PASS_SCOPED_HOST_FIXTURE",
+  "base": {
+    "revision": "2f289ba23ae7e44bc5c6e8bff6e47d23d794e04e",
+    "tree": "17eb707d32a0de4ced0d4014530e53623c81ce21"
+  },
+  "candidate": {
+    "commit": "f6a1d856ae659c2bdd165bc536636ae59c92339f",
+    "tree": "88e6eddc2a9b7766dc12d0caaefe6bc6d9b500e1",
+    "path": "cli/build-tests/test_android_inspection_progress.py",
+    "blob": "e992a7e5de1627232983f39383534da2ce9c6f1c",
+    "bytes": 14848,
+    "sha256": "235edc65404e03608c238411f66c9e7149d35851cbcfcba0751ae2281408dd80"
+  },
+  "hosted_baseline": {
+    "run": 44851739014,
+    "job": 136684419639,
+    "head": "dccba748d5f0d86a6ccc0d2b1bd3b449fc1ec79d",
+    "step": "Swift SDK, update verifier and CLI",
+    "same_test_and_production_git_blobs_as_base": true,
+    "line": 169,
+    "expected": [
+      "begin",
+      "progress"
+    ],
+    "actual": [
+      "begin",
+      "progress",
+      "progress",
+      "begin",
+      "progress",
+      "progress"
+    ]
+  },
+  "environment": {
+    "os": "macOS 27.0.1 (26A434)",
+    "architecture": "arm64",
+    "python": "3.14.8"
+  },
+  "pinned_inputs": {
+    "baseline_test": {
+      "blob": "139a35edef50975f5c5b10c650dcbea3b73e4080",
+      "bytes": 13764,
+      "sha256": "a30034bdd5f4532456ef4812f98044795e6123571c5028a04c252dccfa2d03a3"
+    },
+    "production": {
+      "path": "cli/Sources/MixerBuild/Resources/android-build.py",
+      "blob": "890287a637d2b29884446f5bf0efd708a6a7d4f4",
+      "sha256": "2e162fe2c557d7352050f8d096121570181e5a1952820c09479346ac86fb7236"
+    },
+    "reference": {
+      "path": "scripts/ci/tests/android_inspection_digests/preimage-android-build.py",
+      "sha256": "df87f377dee8a167f559eb43ea22d15e692f299dc715aff74454ea5747573cf2"
+    }
+  },
+  "controls": {
+    "command_modes": [
+      "python3 -I -B -S - baseline",
+      "python3 -I -B -S - candidate",
+      "python3 -I -B -S -O - candidate"
+    ],
+    "method": "The stdin driver loaded the test via runpy and ran it through unittest on three materialized files. The slow observer slept 55 ms inside the first real JSONL read. A nested observer disarmed the old repeating timer so the two snapshots and the final on-disk stream could be compared.",
+    "baseline": {
+      "ordinary_pass": 10,
+      "exact_failure_reproductions": 12,
+      "observer_order": [
+        "outer-enter",
+        "nested",
+        "outer-resume"
+      ],
+      "each_observer_disk_rows": [
+        "begin",
+        "progress",
+        "progress"
+      ],
+      "final_disk_rows": [
+        "begin",
+        "progress",
+        "progress",
+        "end"
+      ]
+    },
+    "candidate_per_mode": {
+      "ordinary_pass": 50,
+      "slow_observer_pass": 30,
+      "focused_suite_pass": 12,
+      "observer_order": [
+        "outer-enter",
+        "outer-resume"
+      ],
+      "blocked_disk_rows": [
+        "begin",
+        "progress"
+      ],
+      "final_disk_rows": [
+        "begin",
+        "progress",
+        "end"
+      ]
+    },
+    "negative_controls": [
+      "Suppressing real progress caused the blocked snapshot state assertion to fail.",
+      "Adding one to the in-flight read-call count caused the exact counter assertion to fail."
+    ]
+  },
+  "source_admission_pending": {
+    "direct_owner": "verification/sdk-feature-ui-source141-v1/owning-closure.json",
+    "installed_verifier": "verification/native-report-source141-archive-v1/adopt_archive.py",
+    "handoff": "Coordinate a test-only installed transition with the v70 archive lane. Preserve the pinned predecessor test bytes for restoration and bind the candidate bytes in the successor archive binding and seal."
+  },
+  "scope": "Local Python host fixture only. The hosted suite and archive admission were not rerun. Production code, hosted source, and closure bytes were not edited.",
+  "cleanup": "All temporary directories created by the controls and the commit index were removed."
+}
