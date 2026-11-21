@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "work": "W08/L03, product plan §10.4",
+  "status": "passed_scoped_control",
+  "public_base_revision": "7a9b6516b3504505ac157cafc55f57360c19c463",
+  "public_base_vm_tree": "be4fdb022074e8389a0f2fabd9fc192021758b7e",
+  "tested_vm_tree": "1682169a33d05bd96c7f9fd433d556107bbb7a66",
+  "control": "vm/tests/experimental_guest_ui_allocations.rs::guest_ui_v1_export_name_mutations_refuse_without_instantiation",
+  "control_git_blob": "6ce0ca7b6118e79ddba0d9e0affc80103dd5563d",
+  "baseline_coverage": {
+    "standards_replay_receipt": "verification/receipts/l03-standards-replay-ed6ea631.json",
+    "standards_replay_scope": "19 unchanged WebAssembly Core assertions through the V3 path, with V1 admission refusals",
+    "ci_mutation_smoke": ["decoder_mutation_smoke_has_no_panics", "table_bulk_mutation_smoke_is_bounded_and_never_panics", "deterministic_binary_mutations_match_frozen_reference_without_panics"],
+    "gap": "Deterministic export-name mutations of a V1-admitted seed through the installed V1 validator symbol, with allocation and registry checks"
+  },
+  "scope": "Immediate Guest UI V1 validate-only C ABI, called by the stock owned VM host integration tests with default limits. Continuing fuzz qualification remains open.",
+  "entrypoint": "mixer_vm_capability_guest_ui_validate_v1",
+  "seed": {
+    "source": "vm/tests/guest_ui/fixture.rs::Program::default().bytes()",
+    "git_blob": "276a0237a90bc36c5b666455e864704e9bb0a511",
+    "bytes": 216,
+    "sha256": "d18a6f9843b0e97789e04dabca69c16e795eb277524ca5f54c3557390338b36c",
+    "validation_status": 0
+  },
+  "matrix": {
+    "case_selector": "Start with the original seed for each case and XOR one bit in the indicated export-name byte range. Offsets are zero based.",
+    "bits_0_to_6": {"status": 1, "code": "capability_export", "function": 4294967295, "offset": 0, "cases_per_profile": 539},
+    "bit_7": {"status": 1, "code": "malformed", "cases_per_profile": 77},
+    "cases_per_profile": 616,
+    "export_name_ranges": [
+      {"name": "mixer_guest_ui_start_v1", "start": 115, "length": 23, "capability_export": 161, "malformed": 23},
+      {"name": "mixer_guest_ui_event_v1", "start": 141, "length": 23, "capability_export": 161, "malformed": 23},
+      {"name": "mixer_guest_capability_ready_v1", "start": 167, "length": 31, "capability_export": 217, "malformed": 31}
+    ],
+    "fuel_and_host_calls_per_case": [0, 0],
+    "caller_thread_requested_bytes": {"maximum_peak": 2806, "retained_per_case": 0, "wasm_page_bytes": 65536},
+    "instance_allocation_positive_control_bytes": 2097152,
+    "registry_slots_created_and_closed_after_refusals_per_profile": 16
+  },
+  "host": "macOS 27.0.1 arm64",
+  "tools": {
+    "rustc": "1.99.0 (b940084d7 2026-09-28), aarch64-apple-darwin",
+    "cargo": "1.99.0 (5f94df478 2026-08-27)",
+    "python": "3.14.8"
+  },
+  "run": {
+    "cwd": "/",
+    "argv": ["cargo", "test", "--locked", "--offline", "--manifest-path", "$CHECKOUT/vm/Cargo.toml", "--no-default-features", "--features", "experimental-capability-native", "--test", "experimental_guest_ui_allocations", "--test", "experimental_guest_ui_validation", "--", "--nocapture"],
+    "release_extra_arg": "--release before --",
+    "command_timeout_seconds": 105,
+    "output_cap_bytes": 524288,
+    "custody_runner": "vm/verification/standards-replay/commands.py",
+    "custody_runner_git_blob": "daeb692e8b2f6a34f6de0b462a75458f70a4d837",
+    "profiles": {
+      "debug": {"passed": 7, "failed": 0, "exit": 0, "output_sha256": "a40622c881c00a66f222330c2dac845038f3a4b46ff760888a34c5c4f387df7a"},
+      "release": {"passed": 7, "failed": 0, "exit": 0, "output_sha256": "d38a363d82c8195e76e0342a3f02990ecb9d162af1147d9407512c15cb21d015"}
+    },
+    "custody": "Output EOF, child reap and process group absence observed for both profiles and both tool version commands",
+    "scratch_removed": true
+  }
+}
