@@ -162,6 +162,17 @@ observed log sizes when custody is unknown. All 14 compiler support
 tests passed in normal and optimized Python. The earlier hold for PID
 99218 remains active. [Recorder verification](verification/receipts/l03-qualification-recorder-custody-f13d6dab.json)
 
+The original FieldLog EntryEditor refused a blank-title Commit with its
+100,000-byte draft intact and zero new entries on macOS. The full Swift
+WASI development replay matched that refusal. Compact Embedded Swift
+stopped at the Foundation import, and the installed owned VM rejected the
+full WASI module at its size check before any session started. Installed
+editor parity remains open. [EntryEditor boundary](verification/receipts/fieldlog-entry-editor-blank-commit-v74.json)
+
+The hosted v74 Android job stopped at debug export when its observer
+rejected an inner receipt directory. The job retained the exact scratch
+and recorded unresolved custody. [Hosted hold](verification/receipts/hosted-v74-android-debug-export-custody-hold-44863139576.json)
+
 ## November 19 local verification
 
 The combined FieldLog iOS and Android storage patches passed 30 host checks across the compatible rollback and successor writers. An independent replay passed all 30 checks and 10 additional controls. The four writers refused newly introduced draft and entry ID overlaps, preserved edits to existing pairs, and recovered a complete snapshot after a write fault. [Composed storage receipt](verification/receipts/fieldlog-l08-cross-platform-draft-overlap-20261119.json)
