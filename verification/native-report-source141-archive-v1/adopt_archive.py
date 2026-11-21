@@ -437,6 +437,27 @@ PRIVATE_F10_CHANGES = PRIVATE_F10_SOURCE_CHANGES | {
     CAPABILITY + 'CapabilityGuestUIAndroidRuntime.swift',
     SPARSE_CHECKOUT_TEST,
 }
+FIELDLOG_EDITOR_PREFIX = 'fieldlog-signed-editor-predecessor-bytes/'
+FIELDLOG_EDITOR_SOURCE_PREIMAGE = FIELDLOG_EDITOR_PREFIX + SOURCE_INPUTS_MANIFEST
+FIELDLOG_EDITOR_SOURCE_SHA256 = '1cc30c10eab3b4fa5bcdc0851b4ec5b27054472a133250be8f5740b329c29ba4'
+FIELDLOG_EDITOR_SOURCE_REPLACEMENTS = {
+    'runtime-identity/Sources/MixerRuntimeIdentity/CapabilityRuntimeIdentity.swift',
+    'sdk/Sources/MixerGuest/GuestUIEditorV2.swift',
+    'sdk/Sources/MixerGuest/GuestUIExchangeCodec.swift',
+    'sdk/Sources/MixerGuest/GuestUIExchangeCore.swift',
+    'sdk/Sources/MixerGuest/GuestUIExchangeV1.swift',
+    'updates/Sources/MixerUpdates/VerifierV3.swift',
+}
+FIELDLOG_EDITOR_ADDITIONS = {
+    'sdk/Sources/MixerGuest/GuestUIFieldLogEditor.swift',
+    'updates/Sources/MixerUpdates/FieldLogEditorDevelopment.swift',
+}
+FIELDLOG_EDITOR_REPLACEMENTS = FIELDLOG_EDITOR_SOURCE_REPLACEMENTS | {
+    CAPABILITY + 'CapabilityColdStartRuntime.swift',
+    CAPABILITY + 'CapabilityColdStartWorker.swift',
+    SPARSE_CHECKOUT_TEST,
+}
+FIELDLOG_EDITOR_SOURCE_CHANGES = FIELDLOG_EDITOR_SOURCE_REPLACEMENTS | FIELDLOG_EDITOR_ADDITIONS
 MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLOW, CONSOLE_BUILD_LOGS_WORKFLOW, REGISTRATION_WORKFLOW, SOURCE_STARTER_WORKFLOW, PHOENIX_CI_WORKFLOW, 'adopt_archive.py', 'binding.json', 'current-source-inputs.json'} | {
     APPLE_PREIMAGE, APPLE_TEXT_PREIMAGE, CAPABILITY_IDENTITY_PREIMAGE, STARTER_PACKAGE_CLOSURE_WORKFLOW,
     HOSTED_V41_WORKFLOW, HOSTED_V41_NOTICES, STANDARDS_REPLAY_NOTICES, HOSTED_V42_WORKFLOW, FIXTURE_RUST_PIN_WORKFLOW,
@@ -492,6 +513,9 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
 } | {
     PRIVATE_F10_SOURCE_PREIMAGE,
     *(PRIVATE_F10_PREFIX + name for name in PRIVATE_F10_CHANGES),
+} | {
+    FIELDLOG_EDITOR_SOURCE_PREIMAGE,
+    *(FIELDLOG_EDITOR_PREFIX + name for name in FIELDLOG_EDITOR_REPLACEMENTS),
 } | {
     LOCAL_STORE_PREFIX + name for name in LOCAL_STORE_CHANGES - LOCAL_STORE_ADDITIONS
 } | {
@@ -629,7 +653,7 @@ def install_inputs():
                              'managed_android_retained_transition', 'pair25_transition', 'swift_version_transition',
                              'cli_nonregular_input_test_transition', 'signed_apple_overflow_test_transition',
                              'w09_signed_apple_test_transition', 'fieldlog_commit_transition', 'native_fingerprint_transition',
-                             'private_f10_transition',
+                             'private_f10_transition', 'fieldlog_signed_editor_transition',
                              'sparse_checkout_test_transition', 'release_rest_v3_transition', 'stock_promotion_transition',
                              'hosted_v71_transition', 'hosted_v72_transition', 'hosted_v73_transition',
                              'hosted_v74_transition', 'hosted_v76_transition', 'hosted_v77_transition',
@@ -1770,11 +1794,45 @@ def install_inputs():
             require(change['before'] == expected_source[name],
                     'Private F10 source preimage differs: ' + name)
             expected_source[name] = change['after']
-    require(current == expected_source and len(current) == len(fingerprint_source) and
-            previous.digest(current) == private_f10['sourceAfter'] == PRIVATE_F10_SOURCE_SHA256 and
-            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
-                                  'sha256': PRIVATE_F10_SOURCE_SHA256},
+    private_f10_source_path = HERE / FIELDLOG_EDITOR_SOURCE_PREIMAGE
+    private_f10_source = previous.load(private_f10_source_path)
+    require(private_f10_source == expected_source and len(private_f10_source) == 155 and
+            previous.digest(private_f10_source) == private_f10['sourceAfter'] == PRIVATE_F10_SOURCE_SHA256 and
+            stat.S_IMODE(private_f10_source_path.lstat().st_mode) == 0o644,
             'Private F10 source transition differs')
+
+    editor = binding['fieldlog_signed_editor_transition']
+    editor_changes = FIELDLOG_EDITOR_REPLACEMENTS | FIELDLOG_EDITOR_ADDITIONS
+    require(set(editor) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            editor['sourceBefore'] == private_f10['sourceAfter'] and
+            set(editor['changes']) == editor_changes and
+            installed.keys() & editor_changes == FIELDLOG_EDITOR_REPLACEMENTS and
+            expected_source.keys() & editor_changes == FIELDLOG_EDITOR_SOURCE_REPLACEMENTS and
+            current.keys() & editor_changes == FIELDLOG_EDITOR_SOURCE_CHANGES,
+            'Signed FieldLog editor change roster differs')
+    editor_preimages = {}
+    for name, change in editor['changes'].items():
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == installed.get(name) and change['before'] != change['after'] and
+                change['mode'] == stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'Installed signed FieldLog editor owner row or mode differs: ' + name)
+        if name in FIELDLOG_EDITOR_REPLACEMENTS:
+            path = HERE / FIELDLOG_EDITOR_PREFIX / name
+            raw = read_predecessor_member(path)
+            require(previous.row(raw) == change['before'] and
+                    stat.S_IMODE(path.lstat().st_mode) == change['mode'],
+                    'Signed FieldLog editor predecessor bytes or mode differ: ' + name)
+            editor_preimages[name] = (raw, change['mode'])
+        if name in FIELDLOG_EDITOR_SOURCE_CHANGES:
+            require(expected_source.get(name) == change['before'],
+                    'Signed FieldLog editor source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        installed[name] = change['after']
+    require(current == expected_source and len(current) == 157 and
+            previous.digest(current) == editor['sourceAfter'] == FIELDLOG_EDITOR_SOURCE_SHA256 and
+            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
+                                  'sha256': FIELDLOG_EDITOR_SOURCE_SHA256},
+            'Signed FieldLog editor source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in release['changes'].items():
@@ -1804,7 +1862,7 @@ def install_inputs():
         if name in effective and name not in preimages:
             preimages[name] = (capability_preimages[name], change['mode'])
     # Earlier preimages also include the capability fallback above.
-    preimages = {**private_f10_preimages, **preimages}
+    preimages = {**editor_preimages, **private_f10_preimages, **preimages}
     owner = previous.module('native_archive_actual_collector', ROOT / previous.OWNER)
     profile = owner.load_profile(ROOT)
     pair22 = historical_binding['sdk_transition']['profileAfter']
@@ -1882,6 +1940,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_private_f10_sha256': binding['fieldlog_signed_editor_transition']['sourceBefore'],
             'predecessor_native_fingerprint_sha256': binding['private_f10_transition']['sourceBefore'],
             'predecessor_fieldlog_commit_sha256': binding['native_fingerprint_transition']['sourceBefore'],
             'predecessor_v82_source154_sha256': binding['fieldlog_commit_transition']['sourceBefore'],

@@ -4,6 +4,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import stat
 import subprocess
 import sys
 import tempfile
@@ -110,7 +111,8 @@ def admission_paths(root=None, binding=None):
                     'hosted_v71_transition', 'hosted_v72_transition', 'hosted_v73_transition',
                     'android_inspection_deadline_transition', 'receipt_directory_transition',
                     'swiftpm_migration_transition', 'fieldlog_commit_transition',
-                    'native_fingerprint_transition', 'private_f10_transition'):
+                    'native_fingerprint_transition', 'private_f10_transition',
+                    'fieldlog_signed_editor_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -485,7 +487,10 @@ class SparseControls(unittest.TestCase):
             private_f10 = binding['private_f10_transition']
             self.assertEqual(private_f10['sourceBefore'], fingerprint['sourceAfter'])
             self.assertEqual(observed['predecessor_native_fingerprint_sha256'], fingerprint['sourceAfter'])
-            self.assertEqual(observed['source_sha256'], private_f10['sourceAfter'])
+            editor = binding['fieldlog_signed_editor_transition']
+            self.assertEqual(editor['sourceBefore'], private_f10['sourceAfter'])
+            self.assertEqual(observed['predecessor_private_f10_sha256'], editor['sourceBefore'])
+            self.assertEqual(observed['source_sha256'], editor['sourceAfter'])
             self.assertEqual(observed['source_sha256'], binding['source']['sha256'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']
@@ -503,7 +508,8 @@ class SparseControls(unittest.TestCase):
                     self.assertIn(diagnostic.encode(), failed.stderr)
             changes = {**binding['changes'], **binding['capability_transition']['changes'],
                        **pair24['changes'], **binding['local_store_transition']['changes'],
-                       **inspector['changes'], **release['changes'], **migration['changes'], **fieldlog['changes']}
+                       **inspector['changes'], **release['changes'], **migration['changes'],
+                       **fieldlog['changes'], **editor['changes']}
             additions = sorted(name for name, change in changes.items() if change['before'] is None)
             self.assertTrue(additions)
             for name in additions:
@@ -516,6 +522,35 @@ class SparseControls(unittest.TestCase):
                     self.assertIn(name.encode(), failed.stderr)
             command(git + ['sparse-checkout', 'set', '--no-cone', '--stdin'],
                     input=('\n'.join(patterns) + '\n').encode(), check=True)
+            editor_preimages = repo / SOURCE_BINDING.parent / 'fieldlog-signed-editor-predecessor-bytes'
+            for name, change in editor['changes'].items():
+                installed = repo / name
+                raw = installed.read_bytes()
+                mode = stat.S_IMODE(installed.stat().st_mode)
+                with self.subTest(stale_editor_bytes=name):
+                    stale = (editor_preimages / name).read_bytes() if change['before'] else raw + b'\n'
+                    try:
+                        installed.write_bytes(stale)
+                        failed = command(python + [str(adopter), 'verify', '--workflow-installed'])
+                        self.assertEqual(failed.returncode, 1)
+                        self.assertIn(('Owning bytes differ: ' + name).encode(), failed.stderr)
+                    finally:
+                        installed.write_bytes(raw)
+                with self.subTest(stale_editor_mode=name):
+                    try:
+                        installed.chmod(0o755)
+                        failed = command(python + [str(adopter), 'verify', '--workflow-installed'])
+                        self.assertEqual(failed.returncode, 1)
+                        self.assertIn(name.encode(), failed.stderr)
+                        self.assertIn(b'mode differ', failed.stderr)
+                    finally:
+                        installed.chmod(mode)
+            editor_preimage = editor_preimages / 'sdk/Sources/MixerGuest/GuestUIEditorV2.swift'
+            editor_preimage.chmod(0o755)
+            failed = command(python + [str(adopter), 'verify', '--workflow-installed'])
+            self.assertEqual(failed.returncode, 1)
+            self.assertIn(b'Signed FieldLog editor predecessor bytes or mode differ', failed.stderr)
+            editor_preimage.chmod(0o644)
             restored = base / 'source141'
             command(python + [str(adopter), 'prepare-source141', '--out', str(restored)], check=True)
             progress = Path('cli/build-tests/test_android_inspection_progress.py')
