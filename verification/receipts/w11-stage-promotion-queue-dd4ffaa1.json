@@ -1,0 +1,55 @@
+{
+  "observed_utc": "2026-11-21T01:06:17.929357+00:00",
+  "source": "dd4ffaa1e023c2b2fefe0cc7c941e74a9b16e9f8",
+  "hosted_tree": "f94e94b0a9324505fb823aea55318e9fe0e8f121",
+  "composition_base": "79d97fe752a7e19fec8a81dba5803538972b712b",
+  "source_sha256": {
+    "hosted/lib/mixer_hosted/releases.ex": "bb6c2364c3ddce1db90f35e94d47e3274a9bcf1bd1ae5393adc8c5aa65607961",
+    "hosted/lib/mixer_hosted/releases/release_jobs.ex": "7d4a0cd4548cabb0edc440f2e74799dc6d34e85fa33de5de8dd31bc8a171b4c1",
+    "hosted/priv/local_release_jobs/20261120000014_add_local_release_jobs.exs": "18699ec8d3bb540b52b545df914f54fb4715f3cea18c15636221e859d51c5bb4",
+    "hosted/priv/local_release_target_registry/20261120000015_add_local_release_target_registry.exs": "634af567d9a938604ced9cfe1aacc26ec7c7000b6c2bd71021e6e1414d4c6338",
+    "hosted/priv/local_stage_promotion/20261120000016_add_local_stage_promotion.exs": "2cbac710dee0f5e11632b5495d0c8287ecf0ac2ad3685f71a9abcb4262306614",
+    "hosted/test/mixer_hosted/releases/environment_promotion/postgres_test.exs": "150043eac65bceafba042372e525c7d4c72b0a090d2a7e69eced8a634bd595cd",
+    "hosted/scripts/replay-local-stage-promotion.sh": "34e51a2f80172a3f8d708ab793d68090e5d017b5baa112bb5a8f98058dee42ef",
+    "docs/operations/provision-local-release-jobs.sql": "9fe18c6f53958b96213ad044e8b4be6ac0352ba59a65ec10f89476f83e119ae2"
+  },
+  "environment": {
+    "macos": "27.0.1 arm64",
+    "postgresql": "17.11",
+    "elixir": "1.20.4",
+    "otp": "29",
+    "database_transport": "owned Unix socket"
+  },
+  "runs": [
+    {
+      "command": "MIXER_STAGE_PROMOTION_QUEUE=1 sh hosted/scripts/replay-local-stage-promotion.sh",
+      "queue_enabled": true,
+      "passed": 15,
+      "skipped": 0,
+      "postgres_stopped": true,
+      "postgres_data_and_socket_removed": true
+    },
+    {
+      "command": "sh hosted/scripts/replay-local-stage-promotion.sh",
+      "queue_enabled": false,
+      "passed": 14,
+      "skipped": 1,
+      "postgres_stopped": true,
+      "postgres_data_and_socket_removed": true
+    }
+  ],
+  "observed": [
+    "Both destination publications and an immutable binding became visible together.",
+    "Queue mode produced one available job per exact publication key with all seven target coordinates.",
+    "Exact replay before and after later head advances added no jobs.",
+    "Second append failure, second enqueue failure, and deferred commit failure preserved both original source jobs and left zero destination jobs, heads, or bindings.",
+    "The second-enqueue fixture verified two heads and one job were present in the failing transaction.",
+    "The deferred fixture verified the binding, both heads and both jobs were present in the failing transaction."
+  ],
+  "earlier_fixture_failure": "Runtime host validation rejected the single-label value localhost before the queue replay. The accepted fixture uses db.example.test in RuntimeConfig and the actual connection uses the isolated Unix socket.",
+  "scope": "Direct authorized release transactions with real PostgreSQL, restricted roles, and the API supervision tree serving no HTTP. The queue processor was stopped so both committed jobs could be inspected.",
+  "pending": [
+    "Independent review corrections for browser HTTP catalog admission, database source-action parity, and signing-root freshness.",
+    "Configured environment promotion HTTP and stock CLI, browser route composition, source binding, and installed platform acceptance."
+  ]
+}
