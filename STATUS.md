@@ -990,7 +990,12 @@ The combined v86 source selection also binds the completed Pair25
 browser runner. All three non-cone workflow checkouts admitted the 572
 inputs in normal and optimized Python. Focused refusal checks and
 Source141 and Source127 restoration passed. The full local collector
-runs reached their time limits. The exact hosted run remains pending.
+runs reached their time limits. Hosted Phoenix and Identity passed on v86.
+The Engine run passed eight jobs, including six Intel Java and D8
+consumers. The Swift cache fixture passed before its artifact upload
+timed out. All 11 jobs passed on v87. The Intel receipts for both
+revisions record terminal custody and scratch removal.
+[Terminal hosted evidence](verification/receipts/hosted-v86-v87-terminal-551576a0-92ae77bc.json)
 [Combined source binding](verification/receipts/hosted-phoenix-v86-pair25-integration.json)
 
 ## November 21 FieldLog Android exit readback
@@ -1040,8 +1045,9 @@ SDK. No Simulator device booted.
 
 The independent inert check passed 54 tests with one fixture-dependent
 skip in each Python mode. The v87 binding restored v86 through v82 and
-preserved the 157 Source141 inputs and 53 Pair25 inputs. Hosted execution
-of v87 remains pending.
+preserved the 157 Source141 inputs and 53 Pair25 inputs. All three
+hosted v87 workflows passed. The two real Xcode recovery builds ran
+separately on macOS.
 [Worker correction](verification/receipts/l07-ios-worker-reusable-supervisor-compat-1e2de013.json) ·
 [Source binding](verification/receipts/hosted-source-v87-composition.json)
 
@@ -1067,7 +1073,14 @@ libraries, and verified both signed guest envelopes. The final driver
 search order resolves libunwind to the Swift SDK's NDK r27d archive.
 No linker archive-member trace was emitted. The independent source review
 records four historical receipt hashes that differ from the staged bytes.
-This APK has static evidence only.
+The same APK also passed an offline API 36 install. FieldLog saved a
+photo through DocumentsUI and restored the draft after a cold launch.
+The bundled sequence 1 Entry Commit showed “Committed once”, reused
+the draft ID and JPEG reference, and appended one `entrySaved` record.
+A second cold launch preserved the exact workspace and JPEG bytes.
+All 180 command groups closed, the three private ports were reusable,
+and the disposable scratch was removed.
+[Installed APK replay](verification/receipts/fieldlog-pair25-rust-notice-apk-api36-runtime-00406fe7.json)
 [Source integration](verification/receipts/fieldlog-pair25-rust-notice-source-integration-v87.json) ·
 [Development APK build](verification/receipts/fieldlog-pair25-rust-notice-apk-00406fe7.json) ·
 [Independent APK readback](verification/receipts/fieldlog-pair25-rust-notice-apk-readback-00406fe7.json)
