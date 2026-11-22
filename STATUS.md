@@ -13,6 +13,28 @@ Use the tracked results to assess L01–L08 and rerun any check that needs fresh
 evidence from a clean checkout. Paths to disposable run files are historical
 references. See [the worktree verification policy](mixer-product-plan.md#worktree-local-verification).
 
+## FieldLog iOS saved draft during an actual release-origin outage
+
+The same installed run fetched signed releases from the stock loopback
+origin, stopped it, saved the note offline, and observed connection refusal
+in FieldLog during sequence-4 cold reopen. The draft, attached JPEG and
+follow-up flag survived rollback and sequence-5 re-upgrade. The refused
+draft left the workspace and journal intact. Close returned to the native
+editor and cleared the final guest attempt with `effects_closed`.
+The runner verified 95 workspace files, all 104 command groups closed, and
+the disposable Simulator was removed with all external checks unchanged.
+[Native outage and Close receipt](verification/receipts/fieldlog-ios-224-loopback-outage-final-close-native-20261122.json)
+
+## Ordinary iOS startup log coverage
+
+FieldLog alone launched from a byte-exact synthetic saved workspace and
+signed recovery journal. Both remained unchanged. The 2.9-second query
+observed the startup probe and no workspace markers. Seven unclassified
+events and four XCTest-labelled rows prevented complete coverage even
+though only FieldLog was installed and its mapped text files had no
+XCTest names. Ordinary guest privacy remains open.
+[App-only startup receipt](verification/receipts/l07-fieldlog-ios-app-only-startup-diagnostic-20261122.json)
+
 ## Local compiler and owned runtime gate
 
 L03 passed independent review. The current VM linked into an installed
