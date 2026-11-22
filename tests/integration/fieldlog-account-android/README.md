@@ -19,8 +19,8 @@ The script verifies ordinary FieldLog tree
 `807c198cfe800e1b3be7c94795240b29bdd9e3d5`, applies the Android shell,
 and copies the byte-exact confirmed Swift owner from the
 [iOS recipe](../fieldlog-account-ios/README.md).
-It also applies the account workspace and cold-start corrections. The
-result is `066e503849ee4561a8839e487b72d8724b51ed3c` in
+It also applies the workspace, cold-start, and active expiry corrections.
+The result is `000c3321f7c1d63160b31fbedb3f1f14554e658b` in
 `$FIELDLOG_ACCOUNT_WORK/fieldlog`. Its Pair25 SDK is
 `857e4b4aa7a32cda368257b2be1a63e77106bed8` in
 `$FIELDLOG_ACCOUNT_WORK/mixer`. Use the
@@ -61,3 +61,10 @@ deadline, force-stop before it, then reopen offline after it. Expect
 unchanged. Restore the mapping to repeat the normal sign-in or sign-out
 flow. The [installed receipt](../../../verification/receipts/fieldlog-android-account-offline-expiry-api36-066e5038.json)
 records both runs and the shortened lifetime used by the expiry fixture.
+
+For the active-session expiry check, leave the workspace open when the
+confirmed session reaches its deadline. The activity should retire the
+workspace, clear the credential, and display **Local session expired**
+without a process restart. The [active expiry receipt](../../../verification/receipts/fieldlog-android-account-active-expiry-api36-000c3321.json)
+records the original behavior, the corrected build, and the separate
+ordinary sign-out regression.

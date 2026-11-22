@@ -1529,6 +1529,13 @@ without mounting the account workspace. Both runs preserved the ordinary
 and account workspace files and made no offline service request.
 [Offline restore and expiry](verification/receipts/fieldlog-android-account-offline-expiry-api36-066e5038.json)
 
+While an Android account workspace stayed open, a valid offline expiry
+retired the workspace and cleared the credential but displayed ordinary
+Welcome. The corrected API 36 build kept the expiry reason and displayed
+**Local session expired** in the same process. Both workspace files stayed
+byte-identical, and ordinary online cold restore and sign-out still passed.
+[Active Android account expiry](verification/receipts/fieldlog-android-account-active-expiry-api36-000c3321.json)
+
 The FieldLog local recovery backend passed a fresh fixed-port replay.
 A one-use operator code and explicit browser approval allow the client
 to replace a lost sign-in proof. Recovery revokes prior sessions and
@@ -1537,6 +1544,14 @@ loss, a rolled-back transaction, another account's continued access,
 and byte-for-byte equality of stored task, entry, and photo rows. Native
 recovery and account deletion remain open.
 [Local account recovery](verification/receipts/fieldlog-local-account-recovery.json)
+
+The shared Swift recovery owner and iOS Debug route passed a separate
+host replay against the recovered backend. A lost exchange reply kept the
+replacement code staged, and a fresh owner signed in with it through the
+ordinary flow. The account, scope, workspace, draft, photo, and outbox
+matched. The implementation lane's unsigned generic iPhoneOS build passed.
+Native browser delivery and Keychain acceptance remain open.
+[Shared Swift and iOS recovery](verification/receipts/fieldlog-ios-account-recovery-host.json)
 
 The FieldLog deletion backend requires a confirmed account, its exact scope,
 and explicit intent. It removes the scoped service data and stores an

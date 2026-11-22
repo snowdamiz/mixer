@@ -89,4 +89,10 @@ if [[ ${3:-} != --baseline ]]; then
     test "$(git -C "$app" write-tree)" = 066e503849ee4561a8839e487b72d8724b51ed3c
     git -C "$app" diff --exit-code
     printf 'Verified corrected account mount and cold-start tree %s\n' "$(git -C "$app" write-tree)"
+    decode "$handoff/fieldlog-android-account-warm-expiry.patch.b64" "$recipe_work/warm.patch" \
+        5a1b24756ab7e460f45a6c7c1031acdf4155bd56fc693f67ff06261e6a438e0d
+    git -C "$app" apply --index --whitespace=error-all "$recipe_work/warm.patch"
+    test "$(git -C "$app" write-tree)" = 000c3321f7c1d63160b31fbedb3f1f14554e658b
+    git -C "$app" diff --exit-code
+    printf 'Verified active account expiry tree %s\n' "$(git -C "$app" write-tree)"
 fi

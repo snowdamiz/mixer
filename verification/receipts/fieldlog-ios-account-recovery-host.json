@@ -1,0 +1,90 @@
+{
+  "status": "passed_scoped_host_and_generic_iphoneos",
+  "mixerRevision": "41d1b96fe4a0ddf67b5e7aa0ff4ea1cf473645c1",
+  "mixerTree": "6ce8291f5c9853a8d555ff5fdd8cecdf7395cfbc",
+  "fieldLogCheckoutRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+  "sdkRevision": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+  "sdkTree": "faf0902a82ffc7acb2ddde9c6dca24002f959c3d",
+  "fieldLogTrees": {
+    "reconstructedBase": "ebb53f9e95534c342966d701ee9dfd45374b267e",
+    "clientOnly": "f478bec7d45a5960d514e5fe53960de9f25f73f5",
+    "backendOnly": "b8a5a0161ae22980def7a3017af298bd164a9548",
+    "composed": "a4e08d9b67d9811dfe160ac71b04b35e0730d954"
+  },
+  "blobs": {
+    "Sources/FieldLogModels/FieldLogAccount.swift": {
+      "base": "d6e383eeca9756d249c692cd01173951b8b9a419",
+      "output": "d31e9fd87134cf70dd9d5edf3ad5012d0422e62e"
+    },
+    "ios/FieldLog/FieldLogAccountApple.swift": {
+      "base": "92887cfa2d1589ac5c14e111cbc48219add7cdf8",
+      "output": "cb2c4540494d4bedb155c95d0c2c38f53ef5e58d"
+    },
+    "ios/FieldLog/FieldLogAccountRoute.swift": {
+      "base": "0c1f5255b3071ca2f5d540329eb356b5a0c611cb",
+      "output": "94712bf8a94df831d07930b04f892adb8cfad986"
+    },
+    "Backend/local_entry_sync.py": {
+      "base": "b6debbc45f8ab96360d2d494e376d80ea5f6abf7",
+      "output": "4d487e779c213b387cd2eee89fe0f48033a0b029"
+    }
+  },
+  "patches": {
+    "client": "tests/integration/fieldlog-account-recovery-ios/fieldlog-ios-recovery.patch.b64",
+    "decodedClientSHA256": "1081df87e7362e46e39c4d74f110ae3ae32b1ea5fff197ea39c2d081d5f23a12",
+    "decodedClientBytes": 22077,
+    "backend": "tests/integration/fieldlog-account-recovery/fieldlog-local-recovery.patch.b64",
+    "decodedBackendSHA256": "29e4b5af4b06e89027f82367319fbb0ade7a25cd5695096896b3b9c0db09d3f6",
+    "verification": "Strict cached apply and reverse matched the base, client-only, backend-only and composed trees. The delivered encoding decoded byte-for-byte and staged cleanly over the backend tree."
+  },
+  "tools": {
+    "git": "2.56.0",
+    "python": "3.14.8",
+    "swift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1), arm64 macOS",
+    "cargo": "1.99.0 (5f94df478 2026-08-27)",
+    "xcode": "27.2 (27B52)",
+    "iphoneosSDK": "27.2"
+  },
+  "commands": {
+    "prepare": "bash \"$pinned/tests/integration/fieldlog-account-ios/prepare.sh\" \"$work\"",
+    "iOSAccountControls": "sh \"$pinned/tests/integration/fieldlog-account-ios/run-checks.sh\" \"$app\" \"$checks\"",
+    "sharedOwnerRecovery": "sh tests/integration/fieldlog-account-recovery-ios/run-checks.sh \"$app\" \"$checks\"",
+    "backendReplay": "python3 -B \"$pinned/tests/integration/fieldlog-account-recovery/check.py\" --isolated-loopback",
+    "iOSVMArchive": "cargo build --manifest-path \"$sdk/vm/Cargo.toml\" --offline --locked --release --features experimental-capability-native --lib --target aarch64-apple-ios --target-dir \"$build/cargo\" --jobs 8",
+    "genericIPhoneOS": "xcodebuild -project \"$app/ios/FieldLog.xcodeproj\" -scheme FieldLog -configuration Debug -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath \"$build/derived\" -clonedSourcePackagesDirPath \"$build/packages\" -packageCachePath \"$build/package-cache\" -disableAutomaticPackageResolution -onlyUsePackageVersionsFromResolvedFile -skipPackageUpdates -disablePackageRepositoryCache -scmProvider system -jobs 8 CODE_SIGNING_ALLOWED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=NO ENABLE_DEBUG_DYLIB=NO COMPILER_INDEX_STORE_ENABLE=NO \"HEADER_SEARCH_PATHS=\\$(inherited) $sdk/vm/include\" \"LIBRARY_SEARCH_PATHS=$build/lib\" \"CLANG_MODULE_CACHE_PATH=$build/clang-cache\" build"
+  },
+  "observations": {
+    "iOSAccountControls": "Passed on the base, client-only and composed trees. Real confirmation and TaskSync, held exchange and confirmation generations, identity/scope/bearer/expiry refusal, confirmation 401, lost reply re-entry, restore and sign-out, account isolation, draft, photo and outbox parity, and 1 KiB transport cap.",
+    "sharedOwnerRecovery": "Passed on the exact composed tree. The real Apple HTTP adapter used loopback against the exact backend. A private file emulated the credential store across owners. Secure-write refusal prevented exchange, then cold restore kept the recovery purpose. Dropping the committed exchange response led to a 401 for the identical retry and ordinary sign-in with the staged replacement. The old proof and TaskSync grant were refused. The restored owner returned the original account and scope and re-opened identical workspace, draft, outbox, photo and legacy bytes. Dropped confirmation responses kept the scope locked until the same-generation GET succeeded. The confirmed replacement survived a new owner and could be acknowledged without losing the session.",
+    "backendReplay": "Passed pinned ordinary and recovery service regression on isolated loopback. The shared-owner fixture also observed exact SQLite account and scope identifiers and task, entry and photo rows before and after recovery. The fixture closed its listener and rebound port 8765.",
+    "genericIPhoneOS": {
+      "tree": "f478bec7d45a5960d514e5fe53960de9f25f73f5",
+      "output": "BUILD SUCCEEDED. Xcode compiled FieldLogAccount.swift, FieldLogAccountApple.swift and FieldLogAccountRoute.swift and linked the unsigned arm64 FieldLog app. vtool showed IOS, minos 26.0, SDK 27.2. Built Info.plist registered com.fieldlog.dev.ios. LC_CODE_SIGNATURE was absent.",
+      "elapsedSecondsIncludingVMArchive": 23.68,
+      "peakScratchKiB": 398612,
+      "terminalOwnedGroups": "Cargo and Xcode exited 0 and their process groups were absent.",
+      "binarySHA256": "2f329eae6cc4af9c4f2e9c6ec207613f118b90c8b562d7b6a8f69ed32022fa92",
+      "vmArchiveSHA256": "54e5957571a574e0f6320529394c4f7294d6d659284fea67085538fc1fb345b4",
+      "resolution": "Used the pinned local SDK and its SwiftPM lock for dependency resolution. Restored the app project lock byte-for-byte."
+    }
+  },
+  "cleanup": "The lane's owned source checkouts, build outputs and disposable fixture data were removed after verification.",
+  "remaining": "Root owns native browser delivery, Keychain behavior, UI acceptance and Android attachment.",
+  "independentRootReplay": {
+    "mixerRevision": "c19a13d733b1f02ea40d165ae9886f9b80293a23",
+    "fieldLogTree": "a4e08d9b67d9811dfe160ac71b04b35e0730d954",
+    "sharedOwnerGitBlob": "d31e9fd87134cf70dd9d5edf3ad5012d0422e62e",
+    "commands": [
+      "tests/integration/fieldlog-account-recovery-ios/run-checks.sh",
+      "tests/integration/fieldlog-account-ios/run-checks.sh"
+    ],
+    "sourceApplyReverseAndReapply": true,
+    "recoveryAndOrdinaryHostControlsPassed": true,
+    "lostExchangeRestartAndSavedRowParity": true,
+    "terminalCommandGroups": 14,
+    "port8765Rebound": true,
+    "scratchRemoved": true,
+    "elapsedSecondsThroughCleanup": 12.12,
+    "scope": "Independent host replay. The generic iPhoneOS build is from the implementation lane and native acceptance remains open."
+  }
+}
