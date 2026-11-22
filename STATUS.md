@@ -1632,6 +1632,24 @@ two startup failures involving a saved sign-out marker and a browser
 callback during a slot-read error. App adoption remains held.
 [Installed Android deletion](verification/receipts/fieldlog-android-local-deletion-api36-bffb082b.json)
 
+The earlier APK reproduced the stale sign-out marker loop in two new
+processes after a lost deletion reply. The first successor ignored the
+browser Sign in button. Restoring the command let the corrected APK
+sign in and wait for explicit deletion retry on API 36. The retry
+returned the original SQLite receipt, cleared the marker, and removed
+only the test account workspace and credential. The same APK retained
+one genuine cold browser callback across a temporary credential-read
+failure and confirmed one session when the user retried. The API 36
+ordering control then delivered a stale test redirect before the genuine
+browser return. The earlier app reopened the browser prompt without an
+exchange. The final app confirmed one session after Retry, without
+browser redelivery. The final APK also recovered the original deletion
+receipt and kept the ordinary workspace and peer data intact. Host review
+reproduced an earlier Java handoff failure before Swift receives the
+return. Startup can lose the callback at ten seconds or retain only a
+later stale return. Full Android account adoption remains held.
+[Android startup and deletion replay](verification/receipts/fieldlog-android-deletion-startup-api36-386d0577.json)
+
 The iOS deletion owner now loads the saved reauthorization intent when
 the browser callback arrives before startup restore. The real loopback
 host replay passed both orders. Local data stayed intact until renewed
@@ -3456,6 +3474,17 @@ offline launch in a new process preserved the reordered workspace and
 open draft byte for byte. **Done** retired both sequence 3 launches. The
 private APK carries four historical notices. Installed iOS remains open.
 [Signed Android row move](verification/receipts/fieldlog-android-signed-row-api36-d92cb15a.json)
+
+The resealed Android row fixture with all 12 Pair25 notices passed the
+same API 36 journey. One native move advanced revision 9 to 10 and
+appended exactly one event. Signed rollback and a fresh offline process
+kept the exact reordered workspace and open draft. All 43 APK payloads
+matched the sealed staging inventory, including 19 ARM64 libraries.
+Independent unsigned review passed 27 refusal controls. The fixture had
+zero attachments. Exact SDK BoringSSL build and linked unwind archive
+provenance remain open. All 146 installed commands closed, the emulator
+was removed, and the four owned ports were reusable.
+[Signed row with 12 notices](verification/receipts/fieldlog-android-signed-row-twelve-notices-api36-d92cb15a.json)
 
 On Android API 36, the ordinary FieldLog app cold-restored an uncommitted photo draft, saved it, and resumed the JPEG transfer at 65,536 bytes after cancellation. When the backend withheld the final receipt, retry reconciled the original event without sending another chunk. SQLite held one event and one matching 281,378-byte JPEG. The two unrelated outbox events survived cold reopen. [Runtime and readback](verification/receipts/fieldlog-android-ordinary-queue-runtime-41a05264.json)
 
