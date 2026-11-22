@@ -3068,6 +3068,16 @@ matches the historical oracle. Its Wasm digest differs from the archived
 guest, so the historical-byte replay remains open.
 [Android rebuilt F06 replay](verification/receipts/fieldlog-f06-android-rebuilt-editor-api36-7fa6b6ea.json)
 
+The historical F06 producer's object output path reproduced the original
+Wasm and both archived Saving variants. The exact 102,348-byte editor
+passed the locked macOS oracle. The freshly sealed API 36 APK then
+passed opt-out, Cancel, cold candidate recovery, and paced Save offline.
+The retained journal matched both the signed manifest and the historical
+Wasm digest. Cancel kept the seed bytes, and Save appended one task and
+one matching outbox event. Both emulator attempts closed. The first
+driver compared the two digest fields and stopped before Cancel.
+[Exact historical Android F06 replay](verification/receipts/fieldlog-f06-android-exact-editor-api36-7fa6b6ea.json)
+
 A free owner completed current membership edits, usage and quota checks, support, export, and organization deletion in Chrome against Phoenix and PostgreSQL. One organization stayed isolated from the other. Two earlier role edits returned 503 during the member page load. Exit with settled build history remains open. [Free-owner administration](verification/receipts/l06-owner-admin-browser-e3c1f6c65c.json)
 
 An owned API 36 emulator completed the ordinary FieldLog task conflict. After a 409 response, the user kept the local title **Inspect valve today** and the peer assignee **Morgan**. Both replicas reached version 3, each kept four prior outbox rows, and the final offline cold reopen preserved the Android workspace byte for byte. The earlier iOS replay reached the same task outcome with a separate workspace. [Android conflict receipt](verification/receipts/fieldlog-android-ordinary-task-conflict-41a05264.json)

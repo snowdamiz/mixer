@@ -24,5 +24,11 @@ Activity with `developmentF06` enabled on a fresh offline ARM64 API 36
 emulator. Cancel preserves the seed bytes and retires the owner. A new
 process recovers the same signed candidate, saves `Inspect pump P-17`
 and appends one linked outbox event. The replay waits for each character's
-native frame commitment. Burst input, the exact historical Wasm and the
-negative Saving controls remain open on Android.
+native frame commitment. The exact historical editor is also verified on API 36. Apply the
+[historical-payload patch](f06-historical-payload.patch.b64) after the
+F06 and vertical patches and use the archived Wasm digest above when
+linking and sealing. The historical compiler object output path affects
+the last 16 bytes in `.swift_modhash`. The source and toolchain pins
+and the installed candidate readback are recorded in the
+[exact replay receipt](../../../verification/receipts/fieldlog-f06-android-exact-editor-api36-7fa6b6ea.json).
+Burst input and the negative Saving variants remain open on Android.
