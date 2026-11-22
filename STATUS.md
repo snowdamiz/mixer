@@ -1380,6 +1380,17 @@ preflight. The passing run used the exact AVD properties on a dedicated
 ADB server. All 151 native driver commands and 52 outer commands closed.
 [Installed F20 pagination](verification/receipts/fieldlog-f20-android-pagination-api36-ac305262.json)
 
+The same offline Pair25 APK passed ordinary F09 across the 20-task
+page boundary. A native Move up tap moved “Verify café drain” from
+position 21 to 20. The workspace advanced from revision 1 to 2, kept
+all 27 previous outbox entries and appended one `taskOrderChanged`
+event. A new process reopened both pages with the exact committed
+bytes. Independent review matched all seven page visits and twelve
+checkpoints. The first attempt stopped at a driver assertion that
+counted the Checklist heading as a row. Both attempts removed their
+owned emulator, package, and scratch.
+[Installed F09 checklist boundary](verification/receipts/fieldlog-f09-android-checklist-api36-ac305262.json)
+
 A fresh offline API 36 install of the same APK ran the bundled signed
 Entry Commit. It moved the draft under the original ID, appended one
 entrySaved record and retained seven JPEGs. After cold reopen, Android's
@@ -1700,6 +1711,20 @@ unreadable. After restoring the slot and force-stopping, a new process
 reopened the saved browser attempt with zero exchanges. Cold
 cancellation and account adoption remain open.
 [Android browser Cancel](verification/receipts/fieldlog-android-browser-cancel-api36-09851a72.json)
+
+The durable Cancel candidate `5d8c624b` passed the same installed
+ordinary sign-in control. After Cancel with an unreadable credential
+slot, a new process returned to Welcome and retired the matching saved
+attempt. A separate new sign-in confirmed one session, and sign-out
+preserved the ordinary workspace. Independent host review reproduced
+two blockers in recovery and deletion reauthorization. A failed
+cancellation-record write can leave the old attempt usable despite a
+writable credential slot, and a temporary record-read failure can drop a
+newer valid callback on Retry. A separate API 36 run confirmed the
+first finding through ordinary sign-in. The old attempt reopened in a
+fresh process when only the cancellation-record write failed. No
+callback or exchange was submitted. Adoption remains held.
+[Installed cold Cancel and review disposition](verification/receipts/fieldlog-android-durable-cancel-api36-5d8c624b.json)
 
 The iOS deletion owner now loads the saved reauthorization intent when
 the browser callback arrives before startup restore. The real loopback
