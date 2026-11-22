@@ -256,6 +256,17 @@ retained the previous Wasm pin. The unsigned packager bound the new pin
 in its build copy. The source pin and repeated-read changes are pending.
 [Follow-up navigation review](verification/receipts/fieldlog-f10-signed-android-navigation-review-7ef3f06d.json)
 
+The `6c5bc8ca` source binds the corrected Wasm and admits alternating
+reads through the real workspace actor. Independent replay reproduced
+the prior fourth-read refusal and verified all seven reads on the
+successor. Three fresh API 36 installs of the same signed APK passed
+the six-action route, direct Tasks and repeated pagination, and direct
+Entries from page 1. The six-action route rendered 20, 6, 6, and 20
+exact rows before Entries. All three committed health after the first
+native tap, preserved the original 13,207 workspace bytes, and retired
+the owner. All 408 device commands and owned services closed.
+[Installed signed F10 navigation](verification/receipts/fieldlog-f10-signed-android-navigation-api36-6c5bc8ca.json)
+
 The private macOS signed V3 candidate `6ba7034329` passed the first-page
 Pending Changes smoke through the installed owner, VM, and storage mailbox.
 One read hydrated the queue. The decoded action delivered the historical
