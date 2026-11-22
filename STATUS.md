@@ -1576,7 +1576,10 @@ The Pair26 review branch binds the same three Java sources and updates
 the hosted source inventory to v89. The clean Android bootstrap passed
 45 tests in each Python mode, and the focused Swift run passed 27.
 Both installed source verifiers passed in both modes. The local
-historical cutover unittest timed out, and remote CI is pending.
+historical cutover unittest timed out. CI found a collector fixture
+still using the v89 path for a v88 preimage. The corrected control
+passed in both Python modes on the services sparse projection.
+CI for the correction is pending.
 [Pair26 and hosted source receipt](verification/receipts/android-source-pair26-hosted-v89-adoption-926f6d94.json)
 
 The IME-switch experiment withheld an overlapping connection and posted

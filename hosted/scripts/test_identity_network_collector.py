@@ -5976,15 +5976,17 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
             (collector.WORKSPACE_POST_COMMIT_EXPIRY_TEST, b"100755", "member type or mode"),
             ("hosted/mix.lock", b"100755", "member type or mode"),
             ("tests/integration/l07-ios-active-custody/attest_settled.py", b"100644", "member type or mode"),
-            (collector.WORKSPACE_SOURCE_BASE + "preimages/tests/integration/l07-ios-active-custody/attest_settled.py",
+            (collector.WORKSPACE_V88_SOURCE_BASE + "preimages/tests/integration/l07-ios-active-custody/attest_settled.py",
              b"100644", "member type or mode"),
+            (collector.WORKSPACE_SOURCE_BASE + "preimages/" + collector.WORKSPACE_ANDROID_DRIVER,
+             b"100755", "member type or mode"),
             (collector.WORKSPACE_PAIR25_HTTP_FIXTURE, b"100755", "member type or mode"),
             (collector.WORKSPACE_V87_SOURCE_BASE + "preimages/" + collector.WORKSPACE_IOS_CUSTODY_HELPER,
              b"120000", "member type or mode"),
             (collector.WORKSPACE_V86_SOURCE_BASE + "preimages/" + collector.WORKSPACE_PAIR25_HTTP_FIXTURE,
              b"120000", "member type or mode"),
         ):
-            with self.subTest(fault=fault), tempfile.TemporaryDirectory(prefix="delivery-startup-git-") as directory:
+            with self.subTest(path=path, fault=fault), tempfile.TemporaryDirectory(prefix="delivery-startup-git-") as directory:
                 subject, calls = helper._amendment_preflight_subject(directory, exact_format_metadata())
                 original = subject.command
 
