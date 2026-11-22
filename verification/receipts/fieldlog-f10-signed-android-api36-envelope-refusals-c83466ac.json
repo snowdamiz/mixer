@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "status": "passed_two_installed_envelope_refusals_and_exact_positive_recovery",
+  "scope": "L04/L08 private opt-in Android development F10. One offline API 36 arm64 emulator.",
+  "sourceAndArtifact": {
+    "predecessorReceipt": "verification/receipts/fieldlog-f10-signed-android-api36-c83466ac.json",
+    "mixerBase": "6b07f0da386e6efda9163213cc2d6f400182ecbc",
+    "sourceTree": "c83466acbaa96e809eb1ff63203bc41867607870",
+    "signedAPKReadbackBeforeAndAfterSHA256": "faf6370ef7f0897cb047742c8643ee87d386090c4a6935f5f9d8af901d8780e8",
+    "signatureDriverSHA256": "a47a647d62e7fa9253410a3d2aba9a6420db4baa9a591e396981414297a61a90",
+    "baseInstalledWitnessSHA256": "fc2bbe890703d89e1e8d308631b39a45d452fd2c3fed3af6d2439313d02a1a2f",
+    "rawRunReceiptSHA256": "1af5119f875e224f804c4a2d7694e94e42057af47fa3752476037f2178793063",
+    "command": "python3 -B signature-refusal.py signature-refusal-attempt-1"
+  },
+  "startedUTC": "2026-11-22T04:27:32.375728+00:00",
+  "finishedUTC": "2026-11-22T04:28:15.872977+00:00",
+  "device": {
+    "ro.build.version.sdk": "36",
+    "ro.product.cpu.abi": "arm64-v8a",
+    "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+  },
+  "refusalMethod": "Change one bit of only the decoded signature for one envelope at a time. Read back every other packet file against the original pins. Use the unchanged development APK and public test roots.",
+  "refusalReason": "Ed25519 signature verification failed",
+  "negativeControls": {
+    "manifest.json": {
+      "pid": 2531,
+      "originalSHA256": "74dd6f5c53af463d1abc9288a9abd7829fe8a0d4c98eb87233d13e9424e6e029",
+      "alteredSHA256": "0f2232349ccc40522c2375caea09c615fca2467e01d1c1856a1ef7aaa8e529f3",
+      "signatureRefused": true,
+      "committedFrame": false,
+      "healthy": false,
+      "acceptedSequence": 0,
+      "stateSHA256": "6b7d727da48cb96aaa3ad6f1abafef67d3b474cb9d14b79c3f88b3e85433922c",
+      "workspaceSHA256": "5459133cb976ccd09916a48659f393a6a1ef7b3ef36af2bada0de8aa4745c004",
+      "retired": true,
+      "logSHA256": "55a01394bf1fbebb9e8cba316ddc02b8c3fa9ce8d615a4a45c1d7cb4ec884d30"
+    },
+    "assignment.json": {
+      "pid": 2674,
+      "originalSHA256": "7a30e296bb3111bc898683f76cd9f12b388cfdbe935e055351db73ad53feddcc",
+      "alteredSHA256": "36d3e26b24c6a459948bf69bb3fdcc916c1b53fdcf3e7023cea6150cef322313",
+      "signatureRefused": true,
+      "committedFrame": false,
+      "healthy": false,
+      "acceptedSequence": 0,
+      "stateSHA256": "6b7d727da48cb96aaa3ad6f1abafef67d3b474cb9d14b79c3f88b3e85433922c",
+      "workspaceSHA256": "5459133cb976ccd09916a48659f393a6a1ef7b3ef36af2bada0de8aa4745c004",
+      "retired": true,
+      "logSHA256": "26c6e4a255fd4537d71fe78f94b375147cf01ccbed5b753a630475a26e94a935"
+    }
+  },
+  "positiveControl": {
+    "originalPacketRestoredByteForByte": true,
+    "pid": 2858,
+    "candidateID": "5a700841d156136d4b7f0927e6de0389b48519c7132e9502d05396b9ea74578b",
+    "optOutHierarchySHA256": "49a90c01551874ef6e58d4998793c32a36e7a946d6637208ed086eb75c288ece",
+    "provisionalHierarchySHA256": "222cd1027a33cc4edeab363fd2d4a903d45ea3dede2e4753cc43bb4bf7e06c9f",
+    "pageHierarchySHA256": "fab21c5fcc78ddacab22d7c2c2e541f3946e0120d34586015da3524b9e1794bf",
+    "exactOrderedRows": 20,
+    "durableRecoveryStateSHA256": {
+      "before-action.json": "a5bbd1132b4e3da3427f4f7f5f99b84b3117f790185c87f9109f1f27a515a5e6",
+      "healthy.json": "1ccb69794d0096af39d5160c632a9365d945af562f21e8aeb80755684ede19ee",
+      "closed.json": "425de85b98d0569be46c8623c6fa1438c289c8b50a7af8222ff70e7adbe14bf4"
+    },
+    "activityLogSHA256": "081fe74d1b86451dea14d57741f4f6612cc85caf18b04da66f587e198b661c31",
+    "storageReads": 1,
+    "storageWrites": 0,
+    "workspaceBytesPreserved": true,
+    "retiredOwner": true
+  },
+  "cleanup": {
+    "ownedScratchRemoved": true,
+    "reusableLoopbackPorts": [
+      26042,
+      26043,
+      26044
+    ],
+    "emulatorAndADBGroupAbsenceConfirmed": true,
+    "terminalCommands": 172
+  },
+  "limits": "Covers the private first-page witness on Android. Installed iOS, production updater, broader F10 navigation, and whole L04/L08 gate acceptance are outside this replay."
+}

@@ -230,6 +230,16 @@ cause remains unresolved. All owned build, signing and emulator scratch
 closed. This advances F10's installed Android signed first page.
 [Signed Android first-page replay](verification/receipts/fieldlog-f10-signed-android-api36-c83466ac.json)
 
+On the exact same signed API 36 APK, changing only the manifest signature
+and changing only the assignment signature each produced an Ed25519
+refusal. Neither attempt committed a frame or advanced the accepted
+sequence. Recovery and workspace bytes held. Restoring the exact packet
+on the same install produced the provisional frame, a genuine native
+tap, and durable health with all 20 first-page rows. Both refused owners
+and the successful owner retired. All 172 commands, the disposable
+emulator and private ADB reached terminal custody.
+[Installed Android signature refusals](verification/receipts/fieldlog-f10-signed-android-api36-envelope-refusals-c83466ac.json)
+
 The private macOS signed V3 candidate `6ba7034329` passed the first-page
 Pending Changes smoke through the installed owner, VM, and storage mailbox.
 One read hydrated the queue. The decoded action delivered the historical
@@ -1328,6 +1338,25 @@ JPEG persisted with the other seven, the saved draft and all three
 pending records. Both photo controls stayed disabled after cold launch.
 All 402 commands and both device services closed, and scratch was removed.
 [Installed task, map, camera and queue replay](verification/receipts/fieldlog-android-saved-task-cross-flow-e14b6189.json)
+
+On the owned offline API 36 emulator, a genuine notification-shade tap
+opened the exact saved task, including its assignee. The warm tap
+preserved an unsaved editor title. After process death, a fresh process
+opened the same task. Three stale routes showed unavailable. These cases
+preserved every byte of the workspace and its 47 outbox records. A
+separate explicit Activity launch left a blank screen while the existing
+workspace owner was alive. A fresh replay with the normal launcher
+action reproduced it. Launcher reuse needs a fix. The installed
+private-alias refusal step was not reached.
+[Installed Android assignment shade replay](verification/receipts/fieldlog-android-assignment-shade-api36-c4c133d6.json)
+
+The iOS assignment correction `73e9f093` held a cold intent through
+a real workspace-open failure and routed it once after retry. A report
+that finished behind an assignment waited for dismissal and presented
+once. Independent host controls reproduced both original failures and
+verified the fixes. Unsigned generic arm64 iPhoneOS Debug and Release
+linked. Installed presentation remains pending.
+[iOS assignment recovery review](verification/receipts/fieldlog-ios-assignment-recovery-73e9f093.json)
 
 The maintained FieldLog Swift task client now supports an injected
 bounded exchange. The Apple initializer passed the two-replica macOS
