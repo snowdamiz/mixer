@@ -1,0 +1,262 @@
+{
+  "schema": 1,
+  "status": "root_passed_scoped_stateful_table_memory_reference",
+  "source": {
+    "parent": "c9ad543164675e8d145d03d9cc89a5d87fe92942",
+    "testedCommit": "c9582e5e462eaa13a06a244cb56412b666b1a6f8",
+    "rustSource": "vm/tests/table_memory_differential.rs",
+    "testedSourceSHA256": "a7235d9c6b7ba009968659e12e336252669de6c108db218d37178a50fb775b0b",
+    "patchSHA256": "41b5895154e2c86f5665d5a56a82621b422b20669c019a5f5db56e7c5c2a6626"
+  },
+  "tools": {
+    "host": "arm64 macOS",
+    "rust": "1.99.0",
+    "node": "v26.13.1"
+  },
+  "scope": {
+    "profile": "TableMemoryV3",
+    "observationsPerMode": {
+      "newStateful": 960,
+      "existingIndependent": 2996
+    },
+    "sequences": 24,
+    "callsPerSequence": 40,
+    "bytesComparedPerStatefulCall": 256,
+    "categories": [
+      "overlap toward lower address",
+      "overlap toward higher address",
+      "same source and destination",
+      "zero length"
+    ],
+    "execution": "Existing Rust Instance test and Node WebAssembly. Finite seeded, in-bounds calls.",
+    "remaining": "Installed guest execution, continuous coverage-guided fuzzing, and cross-target L03 qualification."
+  },
+  "replay": {
+    "node": "v26.13.1",
+    "modes": {
+      "debug": {
+        "observations": [
+          "table-memory-v3 differential programs matched: 24; observations: 960",
+          "table-memory-v3 differential programs matched: 1236; observations: 1236",
+          "table-memory-v3 differential programs matched: 1760; observations: 1760",
+          "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.57s"
+        ],
+        "stdoutSHA256": "f6c595f832104d81ab536741925f9375ba421be9bd120ddfc8d79b3dfc36af06"
+      },
+      "release": {
+        "observations": [
+          "table-memory-v3 differential programs matched: 24; observations: 960",
+          "table-memory-v3 differential programs matched: 1236; observations: 1236",
+          "table-memory-v3 differential programs matched: 1760; observations: 1760",
+          "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s"
+        ],
+        "stdoutSHA256": "1cd7176aaa6c4a57a6d1cfb8684075f2bc23cbd58b54306f8c36b9df32d324a8"
+      }
+    },
+    "commands": [
+      {
+        "name": "node-version",
+        "argv": [
+          "/Users/andreyyurlov/.local/share/vite-plus/fallback-bin/node",
+          "--version"
+        ],
+        "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/w08-stateful-reference.GDiCGXXA",
+        "expected_exit_code": 0,
+        "timeout_seconds": 30,
+        "output_cap_bytes": 524288,
+        "pid": 38096,
+        "pgid": 38096,
+        "output_eof": true,
+        "exit_code": 0,
+        "custody": "child reaped and group absent",
+        "output_sha256": "417336d0f30f0481a3e337b10abf4da8263d1a181c639c757a2a68401935bdb6",
+        "output_bytes": 9,
+        "elapsed_seconds": 0.166912
+      },
+      {
+        "name": "debug",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "test",
+          "--manifest-path",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/w08-stateful-reference.GDiCGXXA/source/vm/Cargo.toml",
+          "--locked",
+          "--offline",
+          "--test",
+          "table_memory_differential",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cwd": "/",
+        "expected_exit_code": 0,
+        "timeout_seconds": 120,
+        "output_cap_bytes": 524288,
+        "pid": 38097,
+        "pgid": 38097,
+        "output_eof": true,
+        "exit_code": 0,
+        "custody": "child reaped and group absent",
+        "output_sha256": "f6c595f832104d81ab536741925f9375ba421be9bd120ddfc8d79b3dfc36af06",
+        "output_bytes": 1038,
+        "elapsed_seconds": 1.868562
+      },
+      {
+        "name": "release",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "test",
+          "--manifest-path",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/w08-stateful-reference.GDiCGXXA/source/vm/Cargo.toml",
+          "--locked",
+          "--offline",
+          "--release",
+          "--test",
+          "table_memory_differential",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cwd": "/",
+        "expected_exit_code": 0,
+        "timeout_seconds": 120,
+        "output_cap_bytes": 524288,
+        "pid": 38124,
+        "pgid": 38124,
+        "output_eof": true,
+        "exit_code": 0,
+        "custody": "child reaped and group absent",
+        "output_sha256": "1cd7176aaa6c4a57a6d1cfb8684075f2bc23cbd58b54306f8c36b9df32d324a8",
+        "output_bytes": 1029,
+        "elapsed_seconds": 1.62213
+      }
+    ]
+  },
+  "rootNegativeControl": {
+    "expectedFailure": "Mutable memory reset between calls; reference stayed stateful.",
+    "firstMismatch": "overlap sequence seed 1 step 1",
+    "originalSHA256": "a7235d9c6b7ba009968659e12e336252669de6c108db218d37178a50fb775b0b",
+    "mutatedSHA256": "19f209dd9814759cfb31fb48ce6477ce72d6235585a75f0f143a4506f09ab93f",
+    "outputSHA256": "ca16b32e2aba4af7a914bf654f8211867411e092833fb7797028473c0827967e",
+    "setupCorrection": "An initial intervention moved the limits value before borrowing it. The corrected control compiled and failed at the persisted-memory assertion.",
+    "commands": [
+      {
+        "name": "reset-between-calls-control-corrected",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "test",
+          "--manifest-path",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/w08-stateful-reference.GDiCGXXA/source/vm/Cargo.toml",
+          "--locked",
+          "--offline",
+          "--test",
+          "table_memory_differential",
+          "--",
+          "--ignored",
+          "--exact",
+          "overlapping_copies_preserve_state_across_calls"
+        ],
+        "cwd": "/",
+        "expected_exit_code": 101,
+        "timeout_seconds": 90,
+        "output_cap_bytes": 524288,
+        "pid": 52001,
+        "pgid": 52001,
+        "output_eof": true,
+        "exit_code": 101,
+        "custody": "child reaped and group absent",
+        "output_sha256": "ca16b32e2aba4af7a914bf654f8211867411e092833fb7797028473c0827967e",
+        "output_bytes": 2251,
+        "elapsed_seconds": 0.459679
+      }
+    ]
+  },
+  "recordedUTC": "2026-11-22T03:17:57.928875+00:00",
+  "finalSource": {
+    "testedCommit": "3292cdfaf70bc266fa103f832116a95369d31498",
+    "rustSourceSHA256": "dcd70fa38490e185451012f2ab0b06ddf94cecf80b5c9c8be50425dc15483469",
+    "equivalentStagedBytes": true,
+    "patchSHA256": "56fd0a03d43e1965b5acd9cd6b5fbb7f79d5554ae2bf2c48d38712eff3cc1f39"
+  },
+  "independentReview": {
+    "initialResult": "Reference behavior passes both modes; changed count text breaks the maintained wrapper parser.",
+    "correction": "Restored the exact legacy count lines and emitted separate stateful sequence and observation counts.",
+    "legacyWrapperCorpus": "The historical pinned Wasm file was unavailable at its recorded path. The unchanged maintained parser pattern was exercised directly on the actual Debug and Release output."
+  },
+  "finalMaintainedParserReplay": {
+    "wrapperSHA256": "e0414bea1d60e1b59ebe3ca8463b4fd8811a3266197029859a531205da3aad51",
+    "maintainedParserPattern": "table-memory-v3 differential cases matched: (\\d+)",
+    "observationsByMode": {
+      "debug": {
+        "maintainedLegacyCount": 2996,
+        "statefulSequences": 24,
+        "statefulSamples": 960
+      },
+      "release": {
+        "maintainedLegacyCount": 2996,
+        "statefulSequences": 24,
+        "statefulSamples": 960
+      }
+    },
+    "commands": [
+      {
+        "name": "formatter-debug",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "test",
+          "--manifest-path",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/w08-stateful-reference.GDiCGXXA/source/vm/Cargo.toml",
+          "--locked",
+          "--offline",
+          "--test",
+          "table_memory_differential",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cwd": "/",
+        "expected_exit_code": 0,
+        "timeout_seconds": 100,
+        "output_cap_bytes": 524288,
+        "pid": 11144,
+        "pgid": 11144,
+        "output_eof": true,
+        "exit_code": 0,
+        "custody": "child reaped and group absent",
+        "output_sha256": "0e377e5d2f849de59cca01bdb411f4ffc905d2da4c1f22890bc5075e4c9f541a",
+        "output_bytes": 989,
+        "elapsed_seconds": 1.538873
+      },
+      {
+        "name": "formatter-release",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "test",
+          "--manifest-path",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/w08-stateful-reference.GDiCGXXA/source/vm/Cargo.toml",
+          "--locked",
+          "--offline",
+          "--release",
+          "--test",
+          "table_memory_differential",
+          "--",
+          "--ignored",
+          "--nocapture"
+        ],
+        "cwd": "/",
+        "expected_exit_code": 0,
+        "timeout_seconds": 100,
+        "output_cap_bytes": 524288,
+        "pid": 11171,
+        "pgid": 11171,
+        "output_eof": true,
+        "exit_code": 0,
+        "custody": "child reaped and group absent",
+        "output_sha256": "081c949f68ba6c652029ee154bf89c672d798037c2641f72277d8260e15d8340",
+        "output_bytes": 980,
+        "elapsed_seconds": 0.800459
+      }
+    ]
+  },
+  "rootOwnedScratchRemoved": true
+}

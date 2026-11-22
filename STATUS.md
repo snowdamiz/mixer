@@ -1795,6 +1795,14 @@ Independent replay verified the module and reference manifest hashes.
 The installed Guest UI V1 check still covers admission refusals.
 [Core element and reference replay](verification/receipts/l03-wabt-table-elements-60b8656a.json)
 
+The seeded TableMemoryV3 check retains one instance for 40 copies on
+each of 24 seeds. Mixer and Node matched all 960 observations of the
+complete initialized region in Debug and Release. The separate
+reset-between-calls control failed on seed 1's second call. The
+maintained parser still counts all 2,996 independent cases in each
+mode, and the stateful counts are reported separately.
+[Seeded stateful reference replay](verification/receipts/l03-stateful-node-copy-3292cdfa.json)
+
 The hosted VM job passed. Swift host and Intel bootstrap refused the
 WAST inventory edit because Source141 still pinned the old bytes. The
 corrected archive binds the new inventory and keeps the 157 selected
@@ -2252,6 +2260,21 @@ read its own outputs after listener restart. The CLI supplied fixture bytes.
 The exercised worker has no shared build-result cache. Both operations
 stopped, the owned groups closed, and scratch was removed.
 [Two-tenant worker replay](verification/receipts/l07-local-worker-two-tenant-995eede.json)
+
+The live attachment recovery fixture settled one real unsigned iOS
+Starter build. After one signature, Phoenix selected HTTP 201 and
+the fixture shut down the connection before writing the response.
+A fresh PostgreSQL read found the exact envelope before a single retry
+returned HTTP 200. One attachment row, the settled records and the
+worker ledger stayed unchanged. All 30 outer groups closed, five ports
+were reusable, and disposable keys and scratch were removed.
+The independent review verified the fault boundary and reproduced
+v87's source refusal. v88 preserves all eight tested fixture files
+and binds 573 source inputs. The three hosted sparse projections,
+the Source141 archive check and all 43 fixture tests passed locally
+in normal and optimized Python. L07 remains running.
+[Live attachment recovery](verification/receipts/l07-live-lost-attach-ack-4d28a7c7.json) ·
+[Reversible hosted source binding](verification/receipts/l07-hosted-source-v88-composition-c9ad543.json)
 
 The unchanged FieldLog updater ran in two macOS processes under an Android-scoped development identity. The owned observer saw four bodyless loopback GETs and found no workspace or JPEG markers, cookies, or bearer credentials. A complete signed offer activated sequence 1. After an artifact HTTP 503, a new process recovered the same candidate and preserved the workspace and JPEG. The sandbox denied a second loopback destination, and both owned ports closed. [Updater privacy receipt](verification/receipts/l07-fieldlog-updater-loopback-b144c2c-20261120.json)
 
