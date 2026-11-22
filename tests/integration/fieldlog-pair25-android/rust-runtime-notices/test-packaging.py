@@ -25,6 +25,8 @@ INNER = f"{SCRIPTS}/build-signed-checklist-android.py"
 OUTER = f"{SCRIPTS}/pair25/package-entry-commit.py"
 NOTICE = HERE / "Rust-1.99.0-Android-NOTICES.txt"
 RUST_MEMBER = "third-party-notices/" + NOTICE.name
+NOTICE_DIRECTORY = HERE / "networking-crypto"
+L07 = False
 
 
 def sha(data):
@@ -59,7 +61,7 @@ def platform_notices(mixer, mixer_revision, swift_sdk, android_sdk):
 
 class Packaging(unittest.TestCase):
     def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory(prefix="pair25-notice-case-")
+        self.tmp = tempfile.TemporaryDirectory(prefix="pair25-notice-case-", dir=WORK)
         self.addCleanup(self.tmp.cleanup)
         self.work = Path(self.tmp.name)
         self.assets = {"assets/MixerAppearanceV2/descriptor.json": b"fixture"}
@@ -79,7 +81,7 @@ class Packaging(unittest.TestCase):
             pair25_rust_notice=NOTICE,
         )
 
-    def assemble(self, notices=None, *, omit=False, stale=False, duplicate=False, phase=None):
+    def assemble(self, notices=None, *, omit=False, stale=False, duplicate=False, phase=None, member=RUST_MEMBER):
         # Only emulate the external tools. The composed production packager
         # writes the unsigned ZIP and verifies both ZIPs before exposing output.
         def inspect(path):
@@ -87,20 +89,23 @@ class Packaging(unittest.TestCase):
                 for name, data in PLATFORM.items():
                     self.assertEqual(archive.read(name), data)
                 self.assertEqual(archive.read(RUST_MEMBER), NOTICE.read_bytes())
+                if L07:
+                    for name, data in NETWORKING.items():
+                        self.assertEqual(archive.read(name), data)
 
         def mutate(path):
             with zipfile.ZipFile(path) as archive:
                 entries = {name: archive.read(name) for name in archive.namelist()}
             if omit:
-                entries.pop(RUST_MEMBER)
+                entries.pop(member)
             if stale:
-                entries[RUST_MEMBER] += b"stale"
+                entries[member] += b"stale"
             with zipfile.ZipFile(path, "w") as archive:
                 for name, data in entries.items():
                     archive.writestr(name, data)
                 if duplicate:
                     with self.assertWarns(UserWarning):
-                        archive.writestr(RUST_MEMBER, entries[RUST_MEMBER])
+                        archive.writestr(member, entries[member])
 
         def tool(env, executable, action, *args):
             if executable.name == "zipalign" and action == "-P":
@@ -130,10 +135,13 @@ class Packaging(unittest.TestCase):
 
         functions = PACKAGER["build"].__globals__
         notice_bytes = PLATFORM if notices is None else notices
+        libraries = {self.library.name: self.library}
+        if L07:
+            libraries[FOUNDATION.name] = FOUNDATION
         with patch.dict(functions, {
             "appearance_asset": lambda _: next(iter(self.assets.values())),
             "checklist_assets": lambda *_: {},
-            "native_libraries": lambda *_: {self.library.name: self.library},
+            "native_libraries": lambda *_: libraries,
             "runtime_notices": lambda *_: dict(notice_bytes),
             "run": tool,
             "verify_image": verify_image,
@@ -188,11 +196,54 @@ class Packaging(unittest.TestCase):
                         self.assemble(phase=phase, **{change: True})
                     self.assertFalse(self.args.output.exists())
 
+    @unittest.skipIf("--historical-rust-only" in sys.argv, "Paired successor only")
+    def test_missing_stale_and_duplicate_l07_notices(self):
+        member = sorted(NETWORKING)[0]
+        for phase in ("unsigned", "signed"):
+            for change in ("omit", "stale", "duplicate"):
+                with self.subTest(phase=phase, change=change):
+                    with self.assertRaisesRegex(ValueError, "APK runtime notice|Duplicate APK entry"):
+                        self.assemble(phase=phase, member=member, **{change: True})
+                    self.assertFalse(self.args.output.exists())
+
+    @unittest.skipIf("--historical-rust-only" in sys.argv, "Paired successor only")
+    def test_unsigned_and_signed_elf_substitution(self):
+        for phase in ("unsigned", "signed"):
+            for elf in (FOUNDATION, self.library):
+                with self.subTest(phase=phase, elf=elf.name):
+                    with self.assertRaisesRegex(ValueError, "APK ELF differs"):
+                        self.assemble(phase=phase, member="lib/arm64-v8a/" + elf.name, stale=True)
+                    self.assertFalse(self.args.output.exists())
+
     def test_notice_cannot_be_omitted_from_successor_cli(self):
         with patch.object(sys, "argv", ["package-entry-commit.py", "work", "project", "out"]):
             with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as error:
                 WRAPPER["main"]()
         self.assertEqual(error.exception.code, 2)
+
+    @unittest.skipIf("--historical-rust-only" in sys.argv, "Paired successor only")
+    def test_modern_standalone_rejects_omitted_notice_before_staging(self):
+        self.args.pair25_rust_notice = None
+
+        def forbidden_stage(*args, **kwargs):
+            self.fail("Standalone packager reached ZIP staging without its required notice option")
+
+        with patch.dict(PACKAGER["build"].__globals__, {
+            "tempfile": SimpleNamespace(TemporaryDirectory=forbidden_stage),
+        }), self.assertRaisesRegex(ValueError, "requires --pair25-rust-notice"):
+            self.assemble(PLATFORM)
+        self.assertFalse(self.args.output.exists())
+
+        argv = ["build-signed-checklist-android.py"]
+        for name in ("mixer-project", "manifest-apk", "dex", "jni-library", "installed-checklist",
+                     "checklist-sha256", "android-sdk", "swift-android-sdk", "java-home", "output"):
+            argv.extend(("--" + name, str(self.work / name)))
+        stderr = io.StringIO()
+        with patch.object(sys, "argv", argv), contextlib.redirect_stderr(stderr):
+            with self.assertRaises(SystemExit) as error:
+                PACKAGER["main"]()
+        self.assertEqual(error.exception.code, 2)
+        self.assertIn("required: --pair25-rust-notice", stderr.getvalue())
 
     def test_vm_toolchain_must_match_notice(self):
         version = "\n".join(sorted(PRODUCERS["RUST_VERSION_FIELDS"]))
@@ -219,6 +270,14 @@ class Handoff(unittest.TestCase):
         self.ndk = self.tools / "ndk/27.1.12297006"
         self.rust = self.directory / NOTICE.name
         self.rust.write_bytes(NOTICE.read_bytes())
+        if L07:
+            shutil.copytree(NOTICE_DIRECTORY, self.directory / NOTICE_DIRECTORY.name)
+            self.foundation = self.sdk / PACKAGER["FOUNDATION_NETWORKING_SDK_PATH"]
+            self.foundation.parent.mkdir(parents=True)
+            shutil.copyfile(FOUNDATION, self.foundation)
+            for asset in ("natural-earth-50m.flg", "README.md"):
+                self.put(self.project / "Platforms/Android/SiteMap" / asset,
+                         (WORK / "fieldlog/Assets/SiteMap" / asset).read_bytes())
         self.driver = self.project / "Generated/MixerAndroid/android-build.py"
         self.put(self.driver, (WORK / "mixer/cli/Sources/MixerBuild/Resources/android-build.py").read_bytes())
         adapter = WORK / "mixer/native/android"
@@ -300,6 +359,8 @@ class Handoff(unittest.TestCase):
         fingerprint = PRODUCERS["ADMISSION"]["PAIR25_RESEALED_FINGERPRINT"]
         for name in PRODUCERS["PRODUCTS"][kind]:
             self.put(WORK / name, fingerprint.encode())
+        if L07 and kind == "jni":
+            self.put(WORK / PRODUCERS["JNI_LOCK"], (WORK / "mixer" / PRODUCERS["JNI_RECIPE_LOCK"]).read_bytes())
         if kind == "java":
             header = WORK / PRODUCERS["PRODUCTS"]["java"][-1]
             header.write_text("\n".join(f"JNICALL Java_stub_{i}" for i in range(5)))
@@ -325,15 +386,43 @@ class Handoff(unittest.TestCase):
         self.assertEqual(self.effects, [("producer", "java"), ("producer", "jni")])
         self.effects.clear()
         snapshot = json.loads(self.snapshot.read_bytes())
-        self.assertEqual(snapshot, {
+        expected = {
             "vmReceiptSHA256": sha(self.engine_path.read_bytes()),
             "runtimeNoticesSHA256": {name: sha(data) for name, data in PLATFORM.items()} |
                                    {RUST_MEMBER: sha(self.rust.read_bytes())},
-        })
+        }
+        if L07:
+            expected["runtimeNoticesSHA256"].update({name: sha(data) for name, data in NETWORKING.items()})
+            expected["foundationNetworkingELFSHA256"] = sha(FOUNDATION.read_bytes())
+            expected["swiftCryptoSources"] = {
+                "swiftCrypto": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+                "vendoredBoringSSL": "0226f30467f540a3f62ef48d453f93927da199b6",
+                "vendoredXKCP": "11297f566178023faba59ff14b6b399241488283",
+                "jniLockSHA256": sha((WORK / "mixer" / PRODUCERS["JNI_RECIPE_LOCK"]).read_bytes()),
+                "sdkLockSHA256": sha((self.project / "Generated/MixerSDK/Package.resolved").read_bytes()),
+            }
+        self.assertEqual(snapshot, expected)
         for kind in ("java", "jni"):
             receipt_path = PRODUCERS["receipt_path"](kind, WORK)
             self.assertEqual(json.loads(receipt_path.read_bytes())["inputs"]["noticeSnapshot"], snapshot)
         return snapshot
+
+    @unittest.skipIf("--historical-rust-only" in sys.argv, "Paired successor only")
+    def test_default_recipe_rejects_five_notice_preflight(self):
+        work = self.directory / "default-recipe"
+        subprocess.run(
+            [sys.executable, "-B", str(HERE / "prepare-successor.py"),
+             "--mixer", str(MIXER), str(work)],
+            check=True, capture_output=True, timeout=60,
+        )
+        producer = runpy.run_path(str(work / "fieldlog" / SCRIPTS / "pair25/build-products.py"))
+        shutil.copytree(WORK / "android-engine", work / "android-engine")
+        historical_notice = self.directory / "five-notices" / NOTICE.name
+        self.put(historical_notice, self.rust.read_bytes())
+        with self.assertRaisesRegex(FileNotFoundError, "networking-crypto"):
+            producer["preflight"](work, self.project, historical_notice)
+        self.assertFalse((work / producer["NOTICE_SNAPSHOT"]).exists())
+        self.assertEqual(self.effects, [])
 
     def test_producers_require_preflight_and_bind_the_same_snapshot(self):
         for kind in ("java", "jni"):
@@ -431,6 +520,49 @@ class Handoff(unittest.TestCase):
             path.write_bytes(original)
         self.assertEqual(self.effects, [])
 
+    @unittest.skipIf("--historical-rust-only" in sys.argv, "Paired successor only")
+    def test_l07_preflight_missing_stale_and_substituted_inputs(self):
+        notice = self.directory / NOTICE_DIRECTORY.name / sorted(NETWORKING)[0].split("/")[-1]
+        lock = self.project / "Generated/MixerSDK/Package.resolved"
+        original_notice = notice.read_bytes()
+        notice.unlink()
+        with self.assertRaises(FileNotFoundError):
+            self.producer("preflight")
+        notice.write_bytes(original_notice)
+        for path in (notice, self.foundation, lock):
+            with self.subTest(path=path):
+                original = path.read_bytes()
+                path.write_bytes(b"substitution")
+                try:
+                    with self.assertRaises(ValueError):
+                        self.producer("preflight")
+                finally:
+                    path.write_bytes(original)
+                self.assertFalse(self.snapshot.exists())
+        self.producer("preflight")
+        original_snapshot = self.snapshot.read_bytes()
+        with self.assertRaises(FileExistsError):
+            self.producer("preflight")
+        self.assertEqual(self.snapshot.read_bytes(), original_snapshot)
+        self.assertEqual(self.effects, [])
+
+    @unittest.skipIf("--historical-rust-only" in sys.argv, "Paired successor only")
+    def test_l07_linked_lock_substitution_stops_before_packaging(self):
+        self.build_producers()
+        (WORK / PRODUCERS["JNI_LOCK"]).write_text("{}")
+        with self.assertRaisesRegex(ValueError, "Linked Pair25 JNI package lock"):
+            self.pack()
+        self.assertEqual(self.effects, [])
+        self.assertEqual({item.name for item in (self.directory / "out").iterdir()}, {"package.log"})
+
+    @unittest.skipIf("--historical-rust-only" in sys.argv, "Paired successor only")
+    def test_late_apk_collision_preserves_apk_and_rolls_back_own_sidecar(self):
+        self.package_with_inert_tools(collision="apk")
+
+    @unittest.skipIf("--historical-rust-only" in sys.argv, "Paired successor only")
+    def test_outer_readback_refuses_unsealed_notice(self):
+        self.package_with_inert_tools(collision=False, extra_notice=True)
+
     def test_late_sidecar_collision_preserves_bytes_and_log(self):
         self.package_with_inert_tools(collision=True)
 
@@ -443,7 +575,7 @@ class Handoff(unittest.TestCase):
     def test_drift_during_sealing_refuses_before_apk_signer(self):
         self.package_with_inert_tools(collision=False, drift="seal")
 
-    def package_with_inert_tools(self, *, collision, drift=None):
+    def package_with_inert_tools(self, *, collision, drift=None, extra_notice=False):
         snapshot = self.build_producers()
         payload = b"inert Wasm"
         cert = b"inert certificate"
@@ -507,6 +639,12 @@ class Handoff(unittest.TestCase):
                     for name, data in PLATFORM.items():
                         apk.writestr(name, data)
                     apk.writestr(RUST_MEMBER, self.rust.read_bytes())
+                    if L07:
+                        apk.write(self.foundation, "lib/arm64-v8a/" + self.foundation.name)
+                        for name, contents in (NETWORKING | PACKAGER["site_map_assets"](self.project)).items():
+                            apk.writestr(name, contents)
+                    if extra_notice:
+                        apk.writestr("third-party-notices/unsealed.txt", b"unsealed")
                 return "inert APK signer output"
             elif executable == "apksigner":
                 return "Signer #1 certificate SHA-256 digest: " + sha(cert)
@@ -521,7 +659,8 @@ class Handoff(unittest.TestCase):
         out = self.directory / "out"
 
         def link(src, dst):
-            if collision and dst == out / "apk-evidence.json":
+            if (collision is True and dst == out / "apk-evidence.json"
+                    or collision == "apk" and dst.parent == out and dst.suffix == ".apk"):
                 with dst.open("xb") as stream:
                     stream.write(competing)
             real_link(src, dst)
@@ -539,6 +678,9 @@ class Handoff(unittest.TestCase):
             elif collision:
                 with self.assertRaises(FileExistsError):
                     self.pack()
+            elif extra_notice:
+                with self.assertRaisesRegex(ValueError, "Signed APK notice inventory"):
+                    self.pack()
             else:
                 self.pack()
         log = (out / "package.log").read_text()
@@ -552,7 +694,14 @@ class Handoff(unittest.TestCase):
         evidence = out / "apk-evidence.json"
         apks = list(out.glob("*.apk"))
         self.assertFalse(list(out.glob(".seal-*")))
-        if collision:
+        if extra_notice:
+            self.assertFalse(evidence.exists())
+            self.assertEqual(apks, [])
+        elif collision == "apk":
+            self.assertFalse(evidence.exists())
+            self.assertEqual(len(apks), 1)
+            self.assertEqual(apks[0].read_bytes(), competing)
+        elif collision:
             self.assertEqual(evidence.read_bytes(), competing)
             self.assertEqual(apks, [])
             self.assertIn("Packaging failed", log)
@@ -562,6 +711,10 @@ class Handoff(unittest.TestCase):
             self.assertEqual(data["apkSHA256"], sha(apks[0].read_bytes()))
             self.assertEqual(data["linkInputs"]["native/vm-receipt.json"], snapshot["vmReceiptSHA256"])
             self.assertEqual(data["linkInputs"]["runtimeNoticesSHA256"], snapshot["runtimeNoticesSHA256"])
+            if L07:
+                for name, checksum in data["linkInputs"]["apkNativeELFSHA256"].items():
+                    self.assertEqual(data["apkMembersSHA256"][name], checksum)
+                self.assertEqual(data["linkInputs"]["swiftCryptoSources"], snapshot["swiftCryptoSources"])
 
 
 if __name__ == "__main__":
@@ -570,15 +723,24 @@ if __name__ == "__main__":
     parser.add_argument("--android-sdk", type=Path, required=True)
     parser.add_argument("--swift-sdk", type=Path, required=True)
     parser.add_argument("--scratch", type=Path, required=True, help="Existing owned scratch parent")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--l07", action="store_true", help="Exercise the paired successor (the default)")
+    mode.add_argument("--historical-rust-only", action="store_true", help="Exercise the historical photo-only tree")
     args = parser.parse_args()
+    L07 = not args.historical_rust_only
+    MIXER = args.mixer.resolve(strict=True)
     successor = runpy.run_path(str(HERE / "prepare-successor.py"))
-    with tempfile.TemporaryDirectory(prefix="pair25-notice-sources-", dir=args.scratch) as tmp:
+    with tempfile.TemporaryDirectory(prefix="pair25-notice-sources-", dir=args.scratch.resolve(strict=True)) as tmp:
         WORK = Path(tmp) / "work"
-        pins = successor["prepare"](WORK, args.mixer.resolve(strict=True))
+        pins = successor["prepare"](WORK, MIXER, historical_rust_only=args.historical_rust_only)
         REVISION = pins["mixer"]["revision"]
         PLATFORM = platform_notices(args.mixer, REVISION, args.swift_sdk, args.android_sdk)
         WRAPPER = runpy.run_path(str(WORK / "fieldlog" / OUTER))
         PRODUCERS = WRAPPER["PRODUCERS"]
         PACKAGER = PRODUCERS["PACKAGING"]
+        if L07:
+            FOUNDATION = args.swift_sdk / PACKAGER["FOUNDATION_NETWORKING_SDK_PATH"]
+            NETWORKING = {f"third-party-notices/{name}": (NOTICE_DIRECTORY / name).read_bytes()
+                          for name in json.loads((NOTICE_DIRECTORY / "sources.json").read_bytes())["notices"]}
         result = unittest.main(argv=[sys.argv[0]], verbosity=2, exit=False).result
     sys.exit(0 if result.wasSuccessful() else 1)

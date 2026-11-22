@@ -1,0 +1,261 @@
+diff --git a/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py b/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
+index 66f63bb5a1ae8834bb8a4ea45a0d88b2cdc19dbb..d682dcb2bcc0deed69cede7688b4ee90b6b3a70b 100644
+--- a/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
++++ b/Integrations/GeneratedReport/scripts/build-signed-checklist-android.py
+@@ -32,6 +32,19 @@ ENTRY_COMMIT_LIMITS = {
+ }
+ MANIFEST_MEMBERS = {"AndroidManifest.xml", "res/xml/checklist_network.xml", "resources.arsc"}
+ NATIVE_PREFIX = "lib/arm64-v8a/"
++NOTICE_PREFIX = "third-party-notices/"
++FOUNDATION_NETWORKING = "libFoundationNetworking.so"
++FOUNDATION_NETWORKING_SDK_PATH = Path("swift-resources/usr/lib/swift-aarch64/android") / FOUNDATION_NETWORKING
++PAIR25_FOUNDATION_NETWORKING_SHA256 = "99cb42ad356c90b6ec0b7c90d1a05fdafadbe39a97c2a671d14d2513a7cbe088"
++PAIR25_NETWORKING_CRYPTO_SHA256 = {
++    "curl-8.9.1-COPYING.txt": "adb1fc06547fd136244179809f7b7c2d2ae6c4534f160aa513af9b6a12866a32",
++    "Swift-SDK-BoringSSL-fips-20220613-LICENSE.txt": "60bd7c54856bf9387221bde5ab55d516d7cea15870d0fed69406bcd1c8ec7c9d",
++    "Swift-Crypto-5.0.3-LICENSE.txt": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
++    "Swift-Crypto-5.0.3-NOTICE.txt": "b3ddc2ae068e76b3beb71be03c0400f90090f9469aa491bf7b1ac42320af37b8",
++    "Swift-Crypto-BoringSSL-LICENSE.txt": "827c8d8fc207c2392794eef9e00fe246f9f61fdcc132556c275be3dd8c3cd97f",
++    "Swift-Crypto-XKCP-LICENSE.txt": "1012f3d5954bafff7e3d882e82aec677bfe898f74dc2d443b0c4a565b7a1c936",
++    "Swift-Crypto-XKCP-brg_endian-NOTICE.txt": "62af2a170ed71c10dfb598502448c39751a200cc84153139102b66cafc1826b6",
++}
+ PAIR25_RUST_NOTICE = "third-party-notices/Rust-1.99.0-Android-NOTICES.txt"
+ PAIR25_RUST_NOTICE_SHA256 = "ec638e32442c7064e69af7814b3ac41db61eff5f7f2842e5f35f0db314f1c0c5"
+ PAIR25_PLATFORM_NOTICE_SHA256 = {
+@@ -194,6 +207,28 @@ def add_pair25_rust_notice(notices, path):
+     return notices | {PAIR25_RUST_NOTICE: read_pair25_rust_notice(path)}
+ 
+ 
++def pair25_runtime_notices(notices, rust_notice):
++    result = add_pair25_rust_notice(notices, rust_notice)
++    directory = rust_notice.parent / "networking-crypto"
++    if directory.is_symlink():
++        raise ValueError("Expected a real Pair25 networking and Crypto notice directory")
++    for name, expected in PAIR25_NETWORKING_CRYPTO_SHA256.items():
++        data = read_bounded(directory / name, 64 * 1024)
++        if hashlib.sha256(data).hexdigest() != expected:
++            raise ValueError(f"Pair25 networking or Crypto notice differs from its SHA-256 pin: {name}")
++        result[NOTICE_PREFIX + name] = data
++    return result
++
++
++def pair25_foundation_sha(path):
++    if path is None:
++        raise ValueError("Pair25 JNI dependency closure lacks FoundationNetworking")
++    checksum = hashlib.sha256(read_bounded(path, 32 * 1024 * 1024)).hexdigest()
++    if checksum != PAIR25_FOUNDATION_NETWORKING_SHA256:
++        raise ValueError("Pair25 FoundationNetworking ELF differs from the official SDK pin")
++    return checksum
++
++
+ def notice_hashes(notices):
+     return {name: hashlib.sha256(data).hexdigest() for name, data in notices.items()}
+ 
+@@ -205,7 +240,7 @@ def read_pair25_rust_notice(path):
+     return data
+ 
+ 
+-def verify_image(path, assets, libraries, notices, signed=False):
++def verify_image(path, assets, libraries, notices, signed=False, *, native_hashes=None):
+     with zipfile.ZipFile(path) as apk:
+         names = apk.namelist()
+         if len(set(names)) != len(names):
+@@ -225,9 +260,19 @@ def verify_image(path, assets, libraries, notices, signed=False):
+             raise ValueError("Unexpected APK payload inventory")
+         if any(apk.getinfo(name).compress_type != zipfile.ZIP_STORED for name in native_names):
+             raise ValueError("APK native library must be stored")
++        for name, (size, expected) in (native_hashes or {}).items():
++            member = NATIVE_PREFIX + name
++            if apk.getinfo(member).file_size != size:
++                raise ValueError(f"APK ELF differs from its input: {name}")
++            with apk.open(member) as stream:
++                if hashlib.file_digest(stream, "sha256").hexdigest() != expected:
++                    raise ValueError(f"APK ELF differs from its input: {name}")
+ 
+ 
+ def build(args):
++    rust_notice = args.pair25_rust_notice
++    if rust_notice is None:
++        raise ValueError("Pair25 packaging requires --pair25-rust-notice")
+     output = args.output
+     if output.exists() or output.is_symlink():
+         raise FileExistsError(output)
+@@ -238,10 +283,18 @@ def build(args):
+     tools = args.android_sdk / "build-tools/36.0.0"
+     ndk = args.android_sdk / "ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64"
+     libraries = native_libraries(args.jni_library, ndk, args.swift_android_sdk, env)
+-    notices = runtime_notices(args.mixer_project, libraries, ndk, args.swift_android_sdk)
+-    rust_notice = getattr(args, "pair25_rust_notice", None)
+-    if rust_notice is not None:
+-        notices = add_pair25_rust_notice(notices, rust_notice)
++    notices = pair25_runtime_notices(
++        runtime_notices(args.mixer_project, libraries, ndk, args.swift_android_sdk), rust_notice,
++    )
++    foundation = libraries.get(FOUNDATION_NETWORKING)
++    foundation_sha = pair25_foundation_sha(foundation)
++    with args.jni_library.open("rb") as stream:
++        native_hashes = {
++            FOUNDATION_NETWORKING: (foundation.stat().st_size, foundation_sha),
++            args.jni_library.name: (
++                os.fstat(stream.fileno()).st_size, hashlib.file_digest(stream, "sha256").hexdigest(),
++            ),
++        }
+     with tempfile.TemporaryDirectory(prefix="fieldlog-apk-", dir=output.parent) as scratch:
+         work = Path(scratch)
+         unsigned, aligned, signed = (work / name for name in ("unsigned.apk", "aligned.apk", "signed.apk"))
+@@ -256,7 +309,7 @@ def build(args):
+                 apk.writestr(name, data)
+             for name, path in sorted(libraries.items()):
+                 apk.write(path, NATIVE_PREFIX + name)
+-        verify_image(unsigned, assets, libraries, notices)
++        verify_image(unsigned, assets, libraries, notices, native_hashes=native_hashes)
+         run(env, tools / "zipalign", "-P", "16", "-f", "4", unsigned, aligned)
+         key = args.development_keystore
+         if key is None:
+@@ -281,7 +334,7 @@ def build(args):
+                        "launchable-activity: name='dev.fieldlog.generatedr90.androidhost.PublicActivity' "):
+             if not any(line.startswith(prefix) for line in lines):
+                 raise ValueError(f"Unexpected APK badging. Expected {prefix.strip()}")
+-        verify_image(signed, assets, libraries, notices, signed=True)
++        verify_image(signed, assets, libraries, notices, signed=True, native_hashes=native_hashes)
+         os.link(signed, output)
+     print(f"Development APK: {output}")
+ 
+@@ -302,8 +355,8 @@ def main():
+     }
+     for name, help_text in paths.items():
+         parser.add_argument("--" + name, required=True, type=Path, help=help_text)
+-    parser.add_argument("--pair25-rust-notice", type=Path,
+-                        help="Pinned Rust runtime notice for the Pair25 Entry Commit development fixture")
++    parser.add_argument("--pair25-rust-notice", type=Path, required=True,
++                        help="Pinned Rust notice with the adjacent networking-crypto notice directory")
+     parser.add_argument("--development-keystore", type=Path,
+                         help="Ephemeral development signer whose certificate is bound before sealing")
+     try:
+diff --git a/Integrations/GeneratedReport/scripts/pair25/build-products.py b/Integrations/GeneratedReport/scripts/pair25/build-products.py
+index 642aa5ebb83b9b9f10d232c96922550ac3e53cf0..2ed644b9e76b0025965e8b25c85ae3e0055298b1 100644
+--- a/Integrations/GeneratedReport/scripts/pair25/build-products.py
++++ b/Integrations/GeneratedReport/scripts/pair25/build-products.py
+@@ -18,6 +18,15 @@ ANDROID_PACKAGE = "Integrations/GeneratedReport/Platforms/Android"
+ ABI = "aarch64-unknown-linux-android28"
+ VM_ARCHIVE = "android-engine/lib/libmixer_vm_capability_experimental.a"
+ NOTICE_SNAPSHOT = "pair25-notice-inputs.json"
++JNI_LOCK = "android-package/Package.resolved"
++JNI_RECIPE_LOCK = "tests/integration/fieldlog-saved-draft/android/recipe/Package.resolved"
++JNI_LOCK_SHA256 = "012e229a00cb38b7d8845643ef1bd8795f3c3e6de2717b22c82bb37d493da1bc"
++SDK_LOCK_SHA256 = "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab"
++SWIFT_CRYPTO_SOURCES = {
++    "swiftCrypto": "c2cbadd7263439d8015189668f96ff5b5be565ce",
++    "vendoredBoringSSL": "0226f30467f540a3f62ef48d453f93927da199b6",
++    "vendoredXKCP": "11297f566178023faba59ff14b6b399241488283",
++}
+ RUST_VERSION_FIELDS = {
+     "release: 1.99.0",
+     "commit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4",
+@@ -30,7 +39,7 @@ PRODUCTS = {
+     ),
+     "jni": (
+         "jni/libmixer_public_android_jni.so", "jni/PublicBridge.o", "jni/ChecklistBridge.o",
+-        "jni/transport.o", "jni/platform_android.o", "android-package/Package.swift", "android-package/Package.resolved",
++        "jni/transport.o", "jni/platform_android.o", "android-package/Package.swift", JNI_LOCK,
+     ),
+ }
+ 
+@@ -96,7 +105,12 @@ def notice_inputs(work, project, rust_notice, revision):
+     sdk, swift_sdk = sdk_paths()
+     notices = PACKAGING["platform_notice_bytes"](project, sdk / "ndk/27.1.12297006", swift_sdk,
+                                                 include_ndk=True, include_icu=True)
+-    notices = PACKAGING["add_pair25_rust_notice"](notices, rust_notice)
++    notices = PACKAGING["pair25_runtime_notices"](notices, rust_notice)
++    foundation_sha = PACKAGING["pair25_foundation_sha"](swift_sdk / PACKAGING["FOUNDATION_NETWORKING_SDK_PATH"])
++    jni_lock = digest(work / "mixer" / JNI_RECIPE_LOCK)
++    sdk_lock = digest(project / "Generated/MixerSDK/Package.resolved")
++    if (jni_lock, sdk_lock) != (JNI_LOCK_SHA256, SDK_LOCK_SHA256):
++        raise ValueError("Pair25 Swift Crypto lock inputs differ from the pinned sources")
+     receipt = PACKAGING["read_bounded"](work / "android-engine/receipt.json", 2 * 1024 * 1024)
+     engine = json.loads(receipt)
+     if not isinstance(engine, dict) or not isinstance(engine.get("library"), dict):
+@@ -109,6 +123,8 @@ def notice_inputs(work, project, rust_notice, revision):
+     return {
+         "vmReceiptSHA256": hashlib.sha256(receipt).hexdigest(),
+         "runtimeNoticesSHA256": PACKAGING["notice_hashes"](notices),
++        "foundationNetworkingELFSHA256": foundation_sha,
++        "swiftCryptoSources": SWIFT_CRYPTO_SOURCES | {"jniLockSHA256": jni_lock, "sdkLockSHA256": sdk_lock},
+     }, engine, archive_sha
+ 
+ 
+@@ -116,7 +132,7 @@ def verify_notice_snapshot(work, project, rust_notice, revision):
+     snapshot = json.loads(PACKAGING["read_bounded"](work / NOTICE_SNAPSHOT, 4096))
+     current, engine, archive_sha = notice_inputs(work, project, rust_notice, revision)
+     if current != snapshot:
+-        raise ValueError("Pair25 notice or VM receipt bytes differ from preflight")
++        raise ValueError("Pair25 notice, Crypto lock, SDK ELF or VM receipt bytes differ from preflight")
+     return current, engine, archive_sha
+ 
+ 
+@@ -163,7 +179,10 @@ def build_inputs(kind, work, project, rust_notice):
+ 
+ 
+ def outputs(kind, work):
+-    return {name: digest(work / name) for name in PRODUCTS[kind]}
++    result = {name: digest(work / name) for name in PRODUCTS[kind]}
++    if kind == "jni" and result[JNI_LOCK] != JNI_LOCK_SHA256:
++        raise ValueError("Linked Pair25 JNI package lock differs from preflight")
++    return result
+ 
+ 
+ def receipt_path(kind, work):
+diff --git a/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py b/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py
+index ec7f7e2c5e9fd0d2382425d63cd6e11fb3df0e30..393914c4c81bd6e38cd1841b6fd201bae771b648 100644
+--- a/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py
++++ b/Integrations/GeneratedReport/scripts/pair25/package-entry-commit.py
+@@ -93,8 +93,8 @@ def assemble(work, project, destination, stage, rust_notice, log):
+     receipts = PRODUCERS["verify_products"](work, project, rust_notice, snapshot)
+ 
+     def verify_inputs():
+-        require(PRODUCERS["verify_products"](work, project, rust_notice, snapshot) == receipts,
+-                "Pair25 source or build outputs changed during sealing")
++        require(PRODUCERS["verify_products"](work, project, rust_notice, snapshot) == receipts
++                and digest(jni) == jni_sha, "Pair25 source or build outputs changed during sealing")
+ 
+     def run(*command, env=None):
+         print(f"Run {command[0]} {command[1]}", file=log, flush=True)
+@@ -164,6 +164,11 @@ def assemble(work, project, destination, stage, rust_notice, log):
+     site_map_sha = {name: hash_bytes(data) for name, data in site_map.items()}
+     app = HERE.parents[1]
+     settings = work / "android-package/Package.swift"
++    jni_sha = digest(jni)
++    native_hashes = {
++        "lib/arm64-v8a/" + JNI: jni_sha,
++        "lib/arm64-v8a/" + signing["FOUNDATION_NETWORKING"]: snapshot["foundationNetworkingELFSHA256"],
++    }
+     linked = {
+         "FieldLogTree": fieldlog_tree,
+         "MixerCommit": revision,
+@@ -177,7 +182,9 @@ def assemble(work, project, destination, stage, rust_notice, log):
+         "manifest.apk": digest(manifest),
+         "manifestEntries": manifest_entries,
+         "siteMapAssets": site_map_sha,
+-        "native/" + JNI: digest(jni),
++        "native/" + JNI: jni_sha,
++        "apkNativeELFSHA256": native_hashes,
++        "swiftCryptoSources": snapshot["swiftCryptoSources"],
+         "native/vm.a": vm_sha,
+         "native/vm-receipt.json": snapshot["vmReceiptSHA256"],
+         "runtimeNoticesSHA256": snapshot["runtimeNoticesSHA256"],
+@@ -274,9 +281,13 @@ def assemble(work, project, destination, stage, rust_notice, log):
+     run(tools / "zipalign", "-c", "-P", "16", "4", apk, env=env)
+     badging = run(tools / "aapt2", "dump", "badging", apk, env=env)
+     members = read_zip(apk)
+-    expected = manifest_entries | site_map_sha | {"classes.dex": linked["bytecode/classes.dex"],
+-                "lib/arm64-v8a/" + JNI: linked["native/" + JNI], APPEARANCE: linked["descriptor.json"]}
++    expected = manifest_entries | site_map_sha | native_hashes | {
++        "classes.dex": linked["bytecode/classes.dex"], APPEARANCE: linked["descriptor.json"],
++    }
+     expected.update({ASSETS + name: checksum for name, checksum in pins.items()})
++    notices = {name: checksum for name, checksum in members.items() if name.startswith(signing["NOTICE_PREFIX"])}
++    require(notices == linked["runtimeNoticesSHA256"],
++            "Signed APK notice inventory differs from the sealed build")
+     expected.update(linked["runtimeNoticesSHA256"])
+     require(all(members.get(name) == checksum for name, checksum in expected.items()),
+             "Signed APK payload differs from the sealed build and installed material")

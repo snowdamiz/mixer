@@ -1382,6 +1382,16 @@ unobserved. System zlib remains outside the APK. The next notice
 bundle must bind the pinned inputs and both ELFs.
 [Exact combined APK notice review](verification/receipts/l07-fieldlog-pair25-network-crypto-notice-review-87c95c5a.json)
 
+The maintained paired recipe now requires all twelve notice files and binds
+the SDK FoundationNetworking and FieldLog JNI ELF digests. Independent
+review passed 26 modern inert checks, 18 historical checks, and seven
+additional controls. The explicit historical recipe retains the exact
+photo-only five-notice build. Source141 admits the new inventory in both
+actual sparse checkouts and both Python modes. Both predecessors restored
+with matching bytes and file modes. Real APK and installed verification
+remain pending. The SDK BoringSSL build commit remains unproven.
+[Recipe and Source141 evidence](verification/receipts/fieldlog-pair25-l07-notice-source141-adoption-491d708b.json)
+
 All nine Owned Engine jobs passed on the Rust notice binding.
 Both Python modes admitted the same Source141 and Pair25 inputs, and
 all six Intel Java and D8 builds returned identical DEX bytes.

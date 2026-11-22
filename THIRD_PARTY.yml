@@ -158,6 +158,16 @@ dependencies:
     owner: android-networking
     inventory_receipt: verification/android-networking-inventory-2026-10-22.json
     reported_components: curl-8.9.1-and-BoringSSL-fips-20220613
+    fieldlog_pair25_android:
+      foundation_networking_elf_sha256: 99cb42ad356c90b6ec0b7c90d1a05fdafadbe39a97c2a671d14d2513a7cbe088
+      curl_elf_version: 8.9.1-DEV
+      curl_notice_source_commit: 83bedbd730d62b83744cc26fa0433d3f6e2e4cd6
+      boringssl_notice_source_commit: 0c6f40132b828e92ba365c6b7680e32820c63fa7
+      boringssl_provenance: SBOM-derived-tag-notice-source-exact-build-commit-unproven
+      android_apk_notices:
+        - third-party-notices/curl-8.9.1-COPYING.txt
+        - third-party-notices/Swift-SDK-BoringSSL-fips-20220613-LICENSE.txt
+      notice_sources: tests/integration/fieldlog-pair25-android/rust-runtime-notices/networking-crypto/sources.json
     qualification: local-binary-and-SDK-SBOM-inventory-only-not-redistribution-or-security-approval
   - name: Node.js V8 and WASI
     origin: https://nodejs.org
@@ -173,6 +183,17 @@ dependencies:
     license: Apache-2.0-and-vendored-BoringSSL-notices
     purpose: standard-Ed25519-and-SHA256-for-native-update-verification
     distribution: CryptoKit-on-Apple-BoringSSL-linked-on-supported-other-hosts
+    fieldlog_pair25_android:
+      distribution: linked-into-libmixer_public_android_jni.so
+      boringssl_source_commit: 0226f30467f540a3f62ef48d453f93927da199b6
+      xkcp_source_commit: 11297f566178023faba59ff14b6b399241488283
+      android_apk_notices:
+        - third-party-notices/Swift-Crypto-5.0.3-LICENSE.txt
+        - third-party-notices/Swift-Crypto-5.0.3-NOTICE.txt
+        - third-party-notices/Swift-Crypto-BoringSSL-LICENSE.txt
+        - third-party-notices/Swift-Crypto-XKCP-LICENSE.txt
+        - third-party-notices/Swift-Crypto-XKCP-brg_endian-NOTICE.txt
+      notice_sources: tests/integration/fieldlog-pair25-android/rust-runtime-notices/networking-crypto/sources.json
     owner: update-security
   - name: Swift ASN.1
     origin: https://github.com/apple/swift-asn1
@@ -180,6 +201,7 @@ dependencies:
     license: Apache-2.0
     purpose: transitive-Swift-Crypto-dependency
     distribution: Swift-package-graph
+    fieldlog_pair25_android: resolved-package-without-evidence-of-Crypto-product-linkage
     owner: update-security
   - name: pgx PostgreSQL driver
     origin: https://github.com/jackc/pgx

@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "result": "passed_reviewed_source_adoption_and_restoration",
+  "gate": "L07",
+  "publicationBase": "491d708b7d0cd28b3057e3734a52299c66ffbc75",
+  "testedSource": {
+    "tree": "d4f75f1de6b8b1456c7514f02715183aac1dc6e3",
+    "testAnchor": "90232e78f9699735ee8bee7b31d2b020b57d07ee",
+    "admission": {
+      "swift-host": {
+        "sparsePatterns": 45,
+        "normal": {
+          "files": 157,
+          "sha256": "b6bf09b7fee6fef44019fd28e7ec6aa3b1ca39e223e1c96abd52a70093b2212c"
+        },
+        "optimized": {
+          "files": 157,
+          "sha256": "b6bf09b7fee6fef44019fd28e7ec6aa3b1ca39e223e1c96abd52a70093b2212c"
+        }
+      },
+      "android-generated-java": {
+        "sparsePatterns": 32,
+        "normal": {
+          "files": 157,
+          "sha256": "b6bf09b7fee6fef44019fd28e7ec6aa3b1ca39e223e1c96abd52a70093b2212c"
+        },
+        "optimized": {
+          "files": 157,
+          "sha256": "b6bf09b7fee6fef44019fd28e7ec6aa3b1ca39e223e1c96abd52a70093b2212c"
+        }
+      }
+    },
+    "restoration": {
+      "prepare-source141": {
+        "files": 890,
+        "rosterSha256": "13a132c92e97e79496ec7466d8b3eaac7e0e91ff68e04dc640bbe2069cf5cf3b"
+      },
+      "prepare-predecessor": {
+        "files": 845,
+        "rosterSha256": "ab847437cbf210371ca7946e0035db597966aacb812d5dbdfe0d054380a854ef"
+      }
+    },
+    "staleInventoryRefused": true,
+    "closedCommands": 23,
+    "scratchRemoved": true
+  },
+  "fieldLog": {
+    "pinnedPublicSource": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "sdk": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+    "pairedTree": "7b2b98f098559f57ce39e213321478058c289c5a",
+    "modernTree": "34810962320bdfb7877b8bbdd065495e9ec1e2bb",
+    "explicitHistoricalTree": "0c38770065656bf7c5a2aa768055ff8b453b082d",
+    "embeddedPatchSHA256": "f70c721ea18541b2bbe8100d327ccca534058b1f4b36dcfcdde42786347d3931"
+  },
+  "inventory": {
+    "before": {
+      "bytes": 34043,
+      "sha256": "949faccd3364c5ab314d06f6ccc01ab2df43454239380dab3a1443b921aa9274"
+    },
+    "after": {
+      "bytes": 35502,
+      "sha256": "b5f38e2ed08438eb4fa2ed053185c94fd45b75cded3648c010b404a130e8c848"
+    },
+    "sourceArchiveTreeSHA256": "f495cab7f95e68cbec15ccb965e0c9cecfdc4c99371149725f837bd8c7315b56"
+  },
+  "patchSHA256": {
+    "initialMixer": "afd9e87f86a9b0d11edae4e4c965a88ab110338b73922457f98ccb5ea8e86087",
+    "mandatoryNoticeMixer": "68d73696e83459511b130c793213e22cb38d45a63f57030ff5d847810f0ff7c4",
+    "mandatoryNoticeFieldLog": "14c58ee56296a154ec5cc786bcd570f825f1a8a61a91830d840ede3ca8959d08",
+    "source141": "e754a073a8336d693315432e4fc32d3e0ef531078eab959610ae671d3f27fb23"
+  },
+  "independentReview": {
+    "verdict": "scoped pass",
+    "modernInertTests": 26,
+    "historicalInertTests": 18,
+    "historicalModernOnlySkips": 8,
+    "additionalControls": 7,
+    "observed": [
+      "Default modern preparation refused a five-notice preflight before creating a snapshot or producer outputs.",
+      "Omitting the standalone packager notice option refused before ZIP staging.",
+      "Both ELF digests and all twelve notice digests survived inert package publication. Substituting either ELF or the signing certificate blocked publication.",
+      "Explicit historical preparation restored the pinned photo-only tree and five-notice behavior."
+    ],
+    "authorReceiptsSHA256": [
+      "02274d26aceac0025022061aa414f96ebd2fa43770279eaaf969c5303bcabe48",
+      "a93e1db9ef0fbad4cf2f8bde6c953d17bddbf88b322ddccac9b18e432e95c171"
+    ]
+  },
+  "sourceReplay": {
+    "commands": [
+      "git sparse-checkout set --no-cone --stdin using each exact workflow projection",
+      "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+      "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py prepare-source141 --out <new directory>",
+      "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py prepare-predecessor --out <new directory>"
+    ],
+    "note": "Both modes restored matching per-path bytes and file modes against the published parent."
+  },
+  "limits": "Source, inert packaging and archive admission only. Real APK build, signing and installed evidence are pending. The SDK SBOM identifies the BoringSSL notice tag. Its exact SDK build commit remains unproven. L07 is running."
+}

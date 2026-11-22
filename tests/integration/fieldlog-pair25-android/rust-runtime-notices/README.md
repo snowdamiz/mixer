@@ -1,4 +1,42 @@
-# Build the Pair25 FieldLog APK with Rust notices
+# Build the Pair25 FieldLog APK with runtime notices
+
+## Prepare the paired L07 fixture
+
+The default `prepare-successor.py` command creates the paired FieldLog app. It verifies
+eight recorded patches and the paired FieldLog tree
+`7b2b98f098559f57ce39e213321478058c289c5a` before applying the notice patch.
+
+```bash
+repo="$PWD"
+notice_recipe="$repo/tests/integration/fieldlog-pair25-android/rust-runtime-notices"
+mkdir -p "$repo/verification/local"
+scratch="$(mktemp -d "$repo/verification/local/fieldlog-pair25-notices.XXXXXXXX")"
+work="$scratch/work"
+python3 -B "$notice_recipe/prepare-successor.py" --mixer "$repo" "$work"
+test "$(git -C "$work/fieldlog" write-tree)" = 34810962320bdfb7877b8bbdd065495e9ec1e2bb
+```
+
+Keep the Rust notice and the adjacent `networking-crypto/` directory in
+place. Continue with the original recipe's toolchain exports and
+`build-android.py --prepare-only`. Then use the commands under **Produce,
+seal, and package** below.
+
+Both producer receipts bind the twelve notice hashes, the VM receipt, the
+Swift Crypto lock inputs, and the official Swift 6.3.3 arm64
+FoundationNetworking ELF hash. The sealer binds the exact JNI ELF hash
+after linking. The packager checks both ELF hashes and the complete notice
+inventory in the unsigned and signed APKs.
+
+The SDK SBOM names BoringSSL `fips-20220613`. Its upstream tag supplies the
+notice text. The exact SDK build commit remains unproven. The Swift Crypto
+copy of BoringSSL has a separate source pin. See the [pinned notice
+sources](networking-crypto/sources.json).
+
+The standalone APK packager requires `--pair25-rust-notice` on this
+source tree. The same twelve notices and both ELF checks apply to the
+Android Settings composition.
+
+## Prepare the historical Rust-only fixture
 
 Use a fresh build directory for this development APK. The FieldLog photo
 source tree is `00406fe735a3e48b075dd545d8df77670caab336`.
@@ -24,32 +62,13 @@ notice_recipe="$recipe/rust-runtime-notices"
 mkdir -p "$repo/verification/local"
 scratch="$(mktemp -d "$repo/verification/local/fieldlog-pair25-notices.XXXXXXXX")"
 work="$scratch/work"
-python3 -B "$notice_recipe/prepare-successor.py" --mixer "$repo" "$work"
+python3 -B "$notice_recipe/prepare-successor.py" --historical-rust-only --mixer "$repo" "$work"
 test "$(git -C "$work/fieldlog" write-tree)" = 0c38770065656bf7c5a2aa768055ff8b453b082d
 ```
 
-## Include the reviewed project pickers
-
-To build the product with the installed Android picker and the Apple
-pagination change, apply both patches after the notice preparation.
-Run this before the host CLI, Java, or JNI build. The photo-only
-predecessor above remains available for historical replay.
-
-```bash
-fieldlog="$work/fieldlog"
-android_patch="$repo/verification/receipts/fieldlog-android-project-picker-ad6c8dba.patch"
-apple_patch="$repo/verification/receipts/fieldlog-apple-project-pagination-00406fe7.patch"
-printf '%s  %s\n' \
-  53a221508c9d2fee4c6821e9954aaf8f880a4a9d5a4c77af82e516e64335d85a "$android_patch" \
-  4fbbb6e6c63afd886df2054d36c1024e3cdcab014a4307d14c1a896900ae2c4e "$apple_patch" |
-  shasum -a 256 -c
-git -C "$fieldlog" apply --index --unidiff-zero --whitespace=error "$android_patch"
-git -C "$fieldlog" apply --index --whitespace=error "$apple_patch"
-test "$(git -C "$fieldlog" write-tree)" = bb1aff13c8f4ed27c7bed24f0fde96fbe873a15b
-```
-
-The Android build uses a fresh development signer. Use a fresh
-disposable install for the replay. [Installed Android evidence](../../../../verification/receipts/fieldlog-android-project-picker-installed-ad6c8dba.json)
+Keep the historical checkout at the recorded photo-only tree for this
+replay. Use the default preparation command for the paired product with
+the reviewed pickers, camera, queue, and map.
 
 Continue the original recipe's setup at `export MIXER_SWIFT=` through
 `build-android.py --prepare-only`. Keep `$app` set to the prepared
@@ -78,11 +97,11 @@ python3 -B "$pair/package-entry-commit.py" \
 	--rust-notice "$notice" "$work" "$app" "$work/package-with-rust-notices"
 ```
 
-Preflight writes `$work/pair25-notice-inputs.json` with the five notice
-hashes and the hash of the complete VM receipt. Both producer receipts
-bind the same values. Packaging verifies those receipts before the
-guest build and again before sealing and signing. The sealed build
-inputs and signed ZIP readback include all five notice hashes.
+Preflight writes `$work/pair25-notice-inputs.json` with the notice hashes
+and the hash of the complete VM receipt. Both producer receipts bind the
+same values. Packaging verifies those receipts before the guest build
+and again before sealing and signing. The sealed build inputs and signed
+ZIP readback include every notice hash.
 
 The packaging destination must be fresh. The packager links the completed
 evidence file into place without replacing an existing file. A sidecar
@@ -103,8 +122,9 @@ Android LLVM source revision.
 ## Run the inert checks
 
 Use the installed NDK r27b and Swift 6.3.3 Android SDK notice files.
-The test recreates the pinned photo composition and checks the actual
-producer and packager code with inert tools.
+The tests recreate the paired successor and exercise its producer and
+packager code with inert tools. Pass `--historical-rust-only` to test
+the exact historical photo-only composition.
 
 ```bash
 python3 -B "$notice_recipe/test-packaging.py" \
