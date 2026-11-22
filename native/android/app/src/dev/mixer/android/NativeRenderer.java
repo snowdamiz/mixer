@@ -148,6 +148,14 @@ final class NativeRenderer {
     private NativeAppearanceViewsV2.Input inputV2(){if(v2Input==null)v2Input=new NativeAppearanceViewsV2.Input(){
         public NativeAppearanceViewsV2.Mutation mutation(){return mutationV2();}
         public boolean editorDispatchAvailable(NativeAppearanceViewsV2.Record record){NativeEnvironmentV2.requireMain();return editorReplacement==null&&retainedEditorV2(record);}
+        public NativeAppearanceViewsV2.Gate committedInputGate(NativeAppearanceViewsV2.Record record) {
+            if (v2Gate == null || !v2Gate.open || !v2Open || v2Retired || v2Disposed
+                    || v2Fence.terminal || !v2Fence.drawAllowed || !v2Fence.inputAllowed || v2Fence.commitFinish
+                    || v2Fence.operation != null || v2Pending != null || v2Mutation != null
+                    || v2Records.get(record.id) != record || editorDisposalBusyV2() || outstandingFieldTransitions != 0)
+                return null;
+            return v2Gate;
+        }
         public boolean editorRetained(NativeAppearanceViewsV2.Record record){NativeEnvironmentV2.requireMain();return retainedEditorV2(record);}
         public long editorLossObservation(){
             NativeEnvironmentV2.requireMain();

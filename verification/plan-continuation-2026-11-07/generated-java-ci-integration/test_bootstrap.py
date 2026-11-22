@@ -133,8 +133,9 @@ class BootstrapControls(unittest.TestCase):
         binding = json.loads((B.ROOT / SOURCE_BINDING).read_bytes())
         pair23 = binding['renderer_transition']['profileAfter']
         pair24 = binding['pair24_transition']['profileAfter']
-        for rejected in (foreign, pair23, pair24):
-            with self.subTest(profile=rejected['id']), self.assertRaisesRegex(RuntimeError, 'Pair25 profile'):
+        pair25 = binding['pair25_transition']['profileAfter']
+        for rejected in (foreign, pair23, pair24, pair25):
+            with self.subTest(profile=rejected['id']), self.assertRaisesRegex(RuntimeError, 'Pair26 profile'):
                 B.admit_source_inputs(a, rejected)
 
     def test_current_source_missing_tampered_extra_case_symlink_refuse_before_dispatch(self):

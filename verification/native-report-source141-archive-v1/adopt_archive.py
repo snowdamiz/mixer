@@ -387,6 +387,31 @@ HOSTED_V86_PREFIX = 'hosted-v86-predecessor-bytes/'
 HOSTED_V86_CHANGES = HOSTED_V74_CHANGES | {'THIRD_PARTY.yml'}
 HOSTED_V87_PREFIX = 'hosted-v87-predecessor-bytes/'
 HOSTED_V88_PREFIX = 'hosted-v88-predecessor-bytes/'
+HOSTED_V89_PREFIX = 'hosted-v89-predecessor-bytes/'
+PAIR26_PREFIX = 'pair26-predecessor-bytes/'
+PAIR26_PREDECESSOR_REVISION = '613fb3c10e6cbf06eb990b9639ec672115bc50fe'
+PAIR26_SOURCE_SHA256 = '23389c8ae9f34678b546bd740947a3d9fdd39f0840aeac50534b0821f15aa5fb'
+PAIR26_ADAPTER_CHANGES = {
+    RENDERER, 'app/src/dev/mixer/android/NativeOwnerV2.java',
+    'app/src/dev/mixer/android/NativeRenderer.java',
+}
+PAIR26_SOURCE_CHANGES = {'native/android/' + name for name in PAIR26_ADAPTER_CHANGES} | {
+    'cli/Sources/MixerBuild/AndroidSDKCompatibility.swift', ANDROID_BUILD_DRIVER, EXPORT_RUNNER,
+}
+PAIR26_REPLACEMENTS = PAIR26_SOURCE_CHANGES | {
+    'cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift',
+    'cli/Tests/MixerBuildTests/GeneratedPublicAndroidV4Tests.swift',
+    ACTIVITY_TESTS + 'private-owner-barrier-bindings.json',
+    ACTIVITY_TESTS + 'private-owner-barrier-map.json',
+    ACTIVITY_TESTS + 'private-owner-host-roster.json',
+    JAVA + 'bootstrap.py', JAVA + 'test_bootstrap.py', SPARSE_CHECKOUT_TEST,
+}
+PAIR26_ADDITIONS = {
+    ACTIVITY_TESTS + 'NativeOwnerV2HostLeaves/android/view/inputmethod/InputMethodManager.java',
+    ACTIVITY_TESTS + 'NativeOwnerV2HostLeaves/dev/mixer/android/NativeAppearanceViewsV2.java',
+    ACTIVITY_TESTS + 'NativeOwnerV2ConcreteHostLeaves/android/view/inputmethod/InputMethodManager.java',
+}
+
 PAIR25_RUST_NOTICES_PREIMAGE = 'pair25-rust-notices-predecessor-bytes/THIRD_PARTY.yml'
 STATEFUL_WAST_NOTICE_PREIMAGE = 'stateful-wast-notice-predecessor-bytes/THIRD_PARTY.yml'
 PAIR25_NETWORK_CRYPTO_NOTICE_PREIMAGE = 'pair25-network-crypto-notice-predecessor-bytes/THIRD_PARTY.yml'
@@ -498,6 +523,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
 } | {
     PAIR25_PREFIX + name for name in PAIR25_CHANGES
 } | {
+    PAIR26_PREFIX + name for name in PAIR26_REPLACEMENTS | {SOURCE_INPUTS_MANIFEST}
+} | {
     SWIFT_VERSION_PREFIX + name for name in SWIFT_VERSION_CHANGES
 } | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
@@ -526,6 +553,7 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     *(HOSTED_V86_PREFIX + name for name in HOSTED_V86_CHANGES),
     *(HOSTED_V87_PREFIX + name for name in HOSTED_V74_CHANGES),
     *(HOSTED_V88_PREFIX + name for name in HOSTED_V74_CHANGES),
+    *(HOSTED_V89_PREFIX + name for name in HOSTED_V74_CHANGES),
     PAIR25_RUST_NOTICES_PREIMAGE,
     STATEFUL_WAST_NOTICE_PREIMAGE,
     PAIR25_NETWORK_CRYPTO_NOTICE_PREIMAGE,
@@ -694,11 +722,12 @@ def install_inputs():
                              'hosted_v78_transition', 'hosted_v79_transition', 'hosted_v80_transition', 'hosted_v81_transition',
                              'hosted_v82_transition', 'android_sparse_timeout_workflow',
                              'hosted_v83_transition', 'hosted_v84_transition', 'hosted_v85_transition',
-                             'hosted_v86_transition', 'hosted_v87_transition', 'hosted_v88_transition', 'pair25_rust_notices',
+                             'hosted_v86_transition', 'hosted_v87_transition', 'hosted_v88_transition',
+                             'hosted_v89_transition', 'pair25_rust_notices',
                              'stateful_wast_notices', 'pair25_network_crypto_notices',
                              'android_inspection_deadline_transition', 'receipt_directory_transition',
                              'receipt_parent_url_test_transition', 'swiftpm_migration_transition',
-                             'store_reconciliation_fixture_transition', 'android_stock_libz_transition',
+                             'store_reconciliation_fixture_transition', 'android_stock_libz_transition', 'pair26_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -782,6 +811,15 @@ def install_inputs():
     pair25_preimages = {
         name: previous.read(HERE / (PAIR25_PREFIX + name)) for name in PAIR25_CHANGES
     }
+    pair26 = binding['pair26_transition']
+    require(set(pair26) == {'baseRevision', 'sourceBefore', 'sourceAfter', 'changes', 'profileAfter'} and
+            pair26['baseRevision'] == PAIR26_PREDECESSOR_REVISION and
+            pair26['sourceBefore'] == ANDROID_STOCK_LIBZ_SOURCE_SHA256 and
+            set(pair26['changes']) == PAIR26_REPLACEMENTS | PAIR26_ADDITIONS,
+            'Pair26 transition roster differs')
+    pair26_preimages = {
+        name: previous.read(HERE / PAIR26_PREFIX / name) for name in PAIR26_REPLACEMENTS
+    }
     preimages = {}
     for name, change in binding['changes'].items():
         require(set(change) == {'before', 'after', 'mode'} and
@@ -806,6 +844,8 @@ def install_inputs():
                 raw = pair25_preimages.get(name)
             if raw is None and name in private_f10_preimages:
                 raw, _ = private_f10_preimages[name]
+            if raw is None:
+                raw = pair26_preimages.get(name)
             if raw is None:
                 raw = previous.read(path)
             require(previous.row(raw) == change['after'], 'Pair23 archive owner differs: ' + name)
@@ -1681,6 +1721,7 @@ def install_inputs():
         (86, HOSTED_V86_PREFIX, HOSTED_V86_CHANGES),
         (87, HOSTED_V87_PREFIX, HOSTED_V74_CHANGES),
         (88, HOSTED_V88_PREFIX, HOSTED_V74_CHANGES),
+        (89, HOSTED_V89_PREFIX, HOSTED_V74_CHANGES),
     ):
         transition = binding[f'hosted_v{version}_transition']
         require(set(transition) == {'changes'} and set(transition['changes']) == changes and
@@ -1980,11 +2021,37 @@ def install_inputs():
     require(expected_source[ANDROID_BUILD_DRIVER] == driver_change['before'],
             'Android stock libz source preimage differs')
     expected_source[ANDROID_BUILD_DRIVER] = driver_change['after']
-    require(current == expected_source and
-            previous.digest(current) == libz['sourceAfter'] == ANDROID_STOCK_LIBZ_SOURCE_SHA256 and
+    pair25_source_path = HERE / PAIR26_PREFIX / SOURCE_INPUTS_MANIFEST
+    pair25_source = previous.load(pair25_source_path)
+    require(pair25_source == expected_source and len(pair25_source) == 157 and
+            previous.digest(pair25_source) == libz['sourceAfter'] == ANDROID_STOCK_LIBZ_SOURCE_SHA256 and
+            stat.S_IMODE(pair25_source_path.lstat().st_mode) == 0o644,
+            'Pair25 Source157 predecessor differs')
+    require(PAIR26_REPLACEMENTS <= installed.keys() and
+            PAIR26_ADDITIONS.isdisjoint(installed.keys() | historical.keys()) and
+            (PAIR26_REPLACEMENTS | PAIR26_ADDITIONS) & current.keys() == PAIR26_SOURCE_CHANGES,
+            'Pair26 installed file roster differs')
+    for name, change in pair26['changes'].items():
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == installed.get(name) and change['before'] != change['after'] and
+                change['mode'] == stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'Pair26 installed owner row or mode differs: ' + name)
+        if name in PAIR26_REPLACEMENTS:
+            path = HERE / PAIR26_PREFIX / name
+            raw = pair26_preimages[name]
+            require(previous.row(raw) == change['before'] and
+                    stat.S_IMODE(path.lstat().st_mode) == change['mode'],
+                    'Pair26 predecessor bytes or mode differ: ' + name)
+            preimages.setdefault(name, (raw, change['mode']))
+        if name in PAIR26_SOURCE_CHANGES:
+            require(expected_source[name] == change['before'], 'Pair26 source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        installed[name] = change['after']
+    require(current == expected_source and len(current) == 157 and
+            previous.digest(current) == pair26['sourceAfter'] == PAIR26_SOURCE_SHA256 and
             binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
-                                  'sha256': ANDROID_STOCK_LIBZ_SOURCE_SHA256},
-            'Android stock libz source transition differs')
+                                  'sha256': PAIR26_SOURCE_SHA256},
+            'Pair26 source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in store_fixture['changes'].items():
@@ -2039,12 +2106,20 @@ def install_inputs():
     require(pair24['profileAfter'] == expected_pair24, 'Archive Pair24 starter profile differs')
     require(adapter_files[RENDERER] == pair25['changes']['native/android/' + RENDERER]['before'],
             'Pair24 renderer preimage differs')
-    adapter_files = {**adapter_files, RENDERER: current['native/android/' + RENDERER]}
-    expected_current = {**expected_pair24, 'id': 'mixer.android-source-pair.25', 'adapter_files': adapter_files,
+    adapter_files = {**adapter_files, RENDERER: pair25_source['native/android/' + RENDERER]}
+    expected_pair25 = {**expected_pair24, 'id': 'mixer.android-source-pair.25', 'adapter_files': adapter_files,
+                       'adapter_compatibility_sha256': previous.digest(adapter_files)}
+    require(pair25['profileAfter'] == expected_pair25, 'Archive Pair25 renderer profile differs')
+    for name in PAIR26_ADAPTER_CHANGES:
+        require(adapter_files[name] == pair26['changes']['native/android/' + name]['before'],
+                'Pair25 profile preimage differs: ' + name)
+    adapter_files = {**adapter_files, **{name: current['native/android/' + name]
+                                        for name in PAIR26_ADAPTER_CHANGES}}
+    expected_profile = {**expected_pair25, 'id': 'mixer.android-source-pair.26', 'adapter_files': adapter_files,
                         'adapter_compatibility_sha256': previous.digest(adapter_files)}
-    require(pair25['profileAfter'] == expected_current == profile and
+    require(pair26['profileAfter'] == expected_profile == profile and
             previous.profile_summary(profile) == binding['profile'],
-            'Archive Pair25 renderer profile differs')
+            'Archive Pair26 editor recovery profile differs')
     selector_path = ROOT / 'cli/build-tests/current_android_profile.py'
     selector = previous.module('native_archive_current_selector', selector_path)
     require(selector.load_current_profile(ROOT) == profile, 'Current source-pair selector differs')
@@ -2095,6 +2170,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_pair25_source157_sha256': binding['pair26_transition']['sourceBefore'],
             'predecessor_android_stock_libz_sha256': binding['android_stock_libz_transition']['sourceBefore'],
             'predecessor_private_f10_sha256': binding['fieldlog_signed_editor_transition']['sourceBefore'],
             'predecessor_native_fingerprint_sha256': binding['private_f10_transition']['sourceBefore'],

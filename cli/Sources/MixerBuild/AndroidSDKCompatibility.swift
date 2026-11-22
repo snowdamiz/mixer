@@ -75,7 +75,7 @@ enum AndroidSDKCompatibility {
     static let profile: AndroidSDKProfile = {
         try! JSONDecoder().decode(AndroidSDKProfile.self, from: Data(#"""
         {
-          "adapter_compatibility_sha256": "2262a2c8945476c98a98fd809a26f124181b2104337a71b10595af3bc9f19531",
+          "adapter_compatibility_sha256": "5c25efb522d5adb082234208ba9084a31f86eb0edd055244856c810a5bf9b3d7",
           "adapter_files": {
             "Sources/MixerAndroidRuntime/DocumentSession.swift": {
               "bytes": 5338,
@@ -130,8 +130,8 @@ enum AndroidSDKCompatibility {
               "sha256": "eec46229f1419353debfc47935a2c5a207a134c257cd04d6354978fc9c04e91f"
             },
             "app/src/dev/mixer/android/NativeAppearanceViewsV2.java": {
-              "bytes": 154153,
-              "sha256": "34feafa32dcf94f5fb235e01b7f9515704e50664f39508ead18aaad35d009f65"
+              "bytes": 156570,
+              "sha256": "b574e94d69209b497fc78075ef7a6a82931f732065878178ec7de3dcc864eb18"
             },
             "app/src/dev/mixer/android/NativeBridge.java": {
               "bytes": 1076,
@@ -154,12 +154,12 @@ enum AndroidSDKCompatibility {
               "sha256": "7a072fbf56ed128ffe2f580195a6856afc8cf34c31585e1a61443c0f7d84e119"
             },
             "app/src/dev/mixer/android/NativeOwnerV2.java": {
-              "bytes": 28195,
-              "sha256": "f60ed1ea454bef15d9c298e0556f99514d91aa9a26490f712a2f9a3d6c1dd1c5"
+              "bytes": 37077,
+              "sha256": "5b476580ac99581ace15f7f62239224a4332cc4db87e6f71927f1f68becae49f"
             },
             "app/src/dev/mixer/android/NativeRenderer.java": {
-              "bytes": 114521,
-              "sha256": "f23b3f4ddcc2503f9b5ef00f88f3f6ccb40882e0fbbce97789a5a8ff7b868b51"
+              "bytes": 115102,
+              "sha256": "dfc7bac9690989608584918780f07616286695e1a7e9b7e5a454b05d84606788"
             },
             "app/src/dev/mixer/android/OwnerLifecycleV2.java": {
               "bytes": 13120,
@@ -190,7 +190,7 @@ enum AndroidSDKCompatibility {
             "bytes": 9587,
             "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
           },
-          "id": "mixer.android-source-pair.25",
+          "id": "mixer.android-source-pair.26",
           "schema": 1,
           "sdk_compatibility_sha256": "0d030f8bba31045d58ddf1b2def3a5541efc1a15295d93e565405b77965861d8",
           "sdk_files": {

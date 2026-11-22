@@ -1569,9 +1569,15 @@ Independent review passed the three-file Note recovery patch. Its clean
 development APK passed two API 36 Home returns without a Note tap.
 Both preserved Activity, process and workspace bytes and accepted the
 exact IME edit. All 125 and 131 commands closed. No forced callback or
-diagnostic hooks were present. The public source-pair integration
-is a separate step.
+diagnostic hooks were present.
 [Clean Note Home replay](verification/receipts/l02-android-note-product-clean-home-api36-613fb3c1.json)
+
+The Pair26 review branch binds the same three Java sources and updates
+the hosted source inventory to v89. The clean Android bootstrap passed
+45 tests in each Python mode, and the focused Swift run passed 27.
+Both installed source verifiers passed in both modes. The local
+historical cutover unittest timed out, and remote CI is pending.
+[Pair26 and hosted source receipt](verification/receipts/android-source-pair26-hosted-v89-adoption-926f6d94.json)
 
 The IME-switch experiment withheld an overlapping connection and posted
 a public restart after the exact predecessor closed. Android briefly
@@ -4090,6 +4096,7 @@ open.
 A second run with the same APK saved the raw epoch logs, live journals,
 hierarchies and workspace snapshots. Readback matched one successful
 display witness pair inside each launch window, including warm rollback.
+Independent review matched all 20 captures and replayed the journals.
 The parser needed to accept logcat's leading spaces. The raw workspace
 shows one new reorder event and exact continuity through rollback and
 offline reopen. All 172 commands closed. The trace and journal still

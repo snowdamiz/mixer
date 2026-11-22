@@ -87,6 +87,7 @@ final class NativeAppearanceViewsV2 {
         Mutation mutation();
         boolean editorRetained(Record record);
         boolean editorDispatchAvailable(Record record);
+        default Gate committedInputGate(Record record) { return null; }
         void editorEnter(Record record, EditorLease lease);
         void editorLeave(Record record, EditorLease lease);
         boolean editorCloseAllowed(Record record,NativeField.Attempt attempt);
@@ -1252,6 +1253,8 @@ return;
             if(failure instanceof java.lang.Error fatal&&firstFatal==null)firstFatal=fatal;
         }
         private void revoke(boolean terminal) {
+            if (terminal && record != null && record.editorFence.inputRecovery != null)
+                record.editorFence.inputRecovery.fieldLosing(this, false);
             if(terminal)permanent=true;
             if(attempt!=null) {
                 attempt.revoked=true;
@@ -1437,9 +1440,30 @@ return;
             int left=Math.min(start,end),right=Math.max(start,end);
             return validBuffer(buffer.subSequence(0,left).toString()+value+buffer.subSequence(right,buffer.length()),record.binding.source);
         }
+        boolean resumeInputIdle(Attempt predecessor) {
+            return record.verticalInput && record.view == this && record.constructed && record.binding != null
+                && !record.changing && record.scoped == null && !denied() && phase == Phase.IDLE
+                && depth == 0 && !finishing && replacement == null && record.editorCallbackLease == null
+                && record.fieldDisposal == null && record.fieldTransition == null && record.fieldPreservation == null
+                && attempt == predecessor && predecessor.target != null && predecessor.revoked && predecessor.close == Close.RETURNED
+                && record.input.editorDispatchAvailable(record) && record.input.editorRetained(record);
+        }
+        boolean resumeInputReady(Attempt predecessor) {
+            return resumeInputIdle(predecessor) && nativeEditable() == predecessor.editable
+                && hasFocus() && hasWindowFocus() && isEnabled() && isAttachedToWindow() && isShown()
+                && resumeInputIdle(predecessor);
+        }
+        boolean resumeInputLive(Attempt predecessor) {
+            return live() && nativeEditable() == predecessor.editable;
+        }
         @Override public android.view.inputmethod.InputConnection onCreateInputConnection(EditorInfo info) {
             NativeEnvironmentV2.requireMain();
-            if(info==null||info.getClass()!=EditorInfo.class||replacement!=null||finishing||depth!=0||phase==Phase.CREATING||phase==Phase.CLOSING||phase==Phase.DRAINING||phase==Phase.QUARANTINED||!live())return null;
+            boolean valid = info != null && info.getClass() == EditorInfo.class && replacement == null && !finishing
+                && depth == 0 && phase != Phase.CREATING && phase != Phase.CLOSING
+                && phase != Phase.DRAINING && phase != Phase.QUARANTINED;
+            if (record != null && record.editorFence.inputRecovery != null)
+                record.editorFence.inputRecovery.creating(this, valid);
+            if (!valid || !live()) return null;
             if(attempt!=null&&attempt.close!=Close.RETURNED&&attempt.close!=Close.NO_TARGET){revoke(false);drain();surface();if(phase!=Phase.IDLE)return null;}
             Mutation mutation=entryMutation();mutation.require();Editable editable=nativeEditable();
             if(editable==null)return null;
@@ -1583,6 +1607,17 @@ return;
             Mutation mutation=parent==null?((!record.editorFence.drawAllowed&&!record.editorFence.inputAllowed)?Mutation.cleanup(record.editorFence):entryMutation()):parent.original;
             EditorLease lease=begin(attempt,mutation,hook,true);if(lease==null){surface();return;}
             try {
+                var recovery = record.editorFence.inputRecovery;
+                if (recovery != null) {
+                    if (event == FieldLifecycle.WINDOW_FOCUS) {
+                        if (loss) recovery.windowLosing(this);
+                        else recovery.windowGaining(this);
+                    } else if (event == FieldLifecycle.WINDOW_VISIBILITY) {
+                        recovery.windowVisibilityChanged(this, loss);
+                    } else if (loss) {
+                        recovery.fieldLosing(this, event != FieldLifecycle.FOCUS && event != FieldLifecycle.DETACH);
+                    }
+                }
                 if(loss)actualLoss(denial);else gain.run();
                 nativeCall.run();lease.check();
             }catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
@@ -1622,6 +1657,7 @@ return;
                 drain();surface();if(phase!=Phase.IDLE)throw new IllegalStateException("Editable predecessor unresolved");
             }
             available(false);Mutation mutation=entryMutation();mutation.requireMutation();
+            if (record.editorFence.inputRecovery != null) record.editorFence.inputRecovery.fieldLosing(this, false);
             super.setText(value,type);mutation.require();
         }
         private boolean widget(String hook,java.util.function.Supplier<Boolean> validation,java.util.function.Supplier<Boolean> nativeCall) {

@@ -113,7 +113,7 @@ def admission_paths(root=None, binding=None):
                     'swiftpm_migration_transition', 'fieldlog_commit_transition',
                     'native_fingerprint_transition', 'private_f10_transition',
                     'fieldlog_signed_editor_transition', 'store_reconciliation_fixture_transition',
-                    'android_stock_libz_transition'):
+                    'android_stock_libz_transition', 'pair26_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -494,7 +494,10 @@ class SparseControls(unittest.TestCase):
             libz = binding['android_stock_libz_transition']
             self.assertEqual(editor['sourceAfter'], libz['sourceBefore'])
             self.assertEqual(observed['predecessor_android_stock_libz_sha256'], libz['sourceBefore'])
-            self.assertEqual(observed['source_sha256'], libz['sourceAfter'])
+            pair26 = binding['pair26_transition']
+            self.assertEqual(pair26['sourceBefore'], libz['sourceAfter'])
+            self.assertEqual(observed['predecessor_pair25_source157_sha256'], pair26['sourceBefore'])
+            self.assertEqual(observed['source_sha256'], pair26['sourceAfter'])
             self.assertEqual(observed['source_sha256'], binding['source']['sha256'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']
@@ -574,6 +577,21 @@ class SparseControls(unittest.TestCase):
                 self.assertIn(b'Android stock libz predecessor bytes or mode differ', failed.stderr)
             finally:
                 driver_before.chmod(0o644)
+            pair25_preimages = repo / SOURCE_BINDING.parent / 'pair26-predecessor-bytes'
+            pair25_source = json.loads((pair25_preimages / 'current-source-inputs.json').read_bytes())
+            self.assertEqual(len(pair25_source), 157)
+            self.assertEqual(B.canonical().source_digest(pair25_source), pair26['sourceBefore'])
+            for name in ('native/android/app/src/dev/mixer/android/NativeOwnerV2.java',
+                         'native/android/tests/private-owner-host-roster.json'):
+                path = repo / name
+                raw = path.read_bytes()
+                try:
+                    path.write_bytes((pair25_preimages / name).read_bytes())
+                    failed = command(python + [str(adopter), 'verify', '--workflow-installed'])
+                    self.assertEqual(failed.returncode, 1)
+                    self.assertIn(('Owning bytes differ: ' + name).encode(), failed.stderr)
+                finally:
+                    path.write_bytes(raw)
             restored = base / 'source141'
             command(python + [str(adopter), 'prepare-source141', '--out', str(restored)], check=True)
             progress = Path('cli/build-tests/test_android_inspection_progress.py')
