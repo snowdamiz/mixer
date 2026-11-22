@@ -29,6 +29,8 @@ WABT_URL = (
     "wabt-1.0.37-macos-14.tar.gz"
 )
 WABT_HASH = "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
+MEMORY_GROW = "memory_grow.wast"
+MEMORY_GROW_HASH = "8ab4f6e3343f46b4b5aa988de1b102d442228807073838b79563e6b34e2ef0aa"
 PROFILE = "mixer-table-memory-v3"
 FEATURE = "experimental-capability-native"
 MAX_EXPORT_BYTES = 32 * 1024 * 1024
@@ -187,6 +189,29 @@ def expect_report(report, status, code, context):
     require(report["host_calls_used"] == 0, f"{context}: unexpected host calls")
 
 
+def expected_return(row, context):
+    values = row["expected"]
+    require(len(values) <= 1, f"{context}: selected result is outside the scalar subset")
+    return value_bits(values[0]) if values else None
+
+
+def check_native_invocation(report, row, context):
+    trap = TRAPS[row["text"]] if row["type"] == "assert_trap" else None
+    expect_report(report, 2 if trap else 0, trap or "", context)
+    require(report["fuel_used"] > 0, f"{context}: invocation consumed no fuel")
+    if trap:
+        return
+
+    kind = VALUE_TYPES[report["value_type"]] if report["value_type"] else None
+    installed = None
+    if kind:
+        # The C report carries signed integers, zero-extended f32, or raw f64 bits.
+        width = 64 if kind == "f32" else WIDTHS[kind]
+        installed = kind, report["value"] % (1 << width)
+    expected = expected_return(row, context)
+    require(installed == expected, f"{context}: expected {expected}, C={report}")
+
+
 def validate(commands, label, core, client, validator, wasm, *, invalid, guest_code):
     wabt_diagnostic, core_code, guest_code = invalid or ("", "", guest_code)
     raw = commands.run(f"{label}-wabt", [validator, wasm], expected=int(bool(invalid)))
@@ -224,28 +249,74 @@ def invoke(commands, label, core, client, wasm, row):
                              ("create", "invoke", "close"))
     for phase in ("create", "close"):
         expect_report(reports[phase], 0, "", f"{label} {phase}")
-    invocation = reports["invoke"]
-    expect_report(invocation, 2 if trap else 0, trap or "", f"{label} invoke")
-    require(invocation["fuel_used"] > 0, f"{label}: invocation consumed no fuel")
+    check_native_invocation(reports["invoke"], row, f"{label} invoke")
 
     if trap:
         require(core_report["ok"] is False and core_report["error"]["code"] == trap,
                 f"{label}: wrong core trap: {core_report}")
     else:
-        expected = row["expected"]
-        require(len(expected) <= 1, f"{label}: selected result is outside the scalar subset")
-        expected = value_bits(expected[0]) if expected else None
-        kind = VALUE_TYPES[invocation["value_type"]] if invocation["value_type"] else None
-        installed = None
-        if kind:
-            # The C report carries signed integers, zero-extended f32, or raw f64 bits.
-            width = 64 if kind == "f32" else WIDTHS[kind]
-            installed = kind, invocation["value"] % (1 << width)
+        expected = expected_return(row, label)
         require(core_report["ok"] is True and core_report["profile"] == PROFILE
                 and core_report["export"] == field and core_report["host_calls_used"] == 0
-                and core_result(core_report["result"]) == expected and installed == expected,
-                f"{label}: expected {expected}, core={core_report}, C={invocation}")
+                and core_result(core_report["result"]) == expected,
+                f"{label}: expected {expected}, core={core_report}")
     return {"core": core_report, "installed_c": reports}
+
+
+def replay_memory_growth(commands, scratch, translator, reference, client, record):
+    directory = scratch / "memory-grow"
+    directory.mkdir()
+    source = directory / MEMORY_GROW
+    url = f"{SPEC_URL}/{MEMORY_GROW}"
+    record["fixtures"][MEMORY_GROW] = {
+        "url": url, "sha256": fetch(commands, "memory-grow-fetch", url, source,
+                                    MEMORY_GROW_HASH, 512 * 1024),
+    }
+    manifest = directory / "commands.json"
+    commands.run("memory-grow-translate", [translator, source, "-o", manifest])
+    script = json.loads(manifest.read_text())
+    module, *rows = script["commands"]
+    end = next(index for index, row in enumerate(rows) if row["type"] == "module")
+    rows = [row for row in rows[:end] if 19 <= row["line"] <= 23]
+    require(module["type"] == "module" and module["line"] == 1
+            and module["filename"] == "commands.0.wasm"
+            and [row["line"] for row in rows] == [19, 20, 21, 22, 23],
+            "memory_grow: unexpected first module or missing successful invocation")
+    reset = rows[0]
+    wasm = directory / module["filename"]
+    argv = [client, wasm, "--sequence"]
+    for index, row in enumerate(rows):
+        action = row["action"]
+        require(row["type"] == "assert_return" and action["type"] == "invoke"
+                and "module" not in action, f"memory_grow:{row['line']}: unexpected action")
+        if index:
+            argv.append("--")
+        argv.extend([action["field"], *(invocation_arg(value) for value in action["args"])])
+
+    # Repeat the first grow assertion. Its result is the previous size in pages.
+    script["commands"] = [module, *rows, module, reset]
+    reference_script = directory / "selected.json"
+    reference_script.write_text(json.dumps(script))
+    stateful = record["stateful"] = {
+        "fixture": MEMORY_GROW, "module": module, "wasm_sha256": digest(wasm.read_bytes()),
+        "wasm_bytes": wasm.stat().st_size, "upstream": rows, "reset_upstream_line": reset["line"],
+        "reference_manifest_sha256": digest(reference_script.read_bytes()),
+    }
+    output = commands.run("memory-grow-reference", [reference, reference_script]).decode().splitlines()
+    stateful["reference_output"] = output
+    count = len(script["commands"])
+    require(output[-1:] == [f"{count}/{count} tests passed."],
+            f"memory_grow: incomplete WABT run: {output}")
+
+    phases = tuple(f"invoke-{index}" for index in range(len(rows)))
+    reports = native_reports(commands.run("memory-grow-c-sequence", argv),
+                             ("create", *phases, "close", "reset-create", "reset-invoke", "reset-close"))
+    stateful["installed_c"] = reports
+    for phase in ("create", "close", "reset-create", "reset-close"):
+        expect_report(reports[phase], 0, "", f"memory_grow {phase}")
+    for phase, row in zip(phases, rows, strict=True):
+        check_native_invocation(reports[phase], row, f"memory_grow:{row['line']}")
+    check_native_invocation(reports["reset-invoke"], reset, "memory_grow reset")
 
 
 def copy_install(scratch, release, source):
@@ -374,12 +445,14 @@ def replay(commands, scratch, rust, record):
 
     wabt_archive = scratch / "wabt.tar.gz"
     fetch(commands, "download-wabt", WABT_URL, wabt_archive, WABT_HASH, 24 * 1024 * 1024)
-    translator, validator = [Path("wabt-1.0.37/bin") / name for name in ("wast2json", "wasm-validate")]
-    commands.run("extract-wabt", ["/usr/bin/tar", "-xzf", wabt_archive, translator, validator])
-    translator, validator = scratch / translator, scratch / validator
-    for tool in (translator, validator):
+    tools = [Path("wabt-1.0.37/bin") / name
+             for name in ("wast2json", "wasm-validate", "spectest-interp")]
+    commands.run("extract-wabt", ["/usr/bin/tar", "-xzf", wabt_archive, *tools])
+    translator, validator, reference = (scratch / tool for tool in tools)
+    for tool in (translator, validator, reference):
         record["tools"][tool.name] = commands.run(tool.name, [tool, "--version"]).decode().strip()
 
+    replay_memory_growth(commands, scratch, translator, reference, client, record)
     for script, fixture in FIXTURES.items():
         directory = scratch / script
         directory.mkdir()

@@ -19,18 +19,26 @@ metadata must resolve the exported package and every target, including examples,
 inside the verified tree. The script stages the release archive and exported public
 headers in the experimental capability install layout, then links the exported
 C client directly against that archive. It downloads the
-pinned WABT release and five WebAssembly Core WAST files over HTTPS and checks
+pinned WABT release and six WebAssembly Core WAST files over HTTPS and checks
 their SHA-256 hashes. [WABT release](https://github.com/WebAssembly/wabt/releases/tag/1.0.37) ·
 [WebAssembly test sources](https://github.com/WebAssembly/spec/tree/05ca4182176763112561ae20153975c12bd689e4/test/core)
 
 The script translates each WAST file and passes the selected Wasm bytes through
-unchanged. It checks assertions against the upstream expected bits or trap and
-requires the same outcome from the Rust CLI and the installed archive's
-`mixer_vm_session_*_v1` C ABI for `mixer-table-memory-v3`. Each invocation starts
-with a fresh instance, including each memory assertion. The client closes its
-session after both returns and traps. For `assert_invalid` it checks the WABT
+unchanged. For each independent invocation, the Rust CLI and the installed
+archive's `mixer_vm_session_*_v1` C ABI start with a fresh instance under
+`mixer-table-memory-v3`. The script checks each outcome against the upstream
+expected bits or trap. For `assert_invalid` the script checks the WABT
 diagnostic and both Mixer validators' refusal codes. Mixer uses its default VM
 and capability limits throughout.
+
+The five consecutive successful assertions on lines 19–23 of
+`memory_grow.wast` run in one installed C session and in WABT's
+`spectest-interp`. They check growth from zero pages, a zero-initialized load,
+and a load that observes the previous store. Both runners instantiate the same
+module again and replay the first growth assertion, which returns the previous
+page count of zero. The WAST bytes, translated module, and selected assertion
+rows stay intact. The full upstream block hits a bounds trap on line 15. Mixer
+then reports `session_terminal` on line 16.
 
 `replay.py` lists the exact case selectors by WABT JSON line. For binary
 `assert_invalid` commands, WABT can report the nested module's source line.
@@ -44,7 +52,7 @@ exports or defined memory. Guest UI V1 refuses them, so successful execution
 evidence covers the shared V3 instruction profile through the V3 session ABI.
 The selected invalid `load.wast` module declares memory and reaches the Guest
 UI V1 body type check. This replay covers a fixed subset on the macOS host.
-Stateful WAST sequences, Guest UI V1 application execution, and W08/L03 gate
+Guest UI V1 application execution and W08/L03 gate
 qualification are outside its evidence.
 
 The JSON receipt records the source revision, VM tree, Cargo targets, exact

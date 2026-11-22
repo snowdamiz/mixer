@@ -17,8 +17,64 @@ static void report(const char *phase, uint32_t status, const MixerVmReport *out)
            out->value, out->fuel_used, out->host_calls_used, (const char *)out->code);
 }
 
+static int invoke(uint64_t handle, const char *phase, int argc, char **argv) {
+    if (argc < 1 || argc > 5) return 64;
+    MixerVmValue args[4] = {0};
+    for (int i = 1; i < argc; i++) {
+        const char *argument = argv[i];
+        if (strncmp(argument, "i32:", 4) == 0) args[i - 1].value_type = 1;
+        else if (strncmp(argument, "i64:", 4) == 0) args[i - 1].value_type = 2;
+        else return 64;
+        char *end;
+        errno = 0;
+        intmax_t value = strtoimax(argument + 4, &end, 10);
+        if (errno || end == argument + 4 || *end) return 64;
+        args[i - 1].value = value;
+    }
+
+    MixerVmReport out = {0};
+    uint32_t status = mixer_vm_session_invoke_v1(
+        handle, (const uint8_t *)argv[0], strlen(argv[0]), args, argc - 1, &out);
+    report(phase, status, &out);
+    return 0;
+}
+
+static int call_length(int argc, char **argv) {
+    int count = 0;
+    while (count < argc && strcmp(argv[count], "--") != 0) count++;
+    return count;
+}
+
+static int run_session(size_t size, int argc, char **argv, int sequence, int reset) {
+    MixerVmReport out = {0};
+    uint64_t handle = 0;
+    uint32_t status = mixer_vm_session_create_v1(3, module, size, NULL, &handle, &out);
+    report(reset ? "reset-create" : "create", status, &out);
+    if (status != 0 || handle == 0) return 65;
+
+    int result = 0;
+    if (sequence) {
+        int start = 0;
+        for (int index = 0; start < argc && result == 0; index++) {
+            int length = call_length(argc - start, argv + start);
+            char phase[32];
+            snprintf(phase, sizeof(phase), "invoke-%d", index);
+            result = invoke(handle, phase, length, argv + start);
+            start += length;
+            if (start == argc) break;
+            if (++start == argc) result = 64;
+        }
+    } else {
+        result = invoke(handle, reset ? "reset-invoke" : "invoke", argc, argv);
+    }
+
+    status = mixer_vm_session_close_v1(handle, &out);
+    report(reset ? "reset-close" : "close", status, &out);
+    return status == 0 ? result : 65;
+}
+
 int main(int argc, char **argv) {
-    if (argc < 2 || argc > 7) return 64;
+    if (argc < 2) return 64;
     FILE *file = fopen(argv[1], "rb");
     if (!file) return 66;
     size_t size = fread(module, 1, sizeof(module), file);
@@ -35,27 +91,11 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    MixerVmValue args[4] = {0};
-    for (int i = 3; i < argc; i++) {
-        const char *argument = argv[i];
-        if (strncmp(argument, "i32:", 4) == 0) args[i - 3].value_type = 1;
-        else if (strncmp(argument, "i64:", 4) == 0) args[i - 3].value_type = 2;
-        else return 64;
-        char *end;
-        errno = 0;
-        intmax_t value = strtoimax(argument + 4, &end, 10);
-        if (errno || end == argument + 4 || *end) return 64;
-        args[i - 3].value = value;
+    if (strcmp(argv[2], "--sequence") != 0) {
+        return run_session(size, argc - 2, argv + 2, 0, 0);
     }
-
-    uint64_t handle = 0;
-    status = mixer_vm_session_create_v1(3, module, size, NULL, &handle, &out);
-    report("create", status, &out);
-    if (status != 0 || handle == 0) return 65;
-    status = mixer_vm_session_invoke_v1(handle, (const uint8_t *)argv[2],
-                                        strlen(argv[2]), args, argc - 3, &out);
-    report("invoke", status, &out);
-    status = mixer_vm_session_close_v1(handle, &out);
-    report("close", status, &out);
-    return status == 0 ? 0 : 65;
+    if (argc < 4) return 64;
+    int result = run_session(size, argc - 3, argv + 3, 1, 0);
+    if (result != 0) return result;
+    return run_session(size, call_length(argc - 3, argv + 3), argv + 3, 0, 1);
 }

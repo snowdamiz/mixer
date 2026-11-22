@@ -1642,6 +1642,15 @@ installed V3 session C ABI agreed on the selected upstream cases. Guest UI v1
 coverage consists of admission refusals. The replay used a private Git export,
 and all 79 command groups closed. [Replay commands](vm/verification/standards-replay/README.md) · [Integration receipt](verification/receipts/l03-standards-replay-integration-9f4acf56.json)
 
+The maintained stateful replay ran five consecutive upstream memory
+assertions in one installed V3 C session on arm64 macOS. Mixer and WABT
+agreed on memory growth, initial zero bytes, the store and its readback,
+and a fresh instance with zero prior pages. The full upstream block
+traps on the first zero-page access in both runners. Mixer then reports
+a terminal session, while WABT continues. Independent replay passed the
+selected sequence, the 19 existing assertions and six runner controls.
+[Stateful memory replay](verification/receipts/l03-stateful-memory-e414fa1a.json)
+
 The installed Guest UI v1 validator refused all 616 single-bit mutations
 of three required export names in each host build profile. Each refusal
 used zero guest fuel and host calls and retained zero caller-thread

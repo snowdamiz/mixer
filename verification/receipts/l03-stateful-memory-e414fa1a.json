@@ -1,0 +1,1129 @@
+{
+  "schema_version": 1,
+  "scope": "W08/L03 arm64 macOS host evidence for one linear-memory sequence through the installed V3 C session API",
+  "public_base_revision": "e414fa1a10f03cc45aa800e951913d0b8ac2651e",
+  "profile": "mixer-table-memory-v3",
+  "installed_feature": "experimental-capability-native",
+  "environment": "arm64 macOS",
+  "tools": {
+    "python": "3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0",
+    "wast2json": "1.0.36 (git~1.0.37)",
+    "wasm-validate": "1.0.36 (git~1.0.37)",
+    "spectest-interp": "1.0.36 (git~1.0.37)"
+  },
+  "spec_revision": "05ca4182176763112561ae20153975c12bd689e4",
+  "fixture": {
+    "name": "memory_grow.wast",
+    "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/memory_grow.wast",
+    "sha256": "8ab4f6e3343f46b4b5aa988de1b102d442228807073838b79563e6b34e2ef0aa"
+  },
+  "wabt_release": {
+    "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz",
+    "sha256": "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
+  },
+  "wasm": {
+    "source_module_line": 1,
+    "sha256": "8b8a761b24aebf615ec003a510eedbed97addac46f5c4e7f0c51157bedda65fd",
+    "bytes": 181
+  },
+  "full_upstream_block_attempt": {
+    "source_revision": "3d859b303cbf2b16ff68c45d7c63ba5c1c4cd125",
+    "vm_tree": "9ce395f0960182b49543da416c0f518b7cb95a5c",
+    "vm_export_files": 485,
+    "runner_sha256": {
+      "replay.py": "e42813e65bc7f096c89bfe5499363611a945a6456d85233149e148e8dff257a9",
+      "commands.py": "91285d42f7f3a36d60ff9af1cdcc08a7e01a698a64db144c867162ba4156aeb7"
+    },
+    "installed_artifacts_sha256": {
+      "mixer-vm": "85f89363b2bdc9e30537b015af4024c592f9716566067314718146a5e616b42c",
+      "libmixer_vm_capability_experimental.a": "f8906e32e35067a8a67eaf8509832ef2e7d10c0f5a4d56e6b5bc8786da10d241",
+      "client": "7298c3c88c609455a0d02e40a38f925969914e8a0ecf981bcd6347376e757b8a",
+      "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+      "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+      "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "mixer_vm_guest_ui_deferred.h": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+    },
+    "started_utc": "2026-11-22T00:02:05.712884+00:00",
+    "replay_argv": [
+      "vm/verification/standards-replay/replay.py",
+      "--rust-bin",
+      "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin",
+      "--receipt",
+      "../l03-stateful-e414-full.json"
+    ],
+    "wall_seconds": 2.96,
+    "time_l_maximum_rss_bytes": 285278208,
+    "reference_manifest_sha256": "960609e9e7aceaebc1cba4c00c625b152828eb5585b7d6885fc04625ef06d034",
+    "wabt_summary": "23/23 tests passed.",
+    "command_argv": {
+      "build": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "--locked",
+        "--offline",
+        "build",
+        "--release",
+        "--lib",
+        "--bin",
+        "mixer-vm",
+        "--no-default-features",
+        "--features",
+        "experimental-capability-native",
+        "--manifest-path",
+        "/Users/andreyyurlov/.mixer-vm-standards-1zzhwtq5/vm/Cargo.toml"
+      ],
+      "link-client": [
+        "/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "/Users/andreyyurlov/.mixer-vm-standards-1zzhwtq5/install/include",
+        "/Users/andreyyurlov/.mixer-vm-standards-1zzhwtq5/vm/verification/standards-replay/client.c",
+        "/Users/andreyyurlov/.mixer-vm-standards-1zzhwtq5/install/lib/libmixer_vm_capability_experimental.a",
+        "-o",
+        "/Users/andreyyurlov/.mixer-vm-standards-1zzhwtq5/client"
+      ],
+      "memory-grow-reference": [
+        "/Users/andreyyurlov/.mixer-vm-standards-1zzhwtq5/wabt-1.0.37/bin/spectest-interp",
+        "/Users/andreyyurlov/.mixer-vm-standards-1zzhwtq5/memory-grow/selected.json"
+      ],
+      "memory-grow-c-sequence": [
+        "/Users/andreyyurlov/.mixer-vm-standards-1zzhwtq5/client",
+        "/Users/andreyyurlov/.mixer-vm-standards-1zzhwtq5/memory-grow/commands.0.wasm",
+        "--sequence",
+        "size",
+        "--",
+        "store_at_zero",
+        "--",
+        "load_at_zero",
+        "--",
+        "store_at_page_size",
+        "--",
+        "load_at_page_size",
+        "--",
+        "grow",
+        "i32:1",
+        "--",
+        "size",
+        "--",
+        "load_at_zero",
+        "--",
+        "store_at_zero",
+        "--",
+        "load_at_zero",
+        "--",
+        "store_at_page_size",
+        "--",
+        "load_at_page_size",
+        "--",
+        "grow",
+        "i32:4",
+        "--",
+        "size",
+        "--",
+        "load_at_zero",
+        "--",
+        "store_at_zero",
+        "--",
+        "load_at_zero",
+        "--",
+        "load_at_page_size",
+        "--",
+        "store_at_page_size",
+        "--",
+        "load_at_page_size"
+      ]
+    },
+    "scratch": "/Users/andreyyurlov/.mixer-vm-standards-1zzhwtq5",
+    "scratch_removed": true,
+    "command_custody": {
+      "all": "output EOF, child reaped, owned process group absent",
+      "columns": [
+        "command",
+        "pid_equals_pgid",
+        "exit_code",
+        "output_sha256"
+      ],
+      "rows": [
+        [
+          "revision",
+          84902,
+          0,
+          "0873d77f8250d7eb20b37cba1083dd92a2cbf1d697685f608238d0490c002d20"
+        ],
+        [
+          "vm-tree",
+          84904,
+          0,
+          "7e4686cbc9022c9f6c99dd16bf6e1e07e1cc259427949b31142ecafae02310f1"
+        ],
+        [
+          "vm-blobs",
+          84905,
+          0,
+          "ab2a4304d2bdcf0bb0eeb04c859f766e8a9fc9ea832a0a6c2d5004ec42b45e56"
+        ],
+        [
+          "export-vm",
+          84906,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "macos",
+          84907,
+          0,
+          "4ef10a0fc370704ea84699cf3851e51488598c5f1ab35cb572eb6b96278a8e5c"
+        ],
+        [
+          "cargo-version",
+          84908,
+          0,
+          "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+        ],
+        [
+          "rustc-version",
+          84909,
+          0,
+          "8dc912acd5bfeafc70b01b1d2a2afb0844afa02f5dba2f1ae8d5c212d005afb6"
+        ],
+        [
+          "clang-version",
+          84910,
+          0,
+          "b8a2569d699eec50baaf1719096d0801d16fb28fbcb2df7ffd0a07cd26d9fd47"
+        ],
+        [
+          "curl-version",
+          84911,
+          0,
+          "70631102a19b01fd5d0e0fa35a74d1c6616a2c7f5068e09e2209e921be454fe1"
+        ],
+        [
+          "cargo-metadata",
+          84912,
+          0,
+          "2b65016327158976db2ad96cddc9119b9e0a7e317a6fb65770d88cd114758118"
+        ],
+        [
+          "build",
+          84913,
+          0,
+          "53f80f802566879a235a4f5b52a80ee3d8fd5107c31b5455ee4802f4e4ae5515"
+        ],
+        [
+          "link-client",
+          84931,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "download-wabt",
+          84939,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "extract-wabt",
+          84941,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "wast2json",
+          84942,
+          0,
+          "ac00ce7f180c846540f2abe95df11d2d5293c888f116667be7bfa61019923f00"
+        ],
+        [
+          "wasm-validate",
+          84943,
+          0,
+          "ac00ce7f180c846540f2abe95df11d2d5293c888f116667be7bfa61019923f00"
+        ],
+        [
+          "spectest-interp",
+          84944,
+          0,
+          "ac00ce7f180c846540f2abe95df11d2d5293c888f116667be7bfa61019923f00"
+        ],
+        [
+          "memory-grow-fetch",
+          84945,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "memory-grow-translate",
+          84946,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "memory-grow-reference",
+          84947,
+          0,
+          "72470ba93c76755b46e8d28f3fc50f6e5f5fe432b64920a46c69a4d1d7a1f92e"
+        ],
+        [
+          "memory-grow-c-sequence",
+          84948,
+          0,
+          "f340dc02e75faa73938086cd5214ea499684bce083e7c3e96e179ae5dc1c715f"
+        ]
+      ]
+    },
+    "result": "post_trap_session_refusal",
+    "upstream_assertions": 20,
+    "failure": "memory_grow:16: expected status/code (2, 'memory_out_of_bounds'), got {'status': 2, 'code': 'session_terminal', 'value_type': 0, 'value': 0, 'fuel_used': 0, 'host_calls_used': 0}",
+    "first_trap": {
+      "upstream": {
+        "type": "assert_trap",
+        "line": 15,
+        "action": {
+          "type": "invoke",
+          "field": "store_at_zero",
+          "args": []
+        },
+        "text": "out of bounds memory access",
+        "expected": []
+      },
+      "installed_c": {
+        "status": 2,
+        "code": "memory_out_of_bounds",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 3,
+        "host_calls_used": 0
+      }
+    },
+    "following_invoke": {
+      "upstream": {
+        "type": "assert_trap",
+        "line": 16,
+        "action": {
+          "type": "invoke",
+          "field": "load_at_zero",
+          "args": []
+        },
+        "text": "out of bounds memory access",
+        "expected": [
+          {
+            "type": "i32"
+          }
+        ]
+      },
+      "installed_c": {
+        "status": 2,
+        "code": "session_terminal",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      }
+    },
+    "wabt_corresponding_traps": [
+      "/Users/andreyyurlov/.mixer-vm-standards-1zzhwtq5/memory-grow/memory_grow.wast:15: assert_trap passed: out of bounds memory access: access at 0+4 >= max value 0",
+      "/Users/andreyyurlov/.mixer-vm-standards-1zzhwtq5/memory-grow/memory_grow.wast:16: assert_trap passed: out of bounds memory access: access at 0+4 >= max value 0"
+    ]
+  },
+  "maintained_positive_replay": {
+    "source_revision": "705755ed30f27854d9fa3b2a277e5f7706e03345",
+    "vm_tree": "04b90e453645e5f45f14e84c92b6b3596b78a1df",
+    "vm_export_files": 485,
+    "runner_sha256": {
+      "replay.py": "fbb2b6e58d41a98ea5c6d928d85252a3f9ab09b417f2c2da6fb6263925719b63",
+      "commands.py": "91285d42f7f3a36d60ff9af1cdcc08a7e01a698a64db144c867162ba4156aeb7"
+    },
+    "installed_artifacts_sha256": {
+      "mixer-vm": "85f89363b2bdc9e30537b015af4024c592f9716566067314718146a5e616b42c",
+      "libmixer_vm_capability_experimental.a": "f8906e32e35067a8a67eaf8509832ef2e7d10c0f5a4d56e6b5bc8786da10d241",
+      "client": "4f07c667319ad4f1159f676c74db87b6974842d1695d6f07e8ed302ba1826733",
+      "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+      "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+      "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "mixer_vm_guest_ui_deferred.h": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+    },
+    "started_utc": "2026-11-22T00:03:53.640410+00:00",
+    "replay_argv": [
+      "vm/verification/standards-replay/replay.py",
+      "--rust-bin",
+      "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin",
+      "--receipt",
+      "../l03-stateful-e414-positive.json"
+    ],
+    "wall_seconds": 5.46,
+    "time_l_maximum_rss_bytes": 289914880,
+    "reference_manifest_sha256": "ccb08318b4f373cee3b361ffc7144b12fd0a2a1e9a1bbf4839db343342e65b6b",
+    "wabt_summary": "8/8 tests passed.",
+    "command_argv": {
+      "build": [
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "--locked",
+        "--offline",
+        "build",
+        "--release",
+        "--lib",
+        "--bin",
+        "mixer-vm",
+        "--no-default-features",
+        "--features",
+        "experimental-capability-native",
+        "--manifest-path",
+        "/Users/andreyyurlov/.mixer-vm-standards-ej_r59pu/vm/Cargo.toml"
+      ],
+      "link-client": [
+        "/usr/bin/clang",
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I",
+        "/Users/andreyyurlov/.mixer-vm-standards-ej_r59pu/install/include",
+        "/Users/andreyyurlov/.mixer-vm-standards-ej_r59pu/vm/verification/standards-replay/client.c",
+        "/Users/andreyyurlov/.mixer-vm-standards-ej_r59pu/install/lib/libmixer_vm_capability_experimental.a",
+        "-o",
+        "/Users/andreyyurlov/.mixer-vm-standards-ej_r59pu/client"
+      ],
+      "memory-grow-reference": [
+        "/Users/andreyyurlov/.mixer-vm-standards-ej_r59pu/wabt-1.0.37/bin/spectest-interp",
+        "/Users/andreyyurlov/.mixer-vm-standards-ej_r59pu/memory-grow/selected.json"
+      ],
+      "memory-grow-c-sequence": [
+        "/Users/andreyyurlov/.mixer-vm-standards-ej_r59pu/client",
+        "/Users/andreyyurlov/.mixer-vm-standards-ej_r59pu/memory-grow/commands.0.wasm",
+        "--sequence",
+        "grow",
+        "i32:1",
+        "--",
+        "size",
+        "--",
+        "load_at_zero",
+        "--",
+        "store_at_zero",
+        "--",
+        "load_at_zero"
+      ]
+    },
+    "scratch": "/Users/andreyyurlov/.mixer-vm-standards-ej_r59pu",
+    "scratch_removed": true,
+    "command_custody": {
+      "all": "output EOF, child reaped, owned process group absent",
+      "columns": [
+        "command",
+        "pid_equals_pgid",
+        "exit_code",
+        "output_sha256"
+      ],
+      "rows": [
+        [
+          "revision",
+          93690,
+          0,
+          "c6f4eb3c1c765b7f1ee6ee449bdf105dd2659d8ba341b463877ad88a198788d5"
+        ],
+        [
+          "vm-tree",
+          93739,
+          0,
+          "e98a6c5b3faaf2ac30c2b15a3855065a84c04e16a1958287d37b888899135ad5"
+        ],
+        [
+          "vm-blobs",
+          93745,
+          0,
+          "78ac19afa97bc8fd3d401ce75aee70c69407a51c385ffd83f7f44968efd6c103"
+        ],
+        [
+          "export-vm",
+          93751,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "macos",
+          93787,
+          0,
+          "4ef10a0fc370704ea84699cf3851e51488598c5f1ab35cb572eb6b96278a8e5c"
+        ],
+        [
+          "cargo-version",
+          93792,
+          0,
+          "1f88eaf7fe1aaec83184752cf4c944cd22f00184136ff36a3e4c318cc60ef566"
+        ],
+        [
+          "rustc-version",
+          93803,
+          0,
+          "8dc912acd5bfeafc70b01b1d2a2afb0844afa02f5dba2f1ae8d5c212d005afb6"
+        ],
+        [
+          "clang-version",
+          93836,
+          0,
+          "b8a2569d699eec50baaf1719096d0801d16fb28fbcb2df7ffd0a07cd26d9fd47"
+        ],
+        [
+          "curl-version",
+          93863,
+          0,
+          "70631102a19b01fd5d0e0fa35a74d1c6616a2c7f5068e09e2209e921be454fe1"
+        ],
+        [
+          "cargo-metadata",
+          93869,
+          0,
+          "21442815b696d4299001a013ea75e133e62d3211e871b2f19613d3c9a4258dbb"
+        ],
+        [
+          "build",
+          93878,
+          0,
+          "7cae5d49dbe9174c144a81818c94b921d08e33a6354f7fc45f1b568175e93bf5"
+        ],
+        [
+          "link-client",
+          94401,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "download-wabt",
+          94452,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "extract-wabt",
+          94499,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "wast2json",
+          94506,
+          0,
+          "ac00ce7f180c846540f2abe95df11d2d5293c888f116667be7bfa61019923f00"
+        ],
+        [
+          "wasm-validate",
+          94520,
+          0,
+          "ac00ce7f180c846540f2abe95df11d2d5293c888f116667be7bfa61019923f00"
+        ],
+        [
+          "spectest-interp",
+          94528,
+          0,
+          "ac00ce7f180c846540f2abe95df11d2d5293c888f116667be7bfa61019923f00"
+        ],
+        [
+          "memory-grow-fetch",
+          94536,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "memory-grow-translate",
+          94559,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "memory-grow-reference",
+          94561,
+          0,
+          "8c19426f5da35d7f9e83e7a43b9547f87348720418033d2ac21ce45743e2d428"
+        ],
+        [
+          "memory-grow-c-sequence",
+          94564,
+          0,
+          "f124fdc59911e0da50e3e8fe93ee2772c2f4157ea2abaa9af58140d90ffe916e"
+        ],
+        [
+          "unreached-valid-fetch",
+          94576,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "unreached-valid-translate",
+          94601,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "unreached-valid-49-wabt",
+          94604,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "unreached-valid-49-core-validate",
+          94607,
+          0,
+          "7e4acab766472d05c87c1ebd17f8414dba34ad386a8003994a1f1209c4f41486"
+        ],
+        [
+          "unreached-valid-49-c-validate",
+          94618,
+          0,
+          "f0153d848a1dc7996e03e867a76b1e046dcbe48814ccce7c21c0aaada2b1d95c"
+        ],
+        [
+          "unreached-valid-63-core-invoke",
+          94621,
+          2,
+          "f0184742ec385060fb9d3a379e720a5a45b9d952ffa6997974cb61033bd52e87"
+        ],
+        [
+          "unreached-valid-63-c-invoke",
+          94624,
+          0,
+          "f00071efd12923d6431d9bcab2be5980969488a4a0c77cd2c2b4fed018fadc3e"
+        ],
+        [
+          "i32-fetch",
+          94626,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "i32-translate",
+          94650,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "i32-3-wabt",
+          94655,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "i32-3-core-validate",
+          94658,
+          0,
+          "b6e9f320e77b6eb8d5b8d0ee468b6263bca31eb98ca1a03d22ab917a47e7054f"
+        ],
+        [
+          "i32-3-c-validate",
+          94659,
+          0,
+          "f0153d848a1dc7996e03e867a76b1e046dcbe48814ccce7c21c0aaada2b1d95c"
+        ],
+        [
+          "i32-39-core-invoke",
+          94662,
+          0,
+          "bb17ecab45d5480785ac3294d2168d2a8ad5213827d117d2ce218f5e4f77487f"
+        ],
+        [
+          "i32-39-c-invoke",
+          94664,
+          0,
+          "6242bfbef193769abf05a4a78852f21a692a8c510558c13b80a8bffe46b9e9a2"
+        ],
+        [
+          "i32-41-core-invoke",
+          94667,
+          0,
+          "de65f0055b17438e94afbb10b21f41329e0bcfaa7dd899040d9f49da7bb2fb2a"
+        ],
+        [
+          "i32-41-c-invoke",
+          94668,
+          0,
+          "40fa1a6db28cb917c788870357e537f21a2c75b18c8210462d8e819a6eb64035"
+        ],
+        [
+          "i32-64-core-invoke",
+          94670,
+          2,
+          "d38493f589b156dc529aff4b4a75fab41e7de9f1a9d9576a9ecf2f977ebd74db"
+        ],
+        [
+          "i32-64-c-invoke",
+          94673,
+          0,
+          "be9ad3b5d2e63435b86447c584605bbc566b1c9fcd55a39310b0969ddb33111e"
+        ],
+        [
+          "i32-66-core-invoke",
+          94676,
+          2,
+          "64865ffbf0555d941441f247e7a7c329577b52ede1f83687a5383cf7e95b7421"
+        ],
+        [
+          "i32-66-c-invoke",
+          94679,
+          0,
+          "dcae39d326e6ed51ff025834b488c980584facdf9a02ba703fb454a3aefd4c65"
+        ],
+        [
+          "i32-72-core-invoke",
+          94682,
+          0,
+          "b12ba7e205a2376c5d904f5d53074354907748f02eebcdb8751139f7ebd25255"
+        ],
+        [
+          "i32-72-c-invoke",
+          94685,
+          0,
+          "c723da388f14db9deb716fb0b760da25703a4d423af10875ff1d25565878c902"
+        ],
+        [
+          "i32-220-core-invoke",
+          94688,
+          0,
+          "72a9acce5fb4a541d1b3783b96c1e6106feb2dc8ceda9bf6e283ba08ad486c94"
+        ],
+        [
+          "i32-220-c-invoke",
+          94690,
+          0,
+          "fdd4ddb4d1f285b80333cc3afb68d9931bc540481c9a0d88fcb0f7d47545b6ef"
+        ],
+        [
+          "i32-228-core-invoke",
+          94692,
+          0,
+          "aefb7224bf8923586ea4261137491bcb4ce5f7947bf85b3c042b2c2c7143c5db"
+        ],
+        [
+          "i32-228-c-invoke",
+          94694,
+          0,
+          "40fa1a6db28cb917c788870357e537f21a2c75b18c8210462d8e819a6eb64035"
+        ],
+        [
+          "i32-444-wabt",
+          94696,
+          1,
+          "cdd49695496797531701fab76c5781579f4c98de7f045f06fd0846222adec501"
+        ],
+        [
+          "i32-444-core-validate",
+          94698,
+          2,
+          "28ac82fe8754aa3725a6c071255f637dac0a09b41c022336d5e6672fb4e7ec63"
+        ],
+        [
+          "i32-444-c-validate",
+          94701,
+          0,
+          "726022910722fce39181c010bcc309705780b0026ba96c6f24ee0df14536fcd7"
+        ],
+        [
+          "memory-fetch",
+          94703,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "memory-translate",
+          94731,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "memory-51-wabt",
+          94732,
+          1,
+          "36ca86c656d434949bf362813b879f1a998eb0fe3eff128a717a8b6d521db5ac"
+        ],
+        [
+          "memory-51-core-validate",
+          94733,
+          2,
+          "e7cc0048752b8d576e9a1fcab159cdb5e9ef862da0a61765f4c4e33008b75676"
+        ],
+        [
+          "memory-51-c-validate",
+          94734,
+          0,
+          "1794528a6ad6ba8f4304556aa377437f5f5f8d9c3f8a5334eb63c955e28d04ec"
+        ],
+        [
+          "memory-92-wabt",
+          94735,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "memory-92-core-validate",
+          94736,
+          0,
+          "6b8fef8d1c4ce154be8da5a128a08bb8be2d3e386786d7a27c95625e4c3121d9"
+        ],
+        [
+          "memory-92-c-validate",
+          94737,
+          0,
+          "ee00183cefb48d2890e3921e6e3f165809a57a14d9d5d9607e62998a083f4d59"
+        ],
+        [
+          "memory-180-core-invoke",
+          94738,
+          0,
+          "ea8cfcc310aaad5dd2ff0a039e5f00942b93e60fdeebe79e1fe60ad6f2eea811"
+        ],
+        [
+          "memory-180-c-invoke",
+          94739,
+          0,
+          "f55b27e8f34f7c23fe094b8af25165a8fe033831d010b69e9f6f467eb5a01bfd"
+        ],
+        [
+          "memory-181-core-invoke",
+          94740,
+          0,
+          "69fb18780a7a9c2b090d1d6d00a4f6157ca5b75b8a6f0a6cd10708aa4ef3d4d6"
+        ],
+        [
+          "memory-181-c-invoke",
+          94741,
+          0,
+          "861070feaaffec58febd3e33518f88f21b79d33f8d59152345f3369f126e23f2"
+        ],
+        [
+          "memory-183-core-invoke",
+          94742,
+          0,
+          "11eef0c0972e9b84d4fe6d47a2a6e62f4becd2cad4fe9deeba859456e1ea4402"
+        ],
+        [
+          "memory-183-c-invoke",
+          94743,
+          0,
+          "955924d3d375a03b195992ca2a2b458990ca0ca5444a52f38b7539ae219fdbe4"
+        ],
+        [
+          "memory-184-core-invoke",
+          94744,
+          0,
+          "9868e8ca92d6f86e8b48b055fcc3b147558234bdfe99c9881771c11110f1e2f8"
+        ],
+        [
+          "memory-184-c-invoke",
+          94745,
+          0,
+          "86a8f9a45e253923716bcf0ded47e28d2184f8c7acca274c63327c150fd6129d"
+        ],
+        [
+          "memory-207-core-invoke",
+          94746,
+          0,
+          "61e96417b76de7d7d633b3f7bbb34b9010b014c0de9db16aa3c44c60f88687b6"
+        ],
+        [
+          "memory-207-c-invoke",
+          94747,
+          0,
+          "5a34e7a71c5178ea2213c35bc76e0410ad7c366bb32c36d2d3ca031de30ab808"
+        ],
+        [
+          "br_table-fetch",
+          94748,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "br_table-translate",
+          94749,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "br_table-1462-wabt",
+          94750,
+          1,
+          "3dbdaad5277da7096d68ce8c74d473cf50bd608a1291174ace4d508eed8dce2b"
+        ],
+        [
+          "br_table-1462-core-validate",
+          94751,
+          2,
+          "405b0df61f4259ceead618aeeeafe9823e8b090ce6d354c84d483e20ed08b717"
+        ],
+        [
+          "br_table-1462-c-validate",
+          94752,
+          0,
+          "726022910722fce39181c010bcc309705780b0026ba96c6f24ee0df14536fcd7"
+        ],
+        [
+          "br_table-1481-wabt",
+          94753,
+          1,
+          "7ac1ad42ee6e4c90512b709f2affb4fdb82b14af713a14e7caf22fb89de92ff1"
+        ],
+        [
+          "br_table-1481-core-validate",
+          94754,
+          2,
+          "a1a912d483cf700296846c045f82f6b31c1903f933f57c49e6a05fd05805057a"
+        ],
+        [
+          "br_table-1481-c-validate",
+          94755,
+          0,
+          "726022910722fce39181c010bcc309705780b0026ba96c6f24ee0df14536fcd7"
+        ],
+        [
+          "br_table-1605-wabt",
+          94756,
+          1,
+          "0b12badbe3eeab719e600edc5fdba97dc2ff3a93aaba5a3f76c11a94ae5502cc"
+        ],
+        [
+          "br_table-1605-core-validate",
+          94757,
+          2,
+          "495a0d8d4b4fbf813b4fd4c5deaed06c8a5d528a983049c04973dfddc0b15a8a"
+        ],
+        [
+          "br_table-1605-c-validate",
+          94758,
+          0,
+          "726022910722fce39181c010bcc309705780b0026ba96c6f24ee0df14536fcd7"
+        ],
+        [
+          "load-fetch",
+          94759,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "load-translate",
+          94760,
+          0,
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        [
+          "load-312-wabt",
+          94761,
+          1,
+          "37c7fca8dfeb13c0a0368e1fc41f00d9268ce1de0888ed7c624bdf99c89c06bb"
+        ],
+        [
+          "load-312-core-validate",
+          94762,
+          2,
+          "5b5b27489c994b0dce88677c854f886e5b8ac0e3d8033d04e890b142c8cd16fa"
+        ],
+        [
+          "load-312-c-validate",
+          94763,
+          0,
+          "023dacd049e83c241643f0994a7b594c9ffc43832ea3a610022fe55031068f1f"
+        ]
+      ]
+    },
+    "result": "passed",
+    "assertions": [
+      {
+        "upstream": {
+          "type": "assert_return",
+          "line": 19,
+          "action": {
+            "type": "invoke",
+            "field": "grow",
+            "args": [
+              {
+                "type": "i32",
+                "value": "1"
+              }
+            ]
+          },
+          "expected": [
+            {
+              "type": "i32",
+              "value": "0"
+            }
+          ]
+        },
+        "installed_c": {
+          "status": 0,
+          "code": "",
+          "value_type": 1,
+          "value": 0,
+          "fuel_used": 3,
+          "host_calls_used": 0
+        }
+      },
+      {
+        "upstream": {
+          "type": "assert_return",
+          "line": 20,
+          "action": {
+            "type": "invoke",
+            "field": "size",
+            "args": []
+          },
+          "expected": [
+            {
+              "type": "i32",
+              "value": "1"
+            }
+          ]
+        },
+        "installed_c": {
+          "status": 0,
+          "code": "",
+          "value_type": 1,
+          "value": 1,
+          "fuel_used": 2,
+          "host_calls_used": 0
+        }
+      },
+      {
+        "upstream": {
+          "type": "assert_return",
+          "line": 21,
+          "action": {
+            "type": "invoke",
+            "field": "load_at_zero",
+            "args": []
+          },
+          "expected": [
+            {
+              "type": "i32",
+              "value": "0"
+            }
+          ]
+        },
+        "installed_c": {
+          "status": 0,
+          "code": "",
+          "value_type": 1,
+          "value": 0,
+          "fuel_used": 3,
+          "host_calls_used": 0
+        }
+      },
+      {
+        "upstream": {
+          "type": "assert_return",
+          "line": 22,
+          "action": {
+            "type": "invoke",
+            "field": "store_at_zero",
+            "args": []
+          },
+          "expected": []
+        },
+        "installed_c": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 4,
+          "host_calls_used": 0
+        }
+      },
+      {
+        "upstream": {
+          "type": "assert_return",
+          "line": 23,
+          "action": {
+            "type": "invoke",
+            "field": "load_at_zero",
+            "args": []
+          },
+          "expected": [
+            {
+              "type": "i32",
+              "value": "2"
+            }
+          ]
+        },
+        "installed_c": {
+          "status": 0,
+          "code": "",
+          "value_type": 1,
+          "value": 2,
+          "fuel_used": 3,
+          "host_calls_used": 0
+        }
+      }
+    ],
+    "reset": {
+      "upstream": {
+        "type": "assert_return",
+        "line": 19,
+        "action": {
+          "type": "invoke",
+          "field": "grow",
+          "args": [
+            {
+              "type": "i32",
+              "value": "1"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "0"
+          }
+        ]
+      },
+      "installed_c": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": 0,
+        "fuel_used": 3,
+        "host_calls_used": 0
+      }
+    },
+    "installed_c_lifecycle": {
+      "create": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      },
+      "close": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      },
+      "reset-create": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      },
+      "reset-close": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      }
+    },
+    "existing_independent_replay": {
+      "assert_trap": 3,
+      "assert_return": 10,
+      "assert_invalid": 6
+    }
+  }
+}
