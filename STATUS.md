@@ -1256,6 +1256,21 @@ commit. All 190 commands and both services closed, all three ports
 rebound, and scratch was removed.
 [Installed signed Commit and report handoff](verification/receipts/fieldlog-android-signed-commit-report-settings-ac305262.json)
 
+The same APK created an ordinary task offline with the assignee field
+still focused. Save recorded exactly one taskSaved event. The selected
+project, original queue, draft, and all seven JPEGs survived. A fresh
+app process rendered the new task from the exact saved workspace.
+[Installed task creation baseline](verification/receipts/fieldlog-android-saved-task-predecessor-ac305262.json)
+
+The maintained FieldLog Swift task client now supports an injected
+bounded exchange. The Apple initializer passed the two-replica macOS
+replay, including the stale edit, explicit merge, and exact retry after
+a lost acknowledgement. SQLite recorded two events. Pinned Android
+Swift compiled the client with an injected transaction. The Android I/O
+and installed conflict cases remain open.
+[Exact Swift task patch](verification/receipts/fieldlog-ios-task-conflict-injected-f2865989.patch) ·
+[Source and host verification](verification/receipts/fieldlog-ios-task-conflict-injected-f2865989.json)
+
 ## November 21 current FieldLog Android queue
 
 The Pair25 queue port ran the ordinary On device screen on macOS with

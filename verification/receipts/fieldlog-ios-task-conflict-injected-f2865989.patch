@@ -1,0 +1,2391 @@
+diff --git a/Backend/local_entry_sync.py b/Backend/local_entry_sync.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..d6119af3714fa16e15f1cd4ed5c3f403daff4613
+--- /dev/null
++++ b/Backend/local_entry_sync.py
+@@ -0,0 +1,490 @@
++"""Private FieldLog entry sync for a provisioned localhost test account.
++
++Launch with ``with make_server(database, accounts) as server:`` and call
++``server.serve_forever()``. The origin is ``http://127.0.0.1:{server.server_port}``.
++Account IDs and bearer tokens are strings. Scope UUIDs in ``accounts`` are lowercase.
++
++SQLite readback joins these tables on (account_id, workspace_id, project_id, event_id):
++    entry_events(account_id, workspace_id, project_id, event_id, entry_id,
++                 event_json, entry_json)
++    entry_photos(account_id, workspace_id, project_id, event_id, photo_id, jpeg)
++All dedicated ID columns use lowercase UUIDs, except account_id (as provisioned).
++The JSON columns contain the Swift objects with uppercase UUIDs and numeric Dates.
++The jpeg column contains the decoded BLOB. There is one photo per accepted event.
++"""
++
++from __future__ import annotations
++
++import base64
++from collections.abc import Mapping
++from contextlib import closing
++import hashlib
++from http import HTTPStatus
++from http.server import BaseHTTPRequestHandler, HTTPServer
++import json
++import math
++from pathlib import Path
++import re
++import sqlite3
++
++
++MAX_REQUEST_BYTES = 9 * 1024 * 1024
++MAX_JPEG_BYTES = 6 * 1024 * 1024
++UUID_PATTERN = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
++ROUTE = re.compile(
++    rf"/v1/workspaces/({UUID_PATTERN})/projects/({UUID_PATTERN})/entries/({UUID_PATTERN})"
++)
++TASK_ROUTE = re.compile(
++    rf"/v1/workspaces/({UUID_PATTERN})/projects/({UUID_PATTERN})/tasks/({UUID_PATTERN})"
++)
++UUID_TEXT = re.compile(UUID_PATTERN)
++MAX_TASK_REQUEST_BYTES = 8192
++MAX_TASK_VERSION = 2**63 - 1
++TOKEN_PATTERN = r"[A-Za-z0-9._~+/-]+=*"
++BEARER = re.compile(rf"Bearer +({TOKEN_PATTERN})", re.IGNORECASE | re.ASCII)
++TOKEN = re.compile(TOKEN_PATTERN)
++# Match Foundation CharacterSet.whitespacesAndNewlines used by FieldLog titles.
++TITLE_WHITESPACE = (
++    "\u0009\u000a\u000b\u000c\u000d\u0020\u0085\u00a0\u1680"
++    + "".join(chr(code) for code in range(0x2000, 0x200C))
++    + "\u2028\u2029\u202f\u205f\u3000"
++)
++
++Scope = tuple[str, str]
++Accounts = Mapping[str, tuple[str, set[Scope]]]
++
++SCHEMA = """
++CREATE TABLE IF NOT EXISTS entry_events (
++    account_id TEXT NOT NULL,
++    workspace_id TEXT NOT NULL,
++    project_id TEXT NOT NULL,
++    event_id TEXT NOT NULL,
++    entry_id TEXT NOT NULL,
++    event_json TEXT NOT NULL,
++    entry_json TEXT NOT NULL,
++    PRIMARY KEY (account_id, workspace_id, project_id, event_id)
++) WITHOUT ROWID;
++CREATE TABLE IF NOT EXISTS entry_photos (
++    account_id TEXT NOT NULL,
++    workspace_id TEXT NOT NULL,
++    project_id TEXT NOT NULL,
++    event_id TEXT NOT NULL,
++    photo_id TEXT NOT NULL,
++    jpeg BLOB NOT NULL,
++    PRIMARY KEY (account_id, workspace_id, project_id, event_id),
++    FOREIGN KEY (account_id, workspace_id, project_id, event_id)
++        REFERENCES entry_events (account_id, workspace_id, project_id, event_id)
++) WITHOUT ROWID;
++CREATE TABLE IF NOT EXISTS task_heads (
++    account_id TEXT NOT NULL,
++    workspace_id TEXT NOT NULL,
++    project_id TEXT NOT NULL,
++    task_id TEXT NOT NULL,
++    version INTEGER NOT NULL CHECK (version > 0),
++    text_json TEXT NOT NULL,
++    PRIMARY KEY (account_id, workspace_id, project_id, task_id)
++) WITHOUT ROWID;
++CREATE TABLE IF NOT EXISTS task_events (
++    account_id TEXT NOT NULL,
++    workspace_id TEXT NOT NULL,
++    project_id TEXT NOT NULL,
++    task_id TEXT NOT NULL,
++    event_id TEXT NOT NULL,
++    proposal_json TEXT NOT NULL,
++    receipt_json TEXT NOT NULL,
++    PRIMARY KEY (account_id, workspace_id, project_id, task_id, event_id),
++    FOREIGN KEY (account_id, workspace_id, project_id, task_id)
++        REFERENCES task_heads (account_id, workspace_id, project_id, task_id)
++) WITHOUT ROWID;
++"""
++
++
++class RequestError(Exception):
++    def __init__(self, status: HTTPStatus, code: str):
++        super().__init__(code)
++        self.status = status
++
++
++def _object_pairs(pairs):
++    result = {}
++    for key, value in pairs:
++        if key in result:
++            raise ValueError("duplicate JSON key")
++        result[key] = value
++    return result
++
++
++def _object(value, *keys):
++    if not isinstance(value, dict) or value.keys() != set(keys):
++        raise ValueError("unexpected JSON object fields")
++    return value
++
++
++def _body_uuid(value) -> str:
++    if not isinstance(value, str) or value != value.upper():
++        raise ValueError("invalid Swift UUID")
++    lowercase = value.lower()
++    if not UUID_TEXT.fullmatch(lowercase):
++        raise ValueError("invalid Swift UUID")
++    return lowercase
++
++
++def _date(value) -> float:
++    if type(value) not in (int, float) or not math.isfinite(value):
++        raise ValueError("invalid Swift Date")
++    return float(value)
++
++
++def _validate_text(value, maximum: int, *, required: bool = False):
++    if not isinstance(value, str) or len(value.encode("utf-8")) > maximum or "\0" in value:
++        raise ValueError("invalid entry text")
++    if required and not value.strip(TITLE_WHITESPACE):
++        raise ValueError("missing entry title")
++
++
++def _validate_payload(raw: bytes, workspace_id: str, project_id: str, event_id: str):
++    payload = json.loads(raw.decode("utf-8"), object_pairs_hook=_object_pairs)
++    _object(payload, "event", "entry", "photo")
++    event = _object(payload["event"], "id", "kind", "recordID", "revision", "createdAt")
++    entry = _object(
++        payload["entry"], "id", "projectID", "title", "note", "category", "occurredAt",
++        "attachmentIDs", "savedAt",
++    )
++    photo = _object(payload["photo"], "id", "jpeg")
++    entry_id = _body_uuid(entry["id"])
++    photo_id = _body_uuid(photo["id"])
++    attachments = entry["attachmentIDs"]
++    if (
++        _body_uuid(event["id"]) != event_id
++        or _body_uuid(event["recordID"]) != entry_id
++        or _body_uuid(entry["projectID"]) != project_id
++        or not isinstance(attachments, list)
++        or len(attachments) != 1
++        or _body_uuid(attachments[0]) != photo_id
++    ):
++        raise ValueError("entry, event, route or photo UUID mismatch")
++    if event["kind"] != "entrySaved":
++        raise ValueError("unsupported event kind")
++    revision = event["revision"]
++    if type(revision) is not int or not 1 <= revision <= 2**64 - 1:
++        raise ValueError("invalid workspace revision")
++    if entry["category"] not in ("observation", "progress", "issue", "delivery"):
++        raise ValueError("invalid entry category")
++    _validate_text(entry["title"], 160, required=True)
++    _validate_text(entry["note"], 100_000)
++    event["createdAt"] = _date(event["createdAt"])
++    entry["occurredAt"] = _date(entry["occurredAt"])
++    entry["savedAt"] = _date(entry["savedAt"])
++
++    encoded = photo["jpeg"]
++    if not isinstance(encoded, str):
++        raise ValueError("invalid photo data")
++    if len(encoded) > 4 * ((MAX_JPEG_BYTES + 2) // 3):
++        raise RequestError(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "photo_too_large")
++    jpeg = base64.b64decode(encoded, validate=True)
++    if len(jpeg) > MAX_JPEG_BYTES:
++        raise RequestError(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "photo_too_large")
++    if not jpeg.startswith(b"\xff\xd8\xff"):
++        raise ValueError("invalid JPEG prefix")
++
++    receipt = {
++        "eventID": event_id,
++        "workspaceID": workspace_id,
++        "projectID": project_id,
++        "entryID": entry_id,
++        "photoID": photo_id,
++    }
++    return receipt, event, entry, jpeg
++
++
++def _json_bytes(value) -> bytes:
++    return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
++
++
++def _connect(database: Path) -> sqlite3.Connection:
++    connection = sqlite3.connect(database, timeout=5)
++    try:
++        connection.execute("PRAGMA foreign_keys = ON")
++        connection.execute("PRAGMA synchronous = FULL")
++        connection.execute("PRAGMA fullfsync = ON")
++    except sqlite3.Error:
++        connection.close()
++        raise
++    return connection
++
++
++def _commit_event(database: Path, account_id: str, receipt, event, entry, jpeg) -> HTTPStatus:
++    key = (account_id, receipt["workspaceID"], receipt["projectID"], receipt["eventID"])
++    event_row = (receipt["entryID"], _json_bytes(event).decode(), _json_bytes(entry).decode())
++    photo_row = (receipt["photoID"], jpeg)
++    with closing(_connect(database)) as connection, connection:
++        connection.execute("BEGIN IMMEDIATE")
++        existing = connection.execute(
++            """SELECT entry_id, event_json, entry_json, photo_id, jpeg
++               FROM entry_events JOIN entry_photos
++               USING (account_id, workspace_id, project_id, event_id)
++               WHERE account_id = ? AND workspace_id = ? AND project_id = ? AND event_id = ?""",
++            key,
++        ).fetchone()
++        if existing is not None:
++            if existing != event_row + photo_row:
++                raise RequestError(HTTPStatus.CONFLICT, "event_payload_conflict")
++            return HTTPStatus.OK
++
++        connection.execute(
++            """INSERT INTO entry_events
++               (account_id, workspace_id, project_id, event_id, entry_id, event_json, entry_json)
++               VALUES (?, ?, ?, ?, ?, ?, ?)""",
++            key + event_row,
++        )
++        connection.execute(
++            """INSERT INTO entry_photos (account_id, workspace_id, project_id, event_id, photo_id, jpeg)
++               VALUES (?, ?, ?, ?, ?, ?)""",
++            key + photo_row,
++        )
++    return HTTPStatus.CREATED
++
++
++def _task_text(text):
++    _object(text, "title", "responsible")
++    _validate_text(text["title"], 240, required=True)
++    _validate_text(text["responsible"], 160)
++    return text
++
++
++def _task_scope(key):
++    return dict(zip(("workspaceID", "projectID", "taskID"), key[1:], strict=True))
++
++
++def _task_head(connection, key):
++    row = connection.execute(
++        """SELECT version, text_json FROM task_heads
++           WHERE account_id = ? AND workspace_id = ? AND project_id = ? AND task_id = ?""",
++        key,
++    ).fetchone()
++    if row is None:
++        raise RequestError(HTTPStatus.NOT_FOUND, "task_not_found")
++    version, text_json = row
++    return {"scope": _task_scope(key), "version": version, "text": json.loads(text_json)}
++
++
++def provision_task(database, account_id, workspace_id, project_id, task_id, text):
++    """Provision a saved common ancestor for a dedicated local fixture."""
++    key = (account_id, workspace_id, project_id, task_id)
++    if not account_id or not all(UUID_TEXT.fullmatch(value) for value in key[1:]):
++        raise ValueError("invalid task provisioning scope")
++    text_json = _json_bytes(_task_text(text)).decode()
++    with closing(_connect(database)) as connection, connection:
++        connection.execute(
++            """INSERT INTO task_heads
++               (account_id, workspace_id, project_id, task_id, version, text_json)
++               VALUES (?, ?, ?, ?, 1, ?)""",
++            key + (text_json,),
++        )
++
++
++def _task_proposal(raw, key):
++    proposal = _object(
++        json.loads(raw.decode("utf-8"), object_pairs_hook=_object_pairs), "eventID", "base", "text"
++    )
++    event_id = _body_uuid(proposal["eventID"])
++    base = _object(proposal["base"], "scope", "version", "text")
++    scope = _object(base["scope"], "workspaceID", "projectID", "taskID")
++    base["scope"] = {name: _body_uuid(value) for name, value in scope.items()}
++    if base["scope"] != _task_scope(key):
++        raise ValueError("task payload scope differs from route")
++    if type(base["version"]) is not int or not 1 <= base["version"] <= MAX_TASK_VERSION:
++        raise ValueError("invalid task version")
++    _task_text(base["text"])
++    _task_text(proposal["text"])
++    return event_id, proposal
++
++
++def _commit_task(database, key, event_id, proposal):
++    event_key = key + (event_id,)
++    proposal_json = _json_bytes(proposal).decode()
++    with closing(_connect(database)) as connection, connection:
++        connection.execute("BEGIN IMMEDIATE")
++        existing = connection.execute(
++            """SELECT proposal_json, receipt_json FROM task_events
++               WHERE account_id = ? AND workspace_id = ? AND project_id = ? AND task_id = ?
++                 AND event_id = ?""",
++            event_key,
++        ).fetchone()
++        if existing is not None:
++            if existing[0] != proposal_json:
++                raise RequestError(HTTPStatus.CONFLICT, "event_payload_conflict")
++            return HTTPStatus.OK, json.loads(existing[1])
++
++        current = _task_head(connection, key)
++        if current != proposal["base"]:
++            raise RequestError(HTTPStatus.CONFLICT, "stale_task_version")
++        if current["version"] == MAX_TASK_VERSION:
++            raise RequestError(HTTPStatus.CONFLICT, "task_version_limit")
++        head = dict(current, version=current["version"] + 1, text=proposal["text"])
++        receipt = {"eventID": event_id, "head": head}
++        connection.execute(
++            """UPDATE task_heads SET version = ?, text_json = ?
++               WHERE account_id = ? AND workspace_id = ? AND project_id = ? AND task_id = ?""",
++            (head["version"], _json_bytes(head["text"]).decode()) + key,
++        )
++        connection.execute(
++            """INSERT INTO task_events
++               (account_id, workspace_id, project_id, task_id, event_id, proposal_json, receipt_json)
++               VALUES (?, ?, ?, ?, ?, ?, ?)""",
++            event_key + (proposal_json, _json_bytes(receipt).decode()),
++        )
++    return HTTPStatus.CREATED, receipt
++
++
++class EntrySyncHandler(BaseHTTPRequestHandler):
++    timeout = 10
++    server: _EntrySyncServer
++
++    def log_message(self, format, *args):
++        pass
++
++    def _authorize(self, scope: Scope) -> str:
++        headers = self.headers.get_all("Authorization", [])
++        match = BEARER.fullmatch(headers[0]) if len(headers) == 1 else None
++        if match is None:
++            raise RequestError(HTTPStatus.UNAUTHORIZED, "invalid_bearer_token")
++        digest = hashlib.sha256(match[1].encode("ascii")).digest()
++        account = self.server.accounts.get(digest)
++        if account is None:
++            raise RequestError(HTTPStatus.UNAUTHORIZED, "invalid_bearer_token")
++        account_id, scopes = account
++        if scope not in scopes:
++            raise RequestError(HTTPStatus.NOT_FOUND, "scope_not_found")
++        return account_id
++
++    def _read_body(self, maximum=MAX_REQUEST_BYTES) -> bytes:
++        if self.headers.get_all("Transfer-Encoding"):
++            raise RequestError(HTTPStatus.BAD_REQUEST, "unsupported_transfer_encoding")
++        content_types = self.headers.get_all("Content-Type", [])
++        if len(content_types) != 1 or self.headers.get_content_type() != "application/json":
++            raise RequestError(HTTPStatus.UNSUPPORTED_MEDIA_TYPE, "expected_application_json")
++        lengths = self.headers.get_all("Content-Length", [])
++        if not lengths:
++            raise RequestError(HTTPStatus.LENGTH_REQUIRED, "content_length_required")
++        if len(lengths) != 1 or not re.fullmatch(r"[0-9]+", lengths[0]):
++            raise RequestError(HTTPStatus.BAD_REQUEST, "invalid_content_length")
++        digits = lengths[0].lstrip("0") or "0"
++        if len(digits) > len(str(maximum)) or int(digits) > maximum:
++            raise RequestError(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "request_too_large")
++        size = int(digits)
++        try:
++            raw = self.rfile.read(size)
++        except TimeoutError as error:
++            raise RequestError(HTTPStatus.REQUEST_TIMEOUT, "request_body_timeout") from error
++        if len(raw) != size:
++            raise RequestError(HTTPStatus.BAD_REQUEST, "incomplete_request")
++        return raw
++
++    def _send_json(self, status: int, body):
++        data = _json_bytes(body)
++        self.send_response(status)
++        self.send_header("Content-Type", "application/json")
++        self.send_header("Content-Length", str(len(data)))
++        self.send_header("Cache-Control", "no-store")
++        if status == HTTPStatus.UNAUTHORIZED:
++            self.send_header("WWW-Authenticate", "Bearer")
++        self.end_headers()
++        self.wfile.write(data)
++
++    def send_receipt(self, status: int, receipt):
++        """Send the success receipt after the SQLite transaction has committed."""
++        self._send_json(status, receipt)
++
++    def do_GET(self):
++        try:
++            self._handle_task(TASK_ROUTE.fullmatch(self.path))
++        except (BrokenPipeError, ConnectionResetError, TimeoutError):
++            self.close_connection = True
++
++    def do_POST(self):
++        try:
++            if route := TASK_ROUTE.fullmatch(self.path):
++                self._handle_task(route)
++            else:
++                self._handle_entry()
++        except (BrokenPipeError, ConnectionResetError, TimeoutError):
++            self.close_connection = True
++
++    def _handle_task(self, route):
++        try:
++            if route is None:
++                raise RequestError(HTTPStatus.NOT_FOUND, "route_not_found")
++            workspace_id, project_id, task_id = route.groups()
++            account_id = self._authorize((workspace_id, project_id))
++            key = (account_id, workspace_id, project_id, task_id)
++            if self.command == "GET":
++                with closing(_connect(self.server.database)) as connection:
++                    head = _task_head(connection, key)
++                self._send_json(HTTPStatus.OK, head)
++                return
++
++            event_id, proposal = _task_proposal(self._read_body(MAX_TASK_REQUEST_BYTES), key)
++            status, receipt = _commit_task(self.server.database, key, event_id, proposal)
++        except RequestError as error:
++            self._send_json(error.status, {"error": str(error)})
++        except (ValueError, OverflowError, RecursionError):
++            self._send_json(HTTPStatus.BAD_REQUEST, {"error": "invalid_task_payload"})
++        except sqlite3.Error:
++            self._send_json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "storage_unavailable"})
++        else:
++            self.send_receipt(status, receipt)
++
++    def _handle_entry(self):
++        try:
++            route = ROUTE.fullmatch(self.path)
++            if route is None:
++                raise RequestError(HTTPStatus.NOT_FOUND, "route_not_found")
++            workspace_id, project_id, event_id = route.groups()
++            account_id = self._authorize((workspace_id, project_id))
++            raw = self._read_body()
++            receipt, event, entry, jpeg = _validate_payload(raw, workspace_id, project_id, event_id)
++            status = _commit_event(self.server.database, account_id, receipt, event, entry, jpeg)
++        except RequestError as error:
++            self._send_json(error.status, {"error": str(error)})
++            return
++        except (ValueError, OverflowError, RecursionError):
++            self._send_json(HTTPStatus.BAD_REQUEST, {"error": "invalid_entry_payload"})
++            return
++        except sqlite3.Error:
++            self._send_json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "storage_unavailable"})
++            return
++        self.send_receipt(status, receipt)
++
++
++class _EntrySyncServer(HTTPServer):
++    def __init__(self, database, accounts, port, handler_class):
++        self.database = database
++        self.accounts = accounts
++        super().__init__(("127.0.0.1", port), handler_class)
++
++
++def make_server(
++    database: Path,
++    accounts: Accounts,
++    port: int = 0,
++    handler_class: type[EntrySyncHandler] = EntrySyncHandler,
++) -> HTTPServer:
++    """Open a dedicated SQLite file and bind a provisioned server to IPv4 loopback."""
++    owner_by_scope: dict[Scope, str] = {}
++    provisioned: dict[bytes, tuple[str, frozenset[Scope]]] = {}
++    for token, (account_id, scopes) in accounts.items():
++        if not TOKEN.fullmatch(token) or not isinstance(account_id, str) or not account_id:
++            raise ValueError("invalid FieldLog account provisioning")
++        for workspace_id, project_id in scopes:
++            if not UUID_TEXT.fullmatch(workspace_id) or not UUID_TEXT.fullmatch(project_id):
++                raise ValueError("FieldLog provisioned scope must use lowercase UUIDs")
++            scope = (workspace_id, project_id)
++            if owner_by_scope.setdefault(scope, account_id) != account_id:
++                raise ValueError("FieldLog scope has multiple account owners")
++        provisioned[hashlib.sha256(token.encode("ascii")).digest()] = (account_id, frozenset(scopes))
++
++    database = Path(database).resolve()
++    with closing(_connect(database)) as connection:
++        connection.executescript("BEGIN IMMEDIATE;\n" + SCHEMA + "\nCOMMIT;")
++    return _EntrySyncServer(database, provisioned, port, handler_class)
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogModels/TaskEdit.swift b/Integrations/GeneratedReport/Sources/FieldLogModels/TaskEdit.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..4132a0a8cba659500cdd67ec3eb0ad851e6187e7
+--- /dev/null
++++ b/Integrations/GeneratedReport/Sources/FieldLogModels/TaskEdit.swift
+@@ -0,0 +1,104 @@
++import Foundation
++
++public enum TaskTextField: String, CaseIterable, Sendable {
++  case title
++  case responsible
++
++  public var label: String {
++    switch self {
++    case .title: "Title"
++    case .responsible: "Responsible person"
++    }
++  }
++
++  fileprivate var keyPath: WritableKeyPath<TaskText, String> {
++    switch self {
++    case .title: \.title
++    case .responsible: \.responsible
++    }
++  }
++}
++
++public struct TaskText: Codable, Equatable, Sendable {
++  public var title: String
++  public var responsible: String
++
++  init(_ task: WorkTask) {
++    title = task.title
++    responsible = task.responsible
++  }
++
++  func validate() throws {
++    try Workspace.text(title, label: "Task", maximum: 240, required: true)
++    try Workspace.text(responsible, label: "Responsible person", maximum: 160)
++  }
++}
++
++public struct TaskEdit: Codable, Equatable, Identifiable, Sendable {
++  public let id: UUID
++  public let workspaceID: UUID
++  public let taskID: UUID
++  public let projectID: UUID
++  let openedAtRevision: UInt64
++  public let base: TaskText
++  public var text: TaskText
++
++  public init(workspaceID: UUID, revision: UInt64, task: WorkTask) {
++    id = UUID()
++    self.workspaceID = workspaceID
++    taskID = task.id
++    projectID = task.projectID
++    openedAtRevision = revision
++    base = TaskText(task)
++    text = base
++  }
++
++  func conflicts(against task: WorkTask) -> [TaskFieldConflict] {
++    let current = TaskText(task)
++    return TaskTextField.allCases.compactMap { field in
++      let key = field.keyPath
++      let original = base[keyPath: key]
++      let local = text[keyPath: key]
++      let incoming = current[keyPath: key]
++      guard local != original, incoming != original, local != incoming else { return nil }
++      return TaskFieldConflict(field: field, local: local, incoming: incoming)
++    }
++  }
++
++  func merged(against task: WorkTask, choosing choices: [TaskTextField: TaskConflictChoice])
++    -> TaskText
++  {
++    var result = TaskText(task)
++    for field in TaskTextField.allCases {
++      let key = field.keyPath
++      if text[keyPath: key] != base[keyPath: key], choices[field] != .incoming {
++        result[keyPath: key] = text[keyPath: key]
++      }
++    }
++    return result
++  }
++}
++
++struct TaskConflictReceipt: Codable, Equatable, Sendable {
++  let editID: UUID
++  let revision: UInt64
++}
++
++public enum TaskConflictChoice: Sendable {
++  case local
++  case incoming
++}
++
++public struct TaskFieldConflict: Equatable, Identifiable, Sendable {
++  public var id: TaskTextField { field }
++  public let field: TaskTextField
++  public let local: String
++  public let incoming: String
++}
++
++public struct TaskConflictReview: Equatable, Sendable {
++  public let editID: UUID
++  public let taskID: UUID
++  public let revision: UInt64
++  public let conflicts: [TaskFieldConflict]
++}
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogModels/TaskSync.swift b/Integrations/GeneratedReport/Sources/FieldLogModels/TaskSync.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..967f7427b810d96e71c4fbbc2fd4cbd59bdc2ad9
+--- /dev/null
++++ b/Integrations/GeneratedReport/Sources/FieldLogModels/TaskSync.swift
+@@ -0,0 +1,42 @@
++import Foundation
++
++public struct TaskSyncScope: Codable, Equatable, Sendable {
++  public let workspaceID: UUID
++  public let projectID: UUID
++  public let taskID: UUID
++
++  public init(workspaceID: UUID, projectID: UUID, taskID: UUID) {
++    self.workspaceID = workspaceID
++    self.projectID = projectID
++    self.taskID = taskID
++  }
++}
++
++public struct TaskSyncHead: Codable, Equatable, Sendable {
++  public let scope: TaskSyncScope
++  public let version: Int64
++  public let text: TaskText
++
++  public init(scope: TaskSyncScope, version: Int64, text: TaskText) {
++    self.scope = scope
++    self.version = version
++    self.text = text
++  }
++}
++
++public struct TaskSyncUpload: Codable, Equatable, Sendable {
++  public let eventID: UUID
++  public let base: TaskSyncHead
++  public let text: TaskText
++}
++
++struct TaskSyncFlight: Codable, Equatable, Sendable {
++  let upload: TaskSyncUpload
++  let eventCount: Int
++}
++
++struct TaskSyncCheckpoint: Codable, Equatable, Sendable {
++  var head: TaskSyncHead
++  var queued: [UUID] = []
++  var flight: TaskSyncFlight?
++}
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift b/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift
+index 357c9765176ace9967b799792ae9520cd5779797..48681a5e5a37a90b63ae4b309fb871feb8dd65e9 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogModels/Workspace.swift
+@@ -46,0 +47,2 @@ public struct WorkTask: Codable, Equatable, Identifiable, Sendable {
++  var lastConflictResolution: TaskConflictReceipt?
++  var textSync: TaskSyncCheckpoint?
+@@ -162,0 +165 @@ public struct Workspace: Codable, Equatable, Sendable {
++  var pendingTaskEdits: [TaskEdit]?
+@@ -169 +172 @@ public struct Workspace: Codable, Equatable, Sendable {
+-    guard schema == 1 else { throw FieldLogError.unsupportedSchema(schema) }
++    guard (1...3).contains(schema) else { throw FieldLogError.unsupportedSchema(schema) }
+@@ -187,0 +191,18 @@ public struct Workspace: Codable, Equatable, Sendable {
++    if let pendingTaskEdits {
++      guard schema >= 2, pendingTaskEdits.count <= tasks.count else {
++        throw FieldLogError.validation("Invalid saved task conflict records.")
++      }
++      try unique(pendingTaskEdits, \.id)
++      try unique(pendingTaskEdits, \.taskID)
++      let taskProjects = Dictionary(uniqueKeysWithValues: tasks.map { ($0.id, $0.projectID) })
++      for edit in pendingTaskEdits {
++        guard edit.workspaceID == id, taskProjects[edit.taskID] == edit.projectID,
++          edit.openedAtRevision < revision
++        else {
++          throw FieldLogError.missingRecord
++        }
++        try edit.base.validate()
++        try edit.text.validate()
++      }
++    }
++    let pendingByID = Dictionary(uniqueKeysWithValues: outbox.map { ($0.id, $0) })
+@@ -198,2 +219,24 @@ public struct Workspace: Codable, Equatable, Sendable {
+-      try Self.text(task.title, label: "Task", maximum: 240, required: true)
+-      try Self.text(task.responsible, label: "Responsible person", maximum: 160)
++      if let receipt = task.lastConflictResolution {
++        guard schema >= 2, receipt.revision > 0, receipt.revision <= revision else {
++          throw FieldLogError.validation("Invalid task conflict resolution revision.")
++        }
++      }
++      try TaskText(task).validate()
++      if let sync = task.textSync {
++        let scope = TaskSyncScope(workspaceID: id, projectID: task.projectID, taskID: task.id)
++        guard schema == 3, sync.head.scope == scope, sync.head.version > 0,
++          Set(sync.queued).count == sync.queued.count,
++          !sync.queued.isEmpty || TaskText(task) == sync.head.text,
++          sync.queued.allSatisfy({
++            pendingByID[$0]?.kind == .taskSaved && pendingByID[$0]?.recordID == task.id
++          })
++        else { throw FieldLogError.validation("Invalid task synchronization checkpoint.") }
++        try sync.head.text.validate()
++        if let flight = sync.flight {
++          guard flight.eventCount > 0, flight.eventCount <= sync.queued.count,
++            flight.upload.eventID == sync.queued[flight.eventCount - 1],
++            flight.upload.base == sync.head
++          else { throw FieldLogError.validation("Invalid task synchronization upload.") }
++          try flight.upload.text.validate()
++        }
++      }
+@@ -267 +310,3 @@ public struct Workspace: Codable, Equatable, Sendable {
+-  private mutating func enqueue(_ kind: PendingChange.Kind, _ record: UUID, now: Date) throws {
++  @discardableResult private mutating func enqueue(
++    _ kind: PendingChange.Kind, _ record: UUID, now: Date
++  ) throws -> UUID {
+@@ -271,3 +316,4 @@ public struct Workspace: Codable, Equatable, Sendable {
+-    outbox.append(
+-      PendingChange(
+-        id: UUID(), kind: kind, recordID: record, revision: revision + 1, createdAt: now))
++    let change = PendingChange(
++      id: UUID(), kind: kind, recordID: record, revision: revision + 1, createdAt: now)
++    outbox.append(change)
++    return change.id
+@@ -337,0 +384,80 @@ public struct Workspace: Codable, Equatable, Sendable {
++  public func taskConflict(for taskID: UUID) -> TaskConflictReview? {
++    guard let edit = pendingTaskEdits?.first(where: { $0.taskID == taskID }),
++      let task = tasks.first(where: { $0.id == taskID })
++    else { return nil }
++    return TaskConflictReview(
++      editID: edit.id, taskID: taskID, revision: revision, conflicts: edit.conflicts(against: task))
++  }
++
++  public mutating func saveTaskEdit(_ input: TaskEdit, now: Date = Date()) throws {
++    var edit = input
++    try edit.base.validate()
++    try edit.text.validate()
++    if edit.text.title != edit.base.title {
++      edit.text.title = edit.text.title.trimmingCharacters(in: .whitespacesAndNewlines)
++    }
++    let index = try taskIndex(for: edit)
++    guard edit.openedAtRevision <= revision else { throw FieldLogError.staleRevision }
++    // Keep one receipt per task so an old editor cannot recreate a consumed review.
++    if let resolved = tasks[index].lastConflictResolution {
++      if resolved.editID == edit.id { return }
++      guard edit.openedAtRevision >= resolved.revision else { throw FieldLogError.staleRevision }
++    }
++    if let pending = pendingTaskEdits?.first(where: { $0.taskID == edit.taskID }) {
++      guard pending == edit else {
++        throw FieldLogError.validation("Review the saved conflict before editing this task again.")
++      }
++      return
++    }
++    if edit.conflicts(against: tasks[index]).isEmpty {
++      let text = edit.merged(against: tasks[index], choosing: [:])
++      try storeTaskText(text, at: index, recordLocalChange: true, now: now)
++    } else {
++      schema = max(schema, 2)
++      pendingTaskEdits = (pendingTaskEdits ?? []) + [edit]
++    }
++  }
++
++  public mutating func resolveTaskConflict(
++    _ review: TaskConflictReview, choosing choices: [TaskTextField: TaskConflictChoice],
++    now: Date = Date()
++  ) throws {
++    guard let index = tasks.firstIndex(where: { $0.id == review.taskID }) else { return }
++    if tasks[index].lastConflictResolution?.editID == review.editID { return }
++    guard let edit = pendingTaskEdits?.first(where: { $0.taskID == review.taskID }) else { return }
++    guard review == taskConflict(for: review.taskID) else {
++      throw FieldLogError.staleRevision
++    }
++    guard Set(choices.keys) == Set(review.conflicts.map(\.field)) else {
++      throw FieldLogError.validation("Choose a value for every conflicting field.")
++    }
++    guard revision < UInt64.max else {
++      throw FieldLogError.validation("Workspace revision limit reached.")
++    }
++    let text = edit.merged(against: tasks[index], choosing: choices)
++    try storeTaskText(text, at: index, recordLocalChange: true, now: now)
++    tasks[index].lastConflictResolution = TaskConflictReceipt(
++      editID: edit.id, revision: revision + 1)
++    pendingTaskEdits?.removeAll { $0.id == edit.id }
++    if pendingTaskEdits?.isEmpty == true { pendingTaskEdits = nil }
++  }
++
++  private func taskIndex(for edit: TaskEdit) throws -> Int {
++    guard edit.workspaceID == id,
++      let index = tasks.firstIndex(where: { $0.id == edit.taskID && $0.projectID == edit.projectID })
++    else { throw FieldLogError.missingRecord }
++    return index
++  }
++
++  private mutating func storeTaskText(
++    _ text: TaskText, at index: Int, recordLocalChange: Bool, now: Date
++  ) throws {
++    guard text != TaskText(tasks[index]) else { return }
++    if recordLocalChange {
++      let event = try enqueue(.taskSaved, tasks[index].id, now: now)
++      tasks[index].textSync?.queued.append(event)
++    }
++    tasks[index].title = text.title
++    tasks[index].responsible = text.responsible
++    tasks[index].updatedAt = now
++  }
+@@ -421,0 +548,81 @@ public struct Workspace: Codable, Equatable, Sendable {
++  private func syncTaskIndex(_ scope: TaskSyncScope) throws -> Int {
++    guard scope.workspaceID == id,
++      let index = tasks.firstIndex(where: { $0.id == scope.taskID && $0.projectID == scope.projectID })
++    else { throw FieldLogError.missingRecord }
++    return index
++  }
++
++  public mutating func prepareTaskSync(_ scope: TaskSyncScope) throws {
++    let index = try syncTaskIndex(scope)
++    guard taskConflict(for: scope.taskID) == nil else {
++      throw FieldLogError.validation("Resolve the saved task review before synchronizing again.")
++    }
++    guard var sync = tasks[index].textSync, sync.flight == nil,
++      let event = sync.queued.last
++    else { return }
++    sync.flight = TaskSyncFlight(
++      upload: TaskSyncUpload(eventID: event, base: sync.head, text: TaskText(tasks[index])),
++      eventCount: sync.queued.count)
++    tasks[index].textSync = sync
++  }
++
++  public func taskSyncUpload(_ scope: TaskSyncScope) throws -> TaskSyncUpload? {
++    tasks[try syncTaskIndex(scope)].textSync?.flight?.upload
++  }
++
++  public mutating func acknowledgeTaskSync(
++    _ upload: TaskSyncUpload, head: TaskSyncHead
++  ) throws {
++    let index = try syncTaskIndex(upload.base.scope)
++    guard var sync = tasks[index].textSync, let flight = sync.flight,
++      flight.upload == upload, head.scope == sync.head.scope,
++      sync.head.version < Int64.max, head.version == sync.head.version + 1,
++      head.text == upload.text
++    else { throw FieldLogError.staleRevision }
++
++    let acknowledged = Set(sync.queued.prefix(flight.eventCount))
++    outbox.removeAll { acknowledged.contains($0.id) }
++    sync.queued.removeFirst(flight.eventCount)
++    sync.head = head
++    sync.flight = nil
++    tasks[index].textSync = sync
++  }
++
++  public mutating func receiveTaskSync(_ remote: TaskSyncHead, now: Date = Date()) throws {
++    let index = try syncTaskIndex(remote.scope)
++    try remote.text.validate()
++    guard remote.version > 0, taskConflict(for: remote.scope.taskID) == nil else {
++      throw FieldLogError.staleRevision
++    }
++
++    let task = tasks[index]
++    guard let sync = task.textSync else {
++      guard TaskText(task) == remote.text else {
++        throw FieldLogError.validation("Link the task from a matching saved copy first.")
++      }
++      schema = 3
++      tasks[index].textSync = TaskSyncCheckpoint(head: remote)
++      return
++    }
++
++    if remote == sync.head && sync.flight == nil { return }
++    guard remote.version > sync.head.version else { throw FieldLogError.staleRevision }
++
++    // The old checkpoint is the common ancestor of these two saved versions.
++    var ancestor = task
++    ancestor.title = sync.head.text.title
++    ancestor.responsible = sync.head.text.responsible
++    var edit = TaskEdit(workspaceID: id, revision: revision, task: ancestor)
++    edit.text = TaskText(task)
++
++    let superseded = Set(sync.queued)
++    outbox.removeAll { superseded.contains($0.id) }
++    tasks[index].textSync = TaskSyncCheckpoint(head: remote)
++    try storeTaskText(remote.text, at: index, recordLocalChange: false, now: now)
++    if edit.conflicts(against: tasks[index]).isEmpty {
++      let merged = edit.merged(against: tasks[index], choosing: [:])
++      try storeTaskText(merged, at: index, recordLocalChange: true, now: now)
++    } else {
++      pendingTaskEdits = (pendingTaskEdits ?? []) + [edit]
++    }
++  }
+diff --git a/Sources/FieldLogModels/TaskEdit.swift b/Sources/FieldLogModels/TaskEdit.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..4132a0a8cba659500cdd67ec3eb0ad851e6187e7
+--- /dev/null
++++ b/Sources/FieldLogModels/TaskEdit.swift
+@@ -0,0 +1,104 @@
++import Foundation
++
++public enum TaskTextField: String, CaseIterable, Sendable {
++  case title
++  case responsible
++
++  public var label: String {
++    switch self {
++    case .title: "Title"
++    case .responsible: "Responsible person"
++    }
++  }
++
++  fileprivate var keyPath: WritableKeyPath<TaskText, String> {
++    switch self {
++    case .title: \.title
++    case .responsible: \.responsible
++    }
++  }
++}
++
++public struct TaskText: Codable, Equatable, Sendable {
++  public var title: String
++  public var responsible: String
++
++  init(_ task: WorkTask) {
++    title = task.title
++    responsible = task.responsible
++  }
++
++  func validate() throws {
++    try Workspace.text(title, label: "Task", maximum: 240, required: true)
++    try Workspace.text(responsible, label: "Responsible person", maximum: 160)
++  }
++}
++
++public struct TaskEdit: Codable, Equatable, Identifiable, Sendable {
++  public let id: UUID
++  public let workspaceID: UUID
++  public let taskID: UUID
++  public let projectID: UUID
++  let openedAtRevision: UInt64
++  public let base: TaskText
++  public var text: TaskText
++
++  public init(workspaceID: UUID, revision: UInt64, task: WorkTask) {
++    id = UUID()
++    self.workspaceID = workspaceID
++    taskID = task.id
++    projectID = task.projectID
++    openedAtRevision = revision
++    base = TaskText(task)
++    text = base
++  }
++
++  func conflicts(against task: WorkTask) -> [TaskFieldConflict] {
++    let current = TaskText(task)
++    return TaskTextField.allCases.compactMap { field in
++      let key = field.keyPath
++      let original = base[keyPath: key]
++      let local = text[keyPath: key]
++      let incoming = current[keyPath: key]
++      guard local != original, incoming != original, local != incoming else { return nil }
++      return TaskFieldConflict(field: field, local: local, incoming: incoming)
++    }
++  }
++
++  func merged(against task: WorkTask, choosing choices: [TaskTextField: TaskConflictChoice])
++    -> TaskText
++  {
++    var result = TaskText(task)
++    for field in TaskTextField.allCases {
++      let key = field.keyPath
++      if text[keyPath: key] != base[keyPath: key], choices[field] != .incoming {
++        result[keyPath: key] = text[keyPath: key]
++      }
++    }
++    return result
++  }
++}
++
++struct TaskConflictReceipt: Codable, Equatable, Sendable {
++  let editID: UUID
++  let revision: UInt64
++}
++
++public enum TaskConflictChoice: Sendable {
++  case local
++  case incoming
++}
++
++public struct TaskFieldConflict: Equatable, Identifiable, Sendable {
++  public var id: TaskTextField { field }
++  public let field: TaskTextField
++  public let local: String
++  public let incoming: String
++}
++
++public struct TaskConflictReview: Equatable, Sendable {
++  public let editID: UUID
++  public let taskID: UUID
++  public let revision: UInt64
++  public let conflicts: [TaskFieldConflict]
++}
+diff --git a/Sources/FieldLogModels/TaskSync.swift b/Sources/FieldLogModels/TaskSync.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..967f7427b810d96e71c4fbbc2fd4cbd59bdc2ad9
+--- /dev/null
++++ b/Sources/FieldLogModels/TaskSync.swift
+@@ -0,0 +1,42 @@
++import Foundation
++
++public struct TaskSyncScope: Codable, Equatable, Sendable {
++  public let workspaceID: UUID
++  public let projectID: UUID
++  public let taskID: UUID
++
++  public init(workspaceID: UUID, projectID: UUID, taskID: UUID) {
++    self.workspaceID = workspaceID
++    self.projectID = projectID
++    self.taskID = taskID
++  }
++}
++
++public struct TaskSyncHead: Codable, Equatable, Sendable {
++  public let scope: TaskSyncScope
++  public let version: Int64
++  public let text: TaskText
++
++  public init(scope: TaskSyncScope, version: Int64, text: TaskText) {
++    self.scope = scope
++    self.version = version
++    self.text = text
++  }
++}
++
++public struct TaskSyncUpload: Codable, Equatable, Sendable {
++  public let eventID: UUID
++  public let base: TaskSyncHead
++  public let text: TaskText
++}
++
++struct TaskSyncFlight: Codable, Equatable, Sendable {
++  let upload: TaskSyncUpload
++  let eventCount: Int
++}
++
++struct TaskSyncCheckpoint: Codable, Equatable, Sendable {
++  var head: TaskSyncHead
++  var queued: [UUID] = []
++  var flight: TaskSyncFlight?
++}
+diff --git a/Sources/FieldLogModels/Workspace.swift b/Sources/FieldLogModels/Workspace.swift
+index 357c9765176ace9967b799792ae9520cd5779797..48681a5e5a37a90b63ae4b309fb871feb8dd65e9 100644
+--- a/Sources/FieldLogModels/Workspace.swift
++++ b/Sources/FieldLogModels/Workspace.swift
+@@ -46,0 +47,2 @@ public struct WorkTask: Codable, Equatable, Identifiable, Sendable {
++  var lastConflictResolution: TaskConflictReceipt?
++  var textSync: TaskSyncCheckpoint?
+@@ -162,0 +165 @@ public struct Workspace: Codable, Equatable, Sendable {
++  var pendingTaskEdits: [TaskEdit]?
+@@ -169 +172 @@ public struct Workspace: Codable, Equatable, Sendable {
+-    guard schema == 1 else { throw FieldLogError.unsupportedSchema(schema) }
++    guard (1...3).contains(schema) else { throw FieldLogError.unsupportedSchema(schema) }
+@@ -187,0 +191,18 @@ public struct Workspace: Codable, Equatable, Sendable {
++    if let pendingTaskEdits {
++      guard schema >= 2, pendingTaskEdits.count <= tasks.count else {
++        throw FieldLogError.validation("Invalid saved task conflict records.")
++      }
++      try unique(pendingTaskEdits, \.id)
++      try unique(pendingTaskEdits, \.taskID)
++      let taskProjects = Dictionary(uniqueKeysWithValues: tasks.map { ($0.id, $0.projectID) })
++      for edit in pendingTaskEdits {
++        guard edit.workspaceID == id, taskProjects[edit.taskID] == edit.projectID,
++          edit.openedAtRevision < revision
++        else {
++          throw FieldLogError.missingRecord
++        }
++        try edit.base.validate()
++        try edit.text.validate()
++      }
++    }
++    let pendingByID = Dictionary(uniqueKeysWithValues: outbox.map { ($0.id, $0) })
+@@ -198,2 +219,24 @@ public struct Workspace: Codable, Equatable, Sendable {
+-      try Self.text(task.title, label: "Task", maximum: 240, required: true)
+-      try Self.text(task.responsible, label: "Responsible person", maximum: 160)
++      if let receipt = task.lastConflictResolution {
++        guard schema >= 2, receipt.revision > 0, receipt.revision <= revision else {
++          throw FieldLogError.validation("Invalid task conflict resolution revision.")
++        }
++      }
++      try TaskText(task).validate()
++      if let sync = task.textSync {
++        let scope = TaskSyncScope(workspaceID: id, projectID: task.projectID, taskID: task.id)
++        guard schema == 3, sync.head.scope == scope, sync.head.version > 0,
++          Set(sync.queued).count == sync.queued.count,
++          !sync.queued.isEmpty || TaskText(task) == sync.head.text,
++          sync.queued.allSatisfy({
++            pendingByID[$0]?.kind == .taskSaved && pendingByID[$0]?.recordID == task.id
++          })
++        else { throw FieldLogError.validation("Invalid task synchronization checkpoint.") }
++        try sync.head.text.validate()
++        if let flight = sync.flight {
++          guard flight.eventCount > 0, flight.eventCount <= sync.queued.count,
++            flight.upload.eventID == sync.queued[flight.eventCount - 1],
++            flight.upload.base == sync.head
++          else { throw FieldLogError.validation("Invalid task synchronization upload.") }
++          try flight.upload.text.validate()
++        }
++      }
+@@ -267 +310,3 @@ public struct Workspace: Codable, Equatable, Sendable {
+-  private mutating func enqueue(_ kind: PendingChange.Kind, _ record: UUID, now: Date) throws {
++  @discardableResult private mutating func enqueue(
++    _ kind: PendingChange.Kind, _ record: UUID, now: Date
++  ) throws -> UUID {
+@@ -271,3 +316,4 @@ public struct Workspace: Codable, Equatable, Sendable {
+-    outbox.append(
+-      PendingChange(
+-        id: UUID(), kind: kind, recordID: record, revision: revision + 1, createdAt: now))
++    let change = PendingChange(
++      id: UUID(), kind: kind, recordID: record, revision: revision + 1, createdAt: now)
++    outbox.append(change)
++    return change.id
+@@ -337,0 +384,80 @@ public struct Workspace: Codable, Equatable, Sendable {
++  public func taskConflict(for taskID: UUID) -> TaskConflictReview? {
++    guard let edit = pendingTaskEdits?.first(where: { $0.taskID == taskID }),
++      let task = tasks.first(where: { $0.id == taskID })
++    else { return nil }
++    return TaskConflictReview(
++      editID: edit.id, taskID: taskID, revision: revision, conflicts: edit.conflicts(against: task))
++  }
++
++  public mutating func saveTaskEdit(_ input: TaskEdit, now: Date = Date()) throws {
++    var edit = input
++    try edit.base.validate()
++    try edit.text.validate()
++    if edit.text.title != edit.base.title {
++      edit.text.title = edit.text.title.trimmingCharacters(in: .whitespacesAndNewlines)
++    }
++    let index = try taskIndex(for: edit)
++    guard edit.openedAtRevision <= revision else { throw FieldLogError.staleRevision }
++    // Keep one receipt per task so an old editor cannot recreate a consumed review.
++    if let resolved = tasks[index].lastConflictResolution {
++      if resolved.editID == edit.id { return }
++      guard edit.openedAtRevision >= resolved.revision else { throw FieldLogError.staleRevision }
++    }
++    if let pending = pendingTaskEdits?.first(where: { $0.taskID == edit.taskID }) {
++      guard pending == edit else {
++        throw FieldLogError.validation("Review the saved conflict before editing this task again.")
++      }
++      return
++    }
++    if edit.conflicts(against: tasks[index]).isEmpty {
++      let text = edit.merged(against: tasks[index], choosing: [:])
++      try storeTaskText(text, at: index, recordLocalChange: true, now: now)
++    } else {
++      schema = max(schema, 2)
++      pendingTaskEdits = (pendingTaskEdits ?? []) + [edit]
++    }
++  }
++
++  public mutating func resolveTaskConflict(
++    _ review: TaskConflictReview, choosing choices: [TaskTextField: TaskConflictChoice],
++    now: Date = Date()
++  ) throws {
++    guard let index = tasks.firstIndex(where: { $0.id == review.taskID }) else { return }
++    if tasks[index].lastConflictResolution?.editID == review.editID { return }
++    guard let edit = pendingTaskEdits?.first(where: { $0.taskID == review.taskID }) else { return }
++    guard review == taskConflict(for: review.taskID) else {
++      throw FieldLogError.staleRevision
++    }
++    guard Set(choices.keys) == Set(review.conflicts.map(\.field)) else {
++      throw FieldLogError.validation("Choose a value for every conflicting field.")
++    }
++    guard revision < UInt64.max else {
++      throw FieldLogError.validation("Workspace revision limit reached.")
++    }
++    let text = edit.merged(against: tasks[index], choosing: choices)
++    try storeTaskText(text, at: index, recordLocalChange: true, now: now)
++    tasks[index].lastConflictResolution = TaskConflictReceipt(
++      editID: edit.id, revision: revision + 1)
++    pendingTaskEdits?.removeAll { $0.id == edit.id }
++    if pendingTaskEdits?.isEmpty == true { pendingTaskEdits = nil }
++  }
++
++  private func taskIndex(for edit: TaskEdit) throws -> Int {
++    guard edit.workspaceID == id,
++      let index = tasks.firstIndex(where: { $0.id == edit.taskID && $0.projectID == edit.projectID })
++    else { throw FieldLogError.missingRecord }
++    return index
++  }
++
++  private mutating func storeTaskText(
++    _ text: TaskText, at index: Int, recordLocalChange: Bool, now: Date
++  ) throws {
++    guard text != TaskText(tasks[index]) else { return }
++    if recordLocalChange {
++      let event = try enqueue(.taskSaved, tasks[index].id, now: now)
++      tasks[index].textSync?.queued.append(event)
++    }
++    tasks[index].title = text.title
++    tasks[index].responsible = text.responsible
++    tasks[index].updatedAt = now
++  }
+@@ -421,0 +548,81 @@ public struct Workspace: Codable, Equatable, Sendable {
++  private func syncTaskIndex(_ scope: TaskSyncScope) throws -> Int {
++    guard scope.workspaceID == id,
++      let index = tasks.firstIndex(where: { $0.id == scope.taskID && $0.projectID == scope.projectID })
++    else { throw FieldLogError.missingRecord }
++    return index
++  }
++
++  public mutating func prepareTaskSync(_ scope: TaskSyncScope) throws {
++    let index = try syncTaskIndex(scope)
++    guard taskConflict(for: scope.taskID) == nil else {
++      throw FieldLogError.validation("Resolve the saved task review before synchronizing again.")
++    }
++    guard var sync = tasks[index].textSync, sync.flight == nil,
++      let event = sync.queued.last
++    else { return }
++    sync.flight = TaskSyncFlight(
++      upload: TaskSyncUpload(eventID: event, base: sync.head, text: TaskText(tasks[index])),
++      eventCount: sync.queued.count)
++    tasks[index].textSync = sync
++  }
++
++  public func taskSyncUpload(_ scope: TaskSyncScope) throws -> TaskSyncUpload? {
++    tasks[try syncTaskIndex(scope)].textSync?.flight?.upload
++  }
++
++  public mutating func acknowledgeTaskSync(
++    _ upload: TaskSyncUpload, head: TaskSyncHead
++  ) throws {
++    let index = try syncTaskIndex(upload.base.scope)
++    guard var sync = tasks[index].textSync, let flight = sync.flight,
++      flight.upload == upload, head.scope == sync.head.scope,
++      sync.head.version < Int64.max, head.version == sync.head.version + 1,
++      head.text == upload.text
++    else { throw FieldLogError.staleRevision }
++
++    let acknowledged = Set(sync.queued.prefix(flight.eventCount))
++    outbox.removeAll { acknowledged.contains($0.id) }
++    sync.queued.removeFirst(flight.eventCount)
++    sync.head = head
++    sync.flight = nil
++    tasks[index].textSync = sync
++  }
++
++  public mutating func receiveTaskSync(_ remote: TaskSyncHead, now: Date = Date()) throws {
++    let index = try syncTaskIndex(remote.scope)
++    try remote.text.validate()
++    guard remote.version > 0, taskConflict(for: remote.scope.taskID) == nil else {
++      throw FieldLogError.staleRevision
++    }
++
++    let task = tasks[index]
++    guard let sync = task.textSync else {
++      guard TaskText(task) == remote.text else {
++        throw FieldLogError.validation("Link the task from a matching saved copy first.")
++      }
++      schema = 3
++      tasks[index].textSync = TaskSyncCheckpoint(head: remote)
++      return
++    }
++
++    if remote == sync.head && sync.flight == nil { return }
++    guard remote.version > sync.head.version else { throw FieldLogError.staleRevision }
++
++    // The old checkpoint is the common ancestor of these two saved versions.
++    var ancestor = task
++    ancestor.title = sync.head.text.title
++    ancestor.responsible = sync.head.text.responsible
++    var edit = TaskEdit(workspaceID: id, revision: revision, task: ancestor)
++    edit.text = TaskText(task)
++
++    let superseded = Set(sync.queued)
++    outbox.removeAll { superseded.contains($0.id) }
++    tasks[index].textSync = TaskSyncCheckpoint(head: remote)
++    try storeTaskText(remote.text, at: index, recordLocalChange: false, now: now)
++    if edit.conflicts(against: tasks[index]).isEmpty {
++      let merged = edit.merged(against: tasks[index], choosing: [:])
++      try storeTaskText(merged, at: index, recordLocalChange: true, now: now)
++    } else {
++      pendingTaskEdits = (pendingTaskEdits ?? []) + [edit]
++    }
++  }
+diff --git a/Sources/FieldLogStorage/TaskSyncClient.swift b/Sources/FieldLogStorage/TaskSyncClient.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..f6477834fdf8993369f287bb10b6a3b6d4fe09c3
+--- /dev/null
++++ b/Sources/FieldLogStorage/TaskSyncClient.swift
+@@ -0,0 +1,281 @@
++import FieldLogModels
++import Foundation
++
++#if !os(Android) && canImport(FoundationNetworking)
++  import FoundationNetworking
++#endif
++
++/// Exchanges saved task text with a provisioned localhost FieldLog backend.
++public struct TaskSyncClient: Sendable {
++  public enum Failure: Error, LocalizedError, Equatable {
++    case invalidConfiguration
++    case rejected(Int)
++    case invalidReceipt
++
++    public var errorDescription: String? {
++      switch self {
++      case .invalidConfiguration: "A local backend port and session token are required."
++      case .rejected(let status): "The local task backend refused the request (HTTP \(status))."
++      case .invalidReceipt: "The local task backend did not confirm this task."
++      }
++    }
++  }
++
++  private struct Receipt: Decodable {
++    let eventID: UUID
++    let head: TaskSyncHead
++  }
++
++  /// Performs one GET when upload is nil, or one POST otherwise, against 127.0.0.1.
++  /// Return a redirect's original status with an empty body. Reject declared lengths
++  /// over 8192 before reading the body and probe at most one byte past the limit.
++  /// Stop I/O on task cancellation or at an absolute monotonic five-second deadline.
++  public typealias Transport = @Sendable (
++    _ port: UInt16, _ path: String, _ bearerToken: String, _ upload: Data?
++  ) async throws -> (status: Int, body: Data)
++
++  fileprivate static let responseLimit = 8192
++  private let port: UInt16
++  private let projectID: UUID
++  private let workspaceID: UUID
++  private let token: String
++  private let transport: Transport
++
++  #if !os(Android)
++    public init(port: UInt16, workspaceID: UUID, projectID: UUID, token: String) throws {
++      try self.init(
++        port: port, workspaceID: workspaceID, projectID: projectID, token: token,
++        transport: Self.exchangeUsingURLSession)
++    }
++  #endif
++
++  public init(
++    port: UInt16, workspaceID: UUID, projectID: UUID, token: String, transport: @escaping Transport
++  ) throws {
++    guard port > 0, (32...128).contains(token.utf8.count),
++      token.utf8.allSatisfy({
++        (48...57).contains($0) || (65...90).contains($0) || (97...122).contains($0)
++          || $0 == 45 || $0 == 95
++      })
++    else { throw Failure.invalidConfiguration }
++    self.port = port
++    self.workspaceID = workspaceID
++    self.projectID = projectID
++    self.token = token
++    self.transport = transport
++  }
++
++  /// Each call performs one upload or fetch. A stale upload fetches the current
++  /// version and stores a merged edit or a review for the ordinary task editor.
++  public func synchronize(taskID: UUID, in repository: WorkspaceRepository) async throws -> Workspace {
++    try Task.checkCancellation()
++    let scope = TaskSyncScope(workspaceID: workspaceID, projectID: projectID, taskID: taskID)
++    let local = try await repository.prepareTaskSync(scope)
++    let path = "/v1/workspaces/\(workspaceID.uuidString.lowercased())/projects/\(projectID.uuidString.lowercased())/tasks/\(taskID.uuidString.lowercased())"
++    if let upload = try local.taskSyncUpload(scope) {
++      let (status, body) = try await exchange(path: path, body: JSONEncoder().encode(upload))
++      if status == 200 || status == 201 {
++        guard let receipt = try? JSONDecoder().decode(Receipt.self, from: body),
++          receipt.eventID == upload.eventID, receipt.head.scope == scope
++        else { throw Failure.invalidReceipt }
++        try Task.checkCancellation()
++        return try await repository.acknowledgeTaskSync(
++          upload, head: receipt.head, expectedRevision: local.revision)
++      }
++      guard status == 409,
++        (try? JSONDecoder().decode([String: String].self, from: body)) == ["error": "stale_task_version"]
++      else { throw Failure.rejected(status) }
++    }
++
++    let (status, body) = try await exchange(path: path)
++    guard status == 200 else { throw Failure.rejected(status) }
++    guard let head = try? JSONDecoder().decode(TaskSyncHead.self, from: body), head.scope == scope
++    else { throw Failure.invalidReceipt }
++    try Task.checkCancellation()
++    return try await repository.receiveTaskSync(head, expectedRevision: local.revision)
++  }
++
++  private func exchange(path: String, body: Data? = nil) async throws -> (Int, Data) {
++    try Task.checkCancellation()
++    do {
++      let response = try await transport(port, path, token, body)
++      try Task.checkCancellation()
++      guard response.body.count <= Self.responseLimit else { throw Failure.invalidReceipt }
++      return response
++    } catch {
++      try Task.checkCancellation()
++      throw error
++    }
++  }
++}
++
++#if !os(Android)
++extension TaskSyncClient {
++  private static func exchangeUsingURLSession(
++    port: UInt16, path: String, token: String, body: Data?
++  ) async throws -> (status: Int, body: Data) {
++    guard let origin = URL(string: "http://127.0.0.1:\(port)") else {
++      throw Failure.invalidConfiguration
++    }
++    let url = origin.appending(path: path)
++    let configuration = URLSessionConfiguration.ephemeral
++    configuration.urlCredentialStorage = nil
++    configuration.httpCookieStorage = nil
++    configuration.httpShouldSetCookies = false
++    configuration.urlCache = nil
++    configuration.connectionProxyDictionary = [
++      "HTTPEnable": false, "HTTPSEnable": false, "ProxyAutoConfigEnable": false,
++      "ProxyAutoDiscoveryEnable": false, "SOCKSEnable": false,
++    ]
++    configuration.timeoutIntervalForRequest = 3
++    configuration.timeoutIntervalForResource = 5
++    var request = URLRequest(url: url)
++    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
++    request.setValue("identity", forHTTPHeaderField: "Accept-Encoding")
++    if let body {
++      request.httpMethod = "POST"
++      request.setValue("application/json", forHTTPHeaderField: "Content-Type")
++      request.httpBody = body
++    }
++    let delegate = LoopbackTaskSyncDelegate()
++    let session = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
++    defer { session.invalidateAndCancel() }
++    return try await withTaskCancellationHandler {
++      try await withCheckedThrowingContinuation { continuation in
++        delegate.start(request, in: session, returningTo: continuation)
++      }
++    } onCancel: {
++      delegate.cancel()
++    }
++  }
++}
++
++private final class LoopbackTaskSyncDelegate: NSObject, URLSessionDataDelegate, @unchecked Sendable {
++  private let lock = NSLock()
++  private var task: URLSessionDataTask?
++  private var continuation: CheckedContinuation<(Int, Data), Error>?
++  private var cancelled = false
++
++  // Only the session's serial delegate queue touches the response.
++  private var response: HTTPURLResponse?
++  private var body = Data()
++  private var invalidReceipt = false
++
++  func start(
++    _ request: URLRequest, in session: URLSession,
++    returningTo continuation: CheckedContinuation<(Int, Data), Error>
++  ) {
++    let started = lock.withLock {
++      guard !cancelled else { return false }
++      let task = session.dataTask(with: request)
++      self.task = task
++      self.continuation = continuation
++      task.resume()
++      return true
++    }
++    if !started { continuation.resume(throwing: CancellationError()) }
++  }
++
++  func cancel() {
++    let task = lock.withLock {
++      cancelled = true
++      return self.task
++    }
++    task?.cancel()
++  }
++
++  func urlSession(
++    _ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
++    newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void
++  ) {
++    completionHandler(nil)
++  }
++
++  func urlSession(
++    _ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
++    completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void
++  ) {
++    guard let http = response as? HTTPURLResponse, http.expectedContentLength <= TaskSyncClient.responseLimit else {
++      invalidReceipt = true
++      completionHandler(.cancel)
++      return
++    }
++    self.response = http
++    completionHandler(.allow)
++  }
++
++  func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
++    guard !invalidReceipt else { return }
++    guard data.count <= TaskSyncClient.responseLimit - body.count else {
++      invalidReceipt = true
++      dataTask.cancel()
++      return
++    }
++    body.append(data)
++  }
++
++  func urlSession(
++    _ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?
++  ) {
++    let continuation = lock.withLock {
++      self.task = nil
++      let continuation = self.continuation
++      self.continuation = nil
++      return continuation
++    }
++    if invalidReceipt {
++      continuation?.resume(throwing: TaskSyncClient.Failure.invalidReceipt)
++    } else if let error {
++      continuation?.resume(throwing: error)
++    } else if let response,
++      response.expectedContentLength < 0 || response.expectedContentLength == Int64(body.count)
++    {
++      continuation?.resume(returning: (response.statusCode, body))
++    } else {
++      continuation?.resume(throwing: TaskSyncClient.Failure.invalidReceipt)
++    }
++  }
++}
++
++#endif
++
++extension WorkspaceRepository {
++  private struct UnchangedTaskState: Error {}
++
++  public func transactTask(
++    expectedRevision: UInt64? = nil, _ mutation: @Sendable (inout Workspace) throws -> Void
++  ) throws -> Workspace {
++    do {
++      return try transact(expectedRevision: expectedRevision) { workspace in
++        let before = workspace
++        try mutation(&workspace)
++        guard workspace != before else { throw UnchangedTaskState() }
++      }
++    } catch is UnchangedTaskState {
++      return try readCommittedSnapshot()
++    }
++  }
++
++  func prepareTaskSync(_ scope: TaskSyncScope) throws -> Workspace {
++    try transactTask {
++      try Task.checkCancellation()
++      try $0.prepareTaskSync(scope)
++    }
++  }
++
++  func receiveTaskSync(_ head: TaskSyncHead, expectedRevision: UInt64) throws -> Workspace {
++    try transactTask(expectedRevision: expectedRevision) {
++      try Task.checkCancellation()
++      try $0.receiveTaskSync(head)
++    }
++  }
++
++  func acknowledgeTaskSync(
++    _ upload: TaskSyncUpload, head: TaskSyncHead, expectedRevision: UInt64
++  ) throws -> Workspace {
++    try transact(expectedRevision: expectedRevision) {
++      try Task.checkCancellation()
++      try $0.acknowledgeTaskSync(upload, head: head)
++    }
++  }
++}
+diff --git a/ios/FieldLog.xcodeproj/project.pbxproj b/ios/FieldLog.xcodeproj/project.pbxproj
+index b37ce493b95e521e4305d86b029997ee1875ed8b..c16a3ca741c737e397a3e28deb6f76464bd9a1d7 100644
+--- a/ios/FieldLog.xcodeproj/project.pbxproj
++++ b/ios/FieldLog.xcodeproj/project.pbxproj
+@@ -52 +52 @@
+-  A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "FieldLog uses your location to show your current position on the site map when you ask."; INFOPLIST_KEY_NSCameraUsageDescription = "FieldLog uses the camera to take photos you choose to attach to field notes."; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Debug; };
++  A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { "INFOPLIST_FILE[sdk=iphonesimulator*]" = FieldLog/LocalTaskSync-Info.plist; PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "FieldLog uses your location to show your current position on the site map when you ask."; INFOPLIST_KEY_NSCameraUsageDescription = "FieldLog uses the camera to take photos you choose to attach to field notes."; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Debug; };
+diff --git a/ios/FieldLog/LocalTaskSync-Info.plist b/ios/FieldLog/LocalTaskSync-Info.plist
+new file mode 100644
+index 0000000000000000000000000000000000000000..bbcc90330e0fb2827040716aef211fe584ca199f
+--- /dev/null
++++ b/ios/FieldLog/LocalTaskSync-Info.plist
+@@ -0,0 +1,17 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0">
++<dict>
++	<key>NSAppTransportSecurity</key>
++	<dict>
++		<key>NSExceptionDomains</key>
++		<dict>
++			<key>127.0.0.1</key>
++			<dict>
++				<key>NSExceptionAllowsInsecureHTTPLoads</key>
++				<true/>
++			</dict>
++		</dict>
++	</dict>
++</dict>
++</plist>
+diff --git a/ios/FieldLog/ProjectDetail.swift b/ios/FieldLog/ProjectDetail.swift
+index 1a2f36173056669ae676e2eb165f01e94c229e8f..a08e93fb969ede76fb213426a5f96700cfe46805 100644
+--- a/ios/FieldLog/ProjectDetail.swift
++++ b/ios/FieldLog/ProjectDetail.swift
+@@ -13,0 +14,2 @@ struct ProjectDetail: View {
++  @State private var editingTask: TaskEdit?
++  @State private var taskSyncError: String?
+@@ -68,5 +70,11 @@ struct ProjectDetail: View {
+-                if task.canMoveUp || task.canMoveDown {
+-                  Menu {
+-                    if task.canMoveUp {
+-                      Button("Move up", systemImage: "arrow.up") {
+-                        model.moveTask(task.id, offset: -1)
++                Menu {
++                  Button(workspace.taskConflict(for: task.id) == nil ? "Edit task" : "Review task changes",
++                         systemImage: "pencil") {
++                    editingTask = model.savedTaskEdit(task.id, in: projectID)
++                  }
++                  if model.canSyncSavedTask(task.id) {
++                    Button("Sync task", systemImage: "arrow.trianglehead.clockwise") {
++                      Task {
++                        if !(await model.syncSavedTask(task.id)), let error = model.saveError {
++                          taskSyncError = error
++                        }
+@@ -73,0 +82,5 @@ struct ProjectDetail: View {
++                    }.disabled(model.pendingSaves != 0)
++                  }
++                  if task.canMoveUp {
++                    Button("Move up", systemImage: "arrow.up") {
++                      model.moveTask(task.id, offset: -1)
+@@ -75,4 +88,4 @@ struct ProjectDetail: View {
+-                    if task.canMoveDown {
+-                      Button("Move down", systemImage: "arrow.down") {
+-                        model.moveTask(task.id, offset: 1)
+-                      }
++                  }
++                  if task.canMoveDown {
++                    Button("Move down", systemImage: "arrow.down") {
++                      model.moveTask(task.id, offset: 1)
+@@ -80,2 +92,0 @@ struct ProjectDetail: View {
+-                  } label: {
+-                    Image(systemName: "ellipsis.circle").font(.title3)
+@@ -83 +94,2 @@ struct ProjectDetail: View {
+-                  .accessibilityLabel("Task options: \(task.title)")
++                } label: {
++                  Image(systemName: "ellipsis.circle").font(.title3)
+@@ -84,0 +97,3 @@ struct ProjectDetail: View {
++                .accessibilityLabel("Task options: \(task.title)")
++                .accessibilityIdentifier("saved-task-menu-\(task.id.uuidString.lowercased())")
++                .accessibilityValue(workspace.taskConflict(for: task.id) == nil ? "" : "Conflict pending")
+@@ -172,0 +188,8 @@ struct ProjectDetail: View {
++      .sheet(item: $editingTask) { SavedTaskEditor(edit: $0) }
++      .alert("Task couldn't sync", isPresented: Binding(
++        get: { taskSyncError != nil }, set: { if !$0 { taskSyncError = nil } }
++      )) {
++        Button("OK", role: .cancel) {}
++      } message: {
++        Text(taskSyncError ?? "")
++      }
+@@ -307,0 +331,101 @@ struct ShareSheet: UIViewControllerRepresentable {
++
++private struct SavedTaskEditor: View {
++  @EnvironmentObject private var model: WorkspaceModel
++  @Environment(\.dismiss) private var dismiss
++  @StateObject private var owner: SavedTaskEditorOwner
++  @State private var choices: [TaskTextField: TaskConflictChoice] = [:]
++
++  init(edit: TaskEdit) {
++    _owner = StateObject(wrappedValue: SavedTaskEditorOwner(edit: edit))
++  }
++
++  var body: some View {
++    let review = model.workspace?.taskConflict(for: owner.edit.taskID)
++    NavigationStack {
++      Form {
++        if let review {
++          Section {
++            Text("This task has conflicting saved changes. Choose which value to keep for each conflicting field. Other changes will be kept.")
++          }
++          ForEach(review.conflicts) { conflict in
++            Section(conflict.field.label) {
++              choice(.local, label: "Your edit", value: conflict.local, field: conflict.field)
++              choice(.incoming, label: "Incoming edit", value: conflict.incoming, field: conflict.field)
++            }
++          }
++        } else {
++          TextField("Task", text: $owner.edit.text.title, axis: .vertical)
++          TextField("Responsible person", text: $owner.edit.text.responsible)
++        }
++        if let error = owner.error {
++          Section { Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.red) }
++        }
++      }
++      .disabled(owner.saving)
++      .navigationTitle(review == nil ? "Edit task" : "Review task changes")
++      .toolbar {
++        ToolbarItem(placement: .cancellationAction) {
++          Button(review == nil ? "Cancel" : "Review later") { dismiss() }.disabled(owner.saving)
++        }
++        ToolbarItem(placement: .confirmationAction) {
++          Button(review == nil ? "Save" : "Resolve") { submit(review) }
++            .disabled(owner.saving || (review?.conflicts.contains { choices[$0.field] == nil } ?? false))
++        }
++      }
++    }
++    .interactiveDismissDisabled(owner.saving)
++    .onChange(of: review) { _, _ in choices = [:] }
++  }
++
++  private func choice(
++    _ selection: TaskConflictChoice, label: String, value: String, field: TaskTextField
++  ) -> some View {
++    let selected = choices[field] == selection
++    return Button {
++      choices[field] = selection
++    } label: {
++      HStack {
++        VStack(alignment: .leading, spacing: 4) {
++          Text(label).font(.subheadline).foregroundStyle(.secondary)
++          if value.isEmpty {
++            Label("No assignee", systemImage: "person.slash")
++              .font(.body.italic())
++              .foregroundStyle(.primary)
++              .accessibilityLabel("Empty value, clear the assignment")
++          } else if let description = Self.whitespaceDescription(value) {
++            Text(description).font(.body.monospaced()).foregroundStyle(.primary)
++              .accessibilityLabel("Whitespace only: \(description)")
++          } else {
++            Text(verbatim: value).foregroundStyle(.primary)
++          }
++        }
++        Spacer()
++        Image(systemName: selected ? "largecircle.fill.circle" : "circle")
++          .accessibilityHidden(true)
++      }
++      .contentShape(Rectangle())
++    }
++    .buttonStyle(.plain)
++    .accessibilityAddTraits(selected ? .isSelected : [])
++  }
++
++  static func whitespaceDescription(_ value: String) -> String? {
++    guard !value.isEmpty, value.allSatisfy(\.isWhitespace) else { return nil }
++    return value.unicodeScalars.map { scalar in
++      switch scalar {
++      case " ": "Space"
++      case "\t": "Tab"
++      case "\n": "Line feed"
++      case "\r": "Carriage return"
++      default: scalar.properties.name ?? "U+\(String(scalar.value, radix: 16, uppercase: true))"
++      }
++    }.joined(separator: ", ")
++  }
++
++  private func submit(_ review: TaskConflictReview?) {
++    let decisions = choices
++    Task {
++      if await owner.submit(to: model, review: review, choices: decisions) { dismiss() }
++    }
++  }
++}
+diff --git a/ios/FieldLog/WorkspaceModel.swift b/ios/FieldLog/WorkspaceModel.swift
+index 11e8e83e3adec728d1035846256fcef405e28784..b815c1b90ceb7f773246e4d1b2bdccad383e0115 100644
+--- a/ios/FieldLog/WorkspaceModel.swift
++++ b/ios/FieldLog/WorkspaceModel.swift
+@@ -105,0 +106,13 @@ struct SitePinEdit: Equatable, Sendable {
++  ) -> Task<Bool, Never> {
++    enqueueRepositorySave({ repository in
++      if let sitePinEdit {
++        return try await repository.transactSitePin(
++          expectedRevision: sitePinEdit.revision, lease: sitePinEdit.session.lease, operation)
++      }
++      return try await repository.transact(operation)
++    }, completion: completion)
++  }
++
++  private func enqueueRepositorySave(
++    _ operation: @escaping @Sendable (WorkspaceRepository) async throws -> Workspace,
++    completion: (@MainActor () -> Void)? = nil
+@@ -114,6 +127,2 @@ struct SitePinEdit: Equatable, Sendable {
+-        if let sitePinEdit {
+-          workspace = try await repository.transactSitePin(
+-            expectedRevision: sitePinEdit.revision, lease: sitePinEdit.session.lease, operation)
+-        } else {
+-          workspace = try await repository.transact(operation)
+-        }
++        let saved = try await operation(repository)
++        if saved.revision >= (workspace?.revision ?? 0) { workspace = saved }
+@@ -126,0 +136,4 @@ struct SitePinEdit: Equatable, Sendable {
++      } catch let failure as TaskSyncAttemptFailure {
++        if failure.snapshot.revision >= (workspace?.revision ?? 0) { workspace = failure.snapshot }
++        saveError = failure.localizedDescription
++        return false
+@@ -147,0 +161,61 @@ struct SitePinEdit: Equatable, Sendable {
++  func savedTaskEdit(_ id: UUID, in projectID: UUID) -> TaskEdit? {
++    guard let workspace,
++      let task = workspace.tasks.first(where: { $0.id == id && $0.projectID == projectID })
++    else { return nil }
++    return TaskEdit(workspaceID: workspace.id, revision: workspace.revision, task: task)
++  }
++
++  func saveTaskEdit(_ edit: TaskEdit) async -> Bool {
++    await enqueueRepositorySave { repository in
++      try await repository.transactTask { try $0.saveTaskEdit(edit) }
++    }.value
++  }
++
++  func resolveTaskConflict(
++    _ review: TaskConflictReview, choosing choices: [TaskTextField: TaskConflictChoice]
++  ) async -> Bool {
++    await enqueueRepositorySave { repository in
++      try await repository.transactTask { try $0.resolveTaskConflict(review, choosing: choices) }
++    }.value
++  }
++
++  func canSyncSavedTask(_ id: UUID) -> Bool {
++    savedTaskSyncClient(for: id) != nil
++  }
++
++  func syncSavedTask(_ id: UUID) async -> Bool {
++    guard pendingSaves == 0, let client = savedTaskSyncClient(for: id) else { return false }
++    return await enqueueRepositorySave { repository in
++      do {
++        return try await client.synchronize(taskID: id, in: repository)
++      } catch {
++        // A failed request can still leave a durable flight to retry.
++        throw TaskSyncAttemptFailure(snapshot: await repository.snapshot(), underlying: error)
++      }
++    }.value
++  }
++
++  private struct TaskSyncAttemptFailure: LocalizedError {
++    let snapshot: Workspace
++    let underlying: any Error
++    var errorDescription: String? { underlying.localizedDescription }
++  }
++
++  private func savedTaskSyncClient(for id: UUID) -> TaskSyncClient? {
++    #if DEBUG
++      let environment = ProcessInfo.processInfo.environment
++      guard let workspace,
++        let task = workspace.tasks.first(where: { $0.id == id }),
++        workspace.taskConflict(for: id) == nil,
++        environment["FIELDLOG_TASK_SYNC_WORKSPACE"].flatMap(UUID.init(uuidString:)) == workspace.id,
++        environment["FIELDLOG_TASK_SYNC_PROJECT"].flatMap(UUID.init(uuidString:)) == task.projectID,
++        environment["FIELDLOG_TASK_SYNC_TASK"].flatMap(UUID.init(uuidString:)) == id,
++        let port = environment["FIELDLOG_TASK_SYNC_PORT"].flatMap(UInt16.init),
++        let token = environment["FIELDLOG_TASK_SYNC_TOKEN"]
++      else { return nil }
++      return try? TaskSyncClient(port: port, workspaceID: workspace.id, projectID: task.projectID, token: token)
++    #else
++      return nil
++    #endif
++  }
++
+@@ -374,0 +449,28 @@ struct SitePinEdit: Equatable, Sendable {
++
++@MainActor final class SavedTaskEditorOwner: ObservableObject {
++  @Published var edit: TaskEdit
++  @Published private(set) var saving = false
++  @Published private(set) var error: String?
++
++  init(edit: TaskEdit) { self.edit = edit }
++
++  func submit(
++    to model: WorkspaceModel, review: TaskConflictReview?,
++    choices: [TaskTextField: TaskConflictChoice]
++  ) async -> Bool {
++    guard !saving else { return false }
++    saving = true
++    error = nil
++    defer { saving = false }
++    let succeeded: Bool
++    if let review {
++      succeeded = await model.resolveTaskConflict(review, choosing: choices)
++    } else {
++      succeeded = await model.saveTaskEdit(edit)
++    }
++    if !succeeded {
++      error = model.saveError ?? "Task could not be saved. Your changes have been kept."
++    }
++    return succeeded && model.workspace?.taskConflict(for: edit.taskID) == nil
++  }
++}
+diff --git a/verification/host/PairedTaskConflict.swift b/verification/host/PairedTaskConflict.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..150b1c8c11417c41540cea02512dccbf8c85c26a
+--- /dev/null
++++ b/verification/host/PairedTaskConflict.swift
+@@ -0,0 +1,144 @@
++import CoreGraphics
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++import ImageIO
++import UniformTypeIdentifiers
++
++private struct Failed: Error {
++  let message: String
++  init(_ message: String) { self.message = message }
++}
++
++private func require<T>(_ value: T?, _ description: String) throws -> T {
++  guard let value else { throw Failed(description) }
++  return value
++}
++
++private func check(_ condition: Bool, _ description: String) throws {
++  guard condition else { throw Failed(description) }
++}
++
++private struct Fixture: Codable {
++  let workspace: UUID
++  let project: UUID
++  let task: UUID
++  let photo: UUID
++}
++
++@main @MainActor
++struct PairedTaskConflict {
++  static func main() async throws {
++    let args = CommandLine.arguments
++    let root = URL(filePath: args[2], directoryHint: .isDirectory)
++    let local = root.appending(path: "local")
++    let peer = root.appending(path: "peer")
++    let phase = args[1]
++    let repository = try WorkspaceRepository(directory: phase.hasPrefix("peer-") ? peer : local)
++    let model = WorkspaceModel(repository: repository)
++    await model.open()
++    let fixtureFile = root.appending(path: "fixture.json")
++
++    if phase == "seed" {
++      let project = try require(await model.createProject(title: "Inspection", site: "North yard"), "project")
++      try check(await model.addTask(projectID: project, title: "Inspect valve", responsible: "Crew"), "task")
++      model.restoreProject(project)
++      await model.flush()
++      model.showSiteMap(for: project)
++      let map = try require(model.sitePinEdit(projectID: project), "map selection")
++      let coordinate = try require(SiteCoordinate(latitude: 40, longitude: -73), "coordinate")
++      try check(await model.saveSitePin(map, to: coordinate), "site pin")
++      var draft = try require(await model.newDraft(projectID: project), "draft")
++      draft.title = "Leave this draft open"
++      try check(await model.keepDraft(draft), "settled draft")
++      model.selectDraftEditor(draft)
++      let selection = try require(model.draftEditor, "draft photo owner")
++      let jpeg = try makeJPEG()
++      let ids = try await model.addPhoto(jpeg, to: selection)
++      let photo = try require(ids.first, "photo")
++      let baseline = try await repository.readCommittedSnapshot()
++      let task = try require(baseline.tasks.first, "seed task")
++      try check(baseline.schema == 1 && baseline.projects.first?.siteCoordinate == coordinate, "old schema and site pin")
++      let workspace = local.appending(path: "workspace.json")
++      try FileManager.default.createDirectory(at: peer, withIntermediateDirectories: true)
++      try FileManager.default.copyItem(at: workspace, to: peer.appending(path: "workspace.json"))
++      try Data(contentsOf: workspace).write(to: root.appending(path: "baseline.json"))
++      try jpeg.write(to: root.appending(path: "baseline.jpg"))
++      try JSONEncoder().encode(Fixture(workspace: baseline.id, project: project, task: task.id,
++                                       photo: photo)).write(to: fixtureFile)
++      await repository.close()
++      return
++    }
++
++    let fixture = try JSONDecoder().decode(Fixture.self, from: Data(contentsOf: fixtureFile))
++    switch phase {
++    case "local-link", "peer-link", "peer-send", "retry":
++      try check(await model.syncSavedTask(fixture.task), model.saveError ?? phase)
++    case "local-denied":
++      let before = try await repository.readCommittedSnapshot()
++      try check(!(await model.syncSavedTask(fixture.task)), "unauthenticated link")
++      try check(model.saveError?.contains("401") == true, "401")
++      try check(try await repository.readCommittedSnapshot() == before, "unauthenticated state changed")
++    case "local-edit", "peer-edit":
++      try check(!model.canSyncSavedTask(fixture.task), "expected offline environment")
++      let edit = try require(model.savedTaskEdit(fixture.task, in: fixture.project), "ordinary edit")
++      let owner = SavedTaskEditorOwner(edit: edit)
++      owner.edit.text.title = phase == "local-edit" ? "Inspect valve today" : "Inspect valve after shutdown"
++      if phase == "peer-edit" { owner.edit.text.responsible = "Morgan" }
++      try check(await owner.submit(to: model, review: nil, choices: [:]), owner.error ?? "settled editor")
++      let saved = try await repository.readCommittedSnapshot()
++      try check(saved.tasks.first?.title == owner.edit.text.title && model.pendingSaves == 0, "offline settlement")
++    case "conflict":
++      try check(await model.syncSavedTask(fixture.task), model.saveError ?? phase)
++      let review = try require(model.workspace?.taskConflict(for: fixture.task), "409 review")
++      try check(review.conflicts.map(\.field) == [.title], "only overlapping title requires a choice")
++      try check(review.conflicts.first?.local == "Inspect valve today" &&
++                review.conflicts.first?.incoming == "Inspect valve after shutdown", "conflict values")
++    case "resolve":
++      let edit = try require(model.savedTaskEdit(fixture.task, in: fixture.project), "reopen task editor")
++      let owner = SavedTaskEditorOwner(edit: edit)
++      let review = try require(model.workspace?.taskConflict(for: fixture.task), "cold conflict review")
++      try check(await owner.submit(to: model, review: review, choices: [.title: .local]), owner.error ?? phase)
++      let saved = try await repository.readCommittedSnapshot()
++      try check(await model.resolveTaskConflict(review, choosing: [.title: .local]), "duplicate choice")
++      try check(try await repository.readCommittedSnapshot() == saved, "duplicate choice rewrote workspace")
++    case "lose":
++      try check(!(await model.syncSavedTask(fixture.task)), "truncated receipt must fail")
++      let state = try await repository.readCommittedSnapshot()
++      let scope = TaskSyncScope(workspaceID: fixture.workspace, projectID: fixture.project, taskID: fixture.task)
++      let upload = try require(try state.taskSyncUpload(scope), "durable retry identity")
++      try check(state == model.workspace, "model didn't publish durable flight")
++      try JSONEncoder().encode(upload).write(to: root.appending(path: "flight.json"))
++    case "readback":
++      let state = try await repository.readCommittedSnapshot()
++      let baseline = try JSONDecoder().decode(Workspace.self, from: Data(contentsOf: root.appending(path: "baseline.json")))
++      let task = try require(state.tasks.first, "cold task")
++      try check(task.title == "Inspect valve today" && task.responsible == "Morgan", "combined text")
++      try check(state.taskConflict(for: fixture.task) == nil && state.outbox == baseline.outbox, "review and original queue")
++      try check(state.projects == baseline.projects && state.drafts == baseline.drafts &&
++                state.restoration == baseline.restoration && state.attachments == baseline.attachments &&
++                state.entries == baseline.entries, "draft/photo/map/entry state")
++      let photo = try await repository.photoURL(fixture.photo)
++      try check(try Data(contentsOf: photo) == Data(contentsOf: root.appending(path: "baseline.jpg")), "photo bytes")
++      let report = try await model.exportReport(projectID: fixture.project)
++      try check(FileManager.default.fileExists(atPath: report.path), "report export")
++      print("PASS cold task, original queue, draft, exact JPEG, site pin and report")
++    default: throw Failed("Unexpected phase")
++    }
++    await repository.close()
++  }
++
++  private static func makeJPEG() throws -> Data {
++    let context = try require(CGContext(data: nil, width: 4, height: 4, bitsPerComponent: 8,
++      bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(),
++      bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue), "raster")
++    context.setFillColor(red: 0.1, green: 0.2, blue: 0.4, alpha: 1)
++    context.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
++    let image = try require(context.makeImage(), "image")
++    let data = NSMutableData()
++    let output = try require(CGImageDestinationCreateWithData(data, UTType.jpeg.identifier as CFString, 1, nil), "JPEG")
++    CGImageDestinationAddImage(output, image, nil)
++    try check(CGImageDestinationFinalize(output), "encode photo")
++    return data as Data
++  }
++}
+diff --git a/verification/host/TaskSyncTransport.swift b/verification/host/TaskSyncTransport.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..8a90dc6a16011d99bee6f0da25665fd945d42a3a
+--- /dev/null
++++ b/verification/host/TaskSyncTransport.swift
+@@ -0,0 +1,145 @@
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++
++private struct Assertion: Error {
++  let message: String
++}
++
++private func expect(_ condition: Bool, _ message: String) throws {
++  guard condition else { throw Assertion(message: message) }
++}
++
++private struct Receipt: Encodable {
++  let eventID: UUID
++  let head: TaskSyncHead
++}
++
++private actor Responses {
++  typealias Reply = @Sendable (TaskSyncUpload?) throws -> (Int, Data)
++
++  private var replies: [Reply]
++  private var requests: [TaskSyncUpload?] = []
++
++  init(_ replies: [Reply]) { self.replies = replies }
++
++  func respond(_ body: Data?) throws -> (Int, Data) {
++    guard !replies.isEmpty else { throw Assertion(message: "Unexpected transaction") }
++    let upload = try body.map { try JSONDecoder().decode(TaskSyncUpload.self, from: $0) }
++    requests.append(upload)
++    return try replies.removeFirst()(upload)
++  }
++
++  func observed() -> [TaskSyncUpload?] { requests }
++}
++
++@main
++private struct TaskSyncTransportTest {
++  static func main() async throws {
++    let directory = URL(filePath: CommandLine.arguments[1], directoryHint: .isDirectory)
++    let repository = try WorkspaceRepository(directory: directory)
++    let seed = try await repository.transact { workspace in
++      let project = try workspace.createProject(title: "Inspection", site: "Yard")
++      try workspace.saveTask(projectID: project, title: "Initial", responsible: "A")
++    }
++    guard let task = seed.tasks.first else { throw Assertion(message: "Missing seed task") }
++    let scope = TaskSyncScope(workspaceID: seed.id, projectID: task.projectID, taskID: task.id)
++    let edit = TaskEdit(workspaceID: seed.id, revision: seed.revision, task: task)
++    let first = TaskSyncHead(scope: scope, version: 1, text: edit.text)
++    let wrongScope = TaskSyncScope(workspaceID: UUID(), projectID: task.projectID, taskID: task.id)
++    let wrong = TaskSyncHead(scope: wrongScope, version: 1, text: edit.text)
++    let firstBody = try JSONEncoder().encode(first)
++    let padded = firstBody + Data(repeating: 32, count: 8192 - firstBody.count)
++    let script = Responses([
++      { _ in (307, Data()) },
++      { _ in (200, try JSONEncoder().encode(wrong)) },
++      { _ in (200, padded + Data([32])) },
++      { _ in (200, padded) },
++      { _ in (409, Data()) },
++      { upload in try receipt(upload, eventID: UUID()) },
++      { upload in
++        let reply = try receipt(upload)
++        withUnsafeCurrentTask { $0?.cancel() }
++        return reply
++      },
++      { upload in try receipt(upload) },
++      { _ in (409, Data(#"{"error":"stale_task_version"}"#.utf8)) },
++      { _ in
++        var remote = first.text
++        remote.title = "Updated locally"
++        remote.responsible = "B"
++        let head = TaskSyncHead(scope: scope, version: 3, text: remote)
++        return (200, try JSONEncoder().encode(head))
++      }
++    ])
++    let token = String(repeating: "a", count: 32)
++    let path = "/v1/workspaces/\(seed.id.uuidString.lowercased())/projects/\(task.projectID.uuidString.lowercased())/tasks/\(task.id.uuidString.lowercased())"
++    let client = try TaskSyncClient(
++      port: 4321, workspaceID: seed.id, projectID: task.projectID, token: token
++    ) { port, actualPath, bearer, upload in
++      try expect(port == 4321 && actualPath == path && bearer == token, "Injected scope")
++      return try await script.respond(upload)
++    }
++
++    func sync() async throws -> Workspace {
++      try await client.synchronize(taskID: task.id, in: repository)
++    }
++
++    func expectFailure(_ expected: TaskSyncClient.Failure) async throws {
++      do {
++        _ = try await sync()
++        throw Assertion(message: "Expected typed failure")
++      } catch let failure as TaskSyncClient.Failure {
++        try expect(failure == expected, "Unexpected typed failure")
++      }
++    }
++
++    try await expectFailure(.rejected(307))
++    try await expectFailure(.invalidReceipt)
++    try await expectFailure(.invalidReceipt)
++    try expect(try await repository.readCommittedSnapshot() == seed, "Invalid fetch published state")
++    let linked = try await sync()
++    try expect(linked.revision == seed.revision + 1, "8192-byte response failed to link")
++    _ = try await repository.transact { workspace in
++      var local = TaskEdit(workspaceID: seed.id, revision: linked.revision, task: task)
++      local.text.title = "Updated locally"
++      try workspace.saveTaskEdit(local)
++    }
++
++    try await expectFailure(.rejected(409))
++    let flight = try await repository.readCommittedSnapshot()
++    let pending = try flight.taskSyncUpload(scope)
++    try expect(pending != nil, "Missing durable retry proposal")
++    try await expectFailure(.invalidReceipt)
++    try expect(try await repository.readCommittedSnapshot() == flight, "Invalid acknowledgement published state")
++    do {
++      _ = try await Task { try await sync() }.value
++      throw Assertion(message: "Expected cancellation after transport returned")
++    } catch is CancellationError {}
++    try expect(try await repository.readCommittedSnapshot() == flight, "Cancelled acknowledgement published state")
++    let settled = try await sync()
++    try expect(try settled.taskSyncUpload(scope) == nil, "Valid acknowledgement did not clear flight")
++
++    _ = try await repository.transact { workspace in
++      guard let saved = workspace.tasks.first else { throw Assertion(message: "Missing saved task") }
++      var local = TaskEdit(workspaceID: seed.id, revision: settled.revision, task: saved)
++      local.text.title = "Updated again"
++      try workspace.saveTaskEdit(local)
++    }
++    let merged = try await sync()
++    try expect(merged.tasks.first?.title == "Updated again" && merged.tasks.first?.responsible == "B",
++               "Stale proposal did not merge remote text")
++    let requests = await script.observed()
++    try expect(requests.count == 10 && requests.prefix(4).allSatisfy { $0 == nil } &&
++               requests[4..<8].allSatisfy { $0 == pending } && requests[8] != nil && requests[9] == nil,
++               "Wrong GET/POST sequence or retry proposal")
++    await repository.close()
++    print("PASS injected scope, typed rejections, 8192/8193 bytes, cancellation, exact retry, GET after stale POST, merge")
++  }
++
++  static func receipt(_ upload: TaskSyncUpload?, eventID: UUID? = nil) throws -> (Int, Data) {
++    guard let upload else { throw Assertion(message: "Missing POST upload") }
++    let head = TaskSyncHead(scope: upload.base.scope, version: upload.base.version + 1, text: upload.text)
++    return (201, try JSONEncoder().encode(Receipt(eventID: eventID ?? upload.eventID, head: head)))
++  }
++}
+diff --git a/verification/host/replay-paired-task-conflict.py b/verification/host/replay-paired-task-conflict.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..d804d1e9e190fae46c5641866a86ebd5de00c0cd
+--- /dev/null
++++ b/verification/host/replay-paired-task-conflict.py
+@@ -0,0 +1,146 @@
++"""Run the compiled ordinary FieldLog editor replay with a disposable SQLite backend."""
++import contextlib
++import hashlib
++import importlib.util
++import json
++import os
++from pathlib import Path
++import secrets
++import socket
++import sqlite3
++import subprocess
++import sys
++import threading
++
++source = Path(__file__).resolve().parents[2]
++spec = importlib.util.spec_from_file_location("fieldlog", source / "Backend/local_entry_sync.py")
++backend = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(backend)
++
++exe, root = (Path(value).resolve() for value in sys.argv[1:])
++root.mkdir(mode=0o700)
++db = root / "task.sqlite3"
++trace = []
++uploads = []
++children = []
++ports = []
++lost = False
++
++def check(condition, message):
++    if not condition:
++        raise RuntimeError(message)
++
++class Trace(backend.EntrySyncHandler):
++    def _send_json(self, status, body):
++        trace.append([self.command, int(status)])
++        super()._send_json(status, body)
++
++    def send_receipt(self, status, receipt):
++        global lost
++        if not lost and int(status) == 201 and receipt["head"]["version"] == 3:
++            lost = True
++            trace.append([self.command, int(status)])
++            data = json.dumps(receipt).encode()
++            self.send_response(status)
++            self.send_header("Content-Type", "application/json")
++            self.send_header("Content-Length", str(len(data)))
++            self.end_headers()
++            self.wfile.write(data[:12])
++            self.close_connection = True
++        else:
++            super().send_receipt(status, receipt)
++
++    def _read_body(self, maximum=backend.MAX_REQUEST_BYTES):
++        payload = super()._read_body(maximum)
++        if self.command == "POST":
++            uploads.append(json.loads(payload))
++        return payload
++
++def phase(name, port=None, token=None):
++    env = {key: value for key, value in os.environ.items() if not key.startswith("FIELDLOG_TASK_SYNC_")}
++    if port is not None:
++        env.update(
++            FIELDLOG_TASK_SYNC_PORT=str(port), FIELDLOG_TASK_SYNC_TOKEN=token,
++            **{"FIELDLOG_TASK_SYNC_" + key.upper(): value for key, value in ids.items() if key != "photo"},
++        )
++    with subprocess.Popen([exe, name, root], env=env, start_new_session=True) as child:
++        try:
++            status = child.wait(timeout=12)
++        except subprocess.TimeoutExpired:
++            os.killpg(child.pid, 15)
++            status = child.wait(timeout=3)
++        try:
++            os.killpg(child.pid, 0)
++        except ProcessLookupError:
++            children.append({"phase": name, "pid": child.pid, "exit": status, "groupAbsent": True})
++            print(json.dumps(children[-1]), flush=True)
++        else:
++            raise RuntimeError(f"Process group disposition unverified: {child.pid}")
++        check(status == 0, f"{name} exited {status}")
++
++@contextlib.contextmanager
++def listener():
++    with backend.make_server(db, accounts, handler_class=Trace) as server:
++        thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.05})
++        thread.start()
++        try:
++            yield server.server_port
++        finally:
++            server.shutdown()
++            thread.join(timeout=3)
++            check(not thread.is_alive(), "Listener still running")
++    with socket.socket() as reuse:
++        reuse.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
++        reuse.bind(("127.0.0.1", server.server_port))
++    ports.append(server.server_port)
++    print(json.dumps({"closedAndRebound": server.server_port}), flush=True)
++
++def readback():
++    with contextlib.closing(sqlite3.connect(db)) as sql:
++        head = sql.execute("SELECT task_id, version, text_json FROM task_heads").fetchone()
++        events = sql.execute(
++            """SELECT event_id, proposal_json, receipt_json FROM task_events
++               ORDER BY json_extract(receipt_json, '$.head.version')"""
++        ).fetchall()
++        check(sql.execute("PRAGMA foreign_key_check").fetchall() == [], "foreign keys")
++        check(sql.execute("SELECT COUNT(*) FROM entry_events").fetchone() == (0,), "unrelated transport")
++        return head, events
++
++phase("seed")
++ids = {key: value.lower() for key, value in json.loads((root / "fixture.json").read_text()).items()}
++account = "synthetic-fieldlog"
++local, peer, denied = (secrets.token_urlsafe(32) for _ in range(3))
++accounts = {token: (account, {(ids["workspace"], ids["project"])}) for token in (local, peer)}
++with listener() as port:
++    backend.provision_task(db, account, ids["workspace"], ids["project"], ids["task"],
++                           {"title": "Inspect valve", "responsible": "Crew"})
++    phase("local-denied", port, denied)
++    phase("local-link", port, local)
++    phase("peer-link", port, peer)
++trace_before = list(trace)
++phase("local-edit")
++phase("peer-edit")
++check(trace == trace_before and readback()[1] == [], "offline edits contacted backend")
++with listener() as port:
++    phase("peer-send", port, peer)
++    phase("conflict", port, local)
++    phase("resolve")
++    phase("lose", port, local)
++    before_retry = readback()
++    phase("retry", port, local)
++    check(readback() == before_retry, "retry created another SQLite event")
++phase("readback")
++head, events = readback()
++expected = {"title": "Inspect valve today", "responsible": "Morgan"}
++check(head[:2] == (ids["task"], 3) and json.loads(head[2]) == expected and len(events) == 2, "SQLite head")
++check(trace == [["GET", 401], ["GET", 200], ["GET", 200], ["POST", 201],
++                ["POST", 409], ["GET", 200], ["POST", 201], ["POST", 200]], trace)
++flight = json.loads((root / "flight.json").read_bytes())
++check(lost and uploads[-2] == uploads[-1] == flight, "exact retry proposal")
++check(events[-1][0] == flight["eventID"].lower(), "SQLite retry identity")
++print(json.dumps({"http": trace, "headVersion": 3, "committedEvents": len(events),
++    "task": ids["task"], "combinedText": expected, "retryEvent": events[-1][0],
++    "proposalSHA256": hashlib.sha256(json.dumps(flight, sort_keys=True).encode()).hexdigest(),
++    "baselineOutboxRows": len(json.loads((root / "baseline.json").read_text())["outbox"]),
++    "jpegSHA256": hashlib.sha256((root / "baseline.jpg").read_bytes()).hexdigest(),
++    "children": children, "reboundPorts": ports}, sort_keys=True))
+diff --git a/verification/host/run-paired-task-conflict.sh b/verification/host/run-paired-task-conflict.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..9e55ceaef7b7db7bf51a9fa78caee1d84625a514
+--- /dev/null
++++ b/verification/host/run-paired-task-conflict.sh
+@@ -0,0 +1,51 @@
++#!/bin/bash
++set -eu
++if [[ $# != 3 ]]; then
++  echo "Usage: $0 PAIR25_SOURCE PINNED_SWIFT_CRYPTO NEW_OUTPUT_DIRECTORY" >&2
++  exit 2
++fi
++umask 077
++app="$(cd "$(dirname "$0")/../.." && pwd -P)"
++sdk="$(cd "$1" && pwd -P)"
++crypto="$(cd "$2" && pwd -P)"
++mkdir "$3"
++b="$(cd "$3" && pwd -P)"
++export TMPDIR="$b/tmp/"
++mkdir "$TMPDIR"
++target=arm64-apple-macosx27.0
++opts=(-target "$target" -swift-version 6 -package-name mixer -module-cache-path "$b/cache" -I "$b" -Xcc -I -Xcc "$sdk/vm/include" -L "$b" -j 5)
++cmod() {
++  local name=$1 root=$2
++  shift 2
++  mkdir "$b/$name"
++  printf 'module %s { umbrella "%s/include" export * }\n' "$name" "$root" > "$b/$name/module.modulemap"
++  xcrun clang -target "$target" -I "$root/include" -I "$sdk/vm/include" -c "$root/$1" -o "$b/$name.o"
++}
++swiftmod() {
++  local name=$1
++  shift
++  echo "module $name"
++  swiftc "${opts[@]}" -emit-module -emit-library -module-name "$name" -o "$b/lib$name.dylib" "$@"
++}
++cmod MixerCapabilityIO "$sdk/sdk/Sources/MixerCapabilities/NativeIO" lock.c
++cmod MixerCapabilityDurableIO "$sdk/capability-activation/Sources/MixerCapabilityDurableIO" lock.c
++cmod MixerDurableIO "$sdk/updates/Sources/MixerDurableIO" lock.c
++cmod CMixerVMCapability "$sdk/experimental-capability-runtime/Sources/CMixerVMCapability" bridge.c
++swiftmod MixerCore "$sdk/sdk/Sources/MixerCore/"*.swift
++swiftmod MixerUI -lMixerCore "$sdk/sdk/Sources/MixerUI/"*.swift
++swiftmod MixerApple -lMixerUI "$sdk/sdk/Sources/MixerApple/"*.swift
++swiftmod Crypto "$crypto/Sources/Crypto/Util/SafeCompare.swift"
++swiftmod MixerGuest -lMixerCore -lMixerUI -lCrypto "$sdk/sdk/Sources/MixerGuest/"*.swift
++swiftmod MixerCapabilities -lMixerCore "$b/MixerCapabilityIO.o" "$sdk/sdk/Sources/MixerCapabilities/"*.swift
++swiftmod MixerExperimentalCapabilityRuntime -Xlinker -undefined -Xlinker dynamic_lookup -lMixerGuest -lMixerCapabilities "$b/CMixerVMCapability.o" "$sdk/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/"*.swift
++swiftmod MixerUpdates -lCrypto "$b/MixerDurableIO.o" "$sdk/updates/Sources/MixerUpdates/"*.swift
++swiftmod MixerRuntimeIdentity -lMixerUpdates "$sdk/runtime-identity/Sources/MixerRuntimeIdentity/"*.swift
++swiftmod MixerCapabilityActivation -lMixerRuntimeIdentity -lMixerUpdates -lMixerExperimentalCapabilityRuntime -lMixerGuest -lMixerCapabilities -lMixerUI -lMixerApple "$b/MixerCapabilityDurableIO.o" "$sdk/capability-activation/Sources/MixerCapabilityActivation/"*.swift
++swiftmod FieldLogModels "$app/Sources/FieldLogModels/"*.swift
++swiftmod FieldLogStorage -lFieldLogModels "$app/Sources/FieldLogStorage/"*.swift
++swiftmod FieldLogFeatures -lFieldLogModels -lMixerCore -lMixerUI -lMixerApple "$app/Sources/FieldLogFeatures/"*.swift
++swiftmod FieldLogEntrySaving -lFieldLogModels -lMixerCore "$app/Integrations/GeneratedReport/Sources/FieldLogFeatures/"{EntryEditor,EntryEditorPhotos,EntrySaveDecision}.swift
++
++swiftc -swift-version 6 -D DEBUG -module-cache-path "$b/cache" -I "$b" -Xcc -I -Xcc "$sdk/vm/include" -L "$b" -lFieldLogModels -lFieldLogStorage -lFieldLogFeatures -lFieldLogEntrySaving -lMixerCapabilityActivation -lMixerCapabilities -lMixerRuntimeIdentity -lMixerUpdates -o "$b/PairedTaskConflict" "$app/ios/FieldLog/"{WorkspaceModel,SelectedDraftGuestBinding,InstalledDraftGuest}.swift "$app/Integrations/InstalledGuest/FieldLogDraftStorage.swift" "$app/verification/host/PairedTaskConflict.swift"
++DYLD_LIBRARY_PATH="$b" python3 -B "$app/verification/host/replay-paired-task-conflict.py" \
++  "$b/PairedTaskConflict" "$b/replay"

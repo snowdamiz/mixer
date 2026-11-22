@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "gate": [
+    "L02",
+    "L08"
+  ],
+  "result": "passed_scoped_source_and_host_review",
+  "patch": "verification/receipts/fieldlog-ios-task-conflict-injected-f2865989.patch",
+  "source": {
+    "base": "f2865989693af3eb4a1891a492054baa36ac1e2f",
+    "after": "41eaf5b4e5ff22ed990e27166e4a860063b4ac26",
+    "canonicalSha256": "f5c09970636d4b4aa650aa7ee709d923f68281f7a09a41d17af05cb2772f7b34",
+    "fileCount": 16,
+    "patchInputs": {
+      "fieldlog-ios-settings-bounded-7b2b98f0.patch": "2639352790e03eadd4fc0ae1cb81fe2fbdcfd4d1c7f7d3f872dc405869fa7418",
+      "fieldlog-paired-ios-task-conflict-corrected.patch": "9dd9516a6c9eb25d98597691ee87f81221c150dfae4e21e95f22bb6ce6a2fc20",
+      "fieldlog-task-sync-injected-transport.patch": "4a6e863c626086d91cceb3633238850def40487cd1d76803e05be535d52fdf6a"
+    },
+    "forwardAndReverse": true,
+    "commandsClosed": 16,
+    "scratchRemoved": true
+  },
+  "authorSeamReceiptSHA256": "6a5cc3177b284bf55d052b8bab78e6becdbaf62291cc8b7c1067e725f169ef18",
+  "swiftBoundary": "TaskSyncClient.Transport = @Sendable (_ port: UInt16, _ path: String, _ bearerToken: String, _ upload: Data?) async throws -> (status: Int, body: Data)",
+  "hostReadback": {
+    "transportAdmission": "GET iff upload is nil. Swift checks returned body size, receipt type and cancellation.",
+    "peersReachedVersion": 3,
+    "sqliteEvents": 2,
+    "retryReusedEventAndProposal": true,
+    "lostAcknowledgmentRetriedAfterColdReopen": true,
+    "firstFailureMayPersistRetryProposal": true,
+    "subsequentFailuresLeaveWorkspaceBytesIntact": true,
+    "draftPhotoPinAndOriginalQueuePreserved": "The two-replica iOS workflow replay preserved its photo, draft, site pin and both original pending records."
+  },
+  "androidSource": "Swift 6.3.3 RELEASE typechecked root storage on aarch64-unknown-linux-android28 with the exact injected caller. Omitting transport failed the compile control.",
+  "scope": "Reviewed Swift source and macOS replay. Android platform I/O and installed conflict resolution have separate acceptance. Installed iOS execution remains paused."
+}
