@@ -1505,6 +1505,17 @@ workspace. All 130 baseline and 137 candidate commands reached terminal
 custody. Public SDK adoption and the separate IME switch remain open.
 [Installed Home restart A/B](verification/receipts/l02-android-note-home-restart-api36-c6ee43e1.json)
 
+Independent review of the diagnostic found missing ownership for a
+reused drain, reuse of an earlier native close, and a platform exception
+outside owner cleanup. The product-only candidate ties the close and
+drain to the same stop and resume episode and routes restart failures
+through the owner. Its 22 host cases passed. A separate API 36 run on
+the DEX-only signed build read, edited, and read back the exact Note
+after Home. It kept the same Activity, process and workspace bytes.
+All 130 commands closed. This candidate has no queue trace, and public
+source adoption remains pending.
+[Installed product-only Home correction](verification/receipts/l02-android-note-home-product-api36-ccb5221c.json)
+
 The IME-switch experiment withheld an overlapping connection and posted
 a public restart after the exact predecessor closed. Android briefly
 received a new SDK adapter, then closed it after another overlapping
@@ -1512,6 +1523,33 @@ create. Both post-switch queries failed and the Note stayed empty. All
 157 installed commands reached terminal custody. The SDK still needs a
 handoff that survives repeated speculative creation.
 [Installed restart experiment](verification/receipts/l02-android-note-ime-restart-experiment-api36-c6ee43e1.json)
+
+The staged-adapter experiment passed the same-focus IME switch on API
+36 ARM64. The baseline still forwarded both reads and the IME edit to
+a revoked predecessor. The successor kept the same field and Editable,
+armed the exact round after the predecessor closed, and carried the
+selected adapter through reflow. That adapter handled the queries and
+one exact commit. The Activity, process, and workspace were preserved
+within each arm. All 113 baseline and 122 candidate commands closed.
+The overlay remains private pending source review and SDK integration.
+[Installed staged IME rebind A/B](verification/receipts/l02-android-note-ime-staged-rebind-api36-c6ee43e1.json)
+
+Independent host review found that a selection change after the old
+adapter closes can leave the served staged adapter refusing input. It
+also reproduced a false zero from a valid first caps query. The
+installed switch remains scoped evidence. The production correction
+must preserve stale-metadata refusal, recover the active field, and
+admit a valid caps query through the same authority check.
+
+The historical F04 reducer selector and the exact Pair25 Apple owner
+host replay passed the tested save boundary. A held save refused new
+edits, Cancel, and a second Save. A recoverable read denial preserved
+the input and the same editor retried successfully. An interruption
+before rename preserved workspace bytes and input, but the repository
+refused retry until reopened. The fresh editor then required re-entering
+both fields. Independent replay confirmed the remaining retry defect.
+This is macOS owner and repository evidence.
+[F04 task save and recovery](verification/receipts/fieldlog-f04-ordinary-pair25-ccb5221c.json)
 
 All four F14–F16 selectors passed on the historical and Pair25
 sources. F14 wrote one entry and one event after a valid edit-and-commit
@@ -1571,6 +1609,17 @@ the JPEG. Independent review accepted the installed scope. All 204
 commands and both services closed, and the scoped
 package, fixture files and disposable scratch were removed.
 [Installed F17/F18 picker and attachment](verification/receipts/fieldlog-f17-f18-android-picker-api36-ac305262.json)
+
+The installed F19 report replay delivered one 325-byte saved-project
+report to a permissionless recipient through the Android chooser.
+The recipient held the distinct provider cache descriptor with no reads
+while the driver atomically replaced the synthetic repository export.
+The same descriptor read the original report and closed. FieldLog
+returned to the same project and process with the workspace, outbox and
+two JPEGs unchanged. The first run verified the swap and stopped at an
+all-caps button lookup. The test recipient's inset and button correction
+passed on a fresh run. All 146 commands closed and scratch was removed.
+[Installed F19 report descriptor](verification/receipts/fieldlog-f19-android-report-descriptor-api36-ac305262.json)
 
 A fresh offline API 36 install of the same APK ran the bundled signed
 Entry Commit. It moved the draft under the original ID, appended one
@@ -2209,6 +2258,13 @@ The next public revision, `c6ee43e1`, passed all nine jobs on its first attempt.
 [Hosted Engine run](https://github.com/snowdamiz/mixer/actions/runs/45029091735)
 [Hosted Java bootstrap and artifact receipt](verification/receipts/hosted-java-bootstrap-and-artifact-3362bf6c.json)
 
+All nine Owned Engine jobs passed on `554515a3`. The two hosted
+Java artifacts matched GitHub's archive digests. The 157 source inputs
+matched the tracked Source141 map, and all six archived DEX files
+matched byte for byte. The two producer receipts record all 92 command
+groups terminal and scratch removed.
+[Hosted Engine and Java readback](verification/receipts/hosted-engine-terminal-554515a3.json)
+
 All nine Owned Engine jobs passed on the Rust notice binding.
 Both Python modes admitted the same Source141 and Pair25 inputs, and
 all six Intel Java and D8 builds returned identical DEX bytes.
@@ -2593,6 +2649,14 @@ independent replay matched all prior outcomes and passed all eight
 wrapper controls. The candidate used all 256 command slots. This is
 arm64 macOS V3 session evidence.
 [Higher-address copy replay](verification/receipts/l03-w08-memory-copy-higher-address-554515a3.json)
+
+The four upstream binary64 min and max assertions passed in WABT, the
+Mixer CLI and the installed V3 C session. Both operand orders preserved
+exact input bits. Minimum returned negative zero and maximum returned
+positive zero. The independently repeated host replay matched all prior
+outcomes and passed all eight wrapper controls. The test wrapper used
+270 command slots, up from 256. The VM runtime limits were unchanged.
+[Binary64 signed-zero replay](verification/receipts/l03-w08-f64-signed-zero-ccb5221c.json)
 
 The seeded TableMemoryV3 check retains one instance for 40 copies on
 each of 24 seeds. Mixer and Node matched all 960 observations of the

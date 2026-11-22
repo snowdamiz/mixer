@@ -17,10 +17,10 @@ fresh Cargo home and `/` as Cargo's working directory. It refuses Cargo config
 files in those lookup locations and workspace manifests above the export. Cargo
 metadata must resolve the exported package and every target, including examples,
 inside the verified tree. The script stages the release archive and exported public
-headers in the experimental capability install layout, then links the exported
-C client directly against that archive. It downloads the
-pinned WABT release and fifteen WebAssembly Core WAST files over HTTPS and checks
-their SHA-256 hashes. [WABT release](https://github.com/WebAssembly/wabt/releases/tag/1.0.37) ·
+headers in the experimental capability install layout, then snapshots and hashes
+the C client from the replay runner's directory and links it against that archive.
+It downloads the pinned WABT release and sixteen WebAssembly Core WAST files
+over HTTPS and checks their SHA-256 hashes. [WABT release](https://github.com/WebAssembly/wabt/releases/tag/1.0.37) ·
 [WebAssembly test sources](https://github.com/WebAssembly/spec/tree/05ca4182176763112561ae20153975c12bd689e4/test/core)
 
 The script translates each WAST file and uses the resulting Wasm bytes directly.
@@ -85,6 +85,15 @@ that preserve the selected binary32 values. The installed C ABI receives
 their raw bits.
 [Pinned signed-zero cases](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/f32.wast#L2499-L2506) ·
 [Pinned nonzero ties](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/float_misc.wast#L665-L669)
+
+Four assertions from the original 196-byte module in `f64.wast` check both
+argument orders for opposite-sign zeros. Lines 1620–1621 require `f64.min` to
+return `0x8000000000000000`. Lines 2020–2021 require `f64.max` to return
+`0x0000000000000000`. Each runner starts a fresh instance for each assertion
+and checks all 64 bits. The four assertions add 14 commands, for a total cap of
+270 commands. The existing time and VM limits still apply.
+[Pinned min cases](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/f64.wast#L1620-L1621) ·
+[Pinned max cases](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/f64.wast#L2020-L2021)
 
 Eight assertions from the original module in `conversions.wast` check every
 result bit of `f32.convert_i64_s` and `f32.convert_i64_u`. The signed cases

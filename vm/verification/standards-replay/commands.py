@@ -10,6 +10,9 @@ import tempfile
 import time
 
 
+COMMAND_LIMIT = 270
+
+
 def digest(data):
     return hashlib.sha256(data).hexdigest()
 
@@ -78,7 +81,7 @@ class Commands:
 
     def run(self, name, argv, *, cwd=None, timeout=30, expected=0, maximum=512 * 1024):
         self.check_interrupt()
-        if len(self.rows) >= 256 or time.monotonic() >= self.deadline:
+        if len(self.rows) >= COMMAND_LIMIT or time.monotonic() >= self.deadline:
             raise RuntimeError("command count or campaign deadline exceeded")
         cwd = cwd or self.scratch
         argv = list(map(str, argv))

@@ -53,7 +53,6 @@ PROFILE = "mixer-table-memory-v3"
 FEATURE = "experimental-capability-native"
 MAX_EXPORT_BYTES = 32 * 1024 * 1024
 CARGO_CWD = Path("/")
-CLIENT = "verification/standards-replay/client.c"
 HEADERS = (
     "mixer_vm.h", "mixer_vm_capability.h", "mixer_vm_guest_ui.h",
     "mixer_vm_guest_ui_deferred.h",
@@ -86,6 +85,17 @@ FIXTURES = {
         "sha256": "91c9e9edf5500659040c6b7657fbaa942ad6c0526d80d2ea558e406257a8674f",
         "modules": {5: "unsupported"},
         "actions": dict.fromkeys((2499, 2500, 2505, 2506), ("assert_return", "nearest")),
+        "invalid": {},
+    },
+    "f64": {
+        "sha256": "b8b85a753f13ae27d20ca8cb97ab58b30606854deb4fb829caac93785a90b0f7",
+        "wasm_sha256": "722a815b20d519a2204918da2ce4280257988a75936d8d3d178832ced480bb08",
+        "selection_sha256": "0a8ac6995138cd9b239b23ff32426a43f941c7e58beca513f154a368e7770e02",
+        "modules": {5: "unsupported"},
+        "actions": {
+            **dict.fromkeys((1620, 1621), ("assert_return", "min")),
+            **dict.fromkeys((2020, 2021), ("assert_return", "max")),
+        },
         "invalid": {},
     },
     "float_misc": {
@@ -241,7 +251,12 @@ def invocation_arg(value, *, installed=False):
         # the input exactly, including the sign of zero.
         number, = struct.unpack(">f", bits.to_bytes(4, "big"))
         return f"f32:{number!r}"
-    require(kind in ("i32", "i64"), f"{kind}: selected argument must be integer")
+    if kind == "f64" and not installed:
+        require(bits & 0x7ff0000000000000 != 0x7ff0000000000000,
+                "f64: selected argument must be finite")
+        number, = struct.unpack(">d", bits.to_bytes(8, "big"))
+        return f"f64:{number!r}"
+    require(kind in ("i32", "i64", "f64"), f"{kind}: unsupported selected argument")
     width = WIDTHS[kind]
     signed = bits if bits < 1 << (width - 1) else bits - (1 << width)
     return f"{kind}:{signed}"
@@ -822,8 +837,12 @@ def replay(commands, scratch, rust, record):
     core = release / "mixer-vm"
     include, archive = copy_install(scratch, release, source)
     client = scratch / "client"
+    client_source = scratch / "client.c"
+    client_bytes = (HERE / client_source.name).read_bytes()
+    client_source.write_bytes(client_bytes)
+    record["runner_sha256"][client_source.name] = digest(client_bytes)
     commands.run("link-client", ["/usr/bin/clang", "-std=c11", "-Wall", "-Wextra", "-Werror",
-                                 "-I", include, source / CLIENT, archive, "-o", client])
+                                 "-I", include, client_source, archive, "-o", client])
     record["artifacts_sha256"] = {
         path.name: digest(path.read_bytes()) for path in (core, archive, client, *include.iterdir())
     }

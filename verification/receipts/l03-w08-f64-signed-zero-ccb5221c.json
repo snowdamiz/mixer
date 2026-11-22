@@ -1,0 +1,720 @@
+{
+  "schema": 1,
+  "result": "passed_scoped_replay",
+  "scope": "W08/L03 binary64 signed-zero min/max on macOS arm64; gate qualification remains open",
+  "public_source": {
+    "revision": "ccb5221cbacbe54d382d5eab762bcac57ea594c2",
+    "vm_tree": "6544d7be95da3985ef2bd1928219b693be8c337c",
+    "vm_export_files": 485,
+    "url": "https://github.com/snowdamiz/mixer/commit/ccb5221cbacbe54d382d5eab762bcac57ea594c2"
+  },
+  "spec_revision": "05ca4182176763112561ae20153975c12bd689e4",
+  "wabt_release": {
+    "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz",
+    "sha256": "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
+  },
+  "tools": {
+    "python": "3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0",
+    "wast2json": "1.0.36 (git~1.0.37)",
+    "wasm-validate": "1.0.36 (git~1.0.37)",
+    "spectest-interp": "1.0.36 (git~1.0.37)"
+  },
+  "profile": "mixer-table-memory-v3",
+  "installed_feature": "experimental-capability-native",
+  "installed_execution": "legacy V3 session C ABI from the installed capability archive",
+  "identical_baseline_and_candidate_artifacts_sha256": {
+    "mixer-vm": "85f89363b2bdc9e30537b015af4024c592f9716566067314718146a5e616b42c",
+    "libmixer_vm_capability_experimental.a": "f8906e32e35067a8a67eaf8509832ef2e7d10c0f5a4d56e6b5bc8786da10d241",
+    "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+    "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+    "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "mixer_vm_guest_ui_deferred.h": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+  },
+  "candidate_linked_c_client_sha256": "7e97bc140ec1721463c4567ffd2644d5e839e9c5bd0b4b6f7894af98ce33005d",
+  "patch": {
+    "path": "verification/local/l03-w08-f64-signed-zero-ccb5221c.patch",
+    "sha256": "4d8460c682eccbe9e08a54ac7b8c5de322bc8eeba3a921eccce6c8fa730c1ad4",
+    "checked_forward_and_reverse_against_isolated_index": true
+  },
+  "fixture": {
+    "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/f64.wast",
+    "sha256": "b8b85a753f13ae27d20ca8cb97ab58b30606854deb4fb829caac93785a90b0f7",
+    "selection_sha256": "0a8ac6995138cd9b239b23ff32426a43f941c7e58beca513f154a368e7770e02",
+    "reference_manifest_sha256": "69c9c3c8bf5f14ca7b030c9c4ea79162d9e86143bb0c28a34717209f595d762b",
+    "reference_output": [
+      "8/8 tests passed."
+    ],
+    "name": "f64.wast",
+    "source_module_line": 5,
+    "wabt_module_line": 5,
+    "wabt_module_filename": "commands.0.wasm",
+    "original_wasm_unmodified": true,
+    "wabt_sequence": [
+      5,
+      1620,
+      5,
+      1621,
+      5,
+      2020,
+      5,
+      2021
+    ],
+    "wabt_comparison": "spectest-interp compares ordinary f64 expectations as bitcast u64",
+    "wabt_comparison_source": "https://github.com/WebAssembly/wabt/blob/1.0.37/src/tools/spectest-interp.cc#L1881-L1894",
+    "validation": {
+      "fixture": "f64.wast",
+      "line": 5,
+      "wasm_sha256": "722a815b20d519a2204918da2ce4280257988a75936d8d3d178832ced480bb08",
+      "wasm_bytes": 196,
+      "wabt": {
+        "status": 0,
+        "diagnostic": []
+      },
+      "core": {
+        "valid": true,
+        "error": null
+      },
+      "installed_c": {
+        "validate": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "guest_ui_v1_validate": {
+          "status": 1,
+          "code": "unsupported",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    "cases": [
+      {
+        "line": 1620,
+        "export": "min",
+        "argument_bits": [
+          "0x8000000000000000",
+          "0x0000000000000000"
+        ],
+        "expected_bits": "0x8000000000000000",
+        "wabt_bit_check": "passed",
+        "cli_result": {
+          "type": "f64",
+          "bits": "0x8000000000000000",
+          "value": "-0"
+        },
+        "cli_fuel_used": 4,
+        "installed_c_result_bits": "0x8000000000000000",
+        "installed_c": {
+          "create": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          },
+          "invoke": {
+            "status": 0,
+            "code": "",
+            "value_type": 4,
+            "value": -9223372036854775808,
+            "fuel_used": 4,
+            "host_calls_used": 0
+          },
+          "close": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          }
+        }
+      },
+      {
+        "line": 1621,
+        "export": "min",
+        "argument_bits": [
+          "0x0000000000000000",
+          "0x8000000000000000"
+        ],
+        "expected_bits": "0x8000000000000000",
+        "wabt_bit_check": "passed",
+        "cli_result": {
+          "type": "f64",
+          "bits": "0x8000000000000000",
+          "value": "-0"
+        },
+        "cli_fuel_used": 4,
+        "installed_c_result_bits": "0x8000000000000000",
+        "installed_c": {
+          "create": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          },
+          "invoke": {
+            "status": 0,
+            "code": "",
+            "value_type": 4,
+            "value": -9223372036854775808,
+            "fuel_used": 4,
+            "host_calls_used": 0
+          },
+          "close": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          }
+        }
+      },
+      {
+        "line": 2020,
+        "export": "max",
+        "argument_bits": [
+          "0x8000000000000000",
+          "0x0000000000000000"
+        ],
+        "expected_bits": "0x0000000000000000",
+        "wabt_bit_check": "passed",
+        "cli_result": {
+          "type": "f64",
+          "bits": "0x0000000000000000",
+          "value": "0"
+        },
+        "cli_fuel_used": 4,
+        "installed_c_result_bits": "0x0000000000000000",
+        "installed_c": {
+          "create": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          },
+          "invoke": {
+            "status": 0,
+            "code": "",
+            "value_type": 4,
+            "value": 0,
+            "fuel_used": 4,
+            "host_calls_used": 0
+          },
+          "close": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          }
+        }
+      },
+      {
+        "line": 2021,
+        "export": "max",
+        "argument_bits": [
+          "0x0000000000000000",
+          "0x8000000000000000"
+        ],
+        "expected_bits": "0x0000000000000000",
+        "wabt_bit_check": "passed",
+        "cli_result": {
+          "type": "f64",
+          "bits": "0x0000000000000000",
+          "value": "0"
+        },
+        "cli_fuel_used": 4,
+        "installed_c_result_bits": "0x0000000000000000",
+        "installed_c": {
+          "create": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          },
+          "invoke": {
+            "status": 0,
+            "code": "",
+            "value_type": 4,
+            "value": 0,
+            "fuel_used": 4,
+            "host_calls_used": 0
+          },
+          "close": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          }
+        }
+      }
+    ]
+  },
+  "command_budget": {
+    "baseline": 256,
+    "added": 14,
+    "candidate_limit": 270,
+    "campaign_deadline_seconds": 240,
+    "added_breakdown": {
+      "download_and_translate": 2,
+      "validate": 3,
+      "invoke_cli_and_installed_c": 8,
+      "wabt_reference": 1
+    },
+    "time_and_custody_bounds_preserved": true,
+    "product_vm_limits_changed": false
+  },
+  "candidate_added_commands": [
+    {
+      "name": "f64-fetch",
+      "argv": [
+        "/usr/bin/curl",
+        "-qfsSL",
+        "--proto",
+        "=https",
+        "--proto-redir",
+        "=https",
+        "--max-time",
+        "25",
+        "--max-filesize",
+        "524288",
+        "-o",
+        "$REPLAY_SCRATCH/f64/f64.wast",
+        "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/f64.wast"
+      ],
+      "cwd": "$REPLAY_SCRATCH",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 45735,
+      "pgid": 45735,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.069214
+    },
+    {
+      "name": "f64-translate",
+      "argv": [
+        "$REPLAY_SCRATCH/wabt-1.0.37/bin/wast2json",
+        "$REPLAY_SCRATCH/f64/f64.wast",
+        "-o",
+        "$REPLAY_SCRATCH/f64/commands.json"
+      ],
+      "cwd": "$REPLAY_SCRATCH",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 45738,
+      "pgid": 45738,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.011074
+    },
+    {
+      "name": "f64-5-wabt",
+      "argv": [
+        "$REPLAY_SCRATCH/wabt-1.0.37/bin/wasm-validate",
+        "$REPLAY_SCRATCH/f64/commands.0.wasm"
+      ],
+      "cwd": "$REPLAY_SCRATCH",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 45741,
+      "pgid": 45741,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.004456
+    },
+    {
+      "name": "f64-5-core-validate",
+      "argv": [
+        "$REPLAY_SCRATCH/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "validate",
+        "$REPLAY_SCRATCH/f64/commands.0.wasm"
+      ],
+      "cwd": "$REPLAY_SCRATCH",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 45750,
+      "pgid": 45750,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "4c004505a0ee5f5e47aa90bebb2cad24a5ee99672204fee801bf8a6942441904",
+      "output_bytes": 921,
+      "elapsed_seconds": 0.003867
+    },
+    {
+      "name": "f64-5-c-validate",
+      "argv": [
+        "$REPLAY_SCRATCH/client",
+        "$REPLAY_SCRATCH/f64/commands.0.wasm"
+      ],
+      "cwd": "$REPLAY_SCRATCH",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 45757,
+      "pgid": 45757,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "f0153d848a1dc7996e03e867a76b1e046dcbe48814ccce7c21c0aaada2b1d95c",
+      "output_bytes": 71,
+      "elapsed_seconds": 0.004051
+    },
+    {
+      "name": "f64-1620-core-invoke",
+      "argv": [
+        "$REPLAY_SCRATCH/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "invoke",
+        "$REPLAY_SCRATCH/f64/commands.0.wasm",
+        "min",
+        "f64:-0.0",
+        "f64:0.0"
+      ],
+      "cwd": "$REPLAY_SCRATCH",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 45766,
+      "pgid": 45766,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "51c4009c237100e7b01bc663b056e66816baba3f370d0e4b64e30c58cc01f582",
+      "output_bytes": 160,
+      "elapsed_seconds": 0.00399
+    },
+    {
+      "name": "f64-1620-c-invoke",
+      "argv": [
+        "$REPLAY_SCRATCH/client",
+        "$REPLAY_SCRATCH/f64/commands.0.wasm",
+        "min",
+        "f64:-9223372036854775808",
+        "f64:0"
+      ],
+      "cwd": "$REPLAY_SCRATCH",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 45771,
+      "pgid": 45771,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "94c1a30aeaa91dfdb8ab0802eb217b1c33db658dc6c169cc22bb44650127921c",
+      "output_bytes": 84,
+      "elapsed_seconds": 0.003617
+    },
+    {
+      "name": "f64-1621-core-invoke",
+      "argv": [
+        "$REPLAY_SCRATCH/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "invoke",
+        "$REPLAY_SCRATCH/f64/commands.0.wasm",
+        "min",
+        "f64:0.0",
+        "f64:-0.0"
+      ],
+      "cwd": "$REPLAY_SCRATCH",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 45778,
+      "pgid": 45778,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "51c4009c237100e7b01bc663b056e66816baba3f370d0e4b64e30c58cc01f582",
+      "output_bytes": 160,
+      "elapsed_seconds": 0.003571
+    },
+    {
+      "name": "f64-1621-c-invoke",
+      "argv": [
+        "$REPLAY_SCRATCH/client",
+        "$REPLAY_SCRATCH/f64/commands.0.wasm",
+        "min",
+        "f64:0",
+        "f64:-9223372036854775808"
+      ],
+      "cwd": "$REPLAY_SCRATCH",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 45785,
+      "pgid": 45785,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "94c1a30aeaa91dfdb8ab0802eb217b1c33db658dc6c169cc22bb44650127921c",
+      "output_bytes": 84,
+      "elapsed_seconds": 0.003874
+    },
+    {
+      "name": "f64-2020-core-invoke",
+      "argv": [
+        "$REPLAY_SCRATCH/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "invoke",
+        "$REPLAY_SCRATCH/f64/commands.0.wasm",
+        "max",
+        "f64:-0.0",
+        "f64:0.0"
+      ],
+      "cwd": "$REPLAY_SCRATCH",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 45796,
+      "pgid": 45796,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "3faa1bd13bb5685a78f93846d4ad1b1cfe99adde7417669361cbb4b7aee4a813",
+      "output_bytes": 159,
+      "elapsed_seconds": 0.00355
+    },
+    {
+      "name": "f64-2020-c-invoke",
+      "argv": [
+        "$REPLAY_SCRATCH/client",
+        "$REPLAY_SCRATCH/f64/commands.0.wasm",
+        "max",
+        "f64:-9223372036854775808",
+        "f64:0"
+      ],
+      "cwd": "$REPLAY_SCRATCH",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 45799,
+      "pgid": 45799,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "6458d5c7a7a479ee6ddafe26d15f2b0251e860c9d0f5bf6e94082b1bc6b205a2",
+      "output_bytes": 65,
+      "elapsed_seconds": 0.003502
+    },
+    {
+      "name": "f64-2021-core-invoke",
+      "argv": [
+        "$REPLAY_SCRATCH/target/release/mixer-vm",
+        "--profile",
+        "mixer-table-memory-v3",
+        "invoke",
+        "$REPLAY_SCRATCH/f64/commands.0.wasm",
+        "max",
+        "f64:0.0",
+        "f64:-0.0"
+      ],
+      "cwd": "$REPLAY_SCRATCH",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 45808,
+      "pgid": 45808,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "3faa1bd13bb5685a78f93846d4ad1b1cfe99adde7417669361cbb4b7aee4a813",
+      "output_bytes": 159,
+      "elapsed_seconds": 0.003401
+    },
+    {
+      "name": "f64-2021-c-invoke",
+      "argv": [
+        "$REPLAY_SCRATCH/client",
+        "$REPLAY_SCRATCH/f64/commands.0.wasm",
+        "max",
+        "f64:0",
+        "f64:-9223372036854775808"
+      ],
+      "cwd": "$REPLAY_SCRATCH",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 45813,
+      "pgid": 45813,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "6458d5c7a7a479ee6ddafe26d15f2b0251e860c9d0f5bf6e94082b1bc6b205a2",
+      "output_bytes": 65,
+      "elapsed_seconds": 0.003708
+    },
+    {
+      "name": "f64-reference",
+      "argv": [
+        "$REPLAY_SCRATCH/wabt-1.0.37/bin/spectest-interp",
+        "$REPLAY_SCRATCH/f64/selected.json"
+      ],
+      "cwd": "$REPLAY_SCRATCH",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 45820,
+      "pgid": 45820,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "8c19426f5da35d7f9e83e7a43b9547f87348720418033d2ac21ce45743e2d428",
+      "output_bytes": 18,
+      "elapsed_seconds": 0.005327
+    }
+  ],
+  "command_path_substitution": "$REPLAY_SCRATCH is the candidate run scratch path",
+  "prior_replay_equality": {
+    "independent_case_reports": 49,
+    "validated_module_reports": 17,
+    "fixture_outcomes": 15,
+    "stateful_reports": [
+      "stateful",
+      "stateful_memory_maximum",
+      "memory_copy",
+      "memory_copy_higher_address",
+      "memory_fill",
+      "scalar_globals"
+    ],
+    "original_command_order_preserved": true,
+    "normalization": "Substituted per-run scratch paths in diagnostics and excluded only path-dependent reference manifest digests."
+  },
+  "wrapper_controls": {
+    "argv": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "/Users/andreyyurlov/.t3/worktrees/mixer/t3-9db77fe0/verification/local/l03-f64-signed-zero.M8C9uIK1/candidate/vm/verification/standards-replay/test_replay.py",
+      "-v"
+    ],
+    "test_source_sha256": "d22b6643641893ed74d2b513016c866d1a11c64c87e984af6bce45f923022c19",
+    "stdout_and_stderr_sha256": "d5416910971573c00612e17578e1f69d7fb607cf52e6f0c7a8339aa42ee21264",
+    "exit": 0,
+    "passed": [
+      "test_cargo_guards_both_config_names_workspace_ancestors_and_cargo_home",
+      "test_committed_tree_supplies_examples_and_excludes_live_checkout_inputs",
+      "test_competing_receipt_and_failed_write_retain_own_logs_and_custody",
+      "test_interrupted_group_operation_writes_hold_and_retains_scratch",
+      "test_named_invocation_must_match_the_selected_module",
+      "test_signal_during_timeout_settlement_waits_and_proves_group_absence",
+      "test_stateful_selection_requires_adjacent_commands_in_the_same_module",
+      "test_successful_publication_allows_scratch_cleanup"
+    ]
+  },
+  "runs": {
+    "baseline": {
+      "runner_argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-9db77fe0/verification/local/l03-f64-signed-zero.M8C9uIK1/base/vm/verification/standards-replay/replay.py",
+        "--rust-bin",
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin",
+        "--receipt",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-9db77fe0/verification/local/l03-f64-signed-zero.M8C9uIK1/baseline.json"
+      ],
+      "runner_sha256": {
+        "replay.py": "77c870f694c2da54694669d07b7e4752839031458754e06e689c2e668a712d74",
+        "commands.py": "91285d42f7f3a36d60ff9af1cdcc08a7e01a698a64db144c867162ba4156aeb7"
+      },
+      "raw_receipt_sha256": "d2171a250540616d34f173876dbd679b71f83bf66f45a32daef20c3381b4e7b0",
+      "raw_receipt_retention": "compacted into this receipt",
+      "started_utc": "2026-11-22T14:24:39.745461+00:00",
+      "runner_exit": 0,
+      "command_records": 256,
+      "command_limit": 256,
+      "expected_exit_and_eof_and_child_reaped_and_group_absent": 256,
+      "assertion_counts": {
+        "assert_trap": 6,
+        "assert_return": 37,
+        "assert_invalid": 6
+      },
+      "scratch": "/Users/andreyyurlov/.mixer-vm-standards-3r39pqfi",
+      "scratch_sampling": {
+        "interval_seconds": 0.05,
+        "limit_bytes": 340787200,
+        "peak_logical_bytes": 125215190,
+        "peak_allocated_bytes": 130007040,
+        "samples": 85,
+        "elapsed_seconds": 5.252,
+        "replay_scratch_absent": true
+      }
+    },
+    "candidate": {
+      "runner_argv": [
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-9db77fe0/verification/local/l03-f64-signed-zero.M8C9uIK1/candidate/vm/verification/standards-replay/replay.py",
+        "--rust-bin",
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin",
+        "--receipt",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-9db77fe0/verification/local/l03-f64-signed-zero.M8C9uIK1/candidate.json"
+      ],
+      "runner_sha256": {
+        "replay.py": "ff686b659ead10e6d50d9e498fdd63c287ad49d4f2645461b4902ce51a76276a",
+        "commands.py": "31fd4c444186f72a331bae3ab7b081910dfb431b813e75772a0e000dc699d9ce",
+        "client.c": "1eaaaf0ee138acad7f063b684cf4764391af6b120a2bd68c70920ea2e4e95232"
+      },
+      "raw_receipt_sha256": "35b8376d4942059623b9fa5aab43b38cfd0988fb4963709a17a3841c9f4b299d",
+      "raw_receipt_retention": "compacted into this receipt",
+      "started_utc": "2026-11-22T14:25:27.927519+00:00",
+      "runner_exit": 0,
+      "command_records": 270,
+      "command_limit": 270,
+      "expected_exit_and_eof_and_child_reaped_and_group_absent": 270,
+      "assertion_counts": {
+        "assert_trap": 6,
+        "assert_return": 41,
+        "assert_invalid": 6
+      },
+      "scratch": "/Users/andreyyurlov/.mixer-vm-standards-geknc4g7",
+      "scratch_sampling": {
+        "interval_seconds": 0.05,
+        "limit_bytes": 340787200,
+        "peak_logical_bytes": 126497124,
+        "peak_allocated_bytes": 131424256,
+        "samples": 66,
+        "elapsed_seconds": 4.174,
+        "replay_scratch_absent": true
+      }
+    }
+  },
+  "scratch_sampling_scope": "Sequential runs; 50 ms samples of owned replay and campaign scratch, logical and allocated file bytes. Campaign scratch was disposable."
+}

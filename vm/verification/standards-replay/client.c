@@ -25,6 +25,7 @@ static int invoke(uint64_t handle, const char *phase, int argc, char **argv) {
         if (strncmp(argument, "i32:", 4) == 0) args[i - 1].value_type = 1;
         else if (strncmp(argument, "i64:", 4) == 0) args[i - 1].value_type = 2;
         else if (strncmp(argument, "f32:", 4) == 0) args[i - 1].value_type = 3;
+        else if (strncmp(argument, "f64:", 4) == 0) args[i - 1].value_type = 4;
         else return 64;
         char *end;
         errno = 0;
