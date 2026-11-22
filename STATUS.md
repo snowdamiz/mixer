@@ -1447,6 +1447,16 @@ disposable attempts restored original IME settings, removed their
 packages and scratch, and closed 1,496 setup and ADB commands.
 [Installed F13 long note](verification/receipts/fieldlog-f13-android-long-note-api36-ac305262.json)
 
+An ordinary Android F15 check sent a 100,001-byte synthetic Note through
+the same focused editor. Two text queries bracketed it, and the native
+field stayed empty with the workspace byte-identical. The same process
+then accepted exactly 100,000 bytes. Save and Commit advanced revisions
+1 to 2 to 3 and produced one linked entrySaved. Both cold reads matched
+the intervening workspace snapshots. This verifies the Note input limit
+on API 36 ARM64 and passed independent review. The separate projection
+rollback checks remain host evidence.
+[Installed F15 Note boundary](verification/receipts/fieldlog-f15-android-note-limit-api36-ac305262.json)
+
 A same-draft API 36 control reproduced the IME switch from a working
 Note connection. After switching away from the fixture IME and back,
 both text queries returned null with Note still focused. Returning from
@@ -1467,6 +1477,23 @@ after return and Mixer refused it in IDLE. The exact foreground guard
 remains unobserved. The same draft bytes survived both controls, and
 all 161 commands closed.
 [Installed connection lifecycle trace](verification/receipts/l02-android-note-ime-lifecycle-trace-api36-3362bf6c.json)
+
+The readiness diagnostic identified `ownerInputSealed` on a fresh
+Home return. The exact Activity and process survived, and the retained
+field had regained window focus with its predecessor closed. An
+explicit Note tap and hardware text still failed to produce input
+at the sampled points. Persisted workspace bytes matched the seed.
+All 132 commands reached terminal custody. The first refusing predicate
+is known. How the owner misses reopening its input remains open.
+[Installed Home readiness trace](verification/receipts/l02-android-note-home-owner-sealed-api36-c6ee43e1.json)
+
+The IME-switch experiment withheld an overlapping connection and posted
+a public restart after the exact predecessor closed. Android briefly
+received a new SDK adapter, then closed it after another overlapping
+create. Both post-switch queries failed and the Note stayed empty. All
+157 installed commands reached terminal custody. The SDK still needs a
+handoff that survives repeated speculative creation.
+[Installed restart experiment](verification/receipts/l02-android-note-ime-restart-experiment-api36-c6ee43e1.json)
 
 All four F14–F16 selectors passed on the historical and Pair25
 sources. F14 wrote one entry and one event after a valid edit-and-commit
@@ -1499,6 +1526,15 @@ overlap unverified. The passing scratch closed. A separate preparation
 observer error left unknown custody, with the exact path preserved in
 the receipt.
 [F16 admitted write and cancelled close](verification/receipts/fieldlog-f16-close-write-overlap-pair25.json)
+
+The independent F16 reviewer found that the original lock probes could
+inherit the parent's lock descriptor. A stdio-only control reproduced
+the busy and reopen results. Root applied the close-on-exec spawn flag
+and explicit reporting descriptors to the fixture and reran all three
+XCTest cases. The held write and cancelled close reached the same
+order, a distinct PID acquired the released lock, all 27 groups closed,
+and fresh scratch was removed.
+[F16 stdio-only lock probes](verification/receipts/fieldlog-f16-close-write-overlap-stdio-pair25.json)
 
 All five F17–F19 selectors passed on the historical and Pair25 sources.
 The macOS host replays covered photo refusal, preserved draft edits,
