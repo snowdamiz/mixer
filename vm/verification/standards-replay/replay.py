@@ -37,6 +37,11 @@ MEMORY_COPY_WASM_HASH = "6e10196de6875cc788a2a0426cda6b733b99c66af7448a2a5458316
 MEMORY_FILL = "memory_fill.wast"
 MEMORY_FILL_HASH = "b8a7dccdf72878d11497a5d13ca3c628552b690f5386ef56b0a46c5dd711ad1f"
 MEMORY_FILL_WASM_HASH = "3516438ef6b98d2644bf52f43971d21bf102139418fb46d0161dba071bf83c7b"
+GLOBAL = "global.wast"
+GLOBAL_HASH = "642f90f93047fb8bac6186918b0643b9763a40985bc7bede5e44300a9f67f326"
+GLOBAL_EXCERPT_HASH = "fcf184af106dd9567c6721ed04e2d91f028c8e53bc2164c2be2707b559f838d0"
+GLOBAL_EXCERPT_WASM_HASH = "c3728e22b45f05c77953feeea740bc86932bc5355867c2138b92cc32b3f7be76"
+GLOBAL_MODULE_LINES = (3, 12, 15, 28, 29, 32, 33, 194)
 BR_TABLE_MODULE_LINE = 3
 BR_TABLE_FUNCTION_LINES = (86, 105)
 BR_TABLE_ASSERTION_LINES = range(1305, 1315)
@@ -575,6 +580,64 @@ def replay_memory_fill(commands, scratch, translator, reference, validator, core
     replay_stateful(commands, directory, script, module, [reset, *rows], reference, client, stateful)
 
 
+def replay_scalar_globals(commands, scratch, translator, reference, validator, core, client, record):
+    directory, script = translate_stateful(commands, scratch, translator, record, GLOBAL, GLOBAL_HASH)
+    module_line = GLOBAL_MODULE_LINES[0]
+    fields = {200: "get-x", 201: "get-y", 210: "set-x", 211: "set-y", 216: "get-x", 217: "get-y"}
+    selection = {
+        "modules": {module_line: "unsupported"},
+        "actions": {line: ("assert_return", field) for line, field in fields.items()},
+        "invalid": {},
+    }
+    full_cases = list(selected_cases(GLOBAL, script["commands"], selection))
+    full_module = full_cases[0][0]
+    upstream_rows = [row for _, row in full_cases]
+    require(full_module["filename"] == "commands.0.wasm"
+            and all(module == full_module for module, _ in full_cases)
+            and [row["line"] for row in upstream_rows] == list(fields),
+            "global: unexpected original module or assertion order")
+    full_wasm = directory / full_module["filename"]
+    stateful = record["scalar_globals"] = {"fixture": GLOBAL, "upstream": upstream_rows}
+    boundary = stateful["upstream_module"] = {
+        "module": full_module, "wasm_sha256": digest(full_wasm.read_bytes()),
+        "validation": validate(
+            commands, "global-upstream-module", core, client, validator, full_wasm,
+            invalid=None, guest_code="unsupported", profile_rejection="unsupported",
+        ),
+    }
+    replay_reference(commands, directory, script, [full_module, *upstream_rows], reference, boundary)
+
+    # Keep the original integer globals, their accessors, and the assertion lines verbatim.
+    excerpt_dir = directory / "scalar-global-excerpt"
+    excerpt_dir.mkdir()
+    kept_lines = set(GLOBAL_MODULE_LINES) | fields.keys()
+    upstream = (directory / GLOBAL).read_bytes().splitlines(keepends=True)
+    excerpt_bytes = b"".join(
+        content if line in kept_lines else b"\n"
+        for line, content in enumerate(upstream[:max(kept_lines)], 1)
+    )
+    require(digest(excerpt_bytes) == GLOBAL_EXCERPT_HASH, "global: excerpt SHA-256 mismatch")
+    excerpt = excerpt_dir / GLOBAL
+    excerpt.write_bytes(excerpt_bytes)
+    manifest = excerpt_dir / "commands.json"
+    commands.run("scalar-global-excerpt-translate", [translator, excerpt, "-o", manifest])
+    translated = json.loads(manifest.read_text())
+    require(translated["commands"] == [full_module, *upstream_rows],
+            "global: excerpt module row or upstream assertions changed")
+    wasm = excerpt_dir / full_module["filename"]
+    require(digest(wasm.read_bytes()) == GLOBAL_EXCERPT_WASM_HASH, "global: module SHA-256 mismatch")
+    stateful["excerpt"] = {
+        "module_lines": GLOBAL_MODULE_LINES, "assertion_lines": list(fields),
+        "wast_sha256": GLOBAL_EXCERPT_HASH,
+    }
+    stateful["validation"] = validate(
+        commands, "scalar-global-excerpt", core, client, validator, wasm,
+        invalid=None, guest_code="unsupported",
+    )
+    replay_stateful(commands, excerpt_dir, translated, full_module, upstream_rows, reference,
+                    client, stateful)
+
+
 def copy_install(scratch, release, source):
     include = scratch / "install/include"
     lib = scratch / "install/lib"
@@ -711,6 +774,7 @@ def replay(commands, scratch, rust, record):
     replay_memory_growth(commands, scratch, translator, reference, client, record)
     replay_memory_copy(commands, scratch, translator, reference, validator, core, client, record)
     replay_memory_fill(commands, scratch, translator, reference, validator, core, client, record)
+    replay_scalar_globals(commands, scratch, translator, reference, validator, core, client, record)
     for script, fixture in FIXTURES.items():
         directory = scratch / script
         directory.mkdir()

@@ -19,7 +19,7 @@ metadata must resolve the exported package and every target, including examples,
 inside the verified tree. The script stages the release archive and exported public
 headers in the experimental capability install layout, then links the exported
 C client directly against that archive. It downloads the
-pinned WABT release and ten WebAssembly Core WAST files over HTTPS and checks
+pinned WABT release and eleven WebAssembly Core WAST files over HTTPS and checks
 their SHA-256 hashes. [WABT release](https://github.com/WebAssembly/wabt/releases/tag/1.0.37) ·
 [WebAssembly test sources](https://github.com/WebAssembly/spec/tree/05ca4182176763112561ae20153975c12bd689e4/test/core)
 
@@ -99,8 +99,19 @@ slot 0 and returns `i32:-1`. Line 662 calls slot 3 and traps with
 outside the table, and traps with `table_out_of_bounds`.
 [Pinned indirect-call fixture](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/call_indirect.wast#L623-L663)
 
+From `global.wast`, WABT runs six selected assertions in the original module.
+The Mixer V3 CLI and installed C validators refuse that module with
+`unsupported`. The digest-pinned excerpt preserves the source lines for the
+two integer globals, their accessors, and all six assertions. The runner
+checks that WABT translates the selected assertions identically. In one
+installed C session, `get-x` and
+`get-y` first return `i32:-12` and `i64:-15`. After `set-x` and `set-y`, they
+return `i32:6` and `i64:7`. WABT and Mixer repeat the first `get-x` assertion
+in a fresh instance and observe `i32:-12`.
+[Pinned scalar-global sequence](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/global.wast#L200-L217)
+
 The same archive's `mixer_vm_capability_guest_ui_validate_v1` entry point checks
-the independent cases, the two excerpts, and the copy and fill modules.
+the independent cases, the excerpts, and the copy and fill modules.
 The valid V3 modules lack the required Mixer exports or defined memory.
 Guest UI V1 refuses them. Execution evidence covers the shared V3
 instruction profile through the V3 session ABI.

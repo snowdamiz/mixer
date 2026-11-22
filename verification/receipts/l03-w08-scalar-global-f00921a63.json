@@ -1,0 +1,358 @@
+{
+  "schema": 1,
+  "status": "passed_scoped_replay",
+  "gate": "L03/W08",
+  "scope": "Positive scalar-global conformance in the installed V3 C ABI on arm64 macOS",
+  "independentVerification": {
+    "status": "passed",
+    "base": "f00921a63b5ccb34d47f14a8d480f0532a656588",
+    "authorPatchVmTree": "3b99233489c7fcdc82b502bb4be43f3323c5dde1",
+    "adoptedVmTree": "007d35c11db961c08487a675cddb4f83e4b8f196",
+    "testCommit": "c530def3ef77cf3e53e615698f63439e4a4b0e65",
+    "referenceManifestSHA256": {
+      "excerpt": "73f718fc4c9a9a11d6f48f890895f51c6d3d8e5fa0738d9d3e67bbb86c51f476",
+      "upstream": "46d471449a2fefb1429f043c6ba52c6591ad0686972a860da831383212efc0be"
+    },
+    "rawReceiptSHA256": "2b2181118e68a5672b0fd2eac8c091a8210d1974ec0fda06c72d055a5cdcf656",
+    "wrapperTests": 8,
+    "rawCommands": 185,
+    "retainedExecutableMode": "100755",
+    "scratchRemoved": true,
+    "terminalCommands": 19
+  },
+  "authorReceiptSHA256": "6c7824cf9c25bc40eb4dd3b484f1b46b158663491b60e80edfc55928fb6033dd",
+  "authorPatchSHA256": "b220edfaf98bf9d541e708a4b2bb122794ad6971f1f10b4d79db5bf67abf864e",
+  "adoptedPatchSHA256": "b7e3f4478d875e0bae407d306f1459346ca683259e134497d7d01569a9155ccb",
+  "specRevision": "05ca4182176763112561ae20153975c12bd689e4",
+  "wabt": {
+    "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz",
+    "sha256": "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
+  },
+  "fixture": {
+    "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/global.wast",
+    "sha256": "642f90f93047fb8bac6186918b0643b9763a40985bc7bede5e44300a9f67f326"
+  },
+  "tools": {
+    "python": "3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0",
+    "wast2json": "1.0.36 (git~1.0.37)",
+    "wasm-validate": "1.0.36 (git~1.0.37)",
+    "spectest-interp": "1.0.36 (git~1.0.37)"
+  },
+  "artifactsSHA256": {
+    "mixer-vm": "85f89363b2bdc9e30537b015af4024c592f9716566067314718146a5e616b42c",
+    "libmixer_vm_capability_experimental.a": "f8906e32e35067a8a67eaf8509832ef2e7d10c0f5a4d56e6b5bc8786da10d241",
+    "client": "7420910f8c21f1e6c447f4a15e6c7bcdd4be35ad9117d5ba333f4b535d0d1ac9",
+    "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+    "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+    "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "mixer_vm_guest_ui_deferred.h": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+  },
+  "assertionCounts": {
+    "assert_trap": 6,
+    "assert_return": 16,
+    "assert_invalid": 6
+  },
+  "scalarGlobals": {
+    "fixture": "global.wast",
+    "upstream": [
+      {
+        "type": "assert_return",
+        "line": 200,
+        "action": {
+          "type": "invoke",
+          "field": "get-x",
+          "args": []
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "4294967284"
+          }
+        ]
+      },
+      {
+        "type": "assert_return",
+        "line": 201,
+        "action": {
+          "type": "invoke",
+          "field": "get-y",
+          "args": []
+        },
+        "expected": [
+          {
+            "type": "i64",
+            "value": "18446744073709551601"
+          }
+        ]
+      },
+      {
+        "type": "assert_return",
+        "line": 210,
+        "action": {
+          "type": "invoke",
+          "field": "set-x",
+          "args": [
+            {
+              "type": "i32",
+              "value": "6"
+            }
+          ]
+        },
+        "expected": []
+      },
+      {
+        "type": "assert_return",
+        "line": 211,
+        "action": {
+          "type": "invoke",
+          "field": "set-y",
+          "args": [
+            {
+              "type": "i64",
+              "value": "7"
+            }
+          ]
+        },
+        "expected": []
+      },
+      {
+        "type": "assert_return",
+        "line": 216,
+        "action": {
+          "type": "invoke",
+          "field": "get-x",
+          "args": []
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "6"
+          }
+        ]
+      },
+      {
+        "type": "assert_return",
+        "line": 217,
+        "action": {
+          "type": "invoke",
+          "field": "get-y",
+          "args": []
+        },
+        "expected": [
+          {
+            "type": "i64",
+            "value": "7"
+          }
+        ]
+      }
+    ],
+    "upstream_module": {
+      "module": {
+        "type": "module",
+        "line": 3,
+        "filename": "commands.0.wasm"
+      },
+      "wasm_sha256": "11086b761afe9e6f003cfe5801a9f1649b0d6c23a20558535de6b490f5de08eb",
+      "validation": {
+        "wabt": {
+          "status": 0,
+          "diagnostic": []
+        },
+        "core": {
+          "valid": false,
+          "error": {
+            "code": "unsupported",
+            "message": "value type is outside the selected profile",
+            "function": null,
+            "offset": 29
+          }
+        },
+        "installed_c": {
+          "validate": {
+            "status": 1,
+            "code": "unsupported",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          },
+          "guest_ui_v1_validate": {
+            "status": 1,
+            "code": "unsupported",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          }
+        }
+      },
+      "reference_manifest_sha256": "46d471449a2fefb1429f043c6ba52c6591ad0686972a860da831383212efc0be",
+      "reference_output": [
+        "7/7 tests passed."
+      ]
+    },
+    "excerpt": {
+      "module_lines": [
+        3,
+        12,
+        15,
+        28,
+        29,
+        32,
+        33,
+        194
+      ],
+      "assertion_lines": [
+        200,
+        201,
+        210,
+        211,
+        216,
+        217
+      ],
+      "wast_sha256": "fcf184af106dd9567c6721ed04e2d91f028c8e53bc2164c2be2707b559f838d0"
+    },
+    "validation": {
+      "wabt": {
+        "status": 0,
+        "diagnostic": []
+      },
+      "core": {
+        "valid": true,
+        "error": null
+      },
+      "installed_c": {
+        "validate": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "guest_ui_v1_validate": {
+          "status": 1,
+          "code": "unsupported",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    "module": {
+      "type": "module",
+      "line": 3,
+      "filename": "commands.0.wasm"
+    },
+    "wasm_sha256": "c3728e22b45f05c77953feeea740bc86932bc5355867c2138b92cc32b3f7be76",
+    "wasm_bytes": 109,
+    "reset_upstream_line": 200,
+    "reference_manifest_sha256": "73f718fc4c9a9a11d6f48f890895f51c6d3d8e5fa0738d9d3e67bbb86c51f476",
+    "reference_output": [
+      "9/9 tests passed."
+    ],
+    "installed_c": {
+      "create": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      },
+      "invoke-0": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": -12,
+        "fuel_used": 2,
+        "host_calls_used": 0
+      },
+      "invoke-1": {
+        "status": 0,
+        "code": "",
+        "value_type": 2,
+        "value": -15,
+        "fuel_used": 2,
+        "host_calls_used": 0
+      },
+      "invoke-2": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 3,
+        "host_calls_used": 0
+      },
+      "invoke-3": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 3,
+        "host_calls_used": 0
+      },
+      "invoke-4": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": 6,
+        "fuel_used": 2,
+        "host_calls_used": 0
+      },
+      "invoke-5": {
+        "status": 0,
+        "code": "",
+        "value_type": 2,
+        "value": 7,
+        "fuel_used": 2,
+        "host_calls_used": 0
+      },
+      "close": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      },
+      "reset-create": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      },
+      "reset-invoke": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": -12,
+        "fuel_used": 2,
+        "host_calls_used": 0
+      },
+      "reset-close": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      }
+    }
+  },
+  "limitations": [
+    "The author receipt identifies the base VM tree. Root records the exact authored patch tree and the independently tested successor tree.",
+    "Restored the incoming patch executable mode to the existing 100755. The changed runner bytes are identical to the audited patch.",
+    "The WABT selection manifests include the generated source path. Their raw SHA-256 differs across runs. The assertion rows, Wasm bytes, reference results and C session results matched.",
+    "The reset reads the first i32 assertion. This selected sequence does not qualify all V3 features or Guest UI V1 execution.",
+    "No VM product source changed."
+  ]
+}

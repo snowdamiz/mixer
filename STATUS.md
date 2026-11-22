@@ -1584,6 +1584,14 @@ reprovisioning without changing the new account. Native confirmation,
 receipt persistence, and scoped local cleanup remain open.
 [Local account deletion](verification/receipts/fieldlog-account-deletion.json)
 
+The iOS deletion owner now loads the saved reauthorization intent when
+the browser callback arrives before startup restore. The real loopback
+host replay passed both orders. Local data stayed intact until renewed
+confirmation, and each fixture retained one deletion receipt. The exact
+corrected tree linked for generic arm64 iPhoneOS. Native browser and
+Keychain checks remain pending.
+[iOS deletion owner checks](verification/receipts/fieldlog-ios-account-deletion-callback-5cdfa986.json)
+
 The generic iOS Simulator witness builds the same ordinary FieldLog
 tree with a named XCTest. It opens the saved project, edits a draft
 through the Photo Library picker, saves a manual Site Map pin, and
@@ -2148,6 +2156,13 @@ A line-preserved single-table excerpt returned `-1` and trapped with
 Mixer CLI, and installed V3 C instances. The independent replay closed
 all 173 subprocess groups, and all eight runner controls passed.
 [Indirect-call replay](verification/receipts/l03-w08-call-indirect-9d96980f.json)
+
+The installed V3 C session read integer globals initialized to -12 and
+-15, ran the two upstream setters, then read 6 and 7 in the same instance.
+A fresh instance read -12 again. WABT passed the same scoped assertions in
+the original fixture and line-preserved excerpt. The independent replay
+closed all 185 commands and passed all eight wrapper tests.
+[Scalar-global replay](verification/receipts/l03-w08-scalar-global-f00921a63.json)
 
 The seeded TableMemoryV3 check retains one instance for 40 copies on
 each of 24 seeds. Mixer and Node matched all 960 observations of the
@@ -3131,6 +3146,13 @@ and zero workspace write attempts. The first Back dismissed the keyboard.
 The second retired the Android owner, and a cold process read the original
 workspace bytes. Both disposable test environments closed.
 [Installed F06 Saving refusals](verification/receipts/fieldlog-f06-android-saving-refusals-api36-c8a27e36.json)
+
+The byte-exact positive F06 editor reproduced an unpaced title-input
+failure on the same signed APK that passed paced Save. Cancel preserved
+the seed. After restart the editor accepted text events through revision 3
+and disappeared before Add. The journal retired the attempt and the
+workspace stayed byte-identical. The input handoff correction remains open.
+[Exact F06 unpaced input failure](verification/receipts/fieldlog-f06-android-title-burst-baseline-7fa6b6ea.json)
 
 A free owner completed current membership edits, usage and quota checks, support, export, and organization deletion in Chrome against Phoenix and PostgreSQL. One organization stayed isolated from the other. Two earlier role edits returned 503 during the member page load. Exit with settled build history remains open. [Free-owner administration](verification/receipts/l06-owner-admin-browser-e3c1f6c65c.json)
 

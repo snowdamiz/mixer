@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "status": "passed_host_and_unsigned_generic_iphoneos",
+  "scope": "Corrected FieldLog Debug iOS deletion against one explicitly authorized local synthetic account",
+  "sourceRecipe": "tests/integration/fieldlog-account-deletion-ios",
+  "sourceTree": "5cdfa986b54902b042f3b0bf1824f8d17f719a80",
+  "callbackPatchSHA256": "2bbd21b329e0c2b973b726984e2a40038185242bb6571c72fcc462cb09ca1489",
+  "authorReceipt": "verification/receipts/fieldlog-ios-local-account-deletion-host.json",
+  "authorReceiptSHA256": "a812cd5504cb65166fc5ea8c6201d958d10932f0963d9087159c7cccc4ba3208",
+  "candidateReview": "The earlier deletion candidate lost the first valid callback if it arrived before the local journal was loaded. Existing restore-first test alone missed this order.",
+  "reviewOutcome": "Root replay covered restore first and callback first, with renewed explicit confirmation and one SQLite deletion receipt in each fixture.",
+  "rootVerification": {
+    "status": "passed",
+    "mixerRevision": "660534ec0072f03469352adc13abb6f1e47c1bfa",
+    "tree": "5cdfa986b54902b042f3b0bf1824f8d17f719a80",
+    "ownerBlob": "ea55e31a8fc1ec49eda019de48b0bc2cc8d59fee",
+    "ownerSHA256": "6a9b2802070f96e17ec12f6fa605647a1e90379782cd10e946cf9cb349628c62",
+    "hostChecks": [
+      "PASS normal",
+      "PASS lost",
+      "PASS mismatch",
+      "PASS receipt-write",
+      "PASS retry",
+      "PASS cleanup",
+      "PASS clear",
+      "PASS stage",
+      "PASS reauthorize",
+      "PASS stage",
+      "PASS reauthorize-callback-first",
+      "PASS superseded",
+      "PASS regression",
+      "PASS owned loopback port released, SQLite scope and receipt checks complete"
+    ],
+    "hostPassed": true,
+    "reversalPassed": true,
+    "vmArchiveSHA256": "54e5957571a574e0f6320529394c4f7294d6d659284fea67085538fc1fb345b4",
+    "temporaryPinnedLockSHA256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+    "genericIPhoneOS": true,
+    "binarySHA256": "23219f43c4866fca1aa2655d726a65d17402b7e8c6906aa46fb7d4d1ee6ab3f9",
+    "machoBuild": [
+      "Load command 11",
+      "      cmd LC_BUILD_VERSION",
+      "  cmdsize 32",
+      " platform IOS",
+      "    minos 26.0",
+      "      sdk 27.2",
+      "   ntools 1",
+      "     tool LD",
+      "  version 27106.1"
+    ],
+    "sourceLockRestored": true,
+    "elapsedSeconds": 26.81,
+    "scratchRemoved": true,
+    "terminalCommands": 29,
+    "rawReceiptSHA256": "f4bb561c51cbd34e6cfb6f4d7b310e4ee06a49e343c3761bf054de48189dd312"
+  },
+  "rootSetupObservations": [
+    {
+      "evidenceSHA256": "cc99e9f46347fb42f01e51c7ad839f838086d268b2d48087d8a4658c704bfe17",
+      "observation": "A copied fixture hash omitted three characters. The wrapper stopped before applying the backend patch."
+    },
+    {
+      "evidenceSHA256": "9a9044fd96cef63bc5f743304ff3a5eb8eb9b7f82b9a673a3f62a119b453482c",
+      "observation": "All host phases passed. The wrapper looked for a phase label different from the one emitted for restore first."
+    },
+    {
+      "evidenceSHA256": "f0a600164138f1432f3f8b905bf70193f9973fa703d53698be1199b2e3a04d78",
+      "observation": "Host and reversal checks passed. The wrapper staged the pinned archive under its Cargo basename, while the linker expected libmixer_vm_capability_experimental.a. The final link used the expected basename."
+    }
+  ],
+  "remaining": [
+    "Native UI, browser delivery and Keychain behavior remain pending.",
+    "Android adapter and the separate recovery review blockers remain open."
+  ]
+}

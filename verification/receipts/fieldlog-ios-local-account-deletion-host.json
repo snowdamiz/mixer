@@ -1,0 +1,68 @@
+{
+  "status": "passed_host_and_unsigned_generic_iphoneos",
+  "scope": "FieldLog section 21.2 Debug iOS local synthetic account deletion",
+  "mixerRevision": "660534ec0072f03469352adc13abb6f1e47c1bfa",
+  "fieldLogSourceRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+  "fieldLogSourceTree": "1b62520f35c7e57a01b568291078686574f627c4",
+  "existingLocalSourceArchiveSHA256": "75d2ce2663ade805ca40831b17a460c248e88c62a7689d5a671182bbf0ed7840",
+  "mixerSDKRevision": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+  "trees": {
+    "recoveryBase": "a4e08d9b67d9811dfe160ac71b04b35e0730d954",
+    "clientOnly": "4821d73b67e144d3533d54816fea883f254ee79a",
+    "backendOnly": "0dd0b86a6105de7d7eed619f971adc3eb3e2a86e",
+    "composed": "a218654455648bbddcdf829a97bb3002e8ba6b5d"
+  },
+  "blobs": {
+    "Backend/local_entry_sync.py": "535c33c727f8c0c630c444e180a754ec5625edea",
+    "Sources/FieldLogModels/FieldLogAccount.swift": "aeab4e80408ac698bdecfecd9fe935ce5c67a0f1",
+    "Sources/FieldLogStorage/AccountWorkspace.swift": "c96e64289c72dde0b641718ae83a7202a0300d5a",
+    "Sources/FieldLogStorage/AccountWorkspaceFiles.swift": "987de27c96a5dae0b17bad04d09bdfb7699a3a63",
+    "ios/FieldLog/FieldLogAccountApple.swift": "38cdbf523f44cf8692739dab495cbcd9e3a42660",
+    "ios/FieldLog/FieldLogAccountRoute.swift": "c3ecdd2951decf6797df1a8a33c3c10547d6e636",
+    "ios/FieldLog/SettingsView.swift": "4a65e521ac6b188268d7e3866e26e11f4017854b"
+  },
+  "patch": {
+    "path": "tests/integration/fieldlog-account-deletion-ios/fieldlog-ios-local-deletion.patch.b64",
+    "decodedBytes": 33594,
+    "decodedSHA256": "f78bc3ccc0fd3a0fa6614e26643ea7acf69f9351a0e24c5537119d029b283569",
+    "sharedOwnerSHA256": "df1c58a4ad96730b7a4b7dee3f158420b1cd3a7b15dc33c709ed1f9ba92ef473",
+    "verification": "Verified strict git apply and reverse with a private index. Each patch reverses independently from the composed tree."
+  },
+  "tools": {
+    "git": "2.56.0",
+    "swift": "6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "python": "3.14.8",
+    "cargo": "1.99.0 (5f94df478 2026-08-27)",
+    "xcode": "27.2 (27B52)",
+    "iphoneosSDK": "27.2"
+  },
+  "host": {
+    "command": "sh tests/integration/fieldlog-account-deletion-ios/run-checks.sh \"$app\" \"$checks\"",
+    "transport": "The host URLSession adapter remapped the socket to an ephemeral IPv4 loopback listener with the fixed Host and Origin. The shipping Apple adapter compiled for host and iPhoneOS. A private atomic file stood in for the Keychain slot.",
+    "observations": [
+      "Normal confirmed deletion removed the scoped files and credential slot. Staging was durable before the first POST and suspended sync. Missing and mismatched fixture authorizations, stale confirmations, and a refused secure write could not stage deletion.",
+      "The server committed the deletion and dropped the reply before writing it. A different listener and independent Swift processes resent the original bearer and byte-identical body. SQLite retained one receipt.",
+      "A mismatched positive receipt and a refused receipt write preserved all local files. The durable positive receipt survived interruption after partial removal and a second interruption after directory removal before clearing the slot. Later cleanup ran with no listener.",
+      "Parent symlink substitution was rejected. The ordinary workspace, another account, and a sibling project retained their files. A late receipt could not clear a newer account's credential or the retired account's files.",
+      "A genuine expired-bearer 401 preserved the scoped files. Fresh peer sign-in could not reauthorize. The original account reauthorized after restart, remained locked until a new confirmation, and then used a fresh bearer and key.",
+      "Ordinary sign-in, cold session and revocation records, recovery attempt and session records, sign-in with the replacement code, and TaskSync through the real workspace repository passed. The revoked grant received 401.",
+      "The pinned Python backend regression passed ordinary account, recovery, static sync, transactional rollback, scoped deletion, and receipt replay with disposable SQLite."
+    ]
+  },
+  "genericIPhoneOS": {
+    "tree": "a218654455648bbddcdf829a97bb3002e8ba6b5d",
+    "command": "xcodebuild -project \"$app/ios/FieldLog.xcodeproj\" -scheme FieldLog -configuration Debug -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath \"$build/derived\" -clonedSourcePackagesDirPath \"$build/packages\" -packageCachePath \"$build/package-cache\" -disableAutomaticPackageResolution -onlyUsePackageVersionsFromResolvedFile -skipPackageUpdates -disablePackageRepositoryCache -scmProvider system -jobs 8 CODE_SIGNING_ALLOWED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=NO ENABLE_DEBUG_DYLIB=NO COMPILER_INDEX_STORE_ENABLE=NO \"HEADER_SEARCH_PATHS=\\$(inherited) $sdk/vm/include\" \"LIBRARY_SEARCH_PATHS=$build/lib\" \"CLANG_MODULE_CACHE_PATH=$build/clang-cache\" build",
+    "vmCommand": "cargo build --manifest-path \"$sdk/vm/Cargo.toml\" --offline --locked --release --features experimental-capability-native --lib --target aarch64-apple-ios --target-dir \"$build/cargo\" --jobs 8",
+    "result": "BUILD SUCCEEDED. The arm64 app linked with platform IOS, minos 26.0 and SDK 27.2. LC_CODE_SIGNATURE was absent and Info.plist registered com.fieldlog.dev.ios.",
+    "binarySHA256": "e0c2cf48a5645f083336651427ba54e0929a00d89490103c6f9c8bb8a9989298",
+    "vmArchiveSHA256": "54e5957571a574e0f6320529394c4f7294d6d659284fea67085538fc1fb345b4",
+    "dependencyResolution": "Used the pinned local SDK lock and existing Swift Crypto and Swift ASN.1 Git objects. Git permitted file transport only. The app project lock was restored byte-for-byte."
+  },
+  "cleanup": {
+    "fixedPort8765": "Bind preflight found the port occupied. The fixture used ephemeral ports.",
+    "fixtureListeners": "Every owned listener joined and its ephemeral port rebound after closure.",
+    "ownedScratchKiBBeforeRemoval": 706140,
+    "ownedScratch": "Removed the owned checkout, module and build caches, logs, binaries, and disposable SQLite fixtures. Verified the namespace was absent."
+  },
+  "remaining": "Root owns device or Simulator UI, native Keychain runtime, and Android attachment."
+}
