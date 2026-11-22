@@ -117,6 +117,15 @@ assertions and original module by SHA-256. Each runner starts a fresh
 instance and compares the exact `i64` result.
 [Pinned bit count assertions](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast#L246-L265)
 
+Ten assertions in the same original `i64.wast` module cover `i64.shl`,
+`i64.shr_s`, and `i64.shr_u`. They compare the exact 64-bit results for
+shift counts 63, 64, 65, and −1 and for a right shift of the high bit.
+Counts use their low six bits. Arithmetic right shift propagates the sign
+and logical right shift fills with zeros. The added assertions reuse the
+pinned module and run in fresh instances. They add 20 commands, raising
+the replay cap to 304.
+[Pinned shift assertions](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast#L176-L213)
+
 For `br_table.wast`, stock WABT admits the original module at line 3 and
 passes the ten `multiple-value` assertions. The Mixer V3 CLI and installed C
 validator refuse that module with `unsupported` because it uses a value type

@@ -2804,6 +2804,12 @@ prior assertion outcomes. The integrated run completed 284 commands,
 passed all eight wrapper tests, and removed scratch.
 [Binary64-to-i64 replay](verification/receipts/l03-standards-f64-i64-truncation.json)
 
+Ten original WebAssembly i64 assertions now check the shift count
+boundary and sign propagation. WABT, the CLI, and the installed
+C session ABI matched the exact 64-bit results. All 60 preceding
+cases and six stateful sequences matched. All 304 commands closed.
+[i64 shift replay](verification/receipts/l03-w08-i64-shifts-926f6d94.json)
+
 The seeded TableMemoryV3 check retains one instance for 40 copies on
 each of 24 seeds. Mixer and Node matched all 960 observations of the
 complete initialized region in Debug and Release. The separate

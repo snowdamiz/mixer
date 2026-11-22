@@ -1,0 +1,148 @@
+{
+  "schema": "mixer.standards_replay.i64_shifts.v1",
+  "status": "passed_scoped_replay",
+  "publicBase": "926f6d944b624c5d75e4401d572ee300dec0a973",
+  "exportedSourceRevision": "e49eb479563bbb11087851637777bc221dd12514",
+  "exportedVMTree": "271f99bc577c91815ca89a0390176be9946aa6eb",
+  "specRevision": "05ca4182176763112561ae20153975c12bd689e4",
+  "host": "arm64 macOS",
+  "tools": {
+    "python": "3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0",
+    "wast2json": "1.0.36 (git~1.0.37)",
+    "wasm-validate": "1.0.36 (git~1.0.37)",
+    "spectest-interp": "1.0.36 (git~1.0.37)"
+  },
+  "profile": "mixer-table-memory-v3",
+  "installedExecution": "legacy V3 session C ABI from the installed capability archive",
+  "fixture": {
+    "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast",
+    "sha256": "7d0e27a617565e0685aef56cee01b2b4890084068e3989168c41d14c56b1945e",
+    "selection_sha256": "6c4c89ba8448109133744e9fc971356e298309abf1790741f3707000743d01b0",
+    "reference_manifest_sha256": "861765b2dfb2695ae91cf25bd709765fa1a708404c9bc130ac7836bd482e78c6",
+    "reference_output": [
+      "32/32 tests passed."
+    ],
+    "originalModuleSHA256": "674845c852c525175753c569e16d154f19562bd5dd71c09d38b47677d9d84c61"
+  },
+  "results": [
+    {
+      "line": 176,
+      "opcode": "i64.shl",
+      "operand": "0x0000000000000001",
+      "countBits": "0x000000000000003f",
+      "effectiveCount": 63,
+      "result": "0x8000000000000000"
+    },
+    {
+      "line": 177,
+      "opcode": "i64.shl",
+      "operand": "0x0000000000000001",
+      "countBits": "0x0000000000000040",
+      "effectiveCount": 0,
+      "result": "0x0000000000000001"
+    },
+    {
+      "line": 178,
+      "opcode": "i64.shl",
+      "operand": "0x0000000000000001",
+      "countBits": "0x0000000000000041",
+      "effectiveCount": 1,
+      "result": "0x0000000000000002"
+    },
+    {
+      "line": 179,
+      "opcode": "i64.shl",
+      "operand": "0x0000000000000001",
+      "countBits": "0xffffffffffffffff",
+      "effectiveCount": 63,
+      "result": "0x8000000000000000"
+    },
+    {
+      "line": 186,
+      "opcode": "i64.shr_s",
+      "operand": "0x8000000000000000",
+      "countBits": "0x0000000000000001",
+      "effectiveCount": 1,
+      "result": "0xc000000000000000"
+    },
+    {
+      "line": 193,
+      "opcode": "i64.shr_s",
+      "operand": "0x8000000000000000",
+      "countBits": "0x000000000000003f",
+      "effectiveCount": 63,
+      "result": "0xffffffffffffffff"
+    },
+    {
+      "line": 195,
+      "opcode": "i64.shr_s",
+      "operand": "0xffffffffffffffff",
+      "countBits": "0x0000000000000041",
+      "effectiveCount": 1,
+      "result": "0xffffffffffffffff"
+    },
+    {
+      "line": 204,
+      "opcode": "i64.shr_u",
+      "operand": "0x8000000000000000",
+      "countBits": "0x0000000000000001",
+      "effectiveCount": 1,
+      "result": "0x4000000000000000"
+    },
+    {
+      "line": 211,
+      "opcode": "i64.shr_u",
+      "operand": "0x8000000000000000",
+      "countBits": "0x000000000000003f",
+      "effectiveCount": 63,
+      "result": "0x0000000000000001"
+    },
+    {
+      "line": 213,
+      "opcode": "i64.shr_u",
+      "operand": "0xffffffffffffffff",
+      "countBits": "0x0000000000000041",
+      "effectiveCount": 1,
+      "result": "0x7fffffffffffffff"
+    }
+  ],
+  "baselineCommands": 284,
+  "candidateCommands": 304,
+  "wrapperTestsPassed": 8,
+  "priorOutcomesIdentical": {
+    "cases": 60,
+    "modules": 18,
+    "statefulSections": [
+      "stateful",
+      "stateful_memory_maximum",
+      "memory_copy",
+      "memory_copy_higher_address",
+      "memory_fill",
+      "scalar_globals"
+    ],
+    "comparison": "Normalized owned scratch paths and excluded raw reference-manifest digests tied to those paths."
+  },
+  "unchangedProductArtifactsSHA256": {
+    "mixer-vm": "85f89363b2bdc9e30537b015af4024c592f9716566067314718146a5e616b42c",
+    "libmixer_vm_capability_experimental.a": "f8906e32e35067a8a67eaf8509832ef2e7d10c0f5a4d56e6b5bc8786da10d241",
+    "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+    "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+    "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "mixer_vm_guest_ui_deferred.h": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+  },
+  "patchSHA256": "458e18b97cd3c25c8c8f198c8c9cff31a7a3beb2d7d17bc2194edac5ca40ab38",
+  "forwardAndReverseByteExact": true,
+  "setupCorrection": "The first extended run stopped on the selection checksum because the independent generator used i64.json. Generating commands.json reproduced the old pin and produced the accepted expanded checksum.",
+  "attemptReceiptSHA256": {
+    "baseline.json": "d5528f841e56f9a9804a9ff4797483c0645263c335489de446c7aec89d6bad3b",
+    "candidate.json": "3c905fc1c291fb67e96dd0117f347277cfa32c73f00cb1bea3e7e7d250878803",
+    "candidate-r2.json": "7d948f2a8de43496b5b2fedbdcb707d7c5571caa81820526c8efbe77f3f2cb51"
+  },
+  "ownedScratchRemoved": true,
+  "limit": "Host profile conformance only. L03 and W08 remain open."
+}
