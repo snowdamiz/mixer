@@ -309,6 +309,16 @@ both source patches, the archive, the linked selector, and its resources.
 Native taps and UIKit display acknowledgement remain pending.
 [iOS historical F10 witness](verification/receipts/fieldlog-f10-ios-native-tap-3010d91c.json)
 
+The successor XCTest terminates the app after all six taps and Done,
+then requires a new PID and launch ID with the same installation and
+healthy candidate. The generic arm64 build passed. In an independent
+macOS replay, two processes loaded the same recovery store. The cold
+process received no new Wasm or assignment and recovered the original
+sequence and candidate. All 13,207 workspace bytes matched. The
+development trust expires at 08:17:49 UTC on November 22, 2026.
+Native taps, UIKit display acknowledgement, and iOS relaunch remain pending.
+[iOS F10 process relaunch witness](verification/receipts/fieldlog-f10-ios-native-process-relaunch-03378356.json)
+
 The private macOS signed V3 candidate `6ba7034329` passed the first-page
 Pending Changes smoke through the installed owner, VM, and storage mailbox.
 One read hydrated the queue. The decoded action delivered the historical
@@ -2583,6 +2593,19 @@ and artifacts after service restart. Both service groups closed, their
 port was reusable, and disposable keys and origin scratch were removed.
 The rebuilt packet's evidence covers host signing and delivery.
 [Rebuilt cohort replay](verification/receipts/fieldlog-android-engine-cohort-signed-e985e465.json)
+
+### iOS FieldLog engine replacement
+
+FieldLog 24101 and 24102 linked two distinct engines and the same
+upgrade XCTest selector. Both arm64 iOS Simulator bundles use
+`dev.mixer.fieldlog` and share development trust. The stock loopback
+origin served signed sequence 7 to the old runtime and sequence 1 to
+the new runtime. An independent host run passed all 35 HTTP and 20
+Swift verifier checks, refused cross-runtime delivery, and matched the
+offer and artifact bytes after restart. All 154 handoff hashes matched,
+both service groups closed, and their port was reusable. Installed
+in-place replacement and workspace and journal continuity remain pending.
+[iOS engine cohort builds and host replay](verification/receipts/fieldlog-ios-engine-cohort-generic-73717993.json)
 
 ### Rendered free Starter build
 
