@@ -1524,6 +1524,17 @@ exactly. Both kept their Activity, process and workspace and removed
 scratch after terminal custody. Native callback order remains unobserved.
 [Coalesced Home replay](verification/receipts/l02-android-note-home-coalesced-api36-39966a15.json)
 
+Both instrumented Home runs observed the same successful order on
+offline API 36 ARM64. Window focus loss closed the exact old connection
+before Activity stop. On return, a sealed Note create marked the
+pending drain. That drain published input authority, and one restart
+opened a fresh connection on the same field. The fixture IME read,
+edited, and read back the exact value. Both runs kept their Activity,
+PID, and workspace bytes and verified cleanup. The earlier wrongEditor
+result did not recur, so the failing order and public adoption remain
+open.
+[Instrumented Home callback order](verification/receipts/l02-android-note-home-order-api36-48df9b48.json)
+
 The IME-switch experiment withheld an overlapping connection and posted
 a public restart after the exact predecessor closed. Android briefly
 received a new SDK adapter, then closed it after another overlapping
@@ -1575,6 +1586,17 @@ review also found that a retry can publish if the original workspace
 lock is displaced after the first error. The source remains private
 until retry admission and publication recheck ownership.
 [F04 same-editor retry host replay](verification/receipts/fieldlog-f04-same-editor-retry-pair25.json)
+
+The follow-up checked lock identity at retry admission and just before
+rename. It blocked both earlier displacement cases, and the same
+editor still saved the retained task once with the original lock.
+Independent macOS review found a remaining race between the last
+check and rename. The stale repository committed one task and outbox
+event while a second descriptor held the replacement lock. FieldLog
+needs to serialize publication with supported ownership changes before
+downstream adoption. The exact candidate compiled and linked as an
+unsigned generic arm64 iPhoneOS Debug app.
+[F04 lock lifecycle and review](verification/receipts/fieldlog-f04-lock-follow-up-pair25.json)
 
 All four F14–F16 selectors passed on the historical and Pair25
 sources. F14 wrote one entry and one event after a valid edit-and-commit
