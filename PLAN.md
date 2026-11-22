@@ -173,6 +173,10 @@ After the origin stopped and the reverse mapping was removed, two new app proces
 
 The first origin attempt stopped before any device action because the readiness probe used an unsupported Python HTTP context manager. Its origin exited on SIGINT and its process group was absent. The launcher recorded the nonzero exit and retained that setup record. The corrected run used a new origin. D5, L04, and L08 remain running for the remaining targets and cases.
 
+### iOS FieldLog startup quarantine
+
+One fresh iOS 27.0 arm64 Simulator passed §22.2.9. FieldLog kept the healthy sequence-1 checklist after the same signed artifact trapped at sequences 2 and 3. The journal recorded two startup failures and quarantined the artifact at accepted sequence 3. With the release listener closed, a new app process reopened the healthy checklist and read the same saved task and workspace bytes. [Installed iOS quarantine](verification/receipts/fieldlog-ios-startup-quarantine-native-20261122.json)
+
 ## November 18 local verification
 
 The identity-network, Phoenix, and owned-engine workflows passed all 11 jobs on Mixer main at `65c89e08af`. Both workflows affected by the historical lock assertion passed. [GitHub Actions run record](verification/receipts/hosted-v42-main-ci-65c89e08af.json)

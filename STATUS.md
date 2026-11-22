@@ -3687,6 +3687,14 @@ After the origin stopped and the reverse mapping was removed, two new app proces
 
 The first origin attempt stopped before any device action because the readiness probe used an unsupported Python HTTP context manager. Its origin exited on SIGINT and its process group was absent. The launcher recorded the nonzero exit and retained that setup record. The corrected run used a new origin. D5, L04, and L08 remain running for the remaining targets and cases.
 
+### iOS FieldLog startup quarantine
+
+The installed iOS 27.0 arm64 Simulator replay passed §22.2.9 with development signatures. FieldLog created Inspect pump in the ordinary editor and loaded the healthy sequence-1 checklist. It accepted signed sequences 2 and 3 for the same artifact. Both startups trapped in the original process and the app automatically restored the healthy checklist. The durable journal counted two failures and recorded `deterministic_trap` at accepted sequence 3.
+
+After the release data listener closed, a new app process opened the healthy checklist and the same saved task. Workspace bytes matched at all four checkpoints, with revision 2 and two outbox records. Done returned to the same task. The journal matched the cold launch and recorded `effects_closed` in the readback after app termination.
+
+The first setup stopped before device creation because the runner expected a different field in the test plan. The first native run reached the healthy checklist, then failed an assertion that equated the isolation-folder UUID with the saved workspace UUID. The corrected XCTest used the same signed app and release bytes. Both disposable devices were removed, and all 13 observed external device states matched at each cleanup checkpoint. [Installed iOS quarantine receipt](verification/receipts/fieldlog-ios-startup-quarantine-native-20261122.json)
+
 ## November 18 local verification
 
 The identity-network, Phoenix, and owned-engine workflows passed all 11 jobs on Mixer main at `65c89e08af`. Both workflows affected by the historical lock assertion passed. [GitHub Actions run record](verification/receipts/hosted-v42-main-ci-65c89e08af.json)
