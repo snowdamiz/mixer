@@ -13,6 +13,22 @@ Use the tracked results to assess L01–L08 and rerun any check that needs fresh
 evidence from a clean checkout. Paths to disposable run files are historical
 references. See [the worktree verification policy](mixer-product-plan.md#worktree-local-verification).
 
+## Local security and reliability gate
+
+L07 passed independent review. An app-only FieldLog launch reopened the
+authenticated saved sequence-2 guest offline and retired it through the
+ordinary Done action. The workspace and cached payloads stayed unchanged.
+Five complete queries joined all four lifecycle witnesses to the owned
+app PID and image. The observer checked all JSON keys and string values
+in 551 records and found zero of eight synthetic workspace markers. Four
+XCTest-subsystem labels were included in the scan. The process inventory
+and sender observations contained no XCTest-named files. The test used
+an ad hoc Debug app with the prior signed development release identity.
+The independent decision also covers the pinned signed-runtime controls,
+managed signer and worker recovery, local restore, and the separately
+verified hosted, Android, and iOS updater privacy boundaries.
+[Local privacy receipt](verification/receipts/l07-fieldlog-ios-saved-guest-log-privacy-20261122.json)
+
 ## First shared native signed release replay
 
 The re-sealed packets passed the shared origin host replay. On fresh local
