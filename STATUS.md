@@ -2942,6 +2942,17 @@ At public pin `7b61fe1cd9`, native Swift and the owned VM produced byte-identica
 
 A compact 1,973-byte FeatureV3 guest passed the signed macOS cold-start coordinator in fresh and retained launches. The store persisted effects intent before offering the frame. Health committed after acknowledgement for the exact launch and frame and the 10-second observation. Stale tickets left the newer launch unchanged, both owners retired, and all 11 signed Guest UI V1 tests passed. This private test used a controlled display attachment. Native rendering and the full F05 editor remain open. [Signed coordinator receipt](verification/receipts/fieldlog-f05-installed-feature-v3-host-1d3e6560.json) [Cleanup](verification/receipts/fieldlog-f05-installed-feature-v3-cleanup-1d3e6560.json)
 
+The private F05 APK linked and installed on an owned offline API 36
+arm64 emulator. Default opt-out rendered. The first opt-in attempts
+failed before window readiness. The corrected window admitted Edit.
+Subsequent runs corrected the installed ABI digest and all three
+canonical material records, then reached the Swift verifier's
+macOS-only scope check. It refused the Android development packet
+before a guest frame. All five emulator and private ADB pairs closed,
+their ports were reusable, and scratch and disposable keys were removed.
+Native F05 Cancel, Save, cold readback, and F06 remain open.
+[Android F05 startup attempts](verification/receipts/fieldlog-f05-android-api36-startup-7fa6b6ea.json)
+
 A free owner completed current membership edits, usage and quota checks, support, export, and organization deletion in Chrome against Phoenix and PostgreSQL. One organization stayed isolated from the other. Two earlier role edits returned 503 during the member page load. Exit with settled build history remains open. [Free-owner administration](verification/receipts/l06-owner-admin-browser-e3c1f6c65c.json)
 
 An owned API 36 emulator completed the ordinary FieldLog task conflict. After a 409 response, the user kept the local title **Inspect valve today** and the peer assignee **Morgan**. Both replicas reached version 3, each kept four prior outbox rows, and the final offline cold reopen preserved the Android workspace byte for byte. The earlier iOS replay reached the same task outcome with a separate workspace. [Android conflict receipt](verification/receipts/fieldlog-android-ordinary-task-conflict-41a05264.json)
