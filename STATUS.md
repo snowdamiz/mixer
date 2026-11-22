@@ -2247,10 +2247,20 @@ Two fresh iOS Simulator runs fetched the signed baseline and rendered
 the baseline observation. The diagnostic read the healthy journal,
 the original JPEG and the saved task and draft. The journal named
 the healthy candidate in its staged slot, which the Debug witness
-requires to be empty. The corrected witness build is in progress.
+requires to be empty.
 Both fresh devices and listeners closed. Each of the 13 monitored
 external devices matched its baseline.
 [Installed refusal diagnosis](verification/receipts/fieldlog-ios-227-228-native-healthy-staged-diagnostic-6a46e529.json)
+
+The corrected Debug witness passed on a fresh iOS 27.0 ARM64
+Simulator. Fifteen checkpoints preserved the same workspace,
+draft, JPEG and outbox. Invalid releases left sequence 1 healthy.
+The valid sequence-12 successor became healthy and reopened
+offline in a new process. Direct disk readback matched both
+the final workspace digest and fixture JPEG. All 98 runtime
+commands closed, both loopback listeners retired, and the fresh
+device was removed with the 13 monitored external devices unchanged.
+[Installed iOS refusal replay](verification/receipts/fieldlog-ios-227-228-native-refusals-6a46e529.json)
 
 ## November 21 Android saved-draft validation
 
