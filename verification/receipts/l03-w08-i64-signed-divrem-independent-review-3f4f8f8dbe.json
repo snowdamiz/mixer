@@ -1,0 +1,476 @@
+{
+  "status": "scoped_pass",
+  "scope": "arm64 macOS WebAssembly Core V3 positive standards replay",
+  "gate_status": "L03/W08 remains open",
+  "stage_revision": "3f4f8f8dbe95a1972e61342ee2ffdfee5c25c1c0",
+  "stage_tree": "fadb6c4301d246f16dc5b7c979c36d61532c9ad2",
+  "patch_sha256": "def8e8d4beb2cc89843ce2043c01fe4ab061affb3c2af7429777e08d463c3a26",
+  "candidate_tree": "fa7d52e74d1cd5ad22e139f267a72610e6979b46",
+  "candidate_vm_tree": "ad1f30ba691927e7fc88712635dbd943db666691",
+  "review_replay_revision": "3bc1e73888fc2f064ce0deee8e60248664fd2fdb",
+  "review_input_identity": "Patch forward and reverse checked against exact Stage index and trees. Candidate replay used a reviewer-local commit with the delivered tree.",
+  "changed_paths": [
+    "vm/verification/standards-replay/README.md",
+    "vm/verification/standards-replay/commands.py",
+    "vm/verification/standards-replay/replay.py"
+  ],
+  "tools": {
+    "python": "3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0",
+    "wast2json": "1.0.36 (git~1.0.37)",
+    "wasm-validate": "1.0.36 (git~1.0.37)",
+    "spectest-interp": "1.0.36 (git~1.0.37)"
+  },
+  "spec_revision": "05ca4182176763112561ae20153975c12bd689e4",
+  "wabt_release": {
+    "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz",
+    "sha256": "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
+  },
+  "i64_fixture_sha256": "7d0e27a617565e0685aef56cee01b2b4890084068e3989168c41d14c56b1945e",
+  "i64_module": {
+    "fixture": "i64.wast",
+    "line": 3,
+    "wasm_sha256": "674845c852c525175753c569e16d154f19562bd5dd71c09d38b47677d9d84c61",
+    "wasm_bytes": 552,
+    "wabt": {
+      "status": 0,
+      "diagnostic": []
+    },
+    "core": {
+      "valid": true,
+      "error": null
+    },
+    "installed_c": {
+      "validate": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      },
+      "guest_ui_v1_validate": {
+        "status": 1,
+        "code": "unsupported",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      }
+    }
+  },
+  "baseline_assertion_counts": {
+    "assert_trap": 6,
+    "assert_return": 72,
+    "assert_invalid": 6
+  },
+  "candidate_assertion_counts": {
+    "assert_trap": 6,
+    "assert_return": 80,
+    "assert_invalid": 6
+  },
+  "baseline_replay_commands": 332,
+  "candidate_replay_commands": 348,
+  "prior_rows_exact_and_ordered": 84,
+  "prior_rows_canonical_sha256": "bd9eb3e83662e334100b1daae677f5a933e9fbafd0918e2ebce8f5972fbc23c9",
+  "prior_main_cli_and_c_output_hashes_equal": 176,
+  "wrapper_controls_passed_per_tree": 8,
+  "wabt_i64_output": [
+    "60/60 tests passed.",
+    "76/76 tests passed."
+  ],
+  "wabt_i64_selected_manifest_sha256": [
+    "470cc8760b3f4a60bead3e7e1a66f2624e4979d08e855145034c4839dc1df559",
+    "876d7f059acaf2360561ed9aa741aef5b6f655c0c675463544c8831760b8fece"
+  ],
+  "unchanged_artifact_sha256": {
+    "mixer-vm": "85f89363b2bdc9e30537b015af4024c592f9716566067314718146a5e616b42c",
+    "libmixer_vm_capability_experimental.a": "f8906e32e35067a8a67eaf8509832ef2e7d10c0f5a4d56e6b5bc8786da10d241",
+    "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+    "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+    "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "mixer_vm_guest_ui_deferred.h": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+  },
+  "i64_distinct_candidate_cli_and_c_pgids": 76,
+  "new_assertions": [
+    {
+      "line": 74,
+      "export": "div_s",
+      "args_bits": [
+        "0x8000000000000001",
+        "0x00000000000003e8"
+      ],
+      "expected_cli_and_installed_c_bits": "0xffdf3b645a1cac09",
+      "cli_pgid": 57828,
+      "cli_output_sha256": "135688a12c101759bed5bfbc6ed71451d3ebb414dc23f3f1e0bc51a365ad8bbd",
+      "installed_c_pgid": 57829,
+      "installed_c_output_sha256": "5909f0f71a5ecbd8e932a122832bcc3fdf4a765c8161b180a2d77b3ee521989a"
+    },
+    {
+      "line": 76,
+      "export": "div_s",
+      "args_bits": [
+        "0xfffffffffffffffb",
+        "0x0000000000000002"
+      ],
+      "expected_cli_and_installed_c_bits": "0xfffffffffffffffe",
+      "cli_pgid": 57830,
+      "cli_output_sha256": "da15a9f47b4e8567b3110941d19b03c7b7383c61b58bcd4315886a89903c6587",
+      "installed_c_pgid": 57831,
+      "installed_c_output_sha256": "81c3432ab6630772743ed3dd3344bba94b1bec0361cc360d7500c10fa5413cec"
+    },
+    {
+      "line": 77,
+      "export": "div_s",
+      "args_bits": [
+        "0x0000000000000005",
+        "0xfffffffffffffffe"
+      ],
+      "expected_cli_and_installed_c_bits": "0xfffffffffffffffe",
+      "cli_pgid": 57832,
+      "cli_output_sha256": "da15a9f47b4e8567b3110941d19b03c7b7383c61b58bcd4315886a89903c6587",
+      "installed_c_pgid": 57833,
+      "installed_c_output_sha256": "81c3432ab6630772743ed3dd3344bba94b1bec0361cc360d7500c10fa5413cec"
+    },
+    {
+      "line": 78,
+      "export": "div_s",
+      "args_bits": [
+        "0xfffffffffffffffb",
+        "0xfffffffffffffffe"
+      ],
+      "expected_cli_and_installed_c_bits": "0x0000000000000002",
+      "cli_pgid": 57834,
+      "cli_output_sha256": "1b81b1adc12eb1709372454aafbd21609243b3fef8634b52bae092fd774816a8",
+      "installed_c_pgid": 57835,
+      "installed_c_output_sha256": "5b4a452478b5f6a91170efc1faa7e2c608ddc9b795a8d514b6863c61a2c740e9"
+    },
+    {
+      "line": 112,
+      "export": "rem_s",
+      "args_bits": [
+        "0x8000000000000001",
+        "0x00000000000003e8"
+      ],
+      "expected_cli_and_installed_c_bits": "0xfffffffffffffcd9",
+      "cli_pgid": 57842,
+      "cli_output_sha256": "47cb6fef9476e6533e21bb14ad4aafeae15705e2ceea98b7679a040ee72eef0d",
+      "installed_c_pgid": 57843,
+      "installed_c_output_sha256": "042dd46824d6afe839b088cf14e4313ed23b362f1d74cb197327eb416fa3ec34"
+    },
+    {
+      "line": 114,
+      "export": "rem_s",
+      "args_bits": [
+        "0xfffffffffffffffb",
+        "0x0000000000000002"
+      ],
+      "expected_cli_and_installed_c_bits": "0xffffffffffffffff",
+      "cli_pgid": 57844,
+      "cli_output_sha256": "a6d996e2ad7060bee90d0673b16f6199359c829d9b919612409a30d7adc432e5",
+      "installed_c_pgid": 57845,
+      "installed_c_output_sha256": "0f2f46c2161967733def462dafbb227132cc67b042b022cef0abf768c20561f3"
+    },
+    {
+      "line": 115,
+      "export": "rem_s",
+      "args_bits": [
+        "0x0000000000000005",
+        "0xfffffffffffffffe"
+      ],
+      "expected_cli_and_installed_c_bits": "0x0000000000000001",
+      "cli_pgid": 57846,
+      "cli_output_sha256": "b9f17cee7e05c3a39b6dcf6c8fd60a04856f29f3dd75339427a907ec880def00",
+      "installed_c_pgid": 57847,
+      "installed_c_output_sha256": "8c13368ae5fd03422fd3b869e8d4cdd824a1af28adc9ac95aa8ff1f9ca34d823"
+    },
+    {
+      "line": 116,
+      "export": "rem_s",
+      "args_bits": [
+        "0xfffffffffffffffb",
+        "0xfffffffffffffffe"
+      ],
+      "expected_cli_and_installed_c_bits": "0xffffffffffffffff",
+      "cli_pgid": 57848,
+      "cli_output_sha256": "a6d996e2ad7060bee90d0673b16f6199359c829d9b919612409a30d7adc432e5",
+      "installed_c_pgid": 57849,
+      "installed_c_output_sha256": "0f2f46c2161967733def462dafbb227132cc67b042b022cef0abf768c20561f3"
+    }
+  ],
+  "outer_replay_commands": [
+    {
+      "name": "baseline-controls",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/repo/vm/verification/standards-replay/test_replay.py",
+        "-v"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 25,
+      "output_cap_bytes": 524288,
+      "pid": 57080,
+      "pgid": 57080,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "650c3f61c394fd1b26da8934ae2f37f7fc2469491ed2a1628bda62367c1e4856",
+      "output_bytes": 1376,
+      "elapsed_seconds": 0.552191
+    },
+    {
+      "name": "baseline-replay",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/audit.py",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/baseline.claim",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/repo/vm/verification/standards-replay/replay.py",
+        "--rust-bin",
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin",
+        "--receipt",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/baseline.json"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 125,
+      "output_cap_bytes": 524288,
+      "pid": 57096,
+      "pgid": 57096,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "deef6e60eced85c298bdb788621d30e0f76620d4d588996fd28673b77cf75753",
+      "output_bytes": 81,
+      "elapsed_seconds": 8.88261
+    },
+    {
+      "name": "candidate-controls",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/repo/vm/verification/standards-replay/test_replay.py",
+        "-v"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 25,
+      "output_cap_bytes": 524288,
+      "pid": 57494,
+      "pgid": 57494,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "a48f69d126cffdd48fc2936744006d4d0578ce05623a8dd3cb57372fb1f96c00",
+      "output_bytes": 1376,
+      "elapsed_seconds": 0.261486
+    },
+    {
+      "name": "candidate-replay",
+      "argv": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/audit.py",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/candidate.claim",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/repo/vm/verification/standards-replay/replay.py",
+        "--rust-bin",
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin",
+        "--receipt",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/candidate.json"
+      ],
+      "expected_exit_code": 0,
+      "timeout_seconds": 125,
+      "output_cap_bytes": 524288,
+      "pid": 57505,
+      "pgid": 57505,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "aab867f1c479d918a527354f732ef80b6507c74865ca72b4cb12a5547ed5e33f",
+      "output_bytes": 82,
+      "elapsed_seconds": 6.312659
+    }
+  ],
+  "independent_wabt_crosscheck": [
+    {
+      "name": "download-wabt.tar.gz",
+      "argv": [
+        "/usr/bin/curl",
+        "-q",
+        "-fsSL",
+        "--proto",
+        "=https",
+        "--max-time",
+        "20",
+        "--max-filesize",
+        "25165824",
+        "-o",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck/wabt.tar.gz",
+        "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz"
+      ],
+      "cwd": "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck",
+      "expected_exit_code": 0,
+      "timeout_seconds": 25,
+      "output_cap_bytes": 524288,
+      "pid": 99368,
+      "pgid": 99368,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.280594
+    },
+    {
+      "name": "download-i64.wast",
+      "argv": [
+        "/usr/bin/curl",
+        "-q",
+        "-fsSL",
+        "--proto",
+        "=https",
+        "--max-time",
+        "20",
+        "--max-filesize",
+        "524288",
+        "-o",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck/i64.wast",
+        "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast"
+      ],
+      "cwd": "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck",
+      "expected_exit_code": 0,
+      "timeout_seconds": 25,
+      "output_cap_bytes": 524288,
+      "pid": 99369,
+      "pgid": 99369,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.084178
+    },
+    {
+      "name": "extract-wabt",
+      "argv": [
+        "/usr/bin/tar",
+        "-xzf",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck/wabt.tar.gz",
+        "wabt-1.0.37/bin/wast2json",
+        "wabt-1.0.37/bin/spectest-interp",
+        "wabt-1.0.37/bin/wasm-validate"
+      ],
+      "cwd": "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 99375,
+      "pgid": 99375,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.020623
+    },
+    {
+      "name": "translate",
+      "argv": [
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck/wabt-1.0.37/bin/wast2json",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck/i64.wast",
+        "-o",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck/commands.json"
+      ],
+      "cwd": "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 99379,
+      "pgid": 99379,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.0531
+    },
+    {
+      "name": "validate-module",
+      "argv": [
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck/wabt-1.0.37/bin/wasm-validate",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck/commands.0.wasm"
+      ],
+      "cwd": "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 99382,
+      "pgid": 99382,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.04695
+    },
+    {
+      "name": "baseline-i64-reference",
+      "argv": [
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck/wabt-1.0.37/bin/spectest-interp",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck/baseline-selected.json"
+      ],
+      "cwd": "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 99384,
+      "pgid": 99384,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e6e2f344e4b13a50c4ea6e0aa0c8f1522e776fb15c7710195c597d10d7ccec6c",
+      "output_bytes": 20,
+      "elapsed_seconds": 0.053624
+    },
+    {
+      "name": "candidate-i64-reference",
+      "argv": [
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck/wabt-1.0.37/bin/spectest-interp",
+        "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck/candidate-selected.json"
+      ],
+      "cwd": "/private/tmp/mixer-l03-signed-review.r2M0Zwn0/wabt-crosscheck",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 99385,
+      "pgid": 99385,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "2a4a7f4d5e7ce917de4a5db69ff95ad57c9216be6f84b18a274555efc71a9638",
+      "output_bytes": 20,
+      "elapsed_seconds": 0.00704
+    }
+  ],
+  "replay_peak_sampled_owned_bytes": 136024064,
+  "crosscheck_owned_bytes": 20430848,
+  "custody": {
+    "all_recorded_commands_terminal_with_eof": true,
+    "runner_home_scratch_removed": [
+      "/Users/andreyyurlov/.mixer-vm-standards-18yhnoc8",
+      "/Users/andreyyurlov/.mixer-vm-standards-vozpox2t"
+    ],
+    "new_holds": [],
+    "owned_scratch": "/private/tmp/mixer-l03-signed-review.r2M0Zwn0",
+    "owned_scratch_removed": true,
+    "wrapper_tmp_empty": true
+  },
+  "original_brief_thread_id": "thread:delegated-task:command%3Amcp%3A33e217d8-dd5c-4c9f-91f7-960561091658%3Adelegate-task%3Al03-next-w08-3f4f8f8dbe",
+  "author_receipt_sha256": "4b42e32873430937a31c7bfe572dd81b58ee0b93fff5138b8000c8ce49e3e1bb",
+  "prior_unsigned_w08_commit": "9e3d4493c60a5b877c3df9117af87bcd0d413264",
+  "prior_stateful_c_output_hashes_equal": 6,
+  "completed_utc": "2026-11-22T20:42:09.792708+00:00"
+}

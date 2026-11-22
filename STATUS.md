@@ -2826,6 +2826,8 @@ Eight pinned signed and unsigned `i64` comparisons matched stock WABT, the Mixer
 
 Six pinned unsigned `i64` division and remainder assertions matched WABT, the Mixer CLI, and the installed V3 C session. The replay used separate CLI and C processes per assertion. All 78 existing results and eight wrapper tests passed, with 332 commands on the candidate. [Unsigned division and remainder replay](verification/receipts/l03-w08-i64-unsigned-divrem-3029819c75.json)
 
+Eight pinned signed `i64.div_s` and `i64.rem_s` assertions matched all 64 result bits in stock WABT, the Mixer CLI, and the installed V3 C session ABI. The independent replay preserved all 84 prior assertion rows in order and passed all eight wrapper controls. L03 and W08 remain open. [Independent replay](verification/receipts/l03-w08-i64-signed-divrem-independent-review-3f4f8f8dbe.json)
+
 The seeded TableMemoryV3 check retains one instance for 40 copies on
 each of 24 seeds. Mixer and Node matched all 960 observations of the
 complete initialized region in Debug and Release. The separate

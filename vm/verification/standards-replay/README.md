@@ -143,6 +143,16 @@ instance per assertion. Each assertion uses separate CLI and C client
 processes, adding 12 commands and raising the replay cap to 332.
 [Pinned division and remainder assertions](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast#L91-L132)
 
+Eight assertions in the same pinned `i64.wast` module check `i64.div_s`
+on lines 74 and 76–78 and `i64.rem_s` on lines 112 and 114–116. They
+cover both mixed-sign operand orders, two negative operands, and a
+dividend one above the signed minimum divided by 1,000. The quotient
+truncates toward zero and a nonzero remainder takes the dividend's sign.
+All three runners check the full 64-bit results in fresh instances. The
+CLI and installed C client each use a separate process per assertion,
+adding 16 commands and raising the replay cap to 348.
+[Pinned signed division and remainder assertions](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast#L74-L116)
+
 For `br_table.wast`, stock WABT admits the original module at line 3 and
 passes the ten `multiple-value` assertions. The Mixer V3 CLI and installed C
 validator refuse that module with `unsupported` because it uses a value type
