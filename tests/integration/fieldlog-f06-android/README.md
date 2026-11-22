@@ -63,3 +63,19 @@ a single Android input-text dispatch produced 17 committed title echoes.
 Add wrote one task and its outbox event. A fresh offline process read the
 same saved workspace. Plain, unspanned IME commits passed host controls.
 Composition and other advanced IME operations are outside this private buffer.
+
+
+## Build the disposable IME fixture
+
+Build the fixture in an empty output directory.
+
+```sh
+python3 -B title-ime/build.py "$OUTPUT"
+```
+
+The fixture accepts a synthetic test action only from a sender with
+Android's `DUMP` permission. The active input connection must belong to
+the private F06 app and report its vertical title flags. The action
+sends two fixed plain commits. The [installed receipt](../../../verification/receipts/fieldlog-f06-android-plain-ime-api36-7fa6b6ea.json)
+records both echoes, Save, cold readback, and keyboard restoration.
+Default keyboard composition remains outside this check.

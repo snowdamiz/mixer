@@ -1,0 +1,259 @@
+{
+  "schema": 1,
+  "status": "passed_scoped_startup_host_controls_and_installed_regression_adoption_held",
+  "authorReceiptSHA256": "6bcceacca389a89152b753aeaa7576de8730f924042bf1ea3b8d6a7b800e5264",
+  "authorSource": {
+    "mixerRecipeCommit": "c19a13d733b1f02ea40d165ae9886f9b80293a23",
+    "mixerRecipeTree": "699fb6cf1ddddb6942bf180ad857cc0b0b69fcd9",
+    "androidSdkCommit": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+    "androidSdkTree": "faf0902a82ffc7acb2ddde9c6dca24002f959c3d",
+    "fieldLogPinnedBaseCommit": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "fieldLogBaselineTree": "adc3238ee1a79253b3cdf00cf35aa33d13589337",
+    "fieldLogCorrectedTree": "82d9809dea02ed30a459195f6bc7076f2ff7aa51",
+    "activityBaselineBlob": "53778d3067123280cb982c54266c511968489c84",
+    "activityCorrectedBlob": "b70f48e22abde1acdeb8475fab0aaf9bb6149070",
+    "patch": {
+      "path": "verification/local/fieldlog-android-startup-2a17dbf3/fieldlog-android-startup-foreground.patch",
+      "sha256": "a60a8e7c28640baee02bd787de040989f56d48ce3583e597295463df53498a6b"
+    },
+    "reproducer": {
+      "path": "verification/local/fieldlog-android-startup-2a17dbf3/check-account-startup.py",
+      "sha256": "d8067d3516f8bb481cc28358db4450df75e83f9258e793356f946c4d1c06e071"
+    },
+    "replay": "Strict git apply --index --whitespace=error-all in both directions reproduced the exact trees. Tree diff contains only PublicActivity.java."
+  },
+  "rootBuildReceiptSHA256": "e4ded87d4ade8550ab08a6395f3feec46181998b9cd00dacd8fc86c6df9c7f78",
+  "rootBuild": {
+    "status": "passed",
+    "mixerCommit": "c19a13d733b1f02ea40d165ae9886f9b80293a23",
+    "baseTree": "000c3321f7c1d63160b31fbedb3f1f14554e658b",
+    "reviewedBaseTree": "0f2bbcfd9caecac03d22523cabe764084b575e9a",
+    "lifecycleTree": "adc3238ee1a79253b3cdf00cf35aa33d13589337",
+    "sourceTree": "82d9809dea02ed30a459195f6bc7076f2ff7aa51",
+    "baselineStartupControl": [
+      "Exception in thread \"main\" java.lang.AssertionError: paused startup exhausted the 80-second wait and delivered 0 restores after owner retirement and foreground return",
+      "\tat StartupChecks.check(StartupChecks.java:128)",
+      "\tat StartupChecks.main(StartupChecks.java:161)",
+      "Exception in thread \"main\" java.lang.AssertionError: initial unfocused wait exhausted startup",
+      "\tat StartupChecks.check(StartupChecks.java:128)",
+      "\tat StartupChecks.main(StartupChecks.java:172)",
+      "PASS Startup destroy-replace",
+      "PASS Startup retirement-failure",
+      "PASS Startup callback-warm",
+      "PASS Startup finishing-ordinary-signout"
+    ],
+    "correctedStartupControl": [
+      "PASS Startup long-pause",
+      "PASS Startup focus-budget",
+      "PASS Startup destroy-replace",
+      "PASS Startup retirement-failure",
+      "PASS Startup callback-warm",
+      "PASS Startup finishing-ordinary-signout"
+    ],
+    "sharedOwnerSHA256": "5aa01fdaefac77c2400cd7277ae2486a92513e3ff718b1cf9b1fdc3e4d03d125",
+    "backendBlob": "4d487e779c213b387cd2eee89fe0f48033a0b029",
+    "correctedDEXSHA256": "5c24090b2f3a65bdfe70e114f8070187143f55066b492338129433aafbba8e86",
+    "jniSHA256": "5ef6f3f7a304701abc7156850107596c89c6a5dd68df6272ffed9384fedbac39",
+    "jniByteIdenticalToHistorical": false,
+    "compiledManifestSHA256": "bffb704ea32d6c4cad1e82c7fb80b1d067753b5bf19e324b21600ef7eebaa435",
+    "apkSHA256": "b20573d172b844ee735cb0975618369e7fdba7c393becce8c8c0eafe8319136f",
+    "packagerReceiptSHA256": "37649a5ad8dcb43c165d03c283bdc85dfb4cd39be096735447c235185378bad2",
+    "elapsedSeconds": 83.66,
+    "scratchRemoved": true
+  },
+  "terminalBuildCommands": 31,
+  "apkMemberHashesVerified": 51,
+  "setupRefusalSHA256": "2eb248c6480bd5a44935b387f670cdb8d79ec66237e34568ed323a319351b45a",
+  "setupObservation": "The first root wrapper created the two control output directories. The startup test expects to create each directory itself. That attempt stopped before executing the control.",
+  "installedReceiptSHA256": "ffbaebc9bcad459e58d4e97a0cf6ee9628e4ee69c4d4c6e8c6bd4732120459b6",
+  "installed": {
+    "status": "passed",
+    "apkSHA256": "b20573d172b844ee735cb0975618369e7fdba7c393becce8c8c0eafe8319136f",
+    "checks": [
+      "Reveal enabled acknowledgement; pause and cold launch disabled it again. The workspace stayed closed until a fresh reveal and acknowledgement",
+      "Cancel after the recovery transaction committed kept the locally staged replacement and ordinary cold sign-in opened the bound workspace"
+    ],
+    "trace": {
+      "attempts": [
+        "/v1/account/recovery/attempts",
+        "/v1/account/recovery/attempts",
+        "/v1/auth/attempts"
+      ],
+      "browserCallbacks": 3,
+      "browserPosts": [
+        [
+          "/v1/account/recovery/attempts",
+          303
+        ],
+        [
+          "/v1/account/recovery/attempts",
+          303
+        ],
+        [
+          "/v1/auth/attempts",
+          303
+        ]
+      ],
+      "api": [
+        [
+          "POST",
+          "/v1/account/recovery/exchange",
+          200,
+          "sent"
+        ],
+        [
+          "GET",
+          "/v1/account/session",
+          200,
+          "sent"
+        ],
+        [
+          "GET",
+          "/v1/account/session",
+          200,
+          "sent"
+        ],
+        [
+          "DELETE",
+          "/v1/account/session",
+          200,
+          "sent"
+        ],
+        [
+          "POST",
+          "/v1/account/recovery/exchange",
+          200,
+          "held_after_commit"
+        ],
+        [
+          "POST",
+          "/v1/account/recovery/exchange",
+          200,
+          "released"
+        ],
+        [
+          "POST",
+          "/v1/auth/exchange",
+          200,
+          "sent"
+        ],
+        [
+          "GET",
+          "/v1/account/session",
+          200,
+          "sent"
+        ],
+        [
+          "DELETE",
+          "/v1/account/session",
+          200,
+          "sent"
+        ]
+      ]
+    },
+    "backendBlob": "4d487e779c213b387cd2eee89fe0f48033a0b029",
+    "fixtureExpirySeconds": {
+      "confirmation": 58,
+      "session": 28795
+    },
+    "device": {
+      "ro.boot.qemu.avd_name": "mixer_picker_7q0pcw7n",
+      "ro.build.version.sdk": "36",
+      "ro.product.cpu.abi": "arm64-v8a",
+      "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+    },
+    "browserPackage": "org.chromium.webview_shell",
+    "confirmationExpiries": [
+      {
+        "expiresAt": 1795368524,
+        "hostEpoch": 1795339730.009326
+      },
+      {
+        "expiresAt": 1795368524,
+        "hostEpoch": 1795339759.1415591
+      },
+      {
+        "expiresAt": 1795368604,
+        "hostEpoch": 1795339809.316832
+      }
+    ],
+    "confirmationRestartPIDs": [
+      2221,
+      3072
+    ],
+    "recoverySessionAfterCancelOrLostReply": [
+      0
+    ],
+    "lostReplyRestartPIDs": [
+      3072,
+      3503
+    ],
+    "beforeOrdinarySignInClock": {
+      "deviceEpoch": 1795339800,
+      "hostStartEpoch": 1795339800.548217,
+      "hostEndEpoch": 1795339800.5688262
+    },
+    "issuedSignInLifetimeSeconds": 57.71246695518494,
+    "issuedSignInExpiresAt": 1795339867,
+    "afterOrdinaryExchangeClock": {
+      "deviceEpoch": 1795339809,
+      "hostStartEpoch": 1795339809.314186,
+      "hostEndEpoch": 1795339809.336426
+    },
+    "installedAPKReadback": "b20573d172b844ee735cb0975618369e7fdba7c393becce8c8c0eafe8319136f",
+    "accountWorkspaceSHA256": "318beaa7c770371462cb1636609ecad8764ca7ab324f0f0af393db5509af5b3c",
+    "ordinaryWorkspaceSHA256": "f24b0457cec38b4173055e4bfab54cdb962367d470e664af1e0f0716be75da6e",
+    "serviceProductRowsUnchanged": true,
+    "serviceTaskRows": 1,
+    "services": [
+      {
+        "name": "emulator",
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+          "-avd",
+          "mixer_picker_7q0pcw7n",
+          "-ports",
+          "26042,26043",
+          "-no-window",
+          "-no-audio",
+          "-no-snapshot",
+          "-gpu",
+          "swiftshader_indirect",
+          "-no-boot-anim",
+          "-skin",
+          "1080x2400"
+        ],
+        "pid": 20875,
+        "exit": 0,
+        "groupAbsent": true
+      },
+      {
+        "name": "adb",
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+          "-L",
+          "tcp:localhost:26044",
+          "server",
+          "nodaemon"
+        ],
+        "pid": 20874,
+        "exit": -15,
+        "groupAbsent": true
+      }
+    ],
+    "portsRebound": [
+      26042,
+      26043,
+      26044,
+      8765
+    ],
+    "scratchRemoved": true,
+    "commands": 202,
+    "terminalCommands": 202,
+    "runnerSHA256": "20d6728add96d80aa8b891ab3f30c057bfb4eed87b417bdb6f33ef919d5b03db"
+  },
+  "remaining": [
+    "The 90-second pause with a synthetic prior owner ran in the host control. The real device replay covered ordinary warm and cold lifecycle and used shortened fixture expiry.",
+    "The separate service recovery scope finding and the default-lifetime timing fix remain open. The candidate stays unadopted."
+  ]
+}

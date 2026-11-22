@@ -125,11 +125,32 @@ The editor fixture is written in C and embeds the historical Swift UI frame. The
 The host opens the verified payload directly. Selecting this profile from the installed signed recovery store and mounting it through the FieldLog UI remain unverified. The host receipts do not change the two-target OTA counts or qualify F06’s Apple field renderer.
 
 A separate unsigned Embedded Swift replay compiles the historical F05 and F06
-title reduction and compares Edit, Cancel, and one short-title Save in the
-owned VM. The host commits the title emitted by the guest and checks the
-task and its linked outbox entry on disk after reopening the repository.
-Signed installation of that Swift guest remains open.
+title reduction. It compares Edit, Cancel, and Save in the owned VM and
+checks the task and its outbox record after reopening the repository.
 [Compact Swift editor replay](../fieldlog-embedded-editor/README.md)
+
+## Installed Android F05 and F06
+
+The signed private F05 editor passed Cancel and unpaced entry of
+`Inspect pump P-17` on an ARM64 API 36 emulator. Add saved the exact title
+and appended one outbox event for that task. Both owners retired.
+[Installed F05 replay](../../../verification/receipts/fieldlog-f05-android-buffered-burst-api36-9d96980f.json)
+
+The signed private F06 editor uses the byte-exact historical vertical-field
+guest. On API 36, a single input dispatch produced 17 title echoes through
+revision 18. Add saved one task and one outbox event. A new offline process
+read the same workspace bytes. The two archived Saving refusals each
+preserved the seed workspace. A separate native IME test sent two plain
+commits through the Android input connection. Save and cold readback passed.
+[Installed F06 replay](../../../verification/receipts/fieldlog-f06-android-buffered-title-api36-7fa6b6ea.json) ·
+[Saving refusals](../../../verification/receipts/fieldlog-f06-android-saving-refusals-api36-c8a27e36.json) ·
+[Plain IME replay](../../../verification/receipts/fieldlog-f06-android-plain-ime-api36-7fa6b6ea.json)
+
+These Android tests use locally staged signed development packets. Apple
+installation and signed update delivery on both targets remain open for
+these corpus rows.
+
+## Replay the private signed editor on macOS
 
 ```sh
 python3 compiler/experiments/fieldlog-change-corpus/signed-editor/replay.py \

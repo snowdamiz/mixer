@@ -1584,6 +1584,22 @@ Independent review reproduced a separate cold startup wait failure
 while paused. Adoption remains held for startup and service scope.
 [Recovery lifecycle device observations](verification/receipts/fieldlog-android-account-recovery-lifecycle-adc3238e.json)
 
+The exact shared owner reproduced the account timing failure when the
+client clock lagged the service by one second. At the default lifetimes,
+the owner showed unavailable after a successful exchange or after a
+successful confirmation, depending on when the lag began. The shorter
+fixture admitted the account. All three runs preserved the workspace
+files and the peer service data.
+[Controlled session clock replay](verification/receipts/fieldlog-account-wall-clock-lag-cfaa8410.json)
+
+The corrected Android Activity counts foreground time while cold account
+startup waits for the previous workspace owner. The old Activity exhausted
+the budget during a synthetic 90-second pause. The new Activity restored
+once after focus returned, and all six host controls passed. A signed API 36
+build also passed the recovery and Cancel regression with shortened fixture
+expiry. The service-scope and default-expiry issues still hold adoption.
+[Cold startup foreground checks](verification/receipts/fieldlog-android-account-startup-foreground-82d9809d.json)
+
 The FieldLog deletion backend requires a confirmed account, its exact scope,
 and explicit intent. It removes the scoped service data and stores an
 idempotent receipt in the same transaction. Two root replays passed
@@ -3178,6 +3194,14 @@ preserved the seed, both owners retired, and a separate process read the
 saved workspace bytes offline. Host checks cover plain IME commits.
 Native composition remains open.
 [Buffered F06 native replay](verification/receipts/fieldlog-f06-android-buffered-title-api36-7fa6b6ea.json)
+
+A disposable Android IME sent two consecutive plain commits to the same
+F06 APK on API 36. The IME received a multiline field with the None
+action and the No Enter Action flag. Both title echoes committed. Add
+saved one task and its outbox entry, and a cold process read the same
+workspace bytes. The fixture restored the original keyboard and uninstalled
+both APKs. Composition remains outside this replay.
+[Installed F06 plain IME replay](verification/receipts/fieldlog-f06-android-plain-ime-api36-7fa6b6ea.json)
 
 A free owner completed current membership edits, usage and quota checks, support, export, and organization deletion in Chrome against Phoenix and PostgreSQL. One organization stayed isolated from the other. Two earlier role edits returned 503 during the member page load. Exit with settled build history remains open. [Free-owner administration](verification/receipts/l06-owner-admin-browser-e3c1f6c65c.json)
 
