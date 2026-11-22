@@ -1,0 +1,454 @@
+{
+  "schema": 1,
+  "status": "pass_scoped_installed_c_abi_wabt_host",
+  "gate": "L03/W08",
+  "source": {
+    "base": "e6622741eaa1a4b699fa604870b2168920926582",
+    "testedCommit": "f98f3297f0a418849d5fc694a43fe347a8b53ec4",
+    "vmTree": "2dbeea3352caf5db2c66f3695b829b6d222fcf08",
+    "patchSHA256": "de34da49e890dcc9292940c38836ca6e36a949f935f14110f0bb8103f85d6826"
+  },
+  "command": [
+    "python3 -B vm/verification/standards-replay/replay.py --rust-bin <Rust 1.99.0 bin directory> --receipt <new receipt>",
+    "python3 -B vm/verification/standards-replay/test_replay.py -v"
+  ],
+  "tools": {
+    "python": "3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0",
+    "wast2json": "1.0.36 (git~1.0.37)",
+    "wasm-validate": "1.0.36 (git~1.0.37)",
+    "spectest-interp": "1.0.36 (git~1.0.37)"
+  },
+  "artifacts": {
+    "mixer-vm": "85f89363b2bdc9e30537b015af4024c592f9716566067314718146a5e616b42c",
+    "libmixer_vm_capability_experimental.a": "f8906e32e35067a8a67eaf8509832ef2e7d10c0f5a4d56e6b5bc8786da10d241",
+    "client": "c4e164ea12ecfe8072856d5621dd5e20b8627eaf5b2b055117fa6d1595ba77d7",
+    "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+    "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+    "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "mixer_vm_guest_ui_deferred.h": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+  },
+  "upstream": {
+    "specRevision": "05ca4182176763112561ae20153975c12bd689e4",
+    "fixture": {
+      "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/memory_fill.wast",
+      "sha256": "b8a7dccdf72878d11497a5d13ca3c628552b690f5386ef56b0a46c5dd711ad1f"
+    },
+    "wabtRelease": {
+      "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz",
+      "sha256": "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
+    },
+    "module": {
+      "type": "module",
+      "line": 145,
+      "filename": "commands.7.wasm"
+    },
+    "wasmSHA256": "3516438ef6b98d2644bf52f43971d21bf102139418fb46d0161dba071bf83c7b",
+    "wasmBytes": 121,
+    "unchangedActions": [
+      {
+        "type": "action",
+        "line": 162,
+        "action": {
+          "type": "invoke",
+          "field": "test",
+          "args": []
+        },
+        "expected": []
+      },
+      {
+        "type": "assert_return",
+        "line": 164,
+        "action": {
+          "type": "invoke",
+          "field": "checkRange",
+          "args": [
+            {
+              "type": "i32",
+              "value": "0"
+            },
+            {
+              "type": "i32",
+              "value": "18"
+            },
+            {
+              "type": "i32",
+              "value": "0"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "4294967295"
+          }
+        ]
+      },
+      {
+        "type": "assert_return",
+        "line": 166,
+        "action": {
+          "type": "invoke",
+          "field": "checkRange",
+          "args": [
+            {
+              "type": "i32",
+              "value": "18"
+            },
+            {
+              "type": "i32",
+              "value": "21"
+            },
+            {
+              "type": "i32",
+              "value": "85"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "4294967295"
+          }
+        ]
+      },
+      {
+        "type": "assert_return",
+        "line": 168,
+        "action": {
+          "type": "invoke",
+          "field": "checkRange",
+          "args": [
+            {
+              "type": "i32",
+              "value": "21"
+            },
+            {
+              "type": "i32",
+              "value": "25"
+            },
+            {
+              "type": "i32",
+              "value": "170"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "4294967295"
+          }
+        ]
+      },
+      {
+        "type": "assert_return",
+        "line": 170,
+        "action": {
+          "type": "invoke",
+          "field": "checkRange",
+          "args": [
+            {
+              "type": "i32",
+              "value": "25"
+            },
+            {
+              "type": "i32",
+              "value": "28"
+            },
+            {
+              "type": "i32",
+              "value": "85"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "4294967295"
+          }
+        ]
+      },
+      {
+        "type": "assert_return",
+        "line": 172,
+        "action": {
+          "type": "invoke",
+          "field": "checkRange",
+          "args": [
+            {
+              "type": "i32",
+              "value": "28"
+            },
+            {
+              "type": "i32",
+              "value": "65536"
+            },
+            {
+              "type": "i32",
+              "value": "0"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "4294967295"
+          }
+        ]
+      }
+    ]
+  },
+  "execution": {
+    "profile": "mixer-table-memory-v3",
+    "installedFeature": "experimental-capability-native",
+    "backend": "legacy V3 session C ABI from the installed capability archive",
+    "memoryPageRanges": [
+      {
+        "start": 0,
+        "endExclusive": 18,
+        "value": 0
+      },
+      {
+        "start": 18,
+        "endExclusive": 21,
+        "value": 85
+      },
+      {
+        "start": 21,
+        "endExclusive": 25,
+        "value": 170
+      },
+      {
+        "start": 25,
+        "endExclusive": 28,
+        "value": 85
+      },
+      {
+        "start": 28,
+        "endExclusive": 65536,
+        "value": 0
+      }
+    ],
+    "initialAndFreshSessionControl": {
+      "type": "assert_return",
+      "line": 168,
+      "action": {
+        "type": "invoke",
+        "field": "checkRange",
+        "args": [
+          {
+            "type": "i32",
+            "value": "21"
+          },
+          {
+            "type": "i32",
+            "value": "25"
+          },
+          {
+            "type": "i32",
+            "value": "0"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "type": "i32",
+          "value": "4294967295"
+        }
+      ]
+    },
+    "reference": [
+      "test() =>",
+      "10/10 tests passed."
+    ],
+    "referenceManifestSHA256": "c475246ef8ef36fb9b0d6021a232d6609092161e33ef6d8a73a54764e63c868e",
+    "cReadback": {
+      "create": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      },
+      "invoke-0": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": -1,
+        "fuel_used": 67,
+        "host_calls_used": 0
+      },
+      "invoke-1": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 11,
+        "host_calls_used": 0
+      },
+      "invoke-2": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": -1,
+        "fuel_used": 277,
+        "host_calls_used": 0
+      },
+      "invoke-3": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": -1,
+        "fuel_used": 52,
+        "host_calls_used": 0
+      },
+      "invoke-4": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": -1,
+        "fuel_used": 67,
+        "host_calls_used": 0
+      },
+      "invoke-5": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": -1,
+        "fuel_used": 52,
+        "host_calls_used": 0
+      },
+      "invoke-6": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": -1,
+        "fuel_used": 982627,
+        "host_calls_used": 0
+      },
+      "close": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      },
+      "reset-create": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      },
+      "reset-invoke": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": -1,
+        "fuel_used": 67,
+        "host_calls_used": 0
+      },
+      "reset-close": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      }
+    },
+    "validation": {
+      "wabt": {
+        "status": 0,
+        "diagnostic": []
+      },
+      "core": {
+        "valid": true,
+        "error": null
+      },
+      "installed_c": {
+        "validate": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "guest_ui_v1_validate": {
+          "status": 1,
+          "code": "capability_export",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    "existingAssertions": {
+      "assert_trap": 4,
+      "assert_return": 15,
+      "assert_invalid": 6
+    },
+    "existingStatefulScenarios": [
+      "memory.grow",
+      "memory.copy"
+    ],
+    "wrapperTestsPassed": 8
+  },
+  "negativeControls": {
+    "referenceManifestOnly": {
+      "complete": {
+        "exit": 0,
+        "summary": "10/10 tests passed.",
+        "outputSHA256": "53d38dd440e3eaf25912c995c8a70d7ee5e1b8d80114ba9bb11fe712a2cb1ca6"
+      },
+      "without-fill": {
+        "exit": 3,
+        "summary": "6/9 tests passed.",
+        "outputSHA256": "be0b1630f47e9e759597258d865fd3ac16b3613d4eee04ce38a2959e5ad90c80"
+      },
+      "without-reinstantiation": {
+        "exit": 1,
+        "summary": "8/9 tests passed.",
+        "outputSHA256": "a6b72c9edf1a0922648c6c94e945d93dc1c24602ed8c29593191a3b4313cac01"
+      }
+    },
+    "initialDriverCorrection": "WABT exits with the number of failed assertions. The omitted-fill command correctly reported three mismatches and exit 3."
+  },
+  "cleanup": {
+    "terminalCommands": 125,
+    "ownedScratchRemoved": true
+  },
+  "rawReplaySHA256": "145ca1bb11ffd066104b23c9555300d288619361b5e27ea702d8ad875887deb4",
+  "limits": [
+    "Mac host execution through the installed V3 C session. No native mobile runtime ran.",
+    "No VM product code, fuel limits, or dependency versions changed.",
+    "Guest UI V1 performed its admission refusal only. This fixed upstream scenario does not close L03."
+  ],
+  "independentReview": {
+    "status": "pass_scoped",
+    "checkedCandidate": "f98f3297f0a418849d5fc694a43fe347a8b53ec4",
+    "checkedVMTree": "2dbeea3352caf5db2c66f3695b829b6d222fcf08",
+    "findings": [
+      "Verified both supplied SHA-256 values and replayed the exact VM tree.",
+      "WABT checks 10/10, 125/125 command closures, eight wrapper tests.",
+      "Removing the fill invocation failed the three covered ranges with exit 3.",
+      "Documentation fixture count corrected from eight to nine."
+    ],
+    "unchangedLimits": {
+      "trailingZeroCheckFuel": 982627,
+      "defaultFuelLimit": 1000000,
+      "hostCalls": 0
+    },
+    "remaining": "Fill-specific traps, exhausted-fuel atomicity, Guest UI execution, and native mobile evidence are outside this review.",
+    "ownedScratchRemoved": true
+  }
+}

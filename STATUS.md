@@ -1816,6 +1816,16 @@ Independent replay verified the module and reference manifest hashes.
 The installed Guest UI V1 check still covers admission refusals.
 [Core element and reference replay](verification/receipts/l03-wabt-table-elements-60b8656a.json)
 
+The installed V3 C session and stock WABT also ran two overlapping
+`memory.fill` operations through one unchanged upstream export. Five
+readbacks checked every byte of the resulting page. The overwritten
+four-byte range read zero before the fill and in a fresh session.
+WABT passed all 10 checks, and both omission controls failed at the
+expected ranges. Independent replay confirmed the same behavior,
+125 terminal command groups and all eight wrapper controls. The
+default fuel limit and VM product source stayed unchanged.
+[Stateful memory fill replay](verification/receipts/l03-stateful-memory-fill-f98f3297.json)
+
 The seeded TableMemoryV3 check retains one instance for 40 copies on
 each of 24 seeds. Mixer and Node matched all 960 observations of the
 complete initialized region in Debug and Release. The separate

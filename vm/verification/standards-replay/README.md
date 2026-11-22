@@ -19,7 +19,7 @@ metadata must resolve the exported package and every target, including examples,
 inside the verified tree. The script stages the release archive and exported public
 headers in the experimental capability install layout, then links the exported
 C client directly against that archive. It downloads the
-pinned WABT release and eight WebAssembly Core WAST files over HTTPS and checks
+pinned WABT release and nine WebAssembly Core WAST files over HTTPS and checks
 their SHA-256 hashes. [WABT release](https://github.com/WebAssembly/wabt/releases/tag/1.0.37) ·
 [WebAssembly test sources](https://github.com/WebAssembly/spec/tree/05ca4182176763112561ae20153975c12bd689e4/test/core)
 
@@ -50,6 +50,13 @@ return `i32:7`, `i32:2`, and `i32:7`. The initial and fresh-instance reads
 reuse the action from line 281 with a separate expected value. The upstream
 assertion and translated Wasm bytes stay intact.
 
+In `memory_fill.wast`, line 145 defines the module and line 162 invokes
+two overlapping fills. Five upstream assertions check every byte of the page
+after the two fills, including both untouched ranges and the four overwritten
+bytes. Both runners check that same four-byte range before the fill and again
+after creating a fresh instance. The calls stay within the default session
+fuel limit. [Pinned fill sequence](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/memory_fill.wast#L145-L173)
+
 `replay.py` lists the exact case selectors by WABT JSON line. For binary
 `assert_invalid` commands, WABT can report the nested module's source line.
 The selection covers integer wraparound, division and rotate, initialized
@@ -63,7 +70,7 @@ slot in a named module traps with `indirect_call_null`. Each runner
 instantiates the pinned module again before each assertion.
 
 The same archive's `mixer_vm_capability_guest_ui_validate_v1` entry point checks
-the independent cases and the memory copy module. The valid upstream modules
+the independent cases and the copy and fill modules. The valid upstream modules
 lack the required Mixer exports or defined memory. Guest UI V1 refuses them, so successful execution
 evidence covers the shared V3 instruction profile through the V3 session ABI.
 The selected invalid `load.wast` module declares memory and reaches the Guest
