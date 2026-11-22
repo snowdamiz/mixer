@@ -253,7 +253,7 @@ The `7ef3f06d` correction passed those navigation choices in the host
 controls. Independent review found that the real workspace actor still
 refused the fourth legitimate read. It also found that the source
 retained the previous Wasm pin. The unsigned packager bound the new pin
-in its build copy. The source pin and repeated-read changes are pending.
+in its build copy. Both findings carried forward to the next source revision.
 [Follow-up navigation review](verification/receipts/fieldlog-f10-signed-android-navigation-review-7ef3f06d.json)
 
 The `6c5bc8ca` source binds the corrected Wasm and admits alternating
@@ -266,6 +266,15 @@ exact rows before Entries. All three committed health after the first
 native tap, preserved the original 13,207 workspace bytes, and retired
 the owner. All 408 device commands and owned services closed.
 [Installed signed F10 navigation](verification/receipts/fieldlog-f10-signed-android-navigation-api36-6c5bc8ca.json)
+
+On the same signed `6c5bc8ca` APK, single-bit changes to the manifest and
+assignment signatures each failed Ed25519 verification. Neither attempt
+committed a frame or advanced the accepted sequence. Restoring the
+original packet on the same install passed all six native actions and
+preserved the workspace bytes. All 206 commands closed and all three
+ports were reusable. The notice audit found zero of the 12 required
+entries in this private APK.
+[Installed F10 signature refusals](verification/receipts/fieldlog-f10-signed-android-api36-envelope-refusals-6c5bc8ca.json)
 
 The private macOS signed V3 candidate `6ba7034329` passed the first-page
 Pending Changes smoke through the installed owner, VM, and storage mailbox.
@@ -2448,6 +2457,13 @@ six Java consumers. All six DEX files matched byte for byte. The two
 uploaded receipts record 92 terminal groups and both scratch trees
 removed. Hosted v88 and reconstructed v87 digests matched their inputs.
 [Hosted v88 terminal record](verification/receipts/l07-hosted-v88-engine-terminal-6b07f0da.json)
+
+All nine Owned Engine jobs on `6c73017a` passed. The ten archived
+artifacts matched GitHub's digests. All six Java consumers produced
+identical DEX, and the Source141 inputs matched all 157 Git blobs.
+The two Java receipts account for 92 closed commands and removed scratch.
+The Swift custody archive accounts for 140 closed CLI commands.
+[Hosted Engine terminal record](verification/receipts/hosted-engine-terminal-6c73017a.json)
 
 The unchanged FieldLog updater ran in two macOS processes under an Android-scoped development identity. The owned observer saw four bodyless loopback GETs and found no workspace or JPEG markers, cookies, or bearer credentials. A complete signed offer activated sequence 1. After an artifact HTTP 503, a new process recovered the same candidate and preserved the workspace and JPEG. The sandbox denied a second loopback destination, and both owned ports closed. [Updater privacy receipt](verification/receipts/l07-fieldlog-updater-loopback-b144c2c-20261120.json)
 
