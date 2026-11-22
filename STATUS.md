@@ -1575,6 +1575,15 @@ The reveal and foreground mount guards also need correction. Keep the
 candidate unadopted and local account recovery open.
 [Android recovery device observations](verification/receipts/fieldlog-android-account-recovery-api36-0f2bbcfd.json)
 
+The Android lifecycle successor requires a fresh reveal after Home or cold
+launch before enabling acknowledgement. The installed Cancel scenario
+preserved the replacement after server commit and reopened the same
+workspace through ordinary sign-in. This pass used a shortened fixture
+expiry after a default-expiry confirmation left the app unavailable.
+Independent review reproduced a separate cold startup wait failure
+while paused. Adoption remains held for startup and service scope.
+[Recovery lifecycle device observations](verification/receipts/fieldlog-android-account-recovery-lifecycle-adc3238e.json)
+
 The FieldLog deletion backend requires a confirmed account, its exact scope,
 and explicit intent. It removes the scoped service data and stores an
 idempotent receipt in the same transaction. Two root replays passed
