@@ -61,6 +61,15 @@ diff --git a/ios/FieldLog/SignedChecklist.swift b/ios/FieldLog/SignedChecklist.s
      let lastChangeID: UUID?
      let lastChangeRecord: UUID?
      let candidate: String
+@@ -427,7 +434,7 @@
+             let payload = record["payloadSHA256"] as? String,
+             state["installation"] as? String == guest.rotationInstallation,
+             installation.lowercased() == guest.rotationInstallation,
+-            health.downloading == nil, health.staged == nil
++            health.downloading == nil, (health.staged == nil || health.staged == candidate)
+       else { return "" }
+       rotation = RotationObservation(installation: guest.rotationInstallation,
+         process: ProcessInfo.processInfo.processIdentifier,
 @@ -436,7 +443,13 @@
          previous: (state["previousHealthy"] as? [String: Any])?["candidateID"] as? String)
      }

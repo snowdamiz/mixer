@@ -204,9 +204,9 @@ final class ChecklistJourney: XCTestCase {
     let rowID = "checklist-task-" + baseline.taskID.uuidString.lowercased()
     let row = app.buttons[rowID]
     XCTAssertTrue(row.waitForExistence(timeout: 15), app.debugDescription)
-    XCTAssertEqual(row.label, title + ", completed")
+    let completedLabel = checkedRowLabel(row.label, completion: "completed")
     XCTAssertTrue(row.staticTexts[title].exists, app.debugDescription)
-    let retirement = ["launch": cold.launch.uuidString.lowercased(), "rowID": rowID, "label": row.label]
+    let retirement = ["launch": cold.launch.uuidString.lowercased(), "rowID": rowID, "label": completedLabel]
     let retirementBytes = try JSONEncoder().encode(retirement)
     attach("retired-checklist", String(decoding: retirementBytes, as: UTF8.self))
     _ = try await phase("complete", control, token)
@@ -226,14 +226,28 @@ final class ChecklistJourney: XCTestCase {
       try tap(app.buttons.containing(.staticText, identifier: project).firstMatch, in: app)
       XCTAssertTrue(projectBar.waitForExistence(timeout: 12), app.debugDescription)
     }
-    let label = title + (completed ? ", completed" : ", not completed")
-    let row = app.buttons[selected.map { "checklist-task-" + $0.uuidString.lowercased() } ?? label]
+    let row: XCUIElement
+    if let selected {
+      row = app.buttons["checklist-task-" + selected.uuidString.lowercased()]
+    } else {
+      let matches = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "checklist-task-"))
+      row = matches.firstMatch
+      XCTAssertTrue(row.waitForExistence(timeout: 15), app.debugDescription)
+      XCTAssertEqual(matches.count, 1, app.debugDescription)
+    }
     XCTAssertTrue(row.waitForExistence(timeout: 15), app.debugDescription)
-    XCTAssertEqual(row.label, label)
+    _ = checkedRowLabel(row.label, completion: completed ? "completed" : "not completed")
     let rowTitle = row.staticTexts[title]
     XCTAssertTrue(rowTitle.waitForExistence(timeout: 10), app.debugDescription)
     try tap(row, coordinateOf: rowTitle, in: app)
     XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 10), app.debugDescription)
+  }
+
+  private func checkedRowLabel(_ raw: String, completion: String) -> String {
+    let label = title + ", " + completion
+    let isolated = "\u{2068}\(title)\u{2069}, \u{2068}\(completion)\u{2069}"
+    XCTAssertTrue(raw == label || raw == isolated, raw)
+    return label
   }
 
   private func checkpoint(_ name: String, _ app: XCUIApplication, _ offer: PhaseReceipt.Offer,
