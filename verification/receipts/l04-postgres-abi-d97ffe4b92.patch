@@ -1,0 +1,115 @@
+--- a/tests/integration/public-update/fixture_test.go
++++ b/tests/integration/public-update/fixture_test.go
+@@ -1,6 +1,7 @@
+ package publicupdatefixture
+ 
+ import (
++	"crypto/ed25519"
+ 	"encoding/json"
+ 	"fmt"
+ 	"os"
+@@ -46,7 +47,9 @@
+ 		if err := os.Mkdir(filepath.Join(dir, name), 0700); err != nil {
+ 			t.Fatal(err)
+ 		}
+-		payload := []byte("TEST ONLY local release payload " + name)
++		// A minimal Wasm module with a named custom section makes each payload distinct.
++		payload := append([]byte("\x00asm\x01\x00\x00\x00"), 0, byte(len(name)+1), byte(len(name)))
++		payload = append(payload, name...)
+ 		manifest := f.ManifestV3(t, payload, name)
+ 		document(name+"/signed-manifest.json", manifest)
+ 		write(name+"/payload.wasm", payload)
+@@ -57,6 +60,27 @@
+ 	sign(first.Manifest, "promote", 2, 2500)
+ 	sign(first.Manifest, "shrink", 3, 500)
+ 	replaced := sign(second.Manifest, "publish-second", 3, 10000)
++	// Sign the otherwise identical manifest with an unsupported guest ABI.
++	// The ordinary signer refuses that variant before writing a fixture.
++	badABI := second.Manifest
++	badABI.GuestABI = 1
++	canonical, err := protocol.CanonicalCBOR(badABI)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := os.Mkdir(filepath.Join(dir, "bad-abi"), 0700); err != nil {
++		t.Fatal(err)
++	}
++	document("bad-abi/signed-manifest.json", protocol.SignedManifestV3{
++		Manifest:  badABI,
++		Signature: ed25519.Sign(f.ArtifactKey, append([]byte(protocol.ArtifactDomainV3), canonical...)),
++	})
++	payload, err := os.ReadFile(filepath.Join(dir, "second", "payload.wasm"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	write("bad-abi/payload.wasm", payload)
++	incompatible := sign(badABI, "publish-bad-abi", 3, 10000)
+ 	sign(first.Manifest, "rollback", 4, 10000)
+ 	sign(first.Manifest, "halt", 5, 0)
+ 	sign(first.Manifest, "resume", 6, 2500)
+@@ -83,9 +107,9 @@
+ 	scope := f.Host.Scope
+ 	document("service.json", release.Config{
+ 		DeveloperMode: true,
+-		Listen: os.Getenv("FIXTURE_ADDRESS"),
++		Listen:        os.Getenv("FIXTURE_ADDRESS"),
+ 		DataDirectory: filepath.Join(dir, "store"),
+-		Roots: f.Roots, Hosts: []protocol.Host{f.Host},
++		Roots:         f.Roots, Hosts: []protocol.Host{f.Host},
+ 		Tokens: []release.Token{
+ 			{SHA256: protocol.Hash([]byte(os.Getenv("FIXTURE_PUBLISHER"))), Role: "publisher", Organization: scope.Organization, Project: scope.Project, Actor: "local-publisher"},
+ 			{SHA256: protocol.Hash([]byte(os.Getenv("FIXTURE_FOREIGN"))), Role: "publisher", Organization: scope.Organization, Project: "foreign-project", Actor: "foreign-publisher"},
+@@ -95,5 +119,6 @@
+ 	document("coordinates.json", map[string]any{
+ 		"scope": scope, "runtime": f.Host.Runtime, "channel": channel, "installations": installation,
+ 		"first": published.Assignment.ArtifactSHA256, "second": replaced.Assignment.ArtifactSHA256,
++		"bad_abi": incompatible.Assignment.ArtifactSHA256,
+ 	})
+ }
+--- a/tests/integration/public-update/replay.py
++++ b/tests/integration/public-update/replay.py
+@@ -295,6 +295,9 @@
+             BEGIN READ ONLY;
+             SELECT json_build_object(
+               'heads', ARRAY(SELECT sequence FROM mixer_release.channel_heads ORDER BY channel_key),
++              'artifacts', ARRAY(SELECT digest FROM mixer_release.artifacts ORDER BY organization, project, digest),
++              'artifact_state', ARRAY(SELECT json_build_array(digest, validated, published)
++                                      FROM mixer_release.artifact_state ORDER BY organization, project, digest),
+               'assignments', ARRAY(SELECT encode(signed_assignment, 'hex') FROM mixer_release.assignments
+                                    ORDER BY sequence),
+               'audit', ARRAY(SELECT json_build_array(organization, project, id, event_hash, previous_hash,
+@@ -673,10 +676,34 @@
+         require(history() == promoted_history, "failed promotion wrote audit or outbox")
+         steps["after_failed_promotion"] = offer("expansion", 2, first)
+ 
++        bad_abi = coordinates["bad_abi"]
++        before_refusal = db.snapshot() if db else None
++        with relay() as (point, requests, _):
++            denied = call("incompatible_guest_abi",
++                          command("publish", "bad-abi", "publish-bad-abi", "--channel", "production",
++                                  "--rollout", "100"), "update.upload.rejected", point=point)
++            require("HTTP 422 (artifact_invalid)" in denied["message"], denied)
++            routes = [entry[:2] for entry in requests]
++            require(routes == [("PUT", f"{base}/artifacts/{bad_abi}")], routes)
++        retained = offer("expansion", 2, first)
++        require(retained == steps["after_promote"]["expansion"], "ABI refusal changed the existing offer or payload")
++        require(history() == promoted_history, "ABI refusal changed audit or outbox")
++        request(base + "/artifacts/" + bad_abi, 404, "READER")
++        if db:
++            require(db.snapshot() == before_refusal, "ABI refusal changed committed PostgreSQL rows")
++        steps["abi_refusal"] = {"attempted_sequence": 3, "runtime": coordinates["runtime"],
++                                "retained": retained, "rejected_digest": bad_abi,
++                                "routes": routes, "rejected_artifact_http": 404, "audit_outbox_unchanged": True,
++                                "postgres_rows_unchanged": True if db else None}
++
+         call("publish_replacement", command("publish", "second", "publish-second", "--channel", "production",
+                                              "--rollout", "100"))
+         check_receipt("publish_replacement", "publish", second, 3, 10000)
+         steps["after_replacement"] = offer("outside", 3, second)
++        steps["abi_refusal"]["compatible_replacement"] = offer("expansion", 3, second)
++        require(steps["after_replacement"]["payload_sha256"] ==
++                hashlib.sha256((directory / "bad-abi/payload.wasm").read_bytes()).hexdigest(),
++                "ABI control payloads differ")
+         replacement_head, _ = check_committed(
+             db, "publish_replacement", 3, second, 10000, 7, promoted_head, development_reason,
+             action="publish",

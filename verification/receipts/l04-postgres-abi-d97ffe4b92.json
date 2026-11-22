@@ -1,0 +1,199 @@
+{
+  "schema": 1,
+  "gate": "L04",
+  "status": "passed_host_slice",
+  "observedUTC": "2026-11-22T22:42:16.679485+00:00",
+  "source": {
+    "revision": "d97ffe4b9297238f38e6609792fb03d842a37428",
+    "tree": "d30425c726bca7af2fab1a4f66c86361631d895a",
+    "stage": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow",
+    "productFilesPatched": 0,
+    "stageEdited": false,
+    "testPatch": {
+      "file": "l04-postgres-abi-d97ffe4b92.patch",
+      "sha256": "472f4cb41a7d08cc8a1064d4e61d831017b44d98b2b56933ab7aec89e0ddff5e",
+      "appliedToPristineStageProjectionAndMatchedTestedFiles": true
+    }
+  },
+  "scope": "Stock mixer update publish, real Go release origin, and isolated PostgreSQL. One synthetic pre-registered iOS runtime and one existing test installation identity. Generated Ed25519 development keys, scoped loopback bearer, and minimal Wasm payloads. Host delivery scope. All service traffic ran over loopback and used generated development credentials.",
+  "drift": {
+    "initialReview": "l04-independent-review-9fd7e7f6eb-41a05264.json",
+    "inspectorAndFileStore": {
+      "receipt": "fieldlog-release-inspection-clean-pin-41a05264.json",
+      "revision": "59d374a48c96cc34f762256fcfd87b982b0d76e7",
+      "result": "Compiled edit OTA-compatible for both targets. Android candidate with changed native permission required a store build. Subsequent public offers on both runtimes remained at sequence 2 after Go file-store restart.",
+      "releaseInspectionBlobAtBothPins": "69d8b95ce15991984c8ff4b82fb57e8fe92bf55e",
+      "laterMigrationInspectorEdits": "SwiftPM import attribution and advisory migration inventory."
+    },
+    "relatedReceipts": {
+      "l05-public-update-postgres-41a05264.json": "Existing stock CLI/PostgreSQL lifecycle and restart proof for one synthetic runtime. The Stage replay adds an authenticated publication attempt with unsupported guest ABI after publication and compares persisted state.",
+      "l05-l04-fieldlog-android-phoenix-host-20261120.json": "Phoenix host proof includes invalid rollback and readback. The recorded refusal precedes channel publication.",
+      "l05-l04-fieldlog-android-phoenix-live-20261120.json": "Android live Phoenix delivery and offline readback. Scope is one installed emulator and sealed development packet.",
+      "fieldlog-ios-224-jpeg-same-run-disk-20261122.json": "Scoped iOS installed signed draft and cold offline recovery evidence."
+    },
+    "decision": "Use existing inspector and file-store evidence for that pair. Exercise the missing unsupported ABI attempt against an already populated durable release ledger."
+  },
+  "commands": {
+    "projection": "git archive d97ffe4b92 cli sdk updates runtime-identity services tests/integration/public-update | tar -xf - -C <owned-source>",
+    "cli": "swift build --package-path <owned-source>/cli --product mixer --scratch-path <run>/swift-build --cache-path <run>/swift-cache --config-path <run>/swift-config --security-path <run>/swift-security --manifest-cache local --disable-dependency-cache --force-resolved-versions -j 10",
+    "origin": "GOPROXY=off GOSUMDB=off GOWORK=off GOTOOLCHAIN=local go -C <owned-source>/services build -mod=readonly -o <run>/mixer-service ./cmd/mixer-service",
+    "signer": "go -C <owned-source>/services test -vet=off -mod=readonly -overlay <run>/signer-overlay.json -c -o <run>/fixture-signer ./internal/publicupdatefixture",
+    "replay": "timeout -s TERM 120 python3 -I -B -S <owned-source>/tests/integration/public-update/replay.py --postgres <run>/swift-build/debug/mixer <run>/mixer-service <run>/fixture-signer <run>/replay.json",
+    "operator": "mixer update publish <candidate> --assignment <signed-v3-assignment> --organization org-a --project project-a --channel production --rollout 100",
+    "dependencies": "Swift locked Git dependencies read via file URL rewrites to existing swift-crypto and swift-asn1 caches. Git transport limited to file. First offline build failed on an incorrect local swift-asn1 cache suffix. Corrected to the existing pinned cache; build passed. Go used pre-existing module cache with proxy and sum database disabled."
+  },
+  "tools": {
+    "host": "Darwin 27.0.0 arm64",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "go": "go version go1.26.4 darwin/arm64",
+    "python": "Python 3.14.8",
+    "postgres": "PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin25.6.0, compiled by Apple clang version 21.0.0 (clang-2100.1.1.101), 64-bit"
+  },
+  "hashes": {
+    "cliSHA256": "42ca2d9265c9cd811c2390e6416cc4d0b5b8df96f8c8d19083df8d4f65f58684",
+    "originSHA256": "8c91ac048296cb97e05f330a7cac5a4819e6a61ad4a51002aaadcecf150628f0",
+    "signerSHA256": "0b3e2f7dbdac61870a0582a443e8b8986f1c93f0bbc9416fb7a70eb54d832cad",
+    "rawReplaySHA256": "f92044aed6cd1882d531ed72284cc926497997ba708643afc1187de157db1e89",
+    "replayStdoutSHA256": "df05ae3ba312807ffc37f48bb66ebfb24ea13002112c8f293017d058af6adee3"
+  },
+  "outcome": {
+    "assertionGroupsRecorded": 75,
+    "replayExit": 0,
+    "sameTarget": "org-a / project-a / fieldlog / development / iOS / production channel",
+    "incompatible": {
+      "guestABI": 1,
+      "cliExit": 1,
+      "code": "update.upload.rejected",
+      "message": "Local v3 origin returned HTTP 422 (artifact_invalid).",
+      "status": "error"
+    },
+    "refusalAndReadback": {
+      "attempted_sequence": 3,
+      "audit_outbox_unchanged": true,
+      "compatible_replacement": {
+        "artifact_sha256": "d41fe1de8a96e3054bebd88c53f322a5aabac80812fe76ed2e855db0b7bbac76",
+        "artifact_url": "/v3/artifacts/d41fe1de8a96e3054bebd88c53f322a5aabac80812fe76ed2e855db0b7bbac76?organization=org-a&project=project-a",
+        "http": 200,
+        "offer_sha256": "4241622631f4efde5f89afa31739c9602d44cfd249879028a2e8b5c8ef725aa9",
+        "payload_sha256": "1dec6b1dbb76118fd40ccbbfc44cfb6afe18c2851a5c60cece11a26858ad7b44",
+        "rollout_basis_points": 10000,
+        "sequence": 3,
+        "signed_assignment_sha256": "9418000221a6f06772f918d6379fcad9e756daf8261a3652c50d1b8d7233bf16",
+        "signed_manifest_sha256": "5ee5b4ea9651707e252135aa5fdc9313484a20f946956235ea39439f904b1c46"
+      },
+      "postgres_rows_unchanged": true,
+      "rejected_artifact_http": 404,
+      "rejected_digest": "e4fb11acd6b512d54ff6a7b3f019f9b9bfd11bdd1eaefa706919813d00f6bc21",
+      "retained": {
+        "artifact_sha256": "5df2edc4e7d2339b109d8bee2b8e4102a8caf1a322c18c025dc8e09815f4007f",
+        "artifact_url": "/v3/artifacts/5df2edc4e7d2339b109d8bee2b8e4102a8caf1a322c18c025dc8e09815f4007f?organization=org-a&project=project-a",
+        "http": 200,
+        "offer_sha256": "6603c149fb172184a90373808cf39ea5f177aeeb56f33c5ad4daf4a7627e63f2",
+        "payload_sha256": "ca64df0c29ef60cb85e6c0e2d0a3ff9a9f245991296a5d81fe1e97005c377a29",
+        "rollout_basis_points": 2500,
+        "sequence": 2,
+        "signed_assignment_sha256": "caafde95f3edbbba7b3161942c48b6d1f3e17619c9e3e55aab1c4b7bd96e2742",
+        "signed_manifest_sha256": "c22bf1d3e5a1130ff7e741a5665c36735fcbfdf0547de600f14500d621022801"
+      },
+      "routes": [
+        [
+          "PUT",
+          "/v3/orgs/org-a/projects/project-a/artifacts/e4fb11acd6b512d54ff6a7b3f019f9b9bfd11bdd1eaefa706919813d00f6bc21"
+        ]
+      ],
+      "runtime": "c381874196932dc2c2b9ac5378d63c8cdad53fc1a2fc8376a16770753483989e"
+    },
+    "compatible": {
+      "guestABI": 2,
+      "cliExit": 0,
+      "receipt": {
+        "action": "publish",
+        "artifact_sha256": "d41fe1de8a96e3054bebd88c53f322a5aabac80812fe76ed2e855db0b7bbac76",
+        "delivery": "local_only",
+        "rollout_basis_points": 10000,
+        "sequence": 3,
+        "status": "ok"
+      },
+      "payloadIdenticalToRefusedCandidate": true
+    },
+    "postgresTablesCompared": [
+      "channel_heads",
+      "artifacts",
+      "artifact_state",
+      "assignments",
+      "audit_events",
+      "outbox",
+      "idempotency",
+      "tenant_heads"
+    ],
+    "ordinaryFallback": {
+      "rollbackSequence": 4,
+      "rollbackPayloadSHA256": "ca64df0c29ef60cb85e6c0e2d0a3ff9a9f245991296a5d81fe1e97005c377a29",
+      "postgresRowsUnchangedOnOriginRestartAndRetry": true
+    }
+  },
+  "cleanup": {
+    "originExits": [
+      {
+        "direct_child_reaped": true,
+        "forced_shutdown": false,
+        "group_gone": true,
+        "listener_closed": true,
+        "listener_port": 57063,
+        "pid": 71549,
+        "returncode": 0
+      },
+      {
+        "direct_child_reaped": true,
+        "forced_shutdown": false,
+        "group_gone": true,
+        "listener_closed": true,
+        "listener_port": 57063,
+        "pid": 73345,
+        "returncode": 0
+      },
+      {
+        "direct_child_reaped": true,
+        "forced_shutdown": false,
+        "group_gone": true,
+        "listener_closed": true,
+        "listener_port": 57063,
+        "pid": 74097,
+        "returncode": 0
+      }
+    ],
+    "initdbExits": [
+      {
+        "direct_child_reaped": true,
+        "forced_shutdown": false,
+        "group_gone": true,
+        "pid": 69864,
+        "returncode": 0
+      }
+    ],
+    "postgresExits": [
+      {
+        "direct_child_reaped": true,
+        "forced_shutdown": false,
+        "group_gone": true,
+        "pid": 70650,
+        "pidfile_gone": true,
+        "returncode": 0,
+        "socket_closed": true,
+        "socket_directory": "/tmp/mixer-l05-17pij810",
+        "socket_directory_removed": true
+      }
+    ],
+    "originPortRebound": true,
+    "fixtureRemoved": true,
+    "dbSocketAbsent": true,
+    "buildScratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-89b78640/.git-l04-postgres-abi-d97ffe4b92.WlGXNIXW",
+    "buildScratchRemoved": true,
+    "largestObservedOwnedScratchMiB": 530,
+    "retainedCustody": [],
+    "cleanupUTC": "2026-11-22T22:42:49.804856+00:00",
+    "elapsedSecondsFromScratchCreation": 288,
+    "verificationRetentionCheck": "passed"
+  },
+  "limits": "This replay does not qualify installed app activation, production delivery, or the full L04 gate. It extends the Go/PostgreSQL path. Phoenix and installed client results remain separately scoped."
+}
