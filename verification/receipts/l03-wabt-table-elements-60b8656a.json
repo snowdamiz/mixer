@@ -1,0 +1,643 @@
+{
+  "schema": 1,
+  "recordedUTC": "2026-11-22T02:39:04.770542+00:00",
+  "status": "passed_scoped_local_core_replay",
+  "gate": "W08/L03",
+  "source": {
+    "testedMixerCommit": "60b8656a45cdb27299c08f3f7ad6166c554f71fe",
+    "testedVMTree": "fa6bf8df0ffab5bd7b7335cef6f35d535b810d31",
+    "upstreamSpecCommit": "05ca4182176763112561ae20153975c12bd689e4",
+    "wabtRelease": {
+      "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz",
+      "sha256": "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
+    },
+    "runnerSHA256": {
+      "replay.py": "d450bb4c16a07f86ccb9f41261848a5d1f15590c9013704b7741b79663724ba5",
+      "commands.py": "91285d42f7f3a36d60ff9af1cdcc08a7e01a698a64db144c867162ba4156aeb7"
+    },
+    "vmExportFiles": 485
+  },
+  "scope": {
+    "host": "arm64 macOS",
+    "mixerProfile": "mixer-table-memory-v3",
+    "execution": "Stock WABT, Rust CLI and the installed V3 C session ABI.",
+    "guestUIV1": "admission refusal only for unchanged upstream modules",
+    "remaining": "Broader standards coverage, continuous fuzzing, matched installed iOS D3, and full L03 qualification."
+  },
+  "tools": {
+    "python": "3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0",
+    "wast2json": "1.0.36 (git~1.0.37)",
+    "wasm-validate": "1.0.36 (git~1.0.37)",
+    "spectest-interp": "1.0.36 (git~1.0.37)"
+  },
+  "artifactSHA256": {
+    "mixer-vm": "85f89363b2bdc9e30537b015af4024c592f9716566067314718146a5e616b42c",
+    "libmixer_vm_capability_experimental.a": "f8906e32e35067a8a67eaf8509832ef2e7d10c0f5a4d56e6b5bc8786da10d241",
+    "client": "4b379b0d1f976133882713398567075fa43e294afdfd061e50cd86a736b378e5",
+    "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+    "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+    "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "mixer_vm_guest_ui_deferred.h": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+  },
+  "rootReplay": {
+    "rawReceiptSHA256": "bd9ce2c5284b625c7b4e5ec530eaab98e6b7636e85b56a6d9a883b47bd376d47",
+    "independentCaseCounts": {
+      "assert_trap": 4,
+      "assert_return": 15,
+      "assert_invalid": 6
+    },
+    "referenceManifests": [
+      {
+        "fixture": "memory_grow.wast",
+        "sourceSHA256": "8ab4f6e3343f46b4b5aa988de1b102d442228807073838b79563e6b34e2ef0aa",
+        "referenceManifestSHA256": null,
+        "referenceStatus": null
+      },
+      {
+        "fixture": "memory_copy.wast",
+        "sourceSHA256": "059813c4cd9e79cf3a287409842b9212f6f48b4a6a5f597f22c81631e7b55d08",
+        "referenceManifestSHA256": null,
+        "referenceStatus": null
+      },
+      {
+        "fixture": "unreached-valid.wast",
+        "sourceSHA256": "15f2f0a2b2619fbc80324bf832cdb09b19123bb7003df89bc6ae76ddaa597405",
+        "referenceManifestSHA256": "64f76b53e51cbb3e3e9d97af2b9110185293d97151884027ab36e54cf8d1fb9b",
+        "referenceStatus": "2/2 tests passed."
+      },
+      {
+        "fixture": "i32.wast",
+        "sourceSHA256": "f3b7e8fd641893ea0989a8ab801fce0654d276d27b5cad9cf482291a422cffe8",
+        "referenceManifestSHA256": "255279d1c1199d743a9d8a26b72af67d11ab7e421b41f7011fede79a6497a1ae",
+        "referenceStatus": "14/14 tests passed."
+      },
+      {
+        "fixture": "memory.wast",
+        "sourceSHA256": "9356ea6a84252e61421bbe7560a8244983accf0266f36986dbf94eaacfff80df",
+        "referenceManifestSHA256": "103f88b79f84852d5ab7cb428b6172600836de9000846ab2d07c10a2a3c055ba",
+        "referenceStatus": "10/10 tests passed."
+      },
+      {
+        "fixture": "elem.wast",
+        "sourceSHA256": "ed7c26cb97594adca2ffc3aee436619b6b6d008ead63541e850dc028f88d41fd",
+        "referenceManifestSHA256": "8501f85acceb28ee02baaabd8a48fd772eec455db16679a577fd6f8cea42797b",
+        "referenceStatus": "12/12 tests passed."
+      },
+      {
+        "fixture": "br_table.wast",
+        "sourceSHA256": "e9106d4f8f7bb0c12f51b2cc4bb443166c1d033be7ced74047f3705b2441167d",
+        "referenceManifestSHA256": null,
+        "referenceStatus": null
+      },
+      {
+        "fixture": "load.wast",
+        "sourceSHA256": "2f69ef5634207e065d022d7c26c92016ff1d14a94c5c755927d37fe14e63e256",
+        "referenceManifestSHA256": null,
+        "referenceStatus": null
+      }
+    ],
+    "elementCases": [
+      {
+        "fixture": "elem.wast",
+        "module_line": 134,
+        "upstream": {
+          "type": "assert_return",
+          "line": 148,
+          "action": {
+            "type": "invoke",
+            "field": "call-7",
+            "args": []
+          },
+          "expected": [
+            {
+              "type": "i32",
+              "value": "65"
+            }
+          ]
+        },
+        "core": {
+          "ok": true,
+          "profile": "mixer-table-memory-v3",
+          "export": "call-7",
+          "result": {
+            "type": "i32",
+            "value": 65
+          },
+          "fuel_used": 5,
+          "host_calls_used": 0
+        },
+        "installed_c": {
+          "create": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          },
+          "invoke": {
+            "status": 0,
+            "code": "",
+            "value_type": 1,
+            "value": 65,
+            "fuel_used": 5,
+            "host_calls_used": 0
+          },
+          "close": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          }
+        }
+      },
+      {
+        "fixture": "elem.wast",
+        "module_line": 134,
+        "upstream": {
+          "type": "assert_return",
+          "line": 149,
+          "action": {
+            "type": "invoke",
+            "field": "call-9",
+            "args": []
+          },
+          "expected": [
+            {
+              "type": "i32",
+              "value": "66"
+            }
+          ]
+        },
+        "core": {
+          "ok": true,
+          "profile": "mixer-table-memory-v3",
+          "export": "call-9",
+          "result": {
+            "type": "i32",
+            "value": 66
+          },
+          "fuel_used": 5,
+          "host_calls_used": 0
+        },
+        "installed_c": {
+          "create": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          },
+          "invoke": {
+            "status": 0,
+            "code": "",
+            "value_type": 1,
+            "value": 66,
+            "fuel_used": 5,
+            "host_calls_used": 0
+          },
+          "close": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          }
+        }
+      },
+      {
+        "fixture": "elem.wast",
+        "module_line": 545,
+        "upstream": {
+          "type": "assert_return",
+          "line": 556,
+          "action": {
+            "type": "invoke",
+            "field": "call-overwritten",
+            "args": []
+          },
+          "expected": [
+            {
+              "type": "i32",
+              "value": "66"
+            }
+          ]
+        },
+        "core": {
+          "ok": true,
+          "profile": "mixer-table-memory-v3",
+          "export": "call-overwritten",
+          "result": {
+            "type": "i32",
+            "value": 66
+          },
+          "fuel_used": 5,
+          "host_calls_used": 0
+        },
+        "installed_c": {
+          "create": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          },
+          "invoke": {
+            "status": 0,
+            "code": "",
+            "value_type": 1,
+            "value": 66,
+            "fuel_used": 5,
+            "host_calls_used": 0
+          },
+          "close": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          }
+        }
+      },
+      {
+        "fixture": "elem.wast",
+        "module_line": 573,
+        "upstream": {
+          "type": "assert_trap",
+          "line": 593,
+          "action": {
+            "type": "invoke",
+            "module": "$module1",
+            "field": "call-7",
+            "args": []
+          },
+          "text": "uninitialized element",
+          "expected": [
+            {
+              "type": "i32"
+            }
+          ]
+        },
+        "core": {
+          "ok": false,
+          "error": {
+            "code": "indirect_call_null",
+            "message": "indirect call selected a null entry",
+            "function": 2,
+            "offset": 108
+          }
+        },
+        "installed_c": {
+          "create": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          },
+          "invoke": {
+            "status": 2,
+            "code": "indirect_call_null",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 2,
+            "host_calls_used": 0
+          },
+          "close": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          }
+        }
+      },
+      {
+        "fixture": "elem.wast",
+        "module_line": 573,
+        "upstream": {
+          "type": "assert_return",
+          "line": 594,
+          "action": {
+            "type": "invoke",
+            "module": "$module1",
+            "field": "call-8",
+            "args": []
+          },
+          "expected": [
+            {
+              "type": "i32",
+              "value": "65"
+            }
+          ]
+        },
+        "core": {
+          "ok": true,
+          "profile": "mixer-table-memory-v3",
+          "export": "call-8",
+          "result": {
+            "type": "i32",
+            "value": 65
+          },
+          "fuel_used": 5,
+          "host_calls_used": 0
+        },
+        "installed_c": {
+          "create": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          },
+          "invoke": {
+            "status": 0,
+            "code": "",
+            "value_type": 1,
+            "value": 65,
+            "fuel_used": 5,
+            "host_calls_used": 0
+          },
+          "close": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          }
+        }
+      },
+      {
+        "fixture": "elem.wast",
+        "module_line": 573,
+        "upstream": {
+          "type": "assert_return",
+          "line": 595,
+          "action": {
+            "type": "invoke",
+            "module": "$module1",
+            "field": "call-9",
+            "args": []
+          },
+          "expected": [
+            {
+              "type": "i32",
+              "value": "66"
+            }
+          ]
+        },
+        "core": {
+          "ok": true,
+          "profile": "mixer-table-memory-v3",
+          "export": "call-9",
+          "result": {
+            "type": "i32",
+            "value": 66
+          },
+          "fuel_used": 5,
+          "host_calls_used": 0
+        },
+        "installed_c": {
+          "create": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          },
+          "invoke": {
+            "status": 0,
+            "code": "",
+            "value_type": 1,
+            "value": 66,
+            "fuel_used": 5,
+            "host_calls_used": 0
+          },
+          "close": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          }
+        }
+      }
+    ],
+    "elementModules": [
+      {
+        "fixture": "elem.wast",
+        "line": 134,
+        "wasm_sha256": "494d4257ba6e439440ea940cf04e096c2bbbfdd698628a5e42656466dbb0df60",
+        "wasm_bytes": 95,
+        "wabt": {
+          "status": 0,
+          "diagnostic": []
+        },
+        "core": {
+          "valid": true,
+          "error": null
+        },
+        "installed_c": {
+          "validate": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          },
+          "guest_ui_v1_validate": {
+            "status": 1,
+            "code": "unsupported",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          }
+        }
+      },
+      {
+        "fixture": "elem.wast",
+        "line": 545,
+        "wasm_sha256": "68ffa6dbf479e12def851b58f1bd10a27f0aacdbbd4f102803f9eb7f83169191",
+        "wasm_bytes": 87,
+        "wabt": {
+          "status": 0,
+          "diagnostic": []
+        },
+        "core": {
+          "valid": true,
+          "error": null
+        },
+        "installed_c": {
+          "validate": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          },
+          "guest_ui_v1_validate": {
+            "status": 1,
+            "code": "unsupported",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          }
+        }
+      },
+      {
+        "fixture": "elem.wast",
+        "line": 573,
+        "wasm_sha256": "342c8fe96fb2999e3c93fd462f225e088c49b1fb295b6935329a05d84d34c365",
+        "wasm_bytes": 128,
+        "wabt": {
+          "status": 0,
+          "diagnostic": []
+        },
+        "core": {
+          "valid": true,
+          "error": null
+        },
+        "installed_c": {
+          "validate": {
+            "status": 0,
+            "code": "",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          },
+          "guest_ui_v1_validate": {
+            "status": 1,
+            "code": "unsupported",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          }
+        }
+      }
+    ],
+    "stateful": {
+      "memoryGrowth": {
+        "moduleSHA256": "8b8a761b24aebf615ec003a510eedbed97addac46f5c4e7f0c51157bedda65fd",
+        "wabt": "8/8"
+      },
+      "overlappingMemoryCopy": {
+        "moduleSHA256": "6e10196de6875cc788a2a0426cda6b733b99c66af7448a2a5458316083e7c14d",
+        "wabt": "35/35"
+      }
+    },
+    "wrapperTests": {
+      "passed": 8,
+      "failed": 0
+    },
+    "replayCommandGroups": 118,
+    "allReplayGroupsTerminal": true,
+    "replayScratchRemoved": true
+  },
+  "focusedRustControls": {
+    "productTests": {
+      "tableMemory": 17,
+      "guestUIValidation": 5,
+      "capabilityGuest": 27
+    },
+    "nodeVersion": "v26.13.1",
+    "explicitNodeDifferentials": [
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.14s",
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.85s"
+    ],
+    "commands": [
+      {
+        "name": "targeted-table-and-guest-tests",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "test",
+          "--manifest-path",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/vm-core-control.danhbDGr/vm/Cargo.toml",
+          "--locked",
+          "--offline",
+          "--features",
+          "experimental-capability-native",
+          "--test",
+          "table_memory",
+          "--test",
+          "differential_indirect_call_consuming",
+          "--test",
+          "differential_indirect_calls_consuming",
+          "--test",
+          "experimental_guest_ui_validation",
+          "--test",
+          "experimental_capability_guest"
+        ],
+        "custody": "child reaped and group absent",
+        "output_sha256": "03f66fd0b2a3ca0c6c2132748c263a88475fe0df3652423525d50a03787d841a"
+      },
+      {
+        "name": "explicit-node-version",
+        "argv": [
+          "/Users/andreyyurlov/.local/share/vite-plus/fallback-bin/node",
+          "--version"
+        ],
+        "custody": "child reaped and group absent",
+        "output_sha256": "417336d0f30f0481a3e337b10abf4da8263d1a181c639c757a2a68401935bdb6"
+      },
+      {
+        "name": "explicit-node-differential-table-tests",
+        "argv": [
+          "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+          "test",
+          "--manifest-path",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/vm-core-control.danhbDGr/vm/Cargo.toml",
+          "--locked",
+          "--offline",
+          "--features",
+          "experimental-swift-reactor",
+          "--test",
+          "differential_indirect_call_consuming",
+          "--test",
+          "differential_indirect_calls_consuming",
+          "--",
+          "--ignored",
+          "--exact",
+          "indirect_calls_match_node"
+        ],
+        "custody": "child reaped and group absent",
+        "output_sha256": "f76f3b29f26dcf029f38b59e6aa28525b759f31c8e7926ba2f1b9986326d1ff9"
+      }
+    ],
+    "preflightCorrection": "The first combined invocation omitted the reactor feature and the first reactor invocation omitted --ignored. The explicit documented Node controls then both ran and passed.",
+    "allRecordedGroupsTerminal": true,
+    "ownedScratchRemoved": true
+  },
+  "independentReview": {
+    "verdict": "scoped pass",
+    "rawReceiptSHA256": "37875d7e96af6bd1a0f9a8398021966e819486fda87239ba62268b4a6014ec70",
+    "replayCommandGroupsTerminal": 118,
+    "wrapperTestsPassed": 8,
+    "moduleAndReferenceManifestHashesVerified": true,
+    "installedSourceAuthorityChangesRequired": false,
+    "scratchRemoved": true,
+    "documentationCorrection": "Clarified that only Mixer runs use the Mixer TableMemoryV3 profile."
+  }
+}

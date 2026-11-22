@@ -24,10 +24,10 @@ their SHA-256 hashes. [WABT release](https://github.com/WebAssembly/wabt/release
 [WebAssembly test sources](https://github.com/WebAssembly/spec/tree/05ca4182176763112561ae20153975c12bd689e4/test/core)
 
 The script translates each WAST file and passes the selected Wasm bytes through
-unchanged. For each independent invocation, stock WABT, the Rust CLI, and the installed
-archive's `mixer_vm_session_*_v1` C ABI start with a fresh instance under
-`mixer-table-memory-v3`. The script checks each outcome against the upstream
-expected bits or trap. For `assert_invalid` the script checks the WABT
+unchanged. Stock WABT starts a fresh instance for every independent
+assertion. The Rust CLI and the installed archive's `mixer_vm_session_*_v1`
+C ABI also start fresh and use `mixer-table-memory-v3`. The script checks the
+three outcomes against the upstream expected bits or trap. For `assert_invalid` the script checks the WABT
 diagnostic and both Mixer validators' refusal codes. Mixer uses its default VM
 and capability limits throughout.
 

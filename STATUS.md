@@ -1777,6 +1777,16 @@ wrapper tests passed. All 91 replay commands closed and owned scratch
 was removed. Guest UI V1 refused admission of the same module.
 [Overlapping copy replay](verification/receipts/l03-memory-copy-installed-v3-f6cc4ae0.json)
 
+The replay now also uses stock WABT to execute the 19 independent
+return and trap assertions in fresh instances. Six calls from the
+pinned `elem.wast` covered initialized slots, an overwritten slot and
+a null slot across three unchanged upstream modules. WABT, the Mixer
+CLI and the installed V3 C ABI agreed on all 19 outcomes. Both stateful
+memory groups, all six invalid cases and eight runner controls passed.
+Independent replay verified the module and reference manifest hashes.
+The installed Guest UI V1 check still covers admission refusals.
+[Core element and reference replay](verification/receipts/l03-wabt-table-elements-60b8656a.json)
+
 The hosted VM job passed. Swift host and Intel bootstrap refused the
 WAST inventory edit because Source141 still pinned the old bytes. The
 corrected archive binds the new inventory and keeps the 157 selected
