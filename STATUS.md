@@ -2830,6 +2830,8 @@ Six pinned unsigned `i64` division and remainder assertions matched WABT, the Mi
 
 Eight pinned signed `i64.div_s` and `i64.rem_s` assertions matched all 64 result bits in stock WABT, the Mixer CLI, and the installed V3 C session ABI. The independent replay preserved all 84 prior assertion rows in order and passed all eight wrapper controls. L03 and W08 remain open. [Independent replay](verification/receipts/l03-w08-i64-signed-divrem-independent-review-3f4f8f8dbe.json)
 
+A fresh committed-tree replay matched all 92 pinned WebAssembly assertions and closed 348 commands. Eight replay-harness tests, 14 compiler checks and 26 specialized VM integration tests passed. The opt-in VM unit suite passed 479 tests and failed one. The fixture hit its WASI deadline during construction before reaching the expected dispatch checkpoint. The original failure and custody record are retained. [Current VM replay receipt](verification/receipts/l03-pinned-runtime-replay-d97ffe4b92.json)
+
 The seeded TableMemoryV3 check retains one instance for 40 copies on
 each of 24 seeds. Mixer and Node matched all 960 observations of the
 complete initialized region in Debug and Release. The separate
