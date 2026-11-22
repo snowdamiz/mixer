@@ -1617,9 +1617,20 @@ and explicit intent. It removes the scoped service data and stores an
 idempotent receipt in the same transaction. Two root replays passed
 rollback, lost reply after commit, restart, and unchanged rows for a
 second account. The exact completed request recovered its receipt after
-reprovisioning without changing the new account. Native confirmation,
-receipt persistence, and scoped local cleanup remain open.
+reprovisioning without changing the new account. The replay used a
+disposable SQLite database and loopback requests.
 [Local account deletion](verification/receipts/fieldlog-account-deletion.json)
+
+The private Android deletion candidate passed the lost-response path on
+API 36. Cancelling confirmation kept the workspace and sent no deletion.
+After explicit confirmation, SQLite committed one receipt. The app kept
+its workspace and credential when the response was dropped. A new
+process waited for **Retry deletion**, then removed the scoped workspace
+and credential after the matching receipt. The ordinary workspace and
+peer service records stayed unchanged. Independent host review found
+two startup failures involving a saved sign-out marker and a browser
+callback during a slot-read error. App adoption remains held.
+[Installed Android deletion](verification/receipts/fieldlog-android-local-deletion-api36-bffb082b.json)
 
 The iOS deletion owner now loads the saved reauthorization intent when
 the browser callback arrives before startup restore. The real loopback
@@ -3225,9 +3236,18 @@ The composing candidate accepted **P** from LatinIME on two fresh API 36
 runs. The title echo committed at revision 2, and **Add** saved one task
 and one outbox event. Both journals closed the effects attempt. The
 first run lacked the installed-owner retirement marker, and the second
-reported retirement unconfirmed after Activity replacement. Cold Save
-readback remains open. Both disposable environments closed.
+reported retirement unconfirmed after Activity replacement. Neither run
+reached cold readback. Both disposable environments closed.
 [Stock F06 composing candidate](verification/receipts/fieldlog-f06-android-latinime-save-retirement-d92cb15a.json)
+
+The private F06 close path checks for the historical title
+`Inspect pump P-17`. On the same signed APK, stock LatinIME entered that
+full title with 17 committed edits. Add saved one task and one outbox
+event. Activity replacement retired the Save owner, and a new offline
+process read the exact saved workspace. Cancel preserved the original
+workspace. The test restored the keyboard setting and removed the app
+and disposable emulator. The broader composing matrix remains open.
+[Full stock LatinIME replay](verification/receipts/fieldlog-f06-android-latinime-full-title-api36-d92cb15a.json)
 
 A free owner completed current membership edits, usage and quota checks, support, export, and organization deletion in Chrome against Phoenix and PostgreSQL. One organization stayed isolated from the other. Two earlier role edits returned 503 during the member page load. Exit with settled build history remains open. [Free-owner administration](verification/receipts/l06-owner-admin-browser-e3c1f6c65c.json)
 

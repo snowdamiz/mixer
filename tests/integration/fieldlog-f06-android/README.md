@@ -88,3 +88,9 @@ The [composing candidate replay](../../../verification/receipts/fieldlog-f06-and
 accepted **P** and saved one task on two owned API 36 emulators. The Save
 owner's JNI retirement remained unconfirmed, so the driver stopped before
 cold readback. The candidate remains private.
+
+The private close path expects the historical title `Inspect pump P-17`.
+The [full-title native replay](../../../verification/receipts/fieldlog-f06-android-latinime-full-title-api36-d92cb15a.json)
+used the same signed APK and entered that title with stock LatinIME.
+All 17 edits committed. Add saved one linked task event, and a fresh
+offline process read the same workspace after confirmed retirement.
