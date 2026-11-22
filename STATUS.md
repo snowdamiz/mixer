@@ -1380,6 +1380,12 @@ bytes and workspace. All 215 commands closed. The graphics sample did
 not identify the exact buffer behind first-screen health.
 [Ordinary Pair25 activation and retirement](verification/receipts/l07-fieldlog-ordinary-pair25-commit-trace-ac305262.json)
 
+The exact source replay found that the ordinary GuestFrame calls the
+display witness after dispatchDraw and two animation callbacks. The
+path checks visibility and focus. It lacks a hardware frame-commit
+callback and same-buffer readback. A correction is in progress.
+[Display source readback](verification/receipts/l07-fieldlog-ordinary-pair25-display-source-9c2d665c.json)
+
 A separate offline run of the current APK selected an independent
 reader in Android’s report chooser. The reader received all 280 bytes
 and matched the saved export by SHA-256. Back returned to the same

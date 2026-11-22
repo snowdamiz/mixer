@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "status": "source_gap_confirmed",
+  "scope": "L07 ordinary installed Pair25 signed guest first-screen milestone",
+  "buildReceipt": "verification/receipts/fieldlog-android-settings-pair25-build-ac305262.json",
+  "installedReceipt": "verification/receipts/l07-fieldlog-ordinary-pair25-commit-trace-ac305262.json",
+  "fieldlogTree": "9c2d665c31a6f3f2bfabc42bdfffaf72c6661731",
+  "mixerSDK": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+  "apkSHA256": "ac30526259ae8b7a23891c2ddbb98ba5acda1061ff520456ccba52035a816729",
+  "source": {
+    "pathInFieldLog": "Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java",
+    "sha256": "15fc9d70092411954f98c69a670f7c6aa7c88b2e5feb0e58eb08b546a18713ad",
+    "lines": [
+      1324,
+      1377
+    ],
+    "prepareCommand": "python3 -B tests/integration/fieldlog-pair25-android/rust-runtime-notices/prepare-successor.py --mixer \"$PWD\" OWNED_WORK",
+    "settingsPatches": [
+      "fieldlog-ios-settings-bounded-7b2b98f0.patch",
+      "fieldlog-android-settings-elapsed-7b2b98f0.patch"
+    ],
+    "rawCompositionSHA256": "3747fda11fd3913c7c75e45f9b6aac7ccee2709fcf23bc67ff9efc70ab9c3f3e",
+    "terminalPrepareCommands": 5,
+    "scratchRemoved": true
+  },
+  "observation": "The ordinary GuestFrame schedules two callbacks after dispatchDraw, then calls the JNI display witness. It checks the current frame, focus and visibility. There is no frame-commit callback or same-buffer readback in that path.",
+  "reference": "https://developer.android.com/reference/android/view/ViewTreeObserver#registerFrameCommitCallback(java.lang.Runnable)",
+  "limit": "The source check does not show that the installed sample committed health early. The existing milestone and retirement findings stay bound to that APK."
+}
