@@ -40,6 +40,8 @@ MEMORY_FILL_WASM_HASH = "3516438ef6b98d2644bf52f43971d21bf102139418fb46d0161dba0
 BR_TABLE_MODULE_LINE = 3
 BR_TABLE_FUNCTION_LINES = (86, 105)
 BR_TABLE_ASSERTION_LINES = range(1305, 1315)
+CALL_INDIRECT_MODULE_LINE = 623
+CALL_INDIRECT_MODULE_RANGES = ((623, 624), (628, 630), (633, 634), (637, 637), (645, 648))
 PROFILE = "mixer-table-memory-v3"
 FEATURE = "experimental-capability-native"
 MAX_EXPORT_BYTES = 32 * 1024 * 1024
@@ -98,6 +100,16 @@ FIXTURES = {
         },
         "invalid": {},
     },
+    "call_indirect": {
+        "sha256": "3b400ee77b55671ce648ec5cf76f48eeaa3539c8793fb7fc43dc0c7da3e08775",
+        "modules": {CALL_INDIRECT_MODULE_LINE: "unsupported"},
+        "actions": {
+            659: ("assert_return", "call-3"),
+            662: ("assert_trap", "call-3"),
+            663: ("assert_trap", "call-3"),
+        },
+        "invalid": {},
+    },
     "br_table": {
         "sha256": "e9106d4f8f7bb0c12f51b2cc4bb443166c1d033be7ced74047f3705b2441167d",
         "modules": {},
@@ -120,6 +132,8 @@ TRAPS = {
     "integer divide by zero": "integer_divide_by_zero",
     "integer overflow": "integer_overflow",
     "uninitialized element": "indirect_call_null",
+    "indirect call type mismatch": "indirect_call_type_mismatch",
+    "undefined element": "table_out_of_bounds",
 }
 VALUE_TYPES = {1: "i32", 2: "i64", 3: "f32", 4: "f64"}
 WIDTHS = {"i32": 32, "i64": 64, "f32": 32, "f64": 64}
@@ -405,6 +419,53 @@ def replay_br_table(commands, source, script, translator, reference, validator, 
     ]
 
 
+def call_indirect_excerpt(commands, source, script, fixture, translator, reference,
+                          validator, core, client, record):
+    cases = list(selected_cases(source.name, script["commands"], fixture))
+    full_module = cases[0][0]
+    upstream_rows = [row for _, row in cases]
+    require(all(module == full_module for module, _ in cases)
+            and [row["line"] for row in upstream_rows] == list(fixture["actions"]),
+            "call_indirect: unexpected original module or assertion order")
+    directory = source.parent
+    full_wasm = directory / full_module["filename"]
+    boundary = record["upstream_module"] = {
+        "line": full_module["line"], "wasm_sha256": digest(full_wasm.read_bytes()),
+        "validation": validate(
+            commands, "call-indirect-upstream-module", core, client, validator, full_wasm,
+            invalid=None, guest_code="limit", profile_rejection="limit",
+        ),
+    }
+    replay_reference(commands, directory, script,
+                     [row for case in cases for row in case], reference, boundary)
+
+    # Keep the original table, its initializers, the callee definitions, and the export.
+    # Blank out every other line so WABT can reproduce the upstream assertion rows exactly.
+    excerpt_dir = directory / "call-indirect-excerpt"
+    excerpt_dir.mkdir()
+    excerpt = excerpt_dir / source.name
+    kept_lines = {line for first, last in CALL_INDIRECT_MODULE_RANGES
+                  for line in range(first, last + 1)} | fixture["actions"].keys()
+    last = max(kept_lines)
+    upstream = source.read_bytes().splitlines(keepends=True)
+    excerpt.write_bytes(b"".join(
+        content if line in kept_lines else b"\n"
+        for line, content in enumerate(upstream[:last], 1)
+    ))
+    manifest = excerpt_dir / "commands.json"
+    commands.run("call-indirect-excerpt-translate", [translator, excerpt, "-o", manifest])
+    translated = json.loads(manifest.read_text())
+    module, *rows = translated["commands"]
+    require(module == {**full_module, "filename": "commands.0.wasm"} and rows == upstream_rows,
+            "call_indirect: standalone module row or upstream assertions changed")
+    record["excerpt"] = {
+        "module_line_ranges": CALL_INDIRECT_MODULE_RANGES,
+        "assertion_lines": list(fixture["actions"]),
+        "wast_sha256": digest(excerpt.read_bytes()),
+    }
+    return excerpt_dir, translated
+
+
 def replay_stateful(commands, directory, script, module, sequence, reference, client, record):
     label = directory.name
     wasm = directory / module["filename"]
@@ -667,6 +728,11 @@ def replay(commands, scratch, rust, record):
         if script == "br_table":
             replay_br_table(commands, source, translated, translator, reference, validator,
                             core, client, record["fixtures"][source.name])
+        if script == "call_indirect":
+            directory, translated = call_indirect_excerpt(
+                commands, source, translated, fixture, translator, reference, validator,
+                core, client, record["fixtures"][source.name],
+            )
         for module, row in selected_cases(script, translated["commands"], fixture):
             line, module_line = row["line"], module["line"]
             filename = module["filename"]
@@ -755,7 +821,7 @@ def main():
         "profile": PROFILE,
         "installed_feature": FEATURE,
         "installed_execution": "legacy V3 session C ABI from the installed capability archive",
-        "guest_ui_v1": "admission refusal for original modules and the branch-table excerpt",
+        "guest_ui_v1": "admission refusal for original modules and supported excerpts",
         "fixtures": {}, "modules": [], "cases": [],
     }
     record["command_environment"] = env

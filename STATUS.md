@@ -2065,6 +2065,14 @@ pages. All 156 commands closed and eight runner controls passed.
 Independent replay matched the exact source, Wasm, and outcomes.
 [Declared memory maximum replay](verification/receipts/l03-w08-memory-maximum-603d33d9.json)
 
+The upstream indirect-call module uses three tables, outside the V3
+single-table profile. Stock WABT passed the selected original assertions.
+A line-preserved single-table excerpt returned `-1` and trapped with
+`indirect_call_type_mismatch` and `table_out_of_bounds` in fresh WABT,
+Mixer CLI, and installed V3 C instances. The independent replay closed
+all 173 subprocess groups, and all eight runner controls passed.
+[Indirect-call replay](verification/receipts/l03-w08-call-indirect-9d96980f.json)
+
 The seeded TableMemoryV3 check retains one instance for 40 copies on
 each of 24 seeds. Mixer and Node matched all 960 observations of the
 complete initialized region in Debug and Release. The separate

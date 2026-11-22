@@ -1,0 +1,334 @@
+{
+  "schema": 1,
+  "status": "passed_scoped_replay",
+  "requirements": [
+    "L03",
+    "W08"
+  ],
+  "scope": "L03/W08 fixed host standards-profile replay for mixer-product-plan.md section 20.1",
+  "source": {
+    "reviewBase": "9d96980f8762224a55ac809125f93923000ac88b",
+    "authorRevision": "fa36350fc8a2e77ab78a6a0a603950c194be6ae5",
+    "vmTree": "4c351e53d7a1fd6f567d9edd6abc89ac1c713dff",
+    "patchSHA256": "37258b377872b444eb5dbdfe7359024b5e73a1cda72c4d7548b95987fdf98ac8",
+    "runnerSHA256": {
+      "replay.py": "c4cdad3b51ac45cea61501096840947a44fef4225e28ca0802488f4c8c56d469",
+      "commands.py": "91285d42f7f3a36d60ff9af1cdcc08a7e01a698a64db144c867162ba4156aeb7"
+    }
+  },
+  "tools": {
+    "python": "3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0",
+    "wast2json": "1.0.36 (git~1.0.37)",
+    "wasm-validate": "1.0.36 (git~1.0.37)",
+    "spectest-interp": "1.0.36 (git~1.0.37)"
+  },
+  "specRevision": "05ca4182176763112561ae20153975c12bd689e4",
+  "wabtRelease": {
+    "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz",
+    "sha256": "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
+  },
+  "profile": "mixer-table-memory-v3",
+  "fixture": {
+    "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/call_indirect.wast",
+    "sha256": "3b400ee77b55671ce648ec5cf76f48eeaa3539c8793fb7fc43dc0c7da3e08775",
+    "upstream_module": {
+      "line": 623,
+      "wasm_sha256": "4f5ce14da8472cb94d3d964c5aa3e68ad2956dc37e3901fdcfc9883b30c22c17",
+      "validation": {
+        "wabt": {
+          "status": 0,
+          "diagnostic": []
+        },
+        "core": {
+          "valid": false,
+          "error": {
+            "code": "limit",
+            "message": "vector count exceeds profile limit",
+            "function": null,
+            "offset": 42
+          }
+        },
+        "installed_c": {
+          "validate": {
+            "status": 1,
+            "code": "limit",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          },
+          "guest_ui_v1_validate": {
+            "status": 1,
+            "code": "limit",
+            "value_type": 0,
+            "value": 0,
+            "fuel_used": 0,
+            "host_calls_used": 0
+          }
+        }
+      },
+      "reference_manifest_sha256": "78d1952e9658b3c17c704465695d90f1417f630dc4133ec2f5d6ac4176ee3210",
+      "reference_output": [
+        "/Users/andreyyurlov/.mixer-vm-standards-u_mcohb4/call_indirect/call_indirect.wast:662: assert_trap passed: indirect call signature mismatch",
+        "/Users/andreyyurlov/.mixer-vm-standards-u_mcohb4/call_indirect/call_indirect.wast:663: assert_trap passed: undefined table index",
+        "6/6 tests passed."
+      ]
+    },
+    "excerpt": {
+      "module_line_ranges": [
+        [
+          623,
+          624
+        ],
+        [
+          628,
+          630
+        ],
+        [
+          633,
+          634
+        ],
+        [
+          637,
+          637
+        ],
+        [
+          645,
+          648
+        ]
+      ],
+      "assertion_lines": [
+        659,
+        662,
+        663
+      ],
+      "wast_sha256": "7efd6f2f44e9974fdd5d7b8f5a704b9cf1247af1619fd22f9db011acc9725495"
+    },
+    "reference_manifest_sha256": "ea1fcd6dcb0c5bc061cc33e42e7f712857b72f5b4fd15f9c15239122abe4b8b5",
+    "reference_output": [
+      "/Users/andreyyurlov/.mixer-vm-standards-u_mcohb4/call_indirect/call-indirect-excerpt/call_indirect.wast:662: assert_trap passed: indirect call signature mismatch",
+      "/Users/andreyyurlov/.mixer-vm-standards-u_mcohb4/call_indirect/call-indirect-excerpt/call_indirect.wast:663: assert_trap passed: undefined table index",
+      "6/6 tests passed."
+    ],
+    "excerpt_module": {
+      "fixture": "call_indirect.wast",
+      "line": 623,
+      "wasm_sha256": "0b07650906da75f03fa61b3eaed538d01631f62d762ac1d5400848f9439ec6c3",
+      "wasm_bytes": 102,
+      "wabt": {
+        "status": 0,
+        "diagnostic": []
+      },
+      "core": {
+        "valid": true,
+        "error": null
+      },
+      "installed_c": {
+        "validate": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "guest_ui_v1_validate": {
+          "status": 1,
+          "code": "unsupported",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    }
+  },
+  "originalModuleRefusalDiagnosticRun": {
+    "candidate_revision": "83e9dfc724ba3aea699ac09558859017b69f029a",
+    "exit_code": 1,
+    "error": "call-indirect-upstream-module: wrong core validation reason: {'profile': 'mixer-table-memory-v3', 'valid': False, 'inventory_complete': False, 'imports': [], 'exports': [], 'opcodes': [], 'extended_opcodes': [], 'error': {'code': 'limit', 'message': 'vector count exceeds profile limit', 'function': None, 'offset': 42}, 'inventory_error': None}",
+    "custody": {
+      "command_count": 115,
+      "terminal_with_eof_and_expected_exit": 115,
+      "scratch_path": "/Users/andreyyurlov/.mixer-vm-standards-9gxm25a6",
+      "scratch_removed": true
+    }
+  },
+  "independentCases": [
+    {
+      "fixture": "call_indirect.wast",
+      "module_line": 623,
+      "upstream": {
+        "type": "assert_return",
+        "line": 659,
+        "action": {
+          "type": "invoke",
+          "field": "call-3",
+          "args": [
+            {
+              "type": "i32",
+              "value": "2"
+            },
+            {
+              "type": "i32",
+              "value": "3"
+            },
+            {
+              "type": "i32",
+              "value": "0"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "4294967295"
+          }
+        ]
+      },
+      "core": {
+        "ok": true,
+        "profile": "mixer-table-memory-v3",
+        "export": "call-3",
+        "result": {
+          "type": "i32",
+          "value": -1
+        },
+        "fuel_used": 9,
+        "host_calls_used": 0
+      },
+      "installed_c": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": -1,
+        "fuel_used": 9,
+        "host_calls_used": 0
+      }
+    },
+    {
+      "fixture": "call_indirect.wast",
+      "module_line": 623,
+      "upstream": {
+        "type": "assert_trap",
+        "line": 662,
+        "action": {
+          "type": "invoke",
+          "field": "call-3",
+          "args": [
+            {
+              "type": "i32",
+              "value": "2"
+            },
+            {
+              "type": "i32",
+              "value": "3"
+            },
+            {
+              "type": "i32",
+              "value": "3"
+            }
+          ]
+        },
+        "text": "indirect call type mismatch",
+        "expected": [
+          {
+            "type": "i32"
+          }
+        ]
+      },
+      "core": {
+        "ok": false,
+        "error": {
+          "code": "indirect_call_type_mismatch",
+          "message": "indirect call signature mismatch",
+          "function": 3,
+          "offset": 98
+        }
+      },
+      "installed_c": {
+        "status": 2,
+        "code": "indirect_call_type_mismatch",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 4,
+        "host_calls_used": 0
+      }
+    },
+    {
+      "fixture": "call_indirect.wast",
+      "module_line": 623,
+      "upstream": {
+        "type": "assert_trap",
+        "line": 663,
+        "action": {
+          "type": "invoke",
+          "field": "call-3",
+          "args": [
+            {
+              "type": "i32",
+              "value": "2"
+            },
+            {
+              "type": "i32",
+              "value": "3"
+            },
+            {
+              "type": "i32",
+              "value": "4"
+            }
+          ]
+        },
+        "text": "undefined element",
+        "expected": [
+          {
+            "type": "i32"
+          }
+        ]
+      },
+      "core": {
+        "ok": false,
+        "error": {
+          "code": "table_out_of_bounds",
+          "message": "indirect call index exceeds table",
+          "function": 3,
+          "offset": 98
+        }
+      },
+      "installed_c": {
+        "status": 2,
+        "code": "table_out_of_bounds",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 4,
+        "host_calls_used": 0
+      }
+    }
+  ],
+  "installedArtifactsSHA256": {
+    "mixer-vm": "85f89363b2bdc9e30537b015af4024c592f9716566067314718146a5e616b42c",
+    "libmixer_vm_capability_experimental.a": "f8906e32e35067a8a67eaf8509832ef2e7d10c0f5a4d56e6b5bc8786da10d241",
+    "client": "e20fabef31e11517abe7f54b1ee197fae5c3a96fc1e5c2c9508913f013638983",
+    "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+    "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+    "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "mixer_vm_guest_ui_deferred.h": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+  },
+  "authorReceiptSHA256": "167df7003e9f6899bff1ce4a71b6d091b74ff10928ede0a6c4d1f47d9abe93a2",
+  "independentFullReceiptSHA256": "4dfe5e44aee8b786b3927ef0dbf408fa31d30e52b333d2a89ce19816b97ec4e1",
+  "independentTerminalReplayCommands": 173,
+  "independentTerminalOuterCommands": 9,
+  "independentWrapperTestsPassed": 8,
+  "scratchRemoved": true,
+  "limitations": [
+    "Local arm64 macOS only. The added cases exercise ordinary call_indirect with one defined funcref table and default V3 limits.",
+    "The original three-table module runs only in stock WABT. Mixer V3 and Guest UI V1 refuse it.",
+    "Successful Mixer execution uses the CLI and installed V3 session C ABI. Guest UI V1 was exercised for admission only.",
+    "Full Core conformance, broader malformed-input and fuzz campaigns, Swift application integration, resource and performance qualification, native devices, and L03/W08 gate completion are outside this evidence."
+  ]
+}

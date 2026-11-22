@@ -19,7 +19,7 @@ metadata must resolve the exported package and every target, including examples,
 inside the verified tree. The script stages the release archive and exported public
 headers in the experimental capability install layout, then links the exported
 C client directly against that archive. It downloads the
-pinned WABT release and nine WebAssembly Core WAST files over HTTPS and checks
+pinned WABT release and ten WebAssembly Core WAST files over HTTPS and checks
 their SHA-256 hashes. [WABT release](https://github.com/WebAssembly/wabt/releases/tag/1.0.37) ·
 [WebAssembly test sources](https://github.com/WebAssembly/spec/tree/05ca4182176763112561ae20153975c12bd689e4/test/core)
 
@@ -86,10 +86,24 @@ segment replaces an earlier entry at the same index, and an untouched
 slot in a named module traps with `indirect_call_null`. Each runner
 instantiates the pinned module again before each assertion.
 
+The original `call_indirect.wast` module at line 623 declares three tables.
+Stock WABT validates it and passes the three selected `call-3` assertions.
+The Mixer V3 CLI and installed C validator refuse the original module with
+`limit`. V3 allows one table. The excerpt retains the original `$t3`
+table, active element segments, referenced functions, and `call-3` export.
+Blank lines preserve source line numbers. The runner checks that WABT
+translates the assertions identically for the original module and excerpt.
+Each runner instantiates the excerpt for every assertion. Line 659 calls
+slot 0 and returns `i32:-1`. Line 662 calls slot 3 and traps with
+`indirect_call_type_mismatch`. Line 663 uses index 4, which is the first index
+outside the table, and traps with `table_out_of_bounds`.
+[Pinned indirect-call fixture](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/call_indirect.wast#L623-L663)
+
 The same archive's `mixer_vm_capability_guest_ui_validate_v1` entry point checks
-the independent cases and the copy and fill modules. The valid upstream modules
-lack the required Mixer exports or defined memory. Guest UI V1 refuses them, so successful execution
-evidence covers the shared V3 instruction profile through the V3 session ABI.
+the independent cases, the two excerpts, and the copy and fill modules.
+The valid V3 modules lack the required Mixer exports or defined memory.
+Guest UI V1 refuses them. Execution evidence covers the shared V3
+instruction profile through the V3 session ABI.
 The selected invalid `load.wast` module declares memory and reaches the Guest
 UI V1 body type check. This replay covers a fixed subset on the macOS host.
 Guest UI V1 application execution and W08/L03 gate
