@@ -1508,6 +1508,17 @@ checks. The author's 40 host tests and unsigned generic iPhoneOS build
 also passed. Native browser delivery and Keychain runtime remain open.
 [iOS confirmed account owner](verification/receipts/fieldlog-ios-account-confirmed-owner-ebb53f9e.json)
 
+The ordinary Android development account route passed on API 36 arm64.
+The emulator browser submitted the synthetic sign-in, Android delivered
+the callback, and session confirmation opened the bound workspace. A
+new process restored the same credential through Android Keystore.
+Sign-out revoked the SQLite session, cleared the credential, and returned
+to ordinary FieldLog with byte-identical account and ordinary workspace
+files. The original mount failure and pre-fix cold JNI crash are retained
+in the receipt. Offline Android restore, account recovery, deletion,
+and native iOS acceptance remain open.
+[Android account verification](verification/receipts/fieldlog-android-account-api36-066e5038.json)
+
 The generic iOS Simulator witness builds the same ordinary FieldLog
 tree with a named XCTest. It opens the saved project, edits a draft
 through the Photo Library picker, saves a manual Site Map pin, and
