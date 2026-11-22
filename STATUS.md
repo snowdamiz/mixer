@@ -1370,6 +1370,16 @@ and both guest signatures verified. The signing and build scratch was
 removed. L02 and L07 remain running.
 [Android APK build receipt](verification/receipts/fieldlog-android-settings-pair25-build-ac305262.json)
 
+The retained Pair25 APK passed F20 ordinary pagination on API 36. The
+native journey checked 23 saved drafts across pages of 20 and 3 and 43
+committed entries across pages of 20, 20, and 3. Forward and reverse
+navigation, opening a draft without editing, and cold reopen preserved
+the recorded workspace bytes, file identity, revision, and all 46
+outbox records. The first attempt stopped at the emulator console
+preflight. The passing run used the exact AVD properties on a dedicated
+ADB server. All 151 native driver commands and 52 outer commands closed.
+[Installed F20 pagination](verification/receipts/fieldlog-f20-android-pagination-api36-ac305262.json)
+
 A fresh offline API 36 install of the same APK ran the bundled signed
 Entry Commit. It moved the draft under the original ID, appended one
 entrySaved record and retained seven JPEGs. After cold reopen, Android's
