@@ -2287,6 +2287,16 @@ emulator, ADB and listener closed, and both runs removed their scratch.
 This covers the tested app UID and process log. L07 remains running.
 [Installed Site Map privacy](verification/receipts/l07-fieldlog-android-site-map-live-network-f08f99a4.json)
 
+The installed Pair25 Settings APK displayed only the five support
+diagnostics fields in the captured screen. Applying Dark, reopening
+from a cold process and resetting preserved the exact workspace and
+all 47 pending records. Reset restored the original Settings hierarchy.
+Both app-process logs had zero enrolled workspace-marker hits. Android's
+app UID counters stayed unchanged during Settings. The same UID's TCP
+controls advanced every counter before and after. All 152 commands
+reached terminal custody and owned scratch was removed.
+[Installed Settings privacy](verification/receipts/l07-fieldlog-android-settings-live-network-ac305262.json)
+
 An independent L07 audit at `e985e4650e` kept the gate running. The current
 Pair25 notices and stock hosted sink tests support their tested scopes.
 The remaining local evidence includes an integrated signer interruption

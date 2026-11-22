@@ -1,0 +1,237 @@
+{
+  "schema": 1,
+  "status": "passed_scoped_android_settings_privacy",
+  "gates": [
+    "L02",
+    "L07"
+  ],
+  "mixerEvidenceBase": "aa6f4c85f00b7e98efa8743365bd10f1804d3a8d",
+  "producer": "verification/receipts/fieldlog-android-settings-pair25-build-ac305262.json",
+  "fieldLogTree": "9c2d665c31a6f3f2bfabc42bdfffaf72c6661731",
+  "androidUIAcceptance": "verification/receipts/fieldlog-android-settings-pair25-api36-ac305262.json",
+  "toolVersions": {
+    "adb": "37.0.1-15733141",
+    "emulator": "37.2.12.0 (16428233)",
+    "python": "3.14.8"
+  },
+  "fixture": {
+    "baseWorkspaceSHA256": "274486580ef4e26b44495b17136286afa8f23f0b6cfa4ccc771cce1688cc1b25",
+    "seedChanges": "Synthetic site and task title on the previously selected project, before installation.",
+    "markerKinds": [
+      "workspace UUID",
+      "site label",
+      "task title"
+    ]
+  },
+  "observed": [
+    "Opened the actual Settings & Help surface and read the five allowed diagnostics fields.",
+    "Applied Dark and saw one Activity relaunch. Cold restart used a different app PID and showed Dark selected.",
+    "Reset relaunched the Activity. The Settings hierarchy matched the original captured bytes.",
+    "Both exact app PID log captures contained no enrolled workspace markers.",
+    "The workspace remained byte-identical at revision 52 with all 47 outbox records.",
+    "The app UID packet and byte counters did not move during the journey. Both surrounding controls added traffic through the owned TCP port."
+  ],
+  "commands": {
+    "networkReadback": "adb shell dumpsys netstats --poll; adb shell dumpsys netstats --full --uid",
+    "localControl": "run-as dev.fieldlog.generatedr90 /system/bin/toybox nc -n -w 6 -W 5 10.0.2.2 <owned-port>",
+    "appLog": "adb shell logcat -d -v threadtime --pid=<exact-app-pid>"
+  },
+  "limits": [
+    "One synthetic workspace on the sealed Pair25 Settings development APK, connected to the owned Android emulator.",
+    "Observes Android NetworkStats attribution for the FieldLog UID and logs for its two exact processes.",
+    "No claim about system process traffic, payload decoding, later builds, other installed surfaces, or iOS."
+  ],
+  "rawReceiptSHA256": "0ea1a98d1fba69c47ebc0bfe93c26b502891e1f05e5b973bb6276b6131d9ab61",
+  "installed": {
+    "status": "PASS",
+    "startedUTC": "2026-11-22T03:58:27.473685+00:00",
+    "attempt": "attempt-1",
+    "apkSHA256": "ac30526259ae8b7a23891c2ddbb98ba5acda1061ff520456ccba52035a816729",
+    "runnerSHA256": "cb94b95f7050b066eb6625fafe6be03a2edae4279a96dc0fa440d34a80774f78",
+    "controlPort": 59160,
+    "device": {
+      "ro.boot.qemu.avd_name": "mixer_picker_tcnl8hiz",
+      "ro.build.version.sdk": "36",
+      "ro.product.cpu.abi": "arm64-v8a",
+      "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+    },
+    "driverSHA256": "767dd5f635fadafde05c6bc363f3c12863f2fb806e797d7b20511e3a8285931f",
+    "seedSHA256": "57d1a7fe5d0f4230681822b6ccb6f32307fc0fdc9d5006f15999b83a0c720897",
+    "workspaceRevision": 52,
+    "outboxRecords": 47,
+    "installedBeforeSHA256": "ac30526259ae8b7a23891c2ddbb98ba5acda1061ff520456ccba52035a816729",
+    "packageUID": 10150,
+    "activeIPv4Route": "10.0.2.2 dev eth0 table 1015 src 10.0.2.15 uid 2000 \n    cache",
+    "counters": {
+      "beforeControl": [
+        {
+          "rb": 0,
+          "rp": 0,
+          "tb": 0,
+          "tp": 0
+        },
+        0,
+        "725b8126b1ab98f45a617b9c2fbf5bd2e2d05f23238412a1ae647b5d53425e24"
+      ],
+      "beforeSettings": [
+        {
+          "rb": 213,
+          "rp": 5,
+          "tb": 296,
+          "tp": 6
+        },
+        1,
+        "6562ec9e5fca5c160706af19a69841ae6c1953ce0b3693ed201adf7a33db2aa8"
+      ],
+      "afterSettings": [
+        {
+          "rb": 213,
+          "rp": 5,
+          "tb": 296,
+          "tp": 6
+        },
+        1,
+        "64bf1945d0faf9a6f0215d0d5218b67db10056c29a058983f0e17585e9f8d9d3"
+      ],
+      "afterControl": [
+        {
+          "rb": 426,
+          "rp": 10,
+          "tb": 592,
+          "tp": 12
+        },
+        1,
+        "29f796006a2150ee626b4550978096c86c6f2882582aa6566eff85031cd5cf35"
+      ]
+    },
+    "transportControls": {
+      "appUIDBefore": {
+        "matched": true,
+        "ownedServerReceivedExpected": true,
+        "controlServerError": null,
+        "observedExit": 0,
+        "appUID": true
+      },
+      "appUIDAfter": {
+        "matched": true,
+        "ownedServerReceivedExpected": true,
+        "controlServerError": null,
+        "observedExit": 0,
+        "appUID": true
+      }
+    },
+    "diagnostics": [
+      "Schema version: 1",
+      "Platform: Android",
+      "OS major version: 16",
+      "App version: 0.1.0",
+      "Build number: 1"
+    ],
+    "diagnosticsHierarchySHA256": [
+      "b5b2713e5db07dd2c84cd6813d2496e37132978eb434b31fde9d4a1d87fea9aa"
+    ],
+    "applyActivity": {
+      "pid": 2189,
+      "relaunches": 1
+    },
+    "appLogs": [
+      {
+        "pid": 2189,
+        "bytes": 6798,
+        "sha256": "31bcd7f898f30328b7e53ac2c8e2a950475ce15b1c19de67ff37b3c68c808a08",
+        "markerHits": 0
+      },
+      {
+        "pid": 2761,
+        "bytes": 6596,
+        "sha256": "78f14f3cfbc29ccf7da661a2a11e536d1bfa2a75de0df5bf02c7b1a924f80fca",
+        "markerHits": 0
+      }
+    ],
+    "coldSelectionHierarchySHA256": "57900193b24671180b2a78d3057d959c498d1a49bc7ac20bd395b4173b46898d",
+    "resetActivity": {
+      "pid": 2761,
+      "relaunches": 1
+    },
+    "resetSelectionHierarchySHA256": "b5b2713e5db07dd2c84cd6813d2496e37132978eb434b31fde9d4a1d87fea9aa",
+    "finalWorkspaceSHA256": "57d1a7fe5d0f4230681822b6ccb6f32307fc0fdc9d5006f15999b83a0c720897",
+    "installedAfterSHA256": "ac30526259ae8b7a23891c2ddbb98ba5acda1061ff520456ccba52035a816729",
+    "settingsNetworkByteAndPacketDelta": {
+      "rb": 0,
+      "rp": 0,
+      "tb": 0,
+      "tp": 0
+    },
+    "services": [
+      {
+        "name": "emulator",
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+          "-avd",
+          "mixer_picker_tcnl8hiz",
+          "-ports",
+          "26042,26043",
+          "-no-window",
+          "-no-audio",
+          "-no-snapshot",
+          "-gpu",
+          "swiftshader_indirect",
+          "-no-boot-anim",
+          "-skin",
+          "1080x2400",
+          "-no-metrics",
+          "-partition-size",
+          "3072"
+        ],
+        "pid": 6311,
+        "exit": 0,
+        "groupAbsent": true
+      },
+      {
+        "name": "adb",
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+          "-L",
+          "tcp:localhost:26044",
+          "server",
+          "nodaemon"
+        ],
+        "pid": 6310,
+        "exit": -15,
+        "groupAbsent": true
+      }
+    ],
+    "portsRebound": [
+      26042,
+      26043,
+      26044,
+      59160
+    ],
+    "netstatsFormat": {
+      "before-control": {
+        "uidHeading": true,
+        "pendingHeading": true,
+        "uidRows": 20
+      },
+      "after-settings": {
+        "uidHeading": true,
+        "pendingHeading": true,
+        "uidRows": 35
+      },
+      "before-settings": {
+        "uidHeading": true,
+        "pendingHeading": true,
+        "uidRows": 35
+      },
+      "after-control": {
+        "uidHeading": true,
+        "pendingHeading": true,
+        "uidRows": 35
+      }
+    },
+    "scratchRemoved": true,
+    "terminalCommands": 152,
+    "totalCommands": 152,
+    "finishedUTC": "2026-11-22T03:59:54.390044+00:00"
+  }
+}
