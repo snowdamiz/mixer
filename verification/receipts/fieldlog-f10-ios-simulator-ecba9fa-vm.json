@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "recordedUTC": "2026-11-22T05:35:25.420026+00:00",
+  "status": "generic_simulator_vm_and_swift_linkage_verified_signed_native_witness_pending",
+  "requirement": "L08/D8 private signed FieldLog F10 Apple counterpart",
+  "source": {
+    "revision": "ecba9fa5ae21416d54590b90e3a00eb52b4059d1",
+    "tree": "a73b082ab344d58e4cbecb6c35e89f0af7487728",
+    "candidateTree": "2c1cc255600e57e138cb135fc1dd32db31c356e8",
+    "patch": "verification/receipts/fieldlog-f10-ios-simulator-ecba9fa-vm.patch.b64",
+    "patchSHA256": "62128cefa004d846b8b652540f1714c4e2ba34a4e4e346399e5d6c25d708caf4",
+    "patchAppliesToExactRevision": true,
+    "androidReferencePatchSHA256": "47626cacfdff19297baf4d891a0f46918d6050c1783cf94ab26c6794a6efbc99",
+    "patchEncodedSHA256": "9a892b69f64d49417b5c844048983d23e51e41fc4cf09f80462dcf8ea8be46e0",
+    "applyFromPinnedCheckout": "python3 -B -m base64 -d verification/receipts/fieldlog-f10-ios-simulator-ecba9fa-vm.patch.b64 | git apply"
+  },
+  "inputs": {
+    "workspace": {
+      "bytes": 13207,
+      "sha256": "5459133cb976ccd09916a48659f393a6a1ef7b3ef36af2bada0de8aa4745c004"
+    },
+    "correctedWasm": {
+      "bytes": 14503,
+      "sha256": "fb225d5722eda20c7591a9e7bb112d560924cedf9da17106b57eeb049f94d3b9"
+    },
+    "use": "Read-only size and digest verification"
+  },
+  "tools": {
+    "xcode": "27.2 (27B52)",
+    "swift": "6.4.2",
+    "rustc": "1.99.0 (b940084d7 2026-09-28)"
+  },
+  "commands": {
+    "xcodeCommon": "xcodebuild -scheme MixerCapabilityActivation -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath <scratch>/derived -clonedSourcePackagesDirPath <scratch>/dependencies -packageCachePath <scratch>/packages -disablePackageRepositoryCache -skipPackageUpdates -disableAutomaticPackageResolution -scmProvider system -jobs 8 <action> CODE_SIGNING_ALLOWED=NO ARCHS=arm64 COMPILER_INDEX_STORE_ENABLE=NO DEBUG_INFORMATION_FORMAT=dwarf GCC_GENERATE_DEBUGGING_SYMBOLS=NO",
+    "flags": "Pass -Xcc -I<projected Mixer>/vm/include to Swift and -I<projected Mixer>/vm/include to C. Pass the mode define to Swift and Clang. For build-for-testing, expose the matching archive in LIBRARY_SEARCH_PATHS as libmixer_vm_capability_experimental.a.",
+    "vm": "cargo build --offline --locked --release --lib --features <feature> --target aarch64-apple-ios-sim --manifest-path <projected Mixer>/vm/Cargo.toml --target-dir <scratch>/rust (SDKROOT from iphonesimulator and IPHONEOS_DEPLOYMENT_TARGET=26.0)",
+    "swiftControl": "xcrun swiftc -typecheck -target arm64-apple-ios26.0-simulator -sdk <iphonesimulator SDK> -I <Debug-iphonesimulator products> <probe>; add explicit generated module maps and VM headers for the owner probe"
+  },
+  "exactBuild": {
+    "xcodeAction": "build",
+    "define": "MIXER_PRIVATE_F10",
+    "vmFeature": "private-fieldlog-f10",
+    "xcodeExit": 0,
+    "xcodeLogSHA256": "b2b48c7b0e84c3e50d90d58cdfe974db47d80f446f97f61938476cc841a4c339",
+    "vmExit": 0,
+    "boundaryControlExit": 1,
+    "boundaryDiagnostics": [
+      "incorrect argument label in call (have 'privateDevelopmentF10JSON:', expected 'json:')",
+      "cannot convert value of type 'GuestUIExchangeV3' to expected argument type 'GuestUIExchangeV1'"
+    ],
+    "boundaryProbeSwift": "@_spi(FeatureUIV3) import MixerGuest\n@_spi(PrivateFieldLogF10) import MixerRuntimeIdentity\n@testable import MixerCapabilityActivation\nimport Foundation\n\nfunc signedIdentity(_ bytes: Data) throws -> CapabilityRuntimeIdentity {\n    try CapabilityRuntimeIdentity(privateDevelopmentF10JSON: bytes)\n}\n\n@MainActor\nfunc bindNative(_ binding: CapabilityGuestUIPresentationBinding,\n                exchange: GuestUIExchangeV3) async throws {\n    _ = try await binding.bind(exchange)\n}\n"
+  },
+  "candidateBuild": {
+    "xcodeAction": "build-for-testing",
+    "define": "MIXER_PRIVATE_F10_IOS_SIMULATOR",
+    "vmFeature": "private-fieldlog-f10-ios-simulator",
+    "xcodeExit": 0,
+    "xcodeLogSHA256": "179f9ca049dc041b6b0ca892223ca303c640d020b57f676270d92358c09e648f",
+    "architecture": "arm64",
+    "platform": "IOSSIMULATOR",
+    "minimumOS": "26.0",
+    "sdk": "27.2",
+    "vmArchiveSHA256": "6219a1662f0202269a3b7dd27f267700f6493e520f6bd1096ca1cf8a1b50d5d0",
+    "xctestSHA256": "f8d9d53a20e0bc2735c2842084548637bb287d8b36dbbaf84be16c3b7855b42a",
+    "linkedSymbols": [
+      "_mixer_private_f10_create",
+      "_mixer_private_f10_validate"
+    ],
+    "rendererTypecheckExit": 0,
+    "rendererProbeSwift": "@_spi(FeatureUIV3) import MixerGuest\nimport MixerApple\nimport MixerUI\nimport SwiftUI\n\n@MainActor\nfunc nativeView(frame: MixerUI.UIDocument, exchange: GuestUIExchangeV3,\n                action: @escaping @MainActor @Sendable (RoutedUIAction) -> Void) throws -> some View {\n    let host = try MixerUIHost(document: frame, validator: exchange.codec.validator)\n    return MixerNativeView(host: host, onAction: action)\n}\n"
+  },
+  "next": [
+    "Add separately scoped development arm64 simulator identity and signed verifier admission, with exact host and root scope and no change to ordinary Apple/Android V1 or the private macOS profile.",
+    "Bind GuestUIExchangeV3 through the reserved Apple native presentation lifetime to the existing UIKit display probe, using the exchange's V3 validator. Treat the inert frame as pre-effects, gate input on the current native frame, and award first-screen health from the observed queue revision 3 after the native opening action.",
+    "Port the exact Android route and token-attributed read contract for queue-0 and queue-1 to the private Apple path. Refuse other namespaces, keys, writes, and deletes. Verify route navigation, ordered rows, committed health, retirement and unchanged workspace in the later owned runtime witness."
+  ],
+  "limits": "No signed iOS app/runner was wired. Generic package XCTest was linked without code signing; no device/frontend access, signing key, install, test execution, behavioral pass, gate change or push.",
+  "scratchObservedKiB": 721068,
+  "defaultBuild": {
+    "xcodeAction": "build-for-testing",
+    "vmFeature": "experimental-capability-native",
+    "xcodeExit": 0,
+    "xcodeLogSHA256": "514d18d70a8504f91348170a0a46c09d037abc56b4d1d0c2ece5da1441a0baec",
+    "linkedV1Validation": true,
+    "linkedPrivateF10Symbols": [],
+    "archiveInspection": "Apple nm reported an LLVM version mismatch on bundled Rust std bitcode. The default symbol assertion uses the successfully linked Mach-O."
+  },
+  "cleanup": {
+    "ownedScratchRemoved": true,
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-21ebaf2d/verification/local/apple-f10-ecba9fa.kQpm01nB"
+  },
+  "rootReadback": {
+    "producerReceiptSHA256": "ef25b502eef17b9703cc9e854d42e06e487d2d6f4f7f8bf9ca52cda82ae0b107",
+    "baseAndCandidateTreesMatch": true,
+    "reverseRestoresExactBase": true,
+    "scope": "Independent in-memory patch hashing and temporary-index replay. Build observations are from the producer."
+  }
+}

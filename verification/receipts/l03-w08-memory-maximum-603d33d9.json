@@ -1,0 +1,339 @@
+{
+  "schema": 1,
+  "status": "passed_scoped_upstream_memory_growth_maximum_on_arm64_macos",
+  "requirements": [
+    "L03",
+    "W08"
+  ],
+  "source": {
+    "revision": "603d33d95e163c78bff0d80a9390bdd1e7951ef0",
+    "tree": "ffd30ff8450d875886a02293ba883fb3b83525c4",
+    "vmTree": "662f82b1fbca741cd3415ecd585a7938935981f7",
+    "patchSHA256": "334f77e6755d63e2b5ce69ce6c8d3cf1764144cdb1577a93fcdd0ff255d8620e"
+  },
+  "specRevision": "05ca4182176763112561ae20153975c12bd689e4",
+  "profile": "mixer-table-memory-v3",
+  "tools": {
+    "python": "3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0",
+    "wast2json": "1.0.36 (git~1.0.37)",
+    "wasm-validate": "1.0.36 (git~1.0.37)",
+    "spectest-interp": "1.0.36 (git~1.0.37)"
+  },
+  "fixture": {
+    "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/memory_grow.wast",
+    "sha256": "8ab4f6e3343f46b4b5aa988de1b102d442228807073838b79563e6b34e2ef0aa"
+  },
+  "replay": {
+    "fixture": "memory_grow.wast",
+    "upstream": [
+      {
+        "type": "assert_return",
+        "line": 55,
+        "action": {
+          "type": "invoke",
+          "field": "grow",
+          "args": [
+            {
+              "type": "i32",
+              "value": "0"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "0"
+          }
+        ]
+      },
+      {
+        "type": "assert_return",
+        "line": 56,
+        "action": {
+          "type": "invoke",
+          "field": "grow",
+          "args": [
+            {
+              "type": "i32",
+              "value": "1"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "0"
+          }
+        ]
+      },
+      {
+        "type": "assert_return",
+        "line": 57,
+        "action": {
+          "type": "invoke",
+          "field": "grow",
+          "args": [
+            {
+              "type": "i32",
+              "value": "1"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "1"
+          }
+        ]
+      },
+      {
+        "type": "assert_return",
+        "line": 58,
+        "action": {
+          "type": "invoke",
+          "field": "grow",
+          "args": [
+            {
+              "type": "i32",
+              "value": "2"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "2"
+          }
+        ]
+      },
+      {
+        "type": "assert_return",
+        "line": 59,
+        "action": {
+          "type": "invoke",
+          "field": "grow",
+          "args": [
+            {
+              "type": "i32",
+              "value": "6"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "4"
+          }
+        ]
+      },
+      {
+        "type": "assert_return",
+        "line": 60,
+        "action": {
+          "type": "invoke",
+          "field": "grow",
+          "args": [
+            {
+              "type": "i32",
+              "value": "0"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "10"
+          }
+        ]
+      },
+      {
+        "type": "assert_return",
+        "line": 61,
+        "action": {
+          "type": "invoke",
+          "field": "grow",
+          "args": [
+            {
+              "type": "i32",
+              "value": "1"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "4294967295"
+          }
+        ]
+      },
+      {
+        "type": "assert_return",
+        "line": 62,
+        "action": {
+          "type": "invoke",
+          "field": "grow",
+          "args": [
+            {
+              "type": "i32",
+              "value": "65536"
+            }
+          ]
+        },
+        "expected": [
+          {
+            "type": "i32",
+            "value": "4294967295"
+          }
+        ]
+      }
+    ],
+    "module": {
+      "type": "module",
+      "line": 50,
+      "filename": "commands.2.wasm"
+    },
+    "wasm_sha256": "93010405602ab2cb02f1cb4d6f736769a0800274821dd574e9ba95f6d1bd2437",
+    "wasm_bytes": 46,
+    "reset_upstream_line": 55,
+    "reference_manifest_sha256": "3d5e38cbad60672f694dc03d8294d10e338690f9b01365beedf3011c29250739",
+    "reference_output": [
+      "11/11 tests passed."
+    ],
+    "installed_c": {
+      "create": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      },
+      "invoke-0": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": 0,
+        "fuel_used": 3,
+        "host_calls_used": 0
+      },
+      "invoke-1": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": 0,
+        "fuel_used": 3,
+        "host_calls_used": 0
+      },
+      "invoke-2": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": 1,
+        "fuel_used": 3,
+        "host_calls_used": 0
+      },
+      "invoke-3": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": 2,
+        "fuel_used": 3,
+        "host_calls_used": 0
+      },
+      "invoke-4": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": 4,
+        "fuel_used": 3,
+        "host_calls_used": 0
+      },
+      "invoke-5": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": 10,
+        "fuel_used": 3,
+        "host_calls_used": 0
+      },
+      "invoke-6": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": -1,
+        "fuel_used": 3,
+        "host_calls_used": 0
+      },
+      "invoke-7": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": -1,
+        "fuel_used": 3,
+        "host_calls_used": 0
+      },
+      "close": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      },
+      "reset-create": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      },
+      "reset-invoke": {
+        "status": 0,
+        "code": "",
+        "value_type": 1,
+        "value": 0,
+        "fuel_used": 3,
+        "host_calls_used": 0
+      },
+      "reset-close": {
+        "status": 0,
+        "code": "",
+        "value_type": 0,
+        "value": 0,
+        "fuel_used": 0,
+        "host_calls_used": 0
+      }
+    }
+  },
+  "artifactsSHA256": {
+    "mixer-vm": "85f89363b2bdc9e30537b015af4024c592f9716566067314718146a5e616b42c",
+    "libmixer_vm_capability_experimental.a": "f8906e32e35067a8a67eaf8509832ef2e7d10c0f5a4d56e6b5bc8786da10d241",
+    "client": "085b3e89f639df4bf135cb18f1de26e4023197536ef53b31530f3d7b93a0aca8",
+    "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+    "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+    "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "mixer_vm_guest_ui_deferred.h": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+  },
+  "rawReceiptSHA256": "88c535a6ffc50e3229d6fb0459049de9fe60d84876e6a6cb126802491eac1bbc",
+  "setupFailure": {
+    "diagnostic": "expected one stateful module at line 46",
+    "rawReceiptSHA256": "e884eccc8339bf09a581ec685fc8c5913093780ea2f10fc3b77ae73cc1b6e081",
+    "closedCommands": 21,
+    "scratchRemoved": true
+  },
+  "controls": {
+    "replayWrapperTestsPassed": 8,
+    "priorIndependentCases": 25
+  },
+  "cleanup": {
+    "closedCommands": 156,
+    "scratchRemoved": true
+  },
+  "limits": "Installed V3 C session and upstream WABT on macOS. Tested the module-declared maximum and the default V3 host settings. This adds no product VM behavior or device and gate verdicts."
+}

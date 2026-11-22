@@ -276,6 +276,21 @@ ports were reusable. The notice audit found zero of the 12 required
 entries in this private APK.
 [Installed F10 signature refusals](verification/receipts/fieldlog-f10-signed-android-api36-envelope-refusals-6c5bc8ca.json)
 
+The notice-only F10 successor adds 12 exact Pair25 entries. All 23
+inherited APK members matched the historical install byte for byte.
+The signed development successor kept the same guest packet and reached
+Entries at revision 8 in six actions on API 36. The workspace bytes and
+healthy candidate matched the prior replay. The signing keys, emulator,
+private ADB, and scratch were removed.
+[Noticed APK and installed replay](verification/receipts/fieldlog-f10-signed-android-notices-api36-6c5bc8ca.json)
+
+The private F10 VM linked into a generic arm64 iOS Simulator XCTest
+bundle. The default bundle linked V1 validation and omitted the F10
+entry points. Exact patch replay and reversal matched both Git trees.
+Signed iOS scope, V3 presentation, and installed navigation remain
+pending.
+[Apple VM link witness](verification/receipts/fieldlog-f10-ios-simulator-ecba9fa-vm.json)
+
 The private macOS signed V3 candidate `6ba7034329` passed the first-page
 Pending Changes smoke through the installed owner, VM, and storage mailbox.
 One read hydrated the queue. The decoded action delivered the historical
@@ -1946,6 +1961,12 @@ default index and unsigned high indices returned 214. Independent
 replay matched the Wasm and VM archive hashes and observed 154 terminal
 commands. All eight runner controls passed.
 [Scalar branch-table replay](verification/receipts/l03-w08-br-table-3488ef30.json)
+
+The installed V3 C session and WABT also passed the pinned growth
+block with a declared ten-page maximum. Growth reached ten pages, and
+two further requests returned `-1`. A fresh instance started at zero
+pages. All 156 commands closed and eight runner controls passed.
+[Declared memory maximum replay](verification/receipts/l03-w08-memory-maximum-603d33d9.json)
 
 The seeded TableMemoryV3 check retains one instance for 40 copies on
 each of 24 seeds. Mixer and Node matched all 960 observations of the
