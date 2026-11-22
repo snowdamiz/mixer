@@ -1,0 +1,286 @@
+{
+  "schema": 1,
+  "gate": "L07 and L02",
+  "status": "pass_scoped_android_site_map_app_uid_and_logs",
+  "mixerEvidenceBase": "c5ae59dc62c715beb2bd402adff09f52d5dda634",
+  "fieldLogPackageTree": "87c95c5af8212adfc1c01f926c7755fd2c69e5b1",
+  "androidReviewBase": "52b8f2f36269b2f7185e5b87c7280aecd123d862",
+  "toolVersions": {
+    "adb": "37.0.1-15733141",
+    "emulator": "37.2.12.0 (16428233)",
+    "python": "3.14.8"
+  },
+  "baseFixtureSHA256": "274486580ef4e26b44495b17136286afa8f23f0b6cfa4ccc771cce1688cc1b25",
+  "fixtureChanges": "Synthetic site label and existing fixture pin only, serialized before installation.",
+  "commands": {
+    "poll": "adb shell dumpsys netstats --poll",
+    "readback": "adb shell dumpsys netstats --full --uid",
+    "positiveControl": "run-as dev.fieldlog.generatedr90 /system/bin/toybox nc -n -w 6 -W 5 10.0.2.2 <owned-port>",
+    "appLog": "adb shell logcat -d -v threadtime --pid=<exact-app-pid>"
+  },
+  "checks": {
+    "scope": "One foreground FieldLog session with a route to the host. Site Map open, system permission, injected foreground fix, close and reopen.",
+    "sameAppUIDControlsBracketMap": true,
+    "workspaceByteIdentical": true,
+    "warmDashboardSamePID": true,
+    "locationAbsentOnMapReopen": true,
+    "retirement": "Exact app force-stopped; disposable emulator and private ADB reaped; origin port rebound; raw app log not retained.",
+    "limitations": "Android NetworkStats attribution for the app UID and the exact app PID log only. System attribution, packet contents, other app flows, later builds, telemetry transports and iOS remain outside this replay."
+  },
+  "diagnosticAttempt": {
+    "failure": "The TCP positive control timed out before app launch. The cause of that first timeout remains unverified.",
+    "correction": "Run with the ordinary dashboard active and use bounded connect and idle timeouts, observing exact challenge bytes on the local socket.",
+    "replay": {
+      "status": "FAILED",
+      "startedUTC": "2026-11-22T03:34:14.979594+00:00",
+      "attempt": "attempt-1",
+      "apkSHA256": "f08f99a41cb97fc66b878daf03383432f932a2ea1e4587ad79284e5e858f6f79",
+      "runnerSHA256": "4daa62da0972b25ce7521756b7465a6ab6749fbe57f928a183f7dbaf1ff69c76",
+      "controlPort": 49664,
+      "device": {
+        "ro.boot.qemu.avd_name": "mixer_picker_71u9gyq2",
+        "ro.build.version.sdk": "36",
+        "ro.product.cpu.abi": "arm64-v8a",
+        "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+      },
+      "seedSHA256": "87ae5f9f38d411c26f32cccab0d62bb0d5028607238b2423d0156e8efd9549da",
+      "installedBeforeSHA256": "f08f99a41cb97fc66b878daf03383432f932a2ea1e4587ad79284e5e858f6f79",
+      "packageUID": 10150,
+      "activeIPv4Route": "10.0.2.2 dev eth0 table 1015 src 10.0.2.15 uid 2000 \n    cache",
+      "counters": {
+        "beforeControl": [
+          {
+            "rb": 0,
+            "rp": 0,
+            "tb": 0,
+            "tp": 0
+          },
+          0,
+          "9a5d6f5a203bec3bb6afb3e32b13ee11554d3c5193c7d32961e6e40c450afc22"
+        ]
+      },
+      "stage": "live-network positive control before app launch",
+      "error": "RuntimeError: ['shell', '-T', 'run-as dev.fieldlog.generatedr90 /system/bin/toybox nc -w 4 10.0.2.2 49664'] exited 1: b'nc: Timeout\\n'",
+      "services": [
+        {
+          "name": "emulator",
+          "argv": [
+            "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+            "-avd",
+            "mixer_picker_71u9gyq2",
+            "-ports",
+            "26042,26043",
+            "-no-window",
+            "-no-audio",
+            "-no-snapshot",
+            "-gpu",
+            "swiftshader_indirect",
+            "-no-boot-anim",
+            "-skin",
+            "1080x2400",
+            "-no-metrics",
+            "-partition-size",
+            "3072"
+          ],
+          "pid": 70332,
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "name": "adb",
+          "argv": [
+            "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+            "-L",
+            "tcp:localhost:26044",
+            "server",
+            "nodaemon"
+          ],
+          "pid": 70322,
+          "exit": -15,
+          "groupAbsent": true
+        }
+      ],
+      "portsRebound": [
+        26042,
+        26043,
+        26044,
+        49664
+      ],
+      "netstatsFormat": {
+        "before-control": {
+          "uidHeading": true,
+          "pendingHeading": true,
+          "uidRows": 23
+        }
+      },
+      "scratchRemoved": true,
+      "terminalCommands": 74,
+      "totalCommands": 74,
+      "finishedUTC": "2026-11-22T03:35:05.355371+00:00"
+    }
+  },
+  "installedReplay": {
+    "status": "PASS",
+    "startedUTC": "2026-11-22T03:36:03.845105+00:00",
+    "attempt": "attempt-2",
+    "apkSHA256": "f08f99a41cb97fc66b878daf03383432f932a2ea1e4587ad79284e5e858f6f79",
+    "runnerSHA256": "cb94b95f7050b066eb6625fafe6be03a2edae4279a96dc0fa440d34a80774f78",
+    "controlPort": 51176,
+    "device": {
+      "ro.boot.qemu.avd_name": "mixer_picker_qgg7a3ku",
+      "ro.build.version.sdk": "36",
+      "ro.product.cpu.abi": "arm64-v8a",
+      "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+    },
+    "seedSHA256": "87ae5f9f38d411c26f32cccab0d62bb0d5028607238b2423d0156e8efd9549da",
+    "installedBeforeSHA256": "f08f99a41cb97fc66b878daf03383432f932a2ea1e4587ad79284e5e858f6f79",
+    "packageUID": 10150,
+    "activeIPv4Route": "10.0.2.2 dev eth0 table 1015 src 10.0.2.15 uid 2000 \n    cache",
+    "counters": {
+      "beforeControl": [
+        {
+          "rb": 0,
+          "rp": 0,
+          "tb": 0,
+          "tp": 0
+        },
+        0,
+        "917b7382d991d1a8fddd86929e8349a6b49c1f6129fa4e2245ffcfbf2dfa521b"
+      ],
+      "beforeMap": [
+        {
+          "rb": 213,
+          "rp": 5,
+          "tb": 296,
+          "tp": 6
+        },
+        1,
+        "7c927bb3f52e7a3ea766521a6d6e38419596860a4ee4fb9db98fe209cccfbfb0"
+      ],
+      "afterMap": [
+        {
+          "rb": 213,
+          "rp": 5,
+          "tb": 296,
+          "tp": 6
+        },
+        1,
+        "61bbaa77af7fa3ff5a497eecfe06119c9c997b853e3fd7139f67dc5aca9e9813"
+      ],
+      "afterControl": [
+        {
+          "rb": 426,
+          "rp": 10,
+          "tb": 592,
+          "tp": 12
+        },
+        1,
+        "286d387d0bce40ee2e5477ba281f1fd1d578f252091d3c292eec36a177f11a3f"
+      ]
+    },
+    "transportControls": {
+      "appUIDBefore": {
+        "matched": true,
+        "ownedServerReceivedExpected": true,
+        "controlServerError": null,
+        "observedExit": 0,
+        "appUID": true
+      },
+      "appUIDAfter": {
+        "matched": true,
+        "ownedServerReceivedExpected": true,
+        "controlServerError": null,
+        "observedExit": 0,
+        "appUID": true
+      }
+    },
+    "permissionHierarchySHA256": "8787ed347f931b9034cc7e67a7dbad8d6d66debd2a82b1cdbda38396ed95a6c4",
+    "fixSummary": "Current position shown in blue. Northeast of the saved pin. Accuracy ±5.0 meters.",
+    "mapHierarchySHA256": "74906298e085b33296f75b161520caa73a45bf5baaa4d9369577e449ba22a75d",
+    "appLog": {
+      "pid": 2311,
+      "bytes": 24027,
+      "sha256": "8a098f82106e203697d813e3fcbb13aa1d908ce0b41b9825f18120fc60d6d289",
+      "matchedMarkerLabels": []
+    },
+    "finalWorkspaceSHA256": "87ae5f9f38d411c26f32cccab0d62bb0d5028607238b2423d0156e8efd9549da",
+    "installedAfterSHA256": "f08f99a41cb97fc66b878daf03383432f932a2ea1e4587ad79284e5e858f6f79",
+    "mapPacketAndByteDelta": {
+      "rb": 0,
+      "rp": 0,
+      "tb": 0,
+      "tp": 0
+    },
+    "services": [
+      {
+        "name": "emulator",
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+          "-avd",
+          "mixer_picker_qgg7a3ku",
+          "-ports",
+          "26042,26043",
+          "-no-window",
+          "-no-audio",
+          "-no-snapshot",
+          "-gpu",
+          "swiftshader_indirect",
+          "-no-boot-anim",
+          "-skin",
+          "1080x2400",
+          "-no-metrics",
+          "-partition-size",
+          "3072"
+        ],
+        "pid": 92060,
+        "exit": 0,
+        "groupAbsent": true
+      },
+      {
+        "name": "adb",
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+          "-L",
+          "tcp:localhost:26044",
+          "server",
+          "nodaemon"
+        ],
+        "pid": 92059,
+        "exit": -15,
+        "groupAbsent": true
+      }
+    ],
+    "portsRebound": [
+      26042,
+      26043,
+      26044,
+      51176
+    ],
+    "netstatsFormat": {
+      "before-control": {
+        "uidHeading": true,
+        "pendingHeading": true,
+        "uidRows": 23
+      },
+      "after-map": {
+        "uidHeading": true,
+        "pendingHeading": true,
+        "uidRows": 35
+      },
+      "before-map": {
+        "uidHeading": true,
+        "pendingHeading": true,
+        "uidRows": 36
+      },
+      "after-control": {
+        "uidHeading": true,
+        "pendingHeading": true,
+        "uidRows": 35
+      }
+    },
+    "scratchRemoved": true,
+    "terminalCommands": 116,
+    "totalCommands": 116,
+    "finishedUTC": "2026-11-22T03:37:06.989040+00:00"
+  }
+}

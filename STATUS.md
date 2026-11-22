@@ -2257,6 +2257,18 @@ guide specifies how to keep raw events inside the process. Installed iOS
 privacy remains open. [Source and scope review](verification/receipts/l07-hosted-privacy-boundary-d89c742e.json) ·
 [Operational boundary](docs/operations/security-boundaries.md#local-hosted-telemetry)
 
+The installed Android Site Map received a foreground synthetic fix with
+networking available. The app UID's packet and byte counters stayed
+unchanged between two TCP controls from the same UID. Both controls
+reached the owned loopback listener and advanced all four counters.
+The map reported direction and accuracy, retired the fix on close, and
+left the workspace byte-identical. The app-process log had no enrolled
+location markers. The first control timed out before launch. The passing
+run kept the ordinary dashboard active during both controls. The owned
+emulator, ADB and listener closed, and both runs removed their scratch.
+This covers the tested app UID and process log. L07 remains running.
+[Installed Site Map privacy](verification/receipts/l07-fieldlog-android-site-map-live-network-f08f99a4.json)
+
 An independent L07 audit at `e985e4650e` kept the gate running. The current
 Pair25 notices and stock hosted sink tests support their tested scopes.
 The remaining local evidence includes an integrated signer interruption
