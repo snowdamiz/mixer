@@ -1,0 +1,234 @@
+--- a/hosted/test/mixer_hosted/builds/native_attestation_attachment_test.exs
++++ b/hosted/test/mixer_hosted/builds/native_attestation_attachment_test.exs
+@@ -112,6 +112,9 @@
+           {20_261_025_000_003, Migrations.AddCustomerAuthorization, "add_customer_authorization"},
+           {20_261_025_000_004, Migrations.AddAuthorizationStateRevisions,
+            "add_authorization_state_revisions"},
++          {20_261_025_000_005, Migrations.AddCustomerArtifactStorage,
++           "add_customer_artifact_storage"},
++          {20_261_120_000_001, Migrations.AddLocalReleaseLedger, "add_local_release_ledger"},
+           {20_261_120_000_020, Migrations.AddNativeDevelopmentAttestations,
+            "add_native_development_attestations"}
+         ] do
+@@ -223,7 +226,7 @@
+     {port, path, signed} = go_sign!(c, b)
+     origin = "http://127.0.0.1:#{port}"
+ 
+-    jwt = start_bearer_fixture!(c.identity)
++    {jwt, _authority} = start_bearer_fixture!(c.identity)
+     token = bearer(jwt, c.identity, "mixer.build.attest")
+     public_path = Path.join(c.root, "trusted-public.pem")
+ 
+@@ -335,7 +338,7 @@
+   test "ordinary v3 human HTTP attaches the exact current V2 envelope once", c do
+     port = http_port!()
+     origin = "http://127.0.0.1:#{port}"
+-    jwt = start_bearer_fixture!(c.identity)
++    {jwt, _authority} = start_bearer_fixture!(c.identity)
+ 
+     prior = completed!(c.selection, retry: true)
+     stale = envelope(c, prior, origin: origin)
+@@ -452,6 +455,169 @@
+     )
+   end
+ 
++  @tag :ordinary_http
++  test "interrupted authenticated v3 attachment leaves release state intact and retry settles once",
++       c do
++    port = http_port!()
++    origin = "http://127.0.0.1:#{port}"
++    {jwt, tls} = start_bearer_fixture!(c.identity)
++    token = bearer(jwt, c.identity, "mixer.build.attest")
++    b = completed!(c.selection, retry: true)
++    retain!(c.root, b.operation, b.products)
++    signed = envelope(c, b, origin: origin)
++
++    sql("INSERT INTO public.mixer_authz_environments VALUES ('org-a','project','app','dev',true)")
++
++    sql("""
++    INSERT INTO public.mixer_release_heads
++      (organization_id,project_id,application_id,environment_id,platform,runtime_sha256,channel,writer_role)
++    VALUES ('org-a','project','app','dev','ios',repeat('5',64),'test','attestation_fixture_owner')
++    """)
++
++    start_http_api!(c, port, c.spki)
++    assert_login!(AttestationRepo, @writer)
++    assert writer_count() == 1
++
++    baseline = attachment_state(b)
++
++    head = [
++      "org-a",
++      "project",
++      "app",
++      "dev",
++      "ios",
++      String.duplicate("5", 64),
++      "test",
++      "attestation_fixture_owner",
++      nil
++    ]
++
++    assert baseline == {[], [[5, b.journal]], {[head], [[0, 0, 0]]}}
++
++    interrupt_upload!(port, c.selection, signed, token, fn ->
++      assert baseline == attachment_state(b)
++    end)
++
++    assert baseline == attachment_state(b)
++
++    assert_http(201, "attached", post(port, c.selection, signed, token))
++
++    {[], journal, release} = baseline
++    settled = {[[5, 2, b.operation, @binding, sha(c.spki), origin, signed]], journal, release}
++    assert attachment_state(b) == settled
++    assert_http(200, "duplicate", post(port, c.selection, signed, token))
++    assert attachment_state(b) == settled
++
++    stop_http_api!(port)
++    :ok = stop_supervised(KeyOwnerSupervisor)
++    stop_supervised!(TLSFixture)
++
++    for closed_port <- [port, tls.port] do
++      assert {:ok, reservation} =
++               :gen_tcp.listen(closed_port, ip: {127, 0, 0, 1}, reuseaddr: true)
++
++      assert :ok = :gen_tcp.close(reservation)
++    end
++
++    IO.puts(
++      "L07_ATTACHMENT_CUT " <>
++        Jason.encode!(%{
++          http_port: port,
++          tls_port: tls.port,
++          pre_cut_http: 100,
++          cut: "closed while reading partial body",
++          cut_prefix_bytes: div(byte_size(signed), 2),
++          attachment_rows_before_and_after_cut: [0, 0],
++          retry_http: 201,
++          replay_http: 200,
++          attachment_rows_after_retry_and_replay: [1, 1],
++          signed_sha256: sha(signed),
++          signed_bytes: byte_size(signed),
++          build_journal_revision: 5,
++          build_journal_unchanged: true,
++          release_head_unassigned_and_unchanged: true,
++          release_publications_artifacts_audit_rows: [0, 0, 0],
++          listeners_rebound: true
++        })
++    )
++  end
++
++  defp attachment_state(build) do
++    heads =
++      sql("""
++      SELECT organization_id,project_id,application_id,environment_id,platform,runtime_sha256,
++        channel,writer_role::text,sequence FROM public.mixer_release_heads
++      """).rows
++
++    release_rows =
++      sql("""
++      SELECT
++        (SELECT count(*) FROM public.mixer_release_publications),
++        (SELECT count(*) FROM public.mixer_customer_artifacts),
++        (SELECT count(*) FROM public.mixer_customer_audit_events)
++      """).rows
++
++    journal = sql("SELECT revision,journal FROM public.mixer_builds WHERE id=$1", [build.id]).rows
++    {stored(build), journal, {heads, release_rows}}
++  end
++
++  defp interrupt_upload!(port, selection, signed, token, pre_cut) do
++    tag = make_ref()
++    owner = self()
++    {path, target} = attachment_target(selection)
++
++    :ok =
++      :telemetry.attach(
++        tag,
++        [:bandit, :request, :stop],
++        fn _, _, metadata, _ ->
++          case metadata do
++            %{conn: %{method: "POST", request_path: ^path}, error: error} ->
++              send(owner, {tag, error})
++
++            _ ->
++              :ok
++          end
++        end,
++        nil
++      )
++
++    try do
++      {:ok, socket} =
++        :gen_tcp.connect({127, 0, 0, 1}, port, [:binary, active: false, packet: :line], 1_000)
++
++      try do
++        :ok =
++          :gen_tcp.send(socket, [
++            "POST ",
++            target,
++            " HTTP/1.1\r\n",
++            "host: 127.0.0.1:",
++            Integer.to_string(port),
++            "\r\n",
++            "authorization: Bearer ",
++            token,
++            "\r\n",
++            "content-type: application/json\r\n",
++            "content-length: ",
++            Integer.to_string(byte_size(signed)),
++            "\r\n",
++            "expect: 100-continue\r\nconnection: close\r\n\r\n"
++          ])
++
++        assert {:ok, "HTTP/1.1 100 Continue\r\n"} = :gen_tcp.recv(socket, 0, 750)
++        pre_cut.()
++        assert :ok = :gen_tcp.send(socket, binary_part(signed, 0, div(byte_size(signed), 2)))
++        assert :ok = :gen_tcp.shutdown(socket, :write)
++        assert_receive {^tag, "Unrecoverable error: closed"}, 1_500
++      after
++        :gen_tcp.close(socket)
++      end
++    after
++      :telemetry.detach(tag)
++    end
++  end
++
+   defp start_bearer_fixture!(identity) do
+     fixture = start_supervised!(TLSFixture)
+     authority = GenServer.call(fixture, :authority)
+@@ -491,7 +657,7 @@
+       start: {KeyOwnerSupervisor, :start_fixture, [opts]}
+     })
+ 
+-    key
++    {key, authority}
+   end
+ 
+   defp bearer(key, identity, scope) do
+@@ -579,6 +745,13 @@
+   end
+ 
+   defp post(port, selection, bytes, token, media \\ "application/json") do
++    {_path, target} = attachment_target(selection)
++    headers = [{"content-type", media}, {"content-length", Integer.to_string(byte_size(bytes))}]
++    headers = if token, do: [{"authorization", "Bearer " <> token} | headers], else: headers
++    Wire.http(%{http_port: port}, target, headers, "POST", bytes)
++  end
++
++  defp attachment_target(selection) do
+     s = selection
+ 
+     path =
+@@ -589,9 +762,7 @@
+         Map.take(s, [:source_sha256, :toolchain_lock_sha256, :build_definition_sha256])
+       )
+ 
+-    headers = [{"content-type", media}, {"content-length", Integer.to_string(byte_size(bytes))}]
+-    headers = if token, do: [{"authorization", "Bearer " <> token} | headers], else: headers
+-    Wire.http(%{http_port: port}, path <> "?" <> query, headers, "POST", bytes)
++    {path, path <> "?" <> query}
+   end
+ 
+   defp assert_http(status, value, result) do

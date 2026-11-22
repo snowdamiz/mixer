@@ -1,0 +1,172 @@
+{
+  "schema": 1,
+  "gate": "L07",
+  "status": "passed_scoped_stock_v3_attachment_transport_cut",
+  "recordedUTC": "2026-11-22T21:38:23.518353+00:00",
+  "source": {
+    "revision": "b25470d8b4bf0802743a4bb60fae34c0bf842981",
+    "tree": "4ab80f29760c29acd9618b30d3fba5aaa1482f73",
+    "hostedTree": "ac22272afdbf5efd3e55d3547cd214346b7851ff",
+    "mixLockBlob": "8ec53f2ed93a77d501d772c34f14aec6d57e247e",
+    "test": "hosted/test/mixer_hosted/builds/native_attestation_attachment_test.exs",
+    "originalTestBlob": "5fe6597a9e6e7435195aac6addd3d8fc8c56bb15",
+    "testedTestSHA256": "662a644a4b2db68220bc354e2f5cff1928a818885fee802f50772e2da206783f",
+    "patch": "verification/receipts/l07-managed-attachment-prepublication-b25470d8.patch",
+    "patchSHA256": "40755041c1cf034a04a3e3c521da82d481bbaced56a50f4ce1453d6ba0125359",
+    "patchAppliedAndBytesMatched": true,
+    "productEdits": false
+  },
+  "tools": {
+    "platform": "macOS 27.0.1 (26A434) arm64",
+    "git": "2.56.0",
+    "elixir": "1.20.4",
+    "erlang": "OTP 29 / ERTS 17.1",
+    "python": "3.14.8",
+    "postgres": "17.11 Homebrew",
+    "bandit": "1.14.1",
+    "phoenix": "1.8.17",
+    "openssl": "LibreSSL 3.3.6"
+  },
+  "scope": {
+    "service": "Stock Phoenix/Bandit application with builds_v1 profile, restricted PostgreSQL reader/writer roles and real authenticated POST /v3/orgs/:organization/projects/:project/apps/:app/builds/:build/ios/native-development-attestation. The build journal, admission and three retained native product files were seeded by the existing fixture.",
+    "key": "Fresh in-memory Ed25519 fixture key signed one V2 envelope per test. The public SPKI was admitted by the stock loopback attachment configuration. The bearer token was minted by the owned TLS/JWKS fixture.",
+    "boundary": "HTTP 100 Continue was observed after the bearer pipeline and controller transport checks began the body read. The database baseline was read while the request was open. The client sent 642 of 1,285 envelope bytes and half-closed its write side. Bandit reported Unrecoverable error: closed for that exact POST before the complete body could reach the persistence path.",
+    "persistence": "The same build record and revision-5 journal, exact unassigned OTA head, and zero release publications, OTA artifact rows or customer audit rows were observed pre-cut, post-cut, after HTTP 201 and after HTTP 200. The PostgreSQL attachment rows changed from zero to one only after the full authorized retry. The one row matched the full signed envelope, operation, revision, attempt, binding, public key and origin, and replay preserved its bytes.",
+    "isolation": "Fresh per-attempt PostgreSQL clusters used only one owned Unix socket directory and no TCP bind. Phoenix and TLS used ephemeral loopback listeners. Dependencies were resolved offline from exact locally cached Hex packages into copied tool homes. No Xcode, device, external service, prior keys, product edits or shared service ran."
+  },
+  "attempts": [
+    {
+      "trial": 1,
+      "log": {
+        "bytes": 4563,
+        "sha256": "d35700c1660cdd3ea237d6ad5c321dbec42647d8c310c91afa252fa0d9f7749c",
+        "summary": "Result: 0/1 passed, 15 excluded"
+      },
+      "observation": "Reached 100 Continue but fixture incorrectly expected no interim headers. No partial body or retry was sent. Fixture process and PostgreSQL exited with group absence. TLS fixture reported zero active sockets and one peer closure. Failed-attempt listener port numbers were not captured for individual rebind.",
+      "excerpt": [
+        "     match (=) failed",
+        "     The following variables were pinned:",
+        "       interim = \"HTTP/1.1 100 Continue\\r\\n\\r\\n\"",
+        "     code:  assert {:ok, ^interim} = :gen_tcp.recv(socket, byte_size(interim), 750)",
+        "     left:  {:ok, ^interim}",
+        "     right: {:ok, \"HTTP/1.1 100 Continue\\r\\nda\"}",
+        "     stacktrace:",
+        "       test/mixer_hosted/builds/native_attestation_attachment_test.exs:592: MixerHosted.Builds.NativeAttestationAttachmentTest.interrupt_upload!/5"
+      ]
+    },
+    {
+      "trial": 2,
+      "log": {
+        "bytes": 4348,
+        "sha256": "db6622e0219900e82ae3596542859ac3d468fc7290fcf7b72f62aa28d6681927",
+        "summary": "Result: 1 passed, 15 excluded"
+      },
+      "harnessObservation": {
+        "cut": "closed while reading partial body",
+        "http_port": 55260,
+        "tls_port": 55262,
+        "pre_cut_http": 100,
+        "cut_prefix_bytes": 642,
+        "attachment_rows_before_and_after_cut": [
+          0,
+          0
+        ],
+        "retry_http": 201,
+        "replay_http": 200,
+        "attachment_rows_after_retry_and_replay": [
+          1,
+          1
+        ],
+        "signed_sha256": "e2b4fdc1fce14b69650b7be725bab9b029836049e4bb7bfbccae26b6a725262f",
+        "signed_bytes": 1285,
+        "build_journal_revision": 5,
+        "build_journal_unchanged": true,
+        "release_head_unassigned_and_unchanged": true,
+        "release_publications_artifacts_audit_rows": [
+          0,
+          0,
+          0
+        ],
+        "listeners_rebound": true
+      },
+      "tlsLifecycle": [
+        "  * test interrupted authenticated v3 attachment leaves release state intact and retry settles once [L#459]TLSFixture lifecycle: %{active: 0, requests: 1, accepted: 1, terminal_results: [%{outcome: :peer_closed, stage: :peer_close, unexpected_bytes: 0}], peer_closed: 1}"
+      ]
+    },
+    {
+      "trial": 3,
+      "log": {
+        "bytes": 4669,
+        "sha256": "cfc011f1110b4cfae121e9602b838d0dbfd626b0f30f5b01ac17dd0bd15a7da9",
+        "summary": "Result: 14 passed, 2 skipped"
+      },
+      "harnessObservation": {
+        "cut": "closed while reading partial body",
+        "http_port": 55703,
+        "tls_port": 55704,
+        "pre_cut_http": 100,
+        "cut_prefix_bytes": 642,
+        "attachment_rows_before_and_after_cut": [
+          0,
+          0
+        ],
+        "retry_http": 201,
+        "replay_http": 200,
+        "attachment_rows_after_retry_and_replay": [
+          1,
+          1
+        ],
+        "signed_sha256": "30af15a455597df9e696a23a489a1374c82790bc00bfc466877ddfedc9886adb",
+        "signed_bytes": 1285,
+        "build_journal_revision": 5,
+        "build_journal_unchanged": true,
+        "release_head_unassigned_and_unchanged": true,
+        "release_publications_artifacts_audit_rows": [
+          0,
+          0,
+          0
+        ],
+        "listeners_rebound": true
+      },
+      "tlsLifecycle": [
+        "TLSFixture lifecycle: %{active: 0, requests: 1, accepted: 1, terminal_results: [%{outcome: :peer_closed, stage: :peer_close, unexpected_bytes: 0}], peer_closed: 1}",
+        "  * test interrupted authenticated v3 attachment leaves release state intact and retry settles once [L#459]TLSFixture lifecycle: %{active: 0, requests: 1, accepted: 1, terminal_results: [%{outcome: :peer_closed, stage: :peer_close, unexpected_bytes: 0}], peer_closed: 1}"
+      ]
+    }
+  ],
+  "custody": {
+    "commandObservations": [
+      {"name":"archive","argv":["/usr/bin/git","-C","/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow","archive","--format=tar","-o","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/source.tar","b25470d8b4bf0802743a4bb60fae34c0bf842981","hosted"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5","pid":76710,"pgid":76710,"wait":0,"reaped":true,"groupAbsent":true,"seconds":0.815},
+      {"name":"deps-get","argv":["mix","deps.get","--only","test"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/source/hosted","pid":76773,"pgid":76773,"wait":0,"reaped":true,"groupAbsent":true,"seconds":2.624},
+      {"name":"compile","argv":["mix","compile"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/source/hosted","pid":77151,"pgid":77151,"wait":0,"reaped":true,"groupAbsent":true,"seconds":25.579},
+      {"name":"initdb","argv":["initdb","-D","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/pg","-U","mixer_attestation_fixture_admin","--no-locale","--encoding=UTF8","--auth=trust"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5","pid":85784,"pgid":85784,"wait":0,"reaped":true,"groupAbsent":true,"seconds":0.784},
+      {"name":"format","argv":["mix","format","test/mixer_hosted/builds/native_attestation_attachment_test.exs"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/source/hosted","pid":6868,"pgid":6868,"wait":0,"reaped":true,"groupAbsent":true,"seconds":0.646},
+      {"name":"postgres","argv":["postgres","-D","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/pg","-h","","-k","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/sock","-p","5432","-c","unix_socket_permissions=0700"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5","pid":6933,"pgid":6933,"wait":0,"reaped":true,"groupAbsent":true,"seconds":4.187},
+      {"name":"pg-ready-1","argv":["pg_isready","-q","-h","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/sock","-p","5432"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5","pid":6934,"pgid":6934,"wait":2,"reaped":true,"groupAbsent":true,"seconds":0.039},
+      {"name":"pg-ready-2","argv":["pg_isready","-q","-h","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/sock","-p","5432"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5","pid":6945,"pgid":6945,"wait":0,"reaped":true,"groupAbsent":true,"seconds":0.04},
+      {"name":"createdb","argv":["createdb","-h","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/sock","-U","mixer_attestation_fixture_admin","mixer_native_attestation_fixture"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5","pid":6947,"pgid":6947,"wait":0,"reaped":true,"groupAbsent":true,"seconds":0.182},
+      {"name":"fixture","argv":["mix","test","test/mixer_hosted/builds/native_attestation_attachment_test.exs:459","--seed","0","--trace"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/source/hosted","pid":6958,"pgid":6958,"wait":2,"reaped":true,"groupAbsent":true,"seconds":3.432},
+      {"trial":"2","name":"format","argv":["mix","format","test/mixer_hosted/builds/native_attestation_attachment_test.exs"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/source/hosted","pid":14445,"pgid":14445,"wait":0,"reaped":true,"groupAbsent":true,"seconds":0.408},
+      {"trial":"2","name":"initdb","argv":["initdb","-D","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/pg-2","-U","mixer_attestation_fixture_admin","--no-locale","--encoding=UTF8","--auth=trust"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5","pid":14504,"pgid":14504,"wait":0,"reaped":true,"groupAbsent":true,"seconds":0.62},
+      {"trial":"2","name":"postgres","argv":["postgres","-D","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/pg-2","-h","","-k","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/sock","-p","5432","-c","unix_socket_permissions=0700"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5","pid":14545,"pgid":14545,"wait":0,"reaped":true,"groupAbsent":true,"seconds":2.465},
+      {"trial":"2","name":"pg-ready-1","argv":["pg_isready","-q","-h","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/sock","-p","5432"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5","pid":14546,"pgid":14546,"wait":1,"reaped":true,"groupAbsent":true,"seconds":0.022},
+      {"trial":"2","name":"pg-ready-2","argv":["pg_isready","-q","-h","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/sock","-p","5432"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5","pid":14564,"pgid":14564,"wait":0,"reaped":true,"groupAbsent":true,"seconds":0.021},
+      {"trial":"2","name":"createdb","argv":["createdb","-h","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/sock","-U","mixer_attestation_fixture_admin","mixer_native_attestation_fixture"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5","pid":14567,"pgid":14567,"wait":0,"reaped":true,"groupAbsent":true,"seconds":0.078},
+      {"trial":"2","name":"fixture","argv":["mix","test","test/mixer_hosted/builds/native_attestation_attachment_test.exs:459","--seed","0","--trace"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/source/hosted","pid":14573,"pgid":14573,"wait":0,"reaped":true,"groupAbsent":true,"seconds":2.112},
+      {"trial":"3","name":"format","argv":["mix","format","test/mixer_hosted/builds/native_attestation_attachment_test.exs"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/source/hosted","pid":21606,"pgid":21606,"wait":0,"reaped":true,"groupAbsent":true,"seconds":0.813},
+      {"trial":"3","name":"initdb","argv":["initdb","-D","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/pg-3","-U","mixer_attestation_fixture_admin","--no-locale","--encoding=UTF8","--auth=trust"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5","pid":21711,"pgid":21711,"wait":0,"reaped":true,"groupAbsent":true,"seconds":0.913},
+      {"trial":"3","name":"postgres","argv":["postgres","-D","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/pg-3","-h","","-k","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/sock","-p","5432","-c","unix_socket_permissions=0700"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5","pid":21816,"pgid":21816,"wait":0,"reaped":true,"groupAbsent":true,"seconds":7.326},
+      {"trial":"3","name":"pg-ready-1","argv":["pg_isready","-q","-h","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/sock","-p","5432"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5","pid":21817,"pgid":21817,"wait":1,"reaped":true,"groupAbsent":true,"seconds":0.043},
+      {"trial":"3","name":"pg-ready-2","argv":["pg_isready","-q","-h","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/sock","-p","5432"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5","pid":21836,"pgid":21836,"wait":0,"reaped":true,"groupAbsent":true,"seconds":0.04},
+      {"trial":"3","name":"createdb","argv":["createdb","-h","/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/sock","-U","mixer_attestation_fixture_admin","mixer_native_attestation_fixture"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5","pid":21839,"pgid":21839,"wait":0,"reaped":true,"groupAbsent":true,"seconds":0.077},
+      {"trial":"3","name":"fixture","argv":["mix","test","test/mixer_hosted/builds/native_attestation_attachment_test.exs","--seed","0","--trace"],"cwd":"/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5/source/hosted","pid":21847,"pgid":21847,"wait":0,"reaped":true,"groupAbsent":true,"seconds":6.88}
+    ],
+    "closeMethod": "Each command started its own session with stdin redirected and output file descriptors closed by the parent after launch. Recorded direct-child wait and killpg(pgid, 0) ESRCH for each. Each foreground Postgres used exact-child SIGINT, exit 0 and verified private socket absence. Successful cut tests explicitly stopped and rebound the owned Phoenix and TLS ports.",
+    "postgresUnixSocketAbsentAfterEachTrial": true,
+    "sampledOwnedScratchKiB": 196532,
+    "ownedScratchPath": "/private/tmp/mixer-l07-prepub-819e3bc6.TFh3Zti5",
+    "cleanup": "Owned scratch removed and exact path verified absent after closure"
+  },
+  "remaining": "The stock standalone Go signer process was not run inside the live managed build/worker topology. Its Darwin ACL check requires cgo and a permitted compiler or an independently provided admitted binary. This test cut the attachment upload after a fixture signature, before persistence. Signer death during managed artifact reads or local envelope publication, live worker/processor interruption, and concurrent signer/worker key custody remain open.",
+  "localGatesPassed": []
+}
