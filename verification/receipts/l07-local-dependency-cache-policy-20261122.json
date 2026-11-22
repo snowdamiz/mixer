@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "gate": "L07",
+  "revision": "0cfa84940a3bd3d34106eeae9574ace8f417cf45",
+  "status": "scoped-policy-and-inert-tests-pass",
+  "scope": "Stock operator-registered local native dependency policy and tool invocation boundary.",
+  "sourcesSHA256": {
+    "tests/integration/free-project-starter/prepare-starter.py": "b751187ba1fe77a7cb884f81470b3dbc767dfcac5acf365df58e57ac4bfe7d75",
+    "hosted/priv/development/native_artifact_worker.py": "cda01bdfb28a4d2001aeb93a138237ff8eaf93a35707c73d88851710db24bf63",
+    "cli/Sources/MixerBuild/AppleProject.swift": "d7c0fc70c8c9cb6c5a7f0ca52e92f460c8de52820df2b1a85417b213e496b6b1",
+    "cli/Sources/MixerBuild/NativeBuildOutput.swift": "8356ddda5c9d3420e5ac7be642ce109c495864527c1e9ba8f31a21076ef488e4",
+    "cli/Sources/MixerBuild/AndroidBuildOutput.swift": "e3657c3402479f0e84b1f285e1313219b5ac0d4570f7a4846043f6457876abe2",
+    "cli/Sources/MixerBuild/Resources/android-build.py": "d84af218e2c941677ba766c0535fd64c5a465709396028fea19a6ab26cfd4ecd",
+    "hosted/priv/development/linux_android_runner_cli.py": "2ee432f6adc81c4be919ff972fa916350ae29dca2bb4b72ea8325d01761bfa02",
+    "hosted/priv/development/linux_android_docker_adapter.py": "ec9c71864a39c747d17e2a62dd5f2358f1c89eb764d3dfbdb1cdb75d2ec03198",
+    "hosted/priv/development/linux_android_pair25_layout.py": "c659305643ff5da909eb6818495b628b036d691749e8a3f15a52b634e0c5a2fc",
+    "tests/integration/managed-android-local-linux-pair25/test_managed_layout.py": "b78e57a5c2b981075e931de744ea65e85720aa6b39010dd4fec630e21b07b90e"
+  },
+  "reviewTask": "l07-supported-local-dependency-cache-0cfa84940a",
+  "reviewObservations": {
+    "ios": "Verified vendored dependency bytes in a per-job copy. The CLI supplies job-local DerivedData and SourcePackages. Xcode receives per-job TMPDIR and CFFIXED_USER_HOME.",
+    "androidMac": "The worker verifies the common bare mirrors. File-only resolution and private SwiftPM scratch, cache, config and security paths are configured.",
+    "androidLinuxPair25": "Pinned common toolchain and mirror inputs mount read-only. The container has private tmpfs work and temp, and its operation has a distinct delivery bind.",
+    "controls": "Two private workspace paths on each platform, two Android driver invocations with inert tooling, and two Pair25 command layouts. Runner configurations reject a dependency_cache field.",
+    "scratchRemoved": true
+  },
+  "localReplay": {
+    "command": "python3.14 -B -m unittest discover -s tests/integration/managed-android-local-linux-pair25 -p test_managed_layout.py",
+    "python": "3.14.8",
+    "testsPassed": 11
+  },
+  "scopeLimit": "Actual Xcode cache writes, SwiftPM consumption, and Docker mount readback during ordinary jobs are pending. The two-tenant fixture used synthetic CLI outputs."
+}

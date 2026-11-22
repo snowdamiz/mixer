@@ -3338,6 +3338,8 @@ The exercised worker has no shared build-result cache. Both operations
 stopped, the owned groups closed, and scratch was removed.
 [Two-tenant worker replay](verification/receipts/l07-local-worker-two-tenant-995eede.json)
 
+The stock operator-registered workers expose no selectable writable dependency cache shared across jobs. The iOS Starter uses a verified per-job copy of vendored dependencies. Android's local paths use admitted common inputs and private job paths. Pair25 command tests passed and placed common toolchain and mirror inputs on read-only mounts, with distinct writable delivery binds. Actual Xcode and SwiftPM cache use and container mount readback across two ordinary jobs remain pending. [Dependency policy and controls](verification/receipts/l07-local-dependency-cache-policy-20261122.json)
+
 The live attachment recovery fixture settled one real unsigned iOS
 Starter build. After one signature, Phoenix selected HTTP 201 and
 the fixture shut down the connection before writing the response.
