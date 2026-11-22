@@ -1,0 +1,215 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "scope": "Synthetic FieldLog account through actual Android browser and Activity callbacks on disposable ARM64 API 36",
+  "fieldLogTree": "000c3321f7c1d63160b31fbedb3f1f14554e658b",
+  "priorInstalledEvidence": "verification/receipts/fieldlog-android-account-active-expiry-api36-000c3321.json",
+  "fault": "The loopback service completed the real SQLite transaction and then deliberately closed the response before sending headers.",
+  "attempts": [
+    {
+      "status": "failed",
+      "stage": "committed exchange reply lost",
+      "runnerSHA256": "324fdb244763014d42c66cad02c2b6901f8fca168c5f92758d716c24f374e9d4",
+      "replyDecisions": [
+        [
+          "POST",
+          "/v1/auth/exchange",
+          200,
+          "dropped_before_headers"
+        ]
+      ],
+      "commands": 79,
+      "terminalCommands": 79,
+      "scratchRemoved": true,
+      "portsRebound": [
+        26042,
+        26043,
+        26044,
+        8765
+      ],
+      "rawReceiptSHA256": "4152ed168b22e562a325a735c503994811f764976658c2a614b9414f0c749c39",
+      "observation": "The committed exchange reply was dropped. FieldLog returned to the ordinary sign-in screen, so the driver's expected Retry screen was incorrect."
+    },
+    {
+      "status": "failed",
+      "stage": "fresh process and committed confirmation reply lost",
+      "runnerSHA256": "058ebf978eea884f4f47492b7d896fb787e0df213b01b76f15f121e5ec16d835",
+      "replyDecisions": [
+        [
+          "POST",
+          "/v1/auth/exchange",
+          200,
+          "dropped_before_headers"
+        ],
+        [
+          "POST",
+          "/v1/auth/exchange",
+          200,
+          "sent"
+        ],
+        [
+          "GET",
+          "/v1/account/session",
+          200,
+          "dropped_before_headers"
+        ],
+        [
+          "GET",
+          "/v1/account/session",
+          200,
+          "sent"
+        ]
+      ],
+      "commands": 105,
+      "terminalCommands": 105,
+      "scratchRemoved": true,
+      "portsRebound": [
+        26042,
+        26043,
+        26044,
+        8765
+      ],
+      "rawReceiptSHA256": "3021b9b9b38ec69f1c39fa27b083e7f14ab196a41dfd852bddd15af195984fac",
+      "observation": "The transport retried after one dropped confirmation reply and the account workspace opened. The driver therefore did not exercise manual Retry or finish its bearer comparison."
+    },
+    {
+      "status": "passed",
+      "apkSHA256": "5ac83bb051ef97a047429ea9a006d2a43dcc90a1580e08ce8cd60753fd90e38b",
+      "checks": [
+        "Exact APK installed and private loopback connected",
+        "Ordinary workspace opened and account workspace stayed unmounted at welcome",
+        "The lost committed exchange left one provisional backend session and no local account workspace or credential",
+        "A fresh process started a new browser exchange. Confirmation committed on the server while the app stayed unmounted",
+        "Retry used the same bearer, confirmed the exact scope, and opened its workspace",
+        "The confirmed session revoked and both workspace files remained byte-identical"
+      ],
+      "backendBlob": "b6debbc45f8ab96360d2d494e376d80ea5f6abf7",
+      "authRoutes": [
+        [
+          "POST",
+          "/v1/auth/exchange",
+          200
+        ],
+        [
+          "GET",
+          "/v1/account/session",
+          200
+        ],
+        [
+          "DELETE",
+          "/v1/account/session",
+          200
+        ]
+      ],
+      "browserPosts": [
+        303,
+        303
+      ],
+      "replyDecisions": [
+        [
+          "POST",
+          "/v1/auth/exchange",
+          200,
+          "dropped_before_headers"
+        ],
+        [
+          "POST",
+          "/v1/auth/exchange",
+          200,
+          "sent"
+        ],
+        [
+          "GET",
+          "/v1/account/session",
+          200,
+          "dropped_before_headers"
+        ],
+        [
+          "GET",
+          "/v1/account/session",
+          200,
+          "dropped_before_headers"
+        ],
+        [
+          "GET",
+          "/v1/account/session",
+          200,
+          "sent"
+        ],
+        [
+          "DELETE",
+          "/v1/account/session",
+          200,
+          "sent"
+        ]
+      ],
+      "device": {
+        "ro.boot.qemu.avd_name": "mixer_picker_qgeu01tf",
+        "ro.build.version.sdk": "36",
+        "ro.product.cpu.abi": "arm64-v8a",
+        "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+      },
+      "browserPackage": "org.chromium.webview_shell",
+      "browserCallbackCount": 2,
+      "confirmationRetriedWithSameBearer": true,
+      "droppedConfirmationReplyCount": 2,
+      "firstPID": 2345,
+      "secondPID": 2795,
+      "accountWorkspaceSHA256": "f9a4db5ace3b20e248d029d83bcb68bc8ca5de0296f27dc8ea056ae6d6a42b75",
+      "ordinaryWorkspaceSHA256": "233b18b96a08df862370340830bec87a1f3196de967330d51506b192d97abc49",
+      "installedAPKReadback": "5ac83bb051ef97a047429ea9a006d2a43dcc90a1580e08ce8cd60753fd90e38b",
+      "sealedCredentialBytes": 291,
+      "services": [
+        {
+          "name": "emulator",
+          "argv": [
+            "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+            "-avd",
+            "mixer_picker_qgeu01tf",
+            "-ports",
+            "26042,26043",
+            "-no-window",
+            "-no-audio",
+            "-no-snapshot",
+            "-gpu",
+            "swiftshader_indirect",
+            "-no-boot-anim",
+            "-skin",
+            "1080x2400"
+          ],
+          "pid": 35460,
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "name": "adb",
+          "argv": [
+            "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+            "-L",
+            "tcp:localhost:26044",
+            "server",
+            "nodaemon"
+          ],
+          "pid": 35459,
+          "exit": -15,
+          "groupAbsent": true
+        }
+      ],
+      "portsRebound": [
+        26042,
+        26043,
+        26044,
+        8765
+      ],
+      "scratchRemoved": true,
+      "commands": 119,
+      "terminalCommands": 119,
+      "runnerSHA256": "c092bb68f10dbf205cbfe69558c3f6a490bb917b4070a7a80de49803878e9ef2",
+      "rawReceiptSHA256": "077dadc24dc4d5b33fa4944effc9ee1500ddf0f81ac52b57405b17ffe84d383b"
+    }
+  ],
+  "limits": [
+    "A single prebound synthetic account and the existing local account backend. Account recovery and deletion were not exercised.",
+    "No bearer values or proof codes are retained in this receipt. Equality was checked in the live test."
+  ]
+}

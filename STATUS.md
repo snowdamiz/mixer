@@ -1536,6 +1536,17 @@ Welcome. The corrected API 36 build kept the expiry reason and displayed
 byte-identical, and ordinary online cold restore and sign-out still passed.
 [Active Android account expiry](verification/receipts/fieldlog-android-account-active-expiry-api36-000c3321.json)
 
+The same signed Android build recovered after two kinds of response
+loss through the actual browser callback. Losing the exchange reply
+returned to sign-in with one provisional server session and without an
+account workspace mount or saved credential. A fresh sign-in confirmed
+a new session. The transport retried a single lost confirmation reply
+automatically. Holding the fault through that retry exposed **Retry**,
+which reused the same bearer and opened the exact workspace when the
+service replied. Sign-out revoked the confirmed session, and both
+workspace files retained their original bytes.
+[Android account reply loss](verification/receipts/fieldlog-android-account-lost-replies-api36-000c3321.json)
+
 The FieldLog local recovery backend passed a fresh fixed-port replay.
 A one-use operator code and explicit browser approval allow the client
 to replace a lost sign-in proof. Recovery revokes prior sessions and
@@ -3101,6 +3112,14 @@ Wasm digest. Cancel kept the seed bytes, and Save appended one task and
 one matching outbox event. Both emulator attempts closed. The first
 driver compared the two digest fields and stopped before Cancel.
 [Exact historical Android F06 replay](verification/receipts/fieldlog-f06-android-exact-editor-api36-7fa6b6ea.json)
+
+Both archived F06 Saving controls passed on signed API 36 ARM64 fixture
+APKs. Native Add reached revision and input sequence 2. The absent variant
+and the revision-3 presentation refusal each recorded one terminal event
+and zero workspace write attempts. The first Back dismissed the keyboard.
+The second retired the Android owner, and a cold process read the original
+workspace bytes. Both disposable test environments closed.
+[Installed F06 Saving refusals](verification/receipts/fieldlog-f06-android-saving-refusals-api36-c8a27e36.json)
 
 A free owner completed current membership edits, usage and quota checks, support, export, and organization deletion in Chrome against Phoenix and PostgreSQL. One organization stayed isolated from the other. Two earlier role edits returned 503 during the member page load. Exit with settled build history remains open. [Free-owner administration](verification/receipts/l06-owner-admin-browser-e3c1f6c65c.json)
 

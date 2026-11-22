@@ -31,4 +31,15 @@ linking and sealing. The historical compiler object output path affects
 the last 16 bytes in `.swift_modhash`. The source and toolchain pins
 and the installed candidate readback are recorded in the
 [exact replay receipt](../../../verification/receipts/fieldlog-f06-android-exact-editor-api36-7fa6b6ea.json).
-Burst input and the negative Saving variants remain open on Android.
+Apply the [absent Saving patch](f06-absent-saving.patch.b64) or the
+[rejected Saving patch](f06-rejected-saving.patch.b64) over the
+historical-payload composition. Use the matching archived guest and a
+fresh development seal. The signed API 36 replay requires native Add at
+revision and input sequence 2, one terminal event, zero workspace write
+attempts and an unchanged workspace after cold launch. The rejected
+variant must record refusal of revision 3. When the keyboard is visible,
+the first Back dismisses it and the second retires the Activity owner.
+The [Saving controls receipt](../../../verification/receipts/fieldlog-f06-android-saving-refusals-api36-c8a27e36.json)
+records both exact payloads and the installed readbacks.
+
+Burst input and broader IME composition remain open for this fixture.
