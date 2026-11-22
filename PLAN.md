@@ -23,7 +23,7 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## Continuation checkpoint, November 22, 2026
 
-The closed iOS Starter build and cross-cluster restore already passed. The separate replay for combining active iOS worker loss with ongoing signed delivery now has an offline-built CLI and an admitted Starter export. The staged source and lock match the earlier live iOS recovery fixture. [Settled Starter restore](verification/receipts/l07-starter-settled-restore-20261120.json) · [Offline stage](verification/receipts/l07-starter-offline-stage-20261122.json)
+A real iOS Starter build settled on the original operation after its worker stopped. The stock signed release origin returned identical offer and artifact bodies before the cut, while the worker port refused connections, and after settlement. [Combined iOS outage](verification/receipts/l07-ios-combined-worker-loss-delivery-20261122.json) · [Settled Starter restore](verification/receipts/l07-starter-settled-restore-20261120.json)
 
 The fresh FieldLog iOS resume run supplied six installed updater requests across baseline, interruption, and resume. The relay saw no enrolled workspace markers, checked credential headers, or declared body framing in its parsed request fields. [Installed request privacy](verification/receipts/l07-fieldlog-ios-updater-request-privacy-20261122.json)
 
