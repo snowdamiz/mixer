@@ -1592,6 +1592,18 @@ fixture admitted the account. All three runs preserved the workspace
 files and the peer service data.
 [Controlled session clock replay](verification/receipts/fieldlog-account-wall-clock-lag-cfaa8410.json)
 
+The clock correction waits once when a fresh receipt appears up to two
+seconds over its lifetime limit. It then checks the same receipt under
+the original limit and checks cancellation and owner generation.
+The macOS replay admitted one-second lag at exchange, confirmation, and
+both stages while preserving the returned expiry. Larger lag, expired
+receipts and stale owners were refused. The generic iPhoneOS app linked.
+On API 36, one run verified recovery acknowledgement with the default
+lifetimes. The next browser form did not appear. A fresh run verified
+Cancel after the service committed, cold sign-in with the preserved
+replacement code, and sign-out. Both app candidates remain unadopted.
+[Clock correction evidence](verification/receipts/fieldlog-account-clock-correction-bd0b37cf.json)
+
 The corrected Android Activity counts foreground time while cold account
 startup waits for the previous workspace owner. The old Activity exhausted
 the budget during a synthetic 90-second pause. The new Activity restored
@@ -3209,6 +3221,14 @@ composition and its enclosing batch before delivering an editor action.
 Cancel retired the owner and preserved the workspace byte for byte.
 [Stock F06 keyboard baseline](verification/receipts/fieldlog-f06-android-stock-ime-api36-7fa6b6ea.json)
 
+The composing candidate accepted **P** from LatinIME on two fresh API 36
+runs. The title echo committed at revision 2, and **Add** saved one task
+and one outbox event. Both journals closed the effects attempt. The
+first run lacked the installed-owner retirement marker, and the second
+reported retirement unconfirmed after Activity replacement. Cold Save
+readback remains open. Both disposable environments closed.
+[Stock F06 composing candidate](verification/receipts/fieldlog-f06-android-latinime-save-retirement-d92cb15a.json)
+
 A free owner completed current membership edits, usage and quota checks, support, export, and organization deletion in Chrome against Phoenix and PostgreSQL. One organization stayed isolated from the other. Two earlier role edits returned 503 during the member page load. Exit with settled build history remains open. [Free-owner administration](verification/receipts/l06-owner-admin-browser-e3c1f6c65c.json)
 
 An owned API 36 emulator completed the ordinary FieldLog task conflict. After a 409 response, the user kept the local title **Inspect valve today** and the peer assignee **Morgan**. Both replicas reached version 3, each kept four prior outbox rows, and the final offline cold reopen preserved the Android workspace byte for byte. The earlier iOS replay reached the same task outcome with a separate workspace. [Android conflict receipt](verification/receipts/fieldlog-android-ordinary-task-conflict-41a05264.json)
@@ -3386,7 +3406,16 @@ A free project owner selected a verified iOS starter from the build console. Aft
 
 Both FieldLog recipes replayed from pinned public sources. The iOS 27 Simulator passed four tests across an in-place upgrade and cold reopen. On macOS, the Android consumer resumed the queued JPEG after cancel and owner close and reconciled a lost acknowledgment without sending more chunks. The unsigned arm64 APK cross-build passed. [Installed upgrade](verification/receipts/fieldlog-ios-installed-upgrade-public-replay-41a05264.json) · [Android queue](verification/receipts/fieldlog-android-queue-public-replay-41a05264.json)
 
-At 180 dpi on API 36 the system status bar covered the signed task-reorder fixture’s baseline button. Two taps left the app at Ready. The default-density run stopped before a baseline tap, and its emulator and private ADB remain held. The Android reorder is unverified. [Native observation](verification/receipts/fieldlog-android-signed-row-insets-41a05264.json)
+At 180 dpi on API 36 the system status bar covered the signed task-reorder fixture’s baseline button. Two taps left the app at Ready. The default-density run stopped before a baseline tap, and its emulator and private ADB remain held. Neither attempt verified reorder. [Native observation](verification/receipts/fieldlog-android-signed-row-insets-41a05264.json)
+
+The inset-aware Android fixture passed the signed row move on API 36.
+Sequence 1 displayed the original order. One **Move up** tap on sequence
+2 moved **File report** ahead of **Valve “北”**, advanced revision 9 to
+10, and appended one `taskOrderChanged` event. Signed rollback and an
+offline launch in a new process preserved the reordered workspace and
+open draft byte for byte. **Done** retired both sequence 3 launches. The
+private APK carries four historical notices. Installed iOS remains open.
+[Signed Android row move](verification/receipts/fieldlog-android-signed-row-api36-d92cb15a.json)
 
 On Android API 36, the ordinary FieldLog app cold-restored an uncommitted photo draft, saved it, and resumed the JPEG transfer at 65,536 bytes after cancellation. When the backend withheld the final receipt, retry reconciled the original event without sending another chunk. SQLite held one event and one matching 281,378-byte JPEG. The two unrelated outbox events survived cold reopen. [Runtime and readback](verification/receipts/fieldlog-android-ordinary-queue-runtime-41a05264.json)
 

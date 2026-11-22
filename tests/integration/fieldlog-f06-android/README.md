@@ -83,3 +83,8 @@ The [stock keyboard replay](../../../verification/receipts/fieldlog-f06-android-
 tapped **P** in Android LatinIME. The title wrapper refused the composing
 batch and the title remained blank. Cancel preserved the workspace
 and retired the owner.
+
+The [composing candidate replay](../../../verification/receipts/fieldlog-f06-android-latinime-save-retirement-d92cb15a.json)
+accepted **P** and saved one task on two owned API 36 emulators. The Save
+owner's JNI retirement remained unconfirmed, so the driver stopped before
+cold readback. The candidate remains private.

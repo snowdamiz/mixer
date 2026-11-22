@@ -64,6 +64,11 @@ center.
    verify **Using saved checklist release | Sequence 3**, capture the
    offline workspace, then tap **Done** and verify retirement.
 
+The [API 36 receipt](../../../verification/receipts/fieldlog-android-signed-row-api36-d92cb15a.json)
+records the three signed phases and offline reopen on Mixer `d92cb15a`.
+The updated assembly used that revision's linked native identity. The
+installed fixture title is `Valve "北"`.
+
 Capture live recovery state at each phase and retired state after **Done**.
 Use the packet's `android-readback.py` with the assignment's runtime, sequence
 and artifact and the manifest's payload hash. Keep the installation ID and verify
