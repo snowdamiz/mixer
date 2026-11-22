@@ -40,6 +40,11 @@ page count of zero. The WAST bytes, translated module, and selected assertion
 rows stay intact. The full upstream growth block hits a bounds trap on line 15. Mixer
 then reports `session_terminal` on line 16.
 
+The separate block on lines 55–62 has a declared ten-page maximum.
+Both runners grow to ten pages, check the current size with zero growth,
+and return `-1` for two requests that exceed the declared maximum.
+A fresh instance again reports zero pages.
+
 For `memory_copy.wast`, WABT line 258 identifies the module. Line 267 invokes
 `test` with no result, and lines 269–298 assert 30 byte reads. The module copies
 seven bytes from address 12 to address 10 over two overlapping ranges. The

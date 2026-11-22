@@ -444,6 +444,13 @@ def replay_memory_growth(commands, scratch, translator, reference, client, recor
     # Repeating the first grow assertion returns the fresh instance's previous size.
     replay_stateful(commands, directory, script, module, rows, reference, client, stateful)
 
+    module, rows = select_stateful_block(script, 50, "commands.2.wasm", range(55, 63))
+    bounded = directory / "declared-maximum"
+    bounded.mkdir()
+    shutil.copyfile(directory / module["filename"], bounded / module["filename"])
+    maximum = record["stateful_memory_maximum"] = {"fixture": MEMORY_GROW, "upstream": rows}
+    replay_stateful(commands, bounded, script, module, rows, reference, client, maximum)
+
 
 def replay_memory_copy(commands, scratch, translator, reference, validator, core, client, record):
     directory, script = translate_stateful(
