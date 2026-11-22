@@ -21,6 +21,14 @@ See [the worktree verification policy](mixer-product-plan.md#worktree-local-veri
 
 The following checkpoints retain their historical sources and scope. Local completion is still pending; evaluate existing slice receipts against L01–L08 before claiming a pass.
 
+## Continuation checkpoint, November 22, 2026
+
+Resume with the L07 Starter build backup and restore. The offline host replay restored the journal and roles into a separate PostgreSQL cluster and authenticated two fresh sessions with queues disabled. The next run needs to route SwiftPM through the two verified local dependency mirrors and enforce one deadline and scratch limit across build, capture, and restore. Capture the settled Phoenix row and job, worker SQLite journal, manifest, and three artifacts from one closed native build. Start from [the Starter replay](tests/integration/hosted-expiry-restore/replay-starter.py).
+
+The interrupted signed download passed on a fresh iOS Simulator. The owned device was removed, and the device inventory matched for all 13 external devices. Future iOS runtime tests use a fresh disposable device. [Installed iOS resume](verification/receipts/fieldlog-ios-signed-resume-native-20261122.json)
+
+L01, L05, and L06 are passed. L02, L03, L04, L07, and L08 remain running. [Local checklist](gates/local.json)
+
 ## November 19 local verification
 
 The combined FieldLog iOS and Android storage patches passed 30 host checks across the compatible rollback and successor writers. An independent replay passed all 30 checks and 10 additional controls. The four writers refused newly introduced draft and entry ID overlaps, preserved edits to existing pairs, and recovered a complete snapshot after a write fault. [Composed storage receipt](verification/receipts/fieldlog-l08-cross-platform-draft-overlap-20261119.json)
@@ -180,6 +188,10 @@ One fresh iOS 27.0 arm64 Simulator passed §22.2.9. FieldLog kept the healthy se
 ### iOS FieldLog rollout halt
 
 One fresh iOS 27.0 arm64 Simulator passed §22.2.10. The stock CLI halted the sequence-2 artifact at sequence 3. Both installations received empty HTTP 204. The active workspace kept sequence 2 and reopened it after both delivery listeners closed. The pending workspace kept sequence 1 and the exact interrupted transfer. [Installed iOS halt](verification/receipts/fieldlog-ios-rollout-halt-native-20261122.json)
+
+### iOS FieldLog interrupted download
+
+A fresh iOS 27.0 arm64 Simulator passed the installed signed download resume case in §22.2.6. FieldLog kept healthy sequence 1 and the exact 2,048-byte prefix through a cold reopen while the app-facing relay refused connections. When the same URL returned, FieldLog compared the saved prefix with a full HTTP 200 response and activated sequence 2. Done returned to the same native task. The workspace bytes matched throughout, and the post-test journal had no pending, staged, or active attempt. [Installed iOS resume](verification/receipts/fieldlog-ios-signed-resume-native-20261122.json)
 
 ## November 18 local verification
 
