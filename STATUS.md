@@ -216,6 +216,20 @@ draw listener can report a frame before Android renders it. Both findings
 are open. The disposable emulator, private ADB and signing scratch closed.
 [Signed Android scope refusal](verification/receipts/fieldlog-f10-signed-android-api36-scope-refusal-6b07f0da.json)
 
+The reviewed signed Android successor checks the exact development scope
+for UI schema 3. It sampled the committed hardware buffer at the content
+interior and removed the default title that covered the native button.
+Revision 2 stayed provisional for the observation window. A genuine tap
+delivered the native envelope, drew revision 3 and displayed all 20 rows
+in the signed guest's first page. Durable health recorded both milestones
+with one scoped read and zero writes. Back retired the owner, preserved
+the healthy candidate and left the fixture workspace byte-identical.
+The first clean install stopped after the loading draw. The same signed
+APK and packet passed on a fresh emulator. Its exact startup failure
+cause remains unresolved. All owned build, signing and emulator scratch
+closed. This advances F10's installed Android signed first page.
+[Signed Android first-page replay](verification/receipts/fieldlog-f10-signed-android-api36-c83466ac.json)
+
 The private macOS signed V3 candidate `6ba7034329` passed the first-page
 Pending Changes smoke through the installed owner, VM, and storage mailbox.
 One read hydrated the queue. The decoded action delivered the historical
@@ -2328,6 +2342,14 @@ the Source141 archive check and all 43 fixture tests passed locally
 in normal and optimized Python. L07 remains running.
 [Live attachment recovery](verification/receipts/l07-live-lost-attach-ack-4d28a7c7.json) ·
 [Reversible hosted source binding](verification/receipts/l07-hosted-source-v88-composition-c9ad543.json)
+
+All three hosted runs on the v88 push passed. Phoenix reported 1,030
+passes and 32 skips. Identity passed both network methods. All nine Engine
+jobs passed, including the seeded Node replay in Debug and Release and all
+six Java consumers. All six DEX files matched byte for byte. The two
+uploaded receipts record 92 terminal groups and both scratch trees
+removed. Hosted v88 and reconstructed v87 digests matched their inputs.
+[Hosted v88 terminal record](verification/receipts/l07-hosted-v88-engine-terminal-6b07f0da.json)
 
 The unchanged FieldLog updater ran in two macOS processes under an Android-scoped development identity. The owned observer saw four bodyless loopback GETs and found no workspace or JPEG markers, cookies, or bearer credentials. A complete signed offer activated sequence 1. After an artifact HTTP 503, a new process recovered the same candidate and preserved the workspace and JPEG. The sandbox denied a second loopback destination, and both owned ports closed. [Updater privacy receipt](verification/receipts/l07-fieldlog-updater-loopback-b144c2c-20261120.json)
 
