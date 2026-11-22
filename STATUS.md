@@ -1529,6 +1529,15 @@ without mounting the account workspace. Both runs preserved the ordinary
 and account workspace files and made no offline service request.
 [Offline restore and expiry](verification/receipts/fieldlog-android-account-offline-expiry-api36-066e5038.json)
 
+The FieldLog local recovery backend passed a fresh fixed-port replay.
+A one-use operator code and explicit browser approval allow the client
+to replace a lost sign-in proof. Recovery revokes prior sessions and
+requires confirmation of the new session. The replay verified response
+loss, a rolled-back transaction, another account's continued access,
+and byte-for-byte equality of stored task, entry, and photo rows. Native
+recovery and account deletion remain open.
+[Local account recovery](verification/receipts/fieldlog-local-account-recovery.json)
+
 The generic iOS Simulator witness builds the same ordinary FieldLog
 tree with a named XCTest. It opens the saved project, edits a draft
 through the Photo Library picker, saves a manual Site Map pin, and

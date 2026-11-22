@@ -1,0 +1,63 @@
+{
+  "date": "2026-11-22",
+  "scope": "FieldLog product-plan \u00a721.2 local recovery backend",
+  "mixerInput": "fa6367ab3ccac4cdacc8fe5da39f3c0d0fcc9bb0",
+  "backendPath": "Backend/local_entry_sync.py",
+  "inputBlob": "b6debbc45f8ab96360d2d494e376d80ea5f6abf7",
+  "resultBlob": "4d487e779c213b387cd2eee89fe0f48033a0b029",
+  "patch": "tests/integration/fieldlog-account-recovery/fieldlog-local-recovery.patch.b64",
+  "decodedPatchSha256": "29e4b5af4b06e89027f82367319fbb0ade7a25cd5695096896b3b9c0db09d3f6",
+  "environment": {
+    "host": "macOS 27.0.1 arm64",
+    "python": "3.14.8",
+    "sqlite": "3.53.4",
+    "git": "2.56.0",
+    "database": "disposable synthetic SQLite, one recovery target and one isolation control"
+  },
+  "runs": [
+    {
+      "command": "python3 -B tests/integration/fieldlog-account-recovery/check.py --isolated-loopback",
+      "result": "PASS",
+      "seconds": 7.37,
+      "transport": "Owned ephemeral IPv4 loopback sockets, fixed FieldLog HTTP Host and Origin"
+    },
+    {
+      "command": "python3 -B tests/integration/fieldlog-account-recovery/check.py",
+      "result": "PASS",
+      "seconds": 7.5,
+      "transport": "Owned IPv4 loopback on port 8765 for account mode"
+    }
+  ],
+  "observations": [
+    "Strict apply, reverse, and reapply verified exact backend blobs.",
+    "The pinned ordinary account and static regression passed on both backends, including session capacity, confirmation, expiry, restart, and task and entry parity.",
+    "The CLI issued an expiring recovery code for an existing synthetic account. The service rejected replaced, replayed, and expired codes, invalid Origin, missing intent, incorrect callback binding, and cross-purpose exchange.",
+    "A forced SQLite session insert failure rolled back the proof change and revocations. The same approved exchange succeeded after removing the failure.",
+    "Recovery revoked existing confirmed and pending sessions and approved callbacks. Its new bearer required confirmation. The other account retained its grant.",
+    "Both callback registrations were exercised over HTTP. Lost browser, exchange, and confirmation responses recovered through a fresh recovery attempt, ordinary sign-in with the staged proof, and repeated confirmation respectively.",
+    "The complete task, task event, entry event, and photo rows matched their pre-recovery snapshots. Account and scope IDs matched and foreign keys checked cleanly."
+  ],
+  "cleanup": {
+    "testScratchBytesBeforeRemoval": 913474,
+    "manualReconstructionScratchKiBBeforeRemoval": 716,
+    "scratchRemoved": true,
+    "ownedListenersClosed": true
+  },
+  "limitations": [
+    "One initial fixed-port run stopped at bind because port 8765 was already in use. Both documented replays later passed.",
+    "HTTP and SQLite evidence only. Root owns browser-to-native delivery and application composition."
+  ],
+  "independentRootReplay": {
+    "mixerRevision": "efcd6f4b66c33a4f7f0ade124b88834b1985ce29",
+    "command": "python3 -B tests/integration/fieldlog-account-recovery/check.py",
+    "matchedStagedArtifactBytes": true,
+    "fixedPort8765Rebound": true,
+    "strictAppBaselineAndSuccessorBlobs": true,
+    "ordinaryAccountAndStaticRegressionPassedBoth": true,
+    "recoveryResponseLossAndSavedRowEqualityPassed": true,
+    "terminalCommandGroups": 1,
+    "elapsedSecondsThroughCleanup": 7.0,
+    "scratchRemoved": true,
+    "scope": "Independent source inspection and exact HTTP/SQLite replay. Native account recovery remains open."
+  }
+}
