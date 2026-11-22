@@ -1,0 +1,313 @@
+{
+  "schema": 1,
+  "case": "L08 D8 F04 ordinary FieldLog same-editor retry",
+  "status": "passed_host",
+  "mixerRevision": "ccb5221cbacbe54d382d5eab762bcac57ea594c2",
+  "mixerTree": "04ed77c7a1fefd92366e0d45f30c9791b97de39c",
+  "pair25": {
+    "appTree": "9c2d665c31a6f3f2bfabc42bdfffaf72c6661731",
+    "sdkCommit": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+    "sdkTree": "faf0902a82ffc7acb2ddde9c6dca24002f959c3d",
+    "sdkPackageTree": "da0a358a6984e198525ea76c7be7fd2af245e12e",
+    "sourceBlobs": {
+      "ios/FieldLog/ProjectDetail.swift": "1a2f36173056669ae676e2eb165f01e94c229e8f",
+      "ios/FieldLog/WorkspaceModel.swift": "11e8e83e3adec728d1035846256fcef405e28784",
+      "Sources/FieldLogFeatures/TaskEditorAppleFieldsHost.swift": "6ddd3e6284b008c9b86ba8ad6d40163011d7cd46",
+      "Sources/FieldLogFeatures/TaskEditorPresentation.swift": "58f1269f74d722f6d9830c114efb9532ea9c92d4",
+      "Sources/FieldLogStorage/WorkspaceRepository.swift": "def237face8c379a54e26203998297f277f378d6"
+    },
+    "overlay": "One Swift Testing fixture and a scratch lockfile for the ordinary root package’s pinned local SDK.",
+    "scope": "Unchanged Apple fields owner and real repository, using its public save callback. The fixture supplies the repository directly and does not launch the iOS SwiftUI shell or execute WorkspaceModel’s save queue.",
+    "resolved": {
+      "swift-asn1": {
+        "revision": "917b472dbe53ba699cbb0495f9a95a084bc6364d",
+        "version": "1.7.4"
+      },
+      "swift-crypto": {
+        "revision": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+        "version": "5.0.3"
+      }
+    }
+  },
+  "candidateTree": "6282a1bd5c2fbb5673f3887567a73065e0a404da",
+  "candidateStorageBlobs": {
+    "Integrations/GeneratedReport/Sources/FieldLogStorage/WorkspaceRepository.swift": "94467a779bbe763dbe3c0c3f8e7fb6a4b3f479d4",
+    "Sources/FieldLogStorage/WorkspaceRepository.swift": "94467a779bbe763dbe3c0c3f8e7fb6a4b3f479d4"
+  },
+  "reversal": {
+    "tree": "9c2d665c31a6f3f2bfabc42bdfffaf72c6661731",
+    "workingOverlay": [
+      "Package.resolved"
+    ]
+  },
+  "tools": {
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "git": "git version 2.56.0"
+  },
+  "artifactDirectory": "verification/local/fieldlog-f04-same-editor-pair25",
+  "artifactSHA256": {
+    "replay.py": "87ba613cbb43a8f688311803eeb646e6fe7ee2c88b99bd85ebaf1d37c6839078",
+    "BaselineTests.swift": "f89e306d8fa5c1a5852db3aab278a1b3c81cfcfe648acf766d463efce8938549",
+    "SameEditorTests.swift": "b87b2a40c0e32addee690e4417e13f5667504aa1e9f27d58bafddb8b7eeb20ca",
+    "fieldlog-f04-same-editor-retry.patch": "75500f57da1f1b7ab21d30b00a263da5782fb17735f4dfc1255d126867eb9579"
+  },
+  "baseline": {
+    "observations": [
+      "F04_RESULT beforeRename calls=2 writes=1 baseline=8e5f0a818ba1168c89f5ee6351b78e085349b1fd7ad5d4580c7f21b47ffd84a4 failed=8e5f0a818ba1168c89f5ee6351b78e085349b1fd7ad5d4580c7f21b47ffd84a4 cold=c665b0369e963d228da694fce772d352a49a94de8ec41d8a3c98172ffad93267 revisions=1,2 tasks=1 outboxDelta=1",
+      "F04_RESULT readDenied calls=2 writes=1 baseline=41bd881d9a6ccdfd5816d038919706cae05b15135e14835441ac2ecd2532d030 failed=41bd881d9a6ccdfd5816d038919706cae05b15135e14835441ac2ecd2532d030 cold=efe880f8df3f0afa2116b8faf6d191e45ca181532b2625ea17ee063ad55cdc0c revisions=1,2 tasks=1 outboxDelta=1"
+    ],
+    "beforeRename": "The first error preserved the edit and workspace bytes. The second Save reached the same repository and hit the reopen-required error before the writer. A fresh editor started blank and succeeded only after the original input was re-entered.",
+    "readDenied": "Restoring permissions recovered the same editor and repository."
+  },
+  "candidate": [
+    "F04_FENCE renameFailed attempts=1 revisionDelta=0 outboxDelta=0",
+    "F04_FENCE renamed attempts=1 revisionDelta=1 outboxDelta=1",
+    "F04_FENCE unreadable attempts=1 revisionDelta=0 outboxDelta=0",
+    "F04_FENCE cleanupFailed attempts=1 revisionDelta=0 outboxDelta=0",
+    "F04_FENCE lockReplaced attempts=1 revisionDelta=0 outboxDelta=0",
+    "F04_FENCE byteDrift attempts=1 revisionDelta=0 outboxDelta=0",
+    "✔ Test pair25F04UncertainCommitRemainsBlocked(_:) with 6 test cases passed after 0.020 seconds.",
+    "F04_CLOSE heldPriorBytes=true competingOpenBlocked=true revisionDelta=1 outboxDelta=1",
+    "✔ Test pair25F04CloseWaitsForWriter() passed after 0.028 seconds.",
+    "✔ Test commitFaultsReopenPreviousOrCompleteNextState() passed after 0.037 seconds.",
+    "F04_RETRY beforeRename calls=2 writeAttempts=2 publications=1 baseline=eb6edeed0d404bbfdd8b553190e812b08e10a50ff06736cf9a942db995f1ff20 failed=eb6edeed0d404bbfdd8b553190e812b08e10a50ff06736cf9a942db995f1ff20 cold=305b8873a600309bbe237f5714615344bb63f737aed451572a3b20b6a7601b7b revisions=1,2 tasks=1 outboxDelta=1",
+    "F04_RETRY readDenied calls=2 writeAttempts=1 publications=1 baseline=9939461606d31a0748b381d61e4f6480e9fc5994115ac91557e85a982c4b96e2 failed=9939461606d31a0748b381d61e4f6480e9fc5994115ac91557e85a982c4b96e2 cold=f0da0d6da6bde0569ef7af6df3ef83ba83dcb99d77ac3ab5605c923e6d846bb9 revisions=1,2 tasks=1 outboxDelta=1",
+    "✔ Test pair25F04SameEditorRetry(_:) with 2 test cases passed after 0.047 seconds.",
+    "✔ Test concurrentOperationsDoNotOverwriteOneAnother() passed after 0.048 seconds.",
+    "✔ Test run with 5 tests in 0 suites passed after 0.048 seconds."
+  ],
+  "photoControls": [
+    "Test Case '-[FieldLogAndroidTests.PhotoSelectionTests testCancelledDeniedInvalidAndMalformedHaveNoPhotoEffect]' passed (0.271 seconds).",
+    "Test Case '-[FieldLogAndroidTests.PhotoSelectionTests testOriginalBatchSelectCurrentEditsSavePhotoReopenCommit]' passed (0.083 seconds).",
+    "Test Case '-[FieldLogAndroidTests.PhotoSelectionTests testRepositoryPhotoAndWorkspaceWriteFaultsRetainPrimaryErrorAndSafeReferences]' passed (0.028 seconds)."
+  ],
+  "commands": [
+    {
+      "argv": [
+        "swift",
+        "--version"
+      ],
+      "exit": 0,
+      "stdoutSHA256": "4b59da256292ae42e3f04ef6d06ea3e139678613a3cd3d0dc37a6757c0bd290a",
+      "stderrSHA256": "bbc8b176d3c74d4c5a7fd00b40280f98168e116d5272273bfe8e71407625540e",
+      "groupAbsent": true
+    },
+    {
+      "argv": [
+        "swift",
+        "test",
+        "--package-path",
+        "$SCRATCH/pair/fieldlog",
+        "--scratch-path",
+        "$SCRATCH/pair-build",
+        "--cache-path",
+        "$SCRATCH/cache",
+        "--config-path",
+        "$SCRATCH/config",
+        "--security-path",
+        "$SCRATCH/security",
+        "--disable-dependency-cache",
+        "--disable-index-store",
+        "--build-system",
+        "native",
+        "--jobs",
+        "4",
+        "-Xswiftc",
+        "-gnone",
+        "--filter",
+        "pair25OrdinaryF04",
+        "--force-resolved-versions"
+      ],
+      "label": "pair25OrdinaryF04",
+      "exit": 0,
+      "stdoutSHA256": "f57b7f1d8c7d933e666a9934f4d56ba362c4f229ff94120a5ed62d4fbb02634f",
+      "stderrSHA256": "99e9dfd264d1c3d72237a8463d1186868d388b075bee2e5779940d5afe13d661",
+      "groupAbsent": true
+    },
+    {
+      "argv": [
+        "swift",
+        "test",
+        "--package-path",
+        "$SCRATCH/pair/fieldlog",
+        "--scratch-path",
+        "$SCRATCH/pair-build",
+        "--cache-path",
+        "$SCRATCH/cache",
+        "--config-path",
+        "$SCRATCH/config",
+        "--security-path",
+        "$SCRATCH/security",
+        "--disable-dependency-cache",
+        "--disable-index-store",
+        "--build-system",
+        "native",
+        "--jobs",
+        "4",
+        "-Xswiftc",
+        "-gnone",
+        "--filter",
+        "pair25F04|commitFaultsReopenPreviousOrCompleteNextState|concurrentOperationsDoNotOverwriteOneAnother",
+        "--force-resolved-versions"
+      ],
+      "label": "pair25F04|commitFaultsReopenPreviousOrCompleteNextState|concurrentOperationsDoNotOverwriteOneAnother",
+      "exit": 0,
+      "stdoutSHA256": "62770135b0e7230c54c75c7ce3758a64833580d4fe0293c3e4b564c1514050ce",
+      "stderrSHA256": "3e0603b5dc0e08f388a0389a688c95d6fba326b19dfce52932c4279164ee2c83",
+      "groupAbsent": true
+    },
+    {
+      "argv": [
+        "swift",
+        "test",
+        "--package-path",
+        "$SCRATCH/pair/fieldlog/Integrations/GeneratedReport",
+        "--scratch-path",
+        "$SCRATCH/report-build",
+        "--cache-path",
+        "$SCRATCH/cache",
+        "--config-path",
+        "$SCRATCH/config",
+        "--security-path",
+        "$SCRATCH/security",
+        "--disable-dependency-cache",
+        "--disable-index-store",
+        "--build-system",
+        "native",
+        "--jobs",
+        "4",
+        "-Xswiftc",
+        "-gnone",
+        "--filter",
+        "testCancelledDeniedInvalidAndMalformedHaveNoPhotoEffect|testOriginalBatchSelectCurrentEditsSavePhotoReopenCommit|testRepositoryPhotoAndWorkspaceWriteFaultsRetainPrimaryErrorAndSafeReferences",
+        "--disable-swift-testing",
+        "--force-resolved-versions"
+      ],
+      "label": "testCancelledDeniedInvalidAndMalformedHaveNoPhotoEffect|testOriginalBatchSelectCurrentEditsSavePhotoReopenCommit|testRepositoryPhotoAndWorkspaceWriteFaultsRetainPrimaryErrorAndSafeReferences",
+      "environment": {
+        "FIELDLOG_MIXER_SDK": "$SCRATCH/pair/mixer/sdk",
+        "FIELDLOG_WORKSPACE": "$SCRATCH/photo-workspace"
+      },
+      "exit": 0,
+      "stdoutSHA256": "39cf55804afe1ca66589f4ee36a2c7b6344bbc0ba84c88e3c6fb4b6d80dbed5c",
+      "stderrSHA256": "73821631275aa4b1ab401109ab3dd1d810cf56200ac3bcbd8053192395b9db82",
+      "groupAbsent": true
+    }
+  ],
+  "attempts": [
+    {
+      "file": "attempt-1.json",
+      "sha256": "fadc5eedb475e9db62fd545122f3e3caaa4ec23be0b7cacde82ab3ee89497c45",
+      "status": "incomplete",
+      "elapsedSeconds": 18.756,
+      "scratchRemoved": true,
+      "failure": "Patch reversal failed"
+    },
+    {
+      "file": "attempt-2.json",
+      "sha256": "c34b49bdafe07255fa0c20e114e883de109b9806454c7bb9d428a59b7c5a7856",
+      "status": "passed",
+      "elapsedSeconds": 20.959,
+      "scratchRemoved": true
+    },
+    {
+      "file": "attempt-3.json",
+      "sha256": "6370d9743a1523d45675fda058d4965f7a958f46ecfd279ce9fbb1841b86c051",
+      "status": "incomplete",
+      "elapsedSeconds": 43.774,
+      "scratchRemoved": true,
+      "failure": "Test Suite 'Selected tests' started at 2026-11-22 09:43:10.732."
+    },
+    {
+      "file": "attempt-4-generated-photo-contract.json",
+      "sha256": "4d89c0ce63c1cfc68753e90452ea1c1f38e5dbb9a3d0854fcf3f46d828fae734",
+      "status": "incomplete",
+      "elapsedSeconds": 104.141,
+      "scratchRemoved": true,
+      "failure": "f04-ovjp41dn/pair/fieldlog/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PhotoSelectionTests.swift:287: error: -[FieldLogAndroidTests.PhotoSelectionTests testRepositoryPhotoAndWorkspaceWriteFaultsRetainPrimaryErrorAndSafeReferences] : failed - uncertain IO must disable writes"
+    },
+    {
+      "file": "final-run.json",
+      "sha256": "e71ad56a70e61c47d9ed08144796f0b95b8fb92da72f98b61603f6d8bca13598",
+      "status": "passed",
+      "elapsedSeconds": 85.845,
+      "scratchRemoved": true
+    },
+    {
+      "file": "initial-baseline.json",
+      "sha256": "276f409e3d33f144074792e3fe6a355e4fffc543cd5ff12ff3be0808e16055a4",
+      "status": "passed_baseline",
+      "elapsedSeconds": 17.122,
+      "scratchRemoved": true
+    },
+    {
+      "file": "owner-inspection.json",
+      "sha256": "602c3f85537e2fca0741850dec9bb273a17c9ee471e905851712d928c01b0cfc",
+      "status": "passed_baseline",
+      "elapsedSeconds": 2.902,
+      "scratchRemoved": true
+    },
+    {
+      "file": "package-inspection.json",
+      "sha256": "ee1d7bdca98aae36d853e1ae7208dc19b7716446ba4806044dd4762e02548ac3",
+      "status": "passed_baseline",
+      "elapsedSeconds": 3.326,
+      "scratchRemoved": true
+    },
+    {
+      "file": "source-inspection.json",
+      "sha256": "506fc59ae28a95d57e252b8f54a79a222ae4a6661d25e56e7987744e9dcae983",
+      "status": "passed_baseline",
+      "elapsedSeconds": 3.323,
+      "scratchRemoved": true
+    }
+  ],
+  "cleanup": {
+    "positiveScratchAbsence": true,
+    "groupsObservedAbsent": 250,
+    "recordedCommandCount": 250,
+    "additionalObservedProcessGroupsAbsent": [
+      19018,
+      27263,
+      27914,
+      27927,
+      27928,
+      27929,
+      28073,
+      28076,
+      28077,
+      28078,
+      28079,
+      38285,
+      42666,
+      47356,
+      52227,
+      52397,
+      52398,
+      52399,
+      54771,
+      54888,
+      54889,
+      54890,
+      54891,
+      55248
+    ],
+    "additionalObservedProcessGroupCount": 24,
+    "inspectionCopiesRemoved": true
+  },
+  "budget": {
+    "elapsedLimitSeconds": 480,
+    "scratchLimitMiB": 700,
+    "totalReplayElapsedSeconds": 300.148,
+    "maxSampledAllocatedKiB": 388148,
+    "wallSecondsFromFirstReplayToFinalReplayExit": 628.007
+  },
+  "scope": {
+    "ordinary": "macOS host with the unmodified Apple fields owner and real WorkspaceRepository. Neither the iOS shell nor WorkspaceModel's queue was executed.",
+    "ownerSource": "NewTaskView calls WorkspaceModel.addTask, which forwards each admitted save to repository.transact on its serial save chain. No owner change is required for the proven pre-publication retry. retryOpen keeps an existing repository. An in-app recovery flow for uncertain commits would need separate repository retirement and draft handoff.",
+    "F16": "Focused repository close/writer overlap, competing flock, and cold readback. The earlier Android factory close/cancel schedule was not rerun.",
+    "F17_F18": "GeneratedReport macOS XCTest around the public photo seam and actual storage. Android runtime and JNI were outside scope.",
+    "GeneratedReport": "The paired storage source stays byte-identical. FIELDLOG_MERGED_DRAFT_PHOTOS preserves its existing write fence after all writer errors. F17/F18 confirmed the primary error and safe references."
+  }
+}

@@ -1516,6 +1516,14 @@ All 130 commands closed. This candidate has no queue trace, and public
 source adoption remains pending.
 [Installed product-only Home correction](verification/receipts/l02-android-note-home-product-api36-ccb5221c.json)
 
+A separate host review reproduced loss of recovery after two equivalent
+sealed requests and verified the coalescing correction. The same signed
+product APK then had mixed API 36 results. The first run returned
+wrongEditor after Home. The second read, edited, and read back the Note
+exactly. Both kept their Activity, process and workspace and removed
+scratch after terminal custody. Native callback order remains unobserved.
+[Coalesced Home replay](verification/receipts/l02-android-note-home-coalesced-api36-39966a15.json)
+
 The IME-switch experiment withheld an overlapping connection and posted
 a public restart after the exact predecessor closed. Android briefly
 received a new SDK adapter, then closed it after another overlapping
@@ -1541,6 +1549,15 @@ installed switch remains scoped evidence. The production correction
 must preserve stale-metadata refusal, recover the active field, and
 admit a valid caps query through the same authority check.
 
+On API 36 ARM64 the fixture IME queried caps at its first Note bind
+after switching away and back. The previous staged APK returned zero.
+The product successor returned the expected 0x1000, then both variants
+read, edited, and read back the same Note without changing workspace
+bytes. Both runs removed the disposable packages and closed all 169
+and 140 commands, respectively. Independent host review found a separate
+argument-validation issue before staged activation. SDK adoption is open.
+[Installed first caps query A/B](verification/receipts/l02-android-note-ime-caps-api36-39966a15.json)
+
 The historical F04 reducer selector and the exact Pair25 Apple owner
 host replay passed the tested save boundary. A held save refused new
 edits, Cancel, and a second Save. A recoverable read denial preserved
@@ -1550,6 +1567,14 @@ refused retry until reopened. The fresh editor then required re-entering
 both fields. Independent replay confirmed the remaining retry defect.
 This is macOS owner and repository evidence.
 [F04 task save and recovery](verification/receipts/fieldlog-f04-ordinary-pair25-ccb5221c.json)
+
+With the original lock held, the next F04 candidate let the same
+editor retry after the pre-rename error. Cold readback found exactly
+one task, one revision increment, and one outbox event. Independent
+review also found that a retry can publish if the original workspace
+lock is displaced after the first error. The source remains private
+until retry admission and publication recheck ownership.
+[F04 same-editor retry host replay](verification/receipts/fieldlog-f04-same-editor-retry-pair25.json)
 
 All four F14–F16 selectors passed on the historical and Pair25
 sources. F14 wrote one entry and one event after a valid edit-and-commit
@@ -2264,6 +2289,10 @@ matched the tracked Source141 map, and all six archived DEX files
 matched byte for byte. The two producer receipts record all 92 command
 groups terminal and scratch removed.
 [Hosted Engine and Java readback](verification/receipts/hosted-engine-terminal-554515a3.json)
+
+The next Owned Engine run passed all nine jobs on `ccb5221c`,
+including the six-consumer Java job.
+[Hosted Engine result](https://github.com/snowdamiz/mixer/actions/runs/45032006705)
 
 All nine Owned Engine jobs passed on the Rust notice binding.
 Both Python modes admitted the same Source141 and Pair25 inputs, and
