@@ -1663,6 +1663,21 @@ Retry reopened the browser prompt with zero exchanges. Full account
 adoption remains held.
 [Delayed browser handoff](verification/receipts/fieldlog-android-java-callback-api36-11a509d1.json)
 
+The warm-return correction passed the installed API 36 replay. One
+browser return reached the same app process during a credential-read
+failure. Restoring the original sealed slot and tapping Retry produced
+one exchange and one confirmed session without browser redelivery.
+Sign-out preserved the ordinary workspace. A separate run on the exact
+APK recovered the original deletion receipt, removed only the scoped
+test account, and cleared the stale marker. The shared Swift owner
+retains the Apple Boolean API. Independent host review reproduced
+Cancel being dropped while a callback command was busy. A subsequent
+Retry exchanged the retained return in both ordinary recovery and
+deletion reauthorization. Installed reachability of that command order
+is unverified. Full account adoption and Apple adapter parity remain
+open.
+[Installed warm callback](verification/receipts/fieldlog-android-warm-callback-api36-b9bff058.json)
+
 The iOS deletion owner now loads the saved reauthorization intent when
 the browser callback arrives before startup restore. The real loopback
 host replay passed both orders. Local data stayed intact until renewed
@@ -3192,6 +3207,15 @@ click-to-presentation latency remains unmeasured. Independent review
 recomputed each bound. All 220 commands closed and the emulator and
 origin were retired.
 [Android row observation](verification/receipts/l03-android-installed-row-observation-fa45f636.json)
+
+A repeat on the same signed APK measured the row action inside the
+Android device. The first matching crop finished 321–373 ms after the
+tap command began, with a median of 369 ms. All three moves advanced
+revision 9 to 10, each added one event, and Done retired the owner.
+Device-local capture and file writes are included. The ADB image reads
+occurred after capture and the presentation instant was unobserved.
+All 261 commands closed and all four ports were reusable.
+[Device-clock row observation](verification/receipts/l03-android-device-row-observation-45135184.json)
 
 The current TaskCompletion shell fixture passed on the API 36 ARM64
 emulator. Five alternate native and owned-VM pairs matched all four
