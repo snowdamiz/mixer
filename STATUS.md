@@ -3124,6 +3124,18 @@ The replacement Android APK passed the exact historical 240-byte title through s
 
 Two five-pair macOS replays at `4bf1078d46` matched all four historical TaskCompletion frames and the source diagnostic. Each run timed 15 turns per path from prepared event to materialized frame. The second run measured median three-turn sums of 7.375 µs in native Swift and 862.000 µs in the owned VM, with process peak RSS medians of 6,651,904 and 7,356,416 bytes. Both rebuilt unsigned Wasm modules were 5,266 bytes and had different hashes. The receipt pins both harness blobs and records both samples. Signed update size and installed mobile measurements remain pending. [Matched host replay](verification/receipts/l03-d3-taskcompletion-matched-macos-4bf1078d.json) The pinned overlay instructions were exercised in a third five-pair host replay, which reproduced all frame digests and the diagnostic. [Replay guide](compiler/experiments/fieldlog-guest-benchmark/README.md) · [Third replay receipt](verification/receipts/l03-d3-taskcompletion-pinned-replay-00aa86d3.json) A separate signed macOS host delivery measured 8,930 bytes across the exact offer and artifact HTTP response bodies for one update. The raw Wasm and signed envelopes totaled 6,969 bytes. The downloaded payload matched the four TaskCompletion frames after protocol verification. [Signed delivery measurement](verification/receipts/l03-d3-taskcompletion-signed-size-a55f5a55.json)
 
+On current Mixer `8fa09d66e7`, five interleaved macOS pairs matched all
+four TaskCompletion frames. Both paths preserved the last frame after
+two invalid inputs, located the trap in `TaskCompletion.swift:94`, and
+closed every guest owner. Native Swift's median for three prepared
+turns was 7.166 µs (6.583–7.292 µs), and the owned VM's was 764.917 µs
+(756.333–876.874 µs). In a separate component run, the synchronous C ABI
+invoke interval accounted for 99% of the measured guest time. The raw
+unsigned Wasm was 5,266 bytes. The receipt records whole-process peak
+RSS and all samples. Installed tap-to-visible timing and iOS samples
+remain open.
+[Current D3 host replay](verification/receipts/l03-d3-taskcompletion-current-host-8fa09d66.json)
+
 Two installed Android draft-validation releases each carried
 5,450 bytes of Wasm. The replay reconstructed and hash-matched the
 exact Go and Workerd offer and artifact response bodies. The two
@@ -3131,6 +3143,14 @@ bodies totaled 9,488–9,495 bytes, depending on release and origin.
 Separately gzipping the bodies offline produced totals of
 4,911–4,923 bytes. The corpus-wide compressed size measurement
 remains open. [Release byte measurement](verification/receipts/l03-fieldlog-draft-validation-release-wire-a1d3cefb.json)
+
+The development origin for the installed Android row reorder served
+10,874 response-body bytes for the baseline, 15,438 for the reviewed
+update, and 10,874 for rollback. Each count includes the signed offer
+and the signed artifact with its base64 Wasm. Two reads per response
+matched the original signed packet. The receipt records separate
+offline gzip sizes and excludes headers and transport overhead.
+[Signed row response sizes](verification/receipts/l03-android-signed-row-release-wire-d92cb15a.json)
 
 At public pin `7b61fe1cd9`, native Swift and the owned VM produced byte-identical FieldLog task frames from the same unchanged source. Both refused stale and noncanonical events without changing the frame. The deliberate precondition failed at `TaskCompletion.swift:94`. the VM identified column 9 and closed the session. Mobile parity and matched performance evidence remain open. [Task differential receipt](verification/receipts/l03-d3-task-review-event-trap-7b61fe1c.json)
 
