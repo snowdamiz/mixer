@@ -301,6 +301,14 @@ and recovered the exact historical workspace bytes. Installed UIKit
 acknowledgement, native taps, and cold recovery remain pending.
 [Signed Apple F10 source and build](verification/receipts/fieldlog-f10-ios-simulator-signed-consumer-ecba9fa.json)
 
+The exact historical workspace and Wasm are now in a generic arm64
+Simulator XCTest archive. The macOS control matched all 26 rows and
+six actions through revision 8. It retained the healthy candidate
+when reopening the store and made zero workspace writes. Root matched
+both source patches, the archive, the linked selector, and its resources.
+Native taps and UIKit display acknowledgement remain pending.
+[iOS historical F10 witness](verification/receipts/fieldlog-f10-ios-native-tap-3010d91c.json)
+
 The private macOS signed V3 candidate `6ba7034329` passed the first-page
 Pending Changes smoke through the installed owner, VM, and storage mailbox.
 One read hydrated the queue. The decoded action delivered the historical
