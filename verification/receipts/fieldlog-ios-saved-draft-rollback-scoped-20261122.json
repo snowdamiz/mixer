@@ -1,0 +1,262 @@
+{
+  "schema": 1,
+  "gate": "L08",
+  "scenario": "\u00a722.2.4",
+  "status": "scoped-pass",
+  "scope": "Bundled signed saved-draft assignments, ordinary edit at sequence 4, and cold no-assignment launch at sequence 5.",
+  "base": "0cfa84940a",
+  "simulatorType": "iPhone 17 Pro ARM64",
+  "source": {
+    "patchSHA256": "6ee9f1cfaf1122e1136da0deba7c8c98490e63474b52ea03a8a2f614a5a91dc5",
+    "xctestSourceSHA256": "f7c8f88eb2c31e0646798c486825036cc2ce07c11670379e8d19c125471ebf2a",
+    "xctestSourceGitBlob": "c797b6db05be213be0ca7724a19528b1443c6bb6",
+    "nativeSourceRosterSHA256": "4eb409a079c7d30608db1f6063a14c84975eef04e2f12402d5ad7b3221c5b400",
+    "mixerSourceRosterSHA256": "144d95e062e948d937b7a62c12de744b98438d81f98df12def93e2416755cb30",
+    "fieldLogBindingTree": "8a6330ce47f94cfcef4ed1f312813a966604223b",
+    "linkedMixerRevision": "58951594a866492be7ce204e93a9533f892b2550",
+    "vmArchiveSHA256": "f3afa1e76f3d27be572dc7d2f269763c43b6c4331231ecd308eb96ed40d5fae1",
+    "productsReceiptSHA256": "e4f318509ee06952f0d64b77a7b4bd94622df03e9420e32ff1468cde6ef8c9e5",
+    "terminalRunner": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-ios-signed-resume-root/ios-saved-draft/native-run-2/runner.py"
+  },
+  "bundle": {
+    "id": "dev.mixer.fieldlog",
+    "version": "0.1.0",
+    "build": "1"
+  },
+  "xcode": [
+    "Xcode 27.2",
+    "Build version 27B52"
+  ],
+  "runtimeFingerprint": "c7dcc7ff27d404d451a5ff1a671e70f1ed6dfd16974c8a41d6406052b0f80abd",
+  "productHandoff": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-9a0fcbb7/verification/local/fieldlog-ios-l08-224-first-native-9a0fcbb7/HANDOFF.md",
+  "nativeSelectors": {
+    "sequence1And2": "The native guest loads the saved draft and shows Ready to save entry, with the follow-up controls absent.",
+    "sequence3": "Mark follow-up required changes the selected draft's rendered flag.",
+    "sequence4": "The read-only corrected guest reopens the same draft, then the native editor saves the note.",
+    "sequence5": "Re-upgrade shows the flag. A cold launch without an assignment reads both drafts, and the original draft keeps the exact note."
+  },
+  "readbackControls": [
+    {
+      "case": "positive",
+      "result": "passed"
+    },
+    {
+      "case": "wrong-draft-flag",
+      "result": "rejected",
+      "message": "Stored note or draft-specific flag differs."
+    },
+    {
+      "case": "wrong-note",
+      "result": "rejected",
+      "message": "Stored note or draft-specific flag differs."
+    },
+    {
+      "case": "pending-attempt",
+      "result": "rejected",
+      "message": "Final recovery revision, installation, or pending work differs."
+    },
+    {
+      "case": "wrong-candidate",
+      "result": "rejected",
+      "message": "Durable candidate does not match the bundled signed release."
+    },
+    {
+      "case": "wrong-assignment-bytes",
+      "result": "rejected",
+      "message": "Durable signed envelope bytes differ."
+    },
+    {
+      "case": "missing-health-milestone",
+      "result": "rejected",
+      "message": "Missing durable health interval or milestones."
+    },
+    {
+      "case": "extra-payload",
+      "result": "rejected",
+      "message": "Live recovery payload inventory differs."
+    }
+  ],
+  "readbackControlsSHA256": "6d8252b748125bdee47eddd7b1196dff05171cca82d57cf672a2c5a6f9c4f1ac",
+  "capture": {
+    "utc": "2026-11-22T20:49:30.678154+00:00",
+    "selector": "FieldLogUITests/FieldLogSignedDraftTests/testSignedOptionalFieldSurvivesRollbackAndOrdinarySave",
+    "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-27-0",
+    "ownedDevice": "D8265CB2-C78C-4648-8E72-AF57F9349166",
+    "unsignedPlanSHA256": "fac7d6bf27626018334826a804397019d0c2571989c347924413639ffd99b69d",
+    "signedFixtureSHA256": {
+      "baseline.manifest.json": "72b9de53d22183ac6150a0fb52a8a3accc60c8beacaa69dcf30258a5f25a3e77",
+      "baseline.wasm": "780a20d607fbbae75c8939e8d1a22b3c1f305b36fb15cc75bf24399d971f2803",
+      "bridge.json": "6f05eb3fa8780ee6102d181b0710765214e51168b1429c52dd10dfd1b96873e5",
+      "corrected.manifest.json": "5e3d5a2e4eb7c85f01913de36bbb01a7ba8ed44d49ec5b2a02d0f3f19ce359b4",
+      "corrected.wasm": "7cc6ec58a236ccf38fb2d99ea78c20940eaf6046c3fe42c237db2af8c6e3b14c",
+      "http-grant.json": "dd4db5148d7e5e4461a53df405a63ffb368dc668c3cba81e6183c2383e960f95",
+      "http.json": "11efd17b79bd175692020f23c6673cac9a93a9638077e546163846d7f5576a0d",
+      "identity.json": "d9d191fab2a606eb5812a75945e0a0dcf76c8f5cc2ad667a51289d8162a09193",
+      "optional.manifest.json": "72f66242712c1014ac0840b8cb3d57ea19e52411a8d7897fc20771c3831bf381",
+      "optional.wasm": "ef0cda59a1ee7da23fdd019a40fa67720386115f2b851cb4090ff621264ba837",
+      "roots.json": "2c905d9916d1f0dee5cac79b480f9cfaa22df33ce006e7cc5ba63a2c3d933aeb",
+      "sequence-1.assignment.json": "3e747dba65e1096ab47d7d767e46eaee7591a150bef2a264843104b998941d6a",
+      "sequence-2.assignment.json": "e6464133a6d39287240d3ec0e8bd22c71e6f332d60115ab76d255d417a633714",
+      "sequence-3.assignment.json": "74f053459336ded3da39430fb0d2a431c74ffe2bfc77846473360957960c8194",
+      "sequence-4.assignment.json": "fe51d7415058b5aa360afe50c8f74840004bb361b85728c94a66c7f2a6931f20",
+      "sequence-5.assignment.json": "c1362952de496e23ccaa62f82345d78dee1bbbfe032aa1d8aef11d09b3f9bdc0",
+      "storage-grant.json": "f630fb1bca6042918d6c29b88027dd8c8da28771599469aee06ff3cd5a3789be",
+      "storage.json": "a5946bce4d20c315896cac254404f5fd2910b39e7982ba53744592d5d6e84f67"
+    },
+    "preparedExecutablesSHA256": {
+      "FieldLog": "671b461ca91915e653f253fc05dd6874362906c24634457e8d68155920f8d057",
+      "FieldLogUITests-Runner": "0be12030dfa9ad02d3e57001a2053495442b11fe8282eee15f7866223cc17141",
+      "FieldLogUITests": "4b30968ef04d56d1a11b5c58c436692814319ea3280f7f9c3642ca515d101e93"
+    },
+    "installedAppSHA256": "671b461ca91915e653f253fc05dd6874362906c24634457e8d68155920f8d057",
+    "summary": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "D8265CB2-C78C-4648-8E72-AF57F9349166",
+            "deviceName": "FieldLog Signed Draft 189a4q3h",
+            "modelName": "iPhone 17 Pro",
+            "osBuildNumber": "24A434",
+            "osVersion": "27.0",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 1,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "FieldLog \u00b7 Built with macOS 27.0.1",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1795380768.401,
+      "passedTests": 1,
+      "result": "Passed",
+      "runtimeWarnings": [],
+      "skippedTests": 0,
+      "startTime": 1795380604.577,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - FieldLog",
+      "topInsights": [],
+      "totalTestCount": 1
+    },
+    "workspaceFolderUUID": "eb5b90d3-60e9-44ee-917d-75e837fc7e08",
+    "attachmentManifestSHA256": "48d9a3d8a1a04d2e7b97d30009748807e7f49324d1fc85fd6545ed400728c971",
+    "readback": {
+      "workspaceSHA256": "cf01e80c7e76abb9240401d7bb4f5b0e2c8f8d92387c16d470c7e418156e1cac",
+      "workspaceUUID": "047264a5-7dc0-45ab-91b3-a4fc0d2514b9",
+      "workspaceRevision": 36,
+      "projectUUID": "5E31929A-722C-476A-AD3F-0CA2584BF499",
+      "primaryDraftUUID": "0513C37D-581C-49A1-917D-C5803F6461CB",
+      "otherDraftUUID": "45AD680A-6281-4DAF-9101-801A3C455C15",
+      "primaryNote": "Seal rechecked during rollback.",
+      "primaryFollowUpRequired": true,
+      "otherFollowUpRequired": null,
+      "stateSHA256": "f79848e217e2c2514f96dc761cede8f7e4107eed99478654ee6051e387f24c58",
+      "acceptedSequence": 5,
+      "health": {
+        "healthy": {
+          "sequence": 5,
+          "artifactSHA256": "ee3146f4aa0a40f82f30dd8488a841fbd5ae754fb58eaf13b6d4322b68d3e0ed",
+          "payloadSHA256": "ef0cda59a1ee7da23fdd019a40fa67720386115f2b851cb4090ff621264ba837",
+          "candidateID": "69367c8b7547684862ae9367e93c31b5525307623c3d12f612bd25d2bb2a4f5e",
+          "committedAtWallTime": 1795380763,
+          "completedMilestones": [
+            "feature_started",
+            "first_screen"
+          ],
+          "launchID": "673EE9B1-90C6-4C62-9C3B-EEAE470FBD36",
+          "observationSeconds": 1
+        },
+        "previousHealthy": {
+          "sequence": 4,
+          "artifactSHA256": "dd8c6843acace40fb3d2e507fdc64c254e24853cedbaaa9cbb73af3675955ca9",
+          "payloadSHA256": "7cc6ec58a236ccf38fb2d99ea78c20940eaf6046c3fe42c237db2af8c6e3b14c",
+          "candidateID": "7860a6b3aec5a5905446378fae2e2f184802e4f3cd92ab26a8176208fe578d27",
+          "committedAtWallTime": 1795380718,
+          "completedMilestones": [
+            "first_screen",
+            "feature_started"
+          ],
+          "launchID": "548826F1-8AA3-4B13-B650-77B8E8D243E2",
+          "observationSeconds": 1
+        }
+      },
+      "payloads": {
+        "ef0cda59a1ee7da23fdd019a40fa67720386115f2b851cb4090ff621264ba837": "ef0cda59a1ee7da23fdd019a40fa67720386115f2b851cb4090ff621264ba837",
+        "7cc6ec58a236ccf38fb2d99ea78c20940eaf6046c3fe42c237db2af8c6e3b14c": "7cc6ec58a236ccf38fb2d99ea78c20940eaf6046c3fe42c237db2af8c6e3b14c"
+      },
+      "pending": null,
+      "staged": null,
+      "attempt": null,
+      "lastRecovery": "effects_closed"
+    },
+    "ownedRemoved": true,
+    "scratchRemoved": true,
+    "externalChecks": {
+      "after-create": {
+        "exact": true,
+        "count": 13,
+        "differences": []
+      },
+      "after-boot": {
+        "exact": true,
+        "count": 13,
+        "differences": []
+      },
+      "after-xctest": {
+        "exact": true,
+        "count": 13,
+        "differences": []
+      },
+      "after-shutdown": {
+        "exact": true,
+        "count": 13,
+        "differences": []
+      },
+      "after-delete": {
+        "exact": true,
+        "count": 13,
+        "differences": []
+      }
+    },
+    "runnerSHA256": "ed20909dc39ccf16be11fa290c4d86369dbc04e9aa36f7c83aa779804d592f20"
+  },
+  "nativeReceipt": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-ios-signed-resume-root/ios-saved-draft/native-run-2/receipt.json",
+  "nativeReceiptSHA256": "ca77b9df73648bfd3db5e37c6f13a55d4d09edfc9458ca1bef8b3f3bd005a6c3",
+  "nativeCommandGroupsClosed": 102,
+  "closedObserverFailure": {
+    "receipt": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-ios-signed-resume-root/ios-saved-draft/native-run-1/receipt.json",
+    "receiptSHA256": "db03433d9cab58d89cbec49a54b0a85b27d37cbfbd677d34f9fc0b8d07ac7cee",
+    "xctestResult": "Passed",
+    "readbackFailure": "KeyError: 'schema'",
+    "ownedDeviceRemoved": true,
+    "scratchRemoved": true
+  },
+  "remaining": [
+    "Linked JPEG continuity",
+    "Proven outage of the app-facing origin",
+    "Cold reopen on retained sequence 4",
+    "Unsaved-selection refusal",
+    "Per-checkpoint durable snapshots"
+  ],
+  "independentReview": {
+    "task": "l08-ios-saved-draft-first-native-exact-review-0cfa84940a",
+    "disposition": "scoped-pass",
+    "confirmed": [
+      "Attempt 1 retained XCTest pass",
+      "29 product and 18 release fixture hashes",
+      "Exact scope of selected test",
+      "Recomputed sequence-4 and sequence-5 candidate IDs",
+      "In-memory control and nine rejected mutations",
+      "Both attempts' reported closure"
+    ],
+    "limit": "Attempt 2 native and disk observations are runner-derived. Its raw XCTest bundle and terminal disk snapshots were removed after acceptance."
+  }
+}
