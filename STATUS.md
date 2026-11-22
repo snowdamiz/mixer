@@ -1410,6 +1410,27 @@ Independent review accepted this ordinary emulator journey. All 210
 root and native commands closed and owned scratch was removed.
 [Installed F12 field-note date](verification/receipts/fieldlog-f12-android-date-api36-ac305262.json)
 
+Ordinary offline F11 reopened a saved note on API 36. Native input
+appended ASCII to the existing Unicode and multiline note. Save left
+the outbox unchanged, and a new process restored the edited bytes.
+One Commit appended one entry and one matching event. The disabled
+repeat tap preserved the exact file, and a second cold launch reopened
+the byte-identical sibling draft. The exact historical and Pair25 host
+selectors passed Unicode event input and stale-action refusals.
+Independent review accepted the installed slice, and all 158 native
+and outer commands closed.
+[Installed F11 restored note](verification/receipts/fieldlog-f11-android-restored-note-api36-ac305262.json)
+
+All four F14–F16 selectors passed on the historical and Pair25
+sources. F14 wrote one entry and one event after a valid edit-and-commit
+batch and preserved editor, frame, and disk state on refusal. F15
+rejected both over-contract projections before a durable write. F16
+injected close cancellation after save admission. The save reached disk
+and a new app instance in the same process acquired the real repository
+lock. Independent review repeated the four Pair25 selectors. The
+surface was synthetic, and the F16 test did not force write overlap.
+[Editor transaction host replay](verification/receipts/fieldlog-f14-f16-pair25-host-bb6a1999.json)
+
 A fresh offline API 36 install of the same APK ran the bundled signed
 Entry Commit. It moved the draft under the original ID, appended one
 entrySaved record and retained seven JPEGs. After cold reopen, Android's
@@ -3324,6 +3345,14 @@ and the signed artifact with its base64 Wasm. Two reads per response
 matched the original signed packet. The receipt records separate
 offline gzip sizes and excludes headers and transport overhead.
 [Signed row response sizes](verification/receipts/l03-android-signed-row-release-wire-d92cb15a.json)
+
+The two installed Android Arabic checklist releases used 10,563 and
+10,939 response-body bytes for their signed offers and artifacts.
+Independent reconstruction with the stock Go wire types matched all
+four recorded body hashes. Separate offline gzip totals were 5,340
+and 5,509 bytes. Headers, retransmission, and APK installation are
+outside these counts. The full change corpus remains open.
+[Signed localization response sizes](verification/receipts/l03-android-localized-release-wire-bb6a1999.json)
 
 On API 36, three fresh FieldLog fixture identities each accepted one
 native Move up tap and appended one reorder event. The first raw crop
