@@ -1688,6 +1688,19 @@ is unverified. Full account adoption and Apple adapter parity remain
 open.
 [Installed warm callback](verification/receipts/fieldlog-android-warm-callback-api36-b9bff058.json)
 
+The Cancel successor passed exact host controls for ordinary recovery
+and deletion reauthorization. Cancel before attempt consumption caused
+zero subsequent exchanges on Retry. The host review confirmed preserved
+replacement codes and deletion intent. On API 36 the exact APK cleared
+the pending credential through the ordinary Cancel button. It then
+admitted one new browser sign-in and passed the separate warm Retry
+regression. The busy callback command order remains host evidence.
+A separate API 36 run tapped Cancel while the credential slot was
+unreadable. After restoring the slot and force-stopping, a new process
+reopened the saved browser attempt with zero exchanges. Cold
+cancellation and account adoption remain open.
+[Android browser Cancel](verification/receipts/fieldlog-android-browser-cancel-api36-09851a72.json)
+
 The iOS deletion owner now loads the saved reauthorization intent when
 the browser callback arrives before startup restore. The real loopback
 host replay passed both orders. Local data stayed intact until renewed
