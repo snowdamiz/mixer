@@ -34,6 +34,9 @@ MEMORY_GROW_HASH = "8ab4f6e3343f46b4b5aa988de1b102d442228807073838b79563e6b34e2e
 MEMORY_COPY = "memory_copy.wast"
 MEMORY_COPY_HASH = "059813c4cd9e79cf3a287409842b9212f6f48b4a6a5f597f22c81631e7b55d08"
 MEMORY_COPY_WASM_HASH = "6e10196de6875cc788a2a0426cda6b733b99c66af7448a2a5458316083e7c14d"
+MEMORY_FILL = "memory_fill.wast"
+MEMORY_FILL_HASH = "b8a7dccdf72878d11497a5d13ca3c628552b690f5386ef56b0a46c5dd711ad1f"
+MEMORY_FILL_WASM_HASH = "3516438ef6b98d2644bf52f43971d21bf102139418fb46d0161dba071bf83c7b"
 PROFILE = "mixer-table-memory-v3"
 FEATURE = "experimental-capability-native"
 MAX_EXPORT_BYTES = 32 * 1024 * 1024
@@ -413,6 +416,34 @@ def replay_memory_copy(commands, scratch, translator, reference, validator, core
     require(output[:-1] == ["test() =>"], f"memory-copy: unexpected WABT mutation output: {output}")
 
 
+def replay_memory_fill(commands, scratch, translator, reference, validator, core, client, record):
+    directory, script = translate_stateful(
+        commands, scratch, translator, record, MEMORY_FILL, MEMORY_FILL_HASH,
+    )
+    module, rows = select_stateful_block(
+        script, 145, "commands.7.wasm", (162, 164, 166, 168, 170, 172), mutation_line=162,
+    )
+    wasm = directory / module["filename"]
+    require(digest(wasm.read_bytes()) == MEMORY_FILL_WASM_HASH, "memory-fill: module SHA-256 mismatch")
+    overwritten = rows[3]
+    action = overwritten["action"]
+    require(action == {
+        "type": "invoke", "field": "checkRange",
+        "args": [{"type": "i32", "value": value} for value in ("21", "25", "170")],
+    } and overwritten["expected"] == [{"type": "i32", "value": "4294967295"}],
+        "memory-fill: unexpected overwritten range")
+    # The same overwritten range must be zero before the fill and on fresh reopen.
+    reset = {**overwritten, "action": {
+        **action, "args": [*action["args"][:2], {"type": "i32", "value": "0"}],
+    }}
+    stateful = record["memory_fill"] = {
+        "fixture": MEMORY_FILL, "upstream": rows, "initial_and_reset_control": reset,
+        "validation": validate(commands, "memory-fill-145", core, client, validator, wasm,
+                               invalid=None, guest_code="capability_export"),
+    }
+    replay_stateful(commands, directory, script, module, [reset, *rows], reference, client, stateful)
+
+
 def copy_install(scratch, release, source):
     include = scratch / "install/include"
     lib = scratch / "install/lib"
@@ -548,6 +579,7 @@ def replay(commands, scratch, rust, record):
 
     replay_memory_growth(commands, scratch, translator, reference, client, record)
     replay_memory_copy(commands, scratch, translator, reference, validator, core, client, record)
+    replay_memory_fill(commands, scratch, translator, reference, validator, core, client, record)
     for script, fixture in FIXTURES.items():
         directory = scratch / script
         directory.mkdir()
