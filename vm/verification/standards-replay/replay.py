@@ -35,6 +35,7 @@ MEMORY_GROW_HASH = "8ab4f6e3343f46b4b5aa988de1b102d442228807073838b79563e6b34e2e
 MEMORY_COPY = "memory_copy.wast"
 MEMORY_COPY_HASH = "059813c4cd9e79cf3a287409842b9212f6f48b4a6a5f597f22c81631e7b55d08"
 MEMORY_COPY_WASM_HASH = "6e10196de6875cc788a2a0426cda6b733b99c66af7448a2a5458316083e7c14d"
+MEMORY_COPY_HIGHER_ADDRESS_WASM_HASH = "1bc68294db9458b5dd3e61d95543c9c43cbe545a7c9753314c1e81e995582031"
 MEMORY_FILL = "memory_fill.wast"
 MEMORY_FILL_HASH = "b8a7dccdf72878d11497a5d13ca3c628552b690f5386ef56b0a46c5dd711ad1f"
 MEMORY_FILL_WASM_HASH = "3516438ef6b98d2644bf52f43971d21bf102139418fb46d0161dba071bf83c7b"
@@ -561,38 +562,60 @@ def replay_memory_growth(commands, scratch, translator, reference, client, recor
     replay_stateful(commands, bounded, script, module, rows, reference, client, maximum)
 
 
+def replay_memory_copy_block(commands, directory, script, reference, validator, core, client,
+                             record, *, module_line, filename, mutation_line, readback_line,
+                             wasm_hash, copied_byte):
+    readback_lines = range(readback_line, readback_line + 30)
+    module, rows = select_stateful_block(
+        script, module_line, filename, (mutation_line, *readback_lines), mutation_line=mutation_line,
+    )
+    label = f"memory-copy-{module_line}"
+    wasm = directory / module["filename"]
+    require(digest(wasm.read_bytes()) == wasm_hash, f"{label}: module SHA-256 mismatch")
+    # The initialized data byte at address 12 is overwritten in both modules.
+    changed = rows[1 + 12]
+    require(changed["action"] == {
+        "type": "invoke", "field": "load8_u", "args": [{"type": "i32", "value": "12"}],
+    } and changed["expected"] == [{"type": "i32", "value": str(copied_byte)}],
+        f"{label}: unexpected reset witness")
+    reset = {**changed, "expected": [{"type": "i32", "value": "7"}]}
+    record.update(
+        fixture=MEMORY_COPY, upstream=rows,
+        initial_and_reset_control={
+            "action_from_upstream_line": reset["line"], "action": reset["action"],
+            "expected": reset["expected"],
+        },
+    )
+    record["validation"] = validate(
+        commands, label, core, client, validator, wasm, invalid=None, guest_code="capability_export",
+    )
+    replay_stateful(
+        commands, directory, script, module, [reset, *rows], reference, client, record,
+    )
+    output = record["reference_output"]
+    require(output[:-1] == ["test() =>"], f"{label}: unexpected WABT mutation output: {output}")
+
+
 def replay_memory_copy(commands, scratch, translator, reference, validator, core, client, record):
     directory, script = translate_stateful(
         commands, scratch, translator, record, MEMORY_COPY, MEMORY_COPY_HASH,
     )
-    module, rows = select_stateful_block(
-        script, 258, "commands.6.wasm", (267, *range(269, 299)), mutation_line=267,
+    replay_memory_copy_block(
+        commands, directory, script, reference, validator, core, client,
+        record.setdefault("memory_copy", {}), module_line=258, filename="commands.6.wasm",
+        mutation_line=267, readback_line=269, wasm_hash=MEMORY_COPY_WASM_HASH, copied_byte=2,
     )
-    wasm = directory / module["filename"]
-    require(digest(wasm.read_bytes()) == MEMORY_COPY_WASM_HASH, "memory-copy: module SHA-256 mismatch")
-    # Address 12 starts at 7 and the upstream post-copy assertion expects 2.
-    changed = next(row for row in rows if row["line"] == 281)
-    require(changed["action"] == {
-        "type": "invoke", "field": "load8_u", "args": [{"type": "i32", "value": "12"}],
-    } and changed["expected"] == [{"type": "i32", "value": "2"}],
-        "memory-copy: unexpected reset witness")
-    reset = {**changed, "expected": [{"type": "i32", "value": "7"}]}
-    stateful = record["memory_copy"] = {
-        "fixture": MEMORY_COPY, "upstream": rows,
-        "initial_and_reset_control": {
-            "action_from_upstream_line": reset["line"], "action": reset["action"],
-            "expected": reset["expected"],
-        },
-    }
-    stateful["validation"] = validate(
-        commands, "memory-copy-258", core, client, validator, wasm,
-        invalid=None, guest_code="capability_export",
+
+    higher_address = directory / "higher-address"
+    higher_address.mkdir()
+    filename = "commands.7.wasm"
+    shutil.copyfile(directory / filename, higher_address / filename)
+    replay_memory_copy_block(
+        commands, higher_address, script, reference, validator, core, client,
+        record.setdefault("memory_copy_higher_address", {}), module_line=300, filename=filename,
+        mutation_line=309, readback_line=311, wasm_hash=MEMORY_COPY_HIGHER_ADDRESS_WASM_HASH,
+        copied_byte=0,
     )
-    replay_stateful(
-        commands, directory, script, module, [reset, *rows], reference, client, stateful,
-    )
-    output = stateful["reference_output"]
-    require(output[:-1] == ["test() =>"], f"memory-copy: unexpected WABT mutation output: {output}")
 
 
 def replay_memory_fill(commands, scratch, translator, reference, validator, core, client, record):

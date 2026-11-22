@@ -55,6 +55,14 @@ return `i32:7`, `i32:2`, and `i32:7`. The initial and fresh-instance reads
 reuse the action from line 281 with a separate expected value. The upstream
 assertion and translated Wasm bytes stay intact.
 
+The next `memory_copy.wast` module starts on line 300 and copies seven bytes
+from address 10 to address 12. Line 309 invokes `test`. The 30 assertions on
+lines 311–340 check both overwritten and untouched bytes in that instance.
+Both runners also read address 12 before the copy and in a fresh instance.
+The reads before, after, and in the fresh instance return `i32:7`, `i32:0`,
+and `i32:7`. The replay uses the original translated module and assertion rows.
+[Pinned higher-address copy](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/memory_copy.wast#L300-L340)
+
 In `memory_fill.wast`, line 145 defines the module and line 162 invokes
 two overlapping fills. Five upstream assertions check every byte of the page
 after the two fills, including both untouched ranges and the four overwritten

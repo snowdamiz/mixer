@@ -1484,8 +1484,26 @@ field had regained window focus with its predecessor closed. An
 explicit Note tap and hardware text still failed to produce input
 at the sampled points. Persisted workspace bytes matched the seed.
 All 132 commands reached terminal custody. The first refusing predicate
-is known. How the owner misses reopening its input remains open.
+is known. That trace did not capture the subsequent owner publication.
 [Installed Home readiness trace](verification/receipts/l02-android-note-home-owner-sealed-api36-c6ee43e1.json)
+
+A second same-Activity Home trace observed the focus callback and
+a successful synchronous focus read. Android requested a connection
+while the owner drain was queued. The exact committed refresh then
+published input authority, but Android made no further connection
+request through the Note tap and hardware probe. The workspace stayed
+unchanged and all 135 commands closed.
+[Installed Home publication order](verification/receipts/l02-android-note-home-publication-order-api36-c6ee43e1.json)
+
+A private one-shot restart recovered the Note on the same API 36 Home
+journey. The exact owner refresh published input authority. Before the
+Note tap, one restart opened a fresh adapter on the same Editable.
+The fixture IME read the field, committed the exact synthetic value,
+and read it back through the new adapter. The same runner failed on
+the diagnostic baseline. Both arms kept their Activity, process, and
+workspace. All 130 baseline and 137 candidate commands reached terminal
+custody. Public SDK adoption and the separate IME switch remain open.
+[Installed Home restart A/B](verification/receipts/l02-android-note-home-restart-api36-c6ee43e1.json)
 
 The IME-switch experiment withheld an overlapping connection and posted
 a public restart after the exact predecessor closed. Android briefly
@@ -2184,7 +2202,11 @@ metadata artifact after five requests. On `3362bf6c`, the Swift host
 download failed before the integration. The metadata upload reported
 a finalization timeout, and the exact ZIP was readable through GitHub.
 Its five bootstrap commands reached terminal custody and the owned
-scratch was removed. Root requested one retry of the failed job.
+scratch was removed. The one retry passed all six Java consumers and
+the metadata upload. All nine jobs passed for that attempt.
+[Hosted Java retry](https://github.com/snowdamiz/mixer/actions/runs/45026922011/attempts/2)
+The next public revision, `c6ee43e1`, passed all nine jobs on its first attempt.
+[Hosted Engine run](https://github.com/snowdamiz/mixer/actions/runs/45029091735)
 [Hosted Java bootstrap and artifact receipt](verification/receipts/hosted-java-bootstrap-and-artifact-3362bf6c.json)
 
 All nine Owned Engine jobs passed on the Rust notice binding.
@@ -2561,6 +2583,16 @@ zero and high-bit inputs in stock WABT, the Mixer CLI, and the installed
 V3 C ABI. The independent review matched all 43 prior outcomes and all
 five stateful sections. This extends local W08 replay coverage.
 [Bit-count replay and review](verification/receipts/l03-w08-i64-bit-count-independent-review-5f922bd6.json)
+
+The maintained W08 replay now covers both directions of overlapping
+memory copy. The unchanged upstream module copies seven bytes from
+address 10 to 12. WABT passed all 35 manifest steps, and the installed
+public V3 C ABI matched all 30 byte assertions. In both runners address
+12 read 7 before the copy, 0 after it, and 7 in a fresh instance. An
+independent replay matched all prior outcomes and passed all eight
+wrapper controls. The candidate used all 256 command slots. This is
+arm64 macOS V3 session evidence.
+[Higher-address copy replay](verification/receipts/l03-w08-memory-copy-higher-address-554515a3.json)
 
 The seeded TableMemoryV3 check retains one instance for 40 copies on
 each of 24 seeds. Mixer and Node matched all 960 observations of the
