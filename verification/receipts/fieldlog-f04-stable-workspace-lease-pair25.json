@@ -1,5 +1,5 @@
 {
-  "status": "PRIVATE_HOST_CANDIDATE_PASS_INDEPENDENT_REVIEW_PENDING",
+  "status": "PRIVATE_HOST_AND_NATIVE_COMPILE_PASS_INDEPENDENT_REVIEW_UNAVAILABLE",
   "authorReceiptSHA256": "c54a0ed9b4c3758cb6b1d04477ef4cc86ec7c11492d4fbed9bfee256991ada38",
   "mixerFollowUp": "12616bb26ff286ab91a3f689ccd8e6f8b5fce7fb",
   "mixerWorktreeRevision": "58951594a866492be7ce204e93a9533f892b2550",
@@ -107,5 +107,105 @@
     "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
     "git": "git version 2.56.0"
   },
-  "priorDirectoryLockExperiment": "verification/receipts/fieldlog-f04-pair25-directory-lock-macos.json"
+  "priorDirectoryLockExperiment": "verification/receipts/fieldlog-f04-pair25-directory-lock-macos.json",
+  "nativeCompile": {
+    "authorCompileReceiptSHA256": "43544443297dd7021f12a7241e970205f25768e537f8c77e07c1ec2990110d09",
+    "status": "android_storage_compile_and_ordinary_unsigned_iphoneos_app_build_passed",
+    "sdkCommit": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+    "candidateTree": "858e86750570e36cc59f882d4bf21dcd0d9935d1",
+    "patchSHA256": "3cbc3455943be884d8b149bad2815f8a7fca21bebc570573d79c47ede8ad4f73",
+    "scopeLimitations": [
+      "Android emitted objects from two existing storage target configurations. Whole JNI/APK linkage was outside this compile pass.",
+      "iPhoneOS compiled and linked the ordinary unsigned generic app using a scratch-only dependency lock with the prior diagnostic build pins.",
+      "POSIX symbol references and compilation establish SDK importer and compile compatibility for this source. No filesystem operations, lock exclusion or file descriptor lifecycle were exercised at runtime.",
+      "No source fixes, signing, installation, Simulator, devices, deployment or push."
+    ],
+    "terminalCustody": {
+      "eachCommandGroupObservedAbsent": true,
+      "allSuccessfulCommandsDirectlyReaped": true,
+      "exception": "The first Xcode launcher wait status was lost by the disk sampler failure. A completed failing Xcode result was observed and the exact group returned ESRCH. The corrected retry was directly reaped and its group returned ESRCH."
+    },
+    "scratchRemoved": true,
+    "android": {
+      "target": "FieldLogStorage",
+      "triple": "aarch64-unknown-linux-android28",
+      "swift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+      "objectType": "ELF 64-bit LSB relocatable, ARM aarch64, version 1 (GNU/Linux), not stripped",
+      "posixReferences": [
+        "U close",
+        "U flock",
+        "U fstat",
+        "U fstatat",
+        "U fsync",
+        "U linkat",
+        "U mkdirat",
+        "U renameat",
+        "U unlinkat",
+        "U $s7Android6openatys5Int32VAD_SPys4Int8VGADs6UInt32VtF",
+        "U $s7Android6openatys5Int32VAD_SPys4Int8VGADtF"
+      ],
+      "storageObjects": [
+        {
+          "path": "aarch64-unknown-linux-android28/debug/FieldLogStorage.build/EntrySyncClient.swift.o",
+          "sha256": "498a946e4b3ffb99faf3d9579861f6b26d5cb1f73da2570dd58917a695c1d762",
+          "bytes": 400536
+        },
+        {
+          "path": "aarch64-unknown-linux-android28/debug/FieldLogStorage.build/WorkspaceRepository.swift.o",
+          "sha256": "59eff426670fb2d420f1758761068319755a41b269b4067374a1d3e8cbf0ead8",
+          "bytes": 233032
+        }
+      ]
+    },
+    "androidMergedPhotos": {
+      "objectType": "ELF 64-bit LSB relocatable, ARM aarch64, version 1 (GNU/Linux), not stripped",
+      "posixReferences": [
+        "U $s7Android6openatys5Int32VAD_SPys4Int8VGADs6UInt32VtF",
+        "U $s7Android6openatys5Int32VAD_SPys4Int8VGADtF",
+        "U close",
+        "U flock",
+        "U fstat",
+        "U fstatat",
+        "U fsync",
+        "U linkat",
+        "U mkdirat",
+        "U renameat",
+        "U unlinkat"
+      ],
+      "storageObjects": [
+        {
+          "path": "aarch64-unknown-linux-android28/debug/FieldLogStorage.build/EntrySyncClient.swift.o",
+          "sha256": "e18d1598a81dc186b4a30449433feb817c62cb92ae622a2f911914b9625dd78e",
+          "bytes": 400536
+        },
+        {
+          "path": "aarch64-unknown-linux-android28/debug/FieldLogStorage.build/WorkspaceRepository.swift.o",
+          "sha256": "6efc95984bb4e4164fbf5d101ce51f25a2b62c1e4365f56c93ce4632874f22c8",
+          "bytes": 230584
+        }
+      ]
+    },
+    "iphoneos": {
+      "sdk": "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.2.sdk",
+      "binaryKind": "Mach-O 64-bit executable arm64",
+      "buildVersion": "$SCRATCH/derived/Build/Products/Debug-iphoneos/FieldLog.app/FieldLog:\nLoad command 11\n      cmd LC_BUILD_VERSION\n  cmdsize 32\n platform IOS\n    minos 26.0\n      sdk 27.2\n   ntools 1\n     tool LD\n  version 27106.1\n",
+      "signingLoadCommandPresent": false,
+      "provisioningProfilePresent": false,
+      "linkedCandidateSymbols": [
+        "static FieldLogStorage.WorkspaceRepository.withWorkspaceReplacementLease(directory: Foundation.URL, perform: (Foundation.URL) throws -> ()) throws -> ()",
+        "$defer #2 () -> () in static FieldLogStorage.WorkspaceRepository.withWorkspaceReplacementLease(directory: Foundation.URL, perform: (Foundation.URL) throws -> ()) throws -> ()",
+        "$defer #3 () -> () in static FieldLogStorage.WorkspaceRepository.withWorkspaceReplacementLease(directory: Foundation.URL, perform: (Foundation.URL) throws -> ()) throws -> ()",
+        "$defer #1 () -> () in static FieldLogStorage.WorkspaceRepository.withWorkspaceReplacementLease(directory: Foundation.URL, perform: (Foundation.URL) throws -> ()) throws -> ()",
+        "FieldLogStorage.WorkspaceRepository.(holdsWorkspaceLock in _3956E76F2BDE44A65F801EA4002C3EB4)() -> Swift.Bool",
+        "$defer #1 () -> () in FieldLogStorage.WorkspaceRepository.(holdsWorkspaceLock in _3956E76F2BDE44A65F801EA4002C3EB4)() -> Swift.Bool",
+        "method descriptor for FieldLogStorage.WorkspaceRepository.(holdsWorkspaceLock in _3956E76F2BDE44A65F801EA4002C3EB4)() -> Swift.Bool",
+        "static FieldLogStorage.WorkspaceRepository.(openSubdirectory in _3956E76F2BDE44A65F801EA4002C3EB4)(_: Swift.String, of: Swift.Int32) throws -> Swift.Int32"
+      ]
+    },
+    "firstLinkAttempt": "Xcode reported the scratch archive name failure. The sampler lost the direct wait status and the exact group was later observed absent. The corrected build was directly reaped."
+  },
+  "independentReview": {
+    "status": "no_result",
+    "adoption": "open"
+  }
 }

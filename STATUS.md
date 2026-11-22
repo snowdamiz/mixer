@@ -1557,6 +1557,14 @@ commands closed. The run reproduced the failure under the selected
 order. The intermittent unforced failure still has no causal trace.
 [Selected visibility-first Android run](verification/receipts/l02-android-note-home-visibility-first-api36-94775102.json)
 
+The private successor passed the same selected API 36 callback
+order. The first create was refused while sealed, then committed
+publication led to one restart and one fresh connection on the same
+Editable. The untouched Note accepted and read back the exact text.
+Activity, PID and workspace bytes stayed stable, and all 132 commands
+closed. SDK adoption and the create-before-drain host case remain open.
+[Visibility-first successor replay](verification/receipts/l02-android-note-visibility-first-successor-api36-6dda69d9.json)
+
 The IME-switch experiment withheld an overlapping connection and posted
 a public restart after the exact predecessor closed. Android briefly
 received a new SDK adapter, then closed it after another overlapping
@@ -1636,8 +1644,10 @@ and let a separate workspace commit. Replacement bytes stayed intact,
 with no temporary files left. The same-editor retry and all six
 uncertainty cases passed. Late external displacement can still leave a
 commit on the original inode before fencing. Mixed-version displacement
-and native app behavior remain outside this evidence. The candidate
-awaits independent review.
+and native runtime behavior remain outside this evidence. The same
+candidate compiled into both Android storage configurations and linked
+as an unsigned generic iPhoneOS app. Independent review returned no
+result. Adoption remains open.
 [F04 stable workspace lease](verification/receipts/fieldlog-f04-stable-workspace-lease-pair25.json)
 
 All four F14–F16 selectors passed on the historical and Pair25
@@ -4046,6 +4056,17 @@ frame for those launches, and the raw recovery journals were removed.
 Ordinary Entry Commit has separate hardware frame evidence. L04, L07
 and L08 remain open.
 [Signed row activation trace](verification/receipts/l07-android-row-activation-positive-trace-12616bb2.json)
+
+A fresh development seal bound the hardware-frame and PixelCopy
+witness to the row fixture. The stock verifier passed all three
+signed assignments. The API 36 run recorded a successful display witness and
+both durable milestones for each of four launches. One Move up tap
+advanced revision 9 to 10 and appended one event. Rollback and a fresh
+offline process preserved the reordered workspace. All 160 commands
+closed. The retained trace uses facade and probe, and the journal uses
+candidate and launch. There is no common attachment ID in the trace.
+Installed iOS remains open.
+[Installed row hardware-frame witness](verification/receipts/l07-android-row-hardware-frame-api36-6dda69d9.json)
 
 On Android API 36, the ordinary FieldLog app cold-restored an uncommitted photo draft, saved it, and resumed the JPEG transfer at 65,536 bytes after cancellation. When the backend withheld the final receipt, retry reconciled the original event without sending another chunk. SQLite held one event and one matching 281,378-byte JPEG. The two unrelated outbox events survived cold reopen. [Runtime and readback](verification/receipts/fieldlog-android-ordinary-queue-runtime-41a05264.json)
 
