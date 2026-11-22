@@ -1177,6 +1177,15 @@ advanced the revision once. Camera cancellation and queue readback
 worked after dismissal. Both owned attempts removed scratch.
 [Installed map and exact source delta](verification/receipts/fieldlog-android-site-map-pair25-87c95c5a-installed.json)
 
+A second owned API 36 run on that APK granted only approximate
+location and displayed the operating system's reported accuracy.
+Backgrounding cleared the preview. Disabling location produced an
+unavailable message, and revoking the coarse grant ended the app
+process. The fresh process prompted again and kept the saved pin.
+Workspace bytes and the repository file list were identical. The
+sampled app log contained neither exact synthetic input coordinate.
+[Installed permission lifecycle](verification/receipts/fieldlog-android-site-map-permissions-87c95c5a.json)
+
 A separate replay on the same APK cancelled at 65,536 bytes, resumed
 and reconciled the lost acknowledgment. SQLite held one new event
 and the exact JPEG. One local outbox record retired after the retry.

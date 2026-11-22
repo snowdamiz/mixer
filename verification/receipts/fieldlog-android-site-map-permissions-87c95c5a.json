@@ -1,0 +1,115 @@
+{
+  "result": "pass",
+  "mixer_evidence_base": "e414fa1a10f03cc45aa800e951913d0b8ac2651e",
+  "build_receipt": "verification/receipts/fieldlog-android-site-map-pair25-87c95c5a-installed.json",
+  "fieldlog_product_tree": "52b8f2f36269b2f7185e5b87c7280aecd123d862",
+  "fieldlog_packaging_tree": "87c95c5af8212adfc1c01f926c7755fd2c69e5b1",
+  "apk_v3_certificate_sha256": "66700a56b2da28dfacb26d4415c7653519ede4d1a650bae02c563c99996fe49b",
+  "raw_receipt_sha256": "1633165dfc3e1e8f999ecd8912f9bc7597e8e31d4a218fb4be1e800a1ab0f940",
+  "network": "Disposable AVD offline with airplane mode, Wi-Fi and mobile data disabled, no IPv4 or IPv6 default route, and no ADB reverse.",
+  "checkpoints": [
+    "Opened Site Map from the ordinary project dashboard using a seeded workspace containing a saved pin. Both app location permissions were initially absent.",
+    "In the OS permission prompt selected Approximate and While using the app. Package permission readback confirmed coarse only.",
+    "Verified the exact owned AVD name before sending a synthetic fix via adb emu geo fix. The native map displayed its relative direction and OS-reported accuracy.",
+    "Backgrounded and relaunched the activity. The temporary position disappeared. With device location disabled, tapping Show my location reported that location was off or GPS unavailable.",
+    "Reenabled device location and revoked only this app's coarse permission using Android pm. The old app PID exited. The new PID retained the project pin and showed no old position. A second location request presented the OS prompt, and denial left both grants absent.",
+    "The installed APK, complete workspace bytes and repository file list matched their earlier readbacks throughout the run."
+  ],
+  "limits": "The PID-scoped sampled app log contained neither exact synthetic input scalar. This scoped check does not measure network egress, other logging sinks, TalkBack, or physical hardware.",
+  "observations": {
+    "startedUTC": "2026-11-21T23:59:00.780019+00:00",
+    "apkSHA256": "f08f99a41cb97fc66b878daf03383432f932a2ea1e4587ad79284e5e858f6f79",
+    "fixtureSHA256": "fe7ab541dc60fce95bfaca86fb24e303f5b2dba34d3e758e43436fa49d26772b",
+    "runnerSHA256": "20c3e7f58f11883ee15aeea68b6d3d26fd31bac52a2d1acccac60f529d898469",
+    "permissionsHarnessSHA256": "5f4d717959c138b02264e74e25b97b6be3195872b35fc8d77e39a20331f4e82a",
+    "device": {
+      "ro.boot.qemu.avd_name": "mixer_picker_bwc9499i",
+      "ro.build.version.sdk": "36",
+      "ro.product.cpu.abi": "arm64-v8a",
+      "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+    },
+    "workspaceSHA256": "fe7ab541dc60fce95bfaca86fb24e303f5b2dba34d3e758e43436fa49d26772b",
+    "repositoryFileListSHA256": "af80276e326562978c6e1539e1587d7a1d9a4f019b89ac92b8f7a016d5cf0fcb",
+    "initialPermissions": {
+      "android.permission.ACCESS_COARSE_LOCATION": false,
+      "android.permission.ACCESS_FINE_LOCATION": false
+    },
+    "coarseGrant": {
+      "android.permission.ACCESS_COARSE_LOCATION": true,
+      "android.permission.ACCESS_FINE_LOCATION": false
+    },
+    "coarseSummary": "Current position shown in blue. Northeast of the saved pin. Accuracy ±2000.0 meters.",
+    "coarseGPSInput": [
+      "-122.217431",
+      "37.973219"
+    ],
+    "firstPID": 2351,
+    "postRevocationPID": 2849,
+    "afterRevocationPermissions": {
+      "android.permission.ACCESS_COARSE_LOCATION": false,
+      "android.permission.ACCESS_FINE_LOCATION": false
+    },
+    "approximateSelectionHierarchySHA256": "8787ed347f931b9034cc7e67a7dbad8d6d66debd2a82b1cdbda38396ed95a6c4",
+    "coarseGrantHierarchySHA256": "0e5f36e74ef759981c42b474411cf1214c0b9c0388c986dda4c94f6943dcc94e",
+    "afterPauseHierarchySHA256": "711e3f1869feea342bcd568cd0844ae5f816279af296c74c8501ef6aff3cae64",
+    "disabledServicesHierarchySHA256": "19162d912d5334345490792949e78ffd37ab8f97bc6db5af0284747afc1b2358",
+    "postRevocationPromptHierarchySHA256": "b18069ef6a2d60a8d6fe2470a980baf6f5f4eda1d2e86d0e97ec4205f64308ca",
+    "appLog": {
+      "bytes": 21982,
+      "sha256": "3413898e60924ebb1fedcb45a9b064ffcec495b8f541988fa5fb14ddbf8220dd",
+      "exactFixScalarsAbsent": true
+    },
+    "screens": {
+      "approximate": {
+        "hierarchySHA256": "2787e77dd42ed821450e731344216c5f83223f67dea58bc94d34cab2b73ae5e3",
+        "screenshotSHA256": "6eb1efce3b3e41aa6bb4239f2f1a1aedc7393ec22d431e36287276a9a53a5d2b"
+      }
+    },
+    "services": [
+      {
+        "name": "emulator",
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+          "-avd",
+          "mixer_picker_bwc9499i",
+          "-ports",
+          "26042,26043",
+          "-no-window",
+          "-no-audio",
+          "-no-snapshot",
+          "-gpu",
+          "swiftshader_indirect",
+          "-no-boot-anim",
+          "-skin",
+          "1080x2400",
+          "-partition-size",
+          "3072"
+        ],
+        "pid": 55513,
+        "exit": 0,
+        "groupAbsent": true
+      },
+      {
+        "name": "adb",
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+          "-L",
+          "tcp:localhost:26044",
+          "server",
+          "nodaemon"
+        ],
+        "pid": 55512,
+        "exit": -15,
+        "groupAbsent": true
+      }
+    ],
+    "portsRebound": [
+      26042,
+      26043,
+      26044
+    ],
+    "terminalCommands": 142,
+    "commandLogSHA256": "fcfb513f75529c77c0ee09bf33ae91e3a8bc7b0694837d11c138ace17f33a830",
+    "scratchRemoved": true
+  }
+}
