@@ -1592,6 +1592,14 @@ corrected tree linked for generic arm64 iPhoneOS. Native browser and
 Keychain checks remain pending.
 [iOS deletion owner checks](verification/receipts/fieldlog-ios-account-deletion-callback-5cdfa986.json)
 
+The shared iOS owner now retains an unacknowledged replacement across
+recovery cancellation and supersession. The loopback replay cancelled
+held exchange and confirmation replies, then recovered the replacement
+in fresh processes and signed out after ordinary sign-in. Both deletion
+callback orders and scoped cleanup still passed. The exact source
+linked for generic arm64 iPhoneOS.
+[iOS pending replacement replay](verification/receipts/fieldlog-ios-pending-replacement-1ba375bb.json)
+
 The generic iOS Simulator witness builds the same ordinary FieldLog
 tree with a named XCTest. It opens the saved project, edits a draft
 through the Photo Library picker, saves a manual Site Map pin, and
@@ -3153,6 +3161,14 @@ the seed. After restart the editor accepted text events through revision 3
 and disappeared before Add. The journal retired the attempt and the
 workspace stayed byte-identical. The input handoff correction remains open.
 [Exact F06 unpaced input failure](verification/receipts/fieldlog-f06-android-title-burst-baseline-7fa6b6ea.json)
+
+The private F06 title buffer passed the same burst with the historical
+Wasm and JNI on API 36. The 17 text echoes reached committed revision 18.
+Add saved the exact title and appended one matching task event. Cancel
+preserved the seed, both owners retired, and a separate process read the
+saved workspace bytes offline. Host checks cover plain IME commits.
+Native composition remains open.
+[Buffered F06 native replay](verification/receipts/fieldlog-f06-android-buffered-title-api36-7fa6b6ea.json)
 
 A free owner completed current membership edits, usage and quota checks, support, export, and organization deletion in Chrome against Phoenix and PostgreSQL. One organization stayed isolated from the other. Two earlier role edits returned 503 during the member page load. Exit with settled build history remains open. [Free-owner administration](verification/receipts/l06-owner-admin-browser-e3c1f6c65c.json)
 

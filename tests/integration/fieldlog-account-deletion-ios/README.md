@@ -38,13 +38,20 @@ git -C "$app" apply --check --index --whitespace=error-all "$work/callback-start
 git -C "$app" apply --index --whitespace=error-all "$work/callback-startup.patch"
 test "$(git -C "$app" write-tree)" = 5cdfa986b54902b042f3b0bf1824f8d17f719a80
 test "$(git -C "$app" rev-parse ":$owner")" = ea55e31a8fc1ec49eda019de48b0bc2cc8d59fee
+base64 -D -i "$fixture/fieldlog-apple-pending-replacement.patch.b64" -o "$work/pending-replacement.patch"
+test "$(shasum -a 256 < "$work/pending-replacement.patch" | cut -d ' ' -f 1)" = a1434ad3892bce3e8bc265201a810f190645718bcaf7ce50f6b59dd87a9c6876
+git -C "$app" apply --index --whitespace=error-all "$work/pending-replacement.patch"
+test "$(git -C "$app" write-tree)" = 1ba375bb182e83b0f25054e0178a7185ff3e84c3
+test "$(git -C "$app" rev-parse ":$owner")" = 377d020cb8c217d698b4de3d6cc02b2ba2da8b2e
 sh "$fixture/run-checks.sh" "$app" "$checks"
 ```
 
-Reverse the startup callback patch independently and check the original
-deletion tree before reversing any earlier patch.
+Reverse the pending replacement and startup callback patches in order.
+Check each source tree before reversing the earlier patch.
 
 ```sh
+git -C "$app" apply --index --reverse --whitespace=error-all "$work/pending-replacement.patch"
+test "$(git -C "$app" write-tree)" = 5cdfa986b54902b042f3b0bf1824f8d17f719a80
 git -C "$app" apply --index --reverse --whitespace=error-all "$work/callback-startup.patch"
 test "$(git -C "$app" write-tree)" = a218654455648bbddcdf829a97bb3002e8ba6b5d
 ```
@@ -74,6 +81,15 @@ deletion receipt. The fixture checks that invalid callbacks preserve the slot,
 that each sign-in exchange uses a distinct state, and that each listener releases
 its ephemeral loopback port. Native callback delivery and Keychain runtime
 verification remain with root.
+
+## Cancelled recovery verification
+
+The shared owner preserves a staged replacement when a recovery exchange
+or confirmation is cancelled after the service may have committed. The
+host checks also cover a superseded owner and sign-in through a fresh
+process. Ordinary sign-out after acknowledgement clears the account
+slot. Both deletion reauthorization callback orders and scoped cleanup
+still pass. [Host and generic iPhoneOS receipt](../../../verification/receipts/fieldlog-ios-pending-replacement-1ba375bb.json)
 
 ## Android attachment
 

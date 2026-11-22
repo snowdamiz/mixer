@@ -42,4 +42,24 @@ the first Back dismisses it and the second retires the Activity owner.
 The [Saving controls receipt](../../../verification/receipts/fieldlog-f06-android-saving-refusals-api36-c8a27e36.json)
 records both exact payloads and the installed readbacks.
 
-Burst input and broader IME composition remain open for this fixture.
+## Replay buffered title input
+
+Apply the [private F06 title patch](f06-private-title-input.patch.b64) to
+the exact F06 flat Java projection. Use the Java sources from Mixer
+`7fa6b6ea813f73055c38e7d2bf8e607c75c9c384` and the Activity and frame probe
+from the exact F06 link delivery. The patch enables buffering for the
+vertical `task.title` on the private opt-in surface. Add waits for the
+final committed title echo.
+
+Run the Java producer and host checks with an empty output directory.
+
+```sh
+python3 -B replay-title-input.py "$MIXER_CHECKOUT" "$F06_LINK_NATIVE" "$OUTPUT"
+```
+
+The new DEX requires a fresh development seal. In the
+[installed replay](../../../verification/receipts/fieldlog-f06-android-buffered-title-api36-7fa6b6ea.json),
+a single Android input-text dispatch produced 17 committed title echoes.
+Add wrote one task and its outbox event. A fresh offline process read the
+same saved workspace. Plain, unspanned IME commits passed host controls.
+Composition and other advanced IME operations are outside this private buffer.

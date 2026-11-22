@@ -72,6 +72,8 @@ def verify(backend, binary, scratch, scenario):
     observed = []
     dropped = []
     exchanged_states = []
+    revoked = []
+    revoke = backend.EntrySyncHandler._handle_session
     read = backend.EntrySyncHandler._auth_json
     read_body = backend.EntrySyncHandler._read_body
 
@@ -94,6 +96,11 @@ def verify(backend, binary, scratch, scenario):
             observed.append((hashlib.sha256(handler.headers["Authorization"].encode()).digest(),
                              handler.fixture_body_digest))
         return value
+
+    def trace_revocation(handler):
+        if handler.command == "DELETE":
+            revoked.append(handler._bearer_digest())
+        return revoke(handler)
 
     def drop(handler, status, value):
         assert handler.path == "/v1/account/deletion" and status == 200 and value["deleted"]
@@ -133,7 +140,8 @@ def verify(backend, binary, scratch, scenario):
 
     peer_before = snapshot(peer)
     with (patch.object(backend.EntrySyncHandler, "_auth_json", trace),
-          patch.object(backend.EntrySyncHandler, "_read_body", capture_body)):
+          patch.object(backend.EntrySyncHandler, "_read_body", capture_body),
+          patch.object(backend.EntrySyncHandler, "_handle_session", trace_revocation)):
         if scenario == "normal":
             with listener():
                 phase("normal")
@@ -164,6 +172,46 @@ def verify(backend, binary, scratch, scenario):
             with listener():
                 phase("superseded")
             assert len(observed) == 1
+        elif scenario in ("cancel-held-exchange", "cancel-held-confirmation", "supersede-unacknowledged"):
+            if scenario == "supersede-unacknowledged":
+                first, second = "save-unacknowledged", scenario
+            else:
+                first, second = scenario, "restore-cancelled"
+            with listener():
+                phase(first)
+            record = json.loads((root / "credentials.json").read_bytes())["recovery"]["_0"]
+            credentials = record.get("credential", {})
+            if scenario == "cancel-held-confirmation":
+                assert set(credentials) == {"revocation"}
+            elif scenario == "cancel-held-exchange":
+                assert credentials == {}
+            else:
+                assert set(credentials) == {"session"}
+            with closing(sqlite3.connect(database)) as connection:
+                (proof_digest,) = connection.execute(
+                    "SELECT proof_digest FROM local_accounts WHERE account_id = ?", (target[0],),
+                ).fetchone()
+                assert hashlib.sha256(record["code"].encode()).digest() == proof_digest
+                assert connection.execute(
+                    "SELECT COUNT(*) FROM local_sessions WHERE account_id = ?", (target[0],),
+                ).fetchone() == (1,)
+            with listener():
+                phase(second)
+            assert not (root / "credentials.json").exists()
+            assert receipt_count() == 0 and observed == []
+            assert snapshot(peer) == peer_before
+            with closing(sqlite3.connect(database)) as connection:
+                assert len(revoked) == (2 if scenario == "cancel-held-confirmation" else 1)
+                for digest in revoked:
+                    assert connection.execute(
+                        "SELECT 1 FROM local_sessions WHERE token_digest = ?", (digest,),
+                    ).fetchone() is None
+                if scenario != "supersede-unacknowledged":
+                    assert connection.execute(
+                        "SELECT 1 FROM local_sessions WHERE account_id = ? AND confirmed = 1", (target[0],),
+                    ).fetchone() is None
+            print(f"PASS {scenario} process exit, durable replacement, scope and ordinary sign-out")
+            return
         elif scenario == "regression":
             with listener():
                 phase("regression")
@@ -186,13 +234,15 @@ def verify(backend, binary, scratch, scenario):
 
 
 def main():
-    source, binary, scratch = [Path(argument).resolve(strict=True) for argument in sys.argv[1:]]
+    source, binary, scratch = [Path(argument).resolve(strict=True) for argument in sys.argv[1:4]]
     spec = importlib.util.spec_from_file_location("deletion_backend", source)
     backend = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = backend
     spec.loader.exec_module(backend)
-    for scenario in ("normal", "lost", "reauthorize", "reauthorize-callback-first",
-                     "superseded", "regression"):
+    scenarios = sys.argv[4:] or ("normal", "lost", "reauthorize", "reauthorize-callback-first",
+                                 "superseded", "regression", "cancel-held-exchange",
+                                 "cancel-held-confirmation", "supersede-unacknowledged")
+    for scenario in scenarios:
         verify(backend, binary, scratch, scenario)
     print("PASS owned loopback port released, SQLite scope and receipt checks complete")
 

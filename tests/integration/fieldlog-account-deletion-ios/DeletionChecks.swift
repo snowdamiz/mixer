@@ -109,8 +109,42 @@ private struct Fixture: Decodable {
   let taskID: UUID
 }
 
+private actor HeldRecoveryReply {
+  private var releaseReply: CheckedContinuation<Void, Never>?
+  private var didHold: CheckedContinuation<Void, Never>?
+
+  func hold() async {
+    await withCheckedContinuation { continuation in
+      releaseReply = continuation
+      didHold?.resume()
+      didHold = nil
+    }
+  }
+
+  func waitUntilHeld() async {
+    if releaseReply != nil { return }
+    await withCheckedContinuation { didHold = $0 }
+  }
+
+  func release() {
+    releaseReply?.resume()
+    releaseReply = nil
+  }
+}
+
 @main private struct DeletionChecks {
-  @MainActor static func main() async throws {
+  @MainActor static func main() async {
+    do { try await run() }
+    catch let failure as CheckFailure {
+      print("FAIL \(failure.context)")
+      exit(1)
+    } catch {
+      print("FAIL unexpected fixture error")
+      exit(2)
+    }
+  }
+
+  @MainActor static func run() async throws {
     let fixture = try JSONDecoder().decode(Fixture.self, from: FileHandle.standardInput.readToEnd() ?? Data())
     let scratch = URL(filePath: CommandLine.arguments[1], directoryHint: .isDirectory)
     let phase = CommandLine.arguments[2]
@@ -125,6 +159,13 @@ private struct Fixture: Decodable {
     let savedNames = ["Workspace.json", "Draft.json", "Outbox.json", "Photo.jpg"]
     let saved = Data("disposable synthetic file".utf8)
 
+    let held = HeldRecoveryReply()
+    let heldPath: String?
+    switch phase {
+    case "cancel-held-exchange": heldPath = "/v1/account/recovery/exchange"
+    case "cancel-held-confirmation": heldPath = "/v1/account/session"
+    default: heldPath = nil
+    }
     let peerSlot = TestSlot(scratch.appending(path: "peer-credentials.json"))
 
     func makeOwner(allowed target: AccountDeletionTarget?, slot credentialSlot: TestSlot? = nil)
@@ -134,6 +175,9 @@ private struct Fixture: Decodable {
         exchange: { operation in
           try require(port != 0, "cleanup unexpectedly requires network")
           let result = try await Browser.exchange(operation, port: port)
+          if operation.path == heldPath && operation.method != .delete {
+            await held.hold()
+          }
           if phase == "superseded" && operation.path == "/v1/account/deletion" {
             try await MainActor.run {
               guard let peerRecord = try peerSlot.read() else { throw CheckFailure("peer slot") }
@@ -312,6 +356,76 @@ private struct Fixture: Decodable {
       try confirmOwner.stageDeletion(generation: confirmOwner.generation)
       await confirmOwner.resumeDeletion(removeWorkspace: destroy)
       try require(confirmOwner.state == .welcome && !manager.fileExists(atPath: directory.path), "renewed deletion")
+    case "cancel-held-exchange", "cancel-held-confirmation":
+      let url = try await owner.beginRecovery()
+      let callback = try await Browser.submit("recoveryCode=\(fixture.recoveryCode)&intent=recover",
+        to: url, port: port)
+      let callbackFile = scratch.appending(path: "callback.txt")
+      try Data(callback.absoluteString.utf8).write(to: callbackFile, options: .atomic)
+      let request = Task { await owner.acceptCallback(callback) }
+      await held.waitUntilHeld()
+      owner.lockForSignOut()
+      let locked = owner.state == .signOutPending && owner.grant(for: scope) == nil
+      if phase == "cancel-held-exchange" { await owner.signOut() }
+      let duplicateAccepted = await owner.acceptCallback(callback)
+      await held.release()
+      let lateAccepted = await request.value
+      try require(locked && !duplicateAccepted && !lateAccepted && owner.grant(for: scope) == nil,
+        "cancellation fences both held reply and duplicate callback")
+      if phase == "cancel-held-exchange" {
+        try require(owner.state == .welcome && owner.replacementSignInCodeForUser()?.count == 43,
+          "cancelled exchange preserves an unacknowledged replacement")
+      } else {
+        try require(owner.state == .signOutPending && owner.replacementSignInCodeForUser() == nil,
+          "cold revocation remains locked until restore")
+      }
+      print("PASS \(phase)")
+      return
+    case "restore-cancelled":
+      let text = try String(contentsOf: scratch.appending(path: "callback.txt"), encoding: .utf8)
+      guard let callback = URL(string: text) else { throw CheckFailure("stored callback") }
+      await owner.restore()
+      try require(owner.state == .welcome && owner.grant(for: scope) == nil,
+        "fresh process restores only the welcome route")
+      try require(await !owner.acceptCallback(callback), "fresh process refuses redelivery")
+      guard let replacement = owner.replacementSignInCodeForUser() else {
+        throw CheckFailure("fresh process reveals the saved replacement")
+      }
+      _ = try await owner.beginSignIn()
+      owner.cancelBrowserFlow()
+      try require(owner.state == .welcome && owner.replacementSignInCodeForUser() == replacement,
+        "Apple Start over retains the replacement")
+      try await signIn(owner, proof: replacement)
+      try require(owner.grant(for: scope) != nil && !owner.hasReplacementSignInCode,
+        "ordinary sign-in with the replacement clears the local copy")
+      owner.lockForSignOut()
+      try require(owner.state == .signOutPending && owner.grant(for: scope) == nil,
+        "ordinary sign-out locks the admitted workspace")
+      await owner.signOut()
+      try require(owner.state == .welcome && (try slot.read()) == nil,
+        "ordinary sign-out clears the slot")
+      print("PASS \(phase)")
+      return
+    case "save-unacknowledged":
+      let url = try await owner.beginRecovery()
+      let callback = try await Browser.submit("recoveryCode=\(fixture.recoveryCode)&intent=recover",
+        to: url, port: port)
+      try require(await owner.acceptCallback(callback) && owner.hasReplacementSignInCode,
+        "confirmed recovery stores a session and an unacknowledged code")
+      print("PASS \(phase)")
+      return
+    case "supersede-unacknowledged":
+      _ = try await owner.beginSignIn()
+      owner.cancelBrowserFlow()
+      guard let replacement = owner.replacementSignInCodeForUser() else {
+        throw CheckFailure("a superseding browser flow preserves the unacknowledged code")
+      }
+      try await signIn(owner, proof: replacement)
+      try require(owner.grant(for: scope) != nil, "replacement signs in to the same scope")
+      await owner.signOut()
+      try require(try slot.read() == nil, "sign-out clears the slot after ordinary sign-in")
+      print("PASS \(phase)")
+      return
     case "regression":
       try await signIn(owner, proof: fixture.proof)
       guard case .admitted(let admission) = owner.state, let grant = owner.grant(for: scope) else {
@@ -364,6 +478,8 @@ private struct Fixture: Decodable {
       try require(recoveredSync.tasks.contains(where: { $0.id == fixture.taskID }), "TaskSync after recovery")
       await repository.close()
       await recovered.signOut()
+      try require(recovered.state == .welcome && (try slot.read()) == nil,
+        "sign-out after explicit acknowledgement clears the secure slot")
       let fresh = makeOwner(allowed: fixture.target)
       try await signIn(fresh, proof: replacement)
       try require(fresh.grant(for: scope) != nil, "ordinary sign-in using replacement")
