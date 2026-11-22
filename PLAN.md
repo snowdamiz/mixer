@@ -29,7 +29,7 @@ The fresh FieldLog iOS resume run supplied six installed updater requests across
 
 The interrupted signed download passed on a fresh iOS Simulator. The owned device was removed, and the device inventory matched for all 13 external devices. Future iOS runtime tests use a fresh disposable device. [Installed iOS resume](verification/receipts/fieldlog-ios-signed-resume-native-20261122.json)
 
-The installed iOS saved-draft test preserved the ordinary rollback note and draft-specific flag through sequence 5. The terminal disk readback matched both signed recovery records. The next iOS draft test covers JPEG continuity and a cold reopen on sequence 4. [Scoped iOS saved-draft receipt](verification/receipts/fieldlog-ios-saved-draft-rollback-scoped-20261122.json)
+The installed iOS saved-draft test preserved the ordinary rollback note and draft-specific flag through sequence 5. The terminal disk readback matched both signed recovery records. A follow-up verified the JPEG UI journey and separately read back exact JPEG bytes through rollback and the cold app launch. The single-run disk and observed outage checks remain open. [JPEG witness](verification/receipts/fieldlog-ios-224-jpeg-ui-and-rollback-disk-20261122.json) [Scoped iOS saved-draft receipt](verification/receipts/fieldlog-ios-saved-draft-rollback-scoped-20261122.json)
 
 L01, L05, and L06 are passed. L02, L03, L04, L07, and L08 remain running. [Local checklist](gates/local.json)
 
