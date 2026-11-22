@@ -49,5 +49,8 @@ software-renderer refusal. The replay compiles the full production Java with
 javac 25.0.4.1 against the API 36 jar using `--release 17` and strict lint,
 then reverses the patch to the exact original tree.
 
-Live window-buffer behavior, durable `first_screen`, and installed Commit and
-Done remain for the root-owned signed emulator replay.
+The signed API 36 replay reached durable `first_screen` before Commit.
+Commit wrote one outbox event and retained seven JPEGs. Done retired the
+same owner, and an offline new process read the same journal and workspace
+bytes. The checklist shares this Java path. The installed replay exercised
+Entry Commit. [Installed replay receipt](../../../verification/receipts/l07-fieldlog-ordinary-frame-commit-api36-807c198c.json)

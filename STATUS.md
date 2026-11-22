@@ -2966,6 +2966,17 @@ their ports were reusable, and scratch and disposable keys were removed.
 Native F05 Cancel, Save, cold readback, and F06 remain open.
 [Android F05 startup attempts](verification/receipts/fieldlog-f05-android-api36-startup-7fa6b6ea.json)
 
+The relinked private F05 owner accepted the exact Android development
+scope. The host verifier still refused substitutions in each scope field.
+On API 36, Cancel kept the workspace bytes and retired the owner. A new
+process recovered the signed candidate. With one native character per
+committed frame, Save wrote `Inspect pump P-17` and one matching
+taskSaved event. The owner reopened the repository before retirement and
+confirmed the saved record. A separate burst input lost the visible
+editor after three accepted envelopes and remains open. All three
+emulator pairs closed, their ports were reusable, and scratch was removed.
+[Android F05 signed editor replay](verification/receipts/fieldlog-f05-android-paced-editor-api36-7fa6b6ea.json)
+
 A free owner completed current membership edits, usage and quota checks, support, export, and organization deletion in Chrome against Phoenix and PostgreSQL. One organization stayed isolated from the other. Two earlier role edits returned 503 during the member page load. Exit with settled build history remains open. [Free-owner administration](verification/receipts/l06-owner-admin-browser-e3c1f6c65c.json)
 
 An owned API 36 emulator completed the ordinary FieldLog task conflict. After a 409 response, the user kept the local title **Inspect valve today** and the peer assignee **Morgan**. Both replicas reached version 3, each kept four prior outbox rows, and the final offline cold reopen preserved the Android workspace byte for byte. The earlier iOS replay reached the same task outcome with a separate workspace. [Android conflict receipt](verification/receipts/fieldlog-android-ordinary-task-conflict-41a05264.json)
