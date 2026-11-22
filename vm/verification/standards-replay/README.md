@@ -135,6 +135,14 @@ of the pinned module. The assertions add 16 commands, raising the replay
 cap to 320.
 [Pinned comparison assertions](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast#L334-L358)
 
+Six assertions in the same pinned `i64.wast` module check `i64.div_u` on
+lines 91, 93, and 94 and `i64.rem_u` on lines 129, 131, and 132. Each
+dividend has its high bit set. The divisors are 2⁶⁴ − 1, 2³² + 1, and 1,000.
+WABT, the CLI, and the installed C client check all 64 result bits in a fresh
+instance per assertion. Each assertion uses separate CLI and C client
+processes, adding 12 commands and raising the replay cap to 332.
+[Pinned division and remainder assertions](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast#L91-L132)
+
 For `br_table.wast`, stock WABT admits the original module at line 3 and
 passes the ten `multiple-value` assertions. The Mixer V3 CLI and installed C
 validator refuse that module with `unsupported` because it uses a value type

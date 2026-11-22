@@ -1,0 +1,386 @@
+{
+  "status": "passed_scoped_host_standards_positives",
+  "scope": "L03/W08 unsigned i64 division and remainder source slice on arm64 macOS.",
+  "limits_of_evidence": "Guest UI V1 application execution, hardware and gate qualification remain outside this run.",
+  "patch": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-0828efb3/verification/local/l03-w08-independent-0828efb3/slice.patch",
+    "sha256": "ecc1cf885f4081a43f45bf711b8e65cc5708150a60d37721f2e688e1e3e53ca8",
+    "forward_and_reverse_exact_git_trees": true,
+    "paths": [
+      "vm/verification/standards-replay/README.md",
+      "vm/verification/standards-replay/commands.py",
+      "vm/verification/standards-replay/replay.py"
+    ]
+  },
+  "tools": {
+    "python": "3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0",
+    "wast2json": "1.0.36 (git~1.0.37)",
+    "wasm-validate": "1.0.36 (git~1.0.37)",
+    "spectest-interp": "1.0.36 (git~1.0.37)"
+  },
+  "spec_revision": "05ca4182176763112561ae20153975c12bd689e4",
+  "wabt_release": {
+    "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz",
+    "sha256": "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
+  },
+  "runs": {
+    "parent": {
+      "revision": "56f0b51db38f72766694b73915e2569fae63c624",
+      "vm_tree": "96dd182d900e28aee770741e94b9a34c68569fef",
+      "git_tree": "0ec37e9fe29a9019ce66f20d1ee3302671aabd3e",
+      "command_cap": 320,
+      "assertions": {
+        "assert_trap": 6,
+        "assert_return": 66,
+        "assert_invalid": 6
+      },
+      "i64_fixture": {
+        "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast",
+        "sha256": "7d0e27a617565e0685aef56cee01b2b4890084068e3989168c41d14c56b1945e",
+        "selection_sha256": "19976f3f19cf71f12897a36929d26f334c8d4a874c840d7520a1d92022cf0040",
+        "reference_manifest_sha256": "a154c4a9c29dce89c932bce4f73a476ae17a4cbcd4090944b53ba1f9eb695e66",
+        "reference_output": [
+          "48/48 tests passed."
+        ]
+      },
+      "runner_sha256": {
+        "replay.py": "1bbbcdd5aa23d5d3a8e613b361baecb98d48ecda76da602b13eb174c5a0c42b9",
+        "commands.py": "fc89b47c1205e2da10ef993a12a024f4be3cb64a38b8c85ed18265b4c65cdde7",
+        "client.c": "1eaaaf0ee138acad7f063b684cf4764391af6b120a2bd68c70920ea2e4e95232"
+      },
+      "runs": {
+        "full": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-B",
+            "vm/verification/standards-replay/replay.py",
+            "--rust-bin",
+            "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin",
+            "--receipt",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-0828efb3/verification/local/l03-w08-independent-0828efb3/scratch/parent-full.json"
+          ],
+          "pid": 48309,
+          "pgid": 48309,
+          "exit": 0,
+          "reaped": true,
+          "group_absent": true,
+          "elapsed_seconds": 6.87,
+          "interrupted": null,
+          "scratch": "/Users/andreyyurlov/.mixer-vm-standards-6ari_kf4",
+          "scratch_absent": true,
+          "peak_sampled_scratch_logical_bytes": 119733752,
+          "samples": 42,
+          "wrapper_temp_empty": true,
+          "started_utc": "2026-11-22T20:05:22.317023+00:00",
+          "commands": 320,
+          "every_command_reaped_group_absent_eof": true,
+          "raw_receipt_sha256": "1cc9c345f3ef21172b52d0850a7933120003d48b5f35a952b8425a2f79311cde",
+          "output": [
+            "passed_scoped_replay /Users/andreyyurlov/.t3/worktrees/mixer/t3-0828efb3/verification/local/l03-w08-independent-0828efb3/scratch/parent-full.json"
+          ]
+        },
+        "full-capture": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-B",
+            "vm/verification/standards-replay/replay.py",
+            "--rust-bin",
+            "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin",
+            "--receipt",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-0828efb3/verification/local/l03-w08-independent-0828efb3/scratch/parent-full-capture.json"
+          ],
+          "pid": 72164,
+          "pgid": 72164,
+          "exit": 0,
+          "reaped": true,
+          "group_absent": true,
+          "elapsed_seconds": 9.66,
+          "interrupted": null,
+          "scratch": "/Users/andreyyurlov/.mixer-vm-standards-qh0yb2lf",
+          "scratch_absent": true,
+          "peak_sampled_scratch_logical_bytes": 119735521,
+          "samples": 56,
+          "wrapper_temp_empty": true,
+          "started_utc": "2026-11-22T20:07:08.132803+00:00",
+          "commands": 320,
+          "every_command_reaped_group_absent_eof": true,
+          "raw_receipt_sha256": "37780bc3a3a84e8a6c050eea9cc336afc3320a55ef4dd8eaa0f8b4477226c86d",
+          "output": [
+            "passed_scoped_replay /Users/andreyyurlov/.t3/worktrees/mixer/t3-0828efb3/verification/local/l03-w08-independent-0828efb3/scratch/parent-full-capture.json"
+          ]
+        },
+        "wrappers": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-B",
+            "vm/verification/standards-replay/test_replay.py",
+            "-v"
+          ],
+          "pid": 49086,
+          "pgid": 49086,
+          "exit": 0,
+          "reaped": true,
+          "group_absent": true,
+          "elapsed_seconds": 0.31,
+          "interrupted": null,
+          "scratch": null,
+          "scratch_absent": null,
+          "peak_sampled_scratch_logical_bytes": 0,
+          "samples": 0,
+          "wrapper_temp_empty": true,
+          "output": [
+            "Ran 8 tests in 0.180s",
+            "OK"
+          ]
+        }
+      }
+    },
+    "candidate": {
+      "revision": "25829fbf11b08d9eaaeec6037f40acaafff9a935",
+      "vm_tree": "017c3f068d94da9e8b2e4436c5715cb97a771d7c",
+      "git_tree": "4cc15ea562f5173ac7922843b6a25b84f5916d49",
+      "command_cap": 332,
+      "assertions": {
+        "assert_trap": 6,
+        "assert_return": 72,
+        "assert_invalid": 6
+      },
+      "i64_fixture": {
+        "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast",
+        "sha256": "7d0e27a617565e0685aef56cee01b2b4890084068e3989168c41d14c56b1945e",
+        "selection_sha256": "f97eb031ed44e9fdb63686d15d1f719341a6ea48aa062ad46d7be99478d0bcc7",
+        "reference_manifest_sha256": "5986d81a20010ea2549631d100412d74fb7b94261e2bbdb691ecb8d987511b8b",
+        "reference_output": [
+          "60/60 tests passed."
+        ]
+      },
+      "runner_sha256": {
+        "replay.py": "5f49cdfe14f4969e2526078703d65e8f01e634346c2c537e871a0267bc94bd36",
+        "commands.py": "02289abf8b5c42474834b81f7c9012979c35e4aba913b68fc618c6cd9887b7fb",
+        "client.c": "1eaaaf0ee138acad7f063b684cf4764391af6b120a2bd68c70920ea2e4e95232"
+      },
+      "runs": {
+        "full": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-B",
+            "vm/verification/standards-replay/replay.py",
+            "--rust-bin",
+            "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin",
+            "--receipt",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-0828efb3/verification/local/l03-w08-independent-0828efb3/scratch/candidate-full.json"
+          ],
+          "pid": 57043,
+          "pgid": 57043,
+          "exit": 0,
+          "reaped": true,
+          "group_absent": true,
+          "elapsed_seconds": 6.84,
+          "interrupted": null,
+          "scratch": "/Users/andreyyurlov/.mixer-vm-standards-_ejz94pw",
+          "scratch_absent": true,
+          "peak_sampled_scratch_logical_bytes": 119735096,
+          "samples": 42,
+          "wrapper_temp_empty": true,
+          "started_utc": "2026-11-22T20:06:10.055179+00:00",
+          "commands": 332,
+          "every_command_reaped_group_absent_eof": true,
+          "raw_receipt_sha256": "068ab7cd773224af94252e90914e2e5629e38497339fd06ed44b6453a7e658d2",
+          "output": [
+            "passed_scoped_replay /Users/andreyyurlov/.t3/worktrees/mixer/t3-0828efb3/verification/local/l03-w08-independent-0828efb3/scratch/candidate-full.json"
+          ]
+        },
+        "full-capture": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-B",
+            "vm/verification/standards-replay/replay.py",
+            "--rust-bin",
+            "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin",
+            "--receipt",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-0828efb3/verification/local/l03-w08-independent-0828efb3/scratch/candidate-full-capture.json"
+          ],
+          "pid": 72163,
+          "pgid": 72163,
+          "exit": 0,
+          "reaped": true,
+          "group_absent": true,
+          "elapsed_seconds": 9.85,
+          "interrupted": null,
+          "scratch": "/Users/andreyyurlov/.mixer-vm-standards-u58k8gta",
+          "scratch_absent": true,
+          "peak_sampled_scratch_logical_bytes": 119736973,
+          "samples": 57,
+          "wrapper_temp_empty": true,
+          "started_utc": "2026-11-22T20:07:08.132704+00:00",
+          "commands": 332,
+          "every_command_reaped_group_absent_eof": true,
+          "raw_receipt_sha256": "c1e87c6b07b314312320b0cad2e2aeda1686733476991733fdfdc08e894124a5",
+          "output": [
+            "passed_scoped_replay /Users/andreyyurlov/.t3/worktrees/mixer/t3-0828efb3/verification/local/l03-w08-independent-0828efb3/scratch/candidate-full-capture.json"
+          ]
+        },
+        "wrappers": {
+          "argv": [
+            "/opt/homebrew/opt/python@3.14/bin/python3.14",
+            "-B",
+            "vm/verification/standards-replay/test_replay.py",
+            "-v"
+          ],
+          "pid": 63363,
+          "pgid": 63363,
+          "exit": 0,
+          "reaped": true,
+          "group_absent": true,
+          "elapsed_seconds": 0.31,
+          "interrupted": null,
+          "scratch": null,
+          "scratch_absent": null,
+          "peak_sampled_scratch_logical_bytes": 0,
+          "samples": 0,
+          "wrapper_temp_empty": true,
+          "output": [
+            "Ran 8 tests in 0.174s",
+            "OK"
+          ]
+        }
+      }
+    }
+  },
+  "added_assertions": [
+    {
+      "line": 91,
+      "export": "div_u",
+      "args": [
+        "0x8000000000000000",
+        "0xffffffffffffffff"
+      ],
+      "expected_cli_c": "0x0000000000000000",
+      "cli_c_pgids": [
+        63005,
+        63006
+      ]
+    },
+    {
+      "line": 93,
+      "export": "div_u",
+      "args": [
+        "0x8ff00ff00ff00ff0",
+        "0x0000000100000001"
+      ],
+      "expected_cli_c": "0x000000008ff00fef",
+      "cli_c_pgids": [
+        63007,
+        63008
+      ]
+    },
+    {
+      "line": 94,
+      "export": "div_u",
+      "args": [
+        "0x8000000000000001",
+        "0x00000000000003e8"
+      ],
+      "expected_cli_c": "0x0020c49ba5e353f7",
+      "cli_c_pgids": [
+        63011,
+        63012
+      ]
+    },
+    {
+      "line": 129,
+      "export": "rem_u",
+      "args": [
+        "0x8000000000000000",
+        "0xffffffffffffffff"
+      ],
+      "expected_cli_c": "0x8000000000000000",
+      "cli_c_pgids": [
+        63013,
+        63014
+      ]
+    },
+    {
+      "line": 131,
+      "export": "rem_u",
+      "args": [
+        "0x8ff00ff00ff00ff0",
+        "0x0000000100000001"
+      ],
+      "expected_cli_c": "0x0000000080000001",
+      "cli_c_pgids": [
+        63015,
+        63016
+      ]
+    },
+    {
+      "line": 132,
+      "export": "rem_u",
+      "args": [
+        "0x8000000000000001",
+        "0x00000000000003e8"
+      ],
+      "expected_cli_c": "0x0000000000000329",
+      "cli_c_pgids": [
+        63017,
+        63018
+      ]
+    }
+  ],
+  "comparison": {
+    "prior_main_rows_equal_in_order": 78,
+    "normalized_prior_rows_sha256": "74819f7664a88e719af39c43b7bb86df7e2bf70ff65439a017799044f080c5f1",
+    "normalization": "Rebase per-run scratch paths. For reference comparisons omit digests of manifests containing absolute scratch paths.",
+    "other_modules_fixtures_stateful_and_cargo_targets_equal": true,
+    "old_cli_and_c_invocation_output_sha256_equal": true,
+    "only_new_commands": "One CLI and one C client invocation for each of the six added lines.",
+    "distinct_candidate_i64_cli_and_c_process_groups": 60,
+    "same_client_source_sha256": "1eaaaf0ee138acad7f063b684cf4764391af6b120a2bd68c70920ea2e4e95232",
+    "identical_installed_artifacts_sha256": {
+      "mixer-vm": "85f89363b2bdc9e30537b015af4024c592f9716566067314718146a5e616b42c",
+      "libmixer_vm_capability_experimental.a": "f8906e32e35067a8a67eaf8509832ef2e7d10c0f5a4d56e6b5bc8786da10d241",
+      "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+      "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+      "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "mixer_vm_guest_ui_deferred.h": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+    },
+    "linked_client": {
+      "first_full_raw_sha256": [
+        "a5cea8d27e6e2c6841da35243b0ad8c81d29761bdc52cfa2eb164a34bbcdfd68",
+        "a294c0827868d22ab7195398d1a80643fdd4b82a91ab735de74a40ffa82e3f0f"
+      ],
+      "captured_raw_sha256": [
+        "9f80fcd4635913837fb458b1f1b8d4233c21f3562dd421b1b453787d6c073458",
+        "9eab84435d4ed090eb71148f84bd007bc4fa96e4788299f1cfd58aa90ecf1d9f"
+      ],
+      "macho_uuid": "56ed41852b753098b90ab69e3ca5b313",
+      "signature_range": [
+        1798992,
+        1813192
+      ],
+      "both_signatures_verified": true,
+      "embedded_archive_scratch_paths": 6,
+      "equal_bytes_after_archive_path_substitution_outside_signature": true,
+      "normalized_nonsignature_sha256": "b563e1685fe1092d349673fea4b496059f1cc77800c02bf7a3f28224491fd0ae"
+    }
+  },
+  "scratch_budget": {
+    "bytes": 1073741824,
+    "observer": "Python audit hook reports only the newly allocated path and copies each repeat-run client immediately before runner cleanup.",
+    "conservative_sum_of_sampled_per_lane_replay_peaks_bytes": 239472494,
+    "one_checkout_namespace_sample_kib": 15784,
+    "sample_interval_seconds": 0.15
+  },
+  "cleanup": {
+    "confirmed_utc": "2026-11-22T20:09:52.804933+00:00",
+    "all_four_runner_home_scratch_paths_absent": true,
+    "both_disposable_worktrees_removed_and_unregistered": true,
+    "owned_comparison_inputs_outputs_and_wrapper_temps_removed": true,
+    "held_resources": []
+  }
+}

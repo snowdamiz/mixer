@@ -2824,6 +2824,8 @@ An independent replay verified all ten shift assertions and all eight wrapper co
 
 Eight pinned signed and unsigned `i64` comparisons matched stock WABT, the Mixer CLI, and the installed V3 C session. The cases cover equality, zero, and the top bit. The independent replay matched all 70 prior case records and passed all eight wrapper tests. The candidate used 320 replay commands. Engine artifacts and run-time limits matched the baseline. [Integer comparison replay](verification/receipts/l03-w08-i64-comparisons-861970a05c.json)
 
+Six pinned unsigned `i64` division and remainder assertions matched WABT, the Mixer CLI, and the installed V3 C session. The replay used separate CLI and C processes per assertion. All 78 existing results and eight wrapper tests passed, with 332 commands on the candidate. [Unsigned division and remainder replay](verification/receipts/l03-w08-i64-unsigned-divrem-3029819c75.json)
+
 The seeded TableMemoryV3 check retains one instance for 40 copies on
 each of 24 seeds. Mixer and Node matched all 960 observations of the
 complete initialized region in Debug and Release. The separate
