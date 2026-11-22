@@ -1547,6 +1547,16 @@ without a Note tap or IME switch. One restart recovered exact input,
 and the workspace stayed unchanged. All 127 commands closed.
 [Alternate Home callback orders](verification/receipts/l02-android-note-home-alternate-orders-host-48df9b48.json)
 
+A one-shot decor visibility callback after pause closed the exact
+predecessor before window-focus loss on API 36 ARM64. The same
+Activity and field regained visibility and focus. The first create
+was refused while input was sealed, the owner committed a presentation,
+and no restart or later create followed. The untouched fixture IME
+returned wrongEditor and the workspace stayed unchanged. All 122
+commands closed. The run reproduced the failure under the selected
+order. The intermittent unforced failure still has no causal trace.
+[Selected visibility-first Android run](verification/receipts/l02-android-note-home-visibility-first-api36-94775102.json)
+
 The IME-switch experiment withheld an overlapping connection and posted
 a public restart after the exact predecessor closed. Android briefly
 received a new SDK adapter, then closed it after another overlapping
@@ -1618,6 +1628,17 @@ left a temporary file inside the moved test directory. The fixture
 removed all disposable files. The result supports one-directory
 mutual exclusion on macOS, with production adoption still open.
 [F04 directory lock control](verification/receipts/fieldlog-f04-pair25-directory-lock-macos.json)
+
+A private follow-up held a per-workspace lease outside the replaceable
+directory and bound writes and cleanup to the open directory. The macOS
+replay refused a competing patched owner across both displacement cases
+and let a separate workspace commit. Replacement bytes stayed intact,
+with no temporary files left. The same-editor retry and all six
+uncertainty cases passed. Late external displacement can still leave a
+commit on the original inode before fencing. Mixed-version displacement
+and native app behavior remain outside this evidence. The candidate
+awaits independent review.
+[F04 stable workspace lease](verification/receipts/fieldlog-f04-stable-workspace-lease-pair25.json)
 
 All four F14–F16 selectors passed on the historical and Pair25
 sources. F14 wrote one entry and one event after a valid edit-and-commit
@@ -4016,6 +4037,15 @@ zero attachments. Exact SDK BoringSSL build and linked unwind archive
 provenance remain open. All 146 installed commands closed, the emulator
 was removed, and the four owned ports were reusable.
 [Signed row with 12 notices](verification/receipts/fieldlog-android-signed-row-twelve-notices-api36-d92cb15a.json)
+
+Independent replay verified the signed row releases with stock
+mixer-update verify-v3 and matched the three candidates to the four
+installed launches. The row fixture recorded first-screen health
+through its draw callback. The retained packet has no exact compositor
+frame for those launches, and the raw recovery journals were removed.
+Ordinary Entry Commit has separate hardware frame evidence. L04, L07
+and L08 remain open.
+[Signed row activation trace](verification/receipts/l07-android-row-activation-positive-trace-12616bb2.json)
 
 On Android API 36, the ordinary FieldLog app cold-restored an uncommitted photo draft, saved it, and resumed the JPEG transfer at 65,536 bytes after cancellation. When the backend withheld the final receipt, retry reconciled the original event without sending another chunk. SQLite held one event and one matching 281,378-byte JPEG. The two unrelated outbox events survived cold reopen. [Runtime and readback](verification/receipts/fieldlog-android-ordinary-queue-runtime-41a05264.json)
 
