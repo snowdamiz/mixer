@@ -2213,6 +2213,8 @@ run configuration selects only the title correction test, and both
 releases were signed for the Simulator runtime identity. Install and
 execution remain pending. [Simulator build](verification/receipts/fieldlog-ios-222-simulator-build-d89c742e.json)
 
+A fresh installed iOS run then exercised the signed correction against the same saved draft. Sequence 1 accepted the three-space title. After a cold launch, sequence 2 rejected it and preserved the exact title, note, and workspace bytes. A distinct valid-title draft still passed. Independent review matched six workspace checkpoints to XCTest and verified the final recovery state. The first XCTest also passed, but its reader expected a closed attempt at a live checkpoint. A separate cleanup bug left that disposable Simulator shut down and held. The corrected run closed and removed its owned device, and all five external comparisons matched. [Installed title correction](verification/receipts/fieldlog-ios-222-title-installed-20261122.json)
+
 The signed Apple row-reorder case passed on the macOS owned VM.
 The sequence-2 Move up appended one task-order event. Signed rollback
 and an offline cold reopen kept the moved order, the same draft and
