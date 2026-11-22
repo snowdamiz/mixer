@@ -1,0 +1,448 @@
+diff --git a/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml b/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
+index 3de263c1d616eec7b88941e00768ec7902cc06a9..69f0c1b035a6ce2d656eb378a1ca7e01596f28e7 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
++++ b/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
+@@ -13,0 +14,3 @@
++    <activity-alias android:name="dev.fieldlog.generatedr90.androidhost.AssignmentTap"
++        android:targetActivity="dev.fieldlog.generatedr90.androidhost.PublicActivity"
++        android:exported="false" />
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c b/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
+index 382b5f98971b0053836bd5f96e21410dde18d723..3e93575a8c8017d8a317cc0e4b0c19f2156c6382 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
+@@ -44 +44,2 @@ static int execute(JNIEnv *e,Context *c,int op,const uint8_t *profile,intptr_t p
+-        result=status==1?0:((op==1||op==4)&&status==3?2:1);
++        if (op == 0 && status == 5) result = 3; /* Assignment launch has no existing workspace. */
++        else result=status==1?0:((op==1||op==4)&&status==3?2:1);
+@@ -113 +114,3 @@ static jint report_host(JNIEnv *e,jclass ignored,jlong id,jbyteArray request,jin
+-static jlong open_host(JNIEnv *e,jclass ignored,jobject receiver,jstring profile,jbyteArray directory,jbyteArray settings) {
++static void dispose_context(JNIEnv *e, Context *c);
++static jlong open_host(JNIEnv *e,jclass ignored,jobject receiver,jstring profile,jbyteArray directory,jbyteArray settings,
++        jboolean assignment_launch) {
+@@ -134 +137,3 @@ static jlong open_host(JNIEnv *e,jclass ignored,jobject receiver,jstring profile
+-    int result=execute(e,c,0,(const uint8_t*)text,n,NULL,0,(const uint8_t*)boot,sn);
++    const uint8_t assignment_marker = 1;
++    int result=execute(e,c,0,(const uint8_t*)text,n,assignment_launch ? &assignment_marker : NULL,
++        assignment_launch ? 1 : 0,(const uint8_t*)boot,sn);
+@@ -135,0 +141,4 @@ static jlong open_host(JNIEnv *e,jclass ignored,jobject receiver,jstring profile
++    if (result == 3) {
++        dispose_context(e, c);
++        return -1;
++    }
+@@ -174,0 +184,13 @@ static jint refuse_settings_host(JNIEnv *e, jclass ignored, jlong id, jbyteArray
++static jint assignment_host(JNIEnv *e, jclass ignored, jlong id, jbyteArray owner, jbyteArray route) {
++    (void)ignored;
++    Context *c = find(id);
++    if (!c || !owner || !route || (*e)->GetArrayLength(e, owner) != 36 ||
++            (*e)->GetArrayLength(e, route) != 110) return 1;
++    jbyte owner_bytes[36], route_bytes[110];
++    (*e)->GetByteArrayRegion(e, owner, 0, 36, owner_bytes);
++    if ((*e)->ExceptionCheck(e)) return 1;
++    (*e)->GetByteArrayRegion(e, route, 0, 110, route_bytes);
++    if ((*e)->ExceptionCheck(e)) return 1;
++    return execute(e, c, 7, NULL, 0, (const uint8_t *)owner_bytes, 36, (const uint8_t *)route_bytes, 110);
++}
++
+@@ -190 +212,2 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm,void *reserved) {
+-    JNINativeMethod methods[]={{"openNative","(Ldev/fieldlog/generatedr90/androidhost/PublicActivity;Ljava/lang/String;[B[B)J",(void*)open_host},
++    JNINativeMethod methods[]={{"openNative","(Ldev/fieldlog/generatedr90/androidhost/PublicActivity;Ljava/lang/String;[B[BZ)J",(void*)open_host},
++        {"assignmentNative","(J[B[B)I",(void*)assignment_host},
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/AssignmentNotifications.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/AssignmentNotifications.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..20aeda96b7353cafd147f14bbbf49f9f55244897
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/AssignmentNotifications.java
+@@ -0,0 +1,55 @@
++package dev.fieldlog.generatedr90.androidhost;
++
++import android.app.PendingIntent;
++import android.content.ComponentName;
++import android.content.Context;
++import android.content.Intent;
++import android.net.Uri;
++import java.nio.charset.StandardCharsets;
++import java.util.UUID;
++
++final class AssignmentNotifications {
++    static final String ACTION = "dev.fieldlog.generatedr90.OPEN_ASSIGNMENT";
++    private static final String ALIAS = "dev.fieldlog.generatedr90.androidhost.AssignmentTap";
++    private static final String URI_PREFIX = "fieldlog-assignment://task/";
++
++    private AssignmentNotifications() {}
++
++    record Route(UUID workspace, UUID project, UUID task) {
++        String encode() { return workspace + "/" + project + "/" + task; }
++        byte[] packet() { return encode().getBytes(StandardCharsets.US_ASCII); }
++
++        static Route decode(String value) {
++            if (value == null || value.length() != 110) return null;
++            String[] parts = value.split("/", -1);
++            if (parts.length != 3) return null;
++            try {
++                Route route = new Route(UUID.fromString(parts[0]), UUID.fromString(parts[1]), UUID.fromString(parts[2]));
++                return route.encode().equals(value) ? route : null;
++            } catch (IllegalArgumentException invalid) {
++                return null;
++            }
++        }
++    }
++
++    private static ComponentName tapComponent(Context context) {
++        return new ComponentName(context, ALIAS);
++    }
++
++    static Route fromTap(Context context, Intent intent) {
++        if (intent == null || !ACTION.equals(intent.getAction()) ||
++                !tapComponent(context).equals(intent.getComponent())) return null;
++        String uri = intent.getDataString();
++        return uri != null && uri.startsWith(URI_PREFIX) ? Route.decode(uri.substring(URI_PREFIX.length())) : null;
++    }
++
++    // Provider integration passes the three verified identities into the
++    // private notification entry point. This method does not post notifications.
++    static PendingIntent contentIntent(Context context, Route route) {
++        Intent tap = new Intent(ACTION).setComponent(tapComponent(context))
++            .setData(Uri.parse(URI_PREFIX + route.encode()))
++            .setIdentifier(UUID.randomUUID().toString())
++            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
++        return PendingIntent.getActivity(context, 0, tap, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_ONE_SHOT);
++    }
++}
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+index 57b3a2feddf36565dc5f67274f250f67a62f4629..186b956919ef29077269112c13adb4ab0d991654 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -2,0 +3 @@ import android.app.Activity;
++import android.app.AlertDialog;
+@@ -74,0 +76,59 @@ public final class PublicActivity extends Activity {
++    private static final String ASSIGNMENT_STATE = "pending-assignment";
++    private AssignmentNotifications.Route pendingAssignment;
++    private byte[] assignmentReply;
++    private boolean assignmentInFlight;
++    private AlertDialog assignmentDialog;
++
++    private void postAssignmentDelivery() {
++        if (pendingAssignment != null) handler.post(this::deliverAssignmentWhenReady);
++    }
++
++    private void deliverAssignmentWhenReady() {
++        if (pendingAssignment == null || destroyed || failed || isFinishing() || context <= 0 ||
++                owner == null || !resumed || !root.hasWindowFocus() || settingsApply != null ||
++                checklist != null || checklistRefreshPending || queuedPhotoLaunch != null || pendingPhoto != null ||
++                pendingReport != null || reportCompletion != null || reportHandoffHeld() ||
++                draining || !events.isEmpty()) return;
++
++        AssignmentNotifications.Route route = pendingAssignment;
++        pendingAssignment = null;
++        assignmentInFlight = true;
++        byte[] reply = null;
++        try {
++            if (PublicBridge.openAssignment(context, owner, route.packet()) == 0) reply = assignmentReply;
++        } finally {
++            assignmentInFlight = false;
++            assignmentReply = null;
++        }
++        showAssignment(reply, false);
++    }
++
++    private void showAssignment(byte[] reply, boolean finishOnDismiss) {
++        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
++        try {
++            if (reply == null || reply.length == 0) throw new JSONException("Assignment unavailable");
++            JSONObject task = new JSONObject(new String(reply, StandardCharsets.UTF_8));
++            String responsible = task.getString("responsible");
++            dialog.setTitle("Task assignment").setMessage(task.getString("project") + "\n\n" + task.getString("title")
++                + (responsible.isEmpty() ? "" : "\n\nResponsible: " + responsible)
++                + "\nStatus: " + (task.getBoolean("completed") ? "Completed" : "Open"));
++        } catch (JSONException unavailable) {
++            dialog.setTitle("Assignment unavailable").setMessage("This task is unavailable in the workspace on this device.");
++        }
++        assignmentDialog = dialog.setPositiveButton("Close", null).create();
++        assignmentDialog.setOnDismissListener(closed -> {
++            assignmentDialog = null;
++            if (finishOnDismiss) finish();
++        });
++        assignmentDialog.show();
++    }
++
++    @Override protected void onNewIntent(Intent intent) {
++        super.onNewIntent(intent);
++        AssignmentNotifications.Route route = AssignmentNotifications.fromTap(this, intent);
++        if (route == null) return;
++        pendingAssignment = route;
++        if (assignmentDialog != null) assignmentDialog.dismiss();
++        postAssignmentDelivery();
++    }
++
+@@ -100,0 +161 @@ public final class PublicActivity extends Activity {
++        postAssignmentDelivery();
+@@ -291,0 +353 @@ public final class PublicActivity extends Activity {
++        postAssignmentDelivery();
+@@ -312,0 +375 @@ public final class PublicActivity extends Activity {
++        postAssignmentDelivery();
+@@ -546,0 +610 @@ public final class PublicActivity extends Activity {
++        postAssignmentDelivery();
+@@ -596 +660,5 @@ public final class PublicActivity extends Activity {
+-        if (state != null) nextExternalCode = Math.max(nextExternalCode, state.getInt(EXTERNAL_CODE_STATE, 100));
++        if (state == null) pendingAssignment = AssignmentNotifications.fromTap(this, getIntent());
++        else {
++            nextExternalCode = Math.max(nextExternalCode, state.getInt(EXTERNAL_CODE_STATE, 100));
++            pendingAssignment = AssignmentNotifications.Route.decode(state.getString(ASSIGNMENT_STATE));
++        }
+@@ -678,3 +746,11 @@ public final class PublicActivity extends Activity {
+-        long opened = PublicBridge.open(this, surface.profile().name());
+-        if (opened > 0) context = opened;
+-        else fail();
++        long opened = PublicBridge.open(this, surface.profile().name(), pendingAssignment != null);
++        if (opened > 0) {
++            context = opened;
++            postAssignmentDelivery();
++        } else if (opened == -1) {
++            pendingAssignment = null;
++            retireWorkspace();
++            showAssignment(null, true);
++        } else {
++            fail();
++        }
+@@ -765 +841,4 @@ public final class PublicActivity extends Activity {
+-        } finally { draining = false; }
++        } finally {
++            draining = false;
++            postAssignmentDelivery();
++        }
+@@ -800,0 +880,4 @@ public final class PublicActivity extends Activity {
++                case 7:
++                    if (!assignmentInFlight || failed || !Arrays.equals(token, owner)) return 1;
++                    assignmentReply = packet;
++                    break;
+@@ -877,0 +961 @@ public final class PublicActivity extends Activity {
++            postAssignmentDelivery();
+@@ -972,0 +1057 @@ public final class PublicActivity extends Activity {
++        postAssignmentDelivery();
+@@ -982,0 +1068 @@ public final class PublicActivity extends Activity {
++            postAssignmentDelivery();
+@@ -998,0 +1085 @@ public final class PublicActivity extends Activity {
++        if (pendingAssignment != null) state.putString(ASSIGNMENT_STATE, pendingAssignment.encode());
+@@ -1001,0 +1089,6 @@ public final class PublicActivity extends Activity {
++        pendingAssignment = null;
++        if (assignmentDialog != null) {
++            assignmentDialog.setOnDismissListener(null);
++            assignmentDialog.dismiss();
++            assignmentDialog = null;
++        }
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
+index 2978696ad074d70ef4b2e7c9ae7a7ca1985ee91e..98524fa1bf63f720c25998960e19a846b68bd762 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
+@@ -15 +15 @@ public final class PublicBridge {
+-    public static long open(PublicActivity receiver, String profile) {
++    public static long open(PublicActivity receiver, String profile, boolean assignmentLaunch) {
+@@ -20 +20 @@ public final class PublicBridge {
+-            return openNative(receiver, profile, canonical.getPath().getBytes(java.nio.charset.StandardCharsets.UTF_8), receiver.settingsEnvironment());
++            return openNative(receiver, profile, canonical.getPath().getBytes(java.nio.charset.StandardCharsets.UTF_8), receiver.settingsEnvironment(), assignmentLaunch);
+@@ -35 +35 @@ public final class PublicBridge {
+-    private static native long openNative(PublicActivity receiver, String profile, byte[] directory, byte[] settings);
++    private static native long openNative(PublicActivity receiver, String profile, byte[] directory, byte[] settings, boolean assignmentLaunch);
+@@ -46,0 +47,5 @@ public final class PublicBridge {
++    static int openAssignment(long context, byte[] owner, byte[] route) {
++        requireMain();
++        return assignmentNative(context, owner, route);
++    }
++    private static native int assignmentNative(long context, byte[] owner, byte[] route);
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+index 253e1ccfdbc0c962df067ca2d0d58606f4d545a1..d293f7492f944324a02417520d8e14f11cdc09f3 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+@@ -155,0 +156 @@ private let replies = Replies()
++                guard owner.isEmpty || owner == Data([1]) else { throw PublicHostError.context }
+@@ -160 +161,2 @@ private let replies = Replies()
+-                    directory: URL(fileURLWithPath: path, isDirectory: true), settings: settings)
++                    directory: URL(fileURLWithPath: path, isDirectory: true), settings: settings,
++                    existingOnly: !owner.isEmpty)
+@@ -212,0 +215,7 @@ private let replies = Replies()
++            case 7:
++                guard let (application, surface) = values[id], !surface.failure,
++                      let current = application.host.owner, Data(current.uuidString.utf8) == owner,
++                      let route = AssignmentRoute(packet: event) else { throw PublicHostError.context }
++                let details = await application.presentation.assignmentDetails(for: route)
++                let packet = try details.map { try JSONEncoder().encode($0) } ?? Data()
++                try surface.call(7, current, packet)
+@@ -216 +225,2 @@ private let replies = Replies()
+-        } catch { return 2 }
++        } catch is AssignmentWorkspaceUnavailable { return 5 }
++        catch { return 2 }
+@@ -232 +242 @@ public func publicAndroidSubmit(_ context: Int64, _ operation: Int32,
+-    guard context > 0, (0...6).contains(operation), (0...64).contains(profileCount),
++    guard context > 0, (0...7).contains(operation), (0...64).contains(profileCount),
+@@ -235 +245 @@ public func publicAndroidSubmit(_ context: Int64, _ operation: Int32,
+-          (operation != 0 || (ownerCount == 0 && eventCount <= 2048)),
++          (operation != 0 || ((0...1).contains(ownerCount) && eventCount <= 2048)),
+@@ -236,0 +247 @@ public func publicAndroidSubmit(_ context: Int64, _ operation: Int32,
++          (operation != 7 || (ownerCount == 36 && eventCount == 110)),
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index a5638b2e18d746aa9898da67fe47013818ac54e5..df44a47d24197fe395faeb3d19759d325e7ff38a 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -12,0 +13,27 @@ import MixerCapabilities
++struct AssignmentWorkspaceUnavailable: Error {}
++
++struct AssignmentRoute {
++    let workspaceID: UUID
++    let projectID: UUID
++    let taskID: UUID
++
++    init?(packet: Data) {
++        guard packet.count == 110, let text = String(data: packet, encoding: .utf8) else { return nil }
++        let parts = text.split(separator: "/", omittingEmptySubsequences: false)
++        guard parts.count == 3 else { return nil }
++        let ids = parts.compactMap { part -> UUID? in
++            guard let id = UUID(uuidString: String(part)), id.uuidString.lowercased() == part else { return nil }
++            return id
++        }
++        guard ids.count == 3 else { return nil }
++        (workspaceID, projectID, taskID) = (ids[0], ids[1], ids[2])
++    }
++}
++
++struct AssignmentTaskDetails: Codable, Equatable {
++    let project: String
++    let title: String
++    let responsible: String
++    let completed: Bool
++}
++
+@@ -371 +398 @@ private struct QueueSyncView {
+-    convenience init(directory: URL, settings: AndroidSettingsEnvironment) async throws {
++    convenience init(directory: URL, settings: AndroidSettingsEnvironment, existingOnly: Bool = false) async throws {
+@@ -372,0 +400,3 @@ private struct QueueSyncView {
++        if existingOnly && !FileManager.default.fileExists(atPath: folder.appendingPathComponent("workspace.json").path) {
++            throw AssignmentWorkspaceUnavailable()
++        }
+@@ -374 +404,2 @@ private struct QueueSyncView {
+-        try await self.init(repository: repository, syncConfiguration: QueueSyncConfiguration.read(from: folder), settings: settings)
++        try await self.init(repository: repository, syncConfiguration: QueueSyncConfiguration.read(from: folder),
++            settings: settings, existingOnly: existingOnly)
+@@ -381 +412,2 @@ private struct QueueSyncView {
+-    private init(repository: WorkspaceRepository, syncConfiguration: QueueSyncConfiguration?, settings: AndroidSettingsEnvironment) async throws {
++    private init(repository: WorkspaceRepository, syncConfiguration: QueueSyncConfiguration?,
++        settings: AndroidSettingsEnvironment, existingOnly: Bool = false) async throws {
+@@ -384,0 +417 @@ private struct QueueSyncView {
++                guard !existingOnly else { throw AssignmentWorkspaceUnavailable() }
+@@ -625,0 +659,13 @@ private struct QueueSyncView {
++    // A notification shows committed task details over the current view. A
++    // project switch here would persist the selection and replace its editor.
++    func assignmentDetails(for route: AssignmentRoute) async -> AssignmentTaskDetails? {
++        guard !closed, let committed = try? await repository.readCommittedSnapshot(), !closed,
++              committed.id == route.workspaceID,
++              let project = committed.projects.first(where: { $0.id == route.projectID }),
++              let task = committed.tasks.first(where: { $0.id == route.taskID && $0.projectID == project.id })
++        else { return nil }
++        let edit = TaskEdit(workspaceID: committed.id, revision: committed.revision, task: task)
++        return AssignmentTaskDetails(project: project.title, title: edit.text.title,
++            responsible: edit.text.responsible, completed: task.completed)
++    }
++
+@@ -1930 +1976 @@ private struct QueueSyncView {
+-         settings: AndroidSettingsEnvironment) async throws {
++         settings: AndroidSettingsEnvironment, existingOnly: Bool = false) async throws {
+@@ -1933 +1979 @@ private struct QueueSyncView {
+-        presentation = try await ProjectPresentation(directory: directory, settings: settings)
++        presentation = try await ProjectPresentation(directory: directory, settings: settings, existingOnly: existingOnly)
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
+index a2c2814fad2e0d917ccf3126fd59085119687b8c..3e6826361229c690b812ce141e65aadcc3f1af90 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
+@@ -30,0 +31 @@ private struct Packet {
++    static var assignments: [Int64: Data] = [:]
+@@ -50,0 +52,3 @@ private struct Packet {
++        case 7:
++            guard owners[context] == owner, appearance.isEmpty else { return 1 }
++            assignments[context] = packet
+@@ -764,0 +769,79 @@ final class FieldLogGeneratedHostTests: XCTestCase {
++
++final class AssignmentCallbackTests: XCTestCase {
++    @MainActor func testWarmAndColdAssignmentCallbackPreservesWorkspaceAndEditor() throws {
++        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
++        defer { try? FileManager.default.removeItem(at: directory) }
++        let folder = directory.appendingPathComponent("FieldLog")
++        let file = folder.appendingPathComponent("workspace.json")
++        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
++        var workspace = Workspace()
++        let open = try workspace.createProject(title: "Open project", site: "")
++        let assigned = try workspace.createProject(title: "Assigned project", site: "")
++        try workspace.saveTask(projectID: open, title: "Same title", responsible: "Decoy")
++        try workspace.saveTask(projectID: assigned, title: "Same title", responsible: "Jō 日本語")
++        workspace.restoration.selectedProjectID = open
++        workspace.revision += 1
++        try workspace.validate()
++        try JSONEncoder().encode(workspace).write(to: file, options: .atomic)
++        let before = try Data(contentsOf: file)
++        let target = try XCTUnwrap(workspace.tasks.last)
++        let selected = try XCTUnwrap(workspace.restoration.selectedProjectID)
++        func packet(_ workspace: UUID, _ project: UUID, _ task: UUID) -> Data {
++            Data([workspace, project, task].map { $0.uuidString.lowercased() }.joined(separator: "/").utf8)
++        }
++        let valid = packet(workspace.id, target.projectID, target.id)
++        let expected = AssignmentTaskDetails(project: "Assigned project", title: "Same title",
++            responsible: "Jō 日本語", completed: false)
++
++        let warm: Int64 = 7301
++        XCTAssertEqual(try request(warm, 0, directory: directory), 1)
++        let owner = try XCTUnwrap(Captures.owners[warm])
++        let original = try Packet.decode(XCTUnwrap(Captures.frames[warm]?.last?.packet))
++        let title = try original.event("task.title", .textChange, .string("Warm unsaved title"))
++        XCTAssertEqual(try request(warm, 1, owner: owner, event: JSONEncoder().encode(title)), 1)
++        let editorPacket = try XCTUnwrap(Captures.frames[warm]?.last?.packet)
++        XCTAssertEqual(fieldLogNode("task.title", in: try Packet.decode(editorPacket).document.root)?.properties["value"]?.string,
++            "Warm unsaved title")
++        XCTAssertEqual(try request(warm, 7, owner: owner, event: valid), 1)
++        XCTAssertEqual(try JSONDecoder().decode(AssignmentTaskDetails.self, from: XCTUnwrap(Captures.assignments[warm])), expected)
++        for stale in [packet(UUID(), target.projectID, target.id), packet(workspace.id, selected, target.id),
++                      packet(workspace.id, UUID(), target.id), packet(workspace.id, target.projectID, UUID())] {
++            XCTAssertEqual(try request(warm, 7, owner: owner, event: stale), 1)
++            XCTAssertEqual(Captures.assignments[warm], Data())
++        }
++        Captures.assignments.removeValue(forKey: warm)
++        XCTAssertEqual(try request(warm, 7, owner: Data(UUID().uuidString.utf8), event: valid), 2)
++        XCTAssertEqual(try request(warm, 7, owner: owner, event: Data(repeating: 45, count: 110)), 2)
++        XCTAssertNil(Captures.assignments[warm])
++        XCTAssertEqual(Captures.frames[warm]?.last?.packet, editorPacket)
++        XCTAssertEqual(try Data(contentsOf: file), before)
++        XCTAssertEqual(try request(warm, 2), 1)
++
++        let cold: Int64 = 7302
++        XCTAssertEqual(try request(cold, 0, directory: directory, owner: Data([1])), 1)
++        let coldOwner = try XCTUnwrap(Captures.owners[cold])
++        XCTAssertEqual(try request(cold, 7, owner: coldOwner, event: valid), 1)
++        XCTAssertEqual(try JSONDecoder().decode(AssignmentTaskDetails.self, from: XCTUnwrap(Captures.assignments[cold])), expected)
++        XCTAssertEqual(try request(cold, 2), 1)
++        XCTAssertEqual(try Data(contentsOf: file), before)
++        XCTAssertNil(Captures.owners[warm])
++        XCTAssertNil(Captures.owners[cold])
++    }
++
++    @MainActor func testColdAssignmentDoesNotCreateWorkspaceOrInitialProject() throws {
++        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
++        defer { try? FileManager.default.removeItem(at: directory) }
++        let folder = directory.appendingPathComponent("FieldLog")
++        let file = folder.appendingPathComponent("workspace.json")
++        XCTAssertEqual(try request(7303, 0, directory: directory, owner: Data([1])), 5)
++        XCTAssertFalse(FileManager.default.fileExists(atPath: folder.path))
++        XCTAssertNil(Captures.owners[7303])
++
++        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
++        let before = try JSONEncoder().encode(Workspace())
++        try before.write(to: file, options: .atomic)
++        XCTAssertEqual(try request(7304, 0, directory: directory, owner: Data([1])), 5)
++        XCTAssertEqual(try Data(contentsOf: file), before)
++        XCTAssertNil(Captures.owners[7304])
++    }
++}
+diff --git a/Integrations/GeneratedReport/scripts/build-android.py b/Integrations/GeneratedReport/scripts/build-android.py
+index af01f54aa46b66c9a656fec9b2fa6640a0870b00..c298501c48fcbe91252465593ab72dd13cf7b410 100644
+--- a/Integrations/GeneratedReport/scripts/build-android.py
++++ b/Integrations/GeneratedReport/scripts/build-android.py
+@@ -44 +44,2 @@ def app_inputs():
+-              for name in ("PublicBridge.java", "PublicActivity.java", "CapturePhotoProvider.java", "SiteMapPanel.java", "SiteMapOverlay.java", "FieldLogSettings.java")]
++              for name in ("PublicBridge.java", "PublicActivity.java", "CapturePhotoProvider.java", "SiteMapPanel.java", "SiteMapOverlay.java", "FieldLogSettings.java",
++                           "AssignmentNotifications.java")]

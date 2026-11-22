@@ -1,0 +1,68 @@
+diff --git a/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml b/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
+index 69f0c1b035a6ce2d656eb378a1ca7e01596f28e7..0c0f7f9e4fc9a9633c54477a6ab469b2ee0b99ea 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
++++ b/Integrations/GeneratedReport/Platforms/Android/AndroidManifest.xml
+@@ -5,0 +6 @@
++  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+@@ -16,0 +18,2 @@
++    <receiver android:name="dev.fieldlog.generatedr90.androidhost.AssignmentNotificationFixture"
++        android:permission="android.permission.DUMP" android:exported="true" />
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/AssignmentNotificationFixture.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/AssignmentNotificationFixture.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..5dcfd18cd3705609ad8338b529d1893044a00309
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/AssignmentNotificationFixture.java
+@@ -0,0 +1,40 @@
++package dev.fieldlog.generatedr90.androidhost;
++
++import android.Manifest;
++import android.app.Activity;
++import android.app.Notification;
++import android.app.NotificationChannel;
++import android.app.NotificationManager;
++import android.content.BroadcastReceiver;
++import android.content.Context;
++import android.content.Intent;
++import android.content.pm.ApplicationInfo;
++import android.content.pm.PackageManager;
++
++/** Opt-in provider for an owned development install and a synthetic workspace. */
++public final class AssignmentNotificationFixture extends BroadcastReceiver {
++    private static final String ACTION = "dev.fieldlog.generatedr90.POST_ASSIGNMENT_FIXTURE";
++    private static final String CHANNEL = "fieldlog-assignment-fixture";
++
++    @Override public void onReceive(Context context, Intent intent) {
++        if (!isOrderedBroadcast()) return;
++        setResultCode(Activity.RESULT_CANCELED);
++        if (!ACTION.equals(intent.getAction()) ||
++                (context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) == 0 ||
++                context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return;
++        AssignmentNotifications.Route route = AssignmentNotifications.Route.decode(intent.getStringExtra("route"));
++        if (route == null) return;
++        NotificationManager notifications = context.getSystemService(NotificationManager.class);
++        if (notifications == null || !notifications.areNotificationsEnabled()) return;
++        notifications.createNotificationChannel(new NotificationChannel(CHANNEL, "Assignment test", NotificationManager.IMPORTANCE_DEFAULT));
++        notifications.notify(CHANNEL, 1, new Notification.Builder(context, CHANNEL)
++            .setSmallIcon(android.R.drawable.ic_dialog_info)
++            .setContentTitle("FieldLog assignment test")
++            .setContentText("Tap to open the assigned task.")
++            .setAutoCancel(true)
++            .setVisibility(Notification.VISIBILITY_PRIVATE)
++            .setContentIntent(AssignmentNotifications.contentIntent(context, route))
++            .build());
++        setResultCode(Activity.RESULT_OK);
++    }
++}
+diff --git a/Integrations/GeneratedReport/scripts/build-android.py b/Integrations/GeneratedReport/scripts/build-android.py
+index c298501c48fcbe91252465593ab72dd13cf7b410..4fb5c0c18cf9a198ccc8a617f37137b842817625 100644
+--- a/Integrations/GeneratedReport/scripts/build-android.py
++++ b/Integrations/GeneratedReport/scripts/build-android.py
+@@ -45 +45 @@ def app_inputs():
+-                           "AssignmentNotifications.java")]
++                           "AssignmentNotifications.java", "AssignmentNotificationFixture.java")]
+diff --git a/Integrations/GeneratedReport/scripts/pair25/manifest.py b/Integrations/GeneratedReport/scripts/pair25/manifest.py
+index aaf1587597eb50127b86b9c80c6cb23d2c1d446f..ebc8b4193b7911cca5b4b1ad443b2f71998ae4c1 100644
+--- a/Integrations/GeneratedReport/scripts/pair25/manifest.py
++++ b/Integrations/GeneratedReport/scripts/pair25/manifest.py
+@@ -18,0 +19 @@ def transform(source, destination):
++        "android.permission.POST_NOTIFICATIONS",

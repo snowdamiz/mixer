@@ -249,6 +249,13 @@ Those actions were enabled. The candidate is unsigned and held from
 installation while both paths are corrected.
 [Navigation review](verification/receipts/fieldlog-f10-signed-android-navigation-review-4cdc06c2.json)
 
+The `7ef3f06d` correction passed those navigation choices in the host
+controls. Independent review found that the real workspace actor still
+refused the fourth legitimate read. It also found that the source
+retained the previous Wasm pin. The unsigned packager bound the new pin
+in its build copy. The source pin and repeated-read changes are pending.
+[Follow-up navigation review](verification/receipts/fieldlog-f10-signed-android-navigation-review-7ef3f06d.json)
+
 The private macOS signed V3 candidate `6ba7034329` passed the first-page
 Pending Changes smoke through the installed owner, VM, and storage mailbox.
 One read hydrated the queue. The decoded action delivered the historical
@@ -1372,7 +1379,16 @@ relinked the manifest and preserved all 37 other APK members.
 A follow-up reached the real Camera2 shutter over the assignment-rooted
 Activity. Home and the launcher then opened a second, blank FieldLog
 Activity in the same task. The original Activity and workspace bytes
-remained. Camera-overlay launcher return remains open.
+remained.
+
+The corrected Camera2 APK finishes this duplicate before it starts
+a workspace. The root-owned API 36 run returned through the launcher
+to the original capture twice. Back preserved every workspace byte.
+Accepting one image saved the new draft and its restoration pointer
+in one revision, preserving both existing drafts and all 47 outbox
+records. The 1,392 × 1,856 JPEG and workspace matched after cold
+reopen in a fresh process. All owned device and signing scratch closed.
+[Camera2 launcher return receipt](verification/receipts/fieldlog-android-assignment-camera-launcher-api36-22c00318.json)
 
 The iOS assignment correction `73e9f093` held a cold intent through
 a real workspace-open failure and routed it once after retry. A report
@@ -1563,6 +1579,14 @@ actual sparse checkouts and both Python modes. Both predecessors restored
 with matching bytes and file modes. Real APK and installed verification
 remain pending. The SDK BoringSSL build commit remains unproven.
 [Recipe and Source141 evidence](verification/receipts/fieldlog-pair25-l07-notice-source141-adoption-491d708b.json)
+
+The official ARM64 FoundationNetworking ELF identifies 221 BoringSSL
+paths and 113 curl paths in its DWARF strings. All matched the pinned
+upstream source trees. Three sampled function declaration locations and
+both packaged notice texts also matched. The BoringSSL tag differs from
+its parent only in a build tool. The SDK SBOM contains no package source
+checksum, so the exact SDK build input remains unproven.
+[SDK networking provenance](verification/receipts/l07-swift-android-networking-dwarf-provenance.json)
 
 All nine Owned Engine jobs passed at `2fbba61cb1`. Swift admitted the
 157 installed inputs in both Python modes and restored both historical

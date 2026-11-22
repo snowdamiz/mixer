@@ -1,0 +1,69 @@
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/AssignmentNotifications.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/AssignmentNotifications.java
+index 20aeda96b7353cafd147f14bbbf49f9f55244897..ec161d05e349f116895fa9c7d187e09c310aaee3 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/AssignmentNotifications.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/AssignmentNotifications.java
+@@ -32,7 +32,7 @@ final class AssignmentNotifications {
+         }
+     }
+
+-    private static ComponentName tapComponent(Context context) {
++    static ComponentName tapComponent(Context context) {
+         return new ComponentName(context, ALIAS);
+     }
+
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+index 186b956919ef29077269112c13adb4ab0d991654..a131850fa2917bb3d6d4d94a521c63481b6a6641 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -1,8 +1,10 @@
+ package dev.fieldlog.generatedr90.androidhost;
+ import android.app.Activity;
++import android.app.ActivityManager;
+ import android.app.AlertDialog;
+ import android.content.ActivityNotFoundException;
+ import android.content.ClipData;
++import android.content.ComponentName;
+ import android.content.Intent;
+ import android.content.pm.PackageInfo;
+ import android.content.pm.PackageManager;
+@@ -652,11 +654,40 @@ public final class PublicActivity extends Activity {
+             .put("diagnostics", diagnostics).toString().getBytes(StandardCharsets.UTF_8);
+     }
+
++    private boolean isDuplicateLauncher(Intent intent) {
++        ComponentName launcher = new ComponentName(this, PublicActivity.class);
++        if (intent == null || !Intent.ACTION_MAIN.equals(intent.getAction())
++                || !intent.hasCategory(Intent.CATEGORY_LAUNCHER) || intent.getData() != null
++                || (intent.getFlags() & Intent.FLAG_ACTIVITY_NEW_TASK) == 0
++                || !launcher.equals(intent.getComponent()) || isTaskRoot()) return false;
++
++        int taskId = getTaskId();
++        ComponentName alias = AssignmentNotifications.tapComponent(this);
++        for (ActivityManager.AppTask task : getSystemService(ActivityManager.class).getAppTasks()) {
++            ActivityManager.RecentTaskInfo info;
++            try {
++                info = task.getTaskInfo();
++            } catch (IllegalArgumentException removedTask) {
++                continue;
++            }
++            if (info != null && info.taskId == taskId) {
++                return info.numActivities > 1 && (launcher.equals(info.baseActivity) || alias.equals(info.baseActivity));
++            }
++        }
++        return false;
++    }
++
+     @Override public void onCreate(Bundle state) {
+         boolean dark = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+             == Configuration.UI_MODE_NIGHT_YES;
+         setTheme(dark ? android.R.style.Theme_Material_NoActionBar : android.R.style.Theme_Material_Light_NoActionBar);
+         super.onCreate(state);
++        // Keep the existing task stack and its activity-for-result recipient.
++        // A recreated Activity is already part of that stack.
++        if (state == null && isDuplicateLauncher(getIntent())) {
++            finish();
++            if (isFinishing()) return;
++        }
+         if (state == null) pendingAssignment = AssignmentNotifications.fromTap(this, getIntent());
+         else {
+             nextExternalCode = Math.max(nextExternalCode, state.getInt(EXTERNAL_CODE_STATE, 100));

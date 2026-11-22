@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "status": "source_path_and_declaration_attribution_confirmed",
+  "scope": "Read-only provenance check for official Swift 6.3.3 Android FoundationNetworking ARM64 ELF",
+  "observedUTC": "2026-11-22T04:58:45.110129+00:00",
+  "mixerObservationBase": "b4a46d8d83db09862036805419723ed77defc162",
+  "elf": {
+    "sdkPath": "swift-android/swift-resources/usr/lib/swift-aarch64/android/libFoundationNetworking.so",
+    "sha256": "99cb42ad356c90b6ec0b7c90d1a05fdafadbe39a97c2a671d14d2513a7cbe088",
+    "gnuBuildID": "312f916fe13262a392471483250671605eea9e5a"
+  },
+  "sbomSHA256": "2364710f570fc82861bfd7dab22a53c186a4cf0d284192e53454cbd53319af48",
+  "binaries": [
+    "LLVM version 18.0.4",
+    "LLVM version 18.0.4"
+  ],
+  "inspectionCommands": [
+    "llvm-readelf --notes <ELF>",
+    "llvm-readelf --string-dump=.debug_str <ELF>",
+    "llvm-dwarfdump --name=SSL_CTX_new --name=BORINGSSL_self_test --name=curl_easy_init <ELF>",
+    "gh api --method GET repos/<upstream>/git/trees/<commit> -f recursive=1",
+    "GitHub raw files at the recorded commits"
+  ],
+  "components": {
+    "boringssl": {
+      "sbomVersion": "fips-20220613",
+      "packageSourceChecksumPresent": false,
+      "upstreamRepository": "https://github.com/google/boringssl",
+      "noticeSourceCommit": "0c6f40132b828e92ba365c6b7680e32820c63fa7",
+      "upstreamGitTree": "0c6f40132b828e92ba365c6b7680e32820c63fa7",
+      "debugStringPrefix": "/source/boringssl/",
+      "distinctSourcePaths": 221,
+      "matchedSourcePaths": 221,
+      "sourcePathRosterSHA256": "c7149767734a9c03a245b82dbb641c092cbc2cdcd492bcc720f45ace1fda6d89",
+      "sourceDeclarationMatches": [
+        {
+          "symbol": "SSL_CTX_new",
+          "path": "ssl/ssl_lib.cc",
+          "line": 540,
+          "upstreamSourceSHA256": "7c3f6f988ef5e156a5eff83037477040e6df9f179a336422b6ba311d78e2b859"
+        },
+        {
+          "symbol": "BORINGSSL_self_test",
+          "path": "crypto/fipsmodule/self_check/self_check.c",
+          "line": 954,
+          "upstreamSourceSHA256": "e1c2c35643dd681293112ed8e9e651b2a62a4d8dbad8f58050ab86a76ac2847a"
+        }
+      ],
+      "packagedNotice": {
+        "name": "Swift-SDK-BoringSSL-fips-20220613-LICENSE.txt",
+        "source": "https://raw.githubusercontent.com/google/boringssl/0c6f40132b828e92ba365c6b7680e32820c63fa7/LICENSE",
+        "sha256": "60bd7c54856bf9387221bde5ab55d516d7cea15870d0fed69406bcd1c8ec7c9d"
+      }
+    },
+    "curl": {
+      "sbomVersion": "8.9.1",
+      "packageSourceChecksumPresent": false,
+      "upstreamRepository": "https://github.com/curl/curl",
+      "noticeSourceCommit": "83bedbd730d62b83744cc26fa0433d3f6e2e4cd6",
+      "upstreamGitTree": "83bedbd730d62b83744cc26fa0433d3f6e2e4cd6",
+      "debugStringPrefix": "/source/swift-project/curl/",
+      "distinctSourcePaths": 113,
+      "matchedSourcePaths": 113,
+      "sourcePathRosterSHA256": "55d492497e7cf98f00f7445c1a5488bf57fd81071ff5c52437bc900093278c0b",
+      "sourceDeclarationMatches": [
+        {
+          "symbol": "curl_easy_init",
+          "path": "lib/easy.c",
+          "line": 349,
+          "upstreamSourceSHA256": "9ac91d1fae409dde398efe79ad4b19c8a6a602af99c685097af70eb2b753ad96"
+        }
+      ],
+      "packagedNotice": {
+        "name": "curl-8.9.1-COPYING.txt",
+        "source": "https://raw.githubusercontent.com/curl/curl/83bedbd730d62b83744cc26fa0433d3f6e2e4cd6/COPYING",
+        "sha256": "adb1fc06547fd136244179809f7b7c2d2ae6c4534f160aa513af9b6a12866a32"
+      }
+    }
+  },
+  "boringSSLNeighborControl": {
+    "parent": "444d430a659e475877daaacaca8dda1be3ff6f63",
+    "tagCommit": "0c6f40132b828e92ba365c6b7680e32820c63fa7",
+    "commitDiff": [
+      "util/fipstools/delocate/delocate.go"
+    ]
+  },
+  "limits": "Paths and declaration locations match the SBOM attribution and the notice input. The SDK SBOM has no component source checksum. The BoringSSL tag's only change from its parent is in build tooling, so this comparison does not distinguish those commits or prove the SDK producer's exact BoringSSL build input.",
+  "cleanup": {
+    "readOnly": true,
+    "externalScratchCreated": false
+  }
+}
