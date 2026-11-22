@@ -1650,6 +1650,19 @@ return. Startup can lose the callback at ten seconds or retain only a
 later stale return. Full Android account adoption remains held.
 [Android startup and deletion replay](verification/receipts/fieldlog-android-deletion-startup-api36-386d0577.json)
 
+The Java handoff successor passed a delayed browser return on API 36.
+The local service approved one test sign-in. The driver scheduled that
+return and then a stale return through Android while the display slept
+for 11 seconds. The previous APK opened the browser prompt without an
+exchange. Waking the corrected APK confirmed exactly one session in the
+waiting process. Sign-out preserved the ordinary workspace. A separate
+run recovered the original deletion receipt and cleared its stale
+marker. Independent host review and another API 36 run reproduced a
+pre-existing warm callback loss on a temporary credential-read failure.
+Retry reopened the browser prompt with zero exchanges. Full account
+adoption remains held.
+[Delayed browser handoff](verification/receipts/fieldlog-android-java-callback-api36-11a509d1.json)
+
 The iOS deletion owner now loads the saved reauthorization intent when
 the browser callback arrives before startup restore. The real loopback
 host replay passed both orders. Local data stayed intact until renewed
@@ -3169,6 +3182,28 @@ and the signed artifact with its base64 Wasm. Two reads per response
 matched the original signed packet. The receipt records separate
 offline gzip sizes and excludes headers and transport overhead.
 [Signed row response sizes](verification/receipts/l03-android-signed-row-release-wire-d92cb15a.json)
+
+On API 36, three fresh FieldLog fixture identities each accepted one
+native Move up tap and appended one reorder event. The first raw crop
+matching settled reordered rows reached the host 790–932 ms after the
+ADB tap request, with a median of 831 ms. Pre-tap screenshot reads took
+322–340 ms. The result includes capture and transport, and device
+click-to-presentation latency remains unmeasured. Independent review
+recomputed each bound. All 220 commands closed and the emulator and
+origin were retired.
+[Android row observation](verification/receipts/l03-android-installed-row-observation-fa45f636.json)
+
+The current TaskCompletion shell fixture passed on the API 36 ARM64
+emulator. Five alternate native and owned-VM pairs matched all four
+frames. Both paths refused two malformed inputs without replacing
+their last frame. The guest reported `TaskCompletion.swift:94:9` and
+retired. The native fault terminated by signal 5. The median three-turn
+times were 3.8 µs native and 1.35 ms through the VM. Median process peaks
+were 19.0 MiB and 19.7 MiB. The elected 5,266-byte payload also passed
+the four frame and trap checks on macOS and has a distinct digest from
+the earlier macOS run. The emulator used 4 KiB pages. The 18 ELFs passed
+the separate 16 KiB alignment check. All 72 commands closed.
+[Current Android TaskCompletion](verification/receipts/l03-d3-taskcompletion-current-android-fa45f636.json)
 
 At public pin `7b61fe1cd9`, native Swift and the owned VM produced byte-identical FieldLog task frames from the same unchanged source. Both refused stale and noncanonical events without changing the frame. The deliberate precondition failed at `TaskCompletion.swift:94`. the VM identified column 9 and closed the session. Mobile parity and matched performance evidence remain open. [Task differential receipt](verification/receipts/l03-d3-task-review-event-trap-7b61fe1c.json)
 
