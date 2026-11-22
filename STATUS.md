@@ -1391,6 +1391,14 @@ counted the Checklist heading as a row. Both attempts removed their
 owned emulator, package, and scratch.
 [Installed F09 checklist boundary](verification/receipts/fieldlog-f09-android-checklist-api36-ac305262.json)
 
+Ordinary offline F08 completed one task and reordered its two-task
+checklist. Revisions advanced from 3 to 4 and 5, with one event per
+action. A new process reopened the same completed task, order, five
+unsent queue rows, and exact workspace bytes. Independent review
+reconstructed both post-write digests from the fixture and events.
+All 153 outer and native commands closed.
+[Installed F08 checklist and queue](verification/receipts/fieldlog-f08-android-checklist-api36-ac305262.json)
+
 F12 passed on the retained offline Pair25 APK. The native date field
 converted the offset leap-day input to `2024-02-29T18:15:12.125Z`.
 The partial date stayed visible, and the two disabled write controls
@@ -1764,6 +1772,14 @@ no exchange, credential write, or deletion-journal change. Installed UI reachabi
 and full account adoption remains held.
 [Installed early and late browser return checks](verification/receipts/fieldlog-android-blocked-restore-return-api36-f4ad72f7.json)
 
+The first Retry correction passed independent host review on both
+routes. After Cancel and a stale return, the first Retry restored the
+expected browser with one marker read and zero exchanges or credential
+writes. The exact signed successor also passed the installed ordinary
+late-return and cold Cancel checks. The three-command order remains
+host evidence. Full account adoption remains open.
+[First Retry and installed regressions](verification/receipts/fieldlog-android-first-retry-api36-891c38dc.json)
+
 The iOS deletion owner now loads the saved reauthorization intent when
 the browser callback arrives before startup restore. The real loopback
 host replay passed both orders. Local data stayed intact until renewed
@@ -1990,6 +2006,16 @@ both packaged notice texts also matched. The BoringSSL tag differs from
 its parent only in a build tool. The SDK SBOM contains no package source
 checksum, so the exact SDK build input remains unproven.
 [SDK networking provenance](verification/receipts/l07-swift-android-networking-dwarf-provenance.json)
+
+The fresh signed FieldLog `891c38dc` APK binds its JNI to five
+selected objects from the Swift Android SDK's bundled r27d
+`libunwind.a`. The linker trace, sealed JNI input, and exact packaged
+JNI digest are recorded. Independent readback matched both NDK
+notices across the SDK copies, the embedded seal, v3 signature, and
+16 KiB alignment. A separate earlier relink had different JNI bytes
+from its prior installed comparison. Historical APK archive selection
+and the SDK BoringSSL build revision remain open.
+[Traced JNI link and signed package](verification/receipts/fieldlog-android-first-retry-api36-891c38dc.json)
 
 All nine Owned Engine jobs passed at `2fbba61cb1`. Swift admitted the
 157 installed inputs in both Python modes and restored both historical
