@@ -1186,6 +1186,14 @@ Workspace bytes and the repository file list were identical. The
 sampled app log contained neither exact synthetic input coordinate.
 [Installed permission lifecycle](verification/receipts/fieldlog-android-site-map-permissions-87c95c5a.json)
 
+On the same Pair25 APK, Android's 1.3 font scale visibly enlarged
+the ordinary draft editor text. A focused Save draft kept the draft
+ID and changed only the note, its timestamp and workspace revision.
+Cold reopen retained the note, all seven JPEGs and the one pending
+queue record. Restoring 1.0 returned the original Note bounds. The
+owned emulator and ADB closed, and scratch was removed.
+[Installed larger-text editor](verification/receipts/fieldlog-android-large-text-entry-87c95c5a.json)
+
 A separate replay on the same APK cancelled at 65,536 bytes, resumed
 and reconciled the lost acknowledgment. SQLite held one new event
 and the exact JPEG. One local outbox record retired after the retry.
