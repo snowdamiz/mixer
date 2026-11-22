@@ -11,7 +11,7 @@ enum Service {
     ClockError,
     CancelClock,
     ExpireClock,
-    SlowRealClock,
+    ExpireAfterRealClock,
     CancelRealClock,
 }
 #[derive(Default)]
@@ -63,10 +63,17 @@ impl TestState {
         clock: platform::Clock,
         resolution: bool,
         cancellation: &Cancellation,
+        deadline: &mut Instant,
     ) -> Result<u64, Errno> {
         self.services.set(self.services.get() + 1);
         match self.service {
-            Service::SlowRealClock => {let result=platform::clock(clock,resolution);std::thread::sleep(Duration::from_millis(600));result},
+            Service::ExpireAfterRealClock => {
+                let value = platform::clock(clock, resolution)?;
+                let completed = Instant::now();
+                assert!(completed < *deadline);
+                *deadline = completed;
+                Ok(value)
+            }
             Service::CancelRealClock => {let result=platform::clock(clock,resolution);cancellation.cancel();result},
             Service::ClockError => Err(Errno::Io),
             Service::CancelClock => {
@@ -364,6 +371,6 @@ fn invalid_args_precede_budget_and_terminal_precedes_invalid_args() {
 
 impl TestState {
  pub(super) fn host_set_cancel(&self,at:usize){self.cancel_at.set(Some(at));}
- pub(super) fn host_set_service(&mut self,kind:u8){self.service=match kind{1=>Service::PartialRandomError,5=>Service::CancelRandom,8=>Service::SlowRealClock,9=>Service::CancelRealClock,_=>Service::Os};}
+ pub(super) fn host_set_service(&mut self,kind:u8){self.service=match kind{1=>Service::PartialRandomError,5=>Service::CancelRandom,8=>Service::ExpireAfterRealClock,9=>Service::CancelRealClock,_=>Service::Os};}
  pub(super) fn host_services(&self)->usize{self.services.get()}
 }

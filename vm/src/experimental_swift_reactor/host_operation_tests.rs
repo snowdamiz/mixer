@@ -48,15 +48,9 @@ pub(super) fn before_dispatch(p: &mut FrameOperationPhase<'_>) {
     match BEFORE.with(Cell::get) {
         1 => p.phase.operation.control.cancellation().cancel(),
         2 => {
-            std::thread::sleep(
-                p.phase
-                    .operation
-                    .control
-                    .deadline()
-                    .saturating_duration_since(Instant::now())
-                    + Duration::from_millis(2),
-            );
-            assert!(Instant::now() >= p.phase.operation.control.deadline());
+            p.phase.operation.control.test_expire_deadline();
+            // Overshoot is reported in whole microseconds.
+            std::thread::sleep(Duration::from_micros(1));
         }
         _ => {}
     }
@@ -780,15 +774,16 @@ fn h07_before_inside_after_dispatch_cancellation_and_rollback() {
 }
 #[test]
 fn h08_actual_deadline_origins_and_real_os_postcheck() {
+    const EARLIER_DEADLINE_MS: u64 = 15_000;
     let _b = Bounds::new();
     for wasi_origin in [false, true] {
         fixture_with(
             SwiftRunBudget {
-                deadline_ms: if wasi_origin { 30_000 } else { 500 },
+                deadline_ms: if wasi_origin { 30_000 } else { EARLIER_DEADLINE_MS },
                 ..SwiftRunBudget::default()
             },
             WasiBudget {
-                deadline_ms: if wasi_origin { 500 } else { 30_000 },
+                deadline_ms: if wasi_origin { EARLIER_DEADLINE_MS } else { 30_000 },
                 ..small()
             },
             grants(),
@@ -807,6 +802,7 @@ fn h08_actual_deadline_origins_and_real_os_postcheck() {
                 );
                 assert!(failure.at_failure.deadline_overshoot_micros > 0);
                 assert_eq!(observed(p).host_calls, 0);
+                assert_eq!(observed(p).wasi.unwrap().calls, 0);
                 assert_eq!(p.phase.operation.wasi.host_test_services(), 0);
                 println!(
                     "HOST_DEADLINE preOS origin={:?} overshootMicros={}",
@@ -818,7 +814,7 @@ fn h08_actual_deadline_origins_and_real_os_postcheck() {
     fixture_with(
         SwiftRunBudget::default(),
         WasiBudget {
-            deadline_ms: 500,
+            deadline_ms: EARLIER_DEADLINE_MS,
             ..small()
         },
         grants(),
@@ -831,10 +827,12 @@ fn h08_actual_deadline_origins_and_real_os_postcheck() {
             assert_eq!(failure.kind, SwiftRunFailureKind::Wasi);
             assert_eq!(failure.wasi_failure, Some(WasiFailure::Deadline));
             assert_eq!(failure.deadline_origin, SwiftDeadlineOrigin::Wasi);
+            assert_eq!(observed(p).host_calls, 1);
+            assert_eq!(observed(p).wasi.unwrap().calls, 1);
             assert_eq!(p.phase.operation.wasi.host_test_services(), 1);
             assert_eq!(&p.phase.parts.memory[..8], &[0xa5; 8]);
             assert_eq!(observed(p).wasi.unwrap().transfer_bytes, 8);
-            println!("HOST_OS actual clock result discarded after finite600ms injected postOS delay; calls=1");
+            println!("HOST_OS actual clock result discarded after deadline expired at postOS checkpoint; calls=1");
         },
     );
     fixture_with(SwiftRunBudget::default(), small(), grants(), &[], |p| {

@@ -537,7 +537,9 @@ impl WasiContext {
         self.transfer(8)?;
         self.check()?;
         #[cfg(test)]
-        let result = self.test.clock(clock, resolution, &self.cancellation);
+        let result = self
+            .test
+            .clock(clock, resolution, &self.cancellation, &mut self.deadline);
         #[cfg(not(test))]
         let result = platform::clock(clock, resolution);
         let value = result?;

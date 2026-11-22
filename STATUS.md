@@ -13,6 +13,18 @@ Use the tracked results to assess L01–L08 and rerun any check that needs fresh
 evidence from a clean checkout. Paths to disposable run files are historical
 references. See [the worktree verification policy](mixer-product-plan.md#worktree-local-verification).
 
+## VM deadline fixture verification
+
+The opt-in VM replay had one failure when H08 exhausted its test WASI
+deadline during construction. The fixture now expires the already-selected
+deadline at the test checkpoint. It verifies zero pre-service calls, one
+real OS clock call before the post-service refusal, and unchanged guest
+output. The author replay passed H08 eight consecutive times. A fresh
+root replay passed all 480 unit and 26 integration tests. Production
+deadlines are unchanged. L03 still needs the installed iOS TaskCompletion
+replay against the current VM.
+[VM test receipt](verification/receipts/l03-h08-deadline-fixture-replay-20261122.json)
+
 ## Signed release ABI refusal in the local service
 
 Stock CLI and Go delivery backed by PostgreSQL rejected the sequence-3 ABI 1
