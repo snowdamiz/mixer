@@ -193,7 +193,7 @@ Both reviewed D0 and D1 sign-in overlays built as complete generic arm64 iOS app
 
 The full iOS calculation run stopped at installation with CoreSimulator Mach error -308. Root removed the disposable device after confirming Shutdown. The external comparison found one unrelated Minds Simulator changed from Booted to Shutdown. Mixer paused iOS Simulator verification for recovery coordination. [Install and cleanup receipt](verification/receipts/fieldlog-ios-full-calculation-install-recovery-41a05264.json)
 
-The user authorized a fresh disposable device. The current macOS Accessibility preflight reported false for Swift, AppleScript and Python before any Simulator operation. The fresh-device test awaits restored trust. [Accessibility preflight](verification/receipts/fieldlog-ios-fresh-device-accessibility-preflight-613fb3c1.json)
+The user authorized a fresh disposable device. The earlier macOS Accessibility preflight refused before any Simulator operation. Fresh public trust checks subsequently passed and the pinned FieldLog signed row XCTest completed on iOS 27.0 ARM64. [Accessibility preflight](verification/receipts/fieldlog-ios-fresh-device-accessibility-preflight-613fb3c1.json) [Fresh installed replay](verification/receipts/l08-ios-fresh-simulator-signed-row-584cd194.json)
 
 In the rebuilt shared-origin replay, both Android APKs installed and matched their pins. Activity Manager reported a launch timeout before the first FieldLog screen. The crash buffer contained repeated Android Bluetooth service failures. iOS ended its rendezvous wait, and the owned emulator, Simulator, private ADB and origin closed. Neither app reached a signed release phase. [Joint native attempt](verification/receipts/fieldlog-rebuilt-shared-native-launch-41a05264.json)
 

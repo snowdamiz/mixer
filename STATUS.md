@@ -2223,6 +2223,14 @@ generic Simulator archive passed the three signature checks and the
 XCTest selector readback. Simulator execution remains pending.
 [Row-reorder witness](verification/receipts/l08-fieldlog-ios-signed-row-reorder-1032909c.json)
 
+The earlier pinned row fixture passed its installed iOS Simulator
+XCTest after Accessibility trust was restored. One Move up committed
+one task-order event. Signed rollback and offline reopen preserved
+the reordered workspace and its selected draft.
+Independent attachment readback matched the exact bytes across
+the reviewed, rollback and offline phase comparisons.
+[Installed row replay](verification/receipts/l08-ios-fresh-simulator-signed-row-584cd194.json)
+
 The iOS refusal fixture passed a fresh macOS replay through the installed
 owner and loopback delivery. Wrong scope, wrong runtime, invalid body
 and replay cases preserved the verified staged baseline, draft, JPEG,
@@ -3674,7 +3682,7 @@ Both reviewed D0 and D1 sign-in overlays built as complete generic arm64 iOS app
 
 The full iOS calculation run stopped at installation with CoreSimulator Mach error -308. Root removed the disposable device after confirming Shutdown. The external comparison found one unrelated Minds Simulator changed from Booted to Shutdown. Mixer paused iOS Simulator verification for recovery coordination. [Install and cleanup receipt](verification/receipts/fieldlog-ios-full-calculation-install-recovery-41a05264.json)
 
-The user authorized resumption on a fresh disposable Simulator. All three public Accessibility checks returned false before any Simulator operation. The installed replay waits for restored macOS trust. [Fresh-device preflight](verification/receipts/fieldlog-ios-fresh-device-accessibility-preflight-613fb3c1.json)
+The user authorized resumption on a fresh disposable Simulator. Public Accessibility checks initially refused before any device operation. After trust returned, the installed signed row XCTest passed on a fresh iOS 27.0 ARM64 device. All three run-owned devices were removed, and the 13 monitored external devices matched their baseline at every checkpoint. [Fresh-device preflight](verification/receipts/fieldlog-ios-fresh-device-accessibility-preflight-613fb3c1.json) [Fresh installed replay](verification/receipts/l08-ios-fresh-simulator-signed-row-584cd194.json)
 
 In the rebuilt shared-origin replay, both Android APKs installed and matched their pins. Activity Manager reported a launch timeout before the first FieldLog screen. The crash buffer contained repeated Android Bluetooth service failures. iOS ended its rendezvous wait, and the owned emulator, Simulator, private ADB and origin closed. Neither app reached a signed release phase. [Joint native attempt](verification/receipts/fieldlog-rebuilt-shared-native-launch-41a05264.json)
 
