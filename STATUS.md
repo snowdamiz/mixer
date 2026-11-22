@@ -13,6 +13,17 @@ Use the tracked results to assess L01–L08 and rerun any check that needs fresh
 evidence from a clean checkout. Paths to disposable run files are historical
 references. See [the worktree verification policy](mixer-product-plan.md#worktree-local-verification).
 
+## First shared native signed release replay
+
+The re-sealed packets passed the shared origin host replay. On fresh local
+devices, Android launched, read the offline report in the separate reader,
+and returned to the same project. Both native clients reached sequence 1
+on the shared origin. The iOS test then waited for Inspect pump, but its
+native row displayed Inspect pum. Android was already waiting at sequence
+2 when the root stopped the origin. Both device owners and the origin
+closed. The initial title loss remains under investigation.
+[Native partial receipt](verification/receipts/l04-fieldlog-shared-native-title-20261122.json)
+
 ## FieldLog iOS saved draft during an actual release-origin outage
 
 The same installed run fetched signed releases from the stock loopback
