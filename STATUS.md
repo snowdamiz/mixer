@@ -3411,9 +3411,11 @@ origin served signed sequence 7 to the old runtime and sequence 1 to
 the new runtime. An independent host run passed all 35 HTTP and 20
 Swift verifier checks, refused cross-runtime delivery, and matched the
 offer and artifact bytes after restart. All 154 handoff hashes matched,
-both service groups closed, and their port was reusable. Installed
-in-place replacement and workspace and journal continuity remain pending.
+both service groups closed, and their port was reusable. Those builds
+supplied the host evidence.
 [iOS engine cohort builds and host replay](verification/receipts/fieldlog-ios-engine-cohort-generic-73717993.json)
+
+The fresh iOS 27.0 Simulator replay installed build 24101, saved one ordinary task, and reached durable health at signed sequence 7. An explicit in-place install of build 24102 preserved the complete workspace, prior runtime journal, and installation preferences before first launch. CoreSimulator changed the container path and kept its filesystem identity and continuity marker. The replacement reopened the same task at signed sequence 1. Each build used its own VM archive, runtime fingerprint, signed payload, and recovery cursor. Both checkpoints passed and Done closed their attempts. The first attempt failed replacement resource readback. Adjusting the modification times of three same-size replacement files preserved all signed bytes and passed resource readback. The second attempt stopped on the runner's container-path check. All three disposable devices were removed and the 13 observed external states matched throughout. [Installed iOS engine cohort receipt](verification/receipts/fieldlog-ios-engine-cohort-native-20261122.json)
 
 ### Rendered free Starter build
 

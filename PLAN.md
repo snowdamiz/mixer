@@ -121,6 +121,10 @@ The APKs linked Mixer engines `15a2c0a98593d6e2bafaa1f5c00eb045c9815944` and `9f
 
 The first replacement attempt reopened a workspace with one task but stopped while looking for its title below the visible checklist controls. The corrected replay checked the rendered task count and compared the full saved workspace before opening the guest. It used Python 3.14.8, ADB 37.0.1 and Android Emulator 37.2.12 with image build 13818094. All 578 recorded command groups closed. The reverse mapping, private ADB, origin, log reader and emulator closed, all four ports were reusable, and the disposable AVD was removed. L04 and L08 remain running.
 
+### iOS FieldLog engine replacement
+
+The iOS counterpart to §22.2.13 passed on one fresh iOS 27.0 arm64 Simulator. Build 24102 replaced 24101 in place. It used its own healthy signed sequence 1 after the old engine had run sequence 7. The same installation reopened the same saved task, with the workspace and prior recovery journal byte-identical. [Installed iOS upgrade](verification/receipts/fieldlog-ios-engine-cohort-native-20261122.json)
+
 ### Rendered free Starter build
 
 At `72d135441ea5b50dbcf87902252e0c05e1e3b179`, Chrome signed in, created the free organization and project, registered the app, and selected the pinned Starter. The first fixture returned HTTP 400 because its proxy dropped `Idempotency-Key`. The corrected fixture forwarded the header, accepted one POST, and rendered the matching build ID. The stock admission API configured one fleet slot and one iOS slot. Restricted Oban dispatched one Xcode run, and the build reached `native_succeeded`.
