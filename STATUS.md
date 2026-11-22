@@ -1722,6 +1722,14 @@ a terminal session, while WABT continues. Independent replay passed the
 selected sequence, the 19 existing assertions and six runner controls.
 [Stateful memory replay](verification/receipts/l03-stateful-memory-e414fa1a.json)
 
+The maintained replay also runs an unchanged upstream overlapping
+`memory.copy` block. The installed V3 C session and WABT read address
+12 as 7 before the copy, 2 afterward and 7 in a fresh instance.
+WABT passed all 35 commands. The existing 19 assertions and seven
+wrapper tests passed. All 91 replay commands closed and owned scratch
+was removed. Guest UI V1 refused admission of the same module.
+[Overlapping copy replay](verification/receipts/l03-memory-copy-installed-v3-f6cc4ae0.json)
+
 The hosted VM job passed. Swift host and Intel bootstrap refused the
 WAST inventory edit because Source141 still pinned the old bytes. The
 corrected archive binds the new inventory and keeps the 157 selected

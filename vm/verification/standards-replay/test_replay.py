@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch
 
 sys.dont_write_bytecode = True
 import commands
-from replay import export_vm, finish, guard_cargo
+from replay import export_vm, finish, guard_cargo, select_stateful_block
 
 
 class Held(BaseException):
@@ -30,6 +30,37 @@ class ReplayTests(unittest.TestCase):
             "PATH": "/usr/bin:/bin", "HOME": str(self.scratch),
             "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": "/dev/null",
         })
+
+    def test_stateful_selection_requires_adjacent_commands_in_the_same_module(self):
+        module = {"type": "module", "line": 258, "filename": "commands.6.wasm"}
+        mutation = {
+            "type": "action", "line": 267,
+            "action": {"type": "invoke", "field": "test", "args": []}, "expected": [],
+        }
+        read = {
+            "type": "assert_return", "line": 269,
+            "action": {"type": "invoke", "field": "load8_u", "args": [{"type": "i32", "value": "0"}]},
+            "expected": [{"type": "i32", "value": "0"}],
+        }
+
+        def select(*rows):
+            return select_stateful_block(
+                {"commands": [module, *rows]}, 258, "commands.6.wasm", (267, 269),
+                mutation_line=267,
+            )
+
+        self.assertEqual(select(mutation, read), (module, [mutation, read]))
+        cases = [
+            ([read, mutation], "out of order"),
+            ([mutation, {**read, "line": 268}, read], "not adjacent"),
+            ([mutation, {**module, "line": 268}, read], "missing or duplicate"),
+            ([{**mutation, "type": "assert_return"}, read], "unexpected mutation"),
+            ([mutation, {**read, "action": {**read["action"], "module": "other"}}],
+             "unexpected assertion"),
+        ]
+        for rows, message in cases:
+            with self.subTest(message=message), self.assertRaisesRegex(RuntimeError, message):
+                select(*rows)
 
     def test_signal_during_timeout_settlement_waits_and_proves_group_absence(self):
         child = Mock(pid=123, returncode=-signal.SIGKILL)

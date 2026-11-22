@@ -31,6 +31,9 @@ WABT_URL = (
 WABT_HASH = "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
 MEMORY_GROW = "memory_grow.wast"
 MEMORY_GROW_HASH = "8ab4f6e3343f46b4b5aa988de1b102d442228807073838b79563e6b34e2ef0aa"
+MEMORY_COPY = "memory_copy.wast"
+MEMORY_COPY_HASH = "059813c4cd9e79cf3a287409842b9212f6f48b4a6a5f597f22c81631e7b55d08"
+MEMORY_COPY_WASM_HASH = "6e10196de6875cc788a2a0426cda6b733b99c66af7448a2a5458316083e7c14d"
 PROFILE = "mixer-table-memory-v3"
 FEATURE = "experimental-capability-native"
 MAX_EXPORT_BYTES = 32 * 1024 * 1024
@@ -263,60 +266,128 @@ def invoke(commands, label, core, client, wasm, row):
     return {"core": core_report, "installed_c": reports}
 
 
-def replay_memory_growth(commands, scratch, translator, reference, client, record):
-    directory = scratch / "memory-grow"
+def translate_stateful(commands, scratch, translator, record, fixture, fixture_hash):
+    label = Path(fixture).stem.replace("_", "-")
+    directory = scratch / label
     directory.mkdir()
-    source = directory / MEMORY_GROW
-    url = f"{SPEC_URL}/{MEMORY_GROW}"
-    record["fixtures"][MEMORY_GROW] = {
-        "url": url, "sha256": fetch(commands, "memory-grow-fetch", url, source,
-                                    MEMORY_GROW_HASH, 512 * 1024),
+    source = directory / fixture
+    url = f"{SPEC_URL}/{fixture}"
+    record["fixtures"][fixture] = {
+        "url": url, "sha256": fetch(commands, f"{label}-fetch", url, source,
+                                    fixture_hash, 512 * 1024),
     }
     manifest = directory / "commands.json"
-    commands.run("memory-grow-translate", [translator, source, "-o", manifest])
-    script = json.loads(manifest.read_text())
-    module, *rows = script["commands"]
-    end = next(index for index, row in enumerate(rows) if row["type"] == "module")
-    rows = [row for row in rows[:end] if 19 <= row["line"] <= 23]
-    require(module["type"] == "module" and module["line"] == 1
-            and module["filename"] == "commands.0.wasm"
-            and [row["line"] for row in rows] == [19, 20, 21, 22, 23],
-            "memory_grow: unexpected first module or missing successful invocation")
-    reset = rows[0]
+    commands.run(f"{label}-translate", [translator, source, "-o", manifest])
+    return directory, json.loads(manifest.read_text())
+
+
+def select_stateful_block(script, module_line, filename, lines, *, mutation_line=None):
+    commands = script["commands"]
+    starts = [index for index, row in enumerate(commands)
+              if row["type"] == "module" and row["line"] == module_line]
+    require(len(starts) == 1, f"expected one stateful module at line {module_line}")
+    start = starts[0]
+    module = commands[start]
+    require(module["filename"] == filename, f"unexpected translated filename at line {module_line}")
+    end = next((index for index in range(start + 1, len(commands))
+                if commands[index]["type"] == "module"), len(commands))
+    block = commands[start + 1:end]
+    selected = [index for index, row in enumerate(block) if row["line"] in lines]
+    require(len(selected) == len(lines), f"missing or duplicate stateful lines for {module_line}")
+    rows = block[selected[0]:selected[-1] + 1]
+    require([row["line"] for row in rows] == list(lines),
+            f"stateful lines for {module_line} are out of order or not adjacent")
+    for row in rows:
+        action = row.get("action", {})
+        if row["line"] == mutation_line:
+            require(row["type"] == "action" and action == {
+                "type": "invoke", "field": "test", "args": [],
+            } and row["expected"] == [], f"unexpected mutation at line {mutation_line}")
+        else:
+            require(row["type"] == "assert_return" and action.get("type") == "invoke"
+                    and "module" not in action, f"unexpected assertion at line {row['line']}")
+    return module, rows
+
+
+def replay_stateful(commands, directory, script, module, sequence, reference, client, record):
+    label = directory.name
     wasm = directory / module["filename"]
+    # The stock C sequence client repeats its first call in a fresh session.
+    reset = sequence[0]
     argv = [client, wasm, "--sequence"]
-    for index, row in enumerate(rows):
+    for index, row in enumerate(sequence):
         action = row["action"]
-        require(row["type"] == "assert_return" and action["type"] == "invoke"
-                and "module" not in action, f"memory_grow:{row['line']}: unexpected action")
         if index:
             argv.append("--")
         argv.extend([action["field"], *(invocation_arg(value) for value in action["args"])])
 
-    # Repeat the first grow assertion. Its result is the previous size in pages.
-    script["commands"] = [module, *rows, module, reset]
+    manifest = {**script, "commands": [module, *sequence, module, reset]}
     reference_script = directory / "selected.json"
-    reference_script.write_text(json.dumps(script))
-    stateful = record["stateful"] = {
-        "fixture": MEMORY_GROW, "module": module, "wasm_sha256": digest(wasm.read_bytes()),
-        "wasm_bytes": wasm.stat().st_size, "upstream": rows, "reset_upstream_line": reset["line"],
-        "reference_manifest_sha256": digest(reference_script.read_bytes()),
-    }
-    output = commands.run("memory-grow-reference", [reference, reference_script]).decode().splitlines()
-    stateful["reference_output"] = output
-    count = len(script["commands"])
+    reference_script.write_text(json.dumps(manifest))
+    record.update(
+        module=module, wasm_sha256=digest(wasm.read_bytes()), wasm_bytes=wasm.stat().st_size,
+        reset_upstream_line=reset["line"],
+        reference_manifest_sha256=digest(reference_script.read_bytes()),
+    )
+    output = commands.run(f"{label}-reference", [reference, reference_script]).decode().splitlines()
+    record["reference_output"] = output
+    count = len(manifest["commands"])
     require(output[-1:] == [f"{count}/{count} tests passed."],
-            f"memory_grow: incomplete WABT run: {output}")
+            f"{label}: incomplete WABT run: {output}")
 
-    phases = tuple(f"invoke-{index}" for index in range(len(rows)))
-    reports = native_reports(commands.run("memory-grow-c-sequence", argv),
+    phases = tuple(f"invoke-{index}" for index in range(len(sequence)))
+    reports = native_reports(commands.run(f"{label}-c-sequence", argv),
                              ("create", *phases, "close", "reset-create", "reset-invoke", "reset-close"))
-    stateful["installed_c"] = reports
+    record["installed_c"] = reports
     for phase in ("create", "close", "reset-create", "reset-close"):
-        expect_report(reports[phase], 0, "", f"memory_grow {phase}")
-    for phase, row in zip(phases, rows, strict=True):
-        check_native_invocation(reports[phase], row, f"memory_grow:{row['line']}")
-    check_native_invocation(reports["reset-invoke"], reset, "memory_grow reset")
+        expect_report(reports[phase], 0, "", f"{label} {phase}")
+    for phase, row in zip(phases, sequence, strict=True):
+        check_native_invocation(reports[phase], row, f"{label} {phase} line {row['line']}")
+    check_native_invocation(reports["reset-invoke"], reset, f"{label} reset")
+
+
+def replay_memory_growth(commands, scratch, translator, reference, client, record):
+    directory, script = translate_stateful(
+        commands, scratch, translator, record, MEMORY_GROW, MEMORY_GROW_HASH,
+    )
+    module, rows = select_stateful_block(script, 1, "commands.0.wasm", range(19, 24))
+    stateful = record["stateful"] = {"fixture": MEMORY_GROW, "upstream": rows}
+    # Repeating the first grow assertion returns the fresh instance's previous size.
+    replay_stateful(commands, directory, script, module, rows, reference, client, stateful)
+
+
+def replay_memory_copy(commands, scratch, translator, reference, validator, core, client, record):
+    directory, script = translate_stateful(
+        commands, scratch, translator, record, MEMORY_COPY, MEMORY_COPY_HASH,
+    )
+    module, rows = select_stateful_block(
+        script, 258, "commands.6.wasm", (267, *range(269, 299)), mutation_line=267,
+    )
+    wasm = directory / module["filename"]
+    require(digest(wasm.read_bytes()) == MEMORY_COPY_WASM_HASH, "memory-copy: module SHA-256 mismatch")
+    # Address 12 starts at 7 and the upstream post-copy assertion expects 2.
+    changed = next(row for row in rows if row["line"] == 281)
+    require(changed["action"] == {
+        "type": "invoke", "field": "load8_u", "args": [{"type": "i32", "value": "12"}],
+    } and changed["expected"] == [{"type": "i32", "value": "2"}],
+        "memory-copy: unexpected reset witness")
+    reset = {**changed, "expected": [{"type": "i32", "value": "7"}]}
+    stateful = record["memory_copy"] = {
+        "fixture": MEMORY_COPY, "upstream": rows,
+        "initial_and_reset_control": {
+            "action_from_upstream_line": reset["line"], "action": reset["action"],
+            "expected": reset["expected"],
+        },
+    }
+    stateful["validation"] = validate(
+        commands, "memory-copy-258", core, client, validator, wasm,
+        invalid=None, guest_code="capability_export",
+    )
+    replay_stateful(
+        commands, directory, script, module, [reset, *rows], reference, client, stateful,
+    )
+    output = stateful["reference_output"]
+    require(output[:-1] == ["test() =>"], f"memory-copy: unexpected WABT mutation output: {output}")
 
 
 def copy_install(scratch, release, source):
@@ -453,6 +524,7 @@ def replay(commands, scratch, rust, record):
         record["tools"][tool.name] = commands.run(tool.name, [tool, "--version"]).decode().strip()
 
     replay_memory_growth(commands, scratch, translator, reference, client, record)
+    replay_memory_copy(commands, scratch, translator, reference, validator, core, client, record)
     for script, fixture in FIXTURES.items():
         directory = scratch / script
         directory.mkdir()
