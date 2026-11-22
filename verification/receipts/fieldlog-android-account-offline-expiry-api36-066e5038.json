@@ -1,0 +1,160 @@
+{
+  "schema": 1,
+  "status": "passed_scoped_installed_android_offline_restore_and_expiry",
+  "requirements": [
+    "L02",
+    "L08"
+  ],
+  "previousOnlineReceipt": "verification/receipts/fieldlog-android-account-api36-066e5038.json",
+  "sourceMixer": "fa6367ab3ccac4cdacc8fe5da39f3c0d0fcc9bb0",
+  "installedFieldLogTree": "066e503849ee4561a8839e487b72d8724b51ed3c",
+  "pair25SDK": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+  "apkSHA256": "ae68310d5d96fdeb6189e17e1399b39259d65339b92f005713e51f0fca401a94",
+  "qualification": "Same development APK on two separately owned arm64 API 36 AVDs. Each began with one genuine Android browser sign-in, verified session and cold online reopen.",
+  "testSetup": {
+    "backend": "Exact confirmed-session FieldLog service from Git blob b6debbc45f8ab96360d2d494e376d80ea5f6abf7.",
+    "outage": "Remove the only device reverse mapping to port 8765, verify it is absent and launch after force-stop. Match exact workspace and credential bytes and compare service route inventory.",
+    "expiry": "Override only the disposable backend's issued session lifetime to 70 seconds. Force-stop while the credential still exists and the deadline is in the future. Cold-launch with the device route absent after the actual confirmed wall-clock deadline."
+  },
+  "runs": {
+    "offlineRestoreAndSignOut": {
+      "rawReceiptSHA256": "9797555129fc7c736f8c79eb0e23e547253e1718671f4e52db2cc5947f2f9bf1",
+      "execution": {
+        "status": "passed",
+        "apkSHA256": "ae68310d5d96fdeb6189e17e1399b39259d65339b92f005713e51f0fca401a94",
+        "checks": [
+          "Exact APK installed and private loopback connected",
+          "Ordinary workspace opened and account workspace stayed unmounted at welcome",
+          "Exchange and confirmation admitted exact synthetic workspace and stored sealed credential",
+          "New process restored existing account and exact workspace through Android Keystore",
+          "Without a device route to the service, a fresh process restored the unexpired credential and exact account workspace",
+          "Sign-out revoked server session, cleared credential, and preserved both workspaces"
+        ],
+        "backendBlob": "b6debbc45f8ab96360d2d494e376d80ea5f6abf7",
+        "authRoutes": [
+          [
+            "POST",
+            "/v1/auth/exchange",
+            200
+          ],
+          [
+            "GET",
+            "/v1/account/session",
+            200
+          ],
+          [
+            "GET",
+            "/v1/account/session",
+            200
+          ],
+          [
+            "DELETE",
+            "/v1/account/session",
+            200
+          ]
+        ],
+        "browserPosts": [
+          303
+        ],
+        "device": {
+          "ro.boot.qemu.avd_name": "mixer_picker_pqf2l15u",
+          "ro.build.version.sdk": "36",
+          "ro.product.cpu.abi": "arm64-v8a",
+          "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+        },
+        "browserPackage": "org.chromium.webview_shell",
+        "browserPasswordFieldFocused": true,
+        "browserPasswordFieldReportedLength": 43,
+        "callbackDelivery": "Android browser form and OS callback",
+        "offlineColdPID": 2922,
+        "warmPID": 2256,
+        "coldPID": 2828,
+        "accountWorkspaceSHA256": "49a2f513034c1bad1c973b11587b9209a252ee46b483d4a4ab283a430a122e39",
+        "ordinaryWorkspaceSHA256": "a69f4f84d3c852587145f86ba0f3f4907b2bea37fbc149041ba54fc911da27d1",
+        "sealedCredentialBytes": 291,
+        "installedAPKReadback": "ae68310d5d96fdeb6189e17e1399b39259d65339b92f005713e51f0fca401a94",
+        "portsRebound": [
+          26042,
+          26043,
+          26044,
+          8765
+        ],
+        "scratchRemoved": true,
+        "commands": 110,
+        "terminalCommands": 110,
+        "runnerSHA256": "317fb4039adc3f2ead6f22766a2a6c0b8ad79eb95fe05a5d71e6c6f901b1b75a"
+      }
+    },
+    "offlineExpiredColdLaunch": {
+      "rawReceiptSHA256": "ca696288c9156b26179f8d330993c46d4f963edf66cf5df1e4995211d774ed13",
+      "execution": {
+        "status": "passed",
+        "apkSHA256": "ae68310d5d96fdeb6189e17e1399b39259d65339b92f005713e51f0fca401a94",
+        "checks": [
+          "Exact APK installed and private loopback connected",
+          "Ordinary workspace opened and account workspace stayed unmounted at welcome",
+          "Exchange and confirmation admitted exact synthetic workspace and stored sealed credential",
+          "New process restored existing account and exact workspace through Android Keystore",
+          "Without a device route to the service, a fresh process restored the unexpired credential and exact account workspace",
+          "After the real confirmed deadline, a fresh offline process showed session expiry, cleared the credential, and preserved both workspaces"
+        ],
+        "backendBlob": "b6debbc45f8ab96360d2d494e376d80ea5f6abf7",
+        "fixtureSessionLifetimeSeconds": 70,
+        "authRoutes": [
+          [
+            "POST",
+            "/v1/auth/exchange",
+            200
+          ],
+          [
+            "GET",
+            "/v1/account/session",
+            200
+          ],
+          [
+            "GET",
+            "/v1/account/session",
+            200
+          ]
+        ],
+        "browserPosts": [
+          303
+        ],
+        "device": {
+          "ro.boot.qemu.avd_name": "mixer_picker_066i_bph",
+          "ro.build.version.sdk": "36",
+          "ro.product.cpu.abi": "arm64-v8a",
+          "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+        },
+        "browserPackage": "org.chromium.webview_shell",
+        "browserPasswordFieldFocused": true,
+        "browserPasswordFieldReportedLength": 43,
+        "callbackDelivery": "Android browser form and OS callback",
+        "offlineColdPID": 2920,
+        "expiredColdPID": 3016,
+        "secondsPastDeadlineAtReadback": 10,
+        "warmPID": 2352,
+        "coldPID": 2826,
+        "accountWorkspaceSHA256": "f58714b1f637b52b63bdc6473266b0970ef168f01ffcce0034a846655300bb3e",
+        "ordinaryWorkspaceSHA256": "4f540b032178c6194d697a4062613c9f2e14c304d49e6eb6e11234a303dcc922",
+        "sealedCredentialBytes": 291,
+        "installedAPKReadback": "ae68310d5d96fdeb6189e17e1399b39259d65339b92f005713e51f0fca401a94",
+        "portsRebound": [
+          26042,
+          26043,
+          26044,
+          8765
+        ],
+        "scratchRemoved": true,
+        "commands": 115,
+        "terminalCommands": 115,
+        "runnerSHA256": "485bf6183dac29d7931acd5f52d43314fe23ead3efe9653cdbc775cd22ab769a"
+      }
+    }
+  },
+  "scopeLimits": [
+    "Offline restoration and expiry are cold-process observations on the AOSP emulator.",
+    "Warm expiry, physical devices, iOS native restoration, Android account recovery and deletion remain outside this evidence.",
+    "The ordinary and account workspaces contain synthetic data. Android TaskSync and upload delivery were not exercised."
+  ]
+}

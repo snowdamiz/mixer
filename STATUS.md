@@ -1519,6 +1519,16 @@ in the receipt. Offline Android restore, account recovery, deletion,
 and native iOS acceptance remain open.
 [Android account verification](verification/receipts/fieldlog-android-account-api36-066e5038.json)
 
+Two fresh API 36 runs used the same signed Android account APK. Removing
+the device route to the session service preserved the unexpired Keystore
+credential and admitted the same workspace in a new process. Restoring
+the route allowed sign-out and revocation. A separate run used a
+70-second issued session. After the confirmed deadline, an offline cold
+launch cleared the credential and displayed **Local session expired**
+without mounting the account workspace. Both runs preserved the ordinary
+and account workspace files and made no offline service request.
+[Offline restore and expiry](verification/receipts/fieldlog-android-account-offline-expiry-api36-066e5038.json)
+
 The generic iOS Simulator witness builds the same ordinary FieldLog
 tree with a named XCTest. It opens the saved project, edits a draft
 through the Photo Library picker, saves a manual Site Map pin, and
@@ -2554,6 +2564,14 @@ app UID counters stayed unchanged during Settings. The same UID's TCP
 controls advanced every counter before and after. All 152 commands
 reached terminal custody and owned scratch was removed.
 [Installed Settings privacy](verification/receipts/l07-fieldlog-android-settings-live-network-ac305262.json)
+
+A fresh Android API 36 account sign-in exercised the browser callback and
+confirmed session. The app UID log contained both positive window markers,
+and the sampled Android activity records included the callback Activity.
+None of six synthetic account markers appeared in either sample. One
+earlier run stopped after exchange and before confirmation. The receipt
+preserves that unresolved failure and both capture-control failures.
+[Installed account sign-in privacy](verification/receipts/l07-fieldlog-android-account-sign-in-privacy-api36-066e5038.json)
 
 An independent L07 audit at `e985e4650e` kept the gate running. The current
 Pair25 notices and stock hosted sink tests support their tested scopes.

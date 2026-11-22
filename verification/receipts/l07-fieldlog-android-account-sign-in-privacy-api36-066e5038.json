@@ -1,0 +1,176 @@
+{
+  "schema": 1,
+  "status": "passed_scoped_android_account_sign_in_log_observation",
+  "requirements": [
+    "L07",
+    "W16"
+  ],
+  "sourceMixer": "fa6367ab3ccac4cdacc8fe5da39f3c0d0fcc9bb0",
+  "fieldLogTree": "066e503849ee4561a8839e487b72d8724b51ed3c",
+  "apkSHA256": "ae68310d5d96fdeb6189e17e1399b39259d65339b92f005713e51f0fca401a94",
+  "backendGitBlob": "b6debbc45f8ab96360d2d494e376d80ea5f6abf7",
+  "environment": {
+    "ro.boot.qemu.avd_name": "mixer_picker_czwr90h2",
+    "ro.build.version.sdk": "36",
+    "ro.product.cpu.abi": "arm64-v8a",
+    "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+  },
+  "browser": "org.chromium.webview_shell",
+  "observation": {
+    "method": [
+      "Use one disposable synthetic account and the genuine Android browser form.",
+      "Collect marker values in the fixture host's memory from existing form and session inputs and outputs.",
+      "Read Android logcat main, system, and crash buffers filtered by the installed app UID. Require app-owned log evidence and positive markers written under the UID at both capture boundaries.",
+      "Separately sample ActivityManager and ActivityTaskManager. Require callback activity evidence before treating this sample as part of the result."
+    ],
+    "privacy": {
+      "markersCompared": [
+        "challenge",
+        "confirmed_bearer",
+        "local_sign_in_proof",
+        "one_time_callback",
+        "state",
+        "verifier"
+      ],
+      "appUIDLogLines": 86,
+      "frameworkActivityLogLines": 34,
+      "frameworkRowsMentioningFieldLog": 4,
+      "frameworkCallbackActivityObserved": true,
+      "appUIDBoundaryMarkersObserved": true,
+      "positiveControlObserved": true,
+      "appUIDHits": [],
+      "frameworkActivityHits": [],
+      "rawLogsRetained": false
+    },
+    "authRoutes": [
+      [
+        "POST",
+        "/v1/auth/exchange",
+        200
+      ],
+      [
+        "GET",
+        "/v1/account/session",
+        200
+      ]
+    ],
+    "browserPosts": [
+      303
+    ],
+    "completedServerReplyWrites": [
+      {
+        "method": "POST",
+        "path": "/v1/auth/attempts",
+        "status": 201,
+        "elapsedMs": 0.34
+      },
+      {
+        "method": "POST",
+        "path": "/v1/auth/exchange",
+        "status": 200,
+        "elapsedMs": 0.12
+      },
+      {
+        "method": "GET",
+        "path": "/v1/account/session",
+        "status": 200,
+        "elapsedMs": 0.13
+      }
+    ],
+    "rawReceiptSHA256": "5cb753b72b1c60ffa15af385d05f7507c28f449b563e5ee6cae96e27be66fd58",
+    "runnerSHA256": "44ef583339f63ca3e34b04ee2928090a2103fdf87bbe4e06fbb99992d5f9b837"
+  },
+  "earlierAttempts": [
+    {
+      "attempt": 1,
+      "stage": "account diagnostic privacy",
+      "observed": "Android framework account activity log path was not observed",
+      "routes": [
+        [
+          "POST",
+          "/v1/auth/exchange",
+          200
+        ],
+        [
+          "GET",
+          "/v1/account/session",
+          200
+        ],
+        [
+          "GET",
+          "/v1/account/session",
+          200
+        ],
+        [
+          "DELETE",
+          "/v1/account/session",
+          200
+        ]
+      ],
+      "terminalCommands": 111,
+      "rawReceiptSHA256": "4f5191c240e1af56f97cd8c5181ec8419013c9559f57290d5fbc5624cdf18b06",
+      "scratchRemoved": true
+    },
+    {
+      "attempt": 2,
+      "stage": "synthetic sign-in and confirmed account mount",
+      "observed": "Missing native targets ['Sign out of local account']; visible: ['Local account unavailable.', 'Retry', 'Sign out']",
+      "routes": [
+        [
+          "POST",
+          "/v1/auth/exchange",
+          200
+        ]
+      ],
+      "terminalCommands": 78,
+      "rawReceiptSHA256": "263e55be8d43e66c27f66f5db1dd34d77d8a62882a39e75d1f2fc09f0f7ed499",
+      "scratchRemoved": true
+    },
+    {
+      "attempt": 3,
+      "stage": "account diagnostic privacy",
+      "observed": "App UID log or its observation boundary markers were absent",
+      "routes": [
+        [
+          "POST",
+          "/v1/auth/exchange",
+          200
+        ],
+        [
+          "GET",
+          "/v1/account/session",
+          200
+        ],
+        [
+          "GET",
+          "/v1/account/session",
+          200
+        ],
+        [
+          "DELETE",
+          "/v1/account/session",
+          200
+        ]
+      ],
+      "terminalCommands": 118,
+      "rawReceiptSHA256": "2d81a1aaf5f930ff73fbea50398e0223f878ee071016daac6a11a1997cb11917",
+      "scratchRemoved": true
+    }
+  ],
+  "custody": {
+    "terminalCommands": 77,
+    "ownedServicesClosed": true,
+    "portsRebound": [
+      26042,
+      26043,
+      26044,
+      8765
+    ],
+    "scratchRemoved": true
+  },
+  "limits": [
+    "One synthetic account sign-in and its observed logcat window. Raw credentials and raw logs were discarded.",
+    "This does not inspect browser storage, crash attachments, telemetry receivers, native iOS logs, or every Android OS logging path.",
+    "One earlier run stopped after the exchange response and before confirmation. Its cause is unknown."
+  ]
+}

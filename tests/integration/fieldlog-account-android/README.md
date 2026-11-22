@@ -51,3 +51,13 @@ session opens the one bound workspace. Force-stop and relaunch to check
 Keystore restore. **Sign out of local account** revokes the session
 and clears the credential while preserving the workspace. The
 **Open ordinary FieldLog** button returns to the original data directory.
+
+After a verified sign-in, remove the private ADB reverse mapping for
+TCP 8765. Force-stop and reopen the app while the session is unexpired.
+The existing workspace should open from its stored credential with no
+service requests. In a disposable expiry fixture, record the confirmed
+deadline, force-stop before it, then reopen offline after it. Expect
+**Local session expired**, a cleared credential, and both workspace files
+unchanged. Restore the mapping to repeat the normal sign-in or sign-out
+flow. The [installed receipt](../../../verification/receipts/fieldlog-android-account-offline-expiry-api36-066e5038.json)
+records both runs and the shortened lifetime used by the expiry fixture.
