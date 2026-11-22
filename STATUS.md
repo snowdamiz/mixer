@@ -3235,6 +3235,14 @@ under deep scratch. Both profiles closed their command groups, removed
 their databases and scratch, and released all eight listener ports.
 [Current privacy replay](verification/receipts/l07-hosted-privacy-v86-551576a0-test.json)
 
+A repeat against the same v86 sources used the locked Phoenix package
+from the local Hex cache. Both stock profiles matched the earlier
+result. The retained profile initially refused its scratch path
+under the world-writable temporary directory and passed from a
+trusted ancestor chain. Strict mode still exited 2 for private
+metadata reaching the privileged subscriber.
+[Exact-source corroboration](verification/receipts/l07-hosted-privacy-v86-551576a0-cache-replay.json)
+
 The hosted runtime, configuration, lock, and replay fixture match those
 tested bytes at `d89c742e9d`. The stock startup inventory contains
 Phoenix Logger and Mixer transaction receipt callbacks. An attached
@@ -3586,7 +3594,18 @@ The rebuild used Wasm SHA-256 `59623248e6afe4fd66e4dbb0adf8ae6cd353528ad6f4769b5
 
 Five matched native Swift and owned-VM TaskCompletion pairs ran on a fresh API 36 arm64 emulator. Every process reproduced the four frame digests. Both paths refused two invalid events with unchanged frames. The guest trap mapped to TaskCompletion.swift:94:9. Median sums for three prepared-event-to-frame intervals were 3.459 µs native and 970.667 µs guest. Median whole-process peak RSS was 20,008,960 and 21,151,744 bytes. The emulator and private ADB group closed, and all three ports were reusable. Android app latency and the iOS local comparison remain pending. [Matched Android receipt](verification/receipts/l03-d3-taskcompletion-android-matched-20261120.json)
 
-The same TaskCompletion harness built optimized and debug arm64 iOS Simulator executables against the owned VM with Xcode 27.2 and Rust 1.99.0. Both retained executables passed strict signature verification. The Mach-O platform, linked VM symbols, and SDK dependencies matched the Simulator target. The handoff includes the exact 5,263-byte guest from the signed-size replay. All 23 command groups closed and build scratch was removed. Native execution and measurements remain pending under the Simulator pause. [iOS build receipt](verification/receipts/l03-d3-taskcompletion-ios-simulator-link-20261120.json)
+The same TaskCompletion harness built optimized and debug arm64 iOS Simulator executables against the owned VM with Xcode 27.2 and Rust 1.99.0. Both retained executables passed strict signature verification. The Mach-O platform, linked VM symbols, and SDK dependencies matched the Simulator target. The handoff includes the exact 5,263-byte guest from the signed-size replay. All 23 command groups closed and build scratch was removed. The retained optimized executable was selected for a fresh Simulator replay. [iOS build receipt](verification/receipts/l03-d3-taskcompletion-ios-simulator-link-20261120.json)
+
+The optimized arm64 executable ran through `simctl spawn` on a fresh
+iOS 27.0 Simulator. Native Swift and the owned VM matched all four
+frame digests and preserved the current frame for both refused
+events. The guest mapped the trap to `TaskCompletion.swift:94:9` and
+closed. Five alternating timing pairs completed under high host
+load. The timing receipt describes three accepted turns per process.
+Installed FieldLog UI, signed activation, and iOS peak RSS remain open.
+All 105 commands closed. The fresh device was removed with all 13
+monitored external devices unchanged.
+[Standalone iOS replay](verification/receipts/l03-d3-taskcompletion-ios-simulator-parity-926f6d94.json)
 
 A separate generic iOS Simulator XCTest packet has three replay
 selectors for parity and refusals, the native measurement, and the
