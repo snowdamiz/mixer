@@ -36,5 +36,8 @@ The installed test made one launch for Cancel and another for Save. Cancel
 preserved the workspace bytes and closed the owner. The second process
 recovered the candidate and wrote one task and one matching outbox event.
 Each character waited for its frame commitment. A separate run sending the
-title as a burst lost the editor before Save. Both results are retained.
-F06, general Android IME behavior, and iOS remain open.
+title as a burst lost the editor before Save. The private title input patch
+queues late keys and plain IME commits before mutation and replays them after
+the exact hardware-witnessed echo. The corrected APK passed the same burst,
+with one durable task and outbox event. Real IME coverage remains open.
+[Buffered burst receipt](../../../verification/receipts/fieldlog-f05-android-buffered-burst-api36-9d96980f.json)

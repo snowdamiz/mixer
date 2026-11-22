@@ -1500,6 +1500,14 @@ workspace and photo controls. The ordinary iOS and Android account
 adapters still need installed verification. Recovery and deletion remain open.
 [Account session confirmation](verification/receipts/fieldlog-local-account-session-confirmation-b6debbc4.json)
 
+The ordinary iOS account owner now verifies confirmation before storing
+the bearer or opening the workspace. Two root host replays matched the
+exact composed FieldLog tree and passed live confirmation, withheld
+callbacks, retry, sign-out, isolation, and draft, photo, and outbox byte
+checks. The author's 40 host tests and unsigned generic iPhoneOS build
+also passed. Native browser delivery and Keychain runtime remain open.
+[iOS confirmed account owner](verification/receipts/fieldlog-ios-account-confirmed-owner-ebb53f9e.json)
+
 The generic iOS Simulator witness builds the same ordinary FieldLog
 tree with a named XCTest. It opens the saved project, edits a draft
 through the Photo Library picker, saves a manual Site Map pin, and
@@ -2994,6 +3002,25 @@ independent host control reproduced that refusal when the widget advanced
 beyond the guest's echo. Burst input remains open. Both emulator and
 ADB groups closed, their ports were reusable, and scratch was removed.
 [Android F05 burst diagnosis](verification/receipts/fieldlog-f05-android-burst-preflight-api36-7fa6b6ea.json)
+
+The private F05 adapter now preserves late input before the Editable
+changes and replays it after the matching frame is hardware-witnessed.
+The corrected API 36 APK passed the original burst, with exact title,
+one taskSaved event, and joined owner retirement. Cancel preserved the
+seed and a new process recovered the same signed candidate. The stock
+renderer, JNI and Wasm bytes match their baselines. The host control
+covered plain IME commits. The installed run covered hardware keys.
+[Android F05 buffered burst replay](verification/receipts/fieldlog-f05-android-buffered-burst-api36-9d96980f.json)
+
+The provisional F06 APK initially closed before displaying a guest frame.
+The relinked private adapter selects the existing packet encoder for
+vertical fields. An offline API 36 run then passed Cancel with identical
+workspace bytes, cold recovery of the same candidate, and paced Save
+with one task and one linked outbox event. All three disposable emulator
+pairs closed and their ports were reusable. The 102,348-byte rebuilt guest
+matches the historical oracle. Its Wasm digest differs from the archived
+guest, so the historical-byte replay remains open.
+[Android rebuilt F06 replay](verification/receipts/fieldlog-f06-android-rebuilt-editor-api36-7fa6b6ea.json)
 
 A free owner completed current membership edits, usage and quota checks, support, export, and organization deletion in Chrome against Phoenix and PostgreSQL. One organization stayed isolated from the other. Two earlier role edits returned 503 during the member page load. Exit with settled build history remains open. [Free-owner administration](verification/receipts/l06-owner-admin-browser-e3c1f6c65c.json)
 
