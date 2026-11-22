@@ -1391,6 +1391,17 @@ counted the Checklist heading as a row. Both attempts removed their
 owned emulator, package, and scratch.
 [Installed F09 checklist boundary](verification/receipts/fieldlog-f09-android-checklist-api36-ac305262.json)
 
+F12 passed on the retained offline Pair25 APK. The native date field
+converted the offset leap-day input to `2024-02-29T18:15:12.125Z`.
+The partial date stayed visible, and the two disabled write controls
+left the exact seed intact. Save advanced the revision once with the
+outbox unchanged. A new process reopened the saved UTC instant, and
+one Commit advanced the revision again and appended one linked
+`entrySaved`. The unrelated draft and prior outbox bytes were preserved.
+Independent review accepted this ordinary emulator journey. All 210
+root and native commands closed and owned scratch was removed.
+[Installed F12 field-note date](verification/receipts/fieldlog-f12-android-date-api36-ac305262.json)
+
 A fresh offline API 36 install of the same APK ran the bundled signed
 Entry Commit. It moved the draft under the original ID, appended one
 entrySaved record and retained seven JPEGs. After cold reopen, Android's
@@ -1725,6 +1736,20 @@ first finding through ordinary sign-in. The old attempt reopened in a
 fresh process when only the cancellation-record write failed. No
 callback or exchange was submitted. Adoption remains held.
 [Installed cold Cancel and review disposition](verification/receipts/fieldlog-android-durable-cancel-api36-5d8c624b.json)
+
+The signed `6ff80e48` successor passed both installed storage fault
+comparisons and repeated the ordinary cold Cancel check. A writable
+credential slot retired the exact attempt when the Cancel-record
+write failed. Retry consumed a newer return once after the record
+became readable, with no browser redelivery. Independent host review
+reproduced one further order. When restore failed with an empty queue,
+the first valid callback arriving afterward was dropped, and Retry
+made zero exchanges. A signed API 36 ordinary sign-in reproduced
+that order with one real browser return and zero exchanges. Its
+first setup attempt stopped before return delivery, and the repeat
+foregrounded the exact Debug Activity before opening the browser.
+Adoption remains held on that order.
+[Installed Cancel record I/O checks](verification/receipts/fieldlog-android-cancel-record-io-api36-6ff80e48.json)
 
 The iOS deletion owner now loads the saved reauthorization intent when
 the browser callback arrives before startup restore. The real loopback

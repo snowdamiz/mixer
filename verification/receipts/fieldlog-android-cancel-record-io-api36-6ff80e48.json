@@ -1,0 +1,763 @@
+{
+  "status": "installed_ordinary_cancel_io_checks_passed",
+  "scope": "Private FieldLog Debug account handling with synthetic data on owned API 36 ARM64 emulators.",
+  "baseline": "verification/receipts/fieldlog-android-durable-cancel-api36-5d8c624b.json",
+  "sourceReceiptSHA256": "cde1681367e9f30948b444f5a9ceb3faea48e584a8cd5436b27e3e89cea2a8e8",
+  "buildReceiptSHA256": "483bdd0447d47fd4e212175a49885ae91290bb021000bb69a98a5a3546309006",
+  "buildSetupFailure": {
+    "reason": "The first launcher passed the containing directory instead of the pinned clock patch. The corrected launcher validated every input path before execution.",
+    "receiptSHA256": "284a0f5fb2573b3ff5d2f8e80eb1cd509bb5cd824ea341640ecfa6a200b75f01",
+    "commandsClosed": 63,
+    "scratchRemoved": true
+  },
+  "build": {
+    "mixerCommit": "c19a13d733b1f02ea40d165ae9886f9b80293a23",
+    "sourceTree": "6ff80e48cae63784a26ffd4b0b5010c15fd84152",
+    "cancelRecordIOBaseTree": "5d8c624b1e03cb3837d9a64f069417c0f492f9e2",
+    "cancelRecordIOPatchSHA256": "5fba93a1a1b3b4dd20fc4bd0da419c792bf3ea0b4f944e7156d8deb490847b43",
+    "cancelRecordIOOwnerBlob": "1c7a4abd15a710d921d42675a441a51145eaf9a8",
+    "backendBlob": "535c33c727f8c0c630c444e180a754ec5625edea",
+    "correctedDEXSHA256": "caa3bc83478ed03212b6334298483ebc47156ede14fe718fdb6cbe92beba8142",
+    "jniSHA256": "a500f6359c80f4494846d8a33704475d984d5904b1fed0d435b832cecba1cd5b",
+    "compiledManifestSHA256": "bffb704ea32d6c4cad1e82c7fb80b1d067753b5bf19e324b21600ef7eebaa435",
+    "packagerReceiptSHA256": "054c27e1b6a85d00ecc464c6974bb0f5c7984346ea0cb92d6d70fe86f3ef0b87",
+    "apkSHA256": "3e0d70f5ba746d0423b2b8012d933af15dd359e5bf3e8605db632b475155d1f7",
+    "scratchRemoved": true
+  },
+  "buildCommandsClosed": 125,
+  "authorHost": {
+    "pinned_candidate_expected_failures": [
+      "ordinary-fallback-hard status=1 FAIL expected welcome replacement, got unavailable",
+      "ordinary-marker-read-newer status=1 FAIL Retry lost the newer callback or did not consume it exactly once",
+      "deletion-fallback-hard status=1 FAIL expected deletion-sign-in, got deletion-unavailable",
+      "deletion-marker-read-newer status=1 FAIL Retry lost the newer callback or did not consume it exactly once"
+    ],
+    "corrected_control_invocations": 109,
+    "existing_positive_invocations": 83,
+    "added_positive_invocations": 26,
+    "added_output": [
+      "PASS ordinary-fallback-hard-callback",
+      "PASS ordinary-durable-intent-hard-restart-callback",
+      "PASS ordinary-fallback-ack-callback",
+      "PASS ordinary-durable-intent-ack-restart-callback",
+      "PASS ordinary-fallback-dual-callback",
+      "PASS ordinary-durable-intent-dual-restart-callback",
+      "PASS ordinary-fallback-different-callback",
+      "PASS ordinary-durable-intent-newer-begin-callback",
+      "PASS ordinary-marker-read-newer-callback",
+      "PASS ordinary-durable-intent-newer-begin-callback",
+      "PASS ordinary-marker-read-expired-callback",
+      "PASS ordinary-durable-intent-read-fail-begin-callback",
+      "PASS ordinary-marker-read-canceled-callback",
+      "PASS deletion-fallback-hard-callback",
+      "PASS deletion-durable-intent-hard-restart-callback",
+      "PASS deletion-fallback-ack-callback",
+      "PASS deletion-durable-intent-ack-restart-callback",
+      "PASS deletion-fallback-dual-callback",
+      "PASS deletion-durable-intent-dual-restart-callback",
+      "PASS deletion-fallback-different-callback",
+      "PASS deletion-durable-intent-newer-begin-callback",
+      "PASS deletion-marker-read-newer-callback",
+      "PASS deletion-durable-intent-newer-begin-callback",
+      "PASS deletion-marker-read-expired-callback",
+      "PASS deletion-durable-intent-read-fail-begin-callback",
+      "PASS deletion-marker-read-canceled-callback"
+    ],
+    "assertions": [
+      "Both account modes retire the exact attempt via the credential slot when the marker write fails. Successful retirement survives a separate process and preserves the recovery code or deletion reauthorization target.",
+      "Both account modes handle lost acknowledgements on both writes, keep intent pending while both writes are refused, and never retire a different stored attempt.",
+      "Both account modes retain a newer valid callback through repeated marker read failure and Retry. Stale callbacks do not dispatch. Canceled and expired matches do not exchange.",
+      "Recovery still requires saving its replacement code and deletion still requires explicit confirmation. Legacy controls cover in-flight exchange, restored state, and untouched local draft bytes."
+    ]
+  },
+  "installedComparisons": {
+    "write": {
+      "baseline": {
+        "receiptSHA256": "f4689d648bc664f27d3ae07b82c711686ed69417f31b266030fbe975438ba8d0",
+        "observation": {
+          "status": "expected_baseline_failure",
+          "startedUTC": "2026-11-22T11:45:44.839024+00:00",
+          "apkSHA256": "4cbe167a26c4bf377335acaead20e658485513488b1bac067b13f1b4a274ee9a",
+          "backendBlob": "535c33c727f8c0c630c444e180a754ec5625edea",
+          "mode": "baseline",
+          "driverSHA256": "7fa3cf91dd5297b4180d43130879b2afa5d432b086842f77ed582cb070e9a97b",
+          "trace": {
+            "attempts": [
+              "/v1/auth/attempts"
+            ],
+            "browserCallbacks": 0,
+            "browserPosts": [],
+            "api": [],
+            "deletion": []
+          },
+          "fixtureExpirySeconds": {
+            "confirmation": 60,
+            "session": 28800
+          },
+          "device": {
+            "ro.boot.qemu.avd_name": "mixer_picker_a6_tyal5",
+            "ro.build.version.sdk": "36",
+            "ro.product.cpu.abi": "arm64-v8a",
+            "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+          },
+          "browserPackage": "org.chromium.webview_shell",
+          "cancelWriteFailureHierarchySHA256": "142a80f2106dc51d265447f5c51b483eb916d0874012757075bf9817f4ed8ddc",
+          "processes": [
+            2277,
+            2813
+          ],
+          "oldAttemptReappearedAfterCancel": true,
+          "fixtureUninstalled": true,
+          "services": [
+            {
+              "name": "emulator",
+              "argv": [
+                "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+                "-avd",
+                "mixer_picker_a6_tyal5",
+                "-ports",
+                "26042,26043",
+                "-no-window",
+                "-no-audio",
+                "-no-snapshot",
+                "-gpu",
+                "swiftshader_indirect",
+                "-no-boot-anim",
+                "-skin",
+                "1080x2400"
+              ],
+              "pid": 57195,
+              "exit": 0,
+              "groupAbsent": true
+            },
+            {
+              "name": "adb",
+              "argv": [
+                "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+                "-L",
+                "tcp:localhost:26044",
+                "server",
+                "nodaemon"
+              ],
+              "pid": 57194,
+              "exit": -15,
+              "groupAbsent": true
+            }
+          ],
+          "portsRebound": [
+            26042,
+            26043,
+            26044,
+            8765
+          ],
+          "scratchRemoved": true,
+          "commands": 86,
+          "terminalCommands": 86,
+          "finishedUTC": "2026-11-22T11:46:30.519063+00:00"
+        }
+      },
+      "successor": {
+        "receiptSHA256": "33e73d24cf38ee39cabc4e3c60ea03b760a84dea401a2993c6af835d9e524ebb",
+        "observation": {
+          "status": "passed",
+          "startedUTC": "2026-11-22T11:54:00.714829+00:00",
+          "apkSHA256": "3e0d70f5ba746d0423b2b8012d933af15dd359e5bf3e8605db632b475155d1f7",
+          "backendBlob": "535c33c727f8c0c630c444e180a754ec5625edea",
+          "mode": "corrected",
+          "driverSHA256": "7fa3cf91dd5297b4180d43130879b2afa5d432b086842f77ed582cb070e9a97b",
+          "trace": {
+            "attempts": [
+              "/v1/auth/attempts",
+              "/v1/auth/attempts"
+            ],
+            "browserCallbacks": 1,
+            "browserPosts": [
+              [
+                "/v1/auth/attempts",
+                303
+              ]
+            ],
+            "api": [
+              [
+                "POST",
+                "/v1/auth/exchange",
+                200
+              ],
+              [
+                "GET",
+                "/v1/account/session",
+                200
+              ],
+              [
+                "DELETE",
+                "/v1/account/session",
+                200
+              ]
+            ],
+            "deletion": []
+          },
+          "fixtureExpirySeconds": {
+            "confirmation": 60,
+            "session": 28800
+          },
+          "device": {
+            "ro.boot.qemu.avd_name": "mixer_picker_3jqw7eqm",
+            "ro.build.version.sdk": "36",
+            "ro.product.cpu.abi": "arm64-v8a",
+            "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+          },
+          "browserPackage": "org.chromium.webview_shell",
+          "cancelWriteFailureHierarchySHA256": "61dc752422ff41f16f23277563e93c4c5ac81abc508ec220d64bc1a42d08e810",
+          "processes": [
+            2206,
+            2802
+          ],
+          "ordinaryCancelClearedPendingSlot": true,
+          "callbackExchangeCount": 1,
+          "confirmationCount": 1,
+          "browserDeliveryCount": 1,
+          "ordinaryWorkspaceSHA256": "5b896557cbeeae712ecf8490c2616a4c87039e782e8b6890bf4e29e7d993ed6a",
+          "fixtureUninstalled": true,
+          "services": [
+            {
+              "name": "emulator",
+              "argv": [
+                "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+                "-avd",
+                "mixer_picker_3jqw7eqm",
+                "-ports",
+                "26042,26043",
+                "-no-window",
+                "-no-audio",
+                "-no-snapshot",
+                "-gpu",
+                "swiftshader_indirect",
+                "-no-boot-anim",
+                "-skin",
+                "1080x2400"
+              ],
+              "pid": 41499,
+              "exit": 0,
+              "groupAbsent": true
+            },
+            {
+              "name": "adb",
+              "argv": [
+                "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+                "-L",
+                "tcp:localhost:26044",
+                "server",
+                "nodaemon"
+              ],
+              "pid": 41498,
+              "exit": -15,
+              "groupAbsent": true
+            }
+          ],
+          "portsRebound": [
+            26042,
+            26043,
+            26044,
+            8765
+          ],
+          "scratchRemoved": true,
+          "commands": 111,
+          "terminalCommands": 111,
+          "finishedUTC": "2026-11-22T11:55:04.498122+00:00"
+        }
+      }
+    },
+    "read": {
+      "baseline": {
+        "receiptSHA256": "dfdbe10faa9023caf80172f08d5c295eafb13c3f1276a0453ec4450a5e179e49",
+        "observation": {
+          "status": "expected_baseline_failure",
+          "startedUTC": "2026-11-22T11:49:57.975989+00:00",
+          "apkSHA256": "4cbe167a26c4bf377335acaead20e658485513488b1bac067b13f1b4a274ee9a",
+          "backendBlob": "535c33c727f8c0c630c444e180a754ec5625edea",
+          "mode": "baseline",
+          "driverSHA256": "417b72488e707cbe651798fc98c6af49c73a06c6aa1cea8a22f6b0789d5e370c",
+          "trace": {
+            "attempts": [
+              "/v1/auth/attempts",
+              "/v1/auth/attempts"
+            ],
+            "browserCallbacks": 1,
+            "browserPosts": [
+              [
+                "/v1/auth/attempts",
+                303
+              ]
+            ],
+            "api": [],
+            "deletion": []
+          },
+          "fixtureExpirySeconds": {
+            "confirmation": 60,
+            "session": 28800
+          },
+          "device": {
+            "ro.boot.qemu.avd_name": "mixer_picker_k5r9rb3d",
+            "ro.build.version.sdk": "36",
+            "ro.product.cpu.abi": "arm64-v8a",
+            "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+          },
+          "browserPackage": "org.chromium.webview_shell",
+          "cancelRecordUnavailableHierarchySHA256": "142a80f2106dc51d265447f5c51b483eb916d0874012757075bf9817f4ed8ddc",
+          "callbackArrivalPIDs": [
+            2043,
+            2981
+          ],
+          "soleCallbackFencedOnUnreadableCancelRecord": true,
+          "fixtureUninstalled": true,
+          "services": [
+            {
+              "name": "emulator",
+              "argv": [
+                "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+                "-avd",
+                "mixer_picker_k5r9rb3d",
+                "-ports",
+                "26042,26043",
+                "-no-window",
+                "-no-audio",
+                "-no-snapshot",
+                "-gpu",
+                "swiftshader_indirect",
+                "-no-boot-anim",
+                "-skin",
+                "1080x2400"
+              ],
+              "pid": 99840,
+              "exit": 0,
+              "groupAbsent": true
+            },
+            {
+              "name": "adb",
+              "argv": [
+                "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+                "-L",
+                "tcp:localhost:26044",
+                "server",
+                "nodaemon"
+              ],
+              "pid": 99839,
+              "exit": -15,
+              "groupAbsent": true
+            }
+          ],
+          "portsRebound": [
+            26042,
+            26043,
+            26044,
+            8765
+          ],
+          "scratchRemoved": true,
+          "commands": 107,
+          "terminalCommands": 107,
+          "finishedUTC": "2026-11-22T11:51:04.357113+00:00"
+        }
+      },
+      "successor": {
+        "receiptSHA256": "00f272e1bb09f93dd35df9dc764b7caba722686f9d9a31ef63e606d289fb1835",
+        "observation": {
+          "status": "passed",
+          "startedUTC": "2026-11-22T11:55:04.613416+00:00",
+          "apkSHA256": "3e0d70f5ba746d0423b2b8012d933af15dd359e5bf3e8605db632b475155d1f7",
+          "backendBlob": "535c33c727f8c0c630c444e180a754ec5625edea",
+          "mode": "corrected",
+          "driverSHA256": "417b72488e707cbe651798fc98c6af49c73a06c6aa1cea8a22f6b0789d5e370c",
+          "trace": {
+            "attempts": [
+              "/v1/auth/attempts",
+              "/v1/auth/attempts"
+            ],
+            "browserCallbacks": 1,
+            "browserPosts": [
+              [
+                "/v1/auth/attempts",
+                303
+              ]
+            ],
+            "api": [
+              [
+                "POST",
+                "/v1/auth/exchange",
+                200
+              ],
+              [
+                "GET",
+                "/v1/account/session",
+                200
+              ],
+              [
+                "DELETE",
+                "/v1/account/session",
+                200
+              ]
+            ],
+            "deletion": []
+          },
+          "fixtureExpirySeconds": {
+            "confirmation": 60,
+            "session": 28800
+          },
+          "device": {
+            "ro.boot.qemu.avd_name": "mixer_picker_66pwt3uu",
+            "ro.build.version.sdk": "36",
+            "ro.product.cpu.abi": "arm64-v8a",
+            "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+          },
+          "browserPackage": "org.chromium.webview_shell",
+          "cancelRecordUnavailableHierarchySHA256": "142a80f2106dc51d265447f5c51b483eb916d0874012757075bf9817f4ed8ddc",
+          "callbackArrivalPIDs": [
+            2315,
+            2995
+          ],
+          "soleCallbackFencedOnUnreadableCancelRecord": true,
+          "callbackExchangeCount": 1,
+          "confirmationCount": 1,
+          "browserDeliveryCount": 1,
+          "ordinaryWorkspaceSHA256": "620fd7b607ca724296946f49b6a0e2daf1dab7997317bd419054a95d0bec5cb5",
+          "fixtureUninstalled": true,
+          "services": [
+            {
+              "name": "emulator",
+              "argv": [
+                "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+                "-avd",
+                "mixer_picker_66pwt3uu",
+                "-ports",
+                "26042,26043",
+                "-no-window",
+                "-no-audio",
+                "-no-snapshot",
+                "-gpu",
+                "swiftshader_indirect",
+                "-no-boot-anim",
+                "-skin",
+                "1080x2400"
+              ],
+              "pid": 54760,
+              "exit": 0,
+              "groupAbsent": true
+            },
+            {
+              "name": "adb",
+              "argv": [
+                "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+                "-L",
+                "tcp:localhost:26044",
+                "server",
+                "nodaemon"
+              ],
+              "pid": 54759,
+              "exit": -15,
+              "groupAbsent": true
+            }
+          ],
+          "portsRebound": [
+            26042,
+            26043,
+            26044,
+            8765
+          ],
+          "scratchRemoved": true,
+          "commands": 111,
+          "terminalCommands": 111,
+          "finishedUTC": "2026-11-22T11:56:07.951412+00:00"
+        }
+      }
+    }
+  },
+  "installedColdCancelRegression": {
+    "receiptSHA256": "cc8a4724b6afad1fc0b8adbaf505e47181db2e5994c3c4991e5256f91850a8da",
+    "observation": {
+      "status": "passed",
+      "startedUTC": "2026-11-22T11:56:08.062304+00:00",
+      "apkSHA256": "3e0d70f5ba746d0423b2b8012d933af15dd359e5bf3e8605db632b475155d1f7",
+      "backendBlob": "535c33c727f8c0c630c444e180a754ec5625edea",
+      "mode": "corrected",
+      "driverSHA256": "699a54c728a47d288f9f28a01fde8015f85c8102a4683534dcdca9483eefab94",
+      "trace": {
+        "attempts": [
+          "/v1/auth/attempts",
+          "/v1/auth/attempts"
+        ],
+        "browserCallbacks": 1,
+        "browserPosts": [
+          [
+            "/v1/auth/attempts",
+            303
+          ]
+        ],
+        "api": [
+          [
+            "POST",
+            "/v1/auth/exchange",
+            200
+          ],
+          [
+            "GET",
+            "/v1/account/session",
+            200
+          ],
+          [
+            "DELETE",
+            "/v1/account/session",
+            200
+          ]
+        ],
+        "deletion": []
+      },
+      "fixtureExpirySeconds": {
+        "confirmation": 60,
+        "session": 28800
+      },
+      "device": {
+        "ro.boot.qemu.avd_name": "mixer_picker_bpt3kkv4",
+        "ro.build.version.sdk": "36",
+        "ro.product.cpu.abi": "arm64-v8a",
+        "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+      },
+      "browserPackage": "org.chromium.webview_shell",
+      "cancelReadUnavailableHierarchySHA256": "142a80f2106dc51d265447f5c51b483eb916d0874012757075bf9817f4ed8ddc",
+      "processes": [
+        2304,
+        2800
+      ],
+      "ordinaryCancelClearedPendingSlot": true,
+      "callbackExchangeCount": 1,
+      "confirmationCount": 1,
+      "browserDeliveryCount": 1,
+      "ordinaryWorkspaceSHA256": "0827b8f27bbabc181904b5d8adc0a2de2a858a751b5bd1958586b239261982d4",
+      "fixtureUninstalled": true,
+      "services": [
+        {
+          "name": "emulator",
+          "argv": [
+            "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+            "-avd",
+            "mixer_picker_bpt3kkv4",
+            "-ports",
+            "26042,26043",
+            "-no-window",
+            "-no-audio",
+            "-no-snapshot",
+            "-gpu",
+            "swiftshader_indirect",
+            "-no-boot-anim",
+            "-skin",
+            "1080x2400"
+          ],
+          "pid": 61639,
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "name": "adb",
+          "argv": [
+            "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+            "-L",
+            "tcp:localhost:26044",
+            "server",
+            "nodaemon"
+          ],
+          "pid": 61638,
+          "exit": -15,
+          "groupAbsent": true
+        }
+      ],
+      "portsRebound": [
+        26042,
+        26043,
+        26044,
+        8765
+      ],
+      "scratchRemoved": true,
+      "commands": 113,
+      "terminalCommands": 113,
+      "finishedUTC": "2026-11-22T11:57:12.774435+00:00"
+    }
+  },
+  "independentReview": "Request changes. All 109 delivered controls passed. A first valid callback arriving after restore had reported a cancellation-record read failure was still lost when the queue was empty. The independent synthetic host replay reproduced this on ordinary sign-in and deletion reauthorization. Retry produced zero writes and zero exchanges, and the same callback had to be redelivered. This ordering is outside the two installed comparisons and remains an adoption blocker.",
+  "limits": [
+    "Installed checks covered ordinary sign-in with one injected failure at a time. Recovery and deletion reauthorization are covered by synthetic host controls.",
+    "If neither store can confirm the retirement, the user must retry while the in-memory Cancel intent remains available. A process restart cannot recover an intent that never reached storage.",
+    "Broader FieldLog account adoption and iOS runtime acceptance remain open."
+  ],
+  "installedIndependentFindingControl": {
+    "setupAttempt": {
+      "receiptSHA256": "c69c53e667674e561ac432314d774320e23a55aa35421f618d733de349f0c261",
+      "observation": {
+        "status": "failed",
+        "startedUTC": "2026-11-22T12:01:26.656343+00:00",
+        "apkSHA256": "3e0d70f5ba746d0423b2b8012d933af15dd359e5bf3e8605db632b475155d1f7",
+        "backendBlob": "535c33c727f8c0c630c444e180a754ec5625edea",
+        "mode": "baseline",
+        "driverSHA256": "e10ee65e7cb88eda656a9231e4482d3e7e623d2d615ff5598d9d3cc94655deb4",
+        "trace": {
+          "attempts": [
+            "/v1/auth/attempts",
+            "/v1/auth/attempts"
+          ],
+          "browserCallbacks": 0,
+          "browserPosts": [],
+          "api": [],
+          "deletion": []
+        },
+        "fixtureExpirySeconds": {
+          "confirmation": 60,
+          "session": 28800
+        },
+        "device": {
+          "ro.boot.qemu.avd_name": "mixer_picker_8ogikgk9",
+          "ro.build.version.sdk": "36",
+          "ro.product.cpu.abi": "arm64-v8a",
+          "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+        },
+        "browserPackage": "org.chromium.webview_shell",
+        "stage": "cold restore with no callback and an unreadable older Cancel record",
+        "errorType": "RuntimeError",
+        "error": "Missing native targets ['Retry']; visible: []",
+        "services": [
+          {
+            "name": "emulator",
+            "argv": [
+              "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+              "-avd",
+              "mixer_picker_8ogikgk9",
+              "-ports",
+              "26042,26043",
+              "-no-window",
+              "-no-audio",
+              "-no-snapshot",
+              "-gpu",
+              "swiftshader_indirect",
+              "-no-boot-anim",
+              "-skin",
+              "1080x2400"
+            ],
+            "pid": 5179,
+            "exit": 0,
+            "groupAbsent": true
+          },
+          {
+            "name": "adb",
+            "argv": [
+              "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+              "-L",
+              "tcp:localhost:26044",
+              "server",
+              "nodaemon"
+            ],
+            "pid": 5178,
+            "exit": -15,
+            "groupAbsent": true
+          }
+        ],
+        "portsRebound": [
+          26042,
+          26043,
+          26044,
+          8765
+        ],
+        "scratchRemoved": true,
+        "commands": 87,
+        "terminalCommands": 87,
+        "finishedUTC": "2026-11-22T12:02:18.296975+00:00"
+      }
+    },
+    "ordinaryLateArrival": {
+      "receiptSHA256": "c3a774a2fa45c9973f1084ab5f25ba4c8726db516cb316d6def23304da87bc86",
+      "observation": {
+        "status": "expected_baseline_failure",
+        "startedUTC": "2026-11-22T12:03:08.316775+00:00",
+        "apkSHA256": "3e0d70f5ba746d0423b2b8012d933af15dd359e5bf3e8605db632b475155d1f7",
+        "backendBlob": "535c33c727f8c0c630c444e180a754ec5625edea",
+        "mode": "baseline",
+        "driverSHA256": "f4f45c3d516c203763c67ef32c171cdcbbd74707db68a5687822b6365df52bc4",
+        "trace": {
+          "attempts": [
+            "/v1/auth/attempts",
+            "/v1/auth/attempts"
+          ],
+          "browserCallbacks": 1,
+          "browserPosts": [
+            [
+              "/v1/auth/attempts",
+              303
+            ]
+          ],
+          "api": [],
+          "deletion": []
+        },
+        "fixtureExpirySeconds": {
+          "confirmation": 60,
+          "session": 28800
+        },
+        "device": {
+          "ro.boot.qemu.avd_name": "mixer_picker_lf3qsvbj",
+          "ro.build.version.sdk": "36",
+          "ro.product.cpu.abi": "arm64-v8a",
+          "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+        },
+        "browserPackage": "org.chromium.webview_shell",
+        "restoreBlockedBeforeCallbackHierarchySHA256": "142a80f2106dc51d265447f5c51b483eb916d0874012757075bf9817f4ed8ddc",
+        "cancelRecordUnavailableHierarchySHA256": "142a80f2106dc51d265447f5c51b483eb916d0874012757075bf9817f4ed8ddc",
+        "callbackArrivalPIDs": [
+          2253,
+          2924
+        ],
+        "soleCallbackFencedOnUnreadableCancelRecord": true,
+        "fixtureUninstalled": true,
+        "services": [
+          {
+            "name": "emulator",
+            "argv": [
+              "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+              "-avd",
+              "mixer_picker_lf3qsvbj",
+              "-ports",
+              "26042,26043",
+              "-no-window",
+              "-no-audio",
+              "-no-snapshot",
+              "-gpu",
+              "swiftshader_indirect",
+              "-no-boot-anim",
+              "-skin",
+              "1080x2400"
+            ],
+            "pid": 20077,
+            "exit": 0,
+            "groupAbsent": true
+          },
+          {
+            "name": "adb",
+            "argv": [
+              "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+              "-L",
+              "tcp:localhost:26044",
+              "server",
+              "nodaemon"
+            ],
+            "pid": 20076,
+            "exit": -15,
+            "groupAbsent": true
+          }
+        ],
+        "portsRebound": [
+          26042,
+          26043,
+          26044,
+          8765
+        ],
+        "scratchRemoved": true,
+        "commands": 109,
+        "terminalCommands": 109,
+        "finishedUTC": "2026-11-22T12:04:08.753903+00:00"
+      }
+    }
+  }
+}
