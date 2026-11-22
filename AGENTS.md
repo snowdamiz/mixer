@@ -966,9 +966,12 @@ receipt for findings. Fresh isolated correction work remains authorized.
 The full iOS calculation replay stopped at a CoreSimulator Mach server error.
 Root removed the exact disposable device after confirming Shutdown. External
 Minds Simulator UUID 8DE4FDD2-5E76-4148-AAF4-EED4F1C59780 was Booted at baseline
-and Shutdown at cleanup. Pause new Mixer iOS Simulator runs while the device
-owner coordinates recovery. Do not operate on that unrelated Simulator without
-authorization. See verification/receipts/fieldlog-ios-full-calculation-install-recovery-41a05264.json.
+and Shutdown at cleanup. Mixer paused iOS Simulator runs for recovery coordination.
+The user subsequently authorized resuming on a fresh disposable device only.
+Root may run one fresh owned iOS Simulator at a time after the public Accessibility
+preflight and external-device baseline checks. Preserve the unrelated Minds
+Simulator and all specific historical holds. See
+verification/receipts/fieldlog-ios-full-calculation-install-recovery-41a05264.json.
 
 The v40 free starter restricted dispatch recorded an uncertain worker start
 attempt and unconfirmed shutdown. Preserve PID/PGID 94206 and listener port
