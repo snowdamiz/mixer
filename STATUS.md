@@ -1564,6 +1564,17 @@ matched. The implementation lane's unsigned generic iPhoneOS build passed.
 Native browser delivery and Keychain acceptance remain open.
 [Shared Swift and iOS recovery](verification/receipts/fieldlog-ios-account-recovery-host.json)
 
+The Android recovery candidate passed the acknowledgement and reply-loss
+paths on API 36. It kept the workspace closed across restart until
+acknowledgement, then used a staged replacement in a fresh process after
+a separate exchange reply was lost. Both workspaces and the seeded service
+task stayed unchanged. An earlier cold sign-in stopped before confirmation.
+Independent review found that Cancel can erase the staged replacement and
+a different scope can rotate credentials before Android refuses the mount.
+The reveal and foreground mount guards also need correction. Keep the
+candidate unadopted and local account recovery open.
+[Android recovery device observations](verification/receipts/fieldlog-android-account-recovery-api36-0f2bbcfd.json)
+
 The FieldLog deletion backend requires a confirmed account, its exact scope,
 and explicit intent. It removes the scoped service data and stores an
 idempotent receipt in the same transaction. Two root replays passed
