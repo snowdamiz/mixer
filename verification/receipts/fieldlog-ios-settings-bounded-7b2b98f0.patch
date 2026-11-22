@@ -1,0 +1,737 @@
+diff --git a/ios/FieldLog.xcodeproj/project.pbxproj b/ios/FieldLog.xcodeproj/project.pbxproj
+index fbeb02b05f6174d260c6f73005617cf8a703f096..b37ce493b95e521e4305d86b029997ee1875ed8b 100644
+--- a/ios/FieldLog.xcodeproj/project.pbxproj
++++ b/ios/FieldLog.xcodeproj/project.pbxproj
+@@ -5,6 +5,10 @@
+  classes = {};
+  objectVersion = 60;
+  objects = {
++  E00000000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FieldLogPreferences.swift; sourceTree = "<group>"; };
++  E00000000000000000000002 = { isa = PBXBuildFile; fileRef = E00000000000000000000001; };
++  E00000000000000000000003 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
++  E00000000000000000000004 = { isa = PBXBuildFile; fileRef = E00000000000000000000003; };
+   D00000000000000000000004 = { isa = PBXFileReference; lastKnownFileType = file; path = "../../Assets/SiteMap/natural-earth-50m.flg"; sourceTree = "<group>"; };
+   D00000000000000000000008 = { isa = PBXBuildFile; fileRef = D00000000000000000000004; };
+   D00000000000000000000003 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectSiteMap.swift; sourceTree = "<group>"; };
+@@ -39,10 +43,10 @@
+   A00000000000000000000005 = { isa = PBXNativeTarget; buildConfigurationList = A00000000000000000000010; buildPhases = (A00000000000000000000011, A00000000000000000000012, A00000000000000000000013); buildRules = (); dependencies = (); name = FieldLog; productName = FieldLog; productReference = A00000000000000000000009; productType = "com.apple.product-type.application"; packageProductDependencies = (A00000000000000000000022, A00000000000000000000023, A00000000000000000000026, C00000000000000000000002, C00000000000000000000014); };
+   A00000000000000000000006 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 26.0; SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; ONLY_ACTIVE_ARCH = YES; }; name = Debug; };
+   A00000000000000000000007 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 26.0; SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; }; name = Release; };
+-  A00000000000000000000008 = { isa = PBXGroup; path = FieldLog; children = (A00000000000000000000030,A00000000000000000000031,A00000000000000000000032,A00000000000000000000033,A00000000000000000000034, C00000000000000000000004, C00000000000000000000006, C00000000000000000000008, C00000000000000000000010, C00000000000000000000016, C00000000000000000000018, D00000000000000000000001, D00000000000000000000002, D00000000000000000000003, D00000000000000000000004); sourceTree = "<group>"; };
++  A00000000000000000000008 = { isa = PBXGroup; path = FieldLog; children = (A00000000000000000000030,A00000000000000000000031,A00000000000000000000032,A00000000000000000000033,A00000000000000000000034, C00000000000000000000004, C00000000000000000000006, C00000000000000000000008, C00000000000000000000010, C00000000000000000000016, C00000000000000000000018, D00000000000000000000001, D00000000000000000000002, D00000000000000000000003, D00000000000000000000004, E00000000000000000000001, E00000000000000000000003); sourceTree = "<group>"; };
+   A00000000000000000000009 = { isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FieldLog.app; sourceTree = BUILT_PRODUCTS_DIR; };
+   A00000000000000000000010 = { isa = XCConfigurationList; buildConfigurations = (A00000000000000000000014, A00000000000000000000015); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+-  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040,A00000000000000000000041,A00000000000000000000042,A00000000000000000000043,A00000000000000000000044, C00000000000000000000005, C00000000000000000000007, C00000000000000000000009, C00000000000000000000019, D00000000000000000000005, D00000000000000000000006, D00000000000000000000007); runOnlyForDeploymentPostprocessing = 0; };
++  A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000040,A00000000000000000000041,A00000000000000000000042,A00000000000000000000043,A00000000000000000000044, C00000000000000000000005, C00000000000000000000007, C00000000000000000000009, C00000000000000000000019, D00000000000000000000005, D00000000000000000000006, D00000000000000000000007, E00000000000000000000002, E00000000000000000000004); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000012 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000024,A00000000000000000000025,A00000000000000000000027, C00000000000000000000003, C00000000000000000000015); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000013 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (C00000000000000000000011, C00000000000000000000017, D00000000000000000000008); runOnlyForDeploymentPostprocessing = 0; };
+   A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { PRODUCT_BUNDLE_IDENTIFIER = dev.mixer.fieldlog; PRODUCT_NAME = FieldLog; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = FieldLog; INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "FieldLog uses your location to show your current position on the site map when you ask."; INFOPLIST_KEY_NSCameraUsageDescription = "FieldLog uses the camera to take photos you choose to attach to field notes."; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)"; IPHONEOS_DEPLOYMENT_TARGET = 26.0; ENABLE_USER_SCRIPT_SANDBOXING = YES; }; name = Debug; };
+diff --git a/ios/FieldLog/FieldLogApp.swift b/ios/FieldLog/FieldLogApp.swift
+index 07706449a338442dde9fb4afb68aec9ca8b657f4..a7c6d887a0e62aabd688a6c913d973543d597c0e 100644
+--- a/ios/FieldLog/FieldLogApp.swift
++++ b/ios/FieldLog/FieldLogApp.swift
+@@ -1,11 +1,17 @@
+ import SwiftUI
+
+ @main struct FieldLogApp: App {
++  @StateObject private var settings = FieldLogSettings()
+   @StateObject private var model = WorkspaceModel()
+   @Environment(\.scenePhase) private var scenePhase
+   var body: some Scene {
+     WindowGroup {
+-      WorkspaceView().environmentObject(model).tint(FieldStyle.green).task { await model.open() }
++      WorkspaceView()
++        .environmentObject(model)
++        .environmentObject(settings)
++        .modifier(FieldLogAppearance(preferences: settings.preferences))
++        .tint(FieldStyle.green)
++        .task { await model.open() }
+         .onChange(of: scenePhase) { _, phase in
+           if phase == .background {
+             let token = UIApplication.shared.beginBackgroundTask(withName: "Save FieldLog drafts")
+diff --git a/ios/FieldLog/FieldLogPreferences.swift b/ios/FieldLog/FieldLogPreferences.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..2096f5eae5a59f6a4a2e94a6855eb423d103cbf5
+--- /dev/null
++++ b/ios/FieldLog/FieldLogPreferences.swift
+@@ -0,0 +1,163 @@
++import Combine
++import Foundation
++
++struct FieldLogPreferences: Equatable {
++  enum Appearance: String, Codable {
++    case system, light, dark
++  }
++
++  enum RegionalFormats: String, Codable {
++    case system
++    case enUS = "en-US"
++    case frFR = "fr-FR"
++
++    func date(
++      _ value: Date, format: Date.FormatStyle, systemLocale: Locale
++    ) -> String {
++      let locale = self == .system ? systemLocale : Locale(identifier: rawValue)
++      return value.formatted(format.locale(locale))
++    }
++  }
++
++  var appearance: Appearance = .system
++  var regionalFormats: RegionalFormats = .system
++  var largerText = false
++}
++
++@MainActor
++final class FieldLogSettings: ObservableObject {
++  enum LoadStatus: Equatable {
++    case ready, invalidValues, invalidRecord, unsupportedVersion, unavailable
++
++    var allowsEditing: Bool { self == .ready || self == .invalidValues }
++  }
++
++  @Published private(set) var preferences = FieldLogPreferences()
++  @Published private(set) var loadStatus = LoadStatus.ready
++  @Published private(set) var saveFailed = false
++
++  private static let maximumRecordBytes = 1024
++  private let fileURL: URL
++
++  init(fileURL: URL = URL.applicationSupportDirectory.appending(path: "FieldLog-Preferences.json")) {
++    self.fileURL = fileURL
++    load()
++  }
++
++  func update(_ value: FieldLogPreferences) {
++    guard loadStatus.allowsEditing, value != preferences else { return }
++    commit(value)
++  }
++
++  func reset() {
++    commit(FieldLogPreferences())
++  }
++
++  private func load() {
++    let data: Data
++    do {
++      let file = try FileHandle(forReadingFrom: fileURL)
++      defer { try? file.close() }
++      data = try file.read(upToCount: Self.maximumRecordBytes + 1) ?? Data()
++      guard data.count <= Self.maximumRecordBytes else {
++        loadStatus = .invalidRecord
++        return
++      }
++    } catch let error as NSError where error.domain == NSCocoaErrorDomain
++      && error.code == CocoaError.Code.fileNoSuchFile.rawValue {
++      return
++    } catch {
++      loadStatus = .unavailable
++      return
++    }
++
++    do {
++      let record = try JSONDecoder().decode(StoredPreferences.Readback.self, from: data)
++      preferences = record.preferences
++      loadStatus = record.status
++    } catch {
++      loadStatus = .invalidRecord
++    }
++  }
++
++  private func commit(_ value: FieldLogPreferences) {
++    do {
++      let data = try JSONEncoder().encode(StoredPreferences(value))
++      try FileManager.default.createDirectory(
++        at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
++      try data.write(to: fileURL, options: .atomic)
++    } catch {
++      saveFailed = true
++      return
++    }
++    preferences = value
++    loadStatus = .ready
++    saveFailed = false
++  }
++}
++
++private struct StoredPreferences: Encodable {
++  private static let currentVersion = 1
++  let version = currentVersion
++  let appearance: FieldLogPreferences.Appearance
++  let regionalFormats: FieldLogPreferences.RegionalFormats
++  let largerText: Bool
++
++  init(_ preferences: FieldLogPreferences) {
++    appearance = preferences.appearance
++    regionalFormats = preferences.regionalFormats
++    largerText = preferences.largerText
++  }
++
++  private enum CodingKeys: String, CodingKey {
++    case version, appearance, regionalFormats, largerText
++  }
++
++  struct Readback: Decodable {
++    let preferences: FieldLogPreferences
++    let status: FieldLogSettings.LoadStatus
++
++    init(from decoder: Decoder) throws {
++      let fields = try decoder.container(keyedBy: CodingKeys.self)
++      var value = FieldLogPreferences()
++      guard try fields.decode(Int.self, forKey: .version) == StoredPreferences.currentVersion else {
++        preferences = value
++        status = .unsupportedVersion
++        return
++      }
++
++      var invalid = false
++      func read<Value: Decodable>(_ key: CodingKeys, default defaultValue: Value) -> Value {
++        guard fields.contains(key) else { return defaultValue }
++        do {
++          return try fields.decode(Value.self, forKey: key)
++        } catch {
++          invalid = true
++          return defaultValue
++        }
++      }
++
++      value.appearance = read(.appearance, default: value.appearance)
++      value.regionalFormats = read(.regionalFormats, default: value.regionalFormats)
++      value.largerText = read(.largerText, default: value.largerText)
++      preferences = value
++      status = invalid ? .invalidValues : .ready
++    }
++  }
++}
++
++struct FieldLogSupportDiagnostics {
++  enum Platform: String { case iOS }
++
++  let schemaVersion = 1
++  let platform = Platform.iOS
++  let osMajorVersion: Int
++  let appVersion: String?
++  let buildNumber: String?
++
++  init(bundle: Bundle = .main, process: ProcessInfo = .processInfo) {
++    osMajorVersion = process.operatingSystemVersion.majorVersion
++    appVersion = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
++    buildNumber = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String
++  }
++}
+diff --git a/ios/FieldLog/ProjectDetail.swift b/ios/FieldLog/ProjectDetail.swift
+index 671b0c16162650cbdad5ccca70678e3e888bd158..1a2f36173056669ae676e2eb165f01e94c229e8f 100644
+--- a/ios/FieldLog/ProjectDetail.swift
++++ b/ios/FieldLog/ProjectDetail.swift
+@@ -104,8 +104,9 @@ struct ProjectDetail: View {
+                     VStack(alignment: .leading, spacing: 4) {
+                       Text(draft.displayTitle(whenUntitled: "Untitled entry")).foregroundStyle(
+                         .primary)
+-                      Text(
+-                        "Saved draft · \(draft.updatedAt.formatted(date:.abbreviated,time:.shortened))"
++                      FieldLogDate(
++                        value: draft.updatedAt,
++                        format: .dateTime.year().month(.abbreviated).day().hour().minute()
+                       ).font(.caption).foregroundStyle(.secondary)
+                     }
+                   } icon: {
+@@ -129,9 +130,8 @@ struct ProjectDetail: View {
+                     Text(entry.category.rawValue.uppercased()).font(.caption2.weight(.semibold))
+                       .foregroundStyle(FieldStyle.green)
+                     Spacer()
+-                    Text(entry.occurredAt, format: .dateTime.month(.abbreviated).day()).font(
+-                      .caption
+-                    ).foregroundStyle(.secondary)
++                    FieldLogDate(value: entry.occurredAt, format: .dateTime.month(.abbreviated).day())
++                      .font(.caption).foregroundStyle(.secondary)
+                   }
+                   Text(entry.title).font(.headline)
+                   if !entry.note.isEmpty {
+@@ -279,8 +279,9 @@ struct EntryDetail: View {
+       Section {
+         Label(entry.category.rawValue.capitalized, systemImage: "tag").foregroundStyle(
+           FieldStyle.green)
+-        Text(entry.occurredAt, format: .dateTime.year().month(.wide).day().hour().minute())
+-          .foregroundStyle(.secondary)
++        FieldLogDate(
++          value: entry.occurredAt, format: .dateTime.year().month(.wide).day().hour().minute()
++        ).foregroundStyle(.secondary)
+         if !entry.note.isEmpty { Text(entry.note).textSelection(.enabled) }
+       }
+       if !entry.attachmentIDs.isEmpty {
+diff --git a/ios/FieldLog/SettingsView.swift b/ios/FieldLog/SettingsView.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..cc11d7d05a462a9f3cf561472a7d9fe32ad2ff62
+--- /dev/null
++++ b/ios/FieldLog/SettingsView.swift
+@@ -0,0 +1,138 @@
++import SwiftUI
++
++struct SettingsView: View {
++  @EnvironmentObject private var settings: FieldLogSettings
++  @State private var confirmingReset = false
++
++  var body: some View {
++    Form {
++      Section("Appearance and text") {
++        Picker("Appearance", selection: selection(\.appearance)) {
++          Text("System").tag(FieldLogPreferences.Appearance.system)
++          Text("Light").tag(FieldLogPreferences.Appearance.light)
++          Text("Dark").tag(FieldLogPreferences.Appearance.dark)
++        }
++        .accessibilityIdentifier("settings-appearance")
++        Picker("Text size", selection: selection(\.largerText)) {
++          Text("System").tag(false)
++          Text("Larger").tag(true)
++        }
++        .accessibilityIdentifier("settings-text-size")
++      }
++      .disabled(!settings.loadStatus.allowsEditing)
++
++      Section("Dates") {
++        Picker("Regional formats", selection: selection(\.regionalFormats)) {
++          Text("System").tag(FieldLogPreferences.RegionalFormats.system)
++          Text("English (United States)").tag(FieldLogPreferences.RegionalFormats.enUS)
++          Text("French (France)").tag(FieldLogPreferences.RegionalFormats.frFR)
++        }
++        .accessibilityIdentifier("settings-regional-formats")
++        .disabled(!settings.loadStatus.allowsEditing)
++        LabeledContent {
++          FieldLogDate(value: .now, format: .dateTime.year().month(.abbreviated).day())
++        } label: {
++          Text("Date example")
++        }
++      }
++
++      Section {
++        switch settings.loadStatus {
++        case .ready:
++          EmptyView()
++        case .invalidValues:
++          Text("Some settings couldn’t be read. Unavailable values use system defaults.")
++        case .invalidRecord:
++          Text("Saved settings couldn’t be read. Reset to edit them here.")
++        case .unsupportedVersion:
++          Text("These settings were saved by a different app version. Reset to edit them here.")
++        case .unavailable:
++          Text("Saved settings are unavailable. System defaults are in use.")
++        }
++        if settings.saveFailed {
++          Label("Settings couldn’t be saved. Try again.", systemImage: "exclamationmark.circle")
++            .accessibilityIdentifier("settings-save-failed")
++        }
++        Button("Reset settings", role: .destructive) { confirmingReset = true }
++          .accessibilityIdentifier("settings-reset")
++      }
++
++      Section("Offline help") {
++        Text("Projects, drafts, photos and queued changes are stored on this device. The On device tab shows drafts and changes waiting locally. Cloud sync is unavailable.")
++        Text("In an entry, choose a library photo or take one when a camera is available. The site map can show a saved pin offline and request your position when you choose Show my location.")
++        Text("Use Share report from a project to export a copy before removing the app.")
++      }
++      .font(.footnote)
++
++      Section("Support diagnostics") {
++        let diagnostics = FieldLogSupportDiagnostics()
++        LabeledContent("Schema version", value: diagnostics.schemaVersion.formatted())
++        LabeledContent("Platform", value: diagnostics.platform.rawValue)
++        LabeledContent("OS major version", value: diagnostics.osMajorVersion.formatted())
++        LabeledContent("App version", value: diagnostics.appVersion ?? "Unavailable")
++        LabeledContent("Build number", value: diagnostics.buildNumber ?? "Unavailable")
++      }
++    }
++    .navigationTitle("Settings")
++    .confirmationDialog("Reset settings?", isPresented: $confirmingReset, titleVisibility: .visible) {
++      Button("Reset settings", role: .destructive) { settings.reset() }
++    } message: {
++      Text("Restore system appearance, regional formats and text size.")
++    }
++  }
++
++  private func selection<Value>(
++    _ keyPath: WritableKeyPath<FieldLogPreferences, Value>
++  ) -> Binding<Value> {
++    Binding {
++      settings.preferences[keyPath: keyPath]
++    } set: { newValue in
++      var value = settings.preferences
++      value[keyPath: keyPath] = newValue
++      settings.update(value)
++    }
++  }
++}
++
++extension EnvironmentValues {
++  @Entry var fieldLogRegionalFormats: FieldLogPreferences.RegionalFormats = .system
++}
++
++struct FieldLogDate: View {
++  @Environment(\.fieldLogRegionalFormats) private var regionalFormats
++  @Environment(\.locale) private var systemLocale
++  let value: Date
++  let format: Date.FormatStyle
++
++  var body: some View {
++    Text(verbatim: regionalFormats.date(value, format: format, systemLocale: systemLocale))
++  }
++}
++
++struct FieldLogAppearance: ViewModifier {
++  @Environment(\.dynamicTypeSize) private var systemTextSize
++  let preferences: FieldLogPreferences
++
++  func body(content: Content) -> some View {
++    content
++      .preferredColorScheme(preferences.appearance.colorScheme)
++      .dynamicTypeSize(preferences.textSize(following: systemTextSize))
++      .environment(\.fieldLogRegionalFormats, preferences.regionalFormats)
++  }
++}
++
++extension FieldLogPreferences {
++  func textSize(following systemSize: DynamicTypeSize) -> DynamicTypeSize {
++    largerText ? max(systemSize, .xxxLarge) : systemSize
++  }
++}
++
++extension FieldLogPreferences.Appearance {
++  var colorScheme: ColorScheme? {
++    switch self {
++    case .system: nil
++    case .light: .light
++    case .dark: .dark
++    }
++  }
++}
+diff --git a/ios/FieldLog/WorkspaceView.swift b/ios/FieldLog/WorkspaceView.swift
+index c2f3c167a218258b9294c4fb01174c589d3ba80f..46a2ac3b7f29ed171b4b619e6455e175423af962 100644
+--- a/ios/FieldLog/WorkspaceView.swift
++++ b/ios/FieldLog/WorkspaceView.swift
+@@ -332,7 +332,8 @@ private struct DeviceQueue: View {
+         ForEach(pending) { item in
+           VStack(alignment: .leading, spacing: 4) {
+             Text(DevicePendingChanges.label(for: item.kind))
+-            Text(item.createdAt, style: .date).font(.caption).foregroundStyle(.secondary)
++            FieldLogDate(value: item.createdAt, format: .dateTime.year().month(.abbreviated).day())
++              .font(.caption).foregroundStyle(.secondary)
+             Label("Saved on device · not sent", systemImage: "clock").font(.caption)
+               .foregroundStyle(.secondary)
+           }
+@@ -341,27 +342,3 @@ private struct DeviceQueue: View {
+     }.navigationTitle("On device")
+   }
+ }
+-
+-private struct SettingsView: View {
+-  var body: some View {
+-    Form {
+-      Section("WORKSPACE") {
+-        Label("Offline mode", systemImage: "internaldrive")
+-        Text(
+-          "No account is signed in. Projects, notes and selected photos stay in this app's private storage. Deleting the app deletes local records; export reports before removing it."
+-        ).font(.footnote).foregroundStyle(.secondary)
+-      }
+-      Section("THIS BUILD") {
+-        LabeledContent("Version", value: "0.1.0 · Native baseline")
+-        Text(
+-          "Sign-in, team sync, camera capture, notifications, maps and purchases are not connected yet. No remote success is simulated."
+-        ).font(.footnote).foregroundStyle(.secondary)
+-      }
+-      Section("PRIVACY") {
+-        Text(
+-          "This baseline sends no analytics or user content. FieldLog uses the camera when you take an entry photo. Photo library selection is handled by the system picker. Reports are shared only when you choose a destination in the system share sheet."
+-        ).font(.footnote)
+-      }
+-    }.navigationTitle("Settings")
+-  }
+-}
+diff --git a/ios/FieldLogTests/SettingsTests.swift b/ios/FieldLogTests/SettingsTests.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..c2e38ed168355ad8e16cd41eda6e7114547f3704
+--- /dev/null
++++ b/ios/FieldLogTests/SettingsTests.swift
+@@ -0,0 +1,244 @@
++import FieldLogModels
++import FieldLogStorage
++import Foundation
++import SwiftUI
++import Testing
++@testable import FieldLogSettingsHost
++
++@MainActor
++struct SettingsTests {
++  @Test func missingRecordUsesDefaultsAndFirstSaveSurvivesColdLoad() throws {
++    let directory = try makeDirectory()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let record = directory.appending(path: "preferences.json")
++    let settings = FieldLogSettings(fileURL: record)
++    #expect(settings.preferences == FieldLogPreferences())
++    #expect(settings.loadStatus == .ready)
++    #expect(!FileManager.default.fileExists(atPath: record.path))
++
++    settings.update(custom)
++    #expect(!settings.saveFailed)
++    #expect(settings.preferences == custom)
++    #expect(FieldLogSettings(fileURL: record).preferences == custom)
++    let saved = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: record)) as? NSDictionary)
++    #expect(saved == ["version": 1, "appearance": "dark", "regionalFormats": "fr-FR", "largerText": true])
++    #expect(try FileManager.default.contentsOfDirectory(atPath: directory.path) == ["preferences.json"])
++
++    settings.reset()
++    #expect(!settings.saveFailed)
++    #expect(settings.loadStatus == .ready)
++    #expect(settings.preferences == FieldLogPreferences())
++    #expect(FieldLogSettings(fileURL: record).preferences == FieldLogPreferences())
++  }
++
++  @Test(arguments: [
++    #"{"version":1,"regionalFormats":"fr-FR","appearance":"sepia","largerText":1}"#,
++    #"{"version":1,"regionalFormats":"fr-FR","appearance":null,"largerText":"true"}"#,
++  ])
++  func invalidValuesUseTheirDefaultsAndKeepValidValues(json: String) throws {
++    let directory = try makeDirectory()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let record = directory.appending(path: "preferences.json")
++    let bytes = Data(json.utf8)
++    try bytes.write(to: record)
++    let settings = FieldLogSettings(fileURL: record)
++    #expect(settings.loadStatus == .invalidValues)
++    #expect(settings.preferences == FieldLogPreferences(regionalFormats: .frFR))
++    #expect(try Data(contentsOf: record) == bytes)
++
++    settings.update(custom)
++    #expect(FieldLogSettings(fileURL: record).loadStatus == .ready)
++    #expect(FieldLogSettings(fileURL: record).preferences == custom)
++  }
++
++  @Test func missingFieldsAreDefaultsAndInvalidRegionIsReported() throws {
++    let directory = try makeDirectory()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let record = directory.appending(path: "preferences.json")
++    try Data(#"{"version":1,"appearance":"light"}"#.utf8).write(to: record)
++    let partial = FieldLogSettings(fileURL: record)
++    #expect(partial.loadStatus == .ready)
++    #expect(partial.preferences == FieldLogPreferences(appearance: .light))
++    try Data(#"{"version":1,"regionalFormats":"en-XX"}"#.utf8).write(to: record)
++    let invalidRegion = FieldLogSettings(fileURL: record)
++    #expect(invalidRegion.loadStatus == .invalidValues)
++    #expect(invalidRegion.preferences == FieldLogPreferences())
++  }
++
++  @Test(arguments: [
++    #"{"version":2,"appearance":"dark","regionalFormats":"fr-FR","largerText":true,"future":[1,2]}"#,
++    #"{"version":999999999999999999999999999,"future":"keep"}"#,
++    #"{"appearance":"light"}"#,
++    "invalid JSON",
++  ])
++  func unrecognizedRecordSurvivesUntilReset(json: String) throws {
++    let directory = try makeDirectory()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let record = directory.appending(path: "preferences.json")
++    let bytes = Data(json.utf8)
++    try bytes.write(to: record)
++    let settings = FieldLogSettings(fileURL: record)
++    let expected: FieldLogSettings.LoadStatus =
++      json.contains(#""version":2"#) ? .unsupportedVersion : .invalidRecord
++    #expect(settings.loadStatus == expected)
++    #expect(settings.preferences == FieldLogPreferences())
++    settings.update(custom)
++    #expect(settings.preferences == FieldLogPreferences())
++    #expect(try Data(contentsOf: record) == bytes)
++
++    settings.reset()
++    let cold = FieldLogSettings(fileURL: record)
++    #expect(cold.loadStatus == .ready)
++    #expect(cold.preferences == FieldLogPreferences())
++    #expect(try Data(contentsOf: record) != bytes)
++  }
++
++  @Test func oversizedRecordKeepsDefaultsAndIsPreservedUntilReset() throws {
++    let directory = try makeDirectory()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let record = directory.appending(path: "preferences.json")
++    let bytes = Data(#"{"version":1,"appearance":"dark"}"#.utf8)
++      + Data(repeating: 0x20, count: 1024)
++    try bytes.write(to: record)
++    let settings = FieldLogSettings(fileURL: record)
++    #expect(settings.loadStatus == .invalidRecord)
++    #expect(settings.preferences == FieldLogPreferences())
++
++    settings.update(custom)
++    #expect(try Data(contentsOf: record) == bytes)
++    settings.reset()
++    #expect(FieldLogSettings(fileURL: record).loadStatus == .ready)
++  }
++
++  @Test func writeFailureKeepsLastConfirmedPreferencesAndAllowsRetry() throws {
++    let directory = try makeDirectory()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let record = directory.appending(path: "preferences.json")
++    let settings = FieldLogSettings(fileURL: record)
++    settings.update(custom)
++    let bytes = try Data(contentsOf: record)
++    let replacement = FieldLogPreferences(appearance: .light, regionalFormats: .enUS)
++
++    let permissions = FileManager.default
++    try permissions.setAttributes([.posixPermissions: 0o500], ofItemAtPath: directory.path)
++    defer { try? permissions.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path) }
++    settings.update(replacement)
++    #expect(settings.saveFailed)
++    #expect(settings.preferences == custom)
++    #expect(try Data(contentsOf: record) == bytes)
++    settings.reset()
++    #expect(settings.saveFailed)
++    #expect(settings.preferences == custom)
++    #expect(try Data(contentsOf: record) == bytes)
++    #expect(FieldLogSettings(fileURL: record).preferences == custom)
++
++    try permissions.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
++    settings.update(replacement)
++    #expect(!settings.saveFailed)
++    #expect(settings.preferences == replacement)
++    #expect(FieldLogSettings(fileURL: record).preferences == replacement)
++  }
++
++  @Test func nativeAppearanceAndTextSizeUseSystemAndPreserveHigherSizes() {
++    #expect(FieldLogPreferences.Appearance.system.colorScheme == nil)
++    #expect(FieldLogPreferences.Appearance.light.colorScheme == .light)
++    #expect(FieldLogPreferences.Appearance.dark.colorScheme == .dark)
++    for size in DynamicTypeSize.allCases {
++      #expect(FieldLogPreferences().textSize(following: size) == size)
++      #expect(custom.textSize(following: size) == (size < .xxxLarge ? .xxxLarge : size))
++    }
++  }
++
++  @Test func diagnosticsReadExactlyTheAllowedInstalledMetadata() throws {
++    let directory = try makeDirectory()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let bundleURL = directory.appending(path: "Fixture.app")
++    let contents = bundleURL.appending(path: "Contents")
++    try FileManager.default.createDirectory(at: contents, withIntermediateDirectories: true)
++    let metadata = [
++      "CFBundleIdentifier": "test.fieldlog.fixture", "CFBundleShortVersionString": "2.4.0",
++      "CFBundleVersion": "518", "PrivateWorkspace": "must never appear in diagnostics",
++    ]
++    try PropertyListSerialization.data(fromPropertyList: metadata, format: .xml, options: 0)
++      .write(to: contents.appending(path: "Info.plist"))
++    let bundle = try #require(Bundle(url: bundleURL))
++    let diagnostics = FieldLogSupportDiagnostics(bundle: bundle)
++    #expect(Set(Mirror(reflecting: diagnostics).children.compactMap(\.label)) == [
++      "schemaVersion", "platform", "osMajorVersion", "appVersion", "buildNumber",
++    ])
++    #expect(diagnostics.schemaVersion == 1)
++    #expect(diagnostics.platform.rawValue == "iOS")
++    #expect(diagnostics.osMajorVersion == ProcessInfo.processInfo.operatingSystemVersion.majorVersion)
++    #expect(diagnostics.appVersion == "2.4.0")
++    #expect(diagnostics.buildNumber == "518")
++  }
++
++  @Test func regionalDisplayAndResetLeaveCommittedWorkspaceAndAttachmentUntouched() async throws {
++    let directory = try makeDirectory()
++    defer { try? FileManager.default.removeItem(at: directory) }
++    let workspaceDirectory = directory.appending(path: "FieldLog")
++    let store = try WorkspaceRepository(directory: workspaceDirectory)
++    let instant = try #require(ISO8601DateFormatter().date(from: "2026-11-23T12:00:00Z"))
++    let project = try await store.transact {
++      try $0.createProject(title: "Site", site: "", now: instant)
++    }
++    let projectID = try #require(project.projects.first?.id)
++    let draft = EntryDraft(projectID: projectID, title: "Entry", note: "Note\n",
++                           occurredAt: instant, updatedAt: instant)
++    _ = try await store.transact { try $0.saveDraft(draft) }
++    let jpeg = Data([0xff, 0xd8, 0xff, 0xd9])
++    _ = try await store.addPhoto(jpeg: jpeg, to: draft.id, now: instant)
++    let remainingDraft = EntryDraft(projectID: projectID, note: "Unsaved note")
++    let before = try await store.transact {
++      try $0.commitDraft(draft.id, now: instant)
++      try $0.saveDraft(remainingDraft)
++      $0.restoration.openDraftID = remainingDraft.id
++    }
++    let entry = try #require(before.entries.first)
++    let change = try #require(before.outbox.last)
++    let attachment = try #require(before.attachments.first)
++    let workspaceFile = workspaceDirectory.appending(path: "workspace.json")
++    let photoFile = workspaceDirectory.appending(path: "photos").appending(path: attachment.filename)
++    let workspaceBytes = try Data(contentsOf: workspaceFile)
++    let photoBytes = try Data(contentsOf: photoFile)
++    #expect(photoBytes == jpeg)
++
++    let settings = FieldLogSettings(fileURL: directory.appending(path: "FieldLog-Preferences.json"))
++    let displayFormat = Date.FormatStyle(
++      timeZone: try #require(TimeZone(secondsFromGMT: 0))
++    ).year().month(.abbreviated).day()
++    let systemLocale = Locale(identifier: "en-GB")
++    func dates() -> [String] {
++      [entry.occurredAt, change.createdAt].map {
++        settings.preferences.regionalFormats.date($0, format: displayFormat, systemLocale: systemLocale)
++      }
++    }
++
++    #expect(dates() == ["23 Nov 2026", "23 Nov 2026"])
++    settings.update(custom)
++    #expect(dates() == ["23 nov. 2026", "23 nov. 2026"])
++    settings.update(FieldLogPreferences(regionalFormats: .enUS))
++    #expect(dates() == ["Nov 23, 2026", "Nov 23, 2026"])
++    settings.reset()
++    #expect(dates() == ["23 Nov 2026", "23 Nov 2026"])
++
++    #expect(try await store.readCommittedSnapshot() == before)
++    #expect(try Data(contentsOf: workspaceFile) == workspaceBytes)
++    #expect(try Data(contentsOf: photoFile) == photoBytes)
++    await store.close()
++    let reopened = try WorkspaceRepository(directory: workspaceDirectory)
++    #expect(try await reopened.readCommittedSnapshot() == before)
++    await reopened.close()
++  }
++
++  private var custom: FieldLogPreferences {
++    FieldLogPreferences(appearance: .dark, regionalFormats: .frFR, largerText: true)
++  }
++
++  private func makeDirectory() throws -> URL {
++    let directory = FileManager.default.temporaryDirectory.appending(path: "settings-\(UUID())")
++    try FileManager.default.createDirectory(
++      at: directory, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
++    return directory
++  }
++}
+diff --git a/ios/FieldLogTests/run-settings-host.sh b/ios/FieldLogTests/run-settings-host.sh
+new file mode 100644
+index 0000000000000000000000000000000000000000..0331d18dfa139290fffc5bbef7e6a99c1d41294d
+--- /dev/null
++++ b/ios/FieldLogTests/run-settings-host.sh
+@@ -0,0 +1,35 @@
++#!/bin/bash
++set -euo pipefail
++
++tests="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++repo="$(cd "$tests/../.." && pwd)"
++scratch="$(mktemp -d "${TMPDIR:-/tmp}/fieldlog-settings-host.XXXXXXXX")"
++trap 'rm -rf -- "$scratch"' EXIT
++
++mkdir -p "$scratch"/{app,tests,config,security,cache}
++ln -s "$repo/Sources/FieldLogModels" "$scratch/models"
++ln -s "$repo/Sources/FieldLogStorage" "$scratch/storage"
++ln -s "$repo/ios/FieldLog/"{FieldLogPreferences,SettingsView}.swift "$scratch/app/"
++ln -s "$tests/SettingsTests.swift" "$repo/Tests/FieldLogTests/FieldLogTests.swift" "$scratch/tests/"
++cat > "$scratch/Package.swift" <<'SWIFT'
++// swift-tools-version: 6.0
++import PackageDescription
++
++let package = Package(
++  name: "FieldLogSettingsHost",
++  platforms: [.macOS(.v14)],
++  targets: [
++    .target(name: "FieldLogModels", path: "models"),
++    .target(name: "FieldLogStorage", dependencies: ["FieldLogModels"], path: "storage"),
++    .target(name: "FieldLogSettingsHost", path: "app"),
++    .testTarget(
++      name: "FieldLogSettingsTests",
++      dependencies: ["FieldLogSettingsHost", "FieldLogModels", "FieldLogStorage"],
++      path: "tests")
++  ]
++)
++SWIFT
++
++swift test --package-path "$scratch" --scratch-path "$scratch/build" --cache-path "$scratch/cache" \
++  --config-path "$scratch/config" --security-path "$scratch/security" --manifest-cache local \
++  --disable-dependency-cache --disable-index-store "$@"

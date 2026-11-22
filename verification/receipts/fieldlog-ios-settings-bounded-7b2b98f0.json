@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "result": "passed_scoped",
+  "base_tree": "7b2b98f098559f57ce39e213321478058c289c5a",
+  "reviewed_settings_tree": "31f3856bb4ec8046d2aec9cc9ad2342d9559a40e",
+  "candidate_tree": "f2865989693af3eb4a1891a492054baa36ac1e2f",
+  "patches": {
+    "fieldlog-ios-settings-read-bound-from-31f3856b.patch": "53e11bc3e34b0ba133a29fc5f9b1ec367acbc806226eaf84486b304f86490b11",
+    "fieldlog-ios-settings-bounded-7b2b98f0.patch": "46479417e7d019e175a8af0962ed5779bc24a512dc47eb4b5555504145c4bc73"
+  },
+  "author_receipt_sha256": "5afcef0357e860312d8f1cd760cf9856ba9d715f5997de74fa82315f5c6c6868",
+  "behavior": "Read at most 1,025 bytes. Records over 1 KiB use defaults, remain byte-for-byte intact after an ordinary preference edit and are replaced only by an explicit reset.",
+  "regression": "oversizedRecordKeepsDefaultsAndIsPreservedUntilReset",
+  "runs": [
+    {
+      "stage": "initial runner",
+      "result": "Stopped in planning at apparent-size limit. Allocated-size follow-up used the same source."
+    },
+    {
+      "stage": "red",
+      "result": "Expected failure with three issues. The oversized JSON record was treated as ready, its dark value took effect, and update overwrote the original.",
+      "peak_sampled_allocated_bytes": 121253888
+    },
+    {
+      "stage": "first correction",
+      "result": "Oversized-record check passed. The existing absent-file branch needed FileHandle's NSCocoaErrorDomain fileNoSuchFile form."
+    },
+    {
+      "stage": "final",
+      "result": "22 macOS host tests passed including the new regression and first save, cold read, regional formatting, reset and write failure.",
+      "peak_sampled_allocated_bytes": 120410112
+    }
+  ],
+  "host_output_sha256": "91ef505046c6193befa5e8a1b4794549f386cc337dc97b5d2d2312f7a89fd410",
+  "verification": {
+    "combined_forward_and_reverse": true,
+    "iphoneos_arm64_settings_typecheck": true,
+    "publication_command_count": 9,
+    "publication_groups_absent": true
+  },
+  "limits": "The underlying author tree passed a separate generic Xcode link. The correction was typechecked for arm64 iPhoneOS. Installed iOS behavior remains unverified.",
+  "repository_patch": {
+    "sha256": "2639352790e03eadd4fc0ae1cb81fe2fbdcfd4d1c7f7d3f872dc405869fa7418",
+    "reviewed_delivery_sha256": "46479417e7d019e175a8af0962ed5779bc24a512dc47eb4b5555504145c4bc73",
+    "normalization": "Removed the one-space prefix from one empty context line. The product tree is identical.",
+    "forward_and_reverse_verified": true,
+    "terminal_command_groups": 14,
+    "scratch_removed": true
+  }
+}

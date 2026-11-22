@@ -1,0 +1,256 @@
+{
+  "schema": "mixer.local.fieldlog-ios-settings.v1",
+  "observedUTC": "2026-11-22T00:18:57.625593+00:00",
+  "scope": "FieldLog iOS L02 §21.2 Settings/help source, macOS host verification and unsigned generic iPhoneOS build. Independent review and installed UI acceptance are root-owned and pending.",
+  "source": {
+    "mixerPublicRevision": "ce59ad0b65e1f6d8bdd3015dc9bb43ef7d548bd2",
+    "prepareInputsMatchPinnedBlobs": true,
+    "stockPair25Revision": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+    "stockPair25Tree": "faf0902a82ffc7acb2ddde9c6dca24002f959c3d",
+    "stockPair25Clean": true,
+    "fieldLogPublicRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "preparedTree": "0c38770065656bf7c5a2aa768055ff8b453b082d",
+    "orderedBasePatches": [
+      {
+        "patch": "verification/receipts/fieldlog-android-project-picker-ad6c8dba.patch",
+        "afterTree": "01ed07c2aaad3998723ea8f5b340fbc9fcd7448d",
+        "sha256": "53a221508c9d2fee4c6821e9954aaf8f880a4a9d5a4c77af82e516e64335d85a"
+      },
+      {
+        "patch": "verification/receipts/fieldlog-apple-project-pagination-00406fe7.patch",
+        "afterTree": "bb1aff13c8f4ed27c7bed24f0fde96fbe873a15b",
+        "sha256": "4fbbb6e6c63afd886df2054d36c1024e3cdcab014a4307d14c1a896900ae2c4e"
+      },
+      {
+        "patch": "verification/receipts/fieldlog-android-camera-corrected-26bbde4a.patch",
+        "afterTree": "1c77583a695635c7a2337b52a26d9a77147887af",
+        "sha256": "1e604e26655a723720b4f53ce3c50610b6c99bdb9666c513dd2d6282e67adcc8"
+      },
+      {
+        "patch": "verification/receipts/fieldlog-android-queue-from-camera-cb54a33d.patch",
+        "afterTree": "4253108febe34561b3bd187e3c9bfce79fef1ac4",
+        "sha256": "5ccb079b9d6c20a2ada389424608e35ec5212c18b41a6637d74184f9c6665cb6"
+      },
+      {
+        "patch": "verification/receipts/fieldlog-site-map-shared-26bbde4a.patch",
+        "afterTree": "7cd973bacc11fab5bbd45efcd0a797912c8b6b80",
+        "sha256": "7d8c60759f7012946a4de300963ce88c9c27c567e833e40e31d0d4b3dfd357fa"
+      },
+      {
+        "patch": "verification/receipts/fieldlog-android-site-map-pair25-87c95c5a.patch",
+        "afterTree": "87c95c5af8212adfc1c01f926c7755fd2c69e5b1",
+        "sha256": "fccd104d5908ffe56034ad473190b235864b434b89942aa80e5f95cf114ca0fc"
+      },
+      {
+        "patch": "verification/receipts/fieldlog-ios-entry-camera-corrected-e10048f8.patch",
+        "afterTree": "114dbfce744727c5a6df42bae2375d677c69d0d8",
+        "sha256": "0e3a7262b22217c501a0dc6a3dd7e964ddb59e92794797f397accf19bcbf39f2"
+      },
+      {
+        "patch": "verification/receipts/fieldlog-ios-site-map-rename-33398784.patch",
+        "afterTree": "7b2b98f098559f57ce39e213321478058c289c5a",
+        "sha256": "53ef2d543346b0fb102382bd88dea4a53da23518c83c6aa323556c25cd53846c"
+      }
+    ],
+    "beforeTree": "7b2b98f098559f57ce39e213321478058c289c5a",
+    "afterTree": "31f3856bb4ec8046d2aec9cc9ad2342d9559a40e",
+    "changedPaths": [
+      "ios/FieldLog.xcodeproj/project.pbxproj",
+      "ios/FieldLog/FieldLogApp.swift",
+      "ios/FieldLog/FieldLogPreferences.swift",
+      "ios/FieldLog/ProjectDetail.swift",
+      "ios/FieldLog/SettingsView.swift",
+      "ios/FieldLog/WorkspaceView.swift",
+      "ios/FieldLogTests/SettingsTests.swift",
+      "ios/FieldLogTests/run-settings-host.sh"
+    ]
+  },
+  "delivery": {
+    "patch": "verification/receipts/fieldlog-ios-settings-7b2b98f0.patch",
+    "sha256": "b6fc42d401f1a673d7ab3f78bd69944849ff6e873f5ac8b8b5c082897cb643f1",
+    "bytes": 35008,
+    "forwardAndReverseInFreshIndex": true
+  },
+  "decisions": [
+    "Save each picker selection immediately, then publish the confirmed preferences to the app shell. Reset confirms before atomically replacing the single app-private record.",
+    "Missing preference fields default to System. Invalid fields in a recognized version default individually. Unrecognized, missing schema, malformed envelope and unreadable records use safe defaults and require Reset before replacement.",
+    "Larger has an xxxLarge floor and keeps any larger Dynamic Type category.",
+    "The regional locale is used for display dates in the queue, draft list, saved entry list and saved entry detail. Editor input, timestamp bytes, guest messages, report export and workspace writes keep their existing paths."
+  ],
+  "tools": {
+    "git": "2.56.0",
+    "macOS": "27.0.1 (26A434)",
+    "Xcode": "27.2 (27B52)",
+    "Swift": "6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "rustc": "1.99.0 (b940084d7 2026-09-28)"
+  },
+  "verification": {
+    "commands": {
+      "iphoneos": {
+        "command": [
+          "bash",
+          "iphoneos.sh"
+        ],
+        "pid": 70621,
+        "exit": 128,
+        "group": "absent",
+        "sampledAllocatedBytes": 74227712,
+        "seconds": 1.103,
+        "limitHit": null,
+        "logSHA256": "cf988a38ce8e2f4a5a4220f9962a5548ddf027e55911b9e00e1194c8b5f431a5"
+      },
+      "iphoneos-pinned": {
+        "command": [
+          "bash",
+          "iphoneos.sh"
+        ],
+        "pid": 75939,
+        "exit": 0,
+        "group": "absent",
+        "sampledAllocatedBytes": 533536768,
+        "seconds": 23.182,
+        "limitHit": null,
+        "logSHA256": "ef7ecbcb9418550662e68bb7c13f3411afb9cb18f3c04e908dff88cd6972c7a4"
+      },
+      "settings-host": {
+        "command": [
+          "bash",
+          "work/fieldlog/ios/FieldLogTests/run-settings-host.sh",
+          "--jobs",
+          "6"
+        ],
+        "pid": 92218,
+        "exit": 0,
+        "group": "absent",
+        "sampledAllocatedBytes": 660049920,
+        "seconds": 13.41,
+        "limitHit": null,
+        "logSHA256": "dba71d38683690ab80350a2e207f380c569d4d384f7a380cf1167b3f1b6b7878"
+      },
+      "iphoneos-final": {
+        "command": [
+          "bash",
+          "iphoneos-final.sh"
+        ],
+        "pid": 92219,
+        "exit": 0,
+        "group": "absent",
+        "sampledAllocatedBytes": 660049920,
+        "seconds": 11.269,
+        "limitHit": null,
+        "logSHA256": "a34f3c05f5eb8a747432620be870cc6b18a819f775671e162138dac054a1206f"
+      }
+    },
+    "initialBuildSetupFailure": "The first launcher exported GIT_CONFIG_COUNT before filling the temporary mirror keys. It exited 128 before Cargo or Xcode. The corrected and final launchers passed.",
+    "host": {
+      "testsPassed": 21,
+      "settingsTests": 8,
+      "existingWorkspaceTests": 13,
+      "covered": "Missing/cold/malformed/future/default/reset/write-failure/retry; exact diagnostics fields; all native Dynamic Type categories; date outputs for System/en-US/fr-FR and cold workspace, outbox, draft, attachment byte preservation."
+    },
+    "iphoneOS": {
+      "architecture": "arm64",
+      "unsigned": true,
+      "sdk": "27.2",
+      "minimumOS": "26.0",
+      "bundleID": "dev.mixer.fieldlog",
+      "appVersion": "0.1.0",
+      "buildNumber": "1",
+      "binarySHA256": "3e94cf001ef3d3d8598c273df2c405ec34b61cc29f186c80b944197641250946",
+      "infoPlistSHA256": "1bd478e8d5e9c87ce1db29ca517e940983f743cd6e7b07e0fdbbe06fda67c48a",
+      "vmArchiveSHA256": "54e5957571a574e0f6320529394c4f7294d6d659284fea67085538fc1fb345b4",
+      "linkMapSHA256": "24f22a0ce6bae5e014b3c3bb893fbf1fb9bf90feac746f42522f974f05220fc1",
+      "pinnedDependencies": {
+        "swift-crypto": {
+          "version": "5.0.3",
+          "revision": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+          "tree": "841fdfd88fed694e6532a3200a91b0f85595c340"
+        },
+        "swift-asn1": {
+          "version": "1.7.3",
+          "revision": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+          "tree": "e7ed2e8c1483426c349b678e7d10940509f9d39c"
+        }
+      },
+      "referencesInCompiledCallers": {
+        "FieldLogApp.o": [
+          "FieldLogAppearance.init(preferences:)",
+          "FieldLogSettings.init(fileURL:)"
+        ],
+        "WorkspaceView.o": [
+          "SettingsView.init()",
+          "FieldLogDate.init(value:format:)"
+        ],
+        "ProjectDetail.o": [
+          "FieldLogDate.init(value:format:)"
+        ]
+      },
+      "workspaceLock": "Only the private validation copy's Xcode Package.resolved was refreshed from the stock Pair25 SDK lock. Neither the lock replacement nor dependency sources are in the patch."
+    },
+    "sampledAllocatedPeakBytes": 660049920,
+    "allocatedBoundBytes": 2147483648,
+    "limitations": [
+      "The host suite executes production settings, formatting and workspace storage code. The built iOS callers were inspected with nm and swift demangle.",
+      "Installed theme propagation, text sizing, app lifecycle, picker interactions, diagnostics screen readback and navigation/restoration behavior remain for root device acceptance."
+    ]
+  },
+  "reproduction": {
+    "prepare": "python3 \"$MIXER/tests/integration/fieldlog-pair25-android/rust-runtime-notices/prepare-successor.py\" --mixer \"$MIXER\" \"$SCRATCH/work\"",
+    "inputs": "Set MIXER to the supplied read-only object source, PUBLIC_REV to mixerPublicRevision and SCRATCH to a newly owned directory. Ensure the prepare script and its sibling fieldlog-packaging.patch are the pinned Git blobs. For each orderedBasePatches item, use git -C \"$MIXER\" show \"$PUBLIC_REV:$path\" to materialize it and git -C \"$SCRATCH/work/fieldlog\" apply --index --unidiff-zero --whitespace=error \"$patch\". Confirm write-tree equals each afterTree in order. Apply the delivery patch with the same flags and confirm afterTree.",
+    "host": "With TMPDIR in owned scratch, run bash \"$SCRATCH/work/fieldlog/ios/FieldLogTests/run-settings-host.sh\" --jobs 6 as an ordinary macOS user.",
+    "iphoneOSPreparation": "Copy the stock work/mixer/sdk/Package.resolved into the private FieldLog Xcode workspace SwiftPM lock. Present the two exact pinned dependency commits via local bare mirrors tagged with their pinned versions and process-local Git insteadOf rules. Set GIT_ALLOW_PROTOCOL=file for the build. Keep TMPDIR, CFFIXED_USER_HOME, XDG_CACHE_HOME and CLANG_MODULE_CACHE_PATH inside owned scratch.",
+    "iphoneOSScript": [
+      "#!/bin/bash",
+      "set -euo pipefail",
+      "work=\"$(cd \"$(dirname \"$0\")\" && pwd)/work\"",
+      "mkdir -p \"$work\"/{tmp,home,clang,vm-ios,mirrors}",
+      "export TMPDIR=\"$work/tmp\"",
+      "export CFFIXED_USER_HOME=\"$work/home\"",
+      "export XDG_CACHE_HOME=\"$work/home/xdg\"",
+      "export CLANG_MODULE_CACHE_PATH=\"$work/clang\"",
+      "export GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null",
+      "export GIT_TERMINAL_PROMPT=0 GIT_ALLOW_PROTOCOL=file",
+      "export PATH=\"$HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin:$PATH\"",
+      "",
+      "for package in swift-crypto swift-asn1; do",
+      "  case \"$package\" in",
+      "    swift-crypto) revision=c2cbadd7263439d8015189668f96ff5b5be565ce; version=5.0.3; slot=0; cached=swift-crypto-7e0614ea;;",
+      "    swift-asn1) revision=3b6410f7dee09eb33cdd26260c5fd47fda19b0e2; version=1.7.3; slot=1; cached=swift-asn1-7065ad2c;;",
+      "  esac",
+      "  cache=\"$HOME/Library/Caches/org.swift.swiftpm/repositories/$cached\"",
+      "  mirror=\"$work/mirrors/$package.git\"",
+      "  git init --quiet --bare \"$mirror\"",
+      "  git --git-dir=\"$mirror\" fetch --quiet --no-tags --depth=1 \"file://$cache\" \"$revision\"",
+      "  test \"$(git --git-dir=\"$mirror\" rev-parse FETCH_HEAD)\" = \"$revision\"",
+      "  git --git-dir=\"$mirror\" update-ref \"refs/heads/pinned\" \"$revision\"",
+      "  git --git-dir=\"$mirror\" update-ref \"refs/tags/$version\" \"$revision\"",
+      "  git --git-dir=\"$mirror\" symbolic-ref HEAD refs/heads/pinned",
+      "  export \"GIT_CONFIG_KEY_$slot=url.file://$mirror.insteadOf\"",
+      "  export \"GIT_CONFIG_VALUE_$slot=https://github.com/apple/$package.git\"",
+      "done",
+      "export GIT_CONFIG_COUNT=2",
+      "",
+      "cargo build --manifest-path \"$work/mixer/vm/Cargo.toml\" --offline --locked --release \\",
+      "  --features experimental-capability-native --lib --target aarch64-apple-ios \\",
+      "  --target-dir \"$work/cargo\" --jobs 6",
+      "cp \"$work/cargo/aarch64-apple-ios/release/libmixer_vm.a\" \"$work/vm-ios/libmixer_vm_capability_experimental.a\"",
+      "",
+      "xcodebuild -project \"$work/fieldlog/ios/FieldLog.xcodeproj\" -scheme FieldLog -configuration Debug \\",
+      "  -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath \"$work/derived\" \\",
+      "  -clonedSourcePackagesDirPath \"$work/packages\" -packageCachePath \"$work/package-cache\" \\",
+      "  -resultBundlePath \"$work/iphoneos-final.xcresult\" -scmProvider system -disablePackageRepositoryCache \\",
+      "  -skipPackageUpdates -disableAutomaticPackageResolution -onlyUsePackageVersionsFromResolvedFile \\",
+      "  -jobs 6 CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=NO \\",
+      "  COMPILER_INDEX_STORE_ENABLE=NO ENABLE_DEBUG_DYLIB=NO LD_GENERATE_MAP_FILE=YES \\",
+      "  \"LIBRARY_SEARCH_PATHS=\\$(inherited) $work/vm-ios\" \\",
+      "  \"HEADER_SEARCH_PATHS=\\$(inherited) $work/mixer/vm/include\" \\",
+      "  \"OTHER_SWIFT_FLAGS=\\$(inherited) -Xcc -I$work/mixer/vm/include\" build"
+    ],
+    "installedAcceptance": "From a saved project/entry, use Settings to select Dark, French (France) and Larger. Return to On device and the saved entry, reopen the editor and verify the scheme, date display and text. Verify a higher OS text setting wins. Relaunch, confirm persisted choices, reset to System and confirm saved data, navigation and queue survive. Confirm the diagnostics section contains only the five labeled values."
+  },
+  "cleanup": {
+    "ownedScratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-dbd389d1/verification/local/fieldlog-ios-settings.6ccGp2PB",
+    "commandGroupsAbsent": true,
+    "verifiedRemoved": true
+  }
+}

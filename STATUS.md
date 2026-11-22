@@ -1218,6 +1218,15 @@ accessibility, and Core Location checks remain open.
 [Host replay](verification/receipts/fieldlog-ios-site-map-rename-33398784.json) ·
 [iPhoneOS build](verification/receipts/fieldlog-ios-site-map-rename-7fdc4ab9-iphoneos.json)
 
+The existing iOS Settings tab now applies saved appearance, regional
+dates and a larger-text floor. Offline help and a five-field support
+summary are part of the reviewed source. The loader preserves oversized
+records until Reset. Two independent macOS runs passed all 22 tests,
+and an unsigned generic arm64 iPhoneOS build linked the exact corrected
+source. Installed behavior remains pending.
+[Settings patch](verification/receipts/fieldlog-ios-settings-bounded-7b2b98f0.patch) ·
+[iPhoneOS build](verification/receipts/fieldlog-ios-settings-bounded-iphoneos-build.json)
+
 ## November 21 current FieldLog Android queue
 
 The Pair25 queue port ran the ordinary On device screen on macOS with
@@ -1364,6 +1373,14 @@ and the disposable scratch was removed.
 [Source integration](verification/receipts/fieldlog-pair25-rust-notice-source-integration-v87.json) ·
 [Development APK build](verification/receipts/fieldlog-pair25-rust-notice-apk-00406fe7.json) ·
 [Independent APK readback](verification/receipts/fieldlog-pair25-rust-notice-apk-readback-00406fe7.json)
+
+The combined camera, queue and Site Map APK retains those notices.
+Independent ELF and signed ZIP readback found additional linked curl,
+SDK and JNI copies of BoringSSL, Swift Crypto and XKCP. Their component
+notices are missing. Linkage of the resolved Swift ASN.1 package was
+unobserved. System zlib remains outside the APK. The next notice
+bundle must bind the pinned inputs and both ELFs.
+[Exact combined APK notice review](verification/receipts/l07-fieldlog-pair25-network-crypto-notice-review-87c95c5a.json)
 
 All nine Owned Engine jobs passed on the Rust notice binding.
 Both Python modes admitted the same Source141 and Pair25 inputs, and
@@ -2329,6 +2346,16 @@ The rebuild used Wasm SHA-256 `59623248e6afe4fd66e4dbb0adf8ae6cd353528ad6f4769b5
 Five matched native Swift and owned-VM TaskCompletion pairs ran on a fresh API 36 arm64 emulator. Every process reproduced the four frame digests. Both paths refused two invalid events with unchanged frames. The guest trap mapped to TaskCompletion.swift:94:9. Median sums for three prepared-event-to-frame intervals were 3.459 µs native and 970.667 µs guest. Median whole-process peak RSS was 20,008,960 and 21,151,744 bytes. The emulator and private ADB group closed, and all three ports were reusable. Android app latency and the iOS local comparison remain pending. [Matched Android receipt](verification/receipts/l03-d3-taskcompletion-android-matched-20261120.json)
 
 The same TaskCompletion harness built optimized and debug arm64 iOS Simulator executables against the owned VM with Xcode 27.2 and Rust 1.99.0. Both retained executables passed strict signature verification. The Mach-O platform, linked VM symbols, and SDK dependencies matched the Simulator target. The handoff includes the exact 5,263-byte guest from the signed-size replay. All 23 command groups closed and build scratch was removed. Native execution and measurements remain pending under the Simulator pause. [iOS build receipt](verification/receipts/l03-d3-taskcompletion-ios-simulator-link-20261120.json)
+
+A separate generic iOS Simulator XCTest packet has three replay
+selectors for parity and refusals, the native measurement, and the
+guest measurement. Independent static readback verified all 30 hashes
+and both bundle signatures. Its 5,224-byte diagnostic guest matched
+the four historical frame digests and trapped at TaskCompletion.swift:94:9
+on macOS. The earlier signature covers its own 5,263-byte payload.
+Simulator execution, signed activation, and the installed FieldLog
+frontend and renderer remain pending.
+[XCTest packet receipt](verification/receipts/l03-d3-taskcompletion-ios-xctest-packet-24b8efb9.json)
 
 ### Reproducible Android engine pair
 
