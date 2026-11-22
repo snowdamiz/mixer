@@ -169,7 +169,7 @@ FIXTURES = {
     "i64": {
         "sha256": "7d0e27a617565e0685aef56cee01b2b4890084068e3989168c41d14c56b1945e",
         "wasm_sha256": "674845c852c525175753c569e16d154f19562bd5dd71c09d38b47677d9d84c61",
-        "selection_sha256": "6c4c89ba8448109133744e9fc971356e298309abf1790741f3707000743d01b0",
+        "selection_sha256": "19976f3f19cf71f12897a36929d26f334c8d4a874c840d7520a1d92022cf0040",
         "modules": {3: "unsupported"},
         "actions": {
             **dict.fromkeys((176, 177, 178, 179), ("assert_return", "shl")),
@@ -178,6 +178,8 @@ FIXTURES = {
             **dict.fromkeys((247, 250), ("assert_return", "clz")),
             **dict.fromkeys((256, 259), ("assert_return", "ctz")),
             **dict.fromkeys((263, 265), ("assert_return", "popcnt")),
+            **dict.fromkeys((334, 337, 342, 343), ("assert_return", "lt_s")),
+            **dict.fromkeys((349, 352, 357, 358), ("assert_return", "lt_u")),
         },
         "invalid": {},
     },

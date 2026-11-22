@@ -1,0 +1,270 @@
+{
+  "schema": "mixer.standards_replay.i64_comparisons.test_slice.v1",
+  "status": "passed_scoped_replay",
+  "scope": "Arm64 macOS standards replay for experimental TableMemoryV3. L03 and W08 remain open.",
+  "sourceRevision": "861970a05cf1b2632ef323b8e5c0247d01dadd85",
+  "vmTree": "96e2113641efdbfec11c2396db68d41f683ec372",
+  "specRevision": "05ca4182176763112561ae20153975c12bd689e4",
+  "profile": "mixer-table-memory-v3",
+  "installedExecution": "legacy V3 session C ABI from the installed capability archive",
+  "wabtRelease": {
+    "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz",
+    "sha256": "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
+  },
+  "tools": {
+    "python": "3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0",
+    "wast2json": "1.0.36 (git~1.0.37)",
+    "wasm-validate": "1.0.36 (git~1.0.37)",
+    "spectest-interp": "1.0.36 (git~1.0.37)"
+  },
+  "patch": {
+    "sha256": "3e5187578f14694975b3ada0259ae7d7bb42caa1bab1ac51ca50ceacdfe87afa",
+    "paths": [
+      "vm/verification/standards-replay/README.md",
+      "vm/verification/standards-replay/commands.py",
+      "vm/verification/standards-replay/replay.py"
+    ],
+    "forwardAndReverseApplyChecks": "passed"
+  },
+  "commands": {
+    "fullReplay": "python3 vm/verification/standards-replay/replay.py --rust-bin <Rust 1.99 host bin> --receipt <owned JSON>",
+    "wrapperControls": "python3 vm/verification/standards-replay/test_replay.py -v",
+    "directWabt": [
+      "wast2json i64.wast -o commands.json",
+      "wasm-validate commands.0.wasm",
+      "spectest-interp -v comparison-only.json"
+    ],
+    "fullReplayPassesPerLane": 2,
+    "managedReplayChildrenTerminalAllPasses": 1248
+  },
+  "baseline": {
+    "commandCountsPerPass": {
+      "total": 304,
+      "WABT": {
+        "wast2json": 20,
+        "wasm-validate": 27,
+        "spectest-interp": 21
+      },
+      "MixerCLI": 100,
+      "installedCClient": 106,
+      "other": 30
+    },
+    "assertionCounts": {
+      "assert_trap": 6,
+      "assert_return": 58,
+      "assert_invalid": 6
+    },
+    "runnerSHA256": {
+      "replay.py": "1191fb54aebdf4e91cc8c1c39451e9e43e3cd99fcebb521690ac00faa1a8e8cb",
+      "commands.py": "09c0e3954e033fa12a3fc257d23bad692ad165aa77720c5b0f96a36f4db7356c",
+      "client.c": "1eaaaf0ee138acad7f063b684cf4764391af6b120a2bd68c70920ea2e4e95232"
+    },
+    "rawReceiptSHA256": "0e46308027527411cb9de580b9d82841180c29b3f7c72954158f7b4189cfcd53",
+    "budgetedRawReceiptSHA256": "5eab41eae9af3a45db48b2a69ef032d13835c4a17c9398ffa150f2b1101ec48c",
+    "replayScratchRemoved": [
+      "/Users/andreyyurlov/.mixer-vm-standards-r47qln9y",
+      "/Users/andreyyurlov/.mixer-vm-standards-bbrnaogq"
+    ],
+    "budgetedElapsedSeconds": 62.691,
+    "peakSampledScratchBytes": 119738308,
+    "peakSampledAggregateBytes": 140315244
+  },
+  "candidate": {
+    "commandCountsPerPass": {
+      "total": 320,
+      "WABT": {
+        "wast2json": 20,
+        "wasm-validate": 27,
+        "spectest-interp": 21
+      },
+      "MixerCLI": 108,
+      "installedCClient": 114,
+      "other": 30
+    },
+    "assertionCounts": {
+      "assert_trap": 6,
+      "assert_return": 66,
+      "assert_invalid": 6
+    },
+    "runnerSHA256": {
+      "replay.py": "1bbbcdd5aa23d5d3a8e613b361baecb98d48ecda76da602b13eb174c5a0c42b9",
+      "commands.py": "fc89b47c1205e2da10ef993a12a024f4be3cb64a38b8c85ed18265b4c65cdde7",
+      "client.c": "1eaaaf0ee138acad7f063b684cf4764391af6b120a2bd68c70920ea2e4e95232"
+    },
+    "rawReceiptSHA256": "6808519bbfbb1f15bed939cd9d29d8deeb2af6c8b734615c3cfb5bf725f311d9",
+    "budgetedRawReceiptSHA256": "7733ca4e581a22241524ec59299a691282a505bb3c5ae80e79e8829e6d164b8b",
+    "replayScratchRemoved": [
+      "/Users/andreyyurlov/.mixer-vm-standards-oh2ra9ua",
+      "/Users/andreyyurlov/.mixer-vm-standards-m3bqpbu_"
+    ],
+    "budgetedElapsedSeconds": 37.946,
+    "peakSampledScratchBytes": 119742140,
+    "peakSampledAggregateBytes": 140780647
+  },
+  "wrapperControls": {
+    "baseline": {
+      "passed": 8,
+      "logSHA256": "631ad88f558df46f70939ccfe494dfa95896b16005e10fe14cd3d6b69d6accde"
+    },
+    "candidate": {
+      "passed": 8,
+      "logSHA256": "c38011cff3e7084ef16839644095a21403788b9a11bfde0a7ffa4925a8cab886"
+    }
+  },
+  "fixture": {
+    "sha256": "7d0e27a617565e0685aef56cee01b2b4890084068e3989168c41d14c56b1945e",
+    "originalModuleSHA256": "674845c852c525175753c569e16d154f19562bd5dd71c09d38b47677d9d84c61",
+    "originalModuleBytes": 552,
+    "baselineSelectionSHA256": "6c4c89ba8448109133744e9fc971356e298309abf1790741f3707000743d01b0",
+    "addedSelectionSHA256": "d9bb957081b2f8d3cef0068d39510ea88d00f8fe76da4e85dc13b9c9a1e91dd5",
+    "candidateSelectionSHA256": "19976f3f19cf71f12897a36929d26f334c8d4a874c840d7520a1d92022cf0040",
+    "baselineReference": "32/32 tests passed.",
+    "candidateReference": "48/48 tests passed.",
+    "comparisonOnlyReference": "16/16 tests passed.",
+    "comparisonOnlyManifestSHA256": "577e784ce69473d7e4452afe60a519e7437933f10cafb092709f6a521ca004e9",
+    "referenceCountsIncludeModuleInstantiations": true
+  },
+  "priorOutcomes": {
+    "exactCaseRecords": 70,
+    "priorBitCountCases": 6,
+    "priorShiftCases": 10,
+    "moduleValidationRecords": 18,
+    "statefulSections": [
+      "stateful",
+      "stateful_memory_maximum",
+      "memory_copy",
+      "memory_copy_higher_address",
+      "memory_fill",
+      "scalar_globals"
+    ],
+    "priorCommandShapesAndExitCodes": 304,
+    "addedInvocationCommands": 16,
+    "comparisonNormalization": "Canonicalized owned paths and omitted path-sensitive WABT manifest digests. The i64 WABT reference total expanded by eight module/assertion pairs.",
+    "cliAndInstalledArchiveHashesEqual": true,
+    "cClientSourceEqual": true,
+    "cClientBinaryHashes": {
+      "baseline": "5835a95e73d25d7ade1eb7e71d0a02466645d0b71de99e5e4c7cfc4b037feb3d",
+      "candidate": "1f5a8c62ec4069308927b8ce1555f72ff810bf168d71a319b5f6e2389692a2d6"
+    }
+  },
+  "addedCases": [
+    {
+      "wabtManifestLine": 334,
+      "opcode": "i64.lt_s",
+      "argumentBits": [
+        "0x0000000000000000",
+        "0x0000000000000000"
+      ],
+      "expectedI32": 0,
+      "cliI32": 0,
+      "installedSessionI32": 0
+    },
+    {
+      "wabtManifestLine": 337,
+      "opcode": "i64.lt_s",
+      "argumentBits": [
+        "0x8000000000000000",
+        "0x8000000000000000"
+      ],
+      "expectedI32": 0,
+      "cliI32": 0,
+      "installedSessionI32": 0
+    },
+    {
+      "wabtManifestLine": 342,
+      "opcode": "i64.lt_s",
+      "argumentBits": [
+        "0x8000000000000000",
+        "0x0000000000000000"
+      ],
+      "expectedI32": 1,
+      "cliI32": 1,
+      "installedSessionI32": 1
+    },
+    {
+      "wabtManifestLine": 343,
+      "opcode": "i64.lt_s",
+      "argumentBits": [
+        "0x0000000000000000",
+        "0x8000000000000000"
+      ],
+      "expectedI32": 0,
+      "cliI32": 0,
+      "installedSessionI32": 0
+    },
+    {
+      "wabtManifestLine": 349,
+      "opcode": "i64.lt_u",
+      "argumentBits": [
+        "0x0000000000000000",
+        "0x0000000000000000"
+      ],
+      "expectedI32": 0,
+      "cliI32": 0,
+      "installedSessionI32": 0
+    },
+    {
+      "wabtManifestLine": 352,
+      "opcode": "i64.lt_u",
+      "argumentBits": [
+        "0x8000000000000000",
+        "0x8000000000000000"
+      ],
+      "expectedI32": 0,
+      "cliI32": 0,
+      "installedSessionI32": 0
+    },
+    {
+      "wabtManifestLine": 357,
+      "opcode": "i64.lt_u",
+      "argumentBits": [
+        "0x8000000000000000",
+        "0x0000000000000000"
+      ],
+      "expectedI32": 0,
+      "cliI32": 0,
+      "installedSessionI32": 0
+    },
+    {
+      "wabtManifestLine": 358,
+      "opcode": "i64.lt_u",
+      "argumentBits": [
+        "0x0000000000000000",
+        "0x8000000000000000"
+      ],
+      "expectedI32": 1,
+      "cliI32": 1,
+      "installedSessionI32": 1
+    }
+  ],
+  "budget": {
+    "secondsLimit": 360,
+    "bytesLimit": 524288000,
+    "elapsedFromFirstReplayStartThroughComparisonSeconds": 238.046,
+    "measurement": "Repeat runs sampled owned logical bytes at replay command spawn and scratch cleanup boundaries. Initial direct passes were unmetered."
+  },
+  "retention": "Only the reversible patch and this compact receipt are retained.",
+  "authorReceiptSHA256": "aea12d8a97bfbbce2596bc0dd2c1ed328f66339bfcd3165716fe5f41911f5318",
+  "independentReview": {
+    "disposition": "scoped-pass",
+    "baselineCommands": 304,
+    "candidateCommands": 320,
+    "comparisonOnlyWABTSteps": 16,
+    "wrapperControlsPassedPerCheckout": 8,
+    "priorCaseRecordsMatched": 70,
+    "priorModuleRecordsMatched": 18,
+    "priorStatefulSectionsMatched": 6,
+    "priorCommandShapesAndExitCodesMatched": 304,
+    "managedReplayChildrenTerminal": 1872,
+    "finalPairedReplayElapsedSeconds": 10.45,
+    "peakSampledScratchMiB": 229,
+    "engineArtifactsAndRuntimeLimitsMatched": true,
+    "patchReversedAndScratchRemoved": true,
+    "comparisonLimit": "The first two equality checks stopped on checkout-dependent paths and WABT manifest hashes. The corrected comparison normalized those fields."
+  }
+}

@@ -126,6 +126,15 @@ pinned module and run in fresh instances. They add 20 commands, raising
 the replay cap to 304.
 [Pinned shift assertions](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast#L176-L213)
 
+Eight assertions in the same original module compare zero and
+`0x8000000000000000` in both operand orders and check equality at both values.
+WABT manifest lines 334, 337, 342 and 343 cover `i64.lt_s` and expect
+`i32` results 0, 0, 1 and 0, respectively. Lines 349, 352, 357 and 358 cover
+`i64.lt_u` and expect 0, 0, 0 and 1. Each assertion runs in a fresh instance
+of the pinned module. The assertions add 16 commands, raising the replay
+cap to 320.
+[Pinned comparison assertions](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast#L334-L358)
+
 For `br_table.wast`, stock WABT admits the original module at line 3 and
 passes the ten `multiple-value` assertions. The Mixer V3 CLI and installed C
 validator refuse that module with `unsupported` because it uses a value type

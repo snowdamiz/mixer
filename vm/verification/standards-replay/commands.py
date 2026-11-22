@@ -10,7 +10,7 @@ import tempfile
 import time
 
 
-COMMAND_LIMIT = 304
+COMMAND_LIMIT = 320
 
 
 def digest(data):

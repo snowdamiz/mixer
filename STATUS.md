@@ -2822,6 +2822,8 @@ cases and six stateful sequences matched. All 304 commands closed.
 
 An independent replay verified all ten shift assertions and all eight wrapper controls. The rebuilt CLI, installed archive, and public headers matched byte for byte. Relinked test clients had different executable hashes despite identical source. All 594 commands closed and review scratch was removed. [Independent shift replay](verification/receipts/l03-w08-i64-shifts-independent-review-f3981008be.json)
 
+Eight pinned signed and unsigned `i64` comparisons matched stock WABT, the Mixer CLI, and the installed V3 C session. The cases cover equality, zero, and the top bit. The independent replay matched all 70 prior case records and passed all eight wrapper tests. The candidate used 320 replay commands. Engine artifacts and run-time limits matched the baseline. [Integer comparison replay](verification/receipts/l03-w08-i64-comparisons-861970a05c.json)
+
 The seeded TableMemoryV3 check retains one instance for 40 copies on
 each of 24 seeds. Mixer and Node matched all 960 observations of the
 complete initialized region in Debug and Release. The separate
