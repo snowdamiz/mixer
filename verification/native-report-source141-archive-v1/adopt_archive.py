@@ -387,6 +387,7 @@ HOSTED_V86_PREFIX = 'hosted-v86-predecessor-bytes/'
 HOSTED_V86_CHANGES = HOSTED_V74_CHANGES | {'THIRD_PARTY.yml'}
 HOSTED_V87_PREFIX = 'hosted-v87-predecessor-bytes/'
 PAIR25_RUST_NOTICES_PREIMAGE = 'pair25-rust-notices-predecessor-bytes/THIRD_PARTY.yml'
+STATEFUL_WAST_NOTICE_PREIMAGE = 'stateful-wast-notice-predecessor-bytes/THIRD_PARTY.yml'
 ANDROID_INSPECTION_DEADLINE_PREFIX = 'android-inspection-deadline-predecessor-bytes/'
 ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE = ANDROID_INSPECTION_DEADLINE_PREFIX + SOURCE_INPUTS_MANIFEST
 ANDROID_INSPECTION_DEADLINE_SOURCE_SHA256 = '2a9d99e0dea712c70d7be383958e67cd040577565c847861b89c0fc598ba4fcd'
@@ -523,6 +524,7 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     *(HOSTED_V86_PREFIX + name for name in HOSTED_V86_CHANGES),
     *(HOSTED_V87_PREFIX + name for name in HOSTED_V74_CHANGES),
     PAIR25_RUST_NOTICES_PREIMAGE,
+    STATEFUL_WAST_NOTICE_PREIMAGE,
     ANDROID_INSPECTION_DEADLINE_SOURCE_PREIMAGE,
     *(ANDROID_INSPECTION_DEADLINE_PREFIX + name for name in ANDROID_INSPECTION_DEADLINE_CHANGES),
 } | {
@@ -689,6 +691,7 @@ def install_inputs():
                              'hosted_v82_transition', 'android_sparse_timeout_workflow',
                              'hosted_v83_transition', 'hosted_v84_transition', 'hosted_v85_transition',
                              'hosted_v86_transition', 'hosted_v87_transition', 'pair25_rust_notices',
+                             'stateful_wast_notices',
                              'android_inspection_deadline_transition', 'receipt_directory_transition',
                              'receipt_parent_url_test_transition', 'swiftpm_migration_transition',
                              'store_reconciliation_fixture_transition', 'android_stock_libz_transition',
@@ -1905,6 +1908,18 @@ def install_inputs():
             stat.S_IMODE((ROOT / 'THIRD_PARTY.yml').lstat().st_mode) == 0o644,
             'Pair25 Rust notice preimage or mode differs')
     # Source141 restoration already has an earlier inventory preimage.
+    installed['THIRD_PARTY.yml'] = notices['after']
+
+    notices = binding['stateful_wast_notices']
+    notice_preimage = HERE / STATEFUL_WAST_NOTICE_PREIMAGE
+    before = read_predecessor_member(notice_preimage)
+    require(set(notices) == {'before', 'after'} and
+            installed['THIRD_PARTY.yml'] == previous.row(before) == notices['before'] and
+            notices['before'] != notices['after'] and
+            stat.S_IMODE(notice_preimage.lstat().st_mode) ==
+            stat.S_IMODE((ROOT / 'THIRD_PARTY.yml').lstat().st_mode) == 0o644,
+            'Stateful WAST notice preimage or mode differs')
+    # Source141 restoration reads the earlier inventory preimage.
     installed['THIRD_PARTY.yml'] = notices['after']
 
     store_fixture = binding['store_reconciliation_fixture_transition']

@@ -1676,6 +1676,15 @@ a terminal session, while WABT continues. Independent replay passed the
 selected sequence, the 19 existing assertions and six runner controls.
 [Stateful memory replay](verification/receipts/l03-stateful-memory-e414fa1a.json)
 
+The hosted VM job passed. Swift host and Intel bootstrap refused the
+WAST inventory edit because Source141 still pinned the old bytes. The
+corrected archive binds the new inventory and keeps the 157 selected
+source inputs. Both workflow projections passed admission in normal
+and optimized Python. The Source141 and Source127 restores matched
+their 890 and 845 files by bytes and modes.
+[Hosted result](https://github.com/snowdamiz/mixer/actions/runs/44965471303) ·
+[Archive verification](verification/receipts/source141-stateful-wast-notice-admission-839fed77.json)
+
 The installed Guest UI v1 validator refused all 616 single-bit mutations
 of three required export names in each host build profile. Each refusal
 used zero guest fuel and host calls and retained zero caller-thread
