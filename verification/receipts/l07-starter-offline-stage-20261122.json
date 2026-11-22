@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "status": "offline-stage-admitted",
+  "gate": "L07",
+  "base": "3f4f8f8dbe95a1972e61342ee2ffdfee5c25c1c0",
+  "scope": "Offline CLI build, Starter export, and worker input admission with zero native project builds or build POSTs.",
+  "inputPatches": {
+    "hex": "5f326f86710e1145c76d6215f244295b20fad13c8789107ff6cd51fed9ab96f5",
+    "swift": "e5e950d941544204eec5f271238ea05acfaa41c03df5ed46d07689b2710d8f0c"
+  },
+  "controls": {
+    "premise": "The file-write fence preserves SwiftPM private-file access.",
+    "buildSystem": "Swift Build default",
+    "controls": [
+      {
+        "control": "file-write-fence",
+        "exit": 1,
+        "sha256": "cebd4be58dc62c34a1dab4c09d142682275f6ea35a6c9ca4c37cb2bb151babd3",
+        "tail": [
+          "swift: error: couldn't create cache file '/var/folders/w6/vbftz74j4jzb2t9ry9r724g00000gn/T/xcrun_db-8kIKYNhS' (errno=Operation not permitted)",
+          "Building for debugging...",
+          "[Planning deferred tasks]",
+          "error: unexpected service error: build aborted due to an internal error: unable to write manifest to '/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/l07-sandbox-control-1_4em9cu/file-write-fence/build/out/Intermediates.noindex/XCBuildData/a1cc84e5af779ff802f0f956148932cb.xcbuilddata/manifest.json': Error Domain=NSCocoaErrorDomain Code=513 \"You don\u2019t have permission to save the file \u201cmanifest.json\u201d in the folder \u201ca1cc84e5af779ff802f0f956148932cb.xcbuilddata\u201d.\" UserInfo={NSUnderlyingError=0x7cf5368090 {Error Domain=NSPOSIXErrorDomain Code=1 \"Operation not permitted\"}, NSUserStringVariant=Folder, NSURL=file:///Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/l07-sandbox-control-1_4em9cu/file-write-fence/build/out/Intermediates.noindex/XCBuildData/a1cc84e5af779ff802f0f956148932cb.xcbuilddata/manifest.json}",
+          "error: Unexpected build state"
+        ],
+        "directChildReaped": true,
+        "groupAbsent": true
+      },
+      {
+        "control": "network-only",
+        "exit": 0,
+        "sha256": "0cfb9a105b2e1446e40fc3d45ded9865382f142cccb0704c6bc1ed13db9096c8",
+        "tail": [
+          "Building for debugging...",
+          "[Planning deferred tasks]",
+          "[19\u2009/\u200924]",
+          "[20\u2009/\u200925] Probe-product",
+          "[24\u2009/\u200929] Probe-product",
+          "[25\u2009/\u200929] Probe-product",
+          "[27\u2009/\u200929] Probe-product",
+          "Build complete! (3.77 sec)"
+        ],
+        "directChildReaped": true,
+        "groupAbsent": true
+      }
+    ],
+    "scratchRemoved": true
+  },
+  "controlSHA256": "4b17e81b04e798c0121a7567ba3107390927fa21672b132ddf7c5eb203545869",
+  "stage": {
+    "status": "PASS_STAGE",
+    "cliLockSHA256": "de4bd6f84bfa554faf519a52f6c5fb9a051761ded30ae5fee4440b5e88118855",
+    "cliSHA256": "7f4678fa51e4c1db8414a3f4865d5005a9e5008bd409b48f4debd0ed114486bf",
+    "starterSourceSHA256": "9d1285c5b66eca9c9b09b6471fcf4a6a9bb28445adfa81acd0133de72f0554c9",
+    "starterLockSHA256": "cf4f39cd9ff2cfd48cc960c358293f49b5e7c9c75757efdeee291770af983227",
+    "provenanceSourceSHA256": "1338f7f1b16e646b4665ba67cf08a850da1f08b89b00a8bbcb4505ae48b2e161",
+    "offlineSwiftArchiveSHA256": {
+      "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2": "29dce20ab0de9ccd21374fc4ca6567ad63290b88ff48fc3ec33f38615bdbb68f",
+      "c2cbadd7263439d8015189668f96ff5b5be565ce": "29f9386217ba7db19af241148c4663c3ba55b71e8c3e904c7bbad5847253fe92"
+    },
+    "sdkDependencyRevisions": {
+      "swift-asn1": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+      "swift-crypto": "c2cbadd7263439d8015189668f96ff5b5be565ce"
+    },
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "xcode": "Xcode 27.2\nBuild version 27B52",
+    "buildPOSTAttempts": 0
+  },
+  "stageCommandsClosed": 27,
+  "stageReceiptSHA256": "98d10ee310c64108171701706e8629e44422d7dfe0072707b1938f1927d5ec00",
+  "preflightReceiptSHA256": "588c06c749c1008a2ca0fec1d77290fc3d1199fcc764a85ba3ff0e740dba6d27",
+  "stagedArtifacts": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/l07-swift-offline-epywz13z/source/verification/local/l07-xcode-inputs-baces29c",
+  "stagedArtifactsInUse": true,
+  "holds": [
+    {
+      "scratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-695f3cba/verification/local/l07-offline-swift.U3GyOoml/work/verification/local/l07-xcode-inputs-vhbn2rz7",
+      "terminalSwiftPMGroup": 40408,
+      "nestedCompilerCustody": "UNKNOWN",
+      "holdSHA256": "81c96aad96dffb136e3cbefd3d56871ed0a6577c800b7f473de38019415e7491",
+      "failure": "Default Swift Build reported EPERM writing the build manifest."
+    },
+    {
+      "scratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/l07-swift-native-5_23_erk/source/verification/local/l07-xcode-inputs-hkpxsfhn",
+      "terminalSwiftPMGroup": 78428,
+      "nestedCompilerCustody": "UNKNOWN",
+      "holdSHA256": "b65594c4d23ac81a31378c5b9bf2023f718428222cfdd0914ba9a816f1975c91",
+      "failure": "Native build system reported EPERM reading the output file map."
+    }
+  ]
+}

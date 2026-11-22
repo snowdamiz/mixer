@@ -23,7 +23,9 @@ The following checkpoints retain their historical sources and scope. Local compl
 
 ## Continuation checkpoint, November 22, 2026
 
-Resume with the L07 Starter build backup and restore. The offline host replay restored the journal and roles into a separate PostgreSQL cluster and authenticated two fresh sessions with queues disabled. The next run needs to route SwiftPM through the two verified local dependency mirrors and enforce one deadline and scratch limit across build, capture, and restore. Capture the settled Phoenix row and job, worker SQLite journal, manifest, and three artifacts from one closed native build. Start from [the Starter replay](tests/integration/hosted-expiry-restore/replay-starter.py).
+The closed iOS Starter build and cross-cluster restore already passed. The separate replay for combining active iOS worker loss with ongoing signed delivery now has an offline-built CLI and an admitted Starter export. The staged source and lock match the earlier live iOS recovery fixture. [Settled Starter restore](verification/receipts/l07-starter-settled-restore-20261120.json) · [Offline stage](verification/receipts/l07-starter-offline-stage-20261122.json)
+
+The fresh FieldLog iOS resume run supplied six installed updater requests across baseline, interruption, and resume. The relay saw no enrolled workspace markers, checked credential headers, or declared body framing in its parsed request fields. [Installed request privacy](verification/receipts/l07-fieldlog-ios-updater-request-privacy-20261122.json)
 
 The interrupted signed download passed on a fresh iOS Simulator. The owned device was removed, and the device inventory matched for all 13 external devices. Future iOS runtime tests use a fresh disposable device. [Installed iOS resume](verification/receipts/fieldlog-ios-signed-resume-native-20261122.json)
 
