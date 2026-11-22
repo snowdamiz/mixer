@@ -1966,6 +1966,7 @@ The installed V3 C session and WABT also passed the pinned growth
 block with a declared ten-page maximum. Growth reached ten pages, and
 two further requests returned `-1`. A fresh instance started at zero
 pages. All 156 commands closed and eight runner controls passed.
+Independent replay matched the exact source, Wasm, and outcomes.
 [Declared memory maximum replay](verification/receipts/l03-w08-memory-maximum-603d33d9.json)
 
 The seeded TableMemoryV3 check retains one instance for 40 copies on
