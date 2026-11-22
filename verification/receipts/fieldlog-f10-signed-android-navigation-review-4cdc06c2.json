@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "decision": "request_changes_hold_installation",
+  "scope": "L08/D8 FieldLog F10 private signed Android navigation candidate",
+  "source": {
+    "mixer": "6c73017a28b18845464b8f6a7e90dfef5e2952be",
+    "baseTree": "e38692b31d11846b536c69fc679f834f52141593",
+    "firstPageOverlayTree": "75a67eb219e35fa676b39cceec795f62c385e02e",
+    "candidateTree": "4cdc06c25918740732becd05564eba5765680625",
+    "navigationPatchSHA256": "5d8e2fd79ee0752de296d13d83b40d568396f85b6f4ca530f9420721eee41292",
+    "combinedPatchSHA256": "e84cf96090d7e4af9d678aba2bacbc9a09056c38e45bdcb3a5545f09412fcb65",
+    "forwardAndReverseTreeVerified": true,
+    "independentReviewReceiptSHA256": "d3b82847d04f005a8380b0803709e9c2c21dae8f42f965f31c89f7bb8eda3fb5"
+  },
+  "fixture": {
+    "bytes": 13207,
+    "sha256BeforeAndAfter": "5459133cb976ccd09916a48659f393a6a1ef7b3ef36af2bada0de8aa4745c004",
+    "modelBlob": "91615788bea186663fbb8a23231e304802366f8a",
+    "access": "read-only"
+  },
+  "hostControls": [
+    {
+      "command": "bash build-navigation-guest.sh <owned output>; node navigation-wasm-control.mjs <f10.wasm> <exact historical workspace.json>",
+      "result": "pass",
+      "wasmSHA256": "fc7bf29a35856ff9c0043b46ea4a31a29a8b480dd550e5435b24db507b0eba61",
+      "route": [
+        {
+          "revision": 3,
+          "rows": 20,
+          "sha256": "9e8ba0ea7bd1fc13803bdea92e545df44fd623cb458a2bc94691c53b8f124749"
+        },
+        {
+          "revision": 4,
+          "rows": 6,
+          "sha256": "9d67de6bb255fe7a86fc65e2b69258519c18b429997446a56ac69d677c159cf5"
+        },
+        {
+          "revision": 5,
+          "destination": "workspace.queue"
+        },
+        {
+          "revision": 6,
+          "rows": 6,
+          "sha256": "9d67de6bb255fe7a86fc65e2b69258519c18b429997446a56ac69d677c159cf5"
+        },
+        {
+          "revision": 7,
+          "rows": 20,
+          "sha256": "9e8ba0ea7bd1fc13803bdea92e545df44fd623cb458a2bc94691c53b8f124749"
+        },
+        {
+          "revision": 8,
+          "destination": "workspace.entries.destination",
+          "text": "Entries"
+        }
+      ]
+    },
+    {
+      "command": "swiftly run swiftc -D F10_ANDROID_HOST_CONTROL F10AndroidPageRead.swift NavigationMailboxControl.swift; run compiled control",
+      "result": "pass",
+      "scope": "Standalone single-read policy and refusal cases"
+    },
+    {
+      "command": "swiftly run swiftc with the pinned Workspace model, extracted F10Workspace and F10ReadOnlyStorage, real MixerCapabilities and QueueProjection; run repository control and feed its bytes into the Node Wasm control",
+      "result": "pass",
+      "scope": "Selected the Android wrapper branch via a host define and substituted the error constructor. Wrong namespace, wrong key, out-of-order read, fourth read, put and delete refused. Exact queue-0, queue-1, queue-0 payloads matched the independent fixture encoding and produced byte-identical guest-control output."
+    },
+    {
+      "command": "Compile the actual GuestUITurns and F10AndroidPageRead against the real SDK exchange, codec and reconciler; run review control against documents from the exact Wasm",
+      "result": "pass for prescribed route; refusal reproduced for Previous at revision 4",
+      "scope": "Selected the Android branch with a host define. A narrow stand-in supplied the native memory/turn methods. Validated canonical Swift event bytes, exchange state, native packet projection and exact page authority, with no Rust VM or signed activation run."
+    },
+    {
+      "command": "javac --release 17 with API 36 android.jar, actual renderer and SignedF10Activity sources; java FrameBufferEvidenceTest and reflective SignedF10Activity.readback control",
+      "result": "frame model and prescribed readback passed; Java refused alternate valid packets",
+      "scope": "Ran native packet decoding and successor checks plus the Java readback method on the Swift-emitted bytes. Frame model covered current, skipped, stale, retired, missing buffer and software. No window, PixelCopy call or JNI lifecycle ran."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "P1",
+      "source": "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/F10AndroidPageRead.swift:10",
+      "case": "Open Queue, tap Next, then tap the enabled Previous on page 2 at revision 4. The exact Wasm requests material_test/queue-0 and returns the correct page when the mock host supplies it. Actual GuestUITurns throws wake/document because its policy permits Previous only at revision 6. Ownership.swift:402 and :198 convert that refusal into a protocol stop."
+    },
+    {
+      "severity": "P1",
+      "source": "capability-activation/verification/android-signed-f10-6b07-correction/SignedF10Activity.java:281",
+      "case": "After health, tap the enabled Entries or Tasks directly from revision 3. Both actual guest branches produce valid revision-4 packets, verified with the real Swift reconciler and Java UiPacket. Java readback returns null because it insists revision 4 is page 2. applyGuest returns false and Swift presentation takes its native-apply failure path. Java also refuses the revision-5 first-page packet from immediate Previous when the storage layer is bypassed."
+    }
+  ],
+  "sourceAudit": {
+    "durableGate": "The F10 revision-3 receipt requires the opening action delivery and the current observed presentation. Recovery commits health via atomicState before latching the same generation for Swift post-health input. Java gates subsequent input on the Healthy status and its current frame witness.",
+    "scopeAndRefusals": "The navigation delta leaves exact Android private-development scope, debug and opt-in checks, V1 profile, private archive validation, ordinary-owner refusal and signing code intact. The V3 guest rejected an ordinary V1 envelope and stale revision/sequence in the supplied host control. Signed-owner refusals were inspected in source only.",
+    "hardware": "The unchanged hardware witness requires a live current tuple, hardware draw, commit callback, successful paired marker PixelCopy and Swift ingress. Queue row digests and Entries readback on the host are packet evidence."
+  },
+  "packaging": {
+    "unsignedARM64APK": "b311abb22d0e79dbec34090a5345a655070e389c5c5789a21118757372db7636",
+    "producerPinsSHA256": "ba333ccacc0350b4bec09ffdfb6550aae2d8df7e7bbc737d9b19d2a5e2f419cd",
+    "checkedIdentityInputs": 11,
+    "changedZIPMembers": [
+      "classes.dex",
+      "lib/arm64-v8a/libf10_signed.so"
+    ],
+    "unchangedZIPMembers": 21,
+    "signedOrInstalled": false
+  },
+  "toolchain": {
+    "git": "2.56.0",
+    "swift": "6.3.3",
+    "wasmLinker": "LLD 21.0.0",
+    "hostSDK": "Xcode 26.6 MacOSX26.5.sdk",
+    "node": "26.13.1",
+    "java": "OpenJDK 25.0.4.1, javac --release 17, Android API 36 android.jar"
+  },
+  "custody": {
+    "scope": "No device work, signing, publishing, push, gate edits or held-resource operations.",
+    "workCommands": "All started command sessions returned terminal results. The initial default host SDK failed with unknown argument -target-arch-variant; the pinned Xcode SDK succeeded. An intermediate host module compile required the Swift package name. No pending command sessions.",
+    "scratchObservedKiB": 149328,
+    "scratchRemoved": true
+  }
+}

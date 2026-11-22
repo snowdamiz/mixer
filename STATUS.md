@@ -240,6 +240,15 @@ and the successful owner retired. All 172 commands, the disposable
 emulator and private ADB reached terminal custody.
 [Installed Android signature refusals](verification/receipts/fieldlog-f10-signed-android-api36-envelope-refusals-c83466ac.json)
 
+The signed navigation candidate `4cdc06c2` reproduced the six-action
+host route on the exact historical workspace. The APK reused 21 members
+from the installed first-page witness and rebuilt DEX and JNI. Independent
+review found two blockers. The Swift owner stopped on Previous from the
+first visit to page 2. Java refused direct Tasks or Entries from page 1.
+Those actions were enabled. The candidate is unsigned and held from
+installation while both paths are corrected.
+[Navigation review](verification/receipts/fieldlog-f10-signed-android-navigation-review-4cdc06c2.json)
+
 The private macOS signed V3 candidate `6ba7034329` passed the first-page
 Pending Changes smoke through the installed owner, VM, and storage mailbox.
 One read hydrated the queue. The decoded action delivered the historical
