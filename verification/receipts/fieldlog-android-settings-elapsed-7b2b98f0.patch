@@ -1,0 +1,1340 @@
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c b/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
+index a7fe3d595711d627a47c6afcd51dc0186fa76c00..382b5f98971b0053836bd5f96e21410dde18d723 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
++++ b/Integrations/GeneratedReport/Platforms/Android/Bridge/PublicBridge.c
+@@ -108 +108 @@ static jint report_host(JNIEnv *e,jclass ignored,jlong id,jbyteArray request,jin
+-    (void)ignored; Context *c=find(id); if(!c||!request||code<0||code>2||(*e)->GetArrayLength(e,request)!=36) return 1;
++    (void)ignored; Context *c=find(id); if(!c||!request||code<0||code>4||(*e)->GetArrayLength(e,request)!=36) return 1;
+@@ -113,2 +113,2 @@ static jint report_host(JNIEnv *e,jclass ignored,jlong id,jbyteArray request,jin
+-static jlong open_host(JNIEnv *e,jclass ignored,jobject receiver,jstring profile,jbyteArray directory) {
+-    (void)ignored; if(!receiver||!profile||!directory||next_id==INT64_MAX) return 0;
++static jlong open_host(JNIEnv *e,jclass ignored,jobject receiver,jstring profile,jbyteArray directory,jbyteArray settings) {
++    (void)ignored; if(!receiver||!profile||!directory||!settings||next_id==INT64_MAX) return 0;
+@@ -117,0 +118,4 @@ static jlong open_host(JNIEnv *e,jclass ignored,jobject receiver,jstring profile
++    jsize sn=(*e)->GetArrayLength(e,settings); if(sn<=0||sn>2048) return 0;
++    jbyte boot[2048];
++    (*e)->GetByteArrayRegion(e,settings,0,sn,boot);
++    if((*e)->ExceptionCheck(e)) return 0;
+@@ -130 +134 @@ static jlong open_host(JNIEnv *e,jclass ignored,jobject receiver,jstring profile
+-    int result=execute(e,c,0,(const uint8_t*)text,n,NULL,0,NULL,0);
++    int result=execute(e,c,0,(const uint8_t*)text,n,NULL,0,(const uint8_t*)boot,sn);
+@@ -154,0 +159,16 @@ static jint refresh_queue_host(JNIEnv *e,jclass ignored,jlong id) {
++static jint release_settings_report_handoff_host(JNIEnv *e,jclass ignored,jlong id) {
++    (void)ignored;
++    return execute(e,find(id),6,NULL,0,NULL,0,NULL,0);
++}
++static jint refuse_settings_host(JNIEnv *e, jclass ignored, jlong id, jbyteArray owner, jbyteArray ticket) {
++    (void)ignored;
++    Context *c = find(id);
++    if (!c || !owner || !ticket || (*e)->GetArrayLength(e, owner) != 36 ||
++            (*e)->GetArrayLength(e, ticket) != 36) return 1;
++    jbyte o[36], t[36];
++    (*e)->GetByteArrayRegion(e, owner, 0, 36, o);
++    if ((*e)->ExceptionCheck(e)) return 1;
++    (*e)->GetByteArrayRegion(e, ticket, 0, 36, t);
++    if ((*e)->ExceptionCheck(e)) return 1;
++    return execute(e, c, 5, NULL, 0, (const uint8_t *)o, 36, (const uint8_t *)t, 36);
++}
+@@ -170 +190 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm,void *reserved) {
+-    JNINativeMethod methods[]={{"openNative","(Ldev/fieldlog/generatedr90/androidhost/PublicActivity;Ljava/lang/String;[B)J",(void*)open_host},
++    JNINativeMethod methods[]={{"openNative","(Ldev/fieldlog/generatedr90/androidhost/PublicActivity;Ljava/lang/String;[B[B)J",(void*)open_host},
+@@ -174,2 +194,4 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm,void *reserved) {
+-        {"refreshQueueNative","(J)I",(void*)refresh_queue_host}};
+-    jint status=(*e)->RegisterNatives(e,type,methods,7); (*e)->DeleteLocalRef(e,type);
++        {"refreshQueueNative","(J)I",(void*)refresh_queue_host},
++        {"refuseSettingsNative","(J[B[B)I",(void*)refuse_settings_host},
++        {"releaseSettingsReportHandoffNative","(J)I",(void*)release_settings_report_handoff_host}};
++    jint status=(*e)->RegisterNatives(e,type,methods,sizeof(methods)/sizeof(methods[0])); (*e)->DeleteLocalRef(e,type);
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/FieldLogSettings.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/FieldLogSettings.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..4029c11a49b2c93b8013a63a345d7bc04103722e
+--- /dev/null
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/FieldLogSettings.java
+@@ -0,0 +1,148 @@
++package dev.fieldlog.generatedr90.androidhost;
++
++import java.io.FileOutputStream;
++import java.io.IOException;
++import java.nio.channels.FileChannel;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.Files;
++import java.nio.file.NoSuchFileException;
++import java.nio.file.Path;
++import java.nio.file.StandardCopyOption;
++import java.nio.file.StandardOpenOption;
++import java.util.UUID;
++
++/** The install-local record and its checked persistence boundary. */
++record FieldLogSettings(String appearance, String regionalFormats, boolean largerText) {
++    static final String FILE = "fieldlog-settings.record";
++    static final FieldLogSettings DEFAULT = new FieldLogSettings("system", "system", false);
++    static final float LARGER_SCALE = 1.3f;
++
++    enum Status { ready, malformed, newer, unavailable }
++    record Read(FieldLogSettings value, Status status) {}
++    record Write(String ticket, FieldLogSettings value, boolean reset) {}
++
++    String encode() {
++        return "1\nappearance=" + appearance + "\nregionalFormats=" + regionalFormats + "\nlargerText=" + largerText;
++    }
++
++    float fontScaleOverride(float systemScale) {
++        return largerText ? Math.max(systemScale, LARGER_SCALE) : 0;
++    }
++
++    static Read read(Object raw) {
++        if (raw == null) return new Read(DEFAULT, Status.ready);
++        if (!(raw instanceof String text)) return new Read(DEFAULT, Status.malformed);
++        int newline = text.indexOf('\n');
++        String version = newline < 0 ? text : text.substring(0, newline);
++        if (!version.equals("1") && version.matches("[0-9]+"))
++            return new Read(DEFAULT, Status.newer);
++        if (text.length() > 128) return new Read(DEFAULT, Status.malformed);
++        String[] parts = text.split("\n", -1);
++        if (parts.length != 4 || !version.equals("1") || !parts[1].startsWith("appearance=")
++                || !parts[2].startsWith("regionalFormats=") || !parts[3].startsWith("largerText="))
++            return new Read(DEFAULT, Status.malformed);
++        String appearance = parts[1].substring("appearance=".length());
++        String regional = parts[2].substring("regionalFormats=".length());
++        String larger = parts[3].substring("largerText=".length());
++        return new Read(new FieldLogSettings(
++            switch (appearance) { case "light", "dark" -> appearance; default -> "system"; },
++            switch (regional) { case "en-US", "fr-FR" -> regional; default -> "system"; },
++            larger.equals("true")
++        ), valid(appearance, regional, larger) ? Status.ready : Status.malformed);
++    }
++
++    private static boolean valid(String appearance, String regional, String larger) {
++        return (appearance.equals("light") || appearance.equals("dark") || appearance.equals("system"))
++            && (regional.equals("en-US") || regional.equals("fr-FR") || regional.equals("system"))
++            && (larger.equals("true") || larger.equals("false"));
++    }
++
++    static Write request(byte[] bytes) {
++        if (bytes == null || bytes.length <= 42 || bytes.length > 192) return null;
++        String[] parts = new String(bytes, StandardCharsets.UTF_8).split("\n", 3);
++        if (parts.length != 3 || parts[0].length() != 36) return null;
++        try {
++            if (!UUID.fromString(parts[0]).toString().toUpperCase(java.util.Locale.ROOT).equals(parts[0])) return null;
++        } catch (IllegalArgumentException malformed) {
++            return null;
++        }
++        boolean reset = parts[1].equals("reset");
++        if (!reset && !parts[1].equals("apply")) return null;
++        Read read = read(parts[2]);
++        if (read.status() != Status.ready || (reset && !read.value().equals(DEFAULT))) return null;
++        return new Write(parts[0], read.value(), reset);
++    }
++
++    enum Outcome { committed, refused, uncertain }
++
++    @FunctionalInterface
++    interface DirectorySync {
++        void force(FileChannel directory) throws IOException;
++    }
++
++    static final class Store {
++        private final Path file;
++        private final DirectorySync sync;
++        private volatile Read confirmed;
++        private boolean unsettled;
++
++        Store(Path file) {
++            this(file, directory -> directory.force(true));
++        }
++
++        Store(Path file, DirectorySync sync) {
++            this.file = file;
++            this.sync = sync;
++            try (var input = Files.newInputStream(file);
++                 var directory = FileChannel.open(file.getParent(), StandardOpenOption.READ)) {
++                // Resolve the visible name after any interrupted prior process before using it.
++                directory.force(true);
++                byte[] bytes = new byte[129];
++                int count = 0;
++                while (count < bytes.length) {
++                    int n = input.read(bytes, count, bytes.length - count);
++                    if (n < 0) break;
++                    count += n;
++                }
++                confirmed = FieldLogSettings.read(new String(bytes, 0, count, StandardCharsets.UTF_8));
++            } catch (NoSuchFileException missing) {
++                confirmed = new Read(DEFAULT, Status.ready);
++            } catch (IOException | RuntimeException error) {
++                confirmed = new Read(DEFAULT, Status.unavailable);
++            }
++        }
++
++        Read current() { return confirmed; }
++
++        synchronized Outcome save(Write write) {
++            if (unsettled) return Outcome.uncertain;
++            Status status = confirmed.status();
++            if (status == Status.unavailable || (status != Status.ready && !write.reset())
++                    || (write.reset() && !write.value().equals(DEFAULT))
++                    || Thread.currentThread().isInterrupted()) return Outcome.refused;
++            Path staging = file.resolveSibling(file.getFileName() + ".new");
++            boolean published = false;
++            try (var directory = FileChannel.open(file.getParent(), StandardOpenOption.READ)) {
++                try (var output = new FileOutputStream(staging.toFile())) {
++                    output.write(write.value().encode().getBytes(StandardCharsets.UTF_8));
++                    output.getFD().sync();
++                }
++                if (Thread.currentThread().isInterrupted()) return Outcome.refused;
++                Files.move(staging, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
++                published = true;
++                sync.force(directory);
++            } catch (IOException | RuntimeException error) {
++                if (!published) return Outcome.refused;
++                unsettled = true;
++                return Outcome.uncertain;
++            } finally {
++                if (!published) {
++                    try { Files.deleteIfExists(staging); }
++                    catch (IOException | RuntimeException ignored) { }
++                }
++            }
++            confirmed = new Read(write.value(), Status.ready);
++            return Outcome.committed;
++        }
++    }
++}
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+index 736d23db5114aca5c9295e5a72b569662ef0972d..57b3a2feddf36565dc5f67274f250f67a62f4629 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java
+@@ -5,0 +6,2 @@ import android.content.Intent;
++import android.content.pm.PackageInfo;
++import android.content.pm.PackageManager;
+@@ -6,0 +9 @@ import android.content.res.AssetFileDescriptor;
++import android.content.res.Configuration;
+@@ -47,0 +51,24 @@ public final class PublicActivity extends Activity {
++    // Preferences and workspace handoff are process-wide. A destroyed Activity
++    // retains the old workspace until its one in-flight commit reports back.
++    private static FieldLogSettings.Store settingsStore;
++    private final Handler settingsHandler = new Handler(Looper.getMainLooper());
++    private FieldLogSettings.Read settingsAtAttach;
++    private SettingsApply settingsApply;
++    private boolean settingsFrame, workspaceCloseAttempted;
++    private long frameSequence;
++    private View openChecklistButton;
++
++    private static final class SettingsApply {
++        final long context, frame;
++        final byte[] owner;
++        final FieldLogSettings.Write write;
++        FieldLogSettings.Outcome outcome;
++
++        SettingsApply(long context, long frame, byte[] owner, FieldLogSettings.Write write) {
++            this.context = context;
++            this.frame = frame;
++            this.owner = owner.clone();
++            this.write = write;
++        }
++    }
++
+@@ -88 +115,7 @@ public final class PublicActivity extends Activity {
+-    private android.net.Uri reportURI;
++    private record PublishedReport(PublicBridge.ReportFiles.Entry entry, Uri uri) {}
++    private PublishedReport publishedReport;
++    private boolean settingsReportHoldPublished;
++
++    private boolean reportHandoffHeld() {
++        return publishedReport != null || (reportWorker != null && reportWorker.isAlive());
++    }
+@@ -91,3 +124,7 @@ public final class PublicActivity extends Activity {
+-        if (reportURI != null) {
+-            revokeUriPermission(reportURI, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+-            PublicBridge.ReportFiles.revoke(reportURI.getLastPathSegment()); reportURI=null;
++        PublishedReport admitted = publishedReport;
++        if (admitted == null) return;
++        publishedReport = null;
++        try {
++            revokeUriPermission(admitted.uri(), Intent.FLAG_GRANT_READ_URI_PERMISSION);
++        } finally {
++            PublicBridge.ReportFiles.revoke(admitted.entry());
+@@ -95,0 +133,7 @@ public final class PublicActivity extends Activity {
++    private void reconcileReport(PublishedReport admitted) {
++        if (admitted == null || admitted != publishedReport
++                || PublicBridge.ReportFiles.isLive(admitted.entry(), SystemClock.elapsedRealtime())) return;
++        revokeReport();
++        if (pendingReport != null) finishReport(2);
++        else postReportDelivery();
++    }
+@@ -175 +219,6 @@ public final class PublicActivity extends Activity {
+-                    try { handler.post(() -> { if(reportLease==lease && reportInput==input) { reportInput=null; reportWorker=null; reportLease=null; } }); }
++                    try { handler.post(() -> {
++                        if (reportLease == lease && reportInput == input) {
++                            reportInput = null; reportWorker = null; reportLease = null;
++                            postReportDelivery();
++                        }
++                    }); }
+@@ -201 +250 @@ public final class PublicActivity extends Activity {
+-        boolean published=false;
++        PublicBridge.ReportFiles.Entry entry = null;
+@@ -205 +254 @@ public final class PublicActivity extends Activity {
+-            PublicBridge.ReportFiles.publish(opaque,file,size,android.os.SystemClock.elapsedRealtime()); published=true;
++            entry = PublicBridge.ReportFiles.publish(opaque,file,size,SystemClock.elapsedRealtime());
+@@ -207 +256,2 @@ public final class PublicActivity extends Activity {
+-            reportURI=PublicBridge.ReportProvider.uri(opaque);
++            PublishedReport admitted = new PublishedReport(entry, PublicBridge.ReportProvider.uri(opaque));
++            publishedReport = admitted;
+@@ -209 +259 @@ public final class PublicActivity extends Activity {
+-            Intent chooser=PublicBridge.ReportIntent.chooser(reportURI);
++            Intent chooser=PublicBridge.ReportIntent.chooser(admitted.uri());
+@@ -218,2 +268 @@ public final class PublicActivity extends Activity {
+-            final android.net.Uri admitted=reportURI;
+-            if (!handler.postDelayed(() -> { if(admitted.equals(reportURI)) { revokeReport(); if(pendingReport!=null) finishReport(2); } },PublicBridge.ReportFiles.LIFETIME_MS)) {
++            if (!handler.postDelayed(() -> reconcileReport(admitted), PublicBridge.ReportFiles.LIFETIME_MS)) {
+@@ -222 +271,7 @@ public final class PublicActivity extends Activity {
+-        } catch (Exception | OutOfMemoryError error) { reportBoundary(stage,error); PublicBridge.ReportFiles.revoke(opaque); if(!published) PublicBridge.ReportFiles.cancelWork(lease); reportURI=null; finishReport(2); }
++        } catch (Exception | OutOfMemoryError error) {
++            reportBoundary(stage,error);
++            if (entry == null) PublicBridge.ReportFiles.cancelWork(lease);
++            else if (publishedReport != null && publishedReport.entry() == entry) revokeReport();
++            else PublicBridge.ReportFiles.revoke(entry);
++            finishReport(2);
++        }
+@@ -237 +292,2 @@ public final class PublicActivity extends Activity {
+-        if (reportCompletion != null && !handler.post(this::deliverReportWhenReady)) fail();
++        if ((reportCompletion != null || (settingsReportHoldPublished && !reportHandoffHeld()))
++                && !handler.post(this::deliverReportWhenReady)) fail();
+@@ -240,2 +296 @@ public final class PublicActivity extends Activity {
+-        if (destroyed || failed || reportCompletion == null || reportCompletion.context() != context ||
+-                !resumed || !root.hasWindowFocus()) return;
++        if (destroyed || failed || context <= 0 || !resumed || !root.hasWindowFocus()) return;
+@@ -242,0 +298,2 @@ public final class PublicActivity extends Activity {
++        if (completion == null && (!settingsReportHoldPublished || reportHandoffHeld())) return;
++        if (completion != null && completion.context() != context) return;
+@@ -244,3 +301,12 @@ public final class PublicActivity extends Activity {
+-        if (!events.isEmpty()) drainEvents();
+-        if (!destroyed && !failed && completion.context() == context &&
+-                PublicBridge.report(context, completion.token(), completion.result()) != 0) fail();
++        if ((completion != null || settingsFrame) && !events.isEmpty()) drainEvents();
++        if (destroyed || failed || context <= 0) return;
++        if (completion != null && completion.context() == context) {
++            boolean held = reportHandoffHeld();
++            int result = completion.result();
++            if (held) result = result == 0 ? 3 : 4; // Same terminal result, with retained handoff.
++            if (PublicBridge.report(context, completion.token(), result) != 0) fail();
++            else settingsReportHoldPublished = held;
++        } else if (completion == null && !reportHandoffHeld()) {
++            if (PublicBridge.releaseSettingsReportHandoff(context) != 0) fail();
++            else settingsReportHoldPublished = false;
++        }
+@@ -481,0 +548,43 @@ public final class PublicActivity extends Activity {
++    @Override protected void attachBaseContext(android.content.Context base) {
++        super.attachBaseContext(base);
++        if (settingsStore == null) {
++            android.content.Context app = base.getApplicationContext();
++            settingsStore = new FieldLogSettings.Store(new File(app.getFilesDir(), FieldLogSettings.FILE).toPath());
++        }
++        settingsAtAttach = settingsStore.current();
++        FieldLogSettings value = settingsAtAttach.value();
++        Configuration override = new Configuration();
++        override.fontScale = value.fontScaleOverride(base.getResources().getConfiguration().fontScale);
++        override.uiMode = switch (value.appearance()) {
++            case "light" -> Configuration.UI_MODE_NIGHT_NO;
++            case "dark" -> Configuration.UI_MODE_NIGHT_YES;
++            default -> Configuration.UI_MODE_NIGHT_UNDEFINED;
++        };
++        if (override.fontScale != 0 || override.uiMode != Configuration.UI_MODE_NIGHT_UNDEFINED)
++            applyOverrideConfiguration(override);
++    }
++
++    byte[] settingsEnvironment() throws JSONException {
++        FieldLogSettings value = settingsAtAttach.value();
++        JSONObject preferences = new JSONObject()
++            .put("appearance", value.appearance())
++            .put("regionalFormats", value.regionalFormats())
++            .put("largerText", value.largerText());
++        JSONObject diagnostics = new JSONObject();
++        String os = Build.VERSION.RELEASE.split("\\.", 2)[0];
++        if (os.matches("[0-9]{1,3}")) diagnostics.put("osMajorVersion", Integer.parseInt(os));
++        try {
++            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), PackageManager.PackageInfoFlags.of(0));
++            if (info.versionName != null && info.versionName.matches("[A-Za-z0-9][A-Za-z0-9.+_-]{0,63}"))
++                diagnostics.put("appVersion", info.versionName);
++            if (info.getLongVersionCode() >= 0) diagnostics.put("buildNumber", info.getLongVersionCode());
++        } catch (PackageManager.NameNotFoundException | RuntimeException unavailable) {
++            // Metadata can be unavailable. No raw exception is projected.
++        }
++        var locales = getResources().getConfiguration().getLocales();
++        String locale = locales.isEmpty() ? java.util.Locale.getDefault().toLanguageTag() : locales.get(0).toLanguageTag();
++        return new JSONObject().put("preferences", preferences).put("status", settingsAtAttach.status().name())
++            .put("deviceLocale", locale).put("timeZone", java.util.TimeZone.getDefault().getID())
++            .put("diagnostics", diagnostics).toString().getBytes(StandardCharsets.UTF_8);
++    }
++
+@@ -482,0 +592,3 @@ public final class PublicActivity extends Activity {
++        boolean dark = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
++            == Configuration.UI_MODE_NIGHT_YES;
++        setTheme(dark ? android.R.style.Theme_Material_NoActionBar : android.R.style.Theme_Material_Light_NoActionBar);
+@@ -508,0 +621 @@ public final class PublicActivity extends Activity {
++            openChecklistButton = open;
+@@ -512 +625 @@ public final class PublicActivity extends Activity {
+-        configureSystemBarAppearance();
++        configureSystemBarAppearance(dark);
+@@ -527 +640 @@ public final class PublicActivity extends Activity {
+-        return siteMap != null || queuedPhotoLaunch != null || pendingPhoto != null || pendingReport != null || reportCompletion != null;
++        return settingsFrame || settingsApply != null || externalServiceBusy();
+@@ -529,9 +642,3 @@ public final class PublicActivity extends Activity {
+-    private void configureSystemBarAppearance() {
+-        // The manifest fixes this app window to Theme.Material.Light.NoActionBar.
+-        if (Build.VERSION.SDK_INT >= 30) {
+-            int lightBars = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS |
+-                WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
+-            getWindow().getInsetsController().setSystemBarsAppearance(lightBars, lightBars);
+-        } else {
+-            configureLegacySystemBarAppearance();
+-        }
++
++    private boolean externalServiceBusy() {
++        return siteMap != null || queuedPhotoLaunch != null || pendingPhoto != null || pendingReport != null || reportCompletion != null;
+@@ -539,5 +646,5 @@ public final class PublicActivity extends Activity {
+-    @SuppressWarnings("deprecation")
+-    private void configureLegacySystemBarAppearance() {
+-        View decor = getWindow().getDecorView();
+-        decor.setSystemUiVisibility(decor.getSystemUiVisibility() |
+-            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
++
++    private void configureSystemBarAppearance(boolean dark) {
++        int lightBars = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS |
++            WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
++        getWindow().getInsetsController().setSystemBarsAppearance(dark ? 0 : lightBars, lightBars);
+@@ -562,0 +670,6 @@ public final class PublicActivity extends Activity {
++        if (!settingsAtAttach.equals(settingsStore.current())) {
++            // Android can construct a replacement while the old Activity's
++            // disk commit is pending. Refresh its configuration before opening.
++            recreate();
++            return;
++        }
+@@ -570 +683 @@ public final class PublicActivity extends Activity {
+-        if (siteMap != null) return;
++        if (siteMap != null || settingsApply != null) return;
+@@ -597 +710 @@ public final class PublicActivity extends Activity {
+-        return queueRefreshPending && siteMap == null && resumed && !destroyed && !failed
++        return queueRefreshPending && siteMap == null && !settingsFrame && settingsApply == null && resumed && !destroyed && !failed
+@@ -666,0 +780 @@ public final class PublicActivity extends Activity {
++        if (operation == 5) return requestSettingsWrite(capturedContext, token, packet);
+@@ -670 +784 @@ public final class PublicActivity extends Activity {
+-                case 1:
++                case 1, 6:
+@@ -671,0 +786,4 @@ public final class PublicActivity extends Activity {
++                    frameSequence++;
++                    settingsFrame = operation == 6;
++                    if (openChecklistButton != null) openChecklistButton.setVisibility(settingsFrame ? View.GONE : View.VISIBLE);
++                    if (settingsApply != null) surface.gateInput();
+@@ -692,0 +811,82 @@ public final class PublicActivity extends Activity {
++    private int requestSettingsWrite(long capturedContext, byte[] capturedOwner, byte[] bytes) {
++        if (!draining || settingsApply != null || !settingsAdmission(capturedContext, capturedOwner, frameSequence))
++            return 1;
++        FieldLogSettings.Write write = FieldLogSettings.request(bytes);
++        if (write == null) return 1;
++        SettingsApply apply = new SettingsApply(capturedContext, frameSequence, capturedOwner, write);
++        try {
++            surface.gateInput();
++            settingsApply = apply;
++            if (settingsHandler.post(() -> startSettingsWrite(apply))) return 0;
++        } catch (RuntimeException refused) {
++            // Swift publishes a fresh Settings frame with Back enabled.
++        }
++        settingsApply = null;
++        return 1;
++    }
++
++    private boolean settingsAdmission(long capturedContext, byte[] capturedOwner, long frame) {
++        return settingsFrame && frame == frameSequence && !destroyed && !failed && !isFinishing()
++            && resumed && root.hasWindowFocus() && workspaceOwner == this && capturedContext == context
++            && owner != null && Arrays.equals(capturedOwner, owner) && surface.isCurrent()
++            && events.isEmpty() && !drainScheduled && checklist == null && !checklistRefreshPending
++            && !externalServiceBusy() && !reportHandoffHeld()
++            && (photoThread == null || !photoThread.isAlive());
++    }
++
++    private void startSettingsWrite(SettingsApply apply) {
++        if (settingsApply != apply) return;
++        if (draining || !settingsAdmission(apply.context, apply.owner, apply.frame)) {
++            settingsWritten(apply, FieldLogSettings.Outcome.refused);
++            return;
++        }
++        try {
++            new Thread(() -> {
++                FieldLogSettings.Outcome outcome = settingsStore.save(apply.write);
++                settingsHandler.post(() -> settingsWritten(apply, outcome));
++            }, "FieldLog settings commit").start();
++        } catch (RuntimeException | OutOfMemoryError unavailable) {
++            settingsWritten(apply, FieldLogSettings.Outcome.refused);
++        }
++    }
++
++    private void settingsWritten(SettingsApply apply, FieldLogSettings.Outcome outcome) {
++        if (settingsApply != apply) return;
++        apply.outcome = outcome;
++        finishSettingsWhenFocused();
++    }
++
++    private void finishSettingsWhenFocused() {
++        SettingsApply apply = settingsApply;
++        if (apply == null || apply.outcome == null) return;
++        if (apply.outcome == FieldLogSettings.Outcome.uncertain) {
++            // Retain the workspace owner and input gate until the process ends.
++            if (!destroyed && !failed && resumed && root.hasWindowFocus() && !isFinishing())
++                showSettingsRecovery("FieldLog could not confirm the settings save. Force stop and reopen FieldLog to recover.");
++            return;
++        }
++        if (destroyed) {
++            settingsApply = null;
++            closeSurface();
++            return;
++        }
++        if (!resumed || !root.hasWindowFocus() || isFinishing()) return;
++        settingsApply = null;
++        if (apply.outcome == FieldLogSettings.Outcome.refused) {
++            if (PublicBridge.refuseSettings(apply.context, apply.owner, apply.write.ticket().getBytes(StandardCharsets.US_ASCII)) != 0)
++                showSettingsRecovery("FieldLog could not finish applying settings. Close and open FieldLog again.");
++            return;
++        }
++        // The write is confirmed. The bridge and event drain have both returned.
++        // Keep workspaceOwner and never resubmit a close with an uncertain result.
++        if (retireWorkspace()) recreate();
++        else showSettingsRecovery("Settings were saved, but FieldLog could not close the workspace. Close and open FieldLog again.");
++    }
++
++    private void showSettingsRecovery(String message) {
++        failed = true;
++        new android.app.AlertDialog.Builder(this)
++            .setTitle("Settings & Help").setMessage(message).setCancelable(false)
++            .setPositiveButton("Back", (dialog, which) -> finish()).show();
++    }
++
+@@ -737 +937 @@ public final class PublicActivity extends Activity {
+-            closeSurface();
++            if (!retireWorkspace()) return PublicBridge.MAP_UNCERTAIN;
+@@ -764,0 +965,2 @@ public final class PublicActivity extends Activity {
++        reconcileReport(publishedReport);
++        if (settingsApply != null) settingsHandler.post(this::finishSettingsWhenFocused);
+@@ -774,0 +977,2 @@ public final class PublicActivity extends Activity {
++            reconcileReport(publishedReport);
++            if (settingsApply != null) settingsHandler.post(this::finishSettingsWhenFocused);
+@@ -811 +1015,3 @@ public final class PublicActivity extends Activity {
+-        if (checklist == null) closeSurface();
++        if (settingsApply != null) {
++            if (settingsApply.outcome != null) finishSettingsWhenFocused();
++        } else if (checklist == null) closeSurface();
+@@ -815 +1021,5 @@ public final class PublicActivity extends Activity {
+-    private void closeSurface() {
++    private void closeSurface() { retireWorkspace(); }
++
++    private boolean retireWorkspace() {
++        if (workspaceCloseAttempted) return workspaceOwner != this;
++        workspaceCloseAttempted = true;
+@@ -817,3 +1027,12 @@ public final class PublicActivity extends Activity {
+-        if (!closed) failed = true;
+-        if (surface != null) surface.close();
+-        if (closed && workspaceOwner == this) workspaceOwner = null;
++        try {
++            if (surface != null) surface.close();
++        } catch (RuntimeException | Error cleanupFailure) {
++            closed = false;
++        }
++        if (closed) {
++            context = 0;
++            if (workspaceOwner == this) workspaceOwner = null;
++        } else {
++            failed = true;
++        }
++        return closed;
+diff --git a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
+index b6e63e677ed04d5e1c71d3b5c6cf17a0532241bf..2978696ad074d70ef4b2e7c9ae7a7ca1985ee91e 100644
+--- a/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
++++ b/Integrations/GeneratedReport/Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java
+@@ -20,2 +20,2 @@ public final class PublicBridge {
+-            return openNative(receiver, profile, canonical.getPath().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+-        } catch (IOException error) {
++            return openNative(receiver, profile, canonical.getPath().getBytes(java.nio.charset.StandardCharsets.UTF_8), receiver.settingsEnvironment());
++        } catch (IOException | org.json.JSONException error) {
+@@ -35 +35 @@ public final class PublicBridge {
+-    private static native long openNative(PublicActivity receiver, String profile, byte[] directory);
++    private static native long openNative(PublicActivity receiver, String profile, byte[] directory, byte[] settings);
+@@ -36,0 +37,10 @@ public final class PublicBridge {
++    static int refuseSettings(long context, byte[] owner, byte[] ticket) {
++        requireMain();
++        return refuseSettingsNative(context, owner, ticket);
++    }
++    private static native int refuseSettingsNative(long context, byte[] owner, byte[] ticket);
++    static int releaseSettingsReportHandoff(long context) {
++        requireMain();
++        return releaseSettingsReportHandoffNative(context);
++    }
++    private static native int releaseSettingsReportHandoffNative(long context);
+@@ -286 +296 @@ static final class ReportFiles {
+-        if (active!=null && now>=active.expires) revoke(active.token);
++        expire(now);
+@@ -289,0 +300,8 @@ static final class ReportFiles {
++    static synchronized boolean isLive(Entry entry, long now) {
++        if (entry == null || active != entry) return false;
++        expire(now);
++        return active == entry;
++    }
++    private static void expire(long now) {
++        if (active != null && now >= active.expires) revoke(active);
++    }
+@@ -300,2 +318,4 @@ static final class ReportFiles {
+-        if (active==null || !active.token.equals(value)) return;
+-        Entry entry=active;
++        if (active != null && active.token.equals(value)) revoke(active);
++    }
++    static synchronized void revoke(Entry entry) {
++        if (entry == null || active != entry) return;
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+index 41d7733145a644eaf60fb223fa6b55ad9838d86a..253e1ccfdbc0c962df067ca2d0d58606f4d545a1 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/NativeEntry.swift
+@@ -14,0 +15 @@ private typealias SurfaceCall = @convention(c) @Sendable (Int64, Int32, UnsafePo
++    private(set) var settingsRevision: UInt64?
+@@ -37 +38,11 @@ private typealias SurfaceCall = @convention(c) @Sendable (Int64, Int32, UnsafePo
+-        try call(1, frame.owner, frame.packet, frame.appearanceDescriptorV2)
++        let settings = frame.snapshot.document.root.id == "settings.screen"
++        try call(settings ? 6 : 1, frame.owner, frame.packet, frame.appearanceDescriptorV2)
++        settingsRevision = settings ? frame.snapshot.document.revision : nil
++    }
++    func requestSettingsWrite(_ write: AndroidSettingsWrite, owner: UUID) -> Bool {
++        let token = Data(owner.uuidString.utf8)
++        let packet = write.packet
++        return token.withUnsafeBytes { o in packet.withUnsafeBytes { p in
++            callback(context, 5, o.bindMemory(to: UInt8.self).baseAddress, o.count,
++                p.bindMemory(to: UInt8.self).baseAddress, p.count, nil, 0) == 0
++        } }
+@@ -86,2 +97,3 @@ private let replies = Replies()
+-            let value: ReportShareResult = result == 0 ? .closed : result == 1 ? .opened : .unavailable
+-            _ = app.presentation.completeReport(requestID: uuid, result: value)
++            let value: ReportShareResult = (result == 0 || result == 3) ? .closed : result == 1 ? .opened : .unavailable
++            // 3 and 4 carry the same terminal result with Android's share handoff still held.
++            _ = app.presentation.completeReport(requestID: uuid, result: value, settingsHandoffHeld: result >= 3)
+@@ -145 +157,4 @@ private let replies = Replies()
+-                let application = try await PublicAndroidApplication(surface: surface, selectedProfile: profile, directory: URL(fileURLWithPath: path, isDirectory: true))
++                let settings = event.isEmpty ? AndroidSettingsEnvironment() :
++                    try JSONDecoder().decode(AndroidSettingsEnvironment.self, from: event)
++                let application = try await PublicAndroidApplication(surface: surface, selectedProfile: profile,
++                    directory: URL(fileURLWithPath: path, isDirectory: true), settings: settings)
+@@ -158,0 +174,8 @@ private let replies = Replies()
++                if let write = application.presentation.pendingSettingsWrite {
++                    let current = application.host.owner == token && application.host.pendingFrame == nil
++                        && surface.settingsRevision == write.revision && application.presentation.settingsWriteIsCurrent(write)
++                    if !current || !surface.requestSettingsWrite(write, owner: token) {
++                        try application.presentation.refuseSettingsWrite(write.id)
++                        try await application.settle()
++                    }
++                }
+@@ -177,0 +201,12 @@ private let replies = Replies()
++            case 5:
++                guard let (application, surface) = values[id], !surface.failure,
++                      let current = application.host.owner, Data(current.uuidString.utf8) == owner,
++                      application.host.pendingFrame == nil, let revision = surface.settingsRevision,
++                      let write = application.presentation.pendingSettingsWrite, write.revision == revision,
++                      application.presentation.snapshot.document.revision == revision,
++                      Data(write.id.uuidString.utf8) == event else { throw PublicHostError.context }
++                try application.presentation.refuseSettingsWrite(write.id)
++                try await application.settle()
++            case 6:
++                guard let (application, surface) = values[id], !surface.failure else { throw PublicHostError.context }
++                if try application.presentation.releaseSettingsReportHandoff() { try await application.settle() }
+@@ -197,2 +232,5 @@ public func publicAndroidSubmit(_ context: Int64, _ operation: Int32,
+-    guard context > 0, (0...4).contains(operation), (0...64).contains(profileCount),
+-          (operation < 3 || (profileCount == 0 && ownerCount == 0 && eventCount == 0)),
++    guard context > 0, (0...6).contains(operation), (0...64).contains(profileCount),
++          (operation < 3 || profileCount == 0),
++          (![3, 4, 6].contains(operation) || (ownerCount == 0 && eventCount == 0)),
++          (operation != 0 || (ownerCount == 0 && eventCount <= 2048)),
++          (operation != 5 || (ownerCount == 36 && eventCount == 36)),
+@@ -237 +275 @@ public func fieldlogAndroidReportSubmit(_ context: Int64, _ token: UnsafePointer
+-    guard context > 0, (-1...2).contains(result), count == (result == -1 ? 0 : 36),
++    guard context > 0, (-1...4).contains(result), count == (result == -1 ? 0 : 36),
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index b9a93f9347b9777b4f502b51a95739014abcc077..4411aa187c4406b070f56e916e13f40f173d4169 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -223,0 +224,3 @@ private struct QueueSyncView {
++    private let settingsEnvironment: AndroidSettingsEnvironment
++    private var settingsScreen: AndroidSettingsScreen?
++    private var settingsReportHandoffHeld = false
+@@ -311,0 +315,4 @@ private struct QueueSyncView {
++        try await self.init(directory: directory, settings: .init())
++    }
++
++    convenience init(directory: URL, settings: AndroidSettingsEnvironment) async throws {
+@@ -314 +321 @@ private struct QueueSyncView {
+-        try await self.init(repository: repository, syncConfiguration: QueueSyncConfiguration.read(from: folder))
++        try await self.init(repository: repository, syncConfiguration: QueueSyncConfiguration.read(from: folder), settings: settings)
+@@ -318 +325 @@ private struct QueueSyncView {
+-        try await self.init(repository: repository, syncConfiguration: nil)
++        try await self.init(repository: repository, syncConfiguration: nil, settings: .init())
+@@ -321 +328 @@ private struct QueueSyncView {
+-    private init(repository: WorkspaceRepository, syncConfiguration: QueueSyncConfiguration?) async throws {
++    private init(repository: WorkspaceRepository, syncConfiguration: QueueSyncConfiguration?, settings: AndroidSettingsEnvironment) async throws {
+@@ -334 +341 @@ private struct QueueSyncView {
+-            try reconciler.apply(Self.document(editor.state, workspace: workspace, project: projectID, queue: false, taskPage: 0, queuePage: 0, busy: false, feedback: nil, failure: nil, revision: 1))
++            try reconciler.apply(Self.document(editor.state, workspace: workspace, project: projectID, queue: false, taskPage: 0, queuePage: 0, busy: false, feedback: nil, failure: nil, revision: 1, settingsAvailable: true))
+@@ -336,0 +344 @@ private struct QueueSyncView {
++            self.settingsEnvironment = settings
+@@ -444,0 +453,4 @@ private struct QueueSyncView {
++        if let settingsScreen {
++            try routeSettings(actions, screen: settingsScreen)
++            return
++        }
+@@ -462,0 +475,5 @@ private struct QueueSyncView {
++            if action.nodeID == "workspace.settings", action.actionID == "workspace.settings" {
++                guard settingsSettled(state, workspace: workspace) else { throw PublicHostError.action }
++                try showSettings(AndroidSettingsScreen(draft: settingsEnvironment.preferences))
++                return
++            }
+@@ -536,2 +553,88 @@ private struct QueueSyncView {
+-    private func hasUnsavedProjectInput(in workspace: Workspace) -> Bool {
+-        if !state.saved && (!state.title.isEmpty || !state.responsible.isEmpty) { return true }
++    private func settingsSettled(_ task: TaskEditorState, workspace: Workspace) -> Bool {
++        !showingEntries && !showingQueue && projectPicker == nil && siteMapRoute == nil
++            && settingsWorkSettled(task, workspace: workspace)
++    }
++
++    private func settingsWorkSettled(_ task: TaskEditorState, workspace: Workspace) -> Bool {
++        #if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++        guard signedEntryCommit == nil else { return false }
++        #endif
++        return !closed && !task.saving && entryState?.saving != true && !changingWorkspace
++            && !photoSelectionPending && !photoReserved && !photoApplying && photoCompletion == nil
++            && !reportSharePending && queueSend == nil && queueSync.transfer == nil
++            && !hasUnsavedProjectInput(in: workspace, task: task)
++    }
++
++    var pendingSettingsWrite: AndroidSettingsWrite? { settingsScreen?.pending }
++
++    func settingsWriteIsCurrent(_ write: AndroidSettingsWrite) -> Bool {
++        !settingsReportHandoffHeld && settingsSettled(state, workspace: workspace)
++            && snapshot.document.revision == write.revision
++            && pendingSettingsWrite?.id == write.id
++    }
++
++    func refuseSettingsWrite(_ ticket: UUID) throws {
++        guard !closed, var screen = settingsScreen, screen.pending?.id == ticket else { throw PublicHostError.action }
++        screen.phase = .refused
++        try showSettings(screen)
++    }
++
++    private func routeSettings(_ actions: [RoutedUIAction], screen: AndroidSettingsScreen) throws {
++        guard screen.pending == nil, actions.count == 1, let action = actions.first,
++              action.event == .activate, action.value == .null, action.nodeID == action.actionID else {
++            throw PublicHostError.action
++        }
++        if action.nodeID == "settings.back" {
++            let (next, frame) = try render(state, includeSettings: false, feedback: changeFeedback, failure: changeFailure)
++            settingsScreen = nil
++            reconciler = next; snapshot = frame; publish()
++            return
++        }
++        guard settingsSettled(state, workspace: workspace) else {
++            var refused = screen
++            refused.phase = .refused
++            try showSettings(refused)
++            return
++        }
++        var updated = screen
++        updated.phase = .editing
++        let reset = action.nodeID == "settings.reset"
++        if reset || action.nodeID == "settings.apply" {
++            guard !settingsReportHandoffHeld, settingsEnvironment.status != .unavailable,
++                  reset || (settingsEnvironment.status == .ready && updated.draft != settingsEnvironment.preferences),
++                  snapshot.document.revision < UInt64.max else { throw PublicHostError.action }
++            updated.phase = .saving(AndroidSettingsWrite(preferences: reset ? .init() : updated.draft,
++                reset: reset, revision: snapshot.document.revision + 1))
++        } else {
++            guard settingsEnvironment.status == .ready else {
++                throw PublicHostError.action
++            }
++            if action.nodeID == "settings.text.larger" || action.nodeID == "settings.text.system" {
++                updated.draft.largerText = action.nodeID == "settings.text.larger"
++            } else if let choice = AndroidPreferences.Appearance.allCases.first(where: {
++                action.nodeID == "settings.appearance." + $0.rawValue
++            }) {
++                updated.draft.appearance = choice
++            } else if let choice = AndroidPreferences.RegionalFormats.allCases.first(where: {
++                action.nodeID == "settings.formats." + $0.rawValue
++            }) {
++                updated.draft.regionalFormats = choice
++            } else {
++                throw PublicHostError.action
++            }
++        }
++        try showSettings(updated)
++    }
++
++    private func showSettings(_ screen: AndroidSettingsScreen) throws {
++        guard snapshot.document.revision < UInt64.max else { throw PublicHostError.bounds }
++        let document = screen.document(environment: settingsEnvironment,
++            reportHandoffHeld: settingsReportHandoffHeld, revision: snapshot.document.revision + 1)
++        (reconciler, snapshot) = try Self.validatedFrame(document, from: reconciler)
++        settingsScreen = screen
++        publish()
++    }
++
++    private func hasUnsavedProjectInput(in workspace: Workspace, task: TaskEditorState? = nil) -> Bool {
++        let task = task ?? state
++        if !task.saved && (!task.title.isEmpty || !task.responsible.isEmpty) { return true }
+@@ -608 +711 @@ private struct QueueSyncView {
+-            revision: busy.1.document.revision + 1)
++            revision: busy.1.document.revision + 1, settingsAvailable: true, settings: settingsEnvironment)
+@@ -776,0 +880,5 @@ private struct QueueSyncView {
++        completeReport(requestID: requestID, result: result, settingsHandoffHeld: settingsReportHandoffHeld)
++    }
++
++    @discardableResult
++    func completeReport(requestID: UUID, result: ReportShareResult, settingsHandoffHeld: Bool) -> Bool {
+@@ -785,0 +894 @@ private struct QueueSyncView {
++            settingsReportHandoffHeld = settingsHandoffHeld
+@@ -788,0 +898 @@ private struct QueueSyncView {
++            settingsReportHandoffHeld = settingsHandoffHeld
+@@ -794,0 +905,8 @@ private struct QueueSyncView {
++    func releaseSettingsReportHandoff() throws -> Bool {
++        guard settingsReportHandoffHeld else { return false }
++        settingsReportHandoffHeld = false
++        guard let settingsScreen else { return false }
++        try showSettings(settingsScreen)
++        return true
++    }
++
+@@ -1051 +1169,2 @@ private struct QueueSyncView {
+-    private nonisolated static func entryDocument(_ state: EntryEditorState, workspace: Workspace, project: UUID, entryPage: Int, draftPage: Int, revision: UInt64, dateInput: String?, photoPending: Bool = false, photoMessage: String? = nil, photoBusy: Bool = false, reportPending: Bool = false, reportMessage: String? = nil) -> UIDocument {
++    private nonisolated static func entryDocument(_ state: EntryEditorState, workspace: Workspace, project: UUID, entryPage: Int, draftPage: Int, revision: UInt64, dateInput: String?, photoPending: Bool = false, photoMessage: String? = nil, photoBusy: Bool = false, reportPending: Bool = false, reportMessage: String? = nil, settings: AndroidSettingsEnvironment = .init()) -> UIDocument {
++        let dateFormatter = settings.dateFormatter(for: settings.preferences.regionalFormats)
+@@ -1118 +1237 @@ private struct QueueSyncView {
+-                        MixerUI.Text("entry." + entry.id.uuidString.lowercased(), entry.title + " · " + entry.category.rawValue + " · " + entry.occurredAt.formatted(.iso8601))
++                        MixerUI.Text("entry." + entry.id.uuidString.lowercased(), entry.title + " · " + entry.category.rawValue + " · " + dateFormatter.string(from: entry.occurredAt))
+@@ -1211,0 +1331 @@ private struct QueueSyncView {
++        if settingsScreen != nil { return false }
+@@ -1322 +1442 @@ private struct QueueSyncView {
+-    private func render(_ state: TaskEditorState, workspace: Workspace? = nil, queue: Bool? = nil, entries: Bool? = nil, entry: EntryEditorState? = nil, dateInput: String? = nil, entryPage: Int? = nil, draftPage: Int? = nil, taskPage: Int? = nil, queuePage: Int? = nil, busy: Bool? = nil, includePicker: Bool = true, feedback: String?, failure: String?) throws -> (UIReconciler, UIRenderSnapshot) {
++    private func render(_ state: TaskEditorState, workspace: Workspace? = nil, queue: Bool? = nil, entries: Bool? = nil, entry: EntryEditorState? = nil, dateInput: String? = nil, entryPage: Int? = nil, draftPage: Int? = nil, taskPage: Int? = nil, queuePage: Int? = nil, busy: Bool? = nil, includePicker: Bool = true, includeSettings: Bool = true, feedback: String?, failure: String?) throws -> (UIReconciler, UIRenderSnapshot) {
+@@ -1323,0 +1444,4 @@ private struct QueueSyncView {
++        if includeSettings, let settingsScreen {
++            return try Self.validatedFrame(settingsScreen.document(environment: settingsEnvironment, reportHandoffHeld: settingsReportHandoffHeld,
++                revision: snapshot.document.revision + 1), from: reconciler)
++        }
+@@ -1331 +1455,3 @@ private struct QueueSyncView {
+-        let document = Self.document(state, workspace: renderedWorkspace, project: projectID, queue: queue ?? showingQueue, taskPage: taskPage ?? self.taskPage, queuePage: queuePage ?? self.queuePage, busy: busy ?? changingWorkspace, feedback: feedback, failure: failure, revision: snapshot.document.revision + 1, entries: entries ?? showingEntries, entry: renderedEntry, entryPage: entryPage ?? self.entryPage, draftPage: draftPage ?? self.draftPage, dateInput: entry != nil ? dateInput : entryDateInput.flatMap { $0.draftID == entryState?.draft.id ? $0.text : nil }, photoPending: photoRequest != nil, photoMessage: photoMessage, photoBusy: photoApplying, reportPending: reportPreparing || reportRequest != nil, reportMessage: reportMessage, queueSync: sync)
++        let document = Self.document(state, workspace: renderedWorkspace, project: projectID, queue: queue ?? showingQueue, taskPage: taskPage ?? self.taskPage, queuePage: queuePage ?? self.queuePage, busy: busy ?? changingWorkspace, feedback: feedback, failure: failure, revision: snapshot.document.revision + 1, entries: entries ?? showingEntries, entry: renderedEntry, entryPage: entryPage ?? self.entryPage, draftPage: draftPage ?? self.draftPage, dateInput: entry != nil ? dateInput : entryDateInput.flatMap { $0.draftID == entryState?.draft.id ? $0.text : nil }, photoPending: photoRequest != nil, photoMessage: photoMessage, photoBusy: photoApplying, reportPending: reportPreparing || reportRequest != nil, reportMessage: reportMessage, queueSync: sync,
++            settingsAvailable: !(busy ?? changingWorkspace) && settingsWorkSettled(state, workspace: renderedWorkspace),
++            settings: settingsEnvironment)
+@@ -1416 +1542 @@ private struct QueueSyncView {
+-    private nonisolated static func document(_ state: TaskEditorState, workspace: Workspace, project: UUID, queue: Bool, taskPage: Int, queuePage: Int, busy: Bool, feedback: String?, failure: String?, revision: UInt64, entries: Bool = false, entry: EntryEditorState? = nil, entryPage: Int = 0, draftPage: Int = 0, dateInput: String? = nil, photoPending: Bool = false, photoMessage: String? = nil, photoBusy: Bool = false, reportPending: Bool = false, reportMessage: String? = nil, queueSync: QueueSyncView = .init()) -> UIDocument {
++    private nonisolated static func document(_ state: TaskEditorState, workspace: Workspace, project: UUID, queue: Bool, taskPage: Int, queuePage: Int, busy: Bool, feedback: String?, failure: String?, revision: UInt64, entries: Bool = false, entry: EntryEditorState? = nil, entryPage: Int = 0, draftPage: Int = 0, dateInput: String? = nil, photoPending: Bool = false, photoMessage: String? = nil, photoBusy: Bool = false, reportPending: Bool = false, reportMessage: String? = nil, queueSync: QueueSyncView = .init(), settingsAvailable: Bool = false, settings: AndroidSettingsEnvironment = .init()) -> UIDocument {
+@@ -1420 +1546 @@ private struct QueueSyncView {
+-                                 photoMessage: photoMessage, photoBusy: photoBusy, reportPending: reportPending)
++                                 photoMessage: photoMessage, photoBusy: photoBusy, reportPending: reportPending, settings: settings)
+@@ -1482,0 +1609,2 @@ private struct QueueSyncView {
++                        MixerUI.Button("workspace.settings", "Settings & Help", action: "workspace.settings")
++                            .accessibilityIdentifier("workspace-settings").disabled(!settingsAvailable)
+@@ -1544 +1672,6 @@ private struct QueueSyncView {
+-    public init(surface: any AndroidUINativeSurface, selectedProfile: String, directory: URL) async throws {
++    public convenience init(surface: any AndroidUINativeSurface, selectedProfile: String, directory: URL) async throws {
++        try await self.init(surface: surface, selectedProfile: selectedProfile, directory: directory, settings: .init())
++    }
++
++    init(surface: any AndroidUINativeSurface, selectedProfile: String, directory: URL,
++         settings: AndroidSettingsEnvironment) async throws {
+@@ -1547 +1680 @@ private struct QueueSyncView {
+-        presentation = try await ProjectPresentation(directory: directory)
++        presentation = try await ProjectPresentation(directory: directory, settings: settings)
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/Settings.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/Settings.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..cb1fbdab3d2774f0a6c08c5bd72d0ed5d281c7bd
+--- /dev/null
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/Settings.swift
+@@ -0,0 +1,165 @@
++import Foundation
++import MixerUI
++
++struct AndroidPreferences: Equatable, Decodable, Sendable {
++    enum Appearance: String, CaseIterable, Decodable, Sendable {
++        case system, light, dark
++    }
++
++    enum RegionalFormats: String, CaseIterable, Decodable, Sendable {
++        case system, us = "en-US", france = "fr-FR"
++
++        var label: String {
++            switch self {
++            case .system: "System"
++            case .us: "English (United States)"
++            case .france: "French (France)"
++            }
++        }
++    }
++
++    var appearance: Appearance = .system
++    var regionalFormats: RegionalFormats = .system
++    var largerText = false
++
++    var record: String {
++        "1\nappearance=\(appearance.rawValue)\nregionalFormats=\(regionalFormats.rawValue)\nlargerText=\(largerText)"
++    }
++}
++
++struct AndroidSettingsEnvironment: Decodable, Sendable {
++    enum LoadStatus: String, Decodable {
++        case ready, malformed, newer, unavailable
++
++        var message: String? {
++            switch self {
++            case .ready: nil
++            case .malformed: "Settings could not be read. Reset to replace them."
++            case .newer: "These settings use a different version. Reset to replace them."
++            case .unavailable: "Settings storage is unavailable. FieldLog is using defaults."
++            }
++        }
++    }
++
++    struct Diagnostics: Decodable, Sendable {
++        var osMajorVersion: Int?
++        var appVersion: String?
++        var buildNumber: UInt64?
++    }
++
++    var preferences = AndroidPreferences()
++    var status: LoadStatus = .ready
++    var deviceLocale = Locale.current.identifier
++    var timeZone = TimeZone.current.identifier
++    var diagnostics = Diagnostics()
++
++    func dateFormatter(for formats: AndroidPreferences.RegionalFormats) -> DateFormatter {
++        let formatter = DateFormatter()
++        formatter.locale = Locale(identifier: formats == .system ? deviceLocale : formats.rawValue)
++        formatter.timeZone = TimeZone(identifier: timeZone) ?? .current
++        formatter.dateStyle = .medium
++        formatter.timeStyle = .none
++        return formatter
++    }
++}
++
++struct AndroidSettingsScreen {
++    enum Phase {
++        case editing, saving(AndroidSettingsWrite), refused
++    }
++
++    var draft: AndroidPreferences
++    var phase = Phase.editing
++
++    var pending: AndroidSettingsWrite? {
++        if case .saving(let write) = phase { return write }
++        return nil
++    }
++
++    func document(environment: AndroidSettingsEnvironment, reportHandoffHeld: Bool, revision: UInt64) -> UIDocument {
++        let busy = pending != nil
++        let writable = !busy && !reportHandoffHeld && environment.status != .unavailable
++        let editable = !busy && environment.status == .ready
++        let date = environment.dateFormatter(for: draft.regionalFormats)
++            .string(from: Date(timeIntervalSince1970: 1_712_318_400))
++        let diagnostics = environment.diagnostics
++        return MixerUI.Navigation("settings.screen", title: "Settings & Help") {
++            MixerUI.List("settings.list") {
++                MixerUI.Section("settings.actions") {
++                    if case .refused = phase {
++                        MixerUI.Text("settings.status", "Settings could not be saved. Your previous settings are still in use.")
++                            .accessibilityIdentifier("settings-status")
++                    } else if busy {
++                        MixerUI.Text("settings.status", "Saving settings and reopening FieldLog…")
++                            .accessibilityIdentifier("settings-status")
++                    }
++                    MixerUI.Button("settings.back", "Back", action: "settings.back")
++                        .accessibilityIdentifier("settings-back").disabled(busy)
++                }
++                MixerUI.Section("settings.appearance", title: "Appearance") {
++                    for choice in AndroidPreferences.Appearance.allCases {
++                        Self.choice("settings.appearance." + choice.rawValue, choice.rawValue.capitalized,
++                                    selected: draft.appearance == choice, enabled: editable)
++                    }
++                }
++                MixerUI.Section("settings.formats", title: "Regional formats") {
++                    for choice in AndroidPreferences.RegionalFormats.allCases {
++                        Self.choice("settings.formats." + choice.rawValue, choice.label,
++                                    selected: draft.regionalFormats == choice, enabled: editable)
++                    }
++                    MixerUI.Text("settings.dateSample", "Sample date: " + date)
++                        .accessibilityIdentifier("settings-date-sample")
++                }
++                MixerUI.Section("settings.text", title: "Text size") {
++                    Self.choice("settings.text.system", "System", selected: !draft.largerText, enabled: editable)
++                    Self.choice("settings.text.larger", "Larger", selected: draft.largerText, enabled: editable)
++                    MixerUI.Text("settings.text.help", "Larger sets a minimum text size and respects a larger Android setting.")
++                }
++                MixerUI.Section("settings.save") {
++                    if let message = environment.status.message {
++                        MixerUI.Text("settings.loadStatus", message).accessibilityIdentifier("settings-load-status")
++                    }
++                    if reportHandoffHeld {
++                        MixerUI.Text("settings.reportHold", "Apply and Reset are temporarily paused while Android finishes the report handoff.")
++                            .accessibilityIdentifier("settings-report-hold")
++                    }
++                    MixerUI.Button("settings.apply", "Apply and reopen", action: "settings.apply")
++                        .accessibilityIdentifier("settings-apply")
++                        .disabled(!writable || !editable || draft == environment.preferences)
++                    MixerUI.Button("settings.reset", "Reset and reopen", action: "settings.reset")
++                        .accessibilityIdentifier("settings-reset").disabled(!writable)
++                    MixerUI.Text("settings.reopen.help", "Apply or reset reopens FieldLog. Settings apply only to this installation.")
++                }
++                MixerUI.Section("settings.help", title: "Offline help") {
++                    MixerUI.Text("settings.help.entries", "Save drafts and commit entries on this device. To attach a photo, use Select photo or Capture photo in Entries.")
++                    MixerUI.Text("settings.help.queue", "Check On device for pending changes. For projects with sending enabled, eligible entries can be sent when the configured service is reachable.")
++                    MixerUI.Text("settings.help.map", "Site map can show the site and a saved pin offline. Showing your position requires location permission.")
++                    MixerUI.Text("settings.help.report", "Share project report exports a text report of saved local records. It counts attached photos and leaves the image files on the device.")
++                }
++                MixerUI.Section("settings.diagnostics", title: "Support diagnostics") {
++                    MixerUI.Text("settings.diagnostics.schemaVersion", "Schema version: 1")
++                    MixerUI.Text("settings.diagnostics.platform", "Platform: Android")
++                    MixerUI.Text("settings.diagnostics.osMajorVersion", "OS major version: " + (diagnostics.osMajorVersion.map(String.init) ?? "Unavailable"))
++                    MixerUI.Text("settings.diagnostics.appVersion", "App version: " + (diagnostics.appVersion ?? "Unavailable"))
++                    MixerUI.Text("settings.diagnostics.buildNumber", "Build number: " + (diagnostics.buildNumber.map(String.init) ?? "Unavailable"))
++                }
++            }
++        }.document(revision: revision)
++    }
++
++    private static func choice(_ id: String, _ label: String, selected: Bool, enabled: Bool) -> some MixerView {
++        MixerUI.Button(id, selected ? label + " (selected)" : label, action: id)
++            .accessibilityIdentifier(id).disabled(!enabled)
++    }
++}
++
++struct AndroidSettingsWrite {
++    let id = UUID()
++    let preferences: AndroidPreferences
++    let reset: Bool
++    let revision: UInt64
++
++    var packet: Data {
++        Data("\(id.uuidString)\n\(reset ? "reset" : "apply")\n\(preferences.record)".utf8)
++    }
++}
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
+index fd7e41502eb2cb41f971f3036e8739f399f1351f..c340d8f4acc27f37ec72ab029fdb3a689e2010ce 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
+@@ -27,0 +28,3 @@ private struct Packet {
++    static var settingsWrites: [Int64: [Data]] = [:]
++    static var refuseSettings = Set<Int64>()
++    static var reportTokens: [Int64: Data] = [:]
+@@ -34 +37 @@ private struct Packet {
+-        case 1:
++        case 1, 6:
+@@ -40,0 +44,7 @@ private struct Packet {
++        case 5:
++            guard owners[context] == owner,
++                  let frame = frames[context]?.last,
++                  (try? Packet.decode(frame.packet).document.root.id) == "settings.screen",
++                  appearance.isEmpty else { return 1 }
++            settingsWrites[context, default: []].append(packet)
++            return refuseSettings.contains(context) ? 1 : 0
+@@ -52,0 +63,16 @@ private let callback: @convention(c) @Sendable (Int64, Int32, UnsafePointer<UInt
++private let reportCallback: @convention(c) @Sendable (Int64, UnsafePointer<UInt8>?, Int, UnsafePointer<UInt8>?, Int, Int, Int32) -> Int32 = { context, token, count, _, _, _, _ in
++    guard let token, count == 36 else { return 1 }
++    let data = Data(bytes: token, count: count)
++    return MainActor.assumeIsolated {
++        Captures.reportTokens[context] = data
++        return 0
++    }
++}
++
++@MainActor private func report(_ context: Int64, _ result: Int32, token: Data = Data()) throws -> Int32 {
++    let accepted = token.withUnsafeBytes {
++        fieldlogAndroidReportSubmit(context, $0.bindMemory(to: UInt8.self).baseAddress, $0.count, result, reportCallback)
++    }
++    return try poll(context, accepted: accepted)
++}
++
+@@ -62,0 +89,4 @@ private let callback: @convention(c) @Sendable (Int64, Int32, UnsafePointer<UInt
++    return try poll(context, accepted: accepted)
++}
++
++@MainActor private func poll(_ context: Int64, accepted: Int32) throws -> Int32 {
+@@ -83,0 +114,159 @@ final class FieldLogGeneratedHostTests: XCTestCase {
++    @MainActor func testSettingsFailureResetAndColdOwnerHandoff() throws {
++        let dir = URL(fileURLWithPath: try XCTUnwrap(ProcessInfo.processInfo.environment["FIELDLOG_WORKSPACE"]))
++            .appendingPathComponent("settings-handoff")
++        let old: Int64 = 741, successor: Int64 = 742
++        func boot(_ status: String, _ appearance: String, _ region: String, _ larger: Bool) throws -> Data {
++            try JSONSerialization.data(withJSONObject: [
++                "preferences": ["appearance": appearance, "regionalFormats": region, "largerText": larger],
++                "status": status, "deviceLocale": "en-US", "timeZone": "UTC",
++                "diagnostics": ["osMajorVersion": 16, "appVersion": "0.1.0", "buildNumber": 1],
++            ])
++        }
++        func latest(_ context: Int64) throws -> Packet {
++            try Packet.decode(XCTUnwrap(Captures.frames[context]?.last).packet)
++        }
++        func send(_ context: Int64, _ id: String, expected: Int32 = 1) throws {
++            let owner = try XCTUnwrap(Captures.owners[context])
++            let events = [try latest(context).event(id, .activate)]
++            XCTAssertEqual(try request(context, 1, owner: owner, event: JSONEncoder().encode(events)), expected, id)
++        }
++        func enabled(_ context: Int64, _ id: String) throws -> Bool {
++            let node = try XCTUnwrap(fieldLogNode(id, in: latest(context).document.root))
++            return node.properties["disabled"] != .bool(true)
++        }
++
++        let defaultBoot = try boot("ready", "system", "system", false)
++        XCTAssertEqual(try request(old, 0, directory: dir, event: defaultBoot), 1)
++        let owner = try XCTUnwrap(Captures.owners[old])
++        try send(old, "workspace.entries")
++        let fields = try latest(old)
++        XCTAssertNil(fieldLogNode("workspace-settings", in: fields.document.root))
++        let entry = [try fields.event("entry-title", .textChange, .string("Inspection")),
++                     try fields.event("entry-note", .textChange, .string("Keep this note")),
++                     try fields.event("entry-date", .textChange, .string("2024-02-29T19:30:00+05:30"))]
++        XCTAssertEqual(try request(old, 1, owner: owner, event: JSONEncoder().encode(entry)), 1)
++        try send(old, "workspace.tasks")
++        XCTAssertFalse(try enabled(old, "workspace-settings"))
++        try send(old, "workspace.entries")
++        try send(old, "entry.commit")
++        let stored = try XCTUnwrap(disk(dir).entries.first)
++        let savedRow = "entry." + stored.id.uuidString.lowercased()
++        let initialDate = try XCTUnwrap(fieldLogNode(savedRow, in: latest(old).document.root)?.properties["text"]?.string)
++        XCTAssertTrue(initialDate.contains("Feb 29, 2024"))
++        try send(old, "workspace.tasks")
++        let bytes = try Data(contentsOf: file(dir))
++
++        let dashboard = try latest(old)
++        let mixed = [try dashboard.event("workspace.settings", .activate), try dashboard.event("workspace.queue", .activate)]
++        XCTAssertEqual(try request(old, 1, owner: owner, event: JSONEncoder().encode(mixed)), 2)
++        XCTAssertEqual(try latest(old).document, dashboard.document)
++        try send(old, "workspace.projects")
++        XCTAssertNil(fieldLogNode("workspace-settings", in: try latest(old).document.root))
++        try send(old, "projects.back")
++        try send(old, "workspace.report")
++        XCTAssertEqual(try report(old, -1), 1)
++        let reportToken = try XCTUnwrap(Captures.reportTokens[old])
++        XCTAssertEqual(try report(old, 1, token: reportToken), 1)
++        XCTAssertEqual(try report(old, 3, token: reportToken), 1)
++        try send(old, "workspace.settings")
++        let settings = try latest(old).document.root
++        let nodes = [settings] + descendants(settings)
++        XCTAssertFalse(nodes.contains { $0.kind == .textField })
++        let support = try XCTUnwrap(fieldLogNode("settings.diagnostics", in: settings))
++        XCTAssertEqual(support.children.map(\.id), [
++            "settings.diagnostics.schemaVersion", "settings.diagnostics.platform", "settings.diagnostics.osMajorVersion",
++            "settings.diagnostics.appVersion", "settings.diagnostics.buildNumber",
++        ])
++        XCTAssertEqual(support.children.compactMap { $0.properties["text"]?.string }, [
++            "Schema version: 1", "Platform: Android", "OS major version: 16", "App version: 0.1.0", "Build number: 1",
++        ])
++        XCTAssertFalse(try enabled(old, "settings.apply"))
++        try send(old, "settings.formats.fr-FR")
++        try send(old, "settings.appearance.dark")
++        try send(old, "settings.text.larger")
++        XCTAssertNotNil(fieldLogNode("settings-report-hold", in: try latest(old).document.root))
++        XCTAssertFalse(try enabled(old, "settings.apply"))
++        XCTAssertFalse(try enabled(old, "settings.reset"))
++        XCTAssertTrue(try enabled(old, "settings.back"))
++        try send(old, "settings.apply", expected: 2)
++        try send(old, "settings.reset", expected: 2)
++        XCTAssertNil(Captures.settingsWrites[old])
++        XCTAssertEqual(try request(old, 6), 1)
++        XCTAssertNil(fieldLogNode("settings-report-hold", in: try latest(old).document.root))
++        XCTAssertTrue(try enabled(old, "settings.apply"), "report expiry keeps the Settings draft")
++        XCTAssertTrue(try enabled(old, "settings.reset"))
++        Captures.refuseSettings.insert(old)
++        try send(old, "settings.apply")
++        XCTAssertTrue(try enabled(old, "settings.back"))
++        XCTAssertNotNil(fieldLogNode("settings-status", in: try latest(old).document.root))
++        Captures.refuseSettings.remove(old)
++        try send(old, "settings.apply")
++        XCTAssertFalse(try enabled(old, "settings.back"))
++        let write = String(decoding: try XCTUnwrap(Captures.settingsWrites[old]?.last), as: UTF8.self)
++        XCTAssertTrue(write.hasSuffix("\napply\n1\nappearance=dark\nregionalFormats=fr-FR\nlargerText=true"))
++        let ticket = Data(write.prefix(36).utf8)
++        XCTAssertEqual(try request(old, 5, owner: Data(UUID().uuidString.utf8), event: ticket), 2)
++        XCTAssertEqual(try request(old, 5, owner: owner, event: Data(UUID().uuidString.utf8)), 2)
++        XCTAssertEqual(try request(old, 5, owner: owner, event: ticket), 1)
++        XCTAssertEqual(try request(old, 5, owner: owner, event: ticket), 2)
++        XCTAssertTrue(try enabled(old, "settings.back"))
++        try send(old, "settings.back")
++        XCTAssertEqual(Captures.owners[old], owner)
++        try send(old, "workspace.settings")
++        try send(old, "settings.formats.fr-FR")
++        try send(old, "settings.appearance.dark")
++        try send(old, "settings.text.larger")
++        try send(old, "settings.apply")
++        XCTAssertFalse(try enabled(old, "settings.back"))
++        let inFlightWrites = Captures.settingsWrites[old]?.count
++        try send(old, "settings.apply", expected: 2)
++        try send(old, "settings.reset", expected: 2)
++        XCTAssertEqual(Captures.settingsWrites[old]?.count, inFlightWrites)
++        XCTAssertEqual(try request(old, 0, directory: dir, event: defaultBoot), 2)
++        XCTAssertEqual(try request(successor, 0, directory: dir, event: defaultBoot), 2)
++        XCTAssertNil(Captures.owners[successor])
++        XCTAssertEqual(try request(old, 2), 1)
++        XCTAssertEqual(Captures.revocations[old], 1)
++        XCTAssertEqual(try request(successor, 0, directory: dir, event: boot("ready", "dark", "fr-FR", true)), 1)
++        XCTAssertNotEqual(Captures.owners[successor], owner)
++        if fieldLogNode("workspace.entries", in: try latest(successor).document.root) != nil {
++            try send(successor, "workspace.entries")
++        }
++        let saved = try XCTUnwrap(disk(dir).entries.first)
++        let row = try XCTUnwrap(fieldLogNode("entry." + saved.id.uuidString.lowercased(), in: latest(successor).document.root))
++        XCTAssertTrue(try XCTUnwrap(row.properties["text"]?.string).contains("29 févr. 2024"))
++        XCTAssertEqual(saved.note, "Keep this note")
++        XCTAssertEqual(try Data(contentsOf: file(dir)), bytes)
++        XCTAssertEqual(try request(successor, 2), 1)
++
++        XCTAssertEqual(try request(successor, 0, directory: dir, event: boot("malformed", "system", "system", false)), 1)
++        if try latest(successor).document.root.id == "entry.screen" {
++            try send(successor, "workspace.tasks")
++        }
++        try send(successor, "workspace.settings")
++        XCTAssertFalse(try enabled(successor, "settings.apply"))
++        XCTAssertFalse(try enabled(successor, "settings.appearance.dark"))
++        XCTAssertTrue(try enabled(successor, "settings.reset"))
++        let writesBeforeMalformedApply = Captures.settingsWrites[successor]?.count ?? 0
++        try send(successor, "settings.apply", expected: 2)
++        XCTAssertEqual(Captures.settingsWrites[successor]?.count ?? 0, writesBeforeMalformedApply)
++        XCTAssertEqual(try request(successor, 2), 1)
++
++        XCTAssertEqual(try request(successor, 0, directory: dir, event: boot("newer", "system", "system", false)), 1)
++        if try latest(successor).document.root.id == "entry.screen" {
++            try send(successor, "workspace.tasks")
++        }
++        try send(successor, "workspace.settings")
++        XCTAssertFalse(try enabled(successor, "settings.apply"))
++        XCTAssertNotNil(fieldLogNode("settings-load-status", in: try latest(successor).document.root))
++        try send(successor, "settings.reset")
++        let reset = String(decoding: try XCTUnwrap(Captures.settingsWrites[successor]?.last), as: UTF8.self)
++        XCTAssertTrue(reset.hasSuffix("\nreset\n1\nappearance=system\nregionalFormats=system\nlargerText=false"))
++        XCTAssertEqual(try request(successor, 2), 1)
++        XCTAssertEqual(try Data(contentsOf: file(dir)), bytes)
++    }
++
++    private func descendants(_ node: UINode) -> [UINode] {
++        node.children + node.children.flatMap(descendants)
++    }
++
+diff --git a/Integrations/GeneratedReport/Tests/SettingsJava/SettingsChecks.java b/Integrations/GeneratedReport/Tests/SettingsJava/SettingsChecks.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..9e6bdbfb86f937a794d5e411f357094999a8f3ff
+--- /dev/null
++++ b/Integrations/GeneratedReport/Tests/SettingsJava/SettingsChecks.java
+@@ -0,0 +1,99 @@
++package dev.fieldlog.generatedr90.androidhost;
++
++import java.nio.charset.StandardCharsets;
++import java.nio.channels.ClosedByInterruptException;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import java.util.concurrent.atomic.AtomicInteger;
++import java.util.concurrent.atomic.AtomicReference;
++
++final class SettingsChecks {
++    private static final String TICKET = "87EF930D-6FF1-4292-87F3-03AE7B012132";
++
++    private static void check(boolean condition, String label) {
++        if (!condition) throw new AssertionError(label);
++    }
++
++    private static FieldLogSettings.Write request(String action, FieldLogSettings value) {
++        return FieldLogSettings.request((TICKET + "\n" + action + "\n" + value.encode()).getBytes(StandardCharsets.UTF_8));
++    }
++
++    public static void main(String[] args) throws Exception {
++        var defaults = FieldLogSettings.DEFAULT;
++        var selected = new FieldLogSettings("dark", "fr-FR", true);
++        check(FieldLogSettings.read(null).value().equals(defaults), "missing defaults");
++        check(FieldLogSettings.read(false).status() == FieldLogSettings.Status.malformed, "wrong stored type");
++        var corrupt = FieldLogSettings.read("1\nappearance=invalid\nregionalFormats=en-US\nlargerText=invalid");
++        check(corrupt.status() == FieldLogSettings.Status.malformed, "malformed status");
++        check(corrupt.value().equals(new FieldLogSettings("system", "en-US", false)), "per-value safe defaults");
++        check(FieldLogSettings.read(selected.encode()).value().equals(selected), "record round-trip");
++        check(defaults.fontScaleOverride(2) == 0 && selected.fontScaleOverride(1) == 1.3f
++            && selected.fontScaleOverride(2) == 2, "font scale floor preserves larger system text");
++        check(request("reset", selected) == null && request("unexpected", defaults) == null, "invalid commands");
++
++        Path directory = Path.of(args[0]);
++        Path file = directory.resolve(FieldLogSettings.FILE);
++        Path staging = file.resolveSibling(file.getFileName() + ".new");
++        var store = new FieldLogSettings.Store(file);
++        check(store.current().value().equals(defaults) && !Files.exists(file), "absent record uses defaults");
++        check(store.save(request("apply", selected)) == FieldLogSettings.Outcome.committed
++            && Files.readString(file).equals(selected.encode()), "first save publishes one record");
++        check(!Files.exists(staging) && new FieldLogSettings.Store(file).current().value().equals(selected),
++            "cold read sees the complete first save");
++
++        for (String raw : new String[] { "37\nunrecognized payload", "1\nappearance=invalid\nregionalFormats=en-US\nlargerText=false" }) {
++            Files.writeString(file, raw);
++            store = new FieldLogSettings.Store(file);
++            check(store.current().status() != FieldLogSettings.Status.ready, "fixture requires explicit Reset");
++            check(store.save(request("apply", selected)) == FieldLogSettings.Outcome.refused
++                && Files.readString(file).equals(raw), "stored bytes survive Apply until explicit Reset");
++            check(store.save(request("reset", defaults)) == FieldLogSettings.Outcome.committed
++                && Files.readString(file).equals(defaults.encode()), "Reset replaces the record");
++        }
++
++        Files.createDirectory(staging);
++        Path obstruction = Files.createFile(staging.resolve("obstruction"));
++        check(store.save(request("apply", selected)) == FieldLogSettings.Outcome.refused
++            && Files.readString(file).equals(defaults.encode()) && store.current().value().equals(defaults),
++            "definite staging failure preserves previous settings on disk and in use");
++        Files.delete(obstruction);
++        Files.delete(staging);
++
++        Thread.currentThread().interrupt();
++        try {
++            check(store.save(request("apply", selected)) == FieldLogSettings.Outcome.refused
++                && Thread.currentThread().isInterrupted() && Files.readString(file).equals(defaults.encode()),
++                "interrupt before replacement settles as refusal without a queued write");
++        } finally {
++            Thread.interrupted();
++        }
++        check(store.save(request("apply", selected)) == FieldLogSettings.Outcome.committed
++            && Files.readString(file).equals(selected.encode()), "definite failure permits retry");
++
++        var syncs = new AtomicInteger();
++        var uncertain = new FieldLogSettings.Store(file, directoryChannel -> {
++            syncs.incrementAndGet();
++            check(Files.readString(file).equals(defaults.encode()), "atomic replacement precedes directory sync");
++            Thread.currentThread().interrupt();
++            throw new ClosedByInterruptException();
++        });
++        var outcome = new AtomicReference<FieldLogSettings.Outcome>();
++        Thread worker = new Thread(() -> outcome.set(uncertain.save(request("reset", defaults))));
++        worker.start();
++        worker.join();
++        check(outcome.get() == FieldLogSettings.Outcome.uncertain
++            && uncertain.current().value().equals(selected), "post-publication interruption retains last confirmed value");
++        check(uncertain.save(request("apply", selected)) == FieldLogSettings.Outcome.uncertain
++            && syncs.get() == 1 && Files.readString(file).equals(defaults.encode()) && !Files.exists(staging),
++            "unknown outcome fences all retries and leaves exactly one complete record");
++        check(new FieldLogSettings.Store(file).current().value().equals(defaults),
++            "cold directory sync settles the visible record");
++
++        Path unreadable = Files.createDirectory(directory.resolve("unreadable"));
++        var unavailable = new FieldLogSettings.Store(unreadable);
++        check(unavailable.current().status() == FieldLogSettings.Status.unavailable
++            && unavailable.save(request("reset", defaults)) == FieldLogSettings.Outcome.refused,
++            "unavailable storage fails closed");
++        System.out.println("PASS absent and first save, explicit reset, atomic refusal, interruption, uncertainty fence, cold settlement, and text floor");
++    }
++}
+diff --git a/Integrations/GeneratedReport/scripts/build-android.py b/Integrations/GeneratedReport/scripts/build-android.py
+index 234fd81a8297b494b857983deaa6986e9d6ea315..af01f54aa46b66c9a656fec9b2fa6640a0870b00 100644
+--- a/Integrations/GeneratedReport/scripts/build-android.py
++++ b/Integrations/GeneratedReport/scripts/build-android.py
+@@ -44 +44 @@ def app_inputs():
+-              for name in ("PublicBridge.java", "PublicActivity.java", "CapturePhotoProvider.java", "SiteMapPanel.java", "SiteMapOverlay.java")]
++              for name in ("PublicBridge.java", "PublicActivity.java", "CapturePhotoProvider.java", "SiteMapPanel.java", "SiteMapOverlay.java", "FieldLogSettings.java")]
+@@ -47 +47 @@ def app_inputs():
+-              for name in ("NativeEntry.swift", "PublicFactory.swift")]
++              for name in ("NativeEntry.swift", "PublicFactory.swift", "Settings.swift")]
+diff --git a/Integrations/GeneratedReport/scripts/pair25/build-payload.zsh b/Integrations/GeneratedReport/scripts/pair25/build-payload.zsh
+index 2cf97244a0820d55dd3f06395a5081d8df7b27fa..e126c3a95c623073cfb9f02e76d582fa438805ac 100644
+--- a/Integrations/GeneratedReport/scripts/pair25/build-payload.zsh
++++ b/Integrations/GeneratedReport/scripts/pair25/build-payload.zsh
+@@ -39 +39 @@ ln -s "$work/fieldlog/Integrations/InstalledGuest" android-package/Sources/Field
+-for source in NativeEntry.swift PublicFactory.swift SignedChecklist.swift SignedEntryCommit.swift; do
++for source in NativeEntry.swift PublicFactory.swift Settings.swift SignedChecklist.swift SignedEntryCommit.swift; do

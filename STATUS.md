@@ -1227,6 +1227,25 @@ source. Installed behavior remains pending.
 [Settings patch](verification/receipts/fieldlog-ios-settings-bounded-7b2b98f0.patch) ·
 [iPhoneOS build](verification/receipts/fieldlog-ios-settings-bounded-iphoneos-build.json)
 
+The ordinary Android dashboard now opens Settings & Help. On API 36,
+Apply relaunched the Activity with Dark and Larger active and displayed
+the saved-entry date in French. Cold launch retained all three values,
+and Reset relaunched to the original light dashboard. The two pending
+records, workspace and seven JPEGs kept their exact bytes. Diagnostics
+showed only the five app and OS fields. The first two installed attempts
+exposed screenshot-path and Activity-observer errors in the witness.
+Both closed cleanly. The corrected replay passed with 211 terminal
+commands, three reusable ports and scratch removed.
+[Android Settings patch](verification/receipts/fieldlog-android-settings-elapsed-7b2b98f0.patch) ·
+[API 36 Settings receipt](verification/receipts/fieldlog-android-settings-pair25-api36-ac305262.json)
+
+The same development APK binds all twelve notices and both ELF digests
+in its sealed build inputs. Independent ZIP readback matched all 51
+members. APK v3 signing, 16 KiB alignment for all 19 ARM64 libraries,
+and both guest signatures verified. The signing and build scratch was
+removed. L02 and L07 remain running.
+[Android APK build receipt](verification/receipts/fieldlog-android-settings-pair25-build-ac305262.json)
+
 ## November 21 current FieldLog Android queue
 
 The Pair25 queue port ran the ordinary On device screen on macOS with
@@ -1694,6 +1713,12 @@ and optimized Python. The Source141 and Source127 restores matched
 their 890 and 845 files by bytes and modes.
 [Hosted result](https://github.com/snowdamiz/mixer/actions/runs/44965471303) ·
 [Archive verification](verification/receipts/source141-stateful-wast-notice-admission-839fed77.json)
+
+The repaired revision `491d708b7d` passed all nine Owned Engine jobs.
+Swift preflight, optimized preflight, and postflight admitted all 157
+files. Intel passed bootstrap and the six Java/D8 consumers with
+byte-identical DEX, terminal custody, and both scratch trees removed.
+[Hosted repair verification](https://github.com/snowdamiz/mixer/actions/runs/44968626012)
 
 The installed Guest UI v1 validator refused all 616 single-bit mutations
 of three required export names in each host build profile. Each refusal
