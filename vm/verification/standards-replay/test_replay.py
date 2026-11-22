@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch
 
 sys.dont_write_bytecode = True
 import commands
-from replay import export_vm, finish, guard_cargo, select_stateful_block
+from replay import export_vm, finish, guard_cargo, select_stateful_block, selected_cases
 
 
 class Held(BaseException):
@@ -61,6 +61,18 @@ class ReplayTests(unittest.TestCase):
         for rows, message in cases:
             with self.subTest(message=message), self.assertRaisesRegex(RuntimeError, message):
                 select(*rows)
+
+    def test_named_invocation_must_match_the_selected_module(self):
+        module = {"type": "module", "line": 573, "filename": "commands.1.wasm", "name": "$module1"}
+        row = {"type": "assert_trap", "line": 593,
+               "action": {"type": "invoke", "field": "call-7", "args": [], "module": "$module1"},
+               "text": "uninitialized element"}
+        fixture = {"actions": {593: ("assert_trap", "call-7")}, "modules": {573: "unsupported"},
+                   "invalid": {}}
+        self.assertEqual(list(selected_cases("elem", [module, row], fixture)), [(module, row)])
+        mismatched = {**row, "action": {**row["action"], "module": "$other"}}
+        with self.assertRaisesRegex(RuntimeError, "unexpected assertion or module context"):
+            list(selected_cases("elem", [module, mismatched], fixture))
 
     def test_signal_during_timeout_settlement_waits_and_proves_group_absence(self):
         child = Mock(pid=123, returncode=-signal.SIGKILL)

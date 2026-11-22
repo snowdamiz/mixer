@@ -79,6 +79,19 @@ FIXTURES = {
         },
         "invalid": {51: ("must be >= initial pages", "limit", "limit")},
     },
+    "elem": {
+        "sha256": "ed7c26cb97594adca2ffc3aee436619b6b6d008ead63541e850dc028f88d41fd",
+        "modules": {134: "unsupported", 545: "unsupported", 573: "unsupported"},
+        "actions": {
+            148: ("assert_return", "call-7"),
+            149: ("assert_return", "call-9"),
+            556: ("assert_return", "call-overwritten"),
+            593: ("assert_trap", "call-7"),
+            594: ("assert_return", "call-8"),
+            595: ("assert_return", "call-9"),
+        },
+        "invalid": {},
+    },
     "br_table": {
         "sha256": "e9106d4f8f7bb0c12f51b2cc4bb443166c1d033be7ced74047f3705b2441167d",
         "modules": {},
@@ -100,6 +113,7 @@ TRAPS = {
     "unreachable": "unreachable",
     "integer divide by zero": "integer_divide_by_zero",
     "integer overflow": "integer_overflow",
+    "uninitialized element": "indirect_call_null",
 }
 VALUE_TYPES = {1: "i32", 2: "i64", 3: "f32", 4: "f64"}
 WIDTHS = {"i32": 32, "i64": 64, "f32": 32, "f64": 64}
@@ -134,8 +148,10 @@ def selected_cases(script, rows, fixture):
             expected_kind, field = actions[line]
             action = row.get("action", {})
             require(line not in seen and kind == expected_kind and action.get("type") == "invoke"
-                    and action.get("field") == field and "module" not in action
-                    and module is not None and module["line"] in fixture["modules"],
+                    and action.get("field") == field and module is not None
+                    and module["line"] in fixture["modules"]
+                    and ("module" not in action
+                         or ("name" in module and action["module"] == module["name"])),
                     f"{script}:{line}: unexpected assertion or module context")
             seen.add(line)
             yield module, row
@@ -309,6 +325,20 @@ def select_stateful_block(script, module_line, filename, lines, *, mutation_line
     return module, rows
 
 
+def replay_reference(commands, directory, script, rows, reference, record):
+    manifest = {**script, "commands": rows}
+    reference_script = directory / "selected.json"
+    reference_script.write_text(json.dumps(manifest))
+    record["reference_manifest_sha256"] = digest(reference_script.read_bytes())
+    output = commands.run(
+        f"{directory.name}-reference", [reference, reference_script],
+    ).decode().splitlines()
+    record["reference_output"] = output
+    count = len(rows)
+    require(output[-1:] == [f"{count}/{count} tests passed."],
+            f"{directory.name}: incomplete WABT run: {output}")
+
+
 def replay_stateful(commands, directory, script, module, sequence, reference, client, record):
     label = directory.name
     wasm = directory / module["filename"]
@@ -321,19 +351,12 @@ def replay_stateful(commands, directory, script, module, sequence, reference, cl
             argv.append("--")
         argv.extend([action["field"], *(invocation_arg(value) for value in action["args"])])
 
-    manifest = {**script, "commands": [module, *sequence, module, reset]}
-    reference_script = directory / "selected.json"
-    reference_script.write_text(json.dumps(manifest))
     record.update(
         module=module, wasm_sha256=digest(wasm.read_bytes()), wasm_bytes=wasm.stat().st_size,
         reset_upstream_line=reset["line"],
-        reference_manifest_sha256=digest(reference_script.read_bytes()),
     )
-    output = commands.run(f"{label}-reference", [reference, reference_script]).decode().splitlines()
-    record["reference_output"] = output
-    count = len(manifest["commands"])
-    require(output[-1:] == [f"{count}/{count} tests passed."],
-            f"{label}: incomplete WABT run: {output}")
+    replay_reference(commands, directory, script, [module, *sequence, module, reset],
+                     reference, record)
 
     phases = tuple(f"invoke-{index}" for index in range(len(sequence)))
     reports = native_reports(commands.run(f"{label}-c-sequence", argv),
@@ -537,7 +560,9 @@ def replay(commands, scratch, rust, record):
         manifest = directory / "commands.json"
         commands.run(f"{script}-translate", [translator, source, "-o", manifest])
         validated = {}
-        for module, row in selected_cases(script, json.loads(manifest.read_text())["commands"], fixture):
+        reference_rows = []
+        translated = json.loads(manifest.read_text())
+        for module, row in selected_cases(script, translated["commands"], fixture):
             line, module_line = row["line"], module["line"]
             filename = module["filename"]
             require(re.fullmatch(re.escape(manifest.stem) + r"\.\d+\.wasm", filename),
@@ -556,8 +581,13 @@ def replay(commands, scratch, rust, record):
                 })
             case = {"fixture": source.name, "module_line": module_line, "upstream": row}
             if row["type"] != "assert_invalid":
+                reference_rows.extend((module, row))
                 case.update(invoke(commands, f"{script}-{line}", core, client, wasm, row))
             record["cases"].append(case)
+        if reference_rows:
+            # Match the CLI and installed client, which start fresh for each assertion.
+            replay_reference(commands, directory, translated, reference_rows, reference,
+                             record["fixtures"][source.name])
 
 
 def finish(scratch, receipt, record):

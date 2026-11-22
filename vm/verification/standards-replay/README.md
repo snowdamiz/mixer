@@ -19,12 +19,12 @@ metadata must resolve the exported package and every target, including examples,
 inside the verified tree. The script stages the release archive and exported public
 headers in the experimental capability install layout, then links the exported
 C client directly against that archive. It downloads the
-pinned WABT release and seven WebAssembly Core WAST files over HTTPS and checks
+pinned WABT release and eight WebAssembly Core WAST files over HTTPS and checks
 their SHA-256 hashes. [WABT release](https://github.com/WebAssembly/wabt/releases/tag/1.0.37) ·
 [WebAssembly test sources](https://github.com/WebAssembly/spec/tree/05ca4182176763112561ae20153975c12bd689e4/test/core)
 
 The script translates each WAST file and passes the selected Wasm bytes through
-unchanged. For each independent invocation, the Rust CLI and the installed
+unchanged. For each independent invocation, stock WABT, the Rust CLI, and the installed
 archive's `mixer_vm_session_*_v1` C ABI start with a fresh instance under
 `mixer-table-memory-v3`. The script checks each outcome against the upstream
 expected bits or trap. For `assert_invalid` the script checks the WABT
@@ -55,6 +55,12 @@ assertion and translated Wasm bytes stay intact.
 The selection covers integer wraparound, division and rotate, initialized
 memory, sign and zero extension, exact f64 bits, the `meet-bottom` trap,
 and invalid branch targets, stack types and memory bounds.
+
+Six assertions from `elem.wast` exercise indirect calls in three modules.
+Two initialized slots dispatch to different functions, a later active
+segment replaces an earlier entry at the same index, and an untouched
+slot in a named module traps with `indirect_call_null`. Each runner
+instantiates the pinned module again before each assertion.
 
 The same archive's `mixer_vm_capability_guest_ui_validate_v1` entry point checks
 the independent cases and the memory copy module. The valid upstream modules
