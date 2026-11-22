@@ -1256,6 +1256,19 @@ commit. All 190 commands and both services closed, all three ports
 rebound, and scratch was removed.
 [Installed signed Commit and report handoff](verification/receipts/fieldlog-android-signed-commit-report-settings-ac305262.json)
 
+A separate offline run of the current APK selected an independent
+reader in Android’s report chooser. The reader received all 280 bytes
+and matched the saved export by SHA-256. Back returned to the same
+FieldLog process and project with the workspace, seven JPEGs and both
+pending records intact. All 131 commands closed, both owned services
+ended, all three ports rebound and scratch was removed.
+[Cross-app report receipt](verification/receipts/fieldlog-android-pair25-separate-report-ac305262.json)
+
+All nine Owned Engine jobs passed on the Settings evidence revision
+`1e1cda5284` and the signed Commit evidence revision `f6cc4ae0c2`.
+[Settings checkpoint](https://github.com/snowdamiz/mixer/actions/runs/44971812161) ·
+[Signed Commit checkpoint](https://github.com/snowdamiz/mixer/actions/runs/44972270468)
+
 The same APK created an ordinary task offline with the assignee field
 still focused. Save recorded exactly one taskSaved event. The selected
 project, original queue, draft, and all seven JPEGs survived. A fresh
