@@ -1523,6 +1523,17 @@ generic Simulator archive passed the three signature checks and the
 XCTest selector readback. Simulator execution remains pending.
 [Row-reorder witness](verification/receipts/l08-fieldlog-ios-signed-row-reorder-1032909c.json)
 
+The iOS refusal fixture passed a fresh macOS replay through the installed
+owner and loopback delivery. Wrong scope, wrong runtime, invalid body
+and replay cases preserved the verified staged baseline, draft, JPEG,
+outbox, and workspace. The valid sequence-12 successor reached a
+headless first frame. Independent readback matched all three Simulator
+bundle signatures, seven embedded fixture files, and the XCTest selector.
+Both host listeners closed. The generic build ran past its nine-minute
+bound and removed its scratch. Installed health and offline cold reuse
+remain pending.
+[iOS refusal witness](verification/receipts/fieldlog-ios-227-228-generic-6a46e529.json)
+
 ## November 21 Android saved-draft validation
 
 One fresh FieldLog Pair24 development install on Android API 36 saved
