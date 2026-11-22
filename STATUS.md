@@ -1751,6 +1751,19 @@ foregrounded the exact Debug Activity before opening the browser.
 Adoption remains held on that order.
 [Installed Cancel record I/O checks](verification/receipts/fieldlog-android-cancel-record-io-api36-6ff80e48.json)
 
+The signed `f4ad72f7` candidate retained the first callback after
+blocked restore. A genuine return delivered after the Retry screen
+appeared confirmed one session on Retry without browser redelivery.
+The earlier-arrival control also passed. Two separate cold Cancel runs
+retired the attempt with an unreadable credential slot or an unwritable
+cancellation record, then accepted one fresh sign-in. All four owned
+emulator runs closed. Independent host review reproduced a separate
+Cancel → callback → Retry schedule that drops the first Retry before
+the callback task runs. The second Retry worked. The first Retry made
+no exchange, credential write, or deletion-journal change. Installed UI reachability remains open,
+and full account adoption remains held.
+[Installed early and late browser return checks](verification/receipts/fieldlog-android-blocked-restore-return-api36-f4ad72f7.json)
+
 The iOS deletion owner now loads the saved reauthorization intent when
 the browser callback arrives before startup restore. The real loopback
 host replay passed both orders. Local data stayed intact until renewed
