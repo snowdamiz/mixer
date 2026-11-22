@@ -1535,6 +1535,18 @@ result did not recur, so the failing order and public adoption remain
 open.
 [Instrumented Home callback order](verification/receipts/l02-android-note-home-order-api36-48df9b48.json)
 
+Two Java host schedules reproduced loss of automatic recovery. Taking
+window visibility away before focus closed the old connection before
+the owner could record it. A create before the resume drain bound
+cleared the pending recovery. Both schedules committed a new
+presentation with zero restarts. An explicit later create on the same
+field and Editable handled the exact edit once. Neither schedule was
+observed in the two instrumented Home runs.
+A separate unforced API 36 control returned to the same Activity
+without a Note tap or IME switch. One restart recovered exact input,
+and the workspace stayed unchanged. All 127 commands closed.
+[Alternate Home callback orders](verification/receipts/l02-android-note-home-alternate-orders-host-48df9b48.json)
+
 The IME-switch experiment withheld an overlapping connection and posted
 a public restart after the exact predecessor closed. Android briefly
 received a new SDK adapter, then closed it after another overlapping
@@ -1597,6 +1609,15 @@ needs to serialize publication with supported ownership changes before
 downstream adoption. The exact candidate compiled and linked as an
 unsigned generic arm64 iPhoneOS Debug app.
 [F04 lock lifecycle and review](verification/receipts/fieldlog-f04-lock-follow-up-pair25.json)
+
+An experimental directory descriptor lock prevented a second patched
+repository from opening after replacement of the inner lock file.
+The original retry persisted one revision, task, and event. Replacing
+the whole directory bypassed the experiment, and path-based cleanup
+left a temporary file inside the moved test directory. The fixture
+removed all disposable files. The result supports one-directory
+mutual exclusion on macOS, with production adoption still open.
+[F04 directory lock control](verification/receipts/fieldlog-f04-pair25-directory-lock-macos.json)
 
 All four F14–F16 selectors passed on the historical and Pair25
 sources. F14 wrote one entry and one event after a valid edit-and-commit

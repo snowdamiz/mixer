@@ -1,0 +1,115 @@
+{
+  "status": "BOTH_HOST_ORDER_FAILURES_REPRODUCED",
+  "scope": "Actual Java owner, renderer and field with controlled Android callbacks in a JVM. The same editor and Editable remain in place.",
+  "reviewedRevision": "48df9b4823e670595d70b34fe31af57c46f46a7a",
+  "reviewedTree": "efa52c0a50282cb7154771f90e970dddd100b2c9",
+  "replayInputs": {
+    "product.patch": "b27281a057fe93c55b72f4bbcf25c630f9eee70c8a6484a6110ac3f177366452",
+    "HomeHostCases.java.part": "7a60de05ce5facf01db5d2ef3b8a5229382f418765f5e410b0ca7782ebe8cf32",
+    "InputMethodManager.java": "40f7f069b7e184b86a0aacf583b4ddbfcbc2f975249cb871a7a7416a9c62a07c",
+    "causal-1.json": "7ffca2ee856a0beab0b40890dd76725f97145d1ff49ac199733e53f1fa0751d0",
+    "causal-2.json": "785bdd417455813e924492e0dff03b06133d6cb6e2af15f749cb12c0a2a250ed",
+    "replay.py": "a1819c58328b0c0f191b632888123661d2b92842ffe9ec6e04a1be8596228bc6",
+    "AlternativeOrders.java.part": "d7cf57fb60670f6fbd9903ab8084026a06b2490bf584fe934c6a20ef04098a82"
+  },
+  "patchedJavaDigest": "ac7b3e64fd16ecea31a9b577df2f15c4e3938a0837da13d6ff6a4bcf9fc31246",
+  "results": [
+    "BEGIN visibilityBeforeFocus",
+    "ORDER visibility loss -> native close RETURNED -> window focus loss",
+    "ORDER focus observer -> drain queued without close candidate -> create refused while sealed",
+    "AUTOMATIC FAIL committed=true restarts=0 liveConnection=false",
+    "EDIT PASS exact query/commit/readback via explicit later create; deliveries=1",
+    "BEGIN createBeforeDrainBind",
+    "ORDER field focus gain -> create refused while sealed, unbound close discarded -> owner focus observer",
+    "AUTOMATIC FAIL committed=true restarts=0 liveConnection=false",
+    "EDIT PASS exact query/commit/readback via explicit later create; deliveries=1",
+    "CHECKS 33"
+  ],
+  "authorReceiptSHA256": "370106fca6b412d2c8746e327456ed7fb7d4dc5be8f8625133525873126a27d3",
+  "rootRawReceiptSHA256": "b854f37b12686a3a72f3bea4af8ea4328faf0f28f8743d18c95c9c6f7c326adb",
+  "rootReplay": {
+    "java": "javac 25.0.4.1",
+    "git": "git version 2.56.0",
+    "elapsedSeconds": 1.72,
+    "peakSampledAllocatedBytes": 4308992,
+    "commandExits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "terminalCommands": 8,
+    "scratchRemoved": true,
+    "retainedRawRecord": "verification/local/fieldlog-home-visibility-first-root/alternate-orders-root-replay.json"
+  },
+  "installedReference": "verification/receipts/l02-android-note-home-order-api36-48df9b48.json",
+  "limits": [
+    "The Android 16 visibility and focus deliveries have separate framework paths. The two instrumented Android runs observed focus loss first.",
+    "The create-before-binding case was injected before the host focus observer. The ordinary Android focus dispatch runs the observer before IME startup.",
+    "The host failures do not identify the cause of the uninstrumented wrongEditor failure."
+  ],
+  "unforcedNativeNoTapControl": {
+    "status": "PASS",
+    "apkSHA256": "fcc2dbb2cf462f2c8e685daa1fa66ba137fed38342cae855d966e476221235de",
+    "driverSHA256": "ed7e27e38e80322ea282d67c92d18e7a6b652e1b57b609aa82724d77a57782b8",
+    "importedDriverSHA256": {
+      "android_f11.py": "b27a507cde1632c7103375f52dbc30af78788c1b7d40198a9203fc54dfa849ca",
+      "installed.py": "ac0d8220c5e67e806c6f117aa43f118070296130c4e971b3a110921b12bf514a"
+    },
+    "startedUTC": "2026-11-22T15:12:07.612600+00:00",
+    "finishedUTC": "2026-11-22T15:12:45.938563+00:00",
+    "device": {
+      "ro.boot.qemu.avd_name": "mixer_picker_xuvwbcmu",
+      "ro.build.version.sdk": "36",
+      "ro.product.cpu.abi": "arm64-v8a",
+      "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+    },
+    "appPID": 2391,
+    "activity": {
+      "beforeHome": {
+        "record": "126330792",
+        "task": 8
+      },
+      "afterHome": {
+        "record": "126330792",
+        "task": 8
+      }
+    },
+    "checkpointPIDs": {
+      "beforeHome": 2391,
+      "whileHome": 2391,
+      "afterLaunchBeforeQuery": 2391,
+      "afterHomeQuery": 2391,
+      "afterIMECommit": 2391
+    },
+    "queries": {
+      "afterHome": "exactSyntheticNote=false",
+      "afterIMECommit": "exactSyntheticNote=true"
+    },
+    "commitDispatch": "commitAccepted=true",
+    "imeCommitVisible": true,
+    "workspaceUnchanged": true,
+    "terminalCommands": 127,
+    "portsRebound": [
+      26042,
+      26043,
+      26044
+    ],
+    "imeSettingsRestored": true,
+    "uninstalled": [
+      "dev.fieldlog.generatedr90",
+      "dev.mixer.fixture.f13ime"
+    ],
+    "scratchRemoved": true,
+    "allOwnedServiceGroupsAbsent": true,
+    "restartInputCalls": 1,
+    "rawReceiptSHA256": "f576429ad5e59d3d1836da071ad5cd64f5b07261a96f9e6383c1dfdca38c8ff7",
+    "causalReceiptSHA256": "1bf5de07be013b049e0b649d73a1a6e358b9c36a6761e6ae0674baf6d89cbe5e",
+    "retainedRawRecord": "verification/local/fieldlog-home-visibility-first-root/unforced-no-tap-1.json",
+    "scope": "Ordinary Home then launcher return on one owned API 36 ARM64 emulator with no Note tap, focus request, scroll or IME switch before query and commit."
+  }
+}
