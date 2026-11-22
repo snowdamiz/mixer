@@ -1,5 +1,5 @@
 {
-  "status": "SCOPED_INSTALLED_HARDWARE_WITNESS_AND_ROW_REORDER_PASS",
+  "status": "SCOPED_INSTALLED_ROW_PASS_THREE_LAUNCH_WITNESS_TRACES",
   "priorTrace": "verification/receipts/l07-android-row-activation-positive-trace-12616bb2.json",
   "producerReceiptSHA256": "adba889546f9a1527eab0a7d341eaa911599ab0b0c3e7a6d4c9df65e71959d67",
   "sealReceiptSHA256": "6efc0df9568772f9e87d840a850c809320556bdf4adcb3444f8208d1fe9f019d",
@@ -214,14 +214,6 @@
       "successfulReturnOrdinal": 189
     },
     {
-      "phase": "rollback",
-      "pid": 2294,
-      "facade": 2,
-      "probe": 6,
-      "enterOrdinal": 283,
-      "successfulReturnOrdinal": 284
-    },
-    {
       "phase": "offline",
       "pid": 2932,
       "facade": 1,
@@ -235,6 +227,31 @@
     "The exact DEX calls the existing display witness only after hardware frame commit and matching PixelCopy marker readback. The witness samples the guest container marker. Exact displayed titles come from the same application's native hierarchy.",
     "The retained Java witness trace identifies facade and probe. Durable journals identify candidate and launch. The trace does not record a common native attachment ID or the compositor buffer bytes.",
     "One local API 36 ARM64 development installation, with the synthetic workspace containing zero attachments. Installed iOS remains open.",
-    "The unchanged JNI ELF retains the historical archive-to-link-map provenance limit."
-  ]
+    "The unchanged JNI ELF retains the historical archive-to-link-map provenance limit.",
+    "The warm rollback's prior trace pair predates the journal launch. The hardware-gated DEX, durable health, hierarchy, and retirement apply to that launch. Its own witness pair is absent from this trace."
+  ],
+  "witnessAttributionReview": {
+    "reviewTask": "l07-6dda69d9-row-hardware-frame-api36-exact-readback-review",
+    "previousReceiptSHA256": "3009fd11648d09a49b0803e5a6e9cd6cb1d266d11dcca219718f8514d742df78",
+    "disposition": "REQUEST_CHANGES_ROLLBACK_WITNESS_ATTRIBUTION_CORRECTED",
+    "successfulPairsInTheirLaunchWindows": [
+      "baseline",
+      "pre-move",
+      "offline"
+    ],
+    "priorPairMisattributedToRollback": {
+      "phase": "rollback",
+      "pid": 2294,
+      "facade": 2,
+      "probe": 6,
+      "enterOrdinal": 283,
+      "successfulReturnOrdinal": 284
+    },
+    "priorPairLocalTimestamp": "2026-11-22T10:31:05.801-05:00",
+    "rollbackAttemptStartedAtWallTime": 1795361469,
+    "rollbackOfferServedLocalTime": "2026-11-22T10:31:10-05:00",
+    "allFourArchivedJournalReadbacksPassed": true,
+    "warmRollbackHierarchyAndRetirementPassed": true,
+    "postMoveRawSnapshotsRetained": false
+  }
 }

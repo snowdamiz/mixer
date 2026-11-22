@@ -108,6 +108,8 @@ FIXTURES = {
         "sha256": "70eeec77b5c5c4fa6c9547f97ac56c1e21ebd5e2a10e7318f2e22100d5f6f056",
         "modules": {1: "unsupported"},
         "actions": {
+            **dict.fromkeys((210, 217, 221, 222), ("assert_return", "i64.trunc_f64_s")),
+            **dict.fromkeys((241, 243, 246), ("assert_return", "i64.trunc_f64_u")),
             **dict.fromkeys((466, 467, 468, 469, 473), ("assert_return", "f32.convert_i64_s")),
             **dict.fromkeys((514, 515, 522), ("assert_return", "f32.convert_i64_u")),
         },

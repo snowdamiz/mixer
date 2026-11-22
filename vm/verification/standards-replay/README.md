@@ -90,10 +90,17 @@ Four assertions from the original 196-byte module in `f64.wast` check both
 argument orders for opposite-sign zeros. Lines 1620–1621 require `f64.min` to
 return `0x8000000000000000`. Lines 2020–2021 require `f64.max` to return
 `0x0000000000000000`. Each runner starts a fresh instance for each assertion
-and checks all 64 bits. The four assertions add 14 commands, for a total cap of
-270 commands. The existing time and VM limits still apply.
+and checks all 64 bits. The four assertions use 14 replay commands.
 [Pinned min cases](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/f64.wast#L1620-L1621) ·
 [Pinned max cases](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/f64.wast#L2020-L2021)
+
+Seven assertions in `conversions.wast` check `i64.trunc_f64_s` and
+`i64.trunc_f64_u`. The signed cases cover a negative subnormal, a negative
+fraction, and both signed limits. The unsigned cases cover a fraction below
+zero and two results with the high bit set. Each runner uses a fresh instance
+and compares all 64 result bits. The seven assertions add 14 commands, for
+a replay cap of 284 commands.
+[Pinned truncation cases](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/conversions.wast#L210-L246)
 
 Eight assertions from the original module in `conversions.wast` check every
 result bit of `f32.convert_i64_s` and `f32.convert_i64_u`. The signed cases

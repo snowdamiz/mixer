@@ -1565,6 +1565,14 @@ Activity, PID and workspace bytes stayed stable, and all 132 commands
 closed. SDK adoption and the create-before-drain host case remain open.
 [Visibility-first successor replay](verification/receipts/l02-android-note-visibility-first-successor-api36-6dda69d9.json)
 
+Independent review passed the three-file Note recovery patch. Its clean
+development APK passed two API 36 Home returns without a Note tap.
+Both preserved Activity, process and workspace bytes and accepted the
+exact IME edit. All 125 and 131 commands closed. No forced callback or
+diagnostic hooks were present. The public source-pair integration
+is a separate step.
+[Clean Note Home replay](verification/receipts/l02-android-note-product-clean-home-api36-613fb3c1.json)
+
 The IME-switch experiment withheld an overlapping connection and posted
 a public restart after the exact predecessor closed. Android briefly
 received a new SDK adapter, then closed it after another overlapping
@@ -2761,6 +2769,14 @@ outcomes and passed all eight wrapper controls. The test wrapper used
 270 command slots, up from 256. The VM runtime limits were unchanged.
 [Binary64 signed-zero replay](verification/receipts/l03-w08-f64-signed-zero-ccb5221c.json)
 
+Seven pinned binary64-to-i64 truncation assertions matched exact
+result bits in stock WABT, the Mixer CLI, and the installed V3 C ABI.
+The cases cover fractional inputs, the signed limits, and unsigned
+results with the high bit set. The independent review matched all 53
+prior assertion outcomes. The integrated run completed 284 commands,
+passed all eight wrapper tests, and removed scratch.
+[Binary64-to-i64 replay](verification/receipts/l03-standards-f64-i64-truncation.json)
+
 The seeded TableMemoryV3 check retains one instance for 40 copies on
 each of 24 seeds. Mixer and Node matched all 960 observations of the
 complete initialized region in Debug and Release. The separate
@@ -3647,7 +3663,9 @@ The installed Android D3 attempt booted the owned API 36 emulator. The ADB insta
 
 Both reviewed D0 and D1 sign-in overlays built as complete generic arm64 iOS apps. The standalone link map contained zero Mixer objects. Adoption built the real project detail against public SDK pin `56ff14c9`. Both unsigned apps have the same bundle identity and compiled Keychain configuration. Simulator installation and signed Keychain continuity remain open. [Full iOS build receipt](verification/receipts/fieldlog-d0-d1-generic-ios-dfddb38f.json)
 
-The full iOS calculation run stopped at installation with CoreSimulator Mach error -308. Root removed the disposable device after confirming Shutdown. The external comparison found one unrelated Minds Simulator changed from Booted to Shutdown. Mixer iOS runs are paused for recovery coordination. [Install and cleanup receipt](verification/receipts/fieldlog-ios-full-calculation-install-recovery-41a05264.json)
+The full iOS calculation run stopped at installation with CoreSimulator Mach error -308. Root removed the disposable device after confirming Shutdown. The external comparison found one unrelated Minds Simulator changed from Booted to Shutdown. Mixer paused iOS Simulator verification for recovery coordination. [Install and cleanup receipt](verification/receipts/fieldlog-ios-full-calculation-install-recovery-41a05264.json)
+
+The user authorized resumption on a fresh disposable Simulator. All three public Accessibility checks returned false before any Simulator operation. The installed replay waits for restored macOS trust. [Fresh-device preflight](verification/receipts/fieldlog-ios-fresh-device-accessibility-preflight-613fb3c1.json)
 
 In the rebuilt shared-origin replay, both Android APKs installed and matched their pins. Activity Manager reported a launch timeout before the first FieldLog screen. The crash buffer contained repeated Android Bluetooth service failures. iOS ended its rendezvous wait, and the owned emulator, Simulator, private ADB and origin closed. Neither app reached a signed release phase. [Joint native attempt](verification/receipts/fieldlog-rebuilt-shared-native-launch-41a05264.json)
 
@@ -4059,14 +4077,24 @@ and L08 remain open.
 
 A fresh development seal bound the hardware-frame and PixelCopy
 witness to the row fixture. The stock verifier passed all three
-signed assignments. The API 36 run recorded a successful display witness and
-both durable milestones for each of four launches. One Move up tap
-advanced revision 9 to 10 and appended one event. Rollback and a fresh
-offline process preserved the reordered workspace. All 160 commands
-closed. The retained trace uses facade and probe, and the journal uses
-candidate and launch. There is no common attachment ID in the trace.
-Installed iOS remains open.
+signed assignments. The API 36 run recorded both durable milestones
+for four launches. Independent review matched display witness pairs
+to baseline, pre-move, and offline. The pair initially attributed
+to warm rollback occurred before that launch. Its journal, hierarchy,
+and retirement passed readback. One Move up tap advanced revision 9 to
+10 and appended one event. Rollback and a new offline process preserved
+the reordered workspace. All 160 commands closed. Installed iOS remains
+open.
 [Installed row hardware-frame witness](verification/receipts/l07-android-row-hardware-frame-api36-6dda69d9.json)
+
+A second run with the same APK saved the raw epoch logs, live journals,
+hierarchies and workspace snapshots. Readback matched one successful
+display witness pair inside each launch window, including warm rollback.
+The parser needed to accept logcat's leading spaces. The raw workspace
+shows one new reorder event and exact continuity through rollback and
+offline reopen. All 172 commands closed. The trace and journal still
+lack a common attachment ID.
+[Row witness launch windows](verification/receipts/l07-android-row-witness-launch-windows-613fb3c1.json)
 
 On Android API 36, the ordinary FieldLog app cold-restored an uncommitted photo draft, saved it, and resumed the JPEG transfer at 65,536 bytes after cancellation. When the backend withheld the final receipt, retry reconciled the original event without sending another chunk. SQLite held one event and one matching 281,378-byte JPEG. The two unrelated outbox events survived cold reopen. [Runtime and readback](verification/receipts/fieldlog-android-ordinary-queue-runtime-41a05264.json)
 
