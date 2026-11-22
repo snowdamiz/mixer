@@ -1,0 +1,296 @@
+{
+  "sourceCommit": "926f6d944b624c5d75e4401d572ee300dec0a973",
+  "owningTree": "c4b68117a61e2c860f099a3b115b3f564704c4ac",
+  "network": "sandbox-exec deny network*, clean environment, no HTTP listener or database",
+  "scope": "Offline stock runtime configuration and actual dependency/event startup. Full MixerHosted supervisor, HTTP wire, database, and production egress excluded.",
+  "tools": {
+    "mix": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit] [dtrace]\n\nMix 1.20.4 (compiled with Erlang/OTP 29)"
+  },
+  "lockSHA256": "0526954f8ac64d241a7d6e1471a2f09d28668e06c7692cd5da3aa3a3afd29522",
+  "diskCeilingBytes": 629145600,
+  "startedAtUTC": "2026-11-22T17:40:54.555265+00:00",
+  "diskPeakSampleBytes": 44205215,
+  "retainedEvidence": {
+    "sourceCommit": "551576a03a4ef4f4b081e6191ce0a02c5947c679",
+    "sha256": "99f6a6a822c805977b9f7b5e9299008b36778e370f3b2ad68417f0da1215d376",
+    "profileStockLogMarkerHits": {
+      "ordinary": 0,
+      "retained": 0
+    },
+    "profileStockExporters": {
+      "ordinary": 0,
+      "retained": 0
+    },
+    "privilegedObserverMarkerEvents": {
+      "ordinary": 74,
+      "retained": 78
+    },
+    "receipt": "verification/receipts/l07-hosted-privacy-v86-551576a0-cache-replay.json",
+    "identicalPinnedSourcePaths": [
+      "hosted/config",
+      "hosted/lib",
+      "hosted/mix.exs",
+      "hosted/mix.lock"
+    ]
+  },
+  "sourceBoundary": {
+    "configuration": "hosted/config/runtime.exs and MixerHosted.RuntimeConfig.load!/1 parse specific settings into fixed OTP config; no configurable handler/exporter. The telemetry queue name belongs to processor queue validation, not telemetry dispatch.",
+    "composition": "hosted/lib/mixer_hosted/application.ex composes fixed service children; hosted/mix.lock has Telemetry and no exporter. Phoenix.Logger and Mixer transaction-receipt callbacks are internal. The private billing transport has a separate, explicit control subscriber and no ordinary startup child.",
+    "trustedCode": "Code executing inside the BEAM can attach directly to raw events. Any future exporter should accept only a separately emitted closed allowlist of coarse operational fields."
+  },
+  "phoenixPackageSHA256": "21fd4d6a33c6af4e86b95156a49815a59140c2ba4ef8cf19565dbb7be881633e",
+  "controlSHA256": "132679f907c60e7b3c8f1f024c86bcecef3965d9c3ec9bc09af836a162b870d5",
+  "controlEnvironmentKeys": [
+    "OTEL_SDK_DISABLED",
+    "OTEL_TRACES_EXPORTER",
+    "OTEL_METRICS_EXPORTER",
+    "OTEL_LOGS_EXPORTER",
+    "OTEL_EXPORTER_OTLP_ENDPOINT",
+    "MIXER_TELEMETRY_EXPORTER",
+    "MIXER_TELEMETRY_SUBSCRIBER",
+    "MIXER_QUEUE_TELEMETRY_CONCURRENCY",
+    "SENTRY_DSN",
+    "DD_TRACE_ENABLED"
+  ],
+  "status": "PASS_SCOPED",
+  "unknownCommandCustody": false,
+  "finishedAtUTC": "2026-11-22T17:46:25.243674+00:00",
+  "preflight": [
+    {
+      "reason": "Network sandbox denied Mix TCP filesystem lock. Fresh single-writer scratch used with MIX_OS_CONCURRENCY_LOCK=0.",
+      "commands": [
+        {
+          "argv": [
+            "mix",
+            "--version"
+          ],
+          "pid": 96915,
+          "exit": 0,
+          "groupObservedAbsent": true,
+          "outputSHA256": "3e31319449caf2b8cbbbcf07feb14e13fb4d777fe1f51fd437595ab3a272d540",
+          "outputTail": [
+            "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit] [dtrace]",
+            "",
+            "Mix 1.20.4 (compiled with Erlang/OTP 29)"
+          ]
+        },
+        {
+          "argv": [
+            "mix",
+            "deps.get",
+            "--check-locked"
+          ],
+          "pid": 96973,
+          "exit": 1,
+          "groupObservedAbsent": true,
+          "outputSHA256": "a3f29c3c7177e68cf06c8a8fc3064fd879e53229313fb2bac225ba095747263e",
+          "outputTail": [
+            "** (Mix) failed to acquire filesystem lock using TCP, reason: :eperm"
+          ]
+        }
+      ],
+      "scratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-aecc156f/verification/local/l07-stock-telemetry-review-wvwz0mrc",
+      "scratchRemoved": true
+    },
+    {
+      "commands": [
+        {
+          "argv": [
+            "mix",
+            "deps.get",
+            "--check-locked"
+          ],
+          "pid": 16026,
+          "exit": 1,
+          "groupObservedAbsent": true,
+          "outputSHA256": "d7920cd9708beb0578b6e91b8966e43c18526693867d36073e7c9455a15e3936",
+          "outputTail": [
+            "* Getting ecto_sql (Hex package)",
+            "* Getting postgrex (Hex package)",
+            "* Getting oban (Hex package)",
+            "* Getting jason (Hex package)",
+            "* Getting jose (Hex package)",
+            "* Getting mint (Hex package)",
+            "* Getting hpax (Hex package)",
+            "* Getting telemetry (Hex package)",
+            "** (Mix) httpc request failed with: {:failed_connect, [{:to_address, {~c\"builds.hex.pm\", 443}}, {:inet6, [:inet6], :nxdomain}]}",
+            "",
+            "Could not install Rebar because Mix could not download metadata at https://builds.hex.pm/installs/rebar.csv.",
+            ""
+          ]
+        }
+      ],
+      "scratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-aecc156f/verification/local/l07-stock-telemetry-review-lockless-t011tmw1",
+      "scratchRemoved": true,
+      "error": "RuntimeError: command failed: mix deps.get --check-locked"
+    },
+    {
+      "commands": [
+        {
+          "argv": [
+            "mix",
+            "deps.get",
+            "--check-locked"
+          ],
+          "pid": 31471,
+          "exit": 0,
+          "groupObservedAbsent": true,
+          "outputSHA256": "df2bd66f4399a93cb030f266f6212aa9b0dee8b57bbc149a8234365373880b75",
+          "outputTail": [
+            "* Getting jose (Hex package)",
+            "* Getting mint (Hex package)",
+            "* Getting hpax (Hex package)",
+            "* Getting telemetry (Hex package)",
+            "* Getting db_connection (Hex package)",
+            "* Getting decimal (Hex package)",
+            "* Getting ecto (Hex package)",
+            "* Getting thousand_island (Hex package)",
+            "* Getting websock (Hex package)",
+            "* Getting mime (Hex package)",
+            "* Getting plug_crypto (Hex package)",
+            "* Getting phoenix_pubsub (Hex package)",
+            "* Getting phoenix_template (Hex package)",
+            "* Getting websock_adapter (Hex package)"
+          ]
+        },
+        {
+          "argv": [
+            "mix",
+            "test",
+            "test/runtime_config_test.exs"
+          ],
+          "pid": 31537,
+          "exit": 0,
+          "groupObservedAbsent": true,
+          "outputSHA256": "2a0423efccf5f3ff2e12019baaec9b071f0e95483f7d6552b0e175e8aea9af9b",
+          "outputTail": [
+            "Compiling 4 files (.ex)",
+            "Generated websock_adapter app",
+            "==> phoenix",
+            "Compiling 75 files (.ex)",
+            "Generated phoenix app",
+            "==> mixer_hosted",
+            "Compiling 223 files (.ex)",
+            "Generated mixer_hosted app",
+            "Running ExUnit with seed: 803637, max_cases: 8",
+            "",
+            "...........",
+            "Finished in 0.1 seconds (0.1s async, 0.00s sync)",
+            "",
+            "Result: 11 passed"
+          ]
+        },
+        {
+          "argv": [
+            "mix",
+            "run",
+            "--no-start",
+            "--no-compile",
+            "/Users/andreyyurlov/.t3/worktrees/mixer/t3-aecc156f/verification/local/l07-stock-offline-rebar-cfklupyd/control.exs"
+          ],
+          "pid": 52248,
+          "exit": 1,
+          "groupObservedAbsent": true,
+          "outputSHA256": "f756f27920c5d69a2d65e9e2cdbb38ddbf2fca3c81abfc5175670231be10f12d",
+          "outputTail": [
+            "warning: failed to subscribe to Mix events using TCP, reason: :eperm",
+            "",
+            "** (MatchError) no match of right hand side value:",
+            "",
+            "    :debug",
+            "",
+            "    /Users/andreyyurlov/.t3/worktrees/mixer/t3-aecc156f/verification/local/l07-stock-offline-rebar-cfklupyd/control.exs:33: (file)",
+            "    (elixir 1.20.4) lib/code.ex:1639: Code.require_file/2"
+          ]
+        }
+      ],
+      "scratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-aecc156f/verification/local/l07-stock-offline-rebar-cfklupyd",
+      "scratchRemoved": true,
+      "error": "RuntimeError: command failed: mix run --no-start",
+      "diagnosis": "Mix.Tasks.App.Start skips Logger.App.stop/0 under --no-start. Mirror its normal Logger lifecycle after loading the actual stock config."
+    }
+  ],
+  "scratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-aecc156f/verification/local/l07-stock-logger-lifecycle-_vmhoeul",
+  "commands": [
+    {
+      "argv": [
+        "mix",
+        "deps.get",
+        "--check-locked"
+      ],
+      "pid": 69602,
+      "exit": 0,
+      "groupObservedAbsent": true,
+      "outputSHA256": "a38a3e58270cddc419ad006d47b67ac26011846b2876f164fb69590a02249683",
+      "outputTail": [
+        "* Getting db_connection (Hex package)",
+        "* Getting decimal (Hex package)",
+        "* Getting ecto (Hex package)",
+        "* Getting thousand_island (Hex package)",
+        "* Getting websock (Hex package)",
+        "* Getting mime (Hex package)",
+        "* Getting plug_crypto (Hex package)",
+        "* Getting phoenix_pubsub (Hex package)",
+        "* Getting phoenix_template (Hex package)",
+        "* Getting websock_adapter (Hex package)"
+      ]
+    },
+    {
+      "argv": [
+        "mix",
+        "test",
+        "test/runtime_config_test.exs"
+      ],
+      "pid": 69715,
+      "exit": 0,
+      "groupObservedAbsent": true,
+      "outputSHA256": "cea39fd299fc0a618078e5cf1538ffad3feae208601753965016664d84c288f3",
+      "outputTail": [
+        "Generated phoenix app",
+        "==> mixer_hosted",
+        "Compiling 223 files (.ex)",
+        "Generated mixer_hosted app",
+        "Running ExUnit with seed: 806484, max_cases: 8",
+        "",
+        "...........",
+        "Finished in 0.2 seconds (0.2s async, 0.00s sync)",
+        "",
+        "Result: 11 passed"
+      ]
+    },
+    {
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-aecc156f/verification/local/l07-stock-logger-lifecycle-_vmhoeul/control.exs"
+      ],
+      "pid": 70538,
+      "exit": 0,
+      "groupObservedAbsent": true,
+      "outputSHA256": "d69fd7f2a68b264c4155437b5ae99926c848308cf1406e4e8bca46bf73e711e8",
+      "outputTail": [
+        "warning: failed to subscribe to Mix events using TCP, reason: :eperm",
+        "",
+        "",
+        "12:46:24.764 [warning] l07-offline-stock-logger-positive-control",
+        "L07 PASS runtime_unchanged=10/10 phoenix_handlers=8 bandit_handlers=0 logger_sinks=2 privileged_read=true detached=true"
+      ]
+    }
+  ],
+  "stockLogMarkerHits": [],
+  "scratchRemoved": true,
+  "publicationBasis": "Exact local refs/remotes/origin/main; no fetch performed.",
+  "actualControl": {
+    "runtimeConfiguration": "Evaluated stock runtime.exs in :prod under a test-built Mix archive. Repeated with 10 inert environment settings and observed identical projected configuration.",
+    "loggerLifecycle": "Applied stock config and followed the normal Mix stop/restart step before starting actual app dependencies; the hosted supervisor was left stopped.",
+    "stockPhoenixLoggerHandlers": 8,
+    "stockBanditRequestStartHandlers": 0,
+    "standardIOSinks": 2,
+    "stockExporterCount": 0,
+    "privilegedSyntheticConnectionObserved": true,
+    "temporaryObserverDetached": true,
+    "existingRuntimeTestsPassed": 11
+  }
+}

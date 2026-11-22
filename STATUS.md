@@ -3277,6 +3277,8 @@ guide specifies how to keep raw events inside the process. Installed iOS
 privacy remains open. [Source and scope review](verification/receipts/l07-hosted-privacy-boundary-d89c742e.json) ·
 [Operational boundary](docs/operations/security-boundaries.md#local-hosted-telemetry)
 
+On the same stock hosted configuration at `926f6d94`, 11 runtime tests passed. An offline startup of the real dependencies registered zero exporters and zero Bandit request-start subscribers. Ten inert environment settings left the effective configuration unchanged. Stock Logger recorded its positive control with no synthetic private markers. A privileged test callback received the synthetic metadata and detached. [Offline telemetry startup receipt](verification/receipts/l07-stock-telemetry-startup-review-926f6d94.json)
+
 The installed Android Site Map received a foreground synthetic fix with
 networking available. The app UID's packet and byte counters stayed
 unchanged between two TCP controls from the same UID. Both controls
