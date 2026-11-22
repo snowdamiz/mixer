@@ -1,0 +1,220 @@
+{
+  "schema": "mixer.standards_replay.i64_shifts.independent_review.v1",
+  "status": "passed_scoped_independent_review",
+  "actionableBlockers": [],
+  "reviewedUtc": "2026-11-22T17:56:06.946145+00:00",
+  "publicBase": "926f6d944b624c5d75e4401d572ee300dec0a973",
+  "baseline": {
+    "revision": "e49eb479563bbb11087851637777bc221dd12514",
+    "vmTree": "271f99bc577c91815ca89a0390176be9946aa6eb",
+    "commands": 284,
+    "fullReceiptSHA256": "40614a0da898ca3bc0e4210ffa0fcadd9a58f44f259b05377af8f8c70b6142a7"
+  },
+  "candidate": {
+    "revision": "f3981008be809e9ce0678b9833b479f159a7d256",
+    "vmTree": "96e2113641efdbfec11c2396db68d41f683ec372",
+    "commands": 304,
+    "fullReceiptSHA256": "306e166b9c0c5b93e0bafc9a782379fa0b693dd747e5fbd6218ba92b7fe78b9f"
+  },
+  "changedPaths": [
+    "STATUS.md",
+    "gates/local.json",
+    "verification/receipts/l03-w08-i64-shifts-926f6d94.json",
+    "vm/verification/standards-replay/README.md",
+    "vm/verification/standards-replay/commands.py",
+    "vm/verification/standards-replay/replay.py",
+    "work-graph.json"
+  ],
+  "productSourceComparison": "All paths outside the seven listed files are identical between staging parent and candidate. The public base and staging parent have the same entire VM tree. Intervening staging commits contain separate CLI and native changes.",
+  "profile": "mixer-table-memory-v3",
+  "installedExecution": "legacy V3 session C ABI from the installed capability archive",
+  "commands": {
+    "maintainedReplay": "python3 vm/verification/standards-replay/replay.py --rust-bin <Rust 1.99 host bin> --receipt <owned JSON>, on each exact revision",
+    "wrapperControls": "python3 vm/verification/standards-replay/test_replay.py -v",
+    "directWabt": "wast2json i64.wast -o commands.json; wasm-validate commands.0.wasm; spectest-interp shift-only.json"
+  },
+  "tools": {
+    "python": "3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0",
+    "wast2json": "1.0.36 (git~1.0.37)",
+    "wasm-validate": "1.0.36 (git~1.0.37)",
+    "spectest-interp": "1.0.36 (git~1.0.37)"
+  },
+  "specRevision": "05ca4182176763112561ae20153975c12bd689e4",
+  "wabtRelease": {
+    "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz",
+    "sha256": "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
+  },
+  "fixture": {
+    "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast",
+    "sha256": "7d0e27a617565e0685aef56cee01b2b4890084068e3989168c41d14c56b1945e",
+    "originalModuleSHA256": "674845c852c525175753c569e16d154f19562bd5dd71c09d38b47677d9d84c61",
+    "originalModuleBytes": 552,
+    "baselineSelectionSHA256": "8c0154242a7c41bd45e672c45c03a0829c874e9b302d10404d2b6bcc3c074578",
+    "candidateSelectionSHA256": "6c4c89ba8448109133744e9fc971356e298309abf1790741f3707000743d01b0",
+    "maintainedReferenceResults": [
+      "12/12 tests passed.",
+      "32/32 tests passed."
+    ],
+    "independentShiftOnlyResults": [
+      "20/20 tests passed."
+    ],
+    "independentShiftOnlyManifestSHA256": "c04533aac1f42542f0d035dc4b9826e584799bf6a46dbc87a8831cd050a30bbf",
+    "resultMatches": [
+      "pinned assertion",
+      "independently computed shift bits",
+      "Mixer CLI",
+      "installed C session ABI"
+    ],
+    "results": [
+      {
+        "line": 176,
+        "opcode": "i64.shl",
+        "operand": "0x0000000000000001",
+        "countBits": "0x000000000000003f",
+        "effectiveCount": 63,
+        "result": "0x8000000000000000"
+      },
+      {
+        "line": 177,
+        "opcode": "i64.shl",
+        "operand": "0x0000000000000001",
+        "countBits": "0x0000000000000040",
+        "effectiveCount": 0,
+        "result": "0x0000000000000001"
+      },
+      {
+        "line": 178,
+        "opcode": "i64.shl",
+        "operand": "0x0000000000000001",
+        "countBits": "0x0000000000000041",
+        "effectiveCount": 1,
+        "result": "0x0000000000000002"
+      },
+      {
+        "line": 179,
+        "opcode": "i64.shl",
+        "operand": "0x0000000000000001",
+        "countBits": "0xffffffffffffffff",
+        "effectiveCount": 63,
+        "result": "0x8000000000000000"
+      },
+      {
+        "line": 186,
+        "opcode": "i64.shr_s",
+        "operand": "0x8000000000000000",
+        "countBits": "0x0000000000000001",
+        "effectiveCount": 1,
+        "result": "0xc000000000000000"
+      },
+      {
+        "line": 193,
+        "opcode": "i64.shr_s",
+        "operand": "0x8000000000000000",
+        "countBits": "0x000000000000003f",
+        "effectiveCount": 63,
+        "result": "0xffffffffffffffff"
+      },
+      {
+        "line": 195,
+        "opcode": "i64.shr_s",
+        "operand": "0xffffffffffffffff",
+        "countBits": "0x0000000000000041",
+        "effectiveCount": 1,
+        "result": "0xffffffffffffffff"
+      },
+      {
+        "line": 204,
+        "opcode": "i64.shr_u",
+        "operand": "0x8000000000000000",
+        "countBits": "0x0000000000000001",
+        "effectiveCount": 1,
+        "result": "0x4000000000000000"
+      },
+      {
+        "line": 211,
+        "opcode": "i64.shr_u",
+        "operand": "0x8000000000000000",
+        "countBits": "0x000000000000003f",
+        "effectiveCount": 63,
+        "result": "0x0000000000000001"
+      },
+      {
+        "line": 213,
+        "opcode": "i64.shr_u",
+        "operand": "0xffffffffffffffff",
+        "countBits": "0x0000000000000041",
+        "effectiveCount": 1,
+        "result": "0x7fffffffffffffff"
+      }
+    ]
+  },
+  "priorOutcomes": {
+    "caseRecords": 60,
+    "moduleRecords": 18,
+    "statefulSections": [
+      "stateful",
+      "stateful_memory_maximum",
+      "memory_copy",
+      "memory_copy_higher_address",
+      "memory_fill",
+      "scalar_globals"
+    ],
+    "priorCommandShapesAndExitCodesMatched": 284,
+    "additionalInvocationCommands": 20,
+    "previousReceiptRowsMatched": {
+      "i64BitCount": 6,
+      "f64ToI64Truncation": 7
+    },
+    "comparison": "Normalized owned scratch paths and Git identity arguments and excluded path-sensitive raw reference-manifest digests. The i64 reference grew by ten module/assertion pairs."
+  },
+  "unchangedProductArtifactsSHA256": {
+    "mixer-vm": "85f89363b2bdc9e30537b015af4024c592f9716566067314718146a5e616b42c",
+    "libmixer_vm_capability_experimental.a": "f8906e32e35067a8a67eaf8509832ef2e7d10c0f5a4d56e6b5bc8786da10d241",
+    "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+    "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+    "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "mixer_vm_guest_ui_deferred.h": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+  },
+  "runnerSHA256": {
+    "replay.py": "1191fb54aebdf4e91cc8c1c39451e9e43e3cd99fcebb521690ac00faa1a8e8cb",
+    "commands.py": "09c0e3954e033fa12a3fc257d23bad692ad165aa77720c5b0f96a36f4db7356c",
+    "client.c": "1eaaaf0ee138acad7f063b684cf4764391af6b120a2bd68c70920ea2e4e95232"
+  },
+  "testClientSHA256": {
+    "baseline": "5eea1208ea42b07d796a796abf97c564a26a6d925779750e1454f34dedfe1a8b",
+    "candidate": "8c95590ea35762b71880aa64155b02040ee64a839cfb5868d6dbebe846bc7030",
+    "sourceIdentical": true
+  },
+  "wrapperControls": {
+    "passed": 8,
+    "logSHA256": "a41766cfaba866f9781af682ec9ec1bd1c72bb148e6e23cf7c4c9a343bbe6738"
+  },
+  "custody": {
+    "managedReplayCommandsTerminal": 588,
+    "independentWabtCommandsTerminal": 6,
+    "outerGroupsAbsent": [
+      "baseline",
+      "candidate",
+      "controls"
+    ],
+    "replayScratchRemoved": true,
+    "ownedReviewScratchRemoved": true,
+    "holdsCreated": 0
+  },
+  "bounds": {
+    "campaignLimitSeconds": 360,
+    "replayAndControlsSeconds": 21.916,
+    "scratchLimitBytes": 262144000,
+    "maxSampledReplayScratchBytes": 120352898,
+    "measurement": "Owned regular-file logical bytes sampled between managed replay commands. The wrapper redirected scratch and applied the common deadline and size check. The replay and process-settlement implementations were unchanged.",
+    "secondsFromBaselineStartToReceiptPreparation": 218.728
+  },
+  "scope": "Arm64 macOS host replay for the selected TableMemoryV3 assertions. L03 and W08 remain open.",
+  "retentionPolicy": "Passed for the exact delivered receipt in a disposable index at the staging commit.",
+  "isolation": "Detached VM runner checkouts used a read-only Git-object alternate. The published receipt is the only review change in the review worktree."
+}
