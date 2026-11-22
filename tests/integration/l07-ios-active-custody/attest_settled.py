@@ -38,6 +38,7 @@ ARCHIVE_LIMIT = 256 << 20
 INVENTORY_LIMIT = 8 << 20
 COMMAND_LOG_LIMIT = 4 << 20
 COMMAND_CLEANUP_SECONDS = 3
+ATTACH_UNCONFIRMED = b"attach: HTTP request failed; result unconfirmed\n"
 
 # Reuse the v74 nested-receipt validators without starting a worker.
 sys.path.insert(0, str(REPO / "hosted/priv/development"))
@@ -113,7 +114,7 @@ def exec_command(argv, cwd, env, deadline, gate, launch, stdin, stdout, stderr):
     os._exit(125)
 
 
-def run_command(work, name, argv, *, seconds, cwd=None, env, secret=None):
+def run_command(work, name, argv, *, seconds, cwd=None, env, secret=None, exit_codes=(0,)):
     """Run one trusted tool under a shared launch and collection deadline."""
     deadline = time.monotonic() + seconds
     hold = work.parent / "HOLD.json"
@@ -284,7 +285,7 @@ def run_command(work, name, argv, *, seconds, cwd=None, env, secret=None):
         hold.unlink()
     except BaseException as error:
         retain_hold(hold, custody, error)
-    require(not custody.get("stop") and not custody["outputLimitExceeded"] and custody["exit"] == 0,
+    require(not custody.get("stop") and not custody["outputLimitExceeded"] and custody["exit"] in exit_codes,
             f"{name} failed or exceeded its budget. See {logs}")
     return bytes(buffers["stdout"])
 
@@ -359,6 +360,8 @@ def admit_worker(root, proof, operation, subjects):
         entry = database.execute("SELECT value FROM operations WHERE id=?", (operation,)).fetchone()
         claim = database.execute("""SELECT plan_sha256, guard, parent_pid, launch, terminal, uncertain
             FROM ios_custody_claims WHERE operation=?""", (operation,)).fetchone()
+        counts = database.execute("""SELECT (SELECT count(*) FROM operations),
+            (SELECT count(*) FROM ios_custody_claims)""").fetchone()
     require(entry is not None and claim is not None and claim[-1] == 0
             and claim[3] is not None and claim[4] is not None,
             "exact worker custody claim has no positive terminal authority")
@@ -431,6 +434,9 @@ def admit_worker(root, proof, operation, subjects):
             and "CODE_SIGNING_ALLOWED=NO" in command, "expected an unsigned generic Simulator compile")
 
 
+    return sha(json.dumps([entry, claim, counts], separators=(",", ":")).encode())
+
+
 def inspect_postgres(args, work, record, label):
     # record has already been restricted to the canonical UUID grammar.
     statement = f"""
@@ -438,6 +444,9 @@ def inspect_postgres(args, work, record, label):
       'dataDirectory', current_setting('data_directory'),
       'scope', json_build_array(b.organization_id,b.project_id,b.application_id,b.build_id,b.platform),
       'revision', b.revision, 'journal', b.journal,
+      'settledRows', jsonb_build_array(to_jsonb(b),to_jsonb(r),to_jsonb(l)),
+      'attachmentVersion', (SELECT a.xmin::text FROM public.mixer_native_development_attestations a
+        WHERE a.build_record_id=b.id),
       'reservation', json_build_array(r.attempt,r.worker_fence,r.held,r.terminal_event_id),
       'leaseClosed', l.owner_id IS NULL AND l.expires_at IS NULL,
       'attachments', (SELECT coalesce(json_agg(json_build_array(
@@ -543,12 +552,69 @@ def build_signer(work):
     return tool, version
 
 
+def attachment_target(scope):
+    path = "/v3/orgs/{}/projects/{}/apps/{}/builds/{}/ios/native-development-attestation"
+    pins = urlencode({key: scope[key] for key in sorted(PINS)})
+    return path.format(*(scope[key] for key in IDS[:4])) + "?" + pins
+
+
+def replay_attachment(work, origin, target, attach, check_persisted, check_worker):
+    root = work.parent
+    arm = root / "v74.lost-ack-arm.json"
+    consumed = root / "v74.lost-ack-consumed.json"
+    evidence = root / "v74.lost-ack-result.json"
+    require(all(not os.path.lexists(path) for path in (arm, consumed, evidence)),
+            "expected a fresh one-shot response interrupt")
+    selected = dict(origin=origin, target=target)
+    save_record(arm, selected)
+    require(attach("attach-lost-ack", exit_codes=(1,)) == "",
+            "first stock attach unexpectedly acknowledged a response")
+    logs = work / "commands/attach-lost-ack"
+    terminal = json.loads((logs / "result.json").read_bytes())
+    fields = ("directChildReaped", "groupAbsent", "descriptorsClosed", "execPipeEOF",
+              "stdoutEOF", "stderrEOF")
+    require(terminal["custody"] == "TERMINAL" and terminal["exit"] == 1
+            and all(terminal[key] is True for key in fields)
+            and (logs / "stderr").read_bytes() == ATTACH_UNCONFIRMED,
+            "first stock attach did not report an unconfirmed transport result")
+
+    # TCP EOF can reach Go before Bandit publishes its shutdown receipt.
+    deadline = time.monotonic() + 2
+    while not evidence.is_file() and time.monotonic() < deadline:
+        time.sleep(0.02)
+    shutdown = selected | dict(selectedHTTP=201, writeShutdown=True, adapterWriteState="unsent")
+    require(evidence.is_file() and json.loads(evidence.read_bytes()) == shutdown
+            and not os.path.lexists(arm) and json.loads(consumed.read_bytes()) == selected,
+            "missing evidence that the one-shot interrupt suppressed the selected 201")
+    first = check_persisted("psql-after-lost-ack")
+    check_worker()
+    save_record(work / "persisted-before-retry.json", {
+        "origin": origin, "selectedHTTP": 201, "postgresSnapshotSHA256": sha(
+            json.dumps(first, sort_keys=True, separators=(",", ":")).encode()),
+    })
+
+    require(attach("attach-duplicate") == "duplicate", "expected duplicate HTTP 200 from ordinary Phoenix")
+    require(check_persisted("psql-after-duplicate") == first,
+            "duplicate attach changed the PostgreSQL snapshot")
+    check_worker()
+    command_proof = {}
+    for name in ("sign", "attach-lost-ack", "psql-after-lost-ack",
+                 "attach-duplicate", "psql-after-duplicate"):
+        result = json.loads((work / "commands" / name / "result.json").read_bytes())
+        require(result["custody"] == "TERMINAL" and all(result[key] is True for key in fields)
+                and result["exit"] == (1 if name == "attach-lost-ack" else 0),
+                f"{name} did not positively close")
+        command_proof[name] = {key: result[key] for key in ("pid", "pgid", "exit", *fields)}
+    return shutdown | dict(persistedBeforeRetry=True, workerLedgerUnchanged=True,
+                           terminalCommands=command_proof)
+
+
 def prove(args):
     proof, scope, record, operation, subjects = settlement(args)
     root = args.run_root
     work = root / "attestation"
     require(not os.path.lexists(work), "expected fresh attestation state")
-    admit_worker(root, proof, operation, subjects)
+    ledger_sha = admit_worker(root, proof, operation, subjects)
     work.mkdir(mode=0o700)
     before = inspect_postgres(args, work, record, "psql-before")
     journal = before["journal"]
@@ -557,7 +623,8 @@ def prove(args):
             and before["revision"] == 2 and journal["events"] == proof["settled"]["journal"]
             and journal["creation"]["spec"] == proof["binding"]["spec"]
             and before["reservation"] == [1, 1, False, journal["events"][-1]["id"]]
-            and before["leaseClosed"] is True and before["attachments"] == [],
+            and before["leaseClosed"] is True and before["attachments"] == []
+            and before["attachmentVersion"] is None,
             "PostgreSQL does not show the same unattested settlement")
 
     for path in (args.session, args.bearer, args.private_key, args.public_key):
@@ -590,31 +657,57 @@ def prove(args):
     tool, go_version = build_signer(work)
     state = work / "state"
 
-    def call(label, action, key, token, *options, seconds):
+    def call(label, action, key, token, *options, seconds, exit_codes=(0,)):
         return run_command(work, label,
             [tool, action, "-origin", origin, "-selection", query, "-state", state, "-key", key, *options],
             secret=(token + "\n").encode(), env={"PATH": "/usr/bin:/bin"}, seconds=seconds,
+            exit_codes=exit_codes,
         ).decode().strip()
 
     filename = sha("\0".join(scope[k] for k in (*IDS[:3], "platform", "build_id")).encode()) + ".json"
     require(call("sign", "sign", args.private_key, session, "-expected-statement", expected_path,
                  seconds=135) == filename,
             "unexpected signed envelope name")
-    envelope = (state / filename).read_bytes()
+    envelope_path = state / filename
+    sealed_envelope = private_path(envelope_path, 0o400)
+    require(sealed_envelope.st_nlink == 1, "expected one sealed signer envelope")
+    envelope = envelope_path.read_bytes()
     require(json.loads(envelope)["statement"] == expected, "signed statement differs from the admitted completion")
-    stored = before | {"attachments": [[2, 1, operation, binding, key_id, origin, envelope.hex()]]}
-    for status in ("attached", "duplicate"):
-        require(call("attach-" + status, "attach", args.public_key, bearer, seconds=45) == status,
-                f"expected {status} from ordinary Phoenix")
-        require(inspect_postgres(args, work, record, "psql-" + status) == stored
-                and (state / filename).read_bytes() == envelope,
+    def attach(label, *, exit_codes=(0,)):
+        return call(label, "attach", args.public_key, bearer, seconds=45, exit_codes=exit_codes)
+
+    def check_persisted(label):
+        observed = inspect_postgres(args, work, record, label)
+        expected_attachment = [[2, 1, operation, binding, key_id, origin, envelope.hex()]]
+        current = private_path(envelope_path, 0o400)
+        require(observed == before | dict(attachments=expected_attachment,
+                                         attachmentVersion=observed["attachmentVersion"])
+                and observed["attachmentVersion"] is not None
+                and current.st_nlink == 1 and os.path.samestat(sealed_envelope, current)
+                and current.st_mtime_ns == sealed_envelope.st_mtime_ns
+                and envelope_path.read_bytes() == envelope,
                 "attachment bytes, cardinality, or settled build changed")
+        return observed
+
+    def check_worker():
+        require(admit_worker(root, proof, operation, subjects) == ledger_sha,
+                "attachment replay changed the settled worker ledger")
+
+    replay = None
+    if args.lost_attach_ack:
+        replay = replay_attachment(work, origin, attachment_target(scope), attach, check_persisted, check_worker)
+    else:
+        require(attach("attach-attached") == "attached", "expected HTTP 201 from ordinary Phoenix")
+        first = check_persisted("psql-attached")
+        require(attach("attach-duplicate") == "duplicate", "expected duplicate HTTP 200 from ordinary Phoenix")
+        require(check_persisted("psql-duplicate") == first, "duplicate attach changed the PostgreSQL snapshot")
     return dict(base=BASE, go=go_version, signerTree=SIGNER_TREE, signerSHA256=sha(tool.read_bytes()), origin=origin,
                 settlementSHA256=args.settlement_sha256, recordId=record, workerOperationId=operation,
                 journalRevision=2, attempt=1, subjects=subjects, signerKeySHA256=key_id,
-                nativeBindingSHA256=binding, attachmentHTTP=[201, 200], persistedRows=1,
+                nativeBindingSHA256=binding, attachmentHTTP=[None if replay else 201, 200], persistedRows=1,
                 byteExact=True, journalUnchanged=True, envelopeSHA256=sha(envelope),
-                envelopeSizeBytes=len(envelope), buildPOSTs=0)
+                envelopeSizeBytes=len(envelope), buildPOSTs=0,
+                **({"lostAcknowledgement": replay, "signInvocations": 1, "attachInvocations": 2} if replay else {}))
 
 
 def main():
@@ -625,6 +718,7 @@ def main():
         parser.add_argument("--" + name, required=True)
     for name in ("api-port", "pg-port"):
         parser.add_argument("--" + name, required=True, type=int)
+    parser.add_argument("--lost-attach-ack", action="store_true", help="requires the v74 one-shot fixture endpoint")
     parser.add_argument("--pg-user", default="fixture_admin")
     parser.add_argument("--pg-database", default="browser_ordinary_installation_r1422")
     parser.add_argument("--psql", type=Path, default=Path("/opt/homebrew/opt/postgresql@17/bin/psql"))

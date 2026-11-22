@@ -120,11 +120,68 @@ defp v74_enroll!(c, scope, build) do
     end
   end
 
+  lost_ack_control =
+    if System.get_env("L07_V74_PREFLIGHT") == "1" and System.get_env("L07_V74_LOST_ACK") == "1",
+      do: v74_lost_ack_control!(port, origin, path, token)
+
   pair25_publish!("v74.attestation-ready", %{
     origin: origin, spkiSHA256: sha256(der), role: "mixer_native_attestation_writer",
     missingBuildHTTP: 404, missingScopeHTTP: 403, rows: 0,
-    browserStorageReady: browser_storage_ready, freshBrowserSession: is_binary(cookie)
+    browserStorageReady: browser_storage_ready, freshBrowserSession: is_binary(cookie),
+    lostAckControl: lost_ack_control
   })
+end
+
+defp v74_lost_ack_control!(port, origin, target, token) do
+  pair25_publish!("v74.lost-ack-arm.json", %{origin: origin, target: target})
+  # A successful controller response to the exact stock route is required to
+  # consume the arm. An unauthorized POST must still produce an HTTP response.
+  assert <<"HTTP/1.1 401 ", _::binary>> = v74_raw_attach!(port, target, [])
+  authorization = ["Authorization: Bearer ", token, "\r\n"]
+  wrong_target = String.replace(target, "v74-fixture-missing/", "v74-fixture-missing-other/")
+  assert <<"HTTP/1.1 404 ", _::binary>> = v74_raw_attach!(port, wrong_target, authorization)
+  assert File.regular?(pair25_path("v74.lost-ack-arm.json"))
+  assert <<>> = v74_raw_attach!(port, target, authorization)
+  pair25_await_burst!("v74.lost-ack-result.json", System.monotonic_time(:millisecond) + 2_000)
+  refute File.exists?(pair25_path("v74.lost-ack-arm.json"))
+  assert File.regular?(pair25_path("v74.lost-ack-consumed.json"))
+
+  assert <<"HTTP/1.1 404 ", _::binary>> =
+    v74_raw_attach!(port, target, authorization)
+
+  assert %{rows: [[0]]} = DB.q!(Admin, "SELECT count(*) FROM public.mixer_native_development_attestations")
+  assert %{"origin" => ^origin, "target" => ^target, "selectedHTTP" => 404,
+           "adapterWriteState" => "unsent", "writeShutdown" => true} = evidence =
+    "v74.lost-ack-result.json" |> pair25_path() |> File.read!() |> Jason.decode!()
+
+  Map.drop(evidence, ["origin", "target"])
+  |> Map.merge(%{unauthenticatedHTTP: 401, responseBytes: 0, wrongTargetHTTP: 404, retryHTTP: 404, rows: 0})
+end
+
+defp v74_raw_attach!(port, target, authorization) do
+  {:ok, socket} = :gen_tcp.connect({127, 0, 0, 1}, port, [:binary, active: false], 2_000)
+
+  try do
+    :ok = :gen_tcp.send(socket, [
+      "POST ", target, " HTTP/1.1\r\nHost: 127.0.0.1:", Integer.to_string(port),
+      "\r\nConnection: close\r\nContent-Type: application/json\r\nContent-Length: 2\r\n",
+      authorization, "\r\n{}"
+    ])
+    deadline = System.monotonic_time(:millisecond) + 4_000
+    collect = fn again, acc ->
+      assert byte_size(acc) <= 8_192
+      remaining = deadline - System.monotonic_time(:millisecond)
+      assert remaining > 0
+      case :gen_tcp.recv(socket, 0, remaining) do
+        {:ok, bytes} -> again.(again, acc <> bytes)
+        {:error, :closed} -> acc
+        {:error, reason} -> flunk("unexpected lost-ack control transport: #{inspect(reason)}")
+      end
+    end
+    collect.(collect, <<>>)
+  after
+    :gen_tcp.close(socket)
+  end
 end
 
 defp v74_bearer(c, scope \\ "mixer.build.attest") do

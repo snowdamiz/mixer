@@ -3234,10 +3234,18 @@ WORKSPACE_V86_SOURCE_COUNT = 572
 WORKSPACE_V86_APPLICATION_MANIFEST = WORKSPACE_V86_SOURCE_BASE + 'application-manifest.json'
 WORKSPACE_V86_MANIFEST_SHA256 = 'd4da8a286ed82200e9cbc65d4e15f8e172251616e84aebc7f1b2c50b8bee6818'
 
-WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v87/'
-WORKSPACE_SELECTION_SHA256 = '94ba99aadc2c8e1a7eb90ab0f42da7de67b6fab0a8319a514396cf3d05042e1f'
+WORKSPACE_V87_SOURCE_BASE = 'verification/identity-network-current-source-v87/'
+WORKSPACE_V87_SELECTION_SHA256 = '94ba99aadc2c8e1a7eb90ab0f42da7de67b6fab0a8319a514396cf3d05042e1f'
 WORKSPACE_V87_SOURCE_DIGEST = '2b8753167ad97a3a408cfaa526fbc8bbd3e5f854219077acef7e7c809a717bda'
-WORKSPACE_SOURCE_DIGEST = '6567a06d11425e01ac4e2ada393df0f0eefa418ef270e83e51d09122461bf690'
+WORKSPACE_V87_SOURCE_COUNT = 572
+WORKSPACE_V87_APPLICATION_MANIFEST = WORKSPACE_V87_SOURCE_BASE + 'application-manifest.json'
+WORKSPACE_V87_MANIFEST_SHA256 = 'cc97f7092e08ccf956e31e6db06a524be4d288d60334573ec258c64d85f82e42'
+WORKSPACE_V87_INSTALLED_SOURCE_DIGEST = '6567a06d11425e01ac4e2ada393df0f0eefa418ef270e83e51d09122461bf690'
+
+WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v88/'
+WORKSPACE_SELECTION_SHA256 = '5dbe9a61004d3e63d5ccc3b3be57acf3609d75f8595e45a97c7bdf6cbb40cbe9'
+WORKSPACE_V88_SOURCE_DIGEST = '4cc321c648b02eec86a91612219bb3416adf7aa3920bab1d0ad551b06dbf9e20'
+WORKSPACE_SOURCE_DIGEST = '38cd0d80de6ea57b2fa1e3bb4619e1323cb1aace9ba9679824e39859db2d3e4b'
 WORKSPACE_ANDROID_DRIVER = 'cli/Sources/MixerBuild/Resources/android-build.py'
 WORKSPACE_ANDROID_DRIVER_BEFORE = {
     'bytes': 87595, 'sha256': '2e162fe2c557d7352050f8d096121570181e5a1952820c09479346ac86fb7236',
@@ -3245,7 +3253,7 @@ WORKSPACE_ANDROID_DRIVER_BEFORE = {
 WORKSPACE_ANDROID_DRIVER_AFTER = {
     'bytes': 87606, 'sha256': '71c7f4d634e68535041721923b743d7c49bbe5090de4494797fa642dddf6dd99',
 }
-WORKSPACE_SOURCE_COUNT = 572
+WORKSPACE_SOURCE_COUNT = 573
 WORKSPACE_APPLICATION_MANIFEST = WORKSPACE_SOURCE_BASE + 'application-manifest.json'
 WORKSPACE_PHOENIX_DEPENDENCY_PATHS = frozenset((
     'hosted/mix.exs',
@@ -3256,12 +3264,22 @@ WORKSPACE_PHOENIX_DEPENDENCY_PATHS = frozenset((
 ))
 WORKSPACE_PAIR25_HTTP_FIXTURE = 'tests/integration/l05-pair25-http/run.py'
 WORKSPACE_V86_EXACT_PATHS = WORKSPACE_PHOENIX_DEPENDENCY_PATHS | {WORKSPACE_PAIR25_HTTP_FIXTURE}
-WORKSPACE_SOURCE_EXACT_PATHS = frozenset((
+WORKSPACE_V87_EXACT_PATHS = frozenset((
     'hosted/README.md',
     'hosted/priv/development/compiler_worker.py',
     'hosted/priv/development/ios_build_custody.py',
     'hosted/priv/development/native_artifact_worker.py',
     'hosted/scripts/test_native_artifact_worker.py',
+))
+WORKSPACE_SOURCE_EXACT_PATHS = frozenset((
+    'tests/integration/l07-ios-active-custody/README.md',
+    'tests/integration/l07-ios-active-custody/attest_settled.py',
+    'tests/integration/l07-ios-active-custody/run.py',
+    'tests/integration/l07-ios-active-custody/test_attest_settled.py',
+    'tests/integration/l07-ios-active-custody/test_runner.py',
+    'tests/integration/l07-ios-active-custody/v74-api.exs',
+    'tests/integration/l07-ios-active-custody/v74-lost-ack.ex',
+    'tests/integration/l07-ios-active-custody/v74.py',
 ))
 WORKSPACE_POST_COMMIT_EXPIRY_TEST = 'hosted/test/customer_build_read_test.exs'
 WORKSPACE_PRIVATE_SOURCE_MAP_FIXTURE = 'hosted/test/mixer_hosted_web/customer_artifact_http_integration_test.exs'
@@ -4993,10 +5011,10 @@ def validate_workspace_v86_metadata(metadata):
     return selection, manifest
 
 
-def validate_workspace_source_metadata(metadata):
+def validate_workspace_v87_metadata(metadata):
     selection, manifest = _validate_workspace_metadata(
-        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
-        WORKSPACE_SOURCE_COUNT, WORKSPACE_V87_SOURCE_DIGEST, WORKSPACE_V86_MANIFEST, {
+        metadata, WORKSPACE_V87_SOURCE_BASE, WORKSPACE_V87_SELECTION_SHA256,
+        WORKSPACE_V87_SOURCE_COUNT, WORKSPACE_V87_SOURCE_DIGEST, WORKSPACE_V86_MANIFEST, {
             'source_count': WORKSPACE_V86_SOURCE_COUNT,
             'source_digest_sha256': WORKSPACE_V86_SOURCE_DIGEST,
             'selection_sha256': WORKSPACE_V86_SELECTION_SHA256,
@@ -5012,8 +5030,32 @@ def validate_workspace_source_metadata(metadata):
             selection['product_tree'] == 'a9257adf83516bae886c35aa849ea764518755d7' and
             selection['composed_parent'] == '551576a03a4ef4f4b081e6191ce0a02c5947c679' and
             selection['product_patch_sha256'] == 'd2c7e8c94adc37343c21324173b96e9b3675a9c7f1a5b0ffda08db1293081bef' and
-            set(selection['exact_delta']) == WORKSPACE_SOURCE_EXACT_PATHS,
+            set(selection['exact_delta']) == WORKSPACE_V87_EXACT_PATHS,
             'iOS worker reusable supervisor compatibility source scope or anchor')
+    return selection, manifest
+
+
+def validate_workspace_source_metadata(metadata):
+    selection, manifest = _validate_workspace_metadata(
+        metadata, WORKSPACE_SOURCE_BASE, WORKSPACE_SELECTION_SHA256,
+        WORKSPACE_SOURCE_COUNT, WORKSPACE_V88_SOURCE_DIGEST, WORKSPACE_V87_MANIFEST, {
+            'source_count': WORKSPACE_V87_SOURCE_COUNT,
+            'source_digest_sha256': WORKSPACE_V87_SOURCE_DIGEST,
+            'selection_sha256': WORKSPACE_V87_SELECTION_SHA256,
+            'manifest_sha256': WORKSPACE_V87_MANIFEST_SHA256,
+        }, migration_count=27)
+    change_fields = {'identity', 'product_anchor', 'product_tree', 'composed_parent', 'product_patch_sha256',
+                     'predecessor', 'selected', 'exact_delta', 'application_manifest'}
+    require(selection.keys() == WORKSPACE_V87_SELECTION.keys() and
+            all(selection[key] == value for key, value in WORKSPACE_V87_SELECTION.items()
+                if key not in change_fields) and
+            selection['identity'] == 'hosted-l07-ios-lost-attach-ack-fixture-source-v88' and
+            selection['product_anchor'] == '4d28a7c7ebda3b290cd2f2a20e3ec1d5c512414a' and
+            selection['product_tree'] == '9d516b9e9503c95c7e408ba933b7f837b3a284bd' and
+            selection['composed_parent'] == 'c9ad543164675e8d145d03d9cc89a5d87fe92942' and
+            selection['product_patch_sha256'] == 'aa73e436e859c77c68222a803d9368fde1178bcc8ec658a09357982d24620a4f' and
+            set(selection['exact_delta']) == WORKSPACE_SOURCE_EXACT_PATHS,
+            'L07 iOS lost attach acknowledgement fixture source scope or anchor')
     return selection, manifest
 
 
@@ -5022,20 +5064,23 @@ def workspace_exact_packet_paths(base, preimages):
                            ('selection.json', 'selected-source-manifest.json', 'application-manifest.json'))}
 
 
-def validate_workspace_exact_tree(tree, expected):
+def validate_workspace_exact_tree(tree, expected, executable):
     entries = tree.split(b'\0')
     require(entries.pop() == b'', 'workspace source Git tree framing')
     observed = set()
     for entry in entries:
-        match = re.fullmatch(rb'100644 blob [0-9a-f]{40}\t([^\x00]+)', entry)
+        match = re.fullmatch(rb'(100644|100755) blob [0-9a-f]{40}\t([^\x00]+)', entry)
         require(match is not None, 'workspace source Git tree member type or mode')
-        path = match[1].decode('utf-8', errors='surrogateescape')
+        path = match[2].decode('utf-8', errors='surrogateescape')
+        require(match[1] == (b'100755' if path in executable else b'100644'),
+                'workspace source Git tree member type or mode: ' + path)
         require(path not in observed, 'duplicate workspace source Git tree member: ' + path)
         observed.add(path)
     require(observed == expected, 'workspace source Git tree membership differs')
 
 
-def check_workspace_exact_packet(root, base, preimages):
+def check_workspace_exact_packet(root, base, preimages, *, modes=None):
+    modes = {} if modes is None else modes
     expected = workspace_exact_packet_paths(base, preimages)
     packet = PurePosixPath(base)
     directories = {}
@@ -5054,7 +5099,7 @@ def check_workspace_exact_packet(root, base, preimages):
                 members.remove(path)
                 if path in expected:
                     mode = entry.stat(follow_symlinks=False).st_mode
-                    require(stat.S_ISREG(mode) and stat.S_IMODE(mode) == 0o644,
+                    require(stat.S_ISREG(mode) and stat.S_IMODE(mode) == modes.get(path, 0o644),
                             'workspace source file mode differs: ' + path)
         if members:
             raise FileNotFoundError('missing workspace source authority member: ' + min(members))
@@ -5070,10 +5115,10 @@ def validate_workspace_preimages(preimages, rows):
             'workspace source preimages differ')
 
 
-def workspace_installed_manifest(v87_manifest):
-    require(v87_manifest.get(WORKSPACE_ANDROID_DRIVER) == WORKSPACE_ANDROID_DRIVER_BEFORE,
+def workspace_installed_manifest(selected_manifest):
+    require(selected_manifest.get(WORKSPACE_ANDROID_DRIVER) == WORKSPACE_ANDROID_DRIVER_BEFORE,
             'workspace Android stock driver predecessor differs')
-    installed = {**v87_manifest, WORKSPACE_ANDROID_DRIVER: WORKSPACE_ANDROID_DRIVER_AFTER}
+    installed = {**selected_manifest, WORKSPACE_ANDROID_DRIVER: WORKSPACE_ANDROID_DRIVER_AFTER}
     require(canonical_digest(installed) == WORKSPACE_SOURCE_DIGEST, 'workspace installed source digest')
     return installed
 
@@ -5307,18 +5352,26 @@ def check_workspace_source(root):
     v86_rows, v86_modes = workspace_application_preimages(
         v86_selection, v86_manifest, (root / WORKSPACE_V86_APPLICATION_MANIFEST).read_bytes(),
         base=WORKSPACE_V86_SOURCE_BASE, predecessor=WORKSPACE_V85_MANIFEST, exact=True)
+    v87_selection, v87_manifest = validate_workspace_v87_metadata(
+        workspace_source_metadata(root, WORKSPACE_V87_SOURCE_BASE))
+    check_workspace_exact_packet(root, WORKSPACE_V87_SOURCE_BASE,
+                                 workspace_preimage_rows(v87_selection, WORKSPACE_V87_SOURCE_BASE))
+    v87_rows, v87_modes = workspace_application_preimages(
+        v87_selection, v87_manifest, (root / WORKSPACE_V87_APPLICATION_MANIFEST).read_bytes(),
+        base=WORKSPACE_V87_SOURCE_BASE, predecessor=WORKSPACE_V86_MANIFEST, exact=True)
     selection, manifest = validate_workspace_source_metadata(workspace_source_metadata(root, WORKSPACE_SOURCE_BASE))
-    check_workspace_exact_packet(root, WORKSPACE_SOURCE_BASE, workspace_preimage_rows(selection))
     rows, modes = workspace_application_preimages(
         selection, manifest, (root / WORKSPACE_APPLICATION_MANIFEST).read_bytes(),
-        base=WORKSPACE_SOURCE_BASE, predecessor=WORKSPACE_V86_MANIFEST, exact=True)
+        base=WORKSPACE_SOURCE_BASE, predecessor=WORKSPACE_V87_MANIFEST, exact=True)
+    check_workspace_exact_packet(root, WORKSPACE_SOURCE_BASE, rows, modes=modes)
     application_modes = {**v76_modes, **v78_modes, **v79_modes, **v80_modes, **v81_modes,
-                         **v82_modes, **v83_modes, **v84_modes, **v85_modes, **v86_modes, **modes}
+                         **v82_modes, **v83_modes, **v84_modes, **v85_modes, **v86_modes, **v87_modes, **modes}
     executable_preimages = {WORKSPACE_V74_SOURCE_BASE + 'preimages/' + path for path in WORKSPACE_EXECUTABLES}
     executable = WORKSPACE_EXECUTABLES | executable_preimages
     for path in (*manifest, *v65_rows, *v66_rows, *v67_rows, *v68_rows, *v69_rows,
                  *v70_rows, *v71_rows, *v72_rows, *v73_rows, *v74_rows, *v76_rows, *v77_rows,
-                 *v78_rows, *v79_rows, *v80_rows, *v81_rows, *v82_rows, *v83_rows, *v84_rows, *v85_rows, *v86_rows, *rows):
+                 *v78_rows, *v79_rows, *v80_rows, *v81_rows, *v82_rows, *v83_rows, *v84_rows, *v85_rows, *v86_rows,
+                 *v87_rows, *rows):
         mode = (root / path).lstat().st_mode
         expected = application_modes.get(path, 0o755 if path in executable else 0o644)
         require(stat.S_ISREG(mode) and stat.S_IMODE(mode) == expected,
@@ -5344,10 +5397,10 @@ def check_workspace_source(root):
     validate_workspace_preimages({path: (root / path).read_bytes() for path in v84_rows}, v84_rows)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in v85_rows}, v85_rows)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in v86_rows}, v86_rows)
+    validate_workspace_preimages({path: (root / path).read_bytes() for path in v87_rows}, v87_rows)
     validate_workspace_preimages({path: (root / path).read_bytes() for path in rows}, rows)
     observed = {path: _file_row((root / path).read_bytes()) for path in manifest}
     validate_workspace_source_manifest(observed)
-    require(observed == workspace_installed_manifest(manifest), 'workspace source differs from installed v87 successor')
     reviewed = json.loads((root / 'hosted/test/support/reviewed_migrations.json').read_bytes())
     directory = root / 'hosted/priv/repo/migrations'
     require(sorted(path.name for path in directory.iterdir()) == reviewed == selection['reviewed_migrations'],
@@ -5389,7 +5442,7 @@ def check_workspace_source(root):
     return {'identity': selection['identity'], 'source_count': len(observed),
             'source_digest_sha256': WORKSPACE_SOURCE_DIGEST,
             'selection_sha256': WORKSPACE_SELECTION_SHA256,
-            'predecessor_source_digest_sha256': WORKSPACE_V87_SOURCE_DIGEST,
+            'predecessor_source_digest_sha256': WORKSPACE_V87_INSTALLED_SOURCE_DIGEST,
             'runtime_or_GA_accepted': False}
 
 
@@ -6932,7 +6985,7 @@ class Collector:
         metadata.update(v82_preimages)
         exact_product_paths = (WORKSPACE_DELIVERY_STARTUP_PATHS |
                                {WORKSPACE_POST_COMMIT_EXPIRY_TEST} |
-                               WORKSPACE_V86_EXACT_PATHS | WORKSPACE_SOURCE_EXACT_PATHS |
+                               WORKSPACE_V86_EXACT_PATHS | WORKSPACE_V87_EXACT_PATHS | WORKSPACE_SOURCE_EXACT_PATHS |
                                {WORKSPACE_ANDROID_DRIVER})
         exact_packet_paths = set()
         for base, application_path, validate, predecessor in (
@@ -6944,6 +6997,8 @@ class Collector:
              validate_workspace_v85_metadata, WORKSPACE_V84_MANIFEST),
             (WORKSPACE_V86_SOURCE_BASE, WORKSPACE_V86_APPLICATION_MANIFEST,
              validate_workspace_v86_metadata, WORKSPACE_V85_MANIFEST),
+            (WORKSPACE_V87_SOURCE_BASE, WORKSPACE_V87_APPLICATION_MANIFEST,
+             validate_workspace_v87_metadata, WORKSPACE_V86_MANIFEST),
         ):
             historical_metadata = self.git_blobs(
                 [base + name for name in ('selection.json', 'selected-source-manifest.json')])
@@ -6962,16 +7017,18 @@ class Collector:
         workspace_selection, workspace_manifest = validate_workspace_source_metadata(workspace_metadata)
         validate_workspace_source_manifest(workspace_installed_manifest(workspace_manifest))
         application = self.git_blobs([WORKSPACE_APPLICATION_MANIFEST])
-        rows, _ = workspace_application_preimages(
+        rows, modes = workspace_application_preimages(
             workspace_selection, workspace_manifest, application[WORKSPACE_APPLICATION_MANIFEST],
-            base=WORKSPACE_SOURCE_BASE, predecessor=WORKSPACE_V86_MANIFEST, exact=True)
+            base=WORKSPACE_SOURCE_BASE, predecessor=WORKSPACE_V87_MANIFEST, exact=True)
         tree, _, _ = self.command(
             ['git', '--no-replace-objects', 'ls-tree', '-rz', '--full-tree', self.sha, '--',
              WORKSPACE_V83_SOURCE_BASE, WORKSPACE_V84_SOURCE_BASE,
-             WORKSPACE_V85_SOURCE_BASE, WORKSPACE_V86_SOURCE_BASE, WORKSPACE_SOURCE_BASE,
-             *sorted(exact_product_paths)], limit=8192)
+             WORKSPACE_V85_SOURCE_BASE, WORKSPACE_V86_SOURCE_BASE, WORKSPACE_V87_SOURCE_BASE,
+             WORKSPACE_SOURCE_BASE,
+             *sorted(exact_product_paths)], limit=12288)
         validate_workspace_exact_tree(
-            tree, exact_product_paths | exact_packet_paths | workspace_exact_packet_paths(WORKSPACE_SOURCE_BASE, rows))
+            tree, exact_product_paths | exact_packet_paths | workspace_exact_packet_paths(WORKSPACE_SOURCE_BASE, rows),
+            (WORKSPACE_EXECUTABLES & exact_product_paths) | {path for path, mode in modes.items() if mode == 0o755})
         preimages = self.git_blobs(sorted(rows))
         validate_workspace_preimages(preimages, rows)
         metadata.update(workspace_metadata)
@@ -6979,7 +7036,7 @@ class Collector:
         metadata.update(preimages)
         self.state["source"].update(current_source_selection_sha256=WORKSPACE_SELECTION_SHA256,
                                     current_source_digest_sha256=WORKSPACE_SOURCE_DIGEST,
-                                    predecessor_source_digest_sha256=WORKSPACE_V87_SOURCE_DIGEST)
+                                    predecessor_source_digest_sha256=WORKSPACE_V87_INSTALLED_SOURCE_DIGEST)
         self.prerequisites = amendment["prerequisites"]
         self.state["source"].update(predecessor_contract_sha256=CONTRACT_SHA256, predecessor_packet_sha256=CONTRACT_PACKET, image_amendment_sha256=AMENDMENT_SHA256, image_amendment_packet_sha256=AMENDMENT_PACKET, image_source_review_packet_sha256=SOURCE_REVIEW_PACKET, execution_amendment_sha256=EXECUTION_SHA256, execution_amendment_packet_sha256=EXECUTION_PACKET)
         self.state["source"].update(predecessor_product_files=177, predecessor_product_tree_digest_sha256=FROZEN_PRODUCT_DIGEST, fixture_amendment_sha256=FIXTURE_SHA256, fixture_amendment_packet_sha256=FIXTURE_PACKET, fixture_review_packet_sha256=FIXTURE_REVIEW_PACKET, fixture_preformat_source_digest_sha256=FIXTURE_SOURCE_DIGEST, format_amendment_sha256=FORMAT_SHA256, format_amendment_packet_sha256=FORMAT_PACKET)
@@ -7822,9 +7879,11 @@ WORKSPACE_V85_SELECTION, WORKSPACE_V85_MANIFEST = validate_workspace_v85_metadat
     workspace_source_metadata(_source_root, WORKSPACE_V85_SOURCE_BASE))
 WORKSPACE_V86_SELECTION, WORKSPACE_V86_MANIFEST = validate_workspace_v86_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_V86_SOURCE_BASE))
-_, WORKSPACE_V87_MANIFEST = validate_workspace_source_metadata(
+WORKSPACE_V87_SELECTION, WORKSPACE_V87_MANIFEST = validate_workspace_v87_metadata(
+    workspace_source_metadata(_source_root, WORKSPACE_V87_SOURCE_BASE))
+_, WORKSPACE_V88_MANIFEST = validate_workspace_source_metadata(
     workspace_source_metadata(_source_root, WORKSPACE_SOURCE_BASE))
-WORKSPACE_MANIFEST = workspace_installed_manifest(WORKSPACE_V87_MANIFEST)
+WORKSPACE_MANIFEST = workspace_installed_manifest(WORKSPACE_V88_MANIFEST)
 
 if __name__ == '__main__':
     try:

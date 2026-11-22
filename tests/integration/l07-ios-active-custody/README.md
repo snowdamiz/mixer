@@ -132,3 +132,53 @@ command to reconcile it after database readback.
 python3 -B -W error::ResourceWarning -m unittest discover -v \
   -s tests/integration/l07-ios-active-custody -p test_attest_settled.py
 ```
+
+## Replay one lost attach acknowledgement
+
+Apply the fixture changes on public Mixer
+`6c53e629dcbd396895a8072e6e6bb570152862c1`. The scoped starting point is
+the [managed iOS stock-attachment receipt](../../../verification/receipts/l05-managed-ios-stock-attestation-20261121.json).
+From the patched checkout, run the no-build admission first. This checks the
+ordinary authenticated writer and proves that a selected response reaches a
+clean TCP EOF with zero HTTP bytes. A missing bearer and a different target
+return their normal HTTP errors. The exact target subsequently returns 404
+because this control creates no build or attachment.
+
+```sh
+python3 -B tests/integration/l07-ios-active-custody/run.py \
+  --v74-preflight --lost-attach-ack \
+  --receipt verification/local/l07-lost-ack-preflight.json
+```
+
+For the root-owned replay, prepare the Starter inputs above from a clean
+checkout using the pinned staging launcher. Use those same staged inputs and
+a fresh receipt path.
+
+```sh
+python3 -B tests/integration/l07-ios-active-custody/run.py \
+  --v74-attest --lost-attach-ack \
+  --stage-receipt "$stage_receipt" --stage-sha256 "$stage_sha256" \
+  --cli "$starter_cli" --export "$stage_dir/starter/exported" \
+  --receipt verification/local/l07-lost-ack-root.json
+```
+
+The ordinary API keeps the exact IPv4 loopback signing origin. The fixture arms
+one endpoint response after the signer has closed. Its one-shot marker matches
+the stock POST's exact origin, route, and pins. Once the writer commits and
+Phoenix selects 201, the fixture shuts down the connection's write half before
+Bandit writes a status line. The first stock attach must exit 1 with its
+unconfirmed-transport error and positive process closure. The wrapper opens a
+new read-only PostgreSQL connection and requires one exact copy of the signed
+envelope, the same settled build and closed lease, and an unchanged worker
+ledger. Only then does it send the stored envelope once more with the public
+key and require HTTP 200 duplicate. It rechecks the envelope file, PostgreSQL
+row and worker ledger after the retry.
+
+Expect stage `v74-attach-ack-replayed`, one build POST and Xcode invocation, one
+sign, two attaches, and `attachmentHTTP: [null, 200]`. The suppressed 201 is
+recorded in `lostAcknowledgement.selectedHTTP` along with the pre-retry database
+observation and terminating command facts. On failure after attachment begins,
+keep the indicated run and operator roots per the custody receipt. The
+`attestation/persisted-before-retry.json` checkpoint is written only after the
+fresh read confirms persistence. For manual reconciliation use the existing
+envelope, the exact original origin and a fresh authorized fixture bearer.

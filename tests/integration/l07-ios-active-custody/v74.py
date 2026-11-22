@@ -25,7 +25,7 @@ def replace(path, old, new, *, count=1):
     path.write_text(source.replace(old, new))
 
 
-def compose(root, here, pair):
+def compose(root, here, pair, *, lost_attach_ack=False):
     api = root / pair / "api-case.exs"
     replace(api, "  {cookie, csrf} = login(c)\n\n  pair25_publish!",
             "  {cookie, csrf} = login(c)\n"
@@ -34,6 +34,12 @@ def compose(root, here, pair):
             "  v74_wait!(c, scope, build, System.monotonic_time(:millisecond) + 1_240_000)")
     with api.open("a") as stream:
         stream.write("\n" + (here / "v74-api.exs").read_text())
+    if lost_attach_ack:
+        hosted = root / "hosted"
+        (hosted / "test/support/v74_lost_ack.ex").write_bytes((here / "v74-lost-ack.ex").read_bytes())
+        endpoint = hosted / "lib/mixer_hosted_web/endpoint.ex"
+        replace(endpoint, "  plug(MixerHostedWeb.Router)",
+                "  plug(MixerHostedWeb.L07LostAck)\n  plug(MixerHostedWeb.Router)")
 
 
 def configure_hosted(root, pair, api_test):
@@ -161,7 +167,7 @@ def command(root, kit, result, name, argv, env, *, cwd=None, timeout=12):
     return root / (name + ".log")
 
 
-def enroll(root, kit, env, pg, result, api, auth, operator, ready, *, preflight):
+def enroll(root, kit, env, pg, result, api, auth, operator, ready, *, preflight, lost_attach_ack=False):
     require = kit["require"]
     def closed(name):
         proof = result["commands"][name]
@@ -201,6 +207,11 @@ def enroll(root, kit, env, pg, result, api, auth, operator, ready, *, preflight)
     require({key: enrolled[key] for key in expected} == expected,
             "stock writer, authority or fixed origin differed after enrollment")
     if preflight:
+        if lost_attach_ack:
+            require(enrolled["lostAckControl"] == {
+                "selectedHTTP": 404, "unauthenticatedHTTP": 401, "responseBytes": 0,
+                "wrongTargetHTTP": 404, "retryHTTP": 404, "rows": 0, "adapterWriteState": "unsent", "writeShutdown": True,
+            }, "no-build lost acknowledgement control differed")
         return
     require(enrolled["browserStorageReady"] and enrolled["freshBrowserSession"],
             "v74 writer grants are incompatible with ordinary browser admission")
@@ -212,20 +223,29 @@ def enroll(root, kit, env, pg, result, api, auth, operator, ready, *, preflight)
     (root / "v74.attaching").touch(exist_ok=False)
     result["attestationPending"] = True
     credentials = operator / "credentials"
+    replay_options = ["--lost-attach-ack"] if lost_attach_ack else []
     wrapper = command(root, kit, result, "attest-settled",
                       [sys.executable, "-B", auth["wrapper"], "--run-root", root,
                        "--settlement-sha256", file_sha(settlement), "--api-port", str(auth["port"]),
                        "--pg-port", str(result["ports"][0]), "--psql", pg / "psql",
                        "--session", credentials / "session", "--bearer", credentials / "bearer",
-                       "--private-key", private, "--public-key", public, "--enrolled-spki-sha256", pin],
+                       "--private-key", private, "--public-key", public, "--enrolled-spki-sha256", pin,
+                       *replay_options],
                       env, timeout=600)
     proof = kit["read"](wrapper)
+    if lost_attach_ack:
+        replay = proof["lostAcknowledgement"]
+        require(replay["selectedHTTP"] == 201 and replay["origin"] == origin
+                and replay["writeShutdown"] is True and replay["adapterWriteState"] == "unsent"
+                and replay["persistedBeforeRetry"] is True and replay["workerLedgerUnchanged"] is True
+                and proof["signInvocations"] == 1 and proof["attachInvocations"] == 2,
+                "wrapper result does not prove persistence before retry of the original envelope")
     require(proof["base"] == BASE and proof["origin"] == origin and proof["signerKeySHA256"] == pin
             and proof["settlementSHA256"] == file_sha(settlement)
             and proof["workerOperationId"] == result["binding"]["operation_id"]
             and proof["recordId"] == result["binding"]["record_id"]
             and proof["subjects"] == result["settled"]["artifacts"]
-            and proof["attachmentHTTP"] == [201, 200] and proof["persistedRows"] == 1
+            and proof["attachmentHTTP"] == ([None, 200] if lost_attach_ack else [201, 200]) and proof["persistedRows"] == 1
             and proof["byteExact"] is True and proof["journalUnchanged"] is True
             and proof["buildPOSTs"] == 0,
             "wrapper result does not prove exact stock attachment and duplicate readback")

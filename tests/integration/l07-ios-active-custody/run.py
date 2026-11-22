@@ -61,7 +61,7 @@ def git(*args):
     )
 
 
-def provision(root, cache, archives, result, *, live=False, preflight=False, v74=False):
+def provision(root, cache, archives, result, *, live=False, preflight=False, v74=False, lost_attach_ack=False):
     if v74:
         from v74 import CATALOG_REVISION as revision, CATALOG_HOSTED_TREE as expected
 
@@ -123,7 +123,7 @@ def provision(root, cache, archives, result, *, live=False, preflight=False, v74
     if v74:
         from v74 import compose, configure_hosted, owned_runner
 
-        compose(root, HERE, PAIR)
+        compose(root, HERE, PAIR, lost_attach_ack=lost_attach_ack)
         configure_hosted(root, PAIR, API_TEST)
         kit["owned"] = kit["compile_hosted"].__globals__["owned"] = owned_runner(kit)
     else:
@@ -215,7 +215,7 @@ def db_rows(database, operation, *, with_plan=False):
     return None
 
 
-def drive(root, kit, env, pg, result, live_recipe=None, *, operator=None, v74_preflight=False):
+def drive(root, kit, env, pg, result, live_recipe=None, *, operator=None, v74_preflight=False, lost_attach_ack=False):
     if operator is not None:
         from v74 import command, enroll
     require, read, write, wait = (kit[name] for name in ("require", "read", "write", "wait"))
@@ -348,7 +348,7 @@ def drive(root, kit, env, pg, result, live_recipe=None, *, operator=None, v74_pr
 
         if v74_preflight:
             processors.close()
-            enroll(root, kit, env, pg, result, api, auth, operator, ready, preflight=True)
+            enroll(root, kit, env, pg, result, api, auth, operator, ready, preflight=True, lost_attach_ack=lost_attach_ack)
             require(jobs() is None and all(value is None for value in snapshot().values()),
                     "v74 preflight unexpectedly created a build or admitted a worker")
             result["fixtureQueueEmpty"] = True
@@ -438,8 +438,8 @@ def drive(root, kit, env, pg, result, live_recipe=None, *, operator=None, v74_pr
                 )
             processors.close()
             enroll(root, kit, env, pg, result, api, auth | {"wrapper": HERE / "attest_settled.py"},
-                   operator, ready, preflight=False)
-            result["stage"] = "v74-attested"
+                   operator, ready, preflight=False, lost_attach_ack=lost_attach_ack)
+            result["stage"] = "v74-attach-ack-replayed" if lost_attach_ack else "v74-attested"
             return
 
         if live_recipe:
@@ -736,6 +736,8 @@ def main():
     mode.add_argument("--live", action="store_true", help="historical v55 owned-worker recovery build")
     mode.add_argument("--v74-attest", action="store_true", help="one ordinary v74 build and local attachment")
     mode.add_argument("--v74-preflight", action="store_true", help="v74 stock writer and authority without a build")
+    parser.add_argument("--lost-attach-ack", action="store_true",
+                        help="suppress the first selected attachment acknowledgement in the v74 fixture")
     parser.add_argument("--preflight-only", action="store_true", help="check the live inputs without services")
     parser.add_argument("--export", type=Path, help="already verified, staged Starter export")
     parser.add_argument("--cli", type=Path, help="canonical path of the staged retained-output CLI")
@@ -746,6 +748,8 @@ def main():
         parser.error("run on macOS and use a new receipt path")
     live = args.live or args.v74_attest
     v74 = args.v74_attest or args.v74_preflight
+    if args.lost_attach_ack and not v74:
+        parser.error("--lost-attach-ack requires a v74 mode")
     if live and not all((args.export, args.cli, args.stage_receipt, args.stage_sha256)):
         parser.error("live build modes require --export, --cli, --stage-receipt and --stage-sha256")
     if args.stage_sha256 and not re.fullmatch(r"[0-9a-f]{64}", args.stage_sha256):
@@ -787,7 +791,7 @@ def main():
             result["operatorScratch"] = str(operator)
             (operator / "credentials").mkdir(mode=0o700)
         kit = provision(root, args.hex_cache, args.mix_archives, result, live=args.live,
-                        preflight=args.preflight_only, v74=v74)
+                        preflight=args.preflight_only, v74=v74, lost_attach_ack=args.lost_attach_ack)
         result["fixtureSHA256"] = kit["sha"](Path(__file__).read_bytes())
         live_recipe = None
         env = environment(root)
@@ -797,6 +801,8 @@ def main():
             kit["owned"] = with_attestation_custody(kit)
         if v74:
             env["L07_V74_CREDENTIALS"] = str(operator / "credentials")
+            if args.lost_attach_ack:
+                env["L07_V74_LOST_ACK"] = "1"
             if args.v74_preflight:
                 env["L07_V74_PREFLIGHT"] = "1"
         if v74 or live:
@@ -808,7 +814,7 @@ def main():
             live_recipe = stage_recipe(root, kit, args, result, PREPARE)
         if not args.preflight_only:
             drive(root, kit, env, args.pg_bin, result, live_recipe,
-                  operator=operator, v74_preflight=args.v74_preflight)
+                  operator=operator, v74_preflight=args.v74_preflight, lost_attach_ack=args.lost_attach_ack)
         else:
             result["stage"] = "live-inputs-admitted"
         result["passed"] = True

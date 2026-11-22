@@ -1,0 +1,122 @@
+{
+  "acceptedBaseline": "verification/receipts/l05-managed-ios-stock-attestation-20261121.json",
+  "fixtureSHA256": {
+    "attest_settled.py": "b15307b9c9193d2bae393256e38455c640324713cf8b7813d01d902bea0854b7",
+    "live.py": "922991db77bbab753c18688590b9961195c299984a4cd8dc56e12e74ed56889a",
+    "run.py": "e6003618a4b444b3157b253c4aa11d235193169929299236c61a7f5ddefd2a29",
+    "test_attest_settled.py": "6e2d7fc2b5540c8a05735dd1b34f75f44af94834871474f98c5b5f8821a6e311",
+    "test_live.py": "92c24504e874150b735cab92ba51b932afcc14c76ded2e7284b48c08730919ad",
+    "test_runner.py": "45df7ced0c031d6fdc4fe2f57c8c039e58acd98bc33fee417c03775ed345a8cd",
+    "v74-api.exs": "92a983e606148fb72cbdaaa85889fee1805f16ff79e2381137b1274fdb5cf6b2",
+    "v74-lost-ack.ex": "83b9dcc0d5d1ec8937f0d59b7c177c292b68ca267c05a1fe95a0cc07759257cd",
+    "v74.py": "17cd9f3b72910bc48722127224e3ee167ae033d44df51850d2f5ca8b71cd6fa8"
+  },
+  "hostedRevision": "d8461558a05867d6e4656b9469b244f5b92b1146",
+  "hostedTree": "5f45ec34fa5a3ffa75c878eaeed00d0887171b50",
+  "pending": "Root-only real Starter build and live lost-ack replay on the first settled attempt",
+  "publicSource": "6c53e629dcbd396895a8072e6e6bb570152862c1",
+  "publicTree": "96405c87a1f6d370823383f466b1ba65634c9a73",
+  "pythonControls": {
+    "command": "python3 -B -W error::ResourceWarning -m unittest discover -s tests/integration/l07-ios-active-custody",
+    "passed": 43,
+    "scope": "Fixture command custody, replay order, refusal for wrong envelope or changed worker ledger, and row rewrite rejection. Replay orchestration uses stubbed sign, attach and PostgreSQL commands with a real synthetic SQLite ledger."
+  },
+  "schema": "mixer.local.l07.attach-lost-ack-controls.v1",
+  "seededStockWriterControl": {
+    "buildJournalUnchanged": true,
+    "byteExact": true,
+    "clientAttachmentHTTP": [
+      null,
+      200
+    ],
+    "command": "PYTHONPATH=tests/integration/l07-ios-active-custody python3 -B stock-writer-control.py",
+    "driverSHA256": "3a48ccd46ab600858330883e72e696817c72f0bb7a1566823eb6eaa69307f6fb",
+    "firstAttachExit": 1,
+    "freshRowReadBeforeRetry": true,
+    "innerAttaches": "Synchronous children of the ExUnit command, whose group was observed absent.",
+    "persistedRows": 1,
+    "scratchBytesAtCollection": 211462144,
+    "scratchRemoved": true,
+    "serverResponse": {
+      "adapterWriteState": "unsent",
+      "origin": "http://127.0.0.1:58339",
+      "selectedHTTP": 201,
+      "target": "/v3/orgs/org-a/projects/project/apps/app/builds/build-2dd6a35990eb0dc4/ios/native-development-attestation?build_definition_sha256=3333333333333333333333333333333333333333333333333333333333333333&source_sha256=1111111111111111111111111111111111111111111111111111111111111111&toolchain_lock_sha256=2222222222222222222222222222222222222222222222222222222222222222",
+      "writeShutdown": true
+    },
+    "setup": "Pinned v74 hosted tree plus the public W12 test, with its first attach assertion replaced by one-shot arming and the stock unconfirmed result assertion. Uses synthetic retained products, a seeded second-attempt settlement, and a disposable keypair.",
+    "signerSHA256": "315f17a7180ec21e5860805f701a99779c21bfd4df15b68060fac02e7fca55d1",
+    "signerTree": "a55127f07cec85dfbf00d985e72e44c6c905d09a",
+    "terminalCommands": [
+      "deps",
+      "compile",
+      "initdb",
+      "postgres",
+      "createdb",
+      "stock-http-control",
+      "go.mod",
+      "go-build",
+      "stock-source",
+      "go.sum",
+      "go-version"
+    ],
+    "test": "stock Go attach sends the same signed envelope twice through the ordinary v3 writer"
+  },
+  "status": "PASS_SCOPED",
+  "toolchain": {
+    "go": "go version go1.26.4 darwin/arm64",
+    "mix": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:15:15] [ds:15:15:10] [async-threads:1] [jit] [dtrace]\n\nMix 1.20.4 (compiled with Erlang/OTP 29)",
+    "postgres": "postgres (PostgreSQL) 17.11 (Homebrew)",
+    "python": "3.14.8"
+  },
+  "wholeGatePassed": false,
+  "writerAdmission": {
+    "buildPOSTs": 0,
+    "command": "python3 -B tests/integration/l07-ios-active-custody/run.py --v74-preflight --lost-attach-ack --receipt verification/local/l07-lost-ack-final-preflight.json",
+    "fixtureQueueEmpty": true,
+    "operatorScratchRemoved": true,
+    "portsReusable": [
+      58630,
+      58631,
+      58632,
+      58667,
+      58660
+    ],
+    "scratchRemoved": true,
+    "terminalCommands": [
+      "api",
+      "compile",
+      "deps",
+      "initdb",
+      "postgres",
+      "processor",
+      "sql-001",
+      "sql-002",
+      "sql-003",
+      "sql-004",
+      "sql-005",
+      "sql-006"
+    ],
+    "writer": {
+      "browserStorageReady": true,
+      "freshBrowserSession": true,
+      "lostAckControl": {
+        "adapterWriteState": "unsent",
+        "responseBytes": 0,
+        "retryHTTP": 404,
+        "rows": 0,
+        "selectedHTTP": 404,
+        "unauthenticatedHTTP": 401,
+        "writeShutdown": true,
+        "wrongTargetHTTP": 404
+      },
+      "missingBuildHTTP": 404,
+      "missingScopeHTTP": 403,
+      "origin": "http://127.0.0.1:58632",
+      "role": "mixer_native_attestation_writer",
+      "rows": 0,
+      "spkiSHA256": "06e3fd8fda29bb60ab59557de61edb0aecdb231134be30e75b455f8e1b792fa9"
+    },
+    "xcodeInvocations": 0
+  }
+}

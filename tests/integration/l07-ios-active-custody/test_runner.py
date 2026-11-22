@@ -69,7 +69,7 @@ class WrapperCustody(unittest.TestCase):
         with patch.object(v74, "OwnedProcess", Process):
             kit["owned"] = v74.owned_runner(kit)
 
-            def drive(root, kit, env, pg, result, recipe, *, operator, v74_preflight):
+            def drive(root, kit, env, pg, result, recipe, *, operator, v74_preflight, lost_attach_ack):
                 result["ports"] = [12345]
                 (root / "settlement.json").write_text("retained database and build inputs")
                 if operator is None:

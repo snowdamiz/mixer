@@ -32,7 +32,7 @@ class SettledAdmissionTests(unittest.TestCase):
         parent = Path(self.enterContext(tempfile.TemporaryDirectory())).resolve()
         root = parent / "run"
         root.mkdir(mode=0o700)
-        self.args = SimpleNamespace(run_root=root, api_port=18431)
+        self.args = SimpleNamespace(run_root=root, api_port=18431, lost_attach_ack=False)
         spki = bytes.fromhex("302a300506032b6570032100") + b"k" * 32
         self.args.enrolled_spki_sha256 = step.sha(spki)
         for key, data in {
@@ -82,7 +82,7 @@ class SettledAdmissionTests(unittest.TestCase):
         self.snapshot = dict(
             scope=list(scope.values()), revision=2, journal=dict(creation={"spec": spec}, events=journal),
             reservation=[1, 1, False, journal[-1]["id"]], dataDirectory=str(root / "pg"),
-            leaseClosed=True, attachments=[],
+            leaseClosed=True, attachments=[], attachmentVersion=None,
         )
         selection = dict(zip(step.WIRE, (scope | pins).values(), strict=True))
         query = step.urlencode(scope | pins)
@@ -259,6 +259,114 @@ class SettledAdmissionTests(unittest.TestCase):
                                         provenance=dict(journalRevision=2, attempt=1, nativeBindingSha256="4" * 64,
                                                         workerOperationId=self.operation), subjects=self.subjects))
         self.postgres.assert_called_once()
+
+    def replay(self, *, corruption=None):
+        self.args.lost_attach_ack = True
+        root = self.args.run_root
+        work = root / "attestation"
+        tool = work / "mixer-native-attest"
+        self.build.side_effect = None
+
+        def build(_work):
+            tool.write_bytes(b"test-only tool")
+            (work / "state").mkdir()
+            return tool, "inert go"
+
+        self.build.side_effect = build
+        calls = []
+        observed = {}
+
+        def terminal(label, exit_code=0):
+            logs = work / "commands" / label
+            logs.mkdir(parents=True)
+            proof = dict(pid=123, pgid=123, exit=exit_code, custody="TERMINAL", directChildReaped=True,
+                         groupAbsent=True, descriptorsClosed=True, execPipeEOF=True, stdoutEOF=True, stderrEOF=True)
+            (logs / "result.json").write_text(json.dumps(proof))
+            return logs
+
+        def postgres(_args, _work, _record, label):
+            calls.append(label)
+            if label == "psql-before":
+                return self.snapshot
+            terminal(label)
+            return observed["snapshot"]
+
+        def command(_work, label, argv, *, exit_codes, **_):
+            calls.append(label)
+            if label == "sign":
+                self.assertEqual(argv[-3], self.args.private_key)
+                statement = json.loads(argv[-1].read_bytes())
+                filename = step.sha(b"org\0project\0app\0ios\0build") + ".json"
+                envelope = json.dumps(dict(statement=statement, signature="fixture")).encode()
+                observed["envelope"] = work / "state" / filename
+                observed["envelope"].write_bytes(envelope)
+                observed["envelope"].chmod(0o400)
+                observed["snapshot"] = self.snapshot | {
+                    "attachmentVersion": "100",
+                    "attachments": [[2, 1, self.operation, "4" * 64, self.args.enrolled_spki_sha256,
+                                     statement["origin"], envelope.hex()]],
+                }
+                terminal(label)
+                return (filename + "\n").encode()
+            self.assertEqual(argv[1], "attach")
+            self.assertEqual(argv[-1], self.args.public_key)
+            if label == "attach-lost-ack":
+                self.assertEqual(exit_codes, (1,))
+                arm = root / "v74.lost-ack-arm.json"
+                selected = json.loads(arm.read_bytes())
+                self.assertEqual(selected["target"], "/v3/orgs/org/projects/project/apps/app/builds/build/"
+                                 "ios/native-development-attestation?build_definition_sha256=" + "3" * 64
+                                 + "&source_sha256=" + "1" * 64 + "&toolchain_lock_sha256=" + "2" * 64)
+                arm.rename(root / "v74.lost-ack-consumed.json")
+                (root / "v74.lost-ack-result.json").write_text(json.dumps(
+                    selected | dict(selectedHTTP=201, writeShutdown=True, adapterWriteState="unsent")))
+                (terminal(label, 1) / "stderr").write_bytes(step.ATTACH_UNCONFIRMED)
+                if corruption == "postgres":
+                    observed["snapshot"]["attachments"][0][-1] = "ff"
+                if corruption == "worker":
+                    with closing(sqlite3.connect(self.ledger)) as database, database:
+                        database.execute("INSERT INTO operations SELECT 'extra',value FROM operations")
+                return b""
+            self.assertEqual((label, exit_codes), ("attach-duplicate", (0,)))
+            self.assertTrue((work / "persisted-before-retry.json").is_file())
+            terminal(label)
+            if corruption == "duplicate":
+                observed["snapshot"] = observed["snapshot"] | {"attachmentVersion": "101"}
+            return b"duplicate\n"
+
+        self.postgres.side_effect = postgres
+        with patch.object(step, "run_command", side_effect=command):
+            if corruption:
+                message = {
+                    "postgres": "attachment bytes, cardinality, or settled build changed",
+                    "worker": "settled worker ledger",
+                    "duplicate": "duplicate attach changed the PostgreSQL snapshot",
+                }[corruption]
+                with self.assertRaisesRegex(RuntimeError, message):
+                    step.prove(self.args)
+            else:
+                proof = step.prove(self.args)
+                self.assertEqual(proof["attachmentHTTP"], [None, 200])
+                self.assertEqual(proof["signInvocations"], 1)
+                self.assertEqual(proof["attachInvocations"], 2)
+                self.assertEqual(proof["envelopeSHA256"], step.sha(observed["envelope"].read_bytes()))
+                self.assertTrue(proof["lostAcknowledgement"]["persistedBeforeRetry"])
+        expected = ["psql-before", "sign", "attach-lost-ack", "psql-after-lost-ack"]
+        if corruption not in ("postgres", "worker"):
+            expected += ["attach-duplicate", "psql-after-duplicate"]
+        self.assertEqual(calls, expected)
+
+    def test_replay_reads_persisted_envelope_before_sending_one_duplicate(self):
+        self.replay()
+
+    def test_replay_refuses_wrong_persisted_envelope_before_duplicate(self):
+        self.replay(corruption="postgres")
+
+    def test_replay_refuses_worker_ledger_change_before_duplicate(self):
+        self.replay(corruption="worker")
+
+    def test_replay_refuses_rewritten_attachment_after_duplicate(self):
+        self.replay(corruption="duplicate")
 
 
 class CommandCustodyTests(unittest.TestCase):
@@ -508,6 +616,13 @@ sys.stdout.buffer.write(b"x" * {step.COMMAND_LOG_LIMIT})
         self.logs = self.work / "commands/go-build"
         self.assertEqual(self.command("print('built')", name="go-build"), b"built\n")
         self.assertEqual(self.assert_terminal()["exit"], 0)
+
+    def test_expected_transport_exit_records_terminal(self):
+        self.assertEqual(step.run_command(
+            self.work, "control", [sys.executable, "-I", "-c", "raise SystemExit(1)"],
+            seconds=4, env={}, exit_codes=(1,),
+        ), b"")
+        self.assertEqual(self.assert_terminal()["exit"], 1)
 
     def test_nonzero_other_tool_still_records_terminal(self):
         with self.assertRaisesRegex(RuntimeError, "control failed or exceeded its budget"):
