@@ -1,0 +1,474 @@
+{
+  "schema": 1,
+  "gate": "L07",
+  "status": "passed_scoped_managed_signer_process_loss",
+  "recordedUTC": "2026-11-22T23:00:37.182473+00:00",
+  "source": {
+    "revision": "d16def36241304b4ab9010b0a6ac71dafd170457",
+    "tree": "e0c5e778a5688e8af862087df9ad81448917f7e9",
+    "hostedTree": "ac22272afdbf5efd3e55d3547cd214346b7851ff",
+    "servicesTree": "3088ff98513c3b9be8890c500deb5989c21412dc",
+    "mixLockBlob": "8ec53f2ed93a77d501d772c34f14aec6d57e247e",
+    "fixturePatch": "l07-managed-signer-process-recovery-d16def3624.patch",
+    "fixturePatchSHA256": "33e130a47f3b90bf85669cb9e8c9c447f1e31abb05a4c8f5771dbfc148ab89db",
+    "testedFilesSHA256": {
+      "hosted/lib/mixer_hosted_web/endpoint.ex": "6b3fb2984d404b12cc568b6f32a37756a63c5b90cf1b9042aa8ac54472172cf5",
+      "hosted/test/mixer_hosted/builds/native_attestation_attachment_test.exs": "d4e8e768bf1e90d96c181d4addf278cbc7d0b487dfec3cf4add38d9190232b5d",
+      "helper/signer_trial.py": "768896359ce8713ecb7e55eb73704082befdb9a3c511d3c6d2223848f4a90438",
+      "helper/worker_trial.py": "3449c9c0417ba52af412d6a14812cb39fd7d2d0bb70921e30479ba4b0553cf37",
+      "helper/run.py": "6ed649499345dbac3d376d6b5f3d908b5605aa92b9fbfcf438e59f12522267fd"
+    },
+    "stockGoSignerSHA256": "49b24538336335cd5ea184a4b5aeef51c300bbf0e41885dd214255e97ca7d136",
+    "stockWorkerSHA256": "cda01bdfb28a4d2001aeb93a138237ff8eaf93a35707c73d88851710db24bf63"
+  },
+  "tools": {
+    "macOS": "27.0.1 (arm64)",
+    "git": "2.56.0",
+    "Go": "go1.26.4 darwin/arm64",
+    "Elixir": "1.20.4",
+    "OTP": "29 / ERTS 17.1",
+    "PostgreSQL": "17.11",
+    "Python": "Python 3.14.8"
+  },
+  "scope": {
+    "worker": "Stock macOS-hosted loopback native_artifact_worker.py with a pre-seeded native_ready SQLite checkpoint, revision-5 PostgreSQL build journal with a settled second attempt, and three read-only synthetic native artifacts. Authenticated worker reads revalidated the exact retained products and operation before and after the cut and submission. The worker operation checkpoint digest matched.",
+    "signer": "Stock Go signer, fresh synthetic Ed25519 key, separate private fixture state and three distinct process launches. The test shim gates the 200 debug-symbol GET response after authorized repository read. The exact original PID received SIGKILL before the response or signer envelope publication. There were zero attachment requests before or during the cut.",
+    "service": "Stock Phoenix/Bandit API and v3 controller with builds_v1, restricted PostgreSQL reader and writer, and synthetic bearer/JWKS authority. A test-only endpoint hook routes the Go signer's cookie reads through the existing fixture plug backed by the restricted customer build repository and retained artifacts. The hook counts attachment POSTs and lets the stock router handle them.",
+    "release": "Same app and iOS target with fixture artifact admitted and uploaded through product artifact storage, and a sequence-7 active release seeded in the real ledger from the repository's test-only signed assignment bytes. PostgreSQL comparisons covered the complete selected build journal, release head, publication, artifact and audit rows. The only changed checked rows were the zero-to-one native attachments.",
+    "limits": "Closed fixture operation. No new Oban job, earlier compiler execution or worker crash was tested. The cookie login path is a fixture. Same OS account with controlled key paths, so concurrent key isolation against an untrusted worker is unqualified. No devices, external endpoints, deployment, production keys or data. No L07 or GA decision."
+  },
+  "observations": {
+    "processes": {
+      "attach": {
+        "directChildReaped": true,
+        "exit": 0,
+        "groupAbsent": true,
+        "pgid": 46118,
+        "pid": 46118
+      },
+      "cut": {
+        "directChildReaped": true,
+        "exit": -9,
+        "groupAbsent": true,
+        "pgid": 44374,
+        "pid": 44374
+      },
+      "retry": {
+        "directChildReaped": true,
+        "exit": 0,
+        "groupAbsent": true,
+        "pgid": 45256,
+        "pid": 45256
+      }
+    },
+    "cut": "authorized debug_symbols response gated before send",
+    "worker": {
+      "closedWorkerCheckpointDigest": "6b5d94613336d2498c7aa501d3ab39bf75f5ca55fd646249144f4a32a5307950",
+      "directChildReaped": true,
+      "exit": 0,
+      "groupAbsent": true,
+      "operation": "2857b402de1d09e703fd8ba2acc261db7fcccba211dd9c2c3d9ebdd39bd90ac3",
+      "pgid": 42353,
+      "pid": 42353,
+      "port": 52130,
+      "twoAuthenticatedReadyObservations": true
+    },
+    "response": 201,
+    "operation": "2857b402de1d09e703fd8ba2acc261db7fcccba211dd9c2c3d9ebdd39bd90ac3",
+    "envelope_sha256": "a82e5ebf85b0310a91ff821ee640f768dea40fec6250f5778bbbc2fb79039c29",
+    "attachment_rows": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "envelope_counts": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "posts": 1,
+    "journal_revision": 5,
+    "journal_sha256": "393d42791ee01c05739f71aa4bdc86a812d3ba7d4e4be305930a725b17e3beb6",
+    "journal_unchanged": true,
+    "active_release_sequence": 7,
+    "release_unchanged": true,
+    "listeners_rebound": [
+      52134,
+      52136
+    ]
+  },
+  "boundaryOrder": [
+    "authorized symbols barrier",
+    "cut reaped",
+    "replacement sign",
+    "single attachment"
+  ],
+  "initialAttempts": [
+    {
+      "trial": "first",
+      "cut": false,
+      "reason": "LocalAttestation requires exactly Bandit.PhoenixAdapter; the first test-only adapter was refused before starting Phoenix."
+    },
+    {
+      "trial": "second",
+      "cut": false,
+      "reason": "Exclusive creation found the first trial's scratch key path before starting the signer. Each trial now uses a separate private path."
+    }
+  ],
+  "commands": {
+    "prepare": [
+      {
+        "name": "archive",
+        "args": [
+          "git",
+          "-C",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow",
+          "archive",
+          "-o",
+          "/private/tmp/l07sig.wP1xL8/source.tar",
+          "d16def3624",
+          "hosted",
+          "services"
+        ],
+        "pid": 48685,
+        "rc": 0,
+        "groupAbsent": true
+      },
+      {
+        "name": "extract",
+        "args": [
+          "tar",
+          "-xf",
+          "/private/tmp/l07sig.wP1xL8/source.tar"
+        ],
+        "pid": 48959,
+        "rc": 0,
+        "groupAbsent": true
+      },
+      {
+        "name": "deps",
+        "args": [
+          "mix",
+          "deps.get",
+          "--only",
+          "test"
+        ],
+        "pid": 49111,
+        "rc": 0,
+        "groupAbsent": true
+      },
+      {
+        "name": "compile",
+        "args": [
+          "mix",
+          "compile"
+        ],
+        "pid": 53244,
+        "rc": 0,
+        "groupAbsent": true
+      }
+    ],
+    "signerBuild": [
+      "go",
+      "-C",
+      "<scratch>/source/services",
+      "build",
+      "-p=4",
+      "-o",
+      "<scratch>/signer",
+      "./cmd/mixer-native-attest"
+    ],
+    "signerBuildExit": 0,
+    "signerBuildEnv": {
+      "CGO_ENABLED": "1",
+      "GOENV": "off",
+      "GOPROXY": "off",
+      "GOSUMDB": "off",
+      "GOTOOLCHAIN": "local",
+      "GOCACHE": "owned",
+      "GOMODCACHE": "owned",
+      "TMPDIR": "owned"
+    },
+    "trials": [
+      {
+        "event": "launch",
+        "name": "initdb",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/initdb",
+          "-D",
+          "/private/tmp/l07sig.wP1xL8/pg",
+          "-U",
+          "mixer_attestation_fixture_admin",
+          "--no-locale",
+          "--encoding=UTF8",
+          "--auth=trust",
+          "--no-sync"
+        ],
+        "cwd": "/private/tmp/l07sig.wP1xL8",
+        "pid": 70042,
+        "pgid": 70042,
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "7971d99acce316ed4d06f7bf6c2047f385d1e188aaaa573c2c06136e5c5991ed"
+      },
+      {
+        "event": "launch",
+        "name": "postgres-first",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/postgres",
+          "-D",
+          "/private/tmp/l07sig.wP1xL8/pg",
+          "-h",
+          "",
+          "-k",
+          "/private/tmp/l07sig.wP1xL8/socket",
+          "-p",
+          "5432",
+          "-c",
+          "unix_socket_permissions=0700"
+        ],
+        "cwd": "/private/tmp/l07sig.wP1xL8",
+        "pid": 8957,
+        "pgid": 8957,
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "7ef2a27c391694d0b54b162e359e8296670e857a6f341102bf43c7e64e55a648"
+      },
+      {
+        "event": "launch",
+        "name": "createdb-first",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/createdb",
+          "-h",
+          "/private/tmp/l07sig.wP1xL8/socket",
+          "-U",
+          "mixer_attestation_fixture_admin",
+          "mixer_native_attestation_fixture"
+        ],
+        "cwd": "/private/tmp/l07sig.wP1xL8",
+        "pid": 9012,
+        "pgid": 9012,
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "event": "launch",
+        "name": "exunit-first",
+        "argv": [
+          "mix",
+          "test",
+          "--only",
+          "l07_signer_process",
+          "--seed",
+          "0",
+          "--trace",
+          "test/mixer_hosted/builds/native_attestation_attachment_test.exs"
+        ],
+        "cwd": "/private/tmp/l07sig.wP1xL8/source/hosted",
+        "pid": 9105,
+        "pgid": 9105,
+        "exit": 2,
+        "groupAbsent": true,
+        "logSHA256": "db60bd66ffbc8543deb3a96952b99094c9aded3838f18d01da36438d75e401f3"
+      },
+      {
+        "event": "launch",
+        "name": "initdb-second",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/initdb",
+          "-D",
+          "/private/tmp/l07sig.wP1xL8/pg-second",
+          "-U",
+          "mixer_attestation_fixture_admin",
+          "--no-locale",
+          "--encoding=UTF8",
+          "--auth=trust",
+          "--no-sync"
+        ],
+        "cwd": "/private/tmp/l07sig.wP1xL8",
+        "pid": 27028,
+        "pgid": 27028,
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "5b83a62903a848418ebbe3d7ebfe4f6729a6cc1fdf7077db08f79e9d0a2fc04b"
+      },
+      {
+        "event": "launch",
+        "name": "postgres-second",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/postgres",
+          "-D",
+          "/private/tmp/l07sig.wP1xL8/pg-second",
+          "-h",
+          "",
+          "-k",
+          "/private/tmp/l07sig.wP1xL8/socket",
+          "-p",
+          "5432",
+          "-c",
+          "unix_socket_permissions=0700"
+        ],
+        "cwd": "/private/tmp/l07sig.wP1xL8",
+        "pid": 27155,
+        "pgid": 27155,
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "e9bd92ded7dc1483841ad627aaacca39282a0fc4fd98b3dc6328c8e632089a15"
+      },
+      {
+        "event": "launch",
+        "name": "createdb-second",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/createdb",
+          "-h",
+          "/private/tmp/l07sig.wP1xL8/socket",
+          "-U",
+          "mixer_attestation_fixture_admin",
+          "mixer_native_attestation_fixture"
+        ],
+        "cwd": "/private/tmp/l07sig.wP1xL8",
+        "pid": 27169,
+        "pgid": 27169,
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "event": "launch",
+        "name": "exunit-second",
+        "argv": [
+          "mix",
+          "test",
+          "--only",
+          "l07_signer_process",
+          "--seed",
+          "0",
+          "--trace",
+          "test/mixer_hosted/builds/native_attestation_attachment_test.exs"
+        ],
+        "cwd": "/private/tmp/l07sig.wP1xL8/source/hosted",
+        "pid": 27175,
+        "pgid": 27175,
+        "exit": 2,
+        "groupAbsent": true,
+        "logSHA256": "a72d7672b7054a2bafda76b8776db734d0c9b8de7fb1e10773799e160f2464a0"
+      },
+      {
+        "event": "launch",
+        "name": "initdb-third",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/initdb",
+          "-D",
+          "/private/tmp/l07sig.wP1xL8/pg-third",
+          "-U",
+          "mixer_attestation_fixture_admin",
+          "--no-locale",
+          "--encoding=UTF8",
+          "--auth=trust",
+          "--no-sync"
+        ],
+        "cwd": "/private/tmp/l07sig.wP1xL8",
+        "pid": 35514,
+        "pgid": 35514,
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "4c52136cc96989494371f0e5048b5bfc6db6e0ec893b24a521355bd0b2f35351"
+      },
+      {
+        "event": "launch",
+        "name": "postgres-third",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/postgres",
+          "-D",
+          "/private/tmp/l07sig.wP1xL8/pg-third",
+          "-h",
+          "",
+          "-k",
+          "/private/tmp/l07sig.wP1xL8/socket",
+          "-p",
+          "5432",
+          "-c",
+          "unix_socket_permissions=0700"
+        ],
+        "cwd": "/private/tmp/l07sig.wP1xL8",
+        "pid": 36096,
+        "pgid": 36096,
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "4aa0b7d12bb95eb0a299bbf42eac65425e5bd86299c6908a40ff54a02fa5d3da"
+      },
+      {
+        "event": "launch",
+        "name": "createdb-third",
+        "argv": [
+          "/opt/homebrew/opt/postgresql@17/bin/createdb",
+          "-h",
+          "/private/tmp/l07sig.wP1xL8/socket",
+          "-U",
+          "mixer_attestation_fixture_admin",
+          "mixer_native_attestation_fixture"
+        ],
+        "cwd": "/private/tmp/l07sig.wP1xL8",
+        "pid": 36177,
+        "pgid": 36177,
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "event": "launch",
+        "name": "exunit-third",
+        "argv": [
+          "mix",
+          "test",
+          "--only",
+          "l07_signer_process",
+          "--seed",
+          "0",
+          "--trace",
+          "test/mixer_hosted/builds/native_attestation_attachment_test.exs"
+        ],
+        "cwd": "/private/tmp/l07sig.wP1xL8/source/hosted",
+        "pid": 36344,
+        "pgid": 36344,
+        "exit": 0,
+        "groupAbsent": true,
+        "logSHA256": "f9688d58b1a87ceab95a079d882a3802d6e9a19bf56901d73ac734d5f739d500"
+      }
+    ]
+  },
+  "cleanup": {
+    "allObservedRunnerGroupsAbsent": true,
+    "postgresFastShutdownObserved": true,
+    "postgresReadinessCommandsClosed": true,
+    "workerAuthenticatedShutdownAndListenerClosed": true,
+    "httpAndJwksPortsRebound": [
+      52134,
+      52136
+    ],
+    "scratch": "/private/tmp/l07sig.wP1xL8",
+    "externalScratchRemoved": true,
+    "stageWritten": false,
+    "push": false,
+    "ownVerificationScratchRemoved": true
+  },
+  "replay": [
+    "Archive hosted and services at the full recorded revision into <scratch>/source using an owned, short physical path under /private/tmp. Create mode-0700 scratch, tmp and socket directories. Copy existing Hex and Mix homes into <scratch>/hex and <scratch>/mix for offline dependency resolution.",
+    "Apply the replay-only patch with git apply under <scratch>/source. Its two hosted changes are disposable test instrumentation, including a test endpoint hook. Do not apply them to a deployment source tree.",
+    "From <scratch>/source/hosted run HEX_OFFLINE=1 MIX_ENV=test ERL_FLAGS='+S 4:4' mix deps.get --only test and mix compile with MIX_HOME, HEX_HOME and TMPDIR rooted in <scratch>.",
+    "Build the stock signer with the recorded command and environment. Copy signer_trial.py and worker_trial.py from the patch's tests/integration/l07-native-attestation to <scratch>. Run python3 <scratch>/source/tests/integration/l07-native-attestation/run_managed_signer_process.py <scratch> replay. The runner expects Homebrew PostgreSQL 17, and it uses a fresh DB and distinct phase name. Remove only the exact owned scratch after positive closure."
+  ],
+  "priorEvidence": [
+    "verification/receipts/l07-signer-interruption-review-5961ea0c.json",
+    "verification/receipts/l07-managed-attachment-prepublication-b25470d8.json"
+  ],
+  "localGatesPassed": [],
+  "replayPatchRestoredExactTestedBytes": true,
+  "verificationRetention": {
+    "passed": true,
+    "validation": "Temporary index and private object directory"
+  }
+}

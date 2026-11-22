@@ -13,6 +13,24 @@ Use the tracked results to assess L01–L08 and rerun any check that needs fresh
 evidence from a clean checkout. Paths to disposable run files are historical
 references. See [the worktree verification policy](mixer-product-plan.md#worktree-local-verification).
 
+## Managed signer interruption and ordinary iOS log diagnostic
+
+The stock signer was killed while its authorized symbols response was
+paused. The fixture recorded zero envelopes, requests, and attachment
+rows through the cut. A fresh signer attached one envelope to the same
+settled worker operation. The revision-5 build journal, worker checkpoint,
+and active sequence-7 release stayed unchanged. This exercised the
+post-build managed boundary with a synthetic settled operation and fixture
+authentication.
+[Signer receipt](verification/receipts/l07-managed-signer-process-recovery-d16def3624.json)
+
+The signed-resume XCTest and disk readback passed on a separate fresh
+Simulator. The subsequent ordinary launch reached a new PID, but its
+loaded-image output lacked the required inventory. The observer did not
+query ordinary-process logs. Owned resources were removed and external
+device checks matched. L07 privacy remains open.
+[Startup diagnostic](verification/receipts/l07-fieldlog-ios-ordinary-startup-inventory-20261122.json)
+
 ## FieldLog saved-draft guest Close on iOS
 
 One exact XCTest on a fresh iOS 27.0 Simulator preserved the linked JPEG and

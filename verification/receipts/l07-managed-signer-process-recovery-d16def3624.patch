@@ -1,0 +1,651 @@
+diff --git a/hosted/lib/mixer_hosted_web/endpoint.ex b/hosted/lib/mixer_hosted_web/endpoint.ex
+--- a/hosted/lib/mixer_hosted_web/endpoint.ex
++++ b/hosted/lib/mixer_hosted_web/endpoint.ex
+@@ -2,7 +2,14 @@
+   use Phoenix.Endpoint, otp_app: :mixer_hosted
+ 
+   plug(Plug.RequestId)
++  plug(:l07_signer_cut)
+   plug(MixerHostedWeb.BrowserLoginHTTP, :ordinary)
+   plug(Plug.Head)
+   plug(MixerHostedWeb.Router)
++  defp l07_signer_cut(conn, _) do
++    case Application.get_env(:mixer_hosted, :l07_test_http_hook) do
++      {module, options} -> module.call(conn, options)
++      nil -> conn
++    end
++  end
+ end
+diff --git a/hosted/test/mixer_hosted/builds/native_attestation_attachment_test.exs b/hosted/test/mixer_hosted/builds/native_attestation_attachment_test.exs
+--- a/hosted/test/mixer_hosted/builds/native_attestation_attachment_test.exs
++++ b/hosted/test/mixer_hosted/builds/native_attestation_attachment_test.exs
+@@ -112,6 +112,9 @@
+           {20_261_025_000_003, Migrations.AddCustomerAuthorization, "add_customer_authorization"},
+           {20_261_025_000_004, Migrations.AddAuthorizationStateRevisions,
+            "add_authorization_state_revisions"},
++          {20_261_025_000_005, Migrations.AddCustomerArtifactStorage,
++           "add_customer_artifact_storage"},
++          {20_261_120_000_001, Migrations.AddLocalReleaseLedger, "add_local_release_ledger"},
+           {20_261_120_000_020, Migrations.AddNativeDevelopmentAttestations,
+            "add_native_development_attestations"}
+         ] do
+@@ -223,7 +226,7 @@
+     {port, path, signed} = go_sign!(c, b)
+     origin = "http://127.0.0.1:#{port}"
+ 
+-    jwt = start_bearer_fixture!(c.identity)
++    {jwt, _authority} = start_bearer_fixture!(c.identity)
+     token = bearer(jwt, c.identity, "mixer.build.attest")
+     public_path = Path.join(c.root, "trusted-public.pem")
+ 
+@@ -335,7 +338,7 @@
+   test "ordinary v3 human HTTP attaches the exact current V2 envelope once", c do
+     port = http_port!()
+     origin = "http://127.0.0.1:#{port}"
+-    jwt = start_bearer_fixture!(c.identity)
++    {jwt, _authority} = start_bearer_fixture!(c.identity)
+ 
+     prior = completed!(c.selection, retry: true)
+     stale = envelope(c, prior, origin: origin)
+@@ -449,9 +452,329 @@
+           envelope_bytes: size,
+           http_port: port
+         })
++    )
++  end
++
++  defmodule SignerCutAdapter do
++    def call(%{method: "GET", request_path: "/console-api/v1/" <> _} = conn, fixture) do
++      conn =
++        Plug.Conn.register_before_send(conn, fn conn ->
++          if conn.request_path == "/console-api/v1/build-artifacts/debug_symbols" &&
++               :atomics.compare_exchange(fixture.counter, 1, 0, 1) == :ok do
++            send(fixture.owner, {:signer_at_symbols, self(), conn.status})
++
++            receive do
++              :release_symbols -> :ok
++            after
++              9_000 -> raise "signer barrier expired"
++            end
++          end
++
++          conn
++        end)
++
++      conn |> SignerFixture.call(Map.take(fixture, [:token, :identity])) |> Plug.Conn.halt()
++    end
++
++    def call(conn, fixture) do
++      if conn.method == "POST", do: :atomics.add(fixture.counter, 2, 1)
++      conn
++    end
++  end
++
++  @tag :ordinary_http
++  @tag :l07_signer_process
++  @tag timeout: 35_000
++  test "owned signer process dies before publication and replacement attaches once", c do
++    scratch = System.fetch_env!("L07_SIGNER_SCRATCH")
++    private = Path.join(scratch, "private-" <> System.fetch_env!("L07_SIGNER_TRIAL"))
++    state = Path.join(private, "state")
++    File.mkdir_p!(state)
++    File.chmod!(private, 0o700)
++    File.chmod!(state, 0o700)
++
++    key_path = Path.join(private, "key.pem")
++    public_path = Path.join(private, "public.pem")
++    der = Base.decode16!("302E020100300506032B657004220420") <> c.key
++
++    write_private_file!(
++      key_path,
++      :public_key.pem_encode([{:PrivateKeyInfo, der, :not_encrypted}])
+     )
++
++    write_private_file!(
++      public_path,
++      :public_key.pem_encode([{:SubjectPublicKeyInfo, c.spki, :not_encrypted}])
++    )
++
++    c = %{c | selection: %{c.selection | project_id: "project-a", application_id: "fieldlog"}}
++    b = completed!(c.selection, retry: true)
++    retain!(c.root, b.operation, b.products)
++    seed_signer_release!(c)
++    worker = start_signer_worker!(c, b, private)
++    worker_port = await_signer_worker!(private, 60)
++
++    port = http_port!()
++    origin = "http://127.0.0.1:#{port}"
++    {jwt, tls} = start_bearer_fixture!(c.identity)
++    token = Base.url_encode64(:crypto.strong_rand_bytes(32), padding: false)
++    counter = :atomics.new(2, [])
++
++    controls = %{
++      counter: counter,
++      owner: self(),
++      token: token,
++      identity: %{c.identity | scopes: ["mixer.build.read"]}
++    }
++
++    put_config(:l07_test_http_hook, {SignerCutAdapter, controls})
++    start_http_api!(c, port, c.spki)
++    assert_login!(Repo, @reader)
++    assert_login!(AttestationRepo, @writer)
++    assert writer_count() == 1
++    assert {:ok, %{state: "native_succeeded"}} = CustomerBuilds.read(controls.identity, c.selection)
++
++    baseline = signer_snapshot(b)
++    assert {[], [[5, journal]], [[args]], [[_]], [[_]], [[_]]} = baseline
++    assert journal == b.journal
++    assert args["sequence"] == 7
++
++    cut = Task.async(fn -> signer_trial(c, private, state, "cut", "sign", origin, key_path, token) end)
++    assert_receive {:signer_at_symbols, connection, 200}, 6_000
++
++    try do
++      assert File.ls!(state) == []
++      assert :atomics.get(counter, 2) == 0
++      assert signer_snapshot(b) == baseline
++      File.write!(Path.join(private, "cut-now"), "")
++      assert {"", 0} = Task.await(cut, 6_000)
++      assert File.ls!(state) == []
++      assert :atomics.get(counter, 2) == 0
++      assert signer_snapshot(b) == baseline
++    after
++      send(connection, :release_symbols)
++    end
++
++    assert {output, 0} = signer_trial(c, private, state, "retry", "sign", origin, key_path, token)
++    name = String.trim(output)
++    assert File.ls!(state) == [name]
++    signed = File.read!(Path.join(state, name))
++    assert %{"statement" => %{"provenance" => %{"workerOperationId" => operation}}} =
++             Jason.decode!(signed)
++
++    assert operation == b.operation
++    assert signer_snapshot(b) == baseline
++    assert :atomics.get(counter, 2) == 0
++
++    assert {"attached\n", 0} =
++             signer_trial(c, private, state, "attach", "attach", origin, public_path,
++               bearer(jwt, c.identity, "mixer.build.attest"))
++
++    assert :atomics.get(counter, 2) == 1
++    assert File.ls!(state) == [name]
++    assert signer_snapshot(b) ==
++             put_elem(baseline, 0, [[5, 2, b.operation, @binding, sha(c.spki), origin, signed]])
++
++    File.write!(Path.join(private, "worker-finish"), "")
++    assert {worker_output, 0} = Task.await(worker, 5_000)
++    worker_result = Jason.decode!(worker_output)
++    assert worker_result["operation"] == operation
++    assert worker_result["twoAuthenticatedReadyObservations"]
++    worker_process = private |> Path.join("worker-process.json") |> File.read!() |> Jason.decode!()
++    assert worker_process["port"] == worker_port
++    assert worker_process["exit"] == 0
++    assert worker_process["groupAbsent"] && worker_process["directChildReaped"]
++
++    processes =
++      Map.new(~w(cut retry attach), fn phase ->
++        {phase, private |> Path.join(phase <> "-process.json") |> File.read!() |> Jason.decode!()}
++      end)
++
++    assert processes["cut"]["exit"] == -9
++    assert processes["retry"]["exit"] == 0
++    assert processes["attach"]["exit"] == 0
++    assert Enum.all?(processes, fn {_, value} -> value["groupAbsent"] && value["directChildReaped"] end)
++    assert MapSet.size(MapSet.new(processes, fn {_, value} -> value["pid"] end)) == 3
++
++    File.rm!(key_path)
++    stop_http_api!(port)
++    :ok = stop_supervised(KeyOwnerSupervisor)
++    stop_supervised!(TLSFixture)
++
++    for closed_port <- [port, tls.port] do
++      assert {:ok, reservation} = :gen_tcp.listen(closed_port, ip: {127, 0, 0, 1}, reuseaddr: true)
++      assert :ok = :gen_tcp.close(reservation)
++    end
++
++    IO.puts("L07_SIGNER_PROCESS " <>
++      Jason.encode!(%{
++        cut: "authorized debug_symbols response gated before send",
++        attachment_rows: [0, 0, 0, 1],
++        envelope_counts: [0, 0, 1, 1],
++        posts: :atomics.get(counter, 2),
++        response: 201,
++        operation: operation,
++        journal_revision: b.revision,
++        journal_sha256: sha(Jason.encode!(b.journal)),
++        journal_unchanged: true,
++        active_release_sequence: args["sequence"],
++        release_unchanged: true,
++        envelope_sha256: sha(signed),
++        processes: processes,
++        listeners_rebound: [port, tls.port],
++        worker: Map.merge(worker_process, worker_result)
++      }))
++  end
++
++  defp signer_trial(c, root, state, phase, command, origin, key, token) do
++    token_path = Path.join(root, phase <> "-token")
++    write_private_file!(token_path, token <> "\n")
++    scratch = System.fetch_env!("L07_SIGNER_SCRATCH")
++
++    try do
++      System.cmd("python3", ["-B", Path.join(scratch,"signer_trial.py"), root, phase, token_path,
++        System.fetch_env!(@go_signer), command, "-origin", origin, "-selection",
++        URI.encode_query(c.selection), "-state", state, "-key", key], stderr_to_stdout: true)
++    after
++      File.rm!(token_path)
++    end
++  end
++
++  defp signer_snapshot(build) do
++    {
++      stored(build),
++      sql("SELECT revision,journal FROM public.mixer_builds WHERE id=$1", [build.id]).rows,
++      sql("SELECT to_jsonb(h) FROM public.mixer_release_heads h").rows,
++      sql("SELECT to_jsonb(p) FROM public.mixer_release_publications p").rows,
++      sql("SELECT to_jsonb(a) FROM public.mixer_customer_artifacts a").rows,
++      sql("SELECT to_jsonb(e) FROM public.mixer_customer_audit_events e").rows
++    }
++  end
++
++
++  defp start_signer_worker!(c, build, private) do
++    now = System.system_time(:millisecond)
++    spec =
++      c.selection
++      |> Map.delete(:source_sha256)
++      |> Map.put(:source, %{kind: :revision, sha256: c.selection.source_sha256, reference: "pinned"})
++
++    request = %{
++      ref: Map.from_struct(build.ref),
++      spec: spec,
++      operation_id: build.operation,
++      deadline_ms: now + 60_000,
++      guard: %{record_id: Ecto.UUID.load!(build.id), revision: build.revision,
++               owner_id: "synthetic-closed-worker", epoch: 1, expires_at: now + 60_000}
++    }
++
++    artifacts = Enum.map(build.artifacts, fn ref ->
++      %{kind: ref.kind, sha256: ref.sha256, sizeBytes: ref.size_bytes}
++    end)
++
++    write_private_file!(Path.join(private, "worker-input.json"),
++      Jason.encode!(%{request: request, artifacts: artifacts}))
++
++    scratch = System.fetch_env!("L07_SIGNER_SCRATCH")
++
++    Task.async(fn ->
++      System.cmd("python3", ["-B", Path.join(scratch, "worker_trial.py"), private, c.root],
++        stderr_to_stdout: true)
++    end)
++  end
++
++  defp await_signer_worker!(private, remaining) when remaining > 0 do
++    case File.read(Path.join(private, "worker-ready")) do
++      {:ok, port} -> String.to_integer(port)
++      {:error, :enoent} ->
++        Process.sleep(50)
++        await_signer_worker!(private, remaining - 1)
++    end
++  end
++
++  defp await_signer_worker!(_, 0), do: flunk("stock native worker readiness deadline")
++
++  defmodule ReleaseArtifactWriter do
++    use Ecto.Repo, otp_app: :mixer_hosted, adapter: Ecto.Adapters.Postgres
+   end
+ 
++  defp seed_signer_release!(c) do
++    alias MixerHosted.Authorization
++    alias MixerHosted.Authorization.Scope
++    alias MixerHosted.CustomerArtifacts.{PostgresStorage, Schema}
++    alias MixerHosted.Protocol.ArtifactAdmission
++
++    for statement <- [
++          "CREATE ROLE signer_release_fixture_writer LOGIN NOINHERIT",
++          "GRANT USAGE ON SCHEMA public TO signer_release_fixture_writer",
++          "INSERT INTO public.mixer_authz_projects VALUES ('org-a','project-a',true)",
++          "INSERT INTO public.mixer_authz_applications VALUES ('org-a','project-a','fieldlog',true)",
++          "INSERT INTO public.mixer_authz_environments VALUES ('org-a','project-a','fieldlog','development',true)",
++          "INSERT INTO public.mixer_authz_project_heads VALUES ('org-a','project-a',1)",
++          "INSERT INTO public.mixer_authz_memberships VALUES ('release-owner','developer','org-a','project-a','exact_project','owner',true,0,NULL,1)"
++        ],
++        do: sql(statement)
++
++    role = "signer_release_fixture_writer"
++    for table <- ~w(profiles principals bindings families credentials organizations projects applications environments organization_heads project_heads memberships),
++      do: sql("GRANT SELECT ON public.mixer_authz_#{table} TO #{role}")
++
++    for helper <- ~w(profiles principals families credentials organization_heads project_heads),
++      do: sql("GRANT EXECUTE ON FUNCTION public.mixer_authz_lock_#{helper}() TO #{role}")
++
++    for table <- ~w(artifacts audit_events idempotency),
++      do: sql("GRANT SELECT,INSERT ON public.mixer_customer_#{table} TO #{role}")
++
++    sql("GRANT SELECT,UPDATE(sequence,event_sha256,state_sha256) ON public.mixer_customer_artifact_heads TO #{role}")
++
++    for name <- ~w(mixer_customer_allowed mixer_customer_artifact_metadata mixer_customer_key_exists),
++      do: sql("GRANT EXECUTE ON FUNCTION public.#{name}(#{Schema.signatures()[name]}) TO #{role}")
++
++    {:ok, genesis} = MixerHosted.Audit.CustomerArtifactEvent.genesis("org-a", "project-a")
++    sql("INSERT INTO public.mixer_customer_artifact_heads VALUES ('org-a','project-a',0,'',$1)", [genesis])
++
++    start_supervised!({ReleaseArtifactWriter, c.repo_opts ++ [username: role]})
++    fixture = "../services/protocol/testdata/signed-release-v3.json" |> File.read!() |> Jason.decode!()
++    assignment = fixture["signed_assignment"]["assignment"]
++    roots = Enum.map(fixture["roots"], &Map.update!(&1, "public_key", fn v -> Base.decode64!(v) end))
++    bytes = Jason.encode!(Map.take(fixture, ~w(signed_manifest payload)))
++    scope = %Scope{organization_id: "org-a", project_id: "project-a",
++                   application_id: "fieldlog", environment_id: "development"}
++    assert {:ok, artifact} =
++      ArtifactAdmission.admit(bytes, fixture["host"], roots, System.system_time(:second))
++    assert artifact.manifest_sha256 == assignment["artifact_sha256"]
++
++    assert {:ok, %{status: 201}} =
++      Authorization.with_authorized_transaction(
++        %{c.identity | scopes: ["mixer.artifact.upload"]}, "artifact.upload", scope,
++        fn context ->
++          PostgresStorage.upload(context, artifact, %{key: "baseline", reason: "Synthetic baseline", source_ip: nil},
++            %{repo: ReleaseArtifactWriter, roots: roots, host: fixture["host"]})
++        end, ReleaseArtifactWriter)
++
++    # Seed the active ledger through its real foreign keys and deferred head-transition trigger.
++    runtime = assignment["runtime"]
++    signed = Jason.encode!(fixture["signed_assignment"])
++    assert {:ok, :ok} = Admin.transaction(fn ->
++      sql("""
++      INSERT INTO public.mixer_release_heads
++        (organization_id,project_id,application_id,environment_id,platform,runtime_sha256,channel,writer_role)
++      VALUES ('org-a','project-a','fieldlog','development','ios',$1,'beta','attestation_fixture_owner')
++      """, [runtime])
++
++      sql("""
++      INSERT INTO public.mixer_release_publications
++        (organization_id,project_id,application_id,environment_id,platform,runtime_sha256,channel,
++         sequence,artifact_sha256,signed_assignment_bytes,rollout_basis_points,idempotency_key,reason,principal_id)
++      VALUES ('org-a','project-a','fieldlog','development','ios',$1,'beta',7,$2,$3,10000,
++              'baseline','Synthetic baseline','developer')
++      """, [runtime, artifact.manifest_sha256, signed])
++
++      sql("UPDATE public.mixer_release_heads SET sequence=7 WHERE runtime_sha256=$1", [runtime])
++      :ok
++    end)
++  end
++
+   defp start_bearer_fixture!(identity) do
+     fixture = start_supervised!(TLSFixture)
+     authority = GenServer.call(fixture, :authority)
+@@ -491,7 +814,7 @@
+       start: {KeyOwnerSupervisor, :start_fixture, [opts]}
+     })
+ 
+-    key
++    {key, authority}
+   end
+ 
+   defp bearer(key, identity, scope) do
+@@ -1082,6 +1405,7 @@
+       attempt: ref.attempt,
+       operation: Dispatch.operation_id(uuid, ref),
+       products: products,
++      ref: ref,
+       artifacts: artifacts,
+       selection: s
+     }
+diff --git a/tests/integration/l07-native-attestation/signer_trial.py b/tests/integration/l07-native-attestation/signer_trial.py
+new file mode 100644
+--- /dev/null
++++ b/tests/integration/l07-native-attestation/signer_trial.py
+@@ -0,0 +1,43 @@
++"""Own one invocation of the stock signer and optionally cut its exact PID."""
++import json
++import os
++import pathlib
++import subprocess
++import sys
++import time
++
++root, phase, token = sys.argv[1:4]
++root = pathlib.Path(root)
++with open(token, "rb") as stdin:
++    signer = subprocess.Popen(sys.argv[4:], stdin=stdin, stdout=subprocess.PIPE,
++                              stderr=subprocess.STDOUT, start_new_session=True)
++try:
++    if phase == "cut":
++        deadline = time.monotonic() + 12
++        while not (root / "cut-now").exists():
++            if signer.poll() is not None:
++                raise RuntimeError("Signer exited before the admitted cut")
++            if time.monotonic() >= deadline:
++                raise RuntimeError("No admitted artifact-read barrier")
++            time.sleep(.025)
++        if signer.poll() is not None or os.getpgid(signer.pid) != signer.pid:
++            raise RuntimeError("Owned signer was not live in its exact launch group")
++        signer.kill()
++    output, _ = signer.communicate(timeout=12)
++finally:
++    if signer.poll() is None:
++        signer.kill()
++        signer.wait(timeout=3)
++    absent = False
++    try:
++        os.killpg(signer.pid, 0)
++    except ProcessLookupError:
++        absent = True
++    (root / f"{phase}-process.json").write_text(json.dumps({
++        "pid": signer.pid, "pgid": signer.pid, "exit": signer.returncode,
++        "directChildReaped": True, "groupAbsent": absent,
++    }))
++    if not absent:
++        raise RuntimeError("Uncertain signer group custody")
++print(output.decode(), end="")
++sys.exit(0 if phase == "cut" and signer.returncode == -9 else signer.returncode)
+diff --git a/tests/integration/l07-native-attestation/worker_trial.py b/tests/integration/l07-native-attestation/worker_trial.py
+new file mode 100644
+--- /dev/null
++++ b/tests/integration/l07-native-attestation/worker_trial.py
+@@ -0,0 +1,118 @@
++"""Bring up the stock native worker with one synthetic closed operation."""
++import hashlib
++import hmac
++import json
++import os
++from pathlib import Path
++import secrets
++import socket
++import sqlite3
++import subprocess
++import sys
++import time
++
++control, retained = map(Path, sys.argv[1:])
++source = Path.cwd() / "priv" / "development"
++sys.path.insert(0, str(source))
++from native_artifact_worker import NativeWorker, mac
++
++data = json.loads((control/"worker-input.json").read_bytes())
++request = data["request"]
++operation = request["operation_id"]
++descriptors = data["artifacts"]
++manifest = retained/operation/"native"/"native-build.json"
++manifest.write_bytes(b'{"fixture":"closed native products"}\n')
++manifest.chmod(0o444)
++
++with socket.socket() as reserve:
++    reserve.bind(("127.0.0.1", 0))
++    port = reserve.getsockname()[1]
++
++cfg = {"port": port, "token": secrets.token_hex(24), "worker_id": "l07-fixture",
++       "tenant": request["spec"]["organization_id"],
++       "registration": {"spec": {key: value for key, value in request["spec"].items()
++                                 if key != "build_id"}}}
++config = control/"worker-config.json"
++config.write_text(json.dumps(cfg))
++os.chmod(config, 0o600)
++worker = NativeWorker(cfg, retained)
++worker.save(operation, {
++    "binding": {key: request[key] for key in ("ref", "spec", "deadline_ms")},
++    "guard": request["guard"], "order": [request["guard"]["epoch"], request["guard"]["revision"]],
++    "status": "native_ready", "starts": 1, "closure": {"started": True, "closed": True, "exit": 0},
++    "artifacts": descriptors, "manifest_sha256": hashlib.sha256(manifest.read_bytes()).hexdigest(),
++})
++worker.close()
++
++def exchange(action):
++    body = json.dumps({"worker_id": cfg["worker_id"], "action": action, "request": request})
++    nonce = secrets.token_hex(16)
++    packet = json.dumps({"body": body, "nonce": nonce,
++                         "mac": mac(cfg["token"], "request", nonce, body)}) + "\n"
++    with socket.create_connection(("127.0.0.1", port), timeout=0.8) as client:
++        client.sendall(packet.encode())
++        with client.makefile("rb") as stream:
++            reply = json.loads(stream.readline(262_145))
++    if not hmac.compare_digest(reply["mac"], mac(cfg["token"], "response", nonce, reply["body"])):
++        raise RuntimeError("Worker response authentication failed")
++    return json.loads(reply["body"])
++
++def operation_digest():
++    with sqlite3.connect((retained/"operations.sqlite").as_uri()+"?mode=ro", uri=True) as conn:
++        row, = conn.execute("SELECT value FROM operations WHERE id=?", (operation,)).fetchone()
++        assert conn.execute("SELECT count(*) FROM operations").fetchone() == (1,)
++    return hashlib.sha256(row.encode()).hexdigest()
++
++with (control/"worker.log").open("wb") as log:
++    child = subprocess.Popen([sys.executable, "-B", str(source/"native_artifact_worker.py"),
++                              str(config), hashlib.sha256(config.read_bytes()).hexdigest(), str(retained)],
++                             stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT,
++                             start_new_session=True)
++    (control/"worker-pid").write_text(str(child.pid))
++    try:
++        for _ in range(25):
++            try:
++                first = exchange("artifacts")
++                break
++            except ConnectionRefusedError:
++                if child.poll() is not None:
++                    raise RuntimeError("Owned worker failed to start")
++                time.sleep(.05)
++        else:
++            raise RuntimeError("Owned worker did not listen")
++        assert first == {"status": "native_ready", "artifacts": descriptors}, first
++        before = operation_digest()
++        (control/"worker-ready").write_text(str(port))
++
++        deadline = time.monotonic() + 17
++        while not (control/"worker-finish").exists():
++            if child.poll() is not None or time.monotonic() >= deadline:
++                raise RuntimeError("Worker lost or test did not settle on time")
++            time.sleep(.04)
++        assert exchange("artifacts") == first
++        assert operation_digest() == before
++        assert exchange("shutdown") == {"status": "closed"}
++        assert child.wait(timeout=3) == 0
++    finally:
++        if child.poll() is None:
++            child.terminate()
++            child.wait(timeout=3)
++        try:
++            os.killpg(child.pid, 0)
++        except ProcessLookupError:
++            absent = True
++        else:
++            absent = False
++        (control/"worker-process.json").write_text(json.dumps({
++            "pid": child.pid, "pgid": child.pid, "exit": child.returncode, "groupAbsent": absent,
++            "directChildReaped": True, "port": port,
++        }))
++        assert absent
++
++with socket.socket() as rebound:
++    rebound.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
++    # The stock prior socket may retain TCP TIME_WAIT without SO_REUSEADDR.
++    # A refused connection establishes the original service no longer listens.
++    assert rebound.connect_ex(("127.0.0.1", port)) != 0
++print(json.dumps({"operation": operation, "closedWorkerCheckpointDigest": before,
++                  "twoAuthenticatedReadyObservations": True}))
+diff --git a/tests/integration/l07-native-attestation/run_managed_signer_process.py b/tests/integration/l07-native-attestation/run_managed_signer_process.py
+new file mode 100644
+--- /dev/null
++++ b/tests/integration/l07-native-attestation/run_managed_signer_process.py
+@@ -0,0 +1,79 @@
++import hashlib, json, os, pathlib, signal, subprocess, sys, time
++
++root = pathlib.Path(sys.argv[1])
++env = {k:v for k,v in os.environ.items() if k in ('PATH','HOME','LANG','USER','LOGNAME')}
++pgbin = pathlib.Path('/opt/homebrew/opt/postgresql@17/bin')
++env.update(TMPDIR=str(root/'tmp'), MIX_HOME=str(root/'mix'), HEX_HOME=str(root/'hex'),
++           HEX_OFFLINE='1', MIX_ENV='test', ERL_FLAGS='+S 4:4',
++           MIXER_ATTESTATION_TEST_SOCKET=str(root/'socket'),
++           MIXER_ATTESTATION_TEST_GO_SIGNER=str(root/'signer'),
++           L07_SIGNER_SCRATCH=str(root))
++commands = root/'commands.jsonl'
++def record(**data):
++    with commands.open('a') as f:
++        print(json.dumps(data), file=f, flush=True)
++
++def start(name, args, cwd=root):
++    args = [str(x) for x in args]
++    with (root/(name+'.log')).open('wb') as f:
++        proc = subprocess.Popen(args, cwd=cwd, env=env, stdin=subprocess.DEVNULL,
++                                stdout=f, stderr=subprocess.STDOUT, start_new_session=True)
++    record(event='launch', name=name, argv=args, cwd=str(cwd), pid=proc.pid, pgid=proc.pid)
++    return proc
++
++def finish(name, proc, timeout):
++    try:
++        status = proc.wait(timeout=timeout)
++    except subprocess.TimeoutExpired:
++        record(event='hold',name=name,pid=proc.pid,reason='wait timeout')
++        raise
++    limit = time.monotonic()+2
++    while True:
++        try:
++            os.killpg(proc.pid, 0)
++        except ProcessLookupError:
++            absent=True
++            break
++        except PermissionError:
++            absent=False
++            break
++        if time.monotonic() >= limit:
++            absent=False
++            break
++        time.sleep(.04)
++    log = (root/(name+'.log')).read_bytes() if absent else b''
++    record(event='terminal' if absent else 'hold',name=name,pid=proc.pid,exit=status,
++           groupAbsent=absent,logSHA256=hashlib.sha256(log).hexdigest(),logBytes=len(log))
++    if not absent:
++        raise RuntimeError('Uncertain custody: '+name)
++    return status
++
++def run(name, args, timeout, cwd=root):
++    return finish(name, start(name,args,cwd), timeout)
++
++phase = sys.argv[2]
++env['L07_SIGNER_TRIAL'] = phase
++pgdir = root/('pg-'+phase)
++if phase != 'init':
++    assert run('initdb-'+phase,[pgbin/'initdb','-D',pgdir,'-U','mixer_attestation_fixture_admin',
++                         '--no-locale','--encoding=UTF8','--auth=trust','--no-sync'],20) == 0
++
++pg = start('postgres-'+phase,[pgbin/'postgres','-D',pgdir,'-h','','-k',root/'socket',
++                             '-p','5432','-c','unix_socket_permissions=0700'])
++try:
++    for i in range(10):
++        if run(f'pg-ready-{phase}-{i}',[pgbin/'pg_isready','-q','-h',root/'socket','-p','5432'],4) == 0:
++            break
++        time.sleep(.08)
++    else:
++        raise RuntimeError('owned PostgreSQL not ready')
++    assert run('createdb-'+phase,[pgbin/'createdb','-h',root/'socket','-U',
++                                 'mixer_attestation_fixture_admin','mixer_native_attestation_fixture'],8) == 0
++    result = run('exunit-'+phase,['mix','test','--only','l07_signer_process','--seed','0','--trace',
++                 'test/mixer_hosted/builds/native_attestation_attachment_test.exs'],95,root/'source/hosted')
++finally:
++    if pg.poll() is None:
++        pg.send_signal(signal.SIGINT)
++    if finish('postgres-'+phase,pg,12) != 0:
++        raise RuntimeError('owned PostgreSQL shutdown failed')
++sys.exit(result)
