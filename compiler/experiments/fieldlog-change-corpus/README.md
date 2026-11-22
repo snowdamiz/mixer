@@ -18,7 +18,7 @@ Each manifest row pins an introducing commit and its first parent, paired blob I
 
 The native exclusions are **F07** for shipping the Android launcher, manifest and native bridge, **F17** for adding the Android system document picker and native content-URI bridge, and **F19** for installing the native report provider, URI grant and OS chooser. **F18** stays eligible because the persisted draft and attachment-reference change can be evaluated with an already installed picker. **F01–F03** stay eligible despite originating in SwiftUI. The current route can be missing a UI operation without the requested behavior inherently requiring a new platform permission or capability.
 
-The 0/17 and 0/20 figures report achieved evidence. The pass/fail capability of unexecuted rows remains open. Patch size, on-device behavior, full Section 22 recovery and the two-target 80% threshold are unmeasured here. L08, G27 and G33 remain open.
+The 0/17 and 0/20 figures report achieved evidence. The pass/fail capability of unexecuted rows remains open. The receipts below cover selected native behavior. Corpus-wide patch size, the full Section 22 recovery matrix, and the two-target 80% threshold remain open. L08, G27 and G33 remain open.
 
 ## F02 checklist row moves
 
@@ -43,7 +43,7 @@ remain open.
 [Host replay receipt](../../../verification/receipts/fieldlog-f02-ordinary-ios-host-2acaac67.json) ·
 [Runner custody checks](../../../verification/receipts/fieldlog-f02-runner-custody-2acaac67.json)
 
-## F10 signed Pending Changes host replay
+## F10 signed Pending Changes
 
 The macOS fixture uses the same bounded Swift queue projection in the native
 control and the Embedded Swift guest. It seeds the real FieldLog repository
@@ -64,9 +64,7 @@ python3 -B compiler/experiments/fieldlog-change-corpus/pending-queue/replay.py \
 
 The second signed fixture hydrates the historical navigation layout and
 routes the queue-open action. V1 refuses the returned `navigation` root at
-`event/document` before it presents the queue. Both owners retire. F10 still
-requires the historical app route and signed OTA verification on both
-local targets. Rebuilt Wasm hashes can vary with the scratch path.
+`event/document` before it presents the queue. Both owners retire. Rebuilt Wasm hashes can vary with the scratch path.
 [Signed F10 receipt](../../../verification/receipts/fieldlog-f10-signed-pending-queue-v80.json)
 
 The private `FeatureUIV3` exchange replays the historical hierarchy in the
@@ -88,9 +86,26 @@ against the exact installed VM and runs it on macOS. It hydrates the first
 page through one scoped read, delivers the queue action, and displays the
 historical navigation and list with 20 pending rows. Durable health requires
 the observed actionable frame. The replay leaves the workspace bytes
-unchanged. The rest of the signed route and native display remain open.
+unchanged.
 [Private replay recipe](../../../capability-activation/verification/private-fieldlog-f10/README.md) ·
 [Signed V3 receipt](../../../verification/receipts/fieldlog-f10-v3-root-dda81610.json)
+
+The private Android witness on tree `6c5bc8ca` ran the six actions
+from the Pending Changes opening tap through Entries. API 36 readback
+matched the historical workspace bytes and all 26 rows across both
+pages. The observed first-page frame earned durable health after the
+opening tap, and the owner retired. A successor with all 12 required
+notices passed the same journey. Both APKs loaded a locally staged
+signed development packet.
+[Android navigation](../../../verification/receipts/fieldlog-f10-signed-android-navigation-api36-6c5bc8ca.json) ·
+[APK notice successor](../../../verification/receipts/fieldlog-f10-signed-android-notices-api36-6c5bc8ca.json)
+
+The private iOS owner passed the signed six-action route on macOS with
+synthetic pages and a host-supplied display acknowledgement. Its
+arm64 Simulator test bundle linked. The historical workspace is pinned
+for the native follow-up. Installed iOS verification and service
+delivery across both targets remain open.
+[iOS consumer and build](../../../verification/receipts/fieldlog-f10-ios-simulator-signed-consumer-ecba9fa.json)
 
 ## First unsupported case
 

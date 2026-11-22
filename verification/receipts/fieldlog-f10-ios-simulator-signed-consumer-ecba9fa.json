@@ -1,0 +1,157 @@
+{
+  "schema": 1,
+  "recordedUTC": "2026-11-22T05:52:39.077077+00:00",
+  "status": "host_ordering_and_scope_pass_generic_simulator_test_bundles_linked_installed_witness_pending",
+  "source": {
+    "revision": "ecba9fa5ae21416d54590b90e3a00eb52b4059d1",
+    "baseTree": "a73b082ab344d58e4cbecb6c35e89f0af7487728",
+    "candidateTree": "3010d91c0850bb7751806007d470b3fd340a64dc",
+    "combinedPatch": "verification/receipts/fieldlog-f10-ios-simulator-signed-consumer-ecba9fa.patch.b64",
+    "patchSHA256": "ab50cea2ae9af361177c6bde1dd536eb260da87a9a7fbe04f90894718dd5ffef",
+    "patchBytes": 114813,
+    "forwardAndReverseVerified": true,
+    "predecessorReceiptSHA256": "ef25b502eef17b9703cc9e854d42e06e487d2d6f4f7f8bf9ca52cda82ae0b107",
+    "predecessorEncodedPatchSHA256": "9a892b69f64d49417b5c844048983d23e51e41fc4cf09f80462dcf8ea8be46e0",
+    "predecessorDecodedPatchSHA256": "62128cefa004d846b8b652540f1714c4e2ba34a4e4e346399e5d6c25d708caf4",
+    "predecessorVerifiedTree": "2c1cc255600e57e138cb135fc1dd32db31c356e8",
+    "androidReferenceVerifiedTree": "6c5bc8ca2d0a7c8b6aa4bd80aa02ffea13f5a855",
+    "androidReferenceDecodedSHA256": "47626cacfdff19297baf4d891a0f46918d6050c1783cf94ab26c6794a6efbc99",
+    "candidateVMGitArchiveSHA256": "f22a56ffdaabd3c0cb386b27c8446e0840c833080d5dd3a847e5bde37d51969d",
+    "patchEncoding": "base64",
+    "encodedPatchSHA256": "71e405e58b46c87e905798c875fc532df6145d17ab8acf7aa7347dbe7fb10b1c"
+  },
+  "scope": {
+    "organization": "material-test",
+    "project": "material-test",
+    "app": "fieldlog-f10-ios-simulator",
+    "environment": "development",
+    "platform": "ios",
+    "bundleID": "dev.mixer.fieldlog.f10simulator",
+    "target": "arm64-apple-ios26.0-simulator",
+    "configuration": "debug",
+    "schema": 3,
+    "guestABI": 2,
+    "signedFixtureStartupMilliseconds": 5000,
+    "signedFixtureFuel": 1000000,
+    "signedFixtureMemoryBytes": 1310720
+  },
+  "inputs": {
+    "wasm": {
+      "bytes": 14503,
+      "sha256": "fb225d5722eda20c7591a9e7bb112d560924cedf9da17106b57eeb049f94d3b9",
+      "provenance": "Unchanged 6c5bc8ca Android navigation build recipe and guest/QueueProjection/Imports blobs, Swiftly 6.3.3 Embedded, exact receipt digest reproduced."
+    },
+    "historicalWorkspace": {
+      "expectedBytes": 13207,
+      "expectedSHA256": "5459133cb976ccd09916a48659f393a6a1ef7b3ef36af2bada0de8aa4745c004",
+      "observed": false,
+      "reason": "Exact historical workspace bytes were unavailable in the supplied receipt and local Git blob inventory. The Simulator fixture verifies that pin before decoding; the executed host control supplied deterministic synthetic 20-row and 6-row pages."
+    }
+  },
+  "toolchain": {
+    "macOS": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "xcode": "Xcode 27.2\nBuild version 27B52",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "rust": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "sdkPath": "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk"
+  },
+  "host": {
+    "buildExit": 0,
+    "exit": 0,
+    "buildCommand": "swift build --package-path <host-projection>/capability-activation --scratch-path <scratch>/host-build --cache-path <scratch>/host-cache --config-path <scratch>/host-config --security-path <scratch>/host-security --disable-dependency-cache --manifest-cache local --skip-update --force-resolved-versions --jobs 8 --product F10HostControl -Xswiftc -DF10_IOS_SIMULATOR_HOST_CONTROL -Xswiftc -enable-testing -Xcc -DMIXER_PRIVATE_F10 -Xcc -I<projection>/vm/include -Xlinker -L -Xlinker <scratch>/rust/release",
+    "buildLogSHA256": "524cd0d5807bdce3cac7c01f2b58cad26c1ac92272b5ef6371476f77f61b91ae",
+    "outputSHA256": "0a6f49beab3eeeb114fd0ff341c362fe7cab86eb3f3130f2b8c1fed17bd49fdb",
+    "execution": "F10HostControl <owned-root> <reproduced-f10.wasm> <macOS-libmixer_vm.a-SHA256> <candidate-VM-Git-archive-SHA256>",
+    "harness": "capability-activation/verification/private-fieldlog-f10-ios/HostControl.swift",
+    "projection": "Separate macOS source copy. Replace the exact private iOS Simulator Swift compilation guard with os(macOS) && DEBUG && F10_IOS_SIMULATOR_HOST_CONTROL in package Sources and the two fixture sources. Replace the activation test target with an executable target named F10HostControl depending on MixerCapabilityActivation. Copy HostControl.swift, GuestUISignedFixture.swift, F10IOSSimulatorFixture.swift and the existing Fixtures resource directory into that executable target. Link the actual macOS private-fieldlog-f10 Rust archive under the experimental library name.",
+    "binarySHA256": "bd2617c1b419c7f3f1ebe20ceeeb9ec4a3a63fe5aa25dbc5ded782e0fa66a169",
+    "vmArchiveSHA256": "0566f63b9cbb7a22d69ed588a14eeb3e634f1112b99d6c6b347811dfdf4af8d5",
+    "output": [
+      "PASS signed host, descriptor, immutable root, assignment scope and read-only storage refusals",
+      "PASS loading and confirmed effects before queue-0, input after revision 2 observation, and health after revision 3 acknowledgement",
+      "PASS revisions 4\u20138, ordered 20/6 rows, task revisit, Entries and zero writes",
+      "PASS durable first_screen, close, cold reopen and owner retirement"
+    ],
+    "limits": "The standalone host binary generated an ephemeral in-memory Ed25519 fixture key. Routed host inputs and presentation acknowledgements entered the model directly, with no window, UIKit display or XCTest execution."
+  },
+  "genericIOSSimulator": {
+    "command": "xcodebuild -scheme MixerCapabilityActivation -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath ../../derived -clonedSourcePackagesDirPath ../../dependencies -packageCachePath ../../packages -disablePackageRepositoryCache -skipPackageUpdates -disableAutomaticPackageResolution -scmProvider system -jobs 8 build-for-testing CODE_SIGNING_ALLOWED=NO ARCHS=arm64 COMPILER_INDEX_STORE_ENABLE=NO DEBUG_INFORMATION_FORMAT=dwarf GCC_GENERATE_DEBUGGING_SYMBOLS=NO \"OTHER_SWIFT_FLAGS=\\$(inherited) -D MIXER_PRIVATE_F10_IOS_SIMULATOR -Xcc -DMIXER_PRIVATE_F10_IOS_SIMULATOR -Xcc -I$PWD/../vm/include\" \"OTHER_CFLAGS=\\$(inherited) -DMIXER_PRIVATE_F10_IOS_SIMULATOR -I$PWD/../vm/include\" \"LIBRARY_SEARCH_PATHS=\\$(inherited) $PWD/../../rust/aarch64-apple-ios-sim/release\"",
+    "rustCommand": "SDKROOT=<iphonesimulator SDK> IPHONEOS_DEPLOYMENT_TARGET=26.0 CARGO_PROFILE_RELEASE_DEBUG=0 cargo build --offline --locked --release --lib --features private-fieldlog-f10-ios-simulator --target aarch64-apple-ios-sim --manifest-path vm/Cargo.toml --target-dir <scratch>/rust",
+    "xcodeExit": 0,
+    "buildLogSHA256": "7fb5ad7a0ddde48f30092684a793fd0793519d057c0b34924b83f4118bb06b60",
+    "xctestSHA256": "8f50b485fd4a454ae51125ad7ee04bd06ea68a5d3e9d9c55dd7ec272f6aba69a",
+    "vmArchiveSHA256": "6219a1662f0202269a3b7dd27f267700f6493e520f6bd1096ca1cf8a1b50d5d0",
+    "architecture": "arm64",
+    "platform": "IOSSIMULATOR",
+    "minimumOS": "26.0",
+    "linkedMachOSDKVersion": "26.0",
+    "linkedSymbols": [
+      "_mixer_private_f10_create",
+      "_mixer_private_f10_validate"
+    ],
+    "testSource": "capability-activation/Tests/MixerCapabilityActivationTests/F10IOSSimulatorWitnessTests.swift",
+    "ordinaryControl": {
+      "buildCommand": "xcodebuild -scheme MixerCapabilityActivation -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath ../../derived -clonedSourcePackagesDirPath ../../dependencies -packageCachePath ../../packages -disablePackageRepositoryCache -skipPackageUpdates -disableAutomaticPackageResolution -scmProvider system -jobs 8 build-for-testing CODE_SIGNING_ALLOWED=NO ARCHS=arm64 COMPILER_INDEX_STORE_ENABLE=NO DEBUG_INFORMATION_FORMAT=dwarf GCC_GENERATE_DEBUGGING_SYMBOLS=NO \"OTHER_SWIFT_FLAGS=\\$(inherited) -Xcc -I$PWD/../vm/include\" \"OTHER_CFLAGS=\\$(inherited) -I$PWD/../vm/include\" \"LIBRARY_SEARCH_PATHS=\\$(inherited) $PWD/../../rust-default/aarch64-apple-ios-sim/release\"",
+      "vmFeature": "experimental-capability-native",
+      "xcodeExit": 0,
+      "buildLogSHA256": "136a5dda989bc54d96d575630cd0fb9ec67601951079e960fe218e8ba959a21b",
+      "xctestSHA256": "d9d72a58b2ffd3dbe874bb69a7638fb7c6034e4142d017bdd70797fe5f48af15",
+      "linkedV1Symbol": "_mixer_vm_capability_validate_v1",
+      "privateF10Symbols": []
+    },
+    "firstBuildStartedUTC": "2026-11-22T05:42:43.423799+00:00",
+    "lastBuildLogCompletedUTC": "2026-11-22T05:51:28.286924+00:00",
+    "observedBuildWindowSeconds": 524,
+    "scratchObservedKiB": 913236
+  },
+  "pending": "The original workspace and Wasm now match the retained Android packet digests. Runtime requires a separate installed app witness for native action, UIKit display, durable health, navigation, and retirement.",
+  "cleanup": {
+    "ownedScratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-3b9d7e97/verification/local/apple-f10-consumer-_zrx2155",
+    "removed": true
+  },
+  "artifactRetention": "Passed with both deliverables staged in a temporary index. The checkout index was untouched.",
+  "rootReadback": {
+    "scope": "Independent exact Git patch and immutable input readback. The producer ran host and generic builds.",
+    "rawReceiptSHA256": "b4ee13f8cfff15694e64b1f61353da9211ed568730da2cd9974a80a4cf1bc4c6",
+    "baseTree": "a73b082ab344d58e4cbecb6c35e89f0af7487728",
+    "candidateTree": "3010d91c0850bb7751806007d470b3fd340a64dc",
+    "changedFiles": [
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityAttemptSignals.swift",
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartControl.swift",
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartPresentation.swift",
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift",
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityConcreteAttempt.swift",
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIApple.swift",
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIPresentation.swift",
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIPresentationLifetime.swift",
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift",
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityInstalledExecutionMode.swift",
+      "capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift",
+      "capability-activation/Sources/MixerCapabilityActivation/F10IOSSimulatorReadOnlyStorage.swift",
+      "capability-activation/Sources/MixerCapabilityActivation/InstalledCapabilityExecution.swift",
+      "capability-activation/Tests/MixerCapabilityActivationTests/F10IOSSimulatorFixture.swift",
+      "capability-activation/Tests/MixerCapabilityActivationTests/F10IOSSimulatorWitnessTests.swift",
+      "capability-activation/Tests/MixerCapabilityActivationTests/GuestUISignedFixture.swift",
+      "capability-activation/verification/private-fieldlog-f10-ios/HostControl.swift",
+      "experimental-capability-runtime/Sources/CMixerVMCapability/include/MixerVMCapability.h",
+      "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/F10IOSSimulatorPageRead.swift",
+      "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift",
+      "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Native.swift",
+      "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Ownership.swift",
+      "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift",
+      "experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Validation.swift",
+      "runtime-identity/Sources/MixerRuntimeIdentity/CapabilityRuntimeIdentity.swift",
+      "sdk/Sources/MixerGuest/GuestUIExchangeV3.swift",
+      "updates/Sources/MixerUpdates/FieldLogF10IOSSimulatorScope.swift",
+      "updates/Sources/MixerUpdates/VerifierV3.swift",
+      "vm/Cargo.toml",
+      "vm/src/capability_ffi/api.rs",
+      "vm/src/capability_ffi/exports.rs",
+      "vm/src/experimental_capability_guest/mod.rs"
+    ],
+    "forwardAndReverseMatched": true,
+    "producerReceiptSHA256": "46e27836111aafea52ede409d53e88ac546308c9e2076d418627cf1c26210f89",
+    "workspaceAndGuestMatchedRetainedHistoricalDigests": true,
+    "indexScratchRemoved": true
+  }
+}

@@ -291,6 +291,16 @@ Signed iOS scope, V3 presentation, and installed navigation remain
 pending.
 [Apple VM link witness](verification/receipts/fieldlog-f10-ios-simulator-ecba9fa-vm.json)
 
+The private signed iOS F10 owner at `3010d91c` passed the macOS
+scope and event-order checks with the exact guest and synthetic workspace
+pages. The host required revision 2 acknowledgement before input and
+revision 3 acknowledgement before durable health. Navigation reached
+revision 8 with zero writes. The private and default V1 generic arm64
+Simulator test bundles linked. Root verified the reversible source patch
+and recovered the exact historical workspace bytes. Installed UIKit
+acknowledgement, native taps, and cold recovery remain pending.
+[Signed Apple F10 source and build](verification/receipts/fieldlog-f10-ios-simulator-signed-consumer-ecba9fa.json)
+
 The private macOS signed V3 candidate `6ba7034329` passed the first-page
 Pending Changes smoke through the installed owner, VM, and storage mailbox.
 One read hydrated the queue. The decoded action delivered the historical
@@ -1352,6 +1362,16 @@ commit. All 190 commands and both services closed, all three ports
 rebound, and scratch was removed.
 [Installed signed Commit and report handoff](verification/receipts/fieldlog-android-signed-commit-report-settings-ac305262.json)
 
+The exact ordinary Pair25 APK completed a fresh offline signed Commit
+with its normal recovery journal. Ready and Committed once shared the
+same runtime fingerprint, candidate, launch, and durable first-screen
+milestone. Commit wrote one entrySaved event and preserved the original
+draft ID and seven JPEGs. Done cleared the attempt with effects_closed
+in the same app process. The next process read the same healthy recovery
+bytes and workspace. All 215 commands closed. The graphics sample did
+not identify the exact buffer behind first-screen health.
+[Ordinary Pair25 activation and retirement](verification/receipts/l07-fieldlog-ordinary-pair25-commit-trace-ac305262.json)
+
 A separate offline run of the current APK selected an independent
 reader in Android’s report chooser. The reader received all 280 bytes
 and matched the saved export by SHA-256. Back returned to the same
@@ -1432,6 +1452,16 @@ once. Independent host controls reproduced both original failures and
 verified the fixes. Unsigned generic arm64 iPhoneOS Debug and Release
 linked. Installed presentation remains pending.
 [iOS assignment recovery review](verification/receipts/fieldlog-ios-assignment-recovery-73e9f093.json)
+
+The generic iOS Simulator witness builds the same ordinary FieldLog
+tree with a named XCTest. It opens the saved project, edits a draft
+through the Photo Library picker, saves a manual Site Map pin, and
+changes Appearance. A read-only Debug checkpoint compares the exact
+workspace, JPEG, and preferences across a cold launch. Independent
+static readback matched the pinned sources, test selector, and bundle
+signatures. Installed execution remains pending.
+[Build and test receipt](verification/receipts/fieldlog-ios-ordinary-73e9f093-witness.json) ·
+[Rebuild and run guide](tests/integration/fieldlog-ios-assignment/ordinary-witness/README.md)
 
 The maintained FieldLog Swift task client now supports an injected
 bounded exchange. The Apple initializer passed the two-replica macOS

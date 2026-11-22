@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "observedUTC": "2026-11-22T05:57:22.431705+00:00",
+  "status": "generic_arm64_ios_simulator_build_for_testing_verified_runtime_pending",
+  "source": {
+    "publicMixerCommit": "d203a1c27027e2ae10bc46deb911cc94b8c28cbb",
+    "publicMixerTree": "f56725b2418873035e897007c16b9e663c6fbfd8",
+    "publicFieldLogCommit": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "reconstructedFieldLogTree": "73e9f093470ef9173a8e6a21da56f8537622212f",
+    "stockPublicPair25Commit": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+    "stockPublicPair25Tree": "faf0902a82ffc7acb2ddde9c6dca24002f959c3d",
+    "reconstructionReceipt": "verification/receipts/fieldlog-ios-assignment-recovery-73e9f093.json",
+    "witnessFilesSHA256": {
+      "OrdinaryWorkspaceWitness.swift": "738d696130512f171e5ce7d84ca70e603b5dc80a5387983fe3c6a3e73476ac03",
+      "README.md": "2219ba09555bc1a20b68af02893dc23fb6da5bcafa768a3c584186356c93452a",
+      "StorageReadback.swift": "7b55b6d79e04c1322704d079c39947d2e2f30c5ff05aff1d90f896de47c3c299",
+      "build.sh": "0c28390260aa4d468159d0a72b55a2d3cc012651417b0011456ee1c9b6b8726f",
+      "make-photo.py": "41ed18e56e65f85a55bde2d859c4bef3347f66aa23376a0ac0b626f682a4bd2b",
+      "prepare.sh": "459bcafcbcfcea9cc4a2ce3ea5dcec225017d50b31879c9a5bd49a281681f795",
+      "verify-build.py": "032abd36b162270864b1a4d3f7bc32825e05e8c4ccd2c24e9b9f51c064d6adee"
+    }
+  },
+  "build": {
+    "command": "build.sh RUN xcode (xcodebuild build-for-testing -sdk iphonesimulator -destination \"generic/platform=iOS Simulator\" ARCHS=arm64 CODE_SIGN_IDENTITY=-)",
+    "vmTarget": "aarch64-apple-ios-sim",
+    "vmArchiveSHA256": "5495a45b76b71dd3b64429ffd80fa6d7dce52e3c710fe20a76c76dfc3b8cddf2",
+    "xcodeLogSHA256": "90d09c67896042b34ca14fbd3fd1c3e908745ecf3934529734efb6e45ebd42a3",
+    "result": "TEST BUILD SUCCEEDED",
+    "hostVerificationCommand": "python3 -B verify-build.py PRODUCTS",
+    "hostVerification": {
+      "plan": "FieldLog_iphonesimulator27.2-arm64.xctestrun",
+      "planSHA256": "7ecae347949efe3b55c57fa5d937a228cecf6ee9584136317e1876a2abf644c5",
+      "selector": "FieldLogUITests/FieldLogUITests/testOrdinarySavedDraftPinAndSettingsSurviveColdLaunch",
+      "executableObjCSelector": "testOrdinarySavedDraftPinAndSettingsSurviveColdLaunch",
+      "app": {
+        "id": "dev.mixer.fieldlog",
+        "version": "0.1.0",
+        "build": "1",
+        "architecture": "arm64",
+        "platform": "IOSSIMULATOR",
+        "executableSHA256": "6a3205c393480e4981eee822e087742b8773c487ec5defca56791c214fb664a4",
+        "infoPlistSHA256": "63086e56af66e6b8fc49237e456d803dde7c80d488a3c111091d2fbb921dbc3d",
+        "signature": "adhoc",
+        "codeDirectoryHash": "dd3de5bab04567e686a875d590b267559ec20ada",
+        "strictSignatureVerified": true
+      },
+      "runner": {
+        "id": "dev.mixer.fieldlog.uitests.xctrunner",
+        "version": "1.0",
+        "build": "1",
+        "architecture": "arm64",
+        "platform": "IOSSIMULATOR",
+        "executableSHA256": "97c3413de6a29e91844bf5df76343840a720d78951fb4d573111a9bc9a775ad2",
+        "infoPlistSHA256": "db42fdd5972a6a476457dc9e9a75293440bfe06b0786483fb91652623867b509",
+        "signature": "adhoc",
+        "codeDirectoryHash": "8e7cdd5a22921a001279cf4f015aa6c50c8b4d14",
+        "strictSignatureVerified": true
+      },
+      "testBundle": {
+        "id": "dev.mixer.fieldlog.uitests",
+        "version": "0.1.0",
+        "build": "1",
+        "architecture": "arm64",
+        "platform": "IOSSIMULATOR",
+        "executableSHA256": "b2ccfa2b9f89a65a5bdab2ca1a20c319f580535a63a73966c4223960be570b33",
+        "infoPlistSHA256": "c68270bd2863abdaeb724e2a877647b0a646ad413f98a45d429ad5a6491cb182",
+        "signature": "adhoc",
+        "codeDirectoryHash": "f421da674eb4b4f51f34aa0f19bf902626a78bc4",
+        "strictSignatureVerified": true
+      }
+    }
+  },
+  "test": {
+    "status": "built_selector_verified_pending_execution",
+    "scope": [
+      "L02",
+      "L08"
+    ],
+    "expected": [
+      "Open saved project and edit one draft through the ordinary editor and Photo Library picker.",
+      "Set the manual site pin and change Appearance from System to Dark.",
+      "Cold-read the project, pin, Settings, edited draft and one photo through ordinary controls.",
+      "Compare exact workspace including offline outbox, JPEG and Settings digests before and after cold launch."
+    ],
+    "separateLanes": [
+      "camera capture",
+      "location permissions",
+      "assignment notifications",
+      "Apple F10",
+      "signed refusal"
+    ],
+    "photoFixtureSHA256": "7a8ba1165f88c5030d587f2aa05f0bc02ec066d27bf343d22caad7e26d14c53b",
+    "photoDimensions": [
+      83,
+      61
+    ]
+  },
+  "tools": {
+    "macOS": "27.0.1 (26A434)",
+    "Xcode": "27.2 (27B52)",
+    "SimulatorSDK": "27.2",
+    "Swift": "6.4.2",
+    "Rust": "1.99.0",
+    "Git": "2.56.0"
+  },
+  "custody": {
+    "commandGroups": {
+      "rust": {
+        "exit": 0,
+        "stop": null,
+        "groupAbsent": true,
+        "peakKiB": 113700,
+        "pid": 9904
+      },
+      "xcode-first": {
+        "exit": 0,
+        "stop": null,
+        "groupAbsent": true,
+        "peakKiB": 481660,
+        "pid": 30755
+      },
+      "xcode": {
+        "exit": 0,
+        "stop": null,
+        "groupAbsent": true,
+        "peakKiB": 488552,
+        "pid": 39706
+      }
+    },
+    "maxObservedKiB": 488552,
+    "retainedHandoffKiB": 16304,
+    "retainedHandoff": "verification/local/fieldlog-ios-ordinary-73e9f093-handoff",
+    "simulatorOperations": 0,
+    "XCTestRuns": 0,
+    "pushes": 0,
+    "gateChanges": 0,
+    "buildScratchRemoved": true
+  },
+  "rootReadback": {
+    "producerReceiptSHA256": "acf443fa99af422ef556f572da1651981075604175bf8e365c14455a378da9ed",
+    "pinnedGitTreesMatch": true,
+    "sourceHashesMatch": 7,
+    "staticBundleAndSelectorMatch": true,
+    "photoFixtureDigestMatches": true,
+    "simulatorOperations": 0
+  }
+}
