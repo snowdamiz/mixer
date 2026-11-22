@@ -23,11 +23,11 @@ pinned WABT release and nine WebAssembly Core WAST files over HTTPS and checks
 their SHA-256 hashes. [WABT release](https://github.com/WebAssembly/wabt/releases/tag/1.0.37) ·
 [WebAssembly test sources](https://github.com/WebAssembly/spec/tree/05ca4182176763112561ae20153975c12bd689e4/test/core)
 
-The script translates each WAST file and passes the selected Wasm bytes through
-unchanged. Stock WABT starts a fresh instance for every independent
-assertion. The Rust CLI and the installed archive's `mixer_vm_session_*_v1`
-C ABI also start fresh and use `mixer-table-memory-v3`. The script checks the
-three outcomes against the upstream expected bits or trap. For `assert_invalid` the script checks the WABT
+The script translates each WAST file and uses the resulting Wasm bytes directly.
+Stock WABT, the Rust CLI, and the installed archive's `mixer_vm_session_*_v1`
+C ABI start fresh for each case in the main selector. The Mixer runners use
+`mixer-table-memory-v3`. The script checks the three outcomes against the
+upstream expected bits or trap. For `assert_invalid` the script checks the WABT
 diagnostic and both Mixer validators' refusal codes. Mixer uses its default VM
 and capability limits throughout.
 
@@ -62,6 +62,18 @@ fuel limit. [Pinned fill sequence](https://github.com/WebAssembly/spec/blob/05ca
 The selection covers integer wraparound, division and rotate, initialized
 memory, sign and zero extension, exact f64 bits, the `meet-bottom` trap,
 and invalid branch targets, stack types and memory bounds.
+
+For `br_table.wast`, stock WABT admits the original module at line 3 and
+passes the ten `multiple-value` assertions. The Mixer V3 CLI and installed C
+validator refuse that module with `unsupported` because it uses a value type
+outside the profile. The runner copies the scalar function (lines 86–105)
+and assertions (lines 1305–1314) verbatim from the SHA-256-checked fixture
+into a separate module. Blank lines preserve the source line numbers, and
+the runner checks that WABT translates the assertion rows identically in
+both contexts. The standalone module exercises indices 0–3, the first
+default at 4, and out-of-range selectors including `-1` and `0xffffffff`.
+WABT, the CLI, and the installed V3 session C ABI execute the excerpt.
+[Pinned branch-table fixture](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/br_table.wast#L86-L105)
 
 Six assertions from `elem.wast` exercise indirect calls in three modules.
 Two initialized slots dispatch to different functions, a later active

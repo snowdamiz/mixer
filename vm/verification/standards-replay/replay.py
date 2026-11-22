@@ -37,6 +37,9 @@ MEMORY_COPY_WASM_HASH = "6e10196de6875cc788a2a0426cda6b733b99c66af7448a2a5458316
 MEMORY_FILL = "memory_fill.wast"
 MEMORY_FILL_HASH = "b8a7dccdf72878d11497a5d13ca3c628552b690f5386ef56b0a46c5dd711ad1f"
 MEMORY_FILL_WASM_HASH = "3516438ef6b98d2644bf52f43971d21bf102139418fb46d0161dba071bf83c7b"
+BR_TABLE_MODULE_LINE = 3
+BR_TABLE_FUNCTION_LINES = (86, 105)
+BR_TABLE_ASSERTION_LINES = range(1305, 1315)
 PROFILE = "mixer-table-memory-v3"
 FEATURE = "experimental-capability-native"
 MAX_EXPORT_BYTES = 32 * 1024 * 1024
@@ -234,23 +237,25 @@ def check_native_invocation(report, row, context):
     require(installed == expected, f"{context}: expected {expected}, C={report}")
 
 
-def validate(commands, label, core, client, validator, wasm, *, invalid, guest_code):
-    wabt_diagnostic, core_code, guest_code = invalid or ("", "", guest_code)
+def validate(commands, label, core, client, validator, wasm, *, invalid, guest_code,
+             profile_rejection=""):
+    wabt_diagnostic, core_code, guest_code = invalid or ("", profile_rejection, guest_code)
+    rejected = bool(core_code)
     raw = commands.run(f"{label}-wabt", [validator, wasm], expected=int(bool(invalid)))
     if invalid:
         require(wabt_diagnostic in raw.decode(), f"{label}: unexpected WABT rejection: {raw!r}")
     core_report = json.loads(commands.run(
         f"{label}-core-validate", [core, "--profile", PROFILE, "validate", wasm],
-        expected=2 if invalid else 0,
+        expected=2 if rejected else 0,
     ))
-    require(core_report["profile"] == PROFILE and core_report["valid"] is (not invalid),
+    require(core_report["profile"] == PROFILE and core_report["valid"] is (not rejected),
             f"{label}: unexpected core validation: {core_report}")
-    require(core_report["error"] is None if not invalid else
+    require(core_report["error"] is None if not rejected else
             core_report["error"]["code"] == core_code,
             f"{label}: wrong core validation reason: {core_report}")
     reports = native_reports(commands.run(f"{label}-c-validate", [client, wasm]),
                              ("validate", "guest_ui_v1_validate"))
-    expect_report(reports["validate"], int(bool(invalid)), core_code, label)
+    expect_report(reports["validate"], int(rejected), core_code, label)
     expect_report(reports["guest_ui_v1_validate"], 1, guest_code, label)
     return {
         "wabt": {"status": int(bool(invalid)), "diagnostic": raw.decode().splitlines()[:1]},
@@ -340,6 +345,64 @@ def replay_reference(commands, directory, script, rows, reference, record):
     count = len(rows)
     require(output[-1:] == [f"{count}/{count} tests passed."],
             f"{directory.name}: incomplete WABT run: {output}")
+
+
+def replay_br_table(commands, source, script, translator, reference, validator, core, client, record):
+    directory = source.parent
+    lines = BR_TABLE_ASSERTION_LINES
+    selection = {
+        "modules": {BR_TABLE_MODULE_LINE: "unsupported"},
+        "actions": dict.fromkeys(lines, ("assert_return", "multiple-value")),
+        "invalid": {},
+    }
+    full_cases = list(selected_cases(source.name, script["commands"], selection))
+    full_module = full_cases[0][0]
+    require(full_module["filename"] == "commands.0.wasm"
+            and [row["line"] for _, row in full_cases] == list(lines),
+            "br_table: unexpected original module or assertion order")
+    full_wasm = directory / full_module["filename"]
+    boundary = record["upstream_module"] = {
+        "line": full_module["line"], "wasm_sha256": digest(full_wasm.read_bytes()),
+        "validation": validate(
+            commands, "br-table-upstream-module", core, client, validator, full_wasm,
+            invalid=None, guest_code="unsupported", profile_rejection="unsupported",
+        ),
+    }
+    upstream_rows = [row for _, row in full_cases]
+    replay_reference(commands, directory, script, [full_module, *upstream_rows], reference, boundary)
+
+    first, last = BR_TABLE_FUNCTION_LINES
+    upstream = source.read_bytes().splitlines(keepends=True)
+    function = b"".join(upstream[first - 1:last])
+    assertions = b"".join(upstream[lines.start - 1:lines.stop - 1])
+    # Keep the original source line numbers so the WABT assertion rows can match exactly.
+    standalone = (b"\n" * (BR_TABLE_MODULE_LINE - 1) + b"(module\n"
+                  + b"\n" * (first - BR_TABLE_MODULE_LINE - 1) + function + b")\n"
+                  + b"\n" * (lines.start - last - 2) + assertions)
+    excerpt_dir = directory / "br-table-excerpt"
+    excerpt_dir.mkdir()
+    excerpt = excerpt_dir / source.name
+    excerpt.write_bytes(standalone)
+    manifest = excerpt_dir / "commands.json"
+    commands.run("br-table-excerpt-translate", [translator, excerpt, "-o", manifest])
+    translated = json.loads(manifest.read_text())
+    module, *rows = translated["commands"]
+    require(module == full_module and rows == upstream_rows,
+            "br_table: standalone module row or upstream assertions changed")
+    wasm = excerpt_dir / module["filename"]
+    positive = record["standalone_excerpt"] = {
+        "function_lines": [first, last], "assertion_lines": [lines.start, lines.stop - 1],
+        "function_sha256": digest(function), "assertions_sha256": digest(assertions),
+        "wast_sha256": digest(standalone), "wasm_sha256": digest(wasm.read_bytes()),
+        "validation": validate(commands, "br-table-excerpt", core, client, validator, wasm,
+                               invalid=None, guest_code="unsupported"),
+    }
+    replay_reference(commands, excerpt_dir, translated, [module, *rows], reference, positive)
+    positive["cases"] = [
+        {"upstream": row,
+         **invoke(commands, f"br-table-excerpt-{row['line']}", core, client, wasm, row)}
+        for row in rows
+    ]
 
 
 def replay_stateful(commands, directory, script, module, sequence, reference, client, record):
@@ -594,6 +657,9 @@ def replay(commands, scratch, rust, record):
         validated = {}
         reference_rows = []
         translated = json.loads(manifest.read_text())
+        if script == "br_table":
+            replay_br_table(commands, source, translated, translator, reference, validator,
+                            core, client, record["fixtures"][source.name])
         for module, row in selected_cases(script, translated["commands"], fixture):
             line, module_line = row["line"], module["line"]
             filename = module["filename"]
@@ -682,7 +748,7 @@ def main():
         "profile": PROFILE,
         "installed_feature": FEATURE,
         "installed_execution": "legacy V3 session C ABI from the installed capability archive",
-        "guest_ui_v1": "admission refusal only for unchanged upstream modules",
+        "guest_ui_v1": "admission refusal for original modules and the branch-table excerpt",
         "fixtures": {}, "modules": [], "cases": [],
     }
     record["command_environment"] = env

@@ -1350,6 +1350,21 @@ action reproduced it. Launcher reuse needs a fix. The installed
 private-alias refusal step was not reached.
 [Installed Android assignment shade replay](verification/receipts/fieldlog-android-assignment-shade-api36-c4c133d6.json)
 
+The `singleTop` manifest successor passed a fresh API 36 replay. After a
+cold shade tap, returning from Home through the launcher kept the same
+Android Activity record, task, and process and restored the dashboard.
+The public Activity ignored an unrelated assignment action, and Android
+denied a direct launch of the private alias. All five shade cases still
+passed, including the warm unsaved title and three stale tuples. The
+workspace and its 47 outbox records stayed byte-identical. The build
+relinked the manifest and preserved all 37 other APK members.
+[Installed assignment launcher correction](verification/receipts/fieldlog-android-assignment-single-top-api36-f82f7397.json)
+
+A follow-up reached the real Camera2 shutter over the assignment-rooted
+Activity. Home and the launcher then opened a second, blank FieldLog
+Activity in the same task. The original Activity and workspace bytes
+remained. Camera-overlay launcher return remains open.
+
 The iOS assignment correction `73e9f093` held a cold intent through
 a real workspace-open failure and routed it once after retry. A report
 that finished behind an assignment waited for dismissal and presented
@@ -1868,6 +1883,16 @@ expected ranges. Independent replay confirmed the same behavior,
 125 terminal command groups and all eight wrapper controls. The
 default fuel limit and VM product source stayed unchanged.
 [Stateful memory fill replay](verification/receipts/l03-stateful-memory-fill-f98f3297.json)
+
+The pinned upstream branch-table module uses a value type outside the
+Mixer V3 profile. WABT ran all ten selected assertions on that original
+module. An excerpt preserves the exact scalar function and assertion
+text. All ten passed through WABT, the Mixer CLI, and the installed V3 C
+session. Four indexed targets returned 213 through 210. The first
+default index and unsigned high indices returned 214. Independent
+replay matched the Wasm and VM archive hashes and observed 154 terminal
+commands. All eight runner controls passed.
+[Scalar branch-table replay](verification/receipts/l03-w08-br-table-3488ef30.json)
 
 The seeded TableMemoryV3 check retains one instance for 40 copies on
 each of 24 seeds. Mixer and Node matched all 960 observations of the
