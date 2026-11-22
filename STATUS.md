@@ -2242,6 +2242,16 @@ bound and removed its scratch. Installed health and offline cold reuse
 remain pending.
 [iOS refusal witness](verification/receipts/fieldlog-ios-227-228-generic-6a46e529.json)
 
+Two fresh iOS Simulator runs fetched the signed baseline and rendered
+**Open** at sequence 1. Both stopped before the refusal phases at
+the baseline observation. The diagnostic read the healthy journal,
+the original JPEG and the saved task and draft. The journal named
+the healthy candidate in its staged slot, which the Debug witness
+requires to be empty. The corrected witness build is in progress.
+Both fresh devices and listeners closed. Each of the 13 monitored
+external devices matched its baseline.
+[Installed refusal diagnosis](verification/receipts/fieldlog-ios-227-228-native-healthy-staged-diagnostic-6a46e529.json)
+
 ## November 21 Android saved-draft validation
 
 One fresh FieldLog Pair24 development install on Android API 36 saved
