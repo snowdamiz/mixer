@@ -13,6 +13,19 @@ Use the tracked results to assess L01–L08 and rerun any check that needs fresh
 evidence from a clean checkout. Paths to disposable run files are historical
 references. See [the worktree verification policy](mixer-product-plan.md#worktree-local-verification).
 
+## FieldLog saved-draft guest Close on iOS
+
+One exact XCTest on a fresh iOS 27.0 Simulator preserved the linked JPEG and
+draft through rollback, cold reopen, and sequence-5 re-upgrade. It tapped
+Close and observed the first draft editor. The final journal preserved the
+healthy sequence-5 launch, cleared the active and staged records, and
+recorded `effects_closed`. The workspace and JPEG bytes matched the final
+open-guest checkpoint. Archived readback independently matched all 95 files.
+All 103 command groups reached terminal custody. The disposable Simulator was
+removed and all five external-device comparisons matched. The signed fixture
+bundled its assignments. Local release-origin delivery and outage remain open.
+[Native Close receipt](verification/receipts/fieldlog-ios-224-jpeg-final-close-native-20261122.json)
+
 ## VM deadline fixture verification
 
 The opt-in VM replay had one failure when H08 exhausted its test WASI
