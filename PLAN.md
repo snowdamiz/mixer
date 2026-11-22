@@ -177,6 +177,10 @@ The first origin attempt stopped before any device action because the readiness 
 
 One fresh iOS 27.0 arm64 Simulator passed §22.2.9. FieldLog kept the healthy sequence-1 checklist after the same signed artifact trapped at sequences 2 and 3. The journal recorded two startup failures and quarantined the artifact at accepted sequence 3. With the release listener closed, a new app process reopened the healthy checklist and read the same saved task and workspace bytes. [Installed iOS quarantine](verification/receipts/fieldlog-ios-startup-quarantine-native-20261122.json)
 
+### iOS FieldLog rollout halt
+
+One fresh iOS 27.0 arm64 Simulator passed §22.2.10. The stock CLI halted the sequence-2 artifact at sequence 3. Both installations received empty HTTP 204. The active workspace kept sequence 2 and reopened it after both delivery listeners closed. The pending workspace kept sequence 1 and the exact interrupted transfer. [Installed iOS halt](verification/receipts/fieldlog-ios-rollout-halt-native-20261122.json)
+
 ## November 18 local verification
 
 The identity-network, Phoenix, and owned-engine workflows passed all 11 jobs on Mixer main at `65c89e08af`. Both workflows affected by the historical lock assertion passed. [GitHub Actions run record](verification/receipts/hosted-v42-main-ci-65c89e08af.json)
