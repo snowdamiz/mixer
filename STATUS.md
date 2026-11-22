@@ -1410,6 +1410,14 @@ Independent review accepted this ordinary emulator journey. All 210
 root and native commands closed and owned scratch was removed.
 [Installed F12 field-note date](verification/receipts/fieldlog-f12-android-date-api36-ac305262.json)
 
+A fresh F12 replay verified the intermediate Tasks screen through the
+native Checklist heading and the seeded task's Reopen action. Returning
+to Entries kept the partial date and validation text with the same
+workspace bytes and file identity. The full draft-save, cold reopen and
+single Commit continued to pass. All 196 outer and native commands
+closed and owned scratch was removed.
+[Installed F12 Tasks navigation](verification/receipts/fieldlog-f12-android-tasks-return-api36-ac305262.json)
+
 Ordinary offline F11 reopened a saved note on API 36. Native input
 appended ASCII to the existing Unicode and multiline note. Save left
 the outbox unchanged, and a new process restored the edited bytes.
@@ -1439,6 +1447,27 @@ disposable attempts restored original IME settings, removed their
 packages and scratch, and closed 1,496 setup and ADB commands.
 [Installed F13 long note](verification/receipts/fieldlog-f13-android-long-note-api36-ac305262.json)
 
+A same-draft API 36 control reproduced the IME switch from a working
+Note connection. After switching away from the fixture IME and back,
+both text queries returned null with Note still focused. Returning from
+Home to the same Activity also left the fixture without an eligible
+editor in a separate run with no IME switch. Tapping Note still failed
+the query, and the exact workspace matched the seed. Four runs closed
+all 479 commands and restored the original IME settings. The served
+connection identities remain unobserved.
+[Installed editor lifecycle controls](verification/receipts/l02-android-note-ime-rebind-api36-ac305262.json)
+
+A separately signed diagnostic build traced the same two failures.
+During the switch, Mixer closed the active Note connection while a
+replacement was being created. Android sent extraction, surrounding
+text and commit callbacks through the revoked connection. The replacement
+had no handler observation. In the separate Home control the original
+connection closed on window-focus loss. Android requested a new adapter
+after return and Mixer refused it in IDLE. The exact foreground guard
+remains unobserved. The same draft bytes survived both controls, and
+all 161 commands closed.
+[Installed connection lifecycle trace](verification/receipts/l02-android-note-ime-lifecycle-trace-api36-3362bf6c.json)
+
 All four F14–F16 selectors passed on the historical and Pair25
 sources. F14 wrote one entry and one event after a valid edit-and-commit
 batch and preserved editor, frame, and disk state on refusal. F15
@@ -1448,6 +1477,28 @@ and a new app instance in the same process acquired the real repository
 lock. Independent review repeated the four Pair25 selectors. The
 surface was synthetic, and the F16 test did not force write overlap.
 [Editor transaction host replay](verification/receipts/fieldlog-f14-f16-pair25-host-bb6a1999.json)
+
+The ordinary Android F16 background run tapped Save draft, waited
+250 ms, and sent Home. The STOPPED Activity kept the same PID, and
+the first post-input snapshot showed one saved revision, an unchanged
+peer draft and no new entries or outbox events. A new PID displayed
+the exact saved draft and reopened identical workspace bytes. The
+immediate-input runs sampled no saved revision. One confirmed that
+Home stopped the Activity despite a parser whitespace mismatch.
+Independent review accepted the paced installed scope. The installed
+checks leave save/close overlap unobserved.
+[Installed F16 background and cold readback](verification/receipts/fieldlog-f16-android-save-home-api36-ac305262.json)
+
+A separate macOS XCTest held an admitted real repository write before
+rename. Close reached the save drain and was cancelled. A fresh process
+saw the original snapshot and a busy lock. After release, rename and
+directory sync completed before close returned. A different process
+acquired the real lock and read one new revision while the original
+host stayed alive. The synthetic Android surface leaves JNI and device
+overlap unverified. The passing scratch closed. A separate preparation
+observer error left unknown custody, with the exact path preserved in
+the receipt.
+[F16 admitted write and cancelled close](verification/receipts/fieldlog-f16-close-write-overlap-pair25.json)
 
 All five F17–F19 selectors passed on the historical and Pair25 sources.
 The macOS host replays covered photo refusal, preserved draft edits,
@@ -1462,7 +1513,8 @@ workspace with zero photos. A second picker visit attached the
 synthetic image as one 96×96 JPEG to the same edited draft, with no
 outbox change. A new process reopened the identical draft and JPEG.
 One Commit appended a linked entrySaved at revision 3 and preserved
-the JPEG. All 204 commands and both services closed, and the scoped
+the JPEG. Independent review accepted the installed scope. All 204
+commands and both services closed, and the scoped
 package, fixture files and disposable scratch were removed.
 [Installed F17/F18 picker and attachment](verification/receipts/fieldlog-f17-f18-android-picker-api36-ac305262.json)
 
@@ -2089,6 +2141,15 @@ archives. Intel passed bootstrap, sparse checkout controls and all six
 Java/D8 consumers. The hosted test that requires a built APK skipped.
 The local installed evidence above covers the FieldLog APK itself.
 [Hosted Source141 and notice admission](https://github.com/snowdamiz/mixer/actions/runs/44970018258)
+
+On `5f922bd6`, the six-consumer Android Java cross-compile passed
+and its owned scratch closed. GitHub failed to create the top-level
+metadata artifact after five requests. On `3362bf6c`, the Swift host
+download failed before the integration. The metadata upload reported
+a finalization timeout, and the exact ZIP was readable through GitHub.
+Its five bootstrap commands reached terminal custody and the owned
+scratch was removed. Root requested one retry of the failed job.
+[Hosted Java bootstrap and artifact receipt](verification/receipts/hosted-java-bootstrap-and-artifact-3362bf6c.json)
 
 All nine Owned Engine jobs passed on the Rust notice binding.
 Both Python modes admitted the same Source141 and Pair25 inputs, and
