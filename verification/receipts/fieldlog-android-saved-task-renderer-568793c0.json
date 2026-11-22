@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "status": "PASS focused JVM renderer comparison",
+  "observed_utc": "2026-11-22T02:23:28.386871+00:00",
+  "sources": {
+    "public_mixer": "6c1079b6429a3a078eb30f45db21781e7f138269",
+    "public_mixer_tree": "108fc6d4c7e12ef4d9c934b308eb94f6bf58ec74",
+    "pair25": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+    "pair25_tree": "faf0902a82ffc7acb2ddde9c6dca24002f959c3d",
+    "identical_native_android_tree": "e9a2b0c1329b4b32a3d8a0fb5585d015f3d26dbe",
+    "identical_sdk_tree": "da0a358a6984e198525ea76c7be7fd2af245e12e",
+    "fieldlog_predecessor": "9491a2771fe0575fc205f3b17a919e006e3c7682",
+    "fieldlog_final": "568793c047f43d93503ad4e00787c4bf6d973a33",
+    "full_delivery_sha256": "38e0aae94949b43c6d2656ec9d8d5fdecc7b3f7752ebf3fa69121ce9789938c1",
+    "paired_prerequisite_sha256": "9dd9516a6c9eb25d98597691ee87f81221c150dfae4e21e95f22bb6ce6a2fc20",
+    "swiftpm_pins": {
+      "swift-asn1": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+      "swift-crypto": "c2cbadd7263439d8015189668f96ff5b5be565ce"
+    }
+  },
+  "tools": {
+    "java": "openjdk version \"25.0.4.1\" 2026-08-18",
+    "swift": "swift-driver version: 1.168.6 Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "build": "javac --release 17 -Xlint:all -Werror -proc:none; Pair25 B-concrete-renderer-views roster plus production AndroidUINativeSurface, tracked Android/JNI leaves, and driver",
+    "replay": "swift test --disable-dependency-cache --scratch-path <owned>/build --jobs 6 --filter IndependentRendererTests; FIELDLOG_MIXER_SDK=<owned>/source/mixer/sdk, FIELDLOG_RENDER_CLASSES=<owned>/classes, FIELDLOG_WORKSPACE=<owned>/workspace-receipt",
+    "driver_sha256": {
+      "java": "902bd996067fc5d3af02bf90c6a535c2c7c49501431c2e6ef72d18f5770fff10",
+      "swift": "789241939e4702d0dc9089c6207de09614dfdafeb765ac61f0b327da17e16193"
+    },
+    "output_sha256": "46fb0669550ffc134430ef3fb4759ab09cd6dc75db0f06d845d7bd2b4e3d727a"
+  },
+  "results": {
+    "focused_disable_control": {
+      "cases": 24,
+      "checks": 324,
+      "status": "PASS"
+    },
+    "exact_tests": {
+      "executed": 2,
+      "failed": 0
+    },
+    "frames": {
+      "Edit": {
+        "revisions": [
+          2,
+          3
+        ],
+        "sequence": [
+          "focused dashboard text echo",
+          "saved-task editor"
+        ],
+        "packet_sha256": [
+          "0a41af42c81b8e49a4d26412b3d0806e4d2cee560c5771afbef2952e7970898d",
+          "e6216af1146061fb7aa229dabd827305e380dce5200b30f2eb14a35a0ee198f4"
+        ]
+      },
+      "Cancel": {
+        "revisions": [
+          4,
+          5
+        ],
+        "sequence": [
+          "focused saved-task text echo",
+          "draft dashboard restored"
+        ],
+        "packet_sha256": [
+          "0329a6c86f4435360b9239d558ed0fc3b348d8d46be5dd26ce11087e7265e47d",
+          "7baa6a8d938a6a499cacaccd1c9a876b3c02406f73d74fb1c4985e35e7d0d73b"
+        ]
+      },
+      "Normalized no-op Save": {
+        "revisions": [
+          7,
+          8,
+          9
+        ],
+        "sequence": [
+          "focused text echo",
+          "same identities disabled",
+          "dashboard"
+        ],
+        "packet_sha256": [
+          "65dcd0920c4079001a2debea756cb1049a0893ba77a73b2e4596bec4736607c0",
+          "69416db2c3091b1adaec73844110f5fb34c95245e9f5f1e426e5a381a51d5bba",
+          "ba82009d5ac25413b4794ca03a69bf61a8c6b47fdc60eb07186257edae951323"
+        ]
+      },
+      "Changed Save": {
+        "revisions": [
+          11,
+          12,
+          13
+        ],
+        "sequence": [
+          "pending multiline title and focused assignee echo",
+          "same identities disabled",
+          "dashboard"
+        ],
+        "packet_sha256": [
+          "2f2e77fbd895976f28e5cb47b3405e157b4d3c4bc7c23944d39ad6fd150c0443",
+          "71de74702114d8a6b8e55310a1b0036a4a0fba056bf92a0f2178ad00e7587787",
+          "35a53307b27a1ac3ba9cd66113ff902cc76257939d4bf1a8d650906bdc87e094"
+        ]
+      }
+    },
+    "storage": "Cancel and normalized no-op preserved bytes, inode and workspace. Changed Save replaced the file, stored title and assignee on the same task, advanced revision 1 to 2 and added one taskSaved outbox event (2 to 3).",
+    "native": "Every echo retained focus and editable buffer. Retirement finished composition and closed once, then rejected late input. Installs emitted no synthetic native callback.",
+    "admission": [
+      "wrong-owner Edit staleOwner",
+      "duplicate Edit action",
+      "stale dashboard batch staleRevision",
+      "wrong-owner Cancel staleOwner",
+      "nonterminal Cancel action",
+      "stale saved-editor text staleRevision",
+      "nonterminal Save action",
+      "wrong-owner Save staleOwner",
+      "duplicate Save action"
+    ],
+    "comparison": "Omitting only the echo at the test callback reproduced unsupportedNativeOperation at NativeRenderer.preflightEditorPlanV2:525. No successor installed or workspace write. The terminal surface retained the primary error on revoke.",
+    "scope": "Exact Swift public application packets through production V4 Java surface and renderer with tracked Android/JNI leaves and controlled callbacks. JNI transport, installed APKs and Android IME are outside this run."
+  },
+  "custody": {
+    "peak_sampled_scratch_kib": 398048,
+    "jvm_reaps": [
+      "JVM_REAP pid=13507 group=ESRCH",
+      "JVM_REAP pid=14529 group=ESRCH"
+    ],
+    "setup": "Exact paired prerequisite corrected the missing TaskEdit import. Harness-only adjustments corrected a blocked Foundation read, absent stub asset and expected-error assertion. The three exact processes in the stopped pipe fixture were absent afterward.",
+    "owned_scratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-d52bb440/verification/local/fieldlog-saved-editor-jvm.KmpKBt2V",
+    "scratch_removed": true
+  }
+}

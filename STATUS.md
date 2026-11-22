@@ -1275,6 +1275,17 @@ project, original queue, draft, and all seven JPEGs survived. A fresh
 app process rendered the new task from the exact saved workspace.
 [Installed task creation baseline](verification/receipts/fieldlog-android-saved-task-predecessor-ac305262.json)
 
+The ordinary saved-task editor passed on an owned API 36 arm64 emulator
+with the signed Pair25 tree `e14b6189`. Cancel preserved the separate
+new-task draft. Cancel and a whitespace-only title save preserved the
+workspace bytes. A changed save kept the task ID, added one
+`taskSaved` event, and reopened offline with the original draft and
+all seven JPEGs. The pinned V4 replay also passed Edit, Cancel, and
+Save with pending text changes in the same batch. The emulator and
+private ADB server closed, and their ports were reusable.
+[Installed saved-task editor](verification/receipts/fieldlog-android-saved-task-edit-api36-e14b6189.json) ·
+[Focused renderer replay](verification/receipts/fieldlog-android-saved-task-renderer-568793c0.json)
+
 The maintained FieldLog Swift task client now supports an injected
 bounded exchange. The Apple initializer passed the two-replica macOS
 replay, including the stale edit, explicit merge, and exact retry after

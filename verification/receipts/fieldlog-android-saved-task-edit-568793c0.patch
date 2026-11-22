@@ -1,0 +1,672 @@
+diff --git a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+index 4411aa187c4406b070f56e916e13f40f173d4169..a5638b2e18d746aa9898da67fe47013818ac54e5 100644
+--- a/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
++++ b/Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift
+@@ -10,6 +10,56 @@ import FieldLogInstalledGuest
+ import MixerCapabilities
+ #endif
+
++private enum SavedTaskCommit: Error {
++    case unchanged
++}
++
++private struct SavedTaskEditor {
++    enum Phase {
++        case editing(failure: String?)
++        case submitted
++        case saving
++    }
++
++    var edit: TaskEdit
++    let workspaceRevision: UInt64
++    var phase: Phase = .editing(failure: nil)
++
++    func document(revision: UInt64) -> UIDocument {
++        let saving: Bool
++        let status: String
++        switch phase {
++        case .editing(let failure):
++            saving = false
++            status = failure ?? ""
++        case .submitted:
++            saving = false
++            status = ""
++        case .saving:
++            saving = true
++            status = "Saving on device…"
++        }
++        return MixerUI.Navigation("task.edit.screen", title: "Edit task") {
++            MixerUI.List("task.edit.form") {
++                MixerUI.Section("task.edit.fields") {
++                    MixerUI.TextField("task.edit.title", "Task", value: edit.text.title,
++                        action: "task.edit.title.change", axis: .vertical)
++                        .accessibilityIdentifier("task-edit-title").disabled(saving)
++                    MixerUI.TextField("task.edit.responsible", "Responsible person (optional)", value: edit.text.responsible,
++                        action: "task.edit.responsible.change")
++                        .accessibilityIdentifier("task-edit-responsible").disabled(saving)
++                    MixerUI.Button("task.edit.save", "Save", action: "task.edit.save")
++                        .accessibilityIdentifier("task-edit-save")
++                        .disabled(saving || edit.text.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
++                    MixerUI.Button("task.edit.cancel", "Cancel", action: "task.edit.cancel")
++                        .accessibilityIdentifier("task-edit-cancel").disabled(saving)
++                    MixerUI.Text("task.edit.status", status)
++                }
++            }
++        }.document(revision: revision)
++    }
++}
++
+ @MainActor final class AndroidSiteMapRoute {
+     let id = UUID()
+     let projectID: UUID
+@@ -226,6 +276,9 @@ private struct QueueSyncView {
+     private var settingsReportHandoffHeld = false
+     private var siteMapRoute: AndroidSiteMapRoute?
+     private var siteMapRequested = false
++    private typealias SavedTaskFrame = (UIReconciler, UIRenderSnapshot)
++    private var savedTaskFollowUp: (editor: SavedTaskEditor?, frame: SavedTaskFrame)?
++    private var savedTaskEditor: SavedTaskEditor?
+     private var editor: TaskEditorPresentation
+     private var editorObservation: UUID?
+     private var reconciler: UIReconciler
+@@ -301,7 +354,7 @@ private struct QueueSyncView {
+     public var reportSharePending: Bool { reportPreparing || reportRequest != nil }
+     private var entryPage = 0
+     private var draftPage = 0
+-    // Twenty rows use at most 100 checklist children (standard SDK limit: 1000).
++    // Twenty rows use at most 120 checklist children (standard SDK limit: 1000).
+     private nonisolated static let pageSize = 20
+     private var taskPage = 0
+     private var queuePage = 0
+@@ -435,7 +488,7 @@ private struct QueueSyncView {
+     public func send(_ event: UIEventEnvelope) throws { try sendBatch([event], from: snapshot) }
+
+     public func sendBatch(_ events: [UIEventEnvelope], from captured: UIRenderSnapshot) throws {
+-        guard !closed, !state.saving, entryState?.saving != true, !changingWorkspace, !photoApplying, !reportPreparing else { throw PublicHostError.closed }
++        guard !closed, savedTaskFollowUp == nil, !state.saving, entryState?.saving != true, !changingWorkspace, !photoApplying, !reportPreparing else { throw PublicHostError.closed }
+         guard !events.isEmpty, events.count <= AndroidUIHost.maximumBatchEvents,
+               try JSONEncoder().encode(events).count <= AndroidUIProfile.measuredMultilineLongNotesV4.maximumEventBytes else { throw PublicHostError.bounds }
+         guard captured.document == snapshot.document else { throw AndroidUIHostError.sourceChanged }
+@@ -450,6 +503,10 @@ private struct QueueSyncView {
+                       !value.utf8.contains(0) else { throw PublicHostError.bounds }
+             }
+         }
++        if let savedTaskEditor {
++            try routeSavedTaskEditor(actions, editor: savedTaskEditor)
++            return
++        }
+         if let settingsScreen {
+             try routeSettings(actions, screen: settingsScreen)
+             return
+@@ -458,6 +515,14 @@ private struct QueueSyncView {
+             try routeProjectPicker(actions, picker: projectPicker)
+             return
+         }
++        if let action = actions.last, action.event == .activate, action.value == .null,
++           action.nodeID == action.actionID, action.nodeID.hasSuffix(".edit"),
++           let task = workspace.tasks(for: projectID).first(where: {
++               action.nodeID == "task." + $0.id.uuidString.lowercased() + ".edit"
++           }) {
++            try openSavedTaskEditor(task, after: actions.dropLast())
++            return
++        }
+         if actions.count == 1, let action = actions.first, action.event == .activate, action.value == .null {
+             if showingQueue, action.nodeID == action.actionID {
+                 if action.nodeID.hasPrefix("queue.send.") {
+@@ -550,6 +615,156 @@ private struct QueueSyncView {
+         try replaceEditor(newTask: false, actions: actions)
+     }
+
++    private var savedTaskEditAvailable: Bool {
++        #if FIELDLOG_SIGNED_CHECKLIST && FIELDLOG_ENTRY_COMMIT_FIXTURE
++        guard signedEntryCommit == nil else { return false }
++        #endif
++        return photoRequest == nil && !photoReserved && photoCompletion == nil
++            && !reportSharePending && queueSend == nil && queueSync.transfer == nil
++    }
++
++    private func openSavedTaskEditor(_ task: WorkTask, after textChanges: ArraySlice<RoutedUIAction>) throws {
++        guard savedTaskEditAvailable, !showingEntries, !showingQueue, projectPicker == nil, settingsScreen == nil,
++              siteMapRoute == nil, task.projectID == projectID,
++              (workspace.restoration.selectedProjectID ?? workspace.projects.first?.id) == projectID,
++              workspace.taskConflict(for: task.id) == nil
++        else { throw PublicHostError.action }
++        let edit = TaskEdit(workspaceID: workspace.id, revision: workspace.revision, task: task)
++        let savedTask = SavedTaskEditor(edit: edit, workspaceRevision: workspace.revision)
++        if textChanges.isEmpty {
++            try showSavedTaskEditor(savedTask)
++            return
++        }
++        guard !state.saved, textChanges.allSatisfy({ $0.event == .textChange }) else {
++            throw PublicHostError.action
++        }
++        try replaceEditor(newTask: false, actions: Array(textChanges), opening: savedTask)
++    }
++
++    private func savedTaskFrame(_ editor: SavedTaskEditor, after prior: SavedTaskFrame? = nil) throws -> SavedTaskFrame {
++        let (base, current) = prior ?? (reconciler, snapshot)
++        guard current.document.revision < UInt64.max else { throw PublicHostError.bounds }
++        return try Self.validatedFrame(editor.document(revision: current.document.revision + 1), from: base)
++    }
++
++    fileprivate func finishSavedTaskTransition() -> Bool {
++        guard !closed, let transition = savedTaskFollowUp else { return false }
++        savedTaskFollowUp = nil
++        savedTaskEditor = transition.editor
++        (reconciler, snapshot) = transition.frame
++        publish()
++        return true
++    }
++
++    private func showSavedTaskEditor(_ editor: SavedTaskEditor) throws {
++        let frame = try savedTaskFrame(editor)
++        savedTaskEditor = editor
++        (reconciler, snapshot) = frame
++        publish()
++    }
++
++    private func routeSavedTaskEditor(_ actions: [RoutedUIAction], editor: SavedTaskEditor) throws {
++        guard case .editing = editor.phase, editor.edit.workspaceID == workspace.id, editor.edit.projectID == projectID
++        else { throw PublicHostError.action }
++        var staged = editor
++        staged.phase = .editing(failure: nil)
++        for (index, action) in actions.enumerated() {
++            switch (action.nodeID, action.actionID, action.event, action.value) {
++            case ("task.edit.title", "task.edit.title.change", .textChange, .string(let title)):
++                staged.edit.text.title = title
++            case ("task.edit.responsible", "task.edit.responsible.change", .textChange, .string(let responsible)):
++                staged.edit.text.responsible = responsible
++            case ("task.edit.cancel", "task.edit.cancel", .activate, .null) where index == actions.count - 1:
++                let echo: SavedTaskFrame? = if index == 0 { nil } else { try savedTaskFrame(staged) }
++                let frame = try render(state, includeSavedTaskEditor: false, feedback: changeFeedback,
++                    failure: changeFailure, after: echo)
++                if let echo {
++                    savedTaskFollowUp = (nil, frame)
++                    savedTaskEditor = staged
++                    (reconciler, snapshot) = echo
++                } else {
++                    savedTaskEditor = nil
++                    (reconciler, snapshot) = frame
++                }
++                publish()
++                return
++            case ("task.edit.save", "task.edit.save", .activate, .null) where index == actions.count - 1:
++                staged.phase = .submitted
++                try showSavedTaskEditor(staged)
++                return
++            default:
++                throw PublicHostError.action
++            }
++        }
++        try showSavedTaskEditor(staged)
++    }
++
++    fileprivate func stageSavedTaskCommit() throws -> (@MainActor () -> Void)? {
++        guard let candidate = savedTaskEditor, case .submitted = candidate.phase else { return nil }
++        guard candidate.workspaceRevision == workspace.revision,
++              workspace.taskConflict(for: candidate.edit.taskID) == nil else {
++            var failed = candidate
++            failed.phase = .editing(failure: "This task changed. Cancel and reopen it before saving.")
++            try showSavedTaskEditor(failed)
++            return nil
++        }
++        // Publish a disabled frame with the same fields, actions and sibling
++        // order before retiring the focused editor on successful completion.
++        var busy = candidate
++        busy.phase = .saving
++        guard snapshot.document.revision < UInt64.max - 1 else { throw PublicHostError.bounds }
++        let busyFrame = try Self.validatedFrame(busy.document(revision: snapshot.document.revision + 1), from: reconciler)
++        let priorDraft = state, project = projectID, taskPage = self.taskPage, queuePage = self.queuePage
++        let settings = settingsEnvironment, settingsAvailable = settingsWorkSettled(priorDraft, workspace: workspace)
++        let reportMessage = self.reportMessage
++        let edit = candidate.edit
++        let successFrame: @Sendable (Workspace) throws -> (UIReconciler, UIRenderSnapshot) = { saved in
++            try Self.validatedFrame(Self.document(priorDraft, workspace: saved, project: project, queue: false,
++                taskPage: taskPage, queuePage: queuePage, busy: false, feedback: "Saved on device", failure: nil,
++                revision: busyFrame.1.document.revision + 1, reportMessage: reportMessage,
++                settingsAvailable: settingsAvailable, settings: settings), from: busyFrame.0)
++        }
++
++        savedTaskEditor = busy
++        changingWorkspace = true
++        (reconciler, snapshot) = busyFrame
++        publish()
++        return { [self] in
++            change = Task { @MainActor [self] in
++                defer { changingWorkspace = false }
++                do {
++                    do {
++                        workspace = try await repository.transact(expectedRevision: candidate.workspaceRevision) { next in
++                            let before = next
++                            try next.saveTaskEdit(edit)
++                            guard next.taskConflict(for: edit.taskID) == nil else { throw PublicHostError.action }
++                            // Stop before revision advancement or publication once the shared edit
++                            // has applied normalization to the revision-fenced snapshot.
++                            guard next != before else { throw SavedTaskCommit.unchanged }
++                            _ = try successFrame(next)
++                        }
++                    } catch SavedTaskCommit.unchanged {
++                        // The repository verified the current snapshot and made no write.
++                    }
++                    guard !closed else { return }
++                    let frame = try successFrame(workspace)
++                    savedTaskEditor = nil
++                    changeFeedback = "Saved on device"
++                    changeFailure = nil
++                    (reconciler, snapshot) = frame
++                    changingWorkspace = false
++                    publish()
++                } catch {
++                    guard !closed else { return }
++                    var failed = candidate
++                    failed.phase = .editing(failure: error.localizedDescription)
++                    changingWorkspace = false
++                    do { try showSavedTaskEditor(failed) } catch { closeAfterRenderingFailure(error) }
++                }
++            }
++        }
++    }
++
+     private func settingsSettled(_ task: TaskEditorState, workspace: Workspace) -> Bool {
+         !showingEntries && !showingQueue && projectPicker == nil && siteMapRoute == nil
+             && settingsWorkSettled(task, workspace: workspace)
+@@ -1240,7 +1455,9 @@ private struct QueueSyncView {
+             }
+         }.document(revision: revision)
+     }
+-    private func replaceEditor(newTask: Bool, actions: [RoutedUIAction]) throws {
++    private func replaceEditor(
++        newTask: Bool, actions: [RoutedUIAction], opening savedTask: SavedTaskEditor? = nil
++    ) throws {
+         let admission = SaveAdmission()
+         let repository = self.repository, projectID = self.projectID, revision = workspace.revision
+         let candidate = try TaskEditorPresentation(save: { [weak self] title, responsible in
+@@ -1260,7 +1477,9 @@ private struct QueueSyncView {
+                 try candidate.send(nodeID: "task.responsible", event: .textChange, value: .string(state.responsible))
+             }
+             for action in actions { try candidate.applyEdit(action) }
+-            let (nextReconciler, next) = try render(candidate.state, feedback: nil, failure: nil)
++            let frame = try render(candidate.state, feedback: nil, failure: nil)
++            let followUp = try savedTask.map { try savedTaskFrame($0, after: frame) }
++            let (nextReconciler, next) = frame
+             let stagedState = candidate.state, queuePage = self.queuePage
+             admission.preflight = { workspace in
+                 guard let added = workspace.tasks.last else { throw PublicHostError.action }
+@@ -1271,6 +1490,7 @@ private struct QueueSyncView {
+             if let editorObservation { editor.removeObserver(editorObservation) }
+             try editor.close()
+             editor = candidate; reconciler = nextReconciler; snapshot = next; publishedState = candidate.state
++            if let followUp { savedTaskFollowUp = (savedTask, followUp) }
+             changeFailure = nil; changeFeedback = nil
+             editorObservation = candidate.observe { [weak self] form in self?.changed(form.state) }
+             admission.accepted = true
+@@ -1439,8 +1659,12 @@ private struct QueueSyncView {
+         return try Self.validatedFrame(document, from: reconciler)
+     }
+
+-    private func render(_ state: TaskEditorState, workspace: Workspace? = nil, queue: Bool? = nil, entries: Bool? = nil, entry: EntryEditorState? = nil, dateInput: String? = nil, entryPage: Int? = nil, draftPage: Int? = nil, taskPage: Int? = nil, queuePage: Int? = nil, busy: Bool? = nil, includePicker: Bool = true, includeSettings: Bool = true, feedback: String?, failure: String?) throws -> (UIReconciler, UIRenderSnapshot) {
++    private func render(_ state: TaskEditorState, workspace: Workspace? = nil, queue: Bool? = nil, entries: Bool? = nil, entry: EntryEditorState? = nil, dateInput: String? = nil, entryPage: Int? = nil, draftPage: Int? = nil, taskPage: Int? = nil, queuePage: Int? = nil, busy: Bool? = nil, includePicker: Bool = true, includeSettings: Bool = true, includeSavedTaskEditor: Bool = true, feedback: String?, failure: String?, after prior: SavedTaskFrame? = nil) throws -> SavedTaskFrame {
++        let (reconciler, snapshot) = prior ?? (self.reconciler, self.snapshot)
+         guard snapshot.document.revision < UInt64.max else { throw PublicHostError.bounds }
++        if includeSavedTaskEditor, let savedTaskEditor {
++            return try Self.validatedFrame(savedTaskEditor.document(revision: snapshot.document.revision + 1), from: reconciler)
++        }
+         if includeSettings, let settingsScreen {
+             return try Self.validatedFrame(settingsScreen.document(environment: settingsEnvironment, reportHandoffHeld: settingsReportHandoffHeld,
+                 revision: snapshot.document.revision + 1), from: reconciler)
+@@ -1454,7 +1678,7 @@ private struct QueueSyncView {
+         sync.enabled = syncConfiguration?.client(workspace: renderedWorkspace.id, project: projectID) != nil
+         let document = Self.document(state, workspace: renderedWorkspace, project: projectID, queue: queue ?? showingQueue, taskPage: taskPage ?? self.taskPage, queuePage: queuePage ?? self.queuePage, busy: busy ?? changingWorkspace, feedback: feedback, failure: failure, revision: snapshot.document.revision + 1, entries: entries ?? showingEntries, entry: renderedEntry, entryPage: entryPage ?? self.entryPage, draftPage: draftPage ?? self.draftPage, dateInput: entry != nil ? dateInput : entryDateInput.flatMap { $0.draftID == entryState?.draft.id ? $0.text : nil }, photoPending: photoRequest != nil, photoMessage: photoMessage, photoBusy: photoApplying, reportPending: reportPreparing || reportRequest != nil, reportMessage: reportMessage, queueSync: sync,
+             settingsAvailable: !(busy ?? changingWorkspace) && settingsWorkSettled(state, workspace: renderedWorkspace),
+-            settings: settingsEnvironment)
++            settings: settingsEnvironment, savedTaskEditAvailable: savedTaskEditAvailable)
+         return try Self.validatedFrame(document, from: reconciler, draftID: renderedEntry?.draft.id)
+     }
+     private nonisolated static func validatedFrame(_ document: UIDocument, from reconciler: UIReconciler, draftID: UUID? = nil) throws -> (UIReconciler, UIRenderSnapshot) {
+@@ -1539,7 +1763,7 @@ private struct QueueSyncView {
+         guard let index = workspace.tasks(for: project).firstIndex(where: { $0.id == id }) else { throw PublicHostError.action }
+         return index / pageSize
+     }
+-    private nonisolated static func document(_ state: TaskEditorState, workspace: Workspace, project: UUID, queue: Bool, taskPage: Int, queuePage: Int, busy: Bool, feedback: String?, failure: String?, revision: UInt64, entries: Bool = false, entry: EntryEditorState? = nil, entryPage: Int = 0, draftPage: Int = 0, dateInput: String? = nil, photoPending: Bool = false, photoMessage: String? = nil, photoBusy: Bool = false, reportPending: Bool = false, reportMessage: String? = nil, queueSync: QueueSyncView = .init(), settingsAvailable: Bool = false, settings: AndroidSettingsEnvironment = .init()) -> UIDocument {
++    private nonisolated static func document(_ state: TaskEditorState, workspace: Workspace, project: UUID, queue: Bool, taskPage: Int, queuePage: Int, busy: Bool, feedback: String?, failure: String?, revision: UInt64, entries: Bool = false, entry: EntryEditorState? = nil, entryPage: Int = 0, draftPage: Int = 0, dateInput: String? = nil, photoPending: Bool = false, photoMessage: String? = nil, photoBusy: Bool = false, reportPending: Bool = false, reportMessage: String? = nil, queueSync: QueueSyncView = .init(), settingsAvailable: Bool = false, settings: AndroidSettingsEnvironment = .init(), savedTaskEditAvailable: Bool = true) -> UIDocument {
+         if entries && !queue, let entry {
+             return entryDocument(entry, workspace: workspace, project: project, entryPage: entryPage, draftPage: draftPage,
+                                  revision: revision, dateInput: dateInput, photoPending: photoPending,
+@@ -1635,6 +1859,11 @@ private struct QueueSyncView {
+                             let key = "task." + task.id.uuidString.lowercased()
+                             MixerUI.Text(key + ".title", "\(task.number). " + task.title + (task.completed ? " · Completed" : " · Not completed"))
+                             if !task.responsible.isEmpty { MixerUI.Text(key + ".responsible", task.responsible) }
++                            MixerUI.Button(key + ".edit", "Edit task", action: key + ".edit")
++                                .accessibilityIdentifier(key + ".edit")
++                                .accessibilityLabel("Edit task: " + task.title)
++                                .disabled(inactive || !savedTaskEditAvailable || reportPending || photoPending
++                                    || workspace.taskConflict(for: task.id) != nil)
+                             #if FIELDLOG_SIGNED_CHECKLIST
+                             if tasks.count != 1 {
+                                 MixerUI.Button(key + ".complete", (task.completed ? "Reopen: " : "Complete: ") + task.title, action: key + ".complete").accessibilityIdentifier(key + ".complete").disabled(inactive)
+@@ -1656,11 +1885,35 @@ private struct QueueSyncView {
+
+ @MainActor private final class Delivery {
+     weak var host: AndroidUIHost?
++    weak var presentation: ProjectPresentation?
+     var failure: (any Error)?
++
++    func deliverAction() throws {
++        if let failure { throw failure }
++        guard let host, let presentation else { throw PublicHostError.closed }
++        do {
++            // A batch can contain the last native text changes and Save. Echo
++            // both values before asking the renderer to retire a focused field.
++            let delivered = try host.deliverLatest()
++            // The renderer requires the current native buffer to be echoed before retirement.
++            if delivered, presentation.finishSavedTaskTransition() {
++                guard try host.deliverLatest() else { throw PublicHostError.surface }
++            } else if let commit = try presentation.stageSavedTaskCommit() {
++                guard try host.deliverLatest() else { throw PublicHostError.surface }
++                commit()
++            } else if host.pendingFrame != nil {
++                try host.deliverLatest()
++            }
++        } catch {
++            failure = error
++            throw error
++        }
++    }
++
+     func schedule() {
+         Task { @MainActor [weak self] in
+-            guard let self, let host, host.owner != nil else { return }
+-            do { try host.deliverLatest() } catch { failure = error }
++            guard let self, host?.owner != nil, failure == nil else { return }
++            try? deliverAction()
+         }
+     }
+ }
+@@ -1681,6 +1934,7 @@ private struct QueueSyncView {
+         host = try AndroidUIHost(surface: surface, profile: .measuredMultilineLongNotesV4,
+             appearance: UIAppearanceDescriptorCodecV2.mixerDefaultV2(), scheduleDelivery: { [delivery] in delivery.schedule() })
+         delivery.host = host
++        delivery.presentation = presentation
+         do { try host.replace(with: presentation); try host.deliverLatest() }
+         catch { host.close(); await presentation.close(); throw error }
+     }
+@@ -1689,7 +1943,7 @@ private struct QueueSyncView {
+         guard originalEnvelope.count <= 1_048_576 else { throw PublicHostError.bounds }
+         try JSONInputGuard.validate(originalEnvelope, limits: JSONInputLimits(maximumBytes: AndroidUIProfile.measuredMultilineLongNotesV4.maximumEventBytes, maximumDepth: 8, maximumValues: 64, maximumStringBytes: 100_000))
+         try host.send(owner: owner, event: JSONDecoder().decode(UIEventEnvelope.self, from: originalEnvelope))
+-        try host.deliverLatest()
++        try delivery.deliverAction()
+     }
+     public func sendBatch(owner: UUID, originalEnvelopes: Data) throws {
+         if let failure = delivery.failure { throw failure }
+@@ -1697,7 +1951,7 @@ private struct QueueSyncView {
+         try JSONInputGuard.validate(originalEnvelopes, limits: JSONInputLimits(maximumBytes: AndroidUIProfile.measuredMultilineLongNotesV4.maximumEventBytes, maximumDepth: 9, maximumValues: 2049, maximumStringBytes: 100_000))
+         let events = try JSONDecoder().decode([UIEventEnvelope].self, from: originalEnvelopes)
+         try host.sendBatch(owner: owner, events: events)
+-        try host.deliverLatest()
++        try delivery.deliverAction()
+     }
+     public func settle() async throws {
+         try await presentation.waitForSave()
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
+index c340d8f4acc27f37ec72ab029fdb3a689e2010ce..a2c2814fad2e0d917ccf3126fd59085119687b8c 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/FieldLogGeneratedHostTests.swift
+@@ -105,12 +105,243 @@ private let reportCallback: @convention(c) @Sendable (Int64, UnsafePointer<UInt8
+     var capabilities: AndroidUICapabilities { profile.capabilities }
+     var owner: UUID?
+     var frames: [AndroidUIFrame] = []
++    var refuseSavedTaskBusy = false
+     func activate(owner: UUID) throws { XCTAssertNil(self.owner); self.owner = owner }
+-    func install(_ frame: AndroidUIFrame) throws { XCTAssertEqual(owner, frame.owner); frames.append(frame) }
++    func install(_ frame: AndroidUIFrame) throws {
++        XCTAssertEqual(owner, frame.owner)
++        if refuseSavedTaskBusy,
++           fieldLogNode("task.edit.title", in: frame.snapshot.document.root)?.properties["disabled"] == .bool(true) {
++            throw PublicHostError.surface
++        }
++        frames.append(frame)
++    }
+     func revoke(owner: UUID) { XCTAssertEqual(self.owner, owner); self.owner = nil }
+ }
+
+ final class FieldLogGeneratedHostTests: XCTestCase {
++    @MainActor func testV4SavedTaskEditBatchesAndNormalizedNoWrite() async throws {
++        let directory = URL(fileURLWithPath: try XCTUnwrap(ProcessInfo.processInfo.environment["FIELDLOG_WORKSPACE"]))
++            .appendingPathComponent("saved-task-edit-batches")
++        let repository = try WorkspaceRepository(directory: directory.appendingPathComponent("FieldLog"))
++        let initial = try await repository.transact { workspace in
++            let project = try workspace.createProject(title: "Current project", site: "")
++            try workspace.saveTask(projectID: project, title: "Inspect roof", responsible: "Jo")
++            workspace.restoration.selectedProjectID = project
++        }
++        await repository.close()
++
++        let surface = Surface()
++        let app = try await PublicAndroidApplication(surface: surface, selectedProfile: surface.profile.rawValue, directory: directory)
++        let owner = try XCTUnwrap(app.host.owner)
++        let task = try XCTUnwrap(initial.tasks.first)
++        let edit = "task." + task.id.uuidString.lowercased() + ".edit"
++        func event(_ id: String, text: String? = nil) throws -> UIEventEnvelope {
++            let frame = app.presentation.snapshot
++            return UIEventEnvelope(revision: frame.document.revision,
++                identity: try XCTUnwrap(frame.identity(for: id)), event: text == nil ? .activate : .textChange,
++                value: text.map(UIValue.string) ?? .null)
++        }
++        func send(_ events: [UIEventEnvelope], as sender: UUID? = nil) throws {
++            try app.sendBatch(owner: sender ?? owner, originalEnvelopes: JSONEncoder().encode(events))
++        }
++        let bytes = try Data(contentsOf: file(directory))
++        try send([event("task.title", text: "Draft before Edit"), event("task.responsible", text: "Ari")])
++        let draft = app.presentation.state
++        let queuedTitle = try event("task.title", text: "Draft queued with Edit")
++        let open = try event(edit)
++        let beforeOpen = app.presentation.snapshot.document
++        XCTAssertThrowsError(try send([queuedTitle, open], as: UUID()))
++        XCTAssertThrowsError(try send([queuedTitle, open, open]))
++        XCTAssertThrowsError(try send([queuedTitle, event("workspace.queue"), open]))
++        XCTAssertEqual(app.presentation.snapshot.document, beforeOpen)
++        XCTAssertEqual(app.presentation.state, draft)
++
++        do {
++            try send([queuedTitle, open])
++        } catch {
++            XCTFail("Dashboard text followed by Edit was refused: \(error)")
++            try send([open])
++        }
++        let cancel = try event("task.edit.cancel")
++        let queuedEdit = try event("task.edit.title", text: "Discard this")
++        let beforeCancel = app.presentation.snapshot.document
++        XCTAssertThrowsError(try send([queuedEdit, cancel], as: UUID()))
++        XCTAssertThrowsError(try send([queuedTitle, cancel]))
++        XCTAssertThrowsError(try send([queuedEdit, cancel, event("task.edit.save")]))
++        XCTAssertEqual(app.presentation.snapshot.document, beforeCancel)
++
++        do {
++            try send([queuedEdit, cancel])
++        } catch {
++            XCTFail("Saved-task text followed by Cancel was refused: \(error)")
++            try send([cancel])
++        }
++        XCTAssertEqual(app.presentation.state.title, "Draft queued with Edit")
++        XCTAssertEqual(app.presentation.state.responsible, "Ari")
++        XCTAssertEqual(try Data(contentsOf: file(directory)), bytes)
++        XCTAssertEqual(try disk(directory), initial)
++
++        try send([event(edit)])
++        XCTAssertThrowsError(try send([queuedEdit, event("task.edit.cancel")]))
++        let reopenedTitle = fieldLogNode("task.edit.title", in: app.presentation.snapshot.document.root)
++        XCTAssertEqual(reopenedTitle?.properties["value"]?.string, task.title)
++        try send([event("task.edit.title", text: "  Inspect roof  "), event("task.edit.save")])
++        try await app.settle()
++        XCTAssertNil(app.presentation.snapshot.identity(for: "task.edit.title"))
++        XCTAssertEqual(try Data(contentsOf: file(directory)), bytes)
++        XCTAssertEqual(try disk(directory), initial)
++        XCTAssertEqual(app.presentation.workspace, initial)
++        await app.close()
++    }
++
++    @MainActor func testV4SavedTaskEditAtomicSaveCancelAndColdReopen() async throws {
++        let directory = URL(fileURLWithPath: try XCTUnwrap(ProcessInfo.processInfo.environment["FIELDLOG_WORKSPACE"]))
++            .appendingPathComponent("saved-task-edit")
++        let repository = try WorkspaceRepository(directory: directory.appendingPathComponent("FieldLog"))
++        let initial = try await repository.transact { workspace in
++            let current = try workspace.createProject(title: "Current project", site: "")
++            let other = try workspace.createProject(title: "Other project", site: "")
++            try workspace.saveTask(projectID: current, title: "Inspect roof", responsible: "Jo")
++            try workspace.saveTask(projectID: current, title: "Check gutters", responsible: "Sam")
++            try workspace.saveTask(projectID: other, title: "Inspect roof", responsible: "Lee")
++            try workspace.toggleTask(workspace.tasks[0].id)
++            workspace.restoration.selectedProjectID = current
++        }
++        await repository.close()
++
++        let surface = Surface()
++        let app = try await PublicAndroidApplication(surface: surface, selectedProfile: surface.profile.rawValue, directory: directory)
++        let owner = try XCTUnwrap(app.host.owner)
++        let target = initial.tasks[0], other = initial.tasks[2]
++        let edit = "task." + target.id.uuidString.lowercased() + ".edit"
++        func event(_ id: String, _ kind: UIEventKind = .activate, _ value: UIValue = .null) throws -> UIEventEnvelope {
++            let frame = app.presentation.snapshot
++            return UIEventEnvelope(revision: frame.document.revision,
++                identity: try XCTUnwrap(frame.identity(for: id)), event: kind, value: value)
++        }
++        func send(_ events: [UIEventEnvelope], as sender: UUID? = nil) throws {
++            try app.sendBatch(owner: sender ?? owner, originalEnvelopes: JSONEncoder().encode(events))
++        }
++        func activate(_ id: String) throws { try send([event(id)]) }
++        func node(_ id: String) throws -> UINode {
++            try XCTUnwrap(fieldLogNode(id, in: app.presentation.snapshot.document.root))
++        }
++        let bytes = try Data(contentsOf: file(directory))
++        try send([event("task.title", .textChange, .string("Keep this new draft")),
++                  event("task.responsible", .textChange, .string("Ari"))])
++        let priorDraft = app.presentation.state
++        XCTAssertNil(app.presentation.snapshot.identity(for: "task." + other.id.uuidString.lowercased() + ".edit"))
++        let preMap = try event(edit)
++        try activate("workspace.siteMap")
++        let map = try XCTUnwrap(app.presentation.takeSiteMapRequest())
++        XCTAssertThrowsError(try send([preMap]))
++        XCTAssertThrowsError(try activate(edit), "An older map request still owns the dashboard")
++        _ = try await app.presentation.siteMap(map, command: .close)
++        try app.presentation.publishSiteMapReturn()
++        try await app.settle()
++        try activate("workspace.report")
++        try await app.settle()
++        let report = try XCTUnwrap(app.presentation.takeReportRequest())
++        XCTAssertThrowsError(try activate(edit), "An older report handoff blocks editing")
++        XCTAssertTrue(app.presentation.completeReport(requestID: report.id, result: .unavailable))
++        try await app.settle()
++
++        let open = try event(edit)
++        XCTAssertThrowsError(try send([open], as: UUID()))
++        try send([open])
++        XCTAssertEqual(try node("task.edit.title").properties["value"]?.string, target.title)
++        XCTAssertEqual(try node("task.edit.responsible").properties["value"]?.string, target.responsible)
++        XCTAssertThrowsError(try send([open]))
++        let cancelled = try event("task.edit.title", .textChange, .string("Discard this"))
++        try send([cancelled])
++        try activate("task.edit.cancel")
++        XCTAssertEqual(app.presentation.state, priorDraft)
++        XCTAssertEqual(try Data(contentsOf: file(directory)), bytes)
++
++        try activate(edit)
++        XCTAssertThrowsError(try send([cancelled]))
++        let title = "Inspect 🧪\nréservoir"
++        let assignee = "Zoë 東京"
++        let text = try event("task.edit.title", .textChange, .string(title))
++        let person = try event("task.edit.responsible", .textChange, .string(assignee))
++        let save = try event("task.edit.save")
++        let before = app.presentation.snapshot
++        XCTAssertThrowsError(try send([text, save, person]))
++        XCTAssertThrowsError(try send([text, person, save], as: UUID()))
++        XCTAssertEqual(app.presentation.snapshot.document, before.document)
++        XCTAssertEqual(try Data(contentsOf: file(directory)), bytes)
++
++        let frameCount = surface.frames.count
++        try send([text, person, save])
++        XCTAssertEqual(surface.frames.count, frameCount + 2)
++        let echo = surface.frames[frameCount].snapshot.document.root
++        XCTAssertEqual(fieldLogNode("task.edit.title", in: echo)?.properties["value"]?.string, title)
++        XCTAssertEqual(fieldLogNode("task.edit.responsible", in: echo)?.properties["value"]?.string, assignee)
++        XCTAssertNotEqual(fieldLogNode("task.edit.title", in: echo)?.properties["disabled"], .bool(true))
++        let busy = app.presentation.snapshot
++        XCTAssertEqual(try node("task.edit.fields").children.map(\.id),
++            fieldLogNode("task.edit.fields", in: before.document.root)?.children.map(\.id))
++        for id in ["task.edit.title", "task.edit.responsible"] {
++            XCTAssertEqual(busy.identity(for: id), before.identity(for: id))
++            XCTAssertEqual(try node(id).properties["disabled"], .bool(true))
++        }
++        XCTAssertEqual(try Data(contentsOf: file(directory)), bytes)
++        XCTAssertThrowsError(try activate("task.edit.cancel"))
++        try await app.settle()
++        XCTAssertEqual(app.presentation.state, priorDraft)
++        let committed = try disk(directory)
++        XCTAssertEqual(committed.restoration, initial.restoration)
++        XCTAssertEqual(committed.tasks.map(\.id), initial.tasks.map(\.id))
++        XCTAssertEqual(committed.tasks.map(\.completed), initial.tasks.map(\.completed))
++        XCTAssertEqual(committed.tasks.map(\.position), initial.tasks.map(\.position))
++        XCTAssertEqual(Array(committed.tasks[0].title.utf8), Array(title.utf8))
++        XCTAssertEqual(Array(committed.tasks[0].responsible.utf8), Array(assignee.utf8))
++        XCTAssertEqual(Array(committed.tasks.dropFirst()), Array(initial.tasks.dropFirst()))
++        XCTAssertEqual(Array(committed.outbox.dropLast()), initial.outbox)
++        XCTAssertEqual(committed.outbox.count, initial.outbox.count + 1)
++        XCTAssertEqual(committed.outbox.last?.kind, .taskSaved)
++        XCTAssertEqual(committed.outbox.last?.recordID, target.id)
++        XCTAssertEqual(committed.revision, initial.revision + 1)
++        XCTAssertNil(committed.taskConflict(for: target.id))
++
++        let savedBytes = try Data(contentsOf: file(directory))
++        try activate("workspace.queue")
++        try activate("workspace.back")
++        try activate(edit)
++        try activate("task.edit.save")
++        try await app.settle()
++        XCTAssertEqual(try Data(contentsOf: file(directory)), savedBytes)
++        await app.close()
++        XCTAssertNil(surface.owner)
++
++        let reopenedSurface = Surface()
++        let reopened = try await PublicAndroidApplication(surface: reopenedSurface, selectedProfile: surface.profile.rawValue, directory: directory)
++        XCTAssertNotEqual(reopened.host.owner, owner)
++        XCTAssertEqual(reopened.presentation.workspace, committed)
++        let reopenedFrame = reopened.presentation.snapshot
++        let reopenedEdit = UIEventEnvelope(revision: reopenedFrame.document.revision,
++            identity: try XCTUnwrap(reopenedFrame.identity(for: edit)), event: .activate, value: .null)
++        let reopenOwner = try XCTUnwrap(reopened.host.owner)
++        XCTAssertThrowsError(try reopened.send(owner: owner, originalEnvelope: JSONEncoder().encode(reopenedEdit)))
++        try reopened.send(owner: reopenOwner, originalEnvelope: JSONEncoder().encode(reopenedEdit))
++        let editor = reopened.presentation.snapshot
++        let root = editor.document.root
++        XCTAssertEqual(Array(try XCTUnwrap(fieldLogNode("task.edit.title", in: root)?.properties["value"]?.string).utf8), Array(title.utf8))
++        XCTAssertEqual(Array(try XCTUnwrap(fieldLogNode("task.edit.responsible", in: root)?.properties["value"]?.string).utf8), Array(assignee.utf8))
++
++        reopenedSurface.refuseSavedTaskBusy = true
++        let denied = [
++            UIEventEnvelope(revision: editor.document.revision,
++                identity: try XCTUnwrap(editor.identity(for: "task.edit.title")), event: .textChange, value: .string("Must not publish")),
++            UIEventEnvelope(revision: editor.document.revision,
++                identity: try XCTUnwrap(editor.identity(for: "task.edit.save")), event: .activate, value: .null),
++        ]
++        XCTAssertThrowsError(try reopened.sendBatch(owner: reopenOwner, originalEnvelopes: JSONEncoder().encode(denied)))
++        await reopened.close()
++        XCTAssertNil(reopenedSurface.owner)
++        XCTAssertEqual(try Data(contentsOf: file(directory)), savedBytes)
++    }
++
+     @MainActor func testSettingsFailureResetAndColdOwnerHandoff() throws {
+         let dir = URL(fileURLWithPath: try XCTUnwrap(ProcessInfo.processInfo.environment["FIELDLOG_WORKSPACE"]))
+             .appendingPathComponent("settings-handoff")
+diff --git a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PaginationContractTests.swift b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PaginationContractTests.swift
+index aaf665f8bf38eda4b3057af898ff9ac79b3de6cb..78e59f6a0164a8dfa9c232060ed09d4faa39b466 100644
+--- a/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PaginationContractTests.swift
++++ b/Integrations/GeneratedReport/Tests/FieldLogAndroidTests/PaginationContractTests.swift
+@@ -47,7 +47,7 @@ final class PaginationContractTests: XCTestCase {
+             seen += visible.map(\.id)
+             let packet = try app.presentation.snapshot.encodeNativePacketV1(supportedTextFieldAxes: R109Surface().profile.capabilities.textFieldAxes, textValuePolicy: R109Surface().profile.textValuePolicy)
+             XCTAssertLessThan(packet.count, 1_048_576)
+-            XCTAssertLessThanOrEqual(try node(app, "workspace.tasks").children.count, 103)
++            XCTAssertLessThanOrEqual(try node(app, "workspace.tasks").children.count, 3 + 6 * visible.count)
+             if pageNumber == 0 || pageNumber == 5 || pageNumber == 11 {
+                 print("PAGE checklist: \(try node(app, "tasks.position").properties["text"]!.string!), rows=\(visible.count), packetBytes=\(packet.count)")
+             }
