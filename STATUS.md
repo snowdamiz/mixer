@@ -13,6 +13,19 @@ Use the tracked results to assess L01–L08 and rerun any check that needs fresh
 evidence from a clean checkout. Paths to disposable run files are historical
 references. See [the worktree verification policy](mixer-product-plan.md#worktree-local-verification).
 
+## Signed release ABI refusal in the local service
+
+Stock CLI and Go delivery backed by PostgreSQL rejected the sequence-3 ABI 1
+artifact with HTTP 422. The refused digest returned 404, and the installation
+still received the exact sequence-2 offer and payload. Publishing the same
+Wasm with ABI 2 delivered sequence 3, and sequence-4 rollback survived origin
+restart. The independent replay passed 75 observations and found every column
+of the eight populated tables unchanged across refusal. Owned service and
+database groups exited and the port was reusable. L04 remains open for both
+installed FieldLog apps exercising one shared origin.
+[Host receipt](verification/receipts/l04-postgres-abi-d97ffe4b92.json) ·
+[Replay overlay](verification/receipts/l04-postgres-abi-d97ffe4b92.patch)
+
 ## November 21 SwiftPM import
 
 The stock CLI accepts `swift package describe --type json` output and traces
