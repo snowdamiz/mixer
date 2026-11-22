@@ -1286,6 +1286,14 @@ private ADB server closed, and their ports were reusable.
 [Installed saved-task editor](verification/receipts/fieldlog-android-saved-task-edit-api36-e14b6189.json) ·
 [Focused renderer replay](verification/receipts/fieldlog-android-saved-task-renderer-568793c0.json)
 
+A follow-up used that same development APK through saved-task editing,
+the native Site Map, Camera2 and the pending queue. The pin save added
+one revision and the warm map return kept the same process. The eighth
+JPEG persisted with the other seven, the saved draft and all three
+pending records. Both photo controls stayed disabled after cold launch.
+All 402 commands and both device services closed, and scratch was removed.
+[Installed task, map, camera and queue replay](verification/receipts/fieldlog-android-saved-task-cross-flow-e14b6189.json)
+
 The maintained FieldLog Swift task client now supports an injected
 bounded exchange. The Apple initializer passed the two-replica macOS
 replay, including the stale edit, explicit merge, and exact retry after
@@ -2235,6 +2243,15 @@ on the managed build attachment path, live two-tenant cache reuse, review
 of the current VM-to-activation composition, and installed iOS verifier,
 privacy and outage checks. The deliberate privileged telemetry result
 remains recorded separately.
+
+The live loopback worker admitted the same pinned source for two tenants
+using one disposable ledger. Both operations reached `native_ready`
+with one start and distinct project, home, temporary and artifact paths.
+All 16 cross-tenant requests were refused while both were ready. Each owner
+read its own outputs after listener restart. The CLI supplied fixture bytes.
+The exercised worker has no shared build-result cache. Both operations
+stopped, the owned groups closed, and scratch was removed.
+[Two-tenant worker replay](verification/receipts/l07-local-worker-two-tenant-995eede.json)
 
 The unchanged FieldLog updater ran in two macOS processes under an Android-scoped development identity. The owned observer saw four bodyless loopback GETs and found no workspace or JPEG markers, cookies, or bearer credentials. A complete signed offer activated sequence 1. After an artifact HTTP 503, a new process recovered the same candidate and preserved the workspace and JPEG. The sandbox denied a second loopback destination, and both owned ports closed. [Updater privacy receipt](verification/receipts/l07-fieldlog-updater-loopback-b144c2c-20261120.json)
 

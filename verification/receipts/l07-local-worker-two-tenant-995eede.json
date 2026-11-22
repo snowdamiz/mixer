@@ -1,0 +1,423 @@
+{
+  "schema": 1,
+  "status": "PASS_SCOPED_LOCAL_WORKER_NAMESPACE_AND_RETAINED_READ",
+  "tracks": [
+    "W12",
+    "W16",
+    "L07"
+  ],
+  "wholeGatePassed": false,
+  "source": {
+    "revision": "995eede4556ab87f26608b2a67ad8f724f6017c9",
+    "tree": "3650bbdfbbea723664e5f8596947470cc7f79521",
+    "verifiedRemoteRef": "https://github.com/snowdamiz/mixer.git refs/heads/main",
+    "workerTree": "1de37e5b5fad4b4eb4f15d3bb503cf2a3a26064e",
+    "fixtureBlob": "55b7050f9a3f9a6f23edcb7cc33909d5687bbf33",
+    "git": "2.56.0"
+  },
+  "boundary": {
+    "planSections": [
+      "14.2",
+      "18.1"
+    ],
+    "native": "Compiler Worker.verify_recipe admits exact operator-registered file hashes and compares tenant and recipe scope. NativeWorker.request binds an operation to its spec and writes only that operation's build output under state/<operation>. prepare_build copies registered files into project, sets per-operation TMPDIR and CFFIXED_USER_HOME, and routes artifact reads to the operation's native directory.",
+    "retention": "The ledger and operation-specific manifest allow the same authorized operation to read its retained outputs after restart. Digest-named diagnostics under blobs are closure evidence. Neither path is a cross-operation build-result cache.",
+    "publicInputs": "The iOS profile uses exact local manifests without external packages. The managed Android Pair25 layout mounts pinned inputs and its prepared toolchain volume read-only, with a separate output bind and per-container tmpfs. These are prepared inputs. No cache hit measurement follows from either source fact.",
+    "sourcePaths": [
+      "hosted/priv/development/compiler_worker.py",
+      "hosted/priv/development/native_artifact_worker.py",
+      "hosted/priv/development/linux_android_pair25_layout.py",
+      "hosted/lib/mixer_hosted/builds/retained_native_artifacts.ex"
+    ]
+  },
+  "command": {
+    "archive": [
+      "git",
+      "archive",
+      "995eede4556ab87f26608b2a67ad8f724f6017c9",
+      "hosted/priv/development",
+      "hosted/scripts/test_native_artifact_worker.py"
+    ],
+    "driver": [
+      "python3",
+      "-B",
+      "<owned-scratch>/strict/probe.py"
+    ],
+    "fixture": "Checked-in IOS_CLI_FIXTURE from hosted/scripts/test_native_artifact_worker.py, with mixer.lock bytes success. The driver sets its shebang to the observed Python.",
+    "worker": [
+      "python3",
+      "-B",
+      "native_artifact_worker.py",
+      "<config>",
+      "<config-sha256>",
+      "<shared-private-test-ledger>"
+    ],
+    "configuration": "One live loopback listener at a time. The operator selects tenant A or B on each listener start, using the same test state directory and the same pinned recipe and read-only registered source. Tenant IDs and operation IDs differ. Project, application, and build labels are identical. No production credentials or live customer input.",
+    "sequence": "Start A, submit and retry A at the fixture barrier, release, collect, and shut down. Repeat for B, with a foreign A check before B runs. Reopen A then B and verify both cross-tenant refusal modes while both ledger rows are native_ready, and read each owner's own retained artifact descriptors and bytes. Stop B and confirm its artifacts unavailable. Reopen and stop A and confirm its artifacts unavailable. Require distinct directory and input/artifact inode identities and terminal custody of every child and listener.",
+    "bounds": {
+      "requested_seconds": 600,
+      "driver_poll_budget_seconds": 115,
+      "recipe_timeout_seconds": 20,
+      "scratch_max_bytes": 2147483648,
+      "child_max_file_bytes": 1048576,
+      "observed_both_runs_disk_kib": 1104
+    }
+  },
+  "result": {
+    "recordedUTC": "2026-11-22T02:51:05.461803+00:00",
+    "duration_seconds": 0.7274734170059673,
+    "scratch_bytes": 422643,
+    "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "darwin": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "sqlite": "3.53.4",
+    "worker_sha256": "cda01bdfb28a4d2001aeb93a138237ff8eaf93a35707c73d88851710db24bf63",
+    "test_suite_sha256": "630e926b91650dcb07e528d30281b41e4f106ca7a3b72e54a7403b8d62cdeab4",
+    "fixture_cli_sha256": "bd3f26c5cdfe54c7a59d80e7245cbe49d1e1877529a79fcf4a08fa56d6886c0f",
+    "xcode_stub_sha256": "7d9561a7f8e3c5d70a571422a4522de986c003879dab3bf7562963b6cdc3e658",
+    "driver_sha256": "85a9c6969f7f51741e28258e47e81a07bc8cf83baba00bd1a90cc010c34a32df",
+    "same_pinned_input": {
+      "source": {
+        "sha256": "c14c7dc91c5522700caf794819d102e3526a4eeddccc8bb21b5d355113749249"
+      },
+      "toolchain_lock_sha256": "aee408847d35e44e99430f0979c3357b85fe8dbb4535a494301198adbee85f27",
+      "build_definition_sha256": "63c8bce2f5d672b324851efa2be04d86671d0503b88a1a7cd3d75c4dfa0d6f11"
+    },
+    "identical_retained_views": {
+      "status": "native_ready",
+      "artifacts": [
+        {
+          "kind": "unsigned_native_binary",
+          "sha256": "9777230f587719faadd98202efa1dfea348a87bedceca61e0b0ea1bacce26411",
+          "sizeBytes": 22
+        },
+        {
+          "kind": "debug_symbols",
+          "sha256": "db02d3dde05d58224ace0dab286be246eb6ee675e62a2b6988cded7bf57526fe",
+          "sizeBytes": 13
+        },
+        {
+          "kind": "resource_inventory",
+          "sha256": "053d89c5cc3a7e3cbb8cc04b76fd10efc3cb98d3b6f449ddd93ce7033cd86bde",
+          "sizeBytes": 18
+        }
+      ]
+    },
+    "operations": {
+      "3b0a7ca3a01569f4af07368009f9b6480354618beb93b7241df7c3dcf22619f5": {
+        "tenant": "synthetic-a",
+        "live_group_and_session_checked": [
+          98889,
+          98890
+        ],
+        "retry_while_running": "running",
+        "closure": {
+          "cli_group_absent": true,
+          "cli_reaped": true,
+          "closed": true,
+          "commands": [
+            {
+              "command": "/usr/bin/xcodebuild",
+              "group_terminate_sent": false,
+              "pid": 98890,
+              "receipt_sha256": "cd1ace583cde06d7803ee994271397f63cafc9e376ede58fe6238d147b0c3f9e",
+              "stop_reason": null
+            }
+          ],
+          "exit": 0,
+          "pid": 98889,
+          "started": true
+        },
+        "nested": {
+          "pid": 98890,
+          "ownedPGID": 98890,
+          "ownedSession": 98890,
+          "exitCode": 0,
+          "directChildReaped": true,
+          "stdoutEOF": true,
+          "stderrEOF": true,
+          "descriptorsClosed": true,
+          "ownedGroupAbsent": true
+        },
+        "starts": 1,
+        "directories": {
+          "project": [
+            16777231,
+            1043554110
+          ],
+          "tmp": [
+            16777231,
+            1043554111
+          ],
+          "home": [
+            16777231,
+            1043554112
+          ],
+          "native": [
+            16777231,
+            1043554119
+          ]
+        },
+        "project_input": [
+          16777231,
+          1043554113
+        ],
+        "manifest_sha256": "3971a5e982803cbcb7d1621ebde62d3ead01fb5abbb201aa8b4045e2cdcbdfb9",
+        "artifact_files": {
+          "unsigned_native_binary": [
+            16777231,
+            1043554120
+          ],
+          "debug_symbols": [
+            16777231,
+            1043554121
+          ],
+          "resource_inventory": [
+            16777231,
+            1043554122
+          ]
+        },
+        "customer_log_sha256": "b420721db25087e546ac22e07f5cd7d60fd3879c4837a277d601afa59cfc6db3",
+        "cross_tenant_while_both_native_ready": {
+          "foreign_scope": {
+            "query": {
+              "error": "unavailable"
+            },
+            "ensure_started": {
+              "error": "unavailable"
+            },
+            "artifacts": {
+              "error": "unavailable"
+            },
+            "stop": {
+              "error": "unavailable"
+            }
+          },
+          "own_scope_foreign_operation_id": {
+            "query": {
+              "error": "unavailable"
+            },
+            "ensure_started": {
+              "error": "unavailable"
+            },
+            "artifacts": {
+              "error": "unavailable"
+            },
+            "stop": {
+              "error": "unavailable"
+            }
+          }
+        },
+        "read_after_restart": "native_ready; starts=1",
+        "stop": {
+          "diagnostic_sha256": "f26b7cc8e437d97665ccc40df1932f4dd9d5553c161d666300a01921b44e85ce",
+          "status": "stopped"
+        },
+        "after_stop_artifacts": {
+          "error": "unavailable"
+        }
+      },
+      "11ae3038c1fe627502b6596d5598808bb5339e26b1bfed1924adec0458cc1b26": {
+        "tenant": "synthetic-b",
+        "live_group_and_session_checked": [
+          98893,
+          98895
+        ],
+        "retry_while_running": "running",
+        "closure": {
+          "cli_group_absent": true,
+          "cli_reaped": true,
+          "closed": true,
+          "commands": [
+            {
+              "command": "/usr/bin/xcodebuild",
+              "group_terminate_sent": false,
+              "pid": 98895,
+              "receipt_sha256": "ce2f3c54d13fd2a7704c928879558b3d03ad018791c522c1b76cf9002798f0b1",
+              "stop_reason": null
+            }
+          ],
+          "exit": 0,
+          "pid": 98893,
+          "started": true
+        },
+        "nested": {
+          "pid": 98895,
+          "ownedPGID": 98895,
+          "ownedSession": 98895,
+          "exitCode": 0,
+          "directChildReaped": true,
+          "stdoutEOF": true,
+          "stderrEOF": true,
+          "descriptorsClosed": true,
+          "ownedGroupAbsent": true
+        },
+        "starts": 1,
+        "directories": {
+          "project": [
+            16777231,
+            1043554153
+          ],
+          "tmp": [
+            16777231,
+            1043554154
+          ],
+          "home": [
+            16777231,
+            1043554155
+          ],
+          "native": [
+            16777231,
+            1043554162
+          ]
+        },
+        "project_input": [
+          16777231,
+          1043554156
+        ],
+        "manifest_sha256": "153d90ff1d6408ee54dffee45a02748410a8cae2d4503d864d0761265e7291c3",
+        "artifact_files": {
+          "unsigned_native_binary": [
+            16777231,
+            1043554163
+          ],
+          "debug_symbols": [
+            16777231,
+            1043554164
+          ],
+          "resource_inventory": [
+            16777231,
+            1043554165
+          ]
+        },
+        "customer_log_sha256": "f8146ad1412528c1e1375ab29db632f1bcda459e8baf78948135abbc82affdd1",
+        "cross_tenant_while_both_native_ready": {
+          "foreign_scope": {
+            "query": {
+              "error": "unavailable"
+            },
+            "ensure_started": {
+              "error": "unavailable"
+            },
+            "artifacts": {
+              "error": "unavailable"
+            },
+            "stop": {
+              "error": "unavailable"
+            }
+          },
+          "own_scope_foreign_operation_id": {
+            "query": {
+              "error": "unavailable"
+            },
+            "ensure_started": {
+              "error": "unavailable"
+            },
+            "artifacts": {
+              "error": "unavailable"
+            },
+            "stop": {
+              "error": "unavailable"
+            }
+          }
+        },
+        "read_after_restart": "native_ready; starts=1",
+        "stop": {
+          "diagnostic_sha256": "c71a2fb17634d65839dc5edd0423005046016b96599f3a12c9d73f0502d5b944",
+          "status": "stopped"
+        },
+        "after_stop_artifacts": {
+          "error": "unavailable"
+        }
+      }
+    },
+    "listeners": [
+      {
+        "phase": "first-a",
+        "pid": 98887,
+        "port": 58412,
+        "shutdown": {
+          "status": "closed"
+        },
+        "exit": 0,
+        "group_absent": true,
+        "port_refused": true
+      },
+      {
+        "phase": "first-b",
+        "pid": 98892,
+        "port": 58424,
+        "shutdown": {
+          "status": "closed"
+        },
+        "exit": 0,
+        "group_absent": true,
+        "port_refused": true
+      },
+      {
+        "phase": "reopen-a",
+        "pid": 98896,
+        "port": 58444,
+        "shutdown": {
+          "status": "closed"
+        },
+        "exit": 0,
+        "group_absent": true,
+        "port_refused": true
+      },
+      {
+        "phase": "reopen-b",
+        "pid": 98898,
+        "port": 58462,
+        "shutdown": {
+          "status": "closed"
+        },
+        "exit": 0,
+        "group_absent": true,
+        "port_refused": true
+      },
+      {
+        "phase": "settle-a",
+        "pid": 98900,
+        "port": 58482,
+        "shutdown": {
+          "status": "closed"
+        },
+        "exit": 0,
+        "group_absent": true,
+        "port_refused": true
+      }
+    ],
+    "custody": "terminal"
+  },
+  "rawResultSha256": "df65ad8302ddce2140199016b76aac3088f5e58ef19988c7a20277e08db76d12",
+  "preliminaryControl": {
+    "scope": "Earlier fixture pass with cross-tenant refusal and restart reads. Strict replay required both tenants to be ready simultaneously for refusal checks and observed each real fixture PID, PGID and session while live.",
+    "duration_seconds": 0.8902804170211311,
+    "closed_worker_pids": [
+      94843,
+      95144,
+      95452,
+      95580
+    ],
+    "closed_cli_and_nested_pids": [
+      [
+        94941,
+        95034
+      ],
+      [
+        95251,
+        95294
+      ]
+    ]
+  },
+  "limitations": [
+    "Worker socket, SQLite ledger, launch, reap and retained artifact validation ran as product code. The checked-in benign Python CLI and nested child supplied fixture products and receipts. The nested receipt names xcodebuild as the expected profile evidence. Xcode was not executed.",
+    "Serial operator registrations on one local test ledger. No concurrent multi-tenant worker orchestration, customer-facing Phoenix HTTP, hostile-code sandbox, native build, signing, Android transport, managed platform or production qualification.",
+    "No tenant-shareable build cache on the exercised worker path. The run does not pass the product's shared public dependency cache or cache-provenance scope."
+  ],
+  "cleanup": {
+    "scope": "verification/local/l07-two-tenant-995eede.UyevqRGG",
+    "status": "verified after removal",
+    "unresolvedCustody": []
+  }
+}
