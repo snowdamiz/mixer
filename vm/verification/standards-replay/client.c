@@ -24,11 +24,13 @@ static int invoke(uint64_t handle, const char *phase, int argc, char **argv) {
         const char *argument = argv[i];
         if (strncmp(argument, "i32:", 4) == 0) args[i - 1].value_type = 1;
         else if (strncmp(argument, "i64:", 4) == 0) args[i - 1].value_type = 2;
+        else if (strncmp(argument, "f32:", 4) == 0) args[i - 1].value_type = 3;
         else return 64;
         char *end;
         errno = 0;
         intmax_t value = strtoimax(argument + 4, &end, 10);
         if (errno || end == argument + 4 || *end) return 64;
+        if (args[i - 1].value_type == 3 && (value < 0 || value > UINT32_MAX)) return 64;
         args[i - 1].value = value;
     }
 

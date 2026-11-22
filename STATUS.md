@@ -2289,6 +2289,13 @@ the original fixture and line-preserved excerpt. The independent replay
 closed all 185 commands and passed all eight wrapper tests.
 [Scalar-global replay](verification/receipts/l03-w08-scalar-global-f00921a63.json)
 
+Seven original upstream `f32.nearest` cases matched exact result bits in
+stock WABT, the Mixer CLI, and the installed V3 C session. The cases
+cover both signs of zero and halfway values that round to the even
+integer. The independent arm64 macOS run closed all 211 replay commands
+and passed eight wrapper tests.
+[Float rounding replay](verification/receipts/l03-f32-nearest-145b8648.json)
+
 The seeded TableMemoryV3 check retains one instance for 40 copies on
 each of 24 seeds. Mixer and Node matched all 960 observations of the
 complete initialized region in Debug and Release. The separate

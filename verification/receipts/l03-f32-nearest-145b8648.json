@@ -1,0 +1,151 @@
+{
+  "status": "passed_scoped_replay",
+  "scope": "L03/W08 maintained deterministic f32.nearest replay on arm64 macOS",
+  "profile": "mixer-table-memory-v3",
+  "results": {
+    "f32.wast": {
+      "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/f32.wast",
+      "sha256": "91c9e9edf5500659040c6b7657fbaa942ad6c0526d80d2ea558e406257a8674f",
+      "reference_manifest_sha256": "1275ebcf0c6256b5ae350fa499dacd1774da9618408b552b9a5b93331999e464",
+      "reference_output": [
+        "8/8 tests passed."
+      ],
+      "wabt_module_line": 5,
+      "original_wasm_sha256": "e919d047c3eddc86842d50ca29d5ac77e083c5a0edd189c65c748dba0d2c2737",
+      "original_wasm_bytes": 196,
+      "original_module_admitted": {
+        "wabt": true,
+        "v3_cli": true,
+        "v3_c_abi": true
+      },
+      "guest_ui_v1": "unsupported",
+      "cases": [
+        {
+          "line": 2499,
+          "argument_bits": "0x80000000",
+          "expected_bits": "0x80000000",
+          "cli_bits": "0x80000000",
+          "installed_c_bits": "0x80000000"
+        },
+        {
+          "line": 2500,
+          "argument_bits": "0x00000000",
+          "expected_bits": "0x00000000",
+          "cli_bits": "0x00000000",
+          "installed_c_bits": "0x00000000"
+        },
+        {
+          "line": 2505,
+          "argument_bits": "0xbf000000",
+          "expected_bits": "0x80000000",
+          "cli_bits": "0x80000000",
+          "installed_c_bits": "0x80000000"
+        },
+        {
+          "line": 2506,
+          "argument_bits": "0x3f000000",
+          "expected_bits": "0x00000000",
+          "cli_bits": "0x00000000",
+          "installed_c_bits": "0x00000000"
+        }
+      ]
+    },
+    "float_misc.wast": {
+      "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/float_misc.wast",
+      "sha256": "4c8044ee266a70ae3c7ba23adb4ec7dc7d8453a5567796dc9817eae34f84e47f",
+      "reference_manifest_sha256": "faa36ef386e7da66c7b0271a5342fb7fd171fd105e4b061fa93720f4de863c26",
+      "reference_output": [
+        "6/6 tests passed."
+      ],
+      "wabt_module_line": 17,
+      "original_wasm_sha256": "31654fa973ae5030b4d5f58709917aec6befe4927be440557788f1591ae82518",
+      "original_wasm_bytes": 578,
+      "original_module_admitted": {
+        "wabt": true,
+        "v3_cli": true,
+        "v3_c_abi": true
+      },
+      "guest_ui_v1": "unsupported",
+      "cases": [
+        {
+          "line": 667,
+          "argument_bits": "0x40900000",
+          "expected_bits": "0x40800000",
+          "cli_bits": "0x40800000",
+          "installed_c_bits": "0x40800000"
+        },
+        {
+          "line": 668,
+          "argument_bits": "0xc0900000",
+          "expected_bits": "0xc0800000",
+          "cli_bits": "0xc0800000",
+          "installed_c_bits": "0xc0800000"
+        },
+        {
+          "line": 669,
+          "argument_bits": "0xc0600000",
+          "expected_bits": "0xc0800000",
+          "cli_bits": "0xc0800000",
+          "installed_c_bits": "0xc0800000"
+        }
+      ]
+    }
+  },
+  "qualification": "Scoped host evidence for L03/W08. Broader gate qualification remains open.",
+  "baseCommit": "145b8648ed96ccadea65009a1be0dbafee5ad459",
+  "baseVMTree": "007d35c11db961c08487a675cddb4f83e4b8f196",
+  "replayedVMTree": "4dde204e848e2d141a651424a74ea1612c06abdb",
+  "productSourceChanged": false,
+  "patchSHA256": "dd28071123afb53d966322b884906729738f7eec0bdfdd7cb869ff74eb7d9486",
+  "specRevision": "05ca4182176763112561ae20153975c12bd689e4",
+  "tools": {
+    "python": "3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0",
+    "wast2json": "1.0.36 (git~1.0.37)",
+    "wasm-validate": "1.0.36 (git~1.0.37)",
+    "spectest-interp": "1.0.36 (git~1.0.37)"
+  },
+  "wabtRelease": {
+    "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz",
+    "sha256": "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
+  },
+  "assertionCounts": {
+    "assert_trap": 6,
+    "assert_return": 23,
+    "assert_invalid": 6
+  },
+  "artifactSHA256": {
+    "mixer-vm": "85f89363b2bdc9e30537b015af4024c592f9716566067314718146a5e616b42c",
+    "libmixer_vm_capability_experimental.a": "f8906e32e35067a8a67eaf8509832ef2e7d10c0f5a4d56e6b5bc8786da10d241",
+    "client": "450fc5974e5a19d5ca5a63ea04567278b72af733951babcfb8b29c06a176c9c3",
+    "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+    "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+    "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+    "mixer_vm_guest_ui_deferred.h": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+  },
+  "authorBaselineAndCandidate": {
+    "receiptSHA256": "fbaedde459da33fa481c0dc58a17b5bda585710e07c95b30427c4145049ff066",
+    "baselinePassed": true,
+    "candidatePassed": true,
+    "cliAndLibraryMatchBaseline": true,
+    "initialSelectorFailure": "f32:2499: unexpected assertion or module context",
+    "selectorCorrection": "Pinned WABT reports the f32.wast module on line 5. Its opening (module token is on line 4."
+  },
+  "independentReplay": {
+    "command": "python3 -B vm/verification/standards-replay/replay.py --rust-bin <Rust 1.99.0 arm64 bin> --receipt <owned report>",
+    "wrapperCommand": "python3 -B vm/verification/standards-replay/test_replay.py -v",
+    "replaySHA256": "fe2f5a1d74b7e9c313e5fcc9063ee58919d792bdcb11708bc529c8f1fc3fef6c",
+    "reviewSHA256": "d0393e806dee7a78f4dad5ac171d271a97f56856f7c4180c57a9fc1340291008",
+    "firstSetupSHA256": "33bb635903515bf0630c12e1fc3b4b39d4b2356da7dbf78c220bf5d4a0b6b61a",
+    "firstSetupFailure": "Strict replay stopped on stale index metadata. The retry restored the index and worktree together.",
+    "firstSetupCommandsClosed": 6,
+    "commandsClosed": 15,
+    "runnerCommandsClosed": 211,
+    "wrapperTestsPassed": 8,
+    "ownedScratchRemoved": true
+  }
+}

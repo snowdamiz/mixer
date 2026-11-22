@@ -19,7 +19,7 @@ metadata must resolve the exported package and every target, including examples,
 inside the verified tree. The script stages the release archive and exported public
 headers in the experimental capability install layout, then links the exported
 C client directly against that archive. It downloads the
-pinned WABT release and eleven WebAssembly Core WAST files over HTTPS and checks
+pinned WABT release and thirteen WebAssembly Core WAST files over HTTPS and checks
 their SHA-256 hashes. [WABT release](https://github.com/WebAssembly/wabt/releases/tag/1.0.37) ·
 [WebAssembly test sources](https://github.com/WebAssembly/spec/tree/05ca4182176763112561ae20153975c12bd689e4/test/core)
 
@@ -67,6 +67,16 @@ fuel limit. [Pinned fill sequence](https://github.com/WebAssembly/spec/blob/05ca
 The selection covers integer wraparound, division and rotate, initialized
 memory, sign and zero extension, exact f64 bits, the `meet-bottom` trap,
 and invalid branch targets, stack types and memory bounds.
+
+Two original scalar modules cover `f32.nearest`. Lines 2499, 2500, 2505 and
+2506 of `f32.wast` preserve signed zero and round ±0.5 to the corresponding
+signed zero. Lines 667–669 of `float_misc.wast` round 4.5, −4.5 and −3.5
+to 4.0, −4.0 and −4.0. Each runner instantiates the original module for each
+assertion and compares all 32 result bits. The CLI receives decimal arguments
+that preserve the selected binary32 values. The installed C ABI receives
+their raw bits.
+[Pinned signed-zero cases](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/f32.wast#L2499-L2506) ·
+[Pinned nonzero ties](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/float_misc.wast#L665-L669)
 
 For `br_table.wast`, stock WABT admits the original module at line 3 and
 passes the ten `multiple-value` assertions. The Mixer V3 CLI and installed C

@@ -13,6 +13,7 @@ import pwd
 import re
 import shutil
 import signal
+import struct
 import sys
 import tarfile
 import tempfile
@@ -79,6 +80,18 @@ FIXTURES = {
             228: ("assert_return", "rotl"),
         },
         "invalid": {444: ("type mismatch", "validation", "unsupported")},
+    },
+    "f32": {
+        "sha256": "91c9e9edf5500659040c6b7657fbaa942ad6c0526d80d2ea558e406257a8674f",
+        "modules": {5: "unsupported"},
+        "actions": dict.fromkeys((2499, 2500, 2505, 2506), ("assert_return", "nearest")),
+        "invalid": {},
+    },
+    "float_misc": {
+        "sha256": "4c8044ee266a70ae3c7ba23adb4ec7dc7d8453a5567796dc9817eae34f84e47f",
+        "modules": {17: "unsupported"},
+        "actions": dict.fromkeys((667, 668, 669), ("assert_return", "f32.nearest")),
+        "invalid": {},
     },
     "memory": {
         "sha256": "9356ea6a84252e61421bbe7560a8244983accf0266f36986dbf94eaacfff80df",
@@ -196,8 +209,16 @@ def value_bits(value):
     return kind, bits
 
 
-def invocation_arg(value):
+def invocation_arg(value, *, installed=False):
     kind, bits = value_bits(value)
+    if kind == "f32":
+        require(bits & 0x7f800000 != 0x7f800000, "f32: selected argument must be finite")
+        if installed:
+            return f"f32:{bits}"
+        # The CLI parses decimal f32 values. Widening to Python float preserves
+        # the input exactly, including the sign of zero.
+        number, = struct.unpack(">f", bits.to_bytes(4, "big"))
+        return f"f32:{number!r}"
     require(kind in ("i32", "i64"), f"{kind}: selected argument must be integer")
     width = WIDTHS[kind]
     signed = bits if bits < 1 << (width - 1) else bits - (1 << width)
@@ -286,12 +307,13 @@ def validate(commands, label, core, client, validator, wasm, *, invalid, guest_c
 def invoke(commands, label, core, client, wasm, row):
     action = row["action"]
     field, args = action["field"], [invocation_arg(value) for value in action["args"]]
+    installed_args = [invocation_arg(value, installed=True) for value in action["args"]]
     trap = TRAPS[row["text"]] if row["type"] == "assert_trap" else None
     core_report = json.loads(commands.run(
         f"{label}-core-invoke", [core, "--profile", PROFILE, "invoke", wasm, field, *args],
         expected=2 if trap else 0,
     ))
-    reports = native_reports(commands.run(f"{label}-c-invoke", [client, wasm, field, *args]),
+    reports = native_reports(commands.run(f"{label}-c-invoke", [client, wasm, field, *installed_args]),
                              ("create", "invoke", "close"))
     for phase in ("create", "close"):
         expect_report(reports[phase], 0, "", f"{label} {phase}")
