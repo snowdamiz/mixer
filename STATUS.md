@@ -1246,6 +1246,16 @@ and both guest signatures verified. The signing and build scratch was
 removed. L02 and L07 remain running.
 [Android APK build receipt](verification/receipts/fieldlog-android-settings-pair25-build-ac305262.json)
 
+A fresh offline API 36 install of the same APK ran the bundled signed
+Entry Commit. It moved the draft under the original ID, appended one
+entrySaved record and retained seven JPEGs. After cold reopen, Android's
+report chooser returned to the same project. Settings explained the live
+handoff and disabled Apply and Reset. A new app process cleared the hold
+and enabled Reset. The workspace and JPEGs stayed byte-identical after
+commit. All 190 commands and both services closed, all three ports
+rebound, and scratch was removed.
+[Installed signed Commit and report handoff](verification/receipts/fieldlog-android-signed-commit-report-settings-ac305262.json)
+
 ## November 21 current FieldLog Android queue
 
 The Pair25 queue port ran the ordinary On device screen on macOS with
@@ -1410,6 +1420,13 @@ actual sparse checkouts and both Python modes. Both predecessors restored
 with matching bytes and file modes. Real APK and installed verification
 remain pending. The SDK BoringSSL build commit remains unproven.
 [Recipe and Source141 evidence](verification/receipts/fieldlog-pair25-l07-notice-source141-adoption-491d708b.json)
+
+All nine Owned Engine jobs passed at `2fbba61cb1`. Swift admitted the
+157 installed inputs in both Python modes and restored both historical
+archives. Intel passed bootstrap, sparse checkout controls and all six
+Java/D8 consumers. The hosted test that requires a built APK skipped.
+The local installed evidence above covers the FieldLog APK itself.
+[Hosted Source141 and notice admission](https://github.com/snowdamiz/mixer/actions/runs/44970018258)
 
 All nine Owned Engine jobs passed on the Rust notice binding.
 Both Python modes admitted the same Source141 and Pair25 inputs, and
