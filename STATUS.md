@@ -2228,6 +2228,14 @@ guide specifies how to keep raw events inside the process. Installed iOS
 privacy remains open. [Source and scope review](verification/receipts/l07-hosted-privacy-boundary-d89c742e.json) ·
 [Operational boundary](docs/operations/security-boundaries.md#local-hosted-telemetry)
 
+An independent L07 audit at `e985e4650e` kept the gate running. The current
+Pair25 notices and stock hosted sink tests support their tested scopes.
+The remaining local evidence includes an integrated signer interruption
+on the managed build attachment path, live two-tenant cache reuse, review
+of the current VM-to-activation composition, and installed iOS verifier,
+privacy and outage checks. The deliberate privileged telemetry result
+remains recorded separately.
+
 The unchanged FieldLog updater ran in two macOS processes under an Android-scoped development identity. The owned observer saw four bodyless loopback GETs and found no workspace or JPEG markers, cookies, or bearer credentials. A complete signed offer activated sequence 1. After an artifact HTTP 503, a new process recovered the same candidate and preserved the workspace and JPEG. The sandbox denied a second loopback destination, and both owned ports closed. [Updater privacy receipt](verification/receipts/l07-fieldlog-updater-loopback-b144c2c-20261120.json)
 
 One installed Android fixture completed a signed sequence-1 update and reopened the same healthy candidate in a new process after an artifact HTTP 503. The private origin saw four bodyless GETs and no credential headers. The verifier found none of the 21 synthetic workspace markers in those requests or 483 entries from the two app-process logs. Airplane mode and unreachable default routes limited the fixture to its owned reverse mapping. The workspace stayed byte-identical, all four ports were reusable, and raw logs and device data were removed. OS diagnostics and privileged BEAM metadata remain open. [Installed Android updater privacy](verification/receipts/l07-fieldlog-android-updater-native-20261120.json)
@@ -2259,6 +2267,16 @@ Section 22.2.13 passed on one owned AOSP arm64 API 36 emulator. FieldLog saved a
 The APKs linked Mixer engines `15a2c0a98593d6e2bafaa1f5c00eb045c9815944` and `9fd7e7f6ebd9cadfd96d71a6c71225e6b11e33b9` with FieldLog `552559d2d3278abb9b1aa7dcf0288102c09a202b` and the pinned Android host overlay. The installed APKs matched SHA-256 `dfe81f4e03f4dd60e2db6116a340872c518c776357a826c428712c9374a5d15a` and `1e01140e6daa3ea0e54e581c7004991bb9c7b93ae3cea0d02587ceed15509711`. The two runtimes kept separate recovery cursors under installation `908880d5-6fab-43db-8cad-a11abee08cdc`. The old journal and the 888-byte revision-2 workspace each matched byte for byte after replacement. The workspace SHA-256 was `fa28b39831416d4ca070c945ae996e6356808d8ee6ae98f22aa436a1514657e7`.
 
 The first replacement attempt reopened a workspace with one task but stopped while looking for its title below the visible checklist controls. The corrected replay checked the rendered task count and compared the full saved workspace before opening the guest. It used Python 3.14.8, ADB 37.0.1 and Android Emulator 37.2.12 with image build 13818094. All 578 recorded command groups closed. The reverse mapping, private ADB, origin, log reader and emulator closed, all four ports were reusable, and the disposable AVD was removed. L04 and L08 remain running.
+
+A clean host reconstruction recovered both engine APKs after the earlier
+packet files became unavailable. The same fresh development certificate
+signed both builds. The stock loopback service passed 35 HTTP checks and
+the Swift verifier passed 20. Publishing the new runtime left the old
+wire responses intact, and both runtimes received byte-identical offers
+and artifacts after service restart. Both service groups closed, their
+port was reusable, and disposable keys and origin scratch were removed.
+The rebuilt packet's evidence covers host signing and delivery.
+[Rebuilt cohort replay](verification/receipts/fieldlog-android-engine-cohort-signed-e985e465.json)
 
 ### Rendered free Starter build
 
