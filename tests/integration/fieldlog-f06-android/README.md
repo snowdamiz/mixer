@@ -78,4 +78,8 @@ Android's `DUMP` permission. The active input connection must belong to
 the private F06 app and report its vertical title flags. The action
 sends two fixed plain commits. The [installed receipt](../../../verification/receipts/fieldlog-f06-android-plain-ime-api36-7fa6b6ea.json)
 records both echoes, Save, cold readback, and keyboard restoration.
-Default keyboard composition remains outside this check.
+
+The [stock keyboard replay](../../../verification/receipts/fieldlog-f06-android-stock-ime-api36-7fa6b6ea.json)
+tapped **P** in Android LatinIME. The title wrapper refused the composing
+batch and the title remained blank. Cancel preserved the workspace
+and retired the owner.

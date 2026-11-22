@@ -3203,6 +3203,12 @@ workspace bytes. The fixture restored the original keyboard and uninstalled
 both APKs. Composition remains outside this replay.
 [Installed F06 plain IME replay](verification/receipts/fieldlog-f06-android-plain-ime-api36-7fa6b6ea.json)
 
+The stock Android LatinIME keyboard left the signed F06 title blank on
+API 36. Tapping **P** reached the private editor, which refused the
+composition and its enclosing batch before delivering an editor action.
+Cancel retired the owner and preserved the workspace byte for byte.
+[Stock F06 keyboard baseline](verification/receipts/fieldlog-f06-android-stock-ime-api36-7fa6b6ea.json)
+
 A free owner completed current membership edits, usage and quota checks, support, export, and organization deletion in Chrome against Phoenix and PostgreSQL. One organization stayed isolated from the other. Two earlier role edits returned 503 during the member page load. Exit with settled build history remains open. [Free-owner administration](verification/receipts/l06-owner-admin-browser-e3c1f6c65c.json)
 
 An owned API 36 emulator completed the ordinary FieldLog task conflict. After a 409 response, the user kept the local title **Inspect valve today** and the peer assignee **Morgan**. Both replicas reached version 3, each kept four prior outbox rows, and the final offline cold reopen preserved the Android workspace byte for byte. The earlier iOS replay reached the same task outcome with a separate workspace. [Android conflict receipt](verification/receipts/fieldlog-android-ordinary-task-conflict-41a05264.json)
