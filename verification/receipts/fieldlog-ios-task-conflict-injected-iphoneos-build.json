@@ -1,0 +1,482 @@
+{
+  "schema": 1,
+  "result": "passed_unsigned_generic_iphoneos_build_and_static_readback",
+  "recordedAtUTC": "2026-11-22T02:09:38.845936+00:00",
+  "scope": {
+    "configuration": "Debug",
+    "destination": "generic/platform=iOS",
+    "actualXcodeInvocations": 2,
+    "successfulAppLinks": 1,
+    "testBoundary": "Compile, link, and static app readback. Installed behavior and loopback reachability untested.",
+    "simulatorDeviceGUIOrAndroidOperations": false,
+    "optInServiceStarted": false,
+    "signingCredentialsOrPublishing": false
+  },
+  "source": {
+    "mixerRecipeCommit": "050afa201ffbfa0d2c87ba84f9321ea2158d2bf8",
+    "mixerRecipeTree": "d3244aa70f6df48e7ee485b8f30e2815d124df8b",
+    "fieldLogPublicCommit": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "fieldLogPublicTree": "1b62520f35c7e57a01b568291078686574f627c4",
+    "defaultPair25RecipeSHA256": "99a8b563f84f345a0d2d6c63b5f11ad6d98434df2b517de34199845a2bf8580f",
+    "defaultPair25Tree": "34810962320bdfb7877b8bbdd065495e9ec1e2bb",
+    "appliedInOrder": [
+      {
+        "file": "fieldlog-l07-notices.patch",
+        "direction": "reverse",
+        "sha256": "f70c721ea18541b2bbe8100d327ccca534058b1f4b36dcfcdde42786347d3931",
+        "tree": "7b2b98f098559f57ce39e213321478058c289c5a"
+      },
+      {
+        "file": "fieldlog-ios-settings-bounded-7b2b98f0.patch",
+        "direction": "forward",
+        "sha256": "2639352790e03eadd4fc0ae1cb81fe2fbdcfd4d1c7f7d3f872dc405869fa7418",
+        "tree": "f2865989693af3eb4a1891a492054baa36ac1e2f"
+      },
+      {
+        "file": "fieldlog-ios-task-conflict-injected-f2865989.patch",
+        "direction": "forward",
+        "sha256": "f5c09970636d4b4aa650aa7ee709d923f68281f7a09a41d17af05cb2772f7b34",
+        "tree": "41eaf5b4e5ff22ed990e27166e4a860063b4ac26"
+      }
+    ],
+    "settingsAndTaskPatchOptions": [
+      "--index",
+      "--unidiff-zero",
+      "--whitespace=error"
+    ],
+    "pair25SdkCommit": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+    "pair25SdkTree": "faf0902a82ffc7acb2ddde9c6dca24002f959c3d",
+    "privateFixtureOnly": "Seeded the Xcode workspace Package.resolved from the pinned SDK."
+  },
+  "toolchain": {
+    "host": "arm64 macOS 27.0.1 (26A434)",
+    "git": "2.56.0",
+    "xcode": "27.2 (27B52)",
+    "iPhoneOSSDK": "27.2 (24B8118)",
+    "swift": "6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "ld": "27106.1",
+    "cargo": "1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "1.99.0 (b940084d7 2026-09-28)"
+  },
+  "xcode": {
+    "firstDiagnostic": "sandbox-exec: sandbox_apply: Operation not permitted",
+    "fixtureRetry": "Removed outer sandbox around Xcode so its SwiftPM manifest sandboxes could apply. Used fresh Xcode build/cache paths and retained only the pinned file-protocol SwiftPM mirrors.",
+    "successfulCommand": "/usr/bin/xcodebuild \\\n  -project \"$PWD/work/fieldlog/ios/FieldLog.xcodeproj\" -scheme FieldLog -configuration Debug \\\n  -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath \"$PWD/derived-retry\" \\\n  -clonedSourcePackagesDirPath \"$PWD/packages-retry\" -packageCachePath \"$PWD/package-cache-retry\" \\\n  -resultBundlePath \"$PWD/build.xcresult-retry\" -disableAutomaticPackageResolution -onlyUsePackageVersionsFromResolvedFile \\\n  -skipPackageUpdates -disablePackageRepositoryCache -scmProvider system -jobs 8 \\\n  CODE_SIGNING_ALLOWED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=NO ENABLE_DEBUG_DYLIB=NO \\\n  \"HEADER_SEARCH_PATHS=\\$(inherited) $PWD/work/mixer/vm/include\" \"LIBRARY_SEARCH_PATHS=$PWD/lib\" \\\n  LD_GENERATE_MAP_FILE=YES COMPILER_INDEX_STORE_ENABLE=NO \"CLANG_MODULE_CACHE_PATH=$PWD/clang-cache-retry\" build",
+    "dependencyNetworkResolution": false,
+    "firstBuildStoppedBeforeCompilation": true,
+    "warnings": [
+      "Existing MixerApple UIKit edge-inset deprecations",
+      "unused AppIntents extraction",
+      "supported interface orientations"
+    ]
+  },
+  "app": {
+    "identifier": "dev.mixer.fieldlog",
+    "version": "0.1.0",
+    "build": "1",
+    "platform": "iPhoneOS",
+    "architecture": "arm64",
+    "type": "MH_EXECUTE",
+    "minOS": "26.0.0",
+    "sdk": "27.2.0",
+    "unsigned": true,
+    "binarySHA256": "93476a548cc90d307aca89a7aca467a18b53d1fca7e8eb002ffbd283c003c2f3",
+    "infoPlistSHA256": "1bd478e8d5e9c87ce1db29ca517e940983f743cd6e7b07e0fdbbe06fda67c48a",
+    "linkMapSHA256": "70efe42c03bae90c8188d2372e238d6225b8b7a004439ec9be7ba4ebd861d919",
+    "vmArchiveSHA256": "54e5957571a574e0f6320529394c4f7294d6d659284fea67085538fc1fb345b4",
+    "bundleFiles": [
+      "FieldLog",
+      "Info.plist",
+      "InstalledDraft/README.txt",
+      "InstalledEntryCommit/README.txt",
+      "PkgInfo",
+      "natural-earth-50m.flg",
+      "swift-crypto_Crypto.bundle/Info.plist",
+      "swift-crypto_Crypto.bundle/PrivacyInfo.xcprivacy"
+    ]
+  },
+  "compiled": {
+    "objects": {
+      "FieldLogApp": {
+        "linkMapIndex": 1,
+        "path": "derived-retry/Build/Intermediates.noindex/FieldLog.build/Debug-iphoneos/FieldLog.build/Objects-normal/arm64/FieldLogApp.o",
+        "sha256": "8722ec238403d99acf9234ffaf09af091e7511e9e8a1445d5b6050f3d9b454cd"
+      },
+      "WorkspaceModel": {
+        "linkMapIndex": 2,
+        "path": "derived-retry/Build/Intermediates.noindex/FieldLog.build/Debug-iphoneos/FieldLog.build/Objects-normal/arm64/WorkspaceModel.o",
+        "sha256": "37d574dc2584e2eb6862db69cdad37e789d5bbd1898a7fd20e41c67e9f2d659c"
+      },
+      "WorkspaceView": {
+        "linkMapIndex": 3,
+        "path": "derived-retry/Build/Intermediates.noindex/FieldLog.build/Debug-iphoneos/FieldLog.build/Objects-normal/arm64/WorkspaceView.o",
+        "sha256": "3717b8569e80127e8efba5d3127908d3a12eeeebb6646e56ad3f75fd19b9cf46"
+      },
+      "ProjectDetail": {
+        "linkMapIndex": 4,
+        "path": "derived-retry/Build/Intermediates.noindex/FieldLog.build/Debug-iphoneos/FieldLog.build/Objects-normal/arm64/ProjectDetail.o",
+        "sha256": "08734d0a2db68d3afdc3f52a608d6aef228e86b3d469a0cbafcbad60c8aacaa6"
+      },
+      "FieldLogPreferences": {
+        "linkMapIndex": 13,
+        "path": "derived-retry/Build/Intermediates.noindex/FieldLog.build/Debug-iphoneos/FieldLog.build/Objects-normal/arm64/FieldLogPreferences.o",
+        "sha256": "b3b765dea8ff70cf076fbc15b244f31438055fb001a6f527105fab987bba15e7"
+      },
+      "SettingsView": {
+        "linkMapIndex": 14,
+        "path": "derived-retry/Build/Intermediates.noindex/FieldLog.build/Debug-iphoneos/FieldLog.build/Objects-normal/arm64/SettingsView.o",
+        "sha256": "3604b7c77f5f056df4d64c3922caec7f01968b3416701bcef1adc5198d120bab"
+      },
+      "FieldLogStorage": {
+        "linkMapIndex": 16,
+        "path": "derived-retry/Build/Products/Debug-iphoneos/FieldLogStorage.o",
+        "sha256": "2716c7f668fe3274dc4d8ffc57ef04432caf29a2356ed8f7efe1185db359f33a"
+      },
+      "TaskSyncClient": {
+        "path": "derived-retry/Build/Intermediates.noindex/FieldLog.build/Debug-iphoneos/FieldLogStorage-t.build/Objects-normal/arm64/TaskSyncClient.o",
+        "sha256": "95525cfdb2b2145546994eff7fb1094a965ca7d25903ead3405eaa9b7eff7f36",
+        "swiftInputSHA256": "f2503cc4a2dcdad736e144f8dd1aa779eb54091bf4b160885f459e4db476e6d0",
+        "swiftFileListSHA256": "dd5355c97cdf681b68fd08abccd8ce63171571a6acbe42f8bf3ae4ffac2b1c75",
+        "linkedVia": "FieldLogStorage"
+      }
+    },
+    "textSymbols": {
+      "entry": {
+        "FieldLog.FieldLogApp.body": "0000000100004b04 t FieldLog.FieldLogApp.body.getter : some",
+        "FieldLog.WorkspaceView.body": "00000001000386bc t FieldLog.WorkspaceView.body.getter : some"
+      },
+      "projectDetail": {
+        "FieldLog.ProjectDetail.body": "0000000100074f30 t FieldLog.ProjectDetail.body.getter : some",
+        "FieldLog.SavedTaskEditor": "000000010002d508 t FieldLog.SavedTaskEditorOwner.edit.getter : FieldLogModels.TaskEdit",
+        "FieldLog.SavedTaskEditorOwner.submit": "000000010002e528 t FieldLog.SavedTaskEditorOwner.submit(to: FieldLog.WorkspaceModel, review: FieldLogModels.TaskConflictReview?, choices: [FieldLogModels.TaskTextField : FieldLogModels.TaskConflictChoice]) async -> Swift.Bool"
+      },
+      "workspace": {
+        "FieldLog.WorkspaceModel.canSyncSavedTask": "0000000100018c88 t FieldLog.WorkspaceModel.canSyncSavedTask(Foundation.UUID) -> Swift.Bool",
+        "FieldLog.WorkspaceModel.syncSavedTask": "000000010001a158 t FieldLog.WorkspaceModel.syncSavedTask(Foundation.UUID) async -> Swift.Bool",
+        "FieldLog.WorkspaceModel.(savedTaskSyncClient in ": "0000000100018d70 t FieldLog.WorkspaceModel.(savedTaskSyncClient in _6549B844322B7891EDFCE31D1B01E2C1)(for: Foundation.UUID) -> FieldLogStorage.TaskSyncClient?",
+        "FieldLog.WorkspaceModel.resolveTaskConflict": "000000010001830c t FieldLog.WorkspaceModel.resolveTaskConflict(_: FieldLogModels.TaskConflictReview, choosing: [FieldLogModels.TaskTextField : FieldLogModels.TaskConflictChoice]) async -> Swift.Bool"
+      },
+      "taskSyncClient": {
+        "FieldLogStorage.TaskSyncClient.init(port:": "00000001001b663c T FieldLogStorage.TaskSyncClient.init(port: Swift.UInt16, workspaceID: Foundation.UUID, projectID: Foundation.UUID, token: Swift.String) throws -> FieldLogStorage.TaskSyncClient",
+        "FieldLogStorage.TaskSyncClient.synchronize(taskID:": "00000001001b8234 T FieldLogStorage.TaskSyncClient.synchronize(taskID: Foundation.UUID, in: FieldLogStorage.WorkspaceRepository) async throws -> FieldLogModels.Workspace",
+        "FieldLogStorage.TaskSyncClient.(exchangeUsingURLSession in ": "00000001001b6ab0 t static FieldLogStorage.TaskSyncClient.(exchangeUsingURLSession in _3881769EFBA2C50D1E7F7171B34DADF7)(port: Swift.UInt16, path: Swift.String, token: Swift.String, body: Foundation.Data?) async throws -> (status: Swift.Int, body: Foundation.Data)",
+        "FieldLogStorage.(LoopbackTaskSyncDelegate in ": "00000001000d2bc4 t FieldLogStorage.(LoopbackTaskSyncDelegate in _3881769EFBA2C50D1E7F7171B34DADF7).__deallocating_deinit"
+      },
+      "settings": {
+        "FieldLog.SettingsView.body": "0000000100153df4 t FieldLog.SettingsView.body.getter : some",
+        "FieldLog.FieldLogSettings.(load in ": "000000010014ed84 t FieldLog.FieldLogSettings.(load in _EFD50F53600E37B9C1B790A12994BE18)() -> ()",
+        "FieldLog.FieldLogSettings.reset()": "000000010014fa78 t FieldLog.FieldLogSettings.reset() -> ()"
+      }
+    },
+    "objectReferences": {
+      "FieldLogApp": {
+        "FieldLog.WorkspaceView.init": "FieldLog.WorkspaceView.init() -> FieldLog.WorkspaceView"
+      },
+      "WorkspaceView": {
+        "FieldLog.ProjectDetail.init": "FieldLog.ProjectDetail.init(projectID: Foundation.UUID, onEdit: (FieldLogModels.EntryDraft) -> ()) -> FieldLog.ProjectDetail",
+        "FieldLog.SettingsView": "protocol conformance descriptor for FieldLog.SettingsView : SwiftUI.View in FieldLog"
+      },
+      "ProjectDetail": {
+        "FieldLog.WorkspaceModel.canSyncSavedTask": "FieldLog.WorkspaceModel.canSyncSavedTask(Foundation.UUID) -> Swift.Bool",
+        "FieldLog.WorkspaceModel.syncSavedTask": "FieldLog.WorkspaceModel.syncSavedTask(Foundation.UUID) async -> Swift.Bool",
+        "FieldLog.WorkspaceModel.savedTaskEdit": "FieldLog.WorkspaceModel.savedTaskEdit(_: Foundation.UUID, in: Foundation.UUID) -> FieldLogModels.TaskEdit?",
+        "FieldLog.SavedTaskEditorOwner.submit": "FieldLog.SavedTaskEditorOwner.submit(to: FieldLog.WorkspaceModel, review: FieldLogModels.TaskConflictReview?, choices: [FieldLogModels.TaskTextField : FieldLogModels.TaskConflictChoice]) async -> Swift.Bool"
+      },
+      "WorkspaceModel": {
+        "FieldLogStorage.TaskSyncClient.init(port:": "FieldLogStorage.TaskSyncClient.init(port: Swift.UInt16, workspaceID: Foundation.UUID, projectID: Foundation.UUID, token: Swift.String) throws -> FieldLogStorage.TaskSyncClient",
+        "FieldLogStorage.TaskSyncClient.synchronize(taskID:": "FieldLogStorage.TaskSyncClient.synchronize(taskID: Foundation.UUID, in: FieldLogStorage.WorkspaceRepository) async throws -> FieldLogModels.Workspace",
+        "FieldLogModels.Workspace.resolveTaskConflict": "FieldLogModels.Workspace.resolveTaskConflict(_: FieldLogModels.TaskConflictReview, choosing: [FieldLogModels.TaskTextField : FieldLogModels.TaskConflictChoice], now: Foundation.Date) throws -> ()"
+      },
+      "TaskSyncClient": {
+        "_OBJC_CLASS_$_NSURLSession": "_OBJC_CLASS_$_NSURLSession",
+        "_OBJC_CLASS_$_NSURLSessionConfiguration": "_OBJC_CLASS_$_NSURLSessionConfiguration"
+      },
+      "SettingsView": {
+        "FieldLog.FieldLogSettings.update": "FieldLog.FieldLogSettings.update(FieldLog.FieldLogPreferences) -> ()",
+        "FieldLog.FieldLogSettings.reset": "FieldLog.FieldLogSettings.reset() -> ()"
+      }
+    },
+    "binaryStrings": [
+      "http://127.0.0.1:",
+      "/v1/workspaces/",
+      "FIELDLOG_TASK_SYNC_WORKSPACE",
+      "FIELDLOG_TASK_SYNC_PROJECT",
+      "FIELDLOG_TASK_SYNC_TASK",
+      "FIELDLOG_TASK_SYNC_PORT",
+      "FIELDLOG_TASK_SYNC_TOKEN",
+      "Sync task",
+      "Review task changes",
+      "Conflict pending",
+      "settings-appearance",
+      "settings-text-size",
+      "settings-regional-formats",
+      "FieldLog-Preferences.json",
+      "Reset settings"
+    ],
+    "wiring": [
+      "Ordinary WorkspaceView Projects navigation instantiates ProjectDetail. Its task menu calls WorkspaceModel.canSyncSavedTask and syncSavedTask and routes editing and review through SavedTaskEditorOwner.",
+      "WorkspaceModel's Debug opt-in checks workspace, project and task IDs plus the port and token. The linked client initializer supplies the Apple URLSession transport through the injected Transport parameter.",
+      "The linked WorkspaceView Settings tab instantiates SettingsView, which calls FieldLogSettings.update and reset. FieldLogPreferences is linked in the app executable."
+    ]
+  },
+  "policy": {
+    "iPhoneOSInfoPlistKeys": {
+      "NSAppTransportSecurity": null,
+      "NSLocalNetworkUsageDescription": null,
+      "NSBonjourServices": null
+    },
+    "simulatorOnlySourcePlistSHA256": "7f3ab825640b6f0eb5d03634a64515bac402bf45af127bfb7c2b5a49d4458a69",
+    "permissionStrings": {
+      "NSCameraUsageDescription": "FieldLog uses the camera to take photos you choose to attach to field notes.",
+      "NSLocationWhenInUseUsageDescription": "FieldLog uses your location to show your current position on the site map when you ask."
+    },
+    "settingsBundlePresent": false,
+    "settingsImplementation": "Linked in-app Settings tab"
+  },
+  "dependencies": {
+    "appSwiftPackageLockSHA256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab",
+    "resolvedCheckouts": [
+      "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2 e7ed2e8c1483426c349b678e7d10940509f9d39c",
+      "c2cbadd7263439d8015189668f96ff5b5be565ce 841fdfd88fed694e6532a3200a91b0f85595c340"
+    ],
+    "onlyNetworkSourceInput": "Immutable public FieldLog commit 552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "swiftGitTransport": "Xcode system Git with GIT_ALLOW_PROTOCOL=file and URL rewrites to owned copies of approved local bare mirrors.",
+    "rustCargoLockSHA256": "d877b303c72f7d7bfd9e3d7535b8eb10db3fb63be118b3281cdcc0db21ef0f96",
+    "vmMatchesPriorStockReceipt": true
+  },
+  "staticOutputSHA256": {
+    "FieldLogApp-references": "b55bc77fb1b956c0b28e7a9aa9b8b1466e06a87a3ff4314159080f8f5854694d",
+    "ProjectDetail-references": "d3a7b800d09d0ddd510eab6cb844b793f11cbae61d86ceca1ab24780ed8e9b52",
+    "SettingsView-references": "1682d8880603d8ef444fe175df84fafa5e6edd1a26edec3757418d6b51b37638",
+    "TaskSyncClient-references": "aa1885b9bdcb280f33941fdf42aa9fa9e74d467aba38e8c92ff1f0ac3b94a30f",
+    "WorkspaceModel-references": "29ea298e6894b729954118648e532da5eba4001952d43ab8aef071b4b853887a",
+    "WorkspaceView-references": "a6e78e4d50dc2aaa762dc1b8ed2afd145ab9bd50ad81d6c52157d92fbe786483",
+    "app-fixture-files": "b3e9e73b08e381bf51132bbff4c4237a57fbcadebb36cf018e3e418e3d045140",
+    "app-tree": "94c869d09636b44fb1fe82b6704242639bf1ce2d8ea6dabb2f4ac75b28762a2c",
+    "app-untracked-files": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "archs": "c1669e1d8edca98769c37d494b76442a1d6e5ffffd7b4da1fb63aef8ebaf6f01",
+    "bundle-paths": "24d9a9431705430716dc5fc3a1c03e960a1eddebdfec418c1cb12d87ca841e58",
+    "commands": "3b20f76c07aa256bf401002d4e220efbceaa3e084d7f073a9fd689f8853dd58b",
+    "file": "efd6412ea5c0f2f4ca4b2d3ca83b5efdb2321b772abb5200baf7272f76b89311",
+    "header": "f0130eba54e95fd2c8dfe4c62605c37f10e2529af8d62d7498512d477ed112df",
+    "platform": "1059526983f9b440b710c05e9920ae0db8b9ed913abf75525252dd6981fa8f3c",
+    "resolved-dependencies": "d6f97c2abc4007ffa9f82dee97a1cc7f36408543e2a00cff71d3a66eec250b65",
+    "sdk-status": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "strings": "085d03a6fd421281fb28beb5475e835c7343e5814fe1a3721ad8100a798e2590",
+    "symbols": "a50ef1e991d499ec64bf31e95f3da0773fedf5a5b59b06d636da60ee82c7a0b3",
+    "symbols-demangled": "31f9962e64396cb6e8ddea2728df976008a1b8536e9a30aab527284784a3164e"
+  },
+  "checksPassed": 70,
+  "commands": {
+    "source": {
+      "argv": [
+        "/bin/bash",
+        "$SCRATCH/source.sh",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0fc691b"
+      ],
+      "pid": 39772,
+      "pgid": 39772,
+      "exit": 0,
+      "stop": null,
+      "directChildReaped": true,
+      "observerLogDescriptorsClosed": true,
+      "groupObservation": "ESRCH",
+      "elapsedSeconds": 3.432,
+      "peakAllocatedBytes": 74444800,
+      "stdoutSHA256": "9718f9aeb5fe5886a8775bc583c6a4ba6975a6cd7e1920872069b6e5b621e449",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 627,
+      "stderrBytes": 0
+    },
+    "fixture": {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "$SCRATCH/offline.sb",
+        "/bin/bash",
+        "$SCRATCH/fixture.sh"
+      ],
+      "pid": 53774,
+      "pgid": 53774,
+      "exit": 0,
+      "stop": null,
+      "directChildReaped": true,
+      "observerLogDescriptorsClosed": true,
+      "groupObservation": "ESRCH",
+      "elapsedSeconds": 2.034,
+      "peakAllocatedBytes": 102268928,
+      "stdoutSHA256": "64662810ad317bed42176649708b2ff26ef520fefea3870d5e9784bacbc58798",
+      "stderrSHA256": "e2d3f61ac321630295db20694bdfbd0795d8f45a1bbcc0fb89eaf0b1328a4795",
+      "stdoutBytes": 676,
+      "stderrBytes": 122
+    },
+    "vm": {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "$SCRATCH/offline.sb",
+        "/Users/andreyyurlov/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--manifest-path",
+        "$SCRATCH/work/mixer/vm/Cargo.toml",
+        "--offline",
+        "--locked",
+        "--release",
+        "--features",
+        "experimental-capability-native",
+        "--lib",
+        "--target",
+        "aarch64-apple-ios",
+        "--target-dir",
+        "$SCRATCH/cargo",
+        "--jobs",
+        "8"
+      ],
+      "pid": 53823,
+      "pgid": 53823,
+      "exit": 0,
+      "stop": null,
+      "directChildReaped": true,
+      "observerLogDescriptorsClosed": true,
+      "groupObservation": "ESRCH",
+      "elapsedSeconds": 2.116,
+      "peakAllocatedBytes": 144171008,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "27237a8b52cc8f25303a9bbabb0a7722dc3d3b8269ade0e07e47dbc3e8da3b46",
+      "stdoutBytes": 0,
+      "stderrBytes": 223
+    },
+    "xcode": {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-f",
+        "$SCRATCH/offline.sb",
+        "/bin/bash",
+        "$SCRATCH/build.sh"
+      ],
+      "pid": 53842,
+      "pgid": 53842,
+      "exit": 74,
+      "stop": null,
+      "directChildReaped": true,
+      "observerLogDescriptorsClosed": true,
+      "groupObservation": "ESRCH",
+      "elapsedSeconds": 10.095,
+      "peakAllocatedBytes": 272957440,
+      "stdoutSHA256": "8040421a2df7eab61c4b6de6208dfe53953a6a5fcaacf949ad33db92c45e673f",
+      "stderrSHA256": "c266fd0969874bd431d473b0a36a86b97729803fbe345c536013b4a82cff25fc",
+      "stdoutBytes": 2812,
+      "stderrBytes": 225
+    },
+    "xcode-retry": {
+      "argv": [
+        "/bin/bash",
+        "$SCRATCH/build-retry.sh"
+      ],
+      "pid": 64338,
+      "pgid": 64338,
+      "exit": 0,
+      "stop": null,
+      "directChildReaped": true,
+      "observerLogDescriptorsClosed": true,
+      "groupObservation": "ESRCH",
+      "elapsedSeconds": 32.901,
+      "peakAllocatedBytes": 730226688,
+      "stdoutSHA256": "d48d9665ea4886a4609902f8e4dc881f1ca8e4a4773cf240eb9710a5f48e45a5",
+      "stderrSHA256": "e52829a24ff397a109034a16185288fad3ac545a62e6a6f8c47c76eaa8a2e99c",
+      "stdoutBytes": 1032501,
+      "stderrBytes": 242
+    },
+    "readback-1": {
+      "argv": [
+        "/bin/bash",
+        "./readback-run.sh"
+      ],
+      "pid": 74799,
+      "pgid": 74799,
+      "exit": 1,
+      "stop": null,
+      "directChildReaped": true,
+      "observerLogDescriptorsClosed": true,
+      "groupObservation": "ESRCH",
+      "elapsedSeconds": 3.918,
+      "peakAllocatedBytes": 741236736,
+      "stdoutSHA256": "e046802746851e1069e8fafe1167ebff106b5b8c7b7580f83c1758e1253f2bf8",
+      "stderrSHA256": "5d0e4b3d953fed4593d26f9affac3449bcb8349e3fb8ecfeac5ff4c85ce71f46",
+      "stdoutBytes": 188,
+      "stderrBytes": 677
+    },
+    "readback-2": {
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "./inspect-app.py"
+      ],
+      "pid": 82552,
+      "pgid": 82552,
+      "exit": 0,
+      "stop": null,
+      "directChildReaped": true,
+      "observerLogDescriptorsClosed": true,
+      "groupObservation": "ESRCH",
+      "elapsedSeconds": 0.576,
+      "peakAllocatedBytes": 741425152,
+      "stdoutSHA256": "07dd371ba23697c217c12058f2d856ba3b3f9296d284af301277188b833e11c9",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 26,
+      "stderrBytes": 0
+    },
+    "close-check": {
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "./close-check.py"
+      ],
+      "pid": 84426,
+      "pgid": 84426,
+      "exit": 1,
+      "stop": null,
+      "directChildReaped": true,
+      "observerLogDescriptorsClosed": true,
+      "groupObservation": "ESRCH",
+      "elapsedSeconds": 1.005,
+      "peakAllocatedBytes": 741441536,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSHA256": "b8ce6366b0cb0aba2303ecc0dba9a30066b2afc548b8a2a2736fe2c3b4ddd88f",
+      "stdoutBytes": 0,
+      "stderrBytes": 385
+    },
+    "close-check-final": {
+      "argv": [
+        "/opt/homebrew/bin/python3",
+        "-B",
+        "./close-check.py"
+      ],
+      "pid": 91440,
+      "pgid": 91440,
+      "exit": 0,
+      "stop": null,
+      "directChildReaped": true,
+      "observerLogDescriptorsClosed": true,
+      "groupObservation": "ESRCH",
+      "elapsedSeconds": 2.021,
+      "peakAllocatedBytes": 741453824,
+      "stdoutSHA256": "af8024371faef58e82ba53d6b9cfee76c9c92142df0f3cf02ebdd2c7fa6f7888",
+      "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 84,
+      "stderrBytes": 0
+    }
+  },
+  "custody": {
+    "ownedScratch": "verification/local/fieldlog-ios-task-conflict-iphoneos.kgYLVDnB",
+    "openedAtUTC": "2026-11-22T02:03:21.450431+00:00",
+    "deadlineSeconds": 480,
+    "maximumAllocatedBytes": 1932735283,
+    "stopThresholdBytes": 1865626419,
+    "peakSampledAllocatedBytes": 741466112,
+    "allocatedMeasurement": "st_blocks * 512, deduplicated by device/inode",
+    "allRecordedGroupsAbsent": true,
+    "openFileObservation": "lsof +D on exact owned scratch observed zero non-observer owners after the corrected scan ran from /.",
+    "scratchRemoved": true
+  }
+}

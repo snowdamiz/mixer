@@ -1284,6 +1284,14 @@ and installed conflict cases remain open.
 [Exact Swift task patch](verification/receipts/fieldlog-ios-task-conflict-injected-f2865989.patch) ·
 [Source and host verification](verification/receipts/fieldlog-ios-task-conflict-injected-f2865989.json)
 
+The exact FieldLog tree `41eaf5b4` linked as an unsigned arm64 iPhoneOS
+app against Pair25. Static readback followed ordinary Project Detail
+into the Apple URLSession task-sync transport and confirmed Settings
+and the camera and location usage descriptions. The iPhoneOS bundle
+omits the Simulator loopback ATS exception. Installed behavior and
+loopback reachability remain unverified.
+[Generic iPhoneOS build](verification/receipts/fieldlog-ios-task-conflict-injected-iphoneos-build.json)
+
 ## November 21 current FieldLog Android queue
 
 The Pair25 queue port ran the ordinary On device screen on macOS with
