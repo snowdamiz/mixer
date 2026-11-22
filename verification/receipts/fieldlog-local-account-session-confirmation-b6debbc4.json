@@ -1,0 +1,54 @@
+{
+  "status": "passed_scoped_fieldlog_local_account_backend_confirmation",
+  "requirements": [
+    "L02 FieldLog Welcome and account"
+  ],
+  "source": {
+    "mixerInput": "afe98bad582e80925fc2ef29457a2d650a797aab",
+    "baseBackendBlob": "d6119af3714fa16e15f1cd4ed5c3f403daff4613",
+    "firstAccountBackendBlob": "d942e66c5d46311dbce7e90e7eff5490afea3178",
+    "confirmedSessionBackendBlob": "b6debbc45f8ab96360d2d494e376d80ea5f6abf7",
+    "decodedPatchSHA256": {
+      "tests/integration/fieldlog-account/fieldlog-local-account-confirmation.patch.b64": "ce45be904ef695803c7782b88c3527f5b5571d7ac4ef847b25dcd5658fe8f33a",
+      "tests/integration/fieldlog-account/fieldlog-local-account.patch.b64": "789a0bd19551dda2f5d03fd35de9878d3466395ce979f4def6626570adfe3e19"
+    },
+    "maintainedCheckSHA256": "0f233ccd67a25f1b0d84b25d28569255f1f2aa5c14fccc6a6b57ec5584cd8151",
+    "authorReceiptSHA256": "4f3cbf5aa8e318a80d531376554f621553fa0090c657446c9df1395957adad87"
+  },
+  "backend": {
+    "lostExchangeBaseline": "A discarded exchange at capacity kept the last place for eight hours.",
+    "successor": "Unconfirmed exchanges expire at 60 seconds. Task and entry requests reject an unconfirmed token. The first authenticated GET of the session returns the confirmed eight-hour expiry. Repeat GET returns the same expiry. A lost exchange can reclaim the slot after its deadline without admitting the used proof.",
+    "existingDatabase": "Migrates prior issued sessions as confirmed with their original expiry.",
+    "reviewControls": "Existing exact request contracts, code single use and S256, scope admission inside write transactions, restart, revocation, two owners and legacy response/photo BLOB parity."
+  },
+  "rootReplay": {
+    "command": {
+      "name": "account-session-integration",
+      "argv": [
+        "python3",
+        "-B",
+        "tests/integration/fieldlog-account/check.py"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow",
+      "expected_exit_code": 0,
+      "timeout_seconds": 75,
+      "output_cap_bytes": 262144,
+      "pid": 30569,
+      "pgid": 30569,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "c5222911513e77ce72a09bdd094a496498b7c20439e976ec4197ad3e9f93cced",
+      "output_bytes": 538,
+      "elapsed_seconds": 3.191392
+    },
+    "output": "PASS strict apply/reverse d6119af3714fa16e15f1cd4ed5c3f403daff4613 <-> b6debbc45f8ab96360d2d494e376d80ea5f6abf7 and d942e66c5d46311dbce7e90e7eff5490afea3178 <-> b6debbc45f8ab96360d2d494e376d80ea5f6abf7\nPASS 31 confirmed sessions, discarded exchange, callback replay, timed slot recovery, late and duplicate confirmation, pending revocation, restart, and prior account schema\nPASS fixed origins, both callbacks, S256/state, single use, session restart, expiry, scoped revocation, two owners, legacy wire/SQLite bytes, and listener cleanup\n",
+    "scratchRemoved": true
+  },
+  "publishedArtifactNote": "The incremental digest in the delivery table lacked two characters. The archived patch bytes reproduced and reversed against the fixed blob. The README carries the independently recomputed SHA-256.",
+  "iosFirstClient": {
+    "authorReceiptSHA256": "bf260bbc927fa7fe59020d4eb28f490942edfa6c84e3b350ae96b9ff6c9f8453",
+    "sourceOnly": "Ordinary iOS with opt-in local account owner and generic unsigned build; separate host replay used prior issuer. The shared client confirmation update is in progress. Native callback and Keychain readback remain pending."
+  },
+  "scope": "Disposable FieldLog-owned account service, real loopback and SQLite, synthetic owners only. Android mount, iOS native callback and secure-storage runtime, recovery, deletion and full L02 remain pending."
+}

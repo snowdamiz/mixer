@@ -1,0 +1,104 @@
+{
+  "status": "confirmed_F05_burst_install_refusal",
+  "scope": "Private signed development fixture on fresh offline ARM64 API 36 emulators.",
+  "pacedReplay": "verification/receipts/fieldlog-f05-android-paced-editor-api36-7fa6b6ea.json",
+  "sourceCapsule": "tests/integration/fieldlog-f05-android/f05-burst-diagnostic.patch.b64",
+  "diagnosticPatchSHA256": "67435fed667affb07d7ac2545a5f9c27f8549178aa9b5ae0229e312a3ffbaf8d",
+  "javaBeforeSHA256": "6b5583a6262768c68dfe2340d69c34af4a59ba8e28b0c4535eb7be51994fdfaf",
+  "javaAfterSHA256": "972cb756c976961dedf14e531cea138ba2e868e6b42e946fddcff4e87fc38acf",
+  "sameLinkedJNI_SHA256": "f9800973125eebd0f4c29fb368ae954496de095d5997aea3f9856442a997c544",
+  "sameWasm_SHA256": "2006f8dcdb8941d7fee378976496861a921ccbea5ddf9a8e29ed32820cab557f",
+  "sourceChange": "Record and rethrow the same RuntimeException from the existing synchronous surface install. Continue observing status after Healthy. Native producer and guest bytes match the paced APK.",
+  "observed": "Burst made the renderer reject revision 3 in preflightEditorsV2 at line 565 with unsupportedNativeOperation. The active guest retired before Save. Both journals preserve healthy candidate and original workspace bytes.",
+  "commands": [
+    "adb shell input text Inspect%spump%sP-17",
+    "capture FieldLogF05Signed and FieldLogOwnerR17 tags for exact PID",
+    "read back the app-private workspace and recovery journal before cleanup"
+  ],
+  "attempts": [
+    {
+      "attempt": "installed-f05-burst-diagnostic-1",
+      "apkSHA256": "4242008656e262279b2956c4fbfbb0c32f498c0cf9352604a951775837d0dd4b",
+      "runtime": "420cc0058547b5fb9ba929b64593b9d18b77707b2a14c4f632a010b61a244db0",
+      "driverSHA256": "67f496daa24f1e04e1354623eb8d31e12ab7479a5d38902a7be82077318fb207",
+      "device": {
+        "ro.boot.qemu.avd_name": "mixer_picker_nha9n2j1",
+        "ro.build.version.sdk": "36",
+        "ro.product.cpu.abi": "arm64-v8a",
+        "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+      },
+      "stage": "Save from a fresh signed F05 owner",
+      "error": "RuntimeError: Missing native targets ['Inspect pump P-17']; visible: []",
+      "failureJournal": {
+        "sha256": "652b51a76cb7cc6054cb01d1ba00ad065f41650556107d360979d5782cf5e79a",
+        "lastRecovery": "effects_closed",
+        "attempt": null,
+        "healthy": {
+          "candidateID": "5834bdda52115a501a74c7359eafa6a1da34829537755907ec38eaad921d9b29",
+          "committedAtWallTime": 1795330459,
+          "completedMilestones": [
+            "feature_started",
+            "first_screen"
+          ],
+          "launchID": "9A7006C0-5565-4A72-89D6-6B766BFE9A7A",
+          "observationSeconds": 1
+        },
+        "fingerprint": "420cc0058547b5fb9ba929b64593b9d18b77707b2a14c4f632a010b61a244db0"
+      },
+      "seedSHA256": "a64ab6e0c232f2aa4d0f2d8e9c087eec7acd0096abd10075b5f54d4ae7500d65",
+      "failureWorkspaceSHA256": "a64ab6e0c232f2aa4d0f2d8e9c087eec7acd0096abd10075b5f54d4ae7500d65",
+      "scratchRemoved": true,
+      "terminalCommands": 108,
+      "portsRebound": [
+        26042,
+        26043,
+        26044
+      ],
+      "rawReceiptSHA256": "c97d14750bdb2cec0894a5c2db9ccd5bfb17f7026727cba6adbfde2bdf30acd2",
+      "logSHA256": "3eee69fc654b5d50f73991799d46c77c742c8656cfc1141ca3b006847eb7d41e"
+    },
+    {
+      "attempt": "installed-f05-burst-instrument-1",
+      "apkSHA256": "e1e2219fa7fb00d4d8be7af0a1fd2b80d389217035b60a0426176f0f7bf69b78",
+      "runtime": "a0a138f6d18e8159f9f5eee556706cd1496c27ff0df111864120fdbfc0e2f231",
+      "driverSHA256": "67f496daa24f1e04e1354623eb8d31e12ab7479a5d38902a7be82077318fb207",
+      "device": {
+        "ro.boot.qemu.avd_name": "mixer_picker_4knv406a",
+        "ro.build.version.sdk": "36",
+        "ro.product.cpu.abi": "arm64-v8a",
+        "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+      },
+      "stage": "Save from a fresh signed F05 owner",
+      "error": "RuntimeError: Missing native targets ['Inspect pump P-17']; visible: []",
+      "failureJournal": {
+        "sha256": "f56d57bad5f1cd94d4623762d61d550d7d5a92e8a6fa6250ff2fec86fc38e10e",
+        "lastRecovery": "effects_closed",
+        "attempt": null,
+        "healthy": {
+          "candidateID": "dd1a00f84bb071bfec73d68ff7e7153fa80880c37da7ef2c0240e96bb3858292",
+          "committedAtWallTime": 1795330570,
+          "completedMilestones": [
+            "first_screen",
+            "feature_started"
+          ],
+          "launchID": "ECF56825-017D-4242-ACDD-FDB5B2F92BA2",
+          "observationSeconds": 1
+        },
+        "fingerprint": "a0a138f6d18e8159f9f5eee556706cd1496c27ff0df111864120fdbfc0e2f231"
+      },
+      "seedSHA256": "0104606e24fd6cfb45fc5e1f70112e101fac7612d351d1c1ac0a7a6f614d0d0f",
+      "failureWorkspaceSHA256": "0104606e24fd6cfb45fc5e1f70112e101fac7612d351d1c1ac0a7a6f614d0d0f",
+      "scratchRemoved": true,
+      "terminalCommands": 112,
+      "portsRebound": [
+        26042,
+        26043,
+        26044
+      ],
+      "rawReceiptSHA256": "67c0ba58897b342c71cc034dbe4c79e44d474045eb8e2201cfd7d5c7b69deb5b",
+      "logSHA256": "bf641dbd82258b885e52f9161e6ea43d2cf3deee9b333111d790ed20e7fdd1f6"
+    }
+  ],
+  "hostEvidence": "Independent pinned V4 control accepted exact focused echo and refused an echo behind a second native edit. The revised installed log establishes the renderer refusal. Its diagnostics do not expose exact editable values.",
+  "remaining": "Preserve complete native title input through accepted witnessed guest echoes before Add. No V4 gate, deadline, or guest contract changed."
+}

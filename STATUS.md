@@ -1490,6 +1490,16 @@ verified the fixes. Unsigned generic arm64 iPhoneOS Debug and Release
 linked. Installed presentation remains pending.
 [iOS assignment recovery review](verification/receipts/fieldlog-ios-assignment-recovery-73e9f093.json)
 
+FieldLog's local SQLite issuer now exchanges native callback codes for
+account sessions and uses the same authority in task and entry sync.
+A lost exchange response originally occupied the last session slot for
+eight hours. The corrected service reclaims unconfirmed sessions after
+60 seconds. Confirmation starts a stable eight-hour lease. A fresh
+root replay passed the capacity, restart, revocation, scope, and legacy
+workspace and photo controls. The ordinary iOS and Android account
+adapters still need installed verification. Recovery and deletion remain open.
+[Account session confirmation](verification/receipts/fieldlog-local-account-session-confirmation-b6debbc4.json)
+
 The generic iOS Simulator witness builds the same ordinary FieldLog
 tree with a named XCTest. It opens the saved project, edits a draft
 through the Photo Library picker, saves a manual Site Map pin, and
@@ -2976,6 +2986,14 @@ confirmed the saved record. A separate burst input lost the visible
 editor after three accepted envelopes and remains open. All three
 emulator pairs closed, their ports were reusable, and scratch was removed.
 [Android F05 signed editor replay](verification/receipts/fieldlog-f05-android-paced-editor-api36-7fa6b6ea.json)
+
+Two fresh burst replays kept the seed bytes and closed the active owner
+before Save. The diagnostic APK kept the JNI and guest bytes and logged
+the revision 3 failure at NativeRenderer.preflightEditorsV2. The
+independent host control reproduced that refusal when the widget advanced
+beyond the guest's echo. Burst input remains open. Both emulator and
+ADB groups closed, their ports were reusable, and scratch was removed.
+[Android F05 burst diagnosis](verification/receipts/fieldlog-f05-android-burst-preflight-api36-7fa6b6ea.json)
 
 A free owner completed current membership edits, usage and quota checks, support, export, and organization deletion in Chrome against Phoenix and PostgreSQL. One organization stayed isolated from the other. Two earlier role edits returned 503 during the member page load. Exit with settled build history remains open. [Free-owner administration](verification/receipts/l06-owner-admin-browser-e3c1f6c65c.json)
 
