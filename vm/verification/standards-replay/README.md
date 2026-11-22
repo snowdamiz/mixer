@@ -19,7 +19,7 @@ metadata must resolve the exported package and every target, including examples,
 inside the verified tree. The script stages the release archive and exported public
 headers in the experimental capability install layout, then links the exported
 C client directly against that archive. It downloads the
-pinned WABT release and fourteen WebAssembly Core WAST files over HTTPS and checks
+pinned WABT release and fifteen WebAssembly Core WAST files over HTTPS and checks
 their SHA-256 hashes. [WABT release](https://github.com/WebAssembly/wabt/releases/tag/1.0.37) ·
 [WebAssembly test sources](https://github.com/WebAssembly/spec/tree/05ca4182176763112561ae20153975c12bd689e4/test/core)
 
@@ -86,6 +86,12 @@ i64 rounding to 2⁶⁴, and a value one integer above the first rounding midpoi
 above 2⁶³. Each runner instantiates the original module for every assertion.
 [Pinned signed conversions](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/conversions.wast#L465-L474) ·
 [Pinned unsigned conversions](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/conversions.wast#L513-L523)
+
+Six assertions from `i64.wast` cover `i64.clz`, `i64.ctz`, and `i64.popcnt`
+on zero and inputs with the high bit set. The runner verifies the selected
+assertions and original module by SHA-256. Each runner starts a fresh
+instance and compares the exact `i64` result.
+[Pinned bit count assertions](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast#L246-L265)
 
 For `br_table.wast`, stock WABT admits the original module at line 3 and
 passes the ten `multiple-value` assertions. The Mixer V3 CLI and installed C

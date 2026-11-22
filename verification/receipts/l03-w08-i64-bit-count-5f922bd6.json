@@ -1,0 +1,433 @@
+{
+  "status": "passed_scoped_replay",
+  "scope": "L03/W08 WebAssembly i64 bit-count assertions on arm64 macOS",
+  "source_revision": "5f922bd61af68962f419f4d70b27bd3b08c1df9a",
+  "vm_tree": "6f061988348222b230723d47e097e58511e015b7",
+  "spec_revision": "05ca4182176763112561ae20153975c12bd689e4",
+  "profile": "mixer-table-memory-v3",
+  "installed_feature": "experimental-capability-native",
+  "tools": {
+    "python": "3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0",
+    "wast2json": "1.0.36 (git~1.0.37)",
+    "wasm-validate": "1.0.36 (git~1.0.37)",
+    "spectest-interp": "1.0.36 (git~1.0.37)"
+  },
+  "wabt_release": {
+    "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz",
+    "sha256": "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
+  },
+  "patch": {
+    "path": "verification/local/l03-w08-i64-bit-count-5f922bd6.patch",
+    "sha256": "32b596adfd335354e84d2d57e1bc1630197ed024878899054e4375fd9e81063e",
+    "forward_check": true,
+    "reverse_check": true,
+    "paths": [
+      "vm/verification/standards-replay/README.md",
+      "vm/verification/standards-replay/replay.py"
+    ]
+  },
+  "fixture": {
+    "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast",
+    "sha256": "7d0e27a617565e0685aef56cee01b2b4890084068e3989168c41d14c56b1945e",
+    "selection_sha256": "8c0154242a7c41bd45e672c45c03a0829c874e9b302d10404d2b6bcc3c074578",
+    "reference_manifest_sha256": "cd5e189b6a8038ec1077f28531e814293fe6190b0962569b840f26cef8ea6b64",
+    "reference_output": [
+      "12/12 tests passed."
+    ],
+    "module": {
+      "fixture": "i64.wast",
+      "line": 3,
+      "wasm_sha256": "674845c852c525175753c569e16d154f19562bd5dd71c09d38b47677d9d84c61",
+      "wasm_bytes": 552,
+      "wabt": {
+        "status": 0,
+        "diagnostic": []
+      },
+      "core": {
+        "valid": true,
+        "error": null
+      },
+      "installed_c": {
+        "validate": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "guest_ui_v1_validate": {
+          "status": 1,
+          "code": "unsupported",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    "selector_encoding": "SHA-256 of compact sorted-key JSON of ordered [module, assertion] pairs",
+    "wabt_result_count": "six assertions and six fresh module instantiations",
+    "assertions": [
+      {
+        "line": 247,
+        "export": "clz",
+        "input_bits": "0x0000000000000000",
+        "expected_i64": 64,
+        "cli_i64": 64,
+        "c_i64": 64
+      },
+      {
+        "line": 250,
+        "export": "clz",
+        "input_bits": "0x8000000000000000",
+        "expected_i64": 0,
+        "cli_i64": 0,
+        "c_i64": 0
+      },
+      {
+        "line": 256,
+        "export": "ctz",
+        "input_bits": "0x0000000000000000",
+        "expected_i64": 64,
+        "cli_i64": 64,
+        "c_i64": 64
+      },
+      {
+        "line": 259,
+        "export": "ctz",
+        "input_bits": "0x8000000000000000",
+        "expected_i64": 63,
+        "cli_i64": 63,
+        "c_i64": 63
+      },
+      {
+        "line": 263,
+        "export": "popcnt",
+        "input_bits": "0x0000000000000000",
+        "expected_i64": 0,
+        "cli_i64": 0,
+        "c_i64": 0
+      },
+      {
+        "line": 265,
+        "export": "popcnt",
+        "input_bits": "0x8000800080008000",
+        "expected_i64": 4,
+        "cli_i64": 4,
+        "c_i64": 4
+      }
+    ]
+  },
+  "prior_outcomes": {
+    "cases": 43,
+    "modules": 16,
+    "fixtures": 14,
+    "stateful_sections": [
+      "stateful",
+      "stateful_memory_maximum",
+      "memory_copy",
+      "memory_fill",
+      "scalar_globals"
+    ],
+    "normalized_sha256": "614fa19638eb66688a7abccb95e7df07e7679edca99909440a33c04ab0f98b68",
+    "normalization": "Substitute each run scratch path and omit its path-dependent reference manifest hash.",
+    "historical_receipt": "verification/receipts/l03-w08-i64-f32-d6f8b57f.json",
+    "historical_receipt_sha256": "6dade889b928cb550f960c82ce5c629f0fc5abccdca7536d3b64975a22fc3555",
+    "historical_conversion_rows_and_runner_stdout_hashes_matched": 8,
+    "matching_product_artifact_sha256": {
+      "mixer-vm": "85f89363b2bdc9e30537b015af4024c592f9716566067314718146a5e616b42c",
+      "libmixer_vm_capability_experimental.a": "f8906e32e35067a8a67eaf8509832ef2e7d10c0f5a4d56e6b5bc8786da10d241",
+      "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+      "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+      "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "mixer_vm_guest_ui_deferred.h": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+    },
+    "linked_test_client_sha256": {
+      "baseline": "39b28cabbade96b81e4305e865e12be18489ac8f11885e01be3a3b69abca83e8",
+      "candidate": "0faa7ee02e504c68d4e84ccf38098fa62ea88f688d0e54f93153fe788fd620f8"
+    }
+  },
+  "runs": {
+    "baseline": {
+      "started_utc": "2026-11-22T12:59:32.158419+00:00",
+      "runner_sha256": {
+        "replay.py": "e5667a940aa8e0802a1238623c33b427e40b1a986aad429af1d8ff577c07815b",
+        "commands.py": "91285d42f7f3a36d60ff9af1cdcc08a7e01a698a64db144c867162ba4156aeb7"
+      },
+      "main_selector_counts": {
+        "assert_trap": 6,
+        "assert_return": 31,
+        "assert_invalid": 6
+      },
+      "commands_reaped_group_absent_with_eof": 233,
+      "raw_receipt_sha256": "53a93cadb0dd43e0c6e2a8e26b457ec9bb3ccac6dee96fc087330c69a2b2fa9e",
+      "runner_scratch_removed": true,
+      "exit": 0,
+      "pid": 52514,
+      "group_absent": true,
+      "elapsed_seconds": 5.024,
+      "peak_sampled_scratch_bytes": 122916864,
+      "samples": 45,
+      "abort": null
+    },
+    "candidate": {
+      "started_utc": "2026-11-22T13:00:51.572036+00:00",
+      "runner_sha256": {
+        "replay.py": "a6b4660774a3225aba489543e777f2bafc6bebf30613ff65832b58adf6d6790b",
+        "commands.py": "91285d42f7f3a36d60ff9af1cdcc08a7e01a698a64db144c867162ba4156aeb7"
+      },
+      "main_selector_counts": {
+        "assert_trap": 6,
+        "assert_return": 37,
+        "assert_invalid": 6
+      },
+      "commands_reaped_group_absent_with_eof": 251,
+      "raw_receipt_sha256": "df8a92f0db44a9125dfbfb05111e0efe9174bc53d6f3c4300cf1ef3ad40bb8ec",
+      "runner_scratch_removed": true,
+      "exit": 0,
+      "pid": 61141,
+      "group_absent": true,
+      "elapsed_seconds": 4.735,
+      "peak_sampled_scratch_bytes": 123207680,
+      "samples": 42,
+      "abort": null
+    }
+  },
+  "commands": {
+    "replay": [
+      "python3",
+      "-B",
+      "vm/verification/standards-replay/replay.py",
+      "--rust-bin",
+      "<Rust 1.99.0 toolchain bin>",
+      "--receipt",
+      "<new receipt>"
+    ],
+    "execution_note": "The candidate runner came from a separate patched overlay. Both runners exported VM inputs from the same read-only Git revision. The launcher placed scratch under its owned directory.",
+    "focused": {
+      "i64-fetch": {
+        "argv": [
+          "/usr/bin/curl",
+          "-qfsSL",
+          "--proto",
+          "=https",
+          "--proto-redir",
+          "=https",
+          "--max-time",
+          "25",
+          "--max-filesize",
+          "524288",
+          "-o",
+          "<scratch>/i64/i64.wast",
+          "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast"
+        ],
+        "exit": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "i64-translate": {
+        "argv": [
+          "<scratch>/wabt-1.0.37/bin/wast2json",
+          "<scratch>/i64/i64.wast",
+          "-o",
+          "<scratch>/i64/commands.json"
+        ],
+        "exit": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "i64-3-wabt": {
+        "argv": [
+          "<scratch>/wabt-1.0.37/bin/wasm-validate",
+          "<scratch>/i64/commands.0.wasm"
+        ],
+        "exit": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "i64-3-core-validate": {
+        "argv": [
+          "<scratch>/target/release/mixer-vm",
+          "--profile",
+          "mixer-table-memory-v3",
+          "validate",
+          "<scratch>/i64/commands.0.wasm"
+        ],
+        "exit": 0,
+        "stdout_sha256": "5149dfdb2026a9d747ebab2b19bd8709dbd91f35d31bbac48b5070313d1c343a"
+      },
+      "i64-3-c-validate": {
+        "argv": [
+          "<scratch>/client",
+          "<scratch>/i64/commands.0.wasm"
+        ],
+        "exit": 0,
+        "stdout_sha256": "f0153d848a1dc7996e03e867a76b1e046dcbe48814ccce7c21c0aaada2b1d95c"
+      },
+      "i64-247-core-invoke": {
+        "argv": [
+          "<scratch>/target/release/mixer-vm",
+          "--profile",
+          "mixer-table-memory-v3",
+          "invoke",
+          "<scratch>/i64/commands.0.wasm",
+          "clz",
+          "i64:0"
+        ],
+        "exit": 0,
+        "stdout_sha256": "52b7fc097cc9463ca58f7b2e6d94f29a023bbbf5c1a8528773c5be1ca0645917"
+      },
+      "i64-247-c-invoke": {
+        "argv": [
+          "<scratch>/client",
+          "<scratch>/i64/commands.0.wasm",
+          "clz",
+          "i64:0"
+        ],
+        "exit": 0,
+        "stdout_sha256": "95cfaab8ce4ed85e739d88cbb6786c36a7590465fb165d73e58e9e74bcca46c0"
+      },
+      "i64-250-core-invoke": {
+        "argv": [
+          "<scratch>/target/release/mixer-vm",
+          "--profile",
+          "mixer-table-memory-v3",
+          "invoke",
+          "<scratch>/i64/commands.0.wasm",
+          "clz",
+          "i64:-9223372036854775808"
+        ],
+        "exit": 0,
+        "stdout_sha256": "849b5d533001b696b5071d92c0c5f7a5635c43452ccc2538d2938b0e69e13cd3"
+      },
+      "i64-250-c-invoke": {
+        "argv": [
+          "<scratch>/client",
+          "<scratch>/i64/commands.0.wasm",
+          "clz",
+          "i64:-9223372036854775808"
+        ],
+        "exit": 0,
+        "stdout_sha256": "15ac98cdd49551af44d157ba996dd3fbe6908a9b7c6ff5a149f94bbba15584ea"
+      },
+      "i64-256-core-invoke": {
+        "argv": [
+          "<scratch>/target/release/mixer-vm",
+          "--profile",
+          "mixer-table-memory-v3",
+          "invoke",
+          "<scratch>/i64/commands.0.wasm",
+          "ctz",
+          "i64:0"
+        ],
+        "exit": 0,
+        "stdout_sha256": "ae216b209800732e17a212bc2f88e53e8b333783a96fb4c709e49be8b5bbcaad"
+      },
+      "i64-256-c-invoke": {
+        "argv": [
+          "<scratch>/client",
+          "<scratch>/i64/commands.0.wasm",
+          "ctz",
+          "i64:0"
+        ],
+        "exit": 0,
+        "stdout_sha256": "95cfaab8ce4ed85e739d88cbb6786c36a7590465fb165d73e58e9e74bcca46c0"
+      },
+      "i64-259-core-invoke": {
+        "argv": [
+          "<scratch>/target/release/mixer-vm",
+          "--profile",
+          "mixer-table-memory-v3",
+          "invoke",
+          "<scratch>/i64/commands.0.wasm",
+          "ctz",
+          "i64:-9223372036854775808"
+        ],
+        "exit": 0,
+        "stdout_sha256": "a2dff4032d08551384708f52f864069faac4feb759a0dae36b83d33ae690960d"
+      },
+      "i64-259-c-invoke": {
+        "argv": [
+          "<scratch>/client",
+          "<scratch>/i64/commands.0.wasm",
+          "ctz",
+          "i64:-9223372036854775808"
+        ],
+        "exit": 0,
+        "stdout_sha256": "c8effaa6455430a5ef2bbcc9d0728e572534e3e8a095398f28e9f8f5de35ae5a"
+      },
+      "i64-263-core-invoke": {
+        "argv": [
+          "<scratch>/target/release/mixer-vm",
+          "--profile",
+          "mixer-table-memory-v3",
+          "invoke",
+          "<scratch>/i64/commands.0.wasm",
+          "popcnt",
+          "i64:0"
+        ],
+        "exit": 0,
+        "stdout_sha256": "a4c9fdac040cc846041dd50ae0df6824e8e85fbe3905b8bfe53287ac9d0e2a67"
+      },
+      "i64-263-c-invoke": {
+        "argv": [
+          "<scratch>/client",
+          "<scratch>/i64/commands.0.wasm",
+          "popcnt",
+          "i64:0"
+        ],
+        "exit": 0,
+        "stdout_sha256": "15ac98cdd49551af44d157ba996dd3fbe6908a9b7c6ff5a149f94bbba15584ea"
+      },
+      "i64-265-core-invoke": {
+        "argv": [
+          "<scratch>/target/release/mixer-vm",
+          "--profile",
+          "mixer-table-memory-v3",
+          "invoke",
+          "<scratch>/i64/commands.0.wasm",
+          "popcnt",
+          "i64:-9223231297218904064"
+        ],
+        "exit": 0,
+        "stdout_sha256": "7348936dff0a44d3f349124f54fd5998615070e96adf52cb45dab45001fe11ec"
+      },
+      "i64-265-c-invoke": {
+        "argv": [
+          "<scratch>/client",
+          "<scratch>/i64/commands.0.wasm",
+          "popcnt",
+          "i64:-9223231297218904064"
+        ],
+        "exit": 0,
+        "stdout_sha256": "417030bf2ef56f764bb7db16bc12d27dfebc33ea0b41466aeaf1de5c88cc4957"
+      },
+      "i64-reference": {
+        "argv": [
+          "<scratch>/wabt-1.0.37/bin/spectest-interp",
+          "<scratch>/i64/selected.json"
+        ],
+        "exit": 0,
+        "stdout_sha256": "e6acf0db79579acbe60f1463c2a65e5e3684c1011ab6086b35850bc7eb0000f7"
+      }
+    }
+  },
+  "bounds": {
+    "campaign_limit_seconds": 480,
+    "per_run_limit_seconds": 240,
+    "scratch_limit_bytes": 524288000,
+    "peak_sampled_runner_scratch_bytes": 123207680,
+    "additional_owned_scratch_bytes_at_verification": 6508544,
+    "elapsed_seconds_before_publication": 380.19
+  },
+  "cleanup": {
+    "runner_groups_closed": true,
+    "runner_scratch_removed": true,
+    "campaign_scratch_removed": true
+  },
+  "qualification": "Scoped host replay evidence for L03/W08.",
+  "verification_artifact_policy": "Passed against the working checkout index copied to a disposable index."
+}

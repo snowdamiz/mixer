@@ -1,0 +1,373 @@
+{
+  "schema": 1,
+  "status": "passed_scoped_host_replay",
+  "mixer": {
+    "revision": "5f922bd61af68962f419f4d70b27bd3b08c1df9a",
+    "tree": "daf43604236b19f4cd862df4f8f0bec762f27c6b",
+    "selectorReceipt": {
+      "path": "verification/receipts/fieldlog-history-corpus-41a05264.json",
+      "sha256": "e17df654c0a8e916cdb210123476b5be94c358a181f00b6feb52f3958e055945"
+    }
+  },
+  "toolchain": {
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "system": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "git": "git version 2.56.0"
+  },
+  "historical": {
+    "fieldLogRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "fieldLogTree": "1b62520f35c7e57a01b568291078686574f627c4",
+    "generatedReportTree": "543ed92f62176db4e12426d8c7bb834e7c500219",
+    "sdkRevision": "8efc1a9e5b1602117f8211c95bfd4203cc91f689",
+    "sdkTree": "d458167a66f55b3112374842f57921092c666101",
+    "sdkPackageTree": "573ada9ad9335b9f661c3a07ad3724c96cd437dc"
+  },
+  "pair25": {
+    "fieldLogBaseRevision": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "fieldLogTree": "9c2d665c31a6f3f2bfabc42bdfffaf72c6661731",
+    "generatedReportTree": "c20a9420cd15bdadc5e913303cd837a4ef96d904",
+    "sdkRevision": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+    "sdkTree": "faf0902a82ffc7acb2ddde9c6dca24002f959c3d",
+    "sdkPackageTree": "da0a358a6984e198525ea76c7be7fd2af245e12e"
+  },
+  "setup": {
+    "method": "Run the pinned prepare-successor.py and apply the two tracked Settings patches in an isolated checkout using git apply --index --unidiff-zero --whitespace=error. Archive the historical GeneratedReport and SDK subtrees from their exact Git objects. Select each local SDK with FIELDLOG_MIXER_SDK.",
+    "recipe": {
+      "path": "tests/integration/fieldlog-pair25-android/rust-runtime-notices/prepare-successor.py",
+      "sha256": "99a8b563f84f345a0d2d6c63b5f11ad6d98434df2b517de34199845a2bf8580f",
+      "revision": "2fbba61cb168a9d9a5a7a99e3ffbf43fd9533f4f"
+    },
+    "settingsPatchesRevision": "73717993d6eea1d968b51f86f701e02406436d41",
+    "settingsPatches": [
+      {
+        "path": "verification/receipts/fieldlog-ios-settings-bounded-7b2b98f0.patch",
+        "sha256": "2639352790e03eadd4fc0ae1cb81fe2fbdcfd4d1c7f7d3f872dc405869fa7418"
+      },
+      {
+        "path": "verification/receipts/fieldlog-android-settings-elapsed-7b2b98f0.patch",
+        "sha256": "b1c53a93f02fbbf057fc7e77244ad471b1f4c58a14268ae19c3bc038d9d1abb9"
+      }
+    ]
+  },
+  "hostReplay": {
+    "startUTC": "2026-11-22T13:00:24.070145+00:00",
+    "elapsedSeconds": 32.58,
+    "peakAllocatedKiB": 410416,
+    "cases": {
+      "F17": [
+        "testCancelledDeniedInvalidAndMalformedHaveNoPhotoEffect"
+      ],
+      "F18": [
+        "testOriginalBatchSelectCurrentEditsSavePhotoReopenCommit",
+        "testRepositoryPhotoAndWorkspaceWriteFaultsRetainPrimaryErrorAndSafeReferences"
+      ],
+      "F19": [
+        "testRealPublicReportUsesCurrentSavedProjectAndRetainsUnsavedTask",
+        "testVerifiedDescriptorSurvivesAtomicPathReplacementAndClosesOnCompletion"
+      ]
+    },
+    "runs": [
+      {
+        "lane": "historical",
+        "argv": [
+          "/usr/bin/swift",
+          "test",
+          "--package-path",
+          "/private/tmp/mixer-f17-f19.r0B2mDPV/historical-app",
+          "--scratch-path",
+          "/private/tmp/mixer-f17-f19.r0B2mDPV/historical/build",
+          "--cache-path",
+          "/private/tmp/mixer-f17-f19.r0B2mDPV/historical/cache",
+          "--config-path",
+          "/private/tmp/mixer-f17-f19.r0B2mDPV/historical/config",
+          "--security-path",
+          "/private/tmp/mixer-f17-f19.r0B2mDPV/historical/security",
+          "--disable-index-store",
+          "--disable-swift-testing",
+          "--jobs",
+          "4",
+          "--filter",
+          "^(FieldLogAndroidTests\\.PhotoSelectionTests/testCancelledDeniedInvalidAndMalformedHaveNoPhotoEffect|FieldLogAndroidTests\\.PhotoSelectionTests/testOriginalBatchSelectCurrentEditsSavePhotoReopenCommit|FieldLogAndroidTests\\.PhotoSelectionTests/testRepositoryPhotoAndWorkspaceWriteFaultsRetainPrimaryErrorAndSafeReferences|FieldLogAndroidTests\\.ReportShareTests/testRealPublicReportUsesCurrentSavedProjectAndRetainsUnsavedTask|FieldLogAndroidTests\\.ReportShareTests/testVerifiedDescriptorSurvivesAtomicPathReplacementAndClosesOnCompletion)$"
+        ],
+        "environment": {
+          "TMPDIR": "/private/tmp/mixer-f17-f19.r0B2mDPV/historical/tmp",
+          "SWIFTPM_MODULECACHE_OVERRIDE": "/private/tmp/mixer-f17-f19.r0B2mDPV/historical/cache/modules",
+          "CLANG_MODULE_CACHE_PATH": "/private/tmp/mixer-f17-f19.r0B2mDPV/historical/cache/modules",
+          "FIELDLOG_WORKSPACE": "/private/tmp/mixer-f17-f19.r0B2mDPV/historical/workspace",
+          "FIELDLOG_MIXER_SDK": "/private/tmp/mixer-f17-f19.r0B2mDPV/historical-sdk",
+          "GIT_TERMINAL_PROMPT": "0"
+        },
+        "sources": {
+          "Package.swift": {
+            "sha256": "5ac4ad02e060196cd00192986ce3aa6903ee4066cc7b1d3c3fc1f054fba84110",
+            "gitBlob": "774fc2e5be1d8dd1d5149c6714f53eaf41ee9122"
+          },
+          "Tests/FieldLogAndroidTests/PhotoSelectionTests.swift": {
+            "sha256": "4d2c0fa5d73e6c2b16386deb4ee2103507c5a159118aff72484c15c3ac048e71",
+            "gitBlob": "c45aad06d0ec746deacd77b2a1585b7c4eedd1dd"
+          },
+          "Tests/FieldLogAndroidTests/ReportShareTests.swift": {
+            "sha256": "87b2d154925608dc596825fcf327df05eac8d37c2e80e7d50a33aa17d252e17e",
+            "gitBlob": "a37d8f6b028e8e8d41800d7ac05bbe6c8df55ef1"
+          },
+          "Sources/FieldLogAndroid/PublicFactory.swift": {
+            "sha256": "528161176cbc499a658eb8d9a3e99e1afd70e04167362b6ca22b27d399c6505a",
+            "gitBlob": "73b481f6d58e46d71175ae805004ddd9ee39bd81"
+          },
+          "Sources/FieldLogStorage/WorkspaceRepository.swift": {
+            "sha256": "cf46c525631d9883ed22783180ed6ad9466ffa74ddeaa650fe7437ecc7ff0aba",
+            "gitBlob": "c3aa7a10eae986efa52c1bdfb28d3c4c61bc8153"
+          },
+          "Sources/FieldLogAndroid/NativeEntry.swift": {
+            "sha256": "f80ae321beb1cc95aeb6671552a98231ed3c6ffbc93fbc1867ccdd129d308fc5",
+            "gitBlob": "9d20e7a9c0057ad3a5983044cccf4b42c1877efe"
+          },
+          "SDK/Package.swift": {
+            "sha256": "425bd9c285a06a5ba524c98cfda8bd8c6c064975202fcd3625a4414677807c92",
+            "gitBlob": "2ea2da4d88bde24627af54307e5826bd88eb4586"
+          },
+          "Platforms/Android/AndroidManifest.xml": {
+            "sha256": "348c442527a2852f2869ae4b2a54baf88a90422ac26bdc5d328bba2996724361",
+            "gitBlob": "1f59963bb5725a5256288fa32a593882646c9188"
+          },
+          "Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java": {
+            "sha256": "feb9b0253819f08198b0785b6905f625b24d58465b775a0895a5556a06726133",
+            "gitBlob": "3af3f347f96fa6e2b39c94e7fe73ee43970a6889"
+          },
+          "Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java": {
+            "sha256": "092fb4ba528e2faa8bee5bc56a7ddf8daf4a5f467a662b373321a27d2f331699",
+            "gitBlob": "abd1da6adb49fe10f15249c899b4f8ce1c161520"
+          }
+        },
+        "exit": 0,
+        "stop": null,
+        "groupAbsent": true,
+        "logSHA256": "97b4d1e3b1e0ef5ff0d5919e8f50ac08b4396b30c25da56dc692b5b9a7e4e956",
+        "outcomes": [
+          [
+            "FieldLogAndroidTests.PhotoSelectionTests",
+            "testCancelledDeniedInvalidAndMalformedHaveNoPhotoEffect",
+            "passed"
+          ],
+          [
+            "FieldLogAndroidTests.PhotoSelectionTests",
+            "testOriginalBatchSelectCurrentEditsSavePhotoReopenCommit",
+            "passed"
+          ],
+          [
+            "FieldLogAndroidTests.PhotoSelectionTests",
+            "testRepositoryPhotoAndWorkspaceWriteFaultsRetainPrimaryErrorAndSafeReferences",
+            "passed"
+          ],
+          [
+            "FieldLogAndroidTests.ReportShareTests",
+            "testRealPublicReportUsesCurrentSavedProjectAndRetainsUnsavedTask",
+            "passed"
+          ],
+          [
+            "FieldLogAndroidTests.ReportShareTests",
+            "testVerifiedDescriptorSurvivesAtomicPathReplacementAndClosesOnCompletion",
+            "passed"
+          ]
+        ],
+        "xctestOutput": [
+          "Test Case '-[FieldLogAndroidTests.PhotoSelectionTests testCancelledDeniedInvalidAndMalformedHaveNoPhotoEffect]' passed (0.127 seconds).",
+          "Test Case '-[FieldLogAndroidTests.PhotoSelectionTests testOriginalBatchSelectCurrentEditsSavePhotoReopenCommit]' passed (0.039 seconds).",
+          "Test Case '-[FieldLogAndroidTests.PhotoSelectionTests testRepositoryPhotoAndWorkspaceWriteFaultsRetainPrimaryErrorAndSafeReferences]' passed (0.013 seconds).",
+          "Test Case '-[FieldLogAndroidTests.ReportShareTests testRealPublicReportUsesCurrentSavedProjectAndRetainsUnsavedTask]' passed (0.005 seconds).",
+          "Test Case '-[FieldLogAndroidTests.ReportShareTests testVerifiedDescriptorSurvivesAtomicPathReplacementAndClosesOnCompletion]' passed (0.003 seconds).",
+          "Executed 5 tests, with 0 failures (0 unexpected) in 0.188 (0.189) seconds"
+        ],
+        "resolvedDependencies": [],
+        "exactFivePassed": true
+      },
+      {
+        "lane": "pair25",
+        "argv": [
+          "/usr/bin/swift",
+          "test",
+          "--package-path",
+          "/private/tmp/mixer-f17-f19.r0B2mDPV/pair/fieldlog/Integrations/GeneratedReport",
+          "--scratch-path",
+          "/private/tmp/mixer-f17-f19.r0B2mDPV/pair25/build",
+          "--cache-path",
+          "/private/tmp/mixer-f17-f19.r0B2mDPV/pair25/cache",
+          "--config-path",
+          "/private/tmp/mixer-f17-f19.r0B2mDPV/pair25/config",
+          "--security-path",
+          "/private/tmp/mixer-f17-f19.r0B2mDPV/pair25/security",
+          "--disable-index-store",
+          "--disable-swift-testing",
+          "--jobs",
+          "4",
+          "--filter",
+          "^(FieldLogAndroidTests\\.PhotoSelectionTests/testCancelledDeniedInvalidAndMalformedHaveNoPhotoEffect|FieldLogAndroidTests\\.PhotoSelectionTests/testOriginalBatchSelectCurrentEditsSavePhotoReopenCommit|FieldLogAndroidTests\\.PhotoSelectionTests/testRepositoryPhotoAndWorkspaceWriteFaultsRetainPrimaryErrorAndSafeReferences|FieldLogAndroidTests\\.ReportShareTests/testRealPublicReportUsesCurrentSavedProjectAndRetainsUnsavedTask|FieldLogAndroidTests\\.ReportShareTests/testVerifiedDescriptorSurvivesAtomicPathReplacementAndClosesOnCompletion)$"
+        ],
+        "environment": {
+          "TMPDIR": "/private/tmp/mixer-f17-f19.r0B2mDPV/pair25/tmp",
+          "SWIFTPM_MODULECACHE_OVERRIDE": "/private/tmp/mixer-f17-f19.r0B2mDPV/pair25/cache/modules",
+          "CLANG_MODULE_CACHE_PATH": "/private/tmp/mixer-f17-f19.r0B2mDPV/pair25/cache/modules",
+          "FIELDLOG_WORKSPACE": "/private/tmp/mixer-f17-f19.r0B2mDPV/pair25/workspace",
+          "FIELDLOG_MIXER_SDK": "/private/tmp/mixer-f17-f19.r0B2mDPV/pair/mixer/sdk",
+          "GIT_TERMINAL_PROMPT": "0"
+        },
+        "sources": {
+          "Package.swift": {
+            "sha256": "f42871f470de8398fbc13a3a2f0c0ba575f0f6b9784c6a6f85dd6e240dc2cdcb",
+            "gitBlob": "0f0f51511a75b0559f7f15b14f8fa9737ead8888"
+          },
+          "Tests/FieldLogAndroidTests/PhotoSelectionTests.swift": {
+            "sha256": "d7b72d44ee6053a3f171802786d9149f01692fb2b5edda2871fb2332ae99bd50",
+            "gitBlob": "54097d7871d0930fcac42c643262e0c356603628"
+          },
+          "Tests/FieldLogAndroidTests/ReportShareTests.swift": {
+            "sha256": "c3e60b36db7a8166ff2225488f0787a076a48df33e42538c7db80c0c4a3cc73f",
+            "gitBlob": "2216a8e7640d26660c2ce2c516c3569817284752"
+          },
+          "Sources/FieldLogAndroid/PublicFactory.swift": {
+            "sha256": "d9e3167e9844ac6458467f7bc2d0891ac0b0646aa4f47477b060b7d094f97166",
+            "gitBlob": "4411aa187c4406b070f56e916e13f40f173d4169"
+          },
+          "Sources/FieldLogStorage/WorkspaceRepository.swift": {
+            "sha256": "3db05de328cd292bb34cad45a98b3cdb7fcf6040160046cb9137dd9b372eb726",
+            "gitBlob": "def237face8c379a54e26203998297f277f378d6"
+          },
+          "Sources/FieldLogAndroid/NativeEntry.swift": {
+            "sha256": "0168c506a36e356b8e01f35f2ed545af8dbe98417dd0e55677c6c2d089501391",
+            "gitBlob": "253e1ccfdbc0c962df067ca2d0d58606f4d545a1"
+          },
+          "SDK/Package.swift": {
+            "sha256": "bd5f59cea26a2cbc1dfa58d2ad7adb0248a63045163c57d0e91c9a7b5e2ee67c",
+            "gitBlob": "38d6cdf24e8a80075c29b459e52931531f43ae0a"
+          },
+          "Platforms/Android/AndroidManifest.xml": {
+            "sha256": "1c44fb84ee7635ab813377bbab5762c5221eb736eb56cb509038329304123f02",
+            "gitBlob": "3de263c1d616eec7b88941e00768ec7902cc06a9"
+          },
+          "Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicActivity.java": {
+            "sha256": "15fc9d70092411954f98c69a670f7c6aa7c88b2e5feb0e58eb08b546a18713ad",
+            "gitBlob": "57b3a2feddf36565dc5f67274f250f67a62f4629"
+          },
+          "Platforms/Android/Java/dev/fieldlog/generatedr90/androidhost/PublicBridge.java": {
+            "sha256": "f0508ab0563d554743f9ef2e2d512c550a050c70e0f88ec357fefee307a9aa0c",
+            "gitBlob": "2978696ad074d70ef4b2e7c9ae7a7ca1985ee91e"
+          }
+        },
+        "exit": 0,
+        "stop": null,
+        "groupAbsent": true,
+        "logSHA256": "4093c89e355dfcd690b52e42572640bcb8bde57f33bb4996443463375536d083",
+        "outcomes": [
+          [
+            "FieldLogAndroidTests.PhotoSelectionTests",
+            "testCancelledDeniedInvalidAndMalformedHaveNoPhotoEffect",
+            "passed"
+          ],
+          [
+            "FieldLogAndroidTests.PhotoSelectionTests",
+            "testOriginalBatchSelectCurrentEditsSavePhotoReopenCommit",
+            "passed"
+          ],
+          [
+            "FieldLogAndroidTests.PhotoSelectionTests",
+            "testRepositoryPhotoAndWorkspaceWriteFaultsRetainPrimaryErrorAndSafeReferences",
+            "passed"
+          ],
+          [
+            "FieldLogAndroidTests.ReportShareTests",
+            "testRealPublicReportUsesCurrentSavedProjectAndRetainsUnsavedTask",
+            "passed"
+          ],
+          [
+            "FieldLogAndroidTests.ReportShareTests",
+            "testVerifiedDescriptorSurvivesAtomicPathReplacementAndClosesOnCompletion",
+            "passed"
+          ]
+        ],
+        "xctestOutput": [
+          "Test Case '-[FieldLogAndroidTests.PhotoSelectionTests testCancelledDeniedInvalidAndMalformedHaveNoPhotoEffect]' passed (0.154 seconds).",
+          "Test Case '-[FieldLogAndroidTests.PhotoSelectionTests testOriginalBatchSelectCurrentEditsSavePhotoReopenCommit]' passed (0.044 seconds).",
+          "Test Case '-[FieldLogAndroidTests.PhotoSelectionTests testRepositoryPhotoAndWorkspaceWriteFaultsRetainPrimaryErrorAndSafeReferences]' passed (0.012 seconds).",
+          "Test Case '-[FieldLogAndroidTests.ReportShareTests testRealPublicReportUsesCurrentSavedProjectAndRetainsUnsavedTask]' passed (0.006 seconds).",
+          "Test Case '-[FieldLogAndroidTests.ReportShareTests testVerifiedDescriptorSurvivesAtomicPathReplacementAndClosesOnCompletion]' passed (0.004 seconds).",
+          "Executed 5 tests, with 0 failures (0 unexpected) in 0.220 (0.220) seconds",
+          "Executed 5 tests, with 0 failures (0 unexpected) in 0.220 (0.221) seconds"
+        ],
+        "resolvedDependencies": [
+          {
+            "identity": "swift-asn1",
+            "kind": "remoteSourceControl",
+            "location": "https://github.com/apple/swift-asn1.git",
+            "state": {
+              "revision": "917b472dbe53ba699cbb0495f9a95a084bc6364d",
+              "version": "1.7.4"
+            }
+          },
+          {
+            "identity": "swift-crypto",
+            "kind": "remoteSourceControl",
+            "location": "https://github.com/apple/swift-crypto.git",
+            "state": {
+              "revision": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+              "version": "5.0.3"
+            }
+          }
+        ],
+        "exactFivePassed": true
+      }
+    ]
+  },
+  "scope": {
+    "F17": "Direct Swift photo-result seam. Cancel, denied, invalid, too large, unavailable, empty and malformed results preserve editor state and exact workspace bytes and create no photo directory. Late duplicate result is refused.",
+    "F18": "Swift action batch and real local repository. The latest edits and JPEG are persisted on the same draft, survive reopen and commit once. Injected photo/workspace write faults preserve the primary error and readable references under the author test’s fault model.",
+    "F19": "Saved selected-project report bytes, unchanged unsaved task and workspace, verified descriptor reads original bytes after atomic path replacement and closes after completion.",
+    "qualification": "macOS host XCTest. Android framework, JNI, provider and chooser were outside the host run. No device commands, prompts, signing commands, app changes, OTA or gate changes."
+  },
+  "existingInstalledEvidence": {
+    "apkSHA256": "ac30526259ae8b7a23891c2ddbb98ba5acda1061ff520456ccba52035a816729",
+    "environment": "Offline API 36 ARM64 development installations",
+    "buildReceipt": {
+      "path": "verification/receipts/fieldlog-android-settings-pair25-build-ac305262.json",
+      "sha256": "0d87e7ebb0decbbbc78ff2202a8195f1188a54dc4a79a659041001a6007a057f"
+    },
+    "settingsPhotoReadback": {
+      "path": "verification/receipts/fieldlog-android-settings-pair25-api36-ac305262.json",
+      "sha256": "7789bacccd7481c7aa6333fe65a3d97b29e54d7e854e61308c88a9a5579aef93",
+      "observed": "Ordinary commit advanced one revision and retained seven preseeded JPEG references and files across Settings apply, cold reopen and reset."
+    },
+    "bundledCommitAndChooser": {
+      "path": "verification/receipts/fieldlog-android-signed-commit-report-settings-ac305262.json",
+      "sha256": "0ebbc201adc1bc27006954796bd021092d17c6e11918204e5ab973adb4fa6779",
+      "observed": "Bundled signed commit kept the same draft ID, added one entrySaved event and preserved the seven existing JPEG files across cold reopen. Android Back from the chooser returned to the same project, preserving workspace and JPEG bytes."
+    },
+    "separateReportRecipient": {
+      "path": "verification/receipts/fieldlog-android-pair25-separate-report-ac305262.json",
+      "sha256": "cbf312cd8455852409886304cbf6a183f8548e3ce7fe5d3902c8c4b1c22cde82",
+      "observed": "A separate permissionless ACTION_SEND recipient read the granted URI. All 280 bytes matched the export digest. Workspace, pending records and seven JPEGs were retained. The recipient performed a read and made no write or post-retirement open attempt.",
+      "reportSHA256": "169a4b88b58ecde8c91d190623e6d0539943595273e61f3c5c0753d3aa0bcaf5"
+    },
+    "differentCameraBuild": {
+      "path": "verification/receipts/fieldlog-android-camera-queue-installed-api36-cb54a33d.json",
+      "sha256": "681ebacee060c1c65721b23a5c801db67d25f442d0c22103d10c6a29093a3f05",
+      "apkSHA256": "51fcd47a0839de1e7e05c31dc4b8b8289ac61a032a192a2e6c0a446b37dccfed",
+      "scope": "Previously observed native camera and queue behavior. The APK digest differs and Camera2 uses a different route from DocumentsUI."
+    },
+    "remainingPhotoGap": "The exact APK receipts show retention of preseeded attachments. Fresh DocumentsUI selection, permission and decode failures are outside that evidence."
+  },
+  "suggestedNativeTest": {
+    "name": "testOrdinaryDocumentsPickerCancelThenAttachCurrentDraftAcrossColdReopen",
+    "owner": "Root, if selected",
+    "scope": "F17 cancel and valid selection plus F18 durable attachment on stock ac305262 API 36. Use one disposable offline workspace with an existing draft and one known local PNG offered by DocumentsUI.",
+    "stepsAndAssertions": [
+      "Edit the draft title and note without saving. Use Select photo, verify DocumentsUI opened, press Android Back, and verify the same editor and edits with unchanged workspace bytes, revision, outbox and photo directory.",
+      "Use Select photo again and choose the PNG. Verify the same draft ID contains the edits and one new attachment, and read back the corresponding decodable app-produced JPEG. Record its digest and confirm there is no entrySaved event yet.",
+      "Cold reopen and check the same draft ID, exact edits and JPEG digest. Commit once and verify one linked entrySaved event, the same attachment ID and the same JPEG bytes."
+    ]
+  },
+  "cleanup": {
+    "scratchPath": "/private/tmp/mixer-f17-f19.r0B2mDPV",
+    "scratchRemoved": true,
+    "bothXCTestProcessGroupsAbsent": true
+  },
+  "completedAtUTC": "2026-11-22T13:03:52.004664+00:00"
+}

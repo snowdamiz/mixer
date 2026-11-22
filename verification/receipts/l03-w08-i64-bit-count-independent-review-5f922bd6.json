@@ -1,0 +1,361 @@
+{
+  "status": "passed_scoped_independent_review",
+  "reviewed_utc": "2026-11-22T13:08:10.719066+00:00",
+  "source_revision": "5f922bd61af68962f419f4d70b27bd3b08c1df9a",
+  "vm_tree": "6f061988348222b230723d47e097e58511e015b7",
+  "scope": "arm64 macOS VM host replay, L03/W08 six positive bit-count assertions plus existing maintained regression selection",
+  "tools": {
+    "python": "3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0",
+    "wast2json": "1.0.36 (git~1.0.37)",
+    "wasm-validate": "1.0.36 (git~1.0.37)",
+    "spectest-interp": "1.0.36 (git~1.0.37)"
+  },
+  "profile": "mixer-table-memory-v3",
+  "installed_feature": "experimental-capability-native",
+  "patch": {
+    "path": "verification/local/l03-w08-i64-bit-count-5f922bd6.patch",
+    "sha256": "32b596adfd335354e84d2d57e1bc1630197ed024878899054e4375fd9e81063e",
+    "forward_check": true,
+    "reverse_check": true,
+    "paths": [
+      "vm/verification/standards-replay/README.md",
+      "vm/verification/standards-replay/replay.py"
+    ],
+    "reviewed_path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-564849c1/verification/local/l03-w08-i64-bit-count-5f922bd6.patch",
+    "reverse_restored_original_bytes": true
+  },
+  "reviewed_implementation_receipt": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-564849c1/verification/receipts/l03-w08-i64-bit-count-5f922bd6.json",
+    "sha256": "4fdb4f70c3cba2f06c634accfacf9b25abb6e857b0a6a2340ad95810fffbecb0"
+  },
+  "fixture": {
+    "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast",
+    "sha256": "7d0e27a617565e0685aef56cee01b2b4890084068e3989168c41d14c56b1945e",
+    "selection_sha256": "8c0154242a7c41bd45e672c45c03a0829c874e9b302d10404d2b6bcc3c074578",
+    "module": {
+      "fixture": "i64.wast",
+      "line": 3,
+      "wasm_sha256": "674845c852c525175753c569e16d154f19562bd5dd71c09d38b47677d9d84c61",
+      "wasm_bytes": 552,
+      "wabt": {
+        "status": 0,
+        "diagnostic": []
+      },
+      "core": {
+        "valid": true,
+        "error": null
+      },
+      "installed_c": {
+        "validate": {
+          "status": 0,
+          "code": "",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        },
+        "guest_ui_v1_validate": {
+          "status": 1,
+          "code": "unsupported",
+          "value_type": 0,
+          "value": 0,
+          "fuel_used": 0,
+          "host_calls_used": 0
+        }
+      }
+    },
+    "assertions": [
+      {
+        "line": 247,
+        "export": "clz",
+        "input_bits": "0x0000000000000000",
+        "expected_i64": 64,
+        "cli_i64": 64,
+        "c_i64": 64
+      },
+      {
+        "line": 250,
+        "export": "clz",
+        "input_bits": "0x8000000000000000",
+        "expected_i64": 0,
+        "cli_i64": 0,
+        "c_i64": 0
+      },
+      {
+        "line": 256,
+        "export": "ctz",
+        "input_bits": "0x0000000000000000",
+        "expected_i64": 64,
+        "cli_i64": 64,
+        "c_i64": 64
+      },
+      {
+        "line": 259,
+        "export": "ctz",
+        "input_bits": "0x8000000000000000",
+        "expected_i64": 63,
+        "cli_i64": 63,
+        "c_i64": 63
+      },
+      {
+        "line": 263,
+        "export": "popcnt",
+        "input_bits": "0x0000000000000000",
+        "expected_i64": 0,
+        "cli_i64": 0,
+        "c_i64": 0
+      },
+      {
+        "line": 265,
+        "export": "popcnt",
+        "input_bits": "0x8000800080008000",
+        "expected_i64": 4,
+        "cli_i64": 4,
+        "c_i64": 4
+      }
+    ],
+    "wabt_reference_output": [
+      "12/12 tests passed."
+    ],
+    "selected_manifest_sha256": "a6cac59cafe6acd300e2876925050e46dbe1de7acfcb94e98c681cf11c97897c"
+  },
+  "wabt_release": {
+    "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz",
+    "sha256": "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
+  },
+  "prior_observations": {
+    "cases": 43,
+    "modules": 16,
+    "fixtures": 14,
+    "stateful_sections": [
+      "stateful",
+      "stateful_memory_maximum",
+      "memory_copy",
+      "memory_fill",
+      "scalar_globals"
+    ],
+    "normalized_sha256": "614fa19638eb66688a7abccb95e7df07e7679edca99909440a33c04ab0f98b68",
+    "normalization": "Replace runner scratch with <scratch>, omit path-dependent manifest digests, encode sorted compact JSON.",
+    "historical_conversion_rows_and_runner_output_hashes_matched": 8,
+    "artifact_hashes_matched_implementation_receipt": {
+      "mixer-vm": "85f89363b2bdc9e30537b015af4024c592f9716566067314718146a5e616b42c",
+      "libmixer_vm_capability_experimental.a": "f8906e32e35067a8a67eaf8509832ef2e7d10c0f5a4d56e6b5bc8786da10d241",
+      "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+      "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+      "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "mixer_vm_guest_ui_deferred.h": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+    }
+  },
+  "maintained_runs": {
+    "baseline": {
+      "label": "baseline",
+      "exit": 0,
+      "outer_group_absent": true,
+      "pid": 10190,
+      "peak_sampled_bytes": 123477568,
+      "elapsed_seconds": 6.066,
+      "abort": null,
+      "raw_receipt_sha256": "9f59d54f847de0da5236202cb8df557504e7bc7b53ef3f3554faedb214e87a21",
+      "runner_sha256": {
+        "replay.py": "e5667a940aa8e0802a1238623c33b427e40b1a986aad429af1d8ff577c07815b",
+        "commands.py": "91285d42f7f3a36d60ff9af1cdcc08a7e01a698a64db144c867162ba4156aeb7"
+      },
+      "argv": [
+        "python3",
+        "-B",
+        "vm/verification/standards-replay/replay.py",
+        "--rust-bin",
+        "<Rust 1.99.0 toolchain bin>",
+        "--receipt",
+        "<scratch>/baseline.json"
+      ],
+      "harness_invocation_note": "Launcher redirected only the replay temporary-directory allocation to the owned scratch.",
+      "assertion_counts": {
+        "assert_trap": 6,
+        "assert_return": 31,
+        "assert_invalid": 6
+      },
+      "commands_reaped_group_absent_with_eof": 233
+    },
+    "candidate": {
+      "label": "candidate",
+      "exit": 0,
+      "outer_group_absent": true,
+      "pid": 10539,
+      "peak_sampled_bytes": 123999104,
+      "elapsed_seconds": 5.357,
+      "abort": null,
+      "raw_receipt_sha256": "3896ff80bd074f466dc086656ca346c57937d253c3a16ba39355d7126343cf1d",
+      "runner_sha256": {
+        "replay.py": "a6b4660774a3225aba489543e777f2bafc6bebf30613ff65832b58adf6d6790b",
+        "commands.py": "91285d42f7f3a36d60ff9af1cdcc08a7e01a698a64db144c867162ba4156aeb7"
+      },
+      "argv": [
+        "python3",
+        "-B",
+        "vm/verification/standards-replay/replay.py",
+        "--rust-bin",
+        "<Rust 1.99.0 toolchain bin>",
+        "--receipt",
+        "<scratch>/candidate.json"
+      ],
+      "harness_invocation_note": "Launcher redirected only the replay temporary-directory allocation to the owned scratch.",
+      "assertion_counts": {
+        "assert_trap": 6,
+        "assert_return": 37,
+        "assert_invalid": 6
+      },
+      "commands_reaped_group_absent_with_eof": 251
+    }
+  },
+  "independent_wabt_commands": [
+    {
+      "name": "fetch-i64.wast",
+      "argv": [
+        "/usr/bin/curl",
+        "-qfsSL",
+        "--proto",
+        "=https",
+        "--proto-redir",
+        "=https",
+        "--max-time",
+        "18",
+        "--max-filesize",
+        "524288",
+        "-o",
+        "/Users/andreyyurlov/.t3/userdata/mixer-l03-i64-independent.CN9dUlP1/focus/i64.wast",
+        "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/i64.wast"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/userdata/mixer-l03-i64-independent.CN9dUlP1/focus",
+      "expected_exit_code": 0,
+      "timeout_seconds": 21,
+      "output_cap_bytes": 524288,
+      "pid": 25445,
+      "pgid": 25445,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.048968
+    },
+    {
+      "name": "fetch-wabt.tar.gz",
+      "argv": [
+        "/usr/bin/curl",
+        "-qfsSL",
+        "--proto",
+        "=https",
+        "--proto-redir",
+        "=https",
+        "--max-time",
+        "18",
+        "--max-filesize",
+        "25165824",
+        "-o",
+        "/Users/andreyyurlov/.t3/userdata/mixer-l03-i64-independent.CN9dUlP1/focus/wabt.tar.gz",
+        "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/userdata/mixer-l03-i64-independent.CN9dUlP1/focus",
+      "expected_exit_code": 0,
+      "timeout_seconds": 21,
+      "output_cap_bytes": 524288,
+      "pid": 25446,
+      "pgid": 25446,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.177963
+    },
+    {
+      "name": "extract-tools",
+      "argv": [
+        "/usr/bin/tar",
+        "-xzf",
+        "/Users/andreyyurlov/.t3/userdata/mixer-l03-i64-independent.CN9dUlP1/focus/wabt.tar.gz",
+        "wabt-1.0.37/bin/wast2json",
+        "wabt-1.0.37/bin/wasm-validate",
+        "wabt-1.0.37/bin/spectest-interp"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/userdata/mixer-l03-i64-independent.CN9dUlP1/focus",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 25447,
+      "pgid": 25447,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.018206
+    },
+    {
+      "name": "translate-original",
+      "argv": [
+        "/Users/andreyyurlov/.t3/userdata/mixer-l03-i64-independent.CN9dUlP1/focus/wabt-1.0.37/bin/wast2json",
+        "/Users/andreyyurlov/.t3/userdata/mixer-l03-i64-independent.CN9dUlP1/focus/i64.wast",
+        "-o",
+        "/Users/andreyyurlov/.t3/userdata/mixer-l03-i64-independent.CN9dUlP1/focus/commands.json"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/userdata/mixer-l03-i64-independent.CN9dUlP1/focus",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 25448,
+      "pgid": 25448,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.068684
+    },
+    {
+      "name": "validate-original",
+      "argv": [
+        "/Users/andreyyurlov/.t3/userdata/mixer-l03-i64-independent.CN9dUlP1/focus/wabt-1.0.37/bin/wasm-validate",
+        "/Users/andreyyurlov/.t3/userdata/mixer-l03-i64-independent.CN9dUlP1/focus/commands.0.wasm"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/userdata/mixer-l03-i64-independent.CN9dUlP1/focus",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 25449,
+      "pgid": 25449,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_bytes": 0,
+      "elapsed_seconds": 0.031504
+    },
+    {
+      "name": "reference-six-positive",
+      "argv": [
+        "/Users/andreyyurlov/.t3/userdata/mixer-l03-i64-independent.CN9dUlP1/focus/wabt-1.0.37/bin/spectest-interp",
+        "/Users/andreyyurlov/.t3/userdata/mixer-l03-i64-independent.CN9dUlP1/focus/selected.json"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/userdata/mixer-l03-i64-independent.CN9dUlP1/focus",
+      "expected_exit_code": 0,
+      "timeout_seconds": 30,
+      "output_cap_bytes": 524288,
+      "pid": 25450,
+      "pgid": 25450,
+      "output_eof": true,
+      "exit_code": 0,
+      "custody": "child reaped and group absent",
+      "output_sha256": "e6acf0db79579acbe60f1463c2a65e5e3684c1011ab6086b35850bc7eb0000f7",
+      "output_bytes": 20,
+      "elapsed_seconds": 0.035242
+    }
+  ],
+  "qualification": "Scoped host evidence for the selected V3 instructions."
+}

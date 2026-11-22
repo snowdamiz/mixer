@@ -153,6 +153,18 @@ FIXTURES = {
         "actions": {},
         "invalid": {312: ("type mismatch", "validation", "validation")},
     },
+    "i64": {
+        "sha256": "7d0e27a617565e0685aef56cee01b2b4890084068e3989168c41d14c56b1945e",
+        "wasm_sha256": "674845c852c525175753c569e16d154f19562bd5dd71c09d38b47677d9d84c61",
+        "selection_sha256": "8c0154242a7c41bd45e672c45c03a0829c874e9b302d10404d2b6bcc3c074578",
+        "modules": {3: "unsupported"},
+        "actions": {
+            **dict.fromkeys((247, 250), ("assert_return", "clz")),
+            **dict.fromkeys((256, 259), ("assert_return", "ctz")),
+            **dict.fromkeys((263, 265), ("assert_return", "popcnt")),
+        },
+        "invalid": {},
+    },
 }
 TRAPS = {
     "unreachable": "unreachable",
@@ -828,19 +840,29 @@ def replay(commands, scratch, rust, record):
                 commands, source, translated, fixture, translator, reference, validator,
                 core, client, record["fixtures"][source.name],
             )
-        for module, row in selected_cases(script, translated["commands"], fixture):
+        cases = selected_cases(script, translated["commands"], fixture)
+        if "selection_sha256" in fixture:
+            cases = list(cases)
+            selection = json.dumps(cases, sort_keys=True, separators=(",", ":")).encode()
+            observed = digest(selection)
+            require(observed == fixture["selection_sha256"], f"{script}: selection SHA-256 mismatch")
+            record["fixtures"][source.name]["selection_sha256"] = observed
+        for module, row in cases:
             line, module_line = row["line"], module["line"]
             filename = module["filename"]
             require(re.fullmatch(re.escape(manifest.stem) + r"\.\d+\.wasm", filename),
                     f"{script}:{line}: unsafe or unexpected translated filename {filename}")
             wasm = directory / filename
             if module_line not in validated:
+                wasm_sha256 = digest(wasm.read_bytes())
+                require(wasm_sha256 == fixture.get("wasm_sha256", wasm_sha256),
+                        f"{script}:{module_line}: translated module SHA-256 mismatch")
                 invalid = fixture["invalid"].get(line)
                 validation = validate(
                     commands, f"{script}-{module_line}", core, client, validator, wasm,
                     invalid=invalid, guest_code=fixture["modules"].get(module_line),
                 )
-                validated[module_line] = digest(wasm.read_bytes())
+                validated[module_line] = wasm_sha256
                 record["modules"].append({
                     "fixture": source.name, "line": module_line, "wasm_sha256": validated[module_line],
                     "wasm_bytes": wasm.stat().st_size, **validation,

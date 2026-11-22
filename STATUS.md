@@ -1421,6 +1421,24 @@ Independent review accepted the installed slice, and all 158 native
 and outer commands closed.
 [Installed F11 restored note](verification/receipts/fieldlog-f11-android-restored-note-api36-ac305262.json)
 
+The introducing revision, historical pin, and current Pair25 source
+all passed both F13 selectors on macOS. Repository readback preserved
+the exact 100,000-byte note and verified one linked entrySaved in the
+historical control.
+[F13 exact host replay](verification/receipts/fieldlog-f13-android-host-pair25-ac305262.json)
+
+The ordinary API 36 ARM64 replay entered the exact 100,000-byte Note
+through a test IME selected before FieldLog launched. The native editor
+matched all bytes before Save and after a cold reopen. Save and Commit
+advanced revisions 1 to 2 to 3, with one linked entrySaved at Commit.
+A second new process reopened the committed entry with the same
+workspace bytes. Independent review accepted attempt 11 for ordinary
+local F13. The earlier IME-switch attempts left the Note empty
+even for a short input, and hardware typing still worked. All 11
+disposable attempts restored original IME settings, removed their
+packages and scratch, and closed 1,496 setup and ADB commands.
+[Installed F13 long note](verification/receipts/fieldlog-f13-android-long-note-api36-ac305262.json)
+
 All four F14–F16 selectors passed on the historical and Pair25
 sources. F14 wrote one entry and one event after a valid edit-and-commit
 batch and preserved editor, frame, and disk state on refusal. F15
@@ -1430,6 +1448,23 @@ and a new app instance in the same process acquired the real repository
 lock. Independent review repeated the four Pair25 selectors. The
 surface was synthetic, and the F16 test did not force write overlap.
 [Editor transaction host replay](verification/receipts/fieldlog-f14-f16-pair25-host-bb6a1999.json)
+
+All five F17–F19 selectors passed on the historical and Pair25 sources.
+The macOS host replays covered photo refusal, preserved draft edits,
+cold storage readback, write-fault rollback, and report descriptor
+ownership. The exact installed APK previously preserved seven seeded
+JPEGs and completed the report chooser handoff.
+[Photo and report host replay](verification/receipts/fieldlog-f17-f19-pair25-host-5f922bd6.json)
+
+The ordinary offline API 36 ARM64 replay used the system DocumentsUI
+picker. Android Back preserved both unsaved edits and the exact
+workspace with zero photos. A second picker visit attached the
+synthetic image as one 96×96 JPEG to the same edited draft, with no
+outbox change. A new process reopened the identical draft and JPEG.
+One Commit appended a linked entrySaved at revision 3 and preserved
+the JPEG. All 204 commands and both services closed, and the scoped
+package, fixture files and disposable scratch were removed.
+[Installed F17/F18 picker and attachment](verification/receipts/fieldlog-f17-f18-android-picker-api36-ac305262.json)
 
 A fresh offline API 36 install of the same APK ran the bundled signed
 Entry Commit. It moved the draft under the original ID, appended one
@@ -2028,6 +2063,16 @@ its parent only in a build tool. The SDK SBOM contains no package source
 checksum, so the exact SDK build input remains unproven.
 [SDK networking provenance](verification/receipts/l07-swift-android-networking-dwarf-provenance.json)
 
+The near-release Swift Android builder defaults to BoringSSL
+fips-20220613 and records its Git-derived version in the SDK SBOM.
+The installed SBOM names that tag, whose annotated reference peels
+to the notice commit. A fresh independent control showed that a dirty
+tagged checkout still emits the bare label. The release invocation,
+working-tree state, and a manifest binding exact inputs to the ELF
+remain unverified. The earlier receipt's upstreamGitTree fields are
+commit IDs. The successor records the corresponding tree IDs.
+[Recipe and SBOM attribution](verification/receipts/l07-swift-android-boringssl-sbom-recipe-5f922bd6.json)
+
 The fresh signed FieldLog `891c38dc` APK binds its JNI to five
 selected objects from the Swift Android SDK's bundled r27d
 `libunwind.a`. The linker trace, sealed JNI input, and exact packaged
@@ -2413,6 +2458,12 @@ passed all 43 selected cases and eight wrapper tests. The earlier
 35 outcomes, CLI, installed archive, and four public headers matched
 the baseline. L03 and W08 remain open.
 [Integer-to-float conversion replay](verification/receipts/l03-w08-i64-f32-d6f8b57f.json)
+
+The original upstream i64 bit-count module passed six assertions for
+zero and high-bit inputs in stock WABT, the Mixer CLI, and the installed
+V3 C ABI. The independent review matched all 43 prior outcomes and all
+five stateful sections. This extends local W08 replay coverage.
+[Bit-count replay and review](verification/receipts/l03-w08-i64-bit-count-independent-review-5f922bd6.json)
 
 The seeded TableMemoryV3 check retains one instance for 40 copies on
 each of 24 seeds. Mixer and Node matched all 960 observations of the
