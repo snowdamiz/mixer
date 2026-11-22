@@ -1390,11 +1390,24 @@ bytes and workspace. All 215 commands closed. The graphics sample did
 not identify the exact buffer behind first-screen health.
 [Ordinary Pair25 activation and retirement](verification/receipts/l07-fieldlog-ordinary-pair25-commit-trace-ac305262.json)
 
-The exact source replay found that the ordinary GuestFrame calls the
-display witness after dispatchDraw and two animation callbacks. The
-path checks visibility and focus. It lacks a hardware frame-commit
-callback and same-buffer readback. A correction is in progress.
-[Display source readback](verification/receipts/l07-fieldlog-ordinary-pair25-display-source-9c2d665c.json)
+The historical GuestFrame called the display witness after dispatchDraw
+and two animation callbacks. FieldLog tree `807c198c` requires a hardware
+frame commit and exact PixelCopy readback from the current dialog. The
+independent review reproduced the early witness in the baseline and
+matched the corrected DEX across separate builds.
+[Display source readback](verification/receipts/l07-fieldlog-ordinary-pair25-display-source-9c2d665c.json) ·
+[Corrected source and producer review](verification/receipts/fieldlog-ordinary-frame-commit-admission-807c198c.json)
+
+The corrected signed APK recorded both health milestones before the
+native Commit tap on an offline ARM64 API 36 emulator. The active
+launch, sequence, and runtime matched. Commit appended one entrySaved
+record and preserved the original draft ID and seven JPEGs. Done
+retired that owner in the same process. The offline cold process read
+the exact retained journal and workspace bytes. The rebuilt JNI hash
+differs from the predecessor and was sealed with the corrected DEX
+and all 12 notices. Both disposable emulator sessions closed and their
+ports were reusable.
+[Corrected installed Entry Commit](verification/receipts/l07-fieldlog-ordinary-frame-commit-api36-807c198c.json)
 
 A separate offline run of the current APK selected an independent
 reader in Android’s report chooser. The reader received all 280 bytes
