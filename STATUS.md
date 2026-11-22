@@ -195,6 +195,19 @@ The repository reopened byte-for-byte unchanged after three reads and
 zero writes. V1 refused the navigation frame and cleared the display.
 [Headless route verification](verification/receipts/fieldlog-f10-historical-queue-v81-feature-ui-v3-review-fix.json)
 
+
+An offline ARM64 API 36 emulator installed the standalone opt-in Pending
+Changes APK. All six native taps reached their expected screens. The two
+pages displayed all 26 ordered fixture rows. Tasks preserved page two,
+and a fresh process returned to page one with the same bundled bytes.
+The first APK lacked the descriptor at the stock renderer's asset path.
+Adding the byte-identical descriptor there fixed startup. The passing
+installation preserved every original APK member. The app observed the
+actionable frame in memory. Signed Wasm activation and durable health on
+Android remain pending. Both private ADB and emulator groups closed,
+and the four attempts removed their scratch.
+[Standalone Android replay](verification/receipts/fieldlog-f10-android-standalone-api36-c9ad5431.json)
+
 The private macOS signed V3 candidate `6ba7034329` passed the first-page
 Pending Changes smoke through the installed owner, VM, and storage mailbox.
 One read hydrated the queue. The decoded action delivered the historical
