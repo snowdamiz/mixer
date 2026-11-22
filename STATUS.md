@@ -13,6 +13,30 @@ Use the tracked results to assess L01–L08 and rerun any check that needs fresh
 evidence from a clean checkout. Paths to disposable run files are historical
 references. See [the worktree verification policy](mixer-product-plan.md#worktree-local-verification).
 
+## Local compiler and owned runtime gate
+
+L03 passed independent review. The current VM linked into an installed
+FieldLog app on iOS 27.0. The diagnostic produced four byte-identical
+native and guest frames, refused two invalid events, and reported
+`unreachable` at `TaskCompletion.swift:94:9`. A post-trap read was
+refused and close reclaimed the VM slot. The first verifier compared
+UUID text case. Rechecking the original witness by UUID value matched
+the PID and all artifact pins. The owned Simulator was removed and the
+external baseline matched. This run used a bundled diagnostic payload.
+The standards, differential, runtime-limit and measured local workload
+receipts complete the supported Swift scope.
+[iOS TaskCompletion receipt](verification/receipts/l03-installed-ios-taskcompletion-current-vm-20261122.json)
+
+## Ordinary FieldLog project picker on iOS
+
+Three native tests passed on a fresh Simulator. Browsing 23 projects and
+searching by site preserved the seed bytes. Selecting North Ridge among
+two projects with the same title advanced revision 52 to 53 and preserved
+both outbox entries. Cold launch restored the same project and exact
+selected workspace bytes. The signed test copy and disposable device were
+removed. All external-device comparisons matched.
+[Project-picker receipt](verification/receipts/l02-ios-project-picker-native-20261122.json)
+
 ## Managed signer interruption and ordinary iOS log diagnostic
 
 The stock signer was killed while its authorized symbols response was
