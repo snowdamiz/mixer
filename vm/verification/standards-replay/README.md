@@ -19,7 +19,7 @@ metadata must resolve the exported package and every target, including examples,
 inside the verified tree. The script stages the release archive and exported public
 headers in the experimental capability install layout, then links the exported
 C client directly against that archive. It downloads the
-pinned WABT release and thirteen WebAssembly Core WAST files over HTTPS and checks
+pinned WABT release and fourteen WebAssembly Core WAST files over HTTPS and checks
 their SHA-256 hashes. [WABT release](https://github.com/WebAssembly/wabt/releases/tag/1.0.37) ·
 [WebAssembly test sources](https://github.com/WebAssembly/spec/tree/05ca4182176763112561ae20153975c12bd689e4/test/core)
 
@@ -77,6 +77,15 @@ that preserve the selected binary32 values. The installed C ABI receives
 their raw bits.
 [Pinned signed-zero cases](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/f32.wast#L2499-L2506) ·
 [Pinned nonzero ties](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/float_misc.wast#L665-L669)
+
+Eight assertions from the original module in `conversions.wast` check every
+result bit of `f32.convert_i64_s` and `f32.convert_i64_u`. The signed cases
+cover positive and negative ties around 2²⁴ and a value just above a rounding
+midpoint above 2⁵³. The unsigned cases cover 2⁶³, the largest unsigned
+i64 rounding to 2⁶⁴, and a value one integer above the first rounding midpoint
+above 2⁶³. Each runner instantiates the original module for every assertion.
+[Pinned signed conversions](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/conversions.wast#L465-L474) ·
+[Pinned unsigned conversions](https://github.com/WebAssembly/spec/blob/05ca4182176763112561ae20153975c12bd689e4/test/core/conversions.wast#L513-L523)
 
 For `br_table.wast`, stock WABT admits the original module at line 3 and
 passes the ten `multiple-value` assertions. The Mixer V3 CLI and installed C

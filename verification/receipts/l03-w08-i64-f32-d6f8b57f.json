@@ -1,0 +1,240 @@
+{
+  "status": "passed_scoped_replay",
+  "scope": "L03/W08 positive standard-only i64-to-f32 replay on arm64 macOS",
+  "profile": "mixer-table-memory-v3",
+  "base_public_commit": "d6f8b57ff9d0702805655d553b827ab6cea231b1",
+  "patch_sha256": "feee94ad6f086e0c8938c4ee1bd711f06d36d6b059fe9a76cc86fdac09080584",
+  "patch_paths": [
+    "vm/verification/standards-replay/README.md",
+    "vm/verification/standards-replay/replay.py"
+  ],
+  "patch_checked_forward_and_reverse": true,
+  "spec_revision": "05ca4182176763112561ae20153975c12bd689e4",
+  "tools": {
+    "python": "3.14.8",
+    "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "curl": "curl 8.7.1 (x86_64-apple-darwin26.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.69.0",
+    "wast2json": "1.0.36 (git~1.0.37)",
+    "wasm-validate": "1.0.36 (git~1.0.37)",
+    "spectest-interp": "1.0.36 (git~1.0.37)"
+  },
+  "wabt_release": {
+    "url": "https://github.com/WebAssembly/wabt/releases/download/1.0.37/wabt-1.0.37-macos-14.tar.gz",
+    "sha256": "a996907cbdf1bdcd56d66d382dd1b031450bb7326bbfd0f43a04486b620bed1c"
+  },
+  "commands": {
+    "full_replay": "python3 -B vm/verification/standards-replay/replay.py --rust-bin <Rust arm64 bin> --receipt <new receipt>",
+    "wrapper": "python3 -B vm/verification/standards-replay/test_replay.py -v",
+    "replay_invocation": "Both runs called replay.main with the listed arguments through an in-process scratch sampler."
+  },
+  "fixture": {
+    "url": "https://raw.githubusercontent.com/WebAssembly/spec/05ca4182176763112561ae20153975c12bd689e4/test/core/conversions.wast",
+    "sha256": "70eeec77b5c5c4fa6c9547f97ac56c1e21ebd5e2a10e7318f2e22100d5f6f056",
+    "reference_manifest_sha256": "132b6f73592db28e600dd9fd10c340110db1f4205c81ba0598bc0a1b1eca43a2",
+    "reference_output": [
+      "16/16 tests passed."
+    ],
+    "original_module_line": 1,
+    "original_wasm_sha256": "167545712158b2825a144500036f644d7150a0e9a690c35cf3bad2ba718ad2d6",
+    "original_wasm_bytes": 977,
+    "original_module_admitted": [
+      "stock WABT",
+      "Mixer V3 CLI",
+      "installed Mixer V3 C ABI"
+    ],
+    "guest_ui_v1_validation": "unsupported",
+    "reference_output_sha256": "c8d2e45f16895152ae54b990429e18a04251bd8c4c82c7d7b5e833f4dcddae62",
+    "reference_count_note": "Eight assertions and eight fresh module instantiations.",
+    "upstream_selection_sha256": "e5622edb3ead2fd7de9692e1c9e7d30f0b9579ac80546e17a7fb57646598a411",
+    "assertions": [
+      {
+        "line": 466,
+        "export": "f32.convert_i64_s",
+        "i64_bits": "0x0000000001000001",
+        "wabt_asserted_f32_bits": "0x4b800000",
+        "cli_f32_bits": "0x4b800000",
+        "installed_c_f32_bits": "0x4b800000",
+        "upstream_row_sha256": "291fdee24b952358aa6a05d71a15597cb262542fed9cdd38cc499463faa2a62d",
+        "cli_output_sha256": "d96db13e4a27d744ffebd44693764d84ed355af12240d974befde9f41bc0a676",
+        "installed_c_output_sha256": "e6d5af00064b47fa1305f22b9ca1c745f302bc5213bf152661fba8ac1359d7a2"
+      },
+      {
+        "line": 467,
+        "export": "f32.convert_i64_s",
+        "i64_bits": "0xfffffffffeffffff",
+        "wabt_asserted_f32_bits": "0xcb800000",
+        "cli_f32_bits": "0xcb800000",
+        "installed_c_f32_bits": "0xcb800000",
+        "upstream_row_sha256": "9c74f49cc0a8f6e2de025691cb9bb381487c12907294a0abe5330b89e177a1c1",
+        "cli_output_sha256": "7ff0b28eca3d4dc461154af3eaba8de6144cd0b721edb1a82ad077b1c4c79b45",
+        "installed_c_output_sha256": "a79c5871b92f4958ad895a97c31083fc5dc7b4c5c576e8903f13c63367b8e77d"
+      },
+      {
+        "line": 468,
+        "export": "f32.convert_i64_s",
+        "i64_bits": "0x0000000001000003",
+        "wabt_asserted_f32_bits": "0x4b800002",
+        "cli_f32_bits": "0x4b800002",
+        "installed_c_f32_bits": "0x4b800002",
+        "upstream_row_sha256": "156eb7ca88599d1486dd18e856742946e5676933f4aaa7cd2b50f99b6ea5f9d6",
+        "cli_output_sha256": "b7090e441f34708955ab7f3f8a5e7c8728bd71c81fa31ff31403476b79bf5d9a",
+        "installed_c_output_sha256": "e68201936ac945e95317a646d2791234d4040fd642dd49e0f75c9b80f87bab89"
+      },
+      {
+        "line": 469,
+        "export": "f32.convert_i64_s",
+        "i64_bits": "0xfffffffffefffffd",
+        "wabt_asserted_f32_bits": "0xcb800002",
+        "cli_f32_bits": "0xcb800002",
+        "installed_c_f32_bits": "0xcb800002",
+        "upstream_row_sha256": "89edec63ee2bd4ec4788c0017699e456fb6fb04f74c5b90215dfb8d0d6ca4824",
+        "cli_output_sha256": "5cf92236ca1ba3f4e78ac757589b4334ae9128a28ee27a964d1ceaf7483f10ae",
+        "installed_c_output_sha256": "d2c13c77d98d94b9bf8681a9fd05edb886a92d7d19e08bc8cfe92e7787f04875"
+      },
+      {
+        "line": 473,
+        "export": "f32.convert_i64_s",
+        "i64_bits": "0x0020000020000001",
+        "wabt_asserted_f32_bits": "0x5a000001",
+        "cli_f32_bits": "0x5a000001",
+        "installed_c_f32_bits": "0x5a000001",
+        "upstream_row_sha256": "775087d788cfb1c4ac49d44c57a786ed9ddea110fc58d3a313b806949a34db5c",
+        "cli_output_sha256": "af9c528cd265f7282bd4d1bf0c204bf604f11b33530252348c8d3993e5eb952b",
+        "installed_c_output_sha256": "29952e363eb9e129d50f95b2bb82e8ea0c9717baa131cc087056e03767577691"
+      },
+      {
+        "line": 514,
+        "export": "f32.convert_i64_u",
+        "i64_bits": "0x8000000000000000",
+        "wabt_asserted_f32_bits": "0x5f000000",
+        "cli_f32_bits": "0x5f000000",
+        "installed_c_f32_bits": "0x5f000000",
+        "upstream_row_sha256": "3ba272cb23613caf24fabad1afa376ad5242d263ff3ce0cb7c5cef6724058d3d",
+        "cli_output_sha256": "c34c4b7ec946b3e5dfb3657ee5087f3ba1e1091ba44a55832b8b26168f7b30d7",
+        "installed_c_output_sha256": "a002667e1592a813966e8c488d2535281ecaf33d274510afffb294f3094f02d3"
+      },
+      {
+        "line": 515,
+        "export": "f32.convert_i64_u",
+        "i64_bits": "0xffffffffffffffff",
+        "wabt_asserted_f32_bits": "0x5f800000",
+        "cli_f32_bits": "0x5f800000",
+        "installed_c_f32_bits": "0x5f800000",
+        "upstream_row_sha256": "54af58c83674ccc3c31ac5e86d5254b9d5914a6059d88651ac101566ca339555",
+        "cli_output_sha256": "338e5f43746596b16a00545966a6cfc0ba14b6f241730f64a0e343ee1f6c6b67",
+        "installed_c_output_sha256": "e2828993c326c97f9b41a6fa3a1b0315786db2284b1d991a9d841e586c381f4c"
+      },
+      {
+        "line": 522,
+        "export": "f32.convert_i64_u",
+        "i64_bits": "0x8000008000000001",
+        "wabt_asserted_f32_bits": "0x5f000001",
+        "cli_f32_bits": "0x5f000001",
+        "installed_c_f32_bits": "0x5f000001",
+        "upstream_row_sha256": "fccb1a2aacfce9ef0514f8bc3380943c168944f3b77424051ec78c6dd05d0e6d",
+        "cli_output_sha256": "c90f04488d4f73b4bdab4571d1695fc1fba82be70c74ec931d5c924cdb28824f",
+        "installed_c_output_sha256": "f386bca7b69c7a14ff46e8604ebfe897c7e23eaaf2f30d79b2d6867e28312e79"
+      }
+    ]
+  },
+  "baseline": {
+    "revision": "d6f8b57ff9d0702805655d553b827ab6cea231b1",
+    "vm_tree": "4dde204e848e2d141a651424a74ea1612c06abdb",
+    "exported_vm_files": 485,
+    "runner_sha256": {
+      "replay.py": "454a15305a22bdd5090332976f29d087b35a58331be76e87a9cd4069f9d1d340",
+      "commands.py": "91285d42f7f3a36d60ff9af1cdcc08a7e01a698a64db144c867162ba4156aeb7"
+    },
+    "started_utc": "2026-11-22T12:21:29.145050+00:00",
+    "elapsed_seconds": 3.519,
+    "peak_sampled_scratch_bytes": 133394432,
+    "scratch_samples": 31,
+    "rusage_children_maxrss_bytes": 274038784,
+    "runner_scratch_removed": true,
+    "main_selector_counts": {
+      "assert_trap": 6,
+      "assert_return": 23,
+      "assert_invalid": 6
+    },
+    "commands_reaped_group_absent_with_eof": 211,
+    "command_rows_sha256": "1902cd0a8756bc5cd840f246be8fdce3e992456aae250062781f70789215fe8c",
+    "full_receipt_sha256": "a35a4b57fd59f4f591b16aed3e725130a2d36aa1aac9e0fd732469bf837e3233"
+  },
+  "candidate": {
+    "revision": "0b8534e7127f2bddd447419ce72b85d4b1bfad17",
+    "vm_tree": "6f061988348222b230723d47e097e58511e015b7",
+    "exported_vm_files": 485,
+    "runner_sha256": {
+      "replay.py": "e5667a940aa8e0802a1238623c33b427e40b1a986aad429af1d8ff577c07815b",
+      "commands.py": "91285d42f7f3a36d60ff9af1cdcc08a7e01a698a64db144c867162ba4156aeb7"
+    },
+    "started_utc": "2026-11-22T12:20:31.845414+00:00",
+    "elapsed_seconds": 4.902,
+    "peak_sampled_scratch_bytes": 133484544,
+    "scratch_samples": 44,
+    "rusage_children_maxrss_bytes": 284344320,
+    "runner_scratch_removed": true,
+    "main_selector_counts": {
+      "assert_trap": 6,
+      "assert_return": 31,
+      "assert_invalid": 6
+    },
+    "commands_reaped_group_absent_with_eof": 233,
+    "command_rows_sha256": "c6d6ced6467770d9e06d09b499c7bc4ed609e1ea5d7d4fe25e3b60c947dcf5b1",
+    "full_receipt_sha256": "a777ebe8ceb564790c9147911d9e6b368a04e773d9d1bc831eb381449ff137ed"
+  },
+  "preservation": {
+    "original_main_selector_cases": 35,
+    "original_fixtures": 13,
+    "normalized_prior_outcomes_sha256": "483715c1ad1661167455242993bbd371056267476a945384969449f328e51540",
+    "normalization": "Replaced each runner scratch path and omitted reference manifest hashes that embed it.",
+    "unchanged_artifacts_sha256": {
+      "mixer-vm": "85f89363b2bdc9e30537b015af4024c592f9716566067314718146a5e616b42c",
+      "libmixer_vm_capability_experimental.a": "f8906e32e35067a8a67eaf8509832ef2e7d10c0f5a4d56e6b5bc8786da10d241",
+      "mixer_vm_capability.h": "9213c34ebf0f14d14f3319172e83647f704f3a02a60d413b4de990884357b4a6",
+      "mixer_vm_guest_ui.h": "d8d8217b900662e77787a8729f5c1cfe096b0df25ffe39e289f89d69fc156ab5",
+      "mixer_vm.h": "18c2498d0d1deae2c998ef9f4b3f811b2184c45e8169610012b05e99342385fd",
+      "mixer_vm_guest_ui_deferred.h": "7a327260d5dd308d698eda79224e85aeb5f7e5ce01b75517fdb9beadef2da06f"
+    },
+    "linked_test_client_sha256": {
+      "baseline": "6a0ec5e7624e6950fb70e5acf339f585a4c81c05362403ebbf2a7c724fa6e2de",
+      "candidate": "c5c2e4e221f3329d088f4a2ac1495e60a4157e75d8bb65bc4c999b0265a08efd"
+    }
+  },
+  "wrapper": {
+    "tests_passed": 8,
+    "exit_code": 0,
+    "output_eof": true,
+    "custody": "child reaped and group absent",
+    "command_row_sha256": "358f4afe88459289a0d5966d5e5231e4915c70c98601cde0260e328fdc8a34b6",
+    "output_sha256": "07b831b8f844a6705bfeaef93a13f88d64576abd553659bc393c428059711366"
+  },
+  "bounds": {
+    "campaign_seconds": 420,
+    "maintained_replay_deadline_seconds_per_run": 240,
+    "scratch_budget_bytes": 524288000,
+    "sampling_interval_seconds": 0.1,
+    "scratch_signal_threshold_bytes": 419430400,
+    "observed_peak_sampled_scratch_bytes": 133484544
+  },
+  "json_hash_encoding": "UTF-8 JSON with sorted keys, ASCII escapes, compact separators and no trailing newline.",
+  "qualification": "Scoped deterministic host coverage for L03/W08.",
+  "sourceReceiptSHA256": "0e831916f3fca9250924fcb2f6bf6246cc5b35b3a78bce15adc2a897563122cf",
+  "independentReview": {
+    "result": "pass",
+    "originalModuleBytes": 977,
+    "selectedExactBitAssertionsPassed": 8,
+    "freshWABTInstancePerAssertion": true,
+    "baselineMainSelectorCasesPassed": 35,
+    "candidateMainSelectorCasesPassed": 43,
+    "wrapperTestsPassed": 8,
+    "priorOutcomesMatch": true,
+    "productCLIArchiveAndFourHeadersMatch": true,
+    "ownedScratchRemoved": true,
+    "peakSampledScratchMiB": 149,
+    "elapsedSeconds": 103
+  }
+}

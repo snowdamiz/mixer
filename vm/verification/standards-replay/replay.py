@@ -93,6 +93,15 @@ FIXTURES = {
         "actions": dict.fromkeys((667, 668, 669), ("assert_return", "f32.nearest")),
         "invalid": {},
     },
+    "conversions": {
+        "sha256": "70eeec77b5c5c4fa6c9547f97ac56c1e21ebd5e2a10e7318f2e22100d5f6f056",
+        "modules": {1: "unsupported"},
+        "actions": {
+            **dict.fromkeys((466, 467, 468, 469, 473), ("assert_return", "f32.convert_i64_s")),
+            **dict.fromkeys((514, 515, 522), ("assert_return", "f32.convert_i64_u")),
+        },
+        "invalid": {},
+    },
     "memory": {
         "sha256": "9356ea6a84252e61421bbe7560a8244983accf0266f36986dbf94eaacfff80df",
         "modules": {92: "capability_export"},

@@ -2359,6 +2359,14 @@ integer. The independent arm64 macOS run closed all 211 replay commands
 and passed eight wrapper tests.
 [Float rounding replay](verification/receipts/l03-f32-nearest-145b8648.json)
 
+Eight upstream signed and unsigned `i64` to `f32` conversions matched
+all 32 result bits in WABT, the Mixer CLI, and the installed public V3
+C ABI. The original module was admitted unchanged. Independent replay
+passed all 43 selected cases and eight wrapper tests. The earlier
+35 outcomes, CLI, installed archive, and four public headers matched
+the baseline. L03 and W08 remain open.
+[Integer-to-float conversion replay](verification/receipts/l03-w08-i64-f32-d6f8b57f.json)
+
 The seeded TableMemoryV3 check retains one instance for 40 copies on
 each of 24 seeds. Mixer and Node matched all 960 observations of the
 complete initialized region in Debug and Release. The separate
