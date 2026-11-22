@@ -1538,6 +1538,15 @@ and byte-for-byte equality of stored task, entry, and photo rows. Native
 recovery and account deletion remain open.
 [Local account recovery](verification/receipts/fieldlog-local-account-recovery.json)
 
+The FieldLog deletion backend requires a confirmed account, its exact scope,
+and explicit intent. It removes the scoped service data and stores an
+idempotent receipt in the same transaction. Two root replays passed
+rollback, lost reply after commit, restart, and unchanged rows for a
+second account. The exact completed request recovered its receipt after
+reprovisioning without changing the new account. Native confirmation,
+receipt persistence, and scoped local cleanup remain open.
+[Local account deletion](verification/receipts/fieldlog-account-deletion.json)
+
 The generic iOS Simulator witness builds the same ordinary FieldLog
 tree with a named XCTest. It opens the saved project, edits a draft
 through the Photo Library picker, saves a manual Site Map pin, and

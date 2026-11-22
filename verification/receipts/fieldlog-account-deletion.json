@@ -1,0 +1,63 @@
+{
+  "scope": "FieldLog \u00a721.2 local account service only, with disposable synthetic accounts",
+  "result": "pass",
+  "source": {
+    "mixer_pin": "41d1b96fe4a0ddf67b5e7aa0ff4ea1cf473645c1",
+    "recovery_fixture_tree": "321cbf89e014b264e8da06a7e6dc8b935cbb9a1e",
+    "recovery_patch_sha256": "29e4b5af4b06e89027f82367319fbb0ade7a25cd5695096896b3b9c0db09d3f6",
+    "backend_path": "Backend/local_entry_sync.py",
+    "input_blob": "4d487e779c213b387cd2eee89fe0f48033a0b029",
+    "result_blob": "535c33c727f8c0c630c444e180a754ec5625edea",
+    "patch": "tests/integration/fieldlog-account-deletion/fieldlog-local-account-deletion.patch.b64",
+    "patch_sha256": "44aab1c0a6083b8495bb4e29777595570decab31760f43280ccb25466f7b6c43",
+    "replay_blob": "e79ec15dde2b5c44abe929cc3d14d7ba5ab0bc74",
+    "strict_apply_reverse_reapply": "pass",
+    "patch_encoding": "base64"
+  },
+  "replay": {
+    "date_utc": "2026-11-22",
+    "command": "GIT_NO_LAZY_FETCH=1 /usr/bin/time -l python3 -B tests/integration/fieldlog-account-deletion/check.py",
+    "environment": "macOS 27.0.1 (26A434), arm64, Python 3.14.8, SQLite 3.53.4, Git 2.56.0",
+    "exit_code": 0,
+    "max_campaign_seconds": 720,
+    "replay_deadline_seconds": 660,
+    "scratch_budget_bytes": 1073741824,
+    "observed_wall_seconds": 12.51,
+    "observed_scratch_file_bytes_before_cleanup": 1461977,
+    "reported_max_rss_bytes": 40927232,
+    "observations": [
+      "Pinned ordinary sign-in, confirmation, sign-out, expiry, static sync and recovery suites passed against the deletion backend. Strict patch reversal restored the recovered backend blob.",
+      "The new route was unavailable on the recovered backend and in static mode. The deletion backend rejected implicit, malformed, oversized, wrong-host, expired, pending, cross-account and wrong-scope requests with the database unchanged.",
+      "A trigger aborted the final receipt insert. The request returned 503 and every account, auth, sync and receipt row matched the pre-request snapshot.",
+      "The client received RemoteDisconnected before response headers after the commit. The deleted account had zero remaining service rows, the other account rows matched byte for byte, and SQLite foreign_key_check was clean.",
+      "The identical request returned the scoped receipt after listener restart. Altered credentials, identity, scope or key failed, and deleted sessions, proofs and approvals lost their prior access.",
+      "The other account retained session, task and entry replay, sign-in approval and recovery access. Replaying the old deletion after reprovisioning the same identifiers left the new session active."
+    ]
+  },
+  "custody": {
+    "transport": "Pinned isolated-loopback adaptation. The replay's in-process servers bind 127.0.0.1 on OS-assigned ports while clients and servers preserve the fixed account HTTP authority.",
+    "listeners": "The replay shut down every owned server, joined every listener thread, closed each listener, and observed connection refusal at each bound port.",
+    "children": "The replay's bounded Git and operator CLI subprocess calls returned before the replay exited successfully. No standalone server process was launched.",
+    "scratch": "The replay verified removal of its TemporaryDirectory. The preparatory reconstruction directory was removed after its command exited successfully.",
+    "excluded": "Actual data, native and device work, production and external provider work, and historical held resources."
+  },
+  "pending": "Native intent, receipt handling and local cleanup integration belong to the app lane.",
+  "rootReview": {
+    "mixerRevision": "c8a27e3617218124859fc0a8b50cb5e277a77883",
+    "command": "GIT_NO_LAZY_FETCH=1 python3 -B tests/integration/fieldlog-account-deletion/check.py",
+    "portableReplayGitBlob": "d27dec87773f33d38be61222075612f9cfd783ad",
+    "authorRawPatchReplaySeconds": 12.08,
+    "capsuleReplaySeconds": 12.69,
+    "matchedBackendBlobsForwardAndReverse": true,
+    "independentResults": [
+      "Existing account, recovery, task, and entry regressions passed.",
+      "Aborted receipt insertion left all scoped rows intact.",
+      "Lost reply recovered the exact receipt after restart.",
+      "One account was removed and the other account's rows stayed equal.",
+      "Reprovisioning the same identifiers remained active after retrying the old completed request."
+    ],
+    "terminalOuterCommandGroups": 2,
+    "scratchRemoved": true,
+    "scope": "Source inspection and independent HTTP/SQLite verification with disposable synthetic accounts."
+  }
+}
