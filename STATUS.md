@@ -208,6 +208,14 @@ Android remain pending. Both private ADB and emulator groups closed,
 and the four attempts removed their scratch.
 [Standalone Android replay](verification/receipts/fieldlog-f10-android-standalone-api36-c9ad5431.json)
 
+The signed development APK and packet bytes matched their pins on the
+offline Android emulator. The private V3 signed-envelope parser refused the
+Android scope before the initial frame. That scope parser still selects
+macOS for every UI schema 3. Independent review also found that the
+draw listener can report a frame before Android renders it. Both findings
+are open. The disposable emulator, private ADB and signing scratch closed.
+[Signed Android scope refusal](verification/receipts/fieldlog-f10-signed-android-api36-scope-refusal-6b07f0da.json)
+
 The private macOS signed V3 candidate `6ba7034329` passed the first-page
 Pending Changes smoke through the installed owner, VM, and storage mailbox.
 One read hydrated the queue. The decoded action delivered the historical
