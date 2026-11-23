@@ -159,12 +159,123 @@
       ],
       "allSixSnapshotsPerProcess": true,
       "allVMOwnersClosed": true,
-      "scope": "Offscreen native and VM producer workload. This establishes a startup miss in all samples. Steady RSS deltas are within 30 MiB in this experiment. An installed and rendered signed release at iOS 17.x and \u00a720.2 production-profile qualification remain open.",
+      "scope": "Offscreen native and VM producer workload. This establishes a startup miss in all samples. Steady RSS deltas are within 30 MiB in this experiment. An installed and rendered signed release at iOS 17.x and §20.2 production-profile qualification remain open.",
       "cleanup": {
         "ownedUUIDRemoved": "9C76B3CD-061D-4493-9461-3D47100C4D99",
         "externalBaselineEqual": true
       },
       "transportCorrection": "The first combined console capture interleaved a JSON snapshot with stderr. The measured runs record stdout and stderr separately before the check."
+    },
+    "deadlineBatchDiagnostic": {
+      "scope": "Two exact signed arm64 Simulator comparator bundles. Five alternating guest pairs with one fresh same-binary bundled-native process for every guest sample. Offscreen producers.",
+      "runtime": "iOS 26.5 (23F77)",
+      "toolchain": [
+        "Xcode 27.2",
+        "Build version 27B52"
+      ],
+      "candidateVMRevision": "66195b5d6cc161f39df6af04cc086f7d0bd1975f",
+      "candidateFlag": "MIXER_SWIFT_UI_DEADLINE_BATCH=1",
+      "unchangedDeadlineMs": 30000,
+      "fixed34Exit": 10,
+      "allSixOracleSnapshotsAndGuestClosuresVerified": true,
+      "observedClosedProcesses": 22,
+      "externalBaselineEqual": true,
+      "ownedUUIDRemoved": "DF09EEF3-501A-459A-81CA-7630A996B156",
+      "hostLoadSamples": [
+        "18:48  up 3 days, 18:56, 1 user, load averages: 181.49 87.81 64.31",
+        "18:49  up 3 days, 18:57, 1 user, load averages: 174.27 93.79 67.16",
+        "18:49  up 3 days, 18:57, 1 user, load averages: 151.56 93.78 67.77",
+        "18:49  up 3 days, 18:57, 1 user, load averages: 121.36 90.69 67.27",
+        "18:50  up 3 days, 18:58, 1 user, load averages: 95.30 86.75 66.40"
+      ],
+      "deviceRecipe": "Run fixed34 once for each bundle. Alternate baseline/candidate order five times, launching ui256 and native in distinct fresh processes for each bundle. Capture stdout and stderr independently, then check and compare with build_ios_simulator.py.",
+      "decision": "Keep this flag experimental. First VM invocation, load, and Save improved in this sample, but all ten startup deltas exceeded 200 ms and the median end-to-end candidate delta did not improve.",
+      "baseline": {
+        "executable": {
+          "bytes": 2504032,
+          "sha256": "7554d4f8eb7e8fb31ec67be42b21434ee599bf39472c283dba3743abd2340200"
+        },
+        "pairReceiptSHA256": [
+          "7835585d6e3488ee897c02519d92403dc97f43037b477fb53110e7b90ee93b20",
+          "44be887ee8a0d235f55beb433050be406c3c677e467d44c89f941833df1ad3ed",
+          "2a4056855c27899f818dc433d6ec4484249c28be791c055e05005f777cfacd36",
+          "796c9ca4f4ccb8e4c47a0215355f7ec8a6fabdbdf36a486f6fca4f986014876b",
+          "da9042d460ee2b67a9f83fce1e83fe95d6f08856741f770f5d4f3350bb053876"
+        ],
+        "guestMinusNative": {
+          "mainToFirstSnapshotMicros": [
+            666730,
+            726574,
+            675637,
+            744638,
+            682756
+          ],
+          "steadyRSSBytes": [
+            22478848,
+            22167552,
+            22740992,
+            17760256,
+            23298048
+          ],
+          "preExitPeakRSSBytes": [
+            27574272,
+            26918912,
+            27246592,
+            27279360,
+            27066368
+          ]
+        },
+        "medianGuestStageMicros": {
+          "validate": 344342,
+          "first_snapshot": 317619,
+          "load": 1433456,
+          "save": 1216508
+        },
+        "samplesWithin200ms": 0
+      },
+      "candidate": {
+        "executable": {
+          "bytes": 2500480,
+          "sha256": "469347f54ffdc657afc291a7e78be8bc267d4dc2fc6cd092cd7148a49973baf0"
+        },
+        "pairReceiptSHA256": [
+          "e197c023b12a021b72fe9c22817c3b719e0fcb9f04564e555c1f1467ae27d375",
+          "98853ad54bcdc823f2116ad6c5cc1fde1f5c5a0cae5e41b1aa33c5d3f1473dae",
+          "9cdb4846a22d75ec234cd535665a1721726cdd883037e0500a11cef71e29d4f3",
+          "4af1d37df91286d2527e5a18ac28ca1b02c05dc614027d7189ffb423bcfbd7cf",
+          "4fb747777441fe6f7617cfe828d8024286e1824404881794967a7284ccd3a3f6"
+        ],
+        "guestMinusNative": {
+          "mainToFirstSnapshotMicros": [
+            535691,
+            710201,
+            738650,
+            611789,
+            699386
+          ],
+          "steadyRSSBytes": [
+            22921216,
+            14106624,
+            23068672,
+            14581760,
+            23658496
+          ],
+          "preExitPeakRSSBytes": [
+            27115520,
+            27213824,
+            27082752,
+            27197440,
+            27213824
+          ]
+        },
+        "medianGuestStageMicros": {
+          "validate": 368179,
+          "first_snapshot": 266143,
+          "load": 1222304,
+          "save": 1002781
+        },
+        "samplesWithin200ms": 0
+      }
     }
   },
   "macOSControls": {
@@ -215,8 +326,29 @@
     ],
     "crossBuildReceiptSHA256": "27ea29fb602766998287c3e5438e5ad2eca6d64c04e218c2af433820bbb43a5e",
     "packetReceiptSHA256": "ba6fb229df695ac57c79cc5b7a8543388217d766a6e2d14a31d33de49503326b",
-    "matchedProcessAndRuntimeRun": "pending_root"
+    "matchedProcessAndRuntimeRun": "pending_root",
+    "standaloneNativeRun": {
+      "result": "Six normal command snapshots matched the exact oracle on API 28.",
+      "scope": "Standalone native aarch64 execution with the 17 known libraries. Matched process performance and signed installed rendering remain pending.",
+      "command": [
+        "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+        "-P",
+        "51323",
+        "-s",
+        "emulator-28600",
+        "shell",
+        "cd /data/local/tmp/mixer-s2-native-28600 && LD_LIBRARY_PATH=./lib timeout 20 ./fieldlog-native-api28"
+      ],
+      "platform": "Android 9 API 28 default arm64 image with swiftshader_indirect",
+      "exitCode": 0,
+      "oracleSHA256": "091333b185cfeca819ae5117876c8f1c60ddc1c3bdd355118c1a786c034cb1a1",
+      "mergedOutputSHA256": "430c13327306380d5d501a24c7a9a0bc6c9b96fa1c5d60bef1c5a4dcc09d7120",
+      "wrapperDiscrepancy": "The command returned zero but the first checker rejected 15 merged lines. A strict reread verified exactly six JSON snapshots and nine identical Android linker warnings for ignored libc++_shared.so processor-specific entries.",
+      "nativeCommandAbsent": true,
+      "emulatorAndPrivateADBClosed": true,
+      "ownedScratchRemoved": true
+    }
   },
   "cleanup": "All recorded command groups reached terminal custody. Build scratch and duplicate binaries were removed. The signed iOS app, Android packet and command evidence were retained.",
-  "limits": "No Simulator or emulator actions ran in this slice. The checker controls use real macOS snapshots and synthetic milestone lines. Section 20.2 runtime startup and memory, signed activation, and rendered UI remain pending."
+  "limits": "The iOS Simulator comparison measures offscreen producer snapshots and RSS. Android standalone native execution verifies the same six snapshots. Installed, rendered signed-release qualification and matched Android startup and memory remain pending."
 }
