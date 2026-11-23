@@ -66,6 +66,17 @@ review rechecked the signed journal. The earlier Debug observers failed
 before verifying the baseline.
 [Installed calculation receipt](verification/receipts/l08-ios-calculation-signed-native-20261122.json)
 
+## FieldLog iOS local release service outage
+
+The installed app cold-reopened the original task on cached sequence 1
+while both the stock local release service and its app-facing relay
+refused connections. The user workflow saved completion before restart.
+Signed sequence 2 recovered on the same installation and preserved the
+exact completed workspace bytes. The loopback service history, both
+endpoint closures, and owned Simulator removal verified. No billing setup
+was required. This run covers the release service and delivery cut.
+[Installed outage receipt](verification/receipts/l08-ios-installed-release-service-outage-20261122.json)
+
 ## Managed iOS FieldLog and historical native corpus
 
 A stock local build processor and managed worker linked the arm64 iOS
