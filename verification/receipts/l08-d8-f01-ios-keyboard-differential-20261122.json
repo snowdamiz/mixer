@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "gate": "L08",
+  "milestone": "D8",
+  "row": "F01",
+  "status": "passed",
+  "scope": "Historical non-OTA iOS keyboard dismissal differential",
+  "changedCommit": "32c063e748e48db391e878890edeb247a71d08d9",
+  "controlEditorCommit": "1587d2d4f02ab2dad9914df97f878727dd622296",
+  "soleProductSourceDelta": ".scrollDismissesKeyboard(.interactively)",
+  "selectorOutcome": {
+    "changed": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-ios-signed-resume-root/l08-f01-ordinary-pair/changed-native",
+      "receiptSHA256": "d83c03168dd8887f98b5477c138de910a8cb05e745dfb98b6ec83e3ba3df1971",
+      "simulator": "28ACB405-5CCF-4E08-9818-6491E419FF4F",
+      "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-27-0",
+      "executableSHA256": "fd580b2eac07379a8c8a21e6bace34504d67f9f5cf07c81c591e68b132863f3e",
+      "selector": "FieldLogUITests/KeyboardDismissalTests/testShortDragKeepsKeyboardAndFullDragDismissesIt",
+      "result": "Passed",
+      "failures": [],
+      "commandsTerminal": 92,
+      "exactTeardown": true
+    },
+    "control": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-ios-signed-resume-root/l08-f01-ordinary-pair/control-native",
+      "receiptSHA256": "90da19029a6237499ab20bd2421c817305279749a68f3a4a4ff7c0f68dc20cc8",
+      "simulator": "0E2695EC-470D-4AE5-B85E-EDA9512331AC",
+      "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-27-0",
+      "executableSHA256": "7e95c4a297a1425241dcca801c0f98325019687f7f0389fb8b4bf290451b99cd",
+      "selector": "FieldLogUITests/KeyboardDismissalTests/testShortDragKeepsKeyboardAndFullDragDismissesIt",
+      "result": "Failed",
+      "failures": [
+        "XCTAssertTrue failed - Full form drag left the keyboard visible"
+      ],
+      "commandsTerminal": 77,
+      "exactTeardown": true
+    }
+  },
+  "observations": "Both variants reached the same focused form and short drag. The full drag dismissed the keyboard and preserved exact note text in the changed fixture. The control kept the keyboard visible."
+}

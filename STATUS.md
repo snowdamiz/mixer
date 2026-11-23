@@ -109,6 +109,12 @@ passed, and both ordinary targets linked. The comparable roster shares
 including 1,139 of 1,901 logic lines and 307 of 1,371 UI lines.
 [Shared draft routing](verification/receipts/l08-d2-linked-shared-draft-routing-20261122.json)
 
+The ordinary checklist now shares heading, progress, row content and
+action bindings. The two native products linked. The standalone overlap
+is 1,595 of 4,713 Swift lines. Installed gestures and accessibility
+remain open for this implementation.
+[Shared checklist presentation](verification/receipts/l08-d2-linked-shared-checklist-presentation-20261122.json)
+
 ## In-place FieldLog public SDK adoption on iOS
 
 Three native tests created a project and saved photo draft in standalone
@@ -159,6 +165,13 @@ Simulator build were tested. Both locally installed archive admissions
 select 158 inputs and preserve the Pair27 profile.
 [Stock generator adoption](verification/receipts/l08-d6-stock-ios-generator-local-adoption-20261122.json)
 
+One authenticated HTTP request created a stock managed FieldLog iOS
+build. The owner's 12,804,844-byte download matched that same worker
+attempt's retained object. A different signed-in user received 404 and
+an anonymous request received 401. The downloaded binary needs its own
+installed runtime and release readback.
+[Authenticated FieldLog download](verification/receipts/l08-d6-stock-ios-authenticated-download-20261122.json)
+
 The historical F05 iOS app passed Cancel, Add, and cold readback. An
 independent signed F10 companion installation failed before navigation
 assertions. Both simulators retired. The F05 test adds ordinary Apple
@@ -184,6 +197,11 @@ and cold byte comparisons after the test identified the actual title field
 in the SwiftUI form. Public signed delivery remains separate.
 [Installed vertical title receipt](verification/receipts/l08-d8-f06-ios-vertical-title-20261122.json)
 
+The historical keyboard change passed a paired native check. The full
+drag dismissed the keyboard only in the changed build, and the note text
+survived. Both isolated Simulators retired.
+[Keyboard differential](verification/receipts/l08-d8-f01-ios-keyboard-differential-20261122.json)
+
 
 The iOS capability replacement replay accepted old sequence 7, refused
 an incompatible sequence 8, and reopened sequence 7 offline. In-place
@@ -200,6 +218,12 @@ custom URL. Safari stayed foreground and the app did not exchange the
 callback. The synthetic issuer and owned Simulator closed. The next
 replay exercises a direct browser tap on a local continuation link.
 [Safari callback receipt](verification/receipts/l02-ios-account-safari-303-native-20261122.json)
+
+The explicit Safari continuation link was tapped after the issuer
+accepted the proof. Safari stayed foreground and the app did not
+exchange the callback. The system authentication session is the next
+native route under test.
+[Safari continuation receipt](verification/receipts/l02-ios-account-safari-gesture-native-20261122.json)
 
 The exact installed FieldLog executable returned a missing-entitlement
 status from its first Keychain read before sign-in. A fresh disposable
