@@ -475,6 +475,17 @@ was deleted. This test used a bundled signed fixture. Paired OTA remains
 open.
 [F11 installed note replay](verification/receipts/l08-d8-f11-ios-note-native-20261123.json)
 
+The private F11 iOS Simulator witness then passed live delivery through
+the stock loopback origin. One installation reached the signed prior,
+the exact 2,442-byte historical successor, and the signed rollback.
+The offline process reopened the rollback after actual connection
+refusal. One native Paste, Save draft, and Commit preserved the Unicode
+and four line feeds and appended one linked revision-3 entrySaved event.
+The fresh process and stopped container matched the committed workspace
+digest. The owned Simulator and loopback services closed. The prior is
+a reauthored read-only fixture. Android live parity remains open.
+[F11 live iOS delivery](verification/receipts/l08-d8-f11-ios-live-delivery-20261123.json)
+
 The Android-scoped F20 signed host replay matched the archived order of
 23 drafts and 43 entries and opened a second-page draft. The live and
 offline phases preserved the workspace and all 46 outbox records with
