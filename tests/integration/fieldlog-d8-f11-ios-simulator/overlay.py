@@ -139,9 +139,52 @@ def overlay(source):
             F11NativeNote.log.notice("event=\(outcome, privacy: .public)")
         }}
 #endif""")
+    current_start = text.index("    internal func isCurrentNativeDisplay(")
+    current_body = text.index("        guard value.binding", current_start)
+    current_end = text.index("\n    }", current_body)
+    text = (text[:current_body] + f"#if {SIM}\n"
+            + "        return f11CurrentDisplayRefusal(value) == nil\n#else\n"
+            + text[current_body:current_end] + "\n#endif" + text[current_end:])
+    text = replace(text, "        guard exchange.observePresentation(value.ticket) else { return false }",
+                   f"""#if {SIM}
+        let accepted = exchange.observePresentation(value.ticket)
+        f11Trace.observation = accepted ? "accepted" : "exchange-refused"
+        f11Trace.transition("observe-presentation")
+        guard accepted else {{ return false }}
+#else
+        guard exchange.observePresentation(value.ticket) else {{ return false }}
+#endif""")
+    decision = "        guard isCurrentNativeDisplay(value), !observedNativeDisplay, let exchange else { return false }"
+    text = replace(text, decision, f"""#if {SIM}
+        if let refusal = f11CurrentDisplayRefusal(value) {{
+            f11Trace.observation = refusal
+            f11Trace.transition("observe-refused")
+            return false
+        }}
+        guard !observedNativeDisplay, let exchange else {{
+            f11Trace.observation = observedNativeDisplay ? "already-observed" : "no-exchange"
+            f11Trace.transition("observe-refused")
+            return false
+        }}
+#else
+{decision}
+#endif""")
+    text = replace(text, "        model.refreshInput()\n        model.attachmentObserver?.presentationChanged()",
+                   f"""        model.refreshInput()
+#if {SIM}
+        model.f11Trace.transition("readiness-changed")
+#endif
+        model.attachmentObserver?.presentationChanged()""")
+    text = replace(text, "            model.refreshInput()\n            model.attachmentObserver?.presentationChanged()",
+                   f"""            model.refreshInput()
+#if {SIM}
+            model.f11Trace.transition(claim.frame == nil ? "claim-without-frame" : "claim-frame")
+#endif
+            model.attachmentObserver?.presentationChanged()""")
     presentation.write_text(text)
     apple = source / activate / "CapabilityGuestUIApple.swift"
     text = apple.read_text()
+    text = replace(text, "import QuartzCore", f"import QuartzCore\n#if {SIM}\n@_spi(GuestUIV1) import MixerGuest\n#endif")
     start = text.index("                    MixerNativeView(host: host, onAction:")
     end = text.index("\n                }", start)
     original = text[start:end]
@@ -149,7 +192,35 @@ def overlay(source):
     point = "\n}\n\n#if canImport(UIKit)"
     renderer = "\n    private func renderer(_ host: MixerUIHost, height: CGFloat) -> some View {\n"
     renderer += original.replace("viewport.size.height", "height") + "\n    }"
-    apple.write_text(replace(text, point, renderer + point))
+    text = replace(text, point, renderer + point)
+    probe = text.index("@MainActor\nprivate final class CapabilityGuestUIIOSProbe")
+    probe_end = text.index("#elseif canImport(AppKit)", probe)
+    text = (text[:probe] + f"#if {SIM}\n" + (HERE / "Probe.inc").read_text()
+            + "#else\n" + text[probe:probe_end] + "#endif\n" + text[probe_end:])
+    for old, new in [
+        ("override func didMoveToWindow() { super.didMoveToWindow(); owner?.attachmentChanged() }",
+         f"""override func didMoveToWindow() {{
+        super.didMoveToWindow()
+#if {SIM}
+        owner?.trace(window == nil ? "window-detached" : "window-attached")
+#endif
+        owner?.attachmentChanged()
+    }}"""),
+        ("    @objc private func sceneChanged(_ notification: Notification) {",
+         f"""#if {SIM}
+    func trace(_ event: String) {{ presentation?.f11Trace.transition(event) }}
+#endif
+    @objc private func sceneChanged(_ notification: Notification) {{"""),
+        ("              scene === view.window?.windowScene else { return }\n        attachmentChanged()",
+         f"""              scene === view.window?.windowScene else {{ return }}
+#if {SIM}
+        trace(notification.name == UIScene.didActivateNotification ? "scene-activated" : "scene-deactivating")
+#endif
+        attachmentChanged()"""),
+    ]:
+        text = replace(text, old, new)
+    apple.write_text(text)
+    shutil.copyfile(HERE / "DisplayAdmission.swift", source / activate / "F11DisplayAdmission.swift")
     shutil.copyfile(HERE / "NativeNote.swift", source / activate / "F11NativeNote.swift")
 
 

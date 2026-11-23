@@ -14,6 +14,8 @@ struct F11NativeNote: UIViewRepresentable {
     let presentation: GuestUIPresentation
     let host: MixerUIHost
     let attachment: CapabilityGuestUIAttachmentIdentity
+    let document: MixerUI.UIDocument
+    let pasteDisplay: CapabilityGuestUIDisplayTicket?
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -47,11 +49,11 @@ struct F11NativeNote: UIViewRepresentable {
         coordinator.current = nil
         coordinator.request = nil
         coordinator.paste.target = nil
+        coordinator.report()
     }
 
     func updateUIView(_ view: UIStackView, context: Context) {
         let coordinator = context.coordinator
-        let document = host.snapshot.document
         let value = document.root.children.first?.properties["value"]?.string ?? ""
         if coordinator.revision != document.revision {
             coordinator.note.text = value
@@ -59,11 +61,19 @@ struct F11NativeNote: UIViewRepresentable {
             coordinator.request = nil
             coordinator.submitted = false
         }
-        let display = presentation.f11PasteDisplay(host: host, attachment: attachment)
+        let display = pasteDisplay.flatMap { ticket in
+            presentation.inputEnabled && presentation.renderHost === host
+                && presentation.isCurrentNativeDisplay(ticket) ? ticket : nil
+        }
         coordinator.note.isEditable = display != nil
         coordinator.current = nil
         coordinator.paste.isEnabled = display != nil && !coordinator.submitted && coordinator.request == nil
-        coordinator.observeFrame(nativeRevision: presentation.f11NativeRevision)
+        coordinator.displayFacts = { [weak presentation] in
+            guard let presentation else { return "native=0 model-released=true" }
+            return "native=\(presentation.f11NativeRevision ?? 0) \(presentation.f11DisplayFacts) \(presentation.f11Trace.status)"
+        }
+        presentation.f11Trace.didChange = { [weak coordinator] in coordinator?.report() }
+        defer { coordinator.report() }
         guard let display, let identity = host.snapshot.identity(for: Self.field) else { return }
         let send = presentation.actionHandler(host: host, attachment: attachment)
         coordinator.current = { [weak presentation, weak host] in
@@ -84,6 +94,11 @@ struct F11NativeNote: UIViewRepresentable {
     @MainActor
     final class PasteTextView: UITextView {
         weak var coordinator: Coordinator?
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            coordinator?.report()
+        }
 
         override func canPaste(_ itemProviders: [NSItemProvider]) -> Bool {
             itemProviders.count == 1 && itemProviders[0].hasItemConformingToTypeIdentifier(UTType.utf8PlainText.identifier)
@@ -112,9 +127,13 @@ struct F11NativeNote: UIViewRepresentable {
         private var pasteStatus = "waiting"
         private var editStatus = "waiting"
         private var routeStatus = "waiting"
-        private var frameStatus = "waiting"
+        var displayFacts: (() -> String)?
+        private var lastReport: String?
+        private var loggedReports = 0
+        private var providerCallbacks = 0
 
         func receive(_ providers: [NSItemProvider]) {
+            providerCallbacks = min(providerCallbacks + 1, 9999)
             guard note.canPaste(providers) else { pasteStatus = "type-rejected"; report(); return }
             guard request == nil, !submitted, note.window != nil, let authority = current, authority() != nil else {
                 pasteStatus = "inactive"; report(); return
@@ -162,26 +181,71 @@ struct F11NativeNote: UIViewRepresentable {
             report()
         }
 
+        func textViewDidBeginEditing(_ textView: UITextView) { report() }
+
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
             insertionRange == range && text.utf8.elementsEqual("Edited".utf8)
         }
 
-        func observeFrame(nativeRevision: UInt64?) {
-            let frame = "document=\(revision == 2 ? 2 : 1) native=\(nativeRevision == 2 ? 2 : nativeRevision == 1 ? 1 : 0)"
-            guard frameStatus != frame else { return }
-            frameStatus = frame
-            report()
-        }
-
-        private func report() {
-            let status = "paste=\(pasteStatus) edit=\(editStatus) route=\(routeStatus) \(frameStatus)"
+        func report() {
+            let authority = current?() != nil
+            let status = "paste=\(pasteStatus) edit=\(editStatus) route=\(routeStatus) document=\(revision ?? 0)"
+                + " \(displayFacts?() ?? "native=0") authority=\(authority) enabled=\(paste.isEnabled)"
+                + " target=\(paste.target === note) editable=\(note.isEditable)"
+                + " noteSize=\(f11DiagnosticSize(note)) pasteSize=\(f11DiagnosticSize(paste))"
+                + " sameWindow=\(note.window != nil && note.window === paste.window) focus=\(note.isFirstResponder)"
+                + " requested=\(request != nil) submitted=\(submitted) callbacks=\(providerCallbacks)"
             paste.accessibilityValue = status
+            guard lastReport != status else { return }
+            lastReport = status
+            // XCTest still reads the latest snapshot after this log budget is exhausted.
+            guard loggedReports < 64 else { return }
+            loggedReports += 1
             F11NativeNote.log.notice("\(status, privacy: .public)")
         }
 
         private func bounded(_ number: Int) -> Int {
             (0...1024).contains(number) ? number : -1
         }
+    }
+}
+#endif
+
+#if os(iOS) && targetEnvironment(simulator) && MIXER_F11_IOS_FIXTURE
+@MainActor
+func f11DiagnosticSize(_ view: UIView?) -> String {
+    func bounded(_ value: CGFloat) -> Int {
+        value.isFinite && (-16384...16384).contains(value) ? Int(value.rounded(.up)) : -1
+    }
+    guard let view else { return "-" }
+    return "\(bounded(view.bounds.width)),\(bounded(view.bounds.height))"
+}
+
+@MainActor
+final class F11DisplayTrace {
+    var didChange: (() -> Void)?
+    private var facts = "phase=before-layout"
+    private var transitions: [String] = []
+    private var firstRefusal = "none"
+    var observation = "waiting"
+
+    func probe(phase: String, refusal: String, facts: String) {
+        self.facts = facts
+        if firstRefusal == "none" && refusal != "none" { firstRefusal = refusal }
+        transition(phase + "/" + refusal)
+    }
+
+    func transition(_ event: String) {
+        if transitions.last != event {
+            transitions.append(event)
+            if transitions.count > 12 { transitions.removeFirst() }
+        }
+        didChange?()
+    }
+
+    var status: String {
+        let history = transitions.isEmpty ? "-" : transitions.joined(separator: ",")
+        return "first=\(firstRefusal) observe=\(observation) \(facts) history=\(history)"
     }
 }
 #endif

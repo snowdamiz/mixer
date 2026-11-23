@@ -455,6 +455,24 @@ Commit remained unreached. The next test checks the native revision-1
 display ticket before tapping Paste.
 [F11 paste and display evidence](verification/receipts/l08-d8-f11-ios-paste-provider.json)
 
+The diagnostic run then confirmed that UIKit acknowledged the current
+revision-1 ticket after a display transaction and two display-link
+intervals. The note remained read-only and the Paste control had no
+authority, even though XCTest reported it enabled and hittable. The
+test stopped before Paste. The owned Simulator and private packet were
+removed.
+[F11 display and control readiness evidence](verification/receipts/l08-d8-f11-first-display-native-20261123.json)
+
+Passing the rendered document and acknowledged paste ticket into the
+private SwiftUI adapter enabled the existing UIKit note and Paste
+control. One installed iOS Simulator test accepted the exact paste
+bytes, acknowledged revision 2, saved the draft, committed one linked
+entrySaved event, and matched the committed workspace in a fresh app
+process and from the stopped container. The original Unicode and four
+line feeds survived. The owned Simulator was deleted. This test used a
+bundled signed fixture. Paired OTA remains open.
+[F11 installed note replay](verification/receipts/l08-d8-f11-ios-note-native-20261123.json)
+
 The Android-scoped F20 signed host replay matched the archived order of
 23 drafts and 43 entries and opened a second-page draft. The live and
 offline phases preserved the workspace and all 46 outbox records with
