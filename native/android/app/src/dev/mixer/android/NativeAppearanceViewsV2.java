@@ -85,6 +85,7 @@ final class NativeAppearanceViewsV2 {
         void event(Record record, String event, Object value);
         void interaction();
         Mutation mutation();
+        default boolean editorStageAvailable(Record record){return false;}
         boolean editorRetained(Record record);
         boolean editorDispatchAvailable(Record record);
         default Gate committedInputGate(Record record) { return null; }
@@ -1072,7 +1073,7 @@ return;
                     phase=FINISHING;irreversible=true;
                     if(!target.finishComposingText())throw new IllegalStateException("native composition finish refused");exact();
                     if(!snapshot.text.equals(editable.toString())||snapshot.start!=field.getSelectionStart()||snapshot.end!=field.getSelectionEnd())throw new IllegalStateException("composition finish changed draft");exact();
-                    predecessor.revoked=true;predecessor.close=NativeField.Close.ATTEMPTED;field.phase=NativeField.Phase.CLOSING;phase=CLOSING;
+                    field.stages=null;predecessor.revoked=true;predecessor.close=NativeField.Close.ATTEMPTED;field.phase=NativeField.Phase.CLOSING;phase=CLOSING;
                     try{target.closeConnection();}
                     catch(RuntimeException|java.lang.Error failure){predecessor.close=NativeField.Close.FAILED_UNCERTAIN;throw failure;}
                     closeReturned=true;predecessor.close=NativeField.Close.RETURNED;field.phase=NativeField.Phase.IDLE;exact();
@@ -1112,6 +1113,8 @@ return;
         final long lossObservation;
         final NativeRenderer renderer;final NativeRenderer.Candidate candidate;final NativeRenderer.AttachmentJournal journal;
         EditorSnapshot snapshot;
+        final NativeField.StageRound stageRound;
+        NativeField.StageCarry stageCarry;
         static final int CAPTURED=0,ATTACHING=1,ATTACHED=2,PRECOMMIT_READY=3,RESTORING=4,RESTORED_HELD=5,FAILED_HELD=6,COMMITTED=7,RELEASED=8;
         boolean entered,ended,checking,counted,released,releaseReady;int callbacks,phase=CAPTURED;
         final java.util.ArrayDeque<String> hooks=new java.util.ArrayDeque<>();
@@ -1119,6 +1122,7 @@ return;
             this.field=field;record=field.record;this.original=original;this.selected=selected;this.editable=editable;
             this.renderer=renderer;this.candidate=candidate;this.journal=journal;
             before=record.binding;predecessor=field.attempt;disposition=predecessor==null?null:predecessor.close;
+            stageRound=field.stages;
             lossObservation=record.input.editorLossObservation();
         }
         boolean tuple(){return entered&&counted&&!ended&&record.fieldPreservation==this&&record.view==field&&renderer.fieldPreservationCurrent(candidate,journal,record,this)&&
@@ -1133,6 +1137,21 @@ return;
             try{Editable actual=field.nativeEditable();boolean same=actual==editable&&snapshot.same(field,editable);
                 if(!same||!tuple())throw new IllegalStateException("preserved field changed after getter");}
             finally{checking=false;}
+        }
+        void prepareStageCarry(){
+            var round=stageRound;
+            var fence=record.editorFence;
+            // Carry only the cohort sampled with this exact retained editor and predecessor.
+            if(round==null||field.stages!=round||round.stale||round.pending!=null||round.predecessor!=predecessor||
+                round.binding!=before||round.editable!=editable||round.loss!=lossObservation||
+                round.presentation!=fence.editorReflowFrom||round.seal!=fence.editorReflowSeal||
+                round.presentation!=fence.presentation||fence.inputAllowed||field.denied()||
+                (round.armed?disposition!=NativeField.Close.RETURNED:disposition!=NativeField.Close.NOT_REQUESTED))return;
+            long seal=fence.sealSerial;
+            if(round.ime.equals(field.imeConfiguration())&&field.hasFocus()){
+                exact();
+                stageCarry=new NativeField.StageCarry(round,selected,original.token,seal);
+            }
         }
         Mutation continuation(){exact();return Mutation.fieldContinuation(original,this);}
         private void enter(String hook){exact();if(callbacks>=16||hooks.contains(hook))throw new IllegalStateException("field callback recursion exhausted");hooks.push(hook);callbacks++;}
@@ -1230,6 +1249,7 @@ return;
             android.view.inputmethod.InputConnection target;
             NativeEditorConnectionV2.Base adapter;
             boolean revoked;
+            Stage stage;
             Close close=Close.NOT_REQUESTED;
             Attempt(Editable editable,EditorInfo output){this.editable=editable;this.output=output;}
         }
@@ -1237,6 +1257,58 @@ return;
         private Phase phase=Phase.IDLE;
         Attempt attempt;
         private Replacement replacement;
+        StageRound stages;
+        private boolean selectingStage;
+        static final class StageRound {
+            final Attempt predecessor;
+            final Editable editable;
+            final ImeConfiguration ime;
+            final long loss;
+            Binding binding;
+            OwnerLifecycleV2.Token presentation;
+            long seal;
+            boolean armed;
+            StageCarry pending;
+            boolean stale,restartPending;
+            StageRound(Attempt predecessor, Binding binding, NativeOwnerV2.Fence fence, long loss,
+                       ImeConfiguration ime){
+                this.predecessor=predecessor;this.editable=predecessor.editable;this.binding=binding;
+                this.presentation=fence.presentation;this.seal=fence.sealSerial;this.loss=loss;this.ime=ime;
+            }
+        }
+        static final class StageCarry {
+            final StageRound round;
+            final Binding binding;
+            final OwnerLifecycleV2.Token operation;
+            final long seal;
+            StageCarry(StageRound round,Binding binding,OwnerLifecycleV2.Token operation,long seal){
+                this.round=round;this.binding=binding;this.operation=operation;this.seal=seal;
+            }
+        }
+        private record ImeConfiguration(int inputType, int options, String hint, String privateOptions,
+                                        android.os.LocaleList hintLocales, int action, String actionLabel) {}
+        private record Stage(StageRound round, String text, int start, int end) {}
+        private ImeConfiguration imeConfiguration(){
+            CharSequence hint=getHint(),label=getImeActionLabel();
+            return new ImeConfiguration(getInputType(),getImeOptions(),hint==null?null:hint.toString(),
+                getPrivateImeOptions(),getImeHintLocales(),getImeActionId(),label==null?null:label.toString());
+        }
+        void publishStage(OwnerLifecycleV2.Token presentation,OwnerLifecycleV2.Token operation){
+            var round=stages;
+            if(round==null||round.presentation==presentation)return;
+            var carry=round.pending;
+            var fence=record.editorFence;
+            if(carry==null||carry.round!=round||carry.operation!=operation||fence.sealSerial!=carry.seal||
+                fence.editorReflowFrom!=round.presentation||fence.editorReflowSeal!=round.seal||
+                carry.binding!=record.binding||round.predecessor!=attempt){
+                stages=null;
+                return;
+            }
+            round.binding=carry.binding;
+            round.presentation=presentation;
+            round.seal=carry.seal;
+            round.pending=null;
+        }
         private int depth;
         private boolean ownedRetirement;
         private boolean permanent,focusLost,windowFocusLost,windowHidden,aggregateHidden,viewHidden,detached;
@@ -1255,6 +1327,10 @@ return;
         private void revoke(boolean terminal) {
             if (terminal && record != null && record.editorFence.inputRecovery != null)
                 record.editorFence.inputRecovery.fieldLosing(this, false);
+            stages=null;
+            revokeCurrent(terminal);
+        }
+        private void revokeCurrent(boolean terminal) {
             if(terminal)permanent=true;
             if(attempt!=null) {
                 attempt.revoked=true;
@@ -1322,6 +1398,7 @@ return;
                 throw new IllegalStateException("editor replacement unavailable");
             if(preserve&&focusLost&&!record.input.editorRetained(record))throw new IllegalStateException("foreign preserved field");
             if(depth!=0&&!preserve)throw new IllegalStateException("editor native frame active");
+            if(!preserve)stages=null;
             if(!preserve&&attempt!=null&&attempt.close!=Close.RETURNED&&attempt.close!=Close.NO_TARGET) {
                 revoke(false);drain();
                 if(phase!=Phase.IDLE)throw new IllegalStateException("editor predecessor not closed");
@@ -1398,14 +1475,22 @@ return;
         }
         private Mutation entryMutation(){return record.scoped!=null?record.scoped:record.input.mutation();}
         @SuppressWarnings("unchecked")
-        <T> T dispatch(Attempt expected,String hook,T refused,java.util.function.Supplier<T> action) {
+        <T> T dispatch(Attempt expected,String hook,T refused,java.util.function.BooleanSupplier admissible,java.util.function.Supplier<T> action) {
             NativeEnvironmentV2.requireMain();
+            EditorSnapshot approved=null;
+            if(expected!=null&&expected.stage!=null){
+                if(hook.equals("snapshot"))return refused;
+                approved=selectStage(expected,admissible);
+                if(approved==null)return refused;
+            }
             if(expected==null||attempt!=expected||expected.revoked||phase!=Phase.ACTIVE||depth!=0||!live())return refused;
             Mutation mutation=entryMutation();mutation.require();EditorLease lease=begin(expected,mutation,hook,false);if(lease==null){surface();return refused;}
             T result=refused;
             try{
                 lease.before=new EditorSnapshot(this,expected.editable);lease.check();
-                result=action.get();lease.check();
+                if(approved!=null?approved.same(this,expected.editable):admissible==null||admissible.getAsBoolean())
+                    result=action.get();
+                lease.check();
                 if(!expected.revoked&&(!validBuffer(expected.editable.toString(),record.binding.source)||getSelectionStart()<0||getSelectionEnd()<0||
                     getSelectionStart()>expected.editable.length()||getSelectionEnd()>expected.editable.length()))
                     throw new IllegalStateException("invalid native editor result");
@@ -1417,7 +1502,8 @@ return;
             }
             catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
             finally{end(lease);}
-            surface();return expected.revoked?refused:result;
+            surface();
+            return expected.revoked?refused:result;
         }
         <T> T nativeValue(Attempt expected,T refused,java.util.function.Supplier<T> nativeCall) {
             EditorLease lease=record.editorCallbackLease;
@@ -1428,12 +1514,25 @@ return;
         }
         void close(Attempt expected) {
             NativeEnvironmentV2.requireMain();
-            if(expected!=attempt||expected==null||expected.close==Close.RETURNED||expected.close==Close.NO_TARGET)return;
+            if(expected==null)return;
+            if(expected.stage!=null&&expected.adapter!=null&&expected.adapter.field==this) {
+                expected.revoked=true;expected.stage=null;expected.close=Close.NO_TARGET;
+                return;
+            }
+            if(expected!=attempt||expected.close==Close.RETURNED||expected.close==Close.NO_TARGET)return;
             if(record.fieldTransition!=null){record.fieldTransition.externalClose(expected);return;}
-            revoke(false);if(depth==0)drain();surface();
+            StageRound round=stages;
+            boolean arm=round!=null&&phase==Phase.ACTIVE&&depth==0&&
+                expected.close==Close.NOT_REQUESTED&&stageScalars(round);
+            if(arm)revokeCurrent(false);else revoke(false);
+            if(depth==0)drain();
+            if(arm&&stages==round&&phase==Phase.IDLE&&expected.close==Close.RETURNED&&stageScalars(round)){
+                round.armed=true;
+            }
+            surface();
         }
         boolean proposal(CharSequence value,boolean composing) {
-            if(!eventsAllowed()||!plainProposal(value,composing))return false;
+            if(!plainProposal(value,composing))return false;
             Editable buffer=nativeEditable();int start=getSelectionStart(),end=getSelectionEnd();
             int cs=android.view.inputmethod.BaseInputConnection.getComposingSpanStart(buffer),ce=android.view.inputmethod.BaseInputConnection.getComposingSpanEnd(buffer);
             if(cs>=0&&ce>=0){start=cs;end=ce;}if(start<0||end<0||start>buffer.length()||end>buffer.length())return false;
@@ -1464,6 +1563,12 @@ return;
             if (record != null && record.editorFence.inputRecovery != null)
                 record.editorFence.inputRecovery.creating(this, valid);
             if (!valid || !live()) return null;
+            if(selectingStage)return null;
+            if(stages!=null&&stages.stale)stages=null;
+            if(android.os.Build.VERSION.SDK_INT==36&&record.verticalInput&&record.editorFence.inputRecovery!=null){
+                if(stages!=null&&!stageScalars(stages))stages=null;
+                if(hasLiveTarget()||stages!=null)return stage(info);
+            }
             if(attempt!=null&&attempt.close!=Close.RETURNED&&attempt.close!=Close.NO_TARGET){revoke(false);drain();surface();if(phase!=Phase.IDLE)return null;}
             Mutation mutation=entryMutation();mutation.require();Editable editable=nativeEditable();
             if(editable==null)return null;
@@ -1492,10 +1597,7 @@ return;
                         if(fresh.revoked||denied()||!record.input.open(record)||!hasFocus()||!outputSnapshot.same(this,editable)||
                             info.initialSelStart!=getSelectionStart()||info.initialSelEnd!=getSelectionEnd()||
                             getInputType()!=record.expectedInputType||info.inputType!=negotiatedInputType||
-                            (info.imeOptions&(EditorInfo.IME_MASK_ACTION|EditorInfo.IME_FLAG_NO_ENTER_ACTION))!=record.expectedImeOptions||
-                            (info.imeOptions&(EditorInfo.IME_FLAG_NAVIGATE_NEXT|EditorInfo.IME_FLAG_NAVIGATE_PREVIOUS))!=0||
-                            (info.imeOptions&(EditorInfo.IME_FLAG_NO_EXTRACT_UI|EditorInfo.IME_FLAG_NO_FULLSCREEN))!=(EditorInfo.IME_FLAG_NO_EXTRACT_UI|EditorInfo.IME_FLAG_NO_FULLSCREEN)||
-                            !info.getSupportedHandwritingGestures().isEmpty()||!info.getSupportedHandwritingGesturePreviews().isEmpty())revoke(false);
+                            !sanitizedEditorInfo(info))revoke(false);
                         else {lease.check();mutation.require();fresh.adapter=NativeEditorConnectionV2.create(this,fresh);result=fresh.adapter;}
                     }
                 }
@@ -1524,6 +1626,179 @@ return;
                 // No native effect, callback or owner/coordinator resumption after final busy clear.
             }
             surface();return fresh.revoked?null:result;
+        }
+        // Use the still-current predecessor's exact callback scope for metadata collection.
+        // The new delegate has only done construction/caps inspection until selected.
+        private android.view.inputmethod.InputConnection stage(EditorInfo info) {
+            if(!record.input.editorStageAvailable(record))return null;
+            Attempt predecessor=attempt;
+            Editable editable=predecessor.editable;
+            StageRound round=stages;
+            Mutation mutation=entryMutation();
+            mutation.require();
+            Phase previous=phase;
+            phase=Phase.CREATING;
+            EditorLease lease=begin(predecessor,mutation,"create",false);
+            if(lease==null){phase=previous;surface();return null;}
+            Attempt candidate=null;
+            boolean populated=false;
+            try {
+                stageCreation: {
+                    EditorSnapshot before=new EditorSnapshot(this,editable);
+                    ImeConfiguration ime=imeConfiguration();
+                    if(round==null)round=new StageRound(predecessor,record.binding,record.editorFence,
+                        record.input.editorLossObservation(),ime);
+                    if(phase!=Phase.CREATING||!stageScalars(round)||!round.ime.equals(ime))break stageCreation;
+                    lease.check();
+                    mutation.require();
+                    populated=true;
+                    var target=super.onCreateInputConnection(info);
+                    lease.check();
+                    if(!before.same(this,editable))throw new IllegalStateException("speculative create mutated Editable");
+                    if(target!=null&&target!=predecessor.target&&phase==Phase.CREATING&&stageOpen(round)&&
+                        validBuffer(before.text,record.binding.source)&&info.initialSelStart==before.start&&info.initialSelEnd==before.end&&
+                        before.start>=0&&before.end>=0&&before.start<=editable.length()&&before.end<=editable.length()&&
+                        editorInputTypeSupported(android.os.Build.VERSION.SDK_INT,record.expectedInputType,getInputType(),info.inputType)&&
+                        (info.imeOptions&(EditorInfo.IME_MASK_ACTION|EditorInfo.IME_FLAG_NO_ENTER_ACTION))==record.expectedImeOptions) {
+                        int negotiatedType=info.inputType;
+                        info.imeOptions=(info.imeOptions&~(EditorInfo.IME_FLAG_NAVIGATE_NEXT|EditorInfo.IME_FLAG_NAVIGATE_PREVIOUS))|
+                            EditorInfo.IME_FLAG_NO_EXTRACT_UI|EditorInfo.IME_FLAG_NO_FULLSCREEN;
+                        info.setSupportedHandwritingGestures(java.util.Collections.emptyList());
+                        lease.check();
+                        info.setSupportedHandwritingGesturePreviews(java.util.Collections.emptySet());
+                        lease.check();
+                        if(!before.same(this,editable))throw new IllegalStateException("speculative output mutated Editable");
+                        boolean metadata=round.ime.equals(imeConfiguration())&&info.inputType==negotiatedType&&
+                            info.initialSelStart==before.start&&info.initialSelEnd==before.end&&
+                            sanitizedEditorInfo(info);
+                        lease.check();
+                        if(!before.same(this,editable))throw new IllegalStateException("speculative metadata changed Editable");
+                        if(metadata&&phase==Phase.CREATING&&stageOpen(round)) {
+                            candidate=new Attempt(editable,null);
+                            candidate.target=target;
+                            candidate.stage=new Stage(round,before.text,before.start,before.end);
+                            candidate.adapter=NativeEditorConnectionV2.create(this,candidate);
+                        }
+                    }
+                }
+            } catch(RuntimeException|java.lang.Error failure) {
+                uncertain(failure);
+            } finally {
+                boolean held=false;
+                try{record.input.editorFinishBegin(record,lease);held=true;finishing=true;}
+                catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
+                if(phase!=Phase.CREATING||primary!=null)candidate=null;
+                if(candidate==null&&populated) {
+                    try{scrub(info);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
+                }
+                try{end(lease);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
+                if(candidate!=null&&(primary!=null||phase!=Phase.CREATING||!stageScalars(round))){
+                    candidate=null;
+                    try{scrub(info);}catch(RuntimeException|java.lang.Error failure){uncertain(failure);}
+                }
+                if(phase==Phase.CREATING)phase=previous;
+                if(candidate!=null)stages=round;
+                finishing=false;
+                if(held)record.input.editorFinishEnd(record,lease);
+            }
+            surface();
+            if(candidate==null)return null;
+            return candidate.adapter;
+        }
+        private boolean stageScalars(StageRound round) {
+            var fence=record.editorFence;
+            return !fence.terminal&&fence.drawAllowed&&fence.inputAllowed&&!fence.commitFinish&&fence.operation==null&&
+                attempt==round.predecessor&&record.binding==round.binding&&record.view==this&&
+                fence.presentation==round.presentation&&fence.sealSerial==round.seal&&round.pending==null&&
+                record.fieldTransition==null&&record.fieldPreservation==null&&!denied()&&
+                record.input.editorLossObservation()==round.loss;
+        }
+        private boolean stageOpen(StageRound round) {
+            return stageScalars(round)&&record.input.editorRetained(record)&&hasFocus()&&
+                record.input.open(record)&&stageScalars(round);
+        }
+        private boolean stageSelectionReady(StageRound round) {
+            return stages==round&&round.armed&&phase==Phase.IDLE&&depth==0&&replacement==null&&
+                !finishing&&!record.changing&&record.scoped==null&&record.editorCallbackLease==null&&
+                round.predecessor.revoked&&round.predecessor.close==Close.RETURNED&&
+                record.input.editorStageAvailable(record)&&stageScalars(round);
+        }
+        private EditorSnapshot selectStage(Attempt candidate,java.util.function.BooleanSupplier admissible) {
+            Stage stage=candidate.stage;
+            StageRound round=stage.round();
+            if(selectingStage||round.stale||candidate.revoked||candidate.adapter.field!=this||
+                candidate.editable!=round.editable||!stageSelectionReady(round))return null;
+            selectingStage=true;
+            try {
+                if(!live()||!stageSelectionReady(round))return null;
+                Mutation mutation=entryMutation();
+                mutation.require();
+                EditorLease lease=begin(round.predecessor,mutation,"stageSelect",false);
+                if(lease==null){surface();return null;}
+                boolean metadata=false,valid=false;
+                EditorSnapshot actual=null;
+                try {
+                    metadata=round.ime.equals(imeConfiguration());
+                    lease.check();
+                    actual=new EditorSnapshot(this,candidate.editable);
+                    lease.check();
+                    valid=(admissible==null||admissible.getAsBoolean())&&actual.same(this,candidate.editable);
+                    lease.check();
+                } catch(RuntimeException|java.lang.Error failure) {
+                    uncertain(failure);
+                } finally {end(lease);}
+                surface();
+                if(!valid||candidate.stage!=stage||candidate.revoked||!stageSelectionReady(round))return null;
+                if(!metadata||!stage.text().equals(actual.text)||stage.start()!=actual.start||stage.end()!=actual.end){
+                    candidate.stage=null;
+                    candidate.revoked=true;
+                    candidate.close=Close.NO_TARGET;
+                    // Only a served operation after exact predecessor close can request recovery.
+                    if(metadata&&actual.start>=0&&actual.end>=0&&actual.start<=actual.text.length()&&
+                        actual.end<=actual.text.length()&&validBuffer(actual.text,round.binding.source))
+                        requestStageRestart(round);
+                    return null;
+                }
+                // Publish once before entering ordinary dispatch. No sibling can claim this round.
+                candidate.stage=null;
+                stages=null;
+                record.modelSettled=false;
+                attempt=candidate;
+                phase=Phase.ACTIVE;
+                return actual;
+            } finally {selectingStage=false;}
+        }
+        private void requestStageRestart(StageRound round) {
+            round.stale=true;
+            round.restartPending=true;
+            try {
+                if(!post(()->restartStage(round)))round.restartPending=false;
+            } catch(RuntimeException|java.lang.Error failure) {
+                uncertain(failure);
+                surface();
+            }
+        }
+        private void restartStage(StageRound round) {
+            NativeEnvironmentV2.requireMain();
+            if(!round.restartPending)return;
+            round.restartPending=false;
+            // Consume before any platform getter. A synchronous or repeated delivery cannot restart.
+            if(selectingStage||!stageSelectionReady(round))return;
+            try {
+                var manager=getContext().getSystemService(android.view.inputmethod.InputMethodManager.class);
+                if(manager!=null&&live()&&nativeEditable()==round.editable&&stageSelectionReady(round))
+                    manager.restartInput(this);
+            } catch(RuntimeException|java.lang.Error failure) {
+                uncertain(failure);
+                surface();
+            }
+        }
+        private boolean sanitizedEditorInfo(EditorInfo info) {
+            int required=EditorInfo.IME_FLAG_NO_EXTRACT_UI|EditorInfo.IME_FLAG_NO_FULLSCREEN;
+            int navigation=EditorInfo.IME_FLAG_NAVIGATE_NEXT|EditorInfo.IME_FLAG_NAVIGATE_PREVIOUS;
+            return (info.imeOptions&(EditorInfo.IME_MASK_ACTION|EditorInfo.IME_FLAG_NO_ENTER_ACTION))==record.expectedImeOptions&&
+                (info.imeOptions&navigation)==0&&(info.imeOptions&required)==required&&
+                info.getSupportedHandwritingGestures().isEmpty()&&info.getSupportedHandwritingGesturePreviews().isEmpty();
         }
         private void resetOutput(EditorInfo info){
             info.inputType=0;info.imeOptions=0;info.actionId=0;info.actionLabel=null;info.label=null;info.hintText=null;

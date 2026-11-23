@@ -42,7 +42,7 @@ import Testing
 
 @Test func publicV4CurrentPairAuthorityMatchesSelectedInputs() throws {
     let profile = AndroidSDKCompatibility.profile
-    #expect(profile.id == "mixer.android-source-pair.26")
+    #expect(profile.id == "mixer.android-source-pair.27")
     #expect(profile.wire.public_host_profiles == ["MEASURED_MULTILINE_LONG_NOTES_V4"])
     try AndroidSDKCompatibility.requireHost(.publicV4)
     try AndroidSDKCompatibility.admitInput(sdk: compatibilityRepository.appendingPathComponent("sdk"), adapter: compatibilityRepository.appendingPathComponent("native/android"))

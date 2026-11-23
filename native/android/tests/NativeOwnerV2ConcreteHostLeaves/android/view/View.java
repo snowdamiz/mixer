@@ -8,6 +8,21 @@ import android.content.Context;import android.content.res.ColorStateList;import 
  public final List<OnLayoutChangeListener> layoutListeners=new ArrayList<>();public final List<OnAttachStateChangeListener> attachListeners=new ArrayList<>();public OnApplyWindowInsetsListener insetsListener;public OnClickListener clickListener;public OnFocusChangeListener focusListener;
  protected int visibility=VISIBLE,layoutDirection=LAYOUT_DIRECTION_LTR,id,minWidth,minHeight,padLeft,padTop,padRight,padBottom;protected Object tag;protected CharSequence description,tooltip,stateDescription;protected Drawable background;protected ViewGroup.LayoutParams layoutParams;public int invalidations,layoutRequests;public ColorStateList backgroundTintList;public Object backgroundTintMode,stateListAnimator;public float elevation;public boolean defaultFocusHighlightEnabled,willNotDraw;public int textAlignment,textDirection;
  private static int nextId=1;
+ private final java.util.ArrayDeque<Runnable> hostPostedWork = new java.util.ArrayDeque<>();
+ /** Tests explicitly deliver view posts on the host UI thread. */
+ public boolean post(Runnable action) {
+  hit("View.post");
+  hostPostedWork.addLast(action);
+  done("View.post");
+  return true;
+ }
+ public boolean hostRunPostedAction() {
+  if (!attached) return false;
+  Runnable action = hostPostedWork.pollFirst();
+  if (action == null) return false;
+  action.run();
+  return true;
+ }
  private int hostWidthSpec,hostHeightSpec;
  private boolean hostMeasured,hostForceLayout,hostLayoutRequired;
  public void forceLayout(){hostForceLayout=true;}

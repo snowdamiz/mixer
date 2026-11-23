@@ -15,6 +15,8 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
         long sealSerial = 1;
         OwnerLifecycleV2.Token operation, presentation;
         InputRecovery inputRecovery;
+        OwnerLifecycleV2.Token editorReflowFrom;
+        long editorReflowSeal;
     }
     enum Outcome { NOT_REQUESTED, DEFERRED, IN_PROGRESS, ATTEMPTED, RETURNED, FAILED_UNCERTAIN }
     enum Cause { CLOSED, DETACHED, REGISTRATION_FAILED, OBSERVER_EXHAUSTED,
@@ -64,7 +66,7 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
                 } else {
                     if (fence.terminal || token == null || core.snapshot().pendingDrain() != token) return;
                     OwnerLifecycleV2.Token previous = fence.presentation;
-                    seal(false);
+                    seal(false, fence.editorReflowFrom != null);
                     if (!fence.terminal) seedFocus();
                     if (!fence.terminal) process(core.drain(lifetime, token, probeWindow()), null);
                     if (fence.inputRecovery != null) fence.inputRecovery.published(this, previous);
@@ -293,7 +295,7 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
         external.offer(packet,descriptor);
         if(!started) { start(); onResume(); }
         else {
-            seal(false); seedFocus();
+            seal(false, true); seedFocus();
             process(core.invalidate(lifetime),null);
             process(core.windowChanged(lifetime,probeWindow()),null);
         }
@@ -401,7 +403,7 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
             terminate(cause, rendererCause, primary, firstFatal, change);
         } else {
             try {
-                seal(false);
+                seal(false, true);
                 if (!fence.terminal) { seedFocus(); process(core.invalidate(lifetime), null); process(core.windowChanged(lifetime, probeWindow()), null); }
             } catch (RuntimeException | Error failure) { fail(failure, Cause.CORE_FAILURE); }
         }
@@ -441,6 +443,7 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
         boolean actual = root.hasWindowFocus();
         if (fence.terminal) return;
         if (!focusKnown || actual != lastFocus) {
+            if (!actual) fence.editorReflowFrom = null;
             focusKnown = true; lastFocus = actual;
             process(core.focusChanged(lifetime, actual), null);
         }
@@ -448,13 +451,24 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
     private OwnerLifecycleV2.WindowFacts probeWindow() {
         boolean destroyed = activity.isDestroyed(), attached = root.isAttachedToWindow();
         Window actual = activity.getWindow(); Object token = root.getWindowToken();
-        if (actual == null || token == null) window = null;
-        else if (window == null || window.window() != actual || window.token() != token) window = new WindowIdentity(actual, token);
+        if (actual == null || token == null) {
+            window = null;
+            fence.editorReflowFrom = null;
+        } else if (window == null || window.window() != actual || window.token() != token) {
+            window = new WindowIdentity(actual, token);
+            fence.editorReflowFrom = null;
+        }
         return new OwnerLifecycleV2.WindowFacts(activity, root, destroyed, attached,
             observer != null && observer.ready() ? window : null, root.getWidth(), root.getHeight(), root.getRootWindowInsets() != null);
     }
     /** No callbacks or core work precede this barrier. */
-    private void seal(boolean terminal) {
+    private void seal(boolean terminal) { seal(terminal, false); }
+    private void seal(boolean terminal, boolean editorReflow) {
+        if (fence.inputRecovery == null || !editorReflow || terminal || activeOperation != null) fence.editorReflowFrom = null;
+        else if (fence.drawAllowed && fence.presentation != null) {
+            fence.editorReflowFrom = fence.presentation;
+            fence.editorReflowSeal = fence.sealSerial;
+        }
         if (terminal) fence.terminal = true;
         if (fence.inputRecovery != null) fence.inputRecovery.sealed();
         fence.drawAllowed = false; fence.inputAllowed = false;
@@ -491,6 +505,7 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
         if (coordinator != null && coordinator != opening) coordinator.sealGatesScalar();
         terminalProcessed = true;
         if (fence.inputRecovery != null) fence.inputRecovery.reset();
+        fence.editorReflowFrom = null;
         if (ledger.cause == null) ledger.cause = cause;
         ledger.rendererCause = rendererCause;
         remember(primary); remember(firstFatal);
@@ -577,6 +592,7 @@ final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
             fence.presentation = state.presentation(); fence.drawAllowed = true;
             fence.inputAllowed = state.foreground() && state.focused() && (external==null||external.inputEnabled());
             coordinator.publishGatesScalar(state.presentation());
+            fence.editorReflowFrom = null;
         } else {
             fence.drawAllowed = false; fence.inputAllowed = false;
             if (opening != null) opening.sealGatesScalar();

@@ -113,7 +113,7 @@ def admission_paths(root=None, binding=None):
                     'swiftpm_migration_transition', 'fieldlog_commit_transition',
                     'native_fingerprint_transition', 'private_f10_transition',
                     'fieldlog_signed_editor_transition', 'store_reconciliation_fixture_transition',
-                    'android_stock_libz_transition', 'pair26_transition'):
+                    'android_stock_libz_transition', 'pair26_transition', 'pair27_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -497,7 +497,10 @@ class SparseControls(unittest.TestCase):
             pair26 = binding['pair26_transition']
             self.assertEqual(pair26['sourceBefore'], libz['sourceAfter'])
             self.assertEqual(observed['predecessor_pair25_source157_sha256'], pair26['sourceBefore'])
-            self.assertEqual(observed['source_sha256'], pair26['sourceAfter'])
+            pair27 = binding['pair27_transition']
+            self.assertEqual(pair27['sourceBefore'], pair26['sourceAfter'])
+            self.assertEqual(observed['predecessor_pair26_source157_sha256'], pair27['sourceBefore'])
+            self.assertEqual(observed['source_sha256'], pair27['sourceAfter'])
             self.assertEqual(observed['source_sha256'], binding['source']['sha256'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']

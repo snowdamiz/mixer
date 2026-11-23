@@ -57,6 +57,18 @@ import android.content.Context;import android.content.res.ColorStateList;import 
  public void setInputType(int value){hit("TextView.setInputType");inputType=value;done("TextView.setInputType");}
  public int getInputType(){return inputType;}
  public void setImeOptions(int value){hit("TextView.setImeOptions");imeOptions=value;done("TextView.setImeOptions");}
+ private String privateImeOptions;
+ private LocaleList imeHintLocales;
+ private int imeActionId;
+ private CharSequence imeActionLabel;
+ public int getImeOptions(){return imeOptions;}
+ public String getPrivateImeOptions(){return privateImeOptions;}
+ public void setPrivateImeOptions(String value){privateImeOptions=value;}
+ public LocaleList getImeHintLocales(){return imeHintLocales;}
+ public void setImeHintLocales(LocaleList value){imeHintLocales=value;}
+ public int getImeActionId(){return imeActionId;}
+ public CharSequence getImeActionLabel(){return imeActionLabel;}
+ public void setImeActionLabel(CharSequence label,int actionId){imeActionLabel=label;imeActionId=actionId;}
  public void setHighlightColor(int value){hit("TextView.setHighlightColor");highlightColor=value;done("TextView.setHighlightColor");}
  public void setMinWidth(int value){hit("TextView.setMinWidth");minWidth=value;done("TextView.setMinWidth");}
  public void setMinHeight(int value){hit("TextView.setMinHeight");minHeight=value;done("TextView.setMinHeight");}

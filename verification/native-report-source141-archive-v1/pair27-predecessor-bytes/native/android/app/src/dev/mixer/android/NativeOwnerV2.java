@@ -1,0 +1,693 @@
+package dev.mixer.android;
+
+import android.app.Activity;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.Window;
+import android.widget.FrameLayout;
+import java.util.List;
+import java.util.Objects;
+
+/** Private main-thread lifetime. This adapter owns effects; the core owns decisions. */
+final class NativeOwnerV2 implements AutoCloseable, NativeEnvironmentV2.Sink {
+    static final class Fence {
+        boolean terminal, drawAllowed, inputAllowed, commitFinish, rendererReportActive;
+        long sealSerial = 1;
+        OwnerLifecycleV2.Token operation, presentation;
+        InputRecovery inputRecovery;
+    }
+    enum Outcome { NOT_REQUESTED, DEFERRED, IN_PROGRESS, ATTEMPTED, RETURNED, FAILED_UNCERTAIN }
+    enum Cause { CLOSED, DETACHED, REGISTRATION_FAILED, OBSERVER_EXHAUSTED,
+        RENDERER_TERMINAL, SEAL_SERIAL_EXHAUSTED, SCHEDULING_FAILED, OPERATION_FAILED, CORE_FAILURE }
+    static final class CleanupLedger {
+        private Throwable primary;
+        private Error firstFatal;
+        private Cause cause;
+        private NativeEnvironmentV2.RendererCause rendererCause;
+        private Outcome handler = Outcome.NOT_REQUESTED, input = Outcome.NOT_REQUESTED,
+            unregister = Outcome.NOT_REQUESTED, coordinator = Outcome.NOT_REQUESTED;
+        private Throwable handlerFailure, inputFailure, unregisterFailure, coordinatorFailure;
+        private boolean coreCompletionUnreported;
+        Throwable primary() { requireMain(); return primary; }
+        Error firstFatal() { requireMain(); return firstFatal; }
+        Cause cause() { requireMain(); return cause; }
+        NativeEnvironmentV2.RendererCause rendererCause() { requireMain(); return rendererCause; }
+        Outcome handler() { requireMain(); return handler; }
+        Outcome input() { requireMain(); return input; }
+        Outcome unregister() { requireMain(); return unregister; }
+        Outcome coordinator() { requireMain(); return coordinator; }
+        Throwable handlerFailure() { requireMain(); return handlerFailure; }
+        Throwable inputFailure() { requireMain(); return inputFailure; }
+        Throwable unregisterFailure() { requireMain(); return unregisterFailure; }
+        Throwable coordinatorFailure() { requireMain(); return coordinatorFailure; }
+        boolean coreCompletionUnreported() { requireMain(); return coreCompletionUnreported; }
+    }
+    private record WindowIdentity(Window window, Object token) {}
+    private enum WorkKind { DRAIN, TERMINAL_CLOSE }
+    private final class Work implements Runnable {
+        final WorkKind kind;
+        final OwnerLifecycleV2.Token token;
+        final NativeCoordinatorV2 resource;
+        boolean posting, cancellationPending;
+        OwnerLifecycleV2.Token cancellationToken;
+        Work(WorkKind kind, OwnerLifecycleV2.Token token, NativeCoordinatorV2 resource) {
+            this.kind = kind; this.token = token; this.resource = resource;
+        }
+        @Override public void run() {
+            requireMain();
+            if (queued != this) return;
+            queued = null; // consume before any callback or concrete probe
+            try {
+                if (kind == WorkKind.TERMINAL_CLOSE) {
+                    if (pendingCloseResource != resource || pendingCloseToken != token) return;
+                    closePending();
+                } else {
+                    if (fence.terminal || token == null || core.snapshot().pendingDrain() != token) return;
+                    OwnerLifecycleV2.Token previous = fence.presentation;
+                    seal(false);
+                    if (!fence.terminal) seedFocus();
+                    if (!fence.terminal) process(core.drain(lifetime, token, probeWindow()), null);
+                    if (fence.inputRecovery != null) fence.inputRecovery.published(this, previous);
+                }
+            } catch (RuntimeException | Error failure) { fail(failure, Cause.CORE_FAILURE); }
+            finally {
+                if (fence.inputRecovery != null) fence.inputRecovery.drainFinished(this);
+                settle();
+            }
+            throwFatal();
+        }
+    }
+
+    private record WindowClose(NativeAppearanceViewsV2.NativeField field,
+                               NativeAppearanceViewsV2.NativeField.Attempt predecessor,
+                               boolean visibilityLoss) {}
+
+    // Focus loss may precede pause. Visibility loss belongs to the sealed Activity episode.
+    final class InputRecovery {
+        private boolean paused, stopped, waiting, missed;
+        private WindowClose closed;
+        private Work resumeDrain;
+        private RestartInput posted;
+
+        void windowLosing(NativeAppearanceViewsV2.NativeField field) {
+            fieldLosing(field, true);
+            captureWindowClose(field, false);
+        }
+        void fieldLosing(NativeAppearanceViewsV2.NativeField field, boolean windowLoss) {
+            if (closed != null && closed.field() == field && (waiting || resumeDrain != null || !windowLoss)) discardClose();
+            if (posted != null && posted.close.field() == field) posted = null;
+        }
+        void windowVisibilityChanged(NativeAppearanceViewsV2.NativeField field, boolean loss) {
+            if (loss) {
+                fieldLosing(field, true);
+                if (paused && !fence.inputAllowed) captureWindowClose(field, true);
+            } else if (paused && !stopped && closed != null && closed.field() == field && closed.visibilityLoss()) {
+                discardClose();
+            }
+        }
+        private void captureWindowClose(NativeAppearanceViewsV2.NativeField field, boolean visibilityLoss) {
+            if (!fence.terminal && !waiting && resumeDrain == null && field.record.verticalInput && field.hasLiveTarget())
+                closed = new WindowClose(field, field.attempt, visibilityLoss);
+        }
+        void windowGaining(NativeAppearanceViewsV2.NativeField field) {
+            if (!waiting && resumeDrain == null && closed != null && closed.field() == field) discardClose();
+        }
+        void paused() {
+            if (waiting || resumeDrain != null || stopped || (paused && closed != null && closed.visibilityLoss())) discardClose();
+            posted = null;
+            paused = true;
+            stopped = false;
+        }
+        void stopped() {
+            posted = null;
+            if (!paused || waiting || resumeDrain != null) discardClose();
+            stopped = paused;
+        }
+        void resumed() {
+            WindowClose close = stopped ? closed : null;
+            reset();
+            if (close != null && close.predecessor().close == NativeAppearanceViewsV2.NativeField.Close.RETURNED
+                    && external.inputEnabled()) {
+                closed = close;
+                waiting = true;
+            }
+        }
+        void bindDrain() {
+            if (!waiting) return;
+            Work work = queued;
+            var state = core.snapshot();
+            if (!fence.terminal && state.phase() == OwnerLifecycleV2.Phase.LIVE && state.foreground()
+                    && work != null && work.kind == WorkKind.DRAIN && state.pendingDrain() == work.token) {
+                waiting = false;
+                resumeDrain = work;
+            }
+        }
+        void creating(NativeAppearanceViewsV2.NativeField field, boolean valid) {
+            if (posted != null && posted.close.field() == field) posted = null;
+            WindowClose close = closed;
+            if (close == null || close.field() != field) return;
+            Work work = resumeDrain;
+            try {
+                if (valid && work != null && queued == work
+                        && !fence.terminal && !fence.inputAllowed && fence.operation == null
+                        && field.resumeInputReady(close.predecessor()) && closed == close
+                        && resumeDrain == work && queued == work && !fence.inputAllowed && fence.operation == null) {
+                    missed = true;
+                } else if (closed == close) discardClose();
+            } catch (RuntimeException | Error failure) {
+                fail(failure, Cause.OPERATION_FAILED);
+                settle();
+                throwFatal();
+            }
+        }
+        void published(Work work, OwnerLifecycleV2.Token previous) {
+            if (resumeDrain != work || !missed || fence.presentation == previous) return;
+            WindowClose close = closed;
+            discardClose(); // The same delivered drain may schedule at most once.
+            var record = close.field().record;
+            var gate = record.input.committedInputGate(record);
+            if (gate == null || !close.field().resumeInputIdle(close.predecessor())) return;
+            RestartInput restart = new RestartInput(close, record.binding, gate, fence.presentation, fence.sealSerial);
+            posted = restart;
+            if (!handler.post(restart) && posted == restart) posted = null;
+        }
+        void drainFinished(Work work) {
+            if (resumeDrain == work) discardClose();
+        }
+        void sealed() { posted = null; }
+        void reset() {
+            discardClose();
+            posted = null;
+            paused = false;
+            stopped = false;
+        }
+        private void discardClose() {
+            closed = null;
+            resumeDrain = null;
+            waiting = false;
+            missed = false;
+        }
+
+        private final class RestartInput implements Runnable {
+            final WindowClose close;
+            final NativeAppearanceViewsV2.Binding binding;
+            final NativeAppearanceViewsV2.Gate gate;
+            final OwnerLifecycleV2.Token presentation;
+            final long seal;
+
+            RestartInput(WindowClose close, NativeAppearanceViewsV2.Binding binding,
+                         NativeAppearanceViewsV2.Gate gate, OwnerLifecycleV2.Token presentation, long seal) {
+                this.close = close;
+                this.binding = binding;
+                this.gate = gate;
+                this.presentation = presentation;
+                this.seal = seal;
+            }
+            private boolean current() {
+                var field = close.field();
+                var record = field.record;
+                return posted == this && effectDepth == 0 && activeOperation == null && fence.operation == null
+                    && fence.presentation == presentation && fence.sealSerial == seal
+                    && field.resumeInputIdle(close.predecessor()) && record.binding == binding
+                    && record.input.committedInputGate(record) == gate;
+            }
+            @Override public void run() {
+                requireMain();
+                if (posted != this) return;
+                try {
+                    var field = close.field();
+                    if (current() && field.resumeInputReady(close.predecessor()) && current()) {
+                        var manager = activity.getSystemService(android.view.inputmethod.InputMethodManager.class);
+                        if (manager != null && current() && field.resumeInputLive(close.predecessor()) && current()) {
+                            posted = null;
+                            manager.restartInput(field);
+                        }
+                    }
+                } catch (RuntimeException | Error failure) { fail(failure, Cause.OPERATION_FAILED); }
+                finally {
+                    if (posted == this) posted = null;
+                    settle();
+                }
+                throwFatal();
+            }
+        }
+    }
+
+    private ExternalFrameSourceV2 external;
+    private String lastNotice="none";
+    private final Activity activity;
+    private final FrameLayout root;
+    private final AndroidUIProfile profile;
+    private final Handler handler;
+    private final Runnable completionFault;
+    private final OwnerLifecycleV2 core;
+    private final OwnerLifecycleV2.Token lifetime;
+    private final Fence fence = new Fence();
+    private final CleanupLedger ledger = new CleanupLedger();
+    private NativeEnvironmentV2.Observer observer;
+    private NativeCoordinatorV2 opening, coordinator;
+    private Work queued;
+    private WindowIdentity window;
+    private OwnerLifecycleV2.Token activeOperation, pendingUnregister, pendingCloseToken;
+    private NativeCoordinatorV2 pendingCloseResource;
+    private boolean started, registering, terminalProcessed, focusKnown, lastFocus, emergency;
+    private int effectDepth;
+
+    NativeOwnerV2(Activity activity, FrameLayout root) { this(activity,root,null,AndroidUIProfile.LEGACY_HORIZONTAL); }
+    static NativeOwnerV2 forProfile(Activity activity, FrameLayout root, AndroidUIProfile profile) {
+        return new NativeOwnerV2(activity,root,null,profile);
+    }
+    /** Host-only fault at the completion-bookkeeping boundary; production always supplies null. */
+    NativeOwnerV2(Activity activity, FrameLayout root, Runnable completionFault) {
+        this(activity,root,completionFault,AndroidUIProfile.LEGACY_HORIZONTAL);
+    }
+    private NativeOwnerV2(Activity activity, FrameLayout root, Runnable completionFault, AndroidUIProfile profile) {
+        requireMain();
+        this.profile = switch (Objects.requireNonNull(profile)) {
+            case LEGACY_HORIZONTAL, MEASURED_MULTILINE_V2, MEASURED_MULTILINE_RETIREMENT_V3, MEASURED_MULTILINE_LONG_NOTES_V4 -> profile;
+        };
+        this.completionFault=completionFault;
+        this.activity = Objects.requireNonNull(activity);
+        this.root = Objects.requireNonNull(root);
+        if (root.getContext() != activity) throw new IllegalArgumentException("foreign V2 root context");
+        handler = new Handler(Looper.getMainLooper());
+        core = new OwnerLifecycleV2(NativeOwnerV2::requireMain, activity, root,
+            profile.retirement());
+        lifetime = core.lifetime();
+    }
+    static NativeOwnerV2 external(Activity activity, FrameLayout root, ExternalFrameSourceV2 source) {
+        return external(activity,root,source,AndroidUIProfile.MEASURED_MULTILINE_RETIREMENT_V3);
+    }
+    static NativeOwnerV2 external(Activity activity,FrameLayout root,ExternalFrameSourceV2 source,AndroidUIProfile profile) {
+        if(!profile.retirement())throw new IllegalArgumentException("external retirement profile required");
+        NativeOwnerV2 owner=forProfile(activity,root,profile);
+        owner.external=Objects.requireNonNull(source);
+        if (profile == AndroidUIProfile.MEASURED_MULTILINE_LONG_NOTES_V4)
+            owner.fence.inputRecovery = owner.new InputRecovery();
+        return owner;
+    }
+    void installExternal(byte[] packet,byte[] descriptor) {
+        requireMain();
+        if(external==null||fence.terminal||activeOperation!=null)throw new IllegalStateException("external install unavailable: "+diagnostic());
+        if (fence.inputRecovery != null) fence.inputRecovery.reset();
+        external.offer(packet,descriptor);
+        if(!started) { start(); onResume(); }
+        else {
+            seal(false); seedFocus();
+            process(core.invalidate(lifetime),null);
+            process(core.windowChanged(lifetime,probeWindow()),null);
+        }
+        Work work=queued;
+        if(work!=null&&work.kind==WorkKind.DRAIN&&!work.posting) {
+            handler.removeCallbacks(work);
+            work.run(); // consumes the exact queued slot, using the ordinary effect runner
+        }
+        OwnerLifecycleV2.Snapshot state=core.snapshot();
+        if(!hasCommittedPresentation()||state.phase()!=OwnerLifecycleV2.Phase.LIVE||state.dirty()||
+            state.pendingDrain()!=null||state.operation()!=null||!coordinator.presentationCurrent()) {
+            IllegalStateException failure=new IllegalStateException("external synchronous installation incomplete: "+diagnostic(),ledger.primary);
+            fail(failure,Cause.OPERATION_FAILED);settle();throw failure;
+        }
+        external.openInput();publish();
+        android.util.Log.i("FieldLogOwnerR17","INSTALL "+diagnostic());
+    }
+    android.view.View externalView(String id) { requireMain();return coordinator==null?null:coordinator.view(id); }
+    NativeEnvironmentV2.Observer externalObserver() { requireMain();return observer; }
+    void gateExternalInput() {
+        requireMain();
+        if (fence.inputRecovery != null) fence.inputRecovery.reset();
+        external.gateInput(); fence.inputAllowed=false;
+    }
+    boolean externalCurrent() {
+        requireMain();OwnerLifecycleV2.Snapshot s=core.snapshot();
+        return !fence.terminal&&s.phase()==OwnerLifecycleV2.Phase.LIVE&&!s.dirty()&&s.pendingDrain()==null&&
+            s.operation()==null&&coordinator!=null&&coordinator.presentationCurrent();
+    }
+    String diagnostic() {
+        requireMain();OwnerLifecycleV2.Snapshot s=core.snapshot();
+        return "phase="+s.phase()+" epoch="+s.epoch()+" dirty="+s.dirty()+" presentation="+s.presentation()+
+            " pending="+s.pendingDrain()+" operation="+s.operation()+" fence.operation="+fence.operation+
+            " fence.presentation="+fence.presentation+" terminal="+fence.terminal+" draw="+fence.drawAllowed+
+            " input="+fence.inputAllowed+" reason="+s.terminalReason()+" lastNotice="+lastNotice+
+            " cleanup="+ledger.coordinator+" primary="+ledger.primary;
+    }
+    void start() {
+        requireMain();
+        if (started || fence.terminal) throw new IllegalStateException("V2 owner start is one shot");
+        started = true;
+        try {
+            observer = new NativeEnvironmentV2.Observer(activity, root, this);
+            registering = true;
+            try { observer.register(); } finally { registering = false; unregisterPending(); }
+            if (!fence.terminal) {
+                seal(false);
+                if (!fence.terminal) seedFocus();
+                if (!fence.terminal) process(core.windowChanged(lifetime, probeWindow()), null);
+            }
+        } catch (RuntimeException | Error failure) { fail(failure, Cause.REGISTRATION_FAILED); }
+        finally { settle(); }
+        throwFatal();
+    }
+    void onResume() {
+        requireMain(); if (fence.terminal) return;
+        InputRecovery recovery = fence.inputRecovery;
+        if (recovery != null) recovery.resumed();
+        try {
+            seal(false);
+            if (!fence.terminal) process(core.resume(lifetime), null);
+            if (!fence.terminal) seedFocus();
+            if (!fence.terminal) process(core.windowChanged(lifetime, probeWindow()), null);
+            if (recovery != null) recovery.bindDrain();
+        }
+        catch (RuntimeException | Error failure) { fail(failure, Cause.CORE_FAILURE); }
+        finally { settle(); }
+        throwFatal();
+    }
+    void onPause() {
+        requireMain(); if (fence.terminal) return;
+        if (fence.inputRecovery != null) fence.inputRecovery.paused();
+        try { seal(false); process(core.pause(lifetime), null); }
+        catch (RuntimeException | Error failure) { fail(failure, Cause.CORE_FAILURE); }
+        finally { settle(); }
+        throwFatal();
+    }
+    void onStop() {
+        requireMain(); if (fence.terminal) return;
+        if (fence.inputRecovery != null) fence.inputRecovery.stopped();
+        try { seal(false); process(core.stop(lifetime), null); }
+        catch (RuntimeException | Error failure) { fail(failure, Cause.CORE_FAILURE); }
+        finally { settle(); }
+        throwFatal();
+    }
+    @Override public void close() {
+        requireMain();
+        if (!terminalProcessed) terminate(Cause.CLOSED, null, null, null, NativeEnvironmentV2.Change.EPOCH_EXHAUSTED);
+        settle(); throwFatal();
+    }
+    @Override public void changed(NativeEnvironmentV2.Observer source, NativeEnvironmentV2.Change change,
+                                   NativeEnvironmentV2.RendererCause rendererCause, Throwable primary, Error firstFatal) {
+        requireMain();
+        if (source != observer || change == null) throw new IllegalArgumentException("foreign V2 observer notice");
+        if (terminalProcessed) return;
+        lastNotice=change+"/"+rendererCause+" primary="+primary;
+        if(external!=null)android.util.Log.i("FieldLogOwnerR17","NOTICE "+diagnostic(),new Throwable("exact invalidation origin"));
+        if (change != NativeEnvironmentV2.Change.INVALIDATED) {
+            Cause cause = switch (change) {
+                case DETACHED -> Cause.DETACHED;
+                case REGISTRATION_FAILED -> Cause.REGISTRATION_FAILED;
+                case RENDERER_TERMINAL -> Cause.RENDERER_TERMINAL;
+                default -> Cause.OBSERVER_EXHAUSTED;
+            };
+            terminate(cause, rendererCause, primary, firstFatal, change);
+        } else {
+            try {
+                seal(false);
+                if (!fence.terminal) { seedFocus(); process(core.invalidate(lifetime), null); process(core.windowChanged(lifetime, probeWindow()), null); }
+            } catch (RuntimeException | Error failure) { fail(failure, Cause.CORE_FAILURE); }
+        }
+        settle(); throwFatal();
+    }
+    boolean hasCommittedPresentation() {
+        requireMain(); return !fence.terminal && fence.presentation != null && coordinator != null && coordinator.hasCommittedPresentation();
+    }
+    CleanupLedger cleanupLedger() { requireMain(); return ledger; }
+
+    private void nativeInput(byte[] envelope) {
+        requireMain();
+        if(external!=null) {
+            if(!fence.terminal&&activeOperation==null&&fence.inputAllowed&&core.admitsInput(lifetime,fence.presentation))
+                external.input(envelope); // immutable app queue only; captured native lease stays untouched
+            return;
+        }
+        if (fence.terminal || activeOperation != null || !fence.inputAllowed) return;
+        try {
+            OwnerLifecycleV2.Token admitted = fence.presentation;
+            seal(false);
+            if (!fence.terminal && activeOperation == null && admitted != null && admitted == fence.presentation) {
+                seedFocus();
+                // The barrier intentionally closed inputAllowed. Only the same real core presentation can admit input.
+                if (!fence.terminal && activeOperation == null && admitted == fence.presentation && core.admitsInput(lifetime, admitted))
+                    process(core.dispatchInput(lifetime, admitted), envelope); // bytes never leave this synchronous stack
+            }
+        } catch (RuntimeException failure) {
+            fail(failure, Cause.OPERATION_FAILED);
+            if (!(fence.terminal && coordinator != null && coordinator.isRetired())) throw failure;
+        } catch (Error fatal) { fail(fatal, Cause.OPERATION_FAILED); throw fatal; }
+        finally { settle(); }
+        throwFatal();
+    }
+    private void seedFocus() {
+        if (fence.terminal) return;
+        boolean actual = root.hasWindowFocus();
+        if (fence.terminal) return;
+        if (!focusKnown || actual != lastFocus) {
+            focusKnown = true; lastFocus = actual;
+            process(core.focusChanged(lifetime, actual), null);
+        }
+    }
+    private OwnerLifecycleV2.WindowFacts probeWindow() {
+        boolean destroyed = activity.isDestroyed(), attached = root.isAttachedToWindow();
+        Window actual = activity.getWindow(); Object token = root.getWindowToken();
+        if (actual == null || token == null) window = null;
+        else if (window == null || window.window() != actual || window.token() != token) window = new WindowIdentity(actual, token);
+        return new OwnerLifecycleV2.WindowFacts(activity, root, destroyed, attached,
+            observer != null && observer.ready() ? window : null, root.getWidth(), root.getHeight(), root.getRootWindowInsets() != null);
+    }
+    /** No callbacks or core work precede this barrier. */
+    private void seal(boolean terminal) {
+        if (terminal) fence.terminal = true;
+        if (fence.inputRecovery != null) fence.inputRecovery.sealed();
+        fence.drawAllowed = false; fence.inputAllowed = false;
+        if (opening != null) opening.sealGatesScalar();
+        if (coordinator != null && coordinator != opening) coordinator.sealGatesScalar();
+        if (fence.sealSerial == Long.MAX_VALUE) {
+            fence.terminal = true;
+            if (ledger.cause == null) ledger.cause = Cause.SEAL_SERIAL_EXHAUSTED;
+        } else fence.sealSerial++;
+        cancelInput();
+        if (fence.terminal && !terminalProcessed) terminate(Cause.SEAL_SERIAL_EXHAUSTED, null, null, null, NativeEnvironmentV2.Change.EPOCH_EXHAUSTED);
+    }
+    private void cancelInput() {
+        effectDepth++;
+        try {
+            if (opening != null) cancelInput(opening);
+            if (coordinator != null && coordinator != opening) cancelInput(coordinator);
+        } finally { effectDepth--; }
+    }
+    private void cancelInput(NativeCoordinatorV2 owned) {
+        ledger.input = Outcome.IN_PROGRESS;
+        try {
+            owned.cancelInputFromOwner(fence.sealSerial);
+            ledger.input = owned.inputCancellationInProgress() ? Outcome.IN_PROGRESS : Outcome.RETURNED;
+        } catch (RuntimeException | Error failure) {
+            ledger.input = Outcome.FAILED_UNCERTAIN; ledger.inputFailure = failure; remember(failure);
+        }
+    }
+    private void terminate(Cause cause, NativeEnvironmentV2.RendererCause rendererCause, Throwable primary,
+                           Error firstFatal, NativeEnvironmentV2.Change change) {
+        if (terminalProcessed) return;
+        fence.terminal = true; fence.drawAllowed = false; fence.inputAllowed = false;
+        if (opening != null) opening.sealGatesScalar();
+        if (coordinator != null && coordinator != opening) coordinator.sealGatesScalar();
+        terminalProcessed = true;
+        if (fence.inputRecovery != null) fence.inputRecovery.reset();
+        if (ledger.cause == null) ledger.cause = cause;
+        ledger.rendererCause = rendererCause;
+        remember(primary); remember(firstFatal);
+        if (fence.sealSerial != Long.MAX_VALUE) fence.sealSerial++;
+        cancelInput();
+        try {
+            process(switch (change) {
+                case DETACHED -> core.detached(lifetime);
+                case REGISTRATION_FAILED -> core.registrationFailed(lifetime, primary);
+                default -> core.close(lifetime);
+            }, null);
+        } catch (RuntimeException | Error failure) { fallback(failure); }
+    }
+    private void process(List<OwnerLifecycleV2.Decision> decisions, byte[] input) {
+        for (OwnerLifecycleV2.Decision decision : decisions) {
+            switch (decision.kind()) {
+                case SEAL -> {
+                    if (decision.terminal()) fence.terminal = true;
+                    fence.drawAllowed = false; fence.inputAllowed = false;
+                    if (opening != null) opening.sealGatesScalar();
+                    if (coordinator != null && coordinator != opening) coordinator.sealGatesScalar();
+                    if (decision.terminal()) {
+                        terminalProcessed = true;
+                        if (fence.inputRecovery != null) fence.inputRecovery.reset();
+                        if (ledger.cause == null) ledger.cause = Cause.OPERATION_FAILED;
+                    }
+                }
+                case QUEUE_DRAIN -> {
+                    if (!fence.terminal && core.snapshot().pendingDrain() == decision.token() && queued == null)
+                        post(new Work(WorkKind.DRAIN, decision.token(), null));
+                }
+                case CANCEL_QUEUED -> cancelQueued(decision.token());
+                case UNREGISTER -> { pendingUnregister = decision.token(); if (observer != null) observer.retireScalarFromOwner(); unregisterPending(); }
+                case CLOSE -> {
+                    if (decision.resource() instanceof NativeCoordinatorV2 owned) {
+                        pendingCloseToken = decision.token(); pendingCloseResource = owned;
+                        ledger.coordinator = Outcome.DEFERRED;
+                    }
+                }
+                case OPEN_INITIAL, REFRESH_COMMITTED, DISPATCH_INPUT -> {
+                    if (!fence.terminal && activeOperation == null && core.permits(decision.token())) operate(decision, input);
+                }
+            }
+        }
+    }
+    private void operate(OwnerLifecycleV2.Decision decision, byte[] input) {
+        activeOperation = decision.token(); fence.operation = decision.token();
+        NativeCoordinatorV2 owned = coordinator;
+        Throwable failure = null; boolean committed = false;
+        effectDepth++;
+        try {
+            if (decision.kind() == OwnerLifecycleV2.Kind.OPEN_INITIAL) {
+                owned = new NativeCoordinatorV2(activity, root, observer, fence, this::nativeInput, profile, external);
+                opening = owned;
+                owned.sealGatesScalar();
+                if (!fence.terminal) owned.renderInitial();
+            } else if (decision.resource() != owned || owned == null) throw new IllegalStateException("foreign coordinator effect");
+            else if (decision.kind() == OwnerLifecycleV2.Kind.REFRESH_COMMITTED) owned.refreshEnvironment();
+            else owned.dispatchInput(input);
+            committed = !fence.terminal && owned != null && owned.hasCommittedPresentation();
+        } catch (RuntimeException | Error caught) {
+            failure = caught;
+            if (owned != null) remember(owned.cleanupLedger().primary());
+            remember(caught);
+        }
+        finally {
+            effectDepth--;
+            try {
+                if(completionFault!=null)completionFault.run();
+                List<OwnerLifecycleV2.Decision> completion = core.complete(activeOperation, owned, committed, failure);
+                if (owned != null) coordinator = owned;
+                process(completion, null);
+                publish();
+            } catch (RuntimeException | Error caught) { fallback(caught); }
+            finally { opening = null; activeOperation = null; fence.operation = null; }
+        }
+        if (failure != null && !fence.terminal) fail(failure, Cause.OPERATION_FAILED);
+    }
+    private void publish() {
+        OwnerLifecycleV2.Snapshot state = core.snapshot();
+        if (!fence.terminal && state.phase() == OwnerLifecycleV2.Phase.LIVE && !state.dirty() &&
+            state.operation() == null && state.pendingDrain() == null && state.presentation() != null &&
+            coordinator != null && state.resource() == coordinator) {
+            fence.presentation = state.presentation(); fence.drawAllowed = true;
+            fence.inputAllowed = state.foreground() && state.focused() && (external==null||external.inputEnabled());
+            coordinator.publishGatesScalar(state.presentation());
+        } else {
+            fence.drawAllowed = false; fence.inputAllowed = false;
+            if (opening != null) opening.sealGatesScalar();
+            if (coordinator != null && coordinator != opening) coordinator.sealGatesScalar();
+        }
+    }
+    private void post(Work work) {
+        queued = work; work.posting = true;
+        try {
+            if (fence.inputRecovery != null && work.kind == WorkKind.DRAIN) fence.inputRecovery.bindDrain();
+            if (!handler.post(work)) throw new IllegalStateException("main Handler rejected V2 work");
+        } catch (RuntimeException | Error failure) {
+            remember(failure);
+            if (work.kind == WorkKind.TERMINAL_CLOSE) {
+                if (queued == work) queued = null;
+                work.cancellationPending = true;
+                ledger.handler = Outcome.DEFERRED;
+                ledger.coordinator = Outcome.DEFERRED; return;
+            }
+            terminate(Cause.SCHEDULING_FAILED, null, failure, failure instanceof Error fatal ? fatal : null, NativeEnvironmentV2.Change.EPOCH_EXHAUSTED);
+        } finally {
+            work.posting = false;
+            // A callback may consume/cancel the slot before Handler.post acquires its native queue entry.
+            if (work.cancellationPending || queued != work) {
+                OwnerLifecycleV2.Token token = work.cancellationToken;
+                work.cancellationToken = null; work.cancellationPending = false;
+                removeWork(work, token);
+            }
+        }
+    }
+    private void cancelQueued(OwnerLifecycleV2.Token token) {
+        Work owned = queued; queued = null;
+        if (owned != null && fence.inputRecovery != null) fence.inputRecovery.drainFinished(owned);
+        if (owned != null && owned.posting) {
+            owned.cancellationPending = true; owned.cancellationToken = token;
+            ledger.handler = Outcome.DEFERRED; return;
+        }
+        removeWork(owned, token);
+    }
+    private void removeWork(Work owned, OwnerLifecycleV2.Token token) {
+        ledger.handler = Outcome.ATTEMPTED;
+        Throwable failure = null;
+        try { if (owned != null) handler.removeCallbacks(owned); ledger.handler = Outcome.RETURNED; }
+        catch (RuntimeException | Error caught) { failure = caught; ledger.handlerFailure = caught; ledger.handler = Outcome.FAILED_UNCERTAIN; remember(caught); }
+        completeCleanup(token, failure);
+    }
+    private void unregisterPending() {
+        if (pendingUnregister == null && !emergency) return;
+        if (registering) { ledger.unregister = Outcome.DEFERRED; return; }
+        if (ledger.unregister == Outcome.RETURNED || ledger.unregister == Outcome.FAILED_UNCERTAIN) return;
+        OwnerLifecycleV2.Token token = pendingUnregister; pendingUnregister = null;
+        ledger.unregister = Outcome.ATTEMPTED;
+        Throwable failure = null; effectDepth++;
+        try { if (observer != null) observer.close(); ledger.unregister = Outcome.RETURNED; }
+        catch (RuntimeException | Error caught) { failure = caught; ledger.unregisterFailure = caught; ledger.unregister = Outcome.FAILED_UNCERTAIN; remember(caught); }
+        finally { effectDepth--; }
+        completeCleanup(token, failure);
+    }
+    private void closePending() {
+        NativeCoordinatorV2 owned = pendingCloseResource;
+        if (owned == null) return;
+        if (effectDepth != 0 || activeOperation != null || owned.busyForOwnerDisposal()) { ledger.coordinator = Outcome.DEFERRED; return; }
+        OwnerLifecycleV2.Token token = pendingCloseToken;
+        pendingCloseResource = null; pendingCloseToken = null;
+        ledger.coordinator = Outcome.ATTEMPTED;
+        Throwable failure = null;
+        try { owned.closeFromOwner(); ledger.coordinator = Outcome.RETURNED; }
+        catch (RuntimeException | Error caught) { failure = caught; ledger.coordinatorFailure = caught; ledger.coordinator = Outcome.FAILED_UNCERTAIN; }
+        finally {
+            NativeCoordinatorV2.CleanupLedger retained = owned.cleanupLedger();
+            remember(retained.primary());
+            remember(retained.firstFatal());
+        }
+        remember(failure);
+        completeCleanup(token, failure);
+    }
+    private void settle() {
+        unregisterPending();
+        if (pendingCloseResource == null || effectDepth != 0 || activeOperation != null) return;
+        if (pendingCloseResource.busyForOwnerDisposal()) {
+            if (queued == null) post(new Work(WorkKind.TERMINAL_CLOSE, pendingCloseToken, pendingCloseResource));
+        } else closePending();
+    }
+    private void completeCleanup(OwnerLifecycleV2.Token token, Throwable failure) {
+        if (token == null || emergency) return;
+        try { core.cleanupComplete(token, failure); }
+        catch (RuntimeException | Error caught) { fallback(caught); }
+    }
+    private void fail(Throwable failure, Cause cause) {
+        remember(failure);
+        if (!terminalProcessed) terminate(cause, null, failure, failure instanceof Error fatal ? fatal : null, NativeEnvironmentV2.Change.EPOCH_EXHAUSTED);
+    }
+    private void fallback(Throwable failure) {
+        fence.terminal = true; fence.drawAllowed = false; fence.inputAllowed = false;
+        if (opening != null) opening.sealGatesScalar();
+        if (coordinator != null && coordinator != opening) coordinator.sealGatesScalar();
+        terminalProcessed = true; emergency = true; ledger.coreCompletionUnreported = true;
+        if (fence.inputRecovery != null) fence.inputRecovery.reset();
+        if (observer != null) observer.retireScalarFromOwner();
+        if (ledger.cause == null) ledger.cause = Cause.CORE_FAILURE;
+        remember(failure); cancelInput();
+        cancelQueued(null); unregisterPending();
+        if (pendingCloseResource == null) pendingCloseResource = opening != null ? opening : coordinator;
+    }
+    private void remember(Throwable failure) {
+        if (failure == null) return;
+        if (ledger.primary == null) ledger.primary = failure;
+        if (failure instanceof Error fatal && ledger.firstFatal == null) ledger.firstFatal = fatal;
+    }
+    private void throwFatal() { if (ledger.firstFatal != null) throw ledger.firstFatal; }
+    static void requireMain() {
+        if (Looper.myLooper() != Looper.getMainLooper()) throw new IllegalStateException("V2 owner requires main Looper");
+    }
+}

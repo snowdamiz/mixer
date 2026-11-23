@@ -29,6 +29,8 @@ final class NativeAppearanceViewsV2 {
 
         NativeField(android.content.Context context) { super(context); }
 
+        void publishStage(long presentation, long operation) {}
+
         abstract boolean hasLiveTarget();
         abstract boolean resumeInputReady(Attempt predecessor);
         abstract boolean resumeInputIdle(Attempt predecessor);

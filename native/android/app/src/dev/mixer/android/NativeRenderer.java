@@ -156,6 +156,12 @@ final class NativeRenderer {
                 return null;
             return v2Gate;
         }
+        public boolean editorStageAvailable(NativeAppearanceViewsV2.Record record){
+            NativeEnvironmentV2.requireMain();
+            return !editorDisposalBusyV2()&&outstandingFieldTransitions==0&&!v2Cleanup.inProgress&&
+                v2Pending==null&&v2Fence.operation==null&&!v2Fence.commitFinish&&!v2Fence.rendererReportActive&&
+                v2Records.get(record.id)==record;
+        }
         public boolean editorRetained(NativeAppearanceViewsV2.Record record){NativeEnvironmentV2.requireMain();return retainedEditorV2(record);}
         public long editorLossObservation(){
             NativeEnvironmentV2.requireMain();
@@ -317,6 +323,10 @@ final class NativeRenderer {
             !v2Fence.drawAllowed||presentation==null||presentation!=v2Fence.presentation||
             v2Gate==null||v2Pending!=null||packet==null||v2CommittedEnvironment==null)
             throw Json.bad("invalid V2 presentation publication");
+        for(int i=0;i<v2RosterCount;i++){
+            if(v2Roster[i].view instanceof NativeAppearanceViewsV2.NativeField field)
+                field.publishStage(presentation, v2Fence.operation);
+        }
         v2Open=true;v2Gate.open=true;
     }
     void environmentInvalidatedV2(){NativeEnvironmentV2.requireMain();sealScalarV2();if(v2Environment!=null)v2Environment.invalidate();}
@@ -1054,6 +1064,7 @@ root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));mutation.require();
         if(!preservationMembershipV2(c.journal))return;
         for(int i=0;i<c.journal.stateCount;i++){var state=c.journal.states[i];var scope=state.preservation;
             if(scope!=null&&fieldPreservationIdentityV2(c,c.journal,state.record,scope)&&!scope.released){
+                scope.field.stages=null;
                 if(state.record.fieldPreservation==scope)state.record.fieldPreservation=null;
                 scope.ended=true;scope.phase=phase;
             }
@@ -1092,7 +1103,7 @@ root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));mutation.require();
             boolean cleanRegistration=registered||state.record.fieldPreservation==null;
             boolean balanced=cleanRegistration&&scope.callbacks==0&&scope.hooks.isEmpty()&&!scope.checking;
             if(registered)state.record.fieldPreservation=null;
-            scope.ended=true;
+            scope.field.stages=null;scope.ended=true;
             if(!scope.entered&&!scope.counted&&scope.phase==NativeAppearanceViewsV2.FieldPreservation.CAPTURED&&balanced){
                 scope.released=true;scope.phase=NativeAppearanceViewsV2.FieldPreservation.RELEASED;continue;
             }
@@ -1152,6 +1163,12 @@ root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));mutation.require();
         journal.completion=AttachmentJournal.SUCCESS_IN_PROGRESS;
         for(int i=0;i<journal.stateCount;i++){var member=journal.transitionRoster[i];if(member!=null){var s=member.scope;s.record.fieldTransition=null;s.record.modelSettled=true;s.field.attempt=null;s.registered=false;s.ended=true;outstandingFieldTransitions--;outstandingEditorNativeCalls--;}}
         for(int i=0;i<journal.stateCount;i++){var scope=journal.states[i].preservation;if(scope!=null){
+            var carry=scope.stageCarry;
+            if(carry!=null&&scope.field.stages==carry.round&&scope.field.attempt==scope.predecessor&&
+                scope.predecessor.close==scope.disposition&&v2Fence.editorReflowFrom==carry.round.presentation&&
+                v2Fence.editorReflowSeal==carry.round.seal&&v2Fence.sealSerial==carry.seal)
+                carry.round.pending=carry;
+            else scope.field.stages=null;
             scope.record.fieldPreservation=null;scope.ended=true;scope.phase=NativeAppearanceViewsV2.FieldPreservation.COMMITTED;
         }}
         packet=c.next;v2PacketBytes=c.bytes;v2Records=c.targets;v2Plan=c.plan;v2Gate=c.gate;v2CommittedEnvironment=c.environment;
@@ -1167,6 +1184,7 @@ root.addView(c.gate,new FrameLayout.LayoutParams(-1,-1));mutation.require();
         for(var state:c.journal.previous)if(state.transition!=null)state.transition.validateAttached();
         if(journal!=c.journal||journal.complete||journal.failedInvoked||journal.completion!=AttachmentJournal.OPEN||!preservationMembershipV2(journal))throw Json.bad("foreign V2 journal");
         for(int i=0;i<journal.stateCount;i++){NativeState state=journal.states[i];var scope=state.preservation;if(scope==null)continue;
+            scope.prepareStageCarry();
             scope.exact();
             if(!fieldPreservationIdentityV2(c,journal,state.record,scope)||!scope.original.current()||v2Pending!=c||c.used||!c.attached||
                 c.operation!=v2Fence.operation||v2Fence.terminal||state.record.binding!=scope.selected||editorLossSerial!=scope.lossObservation||

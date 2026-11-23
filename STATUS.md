@@ -198,12 +198,14 @@ group closed, their three ports rebound, and their scratch was removed.
 The earlier emulator and its scratch remain held.
 [Fresh Note receipt](verification/receipts/l02-android-note-home-isolated-native-20261122.json)
 
-The private Pair27 candidate passed all six stock host consumer builds
+The locally adopted Pair27 source selection passed all six stock host consumer builds
 and all 76 Android Swift SDK tests. Each Debug and Release consumer from
 the original, relocated, and exported layouts produced identical DEX
 bytes. A fresh Release export reproduced the result with observed direct
 reap. The broad CLI test's Unix-socket fixture passed on focused replay.
-Ordinary Home recovery and candidate adoption remain pending.
+Normal and optimized archive admission and sparse controls passed. The
+45 bootstrap tests passed from a clean projection of the staged checkout.
+[Local adoption receipt](verification/receipts/l02-android-pair27-local-adoption-20261122.json)
 [Host consumer receipt](verification/receipts/l02-android-pair27-stock-host-84e23dac.json)
 
 The independently reviewed combined candidate passed an installed IME

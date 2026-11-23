@@ -2,6 +2,7 @@ package android.view.inputmethod;
 
 /** Controlled host signatures. Unmodeled operations return refusal values. */
 public interface InputConnection {
+    int GET_TEXT_WITH_STYLES = 1;
     int HANDWRITING_GESTURE_RESULT_UNSUPPORTED=2;
     boolean commitText(CharSequence text,int position);
     boolean setComposingText(CharSequence text,int position);

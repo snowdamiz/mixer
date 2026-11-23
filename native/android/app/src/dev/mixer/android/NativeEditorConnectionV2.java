@@ -22,22 +22,38 @@ final class NativeEditorConnectionV2 {
         Base(NativeAppearanceViewsV2.NativeField field,NativeAppearanceViewsV2.NativeField.Attempt attempt) {
             this.field=field;this.attempt=attempt;target=attempt.target;
         }
-        final <T> T call(String hook,T refused,java.util.function.Supplier<T> action){return field.dispatch(attempt,hook,refused,action);}
+        final <T> T call(String hook,T refused,java.util.function.Supplier<T> action){return call(hook,refused,null,action);}
+        final <T> T call(String hook,T refused,java.util.function.BooleanSupplier admissible,java.util.function.Supplier<T> action){
+            return field.dispatch(attempt,hook,refused,admissible,action);
+        }
+        final boolean endpointsInBuffer(int start,int end){
+            int length=attempt.editable.length();
+            return start>=0&&end>=0&&start<=length&&end<=length;
+        }
         final <T> T nativeValue(T refused,java.util.function.Supplier<T> action){return field.nativeValue(attempt,refused,action);}
         final boolean no(){NativeEnvironmentV2.requireMain();return false;}
         @Override public final boolean beginBatchEdit(){return call("beginBatch",false,()->nativeValue(false,()->target.beginBatchEdit()));}
         @Override public final boolean endBatchEdit(){return call("endBatch",false,()->nativeValue(false,()->target.endBatchEdit()));}
         @Override public final boolean clearMetaKeyStates(int states){return call("meta",false,()->nativeValue(false,()->target.clearMetaKeyStates(states)));}
         @Override public final void closeConnection(){NativeEnvironmentV2.requireMain();field.close(attempt);}
-        @Override public final boolean commitText(CharSequence text,int position){return call("commit",false,()->field.proposal(text,false)&&nativeValue(false,()->target.commitText(text,position)));}
-        @Override public final boolean setComposingText(CharSequence text,int position){return call("compose",false,()->field.proposal(text,true)&&nativeValue(false,()->target.setComposingText(text,position)));}
-        @Override public final boolean setComposingRegion(int start,int end){return call("region",false,()->start>=0&&end>=0&&start<=attempt.editable.length()&&end<=attempt.editable.length()&&nativeValue(false,()->target.setComposingRegion(start,end)));}
+        @Override public final boolean commitText(CharSequence text,int position){return call("commit",false,()->field.proposal(text,false),()->nativeValue(false,()->target.commitText(text,position)));}
+        @Override public final boolean setComposingText(CharSequence text,int position){return call("compose",false,()->field.proposal(text,true),()->nativeValue(false,()->target.setComposingText(text,position)));}
+        @Override public final boolean setComposingRegion(int start,int end){return call("region",false,()->endpointsInBuffer(start,end),()->nativeValue(false,()->target.setComposingRegion(start,end)));}
         @Override public final boolean finishComposingText(){return call("finishCompose",false,()->nativeValue(false,()->target.finishComposingText()));}
-        @Override public final boolean deleteSurroundingText(int before,int after){return call("delete",false,()->before>=0&&after>=0&&nativeValue(false,()->target.deleteSurroundingText(before,after)));}
-        @Override public final boolean deleteSurroundingTextInCodePoints(int before,int after){return call("deleteCodePoints",false,()->before>=0&&after>=0&&nativeValue(false,()->target.deleteSurroundingTextInCodePoints(before,after)));}
-        @Override public final boolean setSelection(int start,int end){return call("setSelection",false,()->start>=0&&end>=0&&start<=attempt.editable.length()&&end<=attempt.editable.length()&&nativeValue(false,()->target.setSelection(start,end)));}
-        @Override public final boolean commitCompletion(CompletionInfo value){return call("completion",false,()->value!=null&&field.proposal(value.getText(),false)&&nativeValue(false,()->target.commitCompletion(value)));}
-        @Override public final boolean performContextMenuAction(int id){return call("context",false,()->nativeValue(false,()->target.performContextMenuAction(id)));}
+        @Override public final boolean deleteSurroundingText(int before,int after){return call("delete",false,()->before>=0&&after>=0,()->nativeValue(false,()->target.deleteSurroundingText(before,after)));}
+        @Override public final boolean deleteSurroundingTextInCodePoints(int before,int after){return call("deleteCodePoints",false,()->before>=0&&after>=0,()->nativeValue(false,()->target.deleteSurroundingTextInCodePoints(before,after)));}
+        @Override public final boolean setSelection(int start,int end){return call("setSelection",false,()->endpointsInBuffer(start,end),()->nativeValue(false,()->target.setSelection(start,end)));}
+        @Override public final boolean commitCompletion(CompletionInfo value){return call("completion",false,()->value!=null&&field.proposal(value.getText(),false),()->nativeValue(false,()->target.commitCompletion(value)));}
+        @Override public final boolean performContextMenuAction(int id) {
+            NativeEnvironmentV2.requireMain();
+            return switch(id) {
+                case android.R.id.selectAll,android.R.id.cut,android.R.id.copy,android.R.id.paste,
+                     android.R.id.pasteAsPlainText,android.R.id.shareText,android.R.id.undo,android.R.id.redo,
+                     android.R.id.replaceText,android.R.id.autofill ->
+                    call("context",false,()->nativeValue(false,()->target.performContextMenuAction(id)));
+                default -> false;
+            };
+        }
         @Override public final boolean performEditorAction(int action){NativeEnvironmentV2.requireMain();return action==EditorInfo.IME_ACTION_DONE&&call("action",false,()->nativeValue(false,()->target.performEditorAction(action)));}
         @Override public final boolean sendKeyEvent(KeyEvent event){return no();}
         @Override public final boolean commitContent(InputContentInfo content,int flags,Bundle options){return no();}
@@ -45,25 +61,26 @@ final class NativeEditorConnectionV2 {
         @Override public final boolean performPrivateCommand(String action,Bundle data){return no();}
         @Override public final boolean reportFullscreenMode(boolean enabled){NativeEnvironmentV2.requireMain();return call("fullscreen",false,()->nativeValue(false,()->target.reportFullscreenMode(enabled)));}
         @Override public final boolean requestCursorUpdates(int mode){NativeEnvironmentV2.requireMain();return mode==0&&call("cursorOff",false,()->nativeValue(false,()->target.requestCursorUpdates(0)));}
-        @Override public final ExtractedText getExtractedText(ExtractedTextRequest request,int flags){NativeEnvironmentV2.requireMain();return flags==0?call("extraction",null,()->nativeValue(null,()->target.getExtractedText(request,0))):null;}
-        @Override public final CharSequence getSelectedText(int flags){NativeEnvironmentV2.requireMain();return call("selected",null,()->nativeValue(null,()->target.getSelectedText(flags)));}
-        @Override public final CharSequence getTextBeforeCursor(int length,int flags){NativeEnvironmentV2.requireMain();return length>=0?call("before",null,()->nativeValue(null,()->target.getTextBeforeCursor(length,flags))):null;}
-        @Override public final CharSequence getTextAfterCursor(int length,int flags){NativeEnvironmentV2.requireMain();return length>=0?call("after",null,()->nativeValue(null,()->target.getTextAfterCursor(length,flags))):null;}
+        static boolean supportedTextFlags(int flags){return (flags&~GET_TEXT_WITH_STYLES)==0;}
+        @Override public final ExtractedText getExtractedText(ExtractedTextRequest request,int flags){NativeEnvironmentV2.requireMain();return request!=null&&flags==0&&supportedTextFlags(request.flags)?call("extraction",null,()->nativeValue(null,()->target.getExtractedText(request,0))):null;}
+        @Override public final CharSequence getSelectedText(int flags){NativeEnvironmentV2.requireMain();return supportedTextFlags(flags)?call("selected",null,()->nativeValue(null,()->target.getSelectedText(flags))):null;}
+        @Override public final CharSequence getTextBeforeCursor(int length,int flags){NativeEnvironmentV2.requireMain();return length>=0&&supportedTextFlags(flags)?call("before",null,()->nativeValue(null,()->target.getTextBeforeCursor(length,flags))):null;}
+        @Override public final CharSequence getTextAfterCursor(int length,int flags){NativeEnvironmentV2.requireMain();return length>=0&&supportedTextFlags(flags)?call("after",null,()->nativeValue(null,()->target.getTextAfterCursor(length,flags))):null;}
         @Override public final int getCursorCapsMode(int modes){return call("caps",0,()->nativeValue(0,()->target.getCursorCapsMode(modes)));}
         // Android may ask this during bootstrap on any thread. No state read is permitted here.
         @Override public final Handler getHandler(){return null;}
     }
     static class Api31 extends Base {
         Api31(NativeAppearanceViewsV2.NativeField field,NativeAppearanceViewsV2.NativeField.Attempt attempt){super(field,attempt);}
-        @Override public final SurroundingText getSurroundingText(int before,int after,int flags){NativeEnvironmentV2.requireMain();return before>=0&&after>=0?call("surrounding",null,()->nativeValue(null,()->target.getSurroundingText(before,after,flags))):null;}
+        @Override public final SurroundingText getSurroundingText(int before,int after,int flags){NativeEnvironmentV2.requireMain();return before>=0&&after>=0&&supportedTextFlags(flags)?call("surrounding",null,()->nativeValue(null,()->target.getSurroundingText(before,after,flags))):null;}
         @Override public final boolean performSpellCheck(){return no();}
         @Override public final boolean setImeConsumesInput(boolean consumes){return call("consumes",false,()->nativeValue(false,()->target.setImeConsumesInput(consumes)));}
     }
     static class Api33 extends Api31 {
         Api33(NativeAppearanceViewsV2.NativeField field,NativeAppearanceViewsV2.NativeField.Attempt attempt){super(field,attempt);}
-        @Override public final boolean commitText(CharSequence text,int position,TextAttribute attributes){return call("commitAttributes",false,()->field.proposal(text,false)&&nativeValue(false,()->target.commitText(text,position,attributes)));}
-        @Override public final boolean setComposingText(CharSequence text,int position,TextAttribute attributes){return call("composeAttributes",false,()->field.proposal(text,true)&&nativeValue(false,()->target.setComposingText(text,position,attributes)));}
-        @Override public final boolean setComposingRegion(int start,int end,TextAttribute attributes){return call("regionAttributes",false,()->start>=0&&end>=0&&start<=attempt.editable.length()&&end<=attempt.editable.length()&&nativeValue(false,()->target.setComposingRegion(start,end,attributes)));}
+        @Override public final boolean commitText(CharSequence text,int position,TextAttribute attributes){return call("commitAttributes",false,()->field.proposal(text,false),()->nativeValue(false,()->target.commitText(text,position,attributes)));}
+        @Override public final boolean setComposingText(CharSequence text,int position,TextAttribute attributes){return call("composeAttributes",false,()->field.proposal(text,true),()->nativeValue(false,()->target.setComposingText(text,position,attributes)));}
+        @Override public final boolean setComposingRegion(int start,int end,TextAttribute attributes){return call("regionAttributes",false,()->endpointsInBuffer(start,end),()->nativeValue(false,()->target.setComposingRegion(start,end,attributes)));}
         @Override public final boolean requestCursorUpdates(int mode,int filter){NativeEnvironmentV2.requireMain();return mode==0&&filter==0&&call("cursorFilterOff",false,()->nativeValue(false,()->target.requestCursorUpdates(0,0)));}
         @Override public final TextSnapshot takeSnapshot(){return call("snapshot",null,()->nativeValue(null,()->target.takeSnapshot()));}
     }

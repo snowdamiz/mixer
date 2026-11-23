@@ -1,3 +1,6 @@
 package android.view.inputmethod;
-/** Host query request type only. No native text extraction is modeled. */
-public final class ExtractedTextRequest {}
+
+/** Host query flags. No native text extraction is modeled. */
+public class ExtractedTextRequest {
+    public int flags;
+}
