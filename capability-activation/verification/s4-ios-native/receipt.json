@@ -1,0 +1,130 @@
+{
+  "date": "2026-11-23",
+  "scope": "S4 fixture replay under product-plan \u00a724.6",
+  "original_fixture_commit": "c174db14de124060336f683596655954a2766b15",
+  "published_production_gate_commit": "35ab3dbd363a5a951dca752df1fcbb953e37a901",
+  "validated_recovery_successor": {
+    "path_from_adjacent_worktrees": "t3-64be16d4/verification/local/s4-recovery-successor.oC9yBul8",
+    "input_and_build_receipt_sha256": {
+      "receipt.json": "dbe30a5a6589d7cb7aa54e574c25d13d2130b0462b34fab373681d9c8fc0ea38",
+      "fixture.sha256": "0e6f92b96eee83172ced68f727e5ddc0618d0fe8d26f01ace8b3d411ae1d3a5e",
+      "products.sha256": "354468a9de953d99abafb1131d4105241cdcc15f5ad89addc4070a7ec607ed62",
+      "build-results.json": "6819e39e918985e51402e0652f59cd7ceb6b637464038791ad15c48c172367cb",
+      "Products/S4Native_iphonesimulator27.2-arm64.xctestrun": "b897ca4d09e9155783a94810ffab8fb0a7b3d5d4ac382c41c048fd558305ce74"
+    },
+    "historical_gate_patch_matches_published_source_diff": true
+  },
+  "root_native": {
+    "path_from_adjacent_worktrees": "t3-b6a6075b/verification/local/ui-platform-pivot-root.fyr8LSOB",
+    "platform": "arm64 iPhone 15 Simulator, iOS 26.5 (23F77)",
+    "xcode": "Xcode 27.2 (27B52)",
+    "combined": {
+      "directory": "s4-native-combined",
+      "device_uuid": "A90D80F6-8C50-4497-B770-A60793A566D5",
+      "accessibility_trusted": true,
+      "device_absent_after_cleanup": true,
+      "external_baseline_equal": true,
+      "tests": {
+        "testInvalidFirstFrameBoundary": {
+          "result": "Passed",
+          "summary_sha256": "b56661a35121185517cde64ea6743c8d2bdba4a880d58dd85828a70b63182ef8",
+          "log_sha256": "77de4a7792c34da87b9b37d5945c542b59823804db9e4f69c7c60f8e080e1739"
+        },
+        "testSignedNativeFrameFailureStaleDeliveryAndOfflineRelaunch": {
+          "result": "Passed",
+          "summary_sha256": "f5ec5cfb8b27ebb0006191f592040b9584a9eb9fca2b51977888a1ecee3a831b",
+          "log_sha256": "4a48bc146ead7cbab7a0e47e89bda38028bb773ca989063357d59192da5006c0"
+        },
+        "testSharedThemeRendersInBundledAndSignedGuest": {
+          "result": "Passed",
+          "summary_sha256": "7840037271cc306a347b86dc394253310ba04fb2b7ca8f0851299ffc19bde303",
+          "log_sha256": "30d0018f30711c57ea13d7e0d4ff540ae7fcdecc363654ccee6f10c68d4515a7"
+        },
+        "testNativeTapBeforeAndAfterDisplayAcknowledgment": {
+          "result": "Failed",
+          "summary_sha256": "53757ad4247f0de38317649b96a786dc5d134ebc2b2810b4f39625cfcf06f021",
+          "log_sha256": "19ccb46c3068e950aa06dfd378314a912886a7c66f8d5bc8d3f0864d9e683998"
+        }
+      },
+      "failed_assertion": "Original fresh-process recovery expectation after closing the replacement owner"
+    },
+    "corrected_recovery": {
+      "directory": "s4-native-recovery",
+      "device_uuid": "10494F9F-A4F8-401C-9354-6D4F103BAFEB",
+      "accessibility_trusted": true,
+      "device_absent_after_cleanup": true,
+      "external_baseline_equal": true,
+      "test": "testNativeTapBeforeAndAfterDisplayAcknowledgment",
+      "result": "Passed",
+      "readbacks": {
+        "provisional_callback": "refused across owner and screen replacement",
+        "after_replacement_close": "effects_closed",
+        "offline_after_failed_owner_retirement": "ui_protocol_after_effects",
+        "offline_accepted_sequence": 2,
+        "saved_base64": "AAH+/w=="
+      },
+      "artifact_sha256": {
+        "summary.json": "37c6a77507e154ff483422657d47e615d25b3685704e82fcb3266c1c73ea3f32",
+        "test.log": "a452af3fa6e0440bc29c0ada083aa03db37feee2987edb0f663e914edaf9afd3",
+        "attachments/manifest.json": "deddeb5e45028aed7d7897c908fa733044b51736bd52381b495944b6ceafeacb",
+        "attachments/AB851349-B844-4F56-A6AF-F51ADBC142A0.txt": "6e1d8a3983891e2a62e2dd22d2397e4f906f4baad23e08c1eda1cca2395caa57",
+        "attachments/E19C8549-0D69-4B58-87CA-C7D33D7FC528.txt": "a65db813e09f5e8fe1d95fdf35c8515da8714c8ee9c923c82c4424c0a6d04d79"
+      }
+    }
+  },
+  "fresh_generic_build": {
+    "command": "capability-activation/verification/s4-ios-native/build.sh",
+    "xcode": "Xcode 27.2 Build version 27B52",
+    "sdk": "iphonesimulator27.2",
+    "destination": "generic/platform=iOS Simulator",
+    "architecture": "arm64",
+    "minimum_os": "17.0",
+    "app_and_runner_ad_hoc_signatures": "verified deep and strict",
+    "inputs": {
+      "package_revision": "a332356703122de8393115e8e8d42badca6aa1e0",
+      "package_tree": "0c00554577a26f757988aa2e11ae3ce0aace3a5f",
+      "package_archive_sha256": "f8cc6385f12d9a33e80148b823b719cda75361b37e123238229db1a87aedab38",
+      "engine_revision": "692f05cd2d31f218ae9b3cef7253a4e7397f8e17",
+      "engine_source_manifest_sha256": "94061378e14c4c5ed69ce66ee68cc71ded714d56bf309561d7f23fe16b59ca85",
+      "engine_archive_sha256": "cd6ae3179965c1c85eb59abb9f6ad670065c109a2e8be8713b3d4cd7edd785c7",
+      "fixture_sha256": {
+        "CapabilityGuestUIApple.inc": "4de7489dcb65b2ca4e06ba50cb7ab905239347a972414c1bc27e81ad937b5879",
+        "CapabilityGuestUIPresentation.inc": "5091cf5ceb0c503890dc0f3d24a3d632177a7995edf077de8b5acf6863ac5d36",
+        "S4NativeApp.swift": "78e0a4726f2180264d11d040073691560e574f078398641ab02ca1400e86786c",
+        "S4NativeTheme.swift": "e41624ed583d5c60bf3ae96fa125193c3368ba9af6909ee8c6bc04f987c0efe1",
+        "S4NativeUITests.swift": "04ed63101253002ab3bb5cc14d15f479359a8ab0b7e0eda1f724ea52b5eec478",
+        "S4Readback.swift": "06d0f2a3471d597b595cede4abc9d12b5f8661dc44cebbc50d94fa93d2cfa70d",
+        "S4SharedTheme.swift": "dd28106f658b0a45a5062c0dec671ebf270dfcbb6ce4475d08b433268e8bb06b",
+        "S4SignedFixture.swift": "a75c17aea12b62d1d68653f34a0879ad95014d19d39afb259b05e05613961af4",
+        "S4ThemePixels.swift": "44702198e1ddc81f6bd8d089e241effd2aacb8a1e68d4fbfcdcd4af63d0ecb7b",
+        "build.sh": "206c61814a4eadc836f45bb7b350121ae7ffbb672c2dbe0588ae24828645051c",
+        "prepare.py": "1816d38f532cbd31ba0e77c66d49489538e584357cc1ce35c8b36298b463158f",
+        "project.rb": "9f99598097f3a154390630c3f6042395c18d59d8d607ed5fe4bbb47a4a2807de"
+      }
+    },
+    "result": "succeeded",
+    "warnings": 5,
+    "errors": 0,
+    "artifact_sha256": {
+      "build.log": "e230a955fdd4d8e0a30a8549cedd92c7415d7669cbb27ba796f63934facc67af",
+      "build-results.json": "12fcc03f2e0b52933891c03b8d653dc365ee70d8ee0436bfc2931a97f43897f8",
+      "engine/receipt.json": "3760a8bee34d946f1c16d10a0e9bd29c2883bd02b3d7fa192a6404b59eb2dd56",
+      "product-verification.log": "2d43b096be519b8694003d306071dd876ba466c25b2c55f3015b1033efc3103e",
+      "derived-data/Build/Products/S4Native_iphonesimulator27.2-arm64.xctestrun": "b897ca4d09e9155783a94810ffab8fb0a7b3d5d4ac382c41c048fd558305ce74",
+      "S4Native.app/S4Native": "55a74279c175065ddd2f9b2c9dad76e75af349d048bfeba6686afef7e713ea62",
+      "S4NativeUITests-Runner.app/S4NativeUITests-Runner": "0b80c20c73ca2039ec6f45256d49e371724fe0490ba7e7e2359bc1e89b2cce9b",
+      "S4NativeUITests-Runner.app/PlugIns/S4NativeUITests.xctest/S4NativeUITests": "c7d84ca15afe1e4b64d0c9e4277d7eb7cd070e74c980da9ff0a1314d04644258"
+    },
+    "compiled_tests": [
+      "testInvalidFirstFrameBoundary",
+      "testSignedNativeFrameFailureStaleDeliveryAndOfflineRelaunch",
+      "testSharedThemeRendersInBundledAndSignedGuest",
+      "testNativeTapBeforeAndAfterDisplayAcknowledgment",
+      "testDelayedHealthyRendererCallbackAcrossOwnerReplacement"
+    ],
+    "native_tests_run": 0,
+    "native_resources_created": 0,
+    "cleanup": "Verified removal of the exact owned build directory after build completion."
+  },
+  "additional_test_native_status": "pending"
+}
