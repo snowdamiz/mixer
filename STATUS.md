@@ -335,6 +335,14 @@ position 21 to 20, followed it to page one, and appended one reorder
 event. Cold rollback preserved the reordered workspace.
 [F09 signed host receipt](verification/receipts/l08-d8-f09-signed-host-304c75a8.json)
 
+For F11, the stock signed host read the original restored note and
+refused the editable frame before any input or write. Rollback and
+offline reopen preserved the exact workspace. A separate Pair25
+editor replay preserved the Unicode, four line feeds and unrelated
+rows and linked one entrySaved event. Signed note mutation remains
+open. Two later host attempts did not reproduce the full pass.
+[F11 signed refusal and editor readback](verification/receipts/l08-d8-f11-signed-host-4aa67a21.json)
+
 The Android-scoped F20 signed host replay matched the archived order of
 23 drafts and 43 entries and opened a second-page draft. The live and
 offline phases preserved the workspace and all 46 outbox records with
