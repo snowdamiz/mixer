@@ -121,6 +121,13 @@ routes and native links passed. The source overlap is 1,696 of 4,861
 Swift lines. The remaining sharing and installed checks are open.
 [Shared root presentation](verification/receipts/l08-d2-linked-shared-root-presentation-20261122.json)
 
+The ordinary entry form uses shared Swift edits and validation for text,
+category, dates, and photo references. Both targets linked. Host tests
+verified the 100,000-byte Unicode note, eight ordered photo references,
+cold readback, and one commit outbox event. The standalone overlap is
+1,895 of 5,033 Swift lines. Installed input and picker checks remain open.
+[Shared entry form](verification/receipts/l08-d2-linked-shared-entry-form-20261122.json)
+
 ## In-place FieldLog public SDK adoption on iOS
 
 Three native tests created a project and saved photo draft in standalone
