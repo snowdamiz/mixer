@@ -469,8 +469,10 @@ control. One installed iOS Simulator test accepted the exact paste
 bytes, acknowledged revision 2, saved the draft, committed one linked
 entrySaved event, and matched the committed workspace in a fresh app
 process and from the stopped container. The original Unicode and four
-line feeds survived. The owned Simulator was deleted. This test used a
-bundled signed fixture. Paired OTA remains open.
+line feeds survived. Independent review matched all three XCTest
+attachments and verified both fixture signatures. The owned Simulator
+was deleted. This test used a bundled signed fixture. Paired OTA remains
+open.
 [F11 installed note replay](verification/receipts/l08-d8-f11-ios-note-native-20261123.json)
 
 The Android-scoped F20 signed host replay matched the archived order of
