@@ -7,7 +7,7 @@ The owner set the licensing and revenue model. The core engine and the OTA updat
 - [x] Add the MIT license text and a path map of MIT and proprietary directories. `LICENSE`, `LICENSING.md`, and a `LICENSE` file in each proprietary directory landed on November 23.
 - [x] Review `THIRD_PARTY.yml` for license compatibility with the MIT scope under product plan Section 4.3. Every copyleft entry is a build or verification tool that never ships with MIT code.
 - [x] Choose the reference self-hostable update server. It is `services/`, and `release-delivery-origin/` stays proprietary.
-- [ ] Document how to run `services/` as a self-hosted update server.
+- [x] Document how to run `services/` as a self-hosted update server. The loopback guide was exercised with signed development artifacts and the public protocol v3 replay. [Self-hosting guide](services/README.md)
 - [ ] Keep hosted-service code out of the MIT paths.
 - [x] Change `vm/Cargo.toml` from `LicenseRef-Mixer` to `MIT`.
 - [ ] Get the owner's decisions on the contribution terms and the trademark policy for the Mixer name and the Flick logo. The copyright notice names snowdamiz until the owner says otherwise.

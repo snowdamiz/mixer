@@ -1,87 +1,160 @@
-# Mixer local update and release reference
+# Self-host the Mixer reference update service
 
-This independently authored Go slice implements signed update authorization,
-a durable local recovery model and an authenticated loopback HTTP release
-workflow. It does **not** qualify a mobile updater, compile a guest, authorize
-an OTA release from syntax, operate a hosted service or establish a GA gate.
-The protocol registries are [`release-v1`](../contracts/release-v1.json) and
-[`release-v2`](../contracts/release-v2.json). The service supports v1/v2 and additive v3 explicitly;
-the existing CLI publication commands and Go recovery reference remain v1. See
-[`release/README-v3.md`](release/README-v3.md) for the separate protocol3/ABI2 route,
-closed request ceilings and schema3 persistence contract.
+`mixer-service` is the MIT-licensed reference server for signed updates.
+The server runs in developer mode on a literal loopback address over plain HTTP.
+You supply the release configuration, signing authority, and storage. The
+workflow requires no Mixer account, hosted service, or payment credentials.
+See the repository's [license map](../LICENSING.md).
 
-## Run and configuration
+## Prepare the release inputs
 
-Requires Go 1.26.0 or newer. This slice was tested with Go 1.26.4 on macOS arm64.
-The optional PostgreSQL adapter uses the pinned general-purpose pgx driver;
-cryptographic primitives remain in the Go standard library. From this directory:
+- Install Go 1.26.0 or later to build the service. The commands below also use
+  OpenSSL, jq, and curl. Use the `mixer` CLI from the same checkout. To build it
+  on macOS, use Swift 6.2 or later and run
+  `swift build --package-path cli --product mixer` from the repository root.
+  The binary is at `cli/.build/debug/mixer`.
+- Take `host.json` and `roots.json` from your trusted installed app configuration.
+  `host.json` contains one installed runtime contract, including its exact scope,
+  runtime fingerprint, protocol, guest ABI, UI schema, capability hashes,
+  state version, payload ceiling, and resource limits. `roots.json` contains
+  the matching public Ed25519 trust records. Each record includes a key ID,
+  a Base64-encoded raw 32-byte public key, scope, artifact and assignment
+  permissions, revocation status, and validity bounds.
+- Use your own trusted signer to prepare a candidate directory with
+  `signed-manifest.json` and `payload.wasm`, plus a separate signed assignment
+  JSON file. Keep private signing keys with the signer. The assignment binds the
+  artifact, installed scope and runtime, channel, rollout, and sequence. See
+  the [v3 signing and verification contract](protocol/README-v3.md).
+
+The stock CLI publishes through `/v3`. The procedure below uses a protocol 3,
+guest ABI 2, UI schema 1 installation. For a Feature UI v3 runtime, configure
+`feature_ui_v3` with the installed descriptor, roots, and storage grant. Follow
+the [Feature UI enrollment procedure](release/README-v3.md#enroll-a-local-feature-ui-v3-runtime).
+
+## Configure and start the service
+
+Run from the repository root. Set `MIXER_RELEASE_DIR` to a new absolute path
+for the service files and persistent store. Set `MIXER_HOST_JSON` and
+`MIXER_ROOTS_JSON` to the absolute paths of your inputs. The example uses
+port 8080. If you pick a different port, use it in every command.
 
 ```sh
-go test -race ./...
-go vet ./...
-go build -o /tmp/mixer-service ./cmd/mixer-service
-MIXER_SERVICE_CONFIG=/absolute/path/to/developer-config.json /tmp/mixer-service
+umask 077
+mkdir "$MIXER_RELEASE_DIR"
 ```
 
-`MIXER_SERVICE_CONFIG` is mandatory. Its JSON structure matches `release.Config`:
+After the directory is created, generate the publisher token and write the
+config.
 
-```json
-{
-  "developer_mode": true,
-  "listen": "127.0.0.1:8080",
-  "data_directory": "/absolute/private/path/mixer-local",
-  "tokens": [
-    {
-      "sha256": "LOWERCASE_SHA256_OF_OPERATOR_CREATED_RANDOM_BEARER_TOKEN",
-      "role": "publisher",
-      "organization": "my-team",
-      "project": "fieldlog",
-      "actor": "local-developer"
-    }
-  ],
-  "roots": [
-    {
-      "key_id": "release-authority-1",
-      "public_key": "BASE64_ED25519_PUBLIC_KEY",
-      "scope": {
-        "organization": "my-team", "project": "fieldlog", "app": "fieldlog",
-        "environment": "development", "platform": "ios"
-      },
-      "artifact": true,
-      "assignment": true,
-      "revoked": false,
-      "not_before_unix": 0,
-      "not_after_unix": 0
-    }
-  ],
-  "hosts": [
-    {
-      "scope": {
-        "organization": "my-team", "project": "fieldlog", "app": "fieldlog",
-        "environment": "development", "platform": "ios"
-      },
-      "runtime": "LOWERCASE_SHA256_OF_EXACT_NATIVE_RUNTIME_CONTRACT",
-      "protocol": 1,
-      "guest_abi": 1,
-      "ui_schema": 1,
-      "capability_hashes": {},
-      "state_version": 1,
-      "max_payload_bytes": 16777216,
-      "limits": {"memory_bytes": 67108864, "fuel": 1000000, "startup_milliseconds": 5000}
-    }
-  ]
-}
+```sh
+openssl rand -hex 32 > "$MIXER_RELEASE_DIR/publisher.token"
+token_sha256=$(printf '%s' "$(cat "$MIXER_RELEASE_DIR/publisher.token")" |
+  openssl dgst -sha256 -r | cut -d ' ' -f 1)
+
+jq -n --slurpfile hosts "$MIXER_HOST_JSON" --slurpfile roots "$MIXER_ROOTS_JSON" \
+  --arg data "$MIXER_RELEASE_DIR/store" --arg token_sha256 "$token_sha256" '
+  {
+    developer_mode: true,
+    listen: "127.0.0.1:8080",
+    data_directory: $data,
+    tokens: [{
+      sha256: $token_sha256,
+      role: "publisher",
+      organization: $hosts[0].scope.organization,
+      project: $hosts[0].scope.project,
+      actor: "local-publisher"
+    }],
+    roots: $roots[0],
+    hosts: $hosts
+  }' > "$MIXER_RELEASE_DIR/service.json"
+
+go -C services build -o "$MIXER_RELEASE_DIR/mixer-service" ./cmd/mixer-service
+MIXER_SERVICE_CONFIG="$MIXER_RELEASE_DIR/service.json" "$MIXER_RELEASE_DIR/mixer-service"
 ```
 
-The capitalized values above are explanatory placeholders, rejected by the
-server. Create credentials and public roots outside this repository. The service
-never receives private signing keys; operators sign with a separate trusted
-client. Each token is bound to one organization/project and has role `reader`,
-`editor` or `publisher`; publisher includes editor and reader permissions. Add
-separate host/root scopes for Android. Root IDs are unique in a configuration.
-`0.0.0.0`, hostnames and production mode are rejected. SIGINT/SIGTERM drains HTTP
-requests for up to ten seconds. No customer communication, store submission,
-signing operation or production publication occurs.
+Keep `publisher.token` private. The service config takes only its lowercase
+SHA-256 digest, scoped to one organization and project. Each configured token
+digest and root key ID must be unique. The `publisher` role includes `editor`
+and `reader` permissions. Add a host registration and matching roots for each
+additional installed scope and runtime you intend to serve.
+
+In a second terminal, check that the server answers. Expect HTTP 200 with
+`"mode": "developer"` and `"production_ready": false`.
+
+```sh
+export MIXER_RELEASE_ORIGIN=http://127.0.0.1:8080
+curl -fsS --noproxy '*' "$MIXER_RELEASE_ORIGIN/healthz"
+```
+
+The default file store needs a private directory for one service process.
+To use the optional local PostgreSQL backend, follow the separate role and
+migration setup. [PostgreSQL configuration](release/POSTGRES.md)
+
+## Publish and check delivery
+
+In the second terminal, set `MIXER_RELEASE_DIR` and `MIXER_HOST_JSON` to the same
+paths. Run from the directory containing `candidate/` and `publish.json`.
+The example uses a signed assignment for channel `beta` at 100% rollout. Use
+your signed rollout for publish and your signed channel for both commands below.
+
+```sh
+organization=$(jq -r '.scope.organization' "$MIXER_HOST_JSON")
+project=$(jq -r '.scope.project' "$MIXER_HOST_JSON")
+MIXER_RELEASE_TOKEN="$(cat "$MIXER_RELEASE_DIR/publisher.token")" \
+  mixer update publish ./candidate --organization "$organization" --project "$project" \
+    --channel beta --rollout 100 --assignment ./publish.json
+```
+
+Use the full CLI path if `mixer` is outside your `PATH`. A successful publish
+returns `"delivery": "local_only"` with the artifact digest and sequence.
+Promotion, halt, and rollback require new signed assignments. See the
+[local update operator guide](../docs/local-update-release.md).
+
+Point your app's development update transport at the loopback origin if the
+app can reach the service host's loopback interface. A separate runtime needs
+a development transport that can reach the service. The app requests
+`/v3/updates` with its installed scope, runtime fingerprint, channel, and stable
+random installation ID. From the service host, check that route with a test
+installation ID.
+
+```sh
+curl -fsS --noproxy '*' --get "$MIXER_RELEASE_ORIGIN/v3/updates" \
+  --data-urlencode "organization=$organization" \
+  --data-urlencode "project=$project" \
+  --data-urlencode "app=$(jq -r '.scope.app' "$MIXER_HOST_JSON")" \
+  --data-urlencode "environment=$(jq -r '.scope.environment' "$MIXER_HOST_JSON")" \
+  --data-urlencode "platform=$(jq -r '.scope.platform' "$MIXER_HOST_JSON")" \
+  --data-urlencode "runtime=$(jq -r '.runtime' "$MIXER_HOST_JSON")" \
+  --data-urlencode 'channel=beta' --data-urlencode 'installation=install-test' \
+  --output "$MIXER_RELEASE_DIR/offer.json" --write-out '%{http_code}\n'
+```
+
+HTTP 200 contains a signed assignment and a relative `artifact_url` for the
+same origin and protocol version. HTTP 204 means the service has no eligible
+offer for that request. After HTTP 200, fetch the artifact from the same origin.
+The artifact response contains `signed_manifest` and the Base64 `payload`.
+Both delivery reads are unauthenticated. Use the publisher bearer only for
+operator requests.
+
+```sh
+artifact_path=$(jq -er '.artifact_url' "$MIXER_RELEASE_DIR/offer.json")
+curl -fsS --noproxy '*' "$MIXER_RELEASE_ORIGIN$artifact_path" \
+  --output "$MIXER_RELEASE_DIR/artifact.json"
+```
+
+The app must verify the signed assignment, manifest, and exact payload against
+its installed trust and compatibility policy before staging the update. The
+loopback service handles delivery. The app handles activation and recovery.
+See the [native update verifier](../updates/README.md).
+
+To stop the foreground process, press Ctrl+C. SIGINT or SIGTERM lets the
+process drain requests for up to ten seconds. Restart with the same
+`MIXER_SERVICE_CONFIG` and data directory to retain publications.
+
+The public update replay checks the CLI, signed HTTP delivery, restart, rollout
+changes, and rollback with disposable keys, synthetic payloads, and a fresh
+file store. App activation and production serving have separate qualification.
+[Public update replay instructions](../tests/integration/README.md#public-update-operator-workflow)
 
 ## Protocol and HTTP behavior
 
@@ -105,8 +178,10 @@ does not mutate an artifact or manifest environment. Rollback cannot lower the
 assignment high-water. Rollout percentage is signed; it cannot be changed by
 editing an HTTP request outside the signed assignment.
 
-Every existing control/delivery route has an explicit `/v2` counterpart with
-the same body envelope names. `/v1` accepts only signed schema/protocol1;
+Versioned routes use the same body envelope names. The protocol registries
+describe [v1](../contracts/release-v1.json) and [v2](../contracts/release-v2.json).
+See the [v3 service contract](release/README-v3.md) for its enrollment and
+request limits. `/v1` accepts only signed schema/protocol1;
 `/v2` accepts only signed schema/protocol2, including mandatory signed capability
 grants. The route, typed signed values and registered host protocol must agree.
 There is no version probing, retry downgrade or unsigned grants sidecar. A host

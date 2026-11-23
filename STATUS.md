@@ -1,5 +1,9 @@
 # Current development status
 
+## Self-hosted reference update service, November 23, 2026
+
+The MIT reference server builds from a source export containing only `services/`, `contracts/`, `release/`, and licensing files. The guide's six shell blocks passed on macOS arm64 with Go 1.26.4 and a fresh file store. The health and offer requests returned HTTP 200, the CLI published signed sequence 7, and the downloaded manifest and payload matched the inputs. The public v3 replay also passed its publication, rollback, halt, and restart checks. The test used a loopback origin, synthetic signed inputs, and no hosted account or payment credentials. Mobile activation and PostgreSQL have separate qualification. [Self-hosting guide](services/README.md) · [Replay commands](tests/integration/README.md#public-update-operator-workflow)
+
 ## UI platform pivot, November 23, 2026
 
 The owner stopped current-stack L02 and L08 work at `504366a0c9` and started the UI platform pivot in [product plan Section 1.3](mixer-product-plan.md#13-ui-platform-pivot-november-23-2026). The pivot has no implementation yet. A compile-only check on November 23 built five package schemes (the root `Mixer` package, `capability-activation`, `native-sdk`, `activation`, and `runtime`) and the Rust VM Simulator archive for an iOS 17.0 target with no availability errors. The `capabilities/` qualification package was not built, and nothing ran on an iOS 17 runtime ([iOS 17 compile receipt](verification/receipts/ios17-floor-compile-20261123.json)). The [execution index](PLAN.md#ui-platform-pivot-november-23-2026) lists steps UP1 to UP6. Six local gates stay passed at their recorded scope. L02 and L08 stay running and complete on the new stack.
