@@ -118,11 +118,13 @@ The account lifecycle still needs an installed replay with a private
 Simulator development entitlement.
 [Keychain diagnostic](verification/receipts/l02-ios-account-keychain-restore-status-20261122.json)
 
-The photo-only follow-up failed when its XCTest reader could no longer
-open the preinstall data path. The owned Simulator was
-removed and all external comparisons matched. The earlier Settings pass
-and photo interaction remain in their original receipt. Final workspace
-and JPEG verification remain pending.
+The ordinary iOS Photos-picker journey now passes exact stopped disk
+readback. Warm and cold workspace bytes matched. Reopening and Done
+advanced revisions 28 to 29 to 30, and the stopped workspace matched the
+Done capture. The actual saved JPEG retained all 88 checkerboard cells at
+83 × 61 pixels. The exact Dark preference bytes and manual Site Map pin
+survived. The earlier stale container path failure is preserved.
+[Terminal photo receipt](verification/receipts/l02-ios-photo-picker-terminal-native-20261122.json) ·
 [Photo path failure](verification/receipts/l02-ios-photo-terminal-container-rotation-20261122.json)
 
 ## Android Note switch and Home recovery
