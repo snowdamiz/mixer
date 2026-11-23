@@ -1083,3 +1083,13 @@ reverse on 60299 inside that device, and the full
 namespace. Do not inspect, probe, signal, wait on, retry or clean these
 resources. Use the copied facts and top-level `HOLD.json` only.
 The separate origin and UID log reader closed.
+
+The November 22 combined FieldLog Android Note Home probe returned EPERM at
+installation with 54 of 55 commands recorded terminal. Cleanup stopped before
+retiring its owned emulator. Preserve the entire
+`/private/tmp/fieldlog-f13-api36.ni937e6s` chain, its AVD
+`mixer_picker_ni937e6s`, and ports 26042, 26043 and 26044 without inspection,
+probing, signalling, waiting, retry, or cleanup. The compact
+`verification/receipts/l02-android-note-home-probe-custody-20261122.json` is the
+permitted reference. The Note test did not run. Continue independent host and
+iOS work under the existing device rules.

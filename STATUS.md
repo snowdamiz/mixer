@@ -55,6 +55,17 @@ was removed. The separate iOS run showed the full guest title at
 accessibility5 while its enclosing navigation title ellipsized.
 [Android 2× receipt](verification/receipts/l08-android-arabic-2x-native-20261122.json)
 
+## Android Note switch and Home recovery
+
+The independently reviewed combined candidate passed an installed IME
+switch, its first caps and text queries, a single edit, and exact cold
+readback. The original Home run returned to the same task but saw no new
+IME bind. It stopped before querying the existing connection. The
+diagnostic successor returned EPERM at installation on its private AVD
+and stopped without starting the test. Its unresolved command and
+emulator are held. L02 remains running.
+[Android Home custody receipt](verification/receipts/l02-android-note-home-probe-custody-20261122.json)
+
 ## First shared native signed release replay
 
 The re-sealed packets passed the shared origin host replay. On fresh local
