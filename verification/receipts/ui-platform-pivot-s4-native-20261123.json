@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-23",
+  "state": "running",
+  "spike": "S4",
+  "host": {
+    "commit": "1fa500aa33b7602ff09e6a13d439ba19f77aff2e",
+    "testsPassed": 6,
+    "reviewer": "Independent Sol 6.2 High host review, t3-64f65bd2",
+    "scope": "Document parity with bundled fixtures, signed rollback and in-process store reopen."
+  },
+  "simulator": {
+    "actualPlatform": "arm64 iPhone 15 Simulator, iOS 26.5 (23F77)",
+    "xcode": "27.2 (27B52)",
+    "minimumOS": "17.0",
+    "uuid": "B2EF3840-DA5C-482B-AAC3-1DFC63592ECC",
+    "fixtureBaseline": "c174db14de124060336f683596655954a2766b15",
+    "sourceRevision": "692f05cd2d31f218ae9b3cef7253a4e7397f8e17",
+    "patchSHA256": "22e399672ba66b07ece2f1c5db7f095f5c5349e9b289a62f24bc8e73e7486276",
+    "buildReceiptSHA256": "d4235443088f284f060bd45ec9d0907c843e0c0e54a8d6d10faaca0a76fc7346",
+    "tests": {
+      "testInvalidFirstFrameBoundary": {
+        "result": "Passed",
+        "logSHA256": "8420e67fa2ff9ae828f767542e7ad3c6a94237cb63d84a0a6d37209fde88b3e5"
+      },
+      "testSignedNativeFrameFailureStaleDeliveryAndOfflineRelaunch": {
+        "result": "Passed",
+        "logSHA256": "c563db58192f92c0bbd90aaa64841c0edcbcf64f589a7dc1abee0ce80bf18a55"
+      },
+      "testNativeTapBeforeAndAfterDisplayAcknowledgment": {
+        "result": "Failed",
+        "logSHA256": "7346601a110a2d8a23847c2907110f091b105f461d76f4ac54350b0438efe597"
+      }
+    },
+    "invalidFirstFrame": "Invalid header left effects closed with no guest document or saved bytes.",
+    "signedJourney": "Baseline Save, retained healthy candidate after refusal, signed review and rollback, stale assignment and envelope refusal, offline process reopened rollback with data.",
+    "preReceiptInput": "A native Save at the held generation 1/frame 1/revision 1 delivered one event and reached revision 3 before any acknowledgment. The probe acknowledged generation 1/frame 3/revision 3 on release. Disk readback after close was AAH+/w==.",
+    "preReceiptAttachmentSHA256": "84ae7eadd5ef4522e28e84c9e2458d2c72c2fad91f3b0b9b49f0f113d83bae3f",
+    "pairedAssertionFailure": "The two independent stores produced different candidate IDs. The assertion stopped before the after-receipt tap.",
+    "deviceRemoved": true,
+    "externalBaselineEqual": true
+  },
+  "pending": [
+    "First-display input gate",
+    "Post-intent failed draw",
+    "Retired callbacks across owner replacement",
+    "Rendered shared-theme parity"
+  ]
+}
