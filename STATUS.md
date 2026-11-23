@@ -136,8 +136,17 @@ and committed that draft through the adopted editor. The baseline,
 replaced and reopened workspace bytes matched. The commit retained the
 JPEG and all three prior queued operations, then appended one entry
 operation at revision 50. The same owned Simulator ran all three tests
-and was removed. Standalone native browser sign-in remains separate.
+and was removed. This run used a test-selected local workspace.
 [Native adoption receipt](verification/receipts/l08-d0-d1-installed-adoption-20261122.json)
+
+The authenticated four-phase replay passed on one iOS Simulator. The
+standalone app signed in through the system browser, created a project
+and task, saved an entry, and held a photo draft. The adopted build kept
+the same Keychain owner and workspace while the issuer was offline. The
+JPEG and the three existing queued operations survived. The commit
+advanced revision 45 to 46 and appended one operation. D0 passes local
+review. D1 still needs the public SDK project, entry, and draft routes.
+[Authenticated adoption receipt](verification/receipts/l08-d0-d1-authenticated-native-adoption-20261122.json)
 
 ## iOS native capability replacement
 
