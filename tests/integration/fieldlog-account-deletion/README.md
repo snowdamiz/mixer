@@ -54,3 +54,19 @@ If the response is lost, send the identical request with the original bearer and
 2. Send with the existing ephemeral HTTP client. After transport failure, timeout, or a retryable service error, resend the staged request with its original bearer, including after the session deadline. Bind each response to the staged operation that issued the request.
 3. Accept only HTTP 200 with `deleted: true` and all three IDs matching the staged account and scope. Recheck the local account generation before acting on the response. Persist the validated confirmation before clearing scoped local data so a crash can resume cleanup. Clear local data only for that staged binding, then retire its pending record and credential material.
 4. Keep local data on any unconfirmed outcome. If the exact retry returns 401 because the original bearer expired or was revoked before commit, require a fresh confirmed session for the same account and scope and renewed explicit confirmation before staging a new request. Keep a receipt or error from an earlier account generation from clearing the active account's data.
+
+## Android confirmation after renewed authorization
+
+The Pair27 FieldLog Activity starts the deletion drain when an explicit
+confirmation from the renewed state matches the current generation and
+the owner reports deletion pending. Launch, polling, cancellation and
+stale confirmation do not start a new deletion. The original confirmed
+and pending retry routes continue to work.
+
+Apply the [Android confirmation patch](fieldlog-android-renewed-confirm.patch.b64) to the
+`PublicActivity.java` preimage with SHA-256 `3c1759637407d7ad74fca8ddd971108c479523c3f190878455ff2a99bb2d5a08`.
+The decoded patch SHA-256 is `d89e4f3496a36e1e96c78886adcf92a11c1cff684763356b43a848e2e405a5b9`. Check and apply it from
+the FieldLog checkout using the capsule procedure above, then rebuild
+the ordinary Pair27 development app. The [API 36 native receipt](../../../verification/receipts/l02-android-renewed-deletion-native-20261123.json)
+identifies the observed APK. The patch applies and reverses against the
+pinned FieldLog source archive.

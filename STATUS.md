@@ -710,6 +710,16 @@ bytes matched before confirmation. Both runs retired their owned
 emulator and services. L02 remains running.
 [Android renewed deletion boundary](verification/receipts/l02-android-reauthorized-deletion-boundary-20261123.json)
 
+The corrected Pair27 APK passed the scoped Android account replay.
+The real browser signed in, refused a peer recovery, recovered the
+target, and rejected deletion with an expired session. A fresh process
+reauthorized. One renewed confirmation produced HTTP 200 and one
+deletion receipt, removed only the target workspace and credential,
+and preserved the ordinary workspace and peer rows. All 214 owner
+commands closed, the package was uninstalled, and the disposable AVD,
+private ADB and issuer retired. Independent L02 closure review is pending.
+[Android renewed deletion pass](verification/receipts/l02-android-renewed-deletion-native-20261123.json)
+
 The exact installed FieldLog executable returned a missing-entitlement
 status from its first Keychain read before sign-in. A fresh disposable
 Simulator attached the diagnostic to the exact app PID and was removed.
