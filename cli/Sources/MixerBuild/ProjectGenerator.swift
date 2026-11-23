@@ -80,6 +80,14 @@ private struct SwiftVersionIdentity {
 }
 
 public enum ProjectGenerator {
+    // Pre-pivot SDK manifests with the six legacy modules and no MixerSwiftUI target.
+    private static let legacyIOSManifestDigests: Set<String> = [
+        "98be814926d0282bca3ff70e8cca73d69270466d642d2da39c0fed8cc3c7f503", // e639ed4ffc
+        "bd5f59cea26a2cbc1dfa58d2ad7adb0248a63045163c57d0e91c9a7b5e2ee67c", // d7343fd7f8
+        "4e43a0cdea1b4720b4549bd8aeab8a8244533fe944f657b010d3d0313aef2945", // c1091c1fd9
+        "425bd9c285a06a5ba524c98cfda8bd8c6c064975202fcd3625a4414677807c92", // 924b155f9d
+    ]
+
     public static func create(name: String, application: String, destination: URL, sdk: URL, platform: String = "ios", androidAdapter: URL? = nil, androidHost: AndroidApplicationHost? = nil) throws -> GeneratedProject {
         guard ["ios", "android"].contains(platform) else { throw MixerFailure("create.platform", "Create supports ios (default) or android (both native hosts).") }
         var config = ApplicationConfiguration(name: name, application: application)
@@ -158,8 +166,14 @@ public enum ProjectGenerator {
             let copied = try SourceDigest.exportEntries(in: target)
             let files = copied.filter { !$0.directory }
             var modules = ["MixerCore", "MixerUI", "MixerApple", "MixerGuest", "MixerCapabilities", "MixerAndroid"]
-            // Pre-pivot SDKs can still be installed by an explicit upgrade.
-            if copied.contains(where: { $0.relative == "Sources/MixerSwiftUI" }) {
+            // SwiftPM can choose a version-specific manifest over Package.swift.
+            let hasSwiftUIOrManifestOverride = copied.contains { entry in
+                if entry.relative == "Sources/MixerSwiftUI" { return true }
+                let path = entry.relative.lowercased()
+                return !entry.directory && !path.contains("/") && path.hasPrefix("package@swift-") && path.hasSuffix(".swift")
+            }
+            let manifest = target.appendingPathComponent("Package.swift")
+            if try hasSwiftUIOrManifestOverride || !legacyIOSManifestDigests.contains(SourceDigest.sha256(Data(contentsOf: manifest))) {
                 modules.append("MixerSwiftUI")
             }
             for module in modules {

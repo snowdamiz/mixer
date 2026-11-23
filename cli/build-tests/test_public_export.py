@@ -215,6 +215,50 @@ exit "${EXPORT_SWIFT_EXIT:-0}"
         shutil.rmtree(incoming / "Sources/MixerApple")
         self.assert_upgrade_refused(self.upgrade(incoming), "snapshot.sdk")
 
+    def test_upgrade_requires_sources_for_declared_mixerswiftui(self):
+        self.create()
+        original_lock = (self.project / "mixer.lock").read_bytes()
+        incoming = self.root / "SDK"
+        shutil.copytree(REPO / "sdk", incoming)
+        module = incoming / "Sources/MixerSwiftUI"
+        shutil.rmtree(module)
+        module.mkdir()
+        for layout in ("empty", "missing"):
+            with self.subTest(layout=layout):
+                report = self.assert_upgrade_refused(self.upgrade(incoming), "snapshot.sdk")
+                self.assertIn("MixerSwiftUI", report["message"])
+                self.assertEqual((self.project / "mixer.lock").read_bytes(), original_lock)
+            if layout == "empty":
+                module.rmdir()
+
+    def test_upgrade_accepts_legacy_sdk_and_preserves_edited_app(self):
+        self.create()
+        package = self.project / "Package.swift"
+        edited_manifest = package.read_bytes() + b"\n// App-owned edit\n"
+        package.write_bytes(edited_manifest)
+        original_lock = (self.project / "mixer.lock").read_bytes()
+        incoming = self.root / "LegacySDK"
+        shutil.copytree(REPO / "sdk", incoming)
+        shutil.rmtree(incoming / "Sources/MixerSwiftUI")
+        legacy = REPO / "cli/Tests/MixerBuildTests/Fixtures/AppleProject/PreSwiftUISDK-Package.swift"
+        shutil.copyfile(legacy, incoming / "Package.swift")
+
+        override = incoming / "Package@swift-6.swift"
+        shutil.copyfile(REPO / "sdk/Package.swift", override)
+        report = self.assert_upgrade_refused(self.upgrade(incoming), "snapshot.sdk")
+        self.assertIn("MixerSwiftUI", report["message"])
+        override.unlink()
+
+        status, report = self.upgrade(incoming)
+        self.assertEqual(status, 0, report)
+        self.assertEqual(package.read_bytes(), edited_manifest)
+        self.assertEqual((self.destination / "Package.swift").read_bytes(), edited_manifest)
+        self.assertEqual((self.project / "mixer.lock").read_bytes(), original_lock)
+        sdk = self.destination / "Generated/MixerSDK"
+        self.assertEqual((sdk / "Package.swift").read_bytes(), legacy.read_bytes())
+        self.assertFalse((sdk / "Sources/MixerSwiftUI").exists())
+        self.assert_clean_staging()
+
     def test_upgrade_requires_a_regular_copied_sdk_manifest(self):
         self.create()
         incoming = self.root / "SDK"

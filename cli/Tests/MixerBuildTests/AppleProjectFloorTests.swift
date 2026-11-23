@@ -68,12 +68,14 @@ func upgradesStockIOSStarterInThePublishedCopy(_ variant: String) throws {
     let fm = FileManager.default
     let workspace = floorTestWorkspace("upgrade")
     defer { try? fm.removeItem(at: workspace) }
+    let resources = try #require(Bundle.module.resourceURL)
     let oldSDK = workspace.appendingPathComponent("old-sdk")
     let newSDK = workspace.appendingPathComponent("new-sdk")
-    for sdk in [oldSDK, newSDK] {
-        try fm.createDirectory(at: sdk, withIntermediateDirectories: true)
-        try Data("// \(sdk.lastPathComponent) fixture\n".utf8).write(to: sdk.appendingPathComponent("Package.swift"))
-    }
+    try fm.createDirectory(at: oldSDK, withIntermediateDirectories: true)
+    try Data("// old SDK fixture\n".utf8).write(to: oldSDK.appendingPathComponent("Package.swift"))
+    try fm.createDirectory(at: newSDK, withIntermediateDirectories: true)
+    try fm.copyItem(at: resources.appendingPathComponent("Fixtures/AppleProject/PreSwiftUISDK-Package.swift"),
+                    to: newSDK.appendingPathComponent("Package.swift"))
     for module in ["MixerCore", "MixerUI", "MixerApple", "MixerGuest", "MixerCapabilities", "MixerAndroid"] {
         let directory = newSDK.appendingPathComponent("Sources/\(module)")
         try fm.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -83,7 +85,6 @@ func upgradesStockIOSStarterInThePublishedCopy(_ variant: String) throws {
     let root = workspace.appendingPathComponent("old")
     let destination = workspace.appendingPathComponent("new")
     _ = try SuiteOwnedRunner.create(name: "FloorApp", application: "dev.mixer.floorapp", destination: root, sdk: oldSDK)
-    let resources = try #require(Bundle.module.resourceURL)
     let stock26 = try Data(contentsOf: resources.appendingPathComponent("Fixtures/AppleProject/26-Package.swift"))
     let manifest = "Package.swift"
     let stock17 = try Data(contentsOf: root.appendingPathComponent(manifest))
