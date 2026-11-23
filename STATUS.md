@@ -279,13 +279,18 @@ The F10 successor passed all five iOS phases after sorting health
 milestones during journal encoding. Both cold launches reopened the
 cached release while origin and relay refused connections. The same
 installation performed zero workspace writes and preserved its journal
-across each offline launch. Android live replacement remains open.
+across each offline launch.
 [Reviewed native F10 receipt](verification/receipts/l08-d8-f10-ios-live-replacement-20261123.json)
 
-The Android F10 owner passed the five-phase signed host replay,
-including ordered 20+6 rows and byte-identical journals across both
-cold reopens. The exact unsigned APK passed admission. The installed
-test remains pending. [Android F10 host receipt](verification/receipts/l08-d8-f10-android-replacement-host-20261123.json)
+The rebuilt Android F10 development APK passed all five installed
+phases on one API 36 arm64 emulator. The app fetched the prior, exact
+14,503-byte successor, and rollback through the local relay. Each cold
+launch omitted the relay port, made zero requests, and preserved its
+settled journal byte for byte. The successor showed the ordered 20+6
+rows on both launches, with zero workspace writes throughout. All five
+payload and workspace digests match the separate iOS run. This evidence
+uses a reconstructed private APK and a reauthored prior. The D8 corpus
+remains open. [Android F10 live replacement](verification/receipts/l08-d8-f10-android-live-replacement-20261123.json)
 
 The private F03 contracts passed immediate-first admission and
 deferred-start refusal before effects. Android verified all 54
