@@ -251,6 +251,16 @@ committed one event each at revisions 4 and 5. Cold rollback kept the
 final workspace byte-identical. Native signed delivery remains open.
 [F02 signed host receipt](verification/receipts/l08-d8-f02-signed-host-9c44a9b2.json)
 
+The F04 successor reached the stock signed host. The ordinary Guest
+UI V1 profile refused the first editable frame before Save. Rollback
+and offline reopen preserved the revision-4 workspace. Same-editor
+retry remains open. [F04 signed refusal receipt](verification/receipts/l08-d8-f04-signed-host-d9add963.json)
+
+The F08 signed host replay used the original installed Android seed.
+Successor actions appended one completion and one reorder operation.
+Browsing wrote nothing. Cold rollback preserved the completed task
+and exact order. [F08 signed host receipt](verification/receipts/l08-d8-f08-signed-host-4a1df205.json)
+
 The F06 focus diagnostic recorded 95 accepted empty title events.
 Disabling the form during each event caused the native keyboard to
 lose focus. Event turns stayed under 1.2 ms. Installed typing remains
