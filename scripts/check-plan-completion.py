@@ -97,13 +97,13 @@ def check_documents(documents):
         decided = isinstance(profile['decision'], str) and bool(profile['decision'].strip())
         if profile['state'] == 'passed' and not decided:
             failures.append('guestProfile: passed without an owner decision')
-        approved = 'guestProfile' in passed and decided and 'S2a' in settled - passed
+        approved = 'guestProfile' in passed and decided and 'S2b' in settled - passed
         for step, needs in PIVOT_PREREQUISITES.items():
             if step in passed and not needs <= passed:
                 failures.append(f'{step}: passed before {sorted(needs - passed)}')
         if 'UP3' in passed and settled != {spike['id'] for spike in spikes}:
             failures.append('UP3: passed before every spike settled')
-        if 'UP5' in passed and not (('S2a' in passed or approved) and 'S1' in settled):
+        if 'UP5' in passed and not ('S2a' in passed and ('S2b' in passed or approved) and 'S1' in settled):
             failures.append('UP5: passed without guest evidence and a settled S1')
         if not {'UP6', 'finalReplay'} <= passed and any(gate['id'] in {'L02', 'L08'} and gate['status'] == 'passed' for gate in gates):
             failures.append('L02 and L08 pass only after UP6 and the final replay')

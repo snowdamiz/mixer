@@ -94,18 +94,26 @@ class PlanCompletionTests(unittest.TestCase):
     def test_uplift_needs_every_spike_settled(self):
         documents = self.completed()
         documents['work-graph.json']['uiPlatformPivot']['spikes'][2].update(state='planned', outcome=None)
-        self.assertEqual(VALIDATOR['check_documents'](documents), ['UP3: passed before every spike settled'])
+        self.assertIn('UP3: passed before every spike settled', VALIDATOR['check_documents'](documents))
 
-    def test_guest_scope_needs_s2a_or_an_approved_profile(self):
+    def test_ios_guest_needs_the_full_swift_profile(self):
         documents = self.completed()
         pivot = documents['work-graph.json']['uiPlatformPivot']
-        pivot['spikes'][1].update(state='failed', outcome='store-build tier 1 interim milestone')
+        pivot['spikes'][1].update(state='failed', outcome='owner asked about the Embedded profile')
+        pivot['guestProfile'].update(state='passed', evidence=['fixture-receipt'], reviewer='fixture-reviewer',
+                                     decision='Owner approved the full profile on Android')
+        self.assertEqual(VALIDATOR['check_documents'](documents), ['UP5: passed without guest evidence and a settled S1'])
+
+    def test_android_guest_needs_s2b_or_an_approved_profile(self):
+        documents = self.completed()
+        pivot = documents['work-graph.json']['uiPlatformPivot']
+        pivot['spikes'][2].update(state='failed', outcome='Android store-build tier 1 interim milestone')
         self.assertTrue(VALIDATOR['check_documents'](documents))
         pivot['guestProfile'].update(state='passed', evidence=['fixture-receipt'], reviewer='fixture-reviewer')
         self.assertTrue(VALIDATOR['check_documents'](documents))
-        pivot['guestProfile']['decision'] = 'Owner approved a larger versioned profile'
+        pivot['guestProfile']['decision'] = 'Owner approved the full profile on Android'
         self.assertEqual(VALIDATOR['check_documents'](documents), [])
-        pivot['spikes'][1].update(state='passed', outcome='fixture-outcome')
+        pivot['spikes'][2].update(state='passed', outcome='fixture-outcome')
         pivot['guestProfile']['decision'] = None
         self.assertEqual(VALIDATOR['check_documents'](documents), ['guestProfile: passed without an owner decision'])
 

@@ -23,7 +23,7 @@ On November 23 the owner stopped the current-stack L02 and L08 work and started 
 3. Keep every hold in `AGENTS.md`. The pivot releases none of them.
 4. Use Sol 6.2 High for every subagent, as before.
 5. Keep historical receipts at their recorded scope. Do not relabel current-stack evidence as new-stack evidence.
-6. Local completion requires every UP step to pass with evidence and a reviewer. `scripts/check-plan-completion.py` enforces it. It also refuses a step pass whose spike or step prerequisites have not passed, a UP3 pass before every spike has a recorded outcome, a guest-profile route without S2a's fallback and an owner decision, and an L02 or L08 pass before UP6 and the final replay.
+6. Local completion requires every UP step to pass with evidence and a reviewer. `scripts/check-plan-completion.py` enforces it. It also refuses a step pass whose spike or step prerequisites have not passed, a UP3 pass before every spike has a recorded outcome, a UP5 pass without the iOS full-Swift profile from S2a, an Android guest-profile route without S2b's fallback and an owner decision, and an L02 or L08 pass before UP6 and the final replay.
 
 ### Where work stopped
 
@@ -66,7 +66,7 @@ The checkpoint left these items open. Each renderer failure becomes a regression
 
 - `MixerUI` exposes 10 node kinds, 5 general modifiers, and 4 event kinds, with a string ID on every view and a string action ID on every control (`sdk/Sources/MixerUI/Protocol.swift:5`, `sdk/Sources/MixerUI/Authoring.swift:20`). The importer labels `import SwiftUI` as adaptation-required (`cli/Sources/MixerBuild/MigrationInspector.swift:36`).
 - The iOS renderer already draws Apple SwiftUI controls from documents (`sdk/Sources/MixerApple/MixerNativeView.swift:196`). The generated iOS starter has no updater and an empty action handler (`cli/Sources/MixerBuild/ProjectGenerator.swift:297`).
-- The update guest is Embedded Swift 6.3.3. It refuses Foundation, `Task`, actors, and runtime-selected existentials (`compiler/swift-language-support.md`). The installed profile caps payload and memory at 4 MiB each (`runtime-identity/Sources/MixerRuntimeIdentity/CapabilityRuntimeIdentity.swift:164`) and admits UI schema 1 (`:115`). An empty full-Swift WASI reactor links at 5,508,619 bytes.
+- The update guest is Embedded Swift 6.3.3. It refuses Foundation, `Task`, actors, and runtime-selected existentials (`compiler/swift-language-support.md`). The installed profile caps payload and memory at 4 MiB each (`runtime-identity/Sources/MixerRuntimeIdentity/CapabilityRuntimeIdentity.swift:164`) and admits UI schema 1 (`:115`). An empty full-Swift WASI reactor links at 5,508,619 bytes. Under P6, iOS update guests move to a full-Swift profile with FoundationEssentials and Swift Concurrency, and Android guests keep this Embedded profile.
 - Google moved `android.widget` to maintenance mode on May 19, 2026 ([Compose First](https://developer.android.com/blog/posts/android-ui-development-is-compose-first)). Compose BOM 2026.11.01 needs Kotlin 2.2 or newer, compileSdk 37.1, and AGP 9.3.1 or newer.
 - The public Android host sets `minimumAPI = 36` (`cli/Sources/MixerBuild/AndroidPublicHost.swift:6`). The observer and the View renderer both refuse every API below 36 (`native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java:87`, `NativeRenderer.java:1363`). Both appearance resolvers refuse bold text and increased contrast (`AppearanceResolverV2.java:215`, `sdk/Sources/MixerUI/AppearanceResolutionV2.swift:298`). Google's October 2026 data puts API 36 and later at 26.3% of active devices in its dataset.
 - A compile-only check on November 23 built five package schemes (the root `Mixer` package, `capability-activation`, `native-sdk`, `activation`, and `runtime`) and the Rust VM Simulator archive for an iOS 17.0 target with no availability errors. The `capabilities/` qualification package was not built, and nothing ran on an iOS 17 runtime ([iOS 17 compile receipt](verification/receipts/ios17-floor-compile-20261123.json)). Apple's June 7, 2026 data put iOS 26 on 79% of the iPhones that used the App Store that day.
@@ -99,8 +99,8 @@ The checkpoint left these items open. Each renderer failure becomes a regression
 Product plan Section 24.6 gives the pass rules and what each outcome unlocks. Each spike gets at most two distinct approaches, then records its fallback and starts the Section 24.4 escalation.
 
 - [ ] S1 module naming.
-- [ ] S2a guest feasibility for the FieldLog list and editor. Report raw and compressed size, imports, memory, turn time, call depth, and host calls for each artifact.
-- [ ] S2b guest constructs, each recorded as passed or native-only.
+- [ ] S2a iOS full-Swift guest profile for the FieldLog list and editor, with FoundationEssentials value types and `.task`. Report raw and compressed size, diff size against the bundled base, memory, startup, turn time, call depth, and host calls, and set the profile caps from them.
+- [ ] S2b Android Embedded guest for the same screens within the installed caps, with each construct recorded as passed or kept out of Android updates.
 - [ ] S3 state and handlers, with separate native (S3n) and guest (S3g) results.
 - [ ] S4 iOS feature ownership for option B'.
 - [ ] S5 Compose editor slice with the prepare and present contract. Include the `Inspec` readback case, soft-keyboard composition, and a canceled draw.
@@ -124,13 +124,13 @@ Product plan Section 24.6 gives the pass rules and what each outcome unlocks. Ea
 - [ ] Build the engine core in `sdk/Sources/MixerSwiftUI/` under the rules in product plan Section 8.1. It covers identity, state storage, handlers and their commit point, environment, change tracking, document diffing, and row paging.
 - [ ] Wire the new module into the root and `sdk` manifests, the `ProjectGenerator.swift` module list, export, and the guest driver, after UP1 lands.
 - [ ] Ship the new UI schema across runtime identity, release preparation, guest codecs, guest activation, and both renderers. Add failed-frame, late-callback, and cross-version refusal tests.
-- [ ] Choose tier 1 from FieldLog plus list-and-detail, form-and-settings, and tabbed apps. Constructs that S2b did not pass stay native-only.
+- [ ] Choose tier 1 from FieldLog plus list-and-detail, form-and-settings, and tabbed apps. Constructs that S2b did not pass stay out of Android updates.
 - [ ] Apply the shared theme in `MixerNativeView`, remove the high-contrast and bold-text refusal in `sdk/Sources/MixerUI/AppearanceResolutionV2.swift`, render the UP2 policy with screenshot evidence, and add the carried pressed-state case.
 - [ ] Add the dual iOS compile check and the generated support table.
 - [ ] Extend the Section 7.2 compiler inventory to resolved dependencies, macro expansion, and emitted Wasm.
 - [ ] Start gap items GC1, GC3, GC4, and GC5 from product plan Section 24.7.
 - [ ] Deliver the minimum native island for FieldLog's project-site map, which Section 9 requires for local completion, with the grant checks that product plan Section 24.7 item GC3 sets. GC3 generalizes it later.
-- [ ] Exit. Meet the UP5 exit check in Section 24.6. UP5 passes only with guest evidence from S2a or from S2a's fallback plus an owner-approved profile. If S2a fell back, record store-build tier 1 as an interim milestone in the meantime.
+- [ ] Exit. Meet the UP5 exit check in Section 24.6. UP5 passes only with iOS guest evidence from S2a and Android guest evidence from S2b or from S2b's fallback plus an owner-approved profile. If S2b fell back, record Android store-build tier 1 as an interim milestone in the meantime.
 
 #### UP6. Migrate, qualify, then remove legacy code
 
@@ -150,12 +150,12 @@ Product plan [Section 24.7](mixer-product-plan.md#247-close-the-remaining-gaps-u
 - [ ] GC4 differential run on Apple SwiftUI for Apple-equivalent constructs, and native-versus-update checks for Mixer-only constructs.
 - [ ] GC5 plain, bundled-engine, and update modes measured separately against the Section 20.2 startup, responsiveness, scrolling, and memory targets.
 - [ ] GC6 a recorded decision for every API in each stable iOS SDK's SwiftUI delta.
-- [ ] GC7 practical OTA coverage over the FieldLog change corpus, including Foundation value types and `.task`, through the S2a and ADR-16 path.
+- [ ] GC7 practical OTA coverage over the FieldLog change corpus on both platforms, including Foundation value types and `.task`, with Android on the full-Swift profile or a corrected Embedded approach.
 
 ### Decisions still open
 
 - The owner asked on November 23 which option is better once Mixer's gaps close. B' is, for the reasons in product plan Section 1.3, and [Section 24.7](mixer-product-plan.md#247-close-the-remaining-gaps-under-option-b) closes its remaining costs. Choosing option B still needs a new owner decision, because it changes Section 5.2 and Section 8.3. S4 stops and asks if B' fails, and Section 24.7 states the measured trigger for revisiting B.
-- If S2a falls back, the owner decides whether to fund a larger, versioned full-Swift execution profile under ADR-16. Until then, an update that needs Foundation or `Task` is a store release.
+- iOS uses the full-Swift guest profile under P6. If S2a falls back, the owner decides whether iOS accepts the Embedded profile. If S2b falls back, the owner decides whether Android adopts the full-Swift profile. Until Android has a qualified profile for it, an Android update that needs Foundation or `Task` is a store release.
 
 ## Completion policy, November 17, 2026
 

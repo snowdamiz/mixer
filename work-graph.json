@@ -8023,7 +8023,8 @@
             "S4"
           ],
           "guest": [
-            "S2a passed, or S2a failed with an owner-approved guestProfile",
+            "S2a for iOS",
+            "S2b passed, or S2b failed with an owner-approved guestProfile, for Android",
             "S3g"
           ]
         },
@@ -8034,10 +8035,11 @@
           "S4",
           "UP1",
           "UP4",
-          "S2a passed or guestProfile passed with an owner decision"
+          "S2a passed",
+          "S2b passed or guestProfile passed with an owner decision"
         ],
         "scopeRule": "Each scope starts when its own prerequisites pass. dependsOn is empty because no single prerequisite gates every scope.",
-        "interimMilestone": "If S2a falls back, store-build tier 1 is an interim milestone. UP5 passes only with guest evidence from S2a or guestProfile."
+        "interimMilestone": "If S2b falls back, Android store-build tier 1 is an interim milestone. UP5 passes only with iOS guest evidence from S2a and Android guest evidence from S2b or guestProfile."
       },
       {
         "id": "UP6",
@@ -8074,7 +8076,7 @@
       },
       {
         "id": "S2a",
-        "name": "Guest feasibility for the FieldLog list and editor (required)",
+        "name": "iOS full-Swift guest profile for the FieldLog list and editor (required)",
         "packages": [
           "W07",
           "W08"
@@ -8084,11 +8086,11 @@
         "evidence": [],
         "reviewer": null,
         "outcome": null,
-        "unlocks": "UP5 guest scope, UP6, L08"
+        "unlocks": "UP5 iOS guest scope and the iOS profile caps"
       },
       {
         "id": "S2b",
-        "name": "Guest constructs (optional)",
+        "name": "Android Embedded guest feasibility and constructs (required for the Android guest scope)",
         "packages": [
           "W07"
         ],
@@ -8097,7 +8099,7 @@
         "evidence": [],
         "reviewer": null,
         "outcome": null,
-        "unlocks": "Guest status of each construct in the support table"
+        "unlocks": "UP5 Android guest scope, UP6, L08, and the Android guest status of each construct"
       },
       {
         "id": "S3n",
@@ -8164,8 +8166,8 @@
     },
     "guestProfile": {
       "id": "guestProfile",
-      "name": "Owner-approved larger guest execution profile under ADR-16",
-      "note": "Needed only if S2a falls back. Requires an owner decision, a new versioned execution profile, and a store build.",
+      "name": "Owner-approved full-Swift guest profile for Android under ADR-16",
+      "note": "Needed only if S2b falls back. Requires an owner decision, the versioned execution profile, and an Android store build.",
       "decision": null,
       "state": "planned",
       "evidence": [],
@@ -8258,7 +8260,7 @@
       },
       {
         "id": "GC7",
-        "name": "Updates that need Foundation or Task",
+        "name": "Android updates that need Foundation or Task",
         "startsWith": "UP6",
         "packages": [
           "W07",
@@ -8269,7 +8271,8 @@
         "reviewer": null
       }
     ],
-    "revisitOptionB": "Only if GC5 shows the bundled engine path missing a Section 20.2 target that plain Apple SwiftUI meets for the same screen and two distinct Section 24.4 fixes fail. API lag and update-mode costs do not count. The owner then decides."
+    "revisitOptionB": "Only if GC5 shows the bundled engine path missing a Section 20.2 target that plain Apple SwiftUI meets for the same screen and two distinct Section 24.4 fixes fail. API lag and update-mode costs do not count. The owner then decides.",
+    "iosGuestProfile": "Full Swift with the standard library, Swift Concurrency, Observation, and FoundationEssentials; ICU through host bridges; bundled base and signed diff delivery; caps set by S2a; new versioned execution profile in an iOS store build."
   },
   "packages": [
     {
