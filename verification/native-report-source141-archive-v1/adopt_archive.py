@@ -499,6 +499,20 @@ UP2_PAIR29_REPLACEMENTS = UP2_PAIR29_SOURCE_REPLACEMENTS | {
     SPARSE_CHECKOUT_TEST,
 }
 
+S3_SWIFTUI_SOURCE_SHA256 = '7596b0e4dbd0a50cf4223cc44e117c358ee46dc939c05770daa62818ff607e9c'
+S3_SWIFTUI_SOURCE_ADDITIONS = {'sdk/Sources/MixerSwiftUI/' + name for name in (
+    'FeatureExecutor.swift', 'FeatureSession.swift', 'State.swift', 'ViewEvaluation.swift', 'Views.swift',
+)}
+
+S4_DISPLAY_RECEIPT_PREFIX = 's4-display-receipt-predecessor-bytes/'
+S4_DISPLAY_RECEIPT_PREDECESSOR_REVISION = '51b5cc47da8160d3249a46bc3fb3e480a40eac43'
+S4_DISPLAY_RECEIPT_OWNER_SHA256 = 'be938883cc03256e261ff36d8c8b9749df62637911f44c3e8cd8c155b779f348'
+S4_DISPLAY_RECEIPT_CHANGES = {
+    CAPABILITY + 'CapabilityGuestUIPresentation.swift',
+    'capability-activation/Tests/MixerCapabilityActivationTests/GuestUIReadyInputTests.swift',
+    SIGNED_APPLE_OVERFLOW_TEST,
+}
+
 PAIR25_RUST_NOTICES_PREIMAGE = 'pair25-rust-notices-predecessor-bytes/THIRD_PARTY.yml'
 STATEFUL_WAST_NOTICE_PREIMAGE = 'stateful-wast-notice-predecessor-bytes/THIRD_PARTY.yml'
 PAIR25_NETWORK_CRYPTO_NOTICE_PREIMAGE = 'pair25-network-crypto-notice-predecessor-bytes/THIRD_PARTY.yml'
@@ -623,6 +637,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     UP1_PAIR28_PREFIX + name for name in UP1_PAIR28_REPLACEMENTS
 } | {
     UP2_PAIR29_PREFIX + name for name in UP2_PAIR29_REPLACEMENTS
+} | {
+    S4_DISPLAY_RECEIPT_PREFIX + name for name in S4_DISPLAY_RECEIPT_CHANGES
 } | {
     SWIFT_VERSION_PREFIX + name for name in SWIFT_VERSION_CHANGES
 } | {
@@ -835,6 +851,7 @@ def install_inputs():
                              'pair27_transition', 'stock_ios_generator_transition',
                              'stock_ios_simulator_archive_transition', 'stock_ios_debug_transition',
                              'up1_pair28_transition', 'up2_pair29_transition',
+                             's3_swiftui_transition', 's4_display_receipt_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -2322,11 +2339,49 @@ def install_inputs():
             expected_source[name] = change['after']
         installed[name] = change['after']
         preimages.setdefault(name, (raw, change['mode']))
-    require(current == expected_source and len(current) == 158 and
-            previous.digest(current) == up2_pair29['sourceAfter'] == UP2_PAIR29_SOURCE_SHA256 and
-            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
-                                  'sha256': up2_pair29['sourceAfter']},
+    require(len(expected_source) == 158 and
+            previous.digest(expected_source) == up2_pair29['sourceAfter'] == UP2_PAIR29_SOURCE_SHA256,
             'UP2 Pair29 source transition differs')
+
+    s3 = binding['s3_swiftui_transition']
+    require(set(s3) == {'sourceBefore', 'sourceAfter', 'additions'} and
+            s3['sourceBefore'] == UP2_PAIR29_SOURCE_SHA256 and
+            set(s3['additions']) == S3_SWIFTUI_SOURCE_ADDITIONS and
+            S3_SWIFTUI_SOURCE_ADDITIONS.isdisjoint(installed) and
+            S3_SWIFTUI_SOURCE_ADDITIONS.isdisjoint(expected_source),
+            'S3 MixerSwiftUI source addition roster differs')
+    for name in S3_SWIFTUI_SOURCE_ADDITIONS:
+        require(stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'S3 MixerSwiftUI source mode differs: ' + name)
+    expected_source.update(s3['additions'])
+    installed.update(s3['additions'])
+    require(current == expected_source and len(current) == 163 and
+            previous.digest(current) == s3['sourceAfter'] == S3_SWIFTUI_SOURCE_SHA256 and
+            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
+                                  'sha256': s3['sourceAfter']},
+            'S3 MixerSwiftUI source transition differs')
+
+    s4 = binding['s4_display_receipt_transition']
+    require(set(s4) == {'baseRevision', 'changes'} and
+            s4['baseRevision'] == S4_DISPLAY_RECEIPT_PREDECESSOR_REVISION and
+            set(s4['changes']) == S4_DISPLAY_RECEIPT_CHANGES and
+            S4_DISPLAY_RECEIPT_CHANGES <= installed.keys() and
+            S4_DISPLAY_RECEIPT_CHANGES.isdisjoint(current),
+            'S4 display receipt owner roster differs')
+    s4_preimages = {}
+    for name, change in s4['changes'].items():
+        path = HERE / S4_DISPLAY_RECEIPT_PREFIX / name
+        raw = read_predecessor_member(path)
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == installed[name] == previous.row(raw) and
+                change['before'] != change['after'] and
+                change['mode'] == stat.S_IMODE(path.lstat().st_mode) ==
+                stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'S4 display receipt predecessor bytes or owner mode differs: ' + name)
+        installed[name] = change['after']
+        s4_preimages[name] = (raw, change['mode'])
+    require(previous.digest({name: installed[name] for name in S4_DISPLAY_RECEIPT_CHANGES}) ==
+            S4_DISPLAY_RECEIPT_OWNER_SHA256, 'S4 display receipt owner digest differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in store_fixture['changes'].items():
@@ -2358,8 +2413,8 @@ def install_inputs():
                 'Installed capability archive owner mode differs: ' + name)
         if name in effective and name not in preimages:
             preimages[name] = (capability_preimages[name], change['mode'])
-    # Earlier preimages also include the capability fallback above.
-    preimages = {**editor_preimages, **private_f10_preimages, **preimages}
+    # Historical preimages, including the capability fallback above, take precedence over S4.
+    preimages = {**s4_preimages, **editor_preimages, **private_f10_preimages, **preimages}
     owner = previous.module('native_archive_actual_collector', ROOT / previous.OWNER)
     profile = owner.load_profile(ROOT)
     pair22 = historical_binding['sdk_transition']['profileAfter']
@@ -2468,6 +2523,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_up2_pair29_source158_sha256': binding['s3_swiftui_transition']['sourceBefore'],
             'predecessor_up1_pair28_source158_sha256': binding['up2_pair29_transition']['sourceBefore'],
             'predecessor_stock_ios_debug_source158_sha256': binding['up1_pair28_transition']['sourceBefore'],
             'predecessor_stock_ios_simulator_archive_source158_sha256': binding['stock_ios_debug_transition']['sourceBefore'],
