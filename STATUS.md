@@ -294,6 +294,14 @@ paired fixture behavior. The stock origin refused Android UI3 before
 the scoped fixture origin served it, so the public D8 OTA tally is
 unchanged and the corpus remains open. [Android F10 live replacement](verification/receipts/l08-d8-f10-android-live-replacement-20261123.json)
 
+The ordinary origin rejected F10 at UI schema 3 registration. With an
+admitted schema 1 host, the ordinary CLI received HTTP 422 for both
+artifact uploads and rollback. The installed Swift verifier, Phoenix,
+and Worker checks independently refused these schema 3 releases, while
+the signed schema 1 control published. The fix needs an installed
+contract spanning consumers and origin admission.
+[F10 public schema refusal](verification/receipts/l08-d8-f10-public-ui-schema-refusal-20261123.json)
+
 The private F03 contracts passed immediate-first admission and
 deferred-start refusal before effects. Android verified all 54
 source members and refused mixed source pairs. Native appearance

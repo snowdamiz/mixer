@@ -1,0 +1,86 @@
+{
+  "schema": "mixer.verification.f10-stock-contract-refusal.v1",
+  "gate": "L08",
+  "row": "F10",
+  "status": "blocked-public-ui-schema",
+  "scope": "Host-only inspection and executable stock release replay.",
+  "sourceReceiptSHA256": "32c25008a48d3d814c0e67c40d42d0a6f429613725354534273389c8e6d63c6b",
+  "stage": "d3c28ec8a4725b5288e7b2131805bafb803bf791",
+  "stageTree": "2cd3dd13e13eaf955c438b55d7ea259798c64649",
+  "tools": {
+    "elixir": "Erlang/OTP 29 [erts-17.1] [source] [64-bit] [smp:15:15] [ds:15:15:10] [async-threads:1] [jit] [dtrace]\n\nElixir 1.20.4 (compiled with Erlang/OTP 29)",
+    "go": "go version go1.26.4 darwin/arm64",
+    "node": "v26.13.1",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0"
+  },
+  "stockToolAdmission": {
+    "base": "d16def36241304b4ab9010b0a6ac71dafd170457",
+    "cliSHA256": "337d054c7f16dd38f3c9b4befeeba6e821d3f6697045d602cfd6af7ddf2c0a08",
+    "rootOriginSHA256": "f759e2f60670bd39d8aa52cfa54b58b9c3011ebf4740dabbc272df07cf082dcb",
+    "tree": "e0c5e778a5688e8af862087df9ad81448917f7e9"
+  },
+  "didInstallNative": false,
+  "scratchRemoved": true,
+  "goRegression": {
+    "command": "go -C <pinned-extraction>/services test -v -p 4 ./protocol ./release",
+    "packages": [
+      "ok  \tmixer/services/protocol\t0.630s",
+      "ok  \tmixer/services/release\t7.656s"
+    ],
+    "skips": [],
+    "topLevelPasses": 53
+  },
+  "stockRegistration": {
+    "exit": 1,
+    "stderr": "mixer-service: invalid/duplicate registered host\n",
+    "stdout": ""
+  },
+  "currentRegistration": {
+    "exit": 1,
+    "stderr": "mixer-service: invalid/duplicate registered host\n",
+    "stdout": ""
+  },
+  "publicIdentity": {
+    "exit": 1,
+    "stderr": "Invalid installed runtime identity: number\n",
+    "stdout": ""
+  },
+  "publicSwiftVerifier": {
+    "prior": "v3.host.invalid",
+    "exact": "v3.host.invalid",
+    "rollback": "v3.host.invalid"
+  },
+  "phoenix": {
+    "crossRuntime": "artifact_rejected",
+    "crossTenant": "artifact_rejected",
+    "f10": {
+      "exact": "artifact_rejected",
+      "prior": "artifact_rejected",
+      "rollback": "artifact_rejected"
+    },
+    "f10Host": false,
+    "stockUI1": "fde8e3aa163d720681d4d0c08700966163f4245a0954bfb371acbeded1f6bf64",
+    "unsupportedCapability": "artifact_rejected"
+  },
+  "worker": {
+    "crossRuntime": false,
+    "crossTenant": false,
+    "f10": {
+      "exact": false,
+      "prior": false,
+      "rollback": false
+    },
+    "stockUI1": true
+  },
+  "cliAgainstUI1": {
+    "prior": "update.upload.rejected",
+    "exact": "update.upload.rejected",
+    "rollback": "update.rollback.rejected"
+  },
+  "scopeControls": {
+    "otherRuntime": "v3.manifest.compatibility",
+    "otherTenant": "v3.manifest.compatibility",
+    "unsupportedCapability": "v3.host.invalid"
+  },
+  "conclusion": "Public V3 installed identity and release policy expect UI schema 1. The historical F10 prior and successor require schema 3. A publisher-only exception does not make either public consumer eligible."
+}
