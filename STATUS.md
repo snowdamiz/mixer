@@ -143,6 +143,13 @@ after cold reopen. The two queue pages survived a tab return and cold
 reopen. The matching installed Android build remains open.
 [iOS queue and checklist receipt](verification/receipts/l08-d2-ios-queue-center-native-20261123.json)
 
+The combined entry, checklist, and queue source passed five Apple host
+replays and 31 Android host tests. Three native iOS tests passed on that
+combined build, including menu reorder, cold multiline draft restore,
+and the report share sheet. Standalone Swift overlap is 1,931 of 5,203
+lines. The Android native counterpart and the 90% target remain open.
+[Combined D2 receipt](verification/receipts/l08-d2-combined-app-host-and-ios-native-20261123.json)
+
 ## In-place FieldLog public SDK adoption on iOS
 
 Three native tests created a project and saved photo draft in standalone
