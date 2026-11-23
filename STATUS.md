@@ -83,6 +83,15 @@ closed, and the observer retained the associated scratch because it had
 neither the shutdown acknowledgement nor exact port-refusal evidence.
 The disposable Simulator was removed. [Workerd attempt](verification/receipts/l08-ios-workerd-startup-observer-20261122.json)
 
+The corrected installed run used the same signed releases and observed
+connection refusal from Workerd and the app-facing relay while stock Go
+was healthy. An ordinary task completion saved during that cut. The
+workspace bytes matched after the same installation accepted signed
+sequence 2. Both Workerd process groups closed and their listener port
+rebound. No payment configuration was needed. The run covers the delivery
+and control-service topology, with independent telemetry loss unobserved.
+[Installed Workerd receipt](verification/receipts/l08-ios-installed-workerd-outage-20261122.json)
+
 ## In-place FieldLog public SDK adoption on iOS
 
 Three native tests created a project and saved photo draft in standalone
@@ -125,6 +134,13 @@ independent signed F10 companion installation failed before navigation
 assertions. Both simulators retired. The F05 test adds ordinary Apple
 behavior to the corpus review. Its signed Android test has separate scope.
 [Native corpus receipt](verification/receipts/l08-ios-corpus-f05-f10-native-20261122.json)
+
+The F10 iOS discriminator retained three native status attachments.
+Each signed release reached provisional guest startup, then the runtime
+stopped on the turn deadline. The direct and repeat routes stopped
+during the initial wake. The history route reached one native event and
+stopped during the invocation. No route recorded a workspace write.
+[Installed F10 deadline receipt](verification/receipts/l08-ios-f10-installed-deadline-20261122.json)
 
 ## Ordinary iOS account and photo diagnostics
 
