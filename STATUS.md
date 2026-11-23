@@ -399,9 +399,12 @@ was deleted and all three controller ports were reusable.
 The private F09 iOS witness passed after giving the guest renderer the
 remaining height of its parent view. One installation completed five
 launches on iOS 27.0. The 20+3 checklist followed Verify café drain from
-position 21 to 20, changed only those two rows, and appended one
-taskOrderChanged event. Signed rollback and offline reopen preserved the
-revision-2 workspace. The owned Simulator and private packet were removed.
+position 21 to 20 and appended one taskOrderChanged event. Only those two
+row positions changed. The transaction refreshed the timestamps of all
+23 checklist rows. Signed rollback and offline reopen preserved the
+revision-2 workspace. Independent review matched all five XCTest
+attachments and verified the six release signatures. The run used no
+fallback swipes. The owned Simulator and private packet were removed.
 Android paired OTA remains open.
 [F09 installed replay](verification/receipts/l08-d8-f09-ios-finite-viewport-native-20261123.json)
 
