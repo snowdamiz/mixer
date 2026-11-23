@@ -207,6 +207,18 @@ failed the settled-state check. Both owned Simulators were removed,
 and F10 listener ports were reusable. Both D8 slices remain open.
 [Native failure receipt](verification/receipts/l08-d8-f06-f10-ios-native-boundary-failures-20261123.json)
 
+The F10 successor passed all five iOS phases after sorting health
+milestones during journal encoding. Both cold launches reopened the
+cached release while origin and relay refused connections. The same
+installation performed zero workspace writes and preserved its journal
+across each offline launch. Android live replacement remains open.
+[Reviewed native F10 receipt](verification/receipts/l08-d8-f10-ios-live-replacement-20261123.json)
+
+The F06 focus diagnostic recorded 95 accepted empty title events.
+Disabling the form during each event caused the native keyboard to
+lose focus. Event turns stayed under 1.2 ms. Installed typing remains
+open. [F06 native responder receipt](verification/receipts/l08-d8-f06-ios-native-responder-cycle-20261123.json)
+
 A stock local build processor and managed worker linked the arm64 iOS
 Simulator build of FieldLog and verified its committed products after
 PostgreSQL restart. The unpatched CLI refused the checked-in Xcode
