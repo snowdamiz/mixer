@@ -231,6 +231,18 @@ readback. The Unicode, multiline and refusal controls remain host
 evidence.
 [Independent native review](../verification/receipts/l08-d2-composite-native-independent-review-dfb0d819.json)
 
+## Selected-draft signed guest linkage
+
+Ordinary Android AppAndroid linked and exported submit and poll on the
+same D2 tree. Enabling its existing signed-checklist branch stopped
+during compilation because the target could not import
+FieldLogInstalledGuest. The experiment reached neither guest attachment
+nor lease revocation. A shared owner must link to the live Android V4
+owner, frame and saved selection. Its current storage contract returns
+revision and flags. The measured sharing count still covers the linked
+products above.
+[Exact compile boundary](../verification/receipts/fieldlog-d2-signed-owner-a6b7757b.json)
+
 ## Reproduce the source measurement
 
 From the Mixer repository on a Mac with Git, Python, and SwiftPM, run the following in Bash. The commands use the receipt, the public FieldLog pin, and the four overlays. They evaluate package metadata without building either app or resolving SDK dependencies.
