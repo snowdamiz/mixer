@@ -1,5 +1,15 @@
 # Execution index
 
+## Licensing and revenue, November 23, 2026
+
+The owner set the licensing and revenue model. The core engine and the OTA update system are MIT. Mixer charges for hosted builds and hosted OTA delivery, as Expo does with EAS, and self-hosted delivery is free. [Product plan Section 26.7](mixer-product-plan.md#267-licensing-and-revenue-model-november-23-2026) defines the MIT scope, the paid services, the plans, and the meters. This changes neither local completion nor the November 17 rule that testing and early launch are free and payment implementation is deferred.
+
+- [ ] Add the MIT license text and a path map of MIT and proprietary directories.
+- [ ] Review `THIRD_PARTY.yml` for license compatibility with the MIT scope under product plan Section 4.3.
+- [ ] Keep hosted-service code out of the MIT paths.
+- [ ] Choose the reference self-hostable update server from `services/` and `release-delivery-origin/`, and document how to run it.
+- [ ] Get the owner's decisions on the copyright holder, the contribution terms, and the trademark policy for the Mixer name and the Flick logo.
+
 ## UI platform pivot, November 23, 2026
 
 On November 23 the owner stopped the current-stack L02 and L08 work and started a pivot. Shared screens move from the explicit-ID `MixerUI` DSL to a published SwiftUI subset. Android moves from `android.widget` Views to Jetpack Compose. The iOS minimum drops from 26.0 to 17.0, and the shared-design Android host drops from API 36 to API 28. These are approved targets. The code still declares iOS 26.0 until UP1 lands and still requires API 36 until UP4 lands.

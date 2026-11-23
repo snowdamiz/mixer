@@ -38,6 +38,15 @@ explicit-ID `MixerUI` authoring API, or the private UIKit appearance
 prototype. The pivot releases no hold listed below and changes no model,
 verification, cleanup, or push rule.
 
+## Licensing and revenue, November 23, 2026
+
+The core engine and the OTA update system are MIT-licensed, and Mixer charges
+for hosted builds and hosted OTA delivery. Product-plan Section 26.7 lists the
+MIT paths. Code in those paths may use only dependencies whose licenses permit
+MIT distribution (Section 4.3), must not depend on the proprietary hosted
+service, and records every dependency in `THIRD_PARTY.yml`. Payment
+implementation stays deferred under the November 17 policy.
+
 ## Ownership and execution
 
 - Independently implement all product engine code. No Patch/Skip implementation,

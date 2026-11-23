@@ -128,5 +128,8 @@ using the SDK as a Swift package, and the repository layout.
 
 ## License
 
-The license terms are still under review before public distribution.
+The core engine and the OTA update system will be released under the MIT
+license. Hosted builds and hosted update delivery will be paid services, and
+self-hosted delivery stays free. The repository has no license file yet, so no
+license is granted today. See the [licensing and revenue model](mixer-product-plan.md#267-licensing-and-revenue-model-november-23-2026).
 [`THIRD_PARTY.yml`](THIRD_PARTY.yml) lists third-party dependencies.

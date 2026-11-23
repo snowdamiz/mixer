@@ -1,6 +1,6 @@
 # mixer — Swift-First Mobile Platform Product and Engineering Plan
 
-Version: 1.7, updated November 23, 2026 for the UI platform pivot (Section 1.3). Version 1.6 of November 17 set local end-to-end completion, free testing and early launch, and separate deployment and monetization tracking.
+Version: 1.7, updated November 23, 2026 for the UI platform pivot (Section 1.3) and the licensing and revenue model (Section 26.7). Version 1.6 of November 17 set local end-to-end completion, free testing and early launch, and separate deployment and monetization tracking.
 
 Prepared: October 22, 2026  
 Status: Proposed implementation plan; no implementation or release evidence is claimed by this document.  
@@ -25,6 +25,7 @@ The user's decisions govern the plan:
 5. **Make limitations explicit.** The service must explain which changes are OTA-compatible, which require a store release, and which APIs are platform-specific.
 6. **Use the specified agent models.** The user selects the main controlling agent when launching development. The coordinator directs and integrates the work. Use **Sol 6.2 High** for every new subagent, including implementation, blocker experiments, and reviews. Section 25 defines the model settings.
 7. **Pivot the UI platform.** On November 23, 2026, the owner directed SwiftUI-subset authoring, Jetpack Compose on Android, and an iOS 17 minimum. Section 1.3 records the decisions and supersedes conflicting text elsewhere in this plan.
+8. **License the engine as open source and charge for hosted services.** On November 23, 2026, the owner set the MIT license for the core engine and the OTA update system. Revenue comes from hosted builds and hosted OTA delivery, as with Expo's EAS. A developer who self-hosts update delivery pays nothing for it. Section 26.7 defines the scope and the model.
 
 ### 1.1 Meaning of “our own engine for everything”
 
@@ -104,7 +105,7 @@ Apply the local evidence rules above to this capability inventory. Provider plac
 | Developer tooling | Local CLI, Swift diagnostics, native and guest debugging, profiler, patch eligibility report, emulator/device support, and reproducible bug reports. |
 | Console/API | Projects, environments, releases, builds, devices in aggregate, rollout health, audit history, free accounts, usage, and documented automation API. Payments and paid entitlements are deferred. |
 | Operations | Local backup/restore, failure recovery, diagnostics, and abuse controls. Live on-call, status service, and provider reliability belong to deployment readiness. |
-| Trust | Open SDK/tooling strategy, provenance, security review, export/ejection, support policies, and clear licensing. |
+| Trust | MIT-licensed core engine and OTA update system (Section 26.7), provenance, security review, export/ejection, support policies, and clear licensing. |
 | Dogfood | A real Swift application maintained through public platform interfaces and exercised locally end to end on both platforms. Store publication and production use are later qualification. |
 
 ### 2.2 Explicit boundaries of the first complete release
@@ -195,6 +196,10 @@ Earlier source inspection was research, not a formal clean-room process. Do not 
 - Original SDK, engine, and CLI code: proposed Apache-2.0; hosted console/control-plane code: commercial. Confirm patent and trademark position before public branding.
 
 For context only, source inspection found MPL-2.0 in Skip's UI/bridge libraries and AGPL-3.0 in skipstone. These implementations are excluded under the user's decision, so the product does not depend on satisfying a competitor-code reuse plan. [UI license](https://github.com/skiptools/skip-ui/blob/main/LICENSE.txt), [Engine license](https://github.com/skiptools/skipstone/blob/main/LICENSE.txt)
+
+### 4.3 License compatibility of the MIT scope
+
+The MIT scope in Section 26.7 may depend only on licenses that permit MIT distribution, such as MIT, BSD, Apache-2.0, ISC, zlib, PSF-2.0, and public domain. Copyleft dependencies, including GPL, LGPL, AGPL, and MPL, stay out of it. Record every dependency's license in `THIRD_PARTY.yml`. Code in the MIT paths does not depend on the proprietary hosted service, and hosted-service code stays outside the MIT paths.
 
 ## 5. System architecture and ownership
 
@@ -679,7 +684,7 @@ Ship migration guides for a plain SwiftUI app, UIKit integration, SwiftPM busine
 
 Local build, native project export, SDK source, dependency lockfiles, release artifacts, and signing-key export where supported must permit continued store releases if the hosted service is unavailable. Document how to disable hosted update checks in a future binary and preserve the last healthy installed release.
 
-An export is considered working only when FieldLog builds and launches through a documented independent CI setup using exported artifacts/tooling. Do not promise arbitrary removal of the framework without application migration. Publish the OTA wire format and SDK behavior so an alternate delivery service can be implemented without reverse engineering.
+An export is considered working only when FieldLog builds and launches through a documented independent CI setup using exported artifacts/tooling. Do not promise arbitrary removal of the framework without application migration. Publish the OTA wire format and SDK behavior so an alternate delivery service can be implemented without reverse engineering. Self-hosting is a supported path, not only an exit. The update protocol, the signing format, the device updater, and a reference update server are MIT under Section 26.7, so a customer can run delivery without Mixer's hosted service and pay Mixer nothing for it.
 
 ## 17. Console, organizations, and commercial administration
 
@@ -695,7 +700,7 @@ Roles include owner, administrator, developer, release manager, billing manager,
 
 The release screen shows changed behavior, source revision, target binaries, compatibility result, required capabilities, policy-review status, test receipts, payload size, signing identity, rollout stage, and available recovery target. It must not bury a platform failure under a green group status.
 
-Usage and billing explain build minutes by platform, active update devices, storage, included quotas, overage prices, and spending caps before work is incurred. Support seat removal, organization transfers, expired payment methods, refunds/credits, cancellation, and grace periods. Installed apps remain functional after account cancellation; new paid work can be suspended under documented terms.
+Usage and billing explain builds by platform and machine class, active update installations, storage, included quotas, overage prices, and spending caps before work is incurred. Support seat removal, organization transfers, expired payment methods, refunds/credits, cancellation, and grace periods. Installed apps remain functional after account cancellation; new paid work can be suspended under documented terms. Self-hosted update delivery and local builds are never metered (Section 26.7).
 
 When monetization is separately authorized, use **Stripe Billing** for subscriptions/invoices, **Stripe Checkout** for hosted purchase flows, and **Stripe Customer Portal** for customer billing management. Mixer retains an authoritative, deduplicated usage ledger in Neon and reconciles metered usage to Stripe with stable idempotency keys. Verify webhook signatures against the unmodified request body in Phoenix, commit a deduplicated event and Oban job before acknowledging receipt, and handle duplicate/out-of-order events by reconciling current Stripe state. Test payments, trials, failed renewals, cancellation, credits/refunds, retries, delayed webhooks, and usage corrections in Stripe test mode. Hosted update delivery and local recovery do not depend on a synchronous Stripe call. [Stripe subscriptions](https://docs.stripe.com/billing/subscriptions/overview), [Stripe webhooks](https://docs.stripe.com/webhooks), [Stripe idempotency](https://docs.stripe.com/api/idempotent_requests)
 
@@ -1226,18 +1231,11 @@ The initial sales promise is lower duplicated app work and a controlled release 
 
 Testing and early launch are free, including the integrated local workflow. No payment implementation, billing provider credentials, card, subscription, paid entitlement, or financial activation is required. Set explicit usage and capacity limits with no automatic charges. Preserve basic release safety, export, and recovery for free users.
 
-The table below is a deferred monetization experiment, not an active offer or a completion requirement. Prices are hypotheses for a later decision:
-
-| Tier | Proposed base | Included purpose | Metering approach |
-| --- | --- | --- | --- |
-| Local/Open | Free | SDK, CLI, local builds, export, public docs; tightly bounded hosted evaluation | No hosted SLA; avoid an unlimited free macOS fleet. |
-| Starter | $39/month | Small production app, basic hosted builds/updates, safe rollout and rollback | Small build credits and update-device allowance; explicit overages. |
-| Team | $149–$299/month | Collaboration, production environments, release controls, expanded build concurrency, audit tools | Larger allowances plus build-minute and device usage. |
-| Enterprise | Annual contract | SSO, audit export, dedicated runners, customer keys, support/SLA, procurement | Platform fee plus committed usage and support scope. |
+Section 26.7 sets the licensing, the plans, and the meters. Its prices are hypotheses for a later decision and are not an active offer or a completion requirement.
 
 Basic signature checks, compatibility validation, local recovery, and emergency rollback belong to every tier. Monetize collaboration, scale, infrastructure, convenience, and support. Do not make a small customer disable safe release behavior to fit a free tier.
 
-Prefer organization/project pricing over punitive per-developer charges. Bill hosted builds by platform-specific compute minutes and OTA by **monthly active update installations**: a unique app installation receiving at least one eligible update assignment during the month, counted once under a published rule. Show how reinstalls, multiple environments, testing devices, retries, and opted-out telemetry affect metering. Assignment-service counts can support billing without making crash telemetry mandatory.
+Prefer organization/project pricing over punitive per-developer charges. Bill hosted builds per platform build by machine class, with platform-specific compute minutes as the cost basis, and bill hosted OTA by **monthly active update installations**. A monthly active update installation is a unique app installation receiving at least one eligible update assignment during the month, counted once under a published rule. Show how reinstalls, multiple environments, testing devices, retries, and opted-out telemetry affect metering. Assignment-service counts can support billing without making crash telemetry mandatory.
 
 Define separate storage/egress and enterprise concurrency limits, with spending caps, usage alerts, and quotas. Never charge for every update poll or retry without a clearly disclosed reason. Avoid uncapped “unlimited” promises before cost evidence exists.
 
@@ -1267,7 +1265,44 @@ Launch with public source/documentation for the owned SDK, independently authore
 
 The defensible asset is the combined correctness and operating experience: Swift/native UI semantics, supported plugins, a real-app regression corpus, compatibility contracts, safe recovery, and dependable build/release operations. A proprietary interpreter alone is not a compelling customer benefit.
 
-The main commercial failure modes are insufficient willingness to migrate to our UI API, free competitors closing the gap, low practical OTA coverage, expensive native-integration support, unpredictable store policy, and a customer base too small to fund specialist maintenance. The plan is attractive as a focused platform business if paid evidence supports it. It is a high-risk investment if justified only by the apparent absence of one existing integration.
+Because the engine is MIT-licensed, other companies can host it, so the hosted service has to win on convenience, reliability, and support. The main commercial failure modes are insufficient willingness to adopt the published SwiftUI subset, free competitors closing the gap, low practical OTA coverage, expensive native-integration support, unpredictable store policy, and a customer base too small to fund specialist maintenance. The plan is attractive as a focused platform business if paid evidence supports it. It is a high-risk investment if justified only by the apparent absence of one existing integration.
+
+### 26.7 Licensing and revenue model, November 23, 2026
+
+The owner set this model on November 23, 2026. It follows Expo's. The framework is free and open source, and the business sells hosted services. Expo's pricing page states that "Expo and the Expo SDK are free and open source (MIT license)" and charges for builds, update MAUs, bandwidth, and storage ([Expo pricing](https://expo.dev/pricing)). Expo also documents its update protocol, so customers can run their own update server ([custom updates server](https://docs.expo.dev/eas-update/custom-updates-server)).
+
+**MIT scope.** The core engine and the OTA update system are MIT-licensed. Together they cover everything a developer needs to build apps and ship updates without Mixer's hosted service:
+
+- the SDK (`MixerCore`, `MixerUI`, `MixerSwiftUI`, `MixerApple`, `MixerAndroid`, `MixerGuest`, and `MixerCapabilities`) and the native renderers under `native/`
+- the owned VM and runtime in `vm/` and `runtime/`
+- the compiler and the CLI, including local builds and export, in `compiler/` and `cli/`
+- the device updater, verification, and recovery in `updates/`, the update protocol and release format, and a reference update server that customers can self-host
+
+**Paid hosted services.** Mixer charges for hosted builds and hosted OTA delivery. The hosted control plane in `hosted/`, the console in `console/`, managed build workers and signing, and hosted artifact delivery are proprietary services outside the MIT scope. A developer who builds locally or self-hosts update delivery pays Mixer nothing for that work.
+
+| Plan | Base | What it includes | Usage |
+| --- | --- | --- | --- |
+| Free | $0 | A limited number of hosted builds and monthly active update installations | No overages. Hosted work stops at the limit. |
+| Starter | Monthly fee plus usage | Build credit and update installations for a small production app | Per-build and per-installation overages |
+| Production | Higher monthly fee plus usage | Larger credit and allowances, more build concurrency, and team release controls | The same meters |
+| Enterprise | Annual contract | SSO, dedicated runners, customer keys, support, and an SLA | Committed usage |
+
+Prices are hypotheses, set later from measured cost under Section 26.4. Expo's current reference points are Starter at $19 a month and Production at $199 a month, plus usage. These meters apply:
+
+- **Hosted builds.** Charge per platform build by machine class against the plan's build credit, as EAS does. Compute minutes stay the internal cost basis. Extra build concurrency is an add-on.
+- **Hosted OTA delivery.** Charge per monthly active update installation, as Section 26.3 defines it, plus bandwidth and storage beyond the plan's allowance.
+- **Never charged.** Local builds, export, self-hosted delivery, and the safety features that every plan includes, which are signature checks, compatibility validation, local recovery, and emergency rollback.
+
+This decision changes neither local completion nor the November 17 policy. Testing and early launch stay free, and payment implementation stays deferred, with Stripe as the later provider (Section 17).
+
+Applying the license is a distribution task, not a local-completion gate. Before public distribution, finish these steps:
+
+1. Add the MIT license text with a path map that states which directories are MIT and which are proprietary hosted services.
+2. Confirm that every dependency in the MIT scope is compatible under Section 4.3.
+3. Keep hosted-service code out of the MIT paths, and keep MIT code free of hosted-service dependencies.
+4. Choose the reference self-hostable update server from `services/` and `release-delivery-origin/`, and document how to run it.
+5. Publish a trademark policy, because the MIT license covers code and not the Mixer name or the Flick logo.
+6. Choose the copyright holder and the contribution terms, such as a DCO or a CLA. Both are owner decisions.
 
 ## 27. Risk register and decision triggers
 
@@ -1296,6 +1331,7 @@ The main commercial failure modes are insufficient willingness to migrate to our
 | State semantics diverge from Apple SwiftUI | S3 or the dual iOS compile check fails | Framework lead | Use disclosed generated registration and keep the explicit-ID guest path until UP6. |
 | Compose install timing breaks the host contract | S5 cannot acknowledge an exact drawn frame without blocking the main thread | Android lead | Versioned prepare and present contract, with a `ComposeView` draw-completion acknowledgment as the fallback. |
 | B' lags Apple SwiftUI or costs iOS performance | GC5 shows the bundled engine path missing a Section 20.2 target that plain Apple SwiftUI meets, or GC1 and GC6 fall behind what real apps use | Framework and iOS leads | Platform-specific entries and native islands (GC2, GC3), engine fixes under Section 24.4, then the Section 24.7 owner decision on option B. API lag alone does not trigger that decision. |
+| Others host the MIT engine as a competing service | Third-party build or update hosting for Mixer apps appears | Product | Compete on integrated builds, signing, rollout, recovery, and support, and enforce the trademark policy (Section 26.7). |
 | The pivot reopens passed gates | Re-verifying L01, L03, L04, L05, and L07 costs more than the replaced code | Coordinator | Re-verify per step at a narrow scope and keep old-scope evidence intact. |
 
 ## 28. Initial execution sequence: durable foundations and the real app
@@ -1439,7 +1475,7 @@ Potential later expansions include richer tablet/desktop support, a wider plugin
 | Android API 28+ | Selected for the Compose host on November 23, 2026; qualification required | The UP2 observation policy replaces the API 36 refusal, and UP4 lowers the floor. |
 | Jetpack Compose as the Android UI toolkit, built with Gradle, AGP, and Kotlin | Owner, November 23, 2026 (Section 1.3) | Replaces the `android.widget` renderer. Google moved `android.widget` to maintenance mode on May 19, 2026. |
 | One iOS renderer for shared features (option B') | Coordinator recommendation, November 23, 2026; the owner may override | Better than B once Mixer's gaps close, because each closed gap serves all three build paths and store builds exercise the update path. Keeps Section 5.2 and Section 8.3. Section 24.7 closes its costs and states when to revisit B. |
-| Open SDK/engine/CLI, paid hosted service | Proposed business model | Developer trust and exit path; price managed value and support. |
+| MIT core engine and OTA update system; paid hosted builds and hosted OTA delivery; free self-hosting | Owner, November 23, 2026 (Section 26.7) | Expo-style model. Developer trust and exit path; revenue from managed builds, delivery, and support. Prices stay hypotheses. |
 | FieldLog as mandatory consumer | Selected | Real application throughout, separate repository and ordinary customer workflow. |
 | Performance and coverage thresholds | Proposed acceptance budgets | Validate early; revisions require recorded evidence and product impact. |
 | Pricing and quotas | Hypotheses | Finalize from measured costs and paid-pilot willingness to pay. |
@@ -1531,6 +1567,8 @@ Research checked on October 22, 2026. Dynamic product status, prices, SDK requir
 | Source | What it supports |
 | --- | --- |
 | [Skip: Lite and Fuse modes](https://skip.dev/docs/modes/) | Native Swift versus Kotlin-transpiled mode distinction. |
+| [Expo pricing](https://expo.dev/pricing) | Checked November 23, 2026. Expo and the Expo SDK are MIT; builds, update MAUs, bandwidth, and storage are paid services. Basis for Section 26.7. |
+| [Expo custom updates server](https://docs.expo.dev/eas-update/custom-updates-server) | A documented update protocol lets customers self-host update delivery. Basis for Section 26.7. |
 | [Skip pricing](https://skip.dev/pricing/) | Current free/open-source positioning and resulting competitive price pressure. |
 | [Patch architecture](https://docs.patchrelease.com/how-it-works/) | Documented Swift/Wasm/native-host approach. |
 | [Patch Android proposal PR #2](https://github.com/patch-release/patch-swift/pull/2) | Draft proposal status; not proof of shipped Android support. |
