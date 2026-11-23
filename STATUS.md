@@ -102,6 +102,13 @@ contains 1,423 common lines of 4,564. The source-sharing target and
 installed qualification remain open.
 [Linked source receipt](verification/receipts/l08-d2-linked-shared-checklist-20261122.json)
 
+Draft writes, entry commits, and cold draft selection now use common Swift
+code in the tested Apple and Android callers. Host refusal and disk checks
+passed, and both ordinary targets linked. The comparable roster shares
+1,692 of 4,993 lines. The standalone release shares 1,446 of 4,583 lines,
+including 1,139 of 1,901 logic lines and 307 of 1,371 UI lines.
+[Shared draft routing](verification/receipts/l08-d2-linked-shared-draft-routing-20261122.json)
+
 ## In-place FieldLog public SDK adoption on iOS
 
 Three native tests created a project and saved photo draft in standalone
@@ -139,6 +146,13 @@ same installation and workspace bytes joined all four launches. Earlier
 observer and identity failures are preserved.
 [Managed build receipt](verification/receipts/l08-d6-managed-fieldlog-ios-build-20261122.json)
 
+The corrected stock generator built the FieldLog Simulator app from
+recovered sources. All six managed resources matched. The pinned VM linked
+and a wrong digest stopped before Xcode. The new Mach-O needs its own
+descriptor binding. Managed HTTP create and exact product download remain
+open.
+[Stock FieldLog build receipt](verification/receipts/l08-d6-stock-fieldlog-ios-artifacts-20261122.json)
+
 The historical F05 iOS app passed Cancel, Add, and cold readback. An
 independent signed F10 companion installation failed before navigation
 assertions. Both simulators retired. The F05 test adds ordinary Apple
@@ -158,6 +172,19 @@ during readback after XCTest. Separate recovery matched the stopped app
 and library to the seal, deleted the owned Simulator, and verified the
 external baseline. The signed fixtures were embedded in the sealed app.
 [Installed F10 route receipt](verification/receipts/l08-d8-f10-ios-qos-native-20261122.json)
+
+The historical F06 iOS fixture passed native multiline editing, Cancel,
+and cold byte comparisons after the test identified the actual title field
+in the SwiftUI form. Public signed delivery remains separate.
+[Installed vertical title receipt](verification/receipts/l08-d8-f06-ios-vertical-title-20261122.json)
+
+
+The iOS capability replacement replay accepted old sequence 7, refused
+an incompatible sequence 8, and reopened sequence 7 offline. In-place
+replacement accepted sequence 1. The installed successor needed canonical
+line endings in both HTTP material files and a new descriptor binding.
+The same workspace, installation, task and old journal survived.
+[Installed capability receipt](verification/receipts/l08-ios-capability-signed-native-20261122.json)
 
 ## Ordinary iOS account and photo diagnostics
 
