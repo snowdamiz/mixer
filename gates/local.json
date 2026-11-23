@@ -79,7 +79,7 @@
     {
       "id": "L02",
       "name": "Shared app and native UI",
-      "requirement": "FieldLog's supported screens, state, navigation, input, accessibility, shared design, persistence, and first-party capabilities work on both local targets. Record OS-specific limitations. Physical-only services use explicit test adapters for local orchestration, with actual hardware/provider behavior pending.",
+      "requirement": "FieldLog's supported screens, state, navigation, input, accessibility, shared design, persistence, and first-party capabilities work on both local targets. Record OS-specific limitations. Physical-only services use explicit test adapters for local orchestration, with actual hardware/provider behavior pending. Under product-plan Section 1.3, FieldLog's shared screens use the published SwiftUI subset, Android renders them with the Compose host from API 28, and iOS runs from 17.0.",
       "status": "running",
       "evidence": [
         "verification/receipts/l02-ios-account-system-browser-native-20261122.json",
@@ -1056,7 +1056,7 @@
     {
       "id": "L08",
       "name": "FieldLog and documentation",
-      "requirement": "Run the complete supported FieldLog workflow through public tooling on both targets, including edit/save/close/reopen, offline queue, attachments, guest parity, OTA, rollback, and export. Exercise the applicable Section 22 recovery and real-change corpus locally. Follow installation, upgrade, recovery, and exit guides from a clean local setup. Store use, customer counts, and paid pilots are not required.",
+      "requirement": "Run the complete supported FieldLog workflow through public tooling on both targets, including edit/save/close/reopen, offline queue, attachments, guest parity, OTA, rollback, and export. Exercise the applicable Section 22 recovery and real-change corpus locally. Follow installation, upgrade, recovery, and exit guides from a clean local setup. Store use, customer counts, and paid pilots are not required. Under product-plan Section 1.3, this workflow runs on the new stack and closes only after the clean post-removal replay in the Section 24.6 UP6 exit.",
       "status": "running",
       "evidence": [
         "verification/receipts/l08-d2-project-detail-native-title-loss-20261123.json",
@@ -1952,6 +1952,47 @@
   ],
   "externalBoundaryRule": "Fixtures may replace unavailable external store, payment, hardware, or push boundaries only. The owned engine and integrated local services require actual execution. Record substitutions and pending real qualification.",
   "paymentPolicy": "Free testing and early launch require no card, subscription, Stripe credentials, payment service, or paid entitlement. Payment and purchase implementation and activation may remain deferred. Preserve existing billing code and evidence.",
+  "uiPlatformPivot": {
+    "adoptedOn": "2026-11-23",
+    "decision": "mixer-product-plan.md#13-ui-platform-pivot-november-23-2026",
+    "sequence": "mixer-product-plan.md#246-ui-platform-pivot-sequence-november-23-2026",
+    "checklist": "PLAN.md#ui-platform-pivot-november-23-2026",
+    "stoppedAt": "504366a0c9330c20e01c840815bc24dc84a9aa1d",
+    "statusRule": "Passed gates keep their recorded scope. A pivot step re-verifies the gates that its replaced component affects before it claims new-stack evidence. This record changes no gate status. Step states live in work-graph.json uiPlatformPivot.",
+    "reverification": {
+      "UP1 iOS 17.0 minimum": [
+        "L01",
+        "L03",
+        "L04",
+        "L05",
+        "L07"
+      ],
+      "UP2 accessibility observation policy": [],
+      "UP4 Compose host and API 28 floor": [
+        "L01",
+        "L03",
+        "L04",
+        "L05",
+        "L07"
+      ],
+      "UP5 and UP6 SwiftUI subset and legacy removal": [
+        "L01",
+        "L03",
+        "L04",
+        "L05",
+        "L07"
+      ]
+    },
+    "reverificationNote": "UP2 changes only the Android observation layer and a written policy, so it re-verifies no passed gate. UP4 and UP5 change the resolvers with rendering evidence, and UP4 re-verifies the policy through the public host.",
+    "completesOnNewStack": [
+      "L02",
+      "L08"
+    ],
+    "finalReplay": "After the UP6 removal change, a clean checkout of the final commit builds and exports the separate FieldLog consumer and runs signed OTA and recovery on the oldest supported iOS 17.x Simulator and an API 28 emulator before L02 and L08 close.",
+    "evidence": [
+      "verification/receipts/ios17-floor-compile-20261123.json"
+    ]
+  },
   "currentWork": {
     "androidRetainedStarterArtifacts": "The standalone CLI built and reopened the unsigned Pair24 Starter APK, symbols and inventory. A separate disposable signer verified the exact APK after compiler closure. Managed Android builds and delivery remain open.",
     "starterFormerOwnerRead": "After one real registered iOS Starter build settled and the owner exited, the first expired-cookie build GET returned 401 and the first renewed former-owner GET returned 404. Tenant B retained its own access, and the build history stayed intact. The historical HTTP 503 remains unexplained.",

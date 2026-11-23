@@ -1,5 +1,152 @@
 # Execution index
 
+## UI platform pivot, November 23, 2026
+
+On November 23 the owner stopped the current-stack L02 and L08 work and started a pivot. Shared screens move from the explicit-ID `MixerUI` DSL to a published SwiftUI subset. Android moves from `android.widget` Views to Jetpack Compose. The iOS minimum drops from 26.0 to 17.0, and the shared-design Android host drops from API 36 to API 28. These are approved targets. The code still declares iOS 26.0 until UP1 lands and still requires API 36 until UP4 lands.
+
+[Product plan Section 1.3](mixer-product-plan.md#13-ui-platform-pivot-november-23-2026) holds the binding decisions. [Section 24.6](mixer-product-plan.md#246-ui-platform-pivot-sequence-november-23-2026) holds the sequence, the spike outcomes and what each one unlocks, and the file boundaries. `work-graph.json` key `uiPlatformPivot` tracks each step and spike. This section is the checklist. Check a box only when its evidence exists, such as a receipt, a test run, a screenshot, or a commit, and update the matching `uiPlatformPivot` record in the same change.
+
+### Read this before starting pivot work
+
+1. Read product plan Section 1.3 and Section 24.6.
+2. Add no features to the `android.widget` renderer, the public explicit-ID `MixerUI` authoring API, or the private UIKit appearance prototype. Change them only when a pivot step needs the old path, such as an upgrade test from the View host.
+3. Keep every hold in `AGENTS.md`. The pivot releases none of them.
+4. Use Sol 6.2 High for every subagent, as before.
+5. Keep historical receipts at their recorded scope. Do not relabel current-stack evidence as new-stack evidence.
+6. Local completion requires every UP step to pass with evidence and a reviewer. `scripts/check-plan-completion.py` enforces it. It also refuses a step pass whose spike or step prerequisites have not passed, a UP3 pass before every spike has a recorded outcome, a guest-profile route without S2a's fallback and an owner decision, and an L02 or L08 pass before UP6 and the final replay.
+
+### Where work stopped
+
+Commit `504366a0c9` is the last current-stack checkpoint. L01, L03, L04, L05, L06, and L07 passed. L02 and L08 were running. The [checkpoint handoff](docs/local-implementation-checkpoint-2026-11-23.md) preserves the pending FieldLog sources, renderer corrections, and replay inputs, with an extraction recipe.
+
+These components carry over unchanged:
+
+- `MixerCore` state, effects, lifecycle, and navigation values
+- the capability system and its generated adapters
+- `MixerGuest` exchange and codecs, which gain a new UI schema version in UP5
+- the owned VM, signed updates, verification, activation, recovery, and runtime identity
+- the hosted API, workers, database, and console
+- FieldLog's models, persistence, and business logic
+
+These are frozen, and step UP6 removes them:
+
+- the Java `android.widget` renderer and the `legacy-v1` Android host
+- the javac, D8, and aapt2 path in `cli/Sources/MixerBuild/Resources/android-build.py`
+- the public explicit-ID authoring API in `sdk/Sources/MixerUI/Authoring.swift`
+- the iOS 26.5-only private UIKit appearance renderer in `sdk/Sources/MixerApple/AppearanceNative*V2.swift`
+
+`UIDocument`, validation, and reconciliation stay as the internal wire.
+
+### Open items carried into the new stack
+
+The checkpoint left these items open. Each renderer failure becomes a regression case for the new renderer instead of a fix in frozen code.
+
+| Checkpoint item | Where it moves | Receipt |
+| --- | --- | --- |
+| Three Android dark switch labels painted black on a dark background | UP4 Compose dark-mode contrast case | [Raster refusal](verification/receipts/l02-android-dark-switch-label-raster-refusal-20261123.json) |
+| The iOS held press drew glass outside the switch cover | UP5 `MixerNativeView` pressed-state case | [Compositor refusal](verification/receipts/l02-ios-held-switch-compositor-refusal-20261123.json) |
+| The Android F02 launcher button reached the system gesture area, and a tap opened Recents | UP4 Compose window-inset case | [Inset failure](verification/receipts/l08-d8-f02-android-launch-button-insets-20261123.json) |
+| The Android D2 title readback returned `Inspec` after fifteen saves | S5 and UP4 Compose text-input case | [D2 queue receipt](verification/receipts/l08-d2-shared-queue-paired-native-20261123.json) |
+| Android F11 soft-keyboard composition was never exercised | S5 Compose IME case | [F11 receipt](verification/receipts/l08-d8-f11-android-action-bound-native-20261123.json) |
+| Android F11 public live delivery is open | UP6 | [F11 iOS live receipt](verification/receipts/l08-d8-f11-ios-live-delivery-20261123.json) |
+| Android F10 hit the 50 ms turn deadline during the exact offline reopen | UP6, as a runtime defect | [F10 receipt](verification/receipts/l08-d8-f10-ordinary-ios-live-native-20261123.json) |
+| D2 installed Entry and project picker evidence and the 90% shared-code target are open | UP6, measured on the new stack | [D2 source](verification/receipts/local-checkpoint-20261123-d2-source.json) |
+
+### Evidence behind the pivot
+
+- `MixerUI` exposes 10 node kinds, 5 general modifiers, and 4 event kinds, with a string ID on every view and a string action ID on every control (`sdk/Sources/MixerUI/Protocol.swift:5`, `sdk/Sources/MixerUI/Authoring.swift:20`). The importer labels `import SwiftUI` as adaptation-required (`cli/Sources/MixerBuild/MigrationInspector.swift:36`).
+- The iOS renderer already draws Apple SwiftUI controls from documents (`sdk/Sources/MixerApple/MixerNativeView.swift:196`). The generated iOS starter has no updater and an empty action handler (`cli/Sources/MixerBuild/ProjectGenerator.swift:297`).
+- The update guest is Embedded Swift 6.3.3. It refuses Foundation, `Task`, actors, and runtime-selected existentials (`compiler/swift-language-support.md`). The installed profile caps payload and memory at 4 MiB each (`runtime-identity/Sources/MixerRuntimeIdentity/CapabilityRuntimeIdentity.swift:164`) and admits UI schema 1 (`:115`). An empty full-Swift WASI reactor links at 5,508,619 bytes.
+- Google moved `android.widget` to maintenance mode on May 19, 2026 ([Compose First](https://developer.android.com/blog/posts/android-ui-development-is-compose-first)). Compose BOM 2026.11.01 needs Kotlin 2.2 or newer, compileSdk 37.1, and AGP 9.3.1 or newer.
+- The public Android host sets `minimumAPI = 36` (`cli/Sources/MixerBuild/AndroidPublicHost.swift:6`). The observer and the View renderer both refuse every API below 36 (`native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java:87`, `NativeRenderer.java:1363`). Both appearance resolvers refuse bold text and increased contrast (`AppearanceResolverV2.java:215`, `sdk/Sources/MixerUI/AppearanceResolutionV2.swift:298`). Google's October 2026 data puts API 36 and later at 26.3% of active devices in its dataset.
+- A compile-only check on November 23 built five package schemes (the root `Mixer` package, `capability-activation`, `native-sdk`, `activation`, and `runtime`) and the Rust VM Simulator archive for an iOS 17.0 target with no availability errors. The `capabilities/` qualification package was not built, and nothing ran on an iOS 17 runtime ([iOS 17 compile receipt](verification/receipts/ios17-floor-compile-20261123.json)). Apple's June 7, 2026 data put iOS 26 on 79% of the iPhones that used the App Store that day.
+- Three rounds of independent Sol 6.2 High review shaped this plan. Round 1 found that an earlier draft assigned `@State` slots by first access and that its option B changed Section 5.2 and Section 8.3. Round 2 found gaps in spike outcomes, the Starter update route, the View renderer's API guard, the UI schema owner, and the managed Android build boundary. Round 3 found gaps in the completion check, the S5 fallback, UP5's scoped prerequisites, the resolver evidence, the handler owner check, and the CLI's API 36 check in `AndroidBuildOutput.swift`. The plan carries their corrections.
+
+### Checklist
+
+#### UP1. Lower the iOS minimum to 17.0
+
+- [ ] Change the `.iOS("26.0")` platform line to `.iOS("17.0")` in the ten `Package.swift` files of the root, `sdk`, `runtime`, `updates`, `native-sdk`, `capabilities`, `capability-activation`, `activation`, `runtime-identity`, and `experimental-capability-runtime` packages.
+- [ ] Generate 17.0 in `cli/Sources/MixerBuild/ProjectGenerator.swift:173` and `cli/Sources/MixerBuild/AppleProject.swift:286`.
+- [ ] Keep byte-exact recognition of the two existing 26.0 templates and the legacy 17 template. Migrate a recognized 26.0 project to 17.0 once, in one transaction, and make every later regeneration byte-identical. Keep refusing projects with app-owned edits. Add fixtures for all four cases.
+- [ ] Set `IPHONEOS_DEPLOYMENT_TARGET=17.0` in `runtime/build-vm.py` and `experimental-capability-runtime/build-vm.py`, and update the target triples in `experimental-capability-runtime/build-verification/run.py`.
+- [ ] Update the CLI tests that assert 26.0, and make minimum-target compilation the availability check in CI.
+- [ ] Find the oldest iOS 17.x Simulator runtime that the pinned Xcode supports, and record the install command. If none exists, record that blocker, keep the runtime exit pending, and finish the other UP1 boxes.
+- [ ] Update `README.md`, `sdk/README.md`, and `docs/apple-native-appearance-v2.md`.
+- [ ] Exit. Meet the UP1 exit check in product plan Section 24.6. The starter builds, launches, and renders. FieldLog's signed iOS update route, not the starter, delivers the update and the rollback.
+- [ ] Record scoped re-verification for L01, L03, L04, L05, and L07.
+
+#### UP2. Define the Android accessibility observation policy
+
+- [ ] Write the policy per API level. Today exact insets need API 30, font adjustment API 31, animator scale API 33, system contrast API 34, and high-contrast text API 36 (`NativeEnvironmentPlatformV2.java:134`). For each observation, say what the host renders when it is known, unavailable on that API level, or failed, and which listener owns it.
+- [ ] Keep failed reads of required observations fail-closed. An observation that the API level cannot provide is not a failure.
+- [ ] Define how the shared theme renders when high-contrast text or bold text is on. UP4 removes the refusal in `AppearanceResolverV2.java` for the Compose host, and UP5 removes it in `sdk/Sources/MixerUI/AppearanceResolutionV2.swift`, each with rendering evidence.
+- [ ] Implement the policy in `NativeEnvironmentV2.java` and `NativeEnvironmentPlatformV2.java`. Leave the resolvers, the frozen View renderer, and its API 36 floor unchanged.
+- [ ] Exit. An observation-only instrumentation probe passes startup, text scaling, contrast changes, high-contrast text on API 36 and later, bold text, and listener cleanup on API 28, 35, 36, and 37 emulators.
+
+#### UP3. Run spikes S1 to S5
+
+Product plan Section 24.6 gives the pass rules and what each outcome unlocks. Each spike gets at most two distinct approaches, then records its fallback and starts the Section 24.4 escalation.
+
+- [ ] S1 module naming.
+- [ ] S2a guest feasibility for the FieldLog list and editor. Report raw and compressed size, imports, memory, turn time, call depth, and host calls for each artifact.
+- [ ] S2b guest constructs, each recorded as passed or native-only.
+- [ ] S3 state and handlers, with separate native (S3n) and guest (S3g) results.
+- [ ] S4 iOS feature ownership for option B'.
+- [ ] S5 Compose editor slice with the prepare and present contract. Include the `Inspec` readback case, soft-keyboard composition, and a canceled draw.
+- [ ] Record each spike's outcome, evidence, and reviewer in `work-graph.json` and in this section. UP3 passes only when every spike has a recorded outcome.
+
+#### UP4. Replace the Android renderer with Compose
+
+- [ ] Pin Gradle, AGP 9.3.1 or newer, Kotlin 2.2 or newer, and Compose BOM 2026.11.01 in the toolchain manifest with dependency locks and an offline dependency cache for workers. Record transitive licenses in `THIRD_PARTY.yml`. `scripts/check-policy.py` already scans Gradle manifests for prohibited dependencies.
+- [ ] Render the ten current node kinds and Appearance V2 in `native/android/compose/` with composables keyed by identity and generation, behind the S5 prepare and present contract. Build controls from Compose Foundation, so the shared theme sets their look. Apply the UP2 policy.
+- [ ] Generate Gradle projects from `cli/Sources/MixerBuild/AndroidProject.swift`. Bind resolved dependencies and build inputs into the runtime fingerprint.
+- [ ] Version both ends of the driver invocation and its receipt together, in `cli/Sources/MixerBuild/AndroidBuildOutput.swift`, `android-build.py`, and the worker's admission in `hosted/priv/development/native_artifact_worker.py`. Keep `build-retained-v1` admission until UP6.
+- [ ] Lower `minimumAPI` in `AndroidPublicHost.swift`, `application_min_api` in `android-build.py`, and the public-APK check in `AndroidBuildOutput.swift` to 28 for the Compose host. Check the floor against the selected host. The public V3 and V4 View hosts keep API 36, `legacy-v1` keeps API 28, and the Compose host uses API 28.
+- [ ] Remove the high-contrast and bold-text refusal in `AppearanceResolverV2.java` for the Compose host, render the UP2 policy, and save dark, high-contrast, and bold-text screenshots from an API 36 emulator.
+- [ ] Port the generated-Java CI check in `.github/workflows/verify.yml` and `.github/workflows/hosted.yml` to the Gradle output.
+- [ ] Add the carried dark-contrast, window-inset, and text-input regression cases.
+- [ ] Exit. Meet the UP4 exit check in Section 24.6. A managed worker build with pinned Gradle inputs passes through the ordinary worker path, including artifact inventory, cancellation, and cleanup.
+- [ ] Record scoped re-verification for L01, L03, L04, L05, and L07.
+
+#### UP5. Build `MixerSwiftUI` and tier 1
+
+- [ ] Build the engine core in `sdk/Sources/MixerSwiftUI/` under the rules in product plan Section 8.1. It covers identity, state storage, handlers and their commit point, environment, change tracking, document diffing, and row paging.
+- [ ] Wire the new module into the root and `sdk` manifests, the `ProjectGenerator.swift` module list, export, and the guest driver, after UP1 lands.
+- [ ] Ship the new UI schema across runtime identity, release preparation, guest codecs, guest activation, and both renderers. Add failed-frame, late-callback, and cross-version refusal tests.
+- [ ] Choose tier 1 from FieldLog plus list-and-detail, form-and-settings, and tabbed apps. Constructs that S2b did not pass stay native-only.
+- [ ] Apply the shared theme in `MixerNativeView`, remove the high-contrast and bold-text refusal in `sdk/Sources/MixerUI/AppearanceResolutionV2.swift`, render the UP2 policy with screenshot evidence, and add the carried pressed-state case.
+- [ ] Add the dual iOS compile check and the generated support table.
+- [ ] Extend the Section 7.2 compiler inventory to resolved dependencies, macro expansion, and emitted Wasm.
+- [ ] Start gap items GC1, GC3, GC4, and GC5 from product plan Section 24.7.
+- [ ] Deliver the minimum native island for FieldLog's project-site map, which Section 9 requires for local completion, with the grant checks that product plan Section 24.7 item GC3 sets. GC3 generalizes it later.
+- [ ] Exit. Meet the UP5 exit check in Section 24.6. UP5 passes only with guest evidence from S2a or from S2a's fallback plus an owner-approved profile. If S2a fell back, record store-build tier 1 as an interim milestone in the meantime.
+
+#### UP6. Migrate, qualify, then remove legacy code
+
+- [ ] Move FieldLog's shared screens, the `ProjectGenerator` templates, the getting-started and UIKit guides, `README.md`, and `MigrationInspector` to the subset.
+- [ ] Close the carried F10, F11 live-delivery, and D2 items.
+- [ ] Qualify FieldLog's separate repository through build, export, signed update, and recovery on both platforms.
+- [ ] Remove the `android.widget` renderer, the `legacy-v1` host, the javac and D8 path and `build-retained-v1` admission, the public explicit-ID authoring API, and the private UIKit appearance renderer in one change.
+- [ ] Exit. Meet the UP6 exit check in Section 24.6, including the clean post-removal replay on the oldest supported iOS 17.x Simulator and an API 28 emulator. Record the replay in `work-graph.json` key `uiPlatformPivot.finalReplay`. Then close L02 and L08 with reviewers.
+
+#### Close the remaining gaps (GC1 to GC7)
+
+Product plan [Section 24.7](mixer-product-plan.md#247-close-the-remaining-gaps-under-option-b) defines each item and its exit. GC1, GC3, GC4, and GC5 start with UP5. The others start after UP6.
+
+- [ ] GC1 subset breadth, expanded in tiers chosen by importer counts of unsupported symbols.
+- [ ] GC2 platform-specific entries in `MixerSwiftUI`, compiled by every target including the update guest, with no `#if os(...)` around UI in shared modules.
+- [ ] GC3 native islands with a versioned placement node and grant checks, generalizing the project-site map island from UP5.
+- [ ] GC4 differential run on Apple SwiftUI for Apple-equivalent constructs, and native-versus-update checks for Mixer-only constructs.
+- [ ] GC5 plain, bundled-engine, and update modes measured separately against the Section 20.2 startup, responsiveness, scrolling, and memory targets.
+- [ ] GC6 a recorded decision for every API in each stable iOS SDK's SwiftUI delta.
+- [ ] GC7 practical OTA coverage over the FieldLog change corpus, including Foundation value types and `.task`, through the S2a and ADR-16 path.
+
+### Decisions still open
+
+- The owner asked on November 23 which option is better once Mixer's gaps close. B' is, for the reasons in product plan Section 1.3, and [Section 24.7](mixer-product-plan.md#247-close-the-remaining-gaps-under-option-b) closes its remaining costs. Choosing option B still needs a new owner decision, because it changes Section 5.2 and Section 8.3. S4 stops and asks if B' fails, and Section 24.7 states the measured trigger for revisiting B.
+- If S2a falls back, the owner decides whether to fund a larger, versioned full-Swift execution profile under ADR-16. Until then, an update that needs Foundation or `Task` is a store release.
+
 ## Completion policy, November 17, 2026
 
 Implementation-plan completion now means working local end-to-end behavior under [Section 2](mixer-product-plan.md#2-completion-definition-and-scope) and L01–L08 in [the local checklist](gates/local.json). The eight checks cover setup/import/export, shared app/UI/capabilities, compiler/VM, signed OTA/recovery, the real local console/API/database/worker/build workflow, free administration, security/local reliability, and FieldLog/documentation.
@@ -1960,6 +2107,8 @@ Continue other authorized product work without treating that boundary as a
 whole-project pause.
 
 ## Product decisions and verification
+
+Historical as of November 23, 2026. The UI platform pivot at the top of this file sets iOS 17.0 as the target. The 26.0 statement below describes the code until UP1 lands.
 
 The iOS minimum is **26.0**, with support intended for iOS 26, 27 and onward.
 Record the actual SDK/runtime tested; the private appearance prototype's current

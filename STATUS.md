@@ -1,5 +1,9 @@
 # Current development status
 
+## UI platform pivot, November 23, 2026
+
+The owner stopped current-stack L02 and L08 work at `504366a0c9` and started the UI platform pivot in [product plan Section 1.3](mixer-product-plan.md#13-ui-platform-pivot-november-23-2026). The pivot has no implementation yet. A compile-only check on November 23 built five package schemes (the root `Mixer` package, `capability-activation`, `native-sdk`, `activation`, and `runtime`) and the Rust VM Simulator archive for an iOS 17.0 target with no availability errors. The `capabilities/` qualification package was not built, and nothing ran on an iOS 17 runtime ([iOS 17 compile receipt](verification/receipts/ios17-floor-compile-20261123.json)). The [execution index](PLAN.md#ui-platform-pivot-november-23-2026) lists steps UP1 to UP6. Six local gates stay passed at their recorded scope. L02 and L08 stay running and complete on the new stack.
+
 ## Checkpoint for the plan revision, November 23, 2026
 
 Six local gates passed. L02 and L08 remain open. The ordinary iOS F10 route
@@ -6980,6 +6984,8 @@ and [relation contract review](docs/hosted-browser-relation-admission-contract-r
 record the accepted component scope and remaining owner/runtime work.
 
 ## Delivery and pending qualification
+
+Historical. The iOS 26.0 baseline in this section is superseded by [product plan Section 1.3](mixer-product-plan.md#13-ui-platform-pivot-november-23-2026). The native-testing pause it mentions is also historical. `AGENTS.md` records the current native-testing authorization and every hold that still applies.
 
 The corrected additive SQL component is pushed as `97d436b4`; all 780
 committed paths and bytes were verified. Phoenix `40222180472` passes every

@@ -1,5 +1,7 @@
 # Local implementation checkpoint, November 23, 2026
 
+Current-stack work stopped here for the UI platform pivot. [Product plan Section 1.3](../mixer-product-plan.md#13-ui-platform-pivot-november-23-2026) records the decisions, and [the execution index](../PLAN.md#ui-platform-pivot-november-23-2026) says which open items below carry into the new stack.
+
 Six of the eight local gates passed. L02 and L08 remain open. This checkpoint records the results available when work stopped for the plan revision. The local checklist remains the source for gate decisions. [Local gates](../gates/local.json) · [Work graph](../work-graph.json)
 
 ## L02 shared native appearance

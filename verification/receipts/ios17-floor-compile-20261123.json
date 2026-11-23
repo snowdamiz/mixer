@@ -1,0 +1,84 @@
+{
+ "scope": "Compile-only check that the iOS packages and the Rust VM build for an iOS 17.0 deployment target. No app link, launch, or iOS 17 runtime execution.",
+ "result": "passed_scoped",
+ "date": "2026-11-23",
+ "sourceRevision": "772e078ee39ed5c91dce14e13525d2b9ab113e4c",
+ "stillAppliesAt": "504366a0c9330c20e01c840815bc24dc84a9aa1d (no Swift, Rust, Python, Java, or Package.swift changes in between)",
+ "environment": {
+  "xcode": "Xcode 27.2 Build version 27B52",
+  "swift": "swift-driver version: 1.168.6 Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+  "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+  "host": "macOS 27, Apple silicon"
+ },
+ "method": [
+  "git archive the revision: Package.swift Package.resolved sdk runtime updates runtime-identity experimental-capability-runtime capability-activation activation capabilities native-sdk vm",
+  "Replace .iOS(\"26.0\") with .iOS(\"17.0\") in every Package.swift outside verification/, Tests/, and Fixtures/",
+  "Copy vm/include/*.h into experimental-capability-runtime/Sources/CMixerVMCapability/include/ (the VM builder normally supplies that include directory)",
+  "xcodebuild build -scheme <scheme> -destination 'generic/platform=iOS Simulator' with derived data, package clones, and TMPDIR inside the run directory",
+  "IPHONEOS_DEPLOYMENT_TARGET=17.0 cargo build --release --lib --offline --target aarch64-apple-ios-sim in vm/, then vtool -show-build on each mixer_vm object"
+ ],
+ "builds": [
+  {
+   "package": ".",
+   "scheme": "Mixer-Package",
+   "result": "BUILD SUCCEEDED",
+   "ios17SimulatorCompileInvocations": 33,
+   "availabilityErrors": 0,
+   "stdoutSHA256": "8a118606af969bb7cea3b2a2f4697de16c155a4a88978411823e5ef45c444679"
+  },
+  {
+   "package": "capability-activation",
+   "scheme": "MixerCapabilityActivation",
+   "result": "BUILD SUCCEEDED",
+   "ios17SimulatorCompileInvocations": 57,
+   "availabilityErrors": 0,
+   "stdoutSHA256": "655dc6a2e68fa700f057f88e4c322f31097a588c3e11dcef1a08169f049287a6"
+  },
+  {
+   "package": "native-sdk",
+   "scheme": "MixerNativeBackend",
+   "result": "BUILD SUCCEEDED",
+   "ios17SimulatorCompileInvocations": 20,
+   "availabilityErrors": 0,
+   "stdoutSHA256": "a0d66872dd0e0bbf89c2677e282d4d2b11993630c5fe4b9d1c8758955f9edbaf"
+  },
+  {
+   "package": "activation",
+   "scheme": "MixerActivation",
+   "result": "BUILD SUCCEEDED",
+   "ios17SimulatorCompileInvocations": 26,
+   "availabilityErrors": 0,
+   "stdoutSHA256": "8a39323e041b0f92d30625d0012e19047ece1338b097497ae159592eb7addb2f"
+  },
+  {
+   "package": "runtime",
+   "scheme": "MixerRuntime",
+   "result": "BUILD SUCCEEDED",
+   "ios17SimulatorCompileInvocations": 8,
+   "availabilityErrors": 0,
+   "stdoutSHA256": "a80be38cfb8bc025a999d7e83cd0bd84ef27f9105534e0bd2f9b9151aae82baa"
+  }
+ ],
+ "capabilityActivationEarlierAttempts": [
+  "r1 failed: mixer_vm_capability.h not found (headers not staged)",
+  "r2 failed: HEADER_SEARCH_PATHS override replaced the packages own include paths"
+ ],
+ "rustVm": {
+  "target": "aarch64-apple-ios-sim",
+  "result": "Finished",
+  "mixerVmObjects": 12,
+  "minos": "17.0",
+  "vtoolSHA256": "7b51891a81335bc43a2a8f92393a5dfbd34ebf05f0eccbc48acd845974f3944b"
+ },
+ "warnings": "Only pre-existing iOS 15 deprecations (contentEdgeInsets, titleEdgeInsets in sdk/Sources/MixerApple/AppearanceNativeViewsV2.swift).",
+ "summarySHA256": "18f29873dd047159b2326a7335de9ab52587fca1c79b74900620ad912809b17d",
+ "notCovered": [
+  "capabilities/ qualification package",
+  "Linking and launching a generated app; app Info.plist and final Mach-O minimums",
+  "The separate FieldLog repository and its signed identity",
+  "Any run on an iOS 17 runtime (only iOS 26.5 and 27.0 Simulator runtimes were installed)",
+  "Private UIKit appearance prototype admits only the iOS 26.5 runtime (AppearanceEnvironmentV2.swift:16-18)"
+ ],
+ "cleanup": "Derived data, package clones, cargo target, and staged sources removed. Logs kept only in the ignored run directory.",
+ "reviewer": "Two independent Sol 6.2 High plan reviewers read the logs; both confirmed package-compile scope only."
+}

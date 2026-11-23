@@ -9,6 +9,8 @@ import sys
 INPUTS = ('gates/local.json', 'gates/ga.json', 'work-graph.json',
           'dogfood/receipts/milestones.json')
 STATUSES = {'planned', 'running', 'passed', 'failed', 'blocked'}
+PIVOT_PREREQUISITES = {'UP4': {'S5', 'UP2'}, 'UP5': {'S3n', 'S3g', 'S4', 'UP1', 'UP4'},
+                       'UP6': {'UP1', 'UP4', 'UP5', 'finalReplay'}}
 
 
 def has_pass_evidence(record):
@@ -66,6 +68,47 @@ def check_documents(documents):
     for package in work['packages']:
         if not package['acceptance'] or not package.get('launchAcceptance'):
             failures.append(f"{package['id']}: missing local or retained launch acceptance")
+    pivot = work.get('uiPlatformPivot')
+    if pivot is None:
+        failures.append('Retain the UI platform pivot record')
+    else:
+        steps, spikes = pivot['steps'], pivot['spikes']
+        auxiliary = {'finalReplay': pivot['finalReplay'], 'guestProfile': pivot['guestProfile']}
+        for rid, record in auxiliary.items():
+            if record['id'] != rid:
+                failures.append(f'{rid}: pivot record id must be {rid}')
+        records = {record['id']: record for record in (*steps, *spikes)}
+        records.update(auxiliary)
+        if [step['id'] for step in steps] != [f'UP{i}' for i in range(1, 7)]:
+            failures.append('Retain ordered UP1-UP6 pivot steps')
+        if [spike['id'] for spike in spikes] != ['S1', 'S2a', 'S2b', 'S3n', 'S3g', 'S4', 'S5']:
+            failures.append('Retain ordered S1-S5 pivot spikes')
+        for record in records.values():
+            if record['state'] not in STATUSES:
+                failures.append(f"{record['id']}: invalid pivot state")
+            if record['state'] in {'passed', 'failed'} and not has_pass_evidence(record):
+                failures.append(f"{record['id']}: pivot result lacks evidence/reviewer")
+        for spike in spikes:
+            if spike['state'] in {'passed', 'failed'} and not (isinstance(spike['outcome'], str) and spike['outcome'].strip()):
+                failures.append(f"{spike['id']}: settled spike lacks its outcome")
+        passed = {rid for rid, record in records.items() if record['state'] == 'passed'}
+        settled = {spike['id'] for spike in spikes if spike['state'] in {'passed', 'failed'}}
+        profile = pivot['guestProfile']
+        decided = isinstance(profile['decision'], str) and bool(profile['decision'].strip())
+        if profile['state'] == 'passed' and not decided:
+            failures.append('guestProfile: passed without an owner decision')
+        approved = 'guestProfile' in passed and decided and 'S2a' in settled - passed
+        for step, needs in PIVOT_PREREQUISITES.items():
+            if step in passed and not needs <= passed:
+                failures.append(f'{step}: passed before {sorted(needs - passed)}')
+        if 'UP3' in passed and settled != {spike['id'] for spike in spikes}:
+            failures.append('UP3: passed before every spike settled')
+        if 'UP5' in passed and not (('S2a' in passed or approved) and 'S1' in settled):
+            failures.append('UP5: passed without guest evidence and a settled S1')
+        if not {'UP6', 'finalReplay'} <= passed and any(gate['id'] in {'L02', 'L08'} and gate['status'] == 'passed' for gate in gates):
+            failures.append('L02 and L08 pass only after UP6 and the final replay')
+        if local['status'] == 'complete' and any(step['state'] != 'passed' for step in steps):
+            failures.append('Plan completion requires every UI platform pivot step to pass')
     if [milestone['id'] for milestone in dogfood['milestones']] != [f'D{i}' for i in range(9)]:
         failures.append('Retain ordered D0-D8 milestones')
     for milestone in dogfood['milestones']:

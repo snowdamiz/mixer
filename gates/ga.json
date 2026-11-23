@@ -28599,13 +28599,23 @@
     "authorization": "Direct user instruction on October 23, 2026.",
     "receipt": "verification/simulator-development-policy/receipt.json",
     "iosBaseline": {
-      "minimum": "26.0",
-      "supportedMajors": "26, 27, and subsequent releases; no public upper major cutoff",
-      "authorization": "Direct user instruction: should be iOS 26, 27 and onward.",
-      "qualification": "Minimum 26.0, maintained 26.x, 27 and subsequent stable versions need runtime qualification; beta compatibility is monitored separately. Private appearance prototype admits exercised 26.5 only.",
-      "scope": "Nine parsed package manifests, 19 CLI tests and actual generated unsigned iOS Simulator app cross-build; no simulator/device execution or GA acceptance.",
-      "receipt": "verification/ios26-baseline/candidate-1/receipt.json",
-      "acceptance": "verification/ios26-baseline/acceptance.json"
+      "minimum": "17.0",
+      "supportedMajors": "17, 18, 26, 27, and subsequent releases; no public upper major cutoff",
+      "authorization": "Direct owner instruction on November 23, 2026 to lower the iOS minimum to iOS 17. Replaces the October 23 iOS 26.0 baseline.",
+      "implementation": "Pending UP1. Packages, generated projects, and Rust archives still declare 26.0 until UP1 lands.",
+      "qualification": "UP1 qualifies the 17.0 floor on the oldest iOS 17.x Simulator runtime that the pinned Xcode supports. Representative iOS 18, 26, 27, and later stable versions qualify on their own runtimes. Beta compatibility is monitored separately, and physical-device release qualification stays separate. The private appearance prototype admits exercised 26.5 only until UP6 removes it.",
+      "scope": "Compile-only. Five package schemes (root Mixer, capability-activation, native-sdk, activation, runtime) and the Rust VM Simulator archive built for an iOS 17.0 target with no availability errors. The capabilities qualification package was not built. No app link, launch, or iOS 17 runtime execution.",
+      "receipt": "verification/receipts/ios17-floor-compile-20261123.json",
+      "decision": "mixer-product-plan.md#13-ui-platform-pivot-november-23-2026",
+      "previousBaseline": {
+        "minimum": "26.0",
+        "supportedMajors": "26, 27, and subsequent releases; no public upper major cutoff",
+        "authorization": "Direct user instruction: should be iOS 26, 27 and onward.",
+        "qualification": "Minimum 26.0, maintained 26.x, 27 and subsequent stable versions need runtime qualification; beta compatibility is monitored separately. Private appearance prototype admits exercised 26.5 only.",
+        "scope": "Nine parsed package manifests, 19 CLI tests and actual generated unsigned iOS Simulator app cross-build; no simulator/device execution or GA acceptance.",
+        "receipt": "verification/ios26-baseline/candidate-1/receipt.json",
+        "acceptance": "verification/ios26-baseline/acceptance.json"
+      }
     },
     "previousPause": {
       "scope": [

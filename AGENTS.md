@@ -24,6 +24,20 @@ All specific historical holds and disconnected-phone restrictions remain active.
 This policy authorizes no deployment, store submission, financial activation,
 customer communication, credential change, or destructive migration.
 
+## UI platform pivot, November 23, 2026
+
+The owner stopped the current-stack L02 and L08 work at commit `504366a0c9`
+and changed the UI platform. The approved targets are a published SwiftUI
+subset (`MixerSwiftUI`) for shared screens, Jetpack Compose on Android, an
+iOS 17.0 minimum, and API 28 for the shared-design Android host. The code
+still declares iOS 26.0 and API 36 until pivot steps UP1 and UP4 land.
+Product-plan Section 1.3 is binding, Section 24.6 sets the sequence, spike
+outcomes and file boundaries, and the `PLAN.md` pivot section is the
+checklist. Add no features to the `android.widget` renderer, the public
+explicit-ID `MixerUI` authoring API, or the private UIKit appearance
+prototype. The pivot releases no hold listed below and changes no model,
+verification, cleanup, or push rule.
+
 ## Ownership and execution
 
 - Independently implement all product engine code. No Patch/Skip implementation,

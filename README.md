@@ -35,6 +35,13 @@
 > [!IMPORTANT]
 > Mixer is in active development. APIs are not stable and there is no release yet.
 
+> [!NOTE]
+> On November 23, 2026, Mixer approved a UI platform pivot. Shared screens
+> will use a published SwiftUI subset, Android will render with Jetpack
+> Compose, the iOS minimum will be iOS 17, and the shared-design Android host
+> will support API 28. The badges and text below describe the current code
+> until those steps land. See the [execution index](PLAN.md#ui-platform-pivot-november-23-2026).
+
 ## What is Mixer?
 
 You write your app once in Swift. Mixer builds it into native iOS and Android

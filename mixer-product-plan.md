@@ -1,12 +1,12 @@
 # mixer — Swift-First Mobile Platform Product and Engineering Plan
 
-Version: 1.6 — updated November 17, 2026 (local end-to-end completion; free testing and early launch; deployment and monetization tracked separately).
+Version: 1.7, updated November 23, 2026 for the UI platform pivot (Section 1.3). Version 1.6 of November 17 set local end-to-end completion, free testing and early launch, and separate deployment and monetization tracking.
 
 Prepared: October 22, 2026  
 Status: Proposed implementation plan; no implementation or release evidence is claimed by this document.  
 Project name: **mixer**. The CLI is `mixer`, configuration files are `mixer.yml` and `mixer.lock`, and owned Swift modules use the `Mixer*` prefix. These are the planned product interfaces; implementation status remains governed by the acceptance gates.
 
-**Decision in brief:** Buildable with a supported Swift application/UI model, native platform adapters, and an independently implemented interpreted update runtime. It cannot promise unchanged compatibility with every existing SwiftUI app or OTA replacement of arbitrary native code. The business is plausible but demand remains unproven. Execution is designed for AI agents, organized by dependencies, concrete deliverables, and verified completion gates. FieldLog, a real Swift app, must prove each stage on both platforms.
+**Decision in brief:** Buildable with shared screens written in a published SwiftUI subset, native renderers (Apple SwiftUI controls on iOS and Jetpack Compose on Android), and an independently implemented interpreted update runtime. It cannot promise unchanged compatibility with every existing SwiftUI app or OTA replacement of arbitrary native code. The business is plausible but demand remains unproven. Execution is designed for AI agents, organized by dependencies, concrete deliverables, and verified completion gates. FieldLog, a real Swift app, must prove each stage on both platforms.
 
 **Navigation:** [Evidence and verdict](#3-evidence-assumptions-and-competitive-context) · [Independent ownership](#4-independent-implementation-and-provenance) · [Architecture](#5-system-architecture-and-ownership) · [Compiler](#7-swift-compilation-and-module-model) · [Owned interpreter](#10-our-interpreter-and-swift-execution-profile) · [OTA and recovery](#11-update-eligibility-packaging-and-trust) · [Hosted product](#13-hosted-release-and-control-plane) · [Real-app dogfood](#21-the-real-dogfood-application-fieldlog) · [Delivery sequence](#24-delivery-sequence-and-dependency-graph) · [AI-agent execution](#25-ai-agent-execution-model) · [Business model](#26-business-model-and-market-validation) · [Completion and later gates](#29-completion-gates-and-later-qualification) · [Sources](#33-primary-source-research-index)
 
@@ -24,6 +24,7 @@ The user's decisions govern the plan:
 4. **Deliver both platforms.** Local completion requires iOS and Android end-to-end behavior. Record simulator and emulator evidence accurately; hardware qualification remains separate.
 5. **Make limitations explicit.** The service must explain which changes are OTA-compatible, which require a store release, and which APIs are platform-specific.
 6. **Use the specified agent models.** The user selects the main controlling agent when launching development. The coordinator directs and integrates the work. Use **Sol 6.2 High** for every new subagent, including implementation, blocker experiments, and reviews. Section 25 defines the model settings.
+7. **Pivot the UI platform.** On November 23, 2026, the owner directed SwiftUI-subset authoring, Jetpack Compose on Android, and an iOS 17 minimum. Section 1.3 records the decisions and supersedes conflicting text elsewhere in this plan.
 
 ### 1.1 Meaning of “our own engine for everything”
 
@@ -39,6 +40,30 @@ The production runtime will **not** depend on WasmKit or another third-party Was
 
 Avoid promises of arbitrary native binary replacement, universal SwiftUI compatibility, instant delivery to offline devices, guaranteed store approval, or zero overhead.
 
+The November 23 pivot makes the UI promise concrete. Shared screens use a published SwiftUI subset, listed in a generated support table, and they keep compiling against Apple SwiftUI. Updates stay within the app's approved purpose and installed capabilities (Section 3.3).
+
+### 1.3 UI platform pivot, November 23, 2026
+
+On November 23 the owner stopped the current-stack L02 and L08 work at commit `504366a0c9` and directed a pivot that fixes three go-to-market problems. Shared screens move from the explicit-ID `MixerUI` DSL to a published SwiftUI subset. Android moves from `android.widget` Views to Jetpack Compose. The iOS minimum drops from 26.0 to 17.0. The pivot research also found that the shared-design Android host requires API 36, so the pivot restores API 28 for that host.
+
+This section is binding and supersedes conflicting text elsewhere in this plan. These are approved targets. The code still declares iOS 26.0 until step UP1 lands and still requires API 36 for the shared-design Android host until step UP4 lands. Section 24.6 gives the sequence, the spike outcomes, and the file boundaries. [The execution index](PLAN.md#ui-platform-pivot-november-23-2026) holds the checklist, the current state, and the defects carried over from the checkpoint.
+
+| ID | Decision | Decided by | Replaces |
+| --- | --- | --- | --- |
+| P1 | Shared feature screens use a published SwiftUI subset with `import SwiftUI`, `View`, `@State`, `@Binding`, `@Environment`, and closure actions. Mixer implements the subset as `MixerSwiftUI`, which lowers views to the owned `UIDocument`. | Owner, November 23 | ADR-02 and the public `MixerUI` authoring API |
+| P2 | Android renders documents with a Kotlin Jetpack Compose host, built with Gradle, the Android Gradle Plugin, and Kotlin. | Owner, November 23 | The Java `android.widget` renderer and the javac and D8 build path |
+| P3 | The iOS minimum is 17.0 for packages, generated projects, and native archives. | Owner, November 23 | The October 23 iOS 26.0 baseline |
+| P4 | The shared-design Android host supports API 28 and later. An explicit accessibility observation policy (UP2) says what the host renders when an observation is known, unavailable, or failed, and the Compose host applies it (UP4). It replaces the blanket refusal below API 36 and the refusal of users who turn on high-contrast or bold text. | Coordinator, from the pivot research | The API 36 floor in `AndroidPublicHost.swift` |
+| P5 | On iOS, shared features run through the Mixer engine in both store and update builds, and `MixerNativeView` draws them with Apple SwiftUI controls. Native-only iOS screens use Apple SwiftUI directly. The pivot research calls this option B'. Spike S4 confirms it. | Coordinator recommendation, answering the owner's November 23 question about the better option once Mixer's gaps close; the owner may override | Nothing. It keeps Section 5.2 and Section 8.3. |
+| P6 | Update guests that carry UI use the Embedded Swift profile. The installed 4 MiB payload and memory caps stay unchanged. A larger full-Swift profile may arrive only as a new, versioned execution profile in a new store build, after spike S2 data, and only if updates still meet the Section 20.2 size budget. | Coordinator, delegated by the owner on November 23 | "Full Swift SDK first" in Section 31 |
+| P7 | L02 and L08 complete on the new stack. Passed gates keep their recorded scope. Each pivot step re-verifies the gates that its replaced component affects. | Owner, November 23 | Completing L02 and L08 on the current stack |
+
+The pivot keeps the independent engine, no Patch or Skip code (Section 4 and `scripts/check-policy.py`), native Swift compilation for Android (ADR-01), the value-only UI document and its stale-input rules, native and guest compilation of the feature layer (ADR-04), cold-start activation, exact runtime fingerprints, the shared-theme default (Section 8.3), and Sol 6.2 High for every subagent unchanged.
+
+B' is also the better choice once Mixer closes its gaps. Under B', each gap closed in `MixerSwiftUI` and `MixerNativeView` serves iOS store builds, Android, and updates at once. Every iOS store build runs the same engine and renderer that updates use, so a renderer gap shows up in development and review, and the native fallback behaves exactly like the update it replaces. Under option B, Apple SwiftUI draws a shared screen in the store build while Mixer's document renderer draws the same screen after an update. The store build never exercises Mixer's iOS renderer, so B needs a separate qualification path for that renderer, and any gap that path misses first appears when an update reaches users. Each gap must be closed and proven twice on iOS. B also breaks the Section 5.2 rule that native and update builds emit one UI contract and leaves the shared theme undefined on iOS. B' has three costs. New Apple SwiftUI APIs reach shared screens only after Mixer maps them, shared screens cannot call Apple-only APIs inline, and iOS pays for the engine and document layer. Section 24.7 closes those costs and the other remaining gaps, and it states when the owner would revisit B. Choosing B requires a new owner decision.
+
+Under P6, measured full-Swift WASI modules are 5,508,619 bytes empty and 12,651,963 bytes with FoundationEssentials. Both exceed the installed 4 MiB caps before any app code. An Embedded Swift scalar probe is 119,642 bytes. Until a corrected Embedded approach within the installed caps or an owner-approved larger profile qualifies that use, an update that needs Foundation or `Task` is a store release, and the release report names the symbol that forced it.
+
 ## 2. Completion definition and scope
 
 The implementation plan is complete when L01–L08 below pass for the documented local support matrix. Exercise real integrated application behavior on iOS Simulator and Android emulator, with the console, API, database, workers, and update delivery running locally. A build or isolated demo alone is insufficient. Record exact sources, commands, actual behavior, failures, and cleanup in compact receipts. One independent review at each meaningful slice is sufficient under Section 24.5.
@@ -48,13 +73,13 @@ The implementation plan is complete when L01–L08 below pass for the documented
 | Local gate | Required end-to-end behavior |
 | --- | --- |
 | L01 Setup, adoption, and export | Install from pinned public SDK/tooling inputs, create and import a Swift app, build and run on both local targets, and export a working independent build. FieldLog consumes public interfaces from its separate repository. Registry publication and outside developers are not prerequisites. |
-| L02 Shared app and native UI | FieldLog's supported screens, state, navigation, input, accessibility, shared design, persistence, and first-party capabilities work on both local targets. Record OS-specific limitations. Physical-only services use explicit test adapters for local orchestration, with actual hardware/provider behavior pending. |
+| L02 Shared app and native UI | FieldLog's supported screens, state, navigation, input, accessibility, shared design, persistence, and first-party capabilities work on both local targets. Record OS-specific limitations. Physical-only services use explicit test adapters for local orchestration, with actual hardware/provider behavior pending. Under Section 1.3, FieldLog's shared screens use the published SwiftUI subset, Android renders them with the Compose host from API 28, and iOS runs from 17.0. |
 | L03 Compiler and owned runtime | Supported Swift features execute in native and guest modes through the owned engine with actionable source diagnostics. Conformance, differential, malformed-input, cancellation, and resource-limit checks pass. Measure responsiveness, memory, and update size on the stated local workload. Hardware budgets remain separately unqualified. |
 | L04 Safe OTA and recovery | A locally served, signed logic and UI update changes both already-installed apps without reinstall. Compatibility, tenant/app identity, signatures, replay, cohorts, key rotation, and unsupported native changes are enforced. Interrupted or failed updates recover offline with saved data intact. Use development keys, never production signing credentials. |
 | L05 Local platform workflow | Real console, CLI, Phoenix API, PostgreSQL, Oban workers, build workers, artifact delivery, and separate development signer complete onboarding, build, logs, cancellation, update, promotion, and rollback locally. Test store request/status/error handling against documented provider fixtures. Actual uploads, store processing, provider infrastructure, and distribution remain pending. |
 | L06 Free accounts and administration | Free organizations can use the full testing workflow without a card, subscription, Stripe credentials, or payment service. Memberships, permissions, usage visibility, quotas, support, export, and deletion work locally. Paid plans, invoices, payment collection, paid entitlements, and purchase integrations may remain unimplemented and inactive. |
 | L07 Security and local reliability | Provenance, licensing notices, VM/bridge/update verification, signer separation, tenant isolation, privacy, authorization, and local fault/restore tests pass. Resolve findings that compromise the supported local workflow. Test local service/worker loss and recovery. Production SLOs, provider failover, and staffed operations are later qualification. |
-| L08 FieldLog and documentation | Run the complete supported FieldLog workflow through public tooling on both targets, including edit/save/close/reopen, offline queue, attachments, guest parity, OTA, rollback, and export. Exercise the applicable Section 22 recovery and real-change corpus locally. Follow installation, upgrade, recovery, and exit guides from a clean local setup. Store use, customer counts, and paid pilots are not required. |
+| L08 FieldLog and documentation | Run the complete supported FieldLog workflow through public tooling on both targets, including edit/save/close/reopen, offline queue, attachments, guest parity, OTA, rollback, and export. Exercise the applicable Section 22 recovery and real-change corpus locally. Follow installation, upgrade, recovery, and exit guides from a clean local setup. Store use, customer counts, and paid pilots are not required. Under Section 1.3, this workflow runs on the new stack, and it closes only after the clean post-removal replay in the Section 24.6 UP6 exit. |
 
 Missing local behavior stays failed, blocked, or pending. A fixture may stand in for an external store, payment, push, or hardware service only at that unavailable boundary; it cannot replace the owned compiler, VM, UI, persistence, updater, or integrated local services. Document each substitution and leave real provider/device qualification pending. No generalized evidence controller, extra approval ladder, or production soak period is a completion prerequisite.
 
@@ -71,7 +96,7 @@ Apply the local evidence rules above to this capability inventory. Provider plac
 | Project creation | Create a Swift project, run on both platforms, inspect generated native projects, and build without a cloud account. |
 | Existing app adoption | Import a real Swift project with an actionable compatibility report and incremental migration path. |
 | Shared app engine | Shared Swift logic, state, navigation, resources, lifecycle, and tested platform integrations. |
-| Native UI | Product-owned Swift API and renderer using native iOS and Android controls, accessibility, text input, and platform navigation conventions. |
+| Native UI | Published SwiftUI subset (`MixerSwiftUI`) with native renderers, Apple SwiftUI controls on iOS and Jetpack Compose on Android, keeping native accessibility, text input, and platform navigation conventions. |
 | OTA | Signed, compatibility-scoped logic and supported UI updates on iOS and Android; staged release, local recovery, offline behavior, and server rollback. |
 | Builds | Managed macOS/iOS and Android builds; deterministic inputs, logs, artifact retention, caches, quotas, cancellation, and isolation. |
 | Distribution | Local development builds and tested submission/status adapters. Real TestFlight/Play processing and production submission are later qualification. |
@@ -181,9 +206,10 @@ For context only, source inspection found MPL-2.0 in Skip's UI/bridge libraries 
 | `MixerBuild` | Source graph, toolchain lock, native project generation, artifact manifest | Swift tooling; Xcode/SwiftPM/Gradle orchestration. |
 | `MixerCompiler` | Feature extraction, API validation, capability analysis, dual compilation, source maps | SwiftSyntax/macros for syntax plus actual compiler type checking; limited compiler integration where unavoidable. |
 | `MixerCore` | Lifecycle, feature registry, effects, state coordination, configuration | Swift. |
-| `MixerUI` | Swift declarative API, stable view identities, state observation, UI instruction representation | Independently implemented Swift API and engine. |
-| `MixerApple` | SwiftUI/UIKit adapters and native host capabilities | Swift with documented Apple APIs. |
-| `MixerAndroid` | Kotlin/Java/JNI integration, Android lifecycle, Compose/widgets | Swift, minimal C ABI, and Kotlin adapter code. |
+| `MixerUI` | Internal UI document, validation, reconciliation, stable identities, and stale-input routing. The public explicit-ID authoring API is frozen under Section 1.3 and removed after migration. | Independently implemented Swift engine. |
+| `MixerSwiftUI` | Published SwiftUI-compatible subset with views, modifiers, state, bindings, environment, and closure actions. Shared feature modules reach it through `import SwiftUI`. It lowers views to `MixerUI` documents in native and guest builds. | Independently implemented from Apple's public API documentation. No Skip code. |
+| `MixerApple` | `MixerNativeView` document renderer with Apple SwiftUI controls and the shared theme, plus native host capabilities. Native-only screens use Apple SwiftUI directly. | Swift with documented Apple APIs. |
+| `MixerAndroid` | Kotlin Jetpack Compose document renderer, JNI integration, Android lifecycle, and Gradle packaging | Swift, minimal C ABI, and Kotlin. |
 | `MixerGuest` | Wasm-facing Swift UI/effect/state interface | Swift; no Apple or Android frameworks in guest. |
 | `MixerVM` | Wasm validation, execution, metering, imports, memory management, traps | Independently implemented memory-safe Rust core behind a stable C ABI. |
 | `MixerUpdates` | Verification, download, atomic activation, local recovery, telemetry | Shared core plus small OS-specific storage/network adapters. |
@@ -209,8 +235,8 @@ flowchart TD
   O --> V[Our bundled interpreter]
   H --> V
   V --> U[Our UI instructions and effect interface]
-  U --> I[Our iOS adapter: SwiftUI/UIKit]
-  U --> A[Our Android adapter: Compose/native views]
+  U --> I[MixerNativeView iOS renderer with SwiftUI controls]
+  U --> A[Jetpack Compose Android renderer]
 ```
 
 Native and patched feature implementations emit the same logical UI/effect contracts. Native platform adapters remain compiled into the store binary. Downloaded modules do not contain replacement `.so`, DEX, Mach-O, or executable runtime libraries.
@@ -220,8 +246,8 @@ Native and patched feature implementations emit the same logical UI/effect contr
 | ID | Baseline decision | Rationale and consequence |
 | --- | --- | --- |
 | ADR-01 | Compile Swift natively for Android; no general Swift-to-Kotlin transpiler | Full language compilation is supplied by official Swift. We own interoperability and packaging. |
-| ADR-02 | Own a Swift declarative UI API with familiar SwiftUI conventions | A published compatibility surface is supportable; arbitrary Apple framework replication is not promised. |
-| ADR-03 | Own native adapters over platform toolkits | Keep platform accessibility, IME, text rendering, gestures, and lifecycle behavior. |
+| ADR-02 | Shared screens use a published SwiftUI subset, implemented by Mixer as `MixerSwiftUI` (revised November 23, Section 1.3) | Developers write familiar SwiftUI source. A generated support table publishes the subset, and the subset must keep compiling against Apple SwiftUI. Universal SwiftUI compatibility is still not promised. |
+| ADR-03 | Own native renderers with Apple SwiftUI controls on iOS and Jetpack Compose on Android (revised November 23) | Keep platform accessibility, IME, text rendering, gestures, and lifecycle behavior. Android follows Google's Compose-first direction. |
 | ADR-04 | Build features both natively and for Wasm | Native baseline and safe fallback; compatible feature code can later execute in our interpreter. |
 | ADR-05 | Use an independently implemented Wasm interpreter | Own execution semantics, budgets, diagnostics, and distribution. This adds substantial engineering and audit scope. |
 | ADR-06 | Activate production changes at a safe cold start | Avoid replacing live Swift object graphs and in-flight UI state. Development reload is separate. |
@@ -233,6 +259,10 @@ Native and patched feature implementations emit the same logical UI/effect contr
 | ADR-12 | Neon hosts the production PostgreSQL database | Ecto/Postgrex connect directly over verified TLS initially; bounded pools and Oban notification/recovery behavior require Neon qualification. |
 | ADR-13 | Cloudflare hosts every suitable workload | Containers host Phoenix; Workers host edge routing and the SolidJS console; R2/CDN deliver artifacts. macOS builds and isolated key custody retain explicit exceptions. |
 | ADR-14 | SolidJS web console and Stripe commercial billing | Fix the web framework and payment provider; retain the existing usability, metering, entitlement, and recovery requirements. |
+| ADR-15 | iOS 17.0 minimum (November 23, Section 1.3) | Existing apps that support iOS 17 can adopt Mixer. iOS 17 is also the `@Observable` minimum, and every iOS 17 device can run iOS 18. |
+| ADR-16 | Embedded Swift guest profile for UI features (November 23, Section 1.3) | Full-Swift WASI modules exceed the installed 4 MiB caps before app code. A larger profile needs a new versioned execution profile in a store build. |
+| ADR-17 | One iOS renderer for shared features, option B' (November 23, Section 1.3) | Store and update builds of a shared feature draw through `MixerNativeView`, so an update never switches rendering engines, and every gap Mixer closes serves store builds, Android, and updates at once. Section 24.7 closes the costs of this choice. |
+| ADR-18 | Gradle, the Android Gradle Plugin, and Kotlin build generated Android apps (November 23) | Compose needs the Kotlin Compose compiler plugin and AndroidX libraries. Generated projects open in Android Studio, and exported projects build without Mixer's hosted service (ADR-09). |
 
 ## 6. Customer workflow
 
@@ -291,7 +321,7 @@ The app developer can inspect and edit designated native extension points. Regen
 6. Instrument eligible features for future updates and ship the resulting native binaries through the stores.
 7. Publish OTA only to these instrumented, matching binaries.
 
-Do not claim that arbitrary existing `import SwiftUI` applications can compile unchanged on Android. Provide a compatibility importer and conversion assistance. New projects use `MixerUI`; existing projects receive precise changes and a preserved native-only path.
+Do not claim that arbitrary existing `import SwiftUI` applications can compile unchanged on Android. Provide a compatibility importer and conversion assistance. New projects write shared screens with the published SwiftUI subset. The importer reports which existing SwiftUI screens already fit the subset, which need listed edits, and which stay native-only iOS screens. Existing projects receive precise changes and a preserved native-only path.
 
 ### 6.4 Environment and account model
 
@@ -340,11 +370,22 @@ Unsafe pointers, C/ObjC interop, arbitrary dynamic loading, threads, and framewo
 
 ### 8.1 Authoring API
 
-Implement familiar Swift concepts: `View`, result builders, modifiers, state, bindings, observable models, environment, navigation, lists, forms, and async lifecycle hooks. Names are API-design proposals, not a claim of binary compatibility with Apple SwiftUI.
+Revised November 23 under Section 1.3. Shared feature modules use ordinary SwiftUI source against a published subset. In a shared feature module, `import SwiftUI` resolves to `MixerSwiftUI` on Android, in the update guest, and on iOS under P5. App-shell and native-only iOS modules import Apple SwiftUI. Spike S1 proves the module naming. If it fails, shared modules write `import MixerSwiftUI` with the same API names. The Apple compatibility build then supplies a shim module named `MixerSwiftUI` that re-exports Apple SwiftUI, and the support table records the source cost.
 
-`MixerUI` has native and guest-compatible implementations under our control. Both produce an owned UI instruction representation. iOS adapters create native SwiftUI/UIKit behavior; Android adapters create Compose/native-view behavior. Own reconciliation, identity, event routing, and capability negotiation. Do not copy Skip's mapping implementation.
+`MixerSwiftUI` implements the subset independently from Apple's public documentation. It evaluates view bodies, keeps state, and emits the owned UI document. Its core compiles under Embedded Swift, so core paths use no Foundation, no `Mirror`, and no runtime-selected existentials. Foundation conveniences live in a native-only layer. The subset follows these rules:
+
+- **Identity.** An unkeyed child takes its identity from its parent's identity, its child position, and its branch. A keyed child, with an explicit `.id` or a `ForEach` key, takes its parent's identity plus the key and no position, so moving a keyed row keeps its state. Authors write no string IDs.
+- **State.** The engine keys storage by view identity and a stable key for each property declaration, and binds it before `body` runs. Assigning slots by first access is wrong, because a conditional can read a different property first. Native builds may find state properties by reflection. Guest builds use independently authored generated registration or explicit registration. If plain `@State` needs a build-time source transform in guest builds, the documentation says so.
+- **Actions.** Closures stay inside the native or guest implementation. The document carries engine-assigned handler IDs. Handlers belong to one feature instance and one accepted frame. The engine stages a candidate document and its handler table together, and they become routable only when the host acknowledges that exact feature instance and frame after presentation. If validation, install, or drawing fails, the last accepted document and its handlers stay routable. Acknowledgment and dispatch both check the feature instance and the frame on both platforms, so a late callback after a rollback or replacement is refused even when a frame or handler ID is reused.
+- **Compatibility check.** CI compiles every shared feature on iOS twice, against `MixerSwiftUI` and against Apple SwiftUI. A failed Apple build means the subset drifted from SwiftUI.
+- **Support table.** A table generated from the tests lists each supported view, modifier, and state wrapper with its iOS mapping, Compose mapping, guest status, and tests.
+- **Diagnostics.** An unsupported API is a missing symbol in Android and guest builds, and `@available(*, unavailable, message:)` stubs say what to do. Missing symbols do not catch effects, resources, or dependencies that macros and imported generics add, so the Section 7.2 inventory also covers resolved dependencies, macro expansion, and emitted Wasm.
+
+The explicit-ID `MixerUI` authoring API is frozen. It stays the guest fallback until Section 24.6 step UP6 qualifies the replacement, and then it is removed. `UIDocument`, validation, and reconciliation remain the internal wire, and both native and guest implementations produce it. Own reconciliation, identity, event routing, and capability negotiation. Do not copy Skip's mapping implementation.
 
 ### 8.2 Required UI inventory
+
+Tier 1 under Section 1.3 comes from FieldLog plus list-and-detail, form-and-settings, and tabbed app types. A construct that spike S2b has not passed under Embedded Swift, such as `@Observable` or `AnyView`, stays native-only and is marked so in the support table.
 
 | Family | GA scope | Required behavioral evidence |
 | --- | --- | --- |
@@ -360,11 +401,11 @@ Implement familiar Swift concepts: `View`, result builders, modifiers, state, bi
 
 ### 8.3 UI instruction contract
 
-Use versioned, bounded messages describing node type, stable identity, properties, child references, actions, and state bindings. Separate structural updates from frequently changing properties. Batch changes so JNI and interpreter transitions do not occur for every scalar property or every frame.
+Use versioned, bounded messages describing node type, stable identity, properties, child references, actions, and state bindings. Separate structural updates from frequently changing properties. Batch changes so JNI and interpreter transitions do not occur for every scalar property or every frame. New node kinds, handler IDs, and row paging arrive in a new UI schema version, which ships in a new store build under Section 24.6. Installed hosts refuse schemas they do not admit, and tests prove the refusal.
 
 The host validates node counts, nesting, lengths, resource references, and supported operations before reconciliation. Unsupported required nodes reject the candidate update; no blank placeholders in production. Optional decorative behavior can degrade only when the manifest explicitly permits it and the preview shows the degradation.
 
-One codebase produces the same app design on both platforms. A MixerUI screen renders with the same layout, hierarchy, content, colors, typography scale, iconography, spacing, and component appearance on iOS and Android. Adapters still render through native toolkits (SwiftUI/UIKit and Compose/native views), but they style controls from the app's shared theme rather than each platform's default look. An app that wants a platform-specific appearance must declare it explicitly; it is never the default.
+One codebase produces the same app design on both platforms. A shared screen renders with the same layout, hierarchy, content, colors, typography scale, iconography, spacing, and component appearance on iOS and Android. Adapters still render through native toolkits (Apple SwiftUI on iOS and Jetpack Compose on Android), but they style controls from the app's shared theme rather than each platform's default look. An app that wants a platform-specific appearance must declare it explicitly; it is never the default. On iOS, `MixerNativeView` applies the shared theme to Apple SwiftUI controls. On Android, the Compose host builds controls from Compose Foundation, so the shared theme sets their appearance instead of Material defaults.
 
 Accessibility and navigation behavior stay native. That covers VoiceOver and TalkBack roles, labels, values, actions, and focus order; the iOS back gesture; Android system and predictive back; and native text input and keyboard handling. System-owned surfaces outside the app's screens keep their platform appearance, including status bars, permission prompts, share sheets, and the keyboard.
 
@@ -372,7 +413,7 @@ Local completion requires design parity on reference screens, reviewed side by s
 
 ### 8.4 Performance design
 
-Keep layout, text shaping, scrolling, image decoding, animation execution, and input services native. Run feature logic and view construction in the selected implementation, with coarse state/effect messages. Use dependency tracking, stable identity, incremental diffs, cancellation, and bounded caches. Measure native baseline, engine-native mode, and OTA mode separately on the same app and devices.
+Keep layout, text shaping, scrolling, image decoding, animation execution, and input services native. Run feature logic and view construction in the selected implementation, with coarse state/effect messages. Use dependency tracking, stable identity, incremental diffs, cancellation, and bounded caches. Lazy lists page rows through the document protocol, so neither Swift nor the guest builds rows that are off screen. Measure native baseline, engine-native mode, and OTA mode separately on the same app and devices.
 
 ## 9. Native capability and extension system
 
@@ -409,7 +450,7 @@ The compiler and VM teams jointly produce a machine-readable opcode/import inven
 
 ### 10.2 Swift runtime integration
 
-- Begin with the full supported Swift Wasm SDK. Evaluate Embedded Swift only for isolated modules whose semantics and library dependencies fit; do not assume it supports the entire app language surface.
+- Under ADR-16, update guests that carry UI use Embedded Swift. Full-Swift WASI modules exceed the installed 4 MiB caps before app code (Section 1.3). Full Swift remains a development oracle and a candidate for a later versioned execution profile. Do not assume Embedded Swift supports the entire app language surface. Spikes S2a and S2b measure it.
 - Supply the exact WASI/environment functions required by the selected SDK through bounded, capability-controlled host adapters. Do not expose a general POSIX process, arbitrary filesystem, subprocesses, or unrestricted sockets.
 - Implement allocator and memory-growth limits, clocks, secure randomness through the host, string/Unicode behavior, logging, and error propagation.
 - Route asynchronous effects through request IDs and executor queues. Validate cancellation, actor isolation, task lifetime, reentrancy, main-thread UI dispatch, and app suspension.
@@ -628,6 +669,8 @@ A custom development client includes that project's native capabilities. A unive
 
 The importer inventories Swift packages, Apple-only APIs, UI patterns, persistence, dependencies, entitlements, native extensions, and resources. It produces a per-module report: shared unchanged, shared after API adaptation, native plugin, platform-specific, or unsupported. Report source locations and transitive causes.
 
+Each SwiftUI screen gets a verdict. It fits the published subset, fits after listed edits, or stays a native-only iOS screen. The report names the unsupported symbols and their source locations.
+
 Migration tools provide reviewable edits to a separate branch and never silently replace user code. Generate a working native project before attempting broader migration. The customer can migrate one screen or feature while retaining native screens. Explain that existing store binaries cannot receive our updates until a new binary containing the engine and trust configuration is installed.
 
 Ship migration guides for a plain SwiftUI app, UIKit integration, SwiftPM business-logic package, common networking/persistence approaches, and an app with custom native SDKs. Competing-framework migration guides are independently written from public APIs; they do not import competitor implementations.
@@ -695,9 +738,9 @@ Qualify the selected hosted stack explicitly: Phoenix/Oban container stop/wake w
 
 ### 19.1 Launch platform baseline
 
-The iOS minimum is **iOS 26.0**, fixed by the user. Support iOS 26, iOS 27, and subsequent iOS releases; do not impose an upper major-version cutoff in the public SDK or generated applications. Generated projects, Swift packages and native build defaults must target iOS 26.0 or later. iOS 17–25 compatibility is outside the supported product baseline. Android API 28+ remains the proposed baseline, subject to qualification against the selected Swift/NDK/Compose versions and market demand.
+The iOS minimum is **iOS 17.0**, set by the owner on November 23, 2026 (Section 1.3). It replaces the iOS 26.0 baseline of October 23, which the code still declares until step UP1 lands. Support iOS 17, 18, 26, 27, and later releases without an upper major-version cutoff. Generated projects, Swift packages, and native build defaults target iOS 17.0. A compile-only check on November 23 built five package schemes (the root `Mixer` package, `capability-activation`, `native-sdk`, `activation`, and `runtime`) and the Rust VM Simulator archive for an iOS 17.0 target with no availability errors. The `capabilities/` qualification package was not built, and nothing ran on an iOS 17 runtime ([receipt](verification/receipts/ios17-floor-compile-20261123.json)). Android API 28 is the baseline for the Compose host under Section 1.3, through the UP2 observation policy and the UP4 floor change.
 
-Qualify the oldest supported iOS 26 release, representative iOS 26 updates, iOS 27, and each subsequent stable major release. Monitor beta releases and repair compatibility before declaring that version verified. Forward support is a product commitment, not a claim that future or untested operating systems already passed. A temporary private prototype allowlist, such as the current iOS 26.5 appearance experiment, does not satisfy this product matrix or authorize public integration. Keep those gaps explicit until qualified. Any proposal to raise the iOS minimum beyond 26 requires an explicit product decision with evidence and user approval.
+Qualify the oldest iOS 17.x Simulator runtime that the pinned Xcode supports, iOS 18, the oldest supported iOS 26 release, iOS 27, and each later stable major release. If the pinned Xcode supports no iOS 17.x runtime, record that blocker and keep runtime acceptance pending. Monitor beta releases and repair compatibility before declaring a version verified. Forward support is a product commitment, not a claim that future or untested operating systems already passed. The private UIKit appearance prototype still admits only iOS 26.5. It does not satisfy this matrix, and step UP6 removes it once `MixerNativeView` applies the shared theme. Any later proposal to raise the iOS minimum requires an explicit owner decision with evidence.
 
 Support physical arm64 iOS and Android devices, Apple-silicon iOS simulators, and the Android emulator architectures supported by the selected toolchain. Qualify current Android native page-size requirements, JNI packaging, native library alignment, lifecycle, and background restrictions. An emulator build alone does not qualify a physical architecture.
 
@@ -866,11 +909,11 @@ Each package has a directly responsible owner, versioned design, implementation 
 | --- | --- | --- | --- | --- |
 | W01 Product and contracts | Technical lead + product | Supported app categories, API contract, policy envelope, architecture decisions, provenance rules | None | Approved local support contracts and provenance review. Customer interviews are later market validation. |
 | W02 Toolchain and local build | Compiler lead | Signed version lock, SDK installation, doctor, native project generation, local CI | W01 | Clean local setup builds and runs FieldLog on iOS Simulator and Android emulator with reproducible input graph. |
-| W03 Core Swift model | Framework lead | Lifecycle, state, effects, navigation model, resources, errors; shared app appearance contract per section8.3 | W01–02 | Same state/effect tests on both local native targets; persistence and restoration work. |
-| W04 iOS UI adapter | iOS lead | Public MixerUI implementation, SwiftUI/UIKit mapping, input and accessibility; shared-theme component appearance per section8.3 | W03 | D1 local counterpart and iOS Simulator UI/input/accessibility matrix pass, including shared-design comparison. |
-| W05 Android UI adapter | Android lead | JNI boundary, Compose/native controls, lifecycle, back behavior, native resources; shared-theme component appearance per section8.3 | W02–03 | D2 local counterpart and Android emulator UI/input/accessibility matrix pass, including shared-design comparison. |
+| W03 Core Swift model | Framework lead | Lifecycle, state, effects, navigation model, resources, errors; `MixerSwiftUI` engine core (identity, state storage, handlers, document emission) under section1.3; shared app appearance contract per section8.3 | W01–02 | Same state/effect tests on both local native targets; persistence and restoration work. |
+| W04 iOS UI adapter | iOS lead | `MixerNativeView` document renderer with Apple SwiftUI controls, iOS 17.0 minimum, native-only screen embedding, input and accessibility under section1.3; shared-theme component appearance per section8.3 | W03 | D1 local counterpart and iOS Simulator UI/input/accessibility matrix pass, including shared-design comparison. |
+| W05 Android UI adapter | Android lead | Kotlin Jetpack Compose host, Gradle and AGP build, JNI boundary, lifecycle, back behavior, native resources, API 28 observation policy under section1.3; shared-theme component appearance per section8.3 | W02–03 | D2 local counterpart and Android emulator UI/input/accessibility matrix pass, including shared-design comparison. |
 | W06 Capability generator | Framework/compiler lead | Schema, generated adapters, ownership/cancellation, permission metadata | W03 | Cross-language codec/lifecycle suite and a real native plugin consumed by FieldLog on both local targets. |
-| W07 Guest compilation | Compiler lead | Guest libraries, module extraction, API diagnostics, source maps, dependency closure | W02–03, W06 | FieldLog feature graph compiles to native and Wasm with no silent behavior loss. |
+| W07 Guest compilation | Compiler lead | Guest libraries, Embedded Swift UI profile for `MixerSwiftUI` under section1.3, module extraction, API diagnostics, source maps, dependency closure | W02–03, W06 | FieldLog feature graph compiles to native and Wasm with no silent behavior loss. |
 | W08 Owned interpreter | Runtime lead | Validator/interpreter, resource controls, imports, Swift runtime integration, debugger | W07 profile; early work parallel | D3 local counterpart, owned-VM standards-profile, fuzzing, differential, diagnostics and resource-limit checks pass. |
 | W09 First-party integrations | iOS/Android leads | Nonpayment first-party capability families in Section 9, plugin authoring guide; purchases deferred. | W04–06 | Nonpayment FieldLog capability flows and permission/lifecycle tests pass on both local targets; external-only boundaries are labeled. Purchases are deferred. |
 | W10 Device updater | Runtime/release leads | Verifier, cache, activation, health, quarantine, recovery, key rotation | W07–08 | D4-D5 local counterparts, signed updates, data-preserving rollback, offline recovery and fault matrix pass. |
@@ -889,8 +932,8 @@ Use the mixer monorepo for tightly versioned engine/tooling work, plus separate 
 
 ```text
 mixer/
-  sdk/MixerCore/ MixerUI/ MixerGuest/ MixerUpdates/
-  native/apple/ android/
+  sdk/MixerCore/ MixerUI/ MixerSwiftUI/ MixerGuest/ MixerUpdates/
+  native/apple/ android/ android/compose/
   compiler/ cli/ build/
   vm/                         # independently authored Rust interpreter
   schemas/                    # UI, capabilities, manifests, compatibility
@@ -984,6 +1027,77 @@ Adopted November 9 after the user's instruction to remove verification bottlenec
 7. **Scope budgets and failures.** Preserve exhausted historical run allowances and failures. A coordinator may select a distinct fresh bounded diagnostic with a named hypothesis, finite attempt count and independent owned resources; no extra user confirmation is needed within existing authorization. This never authorizes retrying a specifically held chain. Experimental performance limits may be compared as hypotheses while original failures and production budgets remain intact. A larger diagnostic budget establishes only its actual scope.
 8. **Report behavior before accounting.** The next development milestone is a public-SDK FieldLog open/edit/save/close/reopen flow with preserved state on iOS Simulator and Android emulator. Track each platform's actual result separately. Keep a lane executing or fixing that flow when dependencies permit, alongside runtime and hosted work. Report the next command and concrete blocker, rather than artifact counts. These checkpoints advance local implementation; Section 2 and the local D0–D8 counterparts govern completion. Original GA and release requirements remain separately pending.
 
+### 24.6 UI platform pivot sequence, November 23, 2026
+
+This sequence implements Section 1.3. It replaces the current-stack L02 and L08 work, which stopped at commit `504366a0c9`. [The execution index](PLAN.md#ui-platform-pivot-november-23-2026) holds the checklist and the current state. `work-graph.json` key `uiPlatformPivot` records each step and spike with its state, outcome, evidence, and reviewer. Sizes are planning guesses, not measurements.
+
+| Step | Work | Size | Depends on | Exit check |
+| --- | --- | --- | --- | --- |
+| UP1 | iOS 17.0 minimum | S | None | The generated app's device and Simulator binaries and Info.plist declare 17.0. Existing stock projects are recognized byte for byte, migrate once to 17.0, and then regenerate byte for byte. FieldLog and its signed identity build at 17.0. The starter builds, launches, and renders. FieldLog's signed iOS update route delivers an update and rolls back on the oldest iOS 17.x Simulator runtime that the pinned Xcode supports. New builds refuse assignments for the old fingerprint, and old builds refuse the new one. |
+| UP2 | Android accessibility observation policy | M | None | The policy says, per API level, whether each observation is known, unavailable, or failed, and what the host renders in each case, including the shared-theme rendering for high-contrast text and bold text. An observation-only instrumentation probe passes on API 28, 35, 36, and 37 emulators. The resolvers and the View host keep their current refusals and the API 36 floor. UP4 and UP5 change the resolvers with rendering evidence. |
+| UP3 | Spikes S1 to S5 | M | None | Each spike records an outcome in `work-graph.json`. The outcome table below says which work each outcome unlocks. |
+| UP4 | Compose host at the current node set, API 28 floor | L | S5 passed, UP2 | Clean-checkout CLI builds and managed worker builds pass, and the CLI checks the minimum API against the selected host. The public V3 and V4 View hosts keep API 36, `legacy-v1` keeps API 28, and the Compose host uses API 28. The Compose host renders the UP2 high-contrast and bold-text policy with screenshot evidence. An exported project builds without Mixer services (ADR-09). Apps upgrade from the View host with the same signing key. Updates for either fingerprint are refused across the boundary, and rollback works. FieldLog's Android journey passes on API 28 and API 36 emulators with the UP2 policy applied. |
+| UP5 | `MixerSwiftUI` engine and tier 1 | XL | Each scope starts when its own prerequisites pass. The native scope needs S1, S3n, UP1 for manifest edits, and UP4 for Android rendering. The iOS scope also needs S4. The guest scope needs S2a, or S2a's fallback plus an owner-approved profile under ADR-16, and S3g. Passing all of UP5 needs every scope. | Tier 1 passes on iOS Simulator and Android emulator in native and guest builds. The dual iOS compile check passes. The support table comes from the tests. A new UI schema is admitted end to end and refused by older hosts. Native-only progress may be recorded as an interim milestone, but UP5 passes only with qualifying guest evidence. |
+| UP6 | Migrate, qualify, then remove legacy code | M | UP1, UP4, and UP5 including its guest scope | See the UP6 exit below. |
+
+UP6 exit. FieldLog's separate repository passes build, export, signed update, and recovery on both platforms with the new stack. The carried defects in the execution index are closed. One change removes the `android.widget` renderer, the `legacy-v1` host, the javac and D8 path, the public explicit-ID authoring API, and the private UIKit appearance renderer. After that change, a clean checkout of the final commit builds and exports the separate FieldLog consumer and runs signed OTA and recovery on the oldest supported iOS 17.x Simulator and an API 28 emulator. Only then do L02 and L08 close, with reviewers.
+
+```mermaid
+flowchart TD
+  S1[S1 module naming] --> UP5
+  S2[S2a guest feasibility or an approved guest profile] -->|guest scope| UP5
+  S3[S3n and S3g state and handlers] -->|native and guest scopes| UP5
+  S4[S4 iOS feature ownership] -->|iOS scope| UP5
+  S5[S5 Compose editor slice] --> UP4
+  UP2[UP2 accessibility observation policy] --> UP4[UP4 Compose host and API 28]
+  UP1[UP1 iOS 17.0 minimum] --> UP5
+  UP4 --> UP5[UP5 MixerSwiftUI and tier 1]
+  UP1 --> UP6
+  UP4 --> UP6[UP6 Migrate, qualify, remove legacy]
+  UP5 --> UP6
+```
+
+Each spike gets at most two distinct approaches. After two failures the spike records its fallback outcome and also starts the Section 24.4 escalation.
+
+| Spike | Pass rule | Outcome if it passes | Outcome if it falls back |
+| --- | --- | --- | --- |
+| S1 module naming | A source-built module named `SwiftUI` builds through the pinned Android and Embedded Wasm toolchains. On iOS, one feature module maps `SwiftUI` to `MixerSwiftUI` while the app shell imports Apple SwiftUI in the same app. Clean build, export, dependency scanning, and qualified `SwiftUI.*` references all work. | UP5 uses `import SwiftUI` in shared modules. | Shared modules write `import MixerSwiftUI` with identical API names. The Apple compatibility build supplies a shim module named `MixerSwiftUI` that re-exports Apple SwiftUI. The support table records the source cost. UP5 proceeds. |
+| S2a guest feasibility (required) | A FieldLog list and editor written in the subset compile under Embedded Swift and run on the installed profile. Each artifact stays within 4,194,304 bytes of payload, 4,194,304 bytes of memory, 50 ms turns, call depth 64, and 1,024 host calls, and compresses to at most 3 MiB. Turn time is measured on the development host. Device budgets stay pending. A full-Swift build of the same screens is measured alongside. | UP5 includes guest builds. | UP5 ships tier 1 for store builds only, as an interim milestone, and the explicit-ID guest path stays. UP5 cannot pass, and UP6 and L08 stay pending, until a compliant guest qualifies through a corrected Embedded approach or an owner-approved larger profile under ADR-16. |
+| S2b guest constructs (optional) | Each construct passes alone under Embedded Swift. The constructs are `some View` across modules, key paths for `ForEach(_:id:)` and `$model.field` bindings, parameter packs, `AnyView`, `@Observable` expansion and invalidation, and deep nesting. | The construct enters guest tier 1. | The construct stays native-only, and the support table marks it so. No other work is blocked. |
+| S3 state and handlers | Conditional and reordered reads, keyed row moves, branch removal and reinsertion, writes through captured bindings, callbacks after a re-render, and stale callbacks after a rollback all behave like Apple SwiftUI in native and guest builds. S3 records the native result as S3n and the guest result as S3g. | UP5 uses plain `@State`. | Guest builds use generated registration through a build-time source transform, and S3g reruns with it. S3n gates UP5's native scope, and S3g, including the rerun, gates UP5's guest scope. The documentation discloses the transform. |
+| S4 iOS feature ownership (B') | On an iOS Simulator, cold launch, signed activation, a failed first frame, offline restart, and rollback keep saved data and effects correct. Native and guest documents for the same state are identical. Stale input is refused, and the shared theme applies. | UP5's iOS scope uses B'. | Stop and ask the owner, because option B changes Section 5.2 and Section 8.3. UP5's Android and guest scopes may proceed, and its iOS scope waits. |
+| S5 Compose editor slice | One signed editor screen runs in Compose behind a versioned prepare and present contract. Swift stages the document and its handlers together. The main thread does not block. Input stays gated until the host acknowledges the exact owner and frame after a drawn, input-ready frame. A failed install or a canceled draw leaves the last accepted document and handlers routable. Late draw and input callbacks after detach, rollback, or replacement are refused. IME composition and selection survive recomposition. APK size and build time are measured. | UP4 adopts the contract. | Host the composition in a `ComposeView` and acknowledge only after the exact candidate frame finishes drawing, using a signal that works on API 28. A pre-draw callback may signal readiness but never commits, because Android can cancel the draw. Rerun S5. UP4 waits for a pass. |
+
+Run UP1, UP2, and the spikes in parallel. These file boundaries keep the lanes separate:
+
+- UP1 owns the `platforms:` lines of the ten `Package.swift` files, `cli/Sources/MixerBuild/AppleProject.swift`, the floor line in `cli/Sources/MixerBuild/ProjectGenerator.swift`, both `build-vm.py` scripts, `experimental-capability-runtime/build-verification/run.py`, and the CLI floor tests.
+- UP2 owns `NativeEnvironmentV2.java`, `NativeEnvironmentPlatformV2.java`, the written policy, and its instrumentation probe. It edits neither the resolvers nor the frozen View renderer.
+- S5 owns the new `native/android/compose/` tree, a versioned prepare and present contract in `sdk/Sources/MixerAndroid/AndroidUIHost.swift`, and the bridge template in `cli/Sources/MixerBuild/AndroidPublicHost.swift`.
+- UP4 owns the Compose host, the high-contrast and bold-text refusal in `AppearanceResolverV2.java` for the Compose host only, `minimumAPI` in `AndroidPublicHost.swift`, `cli/Sources/MixerBuild/AndroidProject.swift`, `cli/Sources/MixerBuild/AndroidBuildOutput.swift`, `cli/Sources/MixerBuild/Resources/android-build.py`, and the worker's driver admission in `hosted/priv/development/native_artifact_worker.py`. The CLI builds the exact `build-retained-v1` invocation (`AndroidBuildOutput.swift:180`) and requires API 36 for public APKs (`:208`), and the worker admits only that invocation. UP4 versions both ends of the invocation and its receipt together, checks the minimum API against the selected host, and keeps v1 admission until UP6. The public V3 and V4 View hosts keep API 36, `legacy-v1` keeps API 28, and the Compose host uses API 28.
+- S1 to S3 and UP5 own the new `sdk/Sources/MixerSwiftUI/` tree and `compiler/experiments/swiftui-*`. UP5 also owns the product and target lists in the root and `sdk` manifests, the module list in `ProjectGenerator.swift`, the guest driver, the UI schema change, and the high-contrast and bold-text refusal in `sdk/Sources/MixerUI/AppearanceResolutionV2.swift`. It edits manifests only after UP1 lands.
+- S4 owns its experiments under `capability-activation/` and `sdk/Sources/MixerApple/`.
+- UP6 edits FieldLog, the CLI templates, `MigrationInspector.swift`, the guides, and `README.md`.
+
+The UI schema change in UP5 spans the runtime identity's `ui_schema` range (`runtime-identity/Sources/MixerRuntimeIdentity/CapabilityRuntimeIdentity.swift:115`), release preparation, the guest codecs, guest activation (`CapabilityInstalledExecutionMode.swift`), and both renderers. It ships in a new store build. Tests prove that installed hosts refuse schemas they do not admit.
+
+While the pivot runs, add no features to the `android.widget` renderer, the public explicit-ID authoring API, or the private UIKit appearance prototype. Change them only when a pivot step needs the old path, such as an upgrade test from the View host. `scripts/check-plan-completion.py` refuses a step pass whose prerequisites have not passed, a UP3 pass before every spike has a recorded outcome, a guest-profile route without S2a's fallback and an owner decision, an L02 or L08 pass before UP6 and the final replay, and local completion until every UP step has passed with evidence and a reviewer.
+
+### 24.7 Close the remaining gaps under option B'
+
+This program closes the gaps that remain after the pivot, so that B' stays the better option as Mixer matures. GC1, GC3, GC4, and GC5 start with UP5, and the others start after UP6. UP5 delivers the minimum island for FieldLog's project-site map, because Section 9 requires the map for local completion. None of them adds a local-completion requirement beyond Section 24.6. `work-graph.json` key `uiPlatformPivot.gapProgram` tracks each item.
+
+| ID | Gap | How Mixer closes it | Done when |
+| --- | --- | --- | --- |
+| GC1 | Subset breadth. Shared screens can use only what `MixerSwiftUI` implements. | Expand beyond tier 1 in tiers chosen by measured use. The importer (Section 16.2) counts unsupported SwiftUI symbols in FieldLog and in each imported app, and the most used gaps go first. The generated support table records progress. | Each tier ships with iOS, Compose, and guest mappings and tests, and the importer reports which screens the tier newly admits. |
+| GC2 | Platform-specific APIs inside shared screens. Under B', a shared module cannot call Apple SwiftUI directly. | Add platform-specific entries to `MixerSwiftUI`. They are ordinary API that every target compiles, including the update guest, so an update keeps them. Each document node names its platform and its declared behavior on the other platform, an alternative or nothing, and the host renders it from the installed contract. The compatibility inventory refuses `#if os(...)` around UI in shared modules, because the Embedded guest compiles neither the iOS nor the Android branch. | Each entry renders the same in the native and update builds on its platform, the other platform shows the declared behavior, and tests cover both platforms. |
+| GC3 | Whole native views, such as maps, web content, camera, or a new Apple component. | Native islands. The app registers a native view with its own schema in a store build, Apple SwiftUI on iOS and Compose on Android, through the Section 9 capability system. A versioned placement node in a new UI schema places the view by ID with typed properties and events. The installed app and the signed release manifest must both grant the island and its schema. Updates can place and configure granted islands. A new island needs a store build. | FieldLog's project-site map renders as an island on both platforms, and an update moves and configures it. The host refuses an update that names an unknown island or a registered island that the release does not grant. |
+| GC4 | Behavior fidelity to Apple SwiftUI. | Extend the dual iOS compile check into a differential run for Apple-equivalent constructs. The same shared source runs on Apple SwiftUI and through `MixerSwiftUI` on iOS, and the suite compares state, identity, focus, and event traces. The Apple compatibility build supplies Mixer-only entries, platform-specific entries, and island placement through an extension module built on Apple SwiftUI, so the dual compile check still covers sources that use them. Those constructs get explicit native-versus-update behavior checks on both platforms instead of an Apple differential. | Every construct in the support table passes its differential run or its native-versus-update behavior check. A construct without one is not marked supported. |
+| GC5 | iOS cost of the engine and document layer. | Measure three modes separately for the same screens, as Section 8.4 requires. The modes are plain Apple SwiftUI, the bundled engine path, and an activated update. Fix regressions in the engine. | The bundled engine path meets the Section 20.2 native engine startup, input responsiveness, and scrolling targets against plain Apple SwiftUI, and the activated update meets the OTA startup and memory targets against the bundled path, on the iOS Simulator for development. Hardware budgets stay pending. |
+| GC6 | New Apple SwiftUI releases. | Track each iOS beta. Take the SwiftUI API delta of each stable iOS SDK as the list to decide. Record each new API as mapped, deferred, native-only, or unsupported. Mapped APIs use availability checks, so iOS 17 apps still build. Until an API is mapped, a native island or a native-only screen provides it. | Each stable iOS release has a recorded decision for every SwiftUI API in that SDK's delta. |
+| GC7 | Updates that need Foundation or `Task`. | The S2a and ADR-16 path, through a corrected Embedded approach or an owner-approved larger versioned profile. | Measured over the Section 22 FieldLog change corpus on both platforms, the Section 20.2 practical OTA coverage target is met with changes that use Foundation value types or `.task` included, within the patch-size budget. At least one FieldLog change that uses Foundation value types and one that uses `.task` each ship as a successful update on both platforms. |
+
+Revisit option B only on measured evidence. The trigger is that GC5 shows the bundled engine path missing a Section 20.2 target that plain Apple SwiftUI meets for the same screen, and two distinct fixes under Section 24.4 fail to close the difference. Only a bundled-path cost counts, because option B keeps the update renderer and its costs. API lag does not count, because GC2, GC3, and GC6 handle it and option B would still lag in every update. The owner then decides between accepting the cost and option B. Option B needs changes to Section 5.2 and Section 8.3, and it would keep the GC4 differential run as its safety net. This review is separate from the S4 stop, which applies if B' fails feasibility.
+
 ## 25. AI-agent execution model
 
 ### Controlling model and subagent configuration
@@ -1015,7 +1129,7 @@ The lanes below describe responsibilities, not required headcount. Activate as m
 | Blocker experiments and architecture review | Competing hypotheses, minimal decisive experiments, resource-policy calibration, integration decision | Bounded comparison results and a concrete next implementation or external blocker. |
 | Compiler/toolchain | Swift SDK locking, native/guest build, API validation, source maps | Reproducible compilation and original-source diagnostics. |
 | VM/runtime | Our parser, validator, interpreter, Swift runtime imports, limits | Conformance/fuzzing/differential receipts and real guest execution. |
-| Shared framework | Core state/effects, MixerUI semantics, capability schemas | Versioned contracts and cross-mode behavior tests. |
+| Shared framework | Core state/effects, `MixerSwiftUI` and `MixerUI` document semantics, capability schemas | Versioned contracts and cross-mode behavior tests. |
 | iOS adapter | Native controls, lifecycle, accessibility, native integrations | Physical iOS evidence and platform contract tests. |
 | Android adapter | Swift/JNI/Compose integration, controls, lifecycle, accessibility | Physical Android evidence and platform contract tests. |
 | Update/release | Packaging, signatures, activation, recovery, cohort assignment | Complete fault matrix and dual-platform update receipts. |
@@ -1163,7 +1277,7 @@ The main commercial failure modes are insufficient willingness to migrate to our
 | Full Swift runtime is too heavy in our VM | FieldLog startup/memory/patch size misses budgets | Compiler/runtime leads | Profile emitted features, strip unused code, optimize interpreter and guest libraries, keep appropriate native services. Keep the gate open if ordinary app code still cannot meet the performance targets. |
 | Async/actor behavior differs between modes | Deadlocks, missed cancellation, UI isolation violations | Compiler/core leads | Define executor/import contract, differential lifecycle tests, explicit supported semantics. Do not market unsupported concurrency as transparent. |
 | Android UI lacks native quality | Keyboard/back/accessibility failures, visible jank | Android lead | Native interaction ownership, device testing, Compose integration, stable UI identity; fix shared contract where needed. |
-| Existing apps require too much rewriting | Migration effort exceeds partner willingness; platform-specific code grows | DevEx/product | Improve importer and native embedding; choose suitable initial segment. Record remaining migration cost honestly. |
+| Existing apps require too much rewriting | Migration effort exceeds partner willingness; platform-specific code grows | DevEx/product | SwiftUI-subset authoring (Section 1.3), importer and native embedding; choose suitable initial segment. Record remaining migration cost honestly. |
 | OTA coverage is mostly cosmetic | Real-change coverage falls below target | Compiler/framework leads | Expand supported UI/effects in engine; measure entire change corpus. If usefulness remains low, reconsider value proposition. |
 | Rollback corrupts or loses data | Fallback cannot read post-update records | Runtime/storage leads | Additive migrations, compatible envelopes, host-owned durability, fault tests. Block the release. |
 | VM or bridge security flaw | Fuzzing/audit finds memory escape or unbounded work | Runtime/security | Memory-safe core, audited unsafe boundaries, limits, external review, store patch path for runtime defects. |
@@ -1177,10 +1291,18 @@ The main commercial failure modes are insufficient willingness to migrate to our
 | Dogfood overfits framework | External apps expose basic unsupported patterns | QA/DevEx | Two independent app categories minimum, public onboarding, independently authored regression cases. |
 | Ownership requirement silently erodes | Unreviewed engine dependency, copied code in generated output | Technical lead | Provenance/dependency CI, review training, reproducible generation, remediation before distribution. |
 | Agent context loss and inconsistent integration | Decisions disappear between tasks or implementations disagree | Coordinator/integrator | Durable contracts, work graph, evidence receipts, isolated ownership, independent verification. |
+| SwiftUI subset too narrow | Common screens need unsupported APIs, and the support table grows slowly | Framework lead | Choose tier 1 from FieldLog and three app types, publish the generated table, and keep native-only screens as the escape route. |
+| Guest profile cannot carry SwiftUI UI | S2a misses the 4 MiB caps, 50 ms turns, or call depth 64 | Compiler/runtime leads | Ship tier 1 for store builds as an interim milestone, keep the explicit-ID guest path, and escalate under Section 24.4. The owner decides on a larger versioned profile under ADR-16. |
+| State semantics diverge from Apple SwiftUI | S3 or the dual iOS compile check fails | Framework lead | Use disclosed generated registration and keep the explicit-ID guest path until UP6. |
+| Compose install timing breaks the host contract | S5 cannot acknowledge an exact drawn frame without blocking the main thread | Android lead | Versioned prepare and present contract, with a `ComposeView` draw-completion acknowledgment as the fallback. |
+| B' lags Apple SwiftUI or costs iOS performance | GC5 shows the bundled engine path missing a Section 20.2 target that plain Apple SwiftUI meets, or GC1 and GC6 fall behind what real apps use | Framework and iOS leads | Platform-specific entries and native islands (GC2, GC3), engine fixes under Section 24.4, then the Section 24.7 owner decision on option B. API lag alone does not trigger that decision. |
+| The pivot reopens passed gates | Re-verifying L01, L03, L04, L05, and L07 costs more than the replaced code | Coordinator | Re-verify per step at a narrow scope and keep old-scope evidence intact. |
 
 ## 28. Initial execution sequence: durable foundations and the real app
 
 This is the opening execution sequence for the full roadmap. It does not define a smaller product to ship in place of the requested platform.
+
+Batches A to D record the original October sequence. Section 24.6 now governs UI work, and the `MixerUI` view contracts named below are frozen under Section 1.3.
 
 ### Batch A: Contracts, repositories, and real-app setup
 
@@ -1230,7 +1352,7 @@ Acceptance: durable production code and contracts, a useful real Swift app, meas
 
 ## 29. Completion gates and later qualification
 
-L01–L08 in Section 2 and `gates/local.json` determine implementation-plan completion. All eight currently remain planned until their complete local evidence is reviewed. This policy revision does not pass them. G01–G38 below explain the original checklist and its new disposition. Their original requirements, statuses, receipts, and reviewers remain in `gates/ga.json` for later qualification.
+L01–L08 in Section 2 and `gates/local.json` determine implementation-plan completion. As of November 23, 2026, L01, L03, L04, L05, L06, and L07 have passed at their recorded scope, and L02 and L08 are running. Under Section 1.3, L02 and L08 complete on the new stack, and each pivot step re-verifies the passed gates that its replaced component affects. G01–G38 below explain the original checklist and its new disposition. Their original requirements, statuses, receipts, and reviewers remain in `gates/ga.json` for later qualification.
 
 Each local mapping applies only to the technical behavior in Section 2. Real local execution is required for the owned engine, UI, persistence, updater, and service workflow. Identified fixtures can cover unavailable external provider boundaries. Later work stays pending and does not enter the local completion calculation.
 
@@ -1300,9 +1422,9 @@ Potential later expansions include richer tablet/desktop support, a wider plugin
 | Independent engine; no Patch/Skip implementation | Fixed by user | Applies to source, tests, generated output, and indirect dependencies. |
 | Swift as customer application language | Fixed | Engine adapters and cloud can use suitable other languages. |
 | Native Swift compilation for Android | Selected architecture | Avoid owning a separate Swift-to-Kotlin language translator; own runtime/UI/JNI integration. |
-| Product-owned Swift UI API | Selected architecture | Familiar declarative API with documented migration; no universal Apple SwiftUI compatibility claim. |
+| Shared screens in a published SwiftUI subset (`MixerSwiftUI`) | Owner, November 23, 2026 (Section 1.3) | Familiar SwiftUI source with a generated support table; no universal Apple SwiftUI compatibility claim. |
 | Owned Wasm interpreter | Selected to satisfy ownership | Standard bytecode format and official Swift compilation; no production third-party VM. |
-| Full Swift SDK first | Selected, qualification required | Preserve useful language/library coverage; Embedded Swift evaluated only where appropriate. |
+| Embedded Swift guest profile for UI features | Coordinator, delegated by the owner on November 23, 2026 (Section 1.3) | Installed 4 MiB caps stay. A larger full-Swift profile needs a new versioned execution profile in a store build and S2 evidence. |
 | Native plus guest compilation of the feature layer | Selected architecture | One authored feature model, native fallback, compatible interpreted replacement. |
 | One coherent guest module per target runtime | GA baseline | Avoid mixed-module state/version complexity; revisit after proven need. |
 | Cold-start activation | GA baseline | Avoid live object/state migration and in-flight effect switching. |
@@ -1313,8 +1435,10 @@ Potential later expansions include richer tablet/desktop support, a wider plugin
 | Cloudflare-first hosting: Containers, Workers, R2, CDN | Fixed by user where reasonable | Phoenix in Containers, SolidJS/edge in Workers, artifacts in R2; qualify Oban lifecycle and Android builds, retain necessary macOS/signing/external processor exceptions. |
 | Console framework: SolidJS with TypeScript/Vite/Solid Router | Fixed framework by user; selected tooling | Static console deployment on Cloudflare Workers Static Assets, Phoenix owns privileged API operations. |
 | Billing: Stripe Billing, Checkout, Customer Portal | Fixed provider by user; selected integrations | Neon usage ledger and idempotent Oban reconciliation; signed webhook handling, realistic billing tests and installed-app continuity remain required. |
-| iOS 26.0+, including iOS 27 and later | Fixed by user; qualification required | Target iOS 26.0 in packages and generated/native builds; qualify minimum, current stable and future releases without a public upper-version cutoff. |
-| Android API 28+ | Proposed baseline | Freeze after toolchain/dependency/device qualification and partner input. |
+| iOS 17.0+, including later releases | Owner, November 23, 2026; replaces the October 23 iOS 26.0 baseline | Target iOS 17.0 in packages and generated/native builds; qualify 17, 18, 26, 27 and later releases without a public upper-version cutoff. |
+| Android API 28+ | Selected for the Compose host on November 23, 2026; qualification required | The UP2 observation policy replaces the API 36 refusal, and UP4 lowers the floor. |
+| Jetpack Compose as the Android UI toolkit, built with Gradle, AGP, and Kotlin | Owner, November 23, 2026 (Section 1.3) | Replaces the `android.widget` renderer. Google moved `android.widget` to maintenance mode on May 19, 2026. |
+| One iOS renderer for shared features (option B') | Coordinator recommendation, November 23, 2026; the owner may override | Better than B once Mixer's gaps close, because each closed gap serves all three build paths and store builds exercise the update path. Keeps Section 5.2 and Section 8.3. Section 24.7 closes its costs and states when to revisit B. |
 | Open SDK/engine/CLI, paid hosted service | Proposed business model | Developer trust and exit path; price managed value and support. |
 | FieldLog as mandatory consumer | Selected | Real application throughout, separate repository and ordinary customer workflow. |
 | Performance and coverage thresholds | Proposed acceptance budgets | Validate early; revisions require recorded evidence and product impact. |
@@ -1340,7 +1464,8 @@ features:
   nativeFallback: required
   guestCompilation: required
 ui:
-  module: MixerUI
+  authoring: swiftui-subset
+  module: MixerSwiftUI
 updates:
   activation: cold-start
   compatibility: exact-runtime-fingerprint
@@ -1416,6 +1541,13 @@ Research checked on October 22, 2026. Dynamic product status, prices, SDK requir
 | [Official Swift Wasm SDK guide](https://www.swift.org/documentation/articles/wasm-getting-started.html) | Official Wasm compilation foundation; not a complete mobile OTA product. |
 | [WebAssembly core specification](https://webassembly.github.io/spec/core/) | Normative basis for our interpreter profile and validation. |
 | [Android Compose documentation](https://developer.android.com/compose) | Native Android UI foundation, with our adapter/engine above it. |
+| [Android UI development is Compose First](https://developer.android.com/blog/posts/android-ui-development-is-compose-first) | Checked November 23, 2026. Since May 19, 2026, `android.widget` components and View-based Jetpack libraries are in maintenance mode. Basis for P2. |
+| [Jetpack Compose November 2026 release](https://developer.android.com/blog/posts/jetpack-compose-november-2026-release) | Compose 1.13 in BOM 2026.11.01 needs Kotlin 2.2 or newer and compileSdk 37.1. |
+| [Android tool minimums per API level](https://developer.android.com/studio/releases#api-level-support) | compileSdk 37.1 needs AGP 9.3.1 or newer. |
+| [SkipFuseUI](https://skip.dev/docs/modules/skip-fuse-ui/) | Public behavior only. `import SwiftUI` resolves to a non-Apple module on Android. No Skip code is used. |
+| [SE-0339 module aliasing](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0339-module-aliasing-for-disambiguation.md) | Basis for spike S1. |
+| [Apple iOS usage](https://developer.apple.com/support/app-store/) | June 7, 2026 share among iPhones that used the App Store that day. Basis for P3. |
+| [Android distribution data](https://dl.google.com/android/studio/metadata/distributions.json) | October 2026 share of API 36 and later among active devices in Google's dataset, 26.3%. Basis for P4. |
 | [Apple Developer Program License Agreement](https://developer.apple.com/support/terms/apple-developer-program-license-agreement/) | Conditions relevant to interpreted code, alongside review rules. |
 | [Apple App Review software requirements](https://developer.apple.com/app-store/review/guidelines/#software-requirements) | Downloaded-code/functionality restrictions relevant to product scope. |
 | [Google Play Device and Network Abuse](https://support.google.com/googleplay/android-developer/answer/16559646?hl=en) | Executable-download restriction and interpreted-code provisions. |

@@ -20,7 +20,7 @@
   },
   "schema": 1,
   "scope": "Local end-to-end implementation plan; launch and monetization obligations tracked separately.",
-  "updated": "2026-11-19T05:55:47.549207+00:00",
+  "updated": "2026-11-23T19:57:44.257686+00:00",
   "executionPolicy": {
     "verificationArtifacts": {
       "reference": "mixer-product-plan.md#worktree-local-verification",
@@ -7937,6 +7937,340 @@
       ]
     }
   },
+  "uiPlatformPivot": {
+    "adoptedOn": "2026-11-23",
+    "decision": "mixer-product-plan.md#13-ui-platform-pivot-november-23-2026",
+    "sequence": "mixer-product-plan.md#246-ui-platform-pivot-sequence-november-23-2026",
+    "checklist": "PLAN.md#ui-platform-pivot-november-23-2026",
+    "stoppedAt": "504366a0c9330c20e01c840815bc24dc84a9aa1d",
+    "currentCode": "iOS 26.0 and the API 36 shared-design Android host remain in the code until UP1 and UP4 land.",
+    "steps": [
+      {
+        "id": "UP1",
+        "name": "iOS 17.0 minimum",
+        "packages": [
+          "W02",
+          "W04"
+        ],
+        "dependsOn": [],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      {
+        "id": "UP2",
+        "name": "Android accessibility observation policy",
+        "packages": [
+          "W05"
+        ],
+        "dependsOn": [],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      {
+        "id": "UP3",
+        "name": "Spikes S1 to S5",
+        "packages": [
+          "W03",
+          "W04",
+          "W05",
+          "W07"
+        ],
+        "dependsOn": [],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      {
+        "id": "UP4",
+        "name": "Compose host at the current node set, API 28 floor",
+        "packages": [
+          "W02",
+          "W05",
+          "W12"
+        ],
+        "dependsOn": [
+          "S5",
+          "UP2"
+        ],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      {
+        "id": "UP5",
+        "name": "MixerSwiftUI engine and tier 1",
+        "packages": [
+          "W03",
+          "W04",
+          "W05",
+          "W07",
+          "W10"
+        ],
+        "dependsOn": [],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null,
+        "scopes": {
+          "native": [
+            "S1",
+            "S3n",
+            "UP1 for manifest edits",
+            "UP4 for Android rendering"
+          ],
+          "ios": [
+            "S4"
+          ],
+          "guest": [
+            "S2a passed, or S2a failed with an owner-approved guestProfile",
+            "S3g"
+          ]
+        },
+        "passRequires": [
+          "S1 settled",
+          "S3n",
+          "S3g",
+          "S4",
+          "UP1",
+          "UP4",
+          "S2a passed or guestProfile passed with an owner decision"
+        ],
+        "scopeRule": "Each scope starts when its own prerequisites pass. dependsOn is empty because no single prerequisite gates every scope.",
+        "interimMilestone": "If S2a falls back, store-build tier 1 is an interim milestone. UP5 passes only with guest evidence from S2a or guestProfile."
+      },
+      {
+        "id": "UP6",
+        "name": "Migrate, qualify, then remove legacy code",
+        "packages": [
+          "W15",
+          "W17",
+          "W18"
+        ],
+        "dependsOn": [
+          "UP1",
+          "UP4",
+          "UP5"
+        ],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null
+      }
+    ],
+    "spikes": [
+      {
+        "id": "S1",
+        "name": "Module naming",
+        "packages": [
+          "W03",
+          "W07"
+        ],
+        "dependsOn": [],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null,
+        "outcome": null,
+        "unlocks": "UP5 import spelling"
+      },
+      {
+        "id": "S2a",
+        "name": "Guest feasibility for the FieldLog list and editor (required)",
+        "packages": [
+          "W07",
+          "W08"
+        ],
+        "dependsOn": [],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null,
+        "outcome": null,
+        "unlocks": "UP5 guest scope, UP6, L08"
+      },
+      {
+        "id": "S2b",
+        "name": "Guest constructs (optional)",
+        "packages": [
+          "W07"
+        ],
+        "dependsOn": [],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null,
+        "outcome": null,
+        "unlocks": "Guest status of each construct in the support table"
+      },
+      {
+        "id": "S3n",
+        "name": "State and handlers, native result",
+        "packages": [
+          "W03"
+        ],
+        "dependsOn": [],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null,
+        "outcome": null,
+        "unlocks": "UP5 native scope"
+      },
+      {
+        "id": "S3g",
+        "name": "State and handlers, guest result including any transform rerun",
+        "packages": [
+          "W03",
+          "W07"
+        ],
+        "dependsOn": [],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null,
+        "outcome": null,
+        "unlocks": "UP5 guest scope"
+      },
+      {
+        "id": "S4",
+        "name": "iOS feature ownership (option B')",
+        "packages": [
+          "W04",
+          "W10"
+        ],
+        "dependsOn": [],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null,
+        "outcome": null,
+        "unlocks": "UP5 iOS scope; a fallback needs an owner decision"
+      },
+      {
+        "id": "S5",
+        "name": "Compose editor slice with prepare and present contract",
+        "packages": [
+          "W05"
+        ],
+        "dependsOn": [],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null,
+        "outcome": null,
+        "unlocks": "UP4"
+      }
+    ],
+    "finalReplay": {
+      "id": "finalReplay",
+      "name": "Clean post-removal replay of the final commit",
+      "requirement": "After the UP6 removal change, a clean checkout builds and exports the separate FieldLog consumer and runs signed OTA and recovery on the oldest supported iOS 17.x Simulator and an API 28 emulator.",
+      "state": "planned",
+      "evidence": [],
+      "reviewer": null
+    },
+    "guestProfile": {
+      "id": "guestProfile",
+      "name": "Owner-approved larger guest execution profile under ADR-16",
+      "note": "Needed only if S2a falls back. Requires an owner decision, a new versioned execution profile, and a store build.",
+      "decision": null,
+      "state": "planned",
+      "evidence": [],
+      "reviewer": null
+    },
+    "frozen": [
+      "android.widget renderer and legacy-v1 Android host",
+      "javac, D8, and aapt2 build path in cli/Sources/MixerBuild/Resources/android-build.py",
+      "public explicit-ID authoring API in sdk/Sources/MixerUI/Authoring.swift",
+      "iOS 26.5-only private UIKit appearance renderer in sdk/Sources/MixerApple/AppearanceNative*V2.swift"
+    ],
+    "evidence": [
+      "verification/receipts/ios17-floor-compile-20261123.json"
+    ],
+    "statusRule": "Package states are unchanged by this record. A step or spike moves to running when an owning lane starts it and to passed only with its exit evidence and a reviewer. A spike that falls back records state failed, its outcome, evidence, a reviewer, and its Section 24.4 escalation. scripts/check-plan-completion.py refuses a step pass before its prerequisites, an L02 or L08 pass before UP6 and finalReplay, and local completion until every step passes.",
+    "gapProgram": [
+      {
+        "id": "GC1",
+        "name": "Subset breadth in measured tiers",
+        "startsWith": "UP5",
+        "packages": [
+          "W03",
+          "W04",
+          "W05",
+          "W15"
+        ],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      {
+        "id": "GC2",
+        "name": "Platform-specific MixerSwiftUI entries",
+        "startsWith": "UP6",
+        "packages": [
+          "W03",
+          "W04",
+          "W05"
+        ],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      {
+        "id": "GC3",
+        "name": "Native islands with a versioned placement node and grant checks",
+        "startsWith": "UP5",
+        "packages": [
+          "W06",
+          "W09"
+        ],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      {
+        "id": "GC4",
+        "name": "Differential run against Apple SwiftUI",
+        "startsWith": "UP5",
+        "packages": [
+          "W03",
+          "W04"
+        ],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      {
+        "id": "GC5",
+        "name": "iOS engine-path cost against plain Apple SwiftUI",
+        "startsWith": "UP5",
+        "packages": [
+          "W04",
+          "W16"
+        ],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      {
+        "id": "GC6",
+        "name": "Mapping decisions for each iOS SwiftUI release",
+        "startsWith": "UP6",
+        "packages": [
+          "W04"
+        ],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null
+      },
+      {
+        "id": "GC7",
+        "name": "Updates that need Foundation or Task",
+        "startsWith": "UP6",
+        "packages": [
+          "W07",
+          "W08"
+        ],
+        "state": "planned",
+        "evidence": [],
+        "reviewer": null
+      }
+    ],
+    "revisitOptionB": "Only if GC5 shows the bundled engine path missing a Section 20.2 target that plain Apple SwiftUI meets for the same screen and two distinct Section 24.4 fixes fail. API lag and update-mode costs do not count. The owner then decides."
+  },
   "packages": [
     {
       "id": "W01",
@@ -9208,7 +9542,7 @@
       "id": "W03",
       "name": "Core Swift model",
       "owner": "Framework lead",
-      "deliverables": "Lifecycle, state, effects, navigation model, resources, errors; shared app appearance contract per section8.3",
+      "deliverables": "Lifecycle, state, effects, navigation model, resources, errors; `MixerSwiftUI` engine core (identity, state storage, handlers, document emission) under section1.3; shared app appearance contract per section8.3",
       "dependencies": "W01–02",
       "acceptance": "Same state/effect tests on both local native targets; persistence and restoration work.",
       "launchAcceptance": "Same state/effect tests in native targets; restoration works.",
@@ -9307,7 +9641,7 @@
       "id": "W04",
       "name": "iOS UI adapter",
       "owner": "iOS lead",
-      "deliverables": "Public MixerUI implementation, SwiftUI/UIKit mapping, input and accessibility; shared-theme component appearance per section8.3",
+      "deliverables": "`MixerNativeView` document renderer with Apple SwiftUI controls, iOS 17.0 minimum, native-only screen embedding, input and accessibility under section1.3; shared-theme component appearance per section8.3",
       "dependencies": "W03",
       "acceptance": "D1 local counterpart and iOS Simulator UI/input/accessibility matrix pass, including shared-design comparison.",
       "launchAcceptance": "D1 and UI matrix pass on physical iOS. Shared design parity with the other platform, reviewed on physical reference screens per section8.3.",
@@ -9796,7 +10130,7 @@
       "id": "W05",
       "name": "Android UI adapter",
       "owner": "Android lead",
-      "deliverables": "JNI boundary, Compose/native controls, lifecycle, back behavior, native resources; shared-theme component appearance per section8.3",
+      "deliverables": "Kotlin Jetpack Compose host, Gradle and AGP build, JNI boundary, lifecycle, back behavior, native resources, API 28 observation policy under section1.3; shared-theme component appearance per section8.3",
       "dependencies": "W02–03",
       "acceptance": "D2 local counterpart and Android emulator UI/input/accessibility matrix pass, including shared-design comparison.",
       "launchAcceptance": "D2 with native Android interaction and accessibility evidence. Shared design parity with the other platform, reviewed on physical reference screens per section8.3.",
@@ -14919,7 +15253,7 @@
       "id": "W07",
       "name": "Guest compilation",
       "owner": "Compiler lead",
-      "deliverables": "Guest libraries, module extraction, API diagnostics, source maps, dependency closure",
+      "deliverables": "Guest libraries, Embedded Swift UI profile for `MixerSwiftUI` under section1.3, module extraction, API diagnostics, source maps, dependency closure",
       "dependencies": "W02–03, W06",
       "acceptance": "FieldLog feature graph compiles to native and Wasm with no silent behavior loss.",
       "launchAcceptance": "FieldLog feature graph compiles to native and Wasm with no silent behavior loss.",
@@ -34618,13 +34952,23 @@
     "authorization": "Direct user instruction on October 23, 2026.",
     "receipt": "verification/simulator-development-policy/receipt.json",
     "iosBaseline": {
-      "minimum": "26.0",
-      "supportedMajors": "26, 27, and subsequent releases; no public upper major cutoff",
-      "authorization": "Direct user instruction: should be iOS 26, 27 and onward.",
-      "qualification": "Minimum 26.0, maintained 26.x, 27 and subsequent stable versions need runtime qualification; beta compatibility is monitored separately. Private appearance prototype admits exercised 26.5 only.",
-      "scope": "Nine parsed package manifests, 19 CLI tests and actual generated unsigned iOS Simulator app cross-build; no simulator/device execution or GA acceptance.",
-      "receipt": "verification/ios26-baseline/candidate-1/receipt.json",
-      "acceptance": "verification/ios26-baseline/acceptance.json"
+      "minimum": "17.0",
+      "supportedMajors": "17, 18, 26, 27, and subsequent releases; no public upper major cutoff",
+      "authorization": "Direct owner instruction on November 23, 2026 to lower the iOS minimum to iOS 17. Replaces the October 23 iOS 26.0 baseline.",
+      "implementation": "Pending UP1. Packages, generated projects, and Rust archives still declare 26.0 until UP1 lands.",
+      "qualification": "UP1 qualifies the 17.0 floor on the oldest iOS 17.x Simulator runtime that the pinned Xcode supports. Representative iOS 18, 26, 27, and later stable versions qualify on their own runtimes. Beta compatibility is monitored separately, and physical-device release qualification stays separate. The private appearance prototype admits exercised 26.5 only until UP6 removes it.",
+      "scope": "Compile-only. Five package schemes (root Mixer, capability-activation, native-sdk, activation, runtime) and the Rust VM Simulator archive built for an iOS 17.0 target with no availability errors. The capabilities qualification package was not built. No app link, launch, or iOS 17 runtime execution.",
+      "receipt": "verification/receipts/ios17-floor-compile-20261123.json",
+      "decision": "mixer-product-plan.md#13-ui-platform-pivot-november-23-2026",
+      "previousBaseline": {
+        "minimum": "26.0",
+        "supportedMajors": "26, 27, and subsequent releases; no public upper major cutoff",
+        "authorization": "Direct user instruction: should be iOS 26, 27 and onward.",
+        "qualification": "Minimum 26.0, maintained 26.x, 27 and subsequent stable versions need runtime qualification; beta compatibility is monitored separately. Private appearance prototype admits exercised 26.5 only.",
+        "scope": "Nine parsed package manifests, 19 CLI tests and actual generated unsigned iOS Simulator app cross-build; no simulator/device execution or GA acceptance.",
+        "receipt": "verification/ios26-baseline/candidate-1/receipt.json",
+        "acceptance": "verification/ios26-baseline/acceptance.json"
+      }
     },
     "previousPause": {
       "scope": [
