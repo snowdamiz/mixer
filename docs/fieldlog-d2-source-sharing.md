@@ -200,6 +200,30 @@ APK assembly remain unverified for this tree.
 [Compiler rosters](../verification/receipts/fieldlog-d2-ordinary-screens-e39a5ea3-compiler-inputs.json) ·
 [Host and build receipt](../verification/receipts/fieldlog-d2-ordinary-screens-e39a5ea3.json)
 
+## Linked Create and editor composition
+
+The two products compiled and linked from FieldLog tree
+`74cdeca2ed0d4b0eb6b1bc1a6c5fa278b8ee498a`. The source roster matches
+27 iOS Swift inputs and 16 standalone Android inputs to their linked
+objects. Fourteen production Swift files match byte for byte. The
+union counts a matched file once and counts each unmatched version
+separately. [Linked source and object roster](../verification/receipts/l08-d2-composite-linked-rosters-20261123.json)
+
+| Responsibility | Shared physical Swift lines | Swift union |
+| --- | ---: | ---: |
+| UI | 586 | 2,007 |
+| Logic | 1,175 | 2,007 |
+| Mixed | 607 | 1,767 |
+| Total | 2,368 | 5,781 |
+
+The measured Swift share is **40.96%** against the 90% target. The
+standalone app union rises to **7,208** physical lines when it includes
+the three app-owned Java and C adapters. SDK sources and XCTest stay
+outside the app union. These linked products cover the measured
+ordinary workflow composition. The matched Android app passed static
+APK checks and still needs the installed replay.
+[Build evidence](../verification/receipts/fieldlog-composite-native-handoff-25402a6b.json)
+
 ## Reproduce the source measurement
 
 From the Mixer repository on a Mac with Git, Python, and SwiftPM, run the following in Bash. The commands use the receipt, the public FieldLog pin, and the four overlays. They evaluate package metadata without building either app or resolving SDK dependencies.

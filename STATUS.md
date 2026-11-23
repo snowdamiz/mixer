@@ -330,10 +330,23 @@ owned Simulator.
 [iOS-scoped host receipt](verification/receipts/l08-d8-f08-ios-unsigned-2ef7e20a.json)
 · [Installed F08 failure](verification/receipts/l08-d8-f08-ios-native-back-failure-20261123.json)
 
+The diagnostics-only F08 run stopped in the prior launch. The bridge
+recorded capability_turn_timeout during wake before the first healthy
+frame. The earlier Back failure still has no typed cause. Both runs
+removed their owned Simulators and private packet copies.
+[Typed native wake timeout](verification/receipts/l08-d8-f08-ios-wake-timeout-20261123.json)
+
 The Android-scoped F09 signed host replay moved Verify café drain from
 position 21 to 20, followed it to page one, and appended one reorder
 event. Cold rollback preserved the reordered workspace.
 [F09 signed host receipt](verification/receipts/l08-d8-f09-signed-host-304c75a8.json)
+
+The iOS-scoped F09 host fixture passed the move, rollback and offline
+readback. The installed iOS test received the prior signed release and
+stopped at initial frame health. It captured no typed terminal code or
+cross-page move. The owned Simulator and controller were removed.
+[iOS-scoped host receipt](verification/receipts/l08-d8-f09-ios-host-kit-ed066ca5.json)
+· [Installed F09 initial-frame failure](verification/receipts/l08-d8-f09-ios-initial-frame-failure-20261123.json)
 
 For F11, the stock signed host read the original restored note and
 refused the editable frame before any input or write. Rollback and
