@@ -193,6 +193,14 @@ The owned Simulator was removed. [Replacement receipt](verification/receipts/l08
 
 ## Managed iOS FieldLog and historical native corpus
 
+The F06 signed editor reached its native form on the user-initiated
+queue build. The first title tap left the form disabled before typing.
+The F10 live replacement run passed its prior and exact online phases.
+Its offline reopen reached cached sequence 2 and closed effects, then
+failed the settled-state check. Both owned Simulators were removed,
+and F10 listener ports were reusable. Both D8 slices remain open.
+[Native failure receipt](verification/receipts/l08-d8-f06-f10-ios-native-boundary-failures-20261123.json)
+
 A stock local build processor and managed worker linked the arm64 iOS
 Simulator build of FieldLog and verified its committed products after
 PostgreSQL restart. The unpatched CLI refused the checked-in Xcode
