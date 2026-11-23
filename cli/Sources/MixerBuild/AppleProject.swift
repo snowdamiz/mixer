@@ -30,7 +30,10 @@ public enum AppleProject {
 
     /// Only a prior rendering of the stock template can be regenerated.
     public static func generate(root: URL) throws -> URL {
-        let config = try ApplicationConfiguration.load(root)
+        try generate(root: root, config: ApplicationConfiguration.load(root))
+    }
+
+    private static func generate(root: URL, config: ApplicationConfiguration) throws -> URL {
         let platforms = root.appendingPathComponent("Platforms")
         let platform = platforms.appendingPathComponent("iOS")
         let project = platform.appendingPathComponent("\(config.name).xcodeproj")
@@ -234,8 +237,11 @@ public enum AppleProject {
     }
 
     public static func build(root: URL, simulator: Bool = true) throws -> CommandResult {
-        let project = try generate(root: root)
         let config = try ApplicationConfiguration.load(root)
+        if !simulator, config.iosNative?.simulatorArchive != nil {
+            throw MixerFailure("build.ios-native-archive", "This project declares a Simulator-only static archive.")
+        }
+        let project = try generate(root: root, config: config)
         return try ProcessRunner.run([
             "xcodebuild", "-project", project.path, "-scheme", config.name,
             "-configuration", "Debug", "-sdk", simulator ? "iphonesimulator" : "iphoneos",
@@ -247,8 +253,8 @@ public enum AppleProject {
 
 
     static func build(root: URL, retainingIn store: NativeBuildOutput.Store, lock: ToolchainLock) throws -> NativeBuildOutput.Report {
-        let project = try generate(root: root)
         let config = try ApplicationConfiguration.load(root)
+        let project = try generate(root: root, config: config)
         // Xcode otherwise creates this source-side workspace during compilation.
         let workspace = project.appendingPathComponent("project.xcworkspace/contents.xcworkspacedata")
         if !FileManager.default.fileExists(atPath: workspace.path) {
@@ -291,6 +297,10 @@ public enum AppleProject {
             objects += "    \(ref) = { isa = PBXFileReference; explicitFileType = \(type); path = \"\(path)\"; sourceTree = \"<group>\"; };\n"
             objects += "    \(build) = { isa = PBXBuildFile; fileRef = \(ref); };\n"
         }
+        let archiveSettings = inputs.simulatorArchive.map {
+            " SDKROOT = iphonesimulator; SUPPORTED_PLATFORMS = iphonesimulator;" +
+            " \"OTHER_LDFLAGS[sdk=iphonesimulator*]\" = (\"$(inherited)\", \"$(SRCROOT)/\($0)\");"
+        } ?? ""
         let plistSetting = plist.map { " INFOPLIST_FILE = \"../../.mixer/\(plistDirectory)/\(plistName($0))\";" } ?? ""
         return """
         // !$*UTF8*$!
@@ -313,8 +323,8 @@ public enum AppleProject {
             A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000016\(sources)); runOnlyForDeploymentPostprocessing = 0; };
             A00000000000000000000012 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000024, A00000000000000000000025); runOnlyForDeploymentPostprocessing = 0; };
             A00000000000000000000013 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (\(resources.joined(separator: ", "))); runOnlyForDeploymentPostprocessing = 0; };
-            A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { \(settings(name, application, minimumIOS))\(plistSetting) SWIFT_OPTIMIZATION_LEVEL = "-Onone"; }; name = Debug; };
-            A00000000000000000000015 = { isa = XCBuildConfiguration; buildSettings = { \(settings(name, application, minimumIOS))\(plistSetting) SWIFT_OPTIMIZATION_LEVEL = "-O"; }; name = Release; };
+            A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { \(settings(name, application, minimumIOS))\(plistSetting) SWIFT_OPTIMIZATION_LEVEL = "-Onone";\(archiveSettings) }; name = Debug; };
+            A00000000000000000000015 = { isa = XCBuildConfiguration; buildSettings = { \(settings(name, application, minimumIOS))\(plistSetting) SWIFT_OPTIMIZATION_LEVEL = "-O";\(archiveSettings) }; name = Release; };
             A00000000000000000000016 = { isa = PBXBuildFile; fileRef = A00000000000000000000008; };
             A00000000000000000000020 = { isa = XCLocalSwiftPackageReference; relativePath = "../.."; };
             A00000000000000000000021 = { isa = XCLocalSwiftPackageReference; relativePath = "../../Generated/MixerSDK"; };

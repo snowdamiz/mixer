@@ -172,6 +172,12 @@ an anonymous request received 401. The downloaded binary needs its own
 installed runtime and release readback.
 [Authenticated FieldLog download](verification/receipts/l08-d6-stock-ios-authenticated-download-20261122.json)
 
+Stock iOS generation now links declared Simulator archives by exact
+digest. A wrong digest refused before Xcode. The real FieldLog VM linked
+into an arm64 witness, and Debug and Release device targets refused the
+Simulator-only input. The Pair27 source archive remains admitted.
+[Pinned VM archive adoption](verification/receipts/l08-d6-stock-ios-pinned-vm-archive-adoption-20261122.json)
+
 The historical F05 iOS app passed Cancel, Add, and cold readback. An
 independent signed F10 companion installation failed before navigation
 assertions. Both simulators retired. The F05 test adds ordinary Apple
@@ -201,6 +207,11 @@ The historical keyboard change passed a paired native check. The full
 drag dismissed the keyboard only in the changed build, and the note text
 survived. Both isolated Simulators retired.
 [Keyboard differential](verification/receipts/l08-d8-f01-ios-keyboard-differential-20261122.json)
+
+The historical iOS task menu passed Move down and Move up. Each order
+survived a cold process, and disk readback found two consecutive reorder
+operations for the same project.
+[Installed task-order replay](verification/receipts/l08-d8-f02-ios-task-order-20261122.json)
 
 
 The iOS capability replacement replay accepted old sequence 7, refused

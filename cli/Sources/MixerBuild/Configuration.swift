@@ -83,7 +83,7 @@ public struct ApplicationConfiguration: Codable, Equatable, Sendable {
             guard Set(updateFields.keys).isSubset(of: allowed) else { throw MixerFailure("config.unknown", "Unknown update configuration key.") }
         }
         if let native = fields["iosNative"] {
-            let allowed: Set<String> = ["swiftSources", "resourceFolders", "localNetworkUsageDescription", "allowsLocalNetworking"]
+            let allowed: Set<String> = ["swiftSources", "resourceFolders", "localNetworkUsageDescription", "allowsLocalNetworking", "simulatorArchive", "simulatorArchiveSHA256"]
             guard let native = native as? [String: Any], Set(native.keys).isSubset(of: allowed) else {
                 throw MixerFailure("config.ios-native", "iosNative must contain only supported native declarations.")
             }

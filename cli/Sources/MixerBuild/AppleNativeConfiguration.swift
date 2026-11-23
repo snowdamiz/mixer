@@ -12,23 +12,30 @@ public struct AppleNativeConfiguration: Codable, Equatable, Sendable {
     public var resourceFolders: [String]?
     public var localNetworkUsageDescription: String?
     public var allowsLocalNetworking: Bool?
+    public var simulatorArchive: String?
+    public var simulatorArchiveSHA256: String?
 
     public init(swiftSources: [String]? = nil, resourceFolders: [String]? = nil,
-                localNetworkUsageDescription: String? = nil, allowsLocalNetworking: Bool? = nil) {
+                localNetworkUsageDescription: String? = nil, allowsLocalNetworking: Bool? = nil,
+                simulatorArchive: String? = nil, simulatorArchiveSHA256: String? = nil) {
         self.swiftSources = swiftSources
         self.resourceFolders = resourceFolders
         self.localNetworkUsageDescription = localNetworkUsageDescription
         self.allowsLocalNetworking = allowsLocalNetworking
+        self.simulatorArchive = simulatorArchive
+        self.simulatorArchiveSHA256 = simulatorArchiveSHA256
     }
 
     var sources: [String] { (swiftSources ?? []).sorted() }
     var folders: [String] { (resourceFolders ?? []).sorted() }
     var hasPlist: Bool { localNetworkUsageDescription != nil || allowsLocalNetworking != nil }
-    var isEmpty: Bool { sources.isEmpty && folders.isEmpty && !hasPlist }
+    private var hasArchiveDeclaration: Bool { simulatorArchive != nil || simulatorArchiveSHA256 != nil }
+    private var paths: [String] { sources + folders + (simulatorArchive.map { [$0] } ?? []) }
+    var isEmpty: Bool { sources.isEmpty && folders.isEmpty && !hasPlist && !hasArchiveDeclaration }
 
     func validate(appName: String) throws {
-        let paths = sources + folders
-        let invalidPath = MixerFailure("config.ios-native", "Declare unique Swift files and resource folders with simple paths relative to Platforms/iOS.")
+        let paths = self.paths
+        let invalidPath = MixerFailure("config.ios-native", "Declare unique native inputs with simple paths relative to Platforms/iOS.")
         guard paths.count <= 256, Set(paths.map { $0.lowercased() }).count == paths.count else { throw invalidPath }
         for path in paths {
             guard path.utf8.count <= 512,
@@ -45,6 +52,17 @@ public struct AppleNativeConfiguration: Codable, Equatable, Sendable {
         let bundleNames = folders.map { String($0.split(separator: "/").last!).lowercased() }
         guard Set(bundleNames).count == folders.count,
               bundleNames.allSatisfy({ !$0.contains(".") && !reservedBundleNames.contains($0) }) else { throw invalidPath }
+        if hasArchiveDeclaration {
+            guard let archive = simulatorArchive, archive.hasSuffix(".a"),
+                  let digest = simulatorArchiveSHA256,
+                  digest.range(of: #"\A[0-9a-f]{64}\z"#, options: .regularExpression) != nil else {
+                throw MixerFailure("config.ios-native-archive", "Declare an iOS Simulator static archive and its lowercase SHA-256 together.")
+            }
+            let archivePath = archive.lowercased()
+            guard !folders.contains(where: { archivePath.hasPrefix($0.lowercased() + "/") }) else {
+                throw MixerFailure("config.ios-native-archive", "Keep the Simulator static archive outside declared resource folders.")
+            }
+        }
         if let description = localNetworkUsageDescription {
             guard description.utf8.count <= 1024, !description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                   description.rangeOfCharacter(from: .controlCharacters) == nil,
@@ -55,7 +73,7 @@ public struct AppleNativeConfiguration: Codable, Equatable, Sendable {
     }
 
     func validateFiles(in platform: URL) throws {
-        for path in sources + folders {
+        for path in paths {
             let components = path.split(separator: "/")
             var item = platform
             for component in components.dropLast() {
@@ -63,7 +81,13 @@ public struct AppleNativeConfiguration: Codable, Equatable, Sendable {
                 try Self.require(item, type: S_IFDIR)
             }
             item.appendPathComponent(String(components.last!))
-            if path.hasSuffix(".swift") {
+            if path == simulatorArchive {
+                try Self.require(item, type: S_IFREG)
+                let bytes = try Data(contentsOf: item, options: .mappedIfSafe)
+                guard bytes.starts(with: Data("!<arch>\n".utf8)), SourceDigest.sha256(bytes) == simulatorArchiveSHA256 else {
+                    throw MixerFailure("generate.ios-native-archive", "Simulator static archive differs from its declared format or SHA-256.")
+                }
+            } else if path.hasSuffix(".swift") {
                 try Self.require(item, type: S_IFREG)
             } else {
                 try Self.validateResourceFolder(item)

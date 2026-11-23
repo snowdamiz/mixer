@@ -114,7 +114,7 @@ def admission_paths(root=None, binding=None):
                     'native_fingerprint_transition', 'private_f10_transition',
                     'fieldlog_signed_editor_transition', 'store_reconciliation_fixture_transition',
                     'android_stock_libz_transition', 'pair26_transition', 'pair27_transition',
-                    'stock_ios_generator_transition'):
+                    'stock_ios_generator_transition', 'stock_ios_simulator_archive_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -504,7 +504,11 @@ class SparseControls(unittest.TestCase):
             generator = binding['stock_ios_generator_transition']
             self.assertEqual(generator['sourceBefore'], pair27['sourceAfter'])
             self.assertEqual(observed['predecessor_pair27_source157_sha256'], generator['sourceBefore'])
-            self.assertEqual(observed['source_sha256'], generator['sourceAfter'])
+            simulator_archive = binding['stock_ios_simulator_archive_transition']
+            self.assertEqual(simulator_archive['sourceBefore'], generator['sourceAfter'])
+            self.assertEqual(observed['predecessor_stock_ios_generator_source158_sha256'],
+                             simulator_archive['sourceBefore'])
+            self.assertEqual(observed['source_sha256'], simulator_archive['sourceAfter'])
             self.assertEqual(observed['source_sha256'], binding['source']['sha256'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']

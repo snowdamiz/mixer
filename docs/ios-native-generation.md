@@ -31,7 +31,10 @@ Reconfiguration updates the project reference and leaves existing inputs in
 place. If a file exists at `MixerNativeInfo.plist` inside the Xcode project,
 generation stops so the app owner can reconcile that file.
 
-FieldLog also needs the exact iOS Simulator VM static archive and its matching
-C header and module map. The stock iOS generator has no lock entry or
-verification path for that native link. Full FieldLog build qualification
-requires that link and the pinned inputs from the FieldLog build recipe.
+## Link a static archive on iOS Simulator
+
+Set `simulatorArchive` to the archive's `.a` path relative to `Platforms/iOS`.
+Set `simulatorArchiveSHA256` to its 64-character lowercase SHA-256. Keep the
+archive outside the declared resource folders. Mixer checks the archive bytes
+before generating the project and restricts the generated app target to iOS
+Simulator. Supply any matching C headers and module map through your package.

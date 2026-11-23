@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "gate": "L08",
+  "milestone": "D6",
+  "status": "passed",
+  "scope": "Stock local iOS Simulator archive digest and linker admission",
+  "donorReceiptSHA256": "f8fb6d9077cb39fb05c9c907c202eddb7021501f7ed1f9fc20b819f466a0de4c",
+  "releaseCandidate": {
+    "schema": 1,
+    "gate": "L08",
+    "milestone": "D6",
+    "status": "pass",
+    "scope": "Stock pinned Simulator archive and reversible Source141 admission.",
+    "baseCommit": "fed15de4f80c52011c48b8efbe95f9adcdfbecb6",
+    "baseTree": "03a5e097bd46c459d7cc3b1fbea509099f62329e",
+    "patch": {
+      "path": "verification/local/l08-d6-stock-ios-simulator-archive-d036394a/pinned-simulator-archive-against-fed15de4f8.patch",
+      "sha256": "0274b574bda3a53c7c4329fc666a662939baf8127c5f84c573e0bbdbe141c01d",
+      "bytes": 111303,
+      "tree": "adbdd2c05f2032cf1a8dae2645dfc5c2e451839a",
+      "exactReverseAndReapply": true
+    },
+    "admission": {
+      "hostedProfiles": 99,
+      "profile": "mixer.android-source-pair.27",
+      "restoredFiles": 890,
+      "restoredInventorySHA256": "13a132c92e97e79496ec7466d8b3eaac7e0e91ff68e04dc640bbe2069cf5cf3b",
+      "source127": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7",
+      "source141": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab",
+      "sourceAfter": "3f04b8a5ec01059ba39d8919a3ed06f5d643c64fd1787265b1ab8aeaf2065773",
+      "sourceBefore": "45db9b22b731fdbf153fac1a8712a2642a898c52a567694f46227775ea8111e5",
+      "staleCandidateRejected": [
+        "normal",
+        "optimized"
+      ],
+      "unchangedBindingEntries": 111,
+      "unchangedSealMembers": 342,
+      "sourceCount": 158,
+      "directNormalAndOptimizedEqual": true,
+      "sparseNormalPassed": 16,
+      "sparseOptimizedPassed": 16,
+      "command": "python3 -I -B -S [-O] verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v"
+    },
+    "tools": {
+      "xcode": "27.2 (27B52)",
+      "swift": "Apple Swift 6.4.2",
+      "python": "3.14.8",
+      "git": "2.56.0",
+      "offline": "Pinned local SwiftPM Git mirrors and outbound-IP-denied build sandbox."
+    },
+    "native": {
+      "witness": "Small stock project with pinned FieldLog VM and headers from t3-5c0efbdd.",
+      "archiveSHA256": "f3afa1e76f3d27be572dc7d2f269763c43b6c4331231ecd308eb96ed40d5fae1",
+      "archiveBytes": 19002296,
+      "linkedSymbols": [
+        "_mixer_vm_capability_guest_ui_validate_deferred_v1",
+        "_mixer_vm_capability_session_startup_v1"
+      ],
+      "platform": "IOSSIMULATOR",
+      "architecture": "arm64",
+      "noConfigurationProjectSHA256": "d113e6084cc1ec940e2a04f35705e188763e33b071a69ee22fb3b91979d80624",
+      "normalBuild": {
+        "command": "mixer build --platform ios --directory <fixture>",
+        "exit": 0,
+        "binarySHA256": "9aad92b64ea85c81fb41efdb562fd13b6a19342687b6c8fff07a505b937bda4e",
+        "hasMachOCodeSignature": false,
+        "overrides": "arm64, no debug dylib, -Wl,-no_adhoc_codesign"
+      },
+      "retainedBuild": {
+        "command": "mixer build --platform ios --directory <fixture> --output <fresh-store>",
+        "exit": 0,
+        "containerSHA256": "038db6da142474f45c863d748c7d80fcf3ec83272f86de3deca7ab1e5f88ef9d",
+        "containerBytes": 651392,
+        "signature": "linker-ad-hoc-no-signing-identity",
+        "initialAttempt": "build.output-drift during concurrent sparse fixture writes"
+      },
+      "device": {
+        "publicAPITest": "pass",
+        "debugExit": 70,
+        "releaseExit": 70,
+        "command": "xcodebuild -configuration <Debug|Release> -sdk iphoneos -destination generic/platform=iOS CODE_SIGNING_ALLOWED=NO build"
+      },
+      "refusals": {
+        "path-only": "config.ios-native-archive",
+        "hash-only": "config.ios-native-archive",
+        "uppercase": "config.ios-native-archive",
+        "bundled": "config.ios-native-archive",
+        "traversal": "config.ios-native",
+        "wrong-hash": "generate.ios-native-archive",
+        "wrong-hash-retaining": "generate.ios-native-archive",
+        "wrong-format": "generate.ios-native-archive",
+        "symlink": "generate.ios-native-path"
+      }
+    },
+    "retention": {
+      "stagedPatchFiles": 50858,
+      "stagedPatchBytes": 983798162
+    },
+    "limits": [
+      "Full FieldLog and managed HTTP were outside this VM control.",
+      "No boot, install, launch, signing identity, or code-signing step.",
+      "Stage stayed read-only. Its HEAD advanced independently to ed03448286 with changes outside the patch."
+    ],
+    "scratch": {
+      "capBytes": 1073741824,
+      "largestSampleMiB": 712,
+      "removed": true
+    }
+  },
+  "rootInstalledSourceAdmission": {
+    "normal": 158,
+    "optimized": 158
+  },
+  "limit": "The public configuration is now landed. A signed installed release derived from the authenticated downloaded managed app remains separate."
+}
