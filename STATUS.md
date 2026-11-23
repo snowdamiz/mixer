@@ -361,6 +361,14 @@ waited for an absent error-code marker and stopped before the final
 readback. This is installed appearance evidence for embedded releases.
 [F03 installed Android rasters](verification/receipts/l08-d8-f03-android-native-rasters-20261123.json)
 
+The exact Android APK passed a fresh four-phase replay after the test
+matched the emitted refusal message. Sequence 44 committed no frame.
+The stopped journal recorded `ui_protocol_before_effects`, preserved
+the healthy sequence-43 candidate, and showed no active attempt.
+Workspace bytes and the three paint comparisons matched. The fixture,
+emulator and private ADB closed.
+[F03 Android deferred readback](verification/receipts/l08-d8-f03-android-deferred-readback-20261123.json)
+
 The stock recovery encoder now sorts durable health milestones under
 the existing field. Seven recovery tests passed. Independent process
 probes reproduced two prior byte encodings and one after the fix.
