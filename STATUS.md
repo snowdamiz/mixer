@@ -191,6 +191,21 @@ stayed in the picker. Android installed interaction remains open.
 [Shared owner host receipt](verification/receipts/l08-d2-shared-workspace-presentation-host-20261123.json)
 · [Combined build and native failure](verification/receipts/l08-d2-shared-owner-project-create-native-20261123.json)
 
+The next shared-owner iOS build opened the stored project after the
+Create sheet dismissed. All three original tests passed, including
+the exact Gauge title, menu reorder, saved-record return and every
+stopped-workspace assertion. Independent review matched the test and
+disk-reader evidence. Native Android parity remains open.
+[Reviewed Create route](verification/receipts/l08-d2-ios-create-route-independent-a200386a.json)
+
+The ordinary task editors share validation, Save eligibility and
+UTF-8-safe error presentation. Both host callers refused a forced
+disabled Save and preserved storage. A separate candidate linked both
+products with 2,368 shared Swift lines out of 5,765. The Create route
+and editor patches also composed and passed the macOS caller replay.
+The combined installed products and 90% target remain open.
+[Task-editor host results](verification/receipts/fieldlog-ordinary-task-editor-30f323fa.json)
+
 ## In-place FieldLog public SDK adoption on iOS
 
 Three native tests created a project and saved photo draft in standalone
