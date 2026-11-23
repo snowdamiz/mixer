@@ -1,0 +1,22 @@
+--- a/run.py
++++ b/run.py
+@@ -125 +125 @@
+-        self.deadline = time.monotonic() + 525
++        self.deadline = time.monotonic() + 900
+@@ -241 +241 @@
+-                                             "--control", self.control, "--seconds", "540"])
++                                             "--control", self.control, "--seconds", "915"])
+@@ -274 +274 @@
+-        wait("exact-serial boot", boot_ready, 155)
++        wait("exact-serial boot", boot_ready, 360)
+@@ -345 +345,9 @@
+-        if tree is None:
++        if label == DONE:
++            def enabled_done():
++                fresh, _ = self.ui(label, seconds=6)
++                nodes = matching(fresh, label)
++                if len(nodes) == 1 and nodes[0].get("enabled") == "true" and nodes[0].get("clickable") == "true":
++                    return fresh
++                return None
++            tree = wait("live Done enabled and clickable", enabled_done, 24)
++        elif tree is None:

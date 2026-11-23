@@ -55,6 +55,17 @@ was removed. The separate iOS run showed the full guest title at
 accessibility5 while its enclosing navigation title ellipsized.
 [Android 2× receipt](verification/receipts/l08-android-arabic-2x-native-20261122.json)
 
+## FieldLog signed calculation on iOS
+
+The exact installed app displayed 0%, 33%, and 0% through the signed
+baseline, correction, and rollback. It displayed 0% again in a fresh process
+after connection refusal. All four checkpoints matched the same 3,530
+workspace bytes, revision 9, and 11 queued operations. Done retired the
+guest and the local origin and owned Simulator closed. The independent
+review rechecked the signed journal. The earlier Debug observers failed
+before verifying the baseline.
+[Installed calculation receipt](verification/receipts/l08-ios-calculation-signed-native-20261122.json)
+
 ## Android Note switch and Home recovery
 
 The independently reviewed combined candidate passed an installed IME
