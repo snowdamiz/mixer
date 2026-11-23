@@ -29,6 +29,20 @@ managed signer and worker recovery, local restore, and the separately
 verified hosted, Android, and iOS updater privacy boundaries.
 [Local privacy receipt](verification/receipts/l07-fieldlog-ios-saved-guest-log-privacy-20261122.json)
 
+## Local signed delivery and recovery gate
+
+L04 passed independent review. Both installed FieldLog apps completed all
+five signed phases from one local stock origin with the same binaries.
+Sequences 3 and 5 restored baseline behavior after the confirmation-gated
+release. Each app cold-reopened on saved sequence 3 during the actual
+delivery interruption, retained its task and workspace state, then accepted
+sequence 4. The corrected iOS app saved and restored the exact title
+`Inspect pump`. The independent replay verified 14 signatures, all 26 iOS
+attachments, and both cold readbacks. The origin closed and both disposable
+devices were removed. Local development trust and the simulator and emulator
+matrix define this pass.
+[Shared native delivery receipt](verification/receipts/l04-fieldlog-shared-delivery-native-20261122.json)
+
 ## First shared native signed release replay
 
 The re-sealed packets passed the shared origin host replay. On fresh local
@@ -37,7 +51,7 @@ and returned to the same project. Both native clients reached sequence 1
 on the shared origin. The iOS test then waited for Inspect pump, but its
 native row displayed Inspect pum. Android was already waiting at sequence
 2 when the root stopped the origin. Both device owners and the origin
-closed. The initial title loss remains under investigation.
+closed. This first attempt remains a recorded failure.
 [Native partial receipt](verification/receipts/l04-fieldlog-shared-native-title-20261122.json)
 
 ## FieldLog iOS saved draft during an actual release-origin outage
