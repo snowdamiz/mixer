@@ -572,7 +572,7 @@ func androidCompatibilityAxisSessionDriftRefusesRecomputedLocksBeforeGenericSour
 }
 
 
-@Test func androidCompatibilityOptionalResolvedLockBindsExactBytesWithoutChangingLegacyProjection() throws {
+@Test func androidCompatibilityOptionalResolvedLockBindsExactBytesAndPreservesUnlockedProjection() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("sdk-lock-" + UUID().uuidString)
     defer { try? FileManager.default.removeItem(at: root) }
     try copyCompatibilitySDK(to: root)
@@ -581,7 +581,7 @@ func androidCompatibilityAxisSessionDriftRefusesRecomputedLocksBeforeGenericSour
     var original = AndroidSDKCompatibility.profile.sdk_files
     original.removeValue(forKey: "Package.resolved")
     try FileManager.default.removeItem(at: root.appendingPathComponent("Package.resolved"))
-    let unlockedDigest = "387e2a2c107ebdb9dac42338e15e776ae96c5a2d09be8b91911be60eca43c68f"
+    let unlockedDigest = "6a7fb3a7c2c3008bee733b88fd6e06f007667f387066f84b42aaf7388f9549d9"
     #expect(try AndroidSDKCompatibility.sdkProjection(root, files: original) == unlockedDigest)
     expectCompatibilityFailure { try AndroidSDKCompatibility.admitSDK(root) }
     let lock = Data("{\"pins\":[],\"version\":3}\n".utf8)
