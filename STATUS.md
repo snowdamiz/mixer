@@ -217,9 +217,18 @@ The ordinary Android signed-owner projection linked the existing
 checklist bridge against SDK `6bc461f4` and its matching VM. The
 previous SDK stopped at `InstalledGuestUICommitFacts`. Strict ELF
 checks found the ordinary and signed lifecycle exports. Reversing the
-projection recovered the baseline ELF and roster exactly. A signed
-runtime mount and refusal run remain open.
+projection recovered the baseline ELF and roster exactly.
 [Signed-owner linkage receipt](verification/receipts/fieldlog-d2-appandroid-signed-owner-e0b1110a.json)
+
+The linked owner sources and pinned VM separately passed a signed macOS
+host replay with synthetic display and input witnesses. The selected
+draft advanced from revision 2 to 3 and changed only its follow-up
+flag. Invalid and revoked authority left disk unchanged. A fresh offline
+process reopened the retained release and preserved the workspace and
+JPEG. The first root attempt stopped at disk sampling with unresolved
+process-group custody. A separate corrected replay passed and removed
+its scratch. Installed Android JNI and UI execution remain open.
+[Signed-owner host replay](verification/receipts/fieldlog-d2-signed-host-8c0c3c57.json)
 
 ## In-place FieldLog public SDK adoption on iOS
 

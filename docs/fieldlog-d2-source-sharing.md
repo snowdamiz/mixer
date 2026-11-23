@@ -249,9 +249,16 @@ The signed projection now links in ordinary AppAndroid with SDK
 submit and poll, signed checklist submit and status, and all five
 checklist JNI entry points. Reversing the projection reproduced both
 the baseline ELF and link roster byte for byte. The capability schema
-matches across the two pins. Runtime attachment and scope checks await
-a matching signed fixture.
+matches across the two pins.
 [Linked signed-owner evidence](../verification/receipts/fieldlog-d2-appandroid-signed-owner-e0b1110a.json)
+
+The macOS replay used the same Swift owner sources and SDK/VM pin with
+an Android-scoped development fixture. It verified a current display
+and action, rejected stale and revoked authority, and preserved the
+workspace and JPEG across offline reopen. This replay used synthetic
+display and input witnesses. Its result adds no mobile source inputs
+to the measured roster.
+[Signed-owner host replay](../verification/receipts/fieldlog-d2-signed-host-8c0c3c57.json)
 
 ## Reproduce the source measurement
 
