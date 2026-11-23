@@ -436,9 +436,16 @@ The F11 arm64 Simulator compile probe emitted the pinned SDK modules
 and accepted the stock exchange constructor. The same private note
 constructor that compiled on macOS was absent for Simulator, where the
 source excludes the private constructor and codec. The probe reached
-neither app nor XCTest linking. A private Simulator profile remains in
-development.
+neither app nor XCTest linking.
 [F11 Simulator compile evidence](verification/receipts/l08-d8-f11-ios-private-compile.json)
+
+The isolated F11 note profile then linked the arm64 Simulator app and
+XCTest. The stock Simulator and generic device controls still rejected
+the private constructor. One installed test reopened the exact
+multiline note in UIKit. After the Paste tap, the edited value failed
+to appear before the XCTest wait expired. Save and Commit were not
+reached. The owned Simulator and private packet were removed.
+[F11 Simulator fixture and first input result](verification/receipts/l08-d8-f11-ios-simulator-2843.json)
 
 The Android-scoped F20 signed host replay matched the archived order of
 23 drafts and 43 entries and opened a second-page draft. The live and
