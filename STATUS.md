@@ -217,9 +217,16 @@ hierarchy identifies a stock generator omission of DEBUG.
 Stock iOS Debug generation now sets the Swift compilation condition. Both
 generic arm64 configurations linked the pinned archive and selected their
 expected branch. Exact previous stock, plist, and archive projects
-regenerate, and handwritten project edits still refuse. The authenticated
-FieldLog rebuild and installed replay remain open.
+regenerate, and handwritten project edits still refuse.
 [Stock Debug configuration](verification/receipts/l08-d6-stock-ios-debug-condition-20261122.json)
+
+The authenticated owner downloaded the exact stock worker artifact. The
+installed binary then activated baseline, review, and rollback through
+Phoenix and cold-reopened the healthy rollback offline. All four launches
+kept the same installation and workspace. The two earlier runtimes
+returned empty 204 responses. The independent review passed local D6
+with the existing Android, console, signer, and store fixture evidence.
+[Exact managed download and installed replay](verification/receipts/l08-d6-exact-authenticated-download-native-20261123.json)
 
 The historical F05 iOS app passed Cancel, Add, and cold readback. An
 independent signed F10 companion installation failed before navigation
