@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "gate": "L08",
+  "milestone": "D6",
+  "status": "passed-scoped-host",
+  "scope": "Stock iOS app Debug compilation condition and Pair27 source admission after the Simulator archive linker.",
+  "baseRevision": "630a679f60",
+  "baseTree": "e4ab3530e79930663de8cd5dfd4ec206d3a90d41",
+  "patchTreeBeforeReceipt": "8d76186c3db8607bfba6a1739b7c705ed829f908",
+  "exactPatchReverseAndReapply": true,
+  "retainedFailure": {
+    "ownerAttachmentSHA256": "4991b870bb31d36cab26112e31db8b74673c283e8db847e9c6e5dffccfebceb3",
+    "unsignedMachOSHA256": "33fb640a5c10a0af131f2080ed0e8f51695cc840b67fcf55ce1919cd7d699c3d",
+    "signedMachOSHA256": "30ddc7017b1e11e8f03ae77db8d2f12e34ce6ae66ff60d75b79650545bf43627",
+    "hostPass": true,
+    "nativeBaselineReached": false,
+    "hierarchyText": "UI-test workspaces require a Debug build. No workspace was opened.",
+    "hierarchyButton": "Try again"
+  },
+  "tools": {
+    "xcode": "27.2 (27B52)",
+    "swift": "6.4.2",
+    "python": "3.14.8",
+    "git": "2.56.0"
+  },
+  "xcodeWitness": {
+    "command": "xcodebuild -project <generated> -scheme DebugWitness -configuration <Debug|Release> -sdk iphonesimulator -destination \"generic/platform=iOS Simulator\" -derivedDataPath <owned> -jobs 6 -disableAutomaticPackageResolution -onlyUsePackageVersionsFromResolvedFile ARCHS=arm64 ONLY_ACTIVE_ARCH=YES ENABLE_DEBUG_DYLIB=NO COMPILER_INDEX_STORE_ENABLE=NO CODE_SIGNING_ALLOWED=NO build",
+    "linkedSymbol": "_mixer_debug_witness_archive",
+    "plistValue": "Generic build witness",
+    "debugMarker": "MIXER_WITNESS_DEBUG_CONDITION_ACTIVE",
+    "releaseMarker": "MIXER_WITNESS_RELEASE_CONDITION_ABSENT",
+    "bothConfigurationsContainOnlyTheirExpectedMarker": true,
+    "debugMachOSHA256": "7a9f5727d706ef3178a308bd3f4c98405096c6a51c0d0a18f6ab49c5a951be57",
+    "releaseMachOSHA256": "8a3da0a909b606a0e9eb1777ddd84f5294e043a9233f621497be518e4d471378",
+    "initialProbe": "An unrestricted generic Debug build attempted x86_64 against the arm64 fixture archive. Both final witness builds used the managed worker arm64 selection."
+  },
+  "migration": {
+    "exactPredecessorGeneratorVariants": [
+      "stock",
+      "plist",
+      "archive",
+      "pending-before",
+      "pending-after"
+    ],
+    "onlyDebugSettingAdded": true,
+    "forgedDigestHandwrittenEditRefusedAndPreserved": true,
+    "swiftTests": [
+      "regeneratesPreviousIOSDebugTemplate",
+      "simulatorArchiveDeclarationRefusesDeviceBuildBeforeGeneration"
+    ]
+  },
+  "sparseAdmission": {
+    "command": "python3.14 -I -B -S [-O] adopt_archive.py verify --workflow-installed",
+    "materializedWithOwningWorkflowNonConePatterns": true,
+    "normalAndOptimizedResultsIdentical": true,
+    "omittedOwnerAndBothStaleRowsRefused": true,
+    "inverseSourceDigestVerified": true,
+    "profile": "mixer.android-source-pair.27",
+    "count": 158,
+    "sourceBefore": "3f04b8a5ec01059ba39d8919a3ed06f5d643c64fd1787265b1ab8aeaf2065773",
+    "sourceAfter": "8dc9cc6f5e941fad1e83c062613ea9e6522d4386474fcb2d8f7885babb9a3d54",
+    "fullSuiteLimit": "Initial full sweeps each exposed one sparse test ordering failure. After reordering the writes, both focused real sparse-checkout replays passed. Full sweeps were not repeated within the task budget."
+  },
+  "limits": [
+    "Read-only historical artifact inspection.",
+    "Build-only witness without Simulator launch or signing steps.",
+    "Managed FieldLog rebuild and native journey pending."
+  ],
+  "rootVerification": {
+    "normalFullSparseCheckoutSuite": {
+      "tests": 16,
+      "failures": 0
+    },
+    "optimizedFullSparseCheckoutSuite": {
+      "tests": 16,
+      "failures": 0
+    },
+    "commands": [
+      "python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py",
+      "python3 -I -B -O -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py"
+    ],
+    "productAndArchiveInputs": "Exact author implementation and archive files, with current Stage evidence index."
+  }
+}

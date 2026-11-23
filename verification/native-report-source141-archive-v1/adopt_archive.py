@@ -452,6 +452,10 @@ STOCK_IOS_SIMULATOR_ARCHIVE_SOURCE_REPLACEMENTS = (
 )
 STOCK_IOS_SIMULATOR_ARCHIVE_REPLACEMENTS = STOCK_IOS_SIMULATOR_ARCHIVE_SOURCE_REPLACEMENTS | {SPARSE_CHECKOUT_TEST}
 
+STOCK_IOS_DEBUG_PREFIX = 'stock-ios-debug-predecessor-bytes/'
+STOCK_IOS_DEBUG_SOURCE_REPLACEMENTS = {'cli/Sources/MixerBuild/AppleProject.swift'}
+STOCK_IOS_DEBUG_REPLACEMENTS = STOCK_IOS_DEBUG_SOURCE_REPLACEMENTS | {SPARSE_CHECKOUT_TEST}
+
 PAIR25_RUST_NOTICES_PREIMAGE = 'pair25-rust-notices-predecessor-bytes/THIRD_PARTY.yml'
 STATEFUL_WAST_NOTICE_PREIMAGE = 'stateful-wast-notice-predecessor-bytes/THIRD_PARTY.yml'
 PAIR25_NETWORK_CRYPTO_NOTICE_PREIMAGE = 'pair25-network-crypto-notice-predecessor-bytes/THIRD_PARTY.yml'
@@ -570,6 +574,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     STOCK_IOS_GENERATOR_PREFIX + name for name in STOCK_IOS_GENERATOR_REPLACEMENTS
 } | {
     STOCK_IOS_SIMULATOR_ARCHIVE_PREFIX + name for name in STOCK_IOS_SIMULATOR_ARCHIVE_REPLACEMENTS
+} | {
+    STOCK_IOS_DEBUG_PREFIX + name for name in STOCK_IOS_DEBUG_REPLACEMENTS
 } | {
     SWIFT_VERSION_PREFIX + name for name in SWIFT_VERSION_CHANGES
 } | {
@@ -776,7 +782,7 @@ def install_inputs():
                              'receipt_parent_url_test_transition', 'swiftpm_migration_transition',
                              'store_reconciliation_fixture_transition', 'android_stock_libz_transition', 'pair26_transition',
                              'pair27_transition', 'stock_ios_generator_transition',
-                             'stock_ios_simulator_archive_transition',
+                             'stock_ios_simulator_archive_transition', 'stock_ios_debug_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -2187,11 +2193,35 @@ def install_inputs():
                     'Stock iOS Simulator archive source preimage differs: ' + name)
             expected_source[name] = change['after']
         installed[name] = change['after']
-    require(current == expected_source and len(current) == 158 and
-            previous.digest(current) == simulator_archive['sourceAfter'] == STOCK_IOS_SIMULATOR_ARCHIVE_SOURCE_SHA256 and
-            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
-                                  'sha256': STOCK_IOS_SIMULATOR_ARCHIVE_SOURCE_SHA256},
+    require(len(expected_source) == 158 and previous.digest(expected_source) ==
+            simulator_archive['sourceAfter'] == STOCK_IOS_SIMULATOR_ARCHIVE_SOURCE_SHA256,
             'Stock iOS Simulator archive source transition differs')
+
+    stock_debug = binding['stock_ios_debug_transition']
+    require(set(stock_debug) == {'sourceBefore', 'sourceAfter', 'changes'} and
+            stock_debug['sourceBefore'] == STOCK_IOS_SIMULATOR_ARCHIVE_SOURCE_SHA256 and
+            set(stock_debug['changes']) == STOCK_IOS_DEBUG_REPLACEMENTS and
+            STOCK_IOS_DEBUG_REPLACEMENTS <= installed.keys() and
+            STOCK_IOS_DEBUG_REPLACEMENTS & current.keys() == STOCK_IOS_DEBUG_SOURCE_REPLACEMENTS,
+            'Stock iOS Debug transition roster differs')
+    for name, change in stock_debug['changes'].items():
+        path = HERE / STOCK_IOS_DEBUG_PREFIX / name
+        raw = read_predecessor_member(path)
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == installed[name] == previous.row(raw) and
+                change['before'] != change['after'] and
+                change['mode'] == stat.S_IMODE(path.lstat().st_mode) ==
+                stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'Stock iOS Debug predecessor bytes or owner mode differs: ' + name)
+        if name in STOCK_IOS_DEBUG_SOURCE_REPLACEMENTS:
+            require(expected_source[name] == change['before'], 'Stock iOS Debug source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        installed[name] = change['after']
+    require(current == expected_source and len(current) == 158 and
+            previous.digest(current) == stock_debug['sourceAfter'] and
+            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
+                                  'sha256': stock_debug['sourceAfter']},
+            'Stock iOS Debug source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in store_fixture['changes'].items():
@@ -2318,6 +2348,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_stock_ios_simulator_archive_source158_sha256': binding['stock_ios_debug_transition']['sourceBefore'],
             'predecessor_stock_ios_generator_source158_sha256': binding['stock_ios_simulator_archive_transition']['sourceBefore'],
             'predecessor_pair27_source157_sha256': binding['stock_ios_generator_transition']['sourceBefore'],
             'predecessor_pair26_source157_sha256': binding['pair27_transition']['sourceBefore'],

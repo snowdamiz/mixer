@@ -226,13 +226,13 @@ public enum AppleProject {
             inputs = candidate
         }
         let plist = try inputs.plist()
-        let current = Data(source(name: name, application: application, inputs: inputs, plist: plist).utf8)
-        if project != current {
-            guard allowLegacy, lines.count == 1,
-                  project == Data(source(name: name, application: application, minimumIOS: .legacy17).utf8) else {
-                throw modified
-            }
-        }
+        var templates: [ProjectTemplate] = [.current, .beforeDebugCondition]
+        if allowLegacy && lines.count == 1 { templates.append(.legacy17) }
+        guard templates.contains(where: { template in
+            let rendering = source(name: name, application: application, inputs: inputs, plist: plist,
+                                   template: template)
+            return project == Data(rendering.utf8)
+        }) else { throw modified }
         return plist
     }
 
@@ -275,13 +275,16 @@ public enum AppleProject {
             symbols: products.appendingPathComponent(config.name + ".app.dSYM"))
     }
 
-    private enum MinimumIOS: String {
-        case current = "26.0"
-        case legacy17 = "17.0"
+    private enum ProjectTemplate {
+        case current
+        case beforeDebugCondition
+        case legacy17
     }
 
     private static func source(name: String, application: String, inputs: AppleNativeConfiguration = .init(),
-                               plist: Data? = nil, minimumIOS: MinimumIOS = .current) -> String {
+                               plist: Data? = nil, template: ProjectTemplate = .current) -> String {
+        let minimumIOS = template == .legacy17 ? "17.0" : "26.0"
+        let debugCondition = template == .current ? " SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;" : ""
         let swift = "sourcecode.swift"
         let paths = inputs.sources.map { ($0, swift) } + inputs.folders.map { ($0, "folder") }
         var children = ""
@@ -315,15 +318,15 @@ public enum AppleProject {
             A00000000000000000000003 = { isa = PBXGroup; children = (A00000000000000000000008, A00000000000000000000004\(children)); sourceTree = "<group>"; };
             A00000000000000000000004 = { isa = PBXGroup; name = Products; children = (A00000000000000000000009); sourceTree = "<group>"; };
             A00000000000000000000005 = { isa = PBXNativeTarget; buildConfigurationList = A00000000000000000000010; buildPhases = (A00000000000000000000011, A00000000000000000000012, A00000000000000000000013); buildRules = (); dependencies = (); name = \(name); productName = \(name); productReference = A00000000000000000000009; productType = "com.apple.product-type.application"; packageProductDependencies = (A00000000000000000000022, A00000000000000000000023); };
-            A00000000000000000000006 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = \(minimumIOS.rawValue); SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; }; name = Debug; };
-            A00000000000000000000007 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = \(minimumIOS.rawValue); SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; }; name = Release; };
+            A00000000000000000000006 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = \(minimumIOS); SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; }; name = Debug; };
+            A00000000000000000000007 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = \(minimumIOS); SWIFT_VERSION = 6.0; CLANG_ENABLE_MODULES = YES; }; name = Release; };
             A00000000000000000000008 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = \(name)App.swift; sourceTree = "<group>"; };
             A00000000000000000000009 = { isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = \(name).app; sourceTree = BUILT_PRODUCTS_DIR; };
             A00000000000000000000010 = { isa = XCConfigurationList; buildConfigurations = (A00000000000000000000014, A00000000000000000000015); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
             A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000016\(sources)); runOnlyForDeploymentPostprocessing = 0; };
             A00000000000000000000012 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000024, A00000000000000000000025); runOnlyForDeploymentPostprocessing = 0; };
             A00000000000000000000013 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (\(resources.joined(separator: ", "))); runOnlyForDeploymentPostprocessing = 0; };
-            A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { \(settings(name, application, minimumIOS))\(plistSetting) SWIFT_OPTIMIZATION_LEVEL = "-Onone";\(archiveSettings) }; name = Debug; };
+            A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { \(settings(name, application, minimumIOS))\(plistSetting) SWIFT_OPTIMIZATION_LEVEL = "-Onone";\(debugCondition)\(archiveSettings) }; name = Debug; };
             A00000000000000000000015 = { isa = XCBuildConfiguration; buildSettings = { \(settings(name, application, minimumIOS))\(plistSetting) SWIFT_OPTIMIZATION_LEVEL = "-O";\(archiveSettings) }; name = Release; };
             A00000000000000000000016 = { isa = PBXBuildFile; fileRef = A00000000000000000000008; };
             A00000000000000000000020 = { isa = XCLocalSwiftPackageReference; relativePath = "../.."; };
@@ -337,7 +340,7 @@ public enum AppleProject {
         }
         """ + "\n"
     }
-    private static func settings(_ name: String, _ app: String, _ minimumIOS: MinimumIOS) -> String {
-        "PRODUCT_BUNDLE_IDENTIFIER = \(app); PRODUCT_NAME = \(name); GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = \"1,2\"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; IPHONEOS_DEPLOYMENT_TARGET = \(minimumIOS.rawValue); ENABLE_USER_SCRIPT_SANDBOXING = YES;"
+    private static func settings(_ name: String, _ app: String, _ minimumIOS: String) -> String {
+        "PRODUCT_BUNDLE_IDENTIFIER = \(app); PRODUCT_NAME = \(name); GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; TARGETED_DEVICE_FAMILY = \"1,2\"; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; SWIFT_VERSION = 6.0; IPHONEOS_DEPLOYMENT_TARGET = \(minimumIOS); ENABLE_USER_SCRIPT_SANDBOXING = YES;"
     }
 }

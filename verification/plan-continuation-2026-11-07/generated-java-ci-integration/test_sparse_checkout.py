@@ -114,7 +114,8 @@ def admission_paths(root=None, binding=None):
                     'native_fingerprint_transition', 'private_f10_transition',
                     'fieldlog_signed_editor_transition', 'store_reconciliation_fixture_transition',
                     'android_stock_libz_transition', 'pair26_transition', 'pair27_transition',
-                    'stock_ios_generator_transition', 'stock_ios_simulator_archive_transition'):
+                    'stock_ios_generator_transition', 'stock_ios_simulator_archive_transition',
+                    'stock_ios_debug_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -508,7 +509,11 @@ class SparseControls(unittest.TestCase):
             self.assertEqual(simulator_archive['sourceBefore'], generator['sourceAfter'])
             self.assertEqual(observed['predecessor_stock_ios_generator_source158_sha256'],
                              simulator_archive['sourceBefore'])
-            self.assertEqual(observed['source_sha256'], simulator_archive['sourceAfter'])
+            stock_debug = binding['stock_ios_debug_transition']
+            self.assertEqual(stock_debug['sourceBefore'], simulator_archive['sourceAfter'])
+            self.assertEqual(observed['predecessor_stock_ios_simulator_archive_source158_sha256'],
+                             stock_debug['sourceBefore'])
+            self.assertEqual(observed['source_sha256'], stock_debug['sourceAfter'])
             self.assertEqual(observed['source_sha256'], binding['source']['sha256'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']
@@ -611,6 +616,24 @@ class SparseControls(unittest.TestCase):
             self.assertEqual((restored / progress).read_bytes(), (repo / preimage).read_bytes())
             for name in additions:
                 self.assertFalse((restored / name).exists(), name)
+
+            stock_debug_preimages = repo / SOURCE_BINDING.parent / 'stock-ios-debug-predecessor-bytes'
+            source_inputs = json.loads((repo / SOURCE_BINDING.parent / binding['source']['manifest']).read_bytes())
+            for name, change in stock_debug['changes'].items():
+                path = repo / name
+                current = path.read_bytes()
+                before = (stock_debug_preimages / name).read_bytes()
+                if name in source_inputs:
+                    self.assertEqual(source_inputs[name], change['after'])
+                    source_inputs[name] = change['before']
+                try:
+                    path.write_bytes(before)
+                    failed = command(python + [str(adopter), 'verify', '--workflow-installed'])
+                    self.assertEqual(failed.returncode, 1)
+                    self.assertIn(('Owning bytes differ: ' + name).encode(), failed.stderr)
+                finally:
+                    path.write_bytes(current)
+            self.assertEqual(B.canonical().source_digest(source_inputs), stock_debug['sourceBefore'])
 
 
 if __name__ == '__main__':

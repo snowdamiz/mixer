@@ -197,6 +197,13 @@ app refused the isolated workspace before baseline. The archived
 hierarchy identifies a stock generator omission of DEBUG.
 [Exact download and native refusal](verification/receipts/l08-d6-exact-managed-download-native-debug-refusal-20261122.json)
 
+Stock iOS Debug generation now sets the Swift compilation condition. Both
+generic arm64 configurations linked the pinned archive and selected their
+expected branch. Exact previous stock, plist, and archive projects
+regenerate, and handwritten project edits still refuse. The authenticated
+FieldLog rebuild and installed replay remain open.
+[Stock Debug configuration](verification/receipts/l08-d6-stock-ios-debug-condition-20261122.json)
+
 The historical F05 iOS app passed Cancel, Add, and cold readback. An
 independent signed F10 companion installation failed before navigation
 assertions. Both simulators retired. The F05 test adds ordinary Apple
