@@ -95,6 +95,22 @@ assertions. Both simulators retired. The F05 test adds ordinary Apple
 behavior to the corpus review. Its signed Android test has separate scope.
 [Native corpus receipt](verification/receipts/l08-ios-corpus-f05-f10-native-20261122.json)
 
+## Ordinary iOS account and photo diagnostics
+
+The exact installed FieldLog executable returned a missing-entitlement
+status from its first Keychain read before sign-in. A fresh disposable
+Simulator attached the diagnostic to the exact app PID and was removed.
+The account lifecycle still needs an installed replay with a private
+Simulator development entitlement.
+[Keychain diagnostic](verification/receipts/l02-ios-account-keychain-restore-status-20261122.json)
+
+The photo-only follow-up failed when its XCTest reader could no longer
+open the preinstall data path. The owned Simulator was
+removed and all external comparisons matched. The earlier Settings pass
+and photo interaction remain in their original receipt. Final workspace
+and JPEG verification remain pending.
+[Photo path failure](verification/receipts/l02-ios-photo-terminal-container-rotation-20261122.json)
+
 ## Android Note switch and Home recovery
 
 The independently reviewed combined candidate passed an installed IME
