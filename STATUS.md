@@ -366,6 +366,12 @@ cross-page move. The owned Simulator and controller were removed.
 [iOS-scoped host receipt](verification/receipts/l08-d8-f09-ios-host-kit-ed066ca5.json)
 · [Installed F09 initial-frame failure](verification/receipts/l08-d8-f09-ios-initial-frame-failure-20261123.json)
 
+The F09 diagnostic rerun captured capability_turn_timeout during the
+prior guest wake at function 15, byte offset 3373. The VM had produced
+no render frame or display ticket when it stopped. This attempt retains
+the original 50 ms limit. The earlier opaque failure remains separate.
+[Typed F09 wake failure](verification/receipts/l08-d8-f09-ios-typed-wake-timeout-20261123.json)
+
 For F11, the stock signed host read the original restored note and
 refused the editable frame before any input or write. Rollback and
 offline reopen preserved the exact workspace. A separate Pair25
