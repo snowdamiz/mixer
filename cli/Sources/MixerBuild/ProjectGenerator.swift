@@ -165,12 +165,28 @@ public enum ProjectGenerator {
         return try SourceDigest.tree(target)
     }
 
-    private static func package(_ name: String) -> String {
+    fileprivate static func migrateStockIOSStarter(in root: URL, config: ApplicationConfiguration) throws {
+        guard config.targets.contains("ios") else { return }
+        let manifest = root.appendingPathComponent("Package.swift")
+        guard try AppleNativeConfiguration.fileType(manifest) == S_IFREG,
+              try Data(contentsOf: manifest) == Data(package(config.name, minimumIOS: "26.0").utf8) else { return }
+
+        let project = root.appendingPathComponent("Platforms/iOS/\(config.name).xcodeproj")
+        let files = FileManager.default
+        if ["project.pbxproj", "mixer-generated.sha256"].contains(where: {
+            files.fileExists(atPath: project.appendingPathComponent($0).path)
+        }) {
+            _ = try AppleProject.generate(root: root)
+        }
+        try Data(package(config.name).utf8).write(to: manifest, options: .atomic)
+    }
+
+    private static func package(_ name: String, minimumIOS: String = "17.0") -> String {
         """
         // swift-tools-version: 6.0
         import PackageDescription
         let package = Package(
-            name: "\(name)", platforms: [.iOS("17.0"), .macOS(.v14)],
+            name: "\(name)", platforms: [.iOS("\(minimumIOS)"), .macOS(.v14)],
             products: [.library(name: "AppFeatures", targets: ["AppFeatures"])],
             dependencies: [.package(path: "Generated/MixerSDK")],
             targets: [
@@ -439,6 +455,7 @@ public enum ProjectBuild {
             }
             guard try SourceDigest.exportFingerprint(staging) == originalSource else { throw sourceChanged }
             let config = try ApplicationConfiguration.load(staging)
+            try ProjectGenerator.migrateStockIOSStarter(in: staging, config: config)
             let fm = FileManager.default
             var lock = copied.lock
             try fm.removeItem(at: staging.appendingPathComponent("Generated/MixerSDK"))

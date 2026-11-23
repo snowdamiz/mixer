@@ -88,9 +88,31 @@ copy. It keeps an existing `Platforms/Android/Package.resolved`. If the Android
 dependency pins conflict, follow your app's dependency migration for the target
 SDK.
 
-For an iOS-only project, omit `--android-adapter-path`. The stock
-`mixer build --platform ios` command builds the generated app under
-`Platforms/iOS`. Build the maintained FieldLog app from its app-owned
+## Upgrade an iOS Starter
+
+Set `new_cli` to a CLI with the iOS 17 Starter migration and
+`target_checkout` to the checkout of that revision. Set `source_project`
+to your iOS Starter and `upgraded_project` to a new path. For an iOS-only
+Starter, omit `--android-adapter-path`.
+
+```sh
+"$new_cli" upgrade "$upgraded_project" --directory "$source_project" \
+	--sdk-path "$target_checkout/sdk"
+"$new_cli" build --platform ios --directory "$upgraded_project"
+```
+
+The upgrade copies the source project, then replaces the bundled SDK and
+updates `mixer.lock` in the copy. For a byte-for-byte match to the stock iOS
+26 Starter `Package.swift`, the upgrade changes the manifest to iOS 17 and
+regenerates the existing stock Xcode project in the same copy. If Mixer
+reports `generate.modified`, reconcile your edits to the generated Xcode
+project before retrying. If you edited `Package.swift`, the upgrade copies
+it byte for byte. Review your app's minimum iOS version and dependency
+requirements before building that copy.
+
+## Upgrade the maintained FieldLog app
+
+Build the maintained FieldLog app from its app-owned
 `ios/FieldLog.xcodeproj`. `mixer upgrade` replaces the bundled SDK and
 updates `mixer.lock`. Update the separately bundled capability packages,
 package locks, VM headers, and VM archive for the same pin before rebuilding.

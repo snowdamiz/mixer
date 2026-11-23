@@ -1,0 +1,70 @@
+{
+  "step": "UP1",
+  "date": "2026-11-23",
+  "status": "source_and_scoped_runtime_verified",
+  "reviewedSources": {
+    "floor": "14649257058a6a5a844d417ebb320231d26ca112",
+    "integratedFloorCandidate": "692f05cd2d31f218ae9b3cef7253a4e7397f8e17",
+    "stockUpgrade": "da4fd25aad",
+    "hostedPair28": "4627485a2bfb181d2293b551bf62d9c9a5f3a222"
+  },
+  "environment": {
+    "macOS": "27.0.1 (26A434), arm64",
+    "xcode": "27.2 (27B52)",
+    "localSwift": "6.4.2",
+    "rust": "1.99.0"
+  },
+  "review": [
+    "Independent Sol 6.2 High floor review t3-75381d36",
+    "Independent Sol 6.2 High upgrade correction review"
+  ],
+  "observations": [
+    "Both stock 26.0 project templates and the legacy 17.0 project are recognized byte for byte. Modified projects are refused. The generation transaction recovered both interrupted publication states.",
+    "mixer upgrade then mixer build --platform ios worked from stock 26.0 input. The stock manifest and generated project both moved to 17.0 in the published copy. Editing the manifest preserves its bytes. Before the fix, ordinary build exited 65 because AppFeatures still declared 26.0.",
+    "The root focused set passed 26 tests after refreshing the unlocked SDK projection assertion. The separate upgrade correction suite passed 13 focused cases.",
+    "Both unsigned generated Starter bundles report Info.plist MinimumOSVersion 17.0 and Mach-O minos 17.0. Both Rust archive builders produced iOS and Simulator archives at 17.0 in the host verification.",
+    "The v91 hosted source check admitted the sole changed driver row across 573 selected inputs. Pair28 keeps the public View host floor at API 36."
+  ],
+  "replay": [
+    "mixer create FloorCheck --platform ios --directory WORK/FloorCheck --sdk-path CHECKOUT/sdk",
+    "mixer export WORK/Exported --directory WORK/FloorCheck",
+    "xcodebuild -project WORK/Exported/Platforms/iOS/FloorCheck.xcodeproj -scheme FloorCheck -configuration Release -destination generic/platform=iOS CODE_SIGNING_ALLOWED=NO ARCHS=arm64 build",
+    "Repeat for generic/platform=iOS Simulator. Read each Info.plist with plutil and each executable with xcrun vtool -show-build.",
+    "Run the stock upgrade controls in AppleProjectFloorTests.swift. The host-side build recipe is docs/guides/upgrade-recover-and-exit.md."
+  ],
+  "starterRuntime": {
+    "runtime": "iOS 26.5 (23F77)",
+    "model": "iPhone 15",
+    "firstScreen": [
+      "Your project",
+      "0 of 0 completed"
+    ],
+    "matched26BaselinePNG": true,
+    "screenshotSHA256": "c54785810f0ab832aa41cbbebe6218915794fe5a45f06de76212b6068baf86a0",
+    "ownedDevicesRemoved": true
+  },
+  "fieldLogCompile": {
+    "checkout": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "input": "public pin with local SDK copy and explicit app floor 17.0",
+    "minimumInfoPlistAndMachO": "17.0",
+    "platform": "IOSSIMULATOR, arm64",
+    "scope": "ordinary unsigned app link"
+  },
+  "runtimeAvailability": {
+    "hostCIpin": "Xcode 26.3 (17C529), absent on this Mac",
+    "catalog": "https://developer.apple.com/xcode/system-requirements/",
+    "catalogEntry": "iOS 17.0 Simulator Runtime",
+    "downloadCommand": "xcodebuild -downloadPlatform iOS -buildVersion 17.0 -architectureVariant universal -exportPath WORK/download",
+    "importCommand": "xcodebuild -importPlatform /absolute/path/iOS_17_Simulator_Runtime.dmg",
+    "observed": "Xcode 27.2 refused iOS 17.0, 17.0.1, 17.2, 17.4 and 17.5 in arm64 and universal variants. Xcode 26.6 refused the universal 17.0 download. The official 17.0 disk image redirected to Apple Developer unauthorized in the unauthenticated request.",
+    "installed": [
+      "iOS 26.5",
+      "iOS 27.0"
+    ]
+  },
+  "pending": [
+    "iOS 17.x Simulator execution",
+    "FieldLog signed identity at 17.0, signed update and rollback at the runtime floor, and crossed runtime fingerprint refusals",
+    "Full scoped L01, L03, L04, L05 and L07 re-verification"
+  ]
+}

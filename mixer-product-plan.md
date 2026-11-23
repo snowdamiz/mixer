@@ -47,7 +47,7 @@ The November 23 pivot makes the UI promise concrete. Shared screens use a publis
 
 On November 23 the owner stopped the current-stack L02 and L08 work at commit `504366a0c9` and directed a pivot that fixes three go-to-market problems. Shared screens move from the explicit-ID `MixerUI` DSL to a published SwiftUI subset. Android moves from `android.widget` Views to Jetpack Compose. The iOS minimum drops from 26.0 to 17.0. The pivot research also found that the shared-design Android host requires API 36, so the pivot restores API 28 for that host.
 
-This section is binding and supersedes conflicting text elsewhere in this plan. These are approved targets. The code still declares iOS 26.0 until step UP1 lands and still requires API 36 for the shared-design Android host until step UP4 lands. Section 24.6 gives the sequence, the spike outcomes, and the file boundaries. [The execution index](PLAN.md#ui-platform-pivot-november-23-2026) holds the checklist, the current state, and the defects carried over from the checkpoint.
+This section is binding and supersedes conflicting text elsewhere in this plan. Packages and generated apps declare iOS 17.0, with UP1 runtime verification still open. The shared-design Android host requires API 36 until step UP4 lands. Section 24.6 gives the sequence, the spike outcomes, and the file boundaries. [The execution index](PLAN.md#ui-platform-pivot-november-23-2026) holds the checklist, the current state, and the defects carried over from the checkpoint.
 
 | ID | Decision | Decided by | Replaces |
 | --- | --- | --- | --- |

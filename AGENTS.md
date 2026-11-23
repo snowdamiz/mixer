@@ -29,8 +29,9 @@ customer communication, credential change, or destructive migration.
 The owner stopped the current-stack L02 and L08 work at commit `504366a0c9`
 and changed the UI platform. The approved targets are a published SwiftUI
 subset (`MixerSwiftUI`) for shared screens, Jetpack Compose on Android, an
-iOS 17.0 minimum, and API 28 for the shared-design Android host. The code
-still declares iOS 26.0 and API 36 until pivot steps UP1 and UP4 land.
+iOS 17.0 minimum, and API 28 for the shared-design Android host. The packages
+and generated apps declare iOS 17.0. UP1 runtime verification remains open,
+and the shared-design Android host retains API 36 until UP4.
 Product-plan Section 1.3 is binding, Section 24.6 sets the sequence, spike
 outcomes and file boundaries, and the `PLAN.md` pivot section is the
 checklist. Add no features to the `android.widget` renderer, the public

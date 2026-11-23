@@ -14,7 +14,7 @@ The owner set the licensing and revenue model. The core engine and the OTA updat
 
 ## UI platform pivot, November 23, 2026
 
-On November 23 the owner stopped the current-stack L02 and L08 work and started a pivot. Shared screens move from the explicit-ID `MixerUI` DSL to a published SwiftUI subset. Android moves from `android.widget` Views to Jetpack Compose. The iOS minimum drops from 26.0 to 17.0, and the shared-design Android host drops from API 36 to API 28. These are approved targets. The code still declares iOS 26.0 until UP1 lands and still requires API 36 until UP4 lands.
+On November 23 the owner stopped the current-stack L02 and L08 work and started a pivot. Shared screens move from the explicit-ID `MixerUI` DSL to a published SwiftUI subset. Android moves from `android.widget` Views to Jetpack Compose. The iOS packages and generated apps now declare 17.0. UP1 still needs signed FieldLog runtime evidence at the floor. The shared-design Android host keeps API 36 until the UP4 Compose host reaches API 28.
 
 [Product plan Section 1.3](mixer-product-plan.md#13-ui-platform-pivot-november-23-2026) holds the binding decisions. [Section 24.6](mixer-product-plan.md#246-ui-platform-pivot-sequence-november-23-2026) holds the sequence, the spike outcomes and what each one unlocks, and the file boundaries. `work-graph.json` key `uiPlatformPivot` tracks each step and spike. This section is the checklist. Check a box only when its evidence exists, such as a receipt, a test run, a screenshot, or a commit, and update the matching `uiPlatformPivot` record in the same change.
 
@@ -78,13 +78,13 @@ The checkpoint left these items open. Each renderer failure becomes a regression
 
 #### UP1. Lower the iOS minimum to 17.0
 
-- [ ] Change the `.iOS("26.0")` platform line to `.iOS("17.0")` in the ten `Package.swift` files of the root, `sdk`, `runtime`, `updates`, `native-sdk`, `capabilities`, `capability-activation`, `activation`, `runtime-identity`, and `experimental-capability-runtime` packages.
-- [ ] Generate 17.0 in `cli/Sources/MixerBuild/ProjectGenerator.swift:173` and `cli/Sources/MixerBuild/AppleProject.swift:286`.
-- [ ] Keep byte-exact recognition of the two existing 26.0 templates and the legacy 17 template. Migrate a recognized 26.0 project to 17.0 once, in one transaction, and make every later regeneration byte-identical. Keep refusing projects with app-owned edits. Add fixtures for all four cases.
-- [ ] Set `IPHONEOS_DEPLOYMENT_TARGET=17.0` in `runtime/build-vm.py` and `experimental-capability-runtime/build-vm.py`, and update the target triples in `experimental-capability-runtime/build-verification/run.py`.
-- [ ] Update the CLI tests that assert 26.0, and make minimum-target compilation the availability check in CI.
-- [ ] Find the oldest iOS 17.x Simulator runtime that the pinned Xcode supports, and record the install command. If none exists, record that blocker, keep the runtime exit pending, and finish the other UP1 boxes.
-- [ ] Update `README.md`, `sdk/README.md`, and `docs/apple-native-appearance-v2.md`.
+- [x] Change the `.iOS("26.0")` platform line to `.iOS("17.0")` in the ten `Package.swift` files of the root, `sdk`, `runtime`, `updates`, `native-sdk`, `capabilities`, `capability-activation`, `activation`, `runtime-identity`, and `experimental-capability-runtime` packages.
+- [x] Generate 17.0 in `cli/Sources/MixerBuild/ProjectGenerator.swift` and `cli/Sources/MixerBuild/AppleProject.swift`.
+- [x] Recognize both stock 26.0 templates and the legacy 17.0 template byte for byte. Migrate recognized projects with the existing transaction, including the untouched stock Starter manifest during `mixer upgrade`. Regenerate byte for byte and refuse modified generated projects. The four fixture cases and interrupted-transaction tests passed.
+- [x] Set `IPHONEOS_DEPLOYMENT_TARGET=17.0` in both `build-vm.py` scripts and update the experimental verification target triples. Both Rust builders produced iOS and iOS Simulator archives at the new floor.
+- [x] Update the CLI tests and configure CI to check 17.0 in the generated device and Simulator app binaries and Info.plist. Hosted runner evidence is tracked separately.
+- [ ] Qualify the oldest iOS 17.x Simulator runtime with the pinned Xcode. The iOS 17.0 runtime is the first released entry in Apple's catalog. The host's Xcode catalog refused the 17.x downloads and the cataloged disk image required Apple Developer access. The runtime exit remains pending. [Commands and observations](verification/receipts/ui-platform-pivot-up1-floor-20261123.json)
+- [x] Update `README.md`, `sdk/README.md`, and `docs/apple-native-appearance-v2.md`.
 - [ ] Exit. Meet the UP1 exit check in product plan Section 24.6. The starter builds, launches, and renders. FieldLog's signed iOS update route, not the starter, delivers the update and the rollback.
 - [ ] Record scoped re-verification for L01, L03, L04, L05, and L07.
 

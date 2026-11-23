@@ -10,7 +10,7 @@ private let floor17 = "IPHONEOS_DEPLOYMENT_TARGET = 17.0;"
 @Test(arguments: ["26-debug", "26", "17-legacy", "26-edited"])
 func recognizesHistoricalIOSProjectsByTheirBytes(_ variant: String) throws {
     let fm = FileManager.default
-    let workspace = fm.temporaryDirectory.appendingPathComponent("mixer-ios-floor-\(UUID())")
+    let workspace = floorTestWorkspace("generation")
     defer { try? fm.removeItem(at: workspace) }
     let sdk = workspace.appendingPathComponent("sdk")
     try fm.createDirectory(at: sdk, withIntermediateDirectories: true)
@@ -63,6 +63,72 @@ func recognizesHistoricalIOSProjectsByTheirBytes(_ variant: String) throws {
     #expect(try Data(contentsOf: nativeSource) == appOwned)
 }
 
+@Test(arguments: ["26-debug", "26", "edited-manifest", "custom-floor", "26-edited"])
+func upgradesStockIOSStarterInThePublishedCopy(_ variant: String) throws {
+    let fm = FileManager.default
+    let workspace = floorTestWorkspace("upgrade")
+    defer { try? fm.removeItem(at: workspace) }
+    let oldSDK = workspace.appendingPathComponent("old-sdk")
+    let newSDK = workspace.appendingPathComponent("new-sdk")
+    for sdk in [oldSDK, newSDK] {
+        try fm.createDirectory(at: sdk, withIntermediateDirectories: true)
+        try Data("// \(sdk.lastPathComponent) fixture\n".utf8).write(to: sdk.appendingPathComponent("Package.swift"))
+    }
+    for module in ["MixerCore", "MixerUI", "MixerApple", "MixerGuest", "MixerCapabilities", "MixerAndroid"] {
+        let directory = newSDK.appendingPathComponent("Sources/\(module)")
+        try fm.createDirectory(at: directory, withIntermediateDirectories: true)
+        try Data("// SDK fixture\n".utf8).write(to: directory.appendingPathComponent("Fixture.swift"))
+    }
+
+    let root = workspace.appendingPathComponent("old")
+    let destination = workspace.appendingPathComponent("new")
+    _ = try SuiteOwnedRunner.create(name: "FloorApp", application: "dev.mixer.floorapp", destination: root, sdk: oldSDK)
+    let resources = try #require(Bundle.module.resourceURL)
+    let stock26 = try Data(contentsOf: resources.appendingPathComponent("Fixtures/AppleProject/26-Package.swift"))
+    let manifest = "Package.swift"
+    let stock17 = try Data(contentsOf: root.appendingPathComponent(manifest))
+    let oldManifest: Data
+    switch variant {
+    case "edited-manifest": oldManifest = stock26 + Data("\n// App-owned edit\n".utf8)
+    case "custom-floor":
+        oldManifest = Data(String(decoding: stock26, as: UTF8.self)
+            .replacingOccurrences(of: ".iOS(\"26.0\")", with: ".iOS(\"18.0\")").utf8)
+    default: oldManifest = stock26
+    }
+    try oldManifest.write(to: root.appendingPathComponent(manifest))
+    let project = "Platforms/iOS/FloorApp.xcodeproj/project.pbxproj"
+    let receipt = "Platforms/iOS/FloorApp.xcodeproj/mixer-generated.sha256"
+    let oldProject = try projectFixture(variant.hasPrefix("26") ? variant : "26-debug")
+    try oldProject.write(to: root.appendingPathComponent(project))
+    try projectReceipt(oldProject).write(to: root.appendingPathComponent(receipt))
+    let original = try SourceDigest.tree(root)
+    let originalLock = try Data(contentsOf: root.appendingPathComponent("mixer.lock"))
+
+    if variant == "26-edited" {
+        let failure = #expect(throws: MixerFailure.self) {
+            try SuiteOwnedRunner.guarded {
+                try ProjectBuild.upgrade(root: root, destination: destination, sdk: newSDK, androidAdapter: nil)
+            }
+        }
+        #expect(failure?.code == "generate.modified")
+        #expect(!fm.fileExists(atPath: destination.path))
+        let workspaceEntries = try fm.contentsOfDirectory(atPath: workspace.path)
+        #expect(!workspaceEntries.contains { $0.hasPrefix(".mixer-export-") })
+    } else {
+        _ = try SuiteOwnedRunner.guarded {
+            try ProjectBuild.upgrade(root: root, destination: destination, sdk: newSDK, androidAdapter: nil)
+        }
+        let expectedProject = oldManifest == stock26 ? try currentProjectBytes() : oldProject
+        #expect(try Data(contentsOf: destination.appendingPathComponent(manifest)) == (oldManifest == stock26 ? stock17 : oldManifest))
+        #expect(try Data(contentsOf: destination.appendingPathComponent(project)) == expectedProject)
+        #expect(try Data(contentsOf: destination.appendingPathComponent(receipt)) == projectReceipt(expectedProject))
+        #expect(try Data(contentsOf: destination.appendingPathComponent("mixer.lock")) != originalLock)
+        let lock = try SuiteOwnedRunner.verifyLock(root: destination)
+        #expect(try lock.sdkDigest == SourceDigest.tree(newSDK))
+    }
+    #expect(try SourceDigest.tree(root) == original)
+}
+
 @Test(arguments: [false, true], [false, true])
 func recoversInterruptedIOSFloorGeneration(olderTransaction: Bool, projectWritten: Bool) throws {
     struct Artifacts: Encodable {
@@ -73,7 +139,7 @@ func recoversInterruptedIOSFloorGeneration(olderTransaction: Bool, projectWritte
         let before: Artifacts
         let after: Artifacts
     }
-    let root = FileManager.default.temporaryDirectory.appendingPathComponent("mixer-ios-floor-recovery-\(UUID())")
+    let root = floorTestWorkspace("recovery")
     let project = root.appendingPathComponent("Platforms/iOS/FloorApp.xcodeproj")
     try FileManager.default.createDirectory(at: project, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: root) }
@@ -94,6 +160,12 @@ func recoversInterruptedIOSFloorGeneration(olderTransaction: Bool, projectWritte
     #expect(try AppleProject.generate(root: root).path == project.path)
     #expect(try Data(contentsOf: pbxproj) == expected)
     #expect(try Data(contentsOf: receipt) == projectReceipt(expected))
+}
+
+private func floorTestWorkspace(_ purpose: String) -> URL {
+    let directory = ProcessInfo.processInfo.environment["TMPDIR"].map { URL(fileURLWithPath: $0, isDirectory: true) }
+        ?? FileManager.default.temporaryDirectory
+    return directory.appendingPathComponent("mixer-ios-floor-\(purpose)-\(UUID())")
 }
 
 private func projectFixture(_ name: String) throws -> Data {
