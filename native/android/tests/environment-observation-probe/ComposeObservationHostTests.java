@@ -1,8 +1,15 @@
 package dev.mixer.android;
 
 import android.app.Activity;
+import android.animation.ValueAnimator;
+import android.app.UiModeManager;
+import android.content.ComponentCallbacks;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.view.View;
+import android.view.ViewTreeObserver;
+import android.view.WindowInsets;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.FrameLayout;
 import java.util.List;
 
@@ -127,9 +134,68 @@ public final class ComposeObservationHostTests {
         }
     }
 
+    private static void cleanupThroughReplacement() {
+        for (boolean recreate : new boolean[] {false, true}) {
+            try (Fixture first = new Fixture(37)) {
+                Object[] oldListeners = ObserverHostProbe.live.clone();
+                var oldAttachment = (View.OnAttachStateChangeListener) oldListeners[2];
+                if (recreate) {
+                    first.root.attached = false;
+                    first.root.windowToken = null;
+                    oldAttachment.onViewDetachedFromWindow(first.root);
+                    require(first.changes == 1 && !first.observer.ready(), "detach did not retire the observer");
+                    require(thrown(first.observer::readForCompose) instanceof AppearanceDescriptorV2.Failure,
+                        "detach allowed a read before close");
+                }
+                first.observer.close();
+                for (int slot = 0; slot < LISTENER_API.length; slot++) {
+                    String removal = "remove" + slot;
+                    // The faulting Android leaves check reference equality for the target and registration.
+                    require(ObserverHostProbe.calls.stream().filter(removal::equals).count() == 1
+                            && ObserverHostProbe.live[slot] == null
+                            && first.observer.cleanupLedger().state(slot) == NativeEnvironmentV2.Observer.RETURNED,
+                        "missing exact removal " + slot + " recreate=" + recreate);
+                }
+                Activity activity = recreate ? new Activity() : first.activity;
+                FrameLayout root = recreate ? new FrameLayout(activity) : first.root;
+                int[] liveChanges = {0};
+                try (var replacement = NativeEnvironmentV2.Observer.forCompose(activity, root,
+                        (from, change, cause, primary, fatal) -> liveChanges[0]++)) {
+                    replacement.register();
+                    var config = new Configuration();
+                    replacement.onConfigurationChanged(config);
+                    require(liveChanges[0] == 1 && replacement.readForCompose() != null, "replacement not live");
+                    int changes = first.changes;
+                    ((ComponentCallbacks) oldListeners[0]).onConfigurationChanged(config);
+                    ((View.OnLayoutChangeListener) oldListeners[1]).onLayoutChange(first.root, 0, 0, 320, 480, 0, 0, 320, 300);
+                    oldAttachment.onViewAttachedToWindow(first.root);
+                    oldAttachment.onViewDetachedFromWindow(first.root);
+                    ((ViewTreeObserver.OnWindowFocusChangeListener) oldListeners[3]).onWindowFocusChanged(false);
+                    ((View.OnApplyWindowInsetsListener) oldListeners[4]).onApplyWindowInsets(first.root, new WindowInsets());
+                    ((UiModeManager.ContrastChangeListener) oldListeners[5]).onContrastChanged(1);
+                    ((AccessibilityManager.HighContrastTextStateChangeListener) oldListeners[6]).onHighContrastTextStateChanged(true);
+                    ((ValueAnimator.DurationScaleChangeListener) oldListeners[7]).onChanged(0);
+                    require(first.changes == changes && liveChanges[0] == 1, "retired callbacks escaped");
+                    require(thrown(first.observer::readForCompose) instanceof AppearanceDescriptorV2.Failure,
+                        "replacement reopened the retired read");
+                    first.observer.close();
+                    for (int slot = 0; slot < LISTENER_API.length; slot++) {
+                        String removal = "remove" + slot;
+                        require(ObserverHostProbe.live[slot] != null
+                                && ObserverHostProbe.calls.stream().filter(removal::equals).count() == 1,
+                            "retired close touched replacement slot " + slot);
+                    }
+                }
+            }
+        }
+        System.out.println("PASS exact target and registration identity in all eight removal slots, retired callbacks quiet,"
+            + " and replacement live with both the original and a new root");
+    }
+
     public static void main(String[] args) {
         sdkMatrix();
         valuesAndFailures();
+        cleanupThroughReplacement();
         System.out.println("PASS Compose observation policies and listener cleanup for API 28 through 37 with host leaves");
     }
 }

@@ -90,11 +90,11 @@ The checkpoint left these items open. Each renderer failure becomes a regression
 
 #### UP2. Define the Android accessibility observation policy
 
-- [ ] Write the policy per API level. Today exact insets need API 30, font adjustment API 31, animator scale API 33, system contrast API 34, and high-contrast text API 36 (`NativeEnvironmentPlatformV2.java:134`). For each observation, say what the host renders when it is known, unavailable on that API level, or failed, and which listener owns it.
-- [ ] Keep failed reads of required observations fail-closed. An observation that the API level cannot provide is not a failure.
-- [ ] Define how the shared theme renders when high-contrast text or bold text is on. UP4 removes the refusal in `AppearanceResolverV2.java` for the Compose host, and UP5 removes it in `sdk/Sources/MixerUI/AppearanceResolutionV2.swift`, each with rendering evidence.
-- [ ] Implement the policy in `NativeEnvironmentV2.java` and `NativeEnvironmentPlatformV2.java`. Leave the resolvers, the frozen View renderer, and its API 36 floor unchanged.
-- [ ] Exit. An observation-only instrumentation probe passes startup, text scaling, contrast changes, high-contrast text on API 36 and later, bold text, and listener cleanup on API 28, 35, 36, and 37 emulators.
+- [x] Write the policy per API level. Today exact insets need API 30, font adjustment API 31, animator scale API 33, system contrast API 34, and high-contrast text API 36 (`NativeEnvironmentPlatformV2.java:134`). For each observation, say what the host renders when it is known, unavailable on that API level, or failed, and which listener owns it.
+- [x] Keep failed reads of required observations fail-closed. An observation that the API level cannot provide is not a failure.
+- [x] Define how the shared theme renders when high-contrast text or bold text is on. UP4 removes the refusal in `AppearanceResolverV2.java` for the Compose host, and UP5 removes it in `sdk/Sources/MixerUI/AppearanceResolutionV2.swift`, each with rendering evidence.
+- [x] Implement the policy in `NativeEnvironmentV2.java` and `NativeEnvironmentPlatformV2.java`. Leave the resolvers, the frozen View renderer, and its API 36 floor unchanged.
+- [x] Exit. An observation-only instrumentation probe passes startup, text scaling, contrast changes, high-contrast text on API 36 and later, bold text, and listener cleanup on API 28, 35, 36, and 37 emulators. The same signed probe passed on all four. It verified retired-listener cleanup and fresh typed reads after configuration recreation. [Matrix evidence](verification/receipts/ui-platform-pivot-up2-native-20261123.json)
 
 #### UP3. Run spikes S1 to S5
 

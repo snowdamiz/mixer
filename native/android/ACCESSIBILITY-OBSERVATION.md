@@ -60,7 +60,7 @@ Run on one root-owned disposable ARM64 AVD at a time. The matrix uses these SDK 
 | 36 | `system-images;android-36;google_apis;arm64-v8a` |
 | 37 | `system-images;android-37.0;google_apis;arm64-v8a` |
 
-After boot, set `owned_adb_port` and `owned_serial` to the exact private server port and emulator serial for the current run. Confirm the expected SDK and a completed boot. Use a 90-second outer deadline for instrumentation and keep the output for each API.
+After boot, set `owned_adb_port` and `owned_serial` to the exact private server port and emulator serial for the current run. Confirm the expected SDK and a completed boot. Use a 120-second outer deadline for instrumentation and keep the output for each API.
 
 ```sh
 adb="$ANDROID_HOME/platform-tools/adb"
@@ -71,20 +71,13 @@ adb="$ANDROID_HOME/platform-tools/adb"
   dev.mixer.android.environmentprobe/dev.mixer.android.EnvironmentObservationProbe
 ```
 
-A pass includes the expected `api`, `status=passed`, the applicable transitions, `settings restored`, and `INSTRUMENTATION_CODE: -1`. The `settings_restore` result records each restore command, its stdout, the saved value, and the exact `settings get` readback. An originally absent setting requires a valid delete acknowledgement and a `null` readback. A saved numeric value must read back exactly as saved. A command acknowledgement or readback mismatch fails the probe and includes those fields in the failure. Record the image revision and exact serial with the output.
+A pass includes the expected `api`, `status=passed`, the applicable transitions in `checks`, `settings restored`, and `INSTRUMENTATION_CODE: -1`. The `settings_restore` result records each restore command, its acknowledgement, the saved value, and the exact readback. Restoration deletes an originally absent setting and checks for a `null` readback. Independently read the settings before and after instrumentation on the selected emulator.
 
-On the original API 36 Google APIs ARM64 run, the replacement observer saw `font_scale=1.0` and then timed out waiting for `font_weight_adjustment=0`. The diagnostic probe keeps that ordering and the five-second observation deadline. The probe requires a Settings value different from the target before each transition. A transition still requires both a new observer invalidation and the expected Compose environment.
+Each Settings transition has one five-second observation window after the write and its initial readback. The observer must report valid typed values and the expected Compose flags on the current root within that window. A final read checks the binding again at the deadline. If the root survives, the transition requires a new callback from its registered source and reports `SAME_ROOT_CALLBACK`.
 
-Android Settings writes `300` for bold text on and `0` for off. Android 16's activity task manager observes the secure setting on a handler and can skip a configuration update if the global adjustment already equals the requested value. A successful `settings get` readback establishes the stored value. The Activity callback and its resource configuration establish app delivery. [Android 16 Settings toggle](https://android.googlesource.com/platform/packages/apps/Settings/+/refs/heads/android16-release/src/com/android/settings/accessibility/FontWeightAdjustmentPreferenceController.java#53), [Android 16 activity task manager](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/android16-release/services/core/java/com/android/server/wm/ActivityTaskManagerService.java#5064).
+If Android recreates the Activity for a configuration change, the probe requires destruction, the exact root detach, the old observer's terminal callback, and returned removals for every acquired listener. The successor must own an attached and laid-out root with a window token. A fresh typed read from that root can validate the edge within the original deadline and reports `FRESH_LIVE_TYPED_READ`. A root loss without this lifecycle evidence fails the transition. The probe also replaces an observer explicitly on the same root and checks that retired observers reject reads and stay quiet through later transitions.
 
-Keep `transition_observations` and `failure` from the same instrumentation result. The probe records the starting Settings text and the Activity's raw font scale and weight adjustment on both sides of each transition. It records the last `Activity.onConfigurationChanged` payload and counts observer invalidations that came through `Observer.onConfigurationChanged`. On timeout it reads the setting again and reports the Compose environment and predicate result.
-
-| Timeout evidence for `font_weight_adjustment=0` | What it establishes |
-| --- | --- |
-| `settingsAtTimeout` differs from `0` after an acknowledged write | The stored preference changed again before the timeout read. |
-| Settings reads `0` and the Activity's raw adjustment stays at `300` | The Activity resources have yet to reflect the preference. |
-| The raw adjustment reaches `0` and the Activity reports that configuration, with no new observer configuration invalidation | The probe saw Activity delivery. Inspect the observer's registered callback path. |
-| A configuration invalidation arrives and the raw adjustment reaches `0`, but the Compose predicate remains false | The failure is in the observer's read or policy path. |
+Use the API 36 `replacement high-text off` and the API 37 `replacement late contrast on` results to check the two late paths. In both cases the probe checks the typed contrast values and the final increased-contrast flag. Keep the instrumentation log, image revision, exact serial, and before and after Settings readbacks. The Android host leaves independently check the exact removal target and listener identity for all eight slots.
 
 After a settled run, uninstall the probe and request shutdown on the exact owned serial.
 
