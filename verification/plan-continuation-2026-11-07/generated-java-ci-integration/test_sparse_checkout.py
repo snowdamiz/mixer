@@ -116,7 +116,8 @@ def admission_paths(root=None, binding=None):
                     'android_stock_libz_transition', 'pair26_transition', 'pair27_transition',
                     'stock_ios_generator_transition', 'stock_ios_simulator_archive_transition',
                     'stock_ios_debug_transition', 'up1_pair28_transition',
-                    'up2_pair29_transition', 'hosted_v92_transition'):
+                    'up2_pair29_transition', 'hosted_v92_transition', 's4_display_receipt_transition',
+                    'swiftui_controls_transition', 'up5_pair30_transition', 'hosted_v93_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -520,7 +521,14 @@ class SparseControls(unittest.TestCase):
             up2 = binding['up2_pair29_transition']
             self.assertEqual(up2['sourceBefore'], up1['sourceAfter'])
             self.assertEqual(observed['predecessor_up1_pair28_source158_sha256'], up2['sourceBefore'])
-            self.assertEqual(observed['source_sha256'], up2['sourceAfter'])
+            s3 = binding['s3_swiftui_transition']
+            controls = binding['swiftui_controls_transition']
+            up5 = binding['up5_pair30_transition']
+            self.assertEqual(s3['sourceBefore'], up2['sourceAfter'])
+            self.assertEqual(controls['sourceBefore'], s3['sourceAfter'])
+            self.assertEqual(up5['sourceBefore'], controls['sourceAfter'])
+            self.assertEqual(observed['predecessor_swiftui_controls_source163_sha256'], up5['sourceBefore'])
+            self.assertEqual(observed['source_sha256'], up5['sourceAfter'])
             self.assertEqual(observed['source_sha256'], binding['source']['sha256'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']
@@ -625,6 +633,29 @@ class SparseControls(unittest.TestCase):
                 self.assertFalse((restored / name).exists(), name)
 
             source_inputs = json.loads((repo / SOURCE_BINDING.parent / binding['source']['manifest']).read_bytes())
+            for prefix, transition in (
+                ('up5-pair30-predecessor-bytes', up5),
+                ('swiftui-controls-predecessor-bytes', controls),
+            ):
+                self.assertEqual(B.canonical().source_digest(source_inputs), transition['sourceAfter'])
+                for name, change in transition['changes'].items():
+                    if name in source_inputs:
+                        self.assertEqual(source_inputs[name], change['after'])
+                        source_inputs[name] = change['before']
+                    path = repo / name
+                    current = path.read_bytes()
+                    with self.subTest(predecessor=prefix, stale=name):
+                        try:
+                            path.write_bytes((repo / SOURCE_BINDING.parent / prefix / name).read_bytes())
+                            failed = command(python + [str(adopter), 'verify', '--workflow-installed'])
+                            self.assertEqual(failed.returncode, 1)
+                            self.assertIn(('Owning bytes differ: ' + name).encode(), failed.stderr)
+                        finally:
+                            path.write_bytes(current)
+                self.assertEqual(B.canonical().source_digest(source_inputs), transition['sourceBefore'])
+            for name, identity in s3['additions'].items():
+                self.assertEqual(source_inputs.pop(name), identity)
+            self.assertEqual(B.canonical().source_digest(source_inputs), s3['sourceBefore'])
             for prefix, transition in (
                 ('up2-pair29-predecessor-bytes', up2),
                 ('up1-pair28-predecessor-bytes', up1),

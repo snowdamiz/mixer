@@ -1,0 +1,98 @@
+public protocol View {
+    associatedtype Body: View
+
+    @ViewBuilder var body: Body { get }
+}
+
+extension View where Body == Never {
+    public var body: Never { fatalError("A primitive view has no body") }
+}
+
+extension Never: View {
+    public typealias Body = Never
+}
+
+@resultBuilder
+public enum ViewBuilder {
+    public static func buildBlock<Content: View>(_ content: Content) -> Content {
+        content
+    }
+
+    public static func buildBlock(_ children: any View...) -> ViewGroup {
+        ViewGroup(children: children)
+    }
+
+    public static func buildOptional<Content: View>(_ content: Content?) -> OptionalContent<Content> {
+        OptionalContent(content: content)
+    }
+
+    public static func buildEither<First: View, Second: View>(
+        first: First
+    ) -> ConditionalContent<First, Second> {
+        .first(first)
+    }
+
+    public static func buildEither<First: View, Second: View>(
+        second: Second
+    ) -> ConditionalContent<First, Second> {
+        .second(second)
+    }
+
+    public struct ViewGroup: View {
+        public typealias Body = Never
+        let children: [any View]
+    }
+
+    public struct OptionalContent<Content: View>: View {
+        public typealias Body = Never
+        let content: Content?
+    }
+
+    public enum ConditionalContent<First: View, Second: View>: View {
+        public typealias Body = Never
+        case first(First)
+        case second(Second)
+    }
+}
+
+public struct Text: View {
+    public typealias Body = Never
+    let title: String
+
+    public init(_ title: String) {
+        self.title = title
+    }
+}
+
+public struct VStack<Content: View>: View {
+    public typealias Body = Never
+    let content: Content
+
+    public init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+}
+
+public struct Button: View {
+    public typealias Body = Never
+    let title: String
+    let action: () -> Void
+
+    public init(_ title: String, action: @escaping () -> Void) {
+        self.title = title
+        self.action = action
+    }
+}
+
+public struct ForEach<Element, ID: Hashable, Content: View>: View {
+    public typealias Body = Never
+    let data: [Element]
+    let id: KeyPath<Element, ID>
+    let content: (Element) -> Content
+
+    public init(_ data: [Element], id: KeyPath<Element, ID>, @ViewBuilder content: @escaping (Element) -> Content) {
+        self.data = data
+        self.id = id
+        self.content = content
+    }
+}

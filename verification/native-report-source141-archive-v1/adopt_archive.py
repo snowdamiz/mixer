@@ -392,6 +392,7 @@ HOSTED_V90_PREFIX = 'hosted-v90-predecessor-bytes/'
 UP1_FLOOR_WORKFLOW_PREFIX = 'up1-floor-workflow-predecessor-bytes/'
 HOSTED_V91_PREFIX = 'hosted-v91-predecessor-bytes/'
 HOSTED_V92_PREFIX = 'hosted-v92-predecessor-bytes/'
+HOSTED_V93_PREFIX = 'hosted-v93-predecessor-bytes/'
 PAIR26_PREFIX = 'pair26-predecessor-bytes/'
 PAIR26_PREDECESSOR_REVISION = '613fb3c10e6cbf06eb990b9639ec672115bc50fe'
 PAIR26_SOURCE_SHA256 = '23389c8ae9f34678b546bd740947a3d9fdd39f0840aeac50534b0821f15aa5fb'
@@ -503,6 +504,31 @@ S3_SWIFTUI_SOURCE_SHA256 = '7596b0e4dbd0a50cf4223cc44e117c358ee46dc939c05770daa6
 S3_SWIFTUI_SOURCE_ADDITIONS = {'sdk/Sources/MixerSwiftUI/' + name for name in (
     'FeatureExecutor.swift', 'FeatureSession.swift', 'State.swift', 'ViewEvaluation.swift', 'Views.swift',
 )}
+
+SWIFTUI_CONTROLS_PREFIX = 'swiftui-controls-predecessor-bytes/'
+SWIFTUI_CONTROLS_REVIEWED_REVISION = '2329a677444e32491292f63bd975defdae3225b4'
+SWIFTUI_CONTROLS_SOURCE_SHA256 = '59b1b6bd94aaa07cf08a8f8e45823a986f37b18c7a612465c1860609f02d3a19'
+SWIFTUI_CONTROLS_REPLACEMENTS = {'sdk/Sources/MixerSwiftUI/' + name for name in (
+    'FeatureSession.swift', 'State.swift', 'ViewEvaluation.swift', 'Views.swift',
+)}
+
+UP5_PAIR30_PREFIX = 'up5-pair30-predecessor-bytes/'
+UP5_PAIR30_SOURCE_SHA256 = '4554ccc3e2f28ab24e3f19c0d344071eb81cf80501a49f71c33e719d80b0022b'
+UP5_PAIR30_SOURCE_REPLACEMENTS = {
+    'cli/Sources/MixerBuild/AndroidSDKCompatibility.swift',
+    'cli/Sources/MixerBuild/ProjectGenerator.swift',
+    'sdk/Package.swift',
+    ANDROID_BUILD_DRIVER,
+    EXPORT_RUNNER,
+}
+UP5_PAIR30_REPLACEMENTS = UP5_PAIR30_SOURCE_REPLACEMENTS | {
+    'Package.swift',
+    'cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift',
+    'cli/Tests/MixerBuildTests/GeneratedPublicAndroidV4Tests.swift',
+    JAVA + 'bootstrap.py',
+    JAVA + 'test_bootstrap.py',
+    SPARSE_CHECKOUT_TEST,
+}
 
 S4_DISPLAY_RECEIPT_PREFIX = 's4-display-receipt-predecessor-bytes/'
 S4_DISPLAY_RECEIPT_PREDECESSOR_REVISION = '51b5cc47da8160d3249a46bc3fb3e480a40eac43'
@@ -640,6 +666,10 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
 } | {
     S4_DISPLAY_RECEIPT_PREFIX + name for name in S4_DISPLAY_RECEIPT_CHANGES
 } | {
+    SWIFTUI_CONTROLS_PREFIX + name for name in SWIFTUI_CONTROLS_REPLACEMENTS
+} | {
+    UP5_PAIR30_PREFIX + name for name in UP5_PAIR30_REPLACEMENTS
+} | {
     SWIFT_VERSION_PREFIX + name for name in SWIFT_VERSION_CHANGES
 } | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
@@ -673,6 +703,7 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     UP1_FLOOR_WORKFLOW_PREFIX + VERIFY_WORKFLOW,
     *(HOSTED_V91_PREFIX + name for name in HOSTED_V74_CHANGES),
     *(HOSTED_V92_PREFIX + name for name in HOSTED_V74_CHANGES),
+    *(HOSTED_V93_PREFIX + name for name in HOSTED_V74_CHANGES),
     PAIR25_RUST_NOTICES_PREIMAGE,
     STATEFUL_WAST_NOTICE_PREIMAGE,
     PAIR25_NETWORK_CRYPTO_NOTICE_PREIMAGE,
@@ -843,7 +874,7 @@ def install_inputs():
                              'hosted_v83_transition', 'hosted_v84_transition', 'hosted_v85_transition',
                              'hosted_v86_transition', 'hosted_v87_transition', 'hosted_v88_transition',
                              'hosted_v89_transition', 'hosted_v90_transition', 'up1_floor_workflow_transition',
-                             'hosted_v91_transition', 'hosted_v92_transition', 'pair25_rust_notices',
+                             'hosted_v91_transition', 'hosted_v92_transition', 'hosted_v93_transition', 'pair25_rust_notices',
                              'stateful_wast_notices', 'pair25_network_crypto_notices',
                              'android_inspection_deadline_transition', 'receipt_directory_transition',
                              'receipt_parent_url_test_transition', 'swiftpm_migration_transition',
@@ -852,6 +883,7 @@ def install_inputs():
                              'stock_ios_simulator_archive_transition', 'stock_ios_debug_transition',
                              'up1_pair28_transition', 'up2_pair29_transition',
                              's3_swiftui_transition', 's4_display_receipt_transition',
+                             'swiftui_controls_transition', 'up5_pair30_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -1855,6 +1887,7 @@ def install_inputs():
         ('up1_floor_workflow_transition', UP1_FLOOR_WORKFLOW_PREFIX, {VERIFY_WORKFLOW}),
         ('hosted_v91_transition', HOSTED_V91_PREFIX, HOSTED_V74_CHANGES),
         ('hosted_v92_transition', HOSTED_V92_PREFIX, HOSTED_V74_CHANGES),
+        ('hosted_v93_transition', HOSTED_V93_PREFIX, HOSTED_V74_CHANGES),
     ):
         transition = binding[transition_key]
         require(set(transition) == {'changes'} and set(transition['changes']) == changes and
@@ -2355,11 +2388,47 @@ def install_inputs():
                 'S3 MixerSwiftUI source mode differs: ' + name)
     expected_source.update(s3['additions'])
     installed.update(s3['additions'])
-    require(current == expected_source and len(current) == 163 and
-            previous.digest(current) == s3['sourceAfter'] == S3_SWIFTUI_SOURCE_SHA256 and
-            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
-                                  'sha256': s3['sourceAfter']},
+    require(len(expected_source) == 163 and
+            previous.digest(expected_source) == s3['sourceAfter'] == S3_SWIFTUI_SOURCE_SHA256,
             'S3 MixerSwiftUI source transition differs')
+
+    controls = binding['swiftui_controls_transition']
+    up5 = binding['up5_pair30_transition']
+    require(set(controls) == {'reviewedRevision', 'sourceBefore', 'sourceAfter', 'changes'} and
+            controls['reviewedRevision'] == SWIFTUI_CONTROLS_REVIEWED_REVISION and
+            set(up5) == {'sourceBefore', 'sourceAfter', 'changes', 'profileAfter'},
+            'MixerSwiftUI controls or Pair30 transition fields differ')
+    for transition, prefix, changes, source_changes, before, after in (
+        (controls, SWIFTUI_CONTROLS_PREFIX, SWIFTUI_CONTROLS_REPLACEMENTS, SWIFTUI_CONTROLS_REPLACEMENTS,
+         S3_SWIFTUI_SOURCE_SHA256, SWIFTUI_CONTROLS_SOURCE_SHA256),
+        (up5, UP5_PAIR30_PREFIX, UP5_PAIR30_REPLACEMENTS, UP5_PAIR30_SOURCE_REPLACEMENTS,
+         SWIFTUI_CONTROLS_SOURCE_SHA256, UP5_PAIR30_SOURCE_SHA256),
+    ):
+        require(transition['sourceBefore'] == before and
+                set(transition['changes']) == changes and changes <= installed.keys() and
+                changes & expected_source.keys() == source_changes,
+                'MixerSwiftUI transition predecessor or roster differs: ' + prefix)
+        for name, change in transition['changes'].items():
+            path = HERE / prefix / name
+            raw = read_predecessor_member(path)
+            require(set(change) == {'before', 'after', 'mode'} and
+                    change['before'] == previous.row(raw) == installed[name] and
+                    change['before'] != change['after'] and
+                    change['mode'] == stat.S_IMODE(path.lstat().st_mode) ==
+                    stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                    'MixerSwiftUI predecessor bytes or owner mode differ: ' + name)
+            if name in source_changes:
+                require(expected_source[name] == change['before'],
+                        'MixerSwiftUI source preimage differs: ' + name)
+                expected_source[name] = change['after']
+            installed[name] = change['after']
+            preimages.setdefault(name, (raw, change['mode']))
+        require(len(expected_source) == 163 and previous.digest(expected_source) == transition['sourceAfter'] == after,
+                'MixerSwiftUI transition digest differs: ' + prefix)
+    require(current == expected_source and
+            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
+                                  'sha256': UP5_PAIR30_SOURCE_SHA256},
+            'UP5 native SDK source selection differs')
 
     s4 = binding['s4_display_receipt_transition']
     require(set(s4) == {'baseRevision', 'changes'} and
@@ -2470,9 +2539,16 @@ def install_inputs():
                                                           for name in UP2_PAIR29_ADAPTER_REPLACEMENTS}}
     expected_profile = {**expected_pair28, 'id': 'mixer.android-source-pair.29', 'adapter_files': adapter_files,
                         'adapter_compatibility_sha256': previous.digest(adapter_files)}
-    require(up2_pair29['profileAfter'] == expected_profile == profile and
+    require(up2_pair29['profileAfter'] == expected_profile, 'Archive UP2 Pair29 adapter profile differs')
+    sdk_manifest = up5['changes']['sdk/Package.swift']
+    require(expected_profile['sdk_files']['Package.swift'] == sdk_manifest['before'],
+            'Pair29 SDK manifest preimage differs')
+    sdk_files = {**expected_profile['sdk_files'], 'Package.swift': sdk_manifest['after']}
+    expected_pair30 = {**expected_profile, 'id': 'mixer.android-source-pair.30', 'sdk_files': sdk_files,
+                       'sdk_compatibility_sha256': previous.digest(sdk_files)}
+    require(up5['profileAfter'] == expected_pair30 == profile and
             previous.profile_summary(profile) == binding['profile'],
-            'Archive UP2 Pair29 adapter profile differs')
+            'Archive UP5 Pair30 SDK profile differs')
     selector_path = ROOT / 'cli/build-tests/current_android_profile.py'
     selector = previous.module('native_archive_current_selector', selector_path)
     require(selector.load_current_profile(ROOT) == profile, 'Current source-pair selector differs')
@@ -2523,6 +2599,8 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_swiftui_controls_source163_sha256': binding['up5_pair30_transition']['sourceBefore'],
+            'predecessor_s3_swiftui_source163_sha256': binding['swiftui_controls_transition']['sourceBefore'],
             'predecessor_up2_pair29_source158_sha256': binding['s3_swiftui_transition']['sourceBefore'],
             'predecessor_up1_pair28_source158_sha256': binding['up2_pair29_transition']['sourceBefore'],
             'predecessor_stock_ios_debug_source158_sha256': binding['up1_pair28_transition']['sourceBefore'],
