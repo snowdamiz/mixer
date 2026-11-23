@@ -93,6 +93,17 @@ and stopped without starting the test. Its unresolved command and
 emulator are held. L02 remains running.
 [Android Home custody receipt](verification/receipts/l02-android-note-home-probe-custody-20261122.json)
 
+## FieldLog iOS Settings and ordinary photo editor
+
+The Settings XCTest passed System, selection of Dark, and cold reopen with
+the same durable preference. The separate photo XCTest passed on the same
+disposable Simulator. It selected the fixture photo in the system picker,
+saved the manual pin, and passed the warm and cold draft checks. The
+post-test reader rejected the terminal workspace hash before reading back
+the checkerboard JPEG. The final workspace and JPEG comparison remains open.
+The runner retired the owned Simulator and the external baseline matched.
+[Split native receipt](verification/receipts/l02-ios-settings-photo-split-native-20261122.json)
+
 ## FieldLog iOS Site Map location permission
 
 An owned iOS 27 Simulator passed the denied, re-granted and injected-fix
