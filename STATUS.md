@@ -242,6 +242,13 @@ returned empty 204 responses. The independent review passed local D6
 with the existing Android, console, signer, and store fixture evidence.
 [Exact managed download and installed replay](verification/receipts/l08-d6-exact-authenticated-download-native-20261123.json)
 
+The source-only guide rebuilt FieldLog from pinned Git objects and ran
+authenticated build creation, exact owner download, publication, and
+rollback with a fresh managed product. The installed replay retains
+its exact earlier product identity.
+[D6 replay guide](tests/integration/fieldlog-d6/README.md) ·
+[Fresh replay receipt](verification/receipts/l08-d6-fresh-source-replay-20261123.json)
+
 The historical F05 iOS app passed Cancel, Add, and cold readback. An
 independent signed F10 companion installation failed before navigation
 assertions. Both simulators retired. The F05 test adds ordinary Apple
