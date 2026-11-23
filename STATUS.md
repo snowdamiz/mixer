@@ -429,6 +429,14 @@ This test uses headless presentation tickets. Installed iOS and Android
 replay remains open.
 [F11 private host action replay](verification/receipts/l08-d8-f11-private-action-host.json)
 
+The F11 arm64 Simulator compile probe emitted the pinned SDK modules
+and accepted the stock exchange constructor. The same private note
+constructor that compiled on macOS was absent for Simulator, where the
+source excludes the private constructor and codec. The probe reached
+neither app nor XCTest linking. A private Simulator profile remains in
+development.
+[F11 Simulator compile evidence](verification/receipts/l08-d8-f11-ios-private-compile.json)
+
 The Android-scoped F20 signed host replay matched the archived order of
 23 drafts and 43 entries and opened a second-page draft. The live and
 offline phases preserved the workspace and all 46 outbox records with

@@ -1,0 +1,297 @@
+{
+  "stage": "5e43e50a06d8cf17500a9732c9ea111fba5054d4",
+  "stageTree": "e53d4279b6074f862e38ffe7a0813887e62b1ae6",
+  "f04ExportTree": "d7c53c7dba790ba4635efdcda73aea3ad2263e9a",
+  "swiftCryptoRevision": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+  "tools": {
+    "xcode": "Xcode 27.2\nBuild version 27B52",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0"
+  },
+  "digests": {
+    "f04Patch": "851f70692271d0600930e3c51831fcfd68c884bfb6598f6e54a51da13c58110f",
+    "f11Exchange": "5631495534b8a9dbffe7db7abf6da9a26bff14dfdf333b85fd72c71d1d98d0c8",
+    "f11Codec": "ef98cc3582cd8521e35e262116399935fa4075e93507c27dfa876325e0e7ea21",
+    "f11InstalledWorker": "972d192cf014a4767ac71cf5a68ae248aa9849b318786aa5088ae099ae37af8f",
+    "swiftProbe": "e3938dfa125b5c5cf9825ed441e35bdd4c09ba69fe92cb265e7e4ae6b7a42545",
+    "driver": "f2f2b86d73b3c1b0d0cb9b5d6743040b68f3b564122e8ccf19aed8778aff106e"
+  },
+  "status": "blocked-at-pinned-sdk-simulator-exchange-constructor",
+  "steps": {
+    "xcode-version": 0,
+    "swift-version": 0,
+    "stage-tree": 0,
+    "f04-patch": 0,
+    "f04-source": 0,
+    "init-export-index": 0,
+    "index-export": 0,
+    "f04-apply": 0,
+    "f04-tree": 0,
+    "f11-codec": 0,
+    "crypto-source": 0,
+    "swift-path": 0,
+    "macOS-sdk": 0,
+    "emit-macOS-Crypto": 0,
+    "emit-macOS-MixerCore": 0,
+    "emit-macOS-MixerUI": 0,
+    "emit-macOS-MixerGuest": 0,
+    "macOS-stock-control": 0,
+    "macOS-private-call": 0,
+    "simulator-sdk": 0,
+    "emit-simulator-Crypto": 0,
+    "emit-simulator-MixerCore": 0,
+    "emit-simulator-MixerUI": 0,
+    "emit-simulator-MixerGuest": 0,
+    "simulator-stock-control": 0,
+    "simulator-private-call": 1
+  },
+  "simulatorModuleBuild": {
+    "step": "emit-simulator-MixerGuest",
+    "argv": [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-target",
+      "arm64-apple-ios26.0-simulator",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk",
+      "-swift-version",
+      "6",
+      "-I",
+      "$scratch/simulator",
+      "-module-cache-path",
+      "$scratch/simulator-modules",
+      "-D",
+      "MIXER_PRIVATE_FIELDLOG_EDITOR",
+      "-D",
+      "MIXER_F11_HOST_ACTION_FIXTURE",
+      "-D",
+      "MIXER_F11_IOS_FIXTURE",
+      "-package-name",
+      "mixer",
+      "-parse-as-library",
+      "-emit-module",
+      "-module-name",
+      "MixerGuest",
+      "-emit-module-path",
+      "$scratch/simulator/MixerGuest.swiftmodule"
+    ],
+    "exit": 0,
+    "swiftSources": {
+      "root": "$scratch/source/sdk/Sources/MixerGuest",
+      "glob": "**/*.swift",
+      "count": 17,
+      "order": "sorted"
+    }
+  },
+  "simulatorPrivateCall": {
+    "step": "simulator-private-call",
+    "argv": [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-target",
+      "arm64-apple-ios26.0-simulator",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk",
+      "-swift-version",
+      "6",
+      "-I",
+      "$scratch/simulator",
+      "-module-cache-path",
+      "$scratch/simulator-modules",
+      "-D",
+      "MIXER_PRIVATE_FIELDLOG_EDITOR",
+      "-D",
+      "MIXER_F11_HOST_ACTION_FIXTURE",
+      "-D",
+      "MIXER_F11_IOS_FIXTURE",
+      "-typecheck",
+      "$fixture/ExchangeConstructor.swift"
+    ],
+    "exit": 1,
+    "stderr": "$fixture/ExchangeConstructor.swift:7:33: error: incorrect argument label in call (have 'fieldLogNoteFixtureGeneration:', expected 'generation:')\n 5 |     return try GuestUIExchangeV1(generation: 1, allowsDeferredStartup: true)\n 6 |     #else\n 7 |     return try GuestUIExchangeV1(fieldLogNoteFixtureGeneration: 1)\n   |                                 `- error: incorrect argument label in call (have 'fieldLogNoteFixtureGeneration:', expected 'generation:')\n 8 |     #endif\n 9 | }\n"
+  },
+  "run": {
+    "seconds": 45.4,
+    "limitSeconds": 720,
+    "peakAllocatedKiB": 91456,
+    "limitAllocatedKiB": 1572864,
+    "network": "denied",
+    "workerPGID": 87116,
+    "workerExit": 0,
+    "workerGroupAbsent": true,
+    "scratchRemoved": true
+  },
+  "headlessMacOSControl": {
+    "status": "observed_f11_host_actions",
+    "actions": {
+      "acceptedAndDeliveredSequence": 1,
+      "action": "entry.note.change",
+      "candidate": "78b7e80dd638b8105279b48772b6ff838a6f160b6041b89f12c36e5eb6d31958",
+      "editedNoteSHA256": "c2df9d0971930a3b76c1471bc3de882c603f23c5d9240f6d265b4ab03e9d53d1",
+      "editedRevision": 2,
+      "field": "entry.f1100000-0000-4000-8000-000000000001.note",
+      "generation": 1,
+      "guestMutations": {
+        "delete": "permissionDenied",
+        "put": "permissionDenied"
+      },
+      "hostActions": {
+        "coldDraftRevision": 2,
+        "coldDraftSHA256": "6c0ed170b89a4057809018ea983b34a6a1a3a54ba93ac0fdde1ed761cea852bc",
+        "commitSHA256": "3523c60ad74b1db4d2d8d8b673606e1cdf67c7f07229bce4f46d10628993209d",
+        "committedRevision": 3,
+        "frameRevision": 2,
+        "frameSerial": 2,
+        "negativeControls": [
+          "stale frame",
+          "wrong owner",
+          "wrong attachment",
+          "wrong workspace",
+          "wrong revision",
+          "wrong action",
+          "wrong UTF-8",
+          "repeat Save",
+          "stale repository revision",
+          "repeat Commit"
+        ],
+        "transactions": {
+          "entry.commit": 1,
+          "entry.saveDraft": 1
+        }
+      },
+      "initialRevision": 1,
+      "initialWorkspaceRevision": 1,
+      "launch": "EE9B1CDB-9A67-4C15-BFF2-563EE01F9F89",
+      "lineFeedsPerView": 4,
+      "originalNoteSHA256": "c19cbfb3593e93e8a717c23046286e5c6c178166259d2a06d2203a17e81a387d",
+      "rejectedInput": [
+        "wrong attachment",
+        "wrong field",
+        "wrong action",
+        "wrong revision",
+        "stale replay"
+      ],
+      "repositoryWriteCalls": 0,
+      "retired": true,
+      "runtimeFingerprint": "9a612c24552afb6264a918ad83d87378c5261fc09eda53b66a3721cf24a089f4",
+      "stockIdentityRefused": true,
+      "turnMilliseconds": 50,
+      "wasmSHA256": "b3def2b5d11c0a350d33a44ff0cd55f4a7e97f6979e547c49ab13bde696d4fe5",
+      "workspaceReads": 1,
+      "workspaceSHA256": "334f3dbcf08b6b1e363da63fad7388fcf7496c9573c3ac0315fd4e0c87a3876d"
+    },
+    "lost": {
+      "acceptedAndDeliveredSequence": 1,
+      "action": "entry.note.change",
+      "candidate": "8c44c6e2c07199578f33306c3cfa22cb7d393008bd0bfecf41a700795d1172d5",
+      "editedNoteSHA256": "c2df9d0971930a3b76c1471bc3de882c603f23c5d9240f6d265b4ab03e9d53d1",
+      "editedRevision": 2,
+      "field": "entry.f1100000-0000-4000-8000-000000000001.note",
+      "generation": 1,
+      "guestMutations": {
+        "delete": "permissionDenied",
+        "put": "permissionDenied"
+      },
+      "hostActions": {
+        "refused": "detached revision 2 display",
+        "transactionAttempts": 0
+      },
+      "initialRevision": 1,
+      "initialWorkspaceRevision": 1,
+      "launch": "48C12B25-02E9-4C1E-BC7D-8F6943D9EC37",
+      "lineFeedsPerView": 4,
+      "originalNoteSHA256": "c19cbfb3593e93e8a717c23046286e5c6c178166259d2a06d2203a17e81a387d",
+      "rejectedInput": [
+        "wrong attachment",
+        "wrong field",
+        "wrong action",
+        "wrong revision",
+        "stale replay"
+      ],
+      "repositoryWriteCalls": 0,
+      "retired": true,
+      "runtimeFingerprint": "ba1dc4ceae43204a36e620afbd23989bfa2b84fc6940983a52b789b528af72e6",
+      "stockIdentityRefused": true,
+      "turnMilliseconds": 50,
+      "wasmSHA256": "b3def2b5d11c0a350d33a44ff0cd55f4a7e97f6979e547c49ab13bde696d4fe5",
+      "workspaceReads": 1,
+      "workspaceSHA256": "334f3dbcf08b6b1e363da63fad7388fcf7496c9573c3ac0315fd4e0c87a3876d"
+    },
+    "stock": {
+      "canonicalCBORAndFingerprints": 11,
+      "stockV1": "unsupportedNode(textField)",
+      "f04Codec": "unsupportedTextFieldAxis(vertical)"
+    },
+    "writes": {
+      "revisions": [
+        1,
+        2,
+        3,
+        3
+      ],
+      "linkedEvent": {
+        "createdAt": 817115800.297,
+        "id": "128CC2A1-AEFF-4948-991B-5DFC395A5A7B",
+        "kind": "entrySaved",
+        "recordID": "F1100000-0000-4000-8000-000000000001",
+        "revision": 3
+      },
+      "unrelatedRowsByteIdentical": true,
+      "freshProcessCommitSHA256": "3523c60ad74b1db4d2d8d8b673606e1cdf67c7f07229bce4f46d10628993209d"
+    },
+    "run": {
+      "seconds": 36.72,
+      "limitSeconds": 720,
+      "peakAllocatedKiB": 645888,
+      "limitAllocatedKiB": 1572864,
+      "workerGroupAbsent": true,
+      "scratchRemoved": true,
+      "network": "denied"
+    }
+  },
+  "checkoutReplay": {
+    "producerReceiptSHA256": "3cd19ed08004a222a759303a573b47e43c2f16a468e9ec69a383eda11d569b38",
+    "probeReceiptSHA256": "037e59a50263627aeaf55dd647f8b080139186402aaf00d80f3f197366e409b4",
+    "recipeSHA256": {
+      "tests/integration/fieldlog-d8-f11-ios-private/ExchangeConstructor.swift": "e3938dfa125b5c5cf9825ed441e35bdd4c09ba69fe92cb265e7e4ae6b7a42545",
+      "tests/integration/fieldlog-d8-f11-ios-private/README.md": "a9574d7dec7a5c7180a56ab9b96a2a76f03bbe87b4eff39e93924d95796b353e",
+      "tests/integration/fieldlog-d8-f11-ios-private/probe.py": "f2f2b86d73b3c1b0d0cb9b5d6743040b68f3b564122e8ccf19aed8778aff106e"
+    },
+    "run": {
+      "seconds": 26.23,
+      "limitSeconds": 720,
+      "peakAllocatedKiB": 91424,
+      "limitAllocatedKiB": 1572864,
+      "network": "denied",
+      "workerPGID": 28779,
+      "workerExit": 0,
+      "workerGroupAbsent": true,
+      "scratchRemoved": true
+    },
+    "verifiedMatchingSteps": [
+      "xcode-version",
+      "swift-version",
+      "stage-tree",
+      "f04-patch",
+      "f04-source",
+      "init-export-index",
+      "index-export",
+      "f04-apply",
+      "f04-tree",
+      "f11-codec",
+      "crypto-source",
+      "swift-path",
+      "macOS-sdk",
+      "emit-macOS-Crypto",
+      "emit-macOS-MixerCore",
+      "emit-macOS-MixerUI",
+      "emit-macOS-MixerGuest",
+      "macOS-stock-control",
+      "macOS-private-call",
+      "simulator-sdk",
+      "emit-simulator-Crypto",
+      "emit-simulator-MixerCore",
+      "emit-simulator-MixerUI",
+      "emit-simulator-MixerGuest",
+      "simulator-stock-control",
+      "simulator-private-call"
+    ]
+  }
+}
