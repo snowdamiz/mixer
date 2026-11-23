@@ -77,6 +77,12 @@ endpoint closures, and owned Simulator removal verified. No billing setup
 was required. This run covers the release service and delivery cut.
 [Installed outage receipt](verification/receipts/l08-ios-installed-release-service-outage-20261122.json)
 
+The stock Workerd and Go host comparison passed. The separate installed
+attempt timed out during Workerd startup before XCTest. The Node group
+closed, and the observer retained the associated scratch because it had
+neither the shutdown acknowledgement nor exact port-refusal evidence.
+The disposable Simulator was removed. [Workerd attempt](verification/receipts/l08-ios-workerd-startup-observer-20261122.json)
+
 ## In-place FieldLog public SDK adoption on iOS
 
 Three native tests created a project and saved photo draft in standalone
@@ -100,7 +106,9 @@ sequence 1 artifact. Both local services closed. Authenticated build artifact
 download and the installed release journey remain open. The two native
 baseline attempts reached the checklist view and timed out waiting for
 its health observation. The label returned its name and the value was
-empty. The next check reads the live journal on the same installation.
+empty. A fresh live read recorded sequence 1 healthy with the current
+launch and both milestones. The exact installation join stopped that run
+before sequence 2, rollback, or offline reopen.
 [Managed build receipt](verification/receipts/l08-d6-managed-fieldlog-ios-build-20261122.json)
 
 The historical F05 iOS app passed Cancel, Add, and cold readback. An
@@ -114,8 +122,10 @@ behavior to the corpus review. Its signed Android test has separate scope.
 The exact installed FieldLog executable returned a missing-entitlement
 status from its first Keychain read before sign-in. A fresh disposable
 Simulator attached the diagnostic to the exact app PID and was removed.
-The account lifecycle still needs an installed replay with a private
-Simulator development entitlement.
+The account lifecycle still needs an installed replay. Two private
+development entitlement profiles installed successfully, then the
+Simulator refused to launch the app before returning a process ID.
+The next control uses Xcode's generated Simulator signature.
 [Keychain diagnostic](verification/receipts/l02-ios-account-keychain-restore-status-20261122.json)
 
 The ordinary iOS Photos-picker journey now passes exact stopped disk

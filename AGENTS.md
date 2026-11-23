@@ -1093,3 +1093,13 @@ probing, signalling, waiting, retry, or cleanup. The compact
 `verification/receipts/l02-android-note-home-probe-custody-20261122.json` is the
 permitted reference. The Note test did not run. Continue independent host and
 iOS work under the existing device rules.
+
+The L08 iOS Workerd replay recorded terminal Node group custody and exact
+Simulator removal, but did not obtain the Workerd shutdown acknowledgment or
+observe refusal on the Workerd listener. Preserve port 57410 and
+`verification/local/fieldlog-ios-signed-resume-root/l08-workerd-ios-native-1/journey/host-origin/release-qw8mdj6j`
+without inspection, enumeration, probing, signaling, waiting, retry, or cleanup.
+Read only the compact
+`verification/receipts/l08-ios-workerd-startup-observer-20261122.json` and the
+already emitted top-level receipt metadata. Fresh Workerd validation uses
+separate private scratch and ephemeral ports.
