@@ -266,6 +266,13 @@ Disabling the form during each event caused the native keyboard to
 lose focus. Event turns stayed under 1.2 ms. Installed typing remains
 open. [F06 native responder receipt](verification/receipts/l08-d8-f06-ios-native-responder-cycle-20261123.json)
 
+The F06 private native successor passed the exact keyboard journey.
+The multiline Add reached native routing and returned invalidValue.
+After Cancel and cold reopen, the single-line Add produced one task
+and one linked outbox operation. The owned Simulator was removed.
+Android retains separately scoped offline evidence for the same Wasm.
+[Reviewed F06 native keyboard receipt](verification/receipts/l08-d8-f06-ios-native-keyboard-20261123.json)
+
 A stock local build processor and managed worker linked the arm64 iOS
 Simulator build of FieldLog and verified its committed products after
 PostgreSQL restart. The unpatched CLI refused the checked-in Xcode
