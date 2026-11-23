@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "gate": "L02",
+  "status": "failed",
+  "scope": "Ordinary SwiftUI sign-in through the synthetic Safari issuer and the real custom-scheme callback boundary",
+  "nativeRun": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-ios-signed-resume-root/l02-account-full-native-8",
+  "nativeReceiptSHA256": "854f7efc65ae4bc2f184ae7a776b7f9f2e726cc64859831a1ffe7af2beb58cf9",
+  "sanitizedObserverSHA256": "84ba065232ffed8e8911279e9bf700fd231ad55e989af803cde69fc164be1dd4",
+  "appSHA256": "9c0e9efde3a1fcf3c85323503ce528cbfe300137bf3904804908c00ed66cb248",
+  "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-27-0",
+  "phaseCount": 1,
+  "callbackDiagnostics": {
+    "issuer": [
+      {
+        "operation": "sign-in-create",
+        "status": 201
+      },
+      {
+        "operation": "sign-in-form",
+        "status": 200
+      },
+      {
+        "operation": "sign-in-submit",
+        "status": 303,
+        "origin": "fixture",
+        "location": "fieldlog-ios"
+      }
+    ],
+    "issuerOverflow": false,
+    "ui": {
+      "sign-in": [
+        "app-not-foreground",
+        "form-visible",
+        "safari-foreground",
+        "submit-ready"
+      ]
+    }
+  },
+  "xcodeExit": 65,
+  "xctest": {
+    "totalTestCount": 1,
+    "passedTests": 0,
+    "failedTests": 1,
+    "skippedTests": 0,
+    "expectedFailures": 0,
+    "fixtureFailureLines": [
+      251
+    ],
+    "knownFailureTags": [
+      "Safari callback did not open FieldLog"
+    ]
+  },
+  "cleanup": {
+    "ownedDeviceRemoved": true,
+    "privateIssuerAndPacketRemoved": true,
+    "loopbackListenersClosed": true,
+    "externalComparisons": {
+      "after-create": {
+        "exact": true,
+        "count": 13
+      },
+      "after-boot": {
+        "exact": true,
+        "count": 13
+      },
+      "after-shutdown": {
+        "exact": true,
+        "count": 13
+      },
+      "after-delete": {
+        "exact": true,
+        "count": 13
+      }
+    }
+  },
+  "result": "Safari posted the real fixture proof. The issuer returned HTTP 303 and the expected scheme. Safari remained in the foreground, with no exchange or consent alert observed. No account lifecycle claim follows."
+}

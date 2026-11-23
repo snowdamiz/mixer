@@ -152,7 +152,21 @@ during the initial wake. The history route reached one native event and
 stopped during the invocation. No route recorded a workspace write.
 [Installed F10 deadline receipt](verification/receipts/l08-ios-f10-installed-deadline-20261122.json)
 
+The user-initiated serial event pump passed all three native F10 routes
+with the original VM, payload and 50 ms turn limit. The runner failed
+during readback after XCTest. Separate recovery matched the stopped app
+and library to the seal, deleted the owned Simulator, and verified the
+external baseline. The signed fixtures were embedded in the sealed app.
+[Installed F10 route receipt](verification/receipts/l08-d8-f10-ios-qos-native-20261122.json)
+
 ## Ordinary iOS account and photo diagnostics
+
+The Xcode-sealed app opened Safari for the ordinary sign-in. The local
+issuer received the proof and responded HTTP 303 with the expected
+custom URL. Safari stayed foreground and the app did not exchange the
+callback. The synthetic issuer and owned Simulator closed. The next
+replay exercises a direct browser tap on a local continuation link.
+[Safari callback receipt](verification/receipts/l02-ios-account-safari-303-native-20261122.json)
 
 The exact installed FieldLog executable returned a missing-entitlement
 status from its first Keychain read before sign-in. A fresh disposable
