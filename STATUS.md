@@ -115,6 +115,12 @@ is 1,595 of 4,713 Swift lines. Installed gestures and accessibility
 remain open for this implementation.
 [Shared checklist presentation](verification/receipts/l08-d2-linked-shared-checklist-presentation-20261122.json)
 
+The standalone linked apps now share their queue projection and derive
+project-picker presentation from the same workspace state. The real host
+routes and native links passed. The source overlap is 1,696 of 4,861
+Swift lines. The remaining sharing and installed checks are open.
+[Shared root presentation](verification/receipts/l08-d2-linked-shared-root-presentation-20261122.json)
+
 ## In-place FieldLog public SDK adoption on iOS
 
 Three native tests created a project and saved photo draft in standalone
@@ -178,6 +184,12 @@ into an arm64 witness, and Debug and Release device targets refused the
 Simulator-only input. The Pair27 source archive remains admitted.
 [Pinned VM archive adoption](verification/receipts/l08-d6-stock-ios-pinned-vm-archive-adoption-20261122.json)
 
+The exact authenticated download received a newly bound release and
+passed the stock host publish, review, and rollback checks. Its installed
+app refused the isolated workspace before baseline. The archived
+hierarchy identifies a stock generator omission of DEBUG.
+[Exact download and native refusal](verification/receipts/l08-d6-exact-managed-download-native-debug-refusal-20261122.json)
+
 The historical F05 iOS app passed Cancel, Add, and cold readback. An
 independent signed F10 companion installation failed before navigation
 assertions. Both simulators retired. The F05 test adds ordinary Apple
@@ -235,6 +247,13 @@ accepted the proof. Safari stayed foreground and the app did not
 exchange the callback. The system authentication session is the next
 native route under test.
 [Safari continuation receipt](verification/receipts/l02-ios-account-safari-gesture-native-20261122.json)
+
+The exact Xcode-sealed system browser build passed all fourteen native
+account phases. The fresh process reopened the same workspace offline
+through Keychain. Recovery rotated the proof, sign-out persisted, and
+confirmed deletion removed only the selected account. The reviewer kept
+L02 running for the adopted Android recovery and deletion path.
+[Installed system browser lifecycle](verification/receipts/l02-ios-account-system-browser-native-20261122.json)
 
 The exact installed FieldLog executable returned a missing-entitlement
 status from its first Keychain read before sign-in. A fresh disposable
