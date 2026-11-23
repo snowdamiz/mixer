@@ -66,6 +66,16 @@ and stopped without starting the test. Its unresolved command and
 emulator are held. L02 remains running.
 [Android Home custody receipt](verification/receipts/l02-android-note-home-probe-custody-20261122.json)
 
+## FieldLog iOS Site Map location permission
+
+An owned iOS 27 Simulator passed the denied, re-granted and injected-fix
+phases. The native accessibility hierarchy tied the description 450 feet
+northeast of the saved pin to its one Circle legend image. Leaving the map
+cleared the temporary marker. Both phases preserved workspace revision 12
+and the exact committed bytes. All 103 commands reached terminal custody,
+the owned Simulator was deleted, and five external comparisons matched.
+[Installed location receipt](verification/receipts/l02-ios-site-map-location-native-20261122.json)
+
 ## First shared native signed release replay
 
 The re-sealed packets passed the shared origin host replay. On fresh local
