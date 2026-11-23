@@ -43,6 +43,18 @@ devices were removed. Local development trust and the simulator and emulator
 matrix define this pass.
 [Shared native delivery receipt](verification/receipts/l04-fieldlog-shared-delivery-native-20261122.json)
 
+## FieldLog Arabic layout at 2× on Android
+
+The sealed Arabic sequence 1 and sequence 2 guest rendered in the same
+API 36 arm64 installation. The 1× and 2× captures show the full task
+title, including `07`, and Arabic text remained right-aligned. The
+2× confirmation and reopen actions updated the same task and persisted
+through offline relaunches. Done retired the guest with `effects_closed`.
+Four loopback and emulator ports became reusable and the owned emulator
+was removed. The separate iOS run showed the full guest title at
+accessibility5 while its enclosing navigation title ellipsized.
+[Android 2× receipt](verification/receipts/l08-android-arabic-2x-native-20261122.json)
+
 ## First shared native signed release replay
 
 The re-sealed packets passed the shared origin host replay. On fresh local
