@@ -20,9 +20,8 @@
     "ownedEmulatorAndADBClosed": true
   },
   "pending": [
-    "Replay with the operating-system-owned IME connection",
-    "All 15 rendered Unicode saves, platform rollback and stale callbacks",
-    "Signed guest adoption"
+    "Compose signed guest activation, failed install and signed platform rollback",
+    "Independent review of the final signed editor contract"
   ],
   "osIMEBootstrap": {
     "scope": "Real Android IME with private AVD and USB/mDNS discovery disabled",
@@ -31,5 +30,64 @@
     "ownedAVDAndADBClosed": true,
     "logSHA256": "a74c00d58cf57a76b0c7c0581e075d3c44ed10d7813c962baacfce902a23b86a",
     "timelineSHA256": "f6292a205a4b5e9c1d36f236bb30411038e73acb29eb7c3587f5dc57e8d89a5a"
+  },
+  "osIMEReplay": {
+    "result": "pass",
+    "scope": "Signed fixture APK running bundled Swift on an Android 9 arm64 API 28 emulator with a hardware window and an Android-managed IME connection.",
+    "source": {
+      "baseCommit": "18fef233e694ad9613a7427c81bdc89e9bc062dc",
+      "baseTree": "a8c0104886c74cd73066fa058d75c782f6c1f75a",
+      "priorProjectionTree": "6bcf70ff4a449d09f9bca253de4978c82755f12c",
+      "builtProjectionTree": "65b8b97cf65962829bdbbbbf3672d132c4891579"
+    },
+    "artifact": {
+      "confirmedOnApi": 28,
+      "scheme": "v3",
+      "signersPerApk": 1,
+      "apks": {
+        "editor-hw.apk": {
+          "bytes": 110996915,
+          "sha256": "a3569103f40b16ff7cd5c8fe03ca1ffe5cbcffcdd1f89b224d1ecb9984533f40",
+          "certificateSha256": "fedd90172ae7b3d635e7d72fc771eabcc2ae71f47c6831d43b492b3cedfcf824",
+          "changedPayloadEntries": [
+            "lib/arm64-v8a/libMixerComposeEditor.so"
+          ]
+        },
+        "instrumentation.apk": {
+          "bytes": 205377,
+          "sha256": "f3547bbdd2b3fc26ca375be63402c5bdaf45362042697bd07fb97c0a297c2fab",
+          "certificateSha256": "fedd90172ae7b3d635e7d72fc771eabcc2ae71f47c6831d43b492b3cedfcf824",
+          "changedPayloadEntries": [
+            "classes2.dex"
+          ]
+        }
+      }
+    },
+    "buildCommand": "gtimeout --kill-after=10s 540s python3 native/android/compose/build.py verification/local/apk apk",
+    "buildWallSecondsIncludingSetup": 144.528,
+    "tools": {
+      "adb": "37.0.1-15733141",
+      "emulator": "37.2.12.0 build 16428233"
+    },
+    "command": "PYTHONPATH=\"$PWD/tests/integration/fieldlog-localized/android\" python3 -B <scratch>/android-s5-os-ime-isolated.py <new-run> /opt/homebrew/share/android-commandlinetools \"system-images;android-28;default;arm64-v8a\" 28 --apk <delivery>/signed/editor-hw.apk --apk <delivery>/signed/instrumentation.apk",
+    "native": [
+      "The exact candidate ticket reached the queued interactive window buffer.",
+      "An offscreen marker draw and a pre-draw veto did not publish the candidate.",
+      "Save superseded a held receipt through the accepted editor and a stale receipt was refused.",
+      "OS epoch 4 retained its connection through cancellation, with selection 1..3 and composition 1..5.",
+      "The matching receipt promoted while the next traversal was vetoed and accepted Save operated before another redraw.",
+      "All 15 Unicode Save readbacks matched independently drawn glyphs in the queued window buffer.",
+      "A late write sent through the retired epoch left the replacement editor unchanged."
+    ],
+    "instrumentationCode": -1,
+    "settingsRestored": true,
+    "ownedEmulatorAndADBClosed": true,
+    "scratchRemoved": true,
+    "logSHA256": {
+      "instrumentation.log": "7860d9097e93607d02045aac9da2ab2926b31187b3838742e3ef1e96757f809b",
+      "timeline.log": "f01d4ef32a1294fec47691d7e87f69ca94feab877354bb914754e3c462e0cf6e",
+      "ime-baseline.log": "adb8f2e52c641261e6f36b4dd33137e5f80ae48d4f8b7da35b4a9f94c7d6ab59",
+      "ime-restore.log": "f803cab8fec68c0e4c928fb0d55d821898d0603d0984c984ae5c4e7c8cd0bbdd"
+    }
   }
 }
