@@ -1,0 +1,32 @@
+{
+  "scope": "S3n Apple differential and scoped S3g Node WASI evidence",
+  "date": "2026-11-23",
+  "nativeStatus": "passed",
+  "ownedGuestStatus": "pending",
+  "originalCandidate": "92ff67039194db5e76ba5f2bf1937ebf3300b2a2",
+  "reviewedCorrection": "b2a705d01eec8990448e87a308c8353b212038bc",
+  "reviewer": "Independent Sol 6.2 High correction review, t3-de4aa383",
+  "toolchain": {
+    "xcode": "27.2 (27B52)",
+    "hostSwift": "6.4.2",
+    "crossSwift": "6.3.3",
+    "node": "26.13.1"
+  },
+  "recipe": "compiler/experiments/swiftui-state-handlers/README.md",
+  "apple": {
+    "runtime": "26.5",
+    "runtimeBuild": "23F77",
+    "simulatorModel": "iPhone 15",
+    "test": "AppleDifferentialUITests/AppleUITests/testStateJourney",
+    "matchedCheckpoints": 14,
+    "traceSHA256": "82be0b692c36179d6a68ce14f6c94150b26c1004a07918ce53704b1fe17d0237",
+    "originalAppleFixtureUnchangedByCorrection": true
+  },
+  "hostAndNodeTraceSHA256": "a292022b9e710756cf49b31914874940a094a1ec472b198e9f2a91a359d40f5c",
+  "independentControl": "Before the correction, custom mirrors hid State and could bypass body-write refusal. The corrected view rejects root and keyed-child custom mirrors before evaluation and preserves the accepted handler.",
+  "cleanup": "Root removed the exact Simulator and all external device states matched. The historical S3 compiler hold remains recorded in AGENTS.md.",
+  "limits": [
+    "Only the supported struct views in the experiment are accepted. CustomReflectable views are refused.",
+    "The corrected Node WASI trace covers host behavior. Mixer-owned guest execution remains pending."
+  ]
+}

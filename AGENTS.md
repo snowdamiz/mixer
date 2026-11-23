@@ -1126,3 +1126,10 @@ Read only the compact
 `verification/receipts/l08-ios-workerd-startup-observer-20261122.json` and the
 already emitted top-level receipt metadata. Fresh Workerd validation uses
 separate private scratch and ephemeral ports.
+
+The November 23 S3 Apple typecheck preflight returned EPERM while observing
+process-group absence after `swiftc --version`. Preserve PGID 6091 and
+`/Users/andreyyurlov/.t3/worktrees/mixer/t3-dd103d37/verification/local/swiftui-s3-32pka210`
+without inspection, enumeration, probing, signalling, waiting, retry or cleanup.
+Only its top-level `receipt.json` is a custody reference. The separately settled
+host, WASI and Apple typecheck runs do not release this hold.
