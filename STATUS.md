@@ -331,8 +331,17 @@ byte across the online launches. Its cold crop differed by at most one
 sRGB unit per channel in 100 rounded-corner pixels, with equal alpha
 and an identical color histogram. Independent replay checked the
 paint and the preserved workspace. The original raster wrapper
-reported a failure. Paired installed Android delivery remains open.
+reported a failure. Paired public OTA remains open.
 [F03 installed raster review](verification/receipts/fieldlog-f03-native-raster-review.json)
+
+The private Android API 36 fixture also rendered sequences 41–43
+on one installation. The native crop check matched Done at dark green,
+light green, and dark green, with equal baseline and rollback crops.
+The first-project crop and 2,030 workspace bytes matched across all
+three releases. Sequence 44 reported refusal before intent. Its wrapper
+waited for an absent error-code marker and stopped before the final
+readback. This is installed appearance evidence for embedded releases.
+[F03 installed Android rasters](verification/receipts/l08-d8-f03-android-native-rasters-20261123.json)
 
 The stock recovery encoder now sorts durable health milestones under
 the existing field. Seven recovery tests passed. Independent process
