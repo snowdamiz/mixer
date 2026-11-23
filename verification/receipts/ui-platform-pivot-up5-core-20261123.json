@@ -1,0 +1,33 @@
+{
+  "step": "UP5",
+  "state": "running",
+  "scope": "Native core on arm64 macOS and dispatch-free link/execution under Node WASI",
+  "reviewer": "Independent Sol 6.2 High review, t3-473c5d28",
+  "sourceBaseline": "0d2d6e1fbb",
+  "correctionPatchSHA256": "3236c615d0eeca4d817dff75e6cdd4aab490c027bc70f39c1a391f3362e0be83",
+  "swift": "Apple Swift 6.4.2; WASI Swift 6.3.3",
+  "replay": {
+    "debug": {
+      "command": "compiler/experiments/swiftui-native-core/HostReplay/run.sh debug",
+      "assertionGroupsPassed": 12,
+      "logSHA256": "901cc1fa1fb14c316655bff7ece1506d0966ff735af87481f478d555342ae2a1"
+    },
+    "release": {
+      "command": "compiler/experiments/swiftui-native-core/HostReplay/run.sh release",
+      "assertionGroupsPassed": 12,
+      "logSHA256": "140fbbd132b986ccf10db265b84d3e832963ce81c1bd28d8298acf1cb72ecd23"
+    }
+  },
+  "observed": [
+    "UIDocument through the existing SDK validator, reconciler, and event routing",
+    "Drawn frame atomically publishes state, document and handler authority",
+    "Plain @State retains keyed identity, sibling reuse has distinct cells, and parent state can be reached through an explicit Binding",
+    "Host executor, current task and active turn limit draft access and prevent cross-mount or foreign-queue writes",
+    "Detached or stale frame and mount callbacks cannot mutate accepted state",
+    "Dispatch-free build executed on Node WASI in independent review"
+  ],
+  "remaining": [
+    "Generated projects, SDK product/export, typed environment, async effects, row paging, and tier 1",
+    "Native platform adapters and signed guest admission"
+  ]
+}

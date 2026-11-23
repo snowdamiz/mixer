@@ -20,6 +20,8 @@ The S4 fixture passed invalid first-frame refusal, signed rollback, stale assign
 
 The S5 hardware-window experiment published the exact API 28 frame and routed Save while a newer receipt was held. It then failed to preserve composition and selection through a manually acquired input connection. The operating-system IME replay and signed guest path remain open. [S5 evidence](verification/receipts/ui-platform-pivot-s5-api28-20261123.json)
 
+The first UP5 engine core lowers Text, VStack, Button, and keyed ForEach into the SDK document. Twelve host replay groups passed in Debug and Release. The executor and frame checks preserve accepted state and handlers across rejected builds, nested turns, and mount replacement. The core awaits the remaining controls, package integration, and platform replays. [UP5 core evidence](verification/receipts/ui-platform-pivot-up5-core-20261123.json)
+
 The pre-pivot iOS 17 compile-only check built five package schemes and the Rust VM Simulator archive at the 17.0 floor. Its scope excluded the `capabilities/` qualification package and installed app behavior. [Historical compile receipt](verification/receipts/ios17-floor-compile-20261123.json)
 
 ## Checkpoint for the plan revision, November 23, 2026
