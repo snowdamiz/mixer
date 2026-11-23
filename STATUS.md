@@ -150,6 +150,12 @@ and the report share sheet. Standalone Swift overlap is 1,931 of 5,203
 lines. The Android native counterpart and the 90% target remain open.
 [Combined D2 receipt](verification/receipts/l08-d2-combined-app-host-and-ios-native-20261123.json)
 
+The shared project-detail document passed its Apple host replay and
+all 32 Android host tests. Both platform products linked. Reconstructed
+compiler inputs put standalone Swift overlap at 2,084 of 5,466 lines.
+Paired native interaction and the 90% source target remain open.
+[Shared project-detail receipt](verification/receipts/l08-d2-shared-project-detail-host-20261123.json)
+
 ## In-place FieldLog public SDK adoption on iOS
 
 Three native tests created a project and saved photo draft in standalone
