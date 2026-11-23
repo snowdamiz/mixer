@@ -6,7 +6,11 @@ The MIT reference server builds from a source export containing only `services/`
 
 ## UI platform pivot, November 23, 2026
 
-The owner stopped current-stack L02 and L08 work at `504366a0c9` and started the UI platform pivot in [product plan Section 1.3](mixer-product-plan.md#13-ui-platform-pivot-november-23-2026). The pivot has no implementation yet. A compile-only check on November 23 built five package schemes (the root `Mixer` package, `capability-activation`, `native-sdk`, `activation`, and `runtime`) and the Rust VM Simulator archive for an iOS 17.0 target with no availability errors. The `capabilities/` qualification package was not built, and nothing ran on an iOS 17 runtime ([iOS 17 compile receipt](verification/receipts/ios17-floor-compile-20261123.json)). The [execution index](PLAN.md#ui-platform-pivot-november-23-2026) lists steps UP1 to UP6. Six local gates stay passed at their recorded scope. L02 and L08 stay running and complete on the new stack.
+The owner stopped current-stack L02 and L08 work at `504366a0c9` and started the UI platform pivot. Six local gates retain their prior evidence. L02 and L08 remain open for the new stack. [Product plan Section 1.3](mixer-product-plan.md#13-ui-platform-pivot-november-23-2026) · [Execution index](PLAN.md#ui-platform-pivot-november-23-2026)
+
+S1 passed independent review. A shared feature with qualified `SwiftUI.Text` builds for Android, WASI, and iOS. On iOS the feature resolves `SwiftUI` to `MixerSwiftUI`, and the same executable links Apple SwiftUI in its shell. The replay rebuilt all three targets from a byte-identical CLI export. Target-scoped compiler aliases are the selected path for UP5. [S1 replay and environment](verification/receipts/ui-platform-pivot-s1-20261123.json)
+
+The pre-pivot iOS 17 compile-only check built five package schemes and the Rust VM Simulator archive at the 17.0 floor. Its scope excluded the `capabilities/` qualification package and installed app behavior. [Historical compile receipt](verification/receipts/ios17-floor-compile-20261123.json)
 
 ## Checkpoint for the plan revision, November 23, 2026
 

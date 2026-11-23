@@ -1,0 +1,28 @@
+{
+  "step": "S1",
+  "status": "passed",
+  "date": "2026-11-23",
+  "reviewedCandidate": "748bb8f52b0a4133ec3e2c022560dc16deb547cb",
+  "experimentTree": "8f880be17ea5aea5e2a5ff98d869f2069bd581b7",
+  "reviewer": "Independent Sol 6.2 High review, t3-f810788f",
+  "command": "python3 -B compiler/experiments/swiftui-module-naming/replay.py",
+  "environment": {
+    "appleXcode": "Xcode 27.2\nBuild version 27B52",
+    "appleSwift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "iosSDK": "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS27.2.sdk",
+    "crossSwift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "node": "v26.13.1"
+  },
+  "observations": [
+    "Swift 6.3.3 compiles the source-built SwiftUI module for Android API 28 and WASI. The Android arm64 ELF links the expected symbols and WASI prints Mixer: S1.",
+    "The iOS 17.0-linked app contains both the feature using MixerSwiftUI through a target-scoped alias and AppleShell using Apple SwiftUI. Dependency scanning resolved their qualified names to the corresponding modules.",
+    "The separately built SwiftPM product-edge alias propagated to AppleShell and failed to resolve App, Scene, and WindowGroup.",
+    "The CLI export preserved all seven Swift files, including both manifests, byte for byte. All three targets rebuilt after the original checkout was removed."
+  ],
+  "replayResultSHA256": "07950667faf60847b40e0cba8e9920e8d8bb21c2e8aec2aaebde72d430a70c64",
+  "cleanup": "The independent detached checkout and disposable build outputs were removed.",
+  "limits": [
+    "iOS compile and link used Xcode 27.2. The 27.1 release toolchain was outside this run.",
+    "Scope is the compiler fixture and public export. Production generator integration, device execution, and owned VM execution have separate checks."
+  ]
+}

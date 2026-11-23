@@ -100,7 +100,7 @@ The checkpoint left these items open. Each renderer failure becomes a regression
 
 Product plan Section 24.6 gives the pass rules and what each outcome unlocks. Each spike gets at most two distinct approaches, then records its fallback and starts the Section 24.4 escalation.
 
-- [ ] S1 module naming.
+- [x] S1 module naming. Shared features use `import SwiftUI`. On iOS, scope the `SwiftUI=MixerSwiftUI` alias to the engine and shared feature targets. The shell still imports Apple SwiftUI. [Independent replay](verification/receipts/ui-platform-pivot-s1-20261123.json)
 - [ ] S2a iOS full-Swift guest profile for the FieldLog list and editor, with FoundationEssentials value types and `.task`. Report raw and compressed size, diff size against the bundled base, memory, startup, turn time, call depth, and host calls, and set the profile caps from them.
 - [ ] S2b Android full-Swift guest profile for the same screens, with the same measurements as S2a, and set the Android profile caps from them.
 - [ ] S3 state and handlers, with separate native (S3n) and guest (S3g) results.
