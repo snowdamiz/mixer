@@ -77,6 +77,17 @@ endpoint closures, and owned Simulator removal verified. No billing setup
 was required. This run covers the release service and delivery cut.
 [Installed outage receipt](verification/receipts/l08-ios-installed-release-service-outage-20261122.json)
 
+## In-place FieldLog public SDK adoption on iOS
+
+Three native tests created a project and saved photo draft in standalone
+build 1, cold-reopened the same data after installing public-SDK build 2,
+and committed that draft through the adopted editor. The baseline,
+replaced and reopened workspace bytes matched. The commit retained the
+JPEG and all three prior queued operations, then appended one entry
+operation at revision 50. The same owned Simulator ran all three tests
+and was removed. Standalone native browser sign-in remains separate.
+[Native adoption receipt](verification/receipts/l08-d0-d1-installed-adoption-20261122.json)
+
 ## Managed iOS FieldLog and historical native corpus
 
 A stock local build processor and managed worker linked the arm64 iOS
@@ -115,6 +126,14 @@ and JPEG verification remain pending.
 [Photo path failure](verification/receipts/l02-ios-photo-terminal-container-rotation-20261122.json)
 
 ## Android Note switch and Home recovery
+
+The private Pair27 candidate passed all six stock host consumer builds
+and all 76 Android Swift SDK tests. Each Debug and Release consumer from
+the original, relocated, and exported layouts produced identical DEX
+bytes. A fresh Release export reproduced the result with observed direct
+reap. The broad CLI test's Unix-socket fixture passed on focused replay.
+Ordinary Home recovery and candidate adoption remain pending.
+[Host consumer receipt](verification/receipts/l02-android-pair27-stock-host-84e23dac.json)
 
 The independently reviewed combined candidate passed an installed IME
 switch, its first caps and text queries, a single edit, and exact cold
