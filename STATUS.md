@@ -297,6 +297,15 @@ Successor actions appended one completion and one reorder operation.
 Browsing wrote nothing. Cold rollback preserved the completed task
 and exact order. [F08 signed host receipt](verification/receipts/l08-d8-f08-signed-host-4a1df205.json)
 
+The iOS-scoped F08 host fixture passed all five phases on retry. Its
+first installed run joined the prior and complete phases, then showed
+the reordered checklist and the matching queue label. The app stopped
+after Back was tapped. Reorder readback, rollback and offline reopen
+remain open. The run preserved the 50 ms turn ceiling and removed the
+owned Simulator.
+[iOS-scoped host receipt](verification/receipts/l08-d8-f08-ios-unsigned-2ef7e20a.json)
+· [Installed F08 failure](verification/receipts/l08-d8-f08-ios-native-back-failure-20261123.json)
+
 The Android-scoped F09 signed host replay moved Verify café drain from
 position 21 to 20, followed it to page one, and appended one reorder
 event. Cold rollback preserved the reordered workspace.
