@@ -156,6 +156,11 @@ compiler inputs put standalone Swift overlap at 2,084 of 5,466 lines.
 Paired native interaction and the 90% source target remain open.
 [Shared project-detail receipt](verification/receipts/l08-d2-shared-project-detail-host-20261123.json)
 
+The project-detail Simulator build passed the center-tap and queue
+selectors. The longer journey typed Gauge, tapped Add, then displayed
+Gaug. It stopped before the later page and stopped-workspace checks.
+[Project-detail native failure](verification/receipts/l08-d2-project-detail-native-title-loss-20261123.json)
+
 Both host routes now use the same project paging and saved-draft
 resolution. The repository validates Android’s proposed frame before
 committing, and Apple keeps its serial save queue. Exact cold readback
@@ -213,6 +218,12 @@ cached release while origin and relay refused connections. The same
 installation performed zero workspace writes and preserved its journal
 across each offline launch. Android live replacement remains open.
 [Reviewed native F10 receipt](verification/receipts/l08-d8-f10-ios-live-replacement-20261123.json)
+
+The F02 signed host replay delivered the prior, both reorder actions,
+and rollback through the stock local origin. Move down and Move up
+committed one event each at revisions 4 and 5. Cold rollback kept the
+final workspace byte-identical. Native signed delivery remains open.
+[F02 signed host receipt](verification/receipts/l08-d8-f02-signed-host-9c44a9b2.json)
 
 The F06 focus diagnostic recorded 95 accepted empty title events.
 Disabling the form during each event caused the native keyboard to
