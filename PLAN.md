@@ -14,7 +14,7 @@ The owner set the licensing and revenue model. The core engine and the OTA updat
 
 ## UI platform pivot, November 23, 2026
 
-On November 23 the owner stopped the current-stack L02 and L08 work and started a pivot. Shared screens move from the explicit-ID `MixerUI` DSL to a published SwiftUI subset. Android moves from `android.widget` Views to Jetpack Compose. The iOS packages and generated apps now declare 17.0. UP1 still needs signed FieldLog runtime evidence at the floor. The shared-design Android host keeps API 36 until the UP4 Compose host reaches API 28.
+On November 23 the owner stopped the current-stack L02 and L08 work and started a pivot. Shared screens move from the explicit-ID `MixerUI` DSL to a published SwiftUI subset. Android moves from `android.widget` Views to Jetpack Compose. The iOS packages and generated apps now declare 17.0. The Starter and signed FieldLog journeys passed on iOS 26.5. UP1 still needs that evidence on iOS 17.x. The shared-design Android host keeps API 36 until the UP4 Compose host reaches API 28.
 
 [Product plan Section 1.3](mixer-product-plan.md#13-ui-platform-pivot-november-23-2026) holds the binding decisions. [Section 24.6](mixer-product-plan.md#246-ui-platform-pivot-sequence-november-23-2026) holds the sequence, the spike outcomes and what each one unlocks, and the file boundaries. `work-graph.json` key `uiPlatformPivot` tracks each step and spike. This section is the checklist. Check a box only when its evidence exists, such as a receipt, a test run, a screenshot, or a commit, and update the matching `uiPlatformPivot` record in the same change.
 
@@ -85,7 +85,7 @@ The checkpoint left these items open. Each renderer failure becomes a regression
 - [x] Update the CLI tests and configure CI to check 17.0 in the generated device and Simulator app binaries and Info.plist. Hosted runner evidence is tracked separately.
 - [ ] Qualify the oldest iOS 17.x Simulator runtime with the pinned Xcode. The iOS 17.0 runtime is the first released entry in Apple's catalog. The host's Xcode catalog refused the 17.x downloads and the cataloged disk image required Apple Developer access. The runtime exit remains pending. [Commands and observations](verification/receipts/ui-platform-pivot-up1-floor-20261123.json)
 - [x] Update `README.md`, `sdk/README.md`, and `docs/apple-native-appearance-v2.md`.
-- [ ] Exit. Meet the UP1 exit check in product plan Section 24.6. The starter builds, launches, and renders. FieldLog's signed iOS update route, not the starter, delivers the update and the rollback.
+- [ ] Exit. Meet the UP1 exit check in product plan Section 24.6. The Starter rendered and FieldLog applied its signed update, rollback, and offline relaunch on iOS 26.5. Repeat both journeys at the floor. [Signed replay](verification/receipts/ui-platform-pivot-up1-floor-20261123.json)
 - [ ] Record scoped re-verification for L01, L03, L04, L05, and L07.
 
 #### UP2. Define the Android accessibility observation policy

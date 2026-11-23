@@ -6,7 +6,9 @@
     "floor": "14649257058a6a5a844d417ebb320231d26ca112",
     "integratedFloorCandidate": "692f05cd2d31f218ae9b3cef7253a4e7397f8e17",
     "stockUpgrade": "da4fd25aad",
-    "hostedPair28": "4627485a2bfb181d2293b551bf62d9c9a5f3a222"
+    "hostedPair28": "4627485a2bfb181d2293b551bf62d9c9a5f3a222",
+    "source141WorkflowTransition": "ef1a3b1295a4978faad77de56b52e8b777525d5a",
+    "source141OwnerTransition": "b5a20e98e64c79cbcdfddf70595ba9e88902cd16"
   },
   "environment": {
     "macOS": "27.0.1 (26A434), arm64",
@@ -23,7 +25,8 @@
     "mixer upgrade then mixer build --platform ios worked from stock 26.0 input. The stock manifest and generated project both moved to 17.0 in the published copy. Editing the manifest preserves its bytes. Before the fix, ordinary build exited 65 because AppFeatures still declared 26.0.",
     "The root focused set passed 26 tests after refreshing the unlocked SDK projection assertion. The separate upgrade correction suite passed 13 focused cases.",
     "Both unsigned generated Starter bundles report Info.plist MinimumOSVersion 17.0 and Mach-O minos 17.0. Both Rust archive builders produced iOS and Simulator archives at 17.0 in the host verification.",
-    "The v91 hosted source check admitted the sole changed driver row across 573 selected inputs. Pair28 keeps the public View host floor at API 36."
+    "The v91 hosted source check admitted the sole changed driver row across 573 selected inputs. Pair28 keeps the public View host floor at API 36.",
+    "Source141 admitted the exact 158-file map in normal and optimized Python with identical output. Review restored 890 historical files and ran all three archived Source141 controls and the Source127 reconstruction."
   ],
   "replay": [
     "mixer create FloorCheck --platform ios --directory WORK/FloorCheck --sdk-path CHECKOUT/sdk",
@@ -64,7 +67,74 @@
   },
   "pending": [
     "iOS 17.x Simulator execution",
-    "FieldLog signed identity at 17.0, signed update and rollback at the runtime floor, and crossed runtime fingerprint refusals",
+    "Repeat the signed FieldLog update, rollback, and offline relaunch on the qualifying iOS 17.x runtime",
     "Full scoped L01, L03, L04, L05 and L07 re-verification"
-  ]
+  ],
+  "fieldLogSignedRuntime": {
+    "mixerSource": "b61fb0a5b12b44bb3bb2c20470f0ec43071e2e67",
+    "fieldLogSource": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "appMinimum": "17.0 in both Info.plist and arm64 Mach-O",
+    "signedAppSHA256": "5c265fce904775f9ed494d6470f63282f6f07c7474d6501ed8df3408eeede341",
+    "linkedVMArchiveSHA256": "cd6ae3179965c1c85eb59abb9f6ad670065c109a2e8be8713b3d4cd7edd785c7",
+    "actualPlatform": "iPhone 15 arm64 Simulator, iOS 26.5 (23F77)",
+    "selector": "FieldLogUITests/FieldLogSignedOTATests/testSignedBaselineReviewRollbackAndOfflineReopen",
+    "command": "python3 capability-activation/verification/fieldlog-ios/run.py BUILD OUT/live --device OWNED_UUID",
+    "observed": [
+      "Baseline healthy at signed sequence 1",
+      "Reviewed healthy at signed sequence 2",
+      "Rollback healthy at signed sequence 3",
+      "Fresh offline process reopened the signed rollback",
+      "Both historical and new verifier sources accepted their own fingerprints and refused the crossed assignments with v3.assignment.binding in separate host controls"
+    ],
+    "harnessExit": 0,
+    "tests": {
+      "totalTestCount": 1,
+      "passedTests": 1,
+      "failedTests": 0,
+      "skippedTests": 0,
+      "expectedFailures": 0
+    },
+    "device": "ABBC87FE-18D0-41A0-A39B-D239FFB6557E",
+    "workspaceID": "5eac2ff0-f42d-4fed-847d-0056a14ea1bb",
+    "serviceExit": 0,
+    "listenerClosed": true,
+    "portReusable": true,
+    "ownedRemoved": true,
+    "externalExact": true,
+    "disk": {
+      "runtimeFingerprint": "d8c4a485c01381932c5a2f3aaf3e8ab0ec2fb610aabe17dac8d35714c7bb03a4",
+      "acceptedSequence": 3,
+      "recoverySHA256": "cea2444fa239b9284b8b11a194a540ac2cdf80f4069c9b38af4f98795ddeba28",
+      "healthy": {
+        "candidate": "699d68cd4f6bf4bc2c98bfc97b8f1c8a7ad01e88c4b7c3a66edb1f57ffc5eea7",
+        "launch": "D53D90FD-E6DD-4E31-A3FB-41BC5C0F1FFD",
+        "sequence": 3,
+        "artifactSHA256": "b784b11c8d2ef2bf69a86652e725d3cdbba7d01d1f71aac1759152ce31b1c41a",
+        "payloadSHA256": "6d6a6425b3770413a60ee1ea84b18343fb9b943198b80205b5f27768f9b98bd5",
+        "milestones": [
+          "feature_started",
+          "first_screen"
+        ]
+      },
+      "previousHealthy": {
+        "candidate": "d58067da35402eb0cdbd77aa1f3b67d5ac6dfa72fd1a5417261232493407a34a",
+        "launch": "059D4A34-ADCE-4F6E-8319-C06FB93D7E2C",
+        "sequence": 2,
+        "artifactSHA256": "bbeb2a4e74013bf5fe83a95cda135e5ed5b24bc074fffba251396f47107b3d54",
+        "payloadSHA256": "84d8129d6400baae3096f20c37693e899d912c39531a2e9b51da7e0e790b2c4b",
+        "milestones": [
+          "feature_started",
+          "first_screen"
+        ]
+      },
+      "workspaceSHA256": "c3ae335aa81db443337ea9fbd0a9f95bb42d7ae77b267ffc9d391caa4eb7934c",
+      "workspaceRevision": 6,
+      "taskID": "3FE6A327-D800-4AD5-A8B6-C8EC807D4CE2",
+      "taskTitle": "Inspect pump",
+      "outboxEntries": 7
+    },
+    "buildReceiptSHA256": "582b3e8da8f367b7eecf44ef0e7c24a4d43a4e63c581113bdfdaefb9713b053c",
+    "rootRunSHA256": "c8518c5530f6bea68ed835c409464b7b11f9fdc75d58131719996407a6a49bff",
+    "xctestLogSHA256": "d6545c4e0c27b8d62484d247364d0d7fdd0fa05ca29896d6bd14286402069293"
+  }
 }
