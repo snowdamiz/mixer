@@ -63,7 +63,7 @@ def main():
     anchor = r'\"actions\":[{\"id\":\"sample.save\",\"event\":\"activate\"}]}'
     if program.count(anchor) != 1:
         raise SystemExit("Expected the one bundled/guest Save document boundary")
-    disabled = r',{\"id\":\"unavailable\",\"kind\":\"button\",\"properties\":{\"label\":\"Unavailable\",\"disabled\":true},\"children\":[],\"actions\":[]}'
+    disabled = r',{\"id\":\"unavailable\",\"kind\":\"button\",\"properties\":{\"label\":\"Unavailable\",\"disabled\":true},\"children\":[],\"actions\":[{\"id\":\"sample.disabled\",\"event\":\"activate\"}]}'
     (experiment / "GuestUISignedProgram.swift").write_text(program.replace(anchor, anchor + disabled))
 
     fixtures = experiment / "Fixtures"

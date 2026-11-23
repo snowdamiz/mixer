@@ -107,6 +107,7 @@ private final class FixtureRun: ObservableObject {
         UINode(id: "status", kind: .text, properties: ["text": .string("Ready")]),
         UINode(id: "save", kind: .button, properties: ["label": .string("Save sample")],
                actions: [UIActionBinding(id: "sample.save", event: .activate)]),
-        UINode(id: "unavailable", kind: .button, properties: ["label": .string("Unavailable"), "disabled": .bool(true)])
+        UINode(id: "unavailable", kind: .button, properties: ["label": .string("Unavailable"), "disabled": .bool(true)],
+               actions: [UIActionBinding(id: "sample.disabled", event: .activate)])
     ]))
 }
