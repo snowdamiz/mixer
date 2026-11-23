@@ -30,14 +30,15 @@ type Token struct {
 	Actor        string `json:"actor"`
 }
 type Config struct {
-	DeveloperMode  bool            `json:"developer_mode"`
-	Listen         string          `json:"listen"`
-	DataDirectory  string          `json:"data_directory"`
-	StorageBackend string          `json:"storage_backend,omitempty"`
-	Postgres       *PostgresConfig `json:"postgres,omitempty"`
-	Tokens         []Token         `json:"tokens"`
-	Roots          []protocol.Root `json:"roots"`
-	Hosts          []protocol.Host `json:"hosts"`
+	DeveloperMode  bool                          `json:"developer_mode"`
+	Listen         string                        `json:"listen"`
+	DataDirectory  string                        `json:"data_directory"`
+	StorageBackend string                        `json:"storage_backend,omitempty"`
+	Postgres       *PostgresConfig               `json:"postgres,omitempty"`
+	Tokens         []Token                       `json:"tokens"`
+	Roots          []protocol.Root               `json:"roots"`
+	Hosts          []protocol.Host               `json:"hosts"`
+	FeatureUI      *protocol.FeatureUIEnrollment `json:"feature_ui_v3,omitempty"`
 }
 type apiError struct {
 	status        int
@@ -52,6 +53,7 @@ type rate struct {
 }
 type Server struct {
 	cfg       Config
+	featureUI *protocol.FeatureUIV3
 	db        releaseStorage
 	limiterMu sync.Mutex
 	rates     map[string]rate
@@ -60,6 +62,30 @@ type Server struct {
 }
 
 func ValidateConfig(c Config) error {
+	_, err := prepareConfig(c)
+	return err
+}
+
+func prepareConfig(c Config) (*protocol.FeatureUIV3, error) {
+	if err := validateBaseConfig(c); err != nil || c.FeatureUI == nil {
+		return nil, err
+	}
+	if c.StorageBackend == "postgres" {
+		return nil, fmt.Errorf("feature UI enrollment requires the local file backend")
+	}
+	profile, err := protocol.NewFeatureUIV3(*c.FeatureUI)
+	if err != nil {
+		return nil, err
+	}
+	for _, h := range c.Hosts {
+		if h.Scope == profile.Scope() && h.Runtime == profile.Runtime() {
+			return nil, fmt.Errorf("feature UI duplicates a registered host")
+		}
+	}
+	return profile, nil
+}
+
+func validateBaseConfig(c Config) error {
 	if !c.DeveloperMode {
 		return fmt.Errorf("production mode disabled: external delivery/outbox, identity/isolation and operational gates remain open")
 	}
@@ -80,7 +106,7 @@ func ValidateConfig(c Config) error {
 	if c.StorageBackend == "postgres" && c.Postgres == nil || c.StorageBackend != "postgres" && c.Postgres != nil {
 		return fmt.Errorf("explicit PostgreSQL backend configuration required")
 	}
-	if len(c.Tokens) == 0 || len(c.Hosts) == 0 || len(c.Roots) == 0 {
+	if len(c.Tokens) == 0 || (c.FeatureUI == nil && len(c.Hosts) == 0) || (len(c.Hosts) != 0 && len(c.Roots) == 0) {
 		return fmt.Errorf("data directory, scoped tokens, roots and hosts required")
 	}
 	tokenDigests := map[string]bool{}
@@ -135,11 +161,12 @@ func ValidateConfig(c Config) error {
 func New(cfg Config) (*Server, error) { return NewWithFault(cfg, nil) }
 func NewWithFault(cfg Config, fault durable.Fault) (*Server, error) {
 	cfg = snapshotConfig(cfg)
-	if e := ValidateConfig(cfg); e != nil {
+	featureUI, e := prepareConfig(cfg)
+	if e != nil {
 		return nil, e
 	}
+	cfg.FeatureUI = nil
 	var db releaseStorage
-	var e error
 	if cfg.StorageBackend == "postgres" {
 		db, e = openPostgres(*cfg.Postgres, fault)
 	} else {
@@ -148,7 +175,7 @@ func NewWithFault(cfg Config, fault durable.Fault) (*Server, error) {
 	if e != nil {
 		return nil, e
 	}
-	return &Server{cfg: cfg, db: db, rates: map[string]rate{}, inflight: make(chan struct{}, 128), now: time.Now}, nil
+	return &Server{cfg: cfg, featureUI: featureUI, db: db, rates: map[string]rate{}, inflight: make(chan struct{}, 128), now: time.Now}, nil
 }
 func (s *Server) Close() error { return s.db.close() }
 
@@ -258,13 +285,29 @@ func (s *Server) auth(r *http.Request, org, project, role string) (Token, error)
 	}
 	return Token{}, apiError{401, "unauthenticated", "invalid bearer credential"}
 }
-func (s *Server) host(scope protocol.Scope, runtime string) (protocol.Host, error) {
+
+type hostAuthority struct {
+	protocol.Host
+	featureUI *protocol.FeatureUIV3
+}
+
+func (s *Server) enrolledFeatureUI(scope protocol.Scope, runtime string) *protocol.FeatureUIV3 {
+	if p := s.featureUI; p != nil && p.Scope() == scope && p.Runtime() == runtime {
+		return p
+	}
+	return nil
+}
+
+func (s *Server) host(scope protocol.Scope, runtime string) (hostAuthority, error) {
+	if p := s.enrolledFeatureUI(scope, runtime); p != nil {
+		return hostAuthority{Host: protocol.Host{Protocol: 3}, featureUI: p}, nil
+	}
 	for _, h := range s.cfg.Hosts {
 		if h.Scope == scope && h.Runtime == runtime {
-			return h, nil
+			return hostAuthority{Host: h}, nil
 		}
 	}
-	return protocol.Host{}, apiError{422, "unknown_runtime", "no registered host contract for scope and runtime"}
+	return hostAuthority{}, apiError{422, "unknown_runtime", "no registered host contract for scope and runtime"}
 }
 func body(r *http.Request, v any) ([]byte, error) {
 	if r.Header.Get("Content-Type") != "application/json" {
@@ -342,7 +385,7 @@ func (s *Server) read(r *http.Request, p []string, who access, version uint64) (
 		if e != nil {
 			return Response{}, e
 		}
-		if !ok || rec.version() != version {
+		if !ok || rec.version() != version || !s.canServeArtifact(rec, uint64(s.now().Unix())) {
 			return Response{}, apiError{404, "not_found", "artifact not found"}
 		}
 		return response(200, rec.wire()), nil
@@ -388,6 +431,11 @@ func (s *Server) mutate(r *http.Request, p []string, who access, role, key strin
 		record, raw, e := uploadBody(r, version)
 		if e != nil {
 			return Response{}, e
+		}
+		if who.matches(record.scope()) {
+			if e = s.requireFeatureUI(record); e != nil {
+				return Response{}, e
+			}
 		}
 		return commit(raw, func(db releaseTransaction) (Response, error) {
 			if record.scope().Organization != org || record.scope().Project != project {
@@ -437,6 +485,9 @@ func (s *Server) mutate(r *http.Request, p []string, who access, role, key strin
 		if e != nil {
 			return Response{}, e
 		}
+		if e = s.requireFeatureUIArtifact(r.Context(), who, req.ArtifactSHA256, version); e != nil {
+			return Response{}, e
+		}
 		return commit(raw, func(db releaseTransaction) (Response, error) {
 			rec, ok, e := db.artifact(req.ArtifactSHA256)
 			if e != nil {
@@ -470,8 +521,13 @@ func (s *Server) mutate(r *http.Request, p []string, who access, role, key strin
 		if e != nil {
 			return Response{}, e
 		}
+		a := assigned.assignment()
+		if who.matches(a.Scope) {
+			if e = s.requireFeatureUIArtifact(r.Context(), who, a.ArtifactSHA256, version); e != nil {
+				return Response{}, e
+			}
+		}
 		return commit(raw, func(db releaseTransaction) (Response, error) {
-			a := assigned.assignment()
 			if a.Scope.Organization != org || a.Scope.Project != project {
 				return Response{}, apiError{403, "scope_denied", "signed assignment tenant differs from route"}
 			}
@@ -536,7 +592,26 @@ func (s *Server) update(r *http.Request, version uint64) (Response, error) {
 	if !ok || rec.version() != version || !protocol.Eligible(rec.assignment(), q.Get("installation")) {
 		return Response{Status: 204}, nil
 	}
-	if version == 3 && protocol.VerifyAssignmentSignatureV3(*rec.Version3, s.cfg.Roots, uint64(s.now().Unix())) != nil {
+	if version == 3 && s.cfg.StorageBackend != "postgres" {
+		now := uint64(s.now().Unix())
+		assignment := rec.assignment()
+		artifact, ok, err := s.db.publicArtifact(r.Context(), tenant{scope.Organization, scope.Project}, assignment.ArtifactSHA256)
+		if err != nil {
+			return Response{}, err
+		}
+		if !ok || !artifact.Published || artifact.version() != 3 {
+			return Response{Status: 204}, nil
+		}
+		if artifact.isFeatureUI() {
+			p := s.enrolledFeatureUI(scope, a.Runtime)
+			if p == nil || p.VerifyAssignment(*rec.Version3, artifact.Version3.SignedManifest, a.Channel, 0, now) != nil ||
+				p.VerifyManifest(artifact.Version3.SignedManifest, artifact.Version3.Payload, now) != nil {
+				return Response{Status: 204}, nil
+			}
+		} else if protocol.VerifyAssignmentSignatureV3(*rec.Version3, s.cfg.Roots, now) != nil {
+			return Response{Status: 204}, nil
+		}
+	} else if version == 3 && protocol.VerifyAssignmentSignatureV3(*rec.Version3, s.cfg.Roots, uint64(s.now().Unix())) != nil {
 		return Response{Status: 204}, nil
 	}
 	return response(200, map[string]any{"signed_assignment": rec.wire(), "artifact_url": "/v" + strconv.FormatUint(version, 10) + "/artifacts/" + rec.assignment().ArtifactSHA256 + "?organization=" + scope.Organization + "&project=" + scope.Project}), nil
@@ -550,10 +625,48 @@ func (s *Server) publicArtifact(r *http.Request, digest string, version uint64) 
 	if e != nil {
 		return Response{}, e
 	}
-	if !ok || !rec.Published || rec.version() != version {
+	if !ok || !rec.Published || rec.version() != version || !s.canServeArtifact(rec, uint64(s.now().Unix())) {
 		return Response{}, apiError{404, "not_found", "published artifact not found"}
 	}
 	return response(200, rec.wire()), nil
+}
+
+func (s *Server) canServeArtifact(rec Record, now uint64) bool {
+	if !rec.isFeatureUI() {
+		return true
+	}
+	p := s.enrolledFeatureUI(rec.scope(), rec.runtime())
+	return p != nil && p.VerifyManifest(rec.Version3.SignedManifest, rec.Version3.Payload, now) == nil
+}
+
+// This startup authority check also runs before a transaction can replay a
+// successful idempotency response recorded under a previous configuration.
+func (s *Server) requireFeatureUI(rec Record) error {
+	if !rec.isFeatureUI() {
+		return nil
+	}
+	host, err := s.host(rec.scope(), rec.runtime())
+	if err != nil {
+		return err
+	}
+	if host.featureUI == nil {
+		if host.Protocol != 3 {
+			return apiError{422, "protocol_mismatch", "route and registered host protocol differ"}
+		}
+		return apiError{422, "artifact_invalid", "unsupported v3 schema, protocol, guest ABI or UI schema"}
+	}
+	return nil
+}
+
+func (s *Server) requireFeatureUIArtifact(ctx context.Context, who access, digest string, version uint64) error {
+	if version != 3 || s.cfg.StorageBackend == "postgres" {
+		return nil
+	}
+	rec, found, err := s.db.artifact(ctx, who, digest)
+	if err != nil || !found {
+		return err
+	}
+	return s.requireFeatureUI(rec)
 }
 
 func uploadBody(r *http.Request, version uint64) (Record, []byte, error) {

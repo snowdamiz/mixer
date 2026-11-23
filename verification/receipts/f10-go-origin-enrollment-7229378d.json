@@ -1,0 +1,75 @@
+{
+  "schema": "mixer.verification.f10-go-origin-enrollment.v1",
+  "status": "passed-local-go-origin-and-ordinary-cli",
+  "observedUTC": "2026-11-23T17:17:40+00:00",
+  "source": {
+    "originBase": "58951594a866492be7ce204e93a9533f892b2550",
+    "originBaseTree": "f610b7745283d445727cf32e0ee3fd45427dd925",
+    "originPatchSHA256": "d1cda6b21662ac916218c2dd304c3bb9017865c582cf8c7f43cd3b2bbd2b2265",
+    "cliRevision": "8a818d1e468c8f31710dadd4fe5c53dee7209af4",
+    "cliTree": "02d6b6060640e774cb63f52246397734a7bf3ffd",
+    "cliReadOnlyStaging": "Retained cli, sdk, updates and runtime-identity matched Git archive by recursive byte comparison. The build sandbox denied writes to the retained input path.",
+    "referenceReceipt": "t3-36ae35f9/verification/receipts/f10-ordinary-origin-enrollment-36ae35f9.json",
+    "swiftReferencePatchSHA256": "db06cfbaf72cac60d681ea8b045daa4f08b76a47bd6b1f8132a70d2f2d02089d"
+  },
+  "build": {
+    "go": "go version go1.26.4 darwin/arm64",
+    "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "originCommand": "go -C services build -p 6 -o <scratch>/mixer-service ./cmd/mixer-service",
+    "cliCommand": "swift build --package-path <retained>/cli --product mixer --scratch-path <scratch>/swift-build --cache-path <scratch>/cache --config-path <scratch>/swift-config --security-path <scratch>/swift-security --disable-sandbox --manifest-cache local --skip-update --only-use-versions-from-resolved-file -j 7",
+    "originSHA256": "2d3d65681df1481466c1215b61289853d90512cc08d51383b1c34da9866bda1f",
+    "cliSHA256": "b24e1d60f2d5529d1eee1511336175a8d8705a2c1322bb7acf52c114dcc7ed4b",
+    "network": "Sandbox denied external network throughout. Builds were offline. Replay and Go tests permitted loopback."
+  },
+  "historicalEnvelopeVerification": [
+    "historical prior sequence=1 bytes=2002 sha256=39ccd91d0e129de88fd617670caacf02c68d93d406747efc8f70318643437433 verified",
+    "historical exact sequence=2 bytes=14503 sha256=fb225d5722eda20c7591a9e7bb112d560924cedf9da17106b57eeb049f94d3b9 verified",
+    "historical rollback sequence=3 bytes=2002 sha256=39ccd91d0e129de88fd617670caacf02c68d93d406747efc8f70318643437433 verified"
+  ],
+  "liveSigning": "Fresh scoped Ed25519 artifact and assignment keys. Rebound the exact trust-roots digest and recomputed the runtime fingerprint. Retained payload and historical envelope bytes were preserved.",
+  "entrypoints": [
+    "MIXER_SERVICE_CONFIG=<operator-owned file> mixer-service",
+    "mixer update publish CANDIDATE --organization ORG --project PROJECT --assignment CANDIDATE/assignment.json --channel beta --rollout 100",
+    "mixer update rollback ARTIFACT_SHA256 --organization ORG --project PROJECT --assignment ROLLBACK/assignment.json --channel beta --reason 'local F10 rollback'"
+  ],
+  "publicDelivery": {
+    "prior": {
+      "sequence": 1,
+      "bytes": 2002,
+      "sha256": "39ccd91d0e129de88fd617670caacf02c68d93d406747efc8f70318643437433",
+      "artifact": "653a014c73e8079f209f52d57a96cceba18c6d2d15e1e420e4fd7c52df6a86a3"
+    },
+    "successor": {
+      "sequence": 2,
+      "bytes": 14503,
+      "sha256": "fb225d5722eda20c7591a9e7bb112d560924cedf9da17106b57eeb049f94d3b9",
+      "artifact": "bdfd0e18b7197b528dde3c68e00651974afac39b844365cd0de653906351cc90"
+    },
+    "rollback": {
+      "sequence": 3,
+      "bytes": 2002,
+      "target": "prior"
+    },
+    "verified": "Exact signed assignment, signed manifest, and payload matched all three selections."
+  },
+  "negativeControls": {
+    "startup": "Raw UI3 host, wrong fingerprint, changed roots, changed read keys, storage write operation, wrong namespace, wrong pinned scope and writable config were refused before opening the store.",
+    "release": "Wrong organization, project, app, environment, platform, runtime, namespace, permissions and limits were refused. Altered manifest, assignment and payload, missing signature, and artifact key used for assignment were refused.",
+    "withoutEnrollment": "Fresh and replayed publish refused. Replayed rollback refused. Persisted update offer returned 204, and public and authorized artifact reads returned 404. Re-enrollment restored sequence 3.",
+    "durability": "All rejected requests left the stored release.json bytes unchanged."
+  },
+  "goRegression": {
+    "command": "go -C services test -count=1 -p 4 -v ./protocol ./release",
+    "topLevelPasses": 53,
+    "skips": 0,
+    "logSHA256": "7a9f3eb22c2d5781f19d224a4e72d28ee08999a66b96f7b0598d23e077af1f2e"
+  },
+  "replayLogSHA256": "8204e505af7e69e996918b3dab9e4ec881829dbbbd9292c0c51d79d8d89b9171",
+  "scope": "Local Go origin and ordinary CLI. The operator pins the exact installed read policy separately from the signed namespace grant. The installed storage adapter handles key enforcement. Worker, Phoenix and native adoption were outside the run.",
+  "cleanup": {
+    "originProcessGroupsObservedAbsent": 4,
+    "observedScratchMiB": 535,
+    "devicesUsed": false,
+    "ownedScratchRemoved": true
+  }
+}

@@ -57,14 +57,16 @@ func limitsV3(l Limits) error {
 	return nil
 }
 
-func (m ManifestV3) Validate() error {
-	if m.Schema != 3 || m.Protocol != 3 || m.GuestABI != 2 || m.UISchema != 1 {
+func (m ManifestV3) Validate() error { return m.validateForUI(1) }
+
+func (m ManifestV3) validateForUI(ui uint64) error {
+	if m.Schema != 3 || m.Protocol != 3 || m.GuestABI != 2 || m.UISchema != ui {
 		return fmt.Errorf("unsupported v3 schema, protocol, guest ABI or UI schema")
 	}
 	// Reuse only frozen common-field validation. This temporary view is never
 	// signed, hashed, serialized or passed to a legacy verification function.
 	common := ManifestV2(m).profileFields()
-	common.GuestABI = 1
+	common.GuestABI, common.UISchema = 1, 1
 	if e := common.Validate(); e != nil {
 		return e
 	}
@@ -91,11 +93,13 @@ func (a AssignmentV3) Validate() error {
 
 // ValidateHostV3 validates a trusted installed configuration, not a downloaded
 // identity or proof that a concrete native implementation matches its fingerprint.
-func ValidateHostV3(h Host) error {
+func ValidateHostV3(h Host) error { return validateHostV3ForUI(h, 1) }
+
+func validateHostV3ForUI(h Host, ui uint64) error {
 	if e := h.Scope.Validate(); e != nil {
 		return e
 	}
-	if h.Protocol != 3 || h.GuestABI != 2 || h.UISchema != 1 || !ValidDigest(h.Runtime) || h.MaxPayloadBytes == 0 || h.MaxPayloadBytes > MaxV3PayloadBytes {
+	if h.Protocol != 3 || h.GuestABI != 2 || h.UISchema != ui || !ValidDigest(h.Runtime) || h.MaxPayloadBytes == 0 || h.MaxPayloadBytes > MaxV3PayloadBytes {
 		return fmt.Errorf("unsupported v3 installed host")
 	}
 	if e := capabilityHashesV3(h.CapabilityHashes); e != nil {
@@ -111,6 +115,10 @@ func CompatibleV3(m ManifestV3, h Host) error {
 	if e := ValidateHostV3(h); e != nil {
 		return e
 	}
+	return compatibleV3Fields(m, h)
+}
+
+func compatibleV3Fields(m ManifestV3, h Host) error {
 	if m.Scope != h.Scope || m.Runtime != h.Runtime || !reflect.DeepEqual(m.CapabilityHashes, h.CapabilityHashes) {
 		return fmt.Errorf("v3 host contract mismatch")
 	}
@@ -177,10 +185,14 @@ func SignAssignmentV3(a AssignmentV3, key ed25519.PrivateKey) (SignedAssignmentV
 }
 
 func VerifyManifestHeaderV3(s SignedManifestV3, roots []Root, h Host, now uint64) error {
+	return verifyManifestHeaderV3(s, roots, now, func(m ManifestV3) error { return CompatibleV3(m, h) })
+}
+
+func verifyManifestHeaderV3(s SignedManifestV3, roots []Root, now uint64, compatible func(ManifestV3) error) error {
 	if e := validateRootsV3(roots); e != nil {
 		return e
 	}
-	if e := CompatibleV3(s.Manifest, h); e != nil {
+	if e := compatible(s.Manifest); e != nil {
 		return e
 	}
 	pub, e := authorize(roots, s.Manifest.KeyID, s.Manifest.Scope, true, now)
@@ -201,7 +213,11 @@ func VerifyManifestV3(s SignedManifestV3, payload []byte, roots []Root, h Host, 
 	if e := VerifyManifestHeaderV3(s, roots, h, now); e != nil {
 		return e
 	}
-	if uint64(len(payload)) != s.Manifest.CompressedBytes || Hash(payload) != s.Manifest.PayloadSHA256 {
+	return verifyPayloadV3(s.Manifest, payload)
+}
+
+func verifyPayloadV3(m ManifestV3, payload []byte) error {
+	if uint64(len(payload)) != m.CompressedBytes || Hash(payload) != m.PayloadSHA256 {
 		return fmt.Errorf("payload size or hash mismatch")
 	}
 	return nil
@@ -216,7 +232,11 @@ func VerifyAssignmentHeaderV3(s SignedAssignmentV3, artifact SignedManifestV3, r
 	if e := VerifyManifestHeaderV3(artifact, roots, h, now); e != nil {
 		return e
 	}
-	a, m := s.Assignment, artifact.Manifest
+	return verifyAssignmentBindingV3(s, artifact.Manifest, roots, channel, last, now)
+}
+
+func verifyAssignmentBindingV3(s SignedAssignmentV3, m ManifestV3, roots []Root, channel string, last, now uint64) error {
+	a := s.Assignment
 	digest, e := ManifestDigestV3(m)
 	if e != nil {
 		return e

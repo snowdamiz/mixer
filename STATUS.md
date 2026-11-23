@@ -351,6 +351,18 @@ ordinary installed app routes remain open.
 [F10 Swift admission candidate](verification/receipts/f10-source141-composition-35beeda3.json) ·
 [F10 Go enrollment blocker](verification/receipts/f10-ordinary-origin-enrollment-36ae35f9.json)
 
+The local Go origin now accepts operator-enrolled UI3 hosts. Enrollment
+binds the installed runtime descriptor, application scope and trust
+roots and admits only a storage GET grant for the enrolled namespace.
+The installed Swift adapter enforces individual read keys.
+The ordinary CLI delivered the exact 14,503-byte successor and
+restored the prior payload at sequence 3. Removing enrollment refused
+fresh and cached release mutations and stopped persisted delivery.
+The independent replay passed all 57 Go protocol and release tests.
+Paired installed public delivery, Phoenix and Worker remain open.
+[Exact CLI replay](verification/receipts/f10-go-origin-correction-77566173.json) ·
+[Root Go regression](verification/receipts/f10-go-origin-root-review-20261123.json)
+
 The private F03 contracts passed immediate-first admission and
 deferred-start refusal before effects. Android verified all 54
 source members and refused mixed source pairs. Native appearance

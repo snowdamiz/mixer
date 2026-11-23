@@ -340,7 +340,11 @@ func (r Record) validate() error {
 		}
 	case 3:
 		m := r.Version3.SignedManifest.Manifest
-		if m.Validate() != nil || uint64(len(r.payload())) != m.ExpandedBytes || protocol.Hash(r.payload()) != m.PayloadSHA256 {
+		validate := m.Validate
+		if r.isFeatureUI() {
+			validate = func() error { return protocol.ValidateFeatureUIV3Record(m) }
+		}
+		if validate() != nil || uint64(len(r.payload())) != m.ExpandedBytes || protocol.Hash(r.payload()) != m.PayloadSHA256 {
 			return fmt.Errorf("invalid v3 stored artifact")
 		}
 	case 2:
@@ -353,17 +357,24 @@ func (r Record) validate() error {
 	}
 	return nil
 }
-func (r Record) verify(roots []protocol.Root, host protocol.Host, now uint64) error {
+func (r Record) isFeatureUI() bool {
+	return r.version() == 3 && r.Version3.SignedManifest.Manifest.UISchema == 3
+}
+
+func (r Record) verify(roots []protocol.Root, host hostAuthority, now uint64) error {
 	if r.version() == 3 {
-		return protocol.VerifyManifestV3(r.Version3.SignedManifest, r.Version3.Payload, roots, host, now)
+		if host.featureUI != nil {
+			return host.featureUI.VerifyManifest(r.Version3.SignedManifest, r.Version3.Payload, now)
+		}
+		return protocol.VerifyManifestV3(r.Version3.SignedManifest, r.Version3.Payload, roots, host.Host, now)
 	}
 	if r.version() == 2 {
-		return protocol.VerifyManifestV2(r.Version2.SignedManifest, r.Version2.Payload, roots, host, now)
+		return protocol.VerifyManifestV2(r.Version2.SignedManifest, r.Version2.Payload, roots, host.Host, now)
 	}
 	if r.version() != 1 {
 		return fmt.Errorf("invalid stored artifact protocol")
 	}
-	return protocol.VerifyManifest(r.Artifact.SignedManifest, r.Artifact.Payload, roots, host, now)
+	return protocol.VerifyManifest(r.Artifact.SignedManifest, r.Artifact.Payload, roots, host.Host, now)
 }
 func (c Channel) assignment() protocol.Assignment {
 	if c.version() == 3 {
@@ -395,17 +406,20 @@ func (c Channel) validate() error {
 	}
 	return c.SignedAssignment.Assignment.Validate()
 }
-func (c Channel) verify(r Record, roots []protocol.Root, host protocol.Host, channel string, last, now uint64) error {
+func (c Channel) verify(r Record, roots []protocol.Root, host hostAuthority, channel string, last, now uint64) error {
 	if c.version() != r.version() || c.version() == 0 {
 		return fmt.Errorf("artifact and assignment protocol differ")
 	}
 	if c.version() == 3 {
-		return protocol.VerifyAssignmentHeaderV3(*c.Version3, r.Version3.SignedManifest, roots, host, channel, last, now)
+		if host.featureUI != nil {
+			return host.featureUI.VerifyAssignment(*c.Version3, r.Version3.SignedManifest, channel, last, now)
+		}
+		return protocol.VerifyAssignmentHeaderV3(*c.Version3, r.Version3.SignedManifest, roots, host.Host, channel, last, now)
 	}
 	if c.version() == 2 {
-		return protocol.VerifyAssignmentHeaderV2(*c.Version2, r.Version2.SignedManifest, roots, host, channel, last, now)
+		return protocol.VerifyAssignmentHeaderV2(*c.Version2, r.Version2.SignedManifest, roots, host.Host, channel, last, now)
 	}
-	return protocol.VerifyAssignmentHeader(c.SignedAssignment, r.Artifact.SignedManifest.Manifest, roots, host, channel, last, now)
+	return protocol.VerifyAssignmentHeader(c.SignedAssignment, r.Artifact.SignedManifest.Manifest, roots, host.Host, channel, last, now)
 }
 
 // PostgreSQL keeps the signed bytes unchanged. Dispatch only on an exact uint64

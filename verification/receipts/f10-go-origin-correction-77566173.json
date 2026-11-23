@@ -1,0 +1,95 @@
+{
+  "schema": "mixer.verification.f10-go-origin-correction.v1",
+  "observedUTC": "2026-11-23T17:35:29+00:00",
+  "source": {
+    "pinnedStage": "80decba4a2be013ca6c9a4e75f8b0b20118981e2",
+    "pinnedTree": "1d91c2bd0b527cc73a5b85310af8cb282fae2acc",
+    "candidateCommit": "e39eaee0bb2edb2d97966625bcdb82d1555e4930",
+    "candidateTree": "db7a3dd6c5afa3a56bccf5c6ef7dc1f0972fe193",
+    "servicesTree": "1d66db1be5d053a0bb6282e3b67dba24b6c77d16",
+    "donorStagedDiffSHA256": "564242bd8bbca021c40f30460d309e111cf8aba878c55efbe6b702e8e4fc5632",
+    "donorComposition": "Applied the complete staged diff to the pinned Stage base. The staged diff matched the donor byte-for-byte before corrections, including the historical donor receipt.",
+    "cliSource": "Stock cli, sdk, updates, and runtime-identity archived from pinned Stage. No Swift producer or Source141 source modifications."
+  },
+  "tools": {
+    "go": "go version go1.26.4 darwin/arm64",
+    "swift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1), arm64-apple-macosx27.0.0",
+    "git": "git version 2.56.0",
+    "serviceBuild": {
+      "command": "go -C services build -o <scratch>/mixer-service ./cmd/mixer-service",
+      "sha256": "9be72e1180ec0f80dfb19eee1a9f8f8b35fbc39bd134d4e4b79fec19b1f37cf4"
+    },
+    "cliBuild": {
+      "command": "swift build --package-path <archive>/cli --product mixer --scratch-path <scratch>/swift-build --cache-path <scratch>/swift-cache --config-path <scratch>/swift-config --security-path <scratch>/swift-security --disable-sandbox --manifest-cache local --skip-update --only-use-versions-from-resolved-file -j 8",
+      "sha256": "e39f7126777cce7c3e42330b133ed1013a24fca77f5e27e4c1a15ab39ab75bad",
+      "network": "denied during build"
+    }
+  },
+  "focused": {
+    "command": "go -C services test -count=1 -timeout=60s -v ./protocol ./release -run '^TestFeatureUI(Enrollment|RequiresExplicitVerifier|Service|Release)'",
+    "exit": 0,
+    "topLevelPasses": 4,
+    "outputSHA256": "82efcda56ecab1119bc7e7c1271c0cb388cddfe187fce25bccaa0a7946d0f6a0"
+  },
+  "checked": [
+    "Raw UI3 registration, default v3 signing and verification, wrong fingerprint, modified trust-root bytes, scope and cross-app mismatch, wrong namespace, obsolete key fields, and wrong operations.",
+    "Enrollment removal across restart rejects fresh and cached release mutations, including upload, validate, publish, promote, rollback, and halt. A same-fingerprint UI1 fallback does not restore UI3 authority.",
+    "Removed enrollment yields GET 204 for the update offer and 404 for public and authorized artifact reads. Rejected requests preserve release.json bytes. Re-enrollment restores the exact stored offer."
+  ],
+  "legacyGo": {
+    "command": "go -C services test -count=1 -timeout=120s -v ./protocol ./release",
+    "exit": 0,
+    "topLevelPasses": 57,
+    "outputSHA256": "3c7ab3e503a0916535e60853958998109065cd748854b8685555ffa8a06e44c9"
+  },
+  "broaderGo": {
+    "command": "go -C services test -count=1 -timeout=120s -v ./... -skip '^(TestFixedOriginAndACLs|TestConcurrentAttestationsPublishOneEnvelope|TestCompletedOperationRequiredAndLegacyVerification|TestExpectedStatementRefusesReplacementBeforePublication)$'",
+    "exit": 0,
+    "topLevelPasses": 71,
+    "outputSHA256": "2dab738e8323a583647fd0d016e303ab77b0ce5fddd23b36307acc60d6d59f9d"
+  },
+  "replay": {
+    "command": "go -C services test -count=1 -timeout=60s -v ./release -run '^TestFeatureUICLIOriginReplay$'",
+    "exit": 0,
+    "topLevelPasses": 1,
+    "outputSHA256": "37121b2aed98d3f4eed6899050ce76642338ddc6c1d8a353108dbc726d81c80f",
+    "input": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-299f3481/verification/local/l08-d8-f10-android-restored-299f3481/public/android",
+    "environment": "Set MIXER_F10_REPLAY_INPUTS to input, MIXER_F10_REPLAY_CLI to the stock executable and MIXER_F10_REPLAY_ORIGIN to the candidate Go executable.",
+    "historical": "Verified exact original envelopes at their signed creation time for all three phases.",
+    "live": "Used current scoped artifact and assignment keys generated in memory and rebound the descriptor's public-root digest. The ordinary mixer update publish and rollback commands ran against the mixer-service process. Delivered signed assignments and manifests and every payload byte matched.",
+    "delivery": [
+      {
+        "phase": "prior",
+        "sequence": 1,
+        "bytes": 2002,
+        "payloadSHA256": "39ccd91d0e129de88fd617670caacf02c68d93d406747efc8f70318643437433",
+        "artifactSHA256": "087168e76eecc8926441d4789f6f036b26b53eb1698a892c6983ed26f0176f27"
+      },
+      {
+        "phase": "exact",
+        "sequence": 2,
+        "bytes": 14503,
+        "payloadSHA256": "fb225d5722eda20c7591a9e7bb112d560924cedf9da17106b57eeb049f94d3b9",
+        "artifactSHA256": "5bdde19e86f8301f0a4c0d36b1808c97ff0a34c44b0eedd5238b04e357814313"
+      },
+      {
+        "phase": "rollback",
+        "sequence": 3,
+        "bytes": 2002,
+        "payloadSHA256": "39ccd91d0e129de88fd617670caacf02c68d93d406747efc8f70318643437433",
+        "artifactSHA256": "087168e76eecc8926441d4789f6f036b26b53eb1698a892c6983ed26f0176f27"
+      }
+    ]
+  },
+  "limits": [
+    "Local Go file origin and stock CLI. The installed Swift storage adapter owns key-level enforcement. This replay did not exercise guest execution, devices, live PostgreSQL, or deployment.",
+    "The initial sparse projection lacked contracts/release-v2.json, which was restored from the pinned base. The first replay refused a fixture configuration with null legacy arrays. The corrected fixture uses empty arrays.",
+    "The initial broad run invoked four pre-existing native-attestation tests that briefly wrote disposable private keys. The attestation test package passed and its exact temporary-directory prefixes were absent afterward. The final broad pass excluded those four disk-key tests."
+  ],
+  "cleanup": {
+    "origin": "Graceful shutdown and reap observed.",
+    "replayTempDirectory": "Empty after tests.",
+    "stageDrift": "Stage HEAD advanced while the isolated checkout remained at the pinned base.",
+    "retained": "Reversible commit patch and this compact receipt."
+  }
+}

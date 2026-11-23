@@ -117,3 +117,54 @@ rollback, local upgrade/reopen/corruption/faults, PostgreSQL RLS and actual rest
 The old/new binary probe uses only `New`/`Close` for the updated consumer and never
 starts HTTP. Exact final source and command receipts require independent review;
 working-tree development logs are not a source freeze or a hosted/device/GA gate.
+
+## Enroll a local Feature UI v3 runtime
+
+Add a `feature_ui_v3` object to the operator-owned file named by
+`MIXER_SERVICE_CONFIG`. Use the local file backend, a loopback listener,
+and a config file with group and world write access disabled.
+
+- `scope` is the installed application's organization, project, app,
+  environment, and platform.
+- `fingerprint` is the installed runtime's lowercase SHA-256 fingerprint.
+  Obtain it from the trusted installed runtime.
+- `descriptor_json` and `trust_roots_json` are standard padded Base64 of
+  the exact installed descriptor and root JSON bytes.
+- `storage_policy` contains the installed storage grant's `namespace` and
+  `"operations": ["get"]`.
+
+The origin derives the runtime fingerprint from the descriptor's canonical
+CBOR and checks the exact root-file bytes against the descriptor's digest.
+It checks the namespace against the descriptor's grant digest and requires
+the signed manifest to carry that same namespace. Enrollment accepts only
+the declared operation `get`. The installed Swift storage adapter enforces
+the operation and per-key access when the guest calls storage.
+
+For a service dedicated to this enrollment, set the top-level `hosts` and
+`roots` arrays to `[]`.
+
+Remove `feature_ui_v3` and restart with a valid service configuration to
+disable release operations and delivery for that runtime. Stored UI3
+assignments yield HTTP 204 on update checks, and stored UI3 artifacts yield
+HTTP 404 on artifact reads.
+
+Run the enrollment and release tests.
+
+```sh
+go -C services test ./protocol ./release -run 'TestFeatureUI(Enrollment|RequiresExplicitVerifier|Service|Release)'
+```
+
+To replay the retained F10 deliveries through the ordinary CLI, set
+`MIXER_F10_REPLAY_INPUTS` to the retained `public/android` directory named
+in the verification receipt. The directory contains `identity.json`,
+`roots.json`, `host.json`, and the `prior`, `exact`, and `rollback` candidates.
+Set `MIXER_F10_REPLAY_CLI` and `MIXER_F10_REPLAY_ORIGIN` to the absolute
+paths of the built `mixer` and `mixer-service` executables. Then run the replay.
+
+```sh
+go -C services test -count=1 -v ./release -run '^TestFeatureUICLIOriginReplay$'
+```
+
+The replay verifies the original signed envelopes at their historical
+signing time. It uses temporary in-memory signing keys for live delivery and
+checks the served predecessor, 14,503-byte successor, and rollback bytes.

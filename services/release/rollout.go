@@ -80,6 +80,9 @@ func (s *Server) haltRollout(r *http.Request, channel string, who access, key st
 	if a.Channel != channel || a.RolloutBasisPoints != 0 {
 		return Response{}, apiError{422, "invalid_halt", "halt requires a signed zero-percent assignment for this channel"}
 	}
+	if e := s.requireFeatureUIArtifact(r.Context(), who, a.ArtifactSHA256, 3); e != nil {
+		return Response{}, e
+	}
 	host, e := s.host(a.Scope, a.Runtime)
 	if e != nil {
 		return Response{}, e
@@ -112,7 +115,14 @@ func (s *Server) haltRollout(r *http.Request, channel string, who access, key st
 		}
 		// The halt removes eligibility. An expired artifact must not prevent a
 		// current assignment signer from stopping offers for that artifact.
-		if a.Sequence <= prior.Sequence || protocol.VerifyAssignmentSignatureV3(req.Signed, s.cfg.Roots, uint64(s.now().Unix())) != nil {
+		now := uint64(s.now().Unix())
+		var signatureErr error
+		if host.featureUI != nil {
+			signatureErr = host.featureUI.VerifyHalt(req.Signed, rec.Version3.SignedManifest.Manifest, channel, prior.Sequence, now)
+		} else {
+			signatureErr = protocol.VerifyAssignmentSignatureV3(req.Signed, s.cfg.Roots, now)
+		}
+		if a.Sequence <= prior.Sequence || signatureErr != nil {
 			return Response{}, apiError{409, "assignment_rejected", "halt requires a current signature and a higher sequence"}
 		}
 		if e := db.saveChannel(ck, signed); e != nil {

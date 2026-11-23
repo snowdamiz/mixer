@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"syscall"
@@ -22,12 +23,30 @@ func run() error {
 	if path == "" {
 		return fmt.Errorf("MIXER_SERVICE_CONFIG must name explicit developer JSON config; no default credentials")
 	}
-	b, e := os.ReadFile(path)
+	file, e := os.Open(path)
+	if e != nil {
+		return e
+	}
+	defer file.Close()
+	b, e := io.ReadAll(file)
 	if e != nil {
 		return e
 	}
 	var cfg release.Config
 	if e = protocol.DecodeJSON(b, &cfg); e != nil {
+		return e
+	}
+	if cfg.FeatureUI != nil {
+		info, err := file.Stat()
+		if err != nil {
+			return err
+		}
+		owner, ok := info.Sys().(*syscall.Stat_t)
+		if !ok || int(owner.Uid) != os.Geteuid() || !info.Mode().IsRegular() || info.Mode().Perm()&0022 != 0 {
+			return fmt.Errorf("feature UI requires an operator-owned config file without group or world write access")
+		}
+	}
+	if e = file.Close(); e != nil {
 		return e
 	}
 	if len(os.Args) != 1 {

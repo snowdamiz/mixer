@@ -342,6 +342,10 @@ func Eligible(a Assignment, installation string) bool {
 // DecodeJSON rejects duplicate fields at every depth, unknown fields and trailing
 // values. JSON is an inspection/transport form; only canonical CBOR is signed.
 func DecodeJSON(data []byte, v any) error {
+	return decodeJSON(data, v, false)
+}
+
+func decodeJSON(data []byte, v any, requireAllFields bool) error {
 	model := jsonTargetType(v)
 	if maximum := jsonProtocolDocumentLimit(model); maximum != 0 && len(data) > maximum {
 		return fmt.Errorf("protocol document exceeds byte limit")
@@ -350,7 +354,7 @@ func DecodeJSON(data []byte, v any) error {
 		return fmt.Errorf("invalid JSON UTF-8")
 	}
 	d := json.NewDecoder(bytes.NewReader(data))
-	if e := walkJSON(d, 0, model); e != nil {
+	if e := walkJSON(d, 0, model, requireAllFields); e != nil {
 		return e
 	}
 	if _, e := d.Token(); e != io.EOF {
@@ -363,7 +367,7 @@ func DecodeJSON(data []byte, v any) error {
 	}
 	return nil
 }
-func walkJSON(d *json.Decoder, depth int, model reflect.Type) error {
+func walkJSON(d *json.Decoder, depth int, model reflect.Type, requireAllFields bool) error {
 	if depth > 32 {
 		return fmt.Errorf("JSON nesting limit")
 	}
@@ -409,9 +413,12 @@ func walkJSON(d *json.Decoder, depth int, model reflect.Type) error {
 			} else if model != nil && model.Kind() == reflect.Map {
 				child = model.Elem()
 			}
-			if e := walkJSON(d, depth+1, child); e != nil {
+			if e := walkJSON(d, depth+1, child, requireAllFields); e != nil {
 				return e
 			}
+		}
+		if requireAllFields && fields != nil && len(seen) != len(fields) {
+			return fmt.Errorf("missing JSON model field")
 		}
 		_, e = d.Token()
 		return e
@@ -421,7 +428,7 @@ func walkJSON(d *json.Decoder, depth int, model reflect.Type) error {
 			child = model.Elem()
 		}
 		for d.More() {
-			if e := walkJSON(d, depth+1, child); e != nil {
+			if e := walkJSON(d, depth+1, child, requireAllFields); e != nil {
 				return e
 			}
 		}
