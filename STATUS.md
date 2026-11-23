@@ -2295,6 +2295,17 @@ instant from the iOS minute projection. The owned Simulator and private
 packet were removed.
 [iOS F12 time picker attempt](verification/receipts/l08-d8-f12-ios-time-picker-boundary-20261123.json)
 
+The corrected iOS F12 selectors both passed. The native form selected
+the leap-day minute, reopened its saved draft, committed once, and
+reopened the entry. Each post-test read resolved the same workspace
+namespace in XCTest's current owned data container. The strict verifier
+reached the final timestamp comparison after the draft, entry and
+outbox checks and found the native minute `18:15:00Z`. Android's
+historical input stored `18:15:12.125Z`. The wrapper misclassified the
+expected precision refusal and did not emit a separate minute report.
+Both native passes and that wrapper failure are retained.
+[iOS F12 native minute precision](verification/receipts/l08-d8-f12-ios-native-minute-precision-20261123.json)
+
 Ordinary offline F11 reopened a saved note on API 36. Native input
 appended ASCII to the existing Unicode and multiline note. Save left
 the outbox unchanged, and a new process restored the edited bytes.
