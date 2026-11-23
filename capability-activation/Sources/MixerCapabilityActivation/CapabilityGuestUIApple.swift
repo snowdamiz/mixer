@@ -13,22 +13,41 @@ public struct MixerGuestScreen: View {
 
     public init(presentation: GuestUIPresentation) { self.presentation = presentation }
 
+    #if os(iOS)
+    private var theme: MixerNativeTheme?
+
+    /// Installs the app's shared Text and Button appearance for this attachment.
+    public func sharedTheme(_ theme: MixerNativeTheme?) -> Self {
+        var view = self
+        view.theme = theme
+        return view
+    }
+
+    public var body: some View {
+        CapabilityGuestUIPlatformScreen(presentation: presentation, theme: theme)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    #else
     public var body: some View {
         CapabilityGuestUIPlatformScreen(presentation: presentation)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
+    #endif
 }
 
 @MainActor
 private struct CapabilityGuestUIRenderedContent: View {
     @ObservedObject var presentation: GuestUIPresentation
     let attachment: CapabilityGuestUIAttachmentIdentity
+    #if os(iOS)
+    var theme: MixerNativeTheme?
+    #endif
 
     var body: some View {
         if let host = presentation.renderHost {
             GeometryReader { viewport in
                 ScrollView(.vertical) {
-                    MixerNativeView(host: host, onAction: presentation.actionHandler(host: host, attachment: attachment))
+                    renderer(host)
                         .disabled(!presentation.inputEnabled(for: attachment))
                         // Keep fitting documents centered. Taller documents can use their full height.
                         .frame(maxWidth: .infinity, minHeight: viewport.size.height)
@@ -39,6 +58,15 @@ private struct CapabilityGuestUIRenderedContent: View {
             Color.clear
         }
     }
+
+    private func renderer(_ host: MixerUIHost) -> MixerNativeView {
+        let view = MixerNativeView(host: host, onAction: presentation.actionHandler(host: host, attachment: attachment))
+        #if os(iOS)
+        return view.sharedTheme(theme)
+        #else
+        return view
+        #endif
+    }
 }
 
 #if canImport(UIKit)
@@ -47,10 +75,12 @@ import UIKit
 @MainActor
 private struct CapabilityGuestUIPlatformScreen: UIViewControllerRepresentable {
     let presentation: GuestUIPresentation
+    let theme: MixerNativeTheme?
     func makeUIViewController(context: Context) -> CapabilityGuestUIIOSController {
-        CapabilityGuestUIIOSController(presentation: presentation)
+        CapabilityGuestUIIOSController(presentation: presentation, theme: theme)
     }
     func updateUIViewController(_ controller: CapabilityGuestUIIOSController, context: Context) {
+        controller.updateTheme(theme)
         controller.presentationChanged()
     }
     static func dismantleUIViewController(_ controller: CapabilityGuestUIIOSController, coordinator: ()) {
@@ -65,7 +95,7 @@ private final class CapabilityGuestUIIOSController: UIViewController, Capability
     private var hosting: UIHostingController<CapabilityGuestUIRenderedContent>?
     private var probe: CapabilityGuestUIIOSProbe?
 
-    init(presentation: GuestUIPresentation) {
+    init(presentation: GuestUIPresentation, theme: MixerNativeTheme?) {
         self.presentation = presentation
         // The check precedes hosting/probe creation, including a second wrapper.
         attachment = presentation.claimNativeAttachment()
@@ -76,7 +106,8 @@ private final class CapabilityGuestUIIOSController: UIViewController, Capability
         NotificationCenter.default.addObserver(self, selector: #selector(sceneChanged(_:)),
                                                name: UIScene.willDeactivateNotification, object: nil)
         hosting = UIHostingController(rootView: CapabilityGuestUIRenderedContent(presentation: presentation,
-                                                                                 attachment: attachment))
+                                                                                 attachment: attachment,
+                                                                                 theme: theme))
         probe = CapabilityGuestUIIOSProbe(presentation: presentation, attachment: attachment)
         presentation.installNativeAttachment(self, identity: attachment)
     }
@@ -107,6 +138,11 @@ private final class CapabilityGuestUIIOSController: UIViewController, Capability
         super.viewDidLayoutSubviews()
         guard let hosting else { return }
         probe?.nativeLayoutCompleted(root: view, renderer: hosting.view)
+    }
+    func updateTheme(_ theme: MixerNativeTheme?) {
+        if let hosting, hosting.rootView.theme != theme {
+            hosting.rootView.theme = theme
+        }
     }
     func presentationChanged() {
         if isViewLoaded { view.setNeedsLayout() }

@@ -68,9 +68,14 @@ private enum FeatureDisplayError: Error { case busy }
 @MainActor
 public struct MixerNativeView: SwiftUI.View {
     @ObservedObject private var host: MixerUIHost
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.colorSchemeContrast) private var colorSchemeContrast
+    @Environment(\.legibilityWeight) private var legibilityWeight
     private let dispatch: @MainActor (UIEventEnvelope) throws -> Void
     private let onEventFailure: @MainActor (UIEventEnvelope, any Error) -> Void
     private let trackSynchronousTextChanges: Bool
+    private var theme: MixerNativeTheme?
 
     public init(host: MixerUIHost, onAction: @escaping @MainActor (RoutedUIAction) -> Void,
                 onEventFailure: @escaping @MainActor (any Error) -> Void = { _ in }) {
@@ -99,9 +104,21 @@ public struct MixerNativeView: SwiftUI.View {
         self.trackSynchronousTextChanges = trackSynchronousTextChanges
     }
 
+    #if os(iOS)
+    /// Installs the app's shared Text and Button appearance in this renderer.
+    public func sharedTheme(_ theme: MixerNativeTheme?) -> Self {
+        var view = self
+        view.theme = theme
+        return view
+    }
+    #endif
+
     public var body: some SwiftUI.View {
         NativeNode(node: host.snapshot.document.root, snapshot: host.snapshot,
-                   textHost: trackSynchronousTextChanges ? host : nil, dispatch: dispatchEvent)
+                   textHost: trackSynchronousTextChanges ? host : nil,
+                   theme: theme?.resolve(scheme: colorScheme, size: dynamicTypeSize,
+                                         contrast: colorSchemeContrast, legibility: legibilityWeight),
+                   dispatch: dispatchEvent)
         .id(host.snapshot.identity(for: host.snapshot.document.root.id))
         .background(FeatureDisplayCompletion(id: host.featureDisplayID) { host.completeFeatureDisplay($0) })
     }
@@ -187,6 +204,7 @@ private struct NativeNode: SwiftUI.View {
     let node: UINode
     let snapshot: UIRenderSnapshot
     let textHost: MixerUIHost?
+    let theme: ResolvedNativeTheme?
     let dispatch: @MainActor (UIEventEnvelope) -> Bool
 
     private var accessibilityID: String {
@@ -219,7 +237,7 @@ private struct NativeNode: SwiftUI.View {
 
     private var children: some SwiftUI.View {
         ForEach(node.children, id: \.id) { child in
-            NativeNode(node: child, snapshot: snapshot, textHost: textHost, dispatch: dispatch)
+            NativeNode(node: child, snapshot: snapshot, textHost: textHost, theme: theme, dispatch: dispatch)
                 .id(snapshot.identity(for: child.id))
         }
     }
@@ -232,13 +250,11 @@ private struct NativeNode: SwiftUI.View {
     private func render() -> AnyView {
         switch node.kind {
         case .text:
-            let text = SwiftUI.Text(node.properties["text"]!.string!)
-                .font(font)
-                .lineLimit(number("maxLines").map(Int.init))
-            if node.properties["selectable"]?.bool == true { return AnyView(text.textSelection(.enabled)) }
-            return AnyView(text.textSelection(.disabled))
+            return AnyView(renderText())
         case .button:
-            return AnyView(SwiftUI.Button(node.properties["label"]!.string!, role: buttonRole) { emit(.activate) })
+            let button = SwiftUI.Button(node.properties["label"]!.string!, role: buttonRole) { emit(.activate) }
+            if let theme { return AnyView(button.buttonStyle(NativeThemedButtonStyle(theme: theme, role: buttonAppearanceRole))) }
+            return AnyView(button)
         case .textField:
             let binding = mixerNativeTextBinding(node: node, snapshot: snapshot, host: textHost, dispatch: dispatch)
             let axis: SwiftUI.Axis = node.properties["axis"]?.string == TextFieldAxis.vertical.rawValue ? .vertical : .horizontal
@@ -261,10 +277,35 @@ private struct NativeNode: SwiftUI.View {
             return AnyView(SwiftUI.Section { children })
         case .navigation:
             return AnyView(SwiftUI.NavigationStack {
-                NativeNode(node: node.children[0], snapshot: snapshot, textHost: textHost, dispatch: dispatch)
+                NativeNode(node: node.children[0], snapshot: snapshot, textHost: textHost, theme: theme, dispatch: dispatch)
                     .id(snapshot.identity(for: node.children[0].id))
                     .navigationTitle(node.properties["title"]?.string ?? "")
             })
+        }
+    }
+
+    @ViewBuilder
+    private func renderText() -> some SwiftUI.View {
+        let text = styledText(SwiftUI.Text(node.properties["text"]!.string!))
+            .lineLimit(number("maxLines").map(Int.init))
+        if node.properties["selectable"]?.bool == true {
+            text.textSelection(.enabled)
+        } else {
+            text.textSelection(.disabled)
+        }
+    }
+
+    @ViewBuilder
+    private func styledText(_ text: SwiftUI.Text) -> some SwiftUI.View {
+        let role = UISharedTextRoleV1(rawValue: node.properties["style"]?.string ?? "body") ?? .body
+        if let theme {
+            text.font(theme.font(role))
+                .foregroundStyle(Color(mixerRGBA: theme.textPaint(role)))
+                .background {
+                    if let contrast = theme.contrast { Color(mixerRGBA: contrast.backdrop) }
+                }
+        } else {
+            text.font(font)
         }
     }
 
@@ -290,11 +331,15 @@ private struct NativeNode: SwiftUI.View {
         }
     }
 
+    private var buttonAppearanceRole: UIResolvedButtonRoleV2 {
+        UIResolvedButtonRoleV2(rawValue: node.properties["role"]?.string ?? "normal") ?? .normal
+    }
+
     private var buttonRole: SwiftUI.ButtonRole? {
-        switch node.properties["role"]?.string {
-        case "destructive": .destructive
-        case "cancel": .cancel
-        default: nil
+        switch buttonAppearanceRole {
+        case .destructive: .destructive
+        case .cancel: .cancel
+        case .normal: nil
         }
     }
 
