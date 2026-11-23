@@ -176,7 +176,12 @@ The shared workspace presentation owner passed both host routes
 and 36 Android tests. Both products linked the owner. The linked
 Swift roster has 2,354 shared lines out of 5,741. Composition with
 the Apple title fix passed exact source reconstruction. A combined
-build and native replay remain open. [Shared owner receipt](verification/receipts/l08-d2-shared-workspace-presentation-host-20261123.json)
+build linked both apps with 2,354 of 5,757 Swift lines shared.
+On iOS, the combined build passed the center-tap and queue selectors.
+The project-detail journey created and selected the exact project, then
+stayed in the picker. Android installed interaction remains open.
+[Shared owner host receipt](verification/receipts/l08-d2-shared-workspace-presentation-host-20261123.json)
+· [Combined build and native failure](verification/receipts/l08-d2-shared-owner-project-create-native-20261123.json)
 
 ## In-place FieldLog public SDK adoption on iOS
 
@@ -239,6 +244,11 @@ The private F03 contracts passed immediate-first admission and
 deferred-start refusal before effects. Android verified all 54
 source members and refused mixed source pairs. Native appearance
 replay remains open. [F03 contract review](verification/receipts/l08-d8-f03-private-contract-host-20261123.json)
+
+The refreshed iOS F03 build accepted sequence 41 and persisted a
+healthy candidate. The private recovery witness failed before paint
+comparison. The stopped journal recorded effects_closed.
+[Native F03 baseline receipt](verification/receipts/l08-d8-f03-ios-baseline-recovery-witness-20261123.json)
 
 The stock recovery encoder now sorts durable health milestones under
 the existing field. Seven recovery tests passed. Independent process
