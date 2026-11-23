@@ -1,0 +1,150 @@
+{
+  "gate": "L02",
+  "status": "passed_scoped_android_note_home_and_cold_readback",
+  "scope": "One user-authorized fresh Android 16 API 36 arm64 emulator on separate ports, real IME first query after Home, single edit, save and cold disk readback.",
+  "device": {
+    "ro.boot.qemu.avd_name": "mixer_picker_se4scskj",
+    "ro.build.version.sdk": "36",
+    "ro.product.cpu.abi": "arm64-v8a",
+    "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+  },
+  "provenance": {
+    "fieldLogTree": "9c2d665c31a6f3f2bfabc42bdfffaf72c6661731",
+    "publicSDK": "857e4b4aa7a32cda368257b2be1a63e77106bed8",
+    "reviewedJavaPatchSHA256": "3faf7ed67a5f46d9565b79fd75ddcc88bf33c5f8dd7671426849b945ff2aceb4",
+    "exactReviewedDexSHA256": "bfdb95dc2b7f3c237c915882f9e0dcb790a7af8d1da83b328b187f278169c5bc",
+    "signedAPK": "1829dec102beadc6fa129b1e0ed3a3cc7428269c45dcbbd3faa5bae6f975a564",
+    "unsignedAPK": "e0d563d67f474b1c29d552d30959188335927429c517f0a51bec739331c99dd3",
+    "signedIME": "e236debe8201303e109d74716fb205e4426d8866dfdcc144c15ac1dc140258fb",
+    "imeSourceSHA256": "cc0a9856a68e9adcb7e98509bab936375cc7cf6a0a376de044f79a870593f485",
+    "driverSHA256": "ad53a0e973f35057f88f571670ca3789afa326c3b73bffcf8a8a875f7ee3fec6",
+    "rebuiltApkMemberDifferences": {
+      "AndroidManifest.xml": {
+        "original": {
+          "bytes": 3796,
+          "sha256": "72b115311989587aaf6d6ad214ec1c0ae486f0b5826fcda92213d19783b475d4",
+          "zip_method": 0
+        },
+        "rebuilt": {
+          "bytes": 3796,
+          "sha256": "dd4612e12df3f351bb891ead94f10f7bb28638307d51c7a47825657caca3104f",
+          "zip_method": 0
+        }
+      },
+      "lib/arm64-v8a/libmixer_public_android_jni.so": {
+        "original": {
+          "bytes": 34753680,
+          "sha256": "006daf5e2e28b86da0b3f615b57461798801f2c7526181a24e4c70d39605ea8b",
+          "zip_method": 0
+        },
+        "rebuilt": {
+          "bytes": 34739464,
+          "sha256": "70c867c22c6e410525437a751b23b96532c7e081676715dc8ec68962bb82fafc",
+          "zip_method": 0
+        }
+      }
+    }
+  },
+  "observations": {
+    "imeSelectedBeforeFirstLaunch": true,
+    "imeStayedSelected": "dev.mixer.fixture.f13ime/.NoteIme",
+    "firstHomeBindHealthy": true,
+    "homeConnection": "usableNote",
+    "homeIdentity": {
+      "pid": 2329,
+      "activity": {
+        "record": "261892891",
+        "task": 8
+      },
+      "focus": {
+        "window": [
+          {
+            "token": "837fc78",
+            "component": "dev.fieldlog.generatedr90/dev.fieldlog.generatedr90.androidhost.PublicActivity"
+          }
+        ],
+        "immsEditorPackage": null,
+        "immsInputType": null,
+        "inputShown": true
+      }
+    },
+    "beforeIMECommit": "homeProbe start=6 editor=note connection=d99d946 caps=1000 text=empty",
+    "commitDispatch": "commitAccepted=true",
+    "afterIMECommit": "noteText=exact",
+    "durableWorkspaceSHA256": "fac367ec145130e483ba4660846e48232876ef5e5439b77d506886472164935e",
+    "coldPID": 2798,
+    "exactColdNote": true,
+    "noteSHA256": "4bace3affaf931961aa3600fd397d2a3e79e83efe482fe32e7402b70fb81ff48"
+  },
+  "cleanup": {
+    "scratchRemoved": true,
+    "imeSettingsRestored": true,
+    "uninstalled": [
+      "dev.fieldlog.generatedr90",
+      "dev.mixer.fixture.f13ime"
+    ],
+    "services": [
+      {
+        "name": "emulator",
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/emulator/emulator",
+          "-avd",
+          "mixer_picker_se4scskj",
+          "-ports",
+          "26450,26451",
+          "-no-window",
+          "-no-audio",
+          "-no-snapshot",
+          "-gpu",
+          "swiftshader_indirect",
+          "-no-boot-anim",
+          "-skin",
+          "1080x2400",
+          "-partition-size",
+          "3072"
+        ],
+        "pid": 37076,
+        "exit": 0,
+        "groupAbsent": true
+      },
+      {
+        "name": "adb",
+        "argv": [
+          "/opt/homebrew/share/android-commandlinetools/platform-tools/adb",
+          "-L",
+          "tcp:localhost:26452",
+          "server",
+          "nodaemon"
+        ],
+        "pid": 37075,
+        "exit": -15,
+        "groupAbsent": true
+      }
+    ],
+    "portsRebound": [
+      26450,
+      26451,
+      26452
+    ],
+    "terminalCommands": 170,
+    "earlierHoldPreserved": "l02-android-note-home-probe-custody-20261122.json"
+  },
+  "retained": {
+    "native": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-ios-signed-resume-root/l02-note-rebuilt-home-private/fresh-home-native-1.json",
+      "sha256": "8e066efb5af3a37b129dfff625e34518735eaf6e2dff7038402a5b19d6ce8b3c"
+    },
+    "producer": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8c59a86f/verification/receipts/fieldlog-pair26-ordinary-8c59a86f.json",
+      "sha256": "b6d18fe50b2953367ccfcfdc955b007adacd022ebe0233beb4d5f6f0c6681bf8"
+    },
+    "preparation": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-ios-signed-resume-root/l02-note-rebuilt-home-private/ime-receipt.json",
+      "sha256": "16a7f6dc039c0245dde30cd3f0042fa08938f907318d56d3c78ae511df48a9c7"
+    },
+    "signing": {
+      "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-ios-signed-resume-root/l02-note-rebuilt-home-private/private-signing-admission.json",
+      "sha256": "242c06480404c0b13f90d958de2a5e5f093fbaa2bae34e96661b8e504060ed3e"
+    }
+  }
+}

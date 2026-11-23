@@ -92,6 +92,16 @@ rebound. No payment configuration was needed. The run covers the delivery
 and control-service topology, with independent telemetry loss unobserved.
 [Installed Workerd receipt](verification/receipts/l08-ios-installed-workerd-outage-20261122.json)
 
+## Shared FieldLog checklist implementation
+
+Both ordinary host routes now exercise the same project-scoped row edit
+and preserve the existing frame and transaction checks. Generic iOS and
+ordinary and relocated Android links passed. In the reference roster,
+1,669 of 4,974 physical lines are common. The relocated export roster
+contains 1,423 common lines of 4,564. The source-sharing target and
+installed qualification remain open.
+[Linked source receipt](verification/receipts/l08-d2-linked-shared-checklist-20261122.json)
+
 ## In-place FieldLog public SDK adoption on iOS
 
 Three native tests created a project and saved photo draft in standalone
@@ -165,6 +175,14 @@ survived. The earlier stale container path failure is preserved.
 [Photo path failure](verification/receipts/l02-ios-photo-terminal-container-rotation-20261122.json)
 
 ## Android Note switch and Home recovery
+
+The fresh API 36 emulator passed Note after Home. The first valid query
+returned the expected caps and empty Note. One IME commit was accepted
+and cold readback observed the exact saved note. The freshly linked APK
+retains the reviewed DEX byte for byte. The emulator and private ADB
+group closed, their three ports rebound, and their scratch was removed.
+The earlier emulator and its scratch remain held.
+[Fresh Note receipt](verification/receipts/l02-android-note-home-isolated-native-20261122.json)
 
 The private Pair27 candidate passed all six stock host consumer builds
 and all 76 Android Swift SDK tests. Each Debug and Release consumer from
