@@ -224,6 +224,13 @@ and library to the seal, deleted the owned Simulator, and verified the
 external baseline. The signed fixtures were embedded in the sealed app.
 [Installed F10 route receipt](verification/receipts/l08-d8-f10-ios-qos-native-20261122.json)
 
+All three installed iOS F10 routes fetched the same signed baseline from
+the local relay. The independent review matched each initial offer and
+artifact to its launch, and the cold launches made zero requests. The
+paired Android traffic was host-side. A distinct live successor on both
+installed apps remains open.
+[Live F10 iOS receipt](verification/receipts/l08-d8-f10-ios-live-relay-20261122.json)
+
 The historical F06 iOS fixture passed native multiline editing, Cancel,
 and cold byte comparisons after the test identified the actual title field
 in the SwiftUI form. Public signed delivery remains separate.
