@@ -95,13 +95,15 @@ final class GuestUISignedRuntimeTests: XCTestCase, @unchecked Sendable {
     private var owners: [ObjectIdentifier: SignedRuntimeRetirement] = [:]
     private var fixtureOwners: [String: [SignedRuntimeRetirement]] = [:]
     private var incompleteOpen = Set<String>()
-    private func withRuntime(_ fixture: GuestUISignedFixture, publicIngress: Bool = false,
+    private func withRuntime(_ fixture: GuestUISignedFixture, publicIngress: Bool = false, observationSeconds: UInt64 = 1,
                              _ body: (CapabilityGuestUIRuntime) async throws -> Void) async throws {
         let baseline = CapabilityAttemptReservation.occupiedSlots
         incompleteOpen.insert(fixture.root.path)
+        let configuration = fixture.configuration(observationSeconds: observationSeconds)
         let runtime = try await (publicIngress
-            ? CapabilityGuestUIRuntime.open(configuration: fixture.configuration, execution: fixture.execution)
-            : open(fixture))
+            ? CapabilityGuestUIRuntime.open(configuration: configuration, execution: fixture.execution)
+            : CapabilityGuestUIRuntime.openOwned(configuration: configuration, installed: fixture.execution.installed,
+                                                  environment: .init(wall: { 1000 })))
         let owner = SignedRuntimeRetirement(runtime)
         owners[ObjectIdentifier(runtime)] = owner
         fixtureOwners[fixture.root.path, default: []].append(owner)
@@ -143,10 +145,6 @@ final class GuestUISignedRuntimeTests: XCTestCase, @unchecked Sendable {
             }
         }
         return try GuestUISignedFixture(root: fixtureRoot(), storageService: commitProbe, commitFacts: facts)
-    }
-    private func open(_ f: GuestUISignedFixture) async throws -> CapabilityGuestUIRuntime {
-        try await CapabilityGuestUIRuntime.openOwned(configuration:f.configuration, installed:f.execution.installed,
-            environment:.init(wall:{1000}))
     }
     private func stage(_ f: GuestUISignedFixture, _ runtime: CapabilityGuestUIRuntime,
                        mode: GuestUISignedProgram.Mode = .valid, storage: Bool = true,
@@ -303,6 +301,7 @@ final class GuestUISignedRuntimeTests: XCTestCase, @unchecked Sendable {
         return try await MainActor.run {
             let model = runtime.presentation
             let attachment = try XCTUnwrap(model.claimNativeAttachment())
+            try acknowledgeNativePresentation(model, attachment: attachment)
             let host = try XCTUnwrap(model.renderHost), identity = try XCTUnwrap(host.snapshot.identity(for:"save"))
             let action = try host.route(UIEventEnvelope(revision:1,identity:identity,event:.activate))
             XCTAssertTrue(model.inputEnabled)
@@ -317,7 +316,9 @@ final class GuestUISignedRuntimeTests: XCTestCase, @unchecked Sendable {
     }
     func testSignedEventCommitsStorageBeforeGuestShowsSaved() async throws {
         let before = CapabilityAttemptReservation.occupiedSlots, f = try fixture()
-        try await withRuntime(f) { runtime in
+        // These host controls simulate native acknowledgment, then exercise
+        // storage and failures while the signed attempt remains provisional.
+        try await withRuntime(f, observationSeconds: 3600) { runtime in
             try await stage(f,runtime); _ = try await runtime.start(); try await activateSave(runtime)
             try await eventually("Guest never consumed committed storage result") {
                 await MainActor.run { runtime.presentation.state == .displaying(revision:3) }
@@ -582,7 +583,7 @@ final class GuestUISignedRuntimeTests: XCTestCase, @unchecked Sendable {
     func testInvalidEventFrameStopsBeforeItsPutButInvalidWakePreservesCommittedPut() async throws {
         for mode: GuestUISignedProgram.Mode in [.invalidEventDocument,.invalidWakeDocument] {
             let before = CapabilityAttemptReservation.occupiedSlots, f = try fixture()
-            try await withRuntime(f) { runtime in
+            try await withRuntime(f, observationSeconds: 3600) { runtime in
                 try await stage(f,runtime,mode:mode); _ = try await runtime.start(); try await activateSave(runtime)
                 try await eventually("Invalid frame did not durably stop signed coordinator") {
                     let snapshot = await runtime.recoverySnapshot()

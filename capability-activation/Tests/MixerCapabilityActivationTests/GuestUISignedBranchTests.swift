@@ -25,6 +25,7 @@ final class GuestUISignedBranchTests: XCTestCase {
                 let model = owner.presentation
                 try await awaitPresentation { model.state == .displaying(revision: 1) }
                 let attachment = try XCTUnwrap(model.claimNativeAttachment())
+                try acknowledgeNativePresentation(model, attachment: attachment)
                 try await awaitPresentation { model.inputEnabled }
 
                 let host = try XCTUnwrap(model.renderHost)
@@ -119,6 +120,7 @@ final class GuestUISignedBranchTests: XCTestCase {
                 let model = owner.presentation
                 try await awaitPresentation { model.state == .displaying(revision: 1) }
                 let attachment = try XCTUnwrap(model.claimNativeAttachment())
+                try acknowledgeNativePresentation(model, attachment: attachment)
                 try await awaitPresentation { model.inputEnabled }
                 let host = try XCTUnwrap(model.renderHost)
                 XCTAssertEqual(host.snapshot.document, expected)
@@ -238,7 +240,10 @@ final class GuestUISignedBranchTests: XCTestCase {
         let baseline = CapabilityAttemptReservation.occupiedSlots
         let fixture = try GuestUISignedFixture(root: root)
         removable = false
-        let owner = try await CapabilityGuestUIRuntime.open(configuration: fixture.configuration, execution: fixture.execution)
+        // A simulated native acknowledgment exercises input while these host
+        // controls hold health promotion outside the test's observation window.
+        let configuration = fixture.configuration(observationSeconds: 3600)
+        let owner = try await CapabilityGuestUIRuntime.open(configuration: configuration, execution: fixture.execution)
         var failure: Error?
         do { try await exercise(fixture, owner) }
         catch { failure = error }
@@ -250,7 +255,7 @@ final class GuestUISignedBranchTests: XCTestCase {
 
         if checkFallbackAfterRetirement {
             removable = false
-            let reopened = try await CapabilityGuestUIRuntime.open(configuration: fixture.configuration, execution: fixture.execution)
+            let reopened = try await CapabilityGuestUIRuntime.open(configuration: configuration, execution: fixture.execution)
             do {
                 let fallback = try await reopened.start()
                 XCTAssertEqual(fallback.phase, .nativeFallback)

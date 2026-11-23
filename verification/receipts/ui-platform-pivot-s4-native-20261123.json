@@ -40,9 +40,76 @@
     "externalBaselineEqual": true
   },
   "pending": [
-    "First-display input gate",
-    "Post-intent failed draw",
-    "Retired callbacks across owner replacement",
-    "Rendered shared-theme parity"
-  ]
+    "Combined theme and first-display gate in one fixture",
+    "Post-intent native first-draw failure",
+    "Retired callback across native owner replacement"
+  ],
+  "inputGateCorrection": {
+    "productionPatchSHA256": "84fc36a0f375b4fc8025857a22b547b09dae870b433f62cff1a303f19bc31886",
+    "hostTestPatchSHA256": "905d67192b214e426357baa087364dd5c2d84db665d99737830fc35c7c849d67",
+    "fixtureSHA256": "0bd5dea53b7f3ab5d324d9dd25ded69735b56339c8ed49923838a7dffca56db3",
+    "scope": "arm64 iOS 26.5 (23F77) Simulator, ad hoc signed build with minimum 17.0",
+    "reviewer": "Independent Sol 6.2 High review t3-81b7721a passed 44 host tests with two optional skips; reversing only the gate reproduced the defect.",
+    "tests": {
+      "testInvalidFirstFrameBoundary": {
+        "result": "Passed",
+        "logSHA256": "07693da7d79bead412b50449caa1d734db3a966e1208816f50bb290f76466031"
+      },
+      "testSignedNativeFrameFailureStaleDeliveryAndOfflineRelaunch": {
+        "result": "Passed",
+        "logSHA256": "546d08ae051f6f6c7a2bae66f663eb48f0e39a847d6452baf7280832e97b8bb6"
+      },
+      "testNativeTapBeforeAndAfterDisplayAcknowledgment": {
+        "result": "Passed",
+        "logSHA256": "349965e7c492c9be6246b8b2bac43e64110eb9900f2aca4cbc491d3aaac4e96d"
+      }
+    },
+    "observed": [
+      "Before acknowledgment the visible Save control stayed disabled and the tap delivered no callback or guest event. Store remained empty.",
+      "After the exact first display receipt, one Save tap produced one native callback and one accepted and delivered event. Disk readback was AAH+/w==.",
+      "The captured stale handler was refused. Invalid first-frame recovery and the signed rollback and offline relaunch passed again."
+    ],
+    "cleanup": {
+      "exactUUIDRemoved": "9344C43C-ED20-416E-8F2D-3EEC47ED7E7E",
+      "externalBaselineEqual": true
+    }
+  },
+  "sharedThemeControl": {
+    "selector": "S4NativeUITests/S4NativeUITests/testSharedThemeRendersInBundledAndSignedGuest",
+    "result": "Passed",
+    "runtime": "arm64 iOS 26.5 (23F77) Simulator",
+    "scope": "Separate signed build with a shared light theme on native SwiftUI text and button controls.",
+    "pixels": {
+      "themed-guest-r1-pixels": [
+        "ready=142x61",
+        "save=430x132",
+        "readyInk=0.13380281690140844",
+        "saveFillLeft=1.0",
+        "saveFillRight=1.0",
+        "saveLabelInk=0.0995836662601455"
+      ],
+      "themed-bundled-r1-pixels": [
+        "ready=142x60",
+        "save=430x132",
+        "readyInk=0.13556338028169015",
+        "saveFillLeft=1.0",
+        "saveFillRight=1.0",
+        "saveLabelInk=0.0995836662601455"
+      ],
+      "platform-bundled-r1-pixels": [
+        "ready=142x61",
+        "save=288x60",
+        "readyInk=0.0",
+        "saveFillLeft=0.0",
+        "saveFillRight=0.0",
+        "saveLabelInk=0.0"
+      ]
+    },
+    "userdata": "Native Save routed and stale signed input was refused; disk bytes verified after retirement.",
+    "logSHA256": "6def7effb2f367eeb5268f2d6e59eaac7d3147e9f98ec8b7ad2f906fa58be628",
+    "cleanup": {
+      "exactUUIDRemoved": "27D24526-6BC7-4531-AD75-91C0C58B1A23",
+      "externalBaselineEqual": true
+    }
+  }
 }

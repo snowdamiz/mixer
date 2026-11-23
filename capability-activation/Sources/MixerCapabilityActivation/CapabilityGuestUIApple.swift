@@ -29,7 +29,7 @@ private struct CapabilityGuestUIRenderedContent: View {
             GeometryReader { viewport in
                 ScrollView(.vertical) {
                     MixerNativeView(host: host, onAction: presentation.actionHandler(host: host, attachment: attachment))
-                        .disabled(!presentation.inputEnabled)
+                        .disabled(!presentation.inputEnabled(for: attachment))
                         // Keep fitting documents centered. Taller documents can use their full height.
                         .frame(maxWidth: .infinity, minHeight: viewport.size.height)
                 }

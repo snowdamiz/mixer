@@ -31,15 +31,23 @@ final class GuestUIReadyInputTests: XCTestCase, @unchecked Sendable {
         } catch { await finish(); throw error }
         await finish()
     }
-    @MainActor private func input(_ model: GuestUIPresentation) throws -> (CapabilityGuestUIAttachmentIdentity, MixerUIHost, RoutedUIAction) {
+    @MainActor private func input(_ model: GuestUIPresentation, exchange: GuestUIExchangeV1) throws -> (CapabilityGuestUIAttachmentIdentity, MixerUIHost, RoutedUIAction) {
         let attachment = try XCTUnwrap(model.claimNativeAttachment()), host = try XCTUnwrap(model.renderHost)
+        try acknowledgeFirstDisplay(model, attachment: attachment, exchange: exchange)
         let identity = try XCTUnwrap(host.snapshot.identity(for: "save"))
         return (attachment, host, try host.route(UIEventEnvelope(revision: 1, identity: identity, event: .activate)))
+    }
+    @MainActor private func acknowledgeFirstDisplay(_ model: GuestUIPresentation,
+                                                    attachment: CapabilityGuestUIAttachmentIdentity,
+                                                    exchange: GuestUIExchangeV1) throws {
+        try acknowledgeNativePresentation(model, attachment: attachment)
+        let receipt = try XCTUnwrap(exchange.snapshot().pendingPresentationReceipt)
+        exchange.consumeObservedPresentation(generation: receipt.generation, frameSerial: receipt.frameSerial)
     }
     @MainActor func testReadyCompletionRetainsExactlyOneIntentWithoutNewFrame() async throws {
         for invoke in [false, true] {
             try await withModel { binding, exchange in
-                let model = binding.presentation, (attachment, host, action) = try input(binding.presentation)
+                let model = binding.presentation, (attachment, host, action) = try input(model, exchange: exchange)
                 let callback = model.actionHandler(host: host, attachment: attachment)
                 let ready = try XCTUnwrap(try exchange.claimNextTurn(ready: true))
                 XCTAssertTrue(model.inputEnabled)
@@ -71,7 +79,7 @@ final class GuestUIReadyInputTests: XCTestCase, @unchecked Sendable {
     }
     @MainActor func testNewRevisionCancelsPendingAndRejectsLateCallback() async throws {
         try await withModel { binding, exchange in
-            let model = binding.presentation, (attachment, host, action) = try input(binding.presentation)
+            let model = binding.presentation, (attachment, host, action) = try input(model, exchange: exchange)
             let callback = model.actionHandler(host: host, attachment: attachment)
             let ready = try XCTUnwrap(try exchange.claimNextTurn(ready: true))
             callback(action)
@@ -86,7 +94,7 @@ final class GuestUIReadyInputTests: XCTestCase, @unchecked Sendable {
     }
     @MainActor func testDetachAndForeignAttachmentCancelAuthority() async throws {
         try await withModel { binding, exchange in
-            let model = binding.presentation, (attachment, host, action) = try input(binding.presentation)
+            let model = binding.presentation, (attachment, host, action) = try input(model, exchange: exchange)
             let old = model.actionHandler(host: host, attachment: attachment)
             let foreignHost = try MixerUIHost(document: GuestUICodec().decode(presentationDocument()).document)
             let foreign = model.actionHandler(host: foreignHost, attachment: attachment)
@@ -106,7 +114,7 @@ final class GuestUIReadyInputTests: XCTestCase, @unchecked Sendable {
     @MainActor func testStopCloseAndTerminalFailureDiscardPendingAndFinishObserver() async throws {
         for cause in 0...2 {
             try await withModel { binding, exchange in
-                let model = binding.presentation, (attachment, host, action) = try input(binding.presentation)
+                let model = binding.presentation, (attachment, host, action) = try input(model, exchange: exchange)
                 let callback = model.actionHandler(host: host, attachment: attachment)
                 let ready = try XCTUnwrap(try exchange.claimNextTurn(ready: true))
                 callback(action)
@@ -123,7 +131,7 @@ final class GuestUIReadyInputTests: XCTestCase, @unchecked Sendable {
     }
     @MainActor func testOutstandingEventCancelsPendingRatherThanReplayingAcceptedInput() async throws {
         try await withModel { binding, exchange in
-            let model = binding.presentation, (attachment, host, action) = try input(binding.presentation)
+            let model = binding.presentation, (attachment, host, action) = try input(model, exchange: exchange)
             let callback = model.actionHandler(host: host, attachment: attachment)
             let ready = try XCTUnwrap(try exchange.claimNextTurn(ready: true))
             callback(action)
@@ -149,7 +157,7 @@ final class GuestUIReadyInputTests: XCTestCase, @unchecked Sendable {
         let old = try GuestUIExchangeV1(generation: 7), first = try await binding.bind(old)
         try startPresentationExchange(old)
         try await awaitPresentation { binding.presentation.state == .displaying(revision: 1) }
-        let (attachment, host, action) = try input(binding.presentation)
+        let (attachment, host, action) = try input(binding.presentation, exchange: old)
         let callback = binding.presentation.actionHandler(host: host, attachment: attachment)
         _ = try XCTUnwrap(try old.claimNextTurn(ready: true)); callback(action)
         old.stop(.closed)
@@ -157,6 +165,7 @@ final class GuestUIReadyInputTests: XCTestCase, @unchecked Sendable {
         let next = try GuestUIExchangeV1(generation: 8), second = try await binding.bind(next)
         try startPresentationExchange(next)
         try await awaitPresentation { binding.presentation.state == .displaying(revision: 1) }
+        try acknowledgeFirstDisplay(binding.presentation, attachment: attachment, exchange: next)
         callback(action)
         XCTAssertEqual(next.snapshot().counters.acceptedEvents, 0)
         XCTAssertEqual(old.snapshot().counters.acceptedEvents, 0)
@@ -227,7 +236,7 @@ final class GuestUIReadyInputTests: XCTestCase, @unchecked Sendable {
     @MainActor func testForeignHostAfterPendingInvalidatesWithoutAdmission() async throws {
         for releaseHost in [false, true] {
             try await withModel { binding, exchange in
-                let model = binding.presentation, (attachment, host, action) = try input(binding.presentation)
+                let model = binding.presentation, (attachment, host, action) = try input(model, exchange: exchange)
                 var foreignHost: MixerUIHost? = try MixerUIHost(document: GuestUICodec().decode(presentationDocument()).document)
                 let current = model.actionHandler(host: host, attachment: attachment)
                 let foreign = model.actionHandler(host: try XCTUnwrap(foreignHost), attachment: attachment)
@@ -252,7 +261,7 @@ final class GuestUIReadyInputTests: XCTestCase, @unchecked Sendable {
     }
     @MainActor func testCurrentValidDuplicatePreservesFirstPendingIntent() async throws {
         try await withModel { binding, exchange in
-            let model = binding.presentation, (attachment, host, action) = try input(binding.presentation)
+            let model = binding.presentation, (attachment, host, action) = try input(model, exchange: exchange)
             let callback = model.actionHandler(host: host, attachment: attachment)
             let ready = try XCTUnwrap(try exchange.claimNextTurn(ready: true))
             callback(action)
@@ -279,7 +288,7 @@ final class GuestUIReadyInputTests: XCTestCase, @unchecked Sendable {
     @MainActor func testForeignAndRetiredAttachmentInvalidateCurrentPendingIntent() async throws {
         for retireAttachment in [false, true] {
             try await withModel { binding, exchange in
-                let model = binding.presentation, (attachment, host, action) = try input(binding.presentation)
+                let model = binding.presentation, (attachment, host, action) = try input(model, exchange: exchange)
                 let foreignIdentity = retireAttachment ? attachment : CapabilityGuestUIAttachmentIdentity()
                 let foreign = model.actionHandler(host: host, attachment: foreignIdentity)
                 var currentIdentity = attachment
@@ -302,7 +311,7 @@ final class GuestUIReadyInputTests: XCTestCase, @unchecked Sendable {
     @MainActor func testInvalidCurrentRouteInvalidatesPendingBeforeDuplicateGate() async throws {
         for field in ["nodeID", "actionID", "revision"] {
             try await withModel { binding, exchange in
-                let model = binding.presentation, (attachment, host, action) = try input(binding.presentation)
+                let model = binding.presentation, (attachment, host, action) = try input(model, exchange: exchange)
                 var fields = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(action)) as? [String: Any])
                 if field == "revision" { fields[field] = 2 }
                 else { fields[field] = "foreign" }
@@ -321,7 +330,7 @@ final class GuestUIReadyInputTests: XCTestCase, @unchecked Sendable {
     }
     @MainActor func testStaleFrameCallbackInvalidatesNewRevisionPendingIntent() async throws {
         try await withModel { binding, exchange in
-            let model = binding.presentation, (attachment, host, action) = try input(binding.presentation)
+            let model = binding.presentation, (attachment, host, action) = try input(model, exchange: exchange)
             let stale = model.actionHandler(host: host, attachment: attachment)
             let first = try XCTUnwrap(try exchange.claimNextTurn(ready: true))
             try exchange.finishTurn(first, documentBytes: presentationDocument(2))
@@ -355,7 +364,7 @@ final class GuestUIReadyInputTests: XCTestCase, @unchecked Sendable {
         do {
             try startPresentationExchange(exchange)
             try await awaitPresentation { model.state == .displaying(revision: 1) }
-            let (attachment, oldHost, action) = try input(model)
+            let (attachment, oldHost, action) = try input(model, exchange: exchange)
             let stale = model.actionHandler(host: oldHost, attachment: attachment)
             let old = exchange
             old.stop(.closed)
@@ -364,6 +373,7 @@ final class GuestUIReadyInputTests: XCTestCase, @unchecked Sendable {
             installation = try await binding.bind(exchange)
             try startPresentationExchange(exchange)
             try await awaitPresentation { model.state == .displaying(revision: 1) }
+            try acknowledgeFirstDisplay(model, attachment: attachment, exchange: exchange)
             let host = try XCTUnwrap(model.renderHost)
             XCTAssertFalse(host === oldHost)
             let currentAction = try host.route(UIEventEnvelope(revision: 1, identity: XCTUnwrap(host.snapshot.identity(for: "save")), event: .activate))

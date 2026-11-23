@@ -27,6 +27,14 @@ internal func awaitPresentation(_ condition: @MainActor () -> Bool) async throws
     try #require(condition(), "presentation state failed to settle within five seconds")
 }
 
+// Host-only tests drive the same acknowledgment boundary without a native window.
+@MainActor
+internal func acknowledgeNativePresentation(_ model: GuestUIPresentation,
+                                            attachment: CapabilityGuestUIAttachmentIdentity) throws {
+    let ticket = try #require(model.nativeDisplayTicket(attachment: attachment))
+    try #require(model.observeNativeDisplay(ticket))
+}
+
 @MainActor
 internal func withPreparedPresentation(_ body: (CapabilityGuestUIPresentationBinding) async throws -> Void) async throws {
     let reservation = try CapabilityAttemptReservation.acquire()
@@ -95,8 +103,25 @@ struct GuestUIPresentationModelTests {
             let host = try #require(binding.presentation.renderHost)
             let identity = try #require(host.snapshot.identity(for: "save"))
             let action = try host.route(UIEventEnvelope(revision: 1, identity: identity, event: .activate))
-            let callback = binding.presentation.actionHandler(host: host, attachment: attachment)
+            let beforeReceipt = binding.presentation.actionHandler(host: host, attachment: attachment)
+            #expect(!binding.presentation.inputEnabled)
+            beforeReceipt(action)
+            #expect(exchange.snapshot().counters.acceptedEvents == 0)
+            var publications = 0
+            let subscription = binding.presentation.objectWillChange.sink { publications += 1 }
+            let ticket = try #require(binding.presentation.nativeDisplayTicket(attachment: attachment))
+            try #require(binding.presentation.observeNativeDisplay(ticket))
+            #expect(publications == 1)
+            subscription.cancel()
+            let receipt = try #require(exchange.snapshot().pendingPresentationReceipt)
+            #expect(receipt.generation == ticket.ticket.generation)
+            #expect(receipt.frameSerial == ticket.ticket.frameSerial)
+            #expect(receipt.revision == ticket.ticket.revision)
+            exchange.consumeObservedPresentation(generation: receipt.generation, frameSerial: receipt.frameSerial)
+            beforeReceipt(action)
+            #expect(exchange.snapshot().counters.acceptedEvents == 0)
             #expect(binding.presentation.inputEnabled)
+            let callback = binding.presentation.actionHandler(host: host, attachment: attachment)
             callback(action)
             #expect(!binding.presentation.inputEnabled)
             callback(action)
@@ -124,6 +149,7 @@ struct GuestUIPresentationModelTests {
             let attachment = try #require(binding.presentation.claimNativeAttachment())
             let oldHost = try #require(binding.presentation.renderHost)
             let oldTicket = try #require(binding.presentation.nativeDisplayTicket(attachment: attachment))
+            try #require(binding.presentation.observeNativeDisplay(oldTicket))
             let oldIdentity = try #require(oldHost.snapshot.identity(for: "save"))
             let oldAction = try oldHost.route(UIEventEnvelope(revision: 1, identity: oldIdentity, event: .activate))
             let oldCallback = binding.presentation.actionHandler(host: oldHost, attachment: attachment)
@@ -136,6 +162,9 @@ struct GuestUIPresentationModelTests {
             #expect(newHost !== oldHost)
             #expect(newHost.snapshot.identity(for: "save") == oldIdentity)
             #expect(!binding.presentation.isCurrentNativeDisplay(oldTicket))
+            #expect(!binding.presentation.observeNativeDisplay(oldTicket))
+            #expect(!binding.presentation.inputEnabled)
+            try acknowledgeNativePresentation(binding.presentation, attachment: attachment)
             oldCallback(oldAction)
             #expect(next.snapshot().counters.acceptedEvents == 0)
             let newAction = try newHost.route(UIEventEnvelope(revision: 1, identity: oldIdentity, event: .activate))
@@ -272,12 +301,15 @@ struct GuestUIPresentationModelTests {
             let subscription = binding.presentation.objectWillChange.sink { publications += 1 }
             let attachment = try #require(binding.presentation.claimNativeAttachment())
             #expect(publications == 0)
+            #expect(!binding.presentation.inputEnabled)
+            let oldTicket = try #require(binding.presentation.nativeDisplayTicket(attachment: attachment))
+            try #require(binding.presentation.observeNativeDisplay(oldTicket))
             #expect(binding.presentation.inputEnabled)
+            publications = 0
             let host = try #require(binding.presentation.renderHost)
             let identity = try #require(host.snapshot.identity(for: "save"))
             let action = try host.route(UIEventEnvelope(revision: 1, identity: identity, event: .activate))
             let oldCallback = binding.presentation.actionHandler(host: host, attachment: attachment)
-            let oldTicket = try #require(binding.presentation.nativeDisplayTicket(attachment: attachment))
             binding.presentation.detachNativeAttachment(attachment)
             #expect(publications == 0)
             #expect(!binding.presentation.inputEnabled)
@@ -314,6 +346,8 @@ struct GuestUIPresentationModelTests {
             #expect(!binding.presentation.inputEnabled || exchange.snapshot().displayedRevision != exchange.snapshot().latestRevision)
             try await awaitPresentation { binding.presentation.state == .displaying(revision: 2) }
             #expect(!binding.presentation.isCurrentNativeDisplay(oldTicket))
+            #expect(!binding.presentation.observeNativeDisplay(oldTicket))
+            #expect(!binding.presentation.inputEnabled)
             #expect(binding.presentation.nativeDisplayTicket(attachment: attachment)?.ticket.revision == 2)
             #expect(exchange.snapshot().pendingPresentationReceipt == nil)
             exchange.stop(.closed); await finishPresentationInstallation(consumer)
@@ -328,6 +362,7 @@ struct GuestUIPresentationModelTests {
                 try startPresentationExchange(exchange)
                 try await awaitPresentation { binding.presentation.state == .displaying(revision: 1) }
                 let attachment = try #require(binding.presentation.claimNativeAttachment())
+                try acknowledgeNativePresentation(binding.presentation, attachment: attachment)
                 let host = try #require(binding.presentation.renderHost)
                 let identity = try #require(host.snapshot.identity(for: "save"))
                 let action = try host.route(UIEventEnvelope(revision: 1, identity: identity, event: .activate))
@@ -359,6 +394,7 @@ struct GuestUIPresentationModelTests {
             try startPresentationExchange(exchange)
             try await awaitPresentation { binding.presentation.state == .displaying(revision: 1) }
             let attachment = try #require(binding.presentation.claimNativeAttachment())
+            try acknowledgeNativePresentation(binding.presentation, attachment: attachment)
             let host = try #require(binding.presentation.renderHost)
             let identity = try #require(host.snapshot.identity(for: "save"))
             let action = try host.route(UIEventEnvelope(revision: 1, identity: identity, event: .activate))
@@ -367,8 +403,7 @@ struct GuestUIPresentationModelTests {
             let next = presentationDocument(2, text: "Saving")
             try exchange.finishTurn(turn, documentBytes: next)
             // Fault the test-owned private host using its existing reconciler API.
-            // No production hook or native receipt is introduced. The actual fixed
-            // consumer's next update now throws revisionNotIncreasing.
+            // The consumer's next update now throws revisionNotIncreasing.
             try host.update(GuestUICodec().decode(next).document)
             await finishPresentationInstallation(consumer)
             #expect(binding.presentation.state == .stopped)

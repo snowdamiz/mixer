@@ -21,10 +21,15 @@ public final class GuestUIPresentation: ObservableObject {
     @Published private var inputReady = false
     // Native representable attach/dismantle callbacks may run while SwiftUI is
     // invalidating its graph. Revoke attachment authority synchronously without
-    // publishing back into that same graph. The sole consumer publishes ordinary
-    // readiness changes; a new native subtree reads this gate after attachment.
+    // publishing back into that same graph. A new native subtree reads this
+    // gate after attachment.
     internal var inputEnabled: Bool {
-        inputReady && attachment != nil && !pendingAttachmentInvariant && exchange?.snapshot().stop == nil
+        inputReady && observedNativeDisplay && attachment != nil &&
+            !pendingAttachmentInvariant && exchange?.snapshot().stop == nil
+    }
+
+    internal func inputEnabled(for identity: CapabilityGuestUIAttachmentIdentity) -> Bool {
+        attachment === identity && inputEnabled
     }
 
     private struct PendingNativeInput {
@@ -167,7 +172,9 @@ public final class GuestUIPresentation: ObservableObject {
     }
 
     private func refreshInput() {
-        guard let exchange, renderHost != nil else { pendingInput = nil; inputReady = false; return }
+        guard observedNativeDisplay, let exchange, renderHost != nil else {
+            pendingInput = nil; inputReady = false; return
+        }
         if let pending = pendingInput {
             let snapshot = exchange.snapshot()
             if !isCurrent(pending, snapshot) { pendingInput = nil }
@@ -181,9 +188,10 @@ public final class GuestUIPresentation: ObservableObject {
             }
         }
         let snapshot = exchange.snapshot()
-        inputReady = pendingInput == nil && snapshot.stop == nil && snapshot.effectsConfirmed && !snapshot.guestTurnInFlight &&
+        let ready = pendingInput == nil && snapshot.stop == nil && snapshot.effectsConfirmed && !snapshot.guestTurnInFlight &&
             !snapshot.eventOutstanding && snapshot.displayedRevision != nil &&
             snapshot.displayedRevision == snapshot.latestRevision
+        if ready != inputReady { inputReady = ready }
     }
 
     /// Claim before constructing a hosting controller or a platform probe.
@@ -242,16 +250,19 @@ public final class GuestUIPresentation: ObservableObject {
         guard isCurrentNativeDisplay(value), !observedNativeDisplay, let exchange else { return false }
         guard exchange.observePresentation(value.ticket) else { return false }
         observedNativeDisplay = true
+        refreshInput()
         return true
     }
 
     internal func actionHandler(host: MixerUIHost, attachment identity: CapabilityGuestUIAttachmentIdentity)
         -> @MainActor (RoutedUIAction) -> Void {
-        guard let exchange, let bindingIdentity, let ticket else { return { _ in } }
+        // A closure installed before the first receipt never gains authority.
+        // The readiness publication installs a new closure for the same frame.
+        guard observedNativeDisplay, let exchange, let bindingIdentity, let ticket else { return { _ in } }
         return { [weak self, weak host, exchange] action in
             guard let self else { return }
             guard let host, self.exchange === exchange, self.renderHost === host,
-                  self.bindingIdentity === bindingIdentity, self.attachment === identity,
+                  self.observedNativeDisplay, self.bindingIdentity === bindingIdentity, self.attachment === identity,
                   self.ticket?.generation == ticket.generation,
                   self.ticket?.frameSerial == ticket.frameSerial, self.ticket?.revision == ticket.revision,
                   action.revision == ticket.revision,

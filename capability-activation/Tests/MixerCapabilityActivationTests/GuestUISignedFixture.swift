@@ -11,8 +11,10 @@ struct GuestUISignedFixture {
     let root: URL
     let execution: InstalledCapabilityExecution
     let key: Curve25519.Signing.PrivateKey
-    var configuration: CapabilityColdStartConfiguration {
-        .init(directory: root.appendingPathComponent("recovery"), channel: "beta", installation: "guest-ui-signed", observationSeconds: 1)
+    var configuration: CapabilityColdStartConfiguration { configuration(observationSeconds: 1) }
+    func configuration(observationSeconds: UInt64) -> CapabilityColdStartConfiguration {
+        .init(directory: root.appendingPathComponent("recovery"), channel: "beta", installation: "guest-ui-signed",
+              observationSeconds: observationSeconds)
     }
     init(root: URL, storageService: (any InstalledApplicationStorageServing)? = nil, deferredStartup: Bool = false,
          boundNamespace: String = "material_test", boundFingerprint: String? = nil,
