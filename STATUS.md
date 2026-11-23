@@ -315,6 +315,15 @@ document. Its linked Swift count is 2,572 of 5,909 lines (43.53%),
 with 603 UI, 1,175 logic and 794 mixed lines shared.
 [Android native replay and next linked measurement](verification/receipts/l08-d2-android-direct-pagination-full-native-20261123.json)
 
+The shared-queue source tree passed all four ordinary iOS 27.0 tests.
+Its matching Android APK passed queue paging, saved-entry return and cold
+readback on the earlier accepted workspace bytes. The full Android run
+on the newer APK stopped before saving Inspection 16 when the focused
+editor showed Inspec. A separate focused echo returned the full title.
+The linked entry-editor follow-up reached 2,777 of 6,067 shared Swift
+lines (45.77%) in host and link evidence. D2 remains open.
+[Scoped matched native replay](verification/receipts/l08-d2-shared-queue-paired-native-20261123.json)
+
 ## Managed iOS FieldLog and historical native corpus
 
 The F06 signed editor reached its native form on the user-initiated
