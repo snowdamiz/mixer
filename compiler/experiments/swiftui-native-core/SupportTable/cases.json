@@ -1,0 +1,36 @@
+{
+  "replays": {
+    "core": {
+      "source": "SharedScreen.swift",
+      "test": "Replay.swift",
+      "function": "frameAuthorityAndRows",
+      "pass": "PASS exact receipt, SDK routing, keyed move, branch retirement, binding provenance, mount replacement"
+    },
+    "controls": {
+      "source": "SharedControls.swift",
+      "test": "ControlReplay.swift",
+      "function": "typedControls",
+      "pass": "PASS typed control envelopes, canceled and invalid candidates, keyed edit state, and stale authority"
+    },
+    "layout": {
+      "source": "SharedControls.swift",
+      "test": "ControlReplay.swift",
+      "function": "layoutRefusals",
+      "pass": "PASS unsupported spacing and node kinds fail through SDK validation"
+    }
+  },
+  "constructs": [
+    {"name": "`View` and builder branches", "scope": "Composed view bodies and conditional child lifetime", "tests": ["core"]},
+    {"name": "`Text`", "scope": "Plain and interpolated string values", "tests": ["core"]},
+    {"name": "`VStack`", "scope": "Ordered child content", "tests": ["core"]},
+    {"name": "`HStack`", "scope": "Top, center, and bottom alignment. Default spacing and finite spacing in 0–256 points.", "tests": ["controls", "layout"]},
+    {"name": "`List`", "scope": "Builder content with sections and keyed rows", "tests": ["controls"]},
+    {"name": "`Section`", "scope": "Untitled, string-titled, and plain `Text` headers", "tests": ["controls"]},
+    {"name": "`ForEach`", "scope": "Arrays with integer keys and state retained on row moves", "tests": ["core", "controls"]},
+    {"name": "`Button`", "scope": "String label and accepted-frame activation", "tests": ["core"]},
+    {"name": "`TextField(_:text:)`", "scope": "Single-line string binding and Unicode edits", "tests": ["controls"]},
+    {"name": "`Toggle(_:isOn:)`", "scope": "String label and Boolean input in both directions", "tests": ["controls"]},
+    {"name": "`@State`", "scope": "Direct stored integer, Boolean, and string state", "tests": ["core", "controls"]},
+    {"name": "`@Binding` and projected state bindings", "scope": "Captured and forwarded bindings with accepted-frame writes", "tests": ["core", "controls"]}
+  ]
+}
