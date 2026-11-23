@@ -167,8 +167,14 @@ and task, saved an entry, and held a photo draft. The adopted build kept
 the same Keychain owner and workspace while the issuer was offline. The
 JPEG and the three existing queued operations survived. The commit
 advanced revision 45 to 46 and appended one operation. D0 passes local
-review. D1 still needs the public SDK project, entry, and draft routes.
-[Authenticated adoption receipt](verification/receipts/l08-d0-d1-authenticated-native-adoption-20261122.json)
+review. [Authenticated adoption receipt](verification/receipts/l08-d0-d1-authenticated-native-adoption-20261122.json)
+
+D1 passes local review. Five authenticated Simulator phases exercised
+the public SDK project and entry forms, cold draft editing, and entry
+commit. The same Keychain owner, original JPEG, and four queue records
+survived adoption. Creating a project and committing the edited draft
+appended exactly two queue records. The owned Simulator was removed.
+[D1 public SDK receipt](verification/receipts/l08-d1-public-sdk-forms-native-20261123.json)
 
 ## iOS native capability replacement
 
