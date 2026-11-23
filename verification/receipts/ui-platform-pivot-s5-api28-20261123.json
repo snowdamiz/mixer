@@ -1,0 +1,27 @@
+{
+  "spike": "S5",
+  "state": "running",
+  "platform": "Android 9 API 28 arm64 default image PSR1.210301.009.B6 with swiftshader_indirect",
+  "candidate": {
+    "commit": "18fef233e694ad9613a7427c81bdc89e9bc062dc",
+    "softwareFailure": "Compose GraphicsViewLayer reached CanvasJNI::save with a null pointer",
+    "hardwareFailure": "First accepted frame timed out. Watchdog recorded no completed PixelCopy."
+  },
+  "escalation": {
+    "appSHA256": "e6f8e0c8040eee3446f5ae8be3b5187a155beee7378fd18e2e3b67852a9439a3",
+    "positive": [
+      "Exact ticket acknowledged from the Android window queue",
+      "Initial rendered readback and offscreen veto assertions passed",
+      "Accessibility Save superseded a held candidate while the accepted binding handled composition"
+    ],
+    "failure": "After supersession and cancellation, the test did not observe selection 1..3 with composition 1..5 through the earlier connection. The app window had resized with the IME. The replay had called onCreateInputConnection directly.",
+    "timelineSHA256": "d94b67e82ff05c876c6dcfc195632ea37abae543bc7b709c4a087e3a5d39edd3",
+    "testLogSHA256": "8661e643ad831767fed362f3fb5196a86ed6066ca6582b9ff1a17cd344a6b4f3",
+    "ownedEmulatorAndADBClosed": true
+  },
+  "pending": [
+    "Replay with the operating-system-owned IME connection",
+    "All 15 rendered Unicode saves, platform rollback and stale callbacks",
+    "Signed guest adoption"
+  ]
+}
