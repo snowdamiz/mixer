@@ -1,5 +1,13 @@
 # Current development status
 
+## Checkpoint for the plan revision, November 23, 2026
+
+Six local gates passed. L02 and L08 remain open. The ordinary iOS F10 route
+passed local signed delivery, rollback, and both cached reopens. The Android
+F11 development fixture passed the action-bound Note edit and durable readback.
+The latest shared FieldLog sources, native renderer corrections, and replay
+inputs are preserved with the [checkpoint handoff](docs/local-implementation-checkpoint-2026-11-23.md).
+
 ## Completion policy, November 17, 2026
 
 Implementation-plan completion now means working local end-to-end behavior under [Section 2](mixer-product-plan.md#2-completion-definition-and-scope) and L01–L08 in [the local checklist](gates/local.json). The eight checks cover setup/import/export, shared app/UI/capabilities, compiler/VM, signed OTA/recovery, the real local console/API/database/worker/build workflow, free administration, security/local reliability, and FieldLog/documentation.

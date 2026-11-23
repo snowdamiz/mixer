@@ -1,0 +1,132 @@
+{
+  "status": "scoped_pass_with_input_correction",
+  "reviewedAtUTC": "2026-11-23T18:40:49+00:00",
+  "stage": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow",
+    "revision": "fde1c451e56e77b1cb2018a8c09318091d2cf8ba"
+  },
+  "pairedPublicOTACountDelta": 0,
+  "reviewScope": "Read-only Stage and donor evidence. No native or network activity, signing, or held-path access. Temporary exports removed.",
+  "f10": {
+    "receipt": "verification/local/fieldlog-ios-signed-resume-root/l08-f10-ordinary-live-native-20261123/native/receipt.json",
+    "receiptSHA256": "fa165c3a444b0b092e9bed8be854ade6bbff3976b84be75a97f72a1c13fdd9a7",
+    "donor": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-8e1333ee/verification/local/f10-ordinary-delivery-8e1333ee",
+    "storedGoControllerSHA256": "dfaba6ad75b67ce5897fb4938d7ab927271ecccd3f9281f998b60cee3b5c2fbc",
+    "commands": [
+      "xcrun xcresulttool get test-results summary|tests|activities (all six bundles)",
+      "xcrun xcresulttool export attachments (all six bundles)",
+      "shasum -a 256 -c SHA256SUMS (donor)",
+      "git archive --format=tar 743f7e52ba services contracts (hash matched)"
+    ],
+    "xcresulttoolVersion": "25407, schema 0.5.0",
+    "xcode": "27.2 (27B52)",
+    "runtime": "arm64 iPhone 17 Pro Simulator, iOS 27.0 (24A434)",
+    "test": "F10OrdinaryPendingChangesUITests/testSignedDeliveryPhase()",
+    "passed": 6,
+    "phaseOrder": [
+      "prior",
+      "exact",
+      "exact-offline",
+      "rollback",
+      "rollback-offline",
+      "disabled"
+    ],
+    "requests": [
+      2,
+      2,
+      0,
+      2,
+      0,
+      0
+    ],
+    "exactPayloadBytes": 14503,
+    "exactPayloadSHA256": "fb225d5722eda20c7591a9e7bb112d560924cedf9da17106b57eeb049f94d3b9",
+    "workspaceSHA256": "332bd47594aeb5e8911ca91c3e2b8f1362a28092e9673cee2fb107c1e6fc5e3a",
+    "retainedHealthAttachments": {
+      "prior": {
+        "sha256": "8eab5d5a5278b492f3f7dda8518bff2b12e2d21cfeec21ffdc3778cda8c36e09",
+        "launch": "398E2A42-84C3-424C-AFC4-67771D07860B"
+      },
+      "exact": {
+        "sha256": "5b73d692c96944ca5524076bfe71b81caf28f1b8a5102b5887d21340cb646bfc",
+        "launch": "92157F05-E5BA-4E63-BA08-4496115DF530"
+      },
+      "exact-offline": {
+        "sha256": "016c6fac3e644d153397702c5599b13930fbf08d3c0e59c2b059c21bc24a1b17",
+        "launch": "C2829191-29E8-46A2-A781-C981C5C11F63"
+      },
+      "rollback": {
+        "sha256": "1d8b04dd6f91682a9c4ef77d413715d167dfceda764c97fa6cee3901e33769c3",
+        "launch": "5B74D7E4-900C-46B8-B71E-69E7E093879E"
+      },
+      "rollback-offline": {
+        "sha256": "d05a60947f27bde47ac0a13ba26507472b08df3c3a3c3e8a996a055714393fb4",
+        "launch": "92BA253F-3084-4262-9942-ABD8D1B61157"
+      }
+    },
+    "checkpoint": "Live-to-offline checkpoint hashes changed while candidate, payload, artifact, sequence and workspace stayed identical. New launch IDs corroborate health renewal. Disabled held the same checkpoint digest as rollback-offline.",
+    "deliveryScope": "Ordinary FieldLog debug UI-test workspace, local Go origin and pinned mixer CLI. Offline explicitly skipped transport while its relay counted zero requests.",
+    "binaryEvidence": {
+      "donorChecksumsVerified": 16,
+      "linkBindingSHA256": "771e0d6d5fd45ecba0761a2f466c013a04c300c574818240503b8f10e60a3278",
+      "signedInstall": "The passing driver requires strict codesign checks and sealed-to-installed app executable and debug dylib hash equality. The reviewed live adapter source requires artifact and assignment verification before staging. Cleanup removed the signed packet, offer envelopes and raw native checkpoint, so the native signing and checkpoint joins rely on the retained run evidence."
+    },
+    "cleanup": {
+      "recordedTerminalCommands": 99,
+      "ownedSimulatorRemoved": true,
+      "privatePacketRemoved": true,
+      "externalComparisons": 5,
+      "externalDevicesInComparison": 13,
+      "localOriginReaped": true
+    }
+  },
+  "f11": {
+    "receipt": "verification/local/l08-f11-android-native-20261123-r2/receipt.json",
+    "receiptSHA256": "8a8017d3a15285b8e3e65891e41a9b35990b9012ca22a7889e0b67d79fa066ba",
+    "donor": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-9607056f/verification/local/f11-android-9607056f",
+    "renderer": "Public AndroidUINativeSurface V4 with the private development owner and Pair25 storage.",
+    "environment": "arm64 Android API 36 emulator, dev.mixer.fieldlog.f11private debug/test-only",
+    "commands": [
+      "build-tools/36.0.0 apksigner verify -v --print-certs --min-sdk-version 36 --max-sdk-version 36",
+      "build-tools/36.0.0 zipalign -c -P 16 4",
+      "python3 -B admit-apk.py (signed fixture, offline Ed25519 verification)",
+      "python3 -B readback-workspace.py (signed fixture and retained snapshots)"
+    ],
+    "apkSHA256": "a6be162b86ed54d3ecc7bab908d7d8c6672bca4ca3a43000ddddca5de28a67d9",
+    "apkSignature": "v3, one disposable signer",
+    "apkCertificateSHA256": "91acafe194c69b403704e2ef7d3eff46fb2cc91961a0ccc15ee999371c1ba2fe",
+    "binaryEvidence": "All 33 unsigned donor and signed APK ZIP entry contents matched. ELF, DEX and link roster matched donor hashes. Artifact and assignment Ed25519 signatures were verified against the embedded scoped development root. The runner records the base.apk hash equality.",
+    "inputScope": "Observed focused native EditText and Android shell input keycombination/text with ASCII suffix Edited. No observed soft-keyboard composition or InputConnection.commitText call.",
+    "noteBytes": 50,
+    "lineFeeds": 4,
+    "noteSHA256": "c2df9d0971930a3b76c1471bc3de882c603f23c5d9240f6d265b4ab03e9d53d1",
+    "workspaceRevisions": [
+      1,
+      2,
+      3,
+      3
+    ],
+    "refusal": "Pre-save Commit and repeat Save/Commit each left the corresponding snapshot byte-identical, corroborated by result=2 in the installed log.",
+    "newLinkedEntrySavedCount": 1,
+    "linkedEvent": {
+      "createdAt": 817151518.7619939,
+      "id": "CDFE4B20-58E4-4649-A893-F157B2C31C48",
+      "kind": "entrySaved",
+      "recordID": "F1100000-0000-4000-8000-000000000001",
+      "revision": 3
+    },
+    "stoppedWorkspaceSHA256": "ba6b3a5a9803c8a1edffb08158749bd96505689317ed19e4cbd82999a7f38606",
+    "readback": "Retained stopped snapshot exactly matched committed bytes. Runner force-stops the app and checks pidof before a fresh run-as cat. Raw PID and command outputs were not retained.",
+    "cleanup": {
+      "recordedTerminalCommands": 169,
+      "ownerRetired": true,
+      "packageRemoved": true,
+      "scratchRemoved": true,
+      "recordedAbsentGroups": [
+        "emulator",
+        "adb"
+      ],
+      "portReuseRequiredByRunner": true
+    }
+  }
+}
