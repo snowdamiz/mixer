@@ -165,8 +165,8 @@ and the platform checks below.
 
 | Spike | Current observation | Root-owned platform check |
 | --- | --- | --- |
-| S2a iOS | The owned reactor completed on macOS. iOS VM execution and budgets are pending. | Build the iOS 17.0 Simulator VM and app with the new profile fingerprint and the verified reactor base. On the oldest supported 17.x runtime, replay the fixture through the iOS engine and compare cold bundled and signed-activation launches. |
-| S2b Android | The owned reactor completed on macOS. Android VM execution and budgets are pending. | Build the API 28 NDK VM and Android host with the new profile fingerprint and the verified reactor base. On an API 28 emulator, replay the fixture through the Android engine and compare cold bundled and signed-activation launches. |
+| S2a iOS | The offscreen VM matched six snapshots at 30 seconds on iOS 26.5. | Run the matched arm64 Simulator app below. The iOS 17.x runtime and signed activation still need their own runs. |
+| S2b Android | The offscreen VM reached four snapshots at 30 seconds and matched six at 60 seconds on API 28. | Use the [API 28 comparator handoff](ANDROID_COMPARATOR.md). The signed activation run remains open. |
 
 For each platform, capture signed transfer and bundled app bytes, the
 time to first accepted frame, steady and peak app RSS, turn duration,
@@ -174,3 +174,50 @@ instruction fuel, host calls, and maximum call depth. Verify that the
 fixture completes and the owner closes. Keep the Section 20.2 startup
 and added-memory budgets pending until the corresponding measurements
 exist. Section 24.6 reserves any Embedded fallback for the owner's decision.
+
+## Run the matched iOS comparator
+
+Build from the retained S2a bundle directory or another directory with the exact
+`reactor-base.wasm` and `oracle.json`. The script checks both files against
+the S2 receipts and verifies that `FieldLog.swift` matches the pinned source
+blob. It builds one ad hoc-signed arm64 Simulator app with an iOS 17.0 minimum.
+The native arm and the Wasm fixture use Swift 6.3.3 with `-Osize -gnone`.
+
+```sh
+script=compiler/experiments/swiftui-full-guest/build_ios_simulator.py
+python3 -B "$script" build s2-pair-build "$S2_PAYLOAD_DIR"
+run=verification/local/s2-pair-build
+app="$run/artifacts/FieldLogS2a.app"
+```
+
+On the root-owned iOS 26.5 Simulator, install that app once. Run both modes in
+fresh processes and keep one console log per process. Before each next launch,
+observe the terminal marker and verify exact process exit under the owned-device
+procedure.
+
+```sh
+bundle=com.mixer.diagnostics.fieldlog-s2a-comparator
+xcrun simctl install "$OWNED_UUID" "$app"
+xcrun simctl launch --console "$OWNED_UUID" "$bundle" native > "$run/native-01.log" 2>&1
+xcrun simctl launch --console "$OWNED_UUID" "$bundle" ui256 > "$run/ui256-01.log" 2>&1
+python3 -B "$script" compare "$app" "$run/native-01.log" "$run/ui256-01.log" > "$run/pair-01.json"
+```
+
+Record the boot and install conditions for the first launches. Reverse the
+launch order on the next pair on the same boot and alternate subsequent pairs.
+Each launch is process-cold. Warm repeats reuse the boot and installation, so
+OS and file caches may be warm. The later turns of each launch reuse the same
+populated journey. Every launch must match the six snapshots, including the
+blank Save refusal, observed Unicode Save, and reopen from the saved JSON bytes
+held by the fixture.
+
+Both modes sample process RSS before dispatch, after each snapshot, after one
+idle second with the loaded journey still alive, and before exit. The guest arm
+also reports read, validation, owner construction, and cleanup. `compare`
+reports the guest-minus-native startup and memory deltas and checks whether
+that pair's main-to-first-snapshot startup delta is within 200 ms. A single
+pair measures an offscreen diagnostic sample. Section 20.2 p95, signed
+activation and rendered UI budgets require their own evidence.
+
+To repeat the fixed-34 refusal control, launch `fixed34` into a separate
+console log and run `python3 -B "$script" check "$app" FIXED_LOG UI256_LOG`.

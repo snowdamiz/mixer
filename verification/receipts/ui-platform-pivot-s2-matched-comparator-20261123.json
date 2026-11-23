@@ -1,0 +1,222 @@
+{
+  "date": "2026-11-23",
+  "spikes": [
+    "S2a",
+    "S2b"
+  ],
+  "scope": "Matched iOS cross-build and macOS semantic controls, with a standalone Android native cross-build.",
+  "sourceHeadBeforeEdits": "51b5cc47da8160d3249a46bc3fb3e480a40eac43",
+  "vmRevision": "1ee170500c73e3da935e1d1cbb4bbba77d24e8d8",
+  "vmTree": "d3f0d6c10bf38c46299314a5aff319f18785dc2c",
+  "fieldLogGitBlob": "0024a9dcafa03363c9338e3e3eb9184465a27f20",
+  "diagnosticSources": {
+    "OwnedReactor.rs": {
+      "bytes": 6347,
+      "sha256": "b202d416650eab45e20a80570c12ae84a2f9f6e0805113dde7c0d370be5817ee"
+    },
+    "OwnedReactorSimulator.m": {
+      "bytes": 4091,
+      "sha256": "dc2a22ac0ec3b7af59b84fb018824a84635c61a5e95011626f0de0cc1f9cd807"
+    },
+    "OwnedReactorSimulator.h": {
+      "bytes": 206,
+      "sha256": "1a98838de6a605863c56aed64e2546faed4aca5465b4267f742135c02da42a4d"
+    },
+    "FieldLog.swift": {
+      "bytes": 6475,
+      "sha256": "5dfa2013085899a1c5694dbd36137f7ba726ddf41150afbd2a3b64c11c528568"
+    },
+    "NativeJourney.swift": {
+      "bytes": 2230,
+      "sha256": "4c57c4220b1b517b980e16bf4dee4ac0c4682a3fa583fdf52db5c02d08ecf043"
+    },
+    "build_ios_simulator.py": {
+      "bytes": 19702,
+      "sha256": "8cdfb46704ea4e860e3ce6c2674939f97f3c94941ba7343356e0ce534a1f97dc"
+    }
+  },
+  "payload": {
+    "reactor-base.wasm": {
+      "bytes": 12718666,
+      "sha256": "02ae07b9d4d89f4715ba5438b56be4e25b308725fb9cbb1a509686097d642be6"
+    },
+    "oracle.json": {
+      "bytes": 2104,
+      "sha256": "091333b185cfeca819ae5117876c8f1c60ddc1c3bdd355118c1a786c034cb1a1"
+    }
+  },
+  "sourceS2aBuildReceiptSHA256": "3e368874c8a10b0c2187d7004b9ff42ddd9d76f99c21aec8d81010a11cc37ba7",
+  "optimization": "Swift 6.3.3 release, -Osize -gnone, same pinned FieldLog.swift.",
+  "ios": {
+    "command": "python3 -B compiler/experiments/swiftui-full-guest/build_ios_simulator.py build s2-matched-comparator-02 ../t3-688d4056/verification/local/s2a-owned-reactor-ios-sim-03/artifacts/FieldLogS2a.app",
+    "app": "verification/local/s2-matched-comparator-02/artifacts/FieldLogS2a.app",
+    "bundleID": "com.mixer.diagnostics.fieldlog-s2a-comparator",
+    "architecture": "arm64",
+    "minimumOSVersion": "17.0",
+    "signing": "local ad hoc",
+    "executable": {
+      "bytes": 2504032,
+      "sha256": "7554d4f8eb7e8fb31ec67be42b21434ee599bf39472c283dba3743abd2340200"
+    },
+    "modes": [
+      "native",
+      "ui256",
+      "fixed34"
+    ],
+    "simulatorSDK": "27.2",
+    "codeDirectoryHash": "e5da55576d7103056ac619888f0847accefeb8f6",
+    "guestOwnerDeadlineMs": 30000,
+    "buildTools": {
+      "host": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+      "xcode": "Xcode 27.2\nBuild version 27B52",
+      "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+      "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+      "swift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+      "clang": "Apple clang version 21.0.0 (clang-2100.4.1.1)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+    },
+    "buildReceiptSHA256": "b7a390e16d200e026184e2f6babbda7ff8ed401c4c5ad4e489bc61b90e0290dc",
+    "localRuntimeRun": "five_pairs_verified",
+    "scopedStartupComparisonMicros": 200000,
+    "runtime": "arm64 iPhone 15 Simulator, iOS 26.5 (23F77)",
+    "matchedRuntime": {
+      "comparison": "Five alternating same-binary process-cold pairs on one booted emulator, with potentially warm OS caches.",
+      "load": [
+        "18:27  up 3 days, 18:35, 1 user, load averages: 37.68 47.11 46.90",
+        "15"
+      ],
+      "startupThresholdMetPairs": 0,
+      "guestMinusNative": {
+        "mainToFirstSnapshotMicros": {
+          "samples": [
+            690361,
+            666441,
+            616542,
+            664904,
+            834259
+          ],
+          "range": [
+            616542,
+            834259
+          ],
+          "median": 666441
+        },
+        "baselineRSSBytes": {
+          "samples": [
+            16384,
+            114688,
+            -32768,
+            -49152,
+            -196608
+          ],
+          "range": [
+            -196608,
+            114688
+          ],
+          "median": -32768
+        },
+        "steadyRSSBytes": {
+          "samples": [
+            22740992,
+            22839296,
+            22626304,
+            22413312,
+            14090240
+          ],
+          "range": [
+            14090240,
+            22839296
+          ],
+          "median": 22626304
+        },
+        "preExitPeakRSSBytes": {
+          "samples": [
+            27148288,
+            27394048,
+            27377664,
+            27344896,
+            27017216
+          ],
+          "range": [
+            27017216,
+            27394048
+          ],
+          "median": 27344896
+        }
+      },
+      "medianGuestStageMicros": {
+        "validate": 351341,
+        "construct": 4539,
+        "first_snapshot": 323762,
+        "load": 1312506,
+        "save": 1201939
+      },
+      "pairReceiptSHA256": [
+        "cf13c96aed6753b8b68915a3e0234cae18e293ec694d835f152fdb97fc82098e",
+        "5d6b2e09e38fd68ce427e449eda72d5dc2adffb4a1d6a05494c6b3420a1e1f83",
+        "4e576bd6c01b14487a4d57da7856db77a1a34d79f91969ba679525806409e29f",
+        "00142ae4ba4698593ec878f3e8367a355c4b2ff2334b86e2e0c78cf1aa863439",
+        "7f1dce723502c1b06bc10862db31d0e3319b999b60232c2390ac12a0311344fa"
+      ],
+      "allSixSnapshotsPerProcess": true,
+      "allVMOwnersClosed": true,
+      "scope": "Offscreen native and VM producer workload. This establishes a startup miss in all samples. Steady RSS deltas are within 30 MiB in this experiment. An installed and rendered signed release at iOS 17.x and \u00a720.2 production-profile qualification remain open.",
+      "cleanup": {
+        "ownedUUIDRemoved": "9C76B3CD-061D-4493-9461-3D47100C4D99",
+        "externalBaselineEqual": true
+      },
+      "transportCorrection": "The first combined console capture interleaved a JSON snapshot with stderr. The measured runs record stdout and stderr separately before the check."
+    }
+  },
+  "macOSControls": {
+    "nativeSDK": "Xcode 26.6 macOS SDK 26.5",
+    "native": {
+      "host-native-first-process": 6,
+      "host-native-repeat-process": 6
+    },
+    "ownedVM": {
+      "fixed34Exit": 10,
+      "ui256Exit": 0,
+      "oracleSnapshotsMatched": 6,
+      "cleanOwner": true,
+      "liveReservationBytes": 0,
+      "liveTickets": 0
+    },
+    "sameSnapshotStdoutBytes": true,
+    "snapshotStreamSHA256": "e320d4774ba2061e7af18be2cb9309622d316620ccbf9f1b3b35cf2dd7888ad8",
+    "checker": {
+      "actualHostFramesAndCleanupWithSyntheticMilestones": true,
+      "overLimitPairRetainsEvidenceAndReportsMiss": true,
+      "reorderedSnapshots": "first_snapshot differs from the oracle",
+      "missingRSS": "native: missing, unavailable or out-of-order milestone evidence",
+      "sameProcess": "Expected distinct process IDs and matching iOS versions"
+    },
+    "firstAttempt": "The iOS bundle signed successfully. The separate Swift 6.3.3 macOS control failed against SDK 27.2 on -target-arch-variant. The fresh build uses Xcode 26.6 for the macOS control."
+  },
+  "android": {
+    "buildRecipe": "compiler/experiments/swiftui-full-guest/ANDROID_COMPARATOR.md",
+    "target": "aarch64-unknown-linux-android28",
+    "toolVersions": {
+      "swift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+      "clang": "Android (13691557, +pgo, -bolt, +lto, -mlgo, based on r522817d) clang version 18.0.4 (https://android.googlesource.com/toolchain/llvm-project d8003a456d14a3deb8054cdaa529ffbf02d9b262)\nTarget: aarch64-unknown-linux-android28\nThread model: posix\nInstalledDir: /Users/andreyyurlov/.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin"
+    },
+    "api28ELFNoteVerified": true,
+    "interpreter": "/system/bin/linker64",
+    "elf": {
+      "bytes": 140584,
+      "sha256": "5ddea25ac4182bb16605262e1b6c12f4dfc6a32be87e55a90b8c23a34fcffab4"
+    },
+    "packet": "verification/local/s2-native-android-packet-03",
+    "stagedRuntimeLibraries": 17,
+    "systemLibraries": [
+      "libc.so",
+      "libdl.so",
+      "liblog.so",
+      "libm.so"
+    ],
+    "crossBuildReceiptSHA256": "27ea29fb602766998287c3e5438e5ad2eca6d64c04e218c2af433820bbb43a5e",
+    "packetReceiptSHA256": "ba6fb229df695ac57c79cc5b7a8543388217d766a6e2d14a31d33de49503326b",
+    "matchedProcessAndRuntimeRun": "pending_root"
+  },
+  "cleanup": "All recorded command groups reached terminal custody. Build scratch and duplicate binaries were removed. The signed iOS app, Android packet and command evidence were retained.",
+  "limits": "No Simulator or emulator actions ran in this slice. The checker controls use real macOS snapshots and synthetic milestone lines. Section 20.2 runtime startup and memory, signed activation, and rendered UI remain pending."
+}

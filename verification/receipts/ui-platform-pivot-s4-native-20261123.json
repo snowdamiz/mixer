@@ -1,6 +1,6 @@
 {
   "date": "2026-11-23",
-  "state": "running",
+  "state": "passed",
   "spike": "S4",
   "host": {
     "commit": "1fa500aa33b7602ff09e6a13d439ba19f77aff2e",
@@ -40,9 +40,8 @@
     "externalBaselineEqual": true
   },
   "pending": [
-    "Combined theme and first-display gate in one fixture",
-    "Post-intent native first-draw failure",
-    "Retired callback across native owner replacement"
+    "Production theme selection, scope expansion, and accessibility parity in UP5",
+    "Actual iOS 17.x release-floor runtime"
   ],
   "inputGateCorrection": {
     "productionPatchSHA256": "84fc36a0f375b4fc8025857a22b547b09dae870b433f62cff1a303f19bc31886",
@@ -110,6 +109,40 @@
     "cleanup": {
       "exactUUIDRemoved": "27D24526-6BC7-4531-AD75-91C0C58B1A23",
       "externalBaselineEqual": true
+    }
+  },
+  "combinedNativeReplay": {
+    "runtime": "arm64 iOS 26.5 (23F77) Simulator, builds targeting 17.0",
+    "passed": [
+      "Invalid first-frame fallback before effects",
+      "Signed update, rollback, and offline process relaunch",
+      "Exact native and guest document and one fixed light theme pixel parity"
+    ],
+    "pairedPredecessorFailure": "The fixture expected ui_protocol_after_effects after an intervening healthy replacement had been closed.",
+    "pairedSuccessor": "Passed testNativeTapBeforeAndAfterDisplayAcknowledgment, including duplicate attachment after effects intent, Android-independent Apple input fencing, retained selection, safe owner retirement, and fresh offline recovery.",
+    "actualMarkers": {
+      "failedOwnerClosed": "ui_protocol_after_effects",
+      "replacementHealthy": "ui_protocol_after_effects",
+      "replacementClosed": "effects_closed",
+      "freshProcessHealthy": "ui_protocol_after_effects"
+    },
+    "storedBytes": "AAH+/w==",
+    "staleInput": "Refused a captured pre-acknowledgment handler across real owner replacement and a previously accepted stale frame callback after a revision change.",
+    "pendingAdditionalControl": "A previously authorized healthy renderer closure delayed across native owner replacement would extend coverage. The exercised cross-owner closure was inert before retirement.",
+    "logsSHA256": {
+      "failedPaired": "19ccb46c3068e950aa06dfd378314a912886a7c66f8d5bc8d3f0864d9e683998",
+      "passedPaired": "a452af3fa6e0440bc29c0ada083aa03db37feee2987edb0f663e914edaf9afd3",
+      "pixelTheme": "30d0018f30711c57ea13d7e0d4ff540ae7fcdecc363654ccee6f10c68d4515a7"
+    },
+    "cleanup": {
+      "combined": {
+        "ownedUUIDRemoved": "A90D80F6-8C50-4497-B770-A60793A566D5",
+        "externalBaselineEqual": true
+      },
+      "pairedSuccessor": {
+        "ownedUUIDRemoved": "10494F9F-A4F8-401C-9354-6D4F103BAFEB",
+        "externalBaselineEqual": true
+      }
     }
   }
 }
