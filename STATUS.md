@@ -815,6 +815,14 @@ executable and descriptor were used for both profiles. The complete
 side-by-side review remains open.
 [iOS profile results](verification/receipts/l02-ios-reference-profile-native-boundary-20261123.json)
 
+The iOS light diagnostic verified two separate geometry guards.
+Checklist rejected the last switch cover at the rounded group corner.
+Task Form rejected the switch cover where it overlapped the native
+title field by four points. Pending Queue still passed. The same
+XCTest selectors, descriptor and documents were used. The scoped
+Apple correction must preserve cover, input and foreground isolation.
+[Native toggle diagnostics](verification/receipts/l02-ios-light-toggle-guard-native-20261123.json)
+
 The iOS Settings rerun passed Dark persistence and
 workspace setup. It showed the five Support Diagnostics fields, but the
 XCTest OCR omitted two isolated values from its screenshot. The matrix
