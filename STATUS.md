@@ -387,6 +387,15 @@ provisional. XCTest timed out before the first tap. The owned Simulator
 was deleted and all three controller ports were reusable.
 [F09 native display failure](verification/receipts/l08-d8-f09-ios-zero-height-20261123.json)
 
+The private F09 iOS witness passed after giving the guest renderer the
+remaining height of its parent view. One installation completed five
+launches on iOS 27.0. The 20+3 checklist followed Verify café drain from
+position 21 to 20, changed only those two rows, and appended one
+taskOrderChanged event. Signed rollback and offline reopen preserved the
+revision-2 workspace. The owned Simulator and private packet were removed.
+Android paired OTA remains open.
+[F09 installed replay](verification/receipts/l08-d8-f09-ios-finite-viewport-native-20261123.json)
+
 For F11, the stock signed host read the original restored note and
 refused the editable frame before any input or write. Rollback and
 offline reopen preserved the exact workspace. A separate Pair25
