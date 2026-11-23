@@ -73,7 +73,7 @@ pub struct SwiftValidationUsage {
 pub struct SwiftValidationFailure {
     pub kind: SwiftValidationFailureKind,
     pub code: &'static str,
-    /// Absolute function index, including the 34 imports, when in a body.
+    /// Absolute function index, including imported functions, when in a body.
     pub function: Option<u32>,
     /// Absolute source byte offset.
     pub offset: usize,
@@ -140,7 +140,7 @@ pub fn validate_swift_command(
     input: &[u8], budget: SwiftValidationBudget, cancellation: &Cancellation,
 ) -> Result<ValidatedSwiftCommand, SwiftValidationFailure> {
     let started = Instant::now();
-    validate(input, budget, cancellation, started, policy::Policy::command())
+    validate(input, budget, cancellation, started, policy::Policy::command(), &WasiFunction::ALL)
         .map(|proof| ValidatedSwiftCommand { proof })
         .map_err(|raw| failure(raw, input.len(), started, budget.deadline_ms))
 }
@@ -193,6 +193,11 @@ impl ValidatedSwiftReactor {
         match self.policy {
             policy::SwiftDecodePolicy::Reactor => "swift-reactor-experiment-v1",
             policy::SwiftDecodePolicy::Command { .. } => "swift-command-diagnostic-v1",
+            policy::SwiftDecodePolicy::UI { .. }
+                if self.execution_import_count() == SWIFT_6_3_3_UI_IMPORTS.len() =>
+            {
+                "swift-6.3.3-wasi-ui-diagnostic-v1"
+            }
             policy::SwiftDecodePolicy::UI { .. } => "mixer.swift-wasi-ui-v1",
         }
     }
@@ -203,6 +208,9 @@ impl ValidatedSwiftReactor {
         self.observations
     }
     pub fn resolved_import(&self, index: usize) -> Option<WasiFunction> {
+        if index >= self.execution_import_count() {
+            return None;
+        }
         self.imports.get(index).copied()
     }
     pub fn function_body(&self, defined: usize) -> Option<&[u8]> {
@@ -261,7 +269,7 @@ impl ValidatedSwiftReactor {
     }
 
     pub(crate) fn execution_function(&self, absolute: u32) -> Option<FunctionSpanView<'_>> {
-        let defined = absolute.checked_sub(self.imports.len() as u32)?;
+        let defined = absolute.checked_sub(self.execution_import_count() as u32)?;
         let function = self.metadata.functions.get(defined as usize)?;
         Some(FunctionSpanView {
             absolute_index: absolute,
@@ -331,8 +339,13 @@ impl ValidatedSwiftReactor {
         })
     }
 
-    pub(crate) fn execution_imports(&self) -> &[WasiFunction; 34] {
-        &self.imports
+    pub(crate) fn execution_import_count(&self) -> usize {
+        self.observations.imported_functions
+    }
+
+    #[cfg(test)]
+    pub(crate) fn execution_imports(&self) -> &[WasiFunction] {
+        &self.imports[..self.execution_import_count()]
     }
 
     pub(crate) fn decode_policy(&self) -> &policy::SwiftDecodePolicy {
@@ -405,7 +418,7 @@ pub fn validate_swift_reactor(
     cancellation: &Cancellation,
 ) -> Result<ValidatedSwiftReactor, SwiftValidationFailure> {
     let started = Instant::now();
-    validate(input, budget, cancellation, started, policy::Policy::swift())
+    validate(input, budget, cancellation, started, policy::Policy::swift(), &WasiFunction::ALL)
         .map_err(|raw| failure(raw, input.len(), started, budget.deadline_ms))
 }
 
@@ -415,6 +428,7 @@ fn validate<const COMMAND: bool, const UI: bool>(
     cancellation: &Cancellation,
     started: Instant,
     policy: policy::Policy<'static, COMMAND, UI>,
+    expected_imports: &[WasiFunction],
 ) -> Result<ValidatedSwiftReactor, Failure> {
     let max = SwiftValidationBudget::default();
     let deadline = started.checked_add(Duration::from_millis(budget.deadline_ms));
@@ -498,14 +512,16 @@ fn validate<const COMMAND: bool, const UI: bool>(
     meter.check(cursor)?;
     let source = source.into_boxed_slice(); // exact capacity: no shrink allocation
     let mut metadata: SwiftMetadata = metadata::read(&source, &policy, &mut meter)?;
-    let (imports, selection) = if UI {
-        let (imports, _) = ui_abi(&source, &metadata, &mut meter)?;
-        (imports, policy::SwiftDecodePolicy::UI {})
+    let imports = exact_imports(&source, &metadata, &mut meter, expected_imports)?;
+    let selection = if UI {
+        ui_abi(&source, &metadata, &mut meter)?;
+        policy::SwiftDecodePolicy::UI {}
     } else if COMMAND {
-        let (imports, entry) = command_abi(&source, &metadata, &mut meter)?;
-        (imports, policy::SwiftDecodePolicy::Command { entry })
+        let entry = command_abi(&source, &metadata, &mut meter)?;
+        policy::SwiftDecodePolicy::Command { entry }
     } else {
-        (exact_abi(&source, &metadata, &mut meter)?, policy::SwiftDecodePolicy::Reactor)
+        exact_abi(&source, &metadata, &mut meter)?;
+        policy::SwiftDecodePolicy::Reactor
     };
     segments_fit(&metadata, &mut meter)?;
     validate::all(&source, &policy, &mut metadata, &mut meter)?;
@@ -549,14 +565,16 @@ fn exact_imports(
     source: &[u8],
     m: &SwiftMetadata,
     meter: &mut Meter<'_, account::SwiftControl>,
+    expected_imports: &[WasiFunction],
 ) -> Result<[WasiFunction; 34], Failure> {
     let cursor = Cursor::default();
     meter.work(1, cursor)?;
-    if m.imports.len() != 34 {
+    if m.imports.len() != expected_imports.len() {
         return Err(meter.error(FailureKind::Validation, "swift_import_count", cursor));
     }
-    let mut resolved = WasiFunction::ALL;
-    for (index, expected) in WasiFunction::ALL.into_iter().enumerate() {
+    // Keep the legacy proof allocation and expose only the validated prefix.
+    let mut resolved = [WasiFunction::ArgsGet; WasiFunction::ALL.len()];
+    for (index, &expected) in expected_imports.iter().enumerate() {
         let import = m.imports.get(index).unwrap();
         let cursor = Cursor {
             function: Some(index as u32),
@@ -588,8 +606,7 @@ fn exact_abi(
     source: &[u8],
     m: &SwiftMetadata,
     meter: &mut Meter<'_, account::SwiftControl>,
-) -> Result<[WasiFunction; 34], Failure> {
-    let resolved = exact_imports(source, m, meter)?;
+) -> Result<(), Failure> {
     let cursor = Cursor::default();
     if m.memory != Some((584, 768)) || m.declarations.memory_maximum.is_some() {
         return Err(meter.error(
@@ -649,13 +666,12 @@ fn exact_abi(
             return Err(meter.error(FailureKind::Validation, "swift_export_abi", cursor));
         }
     }
-    Ok(resolved)
+    Ok(())
 }
 
 fn command_abi(
     source: &[u8], m: &SwiftMetadata, meter: &mut Meter<'_, account::SwiftControl>,
-) -> Result<([WasiFunction; 34], u32), Failure> {
-    let imports = exact_imports(source, m, meter)?;
+) -> Result<u32, Failure> {
     let cursor = Cursor::default();
     if m.memory.is_none() || m.table.is_none() {
         return Err(meter.error(FailureKind::Validation, "swift_command_memory_table", cursor));
@@ -681,7 +697,7 @@ fn command_abi(
     if !memory || start.is_none() {
         return Err(meter.error(FailureKind::Validation, "swift_command_export_abi", cursor));
     }
-    Ok((imports, start.unwrap()))
+    Ok(start.unwrap())
 }
 
 fn segments_fit(
@@ -817,6 +833,7 @@ pub struct ValidatedSwiftUI { proof: ValidatedSwiftReactor }
 impl ValidatedSwiftUI {
     pub fn observations(&self) -> SwiftReactorObservations { self.proof.observations() }
     pub fn usage(&self) -> SwiftValidationUsage { self.proof.usage() }
+    pub fn policy_identity(&self) -> &'static str { self.proof.policy_identity() }
     pub(crate) fn into_parts(self) -> (ValidatedSwiftReactor, [u32; 4]) {
         // Complete UI ABI validation sealed these five exact export descriptors.
         // Read their indexes here instead of enlarging every stock proof with a
@@ -840,14 +857,46 @@ impl ValidatedSwiftUI {
 #[allow(clippy::result_large_err, reason = "Validation failure snapshots must not allocate.")]
 pub fn validate_swift_ui(input: &[u8], budget: SwiftValidationBudget, cancellation: &Cancellation)
     -> Result<ValidatedSwiftUI, SwiftValidationFailure> {
+    validate_ui(input, budget, cancellation, &WasiFunction::ALL)
+}
+
+const SWIFT_6_3_3_UI_IMPORTS: [WasiFunction; 32] = {
+    use WasiFunction::*;
+    [
+        ArgsGet, ArgsSizesGet, EnvironGet, EnvironSizesGet, ClockResGet, ClockTimeGet,
+        FdClose, FdFdstatGet, FdFdstatSetFlags, FdFilestatGet, FdFilestatSetTimes,
+        FdPread, FdPrestatGet, FdPrestatDirName, FdRead, FdReaddir, FdSeek, FdSync,
+        FdWrite, PathCreateDirectory, PathFilestatGet, PathFilestatSetTimes, PathLink,
+        PathOpen, PathReadlink, PathRemoveDirectory, PathRename, PathSymlink,
+        PathUnlinkFile, PollOneoff, ProcExit, RandomGet,
+    ]
+};
+
+/// Validate the exact ordered Preview1 imports emitted by the Swift 6.3.3 UI spike.
+/// Uses the same validation limits, checked signatures and exports as `validate_swift_ui`.
+#[allow(clippy::result_large_err, reason = "Validation failure snapshots must not allocate.")]
+pub fn validate_swift_ui_6_3_3(
+    input: &[u8],
+    budget: SwiftValidationBudget,
+    cancellation: &Cancellation,
+) -> Result<ValidatedSwiftUI, SwiftValidationFailure> {
+    validate_ui(input, budget, cancellation, &SWIFT_6_3_3_UI_IMPORTS)
+}
+
+#[allow(clippy::result_large_err, reason = "Validation failure snapshots must not allocate.")]
+fn validate_ui(
+    input: &[u8],
+    budget: SwiftValidationBudget,
+    cancellation: &Cancellation,
+    expected_imports: &[WasiFunction],
+) -> Result<ValidatedSwiftUI, SwiftValidationFailure> {
     let started = Instant::now();
-    validate(input, budget, cancellation, started, policy::Policy::ui())
+    validate(input, budget, cancellation, started, policy::Policy::ui(), expected_imports)
         .map(|proof| ValidatedSwiftUI { proof })
         .map_err(|raw| failure(raw, input.len(), started, budget.deadline_ms))
 }
 fn ui_abi(source: &[u8], m: &SwiftMetadata, meter: &mut Meter<'_, account::SwiftControl>)
-    -> Result<([WasiFunction; 34], [u32; 4]), Failure> {
-    let imports = exact_imports(source, m, meter)?;
+    -> Result<(), Failure> {
     let cursor = Cursor::default();
     if m.memory.is_none() || m.table.is_none() || m.exports.len() != 5 {
         return Err(meter.error(FailureKind::Validation, "swift_ui_memory_table_exports", cursor));
@@ -875,5 +924,5 @@ fn ui_abi(source: &[u8], m: &SwiftMetadata, meter: &mut Meter<'_, account::Swift
     if !memory || entries.iter().any(Option::is_none) {
         return Err(meter.error(FailureKind::Validation, "swift_ui_missing_export", cursor));
     }
-    Ok((imports, entries.map(Option::unwrap)))
+    Ok(())
 }

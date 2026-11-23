@@ -27553,7 +27553,7 @@ impl FrameOperationPhase<'_> {
         // No signature/proof/cache view survives this block.
         let (descriptor, params) = {
             let descriptor = match self.phase.parts.cache.proof()
-                .execution_imports().get(function as usize).copied() {
+                .resolved_import(function as usize) {
                 Some(descriptor) => descriptor,
                 None => return Err(self.invariant("swift_host_import_index")),
             };

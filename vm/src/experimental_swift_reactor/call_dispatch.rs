@@ -177,7 +177,7 @@ fn call_selected(
             }
         }};
         (parameter_work $s:ident, $params:ident, $function:ident) => {{
-            if ($function as usize) < $s.phase.parts.cache.proof().execution_imports().len() {
+            if ($function as usize) < $s.phase.parts.cache.proof().execution_import_count() {
                 Ok(())
             } else {
                 $s.work($params)
@@ -201,7 +201,7 @@ fn call_selected(
             }
         };
         (is_import $s:ident, $function:ident) => {
-            ($function as usize) < $s.phase.parts.cache.proof().execution_imports().len()
+            ($function as usize) < $s.phase.parts.cache.proof().execution_import_count()
         };
         (import $s:ident, $function:ident, $base:ident) => {{
             let _ = $base;

@@ -1,0 +1,35 @@
+{
+  "scope": "macOS arm64 owned VM feasibility for S2a and S2b",
+  "status": "passed_scoped",
+  "date": "2026-11-23",
+  "reviewedCandidate": "22db0ade93",
+  "reviewer": "Independent Sol 6.2 High review, t3-9dd47598",
+  "command": "python3 -B compiler/experiments/swiftui-full-guest/replay.py NAME --owned-ui-only --owned-ui-256",
+  "toolVersions": {
+    "revision": "34bfbd2a5f30385e109188f3cdb4230f57122351",
+    "tree": "01c399e2d090c9c40b65cc33313e69ab5add4d1b",
+    "vm-tree": "037662ce6b909993be1bbd5227967f111968f58e",
+    "host": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "swift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "linker": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "load": "17:07  up 3 days, 17:15, 1 user, load averages: 126.54 79.78 69.10",
+    "logical-cpus": "15"
+  },
+  "wasmSHA256": "75528606dca7c3c3a2aadd147b26bd441a8348d0fa81a9dc84d6b9b6b28f14dd",
+  "replayGuardSHA256": "a014e899c0039c6ff2fc61226253c06fa776f34c5b42883b25ab21297a900172",
+  "results": {
+    "fixed34": "swift_import_count on the same reactor",
+    "exact32Under64": "Independent control refused swift_frame_depth at frame 65 and closed cleanly",
+    "exact32Under256": "Root and independent replays completed all six validated snapshots and closed the owner",
+    "legacyValidatorTests": "13 passed in independent review"
+  },
+  "observedJourney": "Load 1,000 records, open a record, refuse a blank title, save a Unicode title, and reopen the same record.",
+  "rootReplaySHA256": "5ad1cfd98fb39e5e22e3bb1c301b4493c3fec9fd3734ee8893e15fae25e43949",
+  "cleanup": "Removed work directory after command groups were confirmed terminal.",
+  "limits": [
+    "The diagnostic entry is Rust-only. C ABI openers and installed profile selection still use fixed34.",
+    "No mobile signed activation, signed patch size, mobile p95 startup, or relative steady-state memory was measured in this run."
+  ]
+}

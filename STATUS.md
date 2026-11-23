@@ -10,6 +10,8 @@ The owner stopped current-stack L02 and L08 work at `504366a0c9` and started the
 
 S1 passed independent review. A shared feature with qualified `SwiftUI.Text` builds for Android, WASI, and iOS. On iOS the feature resolves `SwiftUI` to `MixerSwiftUI`, and the same executable links Apple SwiftUI in its shell. The replay rebuilt all three targets from a byte-identical CLI export. Target-scoped compiler aliases are the selected path for UP5. [S1 replay and environment](verification/receipts/ui-platform-pivot-s1-20261123.json)
 
+The S2 full-Swift list and editor completes six verified snapshots in the owned macOS VM with the experimental 32-import validator and 256-frame geometry. The original fixed-34 validator rejected the same module, and the 64-frame control stopped at frame 65. The host replay exercised 1,000 rows, blank-title refusal, Unicode Save, and reopening the saved record. S2a and S2b remain open for signed installed activation, platform-relative startup and memory measurements, and profile caps. [Host evidence](verification/receipts/ui-platform-pivot-s2-host-20261123.json)
+
 The pre-pivot iOS 17 compile-only check built five package schemes and the Rust VM Simulator archive at the 17.0 floor. Its scope excluded the `capabilities/` qualification package and installed app behavior. [Historical compile receipt](verification/receipts/ios17-floor-compile-20261123.json)
 
 ## Checkpoint for the plan revision, November 23, 2026
