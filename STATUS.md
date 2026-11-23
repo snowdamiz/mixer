@@ -273,9 +273,20 @@ and a separate Move down action. Stopped readback recorded the exact
 task order and five linked outbox operations. The extended replay
 stopped before saving Inspection 20. The editor showed `nspection 20`
 after the runner tapped the field and typed without checking focus.
-The owned API 36 emulator and private ADB closed. Android's draft,
-entry, queue paging and cold comparison remain open for this build.
+The owned API 36 emulator and private ADB closed. The following replays continued the draft, entry,
+queue and cold checks from verified saved snapshots.
 [Android D2 native boundary](verification/receipts/l08-d2-android-composite-native-boundary-20261123.json)
+
+The focus-checked replay saved all 21 task titles exactly and captured
+the saved draft at revision 25. The next emulator loaded those exact
+bytes, reopened the draft Button, committed the same record ID and
+completed the last task. Its revision-27 checkpoint retained the
+earlier 24 outbox records and added only entrySaved and taskSaved.
+A third continuation passed the ordered 20+6 queue, page return and
+cold process checks with byte-identical workspace. This joins three
+disposable installs through exact checkpoints. The matched source
+still needs a side-by-side design review and higher Swift sharing.
+[Android D2 checkpoint replay](verification/receipts/l08-d2-android-composite-checkpoint-replay-20261123.json)
 
 ## Managed iOS FieldLog and historical native corpus
 
