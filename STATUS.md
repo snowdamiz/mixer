@@ -72,8 +72,10 @@ A stock local build processor and managed worker linked the arm64 iOS
 Simulator build of FieldLog and verified its committed products after
 PostgreSQL restart. The unpatched CLI refused the checked-in Xcode
 project with `generate.modified`. The build used a private digest-checked
-project admission patch. Authenticated download, signed publication and
-native rollback for this exact build remain pending.
+project admission patch. Stock Phoenix served signed sequences 1, 2, and 3
+for the exact rebound managed runtime. Sequence 3 rolled back to the
+sequence 1 artifact. Both local services closed. Authenticated build artifact
+download and the installed release journey remain open.
 [Managed build receipt](verification/receipts/l08-d6-managed-fieldlog-ios-build-20261122.json)
 
 The historical F05 iOS app passed Cancel, Add, and cold readback. An
