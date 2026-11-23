@@ -199,7 +199,7 @@ For context only, source inspection found MPL-2.0 in Skip's UI/bridge libraries 
 
 ### 4.3 License compatibility of the MIT scope
 
-The MIT scope in Section 26.7 may depend only on licenses that permit MIT distribution, such as MIT, BSD, Apache-2.0, ISC, zlib, PSF-2.0, and public domain. Copyleft dependencies, including GPL, LGPL, AGPL, and MPL, stay out of it. Record every dependency's license in `THIRD_PARTY.yml`. Code in the MIT paths does not depend on the proprietary hosted service, and hosted-service code stays outside the MIT paths.
+The MIT scope in Section 26.7 may depend only on licenses that permit MIT distribution, such as MIT, BSD, Apache-2.0, ISC, zlib, PSF-2.0, and public domain. Copyleft dependencies, including GPL, LGPL, AGPL, and MPL, stay out of it. Record every dependency's license in `THIRD_PARTY.yml`. Code in the MIT paths does not depend on the proprietary hosted service, and hosted-service code stays outside the MIT paths. Build, test, and verification tools that are never linked into or shipped with the MIT code, such as OpenJDK, dpkg, GnuPG, and sharp, keep their own licenses. [`LICENSING.md`](LICENSING.md) is the authoritative path map.
 
 ## 5. System architecture and ownership
 
@@ -1295,14 +1295,15 @@ Prices are hypotheses, set later from measured cost under Section 26.4. Expo's c
 
 This decision changes neither local completion nor the November 17 policy. Testing and early launch stay free, and payment implementation stays deferred, with Stripe as the later provider (Section 17).
 
-Applying the license is a distribution task, not a local-completion gate. Before public distribution, finish these steps:
+The license files landed on November 23, 2026. [`LICENSE`](LICENSE) holds the MIT License with a preamble, and [`LICENSING.md`](LICENSING.md) maps each directory to MIT or proprietary. Each proprietary directory has its own `LICENSE` file. The copyright notice names snowdamiz, and the owner can change it. The dependency review found no conflict. Every copyleft entry in `THIRD_PARTY.yml` is a build or verification tool that is never linked into or shipped with the MIT code. Those entries are OpenJDK, dpkg, GnuPG, and sharp with libvips.
 
-1. Add the MIT license text with a path map that states which directories are MIT and which are proprietary hosted services.
-2. Confirm that every dependency in the MIT scope is compatible under Section 4.3.
-3. Keep hosted-service code out of the MIT paths, and keep MIT code free of hosted-service dependencies.
-4. Choose the reference self-hostable update server from `services/` and `release-delivery-origin/`, and document how to run it.
-5. Publish a trademark policy, because the MIT license covers code and not the Mixer name or the Flick logo.
-6. Choose the copyright holder and the contribution terms, such as a DCO or a CLA. Both are owner decisions.
+These steps remain before public distribution:
+
+1. Keep hosted-service code out of the MIT paths, and keep MIT code free of hosted-service dependencies.
+2. Document how to run `services/`, the reference update server for self-hosting. `release-delivery-origin/` is the proprietary hosted delivery origin.
+3. Publish a trademark policy, because the MIT License covers code and not the Mixer name or the Flick logo.
+4. Set the contribution terms, such as a DCO or a CLA. This is an owner decision.
+5. Change `license = "LicenseRef-Mixer"` in `vm/Cargo.toml` to `MIT` when the replays that read that manifest are next regenerated.
 
 ## 27. Risk register and decision triggers
 

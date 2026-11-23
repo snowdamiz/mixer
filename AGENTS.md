@@ -41,8 +41,8 @@ verification, cleanup, or push rule.
 ## Licensing and revenue, November 23, 2026
 
 The core engine and the OTA update system are MIT-licensed, and Mixer charges
-for hosted builds and hosted OTA delivery. Product-plan Section 26.7 lists the
-MIT paths. Code in those paths may use only dependencies whose licenses permit
+for hosted builds and hosted OTA delivery. `LICENSING.md` maps every directory
+to MIT or proprietary, and product-plan Section 26.7 explains the model. Code in those paths may use only dependencies whose licenses permit
 MIT distribution (Section 4.3), must not depend on the proprietary hosted
 service, and records every dependency in `THIRD_PARTY.yml`. Payment
 implementation stays deferred under the November 17 policy.

@@ -4,11 +4,13 @@
 
 The owner set the licensing and revenue model. The core engine and the OTA update system are MIT. Mixer charges for hosted builds and hosted OTA delivery, as Expo does with EAS, and self-hosted delivery is free. [Product plan Section 26.7](mixer-product-plan.md#267-licensing-and-revenue-model-november-23-2026) defines the MIT scope, the paid services, the plans, and the meters. This changes neither local completion nor the November 17 rule that testing and early launch are free and payment implementation is deferred.
 
-- [ ] Add the MIT license text and a path map of MIT and proprietary directories.
-- [ ] Review `THIRD_PARTY.yml` for license compatibility with the MIT scope under product plan Section 4.3.
+- [x] Add the MIT license text and a path map of MIT and proprietary directories. `LICENSE`, `LICENSING.md`, and a `LICENSE` file in each proprietary directory landed on November 23.
+- [x] Review `THIRD_PARTY.yml` for license compatibility with the MIT scope under product plan Section 4.3. Every copyleft entry is a build or verification tool that never ships with MIT code.
+- [x] Choose the reference self-hostable update server. It is `services/`, and `release-delivery-origin/` stays proprietary.
+- [ ] Document how to run `services/` as a self-hosted update server.
 - [ ] Keep hosted-service code out of the MIT paths.
-- [ ] Choose the reference self-hostable update server from `services/` and `release-delivery-origin/`, and document how to run it.
-- [ ] Get the owner's decisions on the copyright holder, the contribution terms, and the trademark policy for the Mixer name and the Flick logo.
+- [ ] Change `vm/Cargo.toml` from `LicenseRef-Mixer` to `MIT` when the replays that read it are next regenerated.
+- [ ] Get the owner's decisions on the contribution terms and the trademark policy for the Mixer name and the Flick logo. The copyright notice names snowdamiz until the owner says otherwise.
 
 ## UI platform pivot, November 23, 2026
 
