@@ -793,6 +793,16 @@ even with the exact Pair27 V2 descriptor. Native reference capture
 remains pending a matching public rendering path.
 [Shared appearance compiler probe](verification/receipts/l02-public-shared-appearance-compiled-20261123.json)
 
+The opt-in stock Android Activity rendered Checklist, Task form, and
+Pending queue through the canonical V2 descriptor. All six API 36 arm64
+captures included native screenshots and UIAutomator hierarchies, at
+400 dpi with light/1.0 and dark/1.8. The six iOS captures and side-by-side
+review are pending. The iOS Settings rerun passed Dark persistence and
+workspace setup. It showed the five Support Diagnostics fields, but the
+XCTest OCR omitted two isolated values from its screenshot. The matrix
+stopped before changing Regional Formats or Larger Text.
+[Android captures and iOS Settings boundary](verification/receipts/l02-native-settings-and-android-reference-20261123.json)
+
 The exact installed FieldLog executable returned a missing-entitlement
 status from its first Keychain read before sign-in. A fresh disposable
 Simulator attached the diagnostic to the exact app PID and was removed.
