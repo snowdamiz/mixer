@@ -231,6 +231,12 @@ paired Android traffic was host-side. A distinct live successor on both
 installed apps remains open.
 [Live F10 iOS receipt](verification/receipts/l08-d8-f10-ios-live-relay-20261122.json)
 
+The historical F03 iOS builds both passed the same dark-appearance test.
+The changed Done label used light green while the control used deep green.
+The first-project button was white on deep green in both captures. The
+two disposable Simulators were removed. Signed delivery remains open.
+[Historical dark palette comparison](verification/receipts/l08-d8-f03-ios-dark-differential-20261122.json)
+
 The historical F06 iOS fixture passed native multiline editing, Cancel,
 and cold byte comparisons after the test identified the actual title field
 in the SwiftUI form. Public signed delivery remains separate.
