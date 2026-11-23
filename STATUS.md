@@ -136,6 +136,13 @@ cold readback, and one commit outbox event. The standalone overlap is
 1,895 of 5,033 Swift lines. Installed input and picker checks remain open.
 [Shared entry form](verification/receipts/l08-d2-linked-shared-entry-form-20261122.json)
 
+The installed iOS shared queue passed the full 26-change route. A
+checklist hit-area fix made the center of the row accept completion.
+Disk readback confirmed the same completed task and three queue records
+after cold reopen. The two queue pages survived a tab return and cold
+reopen. The matching installed Android build remains open.
+[iOS queue and checklist receipt](verification/receipts/l08-d2-ios-queue-center-native-20261123.json)
+
 ## In-place FieldLog public SDK adoption on iOS
 
 Three native tests created a project and saved photo draft in standalone

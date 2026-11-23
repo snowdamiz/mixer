@@ -1,0 +1,84 @@
+{
+  "schema": "mixer.local.fieldlog.d2-checklist-queue-native.v1",
+  "gate": "L08",
+  "milestone": "D2",
+  "status": "passed-scoped-ios-shared-queue-and-checklist-hit-area",
+  "nativeRuntime": "com.apple.CoreSimulator.SimRuntime.iOS-27-0",
+  "ownedDevice": "C99FEDB5-97DE-4F64-A8F6-B648CD1F751A",
+  "signedExecutableSHA256": "47cb66120ad3dbd15d82f5a9eb969bc21fde3873e7632b51bdc7bac6a16d2f4f",
+  "xctestExecutableSHA256": "c00925ce8d459debec85b3d5b42bd4b603553fa906b54b2719097ff04f173ad8",
+  "selectors": [
+    "FieldLogUITests/FieldLogUITests/testChecklistCenterTapPersists",
+    "FieldLogUITests/FieldLogUITests/testPendingChangesPagesReturnAndColdReplay"
+  ],
+  "independentReview": "l08-d2-checklist-center-and-queue-native-review-7ece7052e7",
+  "observations": [
+    "The unchanged checklist accepted a tap over the title and missed a center tap inside its Accessibility button frame. A new process restored the completed task.",
+    "Moving the hit shape inside the plain button label made the center click complete the task. The stopped workspace contained that task and exactly three queue records.",
+    "The same rebuilt product showed separate 20-ID and 6-ID pages, kept page two across tab return, and recovered both ID sets after a fresh launch."
+  ],
+  "originalRunLimits": [
+    "The initial queue test stopped on the first completion tap.",
+    "The second diagnostic reached the completed task in a fresh process, then expected a test-workspace badge that was outside the restored project screen.",
+    "The queue assertion observes membership by ID. The strict center case supplies separate direct disk readback."
+  ],
+  "durableStrictTapReadback": {
+    "task": "9a0d1e27-615e-4ce7-bfd0-bcb660900bfb",
+    "completed": true,
+    "outboxCount": 3,
+    "sha256": "a5ec32e8d0e84618ca4c5cdedd8c77644a14b46c768f22dd02cee94258560e7d"
+  },
+  "sourcePatches": {
+    "verification/receipts/l08-d2-ios-queue-center-native-20261123.pending-document.patch.b64": "6427369558f2100506f0e99c7639fba512511e55786090883a5faf00fe252e92",
+    "verification/receipts/l08-d2-ios-queue-center-native-20261123.pending-xctest.patch.b64": "0d3da2a5e5945360c67036cf49db942b504ea4bb75b8673b151f2e468afafa24",
+    "verification/receipts/l08-d2-ios-queue-center-native-20261123.checklist-hit-region.patch.b64": "444c595846f16b668d9f17be3de7d1d81a4b22946e41070a1122acad45d8e320",
+    "verification/receipts/l08-d2-ios-queue-center-native-20261123.checklist-xctest.patch.b64": "d028d0611c7a4c784201ab2bd88120f509af73d18ebb34d5ec1956e88c249705"
+  },
+  "patchEncoding": "base64",
+  "copyRepair": {
+    "packagingProblem": "Copying the packet root as a symbolic link caused two changes in the donor.",
+    "passedPacketNowIndependent": true,
+    "donorFilesRestoredExact": 22,
+    "donorOriginalXCTestSHA256": "ff5f290ffbf5ca3bbd6686e1ad1b023fd82b13311a87114eeb382ca722939710",
+    "isolatedCopyControlPassed": true,
+    "copyScriptSHA256": "93657a4671869c5630249b7cf51aa59cfeb01087917599499abd061987b3cd48"
+  },
+  "cleanup": {
+    "terminalNativeCommands": 100,
+    "ownedRemoved": true,
+    "privatePacketRemoved": true,
+    "externalComparisons": {
+      "after-create": {
+        "exact": true,
+        "count": 13
+      },
+      "after-boot": {
+        "exact": true,
+        "count": 13
+      },
+      "after-run": {
+        "exact": true,
+        "count": 13
+      },
+      "after-shutdown": {
+        "exact": true,
+        "count": 13
+      },
+      "after-delete": {
+        "exact": true,
+        "count": 13
+      }
+    }
+  },
+  "limits": [
+    "Installed iOS 27 only. The sibling Menu was verified in source. The selected native tests use one task, so Menu and reorder behavior of this build were outside this run.",
+    "The new paired source composition, current installed Android counterpart, and whole-app sharing target remain open."
+  ],
+  "rawEvidence": {
+    "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-ios-signed-resume-root/l08-d2-checklist-fixed-native/native/receipt.json": "d3d3a18205d7737538b91e0517a1e7184fae892d3ff054a4957cccaa311b971f",
+    "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-ios-signed-resume-root/l08-d2-checklist-fixed-native/product/ios-test-packet-roster.json": "020cb2cebce0ba7e03f948e79d213b1ba718e4eabe38d94bf3637d511d734de4",
+    "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-ios-signed-resume-root/l08-d2-checklist-fixed-native/product/copy-recovery.json": "56e18390f9741cc6462fc38102e8b4d70cc39e751129d2fd77ee8138e89ad1a9",
+    "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-ios-signed-resume-root/l08-d2-pending-changes-native/native/receipt.json": "20cfdf9728b190806ec6a0b58d60853b0bf97bf13d2513a992a9f303c1e87630",
+    "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-ios-signed-resume-root/l08-d2-checklist-tap-native/native/receipt.json": "af21bf5cce85659d225859a1519aeda0fa9221bdda2386faa190810ea98fb145"
+  }
+}
