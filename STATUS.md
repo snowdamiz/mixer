@@ -219,6 +219,16 @@ installation performed zero workspace writes and preserved its journal
 across each offline launch. Android live replacement remains open.
 [Reviewed native F10 receipt](verification/receipts/l08-d8-f10-ios-live-replacement-20261123.json)
 
+The Android F10 owner passed the five-phase signed host replay,
+including ordered 20+6 rows and byte-identical journals across both
+cold reopens. The exact unsigned APK passed admission. The installed
+test remains pending. [Android F10 host receipt](verification/receipts/l08-d8-f10-android-replacement-host-20261123.json)
+
+The private F03 contracts passed immediate-first admission and
+deferred-start refusal before effects. Android verified all 54
+source members and refused mixed source pairs. Native appearance
+replay remains open. [F03 contract review](verification/receipts/l08-d8-f03-private-contract-host-20261123.json)
+
 The stock recovery encoder now sorts durable health milestones under
 the existing field. Seven recovery tests passed. Independent process
 probes reproduced two prior byte encodings and one after the fix.
