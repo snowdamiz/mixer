@@ -1,0 +1,29 @@
+--- a/tests/integration/fieldlog-d8-f04-signed/Control.swift
++++ b/tests/integration/fieldlog-d8-f04-signed/Control.swift
+@@ -31,0 +32,4 @@
++        if args[1] == "compact-editor" {
++            print(try CompactEditorControl.deferredRefusal(identity: read(work, "identity.json")))
++            return
++        }
+@@ -102 +106,2 @@
+-                                                workspace: workspace, beforeBytes: beforeBytes, boundary: boundary, expectRefusal: expectRefusal))
++                                                workspace: workspace, beforeBytes: beforeBytes, boundary: boundary,
++                                                expectRefusal: expectRefusal, privateRetry: privateRetry))
+@@ -166 +171,2 @@
+-                                           boundary: SaveBoundary?, expectRefusal: Bool) async throws -> [String: Any] {
++                                           boundary: SaveBoundary?, expectRefusal: Bool,
++                                           privateRetry: Bool) async throws -> [String: Any] {
+@@ -220,3 +226,10 @@
+-            return ["phase": phase, "artifact": artifact, "sequence": sequence, "candidate": candidate,
+-                    "refusal": "ui_protocol_after_effects", "presentationAdmitted": false,
+-                    "previousHealthyPreserved": true]
++            var refusal: [String: Any] = ["phase": phase, "artifact": artifact, "sequence": sequence,
++                "candidate": candidate, "refusal": "ui_protocol_after_effects", "presentationAdmitted": false]
++            if privateRetry {
++                try check(staged.healthy == nil, "Private refusal trial unexpectedly seeded a healthy release")
++                refusal["healthyCandidateSeeded"] = false
++            } else {
++                refusal["previousHealthy"] = try need(staged.healthy, "Stock refusal needs a healthy release")
++                refusal["previousHealthyPreserved"] = true
++            }
++            return refusal

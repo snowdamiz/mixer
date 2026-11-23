@@ -1,0 +1,551 @@
+diff --git a/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift b/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift
+index cb81a06b28215a5bb7d839fa107a78b3e7e401ce..e23a310b397aa555fc6db49ab14436178c647d3b 100644
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift
+@@ -206,0 +207 @@ actor CapabilityColdStartWorker {
++        if installed.fieldLogTaskRetry { return try GuestUIExchangeV1(fieldLogTaskRetryGeneration: generation) }
+diff --git a/capability-activation/Sources/MixerCapabilityActivation/CapabilityExecutionPolicy.swift b/capability-activation/Sources/MixerCapabilityActivation/CapabilityExecutionPolicy.swift
+index b78946a6c82f3ba539f4ea7a951b055137d6f9ed..7d48bfbf08cfcfcf70f3ffbe1bbf6d2083e23174 100644
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityExecutionPolicy.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityExecutionPolicy.swift
+@@ -4 +4 @@ import MixerExperimentalCapabilityRuntime
+-@_spi(CapabilityDurableV3) import MixerUpdates
++@_spi(CapabilityDurableV3) @_spi(PrivateFieldLogEditor) import MixerUpdates
+@@ -53 +53,2 @@ struct CapabilityExecutionPolicy: Sendable {
+-        if installed.fieldLogEditorID != nil {
++        if installed.fieldLogEditorID != nil || installed.fieldLogTaskRetry {
++            let namespace = installed.fieldLogTaskRetry ? FieldLogEditorDevelopment.taskRetryNamespace : FieldLogEditorStorage.namespace
+@@ -56 +57 @@ struct CapabilityExecutionPolicy: Sendable {
+-                  only.permissions == ["storage.appPrivate"], only.namespaces == [FieldLogEditorStorage.namespace],
++                  only.permissions == ["storage.appPrivate"], only.namespaces == [namespace],
+diff --git a/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift b/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift
+index 3d7396c7211b7b3c97e26e13066c5e1b9d3064f1..65ab046fd7b1e872e1c35fe421a902cbbb133e9c 100644
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift
+@@ -13 +13,2 @@ public final class CapabilityGuestUIRuntime: Sendable {
+-        try await openOwned(configuration: configuration, installed: execution.installed, environment: .init())
++        guard !execution.installed.fieldLogTaskRetry else { throw coldStartError("installed_mode") }
++        return try await openOwned(configuration: configuration, installed: execution.installed, environment: .init())
+@@ -14,0 +16,10 @@ public final class CapabilityGuestUIRuntime: Sendable {
++
++#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
++    @_spi(PrivateFieldLogEditor)
++    public static func open(privateDevelopmentFieldLogTaskRetry execution: InstalledCapabilityExecution,
++                            configuration: CapabilityColdStartConfiguration) async throws -> CapabilityGuestUIRuntime {
++        guard execution.installed.fieldLogTaskRetry else { throw coldStartError("installed_mode") }
++        return try await openOwned(configuration: configuration, installed: execution.installed, environment: .init())
++    }
++#endif
++
+@@ -16,0 +28,7 @@ public final class CapabilityGuestUIRuntime: Sendable {
++#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
++        if installed.fieldLogTaskRetry {
++            try CapabilityInstalledExecutionMode.requireFieldLogTaskRetry(installed.identity, milestones: configuration.requiredMilestones)
++        } else {
++            try CapabilityInstalledExecutionMode.requireGuestUI(installed.identity, milestones: configuration.requiredMilestones)
++        }
++#else
+@@ -17,0 +36 @@ public final class CapabilityGuestUIRuntime: Sendable {
++#endif
+diff --git a/capability-activation/Sources/MixerCapabilityActivation/CapabilityInstalledExecutionMode.swift b/capability-activation/Sources/MixerCapabilityActivation/CapabilityInstalledExecutionMode.swift
+index 3c404957aa89d1f84717ff6d0c4ee05ef7d411ca..c88c95fd5c816b1f2ab7a7dc28b84410b1b1aab7 100644
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityInstalledExecutionMode.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityInstalledExecutionMode.swift
+@@ -37,0 +38,16 @@ enum CapabilityInstalledExecutionMode {
++    static func requireFieldLogTaskRetry(_ identity: CapabilityRuntimeIdentity, milestones: Set<String>) throws {
++        let dependencies = try entries(identity)
++        let marker = FieldLogEditorDevelopment.Profile.taskRetry.marker
++        guard identity.execution.startupExport == startup,
++              milestones == ["feature_started", "first_screen"],
++              identity.installedRuntime.scope == FieldLogEditorDevelopment.scope,
++              identity.installedRuntime.uiSchema == 1,
++              dependencies.allSatisfy({ ![contractID, FieldLogEditorDevelopment.dependency, f10WireID, f10HeaderID,
++                  "mixer.guest-ui-event-v2", "mixer.guest-ui-native-header-v2"].contains($0.object?["id"]?.text ?? "") }),
++              try allowsDeferredGuestUIStartup(identity) else { throw rejection() }
++        for (id, digest) in [(marker.id, marker.digest), (headerID, headerSHA256)] {
++            guard let fields = dependencies.first(where: { $0.object?["id"]?.text == id })?.object,
++                  fields["version"]?.text == "1", fields["artifact_sha256"]?.text == digest else { throw rejection() }
++        }
++    }
++
+@@ -91 +107 @@ enum CapabilityInstalledExecutionMode {
+-                  return id == "mixer.guest-ui-event-v2" || id == "mixer.guest-ui-native-header-v2" || id == f10WireID || id == f10HeaderID || id == FieldLogEditorDevelopment.dependency
++                  return id == "mixer.guest-ui-event-v2" || id == "mixer.guest-ui-native-header-v2" || id == f10WireID || id == f10HeaderID || id == FieldLogEditorDevelopment.dependency || id == FieldLogEditorDevelopment.taskRetryDependency
+diff --git a/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift b/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift
+index 7dc15badd491a1fc554fbd18c2ba22fe1bbaea95..d062dfefaedb7f0b5ecfc478706581d6721d1f78 100644
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift
+@@ -31,0 +32,3 @@ final class CapabilityRecoveryStore: Sendable {
++        if installed.fieldLogTaskRetry && guestUI {
++            return try CapabilityInstalledExecutionMode.requireFieldLogTaskRetry(installed.identity, milestones: milestones)
++        }
+diff --git a/capability-activation/Sources/MixerCapabilityActivation/FieldLogTaskRetryStorage.swift b/capability-activation/Sources/MixerCapabilityActivation/FieldLogTaskRetryStorage.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..e372bef49bcb156fdc5895fb872d11e6e77f2434
+--- /dev/null
++++ b/capability-activation/Sources/MixerCapabilityActivation/FieldLogTaskRetryStorage.swift
+@@ -0,0 +1,32 @@
++#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
++import MixerCapabilities
++@_spi(PrivateFieldLogEditor) import MixerUpdates
++
++struct FieldLogTaskRetryStorage: InstalledApplicationStorageServing {
++    let repository: any InstalledApplicationStorageServing
++
++    func get(_ request: KVGetArguments) async throws -> KVGetResponse {
++        try authorize(namespace: request.namespace, key: request.key)
++        let response = try await repository.get(request)
++        guard response.found, ["AA==", "AQ=="].contains(response.valueBase64) else {
++            throw CapabilityFailure.unavailable
++        }
++        return response
++    }
++
++    func put(_ request: KVPutArguments, maximumTotalBytes: Int, maximumEntries: Int) async throws -> KVMutationResponse {
++        try authorize(namespace: request.namespace, key: request.key)
++        return try await repository.put(request, maximumTotalBytes: maximumTotalBytes, maximumEntries: maximumEntries)
++    }
++
++    func delete(_ request: KVDeleteArguments) async throws -> KVMutationResponse {
++        throw CapabilityFailure.permissionDenied
++    }
++
++    private func authorize(namespace: String, key: String) throws {
++        guard namespace == FieldLogEditorDevelopment.taskRetryNamespace, key == FieldLogEditorDevelopment.taskRetryKey else {
++            throw CapabilityFailure.permissionDenied
++        }
++    }
++}
++#endif
+diff --git a/capability-activation/Sources/MixerCapabilityActivation/InstalledCapabilityExecution.swift b/capability-activation/Sources/MixerCapabilityActivation/InstalledCapabilityExecution.swift
+index ed802f5408d029721968747ac946385bf304a99b..9221e3477103975786a4d2e37a982f7a396746bb 100644
+--- a/capability-activation/Sources/MixerCapabilityActivation/InstalledCapabilityExecution.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/InstalledCapabilityExecution.swift
+@@ -98,0 +99,15 @@ public struct InstalledCapabilityExecution: Sendable {
++
++    @_spi(PrivateFieldLogEditor)
++    public init(privateDevelopmentFieldLogTaskRetryJSON identityJSON: Data, materials: [CapabilityMaterialFile],
++                trustRootsJSON: Data, privateContainer: URL, repository: any InstalledApplicationStorageServing) throws {
++        let identity = try CapabilityRuntimeIdentity(privateDevelopmentFieldLogTaskRetryJSON: identityJSON)
++        try CapabilityInstalledExecutionMode.requireFieldLogTaskRetry(identity, milestones: ["feature_started", "first_screen"])
++        guard identity.capabilities.map(\.id) == [CapabilitySchemas.storageID] else {
++            throw materialError("fieldlog_task_retry_capability")
++        }
++        let storage = InstalledApplicationStorage(runtimeFingerprint: identity.fingerprint,
++            namespace: FieldLogEditorDevelopment.taskRetryNamespace, service: FieldLogTaskRetryStorage(repository: repository),
++            allowsDeferredGuestUIStartup: true)
++        try self.init(identity: identity, materials: materials, trustRootsJSON: trustRootsJSON,
++            privateContainer: privateContainer, applicationStorage: storage, privateF10: false, fieldLogTaskRetry: true)
++    }
+@@ -101 +116,2 @@ public struct InstalledCapabilityExecution: Sendable {
+-                 privateContainer: URL, applicationStorage: InstalledApplicationStorage?, privateF10: Bool, fieldLogEditorID: UUID? = nil) throws {
++                 privateContainer: URL, applicationStorage: InstalledApplicationStorage?, privateF10: Bool, fieldLogEditorID: UUID? = nil,
++                 fieldLogTaskRetry: Bool = false) throws {
+@@ -161 +177 @@ public struct InstalledCapabilityExecution: Sendable {
+-        if fieldLogEditorID != nil {
++        if fieldLogEditorID != nil || fieldLogTaskRetry {
+@@ -172 +188,2 @@ public struct InstalledCapabilityExecution: Sendable {
+-                                      applicationStorage: applicationStorage, privateF10: privateF10, fieldLogEditorID: fieldLogEditorID)
++                                      applicationStorage: applicationStorage, privateF10: privateF10, fieldLogEditorID: fieldLogEditorID,
++                                      fieldLogTaskRetry: fieldLogTaskRetry)
+@@ -197,0 +215 @@ struct InstalledMaterial: Sendable {
++    let fieldLogTaskRetry: Bool
+diff --git a/contracts/private-fieldlog-task-retry-v1.json b/contracts/private-fieldlog-task-retry-v1.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..3beac514b5526938c2251f1af525984ed1b84895
+--- /dev/null
++++ b/contracts/private-fieldlog-task-retry-v1.json
+@@ -0,0 +1,10 @@
++{
++  "id": "mixer.fieldlog-task-retry-v1",
++  "version": "1",
++  "mode": "private-macos-development",
++  "startup": "mixer.guest-ui-deferred-startup-v1",
++  "header": "mixer.guest-ui-native-header-v1",
++  "storage": {"capability": "storage.keyValue.v1", "permission": "storage.appPrivate", "namespace": "fieldlog-d8-f04-task", "key": "task", "operations": ["get", "put"], "hydrationValuesBase64": ["AA==", "AQ=="]},
++  "document": {"schemaVersion": 1, "root": "task-editor", "fields": ["title", "responsible"], "save": "save", "status": "status"},
++  "events": {"schemaVersion": 1, "title": "textChange", "responsible": "textChange", "save": "activate"}
++}
+diff --git a/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift b/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift
+index ba2384d99d361f3abe107d39de585b501f61408f..a0d50c499f18b46e75c32624f6089d489ee46e22 100644
+--- a/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift
++++ b/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift
+@@ -195 +195,2 @@ final class GuestUITurns: @unchecked Sendable {
+-        try harvest(native, claim: claim, phase: .startup, initial: true, allowsEmptyDocument: v1?.allowsDeferredStartup == true)
++        try harvest(native, claim: claim, phase: .startup, initial: true,
++            allowsEmptyDocument: v1?.allowsDeferredStartup == true, requiresEmptyDocument: v1?.requiresDeferredStartup == true)
+diff --git a/runtime-identity/Sources/MixerRuntimeIdentity/CapabilityRuntimeIdentity.swift b/runtime-identity/Sources/MixerRuntimeIdentity/CapabilityRuntimeIdentity.swift
+index c601424162153390ec73313fa6204ea4d7ded826..be8436939a4f81c5acd219e5fcf96b2a5a69f790 100644
+--- a/runtime-identity/Sources/MixerRuntimeIdentity/CapabilityRuntimeIdentity.swift
++++ b/runtime-identity/Sources/MixerRuntimeIdentity/CapabilityRuntimeIdentity.swift
+@@ -65 +65,6 @@ public struct CapabilityRuntimeIdentity: Sendable {
+-        try self.init(json: json, privateF10: false, privateEditor: true)
++        try self.init(json: json, privateF10: false, privateEditor: .compact)
++    }
++
++    @_spi(PrivateFieldLogEditor)
++    public init(privateDevelopmentFieldLogTaskRetryJSON json: Data) throws {
++        try self.init(json: json, privateF10: false, privateEditor: .taskRetry)
+@@ -68,2 +73,2 @@ public struct CapabilityRuntimeIdentity: Sendable {
+-    private init(json: Data, privateF10: Bool, privateEditor: Bool = false) throws {
+-        let privateMacOS = privateF10 || privateEditor
++    private init(json: Data, privateF10: Bool, privateEditor: FieldLogEditorDevelopment.Profile? = nil) throws {
++        let privateMacOS = privateF10 || privateEditor != nil
+@@ -100 +105 @@ public struct CapabilityRuntimeIdentity: Sendable {
+-        if privateEditor {
++        if privateEditor != nil {
+@@ -117 +122 @@ public struct CapabilityRuntimeIdentity: Sendable {
+-        let uiContract = privateEditor ? FieldLogEditorDevelopment.contractSHA256 :
++        let uiContract = privateEditor?.marker.digest ??
+@@ -133,3 +138,3 @@ public struct CapabilityRuntimeIdentity: Sendable {
+-            if id == FieldLogEditorDevelopment.dependency {
+-                guard privateEditor, try dependency.label("version") == "1",
+-                      try dependency.label("artifact_sha256") == FieldLogEditorDevelopment.contractSHA256 else {
++            if [FieldLogEditorDevelopment.dependency, FieldLogEditorDevelopment.taskRetryDependency].contains(id) {
++                guard let marker = privateEditor?.marker, id == marker.id, try dependency.label("version") == "1",
++                      try dependency.label("artifact_sha256") == marker.digest else {
+@@ -141 +146 @@ public struct CapabilityRuntimeIdentity: Sendable {
+-        guard editorMarker == privateEditor else { throw capabilityIdentityError("fieldlog_editor_dependency") }
++        guard editorMarker == (privateEditor != nil) else { throw capabilityIdentityError("fieldlog_editor_dependency") }
+diff --git a/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift b/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift
+index 627c3e05ef2113ba6cd20932bdc674985932a4d5..78ddcaf868af98af965a8b0f0152d3d7a98c7ef2 100644
+--- a/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift
++++ b/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift
+@@ -9,0 +10 @@ import MixerUI
++    public let requiresDeferredStartup: Bool
+@@ -14,0 +16 @@ import MixerUI
++        requiresDeferredStartup = false
+@@ -20,0 +23 @@ import MixerUI
++        requiresDeferredStartup = false
+@@ -23,0 +27,7 @@ import MixerUI
++    @_spi(PrivateFieldLogEditor)
++    public init(fieldLogTaskRetryGeneration generation: UInt64) throws {
++        allowsDeferredStartup = true
++        requiresDeferredStartup = true
++        core = try GuestUIExchangeCore(generation: generation, codec: GuestUIFieldLogTaskRetry.codec)
++    }
++
+@@ -52 +62 @@ import MixerUI
+-        try core.finishTurn(claim, documentBytes: documentBytes)
++        try finishTurn(claim, documentBytes: documentBytes, startupCutoff: nil)
+@@ -54,0 +65,6 @@ import MixerUI
++#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
++        if requiresDeferredStartup && core.snapshot().latestRevision == nil {
++            return try core.finishTurn(claim, documentBytes: documentBytes, startupCutoff: startupCutoff,
++                documentPolicy: GuestUIFieldLogTaskRetry.admitsFirstDocument)
++        }
++#endif
+diff --git a/sdk/Sources/MixerGuest/GuestUIFieldLogTaskRetry.swift b/sdk/Sources/MixerGuest/GuestUIFieldLogTaskRetry.swift
+new file mode 100644
+index 0000000000000000000000000000000000000000..6e22ebd4a1e1e32e3396ba045e90c3afbef08fcc
+--- /dev/null
++++ b/sdk/Sources/MixerGuest/GuestUIFieldLogTaskRetry.swift
+@@ -0,0 +1,83 @@
++#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
++import Foundation
++import MixerUI
++
++enum GuestUIFieldLogTaskRetry {
++    static let codec = GuestUIExchangeCodec(maximumBytes: 4096, decode: { bytes in
++        let validator = UIValidator(limits: .init(maximumMessageBytes: 4096, maximumNodes: 5,
++            maximumDepth: 2, maximumChildrenPerNode: 4, maximumStringBytes: 256),
++            supportedKinds: [.vStack, .text, .textField, .button])
++        let validated = try GuestUICodec(validator: validator).decode(bytes)
++        let root = validated.document.root
++        guard root.id == "task-editor", root.kind == .vStack, root.properties.isEmpty,
++              let status = root.children.last, status.id == "status", status.kind == .text,
++              Set(status.properties.keys) == ["text"], let text = status.properties["text"]?.string else {
++            throw GuestUIEditorErrorV2.routing
++        }
++        switch text {
++        case "Task saved", "Workspace unavailable":
++            guard root.children.count == 1 else { throw GuestUIEditorErrorV2.routing }
++        case "New task", "Saving", "Save refused before publication":
++            guard root.children.count == 4,
++                  validField(root.children[0], id: "title", label: "Task", disabled: text == "Saving"),
++                  validField(root.children[1], id: "responsible", label: "Responsible person", disabled: text == "Saving"),
++                  validSave(root.children[2], disabled: text == "Saving" || root.children[0].properties["value"] == .string("")) else {
++                throw GuestUIEditorErrorV2.routing
++            }
++        default:
++            throw GuestUIEditorErrorV2.routing
++        }
++        return validated
++    }, accepts: { action, _, _ in
++        guard action.nodeID == action.actionID else { return false }
++        switch (action.nodeID, action.event, action.value) {
++        case ("title", .textChange, .string(let value)), ("responsible", .textChange, .string(let value)):
++            return validValue(value)
++        case ("save", .activate, .null):
++            return true
++        default:
++            return false
++        }
++    }, encodeEvent: { sequence, action, _ in
++        let payload: GuestUIEventPayloadV2
++        switch (action.event, action.value) {
++        case (.textChange, .string(let value)): payload = .textChange(value)
++        case (.activate, .null): payload = .activate
++        default: throw GuestUIEditorErrorV2.routing
++        }
++        return try GuestUIEventCodecV2.encode(sequence: sequence, revision: action.revision,
++            nodeID: action.nodeID, actionID: action.actionID, payload: payload)
++    })
++
++    static func admitsFirstDocument(_ document: UIDocument) -> Bool {
++        guard document.revision == 1 else { return false }
++        let children = document.root.children
++        switch children.last?.properties["text"]?.string {
++        case "Task saved": return true
++        case "New task":
++            return children.count == 4 && children[0].properties["value"] == .string("")
++                && children[1].properties["value"] == .string("")
++        default: return false
++        }
++    }
++
++    private static func validField(_ node: UINode, id: String, label: String, disabled: Bool) -> Bool {
++        node.id == id && node.kind == .textField && node.actions == [.init(id: id, event: .textChange)]
++            && Set(node.properties.keys) == ["label", "value", "disabled"]
++            && node.properties["label"] == .string(label) && node.properties["disabled"] == .bool(disabled)
++            && node.properties["value"]?.string.map(validValue) == true
++    }
++
++    private static func validSave(_ node: UINode, disabled: Bool) -> Bool {
++        node.id == "save" && node.kind == .button && node.actions == [.init(id: "save", event: .activate)]
++            && node.properties == ["label": .string("Add"), "disabled": .bool(disabled)]
++    }
++
++    private static func validValue(_ text: String) -> Bool {
++        guard text.utf8.count <= 256, !text.utf8.contains(0), !text.utf8.contains(13) else { return false }
++        let encoder = JSONEncoder()
++        encoder.outputFormatting = [.withoutEscapingSlashes]
++        return (try? encoder.encode(text).count).map { $0 <= 258 } == true
++    }
++}
++#endif
+diff --git a/tests/integration/fieldlog-d8-f04-signed/Control.swift b/tests/integration/fieldlog-d8-f04-signed/Control.swift
+index f549920fb79feef3cf3fbf1f847311ded769b1e7..40e899a00103389a61c858d55e00e800f7630499 100644
+--- a/tests/integration/fieldlog-d8-f04-signed/Control.swift
++++ b/tests/integration/fieldlog-d8-f04-signed/Control.swift
+@@ -4 +4 @@ import Foundation
+-@testable import MixerCapabilityActivation
++@testable @_spi(PrivateFieldLogEditor) import MixerCapabilityActivation
+@@ -14,0 +15,27 @@ import MixerUpdates
++        let privateRetry = args.contains("--private-retry")
++        let direct = args.contains("--direct")
++        let expectRefusal = args.contains("--expect-refusal")
++        if args[1] == "stock-fingerprints" {
++            let data = try Data(contentsOf: work)
++            let vectors = try need(JSONSerialization.jsonObject(with: data) as? [[String: Any]], "Stock identity vectors")
++            try check(!vectors.isEmpty, "Missing stock identity vectors")
++            for vector in vectors {
++                let descriptor = try JSONSerialization.data(withJSONObject: need(vector["descriptor"], "Stock descriptor"))
++                let runtime = try CapabilityRuntimeIdentity(json: descriptor)
++                try check(runtime.fingerprint == vector["fingerprint"] as? String
++                          && runtime.canonicalCBOR.map { String(format: "%02x", $0) }.joined() == vector["canonicalCBOR"] as? String,
++                          "Stock identity bytes or fingerprint changed")
++            }
++            print(vectors.count)
++            return
++        }
++        if args[1] == "cold-read" {
++            let bytes = try read(workspace, "workspace.json")
++            let cold = try WorkspaceRepository(directory: workspace)
++            let state = await cold.snapshot()
++            await cold.close()
++            try check(state.revision == TaskStorage.baseRevision + 1 && (try encode(state)) == bytes
++                      && ReleaseVerifier.sha256(bytes) == args[3], "Different cold-process workspace bytes")
++            print(ReleaseVerifier.sha256(bytes))
++            return
++        }
+@@ -17 +44 @@ import MixerUpdates
+-                                vm: URL(fileURLWithPath: args[5]))
++                                vm: URL(fileURLWithPath: args[5]), privateRetry: privateRetry)
+@@ -38,2 +65,3 @@ import MixerUpdates
+-        let host = try CapabilityRuntimeIdentity(json: identity).installedRuntime
+-        let materials = try Release.materials.map { name, role in
++        let host = try Release.installedHost(identity, privateRetry: privateRetry)
++        let roles = Release.materials.filter { !privateRetry || !$0.0.hasPrefix("http") }
++        let materials = try roles.map { name, role in
+@@ -42,5 +70 @@ import MixerUpdates
+-        let execution = try InstalledCapabilityExecution(identityJSON: identity, materials: materials,
+-            trustRootsJSON: read(work, "roots.json"), privateContainer: work,
+-            applicationStorage: .init(runtimeFingerprint: host.runtime, namespace: TaskStorage.namespace,
+-                                      service: storage, allowsDeferredGuestUIStartup: true))
+-        let owner = try await CapabilityGuestUIRuntime.open(configuration: .init(
++        let configuration = CapabilityColdStartConfiguration(
+@@ -48 +72,26 @@ import MixerUpdates
+-            installation: Release.installation, observationSeconds: 1), execution: execution)
++            installation: Release.installation, observationSeconds: 1)
++        let owner: CapabilityGuestUIRuntime
++#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
++        if privateRetry {
++            let execution = try InstalledCapabilityExecution(privateDevelopmentFieldLogTaskRetryJSON: identity,
++                materials: materials, trustRootsJSON: read(work, "roots.json"), privateContainer: work, repository: storage)
++            do {
++                _ = try await CapabilityGuestUIRuntime.open(configuration: configuration, execution: execution)
++                throw UpdateError("f04.test", "Ordinary runtime accepted private profile")
++            } catch let error as UpdateError {
++                try check(error.code == "capability.runtime.installed_mode", "Unexpected ordinary owner rejection: \(error)")
++            }
++            owner = try await CapabilityGuestUIRuntime.open(privateDevelopmentFieldLogTaskRetry: execution, configuration: configuration)
++        } else {
++            owner = try await openStock()
++        }
++#else
++        owner = try await openStock()
++#endif
++        func openStock() async throws -> CapabilityGuestUIRuntime {
++            let execution = try InstalledCapabilityExecution(identityJSON: identity, materials: materials,
++                trustRootsJSON: read(work, "roots.json"), privateContainer: work,
++                applicationStorage: .init(runtimeFingerprint: host.runtime, namespace: TaskStorage.namespace,
++                                          service: storage, allowsDeferredGuestUIStartup: true))
++            return try await CapabilityGuestUIRuntime.open(configuration: configuration, execution: execution)
++        }
+@@ -51 +100 @@ import MixerUpdates
+-            let port = try need(Int(args[3]), "Loopback port")
++            let port = direct ? nil : try need(Int(args[3]), "Loopback port")
+@@ -53 +102 @@ import MixerUpdates
+-                                                workspace: workspace, beforeBytes: beforeBytes, boundary: boundary))
++                                                workspace: workspace, beforeBytes: beforeBytes, boundary: boundary, expectRefusal: expectRefusal))
+@@ -70 +119 @@ import MixerUpdates
+-        if successor {
++        if successor && !expectRefusal {
+@@ -94,0 +144,3 @@ import MixerUpdates
++            let encoded = try encode(after)
++            try check(encoded == afterBytes, "Cold repository snapshot differs from published bytes")
++            report["coldRepositoryBytesMatched"] = true
+@@ -100,0 +153 @@ import MixerUpdates
++        report["workspaceReads"] = await storage.gets
+@@ -112,2 +165,2 @@ import MixerUpdates
+-                                           host: InstalledRuntime, port: Int, workspace: URL, beforeBytes: Data,
+-                                           boundary: SaveBoundary?) async throws -> [String: Any] {
++                                           host: InstalledRuntime, port: Int?, workspace: URL, beforeBytes: Data,
++                                           boundary: SaveBoundary?, expectRefusal: Bool) async throws -> [String: Any] {
+@@ -124 +177 @@ import MixerUpdates
+-        if online {
++        if online, let port {
+@@ -147,0 +201,6 @@ import MixerUpdates
++        } else if online {
++            let payload = try read(packet, "payload.wasm")
++            try await owner.beginDownload(signedManifest: read(packet, "signed-manifest.json"),
++                                          signedAssignment: read(packet, "assignment.json"))
++            try await owner.appendDownload(payload, atOffset: 0)
++            try await owner.finishDownload()
+@@ -152,0 +212,12 @@ import MixerUpdates
++        if expectRefusal {
++            try await until("Signed projection was not refused") {
++                let recovery = await owner.recoverySnapshot()
++                return recovery.activation.phase == .recoveryRequired && model.state == .stopped
++            }
++            let recovery = await owner.recoverySnapshot()
++            try check(recovery.healthy == staged.healthy && model.renderHost == nil && !model.inputEnabled,
++                      "Rejected projection was displayed or made healthy")
++            return ["phase": phase, "artifact": artifact, "sequence": sequence, "candidate": candidate,
++                    "refusal": "ui_protocol_after_effects", "presentationAdmitted": false,
++                    "previousHealthyPreserved": true]
++        }
+@@ -191,2 +262,4 @@ import MixerUpdates
+-            let fire = model.actionHandler(host: renderer, attachment: attachment)
+-            fire(try action("title", .textChange, .string(TaskStorage.title)))
++            func handler() -> @MainActor (RoutedUIAction) -> Void {
++                model.actionHandler(host: renderer, attachment: attachment)
++            }
++            handler()(try action("title", .textChange, .string(TaskStorage.title)))
+@@ -194 +267 @@ import MixerUpdates
+-            fire(try action("responsible", .textChange, .string(TaskStorage.responsible)))
++            handler()(try action("responsible", .textChange, .string(TaskStorage.responsible)))
+@@ -198 +271,2 @@ import MixerUpdates
+-            fire(first)
++            let firstHandler = handler()
++            firstHandler(first)
+@@ -202 +276 @@ import MixerUpdates
+-            fire(first)
++            firstHandler(first)
+@@ -218 +292,2 @@ import MixerUpdates
+-            fire(retry)
++            let retryHandler = handler()
++            retryHandler(retry)
+@@ -221 +296 @@ import MixerUpdates
+-            fire(retry)
++            retryHandler(retry)
+diff --git a/tests/integration/fieldlog-d8-f04-signed/Release.swift b/tests/integration/fieldlog-d8-f04-signed/Release.swift
+index 077ccda3585f6570e0e8eb353fc250b8812d8788..95bd4114a52d145aef96d60b3b673399f08a9208 100644
+--- a/tests/integration/fieldlog-d8-f04-signed/Release.swift
++++ b/tests/integration/fieldlog-d8-f04-signed/Release.swift
+@@ -5,2 +5,2 @@ import MixerCapabilities
+-import MixerRuntimeIdentity
+-import MixerUpdates
++@_spi(PrivateFieldLogEditor) import MixerRuntimeIdentity
++@_spi(PrivateFieldLogEditor) import MixerUpdates
+@@ -20 +20,2 @@ enum Release {
+-    static func prepare(_ work: URL, fixtures: URL, guests: URL, vm: URL) throws {
++    static func prepare(_ work: URL, fixtures: URL, guests: URL, vm: URL, privateRetry: Bool = false) throws {
++        let scope = privateRetry ? FieldLogEditorDevelopment.scope : Self.scope
+@@ -31 +32 @@ enum Release {
+-            "environment": scope.environment, "bundle_id": "com.example.fieldlog.d8-f04",
++            "environment": scope.environment, "bundle_id": privateRetry ? FieldLogEditorDevelopment.bundleID : "com.example.fieldlog.d8-f04",
+@@ -38,0 +40,5 @@ enum Release {
++        if privateRetry {
++            engine["ui_contract_sha256"] = FieldLogEditorDevelopment.taskRetryContractSHA256
++            identity["platform"] = ["os": "macos", "architecture": "arm64", "environment": "device",
++                                    "minimum_os": "14.0", "target": "arm64-apple-macosx14.0"]
++        }
+@@ -45 +51,2 @@ enum Release {
+-            (CapabilityInstalledExecutionMode.contractID, CapabilityInstalledExecutionMode.contractSHA256),
++            privateRetry ? (FieldLogEditorDevelopment.taskRetryDependency, FieldLogEditorDevelopment.taskRetryContractSHA256)
++                         : (CapabilityInstalledExecutionMode.contractID, CapabilityInstalledExecutionMode.contractSHA256),
+@@ -54,0 +62 @@ enum Release {
++        if privateRetry { caps = [caps[storage]] }
+@@ -62 +70 @@ enum Release {
+-        let host = try CapabilityRuntimeIdentity(json: identityBytes).installedRuntime
++        let host = try installedHost(identityBytes, privateRetry: privateRetry)
+@@ -64 +72,8 @@ enum Release {
+-        let verifier = try ReleaseVerifierV3(host: host, roots: StrictJSON.decode([TrustRoot].self, from: roots))
++        let trust = try StrictJSON.decode([TrustRoot].self, from: roots)
++        let verifier: ReleaseVerifierV3
++#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
++        if privateRetry { verifier = try ReleaseVerifierV3(privateDevelopmentFieldLogEditor: host, roots: trust) }
++        else { verifier = try ReleaseVerifierV3(host: host, roots: trust) }
++#else
++        verifier = try ReleaseVerifierV3(host: host, roots: trust)
++#endif
+@@ -115,0 +131,8 @@ enum Release {
++    static func installedHost(_ bytes: Data, privateRetry: Bool) throws -> InstalledRuntime {
++#if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
++        if privateRetry { return try CapabilityRuntimeIdentity(privateDevelopmentFieldLogTaskRetryJSON: bytes).installedRuntime }
++#endif
++        try check(!privateRetry, "Private profile unavailable")
++        return try CapabilityRuntimeIdentity(json: bytes).installedRuntime
++    }
++
+diff --git a/tests/integration/fieldlog-d8-f04-signed/Storage.swift b/tests/integration/fieldlog-d8-f04-signed/Storage.swift
+index 44ba45ecc0be8c953d329d3d8bcd34fb90ed7217..ca52a15ae50eae283dcda7666e5643ff3ea408c3 100644
+--- a/tests/integration/fieldlog-d8-f04-signed/Storage.swift
++++ b/tests/integration/fieldlog-d8-f04-signed/Storage.swift
+@@ -52,0 +53 @@ actor TaskStorage: InstalledApplicationStorageServing {
++    private(set) var gets = 0
+@@ -64,0 +66 @@ actor TaskStorage: InstalledApplicationStorageServing {
++        gets += 1
+diff --git a/updates/Sources/MixerUpdates/FieldLogEditorDevelopment.swift b/updates/Sources/MixerUpdates/FieldLogEditorDevelopment.swift
+index a4992b9c4c61f5df74a5cdb4265edd7606424934..ec8c5fb237d6f735ec6cd88296f5a9a6113fea66 100644
+--- a/updates/Sources/MixerUpdates/FieldLogEditorDevelopment.swift
++++ b/updates/Sources/MixerUpdates/FieldLogEditorDevelopment.swift
+@@ -5,0 +6,16 @@ public enum FieldLogEditorDevelopment {
++    public static let taskRetryDependency = "mixer.fieldlog-task-retry-v1"
++    public static let taskRetryContractSHA256 = "7f1d259ded126ff9cbf13d445a28909823e322e9ed79d22307dd2fb5e38efdc1"
++    public static let taskRetryNamespace = "fieldlog-d8-f04-task"
++    public static let taskRetryKey = "task"
++
++    public enum Profile: Sendable {
++        case compact, taskRetry
++
++        public var marker: (id: String, digest: String) {
++            switch self {
++            case .compact: (FieldLogEditorDevelopment.dependency, FieldLogEditorDevelopment.contractSHA256)
++            case .taskRetry: (FieldLogEditorDevelopment.taskRetryDependency, FieldLogEditorDevelopment.taskRetryContractSHA256)
++            }
++        }
++    }
++

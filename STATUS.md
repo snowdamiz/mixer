@@ -289,8 +289,17 @@ installed Android delivery remains open.
 
 The F04 successor reached the stock signed host. The ordinary Guest
 UI V1 profile refused the first editable frame before Save. Rollback
-and offline reopen preserved the revision-4 workspace. Same-editor
-retry remains open. [F04 signed refusal receipt](verification/receipts/l08-d8-f04-signed-host-d9add963.json)
+and offline reopen preserved the revision-4 workspace.
+[F04 signed refusal receipt](verification/receipts/l08-d8-f04-signed-host-d9add963.json)
+
+A private, replay-only F04 profile now reaches the actual Pair25
+pre-rename refusal. The same two-field editor retained the exact inputs
+and retried with identical bytes. The retry appended one task and one
+taskSaved record and passed fresh-process disk readback. The overlay
+leaves the stock source archive at its existing inputs. Public or
+native admission still needs host-side write binding to the current
+Save action and displayed values.
+[Signed retry overlay receipt](verification/receipts/l08-d8-f04-task-retry-offline-overlay.json)
 
 The F08 signed host replay used the original installed Android seed.
 Successor actions appended one completion and one reorder operation.
