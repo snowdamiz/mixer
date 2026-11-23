@@ -5,6 +5,7 @@ import FieldLogStorage
 import MixerUpdates
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 
 #if os(iOS) && targetEnvironment(simulator) && MIXER_F11_IOS_FIXTURE
 @main struct F11WitnessApp: App {
@@ -85,8 +86,9 @@ private final class WitnessSession {
             self.input = input
             self.repository = repository
             self.storage = storage
+            UIPasteboard.general.setItems([[UTType.utf8PlainText.identifier: Data("Edited".utf8)]],
+                                         options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(90)])
             self.owner = owner
-            UIPasteboard.general.string = "Edited"
             status = "Ready"
         } catch { status = "Failed: \(error)" }
     }

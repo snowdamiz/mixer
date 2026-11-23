@@ -447,6 +447,14 @@ to appear before the XCTest wait expired. Save and Commit were not
 reached. The owned Simulator and private packet were removed.
 [F11 Simulator fixture and first input result](verification/receipts/l08-d8-f11-ios-simulator-2843.json)
 
+The next F11 fixture checked the exact paste provider bytes and exposed
+its native frame and edit status. XCTest still saw an enabled Paste
+control and tapped it, but both the attachment and the app log recorded
+revision 1 with no native acknowledgment or provider callback. Save and
+Commit remained unreached. The next test checks the native revision-1
+display ticket before tapping Paste.
+[F11 paste and display evidence](verification/receipts/l08-d8-f11-ios-paste-provider.json)
+
 The Android-scoped F20 signed host replay matched the archived order of
 23 drafts and 43 entries and opened a second-page draft. The live and
 offline phases preserved the workspace and all 46 outbox records with

@@ -6,6 +6,14 @@
             && renderHost?.snapshot.document.root.children.first?.id == F11NativeNote.field
     }
 
+    internal func f11PasteDisplay(host: MixerUIHost, attachment identity: CapabilityGuestUIAttachmentIdentity)
+        -> CapabilityGuestUIDisplayTicket? {
+        guard f11NativeRevision == 1, inputEnabled, renderHost === host,
+              attachment === identity, let bindingIdentity, let ticket, ticket.revision == 1 else { return nil }
+        let display = CapabilityGuestUIDisplayTicket(binding: bindingIdentity, attachment: identity, ticket: ticket)
+        return isCurrentNativeDisplay(display) ? display : nil
+    }
+
     internal func f11ActionDisplay() -> CapabilityGuestUIDisplayTicket? {
         guard f11NativeRevision == 2, inputEnabled, let bindingIdentity, let attachment, let ticket,
               ticket.revision == 2, lastEventResult?.generation == ticket.generation,

@@ -37,6 +37,15 @@ def setup(work):
     return recipe
 
 
+def allocated_kib(work):
+    usage = subprocess.run(["du", "-sk", work], capture_output=True)
+    # A compiler may atomically rename an intermediate while du scans it.
+    if usage.returncode and not (usage.stdout and usage.stderr and all(
+            line.endswith(b": No such file or directory") for line in usage.stderr.splitlines())):
+        usage.check_returncode()
+    return int(usage.stdout.split()[0])
+
+
 def build(work, seconds):
     source = work / "export/source"
     recipe = setup(work)
@@ -63,7 +72,7 @@ def build(work, seconds):
         process = subprocess.Popen(argv, env=env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
         try:
             while process.poll() is None:
-                peak = max(peak, int(subprocess.check_output(["du", "-sk", work]).split()[0]))
+                peak = max(peak, allocated_kib(work))
                 if peak > LIMIT_KIB or time.monotonic() - start > seconds:
                     raise RuntimeError("Build budget exceeded")
                 try:

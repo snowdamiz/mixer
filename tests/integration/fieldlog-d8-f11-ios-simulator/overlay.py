@@ -131,6 +131,14 @@ def overlay(source):
         if f11UsesNoteRenderer && value.ticket.revision == 1 {{ f11NativeRevision = 1 }}
 #endif
         return true""")
+    event_result = "        if let result = claim.eventResult { model.pendingInput = nil; model.lastEventResult = result }"
+    text = replace(text, event_result, event_result + rf"""
+#if {SIM}
+        if model.f11UsesNoteRenderer, let result = claim.eventResult {{
+            let outcome = result.outcome == .delivered ? "delivered" : "terminal"
+            F11NativeNote.log.notice("event=\(outcome, privacy: .public)")
+        }}
+#endif""")
     presentation.write_text(text)
     apple = source / activate / "CapabilityGuestUIApple.swift"
     text = apple.read_text()
