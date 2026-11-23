@@ -833,6 +833,17 @@ XCTest selectors, descriptor and documents were used. The scoped
 Apple correction must preserve cover, input and foreground isolation.
 [Native toggle diagnostics](verification/receipts/l02-ios-light-toggle-guard-native-20261123.json)
 
+The Apple-only cover placement correction passed all three reference
+screens in both iOS 26.5 profiles. The standard light Checklist and
+Task Form now render through the original protected native operations.
+The descriptor and documents still match Android. The paired review and
+pressed-state compositor check are pending. A fresh Settings XCTest
+also passed the French and Larger Text warm matrix and exact Support
+Diagnostics. Its owner stopped after detecting a workspace byte change,
+before the cold readback. The next test keeps the restored project
+selection in place before changing Settings.
+[Corrected native reference and Settings captures](verification/receipts/l02-ios-corrected-appearance-and-settings-matrix-20261123.json)
+
 The iOS Settings rerun passed Dark persistence and
 workspace setup. It showed the five Support Diagnostics fields, but the
 XCTest OCR omitted two isolated values from its screenshot. The matrix
