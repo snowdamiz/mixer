@@ -1,4 +1,5 @@
 import Foundation
+import MixerUI
 
 @propertyWrapper
 public struct State<Value> {
@@ -34,33 +35,46 @@ public struct State<Value> {
     /// projection reads the value from the moment it was captured.
     public var projectedValue: Binding<Value> {
         guard let turn = StateTurn.active, let address = turn.scope?.address(of: declaration) else {
-            let initial = self.initial
-            return Binding(get: { initial }, set: { _ in })
+            return Binding(captured: initial)
         }
         let captured = turn.cells[address]?.read(as: Value.self) ?? initial
-        return Binding(
-            get: { [weak access = turn.access] in access?.read(address, as: Value.self) ?? captured },
-            set: { [weak access = turn.access] value in
-                guard let access else { return }
-                StateTurn.active?.write(value, at: address, in: access)
-            }
-        )
+        return Binding(captured: captured, address: address, access: turn.access)
     }
 }
 
 @propertyWrapper
 public struct Binding<Value> {
-    private let get: () -> Value
-    private let set: (Value) -> Void
+    private struct Projection {
+        let address: StateAddress
+        weak var access: StateAccess?
+    }
 
-    fileprivate init(get: @escaping () -> Value, set: @escaping (Value) -> Void) {
-        self.get = get
-        self.set = set
+    private let captured: Value
+    private let projection: Projection?
+
+    fileprivate init(captured: Value) {
+        self.captured = captured
+        projection = nil
+    }
+
+    fileprivate init(captured: Value, address: StateAddress, access: StateAccess) {
+        self.captured = captured
+        projection = Projection(address: address, access: access)
+    }
+
+    func belongs(to publisher: StateAccess) -> Bool {
+        projection?.access === publisher
     }
 
     public var wrappedValue: Value {
-        get { get() }
-        nonmutating set { set(newValue) }
+        get {
+            guard let projection else { return captured }
+            return projection.access?.read(projection.address, as: Value.self) ?? captured
+        }
+        nonmutating set {
+            guard let projection, let access = projection.access else { return }
+            StateTurn.active?.write(newValue, at: projection.address, in: access)
+        }
     }
 
     public var projectedValue: Self { self }
@@ -143,7 +157,30 @@ typealias StateCells = [StateAddress: StateValue]
 
 struct StateHandler {
     let scope: StateScope?
-    let action: () -> Void
+    let action: StateAction
+}
+
+enum StateAction {
+    case activate(() -> Void)
+    case textChange(Binding<String>)
+    case valueChange(Binding<Bool>)
+
+    var event: UIEventKind {
+        switch self {
+        case .activate: .activate
+        case .textChange: .textChange
+        case .valueChange: .valueChange
+        }
+    }
+
+    func operation(for action: RoutedUIAction) -> (() -> Void)? {
+        switch (self, action.event, action.value) {
+        case let (.activate(operation), .activate, .null): operation
+        case let (.textChange(binding), .textChange, .string(value)): { binding.wrappedValue = value }
+        case let (.valueChange(binding), .valueChange, .bool(value)): { binding.wrappedValue = value }
+        default: nil
+        }
+    }
 }
 
 final class StateScope {

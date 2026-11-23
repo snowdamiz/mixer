@@ -54,9 +54,9 @@ private struct CounterRow: View {
         let _ = retain(row.id, mark)
         VStack {
             if markedFirst {
-                Text("\(row.title) \(marked) \(count)")
+                Text("\(row.title) \(String(marked)) \(count)")
             } else {
-                Text("\(row.title) \(count) \(marked)")
+                Text("\(row.title) \(count) \(String(marked))")
             }
             Button("Increment \(row.title)") {
                 count += 1

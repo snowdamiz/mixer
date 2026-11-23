@@ -44,6 +44,7 @@ package enum FeatureError: Error, Equatable, Sendable {
     case customMirror
     case invalidRoot
     case unsupportedState
+    case unboundControl
     case reusedState
     case stateWriteDuringBuild
     case unsupportedRowKey
@@ -136,7 +137,8 @@ package final class FeatureSession {
     package func dispatch(_ token: FrameToken, _ event: UIEventEnvelope) -> DispatchOutcome {
         guard executor.isCurrent(), !busy, let accepted, accepted.presentation.token == token,
               let routed = try? accepted.presentation.snapshot.route(event),
-              let handler = accepted.handlers[routed.actionID] else {
+              let handler = accepted.handlers[routed.actionID],
+              let operation = handler.action.operation(for: routed) else {
             return .rejected
         }
         return withTurn {
@@ -146,7 +148,7 @@ package final class FeatureSession {
             return StateTurn.run(
                 access, executor: executor, phase: .event, cells: access.acceptedCells, scope: handler.scope
             ) { turn in
-                handler.action()
+                operation()
                 do throws(FeatureError) {
                     try turn.checkWrites()
                     access.publish(turn.cells)

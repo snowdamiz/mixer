@@ -1,13 +1,16 @@
 # UP5 native state and document replay
 
-From the Mixer checkout root, run the host replay with Swift 6:
+Run the host replay and the iOS 17.0 compile check from the Mixer checkout root.
 
 ```sh
 compiler/experiments/swiftui-native-core/HostReplay/run.sh
 compiler/experiments/swiftui-native-core/HostReplay/run.sh release
+compiler/experiments/swiftui-native-core/HostReplay/run.sh ios
 ```
 
-The runner builds the checked-out `MixerCore`, `MixerUI`, and `MixerSwiftUI` sources. It compiles [SharedScreen.swift](HostReplay/SharedScreen.swift) in a separate package namespace with the `SwiftUI=MixerSwiftUI` module alias. The host executable calls the package API and verifies the resulting snapshots, change sets, and callbacks. The runner prints the compiler version, Git revision, and input digest. It removes its build directory under `verification/local/` on exit.
+The runner builds the checked-out `MixerCore`, `MixerUI`, and `MixerSwiftUI` sources. It compiles the two shared fixtures in a separate package namespace with the `SwiftUI=MixerSwiftUI` module alias. The host executable checks snapshots, change sets, and callbacks through the package API. Pass `typed-controls` or `layout-refusals` after a host mode to run those checks alone.
+
+The `ios` mode compiles both fixtures for `arm64-apple-ios17.0` against MixerSwiftUI and Apple SwiftUI using the installed iPhoneOS SDK. It also checks that Apple SwiftUI compiles the calls in [UnsupportedControls.swift](HostReplay/UnsupportedControls.swift) and that MixerSwiftUI rejects each marked call. The runner prints the compiler version, Git revision, and input digest. It removes its build directory under `verification/local/` on exit.
 
 ## Host contract
 
@@ -20,6 +23,15 @@ Create a `FeatureSession` for each mount and use it and its bindings from one se
 ## Supported subset
 
 The author API covers struct views, result-builder groups and branches, `Text`, `VStack`, `Button`, and array-backed `ForEach` with `Int` or `String` keys. The evaluator discovers direct stored `@State` fields before the body and admits `Int`, `Bool`, and `String` values. A binding projected from state can write during its accepted frame's event turn. Until then, writes to current-frame state during body evaluation invalidate the build. Bindings from earlier frames, unbound projections, and idle contexts have no write authority. An invalid event write rolls back all engine state changes in that event. Side effects on references captured by author code are outside the state transaction.
+
+| Shared authoring | SDK document contract |
+| --- | --- |
+| `HStack` | Top, center, or bottom alignment. Explicit spacing accepts finite values from 0 to 256. A nil spacing leaves the choice to the renderer. |
+| `List` and `Section` | Builder children become list rows or section content. A section can omit its title or supply a string title or a single plain `Text` header. |
+| `TextField(_:text:)` | A single-line field with a string label. A `.textChange` event assigns the string payload. |
+| `Toggle(_:isOn:)` | A toggle with a string label. A `.valueChange` event assigns the Boolean payload. |
+
+Pass each control a binding projected from the current build's `@State`. The evaluator rejects unbound bindings and bindings from other frames. Control input uses the accepted frame's event scope and the existing string state limit. The replay covers Unicode edits, both Boolean values, keyed row moves, malformed envelopes, and accepted state after a candidate is canceled.
 
 The engine bounds each build to 4,096 view visits, 64 path components, 128 fields per view, 128 UTF-8 bytes per state declaration, 1,000 rows per loop, 256 UTF-8 bytes per string key, 1,024 state cells, 1,024 UTF-8 bytes per string state value, and 1,024 handlers. The SDK validator applies its configured document limits.
 

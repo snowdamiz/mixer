@@ -1,3 +1,5 @@
+import Foundation
+
 public protocol View {
     associatedtype Body: View
 
@@ -73,6 +75,63 @@ public struct VStack<Content: View>: View {
     }
 }
 
+public struct VerticalAlignment: Equatable, Sendable {
+    public static let top = Self("top")
+    public static let center = Self("center")
+    public static let bottom = Self("bottom")
+
+    let wireValue: String
+
+    private init(_ wireValue: String) {
+        self.wireValue = wireValue
+    }
+}
+
+public struct HStack<Content: View>: View {
+    public typealias Body = Never
+    let alignment: VerticalAlignment
+    let spacing: CGFloat?
+    let content: Content
+
+    public init(
+        alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> Content
+    ) {
+        self.alignment = alignment
+        self.spacing = spacing
+        self.content = content()
+    }
+}
+
+public struct List<Content: View>: View {
+    public typealias Body = Never
+    let content: Content
+
+    public init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+}
+
+public struct Section<Content: View>: View {
+    public typealias Body = Never
+    let title: String?
+    let content: Content
+
+    public init(@ViewBuilder content: () -> Content) {
+        title = nil
+        self.content = content()
+    }
+
+    public init(_ title: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+
+    public init(@ViewBuilder content: () -> Content, @ViewBuilder header: () -> Text) {
+        self.content = content()
+        title = header().title
+    }
+}
+
 public struct Button: View {
     public typealias Body = Never
     let title: String
@@ -81,6 +140,28 @@ public struct Button: View {
     public init(_ title: String, action: @escaping () -> Void) {
         self.title = title
         self.action = action
+    }
+}
+
+public struct TextField: View {
+    public typealias Body = Never
+    let title: String
+    let text: Binding<String>
+
+    public init(_ title: String, text: Binding<String>) {
+        self.title = title
+        self.text = text
+    }
+}
+
+public struct Toggle: View {
+    public typealias Body = Never
+    let title: String
+    let isOn: Binding<Bool>
+
+    public init(_ title: String, isOn: Binding<Bool>) {
+        self.title = title
+        self.isOn = isOn
     }
 }
 

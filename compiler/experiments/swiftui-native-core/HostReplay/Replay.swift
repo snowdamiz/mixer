@@ -4,15 +4,15 @@ import MixerSwiftUI
 import MixerUI
 import ReplayFeature
 
-private let replayExecutor = FeatureExecutor(serialQueue: .main)
+let replayExecutor = FeatureExecutor(serialQueue: .main)
 
-private func expect(
+func expect(
     _ condition: Bool, _ message: String, file: StaticString = #fileID, line: UInt = #line
 ) {
     precondition(condition, message, file: file, line: line)
 }
 
-private func expectError<E: Error & Equatable>(
+func expectError<E: Error & Equatable>(
     _ expected: E, file: StaticString = #fileID, line: UInt = #line, _ operation: () throws -> Void
 ) throws {
     do {
@@ -23,7 +23,7 @@ private func expectError<E: Error & Equatable>(
     }
 }
 
-private func accept(_ frame: PreparedFrame, in session: FeatureSession) {
+func accept(_ frame: PreparedFrame, in session: FeatureSession) {
     expect(session.finish(frame.presentation.token, outcome: .drawnAndInputReady), "Draw receipt was refused")
     expect(session.acceptedPresentation?.snapshot.document == frame.presentation.snapshot.document,
            "Acceptance must publish the exact document")
@@ -619,6 +619,8 @@ enum Replay {
                     case "host-executor": try queueConfinement(hostSupplied: true)
                     case "nested-alias": try nestedAliasAction()
                     case "three-turns": try tripleNestedTurns()
+                    case "typed-controls": try typedControls()
+                    case "layout-refusals": try layoutRefusals()
                     default: throw ReplayFailure(message: "Unknown regression probe: \(probe)")
                     }
                 } catch {
@@ -641,6 +643,8 @@ enum Replay {
         try queueConfinement(hostSupplied: true)
         try nestedAliasAction()
         try tripleNestedTurns()
+        try typedControls()
+        try layoutRefusals()
     }
 }
 

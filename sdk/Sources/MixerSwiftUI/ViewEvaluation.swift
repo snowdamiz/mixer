@@ -160,13 +160,28 @@ final class ViewEvaluation {
         output.append(node)
     }
 
-    func bindButton(_ action: @escaping () -> Void, nodeID: String) throws -> UIActionBinding {
+    func bind(_ action: StateAction, nodeID: String) throws -> UIActionBinding {
         guard handlers.count < FeatureLimits.handlers else {
             throw FeatureError.limitExceeded("handlers")
         }
         let actionID = "a\(nodeID)"
         handlers[actionID] = StateHandler(scope: turn.scope, action: action)
-        return UIActionBinding(id: actionID, event: .activate)
+        return UIActionBinding(id: actionID, event: action.event)
+    }
+
+    func controlValue<Value>(_ binding: Binding<Value>) throws -> Value {
+        guard binding.belongs(to: turn.access) else { throw FeatureError.unboundControl }
+        return binding.wrappedValue
+    }
+
+    func lowerContainer<Content: View>(
+        _ kind: NodeKind, properties: [String: UIValue] = [:], content: Content,
+        at path: ViewPath, into output: inout [UINode]
+    ) throws {
+        let id = try nodeID(at: path)
+        var children: [UINode] = []
+        try lower(content, at: path, into: &children)
+        try append(UINode(id: id, kind: kind, properties: properties, children: children), into: &output)
     }
 }
 
@@ -184,7 +199,7 @@ extension Text: PrimitiveView {
 extension Button: PrimitiveView {
     fileprivate func lower(in evaluation: ViewEvaluation, at path: ViewPath, into output: inout [UINode]) throws {
         let id = try evaluation.nodeID(at: path)
-        let binding = try evaluation.bindButton(action, nodeID: id)
+        let binding = try evaluation.bind(.activate(action), nodeID: id)
         let node = UINode(id: id, kind: .button, properties: ["label": .string(title)], actions: [binding])
         try evaluation.append(node, into: &output)
     }
@@ -192,10 +207,50 @@ extension Button: PrimitiveView {
 
 extension VStack: PrimitiveView {
     fileprivate func lower(in evaluation: ViewEvaluation, at path: ViewPath, into output: inout [UINode]) throws {
+        try evaluation.lowerContainer(.vStack, content: content, at: path, into: &output)
+    }
+}
+
+extension HStack: PrimitiveView {
+    fileprivate func lower(in evaluation: ViewEvaluation, at path: ViewPath, into output: inout [UINode]) throws {
+        var properties: [String: UIValue] = ["alignment": .string(alignment.wireValue)]
+        if let spacing { properties["spacing"] = .number(Double(spacing)) }
+        try evaluation.lowerContainer(.hStack, properties: properties, content: content, at: path, into: &output)
+    }
+}
+
+extension List: PrimitiveView {
+    fileprivate func lower(in evaluation: ViewEvaluation, at path: ViewPath, into output: inout [UINode]) throws {
+        try evaluation.lowerContainer(.list, content: content, at: path, into: &output)
+    }
+}
+
+extension Section: PrimitiveView {
+    fileprivate func lower(in evaluation: ViewEvaluation, at path: ViewPath, into output: inout [UINode]) throws {
+        let properties: [String: UIValue] = title.map { ["title": .string($0)] } ?? [:]
+        try evaluation.lowerContainer(.section, properties: properties, content: content, at: path, into: &output)
+    }
+}
+
+extension TextField: PrimitiveView {
+    fileprivate func lower(in evaluation: ViewEvaluation, at path: ViewPath, into output: inout [UINode]) throws {
+        let value = try evaluation.controlValue(text)
         let id = try evaluation.nodeID(at: path)
-        var children: [UINode] = []
-        try evaluation.lower(content, at: path, into: &children)
-        try evaluation.append(UINode(id: id, kind: .vStack, children: children), into: &output)
+        let action = try evaluation.bind(.textChange(text), nodeID: id)
+        let node = UINode(id: id, kind: .textField, properties: ["label": .string(title), "value": .string(value)],
+                          actions: [action])
+        try evaluation.append(node, into: &output)
+    }
+}
+
+extension Toggle: PrimitiveView {
+    fileprivate func lower(in evaluation: ViewEvaluation, at path: ViewPath, into output: inout [UINode]) throws {
+        let value = try evaluation.controlValue(isOn)
+        let id = try evaluation.nodeID(at: path)
+        let action = try evaluation.bind(.valueChange(isOn), nodeID: id)
+        let node = UINode(id: id, kind: .toggle, properties: ["label": .string(title), "value": .bool(value)],
+                          actions: [action])
+        try evaluation.append(node, into: &output)
     }
 }
 
