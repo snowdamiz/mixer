@@ -86,7 +86,10 @@ project with `generate.modified`. The build used a private digest-checked
 project admission patch. Stock Phoenix served signed sequences 1, 2, and 3
 for the exact rebound managed runtime. Sequence 3 rolled back to the
 sequence 1 artifact. Both local services closed. Authenticated build artifact
-download and the installed release journey remain open.
+download and the installed release journey remain open. The two native
+baseline attempts reached the checklist view and timed out waiting for
+its health observation. The label returned its name and the value was
+empty. The next check reads the live journal on the same installation.
 [Managed build receipt](verification/receipts/l08-d6-managed-fieldlog-ios-build-20261122.json)
 
 The historical F05 iOS app passed Cancel, Add, and cold readback. An
