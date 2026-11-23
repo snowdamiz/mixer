@@ -92,6 +92,14 @@ rebound. No payment configuration was needed. The run covers the delivery
 and control-service topology, with independent telemetry loss unobserved.
 [Installed Workerd receipt](verification/receipts/l08-ios-installed-workerd-outage-20261122.json)
 
+Two local PostgreSQL outage runs kept Phoenix and Oban alive. Fresh
+delivery returned 503 during the cut, while the stock Swift verifier
+verified cached sequence-2 bytes. Restart preserved release history
+and jobs. The retried rollback delivered the baseline at sequence 3.
+All three materializations matched, and the fixture used no billing or
+telemetry exporter. This adds host control-plane evidence.
+[PostgreSQL outage receipt](verification/receipts/l08-phoenix-postgres-outage-host-20261123.json)
+
 ## Shared FieldLog checklist implementation
 
 Both ordinary host routes now exercise the same project-scoped row edit
