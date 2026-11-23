@@ -44,6 +44,7 @@ package enum FeatureError: Error, Equatable, Sendable {
     case customMirror
     case invalidRoot
     case unsupportedState
+    case unsupportedEnvironment
     case unboundControl
     case reusedState
     case stateWriteDuringBuild
@@ -60,6 +61,7 @@ package final class FeatureSession {
         let identities: NodeIdentities
         let handlers: [String: StateHandler]
         let access: StateAccess
+        let environment: EnvironmentValues
     }
 
     private struct Candidate {
@@ -88,7 +90,9 @@ package final class FeatureSession {
 
     /// Supersedes the previous candidate even if building its replacement fails.
     /// Changes are calculated relative to the last accepted presentation.
-    package func prepare<Root: View>(_ root: () -> Root) throws -> PreparedFrame {
+    package func prepare<Root: View>(
+        environment: UIAppearanceEnvironmentV2? = nil, _ root: () -> Root
+    ) throws -> PreparedFrame {
         guard executor.isCurrent() else { throw FeatureError.wrongExecutor }
         guard !busy else { throw FeatureError.reentrant }
         guard !detached else { throw FeatureError.detached }
@@ -98,7 +102,8 @@ package final class FeatureSession {
             ordinal += 1
             let token = FrameToken(mount: mount, ordinal: ordinal)
             let access = StateAccess()
-            return try StateTurn.run(access, executor: executor, phase: .build) { turn in
+            let values = environment.map(EnvironmentValues.init(resolved:)) ?? EnvironmentValues()
+            return try StateTurn.run(access, executor: executor, phase: .build, environment: values) { turn in
                 let rootView = root()
                 try turn.checkWrites()
                 let evaluation = ViewEvaluation(
@@ -112,7 +117,8 @@ package final class FeatureSession {
                 let changes = try reconciler.apply(document)
                 let presentation = FramePresentation(token: token, snapshot: try reconciler.currentSnapshot())
                 let frame = Frame(presentation: presentation, reconciler: reconciler,
-                                  identities: evaluation.identities, handlers: evaluation.handlers, access: access)
+                                  identities: evaluation.identities, handlers: evaluation.handlers, access: access,
+                                  environment: values)
                 pending = Candidate(frame: frame, cells: turn.cells)
                 return PreparedFrame(presentation: presentation, changes: changes)
             }
@@ -146,7 +152,8 @@ package final class FeatureSession {
             pending = nil
             let access = accepted.access
             return StateTurn.run(
-                access, executor: executor, phase: .event, cells: access.acceptedCells, scope: handler.scope
+                access, executor: executor, phase: .event, environment: accepted.environment,
+                cells: access.acceptedCells, scope: handler.scope
             ) { turn in
                 operation()
                 do throws(FeatureError) {

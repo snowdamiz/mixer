@@ -29,7 +29,7 @@ func accept(_ frame: PreparedFrame, in session: FeatureSession) {
            "Acceptance must publish the exact document")
 }
 
-private func event(_ frame: PreparedFrame, button label: String, occurrence: Int = 0) -> UIEventEnvelope {
+func event(_ frame: PreparedFrame, button label: String, occurrence: Int = 0) -> UIEventEnvelope {
     let snapshot = frame.presentation.snapshot
     var remaining = occurrence
     func find(_ node: UINode) -> UINode? {
@@ -48,7 +48,7 @@ private func event(_ frame: PreparedFrame, button label: String, occurrence: Int
     return UIEventEnvelope(revision: snapshot.document.revision, identity: identity, event: .activate)
 }
 
-private func text(_ frame: PreparedFrame) -> [String] {
+func text(_ frame: PreparedFrame) -> [String] {
     func collect(_ node: UINode) -> [String] {
         if let text = node.properties["text"]?.string { return [text] }
         return node.children.flatMap(collect)
@@ -620,6 +620,7 @@ enum Replay {
                     case "nested-alias": try nestedAliasAction()
                     case "three-turns": try tripleNestedTurns()
                     case "typed-controls": try typedControls()
+                    case "typed-environment": try typedEnvironment()
                     case "layout-refusals": try layoutRefusals()
                     default: throw ReplayFailure(message: "Unknown regression probe: \(probe)")
                     }
@@ -644,6 +645,7 @@ enum Replay {
         try nestedAliasAction()
         try tripleNestedTurns()
         try typedControls()
+        try typedEnvironment()
         try layoutRefusals()
     }
 }

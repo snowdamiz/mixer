@@ -118,7 +118,13 @@ final class ViewEvaluation {
         }
         let parentScope = turn.scope
         var declarations: [StateDeclarationIdentity: StateAddress] = [:]
+        var environmentDeclarations: Set<EnvironmentDeclarationIdentity> = []
         for field in mirror.children {
+            if let property = field.value as? any EnvironmentDeclaration {
+                guard property.isSupported else { throw FeatureError.unsupportedEnvironment }
+                environmentDeclarations.insert(property.identity)
+                continue
+            }
             guard let property = field.value as? any StateDeclaration else { continue }
             guard let label = field.label, !label.isEmpty, fitsUTF8(label, limit: FeatureLimits.declarationBytes) else {
                 throw FeatureError.unsupportedState
@@ -130,7 +136,11 @@ final class ViewEvaluation {
             }
             try property.register(address, in: self)
         }
-        if !declarations.isEmpty { turn.scope = StateScope(parent: parentScope, addresses: declarations) }
+        if !declarations.isEmpty || !environmentDeclarations.isEmpty {
+            turn.scope = ViewScope(
+                parent: parentScope, addresses: declarations, environmentDeclarations: environmentDeclarations
+            )
+        }
         defer { turn.scope = parentScope }
         let body = view.body
         try turn.checkWrites()

@@ -156,7 +156,7 @@ enum StateValue {
 typealias StateCells = [StateAddress: StateValue]
 
 struct StateHandler {
-    let scope: StateScope?
+    let scope: ViewScope?
     let action: StateAction
 }
 
@@ -183,17 +183,26 @@ enum StateAction {
     }
 }
 
-final class StateScope {
-    private let parent: StateScope?
+final class ViewScope {
+    private let parent: ViewScope?
     private let addresses: [StateDeclarationIdentity: StateAddress]
+    private let environmentDeclarations: Set<EnvironmentDeclarationIdentity>
 
-    init(parent: StateScope?, addresses: [StateDeclarationIdentity: StateAddress]) {
+    init(
+        parent: ViewScope?, addresses: [StateDeclarationIdentity: StateAddress],
+        environmentDeclarations: Set<EnvironmentDeclarationIdentity>
+    ) {
         self.parent = parent
         self.addresses = addresses
+        self.environmentDeclarations = environmentDeclarations
     }
 
     func address(of declaration: StateDeclarationIdentity) -> StateAddress? {
         addresses[declaration] ?? parent?.address(of: declaration)
+    }
+
+    func contains(_ declaration: EnvironmentDeclarationIdentity) -> Bool {
+        environmentDeclarations.contains(declaration) || parent?.contains(declaration) == true
     }
 }
 
@@ -264,28 +273,33 @@ final class StateTurn {
 
     let access: StateAccess
     let phase: Phase
+    let environment: EnvironmentValues
     private let executor: FeatureExecutor
     var cells: StateCells
-    var scope: StateScope?
+    var scope: ViewScope?
     private var writeError: FeatureError?
 
     private init(
-        _ access: StateAccess, executor: FeatureExecutor, phase: Phase, cells: StateCells, scope: StateScope?
+        _ access: StateAccess, executor: FeatureExecutor, phase: Phase, environment: EnvironmentValues,
+        cells: StateCells, scope: ViewScope?
     ) {
         self.access = access
         self.executor = executor
         self.phase = phase
+        self.environment = environment
         self.cells = cells
         self.scope = scope
     }
 
     static func run<Result>(
-        _ access: StateAccess, executor: FeatureExecutor, phase: Phase,
-        cells: StateCells = [:], scope: StateScope? = nil,
+        _ access: StateAccess, executor: FeatureExecutor, phase: Phase, environment: EnvironmentValues,
+        cells: StateCells = [:], scope: ViewScope? = nil,
         _ operation: (StateTurn) throws -> Result
     ) rethrows -> Result {
         try withUnsafeCurrentTask { task in
-            let turn = StateTurn(access, executor: executor, phase: phase, cells: cells, scope: scope)
+            let turn = StateTurn(
+                access, executor: executor, phase: phase, environment: environment, cells: cells, scope: scope
+            )
             let lease = Lease(task: task, turn: turn)
             defer { lease.revoke() }
             return try context.withValue(lease) { try operation(turn) }

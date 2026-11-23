@@ -21,7 +21,7 @@ mkdir -p "$scratch/tmp" "$scratch/modules"
 export TMPDIR="$scratch/tmp"
 swiftc_bin=${SWIFTC:-swiftc}
 flags=(-swift-version 6 -warnings-as-errors "$optimization" -module-cache-path "$scratch/modules")
-shared=("$fixture/SharedScreen.swift" "$fixture/SharedControls.swift")
+shared=("$fixture/SharedScreen.swift" "$fixture/SharedControls.swift" "$fixture/SharedEnvironment.swift")
 
 if [[ $mode == ios ]]; then
   sdk=$(xcrun --sdk iphoneos --show-sdk-path)
@@ -53,19 +53,20 @@ if [[ $mode == ios ]]; then
   build_library AppleReplayFeature -package-name ReplayFeature "${shared[@]}"
   printf 'PASS identical shared sources compile for iOS 17.0 with MixerSwiftUI and Apple SwiftUI\n'
 
-  unsupported="$fixture/UnsupportedControls.swift"
-  "$swiftc_bin" "${flags[@]}" -typecheck "$unsupported"
-  if "$swiftc_bin" "${flags[@]}" -I "$scratch" -module-alias SwiftUI=MixerSwiftUI \
-      -typecheck "$unsupported" > "$scratch/refusals" 2>&1; then
-    echo "MixerSwiftUI accepted unsupported controls" >&2
-    exit 1
-  fi
-  cat "$scratch/refusals"
-  for line in $(awk '/\/\/ refused$/ { print NR }' "$unsupported"); do
-    if ! grep -q "UnsupportedControls.swift:$line:[0-9]*: error:" "$scratch/refusals"; then
-      echo "Missing refusal for UnsupportedControls.swift:$line" >&2
+  for unsupported in "$fixture/UnsupportedControls.swift" "$fixture/UnsupportedEnvironment.swift"; do
+    "$swiftc_bin" "${flags[@]}" -typecheck "$unsupported"
+    if "$swiftc_bin" "${flags[@]}" -I "$scratch" -module-alias SwiftUI=MixerSwiftUI \
+        -typecheck "$unsupported" > "$scratch/refusals" 2>&1; then
+      echo "MixerSwiftUI accepted unsupported authoring in ${unsupported##*/}" >&2
       exit 1
     fi
+    cat "$scratch/refusals"
+    for line in $(awk '/\/\/ refused$/ { print NR }' "$unsupported"); do
+      if ! grep -q "${unsupported##*/}:$line:[0-9]*: error:" "$scratch/refusals"; then
+        echo "Missing refusal for ${unsupported##*/}:$line" >&2
+        exit 1
+      fi
+    done
   done
   printf 'PASS unsupported authoring calls compile with Apple SwiftUI and fail with MixerSwiftUI\n'
   exit
@@ -73,5 +74,6 @@ fi
 
 "$swiftc_bin" "${flags[@]}" -parse-as-library -package-name Mixer -I "$scratch" -L "$scratch" \
   -lReplayFeature -lMixerSwiftUI -lMixerUI -lMixerCore "$fixture/Replay.swift" "$fixture/ControlReplay.swift" \
+  "$fixture/EnvironmentReplay.swift" \
   -o "$scratch/replay"
 "$scratch/replay" "$@"
