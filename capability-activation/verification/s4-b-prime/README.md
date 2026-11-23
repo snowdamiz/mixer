@@ -34,17 +34,19 @@ revision and action ID match the new frame.
 The macOS test calls the internal display ticket acknowledgment after a
 validated frame. It creates no window. On the failure control it claims a
 second attachment before acknowledging the first frame and requires
-`recoveryRequired` with the prior healthy candidate preserved. The test logs
-`inputEnabled=true` before the acknowledgment. The adjacent
-`testSignedEventCommitsStorageBeforeGuestShowsSaved` control submits input at
-that boundary and observes a committed put. Both are host-model observations.
+`recoveryRequired` with the prior healthy candidate preserved. The original
+host replay logged `inputEnabled=true` before acknowledgment. An iOS 26.5
+test with the native receipt held reproduced a committed Save. The corrected
+host and Simulator controls require the first display receipt before routing
+input. [Native results](../../../verification/receipts/ui-platform-pivot-s4-native-20261123.json)
 The S4 test reopens the runtime and store within one XCTest process. The
 fixture uses ABI 2, a hand-authored Wasm program, and typed Swift documents.
 
 ## Root iOS handoff
 
-Keep S4 pending. `MixerNativeView` has no shared-theme binding at this
-revision. The macOS test has no iOS app or UI test target. Its document
+Keep S4 pending. The separate Simulator theme fixture applies a fixed light
+theme through an experimental `MixerNativeView` adapter. The macOS test has
+no iOS app or UI test target. Its document
 comparison covers the current wire and host, with `MixerSwiftUI` document
 generation still pending.
 
