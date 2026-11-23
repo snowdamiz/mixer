@@ -19,7 +19,7 @@
   <a href="https://github.com/snowdamiz/mixer/actions/workflows/hosted.yml"><img alt="Phoenix foundation checks" src="https://github.com/snowdamiz/mixer/actions/workflows/hosted.yml/badge.svg?branch=main"></a>
   <br>
   <img alt="Swift 6.2 or later" src="https://img.shields.io/badge/Swift-6.2%2B-F05138?logo=swift&logoColor=white">
-  <img alt="iOS 26 or later" src="https://img.shields.io/badge/iOS-26%2B-147EFB?logo=apple&logoColor=white">
+  <img alt="iOS 17 or later" src="https://img.shields.io/badge/iOS-17%2B-147EFB?logo=apple&logoColor=white">
   <img alt="Android API 28 or later" src="https://img.shields.io/badge/Android-API%2028%2B-3DDC84?logo=android&logoColor=white">
   <a href="#progress"><img alt="Local gates: 6 of 8 passed" src="https://img.shields.io/badge/local%20gates-6%20of%208%20passed-426b50"></a>
   <img alt="Status: active development" src="https://img.shields.io/badge/status-active%20development-e56235">
@@ -38,9 +38,9 @@
 > [!NOTE]
 > On November 23, 2026, Mixer approved a UI platform pivot. Shared screens
 > will use a published SwiftUI subset, Android will render with Jetpack
-> Compose, the iOS minimum will be iOS 17, and the shared-design Android host
-> will support API 28. The badges and text below describe the current code
-> until those steps land. See the [execution index](PLAN.md#ui-platform-pivot-november-23-2026).
+> Compose, and the shared-design Android host will support API 28. The iOS
+> build minimum is 17.0. See the [execution index](PLAN.md#ui-platform-pivot-november-23-2026)
+> for runtime qualification and the remaining pivot work.
 
 ## What is Mixer?
 
@@ -63,7 +63,8 @@ flowchart LR
 - **Local build service.** A web console and API for builds and releases run on
   your machine.
 
-Supported targets: iOS 26 and later, and Android API 28 and later (proposed).
+iOS builds target iOS 17.0 and later. Android API 28 and later is the proposed
+support range for the shared-design host.
 
 ## Quick start
 
@@ -71,10 +72,10 @@ You need an Apple silicon Mac with Xcode and Swift 6.2 or later. From a checkout
 of this repository, build the CLI and create an iOS Simulator app:
 
 ```sh
-mixer_rev=c7956233d69caeffadfa5ab84227c3b2e09ff41d
+mixer_rev="$(git rev-parse HEAD)"
 work="$(mktemp -d "${TMPDIR:-/tmp}/mixer-local.XXXXXX")"
 mkdir "$work/inputs"
-git archive "$mixer_rev" cli sdk updates native/android | tar -xf - -C "$work/inputs"
+git archive "$mixer_rev" cli sdk updates runtime-identity native/android | tar -xf - -C "$work/inputs"
 swift build --package-path "$work/inputs/cli" --scratch-path "$work/cli-build" --product mixer
 mixer_cli="$work/cli-build/debug/mixer"
 
@@ -83,6 +84,12 @@ mixer_cli="$work/cli-build/debug/mixer"
 
 [Getting started](docs/guides/getting-started.md) continues with building for
 iOS and Android, exporting, and importing an existing Swift app.
+
+For an existing project, use `mixer upgrade` to install the new SDK in a
+separate copy. Set the iOS minimum in your app's `Package.swift` to 17.0 if its
+code and dependencies support it. The next CLI iOS build migrates the stock
+Xcode project to 17.0. If you edited `project.pbxproj`, reconcile the changes
+before regeneration. [Upgrade, recover, and exit](docs/guides/upgrade-recover-and-exit.md)
 
 ## Progress
 

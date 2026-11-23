@@ -226,7 +226,7 @@ public enum AppleProject {
             inputs = candidate
         }
         let plist = try inputs.plist()
-        var templates: [ProjectTemplate] = [.current, .beforeDebugCondition]
+        var templates: [ProjectTemplate] = [.current17, .withDebug26, .withoutDebug26]
         if allowLegacy && lines.count == 1 { templates.append(.legacy17) }
         guard templates.contains(where: { template in
             let rendering = source(name: name, application: application, inputs: inputs, plist: plist,
@@ -276,15 +276,29 @@ public enum AppleProject {
     }
 
     private enum ProjectTemplate {
-        case current
-        case beforeDebugCondition
+        case current17
+        case withDebug26
+        case withoutDebug26
         case legacy17
+
+        var minimumIOS: String {
+            switch self {
+            case .current17, .legacy17: "17.0"
+            case .withDebug26, .withoutDebug26: "26.0"
+            }
+        }
+
+        var debugCondition: String {
+            switch self {
+            case .current17, .withDebug26: " SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;"
+            case .legacy17, .withoutDebug26: ""
+            }
+        }
     }
 
     private static func source(name: String, application: String, inputs: AppleNativeConfiguration = .init(),
-                               plist: Data? = nil, template: ProjectTemplate = .current) -> String {
-        let minimumIOS = template == .legacy17 ? "17.0" : "26.0"
-        let debugCondition = template == .current ? " SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;" : ""
+                               plist: Data? = nil, template: ProjectTemplate = .current17) -> String {
+        let minimumIOS = template.minimumIOS
         let swift = "sourcecode.swift"
         let paths = inputs.sources.map { ($0, swift) } + inputs.folders.map { ($0, "folder") }
         var children = ""
@@ -326,7 +340,7 @@ public enum AppleProject {
             A00000000000000000000011 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000016\(sources)); runOnlyForDeploymentPostprocessing = 0; };
             A00000000000000000000012 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (A00000000000000000000024, A00000000000000000000025); runOnlyForDeploymentPostprocessing = 0; };
             A00000000000000000000013 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (\(resources.joined(separator: ", "))); runOnlyForDeploymentPostprocessing = 0; };
-            A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { \(settings(name, application, minimumIOS))\(plistSetting) SWIFT_OPTIMIZATION_LEVEL = "-Onone";\(debugCondition)\(archiveSettings) }; name = Debug; };
+            A00000000000000000000014 = { isa = XCBuildConfiguration; buildSettings = { \(settings(name, application, minimumIOS))\(plistSetting) SWIFT_OPTIMIZATION_LEVEL = "-Onone";\(template.debugCondition)\(archiveSettings) }; name = Debug; };
             A00000000000000000000015 = { isa = XCBuildConfiguration; buildSettings = { \(settings(name, application, minimumIOS))\(plistSetting) SWIFT_OPTIMIZATION_LEVEL = "-O";\(archiveSettings) }; name = Release; };
             A00000000000000000000016 = { isa = PBXBuildFile; fileRef = A00000000000000000000008; };
             A00000000000000000000020 = { isa = XCLocalSwiftPackageReference; relativePath = "../.."; };

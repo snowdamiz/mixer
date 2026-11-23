@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "Mixer",
-    platforms: [.iOS("26.0"), .macOS(.v14)],
+    platforms: [.iOS("17.0"), .macOS(.v14)],
     products: [
         .library(name: "MixerCore", targets: ["MixerCore"]),
         .library(name: "MixerAndroid", targets: ["MixerAndroid"]),

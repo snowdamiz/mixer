@@ -21,12 +21,10 @@ scale, traits, direction, locale, all twelve content categories, Bold Text,
 contrast and Reduce Motion in one main-thread turn. Window, layout/safe-area,
 trait and preference notifications invalidate a checked owner generation. Public
 `UIAppearanceEnvironmentV2` is data and is never accepted as capture authority.
-The executed runtime is iOS 26.5; other runtime versions reject in this private
-prototype. The product minimum is now iOS 26.0, with iOS 27 and later in scope.
-Earlier iOS 17 compile receipts remain historical evidence; current package and
-build defaults use 26.0, verified by an actual generated app cross-build in
-`verification/ios26-baseline/candidate-1/receipt.json`. Broader native version
-qualification remains pending. Increased contrast and Bold Text reject
+This private prototype admits iOS 26.5, the runtime used in its verification.
+Public packages and generated app builds target iOS 17.0. The
+[execution index](../PLAN.md#up1-lower-the-ios-minimum-to-170) tracks public
+runtime qualification. Increased contrast and Bold Text reject
 until their shared transformations are qualified. Reduce Motion is captured;
 the authored recipe snaps navigation without an animation. The input caret's
 native-managed blink is separate from that recipe transition.

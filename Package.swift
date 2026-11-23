@@ -5,7 +5,7 @@ import PackageDescription
 // remain independently usable; this entry point exports only the owned SDK.
 let package = Package(
     name: "Mixer",
-    platforms: [.iOS("26.0"), .macOS(.v14)],
+    platforms: [.iOS("17.0"), .macOS(.v14)],
     products: [
         .library(name: "MixerCore", targets: ["MixerCore"]),
         .library(name: "MixerAndroid", targets: ["MixerAndroid"]),

@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "MixerRuntimeIdentity", platforms: [.iOS("26.0"), .macOS(.v14)],
+    name: "MixerRuntimeIdentity", platforms: [.iOS("17.0"), .macOS(.v14)],
     products: [
         .library(name: "MixerRuntimeIdentity", targets: ["MixerRuntimeIdentity"]),
         .executable(name: "mixer-identity", targets: ["MixerIdentityTool"]),

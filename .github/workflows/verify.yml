@@ -361,7 +361,7 @@ jobs:
           swift test --package-path runtime -Xlinker "-L$RUNNER_TEMP/native-vm/lib"
           swift test --package-path activation -Xlinker "-L$RUNNER_TEMP/native-vm/lib"
           swift test --package-path verification/runtime-review -Xlinker "-L$RUNNER_TEMP/native-vm/lib"
-      - name: Generated consumer integration
+      - name: Generated consumer integration at the iOS 17 floor
         env:
           MIXER_SWIFT_IDENTITY_DIAGNOSTICS: "1"
         run: |
@@ -370,6 +370,23 @@ jobs:
           swift run --package-path cli mixer create VerificationApp --directory "$RUNNER_TEMP/VerificationApp"
           swift run --package-path cli mixer test --directory "$RUNNER_TEMP/VerificationApp"
           swift run --package-path cli mixer build --platform ios --directory "$RUNNER_TEMP/VerificationApp"
+          xcodebuild -project "$RUNNER_TEMP/VerificationApp/Platforms/iOS/VerificationApp.xcodeproj" \
+            -scheme VerificationApp -configuration Debug -sdk iphoneos -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/verification-iphoneos" CODE_SIGNING_ALLOWED=NO build
+          for app in \
+            "$RUNNER_TEMP/VerificationApp/.mixer/ios-build/Build/Products/Debug-iphonesimulator/VerificationApp.app" \
+            "$RUNNER_TEMP/verification-iphoneos/Build/Products/Debug-iphoneos/VerificationApp.app"; do
+            test "$(/usr/libexec/PlistBuddy -c 'Print :MinimumOSVersion' "$app/Info.plist")" = 17.0
+            test -f "$app/VerificationApp"
+            for binary in "$app/VerificationApp" "$app/"*.dylib; do
+              if [ -f "$binary" ]; then
+                xcrun vtool -show-build "$binary" | awk '
+                  $1 == "minos" { found = 1; if ($2 != "17.0") bad = 1 }
+                  END { exit (!found || bad) }
+                '
+              fi
+            done
+          done
       - name: Preserve core Apple toolchain and owned VM receipts
         if: always()
         uses: actions/upload-artifact@v4

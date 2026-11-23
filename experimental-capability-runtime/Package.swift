@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "MixerExperimentalCapabilityRuntime",
-    platforms: [.iOS("26.0"), .macOS(.v14)],
+    platforms: [.iOS("17.0"), .macOS(.v14)],
     products: [.library(name: "MixerExperimentalCapabilityRuntime", targets: ["MixerExperimentalCapabilityRuntime"])],
     dependencies: [.package(path: "../sdk")],
     targets: [

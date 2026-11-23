@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "MixerRuntime",
-    platforms: [.iOS("26.0"), .macOS(.v14)],
+    platforms: [.iOS("17.0"), .macOS(.v14)],
     products: [.library(name: "MixerRuntime", targets: ["MixerRuntime"])],
     targets: [
         .target(name: "CMixerVM", publicHeadersPath: "include", linkerSettings: [

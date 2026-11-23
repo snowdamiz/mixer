@@ -13,9 +13,9 @@ implementation gap. Platform-specific app appearance must be explicit. Native
 accessibility, navigation, text input and system-owned surfaces retain platform
 behavior. Side-by-side physical reference-screen review remains pending.
 
-The package uses Swift 6 language mode and declares iOS 26 and macOS 14 minima.
-The checked-in receipt records the actual toolchain used; declaring an OS minimum
-does not qualify every OS release or device in that range.
+The package uses Swift 6 language mode and declares iOS 17.0 and macOS 14
+minima. The iOS 17 runtime qualification is tracked in the
+[execution index](../PLAN.md#up1-lower-the-ios-minimum-to-170).
 
 ## Public products
 
