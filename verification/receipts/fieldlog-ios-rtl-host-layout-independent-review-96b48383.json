@@ -1,0 +1,100 @@
+{
+  "status": "PASS",
+  "scope": "Independent offline review of the FieldLog signed Arabic checklist host layout fix on iPhone 17 Pro Simulator, iOS 27.0 (24A434).",
+  "reviewCommands": [
+    "git apply --check --whitespace=error <exact Mixer patch> against read-only Stage",
+    "git show from Stage HEAD and git apply in a disposable three-file scratch, then compare the patched test and embedded FieldLog patch by SHA-256",
+    "python3 -B prepare-run.py iphonesimulator <sealed products> in read-only inspection mode",
+    "xcrun xcresulttool get test-results summary, tests, and activities for the retained XCResult",
+    "Stream SHA-256 from sealed material and raw XCResult attachment bytes, decoding the bundle's compressed text with zstd",
+    "Re-run maintained checkpoint and origin validators from raw attachments and reconcile compact disk and cleanup readback with recorded command hashes"
+  ],
+  "layoutObservations": {
+    "baselineLargeRTL": "Both retained images are byte-identical and show the full two-line Arabic host heading, including 07, the full Signed checklist · Sequence 1 state, and the guest completion button.",
+    "offlineColdRTL": "The full host heading and Using saved checklist release · Sequence 2 remain visible. The first capture clips the guest Reopen button at the bottom of the guest viewport. Swiping that viewport exposes the full, enabled and hittable Reopen button and clips the top of the guest's duplicate title. The host heading, release state and toolbar stay visible in both captures.",
+    "offlineColdHostAXBoundsPt": {
+      "title": [
+        30.667,
+        148,
+        355.333,
+        142.333
+      ],
+      "release": [
+        17,
+        302.333,
+        369,
+        198.333
+      ]
+    },
+    "toolbar": "Both accessibility5 captures show Done on the right and Check for update on the left. Baseline LTR shows the normal navigation title and opposite button order. Raw XCTest activities record taps of both toolbar controls, including Done returning to the same completed task."
+  },
+  "sourceReview": "Accessibility sizes use a wrapping content heading with the header trait. Normal sizes retain the navigation title. Toolbar placement, actions, enabled predicates, recovery controls and guest scroll implementation are preserved. The patched XCTest afterimage matches the sealed source; the exact Mixer patch passed the read-only application check.",
+  "stageCommit": "6c069d95f509e197433118f65b7f39fb3a454412",
+  "stageTree": "4a33d9cb6c1c4d9c5befac67251b223b36ee8d6d",
+  "mixerPatchSHA256": "70cfd7315e27acd4472a85d391c00b0739a767a556af5f59b762c710f6667f1e",
+  "fieldLogPatchSHA256": "ca67bcb943b0f376d53ffebaa690a2a436a0e4ba020fedacf72c3f870fef52b7",
+  "rootSealSHA256": "b7213fe150edccb09c096a00b743cda99bcf0cdcc5c98037f4032fece491656f",
+  "rootHandoffSHA256": "4452b02186e9752999594630e97587031e9a76565ceecd735546f1811855f737",
+  "rootNativeReceiptSHA256": "7bfdaeebeec16af2cd6b39f1f06aed3188a002ef5b78d1ba5c7fbf72f819a461",
+  "xctestrunSHA256": "7ecae347949efe3b55c57fa5d937a228cecf6ee9584136317e1876a2abf644c5",
+  "xctest": {
+    "tool": "xcresulttool version 25407, schema version: 0.5.0 (legacy commands format version: 3.60)",
+    "xcode": "Xcode 27.2\nBuild version 27B52",
+    "selector": "FieldLogUITests/ChecklistJourney/testSignedLocalizedChecklist",
+    "device": "25684B38-9EA5-447B-B47B-5D878C7AA977",
+    "configuration": "Debug",
+    "result": "1 passed, 0 failed, 0 skipped",
+    "rawAttachmentCount": 61,
+    "layoutCopyCount": 37,
+    "layout": {
+      "baseline-ltr-title": "26d99437508f201b97e0d4dbc5fe72a67fd61aa7da02e21df26a9f2ad23b1a33",
+      "baseline-large-rtl-title": "8e9d125ebac5c0fbab5700466e80cbe82d61152f793b056b82ae356840607614",
+      "baseline-large-rtl-action": "8e9d125ebac5c0fbab5700466e80cbe82d61152f793b056b82ae356840607614",
+      "offline-cold-reopen-title": "23f8d012ce7c4e560596b1ea1157a0c0eb7c881290e5c45e7d326cd3dfba63d0",
+      "offline-cold-reopen-action": "94ccf3568bbf9b8a79f2f2a6fde321af6ab619965fa6c43ab04b07149e9328ae",
+      "offline-cold-host-bounds": "cbb33f7c26cb7589667610089590751d0b75f68f666d57bfce84f29843d555dd"
+    }
+  },
+  "sealedExecutables": {
+    "TestBundlePath": "e5e33defd7b2e849c26cc3774d58aa2a52e874c58ce7d4e5c207c1e62e868d3b",
+    "TestHostPath": "c73e7a03c7447fa3d98dc12865821527c555e92e84ec81894a33f6ed73794d23",
+    "UITargetAppPath": "d3bc6260cab2ff26d41acdf7d17015557c169583797fb63780b353114a7650b3"
+  },
+  "installedAppSHA256": "d3bc6260cab2ff26d41acdf7d17015557c169583797fb63780b353114a7650b3",
+  "guestPayloadSHA256": {
+    "baseline": "b8597cac2c412478f87e51a9f4db4dca2e9f80bee3b40db6330650e3d3433272",
+    "replacement": "1670e4442cde31ea88d529b30d54b99fb8c0a96a05259f7456ddcaac41896a44"
+  },
+  "nativeReadback": {
+    "sequence": 2,
+    "revision": 3,
+    "workspaceSHA256": "46493893df0fa862b4c19ad1457fcdfecbc8af5b3cbc6732bd0902ecabdea60b",
+    "stateSHA256": "e606ca097269bbc7d12420dcf6ec968c611b021ee5f1ef3042c1da4787435952"
+  },
+  "runtime": "ac39ed9b316a4e61801bc6613db612b3265df87dcd462a45391d82d5d575bb51",
+  "externalBaseline": {
+    "observedUUIDEntries": 13,
+    "preAndPostSnapshots": 6,
+    "hashStablePerDevice": true,
+    "registrationStateCounts": {
+      "Shutdown": 11
+    },
+    "directoryEntriesWithoutRegistration": 2,
+    "heldDevicesExcluded": 2,
+    "protectedMindsState": "Shutdown"
+  },
+  "releaseCompileLogSHA256": "6b5c73293b5ef1bdc3a0551e9c3c6dbe7d1442f8498c004d4b65a60a736050cb",
+  "rootCleanup": {
+    "ownedShutdownAndRemoved": true,
+    "nativeScratchRemoved": true,
+    "sealScratchRemoved": true,
+    "loopbackDataAndControlClosed": true,
+    "terminalNativeCommands": 102
+  },
+  "limits": [
+    "Release evidence is a successful generic Simulator compile. Native execution evidence is for Debug only.",
+    "VoiceOver, other device geometries and physical hardware are outside this review.",
+    "The removed installed binary and workspace are represented by the root run's bounded on-device readback and cleanup record. This review rehashed the retained binaries and fixture payloads and reconciled the raw XCTest evidence offline.",
+    "The review used only retained inputs and performed no device, signing, service, Stage-write or push operations."
+  ]
+}

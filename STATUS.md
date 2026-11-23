@@ -55,6 +55,14 @@ was removed. The separate iOS run showed the full guest title at
 accessibility5 while its enclosing navigation title ellipsized.
 [Android 2× receipt](verification/receipts/l08-android-arabic-2x-native-20261122.json)
 
+The corrected iOS Debug host wraps the task heading and release status
+at accessibility5. The exact installed replay showed the complete
+Arabic title and offline Sequence 2 text with both toolbar actions in
+RTL order. A swipe revealed the guest Reopen action. The signed payloads
+matched the prior run and cold readback preserved the completed task.
+Release compiled. VoiceOver remains outside this evidence.
+[Reviewed iOS layout receipt](verification/receipts/fieldlog-ios-rtl-host-layout-independent-review-96b48383.json)
+
 ## FieldLog signed calculation on iOS
 
 The exact installed app displayed 0%, 33%, and 0% through the signed

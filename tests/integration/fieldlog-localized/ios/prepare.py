@@ -100,6 +100,7 @@ def prepare(work, guests):
             corrected == git("show", f"{BASE}:{APPLE_HOST}"), "Signed Apple V1 scroll host does not bind")
     renderer.write_bytes(corrected)
     apply_patch(fieldlog, "fieldlog-debug.patch")
+    apply_patch(fieldlog, "fieldlog-host-layout.patch")
     xctest = fieldlog / "ios/FieldLogUITests/ChecklistJourney.swift"
     shutil.copyfile(HERE / xctest.name, xctest)
 

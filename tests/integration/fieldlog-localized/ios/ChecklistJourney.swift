@@ -193,11 +193,20 @@ final class ChecklistJourney: XCTestCase {
     XCTAssertNotEqual(cold.launch, reviewedLTR.launch)
     XCTAssertNotEqual(cold.rotation.process, reviewedLTR.rotation.process)
     XCTAssertNil(cold.launchedArtifactSHA256)
+    let hostTitle = app.staticTexts["checklist-host-title"]
+    let releaseState = app.staticTexts["checklist-release-state"]
+    XCTAssertEqual(hostTitle.label, title)
+    XCTAssertEqual(releaseState.label, "Using saved checklist release · Sequence 2")
+    XCTAssertTrue(app.frame.contains(hostTitle.frame) && app.frame.contains(releaseState.frame),
+                  app.debugDescription)
+    XCTAssertLessThanOrEqual(hostTitle.frame.maxY, releaseState.frame.minY)
+    attach("offline-cold-host-bounds", "title=\(hostTitle.frame) release=\(releaseState.frame)")
     _ = try captureLayout("offline-cold-reopen", app, status: completed, action: reopenAction)
     try await requireClosed(data)
-    let done = app.navigationBars[title].buttons["checklist-done"]
+    let done = app.navigationBars.buttons["checklist-done"]
     try tap(done, in: app)
-    XCTAssertTrue(app.navigationBars[title].waitForNonExistence(timeout: 15), app.debugDescription)
+    XCTAssertTrue(hostTitle.waitForNonExistence(timeout: 15), app.debugDescription)
+    XCTAssertFalse(releaseState.exists, app.debugDescription)
     XCTAssertTrue(done.waitForNonExistence(timeout: 5), app.debugDescription)
     XCTAssertFalse(app.staticTexts["checklist-evidence"].exists, app.debugDescription)
     XCTAssertTrue(app.navigationBars[project].waitForExistence(timeout: 15), app.debugDescription)
@@ -240,7 +249,20 @@ final class ChecklistJourney: XCTestCase {
     let rowTitle = row.staticTexts[title]
     XCTAssertTrue(rowTitle.waitForExistence(timeout: 10), app.debugDescription)
     try tap(row, coordinateOf: rowTitle, in: app)
-    XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 10), app.debugDescription)
+    let hostTitle = app.staticTexts["checklist-host-title"]
+    if layout == .largeRTL {
+      XCTAssertTrue(hostTitle.waitForExistence(timeout: 10), app.debugDescription)
+      XCTAssertEqual(hostTitle.label, title)
+    } else {
+      XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 10), app.debugDescription)
+      XCTAssertFalse(hostTitle.exists, app.debugDescription)
+    }
+    let done = app.navigationBars.buttons["checklist-done"]
+    let update = app.navigationBars.buttons["checklist-check-updates"]
+    XCTAssertTrue(done.waitForExistence(timeout: 10) && update.exists, app.debugDescription)
+    XCTAssertEqual(done.label, "Done")
+    XCTAssertEqual(update.label, "Check for update")
+    XCTAssertEqual(done.frame.midX > update.frame.midX, layout.rightToLeft, app.debugDescription)
   }
 
   private func checkedRowLabel(_ raw: String, completion: String) -> String {

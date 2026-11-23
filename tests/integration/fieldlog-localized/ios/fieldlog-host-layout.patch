@@ -1,0 +1,53 @@
+diff --git a/ios/FieldLog/SignedChecklist.swift b/ios/FieldLog/SignedChecklist.swift
+--- a/ios/FieldLog/SignedChecklist.swift
++++ b/ios/FieldLog/SignedChecklist.swift
+@@ -24,13 +24,13 @@
+   let recoveryDirectory: URL
+   let isolatedTestWorkspace: Bool
+   @Environment(\.dismiss) private var dismiss
++  @Environment(\.dynamicTypeSize) private var checklistTextSize
+   @AppStorage("fieldlog.releaseInstallation") private var installation = ""
+   @State private var guest: MountedChecklist?
+   @State private var recovery = SignedChecklistRecovery()
+   @State private var status = "Opening checklist"
+   #if DEBUG
+   @Environment(\.layoutDirection) private var checklistDirection
+-  @Environment(\.dynamicTypeSize) private var checklistTextSize
+   @State private var evidence = ""
+   @State private var deliveryObservation: FieldLogSignedTask.Launch?
+   private var useStoredRotationInstallation: Bool {
+@@ -48,9 +48,22 @@
+   static var material: URL? { Bundle.main.url(forResource: "ChecklistRelease", withExtension: nil) }
+
+   var body: some View {
++    let usesContentTitle = checklistTextSize.isAccessibilitySize
+     NavigationStack {
+       VStack(alignment: .leading, spacing: 12) {
+-        Text(releaseStatus).accessibilityIdentifier("checklist-release-state")
++        if usesContentTitle {
++          Text(task.title)
++            .font(.title2.bold())
++            .multilineTextAlignment(.leading)
++            .fixedSize(horizontal: false, vertical: true)
++            .accessibilityAddTraits(.isHeader)
++            .accessibilityIdentifier("checklist-host-title")
++        }
++        Text(releaseStatus)
++          .font(usesContentTitle ? .callout : .body)
++          .multilineTextAlignment(.leading)
++          .fixedSize(horizontal: false, vertical: true)
++          .accessibilityIdentifier("checklist-release-state")
+         recoveryControls
+         #if DEBUG
+         if testInstallation != nil {
+@@ -78,7 +91,9 @@
+             .frame(maxWidth: .infinity, maxHeight: .infinity)
+         }
+       }
+-      .padding().navigationTitle(task.title)
++      .padding()
++      .navigationTitle(usesContentTitle ? "" : task.title)
++      .navigationBarTitleDisplayMode(usesContentTitle ? .inline : .automatic)
+       .toolbar {
+         ToolbarItem(placement: .cancellationAction) {
+           Button("Done") { recovery.begin(.done) }
