@@ -305,6 +305,16 @@ interactive control under a grouped-row ancestor. Android needs a corrected
 matched build and native replay. Both owned test instances were removed.
 [Native passes and Android refusal](verification/receipts/l08-d2-compact-ios-pass-android-group-refusal-20261123.json)
 
+The corrected Android group layout passed on one offline API 36
+emulator installation. It saved 21 exact task titles, completed Valve
+at the control center, reordered it separately, reopened and committed
+the same draft, and checked the 20+6 queue and byte-identical cold
+workspace. The earlier launch and runner failures are preserved. A
+newer source-matched candidate also shares the Pending Changes
+document. Its linked Swift count is 2,572 of 5,909 lines (43.53%),
+with 603 UI, 1,175 logic and 794 mixed lines shared.
+[Android native replay and next linked measurement](verification/receipts/l08-d2-android-direct-pagination-full-native-20261123.json)
+
 ## Managed iOS FieldLog and historical native corpus
 
 The F06 signed editor reached its native form on the user-initiated
