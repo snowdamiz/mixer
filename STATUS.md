@@ -288,6 +288,13 @@ disposable installs through exact checkpoints. The matched source
 still needs a side-by-side design review and higher Swift sharing.
 [Android D2 checkpoint replay](verification/receipts/l08-d2-android-composite-checkpoint-replay-20261123.json)
 
+The new iOS shared Project Detail build passed the offline Share report
+workflow and Pending Changes paging. Two checklist selectors failed at
+the compact progress label after the shared document started requesting
+expanded wording for iOS. The owned Simulator and private packet were
+removed. The native wording correction remains under test.
+[iOS shared Project Detail run](verification/receipts/l08-d2-ios-shared-detail-toolbar-native-20261123.json)
+
 ## Managed iOS FieldLog and historical native corpus
 
 The F06 signed editor reached its native form on the user-initiated
