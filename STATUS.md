@@ -438,6 +438,13 @@ The reauthored V1 buttons cover the historical commands. Matching
 installed Android delivery remains open.
 [Independent native F02 review](verification/receipts/l08-d8-f02-ios-retirement-review-20261123.json)
 
+The ordinary F02 Android package opened its Tasks route. Its signed
+check launch button lay entirely inside the system navigation strip.
+The center tap opened Recents before any offer request. The owned
+emulator and origin retired. Android signed reorder needs the native
+launcher moved above the system inset.
+[Android F02 launch button evidence](verification/receipts/l08-d8-f02-android-launch-button-insets-20261123.json)
+
 The ordinary F02 Android owner accepted the current input token and
 refused the historical move under its selected-draft grant. Exposing
 existing commit facts at the ordinary open call and admitting only the
@@ -868,6 +875,14 @@ Independent pixel readback confirmed 1.23:1 contrast on Android and
 correct labels and states. A separately pinned renderer correction
 and paired dark capture remain open.
 [Dark Android switch label evidence](verification/receipts/l02-android-dark-switch-label-raster-refusal-20261123.json)
+
+All four native iOS interaction selectors passed the actual held and
+released switch actions, accessibility state, and neighboring text input.
+The held compositor still painted glass outside the authored cover in
+four sampled controls. Two dark controls had no stable screenshot pair.
+The owned Simulator was removed. The iOS pressed-state appearance
+remains open.
+[iOS held switch evidence](verification/receipts/l02-ios-held-switch-compositor-refusal-20261123.json)
 
 The iOS Settings rerun passed Dark persistence and
 workspace setup. It showed the five Support Diagnostics fields, but the
