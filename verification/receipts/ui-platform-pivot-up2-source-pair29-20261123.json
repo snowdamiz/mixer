@@ -1,0 +1,156 @@
+{
+  "schema": 1,
+  "scope": "Local source and admission verification for UP2 Android observations. Runtime exit and the Activity-rebind probe belong to the root lane.",
+  "base": "d7aa7170ae88737a7026b9c78134e2afcd96f4be",
+  "productCommit": "f3472942e4977533d6c02ce33307827330410ffa",
+  "productTree": "75f8e0a063e5a3043e6e73f0e9298e9ad995b338",
+  "exactUpstreamRevisions": [
+    "85bb2808242b93f06956bb965bc52c7cdc2260ad",
+    "ddd5a778f03571b3a40a9489ed4282b881fd3390",
+    "85d14b379910308a71783c637a4396a3b38a685a"
+  ],
+  "toolVersions": {
+    "macOS": "27.0.1 (26A434), arm64",
+    "git": "2.56.0",
+    "python": "3.14.8",
+    "swiftHostTests": "6.4.2",
+    "swiftAndroidCreateToolchain": "6.3.3",
+    "javac": "25.0.4.1",
+    "probeCompileSDK": "Android 37.0"
+  },
+  "sourcePair": {
+    "predecessor": "mixer.android-source-pair.28",
+    "current": {
+      "adapter_count": 27,
+      "adapter_sha256": "eff2acf3b4bf0167eea6aaa6c15e4fa2d67f2aa50714e206886a7037df0c3c44",
+      "id": "mixer.android-source-pair.29",
+      "java_sources": 21,
+      "sdk_count": 26,
+      "sdk_sha256": "ced772bea68f9c0ef861a40ae609dcec772bf0dc2a6d339a8d9ae0f4cb72a60f"
+    },
+    "selector": {
+      "path": "verification/local/ui-platform-pivot-root.fyr8LSOB/select-android-source-pair.py",
+      "sha256": "10bbb7128ee95331a688171adface088497e68059953fe56d7244926466737c3",
+      "arguments": [
+        "--previous",
+        "28",
+        "--next",
+        "29",
+        "--apply",
+        "native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java",
+        "native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java"
+      ]
+    },
+    "exactChangedAdapterFiles": {
+      "native/android/app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java": {
+        "after": {
+          "bytes": 18633,
+          "sha256": "b26b722597392e5b8e555dd0ba7eda3ccd398a2ee246175eebdcb34f86b1a47a"
+        },
+        "before": {
+          "bytes": 17999,
+          "sha256": "ae20d376d09e27bd751c07f140001446853f1cf00e1a9a37ec1e67f02c8fc5cb"
+        },
+        "mode": 420
+      },
+      "native/android/app/src/dev/mixer/android/NativeEnvironmentV2.java": {
+        "after": {
+          "bytes": 19267,
+          "sha256": "580ae447631fc2d97f14d5c2d0f5c25cf86bdf094e28003a5102873754a16cce"
+        },
+        "before": {
+          "bytes": 15229,
+          "sha256": "7a072fbf56ed128ffe2f580195a6856afc8cf34c31585e1a61443c0f7d84e119"
+        },
+        "mode": 420
+      }
+    }
+  },
+  "checks": [
+    {
+      "command": "javac --release 17 -Xlint:all -Werror -proc:none with native/android/tests/run-environment-platform-host.py environment source closure and ComposeObservationHostTests.java, then java -ea for the three test classes",
+      "output": [
+        "PASS 190 production Observer host cases; faulting Android leaves only; native runtime pending",
+        "PASS actual platform/Observer host cases=134 assertions=699; SDK28..36 finite leaves only; native linkage/runtime pending",
+        "PASS Compose observation policies and listener cleanup for API 28 through 37 with host leaves"
+      ]
+    },
+    {
+      "command": "javac --release 17 -Xlint:all -Werror -proc:none with Android 37.0 android.jar, product Java sources, and EnvironmentObservationProbe.java",
+      "output": "Compile succeeded"
+    },
+    {
+      "command": "swift test --package-path cli --filter \"androidCompatibilityLinkedSDKAndTypedDefaultMatchCompiledPolicy|publicV4CurrentPairAuthorityMatchesSelectedInputs|androidCompatibilityCanonicalOptionalSubsetsExportOnlyExactProducts|androidCompatibilityOrdinaryRelocationCommonLockAndCopiedExportPass|androidCompatibilityInputAdapterAdmissionRefusesBeforeStagingAndSnapshotReads\"",
+      "output": "5 tests passed, including 7 input refusals and 8 optional source subsets"
+    },
+    {
+      "command": "swift test --package-path cli --filter publicProfilesDeclareTheirRequiredEnvironmentFloor",
+      "output": "1 test passed"
+    },
+    {
+      "command": "mixer create --platform android with the canonical --sdk-path and --android-adapter-path, with default host and with --android-host public-v4",
+      "output": [
+        "ordinary-pinned: mixer.android-source-pair.29, real driver admitted 21 Java sources, API 28",
+        "public-create: mixer.android-source-pair.29, real driver admitted 21 Java sources, API 36"
+      ],
+      "details": "The actual rendered driver admitted both copied source pairs. The generated-Java CI consumer verifier also admitted the correctly scoped ordinary Starter. Both updated Java copies matched their canonical bytes."
+    },
+    {
+      "command": "python3 -I -B -S [-O] hosted/scripts/test-identity-network.py --check-workspace-source",
+      "output": {
+        "identity": "hosted-android-source-pair29-v92",
+        "predecessor_source_digest_sha256": "bc70640a6acf36b37fc76a0566e1025af7ca75b05775b00f3fadef20392e15c1",
+        "runtime_or_GA_accepted": false,
+        "selection_sha256": "f40d955545bb60b8c912bbdd23c040ef3440f251bad4ae077773d90442761208",
+        "source_count": 573,
+        "source_digest_sha256": "706cea9c77409aad724ddd2dfea8d26f2fa14e0e907ccdbcf7bd8b72173af2d3"
+      }
+    },
+    {
+      "command": "python3 -B hosted/scripts/test_identity_network_collector.py CurrentCLISelectionControls WorkflowSparseSourceControls WorkspaceSourceCutoverControls",
+      "output": "16 tests passed, including all three hosted sparse source projections and v91/v90 reversal"
+    },
+    {
+      "command": "git --no-replace-objects ls-tree -rz --full-tree with the collector exact path roster, followed by validate_workspace_exact_tree",
+      "output": "82 exact entries, 10652 bytes within the 12288-byte collector limit"
+    },
+    {
+      "command": "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+      "output": {
+        "sourceCount": 158,
+        "sourceSha256": "69b2ba0dcdd576ff57b3db8f8418970a7e28ff93e104c920a78baa4eeb2c0daf",
+        "sealTreeSha256": "1d17ebb32e4223c95e96dca2a74d53155adb8f4cade6965f35b89b43e1827429",
+        "predecessorUP1Pair28SourceSha256": "2b620583eeff8d574f5c0e49f10189eada34642aa2102dda19f0c5152d842552",
+        "restoredSource141Sha256": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab",
+        "restoredSource127Sha256": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7"
+      }
+    },
+    {
+      "command": "python3 -I -B -S [-O] generated-java-ci-integration/bootstrap.py admit_source_inputs through the imported current CI entry point, plus the two BootstrapControls current selection and stale profile tests",
+      "output": "Current 158-file Pair29 projection admitted in both modes. Two tests passed in each mode, including Pair27 and Pair28 refusal."
+    },
+    {
+      "command": "python3 -I -B -S [-O] generated-java-ci-integration/test_sparse_checkout.py -v with its temporary fixtures routed under verification/local",
+      "output": "16 tests passed in each mode, including installed sparse admission, Source141 restoration, and stale UP2/UP1 owner byte refusals"
+    }
+  ],
+  "history": {
+    "preservedArchiveBindingFields": 115,
+    "preservedArchiveHistoricalBytePins": 365,
+    "changedCurrentSourceRows": 5,
+    "pair29ChangedOwnerFiles": 10,
+    "v92ChangedWorkflowFiles": 3,
+    "v92ChangedHostedProductFiles": [
+      "cli/Sources/MixerBuild/Resources/android-build.py"
+    ]
+  },
+  "limits": {
+    "runtimeTestsRun": false,
+    "dockerRun": false,
+    "hostedActionsRun": false,
+    "deployment": false,
+    "pushed": false,
+    "up2ExitVerified": false,
+    "holdsReleased": false
+  }
+}

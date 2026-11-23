@@ -391,6 +391,7 @@ HOSTED_V89_PREFIX = 'hosted-v89-predecessor-bytes/'
 HOSTED_V90_PREFIX = 'hosted-v90-predecessor-bytes/'
 UP1_FLOOR_WORKFLOW_PREFIX = 'up1-floor-workflow-predecessor-bytes/'
 HOSTED_V91_PREFIX = 'hosted-v91-predecessor-bytes/'
+HOSTED_V92_PREFIX = 'hosted-v92-predecessor-bytes/'
 PAIR26_PREFIX = 'pair26-predecessor-bytes/'
 PAIR26_PREDECESSOR_REVISION = '613fb3c10e6cbf06eb990b9639ec672115bc50fe'
 PAIR26_SOURCE_SHA256 = '23389c8ae9f34678b546bd740947a3d9fdd39f0840aeac50534b0821f15aa5fb'
@@ -477,6 +478,25 @@ UP1_PAIR28_REPLACEMENTS = UP1_PAIR28_SOURCE_REPLACEMENTS | {
     'cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift',
     'cli/Tests/MixerBuildTests/GeneratedPublicAndroidV4Tests.swift',
     'sdk/README.md',
+}
+
+UP2_PAIR29_PREFIX = 'up2-pair29-predecessor-bytes/'
+UP2_PAIR29_SOURCE_SHA256 = '69b2ba0dcdd576ff57b3db8f8418970a7e28ff93e104c920a78baa4eeb2c0daf'
+UP2_PAIR29_ADAPTER_REPLACEMENTS = {
+    'app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java',
+    'app/src/dev/mixer/android/NativeEnvironmentV2.java',
+}
+UP2_PAIR29_SOURCE_REPLACEMENTS = {'native/android/' + name for name in UP2_PAIR29_ADAPTER_REPLACEMENTS} | {
+    'cli/Sources/MixerBuild/AndroidSDKCompatibility.swift',
+    ANDROID_BUILD_DRIVER,
+    EXPORT_RUNNER,
+}
+UP2_PAIR29_REPLACEMENTS = UP2_PAIR29_SOURCE_REPLACEMENTS | {
+    'cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift',
+    'cli/Tests/MixerBuildTests/GeneratedPublicAndroidV4Tests.swift',
+    JAVA + 'bootstrap.py',
+    JAVA + 'test_bootstrap.py',
+    SPARSE_CHECKOUT_TEST,
 }
 
 PAIR25_RUST_NOTICES_PREIMAGE = 'pair25-rust-notices-predecessor-bytes/THIRD_PARTY.yml'
@@ -602,6 +622,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
 } | {
     UP1_PAIR28_PREFIX + name for name in UP1_PAIR28_REPLACEMENTS
 } | {
+    UP2_PAIR29_PREFIX + name for name in UP2_PAIR29_REPLACEMENTS
+} | {
     SWIFT_VERSION_PREFIX + name for name in SWIFT_VERSION_CHANGES
 } | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
@@ -634,6 +656,7 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     *(HOSTED_V90_PREFIX + name for name in HOSTED_V74_CHANGES),
     UP1_FLOOR_WORKFLOW_PREFIX + VERIFY_WORKFLOW,
     *(HOSTED_V91_PREFIX + name for name in HOSTED_V74_CHANGES),
+    *(HOSTED_V92_PREFIX + name for name in HOSTED_V74_CHANGES),
     PAIR25_RUST_NOTICES_PREIMAGE,
     STATEFUL_WAST_NOTICE_PREIMAGE,
     PAIR25_NETWORK_CRYPTO_NOTICE_PREIMAGE,
@@ -804,14 +827,14 @@ def install_inputs():
                              'hosted_v83_transition', 'hosted_v84_transition', 'hosted_v85_transition',
                              'hosted_v86_transition', 'hosted_v87_transition', 'hosted_v88_transition',
                              'hosted_v89_transition', 'hosted_v90_transition', 'up1_floor_workflow_transition',
-                             'hosted_v91_transition', 'pair25_rust_notices',
+                             'hosted_v91_transition', 'hosted_v92_transition', 'pair25_rust_notices',
                              'stateful_wast_notices', 'pair25_network_crypto_notices',
                              'android_inspection_deadline_transition', 'receipt_directory_transition',
                              'receipt_parent_url_test_transition', 'swiftpm_migration_transition',
                              'store_reconciliation_fixture_transition', 'android_stock_libz_transition', 'pair26_transition',
                              'pair27_transition', 'stock_ios_generator_transition',
                              'stock_ios_simulator_archive_transition', 'stock_ios_debug_transition',
-                             'up1_pair28_transition',
+                             'up1_pair28_transition', 'up2_pair29_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -1814,6 +1837,7 @@ def install_inputs():
         ('hosted_v90_transition', HOSTED_V90_PREFIX, HOSTED_V74_CHANGES),
         ('up1_floor_workflow_transition', UP1_FLOOR_WORKFLOW_PREFIX, {VERIFY_WORKFLOW}),
         ('hosted_v91_transition', HOSTED_V91_PREFIX, HOSTED_V74_CHANGES),
+        ('hosted_v92_transition', HOSTED_V92_PREFIX, HOSTED_V74_CHANGES),
     ):
         transition = binding[transition_key]
         require(set(transition) == {'changes'} and set(transition['changes']) == changes and
@@ -2273,11 +2297,36 @@ def install_inputs():
             expected_source[name] = change['after']
         installed[name] = change['after']
         preimages.setdefault(name, (raw, change['mode']))
-    require(current == expected_source and len(current) == 158 and
-            previous.digest(current) == up1_pair28['sourceAfter'] == UP1_PAIR28_SOURCE_SHA256 and
-            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
-                                  'sha256': up1_pair28['sourceAfter']},
+    require(len(expected_source) == 158 and
+            previous.digest(expected_source) == up1_pair28['sourceAfter'] == UP1_PAIR28_SOURCE_SHA256,
             'UP1 Pair28 source transition differs')
+
+    up2_pair29 = binding['up2_pair29_transition']
+    require(set(up2_pair29) == {'sourceBefore', 'sourceAfter', 'changes', 'profileAfter'} and
+            up2_pair29['sourceBefore'] == UP1_PAIR28_SOURCE_SHA256 and
+            set(up2_pair29['changes']) == UP2_PAIR29_REPLACEMENTS and
+            UP2_PAIR29_REPLACEMENTS <= installed.keys() and
+            UP2_PAIR29_REPLACEMENTS & current.keys() == UP2_PAIR29_SOURCE_REPLACEMENTS,
+            'UP2 Pair29 transition roster differs')
+    for name, change in up2_pair29['changes'].items():
+        path = HERE / UP2_PAIR29_PREFIX / name
+        raw = read_predecessor_member(path)
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == installed[name] == previous.row(raw) and
+                change['before'] != change['after'] and
+                change['mode'] == stat.S_IMODE(path.lstat().st_mode) ==
+                stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'UP2 Pair29 predecessor bytes or owner mode differs: ' + name)
+        if name in UP2_PAIR29_SOURCE_REPLACEMENTS:
+            require(expected_source[name] == change['before'], 'UP2 Pair29 source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        installed[name] = change['after']
+        preimages.setdefault(name, (raw, change['mode']))
+    require(current == expected_source and len(current) == 158 and
+            previous.digest(current) == up2_pair29['sourceAfter'] == UP2_PAIR29_SOURCE_SHA256 and
+            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
+                                  'sha256': up2_pair29['sourceAfter']},
+            'UP2 Pair29 source transition differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in store_fixture['changes'].items():
@@ -2356,11 +2405,19 @@ def install_inputs():
     require(expected_pair27['sdk_files']['Package.swift'] == sdk_manifest['before'],
             'Pair27 SDK manifest preimage differs')
     sdk_files = {**expected_pair27['sdk_files'], 'Package.swift': sdk_manifest['after']}
-    expected_profile = {**expected_pair27, 'id': 'mixer.android-source-pair.28', 'sdk_files': sdk_files,
-                        'sdk_compatibility_sha256': previous.digest(sdk_files)}
-    require(up1_pair28['profileAfter'] == expected_profile == profile and
+    expected_pair28 = {**expected_pair27, 'id': 'mixer.android-source-pair.28', 'sdk_files': sdk_files,
+                       'sdk_compatibility_sha256': previous.digest(sdk_files)}
+    require(up1_pair28['profileAfter'] == expected_pair28, 'Archive UP1 Pair28 SDK profile differs')
+    for name in UP2_PAIR29_ADAPTER_REPLACEMENTS:
+        require(expected_pair28['adapter_files'][name] == up2_pair29['changes']['native/android/' + name]['before'],
+                'Pair28 adapter preimage differs: ' + name)
+    adapter_files = {**expected_pair28['adapter_files'], **{name: current['native/android/' + name]
+                                                          for name in UP2_PAIR29_ADAPTER_REPLACEMENTS}}
+    expected_profile = {**expected_pair28, 'id': 'mixer.android-source-pair.29', 'adapter_files': adapter_files,
+                        'adapter_compatibility_sha256': previous.digest(adapter_files)}
+    require(up2_pair29['profileAfter'] == expected_profile == profile and
             previous.profile_summary(profile) == binding['profile'],
-            'Archive UP1 Pair28 SDK profile differs')
+            'Archive UP2 Pair29 adapter profile differs')
     selector_path = ROOT / 'cli/build-tests/current_android_profile.py'
     selector = previous.module('native_archive_current_selector', selector_path)
     require(selector.load_current_profile(ROOT) == profile, 'Current source-pair selector differs')
@@ -2411,6 +2468,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_up1_pair28_source158_sha256': binding['up2_pair29_transition']['sourceBefore'],
             'predecessor_stock_ios_debug_source158_sha256': binding['up1_pair28_transition']['sourceBefore'],
             'predecessor_stock_ios_simulator_archive_source158_sha256': binding['stock_ios_debug_transition']['sourceBefore'],
             'predecessor_stock_ios_generator_source158_sha256': binding['stock_ios_simulator_archive_transition']['sourceBefore'],

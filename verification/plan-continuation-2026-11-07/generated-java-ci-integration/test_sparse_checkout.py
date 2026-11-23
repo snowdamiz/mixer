@@ -115,7 +115,8 @@ def admission_paths(root=None, binding=None):
                     'fieldlog_signed_editor_transition', 'store_reconciliation_fixture_transition',
                     'android_stock_libz_transition', 'pair26_transition', 'pair27_transition',
                     'stock_ios_generator_transition', 'stock_ios_simulator_archive_transition',
-                    'stock_ios_debug_transition'):
+                    'stock_ios_debug_transition', 'up1_pair28_transition',
+                    'up2_pair29_transition', 'hosted_v92_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -513,7 +514,13 @@ class SparseControls(unittest.TestCase):
             self.assertEqual(stock_debug['sourceBefore'], simulator_archive['sourceAfter'])
             self.assertEqual(observed['predecessor_stock_ios_simulator_archive_source158_sha256'],
                              stock_debug['sourceBefore'])
-            self.assertEqual(observed['source_sha256'], stock_debug['sourceAfter'])
+            up1 = binding['up1_pair28_transition']
+            self.assertEqual(up1['sourceBefore'], stock_debug['sourceAfter'])
+            self.assertEqual(observed['predecessor_stock_ios_debug_source158_sha256'], up1['sourceBefore'])
+            up2 = binding['up2_pair29_transition']
+            self.assertEqual(up2['sourceBefore'], up1['sourceAfter'])
+            self.assertEqual(observed['predecessor_up1_pair28_source158_sha256'], up2['sourceBefore'])
+            self.assertEqual(observed['source_sha256'], up2['sourceAfter'])
             self.assertEqual(observed['source_sha256'], binding['source']['sha256'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']
@@ -617,23 +624,30 @@ class SparseControls(unittest.TestCase):
             for name in additions:
                 self.assertFalse((restored / name).exists(), name)
 
-            stock_debug_preimages = repo / SOURCE_BINDING.parent / 'stock-ios-debug-predecessor-bytes'
             source_inputs = json.loads((repo / SOURCE_BINDING.parent / binding['source']['manifest']).read_bytes())
-            for name, change in stock_debug['changes'].items():
-                path = repo / name
-                current = path.read_bytes()
-                before = (stock_debug_preimages / name).read_bytes()
-                if name in source_inputs:
-                    self.assertEqual(source_inputs[name], change['after'])
-                    source_inputs[name] = change['before']
-                try:
-                    path.write_bytes(before)
-                    failed = command(python + [str(adopter), 'verify', '--workflow-installed'])
-                    self.assertEqual(failed.returncode, 1)
-                    self.assertIn(('Owning bytes differ: ' + name).encode(), failed.stderr)
-                finally:
-                    path.write_bytes(current)
-            self.assertEqual(B.canonical().source_digest(source_inputs), stock_debug['sourceBefore'])
+            for prefix, transition in (
+                ('up2-pair29-predecessor-bytes', up2),
+                ('up1-pair28-predecessor-bytes', up1),
+                ('stock-ios-debug-predecessor-bytes', stock_debug),
+            ):
+                preimages = repo / SOURCE_BINDING.parent / prefix
+                self.assertEqual(B.canonical().source_digest(source_inputs), transition['sourceAfter'])
+                for name, change in transition['changes'].items():
+                    path = repo / name
+                    current = path.read_bytes()
+                    before = (preimages / name).read_bytes()
+                    if name in source_inputs:
+                        self.assertEqual(source_inputs[name], change['after'])
+                        source_inputs[name] = change['before']
+                    with self.subTest(predecessor=prefix, stale=name):
+                        try:
+                            path.write_bytes(before)
+                            failed = command(python + [str(adopter), 'verify', '--workflow-installed'])
+                            self.assertEqual(failed.returncode, 1)
+                            self.assertIn(('Owning bytes differ: ' + name).encode(), failed.stderr)
+                        finally:
+                            path.write_bytes(current)
+                self.assertEqual(B.canonical().source_digest(source_inputs), transition['sourceBefore'])
 
 
 if __name__ == '__main__':
