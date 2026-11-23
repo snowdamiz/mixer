@@ -51,8 +51,8 @@ private func allAdmissionEntrypoints(_ root: URL, code: String = "android.sdk-co
 
 @Test func androidCompatibilityLinkedSDKAndTypedDefaultMatchCompiledPolicy() throws {
     let p = AndroidSDKCompatibility.profile
-    #expect(p.id == "mixer.android-source-pair.29")
-    #expect(p.sdk_compatibility_sha256 == "ced772bea68f9c0ef861a40ae609dcec772bf0dc2a6d339a8d9ae0f4cb72a60f")
+    #expect(p.id == "mixer.android-source-pair.30")
+    #expect(p.sdk_compatibility_sha256 == "607ae7553fd932e9b78cc841ca9e35f9ccdc36b6c18974a6c9f6f0f13276aaf1")
     #expect(p.adapter_compatibility_sha256 == "eff2acf3b4bf0167eea6aaa6c15e4fa2d67f2aa50714e206886a7037df0c3c44")
     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.bytes == 5338)
     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.sha256 == "3b9a6054e3c238a43d9428b142feb00f0086af0cc4aedf55a36f5554fda21f02")
