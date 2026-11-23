@@ -258,8 +258,16 @@ probes reproduced two prior byte encodings and one after the fix.
 The F02 signed host replay delivered the prior, both reorder actions,
 and rollback through the stock local origin. Move down and Move up
 committed one event each at revisions 4 and 5. Cold rollback kept the
-final workspace byte-identical. Native signed delivery remains open.
+final workspace byte-identical.
 [F02 signed host receipt](verification/receipts/l08-d8-f02-signed-host-9c44a9b2.json)
+
+One iOS Simulator installation replayed the signed F02 change
+through five launches. The native move taps persisted revisions 4 and
+5. Rollback and offline reopen kept the revision-5 workspace exact.
+The first launch observed retirement 21.3 ms after close returned.
+The reauthored V1 buttons cover the historical commands. Matching
+installed Android delivery remains open.
+[Independent native F02 review](verification/receipts/l08-d8-f02-ios-retirement-review-20261123.json)
 
 The F04 successor reached the stock signed host. The ordinary Guest
 UI V1 profile refused the first editable frame before Save. Rollback
