@@ -3286,7 +3286,7 @@ class CurrentCLISelectionControls(unittest.TestCase):
         observed = json.loads(output.getvalue())
         self.assertEqual(expected["source_count"], observed["source_count"])
         self.assertEqual(WorkflowSparseSourceControls.DIGEST, expected["source_digest_sha256"])
-        self.assertEqual('bc70640a6acf36b37fc76a0566e1025af7ca75b05775b00f3fadef20392e15c1', observed["predecessor_source_digest_sha256"])
+        self.assertEqual('706cea9c77409aad724ddd2dfea8d26f2fa14e0e907ccdbcf7bd8b72173af2d3', observed["predecessor_source_digest_sha256"])
         self.assertEqual(WorkflowSparseSourceControls.DIGEST, observed["source_digest_sha256"])
         self.assertEqual(WorkspaceSourceCutoverControls.PIN, observed["selection_sha256"])
         self.assertFalse(observed["runtime_or_GA_accepted"])
@@ -3301,8 +3301,8 @@ class WorkflowSparseSourceControls(unittest.TestCase):
     # Deliberately limited projection, not a general Git wildmatch interpreter.
     # Only positive rooted files/directories and this one-component family work.
     FAMILY = "/verification/identity-network-current-source-v*/**"
-    PIN = 'f40d955545bb60b8c912bbdd23c040ef3440f251bad4ae077773d90442761208'
-    DIGEST = '706cea9c77409aad724ddd2dfea8d26f2fa14e0e907ccdbcf7bd8b72173af2d3'
+    PIN = '56b95733502202be7bb462f7b0d1b5761643ef3d6161f3e763e1e3ab48f73363'
+    DIGEST = '970e8e382127cca14e3a4a248c4cd4fff7e0aa9e901aa1c95648cc1d2f6ace96'
     COUNT = 573
 
     def patterns(self, workflow, job):
