@@ -853,6 +853,22 @@ before the cold readback. The next test keeps the restored project
 selection in place before changing Settings.
 [Corrected native reference and Settings captures](verification/receipts/l02-ios-corrected-appearance-and-settings-matrix-20261123.json)
 
+The ordinary iOS Settings rerun passed Dark, workspace setup, the
+French and Larger Text matrix, and cold readback. It kept the exact
+restored project in place, checked all five visible diagnostics fields
+and Offline Help, and preserved the complete workspace inventory and
+exact preference bytes. The owned Simulator was removed. L02 still
+needs the paired design decision and toggle interaction evidence.
+[iOS Settings cold replay](verification/receipts/l02-ios-settings-cold-native-20261123.json)
+
+The paired reference review found a dark Android switch label defect.
+The three labels render black on the shared dark group surface.
+Independent pixel readback confirmed 1.23:1 contrast on Android and
+17.01:1 with the authored white on iOS. Both native trees expose the
+correct labels and states. A separately pinned renderer correction
+and paired dark capture remain open.
+[Dark Android switch label evidence](verification/receipts/l02-android-dark-switch-label-raster-refusal-20261123.json)
+
 The iOS Settings rerun passed Dark persistence and
 workspace setup. It showed the five Support Diagnostics fields, but the
 XCTest OCR omitted two isolated values from its screenshot. The matrix

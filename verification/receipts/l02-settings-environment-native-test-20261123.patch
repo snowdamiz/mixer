@@ -1,0 +1,95 @@
+--- a/source/SettingsEnvironment.swift
++++ b/source/SettingsEnvironment.swift
+@@ -87 +87 @@
+-    XCTContext.runActivity(named: "Verify seeded project and test workspace picker") { _ in
++    XCTContext.runActivity(named: "Verify the exact isolated project without changing selection") { _ in
+@@ -90 +90 @@
+-                    "Expected the restored seeded project. \(app.debugDescription)")
++                    "Expected the isolated seed project. \(app.debugDescription)")
+@@ -94,6 +94,4 @@
+-      tapWitness(back, in: app)
+-      XCTAssertTrue(app.navigationBars["FieldLog"].waitForExistence(timeout: 10),
+-                    "Expected the FieldLog project picker. \(app.debugDescription)")
+-      XCTAssertTrue(app.staticTexts["test-workspace-badge"].waitForExistence(timeout: 10),
+-                    "Expected the test workspace badge on the project picker. \(app.debugDescription)")
+-      attachWitnessScreenshot(app.screenshot(), named: "Verified test workspace picker")
++      XCTAssertTrue(back.exists && back.isHittable, app.debugDescription)
++      // The resumed fixture is already on its exact unique project. Keep the
++      // persisted selection in place while testing unrelated settings.
++      attachWitnessScreenshot(app.screenshot(), named: "Verified restored test workspace project")
+@@ -137,4 +135,16 @@
+-    let choice = NSPredicate(format: "label == %@ AND hittable == true", value)
+-    let button = app.buttons.matching(choice).firstMatch
+-    let target = button.waitForExistence(timeout: 3) ? button : app.menuItems.matching(choice).firstMatch
+-    XCTAssertTrue(target.waitForExistence(timeout: 5), app.debugDescription)
++    let choice = NSPredicate(format: "label == %@", value)
++    func visibleChoices() -> [XCUIElement] {
++      let menu = app.menuItems.matching(choice).allElementsBoundByIndex.filter { $0.isHittable }
++      if !menu.isEmpty { return menu }
++      return app.buttons.matching(choice).allElementsBoundByIndex.filter { $0.isHittable }
++    }
++    let deadline = ProcessInfo.processInfo.systemUptime + 5
++    var current = visibleChoices()
++    while current.isEmpty && ProcessInfo.processInfo.systemUptime < deadline {
++      RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.15))
++      current = visibleChoices()
++    }
++    guard current.count == 1, let target = current.first else {
++      XCTFail("Expected one hittable menu choice \(value); found \(current.count). \(app.debugDescription)")
++      return
++    }
+@@ -170 +180,4 @@
+-    attachDiagnosticsAX(in: app, appFrame: appFrame, tabFrame: tabFrame, buildIsHittable: buildIsHittable)
++    let exactRows = diagnosticsAX(in: app, appFrame: appFrame, tabFrame: tabFrame, buildIsHittable: buildIsHittable)
++    XCTAssertEqual(exactRows, ["Schema version, 1", "Platform, iOS", "OS major version, \(ProcessInfo.processInfo.operatingSystemVersion.majorVersion)",
++                               "App version, 0.1.0", "Build number, 1"],
++                   "Expected exactly the five visible accessibility rows and their values.")
+@@ -192,2 +205,3 @@
+-  private func attachDiagnosticsAX(in app: XCUIApplication, appFrame: CGRect, tabFrame: CGRect,
+-                                   buildIsHittable: Bool) {
++  private func diagnosticsAX(in app: XCUIApplication, appFrame: CGRect, tabFrame: CGRect,
++                             buildIsHittable: Bool) -> [String] {
++    var combinedRows: [(position: CGFloat, label: String)] = []
+@@ -210,0 +225,5 @@
++          if element.elementType == .staticText, element.frame.minY >= heading.frame.maxY - 1,
++             abs(element.frame.minX - heading.frame.minX) < 1,
++             abs(element.frame.width - heading.frame.width) < 1 {
++            combinedRows.append((element.frame.minY, element.label))
++          }
+@@ -219,0 +239 @@
++    return combinedRows.sorted { $0.position < $1.position }.map(\.label)
+--- a/source/SettingsDiagnosticsVision.swift
++++ b/source/SettingsDiagnosticsVision.swift
+@@ -45,0 +46,3 @@
++      // Vision on Simulator may lowercase the platform acronym. The XCTest
++      // separately checks its exact case in the rendered accessibility row.
++      let acceptedLines = label == "Platform" ? [expectedLine, "Platform ios"] : [expectedLine]
+@@ -48 +51 @@
+-        return text.box.minX < 0.5 && (text.string == label || text.string == expectedLine)
++        return text.box.minX < 0.5 && (text.string == label || acceptedLines.contains(text.string))
+@@ -88 +91 @@
+-      if joinedText != [expectedLine] {
++      if joinedText.count != 1 || !acceptedLines.contains(joinedText[0]) {
+--- a/runner.py
++++ b/runner.py
+@@ -186,0 +187,14 @@
++    def verify_workspace_bytes(phase, before):
++        now = workspace_readback()
++        changed = sorted(key for key in before.keys() | now.keys() if before.get(key) != now.get(key) or
++                         (key in before) != (key in now))
++        changed_fields = []
++        if "workspace.json" in changed:
++            old, new = json.loads(before["workspace.json"]), json.loads(now["workspace.json"])
++            changed_fields = sorted(key for key in old.keys() | new.keys() if old.get(key) != new.get(key) or
++                                    (key in old) != (key in new))
++        report[phase + "WorkspaceReadback"] = dict(changedPaths=changed,changedFields=changed_fields,
++           sha256={key:sha256(value).hexdigest() for key,value in now.items() if value is not None})
++        save()
++        require(not changed, "Isolated workspace bytes changed in " + phase)
++
+@@ -222 +236 @@
+-    require(workspace_readback() == before, 'Workspace changed during the settings matrix.')
++    verify_workspace_bytes('warm', before)
+@@ -231 +245 @@
+-    require(workspace_readback() == before, 'Workspace changed across cold launch.')
++    verify_workspace_bytes('cold', before)
