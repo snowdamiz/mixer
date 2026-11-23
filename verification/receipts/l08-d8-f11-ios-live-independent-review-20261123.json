@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "gate": "L08",
+  "milestone": "D8",
+  "row": "F11",
+  "status": "passed-scoped-ios-simulator-live",
+  "scope": "Independent retained-evidence review of a private FieldLog iOS Simulator fixture and the actual stock local origin",
+  "stage": {
+    "path": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow",
+    "revision": "d1b6e99687545f53466b4975bc1f588eaa7b4609",
+    "tree": "5e2dd391ee65b04d53ef5d857f7d5b5de888ca8f",
+    "readOnly": true
+  },
+  "inputs": {
+    "compact": "verification/receipts/l08-d8-f11-ios-live-delivery-20261123.json",
+    "compactSHA256": "4518eb777c1fcc074764ee06ff33484ea116220a53fc686e1621c0d9aea9d023",
+    "raw": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-ios-signed-resume-root/l08-f11-live-native-20261123",
+    "producerKit": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-07c71380/verification/local/f11-ios-ota-unsigned-fYfhiGH9",
+    "rawSHA256": {
+      "receipt.json": "3c149bd423df9823b85d65a7918161898f582d81170bd8350a5ebd61c13f91df",
+      "admission.json": "185f9a2b70a8ef8f2138f54e9e04a275e05d4043d94a0d1382aacd42e4b98180",
+      "stock-receipt.json": "950017943de08aacd5a609c5506389e76d1cf24fcc1d104ee8f598e1d0e3004d",
+      "test-summary.json": "14fb8dd280d2413031b16a1679d62a8d1c83d9dcef54548ccfb1b428cd9efb9f",
+      "xctest.log": "60f3c712a9cffad42fa01ebe79964a1fe23c1ba41b9ce8ee3a19a0d1fde5338a"
+    },
+    "producerKitManifestSHA256": "ceef230397a42989b822d6d6e0f19a5ab33826c659c98020ec41b3cad09583b2",
+    "kitMembersMatched": 43,
+    "liveSourceHashesMatched": 12,
+    "bundledSourceHashesMatched": 19
+  },
+  "verification": {
+    "tools": {
+      "git": "2.56.0",
+      "python": "3.14.8",
+      "openssl": "4.1.0",
+      "xcresulttool": "25407 / schema 0.5.0"
+    },
+    "commands": [
+      "git show d1b6e99687545f53466b4975bc1f588eaa7b4609:<path>",
+      "xcrun xcresulttool export attachments --path F11.xcresult --output-path <owned scratch>",
+      "xcrun xcresulttool get test-results summary|tests|activities --path F11.xcresult (activities used the exact test ID)",
+      "python3 -B for SHA-256, canonical CBOR compared with pinned vectors, Go wire reconstruction and receipt joins",
+      "openssl pkeyutl -verify -rawin -pubin -keyform DER -inkey <public key> -in <canonical message> -sigfile <signature>"
+    ],
+    "runtimeFingerprint": "edc4a783ee612066a95e8ee71883bd6faa30e0ad081fe115780fa209940b8912",
+    "ed25519": {
+      "manifestsVerified": 3,
+      "uniqueManifests": 2,
+      "assignmentsVerified": 3,
+      "mutatedInputsRejected": 6,
+      "trustValidAtRecordedRun": true
+    },
+    "stockWire": {
+      "prior": {
+        "sequence": 1,
+        "artifact": "5d8d176dd3d46d326dabf8bef64a30b4794bd67808cc93fd02032a6ead59e60c",
+        "payloadBytes": 505,
+        "payloadSHA256": "0f8ffe9b65508a42bb8d8e915f01784434d2b7eb770e446c7d52cb097a5cea2e",
+        "offerSHA256": "70e3a54de2663cdb5b90531bf73a66c9df24a2d534f47a24b7b6415d94a1f9ba",
+        "envelopeSHA256": "9988487d6d286894b4fd75992fdc44344bd2ca9c033fa15982ddfd04885db3a6"
+      },
+      "successor": {
+        "sequence": 2,
+        "artifact": "40c7435279a822fa76dccb34e387b096d4a6128a6f540bb5024d1a2a3b343fd1",
+        "payloadBytes": 2442,
+        "payloadSHA256": "b3def2b5d11c0a350d33a44ff0cd55f4a7e97f6979e547c49ab13bde696d4fe5",
+        "offerSHA256": "692bdc2752ce3176ac2880242da87e621ae68059151b2e00ba975ac3e0e1fa61",
+        "envelopeSHA256": "c30fed5fb55d1b51fa7089fbf4f7433c01ad2353bbc7f714f041ba0588c3beaf"
+      },
+      "rollback": {
+        "sequence": 3,
+        "artifact": "5d8d176dd3d46d326dabf8bef64a30b4794bd67808cc93fd02032a6ead59e60c",
+        "payloadBytes": 505,
+        "payloadSHA256": "0f8ffe9b65508a42bb8d8e915f01784434d2b7eb770e446c7d52cb097a5cea2e",
+        "offerSHA256": "611c758efa9d6905bd38a9a27cd222059ca90e14b120ff2a4d20017ff6cca53e",
+        "envelopeSHA256": "9988487d6d286894b4fd75992fdc44344bd2ca9c033fa15982ddfd04885db3a6"
+      }
+    },
+    "rollback": "Sequence 3 changed only the sequence in the signed assignment subject and reoffered the same 505-byte prior payload and signed manifest. The native rollback staged a new candidate and the offline launch reused it.",
+    "wireEvidence": "Reconstructed raw Go response bodies match the actual controller reads and the native app's sealed expected hashes for all phases. The passing native path requires successful loopback responses, matching response and payload hashes, verified staging and accepted sequences. The retained controller log contains four control POSTs and the origin audit contains seven mutation rows. Neither is an app GET access log."
+  },
+  "native": {
+    "test": "F11WitnessUITests/testPasteSaveAndCommitRestoredNote()",
+    "device": {
+      "architecture": "arm64",
+      "deviceId": "2F1FECFC-DC12-48FC-BBF0-EBC0FEC0B426",
+      "deviceName": "Mixer FieldLog F11 5782b125",
+      "modelName": "iPhone 17 Pro",
+      "osBuildNumber": "24A434",
+      "osVersion": "27.0",
+      "platform": "iOS Simulator"
+    },
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "attachmentSHA256": {
+      "F11 After one paste": "b1e9c53a6ae664453d566152763c332636895af0bbf530756c390f5707cfa6b7",
+      "F11 Revision 1 paste admission": "17d0e0852fac82f96269fd5d83fe6452137ebf92af1db69518bb0e9f1b57e009",
+      "F11 Initial revision 1 bytes": "4632c7111487392c517fb936b394dc955d78bf568f0bab5da6bc6b143646fe45"
+    },
+    "attachmentsReexportedAndMatched": 3,
+    "health": [
+      "prior",
+      "successor",
+      "rollback",
+      "offline"
+    ],
+    "healthEvidence": "One Simulator, app bundle, run UUID and private recovery directory. The healthy labels require a current input-enabled healthy candidate, new launch IDs and PIDs, the previous healthy candidate for online replacements, and rollback candidate reuse offline. The read-only phases closed with zero capability reads and writes. Candidate and launch records were checked by the fixture and retired with its installation.",
+    "observedPIDs": {
+      "prior": 3026,
+      "successorAndCommit": 5281,
+      "coldCommitReadback": 10281,
+      "rollback": 11908,
+      "offline": 15820
+    },
+    "actions": {
+      "paste": 1,
+      "save": 1,
+      "commit": 1
+    },
+    "workspace": {
+      "run": "D13899B1-3030-4814-A36B-3B83BCEA31C8",
+      "revision": 3,
+      "sha256": "66b5ce3bd86a0ef3ef528abefe71496d9816beec4c618406b8693acaeb8d07f4",
+      "note": {
+        "bytes": 50,
+        "sha256": "c2df9d0971930a3b76c1471bc3de882c603f23c5d9240f6d265b4ab03e9d53d1",
+        "lineFeeds": 4,
+        "seedOutboxRows": 1,
+        "recordedOutboxRows": 2
+      },
+      "event": {
+        "createdAt": 817142334.862022,
+        "id": "CC81769A-1EB9-48F6-B189-23039C71DE82",
+        "kind": "entrySaved",
+        "recordID": "F1100000-0000-4000-8000-000000000001",
+        "revision": 3
+      },
+      "eventDelta": 1,
+      "readback": "Cold draft revision 2, fresh-process commit hash, and matching stopped-container revision-3 digest. The SHA-256 of the 50-byte expected note was independently recomputed from the seed and exact six-byte suffix. The persisted workspace and installed binary bytes are represented by the retained owner readbacks."
+    }
+  },
+  "comparison": {
+    "bundledIOS": "The separately reviewed bundled witness shared the exact successor and note digests, native revision-1 paste admission and one revision-2 callback. It staged bundled release material. This run supplied release bytes through the stock origin and exercised live rollback plus offline reuse.",
+    "android": "The existing API 36 replay covers offline restored Note EditText input and one persisted event. F11 stock live Android delivery, rollback and offline reuse remain open."
+  },
+  "cleanup": {
+    "retainedNative": {
+      "terminalCommands": 107,
+      "ownedSimulatorRemoved": true,
+      "privatePacketRemoved": true,
+      "externalDeviceComparisons": 5,
+      "externalDevicesPerComparison": 13,
+      "controllerAndOriginGroupsAbsent": true,
+      "originConnectionRefused": true
+    },
+    "review": {
+      "largestMeasuredScratchKiB": 16,
+      "scratchRemoved": true,
+      "retainedFilesOnly": true
+    }
+  },
+  "findings": [
+    {
+      "severity": "nonblocking",
+      "subject": "Compact receipt mixes unsigned kit preparation with completed native replay",
+      "evidence": "The top-level status and hostKitScope still describe unsigned preparation and say installed OTA is unverified. The top-level appleSigningInvoked value is false while the retained native receipt contains six successful ad hoc codesign commands.",
+      "disposition": "The live acceptance is supported by nativeReplay and the raw results. Scope the preparation fields explicitly and record native ad hoc signing separately."
+    }
+  ]
+}

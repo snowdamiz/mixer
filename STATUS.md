@@ -289,8 +289,10 @@ launch omitted the relay port, made zero requests, and preserved its
 settled journal byte for byte. The successor showed the ordered 20+6
 rows on both launches, with zero workspace writes throughout. All five
 payload and workspace digests match the separate iOS run. This evidence
-uses a reconstructed private APK and a reauthored prior. The D8 corpus
-remains open. [Android F10 live replacement](verification/receipts/l08-d8-f10-android-live-replacement-20261123.json)
+uses private builds and a reauthored prior. Independent review accepted
+paired fixture behavior. The stock origin refused Android UI3 before
+the scoped fixture origin served it, so the public D8 OTA tally is
+unchanged and the corpus remains open. [Android F10 live replacement](verification/receipts/l08-d8-f10-android-live-replacement-20261123.json)
 
 The private F03 contracts passed immediate-first admission and
 deferred-start refusal before effects. Android verified all 54
@@ -489,7 +491,8 @@ and four line feeds and appended one linked revision-3 entrySaved event.
 The fresh process and stopped container matched the committed workspace
 digest. The owned Simulator and loopback services closed. The prior is
 a reauthored read-only fixture. Android live parity remains open.
-[F11 live iOS delivery](verification/receipts/l08-d8-f11-ios-live-delivery-20261123.json)
+[F11 live iOS delivery](verification/receipts/l08-d8-f11-ios-live-delivery-20261123.json) ·
+[Independent F11 live review](verification/receipts/l08-d8-f11-ios-live-independent-review-20261123.json)
 
 The Android-scoped F20 signed host replay matched the archived order of
 23 drafts and 43 entries and opened a second-page draft. The live and
@@ -669,8 +672,9 @@ L02 running for the adopted Android recovery and deletion path.
 The rebuilt Pair27 Android account APK passed host admission and
 development signing. Both fresh API 36 runs stopped at native
 hierarchy capture. The second reached the ordinary Projects screen
-before the sign-in hierarchy file was absent. Neither reached the
-fixture issuer. Both owned emulators and ADB groups closed, and both
+before the sign-in hierarchy file was absent. No exchange or deletion
+route was recorded. The trace omitted initial auth and browser form
+requests. Both owned emulators and ADB groups closed, and both
 scratch directories were removed. Recovery and deletion on this
 adopted build remain open.
 [Android account native boundary](verification/receipts/l02-android-account-ui-boundary-20261123.json)
@@ -2262,6 +2266,15 @@ workspace bytes and file identity. The full draft-save, cold reopen and
 single Commit continued to pass. All 196 outer and native commands
 closed and owned scratch was removed.
 [Installed F12 Tasks navigation](verification/receipts/fieldlog-f12-android-tasks-return-api36-ac305262.json)
+
+The matching iOS F12 development build selected February 29 in the
+native picker. The test tapped the combined Date and Time control again
+where it needed the separate time button. The retained hierarchy shows
+the calendar still open. The test stopped before draft Save and Commit.
+The strict host verifier still distinguishes the Android fractional
+instant from the iOS minute projection. The owned Simulator and private
+packet were removed.
+[iOS F12 time picker attempt](verification/receipts/l08-d8-f12-ios-time-picker-boundary-20261123.json)
 
 Ordinary offline F11 reopened a saved note on API 36. Native input
 appended ASCII to the existing Unicode and multiline note. Save left
