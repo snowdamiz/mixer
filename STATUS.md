@@ -265,6 +265,18 @@ FieldLog and reported an updater error before accepting its new
 release. Both source-bound offers passed the stock origin host checks.
 The owned Simulator was removed. [Replacement receipt](verification/receipts/l08-ios-native-capability-replaced-refusal-20261122.json)
 
+## Matched FieldLog Android Project Detail replay
+
+The rebuilt ordinary Android APK from the reviewed iOS composite tree
+passed first launch, exact Valve and Gauge saves, center completion,
+and a separate Move down action. Stopped readback recorded the exact
+task order and five linked outbox operations. The extended replay
+stopped before saving Inspection 20. The editor showed `nspection 20`
+after the runner tapped the field and typed without checking focus.
+The owned API 36 emulator and private ADB closed. Android's draft,
+entry, queue paging and cold comparison remain open for this build.
+[Android D2 native boundary](verification/receipts/l08-d2-android-composite-native-boundary-20261123.json)
+
 ## Managed iOS FieldLog and historical native corpus
 
 The F06 signed editor reached its native form on the user-initiated
