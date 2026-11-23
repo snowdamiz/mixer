@@ -380,6 +380,13 @@ no render frame or display ticket when it stopped. This attempt retains
 the original 50 ms limit. The earlier opaque failure remains separate.
 [Typed F09 wake failure](verification/receipts/l08-d8-f09-ios-typed-wake-timeout-20261123.json)
 
+With user-initiated QoS, the next installed F09 attempt produced the first
+guest frame and confirmed effects. The native renderer measured zero height,
+so the observer never took its display ticket and the release stayed
+provisional. XCTest timed out before the first tap. The owned Simulator
+was deleted and all three controller ports were reusable.
+[F09 native display failure](verification/receipts/l08-d8-f09-ios-zero-height-20261123.json)
+
 For F11, the stock signed host read the original restored note and
 refused the editable frame before any input or write. Rollback and
 offline reopen preserved the exact workspace. A separate Pair25
@@ -392,9 +399,17 @@ A private signed F11 host fixture then restored the exact vertical note
 and delivered one authorized edit with its Unicode and four line
 feeds intact. Wrong field, action, attachment and revision were refused.
 The guest's put and delete were denied, and all fixtures retired with
-the workspace bytes unchanged. The signed Save draft and Commit entry
-path is still open.
+the workspace bytes unchanged.
 [Private vertical edit replay](verification/receipts/l08-d8-f11-private-vertical-host.json)
+
+The private macOS F11 replay then bound Save draft and Commit entry to
+the current signed note frame and the expected workspace revision.
+The draft repository reopened while the signed presentation was live.
+A separate process verified the committed entry and its single linked
+outbox event. Wrong or repeated actions left the workspace unchanged.
+This test uses headless presentation tickets. Installed iOS and Android
+replay remains open.
+[F11 private host action replay](verification/receipts/l08-d8-f11-private-action-host.json)
 
 The Android-scoped F20 signed host replay matched the archived order of
 23 drafts and 43 entries and opened a second-page draft. The live and
