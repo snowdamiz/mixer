@@ -155,8 +155,14 @@ public enum ProjectGenerator {
         try fm.createDirectory(at: target, withIntermediateDirectories: true)
         try ProjectBuild.copyExportEntries(entries, from: source, to: target)
         if requireIOS {
-            let files = try SourceDigest.exportEntries(in: target).filter { !$0.directory }
-            for module in ["MixerCore", "MixerUI", "MixerApple", "MixerGuest", "MixerCapabilities", "MixerAndroid"] {
+            let copied = try SourceDigest.exportEntries(in: target)
+            let files = copied.filter { !$0.directory }
+            var modules = ["MixerCore", "MixerUI", "MixerApple", "MixerGuest", "MixerCapabilities", "MixerAndroid"]
+            // Pre-pivot SDKs can still be installed by an explicit upgrade.
+            if copied.contains(where: { $0.relative == "Sources/MixerSwiftUI" }) {
+                modules.append("MixerSwiftUI")
+            }
+            for module in modules {
                 guard files.contains(where: { $0.relative.hasPrefix("Sources/\(module)/") && $0.relative.hasSuffix(".swift") }) else {
                     throw MixerFailure("snapshot.sdk", "The copied SDK is missing Swift sources for \(module). Supply the complete SDK from your pinned Mixer checkout.")
                 }
