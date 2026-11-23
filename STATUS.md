@@ -94,6 +94,15 @@ operation at revision 50. The same owned Simulator ran all three tests
 and was removed. Standalone native browser sign-in remains separate.
 [Native adoption receipt](verification/receipts/l08-d0-d1-installed-adoption-20261122.json)
 
+## iOS native capability replacement
+
+The old installation accepted sequence 7, refused the incompatible
+assignment, and reopened sequence 7 offline. In-place replacement kept
+the old workspace and journal bytes. The replacement binary opened
+FieldLog and reported an updater error before accepting its new
+release. Both source-bound offers passed the stock origin host checks.
+The owned Simulator was removed. [Replacement receipt](verification/receipts/l08-ios-native-capability-replaced-refusal-20261122.json)
+
 ## Managed iOS FieldLog and historical native corpus
 
 A stock local build processor and managed worker linked the arm64 iOS
@@ -103,12 +112,12 @@ project with `generate.modified`. The build used a private digest-checked
 project admission patch. Stock Phoenix served signed sequences 1, 2, and 3
 for the exact rebound managed runtime. Sequence 3 rolled back to the
 sequence 1 artifact. Both local services closed. Authenticated build artifact
-download and the installed release journey remain open. The two native
-baseline attempts reached the checklist view and timed out waiting for
-its health observation. The label returned its name and the value was
-empty. A fresh live read recorded sequence 1 healthy with the current
-launch and both milestones. The exact installation join stopped that run
-before sequence 2, rollback, or offline reopen.
+download and stock build admission for the checked-in project remain
+open. The installed journey passed with renewed development trust and
+one fixed app. The live journal matched signed sequence 1, review 2,
+rollback 3, and retained sequence 3 in a fresh offline process. The
+same installation and workspace bytes joined all four launches. Earlier
+observer and identity failures are preserved.
 [Managed build receipt](verification/receipts/l08-d6-managed-fieldlog-ios-build-20261122.json)
 
 The historical F05 iOS app passed Cancel, Add, and cold readback. An
@@ -125,7 +134,9 @@ Simulator attached the diagnostic to the exact app PID and was removed.
 The account lifecycle still needs an installed replay. Two private
 development entitlement profiles installed successfully, then the
 Simulator refused to launch the app before returning a process ID.
-The next control uses Xcode's generated Simulator signature.
+A separate Xcode-signed native specimen wrote through Keychain and read
+the same synthetic value from a second process. FieldLog needs an app
+build with Xcode's generated Simulator entitlement sections.
 [Keychain diagnostic](verification/receipts/l02-ios-account-keychain-restore-status-20261122.json)
 
 The ordinary iOS Photos-picker journey now passes exact stopped disk
