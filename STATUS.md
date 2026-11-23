@@ -273,6 +273,16 @@ and one linked outbox operation. The owned Simulator was removed.
 Android retains separately scoped offline evidence for the same Wasm.
 [Reviewed F06 native keyboard receipt](verification/receipts/l08-d8-f06-ios-native-keyboard-20261123.json)
 
+The local telemetry fixture stopped its loopback consumer. Both
+Phoenix subscribers saw connection refusal and detached. The same
+service kept delivering exact signed releases and committed sequence 3
+rollback. Billing stayed disabled. [Telemetry fixture receipt](verification/receipts/l08-phoenix-telemetry-sink-host-20261123.json)
+
+The large-text review matched the exact Android runner and verified
+the full Arabic guest title on both targets at their tested large
+sizes. The enclosing iOS Debug navigation title and offline release
+banner still clip. [Arabic large-text review](verification/receipts/l08-arabic-large-text-retained-review-20261123.json)
+
 A stock local build processor and managed worker linked the arm64 iOS
 Simulator build of FieldLog and verified its committed products after
 PostgreSQL restart. The unpatched CLI refused the checked-in Xcode
