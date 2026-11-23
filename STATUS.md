@@ -66,6 +66,22 @@ review rechecked the signed journal. The earlier Debug observers failed
 before verifying the baseline.
 [Installed calculation receipt](verification/receipts/l08-ios-calculation-signed-native-20261122.json)
 
+## Managed iOS FieldLog and historical native corpus
+
+A stock local build processor and managed worker linked the arm64 iOS
+Simulator build of FieldLog and verified its committed products after
+PostgreSQL restart. The unpatched CLI refused the checked-in Xcode
+project with `generate.modified`. The build used a private digest-checked
+project admission patch. Authenticated download, signed publication and
+native rollback for this exact build remain pending.
+[Managed build receipt](verification/receipts/l08-d6-managed-fieldlog-ios-build-20261122.json)
+
+The historical F05 iOS app passed Cancel, Add, and cold readback. An
+independent signed F10 companion installation failed before navigation
+assertions. Both simulators retired. The F05 test adds ordinary Apple
+behavior to the corpus review. Its signed Android test has separate scope.
+[Native corpus receipt](verification/receipts/l08-ios-corpus-f05-f10-native-20261122.json)
+
 ## Android Note switch and Home recovery
 
 The independently reviewed combined candidate passed an installed IME
