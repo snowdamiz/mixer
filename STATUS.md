@@ -717,8 +717,11 @@ reauthorized. One renewed confirmation produced HTTP 200 and one
 deletion receipt, removed only the target workspace and credential,
 and preserved the ordinary workspace and peer rows. All 214 owner
 commands closed, the package was uninstalled, and the disposable AVD,
-private ADB and issuer retired. Independent L02 closure review is pending.
-[Android renewed deletion pass](verification/receipts/l02-android-renewed-deletion-native-20261123.json)
+private ADB and issuer retired. Independent review accepted the Android
+account result. L02 stays open for the paired reference-screen design
+review and installed iOS locale, Larger Text and diagnostics checks.
+[Android renewed deletion pass](verification/receipts/l02-android-renewed-deletion-native-20261123.json) ·
+[L02 independent decision](verification/receipts/l02-independent-retained-review-20261123.json)
 
 The exact installed FieldLog executable returned a missing-entitlement
 status from its first Keychain read before sign-in. A fresh disposable

@@ -14,14 +14,14 @@ November 18. The public CLI and SDK create, export, and build starter apps for
 both targets, and the importer reports on FieldLog's iOS source.
 [L01 decision](../verification/receipts/l01-independent-final-review-41a05264.json)
 
-**L02 Shared app and native UI: in progress.** The installed iOS app completed
-sign-in, offline restore, recovery, sign-out, and account deletion. On
-Android, the installed app signed in, refused a peer recovery, recovered the
-correct account, and showed a renewed deletion confirmation, but no deletion
-request was recorded. Android account deletion and the remaining cross-platform
-UI and accessibility checks are open.
+**L02 Shared app and native UI: in progress.** The installed iOS and Android
+apps passed their scoped local account lifecycles, including recovery and
+confirmed deletion. The side-by-side design review for native reference
+screens and the iOS Settings locale, Larger Text, and diagnostics checks
+remain open.
 [iOS account replay](../verification/receipts/l02-ios-account-system-browser-native-20261122.json) ·
-[Android recovery and deletion replay](../verification/receipts/l02-android-reauthorized-deletion-boundary-20261123.json)
+[Android renewed deletion](../verification/receipts/l02-android-renewed-deletion-native-20261123.json) ·
+[L02 decision](../verification/receipts/l02-independent-retained-review-20261123.json)
 
 **L03 Compiler and owned runtime: passed.** Independent review passed the
 supported local Swift scope. On iOS, an installed diagnostic mapped a VM trap
@@ -49,9 +49,11 @@ signed runtime, signer and worker recovery, restore, and privacy checks.
 [Evidence](../STATUS.md#local-security-and-reliability-gate)
 
 **L08 FieldLog and documentation: in progress.** Six of eight required FieldLog
-milestones have passed. D2 and D8 remain open. Recent installed replays
-verified the F10 release on both targets and the F11 note edit and rollback on
-iOS.
+milestones have passed. D2 still needs paired ordinary workflows and greater
+shared Swift coverage. The installed F10 private fixtures passed on both
+targets. The stock public runtime still refuses F10's UI schema, so the D8
+public OTA count is unchanged. F11 live delivery, note editing, and rollback
+passed on iOS.
 [Android F10 replay](../verification/receipts/l08-d8-f10-android-live-replacement-20261123.json) ·
 [iOS F11 replay](../verification/receipts/l08-d8-f11-ios-live-delivery-20261123.json)
 
