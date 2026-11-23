@@ -1,0 +1,93 @@
+{
+  "schema": "mixer.verification.f10-ordinary-origin-enrollment.v1",
+  "status": "blocked-at-installed-profile-enrollment",
+  "observedUTC": "2026-11-23T17:04:38Z",
+  "source": {
+    "revision": "d470392a76d3c74d1628605a2fb8257c5f30177a",
+    "tree": "c0d31f9ed7f0b54e76ebfc849ad0750098d524bd",
+    "swiftCandidatePatchSHA256": "db06cfbaf72cac60d681ea8b045daa4f08b76a47bd6b1f8132a70d2f2d02089d",
+    "note": "Built stock CLI and Go origin from a read-only pinned Git extraction. The Swift candidate was a contract reference."
+  },
+  "builds": {
+    "go": "go1.26.4 darwin/arm64",
+    "swift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1), arm64-apple-macosx27.0.0",
+    "originCommand": "go -C src/services build -p 6 -o <scratch>/mixer-service ./cmd/mixer-service",
+    "cliCommand": "swift build --package-path src/cli --product mixer --scratch-path <scratch>/swift-build --cache-path <scratch>/cache --config-path <scratch>/swift-config --security-path <scratch>/swift-security --disable-sandbox --manifest-cache local --skip-update --only-use-versions-from-resolved-file -j 7",
+    "originSHA256": "a4b7b0db1db3f12ae51b7261693b3b1686463807ea17bc0722b183165f148c38",
+    "cliSHA256": "56c8db1969156d3c1b797e83073bf10229ccfe8a88abfb6c5d1c5c45a5c5dbe6"
+  },
+  "historical": {
+    "retainedDirectory": "t3-299f3481/verification/local/l08-d8-f10-android-restored-299f3481/public/android",
+    "rootFileSHA256": "1a19ab445a15395cc56fc5560ef6d505b61930c9e9b4d3f785acf7be969fc33b",
+    "rootExpiredUTC": "2026-11-23T16:53:06Z",
+    "offlineCheck": "Canonical CBOR Ed25519 signatures, release and assignment coordinates, rollout sequence, and payload length/digest verified for all three retained phases. Assignment authority was checked at the historical start of the signing root's validity. The live origin used its real clock and original roots.",
+    "predecessor": {
+      "sequence": 1,
+      "payloadBytes": 2002,
+      "payloadSHA256": "39ccd91d0e129de88fd617670caacf02c68d93d406747efc8f70318643437433",
+      "manifestJSONSHA256": "6164fab47e42537d0ce5735ad3b3f837b2087d9971fddd260cfa6a77381b8fc3",
+      "assignmentJSONSHA256": "0a08a43a55954183e1ac8626fa42a2b121cfc1180f09a55a1d7aa4f44d36c116",
+      "artifactSHA256": "20e07a78d885eef004263da52333883c64263233b21771e8645e8a9ec1b0dc79"
+    },
+    "successor": {
+      "sequence": 2,
+      "payloadBytes": 14503,
+      "payloadSHA256": "fb225d5722eda20c7591a9e7bb112d560924cedf9da17106b57eeb049f94d3b9",
+      "manifestJSONSHA256": "50dff22ac1ff8b61c5d611db108ebf657d9e58730ea37744c08bdb9e693851a4",
+      "assignmentJSONSHA256": "37383f816501a25313f0dec9ff33a01e48f4fb51bf589517513a8ba6d1a0d863",
+      "artifactSHA256": "584cd72e56faae6d4eeecd37edbe4d1b5bcda056af1c1566ae0ae0332876c2ec"
+    },
+    "rollback": {
+      "sequence": 3,
+      "assignmentJSONSHA256": "1da65204b56f5aa706b33838b842a1cbbf251d3ab5380ae9feca185dd9357ff8",
+      "artifactSHA256": "20e07a78d885eef004263da52333883c64263233b21771e8645e8a9ec1b0dc79"
+    }
+  },
+  "entrypoints": [
+    "MIXER_SERVICE_CONFIG=<explicit local developer config> mixer-service",
+    "mixer update publish CANDIDATE --organization ORG --project PROJECT --assignment CANDIDATE/assignment.json --channel beta --rollout 100",
+    "mixer update rollback ARTIFACT_SHA256 --organization ORG --project PROJECT --assignment ROLLBACK/assignment.json --channel beta --reason 'local test rollback'"
+  ],
+  "observations": {
+    "registration": {
+      "exactUI3Host": "exit 1: mixer-service: invalid/duplicate registered host",
+      "descriptorAddedToHost": "exit 1: mixer-service: missing or unknown protocol fields",
+      "storeCreatedOnRejection": false
+    },
+    "historicalPredecessorAndSuccessor": "CLI exit 1, update.upload.rejected, HTTP 422 unknown_runtime. Public update checks returned 204 and both public artifact reads returned 404.",
+    "historicalRollback": "CLI exit 1, update.rollback.rejected, HTTP 422 not_validated.",
+    "historicalMismatch": "Old-runtime and wrong-app manifests returned HTTP 422 unknown_runtime. Old-runtime and wrong-app assignments paired with the exact manifest failed CLI update.intent. The manifest without its signature failed CLI update.signed-input.",
+    "ui1Positive": "Local UI1 predecessor, successor and rollback committed through the CLI at sequences 1, 2 and 3. The origin served each signed assignment and signed manifest. Scoped bearer roles and fresh, separate test-only Ed25519 artifact and assignment keys were used.",
+    "ui1Controls": {
+      "readerUpload": "HTTP 403 role_denied",
+      "foreignRuntimeAndApp": "HTTP 422 unknown_runtime",
+      "foreignTenant": "CLI update.scope for wrong route intent, HTTP 403 scope_denied for a foreign bearer, HTTP 422 unknown_runtime with its own bearer and no installed host",
+      "correctlySignedUI3AgainstUI1": "HTTP 422 artifact_invalid: unsupported v3 schema, protocol, guest ABI or UI schema",
+      "alteredManifest": "HTTP 422 artifact_invalid: v3 artifact signature invalid",
+      "correctlySignedInvalidStorageNamespace": "HTTP 422 artifact_invalid: invalid storage grant namespace",
+      "negativeMutations": "Post-rollback negative requests left the persisted release.json byte-identical and the public head at sequence 3."
+    },
+    "replayLogSHA256": "53116f5c7e1239adc964062eaa32ea9d403bf951bd599693fc3d5dc0841d70f8",
+    "goRegression": {
+      "command": "go -C src/services test -count=1 -p 4 -v ./protocol ./release",
+      "packages": ["mixer/services/protocol", "mixer/services/release"],
+      "topLevelPasses": 53,
+      "skips": 0,
+      "legacyControls": ["TestLegacyV1WireCorpusMatchesCanonicalContract", "TestVersionedStoredRecordsAreClosedAtomicAndLegacyByteExact", "TestHTTPV2CoexistsWithLegacyAndPreservesRuntimeChannels"],
+      "logSHA256": "aae9499d880ec341d0e38c8a45fa24d5b19343bffed3b4cad45f0077b0b17554"
+    }
+  },
+  "compatibleCorrection": [
+    "Add an opt-in operator-owned Go enrollment for a descriptor independently pinned or authenticated by enrollment authority. Recompute the descriptor fingerprint and derive the exact scope, UI3 profile, trust-roots binding, execution limits, and authorized read-only storage grant and namespace. A release publisher token grants release mutation authority only.",
+    "Use the existing canonical v3 signature domains and CLI upload, validate, publish and rollback wire operations. Require a matching enrolled profile and an exact signed grant at origin admission. Check current enrollment before serving persisted UI3 assignments or artifacts. Leave legacy schemas and their canonical encodings on their existing paths.",
+    "Verify the original envelopes at a historical valid time in a deterministic replay, and use current ephemeral roots with a freshly enrolled descriptor and unchanged Wasm bytes for live acceptance. Preserve the original signed envelopes."
+  ],
+  "limits": "The first blocker prevented positive UI3 admission. The stock controls do not establish UI3 exact-grant enforcement. Phoenix, Worker, stock runtime adoption and native execution remain pending. No product source patch was applied.",
+  "cleanup": {
+    "loopbackOriginExit": 0,
+    "ownedScratchRemoved": true,
+    "observedScratchMiB": 492,
+    "network": "Builds denied network via sandbox-exec. Replay and Go regression outbound traffic was restricted to localhost.",
+    "devicesUsed": false
+  }
+}

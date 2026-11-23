@@ -332,6 +332,15 @@ the signed schema 1 control published. The fix needs an installed
 contract spanning consumers and origin admission.
 [F10 public schema refusal](verification/receipts/l08-d8-f10-public-ui-schema-refusal-20261123.json)
 
+An explicit Swift UI3 profile passed the exact F10 signed verification
+and the stock archive transition, preserving all legacy identity
+vectors and the Pair27 profile. The ordinary Go origin still refuses
+UI3 enrollment before opening the store. Its existing CLI wire publishes
+and rolls back the signed UI1 control. UI3 origin enrollment and the
+ordinary installed app routes remain open.
+[F10 Swift admission candidate](verification/receipts/f10-source141-composition-35beeda3.json) ·
+[F10 Go enrollment blocker](verification/receipts/f10-ordinary-origin-enrollment-36ae35f9.json)
+
 The private F03 contracts passed immediate-first admission and
 deferred-start refusal before effects. Android verified all 54
 source members and refused mixed source pairs. Native appearance
@@ -387,6 +396,14 @@ The first launch observed retirement 21.3 ms after close returned.
 The reauthored V1 buttons cover the historical commands. Matching
 installed Android delivery remains open.
 [Independent native F02 review](verification/receipts/l08-d8-f02-ios-retirement-review-20261123.json)
+
+The ordinary F02 Android owner accepted the current input token and
+refused the historical move under its selected-draft grant. Exposing
+existing commit facts at the ordinary open call and admitting only the
+required scope remain integration work. A separately bound stock host
+refused the initial hydration read, before any guest frame or write.
+Cold readback preserved the original workspace and JPEG.
+[Ordinary F02 move blocker](verification/receipts/d8-f02-ordinary-reorder-counterexample-bc1b90ef.json)
 
 The F04 successor reached the stock signed host. The ordinary Guest
 UI V1 profile refused the first editable frame before Save. Rollback
@@ -757,6 +774,14 @@ account result. L02 stays open for the paired reference-screen design
 review and installed iOS locale, Larger Text and diagnostics checks.
 [Android renewed deletion pass](verification/receipts/l02-android-renewed-deletion-native-20261123.json) ·
 [L02 independent decision](verification/receipts/l02-independent-retained-review-20261123.json)
+
+Compilation found the first shared appearance blocker on both stock
+hosts. The Swift public host could construct all three shared documents
+but accepted no canonical appearance argument. The ordinary Android
+Activity decoded the same documents and routed to its legacy renderer
+even with the exact Pair27 V2 descriptor. Native reference capture
+remains pending a matching public rendering path.
+[Shared appearance compiler probe](verification/receipts/l02-public-shared-appearance-compiled-20261123.json)
 
 The exact installed FieldLog executable returned a missing-entitlement
 status from its first Keychain read before sign-in. A fresh disposable
