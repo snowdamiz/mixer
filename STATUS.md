@@ -167,6 +167,17 @@ committing, and Apple keeps its serial save queue. Exact cold readback
 passed for both. Standalone Swift overlap rose to 2,144 of 5,496 lines.
 [Shared workspace transaction receipt](verification/receipts/l08-d2-shared-workspace-transaction-host-20261123.json)
 
+The title-binding opt-in saved Gauge on the corrected Simulator build.
+All three tests passed, including the independent reorder menu,
+return to page 2, cold entry readback and 25 ordered outbox records.
+[Reviewed project-detail Simulator receipt](verification/receipts/l08-d2-ios-project-detail-title-fixed-20261123.json)
+
+The shared workspace presentation owner passed both host routes
+and 36 Android tests. Both products linked the owner. The linked
+Swift roster has 2,354 shared lines out of 5,741. Composition with
+the Apple title fix passed exact source reconstruction. A combined
+build and native replay remain open. [Shared owner receipt](verification/receipts/l08-d2-shared-workspace-presentation-host-20261123.json)
+
 ## In-place FieldLog public SDK adoption on iOS
 
 Three native tests created a project and saved photo draft in standalone
