@@ -1,0 +1,2397 @@
+{
+  "schema": 1,
+  "status": "baseline_signed_link_and_rollback_verified",
+  "observedAtUTC": "2026-11-23T08:17:58.365995+00:00",
+  "source": {
+    "stagePath": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow",
+    "stageCommit": "ac33a55c66da8aa1f70ac2bdf46ecdb33d1aa461",
+    "stageTree": "e576d48c141640b16599c170f21c1c9645f0b62b",
+    "stageAccess": "read-only",
+    "fieldLogTree": "74cdeca2ed0d4b0eb6b1bc1a6c5fa278b8ee498a",
+    "fieldLogByteIdenticalSignedInputs": {
+      "Integrations/GeneratedReport/Sources/FieldLogAndroid/SignedChecklist.swift": "2f11bd0fc1390faa3a24cbca1f5e1eb3ee84756d94766f4c32f5bb176305023b",
+      "Integrations/GeneratedReport/Platforms/Android/Bridge/ChecklistBridge.c": "e9b5a1340ec9eefca4d6a1695e92a5b75de93f7423612f91f83515c0d69b845d",
+      "Integrations/InstalledGuest/Delivery.swift": "d23bc5b9373ded66f2d07c0c4100ad123441fa87789d90e9eba4fdf592435c04",
+      "Integrations/InstalledGuest/FieldLogDraftStorage.swift": "af481c6021892682dc2f3942317ad138604ee2b93293bc05d5970dbe7765eb23",
+      "Integrations/InstalledGuest/SelectedDraftBinding.swift": "3be34a45b33a8b19a516e1bd0dbf4f7cf3f8c39e3fab1f941979ec78d037db00",
+      "Integrations/InstalledGuest/SignedTask.swift": "77286e9d33cec04614cb7925cb670d0bcb223baf91c1dbf57fa46b4c7af83845"
+    },
+    "ordinarySDK": "5dea19db36610e312b51918b384364ba590b6ef8",
+    "ordinarySDKTree": "b0a6a2fed1837169edc655da6b17ef3ccf58afec",
+    "signedSDKAndVM": "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d",
+    "signedSDKTree": "d888b6a1ef9331079b98a0dc21c3a1b8ee482894",
+    "signedVMSubtree": "d92bb09472d2aa448e6162541726daca8711fbd0",
+    "capabilityIdentities": {
+      "capabilities": {
+        "network.http.v1": "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3",
+        "storage.keyValue.v1": "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"
+      },
+      "contractSHA256": "ca53c3c2ea1d8f08020468cc5d458d86542e0806d6494840557e591342f1154e",
+      "nativeImplementationSHA256": "5d467c65cf58917ab499840226bb5ae577fbae3cd063577985555141d131e92a"
+    },
+    "historicalReconstructionMaterialMatchedStagePin": {
+      "verification/receipts/l08-d2-combined-app-host-and-ios-native-20261123.patch.b64": "308d0ed174406ed8c915c0bb65fce2d9f4004f0d148e87bce85f3a19186b8e58",
+      "verification/receipts/l08-d2-shared-project-detail-host-20261123.patch.b64": "4f93155d042611b6dd8e7374a8b9d7ab3b42302338cbb3e20f2cd8141dbbb721",
+      "verification/receipts/l08-d2-shared-workspace-transaction-host-20261123.patch.b64": "8bf358b8b98c5a43fb03f16d245608542a5985f85a430cccb7531f3dd1d4b927"
+    },
+    "ordinaryNativeImplementationSHA256": "4fcc770e62d39b415e657ce03aa11fa7fb83ee8bfe1a99567716e9b4372d1c59",
+    "capabilitySchemaMatchedBothPins": true,
+    "ordinaryLockPins": [
+      {
+        "identity": "swift-asn1",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/apple/swift-asn1.git",
+        "state": {
+          "revision": "3b6410f7dee09eb33cdd26260c5fd47fda19b0e2",
+          "version": "1.7.3"
+        }
+      },
+      {
+        "identity": "swift-crypto",
+        "kind": "remoteSourceControl",
+        "location": "https://github.com/apple/swift-crypto.git",
+        "state": {
+          "revision": "c2cbadd7263439d8015189668f96ff5b5be565ce",
+          "version": "5.0.3"
+        }
+      }
+    ]
+  },
+  "tools": {
+    "swift": "Apple Swift 6.3.3 RELEASE",
+    "manifestSDK": "Xcode 26.6 / macOS SDK 26.5",
+    "destination": "aarch64-unknown-linux-android28",
+    "rustc": "1.99.0 (b940084d7 2026-09-28)",
+    "elfTools": "NDK r27d llvm-nm and llvm-readelf",
+    "ndkClang": "18.0.4 (13691557)",
+    "git": "git version 2.56.0",
+    "python": "3.14.8"
+  },
+  "reconstructionAndBuild": {
+    "baseline.sh": "#!/bin/bash\nset -euo pipefail\nd=$1\nroot=$2\nstage=$root/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow\ndelivery=$root/t3-25402a6b/verification/local/fieldlog-composite-25402a6b/delivery\nmkdir \"$d/work\"\nexport TMPDIR=\"$d\"\nbash \"$delivery/stage.sh\" \"$d/work\"\ncd \"$d/work\"\nexport TMPDIR=\"$PWD/tmp\"\nexport GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_ALLOW_PROTOCOL=file GIT_TERMINAL_PROMPT=0\nexport GIT_CONFIG_COUNT=2\nfor pair in '0 swift-crypto-7e0614ea swift-crypto' '1 swift-asn1-7065ad2c swift-asn1'; do\n    read -r i cached name <<< \"$pair\"\n    export \"GIT_CONFIG_KEY_$i=url.file://$HOME/Library/Caches/org.swift.swiftpm/repositories/$cached.insteadOf\"\n    export \"GIT_CONFIG_VALUE_$i=https://github.com/apple/$name.git\"\ndone\nmkdir -p relocated/Generated/MixerSDK relocated/Platforms/Android/Tests/AppAndroidTests\ngit -C \"$stage\" archive 5dea19db36610e312b51918b384364ba590b6ef8:sdk | tar -x -C relocated/Generated/MixerSDK\npython3 -B - <<'PY'\nimport importlib.util\nfrom pathlib import Path\nroot = Path.cwd()\nspec = importlib.util.spec_from_file_location(\"installer\", root / \"fieldlog/Integrations/GeneratedReport/scripts/build-android.py\")\nmodule = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(module)\nmodule.install_app_inputs(root / \"relocated\", *module.app_inputs())\nPY\n",
+    "swift-build.sh": "#!/bin/bash\nset -euo pipefail\nd=$1\nshift\nexport DEVELOPER_DIR=/Applications/Xcode_26.6.app/Contents/Developer\nexport SDKROOT=\"$DEVELOPER_DIR/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk\"\nexport TMPDIR=\"$d/work/tmp\" CLANG_MODULE_CACHE_PATH=\"$d/clang-cache\" XDG_CACHE_HOME=\"$d/xdg-cache\"\nexport SWIFTPM_MODULECACHE_OVERRIDE=\"$CLANG_MODULE_CACHE_PATH\"\nexport GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_ALLOW_PROTOCOL=file GIT_TERMINAL_PROMPT=0\nexport GIT_CONFIG_COUNT=2\nfor pair in '0 swift-crypto-7e0614ea swift-crypto' '1 swift-asn1-7065ad2c swift-asn1'; do\n    read -r i cached name <<< \"$pair\"\n    export \"GIT_CONFIG_KEY_$i=url.file://$HOME/Library/Caches/org.swift.swiftpm/repositories/$cached.insteadOf\"\n    export \"GIT_CONFIG_VALUE_$i=https://github.com/apple/$name.git\"\ndone\nswift=\"$HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain/usr/bin/swift\"\nexec /usr/bin/sandbox-exec -p '(version 1) (allow default) (deny network-outbound (remote ip))' \\\n\"$swift\" build --disable-sandbox --package-path \"$d/work/relocated/Platforms/Android\" \\\n--scratch-path \"$d/swift-build\" --cache-path \"$d/swift-cache\" --config-path \"$d/swift-config\" \\\n--security-path \"$d/swift-security\" --manifest-cache local --disable-dependency-cache \\\n--disable-prefetching --disable-index-store --swift-sdks-path \"$HOME/Library/org.swift.swiftpm/swift-sdks\" \\\n--swift-sdk aarch64-unknown-linux-android28 --force-resolved-versions -j 8 --product AppAndroid \\\n-Xswiftc -gnone -Xcc -g0 -Xlinker -z -Xlinker max-page-size=16384 \"$@\"\n",
+    "native-inputs.sh": "#!/bin/bash\nset -euo pipefail\nd=$1\nstage=$2\nrevision=$3\nout=\"$d/native\"\nmkdir -p \"$out\" \"$out/source\"\nexport TMPDIR=\"$out\" CARGO_HOME=\"$out/cargo\"\nexport PATH=\"$HOME/.rustup/toolchains/1.99.0-aarch64-apple-darwin/bin:$PATH\"\nexport GIT_OPTIONAL_LOCKS=0 GIT_NO_LAZY_FETCH=1 GIT_ALLOW_PROTOCOL=file\nndk=\"$HOME/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin\"\nexport CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=\"$ndk/aarch64-linux-android28-clang\"\ngit -C \"$stage\" archive \"$revision\" vm native/android/signed-guest-ui verification/android-binding-stage4/host-bridge | tar -x -C \"$out/source\"\nbinding=\"$out/source/native/android/signed-guest-ui/binding/include\"\ntransport=\"$out/source/native/android/signed-guest-ui/transport\"\nhost=\"$out/source/verification/android-binding-stage4/host-bridge\"\nbridge=\"$d/work/fieldlog/Integrations/GeneratedReport/Platforms/Android/Bridge\"\n\"$CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER\" --version\nrustc --version\nfor source in \"$transport/transport.c\" \"$transport/platform_android.c\" \"$bridge/ChecklistBridge.c\"; do\n  name=$(basename \"$source\" .c)\n  \"$CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER\" -fPIC -std=gnu11 -Wall -Wextra -Werror -O2 \\\n    -I\"$binding\" -I\"$host\" -c \"$source\" -o \"$out/$name.o\"\n  shasum -a 256 \"$source\" \"$out/$name.o\"\ndone\ncargo build --manifest-path \"$out/source/vm/Cargo.toml\" --offline --locked --release --jobs 4 \\\n    --features experimental-capability-native --lib --target-dir \"$out/rust-build\" --target aarch64-linux-android\nln -s \"$out/rust-build/aarch64-linux-android/release/libmixer_vm.a\" \"$out/libmixer_vm_capability_experimental.a\"\nshasum -a 256 \"$out/libmixer_vm_capability_experimental.a\"\n",
+    "link-jni.sh": "#!/bin/bash\nset -euxo pipefail\nd=$1\nndk=\"$HOME/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d/toolchains/llvm/prebuilt/darwin-x86_64/bin\"\nr=\"$d/work/relocated\"\nbin=\"$d/swift-build/aarch64-unknown-linux-android28/debug\"\nsigned=\"$d/evidence/signed\"\nmkdir \"$signed\"\ncp \"$bin/description.json\" \"$bin/AppAndroid.product/Objects.LinkFileList\" \"$signed/\"\ncp \"$bin/libAppAndroid.so\" \"$signed/\"\nexport TMPDIR=\"$d/work/tmp\"\nshasum -a 256 \"$r/Platforms/Android/Bridge/PublicBridge.c\"\nfor label in baseline signed; do\n  dir=\"$d/evidence/$label\"\n  \"$ndk/aarch64-linux-android28-clang\" -shared -fPIC -O2 -Wall -Wextra -Werror \\\n    \"$r/Platforms/Android/Bridge/PublicBridge.c\" -L \"$dir\" -lAppAndroid \\\n    -Wl,--no-undefined -Wl,-z,max-page-size=16384 -o \"$dir/libmixer_public_android_jni.so\"\n  \"$ndk/llvm-readelf\" -h -d -l \"$dir/libmixer_public_android_jni.so\" > \"$dir/jni-readelf.txt\"\n  \"$ndk/llvm-nm\" --dynamic --defined-only \"$dir/libmixer_public_android_jni.so\" > \"$dir/jni-nm.txt\"\n  \"$ndk/llvm-nm\" --dynamic --undefined-only \"$dir/libmixer_public_android_jni.so\" > \"$dir/jni-undefined.txt\"\n  \"$ndk/llvm-readelf\" -h -d -l \"$dir/libAppAndroid.so\" > \"$dir/app-readelf.txt\"\n  \"$ndk/llvm-nm\" --dynamic --defined-only \"$dir/libAppAndroid.so\" > \"$dir/app-nm.txt\"\ndone\n"
+  },
+  "projection": {
+    "patchSHA256": "b08817a6c87cea85e2013f26f8ca10bd75e96f89a431583874f1542d7e665bc8",
+    "setup": [
+      "Reconstruct the exact tree with the existing stage.sh and project ordinary Android with its install_app_inputs.",
+      "For the signed run replace Generated/MixerSDK with git archive 6bc461f4:sdk. Archive capability-activation, experimental-capability-runtime, runtime-identity and updates from the same pin into Generated.",
+      "Copy Integrations/InstalledGuest/*.swift into Platforms/Android/Sources/FieldLogInstalledGuest, SignedChecklist.swift into Sources/AppAndroid and ChecklistBridge.c into Bridge. Apply the patch at the projection root.",
+      "Build the pinned Rust archive and the three native objects. Pass the VM and the two Android module-map include paths and strict linker arguments recorded in signed-6bc.",
+      "Keep the existing PublicBridge.c JNI entry library linked to libAppAndroid.so. The checklist JNI definitions live in libAppAndroid.so with the signed owner that calls the native bridge."
+    ],
+    "rollback": [
+      "Reverse the three manifest hunks, remove the four signed SwiftPM packages and restore Generated/MixerSDK to 5dea19db.",
+      "Remove the copied FieldLogInstalledGuest target inputs, SignedChecklist.swift and ChecklistBridge.c.",
+      "Drop the VM library, its header inputs and Android module-map paths, transport and ChecklistBridge objects, and signed-only link flags.",
+      "Rebuild the ordinary target. ELF SHA-256 and the full SwiftPM link roster matched the first baseline exactly."
+    ]
+  },
+  "firstBaselineAttempt": {
+    "pid": 63090,
+    "pgid": 63090,
+    "state": "running",
+    "subsequentGroupObservation": "ESRCH",
+    "directChildReapStatusCollected": false,
+    "logSHA256": "8db414a6b5d28a7e819f6972add8e8afb493a311021b7ec86a3598d118a70120",
+    "diagnostic": "Swift 6.3.3 selected macOS SDK 27.2 and swift-crypto manifest IRGen failed with unknown argument '-target-arch-variant' and signal 11. The scratch sampler exited on a concurrent TMPDIR deletion. The follow-up observed ESRCH and the corrected run used Xcode 26.6 / SDK 26.5 and a race-tolerant sampler."
+  },
+  "commands": {
+    "prepare": {
+      "argv": [
+        "/bin/bash",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/baseline.sh",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+        "/Users/andreyyurlov/.t3/worktrees/mixer"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+      "pid": 62924,
+      "pgid": 62924,
+      "exitCode": 0,
+      "directChildReaped": true,
+      "logClosed": true,
+      "groupObservation": "ESRCH",
+      "stop": null,
+      "seconds": 2.65,
+      "peakSampledAllocatedKiB": 37032,
+      "logSHA256": "09ab4fb45e710316648bd8afff9739cdbda425a6cce551b23a6d3c8c967ddc77"
+    },
+    "baseline-fixed": {
+      "argv": [
+        "/bin/bash",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/swift-build.sh",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+        "-v"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+      "pid": 73617,
+      "pgid": 73617,
+      "exitCode": 0,
+      "directChildReaped": true,
+      "logClosed": true,
+      "groupObservation": "ESRCH",
+      "stop": null,
+      "seconds": 25.66,
+      "peakSampledAllocatedKiB": 252476,
+      "logSHA256": "79c6508f624bc18252e1c8e9be3d04baaf46bb3f14e42850009f91809a4f88ee"
+    },
+    "native-inputs": {
+      "argv": [
+        "/bin/bash",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/native-inputs.sh",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow",
+        "5dea19db36610e312b51918b384364ba590b6ef8"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+      "pid": 90165,
+      "pgid": 90165,
+      "exitCode": 0,
+      "directChildReaped": true,
+      "logClosed": true,
+      "groupObservation": "ESRCH",
+      "stop": null,
+      "seconds": 5.04,
+      "peakSampledAllocatedKiB": 333876,
+      "logSHA256": "5089e14830012eea4f9292ff6b41b2bedeca67a49692042983e4c8cff485ac90"
+    },
+    "signed-5dea": {
+      "argv": [
+        "/bin/bash",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/swift-build.sh",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+        "-v",
+        "-Xcc",
+        "-I/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/native/source/vm/include",
+        "-Xcc",
+        "-I/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/native/source/native/android/signed-guest-ui/binding/include",
+        "-Xcc",
+        "-I/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/native/source/verification/android-binding-stage4/host-bridge",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/native",
+        "-Xlinker",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/native/transport.o",
+        "-Xlinker",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/native/platform_android.o",
+        "-Xlinker",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/native/ChecklistBridge.o",
+        "-Xlinker",
+        "-landroid",
+        "-Xlinker",
+        "-z",
+        "-Xlinker",
+        "defs",
+        "-Xlinker",
+        "--why-extract=/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/evidence/archive-extraction.tsv"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+      "pid": 97869,
+      "pgid": 97869,
+      "exitCode": 1,
+      "directChildReaped": true,
+      "logClosed": true,
+      "groupObservation": "ESRCH",
+      "stop": null,
+      "seconds": 27.58,
+      "peakSampledAllocatedKiB": 442888,
+      "logSHA256": "df5f5ada55edf939b44256207a09e891f3e33180b22eeb2c52f00b821efe1245"
+    },
+    "native-inputs-6bc": {
+      "argv": [
+        "/bin/bash",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/native-inputs.sh",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow",
+        "6bc461f4fc7c29771718c7c5ce5a2a39b78f4d2d"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+      "pid": 20335,
+      "pgid": 20335,
+      "exitCode": 0,
+      "directChildReaped": true,
+      "logClosed": true,
+      "groupObservation": "ESRCH",
+      "stop": null,
+      "seconds": 2.74,
+      "peakSampledAllocatedKiB": 512816,
+      "logSHA256": "661cda50a6c3f1298e9010a1e31bd93cb7b7ca4dd3e6907c752698f238e99002"
+    },
+    "signed-6bc": {
+      "argv": [
+        "/bin/bash",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/swift-build.sh",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+        "-v",
+        "-Xcc",
+        "-I/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/native/source/vm/include",
+        "-Xcc",
+        "-I/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/native/source/native/android/signed-guest-ui/binding/include",
+        "-Xcc",
+        "-I/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/native/source/verification/android-binding-stage4/host-bridge",
+        "-Xlinker",
+        "-L/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/native",
+        "-Xlinker",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/native/transport.o",
+        "-Xlinker",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/native/platform_android.o",
+        "-Xlinker",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/native/ChecklistBridge.o",
+        "-Xlinker",
+        "-landroid",
+        "-Xlinker",
+        "-z",
+        "-Xlinker",
+        "defs",
+        "-Xlinker",
+        "--why-extract=/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/evidence/archive-extraction.tsv"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+      "pid": 20392,
+      "pgid": 20392,
+      "exitCode": 0,
+      "directChildReaped": true,
+      "logClosed": true,
+      "groupObservation": "ESRCH",
+      "stop": null,
+      "seconds": 9.15,
+      "peakSampledAllocatedKiB": 542204,
+      "logSHA256": "6d947a6a26e2833addefeb00c314f6263ec9269dde3741b6a450f82d162a9bc8"
+    },
+    "link-jni": {
+      "argv": [
+        "/bin/bash",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/link-jni.sh",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+      "pid": 42784,
+      "pgid": 42784,
+      "exitCode": 0,
+      "directChildReaped": true,
+      "logClosed": true,
+      "groupObservation": "ESRCH",
+      "stop": null,
+      "seconds": 1.66,
+      "peakSampledAllocatedKiB": 603564,
+      "logSHA256": "2c78da54b3c66cdc8344e568d598a3bd7a0a205e89c99ca8087df7f5e9e49596"
+    },
+    "restore-projection": {
+      "argv": [
+        "/bin/bash",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/rollback.sh",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+      "pid": 56991,
+      "pgid": 56991,
+      "exitCode": 0,
+      "directChildReaped": true,
+      "logClosed": true,
+      "groupObservation": "ESRCH",
+      "stop": null,
+      "seconds": 0.89,
+      "peakSampledAllocatedKiB": 605100,
+      "logSHA256": "62bba007a5e68e30c4726e4d72ef30ba9949840e389d6631a1b835d7659658c4"
+    },
+    "baseline-restored": {
+      "argv": [
+        "/bin/bash",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/swift-build.sh",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+        "-v"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+      "pid": 58400,
+      "pgid": 58400,
+      "exitCode": 0,
+      "directChildReaped": true,
+      "logClosed": true,
+      "groupObservation": "ESRCH",
+      "stop": null,
+      "seconds": 11.08,
+      "peakSampledAllocatedKiB": 605280,
+      "logSHA256": "642de7581c3319dc673059d5a853b2d041c151c359d444334a9e518b47cf90dc"
+    }
+  },
+  "oldSDKRejection": {
+    "firstOwnerDiagnostic": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/work/relocated/Platforms/Android/Sources/FieldLogInstalledGuest/SignedTask.swift:54:76: error: cannot find type 'InstalledGuestUICommitFacts' in scope",
+    "relatedDiagnostic": "extra argument 'guestUICommitFacts' in call",
+    "scope": "The shipping owner imported the new local module graph, but the baseline SDK lacked its declared commit facts type and initializer."
+  },
+  "baseline": {
+    "app": {
+      "elfSHA256": "81a99c5eb18b5563847c9938d15b4991984fcb1e4578a86127ee96c0d1a310c8",
+      "class": "ELF64/DYN/AArch64",
+      "loadAlignments": [
+        16384,
+        16384,
+        16384
+      ],
+      "needed": [
+        "libswiftSwiftOnoneSupport.so",
+        "libswiftCore.so",
+        "libswift_Concurrency.so",
+        "libswift_StringProcessing.so",
+        "libswift_RegexParser.so",
+        "libswift_Builtin_float.so",
+        "libswift_math.so",
+        "libswiftAndroid.so",
+        "libBlocksRuntime.so",
+        "libdispatch.so",
+        "libswiftDispatch.so",
+        "libFoundation.so",
+        "libFoundationEssentials.so",
+        "libFoundationInternationalization.so",
+        "libm.so",
+        "libdl.so",
+        "libc.so"
+      ],
+      "dynamicDefinedNMSHA256": "ba909b947a089dcf49086cfcfdb4527d372f230d9db077d8f35462fd4cd9c456",
+      "selectedDynamicDefinitions": [
+        "000000000009aa34 T fieldlog_android_photo_submit",
+        "000000000009b150 T fieldlog_android_report_submit",
+        "000000000009a93c T mixer_public_android_poll",
+        "0000000000099c2c T mixer_public_android_submit"
+      ]
+    },
+    "jni": {
+      "elfSHA256": "4b8ae4806c2327ffb6dd65c6a340c5e7ed45cf5cfd0b978909aac5bca2f07e79",
+      "class": "ELF64/DYN/AArch64",
+      "loadAlignments": [
+        16384,
+        16384,
+        16384,
+        16384
+      ],
+      "needed": [
+        "libAppAndroid.so",
+        "libdl.so",
+        "libc.so"
+      ],
+      "dynamicDefinedNMSHA256": "dbbf463e352917b5d1b5497e2ea59c486ef139b0c95b08f0df6b224527c9056d",
+      "selectedDynamicDefinitions": [
+        "0000000000005224 T JNI_OnLoad"
+      ]
+    },
+    "linkedSwiftInputs": {
+      "FieldLogAndroid": [
+        {
+          "path": "work/relocated/Platforms/Android/Sources/AppAndroid/NativeEntry.swift",
+          "sha256": "ed8ee59526596a5e427bedbed75a26f80b5883a47c4793528818be32280cfe7f"
+        },
+        {
+          "path": "work/relocated/Platforms/Android/Sources/AppAndroid/PublicFactory.swift",
+          "sha256": "008c58c6267303db9bf5b4d39b4d36631e29a63de65548a73c33be268562a390"
+        }
+      ],
+      "FieldLogFeatures": [
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/ChecklistEdit.swift",
+          "sha256": "adec09e1be1102f0a50173622e43ecb29e820df36b39c054b52690bd786c6f83"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/ChecklistPresentation.swift",
+          "sha256": "e98ea2eb4d1a8e5c7e601af389f911ae5a22f30d580f2421b8c9ee7006494b2d"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/ChecklistRow.swift",
+          "sha256": "d3080cc58162b6cb6b55b2cda3e8cac98edd8b639770e8e8331c8258123fbc43"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/DevicePendingChanges.swift",
+          "sha256": "469208902170b07f88c87372c171910505f56e854f95bb1f9f59ff5d61c7f4e4"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/EntryEditor.swift",
+          "sha256": "686dfb7a6bf61c176a7d9771fefa34ca7ab562771d4ea545b5c626f7372c3dcb"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/EntryEditorForm.swift",
+          "sha256": "6ab5e7c208b335336afa0fc1b140ff789e7903a81d81c321590db11d9ace8fdb"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/EntrySaveDecision.swift",
+          "sha256": "979e09e7fd99dd2589bed87a5684afb67b0a7ca31b212e73c9eecf07efbfa0e8"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/ProjectDetailDocument.swift",
+          "sha256": "28c8305d6e54c72ac56be8a580111dc2dc7e1bc5e255ca7597388c940b603f03"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/ProjectNotes.swift",
+          "sha256": "6246e53bd07ec96c44fea5ffa4bc2ff20c9e63fd66a59d7e68affea903038fb7"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/TaskEditor.swift",
+          "sha256": "b41b07d2e25e2c5762831f4d1b50c5eba87fa9e11ccbc1044215018000b6042f"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/TaskEditorPresentation.swift",
+          "sha256": "5713aa7472199492ad84f9207fe03fd12dab3237f715943d5ab849d8eebba7b8"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/WorkspacePresentation.swift",
+          "sha256": "9df9fdb2feffa8f606c3c6634823afd70a2e8ddabcbd39cbf7777514f72d5282"
+        }
+      ],
+      "FieldLogModels": [
+        {
+          "path": "work/relocated/Sources/FieldLogModels/Workspace.swift",
+          "sha256": "8ae81f1834e83d644cfaa64c24a69690e418d8533d207795a83d2056b18adea4"
+        }
+      ],
+      "FieldLogStorage": [
+        {
+          "path": "work/relocated/Sources/FieldLogStorage/WorkspaceRepository.swift",
+          "sha256": "bb3be5e2b4a99779272cca1965f973fba31be8b9ae86ef650206d02c8a984539"
+        }
+      ],
+      "MixerAndroid": [
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerAndroid/AndroidUIHost.swift",
+          "sha256": "0b15acb7335e76ce06aec4a75d74f4acfe759f5adb49ad8a25d881c74b82316c"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerAndroid/AndroidUIProfile.swift",
+          "sha256": "557f3bd03eb8efc5b3e23395d5f73482af254789ee1e3cddf3d2954d3b72359c"
+        }
+      ],
+      "MixerCore": [
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCore/FeatureStore.swift",
+          "sha256": "3fb26a1b1ce6a8863ea53d0c5751b3229ddad1113b486cb2c430d1d0dbcb385f"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCore/JSONInputGuard.swift",
+          "sha256": "c01ae7ad973dcfc40d2b4ecef3fb8091d1c94484410621f28e77096e952de07c"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCore/Lifecycle.swift",
+          "sha256": "67d6dc636bb36ce765e5a0c4ee9db93d61ce7b17938e3d9a1a0ff84020927a91"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCore/Navigation.swift",
+          "sha256": "6197c48eeb03aa6eeb94c3ca9a674c451deb83df9f662177014f70b866ef94d2"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCore/Resources.swift",
+          "sha256": "2e9cd272144237f9fc76c3c7e46add88f43395a60ed83db24f5cd454ae7b7dca"
+        }
+      ],
+      "MixerUI": [
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceDefaultV1.swift",
+          "sha256": "4ec1af1f904f427a17ae55e5937e017afbf3d8a4e6040749caee199e09bac1c9"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceDefaultV2.swift",
+          "sha256": "64daf8569dff496801b4886a03cce34aeb6af6fd9e5a76e3e0ea338b82dab05d"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceDescriptorV1.swift",
+          "sha256": "ad7f2b7c51041496197894829265bee7cfa8b8cb18d09abe5d816d9bf5259295"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceDescriptorV2.swift",
+          "sha256": "88683c11d8f3e22ddbb3e16601715d5761f6d677dbacc1d4dc9f66d7303512a1"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceGeometryV2.swift",
+          "sha256": "32d6a097e60e33393510a2d52df40b85d22afe7c5562504449c1f472e110cb72"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceMetricMathV1.swift",
+          "sha256": "fad0acfce796ae667bb01f6a29418298fe8197c7d79b2778d4fb3de79b348578"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceResolutionV1.swift",
+          "sha256": "cbaaeebad2ef3c4015ab4f917df3a35ed68541e52b8b12c8a27a3be07211fcf0"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceResolutionV2.swift",
+          "sha256": "16088bcd20fa22b385aee43fb02d6b1c00d1771c6d71a7dff45e9de58a85ed8f"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceValuesV1.swift",
+          "sha256": "bb33ff6eb92603caf12e0cbd3166f291debc30ca8440696870ec523345fd6ccc"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceValuesV2.swift",
+          "sha256": "f96fe9d18ec2c2390268499c46e709e998e230d97840d02eb8e86094916ebc54"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/Authoring.swift",
+          "sha256": "ef313b4f153199ce2b18d4cea75be7a61b82350dd4b17e7e3be84757898482c6"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/NativePacketV1.swift",
+          "sha256": "5cc91fca4746ffb37d26e41e26796e41727405f2b308c850adb3fa6ba8862704"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/NativePresentation.swift",
+          "sha256": "500711a94addebc18401601610e3ef8d80e489c00f589795aee1a6d6ede7fe2d"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/Protocol.swift",
+          "sha256": "209302b05c2e9eae1a1db9b4b462ade13294cb25fce54bd38482b76aa2f11a11"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/Reconciliation.swift",
+          "sha256": "3980a1aa9fca0a6cb9da48ee693b2ab2acae4013cafe6dfab2bb20dcfa427ae0"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/SharedTextProfilesV1.swift",
+          "sha256": "5547407727fc668e527f73d79765722009c9f38a931e23bfead20d979a763481"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/Validation.swift",
+          "sha256": "1a842e3cb49ba2551dee6b0d1def094da2af7a3f1cfa3b0939d9d24168afa93c"
+        }
+      ]
+    },
+    "swiftPMLinkListSHA256": "10bfa0ab10765ee9881da8968d3d8658cb66971839c0c541de720b1be781ef5c",
+    "swiftPMLinkObjects": [
+      "FieldLogAndroid.build/FieldLogAndroid.swiftmodule.o",
+      "FieldLogAndroid.build/NativeEntry.swift.o",
+      "FieldLogAndroid.build/PublicFactory.swift.o",
+      "FieldLogFeatures.build/ChecklistEdit.swift.o",
+      "FieldLogFeatures.build/ChecklistPresentation.swift.o",
+      "FieldLogFeatures.build/ChecklistRow.swift.o",
+      "FieldLogFeatures.build/DevicePendingChanges.swift.o",
+      "FieldLogFeatures.build/EntryEditor.swift.o",
+      "FieldLogFeatures.build/EntryEditorForm.swift.o",
+      "FieldLogFeatures.build/EntrySaveDecision.swift.o",
+      "FieldLogFeatures.build/FieldLogFeatures.swiftmodule.o",
+      "FieldLogFeatures.build/ProjectDetailDocument.swift.o",
+      "FieldLogFeatures.build/ProjectNotes.swift.o",
+      "FieldLogFeatures.build/TaskEditor.swift.o",
+      "FieldLogFeatures.build/TaskEditorPresentation.swift.o",
+      "FieldLogFeatures.build/WorkspacePresentation.swift.o",
+      "FieldLogModels.build/FieldLogModels.swiftmodule.o",
+      "FieldLogModels.build/Workspace.swift.o",
+      "FieldLogStorage.build/FieldLogStorage.swiftmodule.o",
+      "FieldLogStorage.build/WorkspaceRepository.swift.o",
+      "MixerAndroid.build/AndroidUIHost.swift.o",
+      "MixerAndroid.build/AndroidUIProfile.swift.o",
+      "MixerAndroid.build/MixerAndroid.swiftmodule.o",
+      "MixerCore.build/FeatureStore.swift.o",
+      "MixerCore.build/JSONInputGuard.swift.o",
+      "MixerCore.build/Lifecycle.swift.o",
+      "MixerCore.build/MixerCore.swiftmodule.o",
+      "MixerCore.build/Navigation.swift.o",
+      "MixerCore.build/Resources.swift.o",
+      "MixerUI.build/AppearanceDefaultV1.swift.o",
+      "MixerUI.build/AppearanceDefaultV2.swift.o",
+      "MixerUI.build/AppearanceDescriptorV1.swift.o",
+      "MixerUI.build/AppearanceDescriptorV2.swift.o",
+      "MixerUI.build/AppearanceGeometryV2.swift.o",
+      "MixerUI.build/AppearanceMetricMathV1.swift.o",
+      "MixerUI.build/AppearanceResolutionV1.swift.o",
+      "MixerUI.build/AppearanceResolutionV2.swift.o",
+      "MixerUI.build/AppearanceValuesV1.swift.o",
+      "MixerUI.build/AppearanceValuesV2.swift.o",
+      "MixerUI.build/Authoring.swift.o",
+      "MixerUI.build/MixerUI.swiftmodule.o",
+      "MixerUI.build/NativePacketV1.swift.o",
+      "MixerUI.build/NativePresentation.swift.o",
+      "MixerUI.build/Protocol.swift.o",
+      "MixerUI.build/Reconciliation.swift.o",
+      "MixerUI.build/SharedTextProfilesV1.swift.o",
+      "MixerUI.build/Validation.swift.o"
+    ],
+    "jniAppImports": [
+      "fieldlog_android_photo_submit",
+      "fieldlog_android_report_submit",
+      "mixer_public_android_poll",
+      "mixer_public_android_submit"
+    ]
+  },
+  "signed": {
+    "app": {
+      "elfSHA256": "da3b15f4ec6726cc72f465fd5b2c8ddd2cac61b3908d741f997f6f9773aa934e",
+      "class": "ELF64/DYN/AArch64",
+      "loadAlignments": [
+        16384,
+        16384,
+        16384
+      ],
+      "needed": [
+        "libswiftSwiftOnoneSupport.so",
+        "libswiftCore.so",
+        "libswift_Concurrency.so",
+        "libswift_StringProcessing.so",
+        "libswift_RegexParser.so",
+        "libswift_Builtin_float.so",
+        "libswift_math.so",
+        "libswiftAndroid.so",
+        "libBlocksRuntime.so",
+        "libdispatch.so",
+        "libswiftDispatch.so",
+        "libFoundation.so",
+        "libFoundationEssentials.so",
+        "libFoundationInternationalization.so",
+        "libFoundationNetworking.so",
+        "libm.so",
+        "libc++_shared.so",
+        "libdl.so",
+        "libandroid.so",
+        "libc.so"
+      ],
+      "dynamicDefinedNMSHA256": "9ebf26a7b095e474250c9f602dad9d4bed3f2a6eafe9f8bbaa771094ed44754f",
+      "selectedDynamicDefinitions": [
+        "0000000000b7ef94 T Java_dev_fieldlog_generatedr90_androidhost_PublicActivity_00024ChecklistPanel_cycle",
+        "0000000000b7e940 T Java_dev_fieldlog_generatedr90_androidhost_PublicActivity_00024ChecklistPanel_initialize",
+        "0000000000b7f224 T Java_dev_fieldlog_generatedr90_androidhost_PublicActivity_00024ChecklistPanel_status",
+        "0000000000b7ecdc T Java_dev_fieldlog_generatedr90_androidhost_PublicActivity_00024ChecklistPanel_unregisterRetired",
+        "0000000000b7eedc T Java_dev_fieldlog_generatedr90_androidhost_PublicActivity_00024ChecklistPanel_witness",
+        "00000000005a977c T fieldlog_android_photo_submit",
+        "00000000005a9e98 T fieldlog_android_report_submit",
+        "00000000005f27f0 T fieldlog_checklist_status",
+        "00000000005f2194 T fieldlog_checklist_submit",
+        "00000000005a9684 T mixer_public_android_poll",
+        "00000000005a8974 T mixer_public_android_submit",
+        "0000000000ab2544 T mixer_vm_capability_ack_exit_v1",
+        "0000000000ab2574 T mixer_vm_capability_expire_v1",
+        "0000000000ab2598 T mixer_vm_capability_guest_ui_validate_deferred_v1",
+        "0000000000ab25b8 T mixer_vm_capability_guest_ui_validate_v1",
+        "0000000000ab25d8 T mixer_vm_capability_limit_deadline_v1",
+        "0000000000ab260c T mixer_vm_capability_post_v1",
+        "0000000000ab2644 T mixer_vm_capability_session_cancel_v1",
+        "0000000000ab2668 T mixer_vm_capability_session_close_v1",
+        "0000000000ab268c T mixer_vm_capability_session_create_v1",
+        "0000000000ab26d4 T mixer_vm_capability_session_enable_v1",
+        "0000000000ab26f8 T mixer_vm_capability_session_invoke_v1",
+        "0000000000ab272c T mixer_vm_capability_session_read_v1",
+        "0000000000ab275c T mixer_vm_capability_session_startup_v1",
+        "0000000000ab2780 T mixer_vm_capability_session_wake_v1",
+        "0000000000ab27a8 T mixer_vm_capability_session_write_v1",
+        "0000000000ab27d8 T mixer_vm_capability_take_v1",
+        "0000000000ab2808 T mixer_vm_capability_validate_v1",
+        "0000000000b7e3d0 T mxis_apply",
+        "00000000007967a8 T mxis_guest_ui_witness",
+        "0000000000b7e184 T mxis_host_inspect",
+        "0000000000b7e880 T mxis_host_release_destroyed",
+        "0000000000b7ddd8 T mxis_host_slot_acquire",
+        "0000000000b7e5c4 T mxis_interaction",
+        "0000000000b7e700 T mxis_retire",
+        "0000000000b7ad14 T mxuit_acquire",
+        "0000000000b7b83c T mxuit_acquire_for_facade",
+        "0000000000b7cc84 T mxuit_begin_close",
+        "0000000000b7d350 T mxuit_callback",
+        "00000000007843f0 T mxuit_complete",
+        "0000000000b7ce2c T mxuit_consumer_joined",
+        "00000000007842d4 T mxuit_drain",
+        "0000000000b7b698 T mxuit_facade_acquire",
+        "0000000000b7bcd0 T mxuit_facade_begin_close",
+        "0000000000b7ca8c T mxuit_facade_try_reclaim",
+        "0000000000b7b424 T mxuit_hint",
+        "0000000000b7d934 T mxuit_inspect",
+        "0000000000b7db4c T mxuit_inspect_owner",
+        "0000000000b7a720 T mxuit_install",
+        "0000000000b7dd18 T mxuit_platform_register",
+        "00000000007844c0 T mxuit_progress",
+        "0000000000b7afbc T mxuit_request",
+        "0000000000b7cfd4 T mxuit_try_reclaim",
+        "0000000000b7bfc0 T mxuit_ui_enter",
+        "0000000000b7c864 T mxuit_ui_leave",
+        "0000000000b7c600 T mxuit_ui_validate"
+      ]
+    },
+    "jni": {
+      "elfSHA256": "4b8ae4806c2327ffb6dd65c6a340c5e7ed45cf5cfd0b978909aac5bca2f07e79",
+      "class": "ELF64/DYN/AArch64",
+      "loadAlignments": [
+        16384,
+        16384,
+        16384,
+        16384
+      ],
+      "needed": [
+        "libAppAndroid.so",
+        "libdl.so",
+        "libc.so"
+      ],
+      "dynamicDefinedNMSHA256": "dbbf463e352917b5d1b5497e2ea59c486ef139b0c95b08f0df6b224527c9056d",
+      "selectedDynamicDefinitions": [
+        "0000000000005224 T JNI_OnLoad"
+      ]
+    },
+    "linkedSwiftInputs": {
+      "Crypto": [
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/AEADs/AES/GCM/AES-GCM.swift",
+          "sha256": "86d160b7c238ea7b01bee362a6ce8f987425aefdfb8125e94a56bb9669e37d93"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/AEADs/AES/GCM/BoringSSL/AES-GCM_boring.swift",
+          "sha256": "b5d1acd9ce1489f967ab8c4e72d514d23c3d1289fa744dc08c2e488822723492"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/AEADs/ChachaPoly/BoringSSL/ChaChaPoly_boring.swift",
+          "sha256": "9f08b3334d8d31c26b60dc32d4d6fef6f852d5fb4bb7f3fc37035e5c3e7d4764"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/AEADs/ChachaPoly/ChaChaPoly.swift",
+          "sha256": "f8e95e559f2f9a7716d62158a8ed6d203ff5876431869c864956e2f0ed41f972"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/AEADs/Cipher.swift",
+          "sha256": "8a13ca29138a8c2b48aa2a97bf25b491a9a36b86c23c0292e1c6fd5e71aa04db"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/AEADs/Nonces.swift",
+          "sha256": "cceb997732a1d48d80c4bcebcefecaf00ffc73d1e44283b7eaaccc8ca721a346"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/ASN1/ASN1.swift",
+          "sha256": "1842f051168771437389eea92442fa2c5e1cef7d44459be007cb2b6e46c21fd5"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Any.swift",
+          "sha256": "8089f74c0e57f6c0224caef88314b9a4326e8a01712ee82f21f998fbdc9752bd"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/ASN1/Basic ASN1 Types/ASN1BitString.swift",
+          "sha256": "a127f485e0d78530a84989155ea26ccbf63674ab1aea987c5abd51a4c85ca0fa"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Boolean.swift",
+          "sha256": "a56672f14060eb6b231209b4682ad383104d8d580b68346bf8cc721d8d47923b"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Identifier.swift",
+          "sha256": "8bc07c2abb0f66a3ff6d52fd6f6fef49532ced771de8cb7dbaddcf0419166928"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Integer.swift",
+          "sha256": "baba8cea31aceaafdf0eeaaee516e9e4f2ef4d6d42a8d253fd972210dcbca2a2"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Null.swift",
+          "sha256": "0f10eec5e6b03706dfde966ae5c52878180fba99e41f8a34ed49487e0ca2a2e6"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/ASN1/Basic ASN1 Types/ASN1OctetString.swift",
+          "sha256": "d97171db556a3560cca2edc5be9bc214c82f608ad3fcdfe6fb225d7c7914d73a"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Strings.swift",
+          "sha256": "6b2054cd15d41d56b3b68ef86f51ee5dd98cdaa848bd41f2a3e27fb003afe634"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/ASN1/Basic ASN1 Types/ArraySliceBigint.swift",
+          "sha256": "3e8d2b34a9a66a60511bd84f652b03323abc22271d940e70c680de90c6189489"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/ASN1/Basic ASN1 Types/GeneralizedTime.swift",
+          "sha256": "ef4f56296d8fdf8de484f7f22f4cb6b9b794067640f4b9e277651f6cbaec209d"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/ASN1/Basic ASN1 Types/ObjectIdentifier.swift",
+          "sha256": "82a12f45fcb2875a5ef273a5eeb6f0f249e8b555f7a7a34f881fb4fd0be267da"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/ASN1/ECDSASignature.swift",
+          "sha256": "211a7f182aa13e7b2367df289af0a86efd9e86e23c0c86f0c054bafa25acc1e2"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/ASN1/PEMDocument.swift",
+          "sha256": "d9faac20a2adb29b4f4298196e056867eb7f24e0969c3caf33d4abc75d9d4293"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/ASN1/PKCS8PrivateKey.swift",
+          "sha256": "5545d6ba36b3a6a76307dffa90afb047639db4bd698179380b65ca65866b8263"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/ASN1/SEC1PrivateKey.swift",
+          "sha256": "8a39247895d89e743c263319e26ba4f6b23eefa4649caa8bad13bf9885a5e9cc"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/ASN1/SubjectPublicKeyInfo.swift",
+          "sha256": "3ed5519b344a2cb45eb158e68519c6effdc21bc4fa0345fb5d36d8f912b2cabb"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/CryptoError_boring.swift",
+          "sha256": "83e94828991da5c1447a602e150bb9afbee5a16c9862eb024e1b44479a640bcb"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/CryptoKitErrors.swift",
+          "sha256": "70b90a111fa13107821e980b9d99cbbca25a44ff1db45c608676651e4193c837"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Digests/BoringSSL/Digest_boring.swift",
+          "sha256": "4352878eee6a411e1aa61ca44f0821bb03593d587eab1e780597b95a251a005e"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Digests/Digest.swift",
+          "sha256": "2e5978e22337b3f4f142ea8ec6221abbb0361a182f7c97862d0a8e113d83070b"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Digests/Digests.swift",
+          "sha256": "f4b7fac409223a11d54d9b998b05690d0bb45f4b5a9140f70683550730b12bcd"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Digests/HashFunctions.swift",
+          "sha256": "e8defe1613a8780ae399d522d8f657bd0f347d36c9e9d2f634d79b419f808e42"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Digests/HashFunctions_SHA2.swift",
+          "sha256": "d262716fd6fa4d6b8677dd26f5e3efb94abfc87a973983d5d6e9cdba52f80759"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Digests/HashFunctions_SHA3.swift",
+          "sha256": "117269c2c2c43bb29ac59c33729d2d2b599416e46efd9be1ef1335418d4d2c7f"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Digests/XKCP/Digest_xkcp.swift",
+          "sha256": "71bef1b984cf692b475106663c5350e3b35f32fee246669c728b2d8429ce4520"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/HPKE/Ciphersuite/HPKE-AEAD.swift",
+          "sha256": "f9b9ffa340f9299fbaa23d42c655177b795c6e6a8955be8fcad5b25695514506"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/HPKE/Ciphersuite/HPKE-Ciphersuite.swift",
+          "sha256": "481227e494b1f1ce76d698decf7d452bd44304cf7d2da482f86dab3c3a8383c0"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/HPKE/Ciphersuite/HPKE-KDF.swift",
+          "sha256": "a0e7f9167b676555ef041931a23d50a3adceff2521152a398f8479443ca2355a"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/HPKE/Ciphersuite/HPKE-KexKeyDerivation.swift",
+          "sha256": "fb23af3327281adbbe63bf9bf16644bdac262a331babc885b1b412ae2e88b641"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/HPKE/Ciphersuite/HPKE-LabeledExtract.swift",
+          "sha256": "9fbe2a2d8ca7eb55407448a1c3e4bb7b83d43087066dbe30465d11b5bfc54281"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/HPKE/Ciphersuite/HPKE-Utils.swift",
+          "sha256": "6446d0dd3cc5b0e2b9186bf1f508c166b3c68c0c86d49b33aabdd61a90bf9ba5"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/HPKE/Ciphersuite/KEM/Conformances/DHKEM.swift",
+          "sha256": "6307df72fa75ced0098c0b050f2b846c368264d095ea16a826dfbf7c543ca52c"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/HPKE/Ciphersuite/KEM/Conformances/HPKE-KEM-Curve25519.swift",
+          "sha256": "a5088abfd68fd940a298947729123084d9d823bca37be71f95228af706bc7c2d"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/HPKE/Ciphersuite/KEM/Conformances/HPKE-NIST-EC-KEMs.swift",
+          "sha256": "75c68f79be633715d700641ef08f18ee898b62bef59c3a88b2858ed89d8f5b63"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/HPKE/Ciphersuite/KEM/HPKE-KEM.swift",
+          "sha256": "aba29561fb743faf9e16931c0ccf6079bbc227bd14ca2d6b64b583e93775b8f0"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/HPKE/HPKE-Errors.swift",
+          "sha256": "fee069a3b9d00e42c64a74f1eb5808937b4ace90eed355722388925630c476cb"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/HPKE/HPKE.swift",
+          "sha256": "7d501b7e8da7c298072b4da5d91e2fe62a6ca2ba8922ad9f91d6df52a8335b71"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/HPKE/Key Schedule/HPKE-Context.swift",
+          "sha256": "18146dc3709b8d68d60978c2909a956977a1ce9c6a6cc336aba3d2563018d9db"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/HPKE/Key Schedule/HPKE-KeySchedule.swift",
+          "sha256": "0b1449aed3e14447ee894a80773aa23afe8498adbf2a9ef5b67399f018ec5598"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/HPKE/Modes/HPKE-Modes.swift",
+          "sha256": "424692415e8f4373151c0e87170924bbb81c36947a78423730d0538ad10f0c73"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Insecure/Insecure.swift",
+          "sha256": "a7dd39c1e539cc5295d52a236d05f13f45cfb9c06582c93071dc9fb8983fc105"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Insecure/Insecure_HashFunctions.swift",
+          "sha256": "ce5892c639a91a426463ebf5e125caa23429cd50af8956083451f71391d33a68"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/KEM/BoringSSL/MLKEM_boring.swift",
+          "sha256": "d3613146f4b21a6018c93c1cb01d940c6eb1c145c832254a228e9fb68556be8d"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/KEM/BoringSSL/MLKEM_wrapper.swift",
+          "sha256": "2b49ef736a2ddcb36c243b6fd3d4e969cf282e9ead8b01644fec432591e2b5ee"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/KEM/BoringSSL/XWing_boring.swift",
+          "sha256": "873da056c8a5664f30b844f6c1c50e2be1b5456ea986acabe27ac4986b8d570a"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/KEM/KEM-Errors.swift",
+          "sha256": "1142e0fecf8319821c38dd9e886d826721480fbdb7ce1271cd996b165faa1697"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/KEM/KEM.swift",
+          "sha256": "43222cc248aec03bcee4d638f7939625810128577b0a4045918b626f8a73ada4"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/KEM/MLKEM.swift",
+          "sha256": "a35e43e96d0af870fc3ccff6600567bffe1a0655c9790482f7bcac849b076aca"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/KEM/XWing.swift",
+          "sha256": "008ece49cfc956fc469153fc3c8b8c5215acf348befe08de84762d7f200f61d6"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Key Agreement/BoringSSL/ECDH_boring.swift",
+          "sha256": "0d495f005589e3427c5b340283644f383d978ab81769e337cd488ed77f5d7ea1"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Key Agreement/DH.swift",
+          "sha256": "6c358eaaa4d6bd6fb57c984aeee750e265c0001655c9e198a19f218ebdc155e3"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Key Agreement/ECDH.swift",
+          "sha256": "18a86d162d0dc5266586c35eebacba59cc02d30108bfd1b4828997e07d75f615"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Key Derivation/ANSIx963.swift",
+          "sha256": "ac69c5209e74776e5fceb0d3c0fb6ae3a0d4741e904ed67100c10f51c9be288d"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Key Derivation/HKDF.swift",
+          "sha256": "7b235bfe735d0f2725f271951637bec05d82a310d607757a3fe77ab16f80488a"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Key Wrapping/AESWrap.swift",
+          "sha256": "0ae5acd27c8229dd5d4a0aa6150682cd7f9352937360e5abe71e6b620df0f109"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Key Wrapping/BoringSSL/AESWrap_boring.swift",
+          "sha256": "6cbb918f727e70bd0610f658bf5ee9b9b7bc365903fef73dffe4ec7c878fe371"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Keys/EC/BoringSSL/Ed25519_boring.swift",
+          "sha256": "4a509f00d86020bf19d62c8fc43f369b40e4d240704b02459b76ca86059c6b49"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Keys/EC/BoringSSL/NISTCurvesKeys_boring.swift",
+          "sha256": "48580e8af67cc690ab5c53c3fb2d46497b069746d4b9650d35e4dd4641243b0e"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Keys/EC/BoringSSL/X25519Keys_boring.swift",
+          "sha256": "66e990c6b775cdb4b886051c617e022a368498c1c1bd553c6470eabf6b457519"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Keys/EC/Curve25519.swift",
+          "sha256": "227ed16179c14194df84dfe0c79e71ea22936fcff6404eb603a82517d284ec99"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Keys/EC/Ed25519Keys.swift",
+          "sha256": "ce8ec569e09c323c13c3479cf41de40abc8db5a918b85ffa159a11c42b5d0305"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Keys/EC/NISTCurvesKeys.swift",
+          "sha256": "d3059cba6ad9c523118dca534d649e5f4882950ce0551384937c4434b9fc7ede"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Keys/EC/X25519Keys.swift",
+          "sha256": "03d499d79864a935d00aa40b7f89cf75d562e905759b5ac7668c3351ab0221c4"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Keys/Symmetric/SymmetricKeys.swift",
+          "sha256": "ecc000e195323cac7a3926aaa36f22ea6edceb7257b467111ddfe57de9c13cbb"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Message Authentication Codes/HMAC/HMAC.swift",
+          "sha256": "bd3d5fa8afe632066eead726264b2f571d9a56a2289c66dd3916ef96ad6dc753"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Message Authentication Codes/MACFunctions.swift",
+          "sha256": "7a56738aa1ac9247ef1e44f49c91fc7c681007d5e47e1813b6d7f92737d2de62"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Message Authentication Codes/MessageAuthenticationCode.swift",
+          "sha256": "7714b96f980382489e93e6890597b533452f78352c0d9204d5a0737b60cc7ebb"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/PRF/AES.swift",
+          "sha256": "b25ca87dc181959ab6a46da94c9dd9f5a17958c997dbc4893a19b4e1d7d128b3"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Signatures/BoringSSL/ECDSASignature_boring.swift",
+          "sha256": "6a99e9a21eea0aacf929dbdd8fa3da0331de9eb7acba8cb7aefa9ee36403e9c9"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Signatures/BoringSSL/ECDSA_boring.swift",
+          "sha256": "a63d894e5025f1ca341b2fd412432a1b4e120ae6e251438b1862bbdfe17b855c"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Signatures/BoringSSL/EdDSA_boring.swift",
+          "sha256": "497db86ce0753e53779cc8708df586e96badb8ce43d35093a42dc6e574aee8cd"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Signatures/BoringSSL/MLDSA_boring.swift",
+          "sha256": "6d8aeaa0e11d60f55dc1e54b11c2797f96b54b0d64ee04af0917f9ab04de11e7"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Signatures/BoringSSL/MLDSA_wrapper.swift",
+          "sha256": "199b0f4ef62fcded26280bf31c7e0aae990decb75bbff43872a94bb092a63a9e"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Signatures/ECDSA.swift",
+          "sha256": "82f88e5d0d69d11d45c82334bd0920012d95db668f16d6d247642a96c1f116b0"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Signatures/Ed25519.swift",
+          "sha256": "d2ce547152ea3a7ca08e5c6e64a7716895d77a1415065dc2175bf0cbe157348d"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Signatures/MLDSA.swift",
+          "sha256": "2739b9d2da9db565a65b25aa50efbc9f5cbec88ebd51e0bb408952d2b35f153e"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Signatures/Signature.swift",
+          "sha256": "01b80e1a57a91f20fde6a06a68bd707b62e5fa138bbfc8e0211e89d5b0ea4b87"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Util/ArraySpanHelpers.swift",
+          "sha256": "1a05210afa72abe739d6e4cfd52968096c63618f02f0ddf5ab7fa5a40768e2e3"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Util/BoringSSL/CryptoKitErrors_boring.swift",
+          "sha256": "fc8a2a0da8752ed69085a8040cabcbe9c9e164be23000202667ea06f3b782fef"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Util/BoringSSL/InlineArray+withBytes_boring.swift",
+          "sha256": "b08f9283b3e2731b10f572ef9060b0b7d1a301ac4d088a7d6967c9331652eb8b"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Util/BoringSSL/Optional+withUnsafeBytes_boring.swift",
+          "sha256": "d624ceb623bde71d1dea8c7d92d6c1f2448c3835389d1f9af8656063316a502e"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Util/BoringSSL/RNG_boring.swift",
+          "sha256": "ea0001fe920449ac5e7124f086f912f0f1dcb1a9fa871ea4273a98c9c47e5777"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Util/BoringSSL/SafeCompare_boring.swift",
+          "sha256": "24038a5b8626b3ea5fa6ba3d47a63b7af1ab87903a7b8085598abd4f0b9d29b7"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Util/BoringSSL/Zeroization_boring.swift",
+          "sha256": "64c8af74c31dddc935ed7e5269f058c68ee8a5496f84ceb3894c1f7cbef7944c"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Util/BoringSSL/_CryptoModuleAnchor.swift",
+          "sha256": "c75cd6a60665d8136d03829241746443d134af77edb655c121eba7f1d0bb003f"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Util/Data+ArraySpan.swift",
+          "sha256": "497669a2def6bd27433fd53fafa861114b701189898e3e6e380dd91d3de3d5cd"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Util/PrettyBytes.swift",
+          "sha256": "f8628d7852c37869344c7f268a4c10e874b4f9350b0c9f66e42daf9e62905bf8"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Util/SafeCompare.swift",
+          "sha256": "ab517a75b4d875393672095daa0b2a66e326ddcac94133279f63e80375484ef7"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Util/SecureBytes.swift",
+          "sha256": "9ce2157ca5f2f162d00747e41819bae42d5dfdb39992ebee1e3f1034c8b8bffe"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/Crypto/Util/Zeroization.swift",
+          "sha256": "ddd690c92ad3e178b2052aa416736d8432c69a03664ddc582c22ad3e80c3f80f"
+        },
+        {
+          "path": "swift-build/aarch64-unknown-linux-android28/debug/Crypto.build/DerivedSources/resource_bundle_accessor.swift",
+          "sha256": "3ffc2b20c88e52f7c393beb80ed196e019e91f81fb6a32a9cf21abbbdf8edc8d"
+        }
+      ],
+      "CryptoBoringWrapper": [
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/CryptoBoringWrapper/AEAD/BoringSSLAEAD.swift",
+          "sha256": "9be4573f0167a0dc1ab3381ef6a55389920b0bb920e7f2af9d06ce4103feb64c"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/CryptoBoringWrapper/CryptoKitErrors_boring.swift",
+          "sha256": "a285fdf476ef017f04d782d47e9cb16be3fece1f7cbb5090cdbeb4cf3aa5bb39"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/CryptoBoringWrapper/EC/EllipticCurve.swift",
+          "sha256": "f9616efbc918b65168774d08beba27630554e10ce2b539a1d0f469b27b30e8f6"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/CryptoBoringWrapper/EC/EllipticCurvePoint.swift",
+          "sha256": "e3ae8a0866d557770e9ca66f48a6acfb4ad63c8e6e18526f3f131e90d43799f0"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/CryptoBoringWrapper/Util/ArbitraryPrecisionInteger.swift",
+          "sha256": "0a859bb34cc03255f162bb14932725d649d9cf0d75cc51d32a13bee368356393"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/CryptoBoringWrapper/Util/Data+Span.swift",
+          "sha256": "fe665e18ef3309c5eba92bafd383aa9d503d7705a7aca4edb50b890e22888ea8"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/CryptoBoringWrapper/Util/FiniteFieldArithmeticContext.swift",
+          "sha256": "4b833513440712ec0a0562932f1f904f3eca0ec04b60f74f88e5fb6f420d4c32"
+        },
+        {
+          "path": "swift-build/checkouts/swift-crypto/Sources/CryptoBoringWrapper/Util/RandomBytes.swift",
+          "sha256": "dc6219dc378a5ee7c164f014f8971715881b10b7cf019ae179fc69df36e8bc58"
+        },
+        {
+          "path": "swift-build/aarch64-unknown-linux-android28/debug/CryptoBoringWrapper.build/DerivedSources/resource_bundle_accessor.swift",
+          "sha256": "8bc443968389c9f7d71df789e9ea7c6250185dce0c66f4d77031fa44df4b67ff"
+        }
+      ],
+      "FieldLogAndroid": [
+        {
+          "path": "work/relocated/Platforms/Android/Sources/AppAndroid/NativeEntry.swift",
+          "sha256": "ed8ee59526596a5e427bedbed75a26f80b5883a47c4793528818be32280cfe7f"
+        },
+        {
+          "path": "work/relocated/Platforms/Android/Sources/AppAndroid/PublicFactory.swift",
+          "sha256": "008c58c6267303db9bf5b4d39b4d36631e29a63de65548a73c33be268562a390"
+        },
+        {
+          "path": "work/relocated/Platforms/Android/Sources/AppAndroid/SignedChecklist.swift",
+          "sha256": "2f11bd0fc1390faa3a24cbca1f5e1eb3ee84756d94766f4c32f5bb176305023b"
+        }
+      ],
+      "FieldLogFeatures": [
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/ChecklistEdit.swift",
+          "sha256": "adec09e1be1102f0a50173622e43ecb29e820df36b39c054b52690bd786c6f83"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/ChecklistPresentation.swift",
+          "sha256": "e98ea2eb4d1a8e5c7e601af389f911ae5a22f30d580f2421b8c9ee7006494b2d"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/ChecklistRow.swift",
+          "sha256": "d3080cc58162b6cb6b55b2cda3e8cac98edd8b639770e8e8331c8258123fbc43"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/DevicePendingChanges.swift",
+          "sha256": "469208902170b07f88c87372c171910505f56e854f95bb1f9f59ff5d61c7f4e4"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/EntryEditor.swift",
+          "sha256": "686dfb7a6bf61c176a7d9771fefa34ca7ab562771d4ea545b5c626f7372c3dcb"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/EntryEditorForm.swift",
+          "sha256": "6ab5e7c208b335336afa0fc1b140ff789e7903a81d81c321590db11d9ace8fdb"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/EntrySaveDecision.swift",
+          "sha256": "979e09e7fd99dd2589bed87a5684afb67b0a7ca31b212e73c9eecf07efbfa0e8"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/ProjectDetailDocument.swift",
+          "sha256": "28c8305d6e54c72ac56be8a580111dc2dc7e1bc5e255ca7597388c940b603f03"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/ProjectNotes.swift",
+          "sha256": "6246e53bd07ec96c44fea5ffa4bc2ff20c9e63fd66a59d7e68affea903038fb7"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/TaskEditor.swift",
+          "sha256": "b41b07d2e25e2c5762831f4d1b50c5eba87fa9e11ccbc1044215018000b6042f"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/TaskEditorPresentation.swift",
+          "sha256": "5713aa7472199492ad84f9207fe03fd12dab3237f715943d5ab849d8eebba7b8"
+        },
+        {
+          "path": "work/relocated/Sources/FieldLogFeatures/WorkspacePresentation.swift",
+          "sha256": "9df9fdb2feffa8f606c3c6634823afd70a2e8ddabcbd39cbf7777514f72d5282"
+        }
+      ],
+      "FieldLogInstalledGuest": [
+        {
+          "path": "work/relocated/Platforms/Android/Sources/FieldLogInstalledGuest/Delivery.swift",
+          "sha256": "d23bc5b9373ded66f2d07c0c4100ad123441fa87789d90e9eba4fdf592435c04"
+        },
+        {
+          "path": "work/relocated/Platforms/Android/Sources/FieldLogInstalledGuest/FieldLogDraftStorage.swift",
+          "sha256": "af481c6021892682dc2f3942317ad138604ee2b93293bc05d5970dbe7765eb23"
+        },
+        {
+          "path": "work/relocated/Platforms/Android/Sources/FieldLogInstalledGuest/SelectedDraftBinding.swift",
+          "sha256": "3be34a45b33a8b19a516e1bd0dbf4f7cf3f8c39e3fab1f941979ec78d037db00"
+        },
+        {
+          "path": "work/relocated/Platforms/Android/Sources/FieldLogInstalledGuest/SignedTask.swift",
+          "sha256": "77286e9d33cec04614cb7925cb670d0bcb223baf91c1dbf57fa46b4c7af83845"
+        }
+      ],
+      "FieldLogModels": [
+        {
+          "path": "work/relocated/Sources/FieldLogModels/Workspace.swift",
+          "sha256": "8ae81f1834e83d644cfaa64c24a69690e418d8533d207795a83d2056b18adea4"
+        }
+      ],
+      "FieldLogStorage": [
+        {
+          "path": "work/relocated/Sources/FieldLogStorage/WorkspaceRepository.swift",
+          "sha256": "bb3be5e2b4a99779272cca1965f973fba31be8b9ae86ef650206d02c8a984539"
+        }
+      ],
+      "MixerAndroid": [
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerAndroid/AndroidUIHost.swift",
+          "sha256": "0b15acb7335e76ce06aec4a75d74f4acfe759f5adb49ad8a25d881c74b82316c"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerAndroid/AndroidUIProfile.swift",
+          "sha256": "557f3bd03eb8efc5b3e23395d5f73482af254789ee1e3cddf3d2954d3b72359c"
+        }
+      ],
+      "MixerCapabilities": [
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCapabilities/AppPrivateKeyValueStore.swift",
+          "sha256": "a2f5378900f257e4f2806fd3568a683d9808f15debcb186be94dfb9aa44f3be7"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCapabilities/CapabilityExitLease.swift",
+          "sha256": "f155677aa105f4238e115f49456c1f97b4bd52b7dee938d203c66006e972b383"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCapabilities/GeneratedGuestAdapters.swift",
+          "sha256": "eb0d26e832ccaeacfd1c79b60ec51fa3ba60706de3668def7571be0ec95b91be"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCapabilities/GeneratedGuestTransport.swift",
+          "sha256": "c8dfdcf51ba216129ee9d305b13c17c55d31a48abc63d728484c67cadfab0ed7"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCapabilities/GeneratedHostAdapters.swift",
+          "sha256": "cc0d4fb317684bf3b848d914e67201b21acda717a29a79e4531baaae69690d41"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCapabilities/GeneratedIdentity.swift",
+          "sha256": "ceaea22845779e21a5f5ae8f60ad82f2a8701cfb274fe8b45b89c514558c2102"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCapabilities/GeneratedModels.swift",
+          "sha256": "8f8533f45bcd195212e589c23349309870577b3e72ea0b3b75d2538bfba8056f"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCapabilities/GuestClient.swift",
+          "sha256": "529c03e57861f2d33b3358c6ecfeba4b1b01dbd751e3a004c48ba25a77aada3e"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCapabilities/Host.swift",
+          "sha256": "bf68cbfd87d563382061d6605dd0568aeaecfb244ffc1bcb11060d0d08b64b25"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCapabilities/InstalledCapabilityAdapters.swift",
+          "sha256": "142b320c38860dd41ae12bbdae673202f39509a30cefd2473bd3ea1818c83c14"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCapabilities/InstalledGuestUICommitContinuation.swift",
+          "sha256": "63e79b7c51f36850d8b4fe25756139093490d2a5d796109cfa6e7ee1db41974d"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCapabilities/URLSessionHTTPTransport.swift",
+          "sha256": "0dd09dbedf42988c151a5b00a2d218f30b79ed27d78f37cff305aec6cb9f881a"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCapabilities/Wire.swift",
+          "sha256": "6628b5fb2f4ef70e58ea80af01e4ff2969d71da0ff13253081d196a082b3de89"
+        }
+      ],
+      "MixerCapabilityActivation": [
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityAttemptReservation.swift",
+          "sha256": "1191e1fd31c2affd5aefbeb012bc2ee15671308904669dc11a9f50569e323c9e"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityAttemptSignals.swift",
+          "sha256": "62fea2bd56a6664362bb655e08be8469dc2dc815e670e06350a582cbc85809fd"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartConfiguration.swift",
+          "sha256": "961f3681e3dc5583beddf9467bac97718f02069c09213c30a4f4cf5986021c69"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartControl.swift",
+          "sha256": "00a06f8aab0e9231cad8d0c9ba9bcdd10e4806d200ad7f568278587f1ea96378"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartObservationTimer.swift",
+          "sha256": "64a116013519c7e3404d30164b29ddf0e8cdaf285766c4fc770f25c7aad46306"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartPresentation.swift",
+          "sha256": "dd4d48c73548e104cf34a184cfc9c899b3d00a09548cb99b0b1ed1162ca8ebcf"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartRuntime.swift",
+          "sha256": "99b2aa8926b66388920483006bb497a65a4342697dbd6d681ab03ac116029d59"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift",
+          "sha256": "924b5eec85434fcd58ac089c7dad441a5df768dd6e6e923a3c2eab8aa9f75c44"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityConcreteAttempt.swift",
+          "sha256": "bb68c2c9c7f3fd9a9b85d8428d92248ccfe64a8602a7b07746e382b406dc425d"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityConcreteRetirement.swift",
+          "sha256": "e143c347eae335e2b6dd53abd56d0da24dc9729efa72e5a185b79abc2510b8cc"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityDurableDirectory.swift",
+          "sha256": "d2c07daaca9f2309be0572263e789f32fd7091dc6238d7b0dcfa752590019309"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityExecutionPolicy.swift",
+          "sha256": "73c708673425bf453bc8114be152fdef8b9c48fecf93c4eddd346b43271dc322"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidBinding.swift",
+          "sha256": "9dd92ccfe0a610ff70d83cae2338ed8f6bbd27d3286061d4c41c56d420831e23"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidLifetime.swift",
+          "sha256": "3886a89a4ab44221c1a3f348d106553a1a3736e91a0aaadc9eb33b903f6dc810"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidProgress.swift",
+          "sha256": "d47ff4889aef5b412766cd14dbd1f9a10e08dc4d7bbcb3fe94ac81f5aacba116"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidRegistry.swift",
+          "sha256": "ed9466d968a919382ca2cffb70d055ccc945310dc0452cb77d3f416cef42d531"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidResources.swift",
+          "sha256": "29cdbf9eddffa5ac333c44637151e1bf74e39850cffbb4aff051619282754e3d"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIAndroidRuntime.swift",
+          "sha256": "82d510ee0d9e2bdf297c802ead375560db618f1860d84169de86100473376087"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIApple.swift",
+          "sha256": "60b1f8e31b0a3353f936d73cdd30e48ea5e65fe9ab0dfd325f0db3081c0e9c3c"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIDiagnostics.swift",
+          "sha256": "70a061530ee85169f3d7bb753bb0c20841de16c47a148dbe56ff64081ae1d9f0"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIPresentation.swift",
+          "sha256": "2cbffaba4792ad78b22250a4810474149b9c595241eae872400f68650452110b"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIPresentationLifetime.swift",
+          "sha256": "b718ee018149a1ed71a41f7edaec400a3e39a82225e590443c84d482bbab38d3"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityGuestUIRuntime.swift",
+          "sha256": "796dc7e4167aea60a1e77150574802ebadea28b2c831478b91506a39cec07b92"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityInstalledExecutionMode.swift",
+          "sha256": "46cbedbff37c9db7fa27bbd4c099c116ffbbfa3b9dd67a35a786d85104b1c648"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityPreparedPresentation.swift",
+          "sha256": "490d294425483a830252a3175a06ae0a9410fba14ad6d76d7a7699913a0b6dea"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryModels.swift",
+          "sha256": "f9b2b1dbf9317cca3c334be59e0a5b36cea8608d95b59f0f4f6200b1ff7b67dc"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoverySelection.swift",
+          "sha256": "725d4fabdfd90de7f69eee2d667bf9546a6e5ce8084085b1853f25c5789c9de5"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift",
+          "sha256": "c043b6c3ba54ec8e1cbbd59af09e9a6ac843c0a44216e6d860296bd59fdb647c"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/InstalledCapabilityExecution.swift",
+          "sha256": "797a785fdcc56fcca40706b2761831c83bfc4122efe76ca07a025a939a19c41b"
+        },
+        {
+          "path": "work/relocated/Generated/capability-activation/Sources/MixerCapabilityActivation/MaterialJSON.swift",
+          "sha256": "bff2e2b162bc10f0f6e703ddfcb331eb55fb8961814b026d0c1d6de9b342fb1f"
+        }
+      ],
+      "MixerCore": [
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCore/FeatureStore.swift",
+          "sha256": "3fb26a1b1ce6a8863ea53d0c5751b3229ddad1113b486cb2c430d1d0dbcb385f"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCore/JSONInputGuard.swift",
+          "sha256": "c01ae7ad973dcfc40d2b4ecef3fb8091d1c94484410621f28e77096e952de07c"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCore/Lifecycle.swift",
+          "sha256": "67d6dc636bb36ce765e5a0c4ee9db93d61ce7b17938e3d9a1a0ff84020927a91"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCore/Navigation.swift",
+          "sha256": "6197c48eeb03aa6eeb94c3ca9a674c451deb83df9f662177014f70b866ef94d2"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerCore/Resources.swift",
+          "sha256": "2e9cd272144237f9fc76c3c7e46add88f43395a60ed83db24f5cd454ae7b7dca"
+        }
+      ],
+      "MixerExperimentalCapabilityRuntime": [
+        {
+          "path": "work/relocated/Generated/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Failure.swift",
+          "sha256": "25fda0bc8aa630afbfab7b53d0a05ddadee31e560f7cee37daf60c8fa24bcc63"
+        },
+        {
+          "path": "work/relocated/Generated/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestDebugLines.swift",
+          "sha256": "37182a6b3da620e07730647526ca644f5e85e4e55c661cb785973516d277fde7"
+        },
+        {
+          "path": "work/relocated/Generated/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift",
+          "sha256": "7d1798ef8525a30ec7fdf3d9b71363e25da00fb59be20ebb23b0fe8c197457ed"
+        },
+        {
+          "path": "work/relocated/Generated/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Lifecycle.swift",
+          "sha256": "09ec184ed396d5e715ce4065e63e860dedb37fa1903a5e0944d07129fb6106b2"
+        },
+        {
+          "path": "work/relocated/Generated/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Native.swift",
+          "sha256": "f183ee080a5fedc00f22af9b299747a004c96e26be53b6721d24f53ddb447704"
+        },
+        {
+          "path": "work/relocated/Generated/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Ownership.swift",
+          "sha256": "4e682126ccbcafbd82a3cb69d4e640a5d0e443ac37e84941d030e8428d622f3b"
+        },
+        {
+          "path": "work/relocated/Generated/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift",
+          "sha256": "2861ae8542e72e059b6fc8da704bf9ee1374e17643c6b07fb81a9f4f9413717e"
+        },
+        {
+          "path": "work/relocated/Generated/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Types.swift",
+          "sha256": "508f0e5ef4b5439f6eaf0d3ff404bcc17034dce337cbb4886932b9826b483b62"
+        },
+        {
+          "path": "work/relocated/Generated/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Validation.swift",
+          "sha256": "7f30e58c9f24261335d4827ce757d756111e444898a4149d57186cf68ff112ea"
+        }
+      ],
+      "MixerGuest": [
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerGuest/GuestUICodec.swift",
+          "sha256": "99a16418a1e2acf7f232c8032cb92d40b0abdf6bedfe61366a0705344f0c5252"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerGuest/GuestUIEditorV2.swift",
+          "sha256": "b5e6ee388e3af43835ac24f926c1b91275ca7835818557f7bd48bf42bc8355a4"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerGuest/GuestUIEventCodecV1.swift",
+          "sha256": "ccc8650f85c3f9bbabacda40f7726d0d83247cd53884b218f0a278336395d2ba"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerGuest/GuestUIExchangeCodec.swift",
+          "sha256": "80e4b54802dee5f06efc77b919e0c277471a74cbf2ae87396f1e0db8ed9432c2"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerGuest/GuestUIExchangeCore.swift",
+          "sha256": "c77a4727327ba39ca02c53ea16ed1af5d9de623a03b9aae796db526bc07f3f95"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerGuest/GuestUIExchangeV1.swift",
+          "sha256": "2fc664a8651532b658c16f37fd2f0d040def464bd009e7e398d312c76bdad0e5"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerGuest/GuestUIExchangeV2.swift",
+          "sha256": "8eff85ea35ee90e02d22b7f33eadb88b327a3a4d42326cb8dbdd32770c2e5e57"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerGuest/GuestUIExchangeV3.swift",
+          "sha256": "36a8f28e46b157960087cb27931e071025c32255062a5c9e69761954d1523eef"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerGuest/GuestUIFeatureV3.swift",
+          "sha256": "c7fc5ed5f3f6e14c4678bef02c56fbec7d8dcbfddec36963df0da00cd9afd2b3"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerGuest/GuestUIProtocolV1.swift",
+          "sha256": "60c5956267733491ffa971935dd81c13422a565bc6ad8bcdf5360fd6c5742257"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerGuest/GuestUIWakeV1.swift",
+          "sha256": "8c0df025c3ca89554f8ed127719464a69354ba80b0f68fe6ad793039048b8680"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerGuest/SwiftFeatureOwnership.swift",
+          "sha256": "451b344d055f7353c35e607dcd165b32e89667d6e0c5a6981d9761066514a31f"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerGuest/SwiftFeatureRuntime.swift",
+          "sha256": "0a5d2a1ce07e20e3cbf98d5b4a2789af64e31da8cf0d9e9dcb6a6767f60f4615"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerGuest/SwiftFeatureSession.swift",
+          "sha256": "10d2191df8af463e79e5dd6e91de1fc362e47ff3ec224da3cd85fbad7de68cf5"
+        }
+      ],
+      "MixerRuntimeIdentity": [
+        {
+          "path": "work/relocated/Generated/runtime-identity/Sources/MixerRuntimeIdentity/CapabilityRuntimeIdentity.swift",
+          "sha256": "bf628aaa9bcfec6ce65b2b3e3cf3008ce066974885d292275d3c687fcfebfdc3"
+        },
+        {
+          "path": "work/relocated/Generated/runtime-identity/Sources/MixerRuntimeIdentity/RuntimeIdentity.swift",
+          "sha256": "edf1a068f73b5812af691c5ba6fdadc3279d9fa66ea7eb2c19705410e1f5c368"
+        }
+      ],
+      "MixerUI": [
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceDefaultV1.swift",
+          "sha256": "4ec1af1f904f427a17ae55e5937e017afbf3d8a4e6040749caee199e09bac1c9"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceDefaultV2.swift",
+          "sha256": "64daf8569dff496801b4886a03cce34aeb6af6fd9e5a76e3e0ea338b82dab05d"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceDescriptorV1.swift",
+          "sha256": "ad7f2b7c51041496197894829265bee7cfa8b8cb18d09abe5d816d9bf5259295"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceDescriptorV2.swift",
+          "sha256": "88683c11d8f3e22ddbb3e16601715d5761f6d677dbacc1d4dc9f66d7303512a1"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceGeometryV2.swift",
+          "sha256": "32d6a097e60e33393510a2d52df40b85d22afe7c5562504449c1f472e110cb72"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceMetricMathV1.swift",
+          "sha256": "fad0acfce796ae667bb01f6a29418298fe8197c7d79b2778d4fb3de79b348578"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceResolutionV1.swift",
+          "sha256": "cbaaeebad2ef3c4015ab4f917df3a35ed68541e52b8b12c8a27a3be07211fcf0"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceResolutionV2.swift",
+          "sha256": "16088bcd20fa22b385aee43fb02d6b1c00d1771c6d71a7dff45e9de58a85ed8f"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceValuesV1.swift",
+          "sha256": "bb33ff6eb92603caf12e0cbd3166f291debc30ca8440696870ec523345fd6ccc"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/AppearanceValuesV2.swift",
+          "sha256": "f96fe9d18ec2c2390268499c46e709e998e230d97840d02eb8e86094916ebc54"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/Authoring.swift",
+          "sha256": "ef313b4f153199ce2b18d4cea75be7a61b82350dd4b17e7e3be84757898482c6"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/NativePacketV1.swift",
+          "sha256": "5cc91fca4746ffb37d26e41e26796e41727405f2b308c850adb3fa6ba8862704"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/NativePresentation.swift",
+          "sha256": "500711a94addebc18401601610e3ef8d80e489c00f589795aee1a6d6ede7fe2d"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/Protocol.swift",
+          "sha256": "209302b05c2e9eae1a1db9b4b462ade13294cb25fce54bd38482b76aa2f11a11"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/Reconciliation.swift",
+          "sha256": "3980a1aa9fca0a6cb9da48ee693b2ab2acae4013cafe6dfab2bb20dcfa427ae0"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/SharedTextProfilesV1.swift",
+          "sha256": "5547407727fc668e527f73d79765722009c9f38a931e23bfead20d979a763481"
+        },
+        {
+          "path": "work/relocated/Generated/MixerSDK/Sources/MixerUI/Validation.swift",
+          "sha256": "1a842e3cb49ba2551dee6b0d1def094da2af7a3f1cfa3b0939d9d24168afa93c"
+        }
+      ],
+      "MixerUpdates": [
+        {
+          "path": "work/relocated/Generated/updates/Sources/MixerUpdates/CanonicalValue.swift",
+          "sha256": "9d378b14b7a768fe2a176b888b668ce33bcbb7fca79df2c5647197cacadcf954"
+        },
+        {
+          "path": "work/relocated/Generated/updates/Sources/MixerUpdates/ColdStartModels.swift",
+          "sha256": "92f78089c6db400306231f1d231a2dd76d7becc689a70ce1626f2964a1f64f6c"
+        },
+        {
+          "path": "work/relocated/Generated/updates/Sources/MixerUpdates/ColdStartUpdater.swift",
+          "sha256": "91f66219305adcf3419115007165ba2c1ef1b68287ac6544f54bfb53f220d3c4"
+        },
+        {
+          "path": "work/relocated/Generated/updates/Sources/MixerUpdates/DurableDirectory.swift",
+          "sha256": "08126d6a57a83fce3229284c1f0267f496cd6352ce095f74855f1cabe04528bc"
+        },
+        {
+          "path": "work/relocated/Generated/updates/Sources/MixerUpdates/StrictJSON.swift",
+          "sha256": "52952e49cc90961e3179d82809219b817b1bd4c3cb55613d2c732b62d05dcdf6"
+        },
+        {
+          "path": "work/relocated/Generated/updates/Sources/MixerUpdates/UpdateInputFile.swift",
+          "sha256": "da5e0b63641842ec56cc3b9610cc4378ce24084dc0d28d2fa05ce00a6e1b4ea9"
+        },
+        {
+          "path": "work/relocated/Generated/updates/Sources/MixerUpdates/Verifier.swift",
+          "sha256": "3886a064552bdd0573362909f4f6fe0973ddf5a6982cb4369c5a92b328a52d60"
+        },
+        {
+          "path": "work/relocated/Generated/updates/Sources/MixerUpdates/VerifierV3.swift",
+          "sha256": "ea06c1844f79782808662219d40879df029e6950fc300de4e606950461bf9dfc"
+        }
+      ]
+    },
+    "swiftPMLinkListSHA256": "ec3c12cbd9027898425c8e8f4c41f8342d55c5a18c7ddb49acfb7b4138367f85",
+    "swiftPMLinkObjects": [
+      "CCryptoBoringSSL.build/crypto/aes/aes.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/a_bitstr.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/a_bool.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/a_d2i_fp.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/a_dup.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/a_gentm.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/a_i2d_fp.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/a_int.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/a_mbstr.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/a_object.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/a_octet.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/a_strex.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/a_strnid.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/a_time.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/a_type.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/a_utctm.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/asn1_lib.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/asn1_par.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/asn_pack.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/f_int.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/f_string.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/posix_time.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/tasn_dec.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/tasn_enc.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/tasn_fre.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/tasn_new.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/tasn_typ.cc.o",
+      "CCryptoBoringSSL.build/crypto/asn1/tasn_utl.cc.o",
+      "CCryptoBoringSSL.build/crypto/base64/base64.cc.o",
+      "CCryptoBoringSSL.build/crypto/bio/bio.cc.o",
+      "CCryptoBoringSSL.build/crypto/bio/bio_mem.cc.o",
+      "CCryptoBoringSSL.build/crypto/bio/errno.cc.o",
+      "CCryptoBoringSSL.build/crypto/bio/fd.cc.o",
+      "CCryptoBoringSSL.build/crypto/bio/file.cc.o",
+      "CCryptoBoringSSL.build/crypto/bio/hexdump.cc.o",
+      "CCryptoBoringSSL.build/crypto/bio/pair.cc.o",
+      "CCryptoBoringSSL.build/crypto/bio/printf.cc.o",
+      "CCryptoBoringSSL.build/crypto/blake2/blake2.cc.o",
+      "CCryptoBoringSSL.build/crypto/bn/bn_asn1.cc.o",
+      "CCryptoBoringSSL.build/crypto/bn/convert.cc.o",
+      "CCryptoBoringSSL.build/crypto/bn/div.cc.o",
+      "CCryptoBoringSSL.build/crypto/bn/exponentiation.cc.o",
+      "CCryptoBoringSSL.build/crypto/bn/sqrt.cc.o",
+      "CCryptoBoringSSL.build/crypto/buf/buf.cc.o",
+      "CCryptoBoringSSL.build/crypto/bytestring/asn1_compat.cc.o",
+      "CCryptoBoringSSL.build/crypto/bytestring/ber.cc.o",
+      "CCryptoBoringSSL.build/crypto/bytestring/cbb.cc.o",
+      "CCryptoBoringSSL.build/crypto/bytestring/cbs.cc.o",
+      "CCryptoBoringSSL.build/crypto/bytestring/unicode.cc.o",
+      "CCryptoBoringSSL.build/crypto/chacha/chacha.cc.o",
+      "CCryptoBoringSSL.build/crypto/cipher/derive_key.cc.o",
+      "CCryptoBoringSSL.build/crypto/cipher/e_aesctrhmac.cc.o",
+      "CCryptoBoringSSL.build/crypto/cipher/e_aeseax.cc.o",
+      "CCryptoBoringSSL.build/crypto/cipher/e_aesgcmsiv.cc.o",
+      "CCryptoBoringSSL.build/crypto/cipher/e_chacha20poly1305.cc.o",
+      "CCryptoBoringSSL.build/crypto/cipher/e_des.cc.o",
+      "CCryptoBoringSSL.build/crypto/cipher/e_null.cc.o",
+      "CCryptoBoringSSL.build/crypto/cipher/e_rc2.cc.o",
+      "CCryptoBoringSSL.build/crypto/cipher/e_rc4.cc.o",
+      "CCryptoBoringSSL.build/crypto/cipher/e_tls.cc.o",
+      "CCryptoBoringSSL.build/crypto/cipher/get_cipher.cc.o",
+      "CCryptoBoringSSL.build/crypto/cipher/tls_cbc.cc.o",
+      "CCryptoBoringSSL.build/crypto/cms/cms.cc.o",
+      "CCryptoBoringSSL.build/crypto/conf/conf.cc.o",
+      "CCryptoBoringSSL.build/crypto/cpu_aarch64_apple.cc.o",
+      "CCryptoBoringSSL.build/crypto/cpu_aarch64_fuchsia.cc.o",
+      "CCryptoBoringSSL.build/crypto/cpu_aarch64_linux.cc.o",
+      "CCryptoBoringSSL.build/crypto/cpu_aarch64_openbsd.cc.o",
+      "CCryptoBoringSSL.build/crypto/cpu_aarch64_sysreg.cc.o",
+      "CCryptoBoringSSL.build/crypto/cpu_aarch64_win.cc.o",
+      "CCryptoBoringSSL.build/crypto/cpu_arm_freebsd.cc.o",
+      "CCryptoBoringSSL.build/crypto/cpu_arm_linux.cc.o",
+      "CCryptoBoringSSL.build/crypto/cpu_intel.cc.o",
+      "CCryptoBoringSSL.build/crypto/crypto.cc.o",
+      "CCryptoBoringSSL.build/crypto/curve25519/asm/x25519-asm-arm.S.o",
+      "CCryptoBoringSSL.build/crypto/curve25519/curve25519.cc.o",
+      "CCryptoBoringSSL.build/crypto/curve25519/curve25519_64_adx.cc.o",
+      "CCryptoBoringSSL.build/crypto/curve25519/spake25519.cc.o",
+      "CCryptoBoringSSL.build/crypto/des/des.cc.o",
+      "CCryptoBoringSSL.build/crypto/dh/dh_asn1.cc.o",
+      "CCryptoBoringSSL.build/crypto/dh/params.cc.o",
+      "CCryptoBoringSSL.build/crypto/digest/digest_extra.cc.o",
+      "CCryptoBoringSSL.build/crypto/dsa/dsa.cc.o",
+      "CCryptoBoringSSL.build/crypto/dsa/dsa_asn1.cc.o",
+      "CCryptoBoringSSL.build/crypto/ec/ec_asn1.cc.o",
+      "CCryptoBoringSSL.build/crypto/ec/ec_derive.cc.o",
+      "CCryptoBoringSSL.build/crypto/ec/hash_to_curve.cc.o",
+      "CCryptoBoringSSL.build/crypto/ecdh/ecdh.cc.o",
+      "CCryptoBoringSSL.build/crypto/ecdsa/ecdsa_asn1.cc.o",
+      "CCryptoBoringSSL.build/crypto/ecdsa/ecdsa_p1363.cc.o",
+      "CCryptoBoringSSL.build/crypto/engine/engine.cc.o",
+      "CCryptoBoringSSL.build/crypto/err/err.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/evp.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/evp_asn1.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/evp_ctx.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/p_dh.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/p_dh_asn1.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/p_dsa_asn1.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/p_ec.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/p_ec_asn1.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/p_ed25519.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/p_ed25519_asn1.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/p_hkdf.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/p_rsa.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/p_rsa_asn1.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/p_x25519.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/p_x25519_asn1.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/pbkdf.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/print.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/scrypt.cc.o",
+      "CCryptoBoringSSL.build/crypto/evp/sign.cc.o",
+      "CCryptoBoringSSL.build/crypto/ex_data.cc.o",
+      "CCryptoBoringSSL.build/crypto/fipsmodule/bcm.cc.o",
+      "CCryptoBoringSSL.build/crypto/fipsmodule/fips_shared_support.cc.o",
+      "CCryptoBoringSSL.build/crypto/fuzzer_mode.cc.o",
+      "CCryptoBoringSSL.build/crypto/hpke/hpke.cc.o",
+      "CCryptoBoringSSL.build/crypto/hrss/asm/poly_rq_mul.S.o",
+      "CCryptoBoringSSL.build/crypto/hrss/hrss.cc.o",
+      "CCryptoBoringSSL.build/crypto/kyber/kyber.cc.o",
+      "CCryptoBoringSSL.build/crypto/lhash/lhash.cc.o",
+      "CCryptoBoringSSL.build/crypto/md4/md4.cc.o",
+      "CCryptoBoringSSL.build/crypto/md5/md5.cc.o",
+      "CCryptoBoringSSL.build/crypto/mem.cc.o",
+      "CCryptoBoringSSL.build/crypto/mldsa/mldsa.cc.o",
+      "CCryptoBoringSSL.build/crypto/mlkem/mlkem.cc.o",
+      "CCryptoBoringSSL.build/crypto/obj/obj.cc.o",
+      "CCryptoBoringSSL.build/crypto/obj/obj_xref.cc.o",
+      "CCryptoBoringSSL.build/crypto/pem/pem_all.cc.o",
+      "CCryptoBoringSSL.build/crypto/pem/pem_info.cc.o",
+      "CCryptoBoringSSL.build/crypto/pem/pem_lib.cc.o",
+      "CCryptoBoringSSL.build/crypto/pem/pem_oth.cc.o",
+      "CCryptoBoringSSL.build/crypto/pem/pem_pk8.cc.o",
+      "CCryptoBoringSSL.build/crypto/pem/pem_pkey.cc.o",
+      "CCryptoBoringSSL.build/crypto/pem/pem_x509.cc.o",
+      "CCryptoBoringSSL.build/crypto/pem/pem_xaux.cc.o",
+      "CCryptoBoringSSL.build/crypto/pkcs7/pkcs7.cc.o",
+      "CCryptoBoringSSL.build/crypto/pkcs7/pkcs7_x509.cc.o",
+      "CCryptoBoringSSL.build/crypto/pkcs8/p5_pbev2.cc.o",
+      "CCryptoBoringSSL.build/crypto/pkcs8/pkcs8.cc.o",
+      "CCryptoBoringSSL.build/crypto/pkcs8/pkcs8_x509.cc.o",
+      "CCryptoBoringSSL.build/crypto/poly1305/poly1305.cc.o",
+      "CCryptoBoringSSL.build/crypto/poly1305/poly1305_arm.cc.o",
+      "CCryptoBoringSSL.build/crypto/poly1305/poly1305_arm_asm.S.o",
+      "CCryptoBoringSSL.build/crypto/poly1305/poly1305_vec.cc.o",
+      "CCryptoBoringSSL.build/crypto/pool/pool.cc.o",
+      "CCryptoBoringSSL.build/crypto/rand/deterministic.cc.o",
+      "CCryptoBoringSSL.build/crypto/rand/fork_detect.cc.o",
+      "CCryptoBoringSSL.build/crypto/rand/forkunsafe.cc.o",
+      "CCryptoBoringSSL.build/crypto/rand/getentropy.cc.o",
+      "CCryptoBoringSSL.build/crypto/rand/ios.cc.o",
+      "CCryptoBoringSSL.build/crypto/rand/passive.cc.o",
+      "CCryptoBoringSSL.build/crypto/rand/rand.cc.o",
+      "CCryptoBoringSSL.build/crypto/rand/trusty.cc.o",
+      "CCryptoBoringSSL.build/crypto/rand/urandom.cc.o",
+      "CCryptoBoringSSL.build/crypto/rand/windows.cc.o",
+      "CCryptoBoringSSL.build/crypto/rc4/rc4.cc.o",
+      "CCryptoBoringSSL.build/crypto/refcount.cc.o",
+      "CCryptoBoringSSL.build/crypto/rsa/rsa_asn1.cc.o",
+      "CCryptoBoringSSL.build/crypto/rsa/rsa_crypt.cc.o",
+      "CCryptoBoringSSL.build/crypto/rsa/rsa_extra.cc.o",
+      "CCryptoBoringSSL.build/crypto/rsa/rsa_print.cc.o",
+      "CCryptoBoringSSL.build/crypto/sha/sha1.cc.o",
+      "CCryptoBoringSSL.build/crypto/sha/sha256.cc.o",
+      "CCryptoBoringSSL.build/crypto/sha/sha512.cc.o",
+      "CCryptoBoringSSL.build/crypto/siphash/siphash.cc.o",
+      "CCryptoBoringSSL.build/crypto/slhdsa/slhdsa.cc.o",
+      "CCryptoBoringSSL.build/crypto/spake2plus/spake2plus.cc.o",
+      "CCryptoBoringSSL.build/crypto/stack/stack.cc.o",
+      "CCryptoBoringSSL.build/crypto/thread.cc.o",
+      "CCryptoBoringSSL.build/crypto/thread_none.cc.o",
+      "CCryptoBoringSSL.build/crypto/thread_pthread.cc.o",
+      "CCryptoBoringSSL.build/crypto/thread_win.cc.o",
+      "CCryptoBoringSSL.build/crypto/trust_token/pmbtoken.cc.o",
+      "CCryptoBoringSSL.build/crypto/trust_token/trust_token.cc.o",
+      "CCryptoBoringSSL.build/crypto/trust_token/voprf.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/a_digest.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/a_sign.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/a_verify.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/algorithm.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/asn1_gen.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/by_dir.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/by_file.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/i2d_pr.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/name_print.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/policy.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/rsa_pss.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/t_crl.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/t_req.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/t_x509.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/t_x509a.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_akey.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_akeya.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_alt.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_bcons.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_bitst.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_conf.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_cpols.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_crld.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_enum.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_extku.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_genn.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_ia5.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_info.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_int.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_lib.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_ncons.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_ocsp.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_pcons.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_pmaps.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_prn.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_purp.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_skey.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/v3_utl.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509_att.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509_cmp.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509_d2.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509_def.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509_ext.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509_lu.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509_obj.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509_req.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509_set.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509_trs.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509_txt.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509_v3.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509_vfy.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509_vpm.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509cset.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509name.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509rset.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x509spki.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x_algor.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x_all.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x_attrib.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x_crl.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x_exten.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x_name.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x_pubkey.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x_req.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x_sig.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x_spki.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x_x509.cc.o",
+      "CCryptoBoringSSL.build/crypto/x509/x_x509a.cc.o",
+      "CCryptoBoringSSL.build/crypto/xwing/xwing.cc.o",
+      "CCryptoBoringSSL.build/gen/bcm/aes-gcm-avx2-x86_64-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/aes-gcm-avx2-x86_64-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/aes-gcm-avx512-x86_64-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/aes-gcm-avx512-x86_64-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/aesni-gcm-x86_64-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/aesni-gcm-x86_64-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/aesni-x86-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/aesni-x86-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/aesni-x86_64-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/aesni-x86_64-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/aesv8-armv7-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/aesv8-armv8-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/aesv8-armv8-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/aesv8-armv8-win.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/aesv8-gcm-armv8-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/aesv8-gcm-armv8-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/aesv8-gcm-armv8-win.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/armv4-mont-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/armv8-mont-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/armv8-mont-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/armv8-mont-win.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/bn-586-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/bn-586-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/bn-armv8-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/bn-armv8-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/bn-armv8-win.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/bsaes-armv7-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/co-586-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/co-586-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/ghash-armv4-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/ghash-neon-armv8-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/ghash-neon-armv8-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/ghash-neon-armv8-win.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/ghash-ssse3-x86-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/ghash-ssse3-x86-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/ghash-ssse3-x86_64-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/ghash-ssse3-x86_64-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/ghash-x86-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/ghash-x86-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/ghash-x86_64-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/ghash-x86_64-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/ghashv8-armv7-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/ghashv8-armv8-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/ghashv8-armv8-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/ghashv8-armv8-win.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/p256-armv8-asm-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/p256-armv8-asm-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/p256-armv8-asm-win.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/p256-x86_64-asm-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/p256-x86_64-asm-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/p256_beeu-armv8-asm-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/p256_beeu-armv8-asm-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/p256_beeu-armv8-asm-win.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/p256_beeu-x86_64-asm-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/p256_beeu-x86_64-asm-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/rdrand-x86_64-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/rdrand-x86_64-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/rsaz-avx2-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/rsaz-avx2-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha1-586-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha1-586-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha1-armv4-large-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha1-armv8-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha1-armv8-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha1-armv8-win.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha1-x86_64-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha1-x86_64-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha256-586-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha256-586-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha256-armv4-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha256-armv8-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha256-armv8-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha256-armv8-win.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha256-x86_64-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha256-x86_64-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha512-586-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha512-586-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha512-armv4-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha512-armv8-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha512-armv8-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha512-armv8-win.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha512-x86_64-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/sha512-x86_64-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/vpaes-armv7-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/vpaes-armv8-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/vpaes-armv8-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/vpaes-armv8-win.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/vpaes-x86-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/vpaes-x86-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/vpaes-x86_64-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/vpaes-x86_64-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/x86-mont-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/x86-mont-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/x86_64-mont-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/x86_64-mont-linux.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/x86_64-mont5-apple.S.o",
+      "CCryptoBoringSSL.build/gen/bcm/x86_64-mont5-linux.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/aes128gcmsiv-x86_64-apple.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/aes128gcmsiv-x86_64-linux.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/chacha-armv4-linux.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/chacha-armv8-apple.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/chacha-armv8-linux.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/chacha-armv8-win.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/chacha-x86-apple.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/chacha-x86-linux.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/chacha-x86_64-apple.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/chacha-x86_64-linux.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/chacha20_poly1305_armv8-apple.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/chacha20_poly1305_armv8-linux.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/chacha20_poly1305_armv8-win.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/chacha20_poly1305_x86_64-apple.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/chacha20_poly1305_x86_64-linux.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/err_data.cc.o",
+      "CCryptoBoringSSL.build/gen/crypto/md5-586-apple.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/md5-586-linux.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/md5-x86_64-apple.S.o",
+      "CCryptoBoringSSL.build/gen/crypto/md5-x86_64-linux.S.o",
+      "CCryptoBoringSSL.build/third_party/fiat/asm/fiat_curve25519_adx_mul.S.o",
+      "CCryptoBoringSSL.build/third_party/fiat/asm/fiat_curve25519_adx_square.S.o",
+      "CCryptoBoringSSL.build/third_party/fiat/asm/fiat_p256_adx_mul.S.o",
+      "CCryptoBoringSSL.build/third_party/fiat/asm/fiat_p256_adx_sqr.S.o",
+      "CMixerVMCapability.build/bridge.c.o",
+      "CXKCP.build/FIPS202-opt64/KeccakHash.c.o",
+      "CXKCP.build/FIPS202-opt64/KeccakP-1600-opt64.c.o",
+      "CXKCP.build/FIPS202-opt64/KeccakSponge.c.o",
+      "CXKCP.build/FIPS202-opt64/SimpleFIPS202.c.o",
+      "CXKCPShims.build/shims.c.o",
+      "Crypto.build/AES-GCM.swift.o",
+      "Crypto.build/AES-GCM_boring.swift.o",
+      "Crypto.build/AES.swift.o",
+      "Crypto.build/AESWrap.swift.o",
+      "Crypto.build/AESWrap_boring.swift.o",
+      "Crypto.build/ANSIx963.swift.o",
+      "Crypto.build/ASN1.swift.o",
+      "Crypto.build/ASN1Any.swift.o",
+      "Crypto.build/ASN1BitString.swift.o",
+      "Crypto.build/ASN1Boolean.swift.o",
+      "Crypto.build/ASN1Identifier.swift.o",
+      "Crypto.build/ASN1Integer.swift.o",
+      "Crypto.build/ASN1Null.swift.o",
+      "Crypto.build/ASN1OctetString.swift.o",
+      "Crypto.build/ASN1Strings.swift.o",
+      "Crypto.build/ArraySliceBigint.swift.o",
+      "Crypto.build/ArraySpanHelpers.swift.o",
+      "Crypto.build/ChaChaPoly.swift.o",
+      "Crypto.build/ChaChaPoly_boring.swift.o",
+      "Crypto.build/Cipher.swift.o",
+      "Crypto.build/Crypto.swiftmodule.o",
+      "Crypto.build/CryptoError_boring.swift.o",
+      "Crypto.build/CryptoKitErrors.swift.o",
+      "Crypto.build/CryptoKitErrors_boring.swift.o",
+      "Crypto.build/Curve25519.swift.o",
+      "Crypto.build/DH.swift.o",
+      "Crypto.build/DHKEM.swift.o",
+      "Crypto.build/Data+ArraySpan.swift.o",
+      "Crypto.build/Digest.swift.o",
+      "Crypto.build/Digest_boring.swift.o",
+      "Crypto.build/Digest_xkcp.swift.o",
+      "Crypto.build/Digests.swift.o",
+      "Crypto.build/ECDH.swift.o",
+      "Crypto.build/ECDH_boring.swift.o",
+      "Crypto.build/ECDSA.swift.o",
+      "Crypto.build/ECDSASignature.swift.o",
+      "Crypto.build/ECDSASignature_boring.swift.o",
+      "Crypto.build/ECDSA_boring.swift.o",
+      "Crypto.build/Ed25519.swift.o",
+      "Crypto.build/Ed25519Keys.swift.o",
+      "Crypto.build/Ed25519_boring.swift.o",
+      "Crypto.build/EdDSA_boring.swift.o",
+      "Crypto.build/GeneralizedTime.swift.o",
+      "Crypto.build/HKDF.swift.o",
+      "Crypto.build/HMAC.swift.o",
+      "Crypto.build/HPKE-AEAD.swift.o",
+      "Crypto.build/HPKE-Ciphersuite.swift.o",
+      "Crypto.build/HPKE-Context.swift.o",
+      "Crypto.build/HPKE-Errors.swift.o",
+      "Crypto.build/HPKE-KDF.swift.o",
+      "Crypto.build/HPKE-KEM-Curve25519.swift.o",
+      "Crypto.build/HPKE-KEM.swift.o",
+      "Crypto.build/HPKE-KexKeyDerivation.swift.o",
+      "Crypto.build/HPKE-KeySchedule.swift.o",
+      "Crypto.build/HPKE-LabeledExtract.swift.o",
+      "Crypto.build/HPKE-Modes.swift.o",
+      "Crypto.build/HPKE-NIST-EC-KEMs.swift.o",
+      "Crypto.build/HPKE-Utils.swift.o",
+      "Crypto.build/HPKE.swift.o",
+      "Crypto.build/HashFunctions.swift.o",
+      "Crypto.build/HashFunctions_SHA2.swift.o",
+      "Crypto.build/HashFunctions_SHA3.swift.o",
+      "Crypto.build/InlineArray+withBytes_boring.swift.o",
+      "Crypto.build/Insecure.swift.o",
+      "Crypto.build/Insecure_HashFunctions.swift.o",
+      "Crypto.build/KEM-Errors.swift.o",
+      "Crypto.build/KEM.swift.o",
+      "Crypto.build/MACFunctions.swift.o",
+      "Crypto.build/MLDSA.swift.o",
+      "Crypto.build/MLDSA_boring.swift.o",
+      "Crypto.build/MLDSA_wrapper.swift.o",
+      "Crypto.build/MLKEM.swift.o",
+      "Crypto.build/MLKEM_boring.swift.o",
+      "Crypto.build/MLKEM_wrapper.swift.o",
+      "Crypto.build/MessageAuthenticationCode.swift.o",
+      "Crypto.build/NISTCurvesKeys.swift.o",
+      "Crypto.build/NISTCurvesKeys_boring.swift.o",
+      "Crypto.build/Nonces.swift.o",
+      "Crypto.build/ObjectIdentifier.swift.o",
+      "Crypto.build/Optional+withUnsafeBytes_boring.swift.o",
+      "Crypto.build/PEMDocument.swift.o",
+      "Crypto.build/PKCS8PrivateKey.swift.o",
+      "Crypto.build/PrettyBytes.swift.o",
+      "Crypto.build/RNG_boring.swift.o",
+      "Crypto.build/SEC1PrivateKey.swift.o",
+      "Crypto.build/SafeCompare.swift.o",
+      "Crypto.build/SafeCompare_boring.swift.o",
+      "Crypto.build/SecureBytes.swift.o",
+      "Crypto.build/Signature.swift.o",
+      "Crypto.build/SubjectPublicKeyInfo.swift.o",
+      "Crypto.build/SymmetricKeys.swift.o",
+      "Crypto.build/X25519Keys.swift.o",
+      "Crypto.build/X25519Keys_boring.swift.o",
+      "Crypto.build/XWing.swift.o",
+      "Crypto.build/XWing_boring.swift.o",
+      "Crypto.build/Zeroization.swift.o",
+      "Crypto.build/Zeroization_boring.swift.o",
+      "Crypto.build/_CryptoModuleAnchor.swift.o",
+      "Crypto.build/resource_bundle_accessor.swift.o",
+      "CryptoBoringWrapper.build/ArbitraryPrecisionInteger.swift.o",
+      "CryptoBoringWrapper.build/BoringSSLAEAD.swift.o",
+      "CryptoBoringWrapper.build/CryptoBoringWrapper.swiftmodule.o",
+      "CryptoBoringWrapper.build/CryptoKitErrors_boring.swift.o",
+      "CryptoBoringWrapper.build/Data+Span.swift.o",
+      "CryptoBoringWrapper.build/EllipticCurve.swift.o",
+      "CryptoBoringWrapper.build/EllipticCurvePoint.swift.o",
+      "CryptoBoringWrapper.build/FiniteFieldArithmeticContext.swift.o",
+      "CryptoBoringWrapper.build/RandomBytes.swift.o",
+      "CryptoBoringWrapper.build/resource_bundle_accessor.swift.o",
+      "FieldLogAndroid.build/FieldLogAndroid.swiftmodule.o",
+      "FieldLogAndroid.build/NativeEntry.swift.o",
+      "FieldLogAndroid.build/PublicFactory.swift.o",
+      "FieldLogAndroid.build/SignedChecklist.swift.o",
+      "FieldLogFeatures.build/ChecklistEdit.swift.o",
+      "FieldLogFeatures.build/ChecklistPresentation.swift.o",
+      "FieldLogFeatures.build/ChecklistRow.swift.o",
+      "FieldLogFeatures.build/DevicePendingChanges.swift.o",
+      "FieldLogFeatures.build/EntryEditor.swift.o",
+      "FieldLogFeatures.build/EntryEditorForm.swift.o",
+      "FieldLogFeatures.build/EntrySaveDecision.swift.o",
+      "FieldLogFeatures.build/FieldLogFeatures.swiftmodule.o",
+      "FieldLogFeatures.build/ProjectDetailDocument.swift.o",
+      "FieldLogFeatures.build/ProjectNotes.swift.o",
+      "FieldLogFeatures.build/TaskEditor.swift.o",
+      "FieldLogFeatures.build/TaskEditorPresentation.swift.o",
+      "FieldLogFeatures.build/WorkspacePresentation.swift.o",
+      "FieldLogInstalledGuest.build/Delivery.swift.o",
+      "FieldLogInstalledGuest.build/FieldLogDraftStorage.swift.o",
+      "FieldLogInstalledGuest.build/FieldLogInstalledGuest.swiftmodule.o",
+      "FieldLogInstalledGuest.build/SelectedDraftBinding.swift.o",
+      "FieldLogInstalledGuest.build/SignedTask.swift.o",
+      "FieldLogModels.build/FieldLogModels.swiftmodule.o",
+      "FieldLogModels.build/Workspace.swift.o",
+      "FieldLogStorage.build/FieldLogStorage.swiftmodule.o",
+      "FieldLogStorage.build/WorkspaceRepository.swift.o",
+      "MixerAndroid.build/AndroidUIHost.swift.o",
+      "MixerAndroid.build/AndroidUIProfile.swift.o",
+      "MixerAndroid.build/MixerAndroid.swiftmodule.o",
+      "MixerCapabilities.build/AppPrivateKeyValueStore.swift.o",
+      "MixerCapabilities.build/CapabilityExitLease.swift.o",
+      "MixerCapabilities.build/GeneratedGuestAdapters.swift.o",
+      "MixerCapabilities.build/GeneratedGuestTransport.swift.o",
+      "MixerCapabilities.build/GeneratedHostAdapters.swift.o",
+      "MixerCapabilities.build/GeneratedIdentity.swift.o",
+      "MixerCapabilities.build/GeneratedModels.swift.o",
+      "MixerCapabilities.build/GuestClient.swift.o",
+      "MixerCapabilities.build/Host.swift.o",
+      "MixerCapabilities.build/InstalledCapabilityAdapters.swift.o",
+      "MixerCapabilities.build/InstalledGuestUICommitContinuation.swift.o",
+      "MixerCapabilities.build/MixerCapabilities.swiftmodule.o",
+      "MixerCapabilities.build/URLSessionHTTPTransport.swift.o",
+      "MixerCapabilities.build/Wire.swift.o",
+      "MixerCapabilityActivation.build/CapabilityAttemptReservation.swift.o",
+      "MixerCapabilityActivation.build/CapabilityAttemptSignals.swift.o",
+      "MixerCapabilityActivation.build/CapabilityColdStartConfiguration.swift.o",
+      "MixerCapabilityActivation.build/CapabilityColdStartControl.swift.o",
+      "MixerCapabilityActivation.build/CapabilityColdStartObservationTimer.swift.o",
+      "MixerCapabilityActivation.build/CapabilityColdStartPresentation.swift.o",
+      "MixerCapabilityActivation.build/CapabilityColdStartRuntime.swift.o",
+      "MixerCapabilityActivation.build/CapabilityColdStartWorker.swift.o",
+      "MixerCapabilityActivation.build/CapabilityConcreteAttempt.swift.o",
+      "MixerCapabilityActivation.build/CapabilityConcreteRetirement.swift.o",
+      "MixerCapabilityActivation.build/CapabilityDurableDirectory.swift.o",
+      "MixerCapabilityActivation.build/CapabilityExecutionPolicy.swift.o",
+      "MixerCapabilityActivation.build/CapabilityGuestUIAndroidBinding.swift.o",
+      "MixerCapabilityActivation.build/CapabilityGuestUIAndroidLifetime.swift.o",
+      "MixerCapabilityActivation.build/CapabilityGuestUIAndroidProgress.swift.o",
+      "MixerCapabilityActivation.build/CapabilityGuestUIAndroidRegistry.swift.o",
+      "MixerCapabilityActivation.build/CapabilityGuestUIAndroidResources.swift.o",
+      "MixerCapabilityActivation.build/CapabilityGuestUIAndroidRuntime.swift.o",
+      "MixerCapabilityActivation.build/CapabilityGuestUIApple.swift.o",
+      "MixerCapabilityActivation.build/CapabilityGuestUIDiagnostics.swift.o",
+      "MixerCapabilityActivation.build/CapabilityGuestUIPresentation.swift.o",
+      "MixerCapabilityActivation.build/CapabilityGuestUIPresentationLifetime.swift.o",
+      "MixerCapabilityActivation.build/CapabilityGuestUIRuntime.swift.o",
+      "MixerCapabilityActivation.build/CapabilityInstalledExecutionMode.swift.o",
+      "MixerCapabilityActivation.build/CapabilityPreparedPresentation.swift.o",
+      "MixerCapabilityActivation.build/CapabilityRecoveryModels.swift.o",
+      "MixerCapabilityActivation.build/CapabilityRecoverySelection.swift.o",
+      "MixerCapabilityActivation.build/CapabilityRecoveryStore.swift.o",
+      "MixerCapabilityActivation.build/InstalledCapabilityExecution.swift.o",
+      "MixerCapabilityActivation.build/MaterialJSON.swift.o",
+      "MixerCapabilityActivation.build/MixerCapabilityActivation.swiftmodule.o",
+      "MixerCapabilityDurableIO.build/lock.c.o",
+      "MixerCapabilityIO.build/lock.c.o",
+      "MixerCore.build/FeatureStore.swift.o",
+      "MixerCore.build/JSONInputGuard.swift.o",
+      "MixerCore.build/Lifecycle.swift.o",
+      "MixerCore.build/MixerCore.swiftmodule.o",
+      "MixerCore.build/Navigation.swift.o",
+      "MixerCore.build/Resources.swift.o",
+      "MixerDurableIO.build/lock.c.o",
+      "MixerExperimentalCapabilityRuntime.build/Failure.swift.o",
+      "MixerExperimentalCapabilityRuntime.build/GuestDebugLines.swift.o",
+      "MixerExperimentalCapabilityRuntime.build/GuestUITurns.swift.o",
+      "MixerExperimentalCapabilityRuntime.build/Lifecycle.swift.o",
+      "MixerExperimentalCapabilityRuntime.build/MixerExperimentalCapabilityRuntime.swiftmodule.o",
+      "MixerExperimentalCapabilityRuntime.build/Native.swift.o",
+      "MixerExperimentalCapabilityRuntime.build/Ownership.swift.o",
+      "MixerExperimentalCapabilityRuntime.build/Session.swift.o",
+      "MixerExperimentalCapabilityRuntime.build/Types.swift.o",
+      "MixerExperimentalCapabilityRuntime.build/Validation.swift.o",
+      "MixerGuest.build/GuestUICodec.swift.o",
+      "MixerGuest.build/GuestUIEditorV2.swift.o",
+      "MixerGuest.build/GuestUIEventCodecV1.swift.o",
+      "MixerGuest.build/GuestUIExchangeCodec.swift.o",
+      "MixerGuest.build/GuestUIExchangeCore.swift.o",
+      "MixerGuest.build/GuestUIExchangeV1.swift.o",
+      "MixerGuest.build/GuestUIExchangeV2.swift.o",
+      "MixerGuest.build/GuestUIExchangeV3.swift.o",
+      "MixerGuest.build/GuestUIFeatureV3.swift.o",
+      "MixerGuest.build/GuestUIProtocolV1.swift.o",
+      "MixerGuest.build/GuestUIWakeV1.swift.o",
+      "MixerGuest.build/MixerGuest.swiftmodule.o",
+      "MixerGuest.build/SwiftFeatureOwnership.swift.o",
+      "MixerGuest.build/SwiftFeatureRuntime.swift.o",
+      "MixerGuest.build/SwiftFeatureSession.swift.o",
+      "MixerRuntimeIdentity.build/CapabilityRuntimeIdentity.swift.o",
+      "MixerRuntimeIdentity.build/MixerRuntimeIdentity.swiftmodule.o",
+      "MixerRuntimeIdentity.build/RuntimeIdentity.swift.o",
+      "MixerUI.build/AppearanceDefaultV1.swift.o",
+      "MixerUI.build/AppearanceDefaultV2.swift.o",
+      "MixerUI.build/AppearanceDescriptorV1.swift.o",
+      "MixerUI.build/AppearanceDescriptorV2.swift.o",
+      "MixerUI.build/AppearanceGeometryV2.swift.o",
+      "MixerUI.build/AppearanceMetricMathV1.swift.o",
+      "MixerUI.build/AppearanceResolutionV1.swift.o",
+      "MixerUI.build/AppearanceResolutionV2.swift.o",
+      "MixerUI.build/AppearanceValuesV1.swift.o",
+      "MixerUI.build/AppearanceValuesV2.swift.o",
+      "MixerUI.build/Authoring.swift.o",
+      "MixerUI.build/MixerUI.swiftmodule.o",
+      "MixerUI.build/NativePacketV1.swift.o",
+      "MixerUI.build/NativePresentation.swift.o",
+      "MixerUI.build/Protocol.swift.o",
+      "MixerUI.build/Reconciliation.swift.o",
+      "MixerUI.build/SharedTextProfilesV1.swift.o",
+      "MixerUI.build/Validation.swift.o",
+      "MixerUpdates.build/CanonicalValue.swift.o",
+      "MixerUpdates.build/ColdStartModels.swift.o",
+      "MixerUpdates.build/ColdStartUpdater.swift.o",
+      "MixerUpdates.build/DurableDirectory.swift.o",
+      "MixerUpdates.build/MixerUpdates.swiftmodule.o",
+      "MixerUpdates.build/StrictJSON.swift.o",
+      "MixerUpdates.build/UpdateInputFile.swift.o",
+      "MixerUpdates.build/Verifier.swift.o",
+      "MixerUpdates.build/VerifierV3.swift.o"
+    ],
+    "jniAppImports": [
+      "fieldlog_android_photo_submit",
+      "fieldlog_android_report_submit",
+      "mixer_public_android_poll",
+      "mixer_public_android_submit"
+    ]
+  },
+  "additionalSignedNativeInputs": {
+    "objects": {
+      "ChecklistBridge": {
+        "sourceSHA256": "e9b5a1340ec9eefca4d6a1695e92a5b75de93f7423612f91f83515c0d69b845d",
+        "objectSHA256": "5d68e0dda59609665ebe04eef215699663102a459ff4a11dddfefa1876fb36bb"
+      },
+      "transport": {
+        "sourceSHA256": "fcd6fc49aeb255c1f2e64fff80b06fce6410724cbb2a4cbf79af28c4f29829b2",
+        "objectSHA256": "c2ecdb912eb227cfc389339cd82aa4609a9df147d0a94c4afda640cc330d083a"
+      },
+      "platform_android": {
+        "sourceSHA256": "2abb4a673766d1b1063361f23e6c2e438545d4b35defb0494469763b7ecf1251",
+        "objectSHA256": "0299e1efec493128cbf5e45e0e401b78a1809ac9da6d331999487adbc5d0f403"
+      }
+    },
+    "vmArchiveSHA256": "7a87f639b39ec5b8f5c059f18667d5798188546a9383421d59362486435166da",
+    "archiveExtraction": [
+      "reference\textracted\tsymbol",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.11.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.00.rcgu.o)\tanon.bac5cd68dcc34730679881a8a75d200e.13.llvm.8992122906651621835",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.12.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.11.rcgu.o)\t<alloc::collections::btree::map::BTreeMap<u8, usize> as core::ops::drop::Drop>::drop",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.09.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.08.rcgu.o)\tmixer_vm::json_string",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.10.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.09.rcgu.o)\t<core::iter::adapters::map::Map<core::slice::iter::Iter<(alloc::string::String, alloc::string::String, u32)>, <mixer_vm::decode::Inventory>::json::{closure#0}> as core::iter::traits::iterator::Iterator>::fold::<(), core::iter::traits::iterator::Iterator::for_each::call<alloc::string::String, <alloc::vec::Vec<alloc::string::String>>::extend_trusted<core::iter::adapters::map::Map<core::slice::iter::Iter<(alloc::string::String, alloc::string::String, u32)>, <mixer_vm::decode::Inventory>::json::{closure#0}>>::{closure#0}>::{closure#0}>",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.12.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.10.rcgu.o)\t<alloc::vec::Vec<mixer_vm::Function> as core::ops::drop::Drop>::drop",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.01.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.03.rcgu.o)\tmixer_vm::validate::module_with_admission",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.06.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.01.rcgu.o)\tanon.cf6aba04fa79e6272422535551b28ef8.21.llvm.6594471006103383853",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.06.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.02.rcgu.o)\tmixer_vm::decode::parse (.llvm.5487450657822246214)",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.04.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.06.rcgu.o)\tanon.33a91f89543111778fff1772824faf86.42.llvm.5610025859656332750",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.12.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.04.rcgu.o)\t<mixer_vm::experimental_capability::Mailbox>::close",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.05.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.07.rcgu.o)\tmixer_vm::ffi::arguments",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.12.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.05.rcgu.o)\tmixer_vm::capability_ffi::api::commit_request::<mixer_vm::session::CapabilityRegistry>",
+      "swift-build/aarch64-unknown-linux-android28/debug/MixerExperimentalCapabilityRuntime.build/Native.swift.o\tnative/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.12.rcgu.o)\tmixer_private_guest_ui_commit_request_v1",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.07.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.13.rcgu.o)\t<mixer_vm::session::Session>::lock",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.10.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.14.rcgu.o)\t<alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.13.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.15.rcgu.o)\t<std::sync::once_lock::OnceLock<std::sync::poison::mutex::Mutex<mixer_vm::session::Registry>>>::initialize::<<std::sync::once_lock::OnceLock<std::sync::poison::mutex::Mutex<mixer_vm::session::Registry>>>::get_or_init<mixer_vm::session::registry::{closure#0}>::{closure#0}, !>",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.11.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(mixer_vm.ed2lno09vby8ji8spycvnzlf1.rcgu.o)\t__rustc::__rust_alloc",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.15.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(std-f9e8047f126f9b10.std.2ff4e581719a5109-cgu.0.rcgu.o)\t<std::sys::sync::once::futex::Once>::call",
+      "native/libmixer_vm_capability_experimental.a(std-f9e8047f126f9b10.std.2ff4e581719a5109-cgu.0.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(panic_unwind-9577a8eaa49445d6.panic_unwind.7c6b401355bc6ff1-cgu.0.rcgu.o)\t__rustc::__rust_start_panic",
+      "native/libmixer_vm_capability_experimental.a(std-f9e8047f126f9b10.std.2ff4e581719a5109-cgu.0.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(object-29e6bea28f5780b7.object.70c09d52bb42828c-cgu.0.rcgu.o)\t<&[u8] as object::read::read_ref::ReadRef>::read_bytes_at_until",
+      "native/libmixer_vm_capability_experimental.a(std-f9e8047f126f9b10.std.2ff4e581719a5109-cgu.0.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(addr2line-332e97c94cc8bdd8.addr2line.10a84ee6c10915ab-cgu.0.rcgu.o)\t<addr2line::line::Lines>::find_location",
+      "native/libmixer_vm_capability_experimental.a(addr2line-332e97c94cc8bdd8.addr2line.10a84ee6c10915ab-cgu.0.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(gimli-81a15a6473f89a36.gimli.8b6f7b44fb6a2726-cgu.0.rcgu.o)\t<alloc::raw_vec::RawVecInner>::grow_amortized",
+      "native/libmixer_vm_capability_experimental.a(std-f9e8047f126f9b10.std.2ff4e581719a5109-cgu.0.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(rustc_demangle-8c6a563c8af8bb90.rustc_demangle.a67cd08be9e72712-cgu.0.rcgu.o)\trustc_demangle::try_demangle",
+      "native/libmixer_vm_capability_experimental.a(std-f9e8047f126f9b10.std.2ff4e581719a5109-cgu.0.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(miniz_oxide-c80ffcaba3c3256b.miniz_oxide.cbff173483757db8-cgu.0.rcgu.o)\tminiz_oxide::inflate::core::decompress",
+      "native/libmixer_vm_capability_experimental.a(miniz_oxide-c80ffcaba3c3256b.miniz_oxide.cbff173483757db8-cgu.0.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(adler2-6c800e0fde115a28.adler2.ee52626fb9c478f6-cgu.0.rcgu.o)\t<adler2::Adler32>::write_slice",
+      "native/libmixer_vm_capability_experimental.a(mixer_vm.mixer_vm.33b8182893996832-cgu.10.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(alloc-6153501600d713fc.alloc.ead8aa6b0e803b9-cgu.0.rcgu.o)\talloc::raw_vec::handle_error",
+      "native/libmixer_vm_capability_experimental.a(std-f9e8047f126f9b10.std.2ff4e581719a5109-cgu.0.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(core-6e8cd5318a3af410.core.ffe798bd196df431-cgu.0.rcgu.o)\tcore::panicking::assert_failed::<u64, u64>",
+      "native/libmixer_vm_capability_experimental.a(compiler_builtins-b2282da2f1cfcafb.compiler_builtins.5919ab26967517d7-cgu.205.rcgu.o)\tnative/libmixer_vm_capability_experimental.a(compiler_builtins-b2282da2f1cfcafb.compiler_builtins.5919ab26967517d7-cgu.019.rcgu.o)\tcompiler_builtins::int::specialized_div_rem::u128_div_rem",
+      "swift-build/aarch64-unknown-linux-android28/debug/CCryptoBoringSSL.build/crypto/fipsmodule/bcm.cc.o\tnative/libmixer_vm_capability_experimental.a(compiler_builtins-b2282da2f1cfcafb.compiler_builtins.5919ab26967517d7-cgu.205.rcgu.o)\t__umodti3",
+      "swift-build/aarch64-unknown-linux-android28/debug/CCryptoBoringSSL.build/crypto/fipsmodule/bcm.cc.o\tnative/libmixer_vm_capability_experimental.a(compiler_builtins-b2282da2f1cfcafb.compiler_builtins.5919ab26967517d7-cgu.254.rcgu.o)\t__udivti3",
+      "swift-build/aarch64-unknown-linux-android28/debug/CCryptoBoringSSL.build/crypto/refcount.cc.o\tnative/libmixer_vm_capability_experimental.a(9bd21d824117b4b7-lse_cas4_relax.o)\t__aarch64_cas4_relax",
+      "swift-build/aarch64-unknown-linux-android28/debug/CCryptoBoringSSL.build/crypto/refcount.cc.o\tnative/libmixer_vm_capability_experimental.a(9bd21d824117b4b7-lse_cas4_acq.o)\t__aarch64_cas4_acq",
+      "swift-build/aarch64-unknown-linux-android28/debug/CCryptoBoringSSL.build/crypto/refcount.cc.o\tnative/libmixer_vm_capability_experimental.a(9bd21d824117b4b7-lse_cas4_rel.o)\t__aarch64_cas4_rel",
+      "swift-build/aarch64-unknown-linux-android28/debug/CCryptoBoringSSL.build/crypto/refcount.cc.o\tnative/libmixer_vm_capability_experimental.a(9bd21d824117b4b7-lse_cas4_acq_rel.o)\t__aarch64_cas4_acq_rel",
+      "native/libmixer_vm_capability_experimental.a(9bd21d824117b4b7-lse_cas4_relax.o)\tnative/libmixer_vm_capability_experimental.a(670c1ed24249df13-aarch64.o)\t__aarch64_have_lse_atomics",
+      "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/clang/lib/linux/aarch64/libunwind.a(UnwindLevel1.c.o)\t/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/clang/lib/linux/aarch64/libunwind.a(libunwind.cpp.o)\t__unw_init_local",
+      "native/libmixer_vm_capability_experimental.a(panic_unwind-9577a8eaa49445d6.panic_unwind.7c6b401355bc6ff1-cgu.0.rcgu.o)\t/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/clang/lib/linux/aarch64/libunwind.a(UnwindLevel1.c.o)\t_Unwind_RaiseException",
+      "native/libmixer_vm_capability_experimental.a(std-f9e8047f126f9b10.std.2ff4e581719a5109-cgu.0.rcgu.o)\t/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/clang/lib/linux/aarch64/libunwind.a(UnwindLevel1-gcc-ext.c.o)\t_Unwind_GetDataRelBase",
+      "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/clang/lib/linux/aarch64/libunwind.a(libunwind.cpp.o)\t/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/clang/lib/linux/aarch64/libunwind.a(UnwindRegistersRestore.S.o)\t__libunwind_Registers_arm64_jumpto",
+      "/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/clang/lib/linux/aarch64/libunwind.a(UnwindLevel1.c.o)\t/Users/andreyyurlov/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/swift-resources/usr/lib/swift-aarch64/clang/lib/linux/aarch64/libunwind.a(UnwindRegistersSave.S.o)\t__unw_getcontext"
+    ],
+    "ordinaryJNIInputSHA256": "95263bc290f3df8f15aa28809b62ba13733eecf61942e088d176d562153bbdcc"
+  },
+  "hostMount": {
+    "executed": false,
+    "reason": "The D2 InstalledDraft directory contains a provisioning README. The existing host recipes inspected require freshly signed fixture material or target-specific installed identity. Compatible pre-signed snapshots for this exact owner/identity were unavailable in the pinned inputs.",
+    "scopeRefusalsObserved": []
+  },
+  "scope": "Static Android library and JNI linkage only. No Java/JNI dispatch, mounted signed payload, runtime admission, storage access, reselection or retirement was executed. FieldLog source bytes, capability contract and storage schema are unchanged.",
+  "cleanup": {
+    "ownedScratch": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+    "sampledPeakKiB": 605280,
+    "limitKiB": 1363148,
+    "priorHoldsTouched": false,
+    "allocatedKiBBeforeRetirement": 583256,
+    "ownedScratchRemoved": true,
+    "closedAtUTC": "2026-11-23T08:19:05.597641+00:00"
+  },
+  "artifactPolicy": {
+    "command": {
+      "argv": [
+        "/bin/bash",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE/check-artifacts.sh",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a",
+        "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+        "verification/receipts/fieldlog-d2-appandroid-signed-owner-e0b1110a"
+      ],
+      "cwd": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-e0b1110a/verification/local/fieldlog-d2-appandroid-e0b1110a.SLZm7CDE",
+      "pid": 84874,
+      "pgid": 84874,
+      "exitCode": 0,
+      "directChildReaped": true,
+      "logClosed": true,
+      "groupObservation": "ESRCH",
+      "stop": null,
+      "seconds": 0.69,
+      "peakSampledAllocatedKiB": 583252,
+      "logSHA256": "174988aaec1bb7b4dcdc5757fef4cae8d42d72be394581d501b13797449cd88e"
+    },
+    "output": "Verification retention passed for 49276 tracked files and 946250892 bytes.",
+    "temporaryIndex": true
+  }
+}

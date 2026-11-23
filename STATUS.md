@@ -213,6 +213,14 @@ of 3 and 25. The matching Android APK passed static checks. Installed
 Android parity and the 90% source-sharing target remain open.
 [Composite native review](verification/receipts/l08-d2-composite-native-independent-review-dfb0d819.json)
 
+The ordinary Android signed-owner projection linked the existing
+checklist bridge against SDK `6bc461f4` and its matching VM. The
+previous SDK stopped at `InstalledGuestUICommitFacts`. Strict ELF
+checks found the ordinary and signed lifecycle exports. Reversing the
+projection recovered the baseline ELF and roster exactly. A signed
+runtime mount and refusal run remain open.
+[Signed-owner linkage receipt](verification/receipts/fieldlog-d2-appandroid-signed-owner-e0b1110a.json)
+
 ## In-place FieldLog public SDK adoption on iOS
 
 Three native tests created a project and saved photo draft in standalone

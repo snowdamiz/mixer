@@ -243,6 +243,16 @@ revision and flags. The measured sharing count still covers the linked
 products above.
 [Exact compile boundary](../verification/receipts/fieldlog-d2-signed-owner-a6b7757b.json)
 
+The signed projection now links in ordinary AppAndroid with SDK
+`6bc461f4` and its matching VM. SDK `5dea19db` stopped at the missing
+`InstalledGuestUICommitFacts` API. The linked ELF exports ordinary
+submit and poll, signed checklist submit and status, and all five
+checklist JNI entry points. Reversing the projection reproduced both
+the baseline ELF and link roster byte for byte. The capability schema
+matches across the two pins. Runtime attachment and scope checks await
+a matching signed fixture.
+[Linked signed-owner evidence](../verification/receipts/fieldlog-d2-appandroid-signed-owner-e0b1110a.json)
+
 ## Reproduce the source measurement
 
 From the Mixer repository on a Mac with Git, Python, and SwiftPM, run the following in Bash. The commands use the receipt, the public FieldLog pin, and the four overlays. They evaluate package metadata without building either app or resolving SDK dependencies.
