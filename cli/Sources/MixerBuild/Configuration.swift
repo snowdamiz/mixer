@@ -25,6 +25,7 @@ public struct ApplicationConfiguration: Codable, Equatable, Sendable {
     public var toolchainLock: String = "mixer.lock"
     public var capabilities: [String] = ["storage.files"]
     public var androidHost: AndroidApplicationHost? = nil
+    public var iosNative: AppleNativeConfiguration?
     public var updates = UpdateConfiguration()
     public init(name: String, application: String) { self.name = name; self.application = application }
     package func applicationIdentifier(for platform: String) -> String {
@@ -43,6 +44,10 @@ public struct ApplicationConfiguration: Codable, Equatable, Sendable {
             throw MixerFailure("config.application", "Application identifiers must be reverse-DNS identifiers for configured targets.")
         }
         guard Set(targets).count == targets.count, !targets.isEmpty, Set(targets).isSubset(of: ["ios", "android"]) else { throw MixerFailure("config.targets", "Targets must be unique ios/android entries.") }
+        if let iosNative {
+            guard targets.contains("ios") else { throw MixerFailure("config.ios-native", "iosNative requires an ios target.") }
+            try iosNative.validate(appName: name)
+        }
         if let androidHost {
             guard targets.contains("android") else { throw MixerFailure("config.android-host", "androidHost requires an android target.") }
             if androidHost.isPublic {
@@ -70,12 +75,18 @@ public struct ApplicationConfiguration: Codable, Equatable, Sendable {
         do { raw = try JSONSerialization.jsonObject(with: data) }
         catch { throw MixerFailure("config.encoding", "This preview reads the JSON subset of YAML 1.2 in mixer.yml. Use the generated configuration; block-style YAML support is not yet implemented.") }
         guard let fields = raw as? [String: Any] else { throw MixerFailure("config.shape", "mixer.yml must be an object.") }
-        let known: Set<String> = ["schema", "application", "name", "language", "targets", "toolchainLock", "capabilities", "updates", "androidHost", "applicationIdentifiers"]
+        let known: Set<String> = ["schema", "application", "name", "language", "targets", "toolchainLock", "capabilities", "updates", "androidHost", "applicationIdentifiers", "iosNative"]
         let unknown = Set(fields.keys).subtracting(known)
         guard unknown.isEmpty else { throw MixerFailure("config.unknown", "Unknown configuration keys: \(unknown.sorted().joined(separator: ", ")).") }
         if let updateFields = fields["updates"] as? [String: Any] {
             let allowed: Set<String> = ["activation", "compatibility", "requireArtifactSignature", "requireAssignmentSignature"]
             guard Set(updateFields.keys).isSubset(of: allowed) else { throw MixerFailure("config.unknown", "Unknown update configuration key.") }
+        }
+        if let native = fields["iosNative"] {
+            let allowed: Set<String> = ["swiftSources", "resourceFolders", "localNetworkUsageDescription", "allowsLocalNetworking"]
+            guard let native = native as? [String: Any], Set(native.keys).isSubset(of: allowed) else {
+                throw MixerFailure("config.ios-native", "iosNative must contain only supported native declarations.")
+            }
         }
         let config = try JSONDecoder().decode(Self.self, from: data)
         try config.validate()

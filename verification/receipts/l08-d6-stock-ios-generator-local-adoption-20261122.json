@@ -1,0 +1,268 @@
+{
+  "schema": 1,
+  "gate": "L08",
+  "milestone": "D6",
+  "status": "passed",
+  "scope": "Local stock iOS source/resources/plist generation and installed Pair27 source selection",
+  "stagedTree": "933567bf4bd2cdf615ca9292c6bf9d236034fa17",
+  "predecessor": "5564bd1213",
+  "rootSourceAdmission": {
+    "normal": 158,
+    "optimized": 158
+  },
+  "upstreamReceiptSHA256": [
+    "c0326a693ea91be213b0da7c2b52a98daea1d1608ae2bf23bcc3ffa9969e1843",
+    "17cee4d0635154b392bf1dc3dce4ac81ffdaee21b8cee4a233cd28a5ea7fea33"
+  ],
+  "portabilityAndGeneratorExecution": {
+    "baseRevision": "f99dc7a46fc0c50629c0cc1bd098bafcbf81ea99",
+    "baseTree": "26c8627fa7b5d64181981c0303bdc42453434e6a",
+    "patch": "verification/local/l08-d6-stock-ios-generator-posix-f99dc7a46f-95b6a8c0.patch",
+    "patchSHA256": "4c1f55895a833e76a942e1f81a0eeb31254d58e88b875f21e28d1583b2f5792c",
+    "patchChecks": [
+      "apply to pinned baseline index",
+      "reverse apply against patched source"
+    ],
+    "hostCLI": {
+      "swift": "Apple Swift 6.4.2",
+      "command": "swift build --package-path cli --disable-sandbox --skip-update --force-resolved-versions --product mixer -j 10",
+      "exitCode": 0,
+      "dependencyTransport": "Only local file transport. SwiftPM cache seeded with pinned swift-crypto 5.0.3 and swift-asn1 1.7.3."
+    },
+    "recovery": {
+      "python": "3.14.8",
+      "command": "python3 -B cli/build-tests/verify_ios_generation_recovery.py <fresh-cli> <fixture> <legacy-pbxproj>",
+      "xcodeBoundary": "Local exit-zero stub for the generator-only recovery cases.",
+      "legacySHA256": "c356581b83eece8677570c766d4158ce77601d627318979dbe19914593d63885",
+      "cases": {
+        "immutable-receipt": "operation.failed",
+        "immutable-receipt-retry": "built",
+        "partial-transaction": "operation.failed",
+        "edit-during-pending-transaction": "generate.modified",
+        "pending-same-bytes-raw-replacement": {
+          "code": "generate.modified",
+          "originalInode": 1092728294,
+          "preservedReplacementInode": 1092728295,
+          "sha256": "612e0ccd710dd36d2272d7bcaa61870a6bcb4379ef620b81b65824df65f7bae0"
+        },
+        "pending-changed-bytes-raw-replacement": {
+          "code": "generate.modified",
+          "originalInode": 1092728316,
+          "preservedReplacementInode": 1092728317,
+          "sha256": "69ae9895e54f31d1c0652c5e284ce2d86325bf220325ca56201fca3a863a5fda"
+        },
+        "partial-transaction-restored-config": "built",
+        "byte-identical-unowned-plist": "generate.modified",
+        "unowned-plist-with-stock-config": "generate.modified",
+        "duplicate-swift-basename": "config.ios-native",
+        "duplicate-entry-point-basename": "config.ios-native",
+        "edited-self-receipted-ios17": "generate.modified",
+        "exact-ios17-migration": "built",
+        "partial-transaction-with-retained-config": "operation.failed",
+        "partial-transaction-retry": "built",
+        "interrupted-before-final-receipt": "built",
+        "native-project-before-removal": "built",
+        "partial-plist-unreference": "operation.failed",
+        "recover-with-identical-content-addressed-replacement": "built",
+        "refuse-changed-content-addressed-replacement": "generate.modified",
+        "unreference-plist": "built"
+      },
+      "additionalChecks": [
+        "digest matches filename",
+        "0444 permission",
+        "one hard link after publish",
+        "temporary name removed",
+        "digest path symlink rejected without mutating target"
+      ]
+    },
+    "genericIOS": {
+      "xcode": "27.2 (27B52)",
+      "command": [
+        "xcodebuild",
+        "-project",
+        "<scratch>/generic/app/Platforms/iOS/FieldLog.xcodeproj",
+        "-scheme",
+        "FieldLog",
+        "-configuration",
+        "Debug",
+        "-sdk",
+        "iphonesimulator",
+        "-destination",
+        "generic/platform=iOS Simulator",
+        "-derivedDataPath",
+        "<scratch>/generic/app/.mixer/ios-build",
+        "CODE_SIGNING_ALLOWED=NO",
+        "build"
+      ],
+      "extraXcodeArguments": [
+        "-skipPackageUpdates",
+        "-onlyUsePackageVersionsFromResolvedFile",
+        "-disableAutomaticPackageResolution",
+        "-scmProvider",
+        "system",
+        "-jobs",
+        "8",
+        "COMPILER_INDEX_STORE_ENABLE=NO",
+        "OTHER_SWIFT_FLAGS=$(inherited) -Xfrontend -disable-sandbox"
+      ],
+      "execution": "Outbound IP denied by sandbox-exec. Resolved dependencies loaded from preseeded Git repositories. No device launch or signing.",
+      "initialFailure": "Exit 65 after the outer sandbox prevented the SwiftUI macro subprocess from installing its sandbox. The retry disabled the nested compiler sandbox within the same outer network sandbox.",
+      "exitCode": 0,
+      "binaryArchitectures": [
+        "arm64",
+        "x86_64"
+      ],
+      "binarySHA256": "61f3b2a475b4baa2eeda9339d0161b5694bb1e797581ba57e6ee6ec83ba299f9",
+      "bundleInfo": {
+        "CFBundleIdentifier": "dev.mixer.fieldlog",
+        "NSLocalNetworkUsageDescription": "Connect to the local checklist service.",
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
+      },
+      "inputPlist": "873737aac8201ef5d9493595de64bac2f4b15eb8d5c093352dc555d592edc12a.plist",
+      "inputPlistMode": "0444"
+    },
+    "platformBoundary": {
+      "cli": "cli/Package.swift builds both files in MixerBuild. The baseline CLI still has unconditional Darwin imports in AndroidProject.swift and ProjectGenerator.swift, among others.",
+      "android": "Swift 6.3.3 with local Android SDK and NDK: both changed files passed -typecheck for aarch64-unknown-linux-android28 with scratch stand-ins for unrelated MixerBuild declarations. The SDK products are separate from the CLI.",
+      "linux": "No installed GNU/Linux Swift SDK. A local swiftc -typecheck -target aarch64-unknown-linux-gnu probe failed with unable to load standard library. A matching target Swift standard library and GNU/Linux sysroot are required."
+    },
+    "cleanup": {
+      "sampledScratchMiB": 708,
+      "terminalOwnedCLICommands": 36,
+      "scratchRemoved": true
+    }
+  },
+  "archiveTransition": {
+    "base_revision": "d0d3f13f32731234cecef8e4a1d7a2bcf1ca339c",
+    "composition_order": [
+      {
+        "path_from_worktrees": "t3-b7db7a68/verification/local/note-source-admission-b7db7a68/admission.patch",
+        "sha256": "eba4b7028f6df76f6d1aea7d7dc0ab7c894c85648de3f7974b541f5920e6e364"
+      },
+      {
+        "path_from_worktrees": "t3-e26c84a8/verification/local/pair27-owner-binding-e26c84a8/pair27-fixture-compatibility.patch",
+        "sha256": "be9ea74e5e1fed51bebe2f1f53a560f98f237341fc59b991e6336a27ee409c89"
+      },
+      {
+        "path_from_worktrees": "t3-95b6a8c0/verification/local/l08-d6-stock-ios-generator-posix-f99dc7a46f-95b6a8c0.patch",
+        "sha256": "4c1f55895a833e76a942e1f81a0eeb31254d58e88b875f21e28d1583b2f5792c"
+      }
+    ],
+    "d6": {
+      "source_count": 158,
+      "source_sha256": "45db9b22b731fdbf153fac1a8712a2642a898c52a567694f46227775ea8111e5"
+    },
+    "d6_selected_tree": "69b957ba1752bb83abba679198545c290718b396",
+    "delivery_patch": "verification/local/d6-ios-admission-08efecf2/d6-stock-ios-generator-against-pair27.patch",
+    "environment": {
+      "architecture": "arm64",
+      "git": "git version 2.56.0",
+      "git_lazy_fetch": "disabled",
+      "git_transports": "disabled",
+      "offline": true,
+      "os": "27.0.1",
+      "owned_scratch_before_cleanup": "139M",
+      "owned_scratch_removed": true,
+      "python": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]",
+      "scratch_cap_bytes": 1073741824
+    },
+    "exact_reverse_and_reapply": true,
+    "historical_source141_inventory_sha256": "53d983d92b440fa9aeefd829840beab3d70264c0b1267f5a271831aa850f1049",
+    "historical_source141_paths_modes_and_bytes_equal": 890,
+    "out_of_scope": [
+      "iOS project generation execution",
+      "native devices",
+      "signing",
+      "FieldLog production assembly",
+      "host API",
+      "L08 completion"
+    ],
+    "pair27": {
+      "source_count": 157,
+      "source_sha256": "df523973d17a3dfb8e6a743513a24c9d82854355fa9fe5694ec47d974ed2f2ed"
+    },
+    "pair27_selected_tree": "6e0a942d06a64955218b2747a6c799654e8a564b",
+    "patch_bytes": 130054,
+    "patch_sha256": "36eb346269dbd40803f1e21eeab8922a23b2652ccaad4b1ff0786dab6d8e9035",
+    "portable_candidate_files_verified": [
+      "cli/Sources/MixerBuild/AppleNativeConfiguration.swift",
+      "cli/Sources/MixerBuild/AppleProject.swift",
+      "cli/Sources/MixerBuild/Configuration.swift",
+      "cli/build-tests/verify_ios_generation_recovery.py",
+      "cli/build-tests/verify_ios_native_generation.py",
+      "docs/ios-native-generation.md"
+    ],
+    "portable_d6_selected_tree": "faa59f826ee63d7fb6d3bcd2328eada32533522e",
+    "prior_workflows_unchanged": 4,
+    "profile": {
+      "adapter_count": 27,
+      "adapter_sha256": "d3e6e82fa9b28680d0390620ce58b71d949778d1ff74040177031ec214403e60",
+      "id": "mixer.android-source-pair.27",
+      "java_sources": 21,
+      "sdk_count": 26,
+      "sdk_sha256": "0d030f8bba31045d58ddf1b2def3a5541efc1a15295d93e565405b77965861d8"
+    },
+    "reversed_pair27_normal_and_optimized": true,
+    "schema": 1,
+    "scope": "D6 stock iOS generator source integration and Source141 archive admission",
+    "stage": "t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow",
+    "stage_tracked_paths_matched": 1489,
+    "status": "pass",
+    "verification": {
+      "direct_admission_command": "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+      "direct_admission_normal_and_optimized_receipts_equal": true,
+      "full_staged_tree_retention": "Verification retention passed for 50844 tracked files and 983654349 bytes.",
+      "historical_restore": {
+        "files": 890,
+        "source127": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7",
+        "source141": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab"
+      },
+      "historical_restore_command": "python3 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py prepare-source141 --out <fresh-output>",
+      "retention_command": "python3 scripts/check-verification-artifacts.py",
+      "reverse_commands": [
+        "git apply --check --index -R <patch>",
+        "git apply --index -R <patch>",
+        "git write-tree",
+        "git apply --check --index <patch>",
+        "git apply --index <patch>",
+        "git write-tree"
+      ],
+      "selected_bootstrap": {
+        "normal": {
+          "command": "python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py -v -k test_current_policy_and_all_sources -k test_stale_current_digest_and_foreign_profile_refuse -k test_source127_historical_fixture_retains_exact_admission",
+          "elapsed_seconds": 13.528,
+          "passed": 3
+        },
+        "optimized": {
+          "command": "python3 -I -B -S -O verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_bootstrap.py -v -k test_current_policy_and_all_sources -k test_stale_current_digest_and_foreign_profile_refuse -k test_source127_historical_fixture_retains_exact_admission",
+          "elapsed_seconds": 11.149,
+          "passed": 3
+        }
+      },
+      "sparse_checkout": {
+        "normal": {
+          "command": "python3 -I -B -S verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v",
+          "elapsed_seconds": 64.483,
+          "passed": 16
+        },
+        "optimized": {
+          "command": "python3 -I -B -S -O verification/plan-continuation-2026-11-07/generated-java-ci-integration/test_sparse_checkout.py -v",
+          "elapsed_seconds": 64.486,
+          "passed": 16
+        }
+      },
+      "sparse_checkout_inputs": "Git-tracked files selected by the owning non-cone CI patterns. The materialized test projects the declared ownership closure into a fresh Git index and checkout.",
+      "unbound_candidate_refused": "RuntimeError: Owning bytes differ: cli/Sources/MixerBuild/AppleProject.swift",
+      "unchanged_binding_values": 110,
+      "unchanged_historical_workflow_members": 99,
+      "unchanged_seal_members": 339
+    }
+  },
+  "limits": [
+    "The contained iOS generation controls used the stock CLI. Real FieldLog also needs its separately tested pinned Simulator VM archive link.",
+    "Managed HTTP create and exact native product download remain open.",
+    "GNU/Linux compile was not exercised."
+  ]
+}

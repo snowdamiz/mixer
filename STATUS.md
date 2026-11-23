@@ -153,6 +153,12 @@ descriptor binding. Managed HTTP create and exact product download remain
 open.
 [Stock FieldLog build receipt](verification/receipts/l08-d6-stock-fieldlog-ios-artifacts-20261122.json)
 
+Local Stage now includes the stock iOS native sources, resource folders,
+and typed plist configuration. Generation recovery and the generic
+Simulator build were tested. Both locally installed archive admissions
+select 158 inputs and preserve the Pair27 profile.
+[Stock generator adoption](verification/receipts/l08-d6-stock-ios-generator-local-adoption-20261122.json)
+
 The historical F05 iOS app passed Cancel, Add, and cold readback. An
 independent signed F10 companion installation failed before navigation
 assertions. Both simulators retired. The F05 test adds ordinary Apple
