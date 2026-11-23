@@ -1,0 +1,99 @@
+{
+  "spike": "S3g",
+  "state": "passed",
+  "date": "2026-11-23",
+  "scope": "Swift 6.3.3 full-Swift guest state semantics in Mixer's owning VM on arm64 macOS",
+  "reviewer": "Independent Sol 6.2 High review, t3-162eaec9",
+  "vmRevision": "1ee170500c73e3da935e1d1cbb4bbba77d24e8d8",
+  "vmTree": "d3f0d6c10bf38c46299314a5aff319f18785dc2c",
+  "versions": {
+    "revision": "31dbdc9bc2767eff6865b19e8cedf2b17ad4dd3d",
+    "host": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "host-swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.0.0",
+    "guest-swift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "guest-linker": "LLD 21.0.0 (https://github.com/swiftlang/llvm-project.git 82cdc19fa54d566969527b56f587ea8ea30bef51)",
+    "cargo": "cargo 1.99.0 (5f94df478 2026-08-27)",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "node": "v26.13.1"
+  },
+  "replay": "python3 -B compiler/experiments/swiftui-state-handlers/owned_replay.py --link-s2",
+  "sourceSHA256": {
+    "StateRuntime.swift": "a5035d76f87609ac92ecf98c0e55949389a2a5ce2a9294ddc8224eed73cb4fbb",
+    "FrameRuntime.swift": "a3902ca9fb332f286d0b5e78c40a4306cd6e28c5801d4325c9205b8803f754de",
+    "Views.swift": "841343483be4c19c21860885474b5f19d0856eab340351ddd5063814f85367bc",
+    "SharedScreen.swift": "6c3cebacde8b3937a2ca329a0ced29e0a55f65111363370380e899372e9a7969",
+    "Journey.swift": "d1560021bb8e0b54fa82fa3aaa68325e16d3a96eec98247248fbdf6fe4862e5f",
+    "Replay.swift": "fbe2d8fc3fd934298431ee3247c033d488f46efcafe533adda79747470a88b3a",
+    "OwnedReplay.rs": "8ab9e871c2bc5827ea4179a6ef925976afed2d0ce341194c6786346ea72ba0dd",
+    "oracle.mjs": "6890fca63d44d4ecab696ab19c7aeb3fd578bccc3346062354d3ff0c8143bdd7",
+    "owned_replay.py": "ffd3fe006cbfa9380f776bd2f9f8c7a3c47bbb16d137eaaf63916c0a25eea981"
+  },
+  "artifact": {
+    "sha256": "3b602907a26641c3c7ac1976c148610b2b00b2c391444294bf0f8f510583f6de",
+    "bytes": 12787778
+  },
+  "independentReviewedArtifact": {
+    "sha256": "bc2442e235525153de26be46870c0812f659c0faef2454a07287fa845dc8805f",
+    "bytes": 12787778
+  },
+  "validatedImports": 32,
+  "fixed34Exit": 10,
+  "fixed34Refusal": "swift_import_count",
+  "trace": {
+    "s3Lines": 15,
+    "sha256": "a292022b9e710756cf49b31914874940a094a1ec472b198e9f2a91a359d40f5c"
+  },
+  "appleCheckpointsMatched": 14,
+  "appleEvidence": "verification/receipts/ui-platform-pivot-s3-20261123.json",
+  "observed": [
+    "Plain @State works with declaration metadata and no registration transform.",
+    "The guest refuses CustomReflectable before invoking mirror or body.",
+    "A rollback with reused frame and handler IDs refuses the retired epoch and accepts the restored callback once.",
+    "The exact linked artifact runs the real S2 1,000-row workload as a separate control."
+  ],
+  "owners": {
+    "screen": {
+      "exit": 0,
+      "liveTickets": 0,
+      "remainingBytesAndCounters": 0,
+      "cacheWork": 57923878
+    },
+    "rollback": {
+      "exit": 0,
+      "liveTickets": 0,
+      "remainingBytesAndCounters": 0,
+      "cacheWork": 37670005
+    },
+    "s2": {
+      "exit": 0,
+      "liveTickets": 0,
+      "remainingBytesAndCounters": 0,
+      "cacheWork": 38616621
+    }
+  },
+  "controls": {
+    "standalone": {
+      "imports": 14,
+      "refusal": "swift_import_count",
+      "failureKind": "AbiShape",
+      "offset": 0,
+      "ownersOpened": 0
+    },
+    "singleOwner": {
+      "imports": 32,
+      "matchedScreenLines": 14,
+      "rollbackFailure": "swift_run_work",
+      "resource": "CacheWork",
+      "attempted": 64000001,
+      "limit": 64000000,
+      "terminalOwner": true
+    }
+  },
+  "terminalCommandGroups": 27,
+  "disposableWorkRemoved": true,
+  "receiptSHA256": "28f71b8a0ddbcbc75781cc65f68a762ba872924e7b58c7f61dce56ff1988ffbe",
+  "pending": [
+    "Installed versioned admission still selects fixed34 through the public C entry points.",
+    "Signed adoption, rollback, and owner retirement on iOS and Android remain open."
+  ]
+}

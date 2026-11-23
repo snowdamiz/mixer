@@ -30,8 +30,7 @@ python3 -B compiler/experiments/swiftui-state-handlers/replay.py --apple-typeche
   Staging refuses that view before calling its mirror or evaluating its body.
 - The Apple app and UI test sources typecheck for arm64 with iOS deployment
   target 17.0 using the Xcode 27.2 Simulator SDK. The project plist lints.
-  The Simulator differential and a run in Mixer's installed guest VM remain
-  pending.
+  The iOS 26.5 Simulator differential matched the 14 screen checkpoints.
 
 The host replay requires the standard Xcode Swift compiler, the Swift 6.3.3
 release toolchain and WASI SDK installed at the paths in `replay.py`, and Node.
@@ -39,6 +38,25 @@ Each invocation prints its fresh `verification/local/swiftui-s3-*` directory.
 The receipt contains the source hashes, commands and custody outcomes.
 Successful runs remove executables, module caches, and temporary files. The
 logs and receipt stay available for review.
+
+## Mixer-owned VM replay
+
+Run from the repository root.
+
+```sh
+python3 -B compiler/experiments/swiftui-state-handlers/owned_replay.py --link-s2
+```
+
+The replay links the S2 workload to produce the reviewed 32-import WASI
+artifact. It checks the fixed-34 refusal and runs the screen, rollback,
+and S2 control in separate owners with the 256-frame geometry. The 15
+S3 trace lines must match the native and Node traces byte for byte. The
+two S3 owners close with no live reservations or tickets. A standalone
+14-import artifact fails admission. An earlier linked run reached the
+64-million cache-work cap when one owner ran the screen and rollback.
+
+This replay uses the experimental Rust validator on arm64 macOS.
+Installed profile selection and signed activation remain pending.
 
 ## Runtime decisions
 

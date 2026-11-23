@@ -1,6 +1,9 @@
 #if S3_GUEST
 import WASILibc
 #endif
+#if S3_LINKED_S2
+import FieldLogSpike
+#endif
 
 private func require(_ condition: @autoclosure () -> Bool, _ message: String) {
     if !condition() { fatalError(message) }
@@ -62,10 +65,12 @@ private struct HiddenState: View, CustomReflectable {
     }
 }
 
-private func replaySharedScreen() {
-    let runtime = FrameRuntime(feature: 1)
-    var previous: Document?
-    for (index, checkpoint) in Checkpoint.journey.enumerated() {
+private struct SharedScreenReplay {
+    private let runtime = FrameRuntime(feature: 1)
+    private var previous: Document?
+
+    mutating func advance(_ index: Int) -> String {
+        let checkpoint = Checkpoint.journey[index]
         if let action = checkpoint.action, let previous {
             require(runtime.dispatch(previous.id, handler: handler(action, in: previous)), "Dispatch \(action)")
         }
@@ -78,12 +83,12 @@ private func replaySharedScreen() {
             require(!runtime.acknowledge(previous.id), "Previous acknowledgment replay")
         }
         require(!runtime.acknowledge(candidate.id), "Repeated acknowledgment")
-        print("s3 checkpoint \(index) | " + labels(candidate).joined(separator: " | "))
         previous = candidate
+        return "s3 checkpoint \(index) | " + labels(candidate).joined(separator: " | ")
     }
 }
 
-private func replayPublicationAndRollback() {
+private func replayPublicationAndRollback() -> String {
     let runtime = FrameRuntime(feature: 1)
     let initial = runtime.stage(ProbeScreen())!
     require(runtime.acknowledge(initial.id), "Initial presentation")
@@ -134,12 +139,72 @@ private func replayPublicationAndRollback() {
     require(runtime.dispatch(restored.id, handler: 0), "Restored owner could not dispatch")
     let after = runtime.stage(ProbeScreen())!
     require(labels(after) == ["Values 2 / 10", "Row 1 = 0", "Row 2 = 0", "Branch = 0"], "Stale action affected restored state")
-    print("s3 publication | pending refused | canceled draw | invalid render | prior handlers | rollback collision refused")
+    return "s3 publication | pending refused | canceled draw | invalid render | prior handlers | rollback collision refused"
 }
 
+#if S3_OWNED_VM
+private let eventCapacity = 1_048_576
+private let frameCapacity = 4096
+private nonisolated(unsafe) var session = SharedScreenReplay()
+private nonisolated(unsafe) var nextStep = 0
+private nonisolated(unsafe) var input: UnsafeMutablePointer<UInt8>?
+private nonisolated(unsafe) var frame: UnsafeMutablePointer<UInt8>?
+private nonisolated(unsafe) var header: UnsafeMutablePointer<UInt32>?
+
+private func publish(_ line: String) -> UInt32 {
+    let bytes = line.utf8
+    precondition(bytes.count <= frameCapacity)
+    for (index, byte) in bytes.enumerated() { frame![index] = byte }
+    header![3] = UInt32(bytes.count)
+    return UInt32(UInt(bitPattern: header!))
+}
+
+@_cdecl("mixer_guest_ui_start_v3")
+func reactorStart() -> UInt32 {
+    precondition(header == nil)
+    let eventBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: eventCapacity)
+    let frameBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: frameCapacity)
+    let words = UnsafeMutablePointer<UInt32>.allocate(capacity: 8)
+    words.initialize(repeating: 0, count: 8)
+    words[0] = 0x3349554d
+    words[1] = 32
+    words[2] = UInt32(UInt(bitPattern: frameBuffer))
+    words[4] = UInt32(UInt(bitPattern: eventBuffer))
+    words[5] = UInt32(eventCapacity)
+    input = eventBuffer
+    frame = frameBuffer
+    header = words
+    nextStep = 1
+    return publish(session.advance(0))
+}
+
+@_cdecl("mixer_guest_ui_event_v3")
+func reactorEvent(_ length: UInt32) -> UInt32 {
+    guard length == 1, let input else { return 0 }
+    let step = Int(input.pointee)
+    let rollback = Checkpoint.journey.count
+    #if S3_LINKED_S2
+    // Each independent fixture can start immediately after the first snapshot.
+    if nextStep == 1 && (step == rollback || step == rollback + 1) { nextStep = step }
+    #endif
+    guard step == nextStep else { return 0 }
+    nextStep += 1
+    if step < rollback { return publish(session.advance(step)) }
+    if step == rollback { return publish(replayPublicationAndRollback()) }
+    #if S3_LINKED_S2
+    let s2Step = step - rollback - 1
+    if s2Step < 6 { return publish(String(decoding: linkedS2Snapshot(UInt8(s2Step)), as: UTF8.self)) }
+    #endif
+    return 0
+}
+
+@_cdecl("mixer_guest_ui_ready_v3")
+func reactorReady() {}
+#else
 private func replay() {
-    replaySharedScreen()
-    replayPublicationAndRollback()
+    var session = SharedScreenReplay()
+    for index in Checkpoint.journey.indices { print(session.advance(index)) }
+    print(replayPublicationAndRollback())
 }
 
 #if S3_GUEST
@@ -153,4 +218,5 @@ func guestReplay() -> Int32 {
 struct HostReplay {
     static func main() { replay() }
 }
+#endif
 #endif

@@ -104,8 +104,7 @@ Product plan Section 24.6 gives the pass rules and what each outcome unlocks. Ea
 - [ ] S2a iOS full-Swift guest profile for the FieldLog list and editor, with FoundationEssentials value types and `.task`. Report raw and compressed size, diff size against the bundled base, memory, startup, turn time, call depth, and host calls, and set the profile caps from them.
 - [ ] S2b Android full-Swift guest profile for the same screens, with the same measurements as S2a, and set the Android profile caps from them.
   - The 32-import profile and 256-frame geometry completed the owned macOS replay. Signed activation and platform measurements remain open on both targets. [Host evidence](verification/receipts/ui-platform-pivot-s2-host-20261123.json)
-- [ ] S3 state and handlers, with separate native (S3n) and guest (S3g) results.
-  - S3n passed the Apple differential for the supported struct subset. S3g has matching Node WASI evidence and awaits the owned VM replay. [S3 evidence](verification/receipts/ui-platform-pivot-s3-20261123.json)
+- [x] S3 state and handlers. S3n passed the Apple differential for the supported struct subset. S3g matched all 15 native and Node trace lines in Mixer’s owned macOS VM. Plain `@State` needed no registration transform. [Native evidence](verification/receipts/ui-platform-pivot-s3-20261123.json) · [Guest evidence](verification/receipts/ui-platform-pivot-s3g-20261123.json)
 - [ ] S4 iOS feature ownership for option B'.
 - [ ] S5 Compose editor slice with the prepare and present contract. Include the `Inspec` readback case, soft-keyboard composition, and a canceled draw.
 - [ ] Record each spike's outcome, evidence, and reviewer in `work-graph.json` and in this section. UP3 passes only when every spike has a recorded outcome.
