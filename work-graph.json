@@ -8024,22 +8024,22 @@
           ],
           "guest": [
             "S2a for iOS",
-            "S2b passed, or S2b failed with an owner-approved guestProfile, for Android",
+            "S2b for Android",
             "S3g"
           ]
         },
         "passRequires": [
           "S1 settled",
+          "S2a",
+          "S2b",
           "S3n",
           "S3g",
           "S4",
           "UP1",
-          "UP4",
-          "S2a passed",
-          "S2b passed or guestProfile passed with an owner decision"
+          "UP4"
         ],
         "scopeRule": "Each scope starts when its own prerequisites pass. dependsOn is empty because no single prerequisite gates every scope.",
-        "interimMilestone": "If S2b falls back, Android store-build tier 1 is an interim milestone. UP5 passes only with iOS guest evidence from S2a and Android guest evidence from S2b or guestProfile."
+        "interimMilestone": "Native-only progress may be recorded as an interim milestone. UP5 passes only with guest evidence from S2a and S2b."
       },
       {
         "id": "UP6",
@@ -8090,7 +8090,7 @@
       },
       {
         "id": "S2b",
-        "name": "Android Embedded guest feasibility and constructs (required for the Android guest scope)",
+        "name": "Android full-Swift guest profile for the FieldLog list and editor (required)",
         "packages": [
           "W07"
         ],
@@ -8099,7 +8099,7 @@
         "evidence": [],
         "reviewer": null,
         "outcome": null,
-        "unlocks": "UP5 Android guest scope, UP6, L08, and the Android guest status of each construct"
+        "unlocks": "UP5 Android guest scope and the Android profile caps"
       },
       {
         "id": "S3n",
@@ -8160,15 +8160,6 @@
       "id": "finalReplay",
       "name": "Clean post-removal replay of the final commit",
       "requirement": "After the UP6 removal change, a clean checkout builds and exports the separate FieldLog consumer and runs signed OTA and recovery on the oldest supported iOS 17.x Simulator and an API 28 emulator.",
-      "state": "planned",
-      "evidence": [],
-      "reviewer": null
-    },
-    "guestProfile": {
-      "id": "guestProfile",
-      "name": "Owner-approved full-Swift guest profile for Android under ADR-16",
-      "note": "Needed only if S2b falls back. Requires an owner decision, the versioned execution profile, and an Android store build.",
-      "decision": null,
       "state": "planned",
       "evidence": [],
       "reviewer": null
@@ -8260,7 +8251,7 @@
       },
       {
         "id": "GC7",
-        "name": "Android updates that need Foundation or Task",
+        "name": "Foundation APIs beyond FoundationEssentials in updates",
         "startsWith": "UP6",
         "packages": [
           "W07",
@@ -8272,7 +8263,7 @@
       }
     ],
     "revisitOptionB": "Only if GC5 shows the bundled engine path missing a Section 20.2 target that plain Apple SwiftUI meets for the same screen and two distinct Section 24.4 fixes fail. API lag and update-mode costs do not count. The owner then decides.",
-    "iosGuestProfile": "Full Swift with the standard library, Swift Concurrency, Observation, and FoundationEssentials; ICU through host bridges; bundled base and signed diff delivery; caps set by S2a; new versioned execution profile in an iOS store build."
+    "updateGuestProfile": "Full Swift on iOS and Android with the standard library, Swift Concurrency, Observation, and FoundationEssentials; ICU through host bridges; bundled base and signed diff delivery; caps set by S2a and S2b; new versioned execution profile in each store build."
   },
   "packages": [
     {
@@ -15256,7 +15247,7 @@
       "id": "W07",
       "name": "Guest compilation",
       "owner": "Compiler lead",
-      "deliverables": "Guest libraries, Embedded Swift UI profile for `MixerSwiftUI` under section1.3, module extraction, API diagnostics, source maps, dependency closure",
+      "deliverables": "Guest libraries, the full-Swift update profile for `MixerSwiftUI` on iOS and Android (bundled base, signed diff delivery, ICU through host bridges) under section1.3, module extraction, API diagnostics, source maps, dependency closure",
       "dependencies": "W02–03, W06",
       "acceptance": "FieldLog feature graph compiles to native and Wasm with no silent behavior loss.",
       "launchAcceptance": "FieldLog feature graph compiles to native and Wasm with no silent behavior loss.",
