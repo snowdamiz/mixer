@@ -156,6 +156,12 @@ compiler inputs put standalone Swift overlap at 2,084 of 5,466 lines.
 Paired native interaction and the 90% source target remain open.
 [Shared project-detail receipt](verification/receipts/l08-d2-shared-project-detail-host-20261123.json)
 
+Both host routes now use the same project paging and saved-draft
+resolution. The repository validates Android’s proposed frame before
+committing, and Apple keeps its serial save queue. Exact cold readback
+passed for both. Standalone Swift overlap rose to 2,144 of 5,496 lines.
+[Shared workspace transaction receipt](verification/receipts/l08-d2-shared-workspace-transaction-host-20261123.json)
+
 ## In-place FieldLog public SDK adoption on iOS
 
 Three native tests created a project and saved photo draft in standalone
