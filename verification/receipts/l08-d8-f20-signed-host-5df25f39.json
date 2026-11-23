@@ -1,0 +1,951 @@
+{
+  "schema": 1,
+  "gate": "L08",
+  "milestone": "D8",
+  "row": "F20",
+  "status": "passed-scoped-host",
+  "scope": "Stock signed local offers, Android-scoped host VM, Guest UI routing and app-private repository reads on macOS arm64.",
+  "historical": {
+    "comparison": {
+      "id": "F20",
+      "change": "Browse committed entries and saved drafts beyond one page without writing on navigation",
+      "before": "00c8fe0400bc9a06242371ce7b02cd440f64f31e",
+      "after": "c6562ba80b992016c0c963cf4c67a59f1f605fd0",
+      "anchors": [
+        {
+          "path": "Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift",
+          "beforeBlob": null,
+          "afterBlob": "73b481f6d58e46d71175ae805004ddd9ee39bd81",
+          "afterLines": [
+            534,
+            543
+          ],
+          "afterLinesSHA256": "20f2f000713ab03c5186b0c19df617d2cb10a548988658dcfebf963aae03dd37"
+        },
+        {
+          "path": "Integrations/GeneratedReport/Sources/FieldLogAndroid/PublicFactory.swift",
+          "beforeBlob": null,
+          "afterBlob": "73b481f6d58e46d71175ae805004ddd9ee39bd81",
+          "afterLines": [
+            590,
+            613
+          ],
+          "afterLinesSHA256": "d1a660642f7236e4cf60425723e1c5d484082afa82493d144f5708f1da69a5e6"
+        }
+      ],
+      "hostSelectors": [
+        {
+          "suite": "generated-pin",
+          "name": "testEntryAndDraftTwentyRecordPaginationNoWrites"
+        }
+      ],
+      "scope": "Checks a different user workflow and record lists from task and queue pagination.",
+      "inOTADenominator": true
+    },
+    "selectorPin": "552559d2d3278abb9b1aa7dcf0288102c09a202b",
+    "selectorTree": "1b62520f35c7e57a01b568291078686574f627c4",
+    "modelBlob": "91615788bea186663fbb8a23231e304802366f8a",
+    "repositoryBlob": "c3aa7a10eae986efa52c1bdfb28d3c4c61bc8153",
+    "pair25ReceiptSHA256": "6f8a9621ddb69e2218606916dfcab37a97e97eb23fdff95fe2c97a35df270635",
+    "rawFactoryBlobAndBothAnchorsVerified": true,
+    "introducingCommitAvailableLocally": false
+  },
+  "mixerPin": "d245b325e3f6ad08bf29a254db49dfc2f2ed2579",
+  "tools": {
+    "hostSwift": "Apple Swift 6.4.2 (swiftlang-6.4.2.1.9)",
+    "guestSwift": "Swift 6.3.3 Embedded Swift",
+    "cargo": "cargo 1.99.0 (5f94df478)"
+  },
+  "sourceSHA256": {
+    "Control.swift": "bdd02e2c0ba24d8f73d8e7cb87bb2b4529fa3abb343859e43b60e583f766fc03",
+    "Guest.swift": "33a656e664f1861f7330678b1daaefc6df4bd7a119402ec6426e5ca52a6ed361",
+    "Storage.swift": "870b20452cf6bc6ea249a98e6a2f210a011b240c56b55a7c193f27be3c7676ee",
+    "build-guest.sh": "6bc66fda7bcbb723ddb45de9968b1c0b79c9025352464c6043e7c4784f12bb4d",
+    "build-host.sh": "0b998379fcbc76abc7519089229760b6f46b098f4aa8b66b521121708f4dfeff",
+    "journey.py": "4b79628f7eee5c28832343412a2306edf3d5974429ce2c70f06666b808afb0a6"
+  },
+  "priorFailures": [
+    {
+      "failure": "Initial guest frame",
+      "originCleanup": [
+        {
+          "pid": 13684,
+          "exit": 0,
+          "groupAbsent": true,
+          "port": 54478,
+          "portRefused": true
+        }
+      ]
+    },
+    {
+      "failure": "Stock origin offer differs from signed assignment",
+      "originCleanup": [
+        {
+          "pid": 26913,
+          "exit": 0,
+          "groupAbsent": true,
+          "port": 54857,
+          "portRefused": true
+        }
+      ]
+    },
+    {
+      "failure": "Guest frame following draft.F2000000-0000-4000-8000-000000000220",
+      "originCleanup": [
+        {
+          "pid": 46081,
+          "exit": 0,
+          "groupAbsent": true,
+          "port": 54933,
+          "portRefused": true
+        }
+      ]
+    },
+    {
+      "failure": "Guest frame following draft.F2000000-0000-4000-8000-000000000220 (reads: [\"workspace\", \"drafts-0\", \"drafts-1\"])",
+      "originCleanup": [
+        {
+          "pid": 55902,
+          "exit": 0,
+          "groupAbsent": true,
+          "port": 55033,
+          "portRefused": true
+        }
+      ]
+    }
+  ],
+  "bounds": {
+    "seconds": 600,
+    "bytes": 1503238553,
+    "allocatedBytes": 449863680,
+    "scratchRemoved": true,
+    "elapsedSecondsAtCleanupStart": 623.3,
+    "passingReplayCompletedBySeconds": 573,
+    "cleanupWithin600Seconds": false
+  },
+  "limitations": [
+    "Native combines both pagers with the editable draft form. Guest UI V1 uses separate lists with independent page indices and a read-only draft title/note detail.",
+    "Committed entries remain text. The host uses historical ISO 8601 timestamps and uppercase UUID suffixes. Pair25 uses localized dates and lowercase node suffixes.",
+    "The signed guest is a host projection. Installed signed Android delivery, native rendering and editing remain pending."
+  ],
+  "run": {
+    "status": "passed",
+    "originSHA256": "f759e2f60670bd39d8aa52cfa54b58b9c3011ebf4740dabbc272df07cf082dcb",
+    "cliSHA256": "337d054c7f16dd38f3c9b4befeeba6e821d3f6697045d602cfd6af7ddf2c0a08",
+    "hostSHA256": "48ce9df020bdc3f45ddebcba74b963c885b5b08f1596fc14231d6962b3144987",
+    "vmSHA256": "6a9ef08edafb9a3f9c35d3a98197584987a3b70cb429fddba6e1c562a927b822",
+    "commands": [
+      {
+        "name": "prepare",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/swift/out/Products/Debug/F08Control",
+          "prepare",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/run-5",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/source/capability-activation/Tests/MixerCapabilityActivationTests/Fixtures",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/guest",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/rust/release/libmixer_vm.a",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-41a05264/verification/local/retained-ci-scratch-fix.k6Ptow/verification/local/fieldlog-f20-ordinary-root/fixture/workspace.json"
+        ],
+        "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "publish-prior",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-9de8e60a/verification/local/f10-ios-root-9de8e60a/packet/tools/mixer",
+          "update",
+          "publish",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/run-5/prior",
+          "--channel",
+          "beta",
+          "--rollout",
+          "100",
+          "--assignment",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/run-5/prior/assignment.json",
+          "--organization",
+          "mixer-local",
+          "--project",
+          "fieldlog"
+        ],
+        "outputSHA256": "a179c2c77e5b5d411a98446a84eeb4d4b97fec261afab7ac5b0513defeedb431"
+      },
+      {
+        "name": "prior",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/swift/out/Products/Debug/F08Control",
+          "prior",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/run-5",
+          "55113"
+        ],
+        "outputSHA256": "9518ab836cc8976221929f851e08e64b911d2ade2a4e10cb41a8b13279783f9e"
+      },
+      {
+        "name": "publish-exact",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-9de8e60a/verification/local/f10-ios-root-9de8e60a/packet/tools/mixer",
+          "update",
+          "publish",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/run-5/exact",
+          "--channel",
+          "beta",
+          "--rollout",
+          "100",
+          "--assignment",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/run-5/exact/assignment.json",
+          "--organization",
+          "mixer-local",
+          "--project",
+          "fieldlog"
+        ],
+        "outputSHA256": "50677de40288c26bc707b8a5b8223375dfbf2e49de06166850da75683b671d63"
+      },
+      {
+        "name": "exact",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/swift/out/Products/Debug/F08Control",
+          "exact",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/run-5",
+          "55113"
+        ],
+        "outputSHA256": "34f2de9de4f200e0c0855620812d927e9c5f9305b1f0bf55f1efef62d1163bba"
+      },
+      {
+        "name": "exact-cold",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/swift/out/Products/Debug/F08Control",
+          "exact-cold",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/run-5",
+          "55113"
+        ],
+        "outputSHA256": "8fc00012b7b583edb23646ffa3b63d489b15c7aab4e2e49da1497e56976ac476"
+      },
+      {
+        "name": "rollback-rollback",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-9de8e60a/verification/local/f10-ios-root-9de8e60a/packet/tools/mixer",
+          "update",
+          "rollback",
+          "d2c6c5679c6b5a48f6bebe187fb2d90f84a143bb52b54080830f5bf453207ae0",
+          "--channel",
+          "beta",
+          "--reason",
+          "local F20 restores prior",
+          "--assignment",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/run-5/rollback/assignment.json",
+          "--organization",
+          "mixer-local",
+          "--project",
+          "fieldlog"
+        ],
+        "outputSHA256": "0dad4aeed008eac9bafef8f936f670694ee13e8df3eda22981437e6c4962bd5d"
+      },
+      {
+        "name": "rollback",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/swift/out/Products/Debug/F08Control",
+          "rollback",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/run-5",
+          "55113"
+        ],
+        "outputSHA256": "ec4f1bfd3a068239c9c099abc865d2717392a6d6bfb884c6d56edb361c70a353"
+      },
+      {
+        "name": "offline",
+        "argv": [
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/swift/out/Products/Debug/F08Control",
+          "offline",
+          "/Users/andreyyurlov/.t3/worktrees/mixer/t3-5df25f39/verification/local/d8-f20-signed.EpIz5wOI/run-5",
+          "55113"
+        ],
+        "outputSHA256": "58e3904d80ecaf53dfef0f886eee63d8f4c76a8e0aef42fdb63db120409f0b37"
+      }
+    ],
+    "phases": {
+      "prior": {
+        "artifact": "d2c6c5679c6b5a48f6bebe187fb2d90f84a143bb52b54080830f5bf453207ae0",
+        "candidate": "d88e3c2f183920945136a865af656e3a28c67c944050d2a4487a310c53955cd4",
+        "deliveredEvents": 0,
+        "fileIdentity": [
+          "1107216971",
+          "23653",
+          "2026-11-23 07:02:50 +0000"
+        ],
+        "initialNodes": [
+          "workspace.home"
+        ],
+        "launch": "608870BE-A383-4BF4-8A70-F800B1A9315E",
+        "openedDraft": {},
+        "outboxCount": 46,
+        "outboxSHA256": "5c68a84778e6987cca276aad484bd05dee93ab792ac3a2ebd3e21d03ff79d6f3",
+        "pages": [],
+        "phase": "prior",
+        "pid": 64526,
+        "previous": null,
+        "reads": [
+          "workspace"
+        ],
+        "retired": true,
+        "revision": 1,
+        "sequence": 1,
+        "workspaceSHA256": "ea178afd68bd143837e0ef09405ac99a6efe59563d238adad41dc8d6a9aa9a8c",
+        "writeAttempts": 0
+      },
+      "exact": {
+        "artifact": "c0a3508f82404e3937e83aa6e5b7071bc57684b83905608a7dd7c81a9cc8bd32",
+        "candidate": "f55539cd30298cdc2c789ac8f9b28d0df0dcb025efade2bf825523dae284ebcb",
+        "deliveredEvents": 13,
+        "fileIdentity": [
+          "1107216971",
+          "23653",
+          "2026-11-23 07:02:50 +0000"
+        ],
+        "initialNodes": [
+          "workspace.entries"
+        ],
+        "launch": "000A3CFD-D256-4AC7-B932-7FE991AA8878",
+        "openedDraft": {
+          "id": "F2000000-0000-4000-8000-000000000220",
+          "note": "F20 saved note 20",
+          "title": "F20 Draft 20"
+        },
+        "outboxCount": 46,
+        "outboxSHA256": "5c68a84778e6987cca276aad484bd05dee93ab792ac3a2ebd3e21d03ff79d6f3",
+        "pages": [
+          {
+            "family": "drafts",
+            "ids": [
+              "F2000000-0000-4000-8000-000000000200",
+              "F2000000-0000-4000-8000-000000000201",
+              "F2000000-0000-4000-8000-000000000202",
+              "F2000000-0000-4000-8000-000000000203",
+              "F2000000-0000-4000-8000-000000000204",
+              "F2000000-0000-4000-8000-000000000205",
+              "F2000000-0000-4000-8000-000000000206",
+              "F2000000-0000-4000-8000-000000000207",
+              "F2000000-0000-4000-8000-000000000208",
+              "F2000000-0000-4000-8000-000000000209",
+              "F2000000-0000-4000-8000-000000000210",
+              "F2000000-0000-4000-8000-000000000211",
+              "F2000000-0000-4000-8000-000000000212",
+              "F2000000-0000-4000-8000-000000000213",
+              "F2000000-0000-4000-8000-000000000214",
+              "F2000000-0000-4000-8000-000000000215",
+              "F2000000-0000-4000-8000-000000000216",
+              "F2000000-0000-4000-8000-000000000217",
+              "F2000000-0000-4000-8000-000000000218",
+              "F2000000-0000-4000-8000-000000000219"
+            ],
+            "labels": [
+              "F20 Draft 00",
+              "F20 Draft 01",
+              "F20 Draft 02",
+              "F20 Draft 03",
+              "F20 Draft 04",
+              "F20 Draft 05",
+              "F20 Draft 06",
+              "F20 Draft 07",
+              "F20 Draft 08",
+              "F20 Draft 09",
+              "F20 Draft 10",
+              "F20 Draft 11",
+              "F20 Draft 12",
+              "F20 Draft 13",
+              "F20 Draft 14",
+              "F20 Draft 15",
+              "F20 Draft 16",
+              "F20 Draft 17",
+              "F20 Draft 18",
+              "F20 Draft 19"
+            ],
+            "nextEnabled": true,
+            "position": "Page 1 of 2 \u00b7 23 drafts",
+            "previousEnabled": false
+          },
+          {
+            "family": "drafts",
+            "ids": [
+              "F2000000-0000-4000-8000-000000000220",
+              "F2000000-0000-4000-8000-000000000221",
+              "F2000000-0000-4000-8000-000000000222"
+            ],
+            "labels": [
+              "F20 Draft 20",
+              "F20 Draft 21",
+              "F20 Draft 22"
+            ],
+            "nextEnabled": false,
+            "position": "Page 2 of 2 \u00b7 23 drafts",
+            "previousEnabled": true
+          },
+          {
+            "family": "drafts",
+            "ids": [
+              "F2000000-0000-4000-8000-000000000220",
+              "F2000000-0000-4000-8000-000000000221",
+              "F2000000-0000-4000-8000-000000000222"
+            ],
+            "labels": [
+              "F20 Draft 20",
+              "F20 Draft 21",
+              "F20 Draft 22"
+            ],
+            "nextEnabled": false,
+            "position": "Page 2 of 2 \u00b7 23 drafts",
+            "previousEnabled": true
+          },
+          {
+            "family": "entries",
+            "ids": [
+              "F2000000-0000-4000-8000-000000000142",
+              "F2000000-0000-4000-8000-000000000141",
+              "F2000000-0000-4000-8000-000000000140",
+              "F2000000-0000-4000-8000-000000000139",
+              "F2000000-0000-4000-8000-000000000138",
+              "F2000000-0000-4000-8000-000000000137",
+              "F2000000-0000-4000-8000-000000000136",
+              "F2000000-0000-4000-8000-000000000135",
+              "F2000000-0000-4000-8000-000000000134",
+              "F2000000-0000-4000-8000-000000000133",
+              "F2000000-0000-4000-8000-000000000132",
+              "F2000000-0000-4000-8000-000000000131",
+              "F2000000-0000-4000-8000-000000000130",
+              "F2000000-0000-4000-8000-000000000129",
+              "F2000000-0000-4000-8000-000000000128",
+              "F2000000-0000-4000-8000-000000000127",
+              "F2000000-0000-4000-8000-000000000126",
+              "F2000000-0000-4000-8000-000000000125",
+              "F2000000-0000-4000-8000-000000000124",
+              "F2000000-0000-4000-8000-000000000123"
+            ],
+            "labels": [
+              "F20 Entry 42 \u00b7 observation \u00b7 2023-11-14T22:14:02Z",
+              "F20 Entry 41 \u00b7 observation \u00b7 2023-11-14T22:14:01Z",
+              "F20 Entry 40 \u00b7 observation \u00b7 2023-11-14T22:14:00Z",
+              "F20 Entry 39 \u00b7 observation \u00b7 2023-11-14T22:13:59Z",
+              "F20 Entry 38 \u00b7 observation \u00b7 2023-11-14T22:13:58Z",
+              "F20 Entry 37 \u00b7 observation \u00b7 2023-11-14T22:13:57Z",
+              "F20 Entry 36 \u00b7 observation \u00b7 2023-11-14T22:13:56Z",
+              "F20 Entry 35 \u00b7 observation \u00b7 2023-11-14T22:13:55Z",
+              "F20 Entry 34 \u00b7 observation \u00b7 2023-11-14T22:13:54Z",
+              "F20 Entry 33 \u00b7 observation \u00b7 2023-11-14T22:13:53Z",
+              "F20 Entry 32 \u00b7 observation \u00b7 2023-11-14T22:13:52Z",
+              "F20 Entry 31 \u00b7 observation \u00b7 2023-11-14T22:13:51Z",
+              "F20 Entry 30 \u00b7 observation \u00b7 2023-11-14T22:13:50Z",
+              "F20 Entry 29 \u00b7 observation \u00b7 2023-11-14T22:13:49Z",
+              "F20 Entry 28 \u00b7 observation \u00b7 2023-11-14T22:13:48Z",
+              "F20 Entry 27 \u00b7 observation \u00b7 2023-11-14T22:13:47Z",
+              "F20 Entry 26 \u00b7 observation \u00b7 2023-11-14T22:13:46Z",
+              "F20 Entry 25 \u00b7 observation \u00b7 2023-11-14T22:13:45Z",
+              "F20 Entry 24 \u00b7 observation \u00b7 2023-11-14T22:13:44Z",
+              "F20 Entry 23 \u00b7 observation \u00b7 2023-11-14T22:13:43Z"
+            ],
+            "nextEnabled": true,
+            "position": "Page 1 of 3 \u00b7 43 entries",
+            "previousEnabled": false
+          },
+          {
+            "family": "entries",
+            "ids": [
+              "F2000000-0000-4000-8000-000000000122",
+              "F2000000-0000-4000-8000-000000000121",
+              "F2000000-0000-4000-8000-000000000120",
+              "F2000000-0000-4000-8000-000000000119",
+              "F2000000-0000-4000-8000-000000000118",
+              "F2000000-0000-4000-8000-000000000117",
+              "F2000000-0000-4000-8000-000000000116",
+              "F2000000-0000-4000-8000-000000000115",
+              "F2000000-0000-4000-8000-000000000114",
+              "F2000000-0000-4000-8000-000000000113",
+              "F2000000-0000-4000-8000-000000000112",
+              "F2000000-0000-4000-8000-000000000111",
+              "F2000000-0000-4000-8000-000000000110",
+              "F2000000-0000-4000-8000-000000000109",
+              "F2000000-0000-4000-8000-000000000108",
+              "F2000000-0000-4000-8000-000000000107",
+              "F2000000-0000-4000-8000-000000000106",
+              "F2000000-0000-4000-8000-000000000105",
+              "F2000000-0000-4000-8000-000000000104",
+              "F2000000-0000-4000-8000-000000000103"
+            ],
+            "labels": [
+              "F20 Entry 22 \u00b7 observation \u00b7 2023-11-14T22:13:42Z",
+              "F20 Entry 21 \u00b7 observation \u00b7 2023-11-14T22:13:41Z",
+              "F20 Entry 20 \u00b7 observation \u00b7 2023-11-14T22:13:40Z",
+              "F20 Entry 19 \u00b7 observation \u00b7 2023-11-14T22:13:39Z",
+              "F20 Entry 18 \u00b7 observation \u00b7 2023-11-14T22:13:38Z",
+              "F20 Entry 17 \u00b7 observation \u00b7 2023-11-14T22:13:37Z",
+              "F20 Entry 16 \u00b7 observation \u00b7 2023-11-14T22:13:36Z",
+              "F20 Entry 15 \u00b7 observation \u00b7 2023-11-14T22:13:35Z",
+              "F20 Entry 14 \u00b7 observation \u00b7 2023-11-14T22:13:34Z",
+              "F20 Entry 13 \u00b7 observation \u00b7 2023-11-14T22:13:33Z",
+              "F20 Entry 12 \u00b7 observation \u00b7 2023-11-14T22:13:32Z",
+              "F20 Entry 11 \u00b7 observation \u00b7 2023-11-14T22:13:31Z",
+              "F20 Entry 10 \u00b7 observation \u00b7 2023-11-14T22:13:30Z",
+              "F20 Entry 09 \u00b7 observation \u00b7 2023-11-14T22:13:29Z",
+              "F20 Entry 08 \u00b7 observation \u00b7 2023-11-14T22:13:28Z",
+              "F20 Entry 07 \u00b7 observation \u00b7 2023-11-14T22:13:27Z",
+              "F20 Entry 06 \u00b7 observation \u00b7 2023-11-14T22:13:26Z",
+              "F20 Entry 05 \u00b7 observation \u00b7 2023-11-14T22:13:25Z",
+              "F20 Entry 04 \u00b7 observation \u00b7 2023-11-14T22:13:24Z",
+              "F20 Entry 03 \u00b7 observation \u00b7 2023-11-14T22:13:23Z"
+            ],
+            "nextEnabled": true,
+            "position": "Page 2 of 3 \u00b7 43 entries",
+            "previousEnabled": true
+          },
+          {
+            "family": "drafts",
+            "ids": [
+              "F2000000-0000-4000-8000-000000000220",
+              "F2000000-0000-4000-8000-000000000221",
+              "F2000000-0000-4000-8000-000000000222"
+            ],
+            "labels": [
+              "F20 Draft 20",
+              "F20 Draft 21",
+              "F20 Draft 22"
+            ],
+            "nextEnabled": false,
+            "position": "Page 2 of 2 \u00b7 23 drafts",
+            "previousEnabled": true
+          },
+          {
+            "family": "drafts",
+            "ids": [
+              "F2000000-0000-4000-8000-000000000200",
+              "F2000000-0000-4000-8000-000000000201",
+              "F2000000-0000-4000-8000-000000000202",
+              "F2000000-0000-4000-8000-000000000203",
+              "F2000000-0000-4000-8000-000000000204",
+              "F2000000-0000-4000-8000-000000000205",
+              "F2000000-0000-4000-8000-000000000206",
+              "F2000000-0000-4000-8000-000000000207",
+              "F2000000-0000-4000-8000-000000000208",
+              "F2000000-0000-4000-8000-000000000209",
+              "F2000000-0000-4000-8000-000000000210",
+              "F2000000-0000-4000-8000-000000000211",
+              "F2000000-0000-4000-8000-000000000212",
+              "F2000000-0000-4000-8000-000000000213",
+              "F2000000-0000-4000-8000-000000000214",
+              "F2000000-0000-4000-8000-000000000215",
+              "F2000000-0000-4000-8000-000000000216",
+              "F2000000-0000-4000-8000-000000000217",
+              "F2000000-0000-4000-8000-000000000218",
+              "F2000000-0000-4000-8000-000000000219"
+            ],
+            "labels": [
+              "F20 Draft 00",
+              "F20 Draft 01",
+              "F20 Draft 02",
+              "F20 Draft 03",
+              "F20 Draft 04",
+              "F20 Draft 05",
+              "F20 Draft 06",
+              "F20 Draft 07",
+              "F20 Draft 08",
+              "F20 Draft 09",
+              "F20 Draft 10",
+              "F20 Draft 11",
+              "F20 Draft 12",
+              "F20 Draft 13",
+              "F20 Draft 14",
+              "F20 Draft 15",
+              "F20 Draft 16",
+              "F20 Draft 17",
+              "F20 Draft 18",
+              "F20 Draft 19"
+            ],
+            "nextEnabled": true,
+            "position": "Page 1 of 2 \u00b7 23 drafts",
+            "previousEnabled": false
+          },
+          {
+            "family": "entries",
+            "ids": [
+              "F2000000-0000-4000-8000-000000000122",
+              "F2000000-0000-4000-8000-000000000121",
+              "F2000000-0000-4000-8000-000000000120",
+              "F2000000-0000-4000-8000-000000000119",
+              "F2000000-0000-4000-8000-000000000118",
+              "F2000000-0000-4000-8000-000000000117",
+              "F2000000-0000-4000-8000-000000000116",
+              "F2000000-0000-4000-8000-000000000115",
+              "F2000000-0000-4000-8000-000000000114",
+              "F2000000-0000-4000-8000-000000000113",
+              "F2000000-0000-4000-8000-000000000112",
+              "F2000000-0000-4000-8000-000000000111",
+              "F2000000-0000-4000-8000-000000000110",
+              "F2000000-0000-4000-8000-000000000109",
+              "F2000000-0000-4000-8000-000000000108",
+              "F2000000-0000-4000-8000-000000000107",
+              "F2000000-0000-4000-8000-000000000106",
+              "F2000000-0000-4000-8000-000000000105",
+              "F2000000-0000-4000-8000-000000000104",
+              "F2000000-0000-4000-8000-000000000103"
+            ],
+            "labels": [
+              "F20 Entry 22 \u00b7 observation \u00b7 2023-11-14T22:13:42Z",
+              "F20 Entry 21 \u00b7 observation \u00b7 2023-11-14T22:13:41Z",
+              "F20 Entry 20 \u00b7 observation \u00b7 2023-11-14T22:13:40Z",
+              "F20 Entry 19 \u00b7 observation \u00b7 2023-11-14T22:13:39Z",
+              "F20 Entry 18 \u00b7 observation \u00b7 2023-11-14T22:13:38Z",
+              "F20 Entry 17 \u00b7 observation \u00b7 2023-11-14T22:13:37Z",
+              "F20 Entry 16 \u00b7 observation \u00b7 2023-11-14T22:13:36Z",
+              "F20 Entry 15 \u00b7 observation \u00b7 2023-11-14T22:13:35Z",
+              "F20 Entry 14 \u00b7 observation \u00b7 2023-11-14T22:13:34Z",
+              "F20 Entry 13 \u00b7 observation \u00b7 2023-11-14T22:13:33Z",
+              "F20 Entry 12 \u00b7 observation \u00b7 2023-11-14T22:13:32Z",
+              "F20 Entry 11 \u00b7 observation \u00b7 2023-11-14T22:13:31Z",
+              "F20 Entry 10 \u00b7 observation \u00b7 2023-11-14T22:13:30Z",
+              "F20 Entry 09 \u00b7 observation \u00b7 2023-11-14T22:13:29Z",
+              "F20 Entry 08 \u00b7 observation \u00b7 2023-11-14T22:13:28Z",
+              "F20 Entry 07 \u00b7 observation \u00b7 2023-11-14T22:13:27Z",
+              "F20 Entry 06 \u00b7 observation \u00b7 2023-11-14T22:13:26Z",
+              "F20 Entry 05 \u00b7 observation \u00b7 2023-11-14T22:13:25Z",
+              "F20 Entry 04 \u00b7 observation \u00b7 2023-11-14T22:13:24Z",
+              "F20 Entry 03 \u00b7 observation \u00b7 2023-11-14T22:13:23Z"
+            ],
+            "nextEnabled": true,
+            "position": "Page 2 of 3 \u00b7 43 entries",
+            "previousEnabled": true
+          },
+          {
+            "family": "entries",
+            "ids": [
+              "F2000000-0000-4000-8000-000000000102",
+              "F2000000-0000-4000-8000-000000000101",
+              "F2000000-0000-4000-8000-000000000100"
+            ],
+            "labels": [
+              "F20 Entry 02 \u00b7 observation \u00b7 2023-11-14T22:13:22Z",
+              "F20 Entry 01 \u00b7 observation \u00b7 2023-11-14T22:13:21Z",
+              "F20 Entry 00 \u00b7 observation \u00b7 2023-11-14T22:13:20Z"
+            ],
+            "nextEnabled": false,
+            "position": "Page 3 of 3 \u00b7 43 entries",
+            "previousEnabled": true
+          },
+          {
+            "family": "entries",
+            "ids": [
+              "F2000000-0000-4000-8000-000000000122",
+              "F2000000-0000-4000-8000-000000000121",
+              "F2000000-0000-4000-8000-000000000120",
+              "F2000000-0000-4000-8000-000000000119",
+              "F2000000-0000-4000-8000-000000000118",
+              "F2000000-0000-4000-8000-000000000117",
+              "F2000000-0000-4000-8000-000000000116",
+              "F2000000-0000-4000-8000-000000000115",
+              "F2000000-0000-4000-8000-000000000114",
+              "F2000000-0000-4000-8000-000000000113",
+              "F2000000-0000-4000-8000-000000000112",
+              "F2000000-0000-4000-8000-000000000111",
+              "F2000000-0000-4000-8000-000000000110",
+              "F2000000-0000-4000-8000-000000000109",
+              "F2000000-0000-4000-8000-000000000108",
+              "F2000000-0000-4000-8000-000000000107",
+              "F2000000-0000-4000-8000-000000000106",
+              "F2000000-0000-4000-8000-000000000105",
+              "F2000000-0000-4000-8000-000000000104",
+              "F2000000-0000-4000-8000-000000000103"
+            ],
+            "labels": [
+              "F20 Entry 22 \u00b7 observation \u00b7 2023-11-14T22:13:42Z",
+              "F20 Entry 21 \u00b7 observation \u00b7 2023-11-14T22:13:41Z",
+              "F20 Entry 20 \u00b7 observation \u00b7 2023-11-14T22:13:40Z",
+              "F20 Entry 19 \u00b7 observation \u00b7 2023-11-14T22:13:39Z",
+              "F20 Entry 18 \u00b7 observation \u00b7 2023-11-14T22:13:38Z",
+              "F20 Entry 17 \u00b7 observation \u00b7 2023-11-14T22:13:37Z",
+              "F20 Entry 16 \u00b7 observation \u00b7 2023-11-14T22:13:36Z",
+              "F20 Entry 15 \u00b7 observation \u00b7 2023-11-14T22:13:35Z",
+              "F20 Entry 14 \u00b7 observation \u00b7 2023-11-14T22:13:34Z",
+              "F20 Entry 13 \u00b7 observation \u00b7 2023-11-14T22:13:33Z",
+              "F20 Entry 12 \u00b7 observation \u00b7 2023-11-14T22:13:32Z",
+              "F20 Entry 11 \u00b7 observation \u00b7 2023-11-14T22:13:31Z",
+              "F20 Entry 10 \u00b7 observation \u00b7 2023-11-14T22:13:30Z",
+              "F20 Entry 09 \u00b7 observation \u00b7 2023-11-14T22:13:29Z",
+              "F20 Entry 08 \u00b7 observation \u00b7 2023-11-14T22:13:28Z",
+              "F20 Entry 07 \u00b7 observation \u00b7 2023-11-14T22:13:27Z",
+              "F20 Entry 06 \u00b7 observation \u00b7 2023-11-14T22:13:26Z",
+              "F20 Entry 05 \u00b7 observation \u00b7 2023-11-14T22:13:25Z",
+              "F20 Entry 04 \u00b7 observation \u00b7 2023-11-14T22:13:24Z",
+              "F20 Entry 03 \u00b7 observation \u00b7 2023-11-14T22:13:23Z"
+            ],
+            "nextEnabled": true,
+            "position": "Page 2 of 3 \u00b7 43 entries",
+            "previousEnabled": true
+          },
+          {
+            "family": "entries",
+            "ids": [
+              "F2000000-0000-4000-8000-000000000142",
+              "F2000000-0000-4000-8000-000000000141",
+              "F2000000-0000-4000-8000-000000000140",
+              "F2000000-0000-4000-8000-000000000139",
+              "F2000000-0000-4000-8000-000000000138",
+              "F2000000-0000-4000-8000-000000000137",
+              "F2000000-0000-4000-8000-000000000136",
+              "F2000000-0000-4000-8000-000000000135",
+              "F2000000-0000-4000-8000-000000000134",
+              "F2000000-0000-4000-8000-000000000133",
+              "F2000000-0000-4000-8000-000000000132",
+              "F2000000-0000-4000-8000-000000000131",
+              "F2000000-0000-4000-8000-000000000130",
+              "F2000000-0000-4000-8000-000000000129",
+              "F2000000-0000-4000-8000-000000000128",
+              "F2000000-0000-4000-8000-000000000127",
+              "F2000000-0000-4000-8000-000000000126",
+              "F2000000-0000-4000-8000-000000000125",
+              "F2000000-0000-4000-8000-000000000124",
+              "F2000000-0000-4000-8000-000000000123"
+            ],
+            "labels": [
+              "F20 Entry 42 \u00b7 observation \u00b7 2023-11-14T22:14:02Z",
+              "F20 Entry 41 \u00b7 observation \u00b7 2023-11-14T22:14:01Z",
+              "F20 Entry 40 \u00b7 observation \u00b7 2023-11-14T22:14:00Z",
+              "F20 Entry 39 \u00b7 observation \u00b7 2023-11-14T22:13:59Z",
+              "F20 Entry 38 \u00b7 observation \u00b7 2023-11-14T22:13:58Z",
+              "F20 Entry 37 \u00b7 observation \u00b7 2023-11-14T22:13:57Z",
+              "F20 Entry 36 \u00b7 observation \u00b7 2023-11-14T22:13:56Z",
+              "F20 Entry 35 \u00b7 observation \u00b7 2023-11-14T22:13:55Z",
+              "F20 Entry 34 \u00b7 observation \u00b7 2023-11-14T22:13:54Z",
+              "F20 Entry 33 \u00b7 observation \u00b7 2023-11-14T22:13:53Z",
+              "F20 Entry 32 \u00b7 observation \u00b7 2023-11-14T22:13:52Z",
+              "F20 Entry 31 \u00b7 observation \u00b7 2023-11-14T22:13:51Z",
+              "F20 Entry 30 \u00b7 observation \u00b7 2023-11-14T22:13:50Z",
+              "F20 Entry 29 \u00b7 observation \u00b7 2023-11-14T22:13:49Z",
+              "F20 Entry 28 \u00b7 observation \u00b7 2023-11-14T22:13:48Z",
+              "F20 Entry 27 \u00b7 observation \u00b7 2023-11-14T22:13:47Z",
+              "F20 Entry 26 \u00b7 observation \u00b7 2023-11-14T22:13:46Z",
+              "F20 Entry 25 \u00b7 observation \u00b7 2023-11-14T22:13:45Z",
+              "F20 Entry 24 \u00b7 observation \u00b7 2023-11-14T22:13:44Z",
+              "F20 Entry 23 \u00b7 observation \u00b7 2023-11-14T22:13:43Z"
+            ],
+            "nextEnabled": true,
+            "position": "Page 1 of 3 \u00b7 43 entries",
+            "previousEnabled": false
+          }
+        ],
+        "phase": "exact",
+        "pid": 65619,
+        "previous": "d88e3c2f183920945136a865af656e3a28c67c944050d2a4487a310c53955cd4",
+        "reads": [
+          "workspace",
+          "drafts-0",
+          "drafts-1",
+          "draft-F2000000-0000-4000-8000-000000000220",
+          "drafts-1",
+          "entries-0",
+          "entries-1",
+          "drafts-1",
+          "drafts-0",
+          "entries-1",
+          "entries-2",
+          "entries-1",
+          "entries-0"
+        ],
+        "retired": true,
+        "revision": 1,
+        "sequence": 2,
+        "workspaceSHA256": "ea178afd68bd143837e0ef09405ac99a6efe59563d238adad41dc8d6a9aa9a8c",
+        "writeAttempts": 0
+      },
+      "exact-cold": {
+        "artifact": "c0a3508f82404e3937e83aa6e5b7071bc57684b83905608a7dd7c81a9cc8bd32",
+        "candidate": "f55539cd30298cdc2c789ac8f9b28d0df0dcb025efade2bf825523dae284ebcb",
+        "deliveredEvents": 13,
+        "fileIdentity": [
+          "1107216971",
+          "23653",
+          "2026-11-23 07:02:50 +0000"
+        ],
+        "initialNodes": [
+          "workspace.entries"
+        ],
+        "launch": "D373E90A-DC28-4FEE-AF3D-337697C707DE",
+        "openedDraft": {
+          "id": "F2000000-0000-4000-8000-000000000220",
+          "note": "F20 saved note 20",
+          "title": "F20 Draft 20"
+        },
+        "outboxCount": 46,
+        "outboxSHA256": "5c68a84778e6987cca276aad484bd05dee93ab792ac3a2ebd3e21d03ff79d6f3",
+        "phase": "exact-cold",
+        "pid": 67870,
+        "previous": "d88e3c2f183920945136a865af656e3a28c67c944050d2a4487a310c53955cd4",
+        "reads": [
+          "workspace",
+          "drafts-0",
+          "drafts-1",
+          "draft-F2000000-0000-4000-8000-000000000220",
+          "drafts-1",
+          "entries-0",
+          "entries-1",
+          "drafts-1",
+          "drafts-0",
+          "entries-1",
+          "entries-2",
+          "entries-1",
+          "entries-0"
+        ],
+        "retired": true,
+        "revision": 1,
+        "sequence": 2,
+        "workspaceSHA256": "ea178afd68bd143837e0ef09405ac99a6efe59563d238adad41dc8d6a9aa9a8c",
+        "writeAttempts": 0,
+        "pageVisitsIdenticalToExact": 11
+      },
+      "rollback": {
+        "artifact": "d2c6c5679c6b5a48f6bebe187fb2d90f84a143bb52b54080830f5bf453207ae0",
+        "candidate": "e12c517ba40e74c744873dde4104694ea8f98c12fdb82071665810255d51d776",
+        "deliveredEvents": 0,
+        "fileIdentity": [
+          "1107216971",
+          "23653",
+          "2026-11-23 07:02:50 +0000"
+        ],
+        "initialNodes": [
+          "workspace.home"
+        ],
+        "launch": "40C986D6-1FCB-4572-9FDC-09BC3C2E2FDF",
+        "openedDraft": {},
+        "outboxCount": 46,
+        "outboxSHA256": "5c68a84778e6987cca276aad484bd05dee93ab792ac3a2ebd3e21d03ff79d6f3",
+        "pages": [],
+        "phase": "rollback",
+        "pid": 69736,
+        "previous": "f55539cd30298cdc2c789ac8f9b28d0df0dcb025efade2bf825523dae284ebcb",
+        "reads": [
+          "workspace"
+        ],
+        "retired": true,
+        "revision": 1,
+        "sequence": 3,
+        "workspaceSHA256": "ea178afd68bd143837e0ef09405ac99a6efe59563d238adad41dc8d6a9aa9a8c",
+        "writeAttempts": 0
+      },
+      "offline": {
+        "artifact": "d2c6c5679c6b5a48f6bebe187fb2d90f84a143bb52b54080830f5bf453207ae0",
+        "candidate": "e12c517ba40e74c744873dde4104694ea8f98c12fdb82071665810255d51d776",
+        "deliveredEvents": 0,
+        "fileIdentity": [
+          "1107216971",
+          "23653",
+          "2026-11-23 07:02:50 +0000"
+        ],
+        "initialNodes": [
+          "workspace.home"
+        ],
+        "launch": "8B869F91-0DBA-4344-99B0-924F73F5FCF8",
+        "openedDraft": {},
+        "outboxCount": 46,
+        "outboxSHA256": "5c68a84778e6987cca276aad484bd05dee93ab792ac3a2ebd3e21d03ff79d6f3",
+        "pages": [],
+        "phase": "offline",
+        "pid": 69861,
+        "previous": "f55539cd30298cdc2c789ac8f9b28d0df0dcb025efade2bf825523dae284ebcb",
+        "reads": [
+          "workspace"
+        ],
+        "retired": true,
+        "revision": 1,
+        "sequence": 3,
+        "workspaceSHA256": "ea178afd68bd143837e0ef09405ac99a6efe59563d238adad41dc8d6a9aa9a8c",
+        "writeAttempts": 0
+      }
+    },
+    "publications": {
+      "prior": {
+        "action": "publish",
+        "artifact_sha256": "d2c6c5679c6b5a48f6bebe187fb2d90f84a143bb52b54080830f5bf453207ae0",
+        "delivery": "local_only",
+        "rollout_basis_points": 10000,
+        "sequence": 1,
+        "status": "ok"
+      },
+      "exact": {
+        "action": "publish",
+        "artifact_sha256": "c0a3508f82404e3937e83aa6e5b7071bc57684b83905608a7dd7c81a9cc8bd32",
+        "delivery": "local_only",
+        "rollout_basis_points": 10000,
+        "sequence": 2,
+        "status": "ok"
+      },
+      "rollback": {
+        "action": "rollback",
+        "artifact_sha256": "d2c6c5679c6b5a48f6bebe187fb2d90f84a143bb52b54080830f5bf453207ae0",
+        "delivery": "local_only",
+        "rollout_basis_points": 10000,
+        "sequence": 3,
+        "status": "ok"
+      }
+    },
+    "hostProfile": {
+      "capability_hashes": {
+        "network.http.v1": "fa1549c0a1e2e6b3bf4a83af1a6d37730bbefc8cddc3ffbe3c807d5e7af503f3",
+        "storage.keyValue.v1": "4a311222c978ddd0982e8dfbcf3d4864b856a80bcc1efb3b725adede7f8e22fd"
+      },
+      "guest_abi": 2,
+      "limits": {
+        "fuel": 1000000,
+        "memory_bytes": 4194304,
+        "startup_milliseconds": 60000
+      },
+      "max_payload_bytes": 4194304,
+      "protocol": 3,
+      "runtime": "9c2492d76917eac6b253101a420ace30ac4a38f6dde7bdeff5c5303d6adff2ce",
+      "scope": {
+        "app": "fieldlog-d8-f20",
+        "environment": "development",
+        "organization": "mixer-local",
+        "platform": "android",
+        "project": "fieldlog"
+      },
+      "state_version": 0,
+      "ui_schema": 1
+    },
+    "packets": {
+      "prior": {
+        "signed-manifest.json": "3e3554f734fbe4ea5138d5fb84ec175987cfa90c4511167001f147b0d48290b3",
+        "payload.wasm": "141e6d25d2b637b628bbb24c46556960c34de1b6a5f9338c8302e91f8e9ba05b",
+        "assignment.json": "cddb2a879054be14c72cbbc111aebe0b63085ba4995f414bfcc453c2b443c08d"
+      },
+      "exact": {
+        "signed-manifest.json": "561a8b69c10f47ce298f5640cfba69b299c0f42a6e1a19d8cf8be1250f27faf7",
+        "payload.wasm": "3b9fc21c306096370d66252c15304d65e0665f20f6be271139dc83f6e7148fd8",
+        "assignment.json": "64bf739fc4ac2546ea15cfdd0d0138646cb56108ce4b48c6d0887f8df0e445d8"
+      },
+      "rollback": {
+        "signed-manifest.json": "3e3554f734fbe4ea5138d5fb84ec175987cfa90c4511167001f147b0d48290b3",
+        "payload.wasm": "141e6d25d2b637b628bbb24c46556960c34de1b6a5f9338c8302e91f8e9ba05b",
+        "assignment.json": "07a7a39a3ce7c3eded445b167c531d3b39295e4e8c352ab81e9ba31d16ba1837"
+      }
+    },
+    "originCleanup": [
+      {
+        "pid": 64513,
+        "exit": 0,
+        "groupAbsent": true,
+        "port": 55113,
+        "portRefused": true
+      },
+      {
+        "pid": 69520,
+        "exit": 0,
+        "groupAbsent": true,
+        "port": 55113,
+        "portRefused": true
+      }
+    ],
+    "audit": [
+      "PUT /v3/orgs/mixer-local/projects/fieldlog/artifacts/d2c6c5679c6b5a48f6bebe187fb2d90f84a143bb52b54080830f5bf453207ae0",
+      "POST /v3/orgs/mixer-local/projects/fieldlog/releases/validate",
+      "POST /v3/orgs/mixer-local/projects/fieldlog/channels/beta/publish",
+      "PUT /v3/orgs/mixer-local/projects/fieldlog/artifacts/c0a3508f82404e3937e83aa6e5b7071bc57684b83905608a7dd7c81a9cc8bd32",
+      "POST /v3/orgs/mixer-local/projects/fieldlog/releases/validate",
+      "POST /v3/orgs/mixer-local/projects/fieldlog/channels/beta/publish",
+      "POST /v3/orgs/mixer-local/projects/fieldlog/channels/beta/rollback"
+    ],
+    "hold": false
+  },
+  "qualification": "The passing replay completed within ten minutes of private scratch creation. Receipt preparation delayed final scratch cleanup past ten minutes."
+}

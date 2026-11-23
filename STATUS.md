@@ -261,6 +261,18 @@ Successor actions appended one completion and one reorder operation.
 Browsing wrote nothing. Cold rollback preserved the completed task
 and exact order. [F08 signed host receipt](verification/receipts/l08-d8-f08-signed-host-4a1df205.json)
 
+The Android-scoped F09 signed host replay moved Verify café drain from
+position 21 to 20, followed it to page one, and appended one reorder
+event. Cold rollback preserved the reordered workspace.
+[F09 signed host receipt](verification/receipts/l08-d8-f09-signed-host-304c75a8.json)
+
+The Android-scoped F20 signed host replay matched the archived order of
+23 drafts and 43 entries and opened a second-page draft. The live and
+offline phases preserved the workspace and all 46 outbox records with
+zero write attempts. The guest uses read-only draft detail. Installed
+signed replacement remains open for both rows.
+[F20 signed host receipt](verification/receipts/l08-d8-f20-signed-host-5df25f39.json)
+
 The F06 focus diagnostic recorded 95 accepted empty title events.
 Disabling the form during each event caused the native keyboard to
 lose focus. Event turns stayed under 1.2 ms. Installed typing remains
