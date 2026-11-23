@@ -224,6 +224,13 @@ ordinary workflow composition. The matched Android app passed static
 APK checks and still needs the installed replay.
 [Build evidence](../verification/receipts/fieldlog-composite-native-handoff-25402a6b.json)
 
+The corresponding iOS Simulator run passed all three original selectors.
+Its stopped-workspace evidence covers task creation and completion,
+reorder, draft and saved-entry navigation, queue paging and cold
+readback. The Unicode, multiline and refusal controls remain host
+evidence.
+[Independent native review](../verification/receipts/l08-d2-composite-native-independent-review-dfb0d819.json)
+
 ## Reproduce the source measurement
 
 From the Mixer repository on a Mac with Git, Python, and SwiftPM, run the following in Bash. The commands use the receipt, the public FieldLog pin, and the four overlays. They evaluate package metadata without building either app or resolving SDK dependencies.

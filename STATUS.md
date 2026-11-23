@@ -203,8 +203,15 @@ UTF-8-safe error presentation. Both host callers refused a forced
 disabled Save and preserved storage. A separate candidate linked both
 products with 2,368 shared Swift lines out of 5,765. The Create route
 and editor patches also composed and passed the macOS caller replay.
-The combined installed products and 90% target remain open.
+The corresponding installed replay and 90% target were still open.
 [Task-editor host results](verification/receipts/fieldlog-ordinary-task-editor-30f323fa.json)
+
+The exact Create and task-editor composition then passed all three
+installed iOS Simulator tests and final disk checks. Independent
+review joined the signed app, original selectors, and outbox counts
+of 3 and 25. The matching Android APK passed static checks. Installed
+Android parity and the 90% source-sharing target remain open.
+[Composite native review](verification/receipts/l08-d2-composite-native-independent-review-dfb0d819.json)
 
 ## In-place FieldLog public SDK adoption on iOS
 
