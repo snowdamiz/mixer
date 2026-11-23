@@ -380,6 +380,14 @@ rows and linked one entrySaved event. Signed note mutation remains
 open. Two later host attempts did not reproduce the full pass.
 [F11 signed refusal and editor readback](verification/receipts/l08-d8-f11-signed-host-4aa67a21.json)
 
+A private signed F11 host fixture then restored the exact vertical note
+and delivered one authorized edit with its Unicode and four line
+feeds intact. Wrong field, action, attachment and revision were refused.
+The guest's put and delete were denied, and all fixtures retired with
+the workspace bytes unchanged. The signed Save draft and Commit entry
+path is still open.
+[Private vertical edit replay](verification/receipts/l08-d8-f11-private-vertical-host.json)
+
 The Android-scoped F20 signed host replay matched the archived order of
 23 drafts and 43 entries and opened a second-page draft. The live and
 offline phases preserved the workspace and all 46 outbox records with
