@@ -1,0 +1,77 @@
+{
+  "schema": "mixer.verification.local-android-account-ui-boundary.v1",
+  "gate": "L02",
+  "status": "failed",
+  "scope": "Rebuilt Pair27 developer APK on two isolated API 36 arm64 emulators.",
+  "producerReceiptSHA256": "eddd7e9c99ad64c640b37d0121e3d7ac19c4a57adfbdfbbdbba4577c18ad6e7a",
+  "signing": {
+    "unsignedAPKSHA256": "05a60eb6c43e1e208187788216760d01e9bb214923ed39f7fc6ed7b046f57e2e",
+    "signedAPKSHA256": "6786f248723302f3660faf552c6c8789aefb754a370da16c3ff786e3501e2ff7",
+    "sourcePair": "mixer.android-source-pair.27",
+    "certificateSHA256": "7fdf132a1a8bcadd060470662f98992fe81fd2aa348bfea3d7335cb98e4f6280",
+    "v3": true,
+    "aligned": true,
+    "ephemeralKeyRemoved": true
+  },
+  "attempts": [
+    {
+      "attempt": 3,
+      "receiptSHA256": "07ea2bb1541b1db2fcf666595414a01ac6afeb89f21a8813c66e86033293ab7c",
+      "driverSHA256": "ddfe72ad4e3bac1c5b952a2758097581f622327aeaca7d05ea22946f2875cc0f",
+      "stage": "install exact signed APK",
+      "error": "syntax error: line 1, column 0",
+      "device": {
+        "ro.boot.qemu.avd_name": "mixer_picker_f1d39gjl",
+        "ro.build.version.sdk": "36",
+        "ro.product.cpu.abi": "arm64-v8a",
+        "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+      },
+      "terminalCommands": 133,
+      "scratchRemoved": true,
+      "issuerRequests": 0,
+      "services": [
+        {
+          "name": "emulator",
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "name": "adb",
+          "exit": -15,
+          "groupAbsent": true
+        }
+      ]
+    },
+    {
+      "attempt": 4,
+      "receiptSHA256": "72fe213ea23182cfce7388478c2a679ab5625db99b2898e05c61bca3a938ad9f",
+      "driverSHA256": "cc4e59d3bb3b28438ee6015c25ec3a4abe6101ff4ae2db98305d3252e61c0dec",
+      "stage": "initial native browser sign-in",
+      "error": "['-T', 'cat', '/data/local/tmp/mixer_picker_f0602yap-4.xml'] exited 1: b'cat: /data/local/tmp/mixer_picker_f0602yap-4.xml: No such file or directory\\n'",
+      "device": {
+        "ro.boot.qemu.avd_name": "mixer_picker_f0602yap",
+        "ro.build.version.sdk": "36",
+        "ro.product.cpu.abi": "arm64-v8a",
+        "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+      },
+      "terminalCommands": 160,
+      "scratchRemoved": true,
+      "issuerRequests": 0,
+      "services": [
+        {
+          "name": "emulator",
+          "exit": 0,
+          "groupAbsent": true
+        },
+        {
+          "name": "adb",
+          "exit": -15,
+          "groupAbsent": true
+        }
+      ]
+    }
+  ],
+  "comparison": "37 of 38 unsigned APK members matched the prior admitted roster. The rebuilt JNI library differed.",
+  "observation": "Attempt 4 passed installed APK readback and the ordinary Projects selector, then the XML file was absent during browser sign-in. Neither attempt reached a fixture issuer request.",
+  "next": "Capture the native hierarchy producer disposition before reading XML and rerun the same account journey with the exact signed package."
+}

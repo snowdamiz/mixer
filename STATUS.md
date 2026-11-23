@@ -666,6 +666,15 @@ confirmed deletion removed only the selected account. The reviewer kept
 L02 running for the adopted Android recovery and deletion path.
 [Installed system browser lifecycle](verification/receipts/l02-ios-account-system-browser-native-20261122.json)
 
+The rebuilt Pair27 Android account APK passed host admission and
+development signing. Both fresh API 36 runs stopped at native
+hierarchy capture. The second reached the ordinary Projects screen
+before the sign-in hierarchy file was absent. Neither reached the
+fixture issuer. Both owned emulators and ADB groups closed, and both
+scratch directories were removed. Recovery and deletion on this
+adopted build remain open.
+[Android account native boundary](verification/receipts/l02-android-account-ui-boundary-20261123.json)
+
 The exact installed FieldLog executable returned a missing-entitlement
 status from its first Keychain read before sign-in. A fresh disposable
 Simulator attached the diagnostic to the exact app PID and was removed.
