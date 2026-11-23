@@ -258,6 +258,16 @@ healthy candidate. The private recovery witness failed before paint
 comparison. The stopped journal recorded effects_closed.
 [Native F03 baseline receipt](verification/receipts/l08-d8-f03-ios-baseline-recovery-witness-20261123.json)
 
+The corrected private F03 witness completed four iOS Simulator
+launches at sequences 41, 42, 43 and cold 43. Done used #245747,
+#7AD1B0, #245747 and #245747. The first-project crop matched byte for
+byte across the online launches. Its cold crop differed by at most one
+sRGB unit per channel in 100 rounded-corner pixels, with equal alpha
+and an identical color histogram. Independent replay checked the
+paint and the preserved workspace. The original raster wrapper
+reported a failure. Paired installed Android delivery remains open.
+[F03 installed raster review](verification/receipts/fieldlog-f03-native-raster-review.json)
+
 The stock recovery encoder now sorts durable health milestones under
 the existing field. Seven recovery tests passed. Independent process
 probes reproduced two prior byte encodings and one after the fix.
