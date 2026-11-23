@@ -343,6 +343,17 @@ frame. The earlier Back failure still has no typed cause. Both runs
 removed their owned Simulators and private packet copies.
 [Typed native wake timeout](verification/receipts/l08-d8-f08-ios-wake-timeout-20261123.json)
 
+The private F08 candidate with user-initiated guest handlers passed
+the five installed iOS phases on one installation. The completion
+and reorder committed revisions 4 and 5. Back returned from the read-only
+queue. Rollback and the offline reopen kept the same revision-5
+workspace while both delivery ports refused connections. The original
+50 ms guest limit stayed in place. The host A/B passed at both priorities,
+so the effect of scheduling on the earlier failures remains unresolved.
+Paired installed Android delivery remains open.
+[Scoped iOS pass](verification/receipts/l08-d8-f08-ios-native-qos-20261123.json)
+· [Host QoS comparison](verification/receipts/l08-f08-qos-successor-99351c01.json)
+
 The Android-scoped F09 signed host replay moved Verify café drain from
 position 21 to 20, followed it to page one, and appended one reorder
 event. Cold rollback preserved the reordered workspace.
