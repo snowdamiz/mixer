@@ -162,6 +162,25 @@ final class CapabilityRecoveryTransitionTests: XCTestCase, @unchecked Sendable {
     private func disk(_ f: TransitionFixture) throws -> CapabilityRecoveryState {
         try StrictJSON.decode(CapabilityRecoveryState.self, from: Data(contentsOf: f.directory.appendingPathComponent("state.json")))
     }
+    func testStoredHealthEncodesLegacyMilestoneOrderCanonically() throws {
+        let legacy = #"{"candidateID":"candidate","committedAtWallTime":123,"completedMilestones":["first_screen","feature_started"],"launchID":"launch","observationSeconds":10}"#
+        let canonical = legacy.replacingOccurrences(of: #"["first_screen","feature_started"]"#,
+                                                    with: #"["feature_started","first_screen"]"#)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+        for record in [legacy, canonical] {
+            let health = try StrictJSON.decode(CapabilityStoredHealth.self, from: Data(record.utf8))
+            XCTAssertEqual(health.completedMilestones, ["feature_started", "first_screen"])
+            XCTAssertEqual(try encoder.encode(health), Data(canonical.utf8))
+        }
+
+        let duplicate = legacy.replacingOccurrences(of: "feature_started", with: "first_screen")
+        let unknownField = legacy.replacingOccurrences(of: "\"launchID\":", with: "\"extra\":0,\"launchID\":")
+        for record in [duplicate, unknownField] {
+            XCTAssertThrowsError(try StrictJSON.decode(CapabilityStoredHealth.self, from: Data(record.utf8)))
+        }
+    }
+
     func testSelectionOneShotForeignStoreSignalsAndDurableAttemptBeforeConstruction() async throws {
         let f = try fixture(), clock = TransitionTime(), (store, owner) = try await open(f, clock)
         try await stage(f, store)

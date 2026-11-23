@@ -219,6 +219,11 @@ installation performed zero workspace writes and preserved its journal
 across each offline launch. Android live replacement remains open.
 [Reviewed native F10 receipt](verification/receipts/l08-d8-f10-ios-live-replacement-20261123.json)
 
+The stock recovery encoder now sorts durable health milestones under
+the existing field. Seven recovery tests passed. Independent process
+probes reproduced two prior byte encodings and one after the fix.
+[Stock recovery encoding receipt](verification/receipts/l08-recovery-health-canonical-milestones-20261123.json)
+
 The F02 signed host replay delivered the prior, both reorder actions,
 and rollback through the stock local origin. Move down and Move up
 committed one event each at revisions 4 and 5. Cold rollback kept the

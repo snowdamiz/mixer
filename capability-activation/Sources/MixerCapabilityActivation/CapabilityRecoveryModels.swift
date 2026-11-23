@@ -98,6 +98,14 @@ struct CapabilityStoredHealth: Codable, Sendable {
         guard ids.count <= 16, Set(ids).count == ids.count else { throw capabilityRecoveryError("state") }
         completedMilestones = Set(ids)
     }
+    func encode(to encoder: any Encoder) throws {
+        var f = encoder.container(keyedBy: CodingKeys.self)
+        try f.encode(candidateID, forKey: .candidateID)
+        try f.encode(launchID, forKey: .launchID)
+        try f.encode(committedAtWallTime, forKey: .committedAtWallTime)
+        try f.encode(observationSeconds, forKey: .observationSeconds)
+        try f.encode(completedMilestones.sorted(), forKey: .completedMilestones)
+    }
 }
 struct CapabilityStoredAttempt: Codable, Sendable {
     let launchID: String
