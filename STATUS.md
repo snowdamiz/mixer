@@ -679,6 +679,17 @@ scratch directories were removed. Recovery and deletion on this
 adopted build remain open.
 [Android account native boundary](verification/receipts/l02-android-account-ui-boundary-20261123.json)
 
+A fresh diagnostic observed the real browser form, one masked field,
+one Sign in button, and the initial 201 and 200 issuer responses
+before credential entry. The full replay then signed in, refused a
+peer recovery with HTTP 401, recovered the correct account, and
+refused an expired deletion request. A cold process exchanged fresh
+browser authorization and displayed the renewed confirmation. The
+confirmation produced no recorded deletion request. Peer and workspace
+bytes matched before confirmation. Both runs retired their owned
+emulator and services. L02 remains running.
+[Android renewed deletion boundary](verification/receipts/l02-android-reauthorized-deletion-boundary-20261123.json)
+
 The exact installed FieldLog executable returned a missing-entitlement
 status from its first Keychain read before sign-in. A fresh disposable
 Simulator attached the diagnostic to the exact app PID and was removed.

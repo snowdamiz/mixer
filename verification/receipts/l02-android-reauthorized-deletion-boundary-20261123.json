@@ -1,0 +1,167 @@
+{
+  "schema": "mixer.verification.pair27-android-reauthorized-deletion-boundary.v1",
+  "gate": "L02",
+  "status": "failed",
+  "scope": "Two fresh local API 36 arm64 runs on an exact rebuilt Pair27 developer APK and synthetic loopback issuer.",
+  "probe": {
+    "status": "probe-passed",
+    "device": {
+      "ro.boot.qemu.avd_name": "mixer_picker_kjc5iyl4",
+      "ro.build.version.sdk": "36",
+      "ro.product.cpu.abi": "arm64-v8a",
+      "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+    },
+    "stage": "probe browser accessibility before credential entry",
+    "trace": [
+      [
+        "POST",
+        "/v1/auth/attempts",
+        201
+      ],
+      [
+        "GET",
+        "/v1/auth/attempts/:attempt",
+        200
+      ]
+    ],
+    "driverSHA256": "d7e1dba7bd8ae2e71554cc150a2d5cdd5fef447bb6031760a99fc2900873b7ca",
+    "scratchRemoved": true,
+    "terminalCommands": 93,
+    "signedAPKSHA256": "6786f248723302f3660faf552c6c8789aefb754a370da16c3ff786e3501e2ff7",
+    "receiptSHA256": "03419636acc59a76710752d9d97cc54192f06fc946ae29830c1abd46e8cd5e02",
+    "closedServices": [
+      "emulator",
+      "adb"
+    ],
+    "credentialInputAttempted": false,
+    "successfulBrowserSamples": 2,
+    "maskedFieldsPerSample": 1,
+    "signInButtonsPerSample": 1
+  },
+  "lifecycle": {
+    "status": "failed",
+    "device": {
+      "ro.boot.qemu.avd_name": "mixer_picker_l4ke5mor",
+      "ro.build.version.sdk": "36",
+      "ro.product.cpu.abi": "arm64-v8a",
+      "ro.build.fingerprint": "Android/sdk_phone64_arm64/emu64a:16/BE2A.250530.026.D1/13818094:userdebug/test-keys"
+    },
+    "stage": "submit renewed confirmation and verify scoped cleanup",
+    "trace": [
+      [
+        "POST",
+        "/v1/auth/attempts",
+        201
+      ],
+      [
+        "GET",
+        "/v1/auth/attempts/:attempt",
+        200
+      ],
+      [
+        "POST",
+        "/v1/auth/attempts/:attempt",
+        303
+      ],
+      [
+        "POST",
+        "/v1/auth/exchange",
+        200
+      ],
+      [
+        "GET",
+        "/v1/account/session",
+        200
+      ],
+      [
+        "DELETE",
+        "/v1/account/session",
+        200
+      ],
+      [
+        "GET",
+        "/v1/account/recovery/attempts/:attempt",
+        200
+      ],
+      [
+        "POST",
+        "/v1/account/recovery/attempts/:attempt",
+        401
+      ],
+      [
+        "GET",
+        "/v1/account/recovery/attempts/:attempt",
+        200
+      ],
+      [
+        "POST",
+        "/v1/account/recovery/attempts/:attempt",
+        303
+      ],
+      [
+        "POST",
+        "/v1/account/recovery/exchange",
+        200
+      ],
+      [
+        "GET",
+        "/v1/account/session",
+        200
+      ],
+      [
+        "POST",
+        "/v1/account/deletion",
+        401
+      ],
+      [
+        "POST",
+        "/v1/auth/attempts",
+        201
+      ],
+      [
+        "GET",
+        "/v1/auth/attempts/:attempt",
+        200
+      ],
+      [
+        "POST",
+        "/v1/auth/attempts/:attempt",
+        303
+      ],
+      [
+        "POST",
+        "/v1/auth/exchange",
+        200
+      ],
+      [
+        "GET",
+        "/v1/account/session",
+        200
+      ]
+    ],
+    "driverSHA256": "ee8c3e4d1c83a1e83ca7d017e0f56ab69a967e4b1131f8ab549db789c129dd75",
+    "scratchRemoved": true,
+    "terminalCommands": 142,
+    "signedAPKSHA256": "6786f248723302f3660faf552c6c8789aefb754a370da16c3ff786e3501e2ff7",
+    "receiptSHA256": "2194d885b8b4cc153cb2b22c8c16f8216b54cb69e752d8feb83dcaf9965ff3d8",
+    "closedServices": [
+      "emulator",
+      "adb"
+    ],
+    "reauthorizationPIDs": [
+      2239,
+      3736
+    ],
+    "failure": "No positively confirmed deletion",
+    "validatedHierarchyCount": 41,
+    "beforeRenewedConfirmation": {
+      "peerRecoveryRefused": true,
+      "targetRecoveryAcknowledged": true,
+      "expiredDeletionRefused": true,
+      "freshAuthorizationExchanged": true,
+      "peerAndWorkspacesPreserved": true,
+      "deletionReceiptCount": 0
+    }
+  },
+  "sourceHypothesis": "PublicActivity starts the deletion drain for a pending transition from an admitted view. The renewed confirmation starts from deletion-ready. The run did not capture the view after tapping the final confirmation."
+}
