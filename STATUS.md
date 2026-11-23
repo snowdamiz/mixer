@@ -292,8 +292,18 @@ The new iOS shared Project Detail build passed the offline Share report
 workflow and Pending Changes paging. Two checklist selectors failed at
 the compact progress label after the shared document started requesting
 expanded wording for iOS. The owned Simulator and private packet were
-removed. The native wording correction remains under test.
+removed.
 [iOS shared Project Detail run](verification/receipts/l08-d2-ios-shared-detail-toolbar-native-20261123.json)
+
+Restoring compact iOS checklist wording passed all four original iOS 27.0
+selectors, including center completion, the separate reorder menu, page
+return, Pending Changes and offline Share report. Stopped disk readback
+recorded three outbox operations for the center test and 25 for the detail
+journey. The exact earlier Android shared-screen APK created its workspace
+but exposed an empty initial frame. The measured renderer rejected an
+interactive control under a grouped-row ancestor. Android needs a corrected
+matched build and native replay. Both owned test instances were removed.
+[Native passes and Android refusal](verification/receipts/l08-d2-compact-ios-pass-android-group-refusal-20261123.json)
 
 ## Managed iOS FieldLog and historical native corpus
 
