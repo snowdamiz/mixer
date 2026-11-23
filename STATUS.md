@@ -796,8 +796,14 @@ remains pending a matching public rendering path.
 The opt-in stock Android Activity rendered Checklist, Task form, and
 Pending queue through the canonical V2 descriptor. All six API 36 arm64
 captures included native screenshots and UIAutomator hierarchies, at
-400 dpi with light/1.0 and dark/1.8. The six iOS captures and side-by-side
-review are pending. The iOS Settings rerun passed Dark persistence and
+400 dpi with light/1.0 and dark/1.8. On iOS 26.5, all three dark/Larger
+Text captures and the light Pending Queue passed. Light Checklist and
+Task Form refused with unsupportedNativeOperation. The same signed
+executable and descriptor were used for both profiles. The complete
+side-by-side review remains open.
+[iOS profile results](verification/receipts/l02-ios-reference-profile-native-boundary-20261123.json)
+
+The iOS Settings rerun passed Dark persistence and
 workspace setup. It showed the five Support Diagnostics fields, but the
 XCTest OCR omitted two isolated values from its screenshot. The matrix
 stopped before changing Regional Formats or Larger Text.
