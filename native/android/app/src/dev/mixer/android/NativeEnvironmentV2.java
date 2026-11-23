@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import java.util.Objects;
+import static dev.mixer.android.NativeEnvironmentPlatformV2.Status.*;
 
 /** A capture can only be minted by the concrete native window owner. */
 @SuppressWarnings("deprecation")
@@ -46,6 +47,10 @@ final class NativeEnvironmentV2 {
         void changed(Observer source, Change change, RendererCause cause, Throwable primary, Error firstFatal);
     }
 
+    /** Inputs for the shared Compose theme. The observer does not grant presentation authority. */
+    record ComposeEnvironment(AppearanceResolverV2.Environment value, boolean frameworkFitsInsets,
+                              int weightDelta) {}
+
     /** Listeners invalidate one complete tuple; a second synchronous read closes queued-listener races. */
     static final class Observer implements AutoCloseable, ComponentCallbacks {
         private NativeRenderer owner;
@@ -69,6 +74,7 @@ final class NativeEnvironmentV2 {
         private final NativeEnvironmentPlatformV2.Listener contrast;
         private final NativeEnvironmentPlatformV2.Listener highContrast;
         private final NativeEnvironmentPlatformV2.Listener motion;
+        private final boolean compose;
         private final View.OnLayoutChangeListener layout = (v,l,t,r,b,ol,ot,or,ob) -> {
             requireMain();
             if (retired) return;
@@ -83,13 +89,25 @@ final class NativeEnvironmentV2 {
 
         /** The private V2 root has one inset setter owner; no competing setter is permitted. */
         Observer(Activity activity, FrameLayout root, Sink sink) {
+            this(activity, root, sink, false);
+        }
+        /** Use the attached, Activity-owned host container, outside the Compose view. */
+        static Observer forCompose(Activity activity, FrameLayout root, Sink sink) {
+            return new Observer(activity, root, sink, true);
+        }
+        private Observer(Activity activity, FrameLayout root, Sink sink, boolean compose) {
             requireMain();
-            // Public high-contrast read/listener first exists on API36. Never invent false on earlier OSes.
-            if (Build.VERSION.SDK_INT < 36 || root.getContext() != activity) unsupported();
+            int sdk = Build.VERSION.SDK_INT;
+            if (sdk < (compose ? 28 : NativeEnvironmentPlatformV2.HIGH_CONTRAST_API) ||
+                root.getContext() != activity || (compose && !root.isAttachedToWindow())) unsupported();
             this.sink = Objects.requireNonNull(sink); this.activity = activity; this.root = root;
-            contrast = NativeEnvironmentPlatformV2.contrastListener(activity, this::invalidate);
-            highContrast = NativeEnvironmentPlatformV2.highContrastListener(activity, this::invalidate);
-            motion = NativeEnvironmentPlatformV2.motionListener(this::invalidate);
+            this.compose = compose;
+            contrast = sdk >= NativeEnvironmentPlatformV2.CONTRAST_API
+                ? NativeEnvironmentPlatformV2.contrastListener(activity, this::invalidate) : null;
+            highContrast = sdk >= NativeEnvironmentPlatformV2.HIGH_CONTRAST_API
+                ? NativeEnvironmentPlatformV2.highContrastListener(activity, this::invalidate) : null;
+            motion = sdk >= NativeEnvironmentPlatformV2.MOTION_API
+                ? NativeEnvironmentPlatformV2.motionListener(this::invalidate) : null;
             focusTarget = Objects.requireNonNull(root.getViewTreeObserver());
         }
         void register() {
@@ -101,10 +119,12 @@ final class NativeEnvironmentV2 {
                 begin(1); root.addOnLayoutChangeListener(layout); completed();
                 begin(2); root.addOnAttachStateChangeListener(attachment); completed();
                 begin(3); focusTarget.addOnWindowFocusChangeListener(windowFocus); completed();
-                begin(4); root.setOnApplyWindowInsetsListener(insets); completed();
-                begin(5); contrast.add(); completed();
-                begin(6); highContrast.add(); completed();
-                begin(7); motion.add(); completed();
+                if (Build.VERSION.SDK_INT >= NativeEnvironmentPlatformV2.EXACT_INSETS_API) {
+                    begin(4); root.setOnApplyWindowInsetsListener(insets); completed();
+                }
+                addPlatformListener(5, contrast);
+                addPlatformListener(6, highContrast);
+                addPlatformListener(7, motion);
                 initialized = true;
             } catch (RuntimeException | Error failure) {
                 retired = true; acquiring = -1;
@@ -113,6 +133,10 @@ final class NativeEnvironmentV2 {
                 catch (RuntimeException | Error report) { remember(report); }
                 cleanupAll(); throwFailure();
             }
+        }
+        private void addPlatformListener(int slot, NativeEnvironmentPlatformV2.Listener listener) {
+            if (listener == null) return;
+            begin(slot); listener.add(); completed();
         }
         private void begin(int slot) {
             if (retired) throw new IllegalStateException("V2 observer retired during registration");
@@ -145,7 +169,7 @@ final class NativeEnvironmentV2 {
         }
         void bindRenderer(NativeRenderer renderer) {
             requireMain();
-            if (renderer == null || retired || !initialized || owner != null || !renderer.belongsToV2(activity, this))
+            if (compose || renderer == null || retired || !initialized || owner != null || !renderer.belongsToV2(activity, this))
                 throw new IllegalStateException("V2 observer renderer binding rejected");
             owner = renderer;
         }
@@ -225,7 +249,7 @@ final class NativeEnvironmentV2 {
         }
         AppearanceResolverV2.Environment read() {
             requireMain();
-            if (retired || !initialized) unsupported();
+            if (compose || retired || !initialized) unsupported();
             NativeEnvironmentPlatformV2.Snapshot observed = NativeEnvironmentPlatformV2.snapshot(activity, root);
             NativeEnvironmentPlatformV2.Frame frame = requireKnown(observed.frame);
             int density = requireKnown(observed.density1024);
@@ -236,23 +260,61 @@ final class NativeEnvironmentV2 {
             if (requireKnown(observed.fontAdjustment) != 0 || requireKnown(observed.highContrast) ||
                 requireKnown(observed.contrast) != 0) unsupported();
             float animator = requireKnown(observed.animator);
+            return environment(frame, density, selected, dark, rtl, locale, safeArea(frame, insets, density, rtl),
+                new AppearanceResolverV2.Accessibility(false, false, animator == 0), generation);
+        }
+        ComposeEnvironment readForCompose() {
+            requireMain();
+            if (!compose || retired || !initialized) unsupported();
+            long capturedGeneration = generation;
+            NativeEnvironmentPlatformV2.Snapshot observed = NativeEnvironmentPlatformV2.snapshotForCompose(activity, root);
+            NativeEnvironmentPlatformV2.Frame frame = requireKnown(observed.frame);
+            int density = requireKnown(observed.density1024);
+            int selected = requireKnown(observed.bodyProfile);
+            boolean dark = requireKnown(observed.dark), rtl = requireKnown(observed.rtl);
+            String locale = requireKnown(observed.locale);
+            boolean frameworkFitsInsets = observed.insets.status == UNAVAILABLE_SEMANTICS;
+            AppearanceResolverV2.SafeArea safe = frameworkFitsInsets
+                ? new AppearanceResolverV2.SafeArea(0, 0, 0, 0)
+                : safeArea(frame, requireKnown(observed.insets), density, rtl);
+            int weight = observed.fontAdjustment.status == UNSET_PREFERENCE
+                ? 0 : knownOrApiFallback(observed.fontAdjustment, 0);
+            boolean highContrastText = knownOrApiFallback(observed.highContrast, false);
+            float systemContrast = knownOrApiFallback(observed.contrast, 0f);
+            float animator = knownOrApiFallback(observed.animator, 0f);
+            if (root.getWindowToken() != frame.token || retired || generation != capturedGeneration) unsupported();
+            return new ComposeEnvironment(
+                environment(frame, density, selected, dark, rtl, locale, safe,
+                    new AppearanceResolverV2.Accessibility(weight > 0, highContrastText || systemContrast > 0,
+                        animator == 0), capturedGeneration),
+                frameworkFitsInsets, weight);
+        }
+        private static <T> T knownOrApiFallback(NativeEnvironmentPlatformV2.Observed<T> observed, T fallback) {
+            return observed.status == UNAVAILABLE_API ? fallback : requireKnown(observed);
+        }
+        private static AppearanceResolverV2.SafeArea safeArea(NativeEnvironmentPlatformV2.Frame frame,
+                NativeEnvironmentPlatformV2.Insets4 insets, int density, boolean rtl) {
             // Intersect exact window safe boundaries with this root once.
             int top = Math.max(0,insets.top-frame.y);
             int left = Math.max(0,insets.left-frame.x);
             int right = Math.max(0,frame.x+frame.width-(frame.windowWidth-insets.right));
             int bottom = Math.max(0,frame.y+frame.height-(frame.windowHeight-insets.bottom));
+            return new AppearanceResolverV2.SafeArea(logical(top,density),logical(rtl?right:left,density),
+                logical(bottom,density),logical(rtl?left:right,density));
+        }
+        private static AppearanceResolverV2.Environment environment(NativeEnvironmentPlatformV2.Frame frame,
+                int density, int profile, boolean dark, boolean rtl, String locale,
+                AppearanceResolverV2.SafeArea safe, AppearanceResolverV2.Accessibility accessibility, long generation) {
             return new AppearanceResolverV2.Environment(
                 dark ? AppearanceResolverV2.Scheme.dark : AppearanceResolverV2.Scheme.light,
                 rtl ? AppearanceResolverV2.Direction.rightToLeft : AppearanceResolverV2.Direction.leftToRight,
-                AppearanceDescriptorV2.Profile.values()[selected], density,
+                AppearanceDescriptorV2.Profile.values()[profile], density,
                 new AppearanceResolverV2.Viewport(logical(frame.width,density),logical(frame.height,density)),
-                new AppearanceResolverV2.SafeArea(logical(top,density),logical(rtl?right:left,density),
-                    logical(bottom,density),logical(rtl?left:right,density)), locale,
-                new AppearanceResolverV2.Accessibility(false,false,animator == 0), Long.toString(generation));
+                safe, locale, accessibility, Long.toString(generation));
         }
         private static <T> T requireKnown(NativeEnvironmentPlatformV2.Observed<T> observed) {
-            if (observed.status == NativeEnvironmentPlatformV2.Status.READ_FAILED) throw observed.failure;
-            if (observed.status != NativeEnvironmentPlatformV2.Status.KNOWN) unsupported();
+            if (observed.status == READ_FAILED) throw observed.failure;
+            if (observed.status != KNOWN) unsupported();
             return observed.value;
         }
 

@@ -21,7 +21,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /** Public observations only. Neither snapshots nor listener handles confer capture authority. */
 final class NativeEnvironmentPlatformV2 {
     private NativeEnvironmentPlatformV2() {}
-    enum Status { KNOWN, UNAVAILABLE_API, UNAVAILABLE_SEMANTICS, UNDEFINED, READ_FAILED }
+    static final int EXACT_INSETS_API = 30;
+    static final int FONT_WEIGHT_API = 31;
+    static final int MOTION_API = 33;
+    static final int CONTRAST_API = 34;
+    static final int HIGH_CONTRAST_API = 36;
+    enum Status { KNOWN, UNAVAILABLE_API, UNAVAILABLE_SEMANTICS, UNSET_PREFERENCE, UNDEFINED, READ_FAILED }
     static final class Observed<T> {
         final Status status;
         final T value;
@@ -75,6 +80,12 @@ final class NativeEnvironmentPlatformV2 {
     }
     /** Read-only on every SDK. No subscription, owner, readiness, session or capture is created. */
     static Snapshot snapshot(Activity activity, FrameLayout root) {
+        return snapshot(activity, root, false);
+    }
+    static Snapshot snapshotForCompose(Activity activity, FrameLayout root) {
+        return snapshot(activity, root, true);
+    }
+    private static Snapshot snapshot(Activity activity, FrameLayout root, boolean compose) {
         NativeEnvironmentV2.requireMain();
         Objects.requireNonNull(activity); Objects.requireNonNull(root);
         Observed<Configuration> config=attempt(() -> {
@@ -131,12 +142,13 @@ final class NativeEnvironmentPlatformV2 {
             for(int i=1;i<anchors.length;i++) if(Math.abs(anchors[i]-body64)<=Math.abs(anchors[selected]-body64)) selected=i;
             return known(selected);
         });
-        Observed<Insets4> insets=Build.VERSION.SDK_INT<30 ? absent(Status.UNAVAILABLE_SEMANTICS,"exact systemBars|displayCutout requires API30") : attempt(() -> Api30.insets(root));
-        Observed<Integer> weight=Build.VERSION.SDK_INT<31 ? absent(Status.UNAVAILABLE_API,"font adjustment requires API31") :
-            config.status!=Status.KNOWN ? missing(config) : attempt(() -> Api31.weight(config.value));
-        Observed<Float> contrast=Build.VERSION.SDK_INT<34 ? absent(Status.UNAVAILABLE_API,"system contrast requires API34") : attempt(() -> Api34.contrast(activity));
-        Observed<Boolean> high=Build.VERSION.SDK_INT<36 ? absent(Status.UNAVAILABLE_API,"high contrast requires API36") : attempt(() -> Api36.highContrast(activity));
-        Observed<Float> animator=Build.VERSION.SDK_INT<33 ? absent(Status.UNAVAILABLE_API,"effective animator scale requires API33") : attempt(Api33::animator);
+        int sdk = Build.VERSION.SDK_INT;
+        Observed<Insets4> insets=sdk<EXACT_INSETS_API ? absent(Status.UNAVAILABLE_SEMANTICS,"exact systemBars|displayCutout requires API30") : attempt(() -> Api30.insets(root));
+        Observed<Integer> weight=sdk<FONT_WEIGHT_API ? absent(Status.UNAVAILABLE_API,"font adjustment requires API31") :
+            config.status!=Status.KNOWN ? missing(config) : attempt(() -> Api31.weight(config.value, compose));
+        Observed<Float> contrast=sdk<CONTRAST_API ? absent(Status.UNAVAILABLE_API,"system contrast requires API34") : attempt(() -> Api34.contrast(activity));
+        Observed<Boolean> high=sdk<HIGH_CONTRAST_API ? absent(Status.UNAVAILABLE_API,"high contrast requires API36") : attempt(() -> Api36.highContrast(activity));
+        Observed<Float> animator=sdk<MOTION_API ? absent(Status.UNAVAILABLE_API,"effective animator scale requires API33") : attempt(Api33::animator);
         return new Snapshot(frame,dark,rtl,locale,density,body,insets,weight,contrast,high,animator);
     }
     private static boolean validLocale(String value) {
@@ -158,15 +170,15 @@ final class NativeEnvironmentPlatformV2 {
     interface Listener { void add(); void remove(); }
     static Listener motionListener(Runnable changed) {
         NativeEnvironmentV2.requireMain();
-        if(Build.VERSION.SDK_INT<33) throw new IllegalStateException("effective animator listener requires API33");
+        if(Build.VERSION.SDK_INT<MOTION_API) throw new IllegalStateException("effective animator listener requires API33");
         return new Api33(Objects.requireNonNull(changed));
     }
     static Listener contrastListener(Activity activity, Runnable changed) {
-        if(Build.VERSION.SDK_INT<34) throw new IllegalStateException("contrast listener requires API34");
+        if(Build.VERSION.SDK_INT<CONTRAST_API) throw new IllegalStateException("contrast listener requires API34");
         return Api34.listener(activity,changed);
     }
     static Listener highContrastListener(Activity activity, Runnable changed) {
-        if(Build.VERSION.SDK_INT<36) throw new IllegalStateException("high contrast listener requires API36");
+        if(Build.VERSION.SDK_INT<HIGH_CONTRAST_API) throw new IllegalStateException("high contrast listener requires API36");
         return Api36.listener(activity,changed);
     }
     private static final class Api30 {
@@ -180,9 +192,10 @@ final class NativeEnvironmentPlatformV2 {
         }
     }
     private static final class Api31 {
-        static Observed<Integer> weight(Configuration config) {
-            int value=config.fontWeightAdjustment;
-            return value==Configuration.FONT_WEIGHT_ADJUSTMENT_UNDEFINED ? absent(Status.UNDEFINED,"undefined font adjustment") : known(value);
+        static Observed<Integer> weight(Configuration config, boolean compose) {
+            int value = config.fontWeightAdjustment;
+            if (value != Configuration.FONT_WEIGHT_ADJUSTMENT_UNDEFINED) return known(value);
+            return absent(compose ? Status.UNSET_PREFERENCE : Status.UNDEFINED, "font adjustment unset");
         }
     }
     private static final class Api33 implements Listener {
