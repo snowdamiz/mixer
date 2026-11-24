@@ -10,6 +10,20 @@ extension View where Body == Never {
     public var body: Never { fatalError("A primitive view has no body") }
 }
 
+extension View {
+    /// Binds the view's identity to an `Int` or `String` key within its parent.
+    /// Evaluation rejects other key types and strings over 256 UTF-8 bytes.
+    public func id<ID: Hashable>(_ id: ID) -> some View {
+        IdentifiedView(content: self, id: id)
+    }
+}
+
+struct IdentifiedView<Content: View, ID: Hashable>: View {
+    typealias Body = Never
+    let content: Content
+    let id: ID
+}
+
 extension Never: View {
     public typealias Body = Never
 }

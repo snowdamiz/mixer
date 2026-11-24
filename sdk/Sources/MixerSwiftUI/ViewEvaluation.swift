@@ -16,20 +16,29 @@ func fitsUTF8(_ string: String, limit: Int) -> Bool {
     string.utf8.prefix(limit + 1).count <= limit
 }
 
-enum RowKey: Hashable {
+package enum ExplicitIdentityError: Error, Equatable, Sendable {
+    case unsupportedKey
+    case duplicateKey
+}
+
+enum ViewKey: Hashable {
     case integer(Int)
     case string(String)
 
-    init<Key>(_ key: Key) throws {
+    init?<Key>(_ key: Key) {
         if Key.self == Int.self, let integer = key as? Int {
             self = .integer(integer)
         } else if Key.self == String.self, let string = key as? String {
-            guard fitsUTF8(string, limit: FeatureLimits.keyBytes) else {
-                throw FeatureError.limitExceeded("row key bytes")
-            }
             self = .string(string)
         } else {
-            throw FeatureError.unsupportedRowKey
+            return nil
+        }
+    }
+
+    var fitsByteLimit: Bool {
+        switch self {
+        case .integer: true
+        case let .string(string): fitsUTF8(string, limit: FeatureLimits.keyBytes)
         }
     }
 }
@@ -39,7 +48,8 @@ struct ViewPath: Hashable {
         case type(ObjectIdentifier)
         case child(Int)
         case branch(Bool)
-        case row(RowKey)
+        case row(ViewKey)
+        case explicit(ViewKey)
     }
 
     private var components: [Component] = []
@@ -64,6 +74,7 @@ final class ViewEvaluation {
     private let previousCells: StateCells
     private let previousNodeIDs: [ViewPath: String]
     private var visitedViews = 0
+    private var explicitPaths: Set<ViewPath> = []
     let turn: StateTurn
     private(set) var identities: NodeIdentities
     private(set) var handlers: [String: StateHandler] = [:]
@@ -97,13 +108,22 @@ final class ViewEvaluation {
         }
     }
 
-    func lower<V: View>(_ view: V, at parent: ViewPath, into output: inout [UINode]) throws {
+    func lower<V: View>(
+        _ view: V, at parent: ViewPath, childIndex: Int? = nil, into output: inout [UINode]
+    ) throws {
         guard visitedViews < FeatureLimits.visitedViews else {
             throw FeatureError.limitExceeded("visited views")
         }
         visitedViews += 1
-        let path = try parent.appending(.type(ObjectIdentifier(V.self)))
         guard !(view is any CustomReflectable) else { throw FeatureError.customMirror }
+        if let identified = view as? any ExplicitIdentityView {
+            let path = try parent.appending(.explicit(identified.identityKey))
+            guard explicitPaths.insert(path).inserted else { throw ExplicitIdentityError.duplicateKey }
+            try identified.lower(in: self, at: path, into: &output)
+            return
+        }
+        let slot = try childIndex.map { try parent.appending(.child($0)) } ?? parent
+        let path = try slot.appending(.type(ObjectIdentifier(V.self)))
         if let primitive = view as? any PrimitiveView {
             try primitive.lower(in: self, at: path, into: &output)
             return
@@ -199,6 +219,24 @@ private protocol PrimitiveView: View {
     func lower(in evaluation: ViewEvaluation, at path: ViewPath, into output: inout [UINode]) throws
 }
 
+private protocol ExplicitIdentityView: PrimitiveView {
+    var identityKey: ViewKey { get throws }
+}
+
+extension IdentifiedView: ExplicitIdentityView {
+    fileprivate var identityKey: ViewKey {
+        get throws {
+            guard let key = ViewKey(id) else { throw ExplicitIdentityError.unsupportedKey }
+            guard key.fitsByteLimit else { throw FeatureError.limitExceeded("explicit key bytes") }
+            return key
+        }
+    }
+
+    fileprivate func lower(in evaluation: ViewEvaluation, at path: ViewPath, into output: inout [UINode]) throws {
+        try evaluation.lower(content, at: path, into: &output)
+    }
+}
+
 extension Text: PrimitiveView {
     fileprivate func lower(in evaluation: ViewEvaluation, at path: ViewPath, into output: inout [UINode]) throws {
         let id = try evaluation.nodeID(at: path)
@@ -267,7 +305,7 @@ extension Toggle: PrimitiveView {
 extension ViewBuilder.ViewGroup: PrimitiveView {
     fileprivate func lower(in evaluation: ViewEvaluation, at path: ViewPath, into output: inout [UINode]) throws {
         for (index, child) in children.enumerated() {
-            try evaluation.lower(child, at: path.appending(.child(index)), into: &output)
+            try evaluation.lower(child, at: path, childIndex: index, into: &output)
         }
     }
 }
@@ -295,10 +333,11 @@ extension ForEach: PrimitiveView {
     fileprivate func lower(in evaluation: ViewEvaluation, at path: ViewPath, into output: inout [UINode]) throws {
         guard ID.self == Int.self || ID.self == String.self else { throw FeatureError.unsupportedRowKey }
         guard data.count <= FeatureLimits.rowsPerLoop else { throw FeatureError.limitExceeded("rows per loop") }
-        var seen: Set<RowKey> = []
-        var keys: [RowKey] = []
+        var seen: Set<ViewKey> = []
+        var keys: [ViewKey] = []
         for element in data {
-            let key = try RowKey(element[keyPath: id])
+            guard let key = ViewKey(element[keyPath: id]) else { throw FeatureError.unsupportedRowKey }
+            guard key.fitsByteLimit else { throw FeatureError.limitExceeded("row key bytes") }
             try evaluation.turn.checkWrites()
             guard seen.insert(key).inserted else { throw FeatureError.duplicateRowKey }
             keys.append(key)

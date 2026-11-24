@@ -621,6 +621,7 @@ enum Replay {
                     case "three-turns": try tripleNestedTurns()
                     case "typed-controls": try typedControls()
                     case "typed-environment": try typedEnvironment()
+                    case "explicit-identity": try explicitIdentity()
                     case "layout-refusals": try layoutRefusals()
                     default: throw ReplayFailure(message: "Unknown regression probe: \(probe)")
                     }
@@ -646,6 +647,7 @@ enum Replay {
         try tripleNestedTurns()
         try typedControls()
         try typedEnvironment()
+        try explicitIdentity()
         try layoutRefusals()
     }
 }

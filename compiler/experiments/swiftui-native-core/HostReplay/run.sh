@@ -21,7 +21,8 @@ mkdir -p "$scratch/tmp" "$scratch/modules"
 export TMPDIR="$scratch/tmp"
 swiftc_bin=${SWIFTC:-swiftc}
 flags=(-swift-version 6 -warnings-as-errors "$optimization" -module-cache-path "$scratch/modules")
-shared=("$fixture/SharedScreen.swift" "$fixture/SharedControls.swift" "$fixture/SharedEnvironment.swift")
+shared=("$fixture/SharedScreen.swift" "$fixture/SharedControls.swift" "$fixture/SharedEnvironment.swift"
+        "$fixture/SharedIdentity.swift")
 
 if [[ $mode == ios ]]; then
   sdk=$(xcrun --sdk iphoneos --show-sdk-path)
@@ -74,6 +75,6 @@ fi
 
 "$swiftc_bin" "${flags[@]}" -parse-as-library -package-name Mixer -I "$scratch" -L "$scratch" \
   -lReplayFeature -lMixerSwiftUI -lMixerUI -lMixerCore "$fixture/Replay.swift" "$fixture/ControlReplay.swift" \
-  "$fixture/EnvironmentReplay.swift" \
+  "$fixture/EnvironmentReplay.swift" "$fixture/IdentityReplay.swift" \
   -o "$scratch/replay"
 "$scratch/replay" "$@"
