@@ -13,6 +13,7 @@ enum AndroidPublicHost {
             case .none, .legacyV1: self = .legacyV1
             case .publicV3: self = .publicV3
             case .publicV4: self = .publicV4
+            case .publicComposeV1: self = .publicComposeV1
             }
         }
 

@@ -34,7 +34,12 @@ public struct ReleaseAssessment: Codable, Sendable {
         let lock = try ProjectBuild.verifyLock(root: root)
         var report = Self(application: config.application, platforms: config.targets,
                           sourceDigest: try SourceDigest.tree(root), sdkDigest: lock.sdkDigest)
-        if qualification == nil, producerTrust == nil { return report }
+        let bundledCompose = config.androidHost == .publicComposeV1
+        let composeReason = "Compose signed activation requires the installed Swift receipt boundary."
+        if qualification == nil, producerTrust == nil {
+            if bundledCompose { report.blockers.append(composeReason) }
+            return report
+        }
         guard let qualification, let producerTrust else {
             throw MixerFailure("release.qualification-input", "Qualification and the operator's local producer trust configuration are both required.")
         }
@@ -44,8 +49,13 @@ public struct ReleaseAssessment: Codable, Sendable {
             throw MixerFailure("release.project-binding", "Qualification does not bind the current project, SDK and configured targets.")
         }
         let now = UInt64(Date().timeIntervalSince1970)
-        let results = config.targets.map {
-            index.inspect(platform: $0, application: config.applicationIdentifiers?[$0] ?? config.application, now: now)
+        let results = config.targets.map { platform in
+            if bundledCompose, platform == "android" {
+                return Target(platform: platform, status: "blocked", reason: composeReason,
+                              installedRuntime: nil, candidateRuntime: nil, baselineArtifactSHA256: nil,
+                              candidateArtifactSHA256: nil, behaviorReceiptSHA256: nil)
+            }
+            return index.inspect(platform: platform, application: config.applicationIdentifier(for: platform), now: now)
         }
         report.qualificationSHA256 = index.sha256
         report.targets = results

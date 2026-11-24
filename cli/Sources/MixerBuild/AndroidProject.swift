@@ -217,6 +217,9 @@ public enum AndroidProject {
     }
 
     public static func build(root: URL) throws -> CommandResult {
+        if try ApplicationConfiguration.load(root).androidHost == .publicComposeV1 {
+            return try AndroidBuildOutput.buildLocalCompose(root: root).result
+        }
         _ = try prepareBuild(root: root)
         return try ProcessRunner.run(["python3", root.appendingPathComponent("Generated/MixerAndroid/android-build.py").path, "build", root.path], at: root, policy: .developmentBuild)
     }
@@ -224,7 +227,7 @@ public enum AndroidProject {
     static func rejectComposeSelection(root: URL) throws {
         var selection = stat()
         let composeMarker = root.appendingPathComponent(composeProject).appendingPathComponent(composeSelection)
-        if lstat(composeMarker.path, &selection) == 0 {
+        if try lstat(composeMarker.path, &selection) == 0 || ApplicationConfiguration.load(root).androidHost == .publicComposeV1 {
             throw MixerFailure("android.compose-output-unavailable",
                                "A Compose project requires the versioned Compose artifact and runtime contract.")
         }

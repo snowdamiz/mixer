@@ -12,6 +12,7 @@ public enum AndroidApplicationHost: String, Codable, Sendable {
     case legacyV1 = "legacy-v1"
     case publicV3 = "public-v3"
     case publicV4 = "public-v4"
+    case publicComposeV1 = "public-compose-v1"
     var isPublic: Bool { self == .publicV3 || self == .publicV4 }
 }
 
@@ -50,10 +51,11 @@ public struct ApplicationConfiguration: Codable, Equatable, Sendable {
         }
         if let androidHost {
             guard targets.contains("android") else { throw MixerFailure("config.android-host", "androidHost requires an android target.") }
-            if androidHost.isPublic {
+            if androidHost.isPublic || androidHost == .publicComposeV1 {
                 let reserved: Set<String> = ["abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for", "goto", "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package", "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile", "while", "true", "false", "null", "_"]
-                guard application != "dev.mixer.android", !application.hasPrefix("dev.mixer.android."),
-                      application.split(separator: ".").allSatisfy({ !reserved.contains(String($0)) }) else {
+                let identity = androidHost == .publicComposeV1 ? applicationIdentifier(for: "android") : application
+                guard identity != "dev.mixer.android", !identity.hasPrefix("dev.mixer.android."),
+                      identity.split(separator: ".").allSatisfy({ !reserved.contains(String($0)) }) else {
                     throw MixerFailure("config.android-host", "The public Android host requires an app-owned Java package outside dev.mixer.android, with no Java keyword segments.")
                 }
             }

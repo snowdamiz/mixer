@@ -1076,6 +1076,10 @@ def build_retained_compose(project, output, expected_tree):
                   'platformProperties': platform_properties, 'androidJar': platform / 'android.jar',
                   'buildToolsProperties': tools_properties, 'aapt2': aapt}
     tool_identity = {name: {'path': str(path), 'sha256': digest(path)} for name, path in tool_paths.items()}
+    distributions = {'gradle': gradle.parent.parent, 'jdk': jdk, 'platform': platform, 'buildTools': tools}
+    distribution_identity = {
+        name: {'path': str(path), 'sha256': tree(path)} for name, path in distributions.items()
+    }
     driver = pathlib.Path(sys.argv[0]).resolve(strict=True)
     driver_sha = digest(driver)
     checked_output(project, create=True, retained_output=output)
@@ -1161,7 +1165,8 @@ def build_retained_compose(project, output, expected_tree):
     if (after != expected_tree or after_stamps != project_stamps
             or digest(init) != init_sha or compose_stamp(init.lstat()) != init_stamp
             or digest(driver) != driver_sha or any(
-                digest(path) != tool_identity[name]['sha256'] for name, path in tool_paths.items())):
+                digest(path) != tool_identity[name]['sha256'] for name, path in tool_paths.items())
+            or any(tree(path) != distribution_identity[name]['sha256'] for name, path in distributions.items())):
         raise RuntimeError('Retained Compose project, driver or tool changed during build.')
     receipt = {
         'schema': 'mixer.android.retained-compose.2', 'selection': selection,
@@ -1170,6 +1175,7 @@ def build_retained_compose(project, output, expected_tree):
         'projectTreeBeforeSHA256': expected_tree, 'projectTreeAfterSHA256': after, 'driverSHA256': driver_sha,
         'gradleVersion': version, 'tools': tool_identity, 'unsignedInitSHA256': init_sha,
         'toolEnvironment': environment, 'dependencyCache': str(cache),
+        'toolDistributions': distribution_identity,
         'apk': {'path': str(apk), 'sha256': digest(apk), 'sizeBytes': apk.stat().st_size, 'entries': entries},
     }
     (output / COMPOSE_RECEIPT).write_text(json.dumps(receipt, sort_keys=True) + '\n')

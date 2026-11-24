@@ -92,6 +92,7 @@ public enum ProjectGenerator {
         guard ["ios", "android"].contains(platform) else { throw MixerFailure("create.platform", "Create supports ios (default) or android (both native hosts).") }
         var config = ApplicationConfiguration(name: name, application: application)
         config.androidHost = androidHost == .legacyV1 ? nil : androidHost
+        let compose = config.androidHost == .publicComposeV1
         config.targets = platform == "android" ? ["ios", "android"] : ["ios"]
         // The starter requests no native capabilities. Adding one requires an
         // implemented native host and a new binary, never a successful stub.
@@ -144,8 +145,12 @@ public enum ProjectGenerator {
         for (path, contents) in files { try contents.write(to: staging.appendingPathComponent(path), atomically: true, encoding: .utf8) }
         _ = try AppleProject.generate(root: staging)
         if platform == "android" {
-            try AndroidProject.generate(root: staging)
-            try AndroidProject.seedDependencyLock(root: staging)
+            if compose, let androidAdapter {
+                try AndroidComposeProject.generate(root: staging, adapter: androidAdapter, config: config)
+            } else {
+                try AndroidProject.generate(root: staging)
+                try AndroidProject.seedDependencyLock(root: staging)
+            }
         } else { try "No Android host was requested. Create a new project with --platform android for the unsigned local development host.\n".write(to: staging.appendingPathComponent("Platforms/Android/README.md"), atomically: true, encoding: .utf8) }
         // An entire project becomes visible only when construction succeeds.
         try fm.moveItem(at: staging, to: destination)
@@ -420,7 +425,9 @@ public enum ProjectBuild {
         if androidRequired || config.targets.contains("android") || lock.android != nil {
             if requireCurrentAndroidProfile {
                 try AndroidSDKCompatibility.require(lock.android?.profile)
+                let compose = config.androidHost == .publicComposeV1
                 try AndroidSDKCompatibility.admitProject(root)
+                if compose { try AndroidComposeProject.verifyAdapter(root: root) }
             } else if lock.android == nil {
                 throw MixerFailure("upgrade.android-lock", "The source project needs a locked Android adapter.")
             }
@@ -484,6 +491,9 @@ public enum ProjectBuild {
                 let target = staging.appendingPathComponent("Generated/MixerAndroid")
                 try fm.removeItem(at: target)
                 let digest = try AndroidProject.snapshot(adapter: androidAdapter, destination: target)
+                if config.androidHost == .publicComposeV1 {
+                    try AndroidComposeProject.installRenderer(root: staging, adapter: androidAdapter, upgrading: true)
+                }
                 lock.android = AndroidToolchainLock(adapterDigest: digest, toolchain: try AndroidProject.inspectToolchain(),
                                                    profile: AndroidSDKCompatibility.profile.lock)
             }

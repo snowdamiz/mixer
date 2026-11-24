@@ -1,0 +1,78 @@
+buildscript {
+    configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+}
+
+plugins {
+    id 'com.android.application' version '9.3.1'
+    id 'org.jetbrains.kotlin.plugin.compose' version '2.3.0'
+}
+
+def selection = new groovy.json.JsonSlurper().parse(file('mixer-compose.json'))
+
+android {
+    namespace = selection.application + '.androidhost'
+    buildToolsVersion = '37.0.0'
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 1
+        }
+    }
+    defaultConfig {
+        applicationId = selection.application
+        minSdk = selection.minAPI
+        targetSdk = selection.targetAPI
+        versionCode = 1
+        versionName = '0.1.0'
+    }
+    buildFeatures { compose = true }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+androidComponents {
+    beforeVariants(selector().withBuildType('release')) { variant -> variant.enable = false }
+}
+
+layout.buildDirectory = file(providers.environmentVariable('MIXER_COMPOSE_WORK').get() + '/build')
+
+dependencyLocking {
+    lockAllConfigurations()
+    lockMode = LockMode.STRICT
+}
+
+dependencies {
+    implementation platform('androidx.compose:compose-bom:2026.11.01')
+    implementation 'androidx.compose.foundation:foundation'
+    debugImplementation 'androidx.activity:activity:1.13.0'
+}
+
+tasks.register('recordComposeInputs') {
+    doLast {
+        def inputs = [configurations.getByName('debugCompileClasspath'),
+            configurations.getByName('debugRuntimeClasspath'), buildscript.configurations.getByName('classpath')]
+        def resolved = inputs.collectEntries { configuration ->
+            def rows = configuration.incoming.artifacts.artifacts.collect { artifact ->
+                def sha = java.security.MessageDigest.getInstance('SHA-256')
+                artifact.file.withInputStream { stream ->
+                    byte[] bytes = new byte[65536]
+                    int count
+                    while ((count = stream.read(bytes)) != -1) {
+                        sha.update(bytes, 0, count)
+                    }
+                }
+                [component: artifact.id.componentIdentifier.displayName,
+                    artifact: artifact.file.name, sha256: sha.digest().encodeHex().toString()]
+            }.toSet().sort { a, b ->
+                (a.component <=> b.component) ?: (a.artifact <=> b.artifact) ?: (a.sha256 <=> b.sha256)
+            }
+            [(configuration.name): rows]
+        }
+        file(providers.environmentVariable('MIXER_COMPOSE_WORK').get() + '/compose-resolved.json')
+            .text = groovy.json.JsonOutput.toJson(resolved)
+    }
+}
+tasks.matching { it.name == 'assembleDebug' }.configureEach { finalizedBy('recordComposeInputs') }

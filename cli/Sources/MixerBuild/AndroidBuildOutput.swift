@@ -145,18 +145,18 @@ public enum AndroidBuildOutput {
     private static let sdkPins = "Generated/MixerSDK/Package.resolved"
     private static let platformPins = "Platforms/Android/Package.resolved"
 
-    struct ComposeReceipt: Decodable, Sendable {
-        struct APK: Decodable, Sendable {
+    struct ComposeReceipt: Codable, Sendable {
+        struct APK: Codable, Sendable {
             let path: String
             let sha256: String
             let sizeBytes: UInt64
             let entries: [APKEntry]
         }
-        struct Tool: Decodable, Sendable {
+        struct Tool: Codable, Sendable {
             let path: String
             let sha256: String
         }
-        struct ToolCommand: Decodable, Sendable {
+        struct ToolCommand: Codable, Sendable {
             let command: [String]
             let exitCode: Int
         }
@@ -170,6 +170,7 @@ public enum AndroidBuildOutput {
         let driverSHA256: String
         let gradleVersion: String
         let tools: [String: Tool]
+        let toolDistributions: [String: Tool]
         let unsignedInitSHA256: String
         let toolEnvironment: [String: String]
         let dependencyCache: String
@@ -180,12 +181,15 @@ public enum AndroidBuildOutput {
         let receipt: ComposeReceipt
         let receiptBytes: Data
         let apk: Data
+        let bundledFrame: AndroidComposeProject.BundledFrame?
+        let resolved: [String: [ComposeDependency]]?
     }
 
     /// Execute a locked Compose module through the owned command boundary.
     /// The public build and store need the dedicated Compose runtime contract.
     static func buildRetainedCompose(
-        root requestedRoot: URL, python: URL, toolEnvironment: [String: String], context: ProcessExecutionContext
+        root requestedRoot: URL, python: URL, toolEnvironment: [String: String], context: ProcessExecutionContext,
+        localApplication: String? = nil
     ) throws -> RetainedComposeBuild {
         let root = requestedRoot.resolvingSymlinksInPath().standardizedFileURL
         let inputs = ["MIXER_COMPOSE_GRADLE", "ANDROID_HOME", "MIXER_JDK", "MIXER_COMPOSE_DEPENDENCY_CACHE"]
@@ -205,9 +209,15 @@ public enum AndroidBuildOutput {
         let snapshot = try context.makeInputSnapshot()
         defer { snapshot.removeIfUnheld() }
         let staged = try AndroidProject.stageRetainedCompose(root: root, in: snapshot)
+        let bundledFrame = try localApplication.map { application in
+            guard staged.selection.application == application else { throw invalid }
+            try AndroidComposeProject.verifyRenderer(staged.directory)
+            return try AndroidComposeProject.bundle(root: root, project: staged.directory, snapshot: snapshot, context: context)
+        }
+        let stagedTree = bundledFrame == nil ? staged.treeSHA256 : try SourceDigest.exportFingerprint(staged.directory)
         let output = snapshot.directory.appendingPathComponent("android-build", isDirectory: true)
         let argv = [executable.path, "-I", "-B", "-S", driverURL.path, "build-retained-v2",
-                    staged.directory.path, output.path, staged.treeSHA256]
+                    staged.directory.path, output.path, stagedTree]
         let result = try ProcessRunner.run(argv, at: root, environment: toolEnvironment, policy: .developmentBuild,
                                            context: context, retaining: snapshot.retainedInputDirectories)
         guard result.succeeded else {
@@ -215,7 +225,7 @@ public enum AndroidBuildOutput {
         }
 
         let fd = open(output.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
-        guard fd >= 0 else { throw invalid }
+        guard fd >= 0 else { throw MixerFailure("android.compose-receipt", "Cannot open the retained Compose build output directory.") }
         defer { close(fd) }
         let raw = try read("compose-build-receipt-v2.json", in: fd, maximum: 4 * 1_048_576)
         let receipt = try JSONDecoder().decode(ComposeReceipt.self, from: raw)
@@ -226,17 +236,148 @@ public enum AndroidBuildOutput {
               receipt.qualification == "local-unsigned-compose-boundary-only",
               receipt.selection == staged.selection,
               receipt.command == argv, result.command == argv,
-              receipt.projectTreeBeforeSHA256 == staged.treeSHA256,
-              receipt.projectTreeAfterSHA256 == staged.treeSHA256,
+              receipt.projectTreeBeforeSHA256 == stagedTree,
+              receipt.projectTreeAfterSHA256 == stagedTree,
               receipt.driverSHA256 == driverIdentity.sha256,
               try identity(file: driverURL) == driverIdentity,
-              !receipt.gradleVersion.isEmpty, receipt.toolCommands.count == 3,
-              receipt.toolCommands.allSatisfy({ $0.exitCode == 0 && !$0.command.isEmpty }),
-              receipt.apk.path == output.appendingPathComponent(name).path,
+              !receipt.gradleVersion.isEmpty,
+              Set(receipt.toolDistributions.keys) == ["gradle", "jdk", "platform", "buildTools"],
+              receipt.toolDistributions.values.allSatisfy({
+                  $0.path.hasPrefix("/") && $0.sha256.range(of: "^[0-9a-f]{64}$", options: .regularExpression) != nil
+              }),
+              receipt.toolCommands.count == 3,
+              receipt.toolCommands.allSatisfy({ $0.exitCode == 0 && !$0.command.isEmpty }) else {
+            throw MixerFailure("android.compose-receipt", "The retained Compose receipt does not bind the staged selection, tools, and command.")
+        }
+        guard receipt.apk.path == output.appendingPathComponent(name).path,
               identity(apk) == FileIdentity(sha256: receipt.apk.sha256, sizeBytes: receipt.apk.sizeBytes),
               entries == Array(Set(entries)).sorted(by: { $0.utf8.lexicographicallyPrecedes($1.utf8) }),
-              entries.contains("AndroidManifest.xml"), entries.contains("classes.dex") else { throw invalid }
-        return RetainedComposeBuild(receipt: receipt, receiptBytes: raw, apk: apk)
+              entries.contains("AndroidManifest.xml"), entries.contains("classes.dex") else {
+            throw MixerFailure("android.compose-product", "The retained APK differs from its content and entry inventory.")
+        }
+        let resolved: [String: [ComposeDependency]]?
+        if let localApplication, let bundledFrame {
+            let activity = localApplication + ".androidhost." + AndroidComposeProject.activityName
+            let prefix = "launchable-activity: name="
+            let launchers = result.output.split(separator: "\n").filter { $0.hasPrefix(prefix) }
+            let expectedLauncher = prefix + "'" + activity + "'"
+            guard !result.outputTruncated, launchers.count == 1,
+                  launchers[0] == expectedLauncher || launchers[0].hasPrefix(expectedLauncher + " ") else {
+                throw MixerFailure("android.compose-activity", "Expected launcher \(activity). Observed \(launchers.joined(separator: ", ")).")
+            }
+            for (name, sha) in bundledFrame.assets {
+                guard receipt.apk.entries.contains(where: { $0.path == "assets/mixer/" + name && $0.sha256 == sha }) else {
+                    throw MixerFailure("android.compose-asset", "APK does not contain the exact Swift-produced asset \(name).")
+                }
+            }
+            let dependencyBytes: Data
+            do { dependencyBytes = try read("compose-resolved.json", in: fd, maximum: 1_048_576) }
+            catch { throw MixerFailure("android.compose-dependencies", "Pinned Gradle did not retain its resolved artifact inventory.") }
+            let artifacts = try JSONDecoder().decode([String: [ComposeDependency]].self, from: dependencyBytes)
+            guard Set(artifacts.keys) == ["debugCompileClasspath", "debugRuntimeClasspath", "classpath"],
+                  artifacts.values.allSatisfy({ !$0.isEmpty && Set($0).count == $0.count && $0.allSatisfy(\.isValid) }) else {
+                let counts = artifacts.mapValues { "\($0.count) rows, \(Set($0).count) distinct" }
+                throw MixerFailure("android.compose-dependencies", "Invalid resolved artifact inventory \(counts).")
+            }
+            resolved = artifacts
+        } else {
+            resolved = nil
+        }
+        return RetainedComposeBuild(receipt: receipt, receiptBytes: raw, apk: apk,
+                                    bundledFrame: bundledFrame, resolved: resolved)
+    }
+
+    public struct ComposeDependency: Codable, Hashable, Sendable {
+        public let component: String
+        public let artifact: String
+        public let sha256: String
+
+        fileprivate var isValid: Bool {
+            !component.isEmpty && !artifact.isEmpty &&
+                sha256.range(of: "^[0-9a-f]{64}$", options: .regularExpression) != nil
+        }
+    }
+
+    public struct ComposeReport: Encodable, Sendable {
+        public let scope = "local-unsigned-bundled-read-only-compose"
+        public let signedActivation = "unavailable"
+        public let application: String
+        public let activity: String
+        public let sourceSHA256: String
+        public let lockSHA256: String
+        public let unsignedAPK: Product
+        let bundledFrame: AndroidComposeProject.BundledFrame
+        let resolved: [String: [ComposeDependency]]
+        let retainedBuild: ComposeReceipt
+
+        public var result: CommandResult {
+            CommandResult(command: retainedBuild.command, exitCode: 0, output: "Unsigned Compose APK: " + unsignedAPK.ownedPath)
+        }
+    }
+
+    /// Ordinary local builds use the retained v2 driver. This report carries
+    /// only the bundled presentation scope and intentionally has no OTA identity.
+    public static func buildLocalCompose(root requestedRoot: URL, output: URL? = nil) throws -> ComposeReport {
+        let root = requestedRoot.resolvingSymlinksInPath().standardizedFileURL
+        let environment = ProcessInfo.processInfo.environment
+        let config = try ApplicationConfiguration.load(root)
+        guard config.androidHost == .publicComposeV1, config.capabilities.isEmpty,
+              environment["MIXER_WORKER_COMMAND_CONTROL"] != "1" else {
+            throw MixerFailure("android.compose-local", "Compose requires an explicit host and a local bundled app with no native capabilities.")
+        }
+        let context = ProcessExecutionContext.localDevelopment
+        let validated = try ProjectBuild.verifiedLock(root: root, androidRequired: true)
+        let sourceSHA = try SourceDigest.exportFingerprint(root)
+        let resources = root.appendingPathComponent("Resources")
+        if FileManager.default.fileExists(atPath: resources.path), try !SourceDigest.files(in: resources).isEmpty {
+            throw MixerFailure("android.unsupported-resources", "The bundled Compose host requires an empty app resources directory.")
+        }
+        let keys = ["MIXER_COMPOSE_GRADLE", "ANDROID_HOME", "MIXER_JDK", "MIXER_COMPOSE_DEPENDENCY_CACHE"]
+        let tools = environment.filter { keys.contains($0.key) }
+        let pythonCandidates = (environment["PATH"] ?? "/usr/bin:/bin").split(separator: ":")
+            .filter { $0.hasPrefix("/") }.map { String($0) + "/python3" }
+        guard keys.allSatisfy({ tools[$0]?.hasPrefix("/") == true }),
+              let python = pythonCandidates.first(where: { access($0, X_OK) == 0 }) else {
+            throw MixerFailure("android.compose-toolchain", "Set absolute MIXER_COMPOSE_GRADLE, ANDROID_HOME, MIXER_JDK and MIXER_COMPOSE_DEPENDENCY_CACHE paths and install Python 3.10 or newer.")
+        }
+        let application = config.applicationIdentifier(for: "android")
+        let build = try buildRetainedCompose(root: root, python: URL(fileURLWithPath: python),
+                                             toolEnvironment: tools, context: context, localApplication: application)
+        guard try SourceDigest.exportFingerprint(root) == sourceSHA,
+              try identity(file: root.appendingPathComponent("mixer.lock")) == identity(validated.bytes),
+              let bundledFrame = build.bundledFrame, let resolved = build.resolved else { throw drift }
+        let store: NativeBuildOutput.Store
+        if let output {
+            store = try NativeBuildOutput.prepare(output: output, root: root, requireSourceIdentity: true)
+        } else {
+            store = try localComposeStore(root: root)
+        }
+        let report = try ComposeReport(application: application, activity: application + ".androidhost." + AndroidComposeProject.activityName,
+            sourceSHA256: sourceSHA, lockSHA256: identity(validated.bytes).sha256,
+            unsignedAPK: retain(build.apk, kind: .unsignedAPK, store: store), bundledFrame: bundledFrame,
+            resolved: resolved, retainedBuild: build.receipt)
+        try store.persist(report, named: "compose-build.json")
+        return report
+    }
+
+    private static func localComposeStore(root: URL) throws -> NativeBuildOutput.Store {
+        let flags = O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC
+        let project = open(root.path, flags)
+        guard project >= 0 else { throw invalid }
+        defer { close(project) }
+        guard mkdirat(project, ".mixer", 0o700) == 0 || errno == EEXIST else { throw invalid }
+        let parent = openat(project, ".mixer", flags)
+        guard parent >= 0 else { throw invalid }
+        defer { close(parent) }
+        var info = stat()
+        guard fstat(parent, &info) == 0, info.st_uid == getuid(), info.st_mode & 0o022 == 0 else { throw invalid }
+        let name = "compose-build-" + UUID().uuidString
+        guard mkdirat(parent, name, 0o700) == 0 else { throw invalid }
+        let fd = openat(parent, name, flags)
+        guard fd >= 0 else { throw invalid }
+        let store = NativeBuildOutput.Store(url: root.appendingPathComponent(".mixer/" + name), fd: fd)
+        try store.check()
+        return store
     }
 
     public static func build(root requestedRoot: URL, output: URL) throws -> Report {
