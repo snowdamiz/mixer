@@ -159,7 +159,7 @@
       ],
       "allSixSnapshotsPerProcess": true,
       "allVMOwnersClosed": true,
-      "scope": "Offscreen native and VM producer workload. This establishes a startup miss in all samples. Steady RSS deltas are within 30 MiB in this experiment. An installed and rendered signed release at iOS 17.x and §20.2 production-profile qualification remain open.",
+      "scope": "Offscreen native and VM producer workload. This establishes a startup miss in all samples. Steady RSS deltas are within 30 MiB in this experiment. An installed and rendered signed release at iOS 17.x and \u00a720.2 production-profile qualification remain open.",
       "cleanup": {
         "ownedUUIDRemoved": "9C76B3CD-061D-4493-9461-3D47100C4D99",
         "externalBaselineEqual": true
@@ -994,5 +994,88 @@
   "review": {
     "result": "The measured startup misses and closures check out independently.",
     "parserCorrection": "Exact top-level owner budget integer and fourteen current counters. Both real Android reports and the iOS replay passed. Each nonzero outer ledger counter and both 300000 ms deadline substitutions were refused."
+  },
+  "api28SingleClockDiagnostic": {
+    "scope": "Four process-cold offscreen pairs on one owned ARM64 API 28 emulator. The matched baseline and diagnostic use identical oracle, Wasm, seventeen Swift runtime libraries, 256 geometry, and a 30,000 ms owner deadline.",
+    "candidateRevision": "920d1625ccda92b845afb4c0644ea4b2ae359773",
+    "candidateBuildFlag": "MIXER_SWIFT_UI_SINGLE_PREFIX_POLL=1",
+    "androidBuildFingerprint": "Android/sdk_phone_arm64/generic_arm64:9/PSR1.210301.009.B6/9767327:userdebug/test-keys",
+    "order": [
+      "baseline-1",
+      "prefix-poll-2",
+      "prefix-poll-3",
+      "baseline-4"
+    ],
+    "observations": [
+      {
+        "pair": "baseline-1",
+        "executable": {
+          "bytes": 6758344,
+          "sha256": "72f86015bbf6740529fd34adf76b17b848a6ccad66c64d9162d771cbb8518e2d"
+        },
+        "addedStartupMicros": 13537841,
+        "addedPeakRSSBytes": 22593536,
+        "validationMicros": 8921130,
+        "firstInvocationMicros": 4404538,
+        "verifiedOracleSnapshots": 2,
+        "deadlineFailureTurn": "open",
+        "reportSHA256": "051f48bf4e53336c751e9fe234ea8c4b18ac63f9401ed2916c59e92ba0b47644"
+      },
+      {
+        "pair": "prefix-poll-2",
+        "executable": {
+          "bytes": 6758960,
+          "sha256": "468bf46074ec1a3535f43303d9b3fed468772fe9df1d1951ef96d33299b817bf"
+        },
+        "addedStartupMicros": 12696098,
+        "addedPeakRSSBytes": 22626304,
+        "validationMicros": 7461893,
+        "firstInvocationMicros": 5208429,
+        "verifiedOracleSnapshots": 2,
+        "deadlineFailureTurn": "open",
+        "reportSHA256": "5a95d9bdc9080f2d4c59a3a528f1659079b9fda4057a259f7fe12568d04335c1"
+      },
+      {
+        "pair": "prefix-poll-3",
+        "executable": {
+          "bytes": 6758960,
+          "sha256": "468bf46074ec1a3535f43303d9b3fed468772fe9df1d1951ef96d33299b817bf"
+        },
+        "addedStartupMicros": 17146834,
+        "addedPeakRSSBytes": 22458368,
+        "validationMicros": 10418418,
+        "firstInvocationMicros": 6630487,
+        "verifiedOracleSnapshots": 1,
+        "deadlineFailureTurn": "load",
+        "reportSHA256": "72bbc8445da011da83154532d8d59543522159bc9ce645b08c900d3b538852ef"
+      },
+      {
+        "pair": "baseline-4",
+        "executable": {
+          "bytes": 6758344,
+          "sha256": "72f86015bbf6740529fd34adf76b17b848a6ccad66c64d9162d771cbb8518e2d"
+        },
+        "addedStartupMicros": 23539008,
+        "addedPeakRSSBytes": 22568960,
+        "validationMicros": 14845590,
+        "firstInvocationMicros": 8457980,
+        "verifiedOracleSnapshots": 1,
+        "deadlineFailureTurn": "load",
+        "reportSHA256": "e58cb032482c0b8785ebb7443b5c512a6b8097462b242ed0f17f329f1168595d"
+      }
+    ],
+    "cleanOwners": 4,
+    "fixed34ImportRefusals": 4,
+    "observedProcessClosures": 12,
+    "ownerDeadlineMillis": 30000,
+    "startupSampleLimitMicros": 200000,
+    "samplesWithinLimit": 0,
+    "adbAndEmulatorGroupsObservedAbsent": true,
+    "scratchRemoved": true,
+    "launcherSHA256": "ceab9c4130a8100506980832ab18161f5094087d70f1e5584350684c26ffea2e",
+    "checkerSHA256": "5718452278faa8c26c2283c5acfa2bc9048262621abddd68a5a27a75cdf1e587",
+    "nativeReportSHA256": "19b27c65dbd9434918976a11a567caa05eba3da976d87543cc7e43e430ef42a3",
+    "hostBuildReceiptSHA256": "32d787832e61723bdc4a4bc5546c59c5d8a4a1032ffe564f840aa6fe6d2203b9",
+    "interpretation": "Each arm matched the same number of oracle snapshots in its paired round. Both diagnostic first-invocation observations fell within the baseline range. No full journey completed. Keep this change experimental and continue looking for reductions in guest instructions executed by the VM."
   }
 }
