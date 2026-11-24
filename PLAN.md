@@ -132,7 +132,7 @@ Product plan Section 24.6 gives the pass rules and what each outcome unlocks. Ea
 - [ ] Add the dual iOS compile check and the generated support table.
 - [ ] Extend the Section 7.2 compiler inventory to resolved dependencies, macro expansion, and emitted Wasm.
 - [ ] Start gap items GC1, GC3, GC4, and GC5 from product plan Section 24.7.
-- [ ] Deliver the minimum native island for FieldLog's project-site map, which Section 9 requires for local completion, with the grant checks that product plan Section 24.7 item GC3 sets. GC3 generalizes it later.
+- [ ] Deliver the minimum native island for FieldLog's project-site map with the grant checks from Section 24.7. The iOS 26.5 Simulator prototype verified a signed map move and kept the accepted placement after refusals. Android and production release grant integration remain open. [MapKit replay](verification/receipts/ui-platform-pivot-gc3-mapkit-20261123.json)
 - [ ] Exit. Meet the UP5 exit check in Section 24.6. UP5 passes only with guest evidence from S2a on iOS and S2b on Android.
 
 #### UP6. Migrate, qualify, then remove legacy code
