@@ -1,6 +1,6 @@
 {
   "spike": "S5",
-  "state": "running",
+  "state": "passed",
   "platform": "Android 9 API 28 arm64 default image PSR1.210301.009.B6 with swiftshader_indirect",
   "candidate": {
     "commit": "18fef233e694ad9613a7427c81bdc89e9bc062dc",
@@ -19,9 +19,7 @@
     "testLogSHA256": "8661e643ad831767fed362f3fb5196a86ed6066ca6582b9ff1a17cd344a6b4f3",
     "ownedEmulatorAndADBClosed": true
   },
-  "pending": [
-    "Refuse a failed signed install through the live owner and verify that accepted Compose input still routes before rollback."
-  ],
+  "pending": [],
   "osIMEBootstrap": {
     "scope": "Real Android IME with private AVD and USB/mDNS discovery disabled",
     "observed": "First exact frame promoted. Android restarted the editor's input connection during opening, from epoch 3 to 4. The fixture rejected the stale show request before composition or Save.",
@@ -225,5 +223,53 @@
       "failedInstallFinding": "The fixture retired the active healthy editor before testing signature refusal. The prior Save could not route after the refusal.",
       "reportSHA256": "0ac63aa8da6eca55dca176de88cb0c938884173f7bfd8f4d152a75887588e8df"
     }
+  },
+  "liveInstallRefusalReplay": {
+    "source": "094ccfa1af437408fc55036b290c25ec1a9063d2",
+    "sourceTree": "8aeb0d9afcbb62c9d413283eefac83510337a7b7",
+    "runtimeProjection": "ebbc4735a234d42622b435acd2ddc9ff430c1d20",
+    "composeProjection": "18fef233e694ad9613a7427c81bdc89e9bc062dc",
+    "androidAPI": 28,
+    "architecture": "arm64-v8a",
+    "windowRenderer": "HWUI",
+    "result": "Passed",
+    "signedAPKs": {
+      "editor-hw.apk": {
+        "bytes": 162222676,
+        "sha256": "65b683405c584f2f9af35fece43b22fa02e44381700980acb9b37b6ebc3b47ff"
+      },
+      "instrumentation.apk": {
+        "bytes": 205377,
+        "sha256": "9cd2592cb2394eaf63c85a32b078785c7a9f6034cdf046732136a789d67727af"
+      }
+    },
+    "buildDurationsSeconds": {
+      "host": 238.197,
+      "android-link": 93.332,
+      "apk": 103.475,
+      "verify-apks": 1.464,
+      "packaged-host": 4.475
+    },
+    "signerCertificateSHA256": "999b352678f279de3f4ccafbfbf8b99f609ae49e9c4c8b70c090cee3ccca07e6",
+    "deliveryReceiptSHA256": "3532cf9f898294533bca20c093c401375fb8a629ee3bde46b9c5a06ce5a571e5",
+    "instrumentationCode": -1,
+    "postRefusalPersistentUTF8SHA256": "a5324c7b6fce29ca67acf7ee1f25ac92009a9e843d468f8c266a614c89354633",
+    "review": "Independent Sol 6.2 High review of the live refusal and signed asset binding. Scoped pass.",
+    "observations": [
+      "The signature refusal preserved the active phase, candidate, launch, staged ID, download state, accepted sequence and durable state bytes in the packaged host replay.",
+      "The API 28 fixture rejected the signed install and routed Save through the same accepted editor.",
+      "The same journey verified offscreen veto, canceled post-Save proposal, OS keyboard composition and selection, 15 rendered Unicode Saves, signed rollback, retired callbacks and persisted bytes."
+    ],
+    "cleanup": {
+      "imeSettingsRestored": true,
+      "adbAndEmulatorObservedAbsent": true,
+      "scratchRemoved": true
+    },
+    "logSHA256": {
+      "ime/instrumentation.log": "e39c633f8b0a2c68b3ea5a53ba1344f533b6a3167f9dfd59b52ff5b2405619db",
+      "ime/ime-restore.log": "9c98993e80b5416aaa97cfebe6044ac6cef18333594ead7fde26e457f8b1e635",
+      "result.json": "ebdf7a97cfc4cbc8a4b5fe77492530ecbc6f967cc628477bda6f0e6f89c46e05"
+    },
+    "scopeLimit": "Signed S5 development editor fixture. Production Compose admission and the full Swift guest profile remain separate."
   }
 }
