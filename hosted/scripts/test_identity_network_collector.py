@@ -5213,6 +5213,25 @@ class BillingReconciliationV29Controls(unittest.TestCase):
 class WorkspaceSourceCutoverControls(unittest.TestCase):
     PIN = WorkflowSparseSourceControls.PIN
 
+    def _reuse_workspace_metadata_validation(self):
+        validate = collector._validate_workspace_metadata
+        admitted = {}
+
+        def validate_fixture(metadata, base, selection_sha, count, digest, predecessor,
+                             predecessor_pins, *, migration_count=19):
+            # The historical predecessor objects and authority pins are fixed
+            # throughout each fault matrix. Read the metadata anew on every pass
+            # and admit only an exact match of previously validated bytes.
+            key = (base, selection_sha, count, digest, id(predecessor), migration_count,
+                   frozenset(predecessor_pins.items()), frozenset(metadata.items()))
+            if key not in admitted:
+                admitted[key] = validate(metadata, base, selection_sha, count, digest, predecessor,
+                                         predecessor_pins, migration_count=migration_count)
+            selection, manifest = admitted[key]
+            return copy.deepcopy(selection), {path: row.copy() for path, row in manifest.items()}
+
+        self.enterContext(mock.patch.object(collector, "_validate_workspace_metadata", validate_fixture))
+
     def test_active_selection_restores_v93_and_earlier_and_rejects_workspace_drift(self):
         root = COLLECTOR_PATH.resolve().parents[2]
         helper = WorkflowSparseSourceControls()
@@ -5742,23 +5761,23 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                     collector.check_workspace_source(stage)
                 staged_application.write_bytes(original_application)
 
-            # The fault matrix reruns the workspace checker on real files. A
-            # byte-identical document only needs the strict JSON parser once.
-            # Decode a fresh value each time so no validation can mutate a
-            # later case's input.
-            parse_strict_json = collector._restricted_processor_json
-            validated_json = set()
+            self._reuse_workspace_metadata_validation()
+            read_bytes = Path.read_bytes
+            fixture_bytes = {}
 
-            def parse_drift_fixture(body):
-                if type(body) is not bytes:
-                    return parse_strict_json(body)
-                if body in validated_json:
-                    return json.loads(body)
-                value = parse_strict_json(body)
-                validated_json.add(body)
-                return value
+            def check_drift(changed_path):
+                # Each case changes one staged file. Read it live and reuse
+                # the other fixture bytes. Mode and inventory checks stay live.
+                def read_fixture(path):
+                    if path == changed_path:
+                        return read_bytes(path)
+                    if path not in fixture_bytes:
+                        fixture_bytes[path] = read_bytes(path)
+                    return fixture_bytes[path]
 
-            self.enterContext(mock.patch.object(collector, "_restricted_processor_json", parse_drift_fixture))
+                with mock.patch.object(Path, "read_bytes", read_fixture):
+                    collector.check_workspace_source(stage)
+
             v34_selection, _ = collector.validate_workspace_v34_metadata(
                 collector.workspace_source_metadata(stage, collector.WORKSPACE_V34_SOURCE_BASE))
             v35_selection, _ = collector.validate_workspace_v35_metadata(
@@ -5864,17 +5883,17 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                 original_mode = target.stat().st_mode & 0o777
                 target.write_bytes(original + b"\n")
                 with self.assertRaisesRegex(collector.CollectorError, "workspace source preimages differ"):
-                    collector.check_workspace_source(stage)
+                    check_drift(target)
                 target.unlink()
                 with self.assertRaises(FileNotFoundError):
-                    collector.check_workspace_source(stage)
+                    check_drift(target)
                 target.write_bytes(original)
                 target.chmod(original_mode)
             driver_target = stage / driver
             current_driver = driver_target.read_bytes()
             driver_target.write_bytes((stage / driver_preimage).read_bytes())
             with self.assertRaisesRegex(collector.CollectorError, "workspace source digest"):
-                collector.check_workspace_source(stage)
+                check_drift(driver_target)
             driver_target.write_bytes(current_driver)
             for relative in (
                 *selection["exact_delta"],
@@ -5933,10 +5952,10 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                     stale = (stage / pair25_preimage).read_bytes() if relative == pair25 else original + b"\n"
                     target.write_bytes(stale)
                     with self.assertRaisesRegex(collector.CollectorError, "workspace source digest"):
-                        collector.check_workspace_source(stage)
+                        check_drift(target)
                     target.unlink()
                     with self.assertRaises(FileNotFoundError):
-                        collector.check_workspace_source(stage)
+                        check_drift(target)
                     target.write_bytes(original)
                     target.chmod(original_mode)
             for relative, original_mode, changed_mode in (
@@ -5967,38 +5986,38 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                     target = stage / relative
                     target.chmod(changed_mode)
                     with self.assertRaisesRegex(collector.CollectorError, "workspace source file mode differs"):
-                        collector.check_workspace_source(stage)
+                        check_drift(target)
                     target.chmod(original_mode)
             extra = stage / "hosted/priv/repo/migrations/20261117999999_unreviewed.exs"
             extra.touch()
             with self.assertRaisesRegex(collector.CollectorError, "installed reviewed migration inventory mismatch"):
-                collector.check_workspace_source(stage)
+                check_drift(extra)
             extra.unlink()
             opt_in = stage / collector.WORKSPACE_LOCAL_SOURCE_MAP_RETENTION_MIGRATION
             misplaced = extra.with_name(opt_in.name)
             misplaced.write_bytes(opt_in.read_bytes())
             with self.assertRaisesRegex(collector.CollectorError, "installed reviewed migration inventory mismatch"):
-                collector.check_workspace_source(stage)
+                check_drift(misplaced)
             misplaced.unlink()
             extra_android = stage / "hosted/priv/local_android_source_selection/unreviewed.exs"
             extra_android.touch()
             with self.assertRaisesRegex(collector.CollectorError, "installed opt-in Android starter migration inventory mismatch"):
-                collector.check_workspace_source(stage)
+                check_drift(extra_android)
             extra_android.unlink()
             extra_linux = (stage / collector.WORKSPACE_MANAGED_LINUX_SOURCE_MIGRATION).with_name("unreviewed.exs")
             extra_linux.touch()
             with self.assertRaisesRegex(collector.CollectorError, "installed opt-in managed Linux starter migration inventory mismatch"):
-                collector.check_workspace_source(stage)
+                check_drift(extra_linux)
             extra_linux.unlink()
             extra_release = (stage / collector.WORKSPACE_LOCAL_RELEASE_DELIVERY_MIGRATION).with_name("unreviewed.exs")
             extra_release.touch()
             with self.assertRaisesRegex(collector.CollectorError, "installed opt-in local release delivery migration inventory mismatch"):
-                collector.check_workspace_source(stage)
+                check_drift(extra_release)
             extra_release.unlink()
             extra_jobs = (stage / collector.WORKSPACE_LOCAL_RELEASE_JOBS_MIGRATION).with_name("unreviewed.exs")
             extra_jobs.touch()
             with self.assertRaisesRegex(collector.CollectorError, "installed opt-in local release jobs migration inventory mismatch"):
-                collector.check_workspace_source(stage)
+                check_drift(extra_jobs)
             extra_jobs.unlink()
             for migration, label in (
                 (collector.WORKSPACE_LOCAL_RELEASE_TARGET_REGISTRY_MIGRATION, "local release target registry"),
@@ -6014,12 +6033,13 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                     extra.touch()
                     with self.assertRaisesRegex(collector.CollectorError,
                                                 f"installed opt-in {label} migration inventory mismatch"):
-                        collector.check_workspace_source(stage)
+                        check_drift(extra)
                     extra.unlink()
             unexpected_opt_in = stage / collector.WORKSPACE_LOCAL_SOURCE_MIGRATION
-            unexpected_opt_in.with_name("unexpected.exs").touch()
+            extra = unexpected_opt_in.with_name("unexpected.exs")
+            extra.touch()
             with self.assertRaisesRegex(collector.CollectorError, "installed opt-in source starter migration inventory mismatch"):
-                collector.check_workspace_source(stage)
+                check_drift(extra)
 
     def test_delivery_startup_refuses_extra_packet_member_and_stale_product(self):
         root = COLLECTOR_PATH.resolve().parents[2]
@@ -6070,6 +6090,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                 collector.check_workspace_source(stage)
 
     def test_exact_workspace_git_tree_refuses_extra_or_nonregular_member(self):
+        self._reuse_workspace_metadata_validation()
         helper = CollectorMethodWiringControls()
         for path, mode, fault in (
             (collector.WORKSPACE_V83_SOURCE_BASE + "extra.json", b"100644", "membership differs"),
@@ -6152,8 +6173,12 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
             collector.validate_prepared_archive(prepared(changed), manifest)
 
     def test_collector_refuses_workspace_metadata_drift_before_docker(self):
+        self._reuse_workspace_metadata_validation()
         helper = CollectorMethodWiringControls()
-        for base in (collector.WORKSPACE_V53_SOURCE_BASE, collector.WORKSPACE_V54_SOURCE_BASE,
+        # A fault in the current application manifest warms the cache with
+        # clean selection and manifest bytes for every historical version.
+        for base in (collector.WORKSPACE_SOURCE_BASE,
+                     collector.WORKSPACE_V53_SOURCE_BASE, collector.WORKSPACE_V54_SOURCE_BASE,
                      collector.WORKSPACE_V55_SOURCE_BASE, collector.WORKSPACE_V56_SOURCE_BASE,
                      collector.WORKSPACE_V57_SOURCE_BASE, collector.WORKSPACE_V58_SOURCE_BASE,
                      collector.WORKSPACE_V59_SOURCE_BASE, collector.WORKSPACE_V60_SOURCE_BASE,
@@ -6172,8 +6197,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                      collector.WORKSPACE_V86_SOURCE_BASE, collector.WORKSPACE_V87_SOURCE_BASE,
                      collector.WORKSPACE_V90_SOURCE_BASE, collector.WORKSPACE_V91_SOURCE_BASE,
                      collector.WORKSPACE_V92_SOURCE_BASE,
-                     collector.WORKSPACE_V93_SOURCE_BASE,
-                     collector.WORKSPACE_SOURCE_BASE):
+                     collector.WORKSPACE_V93_SOURCE_BASE):
             faults = [
                 ("selection.json", "workspace selection pin"),
                 ("selected-source-manifest.json", "workspace manifest byte pin"),
@@ -6187,7 +6211,7 @@ class WorkspaceSourceCutoverControls(unittest.TestCase):
                         collector.WORKSPACE_V92_SOURCE_BASE,
                         collector.WORKSPACE_V93_SOURCE_BASE,
                         collector.WORKSPACE_SOURCE_BASE):
-                faults.append(("application-manifest.json", "workspace application manifest byte pin"))
+                faults.insert(0, ("application-manifest.json", "workspace application manifest byte pin"))
             for metadata_name, fault in faults:
                 with self.subTest(base=base, metadata=metadata_name), tempfile.TemporaryDirectory(
                     prefix="workspace-collect-"
