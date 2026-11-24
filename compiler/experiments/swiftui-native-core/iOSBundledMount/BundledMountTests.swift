@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 import XCTest
 import MixerUI
@@ -105,6 +106,163 @@ final class BundledMountTests: XCTestCase {
         host.completeFeatureDisplay(nextID)
         let wrongSnapshot = try await overwritten.value
         XCTAssertFalse(next.accepts(wrongSnapshot))
+    }
+
+    @MainActor
+    func testExactReceiptBeforeForeignUpdateCannotPromote() async throws {
+        let mount = try MixerBundledFeatureMount { StarterFeature() }
+        defer { mount.cancel() }
+        let start = Task { await mount.start() }
+        let displayID = try await waitForDisplay(on: mount.host)
+        let callback = try increment(on: mount.host)
+        mount.host.completeFeatureDisplay(displayID)
+        // The mount cannot resume until this main actor turn yields.
+        try replaceHostDocument(on: mount.host)
+        await start.value
+
+        XCTAssertEqual(mount.status, .failed)
+        XCTAssertThrowsError(try mount.receive(callback))
+        XCTAssertNil(mount.presentation)
+    }
+
+    @MainActor
+    func testForeignUpdateAfterPromotionRevokesOldCallback() async throws {
+        let mount = try MixerBundledFeatureMount { StarterFeature() }
+        defer { mount.cancel() }
+        try await activate(mount)
+        let callback = try increment(on: mount.host)
+        let observation = mount.host.$snapshot.dropFirst().sink { _ in
+            // The router has advanced before the published snapshot stores.
+            do {
+                try mount.receive(callback)
+                XCTFail("Accepted a callback while the host was publishing a replacement")
+            } catch {
+                XCTAssertEqual(error as? UIRoutingError, .staleRevision)
+            }
+        }
+        defer { observation.cancel() }
+
+        try replaceHostDocument(on: mount.host)
+        XCTAssertThrowsError(try mount.receive(callback)) { error in
+            XCTAssertEqual(error as? UIRoutingError, .staleRevision)
+        }
+        XCTAssertThrowsError(try mount.receive(increment(on: mount.host)))
+        XCTAssertNil(mount.presentation)
+    }
+
+    @MainActor
+    func testCancelFromReadyObserverStaysTerminal() async throws {
+        let mount = try MixerBundledFeatureMount { StarterFeature() }
+        var observed: [MixerBundledFeatureMount<StarterFeature>.Status] = []
+        let observation = mount.$status.sink { next in
+            observed.append(next)
+            if next == .ready || next == .closed { mount.cancel() }
+        }
+        defer { observation.cancel() }
+
+        let start = Task { await mount.start() }
+        let displayID = try await waitForDisplay(on: mount.host)
+        let callback = try increment(on: mount.host)
+        mount.host.completeFeatureDisplay(displayID)
+        await start.value
+
+        XCTAssertEqual(mount.status, .closed)
+        XCTAssertEqual(observed, [.starting, .ready, .closed])
+        XCTAssertThrowsError(try mount.receive(callback))
+        await mount.start()
+        XCTAssertNil(mount.presentation)
+        XCTAssertNil(mount.host.featureDisplayID)
+    }
+
+    @MainActor
+    func testHeldTextBindingContinuesAcrossItsOwnReceipts() async throws {
+        let mount = try MixerBundledFeatureMount { StarterFeature() }
+        defer { mount.cancel() }
+        try await activate(mount)
+        let originalButton = try increment(on: mount.host)
+        let held = try textBinding(on: mount)
+        let unrelatedOldBinding = try textBinding(on: mount)
+
+        held.wrappedValue = "A"
+        let a = try await waitForDisplay(on: mount.host)
+        let resumedBinding = try textBinding(on: mount)
+        unrelatedOldBinding.wrappedValue = "foreign"
+        XCTAssertEqual(unrelatedOldBinding.wrappedValue, "")
+        held.wrappedValue = "AB"
+        XCTAssertEqual(held.wrappedValue, "AB")
+        XCTAssertEqual(resumedBinding.wrappedValue, "AB")
+        XCTAssertEqual(label(for: "Draft: A", on: mount.host), "Draft: A")
+        XCTAssertThrowsError(try mount.receive(originalButton))
+        try await complete(a, on: mount)
+
+        let ab = try await waitForDisplay(on: mount.host)
+        XCTAssertEqual(label(for: "Draft: AB", on: mount.host), "Draft: AB")
+        try await complete(ab, on: mount)
+        XCTAssertEqual(held.wrappedValue, "AB")
+        held.wrappedValue = "ABC"
+        let abc = try await waitForDisplay(on: mount.host)
+        XCTAssertEqual(label(for: "Draft: ABC", on: mount.host), "Draft: ABC")
+        try await complete(abc, on: mount)
+        XCTAssertEqual(resumedBinding.wrappedValue, "ABC")
+        XCTAssertThrowsError(try mount.receive(originalButton))
+
+        try mount.receive(increment(on: mount.host))
+        let incremented = try await waitForDisplay(on: mount.host)
+        try await complete(incremented, on: mount)
+        held.wrappedValue = "late"
+        XCTAssertEqual(held.wrappedValue, "ABC")
+        XCTAssertNil(mount.presentation)
+        XCTAssertEqual(label(for: "Draft: ABC", on: mount.host), "Draft: ABC")
+    }
+
+    @MainActor
+    func testQueuedTextIsDroppedWhenHostIsReplaced() async throws {
+        let mount = try MixerBundledFeatureMount { StarterFeature() }
+        defer { mount.cancel() }
+        try await activate(mount)
+        let held = try textBinding(on: mount)
+        held.wrappedValue = "A"
+        let displayID = try await waitForDisplay(on: mount.host)
+        held.wrappedValue = "AB"
+        let task = try XCTUnwrap(mount.presentation)
+        mount.host.completeFeatureDisplay(displayID)
+        try replaceHostDocument(on: mount.host)
+        await task.value
+
+        XCTAssertEqual(mount.status, .failed)
+        XCTAssertEqual(held.wrappedValue, "")
+        held.wrappedValue = "ABC"
+        XCTAssertEqual(held.wrappedValue, "")
+        XCTAssertNil(mount.presentation)
+    }
+
+    @MainActor
+    private func activate(_ mount: MixerBundledFeatureMount<StarterFeature>) async throws {
+        let start = Task { await mount.start() }
+        let id = try await waitForDisplay(on: mount.host)
+        mount.host.completeFeatureDisplay(id)
+        await start.value
+        XCTAssertEqual(mount.status, .ready)
+    }
+
+    @MainActor
+    private func complete(_ id: UUID, on mount: MixerBundledFeatureMount<StarterFeature>) async throws {
+        let task = try XCTUnwrap(mount.presentation)
+        mount.host.completeFeatureDisplay(id)
+        await task.value
+    }
+
+    @MainActor
+    private func replaceHostDocument(on host: MixerUIHost) throws {
+        let document = host.snapshot.document
+        try host.update(UIDocument(revision: document.revision + 1, root: document.root))
+    }
+
+    @MainActor
+    private func textBinding(on mount: MixerBundledFeatureMount<StarterFeature>) throws -> Binding<String> {
+        let snapshot = mount.host.snapshot
+        let node = try XCTUnwrap(snapshot.document.root.children.first { $0.kind == .textField })
+        return try XCTUnwrap(mount.textBinding(node: node, snapshot: snapshot))
     }
 
     @MainActor

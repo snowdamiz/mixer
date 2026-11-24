@@ -1,4 +1,4 @@
-#if os(iOS) && canImport(SwiftUI)
+#if canImport(SwiftUI) && (os(iOS) || MIXER_BUNDLED_MOUNT_REPLAY)
 import SwiftUI
 import MixerSwiftUI
 import MixerUI
@@ -22,6 +22,49 @@ public final class MixerBundledFeatureMount<Content: MixerSwiftUI.View>: Observa
     private let content: @MainActor () -> Content
     private var displayed: (frame: FramePresentation, snapshot: UIRenderSnapshot)?
     private(set) var presentation: Task<Void, Never>?
+    private var terminalStatus: Status?
+    private var publishingReady = false
+
+    // Only the binding that initiated the edit and bindings rendered from its
+    // own in-flight frame can share this cursor.
+    private final class TextEdit {
+        let identity: UINodeIdentity
+        let actionID: String
+        var snapshot: UIRenderSnapshot
+        var committedValue: String
+        var value: String
+
+        init(identity: UINodeIdentity, actionID: String, snapshot: UIRenderSnapshot, value: String) {
+            self.identity = identity
+            self.actionID = actionID
+            self.snapshot = snapshot
+            self.committedValue = value
+            self.value = value
+        }
+
+        func envelope(in snapshot: UIRenderSnapshot, value: String) -> UIEventEnvelope {
+            UIEventEnvelope(revision: snapshot.document.revision, identity: identity,
+                            event: .textChange, value: .string(value))
+        }
+
+        func permits(_ value: String, in snapshot: UIRenderSnapshot) -> Bool {
+            (try? snapshot.route(envelope(in: snapshot, value: value)))?.actionID == actionID
+        }
+    }
+
+    private struct PendingTextEdit {
+        let edit: TextEdit
+        let submitted: String
+        var document: MixerUI.UIDocument?
+
+        func isRendered(in snapshot: UIRenderSnapshot) -> Bool {
+            guard document == snapshot.document,
+                  let rendered = snapshot.node(for: edit.identity)?.properties["value"]?.string else { return false }
+            return rendered.utf8.elementsEqual(submitted.utf8)
+        }
+    }
+
+    private var pendingTextEdit: PendingTextEdit?
 
     public init(environment: @escaping @MainActor () -> UIAppearanceEnvironmentV2? = { nil },
                 content: @escaping @MainActor () -> Content) throws {
@@ -44,7 +87,7 @@ public final class MixerBundledFeatureMount<Content: MixerSwiftUI.View>: Observa
     }
 
     func start() async {
-        guard status == .starting, presentation == nil, !Task.isCancelled else { return }
+        guard terminalStatus == nil, status == .starting, presentation == nil, !Task.isCancelled else { return }
         let task = schedulePresentation()
         await withTaskCancellationHandler {
             await task.value
@@ -54,7 +97,8 @@ public final class MixerBundledFeatureMount<Content: MixerSwiftUI.View>: Observa
     }
 
     func receive(_ issued: IssuedUIAction) throws {
-        guard status == .ready, presentation == nil, let displayed else {
+        guard terminalStatus == nil, status == .ready, presentation == nil, let displayed,
+              host.isCurrent(displayed.snapshot) else {
             throw UIRoutingError.staleRevision
         }
         let envelope = try displayed.snapshot.checkedEnvelope(for: issued)
@@ -65,7 +109,7 @@ public final class MixerBundledFeatureMount<Content: MixerSwiftUI.View>: Observa
         let sessionEnvelope = UIEventEnvelope(revision: envelope.revision, identity: identity,
                                              event: envelope.event, value: envelope.value)
         let outcome = session.dispatch(displayed.frame.token, sessionEnvelope)
-        guard status == .ready else {
+        guard terminalStatus == nil else {
             session.detach()
             throw CancellationError()
         }
@@ -79,40 +123,107 @@ public final class MixerBundledFeatureMount<Content: MixerSwiftUI.View>: Observa
         }
     }
 
+    func textBinding(node: UINode, snapshot: UIRenderSnapshot) -> SwiftUI.Binding<String>? {
+        guard let value = node.properties["value"]?.string, let identity = snapshot.identity(for: node.id),
+              let actionID = node.actions.first(where: { $0.event == .textChange })?.id else { return nil }
+
+        let edit: TextEdit
+        if let pending = pendingTextEdit, pending.edit.identity == identity, pending.edit.actionID == actionID,
+           pending.isRendered(in: snapshot), host.isCurrent(snapshot) {
+            edit = pending.edit
+        } else {
+            edit = TextEdit(identity: identity, actionID: actionID, snapshot: snapshot, value: value)
+        }
+        return SwiftUI.Binding(get: { edit.value }, set: { [weak self] value in self?.write(value, to: edit) })
+    }
+
+    private func write(_ value: String, to edit: TextEdit) {
+        guard terminalStatus == nil else { return }
+        let live = host.snapshot
+        guard host.isCurrent(live), edit.permits(value, in: live) else { return }
+        if let pending = pendingTextEdit, pending.edit === edit {
+            // SwiftUI can deliver another full field value while drawing the
+            // previous one. Keep one bounded, validated value for that draw.
+            guard edit.snapshot.isSameRender(as: live) || pending.isRendered(in: live) else { return }
+        } else {
+            guard edit.snapshot.isSameRender(as: live),
+                  let issued = try? host.routeIssued(edit.envelope(in: live, value: value)) else { return }
+            do {
+                try receive(issued)
+            } catch {
+                return
+            }
+            pendingTextEdit = PendingTextEdit(edit: edit, submitted: value)
+        }
+        edit.value = value
+    }
+
     @discardableResult
     private func schedulePresentation() -> Task<Void, Never> {
         let task = Task { @MainActor in
-            defer {
-                presentation = nil
-                if status == .closed || status == .failed { session.detach() }
-            }
             do {
                 try Task.checkCancellation()
                 let frame = try session.prepare(environment: environment(), content).presentation
+                try Task.checkCancellation()
                 let display = BundledFeatureDisplay(document: try validator.validate(frame.snapshot.document))
+                pendingTextEdit?.document = frame.snapshot.document
                 let receipt = try await host.presentFeature(display.request)
                 try Task.checkCancellation()
-                guard display.accepts(receipt),
-                      session.finish(frame.token, outcome: .drawnAndInputReady) else {
+                if display.accepts(receipt), host.isCurrent(receipt.snapshot),
+                   session.finish(frame.token, outcome: .drawnAndInputReady) {
+                    displayed = (frame, receipt.snapshot)
+                } else {
                     close(.failed)
-                    return
                 }
-                displayed = (frame, receipt.snapshot)
-                if status == .starting { status = .ready }
             } catch {
                 close(error is CancellationError ? .closed : .failed)
             }
+            presentation = nil
+            guard terminalStatus == nil, let displayed else {
+                session.detach()
+                return
+            }
+            if status == .starting { publishReady() }
+            finishTextEdit(in: displayed.snapshot)
         }
         presentation = task
         return task
     }
 
+    private func finishTextEdit(in snapshot: UIRenderSnapshot) {
+        guard let pending = pendingTextEdit else { return }
+        pendingTextEdit = nil
+        let edit = pending.edit
+        let latest = edit.value
+        let installed = snapshot.node(for: edit.identity)?.properties["value"]?.string
+        edit.value = installed ?? edit.committedValue
+        guard let installed, installed.utf8.elementsEqual(pending.submitted.utf8),
+              edit.permits(installed, in: snapshot) else { return }
+        edit.committedValue = installed
+        edit.snapshot = snapshot
+        if !latest.utf8.elementsEqual(installed.utf8) {
+            write(latest, to: edit)
+        }
+    }
+
+    private func publishReady() {
+        // @Published delivers in willSet. Serialize a terminal notification
+        // requested synchronously by a ready observer after that write.
+        publishingReady = true
+        status = .ready
+        publishingReady = false
+        if let terminalStatus { status = terminalStatus }
+    }
+
     private func close(_ terminal: Status) {
-        guard status == .starting || status == .ready else { return }
+        guard terminalStatus == nil else { return }
+        terminalStatus = terminal
         presentation?.cancel()
         displayed = nil
+        if let edit = pendingTextEdit?.edit { edit.value = edit.committedValue }
+        pendingTextEdit = nil
         session.detach()
-        status = terminal
+        if !publishingReady { status = terminal }
     }
 }
 
@@ -137,8 +248,8 @@ private struct BundledFeatureSurface<Content: MixerSwiftUI.View>: SwiftUI.View {
         Group {
             switch mount.status {
             case .starting, .ready:
-                MixerNativeView(host: mount.host, trackSynchronousTextChanges: false, onIssuedAction: mount.receive)
-                    .sharedTheme(theme)
+                MixerNativeView(host: mount.host, theme: theme, bundledTextBinding: mount.textBinding,
+                                onIssuedAction: mount.receive)
             case .failed:
                 SwiftUI.Text("Feature unavailable")
             case .closed:

@@ -31,7 +31,7 @@ build_library() {
 build_library MixerCore -package-name Mixer sdk/Sources/MixerCore/*.swift
 build_library MixerUI -package-name Mixer sdk/Sources/MixerUI/*.swift
 build_library MixerSwiftUI -package-name Mixer sdk/Sources/MixerSwiftUI/*.swift
-build_library MixerApple -enable-testing -package-name Mixer sdk/Sources/MixerApple/*.swift
+build_library MixerApple -D MIXER_BUNDLED_MOUNT_REPLAY -enable-testing -package-name Mixer sdk/Sources/MixerApple/*.swift
 build_library UP5StarterApple "$fixture/StarterFeature.swift"
 build_library UP5StarterFeature -module-alias SwiftUI=MixerSwiftUI "$fixture/StarterFeature.swift"
 printf '%s\n' 'PASS identical StarterFeature.swift compiled with Apple SwiftUI and MixerSwiftUI'

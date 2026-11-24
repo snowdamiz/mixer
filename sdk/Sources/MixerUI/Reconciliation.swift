@@ -115,6 +115,15 @@ public struct UIRenderSnapshot: Sendable {
 
     public func identity(for nodeID: String) -> UINodeIdentity? { nodes[nodeID]?.identity }
 
+    package func isSameRender(as other: UIRenderSnapshot) -> Bool {
+        surface === other.surface && document.revision == other.document.revision
+    }
+
+    package func node(for identity: UINodeIdentity) -> UINode? {
+        guard let record = nodes[identity.id], record.identity == identity else { return nil }
+        return record.node
+    }
+
     public func checkedEnvelope(for issued: IssuedUIAction) throws -> UIEventEnvelope {
         guard issued.surface === surface else { throw UIRoutingError.staleIdentity }
         guard try route(issued.envelope) == issued.action else { throw UIRoutingError.unboundEvent }

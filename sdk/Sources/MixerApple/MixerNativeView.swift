@@ -10,6 +10,10 @@ public final class MixerUIHost: ObservableObject {
     @Published public private(set) var snapshot: UIRenderSnapshot
     private let router: UINativeActionRouter
     @Published internal private(set) var featureDisplayID: UUID?
+    #if MIXER_BUNDLED_MOUNT_REPLAY
+    // The replay can hold the real native completion after UIKit displays it.
+    var holdNativeDisplay: (@MainActor (UUID) -> Bool)?
+    #endif
     private var featurePresentation: (NativePresentationRequest, CheckedContinuation<NativeDisplayAcknowledgement, any Error>)?
 
     public init(document: MixerUI.UIDocument,
@@ -24,6 +28,11 @@ public final class MixerUIHost: ObservableObject {
         let changes = try router.update(document)
         snapshot = try router.snapshot
         return changes
+    }
+
+    func isCurrent(_ candidate: UIRenderSnapshot) -> Bool {
+        guard let current = try? router.snapshot else { return false }
+        return current.isSameRender(as: candidate) && snapshot.isSameRender(as: candidate)
     }
 
     public func routeIssued(_ envelope: UIEventEnvelope) throws -> IssuedUIAction { try router.route(envelope) }
@@ -47,6 +56,13 @@ public final class MixerUIHost: ObservableObject {
                 }
             }
         } onCancel: { Task { @MainActor in self.cancelFeatureDisplay(request.id) } }
+    }
+
+    func nativeFeatureDidDisplay(_ id: UUID) {
+        #if MIXER_BUNDLED_MOUNT_REPLAY
+        if holdNativeDisplay?(id) == true { return }
+        #endif
+        completeFeatureDisplay(id)
     }
 
     internal func completeFeatureDisplay(_ id: UUID) {
@@ -76,6 +92,7 @@ public struct MixerNativeView: SwiftUI.View {
     private let onEventFailure: @MainActor (UIEventEnvelope, any Error) -> Void
     private let trackSynchronousTextChanges: Bool
     private var theme: MixerNativeTheme?
+    private var bundledTextBinding: BundledTextBinding?
 
     public init(host: MixerUIHost, onAction: @escaping @MainActor (RoutedUIAction) -> Void,
                 onEventFailure: @escaping @MainActor (any Error) -> Void = { _ in }) {
@@ -104,6 +121,13 @@ public struct MixerNativeView: SwiftUI.View {
         self.trackSynchronousTextChanges = trackSynchronousTextChanges
     }
 
+    init(host: MixerUIHost, theme: MixerNativeTheme?, bundledTextBinding: @escaping BundledTextBinding,
+         onIssuedAction: @escaping @MainActor (IssuedUIAction) throws -> Void) {
+        self.init(host: host, trackSynchronousTextChanges: false, onIssuedAction: onIssuedAction)
+        self.theme = theme
+        self.bundledTextBinding = bundledTextBinding
+    }
+
     #if os(iOS)
     /// Installs the app's shared Text and Button appearance in this renderer.
     public func sharedTheme(_ theme: MixerNativeTheme?) -> Self {
@@ -116,11 +140,12 @@ public struct MixerNativeView: SwiftUI.View {
     public var body: some SwiftUI.View {
         NativeNode(node: host.snapshot.document.root, snapshot: host.snapshot,
                    textHost: trackSynchronousTextChanges ? host : nil,
+                   bundledTextBinding: bundledTextBinding,
                    theme: theme?.resolve(scheme: colorScheme, size: dynamicTypeSize,
                                          contrast: colorSchemeContrast, legibility: legibilityWeight),
                    dispatch: dispatchEvent)
         .id(host.snapshot.identity(for: host.snapshot.document.root.id))
-        .background(FeatureDisplayCompletion(id: host.featureDisplayID) { host.completeFeatureDisplay($0) })
+        .background(FeatureDisplayCompletion(id: host.featureDisplayID) { host.nativeFeatureDidDisplay($0) })
     }
 
     func dispatchEvent(_ envelope: UIEventEnvelope) -> Bool {
@@ -199,11 +224,14 @@ private func matchesTextEdit(_ value: String, nodeID: String, before: UINode, af
     }
 }
 
+typealias BundledTextBinding = @MainActor (UINode, UIRenderSnapshot) -> Binding<String>?
+
 @MainActor
 private struct NativeNode: SwiftUI.View {
     let node: UINode
     let snapshot: UIRenderSnapshot
     let textHost: MixerUIHost?
+    let bundledTextBinding: BundledTextBinding?
     let theme: ResolvedNativeTheme?
     let dispatch: @MainActor (UIEventEnvelope) -> Bool
 
@@ -237,7 +265,8 @@ private struct NativeNode: SwiftUI.View {
 
     private var children: some SwiftUI.View {
         ForEach(node.children, id: \.id) { child in
-            NativeNode(node: child, snapshot: snapshot, textHost: textHost, theme: theme, dispatch: dispatch)
+            NativeNode(node: child, snapshot: snapshot, textHost: textHost,
+                       bundledTextBinding: bundledTextBinding, theme: theme, dispatch: dispatch)
                 .id(snapshot.identity(for: child.id))
         }
     }
@@ -256,7 +285,8 @@ private struct NativeNode: SwiftUI.View {
             if let theme { return AnyView(button.buttonStyle(NativeThemedButtonStyle(theme: theme, role: buttonAppearanceRole))) }
             return AnyView(button)
         case .textField:
-            let binding = mixerNativeTextBinding(node: node, snapshot: snapshot, host: textHost, dispatch: dispatch)
+            let binding = bundledTextBinding?(node, snapshot)
+                ?? mixerNativeTextBinding(node: node, snapshot: snapshot, host: textHost, dispatch: dispatch)
             let axis: SwiftUI.Axis = node.properties["axis"]?.string == TextFieldAxis.vertical.rawValue ? .vertical : .horizontal
             return AnyView(SwiftUI.TextField(node.properties["label"]!.string!, text: binding, axis: axis).onSubmit { emit(.submit) })
         case .toggle:
@@ -277,7 +307,8 @@ private struct NativeNode: SwiftUI.View {
             return AnyView(SwiftUI.Section { children })
         case .navigation:
             return AnyView(SwiftUI.NavigationStack {
-                NativeNode(node: node.children[0], snapshot: snapshot, textHost: textHost, theme: theme, dispatch: dispatch)
+                NativeNode(node: node.children[0], snapshot: snapshot, textHost: textHost,
+                           bundledTextBinding: bundledTextBinding, theme: theme, dispatch: dispatch)
                     .id(snapshot.identity(for: node.children[0].id))
                     .navigationTitle(node.properties["title"]?.string ?? "")
             })
