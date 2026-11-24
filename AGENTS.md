@@ -1159,3 +1159,11 @@ direct child returned. Preserve that group, ports 5610 and 5611, and
 `verification/local/plan-nov24-delivery.MDpiQiN9/native-final` in worktree
 `t3-67570144` without inspection, probing, signalling, waiting, retry, or
 cleanup. Use the compact Pair32 receipt.
+
+The November 24 combined UP4 appearance and inset diagnostic stopped during
+screenshot extraction after instrumentation. Private ADB PGID 35617 closed.
+Emulator supervisor PGID 35671 remained present after its direct child
+returned. Preserve that group, ports 5666 and 5667, and
+`verification/local/plan-nov24-delivery.MDpiQiN9/native-combined` in worktree
+`t3-67570144`. Do not inspect, probe, signal, wait on, retry, or clean these
+resources. Use the compact appearance and inset receipt.

@@ -1,0 +1,12 @@
+{
+  "scope": "Hosted v95 source preflight and exact Git tree read",
+  "failedRun": "https://github.com/snowdamiz/mixer/actions/runs/45442062886",
+  "failedRevision": "e92ef7fb1b279be9c811f8710d341bc07921f677",
+  "cause": "Command 183 invoked git ls-tree with a 12,288-byte ceiling. The 96 admitted rows emitted 12,589 bytes.",
+  "failure": "Git exited 0, while the collector correctly refused the overflowing output. The finalizer verified cleanup.",
+  "correction": "a92ee9a7d7",
+  "verification": "Normal and optimized Python 3.14.8 exercised Collector.collect with real committed Git inputs. The read admitted the exact 96 rows within the derived 12,589-byte ceiling. The same command refused with a ceiling one byte smaller.",
+  "controlSHA256": "d71ed0f4780b26ad772b0b23cc9c52ee875f9d73aac414f78f7dacce68b4438e",
+  "control": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-67570144/verification/local/plan-nov24-delivery.MDpiQiN9/check-exact-hosted-tree.py",
+  "limitation": "The local control stopped before container execution. Full hosted network checks require a fresh GitHub run."
+}
