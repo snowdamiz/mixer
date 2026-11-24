@@ -395,6 +395,7 @@ UP1_FLOOR_WORKFLOW_PREFIX = 'up1-floor-workflow-predecessor-bytes/'
 HOSTED_V91_PREFIX = 'hosted-v91-predecessor-bytes/'
 HOSTED_V92_PREFIX = 'hosted-v92-predecessor-bytes/'
 HOSTED_V93_PREFIX = 'hosted-v93-predecessor-bytes/'
+HOSTED_V94_PREFIX = 'hosted-v94-predecessor-bytes/'
 PAIR26_PREFIX = 'pair26-predecessor-bytes/'
 PAIR26_PREDECESSOR_REVISION = '613fb3c10e6cbf06eb990b9639ec672115bc50fe'
 PAIR26_SOURCE_SHA256 = '23389c8ae9f34678b546bd740947a3d9fdd39f0840aeac50534b0821f15aa5fb'
@@ -770,6 +771,7 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     *(HOSTED_V91_PREFIX + name for name in HOSTED_V74_CHANGES),
     *(HOSTED_V92_PREFIX + name for name in HOSTED_V74_CHANGES),
     *(HOSTED_V93_PREFIX + name for name in HOSTED_V74_CHANGES),
+    *(HOSTED_V94_PREFIX + name for name in HOSTED_V74_CHANGES),
     PAIR25_RUST_NOTICES_PREIMAGE,
     STATEFUL_WAST_NOTICE_PREIMAGE,
     PAIR25_NETWORK_CRYPTO_NOTICE_PREIMAGE,
@@ -941,7 +943,8 @@ def install_inputs():
                              'hosted_v83_transition', 'hosted_v84_transition', 'hosted_v85_transition',
                              'hosted_v86_transition', 'hosted_v87_transition', 'hosted_v88_transition',
                              'hosted_v89_transition', 'hosted_v90_transition', 'up1_floor_workflow_transition',
-                             'hosted_v91_transition', 'hosted_v92_transition', 'hosted_v93_transition', 'pair25_rust_notices',
+                             'hosted_v91_transition', 'hosted_v92_transition', 'hosted_v93_transition',
+                             'hosted_v94_transition', 'pair25_rust_notices',
                              'stateful_wast_notices', 'pair25_network_crypto_notices',
                              'android_inspection_deadline_transition', 'receipt_directory_transition',
                              'receipt_parent_url_test_transition', 'swiftpm_migration_transition',
@@ -1967,6 +1970,7 @@ def install_inputs():
         ('hosted_v91_transition', HOSTED_V91_PREFIX, HOSTED_V74_CHANGES),
         ('hosted_v92_transition', HOSTED_V92_PREFIX, HOSTED_V74_CHANGES),
         ('hosted_v93_transition', HOSTED_V93_PREFIX, HOSTED_V74_CHANGES),
+        ('hosted_v94_transition', HOSTED_V94_PREFIX, HOSTED_V74_CHANGES),
     ):
         transition = binding[transition_key]
         require(set(transition) == {'changes'} and set(transition['changes']) == changes and
