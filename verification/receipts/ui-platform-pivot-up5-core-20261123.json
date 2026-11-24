@@ -82,6 +82,36 @@
         "A held native edit binding lost subsequent edits across accepted frame changes."
       ],
       "nativeResultRemainsScoped": "The original source passed one native character and three hosted checks on iOS 26.5."
+    },
+    "correctionReplay": {
+      "source": "dd496e78c3f00bf5eb7ba73db1e05b17f8de3cc6",
+      "sourceTree": "df7723b6fa4d9bf1efc2a8aca38bb2698eb9c478",
+      "runtime": "iPhone 15 arm64 Simulator on iOS 26.5 build 23F77",
+      "toolchain": "Xcode 27.2 (27B52), Apple Swift 6.4.2",
+      "minimumOS": "17.0",
+      "checks": {
+        "hostedXCTest": 9,
+        "nativeUITests": 2,
+        "failures": 0
+      },
+      "uiJourney": "While the exact display is held, the native text field shows ABC and the accepted draft stays empty. Releasing the receipt publishes ABC. Further typing publishes ABCDEF. Removing the feature view closes input and removes its controls.",
+      "acceptedInput": "Reusing the same issued action after an invalid 1,025-byte state write cannot execute its handler again. Fresh actions still dispatch.",
+      "previousNativeFixtureFailure": {
+        "source": "c4b211727cea4bbb5eb55e846fb719669a343db6",
+        "observed": "The held-frame test expected Draft A while the accepted draft was still empty. The native field held ABC and the assertions after display release passed.",
+        "summarySHA256": "78b817e6f09dfce552b7b07a07f76c94e5ce71a191ba6e2a5eb42ce2e9c13423"
+      },
+      "externalDeviceBaselineUnchanged": true,
+      "ownedDeviceObservedAbsent": true,
+      "accessibilityTrusted": true,
+      "signatureManifestSHA256": "ecc621dd9d4737ac4b2b546a8e8343215c30a62a2dc00f959502764fd9467f41",
+      "logSHA256": {
+        "mount.log": "073692a4c84e1c8683ba900eec263a41ff27d8f636624b684671ea24f52eb3ac",
+        "mount-summary.json": "17fba66d2d292a813e31c17fb06bdb968240ba9119580cca94138370e5c47798",
+        "device-cleanup.log": "efbbdc816ba9bdf1ded93ac3f918ebb3795d0193a838bf666a1b4bb1a8dd8c81",
+        "external-after.json": "8a42530cd0b502de8d0388051dc16ff64e1065ceecd3363dd4eaafc5659ae7b5"
+      },
+      "scopeLimit": "Scoped bundled mounting and native text behavior. Final source review, ordinary package admission, Apple accessibility modifier runtime behavior, and an iOS 17.x runtime launch remain pending."
     }
   },
   "explicitIdentity": {
