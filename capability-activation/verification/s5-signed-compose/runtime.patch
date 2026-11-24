@@ -1,0 +1,292 @@
+diff --git a/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartRuntime.swift b/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartRuntime.swift
+index a7dff7c..ebc1813 100644
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartRuntime.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartRuntime.swift
+@@ -34,4 +34,26 @@ public final class CapabilityColdStartRuntime: Sendable {
+     }
+ #endif
++#if MIXER_S5_SIGNED_COMPOSE
++    @_spi(S5SignedCompose)
++    public static func openS5SignedCompose(configuration: CapabilityColdStartConfiguration,
++                                           execution: InstalledCapabilityExecution,
++                                           presentation: S5SignedPresentation) async throws -> CapabilityColdStartRuntime {
++        try S5SignedProfile.require(execution.installed.identity, milestones: configuration.requiredMilestones)
++        return try await openShared(configuration: configuration, installed: execution.installed,
++            environment: .init(), presentation: presentation)
++    }
++
++    @_spi(S5SignedCompose)
++    public func closeS5SignedCompose() async -> Bool {
++        await close()
++        let deadline = ContinuousClock.now + .seconds(5)
++        while !core.control.ownerRetired {
++            guard ContinuousClock.now < deadline else { return false }
++            do { try await Task.sleep(for: .milliseconds(10)) } catch { return false }
++        }
++        return !core.control.reservation.isQuarantined
++    }
++#endif
++
+     private static func openShared(configuration: CapabilityColdStartConfiguration, installed: InstalledMaterial,
+                                    environment: CapabilityRecoveryEnvironment,
+diff --git a/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift b/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift
+index cb81a06..1a1cdd0 100644
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift
+@@ -1,4 +1,7 @@
+ import Foundation
+ @_spi(GuestUIV1) import MixerGuest
++#if MIXER_S5_SIGNED_COMPOSE
++@_spi(S5SignedCompose) import MixerGuest
++#endif
+ #if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
+ @_spi(PrivateFieldLogEditor) import MixerGuest
+@@ -206,4 +209,9 @@ actor CapabilityColdStartWorker {
+ #if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
+         if installed.fieldLogEditorID != nil { return try GuestUIExchangeV1(fieldLogEditorGeneration: generation) }
++#endif
++#if MIXER_S5_SIGNED_COMPOSE
++        if S5SignedProfile.matches(installed.identity) {
++            return try GuestUIExchangeV1(s5ComposeGeneration: generation)
++        }
+ #endif
+         return try GuestUIExchangeV1(generation: generation,
+diff --git a/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift b/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift
+index 7dc15ba..afa8564 100644
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift
+@@ -4,4 +4,7 @@ import Foundation
+ #endif
+ @_spi(GuestUIV1) import MixerExperimentalCapabilityRuntime
++#if MIXER_S5_SIGNED_COMPOSE
++@_spi(S5SignedCompose) import MixerExperimentalCapabilityRuntime
++#endif
+ @_spi(GuestUIV1) import MixerGuest
+ @_spi(CapabilityDurableV3) import MixerUpdates
+@@ -33,4 +36,9 @@ final class CapabilityRecoveryStore: Sendable {
+             return try CapabilityInstalledExecutionMode.requireFieldLogEditor(installed.identity, milestones: milestones)
+         }
++#endif
++#if MIXER_S5_SIGNED_COMPOSE
++        if guestUI, S5SignedProfile.matches(installed.identity) {
++            return try S5SignedProfile.require(installed.identity, milestones: milestones)
++        }
+ #endif
+         if guestUI { try CapabilityInstalledExecutionMode.requireGuestUI(installed.identity, milestones: milestones) }
+@@ -577,4 +585,11 @@ private actor CapabilityRecoveryWorker {
+         _ = try bound(input, signals, op)
+         guard effectsEnabledAt != nil, configuration.requiredMilestones.contains(id) else { throw capabilityRecoveryError("milestone") }
++#if MIXER_S5_SIGNED_COMPOSE
++        if S5SignedProfile.matches(installed.identity), id == "first_screen" {
++            guard let presentation, presentation.generation == input.generation,
++                  let ui = signals.ui?.snapshot(), ui.effectsConfirmed,
++                  ui.pendingPresentationReceipt == presentation else { throw capabilityRecoveryError("milestone") }
++        }
++#endif
+         if installed.privateF10 && id == "first_screen" {
+             guard let presentation, presentation.generation == input.generation, presentation.revision == 2,
+@@ -663,4 +678,9 @@ private actor CapabilityRecoveryWorker {
+             return try ExperimentalCapabilityValidator.prepareF10(module: module, configuration: configuration)
+         }
++#endif
++#if MIXER_S5_SIGNED_COMPOSE
++        if guestUI, S5SignedProfile.matches(installed.identity) {
++            return try ExperimentalCapabilityValidator.prepareS5EditorV2(module: module, configuration: configuration)
++        }
+ #endif
+         if guestUI {
+diff --git a/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift b/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift
+index ba2384d..f983747 100644
+--- a/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift
++++ b/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/GuestUITurns.swift
+@@ -2,4 +2,7 @@ import Foundation
+ @_spi(InstalledApplicationStorage) import MixerCapabilities
+ @_spi(GuestUIV1) import MixerGuest
++#if MIXER_S5_SIGNED_COMPOSE
++@_spi(S5SignedCompose) @_spi(GuestUIV2) import MixerGuest
++#endif
+ #if os(macOS) && MIXER_PRIVATE_F10
+ @_spi(FeatureUIV3) import MixerGuest
+@@ -60,4 +63,7 @@ final class GuestUITurns: @unchecked Sendable {
+     let exchange: any RuntimeGuestUIExchange
+     private var v1: GuestUIExchangeV1? { exchange as? GuestUIExchangeV1 }
++#if MIXER_S5_SIGNED_COMPOSE
++    private var s5Header: GuestUIHeaderV2?
++#endif
+ #if os(macOS) && MIXER_PRIVATE_F10
+     private var v3: GuestUIExchangeV3? { exchange as? GuestUIExchangeV3 }
+@@ -246,4 +252,7 @@ final class GuestUITurns: @unchecked Sendable {
+             try native.write(offset: eventOffset, data: bytes)
+             var eventExport = "mixer_guest_ui_event_v1"
++#if MIXER_S5_SIGNED_COMPOSE
++            if v1?.s5UsesEditorV2 == true { eventExport = GuestUIProtocolV2.eventExport }
++#endif
+ #if os(macOS) && MIXER_PRIVATE_F10
+             if v3 != nil { eventExport = GuestUIProtocolV3.eventExport }
+@@ -335,4 +344,29 @@ final class GuestUITurns: @unchecked Sendable {
+                          allowsEmptyDocument: Bool = false, requiresEmptyDocument: Bool = false) throws {
+         guard let v1, let headerOffset else { throw GuestUIProtocolFailureV1(phase: phase, code: .header) }
++#if MIXER_S5_SIGNED_COMPOSE
++        if v1.s5UsesEditorV2 {
++            let raw = try native.read(offset: headerOffset, count: 32)
++            let header: GuestUIHeaderV2
++            do {
++                header = try GuestUIHeaderV2.decode(raw, at: headerOffset,
++                    memoryBytes: native.s5MemoryLimitBytes, previous: s5Header)
++            } catch GuestUIEditorErrorV2.bufferChanged {
++                throw GuestUIProtocolFailureV1(phase: phase, code: .bufferChanged)
++            } catch GuestUIEditorErrorV2.range {
++                throw GuestUIProtocolFailureV1(phase: phase, code: .memoryRange)
++            } catch {
++                throw GuestUIProtocolFailureV1(phase: phase, code: .header)
++            }
++            if initial {
++                let capacity = UInt32(GuestUIProtocolV2.maximumBytes)
++                _ = try native.read(offset: header.eventOffset + capacity - 1, count: 1)
++                eventOffset = header.eventOffset
++                eventCapacity = capacity
++            }
++            s5Header = header
++            try v1.finishTurn(claim, documentBytes: native.read(offset: header.documentOffset, count: Int(header.documentLength)))
++            return
++        }
++#endif
+         let header = try GuestUIControlHeader.decode(native.read(offset: headerOffset, count: 32),
+             headerOffset: headerOffset, phase: phase, allowsEmptyDocument: allowsEmptyDocument)
+diff --git a/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Native.swift b/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Native.swift
+index c6dce1d..d3bb3bb 100644
+--- a/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Native.swift
++++ b/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Native.swift
+@@ -20,4 +20,16 @@ struct NativeConstructionFailure: Error {
+ /// the separate close path may race, using the C registry's reviewed contract.
+ final class NativeCapabilitySession: @unchecked Sendable {
++#if MIXER_S5_SIGNED_COMPOSE
++    static func validateS5EditorV2(module: Data, configuration: ExperimentalCapabilityConfiguration) throws {
++        var vm = configuration.vm, cap = configuration.capability, report = MixerVmReport()
++        let status = module.withUnsafeBytes {
++            mixer_vm_capability_guest_ui_validate_v2($0.bindMemory(to: UInt8.self).baseAddress, $0.count, &vm, &cap, &report)
++        }
++        try check(status, report, operation: .validation, moduleLength: module.count, configuration: configuration)
++    }
++
++    var s5MemoryLimitBytes: UInt64 { UInt64(configuration.memoryPages) * 65_536 }
++#endif
++
+     static func validateGuestUI(module: Data, configuration: ExperimentalCapabilityConfiguration,
+                                 deferredStartup: Bool = false) throws {
+diff --git a/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift b/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift
+index 0346b77..8020f9f 100644
+--- a/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift
++++ b/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Session.swift
+@@ -2,4 +2,7 @@ import Foundation
+ @_spi(InstalledApplicationStorage) import MixerCapabilities
+ @_spi(GuestUIV1) import MixerGuest
++#if MIXER_S5_SIGNED_COMPOSE
++@_spi(S5SignedCompose) @_spi(GuestUIV2) import MixerGuest
++#endif
+ #if os(macOS) && MIXER_PRIVATE_F10
+ @_spi(FeatureUIV3) import MixerGuest
+@@ -134,6 +137,15 @@ public final class ExperimentalCapabilityConstruction: @unchecked Sendable {
+                 try GuestUITurns.requireLive(exchange)
+                 if let v1 = exchange as? GuestUIExchangeV1 {
+-                    try NativeCapabilitySession.validateGuestUI(module: input.module, configuration: input.configuration,
+-                        deferredStartup: v1.allowsDeferredStartup)
++                    var validateV1 = true
++#if MIXER_S5_SIGNED_COMPOSE
++                    if v1.s5UsesEditorV2 {
++                        try NativeCapabilitySession.validateS5EditorV2(module: input.module, configuration: input.configuration)
++                        validateV1 = false
++                    }
++#endif
++                    if validateV1 {
++                        try NativeCapabilitySession.validateGuestUI(module: input.module, configuration: input.configuration,
++                            deferredStartup: v1.allowsDeferredStartup)
++                    }
+                 }
+                 try GuestUITurns.requireLive(exchange)
+@@ -169,5 +181,9 @@ public final class ExperimentalCapabilitySession: @unchecked Sendable {
+                                            policy: CapabilityPolicy, adapterGroup: OwnedCapabilityAdapterGroup,
+                                            exchange: GuestUIExchangeV1) throws -> ExperimentalCapabilityConstruction {
+-        try prepareOwnedUI(module: module, startup: "mixer_guest_ui_start_v1", configuration: configuration,
++        var startup = "mixer_guest_ui_start_v1"
++#if MIXER_S5_SIGNED_COMPOSE
++        if exchange.s5UsesEditorV2 { startup = GuestUIProtocolV2.startupExport }
++#endif
++        return try prepareOwnedUI(module: module, startup: startup, configuration: configuration,
+             policy: policy, adapterGroup: adapterGroup, exchange: exchange)
+     }
+diff --git a/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Validation.swift b/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Validation.swift
+index 80da2a9..fe53f5f 100644
+--- a/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Validation.swift
++++ b/experimental-capability-runtime/Sources/MixerExperimentalCapabilityRuntime/Validation.swift
+@@ -42,4 +42,17 @@ enum ValidationQueue {
+ /// Admission only. A successful return is not an execution or activation proof.
+ public enum ExperimentalCapabilityValidator {
++#if MIXER_S5_SIGNED_COMPOSE
++    @_spi(S5SignedCompose)
++    public static func prepareS5EditorV2(module: Data, configuration: ExperimentalCapabilityConfiguration) throws -> ExperimentalCapabilityValidation {
++        guard module.count <= 4_194_304 else { throw ExperimentalCapabilityError("invalid_module_or_startup") }
++        try configuration.validate()
++        let permit = try ValidationPermit.acquire()
++        let snapshot = module.withUnsafeBytes { bytes in
++            bytes.isEmpty ? Data() : Data(bytes: bytes.baseAddress!, count: bytes.count)
++        }
++        return ExperimentalCapabilityValidation(module: snapshot, startup: "mixer_guest_ui_start_v2",
++            configuration: configuration, permit: permit, mode: .s5EditorV2)
++    }
++#endif
+     @_spi(GuestUIV1)
+     public static func prepareGuestUIV1(module: Data, configuration: ExperimentalCapabilityConfiguration) throws -> ExperimentalCapabilityValidation {
+@@ -91,4 +104,7 @@ public final class ExperimentalCapabilityValidation: @unchecked Sendable {
+     fileprivate enum Mode: Sendable {
+         case capability, guestUI, deferredGuestUI
++#if MIXER_S5_SIGNED_COMPOSE
++        case s5EditorV2
++#endif
+ #if os(macOS) && MIXER_PRIVATE_F10
+         case privateF10
+@@ -161,4 +177,9 @@ public final class ExperimentalCapabilityValidation: @unchecked Sendable {
+             return Result { try NativeCapabilitySession.validateF10(module: input.module, configuration: input.configuration) }
+         }
++#endif
++#if MIXER_S5_SIGNED_COMPOSE
++        if input.mode == .s5EditorV2 {
++            return Result { try NativeCapabilitySession.validateS5EditorV2(module: input.module, configuration: input.configuration) }
++        }
+ #endif
+         if input.mode != .capability {
+diff --git a/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift b/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift
+index 627c3e0..5e6aa31 100644
+--- a/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift
++++ b/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift
+@@ -8,8 +8,22 @@ import MixerUI
+     private let core: GuestUIExchangeCore
+     public let allowsDeferredStartup: Bool
++#if MIXER_S5_SIGNED_COMPOSE
++    @_spi(S5SignedCompose) public let s5UsesEditorV2: Bool
++
++    @_spi(S5SignedCompose)
++    public init(s5ComposeGeneration generation: UInt64) throws {
++        allowsDeferredStartup = false
++        s5UsesEditorV2 = true
++        core = try GuestUIExchangeCore(generation: generation, codec: .editor(
++            GuestUIDocumentCodecV2(textValuePolicy: .standard)))
++    }
++#endif
+     public convenience init(generation: UInt64) throws {
+         try self.init(generation: generation, allowsDeferredStartup: false)
+     }
+     public init(generation: UInt64, allowsDeferredStartup: Bool) throws {
++#if MIXER_S5_SIGNED_COMPOSE
++        s5UsesEditorV2 = false
++#endif
+         self.allowsDeferredStartup = allowsDeferredStartup
+         core = try GuestUIExchangeCore(generation: generation, codec: .legacy)
+@@ -19,4 +33,7 @@ import MixerUI
+     public init(fieldLogEditorGeneration generation: UInt64) throws {
+         allowsDeferredStartup = false
++#if MIXER_S5_SIGNED_COMPOSE
++        s5UsesEditorV2 = false
++#endif
+         core = try GuestUIExchangeCore(generation: generation, codec: .fieldLogEditor)
+     }

@@ -1,0 +1,186 @@
+{
+  "spike": "S5",
+  "scope": "Isolated signed V2 Compose development fixture",
+  "result": "macOS signed runtime replay passed with the final APK assets; ARM64 API 28 app and instrumentation built and verified",
+  "source": {
+    "signedRuntimeCommit": "ebbc4735a234d42622b435acd2ddc9ff430c1d20",
+    "signedRuntimeTree": "1fb31fb0901f5ff15cddaa71c8e6f20ebef303c4",
+    "composeBaseCommit": "18fef233e694ad9613a7427c81bdc89e9bc062dc",
+    "composeBaseTree": "a8c0104886c74cd73066fa058d75c782f6c1f75a",
+    "priorHwImePatchSHA256": "fd0a839a5fa9526256214b09f4558e5c3ae9915c44aa7e3052e0d180a1e7ea67",
+    "imeBootstrapPatchSHA256": "66523709e1693d63fedd571bbd0674cb131af77e79ee3fc3fe6eff1c9c954a1a",
+    "runtimeOverlay": {
+      "bytes": 16513,
+      "sha256": "abc7b82434ce817a7b3c52975955919fcbfd67106fed56e5552261f1af9726fe"
+    },
+    "composeOverlay": {
+      "bytes": 23469,
+      "sha256": "b8e5c7be85c10669b67b78210bf76d9af9b6bd9c964b62bb1a363cb5317c48c6"
+    }
+  },
+  "tools": {
+    "host": "arm64 macOS 27.0.1",
+    "swift": "6.3.3",
+    "rust": "1.99.0",
+    "androidSwiftSDK": "aarch64-unknown-linux-android28",
+    "ndk": "r27d",
+    "gradle": "9.8.1",
+    "jdk": "25.0.4.1",
+    "buildTools": "37.0.0",
+    "androidCompileSDK": "37.1 revision 1"
+  },
+  "host": {
+    "command": "Replay <assets/s5-signed extracted from final editor-hw.apk> <fresh app-private directory>",
+    "observations": [
+      "PASS signed prior after exact frame receipt",
+      "PASS one draft, one Save, and exact Unicode document readback",
+      "PASS damaged signature refusal and rollback of the original signed artifact",
+      "PASS exact persisted bytes after owner retirement and store reopen"
+    ],
+    "negativeChecks": [
+      "Ordinary cold-start refused the V2 fixture identity",
+      "Input and foreign receipt refused before prior presentation",
+      "Duplicate Save and retired input/receipts refused",
+      "Tampered signature left accepted sequence and healthy candidate unchanged"
+    ],
+    "savedUTF8SHA256": "f2045fe16dec1e541d63fd8dff2f59d87fb0e61983f22c0b836e4ba7de43ecf1",
+    "hostExecutable": {
+      "bytes": 10904704,
+      "sha256": "bee628c847e6fe7a18076d1c2494cfd77e4ff193fbc4c8267e105aaa1103003f"
+    }
+  },
+  "android": {
+    "delivery": "verification/local/s5-signed-compose-delivery",
+    "build": [
+      "link.py <fresh work> --mode android",
+      "Gradle assembleDebug assembleDebugAndroidTest",
+      "sign-os-ime.sh <gradle apk output> <signed pair>"
+    ],
+    "baselineLinkProbe": {
+      "bytes": 36697304,
+      "sha256": "6324d0fe68441d02ca5322daef012cfcd12baaf7119fa14504646b51fdbf7b2a"
+    },
+    "vmArchive": {
+      "bytes": 25339154,
+      "sha256": "a4790015a4ea6ae86e82ea9cba33fbc4efa6a51e6b85dfd141c605829bc4024a"
+    },
+    "preStripJNIDependency": {
+      "bytes": 37511688,
+      "sha256": "16cb533859048720e71d671b27af0ee8ee3a05bd30074901a4710a8dc61b9586"
+    },
+    "packagingDiscriminator": {
+      "firstRefusal": "Pinned Compose packager refused libFoundationNetworking.so dependency libz.so",
+      "fix": "Recognize public OS libz.so after checking the exact API 28 NDK stub. Bundle no stub."
+    },
+    "identity": {
+      "bundle_id": "dev.mixer.compose.s5.signed.v2",
+      "environment": "development",
+      "app": "signed-compose-v2",
+      "project": "s5",
+      "organization": "mixer-local"
+    },
+    "minSDK": 28,
+    "abi": "arm64-v8a",
+    "apkSchemeOnAPI28": "v3",
+    "certificateSHA256": "4517b0ff4ab307cc06975401a25c1467b4f0bff4a23abbb9000004d66a11d280",
+    "developmentReleaseTrustExpiresUTC": "2026-11-25T00:12:57+00:00",
+    "artifacts": {
+      "android-link.log": {
+        "bytes": 6055,
+        "sha256": "6818308855af7efbeb5376c586748bfebdb01c98b1b9a431a647023bf202a516"
+      },
+      "build.log": {
+        "bytes": 10453,
+        "sha256": "e15bcb87b4a0f407f4c0c708ff8c19158c4145a88a9b6ca37d15cffc8a73e1a1"
+      },
+      "editor-hw.apk": {
+        "bytes": 162026068,
+        "sha256": "d9e26a5619014843db676433c7e6fc4dfbe76bf0f96645c6c12ed75c66a89309"
+      },
+      "editor-hw.apk.badging.txt": {
+        "bytes": 5664,
+        "sha256": "baf08a5993d9f3d05f96f2b3972a3f86d53d67476ba601f8dba89f11b5ebc47d"
+      },
+      "editor-hw.apk.manifest.txt": {
+        "bytes": 5140,
+        "sha256": "8335c515d6e48de3284cbd478f154874515750829ea51e24011970f6f1c52d5a"
+      },
+      "editor-hw.apk.signature.txt": {
+        "bytes": 1038,
+        "sha256": "fc23dc17e3768b09b0c0327d6fafd58ddd323349cdec6a875582fe88f56a7d62"
+      },
+      "host-replay.log": {
+        "bytes": 249,
+        "sha256": "ebaf2d9cf7f082681dbe4727ef67f580ff84776f5f680d54a55672763558aa18"
+      },
+      "instrumentation.apk": {
+        "bytes": 184897,
+        "sha256": "607a3e4c2e93529b828673c9e60188138ecaa29b7a3e0ef3e089eaf1c31bb193"
+      },
+      "instrumentation.apk.badging.txt": {
+        "bytes": 597,
+        "sha256": "3f39dfde4bbdf056eddd0911e92b58f0513bc77b3ca06a38f11ad3a97e990089"
+      },
+      "instrumentation.apk.manifest.txt": {
+        "bytes": 2471,
+        "sha256": "b9919ecc0a829bb7118b746255a603ebdd6b7ad65ea34e6acbaf0b4b304fe7c5"
+      },
+      "instrumentation.apk.signature.txt": {
+        "bytes": 1038,
+        "sha256": "fc23dc17e3768b09b0c0327d6fafd58ddd323349cdec6a875582fe88f56a7d62"
+      },
+      "replay-os-ime.sh": {
+        "bytes": 3882,
+        "sha256": "9a3151924bd2b4e7d8243d96c45dbef30d52d8373acaa524031ea2ac93960bd7"
+      },
+      "initial-refusals.log": {
+        "bytes": 599,
+        "sha256": "562aab2520fd711c156efee016bbfec93cc290e4d4ee5f939cb5f468d92d6d5b"
+      }
+    },
+    "payloads": {
+      "candidate.wasm": {
+        "bytes": 2616,
+        "sha256": "537e59e2febfa354ad50efb9834d0f31438156b4bf70c535ca2c3cf9e08e35ed"
+      },
+      "prior.wasm": {
+        "bytes": 2600,
+        "sha256": "399d8d5a3f0b0874cdedb01636533c9f752019004e5c8b5cdafcec302a52c2bb"
+      }
+    },
+    "nativeRuntime": "pending root-owned emulator replay"
+  },
+  "cleanup": {
+    "androidOrAppleDeviceOperations": 0,
+    "pushes": 0,
+    "disposableAPKKeyRemoved": true,
+    "finalBuildSignAndZIPChecks": [
+      {
+        "pgid": 7430,
+        "exit": 0,
+        "groupAbsent": true,
+        "scope": "Gradle assembly"
+      },
+      {
+        "pgid": 18513,
+        "exit": 0,
+        "groupAbsent": true,
+        "scope": "APK signing and API 28 verification"
+      },
+      {
+        "pgid": 19363,
+        "exit": 0,
+        "groupAbsent": true,
+        "scope": "App ZIP verification"
+      },
+      {
+        "pgid": 19637,
+        "exit": 0,
+        "groupAbsent": true,
+        "scope": "Instrumentation ZIP verification"
+      }
+    ],
+    "retained": "Signed deliverables, source, compact receipt, build and replay logs",
+    "ownedScratchRemoved": true
+  }
+}
