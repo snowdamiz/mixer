@@ -55,7 +55,7 @@ def main():
     experiment = root / "Experiment"
     experiment.mkdir()
     for name in ("UP5ThemeApp.swift", "SignedFixture.swift", "FixtureTheme.swift",
-                 "UP5ThemeUITests.swift", "ThemePixels.swift"):
+                 "UP5ThemeUITests.swift", "ThemePixels.swift", "HeldPressProbe.swift"):
         shutil.copyfile(HERE / name, experiment / name)
 
     # Extend only the fixture's signed document producer with a disabled sibling.

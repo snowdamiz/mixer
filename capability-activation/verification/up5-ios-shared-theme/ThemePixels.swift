@@ -1,31 +1,31 @@
 import CoreGraphics
-import UIKit
-import XCTest
 
 struct ThemePixels {
     let width: Int
     let height: Int
     private let rgba: [UInt8]
 
-    @MainActor
-    init(_ screenshot: XCUIScreenshot) throws {
-        let image = try XCTUnwrap(screenshot.image.cgImage)
+    init(_ image: CGImage) throws {
         let width = image.width
         let height = image.height
-        let colorSpace = try XCTUnwrap(CGColorSpace(name: CGColorSpace.sRGB))
+        guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else { throw DecodeError.colorSpace }
         var rgba = [UInt8](repeating: 0, count: width * height * 4)
         try rgba.withUnsafeMutableBytes { bytes in
-            let context = try XCTUnwrap(CGContext(
+            guard let context = CGContext(
                 data: bytes.baseAddress, width: width, height: height, bitsPerComponent: 8,
                 bytesPerRow: width * 4, space: colorSpace,
                 bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
-            ))
+            ) else { throw DecodeError.context }
             context.setBlendMode(.copy)
             context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
         }
         self.width = width
         self.height = height
         self.rgba = rgba
+    }
+
+    private enum DecodeError: Error {
+        case colorSpace, context
     }
 
     struct RGB {

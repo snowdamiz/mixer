@@ -3,17 +3,26 @@ import MixerApple
 import MixerCapabilityActivation
 import MixerUI
 import SwiftUI
+import UIKit
 
 @main
 struct UP5ThemeApp: App {
     @StateObject private var fixture = FixtureRun()
     @State private var dark = false
+    @State private var heldSample = "waiting"
+    private let arguments = ProcessInfo.processInfo.arguments
 
     var body: some Scene {
         WindowGroup {
             VStack {
                 Text(fixture.status).accessibilityIdentifier("fixture-status")
                 Text(fixture.result).accessibilityIdentifier("fixture-result")
+                if arguments.contains("--contrast-probe") {
+                    ContrastObservation()
+                }
+                if arguments.contains("--held-press-probe") {
+                    Text(heldSample).lineLimit(1).accessibilityIdentifier("held-sample")
+                }
                 Group {
                     if let owner = fixture.owner {
                         MixerGuestScreen(presentation: owner.presentation).sharedTheme(fixture.theme)
@@ -22,13 +31,50 @@ struct UP5ThemeApp: App {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background {
+                    if arguments.contains("--contrast-probe") {
+                        Color(.sRGB, red: 0.33, green: 0.43, blue: 0.52)
+                    }
+                }
+                .modifier(FixtureTypographyControl(arguments: arguments))
 
                 Button(dark ? "Use light" : "Use dark") { dark.toggle() }
                 Button("Close fixture") { Task { await fixture.close() } }
             }
             .padding()
+            .background {
+                if arguments.contains("--held-press-probe") {
+                    HeldPressProbe(actionCount: { fixture.actionCount }, report: { heldSample = $0 })
+                        .allowsHitTesting(false)
+                }
+            }
             .preferredColorScheme(dark ? .dark : .light)
             .task { await fixture.start() }
+        }
+    }
+}
+
+private struct ContrastObservation: View {
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    var body: some View {
+        Text(verbatim: "swiftui=\(contrast == .increased) system=\(UIAccessibility.isDarkerSystemColorsEnabled)")
+            .accessibilityIdentifier("contrast-observation")
+    }
+}
+
+private struct FixtureTypographyControl: ViewModifier {
+    let arguments: [String]
+
+    func body(content: Content) -> some View {
+        if arguments.contains("--bold-loan") {
+            content.environment(\.legibilityWeight, .bold).environment(\.dynamicTypeSize, .large)
+        } else if arguments.contains("--regular-loan") {
+            content.environment(\.legibilityWeight, .regular).environment(\.dynamicTypeSize, .large)
+        } else if arguments.contains("--held-press-probe") {
+            content.environment(\.dynamicTypeSize, .large)
+        } else {
+            content
         }
     }
 }
@@ -40,12 +86,16 @@ private final class FixtureRun: ObservableObject {
     @Published private(set) var theme: MixerNativeTheme?
     @Published private(set) var bundled: MixerUIHost?
     @Published private(set) var owner: CapabilityGuestUIRuntime?
+    private(set) var actionCount = 0
     private var signed: SignedFixture?
 
     func start() async {
         guard status == "starting" else { return }
         do {
             let args = ProcessInfo.processInfo.arguments
+            if args.contains("--held-press-probe") {
+                try HeldPressProbe.discardPreviousCapture()
+            }
             if !args.contains("--platform-control") {
                 theme = try MixerNativeTheme(configuration: FixtureTheme.configuration())
             }
@@ -90,7 +140,12 @@ private final class FixtureRun: ObservableObject {
     }
 
     func bundledAction(_ action: RoutedUIAction) {
-        result = action.actionID == "sample.save" ? "bundled action routed" : "wrong action"
+        actionCount += 1
+        if action.actionID != "sample.save" {
+            result = "wrong action"
+        } else {
+            result = actionCount == 1 ? "bundled action routed" : "bundled action routed \(actionCount) times"
+        }
     }
 
     func close() async {

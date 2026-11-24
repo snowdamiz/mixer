@@ -51,15 +51,21 @@ legacy resolver's refusal. Its outputs scope to source behavior.
 
 ## Root Simulator replay
 
-Run `UP5ThemeUITests/UP5ThemeUITests/testProductThemeOnBundledAndSignedGuest`
-only on an exact, root-owned, already booted iOS 26.5 Simulator after the
-Accessibility preflight. Supply a fresh root evidence directory. Root
-owns the device baseline, cleanup, and result interpretation.
+Use an exact, root-owned, already booted iOS 26.5 Simulator after the
+Accessibility preflight. Root owns the device baseline, cleanup, and result
+interpretation. Use a fresh evidence directory. The runner creates one
+subdirectory per selector for the log, `.xcresult`, and setting observations.
 
 ```sh
-OWNED_SIMULATOR_UDID="$owned_uuid" UP5_ROOT_EVIDENCE="$root_evidence" \
-  sh "$fixture/run-on-owned-simulator.sh" \
-  "$base/build/derived-data/Build/Products/UP5Theme_iphonesimulator27.2-arm64.xctestrun"
+test_run="$base/build/derived-data/Build/Products/UP5Theme_iphonesimulator27.2-arm64.xctestrun"
+for selector in testProductThemeOnBundledAndSignedGuest \
+  testIncreasedContrastOnBundledAndSignedGuest \
+  testHeldPressRendersPressedFillAndRoutesOnRelease \
+  testBoldTextTraitLoanRendersHeavierGlyphs
+do
+  OWNED_SIMULATOR_UDID="$owned_uuid" UP5_ROOT_EVIDENCE="$root_evidence" \
+    sh "$fixture/run-on-owned-simulator.sh" "$test_run" "$selector" || break
+done
 ```
 
 The XCTest captures native Text and Button screenshots and checks light and
@@ -70,6 +76,16 @@ native Save writes the exact expected storage bytes. The fixture uses the
 production capability presentation and performs no private display
 acknowledgment or authority injection. The light fixture colors and the
 screenshot sampling method come from the successful S4 fixed-light
-experiment. Running on 26.5 leaves an actual iOS 17.x launch pending. The
-pressed, increased-contrast, and Bold Text mappings also still need native
-rendering evidence.
+experiment. Running on 26.5 leaves an actual iOS 17.x launch pending. Root
+replay covers the following new selectors.
+
+| Selector | Evidence required |
+| --- | --- |
+| `testIncreasedContrastOnBundledAndSignedGuest` | `xcrun simctl ui "$owned_uuid" increase_contrast enabled` and exact-UUID readback. UIKit and SwiftUI must both report increased contrast. Light and dark captures compare Text ink and backdrop, enabled and disabled Button fill and labels, and solid versus dashed button edges. Native element roles, enabled state, ordinary Save, and signed disk readback are checked. |
+| `testHeldPressRendersPressedFillAndRoutesOnRelease` | A two-second native touch on the bundled Save button under standard contrast. A passive UIKit observer snapshots the rendered app window with `drawHierarchy` during the live touch. The test compares pressed and resting paint, checks zero actions in flight, and expects one action on release and restoration of the resting paint. The window PNG is retained separately from XCTest's before and after screenshots. This samples the app window, with system compositor overlays outside its scope. Dark, increased-contrast, and signed-guest held presses remain outside this selector. |
+| `testBoldTextTraitLoanRendersHeavierGlyphs` | Two launches at the same Dynamic Type size with fixture-only regular and bold SwiftUI legibility values. The captures compare the rendered ink of native Text and Button glyphs. The native Settings Bold Text path remains pending. |
+
+The runner saves, sets, reads back, and restores Increase Contrast on the
+supplied UUID. Root can use the setting log to restore the original value
+after an interrupted run. The new selectors have build and host mapping
+coverage. Record runtime results separately after replay.

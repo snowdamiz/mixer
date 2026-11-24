@@ -23,7 +23,7 @@ app.build_configurations.each do |config|
   config.build_settings["INFOPLIST_KEY_UIApplicationSceneManifest_Generation"] = "YES"
 end
 group = project.main_group.new_group("Experiment", "Experiment")
-%w[UP5ThemeApp.swift SignedFixture.swift FixtureTheme.swift GuestUISignedProgram.swift].each do |file|
+%w[UP5ThemeApp.swift SignedFixture.swift FixtureTheme.swift GuestUISignedProgram.swift HeldPressProbe.swift ThemePixels.swift].each do |file|
   app.add_file_references([group.new_file(file)])
 end
 %w[UP5ThemeUITests.swift ThemePixels.swift].each do |file|
