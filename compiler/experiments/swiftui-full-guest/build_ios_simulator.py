@@ -70,7 +70,7 @@ def verify_fixed_refusal(fixed_code, fixed_log):
         raise ValueError("Fixed-34 control did not refuse 32 imports before acquiring an owner")
 
 
-def verify_guest(replay_code, replay_log, oracle):
+def verify_guest_trace(replay_log, failure="None"):
     lines = replay_log.splitlines()
     admission = [line for line in lines if line.startswith("policy=")]
     if (len(admission) != 1 or not admission[0].startswith("policy=swift-6.3.3-wasi-ui-diagnostic-v1;")
@@ -82,11 +82,17 @@ def verify_guest(replay_code, replay_log, oracle):
     )):
         raise ValueError("Missing original UI256 geometry or deadline evidence")
     closures = [line for line in lines if line.startswith("clean=")]
-    close = closures[0] if len(closures) == 1 else ""
-    if (replay_code != 0 or not close.endswith("; failure=None")
-            or "combined: SwiftReservationUsage { current: 0," not in close
-            or "live_tickets: 0," not in close or "cleanup_invariant: None," not in close):
-        raise ValueError(f"Replay exit {replay_code} or missing clean owner closure; see owner trace")
+    closing_ledger, separator, closing_failure = (closures[0] if len(closures) == 1 else "").partition("; failure=")
+    if (not separator or closing_failure != failure
+            or "combined: SwiftReservationUsage { current: 0," not in closing_ledger
+            or "live_tickets: 0," not in closing_ledger or "cleanup_invariant: None," not in closing_ledger):
+        raise ValueError("Missing clean owner closure; see owner trace")
+
+
+def verify_guest(replay_code, replay_log, oracle):
+    if replay_code != 0:
+        raise ValueError(f"Replay exit {replay_code}; see owner trace")
+    verify_guest_trace(replay_log)
     return {"ui256Exit": replay_code, "oracleSnapshotsMatched": verify_frames(replay_log, oracle),
             "cleanOwner": True, "liveReservationBytes": 0, "liveTickets": 0}
 

@@ -7,7 +7,7 @@ use mixer_vm::experimental_swift_reactor::{
 use mixer_vm::experimental_wasi::{WasiBudget, WasiGrants};
 use mixer_vm::Cancellation;
 
-#[cfg(not(all(target_os = "ios", target_abi = "sim")))]
+#[cfg(not(any(s2_matched_shell, all(target_os = "ios", target_abi = "sim"))))]
 fn main() {
     let mut args = std::env::args_os().skip(1);
     let path = args.next().expect("Wasm reactor path");
@@ -125,7 +125,7 @@ fn replay(path: &Path, profile: Option<&str>, milestone: impl Fn(&str, Duration)
         }
     }
 
-    #[cfg(all(target_os = "ios", target_abi = "sim"))]
+    #[cfg(any(s2_matched_shell, all(target_os = "ios", target_abi = "sim")))]
     if succeeded {
         // Sample with the populated owner and its caches retained.
         std::thread::sleep(Duration::from_secs(1));
@@ -150,6 +150,26 @@ fn close_status(close: SwiftUICloseOutcome, succeeded: bool) -> i32 {
             eprintln!("frozen={usage:?}; failure={failure:?}");
             74
         }
+    }
+}
+
+#[cfg(s2_matched_shell)]
+mod matched_shell {
+    use super::*;
+    use std::ffi::{c_char, CStr, OsStr};
+    use std::os::unix::ffi::OsStrExt;
+
+    extern "C" {
+        fn mixer_s2b_checkpoint(stage: *const u8, stage_len: usize, elapsed_micros: u64);
+    }
+
+    #[no_mangle]
+    unsafe extern "C" fn mixer_s2b_replay(path: *const c_char, fixed34: bool) -> i32 {
+        let path = Path::new(OsStr::from_bytes(CStr::from_ptr(path).to_bytes()));
+        let profile = (!fixed34).then_some("--swift-6.3.3-ui256");
+        replay(path, profile, |stage, elapsed| unsafe {
+            mixer_s2b_checkpoint(stage.as_ptr(), stage.len(), elapsed.as_micros() as u64);
+        })
     }
 }
 

@@ -36,7 +36,7 @@ enum NativeJourney {
         try journey.reopen()
         try emit("reopen", since: start, journey.result)
 
-        #if os(iOS)
+        #if os(iOS) || S2_MATCHED_SHELL
         try await Task.sleep(for: .seconds(1))
         withExtendedLifetime(journey) {
             checkpoint("steady", 0)
@@ -45,7 +45,25 @@ enum NativeJourney {
     }
 }
 
-#if os(iOS)
+#if S2_MATCHED_SHELL
+@_cdecl("mixer_s2b_start_native")
+func startNativeJourney() {
+    Task { @MainActor in
+        do {
+            try await NativeJourney.run { stage, elapsed in
+                stage.withCString { name in
+                    mixer_s2b_checkpoint(name, stage.utf8.count, elapsed)
+                }
+            }
+            mixer_s2b_finish(0)
+        } catch {
+            FileHandle.standardError.write(Data("native failure=\(error)\n".utf8))
+            mixer_s2b_finish(20)
+        }
+    }
+    dispatchMain()
+}
+#elseif os(iOS)
 @_cdecl("mixer_s2a_start_native")
 func startNativeJourney() {
     Task { @MainActor in
