@@ -1,0 +1,188 @@
+schema: 1
+policy: independently-owned-product-engine
+dependencies:
+  - name: Android Gradle Plugin
+    coordinates: com.android.application
+    version: 9.3.1
+    origin: https://android.googlesource.com/platform/tools/base/
+    license: Apache-2.0
+    purpose: build-tool
+  - name: Kotlin toolchain and standard library
+    coordinates: ["org.jetbrains.kotlin:*", "org.jetbrains.kotlin.plugin.compose:*"]
+    version: 2.3.0
+    origin: https://github.com/JetBrains/kotlin
+    license: Apache-2.0
+    purpose: AGP Kotlin compiler, Compose compiler plugin, standalone host checker, and APK runtime
+  - name: AndroidX Compose BOM and Foundation
+    coordinates: androidx.compose:compose-bom and androidx.compose.foundation:foundation
+    version: 2026.11.01 BOM
+    origin: https://android.googlesource.com/platform/frameworks/support/
+    license: Apache-2.0
+    purpose: native renderer with the S5 dependency set
+  - name: AndroidX Activity
+    coordinates: androidx.activity:activity
+    version: 1.13.0
+    origin: https://android.googlesource.com/platform/frameworks/support/
+    license: Apache-2.0
+    purpose: debug smoke host only
+  - name: Gradle
+    version: 9.8.1
+    origin: https://github.com/gradle/gradle
+    license: Apache-2.0
+    purpose: external build-tool
+  - name: AndroidX transitive runtime
+    coordinates: "androidx.*:*"
+    origin: https://android.googlesource.com/platform/frameworks/support/
+    license: Apache-2.0
+    purpose: transitive components of the pinned S5 Compose and Activity artifacts
+    inventory: gradle.lockfile
+  - name: Kotlin coroutines and serialization
+    coordinates:
+      - org.jetbrains.kotlinx:kotlinx-coroutines-*
+      - org.jetbrains.kotlinx:kotlinx-serialization-*
+    versions: ["1.7.3", "1.8.0", "1.9.0"]
+    origin: https://github.com/Kotlin
+    license: Apache-2.0
+    purpose: transitive APK and compiler dependencies
+    inventory: gradle.lockfile
+  - name: Kotlin AtomicFU
+    coordinates: org.jetbrains.kotlinx:atomicfu*
+    version: "0.22.0"
+    origin: https://github.com/Kotlin/kotlinx-atomicfu
+    license: Apache-2.0
+    purpose: transitive dependency selected in the broader Gradle graph
+  - name: JetBrains JVM Annotations
+    coordinates: org.jetbrains:annotations
+    versions: ["13.0", "23.0.0"]
+    origin: https://github.com/JetBrains/java-annotations
+    license: Apache-2.0
+    purpose: transitive Kotlin nullability annotations
+  - name: JSpecify
+    coordinates: org.jspecify:jspecify
+    version: 1.0.0
+    origin: https://github.com/jspecify/jspecify
+    license: Apache-2.0
+    purpose: transitive nullability annotations
+  - name: Guava ListenableFuture
+    coordinates: "com.google.guava:listenablefuture"
+    versions: ["1.0", "9999.0-empty-to-avoid-conflict-with-guava"]
+    origin: https://github.com/google/guava
+    license: Apache-2.0
+    purpose: transitive AndroidX concurrency interface
+  - name: OpenJDK
+    version: "25.0.4.1"
+    origin: https://openjdk.org/
+    license: GPL-2.0-only WITH Classpath-exception-2.0
+    purpose: externally installed Java compiler and runtime
+    distribution: separate-toolchain
+  - name: Android SDK Platform and Build Tools
+    versions: ["37.1 revision 1", "37.0.0"]
+    origin: https://developer.android.com/tools
+    license: Android SDK License Agreement
+    license_reference: https://developer.android.com/studio/terms
+    purpose: externally installed Android compilation and packaging tools
+    distribution: separate-toolchain
+  - name: AOSP build tools, AndroidX Data Binding, and Gradle plugin marker
+    coordinates: ["com.android:*", "com.android.application:*", "com.android.databinding:*", "com.android.tools*:*", "androidx.databinding:*"]
+    origin: https://android.googlesource.com/platform/tools/base/
+    license: Apache-2.0
+    purpose: AGP plugin classpath, AAPT2, packaging, lint, and test tools
+  - name: Apache-licensed Gradle build and test dependencies
+    coordinates:
+      - "com.google.android:*"
+      - "com.google.api.grpc:*"
+      - "com.google.auto:*"
+      - "com.google.auto.service:*"
+      - "com.google.auto.value:*"
+      - "com.google.code.findbugs:*"
+      - "com.google.code.gson:*"
+      - "com.google.crypto.tink:*"
+      - "com.google.dagger:*"
+      - "com.google.errorprone:*"
+      - "com.google.flatbuffers:*"
+      - "com.google.guava:failureaccess"
+      - "com.google.guava:guava"
+      - "com.google.j2objc:*"
+      - "com.google.jimfs:*"
+      - "com.squareup:*"
+      - "commons-codec:*"
+      - "commons-io:*"
+      - "commons-logging:*"
+      - "io.grpc:*"
+      - "io.netty:*"
+      - "io.opencensus:*"
+      - "io.perfmark:*"
+      - "javax.inject:*"
+      - "org.apache.commons:*"
+      - "org.apache.httpcomponents:*"
+      - "org.bitbucket.b_c:*"
+      - "org.codehaus.groovy:*"
+      - "org.tensorflow:*"
+    origin: https://repo.maven.apache.org/maven2/
+    license: Apache-2.0
+    purpose: external Gradle tool and test classpaths
+  - name: Protocol Buffers and ASM
+    coordinates: ["com.google.protobuf:*", "org.ow2.asm:*"]
+    origin: https://repo.maven.apache.org/maven2/
+    license: BSD-3-Clause
+    purpose: external Gradle tool and test classpaths
+  - name: JOpt Simple, Checker Framework qualifiers, Animal Sniffer annotations, and SLF4J
+    coordinates: ["net.sf.jopt-simple:*", "org.checkerframework:*", "org.codehaus.mojo:animal-sniffer-annotations", "org.slf4j:*"]
+    origin: https://repo.maven.apache.org/maven2/
+    license: MIT
+    purpose: external Gradle tool and test classpaths
+  - name: JAXB, Jakarta Activation, istack, StAX-Ex, and FastInfoset
+    coordinates: ["org.glassfish.jaxb:*", "jakarta.activation:*", "jakarta.xml.bind:*", "com.sun.istack:*", "org.jvnet.staxex:*", "com.sun.xml.fastinfoset:FastInfoset"]
+    origin: https://repo.maven.apache.org/maven2/
+    license: BSD-3-Clause
+    license_reference: https://www.eclipse.org/org/documents/edl-v10.php
+    license_note: Eclipse Distribution License 1.0. FastInfoset also declares Apache-2.0.
+    purpose: external Gradle tool classpaths
+  - name: Java Native Access
+    coordinates: "net.java.dev.jna:*"
+    version: "5.6.0"
+    origin: https://github.com/java-native-access/jna
+    license: Apache-2.0 OR LGPL-2.1-only
+    purpose: external Gradle tool classpaths
+  - name: Bouncy Castle
+    coordinates: "org.bouncycastle:*"
+    version: "1.79"
+    origin: https://www.bouncycastle.org/
+    license: Bouncy Castle License
+    license_reference: https://www.bouncycastle.org/licence.html
+    purpose: external Android signing and packaging tools
+  - name: kXML2
+    coordinates: "net.sf.kxml:kxml2"
+    version: "2.3.0"
+    origin: https://repo.maven.apache.org/maven2/net/sf/kxml/kxml2/2.3.0/
+    license: BSD-style and public domain per published POM
+    purpose: external Gradle tool classpaths
+  - name: JDOM
+    coordinates: "org.jdom:jdom2"
+    version: "2.0.6"
+    origin: https://www.jdom.org/
+    license: JDOM License
+    license_reference: https://www.jdom.org/docs/faq.html#a0010
+    purpose: external Gradle tool classpaths
+  - name: juniversalchardet
+    coordinates: "com.googlecode.juniversalchardet:juniversalchardet"
+    version: "1.0.3"
+    origin: https://repo.maven.apache.org/maven2/com/googlecode/juniversalchardet/juniversalchardet/1.0.3/
+    license: MPL-1.1
+    purpose: external AGP buildscript classpath
+    distribution: external-build-tool-only
+  - name: Javax Annotation API
+    coordinates: "javax.annotation:javax.annotation-api"
+    version: "1.3.2"
+    origin: https://github.com/javaee/javax.annotation
+    license: CDDL and GPLv2 with Classpath Exception per published POM
+    purpose: external Gradle tool classpaths
+    distribution: external-build-tool-only
+  - name: Google Unified Test Platform
+    coordinates: "com.google.testing.platform:*"
+    version: "0.0.9-alpha04"
+    origin: https://dl.google.com/dl/android/maven2/com/google/testing/platform/
+    license: Android SDK License Agreement
+    license_reference: https://developer.android.com/studio/terms
+    purpose: device test execution configurations enumerated during metadata generation
+    distribution: external-test-tool-only

@@ -1,0 +1,34 @@
+schema: 1
+dependencies:
+  - name: Kotlin compiler and standard library
+    coordinates: org.jetbrains.kotlin
+    versions: ["2.3.0", "1.6.10 (compiler's kotlin-reflect dependency)"]
+    license: Apache-2.0
+    purpose: host replay compiler and JVM runtime
+  - name: Kotlin coroutines
+    coordinates: org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm
+    version: 1.8.0
+    license: Apache-2.0
+    purpose: host replay compiler dependency
+  - name: JetBrains JVM annotations
+    coordinates: org.jetbrains:annotations
+    version: 13.0
+    license: Apache-2.0
+    purpose: host replay compiler dependency
+  - name: JSON in Java
+    coordinates: org.json:json
+    version: "20251224"
+    license: Public Domain
+    purpose: host counterpart to Android JSONObject.quote used by the renderer
+  - name: Android renderer and debug host dependencies
+    inventory: native/android/compose/THIRD_PARTY.yml
+    purpose: existing pinned Gradle, Compose Foundation, and AndroidX Activity build and runtime inputs
+  - name: AndroidX Graphics Path
+    coordinates: androidx.graphics:graphics-path
+    version: 1.1.0
+    license: Apache-2.0
+    purpose: transitive arm64 library from the renderer's Compose dependency set
+  - name: Swift Android platform libraries
+    version: "6.3.3 RELEASE, NDK r27d"
+    inventory: "Swift Android SDK artifact SBOM and repository THIRD_PARTY.yml"
+    purpose: package the exact ELF dependency closure of the Swift fixture and S5 JNI adapter

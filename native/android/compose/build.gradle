@@ -1,0 +1,95 @@
+buildscript {
+    configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+}
+
+plugins {
+    id 'com.android.application' version '9.3.1'
+    id 'org.jetbrains.kotlin.plugin.compose' version '2.3.0'
+}
+
+android {
+    namespace = 'dev.mixer.compose'
+    buildToolsVersion = '37.0.0'
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 1
+        }
+    }
+
+    defaultConfig {
+        applicationId = 'dev.mixer.compose.up4'
+        minSdk = 28
+        targetSdk = 37
+        versionCode = 1
+        versionName = '0.1'
+        testInstrumentationRunner = providers.gradleProperty('mixerHeldInputSmoke').getOrElse('false') == 'true' ?
+            'dev.mixer.compose.HeldInputSmoke' : 'dev.mixer.compose.ComposeSmoke'
+    }
+
+    buildFeatures { compose = true }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    signingConfigs {
+        debug {
+            storeFile = file(providers.environmentVariable('MIXER_COMPOSE_WORK').get() + '/debug.keystore')
+        }
+    }
+}
+
+layout.buildDirectory = file(providers.environmentVariable('MIXER_COMPOSE_WORK').get() + '/build')
+
+configurations {
+    hostCompiler {
+        canBeConsumed = false
+        canBeDeclared = true
+        canBeResolved = true
+    }
+    hostLibrary {
+        canBeConsumed = false
+        canBeDeclared = true
+        canBeResolved = true
+    }
+}
+
+dependencyLocking {
+    lockAllConfigurations()
+    lockMode = LockMode.STRICT
+}
+
+dependencies {
+    implementation platform('androidx.compose:compose-bom:2026.11.01')
+    implementation 'androidx.compose.foundation:foundation'
+    debugImplementation 'androidx.activity:activity:1.13.0'
+
+    // Use the pinned compiler already admitted by the Android toolchain.
+    hostCompiler 'org.jetbrains.kotlin:kotlin-compiler-embeddable:2.3.0'
+    hostLibrary 'org.jetbrains.kotlin:kotlin-stdlib:2.3.0'
+}
+
+def hostCompiler = configurations.hostCompiler
+def hostLibrary = configurations.hostLibrary
+def hostClasses = layout.buildDirectory.dir('host-check')
+tasks.register('compileAuthorityCheck', JavaExec) {
+    classpath = hostCompiler
+    mainClass = 'org.jetbrains.kotlin.cli.jvm.K2JVMCompiler'
+    doFirst {
+        args '-no-stdlib', '-no-reflect', '-classpath', hostLibrary.asPath, '-d', hostClasses.get().asFile
+        args files(
+            'src/main/kotlin/dev/mixer/compose/FrameAuthority.kt',
+            'src/main/kotlin/dev/mixer/compose/Document.kt',
+            'src/main/kotlin/dev/mixer/compose/DocumentReader.kt',
+            'src/host/kotlin/dev/mixer/compose/AuthorityCheck.kt'
+        ).files
+    }
+}
+tasks.register('authorityCheck', JavaExec) {
+    dependsOn 'compileAuthorityCheck'
+    classpath = files(hostClasses, hostLibrary)
+    mainClass = 'dev.mixer.compose.AuthorityCheckKt'
+    def fixture = providers.environmentVariable('MIXER_COMPOSE_SDK_FIXTURE')
+    if (fixture.isPresent()) args fixture.get()
+}
