@@ -465,14 +465,18 @@ fn primitive_values_match(
     values: &[Value],
     operation: &mut SwiftExecutionOperation<'_>,
 ) -> Result<(), SwiftRunFailure> {
-    if operation
-        .control
-        .usage(Some(operation.wasi.usage()))
-        .live
-        .values
-        .current
-        != values.len()
-    {
+    let live_values = if option_env!("MIXER_SWIFT_S2_DIRECT_VALUE_LEDGER") == Some("1") {
+        // The stack invariant only consumes the original live counter.
+        operation.control.live_usage().values.current
+    } else {
+        operation
+            .control
+            .usage(Some(operation.wasi.usage()))
+            .live
+            .values
+            .current
+    };
+    if live_values != values.len() {
         return Err(primitive_invariant(operation));
     }
     Ok(())
