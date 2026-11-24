@@ -322,6 +322,8 @@ SWIFT_VERSION_SOURCE_CHANGES = {
 SWIFT_VERSION_CHANGES = SWIFT_VERSION_SOURCE_CHANGES | {'cli/build-tests/test_public_export.py'}
 CLI_NONREGULAR_INPUT_TEST = 'cli/Tests/MixerBuildTests/UpdateHardeningTests.swift'
 CLI_NONREGULAR_INPUT_TEST_PREIMAGE = 'cli-nonregular-input-test-predecessor-bytes/' + CLI_NONREGULAR_INPUT_TEST
+CLI_ANDROID_COMPATIBILITY_TEST = 'cli/build-tests/test_android_sdk_compatibility.py'
+CLI_ANDROID_COMPATIBILITY_TEST_PREIMAGE = 'cli-android-compatibility-test-predecessor-bytes/' + CLI_ANDROID_COMPATIBILITY_TEST
 SIGNED_APPLE_OVERFLOW_TEST = 'capability-activation/Tests/MixerCapabilityActivationTests/GuestUISignedRuntimeTests.swift'
 SIGNED_APPLE_OVERFLOW_TEST_PREIMAGE = 'signed-apple-overflow-test-predecessor-bytes/' + SIGNED_APPLE_OVERFLOW_TEST
 W09_SIGNED_APPLE_TEST_PREIMAGE = 'w09-signed-apple-test-predecessor-bytes/' + SIGNED_APPLE_OVERFLOW_TEST
@@ -669,6 +671,7 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     HOSTED_V43_WORKFLOW, HOSTED_V44_WORKFLOW, HOSTED_V45_WORKFLOW, HOSTED_V46_WORKFLOW, HOSTED_V47_WORKFLOW, HOSTED_V48_WORKFLOW, HOSTED_V49_WORKFLOW, HOSTED_V50_WORKFLOW, HOSTED_V51_WORKFLOW, HOSTED_V52_WORKFLOW, HOSTED_V53_WORKFLOW, HOSTED_V54_WORKFLOW, HOSTED_V55_WORKFLOW, HOSTED_V56_WORKFLOW, HOSTED_V57_WORKFLOW,
     HOSTED_V58_WORKFLOW, HOSTED_V59_WORKFLOW, HOSTED_V60_WORKFLOW, HOSTED_V61_WORKFLOW, HOSTED_V62_WORKFLOW, HOSTED_V63_WORKFLOW, HOSTED_V64_WORKFLOW, HOSTED_V65_WORKFLOW, HOSTED_V66_WORKFLOW, HOSTED_V67_WORKFLOW, HOSTED_V68_WORKFLOW, HOSTED_V69_WORKFLOW, GUEST_CUTOFF_PREIMAGE, WORKER_SWIFT_PROBE_PREIMAGE, CLI_NONREGULAR_INPUT_TEST_PREIMAGE,
     SIGNED_APPLE_OVERFLOW_TEST_PREIMAGE, W09_SIGNED_APPLE_TEST_PREIMAGE, SPARSE_CHECKOUT_TEST_PREIMAGE,
+    CLI_ANDROID_COMPATIBILITY_TEST_PREIMAGE,
 } | {ANDROID_STOCK_LIBZ_PREFIX + name for name in (ANDROID_BUILD_DRIVER, SPARSE_CHECKOUT_TEST)} | {
     STORE_RECONCILIATION_TEST_PREFIX + name for name in STORE_RECONCILIATION_TESTS
 } | {
@@ -900,7 +903,8 @@ def install_inputs():
                              'worker_swift_probe_transition', 'android_retained_output_transition',
                              'android_retained_output_correction_transition',
                              'managed_android_retained_transition', 'pair25_transition', 'swift_version_transition',
-                             'cli_nonregular_input_test_transition', 'signed_apple_overflow_test_transition',
+                             'cli_nonregular_input_test_transition', 'cli_android_compatibility_test_transition',
+                             'signed_apple_overflow_test_transition',
                              'w09_signed_apple_test_transition', 'fieldlog_commit_transition', 'native_fingerprint_transition',
                              'private_f10_transition', 'fieldlog_signed_editor_transition',
                              'sparse_checkout_test_transition', 'release_rest_v3_transition', 'stock_promotion_transition',
@@ -1731,6 +1735,17 @@ def install_inputs():
             'Installed CLI nonregular input test mode differs')
     installed[CLI_NONREGULAR_INPUT_TEST] = cli_test['after']
     preimages.setdefault(CLI_NONREGULAR_INPUT_TEST, (raw, 0o644))
+
+    android_test = binding['cli_android_compatibility_test_transition']
+    raw = read_predecessor_member(HERE / CLI_ANDROID_COMPATIBILITY_TEST_PREIMAGE)
+    require(set(android_test) == {'before', 'after'} and CLI_ANDROID_COMPATIBILITY_TEST not in current and
+            android_test['before'] == previous.row(raw) == installed[CLI_ANDROID_COMPATIBILITY_TEST] ==
+            owning[CLI_ANDROID_COMPATIBILITY_TEST] and android_test['before'] != android_test['after'],
+            'CLI Android compatibility test predecessor differs')
+    require(stat.S_IMODE((ROOT / CLI_ANDROID_COMPATIBILITY_TEST).lstat().st_mode) == 0o644,
+            'Installed CLI Android compatibility test mode differs')
+    installed[CLI_ANDROID_COMPATIBILITY_TEST] = android_test['after']
+    preimages.setdefault(CLI_ANDROID_COMPATIBILITY_TEST, (raw, 0o644))
 
     overflow_test = binding['signed_apple_overflow_test_transition']
     raw = read_predecessor_member(HERE / SIGNED_APPLE_OVERFLOW_TEST_PREIMAGE)
