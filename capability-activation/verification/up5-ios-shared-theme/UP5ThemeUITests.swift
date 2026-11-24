@@ -129,6 +129,188 @@ final class UP5ThemeUITests: XCTestCase {
         XCTAssertGreaterThan(bold.label, regular.label * 1.08)
     }
 
+    @MainActor
+    func testSettingsBoldTextRendersHeavierGlyphs() throws {
+        // Keep cleanup reachable even if an XCTest interaction records a failure.
+        continueAfterFailure = true
+        let app = XCUIApplication(bundleIdentifier: "dev.mixer.fixture.up5theme")
+        let settings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
+        app.launchArguments = ["--contrast-probe", "--system-bold-text-probe"]
+        defer { if app.state != .notRunning { app.terminate() } }
+
+        retain(XCTAttachment(string: "com.apple.Preferences initial state: \(settings.state)"),
+               "settings-launch")
+        let original: Bool
+        do {
+            original = try boldTextValue(settingsBoldTextSwitch(in: settings))
+            recordSettings(settings, phase: "baseline", enabled: original)
+        } catch {
+            recordSettingsFailure(settings, phase: "baseline", error: error)
+            throw error
+        }
+
+        let baseline = try captureSystemBoldText(app, enabled: original, phase: "baseline")
+        app.terminate()
+        defer {
+            do {
+                try setSettingsBoldText(original, in: settings, phase: "restored")
+                app.launch()
+                wait(app.staticTexts["fixture-status"], for: "bundled", app: app)
+                let restoredSize = try observeSystemBoldText(app, enabled: original, phase: "restored")
+                XCTAssertEqual(restoredSize, baseline.size, "Dynamic Type after restoring Bold Text")
+            } catch {
+                recordSettingsFailure(settings, phase: "restoration", error: error)
+                XCTFail("Could not verify restoration to Bold Text \(original ? "On" : "Off"): \(error)")
+            }
+        }
+
+        do {
+            try setSettingsBoldText(!original, in: settings, phase: "changed")
+        } catch {
+            recordSettingsFailure(settings, phase: "change", error: error)
+            throw error
+        }
+        let changed = try captureSystemBoldText(app, enabled: !original, phase: "changed")
+        app.terminate()
+
+        XCTAssertEqual(changed.size, baseline.size, "Bold Text comparison requires the same Dynamic Type size")
+        let (regular, bold) = original ? (changed.sample, baseline.sample) : (baseline.sample, changed.sample)
+        XCTAssertGreaterThan(bold.inkPixels, regular.inkPixels * 1.08)
+        XCTAssertGreaterThan(bold.labelPixels, regular.labelPixels * 1.08)
+    }
+
+    private struct BoldTextFailure: LocalizedError {
+        let errorDescription: String?
+        init(_ message: String) { errorDescription = message }
+    }
+
+    @MainActor
+    private func settingsBoldTextSwitch(in settings: XCUIApplication) throws -> XCUIElement {
+        settings.activate()
+        guard settings.wait(for: .runningForeground, timeout: 8) else {
+            throw BoldTextFailure("com.apple.Preferences did not reach the foreground (\(settings.state))")
+        }
+        let displayPage = settings.navigationBars["Display & Text Size"]
+        // Scope the switch to the system page before reading or changing it.
+        if !displayPage.exists {
+            if !settings.navigationBars["Accessibility"].exists {
+                try openSettingsRow("Accessibility", in: settings)
+            }
+            try openSettingsRow("Display & Text Size", in: settings)
+        }
+        guard displayPage.waitForExistence(timeout: 5) else {
+            throw BoldTextFailure("Expected the Display & Text Size navigation bar")
+        }
+
+        let boldLabel = NSPredicate(format: "label == %@", "Bold Text")
+        let labeledSwitch = settings.switches.matching(boldLabel)
+        let rowSwitch = settings.cells.containing(.staticText, identifier: "Bold Text").switches
+        if labeledSwitch.firstMatch.waitForExistence(timeout: 3), labeledSwitch.count == 1 {
+            return labeledSwitch.firstMatch
+        }
+        if rowSwitch.firstMatch.waitForExistence(timeout: 3), rowSwitch.count == 1 {
+            return rowSwitch.firstMatch
+        }
+        throw BoldTextFailure("Expected one Bold Text switch on Display & Text Size")
+    }
+
+    @MainActor
+    private func openSettingsRow(_ label: String, in settings: XCUIApplication) throws {
+        let matches = settings.staticTexts.matching(NSPredicate(format: "label == %@", label))
+        let row = matches.firstMatch
+        for _ in 0..<4 {
+            if row.waitForExistence(timeout: 2) { break }
+            settings.swipeUp()
+        }
+        // XCUIElement.tap scrolls to an offscreen element in a scrollable container.
+        guard row.waitForExistence(timeout: 5), matches.count == 1 else {
+            throw BoldTextFailure("Expected one Settings row labeled \(label)")
+        }
+        row.tap()
+    }
+
+    @MainActor
+    private func boldTextValue(_ toggle: XCUIElement) throws -> Bool {
+        switch (toggle.value as? String)?.lowercased() {
+        case "1", "on": true
+        case "0", "off": false
+        default: throw BoldTextFailure("Unreadable Bold Text switch value: \(String(describing: toggle.value))")
+        }
+    }
+
+    @MainActor
+    private func setSettingsBoldText(_ enabled: Bool, in settings: XCUIApplication, phase: String) throws {
+        let toggle = try settingsBoldTextSwitch(in: settings)
+        if try boldTextValue(toggle) != enabled {
+            guard toggle.isEnabled && toggle.isHittable else {
+                throw BoldTextFailure("The Bold Text switch cannot be tapped in phase \(phase)")
+            }
+            toggle.tap()
+        }
+        let values = enabled ? ["1", "On", "on", "ON"] : ["0", "Off", "off", "OFF"]
+        let readback = NSPredicate(format: "exists == true AND value IN %@", values)
+        let waiter = XCTNSPredicateExpectation(predicate: readback, object: toggle)
+        guard XCTWaiter.wait(for: [waiter], timeout: 8) == .completed,
+              try boldTextValue(toggle) == enabled else {
+            throw BoldTextFailure("The Bold Text switch did not read back \(enabled) in phase \(phase)")
+        }
+        recordSettings(settings, phase: phase, enabled: enabled)
+    }
+
+    @MainActor
+    private func recordSettings(_ settings: XCUIApplication, phase: String, enabled: Bool) {
+        let description = "Settings Bold Text \(phase): \(enabled ? "On" : "Off")"
+        XCTContext.runActivity(named: description) { _ in
+            retain(XCTAttachment(string: description), phase + "-settings-value")
+            retain(XCTAttachment(screenshot: settings.screenshot()), phase + "-settings-switch")
+        }
+    }
+
+    @MainActor
+    private func recordSettingsFailure(_ settings: XCUIApplication, phase: String, error: Error) {
+        retain(XCTAttachment(string: "\(error.localizedDescription)\nstate=\(settings.state)\n\(settings.debugDescription)"),
+               phase + "-settings-diagnostics")
+        if settings.state == .runningForeground {
+            retain(XCTAttachment(screenshot: settings.screenshot()), phase + "-settings-failure")
+        }
+    }
+
+    @MainActor
+    private func observeSystemBoldText(_ app: XCUIApplication, enabled: Bool, phase: String) throws -> String {
+        let observation = app.staticTexts["bold-text-observation"]
+        let weight = enabled ? "bold" : "(regular|unspecified)"
+        let condition = NSPredicate(format: "exists == true AND label MATCHES %@",
+                                    "system=\(enabled) swiftui=\(weight) size=.+")
+        let expectation = XCTNSPredicateExpectation(predicate: condition, object: observation)
+        let result = XCTWaiter.wait(for: [expectation], timeout: 10)
+        let label = observation.exists ? observation.label : "missing"
+        retain(XCTAttachment(string: label), phase + "-native-bold-text-readback")
+        guard result == .completed, let size = label.split(separator: " ").last else {
+            retain(XCTAttachment(screenshot: app.screenshot()), phase + "-fixture-failure")
+            throw BoldTextFailure("Expected UIKit and SwiftUI Bold Text \(enabled) in phase \(phase); observed \(label)")
+        }
+        return String(size)
+    }
+
+    @MainActor
+    private func captureSystemBoldText(_ app: XCUIApplication, enabled: Bool, phase: String) throws -> (sample: Sample, size: String) {
+        app.launch()
+        wait(app.staticTexts["fixture-status"], for: "bundled", app: app)
+        wait(app.staticTexts["contrast-observation"], for: "swiftui=false system=false", app: app)
+        let size = try observeSystemBoldText(app, enabled: enabled, phase: phase)
+        let sample = try capture(app, phase: phase + "-settings-bold-text-" + (enabled ? "on" : "off"), palette: .light)
+        expectTheme(sample)
+        let text = app.staticTexts["Ready"]
+        let save = app.buttons["Save sample"]
+        let disabled = app.buttons["Unavailable"]
+        retain(XCTAttachment(string: """
+            \(text.elementType) \(text.label)
+            \(save.elementType) \(save.label) enabled=\(save.isEnabled)
+            \(disabled.elementType) \(disabled.label) enabled=\(disabled.isEnabled)
+            """), phase + "-native-roles")
+        return (sample, size)
+    }
+
     private struct Palette {
         let ink: ThemePixels.RGB
         let fill: ThemePixels.RGB
@@ -146,6 +328,7 @@ final class UP5ThemeUITests: XCTestCase {
         let inkPixels: Double
         let fill: Double
         let label: Double
+        let labelPixels: Double
         let disabledInk: Double
     }
 
@@ -157,8 +340,9 @@ final class UP5ThemeUITests: XCTestCase {
             ink: ink, inkPixels: ink * Double(textPixels.width * textPixels.height),
             fill: buttonPixels.fraction(of: palette.fill, x: 0.08..<0.14, y: 0.27..<0.73),
             label: buttonPixels.fraction(of: palette.label, x: 0.15..<0.85, y: 0.20..<0.80),
+            labelPixels: buttonPixels.fraction(of: palette.label) * Double(buttonPixels.width * buttonPixels.height),
             disabledInk: disabledPixels.fraction(of: palette.disabledInk))
-        retain(XCTAttachment(string: "text=\(sample.ink) inkPixels=\(sample.inkPixels) fill=\(sample.fill) label=\(sample.label) disabled=\(sample.disabledInk)"),
+        retain(XCTAttachment(string: "text=\(sample.ink) inkPixels=\(sample.inkPixels) fill=\(sample.fill) label=\(sample.label) labelPixels=\(sample.labelPixels) disabled=\(sample.disabledInk)"),
                phase + "-pixels")
         return sample
     }

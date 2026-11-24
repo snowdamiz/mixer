@@ -61,7 +61,8 @@ test_run="$base/build/derived-data/Build/Products/UP5Theme_iphonesimulator27.2-a
 for selector in testProductThemeOnBundledAndSignedGuest \
   testIncreasedContrastOnBundledAndSignedGuest \
   testHeldPressRendersPressedFillAndRoutesOnRelease \
-  testBoldTextTraitLoanRendersHeavierGlyphs
+  testBoldTextTraitLoanRendersHeavierGlyphs \
+  testSettingsBoldTextRendersHeavierGlyphs
 do
   OWNED_SIMULATOR_UDID="$owned_uuid" UP5_ROOT_EVIDENCE="$root_evidence" \
     sh "$fixture/run-on-owned-simulator.sh" "$test_run" "$selector" || break
@@ -83,9 +84,19 @@ replay covers the following new selectors.
 | --- | --- |
 | `testIncreasedContrastOnBundledAndSignedGuest` | `xcrun simctl ui "$owned_uuid" increase_contrast enabled` and exact-UUID readback. UIKit and SwiftUI must both report increased contrast. Light and dark captures compare Text ink and backdrop, enabled and disabled Button fill and labels, and solid versus dashed button edges. Native element roles, enabled state, ordinary Save, and signed disk readback are checked. |
 | `testHeldPressRendersPressedFillAndRoutesOnRelease` | A two-second native touch on the bundled Save button under standard contrast. A passive UIKit observer snapshots the rendered app window with `drawHierarchy` during the live touch. The test compares pressed and resting paint, checks zero actions in flight, and expects one action on release and restoration of the resting paint. The window PNG is retained separately from XCTest's before and after screenshots. This samples the app window, with system compositor overlays outside its scope. Dark, increased-contrast, and signed-guest held presses remain outside this selector. |
-| `testBoldTextTraitLoanRendersHeavierGlyphs` | Two launches at the same Dynamic Type size with fixture-only regular and bold SwiftUI legibility values. The captures compare the rendered ink of native Text and Button glyphs. The native Settings Bold Text path remains pending. |
+| `testBoldTextTraitLoanRendersHeavierGlyphs` | Two launches at the same Dynamic Type size with fixture-only regular and bold SwiftUI legibility values. The captures compare the rendered ink of native Text and Button glyphs. |
+| `testSettingsBoldTextRendersHeavierGlyphs` | XCTest flips and restores the system Bold Text switch in `com.apple.Preferences`. Each state must agree with UIKit and unmodified SwiftUI legibility. At the same Dynamic Type size, the bundled Text and Save Button must gain more than 8% of their themed ink when Bold Text is on. The result retains the glyph screenshots, native roles, and setting readbacks. |
 
 The runner saves, sets, reads back, and restores Increase Contrast on the
 supplied UUID. Root can use the setting log to restore the original value
-after an interrupted run. The new selectors have build and host mapping
-coverage. Record runtime results separately after replay.
+after an interrupted run. Record runtime results separately after replay.
+
+For the Settings selector, use an English iPhone Simulator and start Settings
+on its main page or within **Accessibility** > **Display & Text Size**.
+The test records the initial switch value before tapping and checks the restored
+value in Settings and the fixture. If the run stops before restoration, read the
+`baseline-settings-value` attachment or the baseline activity in the XCTest
+log. On the exact owned Simulator, restore that value under **Settings** >
+**Accessibility** > **Display & Text Size** > **Bold Text**. If navigation fails,
+inspect the `*-settings-diagnostics` attachment for the launch state and
+accessibility hierarchy. [Apple's iPhone settings guide](https://support.apple.com/en-gb/guide/iphone/iph3c076905a/26/ios/26)

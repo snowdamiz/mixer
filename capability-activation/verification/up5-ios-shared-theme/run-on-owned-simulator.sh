@@ -7,7 +7,7 @@ test -f "$test_run"
 test_name=${2:-testProductThemeOnBundledAndSignedGuest}
 case "$test_name" in
   testIncreasedContrastOnBundledAndSignedGuest) requested=enabled ;;
-  testProductThemeOnBundledAndSignedGuest|testHeldPressRendersPressedFillAndRoutesOnRelease|testBoldTextTraitLoanRendersHeavierGlyphs)
+  testProductThemeOnBundledAndSignedGuest|testHeldPressRendersPressedFillAndRoutesOnRelease|testBoldTextTraitLoanRendersHeavierGlyphs|testSettingsBoldTextRendersHeavierGlyphs)
     requested=disabled ;;
   *) printf 'Unknown UP5 selector: %s\n' "$test_name" >&2; exit 2 ;;
 esac

@@ -20,6 +20,9 @@ struct UP5ThemeApp: App {
                 if arguments.contains("--contrast-probe") {
                     ContrastObservation()
                 }
+                if arguments.contains("--system-bold-text-probe") {
+                    BoldTextObservation()
+                }
                 if arguments.contains("--held-press-probe") {
                     Text(heldSample).lineLimit(1).accessibilityIdentifier("held-sample")
                 }
@@ -60,6 +63,22 @@ private struct ContrastObservation: View {
     var body: some View {
         Text(verbatim: "swiftui=\(contrast == .increased) system=\(UIAccessibility.isDarkerSystemColorsEnabled)")
             .accessibilityIdentifier("contrast-observation")
+    }
+}
+
+private struct BoldTextObservation: View {
+    @Environment(\.legibilityWeight) private var weight
+    @Environment(\.dynamicTypeSize) private var size
+
+    var body: some View {
+        let legibility = switch weight {
+        case .bold?: "bold"
+        case .regular?: "regular"
+        case nil: "unspecified"
+        @unknown default: "unknown"
+        }
+        Text(verbatim: "system=\(UIAccessibility.isBoldTextEnabled) swiftui=\(legibility) size=\(size)")
+            .accessibilityIdentifier("bold-text-observation")
     }
 }
 
