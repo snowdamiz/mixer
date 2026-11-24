@@ -119,6 +119,7 @@ def admission_paths(root=None, binding=None):
                     'up2_pair29_transition', 'hosted_v92_transition', 's4_display_receipt_transition',
                     'swiftui_controls_transition', 'up5_pair30_transition', 'up5_native_source_transition',
                     'up5_apple_theme_identity_transition', 'up5_pair31_transition',
+                    'up5_anyview_transition', 'up5_anyview_sparse_test_overlay',
                     'hosted_v93_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
@@ -529,6 +530,7 @@ class SparseControls(unittest.TestCase):
             native = binding['up5_native_source_transition']
             theme_identity = binding['up5_apple_theme_identity_transition']
             pair31 = binding['up5_pair31_transition']
+            anyview = binding['up5_anyview_transition']
             self.assertEqual(s3['sourceBefore'], up2['sourceAfter'])
             self.assertEqual(controls['sourceBefore'], s3['sourceAfter'])
             self.assertEqual(up5['sourceBefore'], controls['sourceAfter'])
@@ -539,7 +541,12 @@ class SparseControls(unittest.TestCase):
             self.assertEqual(observed['predecessor_up5_native_source164_sha256'], theme_identity['sourceBefore'])
             self.assertEqual(pair31['sourceBefore'], theme_identity['sourceAfter'])
             self.assertEqual(observed['predecessor_up5_apple_theme_identity_source165_sha256'], pair31['sourceBefore'])
-            self.assertEqual(observed['source_sha256'], pair31['sourceAfter'])
+            self.assertEqual(pair31['profileAfter']['id'], 'mixer.android-source-pair.31')
+            for kind in ('sdk', 'adapter'):
+                self.assertEqual(observed['profile'][kind + '_sha256'],
+                                 pair31['profileAfter'][kind + '_compatibility_sha256'])
+            self.assertEqual(anyview['sourceBefore'], pair31['sourceAfter'])
+            self.assertEqual(observed['source_sha256'], anyview['sourceAfter'])
             self.assertEqual(observed['source_sha256'], binding['source']['sha256'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']
@@ -644,8 +651,21 @@ class SparseControls(unittest.TestCase):
             for name in additions:
                 self.assertFalse((restored / name).exists(), name)
 
+            test_owner = Path(__file__).relative_to(ROOT)
+            stale_owner = repo / SOURCE_BINDING.parent / 'up5-anyview-sparse-test-predecessor-bytes' / test_owner
+            installed_owner = repo / test_owner
+            raw = installed_owner.read_bytes()
+            try:
+                installed_owner.write_bytes(stale_owner.read_bytes())
+                failed = command(python + [str(adopter), 'verify', '--workflow-installed'])
+                self.assertEqual(failed.returncode, 1)
+                self.assertIn(('Owning bytes differ: ' + test_owner.as_posix()).encode(), failed.stderr)
+            finally:
+                installed_owner.write_bytes(raw)
+
             source_inputs = json.loads((repo / SOURCE_BINDING.parent / binding['source']['manifest']).read_bytes())
             for prefix, transition in (
+                ('up5-anyview-predecessor-bytes', anyview),
                 ('up5-pair31-predecessor-bytes', pair31),
                 ('up5-apple-theme-identity-predecessor-bytes', theme_identity),
                 ('up5-native-source-predecessor-bytes', native),
@@ -680,7 +700,7 @@ class SparseControls(unittest.TestCase):
                         finally:
                             path.write_bytes(current)
                 self.assertEqual(B.canonical().source_digest(source_inputs), transition['sourceBefore'])
-                if transition is pair31:
+                if transition is anyview or transition is pair31:
                     published_map = repo / SOURCE_BINDING.parent / prefix / binding['source']['manifest']
                     self.assertEqual(json.loads(published_map.read_bytes()), source_inputs)
             for name, identity in s3['additions'].items():
