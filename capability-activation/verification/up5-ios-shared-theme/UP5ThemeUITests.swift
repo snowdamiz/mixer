@@ -86,8 +86,211 @@ final class UP5ThemeUITests: XCTestCase {
         let holdDuration = 2.0
         let save = app.buttons["Save sample"]
         save.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(forDuration: holdDuration)
-        let observation = app.staticTexts["held-sample"].label
+        try expectHeldSample(app, holdDuration: holdDuration)
+
+        wait(app.staticTexts["fixture-result"], for: "bundled action routed", app: app)
+        try expectTheme(capture(app, phase: "after-release", palette: .light))
+        app.buttons["Close fixture"].tap()
+        wait(app.staticTexts["fixture-status"], for: "closed, disk=empty", app: app)
+        XCTAssertEqual(app.staticTexts["fixture-result"].label, "bundled action routed")
+    }
+
+    @MainActor
+    func testPressDraggedOutsideDoesNotRouteAndRestoresFill() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication(bundleIdentifier: "dev.mixer.fixture.up5theme")
+        defer { if app.state != .notRunning { app.terminate() } }
+        _ = try compareDrag(app, apple: false, vertical: true, arm: "themed-vertical")
+    }
+
+    @MainActor
+    func testCompareThemedAndAppleDragRelease() {
+        continueAfterFailure = true
+        let app = XCUIApplication(bundleIdentifier: "dev.mixer.fixture.up5theme")
+        defer { if app.state != .notRunning { app.terminate() } }
+        var referenceFrame: CGRect?
+        var themedHorizontalActions: Int?
+
+        for apple in [false, true] {
+            for vertical in [false, true] {
+                let arm = (apple ? "apple" : "themed") + (vertical ? "-vertical" : "-horizontal")
+                XCTContext.runActivity(named: arm) { _ in
+                    do {
+                        let (frame, actions) = try compareDrag(app, apple: apple, vertical: vertical, arm: arm)
+                        if let referenceFrame {
+                            XCTAssertEqual(frame.minX, referenceFrame.minX, accuracy: 1)
+                            XCTAssertEqual(frame.minY, referenceFrame.minY, accuracy: 1)
+                        } else {
+                            referenceFrame = frame
+                        }
+                        if !vertical {
+                            if apple {
+                                XCTAssertEqual(actions, try XCTUnwrap(themedHorizontalActions),
+                                               "The same in-row drag must route identically for both controls")
+                            } else {
+                                themedHorizontalActions = actions
+                            }
+                        }
+                    } catch {
+                        XCTFail("Could not finish \(arm): \(error)")
+                    }
+                }
+                if app.state != .notRunning { app.terminate() }
+            }
+        }
+    }
+
+    @MainActor
+    private func compareDrag(_ app: XCUIApplication, apple: Bool, vertical: Bool, arm: String) throws -> (CGRect, Int) {
+        app.launchArguments = ["--contrast-probe", "--contact-probe", "--compare-press"]
+        if apple { app.launchArguments.append("--apple-press-control") }
+        app.launch()
+        wait(app.staticTexts["fixture-status"], for: apple ? "Apple control" : "bundled", app: app)
+        wait(app.staticTexts["contrast-observation"], for: "swiftui=false system=false", app: app)
+        let result = app.staticTexts["fixture-result"]
+        let actionCount = app.staticTexts["fixture-action-count"]
+        XCTAssertEqual(result.label, "empty")
+        XCTAssertEqual(actionCount.label, "0")
+
+        let button = app.buttons["save"]
+        XCTAssertTrue(button.isEnabled && button.isHittable)
+        XCTAssertEqual(button.label, "Save sample")
+        let frame = button.frame
+        let geometry = app.staticTexts["press-comparison-geometry"].label
+        let values = geometry.split(separator: " ").compactMap { Double($0) }
+        let fields = try XCTUnwrap(values.count == 8 && values.allSatisfy(\.isFinite) ? values : nil,
+                                   "Could not read comparison frames: \(geometry)")
+        let row = CGRect(x: fields[0], y: fields[1], width: fields[2], height: fields[3])
+        let blank = CGRect(x: fields[4], y: fields[5], width: fields[6], height: fields[7])
+        XCTAssertEqual(frame.width, 144, accuracy: 1)
+        XCTAssertEqual(frame.height, 44, accuracy: 1)
+        XCTAssertEqual(frame.midX, row.midX, accuracy: 1)
+        XCTAssertEqual(frame.midY, row.midY, accuracy: 1)
+
+        let start = button.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        let offset = vertical ? CGVector(dx: 0, dy: blank.midY - start.screenPoint.y) : CGVector(dx: 112, dy: 0)
+        let destination = start.withOffset(offset)
+        let plannedStart = start.screenPoint
+        let plannedEnd = destination.screenPoint
+        let releaseRegion = vertical ? blank : row
+        retain(XCTAttachment(string: """
+            app=\(app.frame) button=\(frame) fullRow=\(row) blank=\(blank)
+            plannedStart=\(plannedStart) plannedEnd=\(plannedEnd)
+            \(app.debugDescription)
+            """), arm + "-geometry")
+        retain(XCTAttachment(screenshot: app.screenshot()), arm + "-before")
+        XCTAssertTrue(frame.contains(plannedStart))
+        XCTAssertTrue(app.frame.insetBy(dx: 12, dy: 12).contains(plannedEnd))
+        XCTAssertTrue(releaseRegion.insetBy(dx: 4, dy: 4).contains(plannedEnd))
+        XCTAssertFalse(app.buttons.allElementsBoundByIndex.contains { $0.frame.insetBy(dx: -12, dy: -12).contains(plannedEnd) })
+        if vertical {
+            XCTAssertGreaterThan(row.minY - plannedEnd.y, 100)
+            XCTAssertGreaterThan(plannedStart.y - plannedEnd.y, 170)
+        }
+
+        let holdDuration = 2.0
+        start.press(forDuration: holdDuration, thenDragTo: destination, withVelocity: .slow, thenHoldForDuration: 0.5)
+        let observation = contactObservation(app)
+        retain(XCTAttachment(screenshot: app.screenshot()), arm + "-after")
+        let postCount = actionCount.label
+        let postResult = result.label
+        retain(XCTAttachment(string: """
+            nativeContact=\(observation)
+            postDispatchCount=\(postCount)
+            postDispatchResult=\(postResult)
+            """), arm + "-actions")
+        let actions = try XCTUnwrap(Int(postCount), "Invalid action count for \(arm)")
+        XCTAssertTrue((0...1).contains(actions), "\(arm) must route at most one action")
+        if vertical {
+            XCTAssertEqual(actions, 0, "\(arm) must cancel outside the row")
+        }
+        let routed = apple ? "Apple action routed" : "bundled action routed"
+        XCTAssertEqual(postResult, actions == 0 ? "empty" : routed)
+        if let contact = CompletedContact(observation) {
+            XCTAssertEqual(contact.phase, .ended)
+            XCTAssertTrue(frame.contains(contact.start))
+            XCTAssertEqual(contact.start.x, plannedStart.x, accuracy: 3)
+            XCTAssertEqual(contact.start.y, plannedStart.y, accuracy: 3)
+            for point in [contact.moved, contact.end] {
+                XCTAssertTrue(releaseRegion.contains(point))
+                XCTAssertFalse(frame.insetBy(dx: -12, dy: -12).contains(point))
+                XCTAssertEqual(point.x, plannedEnd.x, accuracy: 3)
+                XCTAssertEqual(point.y, plannedEnd.y, accuracy: 3)
+            }
+            XCTAssertEqual(contact.actionCount, 0)
+        } else {
+            XCTFail("Expected a native contact end phase and coordinates: \(observation)")
+        }
+        if !apple {
+            try expectHeldSample(app, holdDuration: holdDuration)
+            let shot = button.screenshot()
+            retain(XCTAttachment(screenshot: shot), arm + "-restored-fill")
+            let pixels = try ThemePixels(XCTUnwrap(shot.image.cgImage))
+            XCTAssertGreaterThan(pixels.fraction(of: Palette.light.fill, x: 0.08..<0.14, y: 0.27..<0.73), 0.95)
+        }
+
+        // A fresh in-bounds tap proves the callback and its recorder work in this launch.
+        let expectedCount = actions + 1
+        button.tap()
+        wait(actionCount, for: String(expectedCount), app: app)
+        let expectedResult = expectedCount == 1 ? "bundled action routed" : "bundled action routed \(expectedCount) times"
+        XCTAssertEqual(result.label, apple ? "Apple action routed" : expectedResult)
+        return (frame, actions)
+    }
+
+    @MainActor
+    func testInheritedDisabledButtonKeepsTintAndDoesNotRouteTouch() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication(bundleIdentifier: "dev.mixer.fixture.up5theme")
+        defer { if app.state != .notRunning { app.terminate() } }
+
+        app.launchArguments = ["--contrast-probe", "--ancestor-disabled-probe", "--contact-probe"]
+        app.launch()
+        wait(app.staticTexts["fixture-status"], for: "bundled", app: app)
+        wait(app.staticTexts["contrast-observation"], for: "swiftui=false system=false", app: app)
+        XCTAssertEqual(app.staticTexts["fixture-result"].label, "empty")
+        XCTAssertTrue(app.buttons["save"].isEnabled)
+
+        let child = app.buttons["ancestor-disabled-save"]
+        XCTAssertTrue(child.exists)
+        XCTAssertEqual(child.identifier, "ancestor-disabled-save")
+        XCTAssertFalse(child.isEnabled)
+        let frame = child.frame
+        let appFrame = app.frame
+        let target = app.coordinate(withNormalizedOffset: .zero)
+            .withOffset(CGVector(dx: frame.midX - appFrame.minX, dy: frame.midY - appFrame.minY))
+        XCTAssertTrue(appFrame.contains(target.screenPoint) && frame.contains(target.screenPoint))
+        target.tap()
+
+        let contact = try completedContact(app)
+        XCTAssertTrue(frame.contains(contact.start) && frame.contains(contact.end), "Tap must land on the disabled child")
+        XCTAssertEqual(contact.actionCount, 0)
+        XCTAssertFalse(child.isEnabled)
+        let shot = child.screenshot()
+        retain(XCTAttachment(screenshot: shot), "inherited-disabled-button")
+        retain(XCTAttachment(screenshot: app.screenshot()), "inherited-disabled-window")
+        let pixels = try ThemePixels(XCTUnwrap(shot.image.cgImage))
+        let palette = Palette.light
+        let disabledInk = pixels.fraction(of: palette.disabledInk)
+        let enabledFill = pixels.fraction(of: palette.fill)
+        let enabledInk = pixels.fraction(of: palette.label)
+        retain(XCTAttachment(string: "disabledInk=\(disabledInk) enabledFill=\(enabledFill) enabledInk=\(enabledInk)"),
+               "inherited-disabled-pixels")
+        XCTAssertGreaterThan(disabledInk, 0.008)
+        XCTAssertLessThan(enabledFill, 0.002)
+        XCTAssertLessThan(enabledInk, 0.002)
+        XCTAssertEqual(app.staticTexts["fixture-result"].label, "empty")
+    }
+
+    @MainActor
+    private func expectHeldSample(_ app: XCUIApplication, holdDuration: TimeInterval) throws {
+        let element = app.staticTexts["held-sample"]
+        let captured = NSPredicate(format: "exists == true AND label BEGINSWITH %@", "captured ")
+        let waiter = XCTNSPredicateExpectation(predicate: captured, object: element)
+        let result = XCTWaiter.wait(for: [waiter], timeout: 5)
+        let observation = element.exists ? element.label : "missing"
         retain(XCTAttachment(string: observation), "native-held-pixels")
+        XCTAssertEqual(result, .completed, "Expected a native window sample while the touch was active")
         let fields = observation.split(separator: " ")
         guard fields.count == 5, fields.first == "captured" else {
             XCTFail("Expected a native window sample while the touch was active: \(observation)")
@@ -99,12 +302,51 @@ final class UP5ThemeUITests: XCTestCase {
         let elapsed = try XCTUnwrap(Double(fields[4]))
         XCTAssertGreaterThanOrEqual(elapsed, 0.4)
         XCTAssertLessThan(elapsed, holdDuration)
+    }
 
-        wait(app.staticTexts["fixture-result"], for: "bundled action routed", app: app)
-        try expectTheme(capture(app, phase: "after-release", palette: .light))
-        app.buttons["Close fixture"].tap()
-        wait(app.staticTexts["fixture-status"], for: "closed, disk=empty", app: app)
-        XCTAssertEqual(app.staticTexts["fixture-result"].label, "bundled action routed")
+    private struct CompletedContact {
+        enum Phase: String {
+            case ended, cancelled
+        }
+
+        let phase: Phase
+        let start: CGPoint
+        let moved: CGPoint
+        let end: CGPoint
+        let actionCount: Int
+
+        init?(_ observation: String) {
+            let fields = observation.split(separator: " ")
+            guard fields.count == 8, let phase = Phase(rawValue: String(fields[0])),
+                  let actionCount = Int(fields[7]) else { return nil }
+            let coordinates = fields[1...6].compactMap { Double($0) }
+            guard coordinates.count == 6, coordinates.allSatisfy(\.isFinite) else { return nil }
+            self.phase = phase
+            start = CGPoint(x: coordinates[0], y: coordinates[1])
+            moved = CGPoint(x: coordinates[2], y: coordinates[3])
+            end = CGPoint(x: coordinates[4], y: coordinates[5])
+            self.actionCount = actionCount
+        }
+    }
+
+    @MainActor
+    private func completedContact(_ app: XCUIApplication) throws -> CompletedContact {
+        let observation = contactObservation(app)
+        let contact = try XCTUnwrap(CompletedContact(observation), "Expected a native touch end, observed \(observation)")
+        XCTAssertEqual(contact.phase, .ended, "Expected a native touch end")
+        return contact
+    }
+
+    @MainActor
+    private func contactObservation(_ app: XCUIApplication) -> String {
+        let element = app.staticTexts["contact-sample"]
+        let finished = NSPredicate(format: "exists == true AND label != %@", "waiting")
+        let waiter = XCTNSPredicateExpectation(predicate: finished, object: element)
+        let result = XCTWaiter.wait(for: [waiter], timeout: 5)
+        let observation = element.exists ? element.label : "missing"
+        retain(XCTAttachment(string: observation), "native-contact")
+        XCTAssertEqual(result, .completed, "Expected a completed native contact")
+        return observation
     }
 
     @MainActor

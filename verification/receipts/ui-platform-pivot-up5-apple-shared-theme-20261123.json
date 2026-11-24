@@ -149,12 +149,54 @@
     "scope": "Bundled theme under light appearance and standard contrast.",
     "inheritedDisabled": "Passed. Native Save descendant had disabled semantics and the exact tint. A touch reached the disabled control without routing the action.",
     "outsideRelease": "Failed. An actual drag began on Save and ended outside the measured frame. The resting fill returned, but a Save was visible after release and dispatch.",
-    "remaining": "Compare the same movement with a standard SwiftUI Button and a farther endpoint to resolve the cancellation premise.",
+    "followup": "nativePressComparison",
     "resultSHA256": "4014c05358a28be679a69c1d8a86a93d238b94a255a82f3c0727a1dc8d8735a9",
     "testLogSHA256": "f56125845953f59bed87bc07b3016c61f1e0cbdfd14cf5319d35125e3617c031",
     "cleanup": {
       "ownedSimulatorAbsent": true,
       "externalBaselineUnchanged": true
+    }
+  },
+  "nativePressComparison": {
+    "source": "4d842b3f91275cdaa7b35fca46420d98ed1e4165",
+    "runtime": "iPhone 15 arm64 iOS 26.5 (23F77)",
+    "xcode": "27.2 (27B52)",
+    "selector": "UP5ThemeUITests/UP5ThemeUITests/testCompareThemedAndAppleDragRelease",
+    "scope": "Bundled, light, standard contrast, matched 144 by 44 point button frames.",
+    "firstRunExit": 65,
+    "firstRunReason": "The strict zero-action assertion failed for both horizontal arms.",
+    "afterDispatchActions": {
+      "horizontal112PointsInRow": { "themed": 1, "applePlain": 1 },
+      "vertical188PointsOutsideRow": { "themed": 0, "applePlain": 0 }
+    },
+    "observed": "All four real touches ended at their matched point and had zero actions during touch delivery. The themed button showed held paint and restored its exact resting fill in both arms. All four center-tap controls routed one further action.",
+    "summarySHA256": "8130a3c0f8bed36cf3f5a1587d92edcfd120b27b7efee62792e7ce5d84719a93",
+    "attachmentsManifestSHA256": "3328952223e16bb8850d0bcff63113c2e2bfbab8329e79a5706baed1791ea94e",
+    "testLogSHA256": "26201a4770d0596334c70df50791ae1c392137a537fa29d",
+    "raw": "verification/local/ui-platform-pivot-root.fyr8LSOB/up5-press-comparison-ios265.ERvVfL3d",
+    "cleanup": {
+      "contrastRestored": true,
+      "ownedSimulatorAbsent": true,
+      "externalBaselineUnchanged": true
+    },
+    "correctedReplay": {
+      "result": "pass",
+      "sdkSource": "b3f6e50e25d1e965ad80051ca68605449335af55",
+      "testsPassed": 3,
+      "testsFailed": 0,
+      "tests": [
+        "testPressDraggedOutsideDoesNotRouteAndRestoresFill",
+        "testInheritedDisabledButtonKeepsTintAndDoesNotRouteTouch",
+        "testCompareThemedAndAppleDragRelease"
+      ],
+      "criterion": "Both vertical drags cancel with zero actions. The horizontal arms agree and route at most one action each. Themed pressed and resting paint, and inherited disabled semantics and tint, are checked.",
+      "appExecutableSHA256": "fe802c0664085eba74d9c2633b01fe609714fb887c4468a3af023bcee81fa30a",
+      "testExecutableSHA256": "0d19edfd953a55ec97511cfd830f86261a81518045aedfc6ae4cead899e52274",
+      "deploymentTarget": "iOS 17.0",
+      "build": "Xcode 27.2 generic arm64 Simulator with pinned VM. App and runner passed strict ad hoc signature verification.",
+      "runtime": "iPhone 15 arm64 iOS 26.5 (23F77)",
+      "raw": "verification/local/ui-platform-pivot-root.fyr8LSOB/up5-theme-corrected-ios265.ZFbOcJ1d",
+      "cleanup": "Owned Simulator observed absent. External inventory unchanged. Both Increase Contrast readbacks restored."
     }
   }
 }

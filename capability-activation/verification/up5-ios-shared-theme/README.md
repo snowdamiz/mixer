@@ -86,6 +86,37 @@ replay covers the following new selectors.
 | `testHeldPressRendersPressedFillAndRoutesOnRelease` | A two-second native touch on the bundled Save button under standard contrast. A passive UIKit observer snapshots the rendered app window with `drawHierarchy` during the live touch. The test compares pressed and resting paint, checks zero actions in flight, and expects one action on release and restoration of the resting paint. The window PNG is retained separately from XCTest's before and after screenshots. This samples the app window, with system compositor overlays outside its scope. Dark, increased-contrast, and signed-guest held presses remain outside this selector. |
 | `testBoldTextTraitLoanRendersHeavierGlyphs` | Two launches at the same Dynamic Type size with fixture-only regular and bold SwiftUI legibility values. The captures compare the rendered ink of native Text and Button glyphs. |
 | `testSettingsBoldTextRendersHeavierGlyphs` | XCTest flips and restores the system Bold Text switch in `com.apple.Preferences`. Each state must agree with UIKit and unmodified SwiftUI legibility. At the same Dynamic Type size, the bundled Text and Save Button must gain more than 8% of their themed ink when Bold Text is on. The result retains the glyph screenshots, native roles, and setting readbacks. |
+| `testPressDraggedOutsideDoesNotRouteAndRestoresFill` | XCTest holds the enabled bundled `save` button for two seconds, drags into blank space above the row, holds briefly, and releases. The window observer captures pressed fill and zero actions during the hold. The fixture result stays empty after release, and the final screenshot shows the themed resting fill. |
+| `testInheritedDisabledButtonKeepsTintAndDoesNotRouteTouch` | A bundled stack sets `disabled` for its child `ancestor-disabled-save`. XCTest checks the native Button's `isEnabled`, then taps its center by screen coordinate. The window observer verifies the touch landed and ended inside the child with zero actions. The screenshot must show the configured disabled label tint. |
+| `testCompareThemedAndAppleDragRelease` | Four fresh app launches compare the production-themed Save with a SwiftUI Button using Apple's `.plain` style. XCTest checks the matched 144-by-44-point button frames and compares the original 112-point horizontal drag to a 188-point vertical drag into blank space. |
+
+To run the outside release and inherited disabled selectors in one XCTest invocation under standard
+contrast, pass `press-and-inherited-disabled`. That directory holds the
+`.xcresult`, the test and contrast logs, and the live `held-window.png`.
+The XCTest attachments include the native contact coordinates, pixel counts,
+and before and after screenshots for the drag. The disabled test retains its
+screen and button captures with the measured tint.
+
+```sh
+OWNED_SIMULATOR_UDID="$owned_uuid" UP5_ROOT_EVIDENCE="$root_evidence" \
+  sh "$fixture/run-on-owned-simulator.sh" "$test_run" press-and-inherited-disabled
+```
+
+Pass `testCompareThemedAndAppleDragRelease` to run the full comparison on
+one owned Simulator. Each arm retains the hierarchy, intended screen
+coordinates, native end phase and start, move and end coordinates,
+screenshots, contact-end count, and the separate post-dispatch count and result.
+An in-bounds tap at the end of each launch verifies the action recorder.
+Each vertical drag requires zero actions. The horizontal drags must have the
+same outcome under both controls, with at most one action per gesture.
+
+On the earlier iPhone 15 iOS 26.5 run of `0e4378f893`, horizontal release
+landed at (308.67, 463.67) after starting at (196.67, 463.67).
+The contact observer reported zero actions, and the final fixture result
+reported one bundled Save. The reported contact count is sampled during
+touch-end delivery. The matched comparison on iOS 26.5 observed one action
+for each horizontal drag and zero for each vertical drag. The themed control
+restored its resting fill in both cases. [Verification receipt](../../../verification/receipts/ui-platform-pivot-up5-apple-shared-theme-20261123.json)
 
 The runner saves, sets, reads back, and restores Increase Contrast on the
 supplied UUID. Root can use the setting log to restore the original value

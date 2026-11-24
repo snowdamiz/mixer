@@ -7,7 +7,7 @@ test -f "$test_run"
 test_name=${2:-testProductThemeOnBundledAndSignedGuest}
 case "$test_name" in
   testIncreasedContrastOnBundledAndSignedGuest) requested=enabled ;;
-  testProductThemeOnBundledAndSignedGuest|testHeldPressRendersPressedFillAndRoutesOnRelease|testBoldTextTraitLoanRendersHeavierGlyphs|testSettingsBoldTextRendersHeavierGlyphs)
+  testProductThemeOnBundledAndSignedGuest|testHeldPressRendersPressedFillAndRoutesOnRelease|testBoldTextTraitLoanRendersHeavierGlyphs|testSettingsBoldTextRendersHeavierGlyphs|testPressDraggedOutsideDoesNotRouteAndRestoresFill|testInheritedDisabledButtonKeepsTintAndDoesNotRouteTouch|press-and-inherited-disabled|testCompareThemedAndAppleDragRelease)
     requested=disabled ;;
   *) printf 'Unknown UP5 selector: %s\n' "$test_name" >&2; exit 2 ;;
 esac
@@ -40,22 +40,29 @@ trap 'status=$?; restore_contrast || status=1; exit "$status"' EXIT
 contrast "$requested" >> "$setting_log"
 test "$(read_contrast)" = "$requested"
 
+if [ "$test_name" = press-and-inherited-disabled ]; then
+  set -- "-only-testing:UP5ThemeUITests/UP5ThemeUITests/testPressDraggedOutsideDoesNotRouteAndRestoresFill" \
+         "-only-testing:UP5ThemeUITests/UP5ThemeUITests/testInheritedDisabledButtonKeepsTintAndDoesNotRouteTouch"
+else
+  set -- "-only-testing:UP5ThemeUITests/UP5ThemeUITests/$test_name"
+fi
 test_status=0
 /usr/bin/xcodebuild test-without-building -xctestrun "$test_run" \
   -destination "platform=iOS Simulator,id=$OWNED_SIMULATOR_UDID" \
   -parallel-testing-enabled NO -test-timeouts-enabled YES -maximum-test-execution-time-allowance 240 \
-  -resultBundlePath "$run/$test_name.xcresult" \
-  "-only-testing:UP5ThemeUITests/UP5ThemeUITests/$test_name" \
+  -resultBundlePath "$run/$test_name.xcresult" "$@" \
   > "$run/$test_name.log" 2>&1 || test_status=$?
 
-if [ "$test_name" = testHeldPressRendersPressedFillAndRoutesOnRelease ]; then
-  container=$(xcrun simctl get_app_container "$OWNED_SIMULATOR_UDID" dev.mixer.fixture.up5theme data)
-  capture="$container/Library/Caches/UP5-held-press.png"
-  if [ -f "$capture" ]; then
-    cp "$capture" "$run/held-window.png"
-  elif [ "$test_status" = 0 ]; then
-    printf 'Missing native held-window capture.\n' >&2
-    test_status=1
-  fi
-fi
+case "$test_name" in
+  testHeldPressRendersPressedFillAndRoutesOnRelease|testPressDraggedOutsideDoesNotRouteAndRestoresFill|press-and-inherited-disabled)
+    container=$(xcrun simctl get_app_container "$OWNED_SIMULATOR_UDID" dev.mixer.fixture.up5theme data)
+    capture="$container/Library/Caches/UP5-held-press.png"
+    if [ -f "$capture" ]; then
+      cp "$capture" "$run/held-window.png"
+    elif [ "$test_status" = 0 ]; then
+      printf 'Missing native held-window capture.\n' >&2
+      test_status=1
+    fi
+    ;;
+esac
 exit "$test_status"
