@@ -64,6 +64,16 @@ import Testing
     }
     try select("public-compose-v1", minimum: 28)
     #expect(throws: MixerFailure.self) { try AndroidProject.prepareBuild(root: root) }
+    let output = temporary.appendingPathComponent("public-output")
+    for _ in 0..<2 {
+        do {
+            _ = try AndroidBuildOutput.build(root: root, output: output)
+            Issue.record("Accepted a Compose project through the v1 public build")
+        } catch let failure as MixerFailure {
+            #expect(failure.code == "android.compose-output-unavailable")
+        }
+        #expect(!FileManager.default.fileExists(atPath: output.path))
+    }
     let hidden = module.appendingPathComponent(".gradle")
     try FileManager.default.createDirectory(at: hidden, withIntermediateDirectories: false)
     #expect(throws: MixerFailure.self) { try AndroidProject.stageRetainedCompose(root: root, in: snapshot) }

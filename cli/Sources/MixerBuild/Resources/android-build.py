@@ -960,24 +960,41 @@ def compose_tree(project):
     if project.resolve(strict=True) != project or not project.is_dir():
         raise RuntimeError('Expected a canonical staged Compose project.')
     rows = {}
+    stamps = {}
 
-    def visit(directory):
-        for path in directory.iterdir():
-            relative = path.relative_to(project).as_posix()
-            info = path.lstat()
-            if stat.S_ISDIR(info.st_mode):
+    def visit(path):
+        relative = path.relative_to(project).as_posix()
+        info = path.lstat()
+        before = compose_stamp(info)
+        if stat.S_ISDIR(info.st_mode):
+            if path != project:
                 rows[relative] = b'\0\1'
-                visit(path)
-            elif stat.S_ISREG(info.st_mode) and info.st_nlink == 1:
-                rows[relative] = b'\0\0' + bytes.fromhex(digest(path))
-            else:
-                raise RuntimeError('Invalid staged Compose input: ' + relative)
+            for child in path.iterdir():
+                visit(child)
+        elif stat.S_ISREG(info.st_mode) and info.st_nlink == 1:
+            fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+            with os.fdopen(fd, 'rb') as stream:
+                if compose_stamp(os.fstat(fd)) != before:
+                    raise RuntimeError('Staged Compose input changed during inspection: ' + relative)
+                rows[relative] = b'\0\0' + hashlib.file_digest(stream, 'sha256').digest()
+                if compose_stamp(os.fstat(fd)) != before:
+                    raise RuntimeError('Staged Compose input changed during inspection: ' + relative)
+        else:
+            raise RuntimeError('Invalid staged Compose input: ' + relative)
+        if compose_stamp(path.lstat()) != before:
+            raise RuntimeError('Staged Compose input changed during inspection: ' + relative)
+        stamps[relative] = before
 
     visit(project)
     identity = hashlib.sha256()
     for relative in sorted(rows, key=str.encode):
         identity.update(relative.encode() + rows[relative])
-    return identity.hexdigest()
+    return identity.hexdigest(), stamps
+
+
+def compose_stamp(info):
+    return (info.st_dev, info.st_ino, info.st_mode, info.st_nlink, info.st_size,
+            info.st_mtime_ns, info.st_ctime_ns)
 
 
 def compose_apk_inventory(apk):
@@ -1012,7 +1029,8 @@ def build_retained_compose(project, output, expected_tree):
             or project.name != 'compose' or output != project.parent / 'android-build'
             or output.exists() or output.is_symlink() or not re.fullmatch('[0-9a-f]{64}', expected_tree)):
         raise RuntimeError('Invalid retained Compose staging or project identity.')
-    if compose_tree(project) != expected_tree:
+    before, project_stamps = compose_tree(project)
+    if before != expected_tree:
         raise RuntimeError('Staged Compose project identity differs before build.')
     if (project / 'gradle/gradle-daemon-jvm.properties').exists():
         raise RuntimeError('The retained Compose build must use the provisioned launcher JVM.')
@@ -1091,6 +1109,8 @@ def build_retained_compose(project, output, expected_tree):
     }
 }
 """)
+    init_sha = digest(init)
+    init_stamp = compose_stamp(init.lstat())
     commands = []
 
     def run(*args, capture=True):
@@ -1110,6 +1130,7 @@ def build_retained_compose(project, output, expected_tree):
         raise RuntimeError('Installed Gradle version differs from the retained toolchain manifest.')
     run(gradle, '--no-daemon', '--console=plain', '--no-build-cache', '--no-watch-fs',
         '-Dorg.gradle.jvmargs=' + jvm_args, '-Dorg.gradle.java.home=' + str(jdk),
+        '-Dorg.gradle.debug=false', '-Dorg.gradle.daemon.registry.base=' + str(gradle_home / 'daemon'),
         '--project-dir', project, '--project-cache-dir', output / 'project-cache',
         '--init-script', init, '--offline', '--dependency-verification', 'strict',
         '-Pandroid.builder.sdkDownload=false', '-Pkotlin.compiler.execution.strategy=in-process',
@@ -1136,16 +1157,18 @@ def build_retained_compose(project, output, expected_tree):
     if (application, minimum, target) != (selection['application'], selection['minAPI'], selection['targetAPI']):
         raise RuntimeError('Built Compose APK identity differs from the staged selector.')
     entries = compose_apk_inventory(apk)
-    after = compose_tree(project)
-    if after != expected_tree or digest(driver) != driver_sha or any(
-            digest(path) != tool_identity[name]['sha256'] for name, path in tool_paths.items()):
+    after, after_stamps = compose_tree(project)
+    if (after != expected_tree or after_stamps != project_stamps
+            or digest(init) != init_sha or compose_stamp(init.lstat()) != init_stamp
+            or digest(driver) != driver_sha or any(
+                digest(path) != tool_identity[name]['sha256'] for name, path in tool_paths.items())):
         raise RuntimeError('Retained Compose project, driver or tool changed during build.')
     receipt = {
         'schema': 'mixer.android.retained-compose.2', 'selection': selection,
         'qualification': 'local-unsigned-compose-boundary-only',
         'command': [sys.executable, *sys.orig_argv[1:]], 'toolCommands': commands,
         'projectTreeBeforeSHA256': expected_tree, 'projectTreeAfterSHA256': after, 'driverSHA256': driver_sha,
-        'gradleVersion': version, 'tools': tool_identity, 'unsignedInitSHA256': digest(init),
+        'gradleVersion': version, 'tools': tool_identity, 'unsignedInitSHA256': init_sha,
         'toolEnvironment': environment, 'dependencyCache': str(cache),
         'apk': {'path': str(apk), 'sha256': digest(apk), 'sizeBytes': apk.stat().st_size, 'entries': entries},
     }

@@ -221,13 +221,17 @@ public enum AndroidProject {
         return try ProcessRunner.run(["python3", root.appendingPathComponent("Generated/MixerAndroid/android-build.py").path, "build", root.path], at: root, policy: .developmentBuild)
     }
 
-    static func prepareBuild(root: URL, worker: Bool = false) throws -> (lock: ToolchainLock, bytes: Data) {
+    static func rejectComposeSelection(root: URL) throws {
         var selection = stat()
         let composeMarker = root.appendingPathComponent(composeProject).appendingPathComponent(composeSelection)
         if lstat(composeMarker.path, &selection) == 0 {
             throw MixerFailure("android.compose-output-unavailable",
                                "A Compose project requires the versioned Compose artifact and runtime contract.")
         }
+    }
+
+    static func prepareBuild(root: URL, worker: Bool = false) throws -> (lock: ToolchainLock, bytes: Data) {
+        try rejectComposeSelection(root: root)
         // The managed caller checks host Swift after all static inputs pass.
         let validated = try worker
             ? ProjectBuild.verifiedSourceLock(root: root, androidRequired: true)

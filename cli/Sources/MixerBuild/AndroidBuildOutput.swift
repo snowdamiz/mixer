@@ -247,6 +247,7 @@ public enum AndroidBuildOutput {
               !context.receiptDirectory.path.hasPrefix(root.path + "/") else {
             throw MixerFailure("android.output-scratch", "Retained Android builds require temporary storage outside the project.")
         }
+        try AndroidProject.rejectComposeSelection(root: root)
         let standaloneStore = try worker == nil
             ? NativeBuildOutput.prepare(output: output, root: root, requireSourceIdentity: true) : nil
         let validated = try AndroidProject.prepareBuild(root: root, worker: worker != nil)
