@@ -221,3 +221,32 @@ activation and rendered UI budgets require their own evidence.
 
 To repeat the fixed-34 refusal control, launch `fixed34` into a separate
 console log and run `python3 -B "$script" check "$app" FIXED_LOG UI256_LOG`.
+
+## Compare on-demand rows on macOS
+
+Run from the repository root with the pinned tools above and the SwiftPM
+repository cache for the two revisions in `updates/Package.resolved`.
+
+```sh
+python3 -B compiler/experiments/swiftui-full-guest/compare_row_snapshots.py s2-rows-replay
+```
+
+The runner applies the candidate to a scratch copy of `FieldLog.swift`.
+The candidate captures all 1,000 records in the list snapshot and builds the
+title and action for each row when the list requests it. The native and WASI
+row checks visit every index and open every record. They also check an older
+snapshot and its retained action after Save.
+
+The five alternating pairs use the exact-32 UI256 VM on macOS. The `load`
+milestone measures from before the Wasm file read through the VM returning
+the loaded list frame. Each guest must match all six Node frames and close
+with zero live reservations and tickets.
+
+After the timed runs, the runner reconstructs the update from the candidate
+base and checks the same journey with the updated Save behavior. It tests
+disposable signatures for both platform scopes against `ReleaseVerifierV3`.
+The verifier accepts the small signed control and refuses the candidate
+module and compressed patch. The receipt records those admission errors.
+The local `handoff/` directory holds the unsigned candidate base, update,
+compressed patch, and both oracles. Signed mobile activation still needs a
+versioned full-Swift profile and signed delta support.

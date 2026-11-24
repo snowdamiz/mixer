@@ -1,0 +1,27 @@
+--- a/FieldLog.swift
++++ b/FieldLog.swift
+@@ -125 +125,16 @@
+-    let rows: [Button]
++    let rows: Rows
++
++    struct Rows {
++        let records: [TaskRecord]
++        let workspace: Workspace
++
++        var count: Int { records.count }
++
++        @MainActor
++        subscript(index: Int) -> Button {
++            let record = records[index]
++            return Button(title: "\(record.title) · \(record.site)") {
++                workspace.open(record.id)
++            }
++        }
++    }
+@@ -136,5 +151 @@
+-        List(rows: workspace.records.map { record in
+-            Button(title: "\(record.title) · \(record.site)") {
+-                workspace.open(record.id)
+-            }
+-        })
++        List(rows: List.Rows(records: workspace.records, workspace: workspace))

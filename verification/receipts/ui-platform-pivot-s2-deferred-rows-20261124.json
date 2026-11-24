@@ -1,0 +1,241 @@
+{
+  "scope": "S2/P6 macOS arm64 offscreen FieldLog fixture and host release verification for iOS and Android scopes",
+  "reviewState": "Implementation evidence pending independent review",
+  "decision": "Retain the on-demand row candidate as a bounded host experiment",
+  "candidate": "Capture all 1,000 loaded records in the list snapshot. Build each row title and action when the caller requests the row.",
+  "replay": "python3 -B compiler/experiments/swiftui-full-guest/compare_row_snapshots.py s2-rows-replay",
+  "versions": {
+    "revision": "bc392c60c1636c935c07dfd8d2dc053f8f8290d1",
+    "vm-tree": "516f274edb6f33d454efcda7dd15aed65a9afe51",
+    "updates-tree": "17b9c4b36bc18c2051dbf3e89c41f12599e8d73a",
+    "host": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "swift": "Apple Swift version 6.3.3 (swift-6.3.3-RELEASE)\nTarget: arm64-apple-macosx28.0",
+    "rust": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "node": "v26.13.1",
+    "zstd": "*** Zstandard CLI (64-bit) v1.5.7, by Yann Collet ***",
+    "load-before": "12:17  up 4 days, 12:25, 1 user, load averages: 34.64 26.03 24.14",
+    "logical-cpus": "15"
+  },
+  "loadAfter": "12:19  up 4 days, 12:27, 1 user, load averages: 36.11 29.17 25.63",
+  "sourcesSHA256": {
+    "FieldLog.swift": "5dfa2013085899a1c5694dbd36137f7ba726ddf41150afbd2a3b64c11c528568",
+    "Reactor.swift": "73e8a44978b02cba8b87ec6b31c116f732e198f678c95ce7c73d42ccb7b75b05",
+    "OwnedReactor.rs": "7905d1f71df7aa1fc9429c89f5160b4dea282f4468b7613077178a74ba7ae259",
+    "RowSnapshotCheck.swift": "2d6a44ac7f64bd61a5510506e978cb83c1f0cd324eacee391f1e1f4424d56561",
+    "deferred-rows.patch": "ab3ebd0d4bc07ae5d70b5b46b9d84f4923e03a998cd486c725a5267008157d3c",
+    "oracle.mjs": "24f0bbcd5fe9fe7e823bc2fef0ab550112a5a6d7ad9977ce6d7757d067d35484",
+    "CheckSignedAdmission.swift": "dd881d8483e7e99a95ce9804f4662cade441324247c80d4bb2278d6bd2ca385b",
+    "compare_row_snapshots.py": "c5e02c042aaa560d09f21e931b185e3b7f5f7b12aa2c2f8405f2cdd60ede762e"
+  },
+  "candidateFieldLogSourceSHA256": "9df8ca7ec9b0e1ddc8738a3403ae76548dbb57edfcd2ae1d83b3fc1d9fc1f60d",
+  "guestValidation": "Existing exact-32 UI256 ARM64 macOS interpreter with original 30-second deadline. Fixed-34 refused both arms before owner construction.",
+  "samples": "Five alternating fresh processes per arm, with the original validation and owner budgets. The load endpoint includes file read, validation, owner construction, first invocation, and load through return of the populated guest snapshot.",
+  "exactSixFramesAndCleanOwner": {
+    "timedBaseRuns": 10,
+    "reconstructedUpdateRuns": 1,
+    "liveReservationBytesAtClose": 0,
+    "liveTicketsAtClose": 0
+  },
+  "rowChecks": {
+    "eagerRowCheck": {
+      "native": "verified 1000 row titles and actions, plus snapshot and action behavior after Save",
+      "wasi": "verified 1000 row titles and actions, plus snapshot and action behavior after Save"
+    },
+    "deferredRowCheck": {
+      "native": "verified 1000 row titles and actions, plus snapshot and action behavior after Save",
+      "wasi": "verified 1000 row titles and actions, plus snapshot and action behavior after Save"
+    }
+  },
+  "payloads": {
+    "eager": {
+      "sha256": "e4d6c26afb19a1e35c18722cd99fc5e7bb29316f18efa6473bebd7f10d02eb46",
+      "rawBytes": 12718666,
+      "gzip9Bytes": 3609970
+    },
+    "deferred": {
+      "sha256": "eb200b027abf7e370b4c1aa781cfd67fcb5db1a1cc65226fae8771f5c5ff047e",
+      "rawBytes": 12718996,
+      "gzip9Bytes": 3609957
+    },
+    "deferred-update": {
+      "sha256": "a5bb8f0e8e5009ced9dd800a23e72dfc33a54a97d7886025ebf1c1a185f4cd36",
+      "rawBytes": 12719248,
+      "gzip9Bytes": 3609973
+    },
+    "delta": {
+      "compressedBytes": 658398,
+      "sha256": "2f06325842685a649e3045bcd97a9763460f18387c0b4308722a09f4c8284c7a",
+      "byteExactReconstruction": true
+    }
+  },
+  "signedVerifier": {
+    "observed": [
+      "ios signed artifact and assignment control: accepted",
+      "ios raw module: v3.payload.size",
+      "ios delta: v3.manifest.payload",
+      "ios codec only: v3.manifest.payload",
+      "android signed artifact and assignment control: accepted",
+      "android raw module: v3.payload.size",
+      "android delta: v3.manifest.payload",
+      "android codec only: v3.manifest.payload"
+    ],
+    "scope": "Disposable Ed25519 keys and synthetic installed identities use the current v3 verifier for both platform scopes. Size and manifest checks reject the candidate before signature verification.",
+    "blockers": "The installed route needs a versioned full-Swift identity with measured caps and a signed delta contract that binds the bundled base and reconstructed module. Installed activation and rendered startup remain pending on both platforms."
+  },
+  "limitations": "Mac wall time varied under host load. The loaded snapshot is offscreen. These runs do not measure viewport presentation, mobile RSS, installed startup, or product p95. S2a and S2b remain open.",
+  "cleanup": "Terminal command groups observed. Disposable work removed.",
+  "rawReceipt": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-9f8aa13e/verification/local/s2-row-snapshot-qualification-9f8aa13e/receipt.json",
+  "rawReceiptSHA256": "48683da9c7f4d87fd041ca6be5d02cf926c2e700fa30c700c4414bca35a84bc2",
+  "unsignedHandoff": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-9f8aa13e/verification/local/s2-row-snapshot-qualification-9f8aa13e/handoff",
+  "handoffSHA256": {
+    "oracle.json": "091333b185cfeca819ae5117876c8f1c60ddc1c3bdd355118c1a786c034cb1a1",
+    "reactor-base.wasm": "eb200b027abf7e370b4c1aa781cfd67fcb5db1a1cc65226fae8771f5c5ff047e",
+    "reactor-update.wasm": "a5bb8f0e8e5009ced9dd800a23e72dfc33a54a97d7886025ebf1c1a185f4cd36",
+    "reactor-update.zst": "2f06325842685a649e3045bcd97a9763460f18387c0b4308722a09f4c8284c7a",
+    "update-oracle.json": "e1c590af61a826d258ba1d7941ab30a1e0b094c324d3e3c53a09634d7fb4170d"
+  },
+  "earlierRuns": [
+    {
+      "receiptSHA256": "551b54bc2f829cc5411a4fe47510d39f54ea3aee84aa78fc8a068ffe021d2e13",
+      "firstUsableListPaired": {
+        "wallMicros": {
+          "medianDelta": -639298,
+          "range": [
+            -1268225,
+            -584117
+          ],
+          "deferredFasterPairs": 5
+        },
+        "threadCPUMicros": {
+          "medianDelta": -575034,
+          "range": [
+            -713871,
+            -561801
+          ],
+          "deferredFasterPairs": 5
+        },
+        "instructions": {
+          "medianDelta": -4290651,
+          "range": [
+            -4333699,
+            -4271763
+          ],
+          "deferredFasterPairs": 5
+        }
+      },
+      "scope": "Conditional-build pilot, before moving the same candidate to a scratch overlay."
+    },
+    {
+      "receiptSHA256": "f1ebc19133137d77664d94cb29ed5239e3d2c9377da6c7ae92e6969f4cdcf6e2",
+      "firstUsableListPaired": {
+        "wallMicros": {
+          "medianDelta": -838271,
+          "range": [
+            -2332767,
+            396937
+          ],
+          "deferredFasterPairs": 4
+        },
+        "threadCPUMicros": {
+          "medianDelta": -594225,
+          "range": [
+            -657417,
+            -546464
+          ],
+          "deferredFasterPairs": 5
+        },
+        "instructions": {
+          "medianDelta": -4292935,
+          "range": [
+            -4324708,
+            -4234874
+          ],
+          "deferredFasterPairs": 5
+        }
+      },
+      "scope": "Scratch-overlay repeat. Signed probe initially asserted an unprefixed error code and exited at the expected size refusal. The final run corrected the assertion."
+    }
+  ],
+  "firstUsableList": {
+    "wallMicros": {
+      "eager": {
+        "median": 2889843,
+        "range": [
+          2226136,
+          4751792
+        ]
+      },
+      "deferred": {
+        "median": 2619304,
+        "range": [
+          1376553,
+          3025906
+        ]
+      },
+      "pairedDeferredMinusEager": [
+        -1398146,
+        -270539,
+        -342142,
+        -1725886,
+        -1314969
+      ],
+      "medianPairedDelta": -1314969
+    },
+    "threadCPUMicros": {
+      "eager": {
+        "median": 1673318,
+        "range": [
+          1643921,
+          1716972
+        ]
+      },
+      "deferred": {
+        "median": 1066037,
+        "range": [
+          1044769,
+          1082202
+        ]
+      },
+      "pairedDeferredMinusEager": [
+        -599152,
+        -607413,
+        -592932,
+        -633455,
+        -634770
+      ],
+      "medianPairedDelta": -607413
+    },
+    "instructions": {
+      "eager": {
+        "median": 9433142,
+        "range": [
+          9398292,
+          9440211
+        ]
+      },
+      "deferred": {
+        "median": 5152152,
+        "range": [
+          5131108,
+          5159419
+        ]
+      },
+      "pairedDeferredMinusEager": [
+        -4304422,
+        -4280792,
+        -4280234,
+        -4240092,
+        -4285803
+      ],
+      "medianPairedDelta": -4280792
+    }
+  },
+  "medianPairedThreadCPUAtOtherMilestonesMicros": {
+    "first_snapshot": -266,
+    "reopen": -1778916
+  },
+  "hostCallsAtLoadedListAndReopen": [
+    18,
+    26
+  ]
+}

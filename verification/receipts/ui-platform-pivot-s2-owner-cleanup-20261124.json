@@ -1,0 +1,35 @@
+{
+  "scope": "S2 benchmark runner scratch cleanup exercised on macOS with inert Python child commands and the real CommandRecorder. Build, VM, performance, and device checks were outside this regression.",
+  "baseRevision": "84b1f8de0be8b6f5a7bcb0f7167ff54dcbd3c9ae",
+  "baseTree": "07f458d8ffb823c374021f1319e137e2be7f34f2",
+  "correctedExperimentTree": "a92542fb58f81638959fcd8391a954d59792e849",
+  "sourceSHA256": {
+    "compiler/experiments/swiftui-full-guest/compare_row_snapshots.py": "762947160c134a6b6b4b9c1fe48ae6a0a34fa512c78ceb7be90eb1a4ae344113",
+    "compiler/experiments/swiftui-full-guest/test_compare_row_snapshots.py": "f00cbd2300d0b25557a5dbe8e5782f1e009191b050ce4382845f1efa831868c2",
+    "compiler/qualification_support.py": "af6a4ea7e22bd67a4b60f14058e834ca1442eb37414f03b71796434b8a98d16b"
+  },
+  "command": [
+    "python3",
+    "-B",
+    "compiler/experiments/swiftui-full-guest/test_compare_row_snapshots.py",
+    "-v"
+  ],
+  "pythonVersion": "3.14.8",
+  "before": {
+    "exitCode": 1,
+    "summary": "4 tests, 1 failure",
+    "failure": "test_frozen_owner_with_log_hash_failure_preserves_scratch: AssertionError: False != True",
+    "observation": "The recorder observed exit 74 and terminal process custody and reported the injected stdout hash failure. The runner removed work/."
+  },
+  "after": {
+    "exitCode": 0,
+    "summary": "4 tests, OK",
+    "observations": [
+      "Exit 74 with a stdout hash failure preserved work/ and propagated the recorder error.",
+      "Exit 74 with recorded logs preserved work/ and reported unresolved owner closure.",
+      "Exit 0 with a stdout hash failure removed work/ and propagated the recorder error.",
+      "Exit 0 with recorded logs removed work/ when the fixture stopped at frame validation."
+    ]
+  },
+  "cleanup": "The command recorder observed terminal custody for the inert Python children. The tests removed their disposable fixture directories after asserting the runner cleanup behavior."
+}

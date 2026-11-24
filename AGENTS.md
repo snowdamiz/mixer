@@ -1176,3 +1176,11 @@ CLI identity was collected. In worktree `t3-4376ab83`, preserve `installed-1`,
 wait on, retry, or clean the held chain. Only its top-level `installed-1-HOLD.json`
 and the delivered compact receipt are custody references. The warmed-cache
 replay ran in separate scratch and does not release the hold.
+
+The November 24 GC3 API 28 attempt at console port 5612 booted an arm64
+emulator but stopped before APK installation when the boot AVD name property
+was empty. Private ADB PGID 46035 closed. Emulator supervisor PGID 46261 had
+unresolved terminal custody. Preserve that group, ports 5612 and 5613, and
+`verification/local/gc3-api28-native.6aBbdvtP/fresh-port` in worktree
+`t3-67570144`. Do not inspect, probe, signal, wait on, retry, or clean this
+chain. Only its top-level receipt is a custody reference.

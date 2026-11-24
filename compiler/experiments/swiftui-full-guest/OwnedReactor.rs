@@ -13,12 +13,29 @@ fn main() {
     let path = args.next().expect("Wasm reactor path");
     let profile = args.next();
     assert!(args.next().is_none());
+    #[cfg(all(target_os = "macos", s2_host_benchmark))]
+    let started = Instant::now();
+    #[cfg(all(target_os = "macos", s2_host_benchmark))]
+    let start_cpu = thread_cpu_ns();
     let status = replay(
         Path::new(&path),
         profile.as_ref().map(|value| value.to_str().expect("UTF-8 profile")),
-        |_, _| {},
+        |_stage, _elapsed| {
+            #[cfg(all(target_os = "macos", s2_host_benchmark))]
+            eprintln!("s2_host={_stage}; wall_us={}; cpu_us={}",
+                started.elapsed().as_micros(), (thread_cpu_ns() - start_cpu) / 1_000);
+        },
     );
     std::process::exit(status);
+}
+
+#[cfg(all(target_os = "macos", s2_host_benchmark))]
+fn thread_cpu_ns() -> u64 {
+    extern "C" {
+        fn clock_gettime_nsec_np(clock: i32) -> u64;
+    }
+    const CLOCK_THREAD_CPUTIME_ID: i32 = 16;
+    unsafe { clock_gettime_nsec_np(CLOCK_THREAD_CPUTIME_ID) }
 }
 
 fn replay(path: &Path, profile: Option<&str>, milestone: impl Fn(&str, Duration)) -> i32 {
