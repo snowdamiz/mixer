@@ -1,5 +1,23 @@
 {
   "replays": {
+    "identity": {
+      "source": "SharedIdentity.swift",
+      "test": "IdentityReplay.swift",
+      "function": "siblingMovesAndAuthority",
+      "pass": "PASS explicit sibling moves, typed keys, key reset and retirement, duplicate and invalid key authority"
+    },
+    "nested_identity": {
+      "source": "SharedIdentity.swift",
+      "test": "IdentityReplay.swift",
+      "function": "nestedModifiersAndRows",
+      "pass": "PASS nested explicit modifiers and independent ForEach row and loop scopes"
+    },
+    "identity_scopes": {
+      "source": "SharedIdentity.swift",
+      "test": "IdentityReplay.swift",
+      "function": "structuralScopesAndStringKeys",
+      "pass": "PASS wrapper and branch scopes, empty content collision, and UTF-8 key limits and equality"
+    },
     "core": {
       "source": "SharedScreen.swift",
       "test": "Replay.swift",
@@ -33,6 +51,7 @@
     {"name": "`List`", "scope": "Builder content with sections and keyed rows", "tests": ["controls"]},
     {"name": "`Section`", "scope": "Untitled, string-titled, and plain `Text` headers", "tests": ["controls"]},
     {"name": "`ForEach`", "scope": "Arrays with integer keys and state retained on row moves", "tests": ["core", "controls"]},
+    {"name": "`.id(_:)`", "scope": "Integer and bounded string keys, moves within a parent, key changes, and stale frame refusal", "tests": ["identity", "nested_identity", "identity_scopes"]},
     {"name": "`Button`", "scope": "String label and accepted-frame activation", "tests": ["core"]},
     {"name": "`TextField(_:text:)`", "scope": "Single-line string binding and Unicode edits", "tests": ["controls"]},
     {"name": "`Toggle(_:isOn:)`", "scope": "String label and Boolean input in both directions", "tests": ["controls"]},
