@@ -108,14 +108,61 @@ final class ViewEvaluation {
         }
     }
 
-    func lower<V: View>(
-        _ view: V, at parent: ViewPath, childIndex: Int? = nil, into output: inout [UINode]
+    func lower(
+        _ view: any View, at parent: ViewPath, childIndex: Int? = nil, into output: inout [UINode]
     ) throws {
+        var content = view
+        var disabled = false
+        var accessibility: [String: UIValue] = [:]
+        // These modifiers share their content's structural position, including an explicit key.
+        while let modified = content as? any NodeModifyingView {
+            try visit(content)
+            switch modified.modifier {
+            case let .disabled(value):
+                disabled = disabled || value
+            case let .accessibilityLabel(label):
+                try setAccessibility(.string(label), key: "accessibilityLabel", in: &accessibility)
+            case let .accessibilityHint(hint):
+                try setAccessibility(.string(hint), key: "accessibilityHint", in: &accessibility)
+            }
+            content = modified.unmodifiedContent
+        }
+        try visit(content)
+        let start = output.count
+        try lowerView(content, at: parent, childIndex: childIndex, into: &output)
+        if !accessibility.isEmpty {
+            guard output.count - start == 1 else { throw FeatureError.unsupportedAccessibilityTarget }
+            switch output[start].kind {
+            case .text, .button, .textField, .toggle: break
+            default: throw FeatureError.unsupportedAccessibilityTarget
+            }
+            for (key, value) in accessibility {
+                try setAccessibility(value, key: key, in: &output[start].properties)
+            }
+        }
+        if disabled {
+            for index in start..<output.count {
+                output[index].properties["disabled"] = .bool(true)
+            }
+        }
+    }
+
+    private func setAccessibility(_ value: UIValue, key: String, in properties: inout [String: UIValue]) throws {
+        guard properties[key] == nil else { throw FeatureError.duplicateAccessibilityProperty(key) }
+        properties[key] = value
+    }
+
+    private func visit(_ view: any View) throws {
         guard visitedViews < FeatureLimits.visitedViews else {
             throw FeatureError.limitExceeded("visited views")
         }
         visitedViews += 1
         guard !(view is any CustomReflectable) else { throw FeatureError.customMirror }
+    }
+
+    private func lowerView<V: View>(
+        _ view: V, at parent: ViewPath, childIndex: Int?, into output: inout [UINode]
+    ) throws {
         if let identified = view as? any ExplicitIdentityView {
             let path = try parent.appending(.explicit(identified.identityKey))
             guard explicitPaths.insert(path).inserted else { throw ExplicitIdentityError.duplicateKey }
@@ -213,6 +260,15 @@ final class ViewEvaluation {
         try lower(content, at: path, into: &children)
         try append(UINode(id: id, kind: kind, properties: properties, children: children), into: &output)
     }
+}
+
+private protocol NodeModifyingView: View {
+    var modifier: NodeModifier { get }
+    var unmodifiedContent: any View { get }
+}
+
+extension NodeModifiedView: NodeModifyingView {
+    fileprivate var unmodifiedContent: any View { content }
 }
 
 private protocol PrimitiveView: View {

@@ -8,7 +8,7 @@ compiler/experiments/swiftui-native-core/HostReplay/run.sh release
 compiler/experiments/swiftui-native-core/HostReplay/run.sh ios
 ```
 
-The runner builds the checked-out `MixerCore`, `MixerUI`, and `MixerSwiftUI` sources. It compiles the shared fixtures in a separate package namespace with the `SwiftUI=MixerSwiftUI` module alias. The host executable checks snapshots, change sets, and callbacks through the package API. Pass `typed-controls`, `typed-environment`, or `layout-refusals` after a host mode to run those checks alone.
+The runner builds the checked-out `MixerCore`, `MixerUI`, and `MixerSwiftUI` sources. It compiles the shared fixtures in a separate package namespace with the `SwiftUI=MixerSwiftUI` module alias. The host executable checks snapshots, change sets, and callbacks through the package API. Pass `typed-controls`, `typed-environment`, `ordinary-modifiers`, or `layout-refusals` after a host mode to run that probe alone.
 
 The `ios` mode compiles the same shared fixtures for `arm64-apple-ios17.0` against MixerSwiftUI and Apple SwiftUI using the installed iPhoneOS SDK. It also checks that Apple SwiftUI compiles the authoring in [UnsupportedControls.swift](HostReplay/UnsupportedControls.swift) and [UnsupportedEnvironment.swift](HostReplay/UnsupportedEnvironment.swift) and that MixerSwiftUI rejects each marked line. The runner prints the compiler version, Git revision, and input digest. It removes its build directory under `verification/local/` on exit.
 
@@ -37,6 +37,10 @@ The author API covers struct views, result-builder groups and branches, `Text`, 
 Pass each control a binding projected from the current build's `@State`. The evaluator rejects unbound bindings and bindings from other frames. Control input uses the accepted frame's event scope and the existing string state limit. The replay covers Unicode edits, both Boolean values, keyed row moves, malformed envelopes, and accepted state after a candidate is canceled.
 
 The environment slice exposes reads for these two keys. Subtree modifiers need a document and renderer contract for scoped appearance and layout. Other keys, custom environment storage, and presentation preferences remain outside this slice.
+
+`.disabled(_:)` disables the emitted subtree when passed true. A transparent view that emits multiple roots disables each root, and a descendant's `.disabled(false)` leaves any ancestor restriction in place. The reconciler enforces that restriction when routing input.
+
+`.accessibilityLabel(_:)` and `.accessibilityHint(_:)` store verbatim strings on a single emitted `Text`, `Button`, `TextField`, or `Toggle` node. A container target, zero or multiple emitted nodes, or a repeated property on the same node fails preparation. The document validator still applies its string limits. These three modifiers preserve the underlying view's identity and state.
 
 The engine bounds each build to 4,096 view visits, 64 path components, 128 fields per view, 128 UTF-8 bytes per state declaration, 1,000 rows per loop, 256 UTF-8 bytes per string key, 1,024 state cells, 1,024 UTF-8 bytes per string state value, and 1,024 handlers. The SDK validator applies its configured document limits.
 

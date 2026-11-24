@@ -50,6 +50,8 @@ package enum FeatureError: Error, Equatable, Sendable {
     case stateWriteDuringBuild
     case unsupportedRowKey
     case duplicateRowKey
+    case unsupportedAccessibilityTarget
+    case duplicateAccessibilityProperty(String)
 }
 
 /// The installed host owns one session per mount and runs it in synchronous

@@ -16,6 +16,35 @@ extension View {
     public func id<ID: Hashable>(_ id: ID) -> some View {
         IdentifiedView(content: self, id: id)
     }
+
+    /// Disables interaction throughout this view. A descendant cannot override a disabled ancestor.
+    public func disabled(_ disabled: Bool) -> some View {
+        NodeModifiedView(content: self, modifier: .disabled(disabled))
+    }
+
+    /// Sets a verbatim label on a view that renders exactly one Text, Button, TextField, or Toggle.
+    /// Evaluation rejects ambiguous targets and multiple labels on the same node.
+    public func accessibilityLabel(_ label: String) -> some View {
+        NodeModifiedView(content: self, modifier: .accessibilityLabel(label))
+    }
+
+    /// Sets a verbatim hint on a view that renders exactly one Text, Button, TextField, or Toggle.
+    /// Evaluation rejects ambiguous targets and multiple hints on the same node.
+    public func accessibilityHint(_ hint: String) -> some View {
+        NodeModifiedView(content: self, modifier: .accessibilityHint(hint))
+    }
+}
+
+enum NodeModifier {
+    case disabled(Bool)
+    case accessibilityLabel(String)
+    case accessibilityHint(String)
+}
+
+struct NodeModifiedView<Content: View>: View {
+    typealias Body = Never
+    let content: Content
+    let modifier: NodeModifier
 }
 
 struct IdentifiedView<Content: View, ID: Hashable>: View {

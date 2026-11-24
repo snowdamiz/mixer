@@ -30,6 +30,18 @@
       "function": "typedControls",
       "pass": "PASS typed control envelopes, canceled and invalid candidates, keyed edit state, and stale authority"
     },
+    "modifier_authority": {
+      "source": "SharedModifiers.swift",
+      "test": "ModifierReplay.swift",
+      "function": "modifierAuthority",
+      "pass": "PASS disabled ancestry, typed cross-frame refusal, and keyed modifier updates"
+    },
+    "modifier_targets": {
+      "source": "SharedModifiers.swift",
+      "test": "ModifierReplay.swift",
+      "function": "modifierTargets",
+      "pass": "PASS transparent modifier targets and pre-promotion accessibility refusals"
+    },
     "environment": {
       "source": "SharedEnvironment.swift",
       "test": "EnvironmentReplay.swift",
@@ -55,6 +67,8 @@
     {"name": "`Button`", "scope": "String label and accepted-frame activation", "tests": ["core"]},
     {"name": "`TextField(_:text:)`", "scope": "Single-line string binding and Unicode edits", "tests": ["controls"]},
     {"name": "`Toggle(_:isOn:)`", "scope": "String label and Boolean input in both directions", "tests": ["controls"]},
+    {"name": "`.disabled(_:)`", "scope": "Boolean subtree restriction that descendants cannot undo. Transparent groups cover every emitted root.", "tests": ["modifier_authority", "modifier_targets"]},
+    {"name": "`.accessibilityLabel(_:)` and `.accessibilityHint(_:)`", "scope": "Verbatim strings on exactly one Text, Button, TextField, or Toggle node. A container, zero or multiple emitted nodes, or a repeated property fails before frame promotion.", "tests": ["modifier_authority", "modifier_targets"]},
     {"name": "`@State`", "scope": "Direct stored integer, Boolean, and string state", "tests": ["core", "controls"]},
     {"name": "`@Binding` and projected state bindings", "scope": "Captured and forwarded bindings with accepted-frame writes", "tests": ["core", "controls"]},
     {"name": "`@Environment`", "scope": "Host color scheme and layout direction captured per candidate", "tests": ["environment"]}
