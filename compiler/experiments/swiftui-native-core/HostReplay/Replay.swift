@@ -416,6 +416,54 @@ private func require(_ condition: Bool, _ message: String) throws {
     guard condition else { throw ReplayFailure(message: message) }
 }
 
+private final class RowHandlerRelease {
+    private let onRelease: () -> Void
+
+    init(_ onRelease: @escaping () -> Void) { self.onRelease = onRelease }
+
+    deinit { onRelease() }
+}
+
+private func listSupersession() throws {
+    let session = FeatureSession(executor: replayExecutor)
+    var actions: [Int] = []
+    var detachResults: [Bool] = []
+
+    func stage(_ key: Int, retaining release: RowHandlerRelease? = nil) throws -> PreparedFrame {
+        try session.prepare {
+            List {
+                ForEach([key], id: \.self) { row in
+                    Button("Row \(row)") {
+                        withExtendedLifetime(release) { actions.append(row) }
+                    }
+                }
+            }
+        }
+    }
+
+    let accepted = try stage(1)
+    accept(accepted, in: session)
+    let pending = try stage(2, retaining: RowHandlerRelease { [weak session] in
+        if let session { detachResults.append(session.detach()) }
+    })
+    try require(detachResults.isEmpty, "The staged row must own its action capture")
+
+    let replacement = try stage(3)
+    try require(detachResults == [false], "Supersession must release the staged row under the turn guard")
+    try require(session.acceptedPresentation?.token == accepted.presentation.token,
+                "Synchronous release must preserve the accepted list")
+    try require(!session.finish(pending.presentation.token, outcome: .drawnAndInputReady),
+                "The superseded list receipt must be refused")
+    try require(session.dispatch(pending.presentation.token, event(pending, button: "Row 2")) == .rejected,
+                "The superseded row's action must be refused")
+    try require(session.dispatch(accepted.presentation.token, event(accepted, button: "Row 1")) ==
+                .handled(superseded: replacement.presentation.token) && actions == [1],
+                "The accepted list must still route its row action and supersede the replacement")
+    try require(session.detach() && session.acceptedPresentation == nil,
+                "The host must still be able to close the list session after the turn")
+    print("PASS List supersession refuses detach during synchronous staged row handler release")
+}
+
 private func nestedMountTurns() throws {
     let outer = FeatureSession(executor: replayExecutor)
     let inner = FeatureSession(executor: replayExecutor)
@@ -623,6 +671,7 @@ enum Replay {
                     case "typed-environment": try typedEnvironment()
                     case "explicit-identity": try explicitIdentity()
                     case "erased-identity": try erasedIdentity()
+                    case "list-supersession": try listSupersession()
                     case "ordinary-modifiers": try ordinaryModifiers()
                     case "layout-refusals": try layoutRefusals()
                     default: throw ReplayFailure(message: "Unknown regression probe: \(probe)")
@@ -651,6 +700,7 @@ enum Replay {
         try typedEnvironment()
         try explicitIdentity()
         try erasedIdentity()
+        try listSupersession()
         try ordinaryModifiers()
         try layoutRefusals()
     }
