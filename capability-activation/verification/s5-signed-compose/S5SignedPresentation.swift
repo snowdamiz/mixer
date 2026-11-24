@@ -22,6 +22,7 @@ public final class S5SignedPresentation: @unchecked Sendable {
         case awaitDraft(UInt64, UIEventEnvelope)
         case offerSave(UIEventEnvelope)
         case awaitSave(UInt64)
+        case awaitSaveFrame
     }
 
     private let lock = NSLock()
@@ -31,7 +32,7 @@ public final class S5SignedPresentation: @unchecked Sendable {
     private var shown: Frame?
     private var save: Save?
     private var closing = false
-    private var submittedSave = false
+    private var healthy = false
 
     public init() {}
 
@@ -43,6 +44,14 @@ public final class S5SignedPresentation: @unchecked Sendable {
         lock.withLock { pending?.frame }
     }
 
+    public func enableInputAfterHealth() -> Bool {
+        lock.withLock {
+            guard !closing, let exchange, exchange.snapshot().stop == nil, shown != nil else { return false }
+            healthy = true
+            return true
+        }
+    }
+
     public func present(_ id: UUID) -> Bool {
         lock.withLock {
             guard !closing, let exchange, let pending, id == pending.frame.id,
@@ -51,27 +60,33 @@ public final class S5SignedPresentation: @unchecked Sendable {
                   exchange.observePresentation(ticket) else { return false }
             shown = pending.frame
             self.pending = nil
+            if case .awaitSaveFrame = save { save = nil }
             return true
         }
     }
 
     public func discard(_ id: UUID) -> Bool {
         lock.withLock {
-            guard let exchange, pending?.frame.id == id else { return false }
-            // A lost frame cannot earn health or admit input. The stock owner
-            // retires this attempt through its normal stopped-exchange path.
-            exchange.stop(.closed)
-            pending = nil
-            shown = nil
-            save = nil
+            guard !closing, let exchange, let pending, pending.frame.id == id else { return false }
+            if healthy {
+                guard exchange.cancelS5PresentationV1(pending.claim, snapshot: pending.frame.snapshot) else { return false }
+                if case .awaitSaveFrame = save { save = nil }
+            } else {
+                // A lost first frame cannot earn health or admit input.
+                exchange.stop(.closed)
+                _ = exchange.completePresentation(pending.claim, snapshot: nil)
+                shown = nil
+                save = nil
+            }
+            self.pending = nil
             return true
         }
     }
 
     public func submit(_ draft: UIEventEnvelope, save activation: UIEventEnvelope, from id: UUID) -> Bool {
         lock.withLock {
-            guard !closing, let exchange, exchange.snapshot().stop == nil,
-                  pending == nil, !submittedSave, save == nil, let shown, shown.id == id,
+            guard !closing, healthy, let exchange, exchange.snapshot().stop == nil,
+                  pending == nil, save == nil, let shown, shown.id == id,
                   let change = try? shown.snapshot.route(draft), change.nodeID == "title",
                   change.event == .textChange, let title = change.value.string,
                   (1...512).contains(title.utf8.count), title.utf8.allSatisfy({ $0 >= 32 }),
@@ -79,8 +94,7 @@ public final class S5SignedPresentation: @unchecked Sendable {
                   action.event == .activate else { return false }
             save = .offerDraft(draft, activation)
             offerQueued(on: exchange)
-            submittedSave = save != nil
-            return submittedSave
+            return save != nil
         }
     }
 
@@ -100,7 +114,7 @@ public final class S5SignedPresentation: @unchecked Sendable {
                     if case .awaitDraft(let sequence, let activation) = save, event.sequence == sequence {
                         save = .offerSave(activation)
                     }
-                    if case .awaitSave(let sequence) = save, event.sequence == sequence { save = nil }
+                    if case .awaitSave(let sequence) = save, event.sequence == sequence { save = .awaitSaveFrame }
                 }
                 if let document = claim.frame?.document.document {
                     do {

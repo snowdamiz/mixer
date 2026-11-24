@@ -43,6 +43,7 @@ actor SignedJourney {
                   provisional: @Sendable () -> Void) async throws -> String {
         if let lastStage, stage.sequence != lastStage.sequence + 1 { throw JourneyError("Wrong fixture sequence") }
         if lastStage == nil, stage != .prior { throw JourneyError("Missing prior release") }
+        if let lastStage { try await verifyHealthy(lastStage) }
         previous = try await closeOwner()
         let execution = try InstalledCapabilityExecution(identityJSON: load("identity.json"), materials: [
             .init(role: .bridgePolicy, bytes: try load("bridge.json")),
@@ -84,6 +85,9 @@ actor SignedJourney {
                     throw JourneyError("Unexpected healthy candidate or assignment")
                 }
                 if stage == .rollback { try checkRollback(candidate, manifest: manifest, bytes: bytes) }
+                guard presentation.enableInputAfterHealth() else {
+                    throw JourneyError("Healthy owner lost its presented frame")
+                }
                 lastStage = stage
                 return candidate
             }
@@ -142,7 +146,24 @@ actor SignedJourney {
         return snapshot
     }
 
+    func verifyHealthy(_ stage: SignedStage) async throws {
+        guard lastStage == stage, let owner else { throw JourneyError("No active \(stage) owner") }
+        let state = await owner.recoverySnapshot()
+        guard state.activation.phase == .healthyGuest, state.healthy == state.activation.candidateID,
+              state.acceptedSequence == stage.sequence else { throw JourneyError("Owner did not stay healthy after presentation") }
+    }
+
+    func verifyProvisionalFailure() async throws {
+        guard let owner else { throw JourneyError("No provisional owner") }
+        let state = await owner.recoverySnapshot()
+        guard state.activation.phase == .recoveryRequired, state.healthy == nil else {
+            throw JourneyError("Canceled first frame did not enter recovery without health")
+        }
+    }
+
     func finish() async throws -> Data {
+        guard let lastStage else { throw JourneyError("No active signed stage") }
+        try await verifyHealthy(lastStage)
         _ = try await closeOwner()
         let store = try AppPrivateKeyValueStore(directory: directory.appendingPathComponent("material_test"),
                                                 namespaces: ["material_test"])

@@ -255,11 +255,163 @@ index 80da2a9..fe53f5f 100644
 +        }
  #endif
          if input.mode != .capability {
+diff --git a/sdk/Sources/MixerGuest/GuestUIExchangeCore.swift b/sdk/Sources/MixerGuest/GuestUIExchangeCore.swift
+index 2ad0552..eb14b7c 100644
+--- a/sdk/Sources/MixerGuest/GuestUIExchangeCore.swift
++++ b/sdk/Sources/MixerGuest/GuestUIExchangeCore.swift
+@@ -54,5 +54,4 @@ final class GuestUIExchangeCore: @unchecked Sendable {
+         var event: Event?
+         var lastBytes: Data?
+-        var lastDocument: ValidatedUIDocument?
+         var latestRevision: UInt64?
+         var pending: GuestUIFrameV1?
+@@ -63,4 +62,7 @@ final class GuestUIExchangeCore: @unchecked Sendable {
+         var displayedFrameSerial: UInt64?
+         var receipt: GuestUIPresentationReceiptV1?
++#if MIXER_S5_SIGNED_COMPOSE
++        var s5CancelledSnapshot: UIRenderSnapshot?
++#endif
+         var counters = GuestUIExchangeCountersV1()
+     }
+@@ -119,6 +121,9 @@ final class GuestUIExchangeCore: @unchecked Sendable {
+             }
+         }
+-        s.turn = nil; s.pending = nil; s.lastBytes = nil; s.lastDocument = nil
++        s.turn = nil; s.pending = nil; s.lastBytes = nil
+         s.displayed = nil; s.displayedFrameSerial = nil; s.receipt = nil; s.refresh = true
++#if MIXER_S5_SIGNED_COMPOSE
++        s.s5CancelledSnapshot = nil
++#endif
+         notices.formUnion([.delivery, .coordinator, .finishDelivery, .finishNativeInputReadiness])
+     }
+@@ -252,5 +257,5 @@ final class GuestUIExchangeCore: @unchecked Sendable {
+                 if s.pending != nil { bump(&s.counters.replacedPendingFrames) }
+                 s.pending = GuestUIFrameV1(issuer: issuer, generation: generation, serial: s.frameSerial, document: document)
+-                s.latestRevision = revision; s.lastDocument = document; s.lastBytes = owned
++                s.latestRevision = revision; s.lastBytes = owned
+                 bump(&s.counters.producedFrames); s.counters.maximumPendingFrames = 1
+                 s.counters.maximumRawDocumentBytes = max(s.counters.maximumRawDocumentBytes, UInt64(owned.count))
+@@ -283,4 +288,21 @@ final class GuestUIExchangeCore: @unchecked Sendable {
+         }
+     }
++#if MIXER_S5_SIGNED_COMPOSE
++    /// Retire exactly one undrawn claim. The guest revision and any completed
++    /// effects stay committed. The drawn snapshot still authorizes native input.
++    func cancelS5PresentationV1(_ claim: GuestUIPresentationClaimV1, snapshot: UIRenderSnapshot) -> Bool {
++        mutate { s, notices in
++            guard claim.issuer === issuer, claim.generation == generation, s.presentation == claim.serial,
++                  s.stop == nil, s.confirmed, let displayed = s.displayed, let frame = claim.frame,
++                  displayed.document.revision < snapshot.document.revision,
++                  Self.exactDocument(frame.document.document, snapshot.document) else { return false }
++            retirePresentationClaim(claim, &s, &notices)
++            s.s5CancelledSnapshot = snapshot
++            notices.insert(.nativeInputReadiness)
++            if s.refresh { notices.insert(.delivery) }
++            return true
++        }
++    }
++#endif
+     public func offer(_ envelope: UIEventEnvelope, generation expected: UInt64) -> GuestUIEventAdmissionV1 {
+         offerNativeInput(envelope, generation: expected, classifyReady: false).ordinaryAdmission
+@@ -292,5 +314,8 @@ final class GuestUIExchangeCore: @unchecked Sendable {
+     private func offerNativeInput(_ envelope: UIEventEnvelope, generation expected: UInt64,
+                                   classifyReady: Bool, issued: IssuedUIAction? = nil) -> GuestUINativeInputAdmissionV1 {
+-        enum Preparation { case rejected(GuestUIEventAdmissionV1), readyBusy, encode(UInt64, RoutedUIAction, Data?) }
++        enum Preparation {
++            case rejected(GuestUIEventAdmissionV1), readyBusy
++            case encode(UInt64, native: RoutedUIAction, wire: RoutedUIAction, document: UIDocument, boundedBytes: Data?)
++        }
+         let preparation: Preparation = mutate { s, notices in
+             guard expected == generation else { return .rejected(.stale) }
+@@ -300,6 +325,14 @@ final class GuestUIExchangeCore: @unchecked Sendable {
+             // validates before classifying the sole transient ready conflict.
+             if !classifyReady, s.turn != nil || s.event != nil { return .rejected(.busy) }
+-            guard let displayed = s.displayed, displayed.document.revision == s.latestRevision,
++            guard let displayed = s.displayed,
+                   envelope.revision == displayed.document.revision else { return .rejected(.stale) }
++            var document = displayed.document
++#if MIXER_S5_SIGNED_COMPOSE
++            let cancelled = s.s5CancelledSnapshot
++            if classifyReady, let cancelled, cancelled.document.revision == s.latestRevision {
++                document = cancelled.document
++            }
++#endif
++            guard document.revision == s.latestRevision else { return .rejected(.stale) }
+             if let issued {
+                 guard issued.serial > s.lastIssuedSerial,
+@@ -313,4 +346,18 @@ final class GuestUIExchangeCore: @unchecked Sendable {
+                 return .rejected(.invalid(.invalidValue))
+             }
++            var wireAction = action
++#if MIXER_S5_SIGNED_COMPOSE
++            if document.revision != action.revision, let cancelled {
++                // Reuse only bindings that survived reconciliation and are
++                // still enabled in the latest guest document.
++                let current = UIEventEnvelope(revision: document.revision, identity: envelope.identity,
++                    event: envelope.event, value: envelope.value)
++                guard let routed = try? cancelled.route(current),
++                      routed.nodeID.utf8.elementsEqual(action.nodeID.utf8),
++                      routed.actionID.utf8.elementsEqual(action.actionID.utf8),
++                      codec.accepts(routed, current, document) else { return .rejected(.stale) }
++                wireAction = routed
++            }
++#endif
+             if classifyReady, s.turn != nil || s.event != nil || s.presentation != nil {
+                 if case .ready? = s.turn?.kind, s.event == nil, s.presentation == nil { return .readyBusy }
+@@ -332,7 +379,7 @@ final class GuestUIExchangeCore: @unchecked Sendable {
+             s.event = .preparing(sequence); s.counters.maximumEventSlots = 1
+             s.refresh = true; notices.insert(.delivery)
+-            return .encode(sequence, action, boundedEvent)
++            return .encode(sequence, native: action, wire: wireAction, document: document, boundedBytes: boundedEvent)
+         }
+-        guard case .encode(let sequence, let action, let boundedEvent) = preparation else {
++        guard case .encode(let sequence, let action, let wireAction, let document, let boundedEvent) = preparation else {
+             if case .rejected(let result) = preparation { return .offered(result) }
+             if case .readyBusy = preparation { return .readyBusy }
+@@ -342,9 +389,5 @@ final class GuestUIExchangeCore: @unchecked Sendable {
+         do {
+             if let boundedEvent { bytes = boundedEvent }
+-            else {
+-                let document = mutate { s, _ in s.lastDocument?.document }
+-                guard let document else { throw GuestUIEditorErrorV2.routing }
+-                bytes = try codec.encodeEvent(sequence, action, document)
+-            }
++            else { bytes = try codec.encodeEvent(sequence, wireAction, document) }
+         } catch {
+             return .offered(mutate { s, notices in
+@@ -382,8 +425,5 @@ final class GuestUIExchangeCore: @unchecked Sendable {
+         mutate { s, notices in
+             guard claim.issuer === issuer, claim.generation == generation, s.presentation == claim.serial else { return nil }
+-            s.presentation = nil; s.presentationHasFrame = false
+-            if case .result(let result)? = s.event, claim.eventResult == result {
+-                s.event = nil; s.refresh = true; notices.insert(.delivery)
+-            }
++            retirePresentationClaim(claim, &s, &notices)
+             guard s.stop == nil else { return nil }
+             guard let frame = claim.frame else { return nil }
+@@ -393,8 +433,17 @@ final class GuestUIExchangeCore: @unchecked Sendable {
+             }
+             s.displayed = snapshot; s.displayedFrameSerial = frame.serial
++#if MIXER_S5_SIGNED_COMPOSE
++            s.s5CancelledSnapshot = nil
++#endif
+             return GuestUIPresentationTicketV1(issuer: issuer, generation: generation,
+                 frameSerial: frame.serial, revision: snapshot.document.revision)
+         }
+     }
++    private func retirePresentationClaim(_ claim: GuestUIPresentationClaimV1, _ s: inout State, _ notices: inout Notices) {
++        s.presentation = nil; s.presentationHasFrame = false
++        if case .result(let result)? = s.event, claim.eventResult == result {
++            s.event = nil; s.refresh = true; notices.insert(.delivery)
++        }
++    }
+     // Swift String equality folds canonically equivalent Unicode spellings.
+     // Guest identifiers are wire bytes: a native snapshot must preserve their
 diff --git a/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift b/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift
-index 627c3e0..5e6aa31 100644
+index 627c3e0..9e7be28 100644
 --- a/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift
 +++ b/sdk/Sources/MixerGuest/GuestUIExchangeV1.swift
-@@ -8,8 +8,22 @@ import MixerUI
+@@ -8,8 +8,27 @@ import MixerUI
      private let core: GuestUIExchangeCore
      public let allowsDeferredStartup: Bool
 +#if MIXER_S5_SIGNED_COMPOSE
@@ -272,6 +424,11 @@ index 627c3e0..5e6aa31 100644
 +        core = try GuestUIExchangeCore(generation: generation, codec: .editor(
 +            GuestUIDocumentCodecV2(textValuePolicy: .standard)))
 +    }
++
++    @_spi(S5SignedCompose)
++    public func cancelS5PresentationV1(_ claim: GuestUIPresentationClaimV1, snapshot: UIRenderSnapshot) -> Bool {
++        s5UsesEditorV2 && core.cancelS5PresentationV1(claim, snapshot: snapshot)
++    }
 +#endif
      public convenience init(generation: UInt64) throws {
          try self.init(generation: generation, allowsDeferredStartup: false)
@@ -282,7 +439,7 @@ index 627c3e0..5e6aa31 100644
 +#endif
          self.allowsDeferredStartup = allowsDeferredStartup
          core = try GuestUIExchangeCore(generation: generation, codec: .legacy)
-@@ -19,4 +33,7 @@ import MixerUI
+@@ -19,4 +38,7 @@ import MixerUI
      public init(fieldLogEditorGeneration generation: UInt64) throws {
          allowsDeferredStartup = false
 +#if MIXER_S5_SIGNED_COMPOSE

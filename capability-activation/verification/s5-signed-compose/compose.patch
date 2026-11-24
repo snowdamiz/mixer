@@ -60,7 +60,7 @@ index 1dde4a5..c5929c2 100644
      private static final String TAG = "MixerS5Ime";
 
 diff --git a/native/android/compose/src/androidTest/kotlin/dev/mixer/compose/EditorInstrumentation.kt b/native/android/compose/src/androidTest/kotlin/dev/mixer/compose/EditorInstrumentation.kt
-index a7da596..09ea917 100644
+index a7da596..85775dd 100644
 --- a/native/android/compose/src/androidTest/kotlin/dev/mixer/compose/EditorInstrumentation.kt
 +++ b/native/android/compose/src/androidTest/kotlin/dev/mixer/compose/EditorInstrumentation.kt
 @@ -44,8 +44,7 @@ class EditorInstrumentation : Instrumentation() {
@@ -69,11 +69,11 @@ index a7da596..09ea917 100644
              }
 -            output.putString("stream", "\nPASS S5 EditorInstrumentation: same interactive window buffer, " +
 -                "post-receipt veto and promotion without redraw, same OS IME connection, 15 rendered Unicode readbacks, retired connection refused\n")
-+            output.putString("stream", "\nPASS S5 EditorInstrumentation: signed V2 prior, exact HWUI receipt, OS IME title and Save, rejected install, signed rollback and persisted bytes\n")
++            output.putString("stream", "\nPASS S5 EditorInstrumentation: signed V2, offscreen veto, canceled post-Save draw, retained OS IME, 15 painted Unicode saves, rollback, detach and persisted bytes\n")
              finish(Activity.RESULT_OK, output)
          } catch (error: Throwable) {
              output.putString("stream", "\nFAIL S5 EditorInstrumentation: ${error.stackTraceToString()}\n")
-@@ -54,153 +53,74 @@ class EditorInstrumentation : Instrumentation() {
+@@ -54,155 +53,171 @@ class EditorInstrumentation : Instrumentation() {
      }
 
      private fun replay(activity: EditorActivity) {
@@ -142,127 +142,194 @@ index a7da596..09ea917 100644
 -                check(host.editValue() == composing)
 -                check(!host.save(original, "stale frame"))
 -                check(!host.rollback(original.ticket))
--            }
+             }
 -            ime.select("promoted during veto", TextRange(3, 4))
 -            clickSave()
--            main {
--                val next = checkNotNull(host.pendingFrame())
--                check(next.readback == "1: Inspec")
--                check(host.cancel(next.ticket))
-             }
 +            ready
-         }
--
--        for (index in 1..15) {
--            val title = "Inspection ${index} — 点検 🔍"
--            ime.replace(title)
--            clickSave()
--            val current = await("accepted Save ${index}") {
--                main { host.currentFrame()?.takeIf { it.readback == "${index}: ${title}" } }
--            }
--            assertRendered(activity, host, current.ticket, "${index}: ${title}")
--            ime.requireLive("ordinary Save $index")
++        }
 +        val candidate = frame(host, "0: Candidate editor")
 +        check(candidate.ticket.owner != prior.ticket.owner)
 +        val candidateID = healthy(host)
 +        check(candidateID != priorID)
 +        val ime = openIme(host, fullHeight)
 +        ime.command("retain")
-+        val title = "Café e\u0301 \"東京\" 🧰"
-+        ime.replace(title)
-+        clickSave()
-+        val saved = frame(host, "1: $title")
-+        assertRendered(activity, host, saved.ticket, "1: $title")
-+        ime.requireLive("signed Save")
-+        main {
-+            check(host.signedState().getLong("events") == 2L)
-+            check(saved.ticket.owner == candidate.ticket.owner)
-+            check(!host.save(candidate, "stale frame"))
-+            check(host.selectSigned("rollback"))
-+            check(!host.save(saved, "retired input"))
++        val firstDraft = "Café e\u0301 \"東京\" 🧰"
++        ime.replace(firstDraft)
++        ime.command("compose")
++        ime.select("before offscreen veto", TextRange(2, 4))
++        checkOffscreenSave(activity, host, candidate, firstDraft)
++        ime.select("after offscreen cancellation", TextRange(1, 3))
++        assertRendered(activity, host, candidate.ticket, candidate.readback)
++
++        val secondDraft = "Held Café e\u0301 \"東京\" 🧰"
++        ime.replace(secondDraft)
++        ime.command("compose")
++        ime.select("before held Save", TextRange(2, 4))
++        val canceled = withHeldBuffer(host, { clickSave() }) { ready ->
++            assertRendered(activity, host, ready.ticket, "2: $secondDraft")
++            ime.select("composition on the held window buffer", TextRange(1, 3))
+             main {
+-                val next = checkNotNull(host.pendingFrame())
+-                check(next.readback == "1: Inspec")
+-                check(host.cancel(next.ticket))
++                check(host.currentFrame() == candidate)
++                check(host.signedState().getLong("events") == 4L)
++                check(!host.save(checkNotNull(host.pendingFrame()), "undrawn input"))
++                check(!host.save(candidate, "overlapping Save"))
++                check(host.cancel(ready.ticket))
++                check(!host.cancel(ready.ticket) && !host.promote(ready))
+             }
++            ime.select("same composing connection after held cancellation", TextRange(2, 4))
++            ready
+         }
+-
+-        for (index in 1..15) {
+-            val title = "Inspection ${index} — 点検 🔍"
++        assertRendered(activity, host, candidate.ticket, candidate.readback)
++        check(healthy(host) == candidateID)
++
++        var title = ""
++        var saved = candidate
++        for (count in 3..17) {
++            title = "Inspection $count — e\u0301 \"点検\" 🔍"
++            val previous = saved
+             ime.replace(title)
+             clickSave()
+-            val current = await("accepted Save ${index}") {
+-                main { host.currentFrame()?.takeIf { it.readback == "${index}: ${title}" } }
++            saved = frame(host, "$count: $title")
++            assertRendered(activity, host, saved.ticket, "$count: $title")
++            ime.requireLive("signed Save $count")
++            main {
++                check(host.signedState().getLong("events") == count * 2L)
++                check(saved.ticket.owner == candidate.ticket.owner)
++                check(!host.save(previous, "superseded input"))
++                check(!host.promote(canceled))
+             }
+-            assertRendered(activity, host, current.ticket, "${index}: ${title}")
+-            ime.requireLive("ordinary Save $index")
          }
 
 -        val last = main { checkNotNull(host.currentFrame()) }
-+        val restored = frame(host, "0: Prior editor")
-+        assertRendered(activity, host, restored.ticket, restored.readback)
-+        val rollbackID = healthy(host)
-+        check(rollbackID != priorID && rollbackID != candidateID && restored.ticket.owner != saved.ticket.owner)
-         main {
+-        main {
 -            // This experiment covers one binding. An exact rollback proposes
 -            // a different owner and must not adopt it into that binding.
 -            check(!host.rollback(last.ticket))
 -            check(host.currentFrame() == last && host.pendingFrame() == null)
-+            check(!host.promote(retiredReceipt))
-+            check(!host.save(saved, "retired input"))
-+            check(host.finishSigned())
-         }
+-        }
 -        val replacement = withHeldBuffer(host, { main { check(host.refresh()) } }) { ready ->
 -            val nextHost = main {
 -                ComposeEditorHost(activity.window).also { activity.setContentView(it) }
 -            }
--            main {
++        val rollbackReceipt = withHeldBuffer(host, { main { check(host.selectSigned("rollback")) } }) { ready ->
++            assertRendered(activity, host, ready.ticket, "0: Prior editor")
+             main {
 -                check(host.currentFrame() == null)
 -                check(!host.promote(ready))
 -                check(!host.cancel(ready.ticket))
 -                check(!host.save(last, "retired owner"))
 -                check(host.editValue() == null)
 -                check(!nextHost.promote(ready))
--            }
++                check(!host.save(saved, "retired input during rollback"))
++                check(!host.save(checkNotNull(host.pendingFrame()), "provisional rollback input"))
++                check(!host.promote(retiredReceipt) && !host.promote(canceled))
++                check(host.promote(ready))
+             }
 -            nextHost
-+        val persisted = await("signed owner retirement and private-store reopen") {
-+            val state = state(host)
-+            state.optString("persisted").takeIf { state.getString("phase") == "closed" }
++            ready
          }
 -        val successor = await("replacement editor") { main { replacement.currentFrame() } }
 -        check(successor.ticket.owner != last.ticket.owner && successor.title == "Inspec")
 -        val nextIme = openIme(replacement, fullHeight, afterEpoch = ime.epoch)
 -        val nextValue = main { checkNotNull(replacement.editValue()) }
--        val before = nextIme.command("read").connectionText()
++        val restored = frame(host, "0: Prior editor")
++        val rollbackID = healthy(host)
++        check(rollbackID != priorID && rollbackID != candidateID && restored.ticket.owner != saved.ticket.owner)
++        val nextIme = openIme(host, fullHeight, afterEpoch = ime.epoch)
+         val before = nextIme.command("read").connectionText()
 -        check(before == "Inspec")
--        callIme("late", Bundle().apply { putInt("epoch", ime.epoch) })
--        check(nextIme.command("read").connectionText() == before)
++        check(before == restored.title)
+         callIme("late", Bundle().apply { putInt("epoch", ime.epoch) })
+         check(nextIme.command("read").connectionText() == before)
 -        check(main { replacement.editValue() == nextValue && replacement.currentFrame() == successor })
--        nextIme.requireLive("after retired connection write")
+         nextIme.requireLive("after retired connection write")
++        main {
++            check(!host.save(saved, "retired input"))
++            check(host.finishSigned())
++        }
++        val persisted = await("signed owner retirement and private-store reopen") {
++            val state = state(host)
++            state.optString("persisted").takeIf { state.getString("phase") == "closed" }
++        }
 +        check(android.util.Base64.decode(persisted, android.util.Base64.DEFAULT).contentEquals(title.encodeToByteArray()))
++        main {
++            activity.setContentView(android.widget.FrameLayout(activity))
++            check(host.currentFrame() == null && host.pendingFrame() == null && host.imeSurface() == null)
++            check(!host.promote(rollbackReceipt) && !host.cancel(rollbackReceipt.ticket))
++            check(!host.save(restored, "detached input"))
++        }
      }
 
 -    private fun checkOffscreen(activity: EditorActivity, host: ComposeEditorHost, accepted: EditorFrame) {
 -        val bounds = main { checkNotNull(host.readbackProbe(accepted.ticket)).markerBounds }
--        var vetoes = 0
++    private fun checkOffscreenSave(activity: EditorActivity, host: ComposeEditorHost, accepted: EditorFrame, title: String) {
++        val bounds = await("accepted editor marker geometry") {
++            main { host.readbackProbe(accepted.ticket)?.markerBounds }
++        }
+         var vetoes = 0
 -        val veto = ViewTreeObserver.OnPreDrawListener { vetoes++; false }
 -        val ticket = main {
 -            host.viewTreeObserver.addOnPreDrawListener(veto)
 -            check(host.refresh())
 -            checkNotNull(host.pendingFrame()).ticket
--        }
--        try {
++        val veto = ViewTreeObserver.OnPreDrawListener {
++            if (host.pendingFrame() != null) vetoes++
++            false
+         }
++        main { host.viewTreeObserver.addOnPreDrawListener(veto) }
+         try {
 -            await("canceled traversal for the offscreen ticket") { main { vetoes.takeIf { it > 0 } } }
 -            val marker = WindowFrameMarker(ticket)
--            val offscreen = marker.bitmap()
--            val queued = marker.bitmap()
--            try {
--                val side = marker.size.toFloat()
--                CanvasDrawScope().draw(Density(1f), LayoutDirection.Ltr, Canvas(android.graphics.Canvas(offscreen)),
++            clickSave()
++            val pending = await("vetoed traversal for the first signed Save") {
++                state(host)
++                main { host.pendingFrame()?.takeIf { vetoes > 0 } }
++            }
++            check(pending.readback == "1: $title")
++            val marker = WindowFrameMarker(pending.ticket)
+             val offscreen = marker.bitmap()
+             val queued = marker.bitmap()
+             try {
+                 val side = marker.size.toFloat()
+                 CanvasDrawScope().draw(Density(1f), LayoutDirection.Ltr, Canvas(android.graphics.Canvas(offscreen)),
 -                    Size(side, side)) {
 -                    marker.draw(this)
 -                }
--                check(marker.matches(offscreen))
--                copyWindow(activity, bounds, queued)
++                    Size(side, side)) { marker.draw(this) }
+                 check(marker.matches(offscreen))
+                 copyWindow(activity, bounds, queued)
 -                check(WindowFrameMarker(accepted.ticket).matches(queued))
 -                check(!marker.matches(queued))
--            } finally {
--                offscreen.recycle()
--                queued.recycle()
--            }
--            main {
++                check(WindowFrameMarker(accepted.ticket).matches(queued) && !marker.matches(queued))
+             } finally {
+                 offscreen.recycle()
+                 queued.recycle()
+             }
+             main {
 -                check(host.currentFrame() == accepted)
 -                check(host.pendingFrame()?.ticket == ticket)
 -                check(!host.promote(ComposeEditorHost.ReadyBuffer(ticket)))
 -                check(host.cancel(ticket))
--            }
--        } finally {
--            main { host.viewTreeObserver.removeOnPreDrawListener(veto) }
--        }
++                check(host.currentFrame() == accepted && host.signedState().getLong("events") == 2L)
++                check(!host.promote(ComposeEditorHost.ReadyBuffer(pending.ticket)))
++                check(!host.save(pending, "offscreen input"))
++                check(host.cancel(pending.ticket) && !host.cancel(pending.ticket))
+             }
+         } finally {
+             main { host.viewTreeObserver.removeOnPreDrawListener(veto) }
+         }
+     }
+
 +    private fun state(host: ComposeEditorHost): org.json.JSONObject = main { host.signedState() }.also {
 +        check(it.getString("phase") != "failed") { it.optString("failure") }
 +    }
@@ -275,9 +342,48 @@ index a7da596..09ea917 100644
 +    private fun frame(host: ComposeEditorHost, readback: String): EditorFrame = await("accepted $readback") {
 +        state(host)
 +        main { host.currentFrame()?.takeIf { it.readback == readback } }
-     }
-
++    }
++
      private fun <T> withHeldBuffer(
+         host: ComposeEditorHost,
+         stage: () -> Unit,
+@@ -263,24 +278,29 @@ class EditorInstrumentation : Instrumentation() {
+         }
+         try {
+             // The marker and the glyphs must come from one queued buffer.
+-            copyWindow(activity, rect, bitmap)
+-            val tag = Bitmap.createBitmap(
+-                bitmap, probe.markerBounds.left - rect.left, probe.markerBounds.top - rect.top,
+-                marker.size, marker.size,
+-            )
++            await("exact queued readback marker for $ticket") {
++                copyWindow(activity, rect, bitmap)
++                val tag = Bitmap.createBitmap(
++                    bitmap, probe.markerBounds.left - rect.left, probe.markerBounds.top - rect.top,
++                    marker.size, marker.size,
++                )
++                try {
++                    true.takeIf { marker.matches(tag) }
++                } finally {
++                    tag.recycle()
++                }
++            }
+             val text = Bitmap.createBitmap(
+                 bitmap, probe.bounds.left - rect.left, probe.bounds.top - rect.top,
+                 reference.width, reference.height,
+             )
+             try {
+-                check(marker.matches(tag)) { "Readback buffer does not contain the exact ticket: ${ticket}" }
+                 check((0 until reference.height).any { y ->
+                     (0 until reference.width).any { x -> reference.getPixel(x, y) != Color.WHITE }
+                 }) { "Readback reference is blank" }
+                 check(text.sameAs(reference)) { "Queued pixels differ from the rendered reference for ${expected}" }
+                 Log.i("MixerS5", "pixel readback ticket=$ticket text=$expected")
+             } finally {
+-                tag.recycle()
+                 text.recycle()
+             }
+         } finally {
 diff --git a/native/android/compose/src/main/AndroidManifest.xml b/native/android/compose/src/main/AndroidManifest.xml
 index e6b5b77..cce8379 100644
 --- a/native/android/compose/src/main/AndroidManifest.xml

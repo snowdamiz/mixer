@@ -116,7 +116,6 @@ private final class EditorFixture {
         guard let presentation, let pending, pending.ticket == ticket, host.pending == ticket else { return nil }
         if discard {
             guard presentation.discard(pending.frame), host.discard(ticket) else { return nil }
-            accepted = nil
         } else {
             guard presentation.present(pending.frame), host.didDraw(ticket) else { return nil }
             accepted = pending
