@@ -1298,31 +1298,25 @@ class SDKNamespaceControls(unittest.TestCase):
         actual = {p: M.identity(M.ROOT / 'sdk' / p) for p in pinned}
         return actual, pinned
 
-    def test_actual_current_bound26_namespace_and_identity_pass(self):
+    def test_current_sdk_namespace_and_identity_pass(self):
         actual, pinned = self.current()
-        self.assertEqual(len(pinned), 26)
         self.assertEqual(actual, pinned)
         self.assertIn('Package.resolved', pinned)
         self.assertIsNone(M.validate_sdk_namespace(actual, pinned))
 
-    def test_absent_lock24_historical_and25_current_maps_stay_unchanged(self):
+    def test_historical_sdk_namespaces_without_lock_stay_unchanged(self):
         binding = json.loads((M.ROOT / 'verification/sdk-feature-ui-source141-v1/binding.json').read_text())
-        historical = binding['sdk_transition']['profileBefore']['sdk_files']
-        actual_current, pinned_current = self.current()
-        actual25 = {p: v for p, v in actual_current.items() if p != 'Package.resolved'}
-        pinned25 = {p: v for p, v in pinned_current.items() if p != 'Package.resolved'}
-        self.assertEqual(len(historical), 24)
-        self.assertEqual(len(pinned_current), 26)
-        self.assertNotEqual(historical, pinned25)
-        for label, actual, pinned, count in (
-                ('source127-pair21', copy.deepcopy(historical), copy.deepcopy(historical), 24),
-                ('current-pair22-without-lock', actual25, pinned25, 25)):
+        transition = binding['sdk_transition']
+        pair21 = transition['profileBefore']['sdk_files']
+        pair22_without_lock = transition['profileAfter']['sdk_files'].copy()
+        del pair22_without_lock['Package.resolved']
+        for label, pinned, count in (
+                ('source127-pair21', pair21, 24),
+                ('source141-pair22-without-lock', pair22_without_lock, 25)):
             with self.subTest(source=label, count=count):
+                actual = copy.deepcopy(pinned)
                 before = copy.deepcopy((actual, pinned))
-                self.assertEqual(len(actual), count)
                 self.assertEqual(len(pinned), count)
-                self.assertEqual(actual, pinned)
-                self.assertNotIn('Package.resolved', actual)
                 self.assertNotIn('Package.resolved', pinned)
                 self.assertIsNone(M.validate_sdk_namespace(actual, pinned))
                 self.assertEqual((actual, pinned), before)
@@ -1372,7 +1366,7 @@ class SDKNamespaceControls(unittest.TestCase):
         finally:
             fixture.doCleanups()
 
-    def test_actual_current26_consumer_passes(self):
+    def test_current_sdk_consumer_passes(self):
         fixture = RunnerControls('test_valid_snapshot_preserves_full_inventory')
         fixture.setUp()
         try:

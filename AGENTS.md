@@ -1193,3 +1193,12 @@ closure. Preserve that group, console ports 5618 and 5619, and the entire
 `t3-67570144`. Do not inspect, probe, signal, wait on, retry, or clean the
 held chain. Only its top-level receipt is a custody reference. The built APKs
 in the separate `idle-pair` directory are outside the hold.
+
+Two parallel joined managed Compose v3 replays stopped before terminal CLI
+and driver custody was proved. Preserve the nested chains last observed at
+driver PIDs 60546 and 60547 and the full
+`verification/local/up4j.ZdY798UA` namespace in worktree `t3-520effa9`.
+Do not inspect, enumerate, probe, signal, wait on, retry, or clean those
+resources. The two outer groups were observed absent. Their closure does
+not release the nested hold. Use only the tracked
+`verification/up4-managed-gradle/joined-v3-parallel-replay-hold.json`.
