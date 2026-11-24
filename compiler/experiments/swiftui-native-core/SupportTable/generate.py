@@ -3,6 +3,7 @@
 
 import argparse
 from collections import Counter
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -33,6 +34,31 @@ def require_passes(mode, output, expected):
     for line in expected:
         if counts[line] != 1:
             raise ValueError(f"{mode} must report exactly one {line!r} (found {counts[line]})")
+
+def native_comparison(construct, reference):
+    evidence = ROOT / reference["receipt"]
+    receipt = json.loads(evidence.read_text(encoding="utf-8"))
+    ios = receipt.get("ios", {})
+    passed = ios.get("passedSelectors", [])
+    if (receipt.get("result") != "pass" or receipt.get("construct") != construct["name"].strip("`")
+            or not isinstance(passed, list) or reference["selector"] not in passed or len(set(passed)) != len(passed)
+            or ios.get("testsPassed") != len(passed) or ios.get("testsFailed") != 0):
+        raise ValueError(f"GC4 receipt does not establish {construct['name']}: {evidence}")
+
+    fixture = HERE.parent / reference["fixture"]
+    paths = [
+        source
+        for module in ("MixerCore", "MixerUI", "MixerSwiftUI", "MixerApple")
+        for source in sorted((ROOT / "sdk/Sources" / module).glob("*.swift"))
+    ]
+    paths.extend(sorted(fixture.glob("*.swift")))
+    paths.extend((fixture / "build.sh", fixture / "project.rb"))
+    hashes = {path.relative_to(ROOT).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
+    manifest = "".join(f"{digest}  {path}\n" for path, digest in hashes.items()).encode()
+    if (hashlib.sha256(manifest).hexdigest() != ios.get("inputManifestSHA256")
+            or any(hashes.get(path) != digest for path, digest in receipt.get("sourceSHA256", {}).items())):
+        raise ValueError(f"GC4 inputs differ for {construct['name']}: {evidence}")
+    return f"Pass · [Native comparison]({os.path.relpath(evidence, TABLE.parent)})"
 
 
 def render(catalog, ios_output, host_output):
@@ -74,12 +100,8 @@ def render(catalog, ios_output, host_output):
         host_links = ", ".join(f"[`{test['function']}`](HostReplay/{test['test']})" for test in tests)
         row = [construct["name"], construct["scope"], f"Pass · {compile_links}", "Pass", f"Pass · {host_links}"]
         gc4 = "Pending"
-        if receipt := construct.get("gc4"):
-            evidence = ROOT / receipt
-            result = json.loads(evidence.read_text(encoding="utf-8"))
-            if result.get("result") != "pass" or result.get("construct") != construct["name"].strip("`"):
-                raise ValueError(f"GC4 receipt does not establish {construct['name']}: {receipt}")
-            gc4 = f"Pass · [Native comparison]({os.path.relpath(evidence, TABLE.parent)})"
+        if reference := construct.get("gc4"):
+            gc4 = native_comparison(construct, reference)
         lines.append("| " + " | ".join(row + ["Pending"] * 4 + [gc4]) + " |")
 
     lines += [
