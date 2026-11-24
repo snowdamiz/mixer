@@ -146,7 +146,7 @@ func exportStagesDirectoriesWithDistinctSourceNames(names: (String, String)) thr
         let report = try MigrationInspector.inspect(root)
         #expect(report.technicalEligibility == "unverified")
         #expect(report.findings.map(\.line) == [1, 2])
-        #expect(report.findings.first?.category == "adaptation-required")
+        #expect(report.findings.first?.category == "compiler-review")
         #expect(try SourceDigest.tree(root) == before)
     }
 }

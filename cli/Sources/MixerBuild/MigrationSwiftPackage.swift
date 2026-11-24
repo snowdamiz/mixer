@@ -23,7 +23,7 @@ public struct MigrationModule: Codable, Sendable {
             case "unsupported-mobile", "unsupported-guest": self = .unsupported
             case "platform-specific": self = .platformSpecific
             case "native-capability", "native-only-review": self = .nativePluginReview
-            case "adaptation-required": self = .sharedAfterAPIAdaptation
+            case "adaptation-required", "swiftui-subset-gap": self = .sharedAfterAPIAdaptation
             default: self = .compilerReview
             }
         }
@@ -220,6 +220,8 @@ struct SwiftPackageInventory {
     }
 
     func target(for file: String) -> String? { targetByFile[Data(file.utf8)] }
+
+    func moduleSpelling(for name: String) -> String? { modules[name]?.target.c99name }
 
     func importTargets(for name: String) -> [Data: ImportTarget]? { importTargetsByModule[name] }
 

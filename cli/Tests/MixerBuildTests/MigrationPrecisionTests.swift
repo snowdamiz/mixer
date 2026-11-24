@@ -25,7 +25,7 @@ private func inventory(_ source: Data, name: String = "Example.swift", _ body: (
     let source = "// import SwiftUI UnsafeMutablePointer dlopen(\r\nlet text = \"import UIKit UnsafeMutablePointer dlopen(\"\r\nimport SwiftUI\r\nlet p: UnsafeMutablePointer<Int>? = nil\r\n"
     try inventory(Data(source.utf8)) { report in
         #expect(report.findings.map(\.line) == [3, 4])
-        #expect(report.findings.map(\.message) == ["Apple SwiftUI import", "Unsafe pointer use"])
+        #expect(report.findings.map(\.message) == ["SwiftUI import", "Unsafe pointer use"])
         print("CANDIDATE_REPORT=" + String(decoding: try JSONFile.data(report), as: UTF8.self))
     }
 }
@@ -42,7 +42,7 @@ private func inventory(_ source: Data, name: String = "Example.swift", _ body: (
     """
     try inventory(Data(source.utf8)) { report in
         #expect(report.findings.map(\.line) == [4, 5, 6, 7])
-        #expect(report.findings.map(\.message) == ["Apple SwiftUI import", "UIKit import", "Native location integration", "Native store integration"])
+        #expect(report.findings.map(\.message) == ["SwiftUI import", "UIKit import", "Native location integration", "Native store integration"])
     }
 }
 
@@ -60,7 +60,10 @@ private func inventory(_ source: Data, name: String = "Example.swift", _ body: (
     " UnsafeMutablePointer dlopen( \(import UIKit)
     """##
     """#####
-    try inventory(Data(source.utf8)) { report in #expect(report.findings.isEmpty) }
+    try inventory(Data(source.utf8)) { report in
+        #expect(report.findings.isEmpty)
+        #expect(report.swiftUISubset == nil)
+    }
 }
 
 @Test func interpolationScansActualCodeAndNestedStrings() throws {
@@ -104,6 +107,42 @@ private func inventory(_ source: Data, name: String = "Example.swift", _ body: (
     }
 }
 
+@Test func swiftUISubsetCountsExplicitGapImportsAtTheirPhysicalByteLocations() throws {
+    let source = "\u{FEFF}import SwiftUI\r\n/* é */ import struct SwiftUI.ScrollView; import struct SwiftUI.ScrollView\r\n"
+        + "import struct\r\n  `SwiftUI`.`NavigationStack`"
+    try inventory(Data(source.utf8)) { report in
+        #expect(report.swiftUISubset?.scopedImportCounts == ["SwiftUI.ScrollView": 2, "SwiftUI.NavigationStack": 1])
+        let gaps = report.findings.filter { $0.category == "swiftui-subset-gap" }
+        #expect(gaps.compactMap(\.symbol) == ["SwiftUI.ScrollView", "SwiftUI.ScrollView", "SwiftUI.NavigationStack"])
+        // test_swiftui_import.py corroborates these catalog entries against both modules.
+        #expect(Set(gaps.compactMap(\.symbol)) == Set(SwiftUISubsetGap.allCases.map { "SwiftUI.\($0.rawValue)" }))
+        #expect(gaps.map(\.line) == [2, 2, 4])
+        #expect(gaps.map(\.column) == [24, 58, 3])
+        #expect(report.findings.filter { $0.category == "compiler-review" }.map(\.line) == [1, 2, 3])
+    }
+}
+
+@Test(arguments: [
+    "let view = ScrollView { Text(\"Hello\") }; let qualified = SwiftUI.ScrollView.self",
+    "let view = TextField(\"Notes\", text: text, axis: .vertical)",
+    "/* import struct SwiftUI.ScrollView */ let snippet = \"import struct SwiftUI.NavigationStack\"",
+    "import struct SwiftUI.Text; import struct SwiftUI.Unknown",
+    "import enum SwiftUI.ScrollView",
+    "import struct SwiftUI.ScrollView\n  .Nested",
+    "func f() { import struct SwiftUI.ScrollView }",
+    "#if os(iOS)\nimport struct SwiftUI.ScrollView\n#endif",
+    "import struct SwiftUI.ScrollView\nlet regex = /word/",
+    "import UIKit; import struct SwiftUI.ScrollView",
+    "import AppKit; import struct SwiftUI.ScrollView",
+])
+func swiftUISubsetLeavesOtherSourceUsesForReview(_ suffix: String) throws {
+    try inventory(Data("import SwiftUI\n\(suffix)".utf8)) { report in
+        #expect(report.swiftUISubset?.scopedImportCounts == [:])
+        #expect(report.findings.allSatisfy { $0.symbol == nil && $0.column == nil })
+        #expect(report.findings.contains { $0.category == "compiler-review" && $0.message == "SwiftUI import" })
+    }
+}
+
 @Test(arguments: ["/* unclosed import UIKit", "let x = \"unfinished UnsafeMutablePointer", "let x = #\"unfinished dlopen(\"", "let x = \"\\(UnsafeMutablePointer<Int>.self", "let x = `unfinished", "let pattern = /import SwiftUI/", "let pattern = #/UnsafeMutablePointer/#", "let quotient = 4 / 2"])
 func incompleteOrUnsupportedFormsRequireCompilerReview(_ source: String) throws {
     try inventory(Data(source.utf8)) { report in
@@ -143,7 +182,7 @@ func incompleteOrUnsupportedFormsRequireCompilerReview(_ source: String) throws 
     #expect(source.utf8.count > 2_000_000)
     try inventory(Data(source.utf8)) { report in
         #expect(report.findings.map(\.line) == [2])
-        #expect(report.findings.map(\.message) == ["Apple SwiftUI import"])
+        #expect(report.findings.map(\.message) == ["SwiftUI import"])
     }
 }
 
@@ -193,7 +232,7 @@ func incompleteOrUnsupportedFormsRequireCompilerReview(_ source: String) throws 
     let source = Data("\u{FEFF}import AppKit\r\nimport UIKit\r\nlet text = \"import StoreKit\"\r\nimport SwiftUI\r\n".utf8)
     try inventory(source) { report in
         #expect(report.findings.map(\.line) == [1, 2, 4])
-        #expect(report.findings.map(\.message) == ["macOS AppKit import", "UIKit import", "Apple SwiftUI import"])
+        #expect(report.findings.map(\.message) == ["macOS AppKit import", "UIKit import", "SwiftUI import"])
         print("R756_BOM_CRLF_REPORT=" + String(decoding: try JSONFile.data(report), as: UTF8.self))
     }
 }

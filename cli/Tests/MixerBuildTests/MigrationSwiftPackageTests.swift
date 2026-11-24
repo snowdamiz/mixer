@@ -211,3 +211,19 @@ private func writeDescription(_ file: URL, root: URL, targets: [DescriptionTarge
         #expect(modules["Entry"]?.dependencyCauses.first?.via.module == "Left")
     }
 }
+
+@Test func scopedSwiftUIImportsRemainAmbiguousForLocalModuleSpellings() throws {
+    try withDescription(files: [
+        "Local.swift": "import struct SwiftUI.ScrollView",
+        "Shared.swift": "import struct SwiftUI.ScrollView",
+    ]) { root, description in
+        try writeDescription(description, root: root, targets: [
+            .init(name: "Local", c99name: "SwiftUI", path: ".", sources: ["Local.swift"], target_dependencies: []),
+            .init(name: "Shared", c99name: "Shared", path: ".", sources: ["Shared.swift"], target_dependencies: ["Local"]),
+        ])
+        let report = try MigrationInspector.inspect(root, swiftPMDescription: description)
+        #expect(report.swiftUISubset?.scopedImportCounts == [:])
+        #expect(report.findings.map(\.category) == ["compiler-review", "compiler-review"])
+        #expect(report.findings.last?.message.contains("Ambiguous SwiftUI import") == true)
+    }
+}
