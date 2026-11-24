@@ -396,6 +396,7 @@ HOSTED_V91_PREFIX = 'hosted-v91-predecessor-bytes/'
 HOSTED_V92_PREFIX = 'hosted-v92-predecessor-bytes/'
 HOSTED_V93_PREFIX = 'hosted-v93-predecessor-bytes/'
 HOSTED_V94_PREFIX = 'hosted-v94-predecessor-bytes/'
+HOSTED_V95_PREFIX = 'hosted-v95-predecessor-bytes/'
 PAIR26_PREFIX = 'pair26-predecessor-bytes/'
 PAIR26_PREDECESSOR_REVISION = '613fb3c10e6cbf06eb990b9639ec672115bc50fe'
 PAIR26_SOURCE_SHA256 = '23389c8ae9f34678b546bd740947a3d9fdd39f0840aeac50534b0821f15aa5fb'
@@ -601,6 +602,46 @@ UP5_ANYVIEW_SOURCE_REPLACEMENTS = {
 UP5_ANYVIEW_SPARSE_TEST_PREIMAGE = 'up5-anyview-sparse-test-predecessor-bytes/' + SPARSE_CHECKOUT_TEST
 UP5_ANYVIEW_SPARSE_TEST_BASE_REVISION = 'd759ead2334a93fca93c2833c182059f5f394cc8'
 
+PAIR32_GC1_PREFIX = 'pair32-gc1-predecessor-bytes/'
+PAIR32_GC1_BASE_REVISION = '203a9bc0882e01c20f2b114d6f48fa49b3f6ef7a'
+PAIR32_GC1_PRODUCT_REVISION = '337b6fd1ea613c9a74770514d3496ee5f0459e0e'
+PAIR32_GC1_SOURCE_SHA256 = '50049394164ed8b6a5795ec32baab01c3629a1e7bcb2e9741f2cdcaee10e4f31'
+PAIR32_SDK_BRIDGE = 'Sources/MixerAndroid/AndroidComposePresentation.swift'
+PAIR32_GC1_SOURCE_REPLACEMENTS = {
+    'cli/Sources/MixerBuild/AndroidBuildOutput.swift',
+    'cli/Sources/MixerBuild/AndroidProject.swift',
+    'cli/Sources/MixerBuild/AndroidPublicHost.swift',
+    'cli/Sources/MixerBuild/AndroidSDKCompatibility.swift',
+    'cli/Sources/MixerBuild/MigrationInspector.swift',
+    'cli/Sources/MixerBuild/MigrationSwiftPackage.swift',
+    'cli/Sources/MixerBuild/Configuration.swift',
+    'cli/Sources/MixerBuild/ProjectGenerator.swift',
+    'cli/Sources/MixerBuild/ReleaseInspection.swift',
+    'cli/Sources/MixerCLI/main.swift',
+    ANDROID_BUILD_DRIVER,
+    EXPORT_RUNNER,
+}
+PAIR32_GC1_SOURCE_ADDITIONS = {
+    'sdk/' + PAIR32_SDK_BRIDGE,
+    'cli/Sources/MixerBuild/AndroidComposeProject.swift',
+    'cli/Sources/MixerBuild/Resources/AndroidComposeStarter/BundledFrame.swift',
+    'cli/Sources/MixerBuild/Resources/AndroidComposeStarter/MixerComposeActivity.kt',
+    'cli/Sources/MixerBuild/Resources/AndroidComposeStarter/build.gradle',
+}
+GC1_BUILD_TEST = 'cli/Tests/MixerBuildTests/BuildTests.swift'
+PAIR32_GC1_CHANGES = PAIR32_GC1_SOURCE_REPLACEMENTS | {
+    'THIRD_PARTY.yml',
+    'cli/Tests/MixerBuildTests/AndroidPublicFloorTests.swift',
+    'cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift',
+    GC1_BUILD_TEST,
+    'cli/Tests/MixerBuildTests/GeneratedPublicAndroidV4Tests.swift',
+    'cli/Tests/MixerBuildTests/MigrationPrecisionTests.swift',
+    'cli/Tests/MixerBuildTests/MigrationSwiftPackageTests.swift',
+    JAVA + 'bootstrap.py',
+    JAVA + 'test_bootstrap.py',
+    SPARSE_CHECKOUT_TEST,
+}
+
 S4_DISPLAY_RECEIPT_PREFIX = 's4-display-receipt-predecessor-bytes/'
 S4_DISPLAY_RECEIPT_PREDECESSOR_REVISION = '51b5cc47da8160d3249a46bc3fb3e480a40eac43'
 S4_DISPLAY_RECEIPT_OWNER_SHA256 = 'be938883cc03256e261ff36d8c8b9749df62637911f44c3e8cd8c155b779f348'
@@ -752,6 +793,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
 } | {
     UP5_ANYVIEW_SPARSE_TEST_PREIMAGE
 } | {
+    PAIR32_GC1_PREFIX + name for name in PAIR32_GC1_CHANGES | {SOURCE_INPUTS_MANIFEST}
+} | {
     SWIFT_VERSION_PREFIX + name for name in SWIFT_VERSION_CHANGES
 } | {
     HALT_CLI_PREFIX + name for name in HALT_CLI_CHANGES
@@ -787,6 +830,7 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     *(HOSTED_V92_PREFIX + name for name in HOSTED_V74_CHANGES),
     *(HOSTED_V93_PREFIX + name for name in HOSTED_V74_CHANGES),
     *(HOSTED_V94_PREFIX + name for name in HOSTED_V74_CHANGES),
+    *(HOSTED_V95_PREFIX + name for name in HOSTED_V74_CHANGES),
     PAIR25_RUST_NOTICES_PREIMAGE,
     STATEFUL_WAST_NOTICE_PREIMAGE,
     PAIR25_NETWORK_CRYPTO_NOTICE_PREIMAGE,
@@ -959,7 +1003,7 @@ def install_inputs():
                              'hosted_v86_transition', 'hosted_v87_transition', 'hosted_v88_transition',
                              'hosted_v89_transition', 'hosted_v90_transition', 'up1_floor_workflow_transition',
                              'hosted_v91_transition', 'hosted_v92_transition', 'hosted_v93_transition',
-                             'hosted_v94_transition', 'pair25_rust_notices',
+                             'hosted_v94_transition', 'hosted_v95_transition', 'pair25_rust_notices',
                              'stateful_wast_notices', 'pair25_network_crypto_notices',
                              'android_inspection_deadline_transition', 'receipt_directory_transition',
                              'receipt_parent_url_test_transition', 'swiftpm_migration_transition',
@@ -970,7 +1014,7 @@ def install_inputs():
                              's3_swiftui_transition', 's4_display_receipt_transition',
                              'swiftui_controls_transition', 'up5_pair30_transition', 'up5_native_source_transition',
                              'up5_apple_theme_identity_transition', 'up5_pair31_transition', 'up5_anyview_transition',
-                             'up5_anyview_sparse_test_overlay',
+                             'up5_anyview_sparse_test_overlay', 'pair32_gc1_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -1094,6 +1138,8 @@ def install_inputs():
                 raw = pair26_preimages.get(name)
             if raw is None:
                 raw = pair27_preimages.get(name)
+            if raw is None and name == GC1_BUILD_TEST:
+                raw = read_predecessor_member(HERE / PAIR32_GC1_PREFIX / name)
             if raw is None:
                 raw = previous.read(path)
             require(previous.row(raw) == change['after'], 'Pair23 archive owner differs: ' + name)
@@ -1987,6 +2033,7 @@ def install_inputs():
         ('hosted_v92_transition', HOSTED_V92_PREFIX, HOSTED_V74_CHANGES),
         ('hosted_v93_transition', HOSTED_V93_PREFIX, HOSTED_V74_CHANGES),
         ('hosted_v94_transition', HOSTED_V94_PREFIX, HOSTED_V74_CHANGES),
+        ('hosted_v95_transition', HOSTED_V95_PREFIX, HOSTED_V74_CHANGES),
     ):
         transition = binding[transition_key]
         require(set(transition) == {'changes'} and set(transition['changes']) == changes and
@@ -2656,10 +2703,7 @@ def install_inputs():
         expected_source[name] = change['after']
         installed[name] = change['after']
         preimages.setdefault(name, (raw, change['mode']))
-    require(previous.digest(expected_source) == anyview['sourceAfter'] == UP5_ANYVIEW_SOURCE_SHA256 and
-            current == expected_source and
-            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
-                                  'sha256': UP5_ANYVIEW_SOURCE_SHA256},
+    require(previous.digest(expected_source) == anyview['sourceAfter'] == UP5_ANYVIEW_SOURCE_SHA256,
             'UP5 AnyView source selection differs')
 
     sparse_overlay = binding['up5_anyview_sparse_test_overlay']
@@ -2700,6 +2744,46 @@ def install_inputs():
         s4_preimages[name] = (raw, change['mode'])
     require(previous.digest({name: installed[name] for name in S4_DISPLAY_RECEIPT_CHANGES}) ==
             S4_DISPLAY_RECEIPT_OWNER_SHA256, 'S4 display receipt owner digest differs')
+
+    successor = binding['pair32_gc1_transition']
+    require(set(successor) == {'baseRevision', 'productRevision', 'sourceBefore', 'sourceAfter',
+                               'changes', 'additions', 'profileAfter'} and
+            successor['baseRevision'] == PAIR32_GC1_BASE_REVISION and
+            successor['productRevision'] == PAIR32_GC1_PRODUCT_REVISION and
+            successor['sourceBefore'] == UP5_ANYVIEW_SOURCE_SHA256 and
+            set(successor['changes']) == PAIR32_GC1_CHANGES and
+            set(successor['additions']) == PAIR32_GC1_SOURCE_ADDITIONS and
+            PAIR32_GC1_CHANGES <= installed.keys() and
+            PAIR32_GC1_CHANGES & expected_source.keys() == PAIR32_GC1_SOURCE_REPLACEMENTS and
+            PAIR32_GC1_SOURCE_ADDITIONS.isdisjoint(installed),
+            'Pair32 and GC1 transition roster differs')
+    predecessor_map = previous.load(HERE / PAIR32_GC1_PREFIX / SOURCE_INPUTS_MANIFEST)
+    require(predecessor_map == expected_source, 'Published AnyView source map differs')
+    for name, change in successor['changes'].items():
+        path = HERE / PAIR32_GC1_PREFIX / name
+        raw = read_predecessor_member(path)
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == previous.row(raw) == installed[name] and
+                change['before'] != change['after'] and
+                change['mode'] == stat.S_IMODE(path.lstat().st_mode) ==
+                stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'Pair32 or GC1 predecessor bytes or owner mode differs: ' + name)
+        if name in PAIR32_GC1_SOURCE_REPLACEMENTS:
+            require(expected_source[name] == change['before'],
+                    'Pair32 or GC1 source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        installed[name] = change['after']
+        preimages.setdefault(name, (raw, change['mode']))
+    for name in PAIR32_GC1_SOURCE_ADDITIONS:
+        require(stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'Pair32 source addition mode differs: ' + name)
+    expected_source.update(successor['additions'])
+    installed.update(successor['additions'])
+    require(current == expected_source and
+            previous.digest(current) == successor['sourceAfter'] == PAIR32_GC1_SOURCE_SHA256 and
+            binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
+                                  'sha256': PAIR32_GC1_SOURCE_SHA256},
+            'Pair32 and GC1 installed source selection differs')
 
     previous.check_rows(ROOT, installed)
     for name, change in store_fixture['changes'].items():
@@ -2800,12 +2884,16 @@ def install_inputs():
         require(expected_pair30['sdk_files'][name] == pair31['changes']['sdk/' + name]['before'],
                 'Pair30 SDK preimage differs: ' + name)
     sdk_files = {**expected_pair30['sdk_files'],
-                 **{name: current['sdk/' + name] for name in UP5_PAIR31_SDK_ROWS}}
+                 **{name: pair31['changes']['sdk/' + name]['after'] for name in UP5_PAIR31_SDK_ROWS}}
     expected_pair31 = {**expected_pair30, 'id': 'mixer.android-source-pair.31', 'sdk_files': sdk_files,
                        'sdk_compatibility_sha256': previous.digest(sdk_files)}
-    require(pair31['profileAfter'] == expected_pair31 == profile and
+    require(pair31['profileAfter'] == expected_pair31, 'Archive UP5 Pair31 SDK profile differs')
+    sdk_files = {**expected_pair31['sdk_files'], PAIR32_SDK_BRIDGE: current['sdk/' + PAIR32_SDK_BRIDGE]}
+    expected_pair32 = {**expected_pair31, 'id': 'mixer.android-source-pair.32', 'sdk_files': sdk_files,
+                       'sdk_compatibility_sha256': previous.digest(sdk_files)}
+    require(successor['profileAfter'] == expected_pair32 == profile and
             previous.profile_summary(profile) == binding['profile'],
-            'Archive UP5 Pair31 SDK profile differs')
+            'Archive Pair32 SDK profile differs')
     selector_path = ROOT / 'cli/build-tests/current_android_profile.py'
     selector = previous.module('native_archive_current_selector', selector_path)
     require(selector.load_current_profile(ROOT) == profile, 'Current source-pair selector differs')
@@ -2856,6 +2944,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_up5_anyview_source166_sha256': binding['pair32_gc1_transition']['sourceBefore'],
             'predecessor_up5_apple_theme_identity_source165_sha256': binding['up5_pair31_transition']['sourceBefore'],
             'predecessor_up5_native_source164_sha256': binding['up5_apple_theme_identity_transition']['sourceBefore'],
             'predecessor_up5_pair30_source163_sha256': binding['up5_native_source_transition']['sourceBefore'],

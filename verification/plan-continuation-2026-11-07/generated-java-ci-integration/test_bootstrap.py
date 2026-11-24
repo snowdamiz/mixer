@@ -139,8 +139,9 @@ class BootstrapControls(unittest.TestCase):
         pair28 = binding['up1_pair28_transition']['profileAfter']
         pair29 = binding['up2_pair29_transition']['profileAfter']
         pair30 = binding['up5_pair30_transition']['profileAfter']
-        for rejected in (foreign, pair23, pair24, pair25, pair26, pair27, pair28, pair29, pair30):
-            with self.subTest(profile=rejected['id']), self.assertRaisesRegex(RuntimeError, 'admitted Pair31 profile'):
+        pair31 = binding['up5_pair31_transition']['profileAfter']
+        for rejected in (foreign, pair23, pair24, pair25, pair26, pair27, pair28, pair29, pair30, pair31):
+            with self.subTest(profile=rejected['id']), self.assertRaisesRegex(RuntimeError, 'admitted Pair32 profile'):
                 B.admit_source_inputs(a, rejected)
 
     def test_current_source_missing_tampered_extra_case_symlink_refuse_before_dispatch(self):
