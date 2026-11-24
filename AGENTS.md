@@ -1167,3 +1167,12 @@ returned. Preserve that group, ports 5666 and 5667, and
 `verification/local/plan-nov24-delivery.MDpiQiN9/native-combined` in worktree
 `t3-67570144`. Do not inspect, probe, signal, wait on, retry, or clean these
 resources. Use the compact appearance and inset receipt.
+
+The first managed v3 installed-tool run timed out reading the authenticated
+`ensure_started` response. Listener shutdown returned uncertain and no reliable
+CLI identity was collected. In worktree `t3-4376ab83`, preserve `installed-1`,
+`pinned-cache`, `swift-build`, `mirrors`, and `tmp` within
+`verification/local/up4-managed-compose-4376ab83`. Do not inspect, probe, signal,
+wait on, retry, or clean the held chain. Only its top-level `installed-1-HOLD.json`
+and the delivered compact receipt are custody references. The warmed-cache
+replay ran in separate scratch and does not release the hold.
