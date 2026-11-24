@@ -110,9 +110,9 @@ public final class MixerBundledFeatureMount<Content: MixerSwiftUI.View>: Observa
         let sessionEnvelope = UIEventEnvelope(revision: envelope.revision, identity: identity,
                                              event: envelope.event, value: envelope.value)
         guard issued.serial > lastConsumedActionSerial else { throw UIRoutingError.staleRevision }
-        // A failed state write leaves this frame live even though the handler ran.
-        lastConsumedActionSerial = issued.serial
-        let outcome = session.dispatch(displayed.frame.token, sessionEnvelope)
+        let outcome = session.dispatch(displayed.frame.token, sessionEnvelope) {
+            lastConsumedActionSerial = issued.serial
+        }
         guard terminalStatus == nil else {
             session.detach()
             throw CancellationError()

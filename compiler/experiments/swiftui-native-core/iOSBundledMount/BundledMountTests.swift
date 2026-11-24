@@ -84,6 +84,43 @@ final class BundledMountTests: XCTestCase {
     }
 
     @MainActor
+    func testBusySessionLeavesAnUnadmittedActionAvailableForRetry() async throws {
+        var executions = 0
+        var reenter: (() -> Void)?
+        let mount = try MixerBundledFeatureMount {
+            InvalidStateFeature {
+                executions += 1
+                reenter?()
+            }
+        }
+        defer { mount.cancel() }
+        try await activate(mount)
+
+        let first = try increment(on: mount.host)
+        let second = try increment(on: mount.host)
+        reenter = {
+            XCTAssertThrowsError(try mount.receive(second)) { error in
+                XCTAssertEqual(error as? UIRoutingError, .unboundEvent)
+            }
+        }
+        XCTAssertThrowsError(try mount.receive(first)) { error in
+            XCTAssertEqual(error as? FeatureError, .limitExceeded("state value bytes"))
+        }
+        reenter = nil
+        XCTAssertEqual(executions, 1)
+        XCTAssertNil(mount.presentation)
+
+        XCTAssertThrowsError(try mount.receive(second)) { error in
+            XCTAssertEqual(error as? FeatureError, .limitExceeded("state value bytes"))
+        }
+        XCTAssertEqual(executions, 2)
+        XCTAssertThrowsError(try mount.receive(second)) { error in
+            XCTAssertEqual(error as? UIRoutingError, .staleRevision)
+        }
+        XCTAssertEqual(executions, 2)
+    }
+
+    @MainActor
     func testCancellationUnblocksMountWithoutDisplayCompletion() async throws {
         let mount = try MixerBundledFeatureMount { StarterFeature() }
         defer { mount.cancel() }

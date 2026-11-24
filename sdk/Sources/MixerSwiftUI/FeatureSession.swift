@@ -142,7 +142,8 @@ package final class FeatureSession {
         }
     }
 
-    package func dispatch(_ token: FrameToken, _ event: UIEventEnvelope) -> DispatchOutcome {
+    // Native mounts consume their issued callback only once the handler has been admitted.
+    package func dispatch(_ token: FrameToken, _ event: UIEventEnvelope, onAdmission: () -> Void = {}) -> DispatchOutcome {
         guard executor.isCurrent(), !busy, let accepted, accepted.presentation.token == token,
               let routed = try? accepted.presentation.snapshot.route(event),
               let handler = accepted.handlers[routed.actionID],
@@ -157,6 +158,7 @@ package final class FeatureSession {
                 access, executor: executor, phase: .event, environment: accepted.environment,
                 cells: access.acceptedCells, scope: handler.scope
             ) { turn in
+                onAdmission()
                 operation()
                 do throws(FeatureError) {
                     try turn.checkWrites()
