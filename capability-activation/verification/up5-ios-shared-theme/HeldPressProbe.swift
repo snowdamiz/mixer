@@ -86,7 +86,7 @@ struct HeldPressProbe: UIViewRepresentable {
         private func capture(in window: UIWindow, around point: CGPoint, started: TimeInterval) throws {
             // The 144-point fixture button is centered under the touch. Sample inside
             // its left fill, away from the label, outline, and rounded corners.
-            let patch = CGRect(x: point.x - 56, y: point.y - 7, width: 12, height: 14)
+            let patch = CGRect(x: point.x - 64, y: point.y - 5, width: 8, height: 10)
             let format = UIGraphicsImageRendererFormat()
             format.scale = window.traitCollection.displayScale
             var drew = false

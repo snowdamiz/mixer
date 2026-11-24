@@ -77,15 +77,33 @@ def verify_guest_trace(replay_log, failure="None"):
             or "imported_functions: 32," not in admission[0]):
         raise ValueError("Missing exact-32 admission observation")
     budgets = [line for line in lines if line.startswith("run_budget=")]
-    if len(budgets) != 1 or not all(field in budgets[0] for field in (
-        "cache_entries: 256,", "active_pins: 256,", "frames: 256,", "deadline_ms: 30000",
-    )):
+    owner = re.match(r"^run_budget=SwiftRunBudget \{ ([^{}]+) \};", budgets[0]) if len(budgets) == 1 else None
+    expected = {"cache_entries": "256", "active_pins": "256", "frames": "256", "deadline_ms": "30000"}
+    if not owner or any(
+        re.findall(rf"(?:^|, ){name}: (\d+)(?=, |$)", owner[1]) != [value]
+        for name, value in expected.items()
+    ):
         raise ValueError("Missing original UI256 geometry or deadline evidence")
     closures = [line for line in lines if line.startswith("clean=")]
     closing_ledger, separator, closing_failure = (closures[0] if len(closures) == 1 else "").partition("; failure=")
+    reservation_fields = ("retained_source", "retained_metadata", "cache", "state", "wasi",
+                          "shared", "construction", "combined")
+    live_fields = ("cache_entries", "active_pins", "frames", "values", "controls", "memory_pages")
+
+    def zero_counters(names):
+        counter = r"SwiftReservationUsage \{ current: 0, peak: \d+ \}"
+        return ", ".join(f"{name}: {counter}" for name in names)
+
+    reservation_ledger = zero_counters(reservation_fields)
+    live_ledger = zero_counters(live_fields)
+    outer = re.match(
+        rf"^clean=SwiftRunUsage \{{ reservations: SwiftReservations \{{ {reservation_ledger}, "
+        rf"live_tickets: 0, peak_tickets: \d+ \}}, live: SwiftLiveUsage \{{ {live_ledger} \}}, ",
+        closing_ledger,
+    )
     if (not separator or closing_failure != failure
-            or "combined: SwiftReservationUsage { current: 0," not in closing_ledger
-            or "live_tickets: 0," not in closing_ledger or "cleanup_invariant: None," not in closing_ledger):
+            or not outer or "cleanup_invariant: None," not in closing_ledger
+            or not re.search(r", deadline_ms: 30000, deadline_origin:", closing_ledger)):
         raise ValueError("Missing clean owner closure; see owner trace")
 
 

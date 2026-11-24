@@ -40,14 +40,22 @@ trap 'status=$?; restore_contrast || status=1; exit "$status"' EXIT
 contrast "$requested" >> "$setting_log"
 test "$(read_contrast)" = "$requested"
 
+test_status=0
 /usr/bin/xcodebuild test-without-building -xctestrun "$test_run" \
   -destination "platform=iOS Simulator,id=$OWNED_SIMULATOR_UDID" \
   -parallel-testing-enabled NO -test-timeouts-enabled YES -maximum-test-execution-time-allowance 240 \
   -resultBundlePath "$run/$test_name.xcresult" \
   "-only-testing:UP5ThemeUITests/UP5ThemeUITests/$test_name" \
-  > "$run/$test_name.log" 2>&1
+  > "$run/$test_name.log" 2>&1 || test_status=$?
 
 if [ "$test_name" = testHeldPressRendersPressedFillAndRoutesOnRelease ]; then
   container=$(xcrun simctl get_app_container "$OWNED_SIMULATOR_UDID" dev.mixer.fixture.up5theme data)
-  cp "$container/Library/Caches/UP5-held-press.png" "$run/held-window.png"
+  capture="$container/Library/Caches/UP5-held-press.png"
+  if [ -f "$capture" ]; then
+    cp "$capture" "$run/held-window.png"
+  elif [ "$test_status" = 0 ]; then
+    printf 'Missing native held-window capture.\n' >&2
+    test_status=1
+  fi
 fi
+exit "$test_status"

@@ -41,8 +41,33 @@
   "attachmentManifestSHA256": "b68ea8a73d8ae74e23aa720464922d0d1ef594ed83b9e37f284fb431b319075a",
   "simulatorAbsentAndExternalBaselineEqual": true,
   "pending": [
-    "Native pressed, cancellation, inherited disabled, increased contrast and Bold Text rendering",
+    "Accepted held and canceled native press, inherited disabled rendering, and native Bold Text preference",
     "iOS 17.x runtime",
     "Other node styles and production theme qualification"
-  ]
+  ],
+  "accessibilityAndHeldRun": {
+    "fixture": "07d17ab69a",
+    "os": "iOS 26.5 build 23F77",
+    "tests": {
+      "testIncreasedContrastOnBundledAndSignedGuest": {
+        "result": "Passed",
+        "notes": "Exact Simulator OS setting was enabled, observed by UIKit and SwiftUI, and restored. Signed and bundled light and dark passed native paint and Save checks.",
+        "summarySHA256": "fb4618d001ba99ea1cab2983edfcb0ba933827ba36e4da8bf32e4c6e56576aff",
+        "contrastSettingRestored": true
+      },
+      "testHeldPressRendersPressedFillAndRoutesOnRelease": {
+        "result": "Failed",
+        "notes": "The native hold captured pressed paint on 88.76% and resting paint on 0% of the patch with zero actions at 0.494 seconds. The first assertion required over 95%. Independent raster sampling identified the label crossing that crop. Release checks await the crop correction.",
+        "summarySHA256": "df4beef4729923a41ed6db3546edbd146fabeab0a59cf90d3b4f11b025f13476",
+        "contrastSettingRestored": true
+      },
+      "testBoldTextTraitLoanRendersHeavierGlyphs": {
+        "result": "Passed",
+        "notes": "The native view rendered heavier text and button glyphs when the fixture changed legibilityWeight at the same size. The OS Bold Text setting was outside this test.",
+        "summarySHA256": "189cebd3a756810649f156d0300cdc0e93f289fa942c3d5dd8ff6c28ba3dc8e5",
+        "contrastSettingRestored": true
+      }
+    },
+    "ownedSimulatorAbsentAndExternalBaselineEqual": true
+  }
 }
