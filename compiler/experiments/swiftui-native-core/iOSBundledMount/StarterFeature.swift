@@ -12,7 +12,7 @@ public struct StarterFeature: View {
             Text("Count: \(count)")
             Button("Increment") { count += 1 }
             TextField("Title", text: $title)
-            Text("Draft: \(title)")
+            Text("Draft: \(title.isEmpty ? "empty" : title)")
         }
     }
 }

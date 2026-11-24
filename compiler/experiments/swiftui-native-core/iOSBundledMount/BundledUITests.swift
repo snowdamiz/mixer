@@ -20,13 +20,14 @@ final class BundledUITests: XCTestCase {
 
         let field = app.textFields.firstMatch
         XCTAssertTrue(field.exists)
+        XCTAssertTrue(app.staticTexts["Draft: empty"].exists)
         app.buttons["Hold next display"].tap()
         field.tap()
         field.typeText("A")
         XCTAssertTrue(app.staticTexts["Display held"].waitForExistence(timeout: 5))
         field.typeText("BC")
         XCTAssertEqual(field.value as? String, "ABC")
-        XCTAssertTrue(app.staticTexts["Draft: A"].exists)
+        XCTAssertTrue(app.staticTexts["Draft: empty"].exists)
         XCTAssertFalse(app.staticTexts["Draft: ABC"].exists)
 
         app.buttons["Release display"].tap()

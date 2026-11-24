@@ -1,6 +1,7 @@
 import Combine
 import SwiftUI
 import XCTest
+import MixerSwiftUI
 import MixerUI
 import UP5StarterFeature
 @testable import MixerApple
@@ -54,6 +55,32 @@ final class BundledMountTests: XCTestCase {
         await canceled.value
         XCTAssertNil(mount.host.featureDisplayID)
         XCTAssertEqual(mount.status, .closed)
+    }
+
+    @MainActor
+    func testIssuedActionCannotReplayAfterInvalidState() async throws {
+        var executions = 0
+        let mount = try MixerBundledFeatureMount { InvalidStateFeature { executions += 1 } }
+        defer { mount.cancel() }
+        try await activate(mount)
+
+        let issued = try increment(on: mount.host)
+        XCTAssertThrowsError(try mount.receive(issued)) { error in
+            XCTAssertEqual(error as? FeatureError, .limitExceeded("state value bytes"))
+        }
+        XCTAssertEqual(executions, 1)
+        XCTAssertNil(mount.presentation)
+
+        XCTAssertThrowsError(try mount.receive(issued)) { error in
+            XCTAssertEqual(error as? UIRoutingError, .staleRevision)
+        }
+        XCTAssertEqual(executions, 1)
+
+        XCTAssertThrowsError(try mount.receive(increment(on: mount.host))) { error in
+            XCTAssertEqual(error as? FeatureError, .limitExceeded("state value bytes"))
+        }
+        XCTAssertEqual(executions, 2)
+        XCTAssertNil(mount.presentation)
     }
 
     @MainActor
@@ -237,7 +264,7 @@ final class BundledMountTests: XCTestCase {
     }
 
     @MainActor
-    private func activate(_ mount: MixerBundledFeatureMount<StarterFeature>) async throws {
+    private func activate<Content>(_ mount: MixerBundledFeatureMount<Content>) async throws {
         let start = Task { await mount.start() }
         let id = try await waitForDisplay(on: mount.host)
         mount.host.completeFeatureDisplay(id)
@@ -259,7 +286,7 @@ final class BundledMountTests: XCTestCase {
     }
 
     @MainActor
-    private func textBinding(on mount: MixerBundledFeatureMount<StarterFeature>) throws -> Binding<String> {
+    private func textBinding(on mount: MixerBundledFeatureMount<StarterFeature>) throws -> SwiftUI.Binding<String> {
         let snapshot = mount.host.snapshot
         let node = try XCTUnwrap(snapshot.document.root.children.first { $0.kind == .textField })
         return try XCTUnwrap(mount.textBinding(node: node, snapshot: snapshot))
@@ -296,4 +323,19 @@ final class BundledMountTests: XCTestCase {
     }
 
     private enum FixtureTimeout: Error { case condition }
+}
+
+private struct InvalidStateFeature: MixerSwiftUI.View {
+    @MixerSwiftUI.State private var draft = ""
+    let onTap: () -> Void
+
+    var body: some MixerSwiftUI.View {
+        MixerSwiftUI.VStack {
+            MixerSwiftUI.Button("Write draft") {
+                onTap()
+                draft = String(repeating: "x", count: 1_025)
+            }
+            MixerSwiftUI.Text(draft)
+        }
+    }
 }
