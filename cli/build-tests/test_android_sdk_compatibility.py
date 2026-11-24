@@ -343,9 +343,13 @@ class SourcePairTests(CompatibilityFixture, unittest.TestCase):
         (self.root / 'mixer.lock').write_text(json.dumps(self.lock_value))
         self.reject()
 
-    def test_r2_refuses_exact_r1_source_with_recomputed_generic_lock(self):
-        source = self.adapter / 'app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java'
-        r1 = source.read_text().replace(
+    def test_current_pair_refuses_exact_r1_source_with_recomputed_generic_lock(self):
+        relative = 'app/src/dev/mixer/android/NativeEnvironmentPlatformV2.java'
+        source = self.adapter / relative
+        archive = REPOSITORY / 'verification/native-report-source141-archive-v1'
+        r2 = (archive / 'up2-pair29-predecessor-bytes/native/android' / relative).read_bytes()
+        self.assertEqual(hashlib.sha256(r2).hexdigest(), 'ae20d376d09e27bd751c07f140001446853f1cf00e1a9a37ec1e67f02c8fc5cb')
+        r1 = r2.decode('utf-8').replace(
             '                // Acquire every notice coalesced before this drain, before rereading the getter.\n'
             '                queued.getAndSet(false);', '                queued.set(false);').replace(
             '                if (observed != Phase.REGISTERING && observed != Phase.ACTIVE) return;\n'
