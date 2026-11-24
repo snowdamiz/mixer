@@ -1,0 +1,63 @@
+{
+  "scope": "Local UP5 AnyView Source141 archive admission",
+  "result": "pass",
+  "publishedBase": "b1ccbb1b6e114803c0f378a32ffe976fa1cd03eb",
+  "candidate": "24356f77f881f6789a02251e5ecab2648d2b1d6f",
+  "candidateTree": "ab29a7b3490fba99428f88f896756e03aad17b03",
+  "inputEvidence": {
+    "anyView": {
+      "path": "verification/receipts/ui-platform-pivot-up5-anyview-20261123.json",
+      "sha256": "b30c4010cd17025741fa49ee366448174bb7fe40993ee0d64726fdce010c4b41",
+      "scope": "Root Apple/Mixer differential on iOS 26.5, two tests passed. Host replay passed 22 checks per mode."
+    },
+    "s2": {
+      "path": "verification/receipts/ui-platform-pivot-s2-first-encoder-20261123.json",
+      "sha256": "28c4fd431f12b8ebe34f1f6803e007efeb73dc6d52b65e05cb080f45d834bbd2",
+      "scope": "Inherited first-snapshot host measurement receipt."
+    }
+  },
+  "installedSource141": {
+    "actualSelectedRows": 166,
+    "beforeSHA256": "e06a9d9471444ca9393de15c91351b7f96a1730dec3ab721b65087963e15daad",
+    "afterSHA256": "4b96276b66bc1130a3d279d4f8c88319e7218807873437a6a381e2dd584379a0",
+    "archiveTreeSHA256": "2a2e9aa94043abcaa909a7263c1c81f300b0a82ca78ae4dc4c7e399284c097a6",
+    "replacements": {
+      "sdk/Sources/MixerSwiftUI/ViewEvaluation.swift": "1bec28716cc6fa27486d9444507c8042565a98b8880fcebfcbd7ea2e71a0dd62",
+      "sdk/Sources/MixerSwiftUI/Views.swift": "a4af332ad365b23303ca419f95c4d4ad5d2f1654f4dbbeb2754d4c3326e26348"
+    },
+    "verify": "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+    "observation": "Normal and optimized output matched byte for byte. The published verifier's 55 columns and all values except the current source digest matched. The saved 166-row map and both predecessor source files matched the published Git blobs byte for byte. Optimized admission rejected a changed and resealed Views.swift preimage."
+  },
+  "historicalReconstruction": {
+    "source141": {
+      "command": "python3 -I -B -S verification/native-report-source141-archive-v1/adopt_archive.py prepare-source141 --out <fresh-path>",
+      "files": 890,
+      "selectedSHA256": "a13d2f7983c512633504f9db626f46b9a913d2d727ddad5b4fae487b70f832ab",
+      "pathsBytesAndModesSHA256": "58079295949ffa337002f3a68af91eb3e2001427a6ac1ae5a24b49a77ce8161d"
+    },
+    "source127": {
+      "command": "python3 -I -B -S -O verification/native-report-source141-archive-v1/adopt_archive.py prepare-predecessor --out <fresh-path>",
+      "files": 845,
+      "selectedSHA256": "58e548dd97b80f4f023e33efc5a73b857cb7a62018738ac59e1f1b02bcf394f7",
+      "pathsBytesAndModesSHA256": "3bedcae6fb97bbfc51d3d619e875dfcbf40f74405d7ec5fffe6622921620a24d"
+    },
+    "observation": "Both trees matched reconstruction by the published archive by path, file bytes and mode."
+  },
+  "publishedPair31": {
+    "id": "mixer.android-source-pair.31",
+    "sdkRows": 26,
+    "sdkSHA256": "4ba46e79a6a8e79afa56c0395cec77d0e895d4953652725ebc77db0b7dbf354a",
+    "adapterRows": 27,
+    "adapterSHA256": "eff2acf3b4bf0167eea6aaa6c15e4fa2d67f2aa50714e206886a7037df0c3c44"
+  },
+  "hostedV94": {
+    "selectedRows": 573,
+    "sourceSHA256": "c37924956dcc5ada834ab497bba070b3cd79c7867ae3ed104e214dc79f599349",
+    "verify": "python3 -I -B -S [-O] hosted/scripts/test-identity-network.py --check-source",
+    "sparseControls": "python3 -I -B -S [-O] hosted/scripts/test_identity_network_collector.py WorkflowSparseSourceControls.test_identity_sparse_checkout_admits_real_current_source WorkflowSparseSourceControls.test_hosted_sparse_checkout_admits_real_current_source WorkflowSparseSourceControls.test_services_sparse_checkout_admits_real_current_source",
+    "observation": "Source preflight and three ordinary sparse consumers passed in each mode. All v94 selected inputs, metadata and workflow files matched the published base."
+  },
+  "environment": "Darwin arm64, Python 3.14.8, Git 2.56.0",
+  "limits": "Source-only validation. The independent product source review runs separately. Native and host runtime observations come from the input receipts.",
+  "cleanup": "All replay commands exited and the owned verification/local scratch was removed."
+}

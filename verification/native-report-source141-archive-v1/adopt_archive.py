@@ -590,6 +590,15 @@ UP5_PAIR31_CHANGES = UP5_PAIR31_SOURCE_REPLACEMENTS | {
     SPARSE_CHECKOUT_TEST,
 }
 
+UP5_ANYVIEW_PREFIX = 'up5-anyview-predecessor-bytes/'
+UP5_ANYVIEW_BASE_REVISION = 'b1ccbb1b6e114803c0f378a32ffe976fa1cd03eb'
+UP5_ANYVIEW_PRODUCT_REVISION = '24356f77f881f6789a02251e5ecab2648d2b1d6f'
+UP5_ANYVIEW_SOURCE_SHA256 = '4b96276b66bc1130a3d279d4f8c88319e7218807873437a6a381e2dd584379a0'
+UP5_ANYVIEW_SOURCE_REPLACEMENTS = {
+    'sdk/Sources/MixerSwiftUI/ViewEvaluation.swift',
+    'sdk/Sources/MixerSwiftUI/Views.swift',
+}
+
 S4_DISPLAY_RECEIPT_PREFIX = 's4-display-receipt-predecessor-bytes/'
 S4_DISPLAY_RECEIPT_PREDECESSOR_REVISION = '51b5cc47da8160d3249a46bc3fb3e480a40eac43'
 S4_DISPLAY_RECEIPT_OWNER_SHA256 = 'be938883cc03256e261ff36d8c8b9749df62637911f44c3e8cd8c155b779f348'
@@ -736,6 +745,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     UP5_APPLE_THEME_IDENTITY_PREFIX + name for name in UP5_APPLE_THEME_IDENTITY_CHANGES
 } | {
     UP5_PAIR31_PREFIX + name for name in UP5_PAIR31_CHANGES | {SOURCE_INPUTS_MANIFEST}
+} | {
+    UP5_ANYVIEW_PREFIX + name for name in UP5_ANYVIEW_SOURCE_REPLACEMENTS | {SOURCE_INPUTS_MANIFEST}
 } | {
     SWIFT_VERSION_PREFIX + name for name in SWIFT_VERSION_CHANGES
 } | {
@@ -954,7 +965,7 @@ def install_inputs():
                              'up1_pair28_transition', 'up2_pair29_transition',
                              's3_swiftui_transition', 's4_display_receipt_transition',
                              'swiftui_controls_transition', 'up5_pair30_transition', 'up5_native_source_transition',
-                             'up5_apple_theme_identity_transition', 'up5_pair31_transition',
+                             'up5_apple_theme_identity_transition', 'up5_pair31_transition', 'up5_anyview_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -2615,11 +2626,36 @@ def install_inputs():
     expected_source.update(pair31['additions'])
     installed.update(pair31['additions'])
     require(len(expected_source) == 166 and
-            previous.digest(expected_source) == pair31['sourceAfter'] == UP5_PAIR31_SOURCE_SHA256 and
+            previous.digest(expected_source) == pair31['sourceAfter'] == UP5_PAIR31_SOURCE_SHA256,
+            'Published UP5 Pair31 source selection differs')
+
+    anyview = binding['up5_anyview_transition']
+    require(set(anyview) == {'baseRevision', 'productRevision', 'sourceBefore', 'sourceAfter', 'changes'} and
+            anyview['baseRevision'] == UP5_ANYVIEW_BASE_REVISION and
+            anyview['productRevision'] == UP5_ANYVIEW_PRODUCT_REVISION and
+            anyview['sourceBefore'] == UP5_PAIR31_SOURCE_SHA256 and
+            set(anyview['changes']) == UP5_ANYVIEW_SOURCE_REPLACEMENTS and
+            UP5_ANYVIEW_SOURCE_REPLACEMENTS <= expected_source.keys() & installed.keys(),
+            'UP5 AnyView transition roster differs')
+    predecessor_map = previous.load(HERE / UP5_ANYVIEW_PREFIX / SOURCE_INPUTS_MANIFEST)
+    require(predecessor_map == expected_source, 'UP5 AnyView published predecessor source map differs')
+    for name, change in anyview['changes'].items():
+        path = HERE / UP5_ANYVIEW_PREFIX / name
+        raw = read_predecessor_member(path)
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == previous.row(raw) == expected_source[name] == installed[name] and
+                change['before'] != change['after'] and
+                change['mode'] == stat.S_IMODE(path.lstat().st_mode) ==
+                stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'UP5 AnyView predecessor bytes or owner mode differs: ' + name)
+        expected_source[name] = change['after']
+        installed[name] = change['after']
+        preimages.setdefault(name, (raw, change['mode']))
+    require(previous.digest(expected_source) == anyview['sourceAfter'] == UP5_ANYVIEW_SOURCE_SHA256 and
             current == expected_source and
             binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
-                                  'sha256': UP5_PAIR31_SOURCE_SHA256},
-            'Published UP5 Pair31 source selection differs')
+                                  'sha256': UP5_ANYVIEW_SOURCE_SHA256},
+            'UP5 AnyView source selection differs')
 
     s4 = binding['s4_display_receipt_transition']
     require(set(s4) == {'baseRevision', 'changes'} and
