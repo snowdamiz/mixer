@@ -4,7 +4,7 @@ import Foundation
 public struct MigrationSwiftPackage: Codable, Sendable {
     public var basis = "supplied-swiftpm-description"
     public var moduleGraph = "advisory"
-    public var explanation = "Target membership and dependency edges come from the supplied SwiftPM description. The importer checks file associations but cannot establish graph provenance, freshness, or platform conditions. Causes follow described edges between associated Swift targets to the nearest finding of each class in another target. Import locations and shared local and framework spellings are lexical hints. Product dependencies and other target kinds are outside this traversal."
+    public var explanation = "Target membership and dependency edges come from the supplied SwiftPM description. The importer checks file associations but cannot establish graph provenance, freshness, or platform conditions. Causes follow described edges between associated Swift targets to the nearest finding of each class in another target. Product dependencies and other target kinds are outside the cause traversal. Import locations and shared local and framework spellings are lexical hints. SwiftUI ambiguity follows declared local target dependencies, including transitive dependencies."
     public let modules: [MigrationModule]
     public let unassignedSwiftFiles: [String]
 }
@@ -210,6 +210,30 @@ struct SwiftPackageInventory {
                 if associated { sourceDependencies[name, default: []].append(dependency) }
                 importTargetsByModule[name, default: [:]][key] =
                     associated && bySpelling[key]?.count == 1 ? .locatable(dependency) : .declaredOnly
+            }
+        }
+        let swiftUI = Data("SwiftUI".utf8)
+        if let swiftUITargets = bySpelling[swiftUI] {
+            var dependents: [String: [String]] = [:]
+            for target in graph.targets {
+                for dependency in target.dependencies {
+                    dependents[dependency, default: []].append(target.name)
+                }
+            }
+
+            // Walk the declared graph once. Only direct edges can get import locations.
+            var queue = swiftUITargets.map(\.name)
+            var visited = Set(queue)
+            var next = 0
+            while next < queue.count {
+                let dependency = queue[next]
+                next += 1
+                for dependent in dependents[dependency, default: []] where visited.insert(dependent).inserted {
+                    queue.append(dependent)
+                    if modules[dependent]?.association == .associated, importTargetsByModule[dependent]?[swiftUI] == nil {
+                        importTargetsByModule[dependent, default: [:]][swiftUI] = .declaredOnly
+                    }
+                }
             }
         }
         self.modules = modules

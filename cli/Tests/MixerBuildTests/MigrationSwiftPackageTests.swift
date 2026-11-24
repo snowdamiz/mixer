@@ -227,3 +227,35 @@ private func writeDescription(_ file: URL, root: URL, targets: [DescriptionTarge
         #expect(report.findings.last?.message.contains("Ambiguous SwiftUI import") == true)
     }
 }
+
+@Test func scopedSwiftUIImportsStayAdvisoryForReachableLocalSwiftUI() throws {
+    try withDescription(files: [
+        "SwiftUI.swift": "public struct ScrollView { public init() {}; public let localIdentity = 42 }",
+        "Bridge.swift": "import SwiftUI",
+        "Direct.swift": "import struct SwiftUI.ScrollView",
+        "Feature.swift": "import Bridge\nimport struct SwiftUI.ScrollView\nlet identity = ScrollView().localIdentity",
+        "Other.swift": "import struct SwiftUI.NavigationStack",
+    ]) { root, description in
+        let local = DescriptionTarget(name: "SwiftUI", c99name: "SwiftUI", path: ".", sources: ["SwiftUI.swift"], target_dependencies: [])
+        let bridge = DescriptionTarget(name: "Bridge", c99name: "Bridge", path: ".", sources: ["Bridge.swift"], target_dependencies: ["SwiftUI"])
+        let direct = DescriptionTarget(name: "Direct", c99name: "Direct", path: ".", sources: ["Direct.swift"], target_dependencies: ["SwiftUI"])
+        let feature = DescriptionTarget(name: "Feature", c99name: "Feature", path: ".", sources: ["Feature.swift"], target_dependencies: ["Bridge"])
+        let other = DescriptionTarget(name: "Other", c99name: "Other", path: ".", sources: ["Other.swift"], target_dependencies: [])
+        let cycle = DescriptionTarget(name: "Bridge", c99name: "Bridge", path: ".", sources: ["Bridge.swift", "Missing.swift"], target_dependencies: ["SwiftUI", "Feature"])
+        for intermediate in [bridge, cycle] {
+            try writeDescription(description, root: root, targets: [local, intermediate, direct, feature, other])
+            let report = try MigrationInspector.inspect(root, swiftPMDescription: description)
+            let package = try #require(report.swiftPackage)
+            let modules = Dictionary(uniqueKeysWithValues: package.modules.map { ($0.name, $0) })
+            let feature = try #require(modules["Feature"])
+            #expect(report.swiftUISubset?.scopedImportCounts == ["SwiftUI.NavigationStack": 1])
+            #expect(feature.sourceClassification == .compilerReview)
+            #expect(feature.findings.count == 1)
+            #expect(feature.findings.first?.message.contains("Ambiguous SwiftUI import") == true)
+            #expect(feature.localDependencies.map(\.module) == ["Bridge"])
+            #expect(feature.localDependencies.first?.line == (intermediate.sources.count == 1 ? 1 : nil))
+            #expect(modules["Direct"]?.localDependencies.first?.line == 1)
+            #expect(modules["Other"]?.sourceClassification == .sharedAfterAPIAdaptation)
+        }
+    }
+}

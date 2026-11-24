@@ -196,13 +196,14 @@ private struct SwiftInventory {
               previous[1].text == "struct", !previous[1].raw,
               previous[2].text == "SwiftUI", previous[3].text == ".", !previous[3].raw,
               let symbol = SwiftUISubsetGap(rawValue: previous[4].text) else { return }
-        let declaration = previous[4]
+        let module = previous[2]
+        let member = previous[4]
+        guard module.line == previous[3].line, module.line == member.line else { return }
         if let next {
             let endsWithSemicolon = !next.raw && next.text == ";"
-            let nextLineStartsStatement = next.line > declaration.line && (next.raw || next.text != ".")
+            let nextLineStartsStatement = next.line > member.line && (next.raw || next.text != ".")
             guard endsWithSemicolon || nextLineStartsStatement else { return }
         }
-        let module = previous[2]
         swiftUIGapImports.append(ScopedImport(symbol: symbol, line: module.line, column: module.column))
     }
 

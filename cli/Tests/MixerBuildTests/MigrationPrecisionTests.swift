@@ -123,6 +123,19 @@ private func inventory(_ source: Data, name: String = "Example.swift", _ body: (
 }
 
 @Test(arguments: [
+    "import struct SwiftUI\n.ScrollView",
+    "import struct SwiftUI.\nScrollView",
+    "import struct SwiftUI/*\n*/.ScrollView",
+    "import struct SwiftUI./*\n*/ScrollView",
+])
+func swiftUISubsetRequiresTheDottedPathOnOneLine(_ source: String) throws {
+    try inventory(Data(source.utf8)) { report in
+        #expect(report.swiftUISubset?.scopedImportCounts == [:])
+        #expect(report.findings.map(\.category) == ["compiler-review"])
+    }
+}
+
+@Test(arguments: [
     "let view = ScrollView { Text(\"Hello\") }; let qualified = SwiftUI.ScrollView.self",
     "let view = TextField(\"Notes\", text: text, axis: .vertical)",
     "/* import struct SwiftUI.ScrollView */ let snippet = \"import struct SwiftUI.NavigationStack\"",
