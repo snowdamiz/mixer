@@ -7308,6 +7308,10 @@ class Collector:
         rows, modes = workspace_application_preimages(
             workspace_selection, workspace_manifest, application[WORKSPACE_APPLICATION_MANIFEST],
             base=WORKSPACE_SOURCE_BASE, predecessor=WORKSPACE_V94_MANIFEST, exact=True)
+        expected_tree = exact_product_paths | exact_packet_paths | workspace_exact_packet_paths(WORKSPACE_SOURCE_BASE, rows)
+        # ls-tree -z emits a fixed-width mode and object ID, then the raw path and NUL.
+        entry_overhead = len(b'100644 blob \t\0') + len(self.sha)
+        tree_limit = sum(entry_overhead + len(path.encode('utf-8')) for path in expected_tree)
         tree, _, _ = self.command(
             ['git', '--no-replace-objects', 'ls-tree', '-rz', '--full-tree', self.sha, '--',
              WORKSPACE_V83_SOURCE_BASE, WORKSPACE_V84_SOURCE_BASE,
@@ -7315,9 +7319,9 @@ class Collector:
              WORKSPACE_V88_SOURCE_BASE, WORKSPACE_V89_SOURCE_BASE, WORKSPACE_V90_SOURCE_BASE,
              WORKSPACE_V91_SOURCE_BASE, WORKSPACE_V92_SOURCE_BASE,
              WORKSPACE_V93_SOURCE_BASE, WORKSPACE_V94_SOURCE_BASE, WORKSPACE_SOURCE_BASE,
-             *sorted(exact_product_paths)], limit=12288)
+             *sorted(exact_product_paths)], limit=tree_limit)
         validate_workspace_exact_tree(
-            tree, exact_product_paths | exact_packet_paths | workspace_exact_packet_paths(WORKSPACE_SOURCE_BASE, rows),
+            tree, expected_tree,
             (WORKSPACE_EXECUTABLES & exact_product_paths) | executable_packet_paths |
             {path for path, mode in modes.items() if mode == 0o755})
         preimages = self.git_blobs(sorted(rows))
