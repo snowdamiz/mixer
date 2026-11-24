@@ -182,7 +182,7 @@ public struct UIReconciler: Sendable {
             let identity: UINodeIdentity
             if let old = previous[node.id], old.node.kind == node.kind {
                 identity = old.identity
-                if old.node.properties != node.properties || old.node.actions != node.actions {
+                if !Self.renderPropertiesEqual(old.node.properties, node.properties) || old.node.actions != node.actions {
                     updated.append(node.id)
                 }
                 if old.parent != parent || old.index != index {
@@ -206,5 +206,16 @@ public struct UIReconciler: Sendable {
         snapshot = UIRenderSnapshot(surface: surface, document: document, nodes: records,
                                     maximumStringBytes: validator.limits.maximumStringBytes, textValuePolicy: validator.textValuePolicy)
         return UIChangeSet(inserted: inserted, removed: removed, replaced: replaced, updated: updated, moved: moved)
+    }
+
+    private static func renderPropertiesEqual(_ previous: [String: UIValue], _ current: [String: UIValue]) -> Bool {
+        previous.count == current.count && previous.allSatisfy { key, oldValue in
+            guard let newValue = current[key] else { return false }
+            // A renderer update must preserve the authored UTF-8 spelling of string values.
+            if case let (.string(old), .string(new)) = (oldValue, newValue) {
+                return old.utf8.elementsEqual(new.utf8)
+            }
+            return oldValue == newValue
+        }
     }
 }

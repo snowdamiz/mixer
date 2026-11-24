@@ -32,7 +32,7 @@ let package = Package(
 // Manifests run on the host. Cross-builds must select a destination-compatible product.
 package.products.append(.library(name: "MixerApple", targets: ["MixerApple"]))
 package.targets += [
-    .target(name: "MixerApple", dependencies: ["MixerCore", "MixerUI"]),
+    .target(name: "MixerApple", dependencies: ["MixerCore", "MixerUI", "MixerSwiftUI"]),
     .testTarget(name: "MixerAppleTests", dependencies: ["MixerApple", "MixerUI"]),
 ]
 #endif

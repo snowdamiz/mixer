@@ -35,7 +35,7 @@ package.products.append(
 .library(name: "MixerApple", targets: ["MixerApple"])
 )
 package.targets.append(
-.target(name: "MixerApple", dependencies: ["MixerCore", "MixerUI"], path: "sdk/Sources/MixerApple")
+.target(name: "MixerApple", dependencies: ["MixerCore", "MixerUI", "MixerSwiftUI"], path: "sdk/Sources/MixerApple")
 )
 package.targets.append(
 .testTarget(name: "MixerAppleTests", dependencies: ["MixerApple", "MixerUI"], path: "sdk/Tests/MixerAppleTests")

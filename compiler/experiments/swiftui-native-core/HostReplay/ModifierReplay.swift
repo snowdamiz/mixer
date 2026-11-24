@@ -190,7 +190,48 @@ private func modifierTargets() throws {
     print("PASS transparent modifier targets and pre-promotion accessibility refusals")
 }
 
+private func byteExactAccessibilityUpdates() throws {
+    let session = FeatureSession(executor: replayExecutor)
+    let composed = "\u{e9}"
+    let decomposed = "e\u{301}"
+    expect(composed == decomposed && UIValue.string(composed) == .string(decomposed),
+           "Public String and UIValue equality must retain canonical equivalence")
+    expect(!composed.utf8.elementsEqual(decomposed.utf8), "The fixture must use different UTF-8 encodings")
+
+    func stage(key: String, label: String, hint: String) throws -> PreparedFrame {
+        try session.prepare {
+            Button("Save") {}.accessibilityLabel(label).accessibilityHint(hint).id(key)
+        }
+    }
+
+    let initial = try stage(key: composed, label: composed, hint: composed)
+    let identity = event(initial, button: "Save").identity
+    accept(initial, in: session)
+
+    for (property, label, hint) in [
+        ("accessibilityLabel", decomposed, composed),
+        ("accessibilityHint", decomposed, decomposed),
+    ] {
+        let changed = try stage(key: decomposed, label: label, hint: hint)
+        let stored = changed.presentation.snapshot.document.root.properties[property]?.string
+        expect(stored?.utf8.elementsEqual(decomposed.utf8) == true,
+               "The prepared snapshot must preserve the authored bytes of \(property)")
+        expect(changed.changes.updated == [identity.id], "A byte-only \(property) change must update the node")
+        expect(changed.changes.inserted.isEmpty && changed.changes.removed.isEmpty &&
+               changed.changes.replaced.isEmpty && changed.changes.moved.isEmpty &&
+               event(changed, button: "Save").identity == identity,
+               "Property changes and canonically equivalent keys must preserve node identity")
+        accept(changed, in: session)
+    }
+
+    let unchanged = try stage(key: composed, label: decomposed, hint: decomposed)
+    expect(unchanged.changes.updated.isEmpty && event(unchanged, button: "Save").identity == identity,
+           "Identical property bytes must leave the keyed node unchanged")
+    print("PASS byte-exact accessibility updates preserve public equality and keyed identity")
+}
+
 func ordinaryModifiers() throws {
     try modifierAuthority()
     try modifierTargets()
+    try byteExactAccessibilityUpdates()
 }
