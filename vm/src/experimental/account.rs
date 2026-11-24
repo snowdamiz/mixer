@@ -158,9 +158,9 @@ impl<C: MeterControl> Meter<'_, C> {
         }
     }
     pub fn work(&mut self, credits: u64, cursor: Cursor) -> Result<(), Failure> {
-        // Only body validation uses this mode. Body work sites charge at most
-        // eight credits per operation, so successive interval checks span at
-        // most 128 + 7 credits. Cancellation is checked at every work site.
+        // Only body validation uses this mode. Sample before charging any work
+        // that reaches the next 128-credit boundary, including large charges.
+        // Cancellation is checked at every work site.
         const CLOCK_INTERVAL_CREDITS: u64 = 128;
         if C::SAMPLE_WORK_CLOCK
             && credits < CLOCK_INTERVAL_CREDITS - self.usage.work_used % CLOCK_INTERVAL_CREDITS

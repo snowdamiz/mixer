@@ -792,7 +792,73 @@
         "ownedADBAndEmulatorAbsent": true,
         "scratchRemoved": true,
         "nativeAndFixed34ControlsVerified": 8
+      },
+      "independentReview": {
+        "revision": "499f05cbeb0db36ba7444200b055528c2a39fd6b",
+        "acceptance": "Experiment only. Exact per-work cancellation preserved. Flag-unset and fixed-34 matched baseline.",
+        "overlap": "A body fault seen after expiry reports the applicable deadline or cancellation. The strict path retains the earlier failure reason. Neither returns a validation proof when the overlap occurs."
       }
+    },
+    "codegenDiagnostic": {
+      "scope": "Two alternating offscreen pairs on one API 28 emulator boot with unchanged VM source and budgets, matching Wasm and 17 Swift libraries.",
+      "candidate": "Fat LTO with one codegen unit",
+      "packageSizeComparison": {
+        "baselineBytes": 6758344,
+        "fatLTOBytes": 2860696
+      },
+      "launches": {
+        "baseline-1": {
+          "artifact": {
+            "bytes": 6758344,
+            "sha256": "300630ab7ce3a4b8c64860a6eddfe63cf930c33f04ea3fa21b184deaf6177972"
+          },
+          "guestFirstSnapshotMicroseconds": 19491465,
+          "validateMicroseconds": 12385142,
+          "firstInvocationMicroseconds": 6949347,
+          "oracleSnapshotsMatched": 1,
+          "deadlineFailureTurn": "load",
+          "reportSHA256": "287d1b347828b87239c7467d51e1cc55c6d8dc6afb5d9320399c48feff38b4ae"
+        },
+        "fat-cgu1-2": {
+          "artifact": {
+            "bytes": 2860696,
+            "sha256": "0021ff594aad0e9f9152e7cdfa3c81c5e797f3584626cb4d51b51d087bea62dc"
+          },
+          "guestFirstSnapshotMicroseconds": 15267826,
+          "validateMicroseconds": 8290018,
+          "firstInvocationMicroseconds": 6916314,
+          "oracleSnapshotsMatched": 2,
+          "deadlineFailureTurn": "open",
+          "reportSHA256": "e05ca9284953af9b053421acad48976534fce5c53db2fead81b5fa20cf1aad73"
+        },
+        "fat-cgu1-3": {
+          "artifact": {
+            "bytes": 2860696,
+            "sha256": "0021ff594aad0e9f9152e7cdfa3c81c5e797f3584626cb4d51b51d087bea62dc"
+          },
+          "guestFirstSnapshotMicroseconds": 9743379,
+          "validateMicroseconds": 4180206,
+          "firstInvocationMicroseconds": 5483300,
+          "oracleSnapshotsMatched": 4,
+          "deadlineFailureTurn": "save",
+          "reportSHA256": "3d002dce4a0eb14e49a19eaa4584622f7f3aad80da7566c7b03e5062cf598923"
+        },
+        "baseline-4": {
+          "artifact": {
+            "bytes": 6758344,
+            "sha256": "300630ab7ce3a4b8c64860a6eddfe63cf930c33f04ea3fa21b184deaf6177972"
+          },
+          "guestFirstSnapshotMicroseconds": 28053581,
+          "validateMicroseconds": 14849533,
+          "firstInvocationMicroseconds": 13060189,
+          "oracleSnapshotsMatched": 1,
+          "deadlineFailureTurn": "load",
+          "reportSHA256": "93f1efe773b418e6019b2cf9dfa9e65f3a1d79262a407c2e426289f0a8f1c488"
+        }
+      },
+      "interpretation": "The candidate executable was smaller and the two added startup observations were shorter. Host load varied substantially. No sample met 200 ms. Both guest builds reached the 30-second deadline before completing the journey. Production codegen flags remain at the existing settings.",
+      "processesObservedAbsent": 12,
+      "ownerLedgersClosedAndScratchRemoved": true
     }
   },
   "cleanup": "All recorded command groups reached terminal custody. Build scratch and duplicate binaries were removed. The signed iOS app, Android packet and command evidence were retained.",
