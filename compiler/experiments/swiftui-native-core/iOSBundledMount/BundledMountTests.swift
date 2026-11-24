@@ -99,7 +99,10 @@ final class BundledMountTests: XCTestCase {
         let first = try increment(on: mount.host)
         let second = try increment(on: mount.host)
         reenter = {
-            XCTAssertThrowsError(try mount.receive(second)) { error in
+            do {
+                try mount.receive(second)
+                XCTFail("The busy session admitted a second action")
+            } catch {
                 XCTAssertEqual(error as? UIRoutingError, .unboundEvent)
             }
         }
