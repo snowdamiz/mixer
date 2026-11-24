@@ -111,6 +111,8 @@ Product plan Section 24.6 gives the pass rules and what each outcome unlocks. Ea
 
 #### UP4. Replace the Android renderer with Compose
 
+The first Swift–Kotlin bridge uses the existing canonical `UIDocument` UTF-8 and `UIEventEnvelope`. Swift stages the validated `UIRenderSnapshot` with its captured handler and preserves the SDK revisions and generations. The stage carries an owner UUID, `UInt64` sequence, `UInt64` document revision, and opaque receipt UUID. Kotlin captures that original receipt for each drawn frame and control callback, then echoes it for acknowledgment, cancellation, and input. Acknowledgment requires a drawn, input-ready frame. Swift retirement clears authority before replacement, and canceling a candidate preserves the accepted snapshot and handler. This slice uses the existing schema and ABI.
+
 - [ ] Pin Gradle, AGP 9.3.1 or newer, Kotlin 2.2 or newer, and Compose BOM 2026.11.01 in the toolchain manifest with dependency locks and an offline dependency cache for workers. Record transitive licenses in `THIRD_PARTY.yml`. `scripts/check-policy.py` already scans Gradle manifests for prohibited dependencies.
 - [ ] Render the ten current node kinds and Appearance V2 in `native/android/compose/` with composables keyed by identity and generation, behind the S5 prepare and present contract. Build controls from Compose Foundation, so the shared theme sets their look. Apply the UP2 policy.
 - [ ] Generate Gradle projects from `cli/Sources/MixerBuild/AndroidProject.swift`. Bind resolved dependencies and build inputs into the runtime fingerprint.
