@@ -186,7 +186,7 @@ def source_profile():
                     isinstance(item['sha256'], str) and re.fullmatch('[0-9a-f]{64}', item['sha256']) is not None)
         if not identity(value['default_descriptor']) or value['default_descriptor']['bytes'] > 65_536:
             raise ValueError('unsupported descriptor identity')
-        for kind, count in (('sdk', 26), ('adapter', 27)):
+        for kind, count in (('sdk', 27), ('adapter', 27)):
             files = value[kind + '_files']
             if not isinstance(files, dict) or len(files) != count:
                 raise ValueError('unsupported source map')
