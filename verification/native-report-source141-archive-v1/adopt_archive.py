@@ -530,6 +530,21 @@ UP5_PAIR30_REPLACEMENTS = UP5_PAIR30_SOURCE_REPLACEMENTS | {
     SPARSE_CHECKOUT_TEST,
 }
 
+UP5_NATIVE_SOURCE_PREFIX = 'up5-native-source-predecessor-bytes/'
+UP5_NATIVE_SOURCE_REVIEWED_REVISION = '85bbcb0017c33ecbd29e56d8f6ef819ef007b7ba'
+UP5_NATIVE_SOURCE_SHA256 = 'c58d02a85795641e3ab2daf14bec6917ae6bd7948083f076857a57aba298be19'
+UP5_NATIVE_SOURCE_ADDITIONS = {'sdk/Sources/MixerSwiftUI/Environment.swift'}
+UP5_NATIVE_SOURCE_REPLACEMENTS = {
+    'cli/Sources/MixerBuild/ProjectGenerator.swift',
+    'sdk/Sources/MixerSwiftUI/FeatureSession.swift',
+    'sdk/Sources/MixerSwiftUI/State.swift',
+    'sdk/Sources/MixerSwiftUI/ViewEvaluation.swift',
+}
+UP5_NATIVE_SOURCE_CHANGES = UP5_NATIVE_SOURCE_REPLACEMENTS | {
+    'cli/build-tests/test_public_export.py',
+    SPARSE_CHECKOUT_TEST,
+}
+
 S4_DISPLAY_RECEIPT_PREFIX = 's4-display-receipt-predecessor-bytes/'
 S4_DISPLAY_RECEIPT_PREDECESSOR_REVISION = '51b5cc47da8160d3249a46bc3fb3e480a40eac43'
 S4_DISPLAY_RECEIPT_OWNER_SHA256 = 'be938883cc03256e261ff36d8c8b9749df62637911f44c3e8cd8c155b779f348'
@@ -669,6 +684,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     SWIFTUI_CONTROLS_PREFIX + name for name in SWIFTUI_CONTROLS_REPLACEMENTS
 } | {
     UP5_PAIR30_PREFIX + name for name in UP5_PAIR30_REPLACEMENTS
+} | {
+    UP5_NATIVE_SOURCE_PREFIX + name for name in UP5_NATIVE_SOURCE_CHANGES
 } | {
     SWIFT_VERSION_PREFIX + name for name in SWIFT_VERSION_CHANGES
 } | {
@@ -883,7 +900,7 @@ def install_inputs():
                              'stock_ios_simulator_archive_transition', 'stock_ios_debug_transition',
                              'up1_pair28_transition', 'up2_pair29_transition',
                              's3_swiftui_transition', 's4_display_receipt_transition',
-                             'swiftui_controls_transition', 'up5_pair30_transition',
+                             'swiftui_controls_transition', 'up5_pair30_transition', 'up5_native_source_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -2425,9 +2442,40 @@ def install_inputs():
             preimages.setdefault(name, (raw, change['mode']))
         require(len(expected_source) == 163 and previous.digest(expected_source) == transition['sourceAfter'] == after,
                 'MixerSwiftUI transition digest differs: ' + prefix)
-    require(current == expected_source and
+    native = binding['up5_native_source_transition']
+    require(set(native) == {'reviewedRevision', 'sourceBefore', 'sourceAfter', 'changes', 'additions'} and
+            native['reviewedRevision'] == UP5_NATIVE_SOURCE_REVIEWED_REVISION and
+            native['sourceBefore'] == UP5_PAIR30_SOURCE_SHA256 and
+            set(native['changes']) == UP5_NATIVE_SOURCE_CHANGES and
+            set(native['additions']) == UP5_NATIVE_SOURCE_ADDITIONS and
+            UP5_NATIVE_SOURCE_CHANGES <= installed.keys() and
+            UP5_NATIVE_SOURCE_CHANGES & expected_source.keys() == UP5_NATIVE_SOURCE_REPLACEMENTS and
+            UP5_NATIVE_SOURCE_ADDITIONS.isdisjoint(installed),
+            'UP5 native source transition roster differs')
+    for name, change in native['changes'].items():
+        path = HERE / UP5_NATIVE_SOURCE_PREFIX / name
+        raw = read_predecessor_member(path)
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == previous.row(raw) == installed[name] and
+                change['before'] != change['after'] and
+                change['mode'] == stat.S_IMODE(path.lstat().st_mode) ==
+                stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'UP5 native source predecessor bytes or mode differs: ' + name)
+        if name in UP5_NATIVE_SOURCE_REPLACEMENTS:
+            require(expected_source[name] == change['before'], 'UP5 native source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        installed[name] = change['after']
+        preimages.setdefault(name, (raw, change['mode']))
+    for name in UP5_NATIVE_SOURCE_ADDITIONS:
+        require(stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'UP5 native source addition mode differs: ' + name)
+    expected_source.update(native['additions'])
+    installed.update(native['additions'])
+    require(len(expected_source) == 164 and
+            previous.digest(expected_source) == native['sourceAfter'] == UP5_NATIVE_SOURCE_SHA256 and
+            current == expected_source and
             binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
-                                  'sha256': UP5_PAIR30_SOURCE_SHA256},
+                                  'sha256': UP5_NATIVE_SOURCE_SHA256},
             'UP5 native SDK source selection differs')
 
     s4 = binding['s4_display_receipt_transition']
@@ -2599,6 +2647,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_up5_pair30_source163_sha256': binding['up5_native_source_transition']['sourceBefore'],
             'predecessor_swiftui_controls_source163_sha256': binding['up5_pair30_transition']['sourceBefore'],
             'predecessor_s3_swiftui_source163_sha256': binding['swiftui_controls_transition']['sourceBefore'],
             'predecessor_up2_pair29_source158_sha256': binding['s3_swiftui_transition']['sourceBefore'],

@@ -117,7 +117,8 @@ def admission_paths(root=None, binding=None):
                     'stock_ios_generator_transition', 'stock_ios_simulator_archive_transition',
                     'stock_ios_debug_transition', 'up1_pair28_transition',
                     'up2_pair29_transition', 'hosted_v92_transition', 's4_display_receipt_transition',
-                    'swiftui_controls_transition', 'up5_pair30_transition', 'hosted_v93_transition'):
+                    'swiftui_controls_transition', 'up5_pair30_transition', 'up5_native_source_transition',
+                    'hosted_v93_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
     else:
@@ -524,11 +525,14 @@ class SparseControls(unittest.TestCase):
             s3 = binding['s3_swiftui_transition']
             controls = binding['swiftui_controls_transition']
             up5 = binding['up5_pair30_transition']
+            native = binding['up5_native_source_transition']
             self.assertEqual(s3['sourceBefore'], up2['sourceAfter'])
             self.assertEqual(controls['sourceBefore'], s3['sourceAfter'])
             self.assertEqual(up5['sourceBefore'], controls['sourceAfter'])
             self.assertEqual(observed['predecessor_swiftui_controls_source163_sha256'], up5['sourceBefore'])
-            self.assertEqual(observed['source_sha256'], up5['sourceAfter'])
+            self.assertEqual(native['sourceBefore'], up5['sourceAfter'])
+            self.assertEqual(observed['predecessor_up5_pair30_source163_sha256'], native['sourceBefore'])
+            self.assertEqual(observed['source_sha256'], native['sourceAfter'])
             self.assertEqual(observed['source_sha256'], binding['source']['sha256'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']
@@ -550,7 +554,8 @@ class SparseControls(unittest.TestCase):
                        **fieldlog['changes'], **editor['changes'],
                        **binding['store_reconciliation_fixture_transition']['changes'],
                        **generator['changes']}
-            additions = sorted(name for name, change in changes.items() if change['before'] is None)
+            additions = sorted({name for name, change in changes.items() if change['before'] is None}
+                               | native['additions'].keys())
             self.assertTrue(additions)
             for name in additions:
                 with self.subTest(missing=name):
@@ -634,10 +639,13 @@ class SparseControls(unittest.TestCase):
 
             source_inputs = json.loads((repo / SOURCE_BINDING.parent / binding['source']['manifest']).read_bytes())
             for prefix, transition in (
+                ('up5-native-source-predecessor-bytes', native),
                 ('up5-pair30-predecessor-bytes', up5),
                 ('swiftui-controls-predecessor-bytes', controls),
             ):
                 self.assertEqual(B.canonical().source_digest(source_inputs), transition['sourceAfter'])
+                for name, identity in transition.get('additions', {}).items():
+                    self.assertEqual(source_inputs.pop(name), identity)
                 for name, change in transition['changes'].items():
                     if name in source_inputs:
                         self.assertEqual(source_inputs[name], change['after'])
