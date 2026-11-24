@@ -93,6 +93,12 @@ after an interrupted run. Record runtime results separately after replay.
 
 For the Settings selector, use an English iPhone Simulator and start Settings
 on its main page or within **Accessibility** > **Display & Text Size**.
+On iOS 26.5 the accessibility switch frame can span the whole row. The test
+taps 25 points inside the trailing edge of that frame, where the switch track
+appears in the English left-to-right layout. It uses the center of a
+switch-only frame. The `*-settings-tap` attachment records the frame, tap
+point, and raw value before the tap. The `*-settings-value` attachments record
+the exact value read back from Settings.
 The test records the initial switch value before tapping and checks the restored
 value in Settings and the fixture. If the run stops before restoration, read the
 `baseline-settings-value` attachment or the baseline activity in the XCTest

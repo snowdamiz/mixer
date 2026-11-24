@@ -142,8 +142,9 @@ final class UP5ThemeUITests: XCTestCase {
                "settings-launch")
         let original: Bool
         do {
-            original = try boldTextValue(settingsBoldTextSwitch(in: settings))
-            recordSettings(settings, phase: "baseline", enabled: original)
+            let rawValue = try settingsBoldTextSwitch(in: settings).value
+            original = try boldTextValue(rawValue)
+            recordSettings(settings, phase: "baseline", enabled: original, rawValue: rawValue)
         } catch {
             recordSettingsFailure(settings, phase: "baseline", error: error)
             throw error
@@ -229,39 +230,56 @@ final class UP5ThemeUITests: XCTestCase {
         row.tap()
     }
 
-    @MainActor
-    private func boldTextValue(_ toggle: XCUIElement) throws -> Bool {
-        switch (toggle.value as? String)?.lowercased() {
+    private func boldTextValue(_ rawValue: Any?) throws -> Bool {
+        switch (rawValue as? String)?.lowercased() {
         case "1", "on": true
         case "0", "off": false
-        default: throw BoldTextFailure("Unreadable Bold Text switch value: \(String(describing: toggle.value))")
+        default: throw BoldTextFailure("Unreadable Bold Text switch value: \(String(reflecting: rawValue))")
         }
     }
 
     @MainActor
     private func setSettingsBoldText(_ enabled: Bool, in settings: XCUIApplication, phase: String) throws {
         let toggle = try settingsBoldTextSwitch(in: settings)
-        if try boldTextValue(toggle) != enabled {
+        let before = toggle.value
+        if try boldTextValue(before) != enabled {
             guard toggle.isEnabled && toggle.isHittable else {
                 throw BoldTextFailure("The Bold Text switch cannot be tapped in phase \(phase)")
             }
-            toggle.tap()
+            let frame = toggle.frame
+            guard !frame.isEmpty, frame.width.isFinite, frame.height.isFinite else {
+                throw BoldTextFailure("Invalid Bold Text switch frame in phase \(phase): \(frame)")
+            }
+            // English LTR Settings on iOS 26.5 exposes a 321-by-28 pt switch frame
+            // that spans the label and control. The track sits at the trailing edge.
+            let spansRow = frame.width >= 3 * frame.height
+            let dx = spansRow ? (frame.width - 25) / frame.width : 0.5
+            let target = toggle.coordinate(withNormalizedOffset: CGVector(dx: dx, dy: 0.5))
+            let point = target.screenPoint
+            guard frame.contains(point) else {
+                throw BoldTextFailure("Bold Text tap \(point) is outside the switch frame \(frame) in phase \(phase)")
+            }
+            retain(XCTAttachment(string: "identifier=\(toggle.identifier) rawBefore=\(String(reflecting: before)) frame=\(frame) tap=\(point)"),
+                   phase + "-settings-tap")
+            target.tap()
         }
         let values = enabled ? ["1", "On", "on", "ON"] : ["0", "Off", "off", "OFF"]
         let readback = NSPredicate(format: "exists == true AND value IN %@", values)
         let waiter = XCTNSPredicateExpectation(predicate: readback, object: toggle)
-        guard XCTWaiter.wait(for: [waiter], timeout: 8) == .completed,
-              try boldTextValue(toggle) == enabled else {
-            throw BoldTextFailure("The Bold Text switch did not read back \(enabled) in phase \(phase)")
+        let result = XCTWaiter.wait(for: [waiter], timeout: 8)
+        let after = toggle.value
+        guard result == .completed, try boldTextValue(after) == enabled else {
+            throw BoldTextFailure("The Bold Text switch did not read back \(enabled) in phase \(phase). Before: \(String(reflecting: before)). After: \(String(reflecting: after)).")
         }
-        recordSettings(settings, phase: phase, enabled: enabled)
+        recordSettings(settings, phase: phase, enabled: enabled, rawValue: after)
     }
 
     @MainActor
-    private func recordSettings(_ settings: XCUIApplication, phase: String, enabled: Bool) {
+    private func recordSettings(_ settings: XCUIApplication, phase: String, enabled: Bool, rawValue: Any?) {
         let description = "Settings Bold Text \(phase): \(enabled ? "On" : "Off")"
         XCTContext.runActivity(named: description) { _ in
-            retain(XCTAttachment(string: description), phase + "-settings-value")
+            retain(XCTAttachment(string: "\(description)\nrawValue=\(String(reflecting: rawValue))"),
+                   phase + "-settings-value")
             retain(XCTAttachment(screenshot: settings.screenshot()), phase + "-settings-switch")
         }
     }
