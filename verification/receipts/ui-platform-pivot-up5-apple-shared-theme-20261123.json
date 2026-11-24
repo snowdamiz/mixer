@@ -41,7 +41,7 @@
   "attachmentManifestSHA256": "b68ea8a73d8ae74e23aa720464922d0d1ef594ed83b9e37f284fb431b319075a",
   "simulatorAbsentAndExternalBaselineEqual": true,
   "pending": [
-    "Canceled native press, inherited disabled rendering, and native Bold Text preference",
+    "Canceled native press and inherited disabled rendering",
     "iOS 17.x runtime",
     "Other node styles and production theme qualification"
   ],
@@ -99,6 +99,48 @@
     "cleanup": {
       "ownedSimulatorAbsent": true,
       "externalDeviceBaselineUnchanged": true
+    }
+  },
+  "nativeBoldTextSettingsVerified": {
+    "source": "ea62496260",
+    "runtime": "iPhone 15 arm64 iOS 26.5 (23F77)",
+    "minimumOS": "17.0",
+    "selector": "UP5ThemeUITests/UP5ThemeUITests/testSettingsBoldTextRendersHeavierGlyphs",
+    "test": "Passed",
+    "settings": [
+      "Off",
+      "On",
+      "Off (restored)"
+    ],
+    "nativeTraits": [
+      "system=false swiftui=regular size=large",
+      "system=true swiftui=bold size=large",
+      "system=false swiftui=regular size=large"
+    ],
+    "themedPixelCounts": {
+      "off": {
+        "inkPixels": 1298.0,
+        "labelPixels": 2368.0
+      },
+      "on": {
+        "inkPixels": 2470.0,
+        "labelPixels": 4870.0
+      }
+    },
+    "observations": [
+      "The test tapped the visible Settings control inside its row-wide accessibility frame.",
+      "Each readback agreed across Settings, UIKit and unmodified SwiftUI at the same Dynamic Type size.",
+      "The bundled Text and Button retained their native semantics and showed increased glyph ink."
+    ],
+    "cleanup": {
+      "baselineRestored": true,
+      "ownedSimulatorAbsent": true,
+      "externalBaselineUnchanged": true
+    },
+    "logSHA256": {
+      "summary.json": "a5bd1428d31ff70ed1fba7efb8d6fee94dd83c967c1e48a3ca79ba783566d8df",
+      "attachments/manifest.json": "8fcf70b1382ecc3800323d7bb289cb4b222bec7e0a2096a80afa84528c75b779",
+      "device-cleanup.log": "abc2c0bbae2fa4a3d7e9972a2ca46fc741b66381642e18abc15dbc8d04712ee3"
     }
   }
 }
