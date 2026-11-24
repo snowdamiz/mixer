@@ -3300,8 +3300,8 @@ WORKSPACE_V94_APPLICATION_MANIFEST = WORKSPACE_V94_SOURCE_BASE + 'application-ma
 WORKSPACE_V94_MANIFEST_SHA256 = 'e2aef523f30b0db707de541530cf502a1a6ae2238141dd9c6d7348b550dacbf9'
 
 WORKSPACE_SOURCE_BASE = 'verification/identity-network-current-source-v95/'
-WORKSPACE_SELECTION_SHA256 = 'e08f19380e0a2e440142404c70323e161b5e633270916e6a13f21c821874e67e'
-WORKSPACE_SOURCE_DIGEST = '9632bedd4aaa710cd3e15cfc0141808f567f4e488c4190530accacbb9836aee3'
+WORKSPACE_SELECTION_SHA256 = '62972f6e21efe4016f375fdd11cfc74e8cb162b0071f15938f4165deb12b84d1'
+WORKSPACE_SOURCE_DIGEST = 'f9b2155122566fa22974b3a70a00a6840ff585316b6ec8c8280ad1e7f3161af3'
 WORKSPACE_SOURCE_COUNT = WORKSPACE_V94_SOURCE_COUNT
 WORKSPACE_APPLICATION_MANIFEST = WORKSPACE_SOURCE_BASE + 'application-manifest.json'
 WORKSPACE_PHOENIX_DEPENDENCY_PATHS = frozenset((
@@ -5268,9 +5268,9 @@ def validate_workspace_source_metadata(metadata):
             all(selection[key] == value for key, value in WORKSPACE_V94_SELECTION.items()
                 if key not in change_fields) and
             selection['identity'] == 'hosted-android-source-pair32-retained-compose-v95' and
-            selection['product_tree'] == '3515c0def2cad5923eadd57a2203ce585181fe2d' and
+            selection['product_tree'] == 'ef79f57b768dee938d3d3588b4650181e99468aa' and
             selection['composed_parent'] == '203a9bc0882e01c20f2b114d6f48fa49b3f6ef7a' and
-            selection['product_patch_sha256'] == 'ea1bb58688babdbaed2cb461bdc33d5366d59583bdfaf511960a95f3a34c056d' and
+            selection['product_patch_sha256'] == 'bd4be4f543f76a6ac19f27b6e3480eb3feae726dfc680a190345eddbd48a7d86' and
             set(selection['exact_delta']) == {
                 WORKSPACE_ANDROID_DRIVER,
                 'hosted/priv/development/native_artifact_worker.py',
