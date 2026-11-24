@@ -151,6 +151,73 @@
       "logSHA256": "7ce952f0b2e5043b4955bc81ebda1f0d734b39410b681828d797dc508eda66e6",
       "cleanup": "Private ADB and emulator groups observed absent. Disposable AVD scratch removed.",
       "raw": "verification/local/up4-appearance-shell-api36.lpf_fvwr"
+    },
+    "pixelDiscriminatorFirstAttempt": {
+      "instrumentationCode": 0,
+      "result": "The light-mode typed configuration and font resolver matched expectations. The Activity readiness predicate stayed false before the first capture.",
+      "settingsRestored": true,
+      "cleanup": "Both packages uninstalled, private ADB and emulator groups observed absent, and disposable scratch removed.",
+      "logSHA256": "301810357dc871545888181c7b3654b5fb9e475f662c735080d5124c0da92488",
+      "raw": "verification/local/up4-appearance-pixels-api36.Ej0uYD5j"
+    },
+    "pixelDiscriminatorFocusedAttempt": {
+      "instrumentationCode": 0,
+      "result": "Light and dark verified. The system-contrast fixture sampled the standard button's white ink and the destructive button's gray glyph edge. Three independent destructive-button backdrop samples were black.",
+      "normalLegacyBackdrop": {
+        "x": 612,
+        "y": 323,
+        "argb": "0xffffffff",
+        "ratioWithExpectedInk": 1,
+        "ratioWithPaintedInk": 1.0085466189251153
+      },
+      "normalCorrectedBackdrop": {
+        "x": 608,
+        "y": 323,
+        "argb": "0xff000000",
+        "ratioWithExpectedInk": 21,
+        "ratioWithPaintedInk": 20.822041942276595
+      },
+      "dangerLegacyBackdrop": {
+        "x": 603,
+        "y": 466,
+        "argb": "0xffc3c3c3",
+        "ratioWithExpectedInk": 1.7625598210034286,
+        "ratioWithPaintedInk": 1.7625598210034286
+      },
+      "dangerNeighbouringBackdrops": {
+        "buttonAbove": {
+          "x": 603,
+          "y": 419,
+          "argb": "0xff000000",
+          "ratioWithExpectedInk": 21,
+          "ratioWithPaintedInk": 21
+        },
+        "buttonBelow": {
+          "x": 603,
+          "y": 512,
+          "argb": "0xff000000",
+          "ratioWithExpectedInk": 21,
+          "ratioWithPaintedInk": 21
+        },
+        "buttonMidline": {
+          "x": 598,
+          "y": 466,
+          "argb": "0xff000000",
+          "ratioWithExpectedInk": 21,
+          "ratioWithPaintedInk": 21
+        }
+      },
+      "textContrastFloor": 7,
+      "capturesSHA256": {
+        "01-light.png": "719cca87d87226039b8bf7d82724b0f27720a6d913480801397be22a01bfd697",
+        "02-dark.png": "700c3e9043ff59a197a26547012aa658f3a4924e2acf0d98b738fda6229e38ec",
+        "03-system-contrast.failed.png": "1f3ef961313f221684c0646e209faed2f60e14db31ffcf39b74e9be11729851c"
+      },
+      "systemContrastReadbackSHA256": "7f716931a64f6327eb55aff0a9047288f4c47e4ac1bb078fe785ab359f2e628e",
+      "windowFocusSHA256": "a64347d0e890bc35a04e981d0505bbaf957a8003e6923714ec56da8459d3c372",
+      "allFourSettingsRestoredSHA256": "73e7c8423ecef34d6781112c0346293c1019a517eb985d9a09215a7d738cef0c",
+      "cleanup": "Both packages uninstalled. Owned ADB and emulator groups absent, disposable scratch removed, and all three ports reusable.",
+      "raw": "verification/local/up4-appearance-focus-api36.c6pwwmbd"
     }
   },
   "pending": [
@@ -201,5 +268,76 @@
     "resultSHA256": "f58b249ad8643869322f9a76edde5df03ad5de3df11abc3733ab7da5f25908d9",
     "cleanup": "Both packages uninstalled after each test. Emulator and private ADB groups observed absent. Disposable app data, AVD and Android home removed.",
     "raw": "verification/local/up4-burst-and-swift-api28.7351nvz4"
+  },
+  "maintainedComposeIntegration": {
+    "sourceCommit": "3e02604be4c5256a611b4eb89f19210f0cb1009b",
+    "integratedCommit": "2eec4c2971fb4c6b0c3bf956fc6d733cbe2f1e94",
+    "sourceObjects": {
+      "sdk/Sources/MixerCore": "5f82ff0eae582ee7235ec0964d9036eab46b91d6",
+      "sdk/Sources/MixerUI": "a625bd72aa91268b1654da3fef4b4702ac8b0456",
+      "sdk/Sources/MixerAndroid/AndroidComposePresentation.swift": "dddd94b60f06d5e9e58b51fa735da89f3c6c8562",
+      "native/android/compose": "10805b953ae7157480aac6fe7787ae98b4c716e1"
+    },
+    "sourceInventorySHA256": "294c9835804a6fb2f5aef7d676f15ab8408e0f7bc01d82c121e36422d40f98e2",
+    "buildReceiptSHA256": "a1212e8a2332c303b32d651b9e9c079b025826446658e9a2bc98f7251ba421f2",
+    "buildScope": "Strict offline macOS Gradle with the verified 811-file cache, repository dependency policy, canonical Swift wire and focused host join.",
+    "image": "system-images;android-28;default;arm64-v8a",
+    "fingerprint": "Android/sdk_phone_arm64/generic_arm64:9/PSR1.210301.009.B6/9767327:userdebug/test-keys",
+    "tests": {
+      "standard": {
+        "runner": "dev.mixer.compose.up4.test/dev.mixer.compose.ComposeSmoke",
+        "instrumentationCode": -1,
+        "logSHA256": "6303e857c8a564aa951e994f3118db23f332931f8272c90b70d68db5ca767638"
+      },
+      "held-editor-burst": {
+        "runner": "dev.mixer.compose.up4.test/dev.mixer.compose.HeldInputSmoke",
+        "instrumentationCode": -1,
+        "logSHA256": "228e7df4fe991a7299dbdf66f867c08516c1594740dddc0cff9f9a63be4a096f"
+      },
+      "swift-runtime-join": {
+        "runner": "dev.mixer.compose.up4.test/dev.mixer.compose.RuntimeSmoke",
+        "instrumentationCode": -1,
+        "logSHA256": "885314b60d67712caa6dfa0f39e62b5b8748f3e2254bf182e2b12417a4fd50d5"
+      }
+    },
+    "artifactSHA256": {
+      "MixerComposeHost-ComposeSmoke.apk": "6c323a88baaaf67190172cb11105569ee4a620553060204d2fbc390b8918460f",
+      "MixerComposeHost-HeldInputSmoke.apk": "e478d0c3be1c3e5f255994f8e8ae42d6245caf6cb6207efa814d8b590726607e",
+      "MixerComposeHost-debug.apk": "f8461c761e936e458e895aa708cbe11531cb397fcb63e1554fcdd87bb94011ac",
+      "MixerComposeHost-debug.apk (runtime)": "8e1df44bc0cadbaac4bdde5f3decd634e07db6cc8fd6b18fcedbfc445058ea81",
+      "MixerComposeHost-debug-androidTest.apk (runtime)": "c1ee5fb0d339c056e31a514eb9979a805a9fb9cfcda56593c2cc66b584a0c005"
+    },
+    "cleanup": "All three APK cases uninstalled app and test packages. Both owned groups were observed absent and disposable scratch was removed.",
+    "scope": "The maintained Compose renderer and original Swift signed-APK fixture with bundled content. Android signed update activation remains open.",
+    "raw": "verification/local/up4-maintained-api28.3bloyayf"
+  },
+  "retainedDriverV2": {
+    "sourceCommit": "73bc1301be565f1623c399c3a2a6a7c22145f06c",
+    "integratedCommit": "527c16a40d89fa14657b30331837cf46bacd4a0e",
+    "result": "The CLI-rendered driver built a real unsigned retained Gradle smoke APK offline on Darwin arm64 with Swift owned-command custody. Three Swift and six worker focused tests passed.",
+    "apkSHA256": "fdb89af1f8b3bd9f02aba961ac044b5343f232a71c992b2f94f2809ab4376f84",
+    "apkSizeBytes": 24860985,
+    "minAPI": 28,
+    "targetAPI": 37,
+    "scope": "Explicit retained Compose registration. Product project generation, Linux managed execution, worker artifact publication, and signed runtime fingerprint remain pending.",
+    "validationReceiptSHA256": "b13a05d4e7d702a5f92b18dbdfc17aa371862c282fa7b341063a9a9f978f0ebc",
+    "validationReceipt": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-21a0ed70/verification/local/up4-retained-v2.dGPS2jzU/delivery/validation.json",
+    "rootWorkerTests": {
+      "result": "Three focused controls passed for both retained command versions and the V1 artifact projection.",
+      "raw": "verification/local/up4-current-worker-527c16a4/results.log"
+    },
+    "reviewCorrection": {
+      "patchSHA256": "a8e93012ce699699bad888f3c8d1a749b340cec0d128e06a32d7837661f9a52e",
+      "result": "Eight driver controls matched their expected disposition, including refusal when the build changed and restored the staged bytes. The Swift v1 refusal exercised the same output path twice without creating it. The real CLI-rendered v2 replay built the maintained locked module offline.",
+      "driverCases": 8,
+      "swiftTests": 3,
+      "publishedAPK": false,
+      "unsignedAPKSHA256": "f3e7c81ae8f041d9d2358047858e1baf300e48e737b4b3d3bbc94fa54d75a0cd",
+      "retainedReceiptSHA256": "2df203ca0d0cfbd2399fd62f54d4e0fd356e8fbb1916edba82696d0945e13d00",
+      "ownedCommandReceiptSHA256": "42d821b56c95375908867e7ef02a2bd6f140c93855635396cd35e80355055444",
+      "ownedCommandPGID": 87813,
+      "cleanup": "Direct child reaped, owned group observed absent, both streams at EOF, and source snapshot released and removed.",
+      "source": "verification/local/up4-retained-v2-final.gwpHKyFQ"
+    }
   }
 }
