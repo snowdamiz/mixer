@@ -6,6 +6,8 @@ pub(super) struct Cursor {
     pub offset: usize,
 }
 pub(super) trait MeterControl {
+    const SAMPLE_WORK_CLOCK: bool = false;
+
     fn source_limit(&self) -> usize {
         4 * 1024 * 1024
     }
@@ -30,13 +32,15 @@ pub(super) struct BodyObservations {
     pub max_control_depth: usize,
 }
 #[cfg(feature = "experimental-swift-reactor")]
-pub(super) struct SwiftControl {
+pub(super) struct SwiftControl<const SAMPLE_WORK_CLOCK: bool = false> {
     source_limit: usize,
     deadline: std::time::Instant,
     pub observations: BodyObservations,
 }
 #[cfg(feature = "experimental-swift-reactor")]
-impl MeterControl for SwiftControl {
+impl<const SAMPLE_WORK_CLOCK: bool> MeterControl for SwiftControl<SAMPLE_WORK_CLOCK> {
+    const SAMPLE_WORK_CLOCK: bool = SAMPLE_WORK_CLOCK;
+
     fn source_limit(&self) -> usize {
         self.source_limit
     }
@@ -104,6 +108,21 @@ impl<'a> Meter<'a, SwiftControl> {
             },
         }
     }
+
+    pub fn for_bodies<const SAMPLE_WORK_CLOCK: bool>(
+        self,
+    ) -> Meter<'a, SwiftControl<SAMPLE_WORK_CLOCK>> {
+        Meter {
+            budget: self.budget,
+            usage: self.usage,
+            cancellation: self.cancellation,
+            control: SwiftControl {
+                source_limit: self.control.source_limit,
+                deadline: self.control.deadline,
+                observations: self.control.observations,
+            },
+        }
+    }
 }
 impl<C: MeterControl> Meter<'_, C> {
     pub fn source_limit(&self) -> usize {
@@ -125,19 +144,31 @@ impl<C: MeterControl> Meter<'_, C> {
         }
     }
     pub fn check(&self, cursor: Cursor) -> Result<(), Failure> {
+        self.check_cancellation(cursor)?;
+        if self.control.expired() {
+            return Err(self.error(FailureKind::Cancelled, "swift_deadline", cursor));
+        }
+        Ok(())
+    }
+    fn check_cancellation(&self, cursor: Cursor) -> Result<(), Failure> {
         if self.cancellation.is_cancelled() {
             Err(self.error(FailureKind::Cancelled, "cancelled", cursor))
         } else {
-            if self.control.expired() {
-                // Private code is mapped to the distinct Swift-only public kind.
-                // No frozen entry point creates a meter with a deadline.
-                return Err(self.error(FailureKind::Cancelled, "swift_deadline", cursor));
-            }
             Ok(())
         }
     }
     pub fn work(&mut self, credits: u64, cursor: Cursor) -> Result<(), Failure> {
-        self.check(cursor)?;
+        // Only body validation uses this mode. Body work sites charge at most
+        // eight credits per operation, so successive interval checks span at
+        // most 128 + 7 credits. Cancellation is checked at every work site.
+        const CLOCK_INTERVAL_CREDITS: u64 = 128;
+        if C::SAMPLE_WORK_CLOCK
+            && credits < CLOCK_INTERVAL_CREDITS - self.usage.work_used % CLOCK_INTERVAL_CREDITS
+        {
+            self.check_cancellation(cursor)?;
+        } else {
+            self.check(cursor)?;
+        }
         let attempted = self.usage.work_used.checked_add(credits).ok_or_else(|| {
             self.error(FailureKind::ResourceExhausted, "validation_work", cursor)
                 .resource(Resource::Work, u64::MAX, self.budget.work_credits)
@@ -149,6 +180,26 @@ impl<C: MeterControl> Meter<'_, C> {
         }
         self.usage.work_used = attempted;
         Ok(())
+    }
+    pub fn body_boundary(&self, cursor: Cursor) -> Result<(), Failure> {
+        if C::SAMPLE_WORK_CLOCK {
+            self.check(cursor)?;
+        }
+        Ok(())
+    }
+    #[cfg(feature = "experimental-swift-reactor")]
+    pub fn body_failure(&self, error: Failure) -> Failure {
+        if C::SAMPLE_WORK_CLOCK && error.kind != FailureKind::Cancelled {
+            let cursor = Cursor {
+                function: error.function,
+                offset: error.offset,
+            };
+            if let Err(mut stopped) = self.check(cursor) {
+                stopped.usage = error.usage;
+                return stopped;
+            }
+        }
+        error
     }
     pub fn reserve(
         &mut self,
@@ -272,7 +323,13 @@ impl<T: Copy> Buffer<T> {
             })?;
         meter.reserve(self.category, bytes, cursor)?;
         let mut next = Vec::new();
-        if next.try_reserve_exact(capacity).is_err() {
+        let allocation = next.try_reserve_exact(capacity);
+        if let Err(error) = meter.body_boundary(cursor) {
+            drop(next);
+            meter.release(self.category, bytes);
+            return Err(error);
+        }
+        if allocation.is_err() {
             meter.release(self.category, bytes);
             return Err(meter.error(FailureKind::AllocationFailure, "vector_allocation", cursor));
         }
@@ -289,6 +346,11 @@ impl<T: Copy> Buffer<T> {
                 return Err(error);
             }
             next.push(*item);
+        }
+        if let Err(error) = meter.body_boundary(cursor) {
+            drop(next);
+            meter.release(self.category, bytes);
+            return Err(error);
         }
         let old = std::mem::replace(&mut self.values, next);
         drop(old);
@@ -323,5 +385,99 @@ impl<T: Copy> Buffer<T> {
         let bytes = self.charged;
         drop(self);
         meter.release(category, bytes);
+    }
+}
+
+#[cfg(all(test, feature = "experimental-swift-reactor"))]
+mod tests {
+    use super::*;
+    use std::cell::Cell;
+
+    #[derive(Default)]
+    struct TestClock {
+        now: Cell<u64>,
+        last_sample: Cell<u64>,
+        expired: Cell<bool>,
+    }
+
+    impl MeterControl for TestClock {
+        const SAMPLE_WORK_CLOCK: bool = true;
+
+        fn expired(&self) -> bool {
+            self.last_sample.set(self.now.get());
+            self.expired.get()
+        }
+    }
+
+    fn sampled_meter(cancellation: &Cancellation) -> Meter<'_, TestClock> {
+        Meter {
+            budget: ValidationBudget::default(),
+            usage: Usage::default(),
+            cancellation,
+            control: TestClock::default(),
+        }
+    }
+
+    #[test]
+    fn sampled_body_clock_bounds_charged_work_across_multi_credit_operations() {
+        let cancellation = Cancellation::default();
+        let cursor = Cursor::default();
+        for initial in 0..128 {
+            let mut meter = sampled_meter(&cancellation);
+            meter.usage.work_used = initial;
+            meter.control.now.set(initial);
+            meter.body_boundary(cursor).unwrap();
+
+            // Check just before the 128 boundary, then consume to the end
+            // of the following interval one credit at a time.
+            for credits in (0..127 - initial)
+                .map(|_| 1)
+                .chain([8])
+                .chain((0..260).map(|_| 1))
+            {
+                let before = meter.usage.work_used;
+                meter.control.now.set(before);
+                meter.work(credits, cursor).unwrap();
+                assert_eq!(meter.usage.work_used, before + credits);
+                assert!(meter.usage.work_used - meter.control.last_sample.get() <= 135);
+            }
+        }
+    }
+
+    #[test]
+    fn sampled_body_checks_expiry_at_boundaries_and_preserves_failure_precedence() {
+        let cancellation = Cancellation::default();
+        let mut meter = sampled_meter(&cancellation);
+        let cursor = Cursor {
+            function: Some(32),
+            offset: 75,
+        };
+        meter.usage.work_used = 126;
+        meter.body_boundary(cursor).unwrap();
+        meter.control.expired.set(true);
+
+        meter.work(1, cursor).unwrap();
+        assert_eq!(meter.work(1, cursor).unwrap_err().code, "swift_deadline");
+        assert_eq!(meter.usage.work_used, 127);
+        assert_eq!(meter.body_boundary(cursor).unwrap_err().code, "swift_deadline");
+        assert_eq!(
+            meter.reserve(Resource::Scratch, 8, cursor).unwrap_err().code,
+            "swift_deadline"
+        );
+        assert_eq!(meter.usage.scratch_reserved, 0);
+
+        let malformed = meter.error(FailureKind::Malformed, "unexpected_end", cursor);
+        let expired = meter.body_failure(malformed);
+        assert_eq!(
+            (expired.code, expired.function, expired.offset),
+            ("swift_deadline", Some(32), 75)
+        );
+        assert_eq!(expired.usage, malformed.usage);
+
+        cancellation.cancel();
+        assert_eq!(meter.work(1, cursor).unwrap_err().code, "cancelled");
+        assert_eq!(meter.body_failure(malformed).code, "cancelled");
+        assert_eq!(meter.body_failure(expired), expired);
+        assert_eq!(meter.usage.work_used, 127);
     }
 }

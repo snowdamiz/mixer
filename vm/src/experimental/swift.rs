@@ -140,7 +140,7 @@ pub fn validate_swift_command(
     input: &[u8], budget: SwiftValidationBudget, cancellation: &Cancellation,
 ) -> Result<ValidatedSwiftCommand, SwiftValidationFailure> {
     let started = Instant::now();
-    validate(input, budget, cancellation, started, policy::Policy::command(), &WasiFunction::ALL)
+    validate::<_, _, false>(input, budget, cancellation, started, policy::Policy::command(), &WasiFunction::ALL)
         .map(|proof| ValidatedSwiftCommand { proof })
         .map_err(|raw| failure(raw, input.len(), started, budget.deadline_ms))
 }
@@ -418,11 +418,11 @@ pub fn validate_swift_reactor(
     cancellation: &Cancellation,
 ) -> Result<ValidatedSwiftReactor, SwiftValidationFailure> {
     let started = Instant::now();
-    validate(input, budget, cancellation, started, policy::Policy::swift(), &WasiFunction::ALL)
+    validate::<_, _, false>(input, budget, cancellation, started, policy::Policy::swift(), &WasiFunction::ALL)
         .map_err(|raw| failure(raw, input.len(), started, budget.deadline_ms))
 }
 
-fn validate<const COMMAND: bool, const UI: bool>(
+fn validate<const COMMAND: bool, const UI: bool, const SAMPLE_BODY_CLOCK: bool>(
     input: &[u8],
     budget: SwiftValidationBudget,
     cancellation: &Cancellation,
@@ -524,7 +524,10 @@ fn validate<const COMMAND: bool, const UI: bool>(
         policy::SwiftDecodePolicy::Reactor
     };
     segments_fit(&metadata, &mut meter)?;
-    validate::all(&source, &policy, &mut metadata, &mut meter)?;
+    let mut meter = meter.for_bodies::<SAMPLE_BODY_CLOCK>();
+    meter.body_boundary(cursor)?;
+    validate::all(&source, &policy, &mut metadata, &mut meter)
+        .map_err(|error| meter.body_failure(error))?;
     meter.check(cursor)?;
     let memory = metadata.memory.unwrap();
     let table = metadata.table.unwrap();
@@ -551,14 +554,16 @@ fn validate<const COMMAND: bool, const UI: bool>(
     meter.check(cursor)?;
     meter.release(Resource::Scratch, scratch_fixed);
     let usage = usage(meter.usage(), input.len(), started, budget.deadline_ms);
-    Ok(ValidatedSwiftReactor {
+    let proof = ValidatedSwiftReactor {
         source,
         metadata,
         policy: selection,
         imports,
         usage,
         observations,
-    })
+    };
+    meter.body_boundary(cursor)?;
+    Ok(proof)
 }
 
 fn exact_imports(
@@ -857,7 +862,7 @@ impl ValidatedSwiftUI {
 #[allow(clippy::result_large_err, reason = "Validation failure snapshots must not allocate.")]
 pub fn validate_swift_ui(input: &[u8], budget: SwiftValidationBudget, cancellation: &Cancellation)
     -> Result<ValidatedSwiftUI, SwiftValidationFailure> {
-    validate_ui(input, budget, cancellation, &WasiFunction::ALL)
+    validate_ui::<false>(input, budget, cancellation, &WasiFunction::ALL)
 }
 
 const SWIFT_6_3_3_UI_IMPORTS: [WasiFunction; 32] = {
@@ -872,6 +877,11 @@ const SWIFT_6_3_3_UI_IMPORTS: [WasiFunction; 32] = {
     ]
 };
 
+const SAMPLE_6_3_3_UI_BODY_CLOCK: bool = match option_env!("MIXER_SWIFT_UI_VALIDATION_CLOCK_BATCH") {
+    Some(value) => matches!(value.as_bytes(), [b'1']),
+    None => false,
+};
+
 /// Validate the exact ordered Preview1 imports emitted by the Swift 6.3.3 UI spike.
 /// Uses the same validation limits, checked signatures and exports as `validate_swift_ui`.
 #[allow(clippy::result_large_err, reason = "Validation failure snapshots must not allocate.")]
@@ -880,18 +890,18 @@ pub fn validate_swift_ui_6_3_3(
     budget: SwiftValidationBudget,
     cancellation: &Cancellation,
 ) -> Result<ValidatedSwiftUI, SwiftValidationFailure> {
-    validate_ui(input, budget, cancellation, &SWIFT_6_3_3_UI_IMPORTS)
+    validate_ui::<SAMPLE_6_3_3_UI_BODY_CLOCK>(input, budget, cancellation, &SWIFT_6_3_3_UI_IMPORTS)
 }
 
 #[allow(clippy::result_large_err, reason = "Validation failure snapshots must not allocate.")]
-fn validate_ui(
+fn validate_ui<const SAMPLE_BODY_CLOCK: bool>(
     input: &[u8],
     budget: SwiftValidationBudget,
     cancellation: &Cancellation,
     expected_imports: &[WasiFunction],
 ) -> Result<ValidatedSwiftUI, SwiftValidationFailure> {
     let started = Instant::now();
-    validate(input, budget, cancellation, started, policy::Policy::ui(), expected_imports)
+    validate::<_, _, SAMPLE_BODY_CLOCK>(input, budget, cancellation, started, policy::Policy::ui(), expected_imports)
         .map(|proof| ValidatedSwiftUI { proof })
         .map_err(|raw| failure(raw, input.len(), started, budget.deadline_ms))
 }

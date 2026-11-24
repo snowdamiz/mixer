@@ -535,6 +535,7 @@ pub(super) fn all<const COMMAND: bool, const UI: bool>(
                 _ => return Err(r.error(meter, FailureKind::Unsupported, "opcode")),
             }
         }
+        meter.body_boundary(r.cursor())?;
         state.dispose(meter);
         meter.control.body();
     }
