@@ -118,7 +118,7 @@ def admission_paths(root=None, binding=None):
                     'stock_ios_debug_transition', 'up1_pair28_transition',
                     'up2_pair29_transition', 'hosted_v92_transition', 's4_display_receipt_transition',
                     'swiftui_controls_transition', 'up5_pair30_transition', 'up5_native_source_transition',
-                    'up5_apple_theme_identity_transition',
+                    'up5_apple_theme_identity_transition', 'up5_pair31_transition',
                     'hosted_v93_transition'):
             if key in declaration:
                 dependencies.update(relative(path).as_posix() for path in declaration[key]['changes'])
@@ -528,6 +528,7 @@ class SparseControls(unittest.TestCase):
             up5 = binding['up5_pair30_transition']
             native = binding['up5_native_source_transition']
             theme_identity = binding['up5_apple_theme_identity_transition']
+            pair31 = binding['up5_pair31_transition']
             self.assertEqual(s3['sourceBefore'], up2['sourceAfter'])
             self.assertEqual(controls['sourceBefore'], s3['sourceAfter'])
             self.assertEqual(up5['sourceBefore'], controls['sourceAfter'])
@@ -536,7 +537,9 @@ class SparseControls(unittest.TestCase):
             self.assertEqual(observed['predecessor_up5_pair30_source163_sha256'], native['sourceBefore'])
             self.assertEqual(theme_identity['sourceBefore'], native['sourceAfter'])
             self.assertEqual(observed['predecessor_up5_native_source164_sha256'], theme_identity['sourceBefore'])
-            self.assertEqual(observed['source_sha256'], theme_identity['sourceAfter'])
+            self.assertEqual(pair31['sourceBefore'], theme_identity['sourceAfter'])
+            self.assertEqual(observed['predecessor_up5_apple_theme_identity_source165_sha256'], pair31['sourceBefore'])
+            self.assertEqual(observed['source_sha256'], pair31['sourceAfter'])
             self.assertEqual(observed['source_sha256'], binding['source']['sha256'])
             seal = json.loads((repo / SOURCE_BINDING.with_name('seal.json')).read_bytes())
             icu_preimages = [SOURCE_BINDING.parent / name for name in seal['members']
@@ -643,6 +646,7 @@ class SparseControls(unittest.TestCase):
 
             source_inputs = json.loads((repo / SOURCE_BINDING.parent / binding['source']['manifest']).read_bytes())
             for prefix, transition in (
+                ('up5-pair31-predecessor-bytes', pair31),
                 ('up5-apple-theme-identity-predecessor-bytes', theme_identity),
                 ('up5-native-source-predecessor-bytes', native),
                 ('up5-pair30-predecessor-bytes', up5),
@@ -651,7 +655,7 @@ class SparseControls(unittest.TestCase):
                 self.assertEqual(B.canonical().source_digest(source_inputs), transition['sourceAfter'])
                 for name, identity in transition.get('additions', {}).items():
                     self.assertEqual(source_inputs.pop(name), identity)
-                    if transition is theme_identity:
+                    if transition is pair31 or transition is theme_identity:
                         path = repo / name
                         raw = path.read_bytes()
                         try:
@@ -676,6 +680,9 @@ class SparseControls(unittest.TestCase):
                         finally:
                             path.write_bytes(current)
                 self.assertEqual(B.canonical().source_digest(source_inputs), transition['sourceBefore'])
+                if transition is pair31:
+                    published_map = repo / SOURCE_BINDING.parent / prefix / binding['source']['manifest']
+                    self.assertEqual(json.loads(published_map.read_bytes()), source_inputs)
             for name, identity in s3['additions'].items():
                 self.assertEqual(source_inputs.pop(name), identity)
             self.assertEqual(B.canonical().source_digest(source_inputs), s3['sourceBefore'])

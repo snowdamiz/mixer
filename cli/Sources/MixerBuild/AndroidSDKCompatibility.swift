@@ -190,17 +190,17 @@ enum AndroidSDKCompatibility {
             "bytes": 9587,
             "sha256": "1aeab75c457c21e5c801ab8b446490971d510021c945d0841252360becd8ead3"
           },
-          "id": "mixer.android-source-pair.30",
+          "id": "mixer.android-source-pair.31",
           "schema": 1,
-          "sdk_compatibility_sha256": "607ae7553fd932e9b78cc841ca9e35f9ccdc36b6c18974a6c9f6f0f13276aaf1",
+          "sdk_compatibility_sha256": "4ba46e79a6a8e79afa56c0395cec77d0e895d4953652725ebc77db0b7dbf354a",
           "sdk_files": {
             "Package.resolved": {
               "bytes": 656,
               "sha256": "e7dfdfed9b632538cd61bdff7bc705cb2a30cc7be661f31d6076f18b58d3f1ab"
             },
             "Package.swift": {
-              "bytes": 2106,
-              "sha256": "736f47d1af72554adf7630088be0a60b0619aa84c366d6154433c4784025dafd"
+              "bytes": 2122,
+              "sha256": "8d262858748254676cb064bf00f08ae24f8b5317287640c2c01ea188aae8e611"
             },
             "Sources/MixerAndroid/AndroidUIHost.swift": {
               "bytes": 14599,
@@ -287,8 +287,8 @@ enum AndroidSDKCompatibility {
               "sha256": "209302b05c2e9eae1a1db9b4b462ade13294cb25fce54bd38482b76aa2f11a11"
             },
             "Sources/MixerUI/Reconciliation.swift": {
-              "bytes": 9174,
-              "sha256": "3980a1aa9fca0a6cb9da48ee693b2ab2acae4013cafe6dfab2bb20dcfa427ae0"
+              "bytes": 10117,
+              "sha256": "70aaad40202fa8fef5164ec95dcdeab9160aa689642492af9a1ebf98bf56ed87"
             },
             "Sources/MixerUI/SharedTextProfilesV1.swift": {
               "bytes": 3644,

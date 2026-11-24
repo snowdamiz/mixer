@@ -51,8 +51,8 @@ private func allAdmissionEntrypoints(_ root: URL, code: String = "android.sdk-co
 
 @Test func androidCompatibilityLinkedSDKAndTypedDefaultMatchCompiledPolicy() throws {
     let p = AndroidSDKCompatibility.profile
-    #expect(p.id == "mixer.android-source-pair.30")
-    #expect(p.sdk_compatibility_sha256 == "607ae7553fd932e9b78cc841ca9e35f9ccdc36b6c18974a6c9f6f0f13276aaf1")
+    #expect(p.id == "mixer.android-source-pair.31")
+    #expect(p.sdk_compatibility_sha256 == "4ba46e79a6a8e79afa56c0395cec77d0e895d4953652725ebc77db0b7dbf354a")
     #expect(p.adapter_compatibility_sha256 == "eff2acf3b4bf0167eea6aaa6c15e4fa2d67f2aa50714e206886a7037df0c3c44")
     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.bytes == 5338)
     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.sha256 == "3b9a6054e3c238a43d9428b142feb00f0086af0cc4aedf55a36f5554fda21f02")
@@ -581,7 +581,7 @@ func androidCompatibilityAxisSessionDriftRefusesRecomputedLocksBeforeGenericSour
     var original = AndroidSDKCompatibility.profile.sdk_files
     original.removeValue(forKey: "Package.resolved")
     try FileManager.default.removeItem(at: root.appendingPathComponent("Package.resolved"))
-    let unlockedDigest = "b25cde17d6070d74883e22e943d242639154580cc9b1fd62b99550ca4ad6ed42"
+    let unlockedDigest = "0433961ead2c690145a7c97b2463798cd321b9c919ddc84b525beba868bd7093"
     #expect(try AndroidSDKCompatibility.sdkProjection(root, files: original) == unlockedDigest)
     expectCompatibilityFailure { try AndroidSDKCompatibility.admitSDK(root) }
     let lock = Data("{\"pins\":[],\"version\":3}\n".utf8)

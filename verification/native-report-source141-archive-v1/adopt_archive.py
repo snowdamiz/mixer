@@ -565,6 +565,30 @@ UP5_APPLE_THEME_IDENTITY_CHANGES = UP5_APPLE_THEME_IDENTITY_REPLACEMENTS | {
     'cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift',
 }
 
+UP5_PAIR31_PREFIX = 'up5-pair31-predecessor-bytes/'
+UP5_PAIR31_ARCHIVE_REVISION = '1e5173164da3485cb74395abe3e80f0345516124'
+UP5_PAIR31_PRODUCT_REVISION = 'e10f3b205727c914351b2b433fcd2c8516a1c895'
+UP5_PAIR31_SOURCE_SHA256 = 'e06a9d9471444ca9393de15c91351b7f96a1730dec3ab721b65087963e15daad'
+UP5_PAIR31_SDK_ROWS = {'Package.swift', 'Sources/MixerUI/Reconciliation.swift'}
+UP5_PAIR31_SOURCE_REPLACEMENTS = {'sdk/' + name for name in UP5_PAIR31_SDK_ROWS} | {
+    'cli/Sources/MixerBuild/AndroidSDKCompatibility.swift',
+    ANDROID_BUILD_DRIVER,
+    EXPORT_RUNNER,
+    APPLE_RENDERER,
+    'sdk/Sources/MixerSwiftUI/FeatureSession.swift',
+    'sdk/Sources/MixerSwiftUI/ViewEvaluation.swift',
+    'sdk/Sources/MixerSwiftUI/Views.swift',
+}
+UP5_PAIR31_SOURCE_ADDITIONS = {'sdk/Sources/MixerApple/MixerBundledFeatureMount.swift'}
+UP5_PAIR31_CHANGES = UP5_PAIR31_SOURCE_REPLACEMENTS | {
+    'Package.swift',
+    'cli/Tests/MixerBuildTests/AndroidSDKCompatibilityTests.swift',
+    'cli/Tests/MixerBuildTests/GeneratedPublicAndroidV4Tests.swift',
+    JAVA + 'bootstrap.py',
+    JAVA + 'test_bootstrap.py',
+    SPARSE_CHECKOUT_TEST,
+}
+
 S4_DISPLAY_RECEIPT_PREFIX = 's4-display-receipt-predecessor-bytes/'
 S4_DISPLAY_RECEIPT_PREDECESSOR_REVISION = '51b5cc47da8160d3249a46bc3fb3e480a40eac43'
 S4_DISPLAY_RECEIPT_OWNER_SHA256 = 'be938883cc03256e261ff36d8c8b9749df62637911f44c3e8cd8c155b779f348'
@@ -709,6 +733,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     UP5_NATIVE_SOURCE_PREFIX + name for name in UP5_NATIVE_SOURCE_CHANGES
 } | {
     UP5_APPLE_THEME_IDENTITY_PREFIX + name for name in UP5_APPLE_THEME_IDENTITY_CHANGES
+} | {
+    UP5_PAIR31_PREFIX + name for name in UP5_PAIR31_CHANGES | {SOURCE_INPUTS_MANIFEST}
 } | {
     SWIFT_VERSION_PREFIX + name for name in SWIFT_VERSION_CHANGES
 } | {
@@ -925,7 +951,7 @@ def install_inputs():
                              'up1_pair28_transition', 'up2_pair29_transition',
                              's3_swiftui_transition', 's4_display_receipt_transition',
                              'swiftui_controls_transition', 'up5_pair30_transition', 'up5_native_source_transition',
-                             'up5_apple_theme_identity_transition',
+                             'up5_apple_theme_identity_transition', 'up5_pair31_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -2547,11 +2573,49 @@ def install_inputs():
     expected_source.update(theme_identity['additions'])
     installed.update(theme_identity['additions'])
     require(len(expected_source) == 165 and
-            previous.digest(expected_source) == theme_identity['sourceAfter'] == UP5_APPLE_THEME_IDENTITY_SHA256 and
+            previous.digest(expected_source) == theme_identity['sourceAfter'] == UP5_APPLE_THEME_IDENTITY_SHA256,
+            'UP5 Apple theme and explicit identity source selection differs')
+
+    pair31 = binding['up5_pair31_transition']
+    require(set(pair31) == {'archiveRevision', 'productRevision', 'sourceBefore', 'sourceAfter',
+                            'changes', 'additions', 'profileAfter'} and
+            pair31['archiveRevision'] == UP5_PAIR31_ARCHIVE_REVISION and
+            pair31['productRevision'] == UP5_PAIR31_PRODUCT_REVISION and
+            pair31['sourceBefore'] == UP5_APPLE_THEME_IDENTITY_SHA256 and
+            set(pair31['changes']) == UP5_PAIR31_CHANGES and
+            set(pair31['additions']) == UP5_PAIR31_SOURCE_ADDITIONS and
+            UP5_PAIR31_CHANGES <= installed.keys() and
+            UP5_PAIR31_CHANGES & expected_source.keys() == UP5_PAIR31_SOURCE_REPLACEMENTS and
+            UP5_PAIR31_SOURCE_ADDITIONS.isdisjoint(installed),
+            'UP5 Pair31 transition roster differs')
+    predecessor_map = previous.load(HERE / UP5_PAIR31_PREFIX / SOURCE_INPUTS_MANIFEST)
+    require(predecessor_map == expected_source, 'UP5 Pair31 published predecessor source map differs')
+    for name, change in pair31['changes'].items():
+        path = HERE / UP5_PAIR31_PREFIX / name
+        raw = read_predecessor_member(path)
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == previous.row(raw) == installed[name] and
+                change['before'] != change['after'] and
+                change['mode'] == stat.S_IMODE(path.lstat().st_mode) ==
+                stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'UP5 Pair31 predecessor bytes or owner mode differs: ' + name)
+        if name in UP5_PAIR31_SOURCE_REPLACEMENTS:
+            require(expected_source[name] == change['before'],
+                    'UP5 Pair31 source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        installed[name] = change['after']
+        preimages.setdefault(name, (raw, change['mode']))
+    for name in UP5_PAIR31_SOURCE_ADDITIONS:
+        require(stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'UP5 Pair31 source addition mode differs: ' + name)
+    expected_source.update(pair31['additions'])
+    installed.update(pair31['additions'])
+    require(len(expected_source) == 166 and
+            previous.digest(expected_source) == pair31['sourceAfter'] == UP5_PAIR31_SOURCE_SHA256 and
             current == expected_source and
             binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
-                                  'sha256': UP5_APPLE_THEME_IDENTITY_SHA256},
-            'UP5 Apple theme and explicit identity source selection differs')
+                                  'sha256': UP5_PAIR31_SOURCE_SHA256},
+            'Published UP5 Pair31 source selection differs')
 
     s4 = binding['s4_display_receipt_transition']
     require(set(s4) == {'baseRevision', 'changes'} and
@@ -2669,9 +2733,17 @@ def install_inputs():
     sdk_files = {**expected_profile['sdk_files'], 'Package.swift': sdk_manifest['after']}
     expected_pair30 = {**expected_profile, 'id': 'mixer.android-source-pair.30', 'sdk_files': sdk_files,
                        'sdk_compatibility_sha256': previous.digest(sdk_files)}
-    require(up5['profileAfter'] == expected_pair30 == profile and
+    require(up5['profileAfter'] == expected_pair30, 'Archive UP5 Pair30 SDK profile differs')
+    for name in UP5_PAIR31_SDK_ROWS:
+        require(expected_pair30['sdk_files'][name] == pair31['changes']['sdk/' + name]['before'],
+                'Pair30 SDK preimage differs: ' + name)
+    sdk_files = {**expected_pair30['sdk_files'],
+                 **{name: current['sdk/' + name] for name in UP5_PAIR31_SDK_ROWS}}
+    expected_pair31 = {**expected_pair30, 'id': 'mixer.android-source-pair.31', 'sdk_files': sdk_files,
+                       'sdk_compatibility_sha256': previous.digest(sdk_files)}
+    require(pair31['profileAfter'] == expected_pair31 == profile and
             previous.profile_summary(profile) == binding['profile'],
-            'Archive UP5 Pair30 SDK profile differs')
+            'Archive UP5 Pair31 SDK profile differs')
     selector_path = ROOT / 'cli/build-tests/current_android_profile.py'
     selector = previous.module('native_archive_current_selector', selector_path)
     require(selector.load_current_profile(ROOT) == profile, 'Current source-pair selector differs')
@@ -2722,6 +2794,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_up5_apple_theme_identity_source165_sha256': binding['up5_pair31_transition']['sourceBefore'],
             'predecessor_up5_native_source164_sha256': binding['up5_apple_theme_identity_transition']['sourceBefore'],
             'predecessor_up5_pair30_source163_sha256': binding['up5_native_source_transition']['sourceBefore'],
             'predecessor_swiftui_controls_source163_sha256': binding['up5_pair30_transition']['sourceBefore'],
