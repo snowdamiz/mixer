@@ -145,6 +145,100 @@ public enum AndroidBuildOutput {
     private static let sdkPins = "Generated/MixerSDK/Package.resolved"
     private static let platformPins = "Platforms/Android/Package.resolved"
 
+    struct ComposeReceipt: Decodable, Sendable {
+        struct APK: Decodable, Sendable {
+            let path: String
+            let sha256: String
+            let sizeBytes: UInt64
+            let entries: [APKEntry]
+        }
+        struct Tool: Decodable, Sendable {
+            let path: String
+            let sha256: String
+        }
+        struct ToolCommand: Decodable, Sendable {
+            let command: [String]
+            let exitCode: Int
+        }
+        let schema: String
+        let qualification: String
+        let selection: AndroidProject.StagedComposeProject.Selection
+        let command: [String]
+        let toolCommands: [ToolCommand]
+        let projectTreeBeforeSHA256: String
+        let projectTreeAfterSHA256: String
+        let driverSHA256: String
+        let gradleVersion: String
+        let tools: [String: Tool]
+        let unsignedInitSHA256: String
+        let toolEnvironment: [String: String]
+        let dependencyCache: String
+        let apk: APK
+    }
+
+    struct RetainedComposeBuild: Sendable {
+        let receipt: ComposeReceipt
+        let receiptBytes: Data
+        let apk: Data
+    }
+
+    /// Execute a locked Compose module through the owned command boundary.
+    /// The public build and store need the dedicated Compose runtime contract.
+    static func buildRetainedCompose(
+        root requestedRoot: URL, python: URL, toolEnvironment: [String: String], context: ProcessExecutionContext
+    ) throws -> RetainedComposeBuild {
+        let root = requestedRoot.resolvingSymlinksInPath().standardizedFileURL
+        let inputs = ["MIXER_COMPOSE_GRADLE", "ANDROID_HOME", "MIXER_JDK", "MIXER_COMPOSE_DEPENDENCY_CACHE"]
+        let executable = python.resolvingSymlinksInPath()
+        guard root.path != "/", root.path != context.receiptDirectory.path,
+              !context.receiptDirectory.path.hasPrefix(root.path + "/"),
+              executable.isFileURL, executable.path.hasPrefix("/"), access(executable.path, X_OK) == 0,
+              toolEnvironment.count == inputs.count,
+              inputs.allSatisfy({ toolEnvironment[$0]?.hasPrefix("/") == true }) else { throw invalid }
+        let driverURL = root.appendingPathComponent(driver)
+        let installed = try AndroidSDKCompatibility.renderDriver(
+            String(contentsOf: AndroidProject.buildDriver(), encoding: .utf8))
+        let driverIdentity = identity(Data(installed.utf8))
+        guard driverURL.resolvingSymlinksInPath().path == driverURL.path,
+              try identity(file: driverURL) == driverIdentity else { throw drift }
+
+        let snapshot = try context.makeInputSnapshot()
+        defer { snapshot.removeIfUnheld() }
+        let staged = try AndroidProject.stageRetainedCompose(root: root, in: snapshot)
+        let output = snapshot.directory.appendingPathComponent("android-build", isDirectory: true)
+        let argv = [executable.path, "-I", "-B", "-S", driverURL.path, "build-retained-v2",
+                    staged.directory.path, output.path, staged.treeSHA256]
+        let result = try ProcessRunner.run(argv, at: root, environment: toolEnvironment, policy: .developmentBuild,
+                                           context: context, retaining: snapshot.retainedInputDirectories)
+        guard result.succeeded else {
+            throw MixerFailure("android.output-build", "Compose build exited \(result.exitCode).\n\(result.output.suffix(8_192))")
+        }
+
+        let fd = open(output.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+        guard fd >= 0 else { throw invalid }
+        defer { close(fd) }
+        let raw = try read("compose-build-receipt-v2.json", in: fd, maximum: 4 * 1_048_576)
+        let receipt = try JSONDecoder().decode(ComposeReceipt.self, from: raw)
+        let name = "compose-unsigned.apk"
+        let apk = try read(name, in: fd, maximum: 32 * 1_048_576)
+        let entries = receipt.apk.entries.map(\.path)
+        guard receipt.schema == "mixer.android.retained-compose.2",
+              receipt.qualification == "local-unsigned-compose-boundary-only",
+              receipt.selection == staged.selection,
+              receipt.command == argv, result.command == argv,
+              receipt.projectTreeBeforeSHA256 == staged.treeSHA256,
+              receipt.projectTreeAfterSHA256 == staged.treeSHA256,
+              receipt.driverSHA256 == driverIdentity.sha256,
+              try identity(file: driverURL) == driverIdentity,
+              !receipt.gradleVersion.isEmpty, receipt.toolCommands.count == 3,
+              receipt.toolCommands.allSatisfy({ $0.exitCode == 0 && !$0.command.isEmpty }),
+              receipt.apk.path == output.appendingPathComponent(name).path,
+              identity(apk) == FileIdentity(sha256: receipt.apk.sha256, sizeBytes: receipt.apk.sizeBytes),
+              entries == Array(Set(entries)).sorted(by: { $0.utf8.lexicographicallyPrecedes($1.utf8) }),
+              entries.contains("AndroidManifest.xml"), entries.contains("classes.dex") else { throw invalid }
+        return RetainedComposeBuild(receipt: receipt, receiptBytes: raw, apk: apk)
+    }
+
     public static func build(root requestedRoot: URL, output: URL) throws -> Report {
         let root = requestedRoot.resolvingSymlinksInPath().standardizedFileURL
         let context = ProcessExecutionContext.localDevelopment
@@ -197,6 +291,7 @@ public enum AndroidBuildOutput {
               captured.platformDependencyLock.sha256 == before.platformPins.sha256,
               captured.platformDependencyLock.bytes == before.platformPins.sizeBytes else { throw drift }
         let apkIdentity = captured.apkIdentity
+        let host = AndroidPublicHost.RetainedSelection(config.androidHost)
         let isPublic = config.androidHost?.isPublic == true
         let expectedActivity = isPublic ? config.application + ".androidhost.PublicActivity" : "dev.mixer.android.MixerActivity"
         guard captured.schemaVersion == 2, captured.qualification == "local-unsigned-cross-build-only",
@@ -205,9 +300,9 @@ public enum AndroidBuildOutput {
               apkIdentity.activity == expectedActivity, apkIdentity.activity == captured.activity,
               apkIdentity.abi == android.toolchain.abi,
               apkIdentity.minAPI == captured.applicationMinApi,
-              apkIdentity.minAPI >= (isPublic ? max(36, android.toolchain.min_api) : android.toolchain.min_api),
+              apkIdentity.minAPI >= max(host.minimumAPI, android.toolchain.min_api),
               apkIdentity.minAPI <= apkIdentity.targetAPI, apkIdentity.targetAPI == android.toolchain.target_api,
-              captured.androidHost == (config.androidHost?.rawValue ?? "legacy-v1"), captured.toolchain == android.toolchain,
+              captured.androidHost == host.rawValue, captured.toolchain == android.toolchain,
               captured.sourceProfile == android.profile, captured.sdkDigest == validated.lock.sdkDigest,
               captured.adapterDigest == android.adapterDigest, !captured.commands.isEmpty,
               captured.commands.allSatisfy({ $0.exitCode == 0 && !$0.command.isEmpty }) else { throw invalid }

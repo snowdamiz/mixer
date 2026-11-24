@@ -34,6 +34,8 @@ ANDROID_MIRROR_ENV = {
 }
 ANDROID_DRIVER = "Generated/MixerAndroid/android-build.py"
 ANDROID_MANIFEST = "android-build-v1.json"
+ANDROID_COMPOSE_PREFIX = "Platforms/Android/Compose/"
+ANDROID_COMPOSE_SELECTION = ANDROID_COMPOSE_PREFIX + "mixer-compose.json"
 ANDROID_HOST_SWIFT = "/usr/bin/swift"
 XCODE_INFO = "Contents/Info.plist"
 XCODE_VERSION = "Contents/version.plist"
@@ -406,6 +408,7 @@ def admit_android_tools(recipe, files) -> tuple[str, str]:
 
 def interpret_android_driver(
     commands: list[dict], swift: str, python: str, project: Path, receipt_root: Path, cli_exit: int, cancelled: bool,
+    *, compose_tree: str | None = None,
 ) -> AndroidDriverOutcome | BuildUncertainty:
     unproven = BuildUncertainty.CLI_RESULT_UNPROVEN
     if cli_exit < 0 or len(commands) > 2:
@@ -427,8 +430,9 @@ def interpret_android_driver(
     if probe_outcome is not AndroidDriverOutcome.SUCCEEDED or probe["terminalNS"] >= receipt["runtimeStartedNS"]:
         return unproven
     argv = receipt["command"]
-    staging = Path(argv[-1])
-    snapshot = staging.parent
+    if len(argv) != (9 if compose_tree is not None else 8):
+        return unproven
+    snapshot = Path(argv[7]).parent
     prefix = "mixer-verify-"
     try:
         if not snapshot.name.startswith(prefix):
@@ -437,8 +441,13 @@ def interpret_android_driver(
     except ValueError:
         return unproven
     expected_snapshot = receipt_root / (prefix + snapshot_id)
-    if (argv != [python, "-I", "-B", "-S", str(project / ANDROID_DRIVER),
-                 "build-retained-v1", str(project), str(expected_snapshot / "android-build")]
+    expected = [python, "-I", "-B", "-S", str(project / ANDROID_DRIVER)]
+    output = str(expected_snapshot / "android-build")
+    if compose_tree is None:
+        expected += ["build-retained-v1", str(project), output]
+    else:
+        expected += ["build-retained-v2", str(expected_snapshot / "compose"), output, compose_tree]
+    if (argv != expected
             or receipt.get("directory") != str(project)
             or receipt.get("retainedInputDirectories") != [str(expected_snapshot), str(project)]):
         return unproven
@@ -635,7 +644,14 @@ def collect_build_result(output, recipe, files, spec, pid, code, nested, *, andr
     result = {"closed": True, "started": True, "pid": pid, "exit": code,
               "cli_reaped": True, "cli_group_absent": True, "commands": proof}
     if android_tools is not None:
-        outcome = interpret_android_driver(commands, *android_tools, project, receipt_root, code, cancelled)
+        compose_tree = None
+        if ANDROID_COMPOSE_SELECTION in files:
+            compose_tree = android_export_fingerprint({
+                relative[len(ANDROID_COMPOSE_PREFIX):]: sha for relative, sha in files.items()
+                if relative.startswith(ANDROID_COMPOSE_PREFIX)
+            })
+        outcome = interpret_android_driver(commands, *android_tools, project, receipt_root, code, cancelled,
+                                           compose_tree=compose_tree)
         if isinstance(outcome, BuildUncertainty):
             return outcome
         result["android_driver_outcome"] = outcome.value
@@ -662,7 +678,9 @@ def collect_build_result(output, recipe, files, spec, pid, code, nested, *, andr
     except ValueError:
         pass  # Log projection cannot change the original build or closure outcome.
     if android_tools is not None:
-        if outcome is AndroidDriverOutcome.SUCCEEDED and code == 0 and not cancelled:
+        # Compose custody can close independently. Public artifact admission still
+        # requires a dedicated Compose product and runtime contract.
+        if compose_tree is None and outcome is AndroidDriverOutcome.SUCCEEDED and code == 0 and not cancelled:
             try:
                 result.update(retained_android_report(
                     store, project, spec, files, Path(cli), recipe["tools"][cli],

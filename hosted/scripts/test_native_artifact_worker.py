@@ -1501,6 +1501,67 @@ sys.exit(exit_code)
             spawn.assert_called_once()
             probe.assert_not_called()
 
+    def test_compose_retained_command_cannot_admit_the_v1_receipt(self):
+        interpret = native_artifact_worker.interpret_android_driver
+        swift, python = "/usr/bin/swift", "/usr/bin/python3"
+        project = self.root / "project"
+        receipts = self.root / "receipts"
+        snapshot = receipts / "mixer-verify-1F234567-1234-1234-1234-123456789ABC"
+        tree = "1" * 64
+        prefix = [python, "-I", "-B", "-S", str(project / ANDROID_DRIVER)]
+        v1 = prefix + ["build-retained-v1", str(project), str(snapshot / "android-build")]
+        v2 = prefix + ["build-retained-v2", str(snapshot / "compose"), str(snapshot / "android-build"), tree]
+        terminal = dict(schema="mixer.owned-command.2", released=True, exitCode=0, groupKillSent=False)
+        probe = dict(terminal, command=[swift, "--version"], retainedInputDirectories=[], terminalNS=20)
+        driver = dict(terminal, directory=str(project), retainedInputDirectories=[str(snapshot), str(project)],
+                      runtimeStartedNS=30)
+        succeeded = native_artifact_worker.AndroidDriverOutcome.SUCCEEDED
+        refused = BuildUncertainty.CLI_RESULT_UNPROVEN
+        for selected, command, expected in (
+            (None, v1, succeeded), (None, v2, refused), (tree, v1, refused), (tree, v2, succeeded),
+            (tree, v2[:-1] + ["2" * 64], refused),
+            (tree, v2[:-3] + [str(project / "compose"), *v2[-2:]], refused),
+            (tree, v2[:-2] + [str(snapshot / "other-output"), tree], refused),
+        ):
+            with self.subTest(selected=selected, command=command):
+                options = {"compose_tree": selected} if selected is not None else {}
+                self.assertIs(expected, interpret([probe, dict(driver, command=command)], swift, python,
+                                                  project, receipts, 0, False, **options))
+        cancelled = dict(driver, command=v2, exitCode=15, stopReason="cancelled", groupTerminateSent=True)
+        self.assertIs(native_artifact_worker.AndroidDriverOutcome.CANCELLED,
+                      interpret([probe, cancelled], swift, python, project, receipts, 1, True, compose_tree=tree))
+
+    def test_compose_receipt_uses_registered_tree_and_cannot_project_v1_artifacts(self):
+        worker = native_artifact_worker
+        output = self.root / "output"
+        output.mkdir()
+        project = output / "project"
+        receipts = self.root / "receipts"
+        snapshot = receipts / "mixer-verify-1F234567-1234-1234-1234-123456789ABC"
+        swift, python = "/usr/bin/swift", "/usr/bin/python3"
+        registered = {"mixer-compose.json": "1" * 64, "gradle/verification-metadata.xml": "2" * 64}
+        files = {worker.ANDROID_COMPOSE_PREFIX + name: sha for name, sha in registered.items()}
+        files["mixer.lock"] = "3" * 64
+        tree = worker.android_export_fingerprint(registered)
+        terminal = dict(schema="mixer.owned-command.2", released=True, exitCode=0, groupKillSent=False)
+        probe = dict(terminal, pid=42, command=[swift, "--version"], retainedInputDirectories=[], terminalNS=20)
+        command = [python, "-I", "-B", "-S", str(project / ANDROID_DRIVER),
+                   "build-retained-v2", str(snapshot / "compose"), str(snapshot / "android-build"), tree]
+        driver = dict(terminal, pid=43, directory=str(project), command=command,
+                      retainedInputDirectories=[str(snapshot), str(project)], runtimeStartedNS=30)
+        def collect():
+            return worker.collect_build_result(output, {"argv": ["/cli"], "environment": {}}, files, {}, 42, 0,
+                                               (receipts, [(probe, "1" * 64), (driver, "2" * 64)]),
+                                               android_tools=(swift, python))
+        with patch("native_artifact_worker.retained_android_report") as v1_report:
+            result = collect()
+            self.assertTrue(result["closed"])
+            self.assertEqual("succeeded", result["android_driver_outcome"])
+            self.assertNotIn("artifacts", result)
+            files[worker.ANDROID_COMPOSE_PREFIX + "gradle/verification-metadata.xml"] = "4" * 64
+            self.assertIs(BuildUncertainty.CLI_RESULT_UNPROVEN, collect())
+            v1_report.assert_not_called()
+
     def test_android_driver_requires_exact_closed_receipt_roster(self):
         recipe, files = self.android_recipe()
         root_name = "mixer-command-receipts-10000000-1000-1000-1000-100000000000"

@@ -6,6 +6,7 @@ import os
 import pathlib
 import re
 import resource
+import shlex
 import signal
 import threading
 import shutil
@@ -402,6 +403,15 @@ def public_host(root, config):
     return True
 
 
+HOST_MIN_API = {'legacy-v1': 28, 'public-v3': 36, 'public-v4': 36, 'public-compose-v1': 28}
+COMPOSE_HOST = 'public-compose-v1'
+COMPOSE_INPUTS = ('mixer-compose.json', 'settings.gradle', 'build.gradle', 'gradle.properties',
+                  'toolchain.json', 'buildscript-gradle.lockfile', 'gradle.lockfile',
+                  'gradle/verification-metadata.xml')
+COMPOSE_RECEIPT = 'compose-build-receipt-v2.json'
+COMPOSE_APK = 'compose-unsigned.apk'
+
+
 def application_min_api(root, config, *, required_target_api=None):
     """Admit the declared app floor before tool execution or output creation.
 
@@ -411,7 +421,7 @@ def application_min_api(root, config, *, required_target_api=None):
     host = config.get('androidHost', 'legacy-v1')
     if host not in ('legacy-v1', 'public-v3', 'public-v4'):
         raise RuntimeError('android.api-floor: unsupported Android host.')
-    required = 28 if host == 'legacy-v1' else 36
+    required = HOST_MIN_API[host]
     path = exact_path(root, 'Platforms/Android/AndroidManifest.xml')
     info = path.lstat()
     if not stat.S_ISREG(info.st_mode) or not 0 < info.st_size <= 1_048_576:
@@ -946,7 +956,207 @@ def retained_apk_identity(badging, *, application, activity, abi, min_api, targe
     return actual
 
 
+def compose_tree(project):
+    if project.resolve(strict=True) != project or not project.is_dir():
+        raise RuntimeError('Expected a canonical staged Compose project.')
+    rows = {}
+
+    def visit(directory):
+        for path in directory.iterdir():
+            relative = path.relative_to(project).as_posix()
+            info = path.lstat()
+            if stat.S_ISDIR(info.st_mode):
+                rows[relative] = b'\0\1'
+                visit(path)
+            elif stat.S_ISREG(info.st_mode) and info.st_nlink == 1:
+                rows[relative] = b'\0\0' + bytes.fromhex(digest(path))
+            else:
+                raise RuntimeError('Invalid staged Compose input: ' + relative)
+
+    visit(project)
+    identity = hashlib.sha256()
+    for relative in sorted(rows, key=str.encode):
+        identity.update(relative.encode() + rows[relative])
+    return identity.hexdigest()
+
+
+def compose_apk_inventory(apk):
+    if not 0 < apk.stat().st_size <= 32 * 1024 * 1024:
+        raise RuntimeError('Invalid retained Compose APK size.')
+    with zipfile.ZipFile(apk) as archive, apk.open('rb') as raw:
+        # The APK Signing Block footer, when present, immediately precedes the central directory.
+        if archive.start_dir >= 16:
+            raw.seek(archive.start_dir - 16)
+            if raw.read(16) == b'APK Sig Block 42':
+                raise RuntimeError('Retained Compose APK must be unsigned.')
+        entries = archive.infolist()
+        names = {entry.filename for entry in entries}
+        if (len(names) != len(entries) or not {'AndroidManifest.xml', 'classes.dex'} <= names
+                or sum(entry.file_size for entry in entries) > 128 * 1024 * 1024):
+            raise RuntimeError('Invalid retained Compose APK inventory.')
+        for entry in entries:
+            name = entry.filename
+            if (not name or '\\' in name or any(part in ('', '.', '..') for part in name.rstrip('/').split('/'))
+                    or re.fullmatch(r'META-INF/(?:MANIFEST\.MF|[^/]+\.(?:SF|RSA|DSA|EC)|SIG-[^/]+)', name, re.I)):
+                raise RuntimeError('Invalid or signed retained Compose APK entry: ' + name)
+        return [{'path': entry.filename, 'directory': entry.is_dir(), 'sizeBytes': entry.file_size,
+                 'sha256': hashlib.sha256(archive.read(entry)).hexdigest()}
+                for entry in sorted(entries, key=lambda entry: entry.filename.encode())]
+
+
+def build_retained_compose(project, output, expected_tree):
+    # The local CLI owns both siblings. The tree also comes from the CLI (and,
+    # for managed admission, independently from the worker's registered rows).
+    if (sys.orig_argv[1:] != ['-I', '-B', '-S', *sys.argv]
+            or not re.fullmatch(r'mixer-verify-[0-9A-F]{8}(?:-[0-9A-F]{4}){3}-[0-9A-F]{12}', project.parent.name)
+            or project.name != 'compose' or output != project.parent / 'android-build'
+            or output.exists() or output.is_symlink() or not re.fullmatch('[0-9a-f]{64}', expected_tree)):
+        raise RuntimeError('Invalid retained Compose staging or project identity.')
+    if compose_tree(project) != expected_tree:
+        raise RuntimeError('Staged Compose project identity differs before build.')
+    if (project / 'gradle/gradle-daemon-jvm.properties').exists():
+        raise RuntimeError('The retained Compose build must use the provisioned launcher JVM.')
+    for relative in COMPOSE_INPUTS:
+        path = exact_path(project, relative)
+        if not 0 < path.stat().st_size <= 1024 * 1024:
+            raise RuntimeError('Invalid locked Compose input: ' + relative)
+    selection = read_json(project / 'mixer-compose.json')
+    if (type(selection) is not dict or set(selection) != {'schema', 'host', 'application', 'minAPI', 'targetAPI'}
+            or type(selection['schema']) is not int or selection['schema'] != 1
+            or selection['host'] != COMPOSE_HOST or type(selection['application']) is not str
+            or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+', selection['application'])
+            or type(selection['minAPI']) is not int or not HOST_MIN_API[COMPOSE_HOST] <= selection['minAPI'] <= TARGET_API
+            or type(selection['targetAPI']) is not int or selection['targetAPI'] != TARGET_API):
+        raise RuntimeError('Invalid Compose build selector, application identity or Android API floor.')
+
+    pins = read_json(project / 'toolchain.json')
+    if pins['schema'] != 1 or pins['androidSdk'] != {
+            'platform': 'platforms;android-37.1', 'platformRevision': 1, 'buildTools': 'build-tools;37.0.0'}:
+        raise RuntimeError('Unsupported Compose toolchain manifest.')
+
+    def provisioned(key):
+        path = pathlib.Path(os.environ[key])
+        if not path.is_absolute():
+            raise RuntimeError('Compose toolchain requires an absolute ' + key)
+        return path.resolve(strict=True)
+
+    gradle = provisioned('MIXER_COMPOSE_GRADLE')
+    sdk = provisioned('ANDROID_HOME')
+    jdk = provisioned('MIXER_JDK')
+    cache = provisioned('MIXER_COMPOSE_DEPENDENCY_CACHE')
+    platform = sdk / 'platforms/android-37.1'
+    tools = sdk / 'build-tools/37.0.0'
+    platform_properties = platform / 'source.properties'
+    tools_properties = tools / 'source.properties'
+    aapt = tools / 'aapt2'
+    if ('Pkg.Revision=1' not in platform_properties.read_text().splitlines()
+            or 'Pkg.Revision=37.0.0' not in tools_properties.read_text().splitlines()
+            or 'JAVA_VERSION="' + pins['jdk'] + '"' not in (jdk / 'release').read_text().splitlines()
+            or cache.name != 'modules-2' or not cache.is_dir()):
+        raise RuntimeError('Installed Compose toolchain or dependency cache differs from the expected input.')
+    tool_paths = {'gradleLauncher': gradle, 'java': jdk / 'bin/java', 'jdkRelease': jdk / 'release',
+                  'platformProperties': platform_properties, 'androidJar': platform / 'android.jar',
+                  'buildToolsProperties': tools_properties, 'aapt2': aapt}
+    tool_identity = {name: {'path': str(path), 'sha256': digest(path)} for name, path in tool_paths.items()}
+    driver = pathlib.Path(sys.argv[0]).resolve(strict=True)
+    driver_sha = digest(driver)
+    checked_output(project, create=True, retained_output=output)
+    for name in ('home', 'tmp', 'android-user'):
+        (output / name).mkdir()
+    gradle_home = output / 'gradle-home'
+    # Copy only dependency data. Never import caller init scripts or daemon state.
+    for path in cache.rglob('*'):
+        if path.is_symlink() or not (path.is_dir() or path.is_file()):
+            raise RuntimeError('Invalid Compose dependency cache entry: ' + str(path))
+    shutil.copytree(cache, gradle_home / 'caches/modules-2', ignore=shutil.ignore_patterns('*.lock', 'gc.properties'))
+    # --no-daemon alone can fork a single-use daemon in a separate session.
+    # Match the launcher and build JVM arguments so Gradle runs in the launcher.
+    jvm_args = shlex.join(['-Xms64m', '-Xmx3g', '-XX:MaxMetaspaceSize=768m',
+                           '-Djava.io.tmpdir=' + str(output / 'tmp'), '-Duser.home=' + str(output / 'home')])
+    environment = {
+        'PATH': '/usr/bin:/bin:/usr/sbin:/sbin',
+        'HOME': str(output / 'home'), 'TMPDIR': str(output / 'tmp'),
+        'ANDROID_HOME': str(sdk), 'ANDROID_SDK_ROOT': str(sdk),
+        'JAVA_HOME': str(jdk), 'JAVA_OPTS': jvm_args,
+        'ANDROID_USER_HOME': str(output / 'android-user'),
+        'GRADLE_USER_HOME': str(gradle_home), 'MIXER_COMPOSE_WORK': str(output),
+    }
+    # Keep the retained module unchanged while producing the debug source set unsigned.
+    init = output / 'unsigned.gradle'
+    init.write_text("""gradle.beforeProject { project ->
+    project.pluginManager.withPlugin('com.android.application') {
+        project.extensions.getByName('androidComponents').finalizeDsl { android ->
+            android.buildTypes.getByName('debug').signingConfig = null
+        }
+    }
+}
+""")
+    commands = []
+
+    def run(*args, capture=True):
+        argv = list(map(str, args))
+        child = subprocess.run(argv, cwd=project, env=environment, text=True,
+                               stdout=subprocess.PIPE if capture else None,
+                               stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
+        if capture:
+            print(child.stdout, end='', flush=True)
+        if child.returncode != 0:
+            raise RuntimeError('Retained Compose tool failed: ' + repr(argv))
+        commands.append({'command': argv, 'exitCode': child.returncode})
+        return child.stdout
+
+    version = pins['gradle']['version']
+    if 'Gradle ' + version not in run(gradle, '--version').splitlines():
+        raise RuntimeError('Installed Gradle version differs from the retained toolchain manifest.')
+    run(gradle, '--no-daemon', '--console=plain', '--no-build-cache', '--no-watch-fs',
+        '-Dorg.gradle.jvmargs=' + jvm_args, '-Dorg.gradle.java.home=' + str(jdk),
+        '--project-dir', project, '--project-cache-dir', output / 'project-cache',
+        '--init-script', init, '--offline', '--dependency-verification', 'strict',
+        '-Pandroid.builder.sdkDownload=false', '-Pkotlin.compiler.execution.strategy=in-process',
+        '-Pkotlin.project.persistent.dir=' + str(output / 'kotlin'), 'assembleDebug', capture=False)
+    if (gradle_home / 'daemon').exists():
+        raise RuntimeError('The retained Compose build started a separate Gradle daemon.')
+    checked_output(project, retained_output=output)
+    candidates = list((output / 'build/outputs/apk/debug').glob('*.apk'))
+    if len(candidates) != 1:
+        raise RuntimeError('Expected exactly one retained Compose APK.')
+    apk = output / COMPOSE_APK
+    candidates[0].replace(apk)
+    lines = run(aapt, 'dump', 'badging', apk).splitlines()
+
+    def badging(pattern):
+        matches = [match[1] for line in lines if (match := re.fullmatch(pattern, line))]
+        if len(matches) != 1:
+            raise RuntimeError('Missing or ambiguous retained Compose APK identity: ' + pattern)
+        return matches[0]
+
+    application = badging(r"package: name='([^']+)'(?: .*)?")
+    minimum = int(badging(r"(?:minSdkVersion|sdkVersion):'([1-9][0-9]{0,2})'"))
+    target = int(badging(r"targetSdkVersion:'([1-9][0-9]{0,2})'"))
+    if (application, minimum, target) != (selection['application'], selection['minAPI'], selection['targetAPI']):
+        raise RuntimeError('Built Compose APK identity differs from the staged selector.')
+    entries = compose_apk_inventory(apk)
+    after = compose_tree(project)
+    if after != expected_tree or digest(driver) != driver_sha or any(
+            digest(path) != tool_identity[name]['sha256'] for name, path in tool_paths.items()):
+        raise RuntimeError('Retained Compose project, driver or tool changed during build.')
+    receipt = {
+        'schema': 'mixer.android.retained-compose.2', 'selection': selection,
+        'qualification': 'local-unsigned-compose-boundary-only',
+        'command': [sys.executable, *sys.orig_argv[1:]], 'toolCommands': commands,
+        'projectTreeBeforeSHA256': expected_tree, 'projectTreeAfterSHA256': after, 'driverSHA256': driver_sha,
+        'gradleVersion': version, 'tools': tool_identity, 'unsignedInitSHA256': digest(init),
+        'toolEnvironment': environment, 'dependencyCache': str(cache),
+        'apk': {'path': str(apk), 'sha256': digest(apk), 'sizeBytes': apk.stat().st_size, 'entries': entries},
+    }
+    (output / COMPOSE_RECEIPT).write_text(json.dumps(receipt, sort_keys=True) + '\n')
+    print('UNSIGNED COMPOSE APK:', apk, 'SHA256:', receipt['apk']['sha256'], flush=True)
+
+
 def build(root, retained_output=None):
+    compose_marker = root / 'Platforms/Android/Compose/mixer-compose.json'
+    if compose_marker.exists() or compose_marker.is_symlink():
+        raise RuntimeError('A Compose project requires the versioned Compose build invocation.')
     config = read_json(root / 'mixer.yml')
     if not isinstance(config, dict) or config.get('androidHost', 'legacy-v1') != 'legacy-v1':
         config = configuration(config)
@@ -1613,6 +1823,8 @@ if __name__ == '__main__':
             build(pathlib.Path(sys.argv[2]).resolve())
         elif len(sys.argv) == 4 and sys.argv[1] == 'build-retained-v1':
             build(pathlib.Path(sys.argv[2]).resolve(strict=True), pathlib.Path(sys.argv[3]))
+        elif len(sys.argv) == 5 and sys.argv[1] == 'build-retained-v2':
+            build_retained_compose(pathlib.Path(sys.argv[2]), pathlib.Path(sys.argv[3]), sys.argv[4])
         else:
             raise RuntimeError('Usage: android-build.py inspect | build PROJECT')
     except Exception as error:

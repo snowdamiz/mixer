@@ -2,8 +2,30 @@ import Foundation
 
 /// Explicit app-owned public V3 SDK consumer and Android host templates.
 enum AndroidPublicHost {
-    // Required by the V2 observer: public high-contrast read and listener begin at API 36.
-    static let minimumAPI = 36
+    enum RetainedSelection: String, Codable, Sendable {
+        case legacyV1 = "legacy-v1"
+        case publicV3 = "public-v3"
+        case publicV4 = "public-v4"
+        case publicComposeV1 = "public-compose-v1"
+
+        init(_ host: AndroidApplicationHost?) {
+            switch host {
+            case .none, .legacyV1: self = .legacyV1
+            case .publicV3: self = .publicV3
+            case .publicV4: self = .publicV4
+            }
+        }
+
+        var minimumAPI: Int {
+            switch self {
+            case .legacyV1, .publicComposeV1: 28
+            // The View appearance observer requires the public high-contrast APIs.
+            case .publicV3, .publicV4: 36
+            }
+        }
+    }
+
+    static let minimumAPI = RetainedSelection.publicV3.minimumAPI
     static let selection = "{\"host\":\"public-v3\",\"profile\":\"MEASURED_MULTILINE_RETIREMENT_V3\"}\n"
     static func selectionFile(_ config: ApplicationConfiguration) -> String {
         config.androidHost == .publicV4 ? "public-host-v4.json" : "public-host-v3.json"

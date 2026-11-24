@@ -28,6 +28,77 @@ public struct AndroidToolchainLock: Codable, Sendable {
 }
 
 public enum AndroidProject {
+    private static let composeProject = "Platforms/Android/Compose"
+    private static let composeSelection = "mixer-compose.json"
+
+    struct StagedComposeProject {
+        struct Selection: Codable, Equatable, Sendable {
+            let schema: Int
+            let host: AndroidPublicHost.RetainedSelection
+            let application: String
+            let minAPI: Int
+            let targetAPI: Int
+        }
+        let directory: URL
+        let treeSHA256: String
+        let selection: Selection
+    }
+
+    static func stageRetainedCompose(root: URL, in snapshot: ProcessInputSnapshot) throws -> StagedComposeProject {
+        let source = root.appendingPathComponent(composeProject, isDirectory: true)
+        let refused = MixerFailure("android.compose-input", "Retained Compose requires an exact locked project at Platforms/Android/Compose.")
+        guard let canonical = realpath(source.path, nil) else { throw refused }
+        defer { free(canonical) }
+        guard String(cString: canonical) == source.path,
+              try source.resourceValues(forKeys: [.isDirectoryKey]).isDirectory == true else { throw refused }
+        let entries = try SourceDigest.exportEntries(in: source)
+        guard !entries.isEmpty else { throw refused }
+        // Worker registration has file rows only. Every retained directory must
+        // be implied by those rows, and every actual entry must participate.
+        var children: [String: Set<String>] = [:]
+        let files = Set(entries.filter { !$0.directory }.map(\.relative))
+        let required: Set<String> = [composeSelection, "settings.gradle", "build.gradle", "gradle.properties",
+            "toolchain.json", "buildscript-gradle.lockfile", "gradle.lockfile", "gradle/verification-metadata.xml"]
+        guard required.isSubset(of: files) else { throw refused }
+        for entry in entries {
+            let parts = entry.relative.split(separator: "/")
+            children[parts.dropLast().joined(separator: "/"), default: []].insert(String(parts.last!))
+        }
+        for relative in [""] + entries.filter(\.directory).map(\.relative) {
+            guard let expected = children[relative], Set(try FileManager.default.contentsOfDirectory(
+                atPath: source.appendingPathComponent(relative).path)) == expected else { throw refused }
+        }
+        let selectionURL = source.appendingPathComponent(composeSelection)
+        let selectionFD = open(selectionURL.path, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC)
+        guard selectionFD >= 0 else { throw refused }
+        defer { close(selectionFD) }
+        let selectionData = try NativeProductCapture.regular(selectionFD, maximum: 1_048_576)
+        let selection = try JSONDecoder().decode(StagedComposeProject.Selection.self, from: selectionData)
+        guard selection.schema == 1, selection.host == .publicComposeV1,
+              selection.minAPI >= selection.host.minimumAPI, selection.minAPI <= selection.targetAPI,
+              selection.targetAPI == 37,
+              selection.application.range(of: #"^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$"#,
+                                          options: .regularExpression) != nil else { throw refused }
+        let sourceTree = try SourceDigest.exportFingerprint(source)
+        let destination = snapshot.directory.appendingPathComponent("compose", isDirectory: true)
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: false,
+                                                attributes: [.posixPermissions: 0o700])
+        for relative in files.sorted() {
+            let target = destination.appendingPathComponent(relative)
+            try FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
+            let fd = open(source.appendingPathComponent(relative).path, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC)
+            guard fd >= 0 else { throw refused }
+            defer { close(fd) }
+            let data = try NativeProductCapture.regular(fd, maximum: 32 * 1_048_576)
+            try data.write(to: target, options: .withoutOverwriting)
+        }
+        guard sourceTree == (try SourceDigest.exportFingerprint(destination)),
+              sourceTree == (try SourceDigest.exportFingerprint(source)),
+              selectionData == (try Data(contentsOf: destination.appendingPathComponent(composeSelection)))
+        else { throw refused }
+        return StagedComposeProject(directory: destination, treeSHA256: sourceTree, selection: selection)
+    }
+
     /// Export an explicit owned source closure. The checklist engine and its
     /// instrumentation never enter a created application's dependency graph.
     static func snapshot(adapter: URL, destination: URL) throws -> String {
@@ -151,6 +222,12 @@ public enum AndroidProject {
     }
 
     static func prepareBuild(root: URL, worker: Bool = false) throws -> (lock: ToolchainLock, bytes: Data) {
+        var selection = stat()
+        let composeMarker = root.appendingPathComponent(composeProject).appendingPathComponent(composeSelection)
+        if lstat(composeMarker.path, &selection) == 0 {
+            throw MixerFailure("android.compose-output-unavailable",
+                               "A Compose project requires the versioned Compose artifact and runtime contract.")
+        }
         // The managed caller checks host Swift after all static inputs pass.
         let validated = try worker
             ? ProjectBuild.verifiedSourceLock(root: root, androidRequired: true)
