@@ -51,12 +51,12 @@ private func allAdmissionEntrypoints(_ root: URL, code: String = "android.sdk-co
 
 @Test func androidCompatibilityLinkedSDKAndTypedDefaultMatchCompiledPolicy() throws {
     let p = AndroidSDKCompatibility.profile
-    #expect(p.id == "mixer.android-source-pair.31")
-    #expect(p.sdk_compatibility_sha256 == "4ba46e79a6a8e79afa56c0395cec77d0e895d4953652725ebc77db0b7dbf354a")
+    #expect(p.id == "mixer.android-source-pair.32")
+    #expect(p.sdk_compatibility_sha256 == "9f718a5973b47e22e733e879c19dc9b4f8947b716002011146cc44b53193f4ca")
     #expect(p.adapter_compatibility_sha256 == "eff2acf3b4bf0167eea6aaa6c15e4fa2d67f2aa50714e206886a7037df0c3c44")
     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.bytes == 5338)
     #expect(p.adapter_files["Sources/MixerAndroidRuntime/DocumentSession.swift"]?.sha256 == "3b9a6054e3c238a43d9428b142feb00f0086af0cc4aedf55a36f5554fda21f02")
-    #expect(p.sdk_files.count == 26); #expect(p.adapter_files.count == 27)
+    #expect(p.sdk_files.count == 27); #expect(p.adapter_files.count == 27)
     try AndroidSDKCompatibility.admitInput(sdk: compatibilityRepository.appendingPathComponent("sdk"), adapter: compatibilityRepository.appendingPathComponent("native/android"))
     let value = try UIAppearanceDescriptorCodecV2.mixerDefaultV2()
     let bytes = try UIAppearanceDescriptorCodecV2.canonicalData(value)
@@ -581,7 +581,7 @@ func androidCompatibilityAxisSessionDriftRefusesRecomputedLocksBeforeGenericSour
     var original = AndroidSDKCompatibility.profile.sdk_files
     original.removeValue(forKey: "Package.resolved")
     try FileManager.default.removeItem(at: root.appendingPathComponent("Package.resolved"))
-    let unlockedDigest = "0433961ead2c690145a7c97b2463798cd321b9c919ddc84b525beba868bd7093"
+    let unlockedDigest = "837292f40114a1d3ab516cdafb8c3ffe178d47df120b82f3a2ba4e6436ba92a5"
     #expect(try AndroidSDKCompatibility.sdkProjection(root, files: original) == unlockedDigest)
     expectCompatibilityFailure { try AndroidSDKCompatibility.admitSDK(root) }
     let lock = Data("{\"pins\":[],\"version\":3}\n".utf8)
