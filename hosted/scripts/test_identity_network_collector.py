@@ -3291,7 +3291,7 @@ class CurrentCLISelectionControls(unittest.TestCase):
         observed = json.loads(output.getvalue())
         self.assertEqual(expected["source_count"], observed["source_count"])
         self.assertEqual(WorkflowSparseSourceControls.DIGEST, expected["source_digest_sha256"])
-        self.assertEqual('970e8e382127cca14e3a4a248c4cd4fff7e0aa9e901aa1c95648cc1d2f6ace96', observed["predecessor_source_digest_sha256"])
+        self.assertEqual('c37924956dcc5ada834ab497bba070b3cd79c7867ae3ed104e214dc79f599349', observed["predecessor_source_digest_sha256"])
         self.assertEqual(WorkflowSparseSourceControls.DIGEST, observed["source_digest_sha256"])
         self.assertEqual(WorkspaceSourceCutoverControls.PIN, observed["selection_sha256"])
         self.assertFalse(observed["runtime_or_GA_accepted"])

@@ -1151,3 +1151,11 @@ ports 5588, 5589 and 49556, and the entire
 `verification/local/plan-nov24-delivery.MDpiQiN9/native-appearance` run in
 worktree `t3-67570144` without inspection, probing, signalling, waiting,
 retry, or cleanup. Use the compact Pair32 receipt.
+
+The final delivered UP4 appearance APKs hit the same `custom_bedtime` fixture
+refusal in a fresh API 36 emulator. The fixture uninstalled both packages and
+the private ADB group closed. Emulator PGID 48690 remained present after the
+direct child returned. Preserve that group, ports 5610 and 5611, and
+`verification/local/plan-nov24-delivery.MDpiQiN9/native-final` in worktree
+`t3-67570144` without inspection, probing, signalling, waiting, retry, or
+cleanup. Use the compact Pair32 receipt.
