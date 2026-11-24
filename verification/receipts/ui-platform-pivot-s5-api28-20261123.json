@@ -20,8 +20,7 @@
     "ownedEmulatorAndADBClosed": true
   },
   "pending": [
-    "Compose signed guest activation, failed install and signed platform rollback",
-    "Independent review of the final signed editor contract"
+    "Independent review of the signed native editor contract for the S5 exit."
   ],
   "osIMEBootstrap": {
     "scope": "Real Android IME with private AVD and USB/mDNS discovery disabled",
@@ -115,5 +114,43 @@
     },
     "hostReceiptSHA256": "35847c11292d0f82971d61c96f613f6de234257afec897252a31019fb52b7a17",
     "requiredNextEvidence": "A separately bound editor-capable transport, actual Compose draw receipt, typed input, and signed rollback on API 28."
+  },
+  "signedV2NativeReplay": {
+    "fixture": "94dbd13b473dbaf7045dac3ec747cdf6359cd40f",
+    "profile": "Isolated signed development V2 release identity",
+    "result": "Native API 28 replay passed",
+    "apkArtifacts": {
+      "editor-hw.apk": {
+        "bytes": 162026068,
+        "sha256": "d9e26a5619014843db676433c7e6fc4dfbe76bf0f96645c6c12ed75c66a89309"
+      },
+      "instrumentation.apk": {
+        "bytes": 184897,
+        "sha256": "607a3e4c2e93529b828673c9e60188138ecaa29b7a3e0ef3e089eaf1c31bb193"
+      }
+    },
+    "gradleReportedBuildSeconds": 61,
+    "artifactReceiptSHA256": "01268c4c459a1bd29022ade3c586ade3ed935490154b48889dfb64748507d685",
+    "observations": [
+      "The prior signed artifact first became healthy after the exact interactive HWUI window receipt.",
+      "The Android-owned keyboard accepted the Unicode title, and one Save routed to the signed guest.",
+      "Rejected signed install preserved the healthy prior selection.",
+      "A higher signed assignment selected the original artifact, retired old callback authority, and preserved title bytes after reopening the private store."
+    ],
+    "savedUTF8SHA256": "f2045fe16dec1e541d63fd8dff2f59d87fb0e61983f22c0b836e4ba7de43ecf1",
+    "instrumentationCode": -1,
+    "installs": [
+      "Performing Streamed Install\nSuccess",
+      "Performing Streamed Install\nSuccess"
+    ],
+    "settingsRestored": true,
+    "scratchRemoved": true,
+    "ownedADBAndAVDClosed": true,
+    "logSHA256": {
+      "instrumentation.log": "7a3db1f1b06506963b67cff8375a1b8b12ac7076046a0a484bf3e01c4bec7212",
+      "timeline.log": "1224ad279649524d7fc9c6d78d1ad76cfcdf5d54f241ca8c5e138d87438e87f8",
+      "ime-restore.log": "d98544e5b0b9f6316edcb5efafdc1732436c79aa83c15de0ae79fcfc00665e51"
+    },
+    "scopeLimit": "Development V2 fixture. The installed legacy V1 profile keeps rejecting editor documents. Production Compose wiring and full Swift S2 remain separate."
   }
 }
