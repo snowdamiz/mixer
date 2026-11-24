@@ -1184,3 +1184,12 @@ unresolved terminal custody. Preserve that group, ports 5612 and 5613, and
 `verification/local/gc3-api28-native.6aBbdvtP/fresh-port` in worktree
 `t3-67570144`. Do not inspect, probe, signal, wait on, retry, or clean this
 chain. Only its top-level receipt is a custody reference.
+
+The November 24 API 36 idle contrast attempt stopped before APK installation
+when the emulator missed the 175-second boot deadline. Private ADB PGID 32947
+closed. Emulator supervisor PGID 33079 returned with unobserved group
+closure. Preserve that group, console ports 5618 and 5619, and the entire
+`verification/local/up4-frame-cause.Vmdgx8SS/idle-native` chain in worktree
+`t3-67570144`. Do not inspect, probe, signal, wait on, retry, or clean the
+held chain. Only its top-level receipt is a custody reference. The built APKs
+in the separate `idle-pair` directory are outside the hold.

@@ -1,0 +1,66 @@
+{
+  "scope": "Owned arm64 API 36 standalone Compose fixture, with the Swift bridge doubled. Idle repaint remains unverified.",
+  "candidate": {
+    "revision": "cefad2e85a76b45b9938c52ed23037ef5f6aadcd",
+    "tree": "c0b6f5acedd34ecf4f24ec06f367f0f9f4b861a9"
+  },
+  "build": {
+    "status": "passed_offline_strict",
+    "toolchain": {
+      "Gradle": "9.8.1",
+      "AGP": "9.3.1",
+      "Kotlin": "2.3.0",
+      "JDK": "25.0.4.1"
+    },
+    "command": "gradle -p native/android/compose --offline --dependency-verification strict --no-daemon --max-workers 4 --project-cache-dir <owned cache> -PmixerAppearanceSmoke=true authorityCheck assembleDebug assembleDebugAndroidTest",
+    "hostChecksPassed": [
+      "typed UP2 palette, fallbacks and bounds",
+      "document wire, frame authority and held control inputs"
+    ],
+    "hostChecksScope": "The successful final run omitted the optional external Swift fixture argument. The prior fixture inputs and replay have separate evidence.",
+    "artifactSignatureVerification": "apksigner verify exited 0 on both APKs",
+    "manifestInstrumentation": "dev.mixer.compose.AppearanceSmoke",
+    "apkSHA256": {
+      "app.apk": "758f4e480bbc1e4bc2e954e80058175e9f7aa33123248700935a6e1b5421b4aa",
+      "test.apk": "efc570d8a37b38bb3af4601e837c95df5aed2812ca86c78108e5f29b5f7307e2"
+    },
+    "logSHA256": "d75a2b8fb291235d234e973b799352b6afc302b11856a222d751878e716e918a"
+  },
+  "firstFollowup": {
+    "appearance": "Captured light mode and then timed out waiting for the old host to detach. Idle contrast was not reached.",
+    "insetsPassed": true,
+    "settingsRestoredStable": true,
+    "portsConnectionRefused": {
+      "5616": true,
+      "5617": true,
+      "52973": true
+    },
+    "scratchRemoved": true,
+    "rawReceipt": "verification/local/up4-frame-cause.Vmdgx8SS/live-repaint/receipt.json",
+    "rawReceiptSHA256": "ca9c5a00e1c319384f97c5e12027ab13d27d0a07414f73a17d89fc421f3274b2"
+  },
+  "focusedFollowup": {
+    "status": "boot_timeout_before_apk_install",
+    "device": "mixer_up4_stage_diagnostic_e755e01e3234",
+    "plannedSelector": "dev.mixer.compose.up4.test/dev.mixer.compose.AppearanceSmoke",
+    "plannedArguments": [
+      "-e",
+      "scenario",
+      "idle-contrast"
+    ],
+    "bootDeadlineSeconds": 175,
+    "privateAdbPort": 53238,
+    "privateAdbPGID": 32947,
+    "privateAdbGroupAbsent": true,
+    "emulatorSupervisorPGID": 33079,
+    "emulatorGroupClosure": "unknown",
+    "consolePorts": [
+      5618,
+      5619
+    ],
+    "heldNamespace": "verification/local/up4-frame-cause.Vmdgx8SS/idle-native",
+    "custodyRule": "AGENTS.md",
+    "rawReceipt": "verification/local/up4-frame-cause.Vmdgx8SS/idle-native/receipt.json",
+    "rawReceiptSHA256": "513196ad165849d2519fd6b3ae4b0ca75be5801dad2e44a7aebd229131ebe69e"
+  }
+}

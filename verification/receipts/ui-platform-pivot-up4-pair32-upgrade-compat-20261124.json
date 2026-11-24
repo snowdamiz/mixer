@@ -1,0 +1,64 @@
+{
+  "scope": "Local CLI export and upgrade with an offline ordinary Android Gradle Kotlin compile",
+  "reviewBase": "af1276723b1641dd756458541ccf17f3bb191d07",
+  "predecessor": "bc392c60c1636c935c07dfd8d2dc053f8f8290d1",
+  "implementation": "8b5b083f8bda5b86bb2189793138bd1c83d2f49e",
+  "implementationTree": "ad51019285bed6c194d0cf6bccc014d3c5037c67",
+  "companionArchiveSHA256": "a508325275572d2d3f443a48a3a3d2b2d88c92646c1a81ce99c82411ef04caf1",
+  "sharedThemeBytes": 4739,
+  "sharedThemeSHA256": "e13cadd9803160d807ba50463a2f7c469f29267262c74e55cefec43314c4ba59",
+  "toolchain": {
+    "host": "macOS 27 build 26A434 arm64",
+    "xcode": "27.2",
+    "swift": "6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+    "python": "3.14.8",
+    "gradle": "9.8.1",
+    "java": "25.0.4.1",
+    "platform": "37.1 revision 1",
+    "buildTools": "37.0.0",
+    "kotlin": "2.3.0"
+  },
+  "cliBuild": {
+    "command": "swift build --package-path <source>/cli --scratch-path <owned-build> --product mixer",
+    "predecessorExit": 0,
+    "successorExit": 0
+  },
+  "cliSuite": {
+    "command": "python3 -B cli/build-tests/test_public_export.py <successor mixer>",
+    "fixtureEnvironment": [
+      "MIXER_COMPOSE_PREDECESSOR_PROJECT",
+      "MIXER_COMPOSE_SUCCESSOR_ADAPTER"
+    ],
+    "exit": 0,
+    "passed": 25,
+    "log": "public-export-tests.log"
+  },
+  "cliUpgrade": {
+    "command": "<successor mixer> upgrade <upgraded project> --directory <customized Pair32 project> --sdk-path <successor sdk> --android-adapter-path <assembled successor adapter>",
+    "exit": 0,
+    "createExit": 0,
+    "fixtureUsesStubAndroidInventory": true,
+    "log": "upgrade.json"
+  },
+  "ordinaryGradle": {
+    "command": "gradle --offline --no-daemon --no-build-cache --no-watch-fs --console=plain --project-cache-dir <owned cache> --project-dir <project>/Platforms/Android/Compose :compileDebugKotlin",
+    "pair32Exit": 0,
+    "upgradedExit": 0,
+    "logs": [
+      "pair32-gradle.log",
+      "upgraded-gradle.log"
+    ],
+    "activityKotlinBytesIdentical": true,
+    "activityKotlinSHA256": "fa17ffb8f141bde67d2c83f389bba520c3e5634e8c5c23549188d4b58a9016d5",
+    "activityClassBytesIdentical": true,
+    "activityClassSHA256": "e0f92f6845291cf39ac66eea139c21eeab2b3c1443c0f2b11034d9c79a4905c7",
+    "bytecodeCallReadback": "upgraded-activity-calls.txt"
+  },
+  "cleanup": {
+    "observedAbsentGradleProcessGroups": [
+      96793,
+      6841
+    ],
+    "retained": "Compact command logs and evidence in the isolated task directory"
+  }
+}
