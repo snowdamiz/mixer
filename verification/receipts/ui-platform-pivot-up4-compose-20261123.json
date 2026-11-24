@@ -82,12 +82,47 @@
     "base": "85e842b7b0212da09ce8ae6707ead2fe6026ab00",
     "patchSHA256": "93f3983bb8c9e2dcb7746bf35f34a90d893e0d65e1a3ca7b8c4b5e13a933e93b",
     "change": "Retains the verified accessibility tree selectors and replaces the nested list with vStack, preserving the exact node and generation count.",
-    "scope": "The cumulative patch applies to the exact base. Build and native replay with the pending authority correction remain open.",
+    "scope": "The cumulative patch applies to the exact base and was used in the corrected API 28 replay.",
     "raw": "verification/local/ui-platform-pivot-root.fyr8LSOB/up4-smoke-merge-input.iuE95lZK/up4-smoke-selectors-and-list-parity.patch"
   },
+  "heldDrawCorrection": {
+    "commit": "30ded207cbc7d092c4e06ab2c4c9865d35703866",
+    "combinedModuleTree": "39eecffc97ac739127f43b4187f08542a6bf35fa",
+    "appSHA256": "11be68055678c588fdab924e6b288979e77f584150f2262a985f5574f318a414",
+    "standardSmokeSHA256": "45f4c229823b67699c3d5f2e4916591389ffc60efdd36fcc6614877fad956ac3",
+    "heldInputSmokeSHA256": "6a32f338d88b0c6737a33493cd5487afcd40336ea896f872bbaf3c94ee230fbb",
+    "api": 28,
+    "certificateSHA256": "82de1b6433fcec61005fc677b48814e18189e2acb545b857729990409c14d855",
+    "result": "Both instrumentation selectors passed with code -1 on one owned boot. The held-input test used the same Compose surface and original accepted receipt for Save, composing text and submit under separate pre-draw vetoes, then proved the next frame could accept input.",
+    "independentReview": "Nested-list refusal and the corrected captured receipt handoff passed host review. Back-to-back callbacks between supersession and recomposition were still refused in a host reproduction. The device smoke waits for restored semantics between events.",
+    "scope": "Window draw and direct Compose InputConnection control with a bridge double. OS IME session and signed Swift activation remain open.",
+    "standardLogSHA256": "6303e857c8a564aa951e994f3118db23f332931f8272c90b70d68db5ca767638",
+    "heldInputLogSHA256": "06460aa8313dc5ecb7f7c5c81ba5280a4179a8d4d12daa7c390bc4a69c2d23c4",
+    "cleanup": "Owned emulator and private ADB groups observed absent. Apps removed and disposable AVD scratch removed.",
+    "raw": "verification/local/up4-held-input-api28.KoX965HC"
+  },
+  "offlineTooling": {
+    "combinedModuleTree": "d8c1948dfca4d44861392d4f9fea91fb6c0e5fc3",
+    "toolingPatchSHA256": "79a02afd11086ada1e867c0b236161884d62612c0c1e89a63b47e894d17f9d96",
+    "gradle": "9.8.1",
+    "verifiedCacheInputs": 811,
+    "tasksExecuted": 69,
+    "result": "Strict offline dependency verification passed for authorityCheck, assembleDebug and assembleDebugAndroidTest on the merged module.",
+    "logSHA256": "0f235386e833e92a9ad7c0fe7c934721887d13c9590d9df3c797cb153252d23b",
+    "appSHA256": "cf91c4220eeef02a6cd22b6d7336f0bb9cd136506718efb18f074504f52cddf3",
+    "instrumentationSHA256": "27c228b4a1d0e0fe1b5ea6505f8db3dc857e8d88891c43249ca28c59dab28002",
+    "cleanup": "Both APK signatures verified and the app declared minSdk 28. The single-use Gradle daemon was observed absent and the job-local build, signing key and cache were removed.",
+    "scope": "macOS arm64 dependency cache. Target worker cache provisioning, Linux AAPT2, and APK notice propagation remain open.",
+    "raw": "verification/local/up4-combined-build-input.LktPBclN"
+  },
+  "appearanceAPI36": {
+    "result": "The signed fixture failed at its UiAutomation getprop shell check before visual assertions.",
+    "scope": "Host paint cases passed. Native paint and Bold Text remain unverified. Both OS Settings snapshots matched and emulator and private ADB groups closed.",
+    "raw": "verification/local/up4-appearance-api36.cxxdQEfb/device"
+  },
   "pending": [
-    "Preserve same-surface accepted input during a draw veto and refuse incompatible nested lists",
+    "Preserve consecutive editor callbacks before recomposition after a held-frame supersession",
     "Android window and signed runtime join with exact original receipt echo",
-    "UP2 appearance, CLI and worker admission, and installed FieldLog qualification"
+    "API 36 UP2 appearance screenshot replay, CLI and worker admission, and installed FieldLog qualification"
   ]
 }
