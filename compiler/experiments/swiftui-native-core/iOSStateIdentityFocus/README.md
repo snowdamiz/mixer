@@ -65,3 +65,9 @@ and OS. Use the attachment manifest to find both `GC4 … trace` JSON files.
 The test checks their equality in-process. On failure, preserve both traces
 and the final screens and trees for diagnosis. Record the source and
 xctestrun digests, outcome, and owned-device cleanup in the root receipt.
+
+For the `AnyView` lifetime comparison, use
+`GC4DifferentialUITests/DifferentialUITests/testErasedTypeLifetime` as the
+selector. Each mode records six visible counter values. Updating a label
+keeps the counter at the same value. Switching the wrapped concrete type
+resets it, including when the same explicit key appears inside both types.

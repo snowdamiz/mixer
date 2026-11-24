@@ -4,6 +4,7 @@
 import argparse
 from collections import Counter
 import json
+import os
 from pathlib import Path
 import shlex
 import subprocess
@@ -72,8 +73,14 @@ def render(catalog, ios_output, host_output):
         compile_links = ", ".join(f"[{Path(source).stem}](HostReplay/{source})" for source in sources)
         host_links = ", ".join(f"[`{test['function']}`](HostReplay/{test['test']})" for test in tests)
         row = [construct["name"], construct["scope"], f"Pass · {compile_links}", "Pass", f"Pass · {host_links}"]
-        # Renderer, guest, and GC4 results require their own executable evidence.
-        lines.append("| " + " | ".join(row + ["Pending"] * 5) + " |")
+        gc4 = "Pending"
+        if receipt := construct.get("gc4"):
+            evidence = ROOT / receipt
+            result = json.loads(evidence.read_text(encoding="utf-8"))
+            if result.get("result") != "pass" or result.get("construct") != construct["name"].strip("`"):
+                raise ValueError(f"GC4 receipt does not establish {construct['name']}: {receipt}")
+            gc4 = f"Pass · [Native comparison]({os.path.relpath(evidence, TABLE.parent)})"
+        lines.append("| " + " | ".join(row + ["Pending"] * 4 + [gc4]) + " |")
 
     lines += [
         "",

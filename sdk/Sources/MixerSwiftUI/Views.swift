@@ -57,6 +57,20 @@ extension Never: View {
     public typealias Body = Never
 }
 
+/// Erases a view's type while keeping the wrapped hierarchy's structural identity.
+public struct AnyView: View {
+    public typealias Body = Never
+    let content: any View
+
+    public init(_ view: some View) {
+        content = view
+    }
+
+    public init(erasing view: some View) {
+        self.init(view)
+    }
+}
+
 @resultBuilder
 public enum ViewBuilder {
     public static func buildBlock<Content: View>(_ content: Content) -> Content {

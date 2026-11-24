@@ -183,3 +183,42 @@ func explicitIdentity() throws {
     try nestedModifiersAndRows()
     try structuralScopesAndStringKeys()
 }
+
+func erasedIdentity() throws {
+    let session = FeatureSession(executor: replayExecutor)
+    func stage(_ title: String, alternate: Bool = false) throws -> PreparedFrame {
+        try session.prepare { erasedCounter(title, alternate: alternate) }
+    }
+
+    let first = try stage("First")
+    accept(first, in: session)
+    increment("First", in: first, session: session)
+    let next = try stage("Updated")
+    let acceptedEvent = event(next, button: "Increment Updated")
+    expect(text(next) == ["Updated 1"] && acceptedEvent.identity == event(first, button: "Increment First").identity,
+           "A new value of the same erased type must preserve state and node identity")
+    accept(next, in: session)
+
+    let candidate = try stage("Updated", alternate: true)
+    let candidateEvent = event(candidate, button: "Increment Updated")
+    expect(text(candidate) == ["Updated 0"] && candidateEvent.identity != acceptedEvent.identity,
+           "Changing the erased type must stage a fresh subtree even with the same inner key")
+    expect(session.dispatch(candidate.presentation.token, candidateEvent) == .rejected,
+           "A pending erased subtree must have no input authority")
+    expect(session.finish(candidate.presentation.token, outcome: .canceled),
+           "Cancellation must consume the candidate")
+    increment("Updated", in: next, session: session)
+    expect(text(try stage("Updated")) == ["Updated 2"], "Cancellation must preserve the accepted erased subtree")
+
+    let replacement = try stage("Updated", alternate: true)
+    accept(replacement, in: session)
+    expect(session.dispatch(next.presentation.token, acceptedEvent) == .rejected,
+           "The old erased subtree must lose input authority after replacement")
+    increment("Updated", in: replacement, session: session)
+    expect(text(try stage("Updated", alternate: true)) == ["Updated 1"],
+           "The replacement handler must update the new subtree")
+    let returned = try stage("Updated")
+    expect(text(returned) == ["Updated 0"] && event(returned, button: "Increment Updated").identity != acceptedEvent.identity,
+           "Returning to a retired erased type must allocate fresh state and identity")
+    print("PASS erased view lifetime, canceled type change, and retired callback refusal")
+}

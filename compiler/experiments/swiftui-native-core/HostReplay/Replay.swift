@@ -622,6 +622,7 @@ enum Replay {
                     case "typed-controls": try typedControls()
                     case "typed-environment": try typedEnvironment()
                     case "explicit-identity": try explicitIdentity()
+                    case "erased-identity": try erasedIdentity()
                     case "ordinary-modifiers": try ordinaryModifiers()
                     case "layout-refusals": try layoutRefusals()
                     default: throw ReplayFailure(message: "Unknown regression probe: \(probe)")
@@ -649,6 +650,7 @@ enum Replay {
         try typedControls()
         try typedEnvironment()
         try explicitIdentity()
+        try erasedIdentity()
         try ordinaryModifiers()
         try layoutRefusals()
     }

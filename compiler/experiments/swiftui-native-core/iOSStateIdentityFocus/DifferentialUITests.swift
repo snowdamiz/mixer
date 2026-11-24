@@ -28,6 +28,53 @@ final class DifferentialUITests: XCTestCase {
     }
 
     @MainActor
+    func testErasedTypeLifetime() {
+        continueAfterFailure = true
+        let apple = runErasure(mode: "Apple SwiftUI", arguments: ["--erased"])
+        let mixer = runErasure(mode: "MixerSwiftUI", arguments: ["--erased", "--mixer"])
+        XCTAssertEqual(apple, ["Row A: 0", "Row A: 1", "Row B: 1", "Row B: 0", "Row B: 1", "Row B: 0"])
+        XCTAssertEqual(mixer, apple)
+    }
+
+    @MainActor
+    private func runErasure(mode: String, arguments: [String]) -> [String] {
+        let app = XCUIApplication()
+        app.launchArguments = arguments
+        app.launch()
+        var trace: [String] = []
+        defer {
+            attach(XCTAttachment(string: trace.joined(separator: "\n")), "GC4 \(mode) erased lifetime")
+            app.terminate()
+        }
+
+        let checkpoints: [(action: String?, label: String)] = [
+            (nil, "Row A: 0"),
+            ("Increment A", "Row A: 1"),
+            ("Update label", "Row B: 1"),
+            ("Change erased type", "Row B: 0"),
+            ("Increment B", "Row B: 1"),
+            ("Change erased type", "Row B: 0")
+        ]
+        for checkpoint in checkpoints {
+            if let action = checkpoint.action {
+                let button = app.buttons[action]
+                guard button.waitForExistence(timeout: 5), button.isHittable else {
+                    XCTFail("\(mode) could not tap \(action)")
+                    break
+                }
+                button.tap()
+            }
+            let row = app.staticTexts[checkpoint.label]
+            guard row.waitForExistence(timeout: 5) else {
+                XCTFail("\(mode) did not show \(checkpoint.label)")
+                break
+            }
+            trace.append(row.label)
+        }
+        return trace
+    }
+
+    @MainActor
     private func run(mode: String, arguments: [String]) -> [Observation] {
         let app = XCUIApplication()
         app.launchArguments = arguments

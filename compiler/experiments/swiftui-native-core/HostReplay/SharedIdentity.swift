@@ -97,3 +97,11 @@ private struct IdentityScope: View {
 
     var body: some View { ExplicitCounter(title).id(1) }
 }
+
+public func erasedCounter(_ title: String, alternate: Bool) -> AnyView {
+    let counter = ExplicitCounter(title).id(1)
+    if alternate {
+        return AnyView(erasing: counter.disabled(false))
+    }
+    return AnyView(counter)
+}

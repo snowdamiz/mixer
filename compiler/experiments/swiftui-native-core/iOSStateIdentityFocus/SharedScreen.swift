@@ -21,6 +21,29 @@ public struct DifferentialScreen: View {
     }
 }
 
+public struct ErasedLifetimeScreen: View {
+    @State private var alternate = false
+    @State private var updated = false
+
+    public init() {}
+
+    public var body: some View {
+        VStack {
+            Button("Update label") { updated.toggle() }
+            Button("Change erased type") { alternate.toggle() }
+            counter
+        }
+    }
+
+    private var counter: AnyView {
+        let row = CounterRow(name: updated ? "B" : "A").id(1)
+        if alternate {
+            return AnyView(erasing: row.disabled(false))
+        }
+        return AnyView(row)
+    }
+}
+
 private struct CounterRow: View {
     let name: String
     @State private var count = 0

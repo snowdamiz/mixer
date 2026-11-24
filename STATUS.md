@@ -46,6 +46,8 @@ The UP4 Swift receipt bridge passed 82 macOS tests, an arm64 API 28 compile, and
 
 The first GC4 native replay compiled the same authored screen against Apple SwiftUI and MixerSwiftUI. The iOS 26.5 traces matched all eight checkpoints for state after keyed moves, tap-acquired focus, two typing batches, and accepted draft readback. Native-versus-update behavior and the remaining constructs are open. [GC4 evidence](verification/receipts/ui-platform-pivot-gc4-ios265-20261123.json)
 
+`AnyView` preserves state when the wrapped type stays the same and resets its subtree after an accepted type change. Apple SwiftUI and MixerSwiftUI matched all six counter checkpoints on iOS 26.5, including a type change with the same inner key. The host replay also verified canceled frames and retired input. [AnyView evidence](verification/receipts/ui-platform-pivot-up5-anyview-20261123.json)
+
 The pre-pivot iOS 17 compile-only check built five package schemes and the Rust VM Simulator archive at the 17.0 floor. Its scope excluded the `capabilities/` qualification package and installed app behavior. [Historical compile receipt](verification/receipts/ios17-floor-compile-20261123.json)
 
 ## Checkpoint for the plan revision, November 23, 2026

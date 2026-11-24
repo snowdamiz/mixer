@@ -293,6 +293,13 @@ extension IdentifiedView: ExplicitIdentityView {
     }
 }
 
+extension AnyView: PrimitiveView {
+    fileprivate func lower(in evaluation: ViewEvaluation, at path: ViewPath, into output: inout [UINode]) throws {
+        let erasedPath = try path.appending(.type(ObjectIdentifier(type(of: content))))
+        try evaluation.lower(content, at: erasedPath, into: &output)
+    }
+}
+
 extension Text: PrimitiveView {
     fileprivate func lower(in evaluation: ViewEvaluation, at path: ViewPath, into output: inout [UINode]) throws {
         let id = try evaluation.nodeID(at: path)

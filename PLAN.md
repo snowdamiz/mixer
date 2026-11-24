@@ -134,7 +134,7 @@ The Swift bridge passed independent host review and compiled for arm64 API 28. T
 - [ ] Ship the new UI schema across runtime identity, release preparation, guest codecs, guest activation, and both renderers. Add failed-frame, late-callback, and cross-version refusal tests.
 - [ ] Choose tier 1 from FieldLog plus list-and-detail, form-and-settings, and tabbed apps. A construct that fails in a guest stays out of updates on that platform until it is fixed.
 - [ ] Apply the shared theme in `MixerNativeView`, remove the high-contrast and bold-text refusal in `sdk/Sources/MixerUI/AppearanceResolutionV2.swift`, render the UP2 policy with screenshot evidence, and add the carried pressed-state case.
-- [ ] Add the dual iOS compile check and the generated support table.
+- [ ] Add the dual iOS compile check and the generated support table. The `AnyView` row includes the six matching native iOS 26.5 lifetime checkpoints. [AnyView evidence](verification/receipts/ui-platform-pivot-up5-anyview-20261123.json)
 - [ ] Extend the Section 7.2 compiler inventory to resolved dependencies, macro expansion, and emitted Wasm.
 - [ ] Start gap items GC1, GC3, GC4, and GC5 from product plan Section 24.7.
 - [ ] Deliver the minimum native island for FieldLog's project-site map with the grant checks from Section 24.7. The iOS 26.5 Simulator prototype verified a signed map move and kept the accepted placement after refusals. Android and production release grant integration remain open. [MapKit replay](verification/receipts/ui-platform-pivot-gc3-mapkit-20261123.json)
