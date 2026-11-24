@@ -31,6 +31,7 @@ python3 -B compiler/experiments/swiftui-native-core/SupportTable/generate.py
 | `Toggle(_:isOn:)` | String label and Boolean input in both directions | Pass · [SharedControls](HostReplay/SharedControls.swift) | Pass | Pass · [`typedControls`](HostReplay/ControlReplay.swift) | Pending | Pending | Pending | Pending | Pending |
 | `@State` | Direct stored integer, Boolean, and string state | Pass · [SharedControls](HostReplay/SharedControls.swift), [SharedScreen](HostReplay/SharedScreen.swift) | Pass | Pass · [`frameAuthorityAndRows`](HostReplay/Replay.swift), [`typedControls`](HostReplay/ControlReplay.swift) | Pending | Pending | Pending | Pending | Pending |
 | `@Binding` and projected state bindings | Captured and forwarded bindings with accepted-frame writes | Pass · [SharedControls](HostReplay/SharedControls.swift), [SharedScreen](HostReplay/SharedScreen.swift) | Pass | Pass · [`frameAuthorityAndRows`](HostReplay/Replay.swift), [`typedControls`](HostReplay/ControlReplay.swift) | Pending | Pending | Pending | Pending | Pending |
+| `@Environment` | Host color scheme and layout direction captured per candidate | Pass · [SharedEnvironment](HostReplay/SharedEnvironment.swift) | Pass | Pass · [`typedEnvironment`](HostReplay/EnvironmentReplay.swift) | Pending | Pending | Pending | Pending | Pending |
 
 The iOS compile run also verifies that Apple SwiftUI accepts each marked call and
 MixerSwiftUI rejects it. [Unsupported control fixtures](HostReplay/UnsupportedControls.swift)

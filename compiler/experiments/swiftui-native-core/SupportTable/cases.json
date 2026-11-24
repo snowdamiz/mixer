@@ -12,6 +12,12 @@
       "function": "typedControls",
       "pass": "PASS typed control envelopes, canceled and invalid candidates, keyed edit state, and stale authority"
     },
+    "environment": {
+      "source": "SharedEnvironment.swift",
+      "test": "EnvironmentReplay.swift",
+      "function": "typedEnvironment",
+      "pass": "PASS typed environment defaults, host snapshots, mount isolation, and accepted frame callbacks"
+    },
     "layout": {
       "source": "SharedControls.swift",
       "test": "ControlReplay.swift",
@@ -31,6 +37,7 @@
     {"name": "`TextField(_:text:)`", "scope": "Single-line string binding and Unicode edits", "tests": ["controls"]},
     {"name": "`Toggle(_:isOn:)`", "scope": "String label and Boolean input in both directions", "tests": ["controls"]},
     {"name": "`@State`", "scope": "Direct stored integer, Boolean, and string state", "tests": ["core", "controls"]},
-    {"name": "`@Binding` and projected state bindings", "scope": "Captured and forwarded bindings with accepted-frame writes", "tests": ["core", "controls"]}
+    {"name": "`@Binding` and projected state bindings", "scope": "Captured and forwarded bindings with accepted-frame writes", "tests": ["core", "controls"]},
+    {"name": "`@Environment`", "scope": "Host color scheme and layout direction captured per candidate", "tests": ["environment"]}
   ]
 }
