@@ -11,6 +11,7 @@ private final class EditorFixture {
         var candidate: String? = nil
         var persisted: String? = nil
         var failure: String? = nil
+        var refusedInstall: String? = nil
         var events: UInt64 = 0
     }
 
@@ -28,6 +29,7 @@ private final class EditorFixture {
     private let progress = Progress()
     private var job: Task<Void, Never>?
     private var presentation: S5SignedPresentation?
+    private var successor: S5SignedPresentation?
     private var host = ComposeEditorWireV1.Presentation()
     private var pending: (ticket: Ticket, frame: UUID)?
     private var accepted: (ticket: Ticket, frame: UUID)?
@@ -38,12 +40,24 @@ private final class EditorFixture {
         case 1, 2: return try observe(data, discard: op == 2)
         case 3:
             let save = try JSONDecoder().decode(ComposeEditorWireV1.Save.self, from: data)
-            guard let presentation, accepted?.ticket == save.ticket else { return nil }
+            guard progress.read().phase != "loading", let presentation, accepted?.ticket == save.ticket else { return nil }
             let events = try save.events()
             // The pinned Compose wire routes the whole batch against the exact
             // accepted snapshot. One successful route submits one scoped batch.
             _ = try host.send(events, from: save.ticket)
             guard let accepted, presentation.submit(events[0], save: events[1], from: accepted.frame) else { return nil }
+            return Data()
+        case 4:
+            guard let journey, pending == nil, accepted != nil, progress.read().phase == "healthy" else { return nil }
+            progress.write(Status(phase: "checkingInstall"))
+            job = Task { [progress] in
+                do {
+                    let candidate = try await journey.refuseRollback()
+                    progress.write(Status(phase: "healthy", candidate: candidate, refusedInstall: "v3.signature.invalid"))
+                } catch {
+                    progress.write(Status(phase: "failed", failure: String(describing: error)))
+                }
+            }
             return Data()
         case 5:
             guard journey == nil else { return nil }
@@ -59,19 +73,18 @@ private final class EditorFixture {
             let selected = try JSONDecoder().decode(Selection.self, from: data)
             guard let stage = SignedStage(rawValue: selected.stage), let journey, canSelect(stage) else { return nil }
             let presentation = S5SignedPresentation()
-            self.presentation = presentation
-            host = ComposeEditorWireV1.Presentation()
-            pending = nil
-            accepted = nil
-            progress.write(Status(phase: "loading"))
+            successor = presentation
+            progress.write(Status(phase: "preparing"))
             job = Task { [progress] in
                 do {
-                    let candidate = try await journey.activate(stage, presentation: presentation) {
+                    let candidate = try await journey.activate(stage, presentation: presentation, retiring: {
+                        progress.write(Status(phase: "loading"))
+                    }, provisional: {
                         progress.write(Status(phase: "provisional"))
-                    }
+                    })
                     progress.write(Status(phase: "healthy", candidate: candidate))
                 } catch {
-                    await journey.abort()
+                    if progress.read().phase != "preparing" { await journey.abort() }
                     progress.write(Status(phase: "failed", failure: String(describing: error)))
                 }
             }
@@ -98,6 +111,13 @@ private final class EditorFixture {
     }
 
     private func prepare() throws -> Data? {
+        if let successor, progress.read().phase == "provisional" {
+            presentation = successor
+            self.successor = nil
+            host = ComposeEditorWireV1.Presentation()
+            pending = nil
+            accepted = nil
+        }
         guard let presentation else { return nil }
         presentation.pump()
         guard pending == nil, let frame = presentation.frame() else { return nil }

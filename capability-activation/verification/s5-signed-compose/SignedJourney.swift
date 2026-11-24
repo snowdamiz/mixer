@@ -40,11 +40,10 @@ actor SignedJourney {
     }
 
     func activate(_ stage: SignedStage, presentation: S5SignedPresentation,
-                  provisional: @Sendable () -> Void) async throws -> String {
+                  retiring: @Sendable () -> Void = {}, provisional: @Sendable () -> Void) async throws -> String {
         if let lastStage, stage.sequence != lastStage.sequence + 1 { throw JourneyError("Wrong fixture sequence") }
         if lastStage == nil, stage != .prior { throw JourneyError("Missing prior release") }
         if let lastStage { try await verifyHealthy(lastStage) }
-        previous = try await closeOwner()
         let execution = try InstalledCapabilityExecution(identityJSON: load("identity.json"), materials: [
             .init(role: .bridgePolicy, bytes: try load("bridge.json")),
             .init(role: .configuration(capabilityID: CapabilitySchemas.storageID), bytes: try load("storage.json")),
@@ -52,6 +51,18 @@ actor SignedJourney {
         ], trustRootsJSON: load("roots.json"), privateContainer: directory)
         let configuration = CapabilityColdStartConfiguration(directory: directory.appendingPathComponent("recovery"),
             channel: "beta", installation: "s5-local", observationSeconds: 1)
+        let manifest = try load(stage.rawValue + ".manifest")
+        let assignment = try load(stage.rawValue + ".assignment")
+        let bytes = try load(stage.payload + ".wasm")
+        if let owner {
+            try await owner.preflightS5SignedCompose(signedManifest: manifest, signedAssignment: assignment, payload: bytes)
+            if stage == .rollback, manifest != (try load("prior.manifest")) {
+                throw JourneyError("Rollback changed the original signed artifact")
+            }
+        }
+        try Task.checkCancellation()
+        retiring()
+        previous = try await closeOwner()
         if stage == .prior {
             do {
                 let unexpected = try await CapabilityColdStartRuntime.open(configuration: configuration, execution: execution)
@@ -62,12 +73,6 @@ actor SignedJourney {
         let runtime = try await CapabilityColdStartRuntime.openS5SignedCompose(configuration: configuration,
             execution: execution, presentation: presentation)
         owner = runtime
-        let manifest = try load(stage.rawValue + ".manifest")
-        let assignment = try load(stage.rawValue + ".assignment")
-        let bytes = try load(stage.payload + ".wasm")
-        if stage == .rollback {
-            try await requireRefusedInstall(runtime, manifest: manifest, assignment: assignment)
-        }
         try await runtime.beginDownload(signedManifest: manifest, signedAssignment: assignment)
         try await runtime.appendDownload(bytes, atOffset: 0)
         try await runtime.finishDownload()
@@ -99,8 +104,15 @@ actor SignedJourney {
         throw JourneyError("Timed out waiting for exact presentation and health")
     }
 
-    private func requireRefusedInstall(_ runtime: CapabilityColdStartRuntime, manifest: Data, assignment: Data) async throws {
-        let before = await runtime.recoverySnapshot()
+    func refuseRollback() async throws -> String {
+        try await verifyHealthy(.candidate)
+        guard let owner else { throw JourneyError("No live owner for the refusal control") }
+        let before = await owner.recoverySnapshot()
+        let stateFile = directory.appendingPathComponent("recovery/state.json")
+        let durable = try Data(contentsOf: stateFile)
+        let manifest = try load("rollback.manifest")
+        let assignment = try load("rollback.assignment")
+        let payload = try load("prior.wasm")
         let signed = try StrictJSON.decode(CanonicalValue.self, from: manifest)
         guard var fields = signed.object, let signature = fields["signature"]?.text,
               var tampered = Data(base64Encoded: signature), tampered.count == 64 else {
@@ -109,15 +121,18 @@ actor SignedJourney {
         tampered[0] ^= 1
         fields["signature"] = .text(tampered.base64EncodedString())
         do {
-            try await runtime.beginDownload(signedManifest: JSONEncoder().encode(CanonicalValue.object(fields)),
-                                            signedAssignment: assignment)
+            try await owner.preflightS5SignedCompose(signedManifest: JSONEncoder().encode(CanonicalValue.object(fields)),
+                                                      signedAssignment: assignment, payload: payload)
             throw JourneyError("Tampered artifact signature was admitted")
         } catch let error as UpdateError where error.code == "v3.signature.invalid" {}
-        let after = await runtime.recoverySnapshot()
-        guard before.acceptedSequence == 2, after.acceptedSequence == before.acceptedSequence,
-              before.healthy != nil, after.healthy == before.healthy, after.staged == nil, after.downloading == nil else {
-            throw JourneyError("Rejected install changed durable selection")
+        let after = await owner.recoverySnapshot()
+        guard after.activation.phase == .healthyGuest, let candidate = before.healthy, after.healthy == candidate,
+              after.activation.candidateID == candidate, after.activation.launchID == before.activation.launchID,
+              after.acceptedSequence == before.acceptedSequence, after.staged == nil, after.downloading == nil,
+              try Data(contentsOf: stateFile) == durable else {
+            throw JourneyError("Rejected install changed the live owner or durable selection")
         }
+        return candidate
     }
 
     private func checkRollback(_ candidate: String, manifest: Data, bytes: Data) throws {

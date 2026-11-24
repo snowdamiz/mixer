@@ -1,6 +1,7 @@
 import Foundation
 @_spi(S5SignedCompose) import MixerCapabilityActivation
 import MixerUI
+import MixerUpdates
 
 @main enum Replay {
     static func main() async throws {
@@ -97,6 +98,19 @@ import MixerUI
         }
         print("PASS two canceled revisions preserved accepted input and three subsequent signed Unicode saves advanced exactly once")
 
+        let refusedOwner = try await journey.refuseRollback()
+        try require(refusedOwner == candidateID && candidate.deliveredEvents == 10,
+                    "Refusal changed the accepted owner or delivered input")
+        try require(!candidate.present(shown.id) && !candidate.discard(shown.id),
+                    "Refusal changed the exact presentation receipt authority")
+        finalTitle = "After refusal — e\u{301} \"点検\" 🔍"
+        let savedAfterRefusal = try await save(candidate, from: shown, count: 6, title: finalTitle)
+        try require(candidate.present(savedAfterRefusal.id), "Post-refusal Save frame refused")
+        try await journey.verifyHealthy(.candidate)
+        shown = savedAfterRefusal
+        print("PASS invalid signature refused by the live store, same editor delivered a later Save to the signed guest")
+        print("POST_REFUSAL_UTF8_SHA256 \(ReleaseVerifier.sha256(Data(finalTitle.utf8)))")
+
         let rollback = S5SignedPresentation()
         async let third = journey.activate(.rollback, presentation: rollback, provisional: {})
         let restored = try await frame(rollback, revision: 1)
@@ -107,7 +121,7 @@ import MixerUI
         try require(restoredID != priorID && restoredID != candidateID &&
                     restored.snapshot.document.root.children[0].properties["value"] == .string("Prior editor"),
                     "Wrong restored owner")
-        print("PASS damaged signature refusal and rollback of the original signed artifact")
+        print("PASS rollback of the original signed artifact")
         try require(try await journey.finish() == Data(finalTitle.utf8), "Persisted UTF-8 changed")
         try require(!rollback.present(restored.id) && !submit(rollback, restored, draft),
                     "Retired rollback owner retained input or receipts")

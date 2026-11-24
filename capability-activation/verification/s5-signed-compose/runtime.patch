@@ -1,8 +1,33 @@
+diff --git a/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartControl.swift b/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartControl.swift
+index fbc7d12..8044617 100644
+--- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartControl.swift
++++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartControl.swift
+@@ -2,5 +2,10 @@ import Foundation
+ @_spi(GuestUIV1) import MixerGuest
+ 
+-enum CapabilityColdStartOperationKind { case opening, download, start, milestone }
++enum CapabilityColdStartOperationKind {
++    case opening, download, start, milestone
++#if MIXER_S5_SIGNED_COMPOSE
++    case s5InstallPreflight
++#endif
++}
+ final class CapabilityColdStartOperation: @unchecked Sendable {
+     let kind: CapabilityColdStartOperationKind
+@@ -105,4 +110,8 @@ final class CapabilityColdStartControl: @unchecked Sendable {
+         case .opening: break
+         case .download: guard !selected else { throw coldStartError("selection_started") }
++#if MIXER_S5_SIGNED_COMPOSE
++        case .s5InstallPreflight:
++            guard phase == .healthyGuest else { throw coldStartError("not_observing") }
++#endif
+         case .start:
+             guard !selected else { throw coldStartError("selection_started") }
 diff --git a/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartRuntime.swift b/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartRuntime.swift
-index a7dff7c..ebc1813 100644
+index a7dff7c..298e834 100644
 --- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartRuntime.swift
 +++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartRuntime.swift
-@@ -34,4 +34,26 @@ public final class CapabilityColdStartRuntime: Sendable {
+@@ -34,4 +34,38 @@ public final class CapabilityColdStartRuntime: Sendable {
      }
  #endif
 +#if MIXER_S5_SIGNED_COMPOSE
@@ -13,6 +38,18 @@ index a7dff7c..ebc1813 100644
 +        try S5SignedProfile.require(execution.installed.identity, milestones: configuration.requiredMilestones)
 +        return try await openShared(configuration: configuration, installed: execution.installed,
 +            environment: .init(), presentation: presentation)
++    }
++
++    @_spi(S5SignedCompose)
++    public func preflightS5SignedCompose(signedManifest: Data, signedAssignment: Data, payload: Data) async throws {
++        guard signedManifest.count <= 65_536, signedAssignment.count <= 65_536,
++              payload.count <= 1_048_576 else { throw coldStartError("size") }
++        let op = try core.control.admit(.s5InstallPreflight); defer { core.control.finish(op) }
++        try await withTaskCancellationHandler {
++            try op.check()
++            try await core.worker.preflightS5SignedCompose(Self.snapshot(signedManifest), Self.snapshot(signedAssignment),
++                Self.snapshot(payload), op)
++        } onCancel: { op.cancel() }
 +    }
 +
 +    @_spi(S5SignedCompose)
@@ -30,7 +67,7 @@ index a7dff7c..ebc1813 100644
      private static func openShared(configuration: CapabilityColdStartConfiguration, installed: InstalledMaterial,
                                     environment: CapabilityRecoveryEnvironment,
 diff --git a/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift b/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift
-index cb81a06..1a1cdd0 100644
+index cb81a06..0f4f888 100644
 --- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift
 +++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityColdStartWorker.swift
 @@ -1,4 +1,7 @@
@@ -41,7 +78,20 @@ index cb81a06..1a1cdd0 100644
 +#endif
  #if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
  @_spi(PrivateFieldLogEditor) import MixerGuest
-@@ -206,4 +209,9 @@ actor CapabilityColdStartWorker {
+@@ -48,4 +51,12 @@ actor CapabilityColdStartWorker {
+         try control.requireCurrent(op)
+     }
++#if MIXER_S5_SIGNED_COMPOSE
++    func preflightS5SignedCompose(_ manifest: Data, _ assignment: Data, _ payload: Data,
++                                  _ op: CapabilityColdStartOperation) async throws {
++        guard presentation is S5SignedPresentation else { throw coldStartError("installed_mode") }
++        try await currentStore(op).preflightS5SignedCompose(manifest, assignment, payload)
++        try control.requireCurrent(op)
++    }
++#endif
+     func offset(_ op: CapabilityColdStartOperation) async throws -> UInt64 {
+         let result = try await currentStore(op).downloadOffset()
+@@ -206,4 +217,9 @@ actor CapabilityColdStartWorker {
  #if os(macOS) && MIXER_PRIVATE_FIELDLOG_EDITOR
          if installed.fieldLogEditorID != nil { return try GuestUIExchangeV1(fieldLogEditorGeneration: generation) }
 +#endif
@@ -52,7 +102,7 @@ index cb81a06..1a1cdd0 100644
  #endif
          return try GuestUIExchangeV1(generation: generation,
 diff --git a/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift b/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift
-index 7dc15ba..afa8564 100644
+index 7dc15ba..18cd18a 100644
 --- a/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift
 +++ b/capability-activation/Sources/MixerCapabilityActivation/CapabilityRecoveryStore.swift
 @@ -4,4 +4,7 @@ import Foundation
@@ -73,7 +123,57 @@ index 7dc15ba..afa8564 100644
 +        }
  #endif
          if guestUI { try CapabilityInstalledExecutionMode.requireGuestUI(installed.identity, milestones: milestones) }
-@@ -577,4 +585,11 @@ private actor CapabilityRecoveryWorker {
+@@ -64,4 +72,12 @@ final class CapabilityRecoveryStore: Sendable {
+         try await beginOwned(signedManifest, signedAssignment, op)
+     }
++#if MIXER_S5_SIGNED_COMPOSE
++    func preflightS5SignedCompose(_ manifest: Data, _ assignment: Data, _ payload: Data) async throws {
++        let op = try control.admit(); defer { control.finish(op) }
++        try await withTaskCancellationHandler {
++            try await worker.preflightS5SignedCompose(manifest, assignment, payload, op)
++        } onCancel: { op.cancel() }
++    }
++#endif
+     func downloadOffset() async throws -> UInt64 {
+         let op = try control.admit(); defer { control.finish(op) }
+@@ -325,4 +341,12 @@ private actor CapabilityRecoveryWorker {
+         let (d, s) = try available(op)
+         guard !selectionStarted else { throw capabilityRecoveryError("selection_started") }
++        let offer = try authorizeOffer(manifest, assignment, in: s, directory: d)
++        let pending = try CapabilityRecoveryCandidate(artifact: offer.artifactSHA256, payloadHash: offer.payloadSHA256,
++            payloadBytes: offer.payloadBytes, sequence: offer.sequence, manifest: offer.signedManifest, assignment: offer.signedAssignment)
++        var next = s; next.acceptedSequence = offer.sequence; next.pending = pending
++        try commit(next, op); try cleanup(); try op.check()
++    }
++    private func authorizeOffer(_ manifest: Data, _ assignment: Data, in s: CapabilityRecoveryState,
++                                directory d: CapabilityDurableDirectory) throws -> OfferEvidenceV3 {
+         guard s.quarantine.count < 256, s.failures.count < 256 else { throw capabilityRecoveryError("history") }
+         let offer = try installed.verifier._authorizeOfferV3(exactManifest: manifest, exactAssignment: assignment,
+@@ -330,9 +354,19 @@ private actor CapabilityRecoveryWorker {
+         guard s.quarantine[offer.artifactSHA256] == nil else { throw capabilityRecoveryError("quarantine") }
+         try reserve(offer.payloadBytes, d)
+-        let pending = try CapabilityRecoveryCandidate(artifact: offer.artifactSHA256, payloadHash: offer.payloadSHA256,
+-            payloadBytes: offer.payloadBytes, sequence: offer.sequence, manifest: offer.signedManifest, assignment: offer.signedAssignment)
+-        var next = s; next.acceptedSequence = offer.sequence; next.pending = pending
+-        try commit(next, op); try cleanup(); try op.check()
++        return offer
+     }
++#if MIXER_S5_SIGNED_COMPOSE
++    func preflightS5SignedCompose(_ manifest: Data, _ assignment: Data, _ bytes: Data,
++                                 _ op: CapabilityRecoveryOperation) throws {
++        let (d, s) = try available(op)
++        guard guestUI, S5SignedProfile.matches(installed.identity), let attempt = s.attempt,
++              s.healthy?.candidateID == attempt.candidateID, s.healthy?.launchID == attempt.launchID else {
++            throw capabilityRecoveryError("health")
++        }
++        let offer = try authorizeOffer(manifest, assignment, in: s, directory: d)
++        _ = try installed.verifier.verifyArtifact(signedManifest: offer.signedManifest, payload: bytes, now: environment.wall())
++        try op.check()
++    }
++#endif
+     func offset(_ op: CapabilityRecoveryOperation) throws -> UInt64 {
+         let (d, s) = try available(op); let pending = try pending(s)
+@@ -577,4 +611,11 @@ private actor CapabilityRecoveryWorker {
          _ = try bound(input, signals, op)
          guard effectsEnabledAt != nil, configuration.requiredMilestones.contains(id) else { throw capabilityRecoveryError("milestone") }
 +#if MIXER_S5_SIGNED_COMPOSE
@@ -85,7 +185,7 @@ index 7dc15ba..afa8564 100644
 +#endif
          if installed.privateF10 && id == "first_screen" {
              guard let presentation, presentation.generation == input.generation, presentation.revision == 2,
-@@ -663,4 +678,9 @@ private actor CapabilityRecoveryWorker {
+@@ -663,4 +704,9 @@ private actor CapabilityRecoveryWorker {
              return try ExperimentalCapabilityValidator.prepareF10(module: module, configuration: configuration)
          }
 +#endif

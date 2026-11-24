@@ -4,7 +4,7 @@ index b104149..92f4cb5 100644
 +++ b/native/android/compose/build.gradle
 @@ -13,11 +13,11 @@ android {
      }
-
+ 
      defaultConfig {
 -        applicationId = 'dev.mixer.compose.s5'
 +        applicationId = 'dev.mixer.compose.s5.signed.v2'
@@ -29,7 +29,7 @@ index 64b689d..a337d35 100755
 -runner=dev.mixer.compose.s5.test/dev.mixer.compose.EditorInstrumentation
 +ime=dev.mixer.compose.s5.signed.v2.test/dev.mixer.compose.EditorReplayIme
 +runner=dev.mixer.compose.s5.signed.v2.test/dev.mixer.compose.EditorInstrumentation
-
+ 
  [[ $port =~ ^[0-9]+$ && $port != 5037 && $serial =~ ^emulator-[0-9]+$ && -n $avd ]]
  device() { "$adb" -P "$port" -s "$serial" "$@"; }
 diff --git a/native/android/compose/src/androidTest/AndroidManifest.xml b/native/android/compose/src/androidTest/AndroidManifest.xml
@@ -49,7 +49,7 @@ index 1dde4a5..c5929c2 100644
 --- a/native/android/compose/src/androidTest/java/dev/mixer/compose/EditorReplayIme.java
 +++ b/native/android/compose/src/androidTest/java/dev/mixer/compose/EditorReplayIme.java
 @@ -12,8 +12,8 @@ import android.widget.TextView;
-
+ 
  /** Runs in the test APK's process. Android owns both the IME window and connection. */
  public final class EditorReplayIme extends InputMethodService {
 -    static final String EDITOR_PACKAGE = "dev.mixer.compose.s5";
@@ -58,9 +58,9 @@ index 1dde4a5..c5929c2 100644
 +    static final Uri CONTROL = Uri.parse("content://dev.mixer.compose.s5.signed.v2.test.ime-control");
      static EditorReplayIme instance;
      private static final String TAG = "MixerS5Ime";
-
+ 
 diff --git a/native/android/compose/src/androidTest/kotlin/dev/mixer/compose/EditorInstrumentation.kt b/native/android/compose/src/androidTest/kotlin/dev/mixer/compose/EditorInstrumentation.kt
-index a7da596..85775dd 100644
+index a7da596..4936b6a 100644
 --- a/native/android/compose/src/androidTest/kotlin/dev/mixer/compose/EditorInstrumentation.kt
 +++ b/native/android/compose/src/androidTest/kotlin/dev/mixer/compose/EditorInstrumentation.kt
 @@ -44,8 +44,7 @@ class EditorInstrumentation : Instrumentation() {
@@ -69,13 +69,13 @@ index a7da596..85775dd 100644
              }
 -            output.putString("stream", "\nPASS S5 EditorInstrumentation: same interactive window buffer, " +
 -                "post-receipt veto and promotion without redraw, same OS IME connection, 15 rendered Unicode readbacks, retired connection refused\n")
-+            output.putString("stream", "\nPASS S5 EditorInstrumentation: signed V2, offscreen veto, canceled post-Save draw, retained OS IME, 15 painted Unicode saves, rollback, detach and persisted bytes\n")
++            output.putString("stream", "\nPASS S5 EditorInstrumentation: signed V2, offscreen veto, canceled post-Save draw, retained OS IME, 15 painted Unicode saves, live install refusal and a guest Save, rollback, detach and persisted bytes\n")
              finish(Activity.RESULT_OK, output)
          } catch (error: Throwable) {
              output.putString("stream", "\nFAIL S5 EditorInstrumentation: ${error.stackTraceToString()}\n")
-@@ -54,155 +53,171 @@ class EditorInstrumentation : Instrumentation() {
+@@ -54,155 +53,198 @@ class EditorInstrumentation : Instrumentation() {
      }
-
+ 
      private fun replay(activity: EditorActivity) {
 -        check(android.os.Build.VERSION.SDK_INT == 28) { "Run this S5 replay on the API 28 fixture" }
 +        check(android.os.Build.VERSION.SDK_INT == 28 && android.os.Build.SUPPORTED_ABIS.first() == "arm64-v8a")
@@ -92,7 +92,7 @@ index a7da596..85775dd 100644
 -
 -        checkOffscreen(activity, host, original)
 -        ime.requireLive("after offscreen veto")
-
+ 
 -        // The accepted Save stays clickable when the candidate's differing
 -        // readback is already in the real window and its receipt is vetoed.
 -        withHeldBuffer(host, { clickSave() }) { ready ->
@@ -209,18 +209,43 @@ index a7da596..85775dd 100644
 -            assertRendered(activity, host, current.ticket, "${index}: ${title}")
 -            ime.requireLive("ordinary Save $index")
          }
-
+ 
 -        val last = main { checkNotNull(host.currentFrame()) }
--        main {
++        title = "After refusal — e\u0301 \"点検\" 🔍"
++        ime.replace(title)
++        ime.command("compose")
++        ime.select("before invalid signed install", TextRange(2, 4))
++        val acceptedBeforeRefusal = saved
++        val draftBeforeRefusal = ime.requireLive("before invalid signed install")
++        main { check(host.refuseSignedInstall()) }
++        val refusal = await("live store signature refusal") {
++            state(host).takeIf { it.optString("refusedInstall") == "v3.signature.invalid" }
++        }
++        check(refusal.getString("phase") == "healthy" && refusal.getString("candidate") == candidateID)
++        check(refusal.getLong("events") == 34L)
+         main {
 -            // This experiment covers one binding. An exact rollback proposes
 -            // a different owner and must not adopt it into that binding.
 -            check(!host.rollback(last.ticket))
 -            check(host.currentFrame() == last && host.pendingFrame() == null)
--        }
++            check(host.currentFrame() == acceptedBeforeRefusal && host.pendingFrame() == null)
++            check(!host.promote(ComposeEditorHost.ReadyBuffer(acceptedBeforeRefusal.ticket)))
+         }
 -        val replacement = withHeldBuffer(host, { main { check(host.refresh()) } }) { ready ->
 -            val nextHost = main {
 -                ComposeEditorHost(activity.window).also { activity.setContentView(it) }
 -            }
++        check(ime.requireLive("after invalid signed install") == draftBeforeRefusal)
++        assertRendered(activity, host, acceptedBeforeRefusal.ticket, acceptedBeforeRefusal.readback)
++
++        clickSave()
++        saved = frame(host, "18: $title")
++        assertRendered(activity, host, saved.ticket, "18: $title")
++        ime.requireLive("after guest Save through the same accepted editor")
++        check(state(host).getLong("events") == 36L && healthy(host) == candidateID)
++        check(saved.ticket.owner == acceptedBeforeRefusal.ticket.owner)
++        Log.i("MixerS5", "Invalid signed install kept the accepted editor; guest delivered events 35 and 36")
++
 +        val rollbackReceipt = withHeldBuffer(host, { main { check(host.selectSigned("rollback")) } }) { ready ->
 +            assertRendered(activity, host, ready.ticket, "0: Prior editor")
              main {
@@ -269,7 +294,7 @@ index a7da596..85775dd 100644
 +            check(!host.save(restored, "detached input"))
 +        }
      }
-
+ 
 -    private fun checkOffscreen(activity: EditorActivity, host: ComposeEditorHost, accepted: EditorFrame) {
 -        val bounds = main { checkNotNull(host.readbackProbe(accepted.ticket)).markerBounds }
 +    private fun checkOffscreenSave(activity: EditorActivity, host: ComposeEditorHost, accepted: EditorFrame, title: String) {
@@ -329,7 +354,7 @@ index a7da596..85775dd 100644
              main { host.viewTreeObserver.removeOnPreDrawListener(veto) }
          }
      }
-
+ 
 +    private fun state(host: ComposeEditorHost): org.json.JSONObject = main { host.signedState() }.also {
 +        check(it.getString("phase") != "failed") { it.optString("failure") }
 +    }
@@ -347,7 +372,7 @@ index a7da596..85775dd 100644
      private fun <T> withHeldBuffer(
          host: ComposeEditorHost,
          stage: () -> Unit,
-@@ -263,24 +278,29 @@ class EditorInstrumentation : Instrumentation() {
+@@ -263,24 +305,29 @@ class EditorInstrumentation : Instrumentation() {
          }
          try {
              // The marker and the glyphs must come from one queued buffer.
@@ -396,12 +421,12 @@ index e6b5b77..cce8379 100644
          <activity android:name="dev.mixer.compose.EditorActivity" android:exported="true"
              android:windowSoftInputMode="adjustResize" android:hardwareAccelerated="true">
 diff --git a/native/android/compose/src/main/kotlin/dev/mixer/compose/ComposeEditorHost.kt b/native/android/compose/src/main/kotlin/dev/mixer/compose/ComposeEditorHost.kt
-index 6123ff0..bf4979e 100644
+index 6123ff0..ff65fd0 100644
 --- a/native/android/compose/src/main/kotlin/dev/mixer/compose/ComposeEditorHost.kt
 +++ b/native/android/compose/src/main/kotlin/dev/mixer/compose/ComposeEditorHost.kt
-@@ -101,6 +101,20 @@ internal class ComposeEditorHost(private val window: Window) : FrameLayout(windo
+@@ -101,6 +101,22 @@ internal class ComposeEditorHost(private val window: Window) : FrameLayout(windo
      }
-
+ 
      private var swift: SwiftSession? = null
 +    private var switchingOwner = false
 +    private var pollDeadline = 0L
@@ -410,17 +435,19 @@ index 6123ff0..bf4979e 100644
 +            val session = swift ?: return
 +            val next = session.prepare()
 +            if (next != null) {
++                if (accepted?.frame?.ticket?.owner != next.ticket.owner) switchingOwner = true
 +                present(next)
 +                return
 +            }
-+            if (android.os.SystemClock.uptimeMillis() < pollDeadline &&
-+                session.state().optString("phase") != "failed") main.postDelayed(this, 20)
++            val phase = session.state().optString("phase")
++            if (phase == "loading" || phase == "provisional") switchingOwner = true
++            if (android.os.SystemClock.uptimeMillis() < pollDeadline && phase != "failed") main.postDelayed(this, 20)
 +        }
 +    }
      private var binding: Binding? = null
      private var accepted: Candidate? = null
      private var pending: Candidate? = null
-@@ -129,10 +143,20 @@ internal class ComposeEditorHost(private val window: Window) : FrameLayout(windo
+@@ -129,10 +145,20 @@ internal class ComposeEditorHost(private val window: Window) : FrameLayout(windo
          copyWorker = Executors.newSingleThreadExecutor { work -> Thread(work, "S5-window-copy") }
          val session = SwiftSession()
          swift = session
@@ -436,13 +463,13 @@ index 6123ff0..bf4979e 100644
 +        check(session.configure(assets.absolutePath, state.absolutePath))
 +        check(selectSigned("prior"))
      }
-
+ 
      override fun onDetachedFromWindow() {
 +        main.removeCallbacks(pollSignedFrame)
          pending?.let { cancel(it.frame.ticket) }
          binding = null
          accepted = null
-@@ -165,7 +189,8 @@ internal class ComposeEditorHost(private val window: Window) : FrameLayout(windo
+@@ -165,7 +191,8 @@ internal class ComposeEditorHost(private val window: Window) : FrameLayout(windo
          // A successful Swift prepare supersedes the previous Swift proposal.
          pending?.let { trace(it, "superseded by ${frame.ticket}; accepted=${previous?.ticket}") }
          clearPending()
@@ -452,16 +479,16 @@ index 6123ff0..bf4979e 100644
                  (binding == null || binding !== accepted?.submitted?.binding || !previous.sameEditor(frame) ||
                      (frame.title != previous.title && frame.title != draft)))) {
              swift?.discard(frame.ticket)
-@@ -283,7 +308,7 @@ internal class ComposeEditorHost(private val window: Window) : FrameLayout(windo
+@@ -283,7 +310,7 @@ internal class ComposeEditorHost(private val window: Window) : FrameLayout(windo
              editorBinding.view.isShown && windowToken != null && editorBinding.view.windowToken == windowToken
-
+ 
      private fun canUse(editorBinding: Binding): Boolean =
 -        accepted?.submitted?.binding === editorBinding && live(editorBinding)
 +        !switchingOwner && accepted?.submitted?.binding === editorBinding && live(editorBinding)
-
+ 
      private fun currentDrawnSurface(candidate: Candidate): Surface? {
          val drawn = candidate.drawn ?: return null
-@@ -358,6 +383,7 @@ internal class ComposeEditorHost(private val window: Window) : FrameLayout(windo
+@@ -358,6 +385,7 @@ internal class ComposeEditorHost(private val window: Window) : FrameLayout(windo
          // The drawn callbacks already belong to this binding. No Compose state
          // changes here: the same submitted frame can route the next Save.
          accepted = candidate
@@ -469,8 +496,8 @@ index 6123ff0..bf4979e 100644
          trace(candidate, "promoted")
          clearPending()
          return true
-@@ -365,17 +391,27 @@ internal class ComposeEditorHost(private val window: Window) : FrameLayout(windo
-
+@@ -365,17 +393,27 @@ internal class ComposeEditorHost(private val window: Window) : FrameLayout(windo
+ 
      internal fun save(frame: EditorFrame, text: String): Boolean {
          val editorBinding = binding ?: return false
 -        if (!canUse(editorBinding) || accepted?.frame != frame) return false
@@ -481,13 +508,12 @@ index 6123ff0..bf4979e 100644
 +        awaitSignedFrame()
 +        return true
      }
-
+ 
 -    internal fun rollback(ticket: Ticket): Boolean {
 -        val editorBinding = binding ?: return false
 -        return canUse(editorBinding) && swift?.rollback(ticket)?.let { present(it) } == true
 +    internal fun selectSigned(stage: String): Boolean {
 +        if (pending != null || swift?.select(stage) != true) return false
-+        switchingOwner = true
 +        awaitSignedFrame()
 +        return true
 +    }
@@ -497,14 +523,15 @@ index 6123ff0..bf4979e 100644
 +        pollDeadline = android.os.SystemClock.uptimeMillis() + 12_000
 +        main.post(pollSignedFrame)
      }
-
+ 
 -    internal fun refresh(title: String? = null): Boolean = swift?.prepare(title)?.let { present(it) } == true
++    internal fun refuseSignedInstall(): Boolean = pending == null && swift?.refuseInstall() == true
 +    internal fun signedState(): org.json.JSONObject = checkNotNull(swift).state()
 +    internal fun finishSigned(): Boolean = swift?.finish() == true
      internal fun currentFrame(): EditorFrame? = accepted?.frame
      internal fun pendingFrame(): EditorFrame? = pending?.frame
      internal fun editValue(): TextFieldValue? = binding?.takeIf { canUse(it) }?.value
-@@ -409,7 +445,7 @@ internal class ComposeEditorHost(private val window: Window) : FrameLayout(windo
+@@ -409,7 +447,7 @@ internal class ComposeEditorHost(private val window: Window) : FrameLayout(windo
              onDispose {
                  if (binding === current) {
                      binding = null
@@ -514,13 +541,13 @@ index 6123ff0..bf4979e 100644
              }
          }
 diff --git a/native/android/compose/src/main/kotlin/dev/mixer/compose/SwiftSession.kt b/native/android/compose/src/main/kotlin/dev/mixer/compose/SwiftSession.kt
-index 89eab9a..4237ef1 100644
+index 89eab9a..2d46e20 100644
 --- a/native/android/compose/src/main/kotlin/dev/mixer/compose/SwiftSession.kt
 +++ b/native/android/compose/src/main/kotlin/dev/mixer/compose/SwiftSession.kt
-@@ -42,19 +42,21 @@ internal class SwiftSession : AutoCloseable {
+@@ -42,19 +42,22 @@ internal class SwiftSession : AutoCloseable {
          check(handle != 0L)
      }
-
+ 
 -    fun prepare(title: String? = null): EditorFrame? =
 -        call(0, title?.let { JSONObject().put("title", it) })?.let(EditorFrame::decode)
 +    fun configure(assets: String, directory: String): Boolean =
@@ -536,12 +563,13 @@ index 89eab9a..4237ef1 100644
              .put("text", text),
 -    )?.let(EditorFrame::decode)
 +    ) != null
-
+ 
 -    fun rollback(ticket: Ticket): EditorFrame? =
 -        call(4, ticket.json())?.let(EditorFrame::decode)
++    fun refuseInstall(): Boolean = call(4) != null
 +    fun select(stage: String): Boolean = call(7, JSONObject().put("stage", stage)) != null
 +    fun state(): JSONObject = JSONObject(checkNotNull(call(6)).decodeToString(throwOnInvalidSequence = true))
 +    fun finish(): Boolean = call(8) != null
-
+ 
      private fun call(operation: Int, payload: JSONObject? = null): ByteArray? {
          checkMain()
