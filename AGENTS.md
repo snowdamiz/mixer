@@ -1134,3 +1134,20 @@ process-group absence after `swiftc --version`. Preserve PGID 6091 and
 without inspection, enumeration, probing, signalling, waiting, retry or cleanup.
 Only its top-level `receipt.json` is a custody reference. The separately settled
 host, WASI and Apple typecheck runs do not release this hold.
+
+The November 24 UP4 API 36 inset baseline reproduced viewport overlap and
+uninstalled both APKs. Emulator PGID 90565 remained present after its direct
+child returned. Private ADB PGID 90516 has unobserved terminal custody.
+Preserve both groups, ports 5556, 5557 and 64630, and the entire
+`verification/local/plan-nov24-delivery.MDpiQiN9/native-baseline` run in
+worktree `t3-67570144`. Do not inspect, probe, signal, wait on, retry, or clean
+the held resources. Use the compact Pair32 receipt.
+
+The first November 24 UP4 API 36 appearance run stopped before Settings
+changes because the instrumentation refused night mode `custom_bedtime`.
+Emulator PGID 20129 remained present after the direct child returned, and
+private ADB PGID 19757 has unobserved terminal custody. Preserve both groups,
+ports 5588, 5589 and 49556, and the entire
+`verification/local/plan-nov24-delivery.MDpiQiN9/native-appearance` run in
+worktree `t3-67570144` without inspection, probing, signalling, waiting,
+retry, or cleanup. Use the compact Pair32 receipt.

@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import unittest
 
 
 REPO = Path(__file__).resolve().parents[2]
@@ -41,6 +42,7 @@ EXPECTED = [(2, 15, "ScrollView"), (2, 49, "ScrollView"), (3, 15, "NavigationSta
 
 
 def verify(mixer, work):
+    check = unittest.TestCase()
     package = work / "Sample"
     shared = package / "Sources/SharedFeature/SharedScreen.swift"
     apple = package / "Sources/AppleShell/Shell.swift"
@@ -62,7 +64,7 @@ def verify(mixer, work):
     def run(*argv, exit_code=0):
         print(shlex.join(map(str, argv)), flush=True)
         result = subprocess.run(argv, cwd=REPO, env=env, capture_output=True, text=True, timeout=60)
-        assert result.returncode == exit_code, (result.returncode, result.stdout, result.stderr)
+        check.assertEqual(exit_code, result.returncode, result.stdout + result.stderr)
         return result
 
     print("Source base", run("git", "rev-parse", "HEAD").stdout.strip())
@@ -95,7 +97,7 @@ def verify(mixer, work):
     ]
     scoped_diagnostics = [line for line in result.stderr.splitlines()
                           if line.startswith(f"{gap}:") and "does not exist in module" in line]
-    assert scoped_diagnostics == expected_diagnostics, result.stderr
+    check.assertEqual(expected_diagnostics, scoped_diagnostics, result.stderr)
     print("\n".join(scoped_diagnostics))
 
     description = work / "description.json"
@@ -105,36 +107,37 @@ def verify(mixer, work):
     ).stdout, encoding="utf-8")
     output = work / "report.json"
     report = json.loads(run(mixer, "import", package, "--swiftpm-description", description, "--output", output).stdout)
-    assert report == json.loads(output.read_bytes())
+    check.assertEqual(report, json.loads(output.read_bytes()))
     plain_report = json.loads(run(mixer, "import", package).stdout)
-    assert plain_report["findings"] == report["findings"]
-    assert plain_report["swiftUISubset"] == report["swiftUISubset"]
-    assert (report["schema"], report["authority"], report["technicalEligibility"]) == (1, "advisory-only", "unverified")
-    assert report["swiftUISubset"]["scopedImportCounts"] == Counter(f"SwiftUI.{symbol}" for _, _, symbol in EXPECTED)
+    check.assertEqual(plain_report["findings"], report["findings"])
+    check.assertEqual(plain_report["swiftUISubset"], report["swiftUISubset"])
+    check.assertEqual((1, "advisory-only", "unverified"),
+                      (report["schema"], report["authority"], report["technicalEligibility"]))
+    check.assertEqual(Counter(f"SwiftUI.{symbol}" for _, _, symbol in EXPECTED),
+                      report["swiftUISubset"]["scopedImportCounts"])
     modules = {module["name"]: module for module in report["swiftPackage"]["modules"]}
-    assert modules["SharedFeature"]["sourceClassification"] == "compiler-review"
-    assert modules["AppleShell"]["sourceClassification"] == "platform-specific"
-    assert modules["AppleShell"]["localDependencies"][0]["module"] == "SharedFeature"
-    assert all("symbol" not in finding for finding in modules["AppleShell"]["findings"])
-    assert modules["GapFeature"]["sourceClassification"] == "shared-after-api-adaptation"
+    check.assertEqual("compiler-review", modules["SharedFeature"]["sourceClassification"])
+    check.assertEqual("platform-specific", modules["AppleShell"]["sourceClassification"])
+    check.assertEqual("SharedFeature", modules["AppleShell"]["localDependencies"][0]["module"])
+    check.assertFalse(any("symbol" in finding for finding in modules["AppleShell"]["findings"]))
+    check.assertEqual("shared-after-api-adaptation", modules["GapFeature"]["sourceClassification"])
     findings = [finding for finding in report["findings"] if finding["category"] == "swiftui-subset-gap"]
-    assert [(finding["file"], finding["line"], finding["column"], finding["symbol"]) for finding in findings] == [
-        (str(gap.relative_to(package)), line, column, f"SwiftUI.{symbol}") for line, column, symbol in EXPECTED
-    ]
+    check.assertEqual(
+        [(str(gap.relative_to(package)), line, column, f"SwiftUI.{symbol}") for line, column, symbol in EXPECTED],
+        [(finding["file"], finding["line"], finding["column"], finding["symbol"]) for finding in findings],
+    )
     for path, source in files.items():
-        assert path.read_bytes() == source
+        check.assertEqual(source, path.read_bytes())
         print(hashlib.sha256(path.read_bytes()).hexdigest(), path.relative_to(package))
     print("PASS unchanged dual-compiled feature, Apple shell distinction, and exact scoped import counts")
 
 
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        sys.exit(__doc__)
+def replay(mixer):
     scratch = REPO / "verification/local"
     scratch.mkdir(parents=True, exist_ok=True)
     work = Path(tempfile.mkdtemp(dir=scratch, prefix="gc1-import-fixture.")).resolve()
     try:
-        verify(Path(sys.argv[1]).resolve(strict=True), work)
+        verify(Path(mixer).resolve(strict=True), work)
     except (subprocess.TimeoutExpired, KeyboardInterrupt):
         print(f"Interrupted fixture command. Preserved scratch at {work}", file=sys.stderr)
         raise
@@ -143,3 +146,17 @@ if __name__ == "__main__":
         raise
     else:
         shutil.rmtree(work)
+
+
+class SwiftUIImportTests(unittest.TestCase):
+    def test_compiler_and_importer_agree_on_scoped_imports(self):
+        mixer = os.environ.get("MIXER_STORE_TEST_CLI")
+        if not mixer:
+            self.skipTest("Set MIXER_STORE_TEST_CLI to the built macOS mixer executable")
+        replay(mixer)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        sys.exit(__doc__)
+    replay(sys.argv[1])

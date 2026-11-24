@@ -1,0 +1,119 @@
+{
+  "scope": "Local checkpoint for the corrected Pair32 driver, maintained Compose build and test fixtures",
+  "host": {
+    "platform": "macOS 27.0 arm64",
+    "swift": "6.4.2",
+    "python": "3.14.8",
+    "gradle": "9.8.1"
+  },
+  "driverRevision": "2c09d8b6c75ea44ddc15f4f537cad0e8609f60de",
+  "sourceAdmissionRevision": "4859065eac",
+  "review": "Independent Sol 6.2 High review passed. The production Swift renderer produced the same profile for both drivers. The corrected driver admitted 27 SDK and 27 adapter rows, refused 26 and 28 rows on either side with recomputed digests, and matched both archive and hosted pins.",
+  "tests": [
+    {
+      "command": "swift test --package-path cli --filter <Pair32, migration, and report selectors>",
+      "result": "58 Swift Testing tests and one XCTest passed. The 4 appearance and 33 coordinator mutation cases reached their expected source refusal after the count correction.",
+      "logSHA256": "2cb0e357961a9084c5e6a8838470559f0bdbda22b4f1c38bd021cb4fea137f9a"
+    },
+    {
+      "command": "swift test --package-path sdk --filter AndroidComposePresentationTests",
+      "result": "6 passed"
+    },
+    {
+      "command": "python3 -I -B -S [-O] verification/native-report-source141-archive-v1/adopt_archive.py verify --workflow-installed",
+      "result": "171 rows passed in both modes",
+      "sourceSHA256": "def3d722fa003a3ac4a2ec3988aa9b0539ac877f1eb0d26e37cb15528483479b"
+    },
+    {
+      "command": "python3 -B [-O] hosted/scripts/test-identity-network.py --check-source",
+      "result": "573 rows passed in both modes",
+      "sourceSHA256": "f9b2155122566fa22974b3a70a00a6840ff585316b6ec8c8280ad1e7f3161af3"
+    },
+    {
+      "command": "python3 -B -O hosted/scripts/test_identity_network_collector.py WorkflowSparseSourceControls WorkspaceSourceCutoverControls",
+      "result": "The three real sparse consumers passed with exact omission checks. The larger campaign exited 142 partway through cutover controls."
+    },
+    {
+      "command": "python3 -I -B -S -O hosted/scripts/test_native_artifact_worker.py <three Android receipt selectors>",
+      "result": "3 passed. Broader worker run exceeded the Unix-domain socket path length before nine unrelated listener controls."
+    },
+    {
+      "command": "gradle --dependency-verification strict -Pandroid.builder.sdkDownload=false authorityCheck assembleDebug assembleDebugAndroidTest",
+      "result": "69 tasks passed with strict verification and an isolated cache. The initial offline run lacked the AGP plugin. Online provisioning supplied the pinned inputs."
+    },
+    {
+      "command": "compiler/experiments/native-map-island/replay.sh --android-vectors <local output>",
+      "result": "Host replay passed Android mount, move, 15 cold refusals, and 15 warm refusals. Each warm refusal preserved the active frame.",
+      "inputSHA256": "aa71c2be355351b3cf5fc9af33c3cea33e678b3449baa85f3ba2582b8dc60295"
+    },
+    {
+      "command": "compiler/experiments/swiftui-native-core/HostReplay/run.sh debug list-supersession",
+      "result": "The release of a staged row handler could not detach the accepted frame."
+    }
+  ],
+  "nativeInsets": {
+    "status": "reproduced_overlap_with_unresolved_cleanup",
+    "scope": "Maintained ComposeDocumentHost with a focused instrumentation assertion after exact draw acknowledgment",
+    "sourceRevision": "ecc0483035337aa742fcbaffefe66fc2f4244cf2",
+    "sourceTree": "2f53b32fe25d8fee2bac5468d609bd66fa0513b3",
+    "apkSHA256": {
+      "MixerComposeHost-debug.apk": "7df6229675e9632c0a2875cb446ad28474aff7a4a015b53dcaa29b2d9d7d3d89",
+      "MixerComposeHost-debug-androidTest.apk": "4c59d03e3fc4216316d8ee7fa2862bdd8edffe6f021337e638ac3c5846ebdfb7"
+    },
+    "selector": "dev.mixer.compose.up4.test/dev.mixer.compose.ComposeSmoke",
+    "emulator": "google/sdk_gphone64_arm64/emu64a:16/BE2A.250530.026.F3/13894323:userdebug/dev-keys",
+    "viewBoundsPx": [
+      0,
+      0,
+      1080,
+      2400
+    ],
+    "safeWindowPx": [
+      0,
+      128,
+      1080,
+      2337
+    ],
+    "instrumentationCode": 0,
+    "cleanup": "Both packages uninstalled. The emulator shutdown command returned successfully. The emulator leader returned while its group remained present. The controller preserved the device scratch and stopped before observing private ADB closure.",
+    "hold": {
+      "topLevel": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-67570144/verification/local/plan-nov24-delivery.MDpiQiN9/native-baseline/receipt.json",
+      "preserved": "/Users/andreyyurlov/.t3/worktrees/mixer/t3-67570144/verification/local/plan-nov24-delivery.MDpiQiN9/native-baseline",
+      "avd": "mixer_up4_insets_26be51be75be",
+      "ports": [
+        5556,
+        5557,
+        64630
+      ],
+      "processes": [
+        {
+          "label": "adb-private",
+          "pid": 90516,
+          "pgid": 90516
+        },
+        {
+          "label": "emulator",
+          "pid": 90565,
+          "pgid": 90565
+        }
+      ]
+    }
+  },
+  "firstAppearanceAttempt": {
+    "status": "fixture_preflight_refusal",
+    "selector": "dev.mixer.compose.up4.test/dev.mixer.compose.AppearanceSmoke",
+    "appSHA256": "285e31e5becff42cd92669ce66a8b3fa04a317e8898ac094a317ae75ca6349bc",
+    "testSHA256": "67d296b4012c261f32d3dc888e5c94b991f36b8f2eace9c4ba220f81d7c0b8c4",
+    "instrumentationCode": 0,
+    "result": "The fixture refused custom_bedtime before changing Settings or taking screenshots.",
+    "hold": {
+      "topLevel": "verification/local/plan-nov24-delivery.MDpiQiN9/native-appearance/receipt.json",
+      "preserved": "verification/local/plan-nov24-delivery.MDpiQiN9/native-appearance",
+      "worktree": "t3-67570144",
+      "emulatorPGID": 20129,
+      "privateADBPGID": 19757,
+      "ports": [5588, 5589, 49556]
+    }
+  },
+  "remaining": "Installed interactive Compose generation, API 36 appearance and inset acceptance, and managed Gradle execution remain open."
+}
