@@ -109,7 +109,7 @@ actor SignedJourney {
         guard let owner else { throw JourneyError("No live owner for the refusal control") }
         let before = await owner.recoverySnapshot()
         let stateFile = directory.appendingPathComponent("recovery/state.json")
-        let durable = try Data(contentsOf: stateFile)
+        let durableBefore = try Data(contentsOf: stateFile)
         let manifest = try load("rollback.manifest")
         let assignment = try load("rollback.assignment")
         let payload = try load("prior.wasm")
@@ -124,12 +124,29 @@ actor SignedJourney {
             try await owner.preflightS5SignedCompose(signedManifest: JSONEncoder().encode(CanonicalValue.object(fields)),
                                                       signedAssignment: assignment, payload: payload)
             throw JourneyError("Tampered artifact signature was admitted")
-        } catch let error as UpdateError where error.code == "v3.signature.invalid" {}
+        } catch let error as UpdateError where error.code == "v3.signature.invalid" {
+            print("S5 refusal error=\(error.code)")
+        }
         let after = await owner.recoverySnapshot()
-        guard after.activation.phase == .healthyGuest, let candidate = before.healthy, after.healthy == candidate,
-              after.activation.candidateID == candidate, after.activation.launchID == before.activation.launchID,
-              after.acceptedSequence == before.acceptedSequence, after.staged == nil, after.downloading == nil,
-              try Data(contentsOf: stateFile) == durable else {
+        let durableAfter = try Data(contentsOf: stateFile)
+        let durableMatches = durableAfter == durableBefore
+        print("""
+        S5 refusal phase before=\(before.activation.phase) after=\(after.activation.phase)
+        S5 refusal healthy before=\(String(reflecting: before.healthy)) after=\(String(reflecting: after.healthy))
+        S5 refusal candidate before=\(String(reflecting: before.activation.candidateID)) after=\(String(reflecting: after.activation.candidateID))
+        S5 refusal launch before=\(String(reflecting: before.activation.launchID)) after=\(String(reflecting: after.activation.launchID))
+        S5 refusal sequence before=\(before.acceptedSequence) after=\(after.acceptedSequence)
+        S5 refusal staged before=\(String(reflecting: before.staged)) after=\(String(reflecting: after.staged))
+        S5 refusal downloading before=\(String(reflecting: before.downloading)) after=\(String(reflecting: after.downloading))
+        S5 refusal state.json beforeSHA256=\(ReleaseVerifier.sha256(durableBefore)) afterSHA256=\(ReleaseVerifier.sha256(durableAfter)) byteEqual=\(durableMatches)
+        """)
+        guard before.activation.phase == .healthyGuest, after.activation.phase == before.activation.phase,
+              let candidate = before.healthy, before.activation.candidateID == candidate, after.healthy == candidate,
+              after.activation.candidateID == before.activation.candidateID,
+              after.activation.launchID == before.activation.launchID,
+              after.acceptedSequence == before.acceptedSequence,
+              after.staged == before.staged, after.downloading == before.downloading,
+              durableMatches else {
             throw JourneyError("Rejected install changed the live owner or durable selection")
         }
         return candidate
