@@ -22,4 +22,4 @@ printf 'Source revision %s, replay inputs SHA-256 ' "$revision"
 
 swift run --package-path "$experiment" --scratch-path "$scratch/build" --cache-path "$scratch/cache" \
   --config-path "$scratch/config" --security-path "$scratch/security" --manifest-cache local \
-  --force-resolved-versions NativeMapReplay "$revision"
+  --force-resolved-versions NativeMapReplay "$revision" "$@"

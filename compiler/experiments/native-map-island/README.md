@@ -14,7 +14,21 @@ Run from this checkout with macOS and Swift 6.2 or later.
 compiler/experiments/native-map-island/replay.sh
 ```
 
-The executable mounts a map above the details, then applies a signed update that moves it below the details and changes its coordinates and style. It checks the exact provider instance and SDK node identity. The same refusal controls run before the first mount and after the accepted update. They cover an unknown ID with a signed grant, a registered ID without a grant, independently mismatched placement and grant hashes, an unsupported version, invalid coordinates, a grant inserted after signing, a same-length payload edit, and an unpinned signer. After the refusals, the host and the provider still hold the accepted placement.
+The executable mounts a map above the details, then applies a signed update that moves it below the details and changes its coordinates and style. It checks the exact provider instance and SDK node identity. Each refusal runs before the first mount and after the accepted update. The checks cover exact grant IDs, independent grant and placement hashes and versions, invalid coordinates, payload edits, and an unpinned signer. After each refusal, the replay checks both the host and the provider for the expected frame.
+
+## Export signed test vectors for Android
+
+Run from the repository root and use a fresh output path.
+
+```sh
+mkdir -p verification/local
+out=$(mktemp -d "$PWD/verification/local/gc3-map-vectors.XXXXXXXX")
+compiler/experiments/native-map-island/replay.sh --android-vectors "$out/android-vectors.json"
+```
+
+The macOS replay checks both scopes with the Swift host before it writes the Android-scoped file. The Android cases also include a signed iOS mount that the Swift host accepts with the iOS scope and refuses with the Android scope.
+
+The private version 1 file contains the fixture's installed runtime, public test root, clock, map ID, schema digest, and installed node identity. Use these values to set up the Android test host before applying updates. For each ordered `steps` entry, base64-decode `artifact.signedManifest` and `artifact.payload` and submit the exact bytes to admission. Compare `refusalCode` and `applyCount` after each attempt. `acceptedStep` names the step whose slot, coordinates, and style the host and provider should retain. An absent `acceptedStep` means the map remains unmounted. An absent `refusalCode` means acceptance. Keep the installed node and provider identity across the move and warm refusals.
 
 ## Authority and wire format
 
@@ -58,7 +72,7 @@ for an unknown island, a missing grant, and a mismatched schema carry different
 coordinates, style, and slot. XCTest checks each refusal and the retained pin,
 camera, position, style, surface identity, and provider apply count.
 
-The macOS executable uses a recording provider and runs offline. The iOS
+The macOS executable uses a recording provider and runs offline after dependency resolution. The iOS
 fixture uses Apple MapKit without provider credentials. Offline basemap tiles
 may be blank. The XCTest assertions cover the annotation and camera, independent
 of tile appearance. Android, production UI-schema and release-grant integration,
