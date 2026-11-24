@@ -545,6 +545,23 @@ UP5_NATIVE_SOURCE_CHANGES = UP5_NATIVE_SOURCE_REPLACEMENTS | {
     SPARSE_CHECKOUT_TEST,
 }
 
+UP5_APPLE_THEME_IDENTITY_PREFIX = 'up5-apple-theme-identity-predecessor-bytes/'
+UP5_APPLE_THEME_IDENTITY_BASE = '97b1c80649c03b3ef2198ba9a139a1b27e5a2290'
+UP5_APPLE_THEME_IDENTITY_ROOT = '199c189bc8798499cba22cf8df4afeef651f9dd7'
+UP5_APPLE_THEME_IDENTITY_SHA256 = 'ce9af9348562735ff4213a11bb90a1512a27674c4001da13be627a9f22125b8f'
+UP5_APPLE_THEME_FILE = 'sdk/Sources/MixerApple/MixerNativeTheme.swift'
+UP5_APPLE_THEME_CAPABILITY = CAPABILITY + 'CapabilityGuestUIApple.swift'
+UP5_APPLE_THEME_CAPABILITY_BEFORE = '5de007ea524c09d2e2ccb713f3553ee953841beb099313c2ff4fe39b1463d836'
+UP5_APPLE_THEME_CAPABILITY_AFTER = '28116c07d5cb31e072e6a2958722f959dffcf6570c4c223250ad541a638799e7'
+UP5_APPLE_THEME_IDENTITY_REPLACEMENTS = {
+    APPLE_RENDERER,
+    'sdk/Sources/MixerSwiftUI/ViewEvaluation.swift',
+    'sdk/Sources/MixerSwiftUI/Views.swift',
+}
+UP5_APPLE_THEME_IDENTITY_CHANGES = UP5_APPLE_THEME_IDENTITY_REPLACEMENTS | {
+    UP5_APPLE_THEME_CAPABILITY, SPARSE_CHECKOUT_TEST,
+}
+
 S4_DISPLAY_RECEIPT_PREFIX = 's4-display-receipt-predecessor-bytes/'
 S4_DISPLAY_RECEIPT_PREDECESSOR_REVISION = '51b5cc47da8160d3249a46bc3fb3e480a40eac43'
 S4_DISPLAY_RECEIPT_OWNER_SHA256 = 'be938883cc03256e261ff36d8c8b9749df62637911f44c3e8cd8c155b779f348'
@@ -686,6 +703,8 @@ MEMBERS = {PUBLIC_UPDATE_PREIMAGE, HOSTED_V32_WORKFLOW, WORKSPACE_BUILDS_WORKFLO
     UP5_PAIR30_PREFIX + name for name in UP5_PAIR30_REPLACEMENTS
 } | {
     UP5_NATIVE_SOURCE_PREFIX + name for name in UP5_NATIVE_SOURCE_CHANGES
+} | {
+    UP5_APPLE_THEME_IDENTITY_PREFIX + name for name in UP5_APPLE_THEME_IDENTITY_CHANGES
 } | {
     SWIFT_VERSION_PREFIX + name for name in SWIFT_VERSION_CHANGES
 } | {
@@ -901,6 +920,7 @@ def install_inputs():
                              'up1_pair28_transition', 'up2_pair29_transition',
                              's3_swiftui_transition', 's4_display_receipt_transition',
                              'swiftui_controls_transition', 'up5_pair30_transition', 'up5_native_source_transition',
+                             'up5_apple_theme_identity_transition',
                              'fixture_rust_pin_workflow', 'hosted_v43_workflow',
                              'hosted_v44_workflow', 'hosted_v45_workflow', 'hosted_v46_workflow', 'hosted_v47_workflow', 'hosted_v48_workflow', 'hosted_v49_workflow', 'hosted_v50_workflow', 'hosted_v51_workflow', 'hosted_v52_workflow', 'hosted_v53_workflow', 'hosted_v54_workflow', 'hosted_v55_workflow', 'hosted_v56_workflow', 'hosted_v57_workflow',
                              'hosted_v58_workflow', 'hosted_v59_workflow', 'hosted_v60_workflow', 'hosted_v61_workflow', 'hosted_v62_workflow', 'hosted_v63_workflow', 'hosted_v64_workflow', 'hosted_v65_workflow', 'hosted_v66_workflow', 'hosted_v67_workflow', 'hosted_v68_workflow', 'hosted_v69_workflow'} and
@@ -2472,11 +2492,50 @@ def install_inputs():
     expected_source.update(native['additions'])
     installed.update(native['additions'])
     require(len(expected_source) == 164 and
-            previous.digest(expected_source) == native['sourceAfter'] == UP5_NATIVE_SOURCE_SHA256 and
+            previous.digest(expected_source) == native['sourceAfter'] == UP5_NATIVE_SOURCE_SHA256,
+            'Published UP5 native SDK source selection differs')
+
+    theme_identity = binding['up5_apple_theme_identity_transition']
+    require(set(theme_identity) == {'baseRevision', 'rootRevision', 'sourceBefore', 'sourceAfter',
+                                    'changes', 'additions'} and
+            theme_identity['baseRevision'] == UP5_APPLE_THEME_IDENTITY_BASE and
+            theme_identity['rootRevision'] == UP5_APPLE_THEME_IDENTITY_ROOT and
+            theme_identity['sourceBefore'] == UP5_NATIVE_SOURCE_SHA256 and
+            set(theme_identity['changes']) == UP5_APPLE_THEME_IDENTITY_CHANGES and
+            set(theme_identity['additions']) == {UP5_APPLE_THEME_FILE} and
+            UP5_APPLE_THEME_IDENTITY_CHANGES - {UP5_APPLE_THEME_CAPABILITY} <= installed.keys() and
+            UP5_APPLE_THEME_IDENTITY_CHANGES & expected_source.keys() == UP5_APPLE_THEME_IDENTITY_REPLACEMENTS and
+            {UP5_APPLE_THEME_CAPABILITY, UP5_APPLE_THEME_FILE}.isdisjoint(installed),
+            'UP5 Apple theme and explicit identity transition roster differs')
+    for name, change in theme_identity['changes'].items():
+        path = HERE / UP5_APPLE_THEME_IDENTITY_PREFIX / name
+        raw = read_predecessor_member(path)
+        require(set(change) == {'before', 'after', 'mode'} and
+                change['before'] == previous.row(raw) and change['before'] != change['after'] and
+                change['mode'] == stat.S_IMODE(path.lstat().st_mode) ==
+                stat.S_IMODE((ROOT / name).lstat().st_mode) == 0o644,
+                'UP5 Apple theme or explicit identity predecessor bytes or mode differs: ' + name)
+        if name == UP5_APPLE_THEME_CAPABILITY:
+            require(change['before']['sha256'] == UP5_APPLE_THEME_CAPABILITY_BEFORE and
+                    change['after']['sha256'] == UP5_APPLE_THEME_CAPABILITY_AFTER,
+                    'UP5 Apple capability theme owner differs: ' + name)
+        else:
+            require(change['before'] == installed[name], 'UP5 published owner preimage differs: ' + name)
+        if name in UP5_APPLE_THEME_IDENTITY_REPLACEMENTS:
+            require(expected_source[name] == change['before'], 'UP5 published source preimage differs: ' + name)
+            expected_source[name] = change['after']
+        installed[name] = change['after']
+        preimages.setdefault(name, (raw, change['mode']))
+    require(stat.S_IMODE((ROOT / UP5_APPLE_THEME_FILE).lstat().st_mode) == 0o644,
+            'UP5 Apple theme addition mode differs: ' + UP5_APPLE_THEME_FILE)
+    expected_source.update(theme_identity['additions'])
+    installed.update(theme_identity['additions'])
+    require(len(expected_source) == 165 and
+            previous.digest(expected_source) == theme_identity['sourceAfter'] == UP5_APPLE_THEME_IDENTITY_SHA256 and
             current == expected_source and
             binding['source'] == {'count': len(current), 'manifest': SOURCE_INPUTS_MANIFEST,
-                                  'sha256': UP5_NATIVE_SOURCE_SHA256},
-            'UP5 native SDK source selection differs')
+                                  'sha256': UP5_APPLE_THEME_IDENTITY_SHA256},
+            'UP5 Apple theme and explicit identity source selection differs')
 
     s4 = binding['s4_display_receipt_transition']
     require(set(s4) == {'baseRevision', 'changes'} and
@@ -2647,6 +2706,7 @@ def verify(installed=False):
     binding, selected, _ = admit()
     return {'schema': 1, 'type': TYPE, 'source_count': len(selected),
             'source_sha256': binding['source']['sha256'], 'profile': binding['profile'],
+            'predecessor_up5_native_source164_sha256': binding['up5_apple_theme_identity_transition']['sourceBefore'],
             'predecessor_up5_pair30_source163_sha256': binding['up5_native_source_transition']['sourceBefore'],
             'predecessor_swiftui_controls_source163_sha256': binding['up5_pair30_transition']['sourceBefore'],
             'predecessor_s3_swiftui_source163_sha256': binding['swiftui_controls_transition']['sourceBefore'],
